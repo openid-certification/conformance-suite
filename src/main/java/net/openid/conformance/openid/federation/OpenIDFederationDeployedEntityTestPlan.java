@@ -4,6 +4,8 @@ import net.openid.conformance.plan.PublishTestPlan;
 import net.openid.conformance.plan.TestPlan;
 import net.openid.conformance.variant.VariantSelection;
 
+import java.util.List;
+
 @PublishTestPlan(
 	testPlanName = "openid-federation-deployed-entity-test-plan",
 	displayName = "OpenID Federation: Deployed federation entity test (alpha version - may be incomplete or incorrect, please email certification@oidf.org)",
@@ -19,8 +21,9 @@ import net.openid.conformance.variant.VariantSelection;
 )
 public class OpenIDFederationDeployedEntityTestPlan implements TestPlan {
 
-	public static String certificationProfileName(VariantSelection variant) {
-		return "OpenID Federation: Deployed federation entity";
+	@Override
+	public List<String> certificationProfileName(VariantSelection variant) {
+		return List.of("OpenID Federation: Deployed federation entity");
 	}
 
 }

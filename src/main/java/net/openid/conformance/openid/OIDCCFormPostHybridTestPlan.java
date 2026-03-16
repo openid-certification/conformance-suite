@@ -13,11 +13,13 @@ import java.util.List;
 )
 public class OIDCCFormPostHybridTestPlan extends AbstractFormPostTestPlan {
 
-	public static List<ModuleListEntry> testModulesWithVariants() {
-		return changeResponseTypeToFormPost(OIDCCHybridTestPlan.testModulesWithVariants());
+	@Override
+	public List<ModuleListEntry> testModulesWithVariants() {
+		return changeResponseTypeToFormPost(new OIDCCHybridTestPlan().testModulesWithVariants());
 	}
 
-	public static String certificationProfileName(VariantSelection variant) {
-		return "Form Post OP";
+	@Override
+	public List<String> certificationProfileName(VariantSelection variant) {
+		return List.of("Form Post OP");
 	}
 }

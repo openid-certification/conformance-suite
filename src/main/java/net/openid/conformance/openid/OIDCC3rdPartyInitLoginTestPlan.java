@@ -17,7 +17,8 @@ import java.util.List;
 )
 public class OIDCC3rdPartyInitLoginTestPlan implements TestPlan {
 
-	public static List<ModuleListEntry> testModulesWithVariants() {
+	@Override
+	public List<ModuleListEntry> testModulesWithVariants() {
 		// This plan attempts to match 'Third Party-Initiated Login OP Profile' as defined here:
 		// https://openid.net/certification/testing/
 
@@ -42,7 +43,8 @@ public class OIDCC3rdPartyInitLoginTestPlan implements TestPlan {
 		);
 	}
 
-	public static String certificationProfileName(VariantSelection variant) {
-		return "3rd Party-Init OP";
+	@Override
+	public List<String> certificationProfileName(VariantSelection variant) {
+		return List.of("3rd Party-Init OP");
 	}
 }

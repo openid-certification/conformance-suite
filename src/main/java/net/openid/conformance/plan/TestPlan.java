@@ -1,7 +1,9 @@
 package net.openid.conformance.plan;
 
 import net.openid.conformance.testmodule.TestModule;
+import net.openid.conformance.variant.VariantSelection;
 
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -54,16 +56,24 @@ public interface TestPlan {
 		}
 	}
 
-	/* Instead of defined test modules in the @PublishTestModule annotation, TestPlans can implement the
-	testModulesWithVariants() method, which allows them to define that test modules will be run with multiple
-	variants:
+	/**
+	 * Override to define test modules with specific variant combinations, as an alternative to
+	 * listing them in the {@link PublishTestPlan} annotation.
+	 *
+	 * @return list of module/variant entries, or null to use the annotation's testModules instead
+	 */
+	default List<ModuleListEntry> testModulesWithVariants() {
+		return null;
+	}
 
-	public static List<ModuleListEntry> testModulesWithVariants()
-
-	To define a certification profile name (used in the certification submission) implement:
-
-	public static String certificationProfileName(VariantSelection variant) {
-
-	*/
+	/**
+	 * Override to define a certification profile name (used in the certification submission)
+	 * for the given variant selection.
+	 *
+	 * @return list of certification profile names, or empty list if none
+	 */
+	default List<String> certificationProfileName(VariantSelection variant) {
+		return Collections.emptyList();
+	}
 
 }

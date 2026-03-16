@@ -131,7 +131,8 @@ public class FAPI2MessageSigningID1TestPlan implements TestPlan {
 
 	);
 
-	public static List<ModuleListEntry> testModulesWithVariants() {
+	@Override
+	public List<ModuleListEntry> testModulesWithVariants() {
 		List<TestPlan.Variant> variant = List.of(
 		);
 
@@ -141,7 +142,8 @@ public class FAPI2MessageSigningID1TestPlan implements TestPlan {
 
 	}
 
-	public static String certificationProfileName(VariantSelection variant) {
+	@Override
+	public List<String> certificationProfileName(VariantSelection variant) {
 
 		Map<String, String> v = variant.getVariant();
 		String profile = v.get("fapi_profile");
@@ -211,7 +213,7 @@ public class FAPI2MessageSigningID1TestPlan implements TestPlan {
 						MethodHandles.lookup().lookupClass().getSimpleName()));
 				}
 				// as there's only one possible correct configuration, stop here and return just the name
-				return certProfile + " ConnectID OP";
+				return List.of(certProfile + " ConnectID OP");
 			case "cbuae":
 				if (!privateKey) {
 					throw new RuntimeException("Invalid configuration for %s: Only private_key_jwt is used for CBUAE".formatted(
@@ -239,7 +241,7 @@ public class FAPI2MessageSigningID1TestPlan implements TestPlan {
 							MethodHandles.lookup().lookupClass().getSimpleName()));
 				}
 				// as there's only one possible correct configuration, stop here and return just the name
-				return certProfile + " CBUAE OP";
+				return List.of(certProfile + " CBUAE OP");
 			default:
 				throw new RuntimeException("Unknown profile %s for %s".formatted(
 					profile, MethodHandles.lookup().lookupClass().getSimpleName()));
@@ -280,6 +282,6 @@ public class FAPI2MessageSigningID1TestPlan implements TestPlan {
 		}
 
 
-		return certProfile;
+		return List.of(certProfile);
 	}
 }

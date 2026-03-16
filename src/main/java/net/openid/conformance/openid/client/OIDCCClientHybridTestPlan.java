@@ -17,7 +17,8 @@ import java.util.List;
 )
 public class OIDCCClientHybridTestPlan implements TestPlan {
 
-	public static List<ModuleListEntry> testModulesWithVariants() {
+	@Override
+	public List<ModuleListEntry> testModulesWithVariants() {
 		// This plan attempts to match hybrid relying party tests as defined here:
 		// https://openid.net/wordpress-content/uploads/2018/06/OpenID-Connect-Conformance-Profiles.pdf
 		// the tests are in the same order as the table
@@ -224,8 +225,9 @@ public class OIDCCClientHybridTestPlan implements TestPlan {
 		);
 	}
 
-	public static String certificationProfileName(VariantSelection variant) {
-		return "Hybrid RP";
+	@Override
+	public List<String> certificationProfileName(VariantSelection variant) {
+		return List.of("Hybrid RP");
 	}
 
 }

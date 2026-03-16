@@ -26,7 +26,8 @@ import java.util.Map;
 	profile = TestPlan.ProfileNames.rptest
 )
 public class BrazilOBClientTestPlan implements TestPlan {
-	public static String certificationProfileName(VariantSelection variant) {
+	@Override
+	public List<String> certificationProfileName(VariantSelection variant) {
 
 		String certProfile = "BR-OB Adv. RP w/";
 
@@ -63,10 +64,11 @@ public class BrazilOBClientTestPlan implements TestPlan {
 				}
 				break;
 		}
-		return certProfile;
+		return List.of(certProfile);
 	}
 
-	public static List<TestPlan.ModuleListEntry> testModulesWithVariants() {
+	@Override
+	public List<TestPlan.ModuleListEntry> testModulesWithVariants() {
 		ArrayList<Class<? extends TestModule>> modules = new ArrayList<>(FAPI2MessageSigningFinalClientTestPlan.testModules);
 
 		// this is marked with VariantNotApplicable for Brazil, we must remove it otherwise we get a startup error

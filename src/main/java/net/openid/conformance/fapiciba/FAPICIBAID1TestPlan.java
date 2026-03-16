@@ -7,6 +7,7 @@ import net.openid.conformance.variant.ClientAuthType;
 import net.openid.conformance.variant.VariantSelection;
 
 import java.lang.invoke.MethodHandles;
+import java.util.List;
 import java.util.Map;
 
 @PublishTestPlan (
@@ -84,7 +85,8 @@ import java.util.Map;
 	}
 )
 public class FAPICIBAID1TestPlan implements TestPlan {
-	public static String certificationProfileName(VariantSelection variant) {
+	@Override
+	public List<String> certificationProfileName(VariantSelection variant) {
 
 		String certProfile = null;
 
@@ -116,7 +118,7 @@ public class FAPICIBAID1TestPlan implements TestPlan {
 				break;
 			case "consumerdataright_au":
 			default:
-				return "";	//Not a profile
+				return List.of("");	//Not a profile
 		}
 
 		certProfile += " OP ";
@@ -138,6 +140,6 @@ public class FAPICIBAID1TestPlan implements TestPlan {
 				break;
 		}
 
-		return certProfile;
+		return List.of(certProfile);
 	}
 }

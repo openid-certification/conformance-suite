@@ -16,7 +16,8 @@ import java.util.Map;
 	profile = TestPlan.ProfileNames.wallettest
 )
 public class VP1FinalWalletTestPlanHaip implements TestPlan {
-	public static List<ModuleListEntry> testModulesWithVariants() {
+	@Override
+	public List<ModuleListEntry> testModulesWithVariants() {
 
 		var testModules = new ArrayList<>(VP1FinalWalletTestPlan.testModules);
 		testModules.remove(VP1FinalWalletResponseUriNotClientId.class); // excluded due to @VariantNotApplicable with x509_hash
@@ -32,7 +33,8 @@ public class VP1FinalWalletTestPlanHaip implements TestPlan {
 			)
 		);
 	}
-	public static String certificationProfileName(VariantSelection variant) {
+	@Override
+	public List<String> certificationProfileName(VariantSelection variant) {
 
 		Map<String, String> v = variant.getVariant();
 		String vpProfile = v.get("vp_profile");
@@ -61,7 +63,7 @@ public class VP1FinalWalletTestPlanHaip implements TestPlan {
 
 		certProfile += " " + vpProfile + " " + credentialFormat + " " + requestMethod + " " + clientIDPrefix + " " + responseMode;
 
-		return certProfile;
+		return List.of(certProfile);
 	}
 
 }

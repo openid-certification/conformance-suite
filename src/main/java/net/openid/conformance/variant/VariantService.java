@@ -20,7 +20,6 @@ import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -29,6 +28,7 @@ import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
@@ -57,16 +57,16 @@ public class VariantService {
 	public VariantService(Predicate<? super TestPlanHolder> byProfile) {
 
 		this.variantParametersByClass = inClassesWithAnnotation(VariantParameter.class)
-				.collect(toMap(identity(), c -> wrapParameter(c)));
+				.collect(toMap(identity(), this::wrapParameter));
 
 		this.testModulesByClass = inClassesWithAnnotation(PublishTestModule.class)
-				.collect(toMap(identity(), c -> wrapModule(c)));
+				.collect(toMap(identity(), this::wrapModule));
 
 		this.testModulesByName = testModulesByClass.values().stream()
 				.collect(toSortedMap("test module", m -> m.info.testName(), identity()));
 
 		this.testPlansByName = inClassesWithAnnotation(PublishTestPlan.class)
-				.map(c -> wrapPlan(c))
+				.map(this::wrapPlan)
 				.filter(byProfile)
 				.collect(toSortedMap("test plan", holder -> holder.info.testPlanName(), identity()));
 	}
@@ -158,7 +158,7 @@ public class VariantService {
 						throw new RuntimeException("Variant parameter declaration includes multiple parameters with name: " + p1.variantParameter.name());
 					}
 				}),
-				p -> p.get());
+			Optional::get);
 	}
 
 	private static <T, K, U> Collector<T, ?, SortedMap<K, U>> toSortedMap(
@@ -336,6 +336,7 @@ public class VariantService {
 		final List<TestPlanModuleWithVariant> modulesWithVariant;
 
 		final Class<? extends TestPlan> planClass;
+		final TestPlan planInstance;
 		final Map<String, ParameterHolder<? extends Enum<?>>> parametersByName;
 
 		private List<TestPlanModuleWithVariant> convertModuleListEntry(String testPlanName, List<TestPlan.ModuleListEntry> list) {
@@ -362,24 +363,18 @@ public class VariantService {
 			}).collect(toList());
 		}
 
-		@SuppressWarnings({ "unchecked" })
 		TestPlanHolder(Class<? extends TestPlan> planClass) {
 			this.planClass = planClass;
 			this.info = planClass.getDeclaredAnnotation(PublishTestPlan.class);
 
-			List<TestPlan.ModuleListEntry> list = null;
 			try {
-				// Test plans can implement a static method to list modules with variants to run them with; as
-				// java doesn't allow interfaces to define static methods (unless they define the implementation too)
-				// we have to call this via reflection:
-				Method m = planClass.getDeclaredMethod("testModulesWithVariants");
-				Object untypedList = m.invoke(null);
-				list = (List<TestPlan.ModuleListEntry>) untypedList;
-			} catch (NoSuchMethodException e) {
-				// class doesn't implement this; below we'll read the modules from the annotation instead
-			} catch (IllegalAccessException | InvocationTargetException e) {
-				throw new RuntimeException("Reflection issue calling testModulesWithVariants() for "+planClass.getSimpleName(), e);
+				this.planInstance = planClass.getDeclaredConstructor().newInstance();
+			} catch (InstantiationException | IllegalAccessException | IllegalArgumentException
+					| InvocationTargetException | NoSuchMethodException | SecurityException e) {
+				throw new RuntimeException("Couldn't create test plan instance for " + planClass.getSimpleName(), e);
 			}
+
+			List<TestPlan.ModuleListEntry> list = planInstance.testModulesWithVariants();
 
 			if (list != null) {
 				// module list is defined by the result of the testModulesWithVariants() method
@@ -428,32 +423,8 @@ public class VariantService {
 			return new ArrayList<>(fields);
 		}
 
-		@SuppressWarnings("unchecked")
 		public List<String> certificationProfileForVariant(VariantSelection variantSelection) {
-
-
-			try {
-				// Test plans can implement a static method to list modules with variants to run them with; as
-				// java doesn't allow interfaces to define static methods (unless they define the implementation too)
-				// we have to call this via reflection:
-				Method m = planClass.getDeclaredMethod("certificationProfileName", VariantSelection.class);
-				Object result = m.invoke(null, variantSelection);
-				if (result instanceof List) {
-					return (List<String>) result;
-				}
-				return List.of((String)result);
-			} catch (NoSuchMethodException e) {
-				// class doesn't implement this so doesn't have any certification profiles
-				return Collections.emptyList();
-			} catch (IllegalAccessException e) {
-				throw new RuntimeException("Reflection issue calling certificationProfileName() for "+planClass.getSimpleName(), e);
-			} catch (InvocationTargetException e) {
-				Throwable target = e.getTargetException();
-				if (target instanceof RuntimeException exception) {
-					throw exception;
-				}
-				throw new RuntimeException("Reflection issue calling certificationProfileName() for "+planClass.getSimpleName(), e);
-			}
+			return planInstance.certificationProfileName(variantSelection);
 		}
 
 		public List<Plan.Module> getTestModulesForVariant(VariantSelection userSelectedVariant) {
@@ -682,7 +653,7 @@ public class VariantService {
 					.map(m -> Map.entry(m.getAnnotation(VariantSetup.class), m))
 					.collect(groupingBy(e -> moduleParameter.apply(e.getKey().parameter()),
 							groupingBy(e -> e.getKey().value(),
-									mapping(e -> e.getValue(), toList()))));
+									mapping(Map.Entry::getValue, toList()))));
 
 			// Parse @VariantNotApplicableWhen annotations
 			// Group by target parameter, then build ConditionalExclusion objects
@@ -951,13 +922,13 @@ public class VariantService {
 			valuesNotApplicable.forEach(s -> this.allowedValues.remove(parameter.valueOf(s)));
 
 			this.configurationFields = configurationFields.entrySet().stream()
-					.collect(toMap(e -> parameter.valueOf(e.getKey()), e -> e.getValue()));
+					.collect(toMap(e -> parameter.valueOf(e.getKey()), Map.Entry::getValue));
 
 			this.hidesConfigurationFields = hidesConfigurationFields.entrySet().stream()
-					.collect(toMap(e -> parameter.valueOf(e.getKey()), e -> e.getValue()));
+					.collect(toMap(e -> parameter.valueOf(e.getKey()), Map.Entry::getValue));
 
 			this.setupMethods = setupMethods.entrySet().stream()
-					.collect(toMap(e -> parameter.valueOf(e.getKey()), e -> e.getValue()));
+					.collect(toMap(e -> parameter.valueOf(e.getKey()), Map.Entry::getValue));
 
 			this.conditionalExclusions = conditionalExclusions;
 
