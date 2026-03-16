@@ -15,7 +15,8 @@ import java.util.Map;
 )
 public class FAPI1AdvancedFinalBrazilDCRTestPlan implements TestPlan {
 
-	public static List<ModuleListEntry> testModulesWithVariants() {
+	@Override
+	public List<ModuleListEntry> testModulesWithVariants() {
 
 		return List.of(
 			new ModuleListEntry(
@@ -51,7 +52,8 @@ public class FAPI1AdvancedFinalBrazilDCRTestPlan implements TestPlan {
 		);
 
 	}
-	public static String certificationProfileName(VariantSelection variant) {
+	@Override
+	public List<String> certificationProfileName(VariantSelection variant) {
 		Map<String, String> v = variant.getVariant();
 
 		String profile = v.get("fapi_profile");
@@ -67,9 +69,9 @@ public class FAPI1AdvancedFinalBrazilDCRTestPlan implements TestPlan {
 		}
 		switch (profile) {
 			case "openbanking_brazil":
-				return "BR-OF Adv. OP DCR (FAPI-BR v2)";
+				return List.of("BR-OF Adv. OP DCR (FAPI-BR v2)");
 			case "openinsurance_brazil":
-				return "BR-OPIN Adv. OP DCR (FAPI-BR v2)";
+				return List.of("BR-OPIN Adv. OP DCR (FAPI-BR v2)");
 			default:
 				throw new RuntimeException("This plan can only be used for Brazil OpenBanking/OpenFinance or OpenInsurance.");
 		}

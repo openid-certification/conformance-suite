@@ -16,7 +16,8 @@ import java.util.List;
 )
 public class OIDCCFrontchannelRpInitiatedLogoutTestPlan implements TestPlan {
 
-	public static List<ModuleListEntry> testModulesWithVariants() {
+	@Override
+	public List<ModuleListEntry> testModulesWithVariants() {
 		// This plan attempts to match 'Front-Channel Logout OP' as defined here:
 		// https://openid.net/certification/logout_op_testing/
 
@@ -42,8 +43,9 @@ public class OIDCCFrontchannelRpInitiatedLogoutTestPlan implements TestPlan {
 		);
 	}
 
-	public static String certificationProfileName(VariantSelection variant) {
-		return "Front-Channel OP";
+	@Override
+	public List<String> certificationProfileName(VariantSelection variant) {
+		return List.of("Front-Channel OP");
 	}
 
 }

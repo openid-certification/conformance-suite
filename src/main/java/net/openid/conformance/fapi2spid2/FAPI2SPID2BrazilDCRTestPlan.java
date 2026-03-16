@@ -14,7 +14,8 @@ import java.util.List;
 )
 public class FAPI2SPID2BrazilDCRTestPlan implements TestPlan {
 
-	public static List<ModuleListEntry> testModulesWithVariants() {
+	@Override
+	public List<ModuleListEntry> testModulesWithVariants() {
 
 		return List.of(
 			new ModuleListEntry(
@@ -42,7 +43,8 @@ public class FAPI2SPID2BrazilDCRTestPlan implements TestPlan {
 		);
 
 	}
-	public static String certificationProfileName(VariantSelection variant) {
-		return "BR-OB Adv. OP DCR";
+	@Override
+	public List<String> certificationProfileName(VariantSelection variant) {
+		return List.of("BR-OB Adv. OP DCR");
 	}
 }

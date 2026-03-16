@@ -20,7 +20,8 @@ public class VP1FinalVerifierTestPlan implements TestPlan {
 		VP1FinalVerifierHappyFlow.class
 	);
 
-	public static List<ModuleListEntry> testModulesWithVariants() {
+	@Override
+	public List<ModuleListEntry> testModulesWithVariants() {
 		return List.of(
 			new ModuleListEntry(
 				testModules,
@@ -29,7 +30,8 @@ public class VP1FinalVerifierTestPlan implements TestPlan {
 			)
 		);
 	}
-	public static String certificationProfileName(VariantSelection variant) {
+	@Override
+	public List<String> certificationProfileName(VariantSelection variant) {
 
 		Map<String, String> v = variant.getVariant();
 		String responseMode = v.get("response_mode");
@@ -41,7 +43,7 @@ public class VP1FinalVerifierTestPlan implements TestPlan {
 
 		certProfile += " " + credentialFormat + " " + requestMethod + " " + clientIdPrefix + " " + responseMode;
 
-		return certProfile;
+		return List.of(certProfile);
 	}
 
 }

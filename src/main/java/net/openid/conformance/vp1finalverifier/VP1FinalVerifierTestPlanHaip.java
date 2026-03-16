@@ -16,7 +16,8 @@ import java.util.Map;
 )
 public class VP1FinalVerifierTestPlanHaip implements TestPlan {
 
-	public static List<ModuleListEntry> testModulesWithVariants() {
+	@Override
+	public List<ModuleListEntry> testModulesWithVariants() {
 		var testModules = new ArrayList<>(VP1FinalVerifierTestPlan.testModules);
 
 		return List.of(
@@ -30,7 +31,8 @@ public class VP1FinalVerifierTestPlanHaip implements TestPlan {
 			)
 		);
 	}
-	public static String certificationProfileName(VariantSelection variant) {
+	@Override
+	public List<String> certificationProfileName(VariantSelection variant) {
 
 		Map<String, String> v = variant.getVariant();
 		String vpProfile = v.get("vp_profile");
@@ -43,7 +45,7 @@ public class VP1FinalVerifierTestPlanHaip implements TestPlan {
 
 		certProfile += " " + vpProfile + " " + credentialFormat + " " + requestMethod + " " + clientIdPrefix + " " + responseMode;
 
-		return certProfile;
+		return List.of(certProfile);
 	}
 
 }

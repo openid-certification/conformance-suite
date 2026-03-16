@@ -23,7 +23,8 @@ import java.util.List;
 )
 public class OIDCCClientBackChannelLogoutRPHybridTestPlan implements TestPlan {
 
-	public static List<ModuleListEntry> testModulesWithVariants() {
+	@Override
+	public List<ModuleListEntry> testModulesWithVariants() {
 		List<Class<? extends TestModule>> testModules = List.of(
 			OIDCCClientTestBackChannelLogout.class,
 			OIDCCClientTestBackChannelLogoutAlgNone.class,
@@ -50,8 +51,9 @@ public class OIDCCClientBackChannelLogoutRPHybridTestPlan implements TestPlan {
 		);
 	}
 
-	public static String certificationProfileName(VariantSelection variant) {
-		return "Back-Channel RP";
+	@Override
+	public List<String> certificationProfileName(VariantSelection variant) {
+		return List.of("Back-Channel RP");
 	}
 
 }

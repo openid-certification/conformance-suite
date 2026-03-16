@@ -33,7 +33,8 @@ public class VP1FinalWalletTestPlan implements TestPlan {
 		// signed DC API request but no or wrong expected_origins
 	);
 
-	public static List<ModuleListEntry> testModulesWithVariants() {
+	@Override
+	public List<ModuleListEntry> testModulesWithVariants() {
 		return List.of(
 			new ModuleListEntry(
 				testModules,
@@ -42,7 +43,8 @@ public class VP1FinalWalletTestPlan implements TestPlan {
 			)
 		);
 	}
-	public static String certificationProfileName(VariantSelection variant) {
+	@Override
+	public List<String> certificationProfileName(VariantSelection variant) {
 
 		Map<String, String> v = variant.getVariant();
 		String responseMode = v.get("response_mode");
@@ -70,7 +72,7 @@ public class VP1FinalWalletTestPlan implements TestPlan {
 
 		certProfile += " " + credentialFormat + " " + requestMethod + " " + clientIDPrefix + " " + responseMode;
 
-		return certProfile;
+		return List.of(certProfile);
 	}
 
 }

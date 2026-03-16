@@ -17,7 +17,8 @@ import java.util.List;
 )
 public class OIDCCImplicitTestPlan implements TestPlan {
 
-	public static List<ModuleListEntry> testModulesWithVariants() {
+	@Override
+	public List<ModuleListEntry> testModulesWithVariants() {
 		// ClientRegistration.class is not specified so will be offered in the menu
 		// This plan attempts to match 'implicit' as defined here:
 		// https://openid.net/wordpress-content/uploads/2018/06/OpenID-Connect-Conformance-Profiles.pdf
@@ -92,7 +93,8 @@ public class OIDCCImplicitTestPlan implements TestPlan {
 		);
 	}
 
-	public static String certificationProfileName(VariantSelection variant) {
-		return "Implicit OP";
+	@Override
+	public List<String> certificationProfileName(VariantSelection variant) {
+		return List.of("Implicit OP");
 	}
 }

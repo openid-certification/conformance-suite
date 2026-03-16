@@ -130,7 +130,8 @@ public class FAPI2MessageSigningFinalTestPlan implements TestPlan {
 
 	);
 
-	public static List<ModuleListEntry> testModulesWithVariants() {
+	@Override
+	public List<ModuleListEntry> testModulesWithVariants() {
 		List<TestPlan.Variant> variant = List.of(
 		);
 
@@ -140,7 +141,8 @@ public class FAPI2MessageSigningFinalTestPlan implements TestPlan {
 
 	}
 
-	public static List<String> certificationProfileName(VariantSelection variant) {
+	@Override
+	public List<String> certificationProfileName(VariantSelection variant) {
 
 		List<String> profiles = new ArrayList<>();
 		Map<String, String> v = variant.getVariant();

@@ -12,7 +12,8 @@ import java.util.List;
 )
 public class VCIIssuerTestPlan implements TestPlan {
 
-	public static List<ModuleListEntry> testModulesWithVariants() {
+	@Override
+	public List<ModuleListEntry> testModulesWithVariants() {
 		return List.of(
 			new ModuleListEntry(
 				List.of(

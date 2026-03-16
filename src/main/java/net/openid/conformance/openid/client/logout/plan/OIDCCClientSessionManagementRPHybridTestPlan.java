@@ -14,7 +14,8 @@ import java.util.List;
 	profile = TestPlan.ProfileNames.rplogouttest
 )
 public class OIDCCClientSessionManagementRPHybridTestPlan implements TestPlan {
-	public static List<ModuleListEntry> testModulesWithVariants() {
+	@Override
+	public List<ModuleListEntry> testModulesWithVariants() {
 
 		return List.of(
 			new ModuleListEntry(
@@ -38,8 +39,9 @@ public class OIDCCClientSessionManagementRPHybridTestPlan implements TestPlan {
 		);
 	}
 
-	public static String certificationProfileName(VariantSelection variant) {
-		return "Session RP";
+	@Override
+	public List<String> certificationProfileName(VariantSelection variant) {
+		return List.of("Session RP");
 	}
 
 }

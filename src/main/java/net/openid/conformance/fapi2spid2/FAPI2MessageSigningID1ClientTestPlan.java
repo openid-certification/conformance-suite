@@ -56,7 +56,8 @@ public class FAPI2MessageSigningID1ClientTestPlan implements TestPlan {
 		FAPI2SPID2ClientRefreshTokenTest.class
 	);
 
-	public static List<ModuleListEntry> testModulesWithVariants() {
+	@Override
+	public List<ModuleListEntry> testModulesWithVariants() {
 		List<Variant> variant = List.of(
 		);
 
@@ -66,7 +67,8 @@ public class FAPI2MessageSigningID1ClientTestPlan implements TestPlan {
 
 	}
 
-	public static String certificationProfileName(VariantSelection variant) {
+	@Override
+	public List<String> certificationProfileName(VariantSelection variant) {
 
 		Map<String, String> v = variant.getVariant();
 		String profile = v.get("fapi_profile");
@@ -132,7 +134,7 @@ public class FAPI2MessageSigningID1ClientTestPlan implements TestPlan {
 						MethodHandles.lookup().lookupClass().getSimpleName()));
 				}
 				// as there's only one possible correct configuration, stop here and return just the name
-				return certProfile + " ConnectID RP";
+				return List.of(certProfile + " ConnectID RP");
 			case "cbuae":
 				if (!privateKey) {
 					throw new RuntimeException("Invalid configuration for %s: Only private_key_jwt is used for CBUAE".formatted(
@@ -155,7 +157,7 @@ public class FAPI2MessageSigningID1ClientTestPlan implements TestPlan {
 							MethodHandles.lookup().lookupClass().getSimpleName()));
 				}
 
-				return certProfile + " CBUAE RP";
+				return List.of(certProfile + " CBUAE RP");
 		}
 
 		certProfile += " RP w/";
@@ -193,6 +195,6 @@ public class FAPI2MessageSigningID1ClientTestPlan implements TestPlan {
 		}
 
 
-		return certProfile;
+		return List.of(certProfile);
 	}
 }
