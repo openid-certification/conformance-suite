@@ -2,7 +2,7 @@
     "alias": "oidf-obbsb-opin",
     "description": "OP Test to mock a client to RP MTLS test",
     "server": {
-        "discoveryUrl": "{BASEURL}test/a/oidf-rp-opin/.well-known/openid-configuration"
+        "discoveryUrl": "{LOCALBASEURL}test/a/oidf-rp-opin/.well-known/openid-configuration"
     },
     "client": {
         "client_id": "6827311122562855",
@@ -108,7 +108,7 @@
     },
     "browser": [
         {
-            "match": "{BASEURL}test/a/*",
+            "match": "{LOCALBASEURL}test/a/*",
             "tasks": [
                 {
                     "task": "Verify Complete",

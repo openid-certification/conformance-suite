@@ -1,5 +1,6 @@
 package net.openid.conformance.condition.client;
 
+import com.google.common.base.Strings;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PostEnvironment;
@@ -15,7 +16,12 @@ public class AddSectorIdentifierUriToDynamicRegistrationRequest extends Abstract
 
 		JsonObject dynamicRegistrationRequest = env.getObject("dynamic_registration_request");
 
-		String baseUri = env.getString("base_url");
+		// Use external_url_override if available, since the sector_identifier_uri must be
+		// reachable by the external authorization server (e.g. via ngrok, not localhost)
+		String baseUri = env.getString("external_url_override");
+		if (Strings.isNullOrEmpty(baseUri)) {
+			baseUri = env.getString("base_url");
+		}
 
 		String sectorIdentifierUri = baseUri + "/redirect_uris.json";
 

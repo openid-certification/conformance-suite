@@ -2,7 +2,7 @@
     "alias": "oidf-fapi-op-test",
     "description": "FAPI OP test config for running against RP tests (DPOP ES256)",
     "server": {
-        "discoveryUrl": "{BASEURL}test/a/oidf-fapi-rp-test/.well-known/openid-configuration"
+        "discoveryUrl": "{LOCALBASEURL}test/a/oidf-fapi-rp-test/.well-known/openid-configuration"
     },
     "client": {
         "client_id": "52480754053",
@@ -23,7 +23,7 @@
         }
     },
     "resource": {
-        "resourceUrl": "{BASEURL}test/a/oidf-fapi-rp-test/open-banking/v1.1/accounts",
+        "resourceUrl": "{LOCALBASEURL}test/a/oidf-fapi-rp-test/open-banking/v1.1/accounts",
         "institution_id": "xxx"
     },
     "client2": {

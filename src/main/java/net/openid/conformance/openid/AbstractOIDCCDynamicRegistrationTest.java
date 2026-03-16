@@ -83,6 +83,7 @@ public abstract class AbstractOIDCCDynamicRegistrationTest extends AbstractRedir
 	public void configure(JsonObject config, String baseUrl, String externalUrlOverride, String baseMtlsUrl) {
 		env.putString("base_url", baseUrl);
 		env.putString("base_mtls_url", baseMtlsUrl);
+		env.putString("external_url_override", externalUrlOverride);
 		env.putObject("config", config);
 
 		formPost = getVariant(ResponseMode.class) == ResponseMode.FORM_POST;

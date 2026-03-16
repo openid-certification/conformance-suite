@@ -19,7 +19,7 @@
                 }
             ]
         },
-        "discoveryUrl": "{BASEURL}test/a/cbuae-rp/.well-known/openid-configuration"
+        "discoveryUrl": "{LOCALBASEURL}test/a/cbuae-rp/.well-known/openid-configuration"
     },
     "client": {
         "client_id": "test-client-id-346334adgdsfgdfg3425",

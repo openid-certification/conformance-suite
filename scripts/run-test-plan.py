@@ -126,6 +126,7 @@ async def run_test_plan(test_plan_obj, config_file, output_dir, client_certs):
     with open(config_file) as f:
         json_config = f.read()
     json_config = json_config.replace('{BASEURL}', os.environ['CONFORMANCE_SERVER'])
+    json_config = json_config.replace('{LOCALBASEURL}', os.environ.get('CONFORMANCE_SERVER_LOCAL', os.environ['CONFORMANCE_SERVER']))
     json_config = json_config.replace('{HOSTNAME}', urllib.parse.urlsplit(os.environ['CONFORMANCE_SERVER']).hostname)
     json_config = json_config.replace('{BASEURLMTLS}', os.environ['CONFORMANCE_SERVER_MTLS'])
 
@@ -246,7 +247,7 @@ async def run_test_module(moduledict, plan_id, test_info, test_time_taken, varia
                     client_metadata_defaults = op_plan["variants"] if "variants" in op_plan else {}
                     client_metadata_defaults_str = json.dumps(client_metadata_defaults)
                     alias = parsed_config["alias"]
-                    os.environ['ISSUER'] = os.environ["CONFORMANCE_SERVER"] + "test/a/" + alias + "/"
+                    os.environ['ISSUER'] = os.environ.get("CONFORMANCE_SERVER_LOCAL", os.environ["CONFORMANCE_SERVER"]) + "test/a/" + alias + "/"
                     os.putenv('CLIENT_METADATA_DEFAULTS', client_metadata_defaults_str)
 
                     other_environment_vars_for_script = op_plan["environment"] if "environment" in op_plan else {}
@@ -279,6 +280,7 @@ async def run_test_module(moduledict, plan_id, test_info, test_time_taken, varia
                 alias = parsed_config["alias"]
                 client_auth_type = variant['client_auth_type']
                 if profile == "openbanking_ksa":
+                    local_base = os.environ.get("CONFORMANCE_SERVER_LOCAL", os.environ["CONFORMANCE_SERVER"])
                     if client_auth_type == "mtls":
                         subprocess.call(["./ksa-rp-client", "--alias", "ksa-rp",
                                          "--clientid", "bc680915-bbd3-45d7-b3c6-2716f4d178ed",
@@ -286,7 +288,7 @@ async def run_test_module(moduledict, plan_id, test_info, test_time_taken, varia
                                          "--transportKey", "./model_bank/transport.key",
                                          "--signingKey", "./model_bank/signing.key",
                                          "--encryptionKey", "./model_bank/encryption.key",
-                                         "--serverBaseUrl", os.environ["CONFORMANCE_SERVER"],
+                                         "--serverBaseUrl", local_base,
                                          "--serverBaseMtlsUrl", os.environ["CONFORMANCE_SERVER_MTLS"]], cwd="./ksa-rp-client/")
                     else:
                         subprocess.call(["./ksa-rp-client", "--alias", "ksa-rp",
@@ -295,11 +297,11 @@ async def run_test_module(moduledict, plan_id, test_info, test_time_taken, varia
                                          "--transportKey", "./model_bank/transport.key",
                                          "--signingKey", "./model_bank/signing.key",
                                          "--encryptionKey", "./model_bank/encryption.key",
-                                         "--serverBaseUrl", os.environ["CONFORMANCE_SERVER"],
+                                         "--serverBaseUrl", local_base,
                                          "--serverBaseMtlsUrl", os.environ["CONFORMANCE_SERVER_MTLS"],
                                          "--privateKeyAuth"], cwd="./ksa-rp-client/")
                 else:
-                    os.environ['ISSUER'] = os.environ["CONFORMANCE_SERVER"] + "test/a/" + alias + "/"
+                    os.environ['ISSUER'] = os.environ.get("CONFORMANCE_SERVER_LOCAL", os.environ["CONFORMANCE_SERVER"]) + "test/a/" + alias + "/"
                     os.environ['ACCOUNTS'] = 'test-mtls/a/' + alias + '/open-banking/v1.1/accounts'
                     os.environ['ACCOUNT_REQUEST'] = 'test/a/' + alias + '/open-banking/v1.1/account-requests'
                     os.environ['BRAZIL_CONSENT_REQUEST'] = 'test-mtls/a/' + alias + '/open-banking/consents/v3/consents'
@@ -1064,6 +1066,11 @@ async def main():
 
         os.environ["CONFORMANCE_SERVER"] = api_url_base
         os.environ["CONFORMANCE_SERVER_MTLS"] = 'https://localhost.emobix.co.uk:8444/'
+        # {LOCALBASEURL} always resolves to the server's internal base URL.
+        # Modules that don't override baseUrl with externalUrlOverride (FAPI1, FAPI2,
+        # CIBA) generate redirect_uri from fintechlabs.base_url (localhost), so their
+        # OP-against-RP configs must use {LOCALBASEURL} to match.
+        os.environ["CONFORMANCE_SERVER_LOCAL"] = 'https://localhost.emobix.co.uk:8443/'
 
     client_certs = {}
     key_directory = os.path.dirname(os.path.abspath(__file__)) + '/certs-keys/'
@@ -1148,6 +1155,10 @@ async def main():
     for (plan_name, config_json) in to_run:
         with open(config_json) as f:
             json_config = f.read()
+        # Apply placeholder substitutions before parsing, so configs using
+        # {vp-signing-jwk.json} etc. produce valid JSON
+        for k, v in client_certs.items():
+            json_config = json_config.replace('{' + k + '}', v)
         parsed_config = json.loads(json_config)
         if args.no_parallel:
             # put all jobs into same queue
