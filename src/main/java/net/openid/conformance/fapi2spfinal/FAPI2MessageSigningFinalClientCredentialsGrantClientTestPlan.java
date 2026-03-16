@@ -17,7 +17,9 @@ import java.util.Map;
 @PublishTestPlan (
 	testPlanName = "fapi2-message-signing-final-client-credentials-grant-client-test-plan",
 	displayName = "FAPI2-Message-Signing-Final: Relying Party (client) client credentials grant test",
-	profile = TestPlan.ProfileNames.rptest
+	profile = TestPlan.ProfileNames.rptest,
+	specFamily = TestPlan.SpecFamilyNames.fapi2MessageSigning,
+	specVersion = TestPlan.SpecVersionNames.fapi2MsFinal
 )
 public class FAPI2MessageSigningFinalClientCredentialsGrantClientTestPlan implements TestPlan {
 	public static final List<Class<? extends TestModule>> testModules = List.of(

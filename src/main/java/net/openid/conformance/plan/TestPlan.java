@@ -25,6 +25,35 @@ public interface TestPlan {
 		String authzenTest = "Test an Authzen PDP server";
 	}
 
+	interface SpecFamilyNames {
+		String authzen = "AuthZen";
+		String ekyc = "eKYC & Identity Assurance";
+		String fapi1Advanced = "FAPI1 Advanced";
+		String fapi2SecurityProfile = "FAPI2 Security Profile";
+		String fapi2MessageSigning = "FAPI2 Message Signing";
+		String fapiCiba = "FAPI-CIBA";
+		String federation = "OpenID Federation";
+		String oid4vci = "OID4VCI";
+		String oid4vp = "OID4VP";
+		String oidcc = "OpenID Connect Core";
+		String oidccLogout = "OpenID Connect Logout";
+		String oidccSessionManagement = "OpenID Connect Session Management";
+		String ssf = "Shared Signals Framework";
+	}
+
+	interface SpecVersionNames {
+		// FAPI2 Security Profile
+		String fapi2SpFinal = "Final";
+		String fapi2SpId2 = "ID2";
+		// FAPI2 Message Signing
+		String fapi2MsFinal = "Final";
+		String fapi2MsId1 = "ID1";
+		// OID4VP
+		String oid4vp1Final = "1.0 Final";
+		String oid4vpId2 = "ID2";
+		String oid4vpId3 = "ID3";
+	}
+
 	/**
 	 * A set of variants and values to use to run a particular test module.
 	 *

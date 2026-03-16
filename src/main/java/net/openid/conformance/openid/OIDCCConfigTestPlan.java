@@ -11,7 +11,8 @@ import java.util.List;
 @PublishTestPlan(
 	testPlanName = "oidcc-config-certification-test-plan",
 	displayName = "OpenID Connect Core: Config Certification Profile Authorization server test ",
-	profile = TestPlan.ProfileNames.optest
+	profile = TestPlan.ProfileNames.optest,
+	specFamily = TestPlan.SpecFamilyNames.oidcc
 )
 public class OIDCCConfigTestPlan implements TestPlan {
 	@Override

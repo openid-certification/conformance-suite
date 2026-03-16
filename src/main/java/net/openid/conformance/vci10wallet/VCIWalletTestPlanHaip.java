@@ -22,7 +22,8 @@ import java.util.List;
 @PublishTestPlan (
 	testPlanName = "oid4vci-1_0-wallet-haip-test-plan",
 	displayName = "OpenID for Verifiable Credential Issuance 1.0 Final/HAIP: Test a wallet - alpha tests (not currently part of certification program)",
-	profile = TestPlan.ProfileNames.vciwallet
+	profile = TestPlan.ProfileNames.vciwallet,
+	specFamily = TestPlan.SpecFamilyNames.oid4vci
 )
 public class VCIWalletTestPlanHaip implements TestPlan {
 

@@ -279,6 +279,8 @@ public class TestPlanApi implements DataUtils {
 					"planName", holder.info.testPlanName(),
 					"displayName", holder.info.displayName(),
 					"profile", holder.info.profile(),
+					"specFamily", holder.info.specFamily(),
+					"specVersion", holder.info.specVersion(),
 					"modules", holder.getTestModules(),
 					"configurationFields", holder.configurationFields(),
 					"hidesConfigurationFields", holder.hidesConfigurationFields(),
@@ -299,10 +301,12 @@ public class TestPlanApi implements DataUtils {
 	})
 	public ResponseEntity<Object> getAvailableTestPlans() {
 		Set<Map<String, ?>> available = variantService.getTestPlans().stream()
-			.map(e -> args(
+			.<Map<String, ?>>map(e -> args(
 				"planName", e.info.testPlanName(),
 				"displayName", e.info.displayName(),
 				"profile", e.info.profile(),
+				"specFamily", e.info.specFamily(),
+				"specVersion", e.info.specVersion(),
 				"modules", e.getTestModules(),
 				"configurationFields", e.configurationFields(),
 				"hidesConfigurationFields", e.hidesConfigurationFields(),

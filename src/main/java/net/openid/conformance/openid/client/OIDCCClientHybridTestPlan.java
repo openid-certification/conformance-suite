@@ -13,7 +13,8 @@ import java.util.List;
 @PublishTestPlan(
 	testPlanName = "oidcc-client-hybrid-certification-test-plan",
 	displayName = "OpenID Connect Core: Hybrid Certification Profile Relying Party Tests",
-	profile = TestPlan.ProfileNames.rptest
+	profile = TestPlan.ProfileNames.rptest,
+	specFamily = TestPlan.SpecFamilyNames.oidcc
 )
 public class OIDCCClientHybridTestPlan implements TestPlan {
 

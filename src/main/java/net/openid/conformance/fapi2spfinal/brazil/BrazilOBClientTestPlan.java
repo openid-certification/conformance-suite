@@ -23,7 +23,9 @@ import java.util.Map;
 		"Server jwks configured for this plan must contain one signing and one encryption key. " +
 		"This plan requires two client configurations, jwks for the second client, which will be used for encryption tests only, " +
 		"must include a key that can be used for encryption.",
-	profile = TestPlan.ProfileNames.rptest
+	profile = TestPlan.ProfileNames.rptest,
+	specFamily = TestPlan.SpecFamilyNames.fapi2SecurityProfile,
+	specVersion = TestPlan.SpecVersionNames.fapi2SpFinal
 )
 public class BrazilOBClientTestPlan implements TestPlan {
 	@Override

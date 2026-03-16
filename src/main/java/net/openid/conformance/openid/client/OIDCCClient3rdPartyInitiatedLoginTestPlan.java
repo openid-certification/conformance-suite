@@ -10,6 +10,7 @@ import java.util.List;
 	testPlanName = "oidcc-client-test-3rd-party-init-login-test-plan",
 	displayName = "OpenID Connect Core Client Login Tests: Relying party 3rd party initiated login tests",
 	profile = TestPlan.ProfileNames.rptest,
+	specFamily = TestPlan.SpecFamilyNames.oidcc,
 	testModules = {
 		OIDCCClient3rdPartyInitiatedLoginTest.class
 	}

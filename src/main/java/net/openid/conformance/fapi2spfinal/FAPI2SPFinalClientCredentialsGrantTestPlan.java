@@ -17,7 +17,9 @@ import java.util.Map;
 @PublishTestPlan (
 	testPlanName = "fapi2-security-profile-final-client-credentials-grant-test-plan",
 	displayName = "FAPI2-Security-Profile-Final: Authorization Client Credentials Grant server test",
-	profile = TestPlan.ProfileNames.optest
+	profile = TestPlan.ProfileNames.optest,
+	specFamily = TestPlan.SpecFamilyNames.fapi2SecurityProfile,
+	specVersion = TestPlan.SpecVersionNames.fapi2SpFinal
 )
 public class FAPI2SPFinalClientCredentialsGrantTestPlan implements TestPlan {
 

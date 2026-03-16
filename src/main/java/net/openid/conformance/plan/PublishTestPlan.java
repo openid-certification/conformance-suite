@@ -18,6 +18,10 @@ public @interface PublishTestPlan {
 
 	String profile();
 
+	String specFamily();
+
+	String specVersion() default "";
+
 	String[] configurationFields() default {};
 
 	/**

@@ -13,7 +13,9 @@ import java.util.Map;
 @PublishTestPlan (
 	testPlanName = "fapi2-message-signing-final-test-plan",
 	displayName = "FAPI2-Message-Signing-Final: Authorization server test",
-	profile = TestPlan.ProfileNames.optest
+	profile = TestPlan.ProfileNames.optest,
+	specFamily = TestPlan.SpecFamilyNames.fapi2MessageSigning,
+	specVersion = TestPlan.SpecVersionNames.fapi2MsFinal
 )
 public class FAPI2MessageSigningFinalTestPlan implements TestPlan {
 	public static final List<Class<? extends TestModule>> testModules = List.of(

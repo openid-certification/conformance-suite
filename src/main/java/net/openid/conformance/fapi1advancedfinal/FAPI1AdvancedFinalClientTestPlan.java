@@ -12,6 +12,7 @@ import java.util.Map;
 	testPlanName = "fapi1-advanced-final-client-test-plan",
 	displayName = "FAPI1-Advanced-Final: Relying Party (client test)",
 	profile = TestPlan.ProfileNames.rptest,
+	specFamily = TestPlan.SpecFamilyNames.fapi1Advanced,
 	testModules = {
 		FAPI1AdvancedFinalClientTestDiscoveryIssuerMismatch.class,
 		FAPI1AdvancedFinalClientTest.class,

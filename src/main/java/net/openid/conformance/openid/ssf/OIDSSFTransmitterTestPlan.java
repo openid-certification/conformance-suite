@@ -11,6 +11,7 @@ import java.util.List;
 	displayName = "OpenID Shared Signals Framework 1.0 Final: Transmitter",
 	summary = "Collection of tests to verify the behavior of a OpenID Shared Signals Framework Transmitter.",
 	profile = TestPlan.ProfileNames.ssftest,
+	specFamily = TestPlan.SpecFamilyNames.ssf,
 	testModules = {
 		OIDSSFTransmitterMetadataTest.class,
 		OIDSSFStreamControlHappyPathTest.class,

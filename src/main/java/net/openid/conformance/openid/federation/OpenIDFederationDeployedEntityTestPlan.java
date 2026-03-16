@@ -10,6 +10,7 @@ import java.util.List;
 	testPlanName = "openid-federation-deployed-entity-test-plan",
 	displayName = "OpenID Federation: Deployed federation entity test (alpha version - may be incomplete or incorrect, please email certification@oidf.org)",
 	profile = TestPlan.ProfileNames.federationTest,
+	specFamily = TestPlan.SpecFamilyNames.federation,
 	testModules = {
 		OpenIDFederationEntityConfigurationTest.class,
 		// OpenIDFederationListAndFetchTest.class, TODO: Figure out a way to do this test for large federations
