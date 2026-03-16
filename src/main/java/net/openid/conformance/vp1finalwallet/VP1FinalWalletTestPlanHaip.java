@@ -21,14 +21,43 @@ public class VP1FinalWalletTestPlanHaip implements TestPlan {
 		var testModules = new ArrayList<>(VP1FinalWalletTestPlan.testModules);
 		testModules.remove(VP1FinalWalletResponseUriNotClientId.class); // excluded due to @VariantNotApplicable with x509_hash
 
+		var unsignedTestModules = new ArrayList<>(testModules);
+		unsignedTestModules.remove(VP1FinalWalletInvalidRequestObjectSignature.class); // excluded due to @VariantNotApplicable with request_uri_unsigned
+
+		// HAIP requires encrypted responses, so only direct_post.jwt and dc_api.jwt are supported
 		return List.of(
+			// direct_post_jwt: signed request, x509_hash
 			new ModuleListEntry(
 				testModules,
 				List.of(
 					new Variant(VPProfile.class, "haip"),
-					new Variant(VP1FinalWalletClientIdPrefix.class, "x509_hash")
-					// new Variant(VP1FinalWalletRequestMethod.class, "request_uri_signed"),
-				)
+					new Variant(VP1FinalWalletClientIdPrefix.class, "x509_hash"),
+					new Variant(VP1FinalWalletRequestMethod.class, "request_uri_signed")
+				),
+				List.of(new VariantCondition(VP1FinalWalletResponseMode.class,
+					"direct_post.jwt"))
+			),
+			// dc_api_jwt + unsigned: web_origin
+			new ModuleListEntry(
+				unsignedTestModules,
+				List.of(
+					new Variant(VPProfile.class, "haip"),
+					new Variant(VP1FinalWalletClientIdPrefix.class, "web-origin"),
+					new Variant(VP1FinalWalletRequestMethod.class, "request_uri_unsigned")
+				),
+				List.of(new VariantCondition(VP1FinalWalletResponseMode.class,
+					"dc_api.jwt"))
+			),
+			// dc_api_jwt + signed: x509_san_dns
+			new ModuleListEntry(
+				testModules,
+				List.of(
+					new Variant(VPProfile.class, "haip"),
+					new Variant(VP1FinalWalletClientIdPrefix.class, "x509_san_dns"),
+					new Variant(VP1FinalWalletRequestMethod.class, "request_uri_signed")
+				),
+				List.of(new VariantCondition(VP1FinalWalletResponseMode.class,
+					"dc_api.jwt"))
 			)
 		);
 	}
@@ -60,6 +89,7 @@ public class VP1FinalWalletTestPlanHaip implements TestPlan {
 
 		return List.of(certProfile);
 	}
+
 
 
 }
