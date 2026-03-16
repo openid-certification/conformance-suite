@@ -18,6 +18,7 @@ import net.openid.conformance.condition.client.CheckClientConfigurationUriFromCl
 import net.openid.conformance.condition.client.CheckClientIdFromClientConfigurationEndpoint;
 import net.openid.conformance.condition.client.CheckForAccessTokenValue;
 import net.openid.conformance.condition.client.CheckIfTokenEndpointResponseError;
+import net.openid.conformance.condition.client.CheckTokenEndpointHttpStatus200;
 import net.openid.conformance.condition.client.CheckRedirectUrisFromClientConfigurationEndpoint;
 import net.openid.conformance.condition.client.CheckRegistrationClientEndpointContentType;
 import net.openid.conformance.condition.client.CheckRegistrationClientEndpointContentTypeHttpStatus200;
@@ -84,7 +85,8 @@ public abstract class AbstractFAPI2SPFinalBrazilDCR extends AbstractFAPI2SPFinal
 		callAndStopOnFailure(AddClientIdToRequest.class);
 		unmapClientAuthKeys();
 
-		callSenderConstrainedTokenEndpointAndStopOnFailure(false);
+		callSenderConstrainedTokenEndpointAndStopOnFailure();
+		callAndStopOnFailure(CheckTokenEndpointHttpStatus200.class);
 
 		callAndStopOnFailure(CheckIfTokenEndpointResponseError.class);
 

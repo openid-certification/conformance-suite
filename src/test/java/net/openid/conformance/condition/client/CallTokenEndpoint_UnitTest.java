@@ -50,7 +50,7 @@ public class CallTokenEndpoint_UnitTest {
 		+ "\"example_parameter\":\"example_value\""
 		+ "}").getAsJsonObject();
 
-	private CallTokenEndpoint cond;
+	private CallTokenEndpointAndReturnFullResponse cond;
 
 	/**
 	 * @throws java.lang.Exception
@@ -77,13 +77,13 @@ public class CallTokenEndpoint_UnitTest {
 				.willReturn(success("", "application/json"))));
 		hoverfly.resetJournal();
 
-		cond = new CallTokenEndpoint();
+		cond = new CallTokenEndpointAndReturnFullResponse();
 
 		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 	}
 
 	/**
-	 * Test method for {@link CallTokenEndpoint#evaluate(Environment)}.
+	 * Test method for {@link CallTokenEndpointAndReturnFullResponse#evaluate(Environment)}.
 	 */
 	@Test
 	public void testEvaluate_noError(Hoverfly hoverfly) {
@@ -110,7 +110,7 @@ public class CallTokenEndpoint_UnitTest {
 	}
 
 	/**
-	 * Test method for {@link CallTokenEndpoint#evaluate(Environment)}.
+	 * Test method for {@link CallTokenEndpointAndReturnFullResponse#evaluate(Environment)}.
 	 */
 	@Test
 	public void testEvaluate_noHeaders() {
@@ -129,7 +129,7 @@ public class CallTokenEndpoint_UnitTest {
 	}
 
 	/**
-	 * Test method for {@link CallTokenEndpoint#evaluate(Environment)}.
+	 * Test method for {@link CallTokenEndpointAndReturnFullResponse#evaluate(Environment)}.
 	 */
 	@Test
 	public void testEvaluate_nonexistingServer() {
@@ -150,7 +150,7 @@ public class CallTokenEndpoint_UnitTest {
 	}
 
 	/**
-	 * Test method for {@link CallTokenEndpoint#evaluate(Environment)}.
+	 * Test method for {@link CallTokenEndpointAndReturnFullResponse#evaluate(Environment)}.
 	 */
 	@Test
 	public void testEvaluate_errorResponse() {
@@ -171,7 +171,7 @@ public class CallTokenEndpoint_UnitTest {
 	}
 
 	/**
-	 * Test method for {@link CallTokenEndpoint#evaluate(Environment)}.
+	 * Test method for {@link CallTokenEndpointAndReturnFullResponse#evaluate(Environment)}.
 	 */
 	@Test
 	public void testEvaluate_badResponse() {
@@ -192,7 +192,7 @@ public class CallTokenEndpoint_UnitTest {
 	}
 
 	/**
-	 * Test method for {@link CallTokenEndpoint#evaluate(Environment)}.
+	 * Test method for {@link CallTokenEndpointAndReturnFullResponse#evaluate(Environment)}.
 	 */
 	@Test
 	public void testEvaluate_emptyResponse() {
@@ -213,7 +213,7 @@ public class CallTokenEndpoint_UnitTest {
 	}
 
 	/**
-	 * Test method for {@link CallTokenEndpoint#evaluate(Environment)}.
+	 * Test method for {@link CallTokenEndpointAndReturnFullResponse#evaluate(Environment)}.
 	 */
 	@Test
 	public void testEvaluate_requestMissing() {
@@ -231,7 +231,7 @@ public class CallTokenEndpoint_UnitTest {
 	}
 
 	/**
-	 * Test method for {@link CallTokenEndpoint#evaluate(Environment)}.
+	 * Test method for {@link CallTokenEndpointAndReturnFullResponse#evaluate(Environment)}.
 	 */
 	@Test
 	public void testEvaluate_configMissing() {

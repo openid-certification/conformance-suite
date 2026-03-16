@@ -14,7 +14,8 @@ import net.openid.conformance.condition.client.AddNonceToAuthorizationEndpointRe
 import net.openid.conformance.condition.client.AddStateToAuthorizationEndpointRequest;
 import net.openid.conformance.condition.client.BuildPlainRedirectToAuthorizationEndpoint;
 import net.openid.conformance.condition.client.CallProtectedResource;
-import net.openid.conformance.condition.client.CallTokenEndpoint;
+import net.openid.conformance.condition.client.CallTokenEndpointAndReturnFullResponse;
+import net.openid.conformance.condition.client.CheckTokenEndpointHttpStatus200;
 import net.openid.conformance.condition.client.CheckCallbackContentTypeIsFormUrlEncoded;
 import net.openid.conformance.condition.client.CheckCallbackHttpMethodIsPost;
 import net.openid.conformance.condition.client.CheckErrorDescriptionFromAuthorizationEndpointResponseErrorContainsCRLFTAB;
@@ -636,7 +637,8 @@ public abstract class AbstractOIDCCServerTest extends AbstractRedirectServerTest
 	}
 
 	protected void callTokenEndpoint() {
-		callAndStopOnFailure(CallTokenEndpoint.class);
+		callAndStopOnFailure(CallTokenEndpointAndReturnFullResponse.class);
+		callAndStopOnFailure(CheckTokenEndpointHttpStatus200.class);
 	}
 
 	protected void requestAuthorizationCode() {
