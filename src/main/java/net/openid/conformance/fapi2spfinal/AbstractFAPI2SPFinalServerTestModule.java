@@ -128,10 +128,8 @@ import net.openid.conformance.condition.common.CheckServerConfiguration;
 import net.openid.conformance.condition.common.RARSupport;
 import net.openid.conformance.sequence.AbstractConditionSequence;
 import net.openid.conformance.sequence.ConditionSequence;
-import net.openid.conformance.sequence.client.AddMTLSClientAuthenticationToPAREndpointRequest;
-import net.openid.conformance.sequence.client.AddMTLSClientAuthenticationToTokenEndpointRequest;
+import net.openid.conformance.sequence.client.AddMTLSClientAuthenticationToRequest;
 import net.openid.conformance.sequence.client.CreateDpopProofSteps;
-import net.openid.conformance.sequence.client.CreateJWTClientAuthenticationAssertionAndAddToPAREndpointRequest;
 import net.openid.conformance.sequence.client.CreateJWTClientAuthenticationAssertionWithIssAudAndAddToTokenEndpointRequest;
 import net.openid.conformance.sequence.client.PerformStandardIdTokenChecks;
 import net.openid.conformance.sequence.client.SetupPkceAndAddToAuthorizationRequest;
@@ -289,10 +287,9 @@ public abstract class AbstractFAPI2SPFinalServerTestModule extends AbstractRedir
 	protected FAPI2ProfileBehavior profileBehavior;
 
 	// for variants to fill in by calling the setup... family of methods
-	protected Class <? extends ConditionSequence> addTokenEndpointClientAuthentication;
+	protected Class <? extends ConditionSequence> addClientAuthentication;
 	protected Class <? extends ConditionSequence> profileAuthorizationEndpointSetupSteps;
 	private Class <? extends ConditionSequence> supportMTLSEndpointAliases;
-	protected Class <? extends ConditionSequence> addParEndpointClientAuthentication;
 	protected Supplier <? extends ConditionSequence> createDpopForParEndpointSteps;
 	protected Supplier <? extends ConditionSequence> createDpopForTokenEndpointSteps;
 	protected Supplier <? extends ConditionSequence> createDpopForResourceEndpointSteps;
@@ -736,14 +733,14 @@ public abstract class AbstractFAPI2SPFinalServerTestModule extends AbstractRedir
 
 	protected void addClientAuthenticationToTokenEndpointRequest() {
 		mapClientAuthKeys("token_endpoint_request_form_parameters", "token_endpoint_request_headers");
-		call(sequence(addTokenEndpointClientAuthentication));
+		call(sequence(addClientAuthentication));
 		unmapClientAuthKeys();
 	}
 
 	protected void addClientAuthenticationToPAREndpointRequest() {
 		mapClientAuthKeys("pushed_authorization_request_form_parameters",
 			"pushed_authorization_request_endpoint_request_headers");
-		call(sequence(addParEndpointClientAuthentication));
+		call(sequence(addClientAuthentication));
 		unmapClientAuthKeys();
 	}
 
@@ -1083,20 +1080,17 @@ public abstract class AbstractFAPI2SPFinalServerTestModule extends AbstractRedir
 
 	@VariantSetup(parameter = ClientAuthType.class, value = "mtls")
 	public void setupMTLS() {
-		addTokenEndpointClientAuthentication = AddMTLSClientAuthenticationToTokenEndpointRequest.class;
+		addClientAuthentication = AddMTLSClientAuthenticationToRequest.class;
 		supportMTLSEndpointAliases = SupportMTLSEndpointAliases.class;
-		addParEndpointClientAuthentication = AddMTLSClientAuthenticationToPAREndpointRequest.class;
 	}
 
 	@VariantSetup(parameter = ClientAuthType.class, value = "private_key_jwt")
 	public void setupPrivateKeyJwt() {
-		addTokenEndpointClientAuthentication = CreateJWTClientAuthenticationAssertionWithIssAudAndAddToTokenEndpointRequest.class;
+		addClientAuthentication = CreateJWTClientAuthenticationAssertionWithIssAudAndAddToTokenEndpointRequest.class;
 
 		if (getVariant(FAPI2SenderConstrainMethod.class) == FAPI2SenderConstrainMethod.MTLS) {
 			supportMTLSEndpointAliases = SupportMTLSEndpointAliases.class;
 		}
-
-		addParEndpointClientAuthentication = CreateJWTClientAuthenticationAssertionAndAddToPAREndpointRequest.class;
 	}
 
 	protected void initProfileBehavior(FAPI2ProfileBehavior behavior) {

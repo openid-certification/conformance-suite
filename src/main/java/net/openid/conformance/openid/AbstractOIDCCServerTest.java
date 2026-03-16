@@ -84,7 +84,7 @@ import net.openid.conformance.condition.common.CheckForKeyIdInServerJWKs;
 import net.openid.conformance.condition.common.CheckServerConfiguration;
 import net.openid.conformance.sequence.AbstractConditionSequence;
 import net.openid.conformance.sequence.ConditionSequence;
-import net.openid.conformance.sequence.client.AddMTLSClientAuthenticationToTokenEndpointRequest;
+import net.openid.conformance.sequence.client.AddMTLSClientAuthenticationToRequest;
 import net.openid.conformance.sequence.client.CallDynamicRegistrationEndpointAndVerifySuccessfulResponse;
 import net.openid.conformance.sequence.client.CreateJWTClientAuthenticationAssertionAndAddToTokenEndpointRequest;
 import net.openid.conformance.sequence.client.OIDCCCreateDynamicClientRegistrationRequest;
@@ -342,7 +342,7 @@ public abstract class AbstractOIDCCServerTest extends AbstractRedirectServerTest
 	public void setupMtls() {
 		profileStaticClientConfiguration = ConfigureStaticClient.class;
 		profileCompleteClientConfiguration = () -> new ConfigureClientForMtls(serverSupportsDiscovery(), isSecondClient(), true);
-		addTokenEndpointClientAuthentication = AddMTLSClientAuthenticationToTokenEndpointRequest.class;
+		addTokenEndpointClientAuthentication = AddMTLSClientAuthenticationToRequest.class;
 		supportMTLSEndpointAliases = SupportMTLSEndpointAliases.class;
 	}
 

@@ -97,7 +97,7 @@ import net.openid.conformance.condition.client.ValidateJARMSigningAlg;
 import net.openid.conformance.condition.common.CheckDistinctKeyIdValueInClientJWKs;
 import net.openid.conformance.sequence.AbstractConditionSequence;
 import net.openid.conformance.sequence.ConditionSequence;
-import net.openid.conformance.sequence.client.AddMTLSClientAuthenticationToPAREndpointRequest;
+import net.openid.conformance.sequence.client.AddMTLSClientAuthenticationToRequest;
 import net.openid.conformance.sequence.client.CreateDpopProofSteps;
 import net.openid.conformance.sequence.client.CreateJWTClientAuthenticationAssertionAndAddToPAREndpointRequest;
 import net.openid.conformance.sequence.client.SetupPkceAndAddToAuthorizationRequest;
@@ -163,7 +163,7 @@ public abstract class AbstractOIDCCServerSecurityProfileTest extends AbstractOID
 	@Override
 	public void setupMtls() {
 		super.setupMtls();
-		addParEndpointClientAuthentication = AddMTLSClientAuthenticationToPAREndpointRequest.class;
+		addParEndpointClientAuthentication = AddMTLSClientAuthenticationToRequest.class;
 	}
 
 	@VariantSetup(parameter = AccessTokenSenderConstrainMethod.class, value = "dpop")

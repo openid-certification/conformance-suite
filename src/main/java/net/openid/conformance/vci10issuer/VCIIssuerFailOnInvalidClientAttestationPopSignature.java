@@ -40,8 +40,7 @@ public class VCIIssuerFailOnInvalidClientAttestationPopSignature extends Abstrac
 	@Override
 	public void setupClientAttestation() {
 		// Use the modified sequence that invalidates the pop signature
-		addTokenEndpointClientAuthentication = AddClientAttestationClientAuthWithInvalidPopSignature.class;
-		addParEndpointClientAuthentication = AddClientAttestationClientAuthWithInvalidPopSignature.class;
+		addClientAuthentication = AddClientAttestationClientAuthWithInvalidPopSignature.class;
 	}
 
 	@Override
