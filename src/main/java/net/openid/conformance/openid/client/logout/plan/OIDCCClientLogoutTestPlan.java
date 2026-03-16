@@ -21,6 +21,7 @@ import net.openid.conformance.plan.TestPlan;
 	testPlanName = "oidcc-client-logout-test-plan",
 	displayName = "OpenID Connect Core Client Logout Tests: Relying party logout tests",
 	profile = TestPlan.ProfileNames.rplogouttest,
+	specFamily = TestPlan.SpecFamilyNames.oidccLogout,
 	testModules = {
 		OIDCCClientTestSessionManagement.class,
 		OIDCCClientTestRPInitLogout.class,

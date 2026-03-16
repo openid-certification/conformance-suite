@@ -11,7 +11,8 @@ import java.util.List;
 @PublishTestPlan(
 	testPlanName = "oidcc-client-front-channel-logout-rp-hybrid",
 	displayName = "OpenID Connect Core: Front Channel Logout RP Certification Profile Relying Party Tests (Hybrid)",
-	profile = TestPlan.ProfileNames.rplogouttest
+	profile = TestPlan.ProfileNames.rplogouttest,
+	specFamily = TestPlan.SpecFamilyNames.oidccLogout
 )
 public class OIDCCClientFrontChannelLogoutRPHybridTestPlan implements TestPlan {
 	@Override

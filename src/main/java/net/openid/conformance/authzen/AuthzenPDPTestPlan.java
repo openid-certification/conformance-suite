@@ -7,6 +7,7 @@ import net.openid.conformance.plan.TestPlan;
 	testPlanName = "authzen-pdp-test-plan",
 	displayName = "Authzen 1.0: PDP server test - alpha tests (not currently part of certification program)",
 	profile = TestPlan.ProfileNames.authzenTest,
+	specFamily = TestPlan.SpecFamilyNames.authzen,
 	testModules = {
 		// Interop 1.1 cases
 		AuthzenPDPEvaluation01Test.class,

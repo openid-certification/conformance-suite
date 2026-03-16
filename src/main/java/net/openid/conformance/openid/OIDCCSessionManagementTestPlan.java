@@ -12,7 +12,8 @@ import java.util.List;
 @PublishTestPlan(
 	testPlanName = "oidcc-session-management-certification-test-plan",
 	displayName = "OpenID Connect Core: Session Management Certification Profile Authorization server test",
-	profile = TestPlan.ProfileNames.optest
+	profile = TestPlan.ProfileNames.optest,
+	specFamily = TestPlan.SpecFamilyNames.oidccSessionManagement
 )
 public class OIDCCSessionManagementTestPlan implements TestPlan {
 
