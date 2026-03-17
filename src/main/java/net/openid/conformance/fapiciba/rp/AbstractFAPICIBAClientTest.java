@@ -5,6 +5,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import net.openid.conformance.condition.Condition;
+import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.condition.as.AddACRClaimToIdTokenClaims;
 import net.openid.conformance.condition.as.AddAtHashToIdTokenClaims;
@@ -176,7 +177,6 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 	private Class<? extends ConditionSequence> validateTokenEndpointClientAuthenticationSteps;
 	private Class<? extends ConditionSequence> validateBackchannelClientAuthenticationSteps;
 	private Class<? extends ConditionSequence> accountsEndpointProfileSteps;
-	private Class<? extends Condition> profileSpecificSignIdToken;
 
 	@VariantSetup(parameter = ClientAuthType.class, value = "mtls")
 	public void setupMTLS() {
@@ -194,22 +194,39 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 
 	@VariantSetup(parameter = FAPICIBAProfile.class, value = "plain_fapi")
 	public void setupPlainFapi() {
-		profileSpecificSignIdToken = SignIdToken.class;
+		profileBehavior = new FAPICIBARPProfileBehavior();
+		profileBehavior.setModule(this);
 	}
 
 	@VariantSetup(parameter = FAPICIBAProfile.class, value = "connectid_au")
 	public void setupConnectID() {
-		profileSpecificSignIdToken = SignIdToken.class;
+		profileBehavior = new ConnectIdAuCibaRPProfileBehavior();
+		profileBehavior.setModule(this);
 	}
 
 	@VariantSetup(parameter = FAPICIBAProfile.class, value = "openbanking_brazil")
 	public void setupOpenBankingBrazil() {
 		accountsEndpointProfileSteps = GenerateOpenBankingBrazilAccountsEndpointResponse.class;
-		profileSpecificSignIdToken = SignIdTokenWithX5tS256.class;
+		profileBehavior = new OpenBankingBrazilCibaRPProfileBehavior();
+		profileBehavior.setModule(this);
 	}
 
-	protected boolean isBrazil() {
-		return profile == FAPICIBAProfile.OPENBANKING_BRAZIL;
+	protected FAPICIBARPProfileBehavior profileBehavior;
+
+	public void callCondition(Class<? extends Condition> conditionClass, String... requirements) {
+		super.callAndStopOnFailure(conditionClass, requirements);
+	}
+
+	public void callCondition(Class<? extends Condition> conditionClass, Condition.ConditionResult onFail, String... requirements) {
+		super.callAndStopOnFailure(conditionClass, onFail, requirements);
+	}
+
+	public void callConditionSkipIfMissing(String[] keys, String[] objects, Condition.ConditionResult onSkip, Class<? extends Condition> conditionClass, Condition.ConditionResult onFail, String... requirements) {
+		super.skipIfMissing(keys, objects, onSkip, conditionClass, onFail, requirements);
+	}
+
+	public Environment getEnv() {
+		return env;
 	}
 
 	protected void addCustomValuesToIdToken() {	}
@@ -269,40 +286,19 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 		callAndStopOnFailure(ValidateServerJWKs.class, "RFC7517-1.1");
 
 		callAndStopOnFailure(AddCibaTokenDeliveryModePingToTokenDeliveryModesSupported.class);
-		if(isBrazil()) {
-			callAndStopOnFailure(CheckCIBAModeIsPing.class, Condition.ConditionResult.FAILURE, "BrazilCIBA-5.2.2");
-			callAndStopOnFailure(SetServerSigningAlgToPS256.class, "BrazilOB-6.1-1");
-			callAndStopOnFailure(AddClaimsParameterSupportedTrueToServerConfiguration.class, "BrazilOB-5.2.2-3");
-			callAndStopOnFailure(FAPIBrazilAddBrazilSpecificSettingsToServerConfiguration.class, "BrazilOB-5.2.2");
-		} else {
-			callAndStopOnFailure(AddCibaTokenDeliveryModePollToTokenDeliveryModesSupported.class);
-			callAndStopOnFailure(ExtractServerSigningAlg.class);
-		}
+		profileBehavior.applyProfileSpecificServerConfigurationSetup();
 
 		callAndStopOnFailure(AddIdTokenSigningAlgsToServerConfiguration.class);
 		callAndStopOnFailure(AddTlsCertificateBoundAccessTokensTrueSupportedToServerConfiguration.class, "FAPI2-4.3.1-9");
 
 		callAndStopOnFailure(addTokenEndpointAuthMethodSupported);
 
-		if(isBrazil()) {
-			callAndStopOnFailure(FAPIBrazilAddTokenEndpointAuthSigningAlgValuesSupportedToServer.class);
-			callAndStopOnFailure(BrazilAddBackchannelAuthenticationRequestSigningAlgValuesSupportedToServer.class);
-		} else {
-			callAndStopOnFailure(FAPIAddTokenEndpointAuthSigningAlgValuesSupportedToServer.class);
-			callAndStopOnFailure(AddBackchannelAuthenticationRequestSigningAlgValuesSupportedToServer.class);
-		}
+		profileBehavior.applyProfileSpecificServerAuthAlgSetup();
 
 		exposeEnvString("discoveryUrl");
 		exposeEnvString("issuer");
 
-		if(isBrazil()) {
-			exposeMtlsPath("consents_endpoint", FAPIBrazilRsPathConstants.BRAZIL_CONSENTS_PATH);
-			exposeMtlsPath("resource_endpoint", FAPIBrazilRsPathConstants.BRAZIL_RESOURCE_PATH);
-		} else if (FAPICIBAProfile.CONNECTID_AU.equals(getVariant(FAPICIBAProfile.class))) {
-			exposeEnvString("userinfo_endpoint", "server", "userinfo_endpoint");
-		} else {
-			exposeMtlsPath("accounts_endpoint", ACCOUNTS_PATH);
-		}
+		profileBehavior.exposeProfileSpecificEndpoints();
 
 		callAndStopOnFailure(CheckServerConfiguration.class);
 		callAndStopOnFailure(CheckNotificationEndpointServerConfiguration.class, "CIBA-9");
@@ -417,10 +413,20 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 		}
 	}
 
-	private void exposeMtlsPath(String name, String path) {
+	public void exposeMtlsPath(String name, String path) {
 		String baseUrlMtls = env.getString("base_mtls_url");
 		env.putString(name, baseUrlMtls + "/" + path);
 		exposeEnvString(name);
+	}
+
+	@Override
+	public void exposeEnvString(String key, String sourceKey, String sourcePath) {
+		super.exposeEnvString(key, sourceKey, sourcePath);
+	}
+
+	@Override
+	public void exposeEnvString(String key) {
+		super.exposeEnvString(key);
 	}
 
 	protected void checkMtlsCertificate() {
@@ -507,8 +513,7 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 
 		switch (grantType) {
 			case "client_credentials":
-				if (isBrazil()) {
-					callAndStopOnFailure(FAPIBrazilExtractRequestedScopeFromClientCredentialsGrant.class);
+				if (profileBehavior.handleProfileSpecificClientCredentialsGrant()) {
 					return clientCredentialsGrantType();
 				}
 				break;
@@ -593,7 +598,7 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 
 		callAndStopOnFailure(GenerateIdTokenClaimsWith181DayExp.class);
 
-		callAndStopOnFailure(profileSpecificSignIdToken);
+		callAndStopOnFailure(profileBehavior.getSignIdTokenCondition());
 
 		JsonObject response = new JsonObject();
 		response.addProperty("id_token", env.getString("id_token"));
@@ -624,32 +629,21 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 
 		env.mapKey("authorization_request_object", "backchannel_request_object");
 
-		if(isBrazil()) {
-			callAndStopOnFailure(GenerateIdTokenClaimsWith181DayExp.class);
-			callAndStopOnFailure(FAPIBrazilAddCPFAndCPNJToIdTokenClaims.class, "BrazilOB-5.2.2.2", "BrazilOB-5.2.2.3");
-		} else {
-			callAndStopOnFailure(GenerateIdTokenClaims.class);
-		}
+		profileBehavior.applyProfileSpecificIdTokenClaims();
 
 		skipIfMissing(null, new String[] {"at_hash"}, ConditionResult.INFO,
 			AddAtHashToIdTokenClaims.class, ConditionResult.FAILURE, "OIDCC-3.3.2.11");
 
 		addCustomValuesToIdToken();
 
-		if(isBrazil()) {
-			skipIfMissing(null, new String[]{"requested_id_token_acr_values"}, ConditionResult.INFO,
-				FAPIBrazilOBAddACRClaimToIdTokenClaims.class, ConditionResult.FAILURE, "OIDCC-3.1.3.7-12");
-		} else {
-			skipIfMissing(null, new String[]{"requested_id_token_acr_values"}, ConditionResult.INFO,
-				AddACRClaimToIdTokenClaims.class, ConditionResult.FAILURE, "OIDCC-3.1.3.7-12");
-		}
+		profileBehavior.applyProfileSpecificAcrClaim();
 
 		env.unmapKey("authorization_request_object");
 
 	}
 
 	protected void signIdToken() {
-		callAndStopOnFailure(profileSpecificSignIdToken);
+		callAndStopOnFailure(profileBehavior.getSignIdTokenCondition());
 		addCustomSignatureOfIdToken();
 	}
 
@@ -683,9 +677,7 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 		callAndStopOnFailure(RequireBearerAccessToken.class);
 
 		callAndStopOnFailure(FilterUserInfoForScopes.class);
-		if(isBrazil()) {
-			callAndStopOnFailure(FAPIBrazilAddCPFAndCPNJToUserInfoClaims.class, "BrazilOB-5.2.2.2", "BrazilOB-5.2.2.3");
-		}
+		profileBehavior.applyProfileSpecificUserInfoChecks();
 
 		JsonObject user = env.getObject("user_info_endpoint_response");
 
@@ -704,7 +696,7 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 
 		call(sequence(VerifyPostedFormData.class));
 
-		if(clientAuthType == ClientAuthType.MTLS || isBrazil()) {
+		if(clientAuthType == ClientAuthType.MTLS || profileBehavior.requiresMtlsOrBrazilAuth()) {
 			env.mapKey("token_endpoint_request", requestId);
 			checkMtlsCertificate();
 			env.unmapKey("token_endpoint_request");
@@ -723,23 +715,10 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 
 		callAndContinueOnFailure(EnsureBackchannelRequestParametersDoNotAppearOutsideJwt.class, ConditionResult.FAILURE, "CIBA-7.1.1");
 		callAndContinueOnFailure(BackchannelRequestHasExactlyOneOfTheHintParameters.class, ConditionResult.FAILURE, "CIBA-7.1");
-		if (isBrazil()) {
-			callAndContinueOnFailure(BackchannelRequestRequestedExpiryIsIgnoredForBrazil.class, ConditionResult.FAILURE, "BrazilCIBA-6.2.6");
-		} else {
-			callAndContinueOnFailure(BackchannelRequestRequestedExpiryIsAnInteger.class, ConditionResult.FAILURE,"CIBA-7.1", "CIBA-7.1.1");
-		}
+
+		profileBehavior.applyProfileSpecificBackchannelRequestChecks();
 
 		skipIfElementMissing("backchannel_request_object", "claims.id_token_hint", ConditionResult.SUCCESS, IdTokenIsSignedWithServerKey.class, ConditionResult.FAILURE, "CIBA-7.1");
-		if(isBrazil()) {
-
-			if (env.getElementFromObject("backchannel_request_object", "claims.login_hint") != null) {
-				callAndContinueOnFailure(EnsureLoginHintEqualsConsentId.class, ConditionResult.FAILURE);
-			} else {
-				throw new TestFailureException(getId(), "Open Banking/Insurance Brazil requires login_hint.");
-			}
-
-			callAndStopOnFailure(FAPIBrazilChangeConsentStatusToAuthorized.class);
-		}
 
 		HttpStatus httpStatus = createBackchannelResponse();
 		if(CIBAMode.PING.equals(cibaMode)) {
@@ -788,18 +767,7 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 		callAndContinueOnFailure(CreateEffectiveAuthorizationRequestParameters.class, ConditionResult.WARNING);
 		callAndStopOnFailure(ExtractRequestedScopes.class);
 
-		if(isBrazil()) {
-			callAndStopOnFailure(FAPIBrazilValidateConsentScope.class);
-			Boolean wasInitialConsentRequestToPaymentsEndpoint = env.getBoolean("payments_consent_endpoint_called");
-			if(wasInitialConsentRequestToPaymentsEndpoint) {
-				callAndStopOnFailure(EnsureScopeContainsPayments.class);
-			} else {
-				callAndStopOnFailure(EnsureScopeContainsConsents.class);
-				callAndStopOnFailure(EnsureScopeContainsResources.class);
-			}
-		} else {
-			callAndStopOnFailure(EnsureRequestedScopeIsEqualToConfiguredScopeDisregardingOrder.class);
-		}
+		profileBehavior.applyProfileSpecificBackchannelScopeChecks();
 
 		callAndStopOnFailure(EnsureOpenIDInScopeRequest.class, "FAPI1-BASE-5.2.3-7");
 
@@ -841,13 +809,7 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 
 		checkResourceEndpointRequest(false);
 
-		if(profile == FAPICIBAProfile.OPENBANKING_BRAZIL) {
-			callAndStopOnFailure(FAPIBrazilEnsureAuthorizationRequestScopesContainAccounts.class);
-			Boolean wasInitialConsentRequestToPaymentsEndpoint = env.getBoolean("payments_consent_endpoint_called");
-			if(wasInitialConsentRequestToPaymentsEndpoint) {
-				throw new TestFailureException(getId(), FAPIBrazilRsPathConstants.BRAZIL_PAYMENTS_CONSENTS_PATH + " was called. The test must end at the payment initiation endpoint");
-			}
-		}
+		profileBehavior.applyProfileSpecificAccountsEndpointChecks();
 
 		callAndStopOnFailure(CreateFapiInteractionIdIfNeeded.class, "FAPI1-BASE-6.2.1-11");
 		callAndStopOnFailure(CreateFAPIAccountEndpointResponse.class);
