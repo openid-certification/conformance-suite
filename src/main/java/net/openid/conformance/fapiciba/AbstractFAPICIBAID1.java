@@ -191,7 +191,8 @@ import net.openid.conformance.testmodule.TestFailureException;
 import net.openid.conformance.variant.CIBAMode;
 import net.openid.conformance.variant.ClientAuthType;
 import net.openid.conformance.variant.ClientRegistration;
-import net.openid.conformance.variant.FAPI1FinalOPProfile;
+import net.openid.conformance.variant.ConfigurationFields;
+import net.openid.conformance.variant.FAPICIBAProfile;
 import net.openid.conformance.variant.VariantConfigurationFields;
 import net.openid.conformance.variant.VariantHidesConfigurationFields;
 import net.openid.conformance.variant.VariantNotApplicable;
@@ -207,15 +208,28 @@ import java.util.function.Supplier;
 
 @VariantParameters({
 	ClientAuthType.class,
-	FAPI1FinalOPProfile.class,
+	FAPICIBAProfile.class,
 	CIBAMode.class,
 	ClientRegistration.class
 })
+@ConfigurationFields({
+	"server.discoveryUrl",
+	"client.scope",
+	"client.jwks",
+	"client.hint_type",
+	"client.hint_value",
+	"mtls.key",
+	"mtls.cert",
+	"mtls.ca",
+	"client2.scope",
+	"client2.jwks",
+	"mtls2.key",
+	"mtls2.cert",
+	"mtls2.ca",
+	"resource.resourceUrl"
+})
 @VariantNotApplicable(parameter = ClientAuthType.class, values = {
 	"none", "client_secret_basic", "client_secret_post", "client_secret_jwt"
-})
-@VariantNotApplicable(parameter = FAPI1FinalOPProfile.class, values = {
-	"consumerdataright_au", "openinsurance_brazil", "openbanking_ksa"
 })
 @VariantNotApplicable(parameter = CIBAMode.class, values = { "push" })
 @VariantConfigurationFields(parameter = ClientRegistration.class, value = "static_client", configurationFields = {
@@ -228,7 +242,7 @@ import java.util.function.Supplier;
 	"client.initial_access_token",
 	"client2.initial_access_token"
 })
-@VariantConfigurationFields(parameter = FAPI1FinalOPProfile.class, value = "openbanking_brazil", configurationFields = {
+@VariantConfigurationFields(parameter = FAPICIBAProfile.class, value = "openbanking_brazil", configurationFields = {
 	"client.org_jwks",
 	"client.acr_value",
 	"consent.productType",
@@ -237,20 +251,7 @@ import java.util.function.Supplier;
 	"resource.brazilCnpj",
 	"directory.keystore"
 })
-@VariantConfigurationFields(parameter = FAPI1FinalOPProfile.class, value = "openinsurance_brazil", configurationFields = {
-	"client.org_jwks",
-	"client.acr_value",
-	"consent.productType",
-	"resource.consentUrl",
-	"resource.brazilCpf",
-	"resource.brazilCnpj",
-	"directory.keystore"
-})
-@VariantHidesConfigurationFields(parameter = FAPI1FinalOPProfile.class, value = "openbanking_brazil", configurationFields = {
-	"client.hint_type",
-	"client.hint_value"
-})
-@VariantHidesConfigurationFields(parameter = FAPI1FinalOPProfile.class, value = "openinsurance_brazil", configurationFields = {
+@VariantHidesConfigurationFields(parameter = FAPICIBAProfile.class, value = "openbanking_brazil", configurationFields = {
 	"client.hint_type",
 	"client.hint_value"
 })
@@ -280,8 +281,8 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 	// authenticate
 	protected CIBAMode testType;
 	protected boolean isBrazil() {
-		FAPI1FinalOPProfile profile = getVariant(FAPI1FinalOPProfile.class);
-		return profile == FAPI1FinalOPProfile.OPENBANKING_BRAZIL || profile == FAPI1FinalOPProfile.OPENINSURANCE_BRAZIL;
+		FAPICIBAProfile profile = getVariant(FAPICIBAProfile.class);
+		return profile == FAPICIBAProfile.OPENBANKING_BRAZIL;
 	}
 
 	public void setAddBackchannelClientAuthentication(Supplier<? extends ConditionSequence> addBackchannelClientAuthentication) {
@@ -407,9 +408,9 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 
 		if (supportMTLSEndpointAliases != null) {
 			call(sequence(supportMTLSEndpointAliases));
-			FAPI1FinalOPProfile profile = getVariant(FAPI1FinalOPProfile.class);
+			FAPICIBAProfile profile = getVariant(FAPICIBAProfile.class);
 			ClientAuthType authType = getVariant(ClientAuthType.class);
-			if (authType != ClientAuthType.MTLS && profile != FAPI1FinalOPProfile.OPENBANKING_BRAZIL) {
+			if (authType != ClientAuthType.MTLS && profile != FAPICIBAProfile.OPENBANKING_BRAZIL) {
 				// we only need to call the mtls aliased backchannel authentication endpoint when using mtls client auth
 				// (but need to use the mtls alias for the token endpoint whenever we're using certificate bound
 				// access tokens)
@@ -1319,7 +1320,7 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 		supportMTLSEndpointAliases = SupportMTLSEndpointAliases.class;
 	}
 
-	@VariantSetup(parameter = FAPI1FinalOPProfile.class, value = "plain_fapi")
+	@VariantSetup(parameter = FAPICIBAProfile.class, value = "plain_fapi")
 	public void setupPlainFapi() {
 		resourceConfiguration = FAPIResourceConfiguration.class;
 		additionalClientRegistrationSteps = null;
@@ -1328,7 +1329,7 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 		additionalProfileIdTokenValidationSteps = PlainFapiProfileIdTokenValidationSteps.class;
 	}
 
-	@VariantSetup(parameter = FAPI1FinalOPProfile.class, value = "openbanking_uk")
+	@VariantSetup(parameter = FAPICIBAProfile.class, value = "openbanking_uk")
 	public void setupOpenBankingUk() {
 		resourceConfiguration = OpenBankingUkResourceConfiguration.class;
 		additionalClientRegistrationSteps = OpenBankingUkClientRegistrationSteps.class;
@@ -1337,7 +1338,7 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 		additionalProfileIdTokenValidationSteps = OpenBankingUkProfileIdTokenValidationSteps.class;
 	}
 
-	@VariantSetup(parameter = FAPI1FinalOPProfile.class, value = "openbanking_brazil")
+	@VariantSetup(parameter = FAPICIBAProfile.class, value = "openbanking_brazil")
 	public void setupOpenBankingBrazil() {
 		resourceConfiguration = FAPIResourceConfiguration.class;
 		additionalClientRegistrationSteps = null;
@@ -1346,26 +1347,12 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 		additionalProfileIdTokenValidationSteps = OpenBankingBrazilProfileIdTokenValidationSteps.class;
 	}
 
-	@VariantSetup(parameter = FAPI1FinalOPProfile.class, value = "openinsurance_brazil")
-	public void setupOpenInsuranceBrazil() {
-		resourceConfiguration = FAPIResourceConfiguration.class;
-		additionalClientRegistrationSteps = null;
-		preAuthorizationSteps = () -> createBrazilPreauthSteps();
-		additionalProfileAuthorizationEndpointSetupSteps = OpenBankingBrazilProfileAuthorizationEndpointSetupSteps.class;
-		additionalProfileIdTokenValidationSteps = OpenBankingBrazilProfileIdTokenValidationSteps.class;
-	}
 	protected ConditionSequence createBrazilPreauthSteps() {
 		boolean isSecondClient = isSecondClient();
 		boolean isDpop = false;
 		boolean isBrazilOpenInsurance = false;
 		boolean stopAfterConsentEndpoint = false;
 		boolean payments = false;
-
-		if (isBrazil()) {
-			// TODO: Rewrite this for Resources Consent?
-			//eventLog.log(getName(), "Payments scope present - protected resource assumed to be a payments endpoint");
-			//updatePaymentConsent();
-		}
 		return new OpenBankingBrazilPreAuthorizationSteps(
 			isSecondClient, isDpop, addTokenEndpointClientAuthentication, payments, isBrazilOpenInsurance, stopAfterConsentEndpoint, false
 		);

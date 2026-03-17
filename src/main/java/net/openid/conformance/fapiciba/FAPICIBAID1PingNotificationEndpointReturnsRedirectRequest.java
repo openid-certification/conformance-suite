@@ -1,6 +1,9 @@
 package net.openid.conformance.fapiciba;
 
 import com.google.gson.JsonObject;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.CreateInvalidCIBANotificationEndpointUri;
 import net.openid.conformance.condition.client.ServerCalledInvalidNotificationEndpoint;
@@ -12,9 +15,6 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpSession;
 import java.net.URI;
 import java.net.URISyntaxException;
 
@@ -22,23 +22,7 @@ import java.net.URISyntaxException;
 	testName = "fapi-ciba-id1-ping-backchannel-notification-endpoint-return-redirect-request",
 	displayName = "FAPI-CIBA-ID1: Ping mode - backchannel notification endpoint returns a redirect request response and HTTP 301 Moved_Permanently status",
 	summary = "The client's backchannel_notification_endpoint returns a HTTP 301 Moved_Permanently status and a redirect request. The server must not follow redirect request, if it does then test will fail",
-	profile = "FAPI-CIBA-ID1",
-	configurationFields = {
-		"server.discoveryUrl",
-		"client.scope",
-		"client.jwks",
-		"client.hint_type",
-		"client.hint_value",
-		"mtls.key",
-		"mtls.cert",
-		"mtls.ca",
-		"client2.scope",
-		"client2.jwks",
-		"mtls2.key",
-		"mtls2.cert",
-		"mtls2.ca",
-		"resource.resourceUrl"
-	}
+	profile = "FAPI-CIBA-ID1"
 )
 @VariantNotApplicable(parameter = CIBAMode.class, values = { "poll" })
 public class FAPICIBAID1PingNotificationEndpointReturnsRedirectRequest extends AbstractFAPICIBAID1 {

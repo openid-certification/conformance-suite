@@ -459,39 +459,39 @@ makeCIBATest() {
     # Coverage: one plan per auth type for plain_fapi (static), plus
     # private_key_jwt/openbanking_uk (static). mtls/openbanking_uk/static
     # dropped — mtls/openbanking_uk covered by DCR variant below.
-    TESTS="${TESTS} fapi-ciba-id1-test-plan[client_auth_type=mtls][fapi_profile=plain_fapi][ciba_mode=poll][client_registration=static_client] authlete-fapi-ciba-id1-mtls-poll.json"
-    TESTS="${TESTS} fapi-ciba-id1-test-plan[client_auth_type=private_key_jwt][fapi_profile=plain_fapi][ciba_mode=poll][client_registration=static_client] authlete-fapi-ciba-id1-privatekey-poll.json"
-    #TESTS="${TESTS} fapi-ciba-id1-test-plan[client_auth_type=mtls][fapi_profile=openbanking_uk][ciba_mode=poll][client_registration=static_client] authlete-fapi-ciba-id1-mtls-poll.json"
-    TESTS="${TESTS} fapi-ciba-id1-test-plan[client_auth_type=private_key_jwt][fapi_profile=openbanking_uk][ciba_mode=poll][client_registration=static_client] authlete-fapi-ciba-id1-privatekey-poll.json"
+    TESTS="${TESTS} fapi-ciba-id1-test-plan[client_auth_type=mtls][fapi_ciba_profile=plain_fapi][ciba_mode=poll][client_registration=static_client] authlete-fapi-ciba-id1-mtls-poll.json"
+    TESTS="${TESTS} fapi-ciba-id1-test-plan[client_auth_type=private_key_jwt][fapi_ciba_profile=plain_fapi][ciba_mode=poll][client_registration=static_client] authlete-fapi-ciba-id1-privatekey-poll.json"
+    #TESTS="${TESTS} fapi-ciba-id1-test-plan[client_auth_type=mtls][fapi_ciba_profile=openbanking_uk][ciba_mode=poll][client_registration=static_client] authlete-fapi-ciba-id1-mtls-poll.json"
+    TESTS="${TESTS} fapi-ciba-id1-test-plan[client_auth_type=private_key_jwt][fapi_ciba_profile=openbanking_uk][ciba_mode=poll][client_registration=static_client] authlete-fapi-ciba-id1-privatekey-poll.json"
 
     # ciba poll DCR
     # private_key_jwt/plain_fapi/dynamic dropped — private_key_jwt/poll covered by
     # static variants above, and private_key_jwt/dynamic covered by ping plan below.
-    #TESTS="${TESTS} fapi-ciba-id1-test-plan[client_auth_type=mtls][fapi_profile=plain_fapi][ciba_mode=poll][client_registration=dynamic_client] authlete-fapi-ciba-id1-dcr.json"
-    #TESTS="${TESTS} fapi-ciba-id1-test-plan[client_auth_type=private_key_jwt][fapi_profile=plain_fapi][ciba_mode=poll][client_registration=dynamic_client] authlete-fapi-ciba-id1-dcr.json"
-    TESTS="${TESTS} fapi-ciba-id1-test-plan[client_auth_type=mtls][fapi_profile=openbanking_uk][ciba_mode=poll][client_registration=dynamic_client] authlete-fapi-ciba-id1-dcr.json"
-    #TESTS="${TESTS} fapi-ciba-id1-test-plan[client_auth_type=private_key_jwt][fapi_profile=openbanking_uk][ciba_mode=poll][client_registration=dynamic_client] authlete-fapi-ciba-id1-dcr.json"
+    #TESTS="${TESTS} fapi-ciba-id1-test-plan[client_auth_type=mtls][fapi_ciba_profile=plain_fapi][ciba_mode=poll][client_registration=dynamic_client] authlete-fapi-ciba-id1-dcr.json"
+    #TESTS="${TESTS} fapi-ciba-id1-test-plan[client_auth_type=private_key_jwt][fapi_ciba_profile=plain_fapi][ciba_mode=poll][client_registration=dynamic_client] authlete-fapi-ciba-id1-dcr.json"
+    TESTS="${TESTS} fapi-ciba-id1-test-plan[client_auth_type=mtls][fapi_ciba_profile=openbanking_uk][ciba_mode=poll][client_registration=dynamic_client] authlete-fapi-ciba-id1-dcr.json"
+    #TESTS="${TESTS} fapi-ciba-id1-test-plan[client_auth_type=private_key_jwt][fapi_ciba_profile=openbanking_uk][ciba_mode=poll][client_registration=dynamic_client] authlete-fapi-ciba-id1-dcr.json"
 
     # ciba ping DCR
     # only one backchannel notification endpoint is allowed in CIBA so DCR must be used for ping testing
     # see https://gitlab.com/openid/conformance-suite/issues/389
-    TESTS="${TESTS} fapi-ciba-id1-test-plan[client_auth_type=mtls][fapi_profile=plain_fapi][ciba_mode=ping][client_registration=dynamic_client] authlete-fapi-ciba-id1-dcr.json"
-    #TESTS="${TESTS} fapi-ciba-id1-test-plan[client_auth_type=private_key_jwt][fapi_profile=plain_fapi][ciba_mode=ping][client_registration=dynamic_client] authlete-fapi-ciba-id1-dcr.json"
-    #TESTS="${TESTS} fapi-ciba-id1-test-plan[client_auth_type=mtls][fapi_profile=openbanking_uk][ciba_mode=ping][client_registration=dynamic_client] authlete-fapi-ciba-id1-dcr.json"
-    TESTS="${TESTS} fapi-ciba-id1-test-plan[client_auth_type=private_key_jwt][fapi_profile=openbanking_uk][ciba_mode=ping][client_registration=dynamic_client] authlete-fapi-ciba-id1-dcr.json"
+    TESTS="${TESTS} fapi-ciba-id1-test-plan[client_auth_type=mtls][fapi_ciba_profile=plain_fapi][ciba_mode=ping][client_registration=dynamic_client] authlete-fapi-ciba-id1-dcr.json"
+    #TESTS="${TESTS} fapi-ciba-id1-test-plan[client_auth_type=private_key_jwt][fapi_ciba_profile=plain_fapi][ciba_mode=ping][client_registration=dynamic_client] authlete-fapi-ciba-id1-dcr.json"
+    #TESTS="${TESTS} fapi-ciba-id1-test-plan[client_auth_type=mtls][fapi_ciba_profile=openbanking_uk][ciba_mode=ping][client_registration=dynamic_client] authlete-fapi-ciba-id1-dcr.json"
+    TESTS="${TESTS} fapi-ciba-id1-test-plan[client_auth_type=private_key_jwt][fapi_ciba_profile=openbanking_uk][ciba_mode=ping][client_registration=dynamic_client] authlete-fapi-ciba-id1-dcr.json"
     # push isn't allowed in FAPI-CIBA profile
     #TESTS="${TESTS} fapi-ciba-id1-push-with-mtls-test-plan authlete-fapi-ciba-id1-mtls-push.json"
 
     # FAPI CIBA OP against RP
     # MTLS
-    TESTS="${TESTS} fapi-ciba-id1-client-test-plan[client_auth_type=mtls][ciba_mode=poll][fapi_profile=plain_fapi]:fapi-ciba-id1-client-test{fapi-ciba-id1-test-plan[client_auth_type=mtls][fapi_profile=plain_fapi][ciba_mode=poll][client_registration=static_client]:fapi-ciba-id1-discovery-end-point-verification,fapi-ciba-id1-ensure-other-scope-order-succeeds}${SUITE_DIR}/scripts/test-configs-rp-against-op/fapi-ciba-op-test-config.json ${SUITE_DIR}/scripts/test-configs-rp-against-op/fapi-ciba-rp-test-config.json"
+    TESTS="${TESTS} fapi-ciba-id1-client-test-plan[client_auth_type=mtls][ciba_mode=poll][fapi_ciba_profile=plain_fapi]:fapi-ciba-id1-client-test{fapi-ciba-id1-test-plan[client_auth_type=mtls][fapi_ciba_profile=plain_fapi][ciba_mode=poll][client_registration=static_client]:fapi-ciba-id1-discovery-end-point-verification,fapi-ciba-id1-ensure-other-scope-order-succeeds}${SUITE_DIR}/scripts/test-configs-rp-against-op/fapi-ciba-op-test-config.json ${SUITE_DIR}/scripts/test-configs-rp-against-op/fapi-ciba-rp-test-config.json"
     # PKJWT
-    TESTS="${TESTS} fapi-ciba-id1-client-test-plan[client_auth_type=private_key_jwt][ciba_mode=poll][fapi_profile=plain_fapi]:fapi-ciba-id1-client-test{fapi-ciba-id1-test-plan[client_auth_type=private_key_jwt][fapi_profile=plain_fapi][ciba_mode=poll][client_registration=static_client]:fapi-ciba-id1-discovery-end-point-verification,fapi-ciba-id1-ensure-other-scope-order-succeeds}${SUITE_DIR}/scripts/test-configs-rp-against-op/fapi-ciba-op-test-config.json ${SUITE_DIR}/scripts/test-configs-rp-against-op/fapi-ciba-rp-test-config.json"
+    TESTS="${TESTS} fapi-ciba-id1-client-test-plan[client_auth_type=private_key_jwt][ciba_mode=poll][fapi_ciba_profile=plain_fapi]:fapi-ciba-id1-client-test{fapi-ciba-id1-test-plan[client_auth_type=private_key_jwt][fapi_ciba_profile=plain_fapi][ciba_mode=poll][client_registration=static_client]:fapi-ciba-id1-discovery-end-point-verification,fapi-ciba-id1-ensure-other-scope-order-succeeds}${SUITE_DIR}/scripts/test-configs-rp-against-op/fapi-ciba-op-test-config.json ${SUITE_DIR}/scripts/test-configs-rp-against-op/fapi-ciba-rp-test-config.json"
     # OFBR PKJWT
-    TESTS="${TESTS} fapi-ciba-id1-client-test-plan[client_auth_type=private_key_jwt][ciba_mode=ping][fapi_profile=openbanking_brazil]:fapi-ciba-id1-client-test{fapi-ciba-id1-test-plan[client_auth_type=private_key_jwt][fapi_profile=openbanking_brazil][ciba_mode=ping][client_registration=static_client]:fapi-ciba-id1-brazil-discovery-end-point-verification,fapi-ciba-id1-ensure-other-scope-order-succeeds}${SUITE_DIR}/scripts/test-configs-rp-against-op/fapi-ciba-brazil-op-test-config.json ${SUITE_DIR}/scripts/test-configs-rp-against-op/fapi-ciba-brazil-rp-test-config.json"
-    TESTS="${TESTS} fapi-ciba-id1-client-test-plan[client_auth_type=private_key_jwt][ciba_mode=ping][fapi_profile=openbanking_brazil]:fapi-ciba-id1-client-test{fapi-ciba-id1-test-plan[client_auth_type=private_key_jwt][fapi_profile=openbanking_brazil][ciba_mode=ping][client_registration=static_client]:fapi-ciba-id1-ensure-other-scope-order-succeeds}${SUITE_DIR}/scripts/test-configs-rp-against-op/fapi-ciba-brazil-op-test-config.json ${SUITE_DIR}/scripts/test-configs-rp-against-op/fapi-ciba-brazil-rp-test-config.json"
-    TESTS="${TESTS} fapi-ciba-id1-client-test-plan[client_auth_type=private_key_jwt][ciba_mode=ping][fapi_profile=openbanking_brazil]:fapi-ciba-id1-client-test{fapi-ciba-id1-test-plan[client_auth_type=private_key_jwt][fapi_profile=openbanking_brazil][ciba_mode=ping][client_registration=static_client]:fapi-ciba-id1-ensure-requested-expiry-is-ignored-for-brazil}${SUITE_DIR}/scripts/test-configs-rp-against-op/fapi-ciba-brazil-op-test-config.json ${SUITE_DIR}/scripts/test-configs-rp-against-op/fapi-ciba-brazil-rp-test-config.json"
-    TESTS="${TESTS} fapi-ciba-id1-client-test-plan[client_auth_type=private_key_jwt][ciba_mode=ping][fapi_profile=openbanking_brazil]:fapi-ciba-id1-client-refresh-token-test{fapi-ciba-id1-test-plan[client_auth_type=private_key_jwt][fapi_profile=openbanking_brazil][ciba_mode=ping][client_registration=static_client]:fapi-ciba-id1-brazil-discovery-end-point-verification,fapi-ciba-id1-ensure-other-scope-order-succeeds}${SUITE_DIR}/scripts/test-configs-rp-against-op/fapi-ciba-brazil-op-test-config-refresh.json ${SUITE_DIR}/scripts/test-configs-rp-against-op/fapi-ciba-brazil-rp-test-config.json"
+    TESTS="${TESTS} fapi-ciba-id1-client-test-plan[client_auth_type=private_key_jwt][ciba_mode=ping][fapi_ciba_profile=openbanking_brazil]:fapi-ciba-id1-client-test{fapi-ciba-id1-test-plan[client_auth_type=private_key_jwt][fapi_ciba_profile=openbanking_brazil][ciba_mode=ping][client_registration=static_client]:fapi-ciba-id1-brazil-discovery-end-point-verification,fapi-ciba-id1-ensure-other-scope-order-succeeds}${SUITE_DIR}/scripts/test-configs-rp-against-op/fapi-ciba-brazil-op-test-config.json ${SUITE_DIR}/scripts/test-configs-rp-against-op/fapi-ciba-brazil-rp-test-config.json"
+    TESTS="${TESTS} fapi-ciba-id1-client-test-plan[client_auth_type=private_key_jwt][ciba_mode=ping][fapi_ciba_profile=openbanking_brazil]:fapi-ciba-id1-client-test{fapi-ciba-id1-test-plan[client_auth_type=private_key_jwt][fapi_ciba_profile=openbanking_brazil][ciba_mode=ping][client_registration=static_client]:fapi-ciba-id1-ensure-other-scope-order-succeeds}${SUITE_DIR}/scripts/test-configs-rp-against-op/fapi-ciba-brazil-op-test-config.json ${SUITE_DIR}/scripts/test-configs-rp-against-op/fapi-ciba-brazil-rp-test-config.json"
+    TESTS="${TESTS} fapi-ciba-id1-client-test-plan[client_auth_type=private_key_jwt][ciba_mode=ping][fapi_ciba_profile=openbanking_brazil]:fapi-ciba-id1-client-test{fapi-ciba-id1-test-plan[client_auth_type=private_key_jwt][fapi_ciba_profile=openbanking_brazil][ciba_mode=ping][client_registration=static_client]:fapi-ciba-id1-ensure-requested-expiry-is-ignored-for-brazil}${SUITE_DIR}/scripts/test-configs-rp-against-op/fapi-ciba-brazil-op-test-config.json ${SUITE_DIR}/scripts/test-configs-rp-against-op/fapi-ciba-brazil-rp-test-config.json"
+    TESTS="${TESTS} fapi-ciba-id1-client-test-plan[client_auth_type=private_key_jwt][ciba_mode=ping][fapi_ciba_profile=openbanking_brazil]:fapi-ciba-id1-client-refresh-token-test{fapi-ciba-id1-test-plan[client_auth_type=private_key_jwt][fapi_ciba_profile=openbanking_brazil][ciba_mode=ping][client_registration=static_client]:fapi-ciba-id1-brazil-discovery-end-point-verification,fapi-ciba-id1-ensure-other-scope-order-succeeds}${SUITE_DIR}/scripts/test-configs-rp-against-op/fapi-ciba-brazil-op-test-config-refresh.json ${SUITE_DIR}/scripts/test-configs-rp-against-op/fapi-ciba-brazil-rp-test-config.json"
 }
 
 makeEkycTests() {
@@ -672,10 +672,10 @@ makeLocalProviderTests() {
 }
 
 makePanvaTests() {
-    TESTS="${TESTS} fapi-ciba-id1-test-plan[ciba_mode=ping][client_auth_type=mtls][client_registration=dynamic_client][fapi_profile=plain_fapi] panva-fapi-ciba-id1-test-plan.json"
-    #TESTS="${TESTS} fapi-ciba-id1-test-plan[ciba_mode=poll][client_auth_type=mtls][client_registration=dynamic_client][fapi_profile=plain_fapi] panva-fapi-ciba-id1-test-plan.json"
-    #TESTS="${TESTS} fapi-ciba-id1-test-plan[ciba_mode=ping][client_auth_type=private_key_jwt][client_registration=dynamic_client][fapi_profile=plain_fapi] panva-fapi-ciba-id1-test-plan.json"
-    TESTS="${TESTS} fapi-ciba-id1-test-plan[ciba_mode=poll][client_auth_type=private_key_jwt][client_registration=dynamic_client][fapi_profile=plain_fapi] panva-fapi-ciba-id1-test-plan.json"
+    TESTS="${TESTS} fapi-ciba-id1-test-plan[ciba_mode=ping][client_auth_type=mtls][client_registration=dynamic_client][fapi_ciba_profile=plain_fapi] panva-fapi-ciba-id1-test-plan.json"
+    #TESTS="${TESTS} fapi-ciba-id1-test-plan[ciba_mode=poll][client_auth_type=mtls][client_registration=dynamic_client][fapi_ciba_profile=plain_fapi] panva-fapi-ciba-id1-test-plan.json"
+    #TESTS="${TESTS} fapi-ciba-id1-test-plan[ciba_mode=ping][client_auth_type=private_key_jwt][client_registration=dynamic_client][fapi_ciba_profile=plain_fapi] panva-fapi-ciba-id1-test-plan.json"
+    TESTS="${TESTS} fapi-ciba-id1-test-plan[ciba_mode=poll][client_auth_type=private_key_jwt][client_registration=dynamic_client][fapi_ciba_profile=plain_fapi] panva-fapi-ciba-id1-test-plan.json"
 
     TESTS="${TESTS} fapi1-advanced-final-test-plan[client_auth_type=mtls][fapi_auth_request_method=by_value][fapi_profile=plain_fapi][fapi_response_mode=jarm] panva-fapi1-advanced-final-test-plan.json"
     #TESTS="${TESTS} fapi1-advanced-final-test-plan[client_auth_type=mtls][fapi_auth_request_method=by_value][fapi_profile=plain_fapi][fapi_response_mode=plain_response] panva-fapi1-advanced-final-test-plan.json"

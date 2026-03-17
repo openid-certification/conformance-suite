@@ -3,7 +3,7 @@ package net.openid.conformance.fapiciba.rp;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.as.LogAccessTokenAlwaysRejectedToForceARefreshGrant;
 import net.openid.conformance.testmodule.PublishTestModule;
-import net.openid.conformance.variant.FAPI1FinalOPProfile;
+import net.openid.conformance.variant.FAPICIBAProfile;
 import net.openid.conformance.variant.VariantNotApplicable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -21,17 +21,9 @@ import org.springframework.http.ResponseEntity;
 	"refresh token) to obtain a new access token and call the resources " +
 	"endpoint again with the new access token obtained using the " +
 	"refresh_token.",
-	profile = "FAPI-CIBA-ID1",
-	configurationFields = {
-		"server.jwks",
-		"client.client_id",
-		"client.scope",
-		"client.backchannel_client_notification_endpoint",
-		"client.certificate",
-		"client.jwks"
-	}
+	profile = "FAPI-CIBA-ID1"
 )
-@VariantNotApplicable(parameter = FAPI1FinalOPProfile.class, values = {"plain_fapi", "consumerdataright_au", "openbanking_uk", "openinsurance_brazil", "openbanking_ksa"})
+@VariantNotApplicable(parameter = FAPICIBAProfile.class, values = {"plain_fapi", "openbanking_uk", "connectid_au"})
 public class FAPICIBAClientRefreshTokenTest extends AbstractFAPICIBAClientTest {
 
 	private int numberOfTimesRefreshTokenUsed = 0;

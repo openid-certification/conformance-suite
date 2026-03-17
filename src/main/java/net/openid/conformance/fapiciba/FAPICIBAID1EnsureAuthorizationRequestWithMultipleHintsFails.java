@@ -9,21 +9,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 	testName = "fapi-ciba-id1-ensure-authorization-request-with-multiple-hints-fails",
 	displayName = "FAPI-CIBA-ID1: Try sending two hints value to authorization endpoint request, should return an error",
 	summary = "This test should return an error that try sending two hints value to authorization endpoint request",
-	profile = "FAPI-CIBA-ID1",
-	configurationFields = {
-		"server.discoveryUrl",
-		"client.scope",
-		"client.jwks",
-		"mtls.key",
-		"mtls.cert",
-		"mtls.ca",
-		"client2.scope",
-		"client2.jwks",
-		"mtls2.key",
-		"mtls2.cert",
-		"mtls2.ca",
-		"resource.resourceUrl"
-	}
+	profile = "FAPI-CIBA-ID1"
 )
 public class FAPICIBAID1EnsureAuthorizationRequestWithMultipleHintsFails extends AbstractFAPICIBAID1EnsureSendingInvalidBackchannelAuthorizationRequest {
 

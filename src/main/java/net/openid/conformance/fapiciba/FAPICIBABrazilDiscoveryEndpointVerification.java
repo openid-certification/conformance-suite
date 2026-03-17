@@ -18,7 +18,7 @@ import net.openid.conformance.sequence.AbstractConditionSequence;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.CIBAMode;
-import net.openid.conformance.variant.FAPI1FinalOPProfile;
+import net.openid.conformance.variant.FAPICIBAProfile;
 import net.openid.conformance.variant.VariantNotApplicable;
 import net.openid.conformance.variant.VariantParameters;
 import net.openid.conformance.variant.VariantSetup;
@@ -27,28 +27,20 @@ import net.openid.conformance.variant.VariantSetup;
 	testName = "fapi-ciba-id1-brazil-discovery-end-point-verification",
 	displayName = "FAPI-CIBA-BR: Discovery Endpoint Verification",
 	summary = "This test ensures that the server's configuration (including scopes, response_types, grant_types etc) contains values required by the specification",
-	profile = "FAPI-CIBA-BR",
-	configurationFields = {
-		"server.discoveryUrl",
-	}
+	profile = "FAPI-CIBA-BR"
 )
 @VariantParameters({
 	CIBAMode.class,
-	FAPI1FinalOPProfile.class
+	FAPICIBAProfile.class
 })
 @VariantNotApplicable(parameter = CIBAMode.class, values = { "push" })
-@VariantNotApplicable(parameter = FAPI1FinalOPProfile.class, values = { "plain_fapi", "openbanking_uk", "consumerdataright_au", "openinsurance_brazil", "openbanking_ksa"})
+@VariantNotApplicable(parameter = FAPICIBAProfile.class, values = { "plain_fapi", "openbanking_uk", "connectid_au"})
 public class FAPICIBABrazilDiscoveryEndpointVerification extends AbstractFAPI1AdvancedFinalDiscoveryEndpointVerification {
 
 	private ConditionSequence profileSpecificChecks;
 
-	@VariantSetup(parameter = FAPI1FinalOPProfile.class, value = "openbanking_brazil")
+	@VariantSetup(parameter = FAPICIBAProfile.class, value = "openbanking_brazil")
 	public void setupOpenBankingBrazil() {
-		profileSpecificChecks = new OpenBankingBrazilDiscoveryEndpointChecks(false);
-	}
-
-	@VariantSetup(parameter = FAPI1FinalOPProfile.class, value = "openinsurance_brazil")
-	public void setupOpenInsuranceBrazil() {
 		profileSpecificChecks = new OpenBankingBrazilDiscoveryEndpointChecks(false);
 	}
 

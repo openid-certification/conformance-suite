@@ -11,7 +11,7 @@ import net.openid.conformance.sequence.AbstractConditionSequence;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.CIBAMode;
-import net.openid.conformance.variant.FAPI1FinalOPProfile;
+import net.openid.conformance.variant.FAPICIBAProfile;
 import net.openid.conformance.variant.VariantNotApplicable;
 import net.openid.conformance.variant.VariantParameters;
 import net.openid.conformance.variant.VariantSetup;
@@ -20,17 +20,14 @@ import net.openid.conformance.variant.VariantSetup;
 	testName = "fapi-ciba-id1-discovery-end-point-verification",
 	displayName = "FAPI-CIBA-ID1: Discovery Endpoint Verification",
 	summary = "This test ensures that the server's discovery document (including token_delivery_modes, response_types, grant_types etc) contains correct values.",
-	profile = "FAPI-CIBA-ID1",
-	configurationFields = {
-		"server.discoveryUrl",
-	}
+	profile = "FAPI-CIBA-ID1"
 )
 @VariantParameters({
 	CIBAMode.class,
-	FAPI1FinalOPProfile.class
+	FAPICIBAProfile.class
 })
 @VariantNotApplicable(parameter = CIBAMode.class, values = { "push" })
-@VariantNotApplicable(parameter = FAPI1FinalOPProfile.class, values = { "openbanking_brazil", "openinsurance_brazil" })
+@VariantNotApplicable(parameter = FAPICIBAProfile.class, values = { "openbanking_brazil" })
 public class FAPICIBAID1DiscoveryEndpointVerification extends AbstractFAPIDiscoveryEndpointVerification {
 	private Class<? extends ConditionSequence> variantModeChecks;
 

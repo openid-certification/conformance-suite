@@ -11,23 +11,7 @@ import org.springframework.http.ResponseEntity;
 	testName = "fapi-ciba-id1-ping-backchannel-notification-endpoint-response-403",
 	displayName = "FAPI-CIBA-ID1: Ping mode - backchannel notificatione endpoint returns a HTTP 403 Forbidden response",
 	summary = "The client's backchannel_notification_endpoint returns a HTTP 403 Forbidden and the authentication flow must still complete normally.",
-	profile = "FAPI-CIBA-ID1",
-	configurationFields = {
-		"server.discoveryUrl",
-		"client.scope",
-		"client.jwks",
-		"client.hint_type",
-		"client.hint_value",
-		"mtls.key",
-		"mtls.cert",
-		"mtls.ca",
-		"client2.scope",
-		"client2.jwks",
-		"mtls2.key",
-		"mtls2.cert",
-		"mtls2.ca",
-		"resource.resourceUrl"
-	}
+	profile = "FAPI-CIBA-ID1"
 )
 @VariantNotApplicable(parameter = CIBAMode.class, values = { "poll" })
 public class FAPICIBAID1PingNotificationEndpointReturns403 extends AbstractFAPICIBAID1 {

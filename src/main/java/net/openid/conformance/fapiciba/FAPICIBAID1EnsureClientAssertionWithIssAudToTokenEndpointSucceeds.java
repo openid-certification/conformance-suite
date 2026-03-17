@@ -15,23 +15,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 	testName = "fapi-ciba-id1-ensure-client-assertion-with-iss-aud-to-token-endpoint-succeeds",
 	displayName = "FAPI-CIBA-ID1: Ensure that client_assertion with AS issuer ID succeeds at the token endpoint",
 	summary = "This test passes a client assertion where 'aud' is the Authorization Server's Issuer ID instead of the token endpoint. Per RFC7523-3 and Connect Core 1.0 - 3, the AS must verify that it is the intended audience, but only recommended a value. The AS should accept the AS Issuer ID as valid, but as a recommended value, the AS may reject it with a valid error response and the test will end with a WARNING, which will not affect certification.",
-	profile = "FAPI-CIBA-ID1",
-	configurationFields = {
-		"server.discoveryUrl",
-		"client.scope",
-		"client.jwks",
-		"client.hint_type",
-		"client.hint_value",
-		"mtls.key",
-		"mtls.cert",
-		"mtls.ca",
-		"client2.scope",
-		"client2.jwks",
-		"mtls2.key",
-		"mtls2.cert",
-		"mtls2.ca",
-		"resource.resourceUrl"
-	}
+	profile = "FAPI-CIBA-ID1"
 )
 @VariantNotApplicable(parameter = ClientAuthType.class, values = { "mtls" })
 public class FAPICIBAID1EnsureClientAssertionWithIssAudToTokenEndpointSucceeds extends AbstractFAPICIBAID1 {

@@ -17,23 +17,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 	testName = "fapi-ciba-id1-ensure-without-client-assertion-in-token-endpoint-request",
 	displayName = "FAPI-CIBA-ID1: Ensure without client_assertion in token endpoint request",
 	summary = "This test passes client_id into token endpoint request instead of client_assertion. The token endpoint return an error message that is 'invalid_request' or 'invalid_client'.",
-	profile = "FAPI-CIBA-ID1",
-	configurationFields = {
-		"server.discoveryUrl",
-		"client.scope",
-		"client.jwks",
-		"client.hint_type",
-		"client.hint_value",
-		"mtls.key",
-		"mtls.cert",
-		"mtls.ca",
-		"client2.scope",
-		"client2.jwks",
-		"mtls2.key",
-		"mtls2.cert",
-		"mtls2.ca",
-		"resource.resourceUrl"
-	}
+	profile = "FAPI-CIBA-ID1"
 )
 @VariantNotApplicable(parameter = ClientAuthType.class, values = { "mtls" })
 public class FAPICIBAID1EnsureWithoutClientAssertionInTokenEndpointFails extends AbstractFAPICIBAID1 {
