@@ -7,6 +7,7 @@ import net.openid.conformance.condition.client.CheckForUnexpectedParametersInErr
 import net.openid.conformance.condition.client.CheckStateInAuthorizationResponse;
 import net.openid.conformance.condition.client.EnsureAccessDeniedErrorFromAuthorizationEndpointResponse;
 import net.openid.conformance.condition.client.EnsureErrorFromAuthorizationEndpointResponse;
+import net.openid.conformance.condition.client.EnsureServerConfigurationSupportsOpenBankingUkScaAcrClaim;
 import net.openid.conformance.condition.client.ExpectAccessDeniedErrorPage;
 import net.openid.conformance.condition.client.OpenBankingUkAddScaAcrClaimToAuthorizationEndpointRequest;
 import net.openid.conformance.sequence.AbstractConditionSequence;
@@ -45,6 +46,11 @@ import net.openid.conformance.variant.VariantSetup;
 		"openinsurance_brazil",
 		"openbanking_ksa" })
 public class FAPI1AdvancedFinalTestEssentialAcrScaClaim extends AbstractFAPI1AdvancedFinalExpectingAuthorizationEndpointPlaceholderOrCallback {
+
+	@Override
+	protected void onConfigure(JsonObject config, String baseUrl) {
+		callAndContinueOnFailure(EnsureServerConfigurationSupportsOpenBankingUkScaAcrClaim.class, Condition.ConditionResult.WARNING);
+	}
 
 	@VariantSetup(parameter = FAPI1FinalOPProfile.class, value = "openbanking_uk")
 	@Override
