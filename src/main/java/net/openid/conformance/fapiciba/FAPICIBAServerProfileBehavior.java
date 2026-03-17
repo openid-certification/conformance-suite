@@ -1,8 +1,8 @@
 package net.openid.conformance.fapiciba;
 
-import net.openid.conformance.condition.Condition;
-import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.sequence.ConditionSequence;
+import net.openid.conformance.testmodule.Environment;
+
 import java.util.function.Supplier;
 
 public class FAPICIBAServerProfileBehavior {
