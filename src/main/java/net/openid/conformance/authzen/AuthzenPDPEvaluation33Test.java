@@ -13,7 +13,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 	configurationFields = {
 	}
 )
-public class AuthzenPDPEvaluation33Test extends AbstractAuthzenPDPTest {
+public class AuthzenPDPEvaluation33Test extends AbstractAuthzenPDPEvaluationTest {
 
 	public static final String payload = """
 	{
