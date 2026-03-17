@@ -5,17 +5,13 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import net.openid.conformance.condition.Condition;
-import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.condition.Condition.ConditionResult;
-import net.openid.conformance.condition.as.AddACRClaimToIdTokenClaims;
 import net.openid.conformance.condition.as.AddAtHashToIdTokenClaims;
-import net.openid.conformance.condition.as.AddClaimsParameterSupportedTrueToServerConfiguration;
 import net.openid.conformance.condition.as.AddIdTokenSigningAlgsToServerConfiguration;
 import net.openid.conformance.condition.as.AddJwksUriToServerConfiguration;
 import net.openid.conformance.condition.as.AddTLSClientAuthToServerConfiguration;
 import net.openid.conformance.condition.as.AddTlsCertificateBoundAccessTokensTrueSupportedToServerConfiguration;
 import net.openid.conformance.condition.as.CalculateAtHash;
-import net.openid.conformance.condition.as.CheckCIBAModeIsPing;
 import net.openid.conformance.condition.as.CheckClientIdMatchesOnTokenRequestIfPresent;
 import net.openid.conformance.condition.as.CheckForClientCertificate;
 import net.openid.conformance.condition.as.CopyAccessTokenToClientCredentialsField;
@@ -30,27 +26,14 @@ import net.openid.conformance.condition.as.EnsureOpenIDInScopeRequest;
 import net.openid.conformance.condition.as.EnsureOptionalAuthorizationRequestParametersMatchRequestObject;
 import net.openid.conformance.condition.as.EnsureRequestObjectDoesNotContainRequestOrRequestUri;
 import net.openid.conformance.condition.as.EnsureRequestObjectDoesNotContainSubWithClientId;
-import net.openid.conformance.condition.as.EnsureScopeContainsConsents;
-import net.openid.conformance.condition.as.EnsureScopeContainsPayments;
-import net.openid.conformance.condition.as.EnsureScopeContainsResources;
 import net.openid.conformance.condition.as.ExtractClientCertificateFromRequestHeaders;
 import net.openid.conformance.condition.as.ExtractRequestedScopes;
-import net.openid.conformance.condition.as.ExtractServerSigningAlg;
 import net.openid.conformance.condition.as.FAPI1AdvancedValidateRequestObjectNBFClaim;
-import net.openid.conformance.condition.as.FAPIAddTokenEndpointAuthSigningAlgValuesSupportedToServer;
-import net.openid.conformance.condition.as.FAPIBrazilAddBrazilSpecificSettingsToServerConfiguration;
-import net.openid.conformance.condition.as.FAPIBrazilAddCPFAndCPNJToIdTokenClaims;
-import net.openid.conformance.condition.as.FAPIBrazilAddCPFAndCPNJToUserInfoClaims;
-import net.openid.conformance.condition.as.FAPIBrazilAddTokenEndpointAuthSigningAlgValuesSupportedToServer;
-import net.openid.conformance.condition.as.FAPIBrazilChangeConsentStatusToAuthorized;
 import net.openid.conformance.condition.as.FAPIBrazilExtractConsentRequest;
 import net.openid.conformance.condition.as.FAPIBrazilExtractPaymentInitiationRequest;
 import net.openid.conformance.condition.as.FAPIBrazilExtractPaymentsConsentRequest;
-import net.openid.conformance.condition.as.FAPIBrazilExtractRequestedScopeFromClientCredentialsGrant;
-import net.openid.conformance.condition.as.FAPIBrazilOBAddACRClaimToIdTokenClaims;
 import net.openid.conformance.condition.as.FAPIBrazilSignPaymentConsentResponse;
 import net.openid.conformance.condition.as.FAPIBrazilSignPaymentInitiationResponse;
-import net.openid.conformance.condition.as.FAPIBrazilValidateConsentScope;
 import net.openid.conformance.condition.as.FAPIEnsureMinimumClientKeyLength;
 import net.openid.conformance.condition.as.FAPIEnsureMinimumServerKeyLength;
 import net.openid.conformance.condition.as.FAPIValidateRequestObjectExp;
@@ -58,19 +41,14 @@ import net.openid.conformance.condition.as.FAPIValidateRequestObjectMediaType;
 import net.openid.conformance.condition.as.FAPIValidateRequestObjectSigningAlg;
 import net.openid.conformance.condition.as.FilterUserInfoForScopes;
 import net.openid.conformance.condition.as.GenerateBearerAccessToken;
-import net.openid.conformance.condition.as.GenerateIdTokenClaims;
 import net.openid.conformance.condition.as.GenerateIdTokenClaimsWith181DayExp;
 import net.openid.conformance.condition.as.LoadServerJWKs;
 import net.openid.conformance.condition.as.SetRsaAltServerJwks;
-import net.openid.conformance.condition.as.SetServerSigningAlgToPS256;
 import net.openid.conformance.condition.as.SetTokenEndpointAuthMethodsSupportedToPrivateKeyJWTOnly;
-import net.openid.conformance.condition.as.SignIdToken;
-import net.openid.conformance.condition.as.SignIdTokenWithX5tS256;
 import net.openid.conformance.condition.as.ValidateFAPIInteractionIdInResourceRequest;
 import net.openid.conformance.condition.as.ValidateRefreshToken;
 import net.openid.conformance.condition.as.ValidateRequestObjectSignature;
 import net.openid.conformance.condition.client.AddCibaTokenDeliveryModePingToTokenDeliveryModesSupported;
-import net.openid.conformance.condition.client.AddCibaTokenDeliveryModePollToTokenDeliveryModesSupported;
 import net.openid.conformance.condition.client.ExtractJWKsFromStaticClientConfiguration;
 import net.openid.conformance.condition.client.FAPIValidateRequestObjectIdTokenACRClaims;
 import net.openid.conformance.condition.client.GetStaticClientConfiguration;
@@ -89,7 +67,6 @@ import net.openid.conformance.condition.rs.ExtractFapiDateHeader;
 import net.openid.conformance.condition.rs.ExtractFapiInteractionIdHeader;
 import net.openid.conformance.condition.rs.ExtractFapiIpAddressHeader;
 import net.openid.conformance.condition.rs.ExtractXIdempotencyKeyHeader;
-import net.openid.conformance.condition.rs.FAPIBrazilEnsureAuthorizationRequestScopesContainAccounts;
 import net.openid.conformance.condition.rs.FAPIBrazilEnsureAuthorizationRequestScopesContainPayments;
 import net.openid.conformance.condition.rs.FAPIBrazilEnsureAuthorizationRequestScopesContainResources;
 import net.openid.conformance.condition.rs.FAPIBrazilEnsureClientCredentialsScopeContainedConsents;
@@ -120,6 +97,7 @@ import net.openid.conformance.sequence.as.GenerateOpenBankingBrazilAccountsEndpo
 import net.openid.conformance.sequence.as.ValidateClientAuthenticationWithMTLS;
 import net.openid.conformance.sequence.as.ValidateClientAuthenticationWithPrivateKeyJWT;
 import net.openid.conformance.testmodule.AbstractTestModule;
+import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.TestFailureException;
 import net.openid.conformance.variant.CIBAMode;
 import net.openid.conformance.variant.ClientAuthType;
@@ -201,6 +179,12 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 	@VariantSetup(parameter = FAPICIBAProfile.class, value = "connectid_au")
 	public void setupConnectID() {
 		profileBehavior = new ConnectIdAuCibaRPProfileBehavior();
+		profileBehavior.setModule(this);
+	}
+
+	@VariantSetup(parameter = FAPICIBAProfile.class, value = "openbanking_uk")
+	public void setupOpenBankingUk() {
+		profileBehavior = new OpenBankingUkCibaRPProfileBehavior();
 		profileBehavior.setModule(this);
 	}
 
