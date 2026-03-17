@@ -411,8 +411,9 @@ for test_plan,modules in sorted(new_results.items()):
 
             if master_log is not None:
                 del master_results[master_plan_key][matched_module][matched_variant]
+                any_fuzzy = fuzzy_plan or fuzzy_module or fuzzy
                 output = compare(master_log, log)
-                if output != None:
+                if output != None or any_fuzzy:
                     differences=True
                     print("Plan: "+test_plan)
                     print("Module: "+module)
@@ -425,7 +426,10 @@ for test_plan,modules in sorted(new_results.items()):
                         print("(fuzzy variant match — reference had: "+pretty_variant(matched_variant)+")")
                     print("reference log: "+get_url(master_log))
                     print("new log: "+get_url(log))
-                    print("Diff output:\n"+output)
+                    if output != None:
+                        print("Diff output:\n"+output)
+                    else:
+                        print("(no condition diff, but fuzzy matching was required)\n")
             else:
                 differences=True
                 print("Plan: "+test_plan)
