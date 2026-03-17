@@ -20,6 +20,7 @@ import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -338,6 +339,13 @@ public class VariantService {
 		final Class<? extends TestPlan> planClass;
 		final TestPlan planInstance;
 		final Map<String, ParameterHolder<? extends Enum<?>>> parametersByName;
+
+		/**
+		 * @return the set of variant parameter names recognized by any module in this plan
+		 */
+		public Set<String> getKnownParameterNames() {
+			return Collections.unmodifiableSet(parametersByName.keySet());
+		}
 
 		/**
 		 * @return default values for variant parameters that at least one module
