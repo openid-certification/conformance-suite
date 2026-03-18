@@ -60,6 +60,7 @@ public class TestPlanApi implements DataUtils {
 	@Operation(summary = "Create test plan")
 	@ApiResponses(value = {
 		@ApiResponse(responseCode = "201", description = "Created test plan successfully"),
+		@ApiResponse(responseCode = "400", description = "Unknown variant parameter(s) for the plan"),
 		@ApiResponse(responseCode = "404", description = "Couldn't find test plan for provided plan name")
 	})
 	public ResponseEntity<Map<String, Object>> createTestPlan(
@@ -95,6 +96,30 @@ public class TestPlanApi implements DataUtils {
 		String publish = null;
 		if (config.has("publish") && config.get("publish").isJsonPrimitive()) {
 			publish = Strings.emptyToNull(OIDFJSON.getString(config.get("publish")));
+		}
+
+		// Reject any variant parameters not recognized by any module in the plan
+		if (variant != null) {
+			Set<String> known = holder.getKnownParameterNames();
+			Set<String> unknown = variant.getVariant().keySet().stream()
+				.filter(k -> !known.contains(k))
+				.collect(Collectors.toSet());
+			if (!unknown.isEmpty()) {
+				return new ResponseEntity<>(
+					Map.of("error", "Unknown variant parameter(s) " + unknown
+						+ " for plan '" + planName + "'. Known parameters: " + known),
+					HttpStatus.BAD_REQUEST);
+			}
+		}
+
+		// Resolve default values for any unset variant parameters so the stored
+		// plan records exactly what ran (needed for edit-plan UI restoration).
+		// getUnsetDefaults only returns keys not already in the user variant,
+		// so putAll will not overwrite any user-provided values.
+		if (variant != null) {
+			Map<String, String> resolved = new HashMap<>(variant.getVariant());
+			resolved.putAll(holder.getUnsetDefaults(variant));
+			variant = new VariantSelection(resolved);
 		}
 
 		// save the configuration for the test plan

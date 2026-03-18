@@ -20,6 +20,7 @@ import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -338,6 +339,38 @@ public class VariantService {
 		final Class<? extends TestPlan> planClass;
 		final TestPlan planInstance;
 		final Map<String, ParameterHolder<? extends Enum<?>>> parametersByName;
+
+		/**
+		 * @return the set of variant parameter names recognized by any module in this plan
+		 */
+		public Set<String> getKnownParameterNames() {
+			return Collections.unmodifiableSet(parametersByName.keySet());
+		}
+
+		/**
+		 * @return default values for variant parameters that at least one module
+		 *         requires but that are not provided by the user or pinned by the plan
+		 */
+		public Map<String, String> getUnsetDefaults(VariantSelection userVariant) {
+			Map<String, String> defaults = new HashMap<>();
+			Set<String> userProvided = userVariant.getVariant().keySet();
+
+			for (var mwv : modulesWithVariant) {
+				Set<String> setForModule = new HashSet<>(userProvided);
+				if (mwv.variantAsStrings() != null) {
+					setForModule.addAll(mwv.variantAsStrings().keySet());
+				}
+
+				for (var p : mwv.module.parameters) {
+					String name = p.parameter.variantParameter.name();
+					if (!setForModule.contains(name) && !defaults.containsKey(name)
+						&& p.parameter.hasDefault()) {
+						defaults.put(name, p.parameter.defaultValue().toString());
+					}
+				}
+			}
+			return defaults;
+		}
 
 		private List<TestPlanModuleWithVariant> convertModuleListEntry(String testPlanName, List<TestPlan.ModuleListEntry> list) {
 			return list.stream().flatMap(moduleListEntry -> {

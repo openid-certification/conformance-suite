@@ -184,6 +184,25 @@ def pretty_variant(variant_frozen):
     s = s[:-1]
     return s
 
+def pretty_variant_diff(new_variant, ref_variant):
+    new_dict = dict(new_variant)
+    ref_dict = dict(ref_variant)
+    all_keys = sorted(set(new_dict) | set(ref_dict))
+    lines = []
+    for k in all_keys:
+        in_new = k in new_dict
+        in_ref = k in ref_dict
+        if in_new and in_ref and new_dict[k] == ref_dict[k]:
+            continue
+        elif in_new and in_ref:
+            lines.append(red("- %s:%s" % (k, ref_dict[k])))
+            lines.append(green("+ %s:%s" % (k, new_dict[k])))
+        elif in_new:
+            lines.append(green("+ %s:%s" % (k, new_dict[k])))
+        else:
+            lines.append(red("- %s:%s" % (k, ref_dict[k])))
+    return "\n".join(lines)
+
 # from http://stackoverflow.com/a/26445590/3191896 and https://gist.github.com/Jossef/0ee20314577925b4027f
 def color(text, **user_styles):
 
@@ -238,6 +257,9 @@ def red(text):
 
 def green(text):
     return color(text, bold=True, fg_green=True)
+
+def yellow(text):
+    return color(text, bold=True, fg_yellow=True)
 
 
 if len(sys.argv) < 3:
@@ -411,21 +433,27 @@ for test_plan,modules in sorted(new_results.items()):
 
             if master_log is not None:
                 del master_results[master_plan_key][matched_module][matched_variant]
+                any_fuzzy = fuzzy_plan or fuzzy_module or fuzzy
                 output = compare(master_log, log)
-                if output != None:
+                if output != None or any_fuzzy:
                     differences=True
                     print("Plan: "+test_plan)
                     print("Module: "+module)
                     print("Variant: "+pretty_variant(variant))
                     if fuzzy_plan:
-                        print("(fuzzy plan match — reference plan: "+master_plan_key+")")
+                        print(yellow("(fuzzy plan match — reference plan: "+master_plan_key+")"))
                     if fuzzy_module:
-                        print("(fuzzy module match — reference had: "+matched_module+")")
+                        print(yellow("(fuzzy module match — reference had: "+matched_module+")"))
                     if fuzzy:
-                        print("(fuzzy variant match — reference had: "+pretty_variant(matched_variant)+")")
+                        print(yellow("(fuzzy variant match — differences:"))
+                        print(pretty_variant_diff(variant, matched_variant))
+                        print(yellow(")"))
                     print("reference log: "+get_url(master_log))
                     print("new log: "+get_url(log))
-                    print("Diff output:\n"+output)
+                    if output != None:
+                        print("Diff output:\n"+output)
+                    else:
+                        print(yellow("(no condition diff, but fuzzy matching was required)\n"))
             else:
                 differences=True
                 print("Plan: "+test_plan)
