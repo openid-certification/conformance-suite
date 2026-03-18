@@ -56,7 +56,7 @@ public class VP1FinalWalletTestPlanHaip implements TestPlan {
 			}
 		}
 
-		String certProfile = String.format("%s %s %s %s %s", "OID4VP-1.0-FINAL+HAIP-1.0-FINAL", "Wallet", credentialFormat, requestMethod, responseMode);
+		String certProfile = String.format("%s %s %s %s %s %s", "OID4VP-1.0-FINAL+HAIP-1.0-FINAL", "Wallet", credentialFormat, requestMethod, clientIDPrefix, responseMode);
 
 		return List.of(certProfile);
 	}
