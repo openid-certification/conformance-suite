@@ -8,6 +8,7 @@ import net.openid.conformance.variant.VariantSelection;
 import java.lang.invoke.MethodHandles;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 @PublishTestPlan(
 	testPlanName = "oid4vp-1final-wallet-haip-test-plan",
