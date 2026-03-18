@@ -67,6 +67,13 @@ public abstract class AbstractFAPI2SPFinalDiscoveryEndpointVerification extends 
 		}
 	}
 
+	public static class NoOpChecks extends AbstractConditionSequence
+	{
+		@Override
+		public void evaluate() {
+		}
+	}
+
 	@Override
 	public void configure(JsonObject config, String baseUrl, String externalUrlOverride, String baseMtlsUrl) {
 
@@ -170,6 +177,15 @@ public abstract class AbstractFAPI2SPFinalDiscoveryEndpointVerification extends 
 	@VariantSetup(parameter = ClientAuthType.class, value = "private_key_jwt")
 	public void setupPrivateKeyJwt() {
 		variantAuthChecks = PrivateKeyJWTChecks.class;
+
+		if (getVariant(FAPI2SenderConstrainMethod.class) == FAPI2SenderConstrainMethod.MTLS) {
+			supportMTLSEndpointAliases = SupportMTLSEndpointAliases.class;
+		}
+	}
+
+	@VariantSetup(parameter = ClientAuthType.class, value = "client_attestation")
+	public void setupClientAttestation() {
+		variantAuthChecks = NoOpChecks.class;
 
 		if (getVariant(FAPI2SenderConstrainMethod.class) == FAPI2SenderConstrainMethod.MTLS) {
 			supportMTLSEndpointAliases = SupportMTLSEndpointAliases.class;
