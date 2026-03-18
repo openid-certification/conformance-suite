@@ -37,9 +37,11 @@ class VariantCondition_UnitTest {
 			.collect(Collectors.toSet());
 
 		// direct_post.jwt entry uses x509_hash + request_uri_signed
-		assertTrue(moduleNames.contains("oid4vp-1final-wallet-happy-flow-with-state-and-redirect"));
-		assertTrue(moduleNames.contains("oid4vp-1final-wallet-happy-flow-no-state"));
-		assertTrue(moduleNames.contains("oid4vp-1final-wallet-negative-test-invalid-request-object-signature"));
+		assertEquals(Set.of(
+			"oid4vp-1final-wallet-happy-flow-with-state-and-redirect",
+			"oid4vp-1final-wallet-happy-flow-no-state",
+			"oid4vp-1final-wallet-negative-test-invalid-request-object-signature"
+		), moduleNames);
 
 		// all modules should have the same fixed variants
 		for (Plan.Module module : modules) {
@@ -78,7 +80,10 @@ class VariantCondition_UnitTest {
 		Set<String> sanDnsModules = byPrefix.get("x509_san_dns").stream()
 			.map(Plan.Module::getTestModule)
 			.collect(Collectors.toSet());
-		assertTrue(sanDnsModules.contains("oid4vp-1final-wallet-negative-test-invalid-request-object-signature"));
+		assertEquals(Set.of(
+			"oid4vp-1final-wallet-happy-flow-with-state-and-redirect",
+			"oid4vp-1final-wallet-negative-test-invalid-request-object-signature"
+		), sanDnsModules);
 	}
 
 	@Test
