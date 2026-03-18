@@ -2,6 +2,7 @@ package net.openid.conformance.vci10issuer;
 
 import net.openid.conformance.plan.PublishTestPlan;
 import net.openid.conformance.plan.TestPlan;
+import net.openid.conformance.variant.FAPI2FinalOPProfile;
 
 import java.util.List;
 
@@ -11,6 +12,20 @@ import java.util.List;
 	profile = TestPlan.ProfileNames.vciissuer
 )
 public class VCIIssuerTestPlan implements TestPlan {
+
+	@Override
+	public List<Variant> variantsNotApplicable() {
+		return List.of(
+			new Variant(FAPI2FinalOPProfile.class, "plain_fapi"),
+			new Variant(FAPI2FinalOPProfile.class, "openbanking_uk"),
+			new Variant(FAPI2FinalOPProfile.class, "consumerdataright_au"),
+			new Variant(FAPI2FinalOPProfile.class, "openbanking_brazil"),
+			new Variant(FAPI2FinalOPProfile.class, "connectid_au"),
+			new Variant(FAPI2FinalOPProfile.class, "cbuae"),
+			new Variant(FAPI2FinalOPProfile.class, "fapi_client_credentials_grant"),
+			new Variant(FAPI2FinalOPProfile.class, "vci_haip")
+		);
+	}
 
 	@Override
 	public List<ModuleListEntry> testModulesWithVariants() {

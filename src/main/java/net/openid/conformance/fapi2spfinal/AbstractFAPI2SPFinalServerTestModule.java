@@ -205,7 +205,7 @@ import java.util.function.Supplier;
 	"client2.dpop_signing_alg",
 })
 @VariantNotApplicable(parameter = ClientAuthType.class, values = {
-	"none", "client_secret_basic", "client_secret_post", "client_secret_jwt", "client_attestation"
+	"none", "client_secret_basic", "client_secret_post", "client_secret_jwt"
 })
 @VariantConfigurationFields(parameter = ClientAuthType.class, value = "mtls", configurationFields = {
 	"mtls.key",
