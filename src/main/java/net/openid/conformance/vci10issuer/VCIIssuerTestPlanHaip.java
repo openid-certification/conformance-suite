@@ -5,10 +5,12 @@ import net.openid.conformance.plan.TestPlan;
 import net.openid.conformance.variant.AuthorizationRequestType;
 import net.openid.conformance.variant.FAPI2AuthRequestMethod;
 import net.openid.conformance.variant.FAPI2SenderConstrainMethod;
+import net.openid.conformance.variant.VCIAuthorizationCodeFlowVariant;
 import net.openid.conformance.variant.VCIClientAuthType;
 import net.openid.conformance.variant.VCICredentialEncryption;
 import net.openid.conformance.variant.VCIGrantType;
 import net.openid.conformance.variant.VCIProfile;
+import net.openid.conformance.variant.VariantSelection;
 
 import java.util.List;
 
@@ -82,5 +84,12 @@ public class VCIIssuerTestPlanHaip implements TestPlan {
 				)
 			)
 		);
+	}
+
+	@Override
+	public List<String> certificationProfileName(VariantSelection variantSelection) {
+		String credentialFormat = variantSelection.getVariantParameterValue(VCI1FinalCredentialFormat.class);
+		String codeFlowVariant = variantSelection.getVariantParameterValue(VCIAuthorizationCodeFlowVariant.class);
+		return List.of(String.format("%s %s %s %s", "OID4VCI-1.0-FINAL+HAIP-1.0-FINAL", "Issuer", credentialFormat, codeFlowVariant));
 	}
 }

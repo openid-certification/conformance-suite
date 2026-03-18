@@ -42,6 +42,22 @@ public class VariantSelection {
 			'}';
 	}
 
+	public static VariantParameter resolveVariantParameter(Class<?> parameterClass) {
+		if (!parameterClass.isEnum()) {
+			throw new IllegalArgumentException("Variant parameters must be enums: " + parameterClass.getName());
+		}
+		VariantParameter annotation = parameterClass.getAnnotation(VariantParameter.class);
+		if (annotation == null) {
+			throw new IllegalArgumentException("Class does not have a VariantParameter annotation: " + parameterClass.getName());
+		}
+		return annotation;
+	}
+
+	public String getVariantParameterValue(Class<?> parameterClass) {
+		String variantParameterName = resolveVariantParameter(parameterClass).name();
+		return getVariant().get(variantParameterName);
+	}
+
 	public VariantSelection(Map<String, String> variant) {
 		this.variant = variant;
 	}
