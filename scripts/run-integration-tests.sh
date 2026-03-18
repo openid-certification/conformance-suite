@@ -3,10 +3,11 @@
 # Run integration tests locally.
 #
 # Usage:
-#   ./scripts/run-integration-tests.sh [run-tests.sh option] [--rerun ID]
+#   ./scripts/run-integration-tests.sh [run-tests.sh option] [--rerun ID] [--stdout]
 #
 # Examples:
 #   ./scripts/run-integration-tests.sh --federation-tests
+#   ./scripts/run-integration-tests.sh --federation-tests --stdout
 #   ./scripts/run-integration-tests.sh --vc-tests
 #   ./scripts/run-integration-tests.sh --ekyc-tests --rerun 3
 #   ./scripts/run-integration-tests.sh --ekyc-tests --rerun 3:2
@@ -21,6 +22,9 @@
 #   --rerun N       Rerun plan number N
 #   --rerun N:M     Rerun module M of plan N
 #   --rerun N,M     Rerun plans N and M
+#
+# Additional options:
+#   --stdout        Print output directly to terminal instead of a temporary file
 #
 # Prerequisites:
 #   - MongoDB running on 127.0.0.1:27017 (via devenv or docker-compose)
@@ -42,10 +46,24 @@ JAR="${SUITE_DIR}/target/fapi-test-suite.jar"
 SERVER_PORT=8080
 SERVER_LOG="${SUITE_DIR}/target/server.log"
 
-# Auto-capture all output to a log file
-TEST_LOG="/tmp/integration-test-$(date +%Y%m%d-%H%M%S).log"
-echo "==> Logging to: $TEST_LOG"
-exec > "$TEST_LOG" 2>&1
+# Parse arguments
+PRINT_TO_TERMINAL=false
+ARGS=()
+for arg in "$@"; do
+    if [ "$arg" == "--stdout" ]; then
+        PRINT_TO_TERMINAL=true
+    else
+        ARGS+=("$arg")
+    fi
+done
+set -- "${ARGS[@]}"
+
+# Auto-capture all output to a log file unless --stdout is specified
+if [ "$PRINT_TO_TERMINAL" = false ]; then
+    TEST_LOG="/tmp/integration-test-$(date +%Y%m%d-%H%M%S).log"
+    echo "==> Logging to: $TEST_LOG"
+    exec > "$TEST_LOG" 2>&1
+fi
 
 # Default test suite if none specified
 if [ "$#" -eq 0 ]; then

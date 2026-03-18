@@ -34,7 +34,7 @@ public class OpenIDFederationAutomaticClientRegistrationInvalidRequestObjectIssT
 	@Override
 	protected void buildRequestObject() {
 		super.buildRequestObject();
-		callAndContinueOnFailure(AddInvalidIssToRequestObject.class, Condition.ConditionResult.FAILURE);
+		callAndContinueOnFailure(AddInvalidIssToRequestObject.class, Condition.ConditionResult.FAILURE, "OIDFED-12.1.1.1");
 	}
 
 	@Override

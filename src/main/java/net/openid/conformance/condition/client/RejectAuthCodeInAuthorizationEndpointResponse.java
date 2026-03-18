@@ -10,7 +10,7 @@ public class RejectAuthCodeInAuthorizationEndpointResponse extends AbstractCondi
 	@PreEnvironment(required = { "callback_query_params", "callback_params"} )
 	public Environment evaluate(Environment env) {
 		if (env.getString("callback_query_params", "code") != null) {
-			throw error("Authorization code is present in URL query returned from but an error was expected");
+			throw error("Authorization code is present in URL query but an error was expected");
 		}
 
 		if (env.getString("callback_params", "code") != null) {
