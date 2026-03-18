@@ -7,7 +7,6 @@ import net.openid.conformance.variant.VariantSelection;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 @PublishTestPlan(
 	testPlanName = "oid4vp-1final-verifier-haip-test-plan",
@@ -32,18 +31,12 @@ public class VP1FinalVerifierTestPlanHaip implements TestPlan {
 		);
 	}
 	@Override
-	public List<String> certificationProfileName(VariantSelection variant) {
+	public List<String> certificationProfileName(VariantSelection variantSelection) {
 
-		Map<String, String> v = variant.getVariant();
-		String vpProfile = v.get("vp_profile");
-		String responseMode = v.get("response_mode");
-		String credentialFormat = v.get("credential_format");
-		String requestMethod = v.get("request_method");
-		String clientIdPrefix = v.get("client_id_prefix");
+		String responseMode = variantSelection.getVariantParameterValue(VP1FinalVerifierResponseMode.class);
+		String credentialFormat = variantSelection.getVariantParameterValue(VP1FinalVerifierCredentialFormat.class);
 
-		String certProfile = "OID4VP-1.0-FINAL Verifier";
-
-		certProfile += " " + vpProfile + " " + credentialFormat + " " + requestMethod + " " + clientIdPrefix + " " + responseMode;
+		String certProfile = String.format("%s %s %s %s", "OID4VP-1.0-FINAL+HAIP-1.0-FINAL", "Verifier", credentialFormat, responseMode);
 
 		return List.of(certProfile);
 	}

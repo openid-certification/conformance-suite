@@ -8,7 +8,6 @@ import net.openid.conformance.variant.VariantSelection;
 import java.lang.invoke.MethodHandles;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 @PublishTestPlan(
 	testPlanName = "oid4vp-1final-wallet-haip-test-plan",
@@ -33,17 +32,14 @@ public class VP1FinalWalletTestPlanHaip implements TestPlan {
 			)
 		);
 	}
+
 	@Override
-	public List<String> certificationProfileName(VariantSelection variant) {
+	public List<String> certificationProfileName(VariantSelection variantSelection) {
 
-		Map<String, String> v = variant.getVariant();
-		String vpProfile = v.get("vp_profile");
-		String responseMode = v.get("response_mode");
-		String credentialFormat = v.get("credential_format");
-		String requestMethod = v.get("request_method");
-		String clientIDPrefix = v.get("client_id_prefix");
-
-		String certProfile = "OID4VP-1.0-FINAL Wallet";
+		String responseMode = variantSelection.getVariantParameterValue(VP1FinalWalletResponseMode.class);
+		String credentialFormat = variantSelection.getVariantParameterValue(VP1FinalWalletCredentialFormat.class);
+		String requestMethod = variantSelection.getVariantParameterValue(VP1FinalWalletRequestMethod.class);
+		String clientIDPrefix = variantSelection.getVariantParameterValue(VP1FinalWalletClientIdPrefix.class);
 
 		if (responseMode.equals(VP1FinalWalletResponseMode.DC_API.toString()) ||
 			responseMode.equals(VP1FinalWalletResponseMode.DC_API_JWT.toString())) {
@@ -58,12 +54,12 @@ public class VP1FinalWalletTestPlanHaip implements TestPlan {
 						MethodHandles.lookup().lookupClass().getSimpleName()));
 				}
 			}
-
 		}
 
-		certProfile += " " + vpProfile + " " + credentialFormat + " " + requestMethod + " " + clientIDPrefix + " " + responseMode;
+		String certProfile = String.format("%s %s %s %s %s %s", "OID4VP-1.0-FINAL+HAIP-1.0-FINAL", "Wallet", credentialFormat, requestMethod, clientIDPrefix, responseMode);
 
 		return List.of(certProfile);
 	}
+
 
 }
