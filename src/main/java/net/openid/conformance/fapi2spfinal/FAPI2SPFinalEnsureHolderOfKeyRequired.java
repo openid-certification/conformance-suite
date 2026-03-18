@@ -60,13 +60,6 @@ public class FAPI2SPFinalEnsureHolderOfKeyRequired extends AbstractFAPI2SPFinalS
 		validateTokenEndpointResponseSteps = isDpop() ? ValidateTokenEndpointResponseWithDpop.class : ValidateTokenEndpointResponseWithPrivateKeyAndMTLSHolderOfKey.class;
 	}
 
-	@VariantSetup(parameter = ClientAuthType.class, value = "client_attestation")
-	@Override
-	public void setupClientAttestation() {
-		super.setupClientAttestation();
-		validateTokenEndpointResponseSteps = isDpop() ? ValidateTokenEndpointResponseWithDpop.class : ValidateTokenEndpointResponseWithPrivateKeyAndMTLSHolderOfKey.class;
-	}
-
 	@Override
 	public void start() {
 		setStatus(Status.RUNNING);

@@ -140,7 +140,7 @@ import org.springframework.http.ResponseEntity;
 	CIBAMode.class
 })
 @VariantNotApplicable(parameter = ClientAuthType.class, values = {
-	"none", "client_secret_basic", "client_secret_post", "client_secret_jwt"
+	"none", "client_secret_basic", "client_secret_post", "client_secret_jwt", "client_attestation"
 })
 @VariantNotApplicable(parameter = CIBAMode.class, values = {
 	"push"

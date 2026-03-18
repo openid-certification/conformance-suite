@@ -17,8 +17,8 @@ public class AddClientAttestationProofHeaderToRequest extends AbstractCondition 
 		String clientAttestationPop = env.getString("client_attestation_pop");
 		o.addProperty("OAuth-Client-Attestation-PoP", clientAttestationPop);
 
-		// OAuth-Client-Attestation:  A JWT that conforms to the structure and
-		//      syntax as defined in Section 5.1
+		// OAuth-Client-Attestation-PoP:  A JWT that conforms to the structure
+		//      and syntax as defined in Section 5.2
 		log("Added OAuth-Client-Attestation-PoP header to request", args("client_attestation_pop", clientAttestationPop));
 
 		return env;

@@ -9,6 +9,7 @@ import net.openid.conformance.condition.client.EnsureServerConfigurationSupports
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.ClientAuthType;
 import net.openid.conformance.variant.VCIProfile;
+import net.openid.conformance.variant.VariantNotApplicable;
 import net.openid.conformance.variant.VariantParameters;
 import net.openid.conformance.vci10issuer.condition.VCIAuthorizationServerMetadataValidation;
 import net.openid.conformance.vci10issuer.condition.VCICheckRequiredMetadataFields;
@@ -34,6 +35,9 @@ import net.openid.conformance.vci10issuer.condition.VCIValidateNonceEndpointInIs
 	profile = "OID4VCI-1_0"
 )
 @VariantParameters({ClientAuthType.class, VCIProfile.class})
+@VariantNotApplicable(parameter = ClientAuthType.class, values = {
+	"none", "client_secret_basic", "client_secret_post", "client_secret_jwt"
+})
 public class VCIIssuerMetadataTest extends AbstractVciTest {
 
 	@Override

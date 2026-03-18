@@ -148,7 +148,6 @@ import net.openid.conformance.variant.VariantHidesConfigurationFields;
 import net.openid.conformance.variant.VariantNotApplicable;
 import net.openid.conformance.variant.VariantParameters;
 import net.openid.conformance.variant.VariantSetup;
-import net.openid.conformance.condition.client.AddClientAttestationClientAuthToEndpointRequest;
 
 import java.util.Arrays;
 import java.util.List;
@@ -1088,15 +1087,6 @@ public abstract class AbstractFAPI2SPFinalServerTestModule extends AbstractRedir
 	@VariantSetup(parameter = ClientAuthType.class, value = "private_key_jwt")
 	public void setupPrivateKeyJwt() {
 		addClientAuthentication = CreateJWTClientAuthenticationAssertionWithIssAudAndAddToTokenEndpointRequest.class;
-
-		if (getVariant(FAPI2SenderConstrainMethod.class) == FAPI2SenderConstrainMethod.MTLS) {
-			supportMTLSEndpointAliases = SupportMTLSEndpointAliases.class;
-		}
-	}
-
-	@VariantSetup(parameter = ClientAuthType.class, value = "client_attestation")
-	public void setupClientAttestation() {
-		addClientAuthentication = AddClientAttestationClientAuthToEndpointRequest.class;
 
 		if (getVariant(FAPI2SenderConstrainMethod.class) == FAPI2SenderConstrainMethod.MTLS) {
 			supportMTLSEndpointAliases = SupportMTLSEndpointAliases.class;

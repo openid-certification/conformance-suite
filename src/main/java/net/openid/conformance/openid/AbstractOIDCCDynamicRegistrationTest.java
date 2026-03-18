@@ -53,6 +53,7 @@ import java.util.function.Supplier;
 	"client.client_name",
 	"client.initial_access_token"
 })
+@VariantNotApplicable(parameter = ClientAuthType.class, values = { "client_attestation" })
 @VariantNotApplicable(parameter = ClientRegistration.class, values = {"static_client"})
 @VariantNotApplicable(parameter = ServerMetadata.class, values = { "static" }) // dcr requires discovery
 public abstract class AbstractOIDCCDynamicRegistrationTest extends AbstractRedirectServerTestModule {
