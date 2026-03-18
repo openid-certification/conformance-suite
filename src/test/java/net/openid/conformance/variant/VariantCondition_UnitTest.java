@@ -10,7 +10,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class VariantCondition_UnitTest {
@@ -95,7 +94,7 @@ class VariantCondition_UnitTest {
 	}
 
 	@Test
-	void testCertificationProfileMergesApplicableFixedVariants() {
+	void testCertificationProfileForDcApiJwt() {
 		VariantSelection variant = new VariantSelection(Map.of(
 			"response_mode", "dc_api.jwt",
 			"credential_format", "sd_jwt_vc"
@@ -104,13 +103,7 @@ class VariantCondition_UnitTest {
 		List<String> certProfiles = haipPlan.certificationProfileForVariant(variant);
 
 		assertEquals(1, certProfiles.size());
-		String profile = certProfiles.get(0);
-		// should contain the fixed variants from applicable dc_api.jwt entries (web-origin is first match)
-		assertTrue(profile.contains("dc_api.jwt"), "cert profile should contain response_mode");
-		assertTrue(profile.contains("haip"), "cert profile should contain vp_profile");
-		assertTrue(profile.contains("sd_jwt_vc"), "cert profile should contain credential_format");
-		// should NOT contain x509_hash (that's the direct_post.jwt entry, not applicable here)
-		assertFalse(profile.contains("x509_hash"), "cert profile should not contain x509_hash for dc_api.jwt");
+		assertEquals("OID4VP-1.0-FINAL+HAIP-1.0-FINAL Wallet sd_jwt_vc dc_api.jwt", certProfiles.get(0));
 	}
 
 	@Test
@@ -123,8 +116,6 @@ class VariantCondition_UnitTest {
 		List<String> certProfiles = haipPlan.certificationProfileForVariant(variant);
 
 		assertEquals(1, certProfiles.size());
-		String profile = certProfiles.get(0);
-		assertTrue(profile.contains("x509_hash"), "cert profile should contain x509_hash for direct_post.jwt");
-		assertTrue(profile.contains("request_uri_signed"), "cert profile should contain request_uri_signed");
+		assertEquals("OID4VP-1.0-FINAL+HAIP-1.0-FINAL Wallet sd_jwt_vc direct_post.jwt", certProfiles.get(0));
 	}
 }

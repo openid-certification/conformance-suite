@@ -473,8 +473,7 @@ public class VariantService {
 		}
 
 		public List<String> certificationProfileForVariant(VariantSelection variantSelection) {
-			Map<String, String> mergedVariants = mergeVariants(variantSelection);
-			return planInstance.certificationProfileName(new VariantSelection(mergedVariants));
+			return planInstance.certificationProfileName(variantSelection);
 		}
 
 		private boolean isApplicableEntry(TestPlanModuleWithVariant entry, VariantSelection variantSelection) {
@@ -488,22 +487,6 @@ public class VariantService {
 					String userValue = userVariants.get(p.variantParameter.name());
 					return userValue != null && condition.values.contains(userValue);
 				});
-		}
-
-		private Map<String, String> mergeVariants(VariantSelection variantSelection) {
-			// merge plan-fixed variants into the user-selected variants so that
-			// certificationProfileName receives the complete variant map
-			Map<String, String> mergedVariants = new HashMap<>(variantSelection.getVariant());
-			for (TestPlanModuleWithVariant moduleWithVariant : modulesWithVariant) {
-				if (!isApplicableEntry(moduleWithVariant, variantSelection)) {
-					continue;
-				}
-				Map<String, String> fixedVariants = moduleWithVariant.variantAsStrings();
-				if (fixedVariants != null) {
-					fixedVariants.forEach(mergedVariants::putIfAbsent);
-				}
-			}
-			return mergedVariants;
 		}
 
 		public List<Plan.Module> getTestModulesForVariant(VariantSelection userSelectedVariant) {
