@@ -11,7 +11,7 @@ import org.springframework.http.HttpMethod;
 	testName = "openid-federation-automatic-client-registration-invalid-missing-request-object-jti",
 	displayName = "OpenID Federation OP test: Invalid request object due to missing jti",
 	summary = "The test acts as an RP wanting to perform automatic client registration with an OP, " +
-		"deliberately not including a jti in the authorization request object." +
+		"deliberately not including a jti in the authorization request object (disallowed as per Federation §12.1.1.1)." +
 		"<br/><br/>" +
 		"If the server does not return an invalid_request, invalid_request_object or a similar well-defined " +
 		"and appropriate error back to the client, it must show an error page saying the request is invalid due to " +
@@ -34,7 +34,7 @@ public class OpenIDFederationAutomaticClientRegistrationInvalidMissingRequestObj
 	@Override
 	protected void buildRequestObject() {
 		super.buildRequestObject();
-		callAndContinueOnFailure(RemoveJtiFromRequestObject.class, Condition.ConditionResult.FAILURE);
+		callAndContinueOnFailure(RemoveJtiFromRequestObject.class, Condition.ConditionResult.FAILURE, "OIDFED-12.1.1.1");
 	}
 
 	@Override

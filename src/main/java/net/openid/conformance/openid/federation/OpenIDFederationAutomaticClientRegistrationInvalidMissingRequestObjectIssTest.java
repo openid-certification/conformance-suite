@@ -34,7 +34,7 @@ public class OpenIDFederationAutomaticClientRegistrationInvalidMissingRequestObj
 	@Override
 	protected void buildRequestObject() {
 		super.buildRequestObject();
-		callAndContinueOnFailure(RemoveIssFromRequestObject.class, Condition.ConditionResult.FAILURE);
+		callAndContinueOnFailure(RemoveIssFromRequestObject.class, Condition.ConditionResult.FAILURE, "OIDFED-12.1.1.1");
 	}
 
 	@Override
