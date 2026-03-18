@@ -544,6 +544,23 @@ public class VariantService {
 									mapping(v -> v.toString(),
 											toSet()))));
 
+			// Apply plan-level variant exclusions
+			List<TestPlan.Variant> planExclusions = planInstance.variantsNotApplicable();
+			if (!planExclusions.isEmpty()) {
+				for (TestPlan.Variant exclusion : planExclusions) {
+					VariantParameter annotation = exclusion.key.getAnnotation(VariantParameter.class);
+					if (annotation != null) {
+						ParameterHolder<?> holder = parametersByName.get(annotation.name());
+						if (holder != null) {
+							Set<String> allowed = values.get(holder);
+							if (allowed != null) {
+								allowed.remove(exclusion.value);
+							}
+						}
+					}
+				}
+			}
+
 			// for each available variant, the names of configuration fields needed for each value
 			// e.g. ClientRegistration : { "static_client": [ "client_id" ] }
 			Map<ParameterHolder<?>, Map<String, Set<String>>> fields = modulesWithVariant.stream()

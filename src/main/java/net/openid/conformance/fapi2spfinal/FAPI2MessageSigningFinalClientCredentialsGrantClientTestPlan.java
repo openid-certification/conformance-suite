@@ -4,6 +4,7 @@ import net.openid.conformance.plan.PublishTestPlan;
 import net.openid.conformance.plan.TestPlan;
 import net.openid.conformance.testmodule.TestModule;
 import net.openid.conformance.variant.AuthorizationRequestType;
+import net.openid.conformance.variant.ClientAuthType;
 import net.openid.conformance.variant.FAPI2AuthRequestMethod;
 import net.openid.conformance.variant.FAPI2FinalOPProfile;
 import net.openid.conformance.variant.FAPIClientType;
@@ -42,6 +43,15 @@ public class FAPI2MessageSigningFinalClientCredentialsGrantClientTestPlan implem
 			new ModuleListEntry(testModules, baselineVariants)
 		);
 
+	}
+
+	@Override
+	public List<Variant> variantsNotApplicable() {
+		return List.of(
+			new Variant(FAPI2FinalOPProfile.class, "vci"),
+			new Variant(FAPI2FinalOPProfile.class, "vci_haip"),
+			new Variant(ClientAuthType.class, "client_attestation")
+		);
 	}
 
 	@Override
