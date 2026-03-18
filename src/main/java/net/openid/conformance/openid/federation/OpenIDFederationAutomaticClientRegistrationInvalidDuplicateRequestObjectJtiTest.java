@@ -11,7 +11,7 @@ import org.springframework.http.HttpMethod;
 	testName = "openid-federation-automatic-client-registration-invalid-duplicate-request-object-jti",
 	displayName = "OpenID Federation OP test: Invalid request object due to reused jti",
 	summary = "The test acts as an RP wanting to perform automatic client registration with an OP, " +
-		"deliberately not including a jti in the authorization request object." +
+		"deliberately sending a duplicate jti in the authorization request object." +
 		"<br/><br/>" +
 		"The test will make two authorization requests - the second one with the same jti claim in the " +
 		"request object as the first one. " +

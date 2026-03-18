@@ -35,7 +35,7 @@ public class OpenIDFederationAutomaticClientRegistrationInvalidRequestObjectSubT
 	@Override
 	protected void buildRequestObject() {
 		super.buildRequestObject();
-		callAndContinueOnFailure(AddSubToRequestObject.class, Condition.ConditionResult.FAILURE);
+		callAndContinueOnFailure(AddSubToRequestObject.class, Condition.ConditionResult.FAILURE, "OIDFED-12.1.1.1");
 	}
 
 	@Override
