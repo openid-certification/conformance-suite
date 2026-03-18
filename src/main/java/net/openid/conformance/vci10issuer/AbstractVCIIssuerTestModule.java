@@ -148,6 +148,7 @@ import net.openid.conformance.variant.VCIGrantType;
 import net.openid.conformance.variant.VCIProfile;
 import net.openid.conformance.variant.VariantConfigurationFields;
 import net.openid.conformance.variant.VariantHidesConfigurationFields;
+import net.openid.conformance.variant.VariantNotApplicable;
 import net.openid.conformance.variant.VariantNotApplicableWhen;
 import net.openid.conformance.variant.VariantParameters;
 import net.openid.conformance.variant.VariantSetup;
@@ -255,6 +256,9 @@ import java.util.function.Supplier;
 	"mtls2.key",
 	"mtls2.cert",
 	"mtls2.ca",
+})
+@VariantNotApplicable(parameter = ClientAuthType.class, values = {
+	"none", "client_secret_basic", "client_secret_post", "client_secret_jwt"
 })
 @VariantNotApplicableWhen(
 	parameter = AuthorizationRequestType.class,
