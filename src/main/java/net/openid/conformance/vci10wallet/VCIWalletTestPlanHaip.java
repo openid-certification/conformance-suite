@@ -4,10 +4,10 @@ import net.openid.conformance.plan.PublishTestPlan;
 import net.openid.conformance.plan.TestPlan;
 import net.openid.conformance.testmodule.TestModule;
 import net.openid.conformance.variant.AuthorizationRequestType;
+import net.openid.conformance.variant.ClientAuthType;
 import net.openid.conformance.variant.FAPI2AuthRequestMethod;
 import net.openid.conformance.variant.FAPI2SenderConstrainMethod;
 import net.openid.conformance.variant.VCIAuthorizationCodeFlowVariant;
-import net.openid.conformance.variant.VCIClientAuthType;
 import net.openid.conformance.variant.VCICredentialEncryption;
 import net.openid.conformance.variant.VCICredentialIssuanceMode;
 import net.openid.conformance.variant.VCICredentialOfferParameterVariant;
@@ -43,7 +43,7 @@ public class VCIWalletTestPlanHaip implements TestPlan {
 					new Variant(VCIProfile.class, "haip"),
 					new Variant(VCIGrantType.class, "authorization_code"),
 					new Variant(AuthorizationRequestType.class, "simple"),
-					new Variant(VCIClientAuthType.class, "client_attestation"),
+					new Variant(ClientAuthType.class, "client_attestation"),
 					new Variant(VCICredentialIssuanceMode.class, "immediate"),
 					new Variant(VCICredentialEncryption.class, "plain")
 				)
@@ -56,7 +56,7 @@ public class VCIWalletTestPlanHaip implements TestPlan {
 					new Variant(VCIProfile.class, "haip"),
 					new Variant(VCIGrantType.class, "authorization_code"),
 					new Variant(AuthorizationRequestType.class, "simple"),
-					new Variant(VCIClientAuthType.class, "client_attestation"),
+					new Variant(ClientAuthType.class, "client_attestation"),
 					new Variant(VCICredentialIssuanceMode.class, "deferred"),
 					new Variant(VCICredentialEncryption.class, "plain")
 				)
@@ -69,7 +69,7 @@ public class VCIWalletTestPlanHaip implements TestPlan {
 					new Variant(VCIProfile.class, "haip"),
 					new Variant(VCIGrantType.class, "authorization_code"),
 					new Variant(AuthorizationRequestType.class, "simple"),
-					new Variant(VCIClientAuthType.class, "client_attestation"),
+					new Variant(ClientAuthType.class, "client_attestation"),
 					new Variant(VCICredentialIssuanceMode.class, "immediate"),
 					new Variant(VCICredentialEncryption.class, "encrypted")
 				)
