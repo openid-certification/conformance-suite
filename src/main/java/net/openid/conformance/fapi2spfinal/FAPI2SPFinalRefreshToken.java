@@ -75,6 +75,13 @@ public class FAPI2SPFinalRefreshToken extends AbstractFAPI2SPFinalMultipleClient
 		validateTokenEndpointResponseSteps = ValidateTokenEndpointResponseWithPrivateKeyAndMTLSHolderOfKey.class;
 	}
 
+	@VariantSetup(parameter = ClientAuthType.class, value = "client_attestation")
+	@Override
+	public void setupClientAttestation() {
+		super.setupClientAttestation();
+		validateTokenEndpointResponseSteps = ValidateTokenEndpointResponseWithPrivateKeyAndMTLSHolderOfKey.class;
+	}
+
 	protected void addPromptConsentToAuthorizationEndpointRequest() {
 		callAndStopOnFailure(AddPromptConsentToAuthorizationEndpointRequestIfScopeContainsOfflineAccess.class, "OIDCC-11");
 	}
