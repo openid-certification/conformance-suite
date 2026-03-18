@@ -258,7 +258,7 @@ public abstract class AbstractOpenIDFederationAutomaticClientRegistrationTest ex
 	}
 
 	protected void makeAuthorizationRequest() {
-
+		eventLog.startBlock("Authorization endpoint request");
 		callAndStopOnFailure(EnsureEntityIsOpenIdProvider.class, Condition.ConditionResult.FAILURE);
 
 		buildRequestObject();
@@ -301,6 +301,7 @@ public abstract class AbstractOpenIDFederationAutomaticClientRegistrationTest ex
 
 		HttpMethod httpMethod = getHttpMethodForAuthorizeRequest();
 		redirect(httpMethod);
+		eventLog.endBlock();
 	}
 
 	protected void buildRequestObject() {
@@ -331,6 +332,7 @@ public abstract class AbstractOpenIDFederationAutomaticClientRegistrationTest ex
 	}
 
 	protected void callParEndpoint() {
+		eventLog.startBlock("PAR endpoint request");
 		if (addParEndpointClientAuthentication != null) {
 			JsonObject opMetadata = env.getElementFromObject("primary_entity_statement_jwt", "claims.metadata.openid_provider").getAsJsonObject().deepCopy();
 			opMetadata.addProperty("issuer", env.getString("primary_entity_statement_jwt", "claims.iss"));
@@ -355,6 +357,7 @@ public abstract class AbstractOpenIDFederationAutomaticClientRegistrationTest ex
 		callAndContinueOnFailure(CheckForPARResponseExpiresIn.class, Condition.ConditionResult.FAILURE, "PAR-2.2");
 
 		env.unmapKey("endpoint_response");
+		eventLog.endBlock();
 	}
 
 	protected void extractRequestUri() {
@@ -374,7 +377,9 @@ public abstract class AbstractOpenIDFederationAutomaticClientRegistrationTest ex
 	 */
 	protected void performGenericAuthorizationEndpointErrorResponseValidation() {
 		callAndContinueOnFailure(CheckStateInAuthorizationResponse.class, Condition.ConditionResult.FAILURE);
+		env.putString("server", "issuer", env.getString("config", "federation.entity_identifier"));
 		callAndContinueOnFailure(ValidateIssIfPresentInAuthorizationResponse.class, Condition.ConditionResult.FAILURE, "OAuth2-iss-2");
+		env.removeElement("server", "issuer");
 		callAndContinueOnFailure(EnsureErrorFromAuthorizationEndpointResponse.class, Condition.ConditionResult.FAILURE, "OIDCC-3.1.2.6");
 		callAndContinueOnFailure(RejectAuthCodeInAuthorizationEndpointResponse.class, Condition.ConditionResult.FAILURE, "OIDCC-3.1.2.6");
 		callAndContinueOnFailure(CheckForUnexpectedParametersInErrorResponseFromAuthorizationEndpoint.class, Condition.ConditionResult.WARNING, "OIDCC-3.1.2.6");
@@ -395,8 +400,9 @@ public abstract class AbstractOpenIDFederationAutomaticClientRegistrationTest ex
 	}
 
 	protected void onAuthorizationCallbackResponse() {
-		// FIXME doesn't seem to work currently - see https://gitlab.com/openid/conformance-suite/-/issues/1684
-		//callAndContinueOnFailure(ValidateIssIfPresentInAuthorizationResponse.class, Condition.ConditionResult.FAILURE, "OAuth2-iss-2");
+		env.putString("server", "issuer", env.getString("config", "federation.entity_identifier"));
+		callAndContinueOnFailure(ValidateIssIfPresentInAuthorizationResponse.class, Condition.ConditionResult.FAILURE, "OAuth2-iss-2");
+		env.removeElement("server", "issuer");
 		callAndStopOnFailure(CheckIfAuthorizationEndpointError.class);
 		callAndContinueOnFailure(CheckStateInAuthorizationResponse.class, Condition.ConditionResult.FAILURE);
 		callAndStopOnFailure(ExtractAuthorizationCodeFromAuthorizationResponse.class);
@@ -427,6 +433,7 @@ public abstract class AbstractOpenIDFederationAutomaticClientRegistrationTest ex
 
 	//Originally called requestAuthorizationCode()
 	protected void redeemAuthorizationCode() {
+		eventLog.startBlock("Token endpoint");
 		callAndStopOnFailure(CallTokenEndpointAndReturnFullResponse.class);
 		callAndStopOnFailure(CheckIfTokenEndpointResponseError.class);
 
@@ -437,11 +444,14 @@ public abstract class AbstractOpenIDFederationAutomaticClientRegistrationTest ex
 		env.removeElement("server", "issuer");
 
 		env.putObject("token_endpoint_id_token", env.getObject("id_token"));
+		eventLog.endBlock();
 	}
 
 	protected void performIdTokenValidation() {
+		eventLog.startBlock("Validate id token");
 		call(new PerformStandardIdTokenChecks());
 		callAndContinueOnFailure(ValidateIdTokenAudIsSingleElement.class, Condition.ConditionResult.FAILURE, "OIDFED-12.1.1.1");
+		eventLog.endBlock();
 	}
 
 	protected void onPostAuthorizationFlowComplete() {
