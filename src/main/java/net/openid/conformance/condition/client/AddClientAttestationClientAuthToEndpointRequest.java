@@ -1,4 +1,4 @@
-package net.openid.conformance.vci10issuer.condition.clientattestation;
+package net.openid.conformance.condition.client;
 
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.sequence.AbstractConditionSequence;

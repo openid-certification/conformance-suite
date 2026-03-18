@@ -1,6 +1,9 @@
 package net.openid.conformance.vci10issuer.condition.clientattestation;
 
 import net.openid.conformance.condition.Condition;
+import net.openid.conformance.condition.client.AddClientAttestationHeaderToRequest;
+import net.openid.conformance.condition.client.AddClientAttestationProofHeaderToRequest;
+import net.openid.conformance.condition.client.CreateClientAttestationProofJwt;
 import net.openid.conformance.sequence.AbstractConditionSequence;
 
 /**

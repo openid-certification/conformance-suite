@@ -8,7 +8,7 @@ import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.ClientAuthType;
 import net.openid.conformance.variant.VariantNotApplicable;
-import net.openid.conformance.vci10issuer.condition.clientattestation.AddClientAttestationClientAuthToEndpointRequest;
+import net.openid.conformance.condition.client.AddClientAttestationClientAuthToEndpointRequest;
 import net.openid.conformance.vci10issuer.condition.clientattestation.ReplaceClientInstanceKeyWithNewKey;
 
 /**

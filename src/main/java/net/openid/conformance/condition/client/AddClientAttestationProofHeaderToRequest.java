@@ -1,10 +1,10 @@
-package net.openid.conformance.vci10issuer.condition.clientattestation;
+package net.openid.conformance.condition.client;
 
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.testmodule.Environment;
 
-public class AddClientAttestationHeaderToRequest extends AbstractCondition {
+public class AddClientAttestationProofHeaderToRequest extends AbstractCondition {
 
 	@Override
 	public Environment evaluate(Environment env) {
@@ -14,12 +14,12 @@ public class AddClientAttestationHeaderToRequest extends AbstractCondition {
 		}
 
 		JsonObject o = env.getObject("request_headers");
-		String clientAttestation = env.getString("client_attestation");
-		o.addProperty("OAuth-Client-Attestation", clientAttestation);
+		String clientAttestationPop = env.getString("client_attestation_pop");
+		o.addProperty("OAuth-Client-Attestation-PoP", clientAttestationPop);
 
 		// OAuth-Client-Attestation:  A JWT that conforms to the structure and
 		//      syntax as defined in Section 5.1
-		log("Added OAuth-Client-Attestation header to request", args("client_attestation", clientAttestation));
+		log("Added OAuth-Client-Attestation-PoP header to request", args("client_attestation_pop", clientAttestationPop));
 
 		return env;
 	}

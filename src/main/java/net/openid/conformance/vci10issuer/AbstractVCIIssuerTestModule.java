@@ -201,7 +201,7 @@ import net.openid.conformance.vci10issuer.condition.VCIValidateNoUnknownKeysInCr
 import net.openid.conformance.vci10issuer.condition.VCIValidateNoUnknownKeysInCredentialResponse;
 import net.openid.conformance.vci10issuer.condition.VCIWaitForCredentialOffer;
 import net.openid.conformance.vci10issuer.condition.VCIWaitForTxCode;
-import net.openid.conformance.vci10issuer.condition.clientattestation.AddClientAttestationClientAuthToEndpointRequest;
+import net.openid.conformance.condition.client.AddClientAttestationClientAuthToEndpointRequest;
 import net.openid.conformance.vci10issuer.condition.clientattestation.CreateClientAttestationJwt;
 import net.openid.conformance.vci10issuer.condition.clientattestation.GenerateClientAttestationClientInstanceKey;
 import net.openid.conformance.vci10issuer.condition.statuslist.VCIValidateCredentialValidityByStatusListIfPresent;

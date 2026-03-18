@@ -148,7 +148,7 @@ import net.openid.conformance.variant.VariantHidesConfigurationFields;
 import net.openid.conformance.variant.VariantNotApplicable;
 import net.openid.conformance.variant.VariantParameters;
 import net.openid.conformance.variant.VariantSetup;
-import net.openid.conformance.vci10issuer.condition.clientattestation.AddClientAttestationClientAuthToEndpointRequest;
+import net.openid.conformance.condition.client.AddClientAttestationClientAuthToEndpointRequest;
 
 import java.util.Arrays;
 import java.util.List;
