@@ -265,8 +265,10 @@ public class OpenIDFederationClientTest extends AbstractOpenIDFederationClientTe
 			claims.addProperty("source_endpoint", env.getString("federation_fetch_endpoint"));
 			env.putObject("federation_fetch_response", claims);
 			env.mapKey("entity_configuration_claims", "federation_fetch_response");
+			env.mapKey("entity_configuration_claims_jwks", "op_ec_jwks");
 			callAndStopOnFailure(SignEntityStatement.class);
 			env.unmapKey("entity_configuration_claims");
+			env.unmapKey("entity_configuration_claims_jwks");
 			String federationFetchResponse = env.getString("signed_entity_statement");
 			response = ResponseEntity
 				.status(200)
