@@ -76,7 +76,7 @@ public class SignRequestObjectWithFederationTrustChain extends AbstractSignJWT {
 			verifiableObj.addProperty("verifiable_jws", jws);
 			verifiableObj.addProperty("public_jwk", publicKeySetString);
 
-			logSuccess("Signed the request object with trust_chain in header", args("request_object", verifiableObj,
+			logSuccess("Signed the request object", args("request_object", verifiableObj,
 				"header", header,
 				"claims", JWTClaimsSet.parse(claims.toString()),
 				"key", signingJwk));
