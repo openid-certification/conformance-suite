@@ -18,7 +18,7 @@ import java.util.List;
 		OpenIDFederationClientInvalidMissingClientRegistrationTypesSupportedTest.class,
 		OpenIDFederationClientInvalidEmptyClientRegistrationTypesSupportedTest.class,
 		OpenIDFederationClientTest.class,
-		OpenIDFederationClienValidUnknownClientRegistrationTypesSupportedTest.class,
+		OpenIDFederationClientValidUnknownClientRegistrationTypesSupportedTest.class,
 		OpenIDFederationClientInvalidAudInIdTokenTest.class,
 		OpenIDFederationClientInvalidIssInIdTokenTest.class,
 	}

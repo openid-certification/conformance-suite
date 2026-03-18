@@ -12,7 +12,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 	profile = "OIDFED"
 )
 @SuppressWarnings("unused")
-public class OpenIDFederationClienValidUnknownClientRegistrationTypesSupportedTest extends OpenIDFederationClientTest {
+public class OpenIDFederationClientValidUnknownClientRegistrationTypesSupportedTest extends OpenIDFederationClientTest {
 
 	@Override
 	protected Object entityConfigurationResponse() {
@@ -21,11 +21,7 @@ public class OpenIDFederationClienValidUnknownClientRegistrationTypesSupportedTe
 		callAndContinueOnFailure(AddUnknownClientRegistrationTypesSupportedInEntityConfiguration.class, Condition.ConditionResult.FAILURE, "OIDFED-5.1.3");
 		setStatus(Status.WAITING);
 
-		env.mapKey("entity_configuration_claims", "server");
-		env.mapKey("entity_configuration_claims_jwks", "op_ec_jwks");
-		Object response = super.entityConfigurationResponse("server", SignEntityStatement.class);
-		env.unmapKey("entity_configuration_claims");
-		env.unmapKey("entity_configuration_claims_jwks");
+		Object response = super.entityConfigurationResponse();
 
 		startWaitingForTimeout();
 
