@@ -38,7 +38,7 @@ import net.openid.conformance.variant.VariantSetup;
 	ClientAuthType.class
 })
 @VariantNotApplicable(parameter = ClientAuthType.class, values = {
-	"none", "client_secret_basic", "client_secret_post", "client_secret_jwt"
+	"none", "client_secret_basic", "client_secret_post", "client_secret_jwt", "client_attestation"
 })
 public abstract class AbstractFAPI2SPFinalDiscoveryEndpointVerification extends AbstractTestModule {
 	protected Boolean jarm;
@@ -64,13 +64,6 @@ public abstract class AbstractFAPI2SPFinalDiscoveryEndpointVerification extends 
 		public void evaluate() {
 			callAndContinueOnFailure(EnsureServerConfigurationSupportsPrivateKeyJwt.class, Condition.ConditionResult.FAILURE, "FAPI2-SP-FINAL-5.3.2.1-6");
 
-		}
-	}
-
-	public static class NoOpChecks extends AbstractConditionSequence
-	{
-		@Override
-		public void evaluate() {
 		}
 	}
 
@@ -183,13 +176,6 @@ public abstract class AbstractFAPI2SPFinalDiscoveryEndpointVerification extends 
 		}
 	}
 
-	@VariantSetup(parameter = ClientAuthType.class, value = "client_attestation")
-	public void setupClientAttestation() {
-		variantAuthChecks = NoOpChecks.class;
 
-		if (getVariant(FAPI2SenderConstrainMethod.class) == FAPI2SenderConstrainMethod.MTLS) {
-			supportMTLSEndpointAliases = SupportMTLSEndpointAliases.class;
-		}
-	}
 
 }

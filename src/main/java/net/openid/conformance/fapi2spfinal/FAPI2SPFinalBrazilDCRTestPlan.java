@@ -2,7 +2,6 @@ package net.openid.conformance.fapi2spfinal;
 
 import net.openid.conformance.plan.PublishTestPlan;
 import net.openid.conformance.plan.TestPlan;
-import net.openid.conformance.variant.ClientAuthType;
 import net.openid.conformance.variant.FAPI2FinalOPProfile;
 import net.openid.conformance.variant.VariantSelection;
 
@@ -46,11 +45,7 @@ public class FAPI2SPFinalBrazilDCRTestPlan implements TestPlan {
 	}
 	@Override
 	public List<Variant> variantsNotApplicable() {
-		return List.of(
-			new Variant(FAPI2FinalOPProfile.class, "vci"),
-			new Variant(FAPI2FinalOPProfile.class, "vci_haip"),
-			new Variant(ClientAuthType.class, "client_attestation")
-		);
+		return FAPI2SPFinalTestPlan.FAPI2_VARIANTS_NOT_APPLICABLE;
 	}
 
 	@Override

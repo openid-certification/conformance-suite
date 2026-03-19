@@ -10,7 +10,6 @@ import net.openid.conformance.condition.as.FAPI2FinalEnsureMinimumServerKeyLengt
 import net.openid.conformance.condition.as.FAPIBrazilEncryptRequestObject;
 import net.openid.conformance.condition.as.FAPIBrazilSetPaymentDateToToday;
 import net.openid.conformance.condition.client.AddAudToRequestObject;
-import net.openid.conformance.condition.client.AddClientAttestationClientAuthToEndpointRequest;
 import net.openid.conformance.condition.client.AddClientIdToRequestObject;
 import net.openid.conformance.condition.client.AddCodeVerifierToTokenEndpointRequest;
 import net.openid.conformance.condition.client.AddExpToRequestObject;
@@ -205,7 +204,7 @@ import java.util.function.Supplier;
 	"client2.dpop_signing_alg",
 })
 @VariantNotApplicable(parameter = ClientAuthType.class, values = {
-	"none", "client_secret_basic", "client_secret_post", "client_secret_jwt"
+	"none", "client_secret_basic", "client_secret_post", "client_secret_jwt", "client_attestation"
 })
 @VariantConfigurationFields(parameter = ClientAuthType.class, value = "mtls", configurationFields = {
 	"mtls.key",
@@ -1088,15 +1087,6 @@ public abstract class AbstractFAPI2SPFinalServerTestModule extends AbstractRedir
 	@VariantSetup(parameter = ClientAuthType.class, value = "private_key_jwt")
 	public void setupPrivateKeyJwt() {
 		addClientAuthentication = CreateJWTClientAuthenticationAssertionWithIssAudAndAddToTokenEndpointRequest.class;
-
-		if (getVariant(FAPI2SenderConstrainMethod.class) == FAPI2SenderConstrainMethod.MTLS) {
-			supportMTLSEndpointAliases = SupportMTLSEndpointAliases.class;
-		}
-	}
-
-	@VariantSetup(parameter = ClientAuthType.class, value = "client_attestation")
-	public void setupClientAttestation() {
-		addClientAuthentication = AddClientAttestationClientAuthToEndpointRequest.class;
 
 		if (getVariant(FAPI2SenderConstrainMethod.class) == FAPI2SenderConstrainMethod.MTLS) {
 			supportMTLSEndpointAliases = SupportMTLSEndpointAliases.class;
