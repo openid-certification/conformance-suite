@@ -21,6 +21,17 @@ import java.util.Map;
 )
 public class FAPI2SPFinalTestPlan implements TestPlan {
 
+	/**
+	 * Variant values that are not applicable to FAPI2 SP Final certification test plans.
+	 * VCI/VCI_HAIP profiles and client_attestation auth are excluded from FAPI2 plans;
+	 * they are intended for VCI-specific test plans.
+	 */
+	static final List<Variant> FAPI2_VARIANTS_NOT_APPLICABLE = List.of(
+		new Variant(FAPI2FinalOPProfile.class, "vci"),
+		new Variant(FAPI2FinalOPProfile.class, "vci_haip"),
+		new Variant(ClientAuthType.class, "client_attestation")
+	);
+
 	@Override
 	public List<ModuleListEntry> testModulesWithVariants() {
 		ArrayList<Class<? extends TestModule>> modules = new ArrayList<>(FAPI2MessageSigningFinalTestPlan.testModules);
@@ -56,11 +67,7 @@ public class FAPI2SPFinalTestPlan implements TestPlan {
 
 	@Override
 	public List<Variant> variantsNotApplicable() {
-		return List.of(
-			new Variant(FAPI2FinalOPProfile.class, "vci"),
-			new Variant(FAPI2FinalOPProfile.class, "vci_haip"),
-			new Variant(ClientAuthType.class, "client_attestation")
-		);
+		return FAPI2_VARIANTS_NOT_APPLICABLE;
 	}
 
 	@Override

@@ -6,7 +6,6 @@ import net.openid.conformance.variant.AuthorizationRequestType;
 import net.openid.conformance.variant.FAPI2AuthRequestMethod;
 import net.openid.conformance.variant.FAPI2SenderConstrainMethod;
 import net.openid.conformance.variant.ClientAuthType;
-import net.openid.conformance.variant.FAPI2FinalOPProfile;
 import net.openid.conformance.variant.VCIAuthorizationCodeFlowVariant;
 import net.openid.conformance.variant.VCICredentialEncryption;
 import net.openid.conformance.variant.VCIGrantType;
@@ -21,20 +20,6 @@ import java.util.List;
 	profile = TestPlan.ProfileNames.vciissuer
 )
 public class VCIIssuerTestPlanHaip implements TestPlan {
-
-	@Override
-	public List<Variant> variantsNotApplicable() {
-		return List.of(
-			new Variant(FAPI2FinalOPProfile.class, "plain_fapi"),
-			new Variant(FAPI2FinalOPProfile.class, "openbanking_uk"),
-			new Variant(FAPI2FinalOPProfile.class, "consumerdataright_au"),
-			new Variant(FAPI2FinalOPProfile.class, "openbanking_brazil"),
-			new Variant(FAPI2FinalOPProfile.class, "connectid_au"),
-			new Variant(FAPI2FinalOPProfile.class, "cbuae"),
-			new Variant(FAPI2FinalOPProfile.class, "fapi_client_credentials_grant"),
-			new Variant(FAPI2FinalOPProfile.class, "vci")
-		);
-	}
 
 	@Override
 	public List<ModuleListEntry> testModulesWithVariants() {
