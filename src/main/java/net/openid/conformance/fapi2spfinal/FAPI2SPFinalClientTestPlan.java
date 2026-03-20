@@ -73,6 +73,9 @@ public class FAPI2SPFinalClientTestPlan implements TestPlan {
 			case "mtls":
 				certProfile += " MTLS";
 				break;
+			default:
+				throw new RuntimeException("Unknown client auth type %s for %s".formatted(
+					clientAuth, MethodHandles.lookup().lookupClass().getSimpleName()));
 		}
 		switch (senderConstrain) {
 			case "mtls":
@@ -81,6 +84,9 @@ public class FAPI2SPFinalClientTestPlan implements TestPlan {
 			case "dpop":
 				certProfile += " + DPoP";
 				break;
+			default:
+				throw new RuntimeException("Unknown sender constrain method %s for %s".formatted(
+					senderConstrain, MethodHandles.lookup().lookupClass().getSimpleName()));
 		}
 		profiles.add(certProfile);
 		return profiles;

@@ -10,6 +10,7 @@ import net.openid.conformance.variant.FAPIClientType;
 import net.openid.conformance.variant.FAPIResponseMode;
 import net.openid.conformance.variant.VariantSelection;
 
+import java.lang.invoke.MethodHandles;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -67,6 +68,9 @@ public class FAPI2MessageSigningFinalClientCredentialsGrantClientTestPlan implem
 			case "mtls":
 				certProfile += "MTLS";
 				break;
+			default:
+				throw new RuntimeException("Unknown client auth type %s for %s".formatted(
+					clientAuth, MethodHandles.lookup().lookupClass().getSimpleName()));
 		}
 
 		switch (senderConstrain) {
@@ -76,6 +80,9 @@ public class FAPI2MessageSigningFinalClientCredentialsGrantClientTestPlan implem
 			case "dpop":
 				certProfile += " + DPoP";
 				break;
+			default:
+				throw new RuntimeException("Unknown sender constrain method %s for %s".formatted(
+					senderConstrain, MethodHandles.lookup().lookupClass().getSimpleName()));
 		}
 		profiles.add(certProfile);
 		return profiles;
