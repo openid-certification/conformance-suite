@@ -260,14 +260,19 @@ public class VariantService {
 		// the variants that are defined statically by the plan; i.e. those the user can't select
 		// null if no variants are pre-defined
 		private final Map<Class<? extends Enum<?>>, ? extends Enum<?>> variant;
+		/** conditions on user-selected variants that must all be met for this entry to apply */
+		final List<TestPlan.VariantCondition> applicableWhen;
 		/** configuration fields for any test modules with fixed variants */
 		final List<String> fixedVariantConfigurationFields;
 		/** "hide" configuration fields for any test modules with fixed variants */
 		final List<String> fixedVariantHidesConfigurationFields;
 
-		TestPlanModuleWithVariant(Class<? extends TestPlan> planClass, TestModuleHolder module, Map<Class<? extends Enum<?>>, ? extends Enum<?>> variant) {
+		TestPlanModuleWithVariant(Class<? extends TestPlan> planClass, TestModuleHolder module,
+								 Map<Class<? extends Enum<?>>, ? extends Enum<?>> variant,
+								 List<TestPlan.VariantCondition> applicableWhen) {
 			this.planClass = planClass;
 			this.module = module;
+			this.applicableWhen = applicableWhen;
 			this.variant = variant;
 
 			List<String> configurationFields = new ArrayList<>();
@@ -390,7 +395,7 @@ public class VariantService {
 							testModuleClass.getName()));
 					}
 
-					return new TestPlanModuleWithVariant(planClass, testModuleHolder, variants);
+					return new TestPlanModuleWithVariant(planClass, testModuleHolder, variants, moduleListEntry.applicableWhen);
 				});
 
 			}).collect(toList());
@@ -422,7 +427,7 @@ public class VariantService {
 								planClass.getSimpleName(),
 								c.getName()));
 						}
-						return new TestPlanModuleWithVariant(planClass, m, null);
+						return new TestPlanModuleWithVariant(planClass, m, null, List.of());
 					})
 					.collect(toList());
 			}
@@ -434,9 +439,20 @@ public class VariantService {
 		}
 
 		public List<Plan.Module> getTestModules() {
+			// deduplicate by test name since conditional entries may list the same module
+			// with different variant combinations; use null variant for deduplicated entries
+			// since no specific variant selection is known at this point
 			List<Plan.Module> testModules = new ArrayList<>();
+			Set<String> seen = new HashSet<>();
 			modulesWithVariant.forEach((testPlanModuleWithVariant) -> {
-				testModules.add(new Plan.Module(testPlanModuleWithVariant.module.info.testName(), testPlanModuleWithVariant.variantAsStrings()));
+				String testName = testPlanModuleWithVariant.module.info.testName();
+				if (seen.add(testName)) {
+					testModules.add(new Plan.Module(testName, testPlanModuleWithVariant.variantAsStrings()));
+				} else {
+					// module already listed from a different conditional entry; drop variant
+					// to avoid showing a misleading fixed combination
+					testModules.replaceAll(m -> m.getTestModule().equals(testName) ? new Plan.Module(testName, null) : m);
+				}
 			});
 			return testModules;
 		}
@@ -460,9 +476,26 @@ public class VariantService {
 			return planInstance.certificationProfileName(variantSelection);
 		}
 
+		private boolean isApplicableEntry(TestPlanModuleWithVariant entry, VariantSelection variantSelection) {
+			if (entry.applicableWhen.isEmpty()) {
+				return true;
+			}
+			Map<String, String> userVariants = variantSelection.getVariant();
+			return entry.applicableWhen.stream()
+				.allMatch(condition -> {
+					ParameterHolder<?> p = parameter(condition.parameter);
+					String userValue = userVariants.get(p.variantParameter.name());
+					return userValue != null && condition.values.contains(userValue);
+				});
+		}
+
 		public List<Plan.Module> getTestModulesForVariant(VariantSelection userSelectedVariant) {
 			List<Plan.Module> testModules = new ArrayList<>();
 			modulesWithVariant.forEach((testPlanModuleWithVariant) -> {
+				if (!isApplicableEntry(testPlanModuleWithVariant, userSelectedVariant)) {
+					return;
+				}
+
 				// merge user's variant selection with pre-selected variants
 				Map<String, String> preselectedVariants = testPlanModuleWithVariant.variantAsStrings();
 				Map<String, String> selectedStringVariants = new HashMap<>(userSelectedVariant.getVariant());
