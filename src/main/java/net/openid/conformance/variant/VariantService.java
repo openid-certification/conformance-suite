@@ -490,6 +490,19 @@ public class VariantService {
 		}
 
 		public List<Plan.Module> getTestModulesForVariant(VariantSelection userSelectedVariant) {
+			// Enforce plan-level variant exclusions
+			List<TestPlan.Variant> planExclusions = planInstance.variantsNotApplicable();
+			for (TestPlan.Variant exclusion : planExclusions) {
+				VariantParameter annotation = exclusion.key.getAnnotation(VariantParameter.class);
+				if (annotation != null) {
+					String userValue = userSelectedVariant.getVariant().get(annotation.name());
+					if (exclusion.value.equals(userValue)) {
+						throw new RuntimeException("Variant value '%s' for parameter '%s' is not applicable for this test plan".formatted(
+							exclusion.value, annotation.name()));
+					}
+				}
+			}
+
 			List<Plan.Module> testModules = new ArrayList<>();
 			modulesWithVariant.forEach((testPlanModuleWithVariant) -> {
 				if (!isApplicableEntry(testPlanModuleWithVariant, userSelectedVariant)) {
