@@ -5,16 +5,17 @@ description: Review code changes for correctness, spec compliance, and conforman
 
 # OpenID Conformance Suite Code Review
 
-Review the current branch's changes against a target branch. If an argument is provided, use it as the target branch; otherwise default to origin/master.
+Review the current branch's changes from the point the branch diverged from a target branch. If an argument is provided, use it as the target branch; otherwise default to origin/master.
 
 Concentrate on findings related to changes made on the branch — flag pre-existing issues in unchanged code in a separate section.
 
 ## Process
 
-1. Identify all changed files using `git diff --name-only` against the target branch
-2. For each changed file, read the diff and enough surrounding context (callers, base classes) to understand the impact
-3. Check each concern below
-4. Present findings grouped by severity: critical, important, minor
+1. Identify all changed files using `git diff --name-only <target>...HEAD` (triple-dot) against the target branch — this shows only changes introduced on the current branch since it diverged, not unrelated changes on the target
+2. Get the actual diff with `git diff <target>...HEAD` (triple-dot) to review only the branch's own changes
+3. For each changed file, read the diff and enough surrounding context (callers, base classes) to understand the impact
+4. Check each concern below
+5. Present findings grouped by severity: critical, important, minor
 
 ## Review Concerns
 
