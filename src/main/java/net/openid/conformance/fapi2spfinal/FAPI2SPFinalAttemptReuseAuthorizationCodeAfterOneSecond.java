@@ -113,4 +113,5 @@ public class FAPI2SPFinalAttemptReuseAuthorizationCodeAfterOneSecond extends Abs
 		super.setupPrivateKeyJwt();
 		generateNewClientAssertionSteps = CreateJWTClientAuthenticationAssertionWithIssAudAndAddToTokenEndpointRequest.class;
 	}
+
 }

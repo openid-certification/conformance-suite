@@ -98,6 +98,7 @@ import net.openid.conformance.variant.ResponseType;
 import net.openid.conformance.variant.ServerMetadata;
 import net.openid.conformance.variant.VariantConfigurationFields;
 import net.openid.conformance.variant.VariantHidesConfigurationFields;
+import net.openid.conformance.variant.VariantNotApplicable;
 import net.openid.conformance.variant.VariantParameters;
 import net.openid.conformance.variant.VariantSetup;
 
@@ -159,6 +160,7 @@ import java.util.function.Supplier;
 @VariantHidesConfigurationFields(parameter = ResponseType.class, value = "id_token token", configurationFields = {
 	"server.token_endpoint"
 })
+@VariantNotApplicable(parameter = ClientAuthType.class, values = { "client_attestation" })
 public abstract class AbstractOIDCCServerTest extends AbstractRedirectServerTestModule {
 
 	protected ResponseType responseType;

@@ -38,7 +38,7 @@ import net.openid.conformance.variant.VariantSetup;
 	ClientAuthType.class
 })
 @VariantNotApplicable(parameter = ClientAuthType.class, values = {
-	"none", "client_secret_basic", "client_secret_post", "client_secret_jwt"
+	"none", "client_secret_basic", "client_secret_post", "client_secret_jwt", "client_attestation"
 })
 public abstract class AbstractFAPI2SPFinalDiscoveryEndpointVerification extends AbstractTestModule {
 	protected Boolean jarm;
@@ -175,4 +175,5 @@ public abstract class AbstractFAPI2SPFinalDiscoveryEndpointVerification extends 
 			supportMTLSEndpointAliases = SupportMTLSEndpointAliases.class;
 		}
 	}
+
 }

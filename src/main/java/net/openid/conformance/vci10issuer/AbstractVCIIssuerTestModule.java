@@ -142,12 +142,13 @@ import net.openid.conformance.variant.ConfigurationFields;
 import net.openid.conformance.variant.FAPI2AuthRequestMethod;
 import net.openid.conformance.variant.FAPI2SenderConstrainMethod;
 import net.openid.conformance.variant.VCIAuthorizationCodeFlowVariant;
-import net.openid.conformance.variant.VCIClientAuthType;
+import net.openid.conformance.variant.ClientAuthType;
 import net.openid.conformance.variant.VCICredentialEncryption;
 import net.openid.conformance.variant.VCIGrantType;
 import net.openid.conformance.variant.VCIProfile;
 import net.openid.conformance.variant.VariantConfigurationFields;
 import net.openid.conformance.variant.VariantHidesConfigurationFields;
+import net.openid.conformance.variant.VariantNotApplicable;
 import net.openid.conformance.variant.VariantNotApplicableWhen;
 import net.openid.conformance.variant.VariantParameters;
 import net.openid.conformance.variant.VariantSetup;
@@ -201,7 +202,7 @@ import net.openid.conformance.vci10issuer.condition.VCIValidateNoUnknownKeysInCr
 import net.openid.conformance.vci10issuer.condition.VCIValidateNoUnknownKeysInCredentialResponse;
 import net.openid.conformance.vci10issuer.condition.VCIWaitForCredentialOffer;
 import net.openid.conformance.vci10issuer.condition.VCIWaitForTxCode;
-import net.openid.conformance.vci10issuer.condition.clientattestation.AddClientAttestationClientAuthToEndpointRequest;
+import net.openid.conformance.condition.client.AddClientAttestationClientAuthToEndpointRequest;
 import net.openid.conformance.vci10issuer.condition.clientattestation.CreateClientAttestationJwt;
 import net.openid.conformance.vci10issuer.condition.clientattestation.GenerateClientAttestationClientInstanceKey;
 import net.openid.conformance.vci10issuer.condition.statuslist.VCIValidateCredentialValidityByStatusListIfPresent;
@@ -220,7 +221,7 @@ import java.util.function.Supplier;
 	"vci.authorization_server",
 })
 @VariantParameters({
-	VCIClientAuthType.class,
+	ClientAuthType.class,
 	FAPI2AuthRequestMethod.class,
 	FAPI2SenderConstrainMethod.class,
 	AuthorizationRequestType.class,
@@ -233,28 +234,31 @@ import java.util.function.Supplier;
 @VariantHidesConfigurationFields(parameter = VCIAuthorizationCodeFlowVariant.class, value="wallet_initiated", configurationFields = {
 	"vci.credential_offer_endpoint"
 })
-@VariantHidesConfigurationFields(parameter = VCIClientAuthType.class, value="private_key_jwt", configurationFields = {
+@VariantHidesConfigurationFields(parameter = ClientAuthType.class, value="private_key_jwt", configurationFields = {
 	"vci.client_attestation_issuer", "vci.client_attestation_trust_anchor"
 })
-@VariantHidesConfigurationFields(parameter = VCIClientAuthType.class, value="mtls", configurationFields = {
+@VariantHidesConfigurationFields(parameter = ClientAuthType.class, value="mtls", configurationFields = {
 	"vci.client_attestation_issuer", "vci.client_attestation_trust_anchor"
 })
 @VariantConfigurationFields(parameter = FAPI2SenderConstrainMethod.class, value = "dpop", configurationFields = {"client.dpop_signing_alg", "client2.dpop_signing_alg",})
 @VariantHidesConfigurationFields(parameter = VCIProfile.class, value="haip", configurationFields = {"client.dpop_signing_alg", "client2.dpop_signing_alg"})
-@VariantHidesConfigurationFields(parameter = VCIClientAuthType.class, value = "client_attestation",
+@VariantHidesConfigurationFields(parameter = ClientAuthType.class, value = "client_attestation",
 	configurationFields = {"client.jwks"})
-@VariantConfigurationFields(parameter = VCIClientAuthType.class, value = "client_attestation", configurationFields = {
+@VariantConfigurationFields(parameter = ClientAuthType.class, value = "client_attestation", configurationFields = {
 	"vci.client_attester_keys_jwks",
 	"vci.client_attestation_issuer"
 })
 @VariantConfigurationFields(parameter = VCIGrantType.class, value = "pre_authorization_code", configurationFields = {"vci.static_tx_code"})
-@VariantConfigurationFields(parameter = VCIClientAuthType.class, value="mtls", configurationFields = {
+@VariantConfigurationFields(parameter = ClientAuthType.class, value="mtls", configurationFields = {
 	"mtls.key",
 	"mtls.cert",
 	"mtls.ca",
 	"mtls2.key",
 	"mtls2.cert",
 	"mtls2.ca",
+})
+@VariantNotApplicable(parameter = ClientAuthType.class, values = {
+	"none", "client_secret_basic", "client_secret_post", "client_secret_jwt"
 })
 @VariantNotApplicableWhen(
 	parameter = AuthorizationRequestType.class,
@@ -279,7 +283,7 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 	protected Boolean useDpopAuthCodeBinding;
 	protected Boolean isRarRequest;
 
-	protected VCIClientAuthType clientAuthType;
+	protected ClientAuthType clientAuthType;
 
 	protected VCIProfile vciProfile;
 
@@ -339,7 +343,7 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 		isRarRequest = getVariant(AuthorizationRequestType.class) == AuthorizationRequestType.RAR;
 		useDpopAuthCodeBinding = false;
 
-		clientAuthType = getVariant(VCIClientAuthType.class);
+		clientAuthType = getVariant(ClientAuthType.class);
 		vciProfile = getVariant(VCIProfile.class);
 
 		vciGrantType = getVariant(VCIGrantType.class);
@@ -419,7 +423,7 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 		setupResourceEndpoint();
 		eventLog.endBlock();
 
-		if (clientAuthType == VCIClientAuthType.CLIENT_ATTESTATION) {
+		if (clientAuthType == ClientAuthType.CLIENT_ATTESTATION) {
 			eventLog.startBlock("Configure Client Attestation");
 			generateClientAttestationKeys();
 			eventLog.endBlock();
@@ -481,7 +485,7 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 
 		exposeEnvString("client_id");
 
-		boolean mtlsRequired = getVariant(FAPI2SenderConstrainMethod.class) == FAPI2SenderConstrainMethod.MTLS || clientAuthType == VCIClientAuthType.MTLS || profileRequiresMtlsEverywhere;
+		boolean mtlsRequired = getVariant(FAPI2SenderConstrainMethod.class) == FAPI2SenderConstrainMethod.MTLS || clientAuthType == ClientAuthType.MTLS || profileRequiresMtlsEverywhere;
 
 		if (mtlsRequired) {
 			callAndContinueOnFailure(ValidateMTLSCertificatesHeader.class, Condition.ConditionResult.WARNING);
@@ -511,7 +515,7 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 		switchToSecondClient();
 		callAndStopOnFailure(GetStaticClient2Configuration.class);
 
-		boolean mtlsRequired = getVariant(FAPI2SenderConstrainMethod.class) == FAPI2SenderConstrainMethod.MTLS || clientAuthType == VCIClientAuthType.MTLS || profileRequiresMtlsEverywhere;
+		boolean mtlsRequired = getVariant(FAPI2SenderConstrainMethod.class) == FAPI2SenderConstrainMethod.MTLS || clientAuthType == ClientAuthType.MTLS || profileRequiresMtlsEverywhere;
 
 		if (mtlsRequired) {
 			callAndContinueOnFailure(ValidateMTLSCertificates2Header.class, Condition.ConditionResult.WARNING);
@@ -627,7 +631,7 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 		callAndContinueOnFailure(FAPI2CheckKeyAlgInClientJWKs.class, ConditionResult.FAILURE, "FAPI2-SP-FINAL-5.4.1");
 		callAndContinueOnFailure(FAPI2FinalEnsureMinimumClientKeyLength.class, Condition.ConditionResult.FAILURE, "FAPI2-SP-FINAL-5.4.1-2.2.1", "FAPI2-SP-FINAL-5.4.1-2.3.1");
 
-		boolean mtlsRequired = getVariant(FAPI2SenderConstrainMethod.class) == FAPI2SenderConstrainMethod.MTLS || clientAuthType == VCIClientAuthType.MTLS || profileRequiresMtlsEverywhere;
+		boolean mtlsRequired = getVariant(FAPI2SenderConstrainMethod.class) == FAPI2SenderConstrainMethod.MTLS || clientAuthType == ClientAuthType.MTLS || profileRequiresMtlsEverywhere;
 
 		if (mtlsRequired) {
 			callAndContinueOnFailure(ValidateMTLSCertificatesAsX509.class, Condition.ConditionResult.FAILURE);
@@ -1584,13 +1588,13 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 		env.unmapKey("mutual_tls_authentication");
 	}
 
-	@VariantSetup(parameter = VCIClientAuthType.class, value = "mtls")
+	@VariantSetup(parameter = ClientAuthType.class, value = "mtls")
 	public void setupMTLS() {
 		addClientAuthentication = AddMTLSClientAuthenticationToRequest.class;
 		supportMTLSEndpointAliases = SupportMTLSEndpointAliases.class;
 	}
 
-	@VariantSetup(parameter = VCIClientAuthType.class, value = "private_key_jwt")
+	@VariantSetup(parameter = ClientAuthType.class, value = "private_key_jwt")
 	public void setupPrivateKeyJwt() {
 		addClientAuthentication = CreateJWTClientAuthenticationAssertionWithIssAudAndAddToTokenEndpointRequest.class;
 
@@ -1599,7 +1603,7 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 		}
 	}
 
-	@VariantSetup(parameter = VCIClientAuthType.class, value = "client_attestation")
+	@VariantSetup(parameter = ClientAuthType.class, value = "client_attestation")
 	public void setupClientAttestation() {
 		addClientAuthentication = AddClientAttestationClientAuthToEndpointRequest.class;
 		if (getVariant(FAPI2SenderConstrainMethod.class) == FAPI2SenderConstrainMethod.MTLS) {
@@ -1609,7 +1613,7 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 
 	protected void generateClientAttestationKeys() {
 
-		if (clientAuthType == VCIClientAuthType.CLIENT_ATTESTATION) {
+		if (clientAuthType == ClientAuthType.CLIENT_ATTESTATION) {
 			if (env.getString("config", "vci.client_attestation_issuer") == null) {
 				throw new TestFailureException(getId(), "vci.client_attestation_issuer must be configured if client_attestation is configured as client authentication method.");
 			}
@@ -1680,7 +1684,7 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractRedirectServer
 
 		// we only need to (and only should) supply an MTLS authentication when using MTLS client auth;
 		// there's no need to pass mtls auth when using private_key_jwt
-		boolean mtlsRequired = clientAuthType == VCIClientAuthType.MTLS || profileRequiresMtlsEverywhere;
+		boolean mtlsRequired = clientAuthType == ClientAuthType.MTLS || profileRequiresMtlsEverywhere;
 
 		JsonObject mtls = null;
 		if (!mtlsRequired) {

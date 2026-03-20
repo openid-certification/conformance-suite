@@ -6,9 +6,9 @@ import net.openid.conformance.condition.client.CheckErrorFromParEndpointResponse
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs400or401;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
-import net.openid.conformance.variant.VCIClientAuthType;
+import net.openid.conformance.variant.ClientAuthType;
 import net.openid.conformance.variant.VariantNotApplicable;
-import net.openid.conformance.vci10issuer.condition.clientattestation.AddClientAttestationClientAuthToEndpointRequest;
+import net.openid.conformance.condition.client.AddClientAttestationClientAuthToEndpointRequest;
 import net.openid.conformance.vci10issuer.condition.clientattestation.ReplaceClientInstanceKeyWithNewKey;
 
 /**
@@ -36,7 +36,7 @@ import net.openid.conformance.vci10issuer.condition.clientattestation.ReplaceCli
 		"If a different client authentication method is used, the test will be skipped.",
 	profile = "OID4VCI-1_0"
 )
-@VariantNotApplicable(parameter = VCIClientAuthType.class, values = {"mtls", "private_key_jwt"})
+@VariantNotApplicable(parameter = ClientAuthType.class, values = {"mtls", "private_key_jwt"})
 public class VCIIssuerFailOnMismatchedClientAttestationPopKey extends AbstractVCIIssuerTestModule {
 
 	@Override

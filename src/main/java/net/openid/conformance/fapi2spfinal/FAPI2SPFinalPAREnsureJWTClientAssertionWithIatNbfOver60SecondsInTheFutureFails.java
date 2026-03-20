@@ -31,7 +31,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 	}
 )
 @VariantNotApplicable(parameter = ClientAuthType.class, values = {
-	"mtls"
+	"mtls", "client_attestation"
 })
 @VariantNotApplicable(parameter = FAPI2FinalOPProfile.class, values = { "fapi_client_credentials_grant" })
 public class FAPI2SPFinalPAREnsureJWTClientAssertionWithIatNbfOver60SecondsInTheFutureFails extends AbstractFAPI2SPFinalServerTestModule {

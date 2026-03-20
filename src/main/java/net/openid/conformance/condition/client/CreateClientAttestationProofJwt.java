@@ -1,4 +1,4 @@
-package net.openid.conformance.vci10issuer.condition.clientattestation;
+package net.openid.conformance.condition.client;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -7,7 +7,6 @@ import com.nimbusds.jose.JWSHeader;
 import com.nimbusds.jose.jwk.JWK;
 import com.nimbusds.jwt.JWTClaimsSet;
 import net.openid.conformance.condition.PreEnvironment;
-import net.openid.conformance.condition.client.AbstractSignJWT;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.util.JWKUtil;
 

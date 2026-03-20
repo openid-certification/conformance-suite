@@ -7,8 +7,9 @@ import net.openid.conformance.condition.client.CheckDiscEndpointClientAttestatio
 import net.openid.conformance.condition.client.EnsureContentTypeJson;
 import net.openid.conformance.condition.client.EnsureServerConfigurationSupportsAttestJwtClientAuth;
 import net.openid.conformance.testmodule.PublishTestModule;
-import net.openid.conformance.variant.VCIClientAuthType;
+import net.openid.conformance.variant.ClientAuthType;
 import net.openid.conformance.variant.VCIProfile;
+import net.openid.conformance.variant.VariantNotApplicable;
 import net.openid.conformance.variant.VariantParameters;
 import net.openid.conformance.vci10issuer.condition.VCIAuthorizationServerMetadataValidation;
 import net.openid.conformance.vci10issuer.condition.VCICheckRequiredMetadataFields;
@@ -33,7 +34,10 @@ import net.openid.conformance.vci10issuer.condition.VCIValidateNonceEndpointInIs
 		""",
 	profile = "OID4VCI-1_0"
 )
-@VariantParameters({VCIClientAuthType.class, VCIProfile.class})
+@VariantParameters({ClientAuthType.class, VCIProfile.class})
+@VariantNotApplicable(parameter = ClientAuthType.class, values = {
+	"none", "client_secret_basic", "client_secret_post", "client_secret_jwt"
+})
 public class VCIIssuerMetadataTest extends AbstractVciTest {
 
 	@Override
@@ -99,7 +103,7 @@ public class VCIIssuerMetadataTest extends AbstractVciTest {
 		env.runWithMapKey("current_auth_server_metadata_path", authServerMetadataPath, () -> {
 			callAndStopOnFailure(VCIAuthorizationServerMetadataValidation.class, Condition.ConditionResult.FAILURE, "OID4VCI-1FINAL-12.2.3", "OID4VCI-1FINAL-12.3");
 
-			if (clientAuthType == VCIClientAuthType.CLIENT_ATTESTATION) {
+			if (clientAuthType == ClientAuthType.CLIENT_ATTESTATION) {
 				env.putObject("server", env.getElementFromObject("vci", authServerMetadataPath).getAsJsonObject());
 				callAndContinueOnFailure(EnsureServerConfigurationSupportsAttestJwtClientAuth.class, Condition.ConditionResult.WARNING, "OAuth2-ATCA07-13.4");
 				callAndContinueOnFailure(CheckDiscEndpointClientAttestationSigningAlgValuesSupported.class, Condition.ConditionResult.FAILURE, "OAuth2-ATCA07-10.1");

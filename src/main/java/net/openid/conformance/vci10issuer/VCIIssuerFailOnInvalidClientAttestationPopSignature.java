@@ -5,7 +5,7 @@ import net.openid.conformance.condition.client.CallPAREndpoint;
 import net.openid.conformance.condition.client.CheckErrorFromParEndpointResponseErrorInvalidClientOrInvalidRequest;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs400or401;
 import net.openid.conformance.testmodule.PublishTestModule;
-import net.openid.conformance.variant.VCIClientAuthType;
+import net.openid.conformance.variant.ClientAuthType;
 import net.openid.conformance.variant.VariantNotApplicable;
 import net.openid.conformance.variant.VariantSetup;
 import net.openid.conformance.vci10issuer.condition.clientattestation.AddClientAttestationClientAuthWithInvalidPopSignature;
@@ -33,10 +33,10 @@ import net.openid.conformance.vci10issuer.condition.clientattestation.AddClientA
 		"If a different client authentication method is used, the test will be skipped.",
 	profile = "OID4VCI-1_0"
 )
-@VariantNotApplicable(parameter = VCIClientAuthType.class, values = {"mtls", "private_key_jwt"})
+@VariantNotApplicable(parameter = ClientAuthType.class, values = {"mtls", "private_key_jwt"})
 public class VCIIssuerFailOnInvalidClientAttestationPopSignature extends AbstractVCIIssuerTestModule {
 
-	@VariantSetup(parameter = VCIClientAuthType.class, value = "client_attestation")
+	@VariantSetup(parameter = ClientAuthType.class, value = "client_attestation")
 	@Override
 	public void setupClientAttestation() {
 		// Use the modified sequence that invalidates the pop signature
