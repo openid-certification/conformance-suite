@@ -457,6 +457,34 @@ public class VariantService {
 			return testModules;
 		}
 
+		public List<Map<String, Object>> getTestModulesWithConfigFields() {
+			List<Map<String, Object>> testModules = new ArrayList<>();
+			Set<String> seen = new HashSet<>();
+			modulesWithVariant.forEach((testPlanModuleWithVariant) -> {
+				String testName = testPlanModuleWithVariant.module.info.testName();
+				List<String> configFields = Arrays.asList(testPlanModuleWithVariant.module.combinedConfigurationFields);
+				if (seen.add(testName)) {
+					Map<String, Object> entry = new HashMap<>();
+					entry.put("testModule", testName);
+					entry.put("variant", testPlanModuleWithVariant.variantAsStrings());
+					entry.put("instances", Collections.emptyList());
+					entry.put("configurationFields", configFields);
+					testModules.add(entry);
+				} else {
+					// module already listed from a different conditional entry; drop variant
+					// to avoid showing a misleading fixed combination
+					testModules.replaceAll(m -> testName.equals(m.get("testModule")) ? dropVariant(m) : m);
+				}
+			});
+			return testModules;
+		}
+
+		private static Map<String, Object> dropVariant(Map<String, Object> entry) {
+			Map<String, Object> updated = new HashMap<>(entry);
+			updated.put("variant", null);
+			return updated;
+		}
+
 		public List<String> configurationFields() {
 			Set<String> fields = modulesWithVariant.stream()
 				.flatMap(testPlanModuleWithVariant -> testPlanModuleWithVariant.fixedVariantConfigurationFields.stream())
