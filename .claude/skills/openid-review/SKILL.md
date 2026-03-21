@@ -50,5 +50,13 @@ Concentrate on findings related to changes made on the branch — flag pre-exist
 - No accidental weakening of validation (e.g., removing required checks)
 - OWASP top 10 concerns (injection, XSS) in any HTTP-handling code
 
+### API Compatibility
+- Any change to a REST endpoint's URL, method, request parameters, or response shape may be a breaking change for external API users — flag explicitly
+- Removing or renaming fields in JSON responses breaks callers relying on those fields
+- Adding required request parameters or changing optional ones to required is breaking
+- Changing HTTP status codes or error response formats might be breaking
+- Non-breaking additions (new optional response fields, new optional query params) are fine but worth noting
+- In particular, changes to run-tests.sh may be a sign of a breaking change for external users - for example a variant changing name
+
 ### Scope
 - No unnecessary changes outside the purpose of the PR
