@@ -354,7 +354,7 @@ public class ValidateDCQLQuery_UnitTest extends AbstractVciUnitTest {
 	@Test
 	public void testEvaluate_unknownPropertiesDoNotCauseError() {
 		// Unknown properties are filtered out as additionalProperties errors
-		// and handled separately by WarnUnknownDCQLProperties as warnings.
+		// and handled separately by CheckForUnexpectedParametersInDcqlQuery as warnings.
 		// The if/then/else schema structure (keyed on format) ensures that
 		// unknown properties inside credential items only produce errors from
 		// the matching format branch, avoiding cascade errors.
