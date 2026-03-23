@@ -883,7 +883,9 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractFAPI2SPFinalSe
 	 * verifyCredentialIssuerCredentialErrorResponse() instead.
 	 */
 	protected void verifyCredentialIssuerCredentialResponse() {
-		callAndStopOnFailure(EnsureHttpStatusCodeIs200.class, "OID4VCI-1FINAL-8.3");
+		// Accept both 200 (immediate) and 202 (deferred) — the distinction is handled
+		// in verifyEffectiveCredentialResponse() after checking for transaction_id
+		callAndStopOnFailure(new EnsureHttpStatusCodeIsAnyOf(200, 202), "OID4VCI-1FINAL-8.3");
 
 		// Decrypt the response if encryption was requested
 		if (vciCredentialEncryption == VCICredentialEncryption.ENCRYPTED) {
