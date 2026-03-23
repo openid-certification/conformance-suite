@@ -6,7 +6,7 @@ import net.openid.conformance.condition.client.AbstractCheckEndpointContentTypeR
 import net.openid.conformance.condition.client.EnsureContentTypeApplicationJwt;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.ClientAuthType;
-import net.openid.conformance.variant.VCIProfile;
+import net.openid.conformance.variant.FAPI2FinalOPProfile;
 import net.openid.conformance.variant.VariantNotApplicable;
 import net.openid.conformance.variant.VariantParameters;
 import net.openid.conformance.vci10issuer.condition.VCIDecodeSignedCredentialIssuerMetadata;
@@ -24,9 +24,13 @@ import net.openid.conformance.vci10issuer.condition.VCIRequestSignedCredentialIs
 		""",
 	profile = "OID4VCI-1_0"
 )
-@VariantParameters({ClientAuthType.class, VCIProfile.class})
+@VariantParameters({ClientAuthType.class, FAPI2FinalOPProfile.class})
 @VariantNotApplicable(parameter = ClientAuthType.class, values = {
 	"none", "client_secret_basic", "client_secret_post", "client_secret_jwt"
+})
+@VariantNotApplicable(parameter = FAPI2FinalOPProfile.class, values = {
+	"plain_fapi", "openbanking_uk", "consumerdataright_au", "openbanking_brazil",
+	"connectid_au", "cbuae", "fapi_client_credentials_grant"
 })
 public class VCIIssuerMetadataSignedTest extends VCIIssuerMetadataTest {
 

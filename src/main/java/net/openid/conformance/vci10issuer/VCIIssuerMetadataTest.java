@@ -8,7 +8,7 @@ import net.openid.conformance.condition.client.EnsureContentTypeJson;
 import net.openid.conformance.condition.client.EnsureServerConfigurationSupportsAttestJwtClientAuth;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.ClientAuthType;
-import net.openid.conformance.variant.VCIProfile;
+import net.openid.conformance.variant.FAPI2FinalOPProfile;
 import net.openid.conformance.variant.VariantNotApplicable;
 import net.openid.conformance.variant.VariantParameters;
 import net.openid.conformance.vci10issuer.condition.VCIAuthorizationServerMetadataValidation;
@@ -34,9 +34,13 @@ import net.openid.conformance.vci10issuer.condition.VCIValidateNonceEndpointInIs
 		""",
 	profile = "OID4VCI-1_0"
 )
-@VariantParameters({ClientAuthType.class, VCIProfile.class})
+@VariantParameters({ClientAuthType.class, FAPI2FinalOPProfile.class})
 @VariantNotApplicable(parameter = ClientAuthType.class, values = {
 	"none", "client_secret_basic", "client_secret_post", "client_secret_jwt"
+})
+@VariantNotApplicable(parameter = FAPI2FinalOPProfile.class, values = {
+	"plain_fapi", "openbanking_uk", "consumerdataright_au", "openbanking_brazil",
+	"connectid_au", "cbuae", "fapi_client_credentials_grant"
 })
 public class VCIIssuerMetadataTest extends AbstractVciTest {
 
@@ -86,7 +90,7 @@ public class VCIIssuerMetadataTest extends AbstractVciTest {
 		callAndContinueOnFailure(VCIValidateCredentialIssuerUri.class, Condition.ConditionResult.FAILURE, "OID4VCI-1FINAL-12.2.1");
 		callAndContinueOnFailure(VCICredentialIssuerMetadataValidation.class, Condition.ConditionResult.FAILURE, "OID4VCI-1FINAL-12.2.3");
 
-		if (vciProfile == VCIProfile.HAIP) {
+		if (isHaip()) {
 			callAndContinueOnFailure(VCIValidateNonceEndpointInIssuerMetadata.class, Condition.ConditionResult.FAILURE, "HAIP-4.1-5");
 			callAndContinueOnFailure(new VCIValidateFormatOfCredentialConfigurationsInMetadata(true), Condition.ConditionResult.WARNING, "OID4VCI-1FINALA-A.3.1", "OID4VCI-1FINALA-A.2", "HAIP-6");
 		} else {
