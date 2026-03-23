@@ -21,9 +21,16 @@ public class VCIIssuerTestPlan implements TestPlan {
 		return List.of(
 			new ModuleListEntry(
 				List.of(
-					// positive tests
 					VCIIssuerMetadataTest.class,
-					VCIIssuerMetadataSignedTest.class,
+					VCIIssuerMetadataSignedTest.class
+				),
+				List.of(
+					new Variant(FAPI2FinalOPProfile.class, "vci")
+				)
+			),
+			new ModuleListEntry(
+				List.of(
+					// positive tests
 					VCIIssuerHappyFlow.class,
 					VCIIssuerHappyFlowAdditionalRequests.class,
 					VCIIssuerHappyFlowMultipleClients.class,
