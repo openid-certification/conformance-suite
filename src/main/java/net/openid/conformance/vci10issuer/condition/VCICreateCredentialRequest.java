@@ -31,19 +31,24 @@ public class VCICreateCredentialRequest extends AbstractCondition {
 				JsonObject authorizationDetailEntryObject = authorizationDetailEntry.getAsJsonObject();
 				if ("openid_credential".equals(OIDFJSON.getString(authorizationDetailEntryObject.get("type")))
 					&& credentialConfigId.equals(OIDFJSON.getString(authorizationDetailEntryObject.get("credential_configuration_id")))
-					&& authorizationDetailEntryObject.has("credential_identifiers")
 				) {
-					JsonArray credentialIdentifiers = authorizationDetailEntryObject.getAsJsonArray("credential_identifiers");
-					// we take the first identifier here
-					String firstIdentifier = OIDFJSON.getString(credentialIdentifiers.get(0));
-					credentialRequest.addProperty("credential_identifier", firstIdentifier);
-					log("Adding credential identifier to credential request", args("credential_identifier", firstIdentifier));
-					break;
+					if (authorizationDetailEntryObject.has("credential_identifiers")) {
+						JsonArray credentialIdentifiers = authorizationDetailEntryObject.getAsJsonArray("credential_identifiers");
+						// we take the first identifier here
+						String firstIdentifier = OIDFJSON.getString(credentialIdentifiers.get(0));
+						credentialRequest.addProperty("credential_identifier", firstIdentifier);
+						log("Adding credential identifier to credential request", args("credential_identifier", firstIdentifier));
+						break;
+					} else {
+						credentialRequest.addProperty("credential_configuration_id", credentialConfigId);
+						log("Adding credential configuration id to credential request", args("credential_configuration_id", credentialConfigId));
+						break;
+					}
 				}
 			}
 
-			if (!credentialRequest.has("credential_identifier")) {
-				throw error("Couldn't find credential identifier in authorization details", args("credential_configuration_id", credentialConfigId, "authorization_details", authorizationDetails));
+			if (!credentialRequest.has("credential_configuration_id") && !credentialRequest.has("credential_identifier")) {
+				throw error("Invalid authorization details", args("credential_configuration_id", credentialConfigId, "authorization_details", authorizationDetails));
 			}
 
 		} else {
