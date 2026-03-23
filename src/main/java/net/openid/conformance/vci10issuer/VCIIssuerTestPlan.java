@@ -25,7 +25,6 @@ public class VCIIssuerTestPlan implements TestPlan {
 					VCIIssuerMetadataSignedTest.class
 				),
 				List.of(
-					new Variant(FAPI2FinalOPProfile.class, "vci")
 				)
 			),
 			new ModuleListEntry(
