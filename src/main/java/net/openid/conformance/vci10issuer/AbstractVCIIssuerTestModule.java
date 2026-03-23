@@ -259,6 +259,14 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractFAPI2SPFinalSe
 
 		// Store credential_resource_url for later use (before notification/deferred endpoints may overwrite it)
 		env.putString("credential_resource_url", env.getString("resource", "resourceUrl"));
+
+		// Generate client attestation keys if needed — done here (not in profile behavior)
+		// so the afterClientAttestationGenerated() hook is available for subclasses
+		if (clientAuthType == ClientAuthType.CLIENT_ATTESTATION) {
+			eventLog.startBlock("Configure Client Attestation");
+			generateClientAttestationKeys();
+			eventLog.endBlock();
+		}
 	}
 
 	protected void determineCredentialConfigurationTransferMethod() {
