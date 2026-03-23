@@ -64,6 +64,7 @@ import net.openid.conformance.condition.as.CreateTokenEndpointResponse;
 import net.openid.conformance.condition.as.EncryptJARMResponse;
 import net.openid.conformance.condition.as.EnsureAuthorizationRequestContainsPkceCodeChallenge;
 import net.openid.conformance.condition.as.EnsureAuthorizationRequestContainsStateParameter;
+import net.openid.conformance.condition.as.EnsureClaimsParameterNotPresentInPlainOAuthRequest;
 import net.openid.conformance.condition.as.EnsureClientCertificateMatches;
 import net.openid.conformance.condition.as.EnsureClientIdInAuthorizationRequestParametersMatchRequestObject;
 import net.openid.conformance.condition.as.EnsureClientJwksDoesNotContainPrivateOrSymmetricKeys;
@@ -1381,6 +1382,9 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 				CheckRequestClaimsParameterValues.class, ConditionResult.FAILURE, "OIDCC-5.5");
 			skipIfElementMissing(CreateEffectiveAuthorizationRequestParameters.ENV_KEY, "claims", ConditionResult.INFO,
 				CheckRequestClaimsParameterMemberValues.class, ConditionResult.FAILURE, "OIDCC-5.5.1");
+		} else {
+			// this is a failure because it shows an incorrect test configuration
+			callAndContinueOnFailure(EnsureClaimsParameterNotPresentInPlainOAuthRequest.class, ConditionResult.FAILURE);
 		}
 
 		callAndStopOnFailure(EnsureAuthorizationRequestContainsPkceCodeChallenge.class, "FAPI2-SP-FINAL-5.3.3.2-3");

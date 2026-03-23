@@ -43,6 +43,7 @@ import net.openid.conformance.condition.as.EncryptIdToken;
 import net.openid.conformance.condition.as.EncryptJARMResponse;
 import net.openid.conformance.condition.as.EnsureAuthorizationHttpRequestContainsOpenIDScope;
 import net.openid.conformance.condition.as.EnsureAuthorizationRequestContainsStateParameter;
+import net.openid.conformance.condition.as.EnsureClaimsParameterNotPresentInPlainOAuthRequest;
 import net.openid.conformance.condition.as.EnsureClientCertificateMatches;
 import net.openid.conformance.condition.as.EnsureClientIdInAuthorizationRequestParametersMatchRequestObject;
 import net.openid.conformance.condition.as.EnsureClientJwksDoesNotContainPrivateOrSymmetricKeys;
@@ -1113,6 +1114,8 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 				CheckRequestClaimsParameterValues.class, ConditionResult.FAILURE, "OIDCC-5.5");
 			skipIfElementMissing(CreateEffectiveAuthorizationRequestParameters.ENV_KEY, "claims", ConditionResult.INFO,
 				CheckRequestClaimsParameterMemberValues.class, ConditionResult.FAILURE, "OIDCC-5.5.1");
+		} else {
+			callAndContinueOnFailure(EnsureClaimsParameterNotPresentInPlainOAuthRequest.class, ConditionResult.FAILURE);
 		}
 
 		validateRequestObjectForAuthorizationEndpointRequest();
