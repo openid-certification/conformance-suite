@@ -3,7 +3,9 @@ package net.openid.conformance.fapi2spfinal;
 import net.openid.conformance.plan.PublishTestPlan;
 import net.openid.conformance.plan.TestPlan;
 import net.openid.conformance.testmodule.TestModule;
+import net.openid.conformance.variant.ClientAuthType;
 import net.openid.conformance.variant.FAPI2AuthRequestMethod;
+import net.openid.conformance.variant.FAPI2FinalOPProfile;
 import net.openid.conformance.variant.FAPIResponseMode;
 import net.openid.conformance.variant.VariantSelection;
 
@@ -18,6 +20,17 @@ import java.util.Map;
 	profile = TestPlan.ProfileNames.optest
 )
 public class FAPI2SPFinalTestPlan implements TestPlan {
+
+	/**
+	 * Variant values that are not applicable to FAPI2 SP Final certification test plans.
+	 * VCI/VCI_HAIP profiles and client_attestation auth are excluded from FAPI2 plans;
+	 * they are intended for VCI-specific test plans.
+	 */
+	static final List<Variant> FAPI2_VARIANTS_NOT_APPLICABLE = List.of(
+		new Variant(FAPI2FinalOPProfile.class, "vci"),
+		new Variant(FAPI2FinalOPProfile.class, "vci_haip"),
+		new Variant(ClientAuthType.class, "client_attestation")
+	);
 
 	@Override
 	public List<ModuleListEntry> testModulesWithVariants() {
@@ -50,6 +63,11 @@ public class FAPI2SPFinalTestPlan implements TestPlan {
 			new TestPlan.ModuleListEntry(modules, baselineVariants)
 		);
 
+	}
+
+	@Override
+	public List<Variant> variantsNotApplicable() {
+		return FAPI2_VARIANTS_NOT_APPLICABLE;
 	}
 
 	@Override
@@ -103,6 +121,9 @@ public class FAPI2SPFinalTestPlan implements TestPlan {
 			case "mtls":
 				certProfile += "MTLS";
 				break;
+			default:
+				throw new RuntimeException("Unknown client auth type %s for %s".formatted(
+					clientAuth, MethodHandles.lookup().lookupClass().getSimpleName()));
 		}
 
 		switch (senderConstrain) {
@@ -112,6 +133,9 @@ public class FAPI2SPFinalTestPlan implements TestPlan {
 			case "dpop":
 				certProfile += " + DPoP";
 				break;
+			default:
+				throw new RuntimeException("Unknown sender constrain method %s for %s".formatted(
+					senderConstrain, MethodHandles.lookup().lookupClass().getSimpleName()));
 		}
 		profiles.add(certProfile);
 		return profiles;

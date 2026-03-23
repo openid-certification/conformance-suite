@@ -59,6 +59,11 @@ public class FAPI2MessageSigningFinalClientTestPlan implements TestPlan {
 	);
 
 	@Override
+	public List<Variant> variantsNotApplicable() {
+		return FAPI2SPFinalTestPlan.FAPI2_VARIANTS_NOT_APPLICABLE;
+	}
+
+	@Override
 	public List<ModuleListEntry> testModulesWithVariants() {
 		List<Variant> variant = List.of(
 		);
@@ -159,7 +164,10 @@ public class FAPI2MessageSigningFinalClientTestPlan implements TestPlan {
 							MethodHandles.lookup().lookupClass().getSimpleName()));
 				}
 
-				return List.of( "FAPI2MS RP CBUAE");
+					return List.of( "FAPI2MS RP CBUAE");
+			default:
+				throw new RuntimeException("Unknown profile %s for %s".formatted(
+					profile, MethodHandles.lookup().lookupClass().getSimpleName()));
 		}
 
 		switch (clientAuth) {
@@ -169,6 +177,9 @@ public class FAPI2MessageSigningFinalClientTestPlan implements TestPlan {
 			case "mtls":
 				certProfile += " MTLS";
 				break;
+			default:
+				throw new RuntimeException("Unknown client auth type %s for %s".formatted(
+					clientAuth, MethodHandles.lookup().lookupClass().getSimpleName()));
 		}
 		switch (senderConstrain) {
 			case "mtls":
@@ -177,6 +188,9 @@ public class FAPI2MessageSigningFinalClientTestPlan implements TestPlan {
 			case "dpop":
 				certProfile += " + DPoP";
 				break;
+			default:
+				throw new RuntimeException("Unknown sender constrain method %s for %s".formatted(
+					senderConstrain, MethodHandles.lookup().lookupClass().getSimpleName()));
 		}
 		profiles.add( certProfile );
 

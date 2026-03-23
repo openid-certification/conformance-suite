@@ -2,7 +2,6 @@ package net.openid.conformance.vci10issuer;
 
 import net.openid.conformance.plan.PublishTestPlan;
 import net.openid.conformance.plan.TestPlan;
-
 import java.util.List;
 
 @PublishTestPlan(

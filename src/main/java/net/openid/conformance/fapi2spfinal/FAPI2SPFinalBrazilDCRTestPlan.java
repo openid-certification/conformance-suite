@@ -44,6 +44,11 @@ public class FAPI2SPFinalBrazilDCRTestPlan implements TestPlan {
 
 	}
 	@Override
+	public List<Variant> variantsNotApplicable() {
+		return FAPI2SPFinalTestPlan.FAPI2_VARIANTS_NOT_APPLICABLE;
+	}
+
+	@Override
 	public List<String> certificationProfileName(VariantSelection variant) {
 		return List.of("BR-OB Adv. OP DCR");
 	}

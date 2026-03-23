@@ -103,4 +103,15 @@ public interface TestPlan {
 		return Collections.emptyList();
 	}
 
+	/**
+	 * Override to exclude specific variant values from being shown in the test plan UI.
+	 * This is used when a plan shares modules with other plans but needs to restrict
+	 * which variant values are available for selection.
+	 *
+	 * @return list of variant parameter/value pairs to exclude, or empty list if none
+	 */
+	default List<Variant> variantsNotApplicable() {
+		return Collections.emptyList();
+	}
+
 }
