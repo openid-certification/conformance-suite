@@ -4,7 +4,7 @@ import com.google.gson.JsonObject;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
-import net.openid.conformance.vci10issuer.VCI1FinalCredentialFormat;
+import net.openid.conformance.variant.VCI1FinalCredentialFormat;
 
 public class VCIEnsureResolvedCredentialConfigurationMatchesSelection extends AbstractCondition {
 

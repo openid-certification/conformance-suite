@@ -14,7 +14,7 @@ import net.openid.conformance.variant.VCICredentialOfferParameterVariant;
 import net.openid.conformance.variant.VCIGrantType;
 import net.openid.conformance.variant.VCIProfile;
 import net.openid.conformance.variant.VariantSelection;
-import net.openid.conformance.vci10issuer.VCI1FinalCredentialFormat;
+import net.openid.conformance.variant.VCI1FinalCredentialFormat;
 
 import java.util.ArrayList;
 import java.util.List;
