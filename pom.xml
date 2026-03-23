@@ -206,12 +206,12 @@
 		<dependency>
 			<groupId>org.multipaz</groupId>
 			<artifactId>multipaz-jvm</artifactId>
-			<version>0.97.0</version>
+			<version>0.98.0</version>
 		</dependency>
 		<dependency>
 			<groupId>org.multipaz</groupId>
 			<artifactId>multipaz-doctypes-jvm</artifactId>
-			<version>0.97.0</version>
+			<version>0.98.0</version>
 		</dependency>
 
 		<dependency>
