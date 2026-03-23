@@ -38,6 +38,8 @@ public class VCICreateDeferredCredentialResponse extends AbstractCondition {
 
 		JsonObject response = new JsonObject();
 		response.addProperty("transaction_id", transactionId);
+		// Per OID4VCI Section 8.3, 'interval' is REQUIRED if transaction_id is present
+		response.addProperty("interval", 5);
 
 		// Store the transaction_id for later validation at the deferred endpoint
 		env.putString("deferred_transaction_id", transactionId);
