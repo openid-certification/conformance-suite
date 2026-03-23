@@ -32,6 +32,12 @@ import net.openid.conformance.vci10issuer.condition.clientattestation.GenerateCl
 public class VCIProfileBehavior extends FAPI2ProfileBehavior {
 
 	@Override
+	public boolean shouldExtractRARFromConfig() {
+		// VCI generates RAR from the credential configuration, not from user config
+		return false;
+	}
+
+	@Override
 	public void initializeVariants() {
 		module.jarm = false;
 		module.isPar = true;

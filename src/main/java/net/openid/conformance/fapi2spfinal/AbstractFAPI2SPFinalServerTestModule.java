@@ -432,21 +432,39 @@ public abstract class AbstractFAPI2SPFinalServerTestModule extends AbstractRedir
 			return;
 		}
 
+		// Allow profile behavior to initialize variant-derived fields first.
+		// If initializeVariants() sets fields (e.g. VCI sets jarm=false, isOpenId=false),
+		// those values are kept. Otherwise the standard FAPI2 variant reads apply.
 		profileBehavior.initializeVariants();
 
-		if (getVariant(FAPIOpenIDConnect.class) == FAPIOpenIDConnect.PLAIN_OAUTH && scopeContains("openid")) {
-			throw new TestFailureException(getId(), "openid scope cannot be used with PLAIN_OAUTH");
+		if (jarm == null) {
+			jarm = getVariant(FAPIResponseMode.class) == FAPIResponseMode.JARM;
+		}
+		if (isPar == null) {
+			isPar = true;
+		}
+		if (isOpenId == null) {
+			if (getVariant(FAPIOpenIDConnect.class) == FAPIOpenIDConnect.PLAIN_OAUTH && scopeContains("openid")) {
+				throw new TestFailureException(getId(), "openid scope cannot be used with PLAIN_OAUTH");
+			}
+			isOpenId = getVariant(FAPIOpenIDConnect.class) == FAPIOpenIDConnect.OPENID_CONNECT;
+		}
+		if (isSignedRequest == null) {
+			isSignedRequest = getVariant(FAPI2AuthRequestMethod.class) == FAPI2AuthRequestMethod.SIGNED_NON_REPUDIATION;
+		}
+		if (isRarRequest == null) {
+			isRarRequest = getVariant(AuthorizationRequestType.class) == AuthorizationRequestType.RAR;
+		}
+		if (clientCredentailsGrant == null) {
+			clientCredentailsGrant = profileBehavior.isClientCredentialsGrantOnly();
+		}
+		if (useDpopAuthCodeBinding == null) {
+			useDpopAuthCodeBinding = false;
+		}
+		if (profileRequiresMtlsEverywhere == null) {
+			profileRequiresMtlsEverywhere = profileBehavior.requiresMtlsEverywhere();
 		}
 
-		jarm = getVariant(FAPIResponseMode.class) == FAPIResponseMode.JARM;
-		isPar = true;
-		isOpenId = getVariant(FAPIOpenIDConnect.class) == FAPIOpenIDConnect.OPENID_CONNECT;
-		isSignedRequest = getVariant(FAPI2AuthRequestMethod.class) == FAPI2AuthRequestMethod.SIGNED_NON_REPUDIATION;
-		isRarRequest = getVariant(AuthorizationRequestType.class) == AuthorizationRequestType.RAR;
-		clientCredentailsGrant = profileBehavior.isClientCredentialsGrantOnly();
-		useDpopAuthCodeBinding = false;
-
-		profileRequiresMtlsEverywhere = profileBehavior.requiresMtlsEverywhere();
 		if (! clientCredentailsGrant) {
 			callAndStopOnFailure(CreateRedirectUri.class);
 
@@ -478,7 +496,7 @@ public abstract class AbstractFAPI2SPFinalServerTestModule extends AbstractRedir
 			callAndContinueOnFailure(profileBehavior.getMinimumServerKeyLengthCondition(), Condition.ConditionResult.FAILURE, "FAPI2-SP-FINAL-5.4.1-2", "FAPI2-SP-FINAL-5.4.1-3");
 		}
 
-		if (isRarRequest) {
+		if (isRarRequest && profileBehavior.shouldExtractRARFromConfig()) {
 			callAndContinueOnFailure(RARSupport.ExtractRARFromConfig.class, Condition.ConditionResult.FAILURE);
 		}
 
