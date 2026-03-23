@@ -2,10 +2,6 @@ package net.openid.conformance.vci10issuer;
 
 import net.openid.conformance.plan.PublishTestPlan;
 import net.openid.conformance.plan.TestPlan;
-import net.openid.conformance.variant.FAPI2FinalOPProfile;
-import net.openid.conformance.variant.FAPIOpenIDConnect;
-import net.openid.conformance.variant.FAPIResponseMode;
-
 import java.util.List;
 
 @PublishTestPlan(
@@ -48,9 +44,6 @@ public class VCIIssuerTestPlan implements TestPlan {
 					VCIIssuerFailOnRequestWithAccessTokenInQuery.class
 				),
 				List.of(
-					new Variant(FAPI2FinalOPProfile.class, "vci"),
-					new Variant(FAPIOpenIDConnect.class, "plain_oauth"),
-					new Variant(FAPIResponseMode.class, "plain_response")
 				)
 			)
 		);
