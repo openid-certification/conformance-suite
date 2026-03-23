@@ -521,11 +521,6 @@ pre.prettyprint {
 @media all and (max-width : 320px) {
 }
 
-.alpha-tests {
-	font-size: 0.9em;
-	margin-top: 10px;
-}
-
 /* Wider tooltips for test descriptions */
 .tooltip-inner {
 	max-width: 500px;

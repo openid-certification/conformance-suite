@@ -15,7 +15,9 @@ import java.util.Map;
 @PublishTestPlan(
 	testPlanName = "oid4vp-id2-verifier-test-plan",
 	displayName = "OpenID for Verifiable Presentations ID2: Test a verifier (alpha version - may be incomplete or incorrect, please email certification@oidf.org)",
-	profile = TestPlan.ProfileNames.verifierTest
+	profile = TestPlan.ProfileNames.verifierTest,
+	specFamily = TestPlan.SpecFamilyNames.oid4vp,
+	specVersion = TestPlan.SpecVersionNames.oid4vpId2
 )
 public class VPID2VerifierTestPlan implements TestPlan {
 	@Override

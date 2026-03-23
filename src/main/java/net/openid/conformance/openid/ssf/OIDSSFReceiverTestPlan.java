@@ -11,6 +11,7 @@ import java.util.List;
 	displayName = "OpenID Shared Signals Framework: Receiver test (alpha version - may be incomplete or incorrect, please email certification@oidf.org)",
 	summary = "Collection of tests to verify the behavior of a OpenID Shared Signals Framework Receiver.",
 	profile = TestPlan.ProfileNames.ssftest,
+	specFamily = TestPlan.SpecFamilyNames.ssf,
 	testModules = {
 		OIDSSFReceiverHappyPathTest.class,
 		OIDSSFReceiverStreamCreateDeleteTest.class,

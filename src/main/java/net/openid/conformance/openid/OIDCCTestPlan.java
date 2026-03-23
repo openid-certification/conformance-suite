@@ -11,7 +11,8 @@ import java.util.List;
 	displayName = "OpenID Connect Core: Comprehensive Authorization server test (not part of certification program)",
 	// This plan lists all OIDCC test modules and allows the user to run them with (almost) any variant settings they
 	// want to enable them to comprehensively test their authorization server.
-	profile = TestPlan.ProfileNames.optest
+	profile = TestPlan.ProfileNames.optest,
+	specFamily = TestPlan.SpecFamilyNames.oidcc
 )
 public class OIDCCTestPlan implements TestPlan {
 	@Override

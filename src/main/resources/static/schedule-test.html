@@ -95,17 +95,50 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
             </div>
 
             <div class="mb-3 row">
-                <label for="planSelect" class="col-md-2 col-form-label">Test Plan<br/>
-                    <input id="show-alpha-tests" type="checkbox" />
-                    <label class="alpha-tests">Show early version tests
-                        <span class="bi bi-info-circle-fill" data-bs-toggle="tooltip" data-bs-placement="bottom" title=""
-                              data-bs-original-title="By default, alpha/early version test plans are hidden from the dropdown list. They can be displayed by checking this box."></span>
-                    </label>
-                </label>
+                <label for="specFamilySelect" class="col-md-2 col-form-label">Specification</label>
                 <div class="col-md-10">
                     <div class="input-group">
                         <div class="input-group-text">
-                            <span class="bi bi-info-circle-fill" data-bs-toggle="tooltip" data-bs-placement="bottom" title="" data-bs-original-title="Test plan name. This selects whether you are testing a Relying Party (client) or OpenID Provider (authorization server). It also selects which exact tests you want to run."></span>
+                            <span class="bi bi-info-circle-fill" data-bs-toggle="tooltip" data-bs-placement="bottom" title="" data-bs-original-title="Select the specification family you want to run tests for."></span>
+                        </div>
+                        <select id="specFamilySelect" class="form-select">
+                            <option value="">--- Select a Specification ---</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="mb-3 row" id="entityRow" style="display:none">
+                <label for="entitySelect" class="col-md-2 col-form-label">Entity Under Test</label>
+                <div class="col-md-10">
+                    <div class="input-group">
+                        <div class="input-group-text">
+                            <span class="bi bi-info-circle-fill" data-bs-toggle="tooltip" data-bs-placement="bottom" title="" data-bs-original-title="Select the type of implementation you are testing, such as a client, authorization server, wallet, verifier, or issuer."></span>
+                        </div>
+                        <select id="entitySelect" class="form-select">
+                            <option value="">--- Select Entity ---</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="mb-3 row" id="specVersionRow" style="display:none">
+                <label for="specVersionSelect" class="col-md-2 col-form-label">Version</label>
+                <div class="col-md-10">
+                    <div class="input-group">
+                        <div class="input-group-text">
+                            <span class="bi bi-info-circle-fill" data-bs-toggle="tooltip" data-bs-placement="bottom" title="" data-bs-original-title="Select the specification version you'd like to test with."></span>
+                        </div>
+                        <select id="specVersionSelect" class="form-select">
+                            <option value="">--- Select Version ---</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="mb-3 row" id="planRow" style="display:none">
+                <label for="planSelect" class="col-md-2 col-form-label">Test Plan</label>
+                <div class="col-md-10">
+                    <div class="input-group">
+                        <div class="input-group-text">
+                            <span class="bi bi-info-circle-fill" data-bs-toggle="tooltip" data-bs-placement="bottom" title="" data-bs-original-title="Select the exact test plan you want to run."></span>
                         </div>
                         <select id="planSelect" class="form-select">
                             <option value="select">--- Select A Test Plan ----</option>
@@ -1995,7 +2028,7 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
             }).then(function() {
                 return applyConfigPreset();
             }).then(function() {
-                return registerAlphaTestToggle();
+                return restoreEditPlanVariants();
             }).then(function() {
                 return registerGenerateJwksListeners();
             }).finally(function() {
@@ -2007,87 +2040,15 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
             let searchParams = new URLSearchParams(window.location.search);
             let testPlanName = searchParams.get("test_plan");
             if (testPlanName && testPlanName in FAPI_UI.availablePlans) {
-                const planInfo = FAPI_UI.availablePlans[testPlanName];
-                if (/alpha/i.test(planInfo.displayName)) {
-                    sessionStorage.setItem("showAlphaTests", "true");
-                }
-                let planSelect = document.getElementById("planSelect");
-                planSelect.value = testPlanName;
-
-                // trigger change event to update variant and config field visibility
-                planSelect.dispatchEvent(new Event('change'));
-            }
-
-            let editPlanParam = searchParams.get("edit-plan");
-            if (editPlanParam && FAPI_UI.loadedPlanName) {
-                const editPlanInfo = FAPI_UI.availablePlans[FAPI_UI.loadedPlanName];
-                if (editPlanInfo && /alpha/i.test(editPlanInfo.displayName)) {
-                    sessionStorage.setItem("showAlphaTests", "true");
-                }
+                selectPlanByName(testPlanName);
             }
         }
 
-        function registerAlphaTestToggle() {
-            const checkbox = document.getElementById("show-alpha-tests");
-            const planSelect = document.getElementById("planSelect");
-
-            // Save full copy of original select content
-            const originalOptions = Array.from(planSelect.children).map(child => child.cloneNode(true));
-
-            // Initialize checkbox state from sessionStorage
-            const storedValue = sessionStorage.getItem("showAlphaTests");
-            if (storedValue !== null) {
-                checkbox.checked = storedValue === "true";
-            }
-
-            function toggleAlphaTests() {
-                const hidden = !checkbox.checked;
-
-                // Update sessionStorage whenever toggled
-                sessionStorage.setItem("showAlphaTests", checkbox.checked);
-
-                // Clear current options
-                planSelect.innerHTML = "";
-
-                // Rebuild select
-                originalOptions.forEach(cloned => {
-                    if (cloned.tagName === "OPTGROUP") {
-                        const group = cloned.cloneNode(false);
-                        Array.from(cloned.children).forEach(option => {
-                            if (/alpha/i.test(option.text) && hidden) {
-                                return; // Skip alpha options
-                            }
-                            group.appendChild(option.cloneNode(true));
-                        });
-                        if (group.children.length > 0) {
-                            planSelect.appendChild(group);
-                        }
-                    } else if (cloned.tagName === "OPTION") {
-                        if (/alpha/i.test(cloned.text) && hidden) {
-                            return;
-                        }
-                        planSelect.appendChild(cloned.cloneNode(true));
-                    }
-                });
-            }
-
-            checkbox.addEventListener("change", toggleAlphaTests);
-
-            // Call once on page load using persisted value
-            toggleAlphaTests();
-
-            // If a test_plan URL param was applied, re-select it now that options are rebuilt
+        function restoreEditPlanVariants() {
             const urlParams = new URLSearchParams(window.location.search);
-            const presetPlan = urlParams.get("test_plan");
-            if (presetPlan && presetPlan in FAPI_UI.availablePlans) {
-                planSelect.value = presetPlan;
-                planSelect.dispatchEvent(new Event('change'));
-            }
-            // If an edit-plan URL param was applied, re-select the loaded plan now that options are rebuilt
             const editParams = urlParams.get("edit-plan");
             if (editParams && FAPI_UI.loadedPlanName) {
-                planSelect.value = FAPI_UI.loadedPlanName;
-                planSelect.dispatchEvent(new Event('change'));
+                selectPlanByName(FAPI_UI.loadedPlanName);
                 // restore any previously selected variant values and config field visibility
                 if (FAPI_UI.selectedVariant) {
                     Object.entries(FAPI_UI.selectedVariant).forEach(([key, value]) => {
@@ -2202,30 +2163,169 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
                 .then((data) => {
                     FAPI_UI.availablePlans = _.keyBy(data, 'planName');
 
-                    // sort the plans into groups by profile
-                    var groupedPlans = _.groupBy(data, 'profile');
-                    // consistent ordering for plans
-                    var profiles = _.keys(groupedPlans).sort();
+                    // Build planIndex: planIndex[specFamily][profile][specVersion] = [plan, ...]
+                    FAPI_UI.planIndex = {};
+                    _.each(data, function(plan) {
+                        var family = plan.specFamily || '';
+                        var profile = plan.profile || '';
+                        var version = plan.specVersion || '';
+                        if (!FAPI_UI.planIndex[family]) {
+                            FAPI_UI.planIndex[family] = {};
+                        }
+                        if (!FAPI_UI.planIndex[family][profile]) {
+                            FAPI_UI.planIndex[family][profile] = {};
+                        }
+                        if (!FAPI_UI.planIndex[family][profile][version]) {
+                            FAPI_UI.planIndex[family][profile][version] = [];
+                        }
+                        FAPI_UI.planIndex[family][profile][version].push(plan);
+                    });
 
-                    const selectElm = document.getElementById('planSelect')
-
-                    // render all the plans into the dropdown
-                    _.each(profiles, function(profile) {
-
-                        var optGroup = FAPI_UI.logTemplates.TEST_OPTGROUP({
-                            label: profile
-                        });
-                        selectElm.insertAdjacentHTML('beforeend', optGroup);
-
-                        // note that we're sorting the plans within each group as well
-                        _.each(_.sortBy(groupedPlans[profile], 'displayName'), function(item) {
-                            document.querySelector(`optgroup[label="${profile}"]`).insertAdjacentHTML('beforeend', FAPI_UI.logTemplates.TEST_OPTION({
-                                val: item.planName,
-                                display: item.displayName
-                            }));
-                        });
+                    // Populate specFamilySelect
+                    var families = _.keys(FAPI_UI.planIndex).sort();
+                    var familySelect = document.getElementById('specFamilySelect');
+                    _.each(families, function(family) {
+                        if (!family) return; // skip empty
+                        var opt = document.createElement('option');
+                        opt.value = family;
+                        opt.textContent = family;
+                        familySelect.appendChild(opt);
                     });
                 })
+        }
+
+        function onSpecFamilyChange(silent) {
+            var family = document.getElementById('specFamilySelect').value;
+            var entitySelect = document.getElementById('entitySelect');
+            var entityRow = document.getElementById('entityRow');
+            var specVersionSelect = document.getElementById('specVersionSelect');
+            var specVersionRow = document.getElementById('specVersionRow');
+            var planSelect = document.getElementById('planSelect');
+            var planRow = document.getElementById('planRow');
+
+            // Reset downstream
+            entitySelect.innerHTML = '<option value="">--- Select Entity ---</option>';
+            specVersionSelect.innerHTML = '<option value="">--- Select Version ---</option>';
+            planSelect.innerHTML = '<option value="select">--- Select A Test Plan ----</option>';
+            entityRow.style.display = 'none';
+            specVersionRow.style.display = 'none';
+            planRow.style.display = 'none';
+
+            if (!family || !FAPI_UI.planIndex[family]) {
+                if (!silent) planSelect.dispatchEvent(new Event('change'));
+                return;
+            }
+
+            var entities = _.keys(FAPI_UI.planIndex[family]).sort();
+            if (entities.length === 1) {
+                entitySelect.innerHTML = '<option value="' + _.escape(entities[0]) + '">' + _.escape(entities[0]) + '</option>';
+                entitySelect.value = entities[0];
+                entityRow.style.display = 'none';
+            } else {
+                _.each(entities, function(entity) {
+                    var opt = document.createElement('option');
+                    opt.value = entity;
+                    opt.textContent = entity;
+                    entitySelect.appendChild(opt);
+                });
+                entityRow.style.display = '';
+            }
+
+            if (!silent) onEntityChange();
+        }
+
+        function onEntityChange(silent) {
+            var family = document.getElementById('specFamilySelect').value;
+            var entity = document.getElementById('entitySelect').value;
+            var specVersionSelect = document.getElementById('specVersionSelect');
+            var specVersionRow = document.getElementById('specVersionRow');
+            var planSelect = document.getElementById('planSelect');
+            var planRow = document.getElementById('planRow');
+
+            specVersionSelect.innerHTML = '<option value="">--- Select Version ---</option>';
+            planSelect.innerHTML = '<option value="select">--- Select A Test Plan ----</option>';
+            specVersionRow.style.display = 'none';
+            planRow.style.display = 'none';
+
+            if (!family || !entity || !FAPI_UI.planIndex[family] || !FAPI_UI.planIndex[family][entity]) {
+                if (!silent) planSelect.dispatchEvent(new Event('change'));
+                return;
+            }
+
+            var versions = _.keys(FAPI_UI.planIndex[family][entity]).sort();
+            if (versions.length === 1) {
+                specVersionSelect.innerHTML = '<option value="' + _.escape(versions[0]) + '">' + (versions[0] || '(default)') + '</option>';
+                specVersionSelect.value = versions[0];
+                specVersionRow.style.display = 'none';
+            } else {
+                _.each(versions, function(version) {
+                    var opt = document.createElement('option');
+                    opt.value = version;
+                    opt.textContent = version || '(default)';
+                    specVersionSelect.appendChild(opt);
+                });
+                specVersionRow.style.display = '';
+            }
+
+            if (!silent) onSpecVersionChange();
+        }
+
+        function onSpecVersionChange(silent) {
+            var family = document.getElementById('specFamilySelect').value;
+            var entity = document.getElementById('entitySelect').value;
+            var version = document.getElementById('specVersionSelect').value;
+            var planSelect = document.getElementById('planSelect');
+            var planRow = document.getElementById('planRow');
+
+            planSelect.innerHTML = '<option value="select">--- Select A Test Plan ----</option>';
+            planRow.style.display = 'none';
+
+            if (!family || !entity || !FAPI_UI.planIndex[family] ||
+                !FAPI_UI.planIndex[family][entity] ||
+                !FAPI_UI.planIndex[family][entity].hasOwnProperty(version)) {
+                if (!silent) planSelect.dispatchEvent(new Event('change'));
+                return;
+            }
+
+            var plans = _.sortBy(FAPI_UI.planIndex[family][entity][version], 'displayName');
+            _.each(plans, function(plan) {
+                var opt = document.createElement('option');
+                opt.value = plan.planName;
+                opt.textContent = plan.displayName;
+                planSelect.appendChild(opt);
+            });
+
+            planRow.style.display = '';
+
+            if (plans.length === 1) {
+                planSelect.value = plans[0].planName;
+            }
+
+            if (!silent) planSelect.dispatchEvent(new Event('change'));
+        }
+
+        function selectPlanByName(planName) {
+            var plan = FAPI_UI.availablePlans[planName];
+            if (!plan) return false;
+
+            var familySelect = document.getElementById('specFamilySelect');
+            var entitySelect = document.getElementById('entitySelect');
+            var specVersionSelect = document.getElementById('specVersionSelect');
+            var planSelect = document.getElementById('planSelect');
+
+            familySelect.value = plan.specFamily || '';
+            onSpecFamilyChange(true);
+
+            entitySelect.value = plan.profile || '';
+            onEntityChange(true);
+
+            specVersionSelect.value = plan.specVersion || '';
+            onSpecVersionChange(true);
+
+            planSelect.value = planName;
+            planSelect.dispatchEvent(new Event('change'));
+
+            return true;
         }
 
         function saveConfig(config) {
@@ -2342,19 +2442,7 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
         }
 
         function updateSelectedTestSelector(planName) {
-            const selectElement = document.getElementById('planSelect');
-            const selectOptions = selectElement.options;
-
-            for (var opt, j=0; opt=selectOptions[j]; j++) {
-                if (opt.value == planName) {
-                    selectElement.selectedIndex = j;
-
-                    const e = new Event("change");
-                    selectElement.dispatchEvent(e);
-
-                    break;
-                }
-            }
+            selectPlanByName(planName);
         }
 
         function collectFormParametersToParameterObject(dataAttribute, skipValue) {
@@ -2524,6 +2612,17 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
                 navigator.clipboard.writeText(url);
                 // console.log("Copied Testplan URL: %s", url);
             }
+
+            // cascading selector change handlers
+            document.getElementById('specFamilySelect').addEventListener("change", function(){
+                onSpecFamilyChange();
+            });
+            document.getElementById('entitySelect').addEventListener("change", function(){
+                onEntityChange();
+            });
+            document.getElementById('specVersionSelect').addEventListener("change", function(){
+                onSpecVersionChange();
+            });
 
             // update field visibility when the selectors change
             document.getElementById('planSelect').addEventListener("change", function(){

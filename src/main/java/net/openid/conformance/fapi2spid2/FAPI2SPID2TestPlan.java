@@ -15,7 +15,9 @@ import java.util.Map;
 @PublishTestPlan (
 	testPlanName = "fapi2-security-profile-id2-test-plan",
 	displayName = "FAPI2-Security-Profile-ID2: Authorization server test",
-	profile = TestPlan.ProfileNames.optest
+	profile = TestPlan.ProfileNames.optest,
+	specFamily = TestPlan.SpecFamilyNames.fapi2SecurityProfile,
+	specVersion = TestPlan.SpecVersionNames.fapi2SpId2
 )
 public class FAPI2SPID2TestPlan implements TestPlan {
 

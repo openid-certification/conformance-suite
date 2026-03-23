@@ -10,6 +10,7 @@ import java.util.List;
 	testPlanName = "openid-federation-entity-joined-to-test-federation-rp-test-plan",
 	displayName = "OpenID Federation: Entity joined to test federation RP test (alpha version - may be incomplete or incorrect, please email certification@oidf.org)",
 	profile = TestPlan.ProfileNames.federationTest,
+	specFamily = TestPlan.SpecFamilyNames.federation,
 	testModules = {
 		OpenIDFederationClientInvalidIssInEntityConfigurationTest.class,
 		OpenIDFederationClientInvalidSubInEntityConfigurationTest.class,
