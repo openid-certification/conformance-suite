@@ -46,6 +46,14 @@ public class FAPI2ProfileBehavior {
 		return false;
 	}
 
+	/**
+	 * Whether RAR (Rich Authorization Requests) should be extracted from user config.
+	 * VCI returns false because it generates RAR from the credential configuration.
+	 */
+	public boolean shouldExtractRARFromConfig() {
+		return true;
+	}
+
 	public Class<? extends ConditionSequence> getResourceConfiguration() {
 		return AbstractFAPI2SPFinalServerTestModule.FAPIResourceConfiguration.class;
 	}
