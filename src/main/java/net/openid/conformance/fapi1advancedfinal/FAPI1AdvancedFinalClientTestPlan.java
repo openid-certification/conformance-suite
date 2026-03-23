@@ -14,9 +14,9 @@ import java.util.Map;
 	profile = TestPlan.ProfileNames.rptest,
 	specFamily = TestPlan.SpecFamilyNames.fapi1Advanced,
 	testModules = {
-		FAPI1AdvancedFinalClientTestDiscoveryIssuerMismatch.class,
 		FAPI1AdvancedFinalClientTest.class,
 		FAPI1AdvancedFinalClientTestEncryptedIdToken.class,
+		FAPI1AdvancedFinalClientTestDiscoveryIssuerMismatch.class,
 		FAPI1AdvancedFinalClientTestIdTokenEncryptedUsingRSA15.class,
 		FAPI1AdvancedFinalClientTestInvalidSHash.class,
 		FAPI1AdvancedFinalClientTestInvalidCHash.class,
