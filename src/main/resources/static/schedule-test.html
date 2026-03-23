@@ -2016,8 +2016,6 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
             .then(function() {
                 return FAPI_UI.getUserInfo();
             }).then(function() {
-                return loadAvailableTests();
-            }).then(function() {
                 return loadAvailablePlans();
             }).then(function() {
                 return loadConfig();
@@ -2146,15 +2144,6 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
             securityProfile.addEventListener("change", onSecurityProfileChange);
             // invoke once to update variant values
             onSecurityProfileChange();
-        }
-
-        function loadAvailableTests() {
-            return fetch('/api/runner/available')
-                .then((response) => response.json())
-                .then((data) => {
-                    // save the list of available tests and associated info for later
-                    FAPI_UI.availableTests = _.keyBy(data, 'testName');
-                })
         }
 
         function loadAvailablePlans() {
@@ -2818,8 +2807,8 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
 
                 // add in any fields from the associated modules
                 _.each(selectedPlan.modules, function(module) {
-                    if (FAPI_UI.availableTests[module.testModule]) {
-                        fieldsToShow = _.uniqBy(fieldsToShow.concat(FAPI_UI.availableTests[module.testModule].configurationFields));
+                    if (module.configurationFields) {
+                        fieldsToShow = _.uniqBy(fieldsToShow.concat(module.configurationFields));
                     }
                 });
 

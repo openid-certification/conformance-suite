@@ -307,7 +307,7 @@ public class TestPlanApi implements DataUtils {
 				"profile", e.info.profile(),
 				"specFamily", e.info.specFamily(),
 				"specVersion", e.info.specVersion(),
-				"modules", e.getTestModules(),
+				"modules", e.getTestModulesWithConfigFields(),
 				"configurationFields", e.configurationFields(),
 				"hidesConfigurationFields", e.hidesConfigurationFields(),
 				"summary", e.info.summary(),
