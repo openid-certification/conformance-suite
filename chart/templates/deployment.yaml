@@ -49,17 +49,17 @@ spec:
           value: {{ template "appname" . }}-mongodb
         - name: JAVA_EXTRA_ARGS
           value: {{ .Values.javaArgs | quote }}
-        - name: JWKS
-          valueFrom:
-            secretKeyRef:
-              name: jwks-{{ template "appname" . }}
-              key: jwks
-              optional: true
         - name: SIGNING_KEY
           valueFrom:
             secretKeyRef:
-              name: jwks-{{ template "appname" . }}
-              key: signingKey
+              name: fintechlabs-signing-key
+              key: jwk
+              optional: true
+        - name: PRIVATE_LINK_SIGNING_KEY
+          valueFrom:
+            secretKeyRef:
+              name: fintechlabs-private-link-signing-key
+              key: jwk
               optional: true
         - name: OIDC_GOOGLE_CLIENTID
           valueFrom:

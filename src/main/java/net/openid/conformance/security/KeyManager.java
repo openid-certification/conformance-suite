@@ -1,43 +1,31 @@
 package net.openid.conformance.security;
 
 import com.nimbusds.jose.JOSEException;
+import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.jwk.ECKey;
 import com.nimbusds.jose.jwk.JWK;
 import com.nimbusds.jose.jwk.JWKSet;
 import com.nimbusds.jose.jwk.KeyType;
+import com.nimbusds.jose.jwk.KeyUse;
 import com.nimbusds.jose.jwk.OctetKeyPair;
 import com.nimbusds.jose.jwk.RSAKey;
 import org.springframework.beans.factory.annotation.Value;
 
 import jakarta.annotation.PostConstruct;
-import java.security.PrivateKey;
-import java.text.ParseException;
-
-import com.nimbusds.jose.jwk.RSAKey;
-import com.nimbusds.jose.jwk.KeyUse;
-import com.nimbusds.jose.JWSAlgorithm;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
+import java.security.NoSuchAlgorithmException;
+import java.security.PrivateKey;
 import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
-import java.util.UUID;
-import java.security.NoSuchAlgorithmException;
+import java.text.ParseException;
 import java.util.ArrayList;
-import java.util.List;
-
 import java.util.Base64;
+import java.util.List;
+import java.util.UUID;
+
 
 public class KeyManager {
-
-
-//	@Value("${fintechlabs.jwks}")
-//	private String jwksString;
-
-	//@Value("${fintechlabs.signingKey}")
-	//private String signingKeyId;
-
-	//@Value("${fintechlabs.privateLinkSigningKey}")
-	//private String privateLinkSigningKeyId;
 
 	@Value("${fintechlabs.signingKey:}")
 	private String signingKey;
@@ -68,16 +56,15 @@ public class KeyManager {
 		}
 	}
 
-	// FIXME Need to send back message if we had to generate the key
 	@PostConstruct
 	public void initializeKeyManager() {
 		List<JWK> keyList = new ArrayList<>();
 		JWK jwk = null;
 
 		if (signingKey.isEmpty()) {
+			// Generate a signing key if none configured.
 			signingKeyId = UUID.randomUUID().toString();
 
-			// Generate a signing key if none configured.
 			jwk = generateRSAKey(signingKeyId);
 
 			if (jwk == null) {
@@ -160,5 +147,4 @@ public class KeyManager {
 	public JWK getPrivateLinkKey() {
 		return privateLinkJWK;
 	}
-
 }
