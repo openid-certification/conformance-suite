@@ -3,9 +3,14 @@ package net.openid.conformance.vci10issuer.condition;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.networknt.schema.ValidationMessage;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.vci10issuer.util.JsonSchemaValidationInput;
+import net.openid.conformance.vci10issuer.util.JsonSchemaValidationResult;
+
+import java.util.Set;
+import java.util.stream.Collectors;
 
 public class VCIValidateCredentialOffer extends AbstractJsonSchemaBasedValidation {
 
@@ -15,6 +20,16 @@ public class VCIValidateCredentialOffer extends AbstractJsonSchemaBasedValidatio
 		String schemaResource = "json-schemas/oid4vci/credential_offer-1_0.json";
 		String metadataName = "OID4VCI Credential Offer";
 		return new JsonSchemaValidationInput(metadataName, schemaResource, metadata);
+	}
+
+	@Override
+	protected void onValidationFailure(Environment env, JsonSchemaValidationResult validationResult, JsonSchemaValidationInput input) {
+		Set<ValidationMessage> structuralErrors = validationResult.getValidationMessages().stream()
+			.filter(m -> !"additionalProperties".equals(m.getType()))
+			.collect(Collectors.toSet());
+		if (!structuralErrors.isEmpty()) {
+			super.onValidationFailure(env, new JsonSchemaValidationResult(structuralErrors), input);
+		}
 	}
 
 	@Override

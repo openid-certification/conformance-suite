@@ -11,6 +11,8 @@ import net.openid.conformance.variant.ClientAuthType;
 import net.openid.conformance.variant.VCIProfile;
 import net.openid.conformance.variant.VariantNotApplicable;
 import net.openid.conformance.variant.VariantParameters;
+import net.openid.conformance.vci10issuer.condition.CheckForUnexpectedParametersInAuthorizationServerMetadata;
+import net.openid.conformance.vci10issuer.condition.CheckForUnexpectedParametersInCredentialIssuerMetadata;
 import net.openid.conformance.vci10issuer.condition.VCIAuthorizationServerMetadataValidation;
 import net.openid.conformance.vci10issuer.condition.VCICheckRequiredMetadataFields;
 import net.openid.conformance.vci10issuer.condition.VCICredentialIssuerMetadataValidation;
@@ -85,6 +87,7 @@ public class VCIIssuerMetadataTest extends AbstractVciTest {
 		callAndContinueOnFailure(VCIEnsureHttpsUrlsMetadata.class, Condition.ConditionResult.FAILURE, "OID4VCI-1FINAL-12.2.3");
 		callAndContinueOnFailure(VCIValidateCredentialIssuerUri.class, Condition.ConditionResult.FAILURE, "OID4VCI-1FINAL-12.2.1");
 		callAndContinueOnFailure(VCICredentialIssuerMetadataValidation.class, Condition.ConditionResult.FAILURE, "OID4VCI-1FINAL-12.2.3");
+		callAndContinueOnFailure(CheckForUnexpectedParametersInCredentialIssuerMetadata.class, Condition.ConditionResult.WARNING, "OID4VCI-1FINAL-12.2.3");
 
 		if (vciProfile == VCIProfile.HAIP) {
 			callAndContinueOnFailure(VCIValidateNonceEndpointInIssuerMetadata.class, Condition.ConditionResult.FAILURE, "HAIP-4.1-5");
@@ -102,6 +105,7 @@ public class VCIIssuerMetadataTest extends AbstractVciTest {
 	protected void checkAuthServerMetadata(String authServerMetadataPath) {
 		env.runWithMapKey("current_auth_server_metadata_path", authServerMetadataPath, () -> {
 			callAndStopOnFailure(VCIAuthorizationServerMetadataValidation.class, Condition.ConditionResult.FAILURE, "OID4VCI-1FINAL-12.2.3", "OID4VCI-1FINAL-12.3");
+			callAndContinueOnFailure(CheckForUnexpectedParametersInAuthorizationServerMetadata.class, Condition.ConditionResult.WARNING, "OID4VCI-1FINAL-12.2.3", "OID4VCI-1FINAL-12.3");
 
 			if (clientAuthType == ClientAuthType.CLIENT_ATTESTATION) {
 				env.putObject("server", env.getElementFromObject("vci", authServerMetadataPath).getAsJsonObject());

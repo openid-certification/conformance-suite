@@ -2,12 +2,16 @@ package net.openid.conformance.vci10wallet.condition;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.networknt.schema.ValidationMessage;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.vci10issuer.condition.AbstractJsonSchemaBasedValidation;
 import net.openid.conformance.vci10issuer.condition.VciErrorCode;
 import net.openid.conformance.vci10issuer.util.JsonSchemaValidationInput;
 import net.openid.conformance.vci10issuer.util.JsonSchemaValidationResult;
 import net.openid.conformance.vci10issuer.util.VCICredentialErrorResponseUtil;
+
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * See: 8.2. Credential Request https://openid.net/specs/openid-4-verifiable-credential-issuance-1_0.html#section-8.2
@@ -48,9 +52,14 @@ public class VCIValidateCredentialRequestStructure extends AbstractJsonSchemaBas
 
 	@Override
 	protected void onValidationFailure(Environment env, JsonSchemaValidationResult validationResult, JsonSchemaValidationInput input) {
-		String errorDescription = String.format("Found invalid entries in %s input", input.getInputName());
-		VCICredentialErrorResponseUtil.updateCredentialErrorResponseInEnv(env, VciErrorCode.INVALID_CREDENTIAL_REQUEST, errorDescription);
-		super.onValidationFailure(env, validationResult, input);
+		Set<ValidationMessage> structuralErrors = validationResult.getValidationMessages().stream()
+			.filter(m -> !"additionalProperties".equals(m.getType()))
+			.collect(Collectors.toSet());
+		if (!structuralErrors.isEmpty()) {
+			String errorDescription = String.format("Found invalid entries in %s input", input.getInputName());
+			VCICredentialErrorResponseUtil.updateCredentialErrorResponseInEnv(env, VciErrorCode.INVALID_CREDENTIAL_REQUEST, errorDescription);
+			super.onValidationFailure(env, new JsonSchemaValidationResult(structuralErrors), input);
+		}
 	}
 
 	@Override
