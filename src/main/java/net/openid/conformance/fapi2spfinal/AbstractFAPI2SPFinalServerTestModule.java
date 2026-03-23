@@ -6,7 +6,6 @@ import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.condition.as.EnsureServerJwksDoesNotContainPrivateOrSymmetricKeys;
 import net.openid.conformance.condition.as.FAPI2FinalEnsureMinimumClientKeyLength;
-import net.openid.conformance.condition.as.FAPI2FinalEnsureMinimumServerKeyLength;
 import net.openid.conformance.condition.as.FAPIBrazilEncryptRequestObject;
 import net.openid.conformance.condition.as.FAPIBrazilSetPaymentDateToToday;
 import net.openid.conformance.condition.client.AddAudToRequestObject;
@@ -83,8 +82,6 @@ import net.openid.conformance.condition.client.FAPIBrazilValidateResourceRespons
 import net.openid.conformance.condition.client.FAPIBrazilValidateResourceResponseTyp;
 import net.openid.conformance.condition.client.FetchServerKeys;
 import net.openid.conformance.condition.client.GenerateDpopKey;
-import net.openid.conformance.condition.client.GetDynamicServerConfiguration;
-import net.openid.conformance.condition.client.GetOauthDynamicServerConfiguration;
 import net.openid.conformance.condition.client.GetStaticClient2Configuration;
 import net.openid.conformance.condition.client.GetStaticClientConfiguration;
 import net.openid.conformance.condition.client.RejectAuthCodeInUrlFragment;
@@ -100,7 +97,6 @@ import net.openid.conformance.condition.client.SignRequestObject;
 import net.openid.conformance.condition.client.SignRequestObjectIncludeMediaType;
 import net.openid.conformance.condition.client.ValidateAtHash;
 import net.openid.conformance.condition.client.ValidateCHash;
-import net.openid.conformance.condition.client.ValidateClientJWKsPrivatePart;
 import net.openid.conformance.condition.client.ValidateClientPrivateKeysAreDifferent;
 import net.openid.conformance.condition.client.ValidateExpiresIn;
 import net.openid.conformance.condition.client.ValidateIdTokenFromTokenResponseEncryption;
@@ -289,7 +285,7 @@ public abstract class AbstractFAPI2SPFinalServerTestModule extends AbstractRedir
 	// for variants to fill in by calling the setup... family of methods
 	protected Class <? extends ConditionSequence> addClientAuthentication;
 	protected Class <? extends ConditionSequence> profileAuthorizationEndpointSetupSteps;
-	private Class <? extends ConditionSequence> supportMTLSEndpointAliases;
+	protected Class <? extends ConditionSequence> supportMTLSEndpointAliases;
 	protected Supplier <? extends ConditionSequence> createDpopForParEndpointSteps;
 	protected Supplier <? extends ConditionSequence> createDpopForTokenEndpointSteps;
 	protected Supplier <? extends ConditionSequence> createDpopForResourceEndpointSteps;
@@ -321,6 +317,7 @@ public abstract class AbstractFAPI2SPFinalServerTestModule extends AbstractRedir
 		env.putString("base_url", baseUrl);
 		env.putString("base_mtls_url", baseMtlsUrl);
 		env.putObject("config", config);
+		env.putString("external_url_override", externalUrlOverride);
 
 		Boolean skip = env.getBoolean("config", "skip_test");
 		if (skip != null && skip) {
@@ -331,6 +328,8 @@ public abstract class AbstractFAPI2SPFinalServerTestModule extends AbstractRedir
 			fireTestFinished();
 			return;
 		}
+
+		profileBehavior.initializeVariants();
 
 		if (getVariant(FAPIOpenIDConnect.class) == FAPIOpenIDConnect.PLAIN_OAUTH && scopeContains("openid")) {
 			throw new TestFailureException(getId(), "openid scope cannot be used with PLAIN_OAUTH");
@@ -353,11 +352,7 @@ public abstract class AbstractFAPI2SPFinalServerTestModule extends AbstractRedir
 		}
 
 		// Make sure we're calling the right server configuration
-		if(isOpenId) {
-			callAndStopOnFailure(GetDynamicServerConfiguration.class);
-		} else {
-			callAndStopOnFailure(GetOauthDynamicServerConfiguration.class);
-		}
+		call(profileBehavior.fetchServerConfiguration(isOpenId));
 
 		if (supportMTLSEndpointAliases != null) {
 			call(sequence(supportMTLSEndpointAliases));
@@ -377,17 +372,23 @@ public abstract class AbstractFAPI2SPFinalServerTestModule extends AbstractRedir
 			callAndStopOnFailure(ValidateServerJWKs.class, "RFC7517-1.1");
 			callAndContinueOnFailure(CheckForKeyIdInServerJWKs.class, Condition.ConditionResult.FAILURE, "OIDCC-10.1");
 			callAndContinueOnFailure(EnsureServerJwksDoesNotContainPrivateOrSymmetricKeys.class, Condition.ConditionResult.FAILURE, "RFC7518-6.3.2.1");
-			callAndContinueOnFailure(FAPI2FinalEnsureMinimumServerKeyLength.class, Condition.ConditionResult.FAILURE, "FAPI2-SP-FINAL-5.4.1-2", "FAPI2-SP-FINAL-5.4.1-3");
+			callAndContinueOnFailure(profileBehavior.getMinimumServerKeyLengthCondition(), Condition.ConditionResult.FAILURE, "FAPI2-SP-FINAL-5.4.1-2", "FAPI2-SP-FINAL-5.4.1-3");
 		}
 
 		if (isRarRequest) {
 			callAndContinueOnFailure(RARSupport.ExtractRARFromConfig.class, Condition.ConditionResult.FAILURE);
 		}
+
+		profileBehavior.afterServerConfigurationFetched();
+
 		whichClient = 1;
 
 		// Set up the client configuration
 		configureClient();
 		setupResourceEndpoint();
+
+		profileBehavior.configureClientExtra();
+		profileBehavior.configureClientAttestation();
 
 		// Perform any custom configuration
 		onConfigure(config, baseUrl);
@@ -451,7 +452,7 @@ public abstract class AbstractFAPI2SPFinalServerTestModule extends AbstractRedir
 
 	protected void validateClientConfiguration() {
 		call(profileBehavior.configureClientScope());
-		callAndStopOnFailure(ValidateClientJWKsPrivatePart.class, "RFC7517-1.1");
+		call(profileBehavior.validateClientJwksPrivatePart());
 		callAndStopOnFailure(ExtractJWKsFromStaticClientConfiguration.class);
 
 		callAndStopOnFailure(CheckForKeyIdInClientJWKs.class, "OIDCC-10.1");
