@@ -462,7 +462,7 @@ public abstract class AbstractVP1FinalVerifierTest extends AbstractTestModule {
 
 		switch (getVariant(VP1FinalVerifierCredentialFormat.class)) {
 			case SD_JWT_VC -> {
-				callAndStopOnFailure(CreateSdJwtKbCredential.class);
+				createSdJwtCredential();
 			}
 			case ISO_MDL -> {
 				callAndStopOnFailure(CreateMDocGeneratedNonce.class);
@@ -493,6 +493,10 @@ public abstract class AbstractVP1FinalVerifierTest extends AbstractTestModule {
 		call(exec().unmapKey("authorization_endpoint_http_request").endBlock());
 
 		return viewToReturn;
+	}
+
+	protected void createSdJwtCredential() {
+		callAndStopOnFailure(CreateSdJwtKbCredential.class);
 	}
 
 	protected void createIsoMdlSessionTranscript() {
