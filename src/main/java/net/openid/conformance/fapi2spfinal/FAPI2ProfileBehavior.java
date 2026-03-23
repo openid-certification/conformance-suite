@@ -344,24 +344,27 @@ public class FAPI2ProfileBehavior {
 	 * Called after server configuration is fetched and before client configuration.
 	 * VCI overrides to resolve credential configuration, check encryption support, etc.
 	 */
-	public void afterServerConfigurationFetched() {
+	public ConditionSequence afterServerConfigurationFetched() {
 		// plain FAPI: nothing extra
+		return null;
 	}
 
 	/**
 	 * Additional client configuration after the standard setup.
 	 * VCI overrides to generate client JWKs if missing and handle encryption JWKs.
 	 */
-	public void configureClientExtra() {
+	public ConditionSequence configureClientExtra() {
 		// plain FAPI: no additional client configuration
+		return null;
 	}
 
 	/**
 	 * Configure client attestation keys if needed.
 	 * VCI overrides to generate attestation keys and JWT.
 	 */
-	public void configureClientAttestation() {
+	public ConditionSequence configureClientAttestation() {
 		// plain FAPI: no client attestation
+		return null;
 	}
 
 	/**
