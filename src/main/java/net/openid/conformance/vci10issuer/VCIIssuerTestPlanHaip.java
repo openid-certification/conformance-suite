@@ -6,11 +6,12 @@ import net.openid.conformance.variant.AuthorizationRequestType;
 import net.openid.conformance.variant.FAPI2AuthRequestMethod;
 import net.openid.conformance.variant.FAPI2SenderConstrainMethod;
 import net.openid.conformance.variant.ClientAuthType;
+import net.openid.conformance.variant.FAPI2FinalOPProfile;
 import net.openid.conformance.variant.VCIAuthorizationCodeFlowVariant;
 import net.openid.conformance.variant.VCICredentialEncryption;
+import net.openid.conformance.variant.VCIProfile;
 import net.openid.conformance.variant.VCI1FinalCredentialFormat;
 import net.openid.conformance.variant.VCIGrantType;
-import net.openid.conformance.variant.VCIProfile;
 import net.openid.conformance.variant.VariantSelection;
 
 import java.util.List;
@@ -58,7 +59,7 @@ public class VCIIssuerTestPlanHaip implements TestPlan {
 				),
 				List.of(
 					new Variant(FAPI2SenderConstrainMethod.class, "dpop"),
-					new Variant(VCIProfile.class, "haip"),
+					new Variant(FAPI2FinalOPProfile.class, "vci_haip"),
 					new Variant(FAPI2AuthRequestMethod.class, "unsigned"),
 					new Variant(ClientAuthType.class, "client_attestation"),
 					new Variant(VCIGrantType.class, "authorization_code"),
@@ -76,7 +77,7 @@ public class VCIIssuerTestPlanHaip implements TestPlan {
 				),
 				List.of(
 					new Variant(FAPI2SenderConstrainMethod.class, "dpop"),
-					new Variant(VCIProfile.class, "haip"),
+					new Variant(FAPI2FinalOPProfile.class, "vci_haip"),
 					new Variant(FAPI2AuthRequestMethod.class, "unsigned"),
 					new Variant(ClientAuthType.class, "client_attestation"),
 					new Variant(VCIGrantType.class, "authorization_code"),
