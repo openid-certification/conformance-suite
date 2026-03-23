@@ -95,7 +95,7 @@ import net.openid.conformance.variant.VCI1FinalCredentialFormat;
 import net.openid.conformance.variant.VCIAuthorizationCodeFlowVariant;
 import net.openid.conformance.variant.VCICredentialEncryption;
 import net.openid.conformance.variant.VCIGrantType;
-import net.openid.conformance.variant.VCIProfile;
+import net.openid.conformance.variant.FAPI2FinalOPProfile;
 import net.openid.conformance.vci10issuer.condition.CheckCacheControlHeaderContainsNoStore;
 import net.openid.conformance.vci10issuer.condition.VCIAddCredentialResponseEncryptionToRequest;
 import net.openid.conformance.vci10issuer.condition.VCICheckExpClaimInCredential;
@@ -158,7 +158,7 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractFAPI2SPFinalSe
 
 	protected ClientAuthType clientAuthType;
 
-	protected VCIProfile vciProfile;
+	protected FAPI2FinalOPProfile fapi2Profile;
 
 	protected VCIGrantType vciGrantType;
 	protected VCIAuthorizationCodeFlowVariant vciAuthorizationCodeFlowVariant;
@@ -231,7 +231,7 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractFAPI2SPFinalSe
 	protected void onConfigure(JsonObject config, String baseUrl) {
 		// Initialize VCI-specific variant fields
 		clientAuthType = getVariant(ClientAuthType.class);
-		vciProfile = getVariant(VCIProfile.class);
+		fapi2Profile = getVariant(FAPI2FinalOPProfile.class);
 		vciGrantType = getVariant(VCIGrantType.class);
 		vciAuthorizationCodeFlowVariant = getVariant(VCIAuthorizationCodeFlowVariant.class);
 		vciCredentialFormat = getVariant(VCI1FinalCredentialFormat.class);
@@ -265,7 +265,7 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractFAPI2SPFinalSe
 		resolveCredentialConfigurationId();
 
 		// HAIP requires scope to be present for every credential configuration
-		if (vciProfile == VCIProfile.HAIP) {
+		if (fapi2Profile == FAPI2FinalOPProfile.VCI_HAIP) {
 			callAndContinueOnFailure(VCIEnsureScopePresentInCredentialConfigurationForHaip.class,
 				ConditionResult.FAILURE, "HAIP-4.1", "HAIP-4.3");
 		}
@@ -1036,7 +1036,7 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractFAPI2SPFinalSe
 				callAndContinueOnFailure(ValidateCredentialCnfJwkIsPublicKey.class,
 					ConditionResult.FAILURE, "SDJWT-4.1.2");
 			}
-			if (vciProfile == VCIProfile.HAIP) {
+			if (fapi2Profile == FAPI2FinalOPProfile.VCI_HAIP) {
 				callAndContinueOnFailure(VCIValidateCredentialValidityInfoIsPresent.class,
 					ConditionResult.WARNING, "HAIP-6.1-2.2");
 				callAndContinueOnFailure(VCICheckExpClaimInCredential.class,
