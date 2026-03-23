@@ -9,7 +9,7 @@ import net.openid.conformance.testmodule.Environment;
 import java.util.ArrayList;
 import java.util.List;
 
-public class CheckRequestObjectClaimsParameterValues extends AbstractCondition {
+public class CheckRequestClaimsParameterValues extends AbstractCondition {
 	// https://openid.net/specs/openid-connect-core-1_0.html#ClaimsParameter
 	private static final List<String> expectedTopLevelClaims = List.of(
 		"userinfo",
@@ -17,16 +17,16 @@ public class CheckRequestObjectClaimsParameterValues extends AbstractCondition {
 	);
 
 	@Override
-	@PreEnvironment(required = { "authorization_request_object" })
+	@PreEnvironment(required = { CreateEffectiveAuthorizationRequestParameters.ENV_KEY })
 	public Environment evaluate(Environment env) {
 
 		List<String> invalidClaims = new ArrayList<>();
 		List<String> validClaims = new ArrayList<>();
 
-		JsonObject claimsParameter = env.getElementFromObject("authorization_request_object", "claims.claims").getAsJsonObject();
+		JsonObject claimsParameter = env.getElementFromObject(CreateEffectiveAuthorizationRequestParameters.ENV_KEY, "claims").getAsJsonObject();
 
 		if (claimsParameter == null || claimsParameter.size() == 0) {
-			logSuccess("authorization_request_object.claims.claims does not exist or is empty");
+			logSuccess("authorization request 'claims' parameter does not exist or is empty");
 			return env;
 		}
 
@@ -47,9 +47,9 @@ public class CheckRequestObjectClaimsParameterValues extends AbstractCondition {
 		}
 
 		if (invalidClaims.isEmpty()) {
-			logSuccess("the expected authorization_request_object.claims.claims claims values are json objects", args("valid_claims", validClaims));
+			logSuccess("the expected authorization request 'claims' parameter claims values are json objects", args("valid_claims", validClaims));
 		} else {
-			throw error("the expected authorization_request_object.claims.claims claims values are not json objects", args("valid_claims", validClaims, "invalid_claims", invalidClaims));
+			throw error("the expected authorization request 'claims' parameter claims values are not json objects", args("valid_claims", validClaims, "invalid_claims", invalidClaims));
 		}
 
 		return env;

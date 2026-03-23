@@ -16,7 +16,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @ExtendWith(MockitoExtension.class)
-public class CheckRequestObjectClaimsParameterValues_UnitTest {
+public class CheckRequestClaimsParameterValues_UnitTest {
 
 	@Spy
 	private Environment env = new Environment();
@@ -24,7 +24,7 @@ public class CheckRequestObjectClaimsParameterValues_UnitTest {
 	@Mock
 	private TestInstanceEventLog eventLog;
 
-	private CheckRequestObjectClaimsParameterValues cond;
+	private CheckRequestClaimsParameterValues cond;
 
 
 	/**
@@ -33,53 +33,49 @@ public class CheckRequestObjectClaimsParameterValues_UnitTest {
 	@BeforeEach
 	public void setUp() throws Exception {
 
-		cond = new CheckRequestObjectClaimsParameterValues();
+		cond = new CheckRequestClaimsParameterValues();
 
 		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 	}
 
 	/**
-	 * Test method for {@link CheckRequestObjectClaimsParameterValues#evaluate(Environment)}.
+	 * Test method for {@link CheckRequestClaimsParameterValues#evaluate(Environment)}.
 	 */
 	@Test
 	public void testEvaluate_noErrors() {
 		// All claims have valid values.
 		JsonObject authRequestClaims = JsonParser.parseString("{" +
-			"    \"claims\": {" +
 			"	 \"claims\": {" +
 			"	     \"userinfo\": {" +
 			"	     }," +
 			"	     \"id_token\": {" +
 			"	     }" +
 			"	 }" +
-			"    }" +
 			"}")
 		.getAsJsonObject();
 
-		env.putObject("authorization_request_object", authRequestClaims);
+		env.putObject(CreateEffectiveAuthorizationRequestParameters.ENV_KEY, authRequestClaims);
 
 		cond.execute(env);
 	}
 
 	/**
-	 * Test method for {@link CheckRequestObjectClaimsParameterValues#evaluate(Environment)}.
+	 * Test method for {@link CheckRequestClaimsParameterValues#evaluate(Environment)}.
 	 */
 	@Test
 	public void testEvaluate_invalidClaimValue() {
 		assertThrows(ConditionError.class, () -> {
 			// The 'userinfo' claim value is not the required JsonObject
 			JsonObject authRequestClaims = JsonParser.parseString("{" +
-				"    \"claims\": {" +
 				"	 \"claims\": {" +
 				"	     \"userinfo\": \"string\"," +
 				"	     \"id_token\": {" +
 				"	     }" +
 				"	 }" +
-				"    }" +
 				"}")
 				.getAsJsonObject();
 
-			env.putObject("authorization_request_object", authRequestClaims);
+			env.putObject(CreateEffectiveAuthorizationRequestParameters.ENV_KEY, authRequestClaims);
 
 			cond.execute(env);
 		});
