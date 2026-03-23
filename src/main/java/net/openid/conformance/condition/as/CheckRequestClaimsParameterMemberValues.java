@@ -10,7 +10,7 @@ import net.openid.conformance.testmodule.Environment;
 import java.util.ArrayList;
 import java.util.List;
 
-public class CheckRequestObjectClaimsParameterMemberValues extends AbstractCondition {
+public class CheckRequestClaimsParameterMemberValues extends AbstractCondition {
 	// https://openid.net/specs/openid-connect-core-1_0.html#ClaimsParameter
 	private static final List<String> expectedRequestObjectClaimsParams = List.of(
 		"userinfo",
@@ -126,13 +126,13 @@ public class CheckRequestObjectClaimsParameterMemberValues extends AbstractCondi
 	}
 
 	@Override
-	@PreEnvironment(required = { "authorization_request_object" })
+	@PreEnvironment(required = { CreateEffectiveAuthorizationRequestParameters.ENV_KEY })
 	public Environment evaluate(Environment env) {
 
-		JsonObject requestObjectClaimsParameter = env.getElementFromObject("authorization_request_object", "claims.claims").getAsJsonObject();
+		JsonObject requestObjectClaimsParameter = env.getElementFromObject(CreateEffectiveAuthorizationRequestParameters.ENV_KEY, "claims").getAsJsonObject();
 
 		if (requestObjectClaimsParameter == null || requestObjectClaimsParameter.size() == 0) {
-			logSuccess("authorization_request_object.claims.claims does not exist or is empty");
+			logSuccess("authorization request 'claims' parameter does not exist or is empty");
 			return env;
 		}
 

@@ -16,14 +16,14 @@ public class CheckForUnexpectedClaimsInClaimsParameter extends AbstractCondition
 	);
 
 	@Override
-	@PreEnvironment(required = { "authorization_request_object" })
+	@PreEnvironment(required = { CreateEffectiveAuthorizationRequestParameters.ENV_KEY })
 	public Environment evaluate(Environment env) {
 
-		JsonObject claimsParameter = env.getElementFromObject("authorization_request_object", "claims.claims").getAsJsonObject();
+		JsonObject claimsParameter = env.getElementFromObject(CreateEffectiveAuthorizationRequestParameters.ENV_KEY, "claims").getAsJsonObject();
 		List<String> unknownClaims = new ArrayList<>();
 
 		if (claimsParameter == null || claimsParameter.size() == 0) {
-			logSuccess("authorization_request_object.claims.claims does not exist or is empty");
+			logSuccess("authorization request 'claims' parameter does not exist or is empty");
 			return env;
 		}
 
@@ -36,9 +36,9 @@ public class CheckForUnexpectedClaimsInClaimsParameter extends AbstractCondition
 		}
 
 		if (unknownClaims.isEmpty()) {
-			logSuccess("authorization_request_object.claims.claims contains only expected claims", args("claims", claimsParameter.keySet()));
+			logSuccess("authorization request 'claims' parameter contains only expected claims", args("claims", claimsParameter.keySet()));
 		} else {
-			throw error("unknown claims found in authorization_request_object.claims.claims", args("claims", claimsParameter.keySet(), "unknown_claims", unknownClaims));
+			throw error("unknown claims found in authorization request 'claims' parameter", args("claims", claimsParameter.keySet(), "unknown_claims", unknownClaims));
 		}
 
 		return env;

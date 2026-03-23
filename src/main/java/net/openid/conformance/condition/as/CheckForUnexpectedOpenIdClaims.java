@@ -51,16 +51,16 @@ public class CheckForUnexpectedOpenIdClaims extends AbstractValidateOpenIdStanda
 	}
 
 	@Override
-	@PreEnvironment(required = { "authorization_request_object" })
+	@PreEnvironment(required = { CreateEffectiveAuthorizationRequestParameters.ENV_KEY })
 	public Environment evaluate(Environment env) {
 
 		HashMap<String, List<String>> allMemberClaims = new HashMap<>();
 		HashMap<String, List<String>> unknownMemberClaims = new HashMap<>();
 
-		JsonObject claimsParameter = env.getElementFromObject("authorization_request_object", "claims.claims").getAsJsonObject();
+		JsonObject claimsParameter = env.getElementFromObject(CreateEffectiveAuthorizationRequestParameters.ENV_KEY, "claims").getAsJsonObject();
 
 		if (claimsParameter == null || claimsParameter.size() == 0) {
-			logSuccess("authorization_request_object.claims.claims does not exist or is empty");
+			logSuccess("authorization request 'claims' parameter does not exist or is empty");
 			return env;
 		}
 
@@ -82,9 +82,9 @@ public class CheckForUnexpectedOpenIdClaims extends AbstractValidateOpenIdStanda
 		}
 
 		if (unknownMemberClaims.isEmpty()) {
-			logSuccess("authorization_request_object.claims.claims member objects contain only expected claims", args("claims", allMemberClaims));
+			logSuccess("authorization request 'claims' parameter member objects contain only expected claims", args("claims", allMemberClaims));
 		} else {
-			throw error("unknown claims found in authorization_request_object.claims.claims member objects", args("claims", allMemberClaims, "unknown_claims", unknownMemberClaims));
+			throw error("unknown claims found in authorization request 'claims' parameter member objects", args("claims", allMemberClaims, "unknown_claims", unknownMemberClaims));
 		}
 
 		return env;

@@ -16,7 +16,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @ExtendWith(MockitoExtension.class)
-public class CheckRequestObjectClaimsParameterMemberValues_UnitTest {
+public class CheckRequestClaimsParameterMemberValues_UnitTest {
 
 	@Spy
 	private Environment env = new Environment();
@@ -24,7 +24,7 @@ public class CheckRequestObjectClaimsParameterMemberValues_UnitTest {
 	@Mock
 	private TestInstanceEventLog eventLog;
 
-	private CheckRequestObjectClaimsParameterMemberValues cond;
+	private CheckRequestClaimsParameterMemberValues cond;
 
 
 	/**
@@ -33,19 +33,18 @@ public class CheckRequestObjectClaimsParameterMemberValues_UnitTest {
 	@BeforeEach
 	public void setUp() throws Exception {
 
-		cond = new CheckRequestObjectClaimsParameterMemberValues();
+		cond = new CheckRequestClaimsParameterMemberValues();
 
 		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 	}
 
 	/**
-	 * Test method for {@link CheckRequestObjectClaimsParameterMemberValues#evaluate(Environment)}.
+	 * Test method for {@link CheckRequestClaimsParameterMemberValues#evaluate(Environment)}.
 	 */
 	@Test
 	public void testEvaluate_noErrors() {
 		// All claims have valid values.
 		JsonObject authRequestClaims = JsonParser.parseString("{" +
-			"    \"claims\": {" +
 			"        \"claims\": {" +
 			"            \"userinfo\": {" +
 			"                \"iss\": null," +
@@ -88,24 +87,22 @@ public class CheckRequestObjectClaimsParameterMemberValues_UnitTest {
 			"                }" +
 			"            }" +
 			"        }" +
-			"    }" +
 			"}")
 		.getAsJsonObject();
 
-		env.putObject("authorization_request_object", authRequestClaims);
+		env.putObject(CreateEffectiveAuthorizationRequestParameters.ENV_KEY, authRequestClaims);
 
 		cond.execute(env);
 	}
 
 	/**
-	 * Test method for {@link CheckRequestObjectClaimsParameterMemberValues#evaluate(Environment)}.
+	 * Test method for {@link CheckRequestClaimsParameterMemberValues#evaluate(Environment)}.
 	 */
 	@Test
 	public void testEvaluate_invalidClaimValue() {
 		assertThrows(ConditionError.class, () -> {
 			// The 'userinfo->iss' claim value is neither null or an object.
 			JsonObject authRequestClaims = JsonParser.parseString("{" +
-				"    \"claims\": {" +
 				"        \"claims\": {" +
 				"            \"userinfo\": {" +
 				"                \"iss\": \"12345678\"," +
@@ -148,25 +145,23 @@ public class CheckRequestObjectClaimsParameterMemberValues_UnitTest {
 				"                }" +
 				"            }" +
 				"        }" +
-				"    }" +
 				"}")
 			.getAsJsonObject();
 
-			env.putObject("authorization_request_object", authRequestClaims);
+			env.putObject(CreateEffectiveAuthorizationRequestParameters.ENV_KEY, authRequestClaims);
 
 			cond.execute(env);
 		});
 	}
 
 	/**
-	 * Test method for {@link CheckRequestObjectClaimsParameterMemberValues#evaluate(Environment)}.
+	 * Test method for {@link CheckRequestClaimsParameterMemberValues#evaluate(Environment)}.
 	 */
 	@Test
 	public void testEvaluate_invalidClaimValue1() {
 		assertThrows(ConditionError.class, () -> {
 			// The 'id_token->sub' claim contains an invalid member
 			JsonObject authRequestClaims = JsonParser.parseString("{" +
-				"    \"claims\": {" +
 				"        \"claims\": {" +
 				"            \"userinfo\": {" +
 				"                \"iss\": null," +
@@ -210,25 +205,23 @@ public class CheckRequestObjectClaimsParameterMemberValues_UnitTest {
 				"                }" +
 				"            }" +
 				"        }" +
-				"    }" +
 				"}")
 			.getAsJsonObject();
 
-			env.putObject("authorization_request_object", authRequestClaims);
+			env.putObject(CreateEffectiveAuthorizationRequestParameters.ENV_KEY, authRequestClaims);
 
 			cond.execute(env);
 		});
 	}
 
 	/**
-	 * Test method for {@link CheckRequestObjectClaimsParameterMemberValues#evaluate(Environment)}.
+	 * Test method for {@link CheckRequestClaimsParameterMemberValues#evaluate(Environment)}.
 	 */
 	@Test
 	public void testEvaluate_invalidClaimValue2() {
 		assertThrows(ConditionError.class, () -> {
 			// The 'id_token->verified_claims->verification->trust_framework claim value is neither null or an object.
 			JsonObject authRequestClaims = JsonParser.parseString("{" +
-				"    \"claims\": {" +
 				"        \"claims\": {" +
 				"            \"userinfo\": {" +
 				"                \"iss\": null," +
@@ -269,17 +262,16 @@ public class CheckRequestObjectClaimsParameterMemberValues_UnitTest {
 				"                }" +
 				"            }" +
 				"        }" +
-				"    }" +
 				"}")
 			.getAsJsonObject();
 
-			env.putObject("authorization_request_object", authRequestClaims);
+			env.putObject(CreateEffectiveAuthorizationRequestParameters.ENV_KEY, authRequestClaims);
 
 			cond.execute(env);
 		});
 	}
 	/**
-	 * Test method for {@link CheckRequestObjectClaimsParameterMemberValues#evaluate(Environment)}.
+	 * Test method for {@link CheckRequestClaimsParameterMemberValues#evaluate(Environment)}.
 	 */
 	@Test
 	public void testEvaluate_invalidClaimValueInEach() {
@@ -288,7 +280,6 @@ public class CheckRequestObjectClaimsParameterMemberValues_UnitTest {
 			// the 'id_token->sub' claim contains an invalid member and
 			// the 'id_token->verified_claims->claims-<over16' claim contains an invalid member.
 			JsonObject authRequestClaims = JsonParser.parseString("{" +
-				"    \"claims\": {" +
 				"        \"claims\": {" +
 				"            \"userinfo\": {" +
 				"                \"iss\": \"12345678\"," +
@@ -332,11 +323,10 @@ public class CheckRequestObjectClaimsParameterMemberValues_UnitTest {
 				"                }" +
 				"            }" +
 				"        }" +
-				"    }" +
 				"}")
 			.getAsJsonObject();
 
-			env.putObject("authorization_request_object", authRequestClaims);
+			env.putObject(CreateEffectiveAuthorizationRequestParameters.ENV_KEY, authRequestClaims);
 
 			cond.execute(env);
 		});
