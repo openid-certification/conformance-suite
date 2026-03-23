@@ -379,7 +379,7 @@ public abstract class AbstractFAPI2SPFinalServerTestModule extends AbstractRedir
 			callAndContinueOnFailure(RARSupport.ExtractRARFromConfig.class, Condition.ConditionResult.FAILURE);
 		}
 
-		profileBehavior.afterServerConfigurationFetched();
+		call(profileBehavior.afterServerConfigurationFetched());
 
 		whichClient = 1;
 
@@ -387,8 +387,8 @@ public abstract class AbstractFAPI2SPFinalServerTestModule extends AbstractRedir
 		configureClient();
 		setupResourceEndpoint();
 
-		profileBehavior.configureClientExtra();
-		profileBehavior.configureClientAttestation();
+		call(profileBehavior.configureClientExtra());
+		call(profileBehavior.configureClientAttestation());
 
 		// Perform any custom configuration
 		onConfigure(config, baseUrl);
