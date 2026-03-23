@@ -48,9 +48,12 @@ public class VCIValidateCredentialRequestStructure extends AbstractJsonSchemaBas
 
 	@Override
 	protected void onValidationFailure(Environment env, JsonSchemaValidationResult validationResult, JsonSchemaValidationInput input) {
-		String errorDescription = String.format("Found invalid entries in %s input", input.getInputName());
-		VCICredentialErrorResponseUtil.updateCredentialErrorResponseInEnv(env, VciErrorCode.INVALID_CREDENTIAL_REQUEST, errorDescription);
-		super.onValidationFailure(env, validationResult, input);
+		JsonSchemaValidationResult structuralErrors = validationResult.withoutAdditionalPropertiesErrors();
+		if (!structuralErrors.isValid()) {
+			String errorDescription = String.format("Found invalid entries in %s input", input.getInputName());
+			VCICredentialErrorResponseUtil.updateCredentialErrorResponseInEnv(env, VciErrorCode.INVALID_CREDENTIAL_REQUEST, errorDescription);
+			super.onValidationFailure(env, structuralErrors, input);
+		}
 	}
 
 	@Override

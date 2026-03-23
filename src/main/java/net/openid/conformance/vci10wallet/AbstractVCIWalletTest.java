@@ -231,6 +231,7 @@ import net.openid.conformance.vci10wallet.condition.VCIValidateAttestedKeysInKey
 import net.openid.conformance.vci10wallet.condition.VCIValidateCredentialRequestAttestationProof;
 import net.openid.conformance.vci10wallet.condition.VCIValidateCredentialRequestDiVpProof;
 import net.openid.conformance.vci10wallet.condition.VCIValidateCredentialRequestJwtProof;
+import net.openid.conformance.vci10wallet.condition.CheckForUnexpectedParametersInCredentialRequest;
 import net.openid.conformance.vci10wallet.condition.VCIValidateCredentialRequestStructure;
 import net.openid.conformance.vci10wallet.condition.VCIValidateDeferredCredentialRequest;
 import net.openid.conformance.vci10wallet.condition.VCIValidateNotificationRequest;
@@ -1222,6 +1223,7 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 		if (errorResponse != null) {
 			return errorResponse;
 		}
+		callAndContinueOnFailure(CheckForUnexpectedParametersInCredentialRequest.class, ConditionResult.WARNING, "OID4VCI-1FINAL-8.2");
 
 		errorResponse = callAndContinueOnFailureOrReturnErrorResponse(VCIResolveRequestedCredentialConfigurationFromRequest.class, ConditionResult.FAILURE, "OID4VCI-1FINAL-8.2");
 		if (errorResponse != null) {

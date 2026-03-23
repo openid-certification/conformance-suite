@@ -56,4 +56,19 @@ public abstract class AbstractVciUnitTest {
 
 		Assertions.assertEquals(expectedError, propertyErrors.get(property));
 	}
+
+	protected void assertUnknownPropertyAtPath(Map<String, Object> data, String expectedPath) {
+		Object unknownProperties = data.get("unknown_properties");
+		Assertions.assertInstanceOf(List.class, unknownProperties);
+
+		for (Object entry : (List<?>) unknownProperties) {
+			if (entry instanceof JsonObject jsonEntry) {
+				String path = OIDFJSON.getString(jsonEntry.get("path"));
+				if (expectedPath.equals(path)) {
+					return;
+				}
+			}
+		}
+		Assertions.fail("No unknown property found at path: " + expectedPath);
+	}
 }

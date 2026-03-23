@@ -4,6 +4,7 @@ import com.google.gson.JsonObject;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.vci10issuer.util.JsonSchemaValidationInput;
+import net.openid.conformance.vci10issuer.util.JsonSchemaValidationResult;
 
 public class VCICredentialIssuerMetadataValidation extends AbstractJsonSchemaBasedValidation {
 
@@ -13,6 +14,14 @@ public class VCICredentialIssuerMetadataValidation extends AbstractJsonSchemaBas
 		String schemaResource = "json-schemas/oid4vci/credential_issuer_metadata-1_0.json";
 		String metadataName = "OID4VCI Credential Issuer metadata";
 		return new JsonSchemaValidationInput(metadataName, schemaResource, metadata);
+	}
+
+	@Override
+	protected void onValidationFailure(Environment env, JsonSchemaValidationResult validationResult, JsonSchemaValidationInput input) {
+		JsonSchemaValidationResult structuralErrors = validationResult.withoutAdditionalPropertiesErrors();
+		if (!structuralErrors.isValid()) {
+			super.onValidationFailure(env, structuralErrors, input);
+		}
 	}
 
 	@Override
