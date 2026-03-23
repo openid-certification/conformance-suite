@@ -10,7 +10,7 @@ import net.openid.conformance.testmodule.Environment;
 public class CreateSdJwtKbCredential extends AbstractCreateSdJwtCredential {
 
 	@Override
-	@PostEnvironment(strings = "credential")
+	@PostEnvironment(strings = {"credential", "holder_private_jwk"})
 	public Environment evaluate(Environment env) {
 
 		// Create a private key for the credential key binding
@@ -23,6 +23,7 @@ public class CreateSdJwtKbCredential extends AbstractCreateSdJwtCredential {
 		String sdJwt = createSdJwt(env, privateKey.toPublicJWK(), privateKey, "urn:eudi:pid:1");
 
 		env.putString("credential", sdJwt);
+		env.putString("holder_private_jwk", privateKey.toJSONString());
 
 		log("Created an SD-JWT+KB", args("sdjwt", sdJwt));
 
