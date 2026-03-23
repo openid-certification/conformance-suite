@@ -5,7 +5,6 @@ import net.openid.conformance.condition.client.SetProtectedResourceUrlToSingleRe
 import net.openid.conformance.sequence.AbstractConditionSequence;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.variant.AuthorizationRequestType;
-import net.openid.conformance.variant.ClientAuthType;
 import net.openid.conformance.variant.FAPI2AuthRequestMethod;
 import net.openid.conformance.vci10issuer.condition.VCIExtractTlsInfoFromCredentialIssuer;
 import net.openid.conformance.vci10issuer.condition.VCIFetchOAuthorizationServerMetadata;
@@ -14,8 +13,6 @@ import net.openid.conformance.vci10issuer.condition.VCIParseCredentialIssuerMeta
 import net.openid.conformance.vci10issuer.condition.VCIResolveCredentialEndpointToUse;
 import net.openid.conformance.vci10issuer.condition.VCISelectOAuthorizationServer;
 import net.openid.conformance.vci10issuer.condition.VCIValidateClientJWKsPrivatePart;
-import net.openid.conformance.vci10issuer.condition.clientattestation.CreateClientAttestationJwt;
-import net.openid.conformance.vci10issuer.condition.clientattestation.GenerateClientAttestationClientInstanceKey;
 
 /**
  * Profile behavior for VCI (Verifiable Credentials Issuance) tests.
@@ -75,18 +72,11 @@ public class VCIProfileBehavior extends FAPI2ProfileBehavior {
 
 	@Override
 	public ConditionSequence configureClientAttestation() {
-		if (module.getVariant(ClientAuthType.class) != ClientAuthType.CLIENT_ATTESTATION) {
-			return null;
-		}
-		return new AbstractConditionSequence() {
-			@Override
-			public void evaluate() {
-				callAndStopOnFailure(GenerateClientAttestationClientInstanceKey.class, ConditionResult.FAILURE,
-					"OAuth2-ATCA07-1");
-				callAndStopOnFailure(CreateClientAttestationJwt.class, ConditionResult.FAILURE,
-					"OAuth2-ATCA07-1", "HAIP-4.3.1-2");
-			}
-		};
+		// Client attestation is handled by AbstractVCIIssuerTestModule.onConfigure()
+		// which calls generateClientAttestationKeys() — this preserves the
+		// afterClientAttestationGenerated() hook that subclasses use to modify
+		// the attestation (e.g. for negative tests).
+		return null;
 	}
 
 	@Override
