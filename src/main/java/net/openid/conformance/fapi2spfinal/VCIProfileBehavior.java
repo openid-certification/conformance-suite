@@ -1,7 +1,7 @@
 package net.openid.conformance.fapi2spfinal;
 
 import net.openid.conformance.condition.Condition.ConditionResult;
-import net.openid.conformance.condition.client.GetResourceEndpointConfiguration;
+import net.openid.conformance.condition.client.SetProtectedResourceUrlToSingleResourceEndpoint;
 import net.openid.conformance.sequence.AbstractConditionSequence;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.variant.AuthorizationRequestType;
@@ -96,13 +96,13 @@ public class VCIProfileBehavior extends FAPI2ProfileBehavior {
 
 	@Override
 	public ConditionSequence setupResourceEndpoint() {
-		Class<? extends ConditionSequence> resourceConfig = getResourceConfiguration();
 		return new AbstractConditionSequence() {
 			@Override
 			public void evaluate() {
+				// Resolve credential endpoint URL from issuer metadata (not from user config)
 				callAndStopOnFailure(VCIResolveCredentialEndpointToUse.class);
-				callAndStopOnFailure(GetResourceEndpointConfiguration.class);
-				call(sequence(resourceConfig));
+				// Copy resource.resourceUrl to protected_resource_url
+				callAndStopOnFailure(SetProtectedResourceUrlToSingleResourceEndpoint.class);
 			}
 		};
 	}
