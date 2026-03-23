@@ -7,11 +7,8 @@ import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.variant.AuthorizationRequestType;
 import net.openid.conformance.variant.ClientAuthType;
 import net.openid.conformance.variant.FAPI2AuthRequestMethod;
-import net.openid.conformance.variant.VCICredentialEncryption;
 import net.openid.conformance.vci10issuer.condition.VCIExtractTlsInfoFromCredentialIssuer;
 import net.openid.conformance.vci10issuer.condition.VCIFetchOAuthorizationServerMetadata;
-import net.openid.conformance.vci10issuer.condition.VCIGenerateClientJwksIfMissing;
-import net.openid.conformance.vci10issuer.condition.VCIGenerateCredentialEncryptionJwks;
 import net.openid.conformance.vci10issuer.condition.VCIGetDynamicCredentialIssuerMetadata;
 import net.openid.conformance.vci10issuer.condition.VCIParseCredentialIssuerMetadata;
 import net.openid.conformance.vci10issuer.condition.VCIResolveCredentialEndpointToUse;
@@ -65,18 +62,9 @@ public class VCIProfileBehavior extends FAPI2ProfileBehavior {
 
 	@Override
 	public ConditionSequence configureClientExtra() {
-		return new AbstractConditionSequence() {
-			@Override
-			public void evaluate() {
-				// Generate client JWKs if not provided in config (VCI allows this)
-				callAndStopOnFailure(VCIGenerateClientJwksIfMissing.class);
-
-				// Load credential encryption JWKS if encryption is enabled
-				if (module.getVariant(VCICredentialEncryption.class) == VCICredentialEncryption.ENCRYPTED) {
-					callAndStopOnFailure(VCIGenerateCredentialEncryptionJwks.class);
-				}
-			}
-		};
+		// VCI client JWKs generation and encryption JWKs are handled in
+		// AbstractVCIIssuerTestModule.configureClient() where they run before validation
+		return null;
 	}
 
 	@Override
