@@ -6,6 +6,7 @@ import net.openid.conformance.condition.client.CheckErrorFromParEndpointResponse
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs400or401;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.ClientAuthType;
+import net.openid.conformance.variant.VariantNotApplicable;
 import net.openid.conformance.vci10issuer.condition.clientattestation.VCIInvalidateClientAttestationSignature;
 
 /**
@@ -15,8 +16,7 @@ import net.openid.conformance.vci10issuer.condition.clientattestation.VCIInvalid
  * This test invalidates the signature on the client attestation JWT and expects the
  * authorization server to respond with an invalid_client error at the PAR endpoint.
  *
- * Note: This test only runs when client_auth_type=client_attestation is selected.
- * If a different client authentication method is used, the test skips.
+ * This test is only applicable when client_auth_type=client_attestation is selected.
  *
  * @see <a href="https://datatracker.ietf.org/doc/html/draft-ietf-oauth-attestation-based-client-auth">OAuth 2.0 Attestation-Based Client Authentication</a>
  */
@@ -26,24 +26,11 @@ import net.openid.conformance.vci10issuer.condition.clientattestation.VCIInvalid
 	summary = "This test case checks for proper error handling when a client attestation with " +
 		"an invalid signature is submitted. The test sends a PAR request with a client " +
 		"attestation JWT where the signature has been modified to be invalid. " +
-		"The authorization server must reject this request with an invalid_client error. " +
-		"Note: This test requires client_auth_type=client_attestation variant. " +
-		"If a different client authentication method is used, the test will be skipped.",
+		"The authorization server must reject this request with an invalid_client error.",
 	profile = "OID4VCI-1_0"
 )
+@VariantNotApplicable(parameter = ClientAuthType.class, values = {"mtls", "private_key_jwt"})
 public class VCIIssuerFailOnInvalidClientAttestationSignature extends AbstractVCIIssuerTestModule {
-
-	@Override
-	public void start() {
-		// Skip this test if client attestation is not used
-		if (clientAuthType != ClientAuthType.CLIENT_ATTESTATION) {
-			fireTestSkipped("This test requires client_auth_type=client_attestation variant. " +
-				"Skipping because a different client authentication method is used.");
-			return;
-		}
-
-		super.start();
-	}
 
 	@Override
 	protected void afterClientAttestationGenerated() {
