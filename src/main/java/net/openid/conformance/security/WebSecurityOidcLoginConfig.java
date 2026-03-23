@@ -136,7 +136,8 @@ class WebSecurityOidcLoginConfig {
 					"/jwks**",  //
 					"/logout.html", //
 					"/robots.txt",  //
-					"/.well-known/**" //
+					"/.well-known/**", //
+					"/json-schemas/**" //
 				) //
 				.permitAll();
 

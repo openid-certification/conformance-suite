@@ -43,7 +43,7 @@ public abstract class AbstractJsonSchemaBasedValidation extends AbstractConditio
 	}
 
 	protected void onValidationFailure(Environment env, JsonSchemaValidationResult validationResult, JsonSchemaValidationInput input) {
-		throw error(String.format("Found invalid entries in %s input", input.getInputName()), new JsonSchemaValidationException("Schema Validation Failed", validationResult), args("invalid_entries", validationResult.getPropertyErrors(), "input", input.getJsonObject()));
+		throw error(String.format("Found invalid entries in %s input", input.getInputName()), new JsonSchemaValidationException("Schema Validation Failed", validationResult), args("invalid_entries", validationResult.getPropertyErrors(), "input", input.getJsonObject(), "schema_link", "/" + input.getSchemaResource()));
 	}
 
 	protected JsonSchemaValidation createJsonSchemaValidation(JsonSchemaValidationInput input) {
