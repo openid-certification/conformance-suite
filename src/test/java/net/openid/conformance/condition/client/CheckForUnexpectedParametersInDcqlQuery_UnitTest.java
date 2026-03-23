@@ -19,9 +19,9 @@ import java.util.Map;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 
 @ExtendWith(MockitoExtension.class)
-public class WarnUnknownDCQLProperties_UnitTest extends AbstractVciUnitTest {
+public class CheckForUnexpectedParametersInDcqlQuery_UnitTest extends AbstractVciUnitTest {
 
-	private WarnUnknownDCQLProperties cond;
+	private CheckForUnexpectedParametersInDcqlQuery cond;
 
 	@Mock
 	private TestInstanceEventLog eventLog;
@@ -30,7 +30,7 @@ public class WarnUnknownDCQLProperties_UnitTest extends AbstractVciUnitTest {
 
 	@BeforeEach
 	public void setUp() throws Exception {
-		cond = new WarnUnknownDCQLProperties();
+		cond = new CheckForUnexpectedParametersInDcqlQuery();
 		cond.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
 		env = new Environment();
 	}
@@ -284,7 +284,7 @@ public class WarnUnknownDCQLProperties_UnitTest extends AbstractVciUnitTest {
 	}
 
 	private JsonObject findErrorByPath(Map<String, Object> data, String property) {
-		Object invalidEntries = data.get("invalid_entries");
+		Object invalidEntries = data.get("unknown_properties");
 		org.junit.jupiter.api.Assertions.assertTrue(invalidEntries instanceof java.util.List<?>);
 
 		for (Object entry : (java.util.List<?>) invalidEntries) {

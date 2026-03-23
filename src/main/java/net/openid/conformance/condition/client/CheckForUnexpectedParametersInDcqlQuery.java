@@ -12,7 +12,7 @@ import net.openid.conformance.vci10issuer.util.JsonSchemaValidationResult;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-public class WarnUnknownDCQLProperties extends AbstractJsonSchemaBasedValidation {
+public class CheckForUnexpectedParametersInDcqlQuery extends AbstractJsonSchemaBasedValidation {
 
 	@Override
 	protected JsonSchemaValidationInput createJsonSchemaValidationInput(Environment env) {
@@ -34,7 +34,7 @@ public class WarnUnknownDCQLProperties extends AbstractJsonSchemaBasedValidation
 			.collect(Collectors.toSet());
 		if (!additionalPropsErrors.isEmpty()) {
 			throw error("Unknown properties were found in the DCQL query. This may indicate the verifier has misunderstood the spec, or it may be using extensions the test suite is unaware of.",
-				args("unknown_properties", additionalPropsErrors, "input", input.getJsonObject()));
+				args("unknown_properties", new JsonSchemaValidationResult(additionalPropsErrors).getPropertyErrors(), "input", input.getJsonObject()));
 		}
 	}
 }
