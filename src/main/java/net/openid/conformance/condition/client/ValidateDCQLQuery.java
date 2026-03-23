@@ -3,7 +3,6 @@ package net.openid.conformance.condition.client;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.networknt.schema.ValidationMessage;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.condition.as.ExtractDCQLQueryFromAuthorizationRequest;
 import net.openid.conformance.testmodule.Environment;
@@ -14,7 +13,6 @@ import net.openid.conformance.vci10issuer.util.JsonSchemaValidationResult;
 
 import java.util.HashSet;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 public class ValidateDCQLQuery extends AbstractJsonSchemaBasedValidation {
 
@@ -39,11 +37,9 @@ public class ValidateDCQLQuery extends AbstractJsonSchemaBasedValidation {
 
 	@Override
 	protected void onValidationFailure(Environment env, JsonSchemaValidationResult validationResult, JsonSchemaValidationInput input) {
-		Set<ValidationMessage> structuralErrors = validationResult.getValidationMessages().stream()
-			.filter(m -> !"additionalProperties".equals(m.getType()))
-			.collect(Collectors.toSet());
-		if (!structuralErrors.isEmpty()) {
-			super.onValidationFailure(env, new JsonSchemaValidationResult(structuralErrors), input);
+		JsonSchemaValidationResult structuralErrors = validationResult.withoutAdditionalPropertiesErrors();
+		if (!structuralErrors.isValid()) {
+			super.onValidationFailure(env, structuralErrors, input);
 		}
 	}
 

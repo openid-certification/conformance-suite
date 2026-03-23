@@ -21,5 +21,5 @@
     "introspection_endpoint_auth_methods_supported": ["client_secret_post"],
     "introspection_endpoint_auth_signing_alg_values_supported": ["RS256"],
     "code_challenge_methods_supported": ["S256", "plain"],
-    "authorized_grant_anonymous_access_supported": false
+    "pre-authorized_grant_anonymous_access_supported": false
 }

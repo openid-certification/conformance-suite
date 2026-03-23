@@ -102,6 +102,7 @@ import net.openid.conformance.vci10issuer.condition.VCITryAddingIssuerStateToAut
 import net.openid.conformance.vci10issuer.condition.VCITryToExtractIssuerStateFromCredentialOffer;
 import net.openid.conformance.vci10issuer.condition.VCIUseStaticTxCodeFromConfig;
 import net.openid.conformance.vci10issuer.condition.VCIValidateCredentialNonceResponse;
+import net.openid.conformance.vci10issuer.condition.CheckForUnexpectedParametersInCredentialOffer;
 import net.openid.conformance.vci10issuer.condition.VCIValidateCredentialOffer;
 import net.openid.conformance.vci10issuer.condition.VCIValidateCredentialOfferRequestParams;
 import net.openid.conformance.vci10issuer.condition.VCIValidateCredentialValidityInfoIsPresent;
@@ -374,6 +375,7 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractFAPI2SPFinalSe
 		}
 
 		callAndStopOnFailure(VCIValidateCredentialOffer.class, ConditionResult.FAILURE, "OID4VCI-1FINAL-4.1");
+		callAndContinueOnFailure(CheckForUnexpectedParametersInCredentialOffer.class, ConditionResult.WARNING, "OID4VCI-1FINAL-4.1");
 
 		if (vciGrantType == VCIGrantType.AUTHORIZATION_CODE) {
 			callAndStopOnFailure(VCITryToExtractIssuerStateFromCredentialOffer.class, ConditionResult.FAILURE, "OID4VCI-1FINAL-4.1.1");
