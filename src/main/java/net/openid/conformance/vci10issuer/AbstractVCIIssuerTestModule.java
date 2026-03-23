@@ -14,6 +14,8 @@ import net.openid.conformance.condition.client.AddFAPIInteractionIdToResourceEnd
 import net.openid.conformance.condition.client.AddNonceToAuthorizationEndpointRequest;
 import net.openid.conformance.condition.client.AddStateToAuthorizationEndpointRequest;
 import net.openid.conformance.condition.client.BuildRequestObjectByReferenceRedirectToAuthorizationEndpointWithoutDuplicates;
+import net.openid.conformance.condition.client.AddFAPIAuthDateToResourceEndpointRequest;
+import net.openid.conformance.condition.client.AddIpV4FapiCustomerIpAddressToResourceEndpointRequest;
 import net.openid.conformance.condition.client.CallProtectedResource;
 import net.openid.conformance.condition.client.CallProtectedResourceAllowingDpopNonceError;
 import net.openid.conformance.condition.client.CallTokenEndpointAllowingDpopNonceErrorAndReturnFullResponse;
@@ -714,6 +716,14 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractFAPI2SPFinalSe
 		eventLog.startBlock(currentClientString() + " Prepare Credential endpoint requests");
 
 		callAndStopOnFailure(CreateEmptyResourceEndpointRequestHeaders.class);
+
+		if (!isSecondClient()) {
+			// these are optional; only add them for the first client
+			callAndStopOnFailure(AddFAPIAuthDateToResourceEndpointRequest.class, "CDR-http-headers");
+			callAndStopOnFailure(AddIpV4FapiCustomerIpAddressToResourceEndpointRequest.class, "CDR-http-headers");
+			callAndStopOnFailure(CreateRandomFAPIInteractionId.class);
+			callAndStopOnFailure(AddFAPIInteractionIdToResourceEndpointRequest.class, "CDR-http-headers");
+		}
 
 		boolean mtlsRequired = getVariant(FAPI2SenderConstrainMethod.class) == FAPI2SenderConstrainMethod.MTLS
 			|| profileRequiresMtlsEverywhere;
