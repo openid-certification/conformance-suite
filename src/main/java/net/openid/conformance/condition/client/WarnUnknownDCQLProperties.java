@@ -33,7 +33,8 @@ public class WarnUnknownDCQLProperties extends AbstractJsonSchemaBasedValidation
 			.filter(m -> "additionalProperties".equals(m.getType()))
 			.collect(Collectors.toSet());
 		if (!additionalPropsErrors.isEmpty()) {
-			super.onValidationFailure(env, new JsonSchemaValidationResult(additionalPropsErrors), input);
+			throw error("Unknown properties were found in the DCQL query. This may indicate the verifier has misunderstood the spec, or it may be using extensions the test suite is unaware of.",
+				args("unknown_properties", additionalPropsErrors, "input", input.getJsonObject()));
 		}
 	}
 }
