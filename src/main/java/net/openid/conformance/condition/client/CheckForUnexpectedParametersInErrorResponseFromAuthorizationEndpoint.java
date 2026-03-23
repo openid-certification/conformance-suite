@@ -51,7 +51,7 @@ public class CheckForUnexpectedParametersInErrorResponseFromAuthorizationEndpoin
 			if (unexpectedParams.size() == 0) {
 				logSuccess("error response includes only expected parameters", callbackParams);
 			} else {
-				throw error("error response includes unexpected parameters. This may be because the server supports extensions the test suite is unaware of, or the server may be returning values it should not.", unexpectedParams);
+				throw error("error response includes unexpected parameters. This may indicate the authorization server has misunderstood the spec, or it may be using extensions the test suite is unaware of.", unexpectedParams);
 			}
 		} else {
 			throw error("Authorization server was expected to return an error but did not", callbackParams);

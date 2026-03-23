@@ -34,7 +34,7 @@ public class CheckForUnexpectedParametersInVpAuthorizationResponse extends Abstr
 		if (unexpectedParams.size() == 0) {
 			logSuccess("authorization response includes only expected parameters", callbackParams);
 		} else {
-			throw error("authorization response includes unexpected parameters. This may be because the wallet supports extensions the test suite is unaware of, or the wallet may be returning values it should not, or returning values in an incorrect location.", unexpectedParams);
+			throw error("authorization response includes unexpected parameters. This may indicate the wallet has misunderstood the spec, or it may be using extensions the test suite is unaware of.", unexpectedParams);
 		}
 
 		return env;

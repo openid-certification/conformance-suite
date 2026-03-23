@@ -18,7 +18,7 @@ public class CheckForUnexpectedClaimsInUserinfo extends AbstractCondition {
 		// requested, e.g. openbanking_intent_id in the OpenBanking UK tests
 
 		if (unknownClaims.size() != 0) {
-			throw error("userinfo response includes claims with names that are not known. This may be because the server supports extensions the test suite is unaware of, or the server may be sending values it should not.", unknownClaims);
+			throw error("userinfo response includes claims with names that are not known. This may indicate the server has misunderstood the spec, or it may be using extensions the test suite is unaware of.", unknownClaims);
 		}
 
 		logSuccess("userinfo response includes only known claims");

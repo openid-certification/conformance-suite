@@ -18,7 +18,7 @@ public class CheckForUnexpectedClaimsInIdToken extends AbstractCondition {
 		// requested, e.g. openbanking_intent_id in the OpenBanking UK tests
 
 		if (unknownClaims.size() != 0) {
-			throw error("id_token includes claims with names that are not known. This may be because the server supports extensions the test suite is unaware of, or the server may be sending values it should not.", unknownClaims);
+			throw error("id_token includes claims with names that are not known. This may indicate the authorization server has misunderstood the spec, or it may be using extensions the test suite is unaware of.", unknownClaims);
 		}
 
 		logSuccess("id_token includes only known claims");

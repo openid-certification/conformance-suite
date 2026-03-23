@@ -38,7 +38,7 @@ public class VCICheckForUnknownFieldsInNotificationRequest extends AbstractCondi
 		if (unknownFields.isEmpty()) {
 			logSuccess("Found no unknown fields in notification request");
 		} else {
-			throw error("Found unknown fields in notification request", args("unknownFields", unknownFields));
+			throw error("Found unknown fields in notification request. This may indicate the wallet has misunderstood the spec, or it may be using extensions the test suite is unaware of.", args("unknownFields", unknownFields));
 		}
 
 		return env;

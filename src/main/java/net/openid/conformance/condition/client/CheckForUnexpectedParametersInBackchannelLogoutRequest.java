@@ -27,7 +27,7 @@ public class CheckForUnexpectedParametersInBackchannelLogoutRequest extends Abst
 		});
 
 		if (unexpectedParams.size() != 0) {
-			throw error("backchannel_logout_request includes unexpected parameters. This may be because the server supports extensions the test suite is unaware of, or the server may be sending values it should not.", unexpectedParams);
+			throw error("backchannel_logout_request includes unexpected parameters. This may indicate the server has misunderstood the spec, or it may be using extensions the test suite is unaware of.", unexpectedParams);
 		}
 
 		logSuccess("backchannel_logout_request includes only expected parameters", callbackParams);

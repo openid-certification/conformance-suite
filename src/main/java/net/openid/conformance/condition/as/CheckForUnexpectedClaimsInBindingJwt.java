@@ -34,7 +34,7 @@ public class CheckForUnexpectedClaimsInBindingJwt extends AbstractCondition {
 		if (unknownParameters.isEmpty()) {
 			logSuccess("Binding JWT header contains only expected parameters",args("header", parameters.keySet()));
 		} else {
-			throw error("Unexpected parameters found in binding JWT header", args("header", parameters.keySet(), "unknown", unknownParameters));
+			throw error("Unexpected claims found in binding JWT. This may indicate the wallet has misunderstood the spec, or it may be using extensions the test suite is unaware of.", args("header", parameters.keySet(), "unknown", unknownParameters));
 		}
 
 		return env;
