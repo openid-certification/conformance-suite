@@ -3,7 +3,7 @@ package net.openid.conformance.vci10issuer;
 import com.google.gson.JsonObject;
 import net.openid.conformance.testmodule.AbstractTestModule;
 import net.openid.conformance.variant.ClientAuthType;
-import net.openid.conformance.variant.VCIProfile;
+import net.openid.conformance.variant.FAPI2FinalOPProfile;
 import net.openid.conformance.variant.ConfigurationFields;
 import net.openid.conformance.vci10issuer.condition.VCIGetDynamicCredentialIssuerMetadata;
 
@@ -12,7 +12,7 @@ public abstract class AbstractVciTest extends AbstractTestModule {
 
 	protected ClientAuthType clientAuthType;
 
-	protected VCIProfile vciProfile;
+	protected FAPI2FinalOPProfile fapi2Profile;
 
 	@Override
 	public void configure(JsonObject config, String baseUrl, String externalUrlOverride, String baseMtlsUrl) {
@@ -25,7 +25,7 @@ public abstract class AbstractVciTest extends AbstractTestModule {
 		env.putObject("vci", vciConfig);
 
 		clientAuthType = getVariant(ClientAuthType.class);
-		vciProfile = getVariant(VCIProfile.class);
+		fapi2Profile = getVariant(FAPI2FinalOPProfile.class);
 
 		// Perform any custom configuration
 		onConfigure(config, baseUrl);
@@ -37,6 +37,10 @@ public abstract class AbstractVciTest extends AbstractTestModule {
 
 	protected void onConfigure(JsonObject config, String baseUrl) {
 		// No custom configuration
+	}
+
+	protected boolean isHaip() {
+		return fapi2Profile == FAPI2FinalOPProfile.VCI_HAIP;
 	}
 
 	protected void fetchCredentialIssuerMetadata() {
