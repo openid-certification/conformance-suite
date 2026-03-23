@@ -34,7 +34,7 @@ public class CheckForUnexpectedParametersInDcqlQuery extends AbstractJsonSchemaB
 			.collect(Collectors.toSet());
 		if (!additionalPropsErrors.isEmpty()) {
 			throw error("Unknown properties were found in the DCQL query. This may indicate the verifier has misunderstood the spec, or it may be using extensions the test suite is unaware of.",
-				args("unknown_properties", new JsonSchemaValidationResult(additionalPropsErrors).getPropertyErrors(), "input", input.getJsonObject()));
+				args("unknown_properties", new JsonSchemaValidationResult(additionalPropsErrors).getPropertyErrors(), "input", input.getJsonObject(), "schema_link", "/" + input.getSchemaResource()));
 		}
 	}
 }

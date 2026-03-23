@@ -15,13 +15,22 @@ import org.springframework.core.convert.converter.Converter;
 import org.springframework.data.mongodb.core.convert.MongoCustomConversions;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.json.GsonHttpMessageConverter;
+import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
 @Configuration
-public class ApplicationConfig {
+public class ApplicationConfig implements WebMvcConfigurer {
+
+	@Override
+	public void addResourceHandlers(ResourceHandlerRegistry registry) {
+		registry.addResourceHandler("/json-schemas/**")
+			.addResourceLocations("classpath:json-schemas/");
+	}
+
 	@Bean
 	public HttpMessageConverters customConverters() {
 

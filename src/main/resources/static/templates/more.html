@@ -41,7 +41,9 @@
             %>
                     <dd class="col-sm-2 text-end text-break" data-bs-toggle="tooltip" title="<%- key %>" data-bs-placement="bottom"><%- key %></dd>
                     <dt class="col-sm-10 text-start wrapLongStrings row-bg-light">
-            <% if (key == 'img') { %>
+            <% if (key == 'schema_link') { %>
+                <a href="<%- value %>"><%- value %></a>
+            <% } else if (key == 'img') { %>
                 <img src="<%- value %>" class="img-fluid mx-auto imagePreview">
             <% } else if (value != null && !_.isUndefined(value.verifiable_jws)) { %>
                 <% var tokenJWTSplit = jwtRe.exec(value.verifiable_jws);%>
