@@ -267,8 +267,7 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractFAPI2SPFinalSe
 
 		// HAIP requires scope to be present for every credential configuration
 		if (fapi2Profile == FAPI2FinalOPProfile.VCI_HAIP) {
-			callAndContinueOnFailure(VCIEnsureScopePresentInCredentialConfigurationForHaip.class,
-				ConditionResult.FAILURE, "HAIP-4.1", "HAIP-4.3");
+			callAndContinueOnFailure(VCIEnsureScopePresentInCredentialConfigurationForHaip.class, ConditionResult.FAILURE, "HAIP-4.1", "HAIP-4.3");
 		}
 
 		callAndStopOnFailure(VCIDetermineCredentialConfigurationTransferMethod.class, ConditionResult.FAILURE);
@@ -392,8 +391,7 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractFAPI2SPFinalSe
 				processCredentialOffer(requestParts);
 
 				if (env.getElementFromObject("config", "vci.static_tx_code") != null) {
-					callAndStopOnFailure(VCIUseStaticTxCodeFromConfig.class,
-						ConditionResult.FAILURE, "OID4VCI-1FINAL-3.5");
+					callAndStopOnFailure(VCIUseStaticTxCodeFromConfig.class, ConditionResult.FAILURE, "OID4VCI-1FINAL-3.5");
 
 					performPreAuthorizationCodeFlow();
 				} else {
@@ -431,26 +429,22 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractFAPI2SPFinalSe
 
 	protected void processCredentialOffer(JsonObject requestParts) {
 		JsonObject queryStringParams = requestParts.get("query_string_params").getAsJsonObject();
-		callAndStopOnFailure(new VCIValidateCredentialOfferRequestParams(requestParts),
-			ConditionResult.FAILURE, "OID4VCI-1FINAL-4.1");
+		callAndStopOnFailure(new VCIValidateCredentialOfferRequestParams(requestParts), ConditionResult.FAILURE, "OID4VCI-1FINAL-4.1");
 
 		if (queryStringParams.has("credential_offer_uri")) {
-			callAndStopOnFailure(VCIFetchCredentialOfferFromCredentialOfferUri.class,
-				ConditionResult.FAILURE, "OID4VCI-1FINAL-4.1.3");
+			callAndStopOnFailure(VCIFetchCredentialOfferFromCredentialOfferUri.class, ConditionResult.FAILURE, "OID4VCI-1FINAL-4.1.3");
 		}
 
 		callAndStopOnFailure(VCIValidateCredentialOffer.class, ConditionResult.FAILURE, "OID4VCI-1FINAL-4.1");
 
 		if (vciGrantType == VCIGrantType.AUTHORIZATION_CODE) {
-			callAndStopOnFailure(VCITryToExtractIssuerStateFromCredentialOffer.class,
-				ConditionResult.FAILURE, "OID4VCI-1FINAL-4.1.1");
+			callAndStopOnFailure(VCITryToExtractIssuerStateFromCredentialOffer.class, ConditionResult.FAILURE, "OID4VCI-1FINAL-4.1.1");
 		}
 	}
 
 	protected void performPreAuthorizationCodeFlow() {
 
-		callAndStopOnFailure(VCIExtractPreAuthorizedCodeAndTxCodeFromCredentialOffer.class,
-			ConditionResult.FAILURE, "OID4VCI-1FINAL-3.5", "OID4VCI-1FINAL-4.1.1");
+		callAndStopOnFailure(VCIExtractPreAuthorizedCodeAndTxCodeFromCredentialOffer.class, ConditionResult.FAILURE, "OID4VCI-1FINAL-3.5", "OID4VCI-1FINAL-4.1.1");
 
 		performPostAuthorizationFlow();
 	}
@@ -517,11 +511,9 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractFAPI2SPFinalSe
 
 	@Override
 	protected ConditionSequence makeCreateAuthorizationRequestSteps(boolean usePkce) {
-		ConditionSequence seq = new CreateAuthorizationRequestSteps(isSecondClient(), isOpenId, usePkce,
-			profileAuthorizationEndpointSetupSteps, vciGrantType, vciAuthorizationCodeFlowVariant);
+		ConditionSequence seq = new CreateAuthorizationRequestSteps(isSecondClient(), isOpenId, usePkce, profileAuthorizationEndpointSetupSteps, vciGrantType, vciAuthorizationCodeFlowVariant);
 		if (isRarRequest) {
-			seq.then(condition(VCIGenerateRichAuthorizationRequestForCredential.class)
-				.onFail(ConditionResult.FAILURE).requirements("OID4VCI-1FINAL-5.1.1"));
+			seq.then(condition(VCIGenerateRichAuthorizationRequestForCredential.class).onFail(ConditionResult.FAILURE).requirements("OID4VCI-1FINAL-5.1.1"));
 			seq.then(condition(RARSupport.AddRARToAuthorizationEndpointRequest.class));
 		}
 		return seq;
@@ -553,27 +545,21 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractFAPI2SPFinalSe
 
 		callAndContinueOnFailure(CheckMatchingCallbackParameters.class, ConditionResult.FAILURE);
 
-		callAndContinueOnFailure(RejectStateInUrlFragmentForCodeFlow.class,
-			Condition.ConditionResult.FAILURE, "OIDCC-3.3.2.5");
+		callAndContinueOnFailure(RejectStateInUrlFragmentForCodeFlow.class, Condition.ConditionResult.FAILURE, "OIDCC-3.3.2.5");
 
 		callAndStopOnFailure(CheckIfAuthorizationEndpointError.class);
 
-		callAndContinueOnFailure(ValidateSuccessfulAuthCodeFlowResponseFromAuthorizationEndpoint.class,
-			ConditionResult.WARNING);
+		callAndContinueOnFailure(ValidateSuccessfulAuthCodeFlowResponseFromAuthorizationEndpoint.class, ConditionResult.WARNING);
 
-		callAndContinueOnFailure(CheckStateInAuthorizationResponse.class,
-			ConditionResult.FAILURE, "OIDCC-3.2.2.5");
+		callAndContinueOnFailure(CheckStateInAuthorizationResponse.class, ConditionResult.FAILURE, "OIDCC-3.2.2.5");
 
-		callAndContinueOnFailure(RequireIssInAuthorizationResponse.class,
-			ConditionResult.FAILURE, "OAuth2-iss-2", "FAPI2-SP-FINAL-5.3.2.2-2.7");
+		callAndContinueOnFailure(RequireIssInAuthorizationResponse.class, ConditionResult.FAILURE, "OAuth2-iss-2", "FAPI2-SP-FINAL-5.3.2.2-2.7");
 
 		callAndStopOnFailure(ExtractAuthorizationCodeFromAuthorizationResponse.class);
 
-		callAndContinueOnFailure(EnsureMinimumAuthorizationCodeLength.class,
-			Condition.ConditionResult.FAILURE, "RFC6749-10.10", "RFC6819-5.1.4.2-2");
+		callAndContinueOnFailure(EnsureMinimumAuthorizationCodeLength.class, Condition.ConditionResult.FAILURE, "RFC6749-10.10", "RFC6819-5.1.4.2-2");
 
-		callAndContinueOnFailure(EnsureMinimumAuthorizationCodeEntropy.class,
-			Condition.ConditionResult.FAILURE, "RFC6749-10.10", "RFC6819-5.1.4.2-2");
+		callAndContinueOnFailure(EnsureMinimumAuthorizationCodeEntropy.class, Condition.ConditionResult.FAILURE, "RFC6749-10.10", "RFC6819-5.1.4.2-2");
 
 		handleSuccessfulAuthorizationEndpointResponse();
 	}
@@ -622,8 +608,7 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractFAPI2SPFinalSe
 			while (i < MAX_RETRY) {
 				addClientAuthenticationToTokenEndpointRequest();
 				createDpopForTokenEndpoint();
-				callAndStopOnFailure(
-					CallTokenEndpointAllowingDpopNonceErrorAndReturnFullResponse.class, requirements);
+				callAndStopOnFailure(CallTokenEndpointAllowingDpopNonceErrorAndReturnFullResponse.class, requirements);
 				if (Strings.isNullOrEmpty(env.getString("token_endpoint_dpop_nonce_error"))) {
 					break;
 				}
@@ -652,26 +637,18 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractFAPI2SPFinalSe
 
 		callAndStopOnFailure(ExtractAccessTokenFromTokenResponse.class);
 
-		callAndContinueOnFailure(ExtractExpiresInFromTokenEndpointResponse.class,
-			ConditionResult.WARNING, "RFC6749-5.1");
-		skipIfMissing(new String[]{"expires_in"}, null, Condition.ConditionResult.INFO,
-			ValidateExpiresIn.class, Condition.ConditionResult.FAILURE, "RFC6749-5.1");
+		callAndContinueOnFailure(ExtractExpiresInFromTokenEndpointResponse.class, ConditionResult.WARNING, "RFC6749-5.1");
+		skipIfMissing(new String[]{"expires_in"}, null, Condition.ConditionResult.INFO, ValidateExpiresIn.class, Condition.ConditionResult.FAILURE, "RFC6749-5.1");
 
 		callAndContinueOnFailure(CheckForRefreshTokenValue.class, ConditionResult.INFO);
 
-		skipIfElementMissing("token_endpoint_response", "refresh_token",
-			Condition.ConditionResult.INFO, EnsureMinimumRefreshTokenLength.class,
-			Condition.ConditionResult.FAILURE, "RFC6749-10.10");
+		skipIfElementMissing("token_endpoint_response", "refresh_token", Condition.ConditionResult.INFO, EnsureMinimumRefreshTokenLength.class, Condition.ConditionResult.FAILURE, "RFC6749-10.10");
 
-		skipIfElementMissing("token_endpoint_response", "refresh_token",
-			Condition.ConditionResult.INFO, EnsureMinimumRefreshTokenEntropy.class,
-			Condition.ConditionResult.FAILURE, "RFC6749-10.10");
+		skipIfElementMissing("token_endpoint_response", "refresh_token", Condition.ConditionResult.INFO, EnsureMinimumRefreshTokenEntropy.class, Condition.ConditionResult.FAILURE, "RFC6749-10.10");
 
-		callAndContinueOnFailure(EnsureMinimumAccessTokenLength.class,
-			Condition.ConditionResult.FAILURE, "FAPI2-SP-FINAL-5.4.1-1");
+		callAndContinueOnFailure(EnsureMinimumAccessTokenLength.class, Condition.ConditionResult.FAILURE, "FAPI2-SP-FINAL-5.4.1-1");
 
-		callAndContinueOnFailure(EnsureMinimumAccessTokenEntropy.class,
-			Condition.ConditionResult.FAILURE, "FAPI2-SP-FINAL-5.4.1-1");
+		callAndContinueOnFailure(EnsureMinimumAccessTokenEntropy.class, Condition.ConditionResult.FAILURE, "FAPI2-SP-FINAL-5.4.1-1");
 
 		// VCI never uses OpenID (isOpenId is false)
 		callAndStopOnFailure(ExpectNoIdTokenInTokenResponse.class);
@@ -720,13 +697,15 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractFAPI2SPFinalSe
 		if (!isSecondClient()) {
 			// these are optional; only add them for the first client
 			callAndStopOnFailure(AddFAPIAuthDateToResourceEndpointRequest.class, "CDR-http-headers");
+
 			callAndStopOnFailure(AddIpV4FapiCustomerIpAddressToResourceEndpointRequest.class, "CDR-http-headers");
+
 			callAndStopOnFailure(CreateRandomFAPIInteractionId.class);
+
 			callAndStopOnFailure(AddFAPIInteractionIdToResourceEndpointRequest.class, "CDR-http-headers");
 		}
 
-		boolean mtlsRequired = getVariant(FAPI2SenderConstrainMethod.class) == FAPI2SenderConstrainMethod.MTLS
-			|| profileRequiresMtlsEverywhere;
+		boolean mtlsRequired = getVariant(FAPI2SenderConstrainMethod.class) == FAPI2SenderConstrainMethod.MTLS || profileRequiresMtlsEverywhere;
 
 		JsonObject mtls = null;
 		if (!mtlsRequired) {
@@ -741,28 +720,22 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractFAPI2SPFinalSe
 		if (requiresCryptographicBinding != null && requiresCryptographicBinding) {
 			eventLog.startBlock(currentClientString() + " Call credential issuer nonce endpoint");
 			// check for nonce endpoint
-			JsonElement nonceEndpointEl = env.getElementFromObject("vci",
-				"credential_issuer_metadata.nonce_endpoint");
-
+			JsonElement nonceEndpointEl = env.getElementFromObject("vci", "credential_issuer_metadata.nonce_endpoint");
 			if (nonceEndpointEl != null) {
+
 				callAndStopOnFailure(CallCredentialIssuerNonceEndpoint.class, "OID4VCI-1FINAL-7.1");
 
 				eventLog.endBlock();
 
-				eventLog.startBlock(currentClientString()
-					+ " Verify Credential Nonce Endpoint Response");
+				eventLog.startBlock(currentClientString() + " Verify Credential Nonce Endpoint Response");
 				afterNonceEndpointResponse();
 			} else {
-				eventLog.log(getName(),
-					"Skipping nonce endpoint call - 'nonce_endpoint' not present"
-						+ " in credential issuer metadata");
+				eventLog.log(getName(), "Skipping nonce endpoint call - 'nonce_endpoint' not present in credential issuer metadata");
 			}
 
 			eventLog.endBlock();
 		} else {
-			eventLog.log(getName(),
-				"Skipping nonce endpoint call - credential configuration"
-					+ " does not require cryptographic binding");
+			eventLog.log(getName(), "Skipping nonce endpoint call - credential configuration does not require cryptographic binding");
 		}
 
 		eventLog.startBlock(currentClientString() + " Call Credential Endpoint");
@@ -773,8 +746,7 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractFAPI2SPFinalSe
 
 		if (requiresCryptographicBinding != null && requiresCryptographicBinding) {
 			// determine if requested credential requires key attestation
-			callAndContinueOnFailure(VCIGenerateKeyAttestationIfNecessary.class,
-				ConditionResult.FAILURE, "HAIPA-D.1", "OID4VCI-1FINALA-D.1");
+			callAndContinueOnFailure(VCIGenerateKeyAttestationIfNecessary.class, ConditionResult.FAILURE, "HAIPA-D.1", "OID4VCI-1FINALA-D.1");
 
 			afterKeyAttestationGeneration();
 
@@ -787,9 +759,7 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractFAPI2SPFinalSe
 
 			afterProofGeneration();
 		} else {
-			eventLog.log(getName(),
-				"Skipping proof generation - credential configuration"
-					+ " does not require cryptographic binding");
+			eventLog.log(getName(), "Skipping proof generation - credential configuration does not require cryptographic binding");
 		}
 
 		createCredentialRequest();
@@ -797,8 +767,7 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractFAPI2SPFinalSe
 		if (isDpop()) {
 			requestProtectedResourceUsingDpop();
 		} else {
-			callAndStopOnFailure(CallProtectedResource.class,
-				"OID4VCI-1FINAL-8", "FAPI2-SP-FINAL-5.3.4-2");
+			callAndStopOnFailure(CallProtectedResource.class, "OID4VCI-1FINAL-8", "FAPI2-SP-FINAL-5.3.4-2");
 		}
 		if (!mtlsRequired && mtls != null) {
 			env.putObject("mutual_tls_authentication", mtls);
@@ -911,36 +880,28 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractFAPI2SPFinalSe
 
 		// Decrypt the response if encryption was requested
 		if (vciCredentialEncryption == VCICredentialEncryption.ENCRYPTED) {
-			callAndContinueOnFailure(EnsureContentTypeApplicationJwt.class,
-				ConditionResult.FAILURE, "OID4VCI-1FINAL-8.3");
-			callAndStopOnFailure(VCIEnsureCredentialResponseIsEncryptedJwe.class,
-				"OID4VCI-1FINAL-8.3.1.2");
+			callAndContinueOnFailure(EnsureContentTypeApplicationJwt.class, ConditionResult.FAILURE, "OID4VCI-1FINAL-8.3");
+			callAndStopOnFailure(VCIEnsureCredentialResponseIsEncryptedJwe.class, "OID4VCI-1FINAL-8.3.1.2");
 			callAndStopOnFailure(VCIDecryptCredentialResponse.class, "OID4VCI-1FINAL-10");
 		} else {
-			callAndContinueOnFailure(EnsureContentTypeJson.class,
-				ConditionResult.FAILURE, "OID4VCI-1FINAL-8.3");
+			callAndContinueOnFailure(EnsureContentTypeJson.class, ConditionResult.FAILURE, "OID4VCI-1FINAL-8.3");
 		}
 
 		verifyEffectiveCredentialResponse();
 	}
 
 	protected void verifyCredentialIssuerCredentialErrorResponse() {
-		callAndContinueOnFailure(EnsureHttpStatusCodeIs400.class,
-			Condition.ConditionResult.FAILURE, "OID4VCI-1FINAL-8.3.1");
-		callAndContinueOnFailure(VCIValidateNoUnknownKeysInCredentialErrorResponse.class,
-			Condition.ConditionResult.WARNING, "OID4VCI-1FINAL-8.3.1");
-		// Note that Credential Error Responses are never encrypted, even if a valid
-		// Credential Response would be.
-		callAndContinueOnFailure(VCIEnsureCredentialResponseIsNotAnEncryptedJwe.class,
-			Condition.ConditionResult.FAILURE, "OID4VCI-1FINAL-8.3.1.2");
+		callAndContinueOnFailure(EnsureHttpStatusCodeIs400.class, Condition.ConditionResult.FAILURE, "OID4VCI-1FINAL-8.3.1");
+		callAndContinueOnFailure(VCIValidateNoUnknownKeysInCredentialErrorResponse.class, Condition.ConditionResult.WARNING, "OID4VCI-1FINAL-8.3.1");
+		// Note that Credential Error Responses are never encrypted, even if a valid Credential Response would be.
+		callAndContinueOnFailure(VCIEnsureCredentialResponseIsNotAnEncryptedJwe.class, Condition.ConditionResult.FAILURE, "OID4VCI-1FINAL-8.3.1.2");
 	}
 
 	/**
 	 * Verifies the effective credential response - i.e., the response after potential decryption.
 	 */
 	protected void verifyEffectiveCredentialResponse() {
-		callAndContinueOnFailure(VCIValidateNoUnknownKeysInCredentialResponse.class,
-			ConditionResult.WARNING, "OID4VCI-1FINAL-8.3");
+		callAndContinueOnFailure(VCIValidateNoUnknownKeysInCredentialResponse.class, ConditionResult.WARNING, "OID4VCI-1FINAL-8.3");
 
 		// Check if the response is deferred (contains transaction_id instead of credentials)
 		callAndStopOnFailure(VCICheckForDeferredCredentialResponse.class, "OID4VCI-1FINAL-9");
@@ -950,11 +911,9 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractFAPI2SPFinalSe
 
 		if (isDeferred) {
 			// Deferred response - need to call the deferred credential endpoint
-			callAndContinueOnFailure(new EnsureHttpStatusCode(202),
-				ConditionResult.WARNING, "OID4VCI-1FINAL-9");
+			callAndContinueOnFailure(new EnsureHttpStatusCode(202), ConditionResult.WARNING, "OID4VCI-1FINAL-9");
 
-			callAndContinueOnFailure(VCIEnsureIntervalPresentInDeferredResponse.class,
-				ConditionResult.FAILURE, "OID4VCI-1FINAL-9.3");
+			callAndContinueOnFailure(VCIEnsureIntervalPresentInDeferredResponse.class, ConditionResult.FAILURE, "OID4VCI-1FINAL-9.3");
 
 			call(exec().unmapKey("endpoint_response"));
 
@@ -968,19 +927,16 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractFAPI2SPFinalSe
 
 			// Decrypt the deferred response if encryption was requested and OK
 			if (vciCredentialEncryption == VCICredentialEncryption.ENCRYPTED && statusCode == 200) {
-				callAndStopOnFailure(VCIEnsureCredentialResponseIsEncryptedJwe.class,
-					"OID4VCI-1FINAL-8.3.1.2");
+				callAndStopOnFailure(VCIEnsureCredentialResponseIsEncryptedJwe.class, "OID4VCI-1FINAL-8.3.1.2");
 				callAndStopOnFailure(VCIDecryptCredentialResponse.class, "OID4VCI-1FINAL-10");
 			}
 		} else {
 			// Immediate response - credential is in the response
-			callAndContinueOnFailure(EnsureHttpStatusCodeIs200.class,
-				ConditionResult.FAILURE, "OID4VCI-1FINAL-8.3");
+			callAndContinueOnFailure(EnsureHttpStatusCodeIs200.class, ConditionResult.FAILURE, "OID4VCI-1FINAL-8.3");
 		}
 
 		// Extract and validate all credentials (same for both paths)
-		callAndStopOnFailure(VCIExtractCredentialResponse.class,
-			ConditionResult.FAILURE, "OID4VCI-1FINAL-8.3");
+		callAndStopOnFailure(VCIExtractCredentialResponse.class, ConditionResult.FAILURE, "OID4VCI-1FINAL-8.3");
 
 		// Iterate over all extracted credentials and validate each one
 		JsonArray extractedCredentials = env.getObject("extracted_credentials").getAsJsonArray("list");
@@ -989,8 +945,7 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractFAPI2SPFinalSe
 			env.putString("credential", credential);
 
 			if (extractedCredentials.size() > 1) {
-				eventLog.startBlock(currentClientString() + "Verify credential "
-					+ (i + 1) + " of " + extractedCredentials.size());
+				eventLog.startBlock(currentClientString() + "Verify credential " + (i + 1) + " of " + extractedCredentials.size());
 			} else {
 				eventLog.startBlock(currentClientString() + "Verify credential");
 			}
@@ -1001,17 +956,12 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractFAPI2SPFinalSe
 		}
 
 		call(exec().unmapKey("endpoint_response"));
-		callAndContinueOnFailure(CheckForDateHeaderInResourceResponse.class,
-			ConditionResult.FAILURE, "RFC7231-7.1.1.2");
+		callAndContinueOnFailure(CheckForDateHeaderInResourceResponse.class, ConditionResult.FAILURE, "RFC7231-7.1.1.2");
 
-		skipIfElementMissing("resource_endpoint_response_headers", "x-fapi-interaction-id",
-			ConditionResult.INFO, CheckForFAPIInteractionIdInResourceResponse.class,
-			ConditionResult.FAILURE, "FAPI2-IMP-2.1.1");
+		skipIfElementMissing("resource_endpoint_response_headers", "x-fapi-interaction-id", ConditionResult.INFO, CheckForFAPIInteractionIdInResourceResponse.class, ConditionResult.FAILURE, "FAPI2-IMP-2.1.1");
 
 		if (!isSecondClient()) {
-			skipIfElementMissing("resource_endpoint_response_headers", "x-fapi-interaction-id",
-				ConditionResult.INFO, EnsureMatchingFAPIInteractionId.class,
-				ConditionResult.FAILURE, "FAPI2-IMP-2.1.1");
+			skipIfElementMissing("resource_endpoint_response_headers", "x-fapi-interaction-id", ConditionResult.INFO, EnsureMatchingFAPIInteractionId.class, ConditionResult.FAILURE, "FAPI2-IMP-2.1.1");
 		}
 
 		sendNotificationIfSupported();
@@ -1066,14 +1016,12 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractFAPI2SPFinalSe
 	protected void sendNotificationIfSupported() {
 
 		call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
-		callAndContinueOnFailure(VCIExtractNotificationIdFromCredentialResponse.class,
-			ConditionResult.FAILURE, "OID4VCI-1FINAL-8.3");
+		callAndContinueOnFailure(VCIExtractNotificationIdFromCredentialResponse.class, ConditionResult.FAILURE, "OID4VCI-1FINAL-8.3");
 		call(exec().unmapKey("endpoint_response"));
 
 		String notificationId = env.getString("notification_id");
 		if (notificationId == null) {
-			eventLog.log(getName(),
-				"No notification_id in credential response, skipping attempt to send a notification");
+			eventLog.log(getName(), "No notification_id in credential response, skipping attempt to send a notification");
 			eventLog.endBlock();
 			return;
 		}
@@ -1096,8 +1044,7 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractFAPI2SPFinalSe
 		if (isDpop()) {
 			requestProtectedResourceUsingDpop();
 		} else {
-			callAndStopOnFailure(CallProtectedResource.class,
-				"OID4VCI-1FINAL-11", "FAPI2-SP-FINAL-5.3.4-2");
+			callAndStopOnFailure(CallProtectedResource.class, "OID4VCI-1FINAL-11", "FAPI2-SP-FINAL-5.3.4-2");
 		}
 		eventLog.endBlock();
 
@@ -1114,8 +1061,7 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractFAPI2SPFinalSe
 	}
 
 	protected void validateNotificationEndpointResponse() {
-		callAndContinueOnFailure(EnsureHttpStatusCodeIs2xx.class,
-			ConditionResult.FAILURE, "OID4VCI-1FINAL-11.2");
+		callAndContinueOnFailure(EnsureHttpStatusCodeIs2xx.class, ConditionResult.FAILURE, "OID4VCI-1FINAL-11.2");
 	}
 
 	protected void createNotificationRequest() {
@@ -1146,16 +1092,13 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractFAPI2SPFinalSe
 		if (isDpop()) {
 			requestProtectedResourceUsingDpop();
 		} else {
-			callAndStopOnFailure(CallProtectedResource.class,
-				"OID4VCI-1FINAL-9", "FAPI2-SP-FINAL-5.3.4-2");
+			callAndStopOnFailure(CallProtectedResource.class, "OID4VCI-1FINAL-9", "FAPI2-SP-FINAL-5.3.4-2");
 		}
 
 		call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
 
-		callAndContinueOnFailure(new EnsureHttpStatusCodeIsAnyOf(200, 202),
-			ConditionResult.FAILURE, "OID4VCI-1FINAL-9.2");
-		callAndContinueOnFailure(EnsureContentTypeJson.class,
-			ConditionResult.WARNING, "OID4VCI-1FINAL-9.2");
+		callAndContinueOnFailure(new EnsureHttpStatusCodeIsAnyOf(200, 202), ConditionResult.FAILURE, "OID4VCI-1FINAL-9.2");
+		callAndContinueOnFailure(EnsureContentTypeJson.class, ConditionResult.WARNING, "OID4VCI-1FINAL-9.2");
 
 		eventLog.endBlock();
 	}
@@ -1164,15 +1107,11 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractFAPI2SPFinalSe
 
 	protected void afterNonceEndpointResponse() {
 		call(exec().mapKey("endpoint_response", "nonce_endpoint_response"));
-		callAndContinueOnFailure(EnsureHttpStatusCodeIs200.class,
-			ConditionResult.FAILURE, "OID4VCI-1FINAL-7.2");
-		callAndContinueOnFailure(EnsureContentTypeJson.class,
-			ConditionResult.WARNING, "OID4VCI-1FINAL-7.2");
+		callAndContinueOnFailure(EnsureHttpStatusCodeIs200.class, ConditionResult.FAILURE, "OID4VCI-1FINAL-7.2");
+		callAndContinueOnFailure(EnsureContentTypeJson.class, ConditionResult.WARNING, "OID4VCI-1FINAL-7.2");
 
-		callAndContinueOnFailure(CheckCacheControlHeaderContainsNoStore.class,
-			ConditionResult.FAILURE, "OID4VCI-1FINAL-7.2");
-		callAndStopOnFailure(VCIValidateCredentialNonceResponse.class,
-			ConditionResult.FAILURE, "OID4VCI-1FINAL-7.2");
+		callAndContinueOnFailure(CheckCacheControlHeaderContainsNoStore.class, ConditionResult.FAILURE, "OID4VCI-1FINAL-7.2");
+		callAndStopOnFailure(VCIValidateCredentialNonceResponse.class, ConditionResult.FAILURE, "OID4VCI-1FINAL-7.2");
 	}
 
 	/**
@@ -1197,8 +1136,7 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractFAPI2SPFinalSe
 		env.mapKey("client_jwks", "client_jwks2");
 		env.mapKey("mutual_tls_authentication", "mutual_tls_authentication2");
 
-		if (env.getString("config", "client.scope") != null
-			&& env.getString("client", "scope") == null) {
+		if (env.getString("config", "client.scope") != null && env.getString("client", "scope") == null) {
 			env.putString("client", "scope", env.getString("config", "client.scope"));
 		}
 	}
