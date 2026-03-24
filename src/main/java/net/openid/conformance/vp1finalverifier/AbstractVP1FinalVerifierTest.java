@@ -211,7 +211,7 @@ public abstract class AbstractVP1FinalVerifierTest extends AbstractTestModule {
 			}
 			case X509_SAN_DNS -> {
 				callAndStopOnFailure(OIDCCGetStaticClientConfigurationForRPTests.class);
-				callAndStopOnFailure(OID4VPSetClientIdToIncludeClientIdScheme.class, "OID4VP-1FINAL-5.10.1");
+				callAndStopOnFailure(OID4VPSetClientIdToIncludeClientIdScheme.class, "OID4VP-1FINAL-5.9.3");
 			}
 		}
 	}
@@ -296,7 +296,7 @@ public abstract class AbstractVP1FinalVerifierTest extends AbstractTestModule {
 	}
 
 	protected void extractNonceFromAuthorizationEndpointRequestParameters() {
-		callAndStopOnFailure(ExtractNonceFromAuthorizationRequest.class, ConditionResult.FAILURE, "OID4VP-ID2-5.2");
+		callAndStopOnFailure(ExtractNonceFromAuthorizationRequest.class, ConditionResult.FAILURE, "OID4VP-1FINAL-5.2");
 		// FIXME entropy / size check on nonce? valid characters?
 	}
 
@@ -365,11 +365,11 @@ public abstract class AbstractVP1FinalVerifierTest extends AbstractTestModule {
 
 		// check redirect uri not present
 
-		callAndContinueOnFailure(EnsureValidResponseUriForAuthorizationEndpointRequest.class, ConditionResult.FAILURE,"OID4VP-ID2-6.2");
+		callAndContinueOnFailure(EnsureValidResponseUriForAuthorizationEndpointRequest.class, ConditionResult.FAILURE,"OID4VP-1FINAL-8.2");
 
 		// FIXME: validate rest of request
 		// FIXME: validate client_metadata
-		callAndContinueOnFailure(VP1FinalCheckForUnexpectedParametersInVpClientMetadata.class, ConditionResult.WARNING);
+		callAndContinueOnFailure(VP1FinalCheckForUnexpectedParametersInVpClientMetadata.class, ConditionResult.WARNING, "OID4VP-1FINAL-5.1");
 
 		switch (responseMode) {
 			case DIRECT_POST_JWT:
@@ -405,7 +405,7 @@ public abstract class AbstractVP1FinalVerifierTest extends AbstractTestModule {
 		//callAndContinueOnFailure(ValidateRequestObjectAud.class, ConditionResult.WARNING, "OIDCC-6.1");
 
 		// FIXME probably need to somehow validate the x5c header is trusted/valid for the client
-		callAndContinueOnFailure(ValidateRequestObjectSignatureAgainstX5cHeader.class, ConditionResult.FAILURE, "OID4VP-1FINAL-5.10.4");
+		callAndContinueOnFailure(ValidateRequestObjectSignatureAgainstX5cHeader.class, ConditionResult.FAILURE, "OID4VP-1FINAL-5.9.3");
 	}
 
 	protected void setAuthorizationEndpointRequestParamsForHttpMethod() {
@@ -471,7 +471,7 @@ public abstract class AbstractVP1FinalVerifierTest extends AbstractTestModule {
 				callAndStopOnFailure(CreateMdocCredential.class);
 			}
 		}
-		callAndStopOnFailure(AddVP1FinalDCQLVPTokenToAuthorizationEndpointResponseParams.class, "OID4VP-1FINAL-7.1");
+		callAndStopOnFailure(AddVP1FinalDCQLVPTokenToAuthorizationEndpointResponseParams.class, "OID4VP-1FINAL-8.1");
 
 		customizeAuthorizationEndpointResponseParams();
 
