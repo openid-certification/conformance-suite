@@ -161,7 +161,6 @@ import java.util.function.Supplier;
 	FAPIOpenIDConnect.class,
 	FAPI2SenderConstrainMethod.class,
 	FAPI2FinalOPProfile.class,
-	FAPIOpenIDConnect.class,
 	FAPIResponseMode.class,
 	AuthorizationRequestType.class,
 	VCIGrantType.class,
