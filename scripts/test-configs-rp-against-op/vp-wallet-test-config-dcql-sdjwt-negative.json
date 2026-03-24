@@ -1,0 +1,66 @@
+{
+    "alias": "oidf-vp-test-verifier",
+    "description": "OID4VP RP against OP (wallet test - DCQL - SD-JWT negative)",
+    "server": {
+        "authorization_endpoint": "{BASEURL}test/a/oidf-vp-test-wallet/authorize"
+    },
+    "client": {
+        "jwks": {
+            "keys": [
+                {vp-signing-jwk.json}
+            ]
+        },
+        "dcql": {
+            "credentials": [
+                {
+                    "id": "my_credential",
+                    "format": "mso_mdoc",
+                    "meta": {
+                        "doctype_value": "org.iso.7367.1.mVRC"
+                    },
+                    "claims": [
+                        {
+                            "path": [
+                                "org.iso.7367.1",
+                                "vehicle_holder"
+                            ]
+                        },
+                        {
+                            "path": [
+                                "org.iso.18013.5.1",
+                                "first_name"
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+    },
+    "browser": [
+        {
+            "comment": "expect an immediate redirect back to the conformance suite",
+            "match": "https://*/test/a/*/authorize*",
+            "tasks": [
+                {
+                    "task": "Verify Complete",
+                    "match": "*/test/*/callback*",
+                    "comment": "declaring both this and the next task as optional means this configuration works regardless of whether a url is returned in the direct post response",
+                    "optional": true,
+                    "commands": [
+                        [
+                            "wait",
+                            "id",
+                            "submission_complete",
+                            10
+                        ]
+                    ]
+                },
+                {
+                    "task": "Verify Complete",
+                    "optional": true,
+                    "match": "https://*/test/a/*/authorize*"
+                }
+            ]
+        }
+    ]
+}

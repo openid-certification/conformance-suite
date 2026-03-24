@@ -58,5 +58,123 @@
         "condition": "ParseCredentialAsMdoc",
         "expected-result": "failure",
         "comment": "Wallet receives credential with invalid session transcript from the verifier negative test"
+    },
+    {
+        "test-name": "oid4vp-1final-wallet-happy-flow-no-state",
+        "variant": {
+            "credential_format": "sd_jwt_vc"
+        },
+        "configuration-filename": "*vp-wallet-test-config-dcql-sdjwt-negative.json",
+        "current-block": "Verify key binding JWT",
+        "condition": "ValidateSdJwtKeyBindingSignature",
+        "expected-result": "failure",
+        "comment": "Wallet receives credential with invalid KB-JWT signature from the verifier negative test"
+    },
+    {
+        "test-name": "oid4vp-1final-wallet-happy-flow-no-state",
+        "variant": {
+            "credential_format": "sd_jwt_vc"
+        },
+        "configuration-filename": "*vp-wallet-test-config-dcql-sdjwt-negative.json",
+        "current-block": "Verify key binding JWT",
+        "condition": "ValidateSdJwtKbSdHash",
+        "expected-result": "failure",
+        "comment": "Wallet receives credential with invalid sd_hash or corrupted issuer signature from the verifier negative test"
+    },
+    {
+        "test-name": "oid4vp-1final-wallet-happy-flow-no-state",
+        "variant": {
+            "credential_format": "sd_jwt_vc"
+        },
+        "configuration-filename": "*vp-wallet-test-config-dcql-sdjwt-negative.json",
+        "current-block": "Verify key binding JWT",
+        "condition": "CheckNonceInBindingJwt",
+        "expected-result": "failure",
+        "comment": "Wallet receives credential with invalid nonce in KB-JWT from the verifier negative test"
+    },
+    {
+        "test-name": "oid4vp-1final-wallet-happy-flow-no-state",
+        "variant": {
+            "credential_format": "sd_jwt_vc"
+        },
+        "configuration-filename": "*vp-wallet-test-config-dcql-sdjwt-negative.json",
+        "current-block": "Verify key binding JWT",
+        "condition": "CheckAudInBindingJwt",
+        "expected-result": "failure",
+        "comment": "Wallet receives credential with invalid aud in KB-JWT from the verifier negative test"
+    },
+    {
+        "test-name": "oid4vp-1final-wallet-happy-flow-no-state",
+        "variant": {
+            "credential_format": "sd_jwt_vc"
+        },
+        "configuration-filename": "*vp-wallet-test-config-dcql-sdjwt-negative.json",
+        "current-block": "Verify key binding JWT",
+        "condition": "CheckIatInBindingJwt",
+        "expected-result": "failure",
+        "comment": "Wallet receives credential with invalid iat in KB-JWT from the verifier negative test"
+    },
+    {
+        "test-name": "oid4vp-1final-verifier-invalid-kb-jwt-signature",
+        "variant": "*",
+        "configuration-filename": "*vp-verifier-test-config.json",
+        "current-block": "Authorization endpoint",
+        "condition": "EnsureHttpStatusCodeIs4xx",
+        "expected-result": "failure",
+        "comment": "The paired wallet test does not perform KB-JWT signature validation so returns 200 instead of 4xx"
+    },
+    {
+        "test-name": "oid4vp-1final-verifier-invalid-credential-signature",
+        "variant": "*",
+        "configuration-filename": "*vp-verifier-test-config.json",
+        "current-block": "Authorization endpoint",
+        "condition": "EnsureHttpStatusCodeIs4xx",
+        "expected-result": "failure",
+        "comment": "The paired wallet test does not perform issuer signature validation so returns 200 instead of 4xx"
+    },
+    {
+        "test-name": "oid4vp-1final-verifier-invalid-sd-hash",
+        "variant": "*",
+        "configuration-filename": "*vp-verifier-test-config.json",
+        "current-block": "Authorization endpoint",
+        "condition": "EnsureHttpStatusCodeIs4xx",
+        "expected-result": "failure",
+        "comment": "The paired wallet test does not perform sd_hash validation so returns 200 instead of 4xx"
+    },
+    {
+        "test-name": "oid4vp-1final-verifier-invalid-kb-jwt-nonce",
+        "variant": "*",
+        "configuration-filename": "*vp-verifier-test-config.json",
+        "current-block": "Authorization endpoint",
+        "condition": "EnsureHttpStatusCodeIs4xx",
+        "expected-result": "failure",
+        "comment": "The paired wallet test does not perform KB-JWT nonce validation so returns 200 instead of 4xx"
+    },
+    {
+        "test-name": "oid4vp-1final-verifier-invalid-kb-jwt-aud",
+        "variant": "*",
+        "configuration-filename": "*vp-verifier-test-config.json",
+        "current-block": "Authorization endpoint",
+        "condition": "EnsureHttpStatusCodeIs4xx",
+        "expected-result": "failure",
+        "comment": "The paired wallet test does not perform KB-JWT aud validation so returns 200 instead of 4xx"
+    },
+    {
+        "test-name": "oid4vp-1final-verifier-kb-jwt-iat-in-past",
+        "variant": "*",
+        "configuration-filename": "*vp-verifier-test-config.json",
+        "current-block": "Authorization endpoint",
+        "condition": "EnsureHttpStatusCodeIs4xx",
+        "expected-result": "failure",
+        "comment": "The paired wallet test does not perform KB-JWT iat validation so returns 200 instead of 4xx"
+    },
+    {
+        "test-name": "oid4vp-1final-verifier-kb-jwt-iat-in-future",
+        "variant": "*",
+        "configuration-filename": "*vp-verifier-test-config.json",
+        "current-block": "Authorization endpoint",
+        "condition": "EnsureHttpStatusCodeIs4xx",
+        "expected-result": "failure",
+        "comment": "The paired wallet test does not perform KB-JWT iat validation so returns 200 instead of 4xx"
     }
 ]
