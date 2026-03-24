@@ -382,7 +382,7 @@ public abstract class AbstractFAPI2SPFinalServerTestModule extends AbstractRedir
 	protected boolean profileRequiresMtlsEverywhere;
 	protected boolean useDpopAuthCodeBinding;
 	protected boolean isRarRequest;
-	protected boolean clientCredentailsGrant;
+	protected boolean clientCredentialsGrant;
 	protected FAPI2ProfileBehavior profileBehavior;
 
 	// for variants to fill in by calling the setup... family of methods
@@ -434,7 +434,7 @@ public abstract class AbstractFAPI2SPFinalServerTestModule extends AbstractRedir
 
 		profileBehavior.initializeVariants();
 
-		if (! clientCredentailsGrant) {
+		if (! clientCredentialsGrant) {
 			callAndStopOnFailure(CreateRedirectUri.class);
 
 			// this is inserted by the create call above, expose it to the test environment for publication
@@ -449,7 +449,7 @@ public abstract class AbstractFAPI2SPFinalServerTestModule extends AbstractRedir
 		}
 
 		// make sure the server configuration passes some basic sanity checks
-		if (clientCredentailsGrant) {
+		if (clientCredentialsGrant) {
 			callAndStopOnFailure(CheckClientCredentialsOnlyServerConfiguration.class);
 		}
 		else {
@@ -565,7 +565,7 @@ public abstract class AbstractFAPI2SPFinalServerTestModule extends AbstractRedir
 
 		setStatus(Status.RUNNING);
 
-		if (clientCredentailsGrant) {
+		if (clientCredentialsGrant) {
 			performCredentialsFlow();
 		}
 		else {
@@ -790,7 +790,7 @@ public abstract class AbstractFAPI2SPFinalServerTestModule extends AbstractRedir
 		eventLog.startBlock(currentClientString() + "Call token endpoint");
 
 		// call the token endpoint and complete the flow
-		if (clientCredentailsGrant) {
+		if (clientCredentialsGrant) {
 			createClientCredentialsGrantRequest();
 
 			callSenderConstrainedTokenEndpoint();
@@ -888,7 +888,7 @@ public abstract class AbstractFAPI2SPFinalServerTestModule extends AbstractRedir
 		// scope is not *required* to be returned as the request was passed in signed request object - FAPI-R-5.2.2-15
 		// https://gitlab.com/openid/conformance-suite/issues/617
 
-		if (clientCredentailsGrant) {
+		if (clientCredentialsGrant) {
 			// FIXME: Treating as a warning until there is a resolution in:
 			// https://bitbucket.org/openid/fapi/issues/756/certification-team-query-refresh-tokens-in
 			callAndContinueOnFailure(EnsureNoRefreshTokenInTokenResponse.class, ConditionResult.WARNING, "RFC6749-4.4.3");

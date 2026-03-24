@@ -11,7 +11,7 @@ public abstract class AbstractFAPI2SPFinalPerformTokenEndpoint extends AbstractF
 	protected void performPostAuthorizationFlow() {
 
 		// call the token endpoint and complete the flow
-		if (clientCredentailsGrant) {
+		if (clientCredentialsGrant) {
 			createClientCredentialsGrantRequest();
 
 			callSenderConstrainedTokenEndpoint();

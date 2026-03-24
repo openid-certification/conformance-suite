@@ -68,7 +68,7 @@ public class FAPI2SPFinalEnsureHolderOfKeyRequired extends AbstractFAPI2SPFinalS
 
 		// check that all known endpoints support TLS correctly
 
-		if (! clientCredentailsGrant) {
+		if (! clientCredentialsGrant) {
 			eventLog.startBlock("Authorization endpoint TLS test");
 			env.mapKey("tls", "authorization_endpoint_tls");
 			callAndContinueOnFailure(EnsureTLS12RequireBCP195Ciphers.class, Condition.ConditionResult.FAILURE, "FAPI2-SP-FINAL-5.2.3-2", "FAPI-ISSUES-847");
@@ -102,7 +102,7 @@ public class FAPI2SPFinalEnsureHolderOfKeyRequired extends AbstractFAPI2SPFinalS
 		eventLog.endBlock();
 		env.unmapKey("tls");
 
-		if (clientCredentailsGrant) {
+		if (clientCredentialsGrant) {
 			performCredentialsFlow();
 		}
 		else {
@@ -117,7 +117,7 @@ public class FAPI2SPFinalEnsureHolderOfKeyRequired extends AbstractFAPI2SPFinalS
 
 	@Override
 	protected void performPostAuthorizationFlow() {
-		if (clientCredentailsGrant) {
+		if (clientCredentialsGrant) {
 			createClientCredentialsGrantRequest();
 		}
 		else {
