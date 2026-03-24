@@ -1,8 +1,6 @@
 package net.openid.conformance.vp1finalverifier;
 
-import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.condition.as.InvalidateNonce;
-import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs4xx;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.VariantNotApplicable;
 
@@ -26,16 +24,11 @@ import net.openid.conformance.variant.VariantNotApplicable;
 	}
 )
 @VariantNotApplicable(parameter = VP1FinalVerifierCredentialFormat.class, values = {"sd_jwt_vc"})
-public class VP1FinalVerifierInvalidSessionTranscript extends AbstractVP1FinalVerifierTest {
+public class VP1FinalVerifierInvalidSessionTranscript extends AbstractVP1FinalVerifierNegativeTest {
 
 	@Override
 	protected void createIsoMdlSessionTranscript() {
 		callAndStopOnFailure(InvalidateNonce.class);
 		super.createIsoMdlSessionTranscript();
-	}
-
-	@Override
-	protected void validateDirectPostEndpointResponse() {
-		callAndContinueOnFailure(EnsureHttpStatusCodeIs4xx.class, ConditionResult.FAILURE, "OID4VP-1FINAL-8.2");
 	}
 }
