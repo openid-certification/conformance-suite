@@ -34,7 +34,7 @@ public class VP1FinalVerifierHappyFlow extends AbstractVP1FinalVerifierTest {
 	protected void extractNonceFromAuthorizationEndpointRequestParameters() {
 		super.extractNonceFromAuthorizationEndpointRequestParameters();
 
-		callAndContinueOnFailure(CheckForInvalidCharsInNonce.class, ConditionResult.FAILURE, "OID4VP-ID2-5.2");
+		callAndContinueOnFailure(CheckForInvalidCharsInNonce.class, ConditionResult.FAILURE, "OID4VP-1FINAL-5.2");
 		callAndContinueOnFailure(CheckNonceMinimumLength.class, ConditionResult.WARNING);
 		callAndContinueOnFailure(CheckNonceMaximumLength.class, ConditionResult.WARNING);
 	}

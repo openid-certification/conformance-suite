@@ -18,8 +18,8 @@ public class AddVP1FinalIsoMdocClientMetadataToAuthorizationRequest extends Abst
 {
 	"vp_formats_supported": {
 	  "mso_mdoc": {
-		"alg": [
-		  "ES256"
+		"issuerauth_alg_values": [
+		  -7
 		]
 	  }
 	}

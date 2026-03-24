@@ -47,6 +47,8 @@ import net.openid.conformance.condition.as.SetRequestUriParameterSupportedToTrue
 import net.openid.conformance.condition.as.VP1FinalCheckForKeyIdInClientMetadataJWKs;
 import net.openid.conformance.condition.as.VP1FinalCheckForUnexpectedParametersInVpClientMetadata;
 import net.openid.conformance.condition.as.VP1FinalEncryptVPResponse;
+import net.openid.conformance.condition.as.VP1FinalValidateClientMetadataJwksForEncryptedResponse;
+import net.openid.conformance.condition.as.VP1FinalValidateVpFormatsSupportedInClientMetadata;
 import net.openid.conformance.condition.as.ValidateDirectPostResponse;
 import net.openid.conformance.condition.as.ValidateEncryptedRequestObjectHasKid;
 import net.openid.conformance.condition.as.ValidateRequestObjectIat;
@@ -138,6 +140,8 @@ public abstract class AbstractVP1FinalVerifierTest extends AbstractTestModule {
 
 		clientRequestType = getVariant(VP1FinalVerifierRequestMethod.class);
 
+		env.putString("credential_format", getVariant(VP1FinalVerifierCredentialFormat.class).toString());
+
 		configureServerConfiguration();
 
 		String authz = env.getString("server", "authorization_endpoint");
@@ -211,7 +215,7 @@ public abstract class AbstractVP1FinalVerifierTest extends AbstractTestModule {
 			}
 			case X509_SAN_DNS -> {
 				callAndStopOnFailure(OIDCCGetStaticClientConfigurationForRPTests.class);
-				callAndStopOnFailure(OID4VPSetClientIdToIncludeClientIdScheme.class, "OID4VP-1FINAL-5.10.1");
+				callAndStopOnFailure(OID4VPSetClientIdToIncludeClientIdScheme.class, "OID4VP-1FINAL-5.9.3");
 			}
 		}
 	}
@@ -296,7 +300,7 @@ public abstract class AbstractVP1FinalVerifierTest extends AbstractTestModule {
 	}
 
 	protected void extractNonceFromAuthorizationEndpointRequestParameters() {
-		callAndStopOnFailure(ExtractNonceFromAuthorizationRequest.class, ConditionResult.FAILURE, "OID4VP-ID2-5.2");
+		callAndStopOnFailure(ExtractNonceFromAuthorizationRequest.class, ConditionResult.FAILURE, "OID4VP-1FINAL-5.2");
 		// FIXME entropy / size check on nonce? valid characters?
 	}
 
@@ -365,15 +369,17 @@ public abstract class AbstractVP1FinalVerifierTest extends AbstractTestModule {
 
 		// check redirect uri not present
 
-		callAndContinueOnFailure(EnsureValidResponseUriForAuthorizationEndpointRequest.class, ConditionResult.FAILURE,"OID4VP-ID2-6.2");
+		callAndContinueOnFailure(EnsureValidResponseUriForAuthorizationEndpointRequest.class, ConditionResult.FAILURE,"OID4VP-1FINAL-8.2");
 
 		// FIXME: validate rest of request
 		// FIXME: validate client_metadata
-		callAndContinueOnFailure(VP1FinalCheckForUnexpectedParametersInVpClientMetadata.class, ConditionResult.WARNING);
+		callAndContinueOnFailure(VP1FinalCheckForUnexpectedParametersInVpClientMetadata.class, ConditionResult.WARNING, "OID4VP-1FINAL-5.1");
+		callAndContinueOnFailure(VP1FinalValidateVpFormatsSupportedInClientMetadata.class, ConditionResult.FAILURE, "OID4VP-1FINALA-B.2.2", "OID4VP-1FINALA-B.3.4");
 
 		switch (responseMode) {
 			case DIRECT_POST_JWT:
 				callAndContinueOnFailure(VP1FinalCheckForKeyIdInClientMetadataJWKs.class, ConditionResult.FAILURE, "OID4VP-1FINAL-5.1");
+				callAndContinueOnFailure(VP1FinalValidateClientMetadataJwksForEncryptedResponse.class, ConditionResult.FAILURE, "OID4VP-1FINAL-8.3");
 				break;
 			case DIRECT_POST:
 				break;
@@ -405,7 +411,7 @@ public abstract class AbstractVP1FinalVerifierTest extends AbstractTestModule {
 		//callAndContinueOnFailure(ValidateRequestObjectAud.class, ConditionResult.WARNING, "OIDCC-6.1");
 
 		// FIXME probably need to somehow validate the x5c header is trusted/valid for the client
-		callAndContinueOnFailure(ValidateRequestObjectSignatureAgainstX5cHeader.class, ConditionResult.FAILURE, "OID4VP-1FINAL-5.10.4");
+		callAndContinueOnFailure(ValidateRequestObjectSignatureAgainstX5cHeader.class, ConditionResult.FAILURE, "OID4VP-1FINAL-5.9.3");
 	}
 
 	protected void setAuthorizationEndpointRequestParamsForHttpMethod() {
@@ -471,7 +477,7 @@ public abstract class AbstractVP1FinalVerifierTest extends AbstractTestModule {
 				callAndStopOnFailure(CreateMdocCredential.class);
 			}
 		}
-		callAndStopOnFailure(AddVP1FinalDCQLVPTokenToAuthorizationEndpointResponseParams.class, "OID4VP-1FINAL-7.1");
+		callAndStopOnFailure(AddVP1FinalDCQLVPTokenToAuthorizationEndpointResponseParams.class, "OID4VP-1FINAL-8.1");
 
 		customizeAuthorizationEndpointResponseParams();
 
