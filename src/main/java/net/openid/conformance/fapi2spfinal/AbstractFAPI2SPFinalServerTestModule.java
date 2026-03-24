@@ -414,7 +414,7 @@ public abstract class AbstractFAPI2SPFinalServerTestModule extends AbstractRedir
 	}
 
 	@Override
-	public final void configure(JsonObject config, String baseUrl, String externalUrlOverride, String baseMtlsUrl) {
+	public void configure(JsonObject config, String baseUrl, String externalUrlOverride, String baseMtlsUrl) {
 		env.putString("base_url", baseUrl);
 		env.putString("base_mtls_url", baseMtlsUrl);
 		env.putObject("config", config);

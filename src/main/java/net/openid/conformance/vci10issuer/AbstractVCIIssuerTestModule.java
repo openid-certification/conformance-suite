@@ -138,6 +138,21 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractFAPI2SPFinalSe
 
 	// --- Configuration overrides ---
 
+	protected void initializeVciVariants() {
+		clientAuthType = getVariant(ClientAuthType.class);
+		fapi2Profile = getVariant(FAPI2FinalOPProfile.class);
+		vciGrantType = getVariant(VCIGrantType.class);
+		vciAuthorizationCodeFlowVariant = getVariant(VCIAuthorizationCodeFlowVariant.class);
+		vciCredentialFormat = getVariant(VCI1FinalCredentialFormat.class);
+		vciCredentialEncryption = getVariant(VCICredentialEncryption.class);
+	}
+
+	@Override
+	public void configure(JsonObject config, String baseUrl, String externalUrlOverride, String baseMtlsUrl) {
+		initializeVciVariants();
+		super.configure(config, baseUrl, externalUrlOverride, baseMtlsUrl);
+	}
+
 	@Override
 	protected void configureClient() {
 		callAndStopOnFailure(GetStaticClientConfiguration.class);
@@ -155,11 +170,11 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractFAPI2SPFinalSe
 		}
 
 		// Load credential encryption JWKS if encryption is enabled
-		if (getVariant(VCICredentialEncryption.class) == VCICredentialEncryption.ENCRYPTED) {
+		if (vciCredentialEncryption == VCICredentialEncryption.ENCRYPTED) {
 			callAndStopOnFailure(VCIGenerateCredentialEncryptionJwks.class);
 		}
 
-		if (getVariant(FAPI2FinalOPProfile.class) == FAPI2FinalOPProfile.VCI_HAIP) {
+		if (fapi2Profile == FAPI2FinalOPProfile.VCI_HAIP) {
 			setupHaipClients();
 		}
 
@@ -173,14 +188,6 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractFAPI2SPFinalSe
 
 	@Override
 	protected void onConfigure(JsonObject config, String baseUrl) {
-		// Initialize VCI-specific variant fields
-		clientAuthType = getVariant(ClientAuthType.class);
-		fapi2Profile = getVariant(FAPI2FinalOPProfile.class);
-		vciGrantType = getVariant(VCIGrantType.class);
-		vciAuthorizationCodeFlowVariant = getVariant(VCIAuthorizationCodeFlowVariant.class);
-		vciCredentialFormat = getVariant(VCI1FinalCredentialFormat.class);
-		vciCredentialEncryption = getVariant(VCICredentialEncryption.class);
-
 		// Check if encryption is supported by the issuer
 		if (vciCredentialEncryption == VCICredentialEncryption.ENCRYPTED) {
 			JsonElement algValuesEl = env.getElementFromObject("vci",
@@ -586,19 +593,7 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractFAPI2SPFinalSe
 		env.putString("resource_endpoint_request_headers", "Content-Type", "application/json");
 
 		if (requiresCryptographicBinding != null && requiresCryptographicBinding) {
-			// determine if requested credential requires key attestation
-			callAndContinueOnFailure(VCIGenerateKeyAttestationIfNecessary.class, ConditionResult.FAILURE, "HAIPA-D.1", "OID4VCI-1FINALA-D.1");
-
-			afterKeyAttestationGeneration();
-
-			String proofTypeKey = env.getString("vci_proof_type_key");
-			if ("jwt".equals(proofTypeKey)) {
-				callAndStopOnFailure(VCIGenerateJwtProof.class, "OID4VCI-1FINALA-F.1");
-			} else if ("attestation".equals(proofTypeKey)) {
-				callAndStopOnFailure(VCIGenerateAttestationProof.class, "OID4VCI-1FINALA-F.3");
-			}
-
-			afterProofGeneration();
+			generateKeyAttestationAndProof();
 		} else {
 			eventLog.log(getName(), "Skipping proof generation - credential configuration does not require cryptographic binding");
 		}
@@ -667,6 +662,24 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractFAPI2SPFinalSe
 	}
 
 	/**
+	 * Generate key attestation (if necessary) and proof for the credential request.
+	 * Called when cryptographic binding is required.
+	 */
+	protected void generateKeyAttestationAndProof() {
+		callAndContinueOnFailure(VCIGenerateKeyAttestationIfNecessary.class,
+			ConditionResult.FAILURE, "HAIPA-D.1", "OID4VCI-1FINALA-D.1");
+		afterKeyAttestationGeneration();
+
+		String proofTypeKey = env.getString("vci_proof_type_key");
+		if ("jwt".equals(proofTypeKey)) {
+			callAndStopOnFailure(VCIGenerateJwtProof.class, "OID4VCI-1FINALA-F.1");
+		} else if ("attestation".equals(proofTypeKey)) {
+			callAndStopOnFailure(VCIGenerateAttestationProof.class, "OID4VCI-1FINALA-F.3");
+		}
+		afterProofGeneration();
+	}
+
+	/**
 	 * Refresh the credential request by re-fetching a nonce, regenerating proof/key attestation,
 	 * and recreating the credential request body. Use this instead of updateResourceRequest() when
 	 * calling the credential endpoint again after a successful response, as the wallet consumes
@@ -692,17 +705,7 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractFAPI2SPFinalSe
 		env.putString("resource_endpoint_request_headers", "Content-Type", "application/json");
 
 		if (requiresCryptographicBinding != null && requiresCryptographicBinding) {
-			callAndContinueOnFailure(VCIGenerateKeyAttestationIfNecessary.class,
-				ConditionResult.FAILURE, "HAIPA-D.1", "OID4VCI-1FINALA-D.1");
-			afterKeyAttestationGeneration();
-
-			String proofTypeKey = env.getString("vci_proof_type_key");
-			if ("jwt".equals(proofTypeKey)) {
-				callAndStopOnFailure(VCIGenerateJwtProof.class, "OID4VCI-1FINALA-F.1");
-			} else if ("attestation".equals(proofTypeKey)) {
-				callAndStopOnFailure(VCIGenerateAttestationProof.class, "OID4VCI-1FINALA-F.3");
-			}
-			afterProofGeneration();
+			generateKeyAttestationAndProof();
 		}
 
 		createCredentialRequest();
