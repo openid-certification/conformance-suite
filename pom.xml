@@ -11,14 +11,6 @@
 	<name>Conformance Suite</name>
 	<description>Network based protocol tester for OpenID Foundation specifications etc.</description>
 
-	<repositories>
-		<repository>
-			<id>gmaven</id>
-			<name>gmaven</name>
-			<url>https://maven.google.com</url>
-		</repository>
-	</repositories>
-
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
@@ -206,12 +198,12 @@
 		<dependency>
 			<groupId>org.multipaz</groupId>
 			<artifactId>multipaz-jvm</artifactId>
-			<version>0.97.0</version>
+			<version>0.98.0</version>
 		</dependency>
 		<dependency>
 			<groupId>org.multipaz</groupId>
 			<artifactId>multipaz-doctypes-jvm</artifactId>
-			<version>0.97.0</version>
+			<version>0.98.0</version>
 		</dependency>
 
 		<dependency>

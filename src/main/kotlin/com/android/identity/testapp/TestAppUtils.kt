@@ -19,7 +19,7 @@ import org.multipaz.document.Document
 import org.multipaz.document.DocumentStore
 import org.multipaz.document.buildDocumentStore
 import org.multipaz.mdoc.devicesigned.DeviceNamespaces
-import org.multipaz.documenttype.DocumentCannedRequest
+import org.multipaz.documenttype.SingleDocumentCannedRequest
 import org.multipaz.documenttype.DocumentType
 import org.multipaz.documenttype.knowntypes.DrivingLicense
 import org.multipaz.documenttype.knowntypes.EUPersonalID
@@ -109,7 +109,7 @@ object TestAppUtils {
 		return Cbor.encode(deviceResponse.toDataItem())
 	}
     fun generateEncodedDeviceRequest(
-        request: DocumentCannedRequest,
+        request: SingleDocumentCannedRequest,
         encodedSessionTranscript: ByteArray,
         readerKey: EcPrivateKey,
         readerCert: X509Cert,
