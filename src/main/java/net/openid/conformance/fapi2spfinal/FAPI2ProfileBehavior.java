@@ -2,11 +2,11 @@ package net.openid.conformance.fapi2spfinal;
 
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.Condition.ConditionResult;
+import net.openid.conformance.condition.as.FAPI2FinalEnsureMinimumServerKeyLength;
 import net.openid.conformance.condition.client.AddFAPIAuthDateToResourceEndpointRequest;
 import net.openid.conformance.condition.client.AddFAPIInteractionIdToResourceEndpointRequest;
 import net.openid.conformance.condition.client.AddIpV4FapiCustomerIpAddressToResourceEndpointRequest;
 import net.openid.conformance.condition.client.CheckForFAPIInteractionIdInResourceResponse;
-import net.openid.conformance.condition.as.FAPI2FinalEnsureMinimumServerKeyLength;
 import net.openid.conformance.condition.client.CreateRandomFAPIInteractionId;
 import net.openid.conformance.condition.client.EnsureMatchingFAPIInteractionId;
 import net.openid.conformance.condition.client.FAPI2ValidateIdTokenSigningAlg;
