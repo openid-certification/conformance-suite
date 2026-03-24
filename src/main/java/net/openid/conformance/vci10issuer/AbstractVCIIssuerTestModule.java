@@ -308,8 +308,8 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractFAPI2SPFinalSe
 		if (clientAuthType == ClientAuthType.CLIENT_ATTESTATION) {
 			if (env.getString("config", "vci.client_attestation_issuer") == null) {
 				throw new TestFailureException(getId(),
-					"vci.client_attestation_issuer must be configured if client_attestation"
-						+ " is configured as client authentication method.");
+					"'Client Attestation Issuer' must be configured in the 'VCI' section "
+						+ "in the test configuration when client_attestation is the client authentication method.");
 			}
 		}
 
