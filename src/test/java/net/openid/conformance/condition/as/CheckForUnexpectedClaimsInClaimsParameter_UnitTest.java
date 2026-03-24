@@ -45,18 +45,16 @@ public class CheckForUnexpectedClaimsInClaimsParameter_UnitTest {
 	public void testEvaluate_noErrors() {
 		// All claims are valid.
 		JsonObject authRequestClaims = JsonParser.parseString("{" +
-			"    \"claims\": {" +
 			"	 \"claims\": {" +
 			"	     \"userinfo\": {" +
 			"	     }," +
 			"	     \"id_token\": {" +
 			"	     }" +
 			"	 }" +
-			"    }" +
 			"}")
 		.getAsJsonObject();
 
-		env.putObject("authorization_request_object", authRequestClaims);
+		env.putObject(CreateEffectiveAuthorizationRequestParameters.ENV_KEY, authRequestClaims);
 
 		cond.execute(env);
 	}
@@ -69,7 +67,6 @@ public class CheckForUnexpectedClaimsInClaimsParameter_UnitTest {
 		assertThrows(ConditionError.class, () -> {
 			// The 'email' claim is invalid.
 			JsonObject authRequestClaims = JsonParser.parseString("{" +
-				"    \"claims\": {" +
 				"	 \"claims\": {" +
 				"	     \"userinfo\": {" +
 				"	     }," +
@@ -77,11 +74,10 @@ public class CheckForUnexpectedClaimsInClaimsParameter_UnitTest {
 				"	     }," +
 				"	     \"email\": \"example@example.com\"" +
 				"	 }" +
-				"    }" +
 				"}")
 				.getAsJsonObject();
 
-			env.putObject("authorization_request_object", authRequestClaims);
+			env.putObject(CreateEffectiveAuthorizationRequestParameters.ENV_KEY, authRequestClaims);
 
 			cond.execute(env);
 		});

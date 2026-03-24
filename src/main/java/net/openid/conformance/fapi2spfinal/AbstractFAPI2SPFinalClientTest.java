@@ -47,8 +47,8 @@ import net.openid.conformance.condition.as.CheckForUnexpectedClaimsInClaimsParam
 import net.openid.conformance.condition.as.CheckForUnexpectedClaimsInRequestObject;
 import net.openid.conformance.condition.as.CheckForUnexpectedOpenIdClaims;
 import net.openid.conformance.condition.as.CheckPkceCodeVerifier;
-import net.openid.conformance.condition.as.CheckRequestObjectClaimsParameterMemberValues;
-import net.openid.conformance.condition.as.CheckRequestObjectClaimsParameterValues;
+import net.openid.conformance.condition.as.CheckRequestClaimsParameterMemberValues;
+import net.openid.conformance.condition.as.CheckRequestClaimsParameterValues;
 import net.openid.conformance.condition.as.CopyAccessTokenToClientCredentialsField;
 import net.openid.conformance.condition.as.CopyAccessTokenToDpopClientCredentialsField;
 import net.openid.conformance.condition.as.CreateAuthorizationCode;
@@ -64,6 +64,7 @@ import net.openid.conformance.condition.as.CreateTokenEndpointResponse;
 import net.openid.conformance.condition.as.EncryptJARMResponse;
 import net.openid.conformance.condition.as.EnsureAuthorizationRequestContainsPkceCodeChallenge;
 import net.openid.conformance.condition.as.EnsureAuthorizationRequestContainsStateParameter;
+import net.openid.conformance.condition.as.EnsureClaimsParameterNotPresentInPlainOAuthRequest;
 import net.openid.conformance.condition.as.EnsureClientCertificateMatches;
 import net.openid.conformance.condition.as.EnsureClientIdInAuthorizationRequestParametersMatchRequestObject;
 import net.openid.conformance.condition.as.EnsureClientJwksDoesNotContainPrivateOrSymmetricKeys;
@@ -1373,14 +1374,17 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 		}
 
 		if (fapiClientType == FAPIClientType.OIDC) {
-			skipIfElementMissing("authorization_request_object", "claims.claims", ConditionResult.INFO,
+			skipIfElementMissing(CreateEffectiveAuthorizationRequestParameters.ENV_KEY, "claims", ConditionResult.INFO,
 				CheckForUnexpectedClaimsInClaimsParameter.class, ConditionResult.WARNING, "OIDCC-5.5");
-			skipIfElementMissing("authorization_request_object", "claims.claims", ConditionResult.INFO,
+			skipIfElementMissing(CreateEffectiveAuthorizationRequestParameters.ENV_KEY, "claims", ConditionResult.INFO,
 				CheckForUnexpectedOpenIdClaims.class, ConditionResult.WARNING, "OIDCC-5.1", "OIDCC-5.5.1.1", "BrazilOB-7.2.2-8", "BrazilOB-7.2.2-10", "OBSP-3.4");
-			skipIfElementMissing("authorization_request_object", "claims.claims", ConditionResult.INFO,
-				CheckRequestObjectClaimsParameterValues.class, ConditionResult.FAILURE, "OIDCC-5.5");
-			skipIfElementMissing("authorization_request_object", "claims.claims", ConditionResult.INFO,
-				CheckRequestObjectClaimsParameterMemberValues.class, ConditionResult.FAILURE, "OIDCC-5.5.1");
+			skipIfElementMissing(CreateEffectiveAuthorizationRequestParameters.ENV_KEY, "claims", ConditionResult.INFO,
+				CheckRequestClaimsParameterValues.class, ConditionResult.FAILURE, "OIDCC-5.5");
+			skipIfElementMissing(CreateEffectiveAuthorizationRequestParameters.ENV_KEY, "claims", ConditionResult.INFO,
+				CheckRequestClaimsParameterMemberValues.class, ConditionResult.FAILURE, "OIDCC-5.5.1");
+		} else {
+			// this is a failure because it shows an incorrect test configuration
+			callAndContinueOnFailure(EnsureClaimsParameterNotPresentInPlainOAuthRequest.class, ConditionResult.FAILURE);
 		}
 
 		callAndStopOnFailure(EnsureAuthorizationRequestContainsPkceCodeChallenge.class, "FAPI2-SP-FINAL-5.3.3.2-3");

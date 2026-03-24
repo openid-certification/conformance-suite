@@ -45,7 +45,6 @@ public class CheckForUnexpectedOpenIdClaims_UnitTest {
 	public void testEvaluate_noErrors() {
 		// All claims are valid.
 		JsonObject authRequestClaims = JsonParser.parseString("{" +
-			"    \"claims\": {" +
 			"	 \"claims\": {" +
 			"	     \"userinfo\": {" +
 			"		 \"family_name\": {" +
@@ -54,11 +53,10 @@ public class CheckForUnexpectedOpenIdClaims_UnitTest {
 			"	     \"id_token\": {" +
 			"	     }" +
 			"	 }" +
-			"    }" +
 			"}")
 		.getAsJsonObject();
 
-		env.putObject("authorization_request_object", authRequestClaims);
+		env.putObject(CreateEffectiveAuthorizationRequestParameters.ENV_KEY, authRequestClaims);
 
 		cond.execute(env);
 	}
@@ -71,7 +69,6 @@ public class CheckForUnexpectedOpenIdClaims_UnitTest {
 		assertThrows(ConditionError.class, () -> {
 			// The 'family name' claim is invalid.
 			JsonObject authRequestClaims = JsonParser.parseString("{" +
-				"    \"claims\": {" +
 				"	 \"claims\": {" +
 				"	     \"userinfo\": {" +
 				"		 \"family name\": {" +
@@ -80,11 +77,10 @@ public class CheckForUnexpectedOpenIdClaims_UnitTest {
 				"	     \"id_token\": {" +
 				"	     }" +
 				"	 }" +
-				"    }" +
 				"}")
 				.getAsJsonObject();
 
-			env.putObject("authorization_request_object", authRequestClaims);
+			env.putObject(CreateEffectiveAuthorizationRequestParameters.ENV_KEY, authRequestClaims);
 
 			cond.execute(env);
 		});

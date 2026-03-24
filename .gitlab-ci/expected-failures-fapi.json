@@ -44,7 +44,7 @@
         },
         "configuration-filename": "*fapi-au-connectid-rp-test-config-1.json",
         "current-block": "Authorization endpoint",
-        "condition": "CheckRequestObjectClaimsParameterMemberValues",
+        "condition": "CheckRequestClaimsParameterMemberValues",
         "expected-result": "failure",
         "comment": "allow intentional unknown value in authorization request object"
     },
@@ -85,7 +85,7 @@
         },
         "configuration-filename": "*fapi-au-connectid-rp-test-config-1.json",
         "current-block": "Authorization endpoint",
-        "condition": "CheckRequestObjectClaimsParameterMemberValues",
+        "condition": "CheckRequestClaimsParameterMemberValues",
         "expected-result": "failure",
         "comment": "allow intentional unknown value in authorization request object"
     },
