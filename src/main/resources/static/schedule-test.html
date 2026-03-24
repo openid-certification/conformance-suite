@@ -2875,9 +2875,21 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
             }
         }
 
+        var savedVariantSelections = {};
+
         function updateVariants() {
             var map = FAPI_UI.availablePlans;
             var itemSelected = document.getElementById('planSelect').value;
+
+            // Merge current selections into persistent store so they survive
+            // intermediate states where no plan is selected (e.g. changing
+            // spec version when multiple plans exist).
+            var currentVariants = getSelectedVariant();
+            _.each(currentVariants, function(value, key) {
+                if (value && value !== 'select') {
+                    savedVariantSelections[key] = value;
+                }
+            });
 
             const node = document.getElementById('variantSelectors');
             while (node.firstChild) {
@@ -2932,6 +2944,13 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
                         let variantSelect = document.getElementById(id);
                         variantSelect.value = paramValue;
                         variantSelect.dispatchEvent(new Event('change'));
+                    } else if (savedVariantSelections[parameter] && savedVariantSelections[parameter] !== 'select') {
+                        let variantSelect = document.getElementById(id);
+                        variantSelect.value = savedVariantSelections[parameter];
+                        if (variantSelect.value !== savedVariantSelections[parameter]) {
+                            // Value doesn't exist in this plan's options; show placeholder
+                            variantSelect.value = 'select';
+                        }
                     }
                 });
 
