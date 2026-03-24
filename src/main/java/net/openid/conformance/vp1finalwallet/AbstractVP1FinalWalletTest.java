@@ -91,7 +91,7 @@ import net.openid.conformance.condition.client.ValidateJWEHeaderEncMatchesReques
 import net.openid.conformance.condition.client.ValidateJWEHeaderKidIsInClientMetadataJWKs;
 import net.openid.conformance.condition.client.ValidateSdJwtKbSdHash;
 import net.openid.conformance.condition.client.ValidateSdJwtKeyBindingSignature;
-import net.openid.conformance.condition.client.WarnUnknownDCQLProperties;
+import net.openid.conformance.condition.client.CheckForUnexpectedParametersInDcqlQuery;
 import net.openid.conformance.condition.common.CheckDistinctKeyIdValueInClientJWKs;
 import net.openid.conformance.condition.common.CreateRandomBrowserApiSubmitUrl;
 import net.openid.conformance.condition.common.CreateRandomRequestUriWithoutFragment;
@@ -401,7 +401,7 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 
 			callAndStopOnFailure(ExtractDCQLQueryFromClientConfiguration.class);
 			callAndContinueOnFailure(ValidateDCQLQuery.class, ConditionResult.FAILURE, "OID4VP-1FINAL-6");
-			callAndContinueOnFailure(WarnUnknownDCQLProperties.class, ConditionResult.WARNING, "OID4VP-1FINAL-6");
+			callAndContinueOnFailure(CheckForUnexpectedParametersInDcqlQuery.class, ConditionResult.WARNING, "OID4VP-1FINAL-6");
 			callAndStopOnFailure(AddDcqlToAuthorizationEndpointRequest.class);
 
 			callAndStopOnFailure(CreateRandomNonceValue.class);

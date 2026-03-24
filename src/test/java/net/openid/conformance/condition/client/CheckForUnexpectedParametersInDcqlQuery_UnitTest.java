@@ -19,9 +19,9 @@ import java.util.Map;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 
 @ExtendWith(MockitoExtension.class)
-public class WarnUnknownDCQLProperties_UnitTest extends AbstractVciUnitTest {
+public class CheckForUnexpectedParametersInDcqlQuery_UnitTest extends AbstractVciUnitTest {
 
-	private WarnUnknownDCQLProperties cond;
+	private CheckForUnexpectedParametersInDcqlQuery cond;
 
 	@Mock
 	private TestInstanceEventLog eventLog;
@@ -30,7 +30,7 @@ public class WarnUnknownDCQLProperties_UnitTest extends AbstractVciUnitTest {
 
 	@BeforeEach
 	public void setUp() throws Exception {
-		cond = new WarnUnknownDCQLProperties();
+		cond = new CheckForUnexpectedParametersInDcqlQuery();
 		cond.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
 		env = new Environment();
 	}
@@ -77,7 +77,7 @@ public class WarnUnknownDCQLProperties_UnitTest extends AbstractVciUnitTest {
 		putDcql(json);
 
 		Map<String, Object> data = assertValidationError(cond, env, eventLog);
-		assertContainsErrorWithMessageFragment(data, "$.credentials[0].unexpected", "additional properties");
+		assertUnknownPropertyAtPath(data,"$.credentials[0].unexpected");
 	}
 
 	@Test
@@ -101,7 +101,7 @@ public class WarnUnknownDCQLProperties_UnitTest extends AbstractVciUnitTest {
 		putDcql(json);
 
 		Map<String, Object> data = assertValidationError(cond, env, eventLog);
-		assertContainsErrorWithMessageFragment(data, "$.unexpected_top", "additional properties");
+		assertUnknownPropertyAtPath(data,"$.unexpected_top");
 	}
 
 	@Test
@@ -125,7 +125,7 @@ public class WarnUnknownDCQLProperties_UnitTest extends AbstractVciUnitTest {
 		putDcql(json);
 
 		Map<String, Object> data = assertValidationError(cond, env, eventLog);
-		assertContainsErrorWithMessageFragment(data, "$.credentials[0].meta.unexpected_meta", "additional properties");
+		assertUnknownPropertyAtPath(data,"$.credentials[0].meta.unexpected_meta");
 	}
 
 	@Test
@@ -156,7 +156,7 @@ public class WarnUnknownDCQLProperties_UnitTest extends AbstractVciUnitTest {
 		putDcql(json);
 
 		Map<String, Object> data = assertValidationError(cond, env, eventLog);
-		assertContainsErrorWithMessageFragment(data, "$.credentials[0].claims[0].unexpected_claim", "additional properties");
+		assertUnknownPropertyAtPath(data,"$.credentials[0].claims[0].unexpected_claim");
 	}
 
 	@Test
@@ -188,7 +188,7 @@ public class WarnUnknownDCQLProperties_UnitTest extends AbstractVciUnitTest {
 		putDcql(json);
 
 		Map<String, Object> data = assertValidationError(cond, env, eventLog);
-		assertContainsErrorWithMessageFragment(data, "$.credentials[0].trusted_authorities[0].unexpected_auth", "additional properties");
+		assertUnknownPropertyAtPath(data,"$.credentials[0].trusted_authorities[0].unexpected_auth");
 	}
 
 	@Test
@@ -221,7 +221,7 @@ public class WarnUnknownDCQLProperties_UnitTest extends AbstractVciUnitTest {
 		putDcql(json);
 
 		Map<String, Object> data = assertValidationError(cond, env, eventLog);
-		assertContainsErrorWithMessageFragment(data, "$.credential_sets[0].unexpected_set", "additional properties");
+		assertUnknownPropertyAtPath(data,"$.credential_sets[0].unexpected_set");
 	}
 
 	@Test
@@ -254,7 +254,7 @@ public class WarnUnknownDCQLProperties_UnitTest extends AbstractVciUnitTest {
 		putDcql(json);
 
 		Map<String, Object> data = assertValidationError(cond, env, eventLog);
-		assertContainsErrorWithMessageFragment(data, "$.credential_sets_unexpected", "additional properties");
+		assertUnknownPropertyAtPath(data,"$.credential_sets_unexpected");
 	}
 
 	@Test
@@ -276,27 +276,18 @@ public class WarnUnknownDCQLProperties_UnitTest extends AbstractVciUnitTest {
 		env.putObject("dcql_query", dcql);
 	}
 
-	private void assertContainsErrorWithMessageFragment(Map<String, Object> data, String property, String expectedErrorFragment) {
-		JsonObject entry = findErrorByPath(data, property);
-		org.junit.jupiter.api.Assertions.assertNotNull(entry, "No error found for path: " + property);
-		String propertyError = OIDFJSON.getString(entry.get("error"));
-		org.junit.jupiter.api.Assertions.assertTrue(propertyError.contains(expectedErrorFragment));
-	}
+	private void assertUnknownPropertyAtPath(Map<String, Object> data, String expectedPath) {
+		Object unknownProperties = data.get("unknown_properties");
+		org.junit.jupiter.api.Assertions.assertInstanceOf(java.util.List.class, unknownProperties);
 
-	private JsonObject findErrorByPath(Map<String, Object> data, String property) {
-		Object invalidEntries = data.get("invalid_entries");
-		org.junit.jupiter.api.Assertions.assertTrue(invalidEntries instanceof java.util.List<?>);
-
-		for (Object entry : (java.util.List<?>) invalidEntries) {
-			if (!(entry instanceof JsonObject)) {
-				continue;
-			}
-			String propertyPath = OIDFJSON.getString(((JsonObject) entry).get("path"));
-			if (property.equals(propertyPath)) {
-				return (JsonObject) entry;
+		for (Object entry : (java.util.List<?>) unknownProperties) {
+			if (entry instanceof JsonObject jsonEntry) {
+				String path = OIDFJSON.getString(jsonEntry.get("path"));
+				if (expectedPath.equals(path)) {
+					return;
+				}
 			}
 		}
-
-		return null;
+		org.junit.jupiter.api.Assertions.fail("No unknown property found at path: " + expectedPath);
 	}
 }
