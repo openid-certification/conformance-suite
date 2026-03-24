@@ -27,7 +27,7 @@ public class CheckForUnexpectedParametersInPostLogoutRedirect extends AbstractCo
 		});
 
 		if (unexpectedParams.size() != 0) {
-			throw error("post_logout_redirect includes unexpected parameters in url query. This may be because the server supports extensions the test suite is unaware of, or the server may be sending values it should not.", unexpectedParams);
+			throw error("post_logout_redirect includes unexpected parameters in url query. This may indicate the server has misunderstood the spec, or it may be using extensions the test suite is unaware of.", unexpectedParams);
 		}
 
 		logSuccess("post_logout_redirect includes only expected parameters", params);

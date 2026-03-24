@@ -29,7 +29,7 @@ public abstract class AbstractValidateSuccessfulResponseFromAuthorizationEndpoin
 		if (unexpectedParams.size() == 0) {
 			logSuccess("authorization endpoint response does not include unexpected parameters", callbackParams);
 		} else {
-			throw error("authorization endpoint response includes unexpected parameters. This may be because the authorization server supports protocol extensions the conformance suite is unaware of, but may also be because the server is implementing the specification incorrectly.", unexpectedParams);
+			throw error("authorization endpoint response includes unexpected parameters. This may indicate the authorization server has misunderstood the spec, or it may be using extensions the test suite is unaware of.", unexpectedParams);
 		}
 
 		return env;

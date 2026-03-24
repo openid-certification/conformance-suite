@@ -35,7 +35,7 @@ public class VPID2CheckForUnexpectedParametersInVpAuthorizationResponse extends 
 		if (unexpectedParams.size() == 0) {
 			logSuccess("authorization response includes only expected parameters", callbackParams);
 		} else {
-			throw error("authorization response includes unexpected parameters. This may be because the server supports extensions the test suite is unaware of, or the server may be returning values it should not, or returning values in an incorrect location.", unexpectedParams);
+			throw error("authorization response includes unexpected parameters. This may indicate the wallet has misunderstood the spec, or it may be using extensions the test suite is unaware of.", unexpectedParams);
 		}
 
 		return env;
