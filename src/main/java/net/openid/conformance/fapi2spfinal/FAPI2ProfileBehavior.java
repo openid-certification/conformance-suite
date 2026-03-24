@@ -17,6 +17,11 @@ import net.openid.conformance.condition.client.ValidateClientJWKsPrivatePart;
 import net.openid.conformance.condition.common.FAPI2CheckKeyAlgInClientJWKs;
 import net.openid.conformance.sequence.AbstractConditionSequence;
 import net.openid.conformance.sequence.ConditionSequence;
+import net.openid.conformance.testmodule.TestFailureException;
+import net.openid.conformance.variant.AuthorizationRequestType;
+import net.openid.conformance.variant.FAPI2AuthRequestMethod;
+import net.openid.conformance.variant.FAPIOpenIDConnect;
+import net.openid.conformance.variant.FAPIResponseMode;
 
 import java.util.function.Supplier;
 
@@ -323,12 +328,22 @@ public class FAPI2ProfileBehavior {
 	// --- Hook methods for VCI extension ---
 
 	/**
-	 * Called at the very beginning of configure() to allow profiles to initialize
-	 * variant-derived fields before the standard configure logic reads them.
-	 * VCI overrides to set isOpenId=false, jarm=false, and init VCI variant fields.
+	 * Called at the very beginning of configure() to initialize variant-derived fields.
+	 * The default implementation reads standard FAPI2 variants.
+	 * VCI overrides to set VCI-specific defaults (e.g. jarm=false, isOpenId=false).
 	 */
 	public void initializeVariants() {
-		// plain FAPI: no early initialization needed
+		module.jarm = module.getVariant(FAPIResponseMode.class) == FAPIResponseMode.JARM;
+		module.isPar = true;
+		if (module.getVariant(FAPIOpenIDConnect.class) == FAPIOpenIDConnect.PLAIN_OAUTH && module.scopeContains("openid")) {
+			throw new TestFailureException(module.getId(), "openid scope cannot be used with PLAIN_OAUTH");
+		}
+		module.isOpenId = module.getVariant(FAPIOpenIDConnect.class) == FAPIOpenIDConnect.OPENID_CONNECT;
+		module.isSignedRequest = module.getVariant(FAPI2AuthRequestMethod.class) == FAPI2AuthRequestMethod.SIGNED_NON_REPUDIATION;
+		module.isRarRequest = module.getVariant(AuthorizationRequestType.class) == AuthorizationRequestType.RAR;
+		module.clientCredentailsGrant = isClientCredentialsGrantOnly();
+		module.useDpopAuthCodeBinding = false;
+		module.profileRequiresMtlsEverywhere = requiresMtlsEverywhere();
 	}
 
 	/**

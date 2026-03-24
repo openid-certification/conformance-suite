@@ -9,6 +9,7 @@ import net.openid.conformance.condition.as.FAPI2FinalEnsureMinimumClientKeyLengt
 import net.openid.conformance.condition.as.FAPIBrazilEncryptRequestObject;
 import net.openid.conformance.condition.as.FAPIBrazilSetPaymentDateToToday;
 import net.openid.conformance.condition.client.AddAudToRequestObject;
+import net.openid.conformance.condition.client.AddClientAttestationClientAuthToEndpointRequest;
 import net.openid.conformance.condition.client.AddClientIdToRequestObject;
 import net.openid.conformance.condition.client.AddCodeVerifierToTokenEndpointRequest;
 import net.openid.conformance.condition.client.AddExpToRequestObject;
@@ -132,7 +133,6 @@ import net.openid.conformance.sequence.client.SetupPkceAndAddToAuthorizationRequ
 import net.openid.conformance.sequence.client.SupportMTLSEndpointAliases;
 import net.openid.conformance.testmodule.AbstractRedirectServerTestModule;
 import net.openid.conformance.testmodule.TestFailureException;
-import net.openid.conformance.condition.client.AddClientAttestationClientAuthToEndpointRequest;
 import net.openid.conformance.variant.AuthorizationRequestType;
 import net.openid.conformance.variant.ClientAuthType;
 import net.openid.conformance.variant.FAPI2AuthRequestMethod;
@@ -374,15 +374,15 @@ import java.util.function.Supplier;
 public abstract class AbstractFAPI2SPFinalServerTestModule extends AbstractRedirectServerTestModule {
 
 	protected int whichClient;
-	protected Boolean jarm;
+	protected boolean jarm;
 	protected boolean allowPlainErrorResponseForJarm = false;
-	protected Boolean isPar;
-	protected Boolean isOpenId;
-	protected Boolean isSignedRequest;
-	protected Boolean profileRequiresMtlsEverywhere;
-	protected Boolean useDpopAuthCodeBinding;
-	protected Boolean isRarRequest;
-	protected Boolean clientCredentailsGrant;
+	protected boolean isPar;
+	protected boolean isOpenId;
+	protected boolean isSignedRequest;
+	protected boolean profileRequiresMtlsEverywhere;
+	protected boolean useDpopAuthCodeBinding;
+	protected boolean isRarRequest;
+	protected boolean clientCredentailsGrant;
 	protected FAPI2ProfileBehavior profileBehavior;
 
 	// for variants to fill in by calling the setup... family of methods
@@ -432,38 +432,7 @@ public abstract class AbstractFAPI2SPFinalServerTestModule extends AbstractRedir
 			return;
 		}
 
-		// Allow profile behavior to initialize variant-derived fields first.
-		// If initializeVariants() sets fields (e.g. VCI sets jarm=false, isOpenId=false),
-		// those values are kept. Otherwise the standard FAPI2 variant reads apply.
 		profileBehavior.initializeVariants();
-
-		if (jarm == null) {
-			jarm = getVariant(FAPIResponseMode.class) == FAPIResponseMode.JARM;
-		}
-		if (isPar == null) {
-			isPar = true;
-		}
-		if (isOpenId == null) {
-			if (getVariant(FAPIOpenIDConnect.class) == FAPIOpenIDConnect.PLAIN_OAUTH && scopeContains("openid")) {
-				throw new TestFailureException(getId(), "openid scope cannot be used with PLAIN_OAUTH");
-			}
-			isOpenId = getVariant(FAPIOpenIDConnect.class) == FAPIOpenIDConnect.OPENID_CONNECT;
-		}
-		if (isSignedRequest == null) {
-			isSignedRequest = getVariant(FAPI2AuthRequestMethod.class) == FAPI2AuthRequestMethod.SIGNED_NON_REPUDIATION;
-		}
-		if (isRarRequest == null) {
-			isRarRequest = getVariant(AuthorizationRequestType.class) == AuthorizationRequestType.RAR;
-		}
-		if (clientCredentailsGrant == null) {
-			clientCredentailsGrant = profileBehavior.isClientCredentialsGrantOnly();
-		}
-		if (useDpopAuthCodeBinding == null) {
-			useDpopAuthCodeBinding = false;
-		}
-		if (profileRequiresMtlsEverywhere == null) {
-			profileRequiresMtlsEverywhere = profileBehavior.requiresMtlsEverywhere();
-		}
 
 		if (! clientCredentailsGrant) {
 			callAndStopOnFailure(CreateRedirectUri.class);

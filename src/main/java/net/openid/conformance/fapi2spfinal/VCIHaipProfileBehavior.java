@@ -10,8 +10,4 @@ package net.openid.conformance.fapi2spfinal;
  * - x5c header required for SD-JWT credentials
  */
 public class VCIHaipProfileBehavior extends VCIProfileBehavior {
-
-	protected boolean isHaip() {
-		return true;
-	}
 }
