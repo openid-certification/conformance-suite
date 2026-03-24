@@ -645,7 +645,7 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 				, Set.of("OIDCAEP-3.2"));
 
 			case SsfEvents.CAEP_CREDENTIAL_CHANGE_EVENT_TYPE -> new SsfEvent(eventType
-				, Map.of("event_timest a mp", timestamp,
+				, Map.of("event_timestamp", timestamp,
 				"credential_type", "fido2-roaming",
 				"change_type", "create",
 				"fido2_aaguid", "accced6a-63f5-490a-9eea-e59bc1896cfc",
