@@ -11,9 +11,11 @@ import net.openid.conformance.openid.ssf.conditions.subjects.OIDSSFAddSubjectToS
 import net.openid.conformance.openid.ssf.conditions.subjects.OIDSSFRemoveSubjectToStreamConfigCall;
 import net.openid.conformance.openid.ssf.variant.SsfAuthMode;
 import net.openid.conformance.openid.ssf.variant.SsfDeliveryMode;
+import net.openid.conformance.openid.ssf.variant.SsfProfile;
 import net.openid.conformance.openid.ssf.variant.SsfServerMetadata;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.VariantConfigurationFields;
+import net.openid.conformance.variant.VariantNotApplicable;
 import net.openid.conformance.variant.VariantParameters;
 
 @PublishTestModule(
@@ -30,7 +32,9 @@ import net.openid.conformance.variant.VariantParameters;
 	SsfServerMetadata.class,
 	SsfAuthMode.class,
 	SsfDeliveryMode.class,
+	SsfProfile.class,
 })
+@VariantNotApplicable(parameter = SsfProfile.class, values = "caep_interop")
 @VariantConfigurationFields(parameter = SsfServerMetadata.class, value="static", configurationFields = {
 	"ssf.transmitter.configuration_metadata_endpoint",
 })
