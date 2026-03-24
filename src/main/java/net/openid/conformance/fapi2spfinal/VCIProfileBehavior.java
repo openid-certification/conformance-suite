@@ -47,7 +47,7 @@ public class VCIProfileBehavior extends FAPI2ProfileBehavior {
 		module.useDpopAuthCodeBinding = false;
 		module.profileRequiresMtlsEverywhere = false;
 		// VCI never uses client credentials grant
-		module.clientCredentailsGrant = false;
+		module.clientCredentialsGrant = false;
 	}
 
 	@Override

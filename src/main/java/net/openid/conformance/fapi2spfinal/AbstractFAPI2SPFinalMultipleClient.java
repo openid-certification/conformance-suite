@@ -24,7 +24,7 @@ public abstract class AbstractFAPI2SPFinalMultipleClient extends AbstractFAPI2SP
 	protected void onPostAuthorizationFlowComplete() {
 		if (!isSecondClient()) {
 			// Try the second client
-			if (clientCredentailsGrant) {
+			if (clientCredentialsGrant) {
 				performCredentialsFlowWithSecondClient();
 			}
 			else {

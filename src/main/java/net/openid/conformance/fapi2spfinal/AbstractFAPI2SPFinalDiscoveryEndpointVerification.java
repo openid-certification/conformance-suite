@@ -47,7 +47,7 @@ public abstract class AbstractFAPI2SPFinalDiscoveryEndpointVerification extends 
 	private Class<? extends ConditionSequence> supportMTLSEndpointAliases;
 
 	protected Boolean isDpop;
-	protected boolean clientCredentailsGrant = false;
+	protected boolean clientCredentialsGrant = false;
 
 	public static class MtlsChecks extends AbstractConditionSequence
 	{
@@ -112,14 +112,14 @@ public abstract class AbstractFAPI2SPFinalDiscoveryEndpointVerification extends 
 			callAndContinueOnFailure(CheckTLSClientCertificateBoundAccessTokensTrue.class, Condition.ConditionResult.FAILURE, "FAPI2-SP-FINAL-5.3.3.1-5", "RFC8705-3.3");
 		}
 
-		if (! clientCredentailsGrant) {
+		if (! clientCredentialsGrant) {
 			callAndContinueOnFailure(FAPI2CheckDiscEndpointIdTokenSigningAlgValuesSupported.class, Condition.ConditionResult.FAILURE, "FAPI2-SP-FINAL-5.4-1");
 		}
 
 		callAndContinueOnFailure(CheckDiscEndpointTokenEndpointAuthMethodsSupportedContainsPrivateKeyOrTlsClient.class, Condition.ConditionResult.FAILURE, "FAPI2-SP-FINAL-5.3.2.1-6");
 		callAndContinueOnFailure(FAPI2CheckDiscEndpointTokenEndpointAuthSigningAlgValuesSupported.class, Condition.ConditionResult.FAILURE, "FAPI2-SP-FINAL-5.4-1");
 
-		if (! clientCredentailsGrant) {
+		if (! clientCredentialsGrant) {
 			call(condition(FAPI2CheckDiscEndpointUserinfoSigningAlgValuesSupported.class)
 				.skipIfElementMissing("server", "userinfo_signing_alg_values_supported")
 				.onFail(Condition.ConditionResult.FAILURE)
@@ -143,7 +143,7 @@ public abstract class AbstractFAPI2SPFinalDiscoveryEndpointVerification extends 
 			callAndContinueOnFailure(CheckJwksUri.class, Condition.ConditionResult.FAILURE, "OIDCD-3");
 		}
 
-		if (! clientCredentailsGrant) {
+		if (! clientCredentialsGrant) {
 			callAndContinueOnFailure(EnsureServerConfigurationSupportsCodeChallengeMethodS256.class, Condition.ConditionResult.FAILURE, "FAPI2-SP-FINAL-5.3.2.2-5");
 		}
 

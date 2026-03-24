@@ -341,7 +341,7 @@ public class FAPI2ProfileBehavior {
 		module.isOpenId = module.getVariant(FAPIOpenIDConnect.class) == FAPIOpenIDConnect.OPENID_CONNECT;
 		module.isSignedRequest = module.getVariant(FAPI2AuthRequestMethod.class) == FAPI2AuthRequestMethod.SIGNED_NON_REPUDIATION;
 		module.isRarRequest = module.getVariant(AuthorizationRequestType.class) == AuthorizationRequestType.RAR;
-		module.clientCredentailsGrant = isClientCredentialsGrantOnly();
+		module.clientCredentialsGrant = isClientCredentialsGrantOnly();
 		module.useDpopAuthCodeBinding = false;
 		module.profileRequiresMtlsEverywhere = requiresMtlsEverywhere();
 	}
