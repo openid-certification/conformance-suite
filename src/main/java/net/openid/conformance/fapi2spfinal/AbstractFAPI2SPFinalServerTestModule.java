@@ -406,11 +406,11 @@ public abstract class AbstractFAPI2SPFinalServerTestModule extends AbstractRedir
 		}
 	}
 
-	protected Boolean isDpop() {
+	protected boolean isDpop() {
 		return getVariant(FAPI2SenderConstrainMethod.class) == FAPI2SenderConstrainMethod.DPOP;
 	}
 
-	protected Boolean isMTLS() {
+	protected boolean isMTLS() {
 		return getVariant(FAPI2SenderConstrainMethod.class) == FAPI2SenderConstrainMethod.MTLS;
 	}
 
