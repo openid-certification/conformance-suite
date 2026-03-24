@@ -219,14 +219,6 @@ import java.util.function.Supplier;
 	"mtls2.cert",
 	"mtls2.ca"
 })
-@VariantConfigurationFields(parameter = ClientAuthType.class, value = "mtls", configurationFields = {
-	"mtls.key",
-	"mtls.cert",
-	"mtls.ca",
-	"mtls2.key",
-	"mtls2.cert",
-	"mtls2.ca"
-})
 // mtls fields are only necessary for non-plain_fapi profiles, but we can't use @VariantHidesConfigurationFields
 // as that would result in them not being shown for mtls client auth
 @VariantConfigurationFields(parameter = FAPI2FinalOPProfile.class, value = "openbanking_uk", configurationFields = {
