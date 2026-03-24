@@ -47,6 +47,7 @@ import net.openid.conformance.condition.as.SetRequestUriParameterSupportedToTrue
 import net.openid.conformance.condition.as.VP1FinalCheckForKeyIdInClientMetadataJWKs;
 import net.openid.conformance.condition.as.VP1FinalCheckForUnexpectedParametersInVpClientMetadata;
 import net.openid.conformance.condition.as.VP1FinalEncryptVPResponse;
+import net.openid.conformance.condition.as.VP1FinalValidateClientMetadataJwksForEncryptedResponse;
 import net.openid.conformance.condition.as.VP1FinalValidateVpFormatsSupportedInClientMetadata;
 import net.openid.conformance.condition.as.ValidateDirectPostResponse;
 import net.openid.conformance.condition.as.ValidateEncryptedRequestObjectHasKid;
@@ -378,6 +379,7 @@ public abstract class AbstractVP1FinalVerifierTest extends AbstractTestModule {
 		switch (responseMode) {
 			case DIRECT_POST_JWT:
 				callAndContinueOnFailure(VP1FinalCheckForKeyIdInClientMetadataJWKs.class, ConditionResult.FAILURE, "OID4VP-1FINAL-5.1");
+				callAndContinueOnFailure(VP1FinalValidateClientMetadataJwksForEncryptedResponse.class, ConditionResult.FAILURE, "OID4VP-1FINAL-8.3");
 				break;
 			case DIRECT_POST:
 				break;
