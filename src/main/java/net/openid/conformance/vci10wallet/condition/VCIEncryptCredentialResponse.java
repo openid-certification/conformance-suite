@@ -60,16 +60,49 @@ public class VCIEncryptCredentialResponse extends AbstractCondition {
 
 		JsonObject encryptionParams = encryptionEl.getAsJsonObject();
 
-		if (!encryptionParams.has("alg") || !encryptionParams.has("enc")) {
-			String errorDescription = "credential_response_encryption must contain 'alg' and 'enc' parameters";
+		if (!encryptionParams.has("enc")) {
+			String errorDescription = "credential_response_encryption must contain 'enc' parameter";
 			VCICredentialErrorResponseUtil.updateCredentialErrorResponseInEnv(env, VciErrorCode.INVALID_ENCRYPTION_PARAMETERS, errorDescription);
 			throw error(errorDescription,
 				args("credential_response_encryption", encryptionParams));
 		}
 
-		// Get required encryption parameters
-		String alg = OIDFJSON.getString(encryptionParams.get("alg"));
 		String enc = OIDFJSON.getString(encryptionParams.get("enc"));
+
+		if (!encryptionParams.has("jwk")) {
+			String errorDescription = "credential_response_encryption must contain 'jwk' parameter";
+			VCICredentialErrorResponseUtil.updateCredentialErrorResponseInEnv(env, VciErrorCode.INVALID_ENCRYPTION_PARAMETERS, errorDescription);
+			throw error(errorDescription,
+				args("credential_response_encryption", encryptionParams));
+		}
+
+		JsonElement jwkEl = encryptionParams.get("jwk");
+		if (!jwkEl.isJsonObject()) {
+			String errorDescription = "credential_response_encryption 'jwk' parameter must be a JSON object";
+			VCICredentialErrorResponseUtil.updateCredentialErrorResponseInEnv(env, VciErrorCode.INVALID_ENCRYPTION_PARAMETERS, errorDescription);
+			throw error(errorDescription,
+				args("credential_response_encryption", encryptionParams));
+		}
+
+		// Use the JWK provided in the request
+		JWK encryptionKey;
+		try {
+			encryptionKey = JWK.parse(jwkEl.getAsJsonObject().toString());
+		} catch (ParseException e) {
+			throw error("Failed to parse JWK from credential_response_encryption",
+				e, args("jwk", jwkEl));
+		}
+
+		String alg = null;
+		if (encryptionKey.getAlgorithm() != null) {
+			alg = encryptionKey.getAlgorithm().getName();
+		}
+
+		if (alg == null || alg.isBlank()) {
+			String errorDescription = "credential_response_encryption must identify the encryption algorithm via 'jwk.alg'";
+			VCICredentialErrorResponseUtil.updateCredentialErrorResponseInEnv(env, VciErrorCode.INVALID_ENCRYPTION_PARAMETERS, errorDescription);
+			throw error(errorDescription, args("credential_response_encryption", encryptionParams));
+		}
 
 		// Validate that the requested algorithm is supported
 		if (!SUPPORTED_ALG_VALUES.contains(alg)) {
@@ -85,27 +118,6 @@ public class VCIEncryptCredentialResponse extends AbstractCondition {
 			VCICredentialErrorResponseUtil.updateCredentialErrorResponseInEnv(env, VciErrorCode.INVALID_ENCRYPTION_PARAMETERS, errorDescription);
 			throw error(errorDescription,
 				args("enc", enc, "supported_enc_values", SUPPORTED_ENC_VALUES));
-		}
-
-		// Get the JWK for encryption (either from request or from configured wallet JWKS)
-		JWK encryptionKey = null;
-		JsonElement jwkEl = encryptionParams.get("jwk");
-
-		if (jwkEl == null || !jwkEl.isJsonObject()) {
-			throw error("credential_response_encryption must contain 'jwk' parameter");
-		}
-
-		// Use the JWK provided in the request
-		try {
-			encryptionKey = JWK.parse(jwkEl.getAsJsonObject().toString());
-		} catch (ParseException e) {
-			throw error("Failed to parse JWK from credential_response_encryption",
-				e, args("jwk", jwkEl));
-		}
-
-		if (encryptionKey == null) {
-			throw error("No suitable encryption key found. Either provide 'jwk' in credential_response_encryption or configure credential_encryption_jwks",
-				args("credential_response_encryption", encryptionParams));
 		}
 
 		// Encrypt the credential response
