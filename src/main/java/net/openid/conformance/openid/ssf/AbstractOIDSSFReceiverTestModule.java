@@ -670,7 +670,7 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 				"initiating_entity", "policy",
 				"reason_admin", Map.of("en", "Location Policy Violation: C076E8A3"),
 				"reason_user", Map.of("en", "Device is no longer in a trusted location."))
-				, Set.of("OIDCAEP-3.5")
+				, Set.of("OIDCAEP-3.5", "CAEPIOP-3.3")
 			);
 
 			case SsfEvents.CAEP_SESSION_ESTABLISHED_EVENT_TYPE -> new SsfEvent(eventType

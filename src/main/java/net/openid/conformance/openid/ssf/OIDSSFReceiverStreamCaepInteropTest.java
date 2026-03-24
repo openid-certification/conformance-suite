@@ -28,7 +28,7 @@ import java.util.concurrent.TimeUnit;
 		 * read the stream status
 		 * trigger a stream verification
 		 * acknowledge the stream verification.
-		 * retrieve and acknowledge the CAEP events 'session-revoked' and 'credential-change'""",
+		 * retrieve and acknowledge the CAEP events 'session-revoked', 'credential-change' and 'device-compliance-change'""",
 	profile = "OIDSSF"
 )
 public class OIDSSFReceiverStreamCaepInteropTest extends AbstractOIDSSFReceiverTestModule {
@@ -147,6 +147,10 @@ public class OIDSSFReceiverStreamCaepInteropTest extends AbstractOIDSSFReceiverT
 		SsfEvent credentialChange = generateSsfEventExample(SsfEvents.CAEP_CREDENTIAL_CHANGE_EVENT_TYPE, now);
 		generateSecurityEventToken = new OIDSSFGenerateStreamSET(eventStore, streamId, validSubject, credentialChange, this::onStreamEventEnqueued);
 		callAndContinueOnFailure(generateSecurityEventToken, Condition.ConditionResult.WARNING, "CAEPIOP-3.2");
+
+		SsfEvent deviceComplianceChange = generateSsfEventExample(SsfEvents.CAEP_DEVICE_COMPLIANCE_CHANGE_EVENT_TYPE, now);
+		generateSecurityEventToken = new OIDSSFGenerateStreamSET(eventStore, streamId, validSubject, deviceComplianceChange, this::onStreamEventEnqueued);
+		callAndContinueOnFailure(generateSecurityEventToken, Condition.ConditionResult.WARNING, "CAEPIOP-3.3");
 
 		// if push delivery is used - send out the events immediately
 		if (OIDSSFStreamUtils.isPushDelivery(OIDSSFStreamUtils.getStreamConfig(env, streamId))) {
