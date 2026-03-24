@@ -47,6 +47,7 @@ import net.openid.conformance.condition.as.SetRequestUriParameterSupportedToTrue
 import net.openid.conformance.condition.as.VP1FinalCheckForKeyIdInClientMetadataJWKs;
 import net.openid.conformance.condition.as.VP1FinalCheckForUnexpectedParametersInVpClientMetadata;
 import net.openid.conformance.condition.as.VP1FinalEncryptVPResponse;
+import net.openid.conformance.condition.as.VP1FinalValidateVpFormatsSupportedInClientMetadata;
 import net.openid.conformance.condition.as.ValidateDirectPostResponse;
 import net.openid.conformance.condition.as.ValidateEncryptedRequestObjectHasKid;
 import net.openid.conformance.condition.as.ValidateRequestObjectIat;
@@ -137,6 +138,8 @@ public abstract class AbstractVP1FinalVerifierTest extends AbstractTestModule {
 		env.putString("client_id_scheme", clientIdPrefix.toString());
 
 		clientRequestType = getVariant(VP1FinalVerifierRequestMethod.class);
+
+		env.putString("credential_format", getVariant(VP1FinalVerifierCredentialFormat.class).toString());
 
 		configureServerConfiguration();
 
@@ -370,6 +373,7 @@ public abstract class AbstractVP1FinalVerifierTest extends AbstractTestModule {
 		// FIXME: validate rest of request
 		// FIXME: validate client_metadata
 		callAndContinueOnFailure(VP1FinalCheckForUnexpectedParametersInVpClientMetadata.class, ConditionResult.WARNING, "OID4VP-1FINAL-5.1");
+		callAndContinueOnFailure(VP1FinalValidateVpFormatsSupportedInClientMetadata.class, ConditionResult.FAILURE, "OID4VP-1FINALA-B.2.2", "OID4VP-1FINALA-B.3.4");
 
 		switch (responseMode) {
 			case DIRECT_POST_JWT:
