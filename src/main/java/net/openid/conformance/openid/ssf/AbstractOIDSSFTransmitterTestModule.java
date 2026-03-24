@@ -21,7 +21,6 @@ import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs204Or404;
 import net.openid.conformance.condition.client.ExtractAccessTokenFromTokenResponse;
 import net.openid.conformance.condition.client.ExtractExpiresInFromTokenEndpointResponse;
 import net.openid.conformance.condition.client.ExtractJWKSDirectFromClientConfiguration;
-import net.openid.conformance.condition.client.GenerateDpopKey;
 import net.openid.conformance.condition.client.GetDynamicServerConfiguration;
 import net.openid.conformance.condition.client.GetStaticClientConfiguration;
 import net.openid.conformance.condition.client.GetStaticServerConfiguration;
@@ -41,13 +40,13 @@ import net.openid.conformance.openid.ssf.variant.SsfAuthMode;
 import net.openid.conformance.openid.ssf.variant.SsfDeliveryMode;
 import net.openid.conformance.openid.ssf.variant.SsfProfile;
 import net.openid.conformance.openid.ssf.variant.SsfServerMetadata;
-import net.openid.conformance.sequence.client.CreateDpopProofSteps;
 import net.openid.conformance.sequence.client.CreateJWTClientAuthenticationAssertionAndAddToTokenEndpointRequest;
 import net.openid.conformance.variant.ClientAuthType;
 import net.openid.conformance.variant.ClientRegistration;
 import net.openid.conformance.variant.ServerMetadata;
 import net.openid.conformance.variant.VariantConfigurationFields;
 import net.openid.conformance.variant.VariantHidesConfigurationFields;
+import net.openid.conformance.variant.VariantNotApplicable;
 import net.openid.conformance.variant.VariantParameters;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.StringUtils;
@@ -115,6 +114,7 @@ import java.util.concurrent.TimeUnit;
 	"client.scope",
 	"server.token_endpoint",
 })
+@VariantNotApplicable(parameter = ClientAuthType.class, values = "client_attestation")
 public class AbstractOIDSSFTransmitterTestModule extends AbstractOIDSSFTestModule {
 
 	protected BlockingDeque<SSfPushRequest> pushRequests = new LinkedBlockingDeque<>();
@@ -238,13 +238,6 @@ public class AbstractOIDSSFTransmitterTestModule extends AbstractOIDSSFTestModul
 					callAndStopOnFailure(ExtractJWKSDirectFromClientConfiguration.class);
 					callAndStopOnFailure(CreateTokenEndpointRequestForClientCredentialsGrant.class);
 					call(sequence(CreateJWTClientAuthenticationAssertionAndAddToTokenEndpointRequest.class));
-
-					// TODO how to determine if dpop should be used? Reuse FAPI2SenderConstrainMethod? This was an option for OKTA.
-					boolean dpop = false;
-					if (dpop) {
-						callAndStopOnFailure(GenerateDpopKey.class);
-						call(CreateDpopProofSteps.createTokenEndpointDpopSteps());
-					}
 					break;
 				case MTLS:
 					throw new UnsupportedOperationException("TODO implement me");
@@ -275,7 +268,6 @@ public class AbstractOIDSSFTransmitterTestModule extends AbstractOIDSSFTestModul
 	 * @param res          A response that will be sent from the server
 	 * @param session      Session details
 	 * @param requestParts elements from the request parsed out into a json object for use in condition classes
-	 * @return
 	 */
 	@Override
 	public Object handleHttp(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, JsonObject requestParts) {

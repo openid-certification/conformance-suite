@@ -4,6 +4,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.openid.ssf.conditions.OIDSSFLogSuccessCondition;
+import net.openid.conformance.openid.ssf.variant.SsfProfile;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 import java.util.concurrent.TimeUnit;
@@ -17,9 +18,12 @@ import java.util.concurrent.TimeUnit;
 		The testsuite expects to observe the following interactions:
 		 * create a stream
 		 * read the stream
-		 * update the stream
-		 * replace the stream
-		 * delete the stream""",
+		 * update the stream (*)
+		 * replace the stream (*)
+		 * delete the stream
+
+		(*) Note that stream update/replacements are skipped when the CAEP Interop Profile is used.
+		""",
 	profile = "OIDSSF"
 )
 public class OIDSSFReceiverHappyPathTest extends AbstractOIDSSFReceiverTestModule {
@@ -48,6 +52,13 @@ public class OIDSSFReceiverHappyPathTest extends AbstractOIDSSFReceiverTestModul
 
 	@Override
 	protected boolean isFinished() {
+
+		if (isSsfProfileEnabled(SsfProfile.CAEP_INTEROP)) {
+			return createdStreamId != null
+				&& createdStreamId.equals(readStreamId)
+				&& createdStreamId.equals(deletedStreamId);
+		}
+
 		return createdStreamId != null
 			&& createdStreamId.equals(readStreamId)
 			&& createdStreamId.equals(updatedStreamId)

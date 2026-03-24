@@ -11,9 +11,11 @@ import net.openid.conformance.openid.ssf.conditions.subjects.OIDSSFAddSubjectToS
 import net.openid.conformance.openid.ssf.conditions.subjects.OIDSSFRemoveSubjectToStreamConfigCall;
 import net.openid.conformance.openid.ssf.variant.SsfAuthMode;
 import net.openid.conformance.openid.ssf.variant.SsfDeliveryMode;
+import net.openid.conformance.openid.ssf.variant.SsfProfile;
 import net.openid.conformance.openid.ssf.variant.SsfServerMetadata;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.VariantConfigurationFields;
+import net.openid.conformance.variant.VariantNotApplicable;
 import net.openid.conformance.variant.VariantParameters;
 
 @PublishTestModule(
@@ -30,7 +32,9 @@ import net.openid.conformance.variant.VariantParameters;
 	SsfServerMetadata.class,
 	SsfAuthMode.class,
 	SsfDeliveryMode.class,
+	SsfProfile.class,
 })
+@VariantNotApplicable(parameter = SsfProfile.class, values = "caep_interop")
 @VariantConfigurationFields(parameter = SsfServerMetadata.class, value="static", configurationFields = {
 	"ssf.transmitter.configuration_metadata_endpoint",
 })
@@ -67,8 +71,7 @@ public class OIDSSFStreamSubjectControlHappyPathTest extends AbstractOIDSSFTrans
 
 		eventLog.runBlock("Validate TLS Connection", this::validateTlsConnection);
 
-		// see https://openid.net/specs/openid-caep-interoperability-profile-1_0-ID1.html
-		// OID_CAEP_INTEROP https://openid.net/specs/openid-caep-interoperability-profile-1_0-ID1.html
+		// see https://openid.github.io/sharedsignals/openid-caep-interoperability-profile-1_0.html
 		eventLog.runBlock("Prepare Transmitter Access Token", this::obtainTransmitterAccessToken);
 
 		eventLog.runBlock("Clean stream environment if necessary", this::cleanUpStreamConfigurationIfNecessary);

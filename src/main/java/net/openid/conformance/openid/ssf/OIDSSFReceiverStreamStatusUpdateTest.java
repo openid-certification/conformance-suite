@@ -4,7 +4,9 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.openid.ssf.conditions.OIDSSFLogSuccessCondition;
+import net.openid.conformance.openid.ssf.variant.SsfProfile;
 import net.openid.conformance.testmodule.PublishTestModule;
+import net.openid.conformance.variant.VariantNotApplicable;
 
 import java.util.concurrent.TimeUnit;
 
@@ -21,6 +23,7 @@ import java.util.concurrent.TimeUnit;
 		""",
 	profile = "OIDSSF"
 )
+@VariantNotApplicable(parameter=SsfProfile.class, values="caep_interop")
 public class OIDSSFReceiverStreamStatusUpdateTest extends AbstractOIDSSFReceiverTestModule {
 
 	volatile String createdStreamId;

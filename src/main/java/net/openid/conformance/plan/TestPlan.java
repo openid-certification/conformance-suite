@@ -66,6 +66,18 @@ public interface TestPlan {
 			this.key = key;
 			this.value = value;
 		}
+
+		/**
+		 * Constructs a new Variant object with a given enum type and value.
+		 * The enum value is converted to its lowercase string representation.
+		 *
+		 * @param <T>   The type of the enum.
+		 * @param key   The class of the enum type associated with this variant.
+		 * @param value An enum constant of the specified type, representing the variant value.
+		 */
+		public <T extends Enum<T>> Variant(Class<T> key, T value) {
+			this(key, value.name().toLowerCase());
+		}
 	}
 
 	/**
