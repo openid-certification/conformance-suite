@@ -29,7 +29,7 @@ public class OIDSSFSpecVersionTransmitterMetadataCheck extends AbstractCondition
 	}
 
 	/**
-	 * Valid according to https://openid.net/specs/openid-caep-interoperability-profile-1_0-ID1.html#section-2.3.1
+	 * Valid according to https://openid.github.io/sharedsignals/openid-caep-interoperability-profile-1_0.html#section-2.3.1
 	 * @param specVersion
 	 * @return
 	 */
