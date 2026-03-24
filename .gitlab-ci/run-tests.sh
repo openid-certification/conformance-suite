@@ -424,6 +424,9 @@ makeVcTests() {
     HAIP="fapi_profile=vci_haip"
     PLAINVCI="fapi_profile=vci"
     CRED_RESP_ENCR_PLAIN="vci_credential_encryption=plain"
+    CRED_RESP_ENCR_ENCRYPTED="vci_credential_encryption=encrypted"
+    ISSUANCE_DEFERRED="vci_credential_issuance_mode=deferred"
+    MDOC="credential_format=mdoc"
     SDJWTVC="credential_format=sd_jwt_vc"
     ISSUANCE_IMMEDIATE="vci_credential_issuance_mode=immediate"
     FAPI_OPENID="openid=plain_oauth"
@@ -451,6 +454,10 @@ makeVcTests() {
     TESTS="${TESTS} oid4vci-1_0-wallet-test-plan[$SIMPLE][$MTLSAUTH][$UNSIGNED][$DPOP][$ISSUERINIT][$PREAUTHCODE][$OFFERBYVALUE][$PLAINVCI][$SDJWTVC][$CRED_RESP_ENCR_PLAIN][$ISSUANCE_IMMEDIATE]:oid4vci-1_0-wallet-test-credential-issuance{oid4vci-1_0-issuer-test-plan[$SIMPLE][$MTLSAUTH][$UNSIGNED][$DPOP][$ISSUERINIT][$PREAUTHCODE][$PLAINVCI][$SDJWTVC][$CRED_RESP_ENCR_PLAIN][$FAPI_OPENID][$FAPI_RESPONSEMODE]:oid4vci-1_0-issuer-metadata-test,oid4vci-1_0-issuer-happy-flow}${SUITE_DIR}/scripts/test-configs-rp-against-op/vci-issuer-test-config-client_attestation-client-auth-dpop.json ${SUITE_DIR}/scripts/test-configs-rp-against-op/vci-wallet-test-config.json"
         # client_auth=mtls, sender_constrain=dpop, grant_type=pre_authorization_code - issuer initiated (credential offer by value)
     TESTS="${TESTS} oid4vci-1_0-wallet-test-plan[$RAR][$MTLSAUTH][$UNSIGNED][$DPOP][$ISSUERINIT][$PREAUTHCODE][$OFFERBYVALUE][$PLAINVCI][$SDJWTVC][$CRED_RESP_ENCR_PLAIN][$ISSUANCE_IMMEDIATE]:oid4vci-1_0-wallet-test-credential-issuance{oid4vci-1_0-issuer-test-plan[$RAR][$MTLSAUTH][$UNSIGNED][$DPOP][$ISSUERINIT][$PREAUTHCODE][$PLAINVCI][$SDJWTVC][$CRED_RESP_ENCR_PLAIN][$FAPI_OPENID][$FAPI_RESPONSEMODE]:oid4vci-1_0-issuer-metadata-test,oid4vci-1_0-issuer-happy-flow}${SUITE_DIR}/scripts/test-configs-rp-against-op/vci-issuer-test-config-client_attestation-client-auth-dpop.json ${SUITE_DIR}/scripts/test-configs-rp-against-op/vci-wallet-test-config.json"
+    # Deferred issuance - client_auth=client_attestation, sender_constrain=dpop
+    TESTS="${TESTS} oid4vci-1_0-wallet-test-plan[$SIMPLE][$CLIATTAUTH][$UNSIGNED][$DPOP][$WALLETINIT][$AUTHCODE][$OFFERBYVALUE][$HAIP][$SDJWTVC][$CRED_RESP_ENCR_PLAIN][$ISSUANCE_DEFERRED]:oid4vci-1_0-wallet-test-credential-issuance{oid4vci-1_0-issuer-test-plan[$SIMPLE][$CLIATTAUTH][$UNSIGNED][$DPOP][$WALLETINIT][$AUTHCODE][$HAIP][$SDJWTVC][$CRED_RESP_ENCR_PLAIN][$FAPI_OPENID][$FAPI_RESPONSEMODE]:oid4vci-1_0-issuer-metadata-test,oid4vci-1_0-issuer-happy-flow}${SUITE_DIR}/scripts/test-configs-rp-against-op/vci-issuer-test-config-client_attestation-client-auth-dpop.json ${SUITE_DIR}/scripts/test-configs-rp-against-op/vci-wallet-test-config.json"
+    # Encrypted credentials - client_auth=client_attestation, sender_constrain=dpop (uses nobinding credential)
+    TESTS="${TESTS} oid4vci-1_0-wallet-test-plan[$SIMPLE][$CLIATTAUTH][$UNSIGNED][$DPOP][$WALLETINIT][$AUTHCODE][$OFFERBYVALUE][$HAIP][$SDJWTVC][$CRED_RESP_ENCR_ENCRYPTED][$ISSUANCE_IMMEDIATE]:oid4vci-1_0-wallet-test-credential-issuance{oid4vci-1_0-issuer-test-plan[$SIMPLE][$CLIATTAUTH][$UNSIGNED][$DPOP][$WALLETINIT][$AUTHCODE][$HAIP][$SDJWTVC][$CRED_RESP_ENCR_ENCRYPTED][$FAPI_OPENID][$FAPI_RESPONSEMODE]:oid4vci-1_0-issuer-metadata-test,oid4vci-1_0-issuer-happy-flow}${SUITE_DIR}/scripts/test-configs-rp-against-op/vci-issuer-test-config-client_attestation-client-auth-dpop-nobinding.json ${SUITE_DIR}/scripts/test-configs-rp-against-op/vci-wallet-test-config.json"
 
     # Authlete Issuer tests
     TESTS="${TESTS} oid4vci-1_0-issuer-haip-test-plan[$WALLETINIT][$SDJWTVC] authlete-vci-haip.json"
