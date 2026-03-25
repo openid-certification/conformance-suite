@@ -283,7 +283,7 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractFAPI2SPFinalSe
 
 	@Override
 	public Object handleHttp(String path, HttpServletRequest req, HttpServletResponse res,
-							HttpSession session, JsonObject requestParts) {
+							 HttpSession session, JsonObject requestParts) {
 
 		String requestId = "incoming_request_" + RandomStringUtils.secure().nextAlphanumeric(37);
 		env.putObject(requestId, requestParts);
@@ -313,7 +313,7 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractFAPI2SPFinalSe
 	}
 
 	protected Object handleCredentialOffer(HttpServletRequest req, HttpServletResponse res,
-										HttpSession session, JsonObject requestParts) {
+										   HttpSession session, JsonObject requestParts) {
 
 		setStatus(Status.RUNNING);
 
@@ -399,9 +399,9 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractFAPI2SPFinalSe
 		private final VCIAuthorizationCodeFlowVariant vciAuthorizationCodeFlowVariant;
 
 		public CreateAuthorizationRequestSteps(boolean isSecondClient, boolean isOpenId, boolean usePkce,
-											Class<? extends ConditionSequence> profileAuthorizationEndpointSetupSteps,
-											VCIGrantType vciGrantType,
-											VCIAuthorizationCodeFlowVariant vciAuthorizationCodeFlowVariant) {
+											   Class<? extends ConditionSequence> profileAuthorizationEndpointSetupSteps,
+											   VCIGrantType vciGrantType,
+											   VCIAuthorizationCodeFlowVariant vciAuthorizationCodeFlowVariant) {
 			this.isSecondClient = isSecondClient;
 			this.isOpenId = isOpenId;
 			this.usePkce = usePkce;

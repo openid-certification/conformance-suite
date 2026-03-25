@@ -85,6 +85,8 @@ import net.openid.conformance.condition.as.FAPIValidateRequestObjectExp;
 import net.openid.conformance.condition.as.FAPIValidateRequestObjectMediaType;
 import net.openid.conformance.condition.as.FilterUserInfoForScopes;
 import net.openid.conformance.condition.as.GenerateAccessTokenExpiration;
+import net.openid.conformance.condition.as.GenerateAttestationChallenge;
+import net.openid.conformance.condition.as.GenerateAttestationChallengeResponse;
 import net.openid.conformance.condition.as.GenerateBearerAccessToken;
 import net.openid.conformance.condition.as.GenerateCredentialNonce;
 import net.openid.conformance.condition.as.GenerateCredentialNonceResponse;
@@ -334,6 +336,8 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 
 	public static final String NONCE_PATH = "nonce";
 
+	public static final String CHALLENGE_PATH = "challenge";
+
 	public static final String DEFERRED_CREDENTIAL_PATH = "deferred_credential";
 
 	public static final String NOTIFICATION_PATH = "notification";
@@ -400,6 +404,10 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 
 	protected Boolean isMTLSConstrain() {
 		return fapi2SenderConstrainMethod == FAPI2SenderConstrainMethod.MTLS;
+	}
+
+	protected boolean isChallengeEndpointSupported() {
+		return false;
 	}
 
 	@Override
@@ -556,6 +564,15 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 		addTokenStatusListAggregationEndpointToOauthServerMetadata();
 
 		callAndContinueOnFailure(VCIAddOpenIdCredentialToAuthorizationDetailsSupportedIfScopeIsMissing.class, ConditionResult.FAILURE, "OID4VCI-1FINAL-12.2.4-2.11.2.2");
+
+		if (isChallengeEndpointSupported()) {
+			String baseUrl = env.getString("base_url");
+			if (!baseUrl.endsWith("/")) {
+				baseUrl = baseUrl + "/";
+			}
+			String challengeEndpointUrl = baseUrl + CHALLENGE_PATH;
+			env.putString("server", "challenge_endpoint", challengeEndpointUrl);
+		}
 	}
 
 	protected void addTokenStatusListAggregationEndpointToOauthServerMetadata() {
@@ -946,6 +963,8 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 			}
 
 			return nonceEndpoint(requestId);
+		} else if (path.equals(CHALLENGE_PATH)) {
+			return challengeEndpoint(requestId);
 		} else if (path.equals(CREDENTIAL_PATH)) {
 
 			if (isMTLSConstrain()) {
@@ -1089,6 +1108,24 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 		JsonObject nonceEndpointResponse = env.getObject("credential_nonce_response");
 		JsonObject headerJson = env.getObject("credential_nonce_response_headers");
 		responseEntity = new ResponseEntity<>(nonceEndpointResponse, headersFromJson(headerJson), HttpStatus.OK);
+
+		setStatus(Status.WAITING);
+		return responseEntity;
+	}
+
+	protected Object challengeEndpoint(String requestId) {
+		setStatus(Status.RUNNING);
+
+		call(exec().startBlock("Challenge endpoint"));
+		call(exec().mapKey("incoming_request", requestId));
+		callAndContinueOnFailure(EnsureIncomingRequestMethodIsPost.class, ConditionResult.FAILURE, "OAuth2-ATCA07-8");
+		callAndStopOnFailure(GenerateAttestationChallenge.class, "OAuth2-ATCA07-8");
+		callAndStopOnFailure(GenerateAttestationChallengeResponse.class, "OAuth2-ATCA07-8");
+		call(exec().unmapKey("incoming_request").endBlock());
+
+		JsonObject challengeResponse = env.getObject("attestation_challenge_response");
+		JsonObject headerJson = env.getObject("attestation_challenge_response_headers");
+		ResponseEntity<Object> responseEntity = new ResponseEntity<>(challengeResponse, headersFromJson(headerJson), HttpStatus.OK);
 
 		setStatus(Status.WAITING);
 		return responseEntity;
