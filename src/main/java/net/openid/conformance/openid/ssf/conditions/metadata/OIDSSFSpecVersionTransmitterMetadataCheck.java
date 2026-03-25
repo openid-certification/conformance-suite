@@ -15,8 +15,8 @@ public class OIDSSFSpecVersionTransmitterMetadataCheck extends AbstractCondition
 		JsonObject transmitterMetadata = env.getElementFromObject("ssf","transmitter_metadata").getAsJsonObject();
 
 		if (!transmitterMetadata.has("spec_version")) {
-			log("Skipping missing optional spec_version field in transmitter_metadata");
-			return env;
+			throw error("Missing required spec_version field in transmitter_metadata",
+				args("transmitter_metadata", transmitterMetadata));
 		}
 
 		String specVersion = OIDFJSON.getString(transmitterMetadata.get("spec_version"));
