@@ -1,14 +1,14 @@
 package net.openid.conformance.vci10issuer;
 
 import net.openid.conformance.condition.Condition;
+import net.openid.conformance.condition.client.AddClientAttestationClientAuthToEndpointRequest;
 import net.openid.conformance.condition.client.CallPAREndpoint;
-import net.openid.conformance.condition.client.CheckErrorFromParEndpointResponseErrorInvalidClientOrInvalidRequest;
+import net.openid.conformance.condition.client.CheckErrorFromParEndpointResponseErrorInvalidClientOrInvalidRequestOrInvalidClientAttestation;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs400or401;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.ClientAuthType;
 import net.openid.conformance.variant.VariantNotApplicable;
-import net.openid.conformance.condition.client.AddClientAttestationClientAuthToEndpointRequest;
 import net.openid.conformance.vci10issuer.condition.clientattestation.ReplaceClientInstanceKeyWithNewKey;
 
 /**
@@ -53,7 +53,7 @@ public class VCIIssuerFailOnMismatchedClientAttestationPopKey extends AbstractVC
 	protected void processParResponse() {
 		env.mapKey("endpoint_response", CallPAREndpoint.RESPONSE_KEY);
 		callAndContinueOnFailure(EnsureHttpStatusCodeIs400or401.class, Condition.ConditionResult.FAILURE, "OAuth2-ATCA07-1");
-		callAndContinueOnFailure(CheckErrorFromParEndpointResponseErrorInvalidClientOrInvalidRequest.class, Condition.ConditionResult.FAILURE, "OAuth2-ATCA07-1");
+		callAndContinueOnFailure(CheckErrorFromParEndpointResponseErrorInvalidClientOrInvalidRequestOrInvalidClientAttestation.class, Condition.ConditionResult.FAILURE, "OAuth2-ATCA07-6.2");
 		env.unmapKey("endpoint_response");
 
 		fireTestFinished();

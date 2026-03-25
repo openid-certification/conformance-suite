@@ -6,25 +6,25 @@ import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.testmodule.Environment;
 
 /**
- * Creates an OAuth 2.0 error response for the PAR endpoint when client authentication fails.
+ * Creates an OAuth 2.0 error response for the token endpoint when client authentication fails.
  * Returns HTTP 401 with the specified error code (default: invalid_client) per RFC 6749 / OAuth2-ATCA07.
  */
-public class CreatePAREndpointInvalidClientErrorResponse extends AbstractCondition {
+public class CreateTokenEndpointInvalidClientErrorResponse extends AbstractCondition {
 
 	private final String errorCode;
 
-	public CreatePAREndpointInvalidClientErrorResponse() {
+	public CreateTokenEndpointInvalidClientErrorResponse() {
 		this.errorCode = "invalid_client";
 	}
 
-	public CreatePAREndpointInvalidClientErrorResponse(String errorCode) {
+	public CreateTokenEndpointInvalidClientErrorResponse(String errorCode) {
 		this.errorCode = errorCode;
 	}
 
 	@Override
-	@PostEnvironment(required = {"par_endpoint_response"})
+	@PostEnvironment(required = {"token_endpoint_error_response"})
 	public Environment evaluate(Environment env) {
-		String errorDescription = env.getString("par_endpoint_client_auth_error_description");
+		String errorDescription = env.getString("token_endpoint_client_auth_error_description");
 		if (errorDescription == null) {
 			errorDescription = "Client authentication failed";
 		}
@@ -33,10 +33,10 @@ public class CreatePAREndpointInvalidClientErrorResponse extends AbstractConditi
 		endpointResponse.addProperty("error", errorCode);
 		endpointResponse.addProperty("error_description", errorDescription);
 
-		env.putObject("par_endpoint_response", endpointResponse);
-		env.putInteger("par_endpoint_response_http_status", 401);
+		env.putObject("token_endpoint_error_response", endpointResponse);
+		env.putInteger("token_endpoint_error_response_http_status", 401);
 
-		logSuccess("Created PAR endpoint " + errorCode + " error response",
+		logSuccess("Created token endpoint " + errorCode + " error response",
 			args("error", errorCode, "error_description", errorDescription));
 
 		return env;
