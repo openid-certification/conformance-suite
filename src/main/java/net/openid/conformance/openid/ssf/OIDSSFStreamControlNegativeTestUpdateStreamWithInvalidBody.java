@@ -4,8 +4,11 @@ import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs400;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFInsertBrokenStreamConfigJsonOverride;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFUpdateStreamConditionSequence;
+import net.openid.conformance.openid.ssf.variant.SsfProfile;
 import net.openid.conformance.testmodule.PublishTestModule;
+import net.openid.conformance.variant.VariantNotApplicable;
 
+@VariantNotApplicable(parameter = SsfProfile.class, values = "caep_interop")
 @PublishTestModule(
 	testName = "openid-ssf-stream-control-error-update-stream-with-invalid-body",
 	displayName = "Attempt to update Stream Configuration with invalid body.",
