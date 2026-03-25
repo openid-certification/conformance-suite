@@ -48,6 +48,7 @@ import net.openid.conformance.variant.ClientRegistration;
 import net.openid.conformance.variant.ServerMetadata;
 import net.openid.conformance.variant.VariantConfigurationFields;
 import net.openid.conformance.variant.VariantHidesConfigurationFields;
+import net.openid.conformance.variant.VariantNotApplicable;
 import net.openid.conformance.variant.VariantParameters;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.StringUtils;
@@ -115,6 +116,7 @@ import java.util.concurrent.TimeUnit;
 	"client.scope",
 	"server.token_endpoint",
 })
+@VariantNotApplicable(parameter = ClientAuthType.class, values = "client_attestation")
 public class AbstractOIDSSFTransmitterTestModule extends AbstractOIDSSFTestModule {
 
 	protected BlockingDeque<SSfPushRequest> pushRequests = new LinkedBlockingDeque<>();
