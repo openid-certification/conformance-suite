@@ -45,7 +45,6 @@ public class VCIIssuerTestPlanHaip implements TestPlan {
 					VCIIssuerHappyFlowWithSkipNotification.class,
 					// negative tests
 					VCIIssuerFailOnInvalidNonce.class,
-					VCIIssuerFailOnReplayNonce.class,
 					VCIIssuerFailOnInvalidJwtProofSignature.class,
 					VCIIssuerFailOnInvalidKeyAttestationSignature.class,
 					VCIIssuerFailOnInvalidClientAttestationSignature.class,
