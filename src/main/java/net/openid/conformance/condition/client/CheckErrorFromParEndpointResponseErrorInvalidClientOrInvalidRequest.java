@@ -1,9 +1,8 @@
 package net.openid.conformance.condition.client;
 
-public class CheckErrorFromParEndpointResponseErrorInvalidClientOrInvalidRequest extends AbstractCheckErrorFromParEndpointResponseError {
+public class CheckErrorFromParEndpointResponseErrorInvalidClientOrInvalidRequest extends CheckErrorFromParEndpointResponseError {
 
-	@Override
-	protected String[] getExpectedError() {
-		return new String[]{"invalid_request", "invalid_client"};
+	public CheckErrorFromParEndpointResponseErrorInvalidClientOrInvalidRequest() {
+		super("invalid_request", "invalid_client");
 	}
 }

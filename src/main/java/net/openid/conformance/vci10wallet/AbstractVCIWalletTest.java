@@ -49,6 +49,7 @@ import net.openid.conformance.condition.as.CreateFapiInteractionIdIfNeeded;
 import net.openid.conformance.condition.as.CreateMdocCredentialForVCI;
 import net.openid.conformance.condition.as.CreatePAREndpointDpopErrorResponse;
 import net.openid.conformance.condition.as.CreatePAREndpointInvalidClientErrorResponse;
+import net.openid.conformance.condition.as.CreateTokenEndpointInvalidClientErrorResponse;
 import net.openid.conformance.condition.as.CreateRefreshToken;
 import net.openid.conformance.condition.as.CreateSdJwtCredential;
 import net.openid.conformance.condition.as.CreateTokenEndpointDpopErrorResponse;
@@ -1856,10 +1857,12 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 		try {
 			authenticateParEndpointRequest(requestId);
 		} catch (ConditionError | TestFailureException e) {
-			// Client authentication failed - return invalid_client error
+			// Client authentication failed - return appropriate error
 			String errorMessage = e.getCause() != null ? e.getCause().getMessage() : e.getMessage();
 			env.putString("par_endpoint_client_auth_error_description", errorMessage);
-			callAndContinueOnFailure(CreatePAREndpointInvalidClientErrorResponse.class, ConditionResult.INFO);
+			String errorCode = clientAuthType == ClientAuthType.CLIENT_ATTESTATION
+				? "invalid_client_attestation" : "invalid_client";
+			callAndContinueOnFailure(new CreatePAREndpointInvalidClientErrorResponse(errorCode), ConditionResult.INFO);
 			ResponseEntity<Object> errorResponse = new ResponseEntity<>(
 				env.getObject("par_endpoint_response"),
 				HttpStatus.valueOf(env.getInteger("par_endpoint_response_http_status")));
@@ -1975,12 +1978,27 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 			checkMtlsCertificate();
 		}
 
-		if (clientAuthType == ClientAuthType.PRIVATE_KEY_JWT) {
-			call(new ValidateClientAuthenticationWithPrivateKeyJWT().
-				then(condition(ValidateClientAssertionAudClaimIsIssuerAsString.class).onFail(ConditionResult.FAILURE).requirements("FAPI2-SP-FINAL-5.3.3.1-2.5").dontStopOnFailure())
-			);
-		} else {
-			call(sequence(validateClientAuthenticationSteps));
+		try {
+			if (clientAuthType == ClientAuthType.PRIVATE_KEY_JWT) {
+				call(new ValidateClientAuthenticationWithPrivateKeyJWT().
+					then(condition(ValidateClientAssertionAudClaimIsIssuerAsString.class).onFail(ConditionResult.FAILURE).requirements("FAPI2-SP-FINAL-5.3.3.1-2.5").dontStopOnFailure())
+				);
+			} else {
+				call(sequence(validateClientAuthenticationSteps));
+			}
+		} catch (ConditionError | TestFailureException e) {
+			// Client authentication failed - return appropriate error
+			String errorCode = clientAuthType == ClientAuthType.CLIENT_ATTESTATION
+				? "invalid_client_attestation" : "invalid_client";
+			callAndContinueOnFailure(new CreateTokenEndpointInvalidClientErrorResponse(errorCode), ConditionResult.INFO);
+			JsonObject errorResponse = env.getObject("token_endpoint_error_response");
+			int httpStatus = env.getInteger("token_endpoint_error_response_http_status");
+			call(exec().unmapKey("token_endpoint_request").endBlock());
+			if (isDpopConstrain()) {
+				call(exec().unmapKey("incoming_request"));
+			}
+			setStatus(Status.WAITING);
+			return new ResponseEntity<>(errorResponse, HttpStatus.valueOf(httpStatus));
 		}
 
 		if (vciGrantType == VCIGrantType.PRE_AUTHORIZATION_CODE) {
