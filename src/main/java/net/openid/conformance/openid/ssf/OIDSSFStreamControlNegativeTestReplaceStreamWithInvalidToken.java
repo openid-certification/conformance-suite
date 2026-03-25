@@ -4,8 +4,11 @@ import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs401;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFInjectInvalidAccessTokenOverride;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFReplaceStreamConditionSequence;
+import net.openid.conformance.openid.ssf.variant.SsfProfile;
 import net.openid.conformance.testmodule.PublishTestModule;
+import net.openid.conformance.variant.VariantNotApplicable;
 
+@VariantNotApplicable(parameter = SsfProfile.class, values = "caep_interop")
 @PublishTestModule(
 	testName = "openid-ssf-stream-control-error-replace-stream-with-invalid-token",
 	displayName = "Attempt to replace Stream Configuration with invalid access token.",
