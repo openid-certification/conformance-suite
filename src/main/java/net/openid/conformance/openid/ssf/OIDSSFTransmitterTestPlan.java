@@ -2,6 +2,7 @@ package net.openid.conformance.openid.ssf;
 
 import net.openid.conformance.plan.PublishTestPlan;
 import net.openid.conformance.plan.TestPlan;
+import net.openid.conformance.testmodule.TestModule;
 import net.openid.conformance.variant.VariantSelection;
 
 import java.util.List;
@@ -11,8 +12,11 @@ import java.util.List;
 	displayName = "OpenID Shared Signals Framework 1.0 Final: Transmitter",
 	summary = "Collection of tests to verify the behavior of a OpenID Shared Signals Framework Transmitter.",
 	profile = TestPlan.ProfileNames.ssftest,
-	specFamily = TestPlan.SpecFamilyNames.ssf,
-	testModules = {
+	specFamily = TestPlan.SpecFamilyNames.ssf
+)
+public class OIDSSFTransmitterTestPlan implements TestPlan {
+
+	public static final List<Class<? extends TestModule>> testModules = List.of(
 		OIDSSFTransmitterMetadataTest.class,
 		OIDSSFStreamControlHappyPathTest.class,
 		OIDSSFStreamControlNegativeTestCreateStreamWithBrokenInput.class,
@@ -30,14 +34,17 @@ import java.util.List;
 		OIDSSFStreamControlNegativeTestDeleteUnknownStream.class,
 		OIDSSFStreamSubjectControlHappyPathTest.class,
 		OIDSSFTransmitterStreamVerificationEventsTest.class,
-		OIDSSFTransmitterStreamVerificationPushNoAuthTest.class,
+		OIDSSFTransmitterStreamVerificationPushNoAuthTest.class
+	);
+
+	@Override
+	public List<ModuleListEntry> testModulesWithVariants() {
+		return List.of(new ModuleListEntry(testModules, List.of()));
 	}
-)
-public class OIDSSFTransmitterTestPlan implements TestPlan {
 
 	@Override
 	public List<String> certificationProfileName(VariantSelection variant) {
-		return List.of("OpenID SSF Transmitter 1.0");
+		return List.of("OpenID SSF Transmitter 1.0 Final");
 	}
 
 }
