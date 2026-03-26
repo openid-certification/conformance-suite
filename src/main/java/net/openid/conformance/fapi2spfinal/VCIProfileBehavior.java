@@ -19,6 +19,7 @@ import net.openid.conformance.vci10issuer.condition.VCIGetDynamicCredentialIssue
 import net.openid.conformance.vci10issuer.condition.VCIParseCredentialIssuerMetadata;
 import net.openid.conformance.vci10issuer.condition.VCIResolveCredentialEndpointToUse;
 import net.openid.conformance.vci10issuer.condition.VCISelectOAuthorizationServer;
+import net.openid.conformance.vci10issuer.condition.VCISetDiscoveryUrlFromAuthorizationServer;
 import net.openid.conformance.vci10issuer.condition.VCIValidateClientJWKsPrivatePart;
 import net.openid.conformance.vci10issuer.condition.clientattestation.CheckClientAttestationChallengeResponseForUnknownFields;
 import net.openid.conformance.vci10issuer.condition.clientattestation.ValidateClientAttestationChallengeResponse;
@@ -161,5 +162,32 @@ public class VCIProfileBehavior extends FAPI2ProfileBehavior {
 	public ConditionSequence validateResourceEndpointResponseHeaders(boolean isSecondClient) {
 		// VCI does not validate FAPI-specific response headers
 		return null;
+	}
+
+	// --- Discovery endpoint verification overrides ---
+
+	@Override
+	public ConditionSequence discoveryFetchServerConfiguration(boolean isOpenId) {
+		return new AbstractConditionSequence() {
+			@Override
+			public void evaluate() {
+				callAndStopOnFailure(VCIGetDynamicCredentialIssuerMetadata.class, "OID4VCI-1FINAL-12.2.2");
+				callAndStopOnFailure(VCIParseCredentialIssuerMetadata.class, "OID4VCI-1FINAL-12.2.2");
+				callAndStopOnFailure(VCIFetchOAuthorizationServerMetadata.class, ConditionResult.FAILURE,
+					"OID4VCI-1FINAL-12.2.3", "RFC8414-3.1");
+				callAndStopOnFailure(VCISelectOAuthorizationServer.class, ConditionResult.FAILURE,
+					"OID4VCI-1FINAL-12.2.3");
+			}
+		};
+	}
+
+	@Override
+	public ConditionSequence discoveryAfterServerConfigurationFetched() {
+		return new AbstractConditionSequence() {
+			@Override
+			public void evaluate() {
+				callAndStopOnFailure(VCISetDiscoveryUrlFromAuthorizationServer.class);
+			}
+		};
 	}
 }

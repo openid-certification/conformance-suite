@@ -45,7 +45,7 @@ public abstract class AbstractFAPI2SPFinalDiscoveryEndpointVerification extends 
 	protected Boolean isDpop;
 	protected boolean clientCredentialsGrant = false;
 
-	protected FAPI2DiscoveryProfileBehavior profileBehavior = new FAPI2DiscoveryProfileBehavior();
+	protected FAPI2ProfileBehavior profileBehavior = new FAPI2ProfileBehavior();
 
 	public static class MtlsChecks extends AbstractConditionSequence
 	{
@@ -75,10 +75,10 @@ public abstract class AbstractFAPI2SPFinalDiscoveryEndpointVerification extends 
 		jarm = getVariant(FAPIResponseMode.class) == FAPIResponseMode.JARM;
 		isOpenId = getVariant(FAPIOpenIDConnect.class) == FAPIOpenIDConnect.OPENID_CONNECT;
 
-		ConditionSequence fetchSequence = profileBehavior.fetchServerConfiguration(isOpenId);
+		ConditionSequence fetchSequence = profileBehavior.discoveryFetchServerConfiguration(isOpenId);
 		call(fetchSequence);
 
-		ConditionSequence afterFetchSequence = profileBehavior.afterServerConfigurationFetched();
+		ConditionSequence afterFetchSequence = profileBehavior.discoveryAfterServerConfigurationFetched();
 		if (afterFetchSequence != null) {
 			call(afterFetchSequence);
 		}
