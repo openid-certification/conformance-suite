@@ -1,11 +1,13 @@
 package net.openid.conformance.fapi2spfinal;
 
+import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.condition.as.FAPI2FinalEnsureMinimumServerKeyLength;
 import net.openid.conformance.condition.client.AddFAPIAuthDateToResourceEndpointRequest;
 import net.openid.conformance.condition.client.AddFAPIInteractionIdToResourceEndpointRequest;
 import net.openid.conformance.condition.client.AddIpV4FapiCustomerIpAddressToResourceEndpointRequest;
+import net.openid.conformance.condition.client.CheckDiscEndpointTokenEndpointAuthMethodsSupportedContainsPrivateKeyOrTlsClient;
 import net.openid.conformance.condition.client.CheckDiscoveryEndpointReturnedJsonContentType;
 import net.openid.conformance.condition.client.CheckForFAPIInteractionIdInResourceResponse;
 import net.openid.conformance.condition.client.CreateRandomFAPIInteractionId;
@@ -411,6 +413,15 @@ public class FAPI2ProfileBehavior {
 	 */
 	public Class<? extends Condition> getMinimumServerKeyLengthCondition() {
 		return FAPI2FinalEnsureMinimumServerKeyLength.class;
+	}
+
+	/**
+	 * Return the condition class for checking that token_endpoint_auth_methods_supported
+	 * contains an acceptable auth method. Default requires private_key_jwt or tls_client_auth.
+	 * VCI overrides to also accept attest_jwt_client_auth.
+	 */
+	public Class<? extends AbstractCondition> getDiscoveryTokenEndpointAuthMethodsCheck() {
+		return CheckDiscEndpointTokenEndpointAuthMethodsSupportedContainsPrivateKeyOrTlsClient.class;
 	}
 
 	// --- Discovery endpoint verification methods ---
