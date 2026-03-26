@@ -1,6 +1,8 @@
 package net.openid.conformance.fapi2spfinal;
 
+import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.Condition.ConditionResult;
+import net.openid.conformance.condition.client.CheckDiscEndpointTokenEndpointAuthMethodsSupportedContainsPrivateKeyOrTlsClientOrAttestation;
 import net.openid.conformance.condition.client.EnsureContentTypeJson;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs200;
 import net.openid.conformance.condition.client.SetProtectedResourceUrlToSingleResourceEndpoint;
@@ -162,6 +164,11 @@ public class VCIProfileBehavior extends FAPI2ProfileBehavior {
 	public ConditionSequence validateResourceEndpointResponseHeaders(boolean isSecondClient) {
 		// VCI does not validate FAPI-specific response headers
 		return null;
+	}
+
+	@Override
+	public Class<? extends AbstractCondition> getDiscoveryTokenEndpointAuthMethodsCheck() {
+		return CheckDiscEndpointTokenEndpointAuthMethodsSupportedContainsPrivateKeyOrTlsClientOrAttestation.class;
 	}
 
 	// --- Discovery endpoint verification overrides ---
