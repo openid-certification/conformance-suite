@@ -15,7 +15,7 @@ public class CreateAuthzenApiEndpointRequestAction extends CreateAuthzenApiEndpo
 	@Override
 	@PostEnvironment(required = "authzen_api_endpoint_request_action")
 	public Environment evaluate(Environment env) {
-		JsonObject action = createAuthzenApiEndpointRequestParameter(env);
+		JsonObject action = createAuthzenApiEndpointRequestParameter(env).getAsJsonObject();
 		env.putObject("authzen_api_endpoint_request_action", action);
 		logSuccess("Created API action parameter", args(requestParameterName, action));
 		return env;

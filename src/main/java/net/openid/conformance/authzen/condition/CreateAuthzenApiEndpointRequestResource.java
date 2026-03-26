@@ -15,7 +15,7 @@ public class CreateAuthzenApiEndpointRequestResource extends CreateAuthzenApiEnd
 	@Override
 	@PostEnvironment(required = "authzen_api_endpoint_request_resource")
 	public Environment evaluate(Environment env) {
-		JsonObject resource = createAuthzenApiEndpointRequestParameter(env);
+		JsonObject resource = createAuthzenApiEndpointRequestParameter(env).getAsJsonObject();
 		env.putObject("authzen_api_endpoint_request_resource", resource);
 		logSuccess("Created API resource parameter", args(requestParameterName, resource));
 		return env;

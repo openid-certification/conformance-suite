@@ -15,7 +15,7 @@ public class CreateAuthzenApiEndpointRequestSubject extends CreateAuthzenApiEndp
 	@Override
 	@PostEnvironment(required = "authzen_api_endpoint_request_subject")
 	public Environment evaluate(Environment env) {
-		JsonObject subject = createAuthzenApiEndpointRequestParameter(env);
+		JsonObject subject = createAuthzenApiEndpointRequestParameter(env).getAsJsonObject();
 		env.putObject("authzen_api_endpoint_request_subject", subject);
 		logSuccess("Created API subject parameter", args(requestParameterName, subject));
 		return env;
