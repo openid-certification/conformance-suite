@@ -15,17 +15,13 @@ public class CreateAuthzenEvaluationApiRequestSteps extends AbstractConditionSeq
 		this.action = action;
 		this.context = context;
 	}
+
 	@Override
 	public void evaluate() {
 		callAndStopOnFailure(CreateEmptyAuthzenApiEndpointRequest.class);
-		callAndStopOnFailure(new CreateAuthzenApiEndpointRequestSubject(subject), "AUTHZEN-5.1");
-		callAndStopOnFailure(new CreateAuthzenApiEndpointRequestResource(resource), "AUTHZEN-5.2");
-		callAndStopOnFailure(new CreateAuthzenApiEndpointRequestAction(action), "AUTHZEN-5.3");
-		callAndStopOnFailure(new CreateAuthzenApiEndpointRequestContext(context), "AUTHZEN-5.4");
-
-		callAndStopOnFailure(AddSubjectToAuthzenApiEndpointRequest.class, "AUTHZEN-6.1");
-		callAndStopOnFailure(AddResourceToAuthzenApiEndpointRequest.class, "AUTHZEN-6.1");
-		callAndStopOnFailure(AddActionToAuthzenApiEndpointRequest.class, "AUTHZEN-6.1");
-		callAndContinueOnFailure(AddContextToAuthzenApiEndpointRequest.class, "AUTHZEN-6.1");
+		callAndStopOnFailure(new CreateAuthzenApiEndpointRequestSubject(subject), "AUTHZEN-5.1", "AUTHZEN-6.1");
+		callAndStopOnFailure(new CreateAuthzenApiEndpointRequestResource(resource), "AUTHZEN-5.2", "AUTHZEN-6.1");
+		callAndStopOnFailure(new CreateAuthzenApiEndpointRequestAction(action), "AUTHZEN-5.3", "AUTHZEN-6.1");
+		callAndStopOnFailure(new CreateAuthzenApiEndpointRequestContext(context), "AUTHZEN-5.4", "AUTHZEN-6.1");
 	}
 }
