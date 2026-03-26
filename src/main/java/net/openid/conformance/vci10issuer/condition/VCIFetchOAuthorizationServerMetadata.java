@@ -8,12 +8,12 @@ import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
+import net.openid.conformance.util.OAuthUriUtil;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
 
 import java.io.IOException;
-import java.net.URI;
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
@@ -87,25 +87,7 @@ public class VCIFetchOAuthorizationServerMetadata extends AbstractCondition {
 	}
 
 	protected String createAuthorizationServerMetadataUrl(String authServerIssuer) {
-
-		URI authServerIssuerUri = URI.create(authServerIssuer);
-		String authority = authServerIssuerUri.getScheme() + "://" + authServerIssuerUri.getHost();
-		String path = authServerIssuerUri.getPath();
-		int port = authServerIssuerUri.getPort();
-		if (port != -1) {
-			authority += ":" + port;
-		}
-
-		if (path == null || path.isEmpty() || "/".equals(path)) {
-			// see: https://datatracker.ietf.org/doc/html/rfc8414#section-3.1
-			//  GET /.well-known/oauth-authorization-server HTTP/1.1
-			return authServerIssuer + "/.well-known/oauth-authorization-server";
-		}
-
-		// with path components after the issuer hostname, we need to apply a different rule
-		// see: https://datatracker.ietf.org/doc/html/rfc8414#section-3.1
-		// GET /.well-known/oauth-authorization-server/issuer1 HTTP/1.1
-		return authority + "/.well-known/oauth-authorization-server" + path;
+		return OAuthUriUtil.generateWellKnownUrlForPath(authServerIssuer, "oauth-authorization-server");
 	}
 
 	protected JsonObject fetchAuthorizationServerMetadata(Environment env, String metadataEndpointUrl) {

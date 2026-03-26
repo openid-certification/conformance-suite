@@ -6,7 +6,6 @@ import net.openid.conformance.condition.client.CheckDiscEndpointDiscoveryUrl;
 import net.openid.conformance.condition.client.CheckDiscEndpointIssuer;
 import net.openid.conformance.condition.client.CheckDiscEndpointRegistrationEndpoint;
 import net.openid.conformance.condition.client.CheckDiscEndpointTokenEndpoint;
-import net.openid.conformance.condition.client.CheckDiscEndpointTokenEndpointAuthMethodsSupportedContainsPrivateKeyOrTlsClient;
 import net.openid.conformance.condition.client.CheckJwksUri;
 import net.openid.conformance.condition.client.CheckOauthDiscEndpointDiscoveryUrl;
 import net.openid.conformance.condition.client.CheckOauthDiscEndpointIssuer;
@@ -112,7 +111,7 @@ public abstract class AbstractFAPI2SPFinalDiscoveryEndpointVerification extends 
 			callAndContinueOnFailure(FAPI2CheckDiscEndpointIdTokenSigningAlgValuesSupported.class, Condition.ConditionResult.FAILURE, "FAPI2-SP-FINAL-5.4-1");
 		}
 
-		callAndContinueOnFailure(CheckDiscEndpointTokenEndpointAuthMethodsSupportedContainsPrivateKeyOrTlsClient.class, Condition.ConditionResult.FAILURE, "FAPI2-SP-FINAL-5.3.2.1-6");
+		callAndContinueOnFailure(profileBehavior.getDiscoveryTokenEndpointAuthMethodsCheck(), Condition.ConditionResult.FAILURE, "FAPI2-SP-FINAL-5.3.2.1-6");
 		callAndContinueOnFailure(FAPI2CheckDiscEndpointTokenEndpointAuthSigningAlgValuesSupported.class, Condition.ConditionResult.FAILURE, "FAPI2-SP-FINAL-5.4-1");
 
 		if (! clientCredentialsGrant) {

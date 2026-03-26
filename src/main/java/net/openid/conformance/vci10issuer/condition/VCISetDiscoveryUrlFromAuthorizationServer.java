@@ -4,6 +4,7 @@ import com.google.gson.JsonObject;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
+import net.openid.conformance.util.OAuthUriUtil;
 
 /**
  * After VCI credential issuer metadata has been fetched and an OAuth authorization server
@@ -20,6 +21,8 @@ public class VCISetDiscoveryUrlFromAuthorizationServer extends AbstractCondition
 			throw error("Authorization server metadata does not contain an 'issuer' field");
 		}
 
+		String discoveryUrl = OAuthUriUtil.generateWellKnownUrlForPath(issuer, "oauth-authorization-server");
+
 		JsonObject config = env.getObject("config");
 		JsonObject serverConfig = config.getAsJsonObject("server");
 		if (serverConfig == null) {
@@ -27,10 +30,10 @@ public class VCISetDiscoveryUrlFromAuthorizationServer extends AbstractCondition
 			config.add("server", serverConfig);
 		}
 		serverConfig.addProperty("discoveryIssuer", issuer);
-		serverConfig.addProperty("discoveryUrl", issuer + "/.well-known/oauth-authorization-server");
+		serverConfig.addProperty("discoveryUrl", discoveryUrl);
 
 		logSuccess("Set discovery URL from authorization server issuer",
-			args("issuer", issuer, "discoveryUrl", issuer + "/.well-known/oauth-authorization-server"));
+			args("issuer", issuer, "discoveryUrl", discoveryUrl));
 
 		return env;
 	}
