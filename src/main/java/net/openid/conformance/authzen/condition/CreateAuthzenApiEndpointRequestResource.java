@@ -1,7 +1,7 @@
 package net.openid.conformance.authzen.condition;
 
 import com.google.gson.JsonObject;
-import net.openid.conformance.condition.PostEnvironment;
+import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 
 public class CreateAuthzenApiEndpointRequestResource extends CreateAuthzenApiEndpointRequestParameter {
@@ -13,10 +13,11 @@ public class CreateAuthzenApiEndpointRequestResource extends CreateAuthzenApiEnd
 	}
 
 	@Override
-	@PostEnvironment(required = "authzen_api_endpoint_request_resource")
+	@PreEnvironment(required = "authzen_api_endpoint_request")
 	public Environment evaluate(Environment env) {
 		JsonObject resource = createAuthzenApiEndpointRequestParameter(env).getAsJsonObject();
-		env.putObject("authzen_api_endpoint_request_resource", resource);
+		JsonObject request = env.getObject("authzen_api_endpoint_request");
+		request.add("resource", resource);
 		logSuccess("Created API resource parameter", args(requestParameterName, resource));
 		return env;
 	}
