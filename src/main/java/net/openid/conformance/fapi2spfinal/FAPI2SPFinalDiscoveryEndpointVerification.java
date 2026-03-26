@@ -118,6 +118,18 @@ public class FAPI2SPFinalDiscoveryEndpointVerification extends AbstractFAPI2SPFi
 		profileSpecificChecks = OpenBankingUAEDiscoveryEndpointChecks.class;
 	}
 
+	@VariantSetup(parameter = FAPI2FinalOPProfile.class, value = "vci")
+	public void setupVci() {
+		profileSpecificChecks = PlainFAPIDiscoveryEndpointChecks.class;
+		profileBehavior = new VCIDiscoveryProfileBehavior();
+	}
+
+	@VariantSetup(parameter = FAPI2FinalOPProfile.class, value = "vci_haip")
+	public void setupVciHaip() {
+		profileSpecificChecks = PlainFAPIDiscoveryEndpointChecks.class;
+		profileBehavior = new VCIDiscoveryProfileBehavior();
+	}
+
 	@Override
 	public void configure(JsonObject config, String baseUrl, String externalUrlOverride, String baseMtlsUrl) {
 		signedRequest = getVariant(FAPI2AuthRequestMethod.class) == FAPI2AuthRequestMethod.SIGNED_NON_REPUDIATION;
