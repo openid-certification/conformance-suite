@@ -20,7 +20,6 @@ import net.openid.conformance.condition.client.CallProtectedResource;
 import net.openid.conformance.condition.client.CallProtectedResourceAllowingDpopNonceError;
 import net.openid.conformance.condition.client.CallTokenEndpointAllowingDpopNonceErrorAndReturnFullResponse;
 import net.openid.conformance.condition.client.CallTokenEndpointAndReturnFullResponse;
-import net.openid.conformance.condition.client.CheckTokenEndpointHttpStatus200;
 import net.openid.conformance.condition.client.CheckForDateHeaderInResourceResponse;
 import net.openid.conformance.condition.client.CheckForFAPIInteractionIdInResourceResponse;
 import net.openid.conformance.condition.client.CreateAuthorizationEndpointRequestFromClientInformation;
@@ -512,16 +511,6 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractFAPI2SPFinalSe
 			addClientAuthenticationToTokenEndpointRequest();
 			callAndStopOnFailure(CallTokenEndpointAndReturnFullResponse.class, requirements);
 		}
-	}
-
-	@Override
-	protected void exchangeAuthorizationCode() {
-		callSenderConstrainedTokenEndpoint();
-		callAndStopOnFailure(CheckTokenEndpointHttpStatus200.class);
-
-		eventLog.startBlock(currentClientString() + "Verify token endpoint response");
-		processTokenEndpointResponse();
-		eventLog.endBlock();
 	}
 
 	// --- PAR overrides ---

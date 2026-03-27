@@ -713,7 +713,6 @@ public abstract class AbstractFAPI2SPID2ServerTestModule extends AbstractRedirec
 	 */
 	protected void exchangeAuthorizationCode() {
 		callSenderConstrainedTokenEndpoint();
-		callAndStopOnFailure(CheckTokenEndpointHttpStatus200.class);
 
 		eventLog.startBlock(currentClientString() + "Verify token endpoint response");
 		processTokenEndpointResponse();
@@ -721,6 +720,7 @@ public abstract class AbstractFAPI2SPID2ServerTestModule extends AbstractRedirec
 	}
 
 	protected void processTokenEndpointResponse() {
+		callAndStopOnFailure(CheckTokenEndpointHttpStatus200.class);
 		callAndStopOnFailure(CheckIfTokenEndpointResponseError.class);
 
 		callAndStopOnFailure(CheckForAccessTokenValue.class, "RFC6749-4.1.4");
