@@ -1,7 +1,5 @@
 package net.openid.conformance.fapi2spfinal;
 
-import net.openid.conformance.condition.client.CheckTokenEndpointHttpStatus200;
-
 /**
  * This class finished the test after the token endpoint call
  *
@@ -16,8 +14,7 @@ public abstract class AbstractFAPI2SPFinalPerformTokenEndpoint extends AbstractF
 		if (clientCredentialsGrant) {
 			createClientCredentialsGrantRequest();
 
-			callSenderConstrainedTokenEndpoint("FAPI1-BASE-5.2.2-19");
-			callAndStopOnFailure(CheckTokenEndpointHttpStatus200.class);
+			callSenderConstrainedTokenEndpoint();
 			processTokenEndpointResponse();
 		}
 		else {
@@ -26,14 +23,5 @@ public abstract class AbstractFAPI2SPFinalPerformTokenEndpoint extends AbstractF
 			exchangeAuthorizationCode();
 		}
 
-	}
-
-	@Override
-	protected void exchangeAuthorizationCode() {
-		callSenderConstrainedTokenEndpoint("FAPI1-BASE-5.2.2-19");
-
-		eventLog.startBlock(currentClientString() + "Verify token endpoint response");
-		processTokenEndpointResponse();
-		eventLog.endBlock();
 	}
 }

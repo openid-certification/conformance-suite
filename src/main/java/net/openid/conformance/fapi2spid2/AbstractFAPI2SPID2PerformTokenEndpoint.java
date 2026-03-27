@@ -16,13 +16,4 @@ public abstract class AbstractFAPI2SPID2PerformTokenEndpoint extends AbstractFAP
 		exchangeAuthorizationCode();
 
 	}
-
-	@Override
-	protected void exchangeAuthorizationCode() {
-		callSenderConstrainedTokenEndpoint("FAPI1-BASE-5.2.2-19");
-
-		eventLog.startBlock(currentClientString() + "Verify token endpoint response");
-		processTokenEndpointResponse();
-		eventLog.endBlock();
-	}
 }

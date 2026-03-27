@@ -786,7 +786,6 @@ public abstract class AbstractFAPI2SPFinalServerTestModule extends AbstractRedir
 			createClientCredentialsGrantRequest();
 
 			callSenderConstrainedTokenEndpoint();
-			callAndStopOnFailure(CheckTokenEndpointHttpStatus200.class);
 			processTokenEndpointResponse();
 		}
 		else {
@@ -853,7 +852,6 @@ public abstract class AbstractFAPI2SPFinalServerTestModule extends AbstractRedir
 
 	protected void exchangeAuthorizationCode() {
 		callSenderConstrainedTokenEndpoint();
-		callAndStopOnFailure(CheckTokenEndpointHttpStatus200.class);
 
 		eventLog.startBlock(currentClientString() + "Verify token endpoint response");
 		processTokenEndpointResponse();
@@ -861,6 +859,7 @@ public abstract class AbstractFAPI2SPFinalServerTestModule extends AbstractRedir
 	}
 
 	protected void processTokenEndpointResponse() {
+		callAndStopOnFailure(CheckTokenEndpointHttpStatus200.class);
 		callAndStopOnFailure(CheckIfTokenEndpointResponseError.class);
 
 		callAndStopOnFailure(CheckForAccessTokenValue.class, "RFC6749-4.1.4");
