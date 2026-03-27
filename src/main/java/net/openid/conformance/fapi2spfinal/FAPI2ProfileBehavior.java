@@ -2,6 +2,7 @@ package net.openid.conformance.fapi2spfinal;
 
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.Condition.ConditionResult;
+import net.openid.conformance.condition.as.FAPI2FinalEnsureMinimumServerKeyLength;
 import net.openid.conformance.condition.client.AddFAPIAuthDateToResourceEndpointRequest;
 import net.openid.conformance.condition.client.AddFAPIInteractionIdToResourceEndpointRequest;
 import net.openid.conformance.condition.client.AddIpV4FapiCustomerIpAddressToResourceEndpointRequest;
@@ -9,10 +10,18 @@ import net.openid.conformance.condition.client.CheckForFAPIInteractionIdInResour
 import net.openid.conformance.condition.client.CreateRandomFAPIInteractionId;
 import net.openid.conformance.condition.client.EnsureMatchingFAPIInteractionId;
 import net.openid.conformance.condition.client.FAPI2ValidateIdTokenSigningAlg;
+import net.openid.conformance.condition.client.GetDynamicServerConfiguration;
+import net.openid.conformance.condition.client.GetOauthDynamicServerConfiguration;
 import net.openid.conformance.condition.client.GetResourceEndpointConfiguration;
+import net.openid.conformance.condition.client.ValidateClientJWKsPrivatePart;
 import net.openid.conformance.condition.common.FAPI2CheckKeyAlgInClientJWKs;
 import net.openid.conformance.sequence.AbstractConditionSequence;
 import net.openid.conformance.sequence.ConditionSequence;
+import net.openid.conformance.testmodule.TestFailureException;
+import net.openid.conformance.variant.AuthorizationRequestType;
+import net.openid.conformance.variant.FAPI2AuthRequestMethod;
+import net.openid.conformance.variant.FAPIOpenIDConnect;
+import net.openid.conformance.variant.FAPIResponseMode;
 
 import java.util.function.Supplier;
 
@@ -40,6 +49,14 @@ public class FAPI2ProfileBehavior {
 
 	public boolean isClientCredentialsGrantOnly() {
 		return false;
+	}
+
+	/**
+	 * Whether RAR (Rich Authorization Requests) should be extracted from user config.
+	 * VCI returns false because it generates RAR from the credential configuration.
+	 */
+	public boolean shouldExtractRARFromConfig() {
+		return true;
 	}
 
 	public Class<? extends ConditionSequence> getResourceConfiguration() {
@@ -306,5 +323,91 @@ public class FAPI2ProfileBehavior {
 				callAndStopOnFailure(addInteractionIdCondition, requirements);
 			}
 		};
+	}
+
+	// --- Hook methods for VCI extension ---
+
+	/**
+	 * Called at the very beginning of configure() to initialize variant-derived fields.
+	 * The default implementation reads standard FAPI2 variants.
+	 * VCI overrides to set VCI-specific defaults (e.g. jarm=false, isOpenId=false).
+	 */
+	public void initializeVariants() {
+		module.jarm = module.getVariant(FAPIResponseMode.class) == FAPIResponseMode.JARM;
+		module.isPar = true;
+		if (module.getVariant(FAPIOpenIDConnect.class) == FAPIOpenIDConnect.PLAIN_OAUTH && module.scopeContains("openid")) {
+			throw new TestFailureException(module.getId(), "openid scope cannot be used with PLAIN_OAUTH");
+		}
+		module.isOpenId = module.getVariant(FAPIOpenIDConnect.class) == FAPIOpenIDConnect.OPENID_CONNECT;
+		module.isSignedRequest = module.getVariant(FAPI2AuthRequestMethod.class) == FAPI2AuthRequestMethod.SIGNED_NON_REPUDIATION;
+		module.isRarRequest = module.getVariant(AuthorizationRequestType.class) == AuthorizationRequestType.RAR;
+		module.clientCredentialsGrant = isClientCredentialsGrantOnly();
+		module.useDpopAuthCodeBinding = false;
+		module.profileRequiresMtlsEverywhere = requiresMtlsEverywhere();
+	}
+
+	/**
+	 * Fetch and store server configuration. Default fetches OIDC or OAuth server config.
+	 * VCI overrides this to fetch credential issuer metadata and derive the AS.
+	 */
+	public ConditionSequence fetchServerConfiguration(boolean isOpenId) {
+		return new AbstractConditionSequence() {
+			@Override
+			public void evaluate() {
+				if (isOpenId) {
+					callAndStopOnFailure(GetDynamicServerConfiguration.class);
+				} else {
+					callAndStopOnFailure(GetOauthDynamicServerConfiguration.class);
+				}
+			}
+		};
+	}
+
+	/**
+	 * Called after server configuration is fetched and before client configuration.
+	 * VCI overrides to resolve credential configuration, check encryption support, etc.
+	 */
+	public ConditionSequence afterServerConfigurationFetched() {
+		// plain FAPI: nothing extra
+		return null;
+	}
+
+	/**
+	 * Additional client configuration after the standard setup.
+	 * VCI overrides to generate client JWKs if missing and handle encryption JWKs.
+	 */
+	public ConditionSequence configureClientExtra() {
+		// plain FAPI: no additional client configuration
+		return null;
+	}
+
+	/**
+	 * Configure client attestation keys if needed.
+	 * VCI overrides to generate attestation keys and JWT.
+	 */
+	public ConditionSequence configureClientAttestation() {
+		// plain FAPI: no client attestation
+		return null;
+	}
+
+	/**
+	 * Validate the private part of client JWKs.
+	 * VCI overrides to use VCIValidateClientJWKsPrivatePart (which allows multiple signing keys).
+	 */
+	public ConditionSequence validateClientJwksPrivatePart() {
+		return new AbstractConditionSequence() {
+			@Override
+			public void evaluate() {
+				callAndStopOnFailure(ValidateClientJWKsPrivatePart.class, "RFC7517-1.1");
+			}
+		};
+	}
+
+	/**
+	 * Return the condition class for checking minimum server key length.
+	 * VCI overrides because the spec reference is different.
+	 */
+	public Class<? extends Condition> getMinimumServerKeyLengthCondition() {
+		return FAPI2FinalEnsureMinimumServerKeyLength.class;
 	}
 }

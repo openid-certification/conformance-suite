@@ -84,7 +84,7 @@ public class FAPI2SPFinalDiscoveryEndpointVerification extends AbstractFAPI2SPFi
 	@VariantSetup(parameter = FAPI2FinalOPProfile.class, value = "fapi_client_credentials_grant")
 	public void setupFapiClientCredentialsGrant() {
 		profileSpecificChecks = ClientCredentialsOnlyDiscoveryEndpointChecks.class;
-		clientCredentailsGrant = true;
+		clientCredentialsGrant = true;
 	}
 
 	@VariantSetup(parameter = FAPI2FinalOPProfile.class, value = "openbanking_uk")
@@ -128,7 +128,7 @@ public class FAPI2SPFinalDiscoveryEndpointVerification extends AbstractFAPI2SPFi
 	@Override
 	protected void performEndpointVerification() {
 
-		if (! clientCredentailsGrant) {
+		if (! clientCredentialsGrant) {
 			callAndContinueOnFailure(CheckDiscEndpointResponseTypeCodeSupported.class, Condition.ConditionResult.FAILURE, "FAPI2-SP-FINAL-5.3.2.2-1");
 			if (jarm) {
 				callAndContinueOnFailure(CheckDiscEndpointResponseModesSupportedContainsJwt.class, Condition.ConditionResult.FAILURE, "JARM-2.3.4");
@@ -145,7 +145,7 @@ public class FAPI2SPFinalDiscoveryEndpointVerification extends AbstractFAPI2SPFi
 
 		super.performEndpointVerification();
 
-		if (! clientCredentailsGrant) {
+		if (! clientCredentialsGrant) {
 			// although PAR is required by FAPI2, the server may support non-FAPI2-use-cases, so we can't require this to be 'true'
 			callAndContinueOnFailure(CheckDiscRequirePushedAuthorizationRequestsIsABoolean.class, Condition.ConditionResult.FAILURE, "PAR-5");
 

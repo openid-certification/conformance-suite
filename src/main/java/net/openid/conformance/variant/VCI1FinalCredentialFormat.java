@@ -1,6 +1,4 @@
-package net.openid.conformance.vci10issuer;
-
-import net.openid.conformance.variant.VariantParameter;
+package net.openid.conformance.variant;
 
 @VariantParameter(
 	name = "credential_format",
@@ -17,8 +15,8 @@ public enum VCI1FinalCredentialFormat {
 
 	private final String credentialFormat;
 
-	VCI1FinalCredentialFormat(String responseMode, String credentialFormat) {
-		modeValue = responseMode;
+	VCI1FinalCredentialFormat(String modeValue, String credentialFormat) {
+		this.modeValue = modeValue;
 		this.credentialFormat = credentialFormat;
 	}
 

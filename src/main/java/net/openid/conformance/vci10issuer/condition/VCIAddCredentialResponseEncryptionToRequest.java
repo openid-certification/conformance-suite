@@ -55,19 +55,18 @@ public class VCIAddCredentialResponseEncryptionToRequest extends AbstractConditi
 		// Use the first key for encryption
 		JWK encryptionKey = jwkSet.getKeys().get(0);
 
-		// Determine enc values
-		// Check if the issuer metadata specifies supported values
+		// Determine enc value from issuer metadata or use default
+		// Per OID4VCI 1.0 Final Section 8.2, credential_response_encryption contains: jwk, enc, and optionally zip
+		// (no top-level 'alg' — the encryption algorithm is determined from the JWK's 'alg' parameter)
 		String enc = DEFAULT_ENC;
-
 		JsonElement encValuesEl = env.getElementFromObject("vci", "credential_issuer_metadata.credential_response_encryption.enc_values_supported");
 		if (encValuesEl != null && encValuesEl.isJsonArray() && encValuesEl.getAsJsonArray().size() > 0) {
 			enc = OIDFJSON.getString(encValuesEl.getAsJsonArray().get(0));
 		}
 
 		// Build credential_response_encryption object
-		// https://openid.net/specs/openid-4-verifiable-credential-issuance-1_0.html#section-8.2-2.4.1
+		// https://openid.net/specs/openid-4-verifiable-credential-issuance-1_0.html#section-8.2
 		JsonObject credentialResponseEncryption = new JsonObject();
-		// alg is inside the jwk
 		credentialResponseEncryption.addProperty("enc", enc);
 
 		// Include the public key in the request

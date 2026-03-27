@@ -15,11 +15,23 @@ public class VCIIssuerTestPlan implements TestPlan {
 	@Override
 	public List<ModuleListEntry> testModulesWithVariants() {
 		return List.of(
+			// Metadata tests are in a separate group because they extend AbstractVciTest (not
+			// AbstractFAPI2SPFinalServerTestModule) and need fewer variants. The variant list is
+			// intentionally empty: CI passes both fapi_profile=vci and fapi_profile=vci_haip
+			// through this plan, so pinning a fixed value would cause "test plan already sets
+			// this variant" errors. The @VariantNotApplicable annotations on the metadata test
+			// classes restrict the profile to VCI values only.
+			new ModuleListEntry(
+				List.of(
+					VCIIssuerMetadataTest.class,
+					VCIIssuerMetadataSignedTest.class
+				),
+				List.of(
+				)
+			),
 			new ModuleListEntry(
 				List.of(
 					// positive tests
-					VCIIssuerMetadataTest.class,
-					VCIIssuerMetadataSignedTest.class,
 					VCIIssuerHappyFlow.class,
 					VCIIssuerHappyFlowAdditionalRequests.class,
 					VCIIssuerHappyFlowMultipleClients.class,

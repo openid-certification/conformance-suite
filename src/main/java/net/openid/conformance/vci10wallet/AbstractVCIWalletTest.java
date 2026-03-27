@@ -190,7 +190,7 @@ import net.openid.conformance.variant.VCICredentialEncryption;
 import net.openid.conformance.variant.VCICredentialIssuanceMode;
 import net.openid.conformance.variant.VCICredentialOfferParameterVariant;
 import net.openid.conformance.variant.VCIGrantType;
-import net.openid.conformance.variant.VCIProfile;
+import net.openid.conformance.variant.FAPI2FinalOPProfile;
 import net.openid.conformance.variant.VCIWalletAuthorizationCodeFlowVariant;
 import net.openid.conformance.variant.VariantConfigurationFields;
 import net.openid.conformance.variant.VariantHidesConfigurationFields;
@@ -198,7 +198,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 import net.openid.conformance.variant.VariantNotApplicableWhen;
 import net.openid.conformance.variant.VariantParameters;
 import net.openid.conformance.variant.VariantSetup;
-import net.openid.conformance.vci10issuer.VCI1FinalCredentialFormat;
+import net.openid.conformance.variant.VCI1FinalCredentialFormat;
 import net.openid.conformance.vci10wallet.condition.VCIAddCredentialDataToAuthorizationDetailsForTokenEndpointResponse;
 import net.openid.conformance.vci10wallet.condition.VCIAddNotificationIdToCredentialEndpointResponse;
 import net.openid.conformance.vci10wallet.condition.VCIAddOpenIdCredentialToAuthorizationDetailsSupportedIfScopeIsMissing;
@@ -268,7 +268,7 @@ import java.util.concurrent.TimeUnit;
 	FAPI2AuthRequestMethod.class,
 	FAPI2SenderConstrainMethod.class,
 	AuthorizationRequestType.class,
-	VCIProfile.class,
+	FAPI2FinalOPProfile.class,
 	VCIGrantType.class,
 	VCIWalletAuthorizationCodeFlowVariant.class,
 	VCICredentialOfferParameterVariant.class,
@@ -306,14 +306,14 @@ import java.util.concurrent.TimeUnit;
 @VariantNotApplicableWhen(
 	parameter = VCIWalletAuthorizationCodeFlowVariant.class,
 	values = {"issuer_initiated_dc_api"},  // No DC API tests for HAIP
-	whenParameter = VCIProfile.class,
-	hasValues = "haip"
+	whenParameter = FAPI2FinalOPProfile.class,
+	hasValues = "vci_haip"
 )
 @VariantNotApplicableWhen(
 	parameter = AuthorizationRequestType.class,
 	values = {"rar"},  // No rar for HAIP
-	whenParameter = VCIProfile.class,
-	hasValues = "haip"
+	whenParameter = FAPI2FinalOPProfile.class,
+	hasValues = "vci_haip"
 )
 @VariantNotApplicable(parameter = ClientAuthType.class, values = {
 	"none", "client_secret_basic", "client_secret_post", "client_secret_jwt"
@@ -321,8 +321,8 @@ import java.util.concurrent.TimeUnit;
 @VariantNotApplicableWhen(
 	parameter = VCIGrantType.class,
 	values = {"pre_authorization_code"},  // No pre_authorization_code for HAIP
-	whenParameter = VCIProfile.class,
-	hasValues = "haip"
+	whenParameter = FAPI2FinalOPProfile.class,
+	hasValues = "vci_haip"
 )
 public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 
@@ -349,7 +349,7 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 	private Class<? extends ConditionSequence> validateSenderConstrainedClientCredentialAccessTokenSteps;  // client credential access tokens
 	private SenderContrainTokenRequestHelper senderConstrainTokenRequestHelper;
 
-	protected VCIProfile vciProfile;
+	protected FAPI2FinalOPProfile fapi2Profile;
 
 	protected ClientAuthType clientAuthType;
 
@@ -426,18 +426,18 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 		fapi2SenderConstrainMethod = getVariant(FAPI2SenderConstrainMethod.class);
 		authorizationRequestType = getVariant(AuthorizationRequestType.class);
 
-		vciProfile = getVariant(VCIProfile.class);
+		fapi2Profile = getVariant(FAPI2FinalOPProfile.class);
 		vciCredentialFormat = getVariant(VCI1FinalCredentialFormat.class);
 		vciCredentialIssuanceMode = getVariant(VCICredentialIssuanceMode.class);
 		vciCredentialEncryption = getVariant(VCICredentialEncryption.class);
 
 		profileRequiresMtlsEverywhere = false;
 
-		if (vciProfile == VCIProfile.HAIP && authorizationRequestType == AuthorizationRequestType.RAR) {
+		if (fapi2Profile == FAPI2FinalOPProfile.VCI_HAIP && authorizationRequestType == AuthorizationRequestType.RAR) {
 			throw new TestFailureException(getId(), "The usage of authorization request type RAR is not supported with HAIP.");
 		}
 
-		if (vciProfile == VCIProfile.HAIP && vciGrantType == VCIGrantType.PRE_AUTHORIZATION_CODE) {
+		if (fapi2Profile == FAPI2FinalOPProfile.VCI_HAIP && vciGrantType == VCIGrantType.PRE_AUTHORIZATION_CODE) {
 			throw new TestFailureException(getId(), "The usage of grant type Pre-Authorized Code Flow is not supported with HAIP.");
 		}
 
@@ -1399,7 +1399,7 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 			callAndStopOnFailure(CreateMdocCredentialForVCI.class, "OID4VCI-1FINALA-G.1");
 		} else {
 			// SD-JWT VC format (dc+sd-jwt or default)
-			if (vciProfile == VCIProfile.HAIP) {
+			if (fapi2Profile == FAPI2FinalOPProfile.VCI_HAIP) {
 				Map<String, Object> additionalClaims = additionalSdJwtClaimsForHaip();
 				callAndStopOnFailure(new CreateSdJwtCredential(additionalClaims), "OID4VCI-1FINALA-F.1", "OID4VCI-1FINALA-F.3");
 			} else {

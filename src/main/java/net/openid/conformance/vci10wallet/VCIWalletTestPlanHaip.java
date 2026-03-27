@@ -12,9 +12,9 @@ import net.openid.conformance.variant.VCICredentialEncryption;
 import net.openid.conformance.variant.VCICredentialIssuanceMode;
 import net.openid.conformance.variant.VCICredentialOfferParameterVariant;
 import net.openid.conformance.variant.VCIGrantType;
-import net.openid.conformance.variant.VCIProfile;
+import net.openid.conformance.variant.FAPI2FinalOPProfile;
 import net.openid.conformance.variant.VariantSelection;
-import net.openid.conformance.vci10issuer.VCI1FinalCredentialFormat;
+import net.openid.conformance.variant.VCI1FinalCredentialFormat;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -41,7 +41,7 @@ public class VCIWalletTestPlanHaip implements TestPlan {
 				List.of(
 					new Variant(FAPI2AuthRequestMethod.class, "unsigned"),
 					new Variant(FAPI2SenderConstrainMethod.class, "dpop"),
-					new Variant(VCIProfile.class, "haip"),
+					new Variant(FAPI2FinalOPProfile.class, "vci_haip"),
 					new Variant(VCIGrantType.class, "authorization_code"),
 					new Variant(AuthorizationRequestType.class, "simple"),
 					new Variant(ClientAuthType.class, "client_attestation"),
@@ -54,7 +54,7 @@ public class VCIWalletTestPlanHaip implements TestPlan {
 				List.of(
 					new Variant(FAPI2AuthRequestMethod.class, "unsigned"),
 					new Variant(FAPI2SenderConstrainMethod.class, "dpop"),
-					new Variant(VCIProfile.class, "haip"),
+					new Variant(FAPI2FinalOPProfile.class, "vci_haip"),
 					new Variant(VCIGrantType.class, "authorization_code"),
 					new Variant(AuthorizationRequestType.class, "simple"),
 					new Variant(ClientAuthType.class, "client_attestation"),
@@ -67,7 +67,7 @@ public class VCIWalletTestPlanHaip implements TestPlan {
 				List.of(
 					new Variant(FAPI2AuthRequestMethod.class, "unsigned"),
 					new Variant(FAPI2SenderConstrainMethod.class, "dpop"),
-					new Variant(VCIProfile.class, "haip"),
+					new Variant(FAPI2FinalOPProfile.class, "vci_haip"),
 					new Variant(VCIGrantType.class, "authorization_code"),
 					new Variant(AuthorizationRequestType.class, "simple"),
 					new Variant(ClientAuthType.class, "client_attestation"),
