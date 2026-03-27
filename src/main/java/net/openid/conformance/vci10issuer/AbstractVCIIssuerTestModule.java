@@ -304,15 +304,7 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractFAPI2SPFinalSe
 	}
 
 	protected void generateClientAttestationKeys() {
-
-		if (clientAuthType == ClientAuthType.CLIENT_ATTESTATION) {
-			if (env.getString("config", "vci.client_attestation_issuer") == null) {
-				throw new TestFailureException(getId(),
-					"'Client Attestation Issuer' must be configured in the 'VCI' section "
-						+ "in the test configuration when client_attestation is the client authentication method.");
-			}
-		}
-
+		// client_attestation_issuer is validated in onConfigure(), which runs before this method
 		callAndStopOnFailure(GenerateClientAttestationClientInstanceKey.class,
 			ConditionResult.FAILURE, "OAuth2-ATCA07-1");
 		callAndStopOnFailure(CreateClientAttestationJwt.class,
