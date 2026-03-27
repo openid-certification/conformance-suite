@@ -17,97 +17,6 @@
         "expected-result": "warning",
         "comment": "This is a warning about missing userinfo endpoint, and we're not interested in that here"
     },
-
-    {
-        "test-name": "openid-federation-automatic-client-registration-invalid-request-object-iss",
-        "variant": "*",
-        "configuration-filename": "authlete-federation.json",
-        "current-block": "*",
-        "condition": "WebRunner",
-        "expected-result": "failure",
-        "comment": "Remove this expected failure when either the AS or the test has been updated accordingly"
-    },
-    {
-        "test-name": "openid-federation-automatic-client-registration-invalid-request-object-iss",
-        "variant": "*",
-        "configuration-filename": "authlete-federation.json",
-        "current-block": "*",
-        "condition": "openid-federation-automatic-client-registration-invalid-request-object-iss",
-        "expected-result": "failure",
-        "comment": "Remove this expected failure when either the AS or the test has been updated accordingly"
-    },
-    {
-        "test-name": "openid-federation-automatic-client-registration-invalid-request-object-sub",
-        "variant": "*",
-        "configuration-filename": "authlete-federation.json",
-        "current-block": "*",
-        "condition": "WebRunner",
-        "expected-result": "failure",
-        "comment": "Remove this expected failure when either the AS or the test has been updated accordingly"
-    },
-    {
-        "test-name": "openid-federation-automatic-client-registration-invalid-request-object-sub",
-        "variant": "*",
-        "configuration-filename": "authlete-federation.json",
-        "current-block": "*",
-        "condition": "openid-federation-automatic-client-registration-invalid-request-object-sub",
-        "expected-result": "failure",
-        "comment": "Remove this expected failure when either the AS or the test has been updated accordingly"
-    },
-    {
-        "test-name": "openid-federation-automatic-client-registration-invalid-missing-request-object-jti",
-        "variant": "*",
-        "configuration-filename": "authlete-federation.json",
-        "current-block": "*",
-        "condition": "WebRunner",
-        "expected-result": "failure",
-        "comment": "Remove this expected failure when either the AS or the test has been updated accordingly"
-    },
-    {
-        "test-name": "openid-federation-automatic-client-registration-invalid-missing-request-object-jti",
-        "variant": "*",
-        "configuration-filename": "authlete-federation.json",
-        "current-block": "*",
-        "condition": "openid-federation-automatic-client-registration-invalid-missing-request-object-jti",
-        "expected-result": "failure",
-        "comment": "Remove this expected failure when either the AS or the test has been updated accordingly"
-    },
-    {
-        "test-name": "openid-federation-automatic-client-registration-invalid-missing-request-object-exp",
-        "variant": "*",
-        "configuration-filename": "authlete-federation.json",
-        "current-block": "*",
-        "condition": "WebRunner",
-        "expected-result": "failure",
-        "comment": "Remove this expected failure when either the AS or the test has been updated accordingly"
-    },
-    {
-        "test-name": "openid-federation-automatic-client-registration-invalid-missing-request-object-exp",
-        "variant": "*",
-        "configuration-filename": "authlete-federation.json",
-        "current-block": "*",
-        "condition": "openid-federation-automatic-client-registration-invalid-missing-request-object-exp",
-        "expected-result": "failure",
-        "comment": "Remove this expected failure when either the AS or the test has been updated accordingly"
-    },
-    {
-        "test-name": "openid-federation-automatic-client-registration-invalid-missing-request-object-iss",
-        "variant": "*",
-        "configuration-filename": "authlete-federation.json",
-        "current-block": "*",
-        "condition": "WebRunner",
-        "expected-result": "failure",
-        "comment": "Remove this expected failure when either the AS or the test has been updated accordingly"
-    },
-    {
-        "test-name": "openid-federation-automatic-client-registration-invalid-missing-request-object-iss",
-        "variant": "*",
-        "configuration-filename": "authlete-federation.json",
-        "current-block": "*",
-        "condition": "openid-federation-automatic-client-registration-invalid-missing-request-object-iss",
-        "expected-result": "failure",
-        "comment": "Remove this expected failure when either the AS or the test has been updated accordingly"
-    },
     {
         "test-name": "openid-federation-automatic-client-registration-invalid-duplicate-request-object-jti",
         "variant": "*",
@@ -115,7 +24,7 @@
         "current-block": "*",
         "condition": "WebRunner",
         "expected-result": "failure",
-        "comment": "Remove this expected failure when either the AS or the test has been updated accordingly"
+        "comment": "see https://gitlab.com/openid/conformance-suite/-/work_items/1721"
     },
     {
         "test-name": "openid-federation-automatic-client-registration-invalid-duplicate-request-object-jti",
@@ -124,6 +33,6 @@
         "current-block": "*",
         "condition": "openid-federation-automatic-client-registration-invalid-duplicate-request-object-jti",
         "expected-result": "failure",
-        "comment": "Remove this expected failure when either the AS or the test has been updated accordingly"
+        "comment": "see https://gitlab.com/openid/conformance-suite/-/work_items/1721"
     }
 ]
