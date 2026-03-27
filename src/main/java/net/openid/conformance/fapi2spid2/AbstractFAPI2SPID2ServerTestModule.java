@@ -711,13 +711,13 @@ public abstract class AbstractFAPI2SPID2ServerTestModule extends AbstractRedirec
 	/**
 	 * Call sender constrained token endpoint, expecting a successful (HTTP 200) response
 	 */
-	protected void callSenderConstrainedTokenEndpoint() {
+	protected void callSenderConstrainedTokenEndpointAndCheckForHttp200() {
 		callSenderConstrainedTokenEndpointAndStopOnFailure();
 		callAndStopOnFailure(CheckTokenEndpointHttpStatus200.class);
 	}
 
 	protected void exchangeAuthorizationCode() {
-		callSenderConstrainedTokenEndpoint();
+		callSenderConstrainedTokenEndpointAndCheckForHttp200();
 
 		eventLog.startBlock(currentClientString() + "Verify token endpoint response");
 		processTokenEndpointResponse();

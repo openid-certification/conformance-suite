@@ -515,7 +515,7 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractFAPI2SPFinalSe
 
 	@Override
 	protected void exchangeAuthorizationCode() {
-		callSenderConstrainedTokenEndpoint();
+		callSenderConstrainedTokenEndpointAndCheckForHttp200();
 
 		eventLog.startBlock(currentClientString() + "Verify token endpoint response");
 		processTokenEndpointResponse();

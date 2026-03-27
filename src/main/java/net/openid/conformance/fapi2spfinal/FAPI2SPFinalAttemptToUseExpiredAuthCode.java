@@ -47,7 +47,7 @@ public class FAPI2SPFinalAttemptToUseExpiredAuthCode extends AbstractFAPI2SPFina
 
 	@Override
 	protected void exchangeAuthorizationCode() {
-		callSenderConstrainedTokenEndpoint();
+		callSenderConstrainedTokenEndpointAndCheckForHttp200();
 
 		eventLog.startBlock(currentClientString() + "Verify token endpoint response");
 		processTokenEndpointResponse();

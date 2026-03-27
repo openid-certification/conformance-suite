@@ -14,7 +14,7 @@ public abstract class AbstractFAPI2SPFinalPerformTokenEndpoint extends AbstractF
 		if (clientCredentialsGrant) {
 			createClientCredentialsGrantRequest();
 
-			callSenderConstrainedTokenEndpoint();
+			callSenderConstrainedTokenEndpointAndCheckForHttp200();
 			processTokenEndpointResponse();
 		}
 		else {
@@ -26,7 +26,7 @@ public abstract class AbstractFAPI2SPFinalPerformTokenEndpoint extends AbstractF
 	}
 
 	@Override
-	protected void callSenderConstrainedTokenEndpoint() {
+	protected void callSenderConstrainedTokenEndpointAndCheckForHttp200() {
 		callSenderConstrainedTokenEndpointAndStopOnFailure( "FAPI1-BASE-5.2.2-19");
 	}
 }
