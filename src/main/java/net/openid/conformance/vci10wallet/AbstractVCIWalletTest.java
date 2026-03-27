@@ -430,6 +430,7 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 		vciCredentialFormat = getVariant(VCI1FinalCredentialFormat.class);
 		vciCredentialIssuanceMode = getVariant(VCICredentialIssuanceMode.class);
 		vciCredentialEncryption = getVariant(VCICredentialEncryption.class);
+		vciGrantType = getVariant(VCIGrantType.class);
 
 		profileRequiresMtlsEverywhere = false;
 
@@ -462,7 +463,6 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 
 		checkCredentialSigningKey(env);
 
-		vciGrantType = getVariant(VCIGrantType.class);
 		if (vciGrantType == VCIGrantType.AUTHORIZATION_CODE) {
 			callAndStopOnFailure(VCIGenerateIssuerState.class, "OID4VCI-1FINAL-5.1.3-2.1");
 		}
