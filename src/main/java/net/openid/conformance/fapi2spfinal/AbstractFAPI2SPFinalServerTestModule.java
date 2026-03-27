@@ -1314,7 +1314,6 @@ public abstract class AbstractFAPI2SPFinalServerTestModule extends AbstractRedir
 		callAndContinueOnFailure(CheckForPARResponseExpiresIn.class, ConditionResult.FAILURE, "PAR-2.2");
 
 		env.mapKey("endpoint_response", CallPAREndpoint.RESPONSE_KEY);
-
 		callAndContinueOnFailure(EnsureContentTypeJson.class, Condition.ConditionResult.FAILURE);
 		env.unmapKey("endpoint_response");
 

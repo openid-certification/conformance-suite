@@ -22,9 +22,6 @@ import net.openid.conformance.condition.client.CallTokenEndpointAllowingDpopNonc
 import net.openid.conformance.condition.client.CallTokenEndpointAndReturnFullResponse;
 import net.openid.conformance.condition.client.CheckForDateHeaderInResourceResponse;
 import net.openid.conformance.condition.client.CheckForFAPIInteractionIdInResourceResponse;
-import net.openid.conformance.condition.client.CheckForPARResponseExpiresIn;
-import net.openid.conformance.condition.client.CheckForRequestUriValue;
-import net.openid.conformance.condition.client.CheckPAREndpointResponse201WithNoError;
 import net.openid.conformance.condition.client.CreateAuthorizationEndpointRequestFromClientInformation;
 import net.openid.conformance.condition.client.CreateEmptyResourceEndpointRequestHeaders;
 import net.openid.conformance.condition.client.CreateRandomFAPIInteractionId;
@@ -39,9 +36,7 @@ import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs2xx;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs400;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIsAnyOf;
 import net.openid.conformance.condition.client.EnsureMatchingFAPIInteractionId;
-import net.openid.conformance.condition.client.EnsureMinimumRequestUriEntropy;
 import net.openid.conformance.condition.client.ExtractMTLSCertificatesFromConfiguration;
-import net.openid.conformance.condition.client.ExtractRequestUriFromPARResponse;
 import net.openid.conformance.condition.client.GetStaticClientConfiguration;
 import net.openid.conformance.condition.client.ParseCredentialAsSdJwt;
 import net.openid.conformance.condition.client.ParseMdocCredentialFromVCIIssuance;
@@ -535,22 +530,6 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractFAPI2SPFinalSe
 		callAndStopOnFailure(
 			BuildRequestObjectByReferenceRedirectToAuthorizationEndpointWithoutDuplicates.class, "PAR-4");
 		performRedirect();
-	}
-
-	@Override
-	protected void processParResponse() {
-		callAndStopOnFailure(CheckPAREndpointResponse201WithNoError.class, "PAR-2.2", "PAR-2.3");
-
-		callAndStopOnFailure(CheckForRequestUriValue.class, "PAR-2.2");
-
-		callAndContinueOnFailure(CheckForPARResponseExpiresIn.class, ConditionResult.FAILURE, "PAR-2.2");
-
-		callAndStopOnFailure(ExtractRequestUriFromPARResponse.class);
-
-		callAndContinueOnFailure(EnsureMinimumRequestUriEntropy.class,
-			ConditionResult.FAILURE, "PAR-2.2", "PAR-7.1", "JAR-10.2");
-
-		performPARRedirectWithRequestUri();
 	}
 
 	// --- VCI-specific credential endpoint logic ---
