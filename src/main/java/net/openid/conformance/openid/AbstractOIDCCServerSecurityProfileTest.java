@@ -673,13 +673,6 @@ public abstract class AbstractOIDCCServerSecurityProfileTest extends AbstractOID
 		}
 	}
 
-	/**
-	 * Call sender constrained token endpoint, expecting a successful (HTTP 200) response
-	 */
-	protected void callSenderConstrainedTokenEndpointAndCheckForHttp200() {
-		callSenderConstrainedTokenEndpoint();
-		callAndStopOnFailure(CheckTokenEndpointHttpStatus200.class);
-	}
 
 
 	@Override
@@ -688,7 +681,8 @@ public abstract class AbstractOIDCCServerSecurityProfileTest extends AbstractOID
 			callAndStopOnFailure(CallTokenEndpointAndReturnFullResponse.class);
 			callAndStopOnFailure(CheckTokenEndpointHttpStatus200.class);
 		} else {
-			callSenderConstrainedTokenEndpointAndCheckForHttp200();
+			callSenderConstrainedTokenEndpoint();
+			callAndStopOnFailure(CheckTokenEndpointHttpStatus200.class);
 		}
 	}
 
