@@ -8,13 +8,13 @@ import net.openid.conformance.openid.ssf.variant.SsfProfile;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.VariantNotApplicable;
 
-@VariantNotApplicable(parameter = SsfProfile.class, values = "caep_interop")
 @PublishTestModule(
 	testName = "openid-ssf-stream-control-error-replace-stream-with-invalid-body",
 	displayName = "Attempt to replace Stream Configuration with invalid body.",
 	summary = "This test verifies the behavior of the stream control for error cases. It attempts to replace a stream configuration with invalid body.",
 	profile = "OIDSSF"
 )
+@VariantNotApplicable(parameter = SsfProfile.class, values = "caep_interop")
 public class OIDSSFStreamControlNegativeTestReplaceStreamWithInvalidBody extends AbstractStreamControlErrorTest {
 
 	@Override

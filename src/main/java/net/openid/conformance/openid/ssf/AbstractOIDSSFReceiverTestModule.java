@@ -170,8 +170,10 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 		metadata.addProperty("configuration_endpoint", issuer + "/streams");
 		metadata.addProperty("status_endpoint", issuer + "/status");
 
-		metadata.addProperty("add_subject_endpoint", issuer + "/add_subject");
-		metadata.addProperty("remove_subject_endpoint", issuer + "/remove_subject");
+		if (!isSsfProfileEnabled(SsfProfile.CAEP_INTEROP)) {
+			metadata.addProperty("add_subject_endpoint", issuer + "/add_subject");
+			metadata.addProperty("remove_subject_endpoint", issuer + "/remove_subject");
+		}
 
 		metadata.addProperty("verification_endpoint", issuer + "/verify");
 
@@ -364,6 +366,9 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 			}
 
 			case "PATCH": {
+				if (isSsfProfileEnabled(SsfProfile.CAEP_INTEROP)) {
+					return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED).build();
+				}
 				callAndContinueOnFailure(OIDSSFHandleStreamRequestBodyParsing.class, Condition.ConditionResult.FAILURE, "OIDSSF-8.1.1.3");
 				callAndContinueOnFailure(OIDSSFHandleStreamUpdateRequestValidation.class, Condition.ConditionResult.FAILURE,"OIDSSF-8.1.1.3");
 				callAndContinueOnFailure(OIDSSFHandleStreamUpdateRequest.class, Condition.ConditionResult.FAILURE, "OIDSSF-8.1.1.3");
@@ -374,6 +379,9 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 			}
 
 			case "PUT": {
+				if (isSsfProfileEnabled(SsfProfile.CAEP_INTEROP)) {
+					return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED).build();
+				}
 				callAndContinueOnFailure(OIDSSFHandleStreamRequestBodyParsing.class, Condition.ConditionResult.FAILURE, "OIDSSF-8.1.1.4");
 				callAndContinueOnFailure(OIDSSFHandleStreamUpdateRequestValidation.class, Condition.ConditionResult.FAILURE,"OIDSSF-8.1.1.4");
 				callAndContinueOnFailure(OIDSSFHandleStreamReplaceRequest.class, Condition.ConditionResult.FAILURE, "OIDSSF-8.1.1.4");
@@ -425,6 +433,10 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 		String method = req.getMethod();
 		if (!method.equals("POST")) {
 			return (ResponseEntity<?>) super.handleHttp(path, req, res, session, requestParts);
+		}
+
+		if (isSsfProfileEnabled(SsfProfile.CAEP_INTEROP)) {
+			return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED).build();
 		}
 
 		switch (operation) {
@@ -521,6 +533,9 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 		if (isReadStreamStatus) {
 			callAndContinueOnFailure(OIDSSFHandleStreamStatusLookup.class, Condition.ConditionResult.FAILURE, "OIDSSF-8.1.2.1");
 		} else if (isUpdateStreamStatus) {
+			if (isSsfProfileEnabled(SsfProfile.CAEP_INTEROP)) {
+				return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED).build();
+			}
 			callAndContinueOnFailure(OIDSSFHandleStreamStatusUpdateRequestParsing.class, Condition.ConditionResult.FAILURE, "OIDSSF-8.1.2.2");
 			callAndContinueOnFailure(OIDSSFHandleStreamStatusUpdateRequest.class, Condition.ConditionResult.FAILURE, "OIDSSF-8.1.2.2");
 		}
