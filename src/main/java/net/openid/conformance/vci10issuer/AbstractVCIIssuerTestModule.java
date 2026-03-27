@@ -20,17 +20,11 @@ import net.openid.conformance.condition.client.CallProtectedResource;
 import net.openid.conformance.condition.client.CallProtectedResourceAllowingDpopNonceError;
 import net.openid.conformance.condition.client.CallTokenEndpointAllowingDpopNonceErrorAndReturnFullResponse;
 import net.openid.conformance.condition.client.CallTokenEndpointAndReturnFullResponse;
-import net.openid.conformance.condition.client.CheckForAccessTokenValue;
 import net.openid.conformance.condition.client.CheckForDateHeaderInResourceResponse;
 import net.openid.conformance.condition.client.CheckForFAPIInteractionIdInResourceResponse;
 import net.openid.conformance.condition.client.CheckForPARResponseExpiresIn;
-import net.openid.conformance.condition.client.CheckForRefreshTokenValue;
 import net.openid.conformance.condition.client.CheckForRequestUriValue;
-import net.openid.conformance.condition.client.CheckIfAuthorizationEndpointError;
-import net.openid.conformance.condition.client.CheckIfTokenEndpointResponseError;
-import net.openid.conformance.condition.client.CheckMatchingCallbackParameters;
 import net.openid.conformance.condition.client.CheckPAREndpointResponse201WithNoError;
-import net.openid.conformance.condition.client.CheckStateInAuthorizationResponse;
 import net.openid.conformance.condition.client.CreateAuthorizationEndpointRequestFromClientInformation;
 import net.openid.conformance.condition.client.CreateEmptyResourceEndpointRequestHeaders;
 import net.openid.conformance.condition.client.CreateRandomFAPIInteractionId;
@@ -45,26 +39,12 @@ import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs2xx;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs400;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIsAnyOf;
 import net.openid.conformance.condition.client.EnsureMatchingFAPIInteractionId;
-import net.openid.conformance.condition.client.EnsureMinimumAccessTokenEntropy;
-import net.openid.conformance.condition.client.EnsureMinimumAccessTokenLength;
-import net.openid.conformance.condition.client.EnsureMinimumAuthorizationCodeEntropy;
-import net.openid.conformance.condition.client.EnsureMinimumAuthorizationCodeLength;
-import net.openid.conformance.condition.client.EnsureMinimumRefreshTokenEntropy;
-import net.openid.conformance.condition.client.EnsureMinimumRefreshTokenLength;
 import net.openid.conformance.condition.client.EnsureMinimumRequestUriEntropy;
-import net.openid.conformance.condition.client.ExpectNoIdTokenInTokenResponse;
-import net.openid.conformance.condition.client.ExtractAccessTokenFromTokenResponse;
-import net.openid.conformance.condition.client.ExtractAuthorizationCodeFromAuthorizationResponse;
-import net.openid.conformance.condition.client.ExtractExpiresInFromTokenEndpointResponse;
 import net.openid.conformance.condition.client.ExtractMTLSCertificatesFromConfiguration;
 import net.openid.conformance.condition.client.ExtractRequestUriFromPARResponse;
 import net.openid.conformance.condition.client.GetStaticClientConfiguration;
 import net.openid.conformance.condition.client.ParseCredentialAsSdJwt;
 import net.openid.conformance.condition.client.ParseMdocCredentialFromVCIIssuance;
-import net.openid.conformance.condition.client.RejectAuthCodeInUrlFragment;
-import net.openid.conformance.condition.client.RejectErrorInUrlFragment;
-import net.openid.conformance.condition.client.RejectStateInUrlFragmentForCodeFlow;
-import net.openid.conformance.condition.client.RequireIssInAuthorizationResponse;
 import net.openid.conformance.condition.client.SetAuthorizationEndpointRequestResponseTypeToCode;
 import net.openid.conformance.condition.client.SetProtectedResourceUrlToSingleResourceEndpoint;
 import net.openid.conformance.condition.client.ValidateCredentialCnfJwkIsPublicKey;
@@ -73,10 +53,8 @@ import net.openid.conformance.condition.client.ValidateCredentialJWTHeaderTyp;
 import net.openid.conformance.condition.client.ValidateCredentialJWTIat;
 import net.openid.conformance.condition.client.ValidateCredentialJWTIssIsHttpsUri;
 import net.openid.conformance.condition.client.ValidateCredentialJWTVct;
-import net.openid.conformance.condition.client.ValidateExpiresIn;
 import net.openid.conformance.condition.client.ValidateMTLSCertificatesHeader;
 import net.openid.conformance.condition.client.ValidateMdocIssuerSignedSignature;
-import net.openid.conformance.condition.client.ValidateSuccessfulAuthCodeFlowResponseFromAuthorizationEndpoint;
 import net.openid.conformance.condition.common.RARSupport;
 import net.openid.conformance.fapi2spfinal.AbstractFAPI2SPFinalServerTestModule;
 import net.openid.conformance.openid.federation.CallCredentialIssuerNonceEndpoint;
@@ -484,51 +462,6 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractFAPI2SPFinalSe
 		return seq;
 	}
 
-	// --- Callback processing overrides ---
-
-	@Override
-	protected void processCallback() {
-
-		eventLog.startBlock(currentClientString() + "Verify authorization endpoint response");
-
-		// VCI always uses the auth code flow (no JARM), use the query as the response
-		env.mapKey("authorization_endpoint_response", "callback_query_params");
-
-		callAndContinueOnFailure(RejectErrorInUrlFragment.class,
-			Condition.ConditionResult.FAILURE, "OAuth2-RT-5");
-
-		callAndContinueOnFailure(RejectAuthCodeInUrlFragment.class,
-			Condition.ConditionResult.FAILURE, "OIDCC-3.3.2.5");
-
-		onAuthorizationCallbackResponse();
-
-		eventLog.endBlock();
-	}
-
-	@Override
-	protected void onAuthorizationCallbackResponse() {
-
-		callAndContinueOnFailure(CheckMatchingCallbackParameters.class, ConditionResult.FAILURE);
-
-		callAndContinueOnFailure(RejectStateInUrlFragmentForCodeFlow.class, Condition.ConditionResult.FAILURE, "OIDCC-3.3.2.5");
-
-		callAndStopOnFailure(CheckIfAuthorizationEndpointError.class);
-
-		callAndContinueOnFailure(ValidateSuccessfulAuthCodeFlowResponseFromAuthorizationEndpoint.class, ConditionResult.WARNING);
-
-		callAndContinueOnFailure(CheckStateInAuthorizationResponse.class, ConditionResult.FAILURE, "OIDCC-3.2.2.5");
-
-		callAndContinueOnFailure(RequireIssInAuthorizationResponse.class, ConditionResult.FAILURE, "OAuth2-iss-2", "FAPI2-SP-FINAL-5.3.2.2-2.7");
-
-		callAndStopOnFailure(ExtractAuthorizationCodeFromAuthorizationResponse.class);
-
-		callAndContinueOnFailure(EnsureMinimumAuthorizationCodeLength.class, Condition.ConditionResult.FAILURE, "RFC6749-10.10", "RFC6819-5.1.4.2-2");
-
-		callAndContinueOnFailure(EnsureMinimumAuthorizationCodeEntropy.class, Condition.ConditionResult.FAILURE, "RFC6749-10.10", "RFC6819-5.1.4.2-2");
-
-		handleSuccessfulAuthorizationEndpointResponse();
-	}
-
 	// --- Token endpoint overrides ---
 
 	@Override
@@ -592,35 +525,6 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractFAPI2SPFinalSe
 		eventLog.startBlock(currentClientString() + "Verify token endpoint response");
 		processTokenEndpointResponse();
 		eventLog.endBlock();
-	}
-
-	@Override
-	protected void processTokenEndpointResponse() {
-		callAndStopOnFailure(CheckIfTokenEndpointResponseError.class);
-
-		callAndStopOnFailure(CheckForAccessTokenValue.class, "RFC6749-4.1.4");
-
-		callAndStopOnFailure(ExtractAccessTokenFromTokenResponse.class);
-
-		callAndContinueOnFailure(ExtractExpiresInFromTokenEndpointResponse.class, ConditionResult.WARNING, "RFC6749-5.1");
-		skipIfMissing(new String[]{"expires_in"}, null, Condition.ConditionResult.INFO, ValidateExpiresIn.class, Condition.ConditionResult.FAILURE, "RFC6749-5.1");
-
-		callAndContinueOnFailure(CheckForRefreshTokenValue.class, ConditionResult.INFO);
-
-		skipIfElementMissing("token_endpoint_response", "refresh_token", Condition.ConditionResult.INFO, EnsureMinimumRefreshTokenLength.class, Condition.ConditionResult.FAILURE, "RFC6749-10.10");
-
-		skipIfElementMissing("token_endpoint_response", "refresh_token", Condition.ConditionResult.INFO, EnsureMinimumRefreshTokenEntropy.class, Condition.ConditionResult.FAILURE, "RFC6749-10.10");
-
-		callAndContinueOnFailure(EnsureMinimumAccessTokenLength.class, Condition.ConditionResult.FAILURE, "FAPI2-SP-FINAL-5.4.1-1");
-
-		callAndContinueOnFailure(EnsureMinimumAccessTokenEntropy.class, Condition.ConditionResult.FAILURE, "FAPI2-SP-FINAL-5.4.1-1");
-
-		// VCI never uses OpenID (isOpenId is false)
-		callAndStopOnFailure(ExpectNoIdTokenInTokenResponse.class);
-
-		if (isRarRequest) {
-			callAndStopOnFailure(RARSupport.CheckForAuthorizationDetailsInTokenResponse.class, "RAR-7");
-		}
 	}
 
 	// --- PAR overrides ---
