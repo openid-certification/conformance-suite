@@ -210,7 +210,7 @@ var FAPI_UI = {
 					FAPI_UI.logTemplates.FAILURE_SUMMARY = _.template(data);
 				});
 
-			const promises = [p1, p2, p3, p4. p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15, p16, p17, p18, p19, p20];
+			const promises = [p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15, p16, p17, p18, p19, p20];
 
 			return Promise.allSettled(promises);
 		},
@@ -252,7 +252,7 @@ var FAPI_UI = {
 					FAPI_UI.logTemplates.USER_INFO = _.template(data);
 				});
 
-			const promises = [p1, p2, p3, p4. p5, p6];
+			const promises = [p1, p2, p3, p4, p5, p6];
 
 			return Promise.allSettled(promises);
 		},
@@ -288,7 +288,7 @@ var FAPI_UI = {
 					FAPI_UI.logTemplates.TEST_VERSION = _.template(data);
 				});
 
-			const promises = [p1, p2, p3, p4. p5];
+			const promises = [p1, p2, p3, p4, p5];
 
 			return Promise.allSettled(promises);
 		},
@@ -330,7 +330,7 @@ var FAPI_UI = {
 					FAPI_UI.logTemplates.USER_INFO = _.template(data);
 				});
 
-			const promises = [p1, p2, p3, p4. p5, p6];
+			const promises = [p1, p2, p3, p4, p5, p6];
 
 			return Promise.allSettled(promises);
 		},
@@ -372,7 +372,7 @@ var FAPI_UI = {
 					FAPI_UI.logTemplates.UPLOAD_HEADER = _.template(data);
 				});
 
-			const promises = [p1, p2, p3, p4. p5, p6];
+			const promises = [p1, p2, p3, p4, p5, p6];
 
 			return Promise.allSettled(promises);
 		},
