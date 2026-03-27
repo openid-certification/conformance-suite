@@ -2,7 +2,6 @@ package net.openid.conformance.fapi2spfinal;
 
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.Condition.ConditionResult;
-import net.openid.conformance.condition.as.FAPI2FinalEnsureMinimumServerKeyLength;
 import net.openid.conformance.condition.client.AddFAPIAuthDateToResourceEndpointRequest;
 import net.openid.conformance.condition.client.AddFAPIInteractionIdToResourceEndpointRequest;
 import net.openid.conformance.condition.client.AddIpV4FapiCustomerIpAddressToResourceEndpointRequest;
@@ -401,13 +400,5 @@ public class FAPI2ProfileBehavior {
 				callAndStopOnFailure(ValidateClientJWKsPrivatePart.class, "RFC7517-1.1");
 			}
 		};
-	}
-
-	/**
-	 * Return the condition class for checking minimum server key length.
-	 * VCI overrides because the spec reference is different.
-	 */
-	public Class<? extends Condition> getMinimumServerKeyLengthCondition() {
-		return FAPI2FinalEnsureMinimumServerKeyLength.class;
 	}
 }
