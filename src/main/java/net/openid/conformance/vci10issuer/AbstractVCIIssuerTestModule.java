@@ -136,8 +136,6 @@ import net.openid.conformance.vci10issuer.condition.VCIValidateNoUnknownKeysInCr
 import net.openid.conformance.vci10issuer.condition.VCIValidateNoUnknownKeysInCredentialResponse;
 import net.openid.conformance.vci10issuer.condition.VCIWaitForCredentialOffer;
 import net.openid.conformance.vci10issuer.condition.VCIWaitForTxCode;
-import net.openid.conformance.vci10issuer.condition.clientattestation.CreateClientAttestationJwt;
-import net.openid.conformance.vci10issuer.condition.clientattestation.GenerateClientAttestationClientInstanceKey;
 import net.openid.conformance.vci10issuer.condition.statuslist.VCIValidateCredentialValidityByStatusListIfPresent;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.web.servlet.ModelAndView;
@@ -275,16 +273,8 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractFAPI2SPFinalSe
 	}
 
 	protected void generateClientAttestationKeys() {
-		// client_attestation_issuer is validated in onConfigure(), which runs before this method
-		callAndStopOnFailure(GenerateClientAttestationClientInstanceKey.class,
-			ConditionResult.FAILURE, "OAuth2-ATCA07-1");
-		callAndStopOnFailure(CreateClientAttestationJwt.class,
-			ConditionResult.FAILURE, "OAuth2-ATCA07-1", "HAIP-4.3.1-2");
-
+		call(profileBehavior.configureClientAttestation());
 		afterClientAttestationGenerated();
-
-		// we generate a new CreateClientAttestationProofJwt via the
-		// AddClientAttestationClientAuthToEndpointRequest sequence
 	}
 
 	/**
