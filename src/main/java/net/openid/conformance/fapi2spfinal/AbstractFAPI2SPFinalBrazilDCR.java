@@ -85,7 +85,7 @@ public abstract class AbstractFAPI2SPFinalBrazilDCR extends AbstractFAPI2SPFinal
 		callAndStopOnFailure(AddClientIdToRequest.class);
 		unmapClientAuthKeys();
 
-		callSenderConstrainedTokenEndpointAndStopOnFailure();
+		callSenderConstrainedTokenEndpoint();
 		callAndStopOnFailure(CheckTokenEndpointHttpStatus200.class);
 
 		callAndStopOnFailure(CheckIfTokenEndpointResponseError.class);

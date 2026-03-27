@@ -493,7 +493,7 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractFAPI2SPFinalSe
 	 * VCI adds client authentication inside the DPoP retry loop (unlike FAPI2 base which adds it before).
 	 */
 	@Override
-	protected void callSenderConstrainedTokenEndpointAndStopOnFailure(String... requirements) {
+	protected void callSenderConstrainedTokenEndpoint(String... requirements) {
 		final int MAX_RETRY = 2;
 
 		if (isDpop()) {
