@@ -785,7 +785,7 @@ public abstract class AbstractFAPI2SPFinalServerTestModule extends AbstractRedir
 		if (clientCredentialsGrant) {
 			createClientCredentialsGrantRequest();
 
-			callSenderConstrainedTokenEndpoint();
+			callSenderConstrainedTokenEndpointAndCheckForHttp200();
 			processTokenEndpointResponse();
 		}
 		else {
@@ -853,7 +853,7 @@ public abstract class AbstractFAPI2SPFinalServerTestModule extends AbstractRedir
 	/**
 	 * Call sender constrained token endpoint, expecting a successful (HTTP 200) response
 	 */
-	protected void callSenderConstrainedTokenEndpoint() {
+	protected void callSenderConstrainedTokenEndpointAndCheckForHttp200() {
 		callSenderConstrainedTokenEndpointAndStopOnFailure();
 		callAndStopOnFailure(CheckTokenEndpointHttpStatus200.class);
 	}
