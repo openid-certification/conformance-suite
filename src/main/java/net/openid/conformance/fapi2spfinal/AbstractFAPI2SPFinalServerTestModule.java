@@ -365,15 +365,15 @@ import java.util.function.Supplier;
 public abstract class AbstractFAPI2SPFinalServerTestModule extends AbstractRedirectServerTestModule {
 
 	protected int whichClient;
-	protected boolean jarm;
+	protected Boolean jarm;
 	protected boolean allowPlainErrorResponseForJarm = false;
-	protected boolean isPar;
-	protected boolean isOpenId;
-	protected boolean isSignedRequest;
-	protected boolean profileRequiresMtlsEverywhere;
-	protected boolean useDpopAuthCodeBinding;
-	protected boolean isRarRequest;
-	protected boolean clientCredentialsGrant;
+	protected Boolean isPar;
+	protected Boolean isOpenId;
+	protected Boolean isSignedRequest;
+	protected Boolean profileRequiresMtlsEverywhere;
+	protected Boolean useDpopAuthCodeBinding;
+	protected Boolean isRarRequest;
+	protected Boolean clientCredentialsGrant;
 	protected FAPI2ProfileBehavior profileBehavior;
 
 	// for variants to fill in by calling the setup... family of methods
