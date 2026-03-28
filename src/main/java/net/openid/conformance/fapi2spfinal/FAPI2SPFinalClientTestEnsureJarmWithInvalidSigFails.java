@@ -4,7 +4,6 @@ import net.openid.conformance.condition.as.InvalidateJarmSignature;
 import net.openid.conformance.condition.as.jarm.SignJARMResponse;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.FAPIResponseMode;
-import net.openid.conformance.variant.FAPI2FinalOPProfile;
 import net.openid.conformance.variant.VariantNotApplicable;
 
 
@@ -25,7 +24,6 @@ import net.openid.conformance.variant.VariantNotApplicable;
 )
 
 @VariantNotApplicable(parameter = FAPIResponseMode.class, values = { "plain_response" })
-@VariantNotApplicable(parameter = FAPI2FinalOPProfile.class, values = { "fapi_client_credentials_grant" })
 public class FAPI2SPFinalClientTestEnsureJarmWithInvalidSigFails extends AbstractFAPI2SPFinalClientExpectNothingAfterAuthorizationResponse {
 
 

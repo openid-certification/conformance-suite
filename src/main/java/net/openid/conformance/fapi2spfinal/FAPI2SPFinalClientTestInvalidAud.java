@@ -2,8 +2,6 @@ package net.openid.conformance.fapi2spfinal;
 
 import net.openid.conformance.condition.as.AddInvalidAudValueToIdToken;
 import net.openid.conformance.testmodule.PublishTestModule;
-import net.openid.conformance.variant.FAPI2FinalOPProfile;
-import net.openid.conformance.variant.VariantNotApplicable;
 
 @PublishTestModule(
 	testName = "fapi2-security-profile-final-client-test-invalid-aud",
@@ -20,7 +18,6 @@ import net.openid.conformance.variant.VariantNotApplicable;
 		"waitTimeoutSeconds"
 	}
 )
-@VariantNotApplicable(parameter = FAPI2FinalOPProfile.class, values = { "fapi_client_credentials_grant" })
 public class FAPI2SPFinalClientTestInvalidAud extends AbstractFAPI2SPFinalClientExpectNothingAfterIdTokenIssued {
 
 	@Override
