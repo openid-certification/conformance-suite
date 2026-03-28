@@ -20,6 +20,7 @@ import net.openid.conformance.vci10issuer.condition.VCIParseCredentialIssuerMeta
 import net.openid.conformance.vci10issuer.condition.VCIResolveCredentialEndpointToUse;
 import net.openid.conformance.vci10issuer.condition.VCISelectOAuthorizationServer;
 import net.openid.conformance.vci10issuer.condition.VCIValidateClientJWKsPrivatePart;
+import net.openid.conformance.vci10issuer.condition.clientattestation.CheckClientAttestationChallengeResponseForUnknownFields;
 import net.openid.conformance.vci10issuer.condition.clientattestation.ValidateClientAttestationChallengeResponse;
 
 /**
@@ -111,6 +112,11 @@ public class VCIProfileBehavior extends FAPI2ProfileBehavior {
 				call(condition(ValidateClientAttestationChallengeResponse.class)
 					.skipIfElementMissing("server", "challenge_endpoint")
 					.requirement("OAuth2-ATCA07-8"));
+				call(condition(CheckClientAttestationChallengeResponseForUnknownFields.class)
+					.skipIfElementMissing("server", "challenge_endpoint")
+					.requirement("OAuth2-ATCA07-8")
+					.onFail(ConditionResult.WARNING)
+					.dontStopOnFailure());
 				call(exec().unmapKey("endpoint_response"));
 
 				callAndStopOnFailure(GenerateClientAttestationClientInstanceKey.class, ConditionResult.FAILURE,
