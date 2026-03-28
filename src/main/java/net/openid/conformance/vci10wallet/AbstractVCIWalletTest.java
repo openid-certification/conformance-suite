@@ -115,6 +115,8 @@ import net.openid.conformance.condition.as.par.EnsureAuthorizationRequestContain
 import net.openid.conformance.condition.as.par.EnsureAuthorizationRequestDoesNotContainRequestWhenUsingPAR;
 import net.openid.conformance.condition.as.par.EnsureRequestObjectContainsCodeChallengeWhenUsingPAR;
 import net.openid.conformance.condition.as.par.ExtractRequestObjectFromPAREndpointRequest;
+import net.openid.conformance.condition.client.EnsureIncomingRequestBodyIsEmpty;
+import net.openid.conformance.condition.client.EnsureIncomingUrlQueryIsEmpty;
 import net.openid.conformance.condition.client.AugmentRealJwksWithDecoys;
 import net.openid.conformance.condition.client.BuildVCIDCAPIRequest;
 import net.openid.conformance.condition.client.ExtractJWKsFromStaticClientConfiguration;
@@ -1119,6 +1121,8 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 		call(exec().startBlock("Challenge endpoint"));
 		call(exec().mapKey("incoming_request", requestId));
 		callAndContinueOnFailure(EnsureIncomingRequestMethodIsPost.class, ConditionResult.FAILURE, "OAuth2-ATCA07-8");
+		callAndContinueOnFailure(EnsureIncomingUrlQueryIsEmpty.class, ConditionResult.WARNING, "OAuth2-ATCA07-8");
+		callAndContinueOnFailure(EnsureIncomingRequestBodyIsEmpty.class, ConditionResult.WARNING, "OAuth2-ATCA07-8");
 		callAndStopOnFailure(GenerateAttestationChallenge.class, "OAuth2-ATCA07-8");
 		callAndStopOnFailure(GenerateAttestationChallengeResponse.class, "OAuth2-ATCA07-8");
 		call(exec().unmapKey("incoming_request").endBlock());
