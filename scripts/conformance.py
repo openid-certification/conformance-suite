@@ -139,8 +139,22 @@ class Conformance(object):
         response = self.httpclient.post(api_url, params=payload, data=configuration)
 
         if response.status_code != 201:
-            raise Exception("create_test_plan failed - HTTP {:d} {}".format(response.status_code, response.content))
+            error_msg = self._extract_error_message(response)
+            raise Exception("Failed to create plan '{}': {}".format(name, error_msg))
         return response.json()
+
+    @staticmethod
+    def _extract_error_message(response):
+        """Extract a concise error message from an error response."""
+        try:
+            body = response.json()
+            # Prefer 'error' field, fall back to 'message'
+            msg = body.get('error') or body.get('message')
+            if msg:
+                return msg
+        except Exception:
+            pass
+        return "HTTP {:d} {}".format(response.status_code, response.text[:200])
 
     async def create_test(self, test_name, configuration):
         api_url = '{0}api/runner'.format(self.api_url_base)
