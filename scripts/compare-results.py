@@ -276,6 +276,11 @@ new_artifacts_zip = sys.argv[2]
 master_results = load_results(master_artifacts_zip, True)
 new_results = load_results(new_artifacts_zip, False)
 
+def jaccard(set_a, set_b):
+    """Jaccard similarity between two sets. Returns 0 if both are empty."""
+    union = len(set_a | set_b)
+    return len(set_a & set_b) / union if union else 0.0
+
 def find_fuzzy_variant_match(master_module_variants, new_variant):
     """Find a master variant that fuzzy-matches the new variant.
 
@@ -347,30 +352,27 @@ def find_fuzzy_plan_match(master_results, new_test_plan, new_modules=None):
         if master_desc != new_desc:
             continue
         master_tokens = set(master_plan_part.split("-"))
-        intersection = len(new_tokens & master_tokens)
-        union = len(new_tokens | master_tokens)
-        if union == 0:
-            continue
-        plan_score = intersection / union
+        plan_score = jaccard(new_tokens, master_tokens)
         if plan_score >= 0.5:
             candidates.append((master_plan, plan_score))
 
     if not candidates:
         return None
 
-    if len(candidates) == 1 or new_modules is None:
+    if len(candidates) == 1:
+        return candidates[0][0]
+
+    if new_modules is None:
         return max(candidates, key=lambda x: x[1])[0]
 
     # Multiple candidates — use module overlap as the primary ranking
     # signal, with plan name similarity as tiebreaker.
     new_module_set = set(new_modules.keys())
     best_match = None
-    best_key = (-1, -1.0)
+    best_key = (-1.0, -1.0)
     for master_plan, plan_score in candidates:
         master_module_set = set(master_results[master_plan].keys())
-        mod_intersection = len(new_module_set & master_module_set)
-        mod_union = len(new_module_set | master_module_set)
-        mod_score = mod_intersection / mod_union if mod_union > 0 else 0
+        mod_score = jaccard(new_module_set, master_module_set)
         key = (mod_score, plan_score)
         if key > best_key:
             best_key = key
@@ -394,11 +396,7 @@ def find_fuzzy_module_match(master_modules, new_module):
     best_score = 0.0
     for master_module in master_modules:
         master_tokens = set(master_module.split("-"))
-        intersection = len(new_tokens & master_tokens)
-        union = len(new_tokens | master_tokens)
-        if union == 0:
-            continue
-        score = intersection / union
+        score = jaccard(new_tokens, master_tokens)
         if score > best_score and score >= 0.5:
             best_score = score
             best_match = master_module
