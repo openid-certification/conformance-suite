@@ -17,7 +17,8 @@ public class VCIWalletTestPlan implements TestPlan {
 	public static final List<Class<? extends TestModule>> testModules = List.of(
 		VCIWalletTestCredentialIssuance.class,
 		VCIWalletTestCredentialIssuanceWithNotification.class,
-		VCIWalletTestCredentialIssuanceUsingScopesWithoutAuthorizationDetailsInTokenResponse.class
+		VCIWalletTestCredentialIssuanceUsingScopesWithoutAuthorizationDetailsInTokenResponse.class,
+		VCIWalletTestClientAttestationChallenge.class
 	);
 
 	@Override

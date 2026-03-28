@@ -35,9 +35,6 @@ public class VCIWalletTestPlanHaip implements TestPlan {
 		// Not needed for HAIP
 		testModules.remove(VCIWalletTestCredentialIssuanceUsingScopesWithoutAuthorizationDetailsInTokenResponse.class);
 
-		// Client attestation challenge test
-		testModules.add(VCIWalletTestClientAttestationChallenge.class);
-
 		return List.of(
 			new ModuleListEntry(
 				testModules,
