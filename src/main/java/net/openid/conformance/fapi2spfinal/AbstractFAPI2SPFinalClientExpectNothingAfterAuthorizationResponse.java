@@ -1,11 +1,14 @@
 package net.openid.conformance.fapi2spfinal;
 
 import net.openid.conformance.testmodule.TestFailureException;
+import net.openid.conformance.variant.FAPI2FinalOPProfile;
+import net.openid.conformance.variant.VariantNotApplicable;
 
 /**
  * Base class for tests that return an invalid authorization response
  * Client must stop after receiving an invalid authorization response
  */
+@VariantNotApplicable(parameter = FAPI2FinalOPProfile.class, values = { "fapi_client_credentials_grant" })
 public abstract class AbstractFAPI2SPFinalClientExpectNothingAfterAuthorizationResponse extends AbstractFAPI2SPFinalClientTest {
 	@Override
 	protected void createAuthorizationEndpointResponse() {

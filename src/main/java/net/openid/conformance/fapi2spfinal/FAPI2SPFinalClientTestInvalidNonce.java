@@ -3,11 +3,9 @@ package net.openid.conformance.fapi2spfinal;
 import net.openid.conformance.condition.as.AddInvalidNonceValueToIdToken;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.FAPIClientType;
-import net.openid.conformance.variant.FAPI2FinalOPProfile;
 import net.openid.conformance.variant.VariantNotApplicable;
 
 @VariantNotApplicable(parameter = FAPIClientType.class, values = {"plain_oauth"})
-@VariantNotApplicable(parameter = FAPI2FinalOPProfile.class, values = { "fapi_client_credentials_grant" })
 @PublishTestModule(
 	testName = "fapi2-security-profile-final-client-test-invalid-nonce",
 	displayName = "FAPI2-Security-Profile-Final: client test - invalid nonce in id_token from token_endpoint, should be rejected",
