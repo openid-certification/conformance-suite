@@ -1,6 +1,7 @@
 package net.openid.conformance.fapi2spfinal;
 
 import net.openid.conformance.testmodule.TestFailureException;
+import net.openid.conformance.variant.FAPI2FinalOPProfile;
 import net.openid.conformance.variant.FAPIClientType;
 import net.openid.conformance.variant.VariantNotApplicable;
 
@@ -9,6 +10,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
  * Client must stop after receiving an invalid id_token
  */
 @VariantNotApplicable(parameter = FAPIClientType.class, values = "plain_oauth")
+@VariantNotApplicable(parameter = FAPI2FinalOPProfile.class, values = { "fapi_client_credentials_grant" })
 public abstract class AbstractFAPI2SPFinalClientExpectNothingAfterIdTokenIssued extends AbstractFAPI2SPFinalClientTest {
 	protected boolean issueIdTokenCalled = false;
 
