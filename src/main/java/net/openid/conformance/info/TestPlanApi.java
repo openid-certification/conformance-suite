@@ -126,14 +126,22 @@ public class TestPlanApi implements DataUtils {
 		savedConfigurationService.savePlanConfigurationForCurrentUser(config, planName, variant);
 
 		List<Plan.Module> testModules;
-		if (variant != null) {
-			testModules = holder.getTestModulesForVariant(variant);
-		} else {
-			testModules = holder.getTestModulesForVariant(VariantSelection.EMPTY);
+		try {
+			if (variant != null) {
+				testModules = holder.getTestModulesForVariant(variant);
+			} else {
+				testModules = holder.getTestModulesForVariant(VariantSelection.EMPTY);
+			}
+		} catch (RuntimeException e) {
+			return new ResponseEntity<>(
+				Map.of("error", e.getMessage()),
+				HttpStatus.BAD_REQUEST);
 		}
 
 		if (testModules.isEmpty()) {
-			throw new RuntimeException("No test modules in plan '" + planName + "' are applicable for specified variant");
+			return new ResponseEntity<>(
+				Map.of("error", "No test modules in plan '" + planName + "' are applicable for specified variant"),
+				HttpStatus.BAD_REQUEST);
 		}
 
 		List<String> certProfile = holder.certificationProfileForVariant(variant);
