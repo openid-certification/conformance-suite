@@ -331,6 +331,7 @@ async def run_test_module(moduledict, plan_id, test_info, test_time_taken, varia
     except Exception as e:
         traceback.print_exc()
         print('Exception: Test {} {} failed to run to completion: {}'.format(module_with_variants, module_id, e))
+        module_info['error'] = str(e)
     if module_id != '':
         test_time_taken[module_id] = time.time() - test_start_time
         module_info['info'] = await conformance.get_module_info(module_id)
@@ -1205,8 +1206,17 @@ async def main():
             for module_name, module_info in test_info.items():
                 if module_name == 'test_plan_name':
                     continue
-                info = module_info['info']
-                if info['status'] != 'FINISHED' and info['status'] != 'INTERRUPTED':
+                error = module_info.get('error')
+                info = module_info.get('info')
+                if error and not info:
+                    # Module never got created (e.g. plan creation failed)
+                    incomplete_tests.append({
+                        'test_name': module_name,
+                        'id': '',
+                        'status': 'ERROR',
+                        'error': error
+                    })
+                elif info and info['status'] != 'FINISHED' and info['status'] != 'INTERRUPTED':
                     module_id = module_info['id']
                     log_detail_link = '{}log-detail.html?log={}'.format(api_url_base, module_id)
                     incomplete_tests.append({
@@ -1223,8 +1233,12 @@ async def main():
         if incomplete_tests:
             print("Incomplete test modules:")
             for t in incomplete_tests:
-                print('  {} {} (status: {})'.format(t['test_name'], t['id'], t['status']))
-                print('    {}'.format(t['log_detail_link']))
+                if 'error' in t:
+                    print('  {} (status: {})'.format(t['test_name'], t['status']))
+                    print('    Error: {}'.format(t['error']))
+                else:
+                    print('  {} {} (status: {})'.format(t['test_name'], t['id'], t['status']))
+                    print('    {}'.format(t['log_detail_link']))
         sys.exit(1)
 
     failed = False
