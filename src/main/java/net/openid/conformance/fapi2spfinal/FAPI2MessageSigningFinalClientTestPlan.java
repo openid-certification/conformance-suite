@@ -3,6 +3,7 @@ package net.openid.conformance.fapi2spfinal;
 import net.openid.conformance.plan.PublishTestPlan;
 import net.openid.conformance.plan.TestPlan;
 import net.openid.conformance.testmodule.TestModule;
+import net.openid.conformance.variant.FAPI2FinalOPProfile;
 import net.openid.conformance.variant.VariantSelection;
 
 import java.lang.invoke.MethodHandles;
@@ -62,7 +63,11 @@ public class FAPI2MessageSigningFinalClientTestPlan implements TestPlan {
 
 	@Override
 	public List<Variant> variantsNotApplicable() {
-		return FAPI2SPFinalTestPlan.FAPI2_VARIANTS_NOT_APPLICABLE;
+		List<Variant> variants = new ArrayList<>(FAPI2SPFinalTestPlan.FAPI2_VARIANTS_NOT_APPLICABLE);
+		// Message signing adds JAR/JARM which are authorization-endpoint features;
+		// client credentials grant has no authorization endpoint.
+		variants.add(new Variant(FAPI2FinalOPProfile.class, "fapi_client_credentials_grant"));
+		return variants;
 	}
 
 	@Override
@@ -104,7 +109,6 @@ public class FAPI2MessageSigningFinalClientTestPlan implements TestPlan {
 
 		switch (profile) {
 			case "plain_fapi":
-			case "fapi_client_credentials_grant":
 				break;
 			case "openbanking_uk":
 				if (jarm) {
