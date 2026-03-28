@@ -32,6 +32,12 @@ Concentrate on findings related to changes made on the branch — flag pre-exist
 - Environment paths navigated correctly (e.g., `env.getString("object", "nested.path")`)
 - Error messages for configuration issues should reference UI labels from `schedule-test.html`, not internal JSON key names, and include "in the test configuration"
 - Unit test files must follow the `*_UnitTest.java` naming convention
+- WARNING severity requires a separate condition that calls `error()`, invoked by the caller with `ConditionResult.WARNING` — a condition's own `log()` is INFO-level, not a warning
+
+### HTTP Endpoint Validation
+- When calling an external endpoint: validate HTTP status code, `Content-Type`, `Cache-Control` (where spec requires it), required response body fields, and flag unknown fields as WARNING via a separate condition
+- When receiving a request at an emulated endpoint: validate HTTP method, query parameters (empty if spec defines none), request body (empty if spec defines none), and relevant request headers (`Content-Type`, `Accept`)
+- Each check should be a separate condition so the caller controls severity
 
 ### Spec Compliance
 - RFC/spec references cited in conditions match the actual requirement
