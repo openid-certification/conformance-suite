@@ -708,9 +708,6 @@ public abstract class AbstractFAPI2SPID2ServerTestModule extends AbstractRedirec
 		}
 	}
 
-	/**
-	 * Call sender constrained token endpoint, expecting a successful (HTTP 200) response
-	 */
 	protected void exchangeAuthorizationCode() {
 		callSenderConstrainedTokenEndpoint();
 
