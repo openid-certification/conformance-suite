@@ -629,7 +629,7 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractFAPI2SPFinalSe
 			while (i < MAX_RETRY) {
 				call(sequence(createDpopForResourceEndpointSteps));
 				callAndStopOnFailure(CallProtectedResourceAllowingDpopNonceError.class,
-					"OID4VCI-1FINAL-8", "FAPI1-BASE-6.2.1-1", "FAPI1-BASE-6.2.1-3");
+					"OID4VCI-1FINAL-8", "FAPI2-SP-FINAL-5.3.4-2");
 				if (Strings.isNullOrEmpty(env.getString("resource_endpoint_dpop_nonce_error"))) {
 					break;
 				}

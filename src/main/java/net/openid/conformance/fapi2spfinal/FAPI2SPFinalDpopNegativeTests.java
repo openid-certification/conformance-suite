@@ -52,7 +52,7 @@ public class FAPI2SPFinalDpopNegativeTests extends AbstractFAPI2SPFinalServerTes
 			if(forceBearer) {
 				callAndStopOnFailure(CallProtectedResourceForceBearer.class, "RFC7231-5.3.2");
 			} else {
-				callAndStopOnFailure(CallProtectedResourceAllowingDpopNonceError.class, "FAPI1-BASE-6.2.1-1", "FAPI1-BASE-6.2.1-3");
+				callAndStopOnFailure(CallProtectedResourceAllowingDpopNonceError.class, "FAPI2-SP-FINAL-5.3.4-2");
 			}
 			if(Strings.isNullOrEmpty(env.getString("resource_endpoint_dpop_nonce_error"))) {
 				break; // no nonce error so
@@ -86,7 +86,7 @@ public class FAPI2SPFinalDpopNegativeTests extends AbstractFAPI2SPFinalServerTes
 		while(i < MAX_RETRY) {
 			callAndStopOnFailure(CreateEmptyResourceEndpointRequestHeaders.class);
 			call(sequence(seq));
-			callAndStopOnFailure(CallProtectedResourceAllowingDpopNonceError.class, "FAPI1-BASE-6.2.1-1", "FAPI1-BASE-6.2.1-3");
+			callAndStopOnFailure(CallProtectedResourceAllowingDpopNonceError.class, "FAPI2-SP-FINAL-5.3.4-2");
 			if(Strings.isNullOrEmpty(env.getString("resource_endpoint_dpop_nonce_error"))) {
 				break; // no nonce error so
 			} else {
