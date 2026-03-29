@@ -5,10 +5,8 @@ import net.openid.conformance.authzen.condition.AddApiKeyAuthenticationParameter
 import net.openid.conformance.authzen.condition.AddBasicAuthClientSecretAuthenticationParametersToAuthzenApiRequest;
 import net.openid.conformance.authzen.condition.CallAuthzenApiEndpointAndVerifySuccessfulResponse;
 import net.openid.conformance.authzen.condition.CheckPDPServerConfiguration;
-import net.openid.conformance.authzen.condition.ExtractAuthzenApiEndpointDecisionResponse;
 import net.openid.conformance.authzen.condition.GetPDPDynamicServerConfiguration;
 import net.openid.conformance.authzen.condition.GetPDPStaticServerConfiguration;
-import net.openid.conformance.authzen.condition.SetAuthzenApiEndpointToAccessEvaluationEndpoint;
 import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.condition.client.ConfigurationRequestsTestIsSkipped;
 import net.openid.conformance.condition.client.ExtractMTLSCertificatesFromConfiguration;
@@ -185,25 +183,32 @@ public abstract class AbstractAuthzenPDPTest extends AbstractRedirectServerTestM
 	}
 
 	protected void callAuthApiEndpointRequest() {
+		setAuthzenApiEndpoint();
+		addAuthenticationToAuthzenApiEndpoint();
+		performApiRequestCall();
+	}
+
+	protected void performApiRequestCall() {
 		call(sequence(CallAuthzenApiEndpointAndVerifySuccessfulResponse.class));
 	}
 
-	protected void processAuthApiEndpointResponse() {
-		callAndStopOnFailure(ExtractAuthzenApiEndpointDecisionResponse.class, "AUTHZEN-5.5");
-	}
+	protected abstract void processAuthApiEndpointResponse();
 
 	protected abstract void validateAuthApiEndpointResponse();
 
 	protected void createAuthzenApiRequest() {
 		call(createAuthzenApiRequestSequence());
+	}
+
+	protected void addAuthenticationToAuthzenApiEndpoint() {
 		if (addPDPEndpointClientAuthentication != null) {
 			mapClientAuthKeys("token_endpoint_request_form_parameters", "token_endpoint_request_headers");
 			call(sequence(addPDPEndpointClientAuthentication));
 			unmapClientAuthKeys();
 		}
-		callAndStopOnFailure(SetAuthzenApiEndpointToAccessEvaluationEndpoint.class);
-
 	}
+
+	protected abstract void setAuthzenApiEndpoint();
 
 	protected abstract JsonObject parseRequest();
 	protected abstract ConditionSequence createAuthzenApiRequestSequence();
