@@ -411,7 +411,7 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
 
                                     response.json().then(shareLink => {
                                         // console.log("Got share link: " + shareLink.link);
-                                        navigator.clipboard.writeText(decodeURIComponent(shareLink.link)).then(
+                                        navigator.clipboard.writeText(shareLink.link).then(
                                             () => {
                                                 /* clipboard write succeeded */
                                                 var myModalEl = document.getElementById('privateLinkResultModal');
@@ -422,7 +422,7 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
                                                     document.getElementById('privateLinkResultModalLabel').textContent = 'Private Link (Copied To Clipboard)';
 
                                                     // Insert link into modal body.
-                                                    document.getElementById('privateLinkResultModalBody').textContent = decodeURIComponent(shareLink.link);
+                                                    document.getElementById('privateLinkResultModalBody').textContent = shareLink.link;
 
                                                     // Insert the supplemental message into modal body.
                                                     document.getElementById('privateLinkResultModalBodyMessage').textContent = shareLink.message;
@@ -440,7 +440,7 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
                                                     document.getElementById('privateLinkResultModalLabel').textContent = 'Private Link';
 
                                                     // Insert link into modal body.
-                                                    document.getElementById('privateLinkResultModalBody').textContent = decodeURIComponent(shareLink.link);
+                                                    document.getElementById('privateLinkResultModalBody').textContent = shareLink.link;
 
                                                     // Insert the supplemental message into modal body.
                                                     document.getElementById('privateLinkResultModalBodyMessage').textContent = shareLink.message;
