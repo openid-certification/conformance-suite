@@ -60,14 +60,17 @@ public class AssetSharing {
 	@SuppressWarnings("unchecked")
 	public OneTimeToken generateSharingToken(String planId, String testId, Map<String, String> owner, String exp) {
 
-		Integer expInt;
+		int expInt;
 
 		try {
-			expInt = Integer.valueOf(exp);
+			expInt = Integer.parseInt(exp);
 		}
 		catch (NumberFormatException e) {
-			// This should not happen. Expire if it does.
-			expInt = -1;
+			throw new IllegalArgumentException("Invalid expiration value: " + exp);
+		}
+
+		if (expInt < 1) {
+			throw new IllegalArgumentException("Expiration must be at least 1 day");
 		}
 
 		Duration lifetime = Duration.ofDays(expInt);
