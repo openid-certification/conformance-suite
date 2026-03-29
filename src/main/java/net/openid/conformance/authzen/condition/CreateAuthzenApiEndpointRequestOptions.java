@@ -5,12 +5,12 @@ import com.google.gson.JsonObject;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 
-public class CreateAuthzenApiEndpointRequestContext extends CreateAuthzenApiEndpointRequestParameter {
+public class CreateAuthzenApiEndpointRequestOptions extends CreateAuthzenApiEndpointRequestParameter {
 
-	public CreateAuthzenApiEndpointRequestContext(JsonObject requestParameter) {
-		super("context", requestParameter);
-		this.requiredProperties = new String[]{"name"};
-		this.optionalObjects = new String[] {"properties"};
+	public CreateAuthzenApiEndpointRequestOptions(JsonObject requestParameter) {
+		super("options", requestParameter);
+		this.requiredProperties = new String[]{};
+		this.optionalObjects = new String[] {};
 	}
 
 	@Override
@@ -22,12 +22,12 @@ public class CreateAuthzenApiEndpointRequestContext extends CreateAuthzenApiEndp
 	}
 
 	@Override
-	@PreEnvironment(required = "authzen_api_endpoint_request")
+	@PreEnvironment(required = "authzen_api_endpoint_request_options")
 	public Environment evaluate(Environment env) {
-		JsonObject context = createAuthzenApiEndpointRequestParameter(env).getAsJsonObject();
+		JsonObject options = createAuthzenApiEndpointRequestParameter(env).getAsJsonObject();
 		JsonObject request = env.getObject("authzen_api_endpoint_request");
-		request.add("context", context);
-		logSuccess("Created API context parameter", args(requestParameterName, context));
+		request.add("options", options);
+		logSuccess("Created API options parameter", args(requestParameterName, options));
 		return env;
 	}
 }
