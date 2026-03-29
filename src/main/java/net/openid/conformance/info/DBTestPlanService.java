@@ -28,6 +28,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
@@ -104,11 +105,14 @@ public class DBTestPlanService implements TestPlanService {
 
 	@Override
 	public List<String> getTestPlanTestIds(String id) {
-		if (id == null || getTestPlan(id) == null) {
+		Plan plan = getTestPlan(id);
+		if (plan == null) {
 			return new ArrayList<String>();
 		}
 
-		return getTestPlan(id).getModules().stream().map(Plan.Module::getInstances).collect(ArrayList::new, List::addAll, List::addAll);
+		return plan.getModules().stream()
+			.flatMap(module -> module.getInstances().stream())
+			.collect(Collectors.toList());
 	}
 
 	@Override
