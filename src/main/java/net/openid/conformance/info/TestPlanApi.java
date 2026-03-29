@@ -59,7 +59,6 @@ public class TestPlanApi implements DataUtils {
 	private VariantService variantService;
 
 	@Autowired
-	@SuppressWarnings("unused")
 	private AssetSharing assetSharing;
 
 	@Autowired
@@ -277,6 +276,10 @@ public class TestPlanApi implements DataUtils {
 	public ResponseEntity<Object> publishTestPlan(@Parameter(description = "Id of test plan that you want publish") @PathVariable String id,
 												  @Parameter(description = "Configuration Json") @RequestBody JsonObject config) {
 
+		if (authenticationFacade.isPrivateLinkUser()) {
+			return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+		}
+
 		String publish = null;
 		if (config.has("publish") && config.get("publish").isJsonPrimitive()) {
 			publish = Strings.emptyToNull(OIDFJSON.getString(config.get("publish")));
@@ -304,6 +307,9 @@ public class TestPlanApi implements DataUtils {
 	})
 	public ResponseEntity<Object> makeTestPlanMutable(
 			@Parameter(description = "Id of test plan that you want make mutable again") @PathVariable String id) {
+		if (authenticationFacade.isPrivateLinkUser()) {
+			return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+		}
 		if (!planService.changeTestPlanImmutableStatus(id, Boolean.FALSE)) {
 			return new ResponseEntity<>(HttpStatus.FORBIDDEN);
 		}

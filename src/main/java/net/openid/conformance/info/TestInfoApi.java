@@ -43,7 +43,6 @@ public class TestInfoApi {
 	private TestInfoService testInfoService;
 
 	@Autowired
-	@SuppressWarnings("unused")
 	private AssetSharing assetSharing;
 
  	@Autowired
@@ -151,6 +150,10 @@ public class TestInfoApi {
 	public ResponseEntity<Object> publishTestInfo(
 			@Parameter(description = "Id of test that you want to publish") @PathVariable String id,
 			@Parameter(description = "Configuration Json") @RequestBody JsonObject config) {
+
+		if (authenticationFacade.isPrivateLinkUser()) {
+			return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+		}
 
 		String publish = null;
 		if (config.has("publish") && config.get("publish").isJsonPrimitive()) {
