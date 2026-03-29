@@ -38,10 +38,19 @@ public class AssetSharing {
 	private KeyManager keyManager;
 
 	private JWK jwk;
+	private JWSVerifier cachedVerifier;
 
 	@PostConstruct
 	public void init() {
 		jwk = keyManager.getPrivateLinkKey();
+		try {
+			cachedVerifier = new DefaultJWSVerifierFactory()
+				.createJWSVerifier(
+					new JWSHeader.Builder(new JWSAlgorithm(jwk.getAlgorithm().toString())).build(),
+					jwk.toPublicJWK().toRSAKey().toPublicKey());
+		} catch (JOSEException e) {
+			throw new IllegalStateException("Failed to create JWS verifier for private link key", e);
+		}
 	}
 
 	public OneTimeToken generateSharingToken(String planId, Map<String, String> owner, String exp) {
@@ -57,7 +66,7 @@ public class AssetSharing {
 			expInt = Integer.valueOf(exp);
 		}
 		catch (NumberFormatException e) {
-			// This shold not happen. Expire if it does.
+			// This should not happen. Expire if it does.
 			expInt = -1;
 		}
 
@@ -145,16 +154,8 @@ public class AssetSharing {
 			throw new BadCredentialsException("Invalid sharing token JWS");
 		}
 
-		JWSVerifier verifier;
 		try {
-			verifier = new DefaultJWSVerifierFactory()
-				.createJWSVerifier(signed.getHeader(), jwk.toPublicJWK().toRSAKey().toPublicKey());
-		} catch (JOSEException e) {
-			throw new BadCredentialsException("Sharing token JWS key/algorithm error");
-		}
-
-		try {
-			if (!signed.verify(verifier)) {
+			if (!signed.verify(cachedVerifier)) {
 				throw new BadCredentialsException("Invalid sharing token JWS signature");
 			}
 		} catch (JOSEException e) {
