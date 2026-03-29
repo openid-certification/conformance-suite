@@ -125,7 +125,7 @@ public class DBTestPlanService implements TestPlanService {
 			if (plan != null && authenticationFacade.isPrivateLinkUser()) {
 				// Reject plans other than that referenced in the shared asset.
 				SharedAsset sharedAsset = authenticationFacade.getPrivateOneTimeToken().getSharedAsset();
-				if (sharedAsset != null && ! sharedAsset.getPlanId().equals(id)) {
+				if (sharedAsset == null || ! sharedAsset.getPlanId().equals(id)) {
 					plan = null;
 				}
 			}
