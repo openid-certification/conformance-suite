@@ -78,6 +78,8 @@ class WebSecurityOidcLoginConfig {
 
 	private static final Logger logger = LoggerFactory.getLogger(DummyUserFilter.class);
 
+	private static final Pattern QUERY_PARAM_PATTERN = Pattern.compile("(log|plan)=([A-Za-z0-9]+)");
+
 	@Value("${fintechlabs.devmode:false}")
 	private boolean devmode;
 
@@ -195,8 +197,7 @@ class WebSecurityOidcLoginConfig {
 							return true;
 						}
 
-						Pattern pattern = Pattern.compile("(log|plan)=([A-Za-z0-9]+)");
-						Matcher matcher = pattern.matcher(request.getQueryString());
+						Matcher matcher = QUERY_PARAM_PATTERN.matcher(request.getQueryString());
 
 						if (matcher.find())
 						{
@@ -234,6 +235,7 @@ class WebSecurityOidcLoginConfig {
 				.authenticated();
 		}); //
 
+		Pattern redirectUriPattern = Pattern.compile(Pattern.quote(baseURL) + "/(log|plan)-detail\\.html\\?(log|plan)=[A-Za-z0-9]+");
 		http.oneTimeTokenLogin(ott -> {
 			ott.authenticationProvider(new PrivateLinkOneTimeTokenAuthenticationProvider(oneTimeTokenService, privateLinkUserDetailsService));
 			ott.tokenGenerationSuccessHandler(new RedirectOneTimeTokenGenerationSuccessHandler("/index.html"));
@@ -244,8 +246,7 @@ class WebSecurityOidcLoginConfig {
 					PrivateLinkOneTimeToken privateLink = (PrivateLinkOneTimeToken)token.getDetails();
 
 					// Validate the format of the supplied redirect url.
-					Pattern pattern = Pattern.compile(baseURL + "/(log|plan)-detail.html\\?(log|plan)=[A-Za-z0-9]+");
-					Matcher matcher = pattern.matcher(privateLink.getSharedAsset().getRedirectUri());
+					Matcher matcher = redirectUriPattern.matcher(privateLink.getSharedAsset().getRedirectUri());
 
 					if (! matcher.find()) {
 						response.sendRedirect("/access-denied");
