@@ -128,8 +128,16 @@ public class AssetSharing {
 		return jwt.serialize();
 	}
 
-	public String generateSharingTokenSupplementalMessage() {
-		return keyManager.privateLinkKeyWasConfigured() ? "" : "INFO: This link will be invalidated on a server restart";
+	public Map<String, String> generateShareLink(String planId, Map<String, String> owner, String exp) {
+		return generateShareLink(planId, null, owner, exp);
+	}
+
+	public Map<String, String> generateShareLink(String planId, String testId, Map<String, String> owner, String exp) {
+		OneTimeToken oneTimeToken = generateSharingToken(planId, testId, owner, exp);
+		String supplementalMessage = keyManager.privateLinkKeyWasConfigured() ? "" : "INFO: This link will be invalidated on a server restart";
+		return Map.of(
+			"link", baseURL + "/login.html?token=" + oneTimeToken.getTokenValue(),
+			"message", supplementalMessage);
 	}
 
 	public SharedAsset getSharedAssetFromSharingToken(String token) {

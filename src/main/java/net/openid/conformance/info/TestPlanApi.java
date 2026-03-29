@@ -21,11 +21,9 @@ import net.openid.conformance.variant.VariantSelection;
 import net.openid.conformance.variant.VariantService;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.ott.OneTimeToken;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -66,9 +64,6 @@ public class TestPlanApi implements DataUtils {
 
 	@Autowired
 	private AuthenticationFacade authenticationFacade;
-
-	@Value("${fintechlabs.base_url}")
-	private String baseURL;
 
 	@PostMapping(value = "/plan", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 	@Operation(summary = "Create test plan")
@@ -213,10 +208,7 @@ public class TestPlanApi implements DataUtils {
 			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
 		}
 
-		OneTimeToken oneTimeToken = assetSharing.generateSharingToken(id, testPlan.getOwner(), exp);
-
-		return ResponseEntity.ok().body(Map.of("link", baseURL + "/login.html?token=" + oneTimeToken.getTokenValue(),
-							"message", assetSharing.generateSharingTokenSupplementalMessage()));
+		return ResponseEntity.ok().body(assetSharing.generateShareLink(id, testPlan.getOwner(), exp));
 	}
 
 	@GetMapping(value = "/plan/{id}", produces = MediaType.APPLICATION_JSON_VALUE)

@@ -14,11 +14,9 @@ import net.openid.conformance.sharing.SharedAsset;
 import net.openid.conformance.sharing.privatelink.PrivateLinkOneTimeToken;
 import net.openid.conformance.testmodule.OIDFJSON;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.ott.OneTimeToken;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -50,9 +48,6 @@ public class TestInfoApi {
 
  	@Autowired
 	private TestPlanService planService;
-
-	@Value("${fintechlabs.base_url}")
-	private String baseURL;
 
 	@GetMapping(value = "/info", produces = MediaType.APPLICATION_JSON_VALUE)
 	@Operation(summary = "Get information of all test module instances", description = "Will return all run test modules if user is admin role, otherwise only the logged in user's tests will be returned. This API is currently disabled due to performance concerns. If you have a need for it, please email details of your use case to " + AbstractCondition.SUPPORT_EMAIL)
@@ -143,10 +138,7 @@ public class TestInfoApi {
 		}
 
 		TestInfo testInfo = maybeTestInfo.get();
-		OneTimeToken oneTimeToken = assetSharing.generateSharingToken(testInfo.getPlanId(), testId, testInfo.getOwner(), exp);
-
-		return ResponseEntity.ok().body(Map.of("link", baseURL + "/login.html?token=" + oneTimeToken.getTokenValue(),
-							"message", assetSharing.generateSharingTokenSupplementalMessage()));
+		return ResponseEntity.ok().body(assetSharing.generateShareLink(testInfo.getPlanId(), testId, testInfo.getOwner(), exp));
 	}
 
 	@PostMapping(value = "/info/{id}/publish", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
