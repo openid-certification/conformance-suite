@@ -685,7 +685,7 @@ var FAPI_UI = {
 												document.getElementById('privateLinkResultModalLabel').textContent = 'Private Link (Copied To Clipboard)';
 												document.getElementById('privateLinkResultModalBody').textContent = shareLink.link;
 												document.getElementById('privateLinkResultModalBodyMessage').textContent = shareLink.message;
-											})
+											}, { once: true })
 
 											modal.show();
 										},
@@ -698,7 +698,7 @@ var FAPI_UI = {
 												document.getElementById('privateLinkResultModalLabel').textContent = 'Private Link';
 												document.getElementById('privateLinkResultModalBody').textContent = shareLink.link;
 												document.getElementById('privateLinkResultModalBodyMessage').textContent = shareLink.message;
-											})
+											}, { once: true })
 
 											modal.show();
 										},
