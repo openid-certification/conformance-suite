@@ -235,7 +235,7 @@ class WebSecurityOidcLoginConfig {
 				.authenticated();
 		}); //
 
-		Pattern redirectUriPattern = Pattern.compile(Pattern.quote(baseURL) + "/(log|plan)-detail\\.html\\?(log|plan)=[A-Za-z0-9]+");
+		Pattern redirectUriPattern = Pattern.compile(Pattern.quote(baseURL) + "/(log|plan)-detail\\.html\\?(log|plan)=[A-Za-z0-9]+$");
 		http.oneTimeTokenLogin(ott -> {
 			ott.authenticationProvider(new PrivateLinkOneTimeTokenAuthenticationProvider(oneTimeTokenService, privateLinkUserDetailsService));
 			ott.tokenGenerationSuccessHandler(new RedirectOneTimeTokenGenerationSuccessHandler("/index.html"));
