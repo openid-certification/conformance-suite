@@ -75,8 +75,6 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
             if (token) {
                 const iframe = document.createElement("iframe");
                 iframe.style.display = "none";
-                iframe.src = "/login/ott?token=" + encodeURIComponent(token);
-                document.body.appendChild(iframe);
 
                 let submitted = false;
 
@@ -100,6 +98,9 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
                     // second load, after submit finished navigation
                     window.location = win.location.href;
                 });
+
+                iframe.src = "/login/ott?token=" + encodeURIComponent(token);
+                document.body.appendChild(iframe);
             }
         });
     </script>
