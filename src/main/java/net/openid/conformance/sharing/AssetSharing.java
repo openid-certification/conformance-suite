@@ -57,7 +57,6 @@ public class AssetSharing {
 		return generateSharingToken(planId, null, owner, exp);
 	}
 
-	@SuppressWarnings("unchecked")
 	public OneTimeToken generateSharingToken(String planId, String testId, Map<String, String> owner, String exp) {
 
 		int expInt;
@@ -143,6 +142,7 @@ public class AssetSharing {
 			"message", supplementalMessage);
 	}
 
+	@SuppressWarnings("unchecked")
 	public SharedAsset getSharedAssetFromSharingToken(String token) {
 		Jwt jwt = decodeSharingToken(token);
 		if (jwt == null) {
