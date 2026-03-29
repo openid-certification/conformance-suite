@@ -106,7 +106,7 @@ public class KeyManager {
 
 				privateLinkJWK = JWK.parse(decodedKey);
 			} catch (IllegalArgumentException | ParseException e) {
-				throw new IllegalStateException("Couldn't dsecode private link signing key");
+				throw new IllegalStateException("Couldn't decode private link signing key");
 			}
 
 			privateLinkJWKConfigured = true;
