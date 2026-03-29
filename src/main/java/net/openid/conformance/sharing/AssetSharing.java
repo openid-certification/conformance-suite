@@ -181,6 +181,14 @@ public class AssetSharing {
 			throw new BadCredentialsException("JWT has expired");
 		}
 
+		if (!claims.getAudience().contains(baseURL)) {
+			throw new BadCredentialsException("Invalid sharing token audience");
+		}
+
+		if (!baseURL.equals(claims.getIssuer())) {
+			throw new BadCredentialsException("Invalid sharing token issuer");
+		}
+
 		try {
 			return new Jwt(
 				tokenValue,
