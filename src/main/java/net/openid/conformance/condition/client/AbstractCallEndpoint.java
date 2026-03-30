@@ -12,8 +12,14 @@ import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestClientResponseException;
 
 /**
- * General utility class for calling endpoints
+ * General utility class for calling endpoints.
  *
+ * <p>New endpoint calls probably want one of the subclasses that provide ready-made HTTP helpers:
+ * <ul>
+ *   <li>{@link AbstractCallEndpointWithPost} — for POST requests</li>
+ *   <li>{@link AbstractCallEndpointWithGet} — for GET requests</li>
+ *   <li>{@link AbstractCallOAuthEndpoint} — for OAuth token endpoint calls</li>
+ * </ul>
  */
 public abstract class AbstractCallEndpoint extends AbstractCondition {
 
