@@ -27,13 +27,13 @@ public class CreateAuthzenEvaluationsApiRequestSteps extends AbstractConditionSe
 		if(null != subject) {
 			callAndStopOnFailure(new CreateAuthzenApiEndpointRequestSubject(subject), "AUTHZEN-5.1", "AUTHZEN-7.1.1");
 		}
-		if(null != subject) {
+		if(null != resource) {
 			callAndStopOnFailure(new CreateAuthzenApiEndpointRequestResource(resource), "AUTHZEN-5.2", "AUTHZEN-7.1.1");
 		}
-		if(null != subject) {
+		if(null != action) {
 			callAndStopOnFailure(new CreateAuthzenApiEndpointRequestAction(action), "AUTHZEN-5.3", "AUTHZEN-7.1.1");
 		}
-		if(null != subject) {
+		if(null != context) {
 			callAndStopOnFailure(new CreateAuthzenApiEndpointRequestContext(context), "AUTHZEN-5.4", "AUTHZEN-7.1.1");
 		}
 		if(null != evaluations) {
