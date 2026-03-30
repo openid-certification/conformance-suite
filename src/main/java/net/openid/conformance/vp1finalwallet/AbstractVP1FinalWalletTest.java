@@ -156,7 +156,7 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 	protected VP1FinalWalletRequestMethod requestMethod;
 	protected VP1FinalWalletCredentialFormat credentialFormat;
 	protected VP1FinalWalletClientIdPrefix clientIdPrefix;
-	protected TestState testState = TestState.INITIAL;
+	protected volatile TestState testState = TestState.INITIAL;
 
 	@Override
 	public final void configure(JsonObject config, String baseUrl, String externalUrlOverride, String baseMtlsUrl) {
@@ -345,7 +345,6 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 		}
 		eventLog.endBlock();
 	}
-	// FIXME when waiting for implicit submit set a timeout, to make it clearer when people are treating the redirect_url from direct_post endpoint as a http endpoint
 	// FIXME send parameters in openid4vp:// url in a different order
 	// FIXME test without use: enc in client_metadata
 
@@ -585,6 +584,20 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 
 		eventLog.log(getName(), "The response_uri is returning 'redirect_uri', so the wallet should send the user to that redirect_uri next");
 		setStatus(Status.WAITING);
+
+		final long waitTimeoutSeconds = 30;
+		getTestExecutionManager().runInBackground(() -> {
+			Thread.sleep(waitTimeoutSeconds * 1000L);
+			if (getStatus().equals(Status.WAITING) && testState == TestState.RESPONSE_RECEIVED) {
+				setStatus(Status.RUNNING);
+				throw new TestFailureException(getId(),
+					"The redirect_uri returned from the direct_post response has not been opened in " +
+					"the user's browser within " + waitTimeoutSeconds + " seconds. " +
+					"The redirect_uri must be opened in the end-user's browser " +
+					"(not treated as a back-channel HTTP endpoint). See OID4VP section 8.2.");
+			}
+			return "done";
+		});
 	}
 
 
