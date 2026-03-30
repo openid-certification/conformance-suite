@@ -33,7 +33,11 @@
 #   1. Requires the description suffix (after the last ":") to match exactly.
 #   2. Tokenises the plan-name prefix on "-" and computes Jaccard similarity
 #      (|intersection| / |union|) between the token sets.
-#   3. Picks the best match with Jaccard >= 0.5.
+#   3. Filters to candidates with Jaccard >= 0.5.
+#   4. When multiple candidates pass, ranks by module set overlap (Jaccard
+#      on test module names) as the primary signal, with plan name similarity
+#      as tiebreaker. This prevents a plan with a similar name but different
+#      test modules from being preferred over the correct match.
 #
 # Variant-level fuzzy matching (find_fuzzy_variant_match)
 # -------------------------------------------------------
@@ -272,6 +276,11 @@ new_artifacts_zip = sys.argv[2]
 master_results = load_results(master_artifacts_zip, True)
 new_results = load_results(new_artifacts_zip, False)
 
+def jaccard(set_a, set_b):
+    """Jaccard similarity between two sets. Returns 0 if both are empty."""
+    union = len(set_a | set_b)
+    return len(set_a & set_b) / union if union else 0.0
+
 def find_fuzzy_variant_match(master_module_variants, new_variant):
     """Find a master variant that fuzzy-matches the new variant.
 
@@ -312,7 +321,7 @@ def find_fuzzy_variant_match(master_module_variants, new_variant):
 
     return best_match
 
-def find_fuzzy_plan_match(master_results, new_test_plan):
+def find_fuzzy_plan_match(master_results, new_test_plan, new_modules=None):
     """Find a master plan key that fuzzy-matches the new plan key.
 
     Plan keys have the format 'plan-name-variant1-variant2-...:description'.
@@ -323,6 +332,11 @@ def find_fuzzy_plan_match(master_results, new_test_plan):
     Match by: same description, and the plan name tokens (split by '-') have
     high overlap (Jaccard similarity >= 0.5).
 
+    When new_modules is provided and multiple plans pass the name threshold,
+    module set overlap is used as the primary ranking signal — two plans that
+    run the same test modules are more likely to be the same logical plan
+    than two plans that merely share name tokens.
+
     Returns the matching master plan key, or None.
     """
     if ":" not in new_test_plan:
@@ -330,8 +344,7 @@ def find_fuzzy_plan_match(master_results, new_test_plan):
     new_plan_part, new_desc = new_test_plan.rsplit(":", 1)
     new_tokens = set(new_plan_part.split("-"))
 
-    best_match = None
-    best_score = 0.0
+    candidates = []
     for master_plan in master_results:
         if ":" not in master_plan:
             continue
@@ -339,14 +352,32 @@ def find_fuzzy_plan_match(master_results, new_test_plan):
         if master_desc != new_desc:
             continue
         master_tokens = set(master_plan_part.split("-"))
-        intersection = len(new_tokens & master_tokens)
-        union = len(new_tokens | master_tokens)
-        if union == 0:
-            continue
-        score = intersection / union
-        if score > best_score and score >= 0.5:
-            best_score = score
+        plan_score = jaccard(new_tokens, master_tokens)
+        if plan_score >= 0.5:
+            candidates.append((master_plan, plan_score))
+
+    if not candidates:
+        return None
+
+    if len(candidates) == 1:
+        return candidates[0][0]
+
+    if new_modules is None:
+        return max(candidates, key=lambda x: x[1])[0]
+
+    # Multiple candidates — use module overlap as the primary ranking
+    # signal, with plan name similarity as tiebreaker.
+    new_module_set = set(new_modules.keys())
+    best_match = None
+    best_key = (-1.0, -1.0)
+    for master_plan, plan_score in candidates:
+        master_module_set = set(master_results[master_plan].keys())
+        mod_score = jaccard(new_module_set, master_module_set)
+        key = (mod_score, plan_score)
+        if key > best_key:
+            best_key = key
             best_match = master_plan
+
     return best_match
 
 def find_fuzzy_module_match(master_modules, new_module):
@@ -365,11 +396,7 @@ def find_fuzzy_module_match(master_modules, new_module):
     best_score = 0.0
     for master_module in master_modules:
         master_tokens = set(master_module.split("-"))
-        intersection = len(new_tokens & master_tokens)
-        union = len(new_tokens | master_tokens)
-        if union == 0:
-            continue
-        score = intersection / union
+        score = jaccard(new_tokens, master_tokens)
         if score > best_score and score >= 0.5:
             best_score = score
             best_match = master_module
@@ -381,7 +408,7 @@ for test_plan,modules in sorted(new_results.items()):
     master_plan_key = test_plan
     fuzzy_plan = False
     if test_plan not in master_results:
-        matched_plan = find_fuzzy_plan_match(master_results, test_plan)
+        matched_plan = find_fuzzy_plan_match(master_results, test_plan, modules)
         if matched_plan is not None:
             master_plan_key = matched_plan
             fuzzy_plan = True

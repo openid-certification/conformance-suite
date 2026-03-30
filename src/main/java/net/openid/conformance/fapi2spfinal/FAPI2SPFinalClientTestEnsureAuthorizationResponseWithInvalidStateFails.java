@@ -21,7 +21,6 @@ import net.openid.conformance.testmodule.TestFailureException;
 		"waitTimeoutSeconds"
 	}
 )
-
 public class FAPI2SPFinalClientTestEnsureAuthorizationResponseWithInvalidStateFails extends AbstractFAPI2SPFinalClientExpectNothingAfterAuthorizationResponse {
 
 	@Override

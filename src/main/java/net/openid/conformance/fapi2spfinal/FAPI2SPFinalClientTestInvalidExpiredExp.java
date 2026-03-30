@@ -18,7 +18,6 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		"waitTimeoutSeconds"
 	}
 )
-
 public class FAPI2SPFinalClientTestInvalidExpiredExp extends AbstractFAPI2SPFinalClientExpectNothingAfterIdTokenIssued {
 
 	@Override

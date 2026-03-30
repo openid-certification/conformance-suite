@@ -46,7 +46,9 @@ public class FAPI2SPFinalClientTestPlan implements TestPlan {
 
 		switch (profile) {
 			case "plain_fapi":
+				break;
 			case "fapi_client_credentials_grant":
+				certProfile += "Client Credentials Grant ";
 				break;
 			case "openbanking_uk":
 				return List.of(certProfile + " UK-OB");
