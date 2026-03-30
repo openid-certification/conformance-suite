@@ -62,6 +62,14 @@ public class CoseAlgorithmUtil {
 		MAC_ALGORITHMS = Collections.unmodifiableMap(algs);
 	}
 
+	private static final Set<Integer> SIGNATURE_OR_MAC_ALGORITHM_IDS;
+
+	static {
+		HashMap<Integer, String> combined = new HashMap<>(SIGNATURE_ALGORITHMS);
+		combined.putAll(MAC_ALGORITHMS);
+		SIGNATURE_OR_MAC_ALGORITHM_IDS = Collections.unmodifiableSet(combined.keySet());
+	}
+
 	public static boolean isValidCoseSignatureAlgorithm(int id) {
 		return SIGNATURE_ALGORITHMS.containsKey(id);
 	}
@@ -79,9 +87,7 @@ public class CoseAlgorithmUtil {
 	}
 
 	public static Set<Integer> validCoseSignatureOrMacAlgorithmIds() {
-		HashMap<Integer, String> combined = new HashMap<>(SIGNATURE_ALGORITHMS);
-		combined.putAll(MAC_ALGORITHMS);
-		return Collections.unmodifiableSet(combined.keySet());
+		return SIGNATURE_OR_MAC_ALGORITHM_IDS;
 	}
 
 }
