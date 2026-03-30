@@ -832,7 +832,7 @@ public abstract class AbstractFAPI2SPFinalServerTestModule extends AbstractRedir
 	 * Call sender constrained token endpoint. For DPOP nonce errors, it will retry with new server nonce value.
 	 * @param requirements requirements are the same as original call to callAndStopOnFailure(CallTokenEndpointAndReturnFullResponse)
 	 */
-	protected void callSenderConstrainedTokenEndpointAndStopOnFailure(String... requirements) {
+	protected void callSenderConstrainedTokenEndpoint(String... requirements) {
 		final int MAX_RETRY = 2;
 
 		if (isDpop()) {
@@ -850,16 +850,8 @@ public abstract class AbstractFAPI2SPFinalServerTestModule extends AbstractRedir
 		}
 	}
 
-	/**
-	 * Call sender constrained token endpoint, expecting a successful (HTTP 200) response
-	 */
-	protected void callSenderConstrainedTokenEndpoint() {
-		callSenderConstrainedTokenEndpointAndStopOnFailure();
-		callAndStopOnFailure(CheckTokenEndpointHttpStatus200.class);
-	}
-
 	protected void exchangeAuthorizationCode() {
-		callSenderConstrainedTokenEndpointAndStopOnFailure();
+		callSenderConstrainedTokenEndpoint();
 
 		eventLog.startBlock(currentClientString() + "Verify token endpoint response");
 		processTokenEndpointResponse();
@@ -867,6 +859,7 @@ public abstract class AbstractFAPI2SPFinalServerTestModule extends AbstractRedir
 	}
 
 	protected void processTokenEndpointResponse() {
+		callAndStopOnFailure(CheckTokenEndpointHttpStatus200.class);
 		callAndStopOnFailure(CheckIfTokenEndpointResponseError.class);
 
 		callAndStopOnFailure(CheckForAccessTokenValue.class, "RFC6749-4.1.4");
@@ -1055,7 +1048,7 @@ public abstract class AbstractFAPI2SPFinalServerTestModule extends AbstractRedir
 			int i = 0;
 			while(i < MAX_RETRY) {
 				call(sequence(createDpopForResourceEndpointSteps));
-				callAndStopOnFailure(CallProtectedResourceAllowingDpopNonceError.class, "FAPI1-BASE-6.2.1-1", "FAPI1-BASE-6.2.1-3");
+				callAndStopOnFailure(CallProtectedResourceAllowingDpopNonceError.class, "FAPI2-SP-FINAL-5.3.4-2");
 				if(Strings.isNullOrEmpty(env.getString("resource_endpoint_dpop_nonce_error"))) {
 					break; // no nonce error so
 				}

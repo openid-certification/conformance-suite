@@ -81,7 +81,7 @@ public class FAPI2SPID2AttemptReuseAuthorizationCodeAfterOneSecond extends Abstr
 			unmapClientAuthKeys();
 		}
 
-		callSenderConstrainedTokenEndpointAndStopOnFailure( "FAPI2-SP-ID2-5.3.1.2-9");
+		callSenderConstrainedTokenEndpoint( "FAPI2-SP-ID2-5.3.1.2-9");
 
 		verifyError();
 

@@ -655,7 +655,7 @@ public abstract class AbstractOIDCCServerSecurityProfileTest extends AbstractOID
 	 * Call sender constrained token endpoint. For DPOP nonce errors, it will retry with new server nonce value.
 	 * @param requirements requirements are the same as original call to callAndStopOnFailure(CallTokenEndpointAndReturnFullResponse)
 	 */
-	protected void callSenderConstrainedTokenEndpointAndStopOnFailure(String... requirements) {
+	protected void callSenderConstrainedTokenEndpoint(String... requirements) {
 		final int MAX_RETRY = 2;
 
 		if (isSenderConstrainDpop()) {
@@ -673,13 +673,6 @@ public abstract class AbstractOIDCCServerSecurityProfileTest extends AbstractOID
 		}
 	}
 
-	/**
-	 * Call sender constrained token endpoint, expecting a successful (HTTP 200) response
-	 */
-	protected void callSenderConstrainedTokenEndpoint() {
-		callSenderConstrainedTokenEndpointAndStopOnFailure();
-		callAndStopOnFailure(CheckTokenEndpointHttpStatus200.class);
-	}
 
 
 	@Override
@@ -689,6 +682,7 @@ public abstract class AbstractOIDCCServerSecurityProfileTest extends AbstractOID
 			callAndStopOnFailure(CheckTokenEndpointHttpStatus200.class);
 		} else {
 			callSenderConstrainedTokenEndpoint();
+			callAndStopOnFailure(CheckTokenEndpointHttpStatus200.class);
 		}
 	}
 

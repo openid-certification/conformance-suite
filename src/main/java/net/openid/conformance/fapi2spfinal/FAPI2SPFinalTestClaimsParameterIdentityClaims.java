@@ -89,7 +89,7 @@ public class FAPI2SPFinalTestClaimsParameterIdentityClaims extends AbstractFAPI2
 				responseKeyMap = "resource_endpoint_response_full";
 				call(exec().mapKey("userinfo_endpoint_response_full", responseKeyMap));
 			} else {
-				callAndStopOnFailure(CallUserInfoEndpoint.class, "FAPI1-BASE-6.2.1-1", "FAPI1-BASE-6.2.1-3");
+				callAndStopOnFailure(CallUserInfoEndpoint.class, "FAPI2-SP-FINAL-5.3.4-2");
 			}
 
 

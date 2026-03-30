@@ -24,9 +24,4 @@ public abstract class AbstractFAPI2SPFinalPerformTokenEndpoint extends AbstractF
 		}
 
 	}
-
-	@Override
-	protected void callSenderConstrainedTokenEndpoint() {
-		callSenderConstrainedTokenEndpointAndStopOnFailure( "FAPI1-BASE-5.2.2-19");
-	}
 }

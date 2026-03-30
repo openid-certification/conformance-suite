@@ -78,7 +78,7 @@ public class FAPI2SPFinalAttemptReuseAuthorizationCodeAfterOneSecond extends Abs
 			unmapClientAuthKeys();
 		}
 
-		callSenderConstrainedTokenEndpointAndStopOnFailure( "FAPI2-SP-FINAL-5.3.2.2-9");
+		callSenderConstrainedTokenEndpoint( "FAPI2-SP-FINAL-5.3.2.2-9");
 
 		verifyError();
 

@@ -690,7 +690,7 @@ public abstract class AbstractFAPI2SPID2ServerTestModule extends AbstractRedirec
 	 * Call sender constrained token endpoint. For DPOP nonce errors, it will retry with new server nonce value.
 	 * @param requirements requirements are the same as original call to callAndStopOnFailure(CallTokenEndpointAndReturnFullResponse)
 	 */
-	protected void callSenderConstrainedTokenEndpointAndStopOnFailure(String... requirements) {
+	protected void callSenderConstrainedTokenEndpoint(String... requirements) {
 		final int MAX_RETRY = 2;
 
 		if (isDpop()) {
@@ -708,14 +708,6 @@ public abstract class AbstractFAPI2SPID2ServerTestModule extends AbstractRedirec
 		}
 	}
 
-	/**
-	 * Call sender constrained token endpoint, expecting a successful (HTTP 200) response
-	 */
-	protected void callSenderConstrainedTokenEndpoint() {
-		callSenderConstrainedTokenEndpointAndStopOnFailure();
-		callAndStopOnFailure(CheckTokenEndpointHttpStatus200.class);
-	}
-
 	protected void exchangeAuthorizationCode() {
 		callSenderConstrainedTokenEndpoint();
 
@@ -725,6 +717,7 @@ public abstract class AbstractFAPI2SPID2ServerTestModule extends AbstractRedirec
 	}
 
 	protected void processTokenEndpointResponse() {
+		callAndStopOnFailure(CheckTokenEndpointHttpStatus200.class);
 		callAndStopOnFailure(CheckIfTokenEndpointResponseError.class);
 
 		callAndStopOnFailure(CheckForAccessTokenValue.class, "RFC6749-4.1.4");
