@@ -1,12 +1,16 @@
 package net.openid.conformance.fapi2spfinal;
 
 import net.openid.conformance.condition.Condition.ConditionResult;
+import net.openid.conformance.condition.client.EnsureContentTypeJson;
+import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs200;
 import net.openid.conformance.condition.client.SetProtectedResourceUrlToSingleResourceEndpoint;
 import net.openid.conformance.sequence.AbstractConditionSequence;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.variant.AuthorizationRequestType;
 import net.openid.conformance.variant.ClientAuthType;
 import net.openid.conformance.variant.FAPI2AuthRequestMethod;
+import net.openid.conformance.vci10issuer.condition.CheckCacheControlHeaderContainsNoStore;
+import net.openid.conformance.vci10issuer.condition.clientattestation.CallClientAttestationChallengeEndpoint;
 import net.openid.conformance.vci10issuer.condition.clientattestation.CreateClientAttestationJwt;
 import net.openid.conformance.vci10issuer.condition.clientattestation.GenerateClientAttestationClientInstanceKey;
 import net.openid.conformance.vci10issuer.condition.VCIExtractTlsInfoFromCredentialIssuer;
@@ -16,6 +20,8 @@ import net.openid.conformance.vci10issuer.condition.VCIParseCredentialIssuerMeta
 import net.openid.conformance.vci10issuer.condition.VCIResolveCredentialEndpointToUse;
 import net.openid.conformance.vci10issuer.condition.VCISelectOAuthorizationServer;
 import net.openid.conformance.vci10issuer.condition.VCIValidateClientJWKsPrivatePart;
+import net.openid.conformance.vci10issuer.condition.clientattestation.CheckClientAttestationChallengeResponseForUnknownFields;
+import net.openid.conformance.vci10issuer.condition.clientattestation.ValidateClientAttestationChallengeResponse;
 
 /**
  * Profile behavior for VCI (Verifiable Credentials Issuance) tests.
@@ -81,6 +87,38 @@ public class VCIProfileBehavior extends FAPI2ProfileBehavior {
 		return new AbstractConditionSequence() {
 			@Override
 			public void evaluate() {
+
+				// Only call challenge endpoint if server metadata advertises one
+				call(condition(CallClientAttestationChallengeEndpoint.class)
+					.skipIfElementMissing("server", "challenge_endpoint")
+					.requirement("OAuth2-ATCA07-8"));
+
+				call(exec().mapKey("endpoint_response", "challenge_endpoint_response"));
+				call(condition(EnsureHttpStatusCodeIs200.class)
+					.skipIfElementMissing("server", "challenge_endpoint")
+					.requirement("OAuth2-ATCA07-8")
+					.onFail(ConditionResult.FAILURE)
+					.dontStopOnFailure());
+				call(condition(EnsureContentTypeJson.class)
+					.skipIfElementMissing("server", "challenge_endpoint")
+					.requirement("OAuth2-ATCA07-8")
+					.onFail(ConditionResult.WARNING)
+					.dontStopOnFailure());
+				call(condition(CheckCacheControlHeaderContainsNoStore.class)
+					.skipIfElementMissing("server", "challenge_endpoint")
+					.requirement("OAuth2-ATCA07-8")
+					.onFail(ConditionResult.FAILURE)
+					.dontStopOnFailure());
+				call(condition(ValidateClientAttestationChallengeResponse.class)
+					.skipIfElementMissing("server", "challenge_endpoint")
+					.requirement("OAuth2-ATCA07-8"));
+				call(condition(CheckClientAttestationChallengeResponseForUnknownFields.class)
+					.skipIfElementMissing("server", "challenge_endpoint")
+					.requirement("OAuth2-ATCA07-8")
+					.onFail(ConditionResult.WARNING)
+					.dontStopOnFailure());
+				call(exec().unmapKey("endpoint_response"));
+
 				callAndStopOnFailure(GenerateClientAttestationClientInstanceKey.class, ConditionResult.FAILURE,
 					"OAuth2-ATCA07-1");
 				callAndStopOnFailure(CreateClientAttestationJwt.class, ConditionResult.FAILURE,

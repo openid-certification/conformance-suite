@@ -177,7 +177,7 @@ public class ValidateDCQLQuery extends AbstractJsonSchemaBasedValidation {
 ```
 - Keep validation strict where the specification defines fixed fields.
 - Unknown properties should raise warnings (not errors)
-- Warning vs error severity is chosen by the caller of a condition; if unknown-property findings must be warnings while schema violations remain errors, use a separate condition path and call it with warning severity.
+- A condition's own `log()` / `logSuccess()` calls are INFO-level — they do **not** produce warnings in the test log. The only way to surface a WARNING is for the **caller** to invoke the condition with `ConditionResult.WARNING` via `onFail(ConditionResult.WARNING)` or `callAndContinueOnFailure(..., ConditionResult.WARNING, ...)`. Therefore, if a check must appear as a warning, put it in a **separate condition** that `throw error(...)` on the finding, and have the caller set the severity to WARNING. Do not try to "warn" from inside a condition with `log()` — it will be invisible as a warning.
 
 ### Variants
 
@@ -240,6 +240,21 @@ Check `src/main/resources/static/schedule-test.html` for the field labels displa
 
 When specs say "MUST ignore unknown properties", that applies to **receivers** (e.g., wallets processing DCQL queries). The conformance suite validates **senders** (e.g., verifiers constructing DCQL queries), so JSON schemas SHOULD use `additionalProperties: false` to flag unknown or misspelled fields as warnings (not errors) — senders should not include undefined properties.
 
+### HTTP Endpoint Validation Checklist
+
+When the test suite **calls an external endpoint** (e.g., a credential issuer's challenge endpoint), validate everything in the response:
+- HTTP status code (e.g., `EnsureHttpStatusCodeIs200`)
+- Response headers: `Content-Type` (e.g., `EnsureContentTypeJson`), `Cache-Control` where the spec requires it
+- Response body: required fields present and valid, unknown fields flagged as a WARNING via a separate condition
+
+When an external client **calls a test-suite endpoint** (e.g., a wallet calling the emulated challenge endpoint), validate everything in the request:
+- HTTP method (e.g., `EnsureIncomingRequestMethodIsPost`)
+- URL query parameters — if the spec defines none, check they are empty (`EnsureIncomingUrlQueryIsEmpty`)
+- Request body — if the spec defines none, check it is empty (`EnsureIncomingRequestBodyIsEmpty`)
+- Request headers where the spec defines requirements (e.g., `Content-Type`, `Accept`)
+
+Each check should be a separate condition so the caller controls the severity (FAILURE vs WARNING).
+
 ## Code Quality
 
 - **Checkstyle**: Google Java Style (configured in `.checkstyle.xml`)
@@ -256,8 +271,7 @@ When asked to review a commit or branch, structure the review by file and call o
 
 ## Git Workflow Preference
 
-- For history edits, do not use `git -c ...` or environment-wrapped rebase commands.
-- Prefer plain `git` commands (including multi-step non-interactive flows) to avoid extra permission prompts.
+- To fix up a non-HEAD commit, use `git commit -m "fixup! <target commit message>"` then `git -c sequence.editor=true rebase -i --autosquash <base>` (`--autosquash` requires `-i`; `sequence.editor=true` suppresses the editor). This is safer than manual `reset --soft` + re-staging workflows.
 
 ## Git Operations
 

@@ -45,8 +45,10 @@ public class CreateClientAttestationProofJwt extends AbstractSignJWT {
 		claims.addProperty("exp", exp.getEpochSecond());
 		claims.addProperty("aud", issuer);
 		claims.addProperty("jti", UUID.randomUUID().toString());
-		// TODO add support for nonce retrieval https://datatracker.ietf.org/doc/html/draft-ietf-oauth-attestation-based-client-auth-05#section-8
-		// claims.addProperty("nonce", nonce);
+		String attestationChallenge = env.getString("vci", "attestation_challenge");
+		if (attestationChallenge != null) {
+			claims.addProperty("challenge", attestationChallenge);
+		}
 
 		JsonObject jwks = JWKUtil.createJwksObjectFromJwkObjects(JsonParser.parseString(clientInstanceKey).getAsJsonObject());
 

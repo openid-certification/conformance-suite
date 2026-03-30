@@ -16,5 +16,7 @@ public class VCIValidateClientAuthenticationWithClientAttestationJWT extends Abs
 		callAndStopOnFailure(ValidateClientAttestationIssuer.class, Condition.ConditionResult.FAILURE, "OAuth2-ATCA07-6.2");
 		callAndStopOnFailure(ValidateClientAttestationProofJwtAudience.class, Condition.ConditionResult.FAILURE, "OAuth2-ATCA07-5.2-5.2.1");
 		callAndStopOnFailure(ValidateClientAttestationX5cClaimInProofJwt.class,Condition.ConditionResult.FAILURE, "OAuth2-ATCA07-5.2-5.2.1");
+		// Validates challenge if attestation_challenge is present in the environment (i.e., challenge endpoint was used)
+		callAndStopOnFailure(ValidateClientAttestationProofJwtChallenge.class, Condition.ConditionResult.FAILURE, "OAuth2-ATCA07-5.2", "OAuth2-ATCA07-8");
 	}
 }
