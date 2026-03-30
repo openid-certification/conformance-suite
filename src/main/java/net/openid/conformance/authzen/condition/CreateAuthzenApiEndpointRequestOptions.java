@@ -22,7 +22,7 @@ public class CreateAuthzenApiEndpointRequestOptions extends CreateAuthzenApiEndp
 	}
 
 	@Override
-	@PreEnvironment(required = "authzen_api_endpoint_request_options")
+	@PreEnvironment(required = "authzen_api_endpoint_request")
 	public Environment evaluate(Environment env) {
 		JsonObject options = createAuthzenApiEndpointRequestParameter(env).getAsJsonObject();
 		JsonObject request = env.getObject("authzen_api_endpoint_request");
