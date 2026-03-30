@@ -14,6 +14,10 @@ public class EnsureAuthzenEvaluationsResponseValsMatchExpectedVals extends Abstr
 	public Environment evaluate(Environment env) {
 		JsonArray expected = env.getElementFromObject("authzen_evaluations_endpoint_expected_response", "evaluations").getAsJsonArray();
 		JsonArray response = env.getElementFromObject("authzen_evaluations_endpoint_response", "evaluations").getAsJsonArray();
+		if (expected.size() != response.size()) {
+			throw error("The number of evaluations elements in the response does not match expected",
+				args("expected", expected.size(), "actual", response.size()));
+		}
 		for(int i = 0; i < expected.size(); i++) {
 			JsonElement expectedElem = expected.get(i);
 			JsonElement actualElem = response.get(i);
