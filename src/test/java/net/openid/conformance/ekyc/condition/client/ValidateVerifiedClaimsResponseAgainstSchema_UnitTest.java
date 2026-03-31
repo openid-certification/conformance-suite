@@ -42,7 +42,6 @@ public class ValidateVerifiedClaimsResponseAgainstSchema_UnitTest
 		JsonObject parsedClaims = JsonParser.parseString(claimsJson).getAsJsonObject();
 		verifiedClaimsResponse.add("id_token", parsedClaims);
 		env.putObject("verified_claims_response", verifiedClaimsResponse);
-		env.putBoolean("ValidateVerifiedClaimsResponseAgainstSchema_UnitTest", Boolean.TRUE);
 		cond.execute(env);
 	}
 
@@ -54,7 +53,6 @@ public class ValidateVerifiedClaimsResponseAgainstSchema_UnitTest
 			JsonObject parsedClaims = JsonParser.parseString(claimsJson).getAsJsonObject();
 			verifiedClaimsResponse.add("id_token", parsedClaims);
 			env.putObject("verified_claims_response", verifiedClaimsResponse);
-			env.putBoolean("ValidateVerifiedClaimsResponseAgainstSchema_UnitTest", Boolean.TRUE);
 			cond.execute(env);
 			});
 	}
@@ -82,7 +80,6 @@ public class ValidateVerifiedClaimsResponseAgainstSchema_UnitTest
 			JsonObject parsedClaims = JsonParser.parseString(claimsJson).getAsJsonObject();
 			verifiedClaimsResponse.add("id_token", parsedClaims);
 			env.putObject("verified_claims_response", verifiedClaimsResponse);
-			env.putBoolean("ValidateVerifiedClaimsResponseAgainstSchema_UnitTest", Boolean.TRUE);
 			cond.execute(env);
 		});
 	}
