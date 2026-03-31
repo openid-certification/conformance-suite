@@ -30,12 +30,8 @@ public class OpenIDFederationClientInvalidSubInEntityConfigurationTest extends O
 		env.unmapKey("id_token_claims");
 		setStatus(Status.WAITING);
 
-		env.mapKey("entity_configuration_claims", "server");
-		env.mapKey("entity_configuration_claims_jwks", "op_ec_jwks");
-		Object response = super.entityConfigurationResponse("server", SignEntityStatement.class);
+		Object response = entityConfigurationResponse("server", "op_ec_jwks", SignEntityStatement.class);
 		env.putString("server", "sub", originalSub);
-		env.unmapKey("entity_configuration_claims");
-		env.unmapKey("entity_configuration_claims_jwks");
 
 		startWaitingForTimeout();
 

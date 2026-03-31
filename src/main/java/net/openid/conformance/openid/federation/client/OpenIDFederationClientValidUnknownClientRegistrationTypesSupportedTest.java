@@ -21,7 +21,7 @@ public class OpenIDFederationClientValidUnknownClientRegistrationTypesSupportedT
 		callAndContinueOnFailure(AddUnknownClientRegistrationTypesSupportedInEntityConfiguration.class, Condition.ConditionResult.FAILURE, "OIDFED-5.1.3");
 		setStatus(Status.WAITING);
 
-		Object response = super.entityConfigurationResponse();
+		Object response = entityConfigurationResponse("server", "op_ec_jwks", SignEntityStatement.class);
 
 		startWaitingForTimeout();
 

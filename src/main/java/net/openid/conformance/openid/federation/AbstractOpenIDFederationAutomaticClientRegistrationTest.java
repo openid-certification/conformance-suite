@@ -44,7 +44,7 @@ import net.openid.conformance.openid.federation.client.AddSelfToTrustAnchorImmed
 import net.openid.conformance.openid.federation.client.ClientRegistration;
 import net.openid.conformance.openid.federation.client.GenerateTrustAnchorEntityConfiguration;
 import net.openid.conformance.openid.federation.client.LoadTrustAnchorJWKs;
-import net.openid.conformance.openid.federation.client.SignEntityStatementWithClientKeys;
+import net.openid.conformance.openid.federation.client.SignEntityStatement;
 import net.openid.conformance.openid.federation.client.ValidateTrustAnchorJWKs;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.sequence.client.CreateJWTClientAuthenticationAssertionAndAddToTokenEndpointRequest;
@@ -217,32 +217,7 @@ public abstract class AbstractOpenIDFederationAutomaticClientRegistrationTest ex
 	}
 
 	protected Object entityConfigurationResponse() {
-		boolean nonBlocking = true;
-		// We need to default to the non-blocking version since
-		// requests to the well-known endpoint might come in at any time,
-		// and we don't want tests to fail because of it
-		if (nonBlocking) {
-			env.mapKey("entity_configuration_claims", "server");
-			env.mapKey("entity_configuration_claims_jwks", "rp_ec_jwks");
-			Object response =  NonBlocking.entityConfigurationResponse(env, getId());
-			env.unmapKey("entity_configuration_claims");
-			env.unmapKey("entity_configuration_claims_jwks");
-			return response;
-		}
-
-		setStatus(Status.RUNNING);
-
-		env.mapKey("entity_configuration_claims", "server");
-		callAndStopOnFailure(SignEntityStatementWithClientKeys.class);
-		env.unmapKey("entity_configuration_claims");
-		String entityConfiguration = env.getString("signed_entity_statement");
-
-		setStatus(Status.WAITING);
-
-		return ResponseEntity
-			.status(HttpStatus.OK)
-			.contentType(EntityUtils.ENTITY_STATEMENT_JWT)
-			.body(entityConfiguration);
+		return entityConfigurationResponse("server", "rp_ec_jwks", SignEntityStatement.class);
 	}
 
 	protected Object listResponse() {

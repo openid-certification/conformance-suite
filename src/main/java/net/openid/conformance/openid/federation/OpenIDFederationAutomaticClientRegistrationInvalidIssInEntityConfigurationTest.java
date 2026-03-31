@@ -1,5 +1,6 @@
 package net.openid.conformance.openid.federation;
 
+import net.openid.conformance.openid.federation.client.SignEntityStatement;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.FAPIAuthRequestMethod;
 import org.springframework.http.HttpMethod;
@@ -44,19 +45,17 @@ public class OpenIDFederationAutomaticClientRegistrationInvalidIssInEntityConfig
 			return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).body("The test has already run to completion.");
 		}
 
+		setStatus(Status.RUNNING);
 		String iss = env.getString("server", "iss");
 		env.putString("server", "iss", iss + "/1");
+		setStatus(Status.WAITING);
 
-		env.mapKey("entity_configuration_claims", "server");
-		env.mapKey("entity_configuration_claims_jwks", "rp_ec_jwks");
 		startWaitingForTimeout();
-		Object entityConfigurationResponse = NonBlocking.entityConfigurationResponse(env, getId());
-		env.unmapKey("entity_configuration_claims");
-		env.unmapKey("entity_configuration_claims_jwks");
+		Object response = entityConfigurationResponse("server", "rp_ec_jwks", SignEntityStatement.class);
 
 		env.putString("server", "iss", iss);
 
-		return entityConfigurationResponse;
+		return response;
 	}
 
 	// Allow additional calls to come in for 5 more seconds.

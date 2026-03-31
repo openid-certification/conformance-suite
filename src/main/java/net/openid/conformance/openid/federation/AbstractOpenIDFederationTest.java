@@ -11,6 +11,7 @@ import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.EnsureContentTypeJson;
 import net.openid.conformance.openid.federation.client.ClientRegistration;
 import net.openid.conformance.openid.federation.client.ExtractParametersForTrustAnchorResolveEndpoint;
+import net.openid.conformance.openid.federation.client.SignEntityStatement;
 import net.openid.conformance.openid.federation.client.SignResolveResponseWithTrustAnchorKeys;
 import net.openid.conformance.openid.federation.client.ValidateSubParameterForTrustAnchorResolveEndpoint;
 import net.openid.conformance.openid.federation.client.ValidateTrustAnchorParameterForResolveEndpoint;
@@ -74,12 +75,7 @@ public abstract class AbstractOpenIDFederationTest extends AbstractRedirectServe
 	}
 
 	protected Object trustAnchorEntityConfigurationResponse() {
-		env.mapKey("entity_configuration_claims", "trust_anchor");
-		env.mapKey("entity_configuration_claims_jwks", "trust_anchor_jwks");
-		Object entityConfigurationResponse = NonBlocking.entityConfigurationResponse(env, getId());
-		env.unmapKey("entity_configuration_claims");
-		env.unmapKey("entity_configuration_claims_jwks");
-		return entityConfigurationResponse;
+		return entityConfigurationResponse("trust_anchor", "trust_anchor_jwks", SignEntityStatement.class);
 	}
 
 	protected Object trustAnchorJwksResponse() {
@@ -96,7 +92,53 @@ public abstract class AbstractOpenIDFederationTest extends AbstractRedirectServe
 	}
 
 	protected Object trustAnchorFetchResponse(String requestId) {
-		return NonBlocking.trustAnchorFetchResponse(env, getId(), requestId);
+		setStatus(Status.RUNNING);
+		call(exec().startBlock("Trust anchor fetch endpoint").mapKey("incoming_request", requestId));
+
+		String sub;
+		if (env.getString("incoming_request", "method").equalsIgnoreCase("POST")) {
+			sub = env.getString("incoming_request", "body_form_params.sub");
+		} else {
+			sub = env.getString("incoming_request", "query_string_params.sub");
+		}
+
+		if (sub == null || sub.isEmpty()) {
+			ResponseEntity<Object> response = errorResponse("invalid_request", "Missing required sub parameter in request", 400);
+			call(exec().unmapKey("incoming_request").endBlock());
+			setStatus(Status.WAITING);
+			return response;
+		}
+
+		env.putString("federation_endpoint_url", EntityUtils.appendWellKnown(sub));
+		callAndStopOnFailure(ValidateFederationUrl.class, Condition.ConditionResult.FAILURE, "OIDFED-1.2");
+		callAndStopOnFailure(CallEntityStatementEndpointAndReturnFullResponse.class, Condition.ConditionResult.FAILURE, "OIDFED-9");
+		callAndContinueOnFailure(ExtractJWTFromFederationEndpointResponse.class, Condition.ConditionResult.FAILURE);
+
+		JsonObject claims = env.getElementFromObject("federation_response_jwt", "claims").getAsJsonObject();
+		claims.remove("authority_hints");
+		claims.remove("trust_mark_issuers");
+		claims.remove("trust_mark_owners");
+		claims.addProperty("iss", env.getString("trust_anchor_entity_identifier"));
+		claims.addProperty("source_endpoint", env.getString("federation_fetch_endpoint"));
+
+		env.putObject("trust_anchor_fetch_response_claims", claims);
+		env.mapKey("entity_configuration_claims", "trust_anchor_fetch_response_claims");
+		env.mapKey("entity_configuration_claims_jwks", "trust_anchor_jwks");
+		callAndStopOnFailure(SignEntityStatement.class);
+		env.unmapKey("entity_configuration_claims");
+		env.unmapKey("entity_configuration_claims_jwks");
+		String federationFetchResponse = env.getString("signed_entity_statement");
+		env.removeNativeValue("signed_entity_statement");
+
+		ResponseEntity<Object> response = ResponseEntity
+			.status(200)
+			.contentType(EntityUtils.ENTITY_STATEMENT_JWT)
+			.body(federationFetchResponse);
+
+		call(exec().unmapKey("incoming_request").endBlock());
+		setStatus(Status.WAITING);
+
+		return response;
 	}
 
 	protected Object trustAnchorListResponse(String requestId) {
@@ -105,7 +147,6 @@ public abstract class AbstractOpenIDFederationTest extends AbstractRedirectServe
 	}
 
 	protected Object trustAnchorResolveResponse(String requestId) {
-		// This one is too complicated to execute in a non-blocking manner
 		String sub = env.getString(requestId, "query_string_params.sub");
 		String alias = env.getString("config", "alias");
 		if (sub.endsWith(alias)) {
@@ -224,12 +265,14 @@ public abstract class AbstractOpenIDFederationTest extends AbstractRedirectServe
 		return filteredMetadata;
 	}
 
-	protected Object entityConfigurationResponse(String mapKey, Class<? extends Condition> signCondition) {
+	protected Object entityConfigurationResponse(String claimsMapKey, String jwksMapKey, Class<? extends Condition> signCondition) {
 		setStatus(Status.RUNNING);
 
-		env.mapKey("entity_configuration_claims", mapKey);
+		env.mapKey("entity_configuration_claims", claimsMapKey);
+		env.mapKey("entity_configuration_claims_jwks", jwksMapKey);
 		callAndStopOnFailure(signCondition);
 		env.unmapKey("entity_configuration_claims");
+		env.unmapKey("entity_configuration_claims_jwks");
 		String entityConfiguration = env.getString("signed_entity_statement");
 
 		env.removeNativeValue("signed_entity_statement");
