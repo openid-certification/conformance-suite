@@ -55,10 +55,11 @@ public class VariantService {
 		this(testPlanHolder -> profilesToSurface == null || profilesToSurface.isEmpty() || profilesToSurface.contains(testPlanHolder.info.profile()));
 	}
 
+	@SuppressWarnings("this-escape")
 	public VariantService(Predicate<? super TestPlanHolder> byProfile) {
 
 		this.variantParametersByClass = inClassesWithAnnotation(VariantParameter.class)
-				.collect(toMap(identity(), this::wrapParameter));
+				.collect(toMap(identity(), VariantService::wrapParameter));
 
 		this.testModulesByClass = inClassesWithAnnotation(PublishTestModule.class)
 				.collect(toMap(identity(), this::wrapModule));
@@ -188,7 +189,7 @@ public class VariantService {
 	}
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })
-	private ParameterHolder<?> wrapParameter(Class<?> c) {
+	private static ParameterHolder<?> wrapParameter(Class<?> c) {
 		if (!c.isEnum()) {
 			throw new IllegalArgumentException("Variant parameters must be enums: " + c.getName());
 		}

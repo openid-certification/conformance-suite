@@ -22,9 +22,13 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 		<java.version>17</java.version>
-		<pmdVersion>7.12.0</pmdVersion>
+		<pmdVersion>7.23.0</pmdVersion>
 		<jackson.version>2.15.1</jackson.version>
 		<kotlin.version>2.2.21</kotlin.version>
+
+		<!-- remove once upgrading to spring boot 3.5+ -->
+		<mockito.version>5.23.0</mockito.version>
+		<byte-buddy.version>1.18.3</byte-buddy.version>
 	</properties>
 
 	<dependencies>
@@ -102,7 +106,7 @@
 		<dependency>
 			<groupId>com.tngtech.archunit</groupId>
 			<artifactId>archunit</artifactId>
-			<version>1.4.0</version>
+			<version>1.4.1</version>
 			<scope>test</scope>
 			<exclusions>
 				<exclusion>
@@ -562,6 +566,22 @@
 				<groupId>org.seleniumhq.selenium</groupId>
 				<artifactId>htmlunit3-driver</artifactId>
 				<version>4.30.0</version>
+			</dependency>
+			<dependency>
+				<groupId>org.mockito</groupId>
+				<artifactId>mockito-core</artifactId>
+				<version>${mockito.version}</version>
+				<scope>test</scope>
+			</dependency>
+			<dependency>
+				<groupId>net.bytebuddy</groupId>
+				<artifactId>byte-buddy</artifactId>
+				<version>${byte-buddy.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>net.bytebuddy</groupId>
+				<artifactId>byte-buddy-agent</artifactId>
+				<version>${byte-buddy.version}</version>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>
