@@ -24,12 +24,12 @@ public class EKYCRequestVerifiedClaimsOnlyInIdToken extends AbstractEKYCTestWith
 
 	@Override
 	protected void addVerifiedClaimsToAuthorizationRequest() {
-		callAndContinueOnFailure(AddOneVerifiedClaimInIdTokenOnlyToAuthorizationEndpointRequest.class, Condition.ConditionResult.WARNING, "IA-6.1");
+		callAndContinueOnFailure(AddOneVerifiedClaimInIdTokenOnlyToAuthorizationEndpointRequest.class, Condition.ConditionResult.WARNING, "IA-5.3", "IA-7");
 	}
 
 	@Override
 	protected void processVerifiedClaimsInUserinfo() {
 		//as we didn't request verified_claims in userinfo, response must not contain verified_claims
-		callAndContinueOnFailure(EnsureUserinfoDoesNotContainVerifiedClaims.class, Condition.ConditionResult.FAILURE, "IA-6");
+		callAndContinueOnFailure(EnsureUserinfoDoesNotContainVerifiedClaims.class, Condition.ConditionResult.FAILURE, "IA-5.7", "IA-7");
 	}
 }
