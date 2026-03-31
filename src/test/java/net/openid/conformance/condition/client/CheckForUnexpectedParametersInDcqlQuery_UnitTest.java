@@ -6,7 +6,7 @@ import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.Environment;
-import net.openid.conformance.testmodule.OIDFJSON;
+
 import net.openid.conformance.vci10issuer.condition.AbstractVciUnitTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -276,18 +276,4 @@ public class CheckForUnexpectedParametersInDcqlQuery_UnitTest extends AbstractVc
 		env.putObject("dcql_query", dcql);
 	}
 
-	private void assertUnknownPropertyAtPath(Map<String, Object> data, String expectedPath) {
-		Object unknownProperties = data.get("unknown_properties");
-		org.junit.jupiter.api.Assertions.assertInstanceOf(java.util.List.class, unknownProperties);
-
-		for (Object entry : (java.util.List<?>) unknownProperties) {
-			if (entry instanceof JsonObject jsonEntry) {
-				String path = OIDFJSON.getString(jsonEntry.get("path"));
-				if (expectedPath.equals(path)) {
-					return;
-				}
-			}
-		}
-		org.junit.jupiter.api.Assertions.fail("No unknown property found at path: " + expectedPath);
-	}
 }

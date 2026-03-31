@@ -62,12 +62,314 @@
             "type": "array",
             "items": { "type": "string" }
         },
-        "authorized_grant_anonymous_access_supported": {
-            "$comment": "New metadata field, https://openid.net/specs/openid-4-verifiable-credential-issuance-1_0-ID2.html#section-11.3",
+        "userinfo_endpoint": { "type": "string", "format": "uri" },
+        "end_session_endpoint": { "type": "string", "format": "uri" },
+        "check_session_iframe": { "type": "string", "format": "uri" },
+        "subject_types_supported": {
+            "type": "array",
+            "items": { "type": "string" }
+        },
+        "id_token_signing_alg_values_supported": {
+            "type": "array",
+            "items": { "type": "string" }
+        },
+        "id_token_encryption_alg_values_supported": {
+            "type": "array",
+            "items": { "type": "string" }
+        },
+        "id_token_encryption_enc_values_supported": {
+            "type": "array",
+            "items": { "type": "string" }
+        },
+        "userinfo_signing_alg_values_supported": {
+            "type": "array",
+            "items": { "type": "string" }
+        },
+        "userinfo_encryption_alg_values_supported": {
+            "type": "array",
+            "items": { "type": "string" }
+        },
+        "userinfo_encryption_enc_values_supported": {
+            "type": "array",
+            "items": { "type": "string" }
+        },
+        "request_object_signing_alg_values_supported": {
+            "type": "array",
+            "items": { "type": "string" }
+        },
+        "request_object_encryption_alg_values_supported": {
+            "type": "array",
+            "items": { "type": "string" }
+        },
+        "request_object_encryption_enc_values_supported": {
+            "type": "array",
+            "items": { "type": "string" }
+        },
+        "display_values_supported": {
+            "type": "array",
+            "items": { "type": "string" }
+        },
+        "claim_types_supported": {
+            "type": "array",
+            "items": { "type": "string" }
+        },
+        "claims_supported": {
+            "type": "array",
+            "items": { "type": "string" }
+        },
+        "claims_locales_supported": {
+            "type": "array",
+            "items": { "type": "string" }
+        },
+        "claims_parameter_supported": { "type": "boolean" },
+        "request_parameter_supported": { "type": "boolean" },
+        "request_uri_parameter_supported": { "type": "boolean" },
+        "require_request_uri_registration": { "type": "boolean" },
+        "acr_values_supported": {
+            "type": "array",
+            "items": { "type": "string" }
+        },
+        "frontchannel_logout_supported": { "type": "boolean" },
+        "frontchannel_logout_session_supported": {
+            "$comment": "OpenID Connect Front-Channel Logout 1.0 https://openid.net/specs/openid-connect-frontchannel-1_0.html",
             "type": "boolean"
+        },
+        "backchannel_logout_supported": { "type": "boolean" },
+        "backchannel_logout_session_supported": { "type": "boolean" },
+        "dpop_signing_alg_values_supported": {
+            "$comment": "RFC 9449",
+            "type": "array",
+            "items": { "type": "string" }
+        },
+        "pushed_authorization_request_endpoint": {
+            "$comment": "RFC 9126",
+            "type": "string",
+            "format": "uri"
+        },
+        "require_pushed_authorization_requests": {
+            "$comment": "RFC 9126",
+            "type": "boolean"
+        },
+        "authorization_details_types_supported": {
+            "$comment": "RFC 9396",
+            "type": "array",
+            "items": { "type": "string" }
+        },
+        "backchannel_authentication_endpoint": {
+            "$comment": "OpenID Connect Client-Initiated Backchannel Authentication Flow",
+            "type": "string",
+            "format": "uri"
+        },
+        "backchannel_token_delivery_modes_supported": {
+            "type": "array",
+            "items": { "type": "string" }
+        },
+        "backchannel_authentication_request_signing_alg_values_supported": {
+            "type": "array",
+            "items": { "type": "string" }
+        },
+        "backchannel_user_code_parameter_supported": { "type": "boolean" },
+        "authorization_signing_alg_values_supported": {
+            "$comment": "JARM https://openid.net/specs/oauth-v2-jarm-final.html",
+            "type": "array",
+            "items": { "type": "string" }
+        },
+        "authorization_encryption_alg_values_supported": {
+            "$comment": "JARM https://openid.net/specs/oauth-v2-jarm-final.html",
+            "type": "array",
+            "items": { "type": "string" }
+        },
+        "authorization_encryption_enc_values_supported": {
+            "$comment": "JARM https://openid.net/specs/oauth-v2-jarm-final.html",
+            "type": "array",
+            "items": { "type": "string" }
+        },
+        "client_attestation_signing_alg_values_supported": {
+            "$comment": "OAuth 2.0 Attestation-Based Client Authentication https://www.ietf.org/archive/id/draft-ietf-oauth-attestation-based-client-auth-07.html",
+            "type": "array",
+            "items": { "type": "string" }
+        },
+        "client_attestation_pop_signing_alg_values_supported": {
+            "$comment": "OAuth 2.0 Attestation-Based Client Authentication https://www.ietf.org/archive/id/draft-ietf-oauth-attestation-based-client-auth-07.html",
+            "type": "array",
+            "items": { "type": "string" }
+        },
+        "client_attestation_pop_nonce_required": {
+            "$comment": "Introduced in draft-ietf-oauth-attestation-based-client-auth-05, replaced by challenge_endpoint in draft-06; kept to suppress warnings from servers that still return it",
+            "type": "array",
+            "items": { "type": "string" }
+        },
+        "challenge_endpoint": {
+            "$comment": "OAuth 2.0 Attestation-Based Client Authentication https://www.ietf.org/archive/id/draft-ietf-oauth-attestation-based-client-auth-07.html",
+            "type": "string",
+            "format": "uri"
+        },
+        "mtls_endpoint_aliases": {
+            "$comment": "RFC 8705",
+            "type": "object"
+        },
+        "tls_client_certificate_bound_access_tokens": {
+            "$comment": "RFC 8705",
+            "type": "boolean"
+        },
+        "signed_metadata": {
+            "$comment": "RFC 9101",
+            "type": "string"
+        },
+        "pre-authorized_grant_anonymous_access_supported": {
+            "$comment": "OID4VCI https://openid.net/specs/openid-4-verifiable-credentials-issuance-1_0.html#section-12.3",
+            "type": "boolean"
+        },
+        "authorization_response_iss_parameter_supported": {
+            "$comment": "RFC 9207",
+            "type": "boolean"
+        },
+        "device_authorization_endpoint": {
+            "$comment": "RFC 8628",
+            "type": "string",
+            "format": "uri"
+        },
+        "require_signed_request_object": {
+            "$comment": "RFC 9101 (JAR)",
+            "type": "boolean"
+        },
+        "introspection_signing_alg_values_supported": {
+            "$comment": "JWT Response for OAuth Token Introspection",
+            "type": "array",
+            "items": { "type": "string" }
+        },
+        "introspection_encryption_alg_values_supported": {
+            "type": "array",
+            "items": { "type": "string" }
+        },
+        "introspection_encryption_enc_values_supported": {
+            "type": "array",
+            "items": { "type": "string" }
+        },
+        "prompt_values_supported": {
+            "$comment": "OpenID Connect Prompt Create 1.0 https://openid.net/specs/openid-connect-prompt-create-1_0-05.html",
+            "type": "array",
+            "items": { "type": "string" }
+        },
+        "signed_jwks_uri": {
+            "$comment": "OpenID Federation https://openid.net/specs/openid-federation-1_0.html#section-5.2.1",
+            "type": "string",
+            "format": "uri"
+        },
+        "jwks": {
+            "$comment": "OpenID Federation https://openid.net/specs/openid-federation-1_0.html#section-5.2.1",
+            "type": "object"
+        },
+        "organization_name": {
+            "$comment": "OpenID Federation https://openid.net/specs/openid-federation-1_0.html#section-5.2.2",
+            "type": "string"
+        },
+        "organization_uri": {
+            "$comment": "OpenID Federation https://openid.net/specs/openid-federation-1_0.html#section-5.2.2",
+            "type": "string",
+            "format": "uri"
+        },
+        "display_name": {
+            "$comment": "OpenID Federation https://openid.net/specs/openid-federation-1_0.html#section-5.2.2",
+            "type": "string"
+        },
+        "description": {
+            "$comment": "OpenID Federation https://openid.net/specs/openid-federation-1_0.html#section-5.2.2",
+            "type": "string"
+        },
+        "keywords": {
+            "$comment": "OpenID Federation https://openid.net/specs/openid-federation-1_0.html#section-5.2.2",
+            "type": "array",
+            "items": { "type": "string" }
+        },
+        "contacts": {
+            "$comment": "OpenID Federation https://openid.net/specs/openid-federation-1_0.html#section-5.2.2",
+            "type": "array",
+            "items": { "type": "string" }
+        },
+        "logo_uri": {
+            "$comment": "OpenID Federation https://openid.net/specs/openid-federation-1_0.html#section-5.2.2",
+            "type": "string",
+            "format": "uri"
+        },
+        "information_uri": {
+            "$comment": "OpenID Federation https://openid.net/specs/openid-federation-1_0.html#section-5.2.2",
+            "type": "string",
+            "format": "uri"
+        },
+        "federation_registration_endpoint": {
+            "$comment": "OpenID Federation https://openid.net/specs/openid-federation-1_0.html",
+            "type": "string",
+            "format": "uri"
+        },
+        "client_registration_types_supported": {
+            "$comment": "OpenID Federation https://openid.net/specs/openid-federation-1_0.html",
+            "type": "array",
+            "items": { "type": "string" }
+        },
+        "trust_frameworks_supported": {
+            "$comment": "OpenID Identity Assurance https://openid.net/specs/openid-connect-4-identity-assurance-1_0.html",
+            "type": "array",
+            "items": { "type": "string" }
+        },
+        "evidence_supported": {
+            "$comment": "OpenID Identity Assurance https://openid.net/specs/openid-connect-4-identity-assurance-1_0.html",
+            "type": "array",
+            "items": { "type": "string" }
+        },
+        "documents_supported": {
+            "$comment": "OpenID Identity Assurance https://openid.net/specs/openid-connect-4-identity-assurance-1_0.html",
+            "type": "array",
+            "items": { "type": "string" }
+        },
+        "documents_check_methods_supported": {
+            "$comment": "OpenID Identity Assurance https://openid.net/specs/openid-connect-4-identity-assurance-1_0.html",
+            "type": "array",
+            "items": { "type": "string" }
+        },
+        "claims_in_verified_claims_supported": {
+            "$comment": "OpenID Identity Assurance https://openid.net/specs/openid-connect-4-identity-assurance-1_0.html",
+            "type": "array",
+            "items": { "type": "string" }
+        },
+        "transformed_claims_functions_supported": {
+            "$comment": "OpenID Identity Assurance https://openid.net/specs/openid-connect-4-identity-assurance-1_0.html",
+            "type": "array",
+            "items": { "type": "string" }
+        },
+        "transformed_claims_predefined": {
+            "$comment": "OpenID Identity Assurance https://openid.net/specs/openid-connect-4-identity-assurance-1_0.html"
+        },
+        "grant_management_actions_supported": {
+            "$comment": "Grant Management for OAuth 2.0 https://openid.net/specs/fapi-grant-management.html",
+            "type": "array",
+            "items": { "type": "string" }
+        },
+        "grant_management_action_required": {
+            "$comment": "Grant Management for OAuth 2.0 https://openid.net/specs/fapi-grant-management.html",
+            "type": "boolean"
+        },
+        "request_authentication_methods_supported": {
+            "$comment": "Removed before OpenID Federation went final https://openid.net/specs/openid-federation-1_0-29.html#section-5.1.1; kept to suppress warnings from servers that still return it"
+        },
+        "request_authentication_signing_alg_values_supported": {
+            "$comment": "Removed before OpenID Federation went final https://openid.net/specs/openid-federation-1_0-29.html#section-5.1.1; kept to suppress warnings from servers that still return it",
+            "type": "array",
+            "items": { "type": "string" }
+        },
+        "protected_resources": {
+            "$comment": "RFC 9728 https://www.rfc-editor.org/rfc/rfc9728#section-4",
+            "type": "array",
+            "items": { "type": "string" }
+        },
+        "status_list_aggregation_endpoint": {
+            "$comment": "Token Status List https://datatracker.ietf.org/doc/draft-ietf-oauth-status-list/",
+            "type": "string",
+            "format": "uri"
         }
     },
     "required": [
         "issuer"
-    ]
+    ],
+    "additionalProperties": false
 }

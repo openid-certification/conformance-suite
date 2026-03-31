@@ -4,6 +4,7 @@ import com.google.gson.JsonObject;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.vci10issuer.util.JsonSchemaValidationInput;
+import net.openid.conformance.vci10issuer.util.JsonSchemaValidationResult;
 
 public class VCIAuthorizationServerMetadataValidation extends AbstractJsonSchemaBasedValidation {
 
@@ -20,6 +21,14 @@ public class VCIAuthorizationServerMetadataValidation extends AbstractJsonSchema
 		String currentAuthServerMetadataPath = env.getEffectiveKey("current_auth_server_metadata_path");
 		JsonObject authorizationServerMetadata = env.getElementFromObject("vci", currentAuthServerMetadataPath).getAsJsonObject();
 		return authorizationServerMetadata;
+	}
+
+	@Override
+	protected void onValidationFailure(Environment env, JsonSchemaValidationResult validationResult, JsonSchemaValidationInput input) {
+		JsonSchemaValidationResult structuralErrors = validationResult.withoutAdditionalPropertiesErrors();
+		if (!structuralErrors.isValid()) {
+			super.onValidationFailure(env, structuralErrors, input);
+		}
 	}
 
 	@Override

@@ -54,7 +54,7 @@ class VCIAuthorizationServerMetadataValidationTest extends AbstractVciUnitTest {
 		Map<String, Object> data = assertValidationError(validation, env, eventLog);
 		assertContainsExpectedError(data, "$.response_types_supported", "string found, array expected");
 		assertContainsExpectedError(data, "$.issuer", "integer found, string expected");
-		assertContainsExpectedError(data, "$.authorized_grant_anonymous_access_supported", "string found, boolean expected");
+		assertContainsExpectedError(data, "$.pre-authorized_grant_anonymous_access_supported", "string found, boolean expected");
 		assertContainsExpectedError(data, "$.code_challenge_methods_supported[1]", "integer found, string expected");
 	}
 }

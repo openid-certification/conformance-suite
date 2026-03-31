@@ -6,6 +6,7 @@ import com.networknt.schema.ValidationMessage;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 public class JsonSchemaValidationResult {
 
@@ -21,6 +22,20 @@ public class JsonSchemaValidationResult {
 
 	public Set<ValidationMessage> getValidationMessages() {
 		return validationMessages;
+	}
+
+	public JsonSchemaValidationResult withoutAdditionalPropertiesErrors() {
+		Set<ValidationMessage> filtered = validationMessages.stream()
+			.filter(m -> !"additionalProperties".equals(m.getType()))
+			.collect(Collectors.toSet());
+		return new JsonSchemaValidationResult(filtered);
+	}
+
+	public JsonSchemaValidationResult onlyAdditionalPropertiesErrors() {
+		Set<ValidationMessage> filtered = validationMessages.stream()
+			.filter(m -> "additionalProperties".equals(m.getType()))
+			.collect(Collectors.toSet());
+		return new JsonSchemaValidationResult(filtered);
 	}
 
 	public List<JsonObject> getPropertyErrors() {
