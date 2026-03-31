@@ -52,6 +52,10 @@
 		<exclude name="NonStaticInitializer"/>
 		<exclude name="TestClassWithoutTestCases"/>
 		<exclude name="ConstructorCallsOverridableMethod"/>
+		<exclude name="ReplaceJavaUtilDate"/>
+		<exclude name="AvoidCatchingGenericException"/>
+		<exclude name="UnconditionalIfStatement"/>
+		<exclude name="ReplaceJavaUtilCalendar"/>
 	</rule>
 
 	<rule ref="category/java/codestyle.xml">
@@ -88,6 +92,7 @@
 		<exclude name="UseDiamondOperator"/>
 		<exclude name="LambdaCanBeMethodReference"/>
 		<exclude name="UnnecessaryFullyQualifiedName"/>
+		<exclude name="VariableCanBeInlined"/>
 	</rule>
 
 	<rule ref="category/java/bestpractices.xml">
@@ -109,6 +114,8 @@
 		<exclude name="NonExhaustiveSwitch"/>
 		<exclude name="ExhaustiveSwitchHasDefault"/>
 		<exclude name="UnitTestShouldUseTestAnnotation"/>
+		<exclude name="EnumComparison"/>
+		<exclude name="RelianceOnDefaultCharset"/>
 	</rule>
 	<!--
 	   We should probably enable more rules one day
