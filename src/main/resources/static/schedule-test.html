@@ -2717,6 +2717,23 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
                     return;
                 }
 
+                // If any condition parameter hasn't been selected yet, hide this
+                // variant until the dependency is resolved
+                var hasPendingDependency = _.some(notApplicableWhen, function(conditionValueMap, conditionParamName) {
+                    var currentConditionValue = currentSelections[conditionParamName];
+                    return !currentConditionValue || currentConditionValue === 'select';
+                });
+
+                if (hasPendingDependency) {
+                    var variantRow = selectElement.closest('.mb-3.row');
+                    if (variantRow) {
+                        variantRow.style.display = 'none';
+                    }
+                    // Reset selection since dependency isn't resolved
+                    selectElement.value = 'select';
+                    return;
+                }
+
                 // Collect all values that should be hidden based on current selections
                 var valuesToHide = new Set();
 
