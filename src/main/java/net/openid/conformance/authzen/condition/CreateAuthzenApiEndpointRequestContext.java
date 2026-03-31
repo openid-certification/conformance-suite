@@ -9,8 +9,6 @@ public class CreateAuthzenApiEndpointRequestContext extends CreateAuthzenApiEndp
 
 	public CreateAuthzenApiEndpointRequestContext(JsonObject requestParameter) {
 		super("context", requestParameter);
-		this.requiredProperties = new String[]{"name"};
-		this.optionalObjects = new String[] {"properties"};
 	}
 
 	@Override
