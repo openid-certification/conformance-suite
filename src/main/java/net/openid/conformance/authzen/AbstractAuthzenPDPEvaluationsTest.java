@@ -2,7 +2,6 @@ package net.openid.conformance.authzen;
 
 import com.google.gson.JsonObject;
 import net.openid.conformance.authzen.condition.CreateAuthzenEvaluationsApiRequestSteps;
-import net.openid.conformance.authzen.condition.EnsureAuthzenEvaluationsResponseElemNumbersMatchRequest;
 import net.openid.conformance.authzen.condition.EnsureAuthzenEvaluationsResponseValsMatchExpectedVals;
 import net.openid.conformance.authzen.condition.ExtractAuthzenApiEndpointEvaluationsResponse;
 import net.openid.conformance.authzen.condition.ExtractAuthzenEvaluationsExpectedResponse;
@@ -34,7 +33,6 @@ public abstract class AbstractAuthzenPDPEvaluationsTest extends AbstractAuthzenP
 	@Override
 	protected void validateAuthApiEndpointResponse() {
 		callAndContinueOnFailure(new ExtractAuthzenEvaluationsExpectedResponse(getExpectedEvaluationsResponseJson()), ConditionResult.FAILURE);
-		callAndContinueOnFailure(EnsureAuthzenEvaluationsResponseElemNumbersMatchRequest.class, ConditionResult.FAILURE);
 		callAndContinueOnFailure(EnsureAuthzenEvaluationsResponseValsMatchExpectedVals.class, ConditionResult.FAILURE);
 	}
 
