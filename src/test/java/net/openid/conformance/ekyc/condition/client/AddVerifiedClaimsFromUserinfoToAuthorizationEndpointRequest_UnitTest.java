@@ -2,13 +2,14 @@ package net.openid.conformance.ekyc.condition.client;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import com.networknt.schema.ValidationMessage;
 import com.tananaev.jsonpatch.JsonPatch;
 import com.tananaev.jsonpatch.JsonPatchFactory;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.Environment;
+import net.openid.conformance.vci10issuer.util.JsonSchemaValidation;
+import net.openid.conformance.vci10issuer.util.JsonSchemaValidationResult;
 import org.apache.commons.io.IOUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -19,10 +20,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.util.Set;
 
-import static net.openid.conformance.ekyc.condition.client.AbstractValidateAgainstSchema.checkRequestSchema;
-import static net.openid.conformance.ekyc.condition.client.AbstractValidateAgainstSchema.checkResponseSchema;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
@@ -44,35 +42,41 @@ public class AddVerifiedClaimsFromUserinfoToAuthorizationEndpointRequest_UnitTes
 		cond.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
 	}
 
+	private static JsonSchemaValidation createEkycSchemaValidation(String schemaResource) {
+		JsonSchemaValidation validation = new JsonSchemaValidation(schemaResource);
+		validation.setSchemaBuilderCustomizer(AbstractEkycSchemaBasedValidation.ekycSchemaMapperCustomizer());
+		return validation;
+	}
+
 	protected void runTestWithStringData(String jsonRequestData, String jsonResponseData) throws IOException {
 		env.putObjectFromJsonString("config", "ekyc.userinfo", jsonRequestData);
 		env.putObject("authorization_endpoint_request", new JsonObject());
 		JsonObject expected = (JsonObject) JsonParser.parseString(jsonResponseData);
 
-		Set<ValidationMessage> errors = checkRequestSchema(jsonResponseData);
-		if (!errors.isEmpty()) {
-			for (ValidationMessage error: errors) {
-				System.out.println("RequestJsonSchemaError: " + error.toString());
-			}
+		JsonSchemaValidation requestValidation = createEkycSchemaValidation("json-schemas/ekyc-ida/verified_claims_request.json");
+		JsonSchemaValidationResult requestResult = requestValidation.validate(jsonResponseData);
+		if (!requestResult.isValid()) {
+			requestResult.getValidationMessages().forEach(error ->
+				System.out.println("RequestJsonSchemaError: " + error.toString()));
 		}
 
-		errors = checkResponseSchema(jsonResponseData);
-		if (!errors.isEmpty()) {
-			for (ValidationMessage error: errors) {
-				System.out.println("expected ResponseJsonSchemaError: " + error.toString());
-			}
+		JsonSchemaValidation responseValidation = createEkycSchemaValidation("json-schemas/ekyc-ida/verified_claims.json");
+		JsonSchemaValidationResult responseResult = responseValidation.validate(jsonResponseData);
+		if (!responseResult.isValid()) {
+			responseResult.getValidationMessages().forEach(error ->
+				System.out.println("expected ResponseJsonSchemaError: " + error.toString()));
 		}
 
 		cond.execute(env);
 		JsonObject result = env.getObject("authorization_endpoint_request");
 
-		errors = checkRequestSchema(result.get("claims").toString());
-		if (!errors.isEmpty()) {
-			for (ValidationMessage error: errors) {
-				System.out.println("RequestJsonSchemaError: " + error.toString());
-			}
+		JsonSchemaValidation resultValidation = createEkycSchemaValidation("json-schemas/ekyc-ida/verified_claims_request.json");
+		JsonSchemaValidationResult resultResult = resultValidation.validate(result.get("claims").toString());
+		if (!resultResult.isValid()) {
+			resultResult.getValidationMessages().forEach(error ->
+				System.out.println("RequestJsonSchemaError: " + error.toString()));
 		}
-		assertThat(errors.size()).isEqualTo(0);
+		assertThat(resultResult.getValidationMessages().size()).isEqualTo(0);
 
 
 		JsonPatchFactory jpf = new JsonPatchFactory();
