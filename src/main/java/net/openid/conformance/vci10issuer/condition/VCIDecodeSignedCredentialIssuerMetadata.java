@@ -21,6 +21,7 @@ import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.condition.client.AbstractVerifyJwsSignature;
 import net.openid.conformance.testmodule.Environment;
+import net.openid.conformance.util.JWTUtil;
 
 import java.security.PublicKey;
 import java.security.cert.X509Certificate;
@@ -168,21 +169,18 @@ public class VCIDecodeSignedCredentialIssuerMetadata extends AbstractVerifyJwsSi
 		}
 
 		// iat: REQUIRED. Integer for the time at which the Credential Issuer Metadata was issued using the syntax defined in [RFC7519].
-		Object iat = payload.get("iat");
-		if (iat == null) {
-			throw error("Missing 'iat' claim in signed credential issuer metadata JWT",
-				args("payload", payload));
-		}
-		if (!(iat instanceof Number) || ((Number) iat).longValue() < 0L) {
-			throw error("Invalid 'iat' claim in signed credential issuer metadata JWT",
+		try {
+			JWTUtil.validateIatClaim(payload.get("iat"));
+		} catch (IllegalArgumentException e) {
+			throw error("Invalid 'iat' in signed credential issuer metadata JWT: " + e.getMessage(),
 				args("payload", payload));
 		}
 
 		// exp: OPTIONAL. Integer for the time at which the Credential Issuer Metadata is expiring, using the syntax defined in [RFC7519].
-		Object exp = payload.get("exp");
-		// only check exp if present
-		if (exp != null && (!(exp instanceof Number) || ((Number) exp).longValue() < 0L)) {
-			throw error("Invalid 'exp' claim in signed credential issuer metadata JWT",
+		try {
+			JWTUtil.validateExpClaim(payload.get("exp"));
+		} catch (IllegalArgumentException e) {
+			throw error("Invalid 'exp' in signed credential issuer metadata JWT: " + e.getMessage(),
 				args("payload", payload));
 		}
 

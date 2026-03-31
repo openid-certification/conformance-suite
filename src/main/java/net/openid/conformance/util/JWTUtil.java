@@ -20,6 +20,68 @@ import java.util.regex.Pattern;
 
 public class JWTUtil {
 
+	// 2024-01-01T00:00:00Z in seconds — any valid iat should be at least this recent
+	private static final long MIN_REASONABLE_TIMESTAMP = 1704067200L;
+	private static final long SECONDS_PER_YEAR = 365L * 24 * 60 * 60;
+	private static final long CLOCK_SKEW_SECONDS = 5 * 60; // 5 minutes
+
+	/**
+	 * Validates an 'iat' (Issued At) claim value per RFC 7519.
+	 * Checks that the value is a number, not before 2024 (catches millisecond timestamps),
+	 * and not in the future (with 5 minutes clock skew tolerance).
+	 *
+	 * @param iat the raw claim value from the JWT payload (may be null)
+	 * @return the validated timestamp in seconds
+	 * @throws IllegalArgumentException if the value is missing, not a number, or out of range
+	 */
+	public static long validateIatClaim(Object iat) {
+		if (iat == null) {
+			throw new IllegalArgumentException("Missing 'iat' claim");
+		}
+		if (!(iat instanceof Number)) {
+			throw new IllegalArgumentException("'iat' claim is not a number");
+		}
+		long iatValue = ((Number) iat).longValue();
+		if (iatValue < MIN_REASONABLE_TIMESTAMP) {
+			throw new IllegalArgumentException("'iat' claim value " + iatValue
+				+ " is too far in the past (this may indicate the value is not a unix timestamp in seconds)");
+		}
+		long nowSeconds = System.currentTimeMillis() / 1000L;
+		if (iatValue > nowSeconds + CLOCK_SKEW_SECONDS) {
+			throw new IllegalArgumentException("'iat' claim value " + iatValue + " is in the future (now: " + nowSeconds + ")");
+		}
+		return iatValue;
+	}
+
+	/**
+	 * Validates an 'exp' (Expiration Time) claim value per RFC 7519.
+	 * Checks that the value is a number, not more than 50 years in the future (catches millisecond timestamps),
+	 * and not in the past (with 5 minutes clock skew tolerance).
+	 *
+	 * @param exp the raw claim value from the JWT payload (may be null)
+	 * @return the validated timestamp in seconds, or -1 if exp is null (not present)
+	 * @throws IllegalArgumentException if the value is not a number, out of range, or expired
+	 */
+	public static long validateExpClaim(Object exp) {
+		if (exp == null) {
+			return -1;
+		}
+		if (!(exp instanceof Number)) {
+			throw new IllegalArgumentException("'exp' claim is not a number");
+		}
+		long expValue = ((Number) exp).longValue();
+		long nowSeconds = System.currentTimeMillis() / 1000L;
+		long maxTimestamp = nowSeconds + 50 * SECONDS_PER_YEAR;
+		if (expValue > maxTimestamp) {
+			throw new IllegalArgumentException("'exp' claim value " + expValue
+				+ " is too far in the future (this may indicate the value is not a unix timestamp in seconds)");
+		}
+		if (expValue < nowSeconds - CLOCK_SKEW_SECONDS) {
+			throw new IllegalArgumentException("'exp' claim value " + expValue + " indicates the JWT has expired (now: " + nowSeconds + ")");
+		}
+		return expValue;
+	}
+
 	/**
 	 * wrapper for Nimbus JWTParser
 	 * just in case we want to override something one day
