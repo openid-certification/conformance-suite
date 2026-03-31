@@ -1,9 +1,7 @@
 package net.openid.conformance.testmodule;
 
 import com.google.common.base.Splitter;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -14,9 +12,9 @@ import com.google.gson.reflect.TypeToken;
 
 import java.lang.reflect.Type;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.NoSuchElementException;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -61,10 +59,10 @@ public class Environment {
 
 	// key for storing native values directly
 	private static final String NATIVE_VALUES = "_NATIVE_VALUES";
-	private Map<String, JsonObject> store = Maps.newHashMap(
-		ImmutableMap.of(NATIVE_VALUES, new JsonObject())); // make sure we start with a place to putObject the string values
+	private Map<String, JsonObject> store = new ConcurrentHashMap<>(
+		Map.of(NATIVE_VALUES, new JsonObject())); // make sure we start with a place to putObject the string values
 
-	private Map<String, String> keyMap = new HashMap<>();
+	private Map<String, String> keyMap = new ConcurrentHashMap<>();
 
 
 	/**
@@ -123,7 +121,13 @@ public class Environment {
 	 * @return the stored object
 	 */
 	public JsonObject putObject(String key, JsonObject value) {
-		return store.put(getEffectiveKey(key), value);
+		String effectiveKey = getEffectiveKey(key);
+		if (value == null) {
+			// ConcurrentHashMap does not allow null values; treat null as removal
+			// for consistency with the previous HashMap behavior.
+			return store.remove(effectiveKey);
+		}
+		return store.put(effectiveKey, value);
 	}
 
 	private void putElement(String key, String path, JsonElement value) {
@@ -411,11 +415,7 @@ public class Environment {
 	 * @return
 	 */
 	public String getEffectiveKey(String key) {
-		if (keyMap.containsKey(key)) {
-			return keyMap.get(key);
-		} else {
-			return key;
-		}
+		return keyMap.getOrDefault(key, key);
 	}
 
 	/**
