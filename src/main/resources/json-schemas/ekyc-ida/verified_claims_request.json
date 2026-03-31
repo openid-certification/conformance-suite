@@ -6,6 +6,7 @@
             "type": "array",
             "items": {
                 "type": "object",
+                "additionalProperties": false,
                 "properties": {
                     "check_id": {
                         "$ref": "#/$defs/constrainable_element"
@@ -96,6 +97,7 @@
         },
         "document_details": {
             "type": "object",
+            "additionalProperties": false,
             "properties": {
                 "type": {
                     "$ref": "#/$defs/constrainable_element"
@@ -111,6 +113,7 @@
                 },
                 "issuer": {
                     "type": "object",
+                    "additionalProperties": false,
                     "properties": {
                         "country": {
                             "$ref": "#/$defs/simple_element"
@@ -249,6 +252,7 @@
                             },
                             "record": {
                                 "type": "object",
+                                "additionalProperties": false,
                                 "properties": {
                                     "type": {
                                         "$ref": "#/$defs/constrainable_element"
@@ -264,6 +268,7 @@
                                     },
                                     "source": {
                                         "type": "object",
+                                        "additionalProperties": false,
                                         "properties": {
                                             "country": {
                                                 "$ref": "#/$defs/simple_element"
@@ -318,6 +323,7 @@
                         "properties": {
                             "attestation": {
                                 "type": "object",
+                                "additionalProperties": false,
                                 "properties": {
                                     "type": {
                                         "$ref": "#/$defs/constrainable_element"
@@ -336,6 +342,7 @@
                                     },
                                     "voucher": {
                                         "type": "object",
+                                        "additionalProperties": false,
                                         "properties": {
                                             "birthdate": {
                                                 "$ref": "#/$defs/datetime_element"
@@ -438,11 +445,13 @@
                         },
                         "assurance_process": {
                             "type": "object",
+                            "additionalProperties": false,
                             "properties": {
                                 "assurance_details": {
                                     "type": "array",
                                     "items": {
                                         "type": "object",
+                                        "additionalProperties": false,
                                         "properties": {
                                             "assurance_classification": {
                                                 "$ref": "#/$defs/constrainable_element"
@@ -454,12 +463,14 @@
                                                 "type": "array",
                                                 "items": {
                                                     "type": "object",
+                                                    "additionalProperties": false,
                                                     "properties": {
                                                         "check_id" : {
                                                             "$ref": "#/$defs/constrainable_element"
                                                         },
                                                         "evidence_metadata": {
                                                             "type": "object",
+                                                            "additionalProperties": false,
                                                             "properties": {
                                                                 "evidence_classification": {
                                                                     "$ref": "#/$defs/constrainable_element"
@@ -486,11 +497,7 @@
                         "evidence": {
                             "type": "array",
                             "items": {
-                                "oneOf": [
-                                    {
-                                        "$ref": "#/$defs/evidence"
-                                    }
-                                ]
+                                "$ref": "#/$defs/evidence"
                             },
                             "minItems": 1
                         },
