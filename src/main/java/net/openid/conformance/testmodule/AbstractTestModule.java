@@ -11,8 +11,6 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.ConditionError;
-import net.openid.conformance.condition.client.SleepUntilAuthReqExpires;
-import net.openid.conformance.condition.client.WaitFor5Seconds;
 import net.openid.conformance.frontchannel.BrowserControl;
 import net.openid.conformance.info.ImageService;
 import net.openid.conformance.info.TestInfoService;
@@ -73,6 +71,7 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 
 	protected TestInfoService testInfo;
 	protected ImageService imageService;
+	private TestLockManager testLockManager;
 
 	private Supplier<String> testNameSupplier = Suppliers.memoize(() -> getClass().getDeclaredAnnotation(PublishTestModule.class).testName());
 
@@ -102,6 +101,29 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 
 		this.created = Instant.now();
 		this.statusUpdated = created; // this will get changed in a moment but set it here for completeness
+
+		this.testLockManager = new TestLockManager() {
+			private volatile boolean enabled = true;
+
+			@Override
+			public void releaseLock() {
+				if (enabled) {
+					setStatusInternal(Status.WAITING);
+				}
+			}
+
+			@Override
+			public void reacquireLock() {
+				if (enabled) {
+					setStatusInternal(Status.RUNNING);
+				}
+			}
+
+			@Override
+			public void disable() {
+				enabled = false;
+			}
+		};
 
 		setStatusInternal(Status.CREATED);
 	}
@@ -289,33 +311,20 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 	 */
 	protected void call(ConditionCallBuilder builder) {
 
-		// We skip these checks for a condition that we deliberately call without the lock held so as not to block
-		// other threads; I suspect it means that this condition should have the ability to call setStatus or that
-		// their functionality should be in a method in AbstractTestModule instead
-		// Not all the 'WaitFor' functions are listed here; that means some of them we are calling with the lock held
-		// which may be problematic (e.g. it prevents any incoming connections being process and I suspect may prevent
-		// the test being aborted until the sleep expires). It would probably be preferable to always release the
-		// lock whilst sleeping (which is probably best achieve by one of the ways outlined in the previous paragraph.)
-		if (builder.getConditionClass() != SleepUntilAuthReqExpires.class &&
-			builder.getConditionClass() != WaitFor5Seconds.class) {
-			if (getStatus() != Status.CREATED) {
-				// We don't run this check for 'CREATED' as the lock is currently not held during 'configure'; see
-				// https://gitlab.com/openid/conformance-suite/issues/688
-				if (!env.getLock().isHeldByCurrentThread()) {
-					if (getStatus() != Status.RUNNING) {
-						// give a more helpful error message that tells the developer what they have most likely done
-						// wrong.
-						throw new TestFailureException(getId(), "Condition '" +
-							builder.getConditionClass().getSimpleName() + "' called when test status is '" +
-							getStatus() + "'. This is a bug in the test module and probably means that a call to " +
-							"setStatus(Status.RUNNING) is missing.");
-					}
-
-					// otherwise, it's still wrong to not have the lock held, we're just not able to tell the dev why
-					throw new TestFailureException(getId(), "Condition '" + builder.getConditionClass().getSimpleName()
-						+ "' called on a thread that does not hold lock (test status is '" + getStatus() + "'). This " +
-						"is a bug in the test module.");
+		if (getStatus() != Status.CREATED) {
+			// We don't run this check for 'CREATED' as the lock is currently not held during 'configure'; see
+			// https://gitlab.com/openid/conformance-suite/issues/688
+			if (!env.getLock().isHeldByCurrentThread()) {
+				if (getStatus() != Status.RUNNING) {
+					throw new TestFailureException(getId(), "Condition '" +
+						builder.getConditionClass().getSimpleName() + "' called when test status is '" +
+						getStatus() + "'. This is a bug in the test module and probably means that a call to " +
+						"setStatus(Status.RUNNING) is missing.");
 				}
+
+				throw new TestFailureException(getId(), "Condition '" + builder.getConditionClass().getSimpleName()
+					+ "' called on a thread that does not hold lock (test status is '" + getStatus() + "'). This " +
+					"is a bug in the test module.");
 			}
 		}
 
@@ -329,6 +338,7 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 					.newInstance();
 			}
 			condition.setProperties(id, eventLog, builder.getOnFail(), builder.getRequirements());
+			condition.setLockManager(testLockManager);
 
 			logger.info(getId() + ": " + (builder.isStopOnFailure() ? ">>" : "}}") + " Calling Condition " + builder.getConditionClass().getSimpleName());
 
@@ -858,6 +868,10 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 			}
 
 			if (Status.FINISHED.equals(newStatus) || Status.INTERRUPTED.equals(newStatus)) {
+				// Disable the lock manager before cleanup — cleanup runs inside setStatusInternal
+				// while the lock is held, so nested setStatusInternal calls from the interceptor
+				// would corrupt the status machine.
+				testLockManager.disable();
 				// make the cleanup steps complete before we move the test to 'FINISHED' or 'INTERRUPTED'
 				performFinalCleanup();
 			}
