@@ -843,8 +843,12 @@ elif [ "$SUITE_ARG" = "--panva-tests" ]; then
     TESTS="${TESTS} --show-untested-test-modules server-panva"
     TESTS="${TESTS} --export-dir ${SUITE_DIR}"
     TESTS="${TESTS} --no-parallel-for-no-alias" # the jobs without aliases aren't the slowest queue, so avoid overwhelming server early on
+elif [ "$SUITE_ARG" = "--security-tests" ]; then
+    echo "Run security tests"
+    python3 "${SUITE_DIR}/scripts/run-security-tests.py"
+    exit $?
 else
-    echo "Syntax: run-tests.sh [--client-tests|--oidcc-tests|--fapi-tests|--ciba-tests|--local-provider-tests|--panva-tests|--ekyc-tests|--authzen-tests|--federation-tests|--ssf-tests|--vc-tests] [--rerun N|N:M|N,M,...]"
+    echo "Syntax: run-tests.sh [--client-tests|--oidcc-tests|--fapi-tests|--ciba-tests|--local-provider-tests|--panva-tests|--ekyc-tests|--authzen-tests|--federation-tests|--ssf-tests|--vc-tests|--security-tests] [--rerun N|N:M|N,M,...]"
     exit 1
 fi
 
