@@ -36,11 +36,25 @@ set -euo pipefail
 
 SUITE_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 
+# For worktrees, devenv state lives in the main repo. Resolve it.
+MAIN_REPO="$(dirname "$(git -C "$SUITE_DIR" rev-parse --git-common-dir 2>/dev/null)" 2>/dev/null)"
+
+# Add devenv profile to PATH for tools like mongosh (added first so venv python takes priority)
+for candidate in "${SUITE_DIR}/.devenv/profile/bin" "${MAIN_REPO}/.devenv/profile/bin"; do
+    if [ -d "$candidate" ]; then
+        export PATH="${candidate}:$PATH"
+        break
+    fi
+done
+
 # Activate the devenv venv so python3 has all required dependencies (httpx, pyparsing, cryptography)
-VENV_DIR="${SUITE_DIR}/.devenv/state/venv"
-if [ -d "$VENV_DIR" ]; then
-    export PATH="${VENV_DIR}/bin:$PATH"
-fi
+# Added after profile so venv python (with httpx etc) takes priority over profile python
+for candidate in "${SUITE_DIR}/.devenv/state/venv" "${MAIN_REPO}/.devenv/state/venv"; do
+    if [ -d "$candidate" ]; then
+        export PATH="${candidate}/bin:$PATH"
+        break
+    fi
+done
 
 JAR="${SUITE_DIR}/target/fapi-test-suite.jar"
 SERVER_PORT=8080
@@ -105,10 +119,30 @@ fi
 
 # --- 4. Start server in background ---
 echo "==> Starting server (logging to ${SERVER_LOG})..."
-java -jar "$JAR" \
-  --spring.profiles.active=dev \
-  --server.port="$SERVER_PORT" \
-  > "$SERVER_LOG" 2>&1 &
+if [ "$TEST_SUITE" = "--security-tests" ]; then
+    # Security tests run in non-dev mode with API token auth
+    SECURITY_TOKEN=$(python3 -c "import secrets; print(secrets.token_urlsafe(48))")
+    mongosh mongodb://127.0.0.1:27017/test_suite --quiet --eval "
+      db.API_TOKEN.updateOne(
+        { _id: 'security_test_token' },
+        { \$set: { _id: 'security_test_token', owner: { sub: 'security-test', iss: 'https://localhost.emobix.co.uk:8443' }, info: {}, token: '${SECURITY_TOKEN}', expires: null } },
+        { upsert: true }
+      )" || die "Failed to insert API token into MongoDB"
+    export CONFORMANCE_TOKEN="$SECURITY_TOKEN"
+    echo "    API token inserted into MongoDB"
+    java -jar "$JAR" \
+      --fintechlabs.devmode=false \
+      --spring.data.mongodb.uri=mongodb://127.0.0.1:27017/test_suite \
+      --fintechlabs.base_url=https://localhost.emobix.co.uk:8443 \
+      --fintechlabs.base_mtls_url=https://localhost.emobix.co.uk:8444 \
+      --server.port="$SERVER_PORT" \
+      > "$SERVER_LOG" 2>&1 &
+else
+    java -jar "$JAR" \
+      --spring.profiles.active=dev \
+      --server.port="$SERVER_PORT" \
+      > "$SERVER_LOG" 2>&1 &
+fi
 SERVER_PID=$!
 echo "    Server PID: $SERVER_PID"
 
