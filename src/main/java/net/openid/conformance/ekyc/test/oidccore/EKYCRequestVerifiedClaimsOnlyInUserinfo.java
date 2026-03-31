@@ -23,11 +23,11 @@ public class EKYCRequestVerifiedClaimsOnlyInUserinfo extends AbstractEKYCTestWit
 
 	@Override
 	protected void addVerifiedClaimsToAuthorizationRequest() {
-		callAndContinueOnFailure(AddOneVerifiedClaimInUserinfoOnlyToAuthorizationEndpointRequest.class, Condition.ConditionResult.WARNING, "IA-6.1");
+		callAndContinueOnFailure(AddOneVerifiedClaimInUserinfoOnlyToAuthorizationEndpointRequest.class, Condition.ConditionResult.WARNING, "IA-5.3", "IA-7");
 	}
 
 	@Override
 	protected void processVerifiedClaimsInIdToken() {
-		callAndStopOnFailure(EnsureIdTokenDoesNotContainVerifiedClaims.class, "IA-6.1");
+		callAndStopOnFailure(EnsureIdTokenDoesNotContainVerifiedClaims.class, "IA-5.3", "IA-7");
 	}
 }

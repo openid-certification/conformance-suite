@@ -61,7 +61,7 @@ public class EKYCTestWithUserProvidedRequest extends AbstractEKYCTestWithOIDCCor
 
 	@Override
 	protected void addVerifiedClaimsToAuthorizationRequest() {
-		callAndContinueOnFailure(AddUserProvidedClaimsRequestToAuthorizationEndpointRequest.class, Condition.ConditionResult.WARNING, "IA-6");
+		callAndContinueOnFailure(AddUserProvidedClaimsRequestToAuthorizationEndpointRequest.class, Condition.ConditionResult.WARNING, "IA-5.3", "IA-7");
 	}
 
 	@Override

@@ -15,6 +15,6 @@ import net.openid.conformance.testmodule.PublishTestModule;
 public class EKYCHappyPathTestEssentialFalse extends AbstractEKYCTestWithOIDCCore {
 	@Override
 	protected void addVerifiedClaimsToAuthorizationRequest() {
-		callAndContinueOnFailure(AddVerifiedClaimsToAuthorizationEndpointRequestWithEssentialFalse.class, Condition.ConditionResult.WARNING, "IA-6");
+		callAndContinueOnFailure(AddVerifiedClaimsToAuthorizationEndpointRequestWithEssentialFalse.class, Condition.ConditionResult.WARNING, "IA-5.3", "IA-7");
 	}
 }
