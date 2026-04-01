@@ -30,7 +30,7 @@ import java.util.function.Supplier;
  * OpenBanking UK, Consumer Data Right AU, OpenBanking Brazil, ConnectID AU, and CBUAE.
  *
  * Action methods return ConditionSequence objects (or null for no-op).
- * The module calls these sequences via callProfileSequence() or call().
+ * The module calls these sequences via call().
  */
 public class FAPI2ProfileBehavior {
 
