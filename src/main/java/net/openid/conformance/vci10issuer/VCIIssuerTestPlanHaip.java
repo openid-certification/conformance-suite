@@ -42,6 +42,7 @@ import net.openid.conformance.variant.VariantSelection;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 @PublishTestPlan(
 	testPlanName = "oid4vci-1_0-issuer-haip-test-plan",
@@ -145,7 +146,9 @@ public class VCIIssuerTestPlanHaip implements TestPlan {
 					new Variant(AuthorizationRequestType.class, "simple"),
 					new Variant(VCIGrantType.class, "authorization_code"),
 					new Variant(VCICredentialEncryption.class, "plain")
-				)
+				),
+				// VCI variants are plan-level context — FAPI2SP modules don't declare them
+				Set.of(VCIGrantType.class, VCICredentialEncryption.class, VCI1FinalCredentialFormat.class)
 			)
 		);
 	}
