@@ -950,6 +950,7 @@ def parser_args_cli():
     parser.add_argument('--expected-failures-file', help='Json configuration file name which records a list of expected failures/warnings', default='')
     parser.add_argument('--expected-skips-file', help='Json configuration file name which records a list of expected skipped tests', default='')
     parser.add_argument('--rerun', help='Rerun specific test plans/modules by ID, e.g. 2 or 2:6 or 1,3 (requires same suite option)', default=None)
+    parser.add_argument('--list', help='Show numbered plan list without running tests', action='store_true')
     parser.add_argument('params', nargs='+', help='List parameters contains test-plan-name and configuration-file to run all test plan. Syntax: <test-plan-name> <configuration-file> ...')
 
     return parser.parse_args()
@@ -1106,6 +1107,21 @@ async def main():
     # Assign plan numbers
     for i, (plan_obj, config) in enumerate(to_run, 1):
         plan_obj["plan_number"] = i
+
+    # --list: print numbered plans and exit without connecting to the server
+    if args.list:
+        for plan_obj, config in to_run:
+            test = plan_obj["test"]
+            modules = test.get("modules", [])
+            module_str = ",".join(modules) if modules else test["test_name"]
+            op_test = plan_obj.get("op_test")
+            if op_test:
+                op_modules = op_test.get("modules", [])
+                op_str = ",".join(op_modules) if op_modules else op_test["test_name"]
+                print("{:3d}. {} {{{}}}".format(plan_obj["plan_number"], module_str, op_str))
+            else:
+                print("{:3d}. {}".format(plan_obj["plan_number"], module_str))
+        sys.exit(0)
 
     # Parse --rerun filter
     global rerun_module_filters

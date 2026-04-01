@@ -62,6 +62,9 @@ Available options (passed through to `.gitlab-ci/run-tests.sh`):
 `--client-tests`, `--oidcc-tests`, `--fapi-tests`, `--ciba-tests`, `--local-provider-tests`, `--panva-tests`, `--ekyc-tests`, `--authzen-tests`, `--federation-tests`, `--ssf-tests`, `--vc-tests`
 
 ```bash
+# List numbered plans to find the right --rerun number (no build/server needed)
+.gitlab-ci/run-tests.sh --vc-tests --list
+
 # Rerun a specific plan by its number from the last run
 ./scripts/run-integration-tests.sh --ekyc-tests --rerun 3
 
@@ -73,8 +76,9 @@ Available options (passed through to `.gitlab-ci/run-tests.sh`):
 ```
 
 The tests take a long time to run - always start by identifying a
-relevant happy flow test module and running it using the `--rerun`
-syntax. If that completes successfully then run a fuller set.
+relevant happy flow test module using `--list` to find the plan number,
+then run it using `--rerun`. If that completes successfully then run a
+fuller set.
 
 Items tagged as "expected" errors, warnings or skips are not a problem.
 
