@@ -10,7 +10,7 @@ public class CreateAuthzenApiEndpointRequestOptions extends CreateAuthzenApiEndp
 	public CreateAuthzenApiEndpointRequestOptions(JsonObject requestParameter) {
 		super("options", requestParameter);
 		this.requiredProperties = new String[]{};
-		this.optionalObjects = new String[] {};
+		this.optionalProperties = new String[] {};
 	}
 
 	@Override

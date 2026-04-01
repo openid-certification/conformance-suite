@@ -8,8 +8,8 @@ import net.openid.conformance.testmodule.Environment;
 public abstract class CreateAuthzenApiEndpointRequestParameter extends AbstractCondition {
 	protected String requestParameterName;
 	protected JsonElement requestParameter;
-	protected String[] requiredProperties; // assume to be string
-	protected String[] optionalObjects; // assume to be objects
+	protected String[] requiredProperties;
+	protected String[] optionalProperties;
 
 	public CreateAuthzenApiEndpointRequestParameter(String requestParameterName, JsonElement requestParameter) {
 		this.requestParameterName = requestParameterName;
@@ -29,10 +29,10 @@ public abstract class CreateAuthzenApiEndpointRequestParameter extends AbstractC
 					}
 				}
 			}
-			if (optionalObjects != null) {
-				for (String optionalObject : optionalObjects) {
-					if (requestObject.has(optionalObject)) {
-						authzenApiEndpointRequestParameter.add(optionalObject, requestObject.get(optionalObject));
+			if (optionalProperties != null) {
+				for (String optionProperty : optionalProperties) {
+					if (requestObject.has(optionProperty)) {
+						authzenApiEndpointRequestParameter.add(optionProperty, requestObject.get(optionProperty));
 					}
 				}
 			}

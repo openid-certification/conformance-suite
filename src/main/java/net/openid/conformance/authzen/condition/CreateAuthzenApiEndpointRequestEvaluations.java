@@ -11,7 +11,7 @@ public class CreateAuthzenApiEndpointRequestEvaluations extends CreateAuthzenApi
 	public CreateAuthzenApiEndpointRequestEvaluations(JsonArray requestParameter) {
 		super("evaluations", requestParameter);
 		this.requiredProperties = new String[]{};
-		this.optionalObjects = new String[] {};
+		this.optionalProperties = new String[] {};
 	}
 
 	@Override
