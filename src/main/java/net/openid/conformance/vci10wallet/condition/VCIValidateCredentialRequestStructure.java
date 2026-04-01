@@ -2,11 +2,11 @@ package net.openid.conformance.vci10wallet.condition;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import net.openid.conformance.condition.AbstractJsonSchemaBasedValidation;
 import net.openid.conformance.testmodule.Environment;
-import net.openid.conformance.vci10issuer.condition.AbstractJsonSchemaBasedValidation;
 import net.openid.conformance.vci10issuer.condition.VciErrorCode;
-import net.openid.conformance.vci10issuer.util.JsonSchemaValidationInput;
-import net.openid.conformance.vci10issuer.util.JsonSchemaValidationResult;
+import net.openid.conformance.util.validation.JsonSchemaValidationInput;
+import net.openid.conformance.util.validation.JsonSchemaValidationResult;
 import net.openid.conformance.vci10issuer.util.VCICredentialErrorResponseUtil;
 
 /**

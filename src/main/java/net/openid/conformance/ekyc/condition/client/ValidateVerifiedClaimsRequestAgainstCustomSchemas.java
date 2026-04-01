@@ -12,7 +12,7 @@ import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
-import net.openid.conformance.vci10issuer.util.JsonSchemaValidationResult;
+import net.openid.conformance.util.validation.JsonSchemaValidationResult;
 
 import java.io.IOException;
 import java.util.Set;

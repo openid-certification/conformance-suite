@@ -4,9 +4,9 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.networknt.schema.JsonSchemaFactory;
 import net.openid.conformance.testmodule.Environment;
-import net.openid.conformance.vci10issuer.condition.AbstractJsonSchemaBasedValidation;
-import net.openid.conformance.vci10issuer.util.JsonSchemaValidation;
-import net.openid.conformance.vci10issuer.util.JsonSchemaValidationInput;
+import net.openid.conformance.condition.AbstractJsonSchemaBasedValidation;
+import net.openid.conformance.util.validation.JsonSchemaValidation;
+import net.openid.conformance.util.validation.JsonSchemaValidationInput;
 
 import java.util.function.Consumer;
 
