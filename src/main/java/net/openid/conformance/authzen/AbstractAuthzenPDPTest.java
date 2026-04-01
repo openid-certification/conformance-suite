@@ -1,6 +1,7 @@
 package net.openid.conformance.authzen;
 
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import net.openid.conformance.authzen.condition.AddApiKeyAuthenticationParametersToAuthzenApiRequest;
 import net.openid.conformance.authzen.condition.AddBasicAuthClientSecretAuthenticationParametersToAuthzenApiRequest;
 import net.openid.conformance.authzen.condition.CallAuthzenApiEndpointAndVerifySuccessfulResponse;
@@ -210,7 +211,11 @@ public abstract class AbstractAuthzenPDPTest extends AbstractRedirectServerTestM
 
 	protected abstract void setAuthzenApiEndpoint();
 
-	protected abstract JsonObject parseRequest();
+	protected JsonObject parseRequest() {
+		return JsonParser.parseString(getPayload()).getAsJsonObject();
+	}
+
+	protected abstract String getPayload();
 	protected abstract ConditionSequence createAuthzenApiRequestSequence();
 
 	@Override
