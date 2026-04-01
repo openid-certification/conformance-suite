@@ -210,7 +210,13 @@ var FAPI_UI = {
 					FAPI_UI.logTemplates.FAILURE_SUMMARY = _.template(data);
 				});
 
-			const promises = [p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15, p16, p17, p18, p19, p20];
+			const p21 = fetch('templates/privateLinkModals.html')
+				.then((response) => response.text())
+				.then((data) => {
+					FAPI_UI.logTemplates.PRIVATE_LINK_MODALS = data;
+				});
+
+			const promises = [p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15, p16, p17, p18, p19, p20, p21];
 
 			return Promise.allSettled(promises);
 		},
@@ -288,7 +294,13 @@ var FAPI_UI = {
 					FAPI_UI.logTemplates.TEST_VERSION = _.template(data);
 				});
 
-			const promises = [p1, p2, p3, p4, p5];
+			const p6 = fetch('templates/privateLinkModals.html')
+				.then((response) => response.text())
+				.then((data) => {
+					FAPI_UI.logTemplates.PRIVATE_LINK_MODALS = data;
+				});
+
+			const promises = [p1, p2, p3, p4, p5, p6];
 
 			return Promise.allSettled(promises);
 		},
@@ -606,6 +618,108 @@ var FAPI_UI = {
 		},
 
 		testJSON : {},
+
+		setupPrivateLinkSharing: function(shareUri) {
+			if (document.getElementById('btnShareLink') === null) {
+				return;
+			}
+
+			// Inject modal HTML from template (once)
+			if (!document.getElementById('privateLinkExpirationModal')) {
+				document.body.insertAdjacentHTML('beforeend', FAPI_UI.logTemplates.PRIVATE_LINK_MODALS);
+			}
+
+			document.getElementById('btnShareLink').onclick = function(evt) {
+				evt.preventDefault();
+
+				var myModalEl = document.getElementById('privateLinkExpirationModal');
+				var modal     = bootstrap.Modal.getOrCreateInstance(myModalEl);
+
+				if (document.getElementById('privateLinkExpirationModalBtn') !== null) {
+					// Restrict the input to digits and navigation/deletion keys only.
+					document.getElementById('privateLinkExpirationDays').onkeydown = function(evt) {
+						if (/^\d+$/.test(evt.key) || (evt.key === "Backspace" || evt.key === "Delete" || evt.key.startsWith("Arrow"))) {
+							return true;
+						}
+						return false;
+					};
+
+					// On focus clear any previous invalid value highlighting.
+					document.getElementById('privateLinkExpirationDays').onfocus = function(evt) {
+						document.getElementById('privateLinkExpirationDays').classList.remove("bg-danger");
+					};
+
+					document.getElementById('privateLinkExpirationModalBtn').onclick = function(evt) {
+						evt.preventDefault();
+
+						var expiresInDays = document.getElementById('privateLinkExpirationDays').value;
+
+						let intVal = parseInt(expiresInDays);
+
+						if (isNaN(intVal) || intVal<1 || intVal>1000)
+						{
+							document.getElementById('privateLinkExpirationDays').classList.add("bg-danger");
+							return;
+						}
+
+						modal.toggle();
+
+						let uri = shareUri + '?exp=' + encodeURIComponent(expiresInDays);
+						fetch(uri, {
+							method: "POST",
+							headers: {
+								"Content-Type": "application/json",
+							}}).then((response) => {
+								if (!response.ok) {
+									return Promise.reject(response);
+								}
+
+								response.json().then(shareLink => {
+									navigator.clipboard.writeText(shareLink.link).then(
+										() => {
+											/* clipboard write succeeded */
+											var myModalEl = document.getElementById('privateLinkResultModal');
+											var modal     = bootstrap.Modal.getOrCreateInstance(myModalEl);
+
+											myModalEl.addEventListener('show.bs.modal', function (event) {
+												document.getElementById('privateLinkResultModalLabel').textContent = 'Private Link (Copied To Clipboard)';
+												document.getElementById('privateLinkResultModalBody').textContent = shareLink.link;
+												document.getElementById('privateLinkResultModalBodyMessage').textContent = shareLink.message;
+											}, { once: true })
+
+											modal.show();
+										},
+										() => {
+											/* clipboard write failed */
+											var myModalEl = document.getElementById('privateLinkResultModal');
+											var modal     = bootstrap.Modal.getOrCreateInstance(myModalEl);
+
+											myModalEl.addEventListener('show.bs.modal', function (event) {
+												document.getElementById('privateLinkResultModalLabel').textContent = 'Private Link';
+												document.getElementById('privateLinkResultModalBody').textContent = shareLink.link;
+												document.getElementById('privateLinkResultModalBodyMessage').textContent = shareLink.message;
+											}, { once: true })
+
+											modal.show();
+										},
+									);
+								})
+						});
+					};
+				}
+
+				// Initialise the expirations days input.
+				document.getElementById('privateLinkExpirationDays').value = 1;
+				document.getElementById('privateLinkExpirationDays').classList.remove("bg-danger");
+
+				modal.show();
+			};
+
+			// Hide this button for guests
+			if (FAPI_UI.currentUser.isGuest) {
+				document.getElementById('btnShareLink').style.display = 'none';
+			}
+		},
 
 		selectedVariant: undefined
 

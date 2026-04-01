@@ -67,8 +67,8 @@ public class ImageAPI {
 
 		ImmutableMap<String, String> testOwner = testInfoService.getTestOwner(testId);
 
-		if (authenticationFacade.isAdmin() ||
-			authenticationFacade.getPrincipal().equals(testOwner)) {
+		if ((authenticationFacade.isAdmin() || authenticationFacade.getPrincipal().equals(testOwner)) &&
+			!authenticationFacade.isPrivateLinkUser()) {
 
 			// Validate encoded image.
 			ResponseEntity<Object> response = validateEncodedImageFile(encoded, testId);
@@ -116,8 +116,8 @@ public class ImageAPI {
 
 		ImmutableMap<String, String> testOwner = testInfoService.getTestOwner(testId);
 
-		if (authenticationFacade.isAdmin() ||
-			authenticationFacade.getPrincipal().equals(testOwner)) {
+		if ((authenticationFacade.isAdmin() || authenticationFacade.getPrincipal().equals(testOwner)) &&
+			!authenticationFacade.isPrivateLinkUser()) {
 
 			// Validate encoded image.
 			ResponseEntity<Object> response = validateEncodedImageFile(encoded, testId);

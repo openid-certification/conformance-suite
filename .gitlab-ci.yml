@@ -585,6 +585,21 @@ local_test:
       --from-literal=clientid="$OIDC_GOOGLE_CLIENTID" \
       --from-literal=secret="$OIDC_GOOGLE_SECRET"
 
+    # Create jwk secrets
+    kubectl delete secret fintechlabs-signing-key \
+      --namespace="$KUBE_NAMESPACE" \
+      --ignore-not-found=true
+    kubectl delete secret fintechlabs-private-link-signing-key \
+      --namespace="$KUBE_NAMESPACE" \
+      --ignore-not-found=true
+
+    kubectl create secret generic fintechlabs-signing-key \
+      --namespace="$KUBE_NAMESPACE" \
+      --from-literal=jwk="$SIGNING_KEY"
+    kubectl create secret generic fintechlabs-private-link-signing-key \
+      --namespace="$KUBE_NAMESPACE" \
+      --from-literal=jwk="$PRIVATE_LINK_SIGNING_KEY"
+
     helm upgrade --install \
       --wait \
       --set application.env_slug="$CI_ENVIRONMENT_SLUG" \

@@ -38,6 +38,9 @@ public class WebSecurityResourceServerConfig {
 	private boolean devmode;
 
 	@Autowired
+	private AuthenticationFacade authenticationFacade;
+
+	@Autowired
 	private DummyUserFilter dummyUserFilter;
 
 	@Bean
@@ -58,6 +61,24 @@ public class WebSecurityResourceServerConfig {
 		http.sessionManagement(sessions -> sessions.sessionCreationPolicy(SessionCreationPolicy.NEVER));
 
 		http.authorizeHttpRequests(requests -> {
+			requests.requestMatchers(request -> {
+				if (!authenticationFacade.isPrivateLinkUser()) {
+					return false; // not a private link user, don't apply this rule
+				}
+
+				// Allow only the specific API endpoints needed for viewing shared results
+				String uri = request.getRequestURI();
+				String method = request.getMethod();
+				if ("GET".equals(method) && (
+					uri.matches("/api/plan/[A-Za-z0-9]+") ||
+					uri.matches("/api/info/[A-Za-z0-9]+") ||
+					uri.matches("/api/log/[A-Za-z0-9]+") ||
+					uri.equals("/api/currentuser"))) {
+					return false; // allow these
+				}
+				return true; // deny everything else
+			}).denyAll();
+
 			requests.requestMatchers(getPublicMatcher()).permitAll();
 			requests.requestMatchers(getApiMatcher()).authenticated();
 			// deny access for any unmatched API routes

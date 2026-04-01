@@ -1,0 +1,38 @@
+<!-- Private link expiration period entry -->
+<div class="modal" id="privateLinkExpirationModal" tabindex="-1" role="dialog" aria-labelledby="errorLabel">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">Generate Private Link</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <input type="number" id="privateLinkExpirationDays" name="privateLinkExpirationDays" value="1" min="1" max="1000">
+                <label for="privateLinkExpirationDays">Validity period (1-1000 days)</label><br>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-sm btn-danger bg-gradient border border-secondary" id="privateLinkExpirationModalBtn">Generate Link</button>
+                <button type="button" class="btn btn-sm btn-light bg-gradient border border-secondary" data-bs-dismiss="modal">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Private link generation result -->
+<div class="modal" id="privateLinkResultModal" tabindex="-1" role="dialog" aria-labelledby="errorLabel">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="privateLinkResultModalLabel"></h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <h6><b id="privateLinkResultModalBodyMessage"></b></h6>
+                <p id="privateLinkResultModalBody" class="text-break"></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-sm btn-light bg-gradient border border-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>

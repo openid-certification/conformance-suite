@@ -17,6 +17,13 @@ public interface TestPlanService {
 	void createTestPlan(String id, String planName, VariantSelection variant, JsonObject config, String description, List<String> certificationProfileName, List<Plan.Module> testModules, String summary, String publish);
 
 	/**
+	 * Returns the test ids associated with the plan id
+	 * @param id
+	 * @return
+	 */
+	List<String> getTestPlanTestIds(String id);
+
+	/**
 	 * @param id
 	 * @return
 	 */

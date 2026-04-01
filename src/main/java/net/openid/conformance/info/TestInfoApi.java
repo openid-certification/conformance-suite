@@ -9,6 +9,9 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.security.AuthenticationFacade;
+import net.openid.conformance.sharing.AssetSharing;
+import net.openid.conformance.sharing.SharedAsset;
+import net.openid.conformance.sharing.privatelink.PrivateLinkOneTimeToken;
 import net.openid.conformance.testmodule.OIDFJSON;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -38,6 +41,12 @@ public class TestInfoApi {
 
 	@Autowired
 	private TestInfoService testInfoService;
+
+	@Autowired
+	private AssetSharing assetSharing;
+
+ 	@Autowired
+	private TestPlanService planService;
 
 	@GetMapping(value = "/info", produces = MediaType.APPLICATION_JSON_VALUE)
 	@Operation(summary = "Get information of all test module instances", description = "Will return all run test modules if user is admin role, otherwise only the logged in user's tests will be returned. This API is currently disabled due to performance concerns. If you have a need for it, please email details of your use case to " + AbstractCondition.SUPPORT_EMAIL)
@@ -76,6 +85,17 @@ public class TestInfoApi {
 			testInfo = testInfos.findById(id);
 		} else {
 			ImmutableMap<String, String> owner = authenticationFacade.getPrincipal();
+
+			if (authenticationFacade.isPrivateLinkUser()) {
+				// ensure this test is part of the test plan accessible to the private link user.
+				PrivateLinkOneTimeToken privateToken = authenticationFacade.getPrivateOneTimeToken();
+				SharedAsset sharedAsset = privateToken.getSharedAsset();
+
+				if (sharedAsset != null && !planService.getTestPlanTestIds(sharedAsset.getPlanId()).contains(id)) {
+					owner = null;
+				}
+			}
+
 			if (owner != null) {
 				testInfo = testInfos.findByIdAndOwner(id, owner);
 			}
@@ -88,6 +108,38 @@ public class TestInfoApi {
 
 	}
 
+	@PostMapping("/info/{testId}/share")
+	@Operation(summary = "Get private link to share test information")
+	@ApiResponses(value = {
+		@ApiResponse(responseCode = "200", description = "Retrieved successfully"),
+		@ApiResponse(responseCode = "404", description = "Couldn't find test plan for provided plan Id")
+	})
+	public ResponseEntity<?> shareLink(
+		@Parameter(description = "Id of test that you want to publish") @PathVariable String testId,
+		@Parameter(description = "Link expiry days") @RequestParam(name = "exp", required = true) String exp
+
+	) {
+
+		if (authenticationFacade.isPrivateLinkUser()) {
+			return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+		}
+
+		Optional<TestInfo> maybeTestInfo;
+		if (authenticationFacade.isAdmin()) {
+			maybeTestInfo = testInfos.findById(testId);
+		} else {
+			ImmutableMap<String, String> owner = authenticationFacade.getPrincipal();
+			maybeTestInfo = testInfos.findByIdAndOwner(testId, owner);
+		}
+
+		if (maybeTestInfo.isEmpty()) {
+			return ResponseEntity.notFound().build();
+		}
+
+		TestInfo testInfo = maybeTestInfo.get();
+		return ResponseEntity.ok().body(assetSharing.generateShareLink(testInfo.getPlanId(), testId, testInfo.getOwner(), exp));
+	}
+
 	@PostMapping(value = "/info/{id}/publish", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 	@Operation(summary = "Publish a test information")
 	@ApiResponses(value = {
@@ -98,6 +150,10 @@ public class TestInfoApi {
 	public ResponseEntity<Object> publishTestInfo(
 			@Parameter(description = "Id of test that you want to publish") @PathVariable String id,
 			@Parameter(description = "Configuration Json") @RequestBody JsonObject config) {
+
+		if (authenticationFacade.isPrivateLinkUser()) {
+			return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+		}
 
 		String publish = null;
 		if (config.has("publish") && config.get("publish").isJsonPrimitive()) {

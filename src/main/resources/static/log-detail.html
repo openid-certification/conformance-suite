@@ -47,7 +47,7 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
     <div class="pageHeader container-fluid">
         <div class="row">
             <div class="col-md-7">
-                <a href="index.html"><img src="/images/openid.png"></a>
+                <a id="openIdImage" href="index.html"><img src="/images/openid.png"></a>
             </div>
             <div id="userInfoHolder" class="col-md-5"></div>
         </div>
@@ -400,7 +400,8 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
 
         function getHeader(testId, public) {
             // this is the page header, fill it in with log details
-            return fetch('/api/info/' + encodeURIComponent(testId) + (public ? '?public=true' : ''))
+            let infoUrl = '/api/info/' + encodeURIComponent(testId) + (public ? '?public=true' : '');
+            return fetch(infoUrl)
             .then((response) => {
                 if (!response.ok) {
                     return Promise.reject(response);
@@ -440,7 +441,14 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
                             evt.preventDefault();
                             window.open('/upload.html?log=' + encodeURIComponent(testId));
                         };
+
+                        // Hide this button for guests
+                        if (FAPI_UI.currentUser.isGuest) {
+                            document.getElementById('uploadBtn').style.display = 'none';
+                        }
                     }
+
+                    FAPI_UI.setupPrivateLinkSharing('/api/info/' + encodeURIComponent(testId) + '/share');
 
                     if (document.getElementById('reloadBtn') !== null) {
                         document.getElementById('reloadBtn').onclick = function(evt) {
@@ -453,6 +461,13 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
                                 runTest(data.testName, data.variant, data.planId, data.config, testId);
                             }
                         };
+
+                        // Hide this button for guests
+                        if (FAPI_UI.currentUser.isGuest) {
+                            document.getElementById('reloadBtn').style.display = 'none';
+                            // Disable to ensure keyboard shortcut has no effect.
+                            document.getElementById('reloadBtn').disabled  = true;
+                        }
                     }
 
                     // wire up configuration button
@@ -480,6 +495,11 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
                             };
                             document.getElementById('editConfigBtn').style.display = '';
                         }
+
+                        // Hide this button for guests
+                        if (FAPI_UI.currentUser.isGuest) {
+                            document.getElementById('editConfigBtn').style.display = 'none';
+                        }
                     }
 
                     // wire up publish button
@@ -491,6 +511,11 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
                             var modal     = bootstrap.Modal.getOrCreateInstance(myModalEl);
                             modal.show();
                         };
+
+                        // Hide this button for guests
+                        if (FAPI_UI.currentUser.isGuest) {
+                            document.getElementById('publishBtn').style.display = 'none';
+                        }
                     }
 
                     if (document.getElementById('stopBtn') !== null) {
@@ -559,6 +584,11 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
                                 FAPI_UI.hideBusy();
                             });
                         };
+
+                        // Hide this button for guests
+                        if (FAPI_UI.currentUser.isGuest) {
+                            document.getElementById('stopBtn').style.display = 'none';
+                        }
                     }
 
                     if (document.getElementById('startBtn') !== null) {
@@ -625,6 +655,11 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
                                 FAPI_UI.hideBusy();
                             });
                         };
+
+                        // Hide this button for guests
+                        if (FAPI_UI.currentUser.isGuest) {
+                            document.getElementById('startBtn').style.display = 'none';
+                        }
                     }
 
                     if (data.planId) {
@@ -745,7 +780,15 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
                                 }
 
                                 if (document.getElementById('nextPlanBtn') !== null) {
-                                    document.getElementById('nextPlanBtn').style.display = '';
+                                    // Hide this button for guests
+                                    if (FAPI_UI.currentUser.isGuest) {
+                                        document.getElementById('nextPlanBtn').style.display = 'none';
+                                        // Disable to ensure keyboard shortcut has no effect.
+                                        document.getElementById('nextPlanBtn').disabled  = true;
+                                    }
+                                    else {
+                                        document.getElementById('nextPlanBtn').style.display = '';
+                                    }
                                 }
                             }
 
@@ -870,6 +913,11 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
                             evt.preventDefault();
                             runTest(data.testName, data.variant, data.planId, data.config, testId);
                         };
+                    }
+
+                    // Prevent guests fom clicking on the openid icon as the destination is prohibited.
+                    if (FAPI_UI.currentUser.isGuest) {
+                            document.getElementById('openIdImage').href = "javascript:void(0)";
                     }
                 }
 
