@@ -9,7 +9,7 @@ public class CreateAuthzenApiEndpointRequestSubject extends CreateAuthzenApiEndp
 	public CreateAuthzenApiEndpointRequestSubject(JsonObject requestParameter) {
 		super("subject", requestParameter);
 		this.requiredProperties = new String[]{"type", "id"};
-		this.optionalObjects = new String[] {"properties"};
+		this.optionalProperties = new String[] {"properties"};
 	}
 
 	@Override
