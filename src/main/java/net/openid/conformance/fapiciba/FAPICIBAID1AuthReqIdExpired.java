@@ -34,14 +34,14 @@ public class FAPICIBAID1AuthReqIdExpired extends AbstractFAPICIBAID1 {
 	protected void waitForAuthenticationToComplete(long delaySeconds) {
 		callAndStopOnFailure(TellUserToIgnoreCIBAAuthentication.class);
 
-		setStatus(Status.WAITING);
+		// Sleep conditions release the lock during sleep, allowing incoming
+		// ping notifications to be processed.
 		callAndStopOnFailure(SleepUntilAuthReqExpires.class);
 		if (testType == CIBAMode.PING) {
 			// a ping notification may or may not be issued; allow an extra 5 seconds to make sure any ping arrives
 			// before we continue
 			callAndStopOnFailure(WaitFor5Seconds.class);
 		}
-		setStatus(Status.RUNNING);
 
 		callTokenEndpointAndFinishTest();
 	}

@@ -13,6 +13,7 @@ import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.DataUtils;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
+import net.openid.conformance.testmodule.TestLockManager;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.hc.client5.http.classic.HttpClient;
 import org.apache.hc.client5.http.config.ConnectionConfig;
@@ -71,6 +72,7 @@ public abstract class AbstractCondition implements Condition, DataUtils {
 	private TestInstanceEventLog log;
 	private Set<String> requirements;
 	private ConditionResult conditionResultOnFailure;
+	private TestLockManager lockManager;
 	private int logged = 0;
 	private int errorsLogged = 0;
 	private boolean loggedSoftLimitMsg = false;
@@ -81,6 +83,15 @@ public abstract class AbstractCondition implements Condition, DataUtils {
 		this.log = log;
 		this.conditionResultOnFailure = conditionResultOnFailure;
 		this.requirements = Sets.newHashSet(requirements);
+	}
+
+	@Override
+	public void setLockManager(TestLockManager lockManager) {
+		this.lockManager = lockManager;
+	}
+
+	protected TestLockManager getLockManager() {
+		return lockManager;
 	}
 
 	@Override
@@ -692,6 +703,12 @@ public abstract class AbstractCondition implements Condition, DataUtils {
 		HttpClient httpClient = createHttpClient(env, restrictAllowedTLSVersions);
 
 		RestTemplate restTemplate = new RestTemplate(new HttpComponentsClientHttpRequestFactory(httpClient));
+
+		// Add lock-releasing interceptor first (outermost) so that the lock is released during
+		// HTTP I/O, allowing incoming requests to be processed and preventing deadlocks.
+		if (this.lockManager != null) {
+			restTemplate.getInterceptors().add(new LockReleasingRequestInterceptor(this.lockManager, env.getLock()));
+		}
 
 		restTemplate.getInterceptors().add(new LoggingRequestInterceptor(getMessage(), log, env.getObject("mutual_tls_authentication")));
 
