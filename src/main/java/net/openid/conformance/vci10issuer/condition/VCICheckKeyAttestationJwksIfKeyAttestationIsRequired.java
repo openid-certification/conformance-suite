@@ -11,6 +11,12 @@ public class VCICheckKeyAttestationJwksIfKeyAttestationIsRequired extends Abstra
 	@PreEnvironment(required = {"config", "vci_proof_type"}, strings = "vci_proof_type_key")
 	public Environment evaluate(Environment env) {
 
+		Boolean requiresCryptographicBinding = env.getBoolean("vci_requires_cryptographic_binding");
+		if (requiresCryptographicBinding == null || !requiresCryptographicBinding) {
+			log("Skip checking Key Attestation JWKS: Cryptographic binding not required");
+			return env;
+		}
+
 		String proofTypeKey = env.getString("vci_proof_type_key");
 		JsonObject proofType = env.getObject("vci_proof_type");
 		if (!(proofType.has("key_attestations_required") || "attestation".equals(proofTypeKey))) {
