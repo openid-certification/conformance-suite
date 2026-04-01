@@ -270,7 +270,8 @@ public class VariantService {
 
 		TestPlanModuleWithVariant(Class<? extends TestPlan> planClass, TestModuleHolder module,
 								 Map<Class<? extends Enum<?>>, ? extends Enum<?>> variant,
-								 List<TestPlan.VariantCondition> applicableWhen) {
+								 List<TestPlan.VariantCondition> applicableWhen,
+								 Set<Class<? extends Enum<?>>> optionalVariants) {
 			this.planClass = planClass;
 			this.module = module;
 			this.applicableWhen = applicableWhen;
@@ -281,8 +282,9 @@ public class VariantService {
 			// check the test module supports all the variants specified for it in the test plan
 			if (variant != null) {
 				this.variant.forEach((variantName, variantValue) -> {
-					if (!this.module.declaredParametersByClass.containsKey(variantName)) {
-						throw new RuntimeException("Test plan '" + this.planClass.getSimpleName() + "' module '" + this.module.moduleClass.getSimpleName() + "' does not have the variant '" + variantName.getSimpleName() + "' but the test plan set a value for this variant");
+					if (!this.module.declaredParametersByClass.containsKey(variantName)
+						&& !optionalVariants.contains(variantName)) {
+						throw new RuntimeException("Test plan '" + this.planClass.getSimpleName() + "' module '" + this.module.moduleClass.getSimpleName() + "' does not have the variant '" + variantName.getSimpleName() + "' but the test plan set a value for this variant (mark the variant as optional in the ModuleListEntry if this is intentional)");
 					}
 				});
 
@@ -354,6 +356,13 @@ public class VariantService {
 		}
 
 		/**
+		 * @return the combined variant parameters from all modules in this plan, keyed by parameter name
+		 */
+		public Map<String, ParameterHolder<? extends Enum<?>>> getParametersByName() {
+			return Collections.unmodifiableMap(parametersByName);
+		}
+
+		/**
 		 * @return default values for variant parameters that at least one module
 		 *         requires but that are not provided by the user or pinned by the plan
 		 */
@@ -396,7 +405,7 @@ public class VariantService {
 							testModuleClass.getName()));
 					}
 
-					return new TestPlanModuleWithVariant(planClass, testModuleHolder, variants, moduleListEntry.applicableWhen);
+					return new TestPlanModuleWithVariant(planClass, testModuleHolder, variants, moduleListEntry.applicableWhen, moduleListEntry.optionalVariants);
 				});
 
 			}).collect(toList());
@@ -428,7 +437,7 @@ public class VariantService {
 								planClass.getSimpleName(),
 								c.getName()));
 						}
-						return new TestPlanModuleWithVariant(planClass, m, null, List.of());
+						return new TestPlanModuleWithVariant(planClass, m, null, List.of(), Set.of());
 					})
 					.collect(toList());
 			}
@@ -906,6 +915,17 @@ public class VariantService {
 		}
 
 		public TestModule newInstance(VariantSelection variant) {
+			return newInstance(variant, null);
+		}
+
+		/**
+		 * @param variant the variant selection for this module
+		 * @param planParametersByName if non-null, extra variant values from the selection that this
+		 *        module doesn't declare will be resolved against this map (the plan's combined parameters)
+		 *        and included in the module's variant map. This allows profile behaviors to access
+		 *        plan-level variant context.
+		 */
+		public TestModule newInstance(VariantSelection variant, Map<String, ParameterHolder<? extends Enum<?>>> planParametersByName) {
 			Map<ParameterHolder<? extends Enum<?>>, Enum<?>> typedVariant = typedVariant(variant, parametersByName);
 
 			// Validate the supplied parameters
@@ -967,8 +987,20 @@ public class VariantService {
 				throw new RuntimeException("Couldn't create test module", e);
 			}
 
-			module.setVariant(typedVariant.entrySet().stream()
-					.collect(toMap(e -> e.getKey().parameterClass, e -> e.getValue())));
+			// Build the variant map from declared parameters
+			Map<Class<? extends Enum<?>>, Enum<?>> variantMap = typedVariant.entrySet().stream()
+					.collect(toMap(e -> e.getKey().parameterClass, e -> e.getValue()));
+
+			// Also include variant values from the selection that this module doesn't declare.
+			// This allows profile behaviors (e.g. VCIProfileBehavior) to access plan-level
+			// variant context (e.g. VCI1FinalCredentialFormat) when running modules that don't
+			// directly declare those parameters. Resolution uses the plan's combined parameter
+			// map to avoid ambiguity when multiple parameter classes share the same name.
+			if (planParametersByName != null) {
+				Map<ParameterHolder<? extends Enum<?>>, Enum<?>> planVariants = typedVariant(variant, planParametersByName);
+				planVariants.forEach((holder, value) -> variantMap.putIfAbsent(holder.parameterClass, value));
+			}
+			module.setVariant(variantMap);
 
 			// Invoke any setup methods for the configured variant
 			try {
