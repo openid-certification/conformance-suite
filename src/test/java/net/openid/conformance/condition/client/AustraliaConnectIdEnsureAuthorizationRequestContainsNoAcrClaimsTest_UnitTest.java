@@ -72,8 +72,8 @@ public class AustraliaConnectIdEnsureAuthorizationRequestContainsNoAcrClaimsTest
 						    }\
 						""";
 
-		JsonObject requestObj = (JsonObject) JsonParser.parseString(requestStr);
-		addRequestClaims(env, requestObj);
+		request = (JsonObject) JsonParser.parseString(requestStr);
+		addRequestClaims(env, request);
 	}
 
 
