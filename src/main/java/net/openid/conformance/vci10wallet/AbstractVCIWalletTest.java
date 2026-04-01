@@ -6,6 +6,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.nimbusds.jose.jwk.JWK;
+import com.nimbusds.jwt.SignedJWT;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
@@ -251,6 +252,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.servlet.view.RedirectView;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import java.net.URI;
 import java.text.ParseException;
@@ -345,6 +347,9 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 	public static final String DEFERRED_CREDENTIAL_PATH = "deferred_credential";
 
 	public static final String NOTIFICATION_PATH = "notification";
+
+	// 60 second lifetime per FAPI2-SP-FINAL-5.3.2.1-11 https://openid.net/specs/fapi-security-profile-2_0-final.html#section-5.3.2.1-2.11
+	public static final long AUTHORIZATION_CODE_LIFETIME_SECONDS = 60;
 
 	private Class<? extends Condition> addTokenEndpointAuthMethodSupported;
 	private Class<? extends ConditionSequence> validateClientAuthenticationSteps;
@@ -779,6 +784,12 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 		validateClientConfiguration();
 
 		eventLog.endBlock();
+
+		// Also load client2 config if present, for tests that use a second client
+		// (e.g. fapi2-security-profile-final-ensure-authorization-code-is-bound-to-client)
+		if (env.getElementFromObject("config", "client2.client_id") != null) {
+			configureSecondClient();
+		}
 	}
 
 	// This is currently unused as FAPI2 doesn't have the encrypted id token tests that
@@ -803,6 +814,42 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 	protected void validateClientConfiguration() {
 	}
 
+
+	/**
+	 * If client2 is configured, check the client_id on the token request and switch
+	 * to the matching client config. Always resets to client1 first to handle repeated calls.
+	 */
+	protected void switchToMatchingClientForTokenEndpoint() {
+		unmapClient();
+
+		JsonObject client2 = env.getObject("client2");
+		if (client2 == null) {
+			return;
+		}
+
+		String requestClientId = env.getString("token_endpoint_request", "body_form_params.client_id");
+
+		// For client_attestation, client_id is in the attestation PoP JWT's "iss" claim
+		if (requestClientId == null && clientAuthType == ClientAuthType.CLIENT_ATTESTATION) {
+			String popHeader = env.getString("token_endpoint_request", "headers.oauth-client-attestation-pop");
+			if (popHeader != null) {
+				try {
+					SignedJWT popJwt = SignedJWT.parse(popHeader);
+					requestClientId = popJwt.getJWTClaimsSet().getIssuer();
+				} catch (ParseException e) {
+					// Can't parse — leave as null, client auth will fail later
+				}
+			}
+		}
+
+		if (requestClientId == null) {
+			return;
+		}
+		String client2Id = OIDFJSON.getString(client2.get("client_id"));
+		if (requestClientId.equals(client2Id)) {
+			switchToSecondClient();
+		}
+	}
 
 	protected void switchToSecondClient() {
 		env.mapKey("client", "client2");
@@ -1920,12 +1967,28 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 		}
 
 		setParAuthorizationEndpointRequestParamsForHttpMethod();
-		extractParEndpointRequest();
 
-		if (env.containsObject("authorization_request_object")) {
-			validateRequestObjectForPAREndpointRequest();
+		try {
+			extractParEndpointRequest();
+
+			if (env.containsObject("authorization_request_object")) {
+				validateRequestObjectForPAREndpointRequest();
+			} else {
+				// Unsigned PAR request — validate PKCE and redirect_uri from form parameters
+				validateUnsignedPAREndpointRequest();
+			}
+			// Validate redirect_uri is present
+			validateParRedirectUri();
+			senderConstrainTokenRequestHelper.checkParRequest();
+		} catch (ConditionError | TestFailureException e) {
+			// Request validation failed (e.g. invalid request_uri, invalid PKCE) — return invalid_request error
+			JsonObject errorResponse = new JsonObject();
+			errorResponse.addProperty("error", "invalid_request");
+			errorResponse.addProperty("error_description", e.getMessage());
+			setStatus(Status.WAITING);
+			call(exec().unmapKey("incoming_request").unmapKey("par_endpoint_http_request"));
+			return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
 		}
-		senderConstrainTokenRequestHelper.checkParRequest();
 		if (isDpopConstrain()) {
 			callAndContinueOnFailure(ExtractParAuthorizationCodeDpopBindingKey.class, ConditionResult.FAILURE, "DPOP-10");
 		}
@@ -1951,6 +2014,9 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 	protected JsonObject createPAREndpointResponse() {
 		callAndStopOnFailure(CreatePAREndpointResponse.class, "PAR-2.2");
 		addCustomValuesToParResponse();
+		// Store the creation time so we can check expiry at the authorization endpoint
+		env.putLong("par_request_uri_created_at", System.currentTimeMillis() / 1000L);
+		env.putBoolean("par_request_uri_used", false);
 		JsonObject parResponse = env.getObject("par_endpoint_response");
 		return parResponse;
 	}
@@ -2019,6 +2085,9 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 		if (isDpopConstrain()) {
 			call(exec().mapKey("incoming_request", requestId));
 		}
+
+		// If client2 is configured, check if the incoming request is from client2 and switch
+		switchToMatchingClientForTokenEndpoint();
 
 		callAndStopOnFailure(CheckClientIdMatchesOnTokenRequestIfPresent.class, ConditionResult.FAILURE, "RFC6749-3.2.1");
 
@@ -2206,11 +2275,48 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 			callAndContinueOnFailure(CreateTokenEndpointDpopErrorResponse.class, ConditionResult.FAILURE);
 			responseObject = new ResponseEntity<>(env.getObject("token_endpoint_response"), headersFromJson(env.getObject("token_endpoint_response_headers")), HttpStatus.valueOf(env.getInteger("token_endpoint_response_http_status").intValue()));
 		} else {
-			callAndStopOnFailure(ValidateAuthorizationCode.class);
+			try {
+				callAndStopOnFailure(ValidateAuthorizationCode.class);
 
-			validateRedirectUriForAuthorizationCodeGrantType();
+				// Check authorization code reuse (RFC6749-4.1.2)
+				if (Boolean.TRUE.equals(env.getBoolean("authorization_code_used"))) {
+					throw new TestFailureException(getId(), "Authorization code has already been used");
+				}
 
-			call(sequence(CheckPkceCodeVerifier.class));
+				// Check authorization code is bound to the requesting client (RFC6749-4.1.3)
+				String codeClientId = env.getString("authorization_code_client_id");
+				String requestingClientId = env.getString("token_endpoint_request", "body_form_params.client_id");
+				if (requestingClientId == null) {
+					// client_id may come from client authentication instead of form params
+					requestingClientId = env.getString("client", "client_id");
+				}
+				if (codeClientId != null && requestingClientId != null && !codeClientId.equals(requestingClientId)) {
+					throw new TestFailureException(getId(), "Authorization code was issued to a different client");
+				}
+
+				// Check authorization code expiry
+				Long codeCreatedAt = env.getLong("authorization_code_created_at");
+				if (codeCreatedAt != null) {
+					long now = System.currentTimeMillis() / 1000L;
+					if (now >= codeCreatedAt + AUTHORIZATION_CODE_LIFETIME_SECONDS) {
+						throw new TestFailureException(getId(), "Authorization code has expired");
+					}
+				}
+
+				validateRedirectUriForAuthorizationCodeGrantType();
+
+				call(sequence(CheckPkceCodeVerifier.class));
+			} catch (ConditionError | TestFailureException e) {
+				// Validation failed (e.g. invalid code_verifier, invalid authorization code)
+				JsonObject errorResponse = new JsonObject();
+				errorResponse.addProperty("error", "invalid_grant");
+				errorResponse.addProperty("error_description", e.getMessage());
+				call(exec().unmapKey("token_endpoint_request").endBlock());
+				setStatus(Status.WAITING);
+				return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+			}
+
+			env.putBoolean("authorization_code_used", true);
 
 			issueAccessToken();
 
@@ -2283,7 +2389,15 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 		call(exec().startBlock("Authorization endpoint").mapKey("authorization_endpoint_http_request", requestId));
 		setAuthorizationEndpointRequestParamsForHttpMethod();
 		callAndStopOnFailure(EnsureAuthorizationRequestDoesNotContainRequestWhenUsingPAR.class);
-		callAndStopOnFailure(EnsureAuthorizationRequestContainsOnlyExpectedParamsWhenUsingPAR.class);
+		callAndContinueOnFailure(EnsureAuthorizationRequestContainsOnlyExpectedParamsWhenUsingPAR.class, ConditionResult.WARNING, "PAR-4");
+
+		// Validate request_uri matches what was issued and hasn't expired
+		RedirectView parError = validateParRequestUri();
+		if (parError != null) {
+			call(exec().unmapKey("authorization_endpoint_http_request").endBlock());
+			setStatus(Status.WAITING);
+			return parError;
+		}
 
 		if (vciGrantType == VCIGrantType.AUTHORIZATION_CODE) {
 			if (vciAuthorizationCodeFlowVariant == VCIWalletAuthorizationCodeFlowVariant.ISSUER_INITIATED ||
@@ -2301,15 +2415,42 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 		}
 
 		endTestIfRequiredParametersAreMissing();
-		callAndStopOnFailure(EnsureResponseTypeIsCode.class, "FAPI2-SP-FINAL-5.3.2.2-2.1");
 
-		skipIfElementMissing("authorization_request_object", "claims", ConditionResult.INFO,
-			CheckForUnexpectedClaimsInRequestObject.class, ConditionResult.WARNING, "RFC6749-4.1.1", "OIDCC-3.1.2.1", "RFC7636-4.3", "OAuth2-RT-2.1", "RFC7519-4.1", "DPOP-10", "RFC8485-4.1", "RFC8707-2.1", "RFC9396-2");
+		// Check redirect_uri is present — per RFC6749-4.2.2.1, if the redirect_uri is
+		// missing or invalid, the server MUST NOT redirect and should display an error.
+		String effectiveRedirectUri = env.getString(CreateEffectiveAuthorizationRequestParameters.ENV_KEY, "redirect_uri");
+		if (Strings.isNullOrEmpty(effectiveRedirectUri)) {
+			call(exec().unmapKey("authorization_endpoint_http_request").endBlock());
+			setStatus(Status.WAITING);
+			JsonObject errorBody = new JsonObject();
+			errorBody.addProperty("error", "invalid_request");
+			errorBody.addProperty("error_description", "redirect_uri is missing from the authorization request");
+			return new ResponseEntity<>(errorBody, HttpStatus.BAD_REQUEST);
+		}
 
-		callAndStopOnFailure(EnsureAuthorizationRequestContainsPkceCodeChallenge.class, "FAPI2-SP-FINAL-5.3.3.2-2.3");
-		validateRequestObjectForAuthorizationEndpointRequest();
+		try {
+			callAndStopOnFailure(EnsureResponseTypeIsCode.class, "FAPI2-SP-FINAL-5.3.2.2-2.1");
+
+			skipIfElementMissing("authorization_request_object", "claims", ConditionResult.INFO,
+				CheckForUnexpectedClaimsInRequestObject.class, ConditionResult.WARNING, "RFC6749-4.1.1", "OIDCC-3.1.2.1", "RFC7636-4.3", "OAuth2-RT-2.1", "RFC7519-4.1", "DPOP-10", "RFC8485-4.1", "RFC8707-2.1", "RFC9396-2");
+
+			callAndStopOnFailure(EnsureAuthorizationRequestContainsPkceCodeChallenge.class, "FAPI2-SP-FINAL-5.3.3.2-2.3");
+			validateRequestObjectForAuthorizationEndpointRequest();
+		} catch (ConditionError | TestFailureException e) {
+			// Authorization request validation failed — return error redirect
+			Object errorRedirect = buildAuthorizationErrorRedirect("invalid_request", e.getMessage());
+			call(exec().unmapKey("authorization_endpoint_http_request").endBlock());
+			setStatus(Status.WAITING);
+			return errorRedirect;
+		}
 
 		callAndStopOnFailure(CreateAuthorizationCode.class);
+		env.putLong("authorization_code_created_at", System.currentTimeMillis() / 1000L);
+		// Store the client_id the code was issued to, for binding check at token endpoint
+		String authorizedClientId = env.getString(CreateEffectiveAuthorizationRequestParameters.ENV_KEY, "client_id");
+		if (authorizedClientId != null) {
+			env.putString("authorization_code_client_id", authorizedClientId);
+		}
 		String isOpenIdScopeRequested = env.getString("request_scopes_contain_openid");
 		if ("yes".equals(isOpenIdScopeRequested)) {
 			throw new TestFailureException(getId(), "openid scope cannot be used with PLAIN_OAUTH");
@@ -2371,9 +2512,112 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 		// callAndStopOnFailure(EnsureRequestedScopeIsEqualToConfiguredScope.class);
 	}
 
+	/**
+	 * Validate that the request_uri matches what was issued and hasn't expired.
+	 * @return a RedirectView with an error if validation fails, or null if validation passes
+	 */
+	protected RedirectView validateParRequestUri() {
+		JsonObject params = env.getObject("authorization_endpoint_http_request_params");
+		String requestUri = params != null && params.has("request_uri")
+			? OIDFJSON.getString(params.get("request_uri")) : null;
+		String issuedRequestUri = env.getString("par_endpoint_generated_request_uri");
+
+		if (requestUri == null || issuedRequestUri == null) {
+			// No request_uri or no PAR was used — reject as PAR is required
+			return buildAuthorizationErrorRedirect("invalid_request", "PAR is required; request_uri is missing from the authorization request");
+		}
+		if (!issuedRequestUri.equals(requestUri)) {
+			return buildAuthorizationErrorRedirect("invalid_request_uri", "request_uri does not match the one issued by the PAR endpoint");
+		}
+
+		// Check if request_uri has already been used
+		if (Boolean.TRUE.equals(env.getBoolean("par_request_uri_used"))) {
+			return buildAuthorizationErrorRedirect("invalid_request_uri", "request_uri has already been used");
+		}
+		// Mark as used
+		env.putBoolean("par_request_uri_used", true);
+
+		Long createdAt = env.getLong("par_request_uri_created_at");
+		if (createdAt != null) {
+			long now = System.currentTimeMillis() / 1000L;
+			long expiresIn = CreatePAREndpointResponse.EXPIRES_IN;
+			if (now >= createdAt + expiresIn) {
+				return buildAuthorizationErrorRedirect("invalid_request_uri", "request_uri has expired");
+			}
+		}
+		return null;
+	}
+
+	/**
+	 * Look up a parameter from PAR form params, request object claims, or authorization
+	 * endpoint query params (in that priority order).
+	 */
+	private String findAuthorizationParam(String paramName) {
+		String value = env.getString("par_endpoint_http_request_params", paramName);
+		if (value == null) {
+			value = env.getString("authorization_request_object", "claims." + paramName);
+		}
+		if (value == null) {
+			value = env.getString("authorization_endpoint_http_request_params", paramName);
+		}
+		return value;
+	}
+
+	protected RedirectView buildAuthorizationErrorRedirect(String error, String errorDescription) {
+		String redirectUri = findAuthorizationParam("redirect_uri");
+		if (redirectUri == null) {
+			throw new TestFailureException(getId(), "Cannot send authorization error redirect: no redirect_uri available");
+		}
+		UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(redirectUri);
+		builder.queryParam("error", error);
+		builder.queryParam("error_description", errorDescription);
+		String state = findAuthorizationParam("state");
+		if (state != null) {
+			builder.queryParam("state", state);
+		}
+		return new RedirectView(builder.toUriString(), false, false, false);
+	}
+
 	protected void validateRequestObjectForPAREndpointRequest() {
 		validateRequestObjectCommonChecks();
 		callAndStopOnFailure(EnsureRequestObjectContainsCodeChallengeWhenUsingPAR.class, "FAPI2-SP-FINAL-5.3.2.2-2.5");
+	}
+
+	protected void validateParRedirectUri() {
+		// Check redirect_uri in form params or request object
+		String redirectUri = env.getString("par_endpoint_http_request_params", "redirect_uri");
+		if (redirectUri == null && env.containsObject("authorization_request_object")) {
+			redirectUri = env.getString("authorization_request_object", "claims.redirect_uri");
+		}
+		if (Strings.isNullOrEmpty(redirectUri)) {
+			throw new TestFailureException(getId(), "redirect_uri is missing from PAR request");
+		}
+		// Validate redirect_uri matches the one registered in the client configuration
+		String registeredRedirectUri = env.getString("client", "redirect_uri");
+		if (!Strings.isNullOrEmpty(registeredRedirectUri) && !registeredRedirectUri.equals(redirectUri)) {
+			throw new TestFailureException(getId(),
+				"redirect_uri does not match the registered redirect_uri");
+		}
+	}
+
+	protected void validateUnsignedPAREndpointRequest() {
+		// For unsigned PAR requests, validate PKCE from form parameters
+		JsonObject params = env.getObject("par_endpoint_http_request_params");
+		if (params == null) {
+			throw new TestFailureException(getId(), "Missing PAR endpoint request parameters");
+		}
+		String codeChallenge = params.has("code_challenge") ? OIDFJSON.getString(params.get("code_challenge")) : null;
+		String codeChallengeMethod = params.has("code_challenge_method") ? OIDFJSON.getString(params.get("code_challenge_method")) : null;
+
+		if (Strings.isNullOrEmpty(codeChallenge)) {
+			throw new TestFailureException(getId(), "Missing required code_challenge parameter in PAR request");
+		}
+		if (!"S256".equals(codeChallengeMethod)) {
+			throw new TestFailureException(getId(),
+				"S256 is required for PKCE, got: " + codeChallengeMethod);
+		}
+		env.putString("code_challenge", codeChallenge);
+		env.putString("code_challenge_method", codeChallengeMethod);
 	}
 
 	protected void issueIdToken(boolean isAuthorizationEndpoint) {
@@ -2451,6 +2695,20 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 
 	protected void createAuthorizationEndpointResponse() {
 		callAndStopOnFailure(CreateAuthorizationEndpointResponseParams.class);
+
+		// For PAR: only include state in response if it was in the PAR request or request object,
+		// not if it was only on the authorization endpoint query params (per JAR/PAR semantics)
+		String stateFromPar = env.getString("par_endpoint_http_request_params", "state");
+		if (stateFromPar == null && env.containsObject("authorization_request_object")) {
+			stateFromPar = env.getString("authorization_request_object", "claims.state");
+		}
+		if (stateFromPar == null) {
+			// state was not in PAR request — remove it from the response params
+			JsonObject responseParams = env.getObject("authorization_endpoint_response_params");
+			if (responseParams != null) {
+				responseParams.remove("state");
+			}
+		}
 
 		callAndStopOnFailure(AddCodeToAuthorizationEndpointResponseParams.class, "OIDCC-3.3.2.5");
 		callAndStopOnFailure(AddIssToAuthorizationEndpointResponseParams.class, "FAPI2-SP-FINAL-5.3.2.2-2.7");
