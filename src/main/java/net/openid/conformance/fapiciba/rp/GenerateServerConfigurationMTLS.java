@@ -24,6 +24,7 @@ public class GenerateServerConfigurationMTLS extends AbstractCondition {
 
 		JsonObject mtlsAliases = new JsonObject();
 		mtlsAliases.addProperty("token_endpoint", baseMtlsUrl + "token");
+		mtlsAliases.addProperty("userinfo_endpoint", baseMtlsUrl + "userinfo");
 		mtlsAliases.addProperty("backchannel_authentication_endpoint", baseMtlsUrl + "backchannel");
 
 
