@@ -4,8 +4,8 @@ import com.google.gson.JsonObject;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.condition.as.ExtractDCQLQueryFromAuthorizationRequest;
 import net.openid.conformance.testmodule.Environment;
-import net.openid.conformance.vci10issuer.condition.AbstractCheckForUnexpectedSchemaProperties;
-import net.openid.conformance.vci10issuer.util.JsonSchemaValidationInput;
+import net.openid.conformance.condition.AbstractCheckForUnexpectedSchemaProperties;
+import net.openid.conformance.util.validation.JsonSchemaValidationInput;
 
 public class CheckForUnexpectedParametersInDcqlQuery extends AbstractCheckForUnexpectedSchemaProperties {
 

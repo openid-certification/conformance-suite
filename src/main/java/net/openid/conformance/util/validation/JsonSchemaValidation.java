@@ -1,4 +1,4 @@
-package net.openid.conformance.vci10issuer.util;
+package net.openid.conformance.util.validation;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;

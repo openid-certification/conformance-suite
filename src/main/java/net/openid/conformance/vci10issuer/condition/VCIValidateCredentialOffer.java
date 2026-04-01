@@ -1,12 +1,14 @@
 package net.openid.conformance.vci10issuer.condition;
 
+import net.openid.conformance.condition.AbstractJsonSchemaBasedValidation;
+
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
-import net.openid.conformance.vci10issuer.util.JsonSchemaValidationInput;
-import net.openid.conformance.vci10issuer.util.JsonSchemaValidationResult;
+import net.openid.conformance.util.validation.JsonSchemaValidationInput;
+import net.openid.conformance.util.validation.JsonSchemaValidationResult;
 
 public class VCIValidateCredentialOffer extends AbstractJsonSchemaBasedValidation {
 
