@@ -11,19 +11,27 @@ import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.variant.AuthorizationRequestType;
 import net.openid.conformance.variant.ClientAuthType;
 import net.openid.conformance.variant.FAPI2AuthRequestMethod;
+import net.openid.conformance.variant.VCI1FinalCredentialFormat;
 import net.openid.conformance.vci10issuer.condition.CheckCacheControlHeaderContainsNoStore;
-import net.openid.conformance.vci10issuer.condition.clientattestation.CallClientAttestationChallengeEndpoint;
-import net.openid.conformance.vci10issuer.condition.clientattestation.CreateClientAttestationJwt;
-import net.openid.conformance.vci10issuer.condition.clientattestation.GenerateClientAttestationClientInstanceKey;
+import net.openid.conformance.vci10issuer.condition.VCICheckKeyAttestationJwksIfKeyAttestationIsRequired;
+import net.openid.conformance.vci10issuer.condition.VCIAddCredentialConfigurationIdToEnv;
+import net.openid.conformance.vci10issuer.condition.VCIDetermineCredentialConfigurationTransferMethod;
+import net.openid.conformance.vci10issuer.condition.VCIEnsureResolvedCredentialConfigurationMatchesSelection;
+import net.openid.conformance.vci10issuer.condition.VCIEnsureScopePresentInCredentialConfigurationForHaip;
 import net.openid.conformance.vci10issuer.condition.VCIExtractTlsInfoFromCredentialIssuer;
 import net.openid.conformance.vci10issuer.condition.VCIFetchOAuthorizationServerMetadata;
 import net.openid.conformance.vci10issuer.condition.VCIGetDynamicCredentialIssuerMetadata;
 import net.openid.conformance.vci10issuer.condition.VCIParseCredentialIssuerMetadata;
 import net.openid.conformance.vci10issuer.condition.VCIResolveCredentialEndpointToUse;
+import net.openid.conformance.vci10issuer.condition.VCIResolveCredentialProofTypeToUse;
+import net.openid.conformance.vci10issuer.condition.VCIResolveRequestedCredentialConfiguration;
 import net.openid.conformance.vci10issuer.condition.VCISelectOAuthorizationServer;
 import net.openid.conformance.vci10issuer.condition.VCISetDiscoveryUrlFromAuthorizationServer;
 import net.openid.conformance.vci10issuer.condition.VCIValidateClientJWKsPrivatePart;
+import net.openid.conformance.vci10issuer.condition.clientattestation.CallClientAttestationChallengeEndpoint;
 import net.openid.conformance.vci10issuer.condition.clientattestation.CheckClientAttestationChallengeResponseForUnknownFields;
+import net.openid.conformance.vci10issuer.condition.clientattestation.CreateClientAttestationJwt;
+import net.openid.conformance.vci10issuer.condition.clientattestation.GenerateClientAttestationClientInstanceKey;
 import net.openid.conformance.vci10issuer.condition.clientattestation.ValidateClientAttestationChallengeResponse;
 
 /**
@@ -39,6 +47,8 @@ import net.openid.conformance.vci10issuer.condition.clientattestation.ValidateCl
  * - Skip FAPI-specific resource endpoint headers (auth date, interaction ID)
  */
 public class VCIProfileBehavior extends FAPI2ProfileBehavior {
+
+	protected VCI1FinalCredentialFormat credentialFormat;
 
 	@Override
 	public boolean shouldExtractRARFromConfig() {
@@ -57,6 +67,8 @@ public class VCIProfileBehavior extends FAPI2ProfileBehavior {
 		module.profileRequiresMtlsEverywhere = false;
 		// VCI never uses client credentials grant
 		module.clientCredentialsGrant = false;
+
+		credentialFormat = module.getVariant(VCI1FinalCredentialFormat.class);
 	}
 
 	@Override
@@ -79,7 +91,7 @@ public class VCIProfileBehavior extends FAPI2ProfileBehavior {
 	public ConditionSequence configureClientExtra() {
 		// VCI client JWKs generation and encryption JWKs are handled in
 		// AbstractVCIIssuerTestModule.configureClient() where they run before validation
-		return null;
+		return configureCredentialConfigurationResolution(credentialFormat);
 	}
 
 	@Override
@@ -197,4 +209,28 @@ public class VCIProfileBehavior extends FAPI2ProfileBehavior {
 			}
 		};
 	}
+
+	protected ConditionSequence configureCredentialConfigurationResolution(VCI1FinalCredentialFormat vciCredentialFormat) {
+		return new AbstractConditionSequence() {
+			@Override
+			public void evaluate() {
+
+				callAndStopOnFailure(VCIAddCredentialConfigurationIdToEnv.class);
+				call(exec().exposeEnvironmentString("credential_configuration_id"));
+
+				callAndStopOnFailure(VCIResolveRequestedCredentialConfiguration.class, ConditionResult.FAILURE);
+				callAndStopOnFailure(new VCIEnsureResolvedCredentialConfigurationMatchesSelection(vciCredentialFormat));
+
+				// HAIP requires scope to be present for every credential configuration
+				callAndContinueOnFailure(VCIEnsureScopePresentInCredentialConfigurationForHaip.class, ConditionResult.FAILURE, "HAIP-4.1", "HAIP-4.3");
+
+				callAndStopOnFailure(VCIDetermineCredentialConfigurationTransferMethod.class, ConditionResult.FAILURE);
+				callAndStopOnFailure(VCIResolveCredentialProofTypeToUse.class, ConditionResult.FAILURE);
+
+				// Only check key attestation if cryptographic binding is required
+				callAndStopOnFailure(VCICheckKeyAttestationJwksIfKeyAttestationIsRequired.class, ConditionResult.FAILURE);
+			}
+		};
+	}
+
 }
