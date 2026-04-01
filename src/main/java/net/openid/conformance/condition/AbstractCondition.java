@@ -704,13 +704,11 @@ public abstract class AbstractCondition implements Condition, DataUtils {
 
 		RestTemplate restTemplate = new RestTemplate(new HttpComponentsClientHttpRequestFactory(httpClient));
 
-		// Add lock-releasing interceptor first (outermost) so that the lock is released during
-		// HTTP I/O, allowing incoming requests to be processed and preventing deadlocks.
-		if (this.lockManager != null) {
-			restTemplate.getInterceptors().add(new LockReleasingRequestInterceptor(this.lockManager, env.getLock()));
-		}
-
-		restTemplate.getInterceptors().add(new LoggingRequestInterceptor(getMessage(), log, env.getObject("mutual_tls_authentication")));
+		// Single interceptor handles both logging and lock release. The lock is released only
+		// during network I/O (HTTP call + response body buffering); logging happens with the
+		// lock held for deterministic ordering relative to other threads.
+		restTemplate.getInterceptors().add(new LoggingRequestInterceptor(getMessage(), log,
+			env.getObject("mutual_tls_authentication"), this.lockManager, env.getLock()));
 
 		List<HttpMessageConverter<?>> converters = restTemplate.getMessageConverters();
 
