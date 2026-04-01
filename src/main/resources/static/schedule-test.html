@@ -2183,6 +2183,18 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
                 })
         }
 
+        // Remember downstream selections so they can be restored when
+        // a parent selector changes and the same value still exists.
+        var savedCascadeSelections = {};
+
+        function trySavedSelection(selectElement, savedValue) {
+            if (!savedValue) return;
+            var option = selectElement.querySelector('option[value="' + CSS.escape(savedValue) + '"]');
+            if (option) {
+                selectElement.value = savedValue;
+            }
+        }
+
         function onSpecFamilyChange(silent) {
             var family = document.getElementById('specFamilySelect').value;
             var entitySelect = document.getElementById('entitySelect');
@@ -2192,10 +2204,15 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
             var planSelect = document.getElementById('planSelect');
             var planRow = document.getElementById('planRow');
 
+            // Save current downstream selections before resetting
+            if (entitySelect.value) savedCascadeSelections.entity = entitySelect.value;
+            if (specVersionSelect.value) savedCascadeSelections.specVersion = specVersionSelect.value;
+            if (planSelect.value && planSelect.value !== 'select') savedCascadeSelections.plan = planSelect.value;
+
             // Reset downstream
-            entitySelect.innerHTML = '<option value="">--- Select Entity ---</option>';
-            specVersionSelect.innerHTML = '<option value="">--- Select Version ---</option>';
-            planSelect.innerHTML = '<option value="select">--- Select A Test Plan ----</option>';
+            entitySelect.replaceChildren(new Option('--- Select Entity ---', ''));
+            specVersionSelect.replaceChildren(new Option('--- Select Version ---', ''));
+            planSelect.replaceChildren(new Option('--- Select A Test Plan ----', 'select'));
             entityRow.style.display = 'none';
             specVersionRow.style.display = 'none';
             planRow.style.display = 'none';
@@ -2207,16 +2224,14 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
 
             var entities = _.keys(FAPI_UI.planIndex[family]).sort();
             if (entities.length === 1) {
-                entitySelect.innerHTML = '<option value="' + _.escape(entities[0]) + '">' + _.escape(entities[0]) + '</option>';
+                entitySelect.replaceChildren(new Option(entities[0], entities[0]));
                 entitySelect.value = entities[0];
                 entityRow.style.display = 'none';
             } else {
                 _.each(entities, function(entity) {
-                    var opt = document.createElement('option');
-                    opt.value = entity;
-                    opt.textContent = entity;
-                    entitySelect.appendChild(opt);
+                    entitySelect.appendChild(new Option(entity, entity));
                 });
+                trySavedSelection(entitySelect, savedCascadeSelections.entity);
                 entityRow.style.display = '';
             }
 
@@ -2231,8 +2246,12 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
             var planSelect = document.getElementById('planSelect');
             var planRow = document.getElementById('planRow');
 
-            specVersionSelect.innerHTML = '<option value="">--- Select Version ---</option>';
-            planSelect.innerHTML = '<option value="select">--- Select A Test Plan ----</option>';
+            // Save current downstream selections before resetting
+            if (specVersionSelect.value) savedCascadeSelections.specVersion = specVersionSelect.value;
+            if (planSelect.value && planSelect.value !== 'select') savedCascadeSelections.plan = planSelect.value;
+
+            specVersionSelect.replaceChildren(new Option('--- Select Version ---', ''));
+            planSelect.replaceChildren(new Option('--- Select A Test Plan ----', 'select'));
             specVersionRow.style.display = 'none';
             planRow.style.display = 'none';
 
@@ -2243,16 +2262,14 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
 
             var versions = _.keys(FAPI_UI.planIndex[family][entity]).sort();
             if (versions.length === 1) {
-                specVersionSelect.innerHTML = '<option value="' + _.escape(versions[0]) + '">' + (versions[0] || '(default)') + '</option>';
+                specVersionSelect.replaceChildren(new Option(versions[0] || '(default)', versions[0]));
                 specVersionSelect.value = versions[0];
                 specVersionRow.style.display = 'none';
             } else {
                 _.each(versions, function(version) {
-                    var opt = document.createElement('option');
-                    opt.value = version;
-                    opt.textContent = version || '(default)';
-                    specVersionSelect.appendChild(opt);
+                    specVersionSelect.appendChild(new Option(version || '(default)', version));
                 });
+                trySavedSelection(specVersionSelect, savedCascadeSelections.specVersion);
                 specVersionRow.style.display = '';
             }
 
@@ -2266,7 +2283,10 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
             var planSelect = document.getElementById('planSelect');
             var planRow = document.getElementById('planRow');
 
-            planSelect.innerHTML = '<option value="select">--- Select A Test Plan ----</option>';
+            // Save current downstream selection before resetting
+            if (planSelect.value && planSelect.value !== 'select') savedCascadeSelections.plan = planSelect.value;
+
+            planSelect.replaceChildren(new Option('--- Select A Test Plan ----', 'select'));
             planRow.style.display = 'none';
 
             if (!family || !entity || !FAPI_UI.planIndex[family] ||
@@ -2278,16 +2298,15 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
 
             var plans = _.sortBy(FAPI_UI.planIndex[family][entity][version], 'displayName');
             _.each(plans, function(plan) {
-                var opt = document.createElement('option');
-                opt.value = plan.planName;
-                opt.textContent = plan.displayName;
-                planSelect.appendChild(opt);
+                planSelect.appendChild(new Option(plan.displayName, plan.planName));
             });
 
             planRow.style.display = '';
 
             if (plans.length === 1) {
                 planSelect.value = plans[0].planName;
+            } else {
+                trySavedSelection(planSelect, savedCascadeSelections.plan);
             }
 
             if (!silent) planSelect.dispatchEvent(new Event('change'));
@@ -2714,6 +2733,23 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
 
                 var selectElement = document.getElementById('vp_' + parameterName);
                 if (!selectElement) {
+                    return;
+                }
+
+                // If any condition parameter hasn't been selected yet, hide this
+                // variant until the dependency is resolved
+                var hasPendingDependency = _.some(notApplicableWhen, function(conditionValueMap, conditionParamName) {
+                    var currentConditionValue = currentSelections[conditionParamName];
+                    return !currentConditionValue || currentConditionValue === 'select';
+                });
+
+                if (hasPendingDependency) {
+                    var variantRow = selectElement.closest('.mb-3.row');
+                    if (variantRow) {
+                        variantRow.style.display = 'none';
+                    }
+                    // Reset selection since dependency isn't resolved
+                    selectElement.value = 'select';
                     return;
                 }
 
