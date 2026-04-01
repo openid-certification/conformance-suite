@@ -73,29 +73,31 @@
 
                     <div class="col-md-2"> <!-- controls -->
                         <div class="d-grid gap-2">
-                            <% if (!public) { %>
+                            <% if (!readonly) { %>
                             <button class="btn btn-sm btn-light bg-gradient border border-secondary" id="reloadBtn"><span class="bi bi-arrow-down-up"></span> Repeat Test</button>
                             <button class="btn btn-sm btn-light bg-gradient border border-secondary" id="uploadBtn"><span class="bi bi-file-image"></span> Upload Images <span class="badge rounded-pill bg-secondary text-info" id="uploadCount"></span></button>
+                            <% } %>
+                            <% if (!public) { %>
                             <button class="btn btn-sm btn-light bg-gradient border border-secondary" id="showConfigBtn"><span class="bi bi-wrench-adjustable"></span> View Config</button>
+                            <% } %>
+                            <% if (!readonly) { %>
                             <button class="btn btn-sm btn-light bg-gradient border border-secondary" id="editConfigBtn" title="Create a new test plan based on the configuration used in this one"><span class="bi bi-pencil-square"></span> Edit configuration</button>
                             <% } %>
                             <% if (!public || test.publish == "everything") { %>
                             <button class="btn btn-sm btn-light bg-gradient border border-secondary" id="downloadBtn"><span class="bi bi-save2"></span> Download Logs</button>
                             <% } %>
                             <button class="btn btn-sm btn-light bg-gradient border border-secondary" id="planBtn"><span class="bi bi-bookmarks"></span> Return to Plan</button>
-                            <% if (!public) { %>
+                            <% if (!readonly) { %>
                             <button class="btn btn-sm btn-light bg-gradient border border-secondary" id="nextPlanBtn" title="Run the next test in this test plan"><span class="bi bi-skip-forward-fill"></span> Continue Plan</button>
                             <button class="btn btn-sm btn-light bg-gradient border border-secondary" id="btnShareLink"><span class="bi bi-bookmarks"></span> Private link</button>
-                            <% if (!test.publish && (FAPI_UI.currentUser && FAPI_UI.currentUser.isAdmin)) { %>
+                            <% if (!test.publish && FAPI_UI.currentUser.isAdmin) { %>
                             <button class="btn btn-sm btn-light bg-gradient border border-secondary" data-publish="summary"><span class="bi bi-bookmarks"></span> Publish summary</button>
                             <button class="btn btn-sm btn-light bg-gradient border border-secondary" id="publishBtn"><span class="bi bi-bookmarks"></span> Publish everything</button>
                             <% } else { %>
                                 <% if (FAPI_UI.currentUser.isAdmin) { %>
                             <button class="btn btn-sm btn-light bg-gradient border border-secondary" id="unpublishBtn" data-publish=""><span class="bi bi-slash-circle"></span> Unpublish</button>
                                 <% } %>
-                                <% if (! FAPI_UI.currentUser.isGuest) { %>
                             <a href="log-detail.html?log=<%- encodeURIComponent(test.testId) %>&public=true" class="btn btn-sm btn-info bg-gradient border border-secondary"><span class="bi bi-bookmarks"></span> Public link</a>
-                                <% } %>
                             <% } %>
                             <% } %>
                         </div>
@@ -104,7 +106,7 @@
                   </div>
                 </div>
             </div>
-            <% if (!public) { %>
+            <% if (!readonly) { %>
             <div class="card collapse" id="runningTestInformation">
                 <div class="card-body">
                   <div id="runningTestError" class="collapse"></div>

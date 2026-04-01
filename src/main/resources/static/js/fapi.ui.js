@@ -732,10 +732,6 @@ var FAPI_UI = {
 				modal.show();
 			};
 
-			// Hide this button for guests
-			if (FAPI_UI.currentUser.isGuest) {
-				document.getElementById('btnShareLink').style.display = 'none';
-			}
 		},
 
 		selectedVariant: undefined
