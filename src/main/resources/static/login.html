@@ -26,7 +26,7 @@
     </div>
     <div class="clearfix"></div>
 
-    <div class="container-fluid">
+    <div id="loginContent" class="container-fluid">
         <div class="row">
             <div class="col-xs-12 col-md-6 col-md-offset-3 mx-auto center-text">
                 <h1 class="text-center">Login to or Register with the OpenID Foundation Conformance Suite</h1>
@@ -73,6 +73,9 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
 
             let token = urlParams.get("token");
             if (token) {
+                // Hide the normal login UI while the private link is being processed
+                document.getElementById('loginContent').style.display = 'none';
+
                 const iframe = document.createElement("iframe");
                 iframe.style.display = "none";
 
