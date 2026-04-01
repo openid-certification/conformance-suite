@@ -347,6 +347,9 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 				if (startingShutdown) {
 					throw new TestFailureException(getId(), "Client has incorrectly called '%s' after receiving a response that must cause it to stop interacting with the server".formatted(path));
 				}
+				if (FAPICIBAProfile.CONNECTID_AU.equals(profile)) {
+					throw new TestFailureException(getId(), "Userinfo endpoint must be called over an mTLS secured connection using the token_endpoint found in mtls_endpoint_aliases.");
+				}
 				return userinfoEndpoint(requestId);
 			default:
 				throw new TestFailureException(getId(), "Got unexpected HTTP call to " + path);
@@ -375,6 +378,8 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 				return backchannelEndpoint(requestId);
 			case "token":
 				return tokenEndpoint(requestId);
+			case "userinfo":
+				return userinfoEndpoint(requestId);
 			case ACCOUNTS_PATH:
 			case FAPIBrazilRsPathConstants.BRAZIL_ACCOUNTS_PATH:
 				return accountsEndpoint(requestId);
@@ -668,7 +673,8 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 		callAndStopOnFailure(ClearAccessTokenFromRequest.class);
 
 		call(exec().unmapKey("incoming_request").endBlock());
-		setStatus(Status.WAITING);
+
+		resourceEndpointCallComplete();
 
 		return new ResponseEntity<Object>(user, HttpStatus.OK);
 	}
@@ -695,12 +701,11 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 
 		env.mapKey("authorization_request_object", "backchannel_request_object");
 		validateRequestObjectForBackchannelEndpointRequest();
+		profileBehavior.applyProfileSpecificBackchannelRequestChecks();
 		env.unmapKey("authorization_request_object");
 
 		callAndContinueOnFailure(EnsureBackchannelRequestParametersDoNotAppearOutsideJwt.class, ConditionResult.FAILURE, "CIBA-7.1.1");
 		callAndContinueOnFailure(BackchannelRequestHasExactlyOneOfTheHintParameters.class, ConditionResult.FAILURE, "CIBA-7.1");
-
-		profileBehavior.applyProfileSpecificBackchannelRequestChecks();
 
 		skipIfElementMissing("backchannel_request_object", "claims.id_token_hint", ConditionResult.SUCCESS, IdTokenIsSignedWithServerKey.class, ConditionResult.FAILURE, "CIBA-7.1");
 

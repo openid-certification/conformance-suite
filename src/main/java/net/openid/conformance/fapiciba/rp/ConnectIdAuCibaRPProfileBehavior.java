@@ -13,7 +13,7 @@ public class ConnectIdAuCibaRPProfileBehavior extends FAPICIBARPProfileBehavior 
 
 	@Override
 	public void exposeProfileSpecificEndpoints() {
-		module.exposeEnvString("userinfo_endpoint", "server", "userinfo_endpoint");
+		module.exposeMtlsPath("userinfo_endpoint", "userinfo");
 	}
 
 	@Override
