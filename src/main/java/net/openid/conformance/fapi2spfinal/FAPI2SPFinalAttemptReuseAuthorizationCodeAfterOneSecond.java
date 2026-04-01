@@ -1,6 +1,7 @@
 package net.openid.conformance.fapi2spfinal;
 
 import net.openid.conformance.condition.Condition;
+import net.openid.conformance.condition.client.AddClientAttestationClientAuthToEndpointRequest;
 import net.openid.conformance.condition.client.CallProtectedResource;
 import net.openid.conformance.condition.client.CheckErrorDescriptionFromTokenEndpointResponseErrorContainsCRLFTAB;
 import net.openid.conformance.condition.client.CheckErrorFromTokenEndpointResponseErrorInvalidGrant;
@@ -112,6 +113,13 @@ public class FAPI2SPFinalAttemptReuseAuthorizationCodeAfterOneSecond extends Abs
 	public void setupPrivateKeyJwt() {
 		super.setupPrivateKeyJwt();
 		generateNewClientAssertionSteps = CreateJWTClientAuthenticationAssertionWithIssAudAndAddToTokenEndpointRequest.class;
+	}
+
+	@VariantSetup(parameter = ClientAuthType.class, value = "client_attestation")
+	@Override
+	public void setupClientAttestation() {
+		super.setupClientAttestation();
+		generateNewClientAssertionSteps = AddClientAttestationClientAuthToEndpointRequest.class;
 	}
 
 }
