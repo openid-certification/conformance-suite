@@ -39,7 +39,7 @@ public abstract class AbstractJsonSchemaBasedValidation extends AbstractConditio
 	}
 
 	protected void onValidationSuccess(Environment env, JsonSchemaValidationInput input) {
-		logSuccess(String.format("%s input is valid", input.getInputName()), args("input", input.getJsonObject()));
+		logSuccess(String.format("%s input is valid", input.getInputName()), args("input", input.getJsonObject(), "schema_link", "/" + input.getSchemaResource()));
 	}
 
 	protected void onValidationFailure(Environment env, JsonSchemaValidationResult validationResult, JsonSchemaValidationInput input) {
