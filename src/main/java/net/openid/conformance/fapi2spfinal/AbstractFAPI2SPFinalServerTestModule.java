@@ -846,6 +846,11 @@ public abstract class AbstractFAPI2SPFinalServerTestModule extends AbstractRedir
 		if (isDpop()) {
 			int i = 0;
 			while(i < MAX_RETRY){
+				if (i > 0) {
+					// Regenerate client authentication for retry to avoid jti reuse
+					// (e.g. client attestation proof JWTs require unique jti per request)
+					addClientAuthenticationToTokenEndpointRequest();
+				}
 				createDpopForTokenEndpoint();
 				callAndStopOnFailure(CallTokenEndpointAllowingDpopNonceErrorAndReturnFullResponse.class, requirements);
 				if(Strings.isNullOrEmpty(env.getString("token_endpoint_dpop_nonce_error"))) {
