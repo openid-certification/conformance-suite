@@ -53,7 +53,6 @@ import net.openid.conformance.openid.federation.EntityUtils;
 import net.openid.conformance.openid.federation.ExtractECJWKsFromOPConfig;
 import net.openid.conformance.openid.federation.ExtractJWTFromFederationEndpointResponse;
 import net.openid.conformance.openid.federation.ExtractServerJWKsFromOPConfig;
-import net.openid.conformance.openid.federation.NonBlocking;
 import net.openid.conformance.openid.federation.SetPrimaryEntityStatement;
 import net.openid.conformance.openid.federation.ValidateEntityIdentifier;
 import net.openid.conformance.openid.federation.ValidateFederationJWKsPrivatePart;
@@ -200,23 +199,7 @@ public class OpenIDFederationClientTest extends AbstractOpenIDFederationClientTe
 	}
 
 	protected Object entityConfigurationResponse() {
-		env.mapKey("entity_configuration_claims", "server");
-		env.mapKey("entity_configuration_claims_jwks", "op_ec_jwks");
-
-		Object response;
-		boolean nonBlocking = true;
-		// We need to default to the non-blocking version since
-		// requests to the well-known endpoint might come in at any time,
-		// and we don't want tests to fail because of it
-		if (nonBlocking) {
-			response = NonBlocking.entityConfigurationResponse(env, getId());
-		} else {
-			response = super.entityConfigurationResponse("server", SignEntityStatement.class);
-		}
-
-		env.unmapKey("entity_configuration_claims");
-		env.unmapKey("entity_configuration_claims_jwks");
-		return response;
+		return entityConfigurationResponse("server", "op_ec_jwks", SignEntityStatement.class);
 	}
 
 	protected Object openIdConfigurationResponse() {
@@ -245,10 +228,8 @@ public class OpenIDFederationClientTest extends AbstractOpenIDFederationClientTe
 			env.putObject("original_server_jwks", env.getObject("server_jwks")); // Save the jwks, as we'll have to restore it later
 			env.putString("federation_endpoint_url", EntityUtils.appendWellKnown(env.getString("fetch_endpoint_parameter_sub")));
 
-			setStatus(Status.WAITING);
 			callAndStopOnFailure(ValidateFederationUrl.class, Condition.ConditionResult.FAILURE, "OIDFED-1.2");
 			callAndStopOnFailure(CallEntityStatementEndpointAndReturnFullResponse.class, Condition.ConditionResult.FAILURE, "OIDFED-9");
-			setStatus(Status.RUNNING);
 
 			validateEntityStatementResponse();
 			callAndStopOnFailure(ExtractJWTFromFederationEndpointResponse.class, "OIDFED-9");

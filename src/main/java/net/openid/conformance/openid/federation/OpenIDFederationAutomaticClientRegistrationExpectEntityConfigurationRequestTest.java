@@ -2,6 +2,7 @@ package net.openid.conformance.openid.federation;
 
 import com.google.common.base.Strings;
 import com.google.gson.JsonObject;
+import net.openid.conformance.openid.federation.client.SignEntityStatement;
 import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.FAPIAuthRequestMethod;
@@ -82,14 +83,8 @@ public class OpenIDFederationAutomaticClientRegistrationExpectEntityConfiguratio
 			return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).body("The test has already run to completion.");
 		}
 
-		env.mapKey("entity_configuration_claims", "server");
-		env.mapKey("entity_configuration_claims_jwks", "rp_ec_jwks");
 		startWaitingForTimeout();
-		Object entityConfigurationResponse = NonBlocking.entityConfigurationResponse(env, getId());
-		env.unmapKey("entity_configuration_claims");
-		env.unmapKey("entity_configuration_claims_jwks");
-
-		return entityConfigurationResponse;
+		return entityConfigurationResponse("server", "rp_ec_jwks", SignEntityStatement.class);
 	}
 
 	// Allow additional calls to come in for 5 more seconds.
