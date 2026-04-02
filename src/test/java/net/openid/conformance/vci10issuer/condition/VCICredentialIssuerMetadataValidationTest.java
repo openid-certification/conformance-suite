@@ -62,13 +62,10 @@ class VCICredentialIssuerMetadataValidationTest extends AbstractVciUnitTest {
 	@Test
 	void shouldReportNoValidationErrorForCorrectEudiwMetadata() throws Exception {
 		// credential issuer metadata from https://issuer.eudiw.dev/.well-known/openid-credential-issuer
+		// with tax_mdoc credential_signing_alg_values_supported fixed from "ES256" to -7 (COSE integer)
 		String metadataString = readFile("metadata/openid4vci-1_0/valid-openid-credential-issuer-metadata-eudiw.json");
 		env.putObject("vci", "credential_issuer_metadata", JsonParser.parseString(metadataString).getAsJsonObject());
-		try {
-			validation.evaluate(env);
-		} catch (Exception e) {
-			Assertions.fail("Failed to validate issuer.eudiw.dev credential_issuer_metadata", e);
-		}
+		validation.evaluate(env);
 	}
 
 	@Test
