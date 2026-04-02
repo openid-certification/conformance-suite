@@ -6,6 +6,7 @@ import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.condition.rs.OIDCCLoadUserInfo;
+import net.openid.conformance.testmodule.OIDFJSON;
 
 public class AustraliaConnectIdAddTxnToIdTokenClaims extends AbstractCondition {
 
@@ -25,7 +26,7 @@ public class AustraliaConnectIdAddTxnToIdTokenClaims extends AbstractCondition {
 
 			if (txn == null) {
 				JsonObject userinfo = OIDCCLoadUserInfo.getUserInfoClaimsValues("txn");
-				txn = userinfo.get("txn").getAsString();
+				txn = OIDFJSON.getString(userinfo.get("txn"));
 			}
 
 			idTokenClaims.addProperty("txn", txn);
