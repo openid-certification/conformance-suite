@@ -13,7 +13,7 @@ public class AustraliaConnectIdEnsureRequestObjectContainsTrustFramework extends
 	public Environment evaluate(Environment env) {
 
 		JsonElement verifiedClaimsEl = env.getElementFromObject("authorization_request_object", "claims.claims.id_token.verified_claims");
-		
+
 		if (verifiedClaimsEl == null) {
 			logSuccess("No verified_claims requested in request object.");
 			return env;
