@@ -21,21 +21,21 @@ public class ConnectIdAuCibaRPProfileBehavior extends FAPICIBARPProfileBehavior 
 	@Override
 	public void applyProfileSpecificBackchannelRequestChecks() {
 		super.applyProfileSpecificBackchannelRequestChecks();
-		module.callCondition(AustraliaConnectIdEnsureRequestObjectSigningAlgIsPS256.class);
-		module.callCondition(AustraliaConnectIdValidateRequestObjectExp.class);
-		module.callCondition(AustraliaConnectIdValidateRequestObjectNBFClaim.class);
-		module.callCondition(AustraliaConnectIdValidateRequestObjectPurpose.class);
-		module.callCondition(AustraliaConnectIdEnsureRequestObjectContainsNoAcrClaims.class);
-		module.callCondition(AustraliaConnectIdCheckForFAPI2ClaimsInRequestObject.class);
-		module.callCondition(AustraliaConnectIdEnsureVerifiedClaimsInRequestObject.class);
-		module.callCondition(AustraliaConnectIdEnsureRequestObjectContainsTrustFramework.class);
+		module.callCondition(AustraliaConnectIdEnsureRequestObjectSigningAlgIsPS256.class, "CID-SP-4.2-8");
+		module.callCondition(AustraliaConnectIdValidateRequestObjectExp.class, "CID-SP-4.2-10");
+		module.callCondition(AustraliaConnectIdValidateRequestObjectNBFClaim.class, "CID-SP-4.2-11");
+		module.callCondition(AustraliaConnectIdValidateRequestObjectPurpose.class, "CID-IDA-5.2-10");
+		module.callCondition(AustraliaConnectIdEnsureRequestObjectContainsNoAcrClaims.class, "CID-IDA-5.2-5");
+		module.callCondition(AustraliaConnectIdCheckForFAPI2ClaimsInRequestObject.class, "CID-IDA-5.2-7");
+		module.callCondition(AustraliaConnectIdEnsureVerifiedClaimsInRequestObject.class, "CID-IDA-5.2-11");
+		module.callCondition(AustraliaConnectIdEnsureRequestObjectContainsTrustFramework.class, "CID-IDA-5.1-11");
 	}
 
 	@Override
 	public void applyProfileSpecificIdTokenClaims() {
 		super.applyProfileSpecificIdTokenClaims();
 		module.callCondition(LoadRequestedIdTokenClaims.class);
-		module.callCondition(AustraliaConnectIdAddTxnToIdTokenClaims.class);
+		module.callCondition(AustraliaConnectIdAddTxnToIdTokenClaims.class, "CID-IDA-5.1.6");
 	}
 
 }
