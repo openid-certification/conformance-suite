@@ -78,6 +78,7 @@ import net.openid.conformance.condition.client.SignRequestObjectIncludeX5cHeader
 import net.openid.conformance.condition.client.ValidateAuthResponseContainsOnlyResponse;
 import net.openid.conformance.condition.client.ValidateClientJWKsPrivatePart;
 import net.openid.conformance.condition.client.ValidateCredentialIsUnpaddedBase64Url;
+import net.openid.conformance.sequence.client.ValidateMdocCredential;
 import net.openid.conformance.sequence.client.ValidateSdJwtVcCredentialClaims;
 import net.openid.conformance.condition.client.ValidateDCQLQuery;
 import net.openid.conformance.condition.client.ValidateJWEBodyDoesNotIncludeIssExpAud;
@@ -522,6 +523,7 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 					callAndStopOnFailure(CreateVP1FinalWalletIsoMdocRedirectSessionTranscript.class, "OID4VP-1FINALA-B.2.6.1");
 				}
 				callAndStopOnFailure(ParseCredentialAsMdoc.class);
+				call(new ValidateMdocCredential(false));
 				break;
 
 			case SD_JWT_VC:
