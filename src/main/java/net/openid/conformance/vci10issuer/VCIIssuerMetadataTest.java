@@ -22,6 +22,7 @@ import net.openid.conformance.vci10issuer.condition.VCIExtractTlsInfoFromCredent
 import net.openid.conformance.vci10issuer.condition.VCIFetchOAuthorizationServerMetadata;
 import net.openid.conformance.vci10issuer.condition.VCIParseCredentialIssuerMetadata;
 import net.openid.conformance.vci10issuer.condition.VCIValidateCredentialIssuerUri;
+import net.openid.conformance.vci10issuer.condition.VCICheckForOldSdJwtFormatInCredentialConfigurations;
 import net.openid.conformance.vci10issuer.condition.VCIValidateFormatOfCredentialConfigurationsInMetadata;
 import net.openid.conformance.vci10issuer.condition.VCIValidateNonceEndpointInIssuerMetadata;
 
@@ -93,6 +94,7 @@ public class VCIIssuerMetadataTest extends AbstractVciTest {
 		callAndContinueOnFailure(VCICredentialIssuerMetadataValidation.class, Condition.ConditionResult.FAILURE, "OID4VCI-1FINAL-12.2.3");
 		callAndContinueOnFailure(CheckForUnexpectedParametersInCredentialIssuerMetadata.class, Condition.ConditionResult.WARNING, "OID4VCI-1FINAL-12.2.3");
 
+		callAndContinueOnFailure(VCICheckForOldSdJwtFormatInCredentialConfigurations.class, Condition.ConditionResult.WARNING, "OID4VCI-1FINALA-A.3.1");
 		if (isHaip()) {
 			callAndContinueOnFailure(VCIValidateNonceEndpointInIssuerMetadata.class, Condition.ConditionResult.FAILURE, "HAIP-4.1-5");
 			callAndContinueOnFailure(new VCIValidateFormatOfCredentialConfigurationsInMetadata(true), Condition.ConditionResult.WARNING, "OID4VCI-1FINALA-A.3.1", "OID4VCI-1FINALA-A.2", "HAIP-6");

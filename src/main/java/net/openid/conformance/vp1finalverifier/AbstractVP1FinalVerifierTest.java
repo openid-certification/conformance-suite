@@ -35,6 +35,7 @@ import net.openid.conformance.condition.as.EnsureRequestUriIsHttps;
 import net.openid.conformance.condition.as.EnsureResponseTypeIsVpToken;
 import net.openid.conformance.condition.as.EnsureValidResponseUriForAuthorizationEndpointRequest;
 import net.openid.conformance.condition.as.ExtractAndValidateX509HashClientId;
+import net.openid.conformance.condition.as.CheckDCQLQueryCredentialFormatMatchesTestConfiguration;
 import net.openid.conformance.condition.as.ExtractDCQLQueryFromAuthorizationRequest;
 import net.openid.conformance.condition.as.ExtractNonceFromAuthorizationRequest;
 import net.openid.conformance.condition.as.FetchRequestUriAndExtractRequestObject;
@@ -444,6 +445,8 @@ public abstract class AbstractVP1FinalVerifierTest extends AbstractTestModule {
 		callAndStopOnFailure(ExtractDCQLQueryFromAuthorizationRequest.class, "OID4VP-1FINAL-6");
 		callAndContinueOnFailure(ValidateDCQLQuery.class, ConditionResult.FAILURE, "OID4VP-1FINAL-6");
 		callAndContinueOnFailure(CheckForUnexpectedParametersInDcqlQuery.class, ConditionResult.WARNING, "OID4VP-1FINAL-6");
+		// Test harness check: ensures verifier requests the credential format matching the test configuration
+		callAndContinueOnFailure(CheckDCQLQueryCredentialFormatMatchesTestConfiguration.class, ConditionResult.FAILURE);
 
 		// FIXME not sure why this might be missing? the unexpected claims stuff should be on the auth parameters, not the request object ones
 //		skipIfElementMissing("authorization_request_object", "claims", ConditionResult.INFO,
