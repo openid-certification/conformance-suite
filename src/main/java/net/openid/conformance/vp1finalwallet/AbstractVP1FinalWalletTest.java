@@ -180,8 +180,10 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 		clientIdPrefix = getVariant(VP1FinalWalletClientIdPrefix.class);
 		env.putString("client_id_scheme", clientIdPrefix.toString());
 
-		// As per ISO 18013-7 B.5.3 "Nonces shall have a minimum length of 16 bytes"
-		env.putInteger("requested_nonce_length", 16);
+		// As per ISO 18013-7 B.5.3 "Nonces shall have a minimum length of 16 bytes".
+		// Use a slightly longer value so the nonce comfortably passes the Shannon entropy
+		// check in the verifier tests (EnsureMinimumNonceEntropy, which requires 96 bits).
+		env.putInteger("requested_nonce_length", 24);
 
 		switch (responseMode) {
 			case DIRECT_POST:
