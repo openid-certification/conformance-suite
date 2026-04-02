@@ -12,6 +12,8 @@ import net.openid.conformance.condition.as.CheckForUnexpectedClaimsInClaimsParam
 import net.openid.conformance.condition.as.CheckForUnexpectedOpenIdClaims;
 import net.openid.conformance.condition.as.CheckForUnexpectedParametersInVpAuthorizationRequest;
 import net.openid.conformance.condition.as.CheckNoClientIdSchemeParameter;
+import net.openid.conformance.condition.as.CheckNoPresentationDefinitionInVpAuthorizationRequest;
+import net.openid.conformance.condition.as.CheckNoRedirectUriInVpAuthorizationRequest;
 import net.openid.conformance.condition.as.CheckNoScopeParameter;
 import net.openid.conformance.condition.as.CheckRequestClaimsParameterMemberValues;
 import net.openid.conformance.condition.as.CheckRequestClaimsParameterValues;
@@ -371,9 +373,9 @@ public abstract class AbstractVP1FinalVerifierTest extends AbstractTestModule {
 		// check redirect uri not present
 
 		callAndContinueOnFailure(EnsureValidResponseUriForAuthorizationEndpointRequest.class, ConditionResult.FAILURE,"OID4VP-1FINAL-8.2");
+		callAndContinueOnFailure(CheckNoRedirectUriInVpAuthorizationRequest.class, ConditionResult.FAILURE, "OID4VP-1FINAL-8.2");
+		callAndContinueOnFailure(CheckNoPresentationDefinitionInVpAuthorizationRequest.class, ConditionResult.WARNING);
 
-		// FIXME: validate rest of request
-		// FIXME: validate client_metadata
 		callAndContinueOnFailure(VP1FinalCheckForUnexpectedParametersInVpClientMetadata.class, ConditionResult.WARNING, "OID4VP-1FINAL-5.1");
 		callAndContinueOnFailure(VP1FinalValidateVpFormatsSupportedInClientMetadata.class, ConditionResult.FAILURE, "OID4VP-1FINALA-B.2.2", "OID4VP-1FINALA-B.3.4");
 
