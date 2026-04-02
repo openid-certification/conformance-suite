@@ -1,5 +1,6 @@
 package net.openid.conformance.fapiciba.rp;
 
+import net.openid.conformance.condition.as.AustraliaConnectIdAddTxnToIdTokenClaims;
 import net.openid.conformance.condition.as.AustraliaConnectIdCheckForFAPI2ClaimsInRequestObject;
 import net.openid.conformance.condition.as.AustraliaConnectIdEnsureRequestObjectContainsNoAcrClaims;
 import net.openid.conformance.condition.as.AustraliaConnectIdEnsureRequestObjectContainsTrustFramework;
@@ -8,6 +9,7 @@ import net.openid.conformance.condition.as.AustraliaConnectIdEnsureVerifiedClaim
 import net.openid.conformance.condition.as.AustraliaConnectIdValidateRequestObjectExp;
 import net.openid.conformance.condition.as.AustraliaConnectIdValidateRequestObjectNBFClaim;
 import net.openid.conformance.condition.as.AustraliaConnectIdValidateRequestObjectPurpose;
+import net.openid.conformance.condition.as.LoadRequestedIdTokenClaims;
 
 public class ConnectIdAuCibaRPProfileBehavior extends FAPICIBARPProfileBehavior {
 
@@ -27,6 +29,13 @@ public class ConnectIdAuCibaRPProfileBehavior extends FAPICIBARPProfileBehavior 
 		module.callCondition(AustraliaConnectIdCheckForFAPI2ClaimsInRequestObject.class);
 		module.callCondition(AustraliaConnectIdEnsureVerifiedClaimsInRequestObject.class);
 		module.callCondition(AustraliaConnectIdEnsureRequestObjectContainsTrustFramework.class);
+	}
+
+	@Override
+	public void applyProfileSpecificIdTokenClaims() {
+		super.applyProfileSpecificIdTokenClaims();
+		module.callCondition(LoadRequestedIdTokenClaims.class);
+		module.callCondition(AustraliaConnectIdAddTxnToIdTokenClaims.class);
 	}
 
 }
