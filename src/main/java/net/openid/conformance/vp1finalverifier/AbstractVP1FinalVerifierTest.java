@@ -462,18 +462,11 @@ public abstract class AbstractVP1FinalVerifierTest extends AbstractTestModule {
 
 		switch (getVariant(VP1FinalVerifierCredentialFormat.class)) {
 			case SD_JWT_VC -> {
-				callAndStopOnFailure(CreateSdJwtKbCredential.class);
+				createSdJwtCredential();
 			}
 			case ISO_MDL -> {
 				callAndStopOnFailure(CreateMDocGeneratedNonce.class);
-				switch (responseMode) {
-					case DIRECT_POST:
-						callAndStopOnFailure(CreateVP1FinalVerifierIsoMdocRedirectSessionTranscriptUnencrypted.class);
-						break;
-					case DIRECT_POST_JWT:
-						callAndStopOnFailure(CreateVP1FinalVerifierIsoMdocRedirectSessionTranscriptEncrypted.class);
-						break;
-				}
+				createIsoMdlSessionTranscript();
 				callAndStopOnFailure(CreateMdocCredential.class);
 			}
 		}
@@ -502,6 +495,21 @@ public abstract class AbstractVP1FinalVerifierTest extends AbstractTestModule {
 		return viewToReturn;
 	}
 
+	protected void createSdJwtCredential() {
+		callAndStopOnFailure(CreateSdJwtKbCredential.class);
+	}
+
+	protected void createIsoMdlSessionTranscript() {
+		switch (responseMode) {
+			case DIRECT_POST:
+				callAndStopOnFailure(CreateVP1FinalVerifierIsoMdocRedirectSessionTranscriptUnencrypted.class);
+				break;
+			case DIRECT_POST_JWT:
+				callAndStopOnFailure(CreateVP1FinalVerifierIsoMdocRedirectSessionTranscriptEncrypted.class);
+				break;
+		}
+	}
+
 	protected void sendAuthorizationResponseToResponseUri() {
 		switch (responseMode) {
 			case DIRECT_POST:
@@ -514,6 +522,10 @@ public abstract class AbstractVP1FinalVerifierTest extends AbstractTestModule {
 		callAndStopOnFailure(CallDirectPostEndpoint.class);
 
 		call(exec().mapKey("endpoint_response", "direct_post_response"));
+		validateDirectPostEndpointResponse();
+	}
+
+	protected void validateDirectPostEndpointResponse() {
 		callAndContinueOnFailure(EnsureHttpStatusCodeIs200.class, ConditionResult.FAILURE, "OID4VP-1FINAL-8.2");
 		callAndContinueOnFailure(EnsureContentTypeJson.class, ConditionResult.FAILURE, "OID4VP-1FINAL-8.2");
 		callAndContinueOnFailure(ValidateDirectPostResponse.class, ConditionResult.WARNING, "OID4VP-1FINAL-8.2");

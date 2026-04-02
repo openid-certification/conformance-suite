@@ -44,12 +44,15 @@ public abstract class AbstractCreateSdJwtCredential extends AbstractCondition {
 	}
 
 	public String keyBindingJwt(ECKey privateKey, String aud, String nonce, String sdHash) {
+		return keyBindingJwtWithIat(privateKey, aud, nonce, sdHash, Instant.now().getEpochSecond());
+	}
+
+	public String keyBindingJwtWithIat(ECKey privateKey, String aud, String nonce, String sdHash, long iat) {
 		// as per https://www.ietf.org/archive/id/draft-ietf-oauth-selective-disclosure-jwt-14.html#section-4.3
 		JWSHeader header = new JWSHeader.Builder(JWSAlgorithm.ES256).type(new JOSEObjectType("kb+jwt")).build();
 
 		Map<String, Object> claims = new HashMap<>();
-		Instant iat = Instant.now();
-		claims.put("iat", iat.getEpochSecond());
+		claims.put("iat", iat);
 		claims.put("aud", aud);
 		claims.put("nonce", nonce);
 		claims.put("sd_hash", sdHash);
