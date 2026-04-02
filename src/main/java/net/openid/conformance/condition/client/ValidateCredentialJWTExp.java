@@ -1,4 +1,4 @@
-package net.openid.conformance.vci10issuer.condition;
+package net.openid.conformance.condition.client;
 
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PreEnvironment;
@@ -8,20 +8,22 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
 
-public class VCICheckExpClaimInCredential extends AbstractCondition {
+public class ValidateCredentialJWTExp extends AbstractCondition {
+
+	private static final int timeSkewMillis = 5 * 60 * 1000; // 5 minute allowable skew for testing
 
 	@Override
-	@PreEnvironment(required = { "sdjwt" } )
+	@PreEnvironment(required = { "sdjwt" })
 	public Environment evaluate(Environment env) {
 
-		Instant now = Instant.now(); // to check timestamps
+		Instant now = Instant.now();
 
 		Long exp = env.getLong("sdjwt", "credential.claims.exp");
 		if (exp == null) {
-			logSuccess("No 'exp' claim to check");
+			log("'exp' is not present");
 			return env;
 		}
-		if (now.isAfter(Instant.ofEpochSecond(exp))) {
+		if (now.minusMillis(timeSkewMillis).isAfter(Instant.ofEpochSecond(exp))) {
 			throw error("Credential 'exp' has expired", args("expires-at", new Date(exp * 1000L), "now", now));
 		}
 		if (Instant.ofEpochSecond(exp).isAfter(now.plus(50 * 365, ChronoUnit.DAYS))) {
@@ -31,6 +33,5 @@ public class VCICheckExpClaimInCredential extends AbstractCondition {
 
 		logSuccess("Credential 'exp' passed validation checks");
 		return env;
-
 	}
 }

@@ -69,7 +69,7 @@ import net.openid.conformance.variant.VCICredentialEncryption;
 import net.openid.conformance.variant.VCIGrantType;
 import net.openid.conformance.vci10issuer.condition.CheckCacheControlHeaderContainsNoStore;
 import net.openid.conformance.vci10issuer.condition.VCIAddCredentialResponseEncryptionToRequest;
-import net.openid.conformance.vci10issuer.condition.VCICheckExpClaimInCredential;
+import net.openid.conformance.condition.client.ValidateCredentialJWTExp;
 import net.openid.conformance.vci10issuer.condition.VCICheckForDeferredCredentialResponse;
 import net.openid.conformance.vci10issuer.condition.VCICheckKeyAttestationJwksIfKeyAttestationIsRequired;
 import net.openid.conformance.vci10issuer.condition.VCICreateCredentialRequest;
@@ -847,7 +847,7 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractFAPI2SPFinalSe
 			if (fapi2Profile == FAPI2FinalOPProfile.VCI_HAIP) {
 				callAndContinueOnFailure(VCIValidateCredentialValidityInfoIsPresent.class,
 					ConditionResult.WARNING, "HAIP-6.1-2.2");
-				callAndContinueOnFailure(VCICheckExpClaimInCredential.class,
+				callAndContinueOnFailure(ValidateCredentialJWTExp.class,
 					ConditionResult.FAILURE, "HAIP-6.1-2.2");
 				callAndContinueOnFailure(VCIValidateCredentialValidityByStatusListIfPresent.class,
 					ConditionResult.FAILURE, "HAIP-6.1-2.4", "OTSL-6.2");
