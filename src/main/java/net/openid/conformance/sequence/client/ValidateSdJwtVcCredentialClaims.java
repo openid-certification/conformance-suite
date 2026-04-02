@@ -7,6 +7,7 @@ import net.openid.conformance.condition.client.ValidateCredentialJWTExp;
 import net.openid.conformance.condition.client.ValidateCredentialJWTHeaderTyp;
 import net.openid.conformance.condition.client.ValidateCredentialJWTIat;
 import net.openid.conformance.condition.client.ValidateCredentialJWTIssIsHttpsUri;
+import net.openid.conformance.condition.client.ValidateCredentialJWTNbf;
 import net.openid.conformance.condition.client.ValidateCredentialJWTVct;
 import net.openid.conformance.condition.client.ValidateCredentialValidityByStatusListIfPresent;
 import net.openid.conformance.condition.client.ValidateCredentialValidityInfoIsPresent;
@@ -51,6 +52,8 @@ public class ValidateSdJwtVcCredentialClaims extends AbstractConditionSequence {
 			ConditionResult.FAILURE, "SDJWTVC-3.2.2.2");
 		callAndContinueOnFailure(ValidateCredentialJWTIat.class,
 			ConditionResult.FAILURE, "SDJWTVC-3.2.2.2-5.2");
+		callAndContinueOnFailure(ValidateCredentialJWTNbf.class,
+			ConditionResult.FAILURE, "SDJWTVC-3.2.2.2");
 		callAndContinueOnFailure(ValidateCredentialJWTExp.class,
 			ConditionResult.FAILURE, "SDJWTVC-3.2.2.2");
 		callAndContinueOnFailure(ValidateCredentialJWTHeaderTyp.class,
