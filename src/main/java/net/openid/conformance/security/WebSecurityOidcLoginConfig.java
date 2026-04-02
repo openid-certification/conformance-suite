@@ -45,6 +45,7 @@ import org.springframework.security.oauth2.core.oidc.OidcUserInfo;
 import org.springframework.security.oauth2.core.oidc.user.OidcUserAuthority;
 import org.springframework.security.web.DefaultRedirectStrategy;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
 import org.springframework.security.web.authentication.ott.RedirectOneTimeTokenGenerationSuccessHandler;
@@ -235,10 +236,21 @@ class WebSecurityOidcLoginConfig {
 				.authenticated();
 		}); //
 
+		AuthenticationFailureHandler loginFailureHandler = (request, response, exception) -> {
+			String newUrl = new DefaultUriBuilderFactory()
+				.uriString("/login.html")
+				.queryParam("error", exception.getMessage())
+				.build()
+				.toString();
+
+			response.sendRedirect(newUrl);
+		};
+
 		Pattern redirectUriPattern = Pattern.compile(Pattern.quote(baseURL) + "/(log|plan)-detail\\.html\\?(log|plan)=[A-Za-z0-9]+$");
 		http.oneTimeTokenLogin(ott -> {
 			ott.authenticationProvider(new PrivateLinkOneTimeTokenAuthenticationProvider(oneTimeTokenService, privateLinkUserDetailsService));
 			ott.tokenGenerationSuccessHandler(new RedirectOneTimeTokenGenerationSuccessHandler("/index.html"));
+			ott.authenticationFailureHandler(loginFailureHandler);
 			ott.authenticationSuccessHandler(new AuthenticationSuccessHandler() {
 				@Override
 				public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
@@ -274,15 +286,7 @@ class WebSecurityOidcLoginConfig {
 		});
 
 		http.oauth2Login(oauth2Login -> {
-			oauth2Login.failureHandler((request, response, exception) -> {
-				String newUrl = new DefaultUriBuilderFactory()
-					.uriString("/login.html")
-					.queryParam("error", exception.getMessage())
-					.build()
-					.toString();
-
-				response.sendRedirect(newUrl);
-			});
+			oauth2Login.failureHandler(loginFailureHandler);
 			oauth2Login.userInfoEndpoint(userInfoCustomization -> {
 				userInfoCustomization.userAuthoritiesMapper(authorities -> {
 

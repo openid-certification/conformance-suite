@@ -418,6 +418,8 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
                     }
                 }
 
+                var readonly = public || !FAPI_UI.currentUser || FAPI_UI.currentUser.isGuest;
+
                 // see if we've already rendered this
                 var existing = document.querySelectorAll(`#logDetail .header [data-instance-id='${testId}']`);
 
@@ -426,6 +428,7 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
                         FAPI_UI.logTemplates.LOG_START({
                             test: data,
                             public: public,
+                            readonly: readonly,
                             variant: FAPI_UI.formatVariant(data.variant)
                         });
 
@@ -441,11 +444,6 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
                             evt.preventDefault();
                             window.open('/upload.html?log=' + encodeURIComponent(testId));
                         };
-
-                        // Hide this button for guests
-                        if (FAPI_UI.currentUser.isGuest) {
-                            document.getElementById('uploadBtn').style.display = 'none';
-                        }
                     }
 
                     FAPI_UI.setupPrivateLinkSharing('/api/info/' + encodeURIComponent(testId) + '/share');
@@ -461,13 +459,6 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
                                 runTest(data.testName, data.variant, data.planId, data.config, testId);
                             }
                         };
-
-                        // Hide this button for guests
-                        if (FAPI_UI.currentUser.isGuest) {
-                            document.getElementById('reloadBtn').style.display = 'none';
-                            // Disable to ensure keyboard shortcut has no effect.
-                            document.getElementById('reloadBtn').disabled  = true;
-                        }
                     }
 
                     // wire up configuration button
@@ -483,23 +474,16 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
                         };
                     }
 
-                    if (!public) {
-                        if (document.getElementById('editConfigBtn') !== null) {
-                            document.getElementById('editConfigBtn').onclick = function(evt) {
-                                evt.preventDefault();
-                                if (data.planId) {
-                                    window.location.assign('/schedule-test.html?edit-plan=' + encodeURIComponent(data.planId));
-                                } else {
-                                    window.location.assign('/schedule-test.html?edit-test=' + encodeURIComponent(data.testId));
-                                }
-                            };
-                            document.getElementById('editConfigBtn').style.display = '';
-                        }
-
-                        // Hide this button for guests
-                        if (FAPI_UI.currentUser.isGuest) {
-                            document.getElementById('editConfigBtn').style.display = 'none';
-                        }
+                    if (document.getElementById('editConfigBtn') !== null) {
+                        document.getElementById('editConfigBtn').onclick = function(evt) {
+                            evt.preventDefault();
+                            if (data.planId) {
+                                window.location.assign('/schedule-test.html?edit-plan=' + encodeURIComponent(data.planId));
+                            } else {
+                                window.location.assign('/schedule-test.html?edit-test=' + encodeURIComponent(data.testId));
+                            }
+                        };
+                        document.getElementById('editConfigBtn').style.display = '';
                     }
 
                     // wire up publish button
@@ -511,11 +495,6 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
                             var modal     = bootstrap.Modal.getOrCreateInstance(myModalEl);
                             modal.show();
                         };
-
-                        // Hide this button for guests
-                        if (FAPI_UI.currentUser.isGuest) {
-                            document.getElementById('publishBtn').style.display = 'none';
-                        }
                     }
 
                     if (document.getElementById('stopBtn') !== null) {
@@ -585,10 +564,6 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
                             });
                         };
 
-                        // Hide this button for guests
-                        if (FAPI_UI.currentUser.isGuest) {
-                            document.getElementById('stopBtn').style.display = 'none';
-                        }
                     }
 
                     if (document.getElementById('startBtn') !== null) {
@@ -656,10 +631,6 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
                             });
                         };
 
-                        // Hide this button for guests
-                        if (FAPI_UI.currentUser.isGuest) {
-                            document.getElementById('startBtn').style.display = 'none';
-                        }
                     }
 
                     if (data.planId) {
@@ -670,7 +641,7 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
                         document.getElementById('planBtn').style.display = '';
                     }
 
-                    if (!public && data.planId) {
+                    if (!readonly && data.planId) {
                         fetch('/api/plan/' + encodeURIComponent(data.planId))
                         .then((response) => {
                             if (!response.ok) {
@@ -780,15 +751,7 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
                                 }
 
                                 if (document.getElementById('nextPlanBtn') !== null) {
-                                    // Hide this button for guests
-                                    if (FAPI_UI.currentUser.isGuest) {
-                                        document.getElementById('nextPlanBtn').style.display = 'none';
-                                        // Disable to ensure keyboard shortcut has no effect.
-                                        document.getElementById('nextPlanBtn').disabled  = true;
-                                    }
-                                    else {
-                                        document.getElementById('nextPlanBtn').style.display = '';
-                                    }
+                                    document.getElementById('nextPlanBtn').style.display = '';
                                 }
                             }
 
@@ -915,9 +878,8 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
                         };
                     }
 
-                    // Prevent guests fom clicking on the openid icon as the destination is prohibited.
-                    if (FAPI_UI.currentUser.isGuest) {
-                            document.getElementById('openIdImage').href = "javascript:void(0)";
+                    if (readonly) {
+                        document.getElementById('openIdImage').href = "javascript:void(0)";
                     }
                 }
 

@@ -71,18 +71,18 @@
                         <div class="d-grid gap-1">
                             <% if (!public) { %>
                                 <button class="btn btn-sm btn-light bg-gradient border border-secondary" id="showConfigBtn"><span class="bi bi-wrench-adjustable"></span> View Config</button>
-                                <% if (FAPI_UI.currentUser && !FAPI_UI.currentUser.isGuest) { %>
-                                    <a href="schedule-test.html?edit-plan=<%- plan._id %>" class="btn btn-sm btn-light bg-gradient border border-secondary" title="Create a new test plan based on the configuration used in this one"><span class="bi bi-pencil-square"></span> Edit configuration</a>
-                                <% } %>
+                            <% } %>
+                            <% if (!readonly) { %>
+                                <a href="schedule-test.html?edit-plan=<%- plan._id %>" class="btn btn-sm btn-light bg-gradient border border-secondary" title="Create a new test plan based on the configuration used in this one"><span class="bi bi-pencil-square"></span> Edit configuration</a>
                             <% } %>
                             <% if (!public || plan.publish == "everything") { %>
                                 <% if (FAPI_UI.currentUser && FAPI_UI.currentUser.isAdmin) { %>
                                     <button class="btn btn-sm btn-light bg-gradient border border-secondary" id="downloadAllBtn"><span class="bi bi-save2"></span> Download all Logs</button>
                                 <% } %>
                             <% } %>
-                            <% if (!public) { %>
+                            <% if (!readonly) { %>
                                 <% if (!plan.publish) { %>
-                                    <% if (FAPI_UI.currentUser && FAPI_UI.currentUser.isAdmin) { %>
+                                    <% if (FAPI_UI.currentUser.isAdmin) { %>
                                         <button class="btn btn-sm btn-light bg-gradient border border-secondary" data-publish="summary"><span class="bi bi-bookmarks"></span> Publish summary</button>
                                         <button class="btn btn-sm btn-light bg-gradient border border-secondary" id="publishBtn"><span class="bi bi-bookmarks"></span> Publish everything</button>
                                     <% } %>
@@ -90,19 +90,15 @@
                                     <% if (FAPI_UI.currentUser.isAdmin) { %>
                                         <button class="btn btn-sm btn-light bg-gradient border border-secondary" id="unpublishBtn" data-publish=""><span class="bi bi-slash-circle"></span> Unpublish</button>
                                     <% } %>
-                                    <% if (! FAPI_UI.currentUser.isGuest) { %>
-                                        <a href="plan-detail.html?plan=<%- plan._id %>&public=true" class="btn btn-sm btn-info bg-gradient border border-secondary"><span class="bi bi-bookmarks"></span> Public link</a>
-                                    <% } %>
+                                    <a href="plan-detail.html?plan=<%- plan._id %>&public=true" class="btn btn-sm btn-info bg-gradient border border-secondary"><span class="bi bi-bookmarks"></span> Public link</a>
                                 <% } %>
-                                <% if (! FAPI_UI.currentUser.isGuest) { %>
-                                    <button class="btn btn-sm btn-light bg-gradient border border-secondary" id="btnShareLink"><span class="bi bi-bookmarks"></span> Private link</button>
-                                <% } %>
+                                <button class="btn btn-sm btn-light bg-gradient border border-secondary" id="btnShareLink"><span class="bi bi-bookmarks"></span> Private link</button>
                                 <button class="btn btn-sm btn-light bg-gradient border border-secondary" id="certificationPackageBtn" title="Publish and prepare certification submission package" disabled><span class="bi bi-save2"></span> Publish for certification</button>
                             <% } %>
                             <% if (plan.immutable && FAPI_UI.currentUser && FAPI_UI.currentUser.isAdmin) { %>
                             <button class="btn btn-sm btn-light bg-gradient border border-secondary" id="removeImmutableFlagBtn" data-immutable="false"><span class="bi bi-pencil-square"></span> Make plan Mutable</button>
                             <% } %>
-                            <% if (!plan.immutable && !public) { %>
+                            <% if (!plan.immutable && !readonly) { %>
                             <button class="btn btn-sm btn-danger bg-gradient border border-secondary" id="deleteMutablePlanBtn"><span class="bi bi-trash"></span> Delete plan</button>
                             <% } %>
                         </div>
@@ -119,7 +115,7 @@
                 </div>
                 <div class="col-md-2">
                     <div class="d-grid gap-1">
-                        <% if (!public && !plan.immutable && ! FAPI_UI.currentUser.isGuest) { %>
+                        <% if (!readonly && !plan.immutable) { %>
                         <button class="btn btn-sm btn-light bg-gradient border border-secondary startBtn" data-module="<%- module.testModule %>" data-variant="<%- JSON.stringify(module.variant) %>"><span class="bi bi-play-fill"></span> Run Test</button>
                         <% } %>
                         <a class="btn btn-sm btn-light bg-gradient border border-secondary collapse viewBtn" href="log-detail.html?log=<%- encodeURIComponent(lastInstance) %><%- public ? '&public=true' : '' %>"><span class="bi bi-file-earmark"></span> View Logs</a>

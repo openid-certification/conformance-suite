@@ -627,6 +627,11 @@ var FAPI_UI = {
 			// Inject modal HTML from template (once)
 			if (!document.getElementById('privateLinkExpirationModal')) {
 				document.body.insertAdjacentHTML('beforeend', FAPI_UI.logTemplates.PRIVATE_LINK_MODALS);
+
+				document.getElementById('privateLinkCopyBtn').onclick = function() {
+					var linkText = document.getElementById('privateLinkResultModalBody').textContent;
+					navigator.clipboard.writeText(linkText);
+				};
 			}
 
 			document.getElementById('btnShareLink').onclick = function(evt) {
@@ -662,10 +667,10 @@ var FAPI_UI = {
 							return;
 						}
 
-						modal.toggle();
+						modal.hide();
 
 						let uri = shareUri + '?exp=' + encodeURIComponent(expiresInDays);
-						fetch(uri, {
+						let fetchPromise = fetch(uri, {
 							method: "POST",
 							headers: {
 								"Content-Type": "application/json",
@@ -673,37 +678,49 @@ var FAPI_UI = {
 								if (!response.ok) {
 									return Promise.reject(response);
 								}
+								return response.json();
+							});
 
-								response.json().then(shareLink => {
-									navigator.clipboard.writeText(shareLink.link).then(
-										() => {
-											/* clipboard write succeeded */
-											var myModalEl = document.getElementById('privateLinkResultModal');
-											var modal     = bootstrap.Modal.getOrCreateInstance(myModalEl);
-
-											myModalEl.addEventListener('show.bs.modal', function (event) {
-												document.getElementById('privateLinkResultModalLabel').textContent = 'Private Link (Copied To Clipboard)';
-												document.getElementById('privateLinkResultModalBody').textContent = shareLink.link;
-												document.getElementById('privateLinkResultModalBodyMessage').textContent = shareLink.message;
-											}, { once: true })
-
-											modal.show();
-										},
-										() => {
-											/* clipboard write failed */
-											var myModalEl = document.getElementById('privateLinkResultModal');
-											var modal     = bootstrap.Modal.getOrCreateInstance(myModalEl);
-
-											myModalEl.addEventListener('show.bs.modal', function (event) {
-												document.getElementById('privateLinkResultModalLabel').textContent = 'Private Link';
-												document.getElementById('privateLinkResultModalBody').textContent = shareLink.link;
-												document.getElementById('privateLinkResultModalBodyMessage').textContent = shareLink.message;
-											}, { once: true })
-
-											modal.show();
-										},
-									);
+						// Start clipboard.write() synchronously within the click handler so
+						// Safari permits it. The ClipboardItem resolves its content from the
+						// fetch promise, which completes later.
+						var clipboardWritePromise = null;
+						try {
+							clipboardWritePromise = navigator.clipboard.write([
+								new ClipboardItem({
+									'text/plain': fetchPromise.then(shareLink =>
+										new Blob([shareLink.link], { type: 'text/plain' }))
 								})
+							]);
+						} catch (e) {
+							/* ClipboardItem not supported (e.g. older Firefox) */
+						}
+
+						fetchPromise.then(shareLink => {
+							var showResultModal = function(clipboardSucceeded) {
+								var myModalEl = document.getElementById('privateLinkResultModal');
+								var resultModal = bootstrap.Modal.getOrCreateInstance(myModalEl);
+
+								myModalEl.addEventListener('show.bs.modal', function (event) {
+									document.getElementById('privateLinkResultModalLabel').textContent =
+										clipboardSucceeded ? 'Private Link (Copied To Clipboard)' : 'Private Link';
+									document.getElementById('privateLinkResultModalBody').textContent = shareLink.link;
+									document.getElementById('privateLinkResultModalBodyMessage').textContent = shareLink.message;
+								}, { once: true });
+
+								resultModal.show();
+							};
+
+							if (clipboardWritePromise) {
+								clipboardWritePromise.then(
+									() => showResultModal(true),
+									() => showResultModal(false)
+								);
+							} else {
+								showResultModal(false);
+							}
+						}).catch(error => {
+							FAPI_UI.showError(error);
 						});
 					};
 				}
@@ -715,10 +732,6 @@ var FAPI_UI = {
 				modal.show();
 			};
 
-			// Hide this button for guests
-			if (FAPI_UI.currentUser.isGuest) {
-				document.getElementById('btnShareLink').style.display = 'none';
-			}
 		},
 
 		selectedVariant: undefined

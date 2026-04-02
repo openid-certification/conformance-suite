@@ -255,9 +255,10 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
                 return response.json();
             })
             .then((data) => {
+                var readonly = public || !FAPI_UI.currentUser || FAPI_UI.currentUser.isGuest;
                 document.getElementById('certificationPackageForm').setAttribute('action','/api/plan/'+planId+'/certificationpackage');
                 document.querySelectorAll('.content')?.forEach(function(element) {
-                    element.insertAdjacentHTML('beforeend', FAPI_UI.logTemplates.PLAN_START({ plan: data, public: public, variant: FAPI_UI.formatVariant(data.variant)}));
+                    element.insertAdjacentHTML('beforeend', FAPI_UI.logTemplates.PLAN_START({ plan: data, public: public, readonly: readonly, variant: FAPI_UI.formatVariant(data.variant)}));
                 });
 
                 if (document.getElementById('downloadAllBtn') != null) {
@@ -299,11 +300,6 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
                         var modal     = bootstrap.Modal.getOrCreateInstance(myModalEl);
                         modal.show();
                     };
-
-                    // Hide this button for guests
-                    if (FAPI_UI.currentUser.isGuest) {
-                        document.getElementById('certificationPackageBtn').style.display = 'none';
-                    }
                 }
 
                 if(document.querySelector('#deleteMutablePlanBtn')) {
@@ -312,18 +308,12 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
                         var modal     = bootstrap.Modal.getOrCreateInstance(myModalEl);
                         modal.show();
                     });
-
-                    // Hide this button for guests
-                    if (FAPI_UI.currentUser.isGuest) {
-                        document.querySelector('#deleteMutablePlanBtn').style.display = 'none';
-                    }
                 }
 
                 FAPI_UI.setupPrivateLinkSharing('/api/plan/' + encodeURIComponent(planId) + '/share');
 
-                // Prevent guests from clicking on the openid icon as the destination is prohibited.
-                if (FAPI_UI.currentUser.isGuest) {
-                        document.getElementById('openIdImage').href = "javascript:void(0)";
+                if (readonly) {
+                    document.getElementById('openIdImage').href = "javascript:void(0)";
                 }
 
                 document.querySelectorAll('[data-module]')?.forEach(function(element) {
