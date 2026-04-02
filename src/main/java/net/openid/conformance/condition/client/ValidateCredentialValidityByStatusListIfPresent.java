@@ -1,4 +1,4 @@
-package net.openid.conformance.vci10issuer.condition.statuslist;
+package net.openid.conformance.condition.client;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -20,7 +20,7 @@ import org.springframework.web.client.RestTemplate;
 import java.text.ParseException;
 import java.util.Map;
 
-public class VCIValidateCredentialValidityByStatusListIfPresent extends AbstractCondition {
+public class ValidateCredentialValidityByStatusListIfPresent extends AbstractCondition {
 
 	@Override
 	@PreEnvironment(required = {"sdjwt"})

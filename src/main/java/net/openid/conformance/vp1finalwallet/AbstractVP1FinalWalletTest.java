@@ -77,13 +77,8 @@ import net.openid.conformance.condition.client.SignRequestObjectIncludeX5cHeader
 import net.openid.conformance.condition.client.SignRequestObjectIncludeX5cHeaderIfAvailable;
 import net.openid.conformance.condition.client.ValidateAuthResponseContainsOnlyResponse;
 import net.openid.conformance.condition.client.ValidateClientJWKsPrivatePart;
-import net.openid.conformance.condition.client.ValidateCredentialCnfJwkIsPublicKey;
 import net.openid.conformance.condition.client.ValidateCredentialIsUnpaddedBase64Url;
-import net.openid.conformance.condition.client.ValidateCredentialJWTExp;
-import net.openid.conformance.condition.client.ValidateCredentialJWTHeaderTyp;
-import net.openid.conformance.condition.client.ValidateCredentialJWTIat;
-import net.openid.conformance.condition.client.ValidateCredentialJWTIssIsHttpsUri;
-import net.openid.conformance.condition.client.ValidateCredentialJWTVct;
+import net.openid.conformance.sequence.client.ValidateSdJwtVcCredentialClaims;
 import net.openid.conformance.condition.client.ValidateDCQLQuery;
 import net.openid.conformance.condition.client.ValidateJWEBodyDoesNotIncludeIssExpAud;
 import net.openid.conformance.condition.client.ValidateJWEHeaderAlgMatchesRequestedAlgorithm;
@@ -532,16 +527,8 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 				callAndStopOnFailure(ParseCredentialAsSdJwtKb.class, ConditionResult.FAILURE);
 
 				eventLog.startBlock(currentClientString() + "Verify credential JWT");
-				// as per https://www.ietf.org/id/draft-ietf-oauth-sd-jwt-vc-00.html#section-4.2.2.2 these must must not be selectively disclosed
-				callAndContinueOnFailure(ValidateCredentialJWTIssIsHttpsUri.class, ConditionResult.FAILURE, "SDJWTVC-3.2.2.2");
-				callAndContinueOnFailure(ValidateCredentialJWTIat.class, ConditionResult.FAILURE, "SDJWTVC-3.2.2.2-5.2");
-				// FIXME nbf
-				callAndContinueOnFailure(ValidateCredentialJWTExp.class, ConditionResult.FAILURE, "SDJWTVC-3.2.2.2");
-				callAndContinueOnFailure(ValidateCredentialCnfJwkIsPublicKey.class, ConditionResult.FAILURE, "SDJWT-4.1.2");
-				// cnf is otherwise checked when holder binding is checked below
-				callAndContinueOnFailure(ValidateCredentialJWTHeaderTyp.class, ConditionResult.FAILURE, "SDJWTVC-3.2.1");
-				callAndContinueOnFailure(ValidateCredentialJWTVct.class, ConditionResult.FAILURE, "SDJWTVC-3.2.2.2");
-				// FIXME status
+				call(new ValidateSdJwtVcCredentialClaims(true));
+				// cnf is also checked when holder binding is checked below
 
 				eventLog.startBlock(currentClientString() + "Verify key binding JWT");
 
