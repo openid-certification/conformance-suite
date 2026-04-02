@@ -44,8 +44,7 @@ import net.openid.conformance.condition.client.SetAuthorizationEndpointRequestRe
 import net.openid.conformance.condition.client.SetProtectedResourceUrlToSingleResourceEndpoint;
 import net.openid.conformance.condition.client.ValidateCredentialIsUnpaddedBase64Url;
 import net.openid.conformance.condition.client.ValidateMTLSCertificatesHeader;
-import net.openid.conformance.condition.client.ValidateMdocIssuerSignedSignature;
-import net.openid.conformance.condition.client.ValidateMdocMsoRevocationMechanism;
+import net.openid.conformance.sequence.client.ValidateMdocCredential;
 import net.openid.conformance.condition.common.RARSupport;
 import net.openid.conformance.fapi2spfinal.AbstractFAPI2SPFinalServerTestModule;
 import net.openid.conformance.openid.federation.CallCredentialIssuerNonceEndpoint;
@@ -817,10 +816,7 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractFAPI2SPFinalSe
 				ConditionResult.FAILURE, "OID4VCI-1FINALA-A.2.4");
 			callAndContinueOnFailure(ParseMdocCredentialFromVCIIssuance.class,
 				ConditionResult.FAILURE, "OID4VCI-1FINALA-A.2");
-			callAndContinueOnFailure(ValidateMdocIssuerSignedSignature.class,
-				ConditionResult.FAILURE, "OID4VCI-1FINALA-A.2");
-			callAndContinueOnFailure(ValidateMdocMsoRevocationMechanism.class,
-				ConditionResult.FAILURE, "HAIP-5.3.1");
+			call(new ValidateMdocCredential(true));
 		} else if (vciCredentialFormat == VCI1FinalCredentialFormat.SD_JWT_VC) {
 			callAndContinueOnFailure(ParseCredentialAsSdJwt.class,
 				ConditionResult.FAILURE, "SDJWT-4");
