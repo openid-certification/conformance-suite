@@ -1,6 +1,6 @@
 {
     "alias": "oidf-vp-test-verifier",
-    "description": "OID4VP RP against OP (wallet test - DCQL - SD-JWT negative - iat in past)",
+    "description": "OID4VP RP against OP (wallet test - DCQL - mdoc negative - invalid session transcript)",
     "server": {
         "authorization_endpoint": "{BASEURL}test/a/oidf-vp-test-wallet/authorize"
     },
@@ -14,21 +14,21 @@
             "credentials": [
                 {
                     "id": "my_credential",
-                    "format": "dc+sd-jwt",
+                    "format": "mso_mdoc",
                     "meta": {
-                        "vct_values": [
-                            "urn:eudi:pid:1"
-                        ]
+                        "doctype_value": "org.iso.7367.1.mVRC"
                     },
                     "claims": [
                         {
                             "path": [
-                                "given_name"
+                                "org.iso.7367.1",
+                                "vehicle_holder"
                             ]
                         },
                         {
                             "path": [
-                                "family_name"
+                                "org.iso.18013.5.1",
+                                "first_name"
                             ]
                         }
                     ]

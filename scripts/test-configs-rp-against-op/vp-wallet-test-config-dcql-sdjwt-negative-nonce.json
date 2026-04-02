@@ -14,21 +14,21 @@
             "credentials": [
                 {
                     "id": "my_credential",
-                    "format": "mso_mdoc",
+                    "format": "dc+sd-jwt",
                     "meta": {
-                        "doctype_value": "org.iso.7367.1.mVRC"
+                        "vct_values": [
+                            "urn:eudi:pid:1"
+                        ]
                     },
                     "claims": [
                         {
                             "path": [
-                                "org.iso.7367.1",
-                                "vehicle_holder"
+                                "given_name"
                             ]
                         },
                         {
                             "path": [
-                                "org.iso.18013.5.1",
-                                "first_name"
+                                "family_name"
                             ]
                         }
                     ]

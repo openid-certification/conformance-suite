@@ -53,7 +53,7 @@
         "variant": {
             "credential_format": "iso_mdl"
         },
-        "configuration-filename": "*vp-wallet-test-config-dcql-negative.json",
+        "configuration-filename": "*vp-wallet-test-config-dcql-mdoc-negative.json",
         "current-block": "Direct post endpoint",
         "condition": "ParseCredentialAsMdoc",
         "expected-result": "failure",

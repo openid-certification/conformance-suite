@@ -1,6 +1,6 @@
 {
     "alias": "oidf-vp-test-verifier",
-    "description": "OID4VP RP against OP (wallet test - DCQL)",
+    "description": "OID4VP RP against OP (wallet test - DCQL - mdoc)",
     "server": {
         "authorization_endpoint": "{BASEURL}test/a/oidf-vp-test-wallet/authorize"
     },
