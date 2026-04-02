@@ -443,10 +443,10 @@ def run_tests():
     runner.check_status("Public: published test log visible", resp, 200)
 
     resp = pub_client.get(f"{base_url}api/plan/{other_plan_id}?public=true")
-    runner.check_status_in("Public: unpublished plan not visible", resp, {404, 200})
+    runner.check_status("Public: unpublished plan not visible", resp, 404)
 
-    resp = pub_client.get(f"{base_url}plan-detail.html?public=true")
-    runner.check_status("Public: plan-detail page accessible", resp, 200)
+    resp = pub_client.get(f"{base_url}plan-detail.html?plan={plan_id}&public=true")
+    runner.check_status("Public: published plan-detail page accessible", resp, 200)
 
     # Without ?public=true, published plan still requires auth
     resp = pub_client.get(f"{base_url}api/plan/{plan_id}")

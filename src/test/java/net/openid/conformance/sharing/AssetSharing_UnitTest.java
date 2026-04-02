@@ -141,21 +141,32 @@ class AssetSharing_UnitTest {
 	}
 
 	@Test
-	void wrong_issuer_is_rejected() {
-		// Generate token with the normal baseURL
-		OneTimeToken token = assetSharing.generateSharingToken(PLAN_ID, null, OWNER, "7");
+	void wrong_issuer_is_rejected() throws Exception {
+		// Craft a JWT where audience matches but issuer does not,
+		// so the audience check passes and the issuer check is actually exercised.
+		JWK jwk = keyManager.getPrivateLinkKey();
+		JWSAlgorithm alg = new JWSAlgorithm(jwk.getAlgorithm().toString());
 
-		// Decode with a different baseURL -- issuer won't match
-		AssetSharing otherSharing = new AssetSharing();
-		ReflectionTestUtils.setField(otherSharing, "keyManager", keyManager);
-		ReflectionTestUtils.setField(otherSharing, "baseURL", "https://other-server.com");
-		otherSharing.init();
+		JWTClaimsSet claims = new JWTClaimsSet.Builder()
+			.jwtID("wrong-issuer-token")
+			.issueTime(Date.from(Instant.now()))
+			.expirationTime(Date.from(Instant.now().plus(Duration.ofDays(7))))
+			.audience(BASE_URL)
+			.issuer("https://wrong-issuer.com")
+			.claim("ct_plan_id", PLAN_ID)
+			.claim("ct_testplan_owner", OWNER)
+			.claim("ct_redirect_uri", BASE_URL + "/plan-detail.html?plan=" + PLAN_ID)
+			.build();
+
+		SignedJWT jwt = new SignedJWT(
+			new JWSHeader.Builder(alg).type(JOSEObjectType.JWT).keyID(jwk.getKeyID()).build(),
+			claims);
+		JWSSigner signer = new DefaultJWSSignerFactory().createJWSSigner(jwk, alg);
+		jwt.sign(signer);
 
 		BadCredentialsException ex = assertThrows(BadCredentialsException.class,
-			() -> otherSharing.decodeSharingToken(token.getTokenValue()));
-		// Audience is checked first; both fail when baseURL differs.
-		// This test verifies the issuer check exists by using the same key but different URL.
-		assertTrue(ex.getMessage().contains("audience") || ex.getMessage().contains("issuer"));
+			() -> assetSharing.decodeSharingToken(jwt.serialize()));
+		assertEquals("Invalid sharing token issuer", ex.getMessage());
 	}
 
 	@Test
