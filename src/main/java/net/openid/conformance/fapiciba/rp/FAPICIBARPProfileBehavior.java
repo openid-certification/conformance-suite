@@ -1,13 +1,13 @@
 package net.openid.conformance.fapiciba.rp;
 
 import net.openid.conformance.condition.Condition;
-import net.openid.conformance.testmodule.Environment;
+import net.openid.conformance.condition.as.AddACRClaimToIdTokenClaims;
 import net.openid.conformance.condition.as.ExtractServerSigningAlg;
-import net.openid.conformance.condition.client.AddCibaTokenDeliveryModePollToTokenDeliveryModesSupported;
 import net.openid.conformance.condition.as.FAPIAddTokenEndpointAuthSigningAlgValuesSupportedToServer;
 import net.openid.conformance.condition.as.GenerateIdTokenClaims;
-import net.openid.conformance.condition.as.AddACRClaimToIdTokenClaims;
 import net.openid.conformance.condition.as.SignIdToken;
+import net.openid.conformance.condition.client.AddCibaTokenDeliveryModePollToTokenDeliveryModesSupported;
+import net.openid.conformance.testmodule.Environment;
 
 public class FAPICIBARPProfileBehavior {
 
