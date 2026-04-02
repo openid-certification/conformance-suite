@@ -7,6 +7,7 @@ import jakarta.servlet.http.HttpSession;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.condition.as.AddAtHashToIdTokenClaims;
+import net.openid.conformance.condition.as.AddFAPIInteractionIdToUserInfoEndpointResponse;
 import net.openid.conformance.condition.as.AddIdTokenSigningAlgsToServerConfiguration;
 import net.openid.conformance.condition.as.AddJwksUriToServerConfiguration;
 import net.openid.conformance.condition.as.AddTLSClientAuthToServerConfiguration;
@@ -484,7 +485,9 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 	protected Object tokenEndpoint(String requestId) {
 		setStatus(Status.RUNNING);
 
-		call(exec().startBlock("Token endpoint").mapKey("token_endpoint_request", requestId));
+		call(exec().startBlock("Token endpoint")
+			.mapKey("token_endpoint_request", requestId)
+			.mapKey("incoming_request", requestId));
 
 		callAndStopOnFailure(CheckClientIdMatchesOnTokenRequestIfPresent.class, ConditionResult.FAILURE, "RFC6749-3.2.1");
 
@@ -520,26 +523,43 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 		issueAccessToken();
 		issueRefreshToken(); // rotate refresh token
 		env.removeNativeValue("id_token");
+
+		skipIfElementMissing("incoming_request", "headers.x-fapi-interaction-id", ConditionResult.INFO,
+			ExtractFapiInteractionIdHeader.class, ConditionResult.FAILURE, "FAPI1-BASE-6.2.2-5");
+
+		callAndStopOnFailure(CreateFapiInteractionIdIfNeeded.class, "FAPI1-BASE-6.2.1-11");
 		callAndStopOnFailure(CreateTokenEndpointResponse.class);
 
-		call(exec().unmapKey("token_endpoint_request").endBlock());
+		callAndStopOnFailure(AddFAPIInteractionIdToTokenEndpointResponse.class);
+
+		JsonObject headerJson = env.getObject("token_endpoint_response_headers");
+
+		call(exec().unmapKey("token_endpoint_request").unmapKey("incoming_request").endBlock());
 		setStatus(Status.WAITING);
 
-		return new ResponseEntity<Object>(env.getObject("token_endpoint_response"), HttpStatus.OK);
+		return new ResponseEntity<Object>(env.getObject("token_endpoint_response"), headersFromJson(headerJson), HttpStatus.OK);
 
 	}
 
 	protected Object clientCredentialsGrantType() {
 		callAndStopOnFailure(GenerateBearerAccessToken.class);
+
+		skipIfElementMissing("incoming_request", "headers.x-fapi-interaction-id", ConditionResult.INFO,
+			ExtractFapiInteractionIdHeader.class, ConditionResult.FAILURE, "FAPI1-BASE-6.2.2-5");
+
+		callAndStopOnFailure(CreateFapiInteractionIdIfNeeded.class, "FAPI1-BASE-6.2.1-11");
 		callAndStopOnFailure(CreateTokenEndpointResponse.class);
 
 		// this puts the client credentials specific token into its own box for later
 		callAndStopOnFailure(CopyAccessTokenToClientCredentialsField.class);
+		callAndStopOnFailure(AddFAPIInteractionIdToTokenEndpointResponse.class);
 
-		call(exec().unmapKey("token_endpoint_request").endBlock());
+		JsonObject headerJson = env.getObject("token_endpoint_response_headers");
+
+		call(exec().unmapKey("token_endpoint_request").unmapKey("incoming_request").endBlock());
 		setStatus(Status.WAITING);
 
-		return new ResponseEntity<Object>(env.getObject("token_endpoint_response"), HttpStatus.OK);
+		return new ResponseEntity<Object>(env.getObject("token_endpoint_response"), headersFromJson(headerJson), HttpStatus.OK);
 	}
 
 	protected Object cibaGrantType() {
@@ -553,14 +573,21 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 		} else {
 			callAndStopOnFailure(VerifyThatPollingIntervalIsRespected.class, ConditionResult.FAILURE, "CIBA-7.3");
 
+			skipIfElementMissing("incoming_request", "headers.x-fapi-interaction-id", ConditionResult.INFO,
+				ExtractFapiInteractionIdHeader.class, ConditionResult.FAILURE, "FAPI1-BASE-6.2.2-5");
+
+			callAndStopOnFailure(CreateFapiInteractionIdIfNeeded.class, "FAPI1-BASE-6.2.1-11");
 			statusCode = createTokenEndpointResponseForCiba();
 		}
 
+		callAndStopOnFailure(AddFAPIInteractionIdToTokenEndpointResponse.class);
 		tokenEndpointCallComplete();
 
-		call(exec().unmapKey("token_endpoint_request").endBlock());
+		JsonObject headerJson = env.getObject("token_endpoint_response_headers");
 
-		return new ResponseEntity<Object>(env.getObject("token_endpoint_response"), statusCode);
+		call(exec().unmapKey("token_endpoint_request").unmapKey("incoming_request").endBlock());
+
+		return new ResponseEntity<Object>(env.getObject("token_endpoint_response"), headersFromJson(headerJson), statusCode);
 	}
 
 	private HttpStatus createTokenEndpointResponseForCiba() {
@@ -668,7 +695,11 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 		callAndStopOnFailure(FilterUserInfoForScopes.class);
 		profileBehavior.applyProfileSpecificUserInfoChecks();
 
+		callAndStopOnFailure(CreateFapiInteractionIdIfNeeded.class, "FAPI1-BASE-6.2.1-11");
+		callAndStopOnFailure(AddFAPIInteractionIdToUserInfoEndpointResponse.class, "FAPI1-BASE-6.2.1-11");
+
 		JsonObject user = env.getObject("user_info_endpoint_response");
+		JsonObject headerJson = env.getObject("user_info_endpoint_response_headers");
 
 		callAndStopOnFailure(ClearAccessTokenFromRequest.class);
 
@@ -676,7 +707,7 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 
 		resourceEndpointCallComplete();
 
-		return new ResponseEntity<Object>(user, HttpStatus.OK);
+		return new ResponseEntity<Object>(user, headersFromJson(headerJson), HttpStatus.OK);
 	}
 
 	protected ResponseEntity<?> backchannelEndpoint(String requestId) {
@@ -709,16 +740,26 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 
 		skipIfElementMissing("backchannel_request_object", "claims.id_token_hint", ConditionResult.SUCCESS, IdTokenIsSignedWithServerKey.class, ConditionResult.FAILURE, "CIBA-7.1");
 
+		call(exec().mapKey("incoming_request", requestId));
+		skipIfElementMissing("incoming_request", "headers.x-fapi-interaction-id", ConditionResult.INFO,
+			ExtractFapiInteractionIdHeader.class, ConditionResult.FAILURE, "FAPI1-BASE-6.2.2-5");
+
+		callAndStopOnFailure(CreateFapiInteractionIdIfNeeded.class, "FAPI1-BASE-6.2.1-11");
+
 		HttpStatus httpStatus = createBackchannelResponse();
+		callAndStopOnFailure(AddFAPIInteractionIdToBackchannelEndpointResponse.class);
+
 		if(CIBAMode.PING.equals(cibaMode)) {
 			call(sequence(VerifyClientNotificationToken.class));
 			spawnThreadForPing();
 		}
 
-		call(exec().unmapKey("backchannel_endpoint_http_request").endBlock());
+		JsonObject headerJson = env.getObject("backchannel_endpoint_response_headers");
+
+		call(exec().unmapKey("backchannel_endpoint_http_request").unmapKey("incoming_request").endBlock());
 		backchannelEndpointCallComplete();
 
-		return new ResponseEntity<>(env.getObject("backchannel_endpoint_response"), httpStatus);
+		return new ResponseEntity<>(env.getObject("backchannel_endpoint_response"), headersFromJson(headerJson), httpStatus);
 	}
 
 	private void spawnThreadForPing() {
@@ -998,6 +1039,8 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 		callAndContinueOnFailure(EnsureIncomingRequestContentTypeIsApplicationJwt.class, ConditionResult.FAILURE, "BrazilOB-6.1-4");
 
 		callAndContinueOnFailure(ExtractXIdempotencyKeyHeader.class, ConditionResult.FAILURE);
+
+		callAndContinueOnFailure(CreateFapiInteractionIdIfNeeded.class, ConditionResult.FAILURE, "FAPI1-BASE-6.2.1-11");
 
 		//ensure aud equals endpoint url	"BrazilOB-6.1"
 		callAndContinueOnFailure(FAPIBrazilValidatePaymentInitiationRequestAud.class, ConditionResult.FAILURE, "BrazilOB-6.1-3");
