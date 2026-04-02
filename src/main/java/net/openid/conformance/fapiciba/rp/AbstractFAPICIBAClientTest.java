@@ -232,6 +232,7 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 	}
 
 	protected HttpStatus createBackchannelResponse() {
+		profileBehavior.applyProfileSpecificBackchannelEndpointResponse();
 		callAndStopOnFailure(CreateBackchannelEndpointResponse.class);
 		return HttpStatus.OK;
 	}
@@ -599,6 +600,8 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 			issueIdToken();
 
 			createFinalTokenResponse();
+
+			profileBehavior.applyProfileSpecificTokenEndpointChecks();
 
 			callAndContinueOnFailure(RedeemAuthReqId.class, ConditionResult.INFO);
 			return HttpStatus.OK;
