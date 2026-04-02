@@ -12,7 +12,7 @@ import java.io.IOException;
 public class CallDirectPostEndpoint extends AbstractCallOAuthEndpoint {
 
 	@Override
-	@PreEnvironment(required = { "authorization_request_object", "direct_post_request_form_parameters" })
+	@PreEnvironment(required = { "direct_post_request_form_parameters" })
 	@PostEnvironment(required = "direct_post_response")
 	public Environment evaluate(Environment env) {
 
@@ -31,7 +31,7 @@ public class CallDirectPostEndpoint extends AbstractCallOAuthEndpoint {
 
 		final String requestFormParametersEnvKey = "direct_post_request_form_parameters";
 		final String requestHeadersEnvKey = null;
-		final String responseUri = env.getString("authorization_request_object", "claims.response_uri");
+		final String responseUri = env.getString("effective_authorization_endpoint_request", "response_uri");
 		final String endpointName = "response uri endpoint";
 		final String envResponseKey = "direct_post_response";
 

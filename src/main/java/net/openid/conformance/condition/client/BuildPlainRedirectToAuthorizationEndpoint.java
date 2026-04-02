@@ -48,9 +48,8 @@ public class BuildPlainRedirectToAuthorizationEndpoint extends AbstractCondition
 					builder.queryParam(key, OIDFJSON.getString(element));
 				}
 			}
-			// for claims
+			// for JSON objects/arrays (claims, dcql_query, client_metadata, etc.)
 			else {
-
 				builder.queryParam(key, element.toString());
 			}
 
