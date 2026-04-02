@@ -8,6 +8,7 @@ from __future__ import print_function
 
 import asyncio
 import json
+import random
 import re
 import httpx
 import os
@@ -17,26 +18,49 @@ import traceback
 import zipfile
 
 
+class ServerUnavailableError(Exception):
+    """Raised when the server is unreachable after exhausting retries."""
+    pass
+
+
 class RetryTransport(httpx.HTTPTransport):
     def handle_request(
         self,
         request: httpx.Request,
     ) -> httpx.Response:
-        retry = 0
+        retry_timeout = float(os.getenv('CONFORMANCE_RETRY_TIMEOUT', '360'))
+        start_time = time.time()
+        deadline = start_time + retry_timeout
+        attempt = 0
         resp = None
-        while retry < 5:
-            retry += 1
-            if retry > 2:
-                time.sleep(1)
+        last_exception = None
+        while True:
+            attempt += 1
+            if attempt > 1:
+                delay = min(2 * 1.5 ** (attempt - 2), 15) + random.uniform(0, 1)
+                remaining = deadline - time.time()
+                if remaining <= 0:
+                    break
+                time.sleep(min(delay, remaining))
             try:
                 if resp is not None:
                     resp.close()
                 resp = super().handle_request(request)
+                last_exception = None
             except Exception as e:
-                print("httpx {} exception {} caught - retrying".format(request.url, e))
+                elapsed = time.time() - start_time
+                print("httpx {} exception {} caught (attempt {}, {:.0f}s elapsed) - retrying".format(
+                    request.url, e, attempt, elapsed))
+                last_exception = e
+                if time.time() >= deadline:
+                    raise
                 continue
             if resp.status_code >= 500 and resp.status_code < 600:
-                print("httpx {} 5xx response - retrying".format(request.url))
+                elapsed = time.time() - start_time
+                print("httpx {} {} response (attempt {}, {:.0f}s elapsed) - retrying".format(
+                    request.url, resp.status_code, attempt, elapsed))
+                if time.time() >= deadline:
+                    break
                 continue
             content_type = resp.headers.get("Content-Type")
             if content_type is not None:
@@ -48,8 +72,12 @@ class RetryTransport(httpx.HTTPTransport):
                     except Exception as e:
                         traceback.print_exc()
                         print("httpx {} response not decodable as json '{}' - retrying".format(request.url, e))
+                        if time.time() >= deadline:
+                            break
                         continue
             break
+        if last_exception is not None:
+            raise last_exception
         return resp
 
 class Conformance(object):
@@ -174,24 +202,30 @@ class Conformance(object):
             raise Exception("create_test_from_plan failed - HTTP {:d} {}".format(response.status_code, response.content))
         return response.json()
 
+    def _request(self, method, label, expected_status, **kwargs):
+        """Make an HTTP request, raising ServerUnavailableError on connection failures or 502."""
+        try:
+            response = method(**kwargs)
+        except Exception as e:
+            raise ServerUnavailableError("{} failed - {}".format(label, e)) from e
+        if response.status_code == 502:
+            raise ServerUnavailableError("{} failed - HTTP {:d} {}".format(label, response.status_code, response.content))
+        if response.status_code != expected_status:
+            raise Exception("{} failed - HTTP {:d} {}".format(label, response.status_code, response.content))
+        return response
+
     async def create_test_from_plan_with_variant(self, plan_id, test_name, variant):
         api_url = '{0}api/runner'.format(self.api_url_base)
         payload = {'test': test_name, 'plan': plan_id}
         if variant != None:
             payload['variant'] = json.dumps(variant)
-        response = self.httpclient.post(api_url, params=payload)
-
-        if response.status_code != 201:
-            raise Exception("create_test_from_plan failed - HTTP {:d} {}".format(response.status_code, response.content))
-        return response.json()
+        return self._request(self.httpclient.post, "create_test_from_plan", 201,
+                             url=api_url, params=payload).json()
 
     async def get_module_info(self, module_id):
         api_url = '{0}api/info/{1}'.format(self.api_url_base, module_id)
-        response = self.httpclient.get(api_url)
-
-        if response.status_code != 200:
-            raise Exception("get_module_info failed - HTTP {:d} {}".format(response.status_code, response.content))
-        return response.json()
+        return self._request(self.httpclient.get, "get_module_info", 200,
+                             url=api_url).json()
 
     async def get_test_log(self, module_id):
         api_url = '{0}api/log/{1}'.format(self.api_url_base, module_id)
@@ -203,11 +237,8 @@ class Conformance(object):
 
     async def start_test(self, module_id):
         api_url = '{0}api/runner/{1}'.format(self.api_url_base, module_id)
-        response = self.httpclient.post(api_url)
-
-        if response.status_code != 200:
-            raise Exception("start_test failed - HTTP {:d} {}".format(response.status_code, response.content))
-        return response.json()
+        return self._request(self.httpclient.post, "start_test", 200,
+                             url=api_url).json()
 
     async def wait_for_state(self, module_id, required_states, timeout=240):
         timeout_at = time.time() + timeout
@@ -232,6 +263,30 @@ class Conformance(object):
                 raise Exception(f"Test module {module_id} has moved to INTERRUPTED")
 
             await asyncio.sleep(float(os.getenv("CONFORMANCE_STATE_POLL_INTERVAL", 1)))
+
+    async def wait_for_server_ready(self, timeout=360):
+        """Poll until the server responds successfully, or raise after timeout.
+
+        Uses a plain httpx client (bypassing RetryTransport) so each poll is a
+        single quick request rather than blocking for the full retry budget.
+        """
+        start = time.time()
+        attempt = 0
+        api_url = '{0}api/runner/available'.format(self.api_url_base)
+        while True:
+            attempt += 1
+            try:
+                response = httpx.get(api_url, verify=False, timeout=10)
+                if response.status_code == 200:
+                    print('Server is ready after {:.0f}s ({} attempts)'.format(
+                        time.time() - start, attempt))
+                    return
+            except Exception as e:
+                pass
+            if time.time() - start >= timeout:
+                raise ServerUnavailableError(
+                    'Server did not become ready within {}s'.format(timeout))
+            await asyncio.sleep(10)
 
     async def close_client(self):
         self.httpclient.close()
