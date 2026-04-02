@@ -1,6 +1,5 @@
 package net.openid.conformance.authzen.condition;
 
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PostEnvironment;
@@ -17,13 +16,6 @@ public class ExtractAuthzenApiEndpointEvaluationsResponse extends AbstractCondit
 		JsonObject response = (JsonObject) env.getElementFromObject("authzen_api_endpoint_response", "body_json");
 		if (response == null) {
 			throw error("No json response from Authzen API endpoint");
-		}
-		JsonElement evaluations = response.get("evaluations");
-		if (evaluations == null) {
-			throw error("No evaluations object in API response", args("authzen_api_endpoint_response", response));
-		}
-		if(!evaluations.isJsonArray()) {
-			throw error("Evaluations object in API response is not an array", args("authzen_api_endpoint_response", response));
 		}
 		env.putObject("authzen_evaluations_endpoint_response", response);
 
