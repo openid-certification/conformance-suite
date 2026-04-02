@@ -706,7 +706,6 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 		call(exec().unmapKey("client_request"));
 
 		setStatus(Status.WAITING);
-		// FIXME add logs about the next step
 
 		if (path.equals(env.getString("browser_api_submit", "path"))) {
 			return handleBrowserApiSubmission(requestId);
@@ -776,6 +775,7 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 				throw new TestFailureException(getId(), "Wallet called request_uri after already sending a response");
 		}
 
+		eventLog.log(getName(), "Returned request object to wallet - waiting for it to call the response_uri");
 		setStatus(Status.WAITING);
 
 		return ResponseEntity.ok()
