@@ -42,7 +42,7 @@ public class OIDCCTestPlan implements TestPlan {
 					OIDCCScopeEmail.class,
 					OIDCCScopePhone.class,
 					OIDCCScopeProfile.class,
-					OIDCEnsureOtherScopeOrderSucceeds.class,
+					OIDCCAlternateHappyFlow.class,
 					OIDCCPromptLogin.class,
 					OIDCCPromptNoneLoggedIn.class,
 					OIDCCPromptNoneNotLoggedIn.class,

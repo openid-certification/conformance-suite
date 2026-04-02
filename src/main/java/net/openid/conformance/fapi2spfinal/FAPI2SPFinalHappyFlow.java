@@ -3,6 +3,7 @@ package net.openid.conformance.fapi2spfinal;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.AddCdrXCdsClientHeadersToResourceEndpointRequest;
+import net.openid.conformance.condition.client.BuildRequestObjectByReferenceRedirectToAuthorizationEndpointReorderedParams;
 import net.openid.conformance.condition.client.AddIpV6FapiCustomerIpAddressToResourceEndpointRequest;
 import net.openid.conformance.condition.client.CallProtectedResource;
 import net.openid.conformance.condition.client.ClearAcceptHeaderForResourceEndpointRequest;
@@ -165,6 +166,17 @@ public class FAPI2SPFinalHappyFlow extends AbstractFAPI2SPFinalMultipleClient {
 
 		if (!isSecondClient()) {
 			performAdditionalResourceEndpointTests();
+		}
+	}
+
+	@Override
+	protected void performPARRedirectWithRequestUri() {
+		if (isSecondClient()) {
+			eventLog.startBlock(currentClientString() + "Make request to authorization endpoint");
+			callAndStopOnFailure(BuildRequestObjectByReferenceRedirectToAuthorizationEndpointReorderedParams.class, "PAR-4");
+			performRedirect();
+		} else {
+			super.performPARRedirectWithRequestUri();
 		}
 	}
 

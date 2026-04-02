@@ -1,5 +1,6 @@
 package net.openid.conformance.vci10issuer;
 
+import net.openid.conformance.condition.client.BuildRequestObjectByReferenceRedirectToAuthorizationEndpointWithoutDuplicatesReorderedParams;
 import net.openid.conformance.condition.client.CreateRandomNonceValue;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.Command;
@@ -39,5 +40,16 @@ public class VCIIssuerHappyFlowMultipleClients extends AbstractVCIIssuerMultiple
 		}
 
 		return super.makeCreateAuthorizationRequestSteps();
+	}
+
+	@Override
+	protected void performPARRedirectWithRequestUri() {
+		if (isSecondClient()) {
+			eventLog.startBlock(currentClientString() + "Make request to authorization endpoint");
+			callAndStopOnFailure(BuildRequestObjectByReferenceRedirectToAuthorizationEndpointWithoutDuplicatesReorderedParams.class, "PAR-4");
+			performRedirect();
+		} else {
+			super.performPARRedirectWithRequestUri();
+		}
 	}
 }
