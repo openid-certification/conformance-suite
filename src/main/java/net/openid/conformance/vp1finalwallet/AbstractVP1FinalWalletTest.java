@@ -557,8 +557,6 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 				callAndContinueOnFailure(ValidateSdJwtKbSdHash.class, ConditionResult.FAILURE, "SDJWT-4.3");
 				callAndContinueOnFailure(CheckForUnexpectedClaimsInBindingJwt.class, ConditionResult.WARNING, "SDJWT-4.3");
 
-				// FIXME: verify disclosures have different nonces if there are multiple
-
 				// FIXME: verify sig on sd jwt (lissi use did:jwk though)
 
 				// FIXME: verify credential contents?

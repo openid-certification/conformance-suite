@@ -7,6 +7,7 @@ import net.openid.conformance.condition.client.ValidateCredentialJWTExp;
 import net.openid.conformance.condition.client.ValidateCredentialJWTHeaderTyp;
 import net.openid.conformance.condition.client.ValidateCredentialJWTIat;
 import net.openid.conformance.condition.client.ValidateCredentialJWTIssIsHttpsUri;
+import net.openid.conformance.condition.client.ValidateSdJwtDisclosureSaltsAreUnique;
 import net.openid.conformance.condition.client.ValidateCredentialJWTNbf;
 import net.openid.conformance.condition.client.ValidateCredentialJWTVct;
 import net.openid.conformance.condition.client.ValidateCredentialValidityByStatusListIfPresent;
@@ -64,6 +65,8 @@ public class ValidateSdJwtVcCredentialClaims extends AbstractConditionSequence {
 			callAndContinueOnFailure(ValidateCredentialCnfJwkIsPublicKey.class,
 				ConditionResult.FAILURE, "SDJWT-4.1.2");
 		}
+		callAndContinueOnFailure(ValidateSdJwtDisclosureSaltsAreUnique.class,
+			ConditionResult.FAILURE, "SDJWT-4.2.1");
 		callAndContinueOnFailure(ValidateCredentialValidityByStatusListIfPresent.class,
 			ConditionResult.FAILURE, "OTSL-6.2");
 		if (haip) {
