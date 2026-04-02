@@ -18,7 +18,7 @@ import sys
 from cryptography import x509
 from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import ec
-from cryptography.x509.oid import NameOID
+from cryptography.x509.oid import ExtensionOID, NameOID, ObjectIdentifier
 
 
 # Default SAN DNS entries matching the existing test cert
@@ -33,6 +33,10 @@ DEFAULT_SANS = [
 ] + [
     f"review-app-dev-branch-{i}.certification.openid.net" for i in range(1, 31)
 ]
+
+
+# ISO 18013-5 mdl Document Signer Extended Key Usage OID
+MDL_DS_OID = ObjectIdentifier("1.0.18013.5.1.2")
 
 
 def generate_jwk_with_cert(extra_hostnames: list[str]) -> dict:
@@ -67,6 +71,10 @@ def generate_jwk_with_cert(extra_hostnames: list[str]) -> dict:
         )
         .add_extension(
             x509.AuthorityKeyIdentifier.from_issuer_public_key(public_key),
+            critical=False,
+        )
+        .add_extension(
+            x509.ExtendedKeyUsage([MDL_DS_OID]),
             critical=False,
         )
         .sign(private_key, hashes.SHA256())
