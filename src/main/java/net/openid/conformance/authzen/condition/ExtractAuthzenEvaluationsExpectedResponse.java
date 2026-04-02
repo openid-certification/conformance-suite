@@ -18,7 +18,7 @@ public class ExtractAuthzenEvaluationsExpectedResponse extends AbstractCondition
 	@PostEnvironment(required = "authzen_evaluations_endpoint_expected_response")
 	public Environment evaluate(Environment env) {
 		if(!expectedResponse.has("evaluations")) {
-			throw error("The expected evaluations response does not contain an evaluationss element", args("expected", expectedResponse));
+			throw error("The expected evaluations response does not contain an evaluations element", args("expected", expectedResponse));
 		} else if(!expectedResponse.get("evaluations").isJsonArray()) {
 			throw error("The evaluations element in the expected response is not an array", args("expected", expectedResponse));
 		}
