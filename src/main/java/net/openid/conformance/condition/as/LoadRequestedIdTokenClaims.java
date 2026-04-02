@@ -78,11 +78,20 @@ public class LoadRequestedIdTokenClaims extends AbstractCondition {
 	protected static JsonObject verifiedValues = getUserInfoVerifiedClaimsValues();
 
 	@Override
-	@PreEnvironment(required = { CreateEffectiveAuthorizationPARRequestParameters.ENV_KEY, "id_token_claims" })
+	@PreEnvironment(required = { "id_token_claims" })
 	@PostEnvironment(required = "id_token_claims")
 	public Environment evaluate(Environment env) {
 
-		JsonElement requestedIdTokenClaimsElement = env.getElementFromObject(CreateEffectiveAuthorizationPARRequestParameters.ENV_KEY, "claims.id_token");
+		String envKey = CreateEffectiveAuthorizationRequestParameters.ENV_KEY;
+		if (env.containsObject("backchannel_request_object")) {
+			envKey = "backchannel_request_object";
+		}
+
+		JsonElement requestedIdTokenClaimsElement = env.getElementFromObject(envKey, "claims.id_token");
+		if (requestedIdTokenClaimsElement == null && envKey.equals("backchannel_request_object")) {
+			// for CIBA the claims are usually in claims.claims.id_token if coming from the request object
+			requestedIdTokenClaimsElement = env.getElementFromObject(envKey, "claims.claims.id_token");
+		}
 
 		if (requestedIdTokenClaimsElement == null) {
 			logSuccess("No ID Token claims requested");
