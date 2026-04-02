@@ -301,7 +301,7 @@ public abstract class AbstractVP1FinalVerifierTest extends AbstractTestModule {
 
 	protected void extractNonceFromAuthorizationEndpointRequestParameters() {
 		callAndStopOnFailure(ExtractNonceFromAuthorizationRequest.class, ConditionResult.FAILURE, "OID4VP-1FINAL-5.2");
-		// FIXME entropy / size check on nonce? valid characters? https://github.com/openid/OpenID4VP/issues/707
+		// nonce checks added in VP1FinalVerifierHappyFlow
 	}
 
 	protected void validateAuthorizationEndpointRequestParameters() {
