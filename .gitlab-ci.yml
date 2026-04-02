@@ -450,6 +450,40 @@ local_test:
       - mongo/data/mongodb-dump.gz
       - "*.zip"
 
+security_test:
+  stage: test
+  rules:
+    - if: $CI_COMMIT_BRANCH == "demo"
+      when: manual
+      allow_failure: true
+    - if: $CI_COMMIT_BRANCH
+      when: on_success
+  interruptible: true
+  image: docker:27.3.1
+  services:
+    - docker:dind
+  needs: ["build"]
+  variables:
+    DEVMODE: "false"
+  script:
+    - apk add docker-compose
+    - docker-compose -f $CI_PROJECT_DIR/docker-compose-localtest.yml pull
+    - docker-compose -f $CI_PROJECT_DIR/docker-compose-localtest.yml build --pull
+    - docker-compose -f $CI_PROJECT_DIR/docker-compose-localtest.yml up --detach nginx
+    - sleep 5
+    # Generate API token and insert into MongoDB for non-dev-mode testing
+    - export SECURITY_TOKEN=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | head -c 64)
+    - docker-compose -f $CI_PROJECT_DIR/docker-compose-localtest.yml exec -T mongodb mongosh mongodb://localhost/test_suite --quiet --eval "db.API_TOKEN.updateOne({_id:'ci_security_token'}, {\$set:{_id:'ci_security_token', owner:{sub:'ci',iss:'https://nginx:8443'}, info:{}, token:'$SECURITY_TOKEN', expires:null}}, {upsert:true})"
+    - docker-compose -f $CI_PROJECT_DIR/docker-compose-localtest.yml run --entrypoint "../conformance-suite/.gitlab-ci/run-tests.sh" -e CONFORMANCE_SERVER=https://nginx:8443/ -e CONFORMANCE_TOKEN=$SECURITY_TOKEN test --security-tests
+  after_script:
+    - docker-compose -f $CI_PROJECT_DIR/docker-compose-localtest.yml logs --tail="all" server > $CI_PROJECT_DIR/server-log.txt
+    - docker-compose -f $CI_PROJECT_DIR/docker-compose-localtest.yml down
+  artifacts:
+    access: developer
+    when: always
+    paths:
+      - server-log.txt
+
 # ---------------------------------------------------------------------------
 
 .auto_devops: &auto_devops |
