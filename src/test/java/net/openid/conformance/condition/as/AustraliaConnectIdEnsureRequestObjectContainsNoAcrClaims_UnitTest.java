@@ -1,0 +1,72 @@
+package net.openid.conformance.condition.as;
+
+import com.google.gson.JsonObject;
+import net.openid.conformance.condition.Condition.ConditionResult;
+import net.openid.conformance.condition.ConditionError;
+import net.openid.conformance.logging.TestInstanceEventLog;
+import net.openid.conformance.testmodule.Environment;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.Spy;
+import org.mockito.junit.jupiter.MockitoExtension;
+
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
+@ExtendWith(MockitoExtension.class)
+public class AustraliaConnectIdEnsureRequestObjectContainsNoAcrClaims_UnitTest {
+
+	@Spy
+	private Environment env = new Environment();
+
+	@Mock
+	private TestInstanceEventLog eventLog;
+
+	private AustraliaConnectIdEnsureRequestObjectContainsNoAcrClaims cond;
+
+	@BeforeEach
+	public void setUp() throws Exception {
+		cond = new AustraliaConnectIdEnsureRequestObjectContainsNoAcrClaims();
+		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
+	}
+
+	@Test
+	public void testEvaluate_noAcr() {
+		JsonObject requestObject = new JsonObject();
+		requestObject.add("claims", new JsonObject());
+		env.putObject("authorization_request_object", requestObject);
+
+		cond.execute(env);
+	}
+
+	@Test
+	public void testEvaluate_withAcrInClaims() {
+		JsonObject requestObject = new JsonObject();
+		JsonObject claims = new JsonObject();
+		JsonObject nestedClaims = new JsonObject();
+		JsonObject idToken = new JsonObject();
+		idToken.addProperty("acr", "some-acr");
+		nestedClaims.add("id_token", idToken);
+		claims.add("claims", nestedClaims);
+		requestObject.add("claims", claims);
+		env.putObject("authorization_request_object", requestObject);
+
+		assertThrows(ConditionError.class, () -> {
+			cond.execute(env);
+		});
+	}
+
+	@Test
+	public void testEvaluate_withAcrValues() {
+		JsonObject requestObject = new JsonObject();
+		JsonObject claims = new JsonObject();
+		claims.addProperty("acr_values", "some-values");
+		requestObject.add("claims", claims);
+		env.putObject("authorization_request_object", requestObject);
+
+		assertThrows(ConditionError.class, () -> {
+			cond.execute(env);
+		});
+	}
+}
