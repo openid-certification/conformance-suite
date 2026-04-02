@@ -27,7 +27,7 @@ public class ExtractAuthzenApiEndpointEvaluationsResponse extends AbstractCondit
 		}
 		env.putObject("authzen_evaluations_endpoint_response", response);
 
-		logSuccess("Extracted decision from API endpoint response",
+		logSuccess("Extracted evaluations from API endpoint response",
 			args("response", response));
 
 		return env;
