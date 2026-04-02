@@ -1,4 +1,4 @@
-package net.openid.conformance.vci10issuer.condition;
+package net.openid.conformance.condition.client;
 
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.AbstractCondition;
@@ -9,10 +9,10 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-public class VCIValidateCredentialValidityInfoIsPresent extends AbstractCondition {
+public class ValidateCredentialValidityInfoIsPresent extends AbstractCondition {
 
 	@Override
-	@PreEnvironment(required = { "sdjwt" } )
+	@PreEnvironment(required = { "sdjwt" })
 	public Environment evaluate(Environment env) {
 
 		JsonObject credentialClaims = env.getElementFromObject("sdjwt", "credential.claims").getAsJsonObject();
@@ -28,7 +28,7 @@ public class VCIValidateCredentialValidityInfoIsPresent extends AbstractConditio
 			}
 		}
 
-		logSuccess("Found credential validity period limited via claims " + String.join(",",limitingClaims.keySet()) + " claims", args("limiting_claims", limitingClaims));
+		logSuccess("Found credential validity period limited via claims " + String.join(",", limitingClaims.keySet()) + " claims", args("limiting_claims", limitingClaims));
 
 		return env;
 	}
