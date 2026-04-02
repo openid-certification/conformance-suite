@@ -21,6 +21,7 @@ import net.openid.conformance.condition.client.AddStateToAuthorizationEndpointRe
 import net.openid.conformance.condition.client.AddVP1FinalEncryptionParametersToClientMetadata;
 import net.openid.conformance.condition.client.AddVP1FinalIsoMdocClientMetadataToAuthorizationRequest;
 import net.openid.conformance.condition.client.AddVP1FinalSdJwtClientMetadataToAuthorizationRequest;
+import net.openid.conformance.condition.client.BuildPlainRedirectToAuthorizationEndpoint;
 import net.openid.conformance.condition.client.BuildRequestObjectByReferenceRedirectToAuthorizationEndpointWithoutDuplicates;
 import net.openid.conformance.condition.client.BuildVP1FinalBrowserDCAPIRequestSigned;
 import net.openid.conformance.condition.client.BuildVP1FinalBrowserDCAPIRequestUnsigned;
@@ -142,6 +143,12 @@ import org.springframework.http.ResponseEntity;
 	whenParameter = VPProfile.class,
 	hasValues = "haip"
 )
+@VariantNotApplicableWhen(
+	parameter = VP1FinalWalletRequestMethod.class,
+	values = {"url_query"},  // URL_QUERY uses HTTP redirects, not compatible with Browser API
+	whenParameter = VP1FinalWalletResponseMode.class,
+	hasValues = {"dc_api", "dc_api.jwt"}
+)
 public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerTestModule {
 	protected enum TestState {
 		INITIAL,
@@ -262,7 +269,7 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 		boolean encryptionKeyRequired = false;
 		// keys are needed for signed requests or encrypted responses
 		switch (requestMethod) {
-//				case URL_QUERY:
+			case URL_QUERY:
 			case REQUEST_URI_UNSIGNED:
 				break;
 			case REQUEST_URI_SIGNED:
@@ -318,7 +325,7 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 
 
 				switch (requestMethod) {
-					case REQUEST_URI_UNSIGNED -> {
+					case URL_QUERY, REQUEST_URI_UNSIGNED -> {
 						callAndStopOnFailure(BuildVP1FinalBrowserDCAPIRequestUnsigned.class);
 					}
 					case REQUEST_URI_SIGNED -> {
@@ -371,7 +378,7 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 				case DC_API_JWT:
 					browserApi = true;
 					switch (requestMethod) {
-						case REQUEST_URI_UNSIGNED -> {
+						case URL_QUERY, REQUEST_URI_UNSIGNED -> {
 							browserUnsigned = true;
 						}
 						case REQUEST_URI_SIGNED -> {
@@ -612,9 +619,9 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 	protected void createAuthorizationRedirect() {
 		ConditionSequence seq = null;
 		switch (requestMethod) {
-//			case URL_QUERY:
-//				callAndStopOnFailure(BuildPlainRedirectToAuthorizationEndpoint.class); // FIXME: doesn't work, Caught exception from test framework: [openid4vp://] is not a valid HTTP URL
-//				break;
+			case URL_QUERY:
+				callAndStopOnFailure(BuildPlainRedirectToAuthorizationEndpoint.class);
+				break;
 			case REQUEST_URI_UNSIGNED:
 				if (isBrowserApi()) {
 					// an alg none request object is only required for actual JAR (request_uri), for Browser API for

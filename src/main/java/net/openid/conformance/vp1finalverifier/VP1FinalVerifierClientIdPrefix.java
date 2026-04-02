@@ -9,6 +9,7 @@ import net.openid.conformance.variant.VariantParameter;
 )
 public enum VP1FinalVerifierClientIdPrefix {
 
+	REDIRECT_URI,
 	X509_SAN_DNS,
 	X509_HASH;
 

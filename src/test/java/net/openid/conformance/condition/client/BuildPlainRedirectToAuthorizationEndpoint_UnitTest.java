@@ -98,6 +98,26 @@ public class BuildPlainRedirectToAuthorizationEndpoint_UnitTest {
 	}
 
 	@Test
+	public void testEvaluate_openid4vpScheme() {
+		server.addProperty("authorization_endpoint", "openid4vp://");
+
+		authorizationEndpointRequest = new JsonObject();
+		authorizationEndpointRequest.addProperty("client_id", clientId);
+		authorizationEndpointRequest.addProperty("response_type", "vp_token");
+		authorizationEndpointRequest.addProperty("nonce", "abc123");
+
+		env.putObject("authorization_endpoint_request", authorizationEndpointRequest);
+
+		cond.execute(env);
+
+		String redirect = env.getString("redirect_to_authorization_endpoint");
+		assertThat(redirect).startsWith("openid4vp://");
+		assertThat(redirect).contains("client_id=" + clientId);
+		assertThat(redirect).contains("response_type=vp_token");
+		assertThat(redirect).contains("nonce=abc123");
+	}
+
+	@Test
 	public void testEscape() throws UnsupportedEncodingException {
 		authorizationEndpointRequest = new JsonObject();
 		authorizationEndpointRequest.addProperty("state", "x=y&z;foo bar+foo%20bar");

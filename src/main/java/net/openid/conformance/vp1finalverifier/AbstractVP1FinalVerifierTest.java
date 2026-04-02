@@ -13,6 +13,7 @@ import net.openid.conformance.condition.as.CheckForUnexpectedOpenIdClaims;
 import net.openid.conformance.condition.as.CheckForUnexpectedParametersInVpAuthorizationRequest;
 import net.openid.conformance.condition.as.CheckNoClientIdSchemeParameter;
 import net.openid.conformance.condition.as.CheckNoPresentationDefinitionInVpAuthorizationRequest;
+import net.openid.conformance.condition.as.EnsureClientIdMatchesResponseUri;
 import net.openid.conformance.condition.as.CheckNoRedirectUriInVpAuthorizationRequest;
 import net.openid.conformance.condition.as.CheckNoScopeParameter;
 import net.openid.conformance.condition.as.CheckRequestClaimsParameterMemberValues;
@@ -191,16 +192,12 @@ public abstract class AbstractVP1FinalVerifierTest extends AbstractTestModule {
 	protected void onServerConfigurationCompleted() {
 		//fapi would call callAndStopOnFailure(CheckServerConfiguration.class); here
 		switch(clientRequestType) {
-//			case REQUEST_OBJECT:
-//				callAndStopOnFailure(SetRequestParameterSupportedToTrueInServerConfiguration.class, "OIDCC-6.1");
-//				callAndStopOnFailure(OIDCCAddRequestObjectSigningAlgValuesSupportedToServerConfiguration.class, "OIDCC-6.1");
-//				break;
+			case URL_QUERY:
+				// parameters passed directly in URL query, no request_uri support needed
+				break;
 			case REQUEST_URI_SIGNED:
 				callAndStopOnFailure(SetRequestUriParameterSupportedToTrueInServerConfiguration.class, "OIDCC-6.2");
 				break;
-//			case PLAIN_HTTP_REQUEST:
-//				// nothing to do
-//				break;
 		}
 	}
 
@@ -219,6 +216,9 @@ public abstract class AbstractVP1FinalVerifierTest extends AbstractTestModule {
 			case X509_SAN_DNS -> {
 				callAndStopOnFailure(OIDCCGetStaticClientConfigurationForRPTests.class);
 				callAndStopOnFailure(OID4VPSetClientIdToIncludeClientIdScheme.class, "OID4VP-1FINAL-5.9.3");
+			}
+			case REDIRECT_URI -> {
+				// client_id equals the response_uri for this scheme; validated dynamically below
 			}
 		}
 	}
@@ -286,7 +286,7 @@ public abstract class AbstractVP1FinalVerifierTest extends AbstractTestModule {
 				case X509_HASH -> {
 					callAndContinueOnFailure(ExtractAndValidateX509HashClientId.class, ConditionResult.FAILURE);
 				}
-				case X509_SAN_DNS -> {}
+				case X509_SAN_DNS, REDIRECT_URI -> {}
 			}
 			validateRequestObject();
 			callAndStopOnFailure(EnsureClientIdInAuthorizationRequestParametersMatchRequestObject.class);
@@ -367,6 +367,16 @@ public abstract class AbstractVP1FinalVerifierTest extends AbstractTestModule {
 			}
 			case X509_HASH -> {
 				// client id was checked earlier in ExtractAndValidateX509HashClientId
+			}
+			case REDIRECT_URI -> {
+				callAndContinueOnFailure(EnsureClientIdMatchesResponseUri.class, ConditionResult.FAILURE, "OID4VP-1FINAL-5.9.2");
+				// Store the client_id from the request so downstream conditions (e.g.
+				// EnsureValidResponseUriForAuthorizationEndpointRequest) that require "client" work.
+				String clientId = env.getString(CreateEffectiveAuthorizationRequestParameters.ENV_KEY, "client_id");
+				if (clientId != null) {
+					env.putString("client", "client_id", clientId);
+					env.putString("client_id", clientId);
+				}
 			}
 		}
 

@@ -17,7 +17,7 @@ import org.jetbrains.annotations.NotNull;
 	configurationFields = {
 	}
 )
-@VariantNotApplicable(parameter = VP1FinalWalletRequestMethod.class, values={"request_uri_unsigned"})
+@VariantNotApplicable(parameter = VP1FinalWalletRequestMethod.class, values={"request_uri_unsigned", "url_query"})
 public class VP1FinalWalletInvalidRequestObjectSignature extends AbstractVP1FinalWalletTest {
 	// FIXME this probably doesn't work correctly for browser api, e.g. this failure:
 	//  https://demo.certification.openid.net/log-detail.html?log=GHTdSaAuyKMC0cY&continue

@@ -9,7 +9,7 @@ import net.openid.conformance.variant.VariantParameter;
 )
 public enum VP1FinalVerifierRequestMethod
 {
-	// URL_QUERY("url_query"),
+	URL_QUERY("url_query"),
 //	REQUEST_URI_UNSIGNED("request_uri_unsigned"),
 	REQUEST_URI_SIGNED("request_uri_signed");
 
