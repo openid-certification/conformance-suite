@@ -9,7 +9,6 @@ import net.openid.conformance.condition.as.AustraliaConnectIdEnsureVerifiedClaim
 import net.openid.conformance.condition.as.AustraliaConnectIdValidateRequestObjectBindingMessage;
 import net.openid.conformance.condition.as.AustraliaConnectIdValidateRequestObjectExp;
 import net.openid.conformance.condition.as.AustraliaConnectIdValidateRequestObjectNBFClaim;
-import net.openid.conformance.condition.as.AustraliaConnectIdValidateRequestObjectPurpose;
 import net.openid.conformance.condition.as.LoadRequestedIdTokenClaims;
 
 public class ConnectIdAuCibaRPProfileBehavior extends FAPICIBARPProfileBehavior {
