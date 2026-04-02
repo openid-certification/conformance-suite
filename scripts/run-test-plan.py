@@ -14,8 +14,11 @@ import traceback
 import urllib.parse
 import urllib.request
 
-from conformance import Conformance
+from conformance import Conformance, ServerUnavailableError
 from test_plan_parser import test_plan
+
+# Track server restart detections across all test modules
+restart_detections = []
 
 # Modules list here are deliberately not run, as they have known problems
 # Can be overriden by using the 'selected_modules' mechanism, as is done to run the dcr happy path test in the OP against RP tests
@@ -222,120 +225,149 @@ async def run_test_module(moduledict, plan_id, test_info, test_time_taken, varia
     module_id = ''
     module_info = {}
 
-    try:
-        print('Running test module: {}'.format(module_with_variants))
-        test_module_info = await conformance.create_test_from_plan_with_variant(plan_id, module, moduledict.get('variant'))
-        module_id = test_module_info['id']
-        module_info['id'] = module_id
-        test_info[get_string_name_for_module_with_variant(moduledict)] = module_info
-        print('Created test module, new id: {}'.format(module_id))
-        print('{}log-detail.html?log={}'.format(api_url_base, module_id))
+    max_attempts = int(os.getenv('CONFORMANCE_RESTART_RETRIES', '2')) + 1
 
-        state = await conformance.wait_for_state(module_id, ["CONFIGURED", "WAITING", "FINISHED"])
-        if state == "CONFIGURED":
-            if module == 'oidcc-server-rotate-keys':
-                # This test needs manually started once the OP keys have been rotated; we can't actually do that
-                # but at least we can run the test and check it finishes even if it always fails.
-                print('Starting test')
-                await conformance.start_test(module_id)
-            state = await conformance.wait_for_state(module_id, ["WAITING", "FINISHED"])
+    for attempt in range(1, max_attempts + 1):
+        attempt_plan_results = []
+        try:
+            if attempt > 1:
+                print('Possible server restart during module {} (attempt {}), waiting for server and retrying...'.format(
+                    module_with_variants, attempt))
+                await conformance.wait_for_server_ready()
+                module_id = ''
+                module_info = {}
 
-        if state == "WAITING":
-            # If it's a client test, we need to run the client.
-            if op_plan is not None and len(op_plan) > 0:
-                if op_plan["test_name"] == "sample-openid-client-nodejs":
-                    client_metadata_defaults = op_plan["variants"] if "variants" in op_plan else {}
-                    client_metadata_defaults_str = json.dumps(client_metadata_defaults)
+            print('Running test module: {}'.format(module_with_variants))
+            test_module_info = await conformance.create_test_from_plan_with_variant(plan_id, module, moduledict.get('variant'))
+            module_id = test_module_info['id']
+            module_info['id'] = module_id
+            test_info[get_string_name_for_module_with_variant(moduledict)] = module_info
+            print('Created test module, new id: {}'.format(module_id))
+            print('{}log-detail.html?log={}'.format(api_url_base, module_id))
+
+            state = await conformance.wait_for_state(module_id, ["CONFIGURED", "WAITING", "FINISHED"])
+            if state == "CONFIGURED":
+                if module == 'oidcc-server-rotate-keys':
+                    # This test needs manually started once the OP keys have been rotated; we can't actually do that
+                    # but at least we can run the test and check it finishes even if it always fails.
+                    print('Starting test')
+                    await conformance.start_test(module_id)
+                state = await conformance.wait_for_state(module_id, ["WAITING", "FINISHED"])
+
+            if state == "WAITING":
+                # If it's a client test, we need to run the client.
+                if op_plan is not None and len(op_plan) > 0:
+                    if op_plan["test_name"] == "sample-openid-client-nodejs":
+                        client_metadata_defaults = op_plan["variants"] if "variants" in op_plan else {}
+                        client_metadata_defaults_str = json.dumps(client_metadata_defaults)
+                        alias = parsed_config["alias"]
+                        os.environ['ISSUER'] = os.environ.get("CONFORMANCE_SERVER_LOCAL", os.environ["CONFORMANCE_SERVER"]) + "test/a/" + alias + "/"
+                        os.putenv('CLIENT_METADATA_DEFAULTS', client_metadata_defaults_str)
+
+                        other_environment_vars_for_script = op_plan["environment"] if "environment" in op_plan else {}
+                        for envvarname, val in other_environment_vars_for_script.items():
+                            os.putenv(envvarname, val)
+                        # Pass module variant into VARIANT in environment for distinguishing oidcc-client tests which have the same module id
+                        if moduledict.get('variant') != None:
+                            variantstr = json.dumps({
+                                **(moduledict.get('variant') or {}),
+                                **variant
+                            })
+                        else:
+                            variantstr = json.dumps(variant)
+                        os.putenv('VARIANT', variantstr)
+                        os.putenv('MODULE_NAME', module)
+                        os.putenv('NODE_TLS_REJECT_UNAUTHORIZED','0')
+
+                        subprocess.call(["npm", "run", "client"], cwd="./sample-openid-client-nodejs")
+
+                        await conformance.wait_for_state(module_id, ["FINISHED"])
+                    else:
+                        # the 'client' is our own OP tests
+                        attempt_plan_results.extend(await run_test_plan({"test":op_plan}, op_plan["config_file"], output_dir, client_certs))
+                elif re.match(r'fapi-rw-id2-client-.*', module) or \
+                    re.match(r'fapi1-advanced-final-client-.*', module):
+                    print("FAPI client test: " + module + " " + json.dumps(variant))
+                    if brazil_client_scope:
+                        os.environ['BRAZIL_CLIENT_SCOPE'] = brazil_client_scope
+                    profile = variant['fapi_profile']
                     alias = parsed_config["alias"]
-                    os.environ['ISSUER'] = os.environ.get("CONFORMANCE_SERVER_LOCAL", os.environ["CONFORMANCE_SERVER"]) + "test/a/" + alias + "/"
-                    os.putenv('CLIENT_METADATA_DEFAULTS', client_metadata_defaults_str)
-
-                    other_environment_vars_for_script = op_plan["environment"] if "environment" in op_plan else {}
-                    for envvarname, val in other_environment_vars_for_script.items():
-                        os.putenv(envvarname, val)
-                    # Pass module variant into VARIANT in environment for distinguishing oidcc-client tests which have the same module id
-                    if moduledict.get('variant') != None:
-                        variantstr = json.dumps({
-                            **(moduledict.get('variant') or {}),
-                            **variant
-                        })
+                    client_auth_type = variant['client_auth_type']
+                    if profile == "openbanking_ksa":
+                        local_base = os.environ.get("CONFORMANCE_SERVER_LOCAL", os.environ["CONFORMANCE_SERVER"])
+                        if client_auth_type == "mtls":
+                            subprocess.call(["./ksa-rp-client", "--alias", "ksa-rp",
+                                             "--clientid", "bc680915-bbd3-45d7-b3c6-2716f4d178ed",
+                                             "--transportCert", "./model_bank/transport.crt",
+                                             "--transportKey", "./model_bank/transport.key",
+                                             "--signingKey", "./model_bank/signing.key",
+                                             "--encryptionKey", "./model_bank/encryption.key",
+                                             "--serverBaseUrl", local_base,
+                                             "--serverBaseMtlsUrl", os.environ["CONFORMANCE_SERVER_MTLS"]], cwd="./ksa-rp-client/")
+                        else:
+                            subprocess.call(["./ksa-rp-client", "--alias", "ksa-rp",
+                                             "--clientid", "bc680915-bbd3-45d7-b3c6-2716f4d178ed",
+                                             "--transportCert", "./model_bank/transport.crt",
+                                             "--transportKey", "./model_bank/transport.key",
+                                             "--signingKey", "./model_bank/signing.key",
+                                             "--encryptionKey", "./model_bank/encryption.key",
+                                             "--serverBaseUrl", local_base,
+                                             "--serverBaseMtlsUrl", os.environ["CONFORMANCE_SERVER_MTLS"],
+                                             "--privateKeyAuth"], cwd="./ksa-rp-client/")
                     else:
-                        variantstr = json.dumps(variant)
-                    os.putenv('VARIANT', variantstr)
-                    os.putenv('MODULE_NAME', module)
-                    os.putenv('NODE_TLS_REJECT_UNAUTHORIZED','0')
+                        os.environ['ISSUER'] = os.environ.get("CONFORMANCE_SERVER_LOCAL", os.environ["CONFORMANCE_SERVER"]) + "test/a/" + alias + "/"
+                        os.environ['ACCOUNTS'] = 'test-mtls/a/' + alias + '/open-banking/v1.1/accounts'
+                        os.environ['ACCOUNT_REQUEST'] = 'test/a/' + alias + '/open-banking/v1.1/account-requests'
+                        os.environ['BRAZIL_CONSENT_REQUEST'] = 'test-mtls/a/' + alias + '/open-banking/consents/v3/consents'
+                        os.environ['BRAZIL_PAYMENTS_CONSENT_REQUEST'] = 'test-mtls/a/' + alias + '/open-banking/payments/v4/consents'
+                        os.environ['BRAZIL_ACCOUNTS_ENDPOINT'] = 'test-mtls/a/' + alias + '/open-banking/accounts/v2/accounts'
+                        os.environ['BRAZIL_PAYMENT_INIT_ENDPOINT'] = 'test-mtls/a/' + alias + '/open-banking/payments/v4/pix/payments'
 
-                    subprocess.call(["npm", "run", "client"], cwd="./sample-openid-client-nodejs")
+                        os.environ['FAPI_PROFILE'] = profile
+                        if 'fapi_auth_request_method' in variant.keys() and variant['fapi_auth_request_method']:
+                            os.environ['FAPI_AUTH_REQUEST_METHOD'] =  variant['fapi_auth_request_method']
+                        else:
+                            os.environ['FAPI_AUTH_REQUEST_METHOD'] = 'by_value'
+                        if 'fapi_response_mode' in variant.keys() and variant['fapi_response_mode']:
+                            os.environ['FAPI_RESPONSE_MODE'] =  variant['fapi_response_mode']
+                        else:
+                            os.environ['FAPI_RESPONSE_MODE'] = 'plain_response'
+                        if 'fapi_client_type' in variant.keys() and variant['fapi_client_type']:
+                            os.environ['FAPI_CLIENT_TYPE'] =  variant['fapi_client_type']
+                        else:
+                            os.environ['FAPI_CLIENT_TYPE'] = 'oidc'
 
-                    await conformance.wait_for_state(module_id, ["FINISHED"])
-                else:
-                    # the 'client' is our own OP tests
-                    plan_results.extend(await run_test_plan({"test":op_plan}, op_plan["config_file"], output_dir, client_certs))
-            elif re.match(r'fapi-rw-id2-client-.*', module) or \
-                re.match(r'fapi1-advanced-final-client-.*', module):
-                print("FAPI client test: " + module + " " + json.dumps(variant))
-                if brazil_client_scope:
-                    os.environ['BRAZIL_CLIENT_SCOPE'] = brazil_client_scope
-                profile = variant['fapi_profile']
-                alias = parsed_config["alias"]
-                client_auth_type = variant['client_auth_type']
-                if profile == "openbanking_ksa":
-                    local_base = os.environ.get("CONFORMANCE_SERVER_LOCAL", os.environ["CONFORMANCE_SERVER"])
-                    if client_auth_type == "mtls":
-                        subprocess.call(["./ksa-rp-client", "--alias", "ksa-rp",
-                                         "--clientid", "bc680915-bbd3-45d7-b3c6-2716f4d178ed",
-                                         "--transportCert", "./model_bank/transport.crt",
-                                         "--transportKey", "./model_bank/transport.key",
-                                         "--signingKey", "./model_bank/signing.key",
-                                         "--encryptionKey", "./model_bank/encryption.key",
-                                         "--serverBaseUrl", local_base,
-                                         "--serverBaseMtlsUrl", os.environ["CONFORMANCE_SERVER_MTLS"]], cwd="./ksa-rp-client/")
-                    else:
-                        subprocess.call(["./ksa-rp-client", "--alias", "ksa-rp",
-                                         "--clientid", "bc680915-bbd3-45d7-b3c6-2716f4d178ed",
-                                         "--transportCert", "./model_bank/transport.crt",
-                                         "--transportKey", "./model_bank/transport.key",
-                                         "--signingKey", "./model_bank/signing.key",
-                                         "--encryptionKey", "./model_bank/encryption.key",
-                                         "--serverBaseUrl", local_base,
-                                         "--serverBaseMtlsUrl", os.environ["CONFORMANCE_SERVER_MTLS"],
-                                         "--privateKeyAuth"], cwd="./ksa-rp-client/")
-                else:
-                    os.environ['ISSUER'] = os.environ.get("CONFORMANCE_SERVER_LOCAL", os.environ["CONFORMANCE_SERVER"]) + "test/a/" + alias + "/"
-                    os.environ['ACCOUNTS'] = 'test-mtls/a/' + alias + '/open-banking/v1.1/accounts'
-                    os.environ['ACCOUNT_REQUEST'] = 'test/a/' + alias + '/open-banking/v1.1/account-requests'
-                    os.environ['BRAZIL_CONSENT_REQUEST'] = 'test-mtls/a/' + alias + '/open-banking/consents/v3/consents'
-                    os.environ['BRAZIL_PAYMENTS_CONSENT_REQUEST'] = 'test-mtls/a/' + alias + '/open-banking/payments/v4/consents'
-                    os.environ['BRAZIL_ACCOUNTS_ENDPOINT'] = 'test-mtls/a/' + alias + '/open-banking/accounts/v2/accounts'
-                    os.environ['BRAZIL_PAYMENT_INIT_ENDPOINT'] = 'test-mtls/a/' + alias + '/open-banking/payments/v4/pix/payments'
+                        os.environ['TEST_MODULE_NAME'] = module
+                        subprocess.call(["npm", "run", "client"], cwd="./sample-openbanking-client-nodejs")
 
-                    os.environ['FAPI_PROFILE'] = profile
-                    if 'fapi_auth_request_method' in variant.keys() and variant['fapi_auth_request_method']:
-                        os.environ['FAPI_AUTH_REQUEST_METHOD'] =  variant['fapi_auth_request_method']
-                    else:
-                        os.environ['FAPI_AUTH_REQUEST_METHOD'] = 'by_value'
-                    if 'fapi_response_mode' in variant.keys() and variant['fapi_response_mode']:
-                        os.environ['FAPI_RESPONSE_MODE'] =  variant['fapi_response_mode']
-                    else:
-                        os.environ['FAPI_RESPONSE_MODE'] = 'plain_response'
-                    if 'fapi_client_type' in variant.keys() and variant['fapi_client_type']:
-                        os.environ['FAPI_CLIENT_TYPE'] =  variant['fapi_client_type']
-                    else:
-                        os.environ['FAPI_CLIENT_TYPE'] = 'oidc'
+                await conformance.wait_for_state(module_id, ["FINISHED"])
 
-                    os.environ['TEST_MODULE_NAME'] = module
-                    subprocess.call(["npm", "run", "client"], cwd="./sample-openbanking-client-nodejs")
+            plan_results.extend(attempt_plan_results)
+            break  # success, exit retry loop
 
-            await conformance.wait_for_state(module_id, ["FINISHED"])
+        except ServerUnavailableError as e:
+            traceback.print_exc()
+            print('Exception: Test {} {} failed to run to completion: {}'.format(module_with_variants, module_id, e))
+            restart_detections.append({'module': module_with_variants, 'attempt': attempt, 'error': str(e)})
+            if attempt >= max_attempts:
+                module_info['error'] = str(e)
+                break
+            continue
 
-    except Exception as e:
-        traceback.print_exc()
-        print('Exception: Test {} {} failed to run to completion: {}'.format(module_with_variants, module_id, e))
-        module_info['error'] = str(e)
+        except Exception as e:
+            traceback.print_exc()
+            print('Exception: Test {} {} failed to run to completion: {}'.format(module_with_variants, module_id, e))
+            module_info['error'] = str(e)
+            break
+
     if module_id != '':
         test_time_taken[module_id] = time.time() - test_start_time
-        module_info['info'] = await conformance.get_module_info(module_id)
-        module_info['logs'] = await conformance.get_test_log(module_id)
+        try:
+            module_info['info'] = await conformance.get_module_info(module_id)
+            module_info['logs'] = await conformance.get_test_log(module_id)
+        except Exception as cleanup_exc:
+            module_info['error'] = str(cleanup_exc)
+            print('Failed to retrieve module info/logs for {}: {}'.format(module_id, cleanup_exc))
 
 
 # from http://stackoverflow.com/a/26445590/3191896 and https://gist.github.com/Jossef/0ee20314577925b4027f
@@ -437,8 +469,15 @@ def show_plan_results(plan_result, analyzed_result):
             continue
         module_info = test_info[module_name]
         module_id = module_info['id']
-        info = module_info['info']
-        logs = module_info['logs']
+        info = module_info.get('info')
+        logs = module_info.get('logs')
+
+        if info is None or logs is None:
+            error = module_info.get('error', 'missing module info/logs')
+            print(failure('Test [{}:{}] {} {} missing module info/logs: {}'.format(
+                plan_number, module_index, module_name, module_id, error)))
+            incomplete += 1
+            continue
 
         status_coloured = info['status']
 
@@ -546,9 +585,14 @@ def analyze_plan_results(plan_result, expected_failures_list, expected_skips_lis
                 continue
             continue
         module_info = test_info[module_name_with_variant]
+        info = module_info.get('info')
+        logs = module_info.get('logs')
+
+        if info is None or logs is None:
+            incomplete += 1
+            continue
+
         module_id = module_info['id']
-        info = module_info['info']
-        logs = module_info['logs']
         variant = module_info['info']['variant']
 
         if module in untested_test_modules:
@@ -1243,6 +1287,11 @@ async def main():
                     })
         elif plan_did_not_complete == 'FAILURE_OR_WARNING':
             failed_plan_results.append(plan_result['detail_plan_result'])
+
+    if restart_detections:
+        print(warning("\n** Possible server restart(s) detected during test run ({} occurrence(s)) **".format(len(restart_detections))))
+        for rd in restart_detections:
+            print("  Module: {} (attempt {})".format(rd['module'], rd['attempt']))
 
     if did_not_complete:
         print(failure("** Exiting with failure - some tests did not run to completion **"))
