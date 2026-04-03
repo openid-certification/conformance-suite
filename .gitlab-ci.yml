@@ -532,7 +532,7 @@ security_test:
       return
     fi
     # not one of the fixed branches - find a review app to use
-    apk add jq
+    # jq already installed by check_commit_is_current
     url="${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/environments?states=available&per_page=100&search=review/"
     res=0
     curl -o env-list.js --silent --show-error --fail-with-body --header "JOB-TOKEN: ${CI_JOB_TOKEN}" "$url" || res=$?
@@ -572,6 +572,30 @@ security_test:
     else
       echo "This branch is already using environment: $CI_ENVIRONMENT_URL"
       CI_ENVIRONMENT_MTLS_URL=`echo $CI_ENVIRONMENT_URL | sed  's/review/mtls-review/'`
+    fi
+    check_ingress_hostname_available
+  }
+
+  function check_ingress_hostname_available() {
+    # Verify no other namespace already has an ingress for our hostname.
+    # The GitLab environments API can be stale; checking the actual cluster
+    # catches cases where another branch's deployment still owns the ingress.
+    DEPLOY_HOST=$(echo "$CI_ENVIRONMENT_URL" | sed 's|https://||')
+    echo "Checking cluster for existing ingress with host ${DEPLOY_HOST} (our namespace: ${KUBE_NAMESPACE})"
+    ALL_NS=$(kubectl get ingress --all-namespaces -o json \
+      | jq -r ".items[] | select(.spec.rules[]?.host == \"${DEPLOY_HOST}\") | .metadata.namespace" \
+      | sort -u) || true
+    if [ -z "$ALL_NS" ]; then
+      echo "No existing ingress found for ${DEPLOY_HOST} — OK"
+    else
+      echo "Ingress for ${DEPLOY_HOST} found in namespace(s): ${ALL_NS}"
+      OTHER_NS=$(echo "$ALL_NS" | grep -v "^${KUBE_NAMESPACE}$" || true)
+      if [ -n "$OTHER_NS" ]; then
+        echo "ERROR: ingress for ${DEPLOY_HOST} exists in another namespace: ${OTHER_NS} (ours is ${KUBE_NAMESPACE})"
+        echo "Another branch is using this review app slot. This should not happen — investigate the environment assignment."
+        exit 1
+      fi
+      echo "All ingresses are in our namespace — OK"
     fi
   }
 
