@@ -6,7 +6,6 @@ import net.openid.conformance.condition.client.ValidateCredentialCnfJwkIsPublicK
 import net.openid.conformance.condition.client.ValidateCredentialJWTExp;
 import net.openid.conformance.condition.client.ValidateCredentialJWTHeaderTyp;
 import net.openid.conformance.condition.client.ValidateCredentialJWTIat;
-import net.openid.conformance.condition.client.ValidateCredentialJWTIssIsHttpsUri;
 import net.openid.conformance.condition.client.ValidateSdJwtDisclosureSaltsAreUnique;
 import net.openid.conformance.condition.client.ValidateCredentialJWTNbf;
 import net.openid.conformance.condition.client.ValidateCredentialJWTVct;
@@ -49,8 +48,8 @@ public class ValidateSdJwtVcCredentialClaims extends AbstractConditionSequence {
 	@Override
 	public void evaluate() {
 		// as per https://www.ietf.org/id/draft-ietf-oauth-sd-jwt-vc-00.html#section-4.2.2.2 these must not be selectively disclosed
-		callAndContinueOnFailure(ValidateCredentialJWTIssIsHttpsUri.class,
-			ConditionResult.FAILURE, "SDJWTVC-3.2.2.2");
+		// Note: 'iss' validation is not included here. SD-JWT VC 3.2.2.2 says 'iss' is OPTIONAL and
+		// HAIP dropped the 'iss' MUST requirement: https://github.com/openid/OpenID4VC-HAIP/pull/277
 		callAndContinueOnFailure(ValidateCredentialJWTIat.class,
 			ConditionResult.FAILURE, "SDJWTVC-3.2.2.2-5.2");
 		callAndContinueOnFailure(ValidateCredentialJWTNbf.class,
