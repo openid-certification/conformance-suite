@@ -200,6 +200,7 @@ check-trailing-whitespace:
   # longer as that prevents other deploy jobs running.
   timeout: 10 minutes
   script:
+    - check_commit_is_current
     - kubectl config get-contexts
     - kubectl config use-context $KUBE_CONTEXT
     - kubectl get pods
@@ -292,6 +293,7 @@ stop_review:
   variables:
     GIT_STRATEGY: none
   script:
+    - check_commit_is_current
     - auto-deploy initialize_tiller
     - auto-deploy use_kube_context || true
     - auto-deploy delete
@@ -502,6 +504,31 @@ security_test:
              --volume /tmp/cc:/tmp/cc"
 
     docker run ${cc_opts} codeclimate/codeclimate analyze -f json src > codeclimate.json
+  }
+
+  function check_commit_is_current() {
+    # Abort if this pipeline's commit is no longer the branch HEAD.
+    # This prevents stale pipelines (e.g. from delayed push events after a force-push)
+    # from deploying over or tearing down a newer pipeline's environment.
+    apk add --no-cache curl jq > /dev/null 2>&1 || true
+    echo "Checking if pipeline commit ${CI_COMMIT_SHA:0:10} is still HEAD of ${CI_COMMIT_REF_NAME}"
+    ENCODED_REF_NAME=$(jq -rn --arg v "${CI_COMMIT_REF_NAME}" '$v|@uri')
+    BRANCH_API_URL="${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/repository/branches/${ENCODED_REF_NAME}"
+    BRANCH_RESPONSE=$(curl -s --header "JOB-TOKEN: ${CI_JOB_TOKEN}" -w "\n%{http_code}" "$BRANCH_API_URL") || true
+    BRANCH_HTTP_CODE=$(echo "$BRANCH_RESPONSE" | tail -1)
+    BRANCH_BODY=$(echo "$BRANCH_RESPONSE" | sed '$d')
+    CURRENT_SHA=$(echo "$BRANCH_BODY" | jq -r '.commit.id // empty') || true
+    if [ -z "$CURRENT_SHA" ]; then
+      echo "Could not determine current HEAD of ${CI_COMMIT_REF_NAME} — proceeding anyway"
+      echo "  API URL: ${BRANCH_API_URL}"
+      echo "  HTTP status: ${BRANCH_HTTP_CODE}"
+      echo "  Response: ${BRANCH_BODY}"
+    elif [ "$CI_COMMIT_SHA" = "$CURRENT_SHA" ]; then
+      echo "Commit ${CI_COMMIT_SHA:0:10} is current HEAD — OK"
+    else
+      echo "Aborting: pipeline commit ${CI_COMMIT_SHA:0:10} is no longer HEAD of ${CI_COMMIT_REF_NAME} (now ${CURRENT_SHA:0:10})"
+      exit 1
+    fi
   }
 
   function find_deploy_url() {
