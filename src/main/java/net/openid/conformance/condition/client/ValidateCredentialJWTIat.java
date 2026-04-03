@@ -21,7 +21,7 @@ public class ValidateCredentialJWTIat extends AbstractCondition {
 
 		Long iat = env.getLong("sdjwt", "credential.claims.iat");
 
-		// As per https://www.ietf.org/archive/id/draft-ietf-oauth-sd-jwt-vc-11.html#section-3.2.2.2-5.2.2.1
+		// As per https://www.ietf.org/archive/id/draft-ietf-oauth-sd-jwt-vc-13.html#section-3.2.2.2-5.2
 		if (iat == null) {
 			log("'iat' is not present");
 			return env;
