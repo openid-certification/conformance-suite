@@ -1,24 +1,13 @@
 package net.openid.conformance.authzen;
 
 import com.google.gson.JsonObject;
-import net.openid.conformance.authzen.condition.AddActionToAuthzenApiEndpointRequest;
+import com.google.gson.JsonParser;
 import net.openid.conformance.authzen.condition.AddApiKeyAuthenticationParametersToAuthzenApiRequest;
 import net.openid.conformance.authzen.condition.AddBasicAuthClientSecretAuthenticationParametersToAuthzenApiRequest;
-import net.openid.conformance.authzen.condition.AddContextToAuthzenApiEndpointRequest;
-import net.openid.conformance.authzen.condition.AddResourceToAuthzenApiEndpointRequest;
-import net.openid.conformance.authzen.condition.AddSubjectToAuthzenApiEndpointRequest;
 import net.openid.conformance.authzen.condition.CallAuthzenApiEndpointAndVerifySuccessfulResponse;
 import net.openid.conformance.authzen.condition.CheckPDPServerConfiguration;
-import net.openid.conformance.authzen.condition.CreateAuthzenApiEndpointRequestAction;
-import net.openid.conformance.authzen.condition.CreateAuthzenApiEndpointRequestContext;
-import net.openid.conformance.authzen.condition.CreateAuthzenApiEndpointRequestResource;
-import net.openid.conformance.authzen.condition.CreateAuthzenApiEndpointRequestSubject;
-import net.openid.conformance.authzen.condition.CreateEmptyAuthzenApiEndpointRequest;
-import net.openid.conformance.authzen.condition.EnsureDecisionResponseTrue;
-import net.openid.conformance.authzen.condition.ExtractAuthzenApiEndpointDecisionResponse;
 import net.openid.conformance.authzen.condition.GetPDPDynamicServerConfiguration;
 import net.openid.conformance.authzen.condition.GetPDPStaticServerConfiguration;
-import net.openid.conformance.authzen.condition.SetAuthzenApiEndpointToAccessEvaluationEndpoint;
 import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.condition.client.ConfigurationRequestsTestIsSkipped;
 import net.openid.conformance.condition.client.ExtractMTLSCertificatesFromConfiguration;
@@ -195,59 +184,39 @@ public abstract class AbstractAuthzenPDPTest extends AbstractRedirectServerTestM
 	}
 
 	protected void callAuthApiEndpointRequest() {
+		setAuthzenApiEndpoint();
+		addAuthenticationToAuthzenApiEndpoint();
+		performApiRequestCall();
+	}
+
+	protected void performApiRequestCall() {
 		call(sequence(CallAuthzenApiEndpointAndVerifySuccessfulResponse.class));
 	}
 
-	protected void processAuthApiEndpointResponse() {
-		callAndStopOnFailure(ExtractAuthzenApiEndpointDecisionResponse.class, "AUTHZEN-5.5");
-	}
+	protected abstract void processAuthApiEndpointResponse();
 
-	protected void validateAuthApiEndpointResponse() {
-		callAndContinueOnFailure(EnsureDecisionResponseTrue.class, ConditionResult.FAILURE);
-	}
-
-	public static class CreateAuthzenApiRequestSteps extends AbstractConditionSequence {
-		private JsonObject subject;
-		private JsonObject resource;
-		private JsonObject action;
-		private JsonObject context;
-		CreateAuthzenApiRequestSteps(JsonObject subject, JsonObject resource, JsonObject action, JsonObject context) {
-			this.subject = subject;
-			this.resource = resource;
-			this.action = action;
-			this.context = context;
-		}
-		@Override
-		public void evaluate() {
-			callAndStopOnFailure(CreateEmptyAuthzenApiEndpointRequest.class);
-			callAndStopOnFailure(new CreateAuthzenApiEndpointRequestSubject(subject), "AUTHZEN-5.1");
-			callAndStopOnFailure(new CreateAuthzenApiEndpointRequestResource(resource), "AUTHZEN-5.2");
-			callAndStopOnFailure(new CreateAuthzenApiEndpointRequestAction(action), "AUTHZEN-5.3");
-			callAndStopOnFailure(new CreateAuthzenApiEndpointRequestContext(context), "AUTHZEN-5.4");
-
-			callAndStopOnFailure(AddSubjectToAuthzenApiEndpointRequest.class, "AUTHZEN-6.1");
-			callAndStopOnFailure(AddResourceToAuthzenApiEndpointRequest.class, "AUTHZEN-6.1");
-			callAndStopOnFailure(AddActionToAuthzenApiEndpointRequest.class, "AUTHZEN-6.1");
-			callAndContinueOnFailure(AddContextToAuthzenApiEndpointRequest.class, "AUTHZEN-6.1");
-		}
-	}
+	protected abstract void validateAuthApiEndpointResponse();
 
 	protected void createAuthzenApiRequest() {
 		call(createAuthzenApiRequestSequence());
+	}
+
+	protected void addAuthenticationToAuthzenApiEndpoint() {
 		if (addPDPEndpointClientAuthentication != null) {
 			mapClientAuthKeys("token_endpoint_request_form_parameters", "token_endpoint_request_headers");
 			call(sequence(addPDPEndpointClientAuthentication));
 			unmapClientAuthKeys();
 		}
-		callAndStopOnFailure(SetAuthzenApiEndpointToAccessEvaluationEndpoint.class);
-
 	}
 
-	protected abstract JsonObject parseRequest();
-	protected ConditionSequence createAuthzenApiRequestSequence() {
-		JsonObject request = parseRequest();
-		return new CreateAuthzenApiRequestSteps(request.getAsJsonObject("subject"), request.getAsJsonObject("resource"), request.getAsJsonObject("action"), request.getAsJsonObject("context"));
+	protected abstract void setAuthzenApiEndpoint();
+
+	protected JsonObject parseRequest() {
+		return JsonParser.parseString(getPayload()).getAsJsonObject();
 	}
+
+	protected abstract String getPayload();
+	protected abstract ConditionSequence createAuthzenApiRequestSequence();
 
 	@Override
 	protected void processCallback() {

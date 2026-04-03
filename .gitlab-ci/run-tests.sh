@@ -626,6 +626,7 @@ makeSsfTests() {
 
 makeAuthzenTests() {
    TESTS="${TESTS} authzen-pdp-test-plan[pdp_auth_type=none][pdp_server_metadata=static] ${SUITE_DIR}/scripts/test-configs-authzen/authzen-cerbos-test-config.json"
+   TESTS="${TESTS} authzen-pdp-evaluations-test-plan[pdp_auth_type=none][pdp_server_metadata=static] ${SUITE_DIR}/scripts/test-configs-authzen/authzen-cerbos-test-config.json"
 }
 
 makeLocalProviderTests() {

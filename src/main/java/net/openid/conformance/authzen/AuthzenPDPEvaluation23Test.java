@@ -1,7 +1,5 @@
 package net.openid.conformance.authzen;
 
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 import net.openid.conformance.authzen.condition.EnsureDecisionResponseFalse;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.testmodule.PublishTestModule;
@@ -14,7 +12,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 	configurationFields = {
 	}
 )
-public class AuthzenPDPEvaluation23Test extends AbstractAuthzenPDPTest {
+public class AuthzenPDPEvaluation23Test extends AbstractAuthzenPDPEvaluationTest {
 
 	public static final String payload = """
 	{
@@ -36,8 +34,8 @@ public class AuthzenPDPEvaluation23Test extends AbstractAuthzenPDPTest {
 	""";
 
 	@Override
-	protected JsonObject parseRequest() {
-		return JsonParser.parseString(payload).getAsJsonObject();
+	protected String getPayload() {
+		return payload;
 	}
 
 	@Override
