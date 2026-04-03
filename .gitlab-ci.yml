@@ -221,9 +221,8 @@ check-trailing-whitespace:
     reports:
       dotenv: deploy.env
   dependencies: []
-  only:
-    refs:
-      - branches
+  rules:
+    - if: $CI_COMMIT_BRANCH
 
 deploy-review:
   <<: *deploy
@@ -231,10 +230,8 @@ deploy-review:
     name: review/$CI_COMMIT_REF_NAME
     on_stop: stop_review
     url: $DYNAMIC_ENVIRONMENT_URL
-  except:
-    - master
-    - production
-    - demo
+  rules:
+    - if: $CI_COMMIT_BRANCH && $CI_COMMIT_BRANCH != "master" && $CI_COMMIT_BRANCH != "production" && $CI_COMMIT_BRANCH != "demo"
 
 deploy-normal:
   <<: *deploy
@@ -242,32 +239,31 @@ deploy-normal:
     name: $CI_COMMIT_BRANCH
     on_stop: stop_normal
     url: $DYNAMIC_ENVIRONMENT_URL
-  only:
-    - production
-    - demo
+  rules:
+    - if: $CI_COMMIT_BRANCH == "production"
+    - if: $CI_COMMIT_BRANCH == "demo"
 
 deploy-staging:
   <<: *deploy
   environment:
     name: staging
     url: $DYNAMIC_ENVIRONMENT_URL
-  only:
-    - master
+  rules:
+    - if: $CI_COMMIT_BRANCH == "master"
 
 scale up env:
   <<: *deploy
   dependencies: ["deploy-review"]
   environment:
     name: review/$CI_COMMIT_REF_NAME
-  when: manual
   script:
     - auto-deploy use_kube_context || true
     - auto-deploy ensure_namespace
     - scale_up
-  except:
-    - master
-    - production
-    - demo
+  rules:
+    - if: $CI_COMMIT_BRANCH && $CI_COMMIT_BRANCH != "master" && $CI_COMMIT_BRANCH != "production" && $CI_COMMIT_BRANCH != "demo"
+      when: manual
+      allow_failure: true
 
 scale down env:
   extends: .auto-deploy
@@ -278,14 +274,9 @@ scale down env:
     - auto-deploy use_kube_context || true
     - auto-deploy ensure_namespace
     - scale_down
-  only:
-    refs:
-      - branches
-  except:
-    - master
-    - production
-    - demo
-  when: always
+  rules:
+    - if: $CI_COMMIT_BRANCH && $CI_COMMIT_BRANCH != "master" && $CI_COMMIT_BRANCH != "production" && $CI_COMMIT_BRANCH != "demo"
+      when: always
 
 stop_review:
   extends: .auto-deploy
@@ -301,15 +292,10 @@ stop_review:
     name: review/$CI_COMMIT_REF_NAME
     action: stop
   needs: []
-  when: manual
-  allow_failure: true
-  only:
-    refs:
-      - branches
-  except:
-    - master
-    - production
-    - demo
+  rules:
+    - if: $CI_COMMIT_BRANCH && $CI_COMMIT_BRANCH != "master" && $CI_COMMIT_BRANCH != "production" && $CI_COMMIT_BRANCH != "demo"
+      when: manual
+      allow_failure: true
 
 stop_normal:
   extends: .auto-deploy
@@ -324,10 +310,10 @@ stop_normal:
     name: $CI_COMMIT_BRANCH
     action: stop
   needs: []
-  when: manual
-  allow_failure: true
-  only:
-    - demo
+  rules:
+    - if: $CI_COMMIT_BRANCH == "demo"
+      when: manual
+      allow_failure: true
 
 .deployment_test: &deployment_test
   stage: test
