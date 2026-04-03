@@ -4,7 +4,9 @@ import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs400;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFInsertBrokenStreamConfigJsonOverride;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFUpdateStreamConditionSequence;
+import net.openid.conformance.openid.ssf.variant.SsfProfile;
 import net.openid.conformance.testmodule.PublishTestModule;
+import net.openid.conformance.variant.VariantNotApplicable;
 
 @PublishTestModule(
 	testName = "openid-ssf-stream-control-error-update-stream-with-invalid-body",
@@ -12,6 +14,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 	summary = "This test verifies the behavior of the stream control for error cases. It attempts to update a stream configuration with an invalid body.",
 	profile = "OIDSSF"
 )
+@VariantNotApplicable(parameter = SsfProfile.class, values = "caep_interop")
 public class OIDSSFStreamControlNegativeTestUpdateStreamWithInvalidBody extends AbstractStreamControlErrorTest {
 
 	@Override

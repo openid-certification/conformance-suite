@@ -4,7 +4,9 @@ import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs404;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFCreateAndDeleteStreamConditionSequence;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFReplaceStreamConditionSequence;
+import net.openid.conformance.openid.ssf.variant.SsfProfile;
 import net.openid.conformance.testmodule.PublishTestModule;
+import net.openid.conformance.variant.VariantNotApplicable;
 
 @PublishTestModule(
 	testName = "openid-ssf-stream-control-error-replace-unknown-stream",
@@ -12,6 +14,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 	summary = "This test verifies the behavior of the stream control for error cases. It attempts to replace a stream configuration for an unknown stream.",
 	profile = "OIDSSF"
 )
+@VariantNotApplicable(parameter = SsfProfile.class, values = "caep_interop")
 public class OIDSSFStreamControlNegativeTestReplaceUnknownStream extends AbstractStreamControlErrorTest {
 
 	@Override
