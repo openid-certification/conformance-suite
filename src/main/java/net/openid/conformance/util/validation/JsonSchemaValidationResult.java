@@ -1,4 +1,4 @@
-package net.openid.conformance.vci10issuer.util;
+package net.openid.conformance.util.validation;
 
 import com.google.gson.JsonObject;
 import com.networknt.schema.ValidationMessage;

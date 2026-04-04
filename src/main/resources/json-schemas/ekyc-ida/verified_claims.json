@@ -24,12 +24,80 @@
         },
         "attachments": {
             "type": "array",
-            "minItems": 1
+            "minItems": 1,
+            "items": {
+                "type": "object",
+                "oneOf": [
+                    {
+                        "required": [
+                            "content_type",
+                            "content"
+                        ],
+                        "additionalProperties": false,
+                        "properties": {
+                            "desc": {
+                                "type": "string"
+                            },
+                            "type": {
+                                "type": "string"
+                            },
+                            "content_type": {
+                                "type": "string"
+                            },
+                            "content": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    {
+                        "required": [
+                            "url",
+                            "digest"
+                        ],
+                        "additionalProperties": false,
+                        "properties": {
+                            "desc": {
+                                "type": "string"
+                            },
+                            "type": {
+                                "type": "string"
+                            },
+                            "url": {
+                                "type": "string",
+                                "format": "uri"
+                            },
+                            "access_token": {
+                                "type": ["string", "null"]
+                            },
+                            "exp": {
+                                "type": "number"
+                            },
+                            "digest": {
+                                "type": "object",
+                                "required": [
+                                    "alg",
+                                    "value"
+                                ],
+                                "additionalProperties": false,
+                                "properties": {
+                                    "alg": {
+                                        "type": "string"
+                                    },
+                                    "value": {
+                                        "type": "string"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                ]
+            }
         },
         "check_details": {
             "type": "array",
             "items": {
                 "type": "object",
+                "additionalProperties": false,
                 "properties": {
                     "check_id": {
                         "type": "string"
@@ -72,6 +140,10 @@
         },
         "document_details": {
             "type": "object",
+            "required": [
+                "type"
+            ],
+            "additionalProperties": false,
             "properties": {
                 "type": {
                     "type": "string"
@@ -89,6 +161,7 @@
                 },
                 "issuer": {
                     "type": "object",
+                    "additionalProperties": false,
                     "properties": {
                         "country": {
                             "type": "string"
@@ -156,6 +229,11 @@
                         }
                     },
                     "then": {
+                        "required": [
+                            "signature_type",
+                            "issuer",
+                            "serial_number"
+                        ],
                         "properties": {
                             "created_at": {
                                 "type": "string",
@@ -218,6 +296,10 @@
                             },
                             "record": {
                                 "type": "object",
+                                "required": [
+                                    "type"
+                                ],
+                                "additionalProperties": false,
                                 "properties": {
                                     "type": {
                                         "type": "string"
@@ -232,6 +314,7 @@
                                     },
                                     "source": {
                                         "type": "object",
+                                        "additionalProperties": false,
                                         "properties": {
                                             "country": {
                                                 "type": "string"
@@ -280,6 +363,10 @@
                         "properties": {
                             "attestation": {
                                 "type": "object",
+                                "required": [
+                                    "type"
+                                ],
+                                "additionalProperties": false,
                                 "properties": {
                                     "type": {
                                         "type": "string"
@@ -297,6 +384,7 @@
                                     },
                                     "voucher": {
                                         "type": "object",
+                                        "additionalProperties": false,
                                         "properties": {
                                             "birthdate": {
                                                 "type": "string",
@@ -371,11 +459,13 @@
                         },
                         "assurance_process": {
                             "type": "object",
+                            "additionalProperties": false,
                             "properties": {
                                 "assurance_details": {
                                     "type": "array",
                                     "items": {
                                         "type": "object",
+                                        "additionalProperties": false,
                                         "properties": {
                                             "assurance_classification": {
                                                 "type": "string"
@@ -387,12 +477,14 @@
                                                 "type": "array",
                                                 "items": {
                                                     "type": "object",
+                                                    "additionalProperties": false,
                                                     "properties": {
                                                         "check_id": {
                                                             "type": "string"
                                                         },
                                                         "evidence_metadata": {
                                                             "type": "object",
+                                                            "additionalProperties": false,
                                                             "properties": {
                                                                 "evidence_classification": {
                                                                     "type": "string"
@@ -418,11 +510,7 @@
                         "evidence": {
                             "type": "array",
                             "items": {
-                                "oneOf": [
-                                    {
-                                        "$ref": "#/$defs/evidence"
-                                    }
-                                ]
+                                "$ref": "#/$defs/evidence"
                             },
                             "minItems": 1
                         },

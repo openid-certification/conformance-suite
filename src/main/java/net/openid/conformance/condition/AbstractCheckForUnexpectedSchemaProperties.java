@@ -1,11 +1,11 @@
-package net.openid.conformance.vci10issuer.condition;
+package net.openid.conformance.condition;
 
 import com.google.gson.JsonObject;
 import com.networknt.schema.ValidationMessage;
 import net.openid.conformance.testmodule.Environment;
-import net.openid.conformance.vci10issuer.util.JsonSchemaValidation;
-import net.openid.conformance.vci10issuer.util.JsonSchemaValidationInput;
-import net.openid.conformance.vci10issuer.util.JsonSchemaValidationResult;
+import net.openid.conformance.util.validation.JsonSchemaValidation;
+import net.openid.conformance.util.validation.JsonSchemaValidationInput;
+import net.openid.conformance.util.validation.JsonSchemaValidationResult;
 
 import java.util.ArrayList;
 import java.util.List;

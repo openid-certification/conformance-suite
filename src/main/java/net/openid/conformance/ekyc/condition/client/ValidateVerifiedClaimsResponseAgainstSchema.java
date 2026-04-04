@@ -1,46 +1,53 @@
 package net.openid.conformance.ekyc.condition.client;
 
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
-import net.openid.conformance.testmodule.OIDFJSON;
+import net.openid.conformance.util.validation.JsonSchemaValidationInput;
+import net.openid.conformance.util.validation.JsonSchemaValidationResult;
 
-public class ValidateVerifiedClaimsResponseAgainstSchema extends AbstractValidateAgainstSchema {
+public class ValidateVerifiedClaimsResponseAgainstSchema extends AbstractEkycSchemaBasedValidation {
+
+	private static final String SCHEMA_RESOURCE = "json-schemas/ekyc-ida/verified_claims.json";
+
+	@Override
+	protected JsonSchemaValidationInput createJsonSchemaValidationInput(Environment env) {
+		JsonObject wrappedClaims = env.getObject(EKYC_VALIDATION_INPUT_KEY);
+		return new JsonSchemaValidationInput("verified_claims response", SCHEMA_RESOURCE, wrappedClaims);
+	}
+
+	@Override
+	protected void onValidationSuccess(Environment env, JsonSchemaValidationInput input) {
+		// Suppress default success log; evaluate() logs a more detailed message
+	}
+
+	@Override
+	protected void onValidationFailure(Environment env, JsonSchemaValidationResult validationResult, JsonSchemaValidationInput input) {
+		JsonSchemaValidationResult structuralErrors = validationResult.withoutAdditionalPropertiesErrors();
+		if (!structuralErrors.isValid()) {
+			super.onValidationFailure(env, structuralErrors, input);
+		}
+	}
 
 	@Override
 	@PreEnvironment(required = {"verified_claims_response"})
 	public Environment evaluate(Environment env) {
-		JsonObject verifiedClaimsResponse = env.getObject("verified_claims_response");
-		JsonElement claimsElement = null;
-		String location = "";
-		//TODO I assumed id_token will be processed before userinfo so if we have userinfo then just process it
-		// otherwise process id_token
-		if(verifiedClaimsResponse.has("userinfo")) {
-			claimsElement = verifiedClaimsResponse.get("userinfo");
-			location = "userinfo";
-		} else {
-			claimsElement = verifiedClaimsResponse.get("id_token");
-			location = "id_token";
-		}
-		if(claimsElement==null) {
+		JsonObject claimsObject = extractAndWrapResponseClaims(env);
+		if (claimsObject == null) {
 			throw error("Could not find verified_claims");
 		}
-		//we add the outer {"verified_claims":...} here
-		JsonObject claimsObject = new JsonObject();
-		claimsObject.add("verified_claims", claimsElement);
 
-		// Verify against eKYC schema resource file verified_claims.json
-		JsonElement eKYCVerifiedClaimsSchema = getJsonElementFromResourceFile(ekycVerifiedClaimsResourceFile);
-		peformSchemaValidation("verified_claims response", claimsObject, "eKYC verified_claims", eKYCVerifiedClaimsSchema);
+		JsonObject verifiedClaimsResponse = env.getObject("verified_claims_response");
+		String location = verifiedClaimsResponse.has("userinfo") ? "userinfo" : "id_token";
 
-		// Verify user configured response schemas
-		JsonElement responseSchemas = env.getElementFromObject("config", "ekyc.response_schemas");
-		for(JsonElement responseSchemaElement : OIDFJSON.packJsonElementIntoJsonArray(responseSchemas)) {
-			peformSchemaValidation("verified_claims response", claimsObject, "ekyc user response_schemas", responseSchemaElement);
+		env.putObject(EKYC_VALIDATION_INPUT_KEY, claimsObject);
+		try {
+			super.evaluate(env);
+		} finally {
+			env.removeObject(EKYC_VALIDATION_INPUT_KEY);
 		}
-		logSuccess("Verified claims are valid", args("location", location, "verified_claims", claimsElement));
+
+		logSuccess("Verified claims are valid", args("location", location, "verified_claims", claimsObject.get("verified_claims")));
 		return env;
 	}
-
 }

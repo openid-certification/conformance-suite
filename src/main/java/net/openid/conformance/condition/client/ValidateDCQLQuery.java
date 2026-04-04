@@ -7,9 +7,9 @@ import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.condition.as.ExtractDCQLQueryFromAuthorizationRequest;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
-import net.openid.conformance.vci10issuer.condition.AbstractJsonSchemaBasedValidation;
-import net.openid.conformance.vci10issuer.util.JsonSchemaValidationInput;
-import net.openid.conformance.vci10issuer.util.JsonSchemaValidationResult;
+import net.openid.conformance.condition.AbstractJsonSchemaBasedValidation;
+import net.openid.conformance.util.validation.JsonSchemaValidationInput;
+import net.openid.conformance.util.validation.JsonSchemaValidationResult;
 
 import java.util.HashSet;
 import java.util.Set;

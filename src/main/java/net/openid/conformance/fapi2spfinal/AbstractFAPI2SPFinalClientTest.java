@@ -418,8 +418,8 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 			callAndStopOnFailure(SetServerSigningAlgToPS256.class, "CID-SP-4.2-8");
 			callAndStopOnFailure(AddClaimsParameterSupportedTrueToServerConfiguration.class, "CID-SP-4");
 			callAndStopOnFailure(AustraliaConnectIdAddClaimsSupportedToServerConfiguration.class, "CID-SP-4");
-			callAndStopOnFailure(AustraliaConnectIdAddVerifiedClaimsToServerConfiguration.class, "IA-9", "CID-IDA-5.3.3");
-			callAndStopOnFailure(AustraliaConnectIdAddTrustFrameworksSupportedToServerConfiguration.class, "IA-9", "CID-IDA-5.2-11");
+			callAndStopOnFailure(AustraliaConnectIdAddVerifiedClaimsToServerConfiguration.class, "IA-8", "CID-IDA-5.3.3");
+			callAndStopOnFailure(AustraliaConnectIdAddTrustFrameworksSupportedToServerConfiguration.class, "IA-8", "CID-IDA-5.2-11");
 			callAndStopOnFailure(AddSubjectTypesSupportedPairwiseToServerConfiguration.class, "CID-SP-4");
 		} else if (profile == FAPI2FinalOPProfile.FAPI_CLIENT_CREDENTIALS_GRANT) {
 			callAndStopOnFailure(FAPISetClientCredentialsGrantTypeInServerConfiguration.class);

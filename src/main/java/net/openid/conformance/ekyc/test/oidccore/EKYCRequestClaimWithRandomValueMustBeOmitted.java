@@ -14,7 +14,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 	testName = "ekyc-server-one-claim-with-random-value-omitted",
 	displayName = "eKYC Server Test - Only one claim requested with random value, verified_claims omitted from response",
 	summary = "This test requests one known claim, selected from the list of claims_in_verified_claims_supported, " +
-		" but with a random value (a UUID) that cannot be fullfilled and expects the authorization to succeed." +
+		" but with a random value (a UUID) that cannot be fulfilled and expects the authorization to succeed." +
 		" The claims object in verified_claims must be omitted or must not contain the requested claim from the response as the value cannot be fulfilled.",
 	profile = "OIDCC"
 )
@@ -28,7 +28,7 @@ public class EKYCRequestClaimWithRandomValueMustBeOmitted extends AbstractEKYCTe
 	@Override
 	protected void performIdTokenValidation() {
 		super.performIdTokenValidation();
-		callAndContinueOnFailure(EnsureIdTokenDoesNotContainVerifiedClaims.class, Condition.ConditionResult.FAILURE,"IA-7.7.3");
+		callAndContinueOnFailure(EnsureIdTokenDoesNotContainVerifiedClaims.class, Condition.ConditionResult.FAILURE, "IA-5.7.4", "IA-7");
 	}
 
 	@Override
@@ -44,7 +44,7 @@ public class EKYCRequestClaimWithRandomValueMustBeOmitted extends AbstractEKYCTe
 
 	@Override
 	protected void validateUserinfoVerifiedClaimsAgainstRequested() {
-		callAndContinueOnFailure(EnsureUserinfoDoesNotContainRequestedClaimInVerifiedClaims.class, Condition.ConditionResult.FAILURE, "IA-5.7.4");
+		callAndContinueOnFailure(EnsureUserinfoDoesNotContainRequestedClaimInVerifiedClaims.class, Condition.ConditionResult.FAILURE, "IA-5.7.4", "IA-7");
 	}
 
 }

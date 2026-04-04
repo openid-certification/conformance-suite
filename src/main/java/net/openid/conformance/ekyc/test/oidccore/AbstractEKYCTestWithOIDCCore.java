@@ -12,7 +12,11 @@ import net.openid.conformance.ekyc.condition.client.ValidateVerifiedClaimsInIdTo
 import net.openid.conformance.ekyc.condition.client.ValidateVerifiedClaimsInIdTokenAgainstRequest;
 import net.openid.conformance.ekyc.condition.client.ValidateVerifiedClaimsInUserinfoAgainstOPMetadata;
 import net.openid.conformance.ekyc.condition.client.ValidateVerifiedClaimsInUserinfoResponseAgainstRequest;
+import net.openid.conformance.ekyc.condition.client.CheckForUnexpectedPropertiesInVerifiedClaimsRequest;
+import net.openid.conformance.ekyc.condition.client.CheckForUnexpectedPropertiesInVerifiedClaimsResponse;
+import net.openid.conformance.ekyc.condition.client.ValidateVerifiedClaimsRequestAgainstCustomSchemas;
 import net.openid.conformance.ekyc.condition.client.ValidateVerifiedClaimsRequestAgainstSchema;
+import net.openid.conformance.ekyc.condition.client.ValidateVerifiedClaimsResponseAgainstCustomSchemas;
 import net.openid.conformance.ekyc.condition.client.ValidateVerifiedClaimsResponseAgainstSchema;
 import net.openid.conformance.openid.AbstractOIDCCServerSecurityProfileTest;
 import net.openid.conformance.variant.ClientAuthType;
@@ -67,15 +71,17 @@ public abstract class AbstractEKYCTestWithOIDCCore extends AbstractOIDCCServerSe
 
 	protected void addUnverifiedClaimsToAuthorizationRequest() {
 		callAndStopOnFailure(CreateUnverifiedClaimsToRequestInAuthorizationEndpointRequest.class, Condition.ConditionResult.FAILURE);
-		callAndContinueOnFailure(AddUnverifiedClaimsToAuthorizationEndpointRequest.class, Condition.ConditionResult.WARNING, "IA-6");
+		callAndContinueOnFailure(AddUnverifiedClaimsToAuthorizationEndpointRequest.class, Condition.ConditionResult.WARNING, "IA-5.3", "IA-7");
 	}
 
 	protected void addVerifiedClaimsToAuthorizationRequest() {
-		callAndContinueOnFailure(AddVerifiedClaimsToAuthorizationEndpointRequestUsingJsonNull.class, Condition.ConditionResult.WARNING, "IA-6");
+		callAndContinueOnFailure(AddVerifiedClaimsToAuthorizationEndpointRequestUsingJsonNull.class, Condition.ConditionResult.WARNING, "IA-5.3", "IA-7");
 	}
 
 	protected void validateVerifiedClaimsRequestSchema() {
 		callAndContinueOnFailure(ValidateVerifiedClaimsRequestAgainstSchema.class, Condition.ConditionResult.FAILURE, "IA-5.1");
+		callAndContinueOnFailure(CheckForUnexpectedPropertiesInVerifiedClaimsRequest.class, Condition.ConditionResult.WARNING, "IA-5.1");
+		callAndContinueOnFailure(ValidateVerifiedClaimsRequestAgainstCustomSchemas.class, Condition.ConditionResult.FAILURE);
 	}
 
 	@Override
@@ -86,6 +92,9 @@ public abstract class AbstractEKYCTestWithOIDCCore extends AbstractOIDCCServerSe
 		}
 	}
 
+	// id_token is processed before userinfo; validateVerifiedClaimsResponseSchema validates
+	// whichever location is present (preferring userinfo). This ordering ensures id_token
+	// is validated here before userinfo is extracted, then userinfo is validated separately.
 	protected void processVerifiedClaimsInIdToken() {
 		callAndStopOnFailure(ExtractVerifiedClaimsFromIdToken.class, Condition.ConditionResult.FAILURE, "IA-5");
 		validateVerifiedClaimsResponseSchema();
@@ -94,7 +103,7 @@ public abstract class AbstractEKYCTestWithOIDCCore extends AbstractOIDCCServerSe
 	}
 
 	protected void validateIdTokenVerifiedClaimsAgainstRequested() {
-		callAndContinueOnFailure(new ValidateVerifiedClaimsInIdTokenAgainstRequest(true), Condition.ConditionResult.FAILURE, "IA-6");
+		callAndContinueOnFailure(new ValidateVerifiedClaimsInIdTokenAgainstRequest(true), Condition.ConditionResult.FAILURE, "IA-5.7", "IA-7");
 	}
 
 	protected void ensureReturnedVerifiedClaimsMatchOPMetadata(boolean isUserinfo) {
@@ -106,7 +115,9 @@ public abstract class AbstractEKYCTestWithOIDCCore extends AbstractOIDCCServerSe
 	}
 
 	protected void validateVerifiedClaimsResponseSchema() {
-		callAndContinueOnFailure(ValidateVerifiedClaimsResponseAgainstSchema.class, Condition.ConditionResult.FAILURE, "IA-6");
+		callAndContinueOnFailure(ValidateVerifiedClaimsResponseAgainstSchema.class, Condition.ConditionResult.FAILURE, "IAVC-5");
+		callAndContinueOnFailure(CheckForUnexpectedPropertiesInVerifiedClaimsResponse.class, Condition.ConditionResult.WARNING, "IAVC-5");
+		callAndContinueOnFailure(ValidateVerifiedClaimsResponseAgainstCustomSchemas.class, Condition.ConditionResult.FAILURE);
 	}
 
 	@Override
@@ -125,7 +136,7 @@ public abstract class AbstractEKYCTestWithOIDCCore extends AbstractOIDCCServerSe
 	}
 
 	protected void validateUserinfoVerifiedClaimsAgainstRequested() {
-		callAndContinueOnFailure(new ValidateVerifiedClaimsInUserinfoResponseAgainstRequest(true), Condition.ConditionResult.FAILURE, "IA-6");
+		callAndContinueOnFailure(new ValidateVerifiedClaimsInUserinfoResponseAgainstRequest(true), Condition.ConditionResult.FAILURE, "IA-5.7", "IA-7");
 	}
 
 }
