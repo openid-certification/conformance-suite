@@ -17,8 +17,8 @@ import java.util.Set;
 
 /**
  * Base class for conditions that check for unknown/additional properties in schema-validated JSON.
- * Filters validation messages to only report additionalProperties errors, ignoring structural
- * errors (which are handled by the main validator condition).
+ * Filters validation messages to only report additionalProperties and unevaluatedProperties
+ * errors, ignoring structural errors (which are handled by the main validator condition).
  *
  * Subclasses may override {@link #getAllowUnexpectedFieldsConfigKey()} to let a test configuration
  * suppress the warning for specific known-extension property names that the schema does not (yet)
