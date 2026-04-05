@@ -348,7 +348,63 @@ class ValidateVerifiedClaimsRequestAgainstSchema_UnitTest {
 	}
 
 	@Test
-	public void testEvaluate_noError_vouch_can_contain_document_details_without_document_branch_validation() {
+	public void testEvaluate_fail_unknown_property_in_document_details() {
+		String request = """
+			{
+			  "claims": {
+			    "id_token": {
+			      "verified_claims": {
+			        "claims": {"given_name": null},
+			        "verification": {
+			          "trust_framework": {"value": "de_aml"},
+			          "evidence": [{
+			            "type": {"value": "document"},
+			            "document_details": {
+			              "type": null,
+			              "personal_number": null
+			            }
+			          }]
+			        }
+			      }
+			    }
+			  }
+			}
+			""";
+
+		assertThrows(ConditionError.class, () -> runTest(request));
+	}
+
+	@Test
+	public void testEvaluate_fail_unknown_property_in_check_details() {
+		String request = """
+			{
+			  "claims": {
+			    "id_token": {
+			      "verified_claims": {
+			        "claims": {"given_name": null},
+			        "verification": {
+			          "trust_framework": {"value": "de_aml"},
+			          "evidence": [{
+			            "type": {"value": "document"},
+			            "check_details": [{
+			              "check_method": null,
+			              "unknown_field": null
+			            }]
+			          }]
+			        }
+			      }
+			    }
+			  }
+			}
+			""";
+
+		assertThrows(ConditionError.class, () -> runTest(request));
+	}
+
+	@Test
+	public void testEvaluate_vouch_rejects_wrong_branch_fields_at_evidence_level() {
+		// The evidence object uses allOf with if/then for conditional properties,
+		// so unevaluatedProperties: false is used to reject fields from non-matching branches.
 		String request = """
 			{
 			  "claims": {
@@ -376,7 +432,7 @@ class ValidateVerifiedClaimsRequestAgainstSchema_UnitTest {
 			}
 			""";
 
-		assertDoesNotThrow(() -> runTest(request));
+		assertThrows(ConditionError.class, () -> runTest(request));
 	}
 
 	@Test

@@ -12,8 +12,8 @@ import java.util.List;
 
 /**
  * Base class for conditions that check for unknown/additional properties in schema-validated JSON.
- * Filters validation messages to only report additionalProperties errors, ignoring structural
- * errors (which are handled by the main validator condition).
+ * Filters validation messages to only report additionalProperties and unevaluatedProperties
+ * errors, ignoring structural errors (which are handled by the main validator condition).
  */
 public abstract class AbstractCheckForUnexpectedSchemaProperties extends AbstractJsonSchemaBasedValidation {
 

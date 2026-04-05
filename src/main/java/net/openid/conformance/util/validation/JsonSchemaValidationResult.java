@@ -10,6 +10,10 @@ import java.util.stream.Collectors;
 
 public class JsonSchemaValidationResult {
 
+	private static boolean isUnexpectedPropertyErrorType(String type) {
+		return "additionalProperties".equals(type) || "unevaluatedProperties".equals(type);
+	}
+
 	private final Set<ValidationMessage> validationMessages;
 
 	public JsonSchemaValidationResult(Set<ValidationMessage> validationMessages) {
@@ -26,14 +30,14 @@ public class JsonSchemaValidationResult {
 
 	public JsonSchemaValidationResult withoutAdditionalPropertiesErrors() {
 		Set<ValidationMessage> filtered = validationMessages.stream()
-			.filter(m -> !"additionalProperties".equals(m.getType()))
+			.filter(m -> !isUnexpectedPropertyErrorType(m.getType()))
 			.collect(Collectors.toSet());
 		return new JsonSchemaValidationResult(filtered);
 	}
 
 	public JsonSchemaValidationResult onlyAdditionalPropertiesErrors() {
 		Set<ValidationMessage> filtered = validationMessages.stream()
-			.filter(m -> "additionalProperties".equals(m.getType()))
+			.filter(m -> isUnexpectedPropertyErrorType(m.getType()))
 			.collect(Collectors.toSet());
 		return new JsonSchemaValidationResult(filtered);
 	}
