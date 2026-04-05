@@ -346,7 +346,6 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 		eventLog.endBlock();
 	}
 	// FIXME send parameters in openid4vp:// url in a different order
-	// FIXME test without use: enc in client_metadata
 
 	public static class CreateAuthorizationRequestSteps extends AbstractConditionSequence {
 		private VP1FinalWalletRequestMethod requestMethod;

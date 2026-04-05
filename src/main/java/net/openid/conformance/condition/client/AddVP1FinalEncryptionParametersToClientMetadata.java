@@ -37,6 +37,8 @@ public class AddVP1FinalEncryptionParametersToClientMetadata extends AbstractCon
 			throw error("The client jwks does not contain a key with 'use': 'enc'", args("clientjwks", publicJwks));
 		}
 
+		encKey = transformEncKey(encKey);
+
 		String alg = env.getString("client", "authorization_encrypted_response_alg");
 		String enc = env.getString("client", "authorization_encrypted_response_enc");
 
@@ -100,5 +102,13 @@ public class AddVP1FinalEncryptionParametersToClientMetadata extends AbstractCon
 		log("Added encryption key to client_metadata in authorization endpoint request", args("client_metadata", clientMetaData));
 
 		return env;
+	}
+
+	/**
+	 * Hook for subclasses to transform the encryption key before it is added to client_metadata.
+	 * The default implementation returns the key unchanged.
+	 */
+	protected JsonObject transformEncKey(JsonObject encKey) {
+		return encKey;
 	}
 }

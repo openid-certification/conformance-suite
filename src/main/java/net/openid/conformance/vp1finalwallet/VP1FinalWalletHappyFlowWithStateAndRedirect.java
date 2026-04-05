@@ -2,6 +2,8 @@ package net.openid.conformance.vp1finalwallet;
 
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.client.AddRandomParameterToAuthorizationEndpointRequest;
+import net.openid.conformance.condition.client.AddVP1FinalEncryptionParametersToClientMetadata;
+import net.openid.conformance.condition.client.AddVP1FinalEncryptionParametersToClientMetadataWithoutUseEnc;
 import net.openid.conformance.condition.client.CreateRedirectUri;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
@@ -9,7 +11,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 @PublishTestModule(
 	testName = "oid4vp-1final-wallet-happy-flow-with-state-and-redirect",
 	displayName = "OID4VP-1.0-FINAL: Happy flow test with state parameter and a redirect back to the verifier",
-	summary = "Performs the normal flow, but with a 'state', a longer 'nonce', a random authorization endpoint parameter (which must be ignored) and the response_uri response returns a redirect_uri which the wallet must open",
+	summary = "Performs the normal flow, but with a 'state', a longer 'nonce', a random authorization endpoint parameter (which must be ignored), the encryption key without 'use: enc' (for encrypted response modes), and the response_uri response returns a redirect_uri which the wallet must open",
 	profile = "OID4VP-1FINAL"
 )
 
@@ -34,6 +36,9 @@ public class VP1FinalWalletHappyFlowWithStateAndRedirect extends AbstractVP1Fina
 
 		createAuthorizationRequestSteps = createAuthorizationRequestSteps.
 			then(condition(AddRandomParameterToAuthorizationEndpointRequest.class));
+
+		createAuthorizationRequestSteps.replace(AddVP1FinalEncryptionParametersToClientMetadata.class,
+			condition(AddVP1FinalEncryptionParametersToClientMetadataWithoutUseEnc.class));
 
 		return createAuthorizationRequestSteps;
 	}
