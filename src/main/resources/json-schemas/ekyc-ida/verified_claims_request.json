@@ -21,7 +21,9 @@
                         "$ref": "#/$defs/datetime_element"
                     }
                 },
-                "required": ["check_method"]
+                "required": [
+                    "check_method"
+                ]
             },
             "minItems": 1
         },
@@ -72,7 +74,8 @@
                             },
                             "minItems": 1
                         }
-                    }
+                    },
+                    "unevaluatedProperties": false
                 }
             ]
         },
@@ -91,7 +94,8 @@
                             "type": "integer",
                             "minimum": 0
                         }
-                    }
+                    },
+                    "unevaluatedProperties": false
                 }
             ]
         },
@@ -157,6 +161,9 @@
             "properties": {
                 "type": {
                     "type": "object",
+                    "required": [
+                        "value"
+                    ],
                     "properties": {
                         "value": {
                             "enum": [
@@ -165,8 +172,13 @@
                                 "vouch",
                                 "electronic_signature"
                             ]
-                        }
-                    }
+                        },
+                        "essential": {
+                            "type": "boolean"
+                        },
+                        "values": false
+                    },
+                    "unevaluatedProperties": false
                 },
                 "attachments": {
                     "$ref": "#/$defs/simple_element"
@@ -183,7 +195,9 @@
                                         "const": "electronic_signature"
                                     }
                                 },
-                                "required": ["value"]
+                                "required": [
+                                    "value"
+                                ]
                             }
                         }
                     },
@@ -200,6 +214,9 @@
                             },
                             "signature_type": {
                                 "$ref": "#/$defs/simple_element"
+                            },
+                            "derived_claims": {
+                                "$ref": "#/$defs/claims_element"
                             }
                         }
                     },
@@ -215,7 +232,9 @@
                                         "const": "document"
                                     }
                                 },
-                                "required": ["value"]
+                                "required": [
+                                    "value"
+                                ]
                             }
                         }
                     },
@@ -226,6 +245,9 @@
                             },
                             "document_details": {
                                 "$ref": "#/$defs/document_details"
+                            },
+                            "derived_claims": {
+                                "$ref": "#/$defs/claims_element"
                             }
                         }
                     },
@@ -241,7 +263,9 @@
                                         "const": "electronic_record"
                                     }
                                 },
-                                "required": ["value"]
+                                "required": [
+                                    "value"
+                                ]
                             }
                         }
                     },
@@ -262,9 +286,6 @@
                                     },
                                     "date_of_expiry": {
                                         "$ref": "#/$defs/datetime_element"
-                                    },
-                                    "derived_claims": {
-                                        "$ref": "#/$defs/claims_element"
                                     },
                                     "source": {
                                         "type": "object",
@@ -300,6 +321,9 @@
                                         }
                                     }
                                 }
+                            },
+                            "derived_claims": {
+                                "$ref": "#/$defs/claims_element"
                             }
                         }
                     },
@@ -315,7 +339,9 @@
                                         "const": "vouch"
                                     }
                                 },
-                                "required": ["value"]
+                                "required": [
+                                    "value"
+                                ]
                             }
                         }
                     },
@@ -333,9 +359,6 @@
                                     },
                                     "date_of_issuance": {
                                         "$ref": "#/$defs/datetime_element"
-                                    },
-                                    "derived_claims": {
-                                        "$ref": "#/$defs/claims_element"
                                     },
                                     "reference_number": {
                                         "$ref": "#/$defs/simple_element"
@@ -383,12 +406,16 @@
                             },
                             "check_details": {
                                 "$ref": "#/$defs/check_details"
+                            },
+                            "derived_claims": {
+                                "$ref": "#/$defs/claims_element"
                             }
                         }
                     },
                     "else": true
                 }
-            ]
+            ],
+            "unevaluatedProperties": false
         },
         "simple_element": {
             "oneOf": [
@@ -401,7 +428,8 @@
                         "essential": {
                             "type": "boolean"
                         }
-                    }
+                    },
+                    "unevaluatedProperties": false
                 }
             ]
         },
@@ -465,7 +493,7 @@
                                                     "type": "object",
                                                     "additionalProperties": false,
                                                     "properties": {
-                                                        "check_id" : {
+                                                        "check_id": {
                                                             "$ref": "#/$defs/constrainable_element"
                                                         },
                                                         "evidence_metadata": {
@@ -478,7 +506,9 @@
                                                             }
                                                         }
                                                     },
-                                                    "required": ["check_id"]
+                                                    "required": [
+                                                        "check_id"
+                                                    ]
                                                 },
                                                 "minItems": 1
                                             }
@@ -534,5 +564,6 @@
                 }
             }
         }
-    }
+    },
+    "unevaluatedProperties": false
 }
