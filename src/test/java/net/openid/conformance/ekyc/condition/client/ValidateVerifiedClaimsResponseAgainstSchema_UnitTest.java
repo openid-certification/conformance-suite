@@ -34,10 +34,8 @@ public class ValidateVerifiedClaimsResponseAgainstSchema_UnitTest
 
 	}
 
-	@Test
-	public void testEvaluate_validateVerifiedClaimsSimple() {
+	private void runTest(String claimsJson) {
 		JsonObject verifiedClaimsResponse = new JsonObject();
-		String claimsJson = "{\"claims\":{\"given_name\":\"Paula\"},\"verification\":{\"trust_framework\":\"de_aml\"}}";
 		JsonObject parsedClaims = JsonParser.parseString(claimsJson).getAsJsonObject();
 		verifiedClaimsResponse.add("id_token", parsedClaims);
 		env.putObject("verified_claims_response", verifiedClaimsResponse);
@@ -45,41 +43,72 @@ public class ValidateVerifiedClaimsResponseAgainstSchema_UnitTest
 	}
 
 	@Test
+	public void testEvaluate_validateVerifiedClaimsSimple() {
+		runTest("{\"claims\":{\"given_name\":\"Paula\"},\"verification\":{\"trust_framework\":\"de_aml\"}}");
+	}
+
+	@Test
 	public void testEvaluate_validateVerifiedClaimsError() {
-		assertThrows(ConditionError.class, () -> {
-			JsonObject verifiedClaimsResponse = new JsonObject();
-			String claimsJson = "{\"foo_claims\":{\"given_name\":\"Paula\"},\"verification\":{\"trust_framework\":\"de_aml\"}}";
-			JsonObject parsedClaims = JsonParser.parseString(claimsJson).getAsJsonObject();
-			verifiedClaimsResponse.add("id_token", parsedClaims);
-			env.putObject("verified_claims_response", verifiedClaimsResponse);
-			cond.execute(env);
-			});
+		assertThrows(ConditionError.class, () ->
+			runTest("{\"foo_claims\":{\"given_name\":\"Paula\"},\"verification\":{\"trust_framework\":\"de_aml\"}}"));
+	}
+
+	@Test
+	public void testEvaluate_unknownPropertyInDocumentDetailsIsNotAStructuralFailure() {
+		// Unknown properties are reported (as a warning) by
+		// CheckForUnexpectedPropertiesInVerifiedClaimsResponse, not by this condition.
+		assertDoesNotThrow(() -> runTest(EkycUnknownPropertyFixtures.RESPONSE_UNKNOWN_PROPERTY_IN_DOCUMENT_DETAILS));
+	}
+
+	@Test
+	public void testEvaluate_unknownPropertyInVoucherIsNotAStructuralFailure() {
+		assertDoesNotThrow(() -> runTest(EkycUnknownPropertyFixtures.RESPONSE_UNKNOWN_PROPERTY_IN_VOUCHER));
 	}
 
 	@Test
 	public void testEvaluate_validateVerifiedClaimsVouchCanContainDocumentDetailsWithoutDocumentBranchValidation() {
-		assertDoesNotThrow(() -> {
-			JsonObject verifiedClaimsResponse = new JsonObject();
-			String claimsJson = """
-				{
-				  "claims": {
-				    "given_name": "Paula"
-				  },
-				  "verification": {
-				    "trust_framework": "de_aml",
-				    "evidence": [
-				      {
-				        "type": "vouch",
-				        "document_details": "ignored-for-vouch"
-				      }
-				    ]
-				  }
-				}
-				""";
-			JsonObject parsedClaims = JsonParser.parseString(claimsJson).getAsJsonObject();
-			verifiedClaimsResponse.add("id_token", parsedClaims);
-			env.putObject("verified_claims_response", verifiedClaimsResponse);
-			cond.execute(env);
-		});
+		// Fields from a non-matching evidence branch are unevaluated properties; they are
+		// reported (as a warning) by CheckForUnexpectedPropertiesInVerifiedClaimsResponse,
+		// not by this condition.
+		assertDoesNotThrow(() -> runTest(EkycUnknownPropertyFixtures.RESPONSE_WRONG_BRANCH_FIELD_ON_VOUCH_EVIDENCE));
+	}
+
+	@Test
+	public void testEvaluate_rejectForbiddenAttachmentContentTypeLowercase() {
+		assertThrows(ConditionError.class, () -> executeWithAttachmentContentType("multipart/mixed"));
+	}
+
+	@Test
+	public void testEvaluate_rejectForbiddenAttachmentContentTypeMixedCase() {
+		// Media type names are case-insensitive (RFC 6838, section 4.2)
+		assertThrows(ConditionError.class, () -> executeWithAttachmentContentType("Multipart/mixed"));
+	}
+
+	@Test
+	public void testEvaluate_rejectForbiddenAttachmentContentTypeUppercase() {
+		assertThrows(ConditionError.class, () -> executeWithAttachmentContentType("MESSAGE/rfc822"));
+	}
+
+	@Test
+	public void testEvaluate_allowedAttachmentContentType() {
+		assertDoesNotThrow(() -> executeWithAttachmentContentType("image/png"));
+	}
+
+	private void executeWithAttachmentContentType(String contentType) {
+		runTest("""
+			{
+			  "claims": {"given_name": "Paula"},
+			  "verification": {
+			    "trust_framework": "de_aml",
+			    "evidence": [{
+			      "type": "document",
+			      "attachments": [{
+			        "content_type": "%s",
+			        "content": "aGVsbG8="
+			      }]
+			    }]
+			  }
+			}
+			""".formatted(contentType));
 	}
 }

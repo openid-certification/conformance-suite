@@ -3,6 +3,7 @@ package net.openid.conformance.util.validation;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.json.JsonMapper;
+import tools.jackson.databind.node.ObjectNode;
 import com.google.gson.JsonObject;
 import com.networknt.schema.Schema;
 import com.networknt.schema.SchemaLocation;
@@ -34,6 +35,8 @@ public class JsonSchemaValidation {
 
 	private Consumer<SchemaRegistry.Builder> schemaBuilderCustomizer;
 
+	private boolean ignoreUnknownPropertyStrictness;
+
 	public JsonSchemaValidation(ObjectMapper mapper, Resource schemaResource) {
 		this.mapper = mapper;
 		this.schemaResource = schemaResource;
@@ -55,6 +58,25 @@ public class JsonSchemaValidation {
 		this.schemaBuilderCustomizer = schemaBuilderCustomizer;
 	}
 
+	/**
+	 * When enabled, {@code "additionalProperties": false} and {@code "unevaluatedProperties": false}
+	 * are removed from the schema before validating, so unknown properties do not cause validation
+	 * failures. Filtering the resulting messages by type (see
+	 * {@link JsonSchemaValidationResult#withoutUnknownPropertyErrors()}) is not sufficient for this:
+	 * when the strict keyword sits inside a {@code oneOf}/{@code anyOf}/{@code allOf} branch, an
+	 * unknown property makes the whole branch fail, and the sibling branches' errors (e.g. a
+	 * {@code type} mismatch from the other branch) escape the type-based filter. Conditions that
+	 * validate structure (and run with FAILURE) enable this so that unknown properties are surfaced
+	 * only by the dedicated unknown-property conditions (which run with WARNING).
+	 *
+	 * <p>The transformation is applied only to the root schema document; schemas pulled in through
+	 * cross-document $refs are loaded separately by the validator library and keep their strict
+	 * keywords.</p>
+	 */
+	public void setIgnoreUnknownPropertyStrictness(boolean ignoreUnknownPropertyStrictness) {
+		this.ignoreUnknownPropertyStrictness = ignoreUnknownPropertyStrictness;
+	}
+
 	public ObjectMapper getMapper() {
 		return mapper;
 	}
@@ -66,6 +88,9 @@ public class JsonSchemaValidation {
 	public JsonSchemaValidationResult validate(String jsonInput) throws IOException {
 
 		JsonNode schemaNode = mapper.readTree(schemaResource.getInputStream());
+		if (ignoreUnknownPropertyStrictness) {
+			removeUnknownPropertyStrictness(schemaNode);
+		}
 
 		SpecificationVersion specVersion = SpecificationVersionDetector.detect(schemaNode);
 		SchemaRegistry registry = createRegistry(specVersion, schemaBuilderCustomizer);
@@ -96,6 +121,30 @@ public class JsonSchemaValidation {
 				customizer.accept(builder);
 			}
 		});
+	}
+
+	/**
+	 * Purely syntactic transformation: walks the whole document rather than only schema keyword
+	 * positions, which is sufficient for the schemas owned by the test suite (it would misfire on a
+	 * schema declaring a property literally named "additionalProperties" with a boolean-false schema).
+	 * Only removes the boolean {@code false} form; schema-valued forms constrain the values of extra
+	 * properties and are kept.
+	 */
+	private static void removeUnknownPropertyStrictness(JsonNode node) {
+		if (node instanceof ObjectNode objectNode) {
+			removeIfFalse(objectNode, "additionalProperties");
+			removeIfFalse(objectNode, "unevaluatedProperties");
+		}
+		for (JsonNode child : node) {
+			removeUnknownPropertyStrictness(child);
+		}
+	}
+
+	private static void removeIfFalse(ObjectNode node, String keyword) {
+		JsonNode value = node.get(keyword);
+		if (value != null && value.isBoolean() && !value.booleanValue()) {
+			node.remove(keyword);
+		}
 	}
 
 	/**

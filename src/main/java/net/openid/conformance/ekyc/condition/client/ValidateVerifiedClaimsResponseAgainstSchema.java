@@ -4,7 +4,6 @@ import com.google.gson.JsonObject;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.util.validation.JsonSchemaValidationInput;
-import net.openid.conformance.util.validation.JsonSchemaValidationResult;
 
 public class ValidateVerifiedClaimsResponseAgainstSchema extends AbstractEkycSchemaBasedValidation {
 
@@ -21,12 +20,15 @@ public class ValidateVerifiedClaimsResponseAgainstSchema extends AbstractEkycSch
 		// Suppress default success log; evaluate() logs a more detailed message
 	}
 
+	/**
+	 * Unknown properties are surfaced (as a warning) by
+	 * {@link CheckForUnexpectedPropertiesInVerifiedClaimsResponse}, not by this condition, per
+	 * IAVC 5.2 ("Implementations shall ignore any sub-element not defined in this specification or
+	 * extensions of this specification").
+	 */
 	@Override
-	protected void onValidationFailure(Environment env, JsonSchemaValidationResult validationResult, JsonSchemaValidationInput input) {
-		JsonSchemaValidationResult structuralErrors = validationResult.withoutUnknownPropertyErrors();
-		if (!structuralErrors.isValid()) {
-			super.onValidationFailure(env, structuralErrors, input);
-		}
+	protected boolean ignoreUnknownPropertyStrictness() {
+		return true;
 	}
 
 	@Override
