@@ -1,12 +1,11 @@
 package net.openid.conformance.sequence.client;
 
 import net.openid.conformance.condition.Condition.ConditionResult;
-import net.openid.conformance.condition.client.EnsureX5cHeaderPresentForSdJwtCredential;
 import net.openid.conformance.condition.client.ValidateCredentialCnfJwkIsPublicKey;
 import net.openid.conformance.condition.client.ValidateCredentialJWTExp;
 import net.openid.conformance.condition.client.ValidateCredentialJWTHeaderTyp;
 import net.openid.conformance.condition.client.ValidateCredentialJWTIat;
-import net.openid.conformance.condition.client.ValidateSdJwtCredentialSignatureUsingX5c;
+import net.openid.conformance.condition.client.ValidateSdJwtCredentialX5cCertificateChain;
 import net.openid.conformance.condition.client.ValidateSdJwtDisclosureSaltsAreUnique;
 import net.openid.conformance.condition.client.ValidateCredentialJWTNbf;
 import net.openid.conformance.condition.client.ValidateCredentialJWTVct;
@@ -60,9 +59,7 @@ public class ValidateSdJwtVcCredentialClaims extends AbstractConditionSequence {
 		callAndContinueOnFailure(ValidateSdJwtDisclosureSaltsAreUnique.class,
 			ConditionResult.FAILURE, "SDJWT-4.2.1");
 		if (haip) {
-			callAndContinueOnFailure(EnsureX5cHeaderPresentForSdJwtCredential.class,
-				ConditionResult.FAILURE, "HAIP-6.1.1");
-			callAndContinueOnFailure(ValidateSdJwtCredentialSignatureUsingX5c.class,
+			callAndContinueOnFailure(ValidateSdJwtCredentialX5cCertificateChain.class,
 				ConditionResult.FAILURE, "HAIP-6.1.1");
 			callAndContinueOnFailure(ValidateCredentialValidityByStatusListIfPresentForHaip.class,
 				ConditionResult.FAILURE, "OTSL-6.2", "HAIP-6.1");
