@@ -30,7 +30,7 @@ import java.util.Map;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @ExtendWith(MockitoExtension.class)
-public class ValidateCredentialValidityByStatusListIfPresentForHaip_UnitTest {
+public class ValidateCredentialStatusListForHaip_UnitTest {
 
 	private static final String NON_SELF_SIGNED_JWK = """
 		{
@@ -70,11 +70,11 @@ public class ValidateCredentialValidityByStatusListIfPresentForHaip_UnitTest {
 	@Mock
 	private TestInstanceEventLog eventLog;
 
-	private TestableValidateCredentialValidityByStatusListIfPresentForHaip cond;
+	private TestableValidateCredentialStatusListForHaip cond;
 
 	@BeforeEach
 	public void setUp() {
-		cond = new TestableValidateCredentialValidityByStatusListIfPresentForHaip();
+		cond = new TestableValidateCredentialStatusListForHaip();
 		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 
 		JsonObject statusList = new JsonObject();
@@ -147,7 +147,7 @@ public class ValidateCredentialValidityByStatusListIfPresentForHaip_UnitTest {
 		return jwt.serialize();
 	}
 
-	private static class TestableValidateCredentialValidityByStatusListIfPresentForHaip extends ValidateCredentialValidityByStatusListIfPresentForHaip {
+	private static class TestableValidateCredentialStatusListForHaip extends ValidateCredentialStatusListForHaip {
 		private ResponseEntity<String> response;
 
 		void setResponse(ResponseEntity<String> response) {
