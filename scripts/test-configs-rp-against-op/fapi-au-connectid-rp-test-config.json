@@ -23,6 +23,7 @@
     },
     "client": {
         "client_id": "52480754053",
+        "scope": "openid",
         "jwks": {
             "keys": [
                 {

@@ -475,6 +475,13 @@ makeVcTests() {
 }
 
 makeCIBATest() {
+    pushd "${SUITE_DIR}/scripts/connectid-ciba-rp-client"
+    mvn clean package
+    popd
+
+    # connectid ciba client test
+    TESTS="${TESTS} fapi-ciba-id1-client-test-plan[client_auth_type=private_key_jwt][ciba_mode=poll][fapi_ciba_profile=connectid_au]:fapi-ciba-id1-client-test{connectid-ciba-rp-client} ${SUITE_DIR}/scripts/test-configs-rp-against-op/fapi-au-connectid-op-test-config.json ${SUITE_DIR}/scripts/test-configs-rp-against-op/fapi-au-connectid-rp-test-config.json"
+
     # ciba poll - static client
     # Coverage: one plan per auth type for plain_fapi (static), plus
     # private_key_jwt/openbanking_uk (static). mtls/openbanking_uk/static

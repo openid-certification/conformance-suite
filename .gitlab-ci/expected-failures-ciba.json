@@ -1,5 +1,18 @@
 [
     {
+        "test-name": "fapi-ciba-id1-client-test",
+        "variant": {
+                "client_auth_type": "private_key_jwt",
+                "fapi_ciba_profile": "connectid_au",
+                "ciba_mode": "poll"
+        },
+        "configuration-filename": "fapi-au-connectid-op-test-config.json",
+        "current-block": "RP calls the backchannel endpoint",
+        "condition": "AustraliaConnectIdValidateRequestObjectBindingMessage",
+        "expected-result": "failure",
+        "comment": "SDK bug: sends 'purpose' instead of 'binding_message'"
+    },
+    {
         "test-name": "fapi-ciba-id1-ensure-authorization-request-with-potentially-bad-binding-message",
         "variant": "*",
         "configuration-filename": "authlete-*.json",

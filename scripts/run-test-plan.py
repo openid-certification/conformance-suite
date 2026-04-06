@@ -282,6 +282,23 @@ async def run_test_module(moduledict, plan_id, test_info, test_time_taken, varia
                         subprocess.call(["npm", "run", "client"], cwd="./sample-openid-client-nodejs")
 
                         await conformance.wait_for_state(module_id, ["FINISHED"])
+                    elif op_plan["test_name"] == "connectid-ciba-rp-client":
+                        alias = parsed_config["alias"]
+                        os.environ['ISSUER'] = os.environ["CONFORMANCE_SERVER"] + "test/a/" + alias + "/"
+                        
+                        # Use absolute paths to be safe
+                        script_dir = os.path.dirname(os.path.realpath(__file__))
+                        client_dir = os.path.join(script_dir, "connectid-ciba-rp-client")
+                        
+                        config_file = op_plan["config_file"]
+                        if not os.path.isabs(config_file):
+                            # Assume relative to project root (one level up from scripts)
+                            config_file = os.path.join(os.path.dirname(script_dir), config_file)
+                        os.environ['CONFIG_FILE'] = config_file
+                        
+                        subprocess.call(["java", "-jar", "target/connectid-ciba-rp-client-1.0-SNAPSHOT-jar-with-dependencies.jar"], cwd=client_dir)
+
+                        await conformance.wait_for_state(module_id, ["FINISHED"])
                     else:
                         # the 'client' is our own OP tests
                         attempt_plan_results.extend(await run_test_plan({"test":op_plan}, op_plan["config_file"], output_dir, client_certs))
