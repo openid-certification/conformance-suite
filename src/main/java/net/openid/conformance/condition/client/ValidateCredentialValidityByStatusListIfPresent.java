@@ -2,14 +2,14 @@ package net.openid.conformance.condition.client;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.nimbusds.jwt.JWT;
+import com.google.gson.JsonParser;
+import com.nimbusds.jose.jwk.JWKSet;
 import com.nimbusds.jwt.JWTClaimsSet;
-import net.openid.conformance.condition.AbstractCondition;
+import com.nimbusds.jwt.SignedJWT;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.oauth.statuslists.TokenStatusList;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
-import net.openid.conformance.util.JWTUtil;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -19,7 +19,7 @@ import org.springframework.web.client.RestTemplate;
 import java.text.ParseException;
 import java.util.Map;
 
-public class ValidateCredentialValidityByStatusListIfPresent extends AbstractCondition {
+public class ValidateCredentialValidityByStatusListIfPresent extends AbstractVerifyJwsSignature {
 
 	@Override
 	@PreEnvironment(required = {"sdjwt"})
@@ -53,10 +53,7 @@ public class ValidateCredentialValidityByStatusListIfPresent extends AbstractCon
 		// fetch referenced token_status list token
 		ResponseEntity<String> statusListTokenJwtResponse;
 		try {
-			RestTemplate restTemplate = createRestTemplate(env);
-			HttpHeaders headers = new HttpHeaders();
-			headers.set(HttpHeaders.ACCEPT, "application/statuslist+jwt");
-			statusListTokenJwtResponse = restTemplate.exchange(uri, HttpMethod.GET, new HttpEntity<>(headers), String.class);
+			statusListTokenJwtResponse = fetchStatusListToken(env, uri);
 		} catch (Exception e) {
 			throw error("Unable to retrieve statuslist token from uri " + uri, e);
 		}
@@ -68,13 +65,8 @@ public class ValidateCredentialValidityByStatusListIfPresent extends AbstractCon
 		TokenStatusList.Status status;
 		// Status List in JSON Format, see: https://datatracker.ietf.org/doc/html/draft-ietf-oauth-status-list-12#section-4.2
 		try {
-			// TODO validate token status list token
 			String statusListTokenJwtString = statusListTokenJwtResponse.getBody();
-
-			JWT statusListTokenJwt = JWTUtil.parseJWT(statusListTokenJwtString);
-
-			// extract token status list
-			JWTClaimsSet jwtClaimsSet = statusListTokenJwt.getJWTClaimsSet();
+			JWTClaimsSet jwtClaimsSet = verifyAndParseStatusListToken(statusListTokenJwtString, env);
 
 			Map<String, Object> statusList = jwtClaimsSet.getJSONObjectClaim("status_list");
 
@@ -113,5 +105,35 @@ public class ValidateCredentialValidityByStatusListIfPresent extends AbstractCon
 
 		logSuccess("Found valid credential status in status_list. Status=" + status, args("status_claim", statusClaimObj, "status", status, "status_list_idx", idx, "status_list_uri", uri));
 		return env;
+	}
+
+	protected ResponseEntity<String> fetchStatusListToken(Environment env, String uri) throws Exception {
+		RestTemplate restTemplate = createRestTemplate(env);
+		HttpHeaders headers = new HttpHeaders();
+		headers.set(HttpHeaders.ACCEPT, "application/statuslist+jwt");
+		return restTemplate.exchange(uri, HttpMethod.GET, new HttpEntity<>(headers), String.class);
+	}
+
+	protected JWTClaimsSet verifyAndParseStatusListToken(String statusListTokenJwtString, Environment env) throws ParseException {
+		SignedJWT statusListTokenJwt = SignedJWT.parse(statusListTokenJwtString);
+		verifyStatusListTokenSignature(statusListTokenJwtString, statusListTokenJwt, env);
+		return statusListTokenJwt.getJWTClaimsSet();
+	}
+
+	protected void verifyStatusListTokenSignature(String statusListTokenJwtString, SignedJWT statusListTokenJwt, Environment env) {
+		if (statusListTokenJwt.getHeader().getJWK() != null) {
+			JWKSet jwkSet = new JWKSet(statusListTokenJwt.getHeader().getJWK());
+			JsonObject jwkSetObject = JsonParser.parseString(jwkSet.toString()).getAsJsonObject();
+			verifyJwsSignature(statusListTokenJwtString, jwkSetObject, "status list token", false, "JWT header jwk");
+			return;
+		}
+
+		if (env.containsObject("server_jwks")) {
+			verifyJwsSignature(statusListTokenJwtString, env.getObject("server_jwks"), "status list token", false, "server");
+			return;
+		}
+
+		throw error("Unable to verify status list token signature because neither an embedded JWK nor server_jwks is available",
+			args("header", statusListTokenJwt.getHeader().toJSONObject()));
 	}
 }

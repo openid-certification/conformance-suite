@@ -11,6 +11,7 @@ import net.openid.conformance.condition.client.ValidateSdJwtDisclosureSaltsAreUn
 import net.openid.conformance.condition.client.ValidateCredentialJWTNbf;
 import net.openid.conformance.condition.client.ValidateCredentialJWTVct;
 import net.openid.conformance.condition.client.ValidateCredentialValidityByStatusListIfPresent;
+import net.openid.conformance.condition.client.ValidateCredentialValidityByStatusListIfPresentForHaip;
 import net.openid.conformance.condition.client.ValidateCredentialValidityInfoIsPresent;
 import net.openid.conformance.sequence.AbstractConditionSequence;
 
@@ -58,15 +59,18 @@ public class ValidateSdJwtVcCredentialClaims extends AbstractConditionSequence {
 		}
 		callAndContinueOnFailure(ValidateSdJwtDisclosureSaltsAreUnique.class,
 			ConditionResult.FAILURE, "SDJWT-4.2.1");
-		callAndContinueOnFailure(ValidateCredentialValidityByStatusListIfPresent.class,
-			ConditionResult.FAILURE, "OTSL-6.2");
 		if (haip) {
 			callAndContinueOnFailure(EnsureX5cHeaderPresentForSdJwtCredential.class,
 				ConditionResult.FAILURE, "HAIP-6.1.1");
 			callAndContinueOnFailure(ValidateSdJwtCredentialSignatureUsingX5c.class,
 				ConditionResult.FAILURE, "HAIP-6.1.1");
+			callAndContinueOnFailure(ValidateCredentialValidityByStatusListIfPresentForHaip.class,
+				ConditionResult.FAILURE, "OTSL-6.2", "HAIP-6.1");
 			callAndContinueOnFailure(ValidateCredentialValidityInfoIsPresent.class,
 				ConditionResult.WARNING, "HAIP-6.1-2.2");
+		} else {
+			callAndContinueOnFailure(ValidateCredentialValidityByStatusListIfPresent.class,
+				ConditionResult.FAILURE, "OTSL-6.2");
 		}
 	}
 }
