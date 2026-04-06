@@ -5,6 +5,7 @@ import com.nimbusds.jose.JWSVerifier;
 import com.nimbusds.jose.crypto.factories.DefaultJWSVerifierFactory;
 import com.nimbusds.jose.proc.JWSVerifierFactory;
 import com.nimbusds.jose.util.Base64;
+import com.nimbusds.jose.util.X509CertUtils;
 import com.nimbusds.jwt.SignedJWT;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.util.X509CertificateUtil;
@@ -30,10 +31,13 @@ public class ValidateCredentialValidityByStatusListIfPresentForHaip extends Vali
 				args("header", statusListTokenJwt.getHeader().toJSONObject()));
 		}
 
+		String trustAnchorPem = env.getString("status_list_trust_anchor_pem");
+		X509Certificate trustAnchor = trustAnchorPem != null ? X509CertUtils.parse(trustAnchorPem) : null;
+
 		List<X509Certificate> certs;
 		try {
 			certs = X509CertificateUtil.parseX5cCertificatesFromNimbusBase64(x5cChain);
-			X509CertificateUtil.validateX5cCertificateChain(certs, null);
+			X509CertificateUtil.validateX5cCertificateChain(certs, trustAnchor);
 		} catch (X509CertificateUtil.X5cCertificateChainException e) {
 			throw error(e.getMessage(),
 				args("header", statusListTokenJwt.getHeader().toJSONObject()));
