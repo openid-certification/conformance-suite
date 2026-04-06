@@ -28,13 +28,11 @@ public class VP1FinalWalletTestPlan implements TestPlan {
 		VP1FinalWalletResponseUriNotClientId.class,
 		VP1FinalWalletInvalidRequestObjectSignature.class,
 		VP1FinalWalletMultiSignedOneInvalidSignature.class,
-		VP1FinalWalletMismatchedClientIdInRequestObject.class
-
-		// TODO negative tests:
-		// try sending a redirect_uri in auth request with response_mode=direct_post
-		// sending invalid client_id_scheme should cause an error?
-		// flow without nonce
-		// signed DC API request but no or wrong expected_origins
+		VP1FinalWalletMismatchedClientIdInRequestObject.class,
+		VP1FinalWalletRedirectUriWithDirectPost.class,
+		VP1FinalWalletMissingNonce.class,
+		VP1FinalWalletWrongExpectedOrigins.class,
+		VP1FinalWalletInvalidClientIdPrefix.class
 	);
 
 	@Override
