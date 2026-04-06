@@ -56,6 +56,7 @@ import net.openid.conformance.condition.as.VP1FinalValidateVpFormatsSupportedInC
 import net.openid.conformance.condition.as.ValidateDirectPostResponse;
 import net.openid.conformance.condition.as.ValidateEncryptedRequestObjectHasKid;
 import net.openid.conformance.condition.as.ValidateRequestObjectIat;
+import net.openid.conformance.condition.as.ValidateRequestObjectAudForVP;
 import net.openid.conformance.condition.as.ValidateRequestObjectIssIfPresent;
 import net.openid.conformance.condition.as.ValidateRequestObjectMaxAge;
 import net.openid.conformance.condition.as.ValidateRequestObjectSignatureAgainstX5cHeader;
@@ -416,8 +417,7 @@ public abstract class AbstractVP1FinalVerifierTest extends AbstractTestModule {
 		// If present, warn if it doesn't match client_id as it may indicate a verifier misconfiguration.
 		callAndContinueOnFailure(ValidateRequestObjectIssIfPresent.class, ConditionResult.WARNING, "OID4VP-1FINAL-5");
 
-		// FIXME needs to allow self-issued.me
-		//callAndContinueOnFailure(ValidateRequestObjectAud.class, ConditionResult.WARNING, "OIDCC-6.1");
+		callAndContinueOnFailure(ValidateRequestObjectAudForVP.class, ConditionResult.WARNING, "OID4VP-1FINAL-5.9");
 
 		callAndContinueOnFailure(ValidateRequestObjectSignatureAgainstX5cHeader.class, ConditionResult.FAILURE, "OID4VP-1FINAL-5.9.3");
 	}
