@@ -22,6 +22,7 @@ public class VP1FinalWalletTestPlan implements TestPlan {
 		// positive tests
 		VP1FinalWalletHappyFlowNoState.class,
 		VP1FinalWalletAlternateHappyFlow.class,
+		VP1FinalWalletRequestUriMethodPost.class,
 
 		// negative tests
 		VP1FinalWalletResponseUriNotClientId.class,

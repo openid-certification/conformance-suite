@@ -60,6 +60,7 @@ import net.openid.conformance.condition.client.ExtractAuthorizationEndpointRespo
 import net.openid.conformance.condition.client.ExtractAuthorizationEndpointResponseFromFormBody;
 import net.openid.conformance.condition.client.ExtractBrowserApiAuthorizationEndpointResponse;
 import net.openid.conformance.condition.client.ExtractDCQLQueryFromClientConfiguration;
+import net.openid.conformance.condition.client.ExtractWalletMetadataAndNonceFromRequestUriPost;
 import net.openid.conformance.condition.client.ExtractJWKsFromStaticClientConfiguration;
 import net.openid.conformance.condition.client.ExtractVP1FinalBrowserApiResponse;
 import net.openid.conformance.condition.client.ExtractVP1FinalVpTokenDCQL;
@@ -701,11 +702,6 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 	}
 
 	@NotNull
-	protected ConditionSequence createAuthorizationRedirectStepsUnsignedRequestUri() {
-		return new CreateAuthorizationRedirectStepsUnsignedRequestUri();
-	}
-
-	@NotNull
 	protected ConditionSequence createAuthorizationRedirectStepsSignedRequestUri() {
 		return new CreateAuthorizationRedirectStepsSignedRequestUri(getRequestUriRedirectCondition());
 	}
@@ -747,7 +743,7 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 			return handleDirectPost(requestId);
 		}
 		if (path.equals(env.getString("request_uri", "path"))) {
-			return handleRequestUriRequest();
+			return handleRequestUriRequest(requestId);
 		}
 		return super.handleHttp(path, req, res, session, requestParts);
 
@@ -789,10 +785,30 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 		testState = TestState.RESPONSE_RECEIVED;
 	}
 
-	protected Object handleRequestUriRequest() {
+	protected Object handleRequestUriRequest(String requestId) {
 		setStatus(Status.RUNNING);
 
 		String requestObject = env.getString("request_object");
+
+		// Check if we told the wallet to use POST for request_uri
+		String sentRequestUriMethod = env.getString("authorization_endpoint_request", "request_uri_method");
+		call(exec().mapKey("incoming_request", requestId));
+		String incomingMethod = env.getString("incoming_request", "method");
+
+		if ("post".equals(sentRequestUriMethod)) {
+			if ("POST".equals(incomingMethod)) {
+				eventLog.log(getName(), "Wallet correctly used HTTP POST to fetch request_uri");
+				callAndContinueOnFailure(EnsureIncomingRequestContentTypeIsFormUrlEncoded.class, ConditionResult.FAILURE, "OID4VP-1FINAL-5.10");
+				callAndContinueOnFailure(ExtractWalletMetadataAndNonceFromRequestUriPost.class, ConditionResult.INFO, "OID4VP-1FINAL-5.10");
+			} else {
+				eventLog.log(getName(), args("msg",
+					"Wallet used GET instead of POST for request_uri. " +
+					"The specification permits this as a fallback when the wallet does not support POST.",
+					"expected_method", "POST", "actual_method", incomingMethod));
+			}
+		}
+
+		call(exec().unmapKey("incoming_request"));
 
 		switch (testState) {
 			case INITIAL:

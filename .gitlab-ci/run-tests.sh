@@ -413,6 +413,8 @@ makeVcTests() {
     TESTS="${TESTS} oid4vp-1final-verifier-test-plan[$VPPROFILE][$SDJWT][$SANDNS][$SIGNEDREQ][$DIRECTPOST]:oid4vp-1final-verifier-kb-jwt-iat-in-past{oid4vp-1final-wallet-test-plan[$VPPROFILE][$SDJWT][$SANDNS][$SIGNEDREQ][$DIRECTPOST]:oid4vp-1final-wallet-happy-flow-no-state}${CONFIGS}/vp-wallet-test-config-dcql-sdjwt-negative-iat-past.json ${CONFIGS}/vp-verifier-test-config.json"
     TESTS="${TESTS} oid4vp-1final-verifier-test-plan[$VPPROFILE][$SDJWT][$SANDNS][$SIGNEDREQ][$DIRECTPOST]:oid4vp-1final-verifier-kb-jwt-iat-in-future{oid4vp-1final-wallet-test-plan[$VPPROFILE][$SDJWT][$SANDNS][$SIGNEDREQ][$DIRECTPOST]:oid4vp-1final-wallet-happy-flow-no-state}${CONFIGS}/vp-wallet-test-config-dcql-sdjwt-negative-iat-future.json ${CONFIGS}/vp-verifier-test-config.json"
     TESTS="${TESTS} oid4vp-1final-verifier-test-plan[$VPPROFILE][$MDL][$SANDNS][$SIGNEDREQ][$DIRECTPOST.jwt]:oid4vp-1final-verifier-happy-flow{oid4vp-1final-wallet-test-plan[$VPPROFILE][$MDL][$SANDNS][$SIGNEDREQ][$DIRECTPOST.jwt]:oid4vp-1final-wallet-alternate-happy-flow}${CONFIGS}/vp-wallet-test-config-dcql-mdoc.json ${CONFIGS}/vp-verifier-test-config-with-redirect-alt.json"
+    # VP 1.0 Final - request_uri_method=post
+    TESTS="${TESTS} oid4vp-1final-verifier-test-plan[$VPPROFILE][$SDJWT][$SANDNS][$SIGNEDREQ][$DIRECTPOST]:oid4vp-1final-verifier-request-uri-method-post{oid4vp-1final-wallet-test-plan[$VPPROFILE][$SDJWT][$SANDNS][$SIGNEDREQ][$DIRECTPOST]:oid4vp-1final-wallet-request-uri-method-post}${CONFIGS}/vp-wallet-test-config-dcql-sdjwt.json ${CONFIGS}/vp-verifier-test-config.json"
 
     # OpenID4VCI op-against-rp
     SIMPLE="authorization_request_type=simple"

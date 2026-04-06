@@ -40,6 +40,7 @@ class VariantCondition_UnitTest {
 		assertEquals(Set.of(
 			"oid4vp-1final-wallet-alternate-happy-flow",
 			"oid4vp-1final-wallet-happy-flow-no-state",
+			"oid4vp-1final-wallet-request-uri-method-post",
 			"oid4vp-1final-wallet-negative-test-invalid-request-object-signature"
 		), moduleNames);
 

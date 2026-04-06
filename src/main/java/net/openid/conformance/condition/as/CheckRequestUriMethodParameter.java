@@ -12,10 +12,16 @@ public class CheckRequestUriMethodParameter extends AbstractEnsureResponseType {
 
 		if (requestUriMethod != null) {
 			if (requestUriMethod.equals("get")) {
-				logSuccess(env.getString("request_uri_method is 'get'"));
+				env.putString("request_uri_method", requestUriMethod);
+				logSuccess("request_uri_method is 'get'");
 				return env;
 			}
-			throw error("A request_uri_method parameter that is not supported by the conformance suite has been requested. As permitted by the specification the test will continue as if 'get' had been specified.");
+			if (requestUriMethod.equals("post")) {
+				env.putString("request_uri_method", requestUriMethod);
+				logSuccess("request_uri_method is 'post'");
+				return env;
+			}
+			throw error("Unknown request_uri_method value", args("request_uri_method", requestUriMethod));
 		}
 
 		logSuccess("request_uri_method parameter is not present.");
