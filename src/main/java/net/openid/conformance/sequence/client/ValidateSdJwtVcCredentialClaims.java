@@ -6,6 +6,7 @@ import net.openid.conformance.condition.client.ValidateCredentialCnfJwkIsPublicK
 import net.openid.conformance.condition.client.ValidateCredentialJWTExp;
 import net.openid.conformance.condition.client.ValidateCredentialJWTHeaderTyp;
 import net.openid.conformance.condition.client.ValidateCredentialJWTIat;
+import net.openid.conformance.condition.client.ValidateSdJwtCredentialSignatureUsingX5c;
 import net.openid.conformance.condition.client.ValidateSdJwtDisclosureSaltsAreUnique;
 import net.openid.conformance.condition.client.ValidateCredentialJWTNbf;
 import net.openid.conformance.condition.client.ValidateCredentialJWTVct;
@@ -60,10 +61,12 @@ public class ValidateSdJwtVcCredentialClaims extends AbstractConditionSequence {
 		callAndContinueOnFailure(ValidateCredentialValidityByStatusListIfPresent.class,
 			ConditionResult.FAILURE, "OTSL-6.2");
 		if (haip) {
-			callAndContinueOnFailure(ValidateCredentialValidityInfoIsPresent.class,
-				ConditionResult.WARNING, "HAIP-6.1-2.2");
 			callAndContinueOnFailure(EnsureX5cHeaderPresentForSdJwtCredential.class,
 				ConditionResult.FAILURE, "HAIP-6.1.1");
+			callAndContinueOnFailure(ValidateSdJwtCredentialSignatureUsingX5c.class,
+				ConditionResult.FAILURE, "HAIP-6.1.1");
+			callAndContinueOnFailure(ValidateCredentialValidityInfoIsPresent.class,
+				ConditionResult.WARNING, "HAIP-6.1-2.2");
 		}
 	}
 }
