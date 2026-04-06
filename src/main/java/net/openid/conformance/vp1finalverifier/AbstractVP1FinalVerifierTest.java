@@ -56,6 +56,7 @@ import net.openid.conformance.condition.as.VP1FinalValidateVpFormatsSupportedInC
 import net.openid.conformance.condition.as.ValidateDirectPostResponse;
 import net.openid.conformance.condition.as.ValidateEncryptedRequestObjectHasKid;
 import net.openid.conformance.condition.as.ValidateRequestObjectIat;
+import net.openid.conformance.condition.as.ValidateRequestObjectIssIfPresent;
 import net.openid.conformance.condition.as.ValidateRequestObjectMaxAge;
 import net.openid.conformance.condition.as.ValidateRequestObjectSignatureAgainstX5cHeader;
 import net.openid.conformance.condition.as.ValidateRequestObjectTypIsOAuthQauthReqJwt;
@@ -411,14 +412,9 @@ public abstract class AbstractVP1FinalVerifierTest extends AbstractTestModule {
 		callAndContinueOnFailure(EnsureRequestObjectDoesNotContainRequestOrRequestUri.class, ConditionResult.WARNING, "OIDCC-6.1");
 		callAndContinueOnFailure(EnsureRequestObjectDoesNotContainSubWithClientId.class, ConditionResult.WARNING, "JAR-10.8");
 
-		//https://openid.net/specs/openid-connect-core-1_0.html#RequestObject
-		// The Request Object MAY be signed or unsigned (plaintext).
-		// When it is plaintext, this is indicated by use of the none algorithm [JWA] in the JOSE Header.
-		// If signed, the Request Object SHOULD contain the Claims iss (issuer) and aud (audience) as members.
-		// The iss value SHOULD be the Client ID of the RP, unless it was signed by a different party than the RP.
-		// The aud value SHOULD be or include the OP's Issuer Identifier URL.
-		// FIXME: https://github.com/openid/OpenID4VP/issues/299
-		//callAndContinueOnFailure(ValidateRequestObjectIss.class, ConditionResult.WARNING, "OIDCC-6.1");
+		// OID4VP section 5: the iss claim MAY be present in the Request Object, but wallets MUST ignore it.
+		// If present, warn if it doesn't match client_id as it may indicate a verifier misconfiguration.
+		callAndContinueOnFailure(ValidateRequestObjectIssIfPresent.class, ConditionResult.WARNING, "OID4VP-1FINAL-5");
 
 		// FIXME needs to allow self-issued.me
 		//callAndContinueOnFailure(ValidateRequestObjectAud.class, ConditionResult.WARNING, "OIDCC-6.1");

@@ -2,13 +2,16 @@ package net.openid.conformance.vp1finalwallet;
 
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
+import net.openid.conformance.condition.client.AddMismatchedIssToRequestObject;
 import net.openid.conformance.condition.client.AddRandomParameterToAuthorizationEndpointRequest;
 import net.openid.conformance.condition.client.AddVP1FinalEncryptionParametersToClientMetadata;
 import net.openid.conformance.condition.client.AddVP1FinalEncryptionParametersToClientMetadataWithoutUseEnc;
 import net.openid.conformance.condition.client.BuildRequestObjectByReferenceRedirectToAuthorizationEndpointWithoutDuplicatesReorderedParams;
+import net.openid.conformance.condition.client.ConvertAuthorizationEndpointRequestToRequestObject;
 import net.openid.conformance.condition.client.CreateRedirectUri;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
+import org.jetbrains.annotations.NotNull;
 
 @PublishTestModule(
 	testName = "oid4vp-1final-wallet-alternate-happy-flow",
@@ -18,6 +21,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 		- Includes optional 'state' parameter
 		- Uses a longer 'nonce' (32 chars) and 'state' (64 chars)
 		- Includes a random authorization endpoint parameter (which must be ignored)
+		- Includes an 'iss' claim in the request object that does not match 'client_id' (which must be ignored as per VP spec section 5)
 		- Reordered query parameters in the redirect URL
 		- Encryption key without 'use: enc' (for encrypted response modes)
 		- response_uri response returns a redirect_uri which the wallet must open""",
@@ -50,6 +54,24 @@ public class VP1FinalWalletAlternateHappyFlow extends AbstractVP1FinalWalletTest
 			condition(AddVP1FinalEncryptionParametersToClientMetadataWithoutUseEnc.class));
 
 		return createAuthorizationRequestSteps;
+	}
+
+	@NotNull
+	@Override
+	protected ConditionSequence createAuthorizationRedirectStepsUnsignedRequestUri() {
+		// Including iss in an unsigned (alg: none) request object is unusual, but the spec says wallets
+		// must ignore it regardless, so it's valid to test.
+		return super.createAuthorizationRedirectStepsUnsignedRequestUri()
+			.insertAfter(ConvertAuthorizationEndpointRequestToRequestObject.class,
+				condition(AddMismatchedIssToRequestObject.class));
+	}
+
+	@NotNull
+	@Override
+	protected ConditionSequence createAuthorizationRedirectStepsSignedRequestUri() {
+		return super.createAuthorizationRedirectStepsSignedRequestUri()
+			.insertAfter(ConvertAuthorizationEndpointRequestToRequestObject.class,
+				condition(AddMismatchedIssToRequestObject.class));
 	}
 
 	@Override

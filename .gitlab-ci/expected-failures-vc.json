@@ -29,6 +29,15 @@
         "comment": "The OP test deliberately sends an unknown parameter to ensure it's ignored"
     },
     {
+        "test-name": "oid4vp-1final-verifier-happy-flow",
+        "variant": "*",
+        "configuration-filename": "*vp-verifier-test-config-with-redirect*.json",
+        "current-block": "Authorization endpoint",
+        "condition": "ValidateRequestObjectIssIfPresent",
+        "expected-result": "warning",
+        "comment": "The OP alternate happy flow test deliberately sends a mismatched iss claim to ensure it's ignored per spec section 5"
+    },
+    {
         "test-name": "oid4vp-id3-verifier-happy-flow",
         "variant": "*",
         "configuration-filename": "*vp-verifier-test-config-with-redirect*.json",

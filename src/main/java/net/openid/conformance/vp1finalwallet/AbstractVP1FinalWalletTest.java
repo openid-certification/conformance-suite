@@ -701,6 +701,11 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 	}
 
 	@NotNull
+	protected ConditionSequence createAuthorizationRedirectStepsUnsignedRequestUri() {
+		return new CreateAuthorizationRedirectStepsUnsignedRequestUri();
+	}
+
+	@NotNull
 	protected ConditionSequence createAuthorizationRedirectStepsSignedRequestUri() {
 		return new CreateAuthorizationRedirectStepsSignedRequestUri(getRequestUriRedirectCondition());
 	}
