@@ -419,7 +419,6 @@ public abstract class AbstractVP1FinalVerifierTest extends AbstractTestModule {
 		// FIXME needs to allow self-issued.me
 		//callAndContinueOnFailure(ValidateRequestObjectAud.class, ConditionResult.WARNING, "OIDCC-6.1");
 
-		// FIXME probably need to somehow validate the x5c header is trusted/valid for the client
 		callAndContinueOnFailure(ValidateRequestObjectSignatureAgainstX5cHeader.class, ConditionResult.FAILURE, "OID4VP-1FINAL-5.9.3");
 	}
 
