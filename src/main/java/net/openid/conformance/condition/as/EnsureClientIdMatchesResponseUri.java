@@ -25,15 +25,21 @@ public class EnsureClientIdMatchesResponseUri extends AbstractCondition {
 		if (clientId == null) {
 			throw error("client_id is missing from the authorization request");
 		}
-		if (responseUri == null) {
-			throw error("response_uri is missing from the authorization request");
-		}
 
 		// Per OID4VP 1.0 Final section 5.9.3, the client_id includes the scheme prefix
 		// (e.g. "redirect_uri:https://example.com/callback"). Strip it before comparing.
 		String origClientId = clientId;
 		if (clientId.startsWith(REDIRECT_URI_PREFIX)) {
 			origClientId = clientId.substring(REDIRECT_URI_PREFIX.length());
+		}
+
+		if (responseUri == null) {
+			// OID4VP 1.0 Final section 5.9.3: "The Verifier MAY omit the redirect_uri
+			// Authorization Request parameter (or response_uri when Response Mode
+			// direct_post is used)."
+			logSuccess("response_uri is absent; permitted per OID4VP 1.0 Final section 5.9.3",
+				args("client_id", clientId));
+			return env;
 		}
 
 		if (!origClientId.equals(responseUri)) {
