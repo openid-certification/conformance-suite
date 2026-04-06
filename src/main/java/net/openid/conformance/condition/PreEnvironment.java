@@ -17,4 +17,6 @@ public @interface PreEnvironment {
 
 	String[] strings() default {};
 
+	String[] integers() default {};
+
 }
