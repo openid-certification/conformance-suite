@@ -103,11 +103,6 @@ public class OpenBankingBrazilCibaRPProfileBehavior extends FAPICIBARPProfileBeh
 	}
 
 	@Override
-	public void applyProfileSpecificBackchannelEndpointResponse() {
-		module.callCondition(SetIntervalToPlus5Seconds.class);
-	}
-
-	@Override
 	public void applyProfileSpecificIdTokenClaims() {
 		module.callCondition(GenerateIdTokenClaimsWith181DayExp.class);
 		module.callCondition(FAPIBrazilAddCPFAndCPNJToIdTokenClaims.class, "BrazilOB-5.2.2.2", "BrazilOB-5.2.2.3");
