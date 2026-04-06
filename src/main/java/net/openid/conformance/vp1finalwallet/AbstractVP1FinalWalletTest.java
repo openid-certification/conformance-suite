@@ -10,6 +10,8 @@ import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.condition.as.CheckForUnexpectedClaimsInBindingJwt;
 import net.openid.conformance.condition.as.CheckForUnexpectedParametersInBindingJwtHeader;
 import net.openid.conformance.condition.as.OID4VPSetClientIdToIncludeClientIdScheme;
+import net.openid.conformance.condition.client.RegisterCredentialTrustAnchor;
+import net.openid.conformance.condition.client.RegisterStatusListTrustAnchor;
 import net.openid.conformance.condition.client.AddClientIdToAuthorizationEndpointRequest;
 import net.openid.conformance.condition.client.AddDcqlToAuthorizationEndpointRequest;
 import net.openid.conformance.condition.client.AddExpectedOriginsToAuthorizationEndpointRequest;
@@ -137,6 +139,10 @@ import org.springframework.http.ResponseEntity;
 	"client.authorization_encrypted_response_alg",
 	"client.authorization_encrypted_response_enc"
 })
+@VariantConfigurationFields(parameter = VPProfile.class, value = "haip", configurationFields = {
+	"credential.trust_anchor_pem",
+	"credential.status_list_trust_anchor_pem"
+})
 @VariantNotApplicableWhen(
 	parameter = VP1FinalWalletResponseMode.class,
 	values = {"direct_post", "dc_api"},  // unencrypted modes not applicable for HAIP
@@ -231,6 +237,9 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 
 		// Set up the client configuration
 		configureClient();
+
+		callAndStopOnFailure(RegisterCredentialTrustAnchor.class);
+		callAndStopOnFailure(RegisterStatusListTrustAnchor.class);
 
 		if (credentialFormat == VP1FinalWalletCredentialFormat.ISO_MDL) {
 			// ISO spec always creates a redirect returned from response_uri

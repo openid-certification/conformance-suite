@@ -10,6 +10,8 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.Condition.ConditionResult;
+import net.openid.conformance.condition.client.RegisterCredentialTrustAnchor;
+import net.openid.conformance.condition.client.RegisterStatusListTrustAnchor;
 import net.openid.conformance.condition.client.AddFAPIInteractionIdToResourceEndpointRequest;
 import net.openid.conformance.condition.client.AddNonceToAuthorizationEndpointRequest;
 import net.openid.conformance.condition.client.AddStateToAuthorizationEndpointRequest;
@@ -165,6 +167,9 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractFAPI2SPFinalSe
 		if (vciCredentialEncryption == VCICredentialEncryption.ENCRYPTED) {
 			callAndStopOnFailure(VCIGenerateCredentialEncryptionJwks.class);
 		}
+
+		callAndStopOnFailure(RegisterCredentialTrustAnchor.class);
+		callAndStopOnFailure(RegisterStatusListTrustAnchor.class);
 
 		if (fapi2Profile == FAPI2FinalOPProfile.VCI_HAIP) {
 			setupHaipClients();

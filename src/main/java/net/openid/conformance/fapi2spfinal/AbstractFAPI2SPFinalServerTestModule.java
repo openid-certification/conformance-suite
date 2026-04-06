@@ -348,6 +348,8 @@ import java.util.function.Supplier;
 	"vci.credential_proof_type_hint",
 	"vci.key_attestation_jwks",
 	"vci.authorization_server",
+	"credential.trust_anchor_pem",
+	"credential.status_list_trust_anchor_pem",
 })
 @VariantHidesConfigurationFields(parameter = FAPI2FinalOPProfile.class, value = "vci_haip",
 	configurationFields = {"client.dpop_signing_alg", "client2.dpop_signing_alg"})
