@@ -17,6 +17,8 @@ import net.openid.conformance.condition.as.FAPIBrazilValidateConsentScope;
 import net.openid.conformance.condition.as.GenerateIdTokenClaimsWith181DayExp;
 import net.openid.conformance.condition.as.SetServerSigningAlgToPS256;
 import net.openid.conformance.condition.as.SignIdTokenWithX5tS256;
+import net.openid.conformance.condition.client.ExtractExpiresInFromTokenEndpointResponse;
+import net.openid.conformance.condition.client.ExtractIdTokenFromTokenResponse;
 import net.openid.conformance.condition.client.FAPIBrazilValidateExpiresIn;
 import net.openid.conformance.condition.client.FAPIBrazilValidateIdTokenSigningAlg;
 import net.openid.conformance.condition.rs.FAPIBrazilEnsureAuthorizationRequestScopesContainAccounts;
@@ -97,9 +99,10 @@ public class OpenBankingBrazilCibaRPProfileBehavior extends FAPICIBARPProfileBeh
 
 	@Override
 	public void applyProfileSpecificTokenEndpointChecks() {
+		module.callCondition(ExtractIdTokenFromTokenResponse.class);
 		module.callCondition(FAPIBrazilValidateIdTokenSigningAlg.class, "BrazilOB-6.1-1");
-		module.callConditionSkipIfMissing(new String[] { "expires_in" }, null, Condition.ConditionResult.INFO,
-			FAPIBrazilValidateExpiresIn.class, Condition.ConditionResult.FAILURE, "BrazilOB-5.2.2-13");
+		module.callCondition(ExtractExpiresInFromTokenEndpointResponse.class);
+		module.callCondition(FAPIBrazilValidateExpiresIn.class, "BrazilOB-5.2.2-13");
 	}
 
 	@Override
