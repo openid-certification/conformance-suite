@@ -23,6 +23,11 @@ class ServerUnavailableError(Exception):
     pass
 
 
+class UnrecoverableHTTPError(Exception):
+    """Raised on HTTP errors that cannot be resolved by retrying (e.g. 401)."""
+    pass
+
+
 class RetryTransport(httpx.HTTPTransport):
     def handle_request(
         self,
@@ -210,6 +215,8 @@ class Conformance(object):
             raise ServerUnavailableError("{} failed - {}".format(label, e)) from e
         if response.status_code == 502:
             raise ServerUnavailableError("{} failed - HTTP {:d} {}".format(label, response.status_code, response.content))
+        if response.status_code == 401:
+            raise UnrecoverableHTTPError("{} failed - HTTP 401 (auth token is invalid, server may have been redeployed)".format(label))
         if response.status_code != expected_status:
             raise Exception("{} failed - HTTP {:d} {}".format(label, response.status_code, response.content))
         return response

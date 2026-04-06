@@ -14,7 +14,7 @@ import traceback
 import urllib.parse
 import urllib.request
 
-from conformance import Conformance, ServerUnavailableError
+from conformance import Conformance, ServerUnavailableError, UnrecoverableHTTPError
 from test_plan_parser import test_plan
 
 # Track server restart detections across all test modules
@@ -344,6 +344,11 @@ async def run_test_module(moduledict, plan_id, test_info, test_time_taken, varia
 
             plan_results.extend(attempt_plan_results)
             break  # success, exit retry loop
+
+        except UnrecoverableHTTPError as e:
+            # 401 etc — retrying won't help, abort immediately so queue_worker exits
+            print('Unrecoverable error: Test {} {} - {}'.format(module_with_variants, module_id, e))
+            raise
 
         except ServerUnavailableError as e:
             traceback.print_exc()

@@ -200,6 +200,7 @@ check-trailing-whitespace:
   # longer as that prevents other deploy jobs running.
   timeout: 10 minutes
   script:
+    - check_commit_is_current
     - kubectl config get-contexts
     - kubectl config use-context $KUBE_CONTEXT
     - kubectl get pods
@@ -220,9 +221,8 @@ check-trailing-whitespace:
     reports:
       dotenv: deploy.env
   dependencies: []
-  only:
-    refs:
-      - branches
+  rules:
+    - if: $CI_COMMIT_BRANCH
 
 deploy-review:
   <<: *deploy
@@ -230,10 +230,8 @@ deploy-review:
     name: review/$CI_COMMIT_REF_NAME
     on_stop: stop_review
     url: $DYNAMIC_ENVIRONMENT_URL
-  except:
-    - master
-    - production
-    - demo
+  rules:
+    - if: $CI_COMMIT_BRANCH && $CI_COMMIT_BRANCH != "master" && $CI_COMMIT_BRANCH != "production" && $CI_COMMIT_BRANCH != "demo"
 
 deploy-normal:
   <<: *deploy
@@ -241,32 +239,31 @@ deploy-normal:
     name: $CI_COMMIT_BRANCH
     on_stop: stop_normal
     url: $DYNAMIC_ENVIRONMENT_URL
-  only:
-    - production
-    - demo
+  rules:
+    - if: $CI_COMMIT_BRANCH == "production"
+    - if: $CI_COMMIT_BRANCH == "demo"
 
 deploy-staging:
   <<: *deploy
   environment:
     name: staging
     url: $DYNAMIC_ENVIRONMENT_URL
-  only:
-    - master
+  rules:
+    - if: $CI_COMMIT_BRANCH == "master"
 
 scale up env:
   <<: *deploy
   dependencies: ["deploy-review"]
   environment:
     name: review/$CI_COMMIT_REF_NAME
-  when: manual
   script:
     - auto-deploy use_kube_context || true
     - auto-deploy ensure_namespace
     - scale_up
-  except:
-    - master
-    - production
-    - demo
+  rules:
+    - if: $CI_COMMIT_BRANCH && $CI_COMMIT_BRANCH != "master" && $CI_COMMIT_BRANCH != "production" && $CI_COMMIT_BRANCH != "demo"
+      when: manual
+      allow_failure: true
 
 scale down env:
   extends: .auto-deploy
@@ -277,14 +274,9 @@ scale down env:
     - auto-deploy use_kube_context || true
     - auto-deploy ensure_namespace
     - scale_down
-  only:
-    refs:
-      - branches
-  except:
-    - master
-    - production
-    - demo
-  when: always
+  rules:
+    - if: $CI_COMMIT_BRANCH && $CI_COMMIT_BRANCH != "master" && $CI_COMMIT_BRANCH != "production" && $CI_COMMIT_BRANCH != "demo"
+      when: always
 
 stop_review:
   extends: .auto-deploy
@@ -292,6 +284,7 @@ stop_review:
   variables:
     GIT_STRATEGY: none
   script:
+    - check_commit_is_current
     - auto-deploy initialize_tiller
     - auto-deploy use_kube_context || true
     - auto-deploy delete
@@ -299,15 +292,10 @@ stop_review:
     name: review/$CI_COMMIT_REF_NAME
     action: stop
   needs: []
-  when: manual
-  allow_failure: true
-  only:
-    refs:
-      - branches
-  except:
-    - master
-    - production
-    - demo
+  rules:
+    - if: $CI_COMMIT_BRANCH && $CI_COMMIT_BRANCH != "master" && $CI_COMMIT_BRANCH != "production" && $CI_COMMIT_BRANCH != "demo"
+      when: manual
+      allow_failure: true
 
 stop_normal:
   extends: .auto-deploy
@@ -322,10 +310,10 @@ stop_normal:
     name: $CI_COMMIT_BRANCH
     action: stop
   needs: []
-  when: manual
-  allow_failure: true
-  only:
-    - demo
+  rules:
+    - if: $CI_COMMIT_BRANCH == "demo"
+      when: manual
+      allow_failure: true
 
 .deployment_test: &deployment_test
   stage: test
@@ -504,6 +492,31 @@ security_test:
     docker run ${cc_opts} codeclimate/codeclimate analyze -f json src > codeclimate.json
   }
 
+  function check_commit_is_current() {
+    # Abort if this pipeline's commit is no longer the branch HEAD.
+    # This prevents stale pipelines (e.g. from delayed push events after a force-push)
+    # from deploying over or tearing down a newer pipeline's environment.
+    apk add --no-cache curl jq > /dev/null 2>&1 || true
+    echo "Checking if pipeline commit ${CI_COMMIT_SHA:0:10} is still HEAD of ${CI_COMMIT_REF_NAME}"
+    ENCODED_REF_NAME=$(jq -rn --arg v "${CI_COMMIT_REF_NAME}" '$v|@uri')
+    BRANCH_API_URL="${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/repository/branches/${ENCODED_REF_NAME}"
+    BRANCH_RESPONSE=$(curl -s --header "JOB-TOKEN: ${CI_JOB_TOKEN}" -w "\n%{http_code}" "$BRANCH_API_URL") || true
+    BRANCH_HTTP_CODE=$(echo "$BRANCH_RESPONSE" | tail -1)
+    BRANCH_BODY=$(echo "$BRANCH_RESPONSE" | sed '$d')
+    CURRENT_SHA=$(echo "$BRANCH_BODY" | jq -r '.commit.id // empty') || true
+    if [ -z "$CURRENT_SHA" ]; then
+      echo "Could not determine current HEAD of ${CI_COMMIT_REF_NAME} — proceeding anyway"
+      echo "  API URL: ${BRANCH_API_URL}"
+      echo "  HTTP status: ${BRANCH_HTTP_CODE}"
+      echo "  Response: ${BRANCH_BODY}"
+    elif [ "$CI_COMMIT_SHA" = "$CURRENT_SHA" ]; then
+      echo "Commit ${CI_COMMIT_SHA:0:10} is current HEAD — OK"
+    else
+      echo "Aborting: pipeline commit ${CI_COMMIT_SHA:0:10} is no longer HEAD of ${CI_COMMIT_REF_NAME} (now ${CURRENT_SHA:0:10})"
+      exit 1
+    fi
+  }
+
   function find_deploy_url() {
     if [ "$CI_COMMIT_BRANCH" = "master" ]; then
       CI_ENVIRONMENT_URL=https://staging.$KUBE_INGRESS_BASE_DOMAIN
@@ -519,7 +532,7 @@ security_test:
       return
     fi
     # not one of the fixed branches - find a review app to use
-    apk add jq
+    # jq already installed by check_commit_is_current
     url="${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/environments?states=available&per_page=100&search=review/"
     res=0
     curl -o env-list.js --silent --show-error --fail-with-body --header "JOB-TOKEN: ${CI_JOB_TOKEN}" "$url" || res=$?
@@ -559,6 +572,30 @@ security_test:
     else
       echo "This branch is already using environment: $CI_ENVIRONMENT_URL"
       CI_ENVIRONMENT_MTLS_URL=`echo $CI_ENVIRONMENT_URL | sed  's/review/mtls-review/'`
+    fi
+    check_ingress_hostname_available
+  }
+
+  function check_ingress_hostname_available() {
+    # Verify no other namespace already has an ingress for our hostname.
+    # The GitLab environments API can be stale; checking the actual cluster
+    # catches cases where another branch's deployment still owns the ingress.
+    DEPLOY_HOST=$(echo "$CI_ENVIRONMENT_URL" | sed 's|https://||')
+    echo "Checking cluster for existing ingress with host ${DEPLOY_HOST} (our namespace: ${KUBE_NAMESPACE})"
+    ALL_NS=$(kubectl get ingress --all-namespaces -o json \
+      | jq -r ".items[] | select(.spec.rules[]?.host == \"${DEPLOY_HOST}\") | .metadata.namespace" \
+      | sort -u) || true
+    if [ -z "$ALL_NS" ]; then
+      echo "No existing ingress found for ${DEPLOY_HOST} — OK"
+    else
+      echo "Ingress for ${DEPLOY_HOST} found in namespace(s): ${ALL_NS}"
+      OTHER_NS=$(echo "$ALL_NS" | grep -v "^${KUBE_NAMESPACE}$" || true)
+      if [ -n "$OTHER_NS" ]; then
+        echo "ERROR: ingress for ${DEPLOY_HOST} exists in another namespace: ${OTHER_NS} (ours is ${KUBE_NAMESPACE})"
+        echo "Another branch is using this review app slot. This should not happen — investigate the environment assignment."
+        exit 1
+      fi
+      echo "All ingresses are in our namespace — OK"
     fi
   }
 
