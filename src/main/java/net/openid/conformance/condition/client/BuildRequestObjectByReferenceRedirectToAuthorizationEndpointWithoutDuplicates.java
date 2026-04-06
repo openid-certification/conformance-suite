@@ -12,7 +12,7 @@ public class BuildRequestObjectByReferenceRedirectToAuthorizationEndpointWithout
 	public Environment evaluate(Environment env) {
 		String requestUri = env.getString("request_uri");
 
-		return buildRedirect(env, "request_uri", requestUri, false);
+		return buildRedirect(env, "request_uri", requestUri, false, false);
 	}
 
 }

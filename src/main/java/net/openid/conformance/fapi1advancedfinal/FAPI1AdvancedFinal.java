@@ -3,6 +3,8 @@ package net.openid.conformance.fapi1advancedfinal;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.AddCdrXCdsClientHeadersToResourceEndpointRequest;
+import net.openid.conformance.condition.client.BuildRequestObjectByReferenceRedirectToAuthorizationEndpointReorderedParams;
+import net.openid.conformance.condition.client.BuildRequestObjectByValueRedirectToAuthorizationEndpointReorderedParams;
 import net.openid.conformance.condition.client.AddIatToRequestObject;
 import net.openid.conformance.condition.client.AddIpV6FapiCustomerIpAddressToResourceEndpointRequest;
 import net.openid.conformance.condition.client.AddJtiAsUuidToRequestObject;
@@ -82,6 +84,25 @@ public class FAPI1AdvancedFinal extends AbstractFAPI1AdvancedFinalMultipleClient
 			.insertBefore(CreateRandomNonceValue.class, cmd);
 
 		return conditionSequence;
+	}
+
+	@Override
+	protected void performPARRedirectWithRequestUri() {
+		if (isSecondClient()) {
+			callAndStopOnFailure(BuildRequestObjectByReferenceRedirectToAuthorizationEndpointReorderedParams.class, "PAR-4");
+			performRedirect();
+		} else {
+			super.performPARRedirectWithRequestUri();
+		}
+	}
+
+	@Override
+	protected void buildRedirect() {
+		if (isSecondClient()) {
+			callAndStopOnFailure(BuildRequestObjectByValueRedirectToAuthorizationEndpointReorderedParams.class);
+		} else {
+			super.buildRedirect();
+		}
 	}
 
 	@Override

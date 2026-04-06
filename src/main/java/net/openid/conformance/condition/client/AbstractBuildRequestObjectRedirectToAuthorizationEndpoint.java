@@ -10,7 +10,10 @@ import net.openid.conformance.testmodule.OIDFJSON;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 
 public abstract class AbstractBuildRequestObjectRedirectToAuthorizationEndpoint extends AbstractCondition {
 	/**
@@ -43,8 +46,10 @@ public abstract class AbstractBuildRequestObjectRedirectToAuthorizationEndpoint 
 	/**
 	 * @param includeDuplicates If true include the duplicate parameters required by RFC6749/OIDC - if false,
 	 *                          skip the duplicates as permitted by JAR / PAR.
+	 * @param reverseParameterOrder If true, sort query parameters in reverse alphabetical order to test that
+	 *                              implementations handle different parameter orderings.
 	 */
-	protected Environment buildRedirect(Environment env, String paramName, String paramValue, boolean includeDuplicates) {
+	protected Environment buildRedirect(Environment env, String paramName, String paramValue, boolean includeDuplicates, boolean reverseParameterOrder) {
 		JsonObject authorizationEndpointRequest = env.getObject("authorization_endpoint_request");
 		JsonObject requestObjectClaims = env.getObject("request_object_claims");
 
@@ -53,10 +58,10 @@ public abstract class AbstractBuildRequestObjectRedirectToAuthorizationEndpoint 
 			throw error("Couldn't find authorization endpoint");
 		}
 
-		// send a front channel request to start things off
-		UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(authorizationEndpoint);
+		Comparator<String> order = reverseParameterOrder ? Comparator.reverseOrder() : Comparator.naturalOrder();
+		Map<String, String> params = new TreeMap<>(order);
 
-		builder.queryParam(paramName, paramValue);
+		params.put(paramName, paramValue);
 
 		for (String key : authorizationEndpointRequest.keySet()) {
 
@@ -77,7 +82,7 @@ public abstract class AbstractBuildRequestObjectRedirectToAuthorizationEndpoint 
 			if (key.equals("state")) {
 				Boolean exposeState = env.getBoolean("expose_state_in_authorization_endpoint_request");
 				if (exposeState != null && exposeState.equals(true) ) {
-					builder.queryParam("state", env.getString("state"));
+					params.put("state", env.getString("state"));
 				}
 			}
 
@@ -85,13 +90,18 @@ public abstract class AbstractBuildRequestObjectRedirectToAuthorizationEndpoint 
 				if (REQUIRED_DUPLICATES.contains(key)
 					|| requestObjectValue == null
 					|| !requestParameterValue.equals(requestObjectValue)) {
-					builder.queryParam(key, requestParameterValue);
+					params.put(key, requestParameterValue);
 				}
 			} else {
 				if (key.equals("client_id")) {
-					builder.queryParam(key, requestParameterValue);
+					params.put(key, requestParameterValue);
 				}
 			}
+		}
+
+		UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(authorizationEndpoint);
+		for (Map.Entry<String, String> entry : params.entrySet()) {
+			builder.queryParam(entry.getKey(), entry.getValue());
 		}
 
 		String redirectTo = builder.toUriString();

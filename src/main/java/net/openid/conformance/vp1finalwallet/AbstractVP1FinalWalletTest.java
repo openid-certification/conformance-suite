@@ -346,7 +346,6 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 		eventLog.endBlock();
 	}
 	// FIXME when waiting for implicit submit set a timeout, to make it clearer when people are treating the redirect_url from direct_post endpoint as a http endpoint
-	// FIXME send parameters in openid4vp:// url in a different order
 	// FIXME test without use: enc in client_metadata
 
 	public static class CreateAuthorizationRequestSteps extends AbstractConditionSequence {
@@ -589,21 +588,33 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 
 
 	public static class CreateAuthorizationRedirectStepsUnsignedRequestUri extends AbstractConditionSequence {
+		private final Class<? extends Condition> requestUriRedirectCondition;
+
+		public CreateAuthorizationRedirectStepsUnsignedRequestUri(Class<? extends Condition> requestUriRedirectCondition) {
+			this.requestUriRedirectCondition = requestUriRedirectCondition;
+		}
+
 		@Override
 		public void evaluate() {
 			callAndStopOnFailure(ConvertAuthorizationEndpointRequestToRequestObject.class);
 			callAndStopOnFailure(SerializeRequestObjectWithNullAlgorithm.class);
-			callAndStopOnFailure(BuildRequestObjectByReferenceRedirectToAuthorizationEndpointWithoutDuplicates.class);
+			callAndStopOnFailure(requestUriRedirectCondition);
 		}
 	}
 
 	public static class CreateAuthorizationRedirectStepsSignedRequestUri extends AbstractConditionSequence {
+		private final Class<? extends Condition> requestUriRedirectCondition;
+
+		public CreateAuthorizationRedirectStepsSignedRequestUri(Class<? extends Condition> requestUriRedirectCondition) {
+			this.requestUriRedirectCondition = requestUriRedirectCondition;
+		}
+
 		@Override
 		public void evaluate() {
 			callAndStopOnFailure(ConvertAuthorizationEndpointRequestToRequestObject.class);
 			callAndStopOnFailure(AddSelfIssuedMeV2AudToRequestObject.class);
 			callAndStopOnFailure(SignRequestObjectIncludeX5cHeaderIfAvailable.class);
-			callAndStopOnFailure(BuildRequestObjectByReferenceRedirectToAuthorizationEndpointWithoutDuplicates.class);
+			callAndStopOnFailure(requestUriRedirectCondition);
 		}
 	}
 
@@ -620,6 +631,7 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 	}
 
 	protected void createAuthorizationRedirect() {
+		Class<? extends Condition> requestUriRedirectCondition = getRequestUriRedirectCondition();
 		ConditionSequence seq = null;
 		switch (requestMethod) {
 //			case URL_QUERY:
@@ -631,7 +643,7 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 					// an unsigned request you just pass JSON
 					return;
 				}
-				seq = new CreateAuthorizationRedirectStepsUnsignedRequestUri();
+				seq = createAuthorizationRedirectStepsUnsignedRequestUri();
 				break;
 			case REQUEST_URI_SIGNED:
 				seq = createAuthorizationRedirectStepsSignedRequestUri();
@@ -655,15 +667,24 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 				break;
 		}
 		if (isBrowserApi()) {
-			seq = seq.skip(BuildRequestObjectByReferenceRedirectToAuthorizationEndpointWithoutDuplicates.class, "No redirected required for Browser API");
+			seq = seq.skip(requestUriRedirectCondition, "No redirected required for Browser API");
 		}
 
 		call(seq);
 	}
 
+	protected Class<? extends Condition> getRequestUriRedirectCondition() {
+		return BuildRequestObjectByReferenceRedirectToAuthorizationEndpointWithoutDuplicates.class;
+	}
+
+	@NotNull
+	protected ConditionSequence createAuthorizationRedirectStepsUnsignedRequestUri() {
+		return new CreateAuthorizationRedirectStepsUnsignedRequestUri(getRequestUriRedirectCondition());
+	}
+
 	@NotNull
 	protected ConditionSequence createAuthorizationRedirectStepsSignedRequestUri() {
-		return new CreateAuthorizationRedirectStepsSignedRequestUri();
+		return new CreateAuthorizationRedirectStepsSignedRequestUri(getRequestUriRedirectCondition());
 	}
 
 	@Override

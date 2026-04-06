@@ -10,6 +10,11 @@ import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+
 public class BuildPlainRedirectToAuthorizationEndpoint extends AbstractCondition {
 
 	@Override
@@ -32,7 +37,7 @@ public class BuildPlainRedirectToAuthorizationEndpoint extends AbstractCondition
 		// send a front channel request to start things off
 		UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(authorizationEndpoint);
 
-		for (String key : authorizationEndpointRequest.keySet()) {
+		for (String key : getParameterOrder(authorizationEndpointRequest)) {
 			JsonElement element = authorizationEndpointRequest.get(key);
 
 			// for nonce, state, client_id, redirect_uri, etc.
@@ -58,6 +63,12 @@ public class BuildPlainRedirectToAuthorizationEndpoint extends AbstractCondition
 		env.putString("redirect_to_authorization_endpoint", redirectTo);
 
 		return env;
+	}
+
+	protected Collection<String> getParameterOrder(JsonObject authorizationEndpointRequest) {
+		List<String> keys = new ArrayList<>(authorizationEndpointRequest.keySet());
+		Collections.sort(keys);
+		return keys;
 	}
 
 }

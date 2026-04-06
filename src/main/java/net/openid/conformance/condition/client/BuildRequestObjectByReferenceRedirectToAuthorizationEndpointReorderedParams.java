@@ -4,7 +4,13 @@ import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 
-public class BuildRequestObjectByReferenceRedirectToAuthorizationEndpoint extends AbstractBuildRequestObjectRedirectToAuthorizationEndpoint {
+
+/**
+ * Same as {@link BuildRequestObjectByReferenceRedirectToAuthorizationEndpoint} but sorts
+ * query parameters in reverse alphabetical order, to test that implementations handle different
+ * parameter orderings.
+ */
+public class BuildRequestObjectByReferenceRedirectToAuthorizationEndpointReorderedParams extends AbstractBuildRequestObjectRedirectToAuthorizationEndpoint {
 
 	@Override
 	@PreEnvironment(required = { "authorization_endpoint_request", "request_object_claims", "server" }, strings = "request_uri")
@@ -12,7 +18,7 @@ public class BuildRequestObjectByReferenceRedirectToAuthorizationEndpoint extend
 	public Environment evaluate(Environment env) {
 		String requestUri = env.getString("request_uri");
 
-		return buildRedirect(env, "request_uri", requestUri, true, false);
+		return buildRedirect(env, "request_uri", requestUri, true, true);
 	}
 
 }
