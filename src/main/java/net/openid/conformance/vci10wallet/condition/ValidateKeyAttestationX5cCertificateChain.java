@@ -4,9 +4,12 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.nimbusds.jose.util.X509CertUtils;
 import net.openid.conformance.condition.AbstractValidateX5cCertificateChain;
+import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
+import net.openid.conformance.vci10issuer.condition.VciErrorCode;
+import net.openid.conformance.vci10issuer.util.VCICredentialErrorResponseUtil;
 
 import java.security.cert.X509Certificate;
 import java.util.List;
@@ -34,19 +37,25 @@ public class ValidateKeyAttestationX5cCertificateChain extends AbstractValidateX
 			return env;
 		}
 
-		List<String> x5c = OIDFJSON.convertJsonArrayToList(x5cEl.getAsJsonArray());
-		List<X509Certificate> certs = parseX5cCertificatesFromStrings(x5c);
+		try {
+			List<String> x5c = OIDFJSON.convertJsonArrayToList(x5cEl.getAsJsonArray());
+			List<X509Certificate> certs = parseX5cCertificatesFromStrings(x5c);
 
-		String trustAnchorPem = env.getString("vci", "key_attestation_trust_anchor_pem");
-		X509Certificate trustAnchorCert = trustAnchorPem != null ? X509CertUtils.parse(trustAnchorPem) : null;
+			String trustAnchorPem = env.getString("vci", "key_attestation_trust_anchor_pem");
+			X509Certificate trustAnchorCert = trustAnchorPem != null ? X509CertUtils.parse(trustAnchorPem) : null;
 
-		validateX5cCertificateChain(certs, trustAnchorCert);
+			validateX5cCertificateChain(certs, trustAnchorCert);
 
-		logSuccess("Validated key attestation x5c certificate chain",
-			args("x5c", x5c,
-				"leaf_cert_subject", certs.get(0).getSubjectX500Principal().getName(),
-				"chain_length", certs.size()));
+			logSuccess("Validated key attestation x5c certificate chain",
+				args("x5c", x5c,
+					"leaf_cert_subject", certs.get(0).getSubjectX500Principal().getName(),
+					"chain_length", certs.size()));
 
-		return env;
+			return env;
+		} catch (ConditionError e) {
+			VCICredentialErrorResponseUtil.updateCredentialErrorResponseInEnv(env, VciErrorCode.INVALID_PROOF,
+				"Key attestation x5c certificate chain validation failed");
+			throw e;
+		}
 	}
 }
