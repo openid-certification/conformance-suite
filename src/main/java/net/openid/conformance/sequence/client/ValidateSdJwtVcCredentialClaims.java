@@ -36,15 +36,6 @@ public class ValidateSdJwtVcCredentialClaims extends AbstractConditionSequence {
 		this.haip = haip;
 	}
 
-	/**
-	 * Non-HAIP constructor.
-	 *
-	 * @param requiresCnf whether to validate the cnf (confirmation) claim is present and is a public key
-	 */
-	public ValidateSdJwtVcCredentialClaims(boolean requiresCnf) {
-		this(requiresCnf, false);
-	}
-
 	@Override
 	public void evaluate() {
 		// as per https://www.ietf.org/id/draft-ietf-oauth-sd-jwt-vc-00.html#section-4.2.2.2 these must not be selectively disclosed

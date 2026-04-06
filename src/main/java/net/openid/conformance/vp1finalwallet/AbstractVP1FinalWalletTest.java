@@ -538,7 +538,7 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 				callAndStopOnFailure(ParseCredentialAsSdJwtKb.class, ConditionResult.FAILURE);
 
 				eventLog.startBlock(currentClientString() + "Verify credential JWT");
-				call(new ValidateSdJwtVcCredentialClaims(true));
+				call(new ValidateSdJwtVcCredentialClaims(true, getVariant(VPProfile.class) == VPProfile.HAIP));
 				// cnf is also checked when holder binding is checked below
 
 				eventLog.startBlock(currentClientString() + "Verify key binding JWT");
