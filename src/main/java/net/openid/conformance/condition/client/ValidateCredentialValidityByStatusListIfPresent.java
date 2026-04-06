@@ -14,7 +14,6 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
-import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
 import java.text.ParseException;
@@ -55,8 +54,9 @@ public class ValidateCredentialValidityByStatusListIfPresent extends AbstractCon
 		ResponseEntity<String> statusListTokenJwtResponse;
 		try {
 			RestTemplate restTemplate = createRestTemplate(env);
-			HttpEntity<String> httpEntity = new HttpEntity<>(MultiValueMap.fromSingleValue(Map.of(HttpHeaders.ACCEPT, "application/statuslist+jwt")));
-			statusListTokenJwtResponse = restTemplate.exchange(uri, HttpMethod.GET, httpEntity, String.class);
+			HttpHeaders headers = new HttpHeaders();
+			headers.set(HttpHeaders.ACCEPT, "application/statuslist+jwt");
+			statusListTokenJwtResponse = restTemplate.exchange(uri, HttpMethod.GET, new HttpEntity<>(headers), String.class);
 		} catch (Exception e) {
 			throw error("Unable to retrieve statuslist token from uri " + uri, e);
 		}
