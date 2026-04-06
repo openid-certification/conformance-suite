@@ -11,13 +11,20 @@ import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
-	testName = "oid4vp-1final-wallet-happy-flow-with-state-and-redirect",
-	displayName = "OID4VP-1.0-FINAL: Happy flow test with state parameter and a redirect back to the verifier",
-	summary = "Performs the normal flow, but with a 'state', a longer 'nonce', a random authorization endpoint parameter (which must be ignored), reordered query parameters in the redirect URL, the encryption key without 'use: enc' (for encrypted response modes), and the response_uri response returns a redirect_uri which the wallet must open",
+	testName = "oid4vp-1final-wallet-alternate-happy-flow",
+	displayName = "OID4VP-1.0-FINAL: Alternate happy flow",
+	summary = """
+		Performs the normal flow with the following differences:
+		- Includes optional 'state' parameter
+		- Uses a longer 'nonce' (32 chars) and 'state' (64 chars)
+		- Includes a random authorization endpoint parameter (which must be ignored)
+		- Reordered query parameters in the redirect URL
+		- Encryption key without 'use: enc' (for encrypted response modes)
+		- response_uri response returns a redirect_uri which the wallet must open""",
 	profile = "OID4VP-1FINAL"
 )
 
-public class VP1FinalWalletHappyFlowWithStateAndRedirect extends AbstractVP1FinalWalletTest {
+public class VP1FinalWalletAlternateHappyFlow extends AbstractVP1FinalWalletTest {
 
 	@Override
 	protected void onConfigure(JsonObject config, String baseUrl) {

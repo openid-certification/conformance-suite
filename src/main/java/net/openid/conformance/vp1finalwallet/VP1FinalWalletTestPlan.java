@@ -21,7 +21,7 @@ public class VP1FinalWalletTestPlan implements TestPlan {
 	public static final List<Class<? extends TestModule>> testModules = List.of(
 		// positive tests
 		VP1FinalWalletHappyFlowNoState.class,
-		VP1FinalWalletHappyFlowWithStateAndRedirect.class,
+		VP1FinalWalletAlternateHappyFlow.class,
 
 		// negative tests
 		VP1FinalWalletResponseUriNotClientId.class,
