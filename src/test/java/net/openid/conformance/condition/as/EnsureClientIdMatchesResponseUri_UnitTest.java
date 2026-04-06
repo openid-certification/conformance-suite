@@ -72,10 +72,11 @@ public class EnsureClientIdMatchesResponseUri_UnitTest {
 
 	@Test
 	public void testEvaluate_missingResponseUri() {
+		// OID4VP 1.0 Final section 5.9.3: Verifier MAY omit response_uri
 		JsonObject effective = new JsonObject();
 		effective.addProperty("client_id", "https://example.com/callback");
 		env.putObject(CreateEffectiveAuthorizationRequestParameters.ENV_KEY, effective);
 
-		assertThrows(ConditionError.class, () -> cond.execute(env));
+		cond.execute(env);
 	}
 }
