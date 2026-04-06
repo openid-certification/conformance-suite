@@ -532,7 +532,7 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 					callAndStopOnFailure(CreateVP1FinalWalletIsoMdocRedirectSessionTranscript.class, "OID4VP-1FINALA-B.2.6.1");
 				}
 				callAndStopOnFailure(ParseCredentialAsMdoc.class);
-				call(new ValidateMdocCredential(false));
+				call(new ValidateMdocCredential(false, getVariant(VPProfile.class) == VPProfile.HAIP));
 				break;
 
 			case SD_JWT_VC:
