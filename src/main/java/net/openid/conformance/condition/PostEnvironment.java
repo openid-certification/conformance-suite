@@ -16,4 +16,6 @@ public @interface PostEnvironment {
 
 	String[] strings() default {};
 
+	String[] integers() default {};
+
 }
