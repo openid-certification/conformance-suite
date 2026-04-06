@@ -4,6 +4,7 @@ import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.condition.as.CheckForInvalidCharsInNonce;
 import net.openid.conformance.condition.as.CheckNonceMaximumLength;
 import net.openid.conformance.condition.as.CheckNonceMinimumLength;
+import net.openid.conformance.condition.as.EnsureMinimumNonceEntropy;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 /**
@@ -34,8 +35,10 @@ public class VP1FinalVerifierHappyFlow extends AbstractVP1FinalVerifierTest {
 	protected void extractNonceFromAuthorizationEndpointRequestParameters() {
 		super.extractNonceFromAuthorizationEndpointRequestParameters();
 
+		// https://github.com/openid/OpenID4VP/issues/707 may clarify further nonce requirements
 		callAndContinueOnFailure(CheckForInvalidCharsInNonce.class, ConditionResult.FAILURE, "OID4VP-1FINAL-5.2");
 		callAndContinueOnFailure(CheckNonceMinimumLength.class, ConditionResult.WARNING);
 		callAndContinueOnFailure(CheckNonceMaximumLength.class, ConditionResult.WARNING);
+		callAndContinueOnFailure(EnsureMinimumNonceEntropy.class, ConditionResult.WARNING);
 	}
 }

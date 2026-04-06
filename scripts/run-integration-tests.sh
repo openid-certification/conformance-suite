@@ -62,6 +62,7 @@ SERVER_LOG="${SUITE_DIR}/target/server.log"
 
 # Parse arguments
 PRINT_TO_TERMINAL=false
+TEST_LOG=""
 ARGS=()
 for arg in "$@"; do
     if [ "$arg" == "--stdout" ]; then
@@ -76,6 +77,8 @@ set -- "${ARGS[@]}"
 if [ "$PRINT_TO_TERMINAL" = false ]; then
     TEST_LOG="/tmp/integration-test-$(date +%Y%m%d-%H%M%S).log"
     echo "==> Logging to: $TEST_LOG"
+    # Save original stdout so we can print the final result summary there
+    exec 3>&1
     exec > "$TEST_LOG" 2>&1
 fi
 
@@ -167,6 +170,15 @@ if [ "$TEST_EXIT" -eq 0 ]; then
     echo "==> Tests passed!"
 else
     echo "==> Tests failed (exit code $TEST_EXIT)"
+fi
+
+# Print result to original stdout if output was redirected to a log file
+if [ -n "$TEST_LOG" ]; then
+    if [ "$TEST_EXIT" -eq 0 ]; then
+        echo "==> Tests passed!" >&3
+    else
+        echo "==> Tests failed (exit code $TEST_EXIT)" >&3
+    fi
 fi
 
 exit "$TEST_EXIT"

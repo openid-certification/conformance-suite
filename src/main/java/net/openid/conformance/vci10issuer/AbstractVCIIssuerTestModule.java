@@ -42,15 +42,9 @@ import net.openid.conformance.condition.client.ParseCredentialAsSdJwt;
 import net.openid.conformance.condition.client.ParseMdocCredentialFromVCIIssuance;
 import net.openid.conformance.condition.client.SetAuthorizationEndpointRequestResponseTypeToCode;
 import net.openid.conformance.condition.client.SetProtectedResourceUrlToSingleResourceEndpoint;
-import net.openid.conformance.condition.client.ValidateCredentialCnfJwkIsPublicKey;
 import net.openid.conformance.condition.client.ValidateCredentialIsUnpaddedBase64Url;
-import net.openid.conformance.condition.client.ValidateCredentialJWTHeaderTyp;
-import net.openid.conformance.condition.client.ValidateCredentialJWTIat;
-import net.openid.conformance.condition.client.ValidateCredentialJWTIssIsHttpsUri;
-import net.openid.conformance.condition.client.ValidateCredentialJWTVct;
 import net.openid.conformance.condition.client.ValidateMTLSCertificatesHeader;
-import net.openid.conformance.condition.client.ValidateMdocIssuerSignedSignature;
-import net.openid.conformance.condition.client.ValidateMdocMsoRevocationMechanism;
+import net.openid.conformance.sequence.client.ValidateMdocCredential;
 import net.openid.conformance.condition.common.RARSupport;
 import net.openid.conformance.fapi2spfinal.AbstractFAPI2SPFinalServerTestModule;
 import net.openid.conformance.openid.federation.CallCredentialIssuerNonceEndpoint;
@@ -69,7 +63,7 @@ import net.openid.conformance.variant.VCICredentialEncryption;
 import net.openid.conformance.variant.VCIGrantType;
 import net.openid.conformance.vci10issuer.condition.CheckCacheControlHeaderContainsNoStore;
 import net.openid.conformance.vci10issuer.condition.VCIAddCredentialResponseEncryptionToRequest;
-import net.openid.conformance.vci10issuer.condition.VCICheckExpClaimInCredential;
+import net.openid.conformance.sequence.client.ValidateSdJwtVcCredentialClaims;
 import net.openid.conformance.vci10issuer.condition.VCICheckForDeferredCredentialResponse;
 import net.openid.conformance.vci10issuer.condition.VCICheckKeyAttestationJwksIfKeyAttestationIsRequired;
 import net.openid.conformance.vci10issuer.condition.VCICreateCredentialRequest;
@@ -83,7 +77,6 @@ import net.openid.conformance.vci10issuer.condition.VCIEnsureCredentialResponseI
 import net.openid.conformance.vci10issuer.condition.VCIEnsureIntervalPresentInDeferredResponse;
 import net.openid.conformance.vci10issuer.condition.VCIEnsureResolvedCredentialConfigurationMatchesSelection;
 import net.openid.conformance.vci10issuer.condition.VCIEnsureScopePresentInCredentialConfigurationForHaip;
-import net.openid.conformance.vci10issuer.condition.VCIEnsureX5cHeaderPresentForSdJwtCredential;
 import net.openid.conformance.vci10issuer.condition.VCIExtractCredentialResponse;
 import net.openid.conformance.vci10issuer.condition.VCIExtractNotificationIdFromCredentialResponse;
 import net.openid.conformance.vci10issuer.condition.VCIExtractPreAuthorizedCodeAndTxCodeFromCredentialOffer;
@@ -106,12 +99,10 @@ import net.openid.conformance.vci10issuer.condition.VCIValidateCredentialNonceRe
 import net.openid.conformance.vci10issuer.condition.CheckForUnexpectedParametersInCredentialOffer;
 import net.openid.conformance.vci10issuer.condition.VCIValidateCredentialOffer;
 import net.openid.conformance.vci10issuer.condition.VCIValidateCredentialOfferRequestParams;
-import net.openid.conformance.vci10issuer.condition.VCIValidateCredentialValidityInfoIsPresent;
 import net.openid.conformance.vci10issuer.condition.VCIValidateNoUnknownKeysInCredentialErrorResponse;
 import net.openid.conformance.vci10issuer.condition.VCIValidateNoUnknownKeysInCredentialResponse;
 import net.openid.conformance.vci10issuer.condition.VCIWaitForCredentialOffer;
 import net.openid.conformance.vci10issuer.condition.VCIWaitForTxCode;
-import net.openid.conformance.vci10issuer.condition.statuslist.VCIValidateCredentialValidityByStatusListIfPresent;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.web.servlet.ModelAndView;
 
@@ -825,35 +816,13 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractFAPI2SPFinalSe
 				ConditionResult.FAILURE, "OID4VCI-1FINALA-A.2.4");
 			callAndContinueOnFailure(ParseMdocCredentialFromVCIIssuance.class,
 				ConditionResult.FAILURE, "OID4VCI-1FINALA-A.2");
-			callAndContinueOnFailure(ValidateMdocIssuerSignedSignature.class,
-				ConditionResult.FAILURE, "OID4VCI-1FINALA-A.2");
-			callAndContinueOnFailure(ValidateMdocMsoRevocationMechanism.class,
-				ConditionResult.FAILURE, "HAIP-5.3.1");
+			call(new ValidateMdocCredential(true, fapi2Profile == FAPI2FinalOPProfile.VCI_HAIP));
 		} else if (vciCredentialFormat == VCI1FinalCredentialFormat.SD_JWT_VC) {
 			callAndContinueOnFailure(ParseCredentialAsSdJwt.class,
 				ConditionResult.FAILURE, "SDJWT-4");
-			callAndContinueOnFailure(ValidateCredentialJWTIssIsHttpsUri.class,
-				ConditionResult.FAILURE, "SDJWTVC-3.2.2.2");
-			callAndContinueOnFailure(ValidateCredentialJWTIat.class,
-				ConditionResult.FAILURE, "SDJWTVC-3.2.2.2-5.2");
-			callAndContinueOnFailure(ValidateCredentialJWTVct.class,
-				ConditionResult.FAILURE, "SDJWTVC-3.2.2.2-3.5");
-			callAndContinueOnFailure(ValidateCredentialJWTHeaderTyp.class,
-				ConditionResult.FAILURE, "SDJWTVC-3.2.1");
-			if (requiresCryptographicBinding != null && requiresCryptographicBinding) {
-				callAndContinueOnFailure(ValidateCredentialCnfJwkIsPublicKey.class,
-					ConditionResult.FAILURE, "SDJWT-4.1.2");
-			}
-			if (fapi2Profile == FAPI2FinalOPProfile.VCI_HAIP) {
-				callAndContinueOnFailure(VCIValidateCredentialValidityInfoIsPresent.class,
-					ConditionResult.WARNING, "HAIP-6.1-2.2");
-				callAndContinueOnFailure(VCICheckExpClaimInCredential.class,
-					ConditionResult.FAILURE, "HAIP-6.1-2.2");
-				callAndContinueOnFailure(VCIValidateCredentialValidityByStatusListIfPresent.class,
-					ConditionResult.FAILURE, "HAIP-6.1-2.4", "OTSL-6.2");
-				callAndContinueOnFailure(VCIEnsureX5cHeaderPresentForSdJwtCredential.class,
-					ConditionResult.FAILURE, "HAIP-6.1.1");
-			}
+			boolean requiresCnf = requiresCryptographicBinding != null && requiresCryptographicBinding;
+			boolean isHaip = fapi2Profile == FAPI2FinalOPProfile.VCI_HAIP;
+			call(new ValidateSdJwtVcCredentialClaims(requiresCnf, isHaip));
 		}
 	}
 

@@ -51,58 +51,60 @@ public class CreateEffectiveAuthorizationRequestParameters extends AbstractCondi
 
 		customizeEffectiveAuthorizationRequestParams(env, effective);
 
-		convertAuthorizationDetailsToJsonObjectOfPresent(effective);
+		convertJsonStringParam(effective, "authorization_details");
+		convertJsonStringParam(effective, "dcql_query");
+		convertJsonStringParam(effective, "client_metadata");
 
-		//override request parameters if authorization_request_object exists
-		if(env.containsObject("authorization_request_object")) {
-			JsonObject requestObjectClaims = env.getElementFromObject("authorization_request_object", "claims").getAsJsonObject();
-
-			for (String paramName : requestObjectClaims.keySet()) {
-				//TODO do JsonNull values require special handling?
-				effective.add(paramName, requestObjectClaims.get(paramName));
-			}
-		}
-		//numeric values handling. (for now only max_age)
+		// Normalize numeric HTTP query params (e.g. max_age arrives as string "99" from URL).
+		// This runs BEFORE the request object merge so that request object types are preserved —
+		// a request object that sends max_age as a string is a protocol violation that should be
+		// caught by a downstream condition, not silently normalized here.
 		for(String claimName : EnsureNumericRequestObjectClaimsAreNotNull.numericClaimNames) {
 			if(effective.has(claimName)) {
 				JsonElement claimJsonElement = effective.get(claimName);
 				try {
 					Number claimAsNumber = OIDFJSON.forceConversionToNumber(claimJsonElement);
 					effective.addProperty(claimName, claimAsNumber);
-				} catch (OIDFJSON.ValueIsJsonNullException ex) {
-					//value is json null. remove the entry from effective to prevent errors
-					//EnsureNumericRequestObjectClaimsAreNotNull should be called to log a warning
-					effective.remove(claimName);
-					log(claimName + " has a json null value. Not including "+claimName+" in effective authorization endpoint request");
-				} catch (OIDFJSON.UnexpectedJsonTypeException ex) {
-					throw error("Unexpected parameter value. Value is not encoded as a number.", args(claimName, claimJsonElement));
+				} catch (OIDFJSON.ValueIsJsonNullException | OIDFJSON.UnexpectedJsonTypeException ex) {
+					// leave as-is; will be handled after request object merge
 				}
 			}
 		}
+
+		//override request parameters if authorization_request_object exists
+		if(env.containsObject("authorization_request_object")) {
+			JsonObject requestObjectClaims = env.getElementFromObject("authorization_request_object", "claims").getAsJsonObject();
+
+			for (String paramName : requestObjectClaims.keySet()) {
+				effective.add(paramName, requestObjectClaims.get(paramName));
+			}
+		}
+
 		env.putObject(ENV_KEY, effective);
 		logSuccess("Merged http request parameters with request object claims", args(ENV_KEY, effective));
 		return env;
 	}
 
-	protected void convertAuthorizationDetailsToJsonObjectOfPresent(JsonObject authorizationRequestParams) {
-		if (!authorizationRequestParams.has("authorization_details")) {
+	/**
+	 * When parameters like dcql_query, client_metadata, or authorization_details are passed as URL query
+	 * params (URL_QUERY request method), they arrive as JSON-serialized strings. Parse them back into
+	 * JSON so downstream conditions can work with them the same way as when they come from a signed
+	 * request object (JAR).
+	 */
+	protected void convertJsonStringParam(JsonObject params, String paramName) {
+		if (!params.has(paramName)) {
 			return;
 		}
-
-		JsonElement rawAuthorizationDetailsEl = authorizationRequestParams.get("authorization_details");
-		if (rawAuthorizationDetailsEl == null) {
-			throw error("authorization_details must not be null or empty");
+		JsonElement el = params.get(paramName);
+		if (!el.isJsonPrimitive() || !el.getAsJsonPrimitive().isString()) {
+			return; // already a JSON object/array, nothing to do
 		}
-
-		var authorizationDetailsString = OIDFJSON.getString(rawAuthorizationDetailsEl);
+		String jsonString = OIDFJSON.getString(el);
 		try {
-			JsonElement authorizationDetailsEl = JsonParser.parse(authorizationDetailsString);
-			if (!authorizationDetailsEl.isJsonArray()) {
-				throw error("authorization_details must be a json array", args("authorization_details", authorizationDetailsString));
-			}
-			authorizationRequestParams.add("authorization_details", authorizationDetailsEl.getAsJsonArray());
+			JsonElement parsed = JsonParser.parse(jsonString);
+			params.add(paramName, parsed);
 		} catch (IOException e) {
-			throw error("Unable to parse authorization_details into JsonArray",e, args("authorization_details", authorizationDetailsString));
+			throw error("Unable to parse " + paramName + " as JSON", e, args(paramName, jsonString));
 		}
 	}
 

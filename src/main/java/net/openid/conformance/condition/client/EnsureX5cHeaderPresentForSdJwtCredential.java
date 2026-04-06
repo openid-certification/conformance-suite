@@ -1,4 +1,4 @@
-package net.openid.conformance.vci10issuer.condition;
+package net.openid.conformance.condition.client;
 
 import com.google.gson.JsonObject;
 import com.nimbusds.jose.util.X509CertUtils;
@@ -20,7 +20,7 @@ import java.util.List;
  * - The leaf certificate MUST NOT be self-signed
  * - The trust anchor MUST NOT be included in the x5c chain
  */
-public class VCIEnsureX5cHeaderPresentForSdJwtCredential extends AbstractCondition {
+public class EnsureX5cHeaderPresentForSdJwtCredential extends AbstractCondition {
 
 	@Override
 	@PreEnvironment(required = {"sdjwt"})

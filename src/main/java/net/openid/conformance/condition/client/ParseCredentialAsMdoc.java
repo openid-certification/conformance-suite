@@ -4,9 +4,12 @@ import com.google.gson.JsonObject;
 import com.nimbusds.jose.jwk.JWK;
 import com.nimbusds.jose.util.Base64URL;
 import net.openid.conformance.condition.AbstractCondition;
+import net.openid.conformance.condition.ConditionError;
+import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 import org.multipaz.cbor.Cbor;
+import org.multipaz.cbor.DataItem;
 import org.multipaz.cbor.DiagnosticOption;
 import org.multipaz.crypto.AsymmetricKey;
 import org.multipaz.mdoc.response.DeviceResponseParser;
@@ -21,7 +24,7 @@ import java.util.Set;
 public class ParseCredentialAsMdoc extends AbstractCondition {
 	@Override
 	@PreEnvironment(strings = { "credential", "session_transcript" })
-//	@PostEnvironment(required = "mdoc")
+	@PostEnvironment(strings = { "mdoc_credential_cbor" })
 	public Environment evaluate(Environment env) {
 		// as per ISO 18013-7, vp_token is a base64url-encoded-without-padding DeviceResponse data structure as defined in ISO/IEC 18013-5.
 		String mdocBase64 = env.getString("credential");
@@ -30,6 +33,26 @@ public class ParseCredentialAsMdoc extends AbstractCondition {
 
 		String diagnostics = Cbor.INSTANCE.toDiagnostics(bytes,
 			Set.of(DiagnosticOption.PRETTY_PRINT, DiagnosticOption.EMBEDDED_CBOR));
+
+		// Extract IssuerSigned from DeviceResponse for downstream conditions (e.g. revocation check)
+		try {
+			DataItem deviceResponseItem = Cbor.INSTANCE.decode(bytes);
+			DataItem documents = deviceResponseItem.getOrNull("documents");
+			if (documents == null) {
+				throw error("DeviceResponse does not contain a 'documents' array");
+			}
+			DataItem firstDoc = documents.getAsArray().get(0);
+			DataItem issuerSigned = firstDoc.getOrNull("issuerSigned");
+			if (issuerSigned == null) {
+				throw error("First document in DeviceResponse does not contain 'issuerSigned'");
+			}
+			byte[] issuerSignedBytes = Cbor.INSTANCE.encode(issuerSigned);
+			env.putString("mdoc_credential_cbor", Base64.getEncoder().encodeToString(issuerSignedBytes));
+		} catch (ConditionError e) {
+			throw e;
+		} catch (Exception e) {
+			throw error("Failed to extract IssuerSigned from DeviceResponse", e);
+		}
 
 		byte[] sessionTranscript = Base64.getDecoder().decode(env.getString("session_transcript"));
 

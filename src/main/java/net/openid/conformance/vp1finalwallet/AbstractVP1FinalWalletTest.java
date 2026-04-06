@@ -21,6 +21,7 @@ import net.openid.conformance.condition.client.AddStateToAuthorizationEndpointRe
 import net.openid.conformance.condition.client.AddVP1FinalEncryptionParametersToClientMetadata;
 import net.openid.conformance.condition.client.AddVP1FinalIsoMdocClientMetadataToAuthorizationRequest;
 import net.openid.conformance.condition.client.AddVP1FinalSdJwtClientMetadataToAuthorizationRequest;
+import net.openid.conformance.condition.client.BuildPlainRedirectToAuthorizationEndpoint;
 import net.openid.conformance.condition.client.BuildRequestObjectByReferenceRedirectToAuthorizationEndpointWithoutDuplicates;
 import net.openid.conformance.condition.client.BuildVP1FinalBrowserDCAPIRequestSigned;
 import net.openid.conformance.condition.client.BuildVP1FinalBrowserDCAPIRequestUnsigned;
@@ -77,12 +78,9 @@ import net.openid.conformance.condition.client.SignRequestObjectIncludeX5cHeader
 import net.openid.conformance.condition.client.SignRequestObjectIncludeX5cHeaderIfAvailable;
 import net.openid.conformance.condition.client.ValidateAuthResponseContainsOnlyResponse;
 import net.openid.conformance.condition.client.ValidateClientJWKsPrivatePart;
-import net.openid.conformance.condition.client.ValidateCredentialCnfJwkIsPublicKey;
 import net.openid.conformance.condition.client.ValidateCredentialIsUnpaddedBase64Url;
-import net.openid.conformance.condition.client.ValidateCredentialJWTHeaderTyp;
-import net.openid.conformance.condition.client.ValidateCredentialJWTIat;
-import net.openid.conformance.condition.client.ValidateCredentialJWTIssIsHttpsUri;
-import net.openid.conformance.condition.client.ValidateCredentialJWTVct;
+import net.openid.conformance.sequence.client.ValidateMdocCredential;
+import net.openid.conformance.sequence.client.ValidateSdJwtVcCredentialClaims;
 import net.openid.conformance.condition.client.ValidateDCQLQuery;
 import net.openid.conformance.condition.client.ValidateJWEBodyDoesNotIncludeIssExpAud;
 import net.openid.conformance.condition.client.ValidateJWEHeaderAlgMatchesRequestedAlgorithm;
@@ -145,6 +143,12 @@ import org.springframework.http.ResponseEntity;
 	whenParameter = VPProfile.class,
 	hasValues = "haip"
 )
+@VariantNotApplicableWhen(
+	parameter = VP1FinalWalletRequestMethod.class,
+	values = {"url_query"},  // URL_QUERY uses HTTP redirects, not compatible with Browser API
+	whenParameter = VP1FinalWalletResponseMode.class,
+	hasValues = {"dc_api", "dc_api.jwt"}
+)
 public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerTestModule {
 	protected enum TestState {
 		INITIAL,
@@ -183,8 +187,10 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 		clientIdPrefix = getVariant(VP1FinalWalletClientIdPrefix.class);
 		env.putString("client_id_scheme", clientIdPrefix.toString());
 
-		// As per ISO 18013-7 B.5.3 "Nonces shall have a minimum length of 16 bytes"
-		env.putInteger("requested_nonce_length", 16);
+		// As per ISO 18013-7 B.5.3 "Nonces shall have a minimum length of 16 bytes".
+		// Use a slightly longer value so the nonce comfortably passes the Shannon entropy
+		// check in the verifier tests (EnsureMinimumNonceEntropy, which requires 96 bits).
+		env.putInteger("requested_nonce_length", 24);
 
 		switch (responseMode) {
 			case DIRECT_POST:
@@ -263,7 +269,7 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 		boolean encryptionKeyRequired = false;
 		// keys are needed for signed requests or encrypted responses
 		switch (requestMethod) {
-//				case URL_QUERY:
+			case URL_QUERY:
 			case REQUEST_URI_UNSIGNED:
 				break;
 			case REQUEST_URI_SIGNED:
@@ -319,7 +325,7 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 
 
 				switch (requestMethod) {
-					case REQUEST_URI_UNSIGNED -> {
+					case URL_QUERY, REQUEST_URI_UNSIGNED -> {
 						callAndStopOnFailure(BuildVP1FinalBrowserDCAPIRequestUnsigned.class);
 					}
 					case REQUEST_URI_SIGNED -> {
@@ -371,7 +377,7 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 				case DC_API_JWT:
 					browserApi = true;
 					switch (requestMethod) {
-						case REQUEST_URI_UNSIGNED -> {
+						case URL_QUERY, REQUEST_URI_UNSIGNED -> {
 							browserUnsigned = true;
 						}
 						case REQUEST_URI_SIGNED -> {
@@ -525,22 +531,15 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 					callAndStopOnFailure(CreateVP1FinalWalletIsoMdocRedirectSessionTranscript.class, "OID4VP-1FINALA-B.2.6.1");
 				}
 				callAndStopOnFailure(ParseCredentialAsMdoc.class);
+				call(new ValidateMdocCredential(false, getVariant(VPProfile.class) == VPProfile.HAIP));
 				break;
 
 			case SD_JWT_VC:
 				callAndStopOnFailure(ParseCredentialAsSdJwtKb.class, ConditionResult.FAILURE);
 
 				eventLog.startBlock(currentClientString() + "Verify credential JWT");
-				// as per https://www.ietf.org/id/draft-ietf-oauth-sd-jwt-vc-00.html#section-4.2.2.2 these must must not be selectively disclosed
-				callAndContinueOnFailure(ValidateCredentialJWTIssIsHttpsUri.class, ConditionResult.FAILURE, "SDJWTVC-3.2.2.2");
-				callAndContinueOnFailure(ValidateCredentialJWTIat.class, ConditionResult.FAILURE, "SDJWTVC-3.2.2.2-5.2");
-				// FIXME nbf
-				// FIXME exp
-				callAndContinueOnFailure(ValidateCredentialCnfJwkIsPublicKey.class, ConditionResult.FAILURE, "SDJWT-4.1.2");
-				// cnf is otherwise checked when holder binding is checked below
-				callAndContinueOnFailure(ValidateCredentialJWTHeaderTyp.class, ConditionResult.FAILURE, "SDJWTVC-3.2.1");
-				callAndContinueOnFailure(ValidateCredentialJWTVct.class, ConditionResult.FAILURE, "SDJWTVC-3.2.2.2");
-				// FIXME status
+				call(new ValidateSdJwtVcCredentialClaims(true, getVariant(VPProfile.class) == VPProfile.HAIP));
+				// cnf is also checked when holder binding is checked below
 
 				eventLog.startBlock(currentClientString() + "Verify key binding JWT");
 
@@ -563,8 +562,6 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 				callAndContinueOnFailure(CheckNonceInBindingJwt.class, ConditionResult.FAILURE, "SDJWT-4.3", "OID4VP-1FINALA-B.3.6");
 				callAndContinueOnFailure(ValidateSdJwtKbSdHash.class, ConditionResult.FAILURE, "SDJWT-4.3");
 				callAndContinueOnFailure(CheckForUnexpectedClaimsInBindingJwt.class, ConditionResult.WARNING, "SDJWT-4.3");
-
-				// FIXME: verify disclosures have different nonces if there are multiple
 
 				// FIXME: verify sig on sd jwt (lissi use did:jwk though)
 
@@ -634,9 +631,9 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 		Class<? extends Condition> requestUriRedirectCondition = getRequestUriRedirectCondition();
 		ConditionSequence seq = null;
 		switch (requestMethod) {
-//			case URL_QUERY:
-//				callAndStopOnFailure(BuildPlainRedirectToAuthorizationEndpoint.class); // FIXME: doesn't work, Caught exception from test framework: [openid4vp://] is not a valid HTTP URL
-//				break;
+			case URL_QUERY:
+				callAndStopOnFailure(BuildPlainRedirectToAuthorizationEndpoint.class);
+				break;
 			case REQUEST_URI_UNSIGNED:
 				if (isBrowserApi()) {
 					// an alg none request object is only required for actual JAR (request_uri), for Browser API for
@@ -716,7 +713,6 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 		call(exec().unmapKey("client_request"));
 
 		setStatus(Status.WAITING);
-		// FIXME add logs about the next step
 
 		if (path.equals(env.getString("browser_api_submit", "path"))) {
 			return handleBrowserApiSubmission(requestId);
@@ -786,6 +782,7 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 				throw new TestFailureException(getId(), "Wallet called request_uri after already sending a response");
 		}
 
+		eventLog.log(getName(), "Returned request object to wallet - waiting for it to call the response_uri");
 		setStatus(Status.WAITING);
 
 		return ResponseEntity.ok()

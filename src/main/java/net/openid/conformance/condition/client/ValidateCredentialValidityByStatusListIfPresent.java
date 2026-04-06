@@ -1,4 +1,4 @@
-package net.openid.conformance.vci10issuer.condition.statuslist;
+package net.openid.conformance.condition.client;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -14,13 +14,12 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
-import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
 import java.text.ParseException;
 import java.util.Map;
 
-public class VCIValidateCredentialValidityByStatusListIfPresent extends AbstractCondition {
+public class ValidateCredentialValidityByStatusListIfPresent extends AbstractCondition {
 
 	@Override
 	@PreEnvironment(required = {"sdjwt"})
@@ -55,8 +54,9 @@ public class VCIValidateCredentialValidityByStatusListIfPresent extends Abstract
 		ResponseEntity<String> statusListTokenJwtResponse;
 		try {
 			RestTemplate restTemplate = createRestTemplate(env);
-			HttpEntity<String> httpEntity = new HttpEntity<>(MultiValueMap.fromSingleValue(Map.of(HttpHeaders.ACCEPT, "application/statuslist+jwt")));
-			statusListTokenJwtResponse = restTemplate.exchange(uri, HttpMethod.GET, httpEntity, String.class);
+			HttpHeaders headers = new HttpHeaders();
+			headers.set(HttpHeaders.ACCEPT, "application/statuslist+jwt");
+			statusListTokenJwtResponse = restTemplate.exchange(uri, HttpMethod.GET, new HttpEntity<>(headers), String.class);
 		} catch (Exception e) {
 			throw error("Unable to retrieve statuslist token from uri " + uri, e);
 		}

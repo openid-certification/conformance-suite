@@ -12,6 +12,9 @@ import net.openid.conformance.condition.as.CheckForUnexpectedClaimsInClaimsParam
 import net.openid.conformance.condition.as.CheckForUnexpectedOpenIdClaims;
 import net.openid.conformance.condition.as.CheckForUnexpectedParametersInVpAuthorizationRequest;
 import net.openid.conformance.condition.as.CheckNoClientIdSchemeParameter;
+import net.openid.conformance.condition.as.CheckNoPresentationDefinitionInVpAuthorizationRequest;
+import net.openid.conformance.condition.as.EnsureClientIdMatchesResponseUri;
+import net.openid.conformance.condition.as.CheckNoRedirectUriInVpAuthorizationRequest;
 import net.openid.conformance.condition.as.CheckNoScopeParameter;
 import net.openid.conformance.condition.as.CheckRequestClaimsParameterMemberValues;
 import net.openid.conformance.condition.as.CheckRequestClaimsParameterValues;
@@ -35,6 +38,7 @@ import net.openid.conformance.condition.as.EnsureRequestUriIsHttps;
 import net.openid.conformance.condition.as.EnsureResponseTypeIsVpToken;
 import net.openid.conformance.condition.as.EnsureValidResponseUriForAuthorizationEndpointRequest;
 import net.openid.conformance.condition.as.ExtractAndValidateX509HashClientId;
+import net.openid.conformance.condition.as.CheckDCQLQueryCredentialFormatMatchesTestConfiguration;
 import net.openid.conformance.condition.as.ExtractDCQLQueryFromAuthorizationRequest;
 import net.openid.conformance.condition.as.ExtractNonceFromAuthorizationRequest;
 import net.openid.conformance.condition.as.FetchRequestUriAndExtractRequestObject;
@@ -188,16 +192,12 @@ public abstract class AbstractVP1FinalVerifierTest extends AbstractTestModule {
 	protected void onServerConfigurationCompleted() {
 		//fapi would call callAndStopOnFailure(CheckServerConfiguration.class); here
 		switch(clientRequestType) {
-//			case REQUEST_OBJECT:
-//				callAndStopOnFailure(SetRequestParameterSupportedToTrueInServerConfiguration.class, "OIDCC-6.1");
-//				callAndStopOnFailure(OIDCCAddRequestObjectSigningAlgValuesSupportedToServerConfiguration.class, "OIDCC-6.1");
-//				break;
+			case URL_QUERY:
+				// parameters passed directly in URL query, no request_uri support needed
+				break;
 			case REQUEST_URI_SIGNED:
 				callAndStopOnFailure(SetRequestUriParameterSupportedToTrueInServerConfiguration.class, "OIDCC-6.2");
 				break;
-//			case PLAIN_HTTP_REQUEST:
-//				// nothing to do
-//				break;
 		}
 	}
 
@@ -216,6 +216,9 @@ public abstract class AbstractVP1FinalVerifierTest extends AbstractTestModule {
 			case X509_SAN_DNS -> {
 				callAndStopOnFailure(OIDCCGetStaticClientConfigurationForRPTests.class);
 				callAndStopOnFailure(OID4VPSetClientIdToIncludeClientIdScheme.class, "OID4VP-1FINAL-5.9.3");
+			}
+			case REDIRECT_URI -> {
+				// client_id equals the response_uri for this scheme; validated dynamically below
 			}
 		}
 	}
@@ -283,7 +286,7 @@ public abstract class AbstractVP1FinalVerifierTest extends AbstractTestModule {
 				case X509_HASH -> {
 					callAndContinueOnFailure(ExtractAndValidateX509HashClientId.class, ConditionResult.FAILURE);
 				}
-				case X509_SAN_DNS -> {}
+				case X509_SAN_DNS, REDIRECT_URI -> {}
 			}
 			validateRequestObject();
 			callAndStopOnFailure(EnsureClientIdInAuthorizationRequestParametersMatchRequestObject.class);
@@ -301,7 +304,7 @@ public abstract class AbstractVP1FinalVerifierTest extends AbstractTestModule {
 
 	protected void extractNonceFromAuthorizationEndpointRequestParameters() {
 		callAndStopOnFailure(ExtractNonceFromAuthorizationRequest.class, ConditionResult.FAILURE, "OID4VP-1FINAL-5.2");
-		// FIXME entropy / size check on nonce? valid characters?
+		// nonce checks added in VP1FinalVerifierHappyFlow
 	}
 
 	protected void validateAuthorizationEndpointRequestParameters() {
@@ -365,14 +368,24 @@ public abstract class AbstractVP1FinalVerifierTest extends AbstractTestModule {
 			case X509_HASH -> {
 				// client id was checked earlier in ExtractAndValidateX509HashClientId
 			}
+			case REDIRECT_URI -> {
+				callAndContinueOnFailure(EnsureClientIdMatchesResponseUri.class, ConditionResult.FAILURE, "OID4VP-1FINAL-5.9.2");
+				// Store the client_id from the request so downstream conditions (e.g.
+				// EnsureValidResponseUriForAuthorizationEndpointRequest) that require "client" work.
+				String clientId = env.getString(CreateEffectiveAuthorizationRequestParameters.ENV_KEY, "client_id");
+				if (clientId != null) {
+					env.putString("client", "client_id", clientId);
+					env.putString("client_id", clientId);
+				}
+			}
 		}
 
 		// check redirect uri not present
 
 		callAndContinueOnFailure(EnsureValidResponseUriForAuthorizationEndpointRequest.class, ConditionResult.FAILURE,"OID4VP-1FINAL-8.2");
+		callAndContinueOnFailure(CheckNoRedirectUriInVpAuthorizationRequest.class, ConditionResult.FAILURE, "OID4VP-1FINAL-8.2");
+		callAndContinueOnFailure(CheckNoPresentationDefinitionInVpAuthorizationRequest.class, ConditionResult.WARNING);
 
-		// FIXME: validate rest of request
-		// FIXME: validate client_metadata
 		callAndContinueOnFailure(VP1FinalCheckForUnexpectedParametersInVpClientMetadata.class, ConditionResult.WARNING, "OID4VP-1FINAL-5.1");
 		callAndContinueOnFailure(VP1FinalValidateVpFormatsSupportedInClientMetadata.class, ConditionResult.FAILURE, "OID4VP-1FINALA-B.2.2", "OID4VP-1FINALA-B.3.4");
 
@@ -444,6 +457,8 @@ public abstract class AbstractVP1FinalVerifierTest extends AbstractTestModule {
 		callAndStopOnFailure(ExtractDCQLQueryFromAuthorizationRequest.class, "OID4VP-1FINAL-6");
 		callAndContinueOnFailure(ValidateDCQLQuery.class, ConditionResult.FAILURE, "OID4VP-1FINAL-6");
 		callAndContinueOnFailure(CheckForUnexpectedParametersInDcqlQuery.class, ConditionResult.WARNING, "OID4VP-1FINAL-6");
+		// Test harness check: ensures verifier requests the credential format matching the test configuration
+		callAndContinueOnFailure(CheckDCQLQueryCredentialFormatMatchesTestConfiguration.class, ConditionResult.FAILURE);
 
 		// FIXME not sure why this might be missing? the unexpected claims stuff should be on the auth parameters, not the request object ones
 //		skipIfElementMissing("authorization_request_object", "claims", ConditionResult.INFO,
