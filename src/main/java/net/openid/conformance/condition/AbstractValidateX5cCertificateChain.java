@@ -8,8 +8,6 @@ import com.nimbusds.jwt.SignedJWT;
 import net.openid.conformance.util.X509CertificateUtil;
 
 import java.security.PublicKey;
-import java.security.cert.CertificateExpiredException;
-import java.security.cert.CertificateNotYetValidException;
 import java.security.cert.X509Certificate;
 import java.text.ParseException;
 import java.util.List;
@@ -47,16 +45,11 @@ public abstract class AbstractValidateX5cCertificateChain extends AbstractCondit
 	 * (as returned by JWSHeader.getX509CertChain()).
 	 */
 	protected List<X509Certificate> parseX5cCertificatesFromNimbusBase64(List<com.nimbusds.jose.util.Base64> base64Certs) {
-		List<X509Certificate> certs = new ArrayList<>();
-		for (int i = 0; i < base64Certs.size(); i++) {
-			X509Certificate cert = X509CertUtils.parse(base64Certs.get(i).decode());
-			if (cert == null) {
-				throw error("Failed to parse certificate at index " + i + " in x5c chain",
-					args("index", i, "encoded_cert", base64Certs.get(i).toString()));
-			}
-			certs.add(cert);
+		try {
+			return X509CertificateUtil.parseX5cCertificatesFromNimbusBase64(base64Certs);
+		} catch (X509CertificateUtil.X5cCertificateChainException e) {
+			throw error(e.getMessage());
 		}
-		return certs;
 	}
 
 	/**
@@ -78,71 +71,10 @@ public abstract class AbstractValidateX5cCertificateChain extends AbstractCondit
 	 * @param trustAnchor optional trust anchor certificate; null if not available
 	 */
 	protected void validateX5cCertificateChain(List<X509Certificate> certs, X509Certificate trustAnchor) {
-		if (certs.isEmpty()) {
-			throw error("x5c certificate chain is empty");
-		}
-
-		X509Certificate leafCert = certs.get(0);
-
-		// Check leaf certificate validity dates
 		try {
-			leafCert.checkValidity();
-		} catch (CertificateExpiredException e) {
-			throw error("Leaf certificate in x5c chain has expired",
-				args("leaf_cert_subject", leafCert.getSubjectX500Principal().getName(),
-					"not_after", leafCert.getNotAfter()));
-		} catch (CertificateNotYetValidException e) {
-			throw error("Leaf certificate in x5c chain is not yet valid",
-				args("leaf_cert_subject", leafCert.getSubjectX500Principal().getName(),
-					"not_before", leafCert.getNotBefore()));
-		}
-
-		// Leaf must not be self-signed
-		if (X509CertificateUtil.isSelfSigned(leafCert)) {
-			throw error("Leaf certificate in x5c chain must not be self-signed",
-				args("leaf_cert_subject", leafCert.getSubjectX500Principal().getName()));
-		}
-
-		// Walk the chain: each cert must be signed by the next
-		for (int i = 0; i < certs.size() - 1; i++) {
-			try {
-				certs.get(i).verify(certs.get(i + 1).getPublicKey());
-			} catch (Exception e) {
-				throw error("Certificate chain verification failed: certificate at index " + i +
-						" is not signed by certificate at index " + (i + 1),
-					args("cert_subject", certs.get(i).getSubjectX500Principal().getName(),
-						"expected_issuer_subject", certs.get(i + 1).getSubjectX500Principal().getName()));
-			}
-		}
-
-		if (trustAnchor != null) {
-			// Trust anchor must not appear in the chain
-			for (int i = 0; i < certs.size(); i++) {
-				if (certs.get(i).equals(trustAnchor)) {
-					throw error("Trust anchor certificate must not be included in x5c chain",
-						args("trust_anchor_subject", trustAnchor.getSubjectX500Principal().getName(),
-							"found_at_index", i));
-				}
-			}
-
-			// Last cert in chain must be signed by the trust anchor
-			X509Certificate lastCert = certs.get(certs.size() - 1);
-			try {
-				lastCert.verify(trustAnchor.getPublicKey());
-			} catch (Exception e) {
-				throw error("Last certificate in x5c chain is not signed by the trust anchor",
-					args("last_cert_subject", lastCert.getSubjectX500Principal().getName(),
-						"trust_anchor_subject", trustAnchor.getSubjectX500Principal().getName()));
-			}
-		} else if (certs.size() > 1) {
-			// Without a trust anchor, check that the last cert is not self-signed
-			// (self-signed last cert indicates the trust anchor was included)
-			X509Certificate lastCert = certs.get(certs.size() - 1);
-			if (X509CertificateUtil.isSelfSigned(lastCert)) {
-				throw error("Trust anchor (self-signed root CA) must not be included in x5c chain",
-					args("trust_anchor_subject", lastCert.getSubjectX500Principal().getName(),
-						"chain_length", certs.size()));
-			}
+			X509CertificateUtil.validateX5cCertificateChain(certs, trustAnchor);
+		} catch (X509CertificateUtil.X5cCertificateChainException e) {
+			throw error(e.getMessage());
 		}
 	}
 
