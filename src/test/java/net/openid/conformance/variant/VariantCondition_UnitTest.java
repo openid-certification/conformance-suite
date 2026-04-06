@@ -41,7 +41,11 @@ class VariantCondition_UnitTest {
 			"oid4vp-1final-wallet-alternate-happy-flow",
 			"oid4vp-1final-wallet-happy-flow-no-state",
 			"oid4vp-1final-wallet-request-uri-method-post",
-			"oid4vp-1final-wallet-negative-test-invalid-request-object-signature"
+			"oid4vp-1final-wallet-negative-test-invalid-request-object-signature",
+			"oid4vp-1final-wallet-negative-test-mismatched-client-id",
+			"oid4vp-1final-wallet-negative-test-redirect-uri-with-direct-post",
+			"oid4vp-1final-wallet-negative-test-missing-nonce",
+			"oid4vp-1final-wallet-negative-test-invalid-client-id-prefix"
 		), moduleNames);
 
 		// all modules should have the same fixed variants
@@ -74,7 +78,11 @@ class VariantCondition_UnitTest {
 			.map(Plan.Module::getTestModule)
 			.collect(Collectors.toSet());
 		assertEquals(Set.of(
-			"oid4vp-1final-wallet-alternate-happy-flow"
+			"oid4vp-1final-wallet-alternate-happy-flow",
+			"oid4vp-1final-wallet-negative-test-mismatched-client-id",
+			"oid4vp-1final-wallet-negative-test-missing-nonce",
+			"oid4vp-1final-wallet-negative-test-invalid-client-id-prefix",
+			"oid4vp-1final-wallet-negative-test-wrong-expected-origins"
 		), webOriginModules);
 
 		// x509_san_dns entry uses request_uri_signed and includes InvalidRequestObjectSignature
@@ -83,7 +91,11 @@ class VariantCondition_UnitTest {
 			.collect(Collectors.toSet());
 		assertEquals(Set.of(
 			"oid4vp-1final-wallet-alternate-happy-flow",
-			"oid4vp-1final-wallet-negative-test-invalid-request-object-signature"
+			"oid4vp-1final-wallet-negative-test-invalid-request-object-signature",
+			"oid4vp-1final-wallet-negative-test-mismatched-client-id",
+			"oid4vp-1final-wallet-negative-test-missing-nonce",
+			"oid4vp-1final-wallet-negative-test-invalid-client-id-prefix",
+			"oid4vp-1final-wallet-negative-test-wrong-expected-origins"
 		), sanDnsModules);
 	}
 
