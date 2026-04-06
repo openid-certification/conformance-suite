@@ -59,6 +59,17 @@ public class VP1FinalWalletTestPlanHaip implements TestPlan {
 				),
 				List.of(new VariantCondition(VP1FinalWalletResponseMode.class,
 					"dc_api.jwt"))
+			),
+			// dc_api.jwt + multisigned: x509_hash
+			new ModuleListEntry(
+				unsignedTestModules, // also excludes InvalidRequestObjectSignature, which doesn't support multi-signed yet
+				List.of(
+					new Variant(VPProfile.class, "haip"),
+					new Variant(VP1FinalWalletClientIdPrefix.class, "x509_hash"),
+					new Variant(VP1FinalWalletRequestMethod.class, "request_uri_multisigned")
+				),
+				List.of(new VariantCondition(VP1FinalWalletResponseMode.class,
+					"dc_api.jwt"))
 			)
 		);
 	}
