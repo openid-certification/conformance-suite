@@ -30,7 +30,7 @@ import java.util.Map;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @ExtendWith(MockitoExtension.class)
-public class ValidateCredentialValidityByStatusListIfPresent_UnitTest {
+public class ValidateCredentialStatusList_UnitTest {
 
 	@Spy
 	private Environment env = new Environment();
@@ -38,11 +38,11 @@ public class ValidateCredentialValidityByStatusListIfPresent_UnitTest {
 	@Mock
 	private TestInstanceEventLog eventLog;
 
-	private TestableValidateCredentialValidityByStatusListIfPresent cond;
+	private TestableValidateCredentialStatusList cond;
 
 	@BeforeEach
 	public void setUp() throws Exception {
-		cond = new TestableValidateCredentialValidityByStatusListIfPresent();
+		cond = new TestableValidateCredentialStatusList();
 		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 
 		JsonObject statusList = new JsonObject();
@@ -111,7 +111,7 @@ public class ValidateCredentialValidityByStatusListIfPresent_UnitTest {
 		return jwt.serialize();
 	}
 
-	private static class TestableValidateCredentialValidityByStatusListIfPresent extends ValidateCredentialValidityByStatusListIfPresent {
+	private static class TestableValidateCredentialStatusList extends ValidateCredentialStatusList {
 		private ResponseEntity<String> response;
 
 		void setResponse(ResponseEntity<String> response) {
