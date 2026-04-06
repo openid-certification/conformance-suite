@@ -1,32 +1,19 @@
 package net.openid.conformance.condition.as;
 
-import com.google.gson.JsonObject;
-import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWSAlgorithm;
-import com.nimbusds.jose.JWSVerifier;
-import com.nimbusds.jose.crypto.factories.DefaultJWSVerifierFactory;
-import com.nimbusds.jose.jwk.ECKey;
-import com.nimbusds.jose.jwk.JWK;
-import com.nimbusds.jose.jwk.RSAKey;
-import com.nimbusds.jose.proc.JWSVerifierFactory;
 import com.nimbusds.jose.util.Base64;
-import com.nimbusds.jose.util.X509CertUtils;
 import com.nimbusds.jwt.SignedJWT;
-import net.openid.conformance.condition.AbstractCondition;
+import net.openid.conformance.condition.AbstractValidateX5cCertificateChain;
 import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 
-import java.security.KeyPair;
-import java.security.PublicKey;
 import java.security.cert.X509Certificate;
-import java.security.interfaces.ECPublicKey;
-import java.security.interfaces.RSAPublicKey;
 import java.text.ParseException;
 import java.util.List;
 
-public class ValidateRequestObjectSignatureAgainstX5cHeader extends AbstractCondition {
+public class ValidateRequestObjectSignatureAgainstX5cHeader extends AbstractValidateX5cCertificateChain {
 
 	@Override
 	@PreEnvironment(required = { "authorization_request_object" })
@@ -36,65 +23,39 @@ public class ValidateRequestObjectSignatureAgainstX5cHeader extends AbstractCond
 		String requestObject = env.getString("authorization_request_object", "value");
 
 		try {
-
 			SignedJWT jwt = SignedJWT.parse(requestObject);
-			// Parse X.509 certificate
 			List<Base64> x5c = jwt.getHeader().getX509CertChain();
-			String encodedCert = x5c.get(0).toString();
-			byte der[] = java.util.Base64.getDecoder().decode(encodedCert);
-			X509Certificate cert = X509CertUtils.parse(der);
-
-			PublicKey pubKey = cert.getPublicKey();
-
-			KeyPair keyPair;
-			JWK key;
-			if (pubKey instanceof RSAPublicKey) {
-				// We have an RSA public key
-				// ...
-				RSAKey rsaJWK = RSAKey.parse(cert);
-				keyPair = rsaJWK.toKeyPair();
-				key = rsaJWK;
-			} else if (pubKey instanceof ECPublicKey) {
-				ECKey ecJWK = ECKey.parse(cert);
-				keyPair = ecJWK.toKeyPair();
-				key = ecJWK;
-			} else {
-				throw error("Unknown key type");
+			if (x5c == null || x5c.isEmpty()) {
+				throw error("Request object JWT does not contain an x5c header",
+					args("header", jwt.getHeader().toJSONObject()));
 			}
 
-			JsonObject client = env.getObject("client");
+			List<X509Certificate> certs = parseX5cCertificatesFromNimbusBase64(x5c);
+			validateX5cCertificateChain(certs, null);
+
+			// Check request_object_signing_alg if configured
+			var client = env.getObject("client");
 			if (client != null && client.has("request_object_signing_alg")) {
-				//https://openid.net/specs/openid-connect-registration-1_0.html#ClientMetadata
-				//request_object_signing_alg
-				//All Request Objects from this Client MUST be rejected, if not signed with this algorithm.
-				//The default, if omitted, is that any algorithm supported by the OP and the RP MAY be used
 				String expectedAlg = OIDFJSON.getString(client.get("request_object_signing_alg"));
-				JWSAlgorithm jwsAlgorithm = jwt.getHeader().getAlgorithm();
-				if (!jwsAlgorithm.getName().equals(expectedAlg)) {
-					throw error("Algorithm in JWT header does not match client request_object_signing_alg.",
-						args("actual", jwsAlgorithm.getName(), "expected", expectedAlg));
+				JWSAlgorithm actualAlg = jwt.getHeader().getAlgorithm();
+				if (!actualAlg.getName().equals(expectedAlg)) {
+					throw error("Algorithm in JWT header does not match client request_object_signing_alg",
+						args("actual", actualAlg.getName(), "expected", expectedAlg));
 				}
 			}
 
-			JWSVerifierFactory factory = new DefaultJWSVerifierFactory();
+			verifyJwtSignatureWithX5cLeafCert(requestObject, certs);
 
-			JWSVerifier verifier = factory.createJWSVerifier(jwt.getHeader(), keyPair.getPublic());
+			String alg = jwt.getHeader().getAlgorithm().getName();
+			env.putString("request_object_signing_alg", alg);
+			logSuccess("Request object x5c chain validated and signature verified",
+				args("request_object_signing_alg", alg,
+					"leaf_cert_subject", certs.get(0).getSubjectX500Principal().getName(),
+					"chain_length", certs.size()));
+			return env;
 
-			if (jwt.verify(verifier)) {
-				String alg = jwt.getHeader().getAlgorithm().getName();
-				env.putString("request_object_signing_alg", alg);
-				logSuccess("Request object signature validated against the x5c header",
-					args("request_object_signing_alg", alg,
-						"jwk", key.toString(), "request_object", requestObject));
-				return env;
-			} else {
-				throw error("Failed to verify signature using key from x5c header", args("key", key.toString(), "requestObject", requestObject));
-			}
-
-		} catch (JOSEException | ParseException e) {
-			throw error("error validating request object signature", e);
+		} catch (ParseException e) {
+			throw error("Error parsing request object JWT", e);
 		}
-
 	}
-
 }
