@@ -15,13 +15,12 @@ import java.security.cert.X509Certificate;
 import java.util.List;
 
 /**
- * HAIP-specific validation for Status List Tokens.
+ * HAIP-specific status list token validation.
  *
- * Per HAIP section 6.1, the key used to validate the Status List Token MUST be
- * included in the x5c JOSE header. The signing certificate MUST NOT be self-signed
- * and the trust anchor MUST NOT be included in the x5c chain.
+ * Per HAIP section 6.1, the status list token signature MUST be verified
+ * using the key from the x5c JOSE header.
  */
-public class ValidateCredentialValidityByStatusListIfPresentForHaip extends ValidateCredentialValidityByStatusListIfPresent {
+public class ValidateCredentialStatusListForHaip extends ValidateCredentialStatusList {
 
 	@Override
 	protected void verifyStatusListTokenSignature(String statusListTokenJwtString, SignedJWT statusListTokenJwt, Environment env) {
