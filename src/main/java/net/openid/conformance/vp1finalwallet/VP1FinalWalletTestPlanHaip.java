@@ -29,6 +29,9 @@ public class VP1FinalWalletTestPlanHaip implements TestPlan {
 		unsignedTestModules.remove(VP1FinalWalletInvalidRequestObjectSignature.class); // excluded due to @VariantNotApplicable with request_uri_unsigned
 		unsignedTestModules.remove(VP1FinalWalletMultiSignedOneInvalidSignature.class); // excluded due to @VariantNotApplicable with request_uri_unsigned
 
+		var multiSignedTestModules = new ArrayList<>(testModules);
+		multiSignedTestModules.remove(VP1FinalWalletMismatchedClientIdInRequestObject.class); // excluded due to @VariantNotApplicable with request_uri_multisigned
+
 		// HAIP requires encrypted responses, so only direct_post.jwt and dc_api.jwt are supported
 		return List.of(
 			// direct_post.jwt: signed request, x509_hash
@@ -66,7 +69,7 @@ public class VP1FinalWalletTestPlanHaip implements TestPlan {
 			),
 			// dc_api.jwt + multisigned: x509_hash
 			new ModuleListEntry(
-				testModules,
+				multiSignedTestModules,
 				List.of(
 					new Variant(VPProfile.class, "haip"),
 					new Variant(VP1FinalWalletClientIdPrefix.class, "x509_hash"),
