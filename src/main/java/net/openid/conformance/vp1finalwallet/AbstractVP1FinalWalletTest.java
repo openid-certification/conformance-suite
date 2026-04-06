@@ -95,7 +95,9 @@ import net.openid.conformance.condition.client.SubmitMockWalletBrowserApiRespons
 import net.openid.conformance.condition.client.ValidateAuthResponseContainsOnlyResponse;
 import net.openid.conformance.condition.client.ValidateClientJWKsPrivatePart;
 import net.openid.conformance.condition.client.ValidateCredentialIsUnpaddedBase64Url;
+import net.openid.conformance.condition.client.ValidateCredentialVctMatchesDcqlQuery;
 import net.openid.conformance.condition.client.ValidateDCQLQuery;
+import net.openid.conformance.condition.client.ValidateDisclosedClaimsMatchDcqlQuery;
 import net.openid.conformance.condition.client.ValidateJWEBodyDoesNotIncludeIssExpAud;
 import net.openid.conformance.condition.client.ValidateJWEHeaderAlgMatchesRequestedAlgorithm;
 import net.openid.conformance.condition.client.ValidateJWEHeaderCtyJson;
@@ -621,6 +623,10 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 				call(new ValidateSdJwtVcCredentialClaims(true, getVariant(VPProfile.class) == VPProfile.HAIP));
 				// cnf is also checked when holder binding is checked below
 
+				eventLog.startBlock(currentClientString() + "Verify credential matches DCQL query");
+				callAndContinueOnFailure(ValidateCredentialVctMatchesDcqlQuery.class, ConditionResult.FAILURE, "OID4VP-1FINALA-B.3.5");
+				callAndContinueOnFailure(ValidateDisclosedClaimsMatchDcqlQuery.class, ConditionResult.FAILURE, "OID4VP-1FINAL-6.4.1");
+
 				eventLog.startBlock(currentClientString() + "Verify key binding JWT");
 
 				callAndContinueOnFailure(ValidateSdJwtKeyBindingSignature.class, ConditionResult.FAILURE, "SDJWT-4.3");
@@ -644,8 +650,6 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 				callAndContinueOnFailure(CheckForUnexpectedClaimsInBindingJwt.class, ConditionResult.WARNING, "SDJWT-4.3");
 
 				// FIXME: verify sig on sd jwt (lissi use did:jwk though)
-
-				// FIXME: verify credential contents?
 				break;
 		}
 	}
