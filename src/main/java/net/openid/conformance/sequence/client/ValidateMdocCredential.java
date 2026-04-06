@@ -16,13 +16,16 @@ import net.openid.conformance.sequence.AbstractConditionSequence;
 public class ValidateMdocCredential extends AbstractConditionSequence {
 
 	private final boolean isIssuance;
+	private final boolean haip;
 
 	/**
 	 * @param isIssuance true for VCI issuance (adds issuerAuth signature check),
 	 *                   false for VP presentation (signature checked during parsing)
+	 * @param haip whether to include HAIP-specific credential checks
 	 */
-	public ValidateMdocCredential(boolean isIssuance) {
+	public ValidateMdocCredential(boolean isIssuance, boolean haip) {
 		this.isIssuance = isIssuance;
+		this.haip = haip;
 	}
 
 	@Override
@@ -31,7 +34,9 @@ public class ValidateMdocCredential extends AbstractConditionSequence {
 			callAndContinueOnFailure(ValidateMdocIssuerSignedSignature.class,
 				ConditionResult.FAILURE, "OID4VCI-1FINALA-A.2");
 		}
-		callAndContinueOnFailure(ValidateMdocMsoRevocationMechanism.class,
-			ConditionResult.FAILURE, "HAIP-5.3.1");
+		if (haip) {
+			callAndContinueOnFailure(ValidateMdocMsoRevocationMechanism.class,
+				ConditionResult.FAILURE, "HAIP-5.3.1");
+		}
 	}
 }

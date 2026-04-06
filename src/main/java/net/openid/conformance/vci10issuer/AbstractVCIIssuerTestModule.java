@@ -816,7 +816,7 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractFAPI2SPFinalSe
 				ConditionResult.FAILURE, "OID4VCI-1FINALA-A.2.4");
 			callAndContinueOnFailure(ParseMdocCredentialFromVCIIssuance.class,
 				ConditionResult.FAILURE, "OID4VCI-1FINALA-A.2");
-			call(new ValidateMdocCredential(true));
+			call(new ValidateMdocCredential(true, fapi2Profile == FAPI2FinalOPProfile.VCI_HAIP));
 		} else if (vciCredentialFormat == VCI1FinalCredentialFormat.SD_JWT_VC) {
 			callAndContinueOnFailure(ParseCredentialAsSdJwt.class,
 				ConditionResult.FAILURE, "SDJWT-4");
