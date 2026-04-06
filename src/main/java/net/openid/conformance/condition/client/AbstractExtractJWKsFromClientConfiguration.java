@@ -11,6 +11,10 @@ import java.text.ParseException;
 
 public abstract class AbstractExtractJWKsFromClientConfiguration extends AbstractCondition {
 	protected void extractJwks(Environment env, JsonElement jwks) {
+		extractJwks(env, jwks, "client_jwks", "client_public_jwks");
+	}
+
+	protected void extractJwks(Environment env, JsonElement jwks, String jwksKey, String publicJwksKey) {
 
 		if (jwks == null) {
 			throw error("Couldn't find JWKs in client configuration");
@@ -24,16 +28,16 @@ public abstract class AbstractExtractJWKsFromClientConfiguration extends Abstrac
 			parsed = JWKSet.parse(jwks.toString());
 		} catch (ParseException e) {
 			throw error("Invalid JWKs in client configuration (private key is required), JWKSet.parse failed",
-				e, args("client_jwks", jwks));
+				e, args(jwksKey, jwks));
 		}
 
 		JWKSet pub = parsed.toPublicJWKSet();
 
 		JsonObject pubObj = JsonParser.parseString(pub.toString()).getAsJsonObject();
 
-		logSuccess("Extracted client JWK", args("client_jwks", jwks, "public_client_jwks", pubObj));
+		logSuccess("Extracted client JWK", args(jwksKey, jwks, publicJwksKey, pubObj));
 
-		env.putObject("client_jwks", jwks.getAsJsonObject());
-		env.putObject("client_public_jwks", pubObj.getAsJsonObject());
+		env.putObject(jwksKey, jwks.getAsJsonObject());
+		env.putObject(publicJwksKey, pubObj.getAsJsonObject());
 	}
 }
