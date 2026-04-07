@@ -1,8 +1,9 @@
 package net.openid.conformance.openid.ssf;
 
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFExtractVerificationEventFromPushRequest;
-import net.openid.conformance.openid.ssf.conditions.events.OIDSSFGetOrWaitForPushRequest;
+import net.openid.conformance.openid.ssf.delivery.SSfPushRequest;
 import net.openid.conformance.openid.ssf.variant.SsfDeliveryMode;
+import net.openid.conformance.testmodule.TestFailureException;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.VariantNotApplicable;
 
@@ -21,10 +22,12 @@ public class OIDSSFTransmitterStreamVerificationPushTest extends AbstractOIDSSFT
 	@Override
 	protected void performVerification() {
 		// Wait for push OUTSIDE runBlock to avoid eventLog monitor deadlock
-		lookupNextPushRequest();
+		SSfPushRequest pushRequest = lookupNextPushRequest();
+		if (pushRequest == null) {
+			throw new TestFailureException(getId(), "Did not receive push delivery of verification event");
+		}
 
 		eventLog.runBlock("Verify verification event received via PUSH delivery", () -> {
-			callAndStopOnFailure(OIDSSFGetOrWaitForPushRequest.class, "OIDSSF-8.1.4.1");
 			callAndStopOnFailure(OIDSSFExtractVerificationEventFromPushRequest.class, "OIDSSF-8.1.4.1");
 
 			verifySetInResponse();
