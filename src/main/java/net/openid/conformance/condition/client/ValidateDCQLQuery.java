@@ -61,6 +61,7 @@ public class ValidateDCQLQuery extends AbstractJsonSchemaBasedValidation {
 			}
 
 			Set<String> claimIds = new HashSet<>();
+			Set<String> claimPaths = new HashSet<>();
 			JsonArray claims = getOptionalArray(credential, "claims");
 			if (claims != null) {
 				for (JsonElement claimElement : claims) {
@@ -73,6 +74,15 @@ public class ValidateDCQLQuery extends AbstractJsonSchemaBasedValidation {
 						String claimId = OIDFJSON.getString(claimIdElement);
 						if (!claimIds.add(claimId)) {
 							throw error("Duplicate claim id in dcql query", args("credential_id", credentialId, "claim_id", claimId));
+						}
+					}
+					// OID4VP section 6.1: Verifiers MUST NOT point to the same claim more than once
+					JsonElement pathElement = claim.get("path");
+					if (pathElement != null && pathElement.isJsonArray()) {
+						String pathKey = pathElement.toString();
+						if (!claimPaths.add(pathKey)) {
+							throw error("Duplicate claim path in dcql query — verifiers MUST NOT point to the same claim more than once in a single query",
+								args("credential_id", credentialId, "duplicate_path", pathElement));
 						}
 					}
 				}
