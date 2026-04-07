@@ -50,6 +50,7 @@ import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -57,10 +58,12 @@ import java.util.Set;
 	testName = "openid-ssf-transmitter-stream-caep-interop",
 	displayName = "OpenID Shared Signals Framework: CAEP Interop Transmitter Test",
 	summary = """
-		This test exercises a transmitter against the full CAEP Interop Profile 1.0 receiver expectations.
+		This test exercises a transmitter against the CAEP Interop Profile 1.0 receiver expectations.
 		It performs stream creation, configuration read, status read, and stream verification.
-		After successful verification, the test waits for the transmitter to deliver the following \
-		CAEP events: session-revoked, credential-change, and device-compliance-change. \
+		After successful verification, the test waits for the transmitter to deliver CAEP events. \
+		The expected events are determined from the stream's events_delivered field — \
+		per CAEPIOP Section 3, implementations MAY support one or more of the CAEP use cases \
+		(session-revoked, credential-change, device-compliance-change). \
 		These events must be triggered on the transmitter side (e.g. via the transmitter's admin UI) \
 		and can be delivered in any order. \
 		Each received CAEP event is validated against the CAEP 1.0 Final specification.
@@ -75,6 +78,12 @@ import java.util.Set;
 public class OIDSSFTransmitterStreamCaepInteropTest extends AbstractOIDSSFTransmitterTestModule {
 
 	volatile boolean streamDeletedSuccessfully = false;
+
+	/**
+	 * The CAEP event types that the transmitter confirmed it will deliver,
+	 * extracted from the stream's {@code events_delivered} field after creation.
+	 */
+	volatile Set<String> expectedCaepEventTypes;
 
 	@Override
 	public void start() {
@@ -109,6 +118,9 @@ public class OIDSSFTransmitterStreamCaepInteropTest extends AbstractOIDSSFTransm
 			callAndContinueOnFailure(OIDSSFStreamRequiredFieldsCheck.class, Condition.ConditionResult.FAILURE, "OIDSSF-8.1.1");
 			callAndContinueOnFailure(OIDSSFStreamOptionalFieldsCheck.class, Condition.ConditionResult.FAILURE, "OIDSSF-8.1.1");
 			call(exec().unmapKey("endpoint_response"));
+
+			// Determine which CAEP events the transmitter will actually deliver
+			expectedCaepEventTypes = extractCaepEventsDelivered();
 		});
 
 		eventLog.runBlock("Read Stream Configuration", () -> {
@@ -149,10 +161,10 @@ public class OIDSSFTransmitterStreamCaepInteropTest extends AbstractOIDSSFTransm
 			callAndContinueOnFailure(WaitFor5Seconds.class, Condition.ConditionResult.INFO);
 		});
 
-		eventLog.log(getName(), "Stream verification successful. "
-			+ "Waiting for the transmitter to deliver CAEP events: "
-			+ "session-revoked, credential-change, device-compliance-change. "
-			+ "Please trigger these events on the transmitter now.");
+		eventLog.log(getName(), args(
+			"msg", "Stream verification successful. Waiting for the transmitter to deliver CAEP events. Please trigger these events on the transmitter now.",
+			"expected_caep_event_types", expectedCaepEventTypes
+		));
 
 		switch (deliveryMode) {
 			case PUSH:
@@ -191,8 +203,9 @@ public class OIDSSFTransmitterStreamCaepInteropTest extends AbstractOIDSSFTransm
 
 		Set<String> receivedEventTypes = new LinkedHashSet<>();
 
-		// Expect 3 CAEP events: session-revoked, credential-change, device-compliance-change
-		for (int i = 0; i < 3; i++) {
+		// Keep receiving push events until all expected CAEP event types arrive, or timeout.
+		// Non-CAEP events (e.g. verification) may arrive and are skipped without counting.
+		while (!receivedEventTypes.containsAll(expectedCaepEventTypes)) {
 			waitForNextPushRequest();
 			callAndStopOnFailure(OIDSSFExtractVerificationEventFromPushRequest.class, "OIDSSF-8.1.4.1");
 
@@ -200,21 +213,23 @@ public class OIDSSFTransmitterStreamCaepInteropTest extends AbstractOIDSSFTransm
 			callAndStopOnFailure(OIDSSFParseVerificationEventToken.class, Condition.ConditionResult.FAILURE, "OIDSSF-8.1.4.1");
 			callAndContinueOnFailure(OIDSSFExtractCaepEventData.class, Condition.ConditionResult.FAILURE, "OIDCAEP-3");
 			String eventType = env.getString("ssf", "caep_event.type");
-			String eventName = eventType != null ? eventType.substring(eventType.lastIndexOf('/') + 1) : "unknown";
+			if (eventType == null) {
+				// Non-CAEP event (e.g. SSF verification) — skip and wait for next
+				continue;
+			}
+			String eventName = eventType.substring(eventType.lastIndexOf('/') + 1);
 
 			eventLog.runBlock("Validate CAEP event: " + eventName, () -> {
 				validateSetCommonAfterParsing();
 
-				if (eventType != null) {
-					receivedEventTypes.add(eventType);
-					callAndContinueOnFailure(OIDSSFValidateCaepCommonOptionalFields.class, Condition.ConditionResult.WARNING, "OIDCAEP-2");
-					validateCaepEventFields(eventType);
-				}
+				receivedEventTypes.add(eventType);
+				callAndContinueOnFailure(OIDSSFValidateCaepCommonOptionalFields.class, Condition.ConditionResult.WARNING, "OIDCAEP-2");
+				validateCaepEventFields(eventType);
 			});
 		}
 
 		eventLog.runBlock("Verify all expected CAEP Interop events received", () -> {
-			callAndContinueOnFailure(new OIDSSFEnsureAllCaepInteropEventsReceived(receivedEventTypes),
+			callAndContinueOnFailure(new OIDSSFEnsureAllCaepInteropEventsReceived(expectedCaepEventTypes, receivedEventTypes),
 				Condition.ConditionResult.FAILURE, "CAEPIOP-3");
 		});
 	}
@@ -251,7 +266,7 @@ public class OIDSSFTransmitterStreamCaepInteropTest extends AbstractOIDSSFTransm
 				processCaepEventsFromPollResponse(pollSetsEl.getAsJsonObject(), receivedEventTypes);
 			}
 
-			if (receivedEventTypes.containsAll(SsfEvents.CAEP_INTEROP_EVENT_TYPES)) {
+			if (receivedEventTypes.containsAll(expectedCaepEventTypes)) {
 				break;
 			}
 
@@ -268,7 +283,7 @@ public class OIDSSFTransmitterStreamCaepInteropTest extends AbstractOIDSSFTransm
 		}
 
 		eventLog.runBlock("Verify all expected CAEP Interop events were received", () -> {
-			callAndContinueOnFailure(new OIDSSFEnsureAllCaepInteropEventsReceived(receivedEventTypes),
+			callAndContinueOnFailure(new OIDSSFEnsureAllCaepInteropEventsReceived(expectedCaepEventTypes, receivedEventTypes),
 				Condition.ConditionResult.FAILURE, "CAEPIOP-3");
 		});
 
@@ -374,6 +389,41 @@ public class OIDSSFTransmitterStreamCaepInteropTest extends AbstractOIDSSFTransm
 				+ ((attempt + 1) * pollTimeoutSeconds) + "s / " + (maxAttempts * pollTimeoutSeconds) + "s)");
 		}
 		throw new TestFailureException(getId(), "Did not receive push request after " + (maxAttempts * pollTimeoutSeconds) + " seconds");
+	}
+
+	/**
+	 * Extracts the CAEP event types from the stream's {@code events_delivered} field.
+	 * The transmitter confirms which events it will actually deliver in the stream
+	 * creation response. Per CAEPIOP Section 3, implementations MAY support one or
+	 * more use cases — we only expect the events the transmitter confirmed.
+	 */
+	protected Set<String> extractCaepEventsDelivered() {
+		JsonElement eventsDeliveredEl = env.getElementFromObject("ssf", "stream.events_delivered");
+		if (eventsDeliveredEl == null || !eventsDeliveredEl.isJsonArray()) {
+			throw new TestFailureException(getId(),
+				"Stream configuration response does not contain a valid events_delivered field, "
+					+ "which is required per OIDSSF-8.1.1.");
+		}
+
+		List<String> eventsDelivered = OIDFJSON.convertJsonArrayToList(eventsDeliveredEl.getAsJsonArray());
+		Set<String> caepEvents = new LinkedHashSet<>();
+		for (String eventType : eventsDelivered) {
+			if (SsfEvents.CAEP_EVENT_TYPES.contains(eventType)) {
+				caepEvents.add(eventType);
+			}
+		}
+
+		if (caepEvents.isEmpty()) {
+			throw new TestFailureException(getId(),
+				"Stream events_delivered does not contain any CAEP event types. "
+					+ "The transmitter must support at least one CAEP Interop use case (CAEPIOP-3).");
+		}
+
+		eventLog.log(getName(),
+			 args("msg", "Transmitter can deliver " + caepEvents.size() + " CAEP event type(s)",
+				 "events_delivered", caepEvents));
+
+		return caepEvents;
 	}
 
 	@Override

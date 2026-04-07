@@ -26,10 +26,14 @@ public class OIDSSFEnsureAllCaepInteropEventsReceived_UnitTest {
 	@Mock
 	private TestInstanceEventLog eventLog;
 
-	private OIDSSFEnsureAllCaepInteropEventsReceived createCondition(Set<String> received) {
-		OIDSSFEnsureAllCaepInteropEventsReceived condition = new OIDSSFEnsureAllCaepInteropEventsReceived(received);
+	private OIDSSFEnsureAllCaepInteropEventsReceived createCondition(Set<String> expected, Set<String> received) {
+		OIDSSFEnsureAllCaepInteropEventsReceived condition = new OIDSSFEnsureAllCaepInteropEventsReceived(expected, received);
 		condition.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
 		return condition;
+	}
+
+	private OIDSSFEnsureAllCaepInteropEventsReceived createCondition(Set<String> received) {
+		return createCondition(SsfEvents.CAEP_INTEROP_EVENT_TYPES, received);
 	}
 
 	@Test
@@ -83,6 +87,19 @@ public class OIDSSFEnsureAllCaepInteropEventsReceived_UnitTest {
 			SsfEvents.CAEP_CREDENTIAL_CHANGE_EVENT_TYPE
 		));
 		assertThrows(ConditionError.class, () -> createCondition(received).execute(env));
+	}
+
+	@Test
+	void shouldPassWhenTransmitterSupportsOnlyOneEventAndItIsReceived() {
+		Set<String> expected = Set.of(SsfEvents.CAEP_SESSION_REVOKED_EVENT_TYPE);
+		Set<String> received = Set.of(SsfEvents.CAEP_SESSION_REVOKED_EVENT_TYPE);
+		assertDoesNotThrow(() -> createCondition(expected, received).execute(env));
+	}
+
+	@Test
+	void shouldFailWhenTransmitterSupportsOneEventButNotReceived() {
+		Set<String> expected = Set.of(SsfEvents.CAEP_SESSION_REVOKED_EVENT_TYPE);
+		assertThrows(ConditionError.class, () -> createCondition(expected, Set.of()).execute(env));
 	}
 
 	@Test
