@@ -1401,8 +1401,8 @@ async def main():
             untested_test_modules.remove(m)
             continue
 
-        #we don't have automated tests for OID4VCI tests
-        if re.match(r'(oid4vci-.*)',m):
+        #we don't have automated tests for OID4VCI wallet tests (except credential-issuance)
+        if re.match(r'oid4vci-.*-wallet-', m):
             untested_test_modules.remove(m)
             continue
 
@@ -1432,6 +1432,7 @@ async def main():
         fapi2 = all_test_modules[m]['profile'] in ['FAPI2-Security-Profile-ID2']or all_test_modules[m]['profile'] in ['FAPI2-Security-Profile-Final']
         fapi2id2 = all_test_modules[m]['profile'] in ['FAPI2-Security-Profile-ID2']
         oid4vp = all_test_modules[m]['profile'] in ['OID4VP-ID2', 'OID4VP-ID3', 'OID4VP-1FINAL']
+        oid4vci = all_test_modules[m]['profile'] in ['OID4VCI-1_0']
         brazildcr = re.match(r'.*brazil.*dcr.*', m)
         obuk = re.match(r'.*ensure-server-handles-non-matching-intent-id.*', m) or \
           re.match(r'.*test-essential-acr-sca-claim.*', m)
@@ -1448,7 +1449,7 @@ async def main():
                 continue
         elif show_untested == 'server-oidc-provider':
             # Only run server test, ignore all client/CIBA test, plus we don't run the FAPI tests against oidc provider
-            if fapi1r or fapi1 or fapi2 or ciba_op_test or client_test or ekyc_test or authzen_test or oid4vp or federation_test:
+            if fapi1r or fapi1 or fapi2 or ciba_op_test or client_test or ekyc_test or authzen_test or oid4vp or oid4vci or federation_test:
                 untested_test_modules.remove(m)
                 continue
         elif show_untested == 'oidcc':
@@ -1463,11 +1464,11 @@ async def main():
             # ignore client/CIBA/logout/ekyc/authzen/federation tests (separate jobs)
             # ignore oidcc (separate oidcc_test job) and vp (separate vc_test job)
             # we've not yet setup fapi2 brazil dcr or uk test runs
-            if client_test or ciba_op_test or rp_initiated_logout or ekyc_test or authzen_test or federation_test or fapi2id2 or (fapi2 and (brazildcr or obuk)) or oid4vp or oidcc:
+            if client_test or ciba_op_test or rp_initiated_logout or ekyc_test or authzen_test or federation_test or fapi2id2 or (fapi2 and (brazildcr or obuk)) or oid4vp or oid4vci or oidcc:
                 untested_test_modules.remove(m)
                 continue
         elif show_untested == 'server-panva':
-            if ekyc_test or authzen_test or ciba_op_test or fapi1r or client_test or brazildcr or fapi1 or fapi2 or oidcc or oid4vp or federation_test:
+            if ekyc_test or authzen_test or ciba_op_test or fapi1r or client_test or brazildcr or fapi1 or fapi2 or oidcc or oid4vp or oid4vci or federation_test:
                 untested_test_modules.remove(m)
                 continue
         elif show_untested == 'ekyc':
@@ -1495,11 +1496,14 @@ async def main():
                 untested_test_modules.remove(m)
                 continue
         elif show_untested == 'vc':
-            if not oid4vp:
+            if not oid4vp and not oid4vci:
                 untested_test_modules.remove(m)
                 continue
-            # we only run happy-flow wallet tests, not negative tests
+            # we only run happy-flow wallet tests, not negative or multisigned tests
             if re.match(r'oid4vp-.*-wallet-negative-test-', m):
+                untested_test_modules.remove(m)
+                continue
+            if re.match(r'oid4vp-.*-wallet-multisigned-', m):
                 untested_test_modules.remove(m)
                 continue
         elif show_untested == 'ciba':
