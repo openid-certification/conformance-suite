@@ -24,10 +24,8 @@ public class AddVP1FinalDCQLVPTokenToAuthorizationEndpointResponseParams extends
 			throw error("'credentials' within dcql object is missing or not an array",
 				args("dcql_query", dcql));
 		}
-		if (credentials.getAsJsonArray().size() != 1) {
-			throw error("'credentials' array within dcql object is expected to contain exactly one element for this test",
-				args("dcql_query", dcql));
-		}
+		// Use the first credential entry — in tests with credential_sets, the first
+		// entry is always the required/matching credential.
 		JsonElement credentialRequest = credentials.getAsJsonArray().get(0);
 		if (!credentialRequest.isJsonObject()) {
 			throw error("First entry of 'credentials' array within dcql object is not a JSON object",
