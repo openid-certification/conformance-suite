@@ -23,6 +23,8 @@ public class OIDSSFTriggerVerificationEvent extends AbstractOIDSSFTransmitterEnd
 	@Override
 	protected void prepareRequest(Environment env) {
 
+		env.putString("resource", "resourceMethod", "POST");
+
 		String streamId = env.getString("ssf", "stream.stream_id");
 		String state = UUID.randomUUID().toString();
 
