@@ -27,8 +27,6 @@ import net.openid.conformance.condition.client.AddClientNotificationTokenToAutho
 import net.openid.conformance.condition.client.AddClientX509CertificateClaimToPublicJWKs;
 import net.openid.conformance.condition.client.AddEmptyResponseTypesArrayToDynamicRegistrationRequest;
 import net.openid.conformance.condition.client.AddExpToRequestObject;
-import net.openid.conformance.condition.client.AddFAPIAuthDateToResourceEndpointRequest;
-import net.openid.conformance.condition.client.AddFAPIInteractionIdToResourceEndpointRequest;
 import net.openid.conformance.condition.client.AddHintToAuthorizationEndpointRequest;
 import net.openid.conformance.condition.client.AddIatToRequestObject;
 import net.openid.conformance.condition.client.AddIdTokenSigningAlgPS256ToDynamicRegistrationRequest;
@@ -54,7 +52,6 @@ import net.openid.conformance.condition.client.CheckErrorDescriptionFromBackchan
 import net.openid.conformance.condition.client.CheckErrorDescriptionFromTokenEndpointResponseErrorContainsCRLFTAB;
 import net.openid.conformance.condition.client.CheckForAccessTokenValue;
 import net.openid.conformance.condition.client.CheckForDateHeaderInResourceResponse;
-import net.openid.conformance.condition.client.CheckForFAPIInteractionIdInResourceResponse;
 import net.openid.conformance.condition.client.CheckForRefreshTokenValue;
 import net.openid.conformance.condition.client.CheckIfBackchannelAuthenticationEndpointResponseError;
 import net.openid.conformance.condition.client.CheckIfTokenEndpointResponseError;
@@ -76,7 +73,6 @@ import net.openid.conformance.condition.client.CreateEmptyAuthorizationEndpointR
 import net.openid.conformance.condition.client.CreateEmptyDynamicRegistrationRequest;
 import net.openid.conformance.condition.client.CreateEmptyResourceEndpointRequestHeaders;
 import net.openid.conformance.condition.client.CreateRandomClientNotificationToken;
-import net.openid.conformance.condition.client.CreateRandomFAPIInteractionId;
 import net.openid.conformance.condition.client.CreateTokenEndpointRequestForCIBAGrant;
 import net.openid.conformance.condition.client.EnsureContentTypeApplicationJwt;
 import net.openid.conformance.condition.client.EnsureErrorTokenEndpointInvalidRequest;
@@ -84,7 +80,6 @@ import net.openid.conformance.condition.client.EnsureErrorTokenEndpointSlowdownO
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs200or201;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs201;
 import net.openid.conformance.condition.client.EnsureIdTokenContainsKid;
-import net.openid.conformance.condition.client.EnsureMatchingFAPIInteractionId;
 import net.openid.conformance.condition.client.EnsureMinimumAccessTokenEntropy;
 import net.openid.conformance.condition.client.EnsureMinimumAccessTokenLength;
 import net.openid.conformance.condition.client.EnsureMinimumAuthenticationRequestIdEntropy;
@@ -414,7 +409,7 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 		callAndStopOnFailure(ExtractTLSTestValuesFromResourceConfiguration.class);
 		callAndContinueOnFailure(ExtractTLSTestValuesFromOBResourceConfiguration.class, Condition.ConditionResult.INFO);
 
-		profileBehavior.applyProfileSpecificServerConfigChecks();
+		call(profileBehavior.onConfigure());
 
 		onConfigure();
 
@@ -908,7 +903,7 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 		callAndContinueOnFailure(ExtractExpiresInFromTokenEndpointResponse.class, Condition.ConditionResult.WARNING, "CIBA-10.1.1", "RFC6749-5.1");
 		skipIfMissing(new String[] { "expires_in" }, null, Condition.ConditionResult.INFO,
 			ValidateExpiresIn.class, Condition.ConditionResult.FAILURE, "RFC6749-5.1");
-		profileBehavior.validateProfileSpecificTokenEndpointExpiresIn();
+		call(profileBehavior.validateExpiresIn());
 
 		callAndContinueOnFailure(CheckForRefreshTokenValue.class, Condition.ConditionResult.INFO);
 
@@ -1031,22 +1026,15 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 
 		callAndStopOnFailure(CreateEmptyResourceEndpointRequestHeaders.class);
 
-		if (!isSecondClient()) {
-			// these are optional; only add them for the first client
-			callAndStopOnFailure(AddFAPIAuthDateToResourceEndpointRequest.class);
+		call(profileBehavior.addResourceEndpointProfileHeaders(isSecondClient()));
 
-			callAndStopOnFailure(CreateRandomFAPIInteractionId.class);
-
-			callAndStopOnFailure(AddFAPIInteractionIdToResourceEndpointRequest.class);
-		}
-
-		profileBehavior.applyProfileSpecificResourceEndpointSetup();
+		call(profileBehavior.setupResourceEndpointRequestBody());
 
 		callAndStopOnFailure(CallProtectedResource.class, "FAPI-R-6.2.1-1", "FAPI-R-6.2.1-3");
 
 		call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
 
-		profileBehavior.applyProfileSpecificResourceEndpointRetry(isSecondClient(), addTokenEndpointClientAuthentication);
+		updateResourceRequestAndCallProtectedResource(isSecondClient(), addTokenEndpointClientAuthentication);
 
 		Optional<ConditionSequence> statusCheckingSequence = getBrazilPaymentsStatusCodeCheck();
 		call(statusCheckingSequence.orElse(
@@ -1056,15 +1044,26 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 
 		callAndContinueOnFailure(CheckForDateHeaderInResourceResponse.class, Condition.ConditionResult.FAILURE, "FAPI-R-6.2.1-10");
 
-		callAndContinueOnFailure(CheckForFAPIInteractionIdInResourceResponse.class, Condition.ConditionResult.FAILURE, "FAPI-R-6.2.1-11");
-
-		if (!isSecondClient()) {
-			callAndContinueOnFailure(EnsureMatchingFAPIInteractionId.class, Condition.ConditionResult.FAILURE, "FAPI-R-6.2.1-11");
-		}
+		call(profileBehavior.validateResourceEndpointResponseHeaders(isSecondClient()));
 
 		callAndContinueOnFailure(EnsureResourceResponseReturnedJsonContentType.class, Condition.ConditionResult.FAILURE, "FAPI1-BASE-6.2.1-9", "FAPI1-BASE-6.2.1-10");
 
+		profileBehavior.validateResourceEndpointResponse();
+
 		eventLog.endBlock();
+	}
+
+	protected void updateResourceRequestAndCallProtectedResource(boolean isSecondClient, Class<? extends ConditionSequence> addTokenEndpointClientAuthentication) {
+		ConditionSequence sequence = profileBehavior.createUpdateResourceRequestSteps(isSecondClient, addTokenEndpointClientAuthentication);
+		if (sequence == null) {
+			return;
+		}
+		int httpStatus = env.getInteger("endpoint_response", "status");
+		for(int i = 0; i < 3 && httpStatus == 401; i++) {
+			call(sequence);
+			callAndStopOnFailure(CallProtectedResource.class, "FAPI-R-6.2.1-1", "FAPI-R-6.2.1-3");
+			httpStatus = env.getInteger("endpoint_response", "status");
+		}
 	}
 
 	protected void validateBrazilPaymentInitiationSignedResponse() {
