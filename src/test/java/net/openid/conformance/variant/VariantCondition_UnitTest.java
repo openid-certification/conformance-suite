@@ -41,6 +41,9 @@ class VariantCondition_UnitTest {
 			"oid4vp-1final-wallet-alternate-happy-flow",
 			"oid4vp-1final-wallet-happy-flow-no-state",
 			"oid4vp-1final-wallet-request-uri-method-post",
+			"oid4vp-1final-wallet-fewer-claims-than-available",
+			"oid4vp-1final-wallet-optional-credential-set",
+			"oid4vp-1final-wallet-no-claims-in-dcql-query",
 			"oid4vp-1final-wallet-negative-test-invalid-request-object-signature",
 			"oid4vp-1final-wallet-negative-test-mismatched-client-id",
 			"oid4vp-1final-wallet-negative-test-redirect-uri-with-direct-post",
@@ -79,6 +82,9 @@ class VariantCondition_UnitTest {
 			.collect(Collectors.toSet());
 		assertEquals(Set.of(
 			"oid4vp-1final-wallet-alternate-happy-flow",
+			"oid4vp-1final-wallet-fewer-claims-than-available",
+			"oid4vp-1final-wallet-optional-credential-set",
+			"oid4vp-1final-wallet-no-claims-in-dcql-query",
 			"oid4vp-1final-wallet-negative-test-mismatched-client-id",
 			"oid4vp-1final-wallet-negative-test-missing-nonce",
 			"oid4vp-1final-wallet-negative-test-invalid-client-id-prefix",
@@ -91,6 +97,9 @@ class VariantCondition_UnitTest {
 			.collect(Collectors.toSet());
 		assertEquals(Set.of(
 			"oid4vp-1final-wallet-alternate-happy-flow",
+			"oid4vp-1final-wallet-fewer-claims-than-available",
+			"oid4vp-1final-wallet-optional-credential-set",
+			"oid4vp-1final-wallet-no-claims-in-dcql-query",
 			"oid4vp-1final-wallet-negative-test-invalid-request-object-signature",
 			"oid4vp-1final-wallet-negative-test-mismatched-client-id",
 			"oid4vp-1final-wallet-negative-test-missing-nonce",
