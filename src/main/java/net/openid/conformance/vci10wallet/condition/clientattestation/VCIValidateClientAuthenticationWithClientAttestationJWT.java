@@ -10,6 +10,7 @@ public class VCIValidateClientAuthenticationWithClientAttestationJWT extends Abs
 		callAndStopOnFailure(ExtractClientAttestationFromRequest.class, Condition.ConditionResult.FAILURE, "OAuth2-ATCA07-6.2");
 		// Validate the client attestation JWT signature using x5c public key
 		callAndStopOnFailure(ValidateClientAttestationSignature.class, Condition.ConditionResult.FAILURE, "OAuth2-ATCA07-6.2");
+		callAndContinueOnFailure(ValidateClientAttestationCnfJwkFields.class, Condition.ConditionResult.WARNING, "OAuth2-ATCA07-5.1");
 		// Validate the client attestation pop signature using cnf.jwk from attestation
 		callAndStopOnFailure(ValidateClientAttestationKeyBindingSignature.class, Condition.ConditionResult.FAILURE, "OAuth2-ATCA07-6.2");
 		callAndStopOnFailure(CheckForClientAttestationProofJwtReuse.class, Condition.ConditionResult.FAILURE, "OAuth2-ATCA07-10.2", "OAuth2-ATCA07-5.2");
