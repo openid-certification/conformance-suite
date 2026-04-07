@@ -10,6 +10,8 @@ import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.condition.as.CheckForUnexpectedClaimsInBindingJwt;
 import net.openid.conformance.condition.as.CheckForUnexpectedParametersInBindingJwtHeader;
 import net.openid.conformance.condition.as.OID4VPSetClientIdToIncludeClientIdScheme;
+import net.openid.conformance.condition.client.RegisterCredentialTrustAnchor;
+import net.openid.conformance.condition.client.RegisterStatusListTrustAnchor;
 import net.openid.conformance.condition.client.AddClientIdToAuthorizationEndpointRequest;
 import net.openid.conformance.condition.client.AddDcqlToAuthorizationEndpointRequest;
 import net.openid.conformance.condition.client.AddExpectedOriginsToAuthorizationEndpointRequest;
@@ -58,6 +60,7 @@ import net.openid.conformance.condition.client.ExtractAuthorizationEndpointRespo
 import net.openid.conformance.condition.client.ExtractAuthorizationEndpointResponseFromFormBody;
 import net.openid.conformance.condition.client.ExtractBrowserApiAuthorizationEndpointResponse;
 import net.openid.conformance.condition.client.ExtractDCQLQueryFromClientConfiguration;
+import net.openid.conformance.condition.client.ExtractWalletMetadataAndNonceFromRequestUriPost;
 import net.openid.conformance.condition.client.ExtractJWKsFromStaticClientConfiguration;
 import net.openid.conformance.condition.client.ExtractVP1FinalBrowserApiResponse;
 import net.openid.conformance.condition.client.ExtractVP1FinalVpTokenDCQL;
@@ -137,6 +140,10 @@ import org.springframework.http.ResponseEntity;
 	"client.authorization_encrypted_response_alg",
 	"client.authorization_encrypted_response_enc"
 })
+@VariantConfigurationFields(parameter = VPProfile.class, value = "haip", configurationFields = {
+	"credential.trust_anchor_pem",
+	"credential.status_list_trust_anchor_pem"
+})
 @VariantNotApplicableWhen(
 	parameter = VP1FinalWalletResponseMode.class,
 	values = {"direct_post", "dc_api"},  // unencrypted modes not applicable for HAIP
@@ -160,7 +167,7 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 	protected VP1FinalWalletRequestMethod requestMethod;
 	protected VP1FinalWalletCredentialFormat credentialFormat;
 	protected VP1FinalWalletClientIdPrefix clientIdPrefix;
-	protected TestState testState = TestState.INITIAL;
+	protected volatile TestState testState = TestState.INITIAL;
 
 	@Override
 	public final void configure(JsonObject config, String baseUrl, String externalUrlOverride, String baseMtlsUrl) {
@@ -231,6 +238,9 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 
 		// Set up the client configuration
 		configureClient();
+
+		callAndStopOnFailure(RegisterCredentialTrustAnchor.class);
+		callAndStopOnFailure(RegisterStatusListTrustAnchor.class);
 
 		if (credentialFormat == VP1FinalWalletCredentialFormat.ISO_MDL) {
 			// ISO spec always creates a redirect returned from response_uri
@@ -351,8 +361,6 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 		}
 		eventLog.endBlock();
 	}
-	// FIXME when waiting for implicit submit set a timeout, to make it clearer when people are treating the redirect_url from direct_post endpoint as a http endpoint
-	// FIXME test without use: enc in client_metadata
 
 	public static class CreateAuthorizationRequestSteps extends AbstractConditionSequence {
 		private VP1FinalWalletRequestMethod requestMethod;
@@ -581,6 +589,20 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 
 		eventLog.log(getName(), "The response_uri is returning 'redirect_uri', so the wallet should send the user to that redirect_uri next");
 		setStatus(Status.WAITING);
+
+		final long waitTimeoutSeconds = 30;
+		getTestExecutionManager().runInBackground(() -> {
+			Thread.sleep(waitTimeoutSeconds * 1000L);
+			if (getStatus().equals(Status.WAITING) && testState == TestState.RESPONSE_RECEIVED) {
+				setStatus(Status.RUNNING);
+				throw new TestFailureException(getId(),
+					"The redirect_uri returned from the direct_post response has not been opened in " +
+					"the user's browser within " + waitTimeoutSeconds + " seconds. " +
+					"The redirect_uri must be opened in the end-user's browser " +
+					"(not treated as a back-channel HTTP endpoint). See OID4VP section 8.2.");
+			}
+			return "done";
+		});
 	}
 
 
@@ -721,7 +743,7 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 			return handleDirectPost(requestId);
 		}
 		if (path.equals(env.getString("request_uri", "path"))) {
-			return handleRequestUriRequest();
+			return handleRequestUriRequest(requestId);
 		}
 		return super.handleHttp(path, req, res, session, requestParts);
 
@@ -763,10 +785,30 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 		testState = TestState.RESPONSE_RECEIVED;
 	}
 
-	protected Object handleRequestUriRequest() {
+	protected Object handleRequestUriRequest(String requestId) {
 		setStatus(Status.RUNNING);
 
 		String requestObject = env.getString("request_object");
+
+		// Check if we told the wallet to use POST for request_uri
+		String sentRequestUriMethod = env.getString("authorization_endpoint_request", "request_uri_method");
+		call(exec().mapKey("incoming_request", requestId));
+		String incomingMethod = env.getString("incoming_request", "method");
+
+		if ("post".equals(sentRequestUriMethod)) {
+			if ("POST".equals(incomingMethod)) {
+				eventLog.log(getName(), "Wallet correctly used HTTP POST to fetch request_uri");
+				callAndContinueOnFailure(EnsureIncomingRequestContentTypeIsFormUrlEncoded.class, ConditionResult.FAILURE, "OID4VP-1FINAL-5.10");
+				callAndContinueOnFailure(ExtractWalletMetadataAndNonceFromRequestUriPost.class, ConditionResult.INFO, "OID4VP-1FINAL-5.10");
+			} else {
+				eventLog.log(getName(), args("msg",
+					"Wallet used GET instead of POST for request_uri. " +
+					"The specification permits this as a fallback when the wallet does not support POST.",
+					"expected_method", "POST", "actual_method", incomingMethod));
+			}
+		}
+
+		call(exec().unmapKey("incoming_request"));
 
 		switch (testState) {
 			case INITIAL:

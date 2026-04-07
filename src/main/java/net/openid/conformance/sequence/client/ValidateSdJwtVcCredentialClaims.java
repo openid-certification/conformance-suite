@@ -1,15 +1,16 @@
 package net.openid.conformance.sequence.client;
 
 import net.openid.conformance.condition.Condition.ConditionResult;
-import net.openid.conformance.condition.client.EnsureX5cHeaderPresentForSdJwtCredential;
 import net.openid.conformance.condition.client.ValidateCredentialCnfJwkIsPublicKey;
 import net.openid.conformance.condition.client.ValidateCredentialJWTExp;
 import net.openid.conformance.condition.client.ValidateCredentialJWTHeaderTyp;
 import net.openid.conformance.condition.client.ValidateCredentialJWTIat;
+import net.openid.conformance.condition.client.ValidateSdJwtCredentialX5cCertificateChain;
 import net.openid.conformance.condition.client.ValidateSdJwtDisclosureSaltsAreUnique;
 import net.openid.conformance.condition.client.ValidateCredentialJWTNbf;
 import net.openid.conformance.condition.client.ValidateCredentialJWTVct;
 import net.openid.conformance.condition.client.ValidateCredentialValidityByStatusListIfPresent;
+import net.openid.conformance.condition.client.ValidateCredentialValidityByStatusListIfPresentForHaip;
 import net.openid.conformance.condition.client.ValidateCredentialValidityInfoIsPresent;
 import net.openid.conformance.sequence.AbstractConditionSequence;
 
@@ -57,13 +58,16 @@ public class ValidateSdJwtVcCredentialClaims extends AbstractConditionSequence {
 		}
 		callAndContinueOnFailure(ValidateSdJwtDisclosureSaltsAreUnique.class,
 			ConditionResult.FAILURE, "SDJWT-4.2.1");
-		callAndContinueOnFailure(ValidateCredentialValidityByStatusListIfPresent.class,
-			ConditionResult.FAILURE, "OTSL-6.2");
 		if (haip) {
+			callAndContinueOnFailure(ValidateSdJwtCredentialX5cCertificateChain.class,
+				ConditionResult.FAILURE, "HAIP-6.1.1");
+			callAndContinueOnFailure(ValidateCredentialValidityByStatusListIfPresentForHaip.class,
+				ConditionResult.FAILURE, "OTSL-6.2", "HAIP-6.1");
 			callAndContinueOnFailure(ValidateCredentialValidityInfoIsPresent.class,
 				ConditionResult.WARNING, "HAIP-6.1-2.2");
-			callAndContinueOnFailure(EnsureX5cHeaderPresentForSdJwtCredential.class,
-				ConditionResult.FAILURE, "HAIP-6.1.1");
+		} else {
+			callAndContinueOnFailure(ValidateCredentialValidityByStatusListIfPresent.class,
+				ConditionResult.FAILURE, "OTSL-6.2");
 		}
 	}
 }

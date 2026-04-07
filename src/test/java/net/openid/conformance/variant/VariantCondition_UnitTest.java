@@ -38,8 +38,9 @@ class VariantCondition_UnitTest {
 
 		// direct_post.jwt entry uses x509_hash + request_uri_signed
 		assertEquals(Set.of(
-			"oid4vp-1final-wallet-happy-flow-with-state-and-redirect",
+			"oid4vp-1final-wallet-alternate-happy-flow",
 			"oid4vp-1final-wallet-happy-flow-no-state",
+			"oid4vp-1final-wallet-request-uri-method-post",
 			"oid4vp-1final-wallet-negative-test-invalid-request-object-signature"
 		), moduleNames);
 
@@ -73,7 +74,7 @@ class VariantCondition_UnitTest {
 			.map(Plan.Module::getTestModule)
 			.collect(Collectors.toSet());
 		assertEquals(Set.of(
-			"oid4vp-1final-wallet-happy-flow-with-state-and-redirect"
+			"oid4vp-1final-wallet-alternate-happy-flow"
 		), webOriginModules);
 
 		// x509_san_dns entry uses request_uri_signed and includes InvalidRequestObjectSignature
@@ -81,7 +82,7 @@ class VariantCondition_UnitTest {
 			.map(Plan.Module::getTestModule)
 			.collect(Collectors.toSet());
 		assertEquals(Set.of(
-			"oid4vp-1final-wallet-happy-flow-with-state-and-redirect",
+			"oid4vp-1final-wallet-alternate-happy-flow",
 			"oid4vp-1final-wallet-negative-test-invalid-request-object-signature"
 		), sanDnsModules);
 	}
