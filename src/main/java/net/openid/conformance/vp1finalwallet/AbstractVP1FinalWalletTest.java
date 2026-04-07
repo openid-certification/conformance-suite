@@ -90,6 +90,7 @@ import net.openid.conformance.condition.client.ValidateClientJWKsPrivatePart;
 import net.openid.conformance.condition.client.ValidateCredentialIsUnpaddedBase64Url;
 import net.openid.conformance.condition.client.ValidateCredentialVctMatchesDcqlQuery;
 import net.openid.conformance.condition.client.ValidateDisclosedClaimsMatchDcqlQuery;
+import net.openid.conformance.condition.client.ValidateVpTokenCredentialIdMatchesDcqlQuery;
 import net.openid.conformance.sequence.client.ValidateMdocCredential;
 import net.openid.conformance.sequence.client.ValidateSdJwtVcCredentialClaims;
 import net.openid.conformance.condition.client.ValidateDCQLQuery;
@@ -582,6 +583,7 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 		callAndStopOnFailure(CheckIfAuthorizationEndpointError.class);
 
 		callAndStopOnFailure(ExtractVP1FinalVpTokenDCQL.class, ConditionResult.FAILURE, "OID4VP-1FINAL-8.1");
+		callAndContinueOnFailure(ValidateVpTokenCredentialIdMatchesDcqlQuery.class, ConditionResult.FAILURE, "OID4VP-1FINAL-6.2");
 		callAndContinueOnFailure(CheckNoPresentationSubmissionParameter.class, ConditionResult.FAILURE);
 
 		callAndContinueOnFailure(CheckForUnexpectedParametersInVpAuthorizationResponse.class, ConditionResult.WARNING, "OID4VP-1FINAL-8");
