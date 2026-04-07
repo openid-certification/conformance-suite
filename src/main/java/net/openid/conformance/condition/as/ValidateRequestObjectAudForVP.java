@@ -19,7 +19,7 @@ public class ValidateRequestObjectAudForVP extends AbstractCondition {
 	private static final String SELF_ISSUED_V2 = "https://self-issued.me/v2";
 
 	@Override
-	@PreEnvironment(required = { CreateEffectiveAuthorizationRequestParameters.ENV_KEY })
+	@PreEnvironment(required = { "authorization_request_object" })
 	public Environment evaluate(Environment env) {
 		JsonElement aud = env.getElementFromObject("authorization_request_object", "claims.aud");
 		if (aud == null) {
