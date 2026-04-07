@@ -374,7 +374,7 @@ public class OIDSSFTransmitterStreamCaepInteropTest extends AbstractOIDSSFTransm
 	}
 
 	/**
-	 * Waits for the next push request to arrive. Uses a generous timeout (up to 3 minutes)
+	 * Waits for the next push request to arrive. Uses a generous timeout (up to 60 seconds)
 	 * to allow manual event triggering on external transmitters like caep.dev.
 	 * Returns immediately once a push request arrives.
 	 */
