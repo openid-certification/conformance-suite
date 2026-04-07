@@ -91,6 +91,7 @@ import net.openid.conformance.condition.client.ValidateCredentialIsUnpaddedBase6
 import net.openid.conformance.condition.client.ValidateCredentialVctMatchesDcqlQuery;
 import net.openid.conformance.condition.client.ValidateDisclosedClaimsMatchDcqlQuery;
 import net.openid.conformance.condition.client.ValidateVpTokenCredentialIdMatchesDcqlQuery;
+import net.openid.conformance.condition.client.WarnIfUnrequestedClaimsDisclosed;
 import net.openid.conformance.sequence.client.ValidateMdocCredential;
 import net.openid.conformance.sequence.client.ValidateSdJwtVcCredentialClaims;
 import net.openid.conformance.condition.client.ValidateDCQLQuery;
@@ -612,6 +613,7 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 				eventLog.startBlock(currentClientString() + "Verify credential matches DCQL query");
 				callAndContinueOnFailure(ValidateCredentialVctMatchesDcqlQuery.class, ConditionResult.FAILURE, "OID4VP-1FINAL-6.2");
 				callAndContinueOnFailure(ValidateDisclosedClaimsMatchDcqlQuery.class, ConditionResult.FAILURE, "OID4VP-1FINAL-6.2");
+				callAndContinueOnFailure(WarnIfUnrequestedClaimsDisclosed.class, ConditionResult.WARNING, "OID4VP-1FINAL-6.2");
 
 				eventLog.startBlock(currentClientString() + "Verify key binding JWT");
 
