@@ -64,9 +64,8 @@ public abstract class AbstractOIDSSFTransmitterStreamVerificationTest extends Ab
 				throw new TestFailureException(getId(), "Transmitter metadata does not include a verification_endpoint, "
 					+ "which is required by the CAEP Interop Profile (CAEPIOP-2.3.6).");
 			}
-			eventLog.log(getName(), "Skipping verification: transmitter metadata does not include a verification_endpoint. "
+			fireTestSkipped("Transmitter metadata does not include a verification_endpoint. "
 				+ "The SSF specification defines verification_endpoint as optional (OIDSSF-7.2.3).");
-			fireTestFinished();
 			return;
 		}
 
