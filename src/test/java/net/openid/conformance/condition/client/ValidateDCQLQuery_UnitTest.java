@@ -315,6 +315,42 @@ public class ValidateDCQLQuery_UnitTest extends AbstractVciUnitTest {
 	}
 
 	@Test
+	public void testEvaluate_duplicateClaimPaths() {
+		String json = """
+			{
+			  "credentials": [
+			    {
+			      "id": "credential_1",
+			      "format": "dc+sd-jwt",
+			      "meta": {
+			        "vct_values": [
+			          "https://example.com/identity_credential"
+			        ]
+			      },
+			      "claims": [
+			        {
+			          "path": [
+			            "given_name"
+			          ]
+			        },
+			        {
+			          "path": [
+			            "given_name"
+			          ]
+			        }
+			      ]
+			    }
+			  ]
+			}
+			""";
+		putDcql(json);
+
+		assertThrows(ConditionError.class, () -> {
+			cond.execute(env);
+		});
+	}
+
+	@Test
 	public void testEvaluate_claimSetsReferencesUnknownClaimId() {
 		String json = """
 			{
