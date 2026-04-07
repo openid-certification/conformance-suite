@@ -272,8 +272,9 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 
 		callAndStopOnFailure(GetStaticServerConfiguration.class);
 
-		// make sure the server configuration passes some basic sanity checks
-//		callAndStopOnFailure(CheckServerConfiguration.class); // FIXME doesn't like the openid4vp:// url being set as authorization endpoint url
+		if (responseMode != VP1FinalWalletResponseMode.DC_API && responseMode != VP1FinalWalletResponseMode.DC_API_JWT) {
+			callAndStopOnFailure(CheckAuthorizationEndpointIsValidUri.class);
+		}
 
 		// Set up the client configuration
 		configureClient();
