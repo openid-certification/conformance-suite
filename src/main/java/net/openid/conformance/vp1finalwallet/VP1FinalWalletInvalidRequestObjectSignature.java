@@ -4,7 +4,7 @@ import net.openid.conformance.condition.client.BuildRequestObjectByReferenceRedi
 import net.openid.conformance.condition.client.CreateMultiSignedRequestObject;
 import net.openid.conformance.condition.client.InvalidateMultiSignedRequestObjectSignatures;
 import net.openid.conformance.condition.client.InvalidateRequestObjectSignature;
-import net.openid.conformance.condition.common.ExpectRedirectUriErrorPage;
+import net.openid.conformance.condition.common.ExpectInvalidRequestObjectSignatureErrorPage;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.testmodule.TestFailureException;
@@ -21,9 +21,7 @@ import org.jetbrains.annotations.NotNull;
 )
 @VariantNotApplicable(parameter = VP1FinalWalletRequestMethod.class, values={"request_uri_unsigned", "url_query"})
 public class VP1FinalWalletInvalidRequestObjectSignature extends AbstractVP1FinalWalletTest {
-	// FIXME this probably doesn't work correctly for browser api, e.g. this failure:
-	//  https://demo.certification.openid.net/log-detail.html?log=GHTdSaAuyKMC0cY&continue
-	// but need clarifications in spec, see https://github.com/openid/OpenID4VP/issues/204
+
 	@NotNull
 	@Override
 	protected ConditionSequence createAuthorizationRedirectStepsSignedRequestUri() {
@@ -48,10 +46,8 @@ public class VP1FinalWalletInvalidRequestObjectSignature extends AbstractVP1Fina
 
 	@Override
 	protected void createPlaceholder() {
-		// FIXME use a better placeholder with a better message
-		callAndStopOnFailure(ExpectRedirectUriErrorPage.class, "OID4VP-1FINAL-8.5");
-
-		env.putString("error_callback_placeholder", env.getString("redirect_uri_error"));
+		callAndStopOnFailure(ExpectInvalidRequestObjectSignatureErrorPage.class, "OID4VP-1FINAL-8.5");
+		env.putString("error_callback_placeholder", env.getString("invalid_request_object_signature_error"));
 	}
 
 	@Override
