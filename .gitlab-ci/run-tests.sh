@@ -625,7 +625,10 @@ makeSsfTests() {
 
     TESTS="${TESTS} openid-ssf-receiver-test-plan[$PUSH_DELIVERY][$CAEP_INTEROP_PROFILE]:openid-ssf-receiver-happypath{openid-ssf-transmitter-test-plan[$PUSH_DELIVERY][$CAEP_INTEROP_PROFILE][$STATIC_CLIENT][$SERVER_METADATA_STATIC][$CLIENT_AUTH_CLIENT_SECRET_POST][$SSF_METADATA][$SSF_AUTH_MODE]:openid-ssf-transmitter-metadata,openid-ssf-stream-control-happy-path}${SUITE_DIR}/scripts/test-configs-ssf/ssf-transmitter-test-config.json ${SUITE_DIR}/scripts/test-configs-ssf/ssf-receiver-test-config.json"
 
+    # Run SSF CAEP receiver test plan against SSF CAEP transmitter: test metadata and stream handling
     TESTS="${TESTS} openid-ssf-receiver-caep-test-plan[$PUSH_DELIVERY]:openid-ssf-receiver-stream-create-delete{openid-ssf-transmitter-caep-test-plan[$PUSH_DELIVERY][$STATIC_CLIENT][$SERVER_METADATA_STATIC][$CLIENT_AUTH_CLIENT_SECRET_POST][$SSF_METADATA][$SSF_AUTH_MODE]:openid-ssf-transmitter-metadata,openid-ssf-stream-control-happy-path}${SUITE_DIR}/scripts/test-configs-ssf/ssf-transmitter-test-config.json ${SUITE_DIR}/scripts/test-configs-ssf/ssf-receiver-test-config.json"
+    # Run CAEP receiver interop test against CAEP transmitter interop: check SSF CAEP receiver behavior
+    TESTS="${TESTS} openid-ssf-receiver-caep-test-plan[$PUSH_DELIVERY]:openid-ssf-receiver-stream-caep-interop{openid-ssf-transmitter-caep-test-plan[$PUSH_DELIVERY][$STATIC_CLIENT][$SERVER_METADATA_STATIC][$CLIENT_AUTH_CLIENT_SECRET_POST][$SSF_METADATA][$SSF_AUTH_MODE]:openid-ssf-transmitter-metadata,openid-ssf-transmitter-stream-caep-interop}${SUITE_DIR}/scripts/test-configs-ssf/ssf-transmitter-test-config.json ${SUITE_DIR}/scripts/test-configs-ssf/ssf-receiver-test-config.json"
 }
 
 makeAuthzenTests() {
