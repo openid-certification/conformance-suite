@@ -261,7 +261,7 @@ public class OIDSSFTransmitterStreamCaepInteropTest extends AbstractOIDSSFTransm
 					Thread.sleep(pollIntervalSeconds * 1000L);
 				} catch (InterruptedException e) {
 					Thread.currentThread().interrupt();
-					throw new RuntimeException(e);
+					throw new TestFailureException(getId(), "Interrupted while waiting for CAEP events");
 				}
 			}
 		}
@@ -370,7 +370,7 @@ public class OIDSSFTransmitterStreamCaepInteropTest extends AbstractOIDSSFTransm
 			eventLog.log(getName(), "Waiting for push delivery... ("
 				+ ((attempt + 1) * pollTimeoutSeconds) + "s / " + (maxAttempts * pollTimeoutSeconds) + "s)");
 		}
-		throw new RuntimeException("Did not receive push request after " + (maxAttempts * pollTimeoutSeconds) + " seconds");
+		throw new TestFailureException(getId(), "Did not receive push request after " + (maxAttempts * pollTimeoutSeconds) + " seconds");
 	}
 
 	@Override
