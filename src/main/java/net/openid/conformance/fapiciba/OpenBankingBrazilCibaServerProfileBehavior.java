@@ -8,7 +8,6 @@ import net.openid.conformance.condition.client.AddIatToRequestObject;
 import net.openid.conformance.condition.client.AddIdempotencyKeyHeader;
 import net.openid.conformance.condition.client.AddIssAsCertificateOuToRequestObject;
 import net.openid.conformance.condition.client.AddJtiAsUuidToRequestObject;
-import net.openid.conformance.condition.client.CallProtectedResource;
 import net.openid.conformance.condition.client.CreateIdempotencyKey;
 import net.openid.conformance.condition.client.CreatePaymentRequestEntityClaims;
 import net.openid.conformance.condition.client.EnsureAccessTokenValuesAreDifferent;
@@ -26,11 +25,6 @@ import net.openid.conformance.sequence.client.RefreshTokenRequestSteps;
 import java.util.function.Supplier;
 
 public class OpenBankingBrazilCibaServerProfileBehavior extends FAPICIBAServerProfileBehavior {
-
-	@Override
-	public Class<? extends ConditionSequence> getResourceConfiguration() {
-		return AbstractFAPICIBAID1.FAPIResourceConfiguration.class;
-	}
 
 	@Override
 	public Supplier<? extends ConditionSequence> getPreAuthorizationSteps() {
@@ -57,58 +51,74 @@ public class OpenBankingBrazilCibaServerProfileBehavior extends FAPICIBAServerPr
 	}
 
 	@Override
-	public void applyProfileSpecificServerConfigChecks() {
-		module.callCondition(CheckCIBAModeIsPing.class, "BrazilCIBA-5.2.2");
-		module.callCondition(SetHintTypeToLoginHint.class, "BrazilCIBA-5.2.2");
+	public ConditionSequence onConfigure() {
+		return new AbstractConditionSequence() {
+			@Override
+			public void evaluate() {
+				callAndStopOnFailure(CheckCIBAModeIsPing.class, "BrazilCIBA-5.2.2");
+				callAndStopOnFailure(SetHintTypeToLoginHint.class, "BrazilCIBA-5.2.2");
+			}
+		};
 	}
 
 	@Override
-	public void validateProfileSpecificTokenEndpointExpiresIn() {
-		module.callConditionSkipIfMissing(new String[] { "expires_in" }, null, Condition.ConditionResult.INFO,
-			FAPIBrazilValidateExpiresIn.class, Condition.ConditionResult.FAILURE, "BrazilOB-5.2.2-13");
+	public ConditionSequence validateExpiresIn() {
+		return new AbstractConditionSequence() {
+			@Override
+			public void evaluate() {
+				call(condition(FAPIBrazilValidateExpiresIn.class)
+					.skipIfElementMissing("token_endpoint_response", "expires_in")
+					.onSkip(Condition.ConditionResult.INFO)
+					.onFail(Condition.ConditionResult.FAILURE)
+					.requirements("BrazilOB-5.2.2-13")
+					.dontStopOnFailure());
+			}
+		};
 	}
 
 	@Override
-	public void applyProfileSpecificResourceEndpointSetup() {
+	public ConditionSequence setupResourceEndpointRequestBody() {
 		boolean isPayments = false; // There's an option to add payments in a future iteration
-		if (isPayments) {
-			module.callSequence(new AbstractConditionSequence() {
-				@Override
-				public void evaluate() {
-					call(condition(CreateIdempotencyKey.class));
-					call(condition(AddIdempotencyKeyHeader.class));
-				}
-			});
-			module.callCondition(SetApplicationJwtContentTypeHeaderForResourceEndpointRequest.class);
-			module.callCondition(SetApplicationJwtAcceptHeaderForResourceEndpointRequest.class);
-			module.callCondition(SetResourceMethodToPost.class);
-			module.callCondition(CreatePaymentRequestEntityClaims.class);
-			module.callCondition(AddEndToEndIdToPaymentRequestEntityClaims.class);
-
-			getEnv().mapKey("request_object_claims", "resource_request_entity_claims");
-
-			module.callCondition(AddAudAsPaymentInitiationUriToRequestObject.class, "BrazilOB-6.1");
-			module.callCondition(AddIssAsCertificateOuToRequestObject.class, "BrazilOB-6.1");
-			module.callCondition(AddJtiAsUuidToRequestObject.class, "BrazilOB-6.1");
-			module.callCondition(AddIatToRequestObject.class, "BrazilOB-6.1");
-
-			getEnv().unmapKey("request_object_claims");
-
-			module.callCondition(FAPIBrazilSignPaymentInitiationRequest.class);
+		if (!isPayments) {
+			return null;
 		}
+
+		return new AbstractConditionSequence() {
+			@Override
+			public void evaluate() {
+				call(sequenceOf(
+					condition(CreateIdempotencyKey.class),
+					condition(AddIdempotencyKeyHeader.class)));
+				callAndStopOnFailure(SetApplicationJwtContentTypeHeaderForResourceEndpointRequest.class);
+				callAndStopOnFailure(SetApplicationJwtAcceptHeaderForResourceEndpointRequest.class);
+				callAndStopOnFailure(SetResourceMethodToPost.class);
+				callAndStopOnFailure(CreatePaymentRequestEntityClaims.class);
+				callAndStopOnFailure(AddEndToEndIdToPaymentRequestEntityClaims.class);
+
+				call(exec().mapKey("request_object_claims", "resource_request_entity_claims"));
+
+				callAndStopOnFailure(AddAudAsPaymentInitiationUriToRequestObject.class, "BrazilOB-6.1");
+				callAndStopOnFailure(AddIssAsCertificateOuToRequestObject.class, "BrazilOB-6.1");
+				callAndStopOnFailure(AddJtiAsUuidToRequestObject.class, "BrazilOB-6.1");
+				callAndStopOnFailure(AddIatToRequestObject.class, "BrazilOB-6.1");
+
+				call(exec().unmapKey("request_object_claims"));
+
+				callAndStopOnFailure(FAPIBrazilSignPaymentInitiationRequest.class);
+			}
+		};
 	}
 
 	@Override
-	public void applyProfileSpecificResourceEndpointRetry(boolean isSecondClient, Class<? extends ConditionSequence> addTokenEndpointClientAuthentication) {
-		ConditionSequence sequence =
-			new RefreshTokenRequestSteps(isSecondClient, addTokenEndpointClientAuthentication)
+	public ConditionSequence createUpdateResourceRequestSteps(boolean isSecondClient, Class<? extends ConditionSequence> addTokenEndpointClientAuthentication) {
+		return new RefreshTokenRequestSteps(isSecondClient, addTokenEndpointClientAuthentication)
 				.skip(EnsureAccessTokenValuesAreDifferent.class, "");
+	}
 
-		int httpStatus = getEnv().getInteger("endpoint_response", "status");
-		for(int i = 0; i < 3 && httpStatus == 401; i++) {
-			module.callSequence(sequence);
-			module.callCondition(CallProtectedResource.class, "FAPI-R-6.2.1-1", "FAPI-R-6.2.1-3");
-			httpStatus = getEnv().getInteger("endpoint_response", "status");
+	@Override
+	public void validateResourceEndpointResponse() {
+		if (module.scopeContains("payments")) {
+			module.validateBrazilPaymentInitiationSignedResponse();
 		}
 	}
 }
