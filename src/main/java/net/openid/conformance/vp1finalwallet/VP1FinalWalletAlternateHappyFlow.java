@@ -40,7 +40,8 @@ public class VP1FinalWalletAlternateHappyFlow extends AbstractVP1FinalWalletTest
 		// also use a longer state value than is used by default
 		env.putInteger("requested_state_length", 64);
 
-		// FIXME: is response_uri is optional when using the redirect_uri scheme; if so we should omit it in this test: https://github.com/openid/OpenID4VP/issues/93
+		// Per OID4VP 5.9.3, response_uri MAY be omitted when using redirect_uri prefix.
+		// A dedicated test for that case could be added for the redirect_uri prefix variant.
 	}
 
 	@Override
