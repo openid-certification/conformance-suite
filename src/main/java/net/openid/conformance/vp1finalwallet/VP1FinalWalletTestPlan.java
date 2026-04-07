@@ -26,7 +26,8 @@ public class VP1FinalWalletTestPlan implements TestPlan {
 
 		// negative tests
 		VP1FinalWalletResponseUriNotClientId.class,
-		VP1FinalWalletInvalidRequestObjectSignature.class
+		VP1FinalWalletInvalidRequestObjectSignature.class,
+		VP1FinalWalletMultiSignedOneInvalidSignature.class
 
 		// negative tests:
 		// try sending a redirect_uri in auth request with response_mode=direct_post
