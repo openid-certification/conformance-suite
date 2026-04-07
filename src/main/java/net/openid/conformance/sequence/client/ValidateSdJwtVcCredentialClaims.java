@@ -2,6 +2,8 @@ package net.openid.conformance.sequence.client;
 
 import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.condition.client.ValidateCredentialCnfJwkIsPublicKey;
+import net.openid.conformance.condition.client.WarnIfUnexpectedFieldsInCredentialCnf;
+import net.openid.conformance.condition.client.WarnIfUnknownFieldsInCredentialCnfJwk;
 import net.openid.conformance.condition.client.ValidateCredentialJWTExp;
 import net.openid.conformance.condition.client.ValidateCredentialJWTHeaderTyp;
 import net.openid.conformance.condition.client.ValidateCredentialJWTIat;
@@ -55,6 +57,10 @@ public class ValidateSdJwtVcCredentialClaims extends AbstractConditionSequence {
 		if (requiresCnf) {
 			callAndContinueOnFailure(ValidateCredentialCnfJwkIsPublicKey.class,
 				ConditionResult.FAILURE, "SDJWT-4.1.2");
+			callAndContinueOnFailure(WarnIfUnexpectedFieldsInCredentialCnf.class,
+				ConditionResult.WARNING, "SDJWT-4.1.2");
+			callAndContinueOnFailure(WarnIfUnknownFieldsInCredentialCnfJwk.class,
+				ConditionResult.WARNING, "SDJWT-4.1.2");
 		}
 		callAndContinueOnFailure(ValidateSdJwtDisclosureSaltsAreUnique.class,
 			ConditionResult.FAILURE, "SDJWT-4.2.1");
