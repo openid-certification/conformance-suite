@@ -47,6 +47,8 @@ import net.openid.conformance.condition.as.SetRequestUriParameterSupportedToTrue
 import net.openid.conformance.condition.as.VP1FinalCheckForKeyIdInClientMetadataJWKs;
 import net.openid.conformance.condition.as.VP1FinalCheckForUnexpectedParametersInVpClientMetadata;
 import net.openid.conformance.condition.as.VP1FinalEncryptVPResponse;
+import net.openid.conformance.condition.as.ValidateVpClientMetadataEncryptionForHaip;
+import net.openid.conformance.condition.as.ValidateVpClientMetadataJwksKeysArePublic;
 import net.openid.conformance.condition.as.VP1FinalValidateClientMetadataJwksForEncryptedResponse;
 import net.openid.conformance.condition.as.VP1FinalValidateVpFormatsSupportedInClientMetadata;
 import net.openid.conformance.condition.as.ValidateDirectPostResponse;
@@ -391,6 +393,10 @@ public abstract class AbstractVP1FinalVerifierTest extends AbstractTestModule {
 			case DIRECT_POST_JWT:
 				callAndContinueOnFailure(VP1FinalCheckForKeyIdInClientMetadataJWKs.class, ConditionResult.FAILURE, "OID4VP-1FINAL-5.1");
 				callAndContinueOnFailure(VP1FinalValidateClientMetadataJwksForEncryptedResponse.class, ConditionResult.FAILURE, "OID4VP-1FINAL-8.3");
+				callAndContinueOnFailure(ValidateVpClientMetadataJwksKeysArePublic.class, ConditionResult.FAILURE, "OID4VP-1FINAL-5.1");
+				if (getVariant(VPProfile.class) == VPProfile.HAIP) {
+					callAndContinueOnFailure(ValidateVpClientMetadataEncryptionForHaip.class, ConditionResult.FAILURE, "HAIP-4.3");
+				}
 				break;
 			case DIRECT_POST:
 				break;
