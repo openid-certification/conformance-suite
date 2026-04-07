@@ -32,7 +32,10 @@ public class OIDSSFTransmitterTestPlan implements TestPlan {
 		OIDSSFStreamControlNegativeTestDeleteStreamWithInvalidAccessToken.class,
 		OIDSSFStreamControlNegativeTestDeleteUnknownStream.class,
 		OIDSSFStreamSubjectControlHappyPathTest.class,
-		OIDSSFTransmitterStreamVerificationEventsTest.class,
+		OIDSSFTransmitterStreamVerificationPushTest.class,
+		OIDSSFTransmitterStreamVerificationPollOnlyTest.class,
+		OIDSSFTransmitterStreamVerificationPollAndAckTest.class,
+		OIDSSFTransmitterStreamVerificationAckOnlyTest.class,
 		OIDSSFTransmitterStreamVerificationPushNoAuthTest.class
 	);
 
