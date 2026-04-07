@@ -20,6 +20,10 @@ import org.jetbrains.annotations.NotNull;
 	}
 )
 @VariantNotApplicable(parameter = VP1FinalWalletRequestMethod.class, values={"request_uri_unsigned", "url_query"})
+// TODO: For Browser API (dc_api/dc_api.jwt), the signature invalidation works correctly (request_object
+// is invalidated before BuildVP1FinalBrowserDCAPIRequestSigned wraps it), but the error handling path
+// needs updating — currently expects a redirect error page screenshot, but DC API wallets should show
+// the error differently. See https://github.com/openid/OpenID4VP/pull/138
 public class VP1FinalWalletInvalidRequestObjectSignature extends AbstractVP1FinalWalletTest {
 
 	@NotNull
