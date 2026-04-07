@@ -24,6 +24,11 @@ public class VP1FinalWalletTestPlan implements TestPlan {
 		VP1FinalWalletAlternateHappyFlow.class,
 		VP1FinalWalletRequestUriMethodPost.class,
 
+		// DCQL variation tests
+		VP1FinalWalletFewerClaimsThanAvailable.class,
+		VP1FinalWalletOptionalCredentialSet.class,
+		VP1FinalWalletNoClaimsInDcqlQuery.class,
+
 		// negative tests
 		VP1FinalWalletResponseUriNotClientId.class,
 		VP1FinalWalletInvalidRequestObjectSignature.class,

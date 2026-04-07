@@ -41,6 +41,9 @@ class VariantCondition_UnitTest {
 			"oid4vp-1final-wallet-alternate-happy-flow",
 			"oid4vp-1final-wallet-happy-flow-no-state",
 			"oid4vp-1final-wallet-request-uri-method-post",
+			"oid4vp-1final-wallet-fewer-claims-than-available",
+			"oid4vp-1final-wallet-optional-credential-set",
+			"oid4vp-1final-wallet-no-claims-in-dcql-query",
 			"oid4vp-1final-wallet-negative-test-invalid-request-object-signature"
 		), moduleNames);
 
@@ -74,7 +77,10 @@ class VariantCondition_UnitTest {
 			.map(Plan.Module::getTestModule)
 			.collect(Collectors.toSet());
 		assertEquals(Set.of(
-			"oid4vp-1final-wallet-alternate-happy-flow"
+			"oid4vp-1final-wallet-alternate-happy-flow",
+			"oid4vp-1final-wallet-fewer-claims-than-available",
+			"oid4vp-1final-wallet-optional-credential-set",
+			"oid4vp-1final-wallet-no-claims-in-dcql-query"
 		), webOriginModules);
 
 		// x509_san_dns entry uses request_uri_signed and includes InvalidRequestObjectSignature
@@ -83,6 +89,9 @@ class VariantCondition_UnitTest {
 			.collect(Collectors.toSet());
 		assertEquals(Set.of(
 			"oid4vp-1final-wallet-alternate-happy-flow",
+			"oid4vp-1final-wallet-fewer-claims-than-available",
+			"oid4vp-1final-wallet-optional-credential-set",
+			"oid4vp-1final-wallet-no-claims-in-dcql-query",
 			"oid4vp-1final-wallet-negative-test-invalid-request-object-signature"
 		), sanDnsModules);
 	}
