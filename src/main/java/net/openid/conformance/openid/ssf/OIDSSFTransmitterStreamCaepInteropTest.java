@@ -29,6 +29,7 @@ import net.openid.conformance.openid.ssf.conditions.events.OIDSSFTriggerVerifica
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFValidateCaepCommonOptionalFields;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFValidateCaepCredentialChangeEvent;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFValidateCaepDeviceComplianceChangeEvent;
+import net.openid.conformance.openid.ssf.conditions.events.OIDSSFWarnNonStandardCaepCredentialChangeValues;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFValidateSecurityEventTokenAudClaim;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFValidateSecurityEventTokenTxnClaim;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFVerifySignatureOfVerificationEventToken;
@@ -344,6 +345,8 @@ public class OIDSSFTransmitterStreamCaepInteropTest extends AbstractOIDSSFTransm
 			case SsfEvents.CAEP_CREDENTIAL_CHANGE_EVENT_TYPE:
 				callAndContinueOnFailure(OIDSSFValidateCaepCredentialChangeEvent.class,
 					Condition.ConditionResult.FAILURE, "OIDCAEP-3.3");
+				callAndContinueOnFailure(OIDSSFWarnNonStandardCaepCredentialChangeValues.class,
+					Condition.ConditionResult.WARNING, "OIDCAEP-3.3");
 				break;
 			case SsfEvents.CAEP_DEVICE_COMPLIANCE_CHANGE_EVENT_TYPE:
 				callAndContinueOnFailure(OIDSSFValidateCaepDeviceComplianceChangeEvent.class,
