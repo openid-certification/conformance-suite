@@ -3,7 +3,9 @@ package net.openid.conformance.condition.as;
 import com.authlete.sd.Disclosure;
 import com.authlete.sd.SDJWT;
 import com.authlete.sd.SDObjectBuilder;
+import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JOSEObjectType;
 import com.nimbusds.jose.JWSAlgorithm;
@@ -19,6 +21,7 @@ import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.client.ValidateSdJwtKbSdHash;
 import net.openid.conformance.extensions.MultiJWSSignerFactory;
 import net.openid.conformance.testmodule.Environment;
+import net.openid.conformance.testmodule.OIDFJSON;
 
 import java.security.NoSuchAlgorithmException;
 import java.text.ParseException;
@@ -28,8 +31,10 @@ import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public abstract class AbstractCreateSdJwtCredential extends AbstractCondition {
 
@@ -179,22 +184,71 @@ public abstract class AbstractCreateSdJwtCredential extends AbstractCondition {
 			throw error("Failed to sign SD-JWT credential", e, args("signing_jwk", credentialSigningJwkEl));
 		}
 
+		// Filter disclosures to only include claims requested in the DCQL query (data minimization)
+		List<Disclosure> filteredDisclosures = filterDisclosuresToDcqlRequest(env, disclosures);
+
 		String bindingJwt = null;
 
 		if (privateKey != null) {
 			String aud = env.getString("client", "client_id");
 			String sd_hash = null;
 			try {
-				sd_hash = ValidateSdJwtKbSdHash.getCalculatedSdHash(new SDJWT(jwt.serialize(), disclosures).toString());
+				sd_hash = ValidateSdJwtKbSdHash.getCalculatedSdHash(new SDJWT(jwt.serialize(), filteredDisclosures).toString());
 			} catch (NoSuchAlgorithmException e) {
 				throw error("Failed to create hash", e);
 			}
 			String nonce = env.getString("nonce");
 			bindingJwt = keyBindingJwt(privateKey, aud, nonce, sd_hash);
 		}
-		SDJWT sdJwt = new SDJWT(jwt.serialize(), disclosures, bindingJwt);
+		SDJWT sdJwt = new SDJWT(jwt.serialize(), filteredDisclosures, bindingJwt);
 
 		return sdJwt.toString();
+	}
+
+	/**
+	 * Filter disclosures to only include claims requested in the DCQL query.
+	 * If no DCQL query is present or no claims are specified, returns all disclosures.
+	 */
+	private List<Disclosure> filterDisclosuresToDcqlRequest(Environment env, List<Disclosure> disclosures) {
+		JsonObject dcqlQuery = env.getObject(ExtractDCQLQueryFromAuthorizationRequest.ENV_KEY);
+		if (dcqlQuery == null) {
+			return disclosures;
+		}
+
+		Set<String> requestedClaims = new HashSet<>();
+		JsonArray credentials = dcqlQuery.getAsJsonArray("credentials");
+		if (credentials != null) {
+			for (JsonElement credEl : credentials) {
+				JsonArray claimsArray = credEl.getAsJsonObject().getAsJsonArray("claims");
+				if (claimsArray != null) {
+					for (JsonElement claimEl : claimsArray) {
+						JsonArray path = claimEl.getAsJsonObject().getAsJsonArray("path");
+						if (path != null && !path.isEmpty() && path.get(0).isJsonPrimitive()) {
+							requestedClaims.add(OIDFJSON.getString(path.get(0)));
+						}
+					}
+				}
+			}
+		}
+
+		if (requestedClaims.isEmpty()) {
+			return disclosures;
+		}
+
+		List<Disclosure> filtered = new ArrayList<>();
+		for (Disclosure d : disclosures) {
+			String claimName = d.getClaimName();
+			if (claimName == null || requestedClaims.contains(claimName)) {
+				filtered.add(d);
+			}
+		}
+
+		log("Filtered SD-JWT disclosures to DCQL requested claims",
+			args("requested_claims", requestedClaims,
+				"total_disclosures", disclosures.size(),
+				"filtered_disclosures", filtered.size()));
+
+		return filtered;
 	}
 
 	private JWSAlgorithm getSigningAlgorithm(JWK signingJwk) {
