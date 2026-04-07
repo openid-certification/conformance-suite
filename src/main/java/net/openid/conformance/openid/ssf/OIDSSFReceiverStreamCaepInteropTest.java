@@ -128,7 +128,7 @@ public class OIDSSFReceiverStreamCaepInteropTest extends AbstractOIDSSFReceiverT
 			return;
 		}
 
-		// Track non-verification events as acknowledged when successfully pushed
+		// Track non-verification events as acknowledged via poll
 		eventsAcked.computeIfAbsent(streamId, k -> new ConcurrentSkipListSet<>()).add(jti);
 	}
 
