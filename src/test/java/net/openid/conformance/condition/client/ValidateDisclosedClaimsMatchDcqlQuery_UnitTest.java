@@ -239,7 +239,7 @@ public class ValidateDisclosedClaimsMatchDcqlQuery_UnitTest {
 	@Test
 	public void testEvaluate_extraDisclosedClaimsStillPasses() {
 		// Extra claims beyond what was requested should not cause failure here
-		// (that is checked by WarnIfUnrequestedClaimsDisclosed)
+		// (that is checked by CheckOnlyRequestedClaimsDisclosed)
 		String dcql = """
 			{
 			  "credentials": [

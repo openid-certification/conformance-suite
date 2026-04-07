@@ -43,6 +43,7 @@ import net.openid.conformance.condition.client.CheckIfClientIdInX509CertSanDns;
 import net.openid.conformance.condition.client.CheckIfSecondClientIdInX509CertSanDns;
 import net.openid.conformance.condition.client.CheckNoPresentationSubmissionParameter;
 import net.openid.conformance.condition.client.CheckNonceInBindingJwt;
+import net.openid.conformance.condition.client.CheckOnlyRequestedClaimsDisclosed;
 import net.openid.conformance.condition.client.CheckStateInAuthorizationResponse;
 import net.openid.conformance.condition.client.CheckTypInBindingJwt;
 import net.openid.conformance.condition.client.CheckUrlFragmentContainsCodeVerifier;
@@ -628,6 +629,7 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 				eventLog.startBlock(currentClientString() + "Verify credential matches DCQL query");
 				callAndContinueOnFailure(ValidateCredentialVctMatchesDcqlQuery.class, ConditionResult.FAILURE, "OID4VP-1FINALA-B.3.5");
 				callAndContinueOnFailure(ValidateDisclosedClaimsMatchDcqlQuery.class, ConditionResult.FAILURE, "OID4VP-1FINAL-6.4.1");
+				callAndContinueOnFailure(CheckOnlyRequestedClaimsDisclosed.class, ConditionResult.FAILURE, "OID4VP-1FINAL-6.4.1");
 
 				eventLog.startBlock(currentClientString() + "Verify key binding JWT");
 
