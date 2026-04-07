@@ -39,7 +39,7 @@ public abstract class AbstractOIDSSFGenerateStreamSET extends AbstractOIDSSFGene
 				.claim("sub_id", JSONObjectUtils.parse(getSubject(streamId).toString()))
 				.claim("events", JSONObjectUtils.parse(events.toString()));
 		} catch (ParseException e) {
-			throw new RuntimeException("Failed to convert claim values for SET generation", e);
+			throw error("Failed to convert claim values for SET generation", e);
 		}
 	}
 
