@@ -1188,16 +1188,11 @@ async def main():
     verify_ssl = not dev_mode and not 'DISABLE_SSL_VERIFY' in os.environ
     conformance = Conformance(api_url_base, token, verify_ssl)
 
-    for attempt in range(1, 12):
-        try:
-            all_test_modules_array = await conformance.get_all_test_modules()
-            break
-        except Exception as exc:
-            # the server may not have finished starting yet; sleep & try again
-            print('Failed to connect to conformance suite on attempt {}: {}'.format(attempt, exc))
-            time.sleep(10)
-    else:
+    try:
+        await conformance.wait_for_server_ready()
+    except ServerUnavailableError:
         raise Exception("failed to connect to conformance suite")
+    all_test_modules_array = await conformance.get_all_test_modules()
 
     # convert the array into a dictionary with the testName as the key
     all_test_modules = {m['testName']: m for m in all_test_modules_array}
