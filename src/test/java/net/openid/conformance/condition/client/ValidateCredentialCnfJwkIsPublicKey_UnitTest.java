@@ -1,5 +1,7 @@
 package net.openid.conformance.condition.client;
 
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.logging.TestInstanceEventLog;
@@ -34,7 +36,7 @@ public class ValidateCredentialCnfJwkIsPublicKey_UnitTest {
 	}
 
 	@Test
-	public void testEvaluate_noError() {
+	public void testEvaluate_validEcPublicKey() {
 		String goodJwk = """
 			{
 				"kty": "EC",
@@ -52,7 +54,7 @@ public class ValidateCredentialCnfJwkIsPublicKey_UnitTest {
 	}
 
 	@Test
-	public void testEvaluate_missingIat() {
+	public void testEvaluate_privateKeyFails() {
 		assertThrows(ConditionError.class, () -> {
 			String badJwk = """
 			{
@@ -70,7 +72,28 @@ public class ValidateCredentialCnfJwkIsPublicKey_UnitTest {
 
 			cond.execute(env);
 		});
+	}
 
+	@Test
+	public void testEvaluate_missingCnfFails() {
+		// sdjwt object with credential.claims but no cnf
+		JsonObject sdjwt = JsonParser.parseString(
+			"{\"credential\": {\"claims\": {\"iss\": \"https://example.com\"}}}"
+		).getAsJsonObject();
+		env.putObject("sdjwt", sdjwt);
+
+		assertThrows(ConditionError.class, () -> cond.execute(env));
+	}
+
+	@Test
+	public void testEvaluate_missingCnfJwkFails() {
+		// cnf object exists but has no jwk field
+		JsonObject sdjwt = JsonParser.parseString(
+			"{\"credential\": {\"claims\": {\"cnf\": {\"kid\": \"some-kid\"}}}}"
+		).getAsJsonObject();
+		env.putObject("sdjwt", sdjwt);
+
+		assertThrows(ConditionError.class, () -> cond.execute(env));
 	}
 
 }
