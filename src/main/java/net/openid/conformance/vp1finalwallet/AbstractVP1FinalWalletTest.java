@@ -108,6 +108,7 @@ import net.openid.conformance.condition.client.ValidateSdJwtKeyBindingSignature;
 import net.openid.conformance.condition.client.ValidateVpTokenCredentialIdMatchesDcqlQuery;
 import net.openid.conformance.condition.client.WarnIfUnrequestedClaimsDisclosed;
 import net.openid.conformance.condition.client.WarnMockWalletResponse;
+import net.openid.conformance.condition.common.CheckAuthorizationEndpointIsValidUri;
 import net.openid.conformance.condition.common.CheckDistinctKeyIdValueInClientJWKs;
 import net.openid.conformance.condition.common.CreateRandomBrowserApiSubmitUrl;
 import net.openid.conformance.condition.common.CreateRandomRequestUriWithoutFragment;
@@ -271,8 +272,7 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 
 		callAndStopOnFailure(GetStaticServerConfiguration.class);
 
-		// make sure the server configuration passes some basic sanity checks
-//		callAndStopOnFailure(CheckServerConfiguration.class); // FIXME doesn't like the openid4vp:// url being set as authorization endpoint url
+		callAndStopOnFailure(CheckAuthorizationEndpointIsValidUri.class);
 
 		// Set up the client configuration
 		configureClient();
