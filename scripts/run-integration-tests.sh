@@ -116,7 +116,8 @@ if [ -n "$NGROK_URL" ]; then
         echo "==> Generating VP test cert with ngrok hostname in SAN..."
         python3 "${SUITE_DIR}/scripts/generate-vp-test-cert.py" \
             --hostname "$NGROK_HOSTNAME" \
-            --output "${SUITE_DIR}/scripts/certs-keys/vp-signing-jwk.json"
+            --output "${SUITE_DIR}/scripts/certs-keys/vp-signing-jwk.json" \
+            --ca-output "${SUITE_DIR}/scripts/certs-keys/vp-signing-ca.crt"
     fi
 fi
 
@@ -155,8 +156,8 @@ cleanup() {
     echo "==> Stopping server (PID $SERVER_PID)..."
     kill "$SERVER_PID" 2>/dev/null || true
     wait "$SERVER_PID" 2>/dev/null || true
-    # Restore VP signing JWK overwritten by generate-vp-test-cert.py
-    git -C "$SUITE_DIR" checkout -- scripts/certs-keys/vp-signing-jwk.json 2>/dev/null || true
+    # Restore VP signing JWK and CA cert overwritten by generate-vp-test-cert.py
+    git -C "$SUITE_DIR" checkout -- scripts/certs-keys/vp-signing-jwk.json scripts/certs-keys/vp-signing-ca.crt 2>/dev/null || true
     echo "==> Done."
 }
 trap cleanup EXIT INT TERM

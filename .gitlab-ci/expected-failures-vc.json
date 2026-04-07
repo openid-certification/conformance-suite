@@ -196,5 +196,14 @@
         "condition": "EnsureHttpStatusCodeIs4xx",
         "expected-result": "failure",
         "comment": "The paired wallet test does not perform KB-JWT iat validation so returns 200 instead of 4xx"
+    },
+    {
+        "test-name": "oid4vp-1final-wallet-alternate-happy-flow",
+        "variant": "*",
+        "configuration-filename": "*dcapi-mock*",
+        "current-block": "",
+        "condition": "WarnMockWalletResponse",
+        "expected-result": "failure",
+        "comment": "Mock wallet response used for DC API integration testing - not testing a real wallet"
     }
 ]
