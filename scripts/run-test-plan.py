@@ -1401,7 +1401,8 @@ async def main():
             untested_test_modules.remove(m)
             continue
 
-        #we don't have automated tests for OID4VCI wallet tests (except credential-issuance)
+        # We have automated OID4VCI issuer tests, but not comprehensive
+        # automated OID4VCI wallet tests, so exclude wallet modules here.
         if re.match(r'oid4vci-.*-wallet-', m):
             untested_test_modules.remove(m)
             continue
