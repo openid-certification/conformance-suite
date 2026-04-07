@@ -44,7 +44,7 @@ import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFReadStreamStat
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFStreamOptionalFieldsCheck;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFStreamRequiredFieldsCheck;
 import net.openid.conformance.openid.ssf.variant.SsfDeliveryMode;
-import net.openid.conformance.openid.ssf.variant.SsfProfile;
+import net.openid.conformance.testmodule.TestFailureException;
 import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.testmodule.PublishTestModule;
 
@@ -132,6 +132,12 @@ public class OIDSSFTransmitterStreamCaepInteropTest extends AbstractOIDSSFTransm
 				eventLog.log("Skipping Read Stream Status: status_endpoint missing in ssf-configuration", args());
 			}
 		});
+
+		String verificationEndpoint = env.getString("ssf", "transmitter_metadata.verification_endpoint");
+		if (verificationEndpoint == null) {
+			throw new TestFailureException(getId(), "Transmitter metadata does not include a verification_endpoint, "
+				+ "which is required by the CAEP Interop Profile (CAEPIOP-2.3.6).");
+		}
 
 		eventLog.runBlock("Trigger Stream Verification", () -> {
 			callAndStopOnFailure(OIDSSFTriggerVerificationEvent.class, "OIDSSF-8.1.4.2", "CAEPIOP-2.3.8.2");

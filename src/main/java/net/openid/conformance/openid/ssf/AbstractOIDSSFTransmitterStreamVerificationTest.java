@@ -26,6 +26,7 @@ import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFCheckTransmitt
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFCreateStreamConditionSequence;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFDeleteStreamConfigCall;
 import net.openid.conformance.openid.ssf.variant.SsfAuthMode;
+import net.openid.conformance.testmodule.TestFailureException;
 import net.openid.conformance.openid.ssf.variant.SsfDeliveryMode;
 import net.openid.conformance.openid.ssf.variant.SsfProfile;
 import net.openid.conformance.openid.ssf.variant.SsfServerMetadata;
@@ -56,6 +57,18 @@ public abstract class AbstractOIDSSFTransmitterStreamVerificationTest extends Ab
 			fetchTransmitterMetadata();
 			callAndStopOnFailure(FetchServerKeys.class);
 		});
+
+		String verificationEndpoint = env.getString("ssf", "transmitter_metadata.verification_endpoint");
+		if (verificationEndpoint == null) {
+			if (isSsfProfileEnabled(SsfProfile.CAEP_INTEROP)) {
+				throw new TestFailureException(getId(), "Transmitter metadata does not include a verification_endpoint, "
+					+ "which is required by the CAEP Interop Profile (CAEPIOP-2.3.6).");
+			}
+			eventLog.log(getName(), "Skipping verification: transmitter metadata does not include a verification_endpoint. "
+				+ "The SSF specification defines verification_endpoint as optional (OIDSSF-7.2.3).");
+			fireTestFinished();
+			return;
+		}
 
 		eventLog.runBlock("Validate TLS Connection", this::validateTlsConnection);
 
