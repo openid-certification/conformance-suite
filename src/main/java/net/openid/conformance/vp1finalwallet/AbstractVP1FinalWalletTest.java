@@ -489,7 +489,7 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 			}
 
 			callAndStopOnFailure(ExtractDCQLQueryFromClientConfiguration.class);
-			callAndContinueOnFailure(ValidateDCQLQuery.class, ConditionResult.FAILURE, "OID4VP-1FINAL-6");
+			callAndContinueOnFailure(ValidateDCQLQuery.class, ConditionResult.FAILURE, "OID4VP-1FINAL-6", "OID4VP-1FINAL-6.1");
 			callAndContinueOnFailure(CheckForUnexpectedParametersInDcqlQuery.class, ConditionResult.WARNING, "OID4VP-1FINAL-6");
 			callAndStopOnFailure(AddDcqlToAuthorizationEndpointRequest.class);
 
