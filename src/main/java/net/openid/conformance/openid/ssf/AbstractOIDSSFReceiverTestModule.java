@@ -7,7 +7,6 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIsAnyOf;
-import net.openid.conformance.condition.client.WaitForOneSecond;
 import net.openid.conformance.condition.common.CheckIncomingRequestMethodIsGet;
 import net.openid.conformance.openid.ssf.conditions.OIDSSFGenerateServerJWKs;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFSecurityEvent;
@@ -505,7 +504,13 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 			for (var event : eventsBatch.events()) {
 				callAndContinueOnFailure(new OIDSSFHandlePushDeliveryToReceiver(streamId, event, AbstractOIDSSFReceiverTestModule.this::afterPushDeliverySuccess), Condition.ConditionResult.WARNING, "OIDSSF-6.1.1");
 				callAndContinueOnFailure(new EnsureHttpStatusCodeIsAnyOf(200, 202),  Condition.ConditionResult.WARNING, "OIDSSF-8.1.2.2");
-				callAndStopOnFailure(new WaitForOneSecond());
+				try {
+					Thread.sleep(1000);
+				} catch (InterruptedException e) {
+					// Test finished during the delay — exit gracefully
+					Thread.currentThread().interrupt();
+					return "done";
+				}
 			}
 
 			if (eventsBatch.moreAvailable()) {
