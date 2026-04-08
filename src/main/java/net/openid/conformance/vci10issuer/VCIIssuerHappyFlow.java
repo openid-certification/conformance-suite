@@ -52,8 +52,6 @@ public class VCIIssuerHappyFlow extends AbstractVCIIssuerTestModule {
 		refreshCredentialRequest();
 		addCompressionToNextRequest = false;
 
-		updateResourceRequest();
-
 		if (isDpop()) {
 			requestProtectedResourceUsingDpop();
 		} else {
