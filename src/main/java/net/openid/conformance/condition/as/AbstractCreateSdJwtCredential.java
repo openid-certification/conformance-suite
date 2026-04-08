@@ -3,7 +3,6 @@ package net.openid.conformance.condition.as;
 import com.authlete.sd.Disclosure;
 import com.authlete.sd.SDJWT;
 import com.authlete.sd.SDObjectBuilder;
-import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.nimbusds.jose.JOSEException;
@@ -18,10 +17,10 @@ import com.nimbusds.jose.produce.JWSSignerFactory;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import net.openid.conformance.condition.AbstractCondition;
+import net.openid.conformance.condition.client.DcqlQueryUtils;
 import net.openid.conformance.condition.client.ValidateSdJwtKbSdHash;
 import net.openid.conformance.extensions.MultiJWSSignerFactory;
 import net.openid.conformance.testmodule.Environment;
-import net.openid.conformance.testmodule.OIDFJSON;
 
 import java.security.NoSuchAlgorithmException;
 import java.text.ParseException;
@@ -31,7 +30,6 @@ import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -215,21 +213,7 @@ public abstract class AbstractCreateSdJwtCredential extends AbstractCondition {
 			return disclosures;
 		}
 
-		Set<String> requestedClaims = new HashSet<>();
-		JsonArray credentials = dcqlQuery.getAsJsonArray("credentials");
-		if (credentials != null) {
-			for (JsonElement credEl : credentials) {
-				JsonArray claimsArray = credEl.getAsJsonObject().getAsJsonArray("claims");
-				if (claimsArray != null) {
-					for (JsonElement claimEl : claimsArray) {
-						JsonArray path = claimEl.getAsJsonObject().getAsJsonArray("path");
-						if (path != null && !path.isEmpty() && path.get(0).isJsonPrimitive()) {
-							requestedClaims.add(OIDFJSON.getString(path.get(0)));
-						}
-					}
-				}
-			}
-		}
+		Set<String> requestedClaims = DcqlQueryUtils.extractRequestedClaimNames(dcqlQuery);
 
 		if (requestedClaims.isEmpty()) {
 			return disclosures;

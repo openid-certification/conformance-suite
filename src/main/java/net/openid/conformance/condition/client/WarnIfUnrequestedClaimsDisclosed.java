@@ -1,7 +1,6 @@
 package net.openid.conformance.condition.client;
 
 import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import net.openid.conformance.condition.AbstractCondition;
@@ -10,20 +9,12 @@ import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
 /**
  * Checks data minimization: warns if the wallet disclosed selectively-disclosable
  * claims that were not requested in the DCQL query.
- *
- * Only checks selectively disclosed claims (from sdjwt.disclosures), not
- * non-selectively-disclosed claims like iat, exp, vct, cnf which always appear
- * in the credential JWT regardless of the query.
- *
- * This is a WARNING because some wallets may not support per-claim selective
- * disclosure and may disclose all claims from a matching credential.
  */
 public class WarnIfUnrequestedClaimsDisclosed extends AbstractCondition {
 
@@ -33,42 +24,24 @@ public class WarnIfUnrequestedClaimsDisclosed extends AbstractCondition {
 
 		String credentialId = env.getString("credential_id");
 		JsonObject dcqlQuery = env.getObject("dcql_query");
+		JsonObject matchingCredential = DcqlQueryUtils.findCredentialById(dcqlQuery, credentialId);
 
-		// Find the matching DCQL credential entry
-		Set<String> requestedClaims = new HashSet<>();
-		JsonArray credentials = dcqlQuery.getAsJsonArray("credentials");
-		if (credentials != null) {
-			for (JsonElement credEl : credentials) {
-				JsonObject cred = credEl.getAsJsonObject();
-				if (cred.has("id") && credentialId.equals(OIDFJSON.getString(cred.get("id")))) {
-					JsonArray claimsArray = cred.getAsJsonArray("claims");
-					if (claimsArray != null) {
-						for (JsonElement claimEl : claimsArray) {
-							JsonArray path = claimEl.getAsJsonObject().getAsJsonArray("path");
-							if (path != null && !path.isEmpty()) {
-								JsonElement first = path.get(0);
-								if (first.isJsonPrimitive() && first.getAsJsonPrimitive().isString()) {
-									requestedClaims.add(OIDFJSON.getString(first));
-								}
-							}
-						}
-					}
-					break;
-				}
-			}
-		}
+		Set<String> requestedClaims = matchingCredential != null
+			? DcqlQueryUtils.extractClaimNamesFromCredential(matchingCredential)
+			: Set.of();
 
 		if (requestedClaims.isEmpty()) {
 			log("No claims were requested in the DCQL query, skipping data minimization check");
 			return env;
 		}
 
-		// Check each selective disclosure against the requested claims
 		JsonArray disclosures = env.getElementFromObject("sdjwt", "disclosures").getAsJsonArray();
 		List<String> unrequestedDisclosures = new ArrayList<>();
-		for (JsonElement disclosureEl : disclosures) {
+		for (var disclosureEl : disclosures) {
 			JsonArray disclosure = JsonParser.parseString(OIDFJSON.getString(disclosureEl)).getAsJsonArray();
-			if (disclosure.size() >= 2) {
+			// Object property disclosures have 3 elements: [salt, claimName, value]
+			// Array element disclosures have 2 elements: [salt, value] — skip these
+			if (disclosure.size() >= 3) {
 				String claimName = OIDFJSON.getString(disclosure.get(1));
 				if (!requestedClaims.contains(claimName)) {
 					unrequestedDisclosures.add(claimName);
