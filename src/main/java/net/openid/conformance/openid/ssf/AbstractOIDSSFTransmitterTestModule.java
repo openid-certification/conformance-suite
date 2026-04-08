@@ -307,7 +307,7 @@ public class AbstractOIDSSFTransmitterTestModule extends AbstractOIDSSFTestModul
 				return pushRequest;
 			}
 
-			eventLog.log(getName(), "Processing recorded ssf-push endpoint request with id" + pushRequest.id());
+			eventLog.log(getName(), "Processing recorded ssf-push endpoint request with id: " + pushRequest.id());
 			env.putObject("ssf", "push_request", pushRequest.requestParts());
 			onPushDeliveryReceived(pushRequest.path(), pushRequest.requestParts());
 
