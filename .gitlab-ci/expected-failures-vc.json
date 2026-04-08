@@ -196,5 +196,32 @@
         "condition": "EnsureHttpStatusCodeIs4xx",
         "expected-result": "failure",
         "comment": "The paired wallet test does not perform KB-JWT iat validation so returns 200 instead of 4xx"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-attempt-reuse-authorization-code-after-one-second",
+        "variant": "*",
+        "configuration-filename": "authlete-vci-haip.json",
+        "current-block": "Testing if access token was revoked after authorization code reuse (the AS 'should' have revoked the access token)",
+        "condition": "EnsureHttpStatusCodeIs4xx",
+        "expected-result": "warning",
+        "comment": "Known case where Authlete doesn't implement a 'should' - access token not revoked after authorization code reuse"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-refresh-token",
+        "variant": "*",
+        "configuration-filename": "authlete-vci-haip.json",
+        "current-block": "Attempting to use an DPOP sender constrained refresh_token without proof of possession",
+        "condition": "ValidateErrorFromTokenEndpointResponseError",
+        "expected-result": "failure",
+        "comment": "Authlete VCI doesn't enforce DPoP on refresh token requests"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-dpop-negative-tests",
+        "variant": "*",
+        "configuration-filename": "authlete-vci-haip.json",
+        "current-block": "DPoP reuse, Second use of the same jti, this 'should' fail",
+        "condition": "EnsureHttpStatusCodeIs400or401",
+        "expected-result": "warning",
+        "comment": "Authlete doesn't support jti uniqueness"
     }
 ]
