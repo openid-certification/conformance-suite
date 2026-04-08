@@ -26,6 +26,7 @@ public class ValidateRequestObjectAudForVP extends AbstractCondition {
 			throw error("Missing aud claim in request object");
 		}
 
+		// base_url is optional — if not set, only self-issued.me/v2 is accepted
 		String verifierUrl = env.getString("base_url");
 
 		if (aud.isJsonArray()) {
