@@ -16,7 +16,7 @@ import java.util.UUID;
 public class CreateClientAttestationProofJwt extends AbstractSignJWT {
 
 	@Override
-	@PreEnvironment(required = {"vci", "config", "client"})
+	@PreEnvironment(required = {"server", "config", "client"})
 	public Environment evaluate(Environment env) {
 
 		// this must be the authorization server issuer
@@ -31,7 +31,7 @@ public class CreateClientAttestationProofJwt extends AbstractSignJWT {
 			throw error("Client ID must not be null or empty");
 		}
 
-		String clientInstanceKey = env.getString("vci", "client_instance_key");
+		String clientInstanceKey = env.getString("client", "client_instance_key");
 		if (clientInstanceKey == null) {
 			throw error("clientInstanceKey could not be found");
 		}

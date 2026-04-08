@@ -21,7 +21,7 @@ public class ReplaceClientInstanceKeyWithNewKey extends AbstractGenerateKey {
 		JWK newKey = createJwkForAlg("ES256");
 
 		String originalThumbprint = null;
-		String originalKeyJson = env.getString("vci", "client_instance_key");
+		String originalKeyJson = env.getString("client", "client_instance_key");
 		if (originalKeyJson != null) {
 			try {
 				originalThumbprint = JWK.parse(originalKeyJson).computeThumbprint().toString();
@@ -32,7 +32,7 @@ public class ReplaceClientInstanceKeyWithNewKey extends AbstractGenerateKey {
 
 		// Replace only the private key used for PoP signing; leave client_instance_key_public
 		// unchanged so the attestation JWT's cnf.jwk still references the original key.
-		env.putString("vci", "client_instance_key", newKey.toJSONString());
+		env.putString("client", "client_instance_key", newKey.toJSONString());
 
 		try {
 			logSuccess("Replaced client_instance_key with a fresh key that does not match the attested cnf.jwk",

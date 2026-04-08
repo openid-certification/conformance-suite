@@ -34,7 +34,7 @@ public class CreateClientAttestationJwt extends AbstractSignJWT {
 			throw error("client_attester_keys_jwks could not be found");
 		}
 
-		String clientInstanceKeyPublicString = env.getString("vci", "client_instance_key_public");
+		String clientInstanceKeyPublicString = env.getString("client", "client_instance_key_public");
 		if (clientInstanceKeyPublicString == null) {
 			throw error("client_instance_key_public could not be found");
 		}
@@ -69,7 +69,7 @@ public class CreateClientAttestationJwt extends AbstractSignJWT {
 
 	@Override
 	protected void logSuccessByJWTType(Environment env, JWTClaimsSet claimSet, JWK jwk, JWSHeader header, String jws, JsonObject verifiableObj) {
-		env.putString("client_attestation", jws);
+		env.putString("client", "client_attestation", jws);
 		logSuccess("Generated the Client Attestation JWT", args("client_attestation", verifiableObj));
 	}
 }

@@ -1,6 +1,5 @@
 package net.openid.conformance.vci10issuer.condition.clientattestation;
 
-import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.condition.common.AbstractInvalidateJwsSignature;
 import net.openid.conformance.testmodule.Environment;
@@ -15,9 +14,14 @@ import net.openid.conformance.testmodule.Environment;
 public class VCIInvalidateClientAttestationSignature extends AbstractInvalidateJwsSignature {
 
 	@Override
-	@PreEnvironment(strings = "client_attestation")
-	@PostEnvironment(strings = "client_attestation")
+	@PreEnvironment(required = "client")
 	public Environment evaluate(Environment env) {
-		return invalidateSignature(env, "client_attestation");
+
+		String jwtString = env.getString("client", "client_attestation");
+		String invalidJwtString = invalidateSignatureString("client_attestation", jwtString);
+		env.putString("client", "client_attestation", invalidJwtString);
+		log("Made the client_attestation signature invalid", args("client_attestation", invalidJwtString));
+
+		return env;
 	}
 }
