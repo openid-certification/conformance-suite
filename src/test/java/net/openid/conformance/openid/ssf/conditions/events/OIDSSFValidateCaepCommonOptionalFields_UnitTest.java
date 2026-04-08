@@ -118,6 +118,42 @@ public class OIDSSFValidateCaepCommonOptionalFields_UnitTest {
 	}
 
 	@Test
+	void shouldFailWithEmptyReasonAdmin() {
+		JsonObject data = new JsonObject();
+		data.add("reason_admin", new JsonObject());
+		setUpCaepEvent(data);
+		assertThrows(ConditionError.class, () -> condition.execute(env));
+	}
+
+	@Test
+	void shouldFailWithNonStringReasonAdminValue() {
+		JsonObject data = new JsonObject();
+		JsonObject reason = new JsonObject();
+		reason.addProperty("en", 123);
+		data.add("reason_admin", reason);
+		setUpCaepEvent(data);
+		assertThrows(ConditionError.class, () -> condition.execute(env));
+	}
+
+	@Test
+	void shouldFailWithEmptyReasonUser() {
+		JsonObject data = new JsonObject();
+		data.add("reason_user", new JsonObject());
+		setUpCaepEvent(data);
+		assertThrows(ConditionError.class, () -> condition.execute(env));
+	}
+
+	@Test
+	void shouldFailWithNonStringReasonUserValue() {
+		JsonObject data = new JsonObject();
+		JsonObject reason = new JsonObject();
+		reason.addProperty("en", true);
+		data.add("reason_user", reason);
+		setUpCaepEvent(data);
+		assertThrows(ConditionError.class, () -> condition.execute(env));
+	}
+
+	@Test
 	void shouldPassWithAllValidOptionalFields() {
 		JsonObject data = new JsonObject();
 		data.addProperty("event_timestamp", 1700000000L);

@@ -7,6 +7,7 @@ import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -75,6 +76,17 @@ public class OIDSSFValidateCaepCommonOptionalFields extends AbstractCondition {
 		if (!el.isJsonObject()) {
 			throw error(fieldName + " MUST be a JSON object with BCP47 language tags as keys",
 				args("event_type", eventType, fieldName, el));
+		}
+		JsonObject reasonObj = el.getAsJsonObject();
+		if (reasonObj.isEmpty()) {
+			throw error(fieldName + " MUST contain at least one BCP47-tagged message",
+				args("event_type", eventType, fieldName, reasonObj));
+		}
+		for (Map.Entry<String, JsonElement> entry : reasonObj.entrySet()) {
+			if (!entry.getValue().isJsonPrimitive() || !entry.getValue().getAsJsonPrimitive().isString()) {
+				throw error(fieldName + " values MUST be strings (localized messages)",
+					args("event_type", eventType, "key", entry.getKey(), "value", entry.getValue(), fieldName, reasonObj));
+			}
 		}
 	}
 }
