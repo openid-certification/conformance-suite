@@ -22,7 +22,7 @@ import java.util.Set;
  */
 public class OIDSSFExtractCaepEventData extends AbstractCondition {
 
-	@PreEnvironment(required = {"set_token"})
+	@PreEnvironment(required = {"set_token", "ssf"})
 	@Override
 	public Environment evaluate(Environment env) {
 
