@@ -14,7 +14,7 @@ public class AddClientAttestationHeaderToRequest extends AbstractCondition {
 		}
 
 		JsonObject o = env.getObject("request_headers");
-		String clientAttestation = env.getString("client_attestation");
+		String clientAttestation = env.getString("client", "client_attestation");
 		o.addProperty("OAuth-Client-Attestation", clientAttestation);
 
 		// OAuth-Client-Attestation:  A JWT that conforms to the structure and
