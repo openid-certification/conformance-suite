@@ -478,9 +478,6 @@ public abstract class AbstractFAPI2SPFinalServerTestModule extends AbstractRedir
 		configureClient();
 		setupResourceEndpoint();
 
-		call(profileBehavior.configureClientExtra());
-		call(profileBehavior.configureClientAttestation());
-
 		// Perform any custom configuration
 		onConfigure(config, baseUrl);
 
@@ -513,6 +510,9 @@ public abstract class AbstractFAPI2SPFinalServerTestModule extends AbstractRedir
 			callAndContinueOnFailure(ExtractMTLSCertificatesFromConfiguration.class, Condition.ConditionResult.FAILURE);
 		}
 
+		call(profileBehavior.configureClientExtra());
+		call(profileBehavior.configureClientAttestation());
+
 		validateClientConfiguration();
 	}
 
@@ -531,6 +531,9 @@ public abstract class AbstractFAPI2SPFinalServerTestModule extends AbstractRedir
 			callAndContinueOnFailure(ValidateMTLSCertificates2Header.class, Condition.ConditionResult.WARNING);
 			callAndContinueOnFailure(ExtractMTLSCertificates2FromConfiguration.class, Condition.ConditionResult.FAILURE);
 		}
+
+		call(profileBehavior.configureClientExtra());
+		call(profileBehavior.configureClientAttestation());
 
 		validateClientConfiguration();
 

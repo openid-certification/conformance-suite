@@ -169,6 +169,9 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractFAPI2SPFinalSe
 			setupHaipClients();
 		}
 
+		call(profileBehavior.configureClientExtra());
+		call(profileBehavior.configureClientAttestation());
+
 		validateClientConfiguration();
 	}
 
