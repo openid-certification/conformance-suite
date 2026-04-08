@@ -14,8 +14,7 @@ public class OIDSSFVerifySignatureOfVerificationEventToken extends AbstractVerif
 		String tokenString = env.getString("ssf", "verification.jwt");
 
 		JsonObject serverJwks = env.getObject("server_jwks"); // to validate the signature
-		verifyJwsSignature(tokenString, serverJwks, "SET", false, "server");
-		logSuccess("Signature of verification SET is valid", args("token", tokenString));
+		verifyJwsSignature(tokenString, serverJwks, "verification SET", false, "server");
 
 		return env;
 	}
