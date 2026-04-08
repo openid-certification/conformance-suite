@@ -36,6 +36,7 @@ import net.openid.conformance.vci10issuer.condition.VCIExtractCredentialResponse
 import net.openid.conformance.vci10issuer.condition.VCIExtractTlsInfoFromCredentialIssuer;
 import net.openid.conformance.vci10issuer.condition.VCIFetchOAuthorizationServerMetadata;
 import net.openid.conformance.vci10issuer.condition.VCIGenerateAttestationProof;
+import net.openid.conformance.vci10issuer.condition.VCIGenerateClientJwksIfMissing;
 import net.openid.conformance.vci10issuer.condition.VCIGenerateJwtProof;
 import net.openid.conformance.vci10issuer.condition.VCIGenerateKeyAttestationIfNecessary;
 import net.openid.conformance.vci10issuer.condition.VCIGetDynamicCredentialIssuerMetadata;
@@ -169,6 +170,7 @@ public class VCIProfileBehavior extends FAPI2ProfileBehavior {
 		return new AbstractConditionSequence() {
 			@Override
 			public void evaluate() {
+				callAndStopOnFailure(VCIGenerateClientJwksIfMissing.class);
 				// VCI-specific validation that allows multiple signing keys for attestation proof type
 				callAndStopOnFailure(VCIValidateClientJWKsPrivatePart.class, "RFC7517-1.1");
 			}
