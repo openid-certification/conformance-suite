@@ -919,9 +919,5 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractFAPI2SPFinalSe
 		env.mapKey("client", "client2");
 		env.mapKey("client_jwks", "client_jwks2");
 		env.mapKey("mutual_tls_authentication", "mutual_tls_authentication2");
-
-		if (env.getString("config", "client.scope") != null && env.getString("client", "scope") == null) {
-			env.putString("client", "scope", env.getString("config", "client.scope"));
-		}
 	}
 }
