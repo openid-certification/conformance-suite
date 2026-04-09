@@ -128,7 +128,7 @@ public class AbstractOIDSSFTransmitterTestModule extends AbstractOIDSSFTestModul
 	}
 
 	protected String generatePushAuthorizationHeader() {
-		return "push_token_" + UUID.randomUUID();
+		return "Bearer push_token_" + UUID.randomUUID();
 	}
 
 	@Override
