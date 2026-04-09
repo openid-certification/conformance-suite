@@ -78,7 +78,6 @@ public class OIDSSFStreamSubjectControlHappyPathTest extends AbstractOIDSSFTrans
 
 		// ensure stream exists
 		eventLog.runBlock("Create Stream Configuration", () -> {
-			SsfDeliveryMode deliveryMode = getVariant(SsfDeliveryMode.class);
 			env.putString("ssf", "delivery_method", deliveryMode.getAlias());
 
 			call(sequence(OIDSSFCreateStreamConditionSequence.class));
