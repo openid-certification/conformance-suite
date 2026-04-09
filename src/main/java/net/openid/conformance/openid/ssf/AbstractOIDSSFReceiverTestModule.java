@@ -503,7 +503,10 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 			// TODO handle SSF PUSH retry???
 			for (var event : eventsBatch.events()) {
 				callAndContinueOnFailure(new OIDSSFHandlePushDeliveryToReceiver(streamId, event, AbstractOIDSSFReceiverTestModule.this::afterPushDeliverySuccess), Condition.ConditionResult.WARNING, "OIDSSF-6.1.1");
-				callAndContinueOnFailure(new EnsureHttpStatusCodeIsAnyOf(200, 202),  Condition.ConditionResult.WARNING, "OIDSSF-8.1.2.2");
+				// RFC 8935 §2.2: "the SET Recipient SHALL acknowledge successful
+				// transmission by responding with HTTP Response Status Code 202 (Accepted)."
+				// SHALL → FAILURE severity per the conformance-suite convention.
+				callAndContinueOnFailure(new EnsureHttpStatusCodeIsAnyOf(202), Condition.ConditionResult.FAILURE, "RFC8935-2.2");
 				try {
 					Thread.sleep(1000);
 				} catch (InterruptedException e) {
