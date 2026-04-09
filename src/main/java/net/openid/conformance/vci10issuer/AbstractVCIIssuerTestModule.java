@@ -67,18 +67,14 @@ import net.openid.conformance.vci10issuer.condition.CheckCacheControlHeaderConta
 import net.openid.conformance.vci10issuer.condition.VCIAddCredentialResponseEncryptionToRequest;
 import net.openid.conformance.sequence.client.ValidateSdJwtVcCredentialClaims;
 import net.openid.conformance.vci10issuer.condition.VCICheckForDeferredCredentialResponse;
-import net.openid.conformance.vci10issuer.condition.VCICheckKeyAttestationJwksIfKeyAttestationIsRequired;
 import net.openid.conformance.vci10issuer.condition.VCICreateCredentialRequest;
 import net.openid.conformance.vci10issuer.condition.VCICreateDeferredCredentialRequest;
 import net.openid.conformance.vci10issuer.condition.VCICreateNotificationRequest;
 import net.openid.conformance.vci10issuer.condition.VCICreateTokenEndpointRequestForPreAuthorizedCodeGrant;
 import net.openid.conformance.vci10issuer.condition.VCIDecryptCredentialResponse;
-import net.openid.conformance.vci10issuer.condition.VCIDetermineCredentialConfigurationTransferMethod;
 import net.openid.conformance.vci10issuer.condition.VCIEnsureCredentialResponseIsEncryptedJwe;
 import net.openid.conformance.vci10issuer.condition.VCIEnsureCredentialResponseIsNotAnEncryptedJwe;
 import net.openid.conformance.vci10issuer.condition.VCIEnsureIntervalPresentInDeferredResponse;
-import net.openid.conformance.vci10issuer.condition.VCIEnsureResolvedCredentialConfigurationMatchesSelection;
-import net.openid.conformance.vci10issuer.condition.VCIEnsureScopePresentInCredentialConfigurationForHaip;
 import net.openid.conformance.vci10issuer.condition.VCIExtractCredentialResponse;
 import net.openid.conformance.vci10issuer.condition.VCIExtractNotificationIdFromCredentialResponse;
 import net.openid.conformance.vci10issuer.condition.VCIExtractPreAuthorizedCodeAndTxCodeFromCredentialOffer;
@@ -90,10 +86,8 @@ import net.openid.conformance.vci10issuer.condition.VCIGenerateCredentialEncrypt
 import net.openid.conformance.vci10issuer.condition.VCIGenerateJwtProof;
 import net.openid.conformance.vci10issuer.condition.VCIGenerateKeyAttestationIfNecessary;
 import net.openid.conformance.vci10issuer.condition.VCIGenerateRichAuthorizationRequestForCredential;
-import net.openid.conformance.vci10issuer.condition.VCIResolveCredentialProofTypeToUse;
 import net.openid.conformance.vci10issuer.condition.VCIResolveDeferredCredentialEndpointToUse;
 import net.openid.conformance.vci10issuer.condition.VCIResolveNotificationEndpointToUse;
-import net.openid.conformance.vci10issuer.condition.VCIResolveRequestedCredentialConfiguration;
 import net.openid.conformance.vci10issuer.condition.VCITryAddingIssuerStateToAuthorizationRequest;
 import net.openid.conformance.vci10issuer.condition.VCITryToExtractIssuerStateFromCredentialOffer;
 import net.openid.conformance.vci10issuer.condition.VCIUseStaticTxCodeFromConfig;
@@ -175,6 +169,9 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractFAPI2SPFinalSe
 			setupHaipClients();
 		}
 
+		call(profileBehavior.configureClientExtra());
+		call(profileBehavior.configureClientAttestation());
+
 		validateClientConfiguration();
 	}
 
@@ -201,9 +198,6 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractFAPI2SPFinalSe
 			}
 		}
 
-		// Resolve credential configuration
-		determineCredentialConfigurationTransferMethod();
-
 		// Store credential_resource_url for later use (before notification/deferred endpoints may overwrite it)
 		env.putString("credential_resource_url", env.getString("resource", "resourceUrl"));
 
@@ -218,36 +212,6 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractFAPI2SPFinalSe
 			}
 			afterClientAttestationGenerated();
 		}
-	}
-
-	protected void determineCredentialConfigurationTransferMethod() {
-
-		resolveCredentialConfigurationId();
-
-		// HAIP requires scope to be present for every credential configuration
-		if (fapi2Profile == FAPI2FinalOPProfile.VCI_HAIP) {
-			callAndContinueOnFailure(VCIEnsureScopePresentInCredentialConfigurationForHaip.class, ConditionResult.FAILURE, "HAIP-4.1", "HAIP-4.3");
-		}
-
-		callAndStopOnFailure(VCIDetermineCredentialConfigurationTransferMethod.class, ConditionResult.FAILURE);
-		callAndStopOnFailure(VCIResolveCredentialProofTypeToUse.class, ConditionResult.FAILURE);
-
-		// Only check key attestation if cryptographic binding is required
-		Boolean requiresCryptographicBinding = env.getBoolean("vci_requires_cryptographic_binding");
-		if (requiresCryptographicBinding != null && requiresCryptographicBinding) {
-			callAndStopOnFailure(VCICheckKeyAttestationJwksIfKeyAttestationIsRequired.class, ConditionResult.FAILURE);
-		}
-	}
-
-	protected void resolveCredentialConfigurationId() {
-		String vciCredentialConfigurationId = env.getString("config", "vci.credential_configuration_id");
-		if (vciCredentialConfigurationId == null || vciCredentialConfigurationId.isBlank()) {
-			throw new TestFailureException(getId(), "credential_configuration_id cannot be null or empty!");
-		}
-		exposeEnvString("credential_configuration_id", "config", "vci.credential_configuration_id");
-		env.putString("vci_credential_configuration_id", vciCredentialConfigurationId);
-		callAndStopOnFailure(VCIResolveRequestedCredentialConfiguration.class, ConditionResult.FAILURE);
-		callAndStopOnFailure(new VCIEnsureResolvedCredentialConfigurationMatchesSelection(vciCredentialFormat));
 	}
 
 	protected void generateClientAttestationKeys() {
@@ -958,9 +922,5 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractFAPI2SPFinalSe
 		env.mapKey("client", "client2");
 		env.mapKey("client_jwks", "client_jwks2");
 		env.mapKey("mutual_tls_authentication", "mutual_tls_authentication2");
-
-		if (env.getString("config", "client.scope") != null && env.getString("client", "scope") == null) {
-			env.putString("client", "scope", env.getString("config", "client.scope"));
-		}
 	}
 }

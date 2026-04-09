@@ -6,13 +6,10 @@ import net.openid.conformance.condition.client.CheckDiscEndpointDiscoveryUrl;
 import net.openid.conformance.condition.client.CheckDiscEndpointIssuer;
 import net.openid.conformance.condition.client.CheckDiscEndpointRegistrationEndpoint;
 import net.openid.conformance.condition.client.CheckDiscEndpointTokenEndpoint;
-import net.openid.conformance.condition.client.CheckDiscEndpointTokenEndpointAuthMethodsSupportedContainsPrivateKeyOrTlsClient;
-import net.openid.conformance.condition.client.CheckDiscoveryEndpointReturnedJsonContentType;
 import net.openid.conformance.condition.client.CheckJwksUri;
 import net.openid.conformance.condition.client.CheckOauthDiscEndpointDiscoveryUrl;
 import net.openid.conformance.condition.client.CheckOauthDiscEndpointIssuer;
 import net.openid.conformance.condition.client.CheckTLSClientCertificateBoundAccessTokensTrue;
-import net.openid.conformance.condition.client.EnsureDiscoveryEndpointResponseStatusCodeIs200;
 import net.openid.conformance.condition.client.EnsureServerConfigurationSupportsCodeChallengeMethodS256;
 import net.openid.conformance.condition.client.EnsureServerConfigurationSupportsMTLS;
 import net.openid.conformance.condition.client.EnsureServerConfigurationSupportsPrivateKeyJwt;
@@ -20,8 +17,6 @@ import net.openid.conformance.condition.client.FAPI2CheckDiscEndpointIdTokenSign
 import net.openid.conformance.condition.client.FAPI2CheckDiscEndpointTokenEndpointAuthSigningAlgValuesSupported;
 import net.openid.conformance.condition.client.FAPI2CheckDiscEndpointUserinfoSigningAlgValuesSupported;
 import net.openid.conformance.condition.client.FAPI2CheckDpopSigningAlgValuesSupported;
-import net.openid.conformance.condition.client.GetDynamicServerConfiguration;
-import net.openid.conformance.condition.client.GetOauthDynamicServerConfiguration;
 import net.openid.conformance.sequence.AbstractConditionSequence;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.sequence.client.SupportMTLSEndpointAliases;
@@ -44,10 +39,12 @@ public abstract class AbstractFAPI2SPFinalDiscoveryEndpointVerification extends 
 	protected Boolean jarm;
 	protected Boolean isOpenId;
 	private Class<? extends ConditionSequence> variantAuthChecks;
-	private Class<? extends ConditionSequence> supportMTLSEndpointAliases;
+	protected Class<? extends ConditionSequence> supportMTLSEndpointAliases;
 
 	protected Boolean isDpop;
 	protected boolean clientCredentialsGrant = false;
+
+	protected FAPI2ProfileBehavior profileBehavior = new FAPI2ProfileBehavior();
 
 	public static class MtlsChecks extends AbstractConditionSequence
 	{
@@ -76,16 +73,14 @@ public abstract class AbstractFAPI2SPFinalDiscoveryEndpointVerification extends 
 
 		jarm = getVariant(FAPIResponseMode.class) == FAPIResponseMode.JARM;
 		isOpenId = getVariant(FAPIOpenIDConnect.class) == FAPIOpenIDConnect.OPENID_CONNECT;
-		String specRequirements = "OIDCD-4";
 
-		if(isOpenId) {
-			callAndStopOnFailure(GetDynamicServerConfiguration.class);
-		} else {
-			callAndStopOnFailure(GetOauthDynamicServerConfiguration.class);
-			specRequirements = "RFC8414-3.2";
+		ConditionSequence fetchSequence = profileBehavior.discoveryFetchServerConfiguration(isOpenId);
+		call(fetchSequence);
+
+		ConditionSequence afterFetchSequence = profileBehavior.discoveryAfterServerConfigurationFetched();
+		if (afterFetchSequence != null) {
+			call(afterFetchSequence);
 		}
-		callAndContinueOnFailure(EnsureDiscoveryEndpointResponseStatusCodeIs200.class, Condition.ConditionResult.FAILURE, specRequirements);
-		callAndContinueOnFailure(CheckDiscoveryEndpointReturnedJsonContentType.class, Condition.ConditionResult.FAILURE, specRequirements);
 
 		if (supportMTLSEndpointAliases != null) {
 			call(sequence(supportMTLSEndpointAliases));
@@ -116,7 +111,7 @@ public abstract class AbstractFAPI2SPFinalDiscoveryEndpointVerification extends 
 			callAndContinueOnFailure(FAPI2CheckDiscEndpointIdTokenSigningAlgValuesSupported.class, Condition.ConditionResult.FAILURE, "FAPI2-SP-FINAL-5.4-1");
 		}
 
-		callAndContinueOnFailure(CheckDiscEndpointTokenEndpointAuthMethodsSupportedContainsPrivateKeyOrTlsClient.class, Condition.ConditionResult.FAILURE, "FAPI2-SP-FINAL-5.3.2.1-6");
+		callAndContinueOnFailure(profileBehavior.getDiscoveryTokenEndpointAuthMethodsCheck(), Condition.ConditionResult.FAILURE, "FAPI2-SP-FINAL-5.3.2.1-6");
 		callAndContinueOnFailure(FAPI2CheckDiscEndpointTokenEndpointAuthSigningAlgValuesSupported.class, Condition.ConditionResult.FAILURE, "FAPI2-SP-FINAL-5.4-1");
 
 		if (! clientCredentialsGrant) {
@@ -173,6 +168,19 @@ public abstract class AbstractFAPI2SPFinalDiscoveryEndpointVerification extends 
 
 		if (getVariant(FAPI2SenderConstrainMethod.class) == FAPI2SenderConstrainMethod.MTLS) {
 			supportMTLSEndpointAliases = SupportMTLSEndpointAliases.class;
+		}
+	}
+
+	@VariantSetup(parameter = ClientAuthType.class, value = "client_attestation")
+	public void setupClientAttestation() {
+		// Client attestation has no specific discovery checks
+		variantAuthChecks = NoOpChecks.class;
+	}
+
+	public static class NoOpChecks extends AbstractConditionSequence {
+		@Override
+		public void evaluate() {
+			// no additional checks
 		}
 	}
 

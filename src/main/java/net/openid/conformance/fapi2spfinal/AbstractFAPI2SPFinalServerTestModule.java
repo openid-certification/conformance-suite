@@ -133,6 +133,7 @@ import net.openid.conformance.sequence.client.PerformStandardIdTokenChecks;
 import net.openid.conformance.sequence.client.SetupPkceAndAddToAuthorizationRequest;
 import net.openid.conformance.sequence.client.SupportMTLSEndpointAliases;
 import net.openid.conformance.testmodule.AbstractRedirectServerTestModule;
+import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.TestFailureException;
 import net.openid.conformance.variant.AuthorizationRequestType;
 import net.openid.conformance.variant.ClientAuthType;
@@ -477,9 +478,6 @@ public abstract class AbstractFAPI2SPFinalServerTestModule extends AbstractRedir
 		configureClient();
 		setupResourceEndpoint();
 
-		call(profileBehavior.configureClientExtra());
-		call(profileBehavior.configureClientAttestation());
-
 		// Perform any custom configuration
 		onConfigure(config, baseUrl);
 
@@ -512,6 +510,9 @@ public abstract class AbstractFAPI2SPFinalServerTestModule extends AbstractRedir
 			callAndContinueOnFailure(ExtractMTLSCertificatesFromConfiguration.class, Condition.ConditionResult.FAILURE);
 		}
 
+		call(profileBehavior.configureClientExtra());
+		call(profileBehavior.configureClientAttestation());
+
 		validateClientConfiguration();
 	}
 
@@ -530,6 +531,9 @@ public abstract class AbstractFAPI2SPFinalServerTestModule extends AbstractRedir
 			callAndContinueOnFailure(ValidateMTLSCertificates2Header.class, Condition.ConditionResult.WARNING);
 			callAndContinueOnFailure(ExtractMTLSCertificates2FromConfiguration.class, Condition.ConditionResult.FAILURE);
 		}
+
+		call(profileBehavior.configureClientExtra());
+		call(profileBehavior.configureClientAttestation());
 
 		validateClientConfiguration();
 
@@ -1148,6 +1152,20 @@ public abstract class AbstractFAPI2SPFinalServerTestModule extends AbstractRedir
 			return "Second client: ";
 		}
 		return "";
+	}
+
+	// --- Package-visible accessors for profile behavior classes ---
+
+	Environment getEnv() {
+		return env;
+	}
+
+	void doCallAndStopOnFailure(Class<? extends Condition> conditionClass, String... requirements) {
+		callAndStopOnFailure(conditionClass, requirements);
+	}
+
+	void doCallAndContinueOnFailure(Class<? extends Condition> conditionClass, Condition.ConditionResult onFail, String... requirements) {
+		callAndContinueOnFailure(conditionClass, onFail, requirements);
 	}
 
 	protected void switchToSecondClient() {

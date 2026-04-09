@@ -13,7 +13,7 @@ import java.util.List;
 public class VCIDetermineCredentialConfigurationTransferMethod extends AbstractCondition {
 
 	@Override
-	@PreEnvironment(required = {"config", "vci"})
+	@PreEnvironment(required = {"config", "vci", "client"})
 	public Environment evaluate(Environment env) {
 
 		// to emit credential_configuration_id
@@ -52,8 +52,10 @@ public class VCIDetermineCredentialConfigurationTransferMethod extends AbstractC
 
 		String credentialConfigurationScope = credentialConfigScopeMapping.get(vciCredentialConfigurationId);
 		if (credentialConfigurationScope != null) {
-			// force scope to be set to the scope from the credential_configuration
-			env.putString("config", "client.scope", credentialConfigurationScope);
+			// Set scope on the active client object from the credential_configuration.
+			// This runs per-client during configureClientExtra(), so both client and
+			// client2 get the correct scope when configureSecondClient() is used.
+			env.putString("client", "scope", credentialConfigurationScope);
 			logSuccess("Using credential scope value to reference credential_configuration_id", args("scope", credentialConfigurationScope, "credential_configuration_id", vciCredentialConfigurationId));
 		} else {
 			// if credential_configuration contains no scope -> use authorization_details to pass credential_configuration_id

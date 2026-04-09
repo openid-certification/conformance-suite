@@ -1,12 +1,16 @@
 package net.openid.conformance.fapi2spfinal;
 
+import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.condition.client.AddFAPIAuthDateToResourceEndpointRequest;
 import net.openid.conformance.condition.client.AddFAPIInteractionIdToResourceEndpointRequest;
 import net.openid.conformance.condition.client.AddIpV4FapiCustomerIpAddressToResourceEndpointRequest;
+import net.openid.conformance.condition.client.CheckDiscEndpointTokenEndpointAuthMethodsSupportedContainsPrivateKeyOrTlsClient;
+import net.openid.conformance.condition.client.CheckDiscoveryEndpointReturnedJsonContentType;
 import net.openid.conformance.condition.client.CheckForFAPIInteractionIdInResourceResponse;
 import net.openid.conformance.condition.client.CreateRandomFAPIInteractionId;
+import net.openid.conformance.condition.client.EnsureDiscoveryEndpointResponseStatusCodeIs200;
 import net.openid.conformance.condition.client.EnsureMatchingFAPIInteractionId;
 import net.openid.conformance.condition.client.FAPI2ValidateIdTokenSigningAlg;
 import net.openid.conformance.condition.client.GetDynamicServerConfiguration;
@@ -400,5 +404,46 @@ public class FAPI2ProfileBehavior {
 				callAndStopOnFailure(ValidateClientJWKsPrivatePart.class, "RFC7517-1.1");
 			}
 		};
+	}
+
+	/**
+	 * Return the condition class for checking that token_endpoint_auth_methods_supported
+	 * contains an acceptable auth method. Default requires private_key_jwt or tls_client_auth.
+	 * VCI overrides to also accept attest_jwt_client_auth.
+	 */
+	public Class<? extends AbstractCondition> getDiscoveryTokenEndpointAuthMethodsCheck() {
+		return CheckDiscEndpointTokenEndpointAuthMethodsSupportedContainsPrivateKeyOrTlsClient.class;
+	}
+
+	// --- Discovery endpoint verification methods ---
+
+	/**
+	 * Fetch and store server configuration for the discovery endpoint verification test.
+	 * Default fetches OIDC or OAuth server configuration and validates the response.
+	 * VCI overrides to fetch credential issuer metadata and derive the AS.
+	 */
+	public ConditionSequence discoveryFetchServerConfiguration(boolean isOpenId) {
+		return new AbstractConditionSequence() {
+			@Override
+			public void evaluate() {
+				String specRequirements = "OIDCD-4";
+				if (isOpenId) {
+					callAndStopOnFailure(GetDynamicServerConfiguration.class);
+				} else {
+					callAndStopOnFailure(GetOauthDynamicServerConfiguration.class);
+					specRequirements = "RFC8414-3.2";
+				}
+				callAndContinueOnFailure(EnsureDiscoveryEndpointResponseStatusCodeIs200.class, ConditionResult.FAILURE, specRequirements);
+				callAndContinueOnFailure(CheckDiscoveryEndpointReturnedJsonContentType.class, ConditionResult.FAILURE, specRequirements);
+			}
+		};
+	}
+
+	/**
+	 * Called after server configuration is fetched in the discovery endpoint verification test.
+	 * Default does nothing. VCI overrides to set discoveryUrl from the authorization server issuer.
+	 */
+	public ConditionSequence discoveryAfterServerConfigurationFetched() {
+		return null;
 	}
 }
