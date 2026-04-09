@@ -21,6 +21,7 @@ public class OIDSSFReceiverTestPlan implements TestPlan {
 		OIDSSFReceiverStreamCreateDeleteTest.class,
 		OIDSSFReceiverStreamStatusUpdateTest.class,
 		OIDSSFReceiverStreamVerificationTest.class,
+		OIDSSFReceiverUnsolicitedStreamVerificationTest.class,
 		OIDSSFReceiverSupportedEventsTest.class
 	);
 
