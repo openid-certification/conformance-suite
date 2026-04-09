@@ -2,6 +2,7 @@ package net.openid.conformance.openid.ssf;
 
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs401;
+import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFCreateAndDeleteStreamConditionSequence;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFDeleteStreamConfigCall;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFInjectInvalidAccessTokenOverride;
 import net.openid.conformance.testmodule.PublishTestModule;
@@ -16,6 +17,10 @@ public class OIDSSFStreamControlNegativeTestDeleteStreamWithInvalidAccessToken e
 
 	@Override
 	protected void testTransmitter() {
+
+		eventLog.runBlock("Create throw-away stream to collect valid but unknown stream_id", () -> {
+			call(sequence(OIDSSFCreateAndDeleteStreamConditionSequence.class));
+		});
 
 		// Expect 401	if authorization failed or it is missing
 		eventLog.runBlock("Delete Stream Configuration with invalid access token", () -> {

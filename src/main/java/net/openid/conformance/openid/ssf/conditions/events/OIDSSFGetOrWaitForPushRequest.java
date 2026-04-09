@@ -2,12 +2,10 @@ package net.openid.conformance.openid.ssf.conditions.events;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import net.openid.conformance.condition.AbstractCondition;
+import net.openid.conformance.condition.common.AbstractWaitForSpecifiedSeconds;
 import net.openid.conformance.testmodule.Environment;
 
-import java.util.concurrent.TimeUnit;
-
-public class OIDSSFGetOrWaitForPushRequest extends AbstractCondition {
+public class OIDSSFGetOrWaitForPushRequest extends AbstractWaitForSpecifiedSeconds {
 
 	@Override
 	public Environment evaluate(Environment env) {
@@ -36,21 +34,14 @@ public class OIDSSFGetOrWaitForPushRequest extends AbstractCondition {
 				}
 			}
 			log("Waiting for push request object");
-			waitSeconds(5);
+			super.evaluate(env);
 		}
 
 		return null;
 	}
 
-	protected void waitSeconds(int expectedWaitSeconds) {
-		logSuccess("Pausing for " + expectedWaitSeconds + " seconds");
-
-		try {
-			TimeUnit.SECONDS.sleep(expectedWaitSeconds);
-		} catch (InterruptedException e) {
-			throw new RuntimeException(e);
-		}
-
-		logSuccess("Woke up after " + expectedWaitSeconds + " seconds sleep");
+	@Override
+	protected long getExpectedWaitSeconds(Environment env) {
+		return 5;
 	}
 }

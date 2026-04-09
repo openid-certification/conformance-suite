@@ -19,7 +19,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 	profile = "OIDSSF"
 )
 @VariantNotApplicable(parameter = SsfDeliveryMode.class, values = "poll")
-public class OIDSSFTransmitterStreamVerificationPushNoAuthTest extends OIDSSFTransmitterStreamVerificationEventsTest {
+public class OIDSSFTransmitterStreamVerificationPushNoAuthTest extends OIDSSFTransmitterStreamVerificationPushTest {
 
 	@Override
 	protected String generatePushAuthorizationHeader() {

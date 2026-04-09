@@ -128,7 +128,7 @@ public class AbstractOIDSSFTransmitterTestModule extends AbstractOIDSSFTestModul
 	}
 
 	protected String generatePushAuthorizationHeader() {
-		return "push_token_" + UUID.randomUUID();
+		return "Bearer push_token_" + UUID.randomUUID();
 	}
 
 	@Override
@@ -274,8 +274,11 @@ public class AbstractOIDSSFTransmitterTestModule extends AbstractOIDSSFTestModul
 
 		if ("ssf-push".equals(path)) {
 			SSfPushRequest pushRequest = new SSfPushRequest(UUID.randomUUID().toString(), path, Instant.now(), req, res, requestParts);
-			eventLog.log(getName(), "Call to ssf-push endpoint with id" + pushRequest.id() + " captured and stored for later processing.");
-			pushRequests.push(pushRequest);
+			pushRequests.offerLast(pushRequest);
+
+			// Do NOT call eventLog.log() here — it is synchronized and will block
+			// if the test's main thread is inside a runBlock. The push request will
+			// be logged when lookupNextPushRequest() processes it.
 
 			// Mark push request as accepted for now, and validate later
 			return ResponseEntity.accepted().build();
@@ -293,14 +296,18 @@ public class AbstractOIDSSFTransmitterTestModule extends AbstractOIDSSFTestModul
 	}
 
 	protected SSfPushRequest lookupNextPushRequest() {
+		return lookupNextPushRequest(5);
+	}
+
+	protected SSfPushRequest lookupNextPushRequest(int timeoutSeconds) {
 
 		try {
-			SSfPushRequest pushRequest = pushRequests.pollFirst(5, TimeUnit.SECONDS);
+			SSfPushRequest pushRequest = pushRequests.pollFirst(timeoutSeconds, TimeUnit.SECONDS);
 			if (pushRequest == null) {
 				return pushRequest;
 			}
 
-			eventLog.log(getName(), "Processing recorded ssf-push endpoint request with id" + pushRequest.id());
+			eventLog.log(getName(), "Processing recorded ssf-push endpoint request with id: " + pushRequest.id());
 			env.putObject("ssf", "push_request", pushRequest.requestParts());
 			onPushDeliveryReceived(pushRequest.path(), pushRequest.requestParts());
 

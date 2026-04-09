@@ -110,7 +110,11 @@ public class OIDSSFReceiverStreamCaepInteropTest extends AbstractOIDSSFReceiverT
 			callAndContinueOnFailure(new OIDSSFLogSuccessCondition("Detected Stream Verification via PUSH delivery for stream_id=" + streamId), Condition.ConditionResult.FAILURE, "CAEPIOP-2.3.8.2");
 
 			afterInitialStreamVerification(streamId, event);
+			return;
 		}
+
+		// Track non-verification events as acknowledged when successfully pushed
+		eventsAcked.computeIfAbsent(streamId, k -> new ConcurrentSkipListSet<>()).add(event.jti());
 	}
 
 	@Override
@@ -124,6 +128,7 @@ public class OIDSSFReceiverStreamCaepInteropTest extends AbstractOIDSSFReceiverT
 			return;
 		}
 
+		// Track non-verification events as acknowledged via poll
 		eventsAcked.computeIfAbsent(streamId, k -> new ConcurrentSkipListSet<>()).add(jti);
 	}
 

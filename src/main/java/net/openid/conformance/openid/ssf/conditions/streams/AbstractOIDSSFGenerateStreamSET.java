@@ -1,11 +1,13 @@
 package net.openid.conformance.openid.ssf.conditions.streams;
 
 import com.google.gson.JsonObject;
+import com.nimbusds.jose.util.JSONObjectUtils;
 import com.nimbusds.jwt.JWTClaimsSet;
 import net.openid.conformance.openid.ssf.eventstore.OIDSSFEventStore;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 
+import java.text.ParseException;
 import java.util.Map;
 
 public abstract class AbstractOIDSSFGenerateStreamSET extends AbstractOIDSSFGenerateSET {
@@ -32,9 +34,13 @@ public abstract class AbstractOIDSSFGenerateStreamSET extends AbstractOIDSSFGene
 		JsonObject eventData = getEventData(streamConfig);
 		JsonObject events = OIDFJSON.convertMapToJsonObject(Map.of(eventType, eventData));
 
-		claimsBuilder
-			.claim("sub_id", getSubject(streamId))
-			.claim("events", events);
+		try {
+			claimsBuilder
+				.claim("sub_id", JSONObjectUtils.parse(getSubject(streamId).toString()))
+				.claim("events", JSONObjectUtils.parse(events.toString()));
+		} catch (ParseException e) {
+			throw error("Failed to convert claim values for SET generation", e);
+		}
 	}
 
 	protected JsonObject getSubject(String streamId) {

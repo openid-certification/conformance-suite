@@ -12,7 +12,8 @@ public class OIDSSFPrepareStreamConfigObjectAddRequestedEvents extends AbstractO
 
 	public static final Set<String> DEFAULT_EVENTS = Set.of( //
 		SsfEvents.CAEP_SESSION_REVOKED_EVENT_TYPE, //
-		SsfEvents.CAEP_CREDENTIAL_CHANGE_EVENT_TYPE //
+		SsfEvents.CAEP_CREDENTIAL_CHANGE_EVENT_TYPE, //
+		SsfEvents.CAEP_DEVICE_COMPLIANCE_CHANGE_EVENT_TYPE
 	);
 
 	@Override

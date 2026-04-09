@@ -22,6 +22,8 @@ public class OIDSSFTransmitterTestPlanCaepInterop implements TestPlan {
 
 		var testModules = new ArrayList<>(OIDSSFTransmitterTestPlan.testModules);
 
+		testModules.add(OIDSSFTransmitterStreamCaepInteropTest.class);
+
 		testModules.removeAll(List.of(
 			OIDSSFStreamControlNegativeTestUpdateStreamWithInvalidToken.class,
 			OIDSSFStreamControlNegativeTestUpdateStreamWithInvalidBody.class,
