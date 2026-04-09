@@ -11,8 +11,7 @@ public class OIDSSFEnsureNoAuthorizationHeaderIsPresentInPushRequest extends Abs
 
 		JsonObject headers = env.getElementFromObject("ssf", "push_request.headers").getAsJsonObject();
 		if (headers.has("authorization")) {
-			logFailure("Unexpected authorization header found in push delivery request for delivery config without push authorization header", args("headers", headers, "authorization", headers.get("authorization")));
-			return env;
+			throw error("Unexpected authorization header found in push delivery request for delivery config without push authorization header", args("headers", headers, "authorization", headers.get("authorization")));
 		}
 
 		logSuccess("No push Authorization header found in push delivery request for delivery config without push authorization header", args("headers", headers));

@@ -29,14 +29,12 @@ public class OIDSSFCheckVerificationAuthorizationHeader extends AbstractConditio
 
 		JsonObject headers = env.getElementFromObject("ssf", "verification.headers").getAsJsonObject();
 		if (!headers.has("authorization")) {
-			logFailure("Authorization header missing", args("expected_authorization_header", expectedAuthorizationHeader, "headers", headers));
-			return env;
+			throw error("Authorization header missing", args("expected_authorization_header", expectedAuthorizationHeader, "headers", headers));
 		}
 
 		String actualAuthorizationHeader = OIDFJSON.getString(headers.get("authorization"));
 		if (!expectedAuthorizationHeader.equals(actualAuthorizationHeader)) {
-			logFailure("Authorization header mismatch", args("expected_authorization_header", expectedAuthorizationHeader, "actual_authorization_header", actualAuthorizationHeader));
-			return env;
+			throw error("Authorization header mismatch", args("expected_authorization_header", expectedAuthorizationHeader, "actual_authorization_header", actualAuthorizationHeader));
 		}
 
 		logSuccess("Received expected authorization header", args("expected_authorization_header", expectedAuthorizationHeader, "actual_authorization_header", actualAuthorizationHeader));

@@ -18,8 +18,7 @@ public class OIDSSFParseVerificationEventToken extends AbstractCondition {
 		try {
 			tokenJsonObject = JWTUtil.jwtStringToJsonObjectForEnvironment(tokenString);
 		} catch (ParseException e) {
-			logFailure("Could not parse verification token", args("token_string", tokenString, "error_message", e.getMessage()));
-			return env;
+			throw error("Could not parse verification token", args("token_string", tokenString, "error_message", e.getMessage()));
 		}
 
 		env.putObject("ssf", "verification.token", tokenJsonObject);
