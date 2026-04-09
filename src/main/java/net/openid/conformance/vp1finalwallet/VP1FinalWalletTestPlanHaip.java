@@ -22,14 +22,18 @@ public class VP1FinalWalletTestPlanHaip implements TestPlan {
 		var testModules = new ArrayList<>(VP1FinalWalletTestPlan.testModules);
 		testModules.remove(VP1FinalWalletResponseUriNotClientId.class); // excluded due to @VariantNotApplicable for all client_id_prefix and response_mode values used in HAIP
 
+		var signedTestModules = new ArrayList<>(testModules);
+		signedTestModules.remove(VP1FinalWalletMultiSignedOneInvalidSignature.class); // excluded due to @VariantNotApplicable with request_uri_signed
+
 		var unsignedTestModules = new ArrayList<>(testModules);
 		unsignedTestModules.remove(VP1FinalWalletInvalidRequestObjectSignature.class); // excluded due to @VariantNotApplicable with request_uri_unsigned
+		unsignedTestModules.remove(VP1FinalWalletMultiSignedOneInvalidSignature.class); // excluded due to @VariantNotApplicable with request_uri_unsigned
 
 		// HAIP requires encrypted responses, so only direct_post.jwt and dc_api.jwt are supported
 		return List.of(
 			// direct_post.jwt: signed request, x509_hash
 			new ModuleListEntry(
-				testModules,
+				signedTestModules,
 				List.of(
 					new Variant(VPProfile.class, "haip"),
 					new Variant(VP1FinalWalletClientIdPrefix.class, "x509_hash"),
@@ -51,11 +55,22 @@ public class VP1FinalWalletTestPlanHaip implements TestPlan {
 			),
 			// dc_api.jwt + signed: x509_san_dns
 			new ModuleListEntry(
-				testModules,
+				signedTestModules,
 				List.of(
 					new Variant(VPProfile.class, "haip"),
 					new Variant(VP1FinalWalletClientIdPrefix.class, "x509_san_dns"),
 					new Variant(VP1FinalWalletRequestMethod.class, "request_uri_signed")
+				),
+				List.of(new VariantCondition(VP1FinalWalletResponseMode.class,
+					"dc_api.jwt"))
+			),
+			// dc_api.jwt + multisigned: x509_hash
+			new ModuleListEntry(
+				testModules,
+				List.of(
+					new Variant(VPProfile.class, "haip"),
+					new Variant(VP1FinalWalletClientIdPrefix.class, "x509_hash"),
+					new Variant(VP1FinalWalletRequestMethod.class, "request_uri_multisigned")
 				),
 				List.of(new VariantCondition(VP1FinalWalletResponseMode.class,
 					"dc_api.jwt"))

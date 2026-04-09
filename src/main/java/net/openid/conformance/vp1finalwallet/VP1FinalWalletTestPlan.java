@@ -26,7 +26,8 @@ public class VP1FinalWalletTestPlan implements TestPlan {
 
 		// negative tests
 		VP1FinalWalletResponseUriNotClientId.class,
-		VP1FinalWalletInvalidRequestObjectSignature.class
+		VP1FinalWalletInvalidRequestObjectSignature.class,
+		VP1FinalWalletMultiSignedOneInvalidSignature.class
 
 		// negative tests:
 		// try sending a redirect_uri in auth request with response_mode=direct_post
@@ -57,6 +58,18 @@ public class VP1FinalWalletTestPlan implements TestPlan {
 
 		String certProfile = "OID4VP-1.0-FINAL Wallet";
 
+		if (requestMethod.equals(VP1FinalWalletRequestMethod.REQUEST_URI_SIGNED.toString()) ||
+			requestMethod.equals(VP1FinalWalletRequestMethod.REQUEST_URI_MULTISIGNED.toString())) {
+			if (clientIDPrefix.equals(VP1FinalWalletClientIdPrefix.REDIRECT_URI.toString())) {
+				throw new RuntimeException(String.format("Invalid configuration for %s: Signed request methods do not permit the 'redirect_uri' Client ID Prefix.",
+					MethodHandles.lookup().lookupClass().getSimpleName()));
+			}
+			if (clientIDPrefix.equals(VP1FinalWalletClientIdPrefix.WEB_ORIGIN.toString())) {
+				throw new RuntimeException(String.format("Invalid configuration for %s: Signed request methods do not permit the 'web-origin' Client ID Prefix.",
+					MethodHandles.lookup().lookupClass().getSimpleName()));
+			}
+		}
+
 		if (responseMode.equals(VP1FinalWalletResponseMode.DC_API.toString()) ||
 			responseMode.equals(VP1FinalWalletResponseMode.DC_API_JWT.toString())) {
 			if (requestMethod.equals(VP1FinalWalletRequestMethod.REQUEST_URI_UNSIGNED.toString())) {
@@ -65,12 +78,13 @@ public class VP1FinalWalletTestPlan implements TestPlan {
 						MethodHandles.lookup().lookupClass().getSimpleName()));
 				}
 			} else if (requestMethod.equals(VP1FinalWalletRequestMethod.REQUEST_URI_SIGNED.toString())) {
-				if (clientIDPrefix.equals(VP1FinalWalletClientIdPrefix.WEB_ORIGIN.toString())) {
-					throw new RuntimeException(String.format("Invalid configuration for %s: When using signed DC API requests the Client ID Prefix must not be 'web_origin'.",
-						MethodHandles.lookup().lookupClass().getSimpleName()));
-				}
+				// signed DC API uses the generic signed-request-method validation above
+			} else if (requestMethod.equals(VP1FinalWalletRequestMethod.REQUEST_URI_MULTISIGNED.toString())) {
+				// multi-signed DC API uses the generic signed-request-method validation above
 			}
-
+		} else if (requestMethod.equals(VP1FinalWalletRequestMethod.REQUEST_URI_MULTISIGNED.toString())) {
+			throw new RuntimeException(String.format("Invalid configuration for %s: Multi-signed requests are only supported with DC API response modes (dc_api, dc_api.jwt).",
+				MethodHandles.lookup().lookupClass().getSimpleName()));
 		}
 
 		certProfile += " " + credentialFormat + " " + requestMethod + " " + clientIDPrefix + " " + responseMode;

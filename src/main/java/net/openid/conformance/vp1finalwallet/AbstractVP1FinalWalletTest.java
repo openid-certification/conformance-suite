@@ -25,6 +25,7 @@ import net.openid.conformance.condition.client.AddVP1FinalIsoMdocClientMetadataT
 import net.openid.conformance.condition.client.AddVP1FinalSdJwtClientMetadataToAuthorizationRequest;
 import net.openid.conformance.condition.client.BuildPlainRedirectToAuthorizationEndpoint;
 import net.openid.conformance.condition.client.BuildRequestObjectByReferenceRedirectToAuthorizationEndpointWithoutDuplicates;
+import net.openid.conformance.condition.client.BuildVP1FinalBrowserDCAPIRequestMultiSigned;
 import net.openid.conformance.condition.client.BuildVP1FinalBrowserDCAPIRequestSigned;
 import net.openid.conformance.condition.client.BuildVP1FinalBrowserDCAPIRequestUnsigned;
 import net.openid.conformance.condition.client.CheckAudInBindingJwt;
@@ -44,6 +45,7 @@ import net.openid.conformance.condition.client.CheckUrlQueryIsEmpty;
 import net.openid.conformance.condition.client.ConfigurationRequestsTestIsSkipped;
 import net.openid.conformance.condition.client.ConvertAuthorizationEndpointRequestToRequestObject;
 import net.openid.conformance.condition.client.CreateClientEncryptionKeyIfMissing;
+import net.openid.conformance.condition.client.CreateMultiSignedRequestObject;
 import net.openid.conformance.condition.client.CreateDirectPostResponseUri;
 import net.openid.conformance.condition.client.CreateEmptyAuthorizationEndpointRequest;
 import net.openid.conformance.condition.client.CreateEmptyDirectPostResponse;
@@ -62,6 +64,7 @@ import net.openid.conformance.condition.client.ExtractBrowserApiAuthorizationEnd
 import net.openid.conformance.condition.client.ExtractDCQLQueryFromClientConfiguration;
 import net.openid.conformance.condition.client.ExtractWalletMetadataAndNonceFromRequestUriPost;
 import net.openid.conformance.condition.client.ExtractJWKsFromStaticClientConfiguration;
+import net.openid.conformance.condition.client.ExtractSecondJWKsFromClientConfiguration;
 import net.openid.conformance.condition.client.ExtractVP1FinalBrowserApiResponse;
 import net.openid.conformance.condition.client.ExtractVP1FinalVpTokenDCQL;
 import net.openid.conformance.condition.client.GetStaticClientConfiguration;
@@ -70,6 +73,9 @@ import net.openid.conformance.condition.client.ParseCredentialAsMdoc;
 import net.openid.conformance.condition.client.ParseCredentialAsSdJwtKb;
 import net.openid.conformance.condition.client.SerializeRequestObjectWithNullAlgorithm;
 import net.openid.conformance.condition.client.SetAuthorizationEndpointRequestResponseMode;
+import net.openid.conformance.condition.client.SetClient2IdToX509Hash;
+import net.openid.conformance.condition.client.SetClient2IdToCurrentClientId;
+import net.openid.conformance.condition.client.SetClient2IdToIncludeClientIdScheme;
 import net.openid.conformance.condition.client.SetAuthorizationEndpointRequestResponseTypeToVpToken;
 import net.openid.conformance.condition.client.SetClientIdToResponseUri;
 import net.openid.conformance.condition.client.SetClientIdToResponseUriHostnameIfUnset;
@@ -104,6 +110,7 @@ import net.openid.conformance.testmodule.AbstractRedirectServerTestModule;
 import net.openid.conformance.testmodule.TestFailureException;
 import net.openid.conformance.variant.VPProfile;
 import net.openid.conformance.variant.VariantConfigurationFields;
+import net.openid.conformance.variant.VariantHidesConfigurationFields;
 import net.openid.conformance.variant.VariantNotApplicableWhen;
 import net.openid.conformance.variant.VariantParameters;
 import org.apache.commons.lang3.RandomStringUtils;
@@ -144,6 +151,13 @@ import org.springframework.http.ResponseEntity;
 	"credential.trust_anchor_pem",
 	"credential.status_list_trust_anchor_pem"
 })
+@VariantConfigurationFields(parameter = VP1FinalWalletRequestMethod.class, value = "request_uri_multisigned", configurationFields = {
+	"client2.jwks",
+	"client2.client_id"
+})
+@VariantHidesConfigurationFields(parameter = VP1FinalWalletClientIdPrefix.class, value = "x509_hash", configurationFields = {
+	"client2.client_id"
+})
 @VariantNotApplicableWhen(
 	parameter = VP1FinalWalletResponseMode.class,
 	values = {"direct_post", "dc_api"},  // unencrypted modes not applicable for HAIP
@@ -155,6 +169,18 @@ import org.springframework.http.ResponseEntity;
 	values = {"url_query"},  // URL_QUERY uses HTTP redirects, not compatible with Browser API
 	whenParameter = VP1FinalWalletResponseMode.class,
 	hasValues = {"dc_api", "dc_api.jwt"}
+)
+@VariantNotApplicableWhen(
+	parameter = VP1FinalWalletRequestMethod.class,
+	values = {"request_uri_multisigned"},  // multi-signed is DC API only (OID4VP Appendix A.3.2)
+	whenParameter = VP1FinalWalletResponseMode.class,
+	hasValues = {"direct_post", "direct_post.jwt"}
+)
+@VariantNotApplicableWhen(
+	parameter = VP1FinalWalletClientIdPrefix.class,
+	values = {"redirect_uri", "web-origin"},
+	whenParameter = VP1FinalWalletRequestMethod.class,
+	hasValues = {"request_uri_signed", "request_uri_multisigned"}
 )
 public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerTestModule {
 	protected enum TestState {
@@ -277,12 +303,13 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 		JsonElement clientJwksEl = env.getElementFromObject("client", "jwks");
 		boolean jwksRequired = false;
 		boolean encryptionKeyRequired = false;
-		// keys are needed for signed requests or encrypted responses
+		// keys are needed for signed/multi-signed requests or encrypted responses
 		switch (requestMethod) {
 			case URL_QUERY:
 			case REQUEST_URI_UNSIGNED:
 				break;
 			case REQUEST_URI_SIGNED:
+			case REQUEST_URI_MULTISIGNED:
 				jwksRequired = true;
 				break;
 		}
@@ -308,6 +335,26 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 		}
 		callAndStopOnFailure(ExtractJWKsFromStaticClientConfiguration.class);
 		callAndContinueOnFailure(CheckDistinctKeyIdValueInClientJWKs.class, ConditionResult.FAILURE, "RFC7517-4.5");
+
+		if (requestMethod == VP1FinalWalletRequestMethod.REQUEST_URI_MULTISIGNED) {
+			callAndStopOnFailure(ExtractSecondJWKsFromClientConfiguration.class);
+			switch (clientIdPrefix) {
+				case DECENTRALIZED_IDENTIFIER:
+				case PRE_REGISTERED:
+					callAndStopOnFailure(SetClient2IdToIncludeClientIdScheme.class);
+					break;
+				case X509_SAN_DNS:
+					callAndStopOnFailure(SetClient2IdToCurrentClientId.class);
+					break;
+				case X509_HASH:
+					callAndStopOnFailure(SetClient2IdToX509Hash.class);
+					break;
+				case REDIRECT_URI:
+					throw new RuntimeException("redirect_uri client id scheme not valid for multi-signed requests");
+				case WEB_ORIGIN:
+					throw new RuntimeException("web-origin client id scheme not valid for multi-signed requests");
+			}
+		}
 	}
 
 	protected void completeClientConfiguration() {
@@ -340,6 +387,9 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 					}
 					case REQUEST_URI_SIGNED -> {
 						callAndStopOnFailure(BuildVP1FinalBrowserDCAPIRequestSigned.class);
+					}
+					case REQUEST_URI_MULTISIGNED -> {
+						callAndStopOnFailure(BuildVP1FinalBrowserDCAPIRequestMultiSigned.class);
 					}
 				}
 				JsonObject request = env.getObject("browser_api_request");
@@ -377,6 +427,7 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 		public void evaluate() {
 			boolean browserApi = false;
 			boolean browserUnsigned = false;
+			boolean browserMultiSigned = false;
 			switch (responseMode) {
 				case DIRECT_POST:
 				case DIRECT_POST_JWT:
@@ -390,13 +441,17 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 						}
 						case REQUEST_URI_SIGNED -> {
 						}
+						case REQUEST_URI_MULTISIGNED -> {
+							browserMultiSigned = true;
+						}
 					}
 					break;
 			}
 
 			callAndStopOnFailure(CreateEmptyAuthorizationEndpointRequest.class);
-			if (!browserUnsigned) {
-				// client id is not permitted in unsigned browser API requests
+			if (!browserUnsigned && !browserMultiSigned) {
+				// client_id is not permitted in unsigned browser API requests,
+				// and for multi-signed it goes in each signature's protected header, not the shared payload
 				callAndStopOnFailure(AddClientIdToAuthorizationEndpointRequest.class);
 			}
 			if (!browserApi) {
@@ -409,6 +464,7 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 				callAndStopOnFailure(AddResponseUriToAuthorizationEndpointRequest.class);
 			}
 			if (browserApi && !browserUnsigned) {
+				// expected_origins is in the shared payload for both signed and multi-signed
 				callAndStopOnFailure(AddExpectedOriginsToAuthorizationEndpointRequest.class, "OID4VP-1FINALA-A.2");
 			}
 
@@ -637,6 +693,22 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 		}
 	}
 
+	public static class CreateAuthorizationRedirectStepsMultiSignedRequestUri extends AbstractConditionSequence {
+		private final Class<? extends Condition> requestUriRedirectCondition;
+
+		public CreateAuthorizationRedirectStepsMultiSignedRequestUri(Class<? extends Condition> requestUriRedirectCondition) {
+			this.requestUriRedirectCondition = requestUriRedirectCondition;
+		}
+
+		@Override
+		public void evaluate() {
+			callAndStopOnFailure(ConvertAuthorizationEndpointRequestToRequestObject.class);
+			callAndStopOnFailure(AddSelfIssuedMeV2AudToRequestObject.class);
+			callAndStopOnFailure(CreateMultiSignedRequestObject.class, "OID4VP-1FINALA-A.3.2");
+			callAndStopOnFailure(requestUriRedirectCondition);
+		}
+	}
+
 	protected boolean isBrowserApi() {
 		switch (responseMode) {
 			case DIRECT_POST:
@@ -677,12 +749,17 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 						seq.replace(SignRequestObjectIncludeX5cHeaderIfAvailable.class, condition(SignRequestObjectIncludeX5cHeader.class));
 						break;
 					case REDIRECT_URI:
+						throw new RuntimeException("redirect_uri client id scheme not valid for signed requests");
 					case PRE_REGISTERED:
-						// otherwise follow the default (use x5c header if it's available) although signed request objects + redirect_uri client_id_scheme isn't allowed in the spec
+						// otherwise follow the default (use x5c header if it's available)
 						break;
 					case WEB_ORIGIN:
 						throw new RuntimeException("web-origin client id scheme not valid for signed requests");
 				}
+				break;
+			case REQUEST_URI_MULTISIGNED:
+				// multi-signed is DC API only; the JWS JSON Serialization is passed directly via Browser API
+				seq = createAuthorizationRedirectStepsMultiSignedRequestUri();
 				break;
 		}
 		if (isBrowserApi()) {
@@ -704,6 +781,11 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 	@NotNull
 	protected ConditionSequence createAuthorizationRedirectStepsSignedRequestUri() {
 		return new CreateAuthorizationRedirectStepsSignedRequestUri(getRequestUriRedirectCondition());
+	}
+
+	@NotNull
+	protected ConditionSequence createAuthorizationRedirectStepsMultiSignedRequestUri() {
+		return new CreateAuthorizationRedirectStepsMultiSignedRequestUri(getRequestUriRedirectCondition());
 	}
 
 	@Override

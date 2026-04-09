@@ -1,6 +1,8 @@
 package net.openid.conformance.vp1finalwallet;
 
 import net.openid.conformance.condition.client.BuildRequestObjectByReferenceRedirectToAuthorizationEndpointWithoutDuplicates;
+import net.openid.conformance.condition.client.CreateMultiSignedRequestObject;
+import net.openid.conformance.condition.client.InvalidateMultiSignedRequestObjectSignatures;
 import net.openid.conformance.condition.client.InvalidateRequestObjectSignature;
 import net.openid.conformance.condition.common.ExpectRedirectUriErrorPage;
 import net.openid.conformance.sequence.ConditionSequence;
@@ -12,7 +14,7 @@ import org.jetbrains.annotations.NotNull;
 @PublishTestModule(
 	testName = "oid4vp-1final-wallet-negative-test-invalid-request-object-signature",
 	displayName = "OID4VP-1.0-FINAL: Request object signature not valid",
-	summary = "Makes a request where the signature on the request object JWS is invalid. The wallet should display an error, a screenshot of which must be uploaded.",
+	summary = "Makes a request where the signature on the request object JWS is invalid. For multi-signed requests, all signatures are invalidated. The wallet should display an error, a screenshot of which must be uploaded.",
 	profile = "OID4VP-1FINAL",
 	configurationFields = {
 	}
@@ -29,6 +31,17 @@ public class VP1FinalWalletInvalidRequestObjectSignature extends AbstractVP1Fina
 
 		seq = seq.insertBefore(BuildRequestObjectByReferenceRedirectToAuthorizationEndpointWithoutDuplicates.class,
 			condition(InvalidateRequestObjectSignature.class));
+
+		return seq;
+	}
+
+	@NotNull
+	@Override
+	protected ConditionSequence createAuthorizationRedirectStepsMultiSignedRequestUri() {
+		ConditionSequence seq = super.createAuthorizationRedirectStepsMultiSignedRequestUri();
+
+		seq = seq.insertAfter(CreateMultiSignedRequestObject.class,
+			condition(InvalidateMultiSignedRequestObjectSignatures.class));
 
 		return seq;
 	}
