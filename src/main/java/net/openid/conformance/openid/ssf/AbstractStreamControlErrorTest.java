@@ -28,7 +28,6 @@ public abstract class AbstractStreamControlErrorTest extends AbstractOIDSSFTrans
 
 		eventLog.runBlock("Prepare Transmitter Access", this::obtainTransmitterAccessToken);
 
-		SsfDeliveryMode deliveryMode = getVariant(SsfDeliveryMode.class);
 		env.putString("ssf", "delivery_method", deliveryMode.getAlias());
 	}
 

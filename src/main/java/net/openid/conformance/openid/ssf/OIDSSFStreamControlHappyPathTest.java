@@ -55,7 +55,6 @@ public class OIDSSFStreamControlHappyPathTest extends AbstractOIDSSFTransmitterT
 
 		eventLog.runBlock("Create Stream Configuration", () -> {
 
-			SsfDeliveryMode deliveryMode = getVariant(SsfDeliveryMode.class);
 			env.putString("ssf", "delivery_method", deliveryMode.getAlias());
 			if (deliveryMode == SsfDeliveryMode.PUSH) {
 				configurePushAuthorizationHeader(null, pushAuthorizationHeader);
@@ -97,7 +96,6 @@ public class OIDSSFStreamControlHappyPathTest extends AbstractOIDSSFTransmitterT
 			// this is still not supported in the caep.dev reference env :-/
 			eventLog.runBlock("Update Stream Configuration", () -> {
 
-				SsfDeliveryMode deliveryMode = getVariant(SsfDeliveryMode.class);
 				env.putString("ssf", "delivery_method", deliveryMode.getAlias());
 
 				call(sequence(OIDSSFUpdateStreamConditionSequence.class));
