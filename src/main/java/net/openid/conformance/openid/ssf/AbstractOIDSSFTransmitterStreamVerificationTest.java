@@ -1,5 +1,6 @@
 package net.openid.conformance.openid.ssf;
 
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs201;
@@ -17,6 +18,7 @@ import net.openid.conformance.openid.ssf.conditions.events.OIDSSFEnsureSecurityE
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFEnsureSecurityEventTokenIatIsNotInFuture;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFEnsureSecurityEventTokenIssuerMatchesStreamConfigurationIssuer;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFEnsureSecurityEventTokenUsesTypeSecEventJwt;
+import net.openid.conformance.openid.ssf.conditions.events.OIDSSFLogAcceptedUnsolicitedVerificationEvent;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFParseVerificationEventToken;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFTriggerVerificationEvent;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFValidateSecurityEventTokenAudClaim;
@@ -26,12 +28,16 @@ import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFCheckTransmitt
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFCreateStreamConditionSequence;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFDeleteStreamConfigCall;
 import net.openid.conformance.openid.ssf.variant.SsfAuthMode;
-import net.openid.conformance.testmodule.TestFailureException;
 import net.openid.conformance.openid.ssf.variant.SsfDeliveryMode;
 import net.openid.conformance.openid.ssf.variant.SsfProfile;
 import net.openid.conformance.openid.ssf.variant.SsfServerMetadata;
+import net.openid.conformance.testmodule.OIDFJSON;
+import net.openid.conformance.testmodule.TestFailureException;
 import net.openid.conformance.variant.VariantConfigurationFields;
 import net.openid.conformance.variant.VariantParameters;
+
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Base class for SSF transmitter stream verification tests.
@@ -74,8 +80,6 @@ public abstract class AbstractOIDSSFTransmitterStreamVerificationTest extends Ab
 		eventLog.runBlock("Prepare Transmitter Access", this::obtainTransmitterAccessToken);
 
 		eventLog.runBlock("Clean stream environment if necessary", this::cleanUpStreamConfigurationIfNecessary);
-
-		SsfDeliveryMode deliveryMode = getVariant(SsfDeliveryMode.class);
 
 		eventLog.runBlock("Create Stream Configuration", () -> {
 
@@ -121,9 +125,29 @@ public abstract class AbstractOIDSSFTransmitterStreamVerificationTest extends Ab
 	protected abstract void performVerification();
 
 	protected void verifySetInResponse() {
+		parseVerificationEventInResponse();
+		verifyParsedVerificationEventCommon();
+		callAndContinueOnFailure(OIDSSFCheckVerificationEventState.class, Condition.ConditionResult.FAILURE, "OIDSSF-8.1.4.1");
+	}
 
+	/**
+	 * Verifies signature and parses the verification event token into the env. Must be
+	 * called before any checks that inspect the parsed claims (including
+	 * {@link #currentVerificationEventHasState()} and {@link #verifyParsedVerificationEventCommon()}).
+	 */
+	protected void parseVerificationEventInResponse() {
 		callAndContinueOnFailure(OIDSSFVerifySignatureOfVerificationEventToken.class, Condition.ConditionResult.WARNING);
 		callAndStopOnFailure(OIDSSFParseVerificationEventToken.class, Condition.ConditionResult.FAILURE, "OIDSSF-8.1.4.1");
+	}
+
+	/**
+	 * Runs every verification-event check except the {@code state} match. This is
+	 * shared between solicited events (where the caller additionally runs
+	 * {@link OIDSSFCheckVerificationEventState}) and unsolicited events (where the
+	 * {@code state} claim is legitimately absent — see SSF 1.0 §8.1.4-2).
+	 * {@link #parseVerificationEventInResponse()} must have been called first.
+	 */
+	protected void verifyParsedVerificationEventCommon() {
 		if (isSsfProfileEnabled(SsfProfile.CAEP_INTEROP)) {
 			callAndContinueOnFailure(OIDSSFEnsureEventSignedWithRsa256.class, Condition.ConditionResult.FAILURE, "CAEPIOP-2.6");
 		}
@@ -144,9 +168,83 @@ public abstract class AbstractOIDSSFTransmitterStreamVerificationTest extends Ab
 
 		callAndContinueOnFailure(OIDSSFValidateSecurityEventTokenTxnClaim.class, Condition.ConditionResult.INFO, "OIDSSF-4.1.9");
 
-		callAndContinueOnFailure(OIDSSFCheckVerificationEventState.class, Condition.ConditionResult.FAILURE, "OIDSSF-8.1.4.1");
 		callAndContinueOnFailure(OIDSSFCheckVerificationEventSubjectId.class, Condition.ConditionResult.FAILURE, "OIDSSF-8.1.4.1");
-		callAndContinueOnFailure(OIDSSFCheckVerificationAuthorizationHeader.class, Condition.ConditionResult.FAILURE, "OIDSSF-6.1.1");
+
+		if (deliveryMode == SsfDeliveryMode.PUSH) {
+			callAndContinueOnFailure(OIDSSFCheckVerificationAuthorizationHeader.class, Condition.ConditionResult.FAILURE, "OIDSSF-6.1.1");
+		}
+	}
+
+	/**
+	 * Iterates through every SET returned in the current poll response (at
+	 * {@code ssf_polling_response.body_json.sets}, in insertion order), parsing and
+	 * validating each as a verification event.
+	 * <p>
+	 * For each SET:
+	 * <ul>
+	 *   <li>Non-verification SETs are logged and skipped.
+	 *   <li>Verification events without a {@code state} claim are accepted as
+	 *       unsolicited (SSF 1.0 §8.1.4-2) — common validations run, but the state
+	 *       check is skipped and iteration continues.
+	 *   <li>The first verification event with a {@code state} claim has its state
+	 *       validated against {@code ssf.verification.state}, and iteration stops.
+	 * </ul>
+	 *
+	 * @param blockPrefix prefix used in the per-SET runBlock titles (e.g. {@code "POLL_ONLY"})
+	 * @return {@code true} if a solicited (stated) verification event was found and
+	 *         fully validated; {@code false} if every SET in the response was missing,
+	 *         non-verification, or stateless unsolicited.
+	 */
+	protected boolean iterateAndValidateVerificationEventsInPollResponse(String blockPrefix) {
+		JsonObject pollResponse = env.getObject("ssf_polling_response");
+		if (pollResponse == null) {
+			return false;
+		}
+		JsonObject bodyJson = pollResponse.getAsJsonObject("body_json");
+		if (bodyJson == null) {
+			return false;
+		}
+		JsonObject sets = bodyJson.getAsJsonObject("sets");
+		if (sets == null || sets.isEmpty()) {
+			return false;
+		}
+
+		int setIndex = 0;
+		int totalSets = sets.size();
+		for (Map.Entry<String, JsonElement> entry : sets.entrySet()) {
+			setIndex++;
+			String jti = entry.getKey();
+			String jwt = OIDFJSON.getString(entry.getValue());
+			env.putString("ssf", "verification.jwt", jwt);
+
+			AtomicBoolean wasSolicited = new AtomicBoolean(false);
+			int idx = setIndex;
+			eventLog.runBlock(blockPrefix + " — validate SET " + idx + "/" + totalSets + " (jti=" + jti + ")", () -> {
+				parseVerificationEventInResponse();
+
+				if (!currentEventIsVerificationEvent()) {
+					eventLog.log(getName(),
+						args("msg", "Skipping non-verification SET in poll response",
+							"jti", jti));
+					return;
+				}
+
+				verifyParsedVerificationEventCommon();
+
+				if (currentVerificationEventHasState()) {
+					callAndContinueOnFailure(OIDSSFCheckVerificationEventState.class, Condition.ConditionResult.FAILURE, "OIDSSF-8.1.4.1");
+					wasSolicited.set(true);
+				} else {
+					callAndContinueOnFailure(OIDSSFLogAcceptedUnsolicitedVerificationEvent.class, Condition.ConditionResult.INFO, "OIDSSF-8.1.4");
+				}
+			});
+
+			if (wasSolicited.get()) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	@Override
