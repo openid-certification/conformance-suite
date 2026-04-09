@@ -1,16 +1,17 @@
-package net.openid.conformance.authzen;
+package net.openid.conformance.authzen.interop.evaluations;
 
+import net.openid.conformance.authzen.AbstractAuthzenPDPEvaluationsTest;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
-	testName = "authzen-pdp-evaluations-02",
+	testName = "authzen-pdp-interop-evaluations-02",
 	displayName = "Authzen Evaluations API Test 02",
-	summary = "Evaluations API test 02 with payload\n" + AuthzenPDPEvaluations02Test.payload,
+	summary = "Evaluations API test 02 with payload\n" + AuthzenPDPInteropEvaluations02Test.payload,
 	profile = "Authzen",
 	configurationFields = {
 	}
 )
-public class AuthzenPDPEvaluations02Test extends AbstractAuthzenPDPEvaluationsTest {
+public class AuthzenPDPInteropEvaluations02Test extends AbstractAuthzenPDPEvaluationsTest {
 
 	public static final String payload = """
 	{

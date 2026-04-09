@@ -1,22 +1,23 @@
-package net.openid.conformance.authzen;
+package net.openid.conformance.authzen.interop.evaluations;
 
+import net.openid.conformance.authzen.AbstractAuthzenPDPEvaluationsTest;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
-	testName = "authzen-pdp-evaluations-03",
-	displayName = "Authzen Evaluations API Test 03",
-	summary = "Evaluations API test 03 with payload\n" + AuthzenPDPEvaluations03Test.payload,
+	testName = "authzen-pdp-interop-evaluations-01",
+	displayName = "Authzen Evaluations API Test 01",
+	summary = "Evaluations API test 01 with payload\n" + AuthzenPDPInteropEvaluations01Test.payload,
 	profile = "Authzen",
 	configurationFields = {
 	}
 )
-public class AuthzenPDPEvaluations03Test extends AbstractAuthzenPDPEvaluationsTest {
+public class AuthzenPDPInteropEvaluations01Test extends AbstractAuthzenPDPEvaluationsTest {
 
 	public static final String payload = """
 	{
 		"subject": {
 			"type": "user",
-			"id": "CiRmZDQ2MTRkMy1jMzlhLTQ3ODEtYjdiZC04Yjk2ZjVhNTEwMGQSBWxvY2Fs"
+			"id": "CiRmZDA2MTRkMy1jMzlhLTQ3ODEtYjdiZC04Yjk2ZjVhNTEwMGQSBWxvY2Fs"
 		},
 		"action": {
 			"name": "can_update_todo"
@@ -48,7 +49,7 @@ public class AuthzenPDPEvaluations03Test extends AbstractAuthzenPDPEvaluationsTe
 	protected String getExpectedEvaluationsResponseJson() {
 		return """
 			 {
-			  "evaluations": [{ "decision": false }, { "decision": false }]
+			  "evaluations": [{ "decision": true }, { "decision": true }]
 			 }
 			""";
 	}
