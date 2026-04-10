@@ -2389,7 +2389,7 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 		call(exec().startBlock("Authorization endpoint").mapKey("authorization_endpoint_http_request", requestId));
 		setAuthorizationEndpointRequestParamsForHttpMethod();
 		callAndStopOnFailure(EnsureAuthorizationRequestDoesNotContainRequestWhenUsingPAR.class);
-		callAndContinueOnFailure(EnsureAuthorizationRequestContainsOnlyExpectedParamsWhenUsingPAR.class, ConditionResult.WARNING, "PAR-4");
+		callAndContinueOnFailure(EnsureAuthorizationRequestContainsOnlyExpectedParamsWhenUsingPAR.class, ConditionResult.FAILURE, "PAR-4", "FAPI2-SP-FINAL-5.3.3.2-6");
 
 		// Validate request_uri matches what was issued and hasn't expired
 		RedirectView parError = validateParRequestUri();
