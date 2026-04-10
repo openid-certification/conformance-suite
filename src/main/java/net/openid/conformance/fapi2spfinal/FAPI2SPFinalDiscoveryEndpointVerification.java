@@ -13,6 +13,7 @@ import net.openid.conformance.condition.client.CheckDiscEndpointScopesSupportedC
 import net.openid.conformance.condition.client.CheckDiscEndpointSubjectTypesSupported;
 import net.openid.conformance.condition.client.CheckDiscRequirePushedAuthorizationRequestsIsABoolean;
 import net.openid.conformance.condition.client.FAPI2CheckDiscEndpointRequestObjectSigningAlgValuesSupported;
+import net.openid.conformance.condition.common.GrantManagementSupport;
 import net.openid.conformance.ekyc.condition.client.EnsureAuthorizationResponseIssParameterSupportedIsTrue;
 import net.openid.conformance.sequence.AbstractConditionSequence;
 import net.openid.conformance.sequence.ConditionSequence;
@@ -23,6 +24,8 @@ import net.openid.conformance.variant.FAPI2FinalOPProfile;
 import net.openid.conformance.variant.FAPI2SenderConstrainMethod;
 import net.openid.conformance.variant.FAPIOpenIDConnect;
 import net.openid.conformance.variant.FAPIResponseMode;
+import net.openid.conformance.variant.GrantManagement;
+import net.openid.conformance.variant.VariantNotApplicableWhen;
 import net.openid.conformance.variant.VariantParameters;
 import net.openid.conformance.variant.VariantSetup;
 
@@ -38,8 +41,15 @@ import net.openid.conformance.variant.VariantSetup;
 	FAPI2SenderConstrainMethod.class,
 	FAPI2AuthRequestMethod.class,
 	FAPIResponseMode.class,
-	FAPIOpenIDConnect.class
+	FAPIOpenIDConnect.class,
+	GrantManagement.class
 })
+@VariantNotApplicableWhen(
+	parameter = GrantManagement.class,
+	values = {"enabled"},
+	whenParameter = FAPI2FinalOPProfile.class,
+	hasValues = {"vci", "vci_haip", "fapi_client_credentials_grant"}
+)
 public class FAPI2SPFinalDiscoveryEndpointVerification extends AbstractFAPI2SPFinalDiscoveryEndpointVerification {
 
 	private Class<? extends ConditionSequence> oidcChecks;
@@ -47,6 +57,8 @@ public class FAPI2SPFinalDiscoveryEndpointVerification extends AbstractFAPI2SPFi
 	protected Boolean signedRequest;
 
 	protected boolean brazil = false;
+
+	protected boolean isGrantManagement = false;
 
 	@VariantSetup(parameter = FAPI2FinalOPProfile.class, value = "fapi_client_credentials_grant")
 	public void setupFapiClientCredentialsGrant() {
@@ -95,10 +107,12 @@ public class FAPI2SPFinalDiscoveryEndpointVerification extends AbstractFAPI2SPFi
 		profileBehavior = new VCIHaipProfileBehavior();
 	}
 
+
 	@Override
 	public void configure(JsonObject config, String baseUrl, String externalUrlOverride, String baseMtlsUrl) {
 		signedRequest = getVariant(FAPI2AuthRequestMethod.class) == FAPI2AuthRequestMethod.SIGNED_NON_REPUDIATION;
 		isDpop = getVariant(FAPI2SenderConstrainMethod.class) == FAPI2SenderConstrainMethod.DPOP;
+		isGrantManagement = getVariant(GrantManagement.class) == GrantManagement.ENABLED;
 		super.configure(config, baseUrl, externalUrlOverride, baseMtlsUrl);
 	}
 
@@ -136,6 +150,11 @@ public class FAPI2SPFinalDiscoveryEndpointVerification extends AbstractFAPI2SPFi
 		call(sequence(profileBehavior.getProfileSpecificDiscoveryChecks()));
 		if (oidcChecks != null) {
 			call(sequence(oidcChecks));
+		}
+
+		if (isGrantManagement) {
+			callAndContinueOnFailure(GrantManagementSupport.CheckDiscoveryForGrantManagementEndpoint.class, Condition.ConditionResult.FAILURE, "GM-3");
+			callAndContinueOnFailure(GrantManagementSupport.CheckDiscoveryForGrantManagementActionsSupported.class, Condition.ConditionResult.FAILURE, "GM-3");
 		}
 	}
 

@@ -58,7 +58,11 @@ public class FAPI2MessageSigningFinalClientTestPlan implements TestPlan {
 		// OB systems specific tests
 		FAPI2SPFinalClientTestInvalidOpenBankingIntentId.class,
 		//Brazil specific
-		FAPI2SPFinalClientRefreshTokenTest.class
+		FAPI2SPFinalClientRefreshTokenTest.class,
+
+		// Grant Management tests
+		FAPI2SPFinalClientTestGrantManagementHappyPath.class,
+		FAPI2SPFinalClientTestGrantManagementInvalidGrantIdFails.class
 	);
 
 	@Override
@@ -171,6 +175,28 @@ public class FAPI2MessageSigningFinalClientTestPlan implements TestPlan {
 				}
 
 					return List.of( "FAPI2MS RP CBUAE");
+			case "openbanking_chile":
+				if (privateKey) {
+					throw new RuntimeException("Invalid configuration for %s: Only MTLS client authentication is used for Chile".formatted(
+							MethodHandles.lookup().lookupClass().getSimpleName()));
+				}
+				if (!mtlsBounded) {
+					throw new RuntimeException("Invalid configuration for %s: Only MTLS sender constraining is supported for Chile".formatted(
+							MethodHandles.lookup().lookupClass().getSimpleName()));
+				}
+				if (!signedRequest) {
+					throw new RuntimeException("Invalid configuration for %s: Only signed requests are supported for Chile".formatted(
+							MethodHandles.lookup().lookupClass().getSimpleName()));
+				}
+				if (!rar) {
+					throw new RuntimeException("Invalid configuration for %s: RAR is required for Chile".formatted(
+							MethodHandles.lookup().lookupClass().getSimpleName()));
+				}
+				if (jarm) {
+					throw new RuntimeException("Invalid configuration for %s: JARM responses are not used for Chile".formatted(
+							MethodHandles.lookup().lookupClass().getSimpleName()));
+				}
+				return List.of("FAPI2MS RP CL-OF");
 			default:
 				throw new RuntimeException("Unknown profile %s for %s".formatted(
 					profile, MethodHandles.lookup().lookupClass().getSimpleName()));

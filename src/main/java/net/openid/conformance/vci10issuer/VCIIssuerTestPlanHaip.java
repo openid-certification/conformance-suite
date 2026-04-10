@@ -15,6 +15,14 @@ import net.openid.conformance.fapi2spfinal.FAPI2SPFinalEnsureDifferentNonceInsid
 import net.openid.conformance.fapi2spfinal.FAPI2SPFinalEnsureOtherScopeOrderSucceeds;
 import net.openid.conformance.fapi2spfinal.FAPI2SPFinalEnsureServerHandlesNonMatchingIntentId;
 import net.openid.conformance.fapi2spfinal.FAPI2SPFinalEnsureSignedClientAssertionWithRS256Fails;
+import net.openid.conformance.fapi2spfinal.FAPI2SPFinalGrantManagementEnsureInvalidGrantIdFails;
+import net.openid.conformance.fapi2spfinal.FAPI2SPFinalGrantManagementEnsureQueryAfterRevokeFails;
+import net.openid.conformance.fapi2spfinal.FAPI2SPFinalGrantManagementEnsureQueryNonExistentGrantFails;
+import net.openid.conformance.fapi2spfinal.FAPI2SPFinalGrantManagementEnsureWrongClientCannotQueryGrant;
+import net.openid.conformance.fapi2spfinal.FAPI2SPFinalGrantManagementEnsureWrongClientCannotRevokeGrant;
+import net.openid.conformance.fapi2spfinal.FAPI2SPFinalGrantManagementHappyFlow;
+import net.openid.conformance.fapi2spfinal.FAPI2SPFinalGrantManagementMerge;
+import net.openid.conformance.fapi2spfinal.FAPI2SPFinalGrantManagementReplace;
 import net.openid.conformance.fapi2spfinal.FAPI2SPFinalPAREndpointAsArrayAudienceFails;
 import net.openid.conformance.fapi2spfinal.FAPI2SPFinalPAREndpointAsAudienceFails;
 import net.openid.conformance.fapi2spfinal.FAPI2SPFinalPAREnsureJWTClientAssertionWithIatNbf8SecondsInTheFutureIsAccepted;
@@ -191,6 +199,17 @@ public class VCIIssuerTestPlanHaip implements TestPlan {
 		fapiTestModules.remove(FAPI2SPFinalEnsureServerHandlesNonMatchingIntentId.class);
 		fapiTestModules.remove(FAPI2SPFinalTestEssentialAcrScaClaim.class);
 		fapiTestModules.remove(FAPI2SPFinalBrazilEnsureBadPaymentSignatureFails.class);
+
+		// Remove Grant Management test modules
+
+		fapiTestModules.remove(FAPI2SPFinalGrantManagementHappyFlow.class);
+		fapiTestModules.remove(FAPI2SPFinalGrantManagementMerge.class);
+		fapiTestModules.remove(FAPI2SPFinalGrantManagementReplace.class);
+		fapiTestModules.remove(FAPI2SPFinalGrantManagementEnsureInvalidGrantIdFails.class);
+		fapiTestModules.remove(FAPI2SPFinalGrantManagementEnsureQueryNonExistentGrantFails.class);
+		fapiTestModules.remove(FAPI2SPFinalGrantManagementEnsureQueryAfterRevokeFails.class);
+		fapiTestModules.remove(FAPI2SPFinalGrantManagementEnsureWrongClientCannotQueryGrant.class);
+		fapiTestModules.remove(FAPI2SPFinalGrantManagementEnsureWrongClientCannotRevokeGrant.class);
 
 		return fapiTestModules;
 	}

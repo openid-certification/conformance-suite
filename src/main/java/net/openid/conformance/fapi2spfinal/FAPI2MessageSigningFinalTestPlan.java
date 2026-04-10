@@ -129,7 +129,17 @@ public class FAPI2MessageSigningFinalTestPlan implements TestPlan {
 		//negative private key authentication
 		FAPI2SPFinalPAREndpointAsArrayAudienceFails.class,
 		FAPI2SPFinalPAREndpointAsAudienceFails.class,
-		FAPI2SPFinalPARTokenEndpointAsAudienceFails.class
+		FAPI2SPFinalPARTokenEndpointAsAudienceFails.class,
+
+		// Grant Management tests
+		FAPI2SPFinalGrantManagementHappyFlow.class,
+		FAPI2SPFinalGrantManagementMerge.class,
+		FAPI2SPFinalGrantManagementReplace.class,
+		FAPI2SPFinalGrantManagementEnsureInvalidGrantIdFails.class,
+		FAPI2SPFinalGrantManagementEnsureQueryNonExistentGrantFails.class,
+		FAPI2SPFinalGrantManagementEnsureQueryAfterRevokeFails.class,
+		FAPI2SPFinalGrantManagementEnsureWrongClientCannotQueryGrant.class,
+		FAPI2SPFinalGrantManagementEnsureWrongClientCannotRevokeGrant.class
 
 	);
 
@@ -252,6 +262,28 @@ public class FAPI2MessageSigningFinalTestPlan implements TestPlan {
 				}
 				// as there's only one possible correct configuration, stop here and return just the name
 				return List.of("FAPI2MS OP CBUAE");
+			case "openbanking_chile":
+				if (privateKey) {
+					throw new RuntimeException("Invalid configuration for %s: Only MTLS client authentication is used for Chile".formatted(
+							MethodHandles.lookup().lookupClass().getSimpleName()));
+				}
+				if (!mtlsBounded) {
+					throw new RuntimeException("Invalid configuration for %s: Only MTLS sender constraining is supported for Chile".formatted(
+							MethodHandles.lookup().lookupClass().getSimpleName()));
+				}
+				if (!signedRequest) {
+					throw new RuntimeException("Invalid configuration for %s: Only signed requests are supported for Chile".formatted(
+							MethodHandles.lookup().lookupClass().getSimpleName()));
+				}
+				if (!rar) {
+					throw new RuntimeException("Invalid configuration for %s: RAR is required for Chile".formatted(
+							MethodHandles.lookup().lookupClass().getSimpleName()));
+				}
+				if (jarm) {
+					throw new RuntimeException("Invalid configuration for %s: JARM responses are not used for Chile".formatted(
+							MethodHandles.lookup().lookupClass().getSimpleName()));
+				}
+				return List.of("FAPI2MS OP CL-OF");
 			default:
 				throw new RuntimeException("Unknown profile %s for %s".formatted(
 					profile, MethodHandles.lookup().lookupClass().getSimpleName()));

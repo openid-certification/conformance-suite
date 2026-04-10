@@ -13,6 +13,8 @@ import org.springframework.http.MediaType;
 import org.springframework.web.client.RestClientResponseException;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import java.util.List;
+
 public class DisallowAccessTokenInQuery extends AbstractCallProtectedResource {
 
 	@Override
@@ -86,7 +88,7 @@ public class DisallowAccessTokenInQuery extends AbstractCallProtectedResource {
 			logSuccess("Resource server refused request", args("code", statusCode.value(), "status", e.getStatusText()));
 			return env;
 		} else {
-			return super.handleClientResponseException(env, e);
+			throw error("Unexpected error from the resource endpoint", args("code", e.getStatusCode().value(), "status", e.getStatusText(), "expected code: ", List.of(HttpStatus.SC_BAD_REQUEST,HttpStatus.SC_UNAUTHORIZED, HttpStatus.SC_REQUEST_URI_TOO_LONG )));
 		}
 	}
 }

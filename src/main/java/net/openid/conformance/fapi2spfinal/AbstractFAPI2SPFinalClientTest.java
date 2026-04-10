@@ -109,6 +109,7 @@ import net.openid.conformance.condition.client.ValidateServerJWKs;
 import net.openid.conformance.condition.common.CheckDistinctKeyIdValueInClientJWKs;
 import net.openid.conformance.condition.common.CheckServerConfiguration;
 import net.openid.conformance.condition.common.EnsureIncomingTls12WithBCP195SecureCipherOrTls13;
+import net.openid.conformance.condition.common.GrantManagementSupport;
 import net.openid.conformance.condition.common.RARSupport;
 import net.openid.conformance.condition.common.RARSupport.EnsureEffectiveAuthorizationEndpointRequestContainsValidRAR;
 import net.openid.conformance.condition.rs.ClearAccessTokenFromRequest;
@@ -151,6 +152,7 @@ import net.openid.conformance.variant.FAPI2FinalOPProfile;
 import net.openid.conformance.variant.FAPI2SenderConstrainMethod;
 import net.openid.conformance.variant.FAPIClientType;
 import net.openid.conformance.variant.FAPIResponseMode;
+import net.openid.conformance.variant.GrantManagement;
 import net.openid.conformance.variant.VariantConfigurationFields;
 import net.openid.conformance.variant.VariantHidesConfigurationFields;
 import net.openid.conformance.variant.VariantNotApplicable;
@@ -173,7 +175,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 	FAPIClientType.class,
 	FAPI2AuthRequestMethod.class,
 	FAPI2SenderConstrainMethod.class,
-		AuthorizationRequestType.class,
+	AuthorizationRequestType.class,
+	GrantManagement.class,
 })
 @VariantNotApplicable(parameter = ClientAuthType.class, values = {
 	"none", "client_secret_basic", "client_secret_post", "client_secret_jwt"
@@ -257,6 +260,8 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 	protected boolean startingShutdown = false;
 
 	protected Boolean profileRequiresMtlsEverywhere;
+
+	protected Boolean isGrantManagement;
 
 	protected long waitTimeoutSeconds = 5;
 
@@ -394,6 +399,7 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 		fapi2AuthRequestMethod = getVariant(FAPI2AuthRequestMethod.class);
 		fapi2SenderConstrainMethod = getVariant(FAPI2SenderConstrainMethod.class);
 		authorizationRequestType = getVariant(AuthorizationRequestType.class);
+		isGrantManagement = getVariant(GrantManagement.class) == GrantManagement.ENABLED;
 
 		profileRequiresMtlsEverywhere = profileBehavior.requiresMtlsEverywhere();
 
@@ -918,7 +924,10 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 		call(profileBehavior.validateParRequestInteractionId());
 
 		ResponseEntity<Object> responseEntity = null;
-		if(isDpopConstrain() && !Strings.isNullOrEmpty(env.getString("par_endpoint_dpop_nonce_error"))) {
+		ResponseEntity<Object> customErrorResponse = createPAREndpointCustomErrorResponse();
+		if (customErrorResponse != null) {
+			responseEntity = customErrorResponse;
+		} else if(isDpopConstrain() && !Strings.isNullOrEmpty(env.getString("par_endpoint_dpop_nonce_error"))) {
 			callAndContinueOnFailure(CreatePAREndpointDpopErrorResponse.class, ConditionResult.FAILURE);
 			responseEntity = new ResponseEntity<>(env.getObject("par_endpoint_response"), headersFromJson(env.getObject("par_endpoint_response_headers")), HttpStatus.valueOf(env.getInteger("par_endpoint_response_http_status").intValue()));
 		}  else {
@@ -930,6 +939,15 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 		call(exec().unmapKey("incoming_request").unmapKey("par_endpoint_http_request"));
 
 		return responseEntity;
+	}
+
+	/**
+	 * Hook for subclasses to return a custom error response from the PAR endpoint.
+	 * Called after request parsing and validation, before the normal PAR response is created.
+	 * Return null to use the default PAR endpoint handling.
+	 */
+	protected ResponseEntity<Object> createPAREndpointCustomErrorResponse() {
+		return null;
 	}
 
 	protected void addCustomValuesToParResponse() {}
@@ -1171,6 +1189,9 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 		callAndStopOnFailure(CreateTokenEndpointResponse.class);
 		if (authorizationRequestType == AuthorizationRequestType.RAR) {
 			callAndStopOnFailure(RARSupport.AddRarToTokenEndpointResponse.class);
+		}
+		if (isGrantManagement) {
+			callAndStopOnFailure(GrantManagementSupport.AddGrantIdToTokenEndpointResponse.class);
 		}
 	}
 
@@ -1583,6 +1604,12 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 	public void setupOpenBankingBrazil() {
 		initProfileBehavior(new OpenBankingBrazilClientProfileBehavior());
 	}
+
+	@VariantSetup(parameter = FAPI2FinalOPProfile.class, value = "openbanking_chile")
+	public void setupOpenBankingChile() {
+		initProfileBehavior(new OpenbankingChileClientProfileBehavior());
+	}
+
 
 	@VariantSetup(parameter = FAPI2FinalOPProfile.class, value = "connectid_au")
 	public void setupConnectIdAu() {

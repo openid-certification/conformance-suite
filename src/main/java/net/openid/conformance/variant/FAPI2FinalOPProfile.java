@@ -18,6 +18,8 @@ public enum FAPI2FinalOPProfile {
 	CONNECTID_AU,
 	// https://openfinanceuae.atlassian.net/wiki/spaces/StandardsDraft01/pages/39158001/Security+Profile+-+FAPI
 	CBUAE,
+	// https://www.cmfchile.cl/
+	OPENBANKING_CHILE,
 	// PLAIN_FAPI utilising client credentials grant only.
 	FAPI_CLIENT_CREDENTIALS_GRANT,
 	// OID4VCI base profile

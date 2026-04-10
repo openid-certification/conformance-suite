@@ -1424,6 +1424,12 @@ async def main():
             untested_test_modules.remove(m)
             continue
 
+        if re.match(r'(fapi2-security-profile-final-grant-management-.*)', m):
+            # There is still no reference implementation for the grant management spec implemented
+            untested_test_modules.remove(m)
+            continue
+
+
         client_test = re.match(r'fapi-rw-id2-client-.*', m) or \
                       re.match(r'fapi1-advanced-final-client-.*', m) or \
                       re.match(r'fapi2-security-profile-id2-client-.*', m) or \

@@ -54,6 +54,7 @@ public class FAPI2SPFinalTestPlan implements TestPlan {
 		modules.remove(FAPI2SPFinalEnsureMatchingKeyInAuthorizationRequest.class);
 		modules.remove(FAPI2SPFinalEnsureUnsignedRequestAtParEndpointFails.class);
 		modules.remove(FAPI2SPFinalPARRejectRequestUriInParAuthorizationRequest.class);
+
 		return modules;
 	}
 
@@ -118,6 +119,8 @@ public class FAPI2SPFinalTestPlan implements TestPlan {
 					MethodHandles.lookup().lookupClass().getSimpleName()));
 			case "cbuae":
 				throw new RuntimeException("CBUAE profile requires the usage of JAR, please use the message signing test plan.");
+			case "openbanking_chile":
+				throw new RuntimeException("Chile profile requires the usage of JAR, please use the message signing test plan.");
 			default:
 				throw new RuntimeException("Unknown profile %s for %s".formatted(
 					profile, MethodHandles.lookup().lookupClass().getSimpleName()));

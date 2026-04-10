@@ -20,7 +20,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 	summary = "This test registers an intent/consent with one client and then uses it with a different client. It should end with the user being redirected back to the conformance suite (with an invalid_request, invalid_request_object or access_denied error), or with the authorization server displaying an error message to the user saying the intent/consent id belongs to a different client (a screenshot of which must be uploaded).",
 	profile = "FAPI2-Security-Profile-Final"
 )
-@VariantNotApplicable(parameter = FAPI2FinalOPProfile.class, values = { "plain_fapi", "consumerdataright_au", "openbanking_brazil", "connectid_au", "cbuae", "fapi_client_credentials_grant" })
+@VariantNotApplicable(parameter = FAPI2FinalOPProfile.class, values = { "plain_fapi", "consumerdataright_au", "openbanking_brazil", "openbanking_chile", "connectid_au", "cbuae", "fapi_client_credentials_grant" })
 public class FAPI2SPFinalEnsureServerHandlesNonMatchingIntentId extends AbstractFAPI2SPFinalExpectingAuthorizationEndpointPlaceholderOrCallback {
 
 	@Override

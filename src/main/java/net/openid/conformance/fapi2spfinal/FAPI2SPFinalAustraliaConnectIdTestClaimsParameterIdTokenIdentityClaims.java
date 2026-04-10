@@ -24,7 +24,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 	summary = "The test will request all valid ConnectID identity claims and check those contained in the server's discovery document 'claims_supported' parameter are returned in the id_token (using a variety of different forms of request), and will fail if any are not returned.\n\nThe user you use in this test must have values present for all the claims your OP supports.",
 	profile = "FAPI2-Security-Profile-Final"
 )
-@VariantNotApplicable(parameter = FAPI2FinalOPProfile.class, values = { "plain_fapi", "openbanking_uk", "consumerdataright_au", "openbanking_brazil", "cbuae", "fapi_client_credentials_grant" })
+@VariantNotApplicable(parameter = FAPI2FinalOPProfile.class, values = { "plain_fapi", "openbanking_uk", "consumerdataright_au", "openbanking_brazil", "openbanking_chile", "cbuae", "fapi_client_credentials_grant" })
 public class FAPI2SPFinalAustraliaConnectIdTestClaimsParameterIdTokenIdentityClaims extends AbstractFAPI2SPFinalServerTestModule {
 
 	@Override

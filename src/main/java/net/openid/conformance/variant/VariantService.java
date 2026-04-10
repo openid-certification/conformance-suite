@@ -875,9 +875,14 @@ public class VariantService {
 						// Get effective allowed values considering conditional exclusions
 						Set<?> effectiveAllowedValues = p.getAllowedValuesForVariant(variant);
 
-						// If all values are excluded, this parameter is not applicable - skip validation
 						if (effectiveAllowedValues.isEmpty()) {
-							return true;
+							// All values are conditionally excluded for this variant. Only skip
+							// validation (treat parameter as irrelevant) when the module had no
+							// static @VariantNotApplicable restrictions — i.e. all enum values were
+							// originally allowed. If the module already restricted allowedValues via
+							// @VariantNotApplicable and the remaining values are now also excluded,
+							// no valid configuration exists and the module is not applicable.
+							return p.allowedValues.size() == p.parameter.values().size();
 						}
 
 						Object v = variant.get(p.parameter);
