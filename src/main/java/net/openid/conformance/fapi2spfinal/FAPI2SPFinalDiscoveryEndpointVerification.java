@@ -120,13 +120,11 @@ public class FAPI2SPFinalDiscoveryEndpointVerification extends AbstractFAPI2SPFi
 	@VariantSetup(parameter = FAPI2FinalOPProfile.class, value = "vci")
 	public void setupVci() {
 		profileBehavior = new VCIProfileBehavior();
-		profileBehavior.setProfileSpecificDiscoveryChecks(PlainFAPIDiscoveryEndpointChecks::new);
 	}
 
 	@VariantSetup(parameter = FAPI2FinalOPProfile.class, value = "vci_haip")
 	public void setupVciHaip() {
 		profileBehavior = new VCIHaipProfileBehavior();
-		profileBehavior.setProfileSpecificDiscoveryChecks(PlainFAPIDiscoveryEndpointChecks::new);
 	}
 
 	@Override
@@ -167,7 +165,7 @@ public class FAPI2SPFinalDiscoveryEndpointVerification extends AbstractFAPI2SPFi
 			callAndContinueOnFailure(CheckDiscEndpointAuthorizationEndpoint.class, Condition.ConditionResult.FAILURE);
 		}
 
-		call(sequence(profileBehavior.discoveryEndpointChecks()));
+		call(sequence(profileBehavior.discoveryEndpointChecks(this)));
 		if (oidcChecks != null) {
 			call(sequence(oidcChecks));
 		}
