@@ -1,47 +1,32 @@
 package net.openid.conformance.vci10issuer;
 
-import net.openid.conformance.fapi2spfinal.FAPI2SPFinalAccessTokenTypeHeaderCaseSensitivity;
-import net.openid.conformance.fapi2spfinal.FAPI2SPFinalAttemptReuseAuthorizationCodeAfterOneSecond;
-import net.openid.conformance.fapi2spfinal.FAPI2SPFinalAttemptToUseExpiredAuthCode;
-import net.openid.conformance.fapi2spfinal.FAPI2SPFinalCheckDpopProofNbfExp;
+import net.openid.conformance.fapi2spfinal.FAPI2SPFinalAustraliaConnectIdEnsureInvalidPurposeFails;
+import net.openid.conformance.fapi2spfinal.FAPI2SPFinalAustraliaConnectIdTestClaimsParameterIdTokenIdentityClaims;
+import net.openid.conformance.fapi2spfinal.FAPI2SPFinalBrazilEnsureBadPaymentSignatureFails;
 import net.openid.conformance.fapi2spfinal.FAPI2SPFinalDiscoveryEndpointVerification;
-import net.openid.conformance.fapi2spfinal.FAPI2SPFinalDpopNegativeTests;
-import net.openid.conformance.fapi2spfinal.FAPI2SPFinalEnsureAuthorizationCodeIsBoundToClient;
-import net.openid.conformance.fapi2spfinal.FAPI2SPFinalEnsureAuthorizationRequestWithoutStateSuccess;
-import net.openid.conformance.fapi2spfinal.FAPI2SPFinalEnsureClientIdInTokenEndpoint;
-import net.openid.conformance.fapi2spfinal.FAPI2SPFinalEnsureDifferentStateInsideAndOutsideRequestObject;
-import net.openid.conformance.fapi2spfinal.FAPI2SPFinalEnsureDpopAuthCodeBindingSuccess;
-import net.openid.conformance.fapi2spfinal.FAPI2SPFinalEnsureDpopProofAtParEndpointBindingSuccess;
-import net.openid.conformance.fapi2spfinal.FAPI2SPFinalEnsureDpopProofWithIat10SecondsAfterSucceeds;
-import net.openid.conformance.fapi2spfinal.FAPI2SPFinalEnsureAuthorizationRequestWithLongState;
-import net.openid.conformance.fapi2spfinal.FAPI2SPFinalEnsureDpopProofWithIat10SecondsBeforeSucceeds;
-import net.openid.conformance.fapi2spfinal.FAPI2SPFinalEnsureHolderOfKeyRequired;
-import net.openid.conformance.fapi2spfinal.FAPI2SPFinalEnsureMismatchedDpopJktFails;
-import net.openid.conformance.fapi2spfinal.FAPI2SPFinalEnsureRedirectUriInAuthorizationRequest;
-import net.openid.conformance.fapi2spfinal.FAPI2SPFinalEnsureRegisteredRedirectUri;
-import net.openid.conformance.fapi2spfinal.FAPI2SPFinalEnsureRequestObjectWithoutRedirectUriFails;
-import net.openid.conformance.fapi2spfinal.FAPI2SPFinalEnsureResponseTypeCodeIdTokenFails;
-import net.openid.conformance.fapi2spfinal.FAPI2SPFinalEnsureResponseTypeTokenFails;
-import net.openid.conformance.fapi2spfinal.FAPI2SPFinalEnsureTokenEndpointFailsWithMismatchedDpopJkt;
-import net.openid.conformance.fapi2spfinal.FAPI2SPFinalEnsureTokenEndpointFailsWithMismatchedDpopProofJkt;
-import net.openid.conformance.fapi2spfinal.FAPI2SPFinalEnsureUnsignedAuthorizationRequestWithoutUsingParFails;
-import net.openid.conformance.fapi2spfinal.FAPI2SPFinalHappyFlow;
-import net.openid.conformance.fapi2spfinal.FAPI2SPFinalPARAttemptReuseRequestUri;
-import net.openid.conformance.fapi2spfinal.FAPI2SPFinalPARAttemptToUseExpiredRequestUri;
-import net.openid.conformance.fapi2spfinal.FAPI2SPFinalPAREnsurePKCECodeVerifierRequired;
-import net.openid.conformance.fapi2spfinal.FAPI2SPFinalPAREnsurePKCERequired;
-import net.openid.conformance.fapi2spfinal.FAPI2SPFinalPAREnsurePlainPKCERejected;
-import net.openid.conformance.fapi2spfinal.FAPI2SPFinalPAREnsureRequestUriIsBoundToClient;
-import net.openid.conformance.fapi2spfinal.FAPI2SPFinalPAREnsureServerAcceptsReusedRequestUriBeforeAuthenticationCompletion;
-import net.openid.conformance.fapi2spfinal.FAPI2SPFinalPARIncorrectPKCECodeVerifierRejected;
-import net.openid.conformance.fapi2spfinal.FAPI2SPFinalPARRejectInvalidHttpVerb;
-import net.openid.conformance.fapi2spfinal.FAPI2SPFinalPARRejectRequestUriInParAuthorizationFormParams;
-import net.openid.conformance.fapi2spfinal.FAPI2SPFinalParWithoutDuplicateParameters;
-import net.openid.conformance.fapi2spfinal.FAPI2SPFinalRefreshToken;
-import net.openid.conformance.fapi2spfinal.FAPI2SPFinalStateOnlyOutsideRequestObjectNotUsed;
-import net.openid.conformance.fapi2spfinal.FAPI2SPFinalUserRejectsAuthentication;
+import net.openid.conformance.fapi2spfinal.FAPI2SPFinalEnsureAuthorizationRequestWith64CharNonceSuccess;
+import net.openid.conformance.fapi2spfinal.FAPI2SPFinalEnsureAuthorizationRequestWithLongNonce;
+import net.openid.conformance.fapi2spfinal.FAPI2SPFinalEnsureAuthorizationRequestWithoutNonceSuccess;
+import net.openid.conformance.fapi2spfinal.FAPI2SPFinalEnsureClientAssertionInTokenEndpoint;
+import net.openid.conformance.fapi2spfinal.FAPI2SPFinalEnsureClientAssertionWithExpIs5MinutesInPastFails;
+import net.openid.conformance.fapi2spfinal.FAPI2SPFinalEnsureClientAssertionWithNoSubFails;
+import net.openid.conformance.fapi2spfinal.FAPI2SPFinalEnsureClientAssertionWithWrongAudFails;
+import net.openid.conformance.fapi2spfinal.FAPI2SPFinalEnsureDifferentNonceInsideAndOutsideRequestObject;
+import net.openid.conformance.fapi2spfinal.FAPI2SPFinalEnsureOtherScopeOrderSucceeds;
+import net.openid.conformance.fapi2spfinal.FAPI2SPFinalEnsureServerHandlesNonMatchingIntentId;
+import net.openid.conformance.fapi2spfinal.FAPI2SPFinalEnsureSignedClientAssertionWithRS256Fails;
+import net.openid.conformance.fapi2spfinal.FAPI2SPFinalPAREndpointAsArrayAudienceFails;
+import net.openid.conformance.fapi2spfinal.FAPI2SPFinalPAREndpointAsAudienceFails;
+import net.openid.conformance.fapi2spfinal.FAPI2SPFinalPAREnsureJWTClientAssertionWithIatNbf8SecondsInTheFutureIsAccepted;
+import net.openid.conformance.fapi2spfinal.FAPI2SPFinalPAREnsureJWTClientAssertionWithIatNbfOver60SecondsInTheFutureFails;
+import net.openid.conformance.fapi2spfinal.FAPI2SPFinalPARTokenEndpointAsAudienceFails;
+import net.openid.conformance.fapi2spfinal.FAPI2SPFinalPlainFAPIEnsureRegisteredRedirectUri;
+import net.openid.conformance.fapi2spfinal.FAPI2SPFinalTestClaimsParameterIdentityClaims;
+import net.openid.conformance.fapi2spfinal.FAPI2SPFinalTestEssentialAcrScaClaim;
+import net.openid.conformance.fapi2spfinal.FAPI2SPFinalTestPlan;
 import net.openid.conformance.plan.PublishTestPlan;
 import net.openid.conformance.plan.TestPlan;
+import net.openid.conformance.testmodule.TestModule;
 import net.openid.conformance.variant.AuthorizationRequestType;
 import net.openid.conformance.variant.ClientAuthType;
 import net.openid.conformance.variant.FAPI2AuthRequestMethod;
@@ -55,6 +40,7 @@ import net.openid.conformance.variant.VCICredentialEncryption;
 import net.openid.conformance.variant.VCIGrantType;
 import net.openid.conformance.variant.VariantSelection;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @PublishTestPlan(
@@ -148,68 +134,7 @@ public class VCIIssuerTestPlanHaip implements TestPlan {
 				)
 			),
 			new ModuleListEntry(
-				List.of(
-					// Normal well behaved client cases
-					FAPI2SPFinalHappyFlow.class,
-					FAPI2SPFinalUserRejectsAuthentication.class,
-					FAPI2SPFinalEnsureAuthorizationRequestWithoutStateSuccess.class,
-					FAPI2SPFinalAccessTokenTypeHeaderCaseSensitivity.class,
-
-					// DPoP tests
-					FAPI2SPFinalCheckDpopProofNbfExp.class,
-					FAPI2SPFinalEnsureDpopProofWithIat10SecondsBeforeSucceeds.class,
-					FAPI2SPFinalEnsureDpopProofWithIat10SecondsAfterSucceeds.class,
-
-					// DPoP Authorization Code Binding negative tests
-					FAPI2SPFinalEnsureMismatchedDpopJktFails.class,
-					FAPI2SPFinalEnsureTokenEndpointFailsWithMismatchedDpopProofJkt.class,
-					FAPI2SPFinalEnsureTokenEndpointFailsWithMismatchedDpopJkt.class,
-					FAPI2SPFinalEnsureDpopProofAtParEndpointBindingSuccess.class,
-					FAPI2SPFinalEnsureDpopAuthCodeBindingSuccess.class,
-
-					// Possible failure case
-					FAPI2SPFinalEnsureDifferentStateInsideAndOutsideRequestObject.class,
-					FAPI2SPFinalEnsureAuthorizationRequestWithLongState.class,
-
-					// Negative tests for request objects
-					FAPI2SPFinalStateOnlyOutsideRequestObjectNotUsed.class,
-					FAPI2SPFinalEnsureRequestObjectWithoutRedirectUriFails.class,
-
-					// Negative tests for authorization request
-					FAPI2SPFinalEnsureRegisteredRedirectUri.class,
-					FAPI2SPFinalEnsureUnsignedAuthorizationRequestWithoutUsingParFails.class,
-					FAPI2SPFinalEnsureRedirectUriInAuthorizationRequest.class,
-					FAPI2SPFinalEnsureResponseTypeCodeIdTokenFails.class,
-					FAPI2SPFinalEnsureResponseTypeTokenFails.class,
-
-					// Negative tests for token endpoint
-					FAPI2SPFinalEnsureClientIdInTokenEndpoint.class,
-					FAPI2SPFinalEnsureHolderOfKeyRequired.class,
-					FAPI2SPFinalEnsureAuthorizationCodeIsBoundToClient.class,
-					FAPI2SPFinalAttemptReuseAuthorizationCodeAfterOneSecond.class,
-					FAPI2SPFinalAttemptToUseExpiredAuthCode.class,
-
-					FAPI2SPFinalDpopNegativeTests.class,
-
-					// Refresh token tests
-					FAPI2SPFinalRefreshToken.class,
-
-					// PAR tests
-					FAPI2SPFinalPAREnsureServerAcceptsReusedRequestUriBeforeAuthenticationCompletion.class,
-					FAPI2SPFinalPARAttemptReuseRequestUri.class,
-					FAPI2SPFinalPARAttemptToUseExpiredRequestUri.class,
-					FAPI2SPFinalPAREnsureRequestUriIsBoundToClient.class,
-					FAPI2SPFinalPARRejectRequestUriInParAuthorizationFormParams.class,
-					FAPI2SPFinalPARRejectInvalidHttpVerb.class,
-
-					// PKCE tests
-					FAPI2SPFinalPAREnsurePKCERequired.class,
-					FAPI2SPFinalPAREnsurePKCECodeVerifierRequired.class,
-					FAPI2SPFinalPARIncorrectPKCECodeVerifierRejected.class,
-					FAPI2SPFinalPAREnsurePlainPKCERejected.class,
-
-					FAPI2SPFinalParWithoutDuplicateParameters.class
-				),
+				vciFapi2SPFinalTestModules(),
 				List.of(
 					new Variant(FAPI2FinalOPProfile.class, "vci_haip"),
 					new Variant(FAPIOpenIDConnect.class, "plain_oauth"),
@@ -223,6 +148,45 @@ public class VCIIssuerTestPlanHaip implements TestPlan {
 				)
 			)
 		);
+	}
+
+	public static List<Class<? extends TestModule>> vciFapi2SPFinalTestModules() {
+		List<Class<? extends TestModule>> fapiTestModules = new ArrayList<>(
+			FAPI2SPFinalTestPlan.fapi2SPtestModules()
+		);
+
+		// Discovery test is in its own ModuleListEntry (no VCI variant parameters)
+		fapiTestModules.remove(FAPI2SPFinalDiscoveryEndpointVerification.class);
+
+		// Nonce / OpenID-Connect-only tests (VCI HAIP is plain_oauth)
+		fapiTestModules.remove(FAPI2SPFinalEnsureAuthorizationRequestWithoutNonceSuccess.class);
+		fapiTestModules.remove(FAPI2SPFinalEnsureAuthorizationRequestWith64CharNonceSuccess.class);
+		fapiTestModules.remove(FAPI2SPFinalEnsureDifferentNonceInsideAndOutsideRequestObject.class);
+		fapiTestModules.remove(FAPI2SPFinalEnsureAuthorizationRequestWithLongNonce.class);
+		fapiTestModules.remove(FAPI2SPFinalEnsureOtherScopeOrderSucceeds.class);
+		fapiTestModules.remove(FAPI2SPFinalTestClaimsParameterIdentityClaims.class);
+
+		// private_key_jwt-only tests (VCI HAIP uses client_attestation)
+		fapiTestModules.remove(FAPI2SPFinalEnsureSignedClientAssertionWithRS256Fails.class);
+		fapiTestModules.remove(FAPI2SPFinalEnsureClientAssertionInTokenEndpoint.class);
+		fapiTestModules.remove(FAPI2SPFinalEnsureClientAssertionWithExpIs5MinutesInPastFails.class);
+		fapiTestModules.remove(FAPI2SPFinalEnsureClientAssertionWithWrongAudFails.class);
+		fapiTestModules.remove(FAPI2SPFinalEnsureClientAssertionWithNoSubFails.class);
+		fapiTestModules.remove(FAPI2SPFinalPAREnsureJWTClientAssertionWithIatNbf8SecondsInTheFutureIsAccepted.class);
+		fapiTestModules.remove(FAPI2SPFinalPAREnsureJWTClientAssertionWithIatNbfOver60SecondsInTheFutureFails.class);
+		fapiTestModules.remove(FAPI2SPFinalPAREndpointAsArrayAudienceFails.class);
+		fapiTestModules.remove(FAPI2SPFinalPAREndpointAsAudienceFails.class);
+		fapiTestModules.remove(FAPI2SPFinalPARTokenEndpointAsAudienceFails.class);
+
+		// Profile-specific tests (plain_fapi / connectid_au / openbanking_uk / openbanking_brazil)
+		fapiTestModules.remove(FAPI2SPFinalPlainFAPIEnsureRegisteredRedirectUri.class);
+		fapiTestModules.remove(FAPI2SPFinalAustraliaConnectIdEnsureInvalidPurposeFails.class);
+		fapiTestModules.remove(FAPI2SPFinalAustraliaConnectIdTestClaimsParameterIdTokenIdentityClaims.class);
+		fapiTestModules.remove(FAPI2SPFinalEnsureServerHandlesNonMatchingIntentId.class);
+		fapiTestModules.remove(FAPI2SPFinalTestEssentialAcrScaClaim.class);
+		fapiTestModules.remove(FAPI2SPFinalBrazilEnsureBadPaymentSignatureFails.class);
+
+		return fapiTestModules;
 	}
 
 	@Override
