@@ -4,6 +4,7 @@ import com.google.common.base.Strings;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.Condition.ConditionResult;
+import net.openid.conformance.condition.as.EnsureServerJwksDoesNotContainPrivateOrSymmetricKeys;
 import net.openid.conformance.condition.as.FAPI2FinalEnsureMinimumClientKeyLength;
 import net.openid.conformance.condition.as.FAPI2FinalEnsureMinimumServerKeyLength;
 import net.openid.conformance.condition.as.FAPIBrazilEncryptRequestObject;
@@ -109,6 +110,7 @@ import net.openid.conformance.condition.client.ValidateMTLSCertificates2Header;
 import net.openid.conformance.condition.client.ValidateMTLSCertificatesAsX509;
 import net.openid.conformance.condition.client.ValidateMTLSCertificatesHeader;
 import net.openid.conformance.condition.client.ValidateSHash;
+import net.openid.conformance.condition.client.ValidateServerJWKs;
 import net.openid.conformance.condition.client.ValidateSuccessfulAuthCodeFlowResponseFromAuthorizationEndpoint;
 import net.openid.conformance.condition.client.ValidateSuccessfulJARMResponseFromAuthorizationEndpoint;
 import net.openid.conformance.condition.common.CheckClientCredentialsOnlyServerConfiguration;
@@ -116,6 +118,7 @@ import net.openid.conformance.condition.common.CheckDistinctKeyIdValueInClientJW
 import net.openid.conformance.condition.common.CheckForKeyIdInClientJWKs;
 import net.openid.conformance.condition.common.CheckForKeyIdInServerJWKs;
 import net.openid.conformance.condition.common.CheckServerConfiguration;
+import net.openid.conformance.condition.common.GrantManagementSupport;
 import net.openid.conformance.condition.common.RARSupport;
 import net.openid.conformance.sequence.AbstractConditionSequence;
 import net.openid.conformance.sequence.ValidateJwksSequence;
@@ -137,6 +140,7 @@ import net.openid.conformance.variant.FAPI2FinalOPProfile;
 import net.openid.conformance.variant.FAPI2SenderConstrainMethod;
 import net.openid.conformance.variant.FAPIOpenIDConnect;
 import net.openid.conformance.variant.FAPIResponseMode;
+import net.openid.conformance.variant.GrantManagement;
 import net.openid.conformance.variant.VariantConfigurationFields;
 import net.openid.conformance.variant.VariantHidesConfigurationFields;
 import net.openid.conformance.variant.VariantNotApplicable;
@@ -156,6 +160,7 @@ import java.util.function.Supplier;
 	FAPI2FinalOPProfile.class,
 	FAPIResponseMode.class,
 	AuthorizationRequestType.class,
+	GrantManagement.class,
 })
 @VariantConfigurationFields(parameter = FAPI2FinalOPProfile.class, value = "plain_fapi", configurationFields = {
 	"resource.resourceMethod",
@@ -258,6 +263,14 @@ import java.util.function.Supplier;
 	"mtls2.cert",
 	"mtls2.ca"
 })
+@VariantConfigurationFields(parameter = FAPI2FinalOPProfile.class, value = "openbanking_chile", configurationFields = {
+	"mtls.key",
+	"mtls.cert",
+	"mtls.ca",
+	"mtls2.key",
+	"mtls2.cert",
+	"mtls2.ca"
+})
 @VariantHidesConfigurationFields(parameter = FAPI2FinalOPProfile.class, value = "connectid_au", configurationFields = {
 	"resource.resourceUrl", // the userinfo endpoint is always used
 	"client.scope", // scope is always openid
@@ -298,6 +311,13 @@ import java.util.function.Supplier;
 	values = {"client_attestation"},
 	whenParameter = FAPI2FinalOPProfile.class,
 	hasValues = {"plain_fapi", "openbanking_uk", "consumerdataright_au", "openbanking_brazil", "connectid_au", "cbuae", "ksa", "fapi_client_credentials_grant"}
+)
+// Grant Management is not applicable for VCI or client_credentials profiles
+@VariantNotApplicableWhen(
+	parameter = GrantManagement.class,
+	values = {"enabled"},
+	whenParameter = FAPI2FinalOPProfile.class,
+	hasValues = {"vci", "vci_haip", "fapi_client_credentials_grant"}
 )
 // VCI profile configuration fields
 @VariantConfigurationFields(parameter = FAPI2FinalOPProfile.class, value = "vci", configurationFields = {
@@ -343,8 +363,9 @@ public abstract class AbstractFAPI2SPFinalServerTestModule extends AbstractRedir
 	protected Boolean isSignedRequest;
 	protected Boolean profileRequiresMtlsEverywhere;
 	protected Boolean useDpopAuthCodeBinding;
-	protected Boolean isRarRequest;
+	protected boolean isRarRequest;
 	protected Boolean clientCredentialsGrant;
+	protected boolean isGrantManagement;
 	protected FAPI2ProfileBehavior profileBehavior;
 
 	// for variants to fill in by calling the setup... family of methods
@@ -593,12 +614,16 @@ public abstract class AbstractFAPI2SPFinalServerTestModule extends AbstractRedir
 		private boolean isOpenId;
 		private boolean isJarm;
 		private boolean usePkce;
+		private boolean isRAR;
+		private boolean isGrantManagement;
 		private Class <? extends ConditionSequence> profileAuthorizationEndpointSetupSteps;
 
 		public CreateAuthorizationRequestSteps(boolean isSecondClient,
 											boolean isOpenId,
 											boolean isJarm,
 											boolean usePkce,
+											boolean isRAR,
+											boolean isGrantManagement,
 											Class<? extends ConditionSequence> profileAuthorizationEndpointSetupSteps) {
 			this.isSecondClient = isSecondClient;
 			this.isOpenId = isOpenId;
@@ -606,6 +631,8 @@ public abstract class AbstractFAPI2SPFinalServerTestModule extends AbstractRedir
 			// it would probably be preferable to use the 'skip' syntax instead of the 'usePkce' flag, but it's
 			// currently not possible to use 'skip' to skip a conditionsequence within a condition sequence
 			this.usePkce = usePkce;
+			this.isRAR = isRAR;
+			this.isGrantManagement = isGrantManagement;
 			this.profileAuthorizationEndpointSetupSteps = profileAuthorizationEndpointSetupSteps;
 		}
 
@@ -639,6 +666,15 @@ public abstract class AbstractFAPI2SPFinalServerTestModule extends AbstractRedir
 			if (usePkce) {
 				call(new SetupPkceAndAddToAuthorizationRequest());
 			}
+
+			if (isRAR){
+				callAndStopOnFailure(RARSupport.AddRARToAuthorizationEndpointRequest.class);
+			}
+			if (isGrantManagement) {
+				callAndStopOnFailure(GrantManagementSupport.AddGrantManagementScopesToAuthorizationRequest.class);
+				callAndStopOnFailure(GrantManagementSupport.AddGrantManagementActionCreateToAuthorizationRequest.class);
+			}
+
 		}
 
 	}
@@ -648,11 +684,9 @@ public abstract class AbstractFAPI2SPFinalServerTestModule extends AbstractRedir
 	}
 
 	protected ConditionSequence makeCreateAuthorizationRequestSteps(boolean usePkce) {
-		ConditionSequence seq = new CreateAuthorizationRequestSteps(isSecondClient(), isOpenId, jarm, usePkce, profileAuthorizationEndpointSetupSteps);
+
+		ConditionSequence seq = new CreateAuthorizationRequestSteps(isSecondClient(), isOpenId, jarm, usePkce, isRarRequest, isGrantManagement, profileAuthorizationEndpointSetupSteps);
 		profileBehavior.customizeAuthorizationRequestSteps(seq);
-		if (isRarRequest){
-			seq.then(condition(RARSupport.AddRARToAuthorizationEndpointRequest.class));
-		}
 		return seq;
 	}
 
@@ -920,6 +954,10 @@ public abstract class AbstractFAPI2SPFinalServerTestModule extends AbstractRedir
 			callAndStopOnFailure(RARSupport.CheckForAuthorizationDetailsInTokenResponse.class, "RFC9396-7");
 		}
 
+		if (isGrantManagement) {
+			callAndStopOnFailure(GrantManagementSupport.ExtractGrantIdFromTokenResponse.class, "GM-4.4");
+		}
+
 		call(profileBehavior.validateTokenEndpointResponseInteractionId());
 
 		call(profileBehavior.afterTokenEndpointResponseProcessed());
@@ -1181,6 +1219,11 @@ public abstract class AbstractFAPI2SPFinalServerTestModule extends AbstractRedir
 		initProfileBehavior(new CbuaeProfileBehavior());
 	}
 
+	@VariantSetup(parameter = FAPI2FinalOPProfile.class, value = "openbanking_chile")
+	public void setupOpenBankingChile() {
+		initProfileBehavior(new OpenBankingChileProfileBehavior());
+	}
+
 	@VariantSetup(parameter = FAPI2FinalOPProfile.class, value = "ksa")
 	public void setupKsa() {
 		initProfileBehavior(new KsaProfileBehavior());
@@ -1202,6 +1245,11 @@ public abstract class AbstractFAPI2SPFinalServerTestModule extends AbstractRedir
 		if (getVariant(FAPI2SenderConstrainMethod.class) == FAPI2SenderConstrainMethod.MTLS) {
 			supportMTLSEndpointAliases = SupportMTLSEndpointAliases.class;
 		}
+	}
+
+	@VariantSetup(parameter = GrantManagement.class, value = "enabled")
+	public void setupGrantManagement() {
+		isGrantManagement = true;
 	}
 
 	@VariantSetup(parameter = FAPI2SenderConstrainMethod.class, value = "dpop")

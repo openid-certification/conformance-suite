@@ -32,7 +32,7 @@ import java.util.Vector;
 public abstract class AbstractCheckInsecureCiphers extends AbstractCondition {
 
 	abstract Map<Integer, String> getInsecureCiphers();
-	abstract ProtocolVersion getProtocolVersion();
+	abstract ProtocolVersion[] getProtocolVersion();
 
 	@Override
 	@PreEnvironment(required = "tls")
@@ -77,7 +77,7 @@ public abstract class AbstractCheckInsecureCiphers extends AbstractCondition {
 
 					@Override
 					protected ProtocolVersion[] getSupportedVersions() {
-						return new ProtocolVersion[]{getProtocolVersion()};
+						return getProtocolVersion();
 					}
 
 					@Override

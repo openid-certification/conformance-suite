@@ -58,8 +58,8 @@ public class DisallowInsecureCipher extends AbstractCheckInsecureCiphers {
 	}
 
 	@Override
-	ProtocolVersion getProtocolVersion() {
-		return ProtocolVersion.TLSv12;
+	ProtocolVersion[] getProtocolVersion() {
+		return new ProtocolVersion[]{ProtocolVersion.TLSv12, ProtocolVersion.TLSv13};
 	}
 
 	protected boolean useBCP195Ciphers() {
