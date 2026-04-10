@@ -733,8 +733,16 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 	 *            the result to set
 	 */
 	private void setResult(Result result) {
+		if (isTerminalStatus()) {
+			logger.info("{}: ignoring result transition to {} because test status is {}", getId(), result, getStatus());
+			return;
+		}
 		this.result = result;
 		testInfo.updateTestResult(getId(), getResult());
+	}
+
+	private boolean isTerminalStatus() {
+		return getStatus() == Status.FINISHED || getStatus() == Status.INTERRUPTED;
 	}
 
 	private void updateResultFromConditionFailure(Condition.ConditionResult onFail) {
