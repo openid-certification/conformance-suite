@@ -20,6 +20,7 @@ import net.openid.conformance.condition.client.ValidateClientJWKsPrivatePart;
 import net.openid.conformance.condition.common.FAPI2CheckKeyAlgInClientJWKs;
 import net.openid.conformance.sequence.AbstractConditionSequence;
 import net.openid.conformance.sequence.ConditionSequence;
+import net.openid.conformance.testmodule.ConditionSequenceCallBuilder;
 import net.openid.conformance.testmodule.TestFailureException;
 import net.openid.conformance.variant.AuthorizationRequestType;
 import net.openid.conformance.variant.FAPI2AuthRequestMethod;
@@ -40,8 +41,18 @@ public class FAPI2ProfileBehavior {
 
 	protected AbstractFAPI2SPFinalServerTestModule module;
 
+	protected Supplier<? extends ConditionSequence> profileSpecificDiscoveryChecks = FAPI2SPFinalDiscoveryEndpointVerification.PlainFAPIDiscoveryEndpointChecks::new;
+
 	public void setModule(AbstractFAPI2SPFinalServerTestModule module) {
 		this.module = module;
+	}
+
+	public void setProfileSpecificDiscoveryChecks(Supplier<? extends ConditionSequence> profileSpecificDiscoveryChecks) {
+		this.profileSpecificDiscoveryChecks = profileSpecificDiscoveryChecks;
+	}
+
+	public Supplier<? extends ConditionSequence> discoveryEndpointChecks() {
+		return profileSpecificDiscoveryChecks;
 	}
 
 	// --- Data methods ---
