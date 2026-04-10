@@ -50,8 +50,6 @@ import net.openid.conformance.variant.FAPIResponseMode;
 import net.openid.conformance.variant.VariantParameters;
 import net.openid.conformance.variant.VariantSetup;
 
-import java.util.function.Supplier;
-
 @PublishTestModule(
 	testName = "fapi2-security-profile-final-discovery-end-point-verification",
 	displayName = "FAPI2-Security-Profile-Final: Discovery Endpoint Verification",

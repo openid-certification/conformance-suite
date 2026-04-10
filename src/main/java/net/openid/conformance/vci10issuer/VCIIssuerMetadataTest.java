@@ -109,18 +109,19 @@ public class VCIIssuerMetadataTest extends AbstractVciTest {
 	}
 
 	protected void checkAuthServerMetadata(String authServerMetadataPath) {
-		env.runWithMapKey("current_auth_server_metadata_path", authServerMetadataPath, () -> {
+		env.putObject("server", env.getElementFromObject("vci", authServerMetadataPath).getAsJsonObject());
+		try {
 			callAndStopOnFailure(VCIAuthorizationServerMetadataValidation.class, Condition.ConditionResult.FAILURE, "OID4VCI-1FINAL-12.2.3", "OID4VCI-1FINAL-12.3");
 			callAndContinueOnFailure(CheckForUnexpectedParametersInAuthorizationServerMetadata.class, Condition.ConditionResult.WARNING, "OID4VCI-1FINAL-12.2.3", "OID4VCI-1FINAL-12.3");
 
 			if (clientAuthType == ClientAuthType.CLIENT_ATTESTATION) {
-				env.putObject("server", env.getElementFromObject("vci", authServerMetadataPath).getAsJsonObject());
 				callAndContinueOnFailure(EnsureServerConfigurationSupportsAttestJwtClientAuth.class, Condition.ConditionResult.WARNING, "OAuth2-ATCA07-13.4");
 				callAndContinueOnFailure(CheckDiscEndpointClientAttestationSigningAlgValuesSupported.class, Condition.ConditionResult.FAILURE, "OAuth2-ATCA07-10.1");
-				env.removeObject("server");
 			}
 
 			callAndContinueOnFailure(VCIEnsureAuthorizationDetailsTypesSupportedContainOpenIdCredentialIfScopeIsMissing.class, Condition.ConditionResult.FAILURE, "OID4VCI-1FINAL-12.2.4-2.11.2.2");
-		});
+		} finally {
+			env.removeObject("server");
+		}
 	}
 }

@@ -20,9 +20,7 @@ public class VCIAuthorizationServerMetadataValidation extends AbstractJsonSchema
 	}
 
 	protected JsonObject getAuthorizationServerMetadata(Environment env) {
-		String currentAuthServerMetadataPath = env.getEffectiveKey("current_auth_server_metadata_path");
-		JsonObject authorizationServerMetadata = env.getElementFromObject("vci", currentAuthServerMetadataPath).getAsJsonObject();
-		return authorizationServerMetadata;
+		return env.getObject("server");
 	}
 
 	@Override
@@ -34,7 +32,7 @@ public class VCIAuthorizationServerMetadataValidation extends AbstractJsonSchema
 	}
 
 	@Override
-	@PreEnvironment(required = "vci")
+	@PreEnvironment(required = "server")
 	public Environment evaluate(Environment env) {
 		return super.evaluate(env);
 	}
