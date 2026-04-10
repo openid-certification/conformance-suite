@@ -682,5 +682,51 @@ export const GUIDED_WIZARD_TREE = {
         },
       ],
     },
+	  {
+		  id: "open_finance_chile",
+		  label: "🇨🇱 Finanzas Abiertas Chile",
+		  steps: [
+			  {
+				  id: "role",
+				  question: "What is your role?",
+				  choices: [
+					  {
+						  id: "rp",
+						  label: "RP (Client)",
+						  result: {
+							  plan_name: "fapi2-message-signing-final-client-test-plan",
+							  variants: {
+								  client_auth_type: "mtls",
+								  fapi_profile: "openbanking_chile",
+								  fapi_request_method: "signed_non_repudiation",
+								  authorization_request_type: "rar",
+								  sender_constrain: "mtls",
+								  fapi_response_mode: "plain_response",
+								  fapi_client_type: "oidc",
+								  grant_management: "enable"
+							  },
+						  },
+					  },
+					  {
+						  id: "op",
+						  label: "OP (Authorization Server)",
+						  result: {
+							  plan_name: "fapi2-message-signing-final-test-plan",
+							  variants: {
+								  client_auth_type: "mtls",
+								  fapi_profile: "openbanking_chile",
+								  fapi_request_method: "signed_non_repudiation",
+								  authorization_request_type: "rar",
+								  sender_constrain: "mtls",
+								  fapi_response_mode: "plain_response",
+								  openid: "openid_connect",
+								  grant_management: "enable"
+							  },
+						  },
+					  },
+				  ],
+			  },
+		  ],
+	  }
   ],
 };
