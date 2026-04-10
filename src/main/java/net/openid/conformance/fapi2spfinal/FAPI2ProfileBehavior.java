@@ -20,7 +20,6 @@ import net.openid.conformance.condition.client.ValidateClientJWKsPrivatePart;
 import net.openid.conformance.condition.common.FAPI2CheckKeyAlgInClientJWKs;
 import net.openid.conformance.sequence.AbstractConditionSequence;
 import net.openid.conformance.sequence.ConditionSequence;
-import net.openid.conformance.testmodule.ConditionSequenceCallBuilder;
 import net.openid.conformance.testmodule.TestFailureException;
 import net.openid.conformance.variant.AuthorizationRequestType;
 import net.openid.conformance.variant.FAPI2AuthRequestMethod;

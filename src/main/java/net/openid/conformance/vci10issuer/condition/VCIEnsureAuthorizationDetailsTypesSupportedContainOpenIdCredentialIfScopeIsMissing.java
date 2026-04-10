@@ -2,6 +2,7 @@ package net.openid.conformance.vci10issuer.condition;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 
@@ -11,6 +12,7 @@ import java.util.Map;
 public class VCIEnsureAuthorizationDetailsTypesSupportedContainOpenIdCredentialIfScopeIsMissing extends VCIAuthorizationServerMetadataValidation {
 
 	@Override
+	@PreEnvironment(required = {"vci", "server"})
 	public Environment evaluate(Environment env) {
 
 		JsonObject credentialConfigurationsSupportedObj = env.getElementFromObject("vci", "credential_issuer_metadata.credential_configurations_supported").getAsJsonObject();

@@ -11,14 +11,13 @@ public class CheckForUnexpectedParametersInAuthorizationServerMetadata extends A
 
 	@Override
 	protected JsonSchemaValidationInput createJsonSchemaValidationInput(Environment env) {
-		String currentAuthServerMetadataPath = env.getEffectiveKey("current_auth_server_metadata_path");
-		JsonObject authorizationServerMetadata = env.getElementFromObject("vci", currentAuthServerMetadataPath).getAsJsonObject();
+		JsonObject authorizationServerMetadata = env.getObject("server");
 		return new JsonSchemaValidationInput("OAuth Authorization Server metadata",
 			"json-schemas/oid4vci/rfc8414-oauth_authorization_server_metadata.json", authorizationServerMetadata);
 	}
 
 	@Override
-	@PreEnvironment(required = "vci")
+	@PreEnvironment(required = "server")
 	public Environment evaluate(Environment env) {
 		return super.evaluate(env);
 	}
