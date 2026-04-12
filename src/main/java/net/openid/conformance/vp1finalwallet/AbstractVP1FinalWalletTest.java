@@ -15,9 +15,6 @@ import net.openid.conformance.condition.as.CreateSdJwtKbCredential;
 import net.openid.conformance.condition.as.ExtractDCQLQueryFromAuthorizationRequest;
 import net.openid.conformance.condition.as.OID4VPSetClientIdToIncludeClientIdScheme;
 import net.openid.conformance.condition.as.VP1FinalEncryptVPResponse;
-import net.openid.conformance.condition.client.EnsureCredentialTrustAnchorConfigured;
-import net.openid.conformance.condition.client.RegisterCredentialTrustAnchor;
-import net.openid.conformance.condition.client.RegisterStatusListTrustAnchor;
 import net.openid.conformance.condition.client.AddClientIdToAuthorizationEndpointRequest;
 import net.openid.conformance.condition.client.AddDcqlToAuthorizationEndpointRequest;
 import net.openid.conformance.condition.client.AddExpectedOriginsToAuthorizationEndpointRequest;
@@ -280,6 +277,9 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 		configureClient();
 
 		callAndStopOnFailure(RegisterCredentialTrustAnchor.class);
+		if (getVariant(VPProfile.class) == VPProfile.HAIP) {
+			callAndContinueOnFailure(EnsureCredentialTrustAnchorConfigured.class, Condition.ConditionResult.FAILURE);
+		}
 		callAndStopOnFailure(RegisterStatusListTrustAnchor.class);
 
 		if (credentialFormat == VP1FinalWalletCredentialFormat.ISO_MDL) {
