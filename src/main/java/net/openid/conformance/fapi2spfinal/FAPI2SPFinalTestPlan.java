@@ -34,8 +34,7 @@ public class FAPI2SPFinalTestPlan implements TestPlan {
 		new Variant(ClientAuthType.class, "client_attestation")
 	);
 
-	@Override
-	public List<ModuleListEntry> testModulesWithVariants() {
+	public static List<Class<? extends TestModule>> fapi2SPtestModules() {
 		ArrayList<Class<? extends TestModule>> modules = new ArrayList<>(FAPI2MessageSigningFinalTestPlan.testModules);
 
 		// these require signing, so remove them (otherwise the VariantService gets upset on app start)
@@ -55,6 +54,12 @@ public class FAPI2SPFinalTestPlan implements TestPlan {
 		modules.remove(FAPI2SPFinalEnsureMatchingKeyInAuthorizationRequest.class);
 		modules.remove(FAPI2SPFinalEnsureUnsignedRequestAtParEndpointFails.class);
 		modules.remove(FAPI2SPFinalPARRejectRequestUriInParAuthorizationRequest.class);
+		return modules;
+	}
+
+	@Override
+	public List<ModuleListEntry> testModulesWithVariants() {
+		List<Class<? extends TestModule>> modules = fapi2SPtestModules();
 
 		List<TestPlan.Variant> baselineVariants = List.of(
 			new TestPlan.Variant(FAPI2AuthRequestMethod.class, "unsigned"),
