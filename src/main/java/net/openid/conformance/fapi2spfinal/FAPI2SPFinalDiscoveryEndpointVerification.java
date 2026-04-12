@@ -69,7 +69,6 @@ import net.openid.conformance.variant.VariantSetup;
 })
 public class FAPI2SPFinalDiscoveryEndpointVerification extends AbstractFAPI2SPFinalDiscoveryEndpointVerification {
 
-	private Class<? extends ConditionSequence> profileSpecificChecks;
 	private Class<? extends ConditionSequence> oidcChecks;
 
 	protected Boolean signedRequest;
@@ -78,34 +77,34 @@ public class FAPI2SPFinalDiscoveryEndpointVerification extends AbstractFAPI2SPFi
 
 	@VariantSetup(parameter = FAPI2FinalOPProfile.class, value = "plain_fapi")
 	public void setupPlainFapi() {
-		profileSpecificChecks = PlainFAPIDiscoveryEndpointChecks.class;
+		profileBehavior.setProfileSpecificDiscoveryChecks(PlainFAPIDiscoveryEndpointChecks::new);
 	}
 
 	@VariantSetup(parameter = FAPI2FinalOPProfile.class, value = "fapi_client_credentials_grant")
 	public void setupFapiClientCredentialsGrant() {
-		profileSpecificChecks = ClientCredentialsOnlyDiscoveryEndpointChecks.class;
+		profileBehavior.setProfileSpecificDiscoveryChecks(ClientCredentialsOnlyDiscoveryEndpointChecks::new);
 		clientCredentialsGrant = true;
 	}
 
 	@VariantSetup(parameter = FAPI2FinalOPProfile.class, value = "openbanking_uk")
 	public void setupOpenBankingUk() {
-		profileSpecificChecks = OpenBankingUkDiscoveryEndpointChecks.class;
+		profileBehavior.setProfileSpecificDiscoveryChecks(OpenBankingUkDiscoveryEndpointChecks::new);
 	}
 
 	@VariantSetup(parameter = FAPI2FinalOPProfile.class, value = "consumerdataright_au")
 	public void setupConsumerDataRightAu() {
-		profileSpecificChecks = AuCdrDiscoveryEndpointChecks.class;
+		profileBehavior.setProfileSpecificDiscoveryChecks(AuCdrDiscoveryEndpointChecks::new);
 	}
 
 	@VariantSetup(parameter = FAPI2FinalOPProfile.class, value = "openbanking_brazil")
 	public void setupOpenBankingBrazil() {
-		profileSpecificChecks = OpenBankingBrazilDiscoveryEndpointChecks.class;
+		profileBehavior.setProfileSpecificDiscoveryChecks(OpenBankingBrazilDiscoveryEndpointChecks::new);
 		brazil = true;
 	}
 
 	@VariantSetup(parameter = FAPI2FinalOPProfile.class, value = "connectid_au")
 	public void setupConnectId() {
-		profileSpecificChecks = ConnectIdAuDiscoveryEndpointChecks.class;
+		profileBehavior.setProfileSpecificDiscoveryChecks(ConnectIdAuDiscoveryEndpointChecks::new);
 	}
 
 	@VariantSetup(parameter = FAPIOpenIDConnect.class, value = "openid_connect")
@@ -115,18 +114,16 @@ public class FAPI2SPFinalDiscoveryEndpointVerification extends AbstractFAPI2SPFi
 
 	@VariantSetup(parameter = FAPI2FinalOPProfile.class, value = "cbuae")
 	public void setupCBUAE() {
-		profileSpecificChecks = OpenBankingUAEDiscoveryEndpointChecks.class;
+		profileBehavior.setProfileSpecificDiscoveryChecks(OpenBankingUAEDiscoveryEndpointChecks::new);
 	}
 
 	@VariantSetup(parameter = FAPI2FinalOPProfile.class, value = "vci")
 	public void setupVci() {
-		profileSpecificChecks = PlainFAPIDiscoveryEndpointChecks.class;
 		profileBehavior = new VCIProfileBehavior();
 	}
 
 	@VariantSetup(parameter = FAPI2FinalOPProfile.class, value = "vci_haip")
 	public void setupVciHaip() {
-		profileSpecificChecks = PlainFAPIDiscoveryEndpointChecks.class;
 		profileBehavior = new VCIHaipProfileBehavior();
 	}
 
@@ -168,7 +165,7 @@ public class FAPI2SPFinalDiscoveryEndpointVerification extends AbstractFAPI2SPFi
 			callAndContinueOnFailure(CheckDiscEndpointAuthorizationEndpoint.class, Condition.ConditionResult.FAILURE);
 		}
 
-		call(sequence(profileSpecificChecks));
+		call(sequence(profileBehavior.discoveryEndpointChecks(this)));
 		if (oidcChecks != null) {
 			call(sequence(oidcChecks));
 		}

@@ -3,20 +3,16 @@ package net.openid.conformance.vci10issuer;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
-import net.openid.conformance.condition.client.CheckDiscEndpointClientAttestationSigningAlgValuesSupported;
 import net.openid.conformance.condition.client.EnsureContentTypeJson;
-import net.openid.conformance.condition.client.EnsureServerConfigurationSupportsAttestJwtClientAuth;
+import net.openid.conformance.sequence.client.VCIDiscoveryEndpointChecks;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.ClientAuthType;
 import net.openid.conformance.variant.FAPI2FinalOPProfile;
 import net.openid.conformance.variant.VariantNotApplicable;
 import net.openid.conformance.variant.VariantParameters;
-import net.openid.conformance.vci10issuer.condition.CheckForUnexpectedParametersInAuthorizationServerMetadata;
 import net.openid.conformance.vci10issuer.condition.CheckForUnexpectedParametersInCredentialIssuerMetadata;
-import net.openid.conformance.vci10issuer.condition.VCIAuthorizationServerMetadataValidation;
 import net.openid.conformance.vci10issuer.condition.VCICheckRequiredMetadataFields;
 import net.openid.conformance.vci10issuer.condition.VCICredentialIssuerMetadataValidation;
-import net.openid.conformance.vci10issuer.condition.VCIEnsureAuthorizationDetailsTypesSupportedContainOpenIdCredentialIfScopeIsMissing;
 import net.openid.conformance.vci10issuer.condition.VCIEnsureHttpsUrlsMetadata;
 import net.openid.conformance.vci10issuer.condition.VCIExtractTlsInfoFromCredentialIssuer;
 import net.openid.conformance.vci10issuer.condition.VCIFetchOAuthorizationServerMetadata;
@@ -109,18 +105,11 @@ public class VCIIssuerMetadataTest extends AbstractVciTest {
 	}
 
 	protected void checkAuthServerMetadata(String authServerMetadataPath) {
-		env.runWithMapKey("current_auth_server_metadata_path", authServerMetadataPath, () -> {
-			callAndStopOnFailure(VCIAuthorizationServerMetadataValidation.class, Condition.ConditionResult.FAILURE, "OID4VCI-1FINAL-12.2.3", "OID4VCI-1FINAL-12.3");
-			callAndContinueOnFailure(CheckForUnexpectedParametersInAuthorizationServerMetadata.class, Condition.ConditionResult.WARNING, "OID4VCI-1FINAL-12.2.3", "OID4VCI-1FINAL-12.3");
-
-			if (clientAuthType == ClientAuthType.CLIENT_ATTESTATION) {
-				env.putObject("server", env.getElementFromObject("vci", authServerMetadataPath).getAsJsonObject());
-				callAndContinueOnFailure(EnsureServerConfigurationSupportsAttestJwtClientAuth.class, Condition.ConditionResult.WARNING, "OAuth2-ATCA07-13.4");
-				callAndContinueOnFailure(CheckDiscEndpointClientAttestationSigningAlgValuesSupported.class, Condition.ConditionResult.FAILURE, "OAuth2-ATCA07-10.1");
-				env.removeObject("server");
-			}
-
-			callAndContinueOnFailure(VCIEnsureAuthorizationDetailsTypesSupportedContainOpenIdCredentialIfScopeIsMissing.class, Condition.ConditionResult.FAILURE, "OID4VCI-1FINAL-12.2.4-2.11.2.2");
-		});
+		env.putObject("server", env.getElementFromObject("vci", authServerMetadataPath).getAsJsonObject());
+		try {
+			call(new VCIDiscoveryEndpointChecks(clientAuthType == ClientAuthType.CLIENT_ATTESTATION));
+		} finally {
+			env.removeObject("server");
+		}
 	}
 }

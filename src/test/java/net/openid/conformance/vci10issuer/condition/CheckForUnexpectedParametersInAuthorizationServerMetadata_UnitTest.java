@@ -85,9 +85,6 @@ public class CheckForUnexpectedParametersInAuthorizationServerMetadata_UnitTest 
 
 	private void putAuthServerMetadata(String json) {
 		JsonObject metadata = JsonParser.parseString(json).getAsJsonObject();
-		JsonObject vci = new JsonObject();
-		vci.add("authorization_server_metadata", metadata);
-		env.putObject("vci", vci);
-		env.mapKey("current_auth_server_metadata_path", "authorization_server_metadata");
+		env.putObject("server", metadata);
 	}
 }
