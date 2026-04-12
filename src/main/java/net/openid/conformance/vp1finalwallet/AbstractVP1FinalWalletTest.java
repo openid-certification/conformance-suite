@@ -276,6 +276,10 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 		configureClient();
 
 		callAndStopOnFailure(RegisterCredentialTrustAnchor.class);
+		if (getVariant(VPProfile.class) == VPProfile.HAIP && env.getString("credential_trust_anchor_pem") == null) {
+			throw new TestFailureException(getId(),
+				"'Credential Trust Anchor PEM' must be configured in the test configuration for HAIP tests");
+		}
 		callAndStopOnFailure(RegisterStatusListTrustAnchor.class);
 
 		if (credentialFormat == VP1FinalWalletCredentialFormat.ISO_MDL) {
