@@ -4,6 +4,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.Condition.ConditionResult;
+import net.openid.conformance.condition.client.CheckDiscEndpointGrantTypesSupportedContainsAuthorizationCode;
 import net.openid.conformance.condition.client.CheckDiscEndpointTokenEndpointAuthMethodsSupportedContainsPrivateKeyOrTlsClientOrAttestation;
 import net.openid.conformance.condition.client.EnsureContentTypeJson;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs200;
@@ -76,7 +77,15 @@ public class VCIProfileBehavior extends FAPI2ProfileBehavior {
 
 	@Override
 	public Supplier<? extends ConditionSequence> getProfileSpecificDiscoveryChecks() {
-		return VCIDiscoveryEndpointChecks::new;
+		return DiscoveryEndpointChecks::new;
+	}
+
+	public static class DiscoveryEndpointChecks extends AbstractConditionSequence {
+		@Override
+		public void evaluate() {
+			callAndContinueOnFailure(CheckDiscEndpointGrantTypesSupportedContainsAuthorizationCode.class, ConditionResult.FAILURE);
+			call(new VCIDiscoveryEndpointChecks());
+		}
 	}
 
 	@Override
