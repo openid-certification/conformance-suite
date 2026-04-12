@@ -7,11 +7,19 @@ import net.openid.conformance.condition.client.AddIatToRequestObject;
 import net.openid.conformance.condition.client.AddIdempotencyKeyHeader;
 import net.openid.conformance.condition.client.AddIssAsCertificateOuToRequestObject;
 import net.openid.conformance.condition.client.AddJtiAsUuidToRequestObject;
+import net.openid.conformance.condition.client.CheckDiscEndpointAcrClaimSupported;
+import net.openid.conformance.condition.client.CheckDiscEndpointClaimsParameterSupported;
+import net.openid.conformance.condition.client.CheckDiscEndpointUserinfoEndpoint;
 import net.openid.conformance.condition.client.CreateIdempotencyKey;
 import net.openid.conformance.condition.client.CreatePaymentRequestEntityClaims;
+import net.openid.conformance.condition.client.FAPIBrazilCheckDiscEndpointAcrValuesSupportedShould;
 import net.openid.conformance.condition.client.FAPIBrazilCheckDirectoryKeystore;
 import net.openid.conformance.condition.client.FAPIBrazilCheckDiscEndpointScopesSupportedForNonPayments;
 import net.openid.conformance.condition.client.FAPIBrazilCheckDiscEndpointScopesSupportedForPayments;
+import net.openid.conformance.condition.client.FAPIBrazilCheckDiscEndpointCpfOrCnpjClaimSupported;
+import net.openid.conformance.condition.client.FAPIBrazilOpenBankingCheckDiscEndpointAcrValuesSupported;
+import net.openid.conformance.condition.client.FAPICheckDiscEndpointGrantTypesSupportedContainsAuthorizationCode;
+import net.openid.conformance.condition.client.FAPICheckDiscEndpointGrantTypesSupportedContainsClientCredentialsAndRefreshToken;
 import net.openid.conformance.condition.client.FAPIBrazilSignPaymentInitiationRequest;
 import net.openid.conformance.condition.client.FAPIBrazilValidateExpiresIn;
 import net.openid.conformance.condition.client.FAPIBrazilValidateIdTokenSigningAlg;
@@ -243,5 +251,28 @@ public class OpenBankingBrazilProfileBehavior extends FAPI2ProfileBehavior {
 				}
 			}
 		};
+	}
+
+	@Override
+	public Supplier<? extends ConditionSequence> getProfileSpecificDiscoveryChecks() {
+		return DiscoveryEndpointChecks::new;
+	}
+
+	public static class DiscoveryEndpointChecks extends AbstractConditionSequence {
+		@Override
+		public void evaluate() {
+			callAndContinueOnFailure(CheckDiscEndpointClaimsParameterSupported.class, ConditionResult.FAILURE,
+				"OIDCD-3", "BrazilOB-5.2.2-4");
+
+			callAndContinueOnFailure(CheckDiscEndpointAcrClaimSupported.class, ConditionResult.FAILURE,
+				"BrazilOB-5.2.2-4", "BrazilOB-5.2.2-5", "BrazilOB-5.2.2-6");
+			callAndContinueOnFailure(FAPIBrazilCheckDiscEndpointCpfOrCnpjClaimSupported.class, ConditionResult.FAILURE,
+				"BrazilOB-5.2.2-4", "BrazilOB-7.2.2-8", "BrazilOB-7.2.2-10");
+			callAndContinueOnFailure(FAPICheckDiscEndpointGrantTypesSupportedContainsAuthorizationCode.class, ConditionResult.FAILURE);
+			callAndContinueOnFailure(FAPICheckDiscEndpointGrantTypesSupportedContainsClientCredentialsAndRefreshToken.class, ConditionResult.FAILURE);
+			callAndContinueOnFailure(FAPIBrazilOpenBankingCheckDiscEndpointAcrValuesSupported.class, ConditionResult.FAILURE, "BrazilOB-5.2.2-5");
+			callAndContinueOnFailure(FAPIBrazilCheckDiscEndpointAcrValuesSupportedShould.class, ConditionResult.WARNING, "BrazilOB-5.2.2-6");
+			callAndContinueOnFailure(CheckDiscEndpointUserinfoEndpoint.class, ConditionResult.FAILURE, "BrazilOB-5.2.2-7");
+		}
 	}
 }

@@ -11,6 +11,8 @@ import net.openid.conformance.condition.client.CheckOauthDiscEndpointDiscoveryUr
 import net.openid.conformance.condition.client.CheckOauthDiscEndpointIssuer;
 import net.openid.conformance.condition.client.CheckTLSClientCertificateBoundAccessTokensTrue;
 import net.openid.conformance.condition.client.EnsureServerConfigurationSupportsCodeChallengeMethodS256;
+import net.openid.conformance.condition.client.CheckDiscEndpointClientAttestationSigningAlgValuesSupported;
+import net.openid.conformance.condition.client.EnsureServerConfigurationSupportsAttestJwtClientAuth;
 import net.openid.conformance.condition.client.EnsureServerConfigurationSupportsMTLS;
 import net.openid.conformance.condition.client.EnsureServerConfigurationSupportsPrivateKeyJwt;
 import net.openid.conformance.condition.client.FAPI2CheckDiscEndpointIdTokenSigningAlgValuesSupported;
@@ -61,6 +63,15 @@ public abstract class AbstractFAPI2SPFinalDiscoveryEndpointVerification extends 
 		public void evaluate() {
 			callAndContinueOnFailure(EnsureServerConfigurationSupportsPrivateKeyJwt.class, Condition.ConditionResult.FAILURE, "FAPI2-SP-FINAL-5.3.2.1-6");
 
+		}
+	}
+
+	public static class ClientAttestationChecks extends AbstractConditionSequence
+	{
+		@Override
+		public void evaluate() {
+			callAndContinueOnFailure(EnsureServerConfigurationSupportsAttestJwtClientAuth.class, Condition.ConditionResult.WARNING, "OAuth2-ATCA07-13.4");
+			callAndContinueOnFailure(CheckDiscEndpointClientAttestationSigningAlgValuesSupported.class, Condition.ConditionResult.FAILURE, "OAuth2-ATCA07-10.1");
 		}
 	}
 
@@ -173,15 +184,7 @@ public abstract class AbstractFAPI2SPFinalDiscoveryEndpointVerification extends 
 
 	@VariantSetup(parameter = ClientAuthType.class, value = "client_attestation")
 	public void setupClientAttestation() {
-		// Client attestation has no specific discovery checks
-		variantAuthChecks = NoOpChecks.class;
-	}
-
-	public static class NoOpChecks extends AbstractConditionSequence {
-		@Override
-		public void evaluate() {
-			// no additional checks
-		}
+		variantAuthChecks = ClientAttestationChecks.class;
 	}
 
 }

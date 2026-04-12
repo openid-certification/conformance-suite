@@ -6,6 +6,7 @@ import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.condition.client.AddFAPIAuthDateToResourceEndpointRequest;
 import net.openid.conformance.condition.client.AddFAPIInteractionIdToResourceEndpointRequest;
 import net.openid.conformance.condition.client.AddIpV4FapiCustomerIpAddressToResourceEndpointRequest;
+import net.openid.conformance.condition.client.CheckDiscEndpointGrantTypesSupportedContainsAuthorizationCode;
 import net.openid.conformance.condition.client.CheckDiscEndpointTokenEndpointAuthMethodsSupportedContainsPrivateKeyOrTlsClient;
 import net.openid.conformance.condition.client.CheckDiscoveryEndpointReturnedJsonContentType;
 import net.openid.conformance.condition.client.CheckForFAPIInteractionIdInResourceResponse;
@@ -20,7 +21,6 @@ import net.openid.conformance.condition.client.ValidateClientJWKsPrivatePart;
 import net.openid.conformance.condition.common.FAPI2CheckKeyAlgInClientJWKs;
 import net.openid.conformance.sequence.AbstractConditionSequence;
 import net.openid.conformance.sequence.ConditionSequence;
-import net.openid.conformance.testmodule.AbstractTestModule;
 import net.openid.conformance.testmodule.TestFailureException;
 import net.openid.conformance.variant.AuthorizationRequestType;
 import net.openid.conformance.variant.FAPI2AuthRequestMethod;
@@ -41,21 +41,19 @@ public class FAPI2ProfileBehavior {
 
 	protected AbstractFAPI2SPFinalServerTestModule module;
 
-	protected Supplier<? extends ConditionSequence> profileSpecificDiscoveryChecks = FAPI2SPFinalDiscoveryEndpointVerification.PlainFAPIDiscoveryEndpointChecks::new;
-
 	public void setModule(AbstractFAPI2SPFinalServerTestModule module) {
 		this.module = module;
 	}
 
-	public void setProfileSpecificDiscoveryChecks(Supplier<? extends ConditionSequence> profileSpecificDiscoveryChecks) {
-		this.profileSpecificDiscoveryChecks = profileSpecificDiscoveryChecks;
+	public Supplier<? extends ConditionSequence> getProfileSpecificDiscoveryChecks() {
+		return PlainFAPIDiscoveryEndpointChecks::new;
 	}
 
-	/**
-	 * Returns the profile-specific discovery endpoint checks sequence.
-	 */
-	public Supplier<? extends ConditionSequence> discoveryEndpointChecks(AbstractTestModule module) {
-		return profileSpecificDiscoveryChecks;
+	public static class PlainFAPIDiscoveryEndpointChecks extends AbstractConditionSequence {
+		@Override
+		public void evaluate() {
+			callAndContinueOnFailure(CheckDiscEndpointGrantTypesSupportedContainsAuthorizationCode.class, ConditionResult.FAILURE);
+		}
 	}
 
 	// --- Data methods ---

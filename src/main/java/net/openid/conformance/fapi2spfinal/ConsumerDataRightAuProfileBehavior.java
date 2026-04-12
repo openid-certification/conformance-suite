@@ -6,11 +6,17 @@ import net.openid.conformance.condition.client.AddCdrXvToResourceEndpointRequest
 import net.openid.conformance.condition.client.AddFAPIAuthDateToResourceEndpointRequest;
 import net.openid.conformance.condition.client.AddFAPIInteractionIdToResourceEndpointRequest;
 import net.openid.conformance.condition.client.AddIpV4FapiCustomerIpAddressToResourceEndpointRequest;
+import net.openid.conformance.condition.client.CheckDiscEndpointClaimsParameterSupported;
+import net.openid.conformance.condition.client.CheckDiscEndpointGrantTypesSupportedContainsAuthorizationCode;
 import net.openid.conformance.condition.client.CreateRandomFAPIInteractionId;
+import net.openid.conformance.condition.client.EnsureServerConfigurationSupportsCDRAcrClaim;
+import net.openid.conformance.condition.client.FAPIAuCdrCheckDiscEndpointClaimsSupported;
 import net.openid.conformance.condition.client.ValidateIdTokenEncrypted;
 import net.openid.conformance.sequence.AbstractConditionSequence;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.sequence.client.CDRAuthorizationEndpointSetup;
+
+import java.util.function.Supplier;
 
 /**
  * Profile behavior for Consumer Data Right Australia.
@@ -60,5 +66,21 @@ public class ConsumerDataRightAuProfileBehavior extends FAPI2ProfileBehavior {
 				callAndStopOnFailure(AddCdrXvToResourceEndpointRequest.class, "CDR-http-headers");
 			}
 		};
+	}
+
+	@Override
+	public Supplier<? extends ConditionSequence> getProfileSpecificDiscoveryChecks() {
+		return DiscoveryEndpointChecks::new;
+	}
+
+	public static class DiscoveryEndpointChecks extends AbstractConditionSequence {
+		@Override
+		public void evaluate() {
+			// claims parameter support is required in Australia
+			callAndContinueOnFailure(CheckDiscEndpointClaimsParameterSupported.class, ConditionResult.FAILURE, "OIDCD-3", "CID-IDA-5.1");
+			callAndContinueOnFailure(FAPIAuCdrCheckDiscEndpointClaimsSupported.class, ConditionResult.FAILURE);
+			callAndContinueOnFailure(CheckDiscEndpointGrantTypesSupportedContainsAuthorizationCode.class, ConditionResult.FAILURE);
+			callAndContinueOnFailure(EnsureServerConfigurationSupportsCDRAcrClaim.class, ConditionResult.WARNING);
+		}
 	}
 }

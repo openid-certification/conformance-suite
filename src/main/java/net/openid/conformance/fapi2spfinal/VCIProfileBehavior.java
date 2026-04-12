@@ -20,7 +20,6 @@ import net.openid.conformance.openid.federation.CallCredentialIssuerNonceEndpoin
 import net.openid.conformance.sequence.AbstractConditionSequence;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.sequence.client.VCIDiscoveryEndpointChecks;
-import net.openid.conformance.testmodule.AbstractTestModule;
 import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.variant.AuthorizationRequestType;
 import net.openid.conformance.variant.ClientAuthType;
@@ -74,6 +73,11 @@ import java.util.function.Supplier;
 public class VCIProfileBehavior extends FAPI2ProfileBehavior {
 
 	protected VCI1FinalCredentialFormat credentialFormat;
+
+	@Override
+	public Supplier<? extends ConditionSequence> getProfileSpecificDiscoveryChecks() {
+		return VCIDiscoveryEndpointChecks::new;
+	}
 
 	@Override
 	public boolean shouldExtractRARFromConfig() {
@@ -323,12 +327,6 @@ public class VCIProfileBehavior extends FAPI2ProfileBehavior {
 	}
 
 	// --- Discovery endpoint verification overrides ---
-
-	@Override
-	public Supplier<? extends ConditionSequence> discoveryEndpointChecks(AbstractTestModule module) {
-		boolean clientAttestation = module.getVariant(ClientAuthType.class) == ClientAuthType.CLIENT_ATTESTATION;
-		return () -> new VCIDiscoveryEndpointChecks(clientAttestation);
-	}
 
 	@Override
 	public ConditionSequence discoveryFetchServerConfiguration(boolean isOpenId) {
