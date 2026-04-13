@@ -6,7 +6,16 @@ import net.openid.conformance.condition.client.AddFAPIInteractionIdToResourceEnd
 import net.openid.conformance.condition.client.AddFAPIInteractionIdToTokenEndpointRequest;
 import net.openid.conformance.condition.client.AddFAPIAuthDateToResourceEndpointRequest;
 import net.openid.conformance.condition.client.AddIpV4FapiCustomerIpAddressToResourceEndpointRequest;
+import net.openid.conformance.condition.client.AustraliaConnectIdCheckClaimsSupported;
+import net.openid.conformance.condition.client.AustraliaConnectIdCheckVerifiedClaimsSupported;
+import net.openid.conformance.condition.client.AustraliaConnectIdEnsureMtlsAliasesContainsRequiredEndpoints;
 import net.openid.conformance.condition.client.AustraliaConnectIdValidateAccessTokenExpiresIn;
+import net.openid.conformance.condition.client.CheckDiscEndpointClaimsParameterSupported;
+import net.openid.conformance.condition.client.CheckDiscEndpointGrantTypesSupportedContainsAuthorizationCode;
+import net.openid.conformance.condition.client.CheckDiscEndpointIdTokenSigningAlgValuesSupportedContainsPS256;
+import net.openid.conformance.condition.client.CheckDiscEndpointRequestObjectSigningAlgValuesSupportedContainsPS256;
+import net.openid.conformance.condition.client.CheckDiscEndpointSubjectTypesSupportedContainsOnlyPairwise;
+import net.openid.conformance.condition.client.CheckDiscEndpointUserinfoEndpoint;
 import net.openid.conformance.condition.client.CheckForFAPIInteractionIdInPARResponse;
 import net.openid.conformance.condition.client.CheckForFAPIInteractionIdInResourceResponse;
 import net.openid.conformance.condition.client.CheckForFAPIInteractionIdInTokenResponse;
@@ -20,6 +29,8 @@ import net.openid.conformance.condition.client.SetScopeInClientConfigurationToOp
 import net.openid.conformance.sequence.AbstractConditionSequence;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.ConditionCallBuilder;
+
+import java.util.function.Supplier;
 
 /**
  * Profile behavior for ConnectID Australia.
@@ -170,5 +181,26 @@ public class ConnectIdAuProfileBehavior extends FAPI2ProfileBehavior {
 					.dontStopOnFailure());
 			}
 		};
+	}
+
+	@Override
+	public Supplier<? extends ConditionSequence> getProfileSpecificDiscoveryChecks() {
+		return DiscoveryEndpointChecks::new;
+	}
+
+	public static class DiscoveryEndpointChecks extends AbstractConditionSequence {
+		@Override
+		public void evaluate() {
+			callAndContinueOnFailure(AustraliaConnectIdEnsureMtlsAliasesContainsRequiredEndpoints.class, ConditionResult.FAILURE, "CID-SP-4.2-7");
+			callAndContinueOnFailure(CheckDiscEndpointGrantTypesSupportedContainsAuthorizationCode.class, ConditionResult.FAILURE);
+
+			callAndContinueOnFailure(CheckDiscEndpointIdTokenSigningAlgValuesSupportedContainsPS256.class, ConditionResult.FAILURE, "OIDCD-3", "CID-SP-5");
+			callAndContinueOnFailure(CheckDiscEndpointRequestObjectSigningAlgValuesSupportedContainsPS256.class, ConditionResult.FAILURE, "OIDCD-3", "CID-SP-4.2-8");
+			callAndContinueOnFailure(CheckDiscEndpointClaimsParameterSupported.class, ConditionResult.FAILURE, "OIDCD-3", "CID-SP-4");
+			callAndContinueOnFailure(AustraliaConnectIdCheckClaimsSupported.class, ConditionResult.FAILURE, "OIDCD-3", "CID-SP-4");
+			callAndContinueOnFailure(AustraliaConnectIdCheckVerifiedClaimsSupported.class, ConditionResult.INFO, "CID-IDA-5.3.3");
+			callAndContinueOnFailure(CheckDiscEndpointSubjectTypesSupportedContainsOnlyPairwise.class, ConditionResult.FAILURE, "CID-SP-4");
+			callAndContinueOnFailure(CheckDiscEndpointUserinfoEndpoint.class, ConditionResult.FAILURE, "CID-SP-4");
+		}
 	}
 }
