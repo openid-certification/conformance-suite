@@ -1,5 +1,6 @@
-/** @type {import('@storybook/web-components').Preview} */
-const preview = {
+import { definePreview } from "@storybook/web-components-vite";
+
+export default definePreview({
   parameters: {
     controls: {
       matchers: {
@@ -8,6 +9,4 @@ const preview = {
       },
     },
   },
-};
-
-export default preview;
+});
