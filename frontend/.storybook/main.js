@@ -1,16 +1,12 @@
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
+import { defineMain } from "@storybook/web-components-vite/node";
 
 const here = dirname(fileURLToPath(import.meta.url));
 
-/** @type {import('@storybook/web-components-vite').StorybookConfig} */
-const config = {
+export default defineMain({
   stories: ["../stories/**/*.stories.js"],
-  addons: ["@storybook/addon-essentials"],
-  framework: {
-    name: "@storybook/web-components-vite",
-    options: {},
-  },
+  framework: "@storybook/web-components-vite",
   staticDirs: [{ from: "../../src/main/resources/static", to: "/" }],
 
   // The component source lives outside frontend/ (in src/main/resources/static/),
@@ -28,6 +24,4 @@ const config = {
     };
     return viteConfig;
   },
-};
-
-export default config;
+});
