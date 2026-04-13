@@ -288,6 +288,7 @@ scale down env:
   environment:
     name: review/$CI_COMMIT_REF_NAME
   script:
+    - check_commit_is_current
     - auto-deploy use_kube_context || true
     - auto-deploy ensure_namespace
     - scale_down
