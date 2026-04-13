@@ -1,4 +1,5 @@
 import { html } from "lit";
+import { expect, within, waitFor } from "storybook/test";
 import "../../src/main/resources/static/components/cts-navbar.js";
 
 export default {
@@ -67,7 +68,6 @@ function withMockUser(mockResponse, { delay = 0, status = 200 } = {}) {
       return realFetch(url, opts);
     };
 
-    // Each render gets a fresh element so connectedCallback re-fires
     const result = storyFn();
 
     // Restore after a tick so connectedCallback has fired
@@ -83,6 +83,19 @@ function withUnauthenticated() {
   return withMockUser(null, { status: 401 });
 }
 
+// --- Helper to wait for component to finish loading ---
+
+async function waitForNavbar(canvas) {
+  // Wait until the loading indicator disappears (component finished fetching)
+  await waitFor(
+    () => {
+      const loading = canvas.queryByText("Loading…");
+      expect(loading).toBeNull();
+    },
+    { timeout: 3000 },
+  );
+}
+
 // --- Stories ---
 
 export const Authenticated = {
@@ -90,6 +103,38 @@ export const Authenticated = {
   decorators: [withMockUser(MOCK_USER)],
   render: ({ currentPage }) =>
     html`<cts-navbar current-page="${currentPage}"></cts-navbar>`,
+
+  async play({ canvasElement }) {
+    const canvas = within(canvasElement);
+    await waitForNavbar(canvas);
+
+    // Should show all authenticated nav links
+    expect(canvas.getByText("Home")).toBeInTheDocument();
+    expect(canvas.getByText("Create Test")).toBeInTheDocument();
+    expect(canvas.getByText("Test Plans")).toBeInTheDocument();
+    expect(canvas.getByText("Test Logs")).toBeInTheDocument();
+    expect(canvas.getByText("API Docs")).toBeInTheDocument();
+
+    // Tokens nav link visible for regular user
+    const tokensLinks = canvas.getAllByText("Tokens");
+    expect(tokensLinks.length).toBeGreaterThanOrEqual(1);
+
+    // User info visible
+    expect(canvas.getByText("Logged in as")).toBeInTheDocument();
+    expect(canvas.getByText("Test User")).toBeInTheDocument();
+    expect(canvas.getByText("Logout")).toBeInTheDocument();
+
+    // No ADMIN badge
+    expect(canvas.queryByText("ADMIN")).toBeNull();
+
+    // Home link should be active
+    const homeLink = canvas.getByText("Home");
+    expect(homeLink.classList.contains("active")).toBe(true);
+
+    // OpenID logo present
+    const logo = canvasElement.querySelector('img[alt="OpenID"]');
+    expect(logo).toBeTruthy();
+  },
 };
 
 export const Admin = {
@@ -97,6 +142,31 @@ export const Admin = {
   decorators: [withMockUser(MOCK_ADMIN)],
   render: ({ currentPage }) =>
     html`<cts-navbar current-page="${currentPage}"></cts-navbar>`,
+
+  async play({ canvasElement }) {
+    const canvas = within(canvasElement);
+    await waitForNavbar(canvas);
+
+    // ADMIN badge visible
+    expect(canvas.getByText("ADMIN")).toBeInTheDocument();
+    expect(canvas.getByText("Admin User")).toBeInTheDocument();
+
+    // Tokens nav link should be hidden for admin
+    const navLinks = canvasElement.querySelectorAll(".nav-link");
+    const navLinkTexts = Array.from(navLinks).map((el) =>
+      el.textContent.trim(),
+    );
+    expect(navLinkTexts).not.toContain("Tokens");
+
+    // Tokens button in user info area should also be hidden
+    const tokensBtn = canvasElement.querySelector(
+      'a.btn[href="tokens.html"]',
+    );
+    expect(tokensBtn).toBeNull();
+
+    // Logout still visible
+    expect(canvas.getByText("Logout")).toBeInTheDocument();
+  },
 };
 
 export const Guest = {
@@ -104,6 +174,28 @@ export const Guest = {
   decorators: [withMockUser(MOCK_GUEST)],
   render: ({ currentPage }) =>
     html`<cts-navbar current-page="${currentPage}"></cts-navbar>`,
+
+  async play({ canvasElement }) {
+    const canvas = within(canvasElement);
+    await waitForNavbar(canvas);
+
+    // Guest user: no ADMIN badge
+    expect(canvas.queryByText("ADMIN")).toBeNull();
+    expect(canvas.getByText("Guest User")).toBeInTheDocument();
+
+    // Tokens nav link hidden for guest
+    const navLinks = canvasElement.querySelectorAll(".nav-link");
+    const navLinkTexts = Array.from(navLinks).map((el) =>
+      el.textContent.trim(),
+    );
+    expect(navLinkTexts).not.toContain("Tokens");
+
+    // Tokens button in user info area also hidden
+    const tokensBtn = canvasElement.querySelector(
+      'a.btn[href="tokens.html"]',
+    );
+    expect(tokensBtn).toBeNull();
+  },
 };
 
 export const Unauthenticated = {
@@ -111,6 +203,30 @@ export const Unauthenticated = {
   decorators: [withUnauthenticated()],
   render: ({ currentPage }) =>
     html`<cts-navbar current-page="${currentPage}"></cts-navbar>`,
+
+  async play({ canvasElement }) {
+    const canvas = within(canvasElement);
+    await waitForNavbar(canvas);
+
+    // Should show public-only nav links
+    expect(canvas.getByText("Published Logs")).toBeInTheDocument();
+    expect(canvas.getByText("Published Plans")).toBeInTheDocument();
+    expect(canvas.getByText("API Docs")).toBeInTheDocument();
+
+    // Should NOT show authenticated links
+    expect(canvas.queryByText("Home")).toBeNull();
+    expect(canvas.queryByText("Create Test")).toBeNull();
+    expect(canvas.queryByText("Test Plans")).toBeNull();
+    expect(canvas.queryByText("Test Logs")).toBeNull();
+
+    // No user info, no logout
+    expect(canvas.queryByText("Logged in as")).toBeNull();
+    expect(canvas.queryByText("Logout")).toBeNull();
+
+    // Logo still present
+    const logo = canvasElement.querySelector('img[alt="OpenID"]');
+    expect(logo).toBeTruthy();
+  },
 };
 
 export const Loading = {
@@ -118,6 +234,23 @@ export const Loading = {
   decorators: [withMockUser(MOCK_USER, { delay: 60000 })],
   render: ({ currentPage }) =>
     html`<cts-navbar current-page="${currentPage}"></cts-navbar>`,
+
+  async play({ canvasElement }) {
+    const canvas = within(canvasElement);
+
+    // Should show loading state immediately
+    await waitFor(() => {
+      expect(canvas.getByText("Loading…")).toBeInTheDocument();
+    });
+
+    // Logo visible even while loading
+    const logo = canvasElement.querySelector('img[alt="OpenID"]');
+    expect(logo).toBeTruthy();
+
+    // No nav links rendered yet during loading
+    expect(canvas.queryByText("Home")).toBeNull();
+    expect(canvas.queryByText("Published Logs")).toBeNull();
+  },
 };
 
 export const ActivePagePlans = {
@@ -125,6 +258,19 @@ export const ActivePagePlans = {
   decorators: [withMockUser(MOCK_USER)],
   render: ({ currentPage }) =>
     html`<cts-navbar current-page="${currentPage}"></cts-navbar>`,
+
+  async play({ canvasElement }) {
+    const canvas = within(canvasElement);
+    await waitForNavbar(canvas);
+
+    // Test Plans should be active
+    const plansLink = canvas.getByText("Test Plans");
+    expect(plansLink.classList.contains("active")).toBe(true);
+
+    // Home should NOT be active
+    const homeLink = canvas.getByText("Home");
+    expect(homeLink.classList.contains("active")).toBe(false);
+  },
 };
 
 export const ActivePageLogs = {
@@ -132,6 +278,17 @@ export const ActivePageLogs = {
   decorators: [withMockUser(MOCK_USER)],
   render: ({ currentPage }) =>
     html`<cts-navbar current-page="${currentPage}"></cts-navbar>`,
+
+  async play({ canvasElement }) {
+    const canvas = within(canvasElement);
+    await waitForNavbar(canvas);
+
+    const logsLink = canvas.getByText("Test Logs");
+    expect(logsLink.classList.contains("active")).toBe(true);
+
+    const homeLink = canvas.getByText("Home");
+    expect(homeLink.classList.contains("active")).toBe(false);
+  },
 };
 
 export const ActivePageCreateTest = {
@@ -139,4 +296,15 @@ export const ActivePageCreateTest = {
   decorators: [withMockUser(MOCK_USER)],
   render: ({ currentPage }) =>
     html`<cts-navbar current-page="${currentPage}"></cts-navbar>`,
+
+  async play({ canvasElement }) {
+    const canvas = within(canvasElement);
+    await waitForNavbar(canvas);
+
+    const createLink = canvas.getByText("Create Test");
+    expect(createLink.classList.contains("active")).toBe(true);
+
+    const homeLink = canvas.getByText("Home");
+    expect(homeLink.classList.contains("active")).toBe(false);
+  },
 };
