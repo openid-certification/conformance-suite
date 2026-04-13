@@ -451,9 +451,13 @@ var FAPI_UI = {
 				})
 				.then((userInfo) => {
 					this.currentUser = userInfo;
+					// Pages using <cts-navbar> no longer have #userInfoHolder;
+					// guard against its absence while still setting currentUser above.
 					const elem = document.getElementById('userInfoHolder');
-					elem.innerHTML = FAPI_UI.logTemplates.USER_INFO({userInfo: userInfo});
-					FAPI_UI.activeTooltip();
+					if (elem && FAPI_UI.logTemplates.USER_INFO) {
+						elem.innerHTML = FAPI_UI.logTemplates.USER_INFO({userInfo: userInfo});
+						FAPI_UI.activeTooltip();
+					}
 				})
 				.catch((error) => {
 					// User is not logged in; don't fill in the user info holder
