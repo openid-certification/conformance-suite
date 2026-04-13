@@ -24,18 +24,23 @@ public class JsonSchemaValidationResult {
 		return validationMessages;
 	}
 
-	public JsonSchemaValidationResult withoutAdditionalPropertiesErrors() {
+	public JsonSchemaValidationResult withoutUnknownPropertyErrors() {
 		Set<ValidationMessage> filtered = validationMessages.stream()
-			.filter(m -> !"additionalProperties".equals(m.getType()))
+			.filter(m -> !isUnknownPropertyError(m))
 			.collect(Collectors.toSet());
 		return new JsonSchemaValidationResult(filtered);
 	}
 
-	public JsonSchemaValidationResult onlyAdditionalPropertiesErrors() {
+	public JsonSchemaValidationResult onlyUnknownPropertyErrors() {
 		Set<ValidationMessage> filtered = validationMessages.stream()
-			.filter(m -> "additionalProperties".equals(m.getType()))
+			.filter(JsonSchemaValidationResult::isUnknownPropertyError)
 			.collect(Collectors.toSet());
 		return new JsonSchemaValidationResult(filtered);
+	}
+
+	private static boolean isUnknownPropertyError(ValidationMessage m) {
+		String type = m.getType();
+		return "additionalProperties".equals(type) || "unevaluatedProperties".equals(type);
 	}
 
 	public List<JsonObject> getPropertyErrors() {
