@@ -130,3 +130,51 @@ export const CloseViaButton = {
     });
   },
 };
+
+export const BootstrapApiCompat = {
+  render: () =>
+    html`<cts-modal id="testBackcompat" heading="Bootstrap API Test">
+      <p>Works with bootstrap.Modal.getOrCreateInstance()</p>
+    </cts-modal>`,
+
+  async play() {
+    // getElementById should find the inner .modal div (id transferred from host)
+    const modalDiv = document.getElementById("testBackcompat");
+    expect(modalDiv).toBeTruthy();
+    expect(modalDiv.classList.contains("modal")).toBe(true);
+
+    // bootstrap.Modal API should work directly
+    const bsModal = bootstrap.Modal.getOrCreateInstance(modalDiv);
+    expect(bsModal).toBeTruthy();
+
+    bsModal.show();
+    await waitFor(() => {
+      expect(modalDiv.classList.contains("show")).toBe(true);
+    });
+
+    bsModal.hide();
+    await waitFor(() => {
+      expect(modalDiv.classList.contains("show")).toBe(false);
+    });
+  },
+};
+
+export const StaticBackdrop = {
+  render: () =>
+    html`<cts-modal id="testStatic" heading="Loading..." static-backdrop no-keyboard>
+      <div class="text-center"><span class="spinner-border"></span></div>
+    </cts-modal>`,
+
+  async play({ canvasElement }) {
+    const modalDiv = document.getElementById("testStatic");
+    expect(modalDiv).toBeTruthy();
+    expect(modalDiv.getAttribute("data-bs-backdrop")).toBe("static");
+    expect(modalDiv.getAttribute("data-bs-keyboard")).toBe("false");
+
+    // Static backdrop modals should not have a close button or footer
+    const closeBtn = canvasElement.querySelector(".btn-close");
+    expect(closeBtn).toBeNull();
+    const footer = canvasElement.querySelector(".modal-footer");
+    expect(footer).toBeNull();
+  },
+};
