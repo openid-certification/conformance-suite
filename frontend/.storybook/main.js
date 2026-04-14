@@ -7,6 +7,7 @@ const here = dirname(fileURLToPath(import.meta.url));
 export default defineMain({
   stories: ["../stories/**/*.stories.js"],
   framework: "@storybook/web-components-vite",
+  addons: ["@storybook/addon-vitest"],
   staticDirs: [{ from: "../../src/main/resources/static", to: "/" }],
 
   // The component source lives outside frontend/ (in src/main/resources/static/),
