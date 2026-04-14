@@ -33,8 +33,6 @@ import java.text.ParseException;
  */
 public class VCIEncryptCredentialRequest extends AbstractCondition {
 
-	private static final String DEFAULT_ENC = "A256GCM";
-
 	@Override
 	@PreEnvironment(required = {"vci", "resource_endpoint_request_headers"}, strings = "resource_request_entity")
 	@PostEnvironment(strings = "resource_request_entity")
@@ -101,13 +99,18 @@ public class VCIEncryptCredentialRequest extends AbstractCondition {
 
 		String alg = encryptionKey.getAlgorithm().getName();
 
-		// enc is obtained from context: use the first value from enc_values_supported, else default
-		String enc = DEFAULT_ENC;
+		// enc is obtained from context: use the first value from enc_values_supported. The
+		// presence and non-emptiness of this array is already guaranteed by the encrypted-variant
+		// skip gate in AbstractVCIIssuerTestModule.onConfigure; throw here if it's not so the
+		// precondition is enforced in one place rather than papered over with a default.
 		JsonElement encValuesEl = env.getElementFromObject("vci",
 			"credential_issuer_metadata.credential_request_encryption.enc_values_supported");
-		if (encValuesEl != null && encValuesEl.isJsonArray() && encValuesEl.getAsJsonArray().size() > 0) {
-			enc = OIDFJSON.getString(encValuesEl.getAsJsonArray().get(0));
+		if (encValuesEl == null || !encValuesEl.isJsonArray() || encValuesEl.getAsJsonArray().isEmpty()) {
+			throw error("credential_issuer_metadata.credential_request_encryption.enc_values_supported "
+				+ "is missing, not an array, or empty; per OID4VCI 1.0 Section 12.2.4 it is REQUIRED",
+				args("enc_values_supported", encValuesEl));
 		}
+		String enc = OIDFJSON.getString(encValuesEl.getAsJsonArray().get(0));
 
 		JWEAlgorithm jweAlgorithm = JWEAlgorithm.parse(alg);
 		EncryptionMethod encryptionMethod = EncryptionMethod.parse(enc);
