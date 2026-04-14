@@ -10,5 +10,47 @@
         "variant": "*",
         "configuration-filename": "authlete-*.json",
         "comment": "The credential we're testing against currently doesn't require key attestation"
+    },
+    {
+        "test-name": "oid4vci-1_0-issuer-fail-unsupported-encryption-algorithm",
+        "variant": "*",
+        "configuration-filename": "authlete-*.json",
+        "comment": "Authlete currently does not support credential_request_encryption"
+    },
+    {
+        "test-name": "oid4vci-1_0-issuer-fail-unknown-credential-configuration",
+        "variant": {
+            "sender_constrain":"dpop",
+            "client_auth_type": "client_attestation",
+            "vci_authorization_code_flow_variant": "wallet_initiated",
+            "credential_format": "sd_jwt_vc",
+            "authorization_request_type": "simple",
+            "openid": "plain_oauth",
+            "fapi_request_method": "unsigned",
+            "vci_grant_type": "authorization_code",
+            "vci_credential_encryption": "encrypted",
+            "fapi_profile": "vci_haip",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-*.json",
+        "comment": "Authlete currently does not support credential_request_encryption"
+    },
+    {
+        "test-name": "oid4vci-1_0-issuer-happy-flow",
+        "variant": {
+            "sender_constrain":"dpop",
+            "client_auth_type": "client_attestation",
+            "vci_authorization_code_flow_variant": "wallet_initiated",
+            "credential_format": "sd_jwt_vc",
+            "authorization_request_type": "simple",
+            "openid": "plain_oauth",
+            "fapi_request_method": "unsigned",
+            "vci_grant_type": "authorization_code",
+            "vci_credential_encryption": "encrypted",
+            "fapi_profile": "vci_haip",
+            "fapi_response_mode": "plain_response"
+        },
+        "configuration-filename": "authlete-*.json",
+        "comment": "Authlete currently does not support credential_request_encryption"
     }
 ]
