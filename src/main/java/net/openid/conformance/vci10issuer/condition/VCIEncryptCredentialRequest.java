@@ -64,21 +64,10 @@ public class VCIEncryptCredentialRequest extends AbstractCondition {
 		// the JWE alg used MUST equal the JWK alg, and the key is used for JWE key agreement.
 		// Pick the first key whose alg parses to an asymmetric JWE algorithm (RSA / ECDH-ES family)
 		// and whose use is "enc" or absent — this skips signing keys or keys with unrelated algs.
-		JWK encryptionKey = null;
-		for (JWK candidate : jwkSet.getKeys()) {
-			if (candidate.getAlgorithm() == null) {
-				continue;
-			}
-			if (candidate.getKeyUse() != null && !KeyUse.ENCRYPTION.equals(candidate.getKeyUse())) {
-				continue;
-			}
-			JWEAlgorithm candidateAlg = JWEAlgorithm.parse(candidate.getAlgorithm().getName());
-			if (!JWEAlgorithm.Family.ASYMMETRIC.contains(candidateAlg)) {
-				continue;
-			}
-			encryptionKey = candidate;
-			break;
-		}
+		JWK encryptionKey = jwkSet.getKeys().stream()
+			.filter(this::isUsableForJweKeyAgreement)
+			.findFirst()
+			.orElse(null);
 		if (encryptionKey == null) {
 			throw error("No usable encryption key found in credential_issuer_metadata.credential_request_encryption.jwks; "
 				+ "expected a key with use=enc (or absent), an asymmetric JWE 'alg' (RSA or ECDH-ES family), "
@@ -149,5 +138,16 @@ public class VCIEncryptCredentialRequest extends AbstractCondition {
 				"encrypted_credential_request", encryptedRequest));
 
 		return env;
+	}
+
+	protected boolean isUsableForJweKeyAgreement(JWK candidate) {
+		if (candidate.getAlgorithm() == null) {
+			return false;
+		}
+		if (candidate.getKeyUse() != null && !KeyUse.ENCRYPTION.equals(candidate.getKeyUse())) {
+			return false;
+		}
+		JWEAlgorithm candidateAlg = JWEAlgorithm.parse(candidate.getAlgorithm().getName());
+		return JWEAlgorithm.Family.ASYMMETRIC.contains(candidateAlg);
 	}
 }
