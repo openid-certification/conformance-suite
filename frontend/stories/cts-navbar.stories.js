@@ -247,9 +247,13 @@ export const Loading = {
     const logo = canvasElement.querySelector('img[alt="OpenID"]');
     expect(logo).toBeTruthy();
 
-    // No nav links rendered yet during loading
+    // While loading, user is null so component shows public nav links
     expect(canvas.queryByText("Home")).toBeNull();
-    expect(canvas.queryByText("Published Logs")).toBeNull();
+    expect(canvas.getByText("Published Logs")).toBeInTheDocument();
+
+    // No user info rendered yet (only the "Loading…" indicator)
+    expect(canvas.queryByText("Logged in as")).toBeNull();
+    expect(canvas.queryByText("Logout")).toBeNull();
   },
 };
 
