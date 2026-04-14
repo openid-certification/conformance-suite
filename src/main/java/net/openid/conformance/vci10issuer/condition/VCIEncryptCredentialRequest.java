@@ -88,6 +88,17 @@ public class VCIEncryptCredentialRequest extends AbstractCondition {
 				args("jwks", jwksEl));
 		}
 
+		// Per OID4VCI 1.0 Final Section 12.2.4, every JWK in credential_request_encryption.jwks
+		// MUST have a kid that uniquely identifies the key; per Section 10, the JWE MUST then carry
+		// that kid in its header. Fail loudly if the issuer's metadata is missing the kid rather
+		// than silently producing a JWE without one.
+		if (encryptionKey.getKeyID() == null || encryptionKey.getKeyID().isEmpty()) {
+			throw error("Selected key in credential_issuer_metadata.credential_request_encryption.jwks "
+				+ "is missing a 'kid'; per OID4VCI 1.0 Section 12.2.4 each JWK in the credential request "
+				+ "encryption JWKS MUST have a kid that uniquely identifies the key",
+				args("jwks", jwksEl, "selected_key", encryptionKey.toJSONString()));
+		}
+
 		String alg = encryptionKey.getAlgorithm().getName();
 
 		// enc is obtained from context: use the first value from enc_values_supported, else default
@@ -105,14 +116,11 @@ public class VCIEncryptCredentialRequest extends AbstractCondition {
 		try {
 			JWEEncrypter encrypter = JWEUtil.createEncrypter(encryptionKey);
 
+			// Per OID4VCI 1.0 Section 10, when the selected public key has a kid (which
+			// Section 12.2.4 requires), the JWE MUST carry the same kid in its header.
 			JWEHeader.Builder headerBuilder = new JWEHeader.Builder(jweAlgorithm, encryptionMethod)
-				.contentType("json");
-
-			// Per OID4VCI 1.0 Section 10: if the selected public key contains a kid,
-			// the JWE MUST include the same value in the kid header parameter.
-			if (encryptionKey.getKeyID() != null) {
-				headerBuilder.keyID(encryptionKey.getKeyID());
-			}
+				.contentType("json")
+				.keyID(encryptionKey.getKeyID());
 
 			JWEObject jweObject = new JWEObject(
 				headerBuilder.build(),
