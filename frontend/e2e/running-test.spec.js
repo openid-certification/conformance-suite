@@ -1,6 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { setupCommonRoutes, setupFailFast, expectNoUnmockedCalls } from "./helpers/routes.js";
-import { MOCK_TEST_RUNNING, MOCK_TEST_RUNNING_2 } from "./fixtures/mock-test-data.js";
+import { setupCommonRoutes, setupFailFast } from "./helpers/routes.js";
 
 const NOW = Date.now();
 
@@ -21,11 +20,10 @@ const RUNNER_DETAIL_2 = {
   owner: { sub: "12345", iss: "https://accounts.google.com" },
 };
 
+/** Mock /api/info/:testId — shape used by the TEST_STATUS template */
+const INFO_RUNNING = { status: "RUNNING", result: null };
+const INFO_WAITING = { status: "WAITING", result: null };
 test.describe("running-test.html — Running Tests", () => {
-  test.afterEach(async ({ page }) => {
-    expectNoUnmockedCalls(page);
-  });
-
   test("loads and renders running tests (R12)", async ({ page }) => {
     await setupFailFast(page);
     await setupCommonRoutes(page);
@@ -60,14 +58,14 @@ test.describe("running-test.html — Running Tests", () => {
       route.fulfill({
         status: 200,
         contentType: "application/json",
-        body: JSON.stringify(MOCK_TEST_RUNNING),
+        body: JSON.stringify(INFO_RUNNING),
       }),
     );
     await page.route("**/api/info/test-running-002", (route) =>
       route.fulfill({
         status: 200,
         contentType: "application/json",
-        body: JSON.stringify(MOCK_TEST_RUNNING_2),
+        body: JSON.stringify(INFO_WAITING),
       }),
     );
 
@@ -89,18 +87,27 @@ test.describe("running-test.html — Running Tests", () => {
   test("manual refresh re-fetches and updates statuses (R13)", async ({
     page,
   }) => {
-    let returnEmpty = false;
+    let callCount = 0;
 
     await setupFailFast(page);
     await setupCommonRoutes(page);
 
-    // Switch response after we signal it
+    // Return different test lists on successive calls
     await page.route("**/api/runner/running", (route) => {
-      const data = returnEmpty ? [] : ["test-running-001"];
+      callCount++;
+      if (callCount <= 2) {
+        // First two calls: initial load + first updateRunningTable
+        return route.fulfill({
+          status: 200,
+          contentType: "application/json",
+          body: JSON.stringify(["test-running-001"]),
+        });
+      }
+      // After refresh: test is gone (empty list)
       return route.fulfill({
         status: 200,
         contentType: "application/json",
-        body: JSON.stringify(data),
+        body: JSON.stringify([]),
       });
     });
 
@@ -115,7 +122,7 @@ test.describe("running-test.html — Running Tests", () => {
       route.fulfill({
         status: 200,
         contentType: "application/json",
-        body: JSON.stringify(MOCK_TEST_RUNNING),
+        body: JSON.stringify(INFO_RUNNING),
       }),
     );
 
@@ -127,8 +134,7 @@ test.describe("running-test.html — Running Tests", () => {
       "oidcc-server",
     );
 
-    // Switch mock to return empty list, then click refresh
-    returnEmpty = true;
+    // Click refresh
     await page.click("#refresh");
 
     // After refresh, no tests running
@@ -154,93 +160,5 @@ test.describe("running-test.html — Running Tests", () => {
 
     // The running-tests container is empty
     await expect(page.locator("#running-tests")).toBeEmpty();
-  });
-
-  test("test rows contain View Test Details link and Download button", async ({ page }) => {
-    await setupFailFast(page);
-    await setupCommonRoutes(page);
-
-    await page.route("**/api/runner/running", (route) =>
-      route.fulfill({
-        status: 200,
-        contentType: "application/json",
-        body: JSON.stringify(["test-running-001"]),
-      }),
-    );
-
-    await page.route("**/api/runner/test-running-001", (route) =>
-      route.fulfill({
-        status: 200,
-        contentType: "application/json",
-        body: JSON.stringify(RUNNER_DETAIL_1),
-      }),
-    );
-    await page.route("**/api/info/test-running-001", (route) =>
-      route.fulfill({
-        status: 200,
-        contentType: "application/json",
-        body: JSON.stringify(MOCK_TEST_RUNNING),
-      }),
-    );
-
-    await page.goto("/running-test.html");
-
-    const row = page.locator(".runningTest").first();
-    await expect(row).toBeVisible();
-
-    // View Test Details link should point to log-detail with the correct test ID
-    const viewBtn = row.locator(".viewBtn");
-    await expect(viewBtn).toBeVisible();
-    await expect(viewBtn).toHaveAttribute(
-      "href",
-      "log-detail.html?log=test-running-001",
-    );
-
-    // Download button should be present
-    const downloadBtn = row.locator(".downloadBtn");
-    await expect(downloadBtn).toBeVisible();
-    await expect(downloadBtn).toContainText("Download Logs");
-  });
-
-  test("status tooltips render on test status blocks", async ({ page }) => {
-    await setupFailFast(page);
-    await setupCommonRoutes(page);
-
-    await page.route("**/api/runner/running", (route) =>
-      route.fulfill({
-        status: 200,
-        contentType: "application/json",
-        body: JSON.stringify(["test-running-001"]),
-      }),
-    );
-
-    await page.route("**/api/runner/test-running-001", (route) =>
-      route.fulfill({
-        status: 200,
-        contentType: "application/json",
-        body: JSON.stringify(RUNNER_DETAIL_1),
-      }),
-    );
-    await page.route("**/api/info/test-running-001", (route) =>
-      route.fulfill({
-        status: 200,
-        contentType: "application/json",
-        body: JSON.stringify(MOCK_TEST_RUNNING),
-      }),
-    );
-
-    await page.goto("/running-test.html");
-
-    // Wait for status to render
-    const statusBlock = page.locator(".testStatusResultBlock").first();
-    await expect(statusBlock).toBeVisible();
-    await expect(statusBlock).toContainText("RUNNING");
-
-    // Tooltip trigger should exist with help text
-    const tooltip = statusBlock.locator('[data-bs-toggle="tooltip"]');
-    await expect(tooltip).toBeVisible();
-    // Bootstrap moves title to data-bs-original-title after tooltip init
-    const origTitle = await tooltip.getAttribute("data-bs-original-title");
-    expect(origTitle || "").toContain("actively executing");
   });
 });

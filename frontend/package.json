@@ -1,28 +1,13 @@
 {
-  "name": "cts-frontend",
+  "name": "cts-frontend-e2e",
   "version": "0.0.1",
   "private": true,
   "type": "module",
   "scripts": {
-    "storybook": "storybook dev -p 6006",
-    "build-storybook": "storybook build",
-    "test-storybook": "vitest --project=storybook --run"
+    "test:e2e": "playwright test"
   },
   "devDependencies": {
-    "@storybook/addon-mcp": "^0.5.0",
-    "@storybook/addon-vitest": "^10.3.5",
-    "@storybook/web-components-vite": "^10.3.5",
-    "@vitest/browser-playwright": "^4.1.4",
-    "lit": "^3.2.1",
-    "msw": "^2.13.3",
-    "playwright": "^1.59.1",
-    "storybook": "^10.3.5",
-    "vite": "^6.3.3",
-    "vitest": "^4.1.4"
-  },
-  "msw": {
-    "workerDirectory": [
-      "public"
-    ]
+    "@playwright/test": "^1.52.0",
+    "http-server": "^14.1.1"
   }
 }
