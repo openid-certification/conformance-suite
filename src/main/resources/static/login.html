@@ -17,6 +17,7 @@
 
     <script type="importmap">{"imports":{"lit":"https://cdn.jsdelivr.net/npm/lit@3/+esm","lit/":"https://cdn.jsdelivr.net/npm/lit@3/","@lit/reactive-element":"https://cdn.jsdelivr.net/npm/@lit/reactive-element@2/+esm","@lit/reactive-element/":"https://cdn.jsdelivr.net/npm/@lit/reactive-element@2/","lit-html":"https://cdn.jsdelivr.net/npm/lit-html@3/+esm","lit-html/":"https://cdn.jsdelivr.net/npm/lit-html@3/","lit-element/":"https://cdn.jsdelivr.net/npm/lit-element@4/"}}</script>
     <script type="module" src="/components/cts-navbar.js"></script>
+    <script type="module" src="/components/cts-link-button.js"></script>
 </head>
 <body>
     <cts-navbar current-page=""></cts-navbar>
@@ -36,8 +37,8 @@
         <div class="row">
             <div class="mx-auto col-md-2">
                 <div class="d-grid gap-2">
-                    <a href="logs.html?public=true" class="btn btn-sm btn-info bg-gradient border border-secondary"><span class="bi bi-files"></span> View published logs</a>
-                    <a href="plans.html?public=true" class="btn btn-sm btn-info bg-gradient border border-secondary"><span class="bi bi-bookmarks"></span> View published plans</a>
+                    <cts-link-button href="logs.html?public=true" variant="info" icon="files" label="View published logs"></cts-link-button>
+                    <cts-link-button href="plans.html?public=true" variant="info" icon="bookmarks" label="View published plans"></cts-link-button>
                 </div>
             </div>
         </div>
