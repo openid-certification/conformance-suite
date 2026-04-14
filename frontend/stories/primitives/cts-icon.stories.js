@@ -1,5 +1,5 @@
 import { html } from "lit";
-import { expect, within } from "storybook/test";
+import { expect } from "storybook/test";
 import "../../../src/main/resources/static/components/cts-icon.js";
 
 export default {
@@ -22,8 +22,6 @@ export const Default = {
     html`<cts-icon name="${name}" size="${size}"></cts-icon>`,
 
   async play({ canvasElement }) {
-    const canvas = within(canvasElement);
-
     const icon = canvasElement.querySelector("span.bi");
     expect(icon).toBeTruthy();
     expect(icon.classList.contains("bi-play-fill")).toBe(true);

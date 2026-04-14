@@ -1,5 +1,5 @@
 import { html } from "lit";
-import { expect, within, userEvent } from "storybook/test";
+import { expect, userEvent } from "storybook/test";
 import "../../../src/main/resources/static/components/cts-badge.js";
 
 export default {
