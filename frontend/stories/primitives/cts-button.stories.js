@@ -1,5 +1,5 @@
 import { html } from "lit";
-import { expect, within, userEvent } from "storybook/test";
+import { expect, userEvent } from "storybook/test";
 import "../../../src/main/resources/static/components/cts-button.js";
 
 export default {
@@ -25,7 +25,7 @@ export default {
 
 export const Default = {
   args: { variant: "light", label: "Cancel" },
-  render: ({ variant, label, icon, loading, disabled, type }) =>
+  render: ({ variant, label, loading, disabled }) =>
     html`<cts-button
       variant="${variant}"
       label="${label}"
@@ -116,7 +116,7 @@ export const Danger = {
 
 export const Loading = {
   args: { variant: "primary", label: "Saving...", loading: true },
-  render: ({ variant, label, icon, loading, disabled }) =>
+  render: ({ variant, label, loading, disabled }) =>
     html`<cts-button
       variant="${variant}"
       label="${label}"
@@ -143,7 +143,7 @@ export const Loading = {
 
 export const Disabled = {
   args: { variant: "light", label: "Cancel", disabled: true },
-  render: ({ variant, label, icon, loading, disabled }) =>
+  render: ({ variant, label, loading, disabled }) =>
     html`<cts-button
       variant="${variant}"
       label="${label}"

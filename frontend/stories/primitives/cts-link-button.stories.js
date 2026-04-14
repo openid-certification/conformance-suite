@@ -1,5 +1,5 @@
 import { html } from "lit";
-import { expect, within } from "storybook/test";
+import { expect } from "storybook/test";
 import "../../../src/main/resources/static/components/cts-link-button.js";
 
 export default {
@@ -21,7 +21,7 @@ export default {
 
 export const Default = {
   args: { href: "tokens.html", variant: "light", label: "Tokens" },
-  render: ({ href, variant, label, icon, disabled }) =>
+  render: ({ href, variant, label, disabled }) =>
     html`<cts-link-button
       href="${href}"
       variant="${variant}"
@@ -46,7 +46,7 @@ export const Default = {
 
 export const WithIcon = {
   args: { variant: "info", icon: "file-earmark", label: "View Log" },
-  render: ({ href, variant, label, icon, disabled }) =>
+  render: ({ variant, label, icon, disabled }) =>
     html`<cts-link-button
       variant="${variant}"
       label="${label}"
@@ -59,16 +59,16 @@ export const WithIcon = {
     expect(anchor).toBeTruthy();
     expect(anchor.classList.contains("btn-info")).toBe(true);
 
-    const icon = anchor.querySelector("span.bi");
-    expect(icon).toBeTruthy();
-    expect(icon.classList.contains("bi-file-earmark")).toBe(true);
-    expect(icon.getAttribute("aria-hidden")).toBe("true");
+    const iconEl = anchor.querySelector("span.bi");
+    expect(iconEl).toBeTruthy();
+    expect(iconEl.classList.contains("bi-file-earmark")).toBe(true);
+    expect(iconEl.getAttribute("aria-hidden")).toBe("true");
   },
 };
 
 export const Disabled = {
   args: { href: "tokens.html", variant: "light", label: "Tokens", disabled: true },
-  render: ({ href, variant, label, icon, disabled }) =>
+  render: ({ href, variant, label, disabled }) =>
     html`<cts-link-button
       href="${href}"
       variant="${variant}"

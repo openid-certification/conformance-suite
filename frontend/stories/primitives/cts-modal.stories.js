@@ -82,12 +82,7 @@ export const CloseEvent = {
     const ctsModal = canvasElement.querySelector("cts-modal");
     expect(ctsModal).toBeTruthy();
 
-    let eventReceived = false;
-    ctsModal.addEventListener("cts-modal-close", () => {
-      eventReceived = true;
-    });
-
-    // Verify the listener can be attached (event functionality test)
+    // Verify the event listener can be attached
     expect(typeof ctsModal.addEventListener).toBe("function");
   },
 };
