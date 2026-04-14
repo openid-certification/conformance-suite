@@ -87,7 +87,7 @@ test.describe("schedule-test.html — Test Plan Scheduling", () => {
           body: JSON.stringify({ id: "plan-new-001", name: "oidcc-client-basic-certification-test-plan" }),
         });
       }
-      return route.continue();
+      return route.fallback();
     });
 
     // Mock the plan-detail page that we'll be redirected to

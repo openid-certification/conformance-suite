@@ -23,6 +23,7 @@ const RUNNER_DETAIL_2 = {
 /** Mock /api/info/:testId — shape used by the TEST_STATUS template */
 const INFO_RUNNING = { status: "RUNNING", result: null };
 const INFO_WAITING = { status: "WAITING", result: null };
+
 test.describe("running-test.html — Running Tests", () => {
   test("loads and renders running tests (R12)", async ({ page }) => {
     await setupFailFast(page);
@@ -87,27 +88,18 @@ test.describe("running-test.html — Running Tests", () => {
   test("manual refresh re-fetches and updates statuses (R13)", async ({
     page,
   }) => {
-    let callCount = 0;
+    let returnEmpty = false;
 
     await setupFailFast(page);
     await setupCommonRoutes(page);
 
-    // Return different test lists on successive calls
+    // Switch response after we signal it
     await page.route("**/api/runner/running", (route) => {
-      callCount++;
-      if (callCount <= 2) {
-        // First two calls: initial load + first updateRunningTable
-        return route.fulfill({
-          status: 200,
-          contentType: "application/json",
-          body: JSON.stringify(["test-running-001"]),
-        });
-      }
-      // After refresh: test is gone (empty list)
+      const data = returnEmpty ? [] : ["test-running-001"];
       return route.fulfill({
         status: 200,
         contentType: "application/json",
-        body: JSON.stringify([]),
+        body: JSON.stringify(data),
       });
     });
 
@@ -134,7 +126,8 @@ test.describe("running-test.html — Running Tests", () => {
       "oidcc-server",
     );
 
-    // Click refresh
+    // Switch mock to return empty list, then click refresh
+    returnEmpty = true;
     await page.click("#refresh");
 
     // After refresh, no tests running

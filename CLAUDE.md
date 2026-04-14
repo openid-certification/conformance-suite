@@ -309,14 +309,11 @@ Unit test files follow the pattern `*_UnitTest.java` (e.g., `MyCondition_UnitTes
 Playwright E2E tests in `frontend/e2e/` validate the legacy static HTML pages (`src/main/resources/static/*.html`) with mocked API responses. No backend required.
 
 ```bash
-# Install frontend E2E dependencies deterministically
-cd frontend && npm ci --ignore-scripts
-
-# Run E2E tests
+# Run E2E tests (from frontend/ directory)
 cd frontend && npm run test:e2e
 
 # Run a single spec file
-cd frontend && ./node_modules/.bin/playwright test e2e/home.spec.js
+cd frontend && npx playwright test e2e/home.spec.js
 ```
 
 **When to run:** After modifying any file in `src/main/resources/static/` — HTML pages, `js/fapi.ui.js`, `templates/`, or `css/`. These tests catch regressions in page-level behavior.
@@ -324,7 +321,7 @@ cd frontend && ./node_modules/.bin/playwright test e2e/home.spec.js
 **When to update tests:** If you change an API response shape consumed by the frontend, update the corresponding fixture in `frontend/e2e/fixtures/`. If you change page structure (DOM IDs, CSS classes used by JS), update the affected spec files.
 
 **Key conventions:**
-- Each spec file covers a single page; `journeys.spec.js` covers cross-page flows
+- One spec file per page, plus `journeys.spec.js` for cross-page flows
 - Route helpers in `frontend/e2e/helpers/routes.js` — `setupFailFast()` must be called FIRST (Playwright matches routes in reverse registration order), then specific routes
 - All `page.route()` calls must happen before `page.goto()` because `fapi.ui.js` fires an API call at script parse time
 - Fixture data lives in `frontend/e2e/fixtures/` as ES modules

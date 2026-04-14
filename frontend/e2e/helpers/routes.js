@@ -92,20 +92,16 @@ export function wrapDataTablesResponse(data, requestUrl) {
 
 /**
  * Register a fail-fast catch-all for any unmocked /api/* route.
- * MUST be called LAST — Playwright matches routes in registration order.
+ * MUST be called FIRST — Playwright matches routes in reverse registration
+ * order, so the first-registered route runs last (as a true fallback).
  *
- * The handler aborts the request and records the URL so tests can assert
- * which route was missed.
+ * The handler aborts the request so unmocked calls fail immediately
+ * instead of hanging for 30 seconds.
  */
 export async function setupFailFast(page) {
-  const unmockedUrls = [];
-
   await page.route("**/api/**", (route) => {
     const url = route.request().url();
-    unmockedUrls.push(url);
     console.error(`[fail-fast] Unmocked API route: ${url}`);
     return route.abort("failed");
   });
-
-  return unmockedUrls;
 }
