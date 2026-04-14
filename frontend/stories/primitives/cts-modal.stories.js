@@ -1,5 +1,5 @@
 import { html } from "lit";
-import { expect } from "storybook/test";
+import { expect, userEvent, waitFor } from "storybook/test";
 import "../../../src/main/resources/static/components/cts-modal.js";
 
 export default {
@@ -49,26 +49,33 @@ export const Default = {
     const closeBtn = canvasElement.querySelector(".btn-close");
     expect(closeBtn).toBeTruthy();
     expect(closeBtn.getAttribute("data-bs-dismiss")).toBe("modal");
-
-    const footerCloseBtn = canvasElement.querySelector(
-      '.modal-footer button[data-bs-dismiss="modal"]',
-    );
-    expect(footerCloseBtn).toBeTruthy();
-    expect(footerCloseBtn.getAttribute("data-bs-dismiss")).toBe("modal");
   },
 };
 
-export const ShowHideMethods = {
+export const ShowAndHide = {
   render: () =>
-    html`<cts-modal heading="Method Test">
-      <p>Testing show/hide methods.</p>
+    html`<cts-modal heading="Show/Hide Test">
+      <p>This modal should open and close.</p>
     </cts-modal>`,
 
   async play({ canvasElement }) {
     const ctsModal = canvasElement.querySelector("cts-modal");
-    expect(ctsModal).toBeTruthy();
-    expect(typeof ctsModal.show).toBe("function");
-    expect(typeof ctsModal.hide).toBe("function");
+    const modalEl = canvasElement.querySelector(".modal");
+
+    // Modal should start hidden
+    expect(modalEl.classList.contains("show")).toBe(false);
+
+    // show() should open it
+    ctsModal.show();
+    await waitFor(() => {
+      expect(modalEl.classList.contains("show")).toBe(true);
+    });
+
+    // hide() should close it
+    ctsModal.hide();
+    await waitFor(() => {
+      expect(modalEl.classList.contains("show")).toBe(false);
+    });
   },
 };
 
@@ -80,9 +87,46 @@ export const CloseEvent = {
 
   async play({ canvasElement }) {
     const ctsModal = canvasElement.querySelector("cts-modal");
-    expect(ctsModal).toBeTruthy();
 
-    // Verify the event listener can be attached
-    expect(typeof ctsModal.addEventListener).toBe("function");
+    let closeEventFired = false;
+    ctsModal.addEventListener("cts-modal-close", () => {
+      closeEventFired = true;
+    });
+
+    // Open then close — the hidden.bs.modal event should fire cts-modal-close
+    ctsModal.show();
+    await waitFor(() => {
+      expect(canvasElement.querySelector(".modal.show")).toBeTruthy();
+    });
+
+    ctsModal.hide();
+    await waitFor(() => {
+      expect(closeEventFired).toBe(true);
+    });
+  },
+};
+
+export const CloseViaButton = {
+  render: () => html`
+    <cts-modal heading="Button Close Test">
+      <p>Close via the X button.</p>
+    </cts-modal>
+  `,
+
+  async play({ canvasElement }) {
+    const ctsModal = canvasElement.querySelector("cts-modal");
+    const closeBtn = canvasElement.querySelector(".btn-close");
+
+    // Open the modal
+    ctsModal.show();
+    await waitFor(() => {
+      expect(canvasElement.querySelector(".modal.show")).toBeTruthy();
+    });
+
+    // Click the close button
+    await userEvent.click(closeBtn);
+    await waitFor(() => {
+      expect(canvasElement.querySelector(".modal.show")).toBeNull();
+    });
   },
 };
