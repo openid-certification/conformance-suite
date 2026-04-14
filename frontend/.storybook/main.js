@@ -5,7 +5,10 @@ import { defineMain } from "@storybook/web-components-vite/node";
 const here = dirname(fileURLToPath(import.meta.url));
 
 export default defineMain({
-  stories: ["../../src/main/resources/static/components/**/*.stories.js"],
+  stories: [
+    "../../src/main/resources/static/components/**/*.stories.js",
+    "../../src/main/resources/static/components/flows/**/*.stories.js",
+  ],
   framework: "@storybook/web-components-vite",
   addons: ["@storybook/addon-vitest", "@storybook/addon-mcp"],
   staticDirs: [
