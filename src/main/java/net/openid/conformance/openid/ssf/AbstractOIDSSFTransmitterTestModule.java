@@ -48,6 +48,7 @@ import net.openid.conformance.variant.ServerMetadata;
 import net.openid.conformance.variant.VariantConfigurationFields;
 import net.openid.conformance.variant.VariantHidesConfigurationFields;
 import net.openid.conformance.variant.VariantNotApplicable;
+import net.openid.conformance.variant.VariantNotApplicableWhen;
 import net.openid.conformance.variant.VariantParameters;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.StringUtils;
@@ -115,7 +116,16 @@ import java.util.concurrent.TimeUnit;
 	"client.scope",
 	"server.token_endpoint",
 })
+// When the receiver presents a static access token, the OAuth client / server discovery
+// dimensions don't apply — hide their dropdowns from the schedule-test UI.
+@VariantNotApplicableWhen(parameter = ServerMetadata.class, values = "*",
+	whenParameter = SsfAuthMode.class, hasValues = "static")
+@VariantNotApplicableWhen(parameter = ClientRegistration.class, values = "*",
+	whenParameter = SsfAuthMode.class, hasValues = "static")
+@VariantNotApplicableWhen(parameter = ClientAuthType.class, values = "*",
+	whenParameter = SsfAuthMode.class, hasValues = "static")
 @VariantNotApplicable(parameter = ClientAuthType.class, values = "client_attestation")
+
 public class AbstractOIDSSFTransmitterTestModule extends AbstractOIDSSFTestModule {
 
 	protected BlockingDeque<SSfPushRequest> pushRequests = new LinkedBlockingDeque<>();
