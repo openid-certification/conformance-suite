@@ -1,6 +1,9 @@
 class CtsModal extends HTMLElement {
   connectedCallback() {
     const heading = this.getAttribute("heading");
+    const staticBackdrop = this.hasAttribute("static-backdrop");
+    const noKeyboard = this.hasAttribute("no-keyboard");
+    const hostId = this.id;
     const children = Array.from(this.childNodes);
 
     // Build modal wrapper
@@ -8,8 +11,19 @@ class CtsModal extends HTMLElement {
     modal.className = "modal";
     modal.setAttribute("tabindex", "-1");
     modal.setAttribute("role", "dialog");
-    if (this.id) {
-      modal.setAttribute("aria-labelledby", this.id + "-title");
+
+    // Transfer id from host to inner .modal so getElementById + bootstrap.Modal works
+    if (hostId) {
+      modal.id = hostId;
+      modal.setAttribute("aria-labelledby", hostId + "-title");
+      this.removeAttribute("id");
+    }
+
+    if (staticBackdrop) {
+      modal.setAttribute("data-bs-backdrop", "static");
+    }
+    if (noKeyboard) {
+      modal.setAttribute("data-bs-keyboard", "false");
     }
 
     // modal-dialog
@@ -27,19 +41,22 @@ class CtsModal extends HTMLElement {
 
     const title = document.createElement("h4");
     title.className = "modal-title";
-    if (this.id) {
-      title.id = this.id + "-title";
+    if (hostId) {
+      title.id = hostId + "-title";
     }
     title.textContent = heading || "";
 
-    const closeBtn = document.createElement("button");
-    closeBtn.type = "button";
-    closeBtn.className = "btn-close";
-    closeBtn.setAttribute("data-bs-dismiss", "modal");
-    closeBtn.setAttribute("aria-label", "Close");
-
     header.appendChild(title);
-    header.appendChild(closeBtn);
+
+    // Close button in header (skip for static-backdrop loading modals)
+    if (!staticBackdrop) {
+      const closeBtn = document.createElement("button");
+      closeBtn.type = "button";
+      closeBtn.className = "btn-close";
+      closeBtn.setAttribute("data-bs-dismiss", "modal");
+      closeBtn.setAttribute("aria-label", "Close");
+      header.appendChild(closeBtn);
+    }
 
     // modal-body — move captured children here
     const body = document.createElement("div");
@@ -48,23 +65,26 @@ class CtsModal extends HTMLElement {
       body.appendChild(child);
     }
 
-    // modal-footer
-    const footer = document.createElement("div");
-    footer.className = "modal-footer";
-
-    const footerCloseBtn = document.createElement("button");
-    footerCloseBtn.type = "button";
-    footerCloseBtn.className =
-      "btn btn-sm btn-light bg-gradient border border-secondary";
-    footerCloseBtn.setAttribute("data-bs-dismiss", "modal");
-    footerCloseBtn.textContent = "Close";
-
-    footer.appendChild(footerCloseBtn);
-
-    // Assemble
     content.appendChild(header);
     content.appendChild(body);
-    content.appendChild(footer);
+
+    // modal-footer (skip for static-backdrop loading modals)
+    if (!staticBackdrop) {
+      const footer = document.createElement("div");
+      footer.className = "modal-footer";
+
+      const footerCloseBtn = document.createElement("button");
+      footerCloseBtn.type = "button";
+      footerCloseBtn.className =
+        "btn btn-sm btn-light bg-gradient border border-secondary";
+      footerCloseBtn.setAttribute("data-bs-dismiss", "modal");
+      footerCloseBtn.textContent = "Close";
+
+      footer.appendChild(footerCloseBtn);
+      content.appendChild(footer);
+    }
+
+    // Assemble
     dialog.appendChild(content);
     modal.appendChild(dialog);
     this.appendChild(modal);
@@ -75,22 +95,18 @@ class CtsModal extends HTMLElement {
         new CustomEvent("cts-modal-close", { bubbles: true, composed: true }),
       );
     });
+
+    this._modalEl = modal;
   }
 
   show() {
-    if (typeof bootstrap === "undefined") return;
-    const modal = this.querySelector(".modal");
-    if (modal) {
-      bootstrap.Modal.getOrCreateInstance(modal).show();
-    }
+    if (typeof bootstrap === "undefined" || !this._modalEl) return;
+    bootstrap.Modal.getOrCreateInstance(this._modalEl).show();
   }
 
   hide() {
-    if (typeof bootstrap === "undefined") return;
-    const modal = this.querySelector(".modal");
-    if (modal) {
-      bootstrap.Modal.getOrCreateInstance(modal).hide();
-    }
+    if (typeof bootstrap === "undefined" || !this._modalEl) return;
+    bootstrap.Modal.getOrCreateInstance(this._modalEl).hide();
   }
 }
 
