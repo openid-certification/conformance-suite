@@ -1,15 +1,23 @@
 import { LitElement, html, nothing } from "lit";
 
-const RESULT_VARIANTS = [
-  "success",
-  "failure",
-  "warning",
-  "review",
-  "skipped",
-  "interrupted",
-  "info",
-  "finished",
-];
+const RESULT_VARIANT_CLASSES = {
+  success: "result-success",
+  failure: "result-failure",
+  warning: "result-warning",
+  review: "result-review",
+  skipped: "result-skipped",
+  interrupted: "result-interrupted",
+  info: "result-info",
+  finished: "result-finished",
+};
+
+const BOOTSTRAP_VARIANT_CLASSES = {
+  primary: "bg-primary",
+  secondary: "bg-secondary",
+  danger: "bg-danger",
+  light: "bg-light",
+  dark: "bg-dark",
+};
 
 class CtsBadge extends LitElement {
   static properties = {
@@ -29,16 +37,12 @@ class CtsBadge extends LitElement {
     this.clickable = false;
   }
 
-  // Use light DOM so Bootstrap CSS applies
-  createRenderRoot() {
-    return this;
-  }
+  createRenderRoot() { return this; }
 
   _variantClass() {
-    if (RESULT_VARIANTS.includes(this.variant)) {
-      return `result-${this.variant}`;
-    }
-    return `bg-${this.variant}`;
+    return RESULT_VARIANT_CLASSES[this.variant]
+      || BOOTSTRAP_VARIANT_CLASSES[this.variant]
+      || "bg-info";
   }
 
   _handleClick() {

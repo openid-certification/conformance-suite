@@ -81,7 +81,7 @@ class CtsLogViewer extends LitElement {
         <div class="col-md-12 logItem startBlock p-2"
           style="background: #336; color: white; cursor: pointer;"
           @click=${() => this._toggleBlock(entry.blockId)}>
-          <span class="bi bi-chevron-${isCollapsed ? "right" : "down"}" aria-hidden="true"></span>
+          <span class="${isCollapsed ? "bi bi-chevron-right" : "bi bi-chevron-down"}" aria-hidden="true"></span>
           ${entry.msg || entry.blockId}
         </div>
       </div>
