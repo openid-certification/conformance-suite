@@ -238,6 +238,7 @@ public class OIDSSFTransmitterStreamCaepInteropTest extends AbstractOIDSSFTransm
 		eventLog.runBlock("Poll for verification event", () -> {
 			env.putString("ssf", "poll.mode", OIDSSFCallPollEndpoint.PollMode.POLL_ONLY.name());
 			callAndStopOnFailure(OIDSSFCallPollEndpoint.class, "OIDSSF-8.1.4.1", "RFC8936-2.4");
+			validatePollResponseStatus();
 			env.mapKey("ssf_polling_response", "resource_endpoint_response_full");
 			callAndStopOnFailure(OIDSSFExtractReceivedSETs.class);
 			callAndStopOnFailure(OIDSSFExtractVerificationEventFromReceivedSETs.class);
@@ -257,6 +258,7 @@ public class OIDSSFTransmitterStreamCaepInteropTest extends AbstractOIDSSFTransm
 			eventLog.runBlock("Poll for CAEP events (attempt " + (attempt + 1) + ")", () -> {
 				env.putString("ssf", "poll.mode", OIDSSFCallPollEndpoint.PollMode.POLL_AND_ACKNOWLEDGE.name());
 				callAndStopOnFailure(OIDSSFCallPollEndpoint.class, "OIDSSF-8.1.4.1", "RFC8936-2.4");
+				validatePollResponseStatus();
 				env.mapKey("ssf_polling_response", "resource_endpoint_response_full");
 				callAndStopOnFailure(OIDSSFExtractReceivedSETs.class);
 			});
@@ -293,8 +295,19 @@ public class OIDSSFTransmitterStreamCaepInteropTest extends AbstractOIDSSFTransm
 			if (remainingSets != null && remainingSets.isJsonObject() && !remainingSets.getAsJsonObject().isEmpty()) {
 				env.putString("ssf", "poll.mode", OIDSSFCallPollEndpoint.PollMode.ACKNOWLEDGE_ONLY.name());
 				callAndStopOnFailure(OIDSSFCallPollEndpoint.class, "OIDSSF-8.1.4.1", "RFC8936-2.4");
+				validatePollResponseStatus();
 			}
 		});
+	}
+
+	/**
+	 * Per RFC 8936 §2.5, a successful poll request returns 200 OK. Map the polling response to
+	 * endpoint_response, run the status check, then unmap so the cleanup is always paired.
+	 */
+	protected void validatePollResponseStatus() {
+		call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
+		callAndContinueOnFailure(EnsureHttpStatusCodeIs200.class, Condition.ConditionResult.FAILURE, "RFC8936-2.5");
+		call(exec().unmapKey("endpoint_response"));
 	}
 
 	protected void processCaepEventsFromPollResponse(JsonObject pollSets, Set<String> receivedEventTypes) {
