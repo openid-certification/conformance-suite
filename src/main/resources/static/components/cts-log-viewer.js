@@ -1,5 +1,6 @@
 import { LitElement, html, nothing } from "lit";
 import "./cts-badge.js";
+import "./cts-log-entry.js";
 
 class CtsLogViewer extends LitElement {
   static properties = {
@@ -91,24 +92,7 @@ class CtsLogViewer extends LitElement {
   _renderEntry(entry) {
     if (entry.startBlock) return this._renderBlockStart(entry);
     if (entry.blockId && this._collapsedBlocks.has(entry.blockId)) return nothing;
-    return html`
-      <div class="row">
-        <div class="col-md-12 logItem p-1" style=${entry.blockId ? "border-left: 3px solid #336" : ""}>
-          <div class="row">
-            <div class="col-md-1">
-              ${entry.time ? html`<small class="text-muted">${new Date(entry.time).toLocaleTimeString()}</small>` : nothing}
-            </div>
-            <div class="col-md-2 labelCollection">
-              ${entry.result ? html`<cts-badge variant="${entry.result.toLowerCase()}" label="${entry.result}"></cts-badge>` : nothing}
-            </div>
-            <div class="col-md-9">
-              ${entry.src ? html`<small class="text-muted me-2">${entry.src}</small>` : nothing}
-              ${entry.msg ? html`<span>${entry.msg}</span>` : nothing}
-            </div>
-          </div>
-        </div>
-      </div>
-    `;
+    return html`<cts-log-entry .entry=${entry}></cts-log-entry>`;
   }
 
   render() {
