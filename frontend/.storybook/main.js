@@ -29,6 +29,8 @@ export default defineMain({
       "@fixtures": join(here, "..", "stories", "fixtures"),
       // Vite can't follow storybook/test subpath exports from outside the root
       "storybook/test": join(here, "..", "node_modules", "storybook", "dist", "test", "index.js"),
+      // Resolve bare "msw" imports from stories outside the Vite root
+      msw: join(here, "..", "node_modules", "msw"),
     };
     // Allow Vite dev server to serve files from the repo root (components live
     // in src/main/resources/static/, outside the frontend/ Vite root)
