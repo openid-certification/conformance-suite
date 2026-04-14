@@ -14,9 +14,15 @@
     "@storybook/web-components-vite": "^10.3.5",
     "@vitest/browser-playwright": "^4.1.4",
     "lit": "^3.2.1",
+    "msw": "^2.13.3",
     "playwright": "^1.59.1",
     "storybook": "^10.3.5",
     "vite": "^6.3.3",
     "vitest": "^4.1.4"
+  },
+  "msw": {
+    "workerDirectory": [
+      "public"
+    ]
   }
 }
