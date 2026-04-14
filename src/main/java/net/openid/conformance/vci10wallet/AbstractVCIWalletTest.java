@@ -219,6 +219,8 @@ import net.openid.conformance.vci10wallet.condition.VCIEncryptCredentialResponse
 import net.openid.conformance.vci10wallet.condition.VCIEnsureBearerAccessTokenNotInParams;
 import net.openid.conformance.vci10wallet.condition.VCIEnsureCredentialSigningCertificateIsNotSelfSigned;
 import net.openid.conformance.vci10wallet.condition.VCIExtractCredentialRequestProof;
+import net.openid.conformance.vci10wallet.condition.VCIDecryptCredentialRequest;
+import net.openid.conformance.vci10wallet.condition.VCIGenerateCredentialRequestEncryptionJwks;
 import net.openid.conformance.vci10wallet.condition.VCIGenerateIssuerState;
 import net.openid.conformance.vci10wallet.condition.VCIGenerateSignedCredentialIssuerMetadata;
 import net.openid.conformance.vci10wallet.condition.VCIInjectAuthorizationDetailsForPreAuthorizedCodeFlow;
@@ -620,6 +622,11 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 	}
 
 	protected void configureCredentialIssuerMetadata() {
+		// Generate the request encryption JWKS before building the metadata so it can be referenced there.
+		if (vciCredentialEncryption == VCICredentialEncryption.ENCRYPTED) {
+			callAndStopOnFailure(VCIGenerateCredentialRequestEncryptionJwks.class, "OID4VCI-1FINAL-10");
+		}
+
 		JsonObject credentialIssuerMetadata = getCredentialIssuerMetadata();
 		env.putObject("credential_issuer_metadata", credentialIssuerMetadata);
 
@@ -697,9 +704,31 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 		if (vciCredentialEncryption == VCICredentialEncryption.ENCRYPTED) {
 			JsonObject responseEnc = createResponseEncryptionConfig();
 			metadataJson.add("credential_response_encryption", responseEnc);
+
+			// Per OID4VCI 1.0 Final Section 8.2, Credential Request encryption MUST be used when
+			// credential_response_encryption is included; advertise the issuer's request encryption
+			// JWKS so the wallet can encrypt credential requests to it.
+			JsonObject requestEnc = createRequestEncryptionConfig();
+			metadataJson.add("credential_request_encryption", requestEnc);
 		}
 
 		return metadataJson;
+	}
+
+	protected JsonObject createRequestEncryptionConfig() {
+		JsonObject requestEnc = new JsonObject();
+
+		JsonObject publicJwks = (JsonObject) env.getElementFromObject("vci", "credential_request_encryption_public_jwks");
+		requestEnc.add("jwks", publicJwks);
+
+		JsonArray encValues = new JsonArray();
+		encValues.add("A256GCM");
+		encValues.add("A128GCM");
+		encValues.add("A256CBC-HS512");
+		encValues.add("A128CBC-HS256");
+		requestEnc.add("enc_values_supported", encValues);
+		requestEnc.addProperty("encryption_required", false);
+		return requestEnc;
 	}
 
 	protected JsonObject createResponseEncryptionConfig() {
@@ -1267,6 +1296,14 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 			return new ResponseEntity<>(env.getObject("resource_endpoint_response"), headersFromJson(env.getObject("resource_endpoint_response_headers")), HttpStatus.valueOf(env.getInteger("resource_endpoint_response_http_status").intValue()));
 		}
 
+		// Decrypt the credential request JWE if encryption is enabled
+		if (vciCredentialEncryption == VCICredentialEncryption.ENCRYPTED) {
+			errorResponse = callAndContinueOnFailureOrReturnErrorResponse(VCIDecryptCredentialRequest.class, ConditionResult.FAILURE, "OID4VCI-1FINAL-10", "OID4VCI-1FINAL-8.2");
+			if (errorResponse != null) {
+				return errorResponse;
+			}
+		}
+
 		errorResponse = callAndContinueOnFailureOrReturnErrorResponse(VCIValidateCredentialRequestStructure.class, ConditionResult.FAILURE, "OID4VCI-1FINAL-8.2");
 		if (errorResponse != null) {
 			return errorResponse;
@@ -1440,6 +1477,14 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 		if (errorResponse != null) {
 			call(exec().unmapKey("incoming_request").endBlock());
 			return errorResponse;
+		}
+
+		// Decrypt the deferred credential request JWE if encryption is enabled
+		if (vciCredentialEncryption == VCICredentialEncryption.ENCRYPTED) {
+			errorResponse = callAndContinueOnFailureOrReturnErrorResponse(VCIDecryptCredentialRequest.class, ConditionResult.FAILURE, "OID4VCI-1FINAL-10", "OID4VCI-1FINAL-9.1");
+			if (errorResponse != null) {
+				return errorResponse;
+			}
 		}
 
 		// Validate the deferred credential request (transaction_id)

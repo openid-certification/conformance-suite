@@ -65,6 +65,7 @@ import net.openid.conformance.variant.VCICredentialEncryption;
 import net.openid.conformance.variant.VCIGrantType;
 import net.openid.conformance.vci10issuer.condition.CheckCacheControlHeaderContainsNoStore;
 import net.openid.conformance.vci10issuer.condition.VCIAddCredentialResponseEncryptionToRequest;
+import net.openid.conformance.vci10issuer.condition.VCIEncryptCredentialRequest;
 import net.openid.conformance.sequence.client.ValidateSdJwtVcCredentialClaims;
 import net.openid.conformance.vci10issuer.condition.VCICheckForDeferredCredentialResponse;
 import net.openid.conformance.vci10issuer.condition.VCICreateCredentialRequest;
@@ -194,6 +195,23 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractFAPI2SPFinalSe
 					+ " - credential_response_encryption.alg_values_supported"
 					+ " and/or credential_response_encryption.enc_values_supported"
 					+ " missing or invalid in issuer metadata.");
+				return;
+			}
+
+			// Per OID4VCI 1.0 Final Section 8.2, Credential Request encryption MUST be used when
+			// credential_response_encryption is included. That requires credential_request_encryption
+			// metadata (with a JWKS) to be published by the issuer.
+			JsonElement requestEncJwksEl = env.getElementFromObject("vci",
+				"credential_issuer_metadata.credential_request_encryption.jwks");
+			JsonElement requestEncValuesEl = env.getElementFromObject("vci",
+				"credential_issuer_metadata.credential_request_encryption.enc_values_supported");
+
+			if (requestEncJwksEl == null || !requestEncJwksEl.isJsonObject()
+				|| requestEncValuesEl == null || !requestEncValuesEl.isJsonArray()) {
+				fireTestSkipped("Credential request encryption is not supported by credential issuer"
+					+ " - credential_request_encryption.jwks and/or credential_request_encryption.enc_values_supported"
+					+ " missing or invalid in issuer metadata. Per OID4VCI 1.0 Section 8.2, credential request"
+					+ " encryption MUST be used when credential_response_encryption is included.");
 				return;
 			}
 		}
@@ -608,6 +626,13 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractFAPI2SPFinalSe
 		JsonObject credentialRequestObject = env.getObject("vci_credential_request_object");
 		String requestBodyString = serializeCredentialRequestObject(credentialRequestObject);
 		env.putString("resource_request_entity", requestBodyString);
+
+		// Per OID4VCI 1.0 Final Section 8.2, Credential Request encryption MUST be used when
+		// credential_response_encryption is included. Encrypt the serialized request as a JWE
+		// and set the Content-Type to application/jwt.
+		if (vciCredentialEncryption == VCICredentialEncryption.ENCRYPTED) {
+			callAndStopOnFailure(VCIEncryptCredentialRequest.class, "OID4VCI-1FINAL-8.2", "OID4VCI-1FINAL-10");
+		}
 	}
 
 	/**
@@ -870,11 +895,26 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractFAPI2SPFinalSe
 
 		callAndStopOnFailure(VCICreateDeferredCredentialRequest.class, "OID4VCI-1FINAL-9.1");
 
+		// Per OID4VCI 1.0 Final Section 9.1, the Deferred Credential Request takes the same
+		// credential_response_encryption parameter as the initial Credential Request, and
+		// Deferred Credential Request encryption MUST be used when credential_response_encryption
+		// is included. Add the response encryption params and then encrypt the request body.
+		if (vciCredentialEncryption == VCICredentialEncryption.ENCRYPTED) {
+			callAndStopOnFailure(VCIAddCredentialResponseEncryptionToRequest.class, "OID4VCI-1FINAL-9.1", "OID4VCI-1FINAL-8.2");
+
+			JsonObject deferredRequest = env.getObject("vci_credential_request_object");
+			env.putString("resource_request_entity", deferredRequest.toString());
+		}
+
 		callAndStopOnFailure(CreateEmptyResourceEndpointRequestHeaders.class);
 		callAndStopOnFailure(CreateRandomFAPIInteractionId.class);
 		callAndStopOnFailure(AddFAPIInteractionIdToResourceEndpointRequest.class);
 
 		env.putString("resource_endpoint_request_headers", "Content-Type", "application/json");
+
+		if (vciCredentialEncryption == VCICredentialEncryption.ENCRYPTED) {
+			callAndStopOnFailure(VCIEncryptCredentialRequest.class, "OID4VCI-1FINAL-9.1", "OID4VCI-1FINAL-10");
+		}
 
 		if (isDpop()) {
 			requestProtectedResourceUsingDpop();
@@ -885,7 +925,16 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractFAPI2SPFinalSe
 		call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
 
 		callAndContinueOnFailure(new EnsureHttpStatusCodeIsAnyOf(200, 202), ConditionResult.FAILURE, "OID4VCI-1FINAL-9.2");
-		callAndContinueOnFailure(EnsureContentTypeJson.class, ConditionResult.WARNING, "OID4VCI-1FINAL-9.2");
+
+		// A successful (200) deferred response is encrypted as application/jwt when request/response
+		// encryption is in use; otherwise it is application/json. A still-pending 202 response is
+		// always application/json per Section 9.3.
+		int deferredStatusCode = env.getInteger("endpoint_response", "status");
+		if (vciCredentialEncryption == VCICredentialEncryption.ENCRYPTED && deferredStatusCode == 200) {
+			callAndContinueOnFailure(EnsureContentTypeApplicationJwt.class, ConditionResult.FAILURE, "OID4VCI-1FINAL-9.2", "OID4VCI-1FINAL-10");
+		} else {
+			callAndContinueOnFailure(EnsureContentTypeJson.class, ConditionResult.WARNING, "OID4VCI-1FINAL-9.2");
+		}
 
 		eventLog.endBlock();
 	}
