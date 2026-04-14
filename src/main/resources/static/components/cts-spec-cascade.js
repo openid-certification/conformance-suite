@@ -198,8 +198,6 @@ class CtsSpecCascade extends LitElement {
       label: p.displayName || p.planName,
     }));
 
-    const versionOptions = this._versions.map((v) => v || "(default)");
-    // For versions, we need value/label pairs if any version is empty string
     const versionOpts = this._versions.map((v) => ({
       value: v,
       label: v || "(default)",
