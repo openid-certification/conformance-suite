@@ -1,6 +1,6 @@
 {
     "$schema": "https://json-schema.org/draft/2020-12/schema",
-    "$comment": "Derived version of https://datatracker.ietf.org/doc/html/rfc8414 with adjustments from https://openid.net/specs/openid-4-verifiable-credential-issuance-1_0-ID2.html",
+    "$comment": "Derived version of https://datatracker.ietf.org/doc/html/rfc8414 with adjustments from https://openid.net/specs/openid-4-verifiable-credential-issuance-1_0.html#section-12.3 and additional metadata extensions used by this test suite.",
     "type": "object",
     "properties": {
         "issuer": { "type": "string", "format": "uri" },
@@ -13,7 +13,7 @@
             "items": { "type": "string" }
         },
         "response_types_supported": {
-            "$comment": "This is mandatory in RFC8414, but optional for oid4vci due to https://openid.net/specs/openid-4-verifiable-credential-issuance-1_0-ID2.html#section-11.2.3-3",
+            "$comment": "This is mandatory in RFC8414, but OID4VCI 1.0 Final section 12.3 allows an Authorization Server that only supports the Pre-Authorized Code grant type to omit it.",
             "type": "array",
             "items": { "type": "string" }
         },
@@ -194,11 +194,6 @@
             "type": "array",
             "items": { "type": "string" }
         },
-        "client_attestation_pop_nonce_required": {
-            "$comment": "Introduced in draft-ietf-oauth-attestation-based-client-auth-05, replaced by challenge_endpoint in draft-06; kept to suppress warnings from servers that still return it",
-            "type": "array",
-            "items": { "type": "string" }
-        },
         "challenge_endpoint": {
             "$comment": "OAuth 2.0 Attestation-Based Client Authentication https://www.ietf.org/archive/id/draft-ietf-oauth-attestation-based-client-auth-07.html",
             "type": "string",
@@ -363,7 +358,7 @@
             "items": { "type": "string" }
         },
         "status_list_aggregation_endpoint": {
-            "$comment": "Token Status List https://datatracker.ietf.org/doc/draft-ietf-oauth-status-list/",
+            "$comment": "Token Status List draft, section 9; draft section 14.6 requests registration in the OAuth Authorization Server Metadata registry.",
             "type": "string",
             "format": "uri"
         }
