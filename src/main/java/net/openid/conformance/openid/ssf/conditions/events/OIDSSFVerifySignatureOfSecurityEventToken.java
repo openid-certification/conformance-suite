@@ -5,7 +5,7 @@ import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.condition.client.AbstractVerifyJwsSignature;
 import net.openid.conformance.testmodule.Environment;
 
-public class OIDSSFVerifySignatureOfVerificationEventToken extends AbstractVerifyJwsSignature {
+public class OIDSSFVerifySignatureOfSecurityEventToken extends AbstractVerifyJwsSignature {
 
 	@Override
 	@PreEnvironment(required = {"ssf", "server_jwks"})
@@ -14,7 +14,7 @@ public class OIDSSFVerifySignatureOfVerificationEventToken extends AbstractVerif
 		String tokenString = env.getString("ssf", "verification.jwt");
 
 		JsonObject serverJwks = env.getObject("server_jwks"); // to validate the signature
-		verifyJwsSignature(tokenString, serverJwks, "verification SET", false, "server");
+		verifyJwsSignature(tokenString, serverJwks, "Security Event Token", false, "server");
 
 		return env;
 	}
