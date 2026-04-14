@@ -1,6 +1,6 @@
 import { html } from "lit";
 import { expect } from "storybook/test";
-import "../../../src/main/resources/static/components/cts-icon.js";
+import "./cts-icon.js";
 
 export default {
   title: "Primitives/cts-icon",

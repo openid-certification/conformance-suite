@@ -1,7 +1,7 @@
 import { html } from "lit";
 import { expect, within, waitFor, userEvent } from "storybook/test";
-import { MOCK_PLANS } from "./fixtures/mock-plans.js";
-import "../../src/main/resources/static/components/cts-test-selector.js";
+import { MOCK_PLANS } from "@fixtures/mock-plans.js";
+import "./cts-test-selector.js";
 
 export default {
   title: "Components/cts-test-selector",

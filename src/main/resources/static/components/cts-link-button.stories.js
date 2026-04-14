@@ -1,6 +1,6 @@
 import { html } from "lit";
 import { expect } from "storybook/test";
-import "../../../src/main/resources/static/components/cts-link-button.js";
+import "./cts-link-button.js";
 
 export default {
   title: "Primitives/cts-link-button",

@@ -1,7 +1,7 @@
 import { html } from "lit";
 import { expect, within, waitFor, userEvent } from "storybook/test";
-import { MOCK_SCHEMA } from "./fixtures/mock-schema.js";
-import "../../src/main/resources/static/components/cts-config-form.js";
+import { MOCK_SCHEMA } from "@fixtures/mock-schema.js";
+import "./cts-config-form.js";
 
 export default {
   title: "Components/cts-config-form",
