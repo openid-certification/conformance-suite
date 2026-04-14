@@ -25,13 +25,15 @@ import java.text.ParseException;
  *
  * Per OID4VCI 1.0 Final Section 10, when credential request encryption is in use, the wallet
  * POSTs the credential request as a JWE with Content-Type: application/jwt. This condition
- * detects an encrypted request (by the request Content-Type), decrypts the JWE with the private
- * key from vci.credential_request_encryption_jwks, and replaces incoming_request.body /
- * body_json with the decrypted JSON so that the rest of the request validation can proceed
- * unchanged.
+ * decrypts the JWE with the private key from vci.credential_request_encryption_jwks and
+ * replaces incoming_request.body / body_json with the decrypted JSON so that the rest of the
+ * request validation can proceed unchanged.
  *
- * If the request is not encrypted (Content-Type is not application/jwt), this condition is a
- * no-op — downstream validation will then fail if encryption was actually required.
+ * The condition is only invoked when the test variant requires encryption (the credential
+ * request also carries credential_response_encryption, so per Section 8.2 the request MUST
+ * have been encrypted). It therefore fails the test if the incoming Content-Type is anything
+ * other than application/jwt or if the body is not a valid JWE — silently letting an
+ * unencrypted body through would let an issuer test pass without actually encrypting.
  *
  * @see <a href="https://openid.net/specs/openid-4-verifiable-credential-issuance-1_0.html#section-10">OID4VCI Section 10 - Encrypted Credential Requests and Responses</a>
  */
@@ -43,21 +45,25 @@ public class VCIDecryptCredentialRequest extends AbstractCondition {
 	public Environment evaluate(Environment env) {
 
 		String contentType = env.getString("incoming_request", "headers.content-type");
-		if (contentType == null) {
-			logSuccess("No Content-Type header on credential request; leaving body unchanged");
-			return env;
+		if (contentType == null || contentType.isBlank()) {
+			String errorDescription = "Credential request is missing a Content-Type header; "
+				+ "an encrypted credential request MUST use Content-Type: application/jwt per OID4VCI 1.0 Section 10";
+			VCICredentialErrorResponseUtil.updateCredentialErrorResponseInEnv(env, VciErrorCode.INVALID_CREDENTIAL_REQUEST, errorDescription);
+			throw error(errorDescription);
 		}
 
 		String normalizedContentType = contentType.toLowerCase().trim();
 		if (!normalizedContentType.startsWith("application/jwt")) {
-			logSuccess("Credential request Content-Type is not application/jwt; leaving body unchanged",
-				args("content_type", contentType));
-			return env;
+			String errorDescription = "Credential request Content-Type is not application/jwt; "
+				+ "credential_response_encryption was requested so per OID4VCI 1.0 Section 8.2 "
+				+ "the credential request MUST be encrypted as a JWE with Content-Type: application/jwt";
+			VCICredentialErrorResponseUtil.updateCredentialErrorResponseInEnv(env, VciErrorCode.INVALID_CREDENTIAL_REQUEST, errorDescription);
+			throw error(errorDescription, args("content_type", contentType));
 		}
 
 		String body = env.getString("incoming_request", "body");
 		if (body == null || body.isBlank()) {
-			String errorDescription = "Encrypted credential request (Content-Type: application/jwt) has an empty body";
+			String errorDescription = "Encrypted credential request has an empty body";
 			VCICredentialErrorResponseUtil.updateCredentialErrorResponseInEnv(env, VciErrorCode.INVALID_CREDENTIAL_REQUEST, errorDescription);
 			throw error(errorDescription);
 		}
