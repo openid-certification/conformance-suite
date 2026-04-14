@@ -42,71 +42,37 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
 <script type="text/javascript" src="js/fapi.ui.js"></script>
     <script type="importmap">{"imports":{"lit":"https://cdn.jsdelivr.net/npm/lit@3/+esm","lit/":"https://cdn.jsdelivr.net/npm/lit@3/","@lit/reactive-element":"https://cdn.jsdelivr.net/npm/@lit/reactive-element@2/+esm","@lit/reactive-element/":"https://cdn.jsdelivr.net/npm/@lit/reactive-element@2/","lit-html":"https://cdn.jsdelivr.net/npm/lit-html@3/+esm","lit-html/":"https://cdn.jsdelivr.net/npm/lit-html@3/","lit-element/":"https://cdn.jsdelivr.net/npm/lit-element@4/"}}</script>
     <script type="module" src="/components/cts-navbar.js"></script>
+    <script type="module" src="/components/cts-modal.js"></script>
 </head>
 
 <body>
 
     <cts-navbar current-page=""></cts-navbar>
 
-    <!-- error modal -->
-    <div class="modal" id="errorModal" tabindex="-1" role="dialog" aria-labelledby="errorLabel">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h4 class="modal-title" id="errorLabel">Error</h4>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    Error: <span id="errorMessage"></span>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-sm btn-light bg-gradient border border-secondary" data-bs-dismiss="modal">Close</button>
-                </div>
-            </div>
-        </div>
-    </div>
+    <cts-modal id="errorModal" heading="Error">
+        Error: <span id="errorMessage"></span>
+    </cts-modal>
 
-    <!-- loading modal -->
-    <div class="modal" id="loadingModal" tabindex="-1" role="dialog" aria-labelledby="errorLabel" data-bs-backdrop="static" data-bs-keyboard="false">
-        <div class="modal-dialog modal-sm" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h4 class="modal-title" id="loadingLabel">Loading...</h4>
-                </div>
-                <div class="modal-body">
-                    <div class="text-center">
-                        <img src="/images/spinner.gif" width="100px" height="30px" />
-                    </div>
-                    <div>
-                        <span id="loadingMessage"></span>
-                    </div>
-                </div>
-            </div>
+    <cts-modal id="loadingModal" heading="Loading..." static-backdrop no-keyboard>
+        <div class="text-center">
+            <img src="/images/spinner.gif" width="100px" height="30px" alt="Loading" />
         </div>
-    </div>
+        <div>
+            <span id="loadingMessage"></span>
+        </div>
+    </cts-modal>
 
-    <!-- Config modal popup -->
-    <div class="modal" id="configModal" tabindex="-1" role="dialog" aria-labelledby="errorLabel">
-        <div class="modal-dialog modal-lg" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h4 class="modal-title">
-                        <button class="btn-clipboard btn btn-sm" data-clipboard-target="#config" alt="Copy config to clipboard" title="Copy config to clipboard"><span class="bi bi-box-arrow-in-right"></span></button>
-                        Configuration for <code id="configTestId" class="text-muted"></code>
-                    </h4>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="wrapLongStrings row-bg-light p-1">
-                        <pre id="config"></pre>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-sm btn-light bg-gradient border border-secondary" data-bs-dismiss="modal">Close</button>
-                </div>
-            </div>
+    <cts-modal id="configModal" heading="Configuration">
+        <div>
+            <button class="btn-clipboard btn btn-sm" data-clipboard-target="#config" title="Copy config to clipboard">
+                <span class="bi bi-box-arrow-in-right"></span>
+            </button>
+            Configuration for <code id="configTestId" class="text-muted"></code>
         </div>
-    </div>
+        <div class="wrapLongStrings">
+            <pre id="config" class="row-bg-light p-1"></pre>
+        </div>
+    </cts-modal>
 
     <!-- Publish modal -->
     <div class="modal" id="publishModal" tabindex="-1" role="dialog" aria-labelledby="errorLabel">

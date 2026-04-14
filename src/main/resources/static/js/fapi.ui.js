@@ -560,7 +560,7 @@ var FAPI_UI = {
 				label = "Loading...";
 			}
 
-			var elem = document.getElementById('loadingLabel');
+			var elem = document.getElementById('loadingModal-title');
 			elem.innerHTML = _.escape(label);
 			var elem = document.getElementById('loadingMessage');
 			elem.innerHTML = _.escape(message);
