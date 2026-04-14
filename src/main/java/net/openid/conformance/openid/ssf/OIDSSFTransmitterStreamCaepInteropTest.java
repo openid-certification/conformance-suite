@@ -25,7 +25,7 @@ import net.openid.conformance.openid.ssf.conditions.events.OIDSSFExtractCaepEven
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFExtractReceivedSETs;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFExtractVerificationEventFromPushRequest;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFLogAcceptedUnsolicitedVerificationEvent;
-import net.openid.conformance.openid.ssf.conditions.events.OIDSSFParseVerificationEventToken;
+import net.openid.conformance.openid.ssf.conditions.events.OIDSSFParseSecurityEventToken;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFTriggerVerificationEvent;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFValidateCaepCommonOptionalFields;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFValidateCaepCredentialChangeEvent;
@@ -33,7 +33,7 @@ import net.openid.conformance.openid.ssf.conditions.events.OIDSSFValidateCaepDev
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFWarnNonStandardCaepCredentialChangeValues;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFValidateSecurityEventTokenAudClaim;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFValidateSecurityEventTokenTxnClaim;
-import net.openid.conformance.openid.ssf.conditions.events.OIDSSFVerifySignatureOfVerificationEventToken;
+import net.openid.conformance.openid.ssf.conditions.events.OIDSSFVerifySignatureOfSecurityEventToken;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFWaitForMinVerificationInterval;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFCheckStreamAudience;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFCheckStreamDeliveryMethod;
@@ -221,7 +221,7 @@ public class OIDSSFTransmitterStreamCaepInteropTest extends AbstractOIDSSFTransm
 		while (unsolicitedSeen < MAX_UNSOLICITED_VERIFICATION_EVENTS && !solicitedVerificationReceived) {
 			waitForNextPushRequest();
 			callAndStopOnFailure(OIDSSFExtractVerificationEventFromPushRequest.class, "OIDSSF-8.1.4.1");
-			callAndStopOnFailure(OIDSSFParseVerificationEventToken.class, Condition.ConditionResult.FAILURE, "OIDSSF-8.1.4.1");
+			callAndStopOnFailure(OIDSSFParseSecurityEventToken.class, Condition.ConditionResult.FAILURE, "OIDSSF-8.1.4.1");
 
 			if (!currentEventIsVerificationEvent()) {
 				// Pre-echo CAEP event — preserve for later validation rather than discard.
@@ -265,7 +265,7 @@ public class OIDSSFTransmitterStreamCaepInteropTest extends AbstractOIDSSFTransm
 		while (!receivedEventTypes.containsAll(expectedCaepEventTypes)) {
 			waitForNextPushRequest();
 			callAndStopOnFailure(OIDSSFExtractVerificationEventFromPushRequest.class, "OIDSSF-8.1.4.1");
-			callAndStopOnFailure(OIDSSFParseVerificationEventToken.class, Condition.ConditionResult.FAILURE, "OIDSSF-8.1.4.1");
+			callAndStopOnFailure(OIDSSFParseSecurityEventToken.class, Condition.ConditionResult.FAILURE, "OIDSSF-8.1.4.1");
 			processPushedCaepEvent(receivedEventTypes);
 		}
 
@@ -280,7 +280,7 @@ public class OIDSSFTransmitterStreamCaepInteropTest extends AbstractOIDSSFTransm
 	 * a CAEP event (e.g. it is a verification event), this method is a no-op —
 	 * callers branch on event type separately. On a CAEP event the type is
 	 * recorded in {@code receivedEventTypes} and the event-type-specific checks
-	 * are run. Assumes {@link OIDSSFParseVerificationEventToken} has already
+	 * are run. Assumes {@link OIDSSFParseSecurityEventToken} has already
 	 * populated {@code set_token} / {@code ssf.verification.token}.
 	 */
 	protected void processPushedCaepEvent(Set<String> receivedEventTypes) {
@@ -443,7 +443,7 @@ public class OIDSSFTransmitterStreamCaepInteropTest extends AbstractOIDSSFTransm
 			String setToken = OIDFJSON.getString(entry.getValue());
 			env.putString("ssf", "verification.jwt", setToken);
 
-			callAndStopOnFailure(OIDSSFParseVerificationEventToken.class, Condition.ConditionResult.FAILURE, "OIDSSF-8.1.4.1");
+			callAndStopOnFailure(OIDSSFParseSecurityEventToken.class, Condition.ConditionResult.FAILURE, "OIDSSF-8.1.4.1");
 			callAndContinueOnFailure(OIDSSFExtractCaepEventData.class, Condition.ConditionResult.FAILURE, "OIDCAEP-3");
 			String eventType = env.getString("ssf", "caep_event.type");
 			if (eventType == null) {
@@ -467,7 +467,7 @@ public class OIDSSFTransmitterStreamCaepInteropTest extends AbstractOIDSSFTransm
 	 * Includes parsing the JWT token.
 	 */
 	protected void validateSetCommon() {
-		callAndStopOnFailure(OIDSSFParseVerificationEventToken.class, Condition.ConditionResult.FAILURE, "OIDSSF-8.1.4.1");
+		callAndStopOnFailure(OIDSSFParseSecurityEventToken.class, Condition.ConditionResult.FAILURE, "OIDSSF-8.1.4.1");
 		validateSetCommonAfterParsing();
 	}
 
@@ -476,7 +476,7 @@ public class OIDSSFTransmitterStreamCaepInteropTest extends AbstractOIDSSFTransm
 	 * (i.e. {@code set_token} is already in the environment).
 	 */
 	protected void validateSetCommonAfterParsing() {
-		callAndContinueOnFailure(OIDSSFVerifySignatureOfVerificationEventToken.class, Condition.ConditionResult.WARNING);
+		callAndContinueOnFailure(OIDSSFVerifySignatureOfSecurityEventToken.class, Condition.ConditionResult.WARNING);
 		callAndContinueOnFailure(OIDSSFEnsureEventSignedWithRsa256.class, Condition.ConditionResult.FAILURE, "CAEPIOP-2.6");
 		callAndContinueOnFailure(OIDSSFEnsureSecurityEventTokenUsesTypeSecEventJwt.class, Condition.ConditionResult.FAILURE, "OIDSSF-4.1.1");
 		callAndContinueOnFailure(OIDSSFEnsureSecurityEventTokenContainsSingleEvent.class, Condition.ConditionResult.FAILURE, "CAEPIOP-2.8.1");

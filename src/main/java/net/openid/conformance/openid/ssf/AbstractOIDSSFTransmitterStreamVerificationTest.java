@@ -19,11 +19,11 @@ import net.openid.conformance.openid.ssf.conditions.events.OIDSSFEnsureSecurityE
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFEnsureSecurityEventTokenIssuerMatchesStreamConfigurationIssuer;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFEnsureSecurityEventTokenUsesTypeSecEventJwt;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFLogAcceptedUnsolicitedVerificationEvent;
-import net.openid.conformance.openid.ssf.conditions.events.OIDSSFParseVerificationEventToken;
+import net.openid.conformance.openid.ssf.conditions.events.OIDSSFParseSecurityEventToken;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFTriggerVerificationEvent;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFValidateSecurityEventTokenAudClaim;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFValidateSecurityEventTokenTxnClaim;
-import net.openid.conformance.openid.ssf.conditions.events.OIDSSFVerifySignatureOfVerificationEventToken;
+import net.openid.conformance.openid.ssf.conditions.events.OIDSSFVerifySignatureOfSecurityEventToken;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFWaitForMinVerificationInterval;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFCheckTransmitterMetadataIssuerMatchesIssuerInResponse;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFCreateStreamConditionSequence;
@@ -141,8 +141,8 @@ public abstract class AbstractOIDSSFTransmitterStreamVerificationTest extends Ab
 	 * {@link #currentVerificationEventHasState()} and {@link #verifyParsedVerificationEventCommon()}).
 	 */
 	protected void parseVerificationEventInResponse() {
-		callAndContinueOnFailure(OIDSSFVerifySignatureOfVerificationEventToken.class, Condition.ConditionResult.WARNING);
-		callAndStopOnFailure(OIDSSFParseVerificationEventToken.class, Condition.ConditionResult.FAILURE, "OIDSSF-8.1.4.1");
+		callAndContinueOnFailure(OIDSSFVerifySignatureOfSecurityEventToken.class, Condition.ConditionResult.WARNING);
+		callAndStopOnFailure(OIDSSFParseSecurityEventToken.class, Condition.ConditionResult.FAILURE, "OIDSSF-8.1.4.1");
 	}
 
 	/**
