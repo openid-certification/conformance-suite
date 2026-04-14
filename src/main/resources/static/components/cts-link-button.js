@@ -1,5 +1,15 @@
 import { LitElement, html, nothing } from "lit";
 
+const VARIANT_CLASSES = {
+  light: "btn-light",
+  info: "btn-info",
+  primary: "btn-primary",
+  danger: "btn-danger",
+  secondary: "btn-secondary",
+  success: "btn-success",
+  warning: "btn-warning",
+};
+
 class CtsLinkButton extends LitElement {
   static properties = {
     href: { type: String },
@@ -18,17 +28,16 @@ class CtsLinkButton extends LitElement {
     this.disabled = false;
   }
 
-  // Use light DOM so Bootstrap CSS applies
-  createRenderRoot() {
-    return this;
+  createRenderRoot() { return this; }
+
+  // Icon names come from the Bootstrap Icons set (2000+ icons).
+  _iconClass() {
+    return `bi bi-${this.icon}`;
   }
 
   _renderIcon() {
     if (this.icon) {
-      return html`<span
-        class="bi bi-${this.icon}"
-        aria-hidden="true"
-      ></span>`;
+      return html`<span class="${this._iconClass()}" aria-hidden="true"></span>`;
     }
     return nothing;
   }
@@ -36,8 +45,10 @@ class CtsLinkButton extends LitElement {
   render() {
     const iconContent = this._renderIcon();
     const hasIcon = iconContent !== nothing;
+    const variantClass = VARIANT_CLASSES[this.variant] || "btn-light";
+    const disabledClass = this.disabled ? " disabled" : "";
     return html`<a
-      class="btn btn-sm btn-${this.variant} bg-gradient border border-secondary${this.disabled ? " disabled" : ""}"
+      class="btn btn-sm ${variantClass} bg-gradient border border-secondary${disabledClass}"
       href=${this.disabled ? nothing : this.href}
       role="button"
       aria-disabled=${this.disabled ? "true" : nothing}
