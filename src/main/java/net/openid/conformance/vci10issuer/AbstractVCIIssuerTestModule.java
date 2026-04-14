@@ -183,7 +183,7 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractFAPI2SPFinalSe
 
 	@Override
 	protected void onConfigure(JsonObject config, String baseUrl) {
-		// Check if encryption is supported by the issuer
+		// Check if the issuer supports encryption
 		if (vciCredentialEncryption == VCICredentialEncryption.ENCRYPTED) {
 			JsonElement algValuesEl = env.getElementFromObject("vci",
 				"credential_issuer_metadata.credential_response_encryption.alg_values_supported");
@@ -208,10 +208,10 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractFAPI2SPFinalSe
 
 			if (requestEncJwksEl == null || !requestEncJwksEl.isJsonObject()
 				|| requestEncValuesEl == null || !requestEncValuesEl.isJsonArray()) {
-				fireTestSkipped("Credential request encryption is not supported by credential issuer"
-					+ " - credential_request_encryption.jwks and/or credential_request_encryption.enc_values_supported"
-					+ " missing or invalid in issuer metadata. Per OID4VCI 1.0 Section 8.2, credential request"
-					+ " encryption MUST be used when credential_response_encryption is included.");
+				fireTestSkipped("Request Encryption is not supported by credential issuer"
+					+ " - credential_request_encryption.alg_values_supported"
+					+ " and/or credential_request_encryption.enc_values_supported"
+					+ " missing or invalid in issuer metadata.");
 				return;
 			}
 		}
