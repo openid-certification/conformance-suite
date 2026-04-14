@@ -9,6 +9,7 @@
     "test-storybook": "vitest --project=storybook --run"
   },
   "devDependencies": {
+    "@storybook/addon-mcp": "^0.5.0",
     "@storybook/addon-vitest": "^10.3.5",
     "@storybook/web-components-vite": "^10.3.5",
     "@vitest/browser-playwright": "^4.1.4",
