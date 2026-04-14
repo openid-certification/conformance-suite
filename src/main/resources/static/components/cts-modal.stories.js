@@ -1,6 +1,6 @@
 import { html } from "lit";
 import { expect, userEvent, waitFor } from "storybook/test";
-import "../../../src/main/resources/static/components/cts-modal.js";
+import "./cts-modal.js";
 
 export default {
   title: "Primitives/cts-modal",

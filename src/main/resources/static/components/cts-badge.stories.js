@@ -1,6 +1,6 @@
 import { html } from "lit";
 import { expect, userEvent } from "storybook/test";
-import "../../../src/main/resources/static/components/cts-badge.js";
+import "./cts-badge.js";
 
 export default {
   title: "Primitives/cts-badge",

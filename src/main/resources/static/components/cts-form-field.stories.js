@@ -1,6 +1,6 @@
 import { html } from "lit";
 import { expect, userEvent } from "storybook/test";
-import "../../src/main/resources/static/components/cts-form-field.js";
+import "./cts-form-field.js";
 
 export default {
   title: "Components/cts-form-field",

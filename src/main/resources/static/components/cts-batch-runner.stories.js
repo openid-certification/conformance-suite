@@ -1,6 +1,6 @@
 import { html } from "lit";
 import { expect, within, userEvent } from "storybook/test";
-import "../../src/main/resources/static/components/cts-batch-runner.js";
+import "./cts-batch-runner.js";
 
 export default {
   title: "Components/cts-batch-runner",

@@ -1,6 +1,6 @@
 import { html } from "lit";
 import { expect, userEvent, waitFor } from "storybook/test";
-import "../../../src/main/resources/static/components/cts-tooltip.js";
+import "./cts-tooltip.js";
 
 export default {
   title: "Primitives/cts-tooltip",

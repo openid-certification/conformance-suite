@@ -1,8 +1,8 @@
 import { html } from "lit";
 import { expect, within, waitFor, userEvent } from "storybook/test";
-import { withMockFetch } from "./fixtures/helpers.js";
-import { MOCK_LOG_ENTRIES, MOCK_EMPTY_LOG, MOCK_SUCCESS_LOG } from "./fixtures/mock-log-entries.js";
-import "../../src/main/resources/static/components/cts-log-viewer.js";
+import { withMockFetch } from "@fixtures/helpers.js";
+import { MOCK_LOG_ENTRIES, MOCK_EMPTY_LOG, MOCK_SUCCESS_LOG } from "@fixtures/mock-log-entries.js";
+import "./cts-log-viewer.js";
 
 export default {
   title: "Components/cts-log-viewer",

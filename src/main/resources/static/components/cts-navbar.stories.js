@@ -1,6 +1,6 @@
 import { html } from "lit";
 import { expect, within, waitFor } from "storybook/test";
-import "../../src/main/resources/static/components/cts-navbar.js";
+import "./cts-navbar.js";
 
 export default {
   title: "Components/cts-navbar",
