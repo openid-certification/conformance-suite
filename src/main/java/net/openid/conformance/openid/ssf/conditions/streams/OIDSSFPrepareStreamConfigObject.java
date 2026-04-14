@@ -13,7 +13,7 @@ public class OIDSSFPrepareStreamConfigObject extends AbstractCondition {
 		streamConfig.addProperty("description", "Stream for OIDF Conformance Test-Suite");
 		env.putObject("ssf","stream.config", streamConfig);
 
-		logSuccess("Prepared stream config object", args("config", streamConfig));
+		log("Prepared stream config object", args("config", streamConfig));
 
 		return env;
 	}
