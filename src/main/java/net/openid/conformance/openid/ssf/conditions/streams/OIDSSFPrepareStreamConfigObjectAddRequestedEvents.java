@@ -25,7 +25,7 @@ public class OIDSSFPrepareStreamConfigObjectAddRequestedEvents extends AbstractO
 		Set<String> eventsRequested = getEventsRequested();
 		streamConfig.add("events_requested", OIDFJSON.convertListToJsonArray(eventsRequested.stream().toList()));
 
-		logSuccess("Added 'events_requested' to stream configuration", args("config", streamConfig, "events_requested", eventsRequested));
+		log("Added 'events_requested' to stream configuration", args("config", streamConfig, "events_requested", eventsRequested));
 
 		return env;
 	}

@@ -27,8 +27,8 @@ public class OIDSSFExtractReceivedSETs extends AbstractCondition {
 			// §2.4, a transmitter that has acknowledged a SET removes it from its queue, so
 			// the receiver should only ack what it most recently received.
 			env.putObject("ssf", "poll.sets", new JsonObject());
-			log("Found empty or missing sets in polling response; cleared ssf.poll.sets",
-				args("polling_response", ssfPollingResponse));
+			log("Found empty or missing sets in polling response",
+				args("polling_response", bodyJson));
 		}
 
 		return env;
