@@ -8,7 +8,10 @@ export default defineMain({
   stories: ["../../src/main/resources/static/components/**/*.stories.js"],
   framework: "@storybook/web-components-vite",
   addons: ["@storybook/addon-vitest", "@storybook/addon-mcp"],
-  staticDirs: [{ from: "../../src/main/resources/static", to: "/" }],
+  staticDirs: [
+    { from: "../../src/main/resources/static", to: "/" },
+    { from: "../public", to: "/" },
+  ],
 
   // Component source and stories live outside frontend/ (in src/main/resources/static/).
   // Vite can't resolve bare imports from there, so we alias them to frontend/node_modules.
@@ -40,6 +43,7 @@ export default defineMain({
     viteConfig.optimizeDeps.include = [
       ...(viteConfig.optimizeDeps.include || []),
       "storybook/test",
+      "msw/browser",
     ];
     return viteConfig;
   },
