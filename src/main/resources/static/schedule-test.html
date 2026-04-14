@@ -36,6 +36,7 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
     <script type="importmap">{"imports":{"lit":"https://cdn.jsdelivr.net/npm/lit@3/+esm","lit/":"https://cdn.jsdelivr.net/npm/lit@3/","@lit/reactive-element":"https://cdn.jsdelivr.net/npm/@lit/reactive-element@2/+esm","@lit/reactive-element/":"https://cdn.jsdelivr.net/npm/@lit/reactive-element@2/","lit-html":"https://cdn.jsdelivr.net/npm/lit-html@3/+esm","lit-html/":"https://cdn.jsdelivr.net/npm/lit-html@3/","lit-element/":"https://cdn.jsdelivr.net/npm/lit-element@4/"}}</script>
     <script type="module" src="/components/cts-navbar.js"></script>
     <script type="module" src="/components/cts-modal.js"></script>
+    <script type="module" src="/components/cts-tabs.js"></script>
 
 </head>
 <body>
@@ -130,17 +131,8 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
 
                     <h3>Configure Test</h3>
 
-                    <ul class="nav nav-tabs">
-                      <li class="nav-item">
-                        <a class="nav-link active" data-bs-toggle="tab" id="tab-form-elements" href="#formInput">Form</a>
-                      </li>
-                      <li class="nav-item">
-                        <a class="nav-link" data-bs-toggle="tab" id="tab-json-elements" href="#JSONInput">JSON</a></li>
-                      </li>
-                    </ul>
-
-                    <div class="tab-content">
-                        <div id="formInput" class="tab-pane in active">
+                    <cts-tabs>
+                        <cts-tab-panel label="Form" id="formInput">
 
                             <div class="config-form-container mt-3">
 
@@ -1950,14 +1942,13 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
                                 </div>
                             </div>
 
-                        </div>
+                        </cts-tab-panel>
 
-                        <div id="JSONInput" class="tab-pane">
+                        <cts-tab-panel label="JSON" id="JSONInput">
                             <textarea autocomplete="off" autocorrect="off" autocapitalize="off"
                                       spellcheck="false" id="config" placeholder="{JSON data}"></textarea>
-                        </div>
-                    </div>
-                    <!-- / .tab-content -->
+                        </cts-tab-panel>
+                    </cts-tabs>
                 </div>
             </div>
 
@@ -2661,11 +2652,11 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
             });
 
             // tab actions
-            document.getElementById('tab-form-elements').onclick = function(evt) {
+            document.getElementById('formInput-tab').onclick = function(evt) {
                 updateFormElementsFromJSON();
             };
 
-            document.getElementById('tab-json-elements').onclick = function(evt) {
+            document.getElementById('JSONInput-tab').onclick = function(evt) {
                 updateJSONFromFormElements();
             };
 
