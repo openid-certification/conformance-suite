@@ -110,3 +110,4 @@ devenv.local.nix
 # Frontend dev tooling
 frontend/node_modules/
 frontend/storybook-static/
+.superpowers/
