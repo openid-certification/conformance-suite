@@ -65,7 +65,10 @@ import net.openid.conformance.variant.VCICredentialEncryption;
 import net.openid.conformance.variant.VCIGrantType;
 import net.openid.conformance.vci10issuer.condition.CheckCacheControlHeaderContainsNoStore;
 import net.openid.conformance.vci10issuer.condition.VCIAddCredentialResponseEncryptionToRequest;
+import net.openid.conformance.vci10issuer.condition.VCICheckCredentialRequestEncryptionSupported;
+import net.openid.conformance.vci10issuer.condition.VCICheckCredentialResponseEncryptionSupported;
 import net.openid.conformance.vci10issuer.condition.VCIEncryptCredentialRequest;
+import net.openid.conformance.vci10issuer.condition.VCIEnsureCredentialEncryptionMetadataIsConsistent;
 import net.openid.conformance.sequence.client.ValidateSdJwtVcCredentialClaims;
 import net.openid.conformance.vci10issuer.condition.VCICheckForDeferredCredentialResponse;
 import net.openid.conformance.vci10issuer.condition.VCICreateCredentialRequest;
@@ -185,35 +188,26 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractFAPI2SPFinalSe
 	protected void onConfigure(JsonObject config, String baseUrl) {
 		// Check if the issuer supports encryption
 		if (vciCredentialEncryption == VCICredentialEncryption.ENCRYPTED) {
-			JsonElement algValuesEl = env.getElementFromObject("vci",
-				"credential_issuer_metadata.credential_response_encryption.alg_values_supported");
-			JsonElement encValuesEl = env.getElementFromObject("vci",
-				"credential_issuer_metadata.credential_response_encryption.enc_values_supported");
+			callAndStopOnFailure(VCICheckCredentialResponseEncryptionSupported.class, "OID4VCI-1FINAL-12.2.4");
+			callAndStopOnFailure(VCICheckCredentialRequestEncryptionSupported.class, "OID4VCI-1FINAL-12.2.4");
 
-			if (algValuesEl == null || encValuesEl == null || !algValuesEl.isJsonArray() || !encValuesEl.isJsonArray()) {
-				fireTestSkipped("Encryption is not supported by credential issuer"
-					+ " - credential_response_encryption.alg_values_supported"
-					+ " and/or credential_response_encryption.enc_values_supported"
-					+ " missing or invalid in issuer metadata.");
+			boolean responseDeclared = env.getElementFromObject("vci",
+				"credential_issuer_metadata.credential_response_encryption") != null;
+			boolean requestDeclared = env.getElementFromObject("vci",
+				"credential_issuer_metadata.credential_request_encryption") != null;
+
+			// If the issuer publishes neither credential_response_encryption nor credential_request_encryption,
+			// it does not support credential encryption at all — skip the encrypted variant of the test.
+			if (!responseDeclared && !requestDeclared) {
+				fireTestSkipped("Credential encryption is not supported by the credential issuer"
+					+ " - neither credential_response_encryption nor credential_request_encryption are"
+					+ " present in the credential issuer metadata.");
 				return;
 			}
 
-			// Per OID4VCI 1.0 Final Section 8.2, Credential Request encryption MUST be used when
-			// credential_response_encryption is included. That requires credential_request_encryption
-			// metadata (with a JWKS) to be published by the issuer.
-			JsonElement requestEncJwksEl = env.getElementFromObject("vci",
-				"credential_issuer_metadata.credential_request_encryption.jwks");
-			JsonElement requestEncValuesEl = env.getElementFromObject("vci",
-				"credential_issuer_metadata.credential_request_encryption.enc_values_supported");
-
-			if (requestEncJwksEl == null || !requestEncJwksEl.isJsonObject()
-				|| requestEncValuesEl == null || !requestEncValuesEl.isJsonArray()) {
-				fireTestSkipped("Request Encryption is not supported by credential issuer"
-					+ " - credential_request_encryption.alg_values_supported"
-					+ " and/or credential_request_encryption.enc_values_supported"
-					+ " missing or invalid in issuer metadata.");
-				return;
-			}
+			// Otherwise, per OID4VCI 1.0 Section 8.2, the two metadata blocks MUST appear together.
+			// Fail the test if exactly one is present.
+			callAndStopOnFailure(VCIEnsureCredentialEncryptionMetadataIsConsistent.class, "OID4VCI-1FINAL-8.2", "OID4VCI-1FINAL-12.2.4");
 		}
 
 		// Store credential_resource_url for later use (before notification/deferred endpoints may overwrite it)
