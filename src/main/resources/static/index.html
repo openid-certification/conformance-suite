@@ -37,6 +37,7 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
 
     <script type="importmap">{"imports":{"lit":"https://cdn.jsdelivr.net/npm/lit@3/+esm","lit/":"https://cdn.jsdelivr.net/npm/lit@3/","@lit/reactive-element":"https://cdn.jsdelivr.net/npm/@lit/reactive-element@2/+esm","@lit/reactive-element/":"https://cdn.jsdelivr.net/npm/@lit/reactive-element@2/","lit-html":"https://cdn.jsdelivr.net/npm/lit-html@3/+esm","lit-html/":"https://cdn.jsdelivr.net/npm/lit-html@3/","lit-element/":"https://cdn.jsdelivr.net/npm/lit-element@4/"}}</script>
     <script type="module" src="/components/cts-navbar.js"></script>
+    <script type="module" src="/components/cts-link-button.js"></script>
 
 </head>
 <body>
@@ -48,17 +49,17 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
                 <div class="col-md-4"></div>
                 <div class="col-md-4">
                     <div class="d-grid gap-0">
-                        <a href="schedule-test.html" class="btn btn-sm btn-info bg-gradient border border-secondary"><span class="bi bi-files"></span> Create a new test plan</a>
+                        <cts-link-button href="schedule-test.html" variant="info" icon="files" label="Create a new test plan"></cts-link-button>
                         <br>
-                        <a href="logs.html" class="btn btn-sm btn-info bg-gradient border border-secondary"><span class="bi bi-files"></span> View my test logs</a>
+                        <cts-link-button href="logs.html" variant="info" icon="files" label="View my test logs"></cts-link-button>
                         <br>
-                        <a href="plans.html" class="btn btn-sm btn-info bg-gradient border border-secondary"><span class="bi bi-bookmarks"></span> View my test plans</a>
+                        <cts-link-button href="plans.html" variant="info" icon="bookmarks" label="View my test plans"></cts-link-button>
                         <br>
-                        <a href="logs.html?public=true" class="btn btn-sm btn-info bg-gradient border border-secondary"><span class="bi bi-files"></span> View all published test logs</a>
+                        <cts-link-button href="logs.html?public=true" variant="info" icon="files" label="View all published test logs"></cts-link-button>
                         <br>
-                        <a href="plans.html?public=true" class="btn btn-sm btn-info bg-gradient border border-secondary"><span class="bi bi-bookmarks"></span> View all published test plans</a>
+                        <cts-link-button href="plans.html?public=true" variant="info" icon="bookmarks" label="View all published test plans"></cts-link-button>
                         <br>
-                        <a href="api-document.html" class="btn btn-sm btn-info bg-gradient border border-secondary"><span class="bi bi-bookmarks"></span> View API Documentation</a>
+                        <cts-link-button href="api-document.html" variant="info" icon="bookmarks" label="View API Documentation"></cts-link-button>
                     </div>
                 </div>
                 <div class="col-md-4"></div>
