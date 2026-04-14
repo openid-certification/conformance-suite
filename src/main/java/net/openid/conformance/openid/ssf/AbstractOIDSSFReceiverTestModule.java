@@ -36,6 +36,7 @@ import net.openid.conformance.openid.ssf.variant.SsfDeliveryMode;
 import net.openid.conformance.openid.ssf.variant.SsfProfile;
 import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.util.BaseUrlUtil;
+import net.openid.conformance.util.OAuthUriUtil;
 import net.openid.conformance.variant.ConfigurationFields;
 import net.openid.conformance.variant.VariantParameters;
 import org.apache.commons.lang3.RandomStringUtils;
@@ -85,6 +86,10 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 
 		env.putString("ssf", "issuer", issuer);
 		exposeEnvString("ssf_issuer", "ssf", "issuer");
+
+		String configurationUrl = OAuthUriUtil.generateWellKnownUrlForPath(issuer, "ssf-configuration");
+		env.putString("ssf", "configuration_url", configurationUrl);
+		exposeEnvString("ssf_configuration_url", "ssf", "configuration_url");
 
 		JsonObject transmitterMetadata = generateTransmitterMetadata(issuer);
 		env.putObject("ssf", "transmitter_metadata", transmitterMetadata);
