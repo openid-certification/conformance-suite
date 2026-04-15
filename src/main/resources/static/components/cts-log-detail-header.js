@@ -257,9 +257,7 @@ class CtsLogDetailHeader extends LitElement {
         <div class="col-md-10 labelCollection" data-testid="result-summary">
           ${RESULT_TYPES.map(
             (type) => html`
-              <cts-badge variant="${type}" label="${type.toUpperCase()}">
-              </cts-badge>
-              <span class="badge rounded-pill" data-testid="count-${type}">${counts[type]}</span>
+              <span class="badge result-${type}">${type.toUpperCase()} <span class="badge rounded-pill" data-testid="count-${type}">${counts[type]}</span></span>
             `,
           )}
         </div>
