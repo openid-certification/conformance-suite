@@ -77,6 +77,23 @@ test:
   only:
     - branches
 
+frontend_e2e_test:
+  stage: test
+  interruptible: true
+  needs: []
+  image: mcr.microsoft.com/playwright:v1.59.1-noble
+  script:
+    - cd frontend
+    - npm ci
+    - npx playwright test --config playwright.config.js
+  artifacts:
+    when: on_failure
+    paths:
+      - frontend/test-results/
+    expire_in: 7 days
+  only:
+    - branches
+
 .compare: &compare
   stage: compare
   interruptible: true

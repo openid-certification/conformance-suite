@@ -4,18 +4,21 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "test:e2e": "playwright test",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build",
     "test-storybook": "vitest --project=storybook --run"
   },
   "devDependencies": {
+    "@playwright/test": "1.59.1",
     "@storybook/addon-mcp": "^0.5.0",
     "@storybook/addon-vitest": "^10.3.5",
     "@storybook/web-components-vite": "^10.3.5",
     "@vitest/browser-playwright": "^4.1.4",
+    "http-server": "^14.1.1",
     "lit": "^3.2.1",
     "msw": "^2.13.3",
-    "playwright": "^1.59.1",
+    "playwright": "1.59.1",
     "storybook": "^10.3.5",
     "vite": "^6.3.3",
     "vitest": "^4.1.4"
