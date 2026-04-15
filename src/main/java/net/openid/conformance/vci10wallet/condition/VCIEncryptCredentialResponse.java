@@ -48,6 +48,12 @@ public class VCIEncryptCredentialResponse extends AbstractCondition {
 	@PostEnvironment(required = "credential_endpoint_response")
 	public Environment evaluate(Environment env) {
 
+		// Clear any stale encrypted response from a previous call so that a leftover value
+		// from an earlier endpoint invocation does not accidentally get returned by
+		// a subsequent call (e.g. /deferred_credential) that did NOT request encryption on the
+		// response. The key is re-set below only if we actually encrypt.
+		env.removeNativeValue("encrypted_credential_response");
+
 		JsonObject credentialResponse = env.getObject("credential_endpoint_response");
 		JsonObject requestBodyJson = env.getElementFromObject("incoming_request", "body_json").getAsJsonObject();
 
