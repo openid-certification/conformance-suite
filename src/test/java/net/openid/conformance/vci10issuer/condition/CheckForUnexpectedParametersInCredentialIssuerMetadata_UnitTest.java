@@ -51,6 +51,57 @@ public class CheckForUnexpectedParametersInCredentialIssuerMetadata_UnitTest ext
 	}
 
 	@Test
+	public void testEvaluate_noWarningWhenCredentialMetadataUsesKnownProperties() {
+		String json = """
+			{
+			  "credential_issuer": "https://credential-issuer.example.com",
+			  "credential_endpoint": "https://credential-issuer.example.com/credential",
+			  "credential_configurations_supported": {
+			    "UniversityDegreeCredential": {
+			      "format": "dc+sd-jwt",
+			      "vct": "https://example.com/UniversityDegreeCredential",
+			      "credential_metadata": {
+			        "display": [
+			          {
+			            "name": "Identity Credential",
+			            "locale": "en-US",
+			            "logo": {
+			              "uri": "https://example.com/logo.png",
+			              "alt_text": "Credential logo"
+			            },
+			            "description": "University degree credential",
+			            "background_color": "#FFFFFF",
+			            "background_image": {
+			              "uri": "https://example.com/background.png"
+			            },
+			            "text_color": "#000000"
+			          }
+			        ],
+			        "claims": [
+			          {
+			            "path": [
+			              "given_name"
+			            ],
+			            "mandatory": true,
+			            "value_type": "string",
+			            "display": [
+			              {
+			                "name": "Given Name",
+			                "locale": "en-US"
+			              }
+			            ]
+			          }
+			        ]
+			      }
+			    }
+			  }
+			}
+			""";
+		putCredentialIssuerMetadata(json);
+		assertDoesNotThrow(() -> cond.execute(env));
+	}
+
+	@Test
 	public void testEvaluate_unknownTopLevelProperty() {
 		String json = """
 			{
@@ -69,6 +120,117 @@ public class CheckForUnexpectedParametersInCredentialIssuerMetadata_UnitTest ext
 
 		Map<String, Object> data = assertValidationError(cond, env, eventLog);
 		assertUnknownPropertyAtPath(data, "$.unexpected_field");
+	}
+
+	@Test
+	public void testEvaluate_unknownPropertyInCredentialConfiguration() {
+		String json = """
+			{
+			  "credential_issuer": "https://credential-issuer.example.com",
+			  "credential_endpoint": "https://credential-issuer.example.com/credential",
+			  "credential_configurations_supported": {
+			    "UniversityDegreeCredential": {
+			      "format": "dc+sd-jwt",
+			      "vct": "https://example.com/UniversityDegreeCredential",
+			      "unexpected_configuration": true
+			    }
+			  }
+			}
+			""";
+		putCredentialIssuerMetadata(json);
+
+		Map<String, Object> data = assertValidationError(cond, env, eventLog);
+		assertUnknownPropertyAtPath(data, "$.credential_configurations_supported.UniversityDegreeCredential.unexpected_configuration");
+	}
+
+	@Test
+	public void testEvaluate_unknownPropertyInCredentialMetadataDisplay() {
+		String json = """
+			{
+			  "credential_issuer": "https://credential-issuer.example.com",
+			  "credential_endpoint": "https://credential-issuer.example.com/credential",
+			  "credential_configurations_supported": {
+			    "UniversityDegreeCredential": {
+			      "format": "dc+sd-jwt",
+			      "vct": "https://example.com/UniversityDegreeCredential",
+			      "credential_metadata": {
+			        "display": [
+			          {
+			            "name": "Identity Credential",
+			            "unexpected_display": true
+			          }
+			        ]
+			      }
+			    }
+			  }
+			}
+			""";
+		putCredentialIssuerMetadata(json);
+
+		Map<String, Object> data = assertValidationError(cond, env, eventLog);
+		assertUnknownPropertyAtPath(data, "$.credential_configurations_supported.UniversityDegreeCredential.credential_metadata.display[0].unexpected_display");
+	}
+
+	@Test
+	public void testEvaluate_unknownPropertyInCredentialMetadataLogo() {
+		String json = """
+			{
+			  "credential_issuer": "https://credential-issuer.example.com",
+			  "credential_endpoint": "https://credential-issuer.example.com/credential",
+			  "credential_configurations_supported": {
+			    "UniversityDegreeCredential": {
+			      "format": "dc+sd-jwt",
+			      "vct": "https://example.com/UniversityDegreeCredential",
+			      "credential_metadata": {
+			        "display": [
+			          {
+			            "name": "Identity Credential",
+			            "logo": {
+			              "uri": "https://example.com/logo.png",
+			              "unexpected_logo": true
+			            }
+			          }
+			        ]
+			      }
+			    }
+			  }
+			}
+			""";
+		putCredentialIssuerMetadata(json);
+
+		Map<String, Object> data = assertValidationError(cond, env, eventLog);
+		assertUnknownPropertyAtPath(data, "$.credential_configurations_supported.UniversityDegreeCredential.credential_metadata.display[0].logo.unexpected_logo");
+	}
+
+	@Test
+	public void testEvaluate_unknownPropertyInCredentialMetadataBackgroundImage() {
+		String json = """
+			{
+			  "credential_issuer": "https://credential-issuer.example.com",
+			  "credential_endpoint": "https://credential-issuer.example.com/credential",
+			  "credential_configurations_supported": {
+			    "UniversityDegreeCredential": {
+			      "format": "dc+sd-jwt",
+			      "vct": "https://example.com/UniversityDegreeCredential",
+			      "credential_metadata": {
+			        "display": [
+			          {
+			            "name": "Identity Credential",
+			            "background_image": {
+			              "uri": "https://example.com/background.png",
+			              "unexpected_background_image": true
+			            }
+			          }
+			        ]
+			      }
+			    }
+			  }
+			}
+			""";
+		putCredentialIssuerMetadata(json);
+
+		Map<String, Object> data = assertValidationError(cond, env, eventLog);
+		assertUnknownPropertyAtPath(data, "$.credential_configurations_supported.UniversityDegreeCredential.credential_metadata.display[0].background_image.unexpected_background_image");
 	}
 
 	@Test

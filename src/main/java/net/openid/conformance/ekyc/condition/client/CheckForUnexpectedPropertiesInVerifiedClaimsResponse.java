@@ -23,7 +23,7 @@ public class CheckForUnexpectedPropertiesInVerifiedClaimsResponse extends Abstra
 
 	@Override
 	protected void onValidationFailure(Environment env, JsonSchemaValidationResult validationResult, JsonSchemaValidationInput input) {
-		JsonSchemaValidationResult additionalPropsResult = validationResult.onlyAdditionalPropertiesErrors();
+		JsonSchemaValidationResult additionalPropsResult = validationResult.onlyUnknownPropertyErrors();
 		if (!additionalPropsResult.isValid()) {
 			List<JsonObject> unknownProps = new ArrayList<>();
 			for (ValidationMessage msg : additionalPropsResult.getValidationMessages()) {
