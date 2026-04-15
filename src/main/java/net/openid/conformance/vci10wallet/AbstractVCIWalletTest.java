@@ -381,7 +381,9 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 
 	protected long waitTimeoutSeconds = 5;
 
-	protected long maxWaitForAdditionalRequestSeconds = 40;
+	protected long maxWaitForAdditionalRequestSeconds = 20;
+
+	protected long maxWaitForNotificationSeconds = 20;
 
 	protected VCIGrantType vciGrantType;
 
@@ -435,6 +437,10 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 
 		if (config.has("maxWaitForAdditionalRequestSeconds")) {
 			maxWaitForAdditionalRequestSeconds = OIDFJSON.getLong(config.get("maxWaitForAdditionalRequestSeconds"));
+		}
+
+		if (config.has("maxWaitForNotificationSeconds")) {
+			maxWaitForNotificationSeconds = OIDFJSON.getLong(config.get("maxWaitForNotificationSeconds"));
 		}
 
 		setupPlainFapi();
@@ -1251,10 +1257,42 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 			return new ResponseEntity<>(errorBody, HttpStatus.BAD_REQUEST);
 		}
 
+		// Extract the validated notification event and notification_id from the request body
+		// before unmapping incoming_request so the onNotificationReceived hook can inspect them.
+		String notificationEvent = env.getString("incoming_request", "body_json.event");
+		String notificationId = env.getString("incoming_request", "body_json.notification_id");
+
 		call(exec().unmapKey("incoming_request").endBlock());
 
-		setStatus(Status.WAITING);
+		// Subclasses MAY optionally complete the test early from within the hook by calling
+		// fireTestFinished (e.g. VCIWalletTestCredentialIssuanceWithNotification fast-finishes
+		// on a 'credential_accepted' notification so the tester doesn't have to wait for the
+		// grace-period timer). fireTestFinished internally transitions RUNNING → WAITING, so
+		// the handler only forces a WAITING transition here if the hook left the test in
+		// RUNNING (i.e. the default no-op path, or a hook that elected not to complete yet).
+		onNotificationReceived(notificationEvent, notificationId);
+		if (getStatus() == Status.RUNNING) {
+			setStatus(Status.WAITING);
+		}
 		return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+	}
+
+	/**
+	 * Hook invoked when a valid notification has been received from the wallet at the
+	 * notification endpoint. Called only after {@link VCIValidateNotificationRequest} has
+	 * accepted the request, so {@code event} is guaranteed to be one of {@code credential_accepted},
+	 * {@code credential_failure} or {@code credential_deleted}, and {@code notificationId}
+	 * is guaranteed to match the one issued on the credential response.
+	 *
+	 * <p>The default implementation is a no-op — most tests don't gate completion on
+	 * notifications. {@code VCIWalletTestCredentialIssuanceWithNotification} overrides this
+	 * to complete the test as soon as a notification arrives.
+	 *
+	 * @param event the {@code event} claim from the notification request body
+	 * @param notificationId the {@code notification_id} claim from the notification request body
+	 */
+	protected void onNotificationReceived(String event, String notificationId) {
+		// Default: no-op
 	}
 
 	@SuppressWarnings("unused")
@@ -1403,7 +1441,14 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 			callAndContinueOnFailure(CreateResourceServerDpopNonce.class, ConditionResult.INFO);
 		}
 
-		resourceEndpointCallComplete();
+		// Only signal "the credential was delivered" on HTTP 200 — a 202 on the initial credential
+		// endpoint call is just the transaction_id handoff for deferred issuance, and the wallet
+		// still has to poll the deferred endpoint for the real credential.
+		if (responseStatus == HttpStatus.OK) {
+			onCredentialSent();
+		} else {
+			logPendingCredentialDelivery(responseStatus);
+		}
 		return new ResponseEntity<>(encryptedResponse, headers, responseStatus);
 	}
 
@@ -1440,11 +1485,47 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 			if (requireResourceServerEndpointDpopNonce()) {
 				callAndContinueOnFailure(CreateResourceServerDpopNonce.class, ConditionResult.INFO);
 			}
-			// at this point we can assume the test is fully done
-			resourceEndpointCallComplete();
+			// Only signal "the credential was delivered" on HTTP 200 — a 202 on the initial
+			// credential endpoint call is just the transaction_id handoff for deferred issuance,
+			// and the wallet still has to poll the deferred endpoint for the real credential.
+			if (responseStatus == HttpStatus.OK) {
+				onCredentialSent();
+			} else {
+				logPendingCredentialDelivery(responseStatus);
+			}
 			responseEntity = new ResponseEntity<>(credentialEndpointResponse, headersFromJson(headerJson), responseStatus);
 		}
 		return responseEntity;
+	}
+
+	/**
+	 * Hook invoked when the emulated issuer has successfully sent a credential to the wallet
+	 * (HTTP 200 from either the credential endpoint for immediate issuance or the deferred
+	 * credential endpoint for deferred issuance). The default implementation schedules the
+	 * test to finish after {@link #maxWaitForAdditionalRequestSeconds} to allow the wallet
+	 * to send any follow-up requests.
+	 *
+	 * <p>Test subclasses can override this hook to gate completion on additional wallet
+	 * behavior — e.g. {@code VCIWalletTestCredentialIssuanceWithNotification} waits for a
+	 * notification endpoint call before completing or skipping the test.
+	 */
+	protected void onCredentialSent() {
+		resourceEndpointCallComplete();
+	}
+
+	/**
+	 * Logged when the credential endpoint responds with anything other than HTTP 200 (e.g. a
+	 * 202 Accepted for a deferred-issuance transaction_id handoff). In this case the wallet
+	 * has not yet received the actual credential, so the test stays in WAITING and does not
+	 * schedule its finish — the subsequent {@link #deferredCredentialEndpoint} call will
+	 * complete the test when the real credential is delivered.
+	 */
+	protected void logPendingCredentialDelivery(HttpStatus responseStatus) {
+		setStatus(Status.WAITING);
+		eventLog.log(getName(),
+			"Credential endpoint responded with HTTP " + responseStatus.value() + "; the wallet "
+				+ "still needs to fetch the credential (e.g. via the deferred credential endpoint) "
+				+ "before the test can be considered complete.");
 	}
 
 	/**
