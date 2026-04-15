@@ -23,27 +23,44 @@ import net.openid.conformance.condition.client.FAPIBrazilValidateExpiresIn;
 import net.openid.conformance.condition.client.FAPIBrazilValidateIdTokenSigningAlg;
 import net.openid.conformance.condition.rs.FAPIBrazilEnsureAuthorizationRequestScopesContainAccounts;
 import net.openid.conformance.condition.rs.FAPIBrazilRsPathConstants;
+import net.openid.conformance.sequence.AbstractConditionSequence;
+import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.TestFailureException;
 
 public class OpenBankingBrazilCibaRPProfileBehavior extends FAPICIBARPProfileBehavior {
 
 	@Override
-	public void applyProfileSpecificUserInfoChecks() {
-		module.callCondition(FAPIBrazilAddCPFAndCPNJToUserInfoClaims.class, "BrazilOB-5.2.2.2", "BrazilOB-5.2.2.3");
+	public ConditionSequence applyProfileSpecificUserInfoChecks() {
+		return new AbstractConditionSequence() {
+			@Override
+			public void evaluate() {
+				callAndStopOnFailure(FAPIBrazilAddCPFAndCPNJToUserInfoClaims.class, "BrazilOB-5.2.2.2", "BrazilOB-5.2.2.3");
+			}
+		};
 	}
 
 	@Override
-	public void applyProfileSpecificServerConfigurationSetup() {
-		module.callCondition(CheckCIBAModeIsPing.class, Condition.ConditionResult.FAILURE, "BrazilCIBA-5.2.2");
-		module.callCondition(SetServerSigningAlgToPS256.class, "BrazilOB-6.1-1");
-		module.callCondition(AddClaimsParameterSupportedTrueToServerConfiguration.class, "BrazilOB-5.2.2-3");
-		module.callCondition(FAPIBrazilAddBrazilSpecificSettingsToServerConfiguration.class, "BrazilOB-5.2.2");
+	public ConditionSequence applyProfileSpecificServerConfigurationSetup() {
+		return new AbstractConditionSequence() {
+			@Override
+			public void evaluate() {
+				callAndStopOnFailure(CheckCIBAModeIsPing.class, Condition.ConditionResult.FAILURE, "BrazilCIBA-5.2.2");
+				callAndStopOnFailure(SetServerSigningAlgToPS256.class, "BrazilOB-6.1-1");
+				callAndStopOnFailure(AddClaimsParameterSupportedTrueToServerConfiguration.class, "BrazilOB-5.2.2-3");
+				callAndStopOnFailure(FAPIBrazilAddBrazilSpecificSettingsToServerConfiguration.class, "BrazilOB-5.2.2");
+			}
+		};
 	}
 
 	@Override
-	public void applyProfileSpecificServerAuthAlgSetup() {
-		module.callCondition(FAPIBrazilAddTokenEndpointAuthSigningAlgValuesSupportedToServer.class);
-		module.callCondition(BrazilAddBackchannelAuthenticationRequestSigningAlgValuesSupportedToServer.class);
+	public ConditionSequence applyProfileSpecificServerAuthAlgSetup() {
+		return new AbstractConditionSequence() {
+			@Override
+			public void evaluate() {
+				callAndStopOnFailure(FAPIBrazilAddTokenEndpointAuthSigningAlgValuesSupportedToServer.class);
+				callAndStopOnFailure(BrazilAddBackchannelAuthenticationRequestSigningAlgValuesSupportedToServer.class);
+			}
+		};
 	}
 
 	@Override
@@ -53,68 +70,100 @@ public class OpenBankingBrazilCibaRPProfileBehavior extends FAPICIBARPProfileBeh
 	}
 
 	@Override
-	public void applyProfileSpecificAccountsEndpointChecks() {
-		module.callCondition(FAPIBrazilEnsureAuthorizationRequestScopesContainAccounts.class);
-		Boolean wasInitialConsentRequestToPaymentsEndpoint = getEnv().getBoolean("payments_consent_endpoint_called");
-		if (wasInitialConsentRequestToPaymentsEndpoint != null && wasInitialConsentRequestToPaymentsEndpoint) {
-			throw new TestFailureException(module.getId(), FAPIBrazilRsPathConstants.BRAZIL_PAYMENTS_CONSENTS_PATH + " was called. The test must end at the payment initiation endpoint");
-		}
+	public ConditionSequence applyProfileSpecificAccountsEndpointChecks() {
+		return new AbstractConditionSequence() {
+			@Override
+			public void evaluate() {
+				callAndStopOnFailure(FAPIBrazilEnsureAuthorizationRequestScopesContainAccounts.class);
+				Boolean wasInitialConsentRequestToPaymentsEndpoint = getEnv().getBoolean("payments_consent_endpoint_called");
+				if (wasInitialConsentRequestToPaymentsEndpoint != null && wasInitialConsentRequestToPaymentsEndpoint) {
+					throw new TestFailureException(module.getId(), FAPIBrazilRsPathConstants.BRAZIL_PAYMENTS_CONSENTS_PATH + " was called. The test must end at the payment initiation endpoint");
+				}
+			}
+		};
 	}
 
 	@Override
-	public boolean handleProfileSpecificClientCredentialsGrant() {
-		module.callCondition(FAPIBrazilExtractRequestedScopeFromClientCredentialsGrant.class);
-		return true; // We handled it, the module should return clientCredentialsGrantType()
+	public ConditionSequence getClientCredentialsGrantTypeSteps() {
+		return new AbstractConditionSequence() {
+			@Override
+			public void evaluate() {
+				callAndStopOnFailure(FAPIBrazilExtractRequestedScopeFromClientCredentialsGrant.class);
+			}
+		};
 	}
 
 	@Override
-	public void applyProfileSpecificBackchannelRequestChecks() {
-		module.callCondition(BackchannelRequestRequestedExpiryIsIgnoredForBrazil.class, "BrazilCIBA-6.2.6");
-
-		if (getEnv().getElementFromObject("backchannel_request_object", "claims.login_hint") != null) {
-			module.callCondition(EnsureLoginHintEqualsConsentId.class, Condition.ConditionResult.FAILURE);
-		} else {
-			throw new TestFailureException(module.getId(), "Open Banking/Insurance Brazil requires login_hint.");
-		}
-
-		module.callCondition(FAPIBrazilChangeConsentStatusToAuthorized.class);
+	public ConditionSequence applyProfileSpecificBackchannelRequestChecks() {
+		return new AbstractConditionSequence() {
+			@Override
+			public void evaluate() {
+				callAndStopOnFailure(BackchannelRequestRequestedExpiryIsIgnoredForBrazil.class, "BrazilCIBA-6.2.6");
+				callAndStopOnFailure(EnsureLoginHintEqualsConsentId.class);
+				callAndStopOnFailure(FAPIBrazilChangeConsentStatusToAuthorized.class);
+			}
+		};
 	}
 
 	@Override
-	public void applyProfileSpecificBackchannelScopeChecks() {
-		module.callCondition(FAPIBrazilValidateConsentScope.class);
-		Boolean wasInitialConsentRequestToPaymentsEndpoint = getEnv().getBoolean("payments_consent_endpoint_called");
-		if (wasInitialConsentRequestToPaymentsEndpoint != null && wasInitialConsentRequestToPaymentsEndpoint) {
-			module.callCondition(EnsureScopeContainsPayments.class);
-		} else {
-			module.callCondition(EnsureScopeContainsConsents.class);
-			module.callCondition(EnsureScopeContainsResources.class);
-		}
+	public ConditionSequence applyProfileSpecificBackchannelScopeChecks() {
+		return new AbstractConditionSequence() {
+			@Override
+			public void evaluate() {
+				callAndStopOnFailure(FAPIBrazilValidateConsentScope.class);
+				Boolean wasInitialConsentRequestToPaymentsEndpoint = getEnv().getBoolean("payments_consent_endpoint_called");
+				if (wasInitialConsentRequestToPaymentsEndpoint != null && wasInitialConsentRequestToPaymentsEndpoint) {
+					callAndStopOnFailure(EnsureScopeContainsPayments.class);
+				} else {
+					callAndStopOnFailure(EnsureScopeContainsConsents.class);
+					callAndStopOnFailure(EnsureScopeContainsResources.class);
+				}
+			}
+		};
 	}
 
 	@Override
-	public boolean requiresMtlsOrBrazilAuth() {
-		return true; // Brazil requires it
+	public boolean requiresMtlsForBackchannelEndpoint() {
+		return true;
 	}
 
 	@Override
-	public void applyProfileSpecificTokenEndpointChecks() {
-		module.callCondition(ExtractIdTokenFromTokenResponse.class);
-		module.callCondition(FAPIBrazilValidateIdTokenSigningAlg.class, "BrazilOB-6.1-1");
-		module.callCondition(ExtractExpiresInFromTokenEndpointResponse.class);
-		module.callCondition(FAPIBrazilValidateExpiresIn.class, "BrazilOB-5.2.2-13");
+	public ConditionSequence applyProfileSpecificTokenEndpointChecks() {
+		return new AbstractConditionSequence() {
+			@Override
+			public void evaluate() {
+				callAndStopOnFailure(ExtractIdTokenFromTokenResponse.class);
+				callAndStopOnFailure(FAPIBrazilValidateIdTokenSigningAlg.class, "BrazilOB-6.1-1");
+				callAndStopOnFailure(ExtractExpiresInFromTokenEndpointResponse.class);
+				callAndStopOnFailure(FAPIBrazilValidateExpiresIn.class, "BrazilOB-5.2.2-13");
+			}
+		};
 	}
 
 	@Override
-	public void applyProfileSpecificIdTokenClaims() {
-		module.callCondition(GenerateIdTokenClaimsWith181DayExp.class);
-		module.callCondition(FAPIBrazilAddCPFAndCPNJToIdTokenClaims.class, "BrazilOB-5.2.2.2", "BrazilOB-5.2.2.3");
+	public ConditionSequence applyProfileSpecificIdTokenClaims() {
+		return new AbstractConditionSequence() {
+			@Override
+			public void evaluate() {
+				callAndStopOnFailure(GenerateIdTokenClaimsWith181DayExp.class);
+				callAndStopOnFailure(FAPIBrazilAddCPFAndCPNJToIdTokenClaims.class, "BrazilOB-5.2.2.2", "BrazilOB-5.2.2.3");
+			}
+		};
 	}
 
 	@Override
-	public void applyProfileSpecificAcrClaim() {
-		module.callConditionSkipIfMissing(null, new String[]{"requested_id_token_acr_values"}, Condition.ConditionResult.INFO,
-			FAPIBrazilOBAddACRClaimToIdTokenClaims.class, Condition.ConditionResult.FAILURE, "OIDCC-3.1.3.7-12");
+	public ConditionSequence applyProfileSpecificAcrClaim() {
+		return new AbstractConditionSequence() {
+			@Override
+			public void evaluate() {
+				call(condition(FAPIBrazilOBAddACRClaimToIdTokenClaims.class)
+					.skipIfStringsMissing("requested_id_token_acr_values")
+					.onSkip(Condition.ConditionResult.INFO)
+					.onFail(Condition.ConditionResult.FAILURE)
+					.requirements("OIDCC-3.1.3.7-12")
+					.dontStopOnFailure());
+			}
+		};
 	}
 
 	@Override

@@ -7,6 +7,8 @@ import net.openid.conformance.condition.as.FAPIAddTokenEndpointAuthSigningAlgVal
 import net.openid.conformance.condition.as.GenerateIdTokenClaims;
 import net.openid.conformance.condition.as.SignIdToken;
 import net.openid.conformance.condition.client.AddCibaTokenDeliveryModePollToTokenDeliveryModesSupported;
+import net.openid.conformance.sequence.AbstractConditionSequence;
+import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.Environment;
 
 public class FAPICIBARPProfileBehavior {
@@ -21,60 +23,118 @@ public class FAPICIBARPProfileBehavior {
 		return module.getEnv();
 	}
 
-	public void applyProfileSpecificServerConfigurationSetup() {
-		module.callCondition(AddCibaTokenDeliveryModePollToTokenDeliveryModesSupported.class);
-		module.callCondition(ExtractServerSigningAlg.class);
+	public ConditionSequence applyProfileSpecificServerConfigurationSetup() {
+		return new AbstractConditionSequence() {
+			@Override
+			public void evaluate() {
+				callAndStopOnFailure(AddCibaTokenDeliveryModePollToTokenDeliveryModesSupported.class);
+				callAndStopOnFailure(ExtractServerSigningAlg.class);
+			}
+		};
 	}
 
-	public void applyProfileSpecificServerAuthAlgSetup() {
-		module.callCondition(FAPIAddTokenEndpointAuthSigningAlgValuesSupportedToServer.class);
-		module.callCondition(AddBackchannelAuthenticationRequestSigningAlgValuesSupportedToServer.class);
+	public ConditionSequence applyProfileSpecificServerAuthAlgSetup() {
+		return new AbstractConditionSequence() {
+			@Override
+			public void evaluate() {
+				callAndStopOnFailure(FAPIAddTokenEndpointAuthSigningAlgValuesSupportedToServer.class);
+				callAndStopOnFailure(AddBackchannelAuthenticationRequestSigningAlgValuesSupportedToServer.class);
+			}
+		};
 	}
 
 	public void exposeProfileSpecificEndpoints() {
 		module.exposeMtlsPath("accounts_endpoint", AbstractFAPICIBAClientTest.ACCOUNTS_PATH);
 	}
 
-	public void applyProfileSpecificAccountsEndpointChecks() {
-		// No-op by default
+	public ConditionSequence applyProfileSpecificAccountsEndpointChecks() {
+		return null;
 	}
 
-	public void applyProfileSpecificBackchannelScopeChecks() {
-		module.callCondition(EnsureRequestedScopeIsEqualToConfiguredScopeDisregardingOrder.class);
+	public ConditionSequence applyProfileSpecificBackchannelScopeChecks() {
+		return new AbstractConditionSequence() {
+			@Override
+			public void evaluate() {
+				callAndStopOnFailure(EnsureRequestedScopeIsEqualToConfiguredScopeDisregardingOrder.class);
+			}
+		};
 	}
 
-	public boolean handleProfileSpecificClientCredentialsGrant() {
-		return false; // Returns true if it handles the grant
+	public ConditionSequence getClientCredentialsGrantTypeSteps() {
+		return null;
 	}
 
-	public boolean requiresMtlsOrBrazilAuth() {
-		return false; // Actually clientAuthType is MTLS or Brazil. Can be handled differently.
+	public boolean requiresMtlsForBackchannelEndpoint() {
+		return false;
 	}
 
-	public void applyProfileSpecificBackchannelRequestChecks() {
-		module.callConditionSkipIfMissing(null, new String[]{"backchannel_request_object"}, Condition.ConditionResult.SUCCESS,
-			BackchannelRequestRequestedExpiryIsAnInteger.class, Condition.ConditionResult.FAILURE, "CIBA-7.1", "CIBA-7.1.1");
+	public boolean userInfoEndpointRequiresMTLS() {
+		return false;
 	}
 
-	public void applyProfileSpecificBackchannelEndpointResponse() {
-		// No-op by default
+	public ConditionSequence prepareNonResourceEndpointFapiInteractionId() {
+		return null;
 	}
 
-	public void applyProfileSpecificIdTokenClaims() {
-		module.callCondition(GenerateIdTokenClaims.class);
+	public ConditionSequence addFapiInteractionIdToTokenEndpointResponse() {
+		return null;
 	}
 
-	public void applyProfileSpecificAcrClaim() {
-		module.callConditionSkipIfMissing(null, new String[]{"requested_id_token_acr_values"}, Condition.ConditionResult.INFO,
-			AddACRClaimToIdTokenClaims.class, Condition.ConditionResult.FAILURE, "OIDCC-3.1.3.7-12");
+	public ConditionSequence addFapiInteractionIdToBackchannelEndpointResponse() {
+		return null;
 	}
 
-	public void applyProfileSpecificTokenEndpointChecks() {
-		// No-op by default
+	public ConditionSequence addFapiInteractionIdToUserInfoEndpointResponse() {
+		return null;
 	}
 
-	public void applyProfileSpecificUserInfoChecks() {
-		// No-op by default
+	public ConditionSequence applyProfileSpecificBackchannelRequestChecks() {
+		return new AbstractConditionSequence() {
+			@Override
+			public void evaluate() {
+				call(condition(BackchannelRequestRequestedExpiryIsAnInteger.class)
+					.skipIfObjectsMissing("backchannel_request_object")
+					.onSkip(Condition.ConditionResult.SUCCESS)
+					.onFail(Condition.ConditionResult.FAILURE)
+					.requirements("CIBA-7.1", "CIBA-7.1.1")
+					.dontStopOnFailure());
+			}
+		};
+	}
+
+	public ConditionSequence applyProfileSpecificBackchannelEndpointResponse() {
+		return null;
+	}
+
+	public ConditionSequence applyProfileSpecificIdTokenClaims() {
+		return new AbstractConditionSequence() {
+			@Override
+			public void evaluate() {
+				callAndStopOnFailure(GenerateIdTokenClaims.class);
+			}
+		};
+	}
+
+	public ConditionSequence applyProfileSpecificAcrClaim() {
+		return new AbstractConditionSequence() {
+			@Override
+			public void evaluate() {
+				call(condition(AddACRClaimToIdTokenClaims.class)
+					.skipIfStringsMissing("requested_id_token_acr_values")
+					.onSkip(Condition.ConditionResult.INFO)
+					.onFail(Condition.ConditionResult.FAILURE)
+					.requirements("OIDCC-3.1.3.7-12")
+					.dontStopOnFailure());
+			}
+		};
+	}
+
+	public ConditionSequence applyProfileSpecificTokenEndpointChecks() {
+		return null;
+	}
+
+	public ConditionSequence applyProfileSpecificUserInfoChecks() {
+		return null;
 	}
 
 	public Class<? extends Condition> getSignIdTokenCondition() {

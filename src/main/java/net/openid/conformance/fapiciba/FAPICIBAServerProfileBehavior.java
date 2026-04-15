@@ -5,6 +5,7 @@ import net.openid.conformance.condition.client.AddFAPIInteractionIdToResourceEnd
 import net.openid.conformance.condition.client.CheckForFAPIInteractionIdInResourceResponse;
 import net.openid.conformance.condition.client.CreateRandomFAPIInteractionId;
 import net.openid.conformance.condition.client.EnsureMatchingFAPIInteractionId;
+import net.openid.conformance.condition.Condition;
 import net.openid.conformance.sequence.AbstractConditionSequence;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.Environment;
@@ -105,8 +106,8 @@ public class FAPICIBAServerProfileBehavior {
 			return new AbstractConditionSequence() {
 				@Override
 				public void evaluate() {
-					callAndContinueOnFailure(CheckForFAPIInteractionIdInResourceResponse.class, "FAPI-R-6.2.1-11");
-					callAndContinueOnFailure(EnsureMatchingFAPIInteractionId.class, "FAPI-R-6.2.1-11");
+					callAndContinueOnFailure(CheckForFAPIInteractionIdInResourceResponse.class, Condition.ConditionResult.FAILURE, "FAPI-R-6.2.1-11");
+					callAndContinueOnFailure(EnsureMatchingFAPIInteractionId.class, Condition.ConditionResult.FAILURE, "FAPI-R-6.2.1-11");
 				}
 			};
 		}
