@@ -97,6 +97,7 @@ export function wrapDataTablesResponse(data, requestUrl) {
  *
  * The handler aborts the request so unmocked calls fail immediately
  * instead of hanging for 30 seconds.
+ *
  */
 export async function setupFailFast(page) {
   await page.route("**/api/**", (route) => {
