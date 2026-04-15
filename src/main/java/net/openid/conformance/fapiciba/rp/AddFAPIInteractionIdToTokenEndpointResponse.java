@@ -16,11 +16,11 @@ public class AddFAPIInteractionIdToTokenEndpointResponse extends AbstractConditi
 		JsonObject headers = env.getObject("token_endpoint_response_headers");
 		if (headers == null) {
 			headers = new JsonObject();
+			env.putObject("token_endpoint_response_headers", headers);
 		}
 
 		if (!Strings.isNullOrEmpty(fapiInteractionId)) {
 			headers.addProperty("x-fapi-interaction-id", fapiInteractionId);
-			env.putObject("token_endpoint_response_headers", headers);
 			logSuccess("Added FAPI Interaction ID to token endpoint response headers", headers);
 		} else {
 			log("FAPI Interaction ID not found, not added to headers");

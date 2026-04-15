@@ -1007,18 +1007,6 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 		callAndStopOnFailure(CallAutomatedCibaApprovalEndpoint.class);
 	}
 
-	public void callCondition(Class<? extends Condition> conditionClass, String... requirements) {
-		super.callAndStopOnFailure(conditionClass, requirements);
-	}
-
-	public void callConditionSkipIfMissing(String[] keys, String[] objects, Condition.ConditionResult onSkip, Class<? extends Condition> conditionClass, Condition.ConditionResult onFail, String... requirements) {
-		super.skipIfMissing(keys, objects, onSkip, conditionClass, onFail, requirements);
-	}
-
-	public void callSequence(ConditionSequence sequence) {
-		super.call(sequence);
-	}
-
 	protected void requestProtectedResource() {
 
 		// verify the access token against a protected resource

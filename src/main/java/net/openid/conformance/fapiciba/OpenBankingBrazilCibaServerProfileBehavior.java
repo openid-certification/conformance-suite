@@ -67,7 +67,7 @@ public class OpenBankingBrazilCibaServerProfileBehavior extends FAPICIBAServerPr
 			@Override
 			public void evaluate() {
 				call(condition(FAPIBrazilValidateExpiresIn.class)
-					.skipIfElementMissing("token_endpoint_response", "expires_in")
+					.skipIfObjectsMissing("expires_in")
 					.onSkip(Condition.ConditionResult.INFO)
 					.onFail(Condition.ConditionResult.FAILURE)
 					.requirements("BrazilOB-5.2.2-13")

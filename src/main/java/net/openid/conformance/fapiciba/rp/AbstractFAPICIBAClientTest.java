@@ -7,7 +7,6 @@ import jakarta.servlet.http.HttpSession;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.condition.as.AddAtHashToIdTokenClaims;
-import net.openid.conformance.condition.as.AddFAPIInteractionIdToUserInfoEndpointResponse;
 import net.openid.conformance.condition.as.AddIdTokenSigningAlgsToServerConfiguration;
 import net.openid.conformance.condition.as.AddJwksUriToServerConfiguration;
 import net.openid.conformance.condition.as.AddTLSClientAuthToServerConfiguration;
@@ -198,18 +197,6 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 
 	protected FAPICIBARPProfileBehavior profileBehavior;
 
-	public void callCondition(Class<? extends Condition> conditionClass, String... requirements) {
-		super.callAndStopOnFailure(conditionClass, requirements);
-	}
-
-	public void callCondition(Class<? extends Condition> conditionClass, Condition.ConditionResult onFail, String... requirements) {
-		super.callAndStopOnFailure(conditionClass, onFail, requirements);
-	}
-
-	public void callConditionSkipIfMissing(String[] keys, String[] objects, Condition.ConditionResult onSkip, Class<? extends Condition> conditionClass, Condition.ConditionResult onFail, String... requirements) {
-		super.skipIfMissing(keys, objects, onSkip, conditionClass, onFail, requirements);
-	}
-
 	public Environment getEnv() {
 		return env;
 	}
@@ -232,7 +219,7 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 	}
 
 	protected HttpStatus createBackchannelResponse() {
-		profileBehavior.applyProfileSpecificBackchannelEndpointResponse();
+		call(profileBehavior.applyProfileSpecificBackchannelEndpointResponse());
 		callAndStopOnFailure(CreateBackchannelEndpointResponse.class);
 		return HttpStatus.OK;
 	}
@@ -272,14 +259,14 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 		callAndStopOnFailure(ValidateServerJWKs.class, "RFC7517-1.1");
 
 		callAndStopOnFailure(AddCibaTokenDeliveryModePingToTokenDeliveryModesSupported.class);
-		profileBehavior.applyProfileSpecificServerConfigurationSetup();
+		call(profileBehavior.applyProfileSpecificServerConfigurationSetup());
 
 		callAndStopOnFailure(AddIdTokenSigningAlgsToServerConfiguration.class);
 		callAndStopOnFailure(AddTlsCertificateBoundAccessTokensTrueSupportedToServerConfiguration.class, "FAPI2-4.3.1-9");
 
 		callAndStopOnFailure(addTokenEndpointAuthMethodSupported);
 
-		profileBehavior.applyProfileSpecificServerAuthAlgSetup();
+		call(profileBehavior.applyProfileSpecificServerAuthAlgSetup());
 
 		exposeEnvString("discoveryUrl");
 		exposeEnvString("issuer");
@@ -349,8 +336,8 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 				if (startingShutdown) {
 					throw new TestFailureException(getId(), "Client has incorrectly called '%s' after receiving a response that must cause it to stop interacting with the server".formatted(path));
 				}
-				if (FAPICIBAProfile.CONNECTID_AU.equals(profile)) {
-					throw new TestFailureException(getId(), "Userinfo endpoint must be called over an mTLS secured connection using the token_endpoint found in mtls_endpoint_aliases.");
+				if (profileBehavior.userInfoEndpointRequiresMTLS()) {
+					throw new TestFailureException(getId(), "Userinfo endpoint must be called over an mTLS secured connection using the userinfo_endpoint found in mtls_endpoint_aliases.");
 				}
 				return userinfoEndpoint(requestId);
 			default:
@@ -408,16 +395,6 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 		String baseUrlMtls = env.getString("base_mtls_url");
 		env.putString(name, baseUrlMtls + "/" + path);
 		exposeEnvString(name);
-	}
-
-	@Override
-	public void exposeEnvString(String key, String sourceKey, String sourcePath) {
-		super.exposeEnvString(key, sourceKey, sourcePath);
-	}
-
-	@Override
-	public void exposeEnvString(String key) {
-		super.exposeEnvString(key);
 	}
 
 	protected void checkMtlsCertificate() {
@@ -506,7 +483,9 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 
 		switch (grantType) {
 			case "client_credentials":
-				if (profileBehavior.handleProfileSpecificClientCredentialsGrant()) {
+				ConditionSequence profileSpecificClientCredentialsGrantSteps = profileBehavior.getClientCredentialsGrantTypeSteps();
+				if (profileSpecificClientCredentialsGrantSteps != null) {
+					call(profileSpecificClientCredentialsGrantSteps);
 					return clientCredentialsGrantType();
 				}
 				break;
@@ -525,13 +504,10 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 		issueRefreshToken(); // rotate refresh token
 		env.removeNativeValue("id_token");
 
-		skipIfElementMissing("incoming_request", "headers.x-fapi-interaction-id", ConditionResult.INFO,
-			ExtractFapiInteractionIdHeader.class, ConditionResult.FAILURE, "FAPI1-BASE-6.2.2-5");
-
-		callAndStopOnFailure(CreateFapiInteractionIdIfNeeded.class, "FAPI1-BASE-6.2.1-11");
+		call(profileBehavior.prepareNonResourceEndpointFapiInteractionId());
 		callAndStopOnFailure(CreateTokenEndpointResponse.class);
 
-		callAndStopOnFailure(AddFAPIInteractionIdToTokenEndpointResponse.class);
+		call(profileBehavior.addFapiInteractionIdToTokenEndpointResponse());
 
 		JsonObject headerJson = env.getObject("token_endpoint_response_headers");
 
@@ -545,15 +521,12 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 	protected Object clientCredentialsGrantType() {
 		callAndStopOnFailure(GenerateBearerAccessToken.class);
 
-		skipIfElementMissing("incoming_request", "headers.x-fapi-interaction-id", ConditionResult.INFO,
-			ExtractFapiInteractionIdHeader.class, ConditionResult.FAILURE, "FAPI1-BASE-6.2.2-5");
-
-		callAndStopOnFailure(CreateFapiInteractionIdIfNeeded.class, "FAPI1-BASE-6.2.1-11");
+		call(profileBehavior.prepareNonResourceEndpointFapiInteractionId());
 		callAndStopOnFailure(CreateTokenEndpointResponse.class);
 
 		// this puts the client credentials specific token into its own box for later
 		callAndStopOnFailure(CopyAccessTokenToClientCredentialsField.class);
-		callAndStopOnFailure(AddFAPIInteractionIdToTokenEndpointResponse.class);
+		call(profileBehavior.addFapiInteractionIdToTokenEndpointResponse());
 
 		JsonObject headerJson = env.getObject("token_endpoint_response_headers");
 
@@ -574,14 +547,11 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 		} else {
 			callAndStopOnFailure(VerifyThatPollingIntervalIsRespected.class, ConditionResult.FAILURE, "CIBA-7.3");
 
-			skipIfElementMissing("incoming_request", "headers.x-fapi-interaction-id", ConditionResult.INFO,
-				ExtractFapiInteractionIdHeader.class, ConditionResult.FAILURE, "FAPI1-BASE-6.2.2-5");
-
-			callAndStopOnFailure(CreateFapiInteractionIdIfNeeded.class, "FAPI1-BASE-6.2.1-11");
+			call(profileBehavior.prepareNonResourceEndpointFapiInteractionId());
 			statusCode = createTokenEndpointResponseForCiba();
 		}
 
-		callAndStopOnFailure(AddFAPIInteractionIdToTokenEndpointResponse.class);
+		call(profileBehavior.addFapiInteractionIdToTokenEndpointResponse());
 		tokenEndpointCallComplete();
 
 		JsonObject headerJson = env.getObject("token_endpoint_response_headers");
@@ -601,7 +571,7 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 
 			createFinalTokenResponse();
 
-			profileBehavior.applyProfileSpecificTokenEndpointChecks();
+			call(profileBehavior.applyProfileSpecificTokenEndpointChecks());
 
 			callAndContinueOnFailure(RedeemAuthReqId.class, ConditionResult.INFO);
 			return HttpStatus.OK;
@@ -648,14 +618,14 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 
 		env.mapKey("authorization_request_object", "backchannel_request_object");
 
-		profileBehavior.applyProfileSpecificIdTokenClaims();
+		call(profileBehavior.applyProfileSpecificIdTokenClaims());
 
 		skipIfMissing(null, new String[] {"at_hash"}, ConditionResult.INFO,
 			AddAtHashToIdTokenClaims.class, ConditionResult.FAILURE, "OIDCC-3.3.2.11");
 
 		addCustomValuesToIdToken();
 
-		profileBehavior.applyProfileSpecificAcrClaim();
+		call(profileBehavior.applyProfileSpecificAcrClaim());
 
 		env.unmapKey("authorization_request_object");
 
@@ -696,10 +666,10 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 		callAndStopOnFailure(RequireBearerAccessToken.class);
 
 		callAndStopOnFailure(FilterUserInfoForScopes.class);
-		profileBehavior.applyProfileSpecificUserInfoChecks();
+		call(profileBehavior.applyProfileSpecificUserInfoChecks());
 
-		callAndStopOnFailure(CreateFapiInteractionIdIfNeeded.class, "FAPI1-BASE-6.2.1-11");
-		callAndStopOnFailure(AddFAPIInteractionIdToUserInfoEndpointResponse.class, "FAPI1-BASE-6.2.1-11");
+		call(profileBehavior.prepareNonResourceEndpointFapiInteractionId());
+		call(profileBehavior.addFapiInteractionIdToUserInfoEndpointResponse());
 
 		JsonObject user = env.getObject("user_info_endpoint_response");
 		JsonObject headerJson = env.getObject("user_info_endpoint_response_headers");
@@ -720,7 +690,7 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 
 		call(sequence(VerifyPostedFormData.class));
 
-		if(clientAuthType == ClientAuthType.MTLS || profileBehavior.requiresMtlsOrBrazilAuth()) {
+		if(clientAuthType == ClientAuthType.MTLS || profileBehavior.requiresMtlsForBackchannelEndpoint()) {
 			env.mapKey("token_endpoint_request", requestId);
 			checkMtlsCertificate();
 			env.unmapKey("token_endpoint_request");
@@ -735,7 +705,7 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 
 		env.mapKey("authorization_request_object", "backchannel_request_object");
 		validateRequestObjectForBackchannelEndpointRequest();
-		profileBehavior.applyProfileSpecificBackchannelRequestChecks();
+		call(profileBehavior.applyProfileSpecificBackchannelRequestChecks());
 		env.unmapKey("authorization_request_object");
 
 		callAndContinueOnFailure(EnsureBackchannelRequestParametersDoNotAppearOutsideJwt.class, ConditionResult.FAILURE, "CIBA-7.1.1");
@@ -744,13 +714,10 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 		skipIfElementMissing("backchannel_request_object", "claims.id_token_hint", ConditionResult.SUCCESS, IdTokenIsSignedWithServerKey.class, ConditionResult.FAILURE, "CIBA-7.1");
 
 		call(exec().mapKey("incoming_request", requestId));
-		skipIfElementMissing("incoming_request", "headers.x-fapi-interaction-id", ConditionResult.INFO,
-			ExtractFapiInteractionIdHeader.class, ConditionResult.FAILURE, "FAPI1-BASE-6.2.2-5");
-
-		callAndStopOnFailure(CreateFapiInteractionIdIfNeeded.class, "FAPI1-BASE-6.2.1-11");
+		call(profileBehavior.prepareNonResourceEndpointFapiInteractionId());
 
 		HttpStatus httpStatus = createBackchannelResponse();
-		callAndStopOnFailure(AddFAPIInteractionIdToBackchannelEndpointResponse.class);
+		call(profileBehavior.addFapiInteractionIdToBackchannelEndpointResponse());
 
 		if(CIBAMode.PING.equals(cibaMode)) {
 			call(sequence(VerifyClientNotificationToken.class));
@@ -800,7 +767,7 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 		callAndContinueOnFailure(CreateEffectiveAuthorizationRequestParameters.class, ConditionResult.WARNING);
 		callAndStopOnFailure(ExtractRequestedScopes.class);
 
-		profileBehavior.applyProfileSpecificBackchannelScopeChecks();
+		call(profileBehavior.applyProfileSpecificBackchannelScopeChecks());
 
 		callAndStopOnFailure(EnsureOpenIDInScopeRequest.class, "FAPI1-BASE-5.2.3-7");
 
@@ -842,7 +809,7 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 
 		checkResourceEndpointRequest(false);
 
-		profileBehavior.applyProfileSpecificAccountsEndpointChecks();
+		call(profileBehavior.applyProfileSpecificAccountsEndpointChecks());
 
 		callAndStopOnFailure(CreateFapiInteractionIdIfNeeded.class, "FAPI1-BASE-6.2.1-11");
 		callAndStopOnFailure(CreateFAPIAccountEndpointResponse.class);

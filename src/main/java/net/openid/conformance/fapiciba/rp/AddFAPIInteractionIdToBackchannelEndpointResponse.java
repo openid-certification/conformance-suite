@@ -16,11 +16,11 @@ public class AddFAPIInteractionIdToBackchannelEndpointResponse extends AbstractC
 		JsonObject headers = env.getObject("backchannel_endpoint_response_headers");
 		if (headers == null) {
 			headers = new JsonObject();
+			env.putObject("backchannel_endpoint_response_headers", headers);
 		}
 
 		if (!Strings.isNullOrEmpty(fapiInteractionId)) {
 			headers.addProperty("x-fapi-interaction-id", fapiInteractionId);
-			env.putObject("backchannel_endpoint_response_headers", headers);
 			logSuccess("Added FAPI Interaction ID to backchannel endpoint response headers", headers);
 		} else {
 			log("FAPI Interaction ID not found, not added to headers");
