@@ -159,6 +159,240 @@ export const BootstrapApiCompat = {
   },
 };
 
+export const SizeLarge = {
+  render: () => html`
+    <cts-modal heading="Large Modal" size="lg">
+      <p>This modal should render with <code>modal-lg</code> on the dialog.</p>
+    </cts-modal>
+  `,
+
+  async play({ canvasElement }) {
+    const dialog = canvasElement.querySelector(".modal-dialog");
+    expect(dialog).toBeTruthy();
+    expect(dialog.classList.contains("modal-lg")).toBe(true);
+  },
+};
+
+export const SizeSmall = {
+  render: () => html`
+    <cts-modal heading="Small Modal" size="sm">
+      <p>This modal should render with <code>modal-sm</code> on the dialog.</p>
+    </cts-modal>
+  `,
+
+  async play({ canvasElement }) {
+    const dialog = canvasElement.querySelector(".modal-dialog");
+    expect(dialog).toBeTruthy();
+    expect(dialog.classList.contains("modal-sm")).toBe(true);
+  },
+};
+
+export const SizeExtraLarge = {
+  render: () => html`
+    <cts-modal heading="Extra Large Modal" size="xl">
+      <p>This modal should render with <code>modal-xl</code> on the dialog.</p>
+    </cts-modal>
+  `,
+
+  async play({ canvasElement }) {
+    const dialog = canvasElement.querySelector(".modal-dialog");
+    expect(dialog).toBeTruthy();
+    expect(dialog.classList.contains("modal-xl")).toBe(true);
+  },
+};
+
+export const SizeInvalid = {
+  render: () => html`
+    <cts-modal heading="Invalid Size" size="banana">
+      <p>Invalid size values should be ignored.</p>
+    </cts-modal>
+  `,
+
+  async play({ canvasElement }) {
+    const dialog = canvasElement.querySelector(".modal-dialog");
+    expect(dialog).toBeTruthy();
+    // Should only have "modal-dialog", no size class
+    expect(dialog.className).toBe("modal-dialog");
+  },
+};
+
+export const SizeDefault = {
+  render: () => html`
+    <cts-modal heading="Default Size">
+      <p>No size attribute means default dialog width.</p>
+    </cts-modal>
+  `,
+
+  async play({ canvasElement }) {
+    const dialog = canvasElement.querySelector(".modal-dialog");
+    expect(dialog).toBeTruthy();
+    expect(dialog.className).toBe("modal-dialog");
+  },
+};
+
+export const FooterButtonsConfirmation = {
+  render: () => html`
+    <cts-modal
+      heading="Delete Token"
+      footer-buttons='[
+        {"label": "Delete", "class": "btn-danger", "id": "confirmDelete"},
+        {"label": "Cancel"}
+      ]'
+    >
+      <p>Are you sure you want to delete this token?</p>
+    </cts-modal>
+  `,
+
+  async play({ canvasElement }) {
+    const footer = canvasElement.querySelector(".modal-footer");
+    expect(footer).toBeTruthy();
+
+    const buttons = footer.querySelectorAll("button");
+    expect(buttons.length).toBe(2);
+
+    // Delete button
+    const deleteBtn = buttons[0];
+    expect(deleteBtn.textContent).toBe("Delete");
+    expect(deleteBtn.classList.contains("btn-danger")).toBe(true);
+    expect(deleteBtn.classList.contains("btn-sm")).toBe(true);
+    expect(deleteBtn.id).toBe("confirmDelete");
+    expect(deleteBtn.getAttribute("data-bs-dismiss")).toBe("modal");
+
+    // Cancel button — default class is btn-light
+    const cancelBtn = buttons[1];
+    expect(cancelBtn.textContent).toBe("Cancel");
+    expect(cancelBtn.classList.contains("btn-light")).toBe(true);
+    expect(cancelBtn.getAttribute("data-bs-dismiss")).toBe("modal");
+
+    // No auto-generated Close button
+    const closeButtons = [...footer.querySelectorAll("button")].filter(
+      (b) => b.textContent === "Close",
+    );
+    expect(closeButtons.length).toBe(0);
+  },
+};
+
+export const FooterButtonsDismissFalse = {
+  render: () => html`
+    <cts-modal
+      heading="Delete Plan"
+      footer-buttons='[
+        {"label": "Cancel"},
+        {"label": "Delete plan", "class": "btn-danger", "id": "confirmDeletePlanBtn", "dismiss": false}
+      ]'
+    >
+      <p>This will permanently delete the plan and all test results.</p>
+    </cts-modal>
+  `,
+
+  async play({ canvasElement }) {
+    const buttons = canvasElement.querySelectorAll(".modal-footer button");
+    expect(buttons.length).toBe(2);
+
+    // Cancel dismisses
+    expect(buttons[0].getAttribute("data-bs-dismiss")).toBe("modal");
+
+    // Delete does NOT dismiss (JS handles lifecycle)
+    const deleteBtn = buttons[1];
+    expect(deleteBtn.textContent).toBe("Delete plan");
+    expect(deleteBtn.id).toBe("confirmDeletePlanBtn");
+    expect(deleteBtn.hasAttribute("data-bs-dismiss")).toBe(false);
+  },
+};
+
+export const FooterButtonsWithDataAttributes = {
+  render: () => html`
+    <cts-modal
+      heading="Publish"
+      footer-buttons='[
+        {"label": "Publish", "data": {"publish": "everything"}},
+        {"label": "Cancel"}
+      ]'
+    >
+      <p>Publish all results?</p>
+    </cts-modal>
+  `,
+
+  async play({ canvasElement }) {
+    const buttons = canvasElement.querySelectorAll(".modal-footer button");
+    expect(buttons.length).toBe(2);
+
+    const publishBtn = buttons[0];
+    expect(publishBtn.textContent).toBe("Publish");
+    expect(publishBtn.getAttribute("data-publish")).toBe("everything");
+    expect(publishBtn.getAttribute("data-bs-dismiss")).toBe("modal");
+  },
+};
+
+export const FooterButtonsEmpty = {
+  render: () => html`
+    <cts-modal heading="Empty Footer" footer-buttons="[]">
+      <p>Empty array renders footer with no buttons.</p>
+    </cts-modal>
+  `,
+
+  async play({ canvasElement }) {
+    const footer = canvasElement.querySelector(".modal-footer");
+    expect(footer).toBeTruthy();
+    expect(footer.querySelectorAll("button").length).toBe(0);
+  },
+};
+
+export const FooterButtonsMalformedJson = {
+  render: () => html`
+    <cts-modal heading="Malformed JSON" footer-buttons="not valid json">
+      <p>Malformed JSON falls back to auto Close button.</p>
+    </cts-modal>
+  `,
+
+  async play({ canvasElement }) {
+    // Malformed JSON → fallback to auto Close button
+    const footer = canvasElement.querySelector(".modal-footer");
+    expect(footer).toBeTruthy();
+
+    const buttons = footer.querySelectorAll("button");
+    expect(buttons.length).toBe(1);
+    expect(buttons[0].textContent).toBe("Close");
+    expect(buttons[0].getAttribute("data-bs-dismiss")).toBe("modal");
+  },
+};
+
+export const FooterButtonsDefaultClosePreserved = {
+  render: () => html`
+    <cts-modal heading="Default Footer">
+      <p>No footer-buttons → auto Close button.</p>
+    </cts-modal>
+  `,
+
+  async play({ canvasElement }) {
+    const footer = canvasElement.querySelector(".modal-footer");
+    expect(footer).toBeTruthy();
+
+    const buttons = footer.querySelectorAll("button");
+    expect(buttons.length).toBe(1);
+    expect(buttons[0].textContent).toBe("Close");
+  },
+};
+
+export const FooterButtonsGetElementById = {
+  render: () => html`
+    <cts-modal
+      id="testFooterBtnId"
+      heading="ID Test"
+      footer-buttons='[{"label": "Confirm", "id": "confirmBtn"}]'
+    >
+      <p>Button should be reachable via getElementById.</p>
+    </cts-modal>
+  `,
+
+  async play() {
+    // The button id should be findable via document.getElementById
+    const btn = document.getElementById("confirmBtn");
+    expect(btn).toBeTruthy();
+    expect(btn.textContent).toBe("Confirm");
+  },
+};
+
 export const StaticBackdrop = {
   render: () =>
     html`<cts-modal id="testStatic" heading="Loading..." static-backdrop no-keyboard>
