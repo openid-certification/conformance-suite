@@ -148,25 +148,21 @@ public class VCIEncryptCredentialResponse extends AbstractCondition {
 			jweObject.encrypt(encrypter);
 			String encryptedResponse = jweObject.serialize();
 
-			// Replace the response with the encrypted JWE string
-			// Per spec, the encrypted response is returned as application/jwt
-			JsonObject encryptedResponseJson = new JsonObject();
-			encryptedResponseJson.addProperty("credential_response", encryptedResponse);
-
-			// Actually, per the spec, when encrypted the entire response body is the JWE
-			// We need to update the response handling to return the JWE directly
+			// Per the spec, when encrypted the entire response body is the JWE
 			env.putString("encrypted_credential_response", encryptedResponse);
 
+			JsonObject credentialResponseJwe = JWEUtil.jweStringToJsonObjectForEnvironment(encryptedResponse, credentialResponse);
+
 			logSuccess("Encrypted credential response as JWE",
-				args("alg", alg, "enc", enc, "kid", encryptionKey.getKeyID(),
-					"credential_response_json", credentialResponse,
-					"encrypted_credential_response", encryptedResponse));
+				args("credential_response_jwe", credentialResponseJwe));
 
 			return env;
 
 		} catch (JOSEException e) {
 			throw error("Failed to encrypt credential response", e,
 				args("alg", alg, "enc", enc));
+		} catch (ParseException e) {
+			throw error("Failed to parse serialized credential response JWE for logging", e);
 		}
 	}
 }
