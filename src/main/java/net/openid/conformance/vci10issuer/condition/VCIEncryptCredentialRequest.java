@@ -1,6 +1,8 @@
 package net.openid.conformance.vci10issuer.condition;
 
 import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import com.nimbusds.jose.EncryptionMethod;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWEAlgorithm;
@@ -130,10 +132,16 @@ public class VCIEncryptCredentialRequest extends AbstractCondition {
 		// Per OID4VCI 1.0 Section 10, the media type MUST be set to application/jwt.
 		env.putString("resource_endpoint_request_headers", "Content-Type", "application/jwt");
 
+		JsonObject plaintextPayload = JsonParser.parseString(requestBody).getAsJsonObject();
+		JsonObject credentialRequestJwe;
+		try {
+			credentialRequestJwe = JWEUtil.jweStringToJsonObjectForEnvironment(encryptedRequest, plaintextPayload);
+		} catch (ParseException e) {
+			throw error("Failed to parse serialized credential request JWE for logging", e);
+		}
+
 		logSuccess("Encrypted credential request as JWE",
-			args("alg", alg, "enc", enc, "kid", encryptionKey.getKeyID(),
-				"credential_request_body", requestBody,
-				"encrypted_credential_request", encryptedRequest));
+			args("credential_request_jwe", credentialRequestJwe));
 
 		return env;
 	}

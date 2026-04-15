@@ -125,10 +125,15 @@ public class VCIDecryptCredentialRequest extends AbstractCondition {
 		env.putString("incoming_request", "body", decryptedPayload);
 		env.putObject("incoming_request", "body_json", decryptedJson);
 
+		JsonObject credentialRequestJwe;
+		try {
+			credentialRequestJwe = JWEUtil.jweStringToJsonObjectForEnvironment(body, decryptedJson);
+		} catch (ParseException e) {
+			throw error("Failed to parse credential request JWE for logging", e);
+		}
+
 		logSuccess("Decrypted credential request JWE",
-			args("alg", algorithm.getName(),
-				"kid", decryptionKey.getKeyID(),
-				"credential_request", decryptedJson));
+			args("credential_request_jwe", credentialRequestJwe));
 
 		return env;
 	}

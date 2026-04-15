@@ -9,7 +9,6 @@ import com.nimbusds.jose.JWEDecrypter;
 import com.nimbusds.jose.JWEObject;
 import com.nimbusds.jose.jwk.JWK;
 import com.nimbusds.jose.jwk.JWKSet;
-import com.nimbusds.jose.util.JSONObjectUtils;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
@@ -70,13 +69,14 @@ public class VCIDecryptCredentialResponse extends AbstractCondition {
 			endpointResponse.add("body_json", decryptedResponse);
 			endpointResponse.addProperty("encrypted", true);
 
-			// Store the JWE header for validation (using same approach as JWTUtil.jwtHeaderAsJsonObject)
-			JsonObject jweHeader = JsonParser.parseString(
-				JSONObjectUtils.toJSONString(jweObject.getHeader().toJSONObject())).getAsJsonObject();
+			// Store the JWE header for validation
+			JsonObject jweHeader = JWEUtil.jweHeaderAsJsonObject(jweObject);
 			env.putObject("credential_response_jwe_header", jweHeader);
 
+			JsonObject credentialResponseJwe = JWEUtil.jweStringToJsonObjectForEnvironment(responseBody, decryptedResponse);
+
 			logSuccess("Decrypted credential response",
-				args("jwe_header", jweHeader, "decrypted_response", decryptedResponse));
+				args("credential_response_jwe", credentialResponseJwe));
 
 			return env;
 
