@@ -877,4 +877,51 @@ if [ -n "$EXTRA_ARGS" ]; then
     TESTS="${TESTS} ${EXTRA_ARGS}"
 fi
 
-echo ${TESTS} | xargs -s 100000 ${SUITE_DIR}/scripts/run-test-plan.py
+# Ctrl+C handling: the launched pipeline is bash → xargs → python3 (→ npm/node
+# if client tests are running). By default a SIGINT at the terminal reaches the
+# whole foreground process group, but python3's asyncio shutdown can take a few
+# seconds and any process that has drifted into its own group (e.g. an npm
+# subprocess launched by run-test-plan.py for client tests) won't get the
+# signal at all. To guarantee that every descendant is torn down, we trap
+# INT/TERM, walk the child tree of the xargs pid recursively via `pgrep -P`,
+# send SIGTERM, then force-kill anything still alive a second later.
+kill_tree() {
+    local pid=$1
+    local child
+    for child in $(pgrep -P "$pid" 2>/dev/null); do
+        kill_tree "$child"
+    done
+    kill -TERM "$pid" 2>/dev/null || true
+}
+
+force_kill_tree() {
+    local pid=$1
+    local child
+    for child in $(pgrep -P "$pid" 2>/dev/null); do
+        force_kill_tree "$child"
+    done
+    kill -KILL "$pid" 2>/dev/null || true
+}
+
+abort_handler() {
+    trap - INT TERM
+    echo
+    echo "$(date '+%Y-%m-%d %H:%M:%S'): run-tests.sh interrupted — stopping test run"
+    if [ -n "${TEST_RUN_PID:-}" ]; then
+        kill_tree "$TEST_RUN_PID"
+        sleep 1
+        force_kill_tree "$TEST_RUN_PID"
+    fi
+    exit 130
+}
+trap abort_handler INT TERM
+
+echo ${TESTS} | xargs -s 100000 ${SUITE_DIR}/scripts/run-test-plan.py &
+TEST_RUN_PID=$!
+# Disable `set -e` around wait so a non-zero test-runner exit code doesn't
+# short-circuit the script before we can record and re-raise it.
+set +e
+wait "$TEST_RUN_PID"
+EXIT_CODE=$?
+set -e
+exit "$EXIT_CODE"
