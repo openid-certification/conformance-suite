@@ -2,7 +2,7 @@
  * Playwright page.route() helpers for E2E tests.
  *
  * All routes MUST be registered before page.goto() because fapi.ui.js fires
- * fetch('api/ui/spec_links?public=true') at script parse time (IIFE at line 741).
+ * fetch('api/ui/spec_links?public=true') at script parse time (loadSpecLinksMapping IIFE).
  *
  * Playwright matches routes in REVERSE registration order (last registered = first tried).
  * Register setupFailFast() FIRST, then specific routes, so the catch-all runs last.
@@ -56,8 +56,10 @@ export async function setupCommonRoutes(page, options = {}) {
 /**
  * Register a wildcard /api/info/:testId route that returns MOCK_TEST_STATUS
  * with the testId from the URL. To provide test-specific data, pass entries
- * in testStatusMap — do NOT register separate /api/info/:id routes, because
- * this wildcard is registered later and Playwright matches last-registered first.
+ * in testStatusMap — do NOT register separate /api/info/:id routes before
+ * calling this function, because this wildcard would be registered after them
+ * and Playwright checks last-registered routes first, causing it to shadow
+ * more specific routes.
  */
 export async function setupTestInfoRoute(page, testStatusMap = {}) {
   await page.route("**/api/info/**", (route) => {
@@ -121,7 +123,12 @@ export async function setupFailFast(page) {
  * @param {import('@playwright/test').Page} page
  */
 export function expectNoUnmockedCalls(page) {
-  const calls = page.__unmockedApiCalls || [];
+  if (!page.__unmockedApiCalls) {
+    throw new Error(
+      "setupFailFast() was not called for this test — unmocked API calls would not be detected",
+    );
+  }
+  const calls = page.__unmockedApiCalls;
   if (calls.length > 0) {
     throw new Error(
       `Unmocked API calls detected:\n  ${calls.join("\n  ")}`,
