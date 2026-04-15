@@ -12,14 +12,16 @@ test.describe("index.html — Home page", () => {
     // Server version info renders in the footer
     await expect(page.locator(".serverInfo")).toContainText("5.1.24-SNAPSHOT");
 
-    // User info renders in the header
-    await expect(page.locator("#userInfoHolder")).toContainText("Test User");
-    await expect(page.locator("#userInfoHolder")).toContainText("Logged in as");
+    // User info renders in the navbar
+    const navbar = page.locator("cts-navbar");
+    await expect(navbar).toContainText("Test User");
+    await expect(navbar).toContainText("Logged in as");
 
-    // Navigation buttons are visible
-    await expect(page.locator('a[href="schedule-test.html"]')).toBeVisible();
-    await expect(page.locator('a[href="logs.html"]')).toBeVisible();
-    await expect(page.locator('a[href="plans.html"]')).toBeVisible();
+    // Navigation buttons are visible in the page body
+    const homePage = page.locator("#homePage");
+    await expect(homePage.locator('a[href="schedule-test.html"]')).toBeVisible();
+    await expect(homePage.locator('a[href="logs.html"]')).toBeVisible();
+    await expect(homePage.locator('a[href="plans.html"]')).toBeVisible();
   });
 
   test("unauthenticated state hides user info (R24)", async ({ page }) => {
@@ -31,15 +33,17 @@ test.describe("index.html — Home page", () => {
     // Server info still renders
     await expect(page.locator(".serverInfo")).toContainText("5.1.24-SNAPSHOT");
 
-    // User info holder should not contain login info
-    await expect(page.locator("#userInfoData")).not.toBeVisible();
+    // Navbar should not contain login info
+    const navbar = page.locator("cts-navbar");
+    await expect(navbar).not.toContainText("Logged in as");
 
-    // Navigation buttons are still visible (public links)
+    // Navigation buttons are still visible in the page body (public links)
+    const homePage = page.locator("#homePage");
     await expect(
-      page.locator('a[href="logs.html?public=true"]'),
+      homePage.locator('a[href="logs.html?public=true"]'),
     ).toBeVisible();
     await expect(
-      page.locator('a[href="plans.html?public=true"]'),
+      homePage.locator('a[href="plans.html?public=true"]'),
     ).toBeVisible();
   });
 });
