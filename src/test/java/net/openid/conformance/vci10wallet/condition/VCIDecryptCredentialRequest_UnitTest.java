@@ -25,6 +25,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.List;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
@@ -85,6 +86,25 @@ public class VCIDecryptCredentialRequest_UnitTest {
 		putIncomingRequest("application/jwt; charset=utf-8", jwe);
 
 		assertDoesNotThrow(() -> cond.execute(env));
+	}
+
+	@Test
+	public void testEvaluate_selectsMatchingKidFromMultiKeyJwks() throws Exception {
+		ECKey otherKey = new ECKeyGenerator(Curve.P_256)
+			.algorithm(JWEAlgorithm.ECDH_ES)
+			.keyUse(KeyUse.ENCRYPTION)
+			.keyID(UUID.randomUUID().toString())
+			.generate();
+		JsonObject privateJwks = JWKUtil.getPrivateJwksAsJsonObject(new JWKSet(List.of(otherKey, encryptionKey)));
+		env.putObject("vci", "credential_request_encryption_jwks", privateJwks);
+
+		String plaintext = "{\"credential_configuration_id\":\"UniversityDegreeCredential\"}";
+		String jwe = encrypt(plaintext);
+
+		putIncomingRequest("application/jwt", jwe);
+
+		assertDoesNotThrow(() -> cond.execute(env));
+		assertEquals(plaintext, env.getString("incoming_request", "body"));
 	}
 
 	@Test

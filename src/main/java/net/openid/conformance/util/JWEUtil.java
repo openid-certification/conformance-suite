@@ -41,14 +41,27 @@ public class JWEUtil {
 
 	private static Logger logger = LoggerFactory.getLogger(JWEUtil.class);
 	/**
-	 * returns a key that has the correct key type and optionally use=enc
-	 * or null if no key was found
-	 * Only for RSA or EC keys
+	 * Returns a key that has the correct key type and optionally use=enc,
+	 * or null if no key was found.
+	 * Only for RSA or EC keys.
 	 * @param jwkSet
 	 * @param alg
 	 * @return
 	 */
 	public static JWK selectAsymmetricKeyForEncryption(JWKSet jwkSet, JWEAlgorithm alg) {
+		return selectAsymmetricKeyForEncryption(jwkSet, alg, null);
+	}
+
+	/**
+	 * Returns a key that has the correct key type and optionally use=enc,
+	 * preferring an exact kid match when one is available from the JWE header.
+	 * Only for RSA or EC keys.
+	 * @param jwkSet
+	 * @param alg
+	 * @param kid
+	 * @return
+	 */
+	public static JWK selectAsymmetricKeyForEncryption(JWKSet jwkSet, JWEAlgorithm alg, String kid) {
 		if(jwkSet==null) {
 			return null;
 		}
@@ -61,9 +74,16 @@ public class JWEUtil {
 		}
 
 		JWKMatcher jwkMatcher = new JWKMatcher.Builder().keyType(keyType).keyUses(KeyUse.ENCRYPTION, null).build();
+		boolean requiresKidMatch = kid != null && !kid.isBlank();
 		JWK currentMatch = null;
 		for(JWK jwk : jwkSet.getKeys()) {
 			if(jwkMatcher.matches(jwk)) {
+				if (requiresKidMatch) {
+					if (kid.equals(jwk.getKeyID())) {
+						return jwk;
+					}
+					continue;
+				}
 				if(currentMatch==null) {
 					currentMatch = jwk;
 				} else {

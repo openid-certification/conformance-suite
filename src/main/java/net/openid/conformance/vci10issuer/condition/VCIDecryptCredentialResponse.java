@@ -44,14 +44,15 @@ public class VCIDecryptCredentialResponse extends AbstractCondition {
 			// Parse the JWE
 			JWEObject jweObject = JWEObject.parse(responseBody);
 			JWEAlgorithm algorithm = jweObject.getHeader().getAlgorithm();
+			String kid = jweObject.getHeader().getKeyID();
 
 			// Get the decryption key from the configured JWKS
 			JWKSet jwkSet = JWKUtil.parseJWKSet(encryptionJwks.toString());
-			JWK decryptionKey = JWEUtil.selectAsymmetricKeyForEncryption(jwkSet, algorithm);
+			JWK decryptionKey = JWEUtil.selectAsymmetricKeyForEncryption(jwkSet, algorithm, kid);
 
 			if (decryptionKey == null) {
 				throw error("No suitable key for decrypting the credential response was found in credential_encryption_jwks",
-					args("algorithm", algorithm.getName(), "credential_encryption_jwks", encryptionJwks));
+					args("algorithm", algorithm.getName(), "kid", kid, "credential_encryption_jwks", encryptionJwks));
 			}
 
 			// Decrypt the JWE
