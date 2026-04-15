@@ -133,6 +133,58 @@ test.describe("schedule-test.html — Test Plan Scheduling", () => {
     expect(postCalled).toBe(true);
   });
 
+  test("create button disabled until plan selected, shows error modal on click (R10)", async ({
+    page,
+  }) => {
+    await setupFailFast(page);
+
+    await page.route("**/api/plan/available", (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(ALL_PLANS),
+      }),
+    );
+
+    await page.route("**/api/lastconfig", (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({}),
+      }),
+    );
+
+    await setupCommonRoutes(page);
+
+    await page.goto("/schedule-test.html");
+
+    // Create button should be disabled initially (no plan selected)
+    const createBtn = page.locator("#createPlanBtn");
+    await expect(createBtn).toBeDisabled();
+
+    // The button is hidden (display:none on parent) when no plan is selected.
+    // Use evaluate to invoke the onclick handler directly — it checks
+    // planSelect.value and shows an error modal.
+    await page.evaluate(() => {
+      const btn = document.getElementById("createPlanBtn");
+      btn.removeAttribute("disabled");
+      btn.style.display = "";
+      btn.closest("#launchButtons").style.display = "";
+      btn.click();
+    });
+
+    // Error modal should appear with "select a test plan" message
+    const errorModal = page.locator("#errorModal");
+    await expect(errorModal).toBeVisible();
+    await expect(page.locator("#errorMessage")).toContainText(
+      "select a test plan",
+    );
+
+    // Close the error modal
+    await errorModal.locator('[data-bs-dismiss="modal"]').first().click();
+    await expect(errorModal).not.toBeVisible();
+  });
+
   test("error state when /api/plan/available returns 500 (R11)", async ({
     page,
   }) => {

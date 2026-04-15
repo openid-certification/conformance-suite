@@ -154,4 +154,92 @@ test.describe("running-test.html — Running Tests", () => {
     // The running-tests container is empty
     await expect(page.locator("#running-tests")).toBeEmpty();
   });
+
+  test("test rows contain View Test Details link and Download button", async ({ page }) => {
+    await setupFailFast(page);
+    await setupCommonRoutes(page);
+
+    await page.route("**/api/runner/running", (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(["test-running-001"]),
+      }),
+    );
+
+    await page.route("**/api/runner/test-running-001", (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(RUNNER_DETAIL_1),
+      }),
+    );
+    await page.route("**/api/info/test-running-001", (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(INFO_RUNNING),
+      }),
+    );
+
+    await page.goto("/running-test.html");
+
+    const row = page.locator(".runningTest").first();
+    await expect(row).toBeVisible();
+
+    // View Test Details link should point to log-detail with the correct test ID
+    const viewBtn = row.locator(".viewBtn");
+    await expect(viewBtn).toBeVisible();
+    await expect(viewBtn).toHaveAttribute(
+      "href",
+      "log-detail.html?log=test-running-001",
+    );
+
+    // Download button should be present
+    const downloadBtn = row.locator(".downloadBtn");
+    await expect(downloadBtn).toBeVisible();
+    await expect(downloadBtn).toContainText("Download Logs");
+  });
+
+  test("status tooltips render on test status blocks", async ({ page }) => {
+    await setupFailFast(page);
+    await setupCommonRoutes(page);
+
+    await page.route("**/api/runner/running", (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(["test-running-001"]),
+      }),
+    );
+
+    await page.route("**/api/runner/test-running-001", (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(RUNNER_DETAIL_1),
+      }),
+    );
+    await page.route("**/api/info/test-running-001", (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(INFO_RUNNING),
+      }),
+    );
+
+    await page.goto("/running-test.html");
+
+    // Wait for status to render
+    const statusBlock = page.locator(".testStatusResultBlock").first();
+    await expect(statusBlock).toBeVisible();
+    await expect(statusBlock).toContainText("RUNNING");
+
+    // Tooltip trigger should exist with help text
+    const tooltip = statusBlock.locator('[data-bs-toggle="tooltip"]');
+    await expect(tooltip).toBeVisible();
+    // Bootstrap moves title to data-bs-original-title after tooltip init
+    const origTitle = await tooltip.getAttribute("data-bs-original-title");
+    expect(origTitle || "").toContain("actively executing");
+  });
 });
