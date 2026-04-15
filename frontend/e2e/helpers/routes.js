@@ -48,7 +48,9 @@ export async function setupCommonRoutes(page, options = {}) {
     route.fulfill({
       status: 200,
       contentType: "application/json",
-      body: JSON.stringify({}),
+      body: JSON.stringify({
+        "OIDCC-": "https://openid.net/specs/openid-connect-core-1_0.html#section-",
+      }),
     }),
   );
 }

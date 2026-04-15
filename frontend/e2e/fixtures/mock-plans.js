@@ -20,14 +20,29 @@ export const MOCK_PLANS = [
       "client.client_id",
       "client.client_secret",
     ],
+    hidesConfigurationFields: [],
     variants: {
-      client_auth_type: [
-        "client_secret_basic",
-        "client_secret_post",
-        "private_key_jwt",
-      ],
-      response_type: ["code"],
-      server_metadata: ["discovery", "static"],
+      client_auth_type: {
+        variantInfo: { displayName: "Client Authentication Type", description: "How the client authenticates to the token endpoint" },
+        variantValues: {
+          client_secret_basic: { configurationFields: [], hidesConfigurationFields: [] },
+          client_secret_post: { configurationFields: [], hidesConfigurationFields: [] },
+          private_key_jwt: { configurationFields: ["client.jwks"], hidesConfigurationFields: [] },
+        },
+      },
+      response_type: {
+        variantInfo: { displayName: "Response Type", description: "OAuth 2.0 response type" },
+        variantValues: {
+          code: { configurationFields: [], hidesConfigurationFields: [] },
+        },
+      },
+      server_metadata: {
+        variantInfo: { displayName: "Server Metadata", description: "How server metadata is obtained" },
+        variantValues: {
+          discovery: { configurationFields: [], hidesConfigurationFields: [] },
+          static: { configurationFields: ["server.jwks_uri"], hidesConfigurationFields: [] },
+        },
+      },
     },
   },
   {
@@ -48,9 +63,22 @@ export const MOCK_PLANS = [
       "client.jwks",
       "mtls.cert",
     ],
+    hidesConfigurationFields: [],
     variants: {
-      client_auth_type: ["private_key_jwt", "mtls"],
-      fapi_response_mode: ["plain_response", "jarm"],
+      client_auth_type: {
+        variantInfo: { displayName: "Client Authentication Type", description: "How the client authenticates to the token endpoint" },
+        variantValues: {
+          private_key_jwt: { configurationFields: ["client.jwks"], hidesConfigurationFields: [] },
+          mtls: { configurationFields: ["mtls.cert", "mtls.key"], hidesConfigurationFields: [] },
+        },
+      },
+      fapi_response_mode: {
+        variantInfo: { displayName: "FAPI Response Mode", description: "Response mode for FAPI" },
+        variantValues: {
+          plain_response: { configurationFields: [], hidesConfigurationFields: [] },
+          jarm: { configurationFields: [], hidesConfigurationFields: [] },
+        },
+      },
     },
   },
 ];
