@@ -302,7 +302,7 @@ cd frontend && npx playwright test e2e/home.spec.js
 **When to update tests:** If you change an API response shape consumed by the frontend, update the corresponding fixture in `frontend/e2e/fixtures/`. If you change page structure (DOM IDs, CSS classes used by JS), update the affected spec files.
 
 **Key conventions:**
-- One spec file per page, plus `journeys.spec.js` for cross-page flows
+- Each spec file covers a single page; `journeys.spec.js` covers cross-page flows
 - Route helpers in `frontend/e2e/helpers/routes.js` — `setupFailFast()` must be called FIRST (Playwright matches routes in reverse registration order), then specific routes
 - All `page.route()` calls must happen before `page.goto()` because `fapi.ui.js` fires an API call at script parse time
 - Fixture data lives in `frontend/e2e/fixtures/` as ES modules

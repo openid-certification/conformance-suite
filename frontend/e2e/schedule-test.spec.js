@@ -137,7 +137,7 @@ test.describe("schedule-test.html — Test Plan Scheduling", () => {
     expect(postCalled).toBe(true);
   });
 
-  test("create button disabled until plan selected, shows error modal on click (R10)", async ({
+  test("create button disabled when no plan selected, shows error modal on forced click (R10)", async ({
     page,
   }) => {
     await setupFailFast(page);
@@ -189,7 +189,7 @@ test.describe("schedule-test.html — Test Plan Scheduling", () => {
     await expect(errorModal).not.toBeVisible();
   });
 
-  test("error state when /api/plan/available returns 500 (R11)", async ({
+  test("degrades gracefully when /api/plan/available returns 500 (R11)", async ({
     page,
   }) => {
     await setupFailFast(page);
@@ -214,9 +214,16 @@ test.describe("schedule-test.html — Test Plan Scheduling", () => {
 
     await page.goto("/schedule-test.html");
 
-    // The spec family select should have no populated options (only the blank default)
+    // When /api/plan/available returns a 500, the page does not show an error
+    // message — response.json() parses the body and _.keyBy produces an empty
+    // plan index, so the family select stays unpopulated. This test verifies
+    // the page degrades gracefully (no JS errors, no crash) rather than
+    // explicit error handling.
     const familySelect = page.locator("#specFamilySelect");
     const optionCount = await familySelect.locator("option").count();
     expect(optionCount).toBe(1); // Only the "--- Select ---" default
+
+    // Create button should remain disabled (no plan can be selected)
+    await expect(page.locator("#createPlanBtn")).toBeDisabled();
   });
 });
