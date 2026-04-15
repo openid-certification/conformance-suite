@@ -73,43 +73,15 @@
         </div>
     </cts-modal>
 
-    <!-- Publish modal -->
-    <div class="modal" id="publishModal" tabindex="-1" role="dialog" aria-labelledby="errorLabel">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h4 class="modal-title" id="errorLabel">Publish</h4>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    Are you sure? This will make all keys, secrets, and all other test information publicly visible.
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-sm btn-light bg-gradient border border-secondary" data-bs-dismiss="modal" data-publish="everything">Publish</button>
-                    <button type="button" class="btn btn-sm btn-light bg-gradient border border-secondary" data-bs-dismiss="modal">Cancel</button>
-                </div>
-            </div>
-        </div>
-    </div>
+    <cts-modal id="publishModal" heading="Publish"
+        footer-buttons='[{"label": "Publish", "data": {"publish": "everything"}}, {"label": "Cancel"}]'>
+        Are you sure? This will make all keys, secrets, and all other test information publicly visible.
+    </cts-modal>
 
-    <!-- Rerun test confirmation modal -->
-    <div class="modal" id="reRunTestModal" tabindex="-1" role="dialog" aria-labelledby="errorLabel">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h4 class="modal-title">Run test confirmation</h4>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    Are you sure you want to rerun this test? It is owned by a different user.
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-sm btn-danger bg-gradient border border-secondary" data-bs-dismiss="modal" id="reRunTestModalBtn">Sure, Run it</button>
-                    <button type="button" class="btn btn-sm btn-light bg-gradient border border-secondary" data-bs-dismiss="modal">Cancel</button>
-                </div>
-            </div>
-        </div>
-    </div>
+    <cts-modal id="reRunTestModal" heading="Run test confirmation"
+        footer-buttons='[{"label": "Sure, Run it", "class": "btn-danger", "id": "reRunTestModalBtn"}, {"label": "Cancel"}]'>
+        Are you sure you want to rerun this test? It is owned by a different user.
+    </cts-modal>
 
     <!-- resident DOM -->
     <div class="container-fluid">

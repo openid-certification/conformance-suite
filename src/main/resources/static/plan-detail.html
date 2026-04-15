@@ -63,24 +63,10 @@
         </div>
     </cts-modal>
 
-    <!-- Publish modal -->
-    <div class="modal" id="publishModal" tabindex="-1" role="dialog" aria-labelledby="errorLabel">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h4 class="modal-title">Publish</h4>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    Are you sure? This will make all keys, secrets, and all other test information publicly visible.
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-sm btn-light bg-gradient border border-secondary" data-bs-dismiss="modal" data-publish="everything">Publish</button>
-                    <button type="button" class="btn btn-sm btn-light bg-gradient border border-secondary" data-bs-dismiss="modal">Cancel</button>
-                </div>
-            </div>
-        </div>
-    </div>
+    <cts-modal id="publishModal" heading="Publish"
+        footer-buttons='[{"label": "Publish", "data": {"publish": "everything"}}, {"label": "Cancel"}]'>
+        Are you sure? This will make all keys, secrets, and all other test information publicly visible.
+    </cts-modal>
 
     <!-- Certification submission modal -->
     <div class="modal" id="certificationPackageModal" tabindex="-1" role="dialog" aria-labelledby="errorLabel" data-bs-backdrop="static">
@@ -141,56 +127,28 @@
     </div>
 
 
-    <!-- Rerun test confirmation modal -->
-    <div class="modal" id="reRunTestModal" tabindex="-1" role="dialog" aria-labelledby="errorLabel">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h4 class="modal-title">Run test confirmation</h4>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    Are you sure you want to rerun this test? It is owned by a different user.
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-sm btn-danger bg-gradient border border-secondary" data-bs-dismiss="modal" id="reRunTestModalBtn">Sure, Run it</button>
-                    <button type="button" class="btn btn-sm btn-light bg-gradient border border-secondary" data-bs-dismiss="modal">Cancel</button>
-                </div>
-            </div>
+    <cts-modal id="reRunTestModal" heading="Run test confirmation"
+        footer-buttons='[{"label": "Sure, Run it", "class": "btn-danger", "id": "reRunTestModalBtn"}, {"label": "Cancel"}]'>
+        Are you sure you want to rerun this test? It is owned by a different user.
+    </cts-modal>
+
+    <cts-modal id="deletePlanModal" heading="Delete plan"
+        footer-buttons='[{"label": "Cancel"}, {"label": "Delete plan", "class": "btn-danger", "id": "confirmDeletePlanBtn", "dismiss": false}]'>
+        <div id="deleteMutablePlanModalBody">
+
+            <p><strong>Clicking the "Delete plan" button will permanently and irrevocably:</strong>
+                <ul>
+                    <li>Delete the test plan.</li>
+                    <li>Delete the test plan configuration.</li>
+                    <li>Delete the individual tests and logs belonging to the plan.</li>
+                </ul>
+            </p>
+            <p class="top10"><strong>This action cannot be undone and the data cannot be recovered after deletion.</strong></p>
+            <p class="top10">After deletion, this page will be reloaded and you will see an <strong>HTTP 404 Not Found</strong>
+            error, confirming that the deletion was successful.</p>
+
         </div>
-    </div>
-
-    <!-- Delete plan modal -->
-    <div class="modal" id="deletePlanModal" tabindex="-1" role="dialog">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content pad28">
-                <div class="modal-header">
-                    <h4 class="modal-title" >Delete plan</h4>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div id="deleteMutablePlanModalBody" class="modal-body">
-
-                    <p><strong>Clicking the "Delete plan" button will permanently and irrevocably:</strong>
-                        <ul>
-                            <li>Delete the test plan.</li>
-                            <li>Delete the test plan configuration.</li>
-                            <li>Delete the individual tests and logs belonging to the plan.</li>
-                        </ul>
-                    </p>
-                    <p class="top10"><strong>This action cannot be undone and the data cannot be recovered after deletion.</strong></p>
-                    <p class="top10">After deletion, this page will be reloaded and you will see an <strong>HTTP 404 Not Found</strong>
-                    error, confirming that the deletion was successful.</p>
-
-                </div>
-
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-sm btn-light bg-gradient border border-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button id="confirmDeletePlanBtn" type="button" class="btn btn-sm btn-danger bg-gradient border border-secondary">Delete plan</button>
-                </div>
-
-            </div>
-        </div>
-    </div>
+    </cts-modal>
 
     <!-- resident DOM -->
     <div class="container-fluid">

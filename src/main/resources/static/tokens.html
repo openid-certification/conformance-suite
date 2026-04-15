@@ -58,48 +58,17 @@
         Error: <span id="errorMessage"></span>
     </cts-modal>
 
-    <!-- New token popup -->
-    <div class="modal" id="createdModal" tabindex="-1" role="dialog" aria-labelledby="errorLabel">
-        <div class="modal-dialog modal-lg" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h4 class="modal-title">
-                        <button class="btn-clipboard btn btn-sm" data-clipboard-target="#tokenValue" alt="Copy token to clipboard" title="Copy token to clipboard"><span class="bi bi-box-arrow-in-right"></span></button>
-                        Token created
-                    </h4>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="wrapLongStrings">
-                        <p>Here is your new token. This value will only be displayed once.</p>
-                        <pre id="tokenValue"></pre>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-sm btn-light bg-gradient border border-secondary" data-bs-dismiss="modal">Close</button>
-                </div>
-            </div>
+    <cts-modal id="createdModal" heading="Token created" size="lg">
+        <button class="btn-clipboard btn btn-sm" data-clipboard-target="#tokenValue" alt="Copy token to clipboard" title="Copy token to clipboard"><span class="bi bi-box-arrow-in-right"></span></button>
+        <div class="wrapLongStrings">
+            <p>Here is your new token. This value will only be displayed once.</p>
+            <pre id="tokenValue"></pre>
         </div>
-    </div>
+    </cts-modal>
 
-    <!-- Delete modal -->
-    <div class="modal" id="deleteModal" tabindex="-1" role="dialog" aria-labelledby="errorLabel">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h4 class="modal-title" id="errorLabel">Delete</h4>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    Are you sure? This permanently remove this token.
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-sm btn-light bg-gradient border border-secondary" data-bs-dismiss="modal" id="confirmDelete">Delete</button>
-                    <button type="button" class="btn btn-sm btn-light bg-gradient border border-secondary" data-bs-dismiss="modal">Cancel</button>
-                </div>
-            </div>
-        </div>
-    </div>
+    <cts-modal id="deleteModal" heading="Delete" footer-buttons='[{"label":"Delete","id":"confirmDelete"},{"label":"Cancel"}]'>
+        Are you sure? This permanently remove this token.
+    </cts-modal>
 
     <script>
         /**
