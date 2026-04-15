@@ -1,8 +1,12 @@
 import { test, expect } from "@playwright/test";
-import { setupCommonRoutes, setupFailFast, setupTestInfoRoute, wrapDataTablesResponse } from "./helpers/routes.js";
+import { setupCommonRoutes, setupFailFast, setupTestInfoRoute, wrapDataTablesResponse, expectNoUnmockedCalls } from "./helpers/routes.js";
 import { MOCK_PLAN_LIST } from "./fixtures/mock-plans.js";
 
 test.describe("plans.html — Plans List", () => {
+  test.afterEach(async ({ page }) => {
+    expectNoUnmockedCalls(page);
+  });
+
   test("loads and renders plans in DataTable (R26)", async ({ page }) => {
     await setupFailFast(page);
 
@@ -80,13 +84,9 @@ test.describe("plans.html — Plans List", () => {
   });
 
   test("search button triggers DataTable re-fetch with search term", async ({ page }) => {
-    let searchTerm = "";
-
     await setupFailFast(page);
 
     await page.route("**/api/plan?*", (route) => {
-      const url = new URL(route.request().url());
-      searchTerm = url.searchParams.get("search") || "";
       const envelope = wrapDataTablesResponse(
         MOCK_PLAN_LIST,
         route.request().url(),
@@ -111,13 +111,14 @@ test.describe("plans.html — Plans List", () => {
     await expect(searchInput).toBeVisible();
     await searchInput.fill("fapi2");
 
-    // Click the search button
+    // Click the search button — set up waitForRequest BEFORE the click
+    // so the listener is active when the request fires
     const searchBtn = page.locator("div.dataTables_filter button");
     await expect(searchBtn).toBeVisible();
+    const searchRequest = page.waitForRequest((req) =>
+      req.url().includes("/api/plan?") && req.url().includes("search=fapi2"),
+    );
     await searchBtn.click();
-
-    // Verify the search parameter was sent to the API
-    await page.waitForTimeout(500);
-    expect(searchTerm).toBe("fapi2");
+    await searchRequest;
   });
 });

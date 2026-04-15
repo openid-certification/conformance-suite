@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { setupCommonRoutes, setupFailFast, setupTestInfoRoute } from "./helpers/routes.js";
+import { setupCommonRoutes, setupFailFast, setupTestInfoRoute, expectNoUnmockedCalls } from "./helpers/routes.js";
 import { MOCK_PLANS, MOCK_PLAN_NO_VARIANTS } from "./fixtures/mock-plans.js";
 import { MOCK_PLAN_DETAIL, MOCK_TEST_STATUS } from "./fixtures/mock-test-data.js";
 import { MOCK_LOG_ENTRIES } from "./fixtures/mock-log-entries.js";
@@ -7,6 +7,10 @@ import { MOCK_LOG_ENTRIES } from "./fixtures/mock-log-entries.js";
 const ALL_PLANS = [...MOCK_PLANS, MOCK_PLAN_NO_VARIANTS];
 
 test.describe("Cross-page journeys", () => {
+  test.afterEach(async ({ page }) => {
+    expectNoUnmockedCalls(page);
+  });
+
   test("schedule → plan-detail → log-detail journey (R21)", async ({ page }) => {
     // Register ALL routes before first navigation — they persist across page loads
     await setupFailFast(page);
@@ -71,20 +75,6 @@ test.describe("Cross-page journeys", () => {
     });
 
     // --- Log-detail routes ---
-    await page.route("**/api/info/test-journey-001", (route) =>
-      route.fulfill({
-        status: 200,
-        contentType: "application/json",
-        body: JSON.stringify({
-          ...MOCK_TEST_STATUS,
-          _id: "test-journey-001",
-          testId: "test-journey-001",
-          testName: "oidcc-client-test",
-          planId: "plan-journey-001",
-        }),
-      }),
-    );
-
     await page.route("**/api/log/test-journey-001**", (route) => {
       const url = new URL(route.request().url());
       const since = url.searchParams.get("since");
@@ -125,7 +115,15 @@ test.describe("Cross-page journeys", () => {
       }),
     );
 
-    await setupTestInfoRoute(page);
+    await setupTestInfoRoute(page, {
+      "test-journey-001": {
+        ...MOCK_TEST_STATUS,
+        _id: "test-journey-001",
+        testId: "test-journey-001",
+        testName: "oidcc-client-test",
+        planId: "plan-journey-001",
+      },
+    });
     await setupCommonRoutes(page);
 
     // === Step 1: schedule-test.html — navigate cascade and create plan ===
@@ -148,6 +146,21 @@ test.describe("Cross-page journeys", () => {
     const moduleRows = page.locator("#planItems .logItem");
     await expect(moduleRows).toHaveCount(1);
     await expect(moduleRows.first()).toContainText("oidcc-client-test");
+
+    // === Step 3: Click Run Test → redirected to log-detail.html ===
+    const runBtn = page.locator(".startBtn").first();
+    await expect(runBtn).toBeVisible();
+    await runBtn.click();
+
+    await page.waitForURL("**/log-detail.html?log=test-journey-001");
+
+    // Verify log-detail loaded with correct test
+    await expect(page.locator("#logHeader")).toContainText("oidcc-client-test");
+    await expect(page.locator("#logHeader")).toContainText("test-journey-001");
+
+    // Verify log entries rendered
+    const logEntries = page.locator(".logItem");
+    await expect(logEntries.first()).toBeVisible();
   });
 
   test("plan-detail → log-detail journey (R22)", async ({ page }) => {
@@ -177,19 +190,6 @@ test.describe("Cross-page journeys", () => {
     });
 
     // Log-detail routes
-    await page.route("**/api/info/test-run-001", (route) =>
-      route.fulfill({
-        status: 200,
-        contentType: "application/json",
-        body: JSON.stringify({
-          ...MOCK_TEST_STATUS,
-          _id: "test-run-001",
-          testId: "test-run-001",
-          planId: "plan-abc-123",
-        }),
-      }),
-    );
-
     await page.route("**/api/log/test-run-001**", (route) => {
       const url = new URL(route.request().url());
       const since = url.searchParams.get("since");
@@ -222,7 +222,14 @@ test.describe("Cross-page journeys", () => {
       }),
     );
 
-    await setupTestInfoRoute(page);
+    await setupTestInfoRoute(page, {
+      "test-run-001": {
+        ...MOCK_TEST_STATUS,
+        _id: "test-run-001",
+        testId: "test-run-001",
+        planId: "plan-abc-123",
+      },
+    });
     await setupCommonRoutes(page);
 
     // === Step 1: plan-detail.html ===

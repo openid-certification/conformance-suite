@@ -1,8 +1,12 @@
 import { test, expect } from "@playwright/test";
-import { setupCommonRoutes, setupFailFast, wrapDataTablesResponse } from "./helpers/routes.js";
+import { setupCommonRoutes, setupFailFast, wrapDataTablesResponse, expectNoUnmockedCalls } from "./helpers/routes.js";
 import { MOCK_LOG_LIST } from "./fixtures/mock-log-list.js";
 
 test.describe("logs.html — Logs List", () => {
+  test.afterEach(async ({ page }) => {
+    expectNoUnmockedCalls(page);
+  });
+
   test("loads and renders logs in DataTable (R27)", async ({ page }) => {
     await setupFailFast(page);
 
@@ -36,13 +40,9 @@ test.describe("logs.html — Logs List", () => {
   });
 
   test("search triggers DataTable re-fetch with Enter key", async ({ page }) => {
-    let searchTerm = "";
-
     await setupFailFast(page);
 
     await page.route("**/api/log?*", (route) => {
-      const url = new URL(route.request().url());
-      searchTerm = url.searchParams.get("search") || "";
       const envelope = wrapDataTablesResponse(
         MOCK_LOG_LIST,
         route.request().url(),
@@ -61,14 +61,15 @@ test.describe("logs.html — Logs List", () => {
     // Wait for initial table load
     await expect(page.locator("#logsListing tbody tr").first()).toBeVisible();
 
-    // Type search term and press Enter
+    // Type search term and press Enter — set up waitForRequest BEFORE the
+    // action so the listener is active when the request fires
     const searchInput = page.locator("div.dataTables_filter input");
     await searchInput.fill("rotate-keys");
+    const searchRequest = page.waitForRequest((req) =>
+      req.url().includes("/api/log?") && req.url().includes("search=rotate-keys"),
+    );
     await searchInput.press("Enter");
-
-    // Verify the search parameter was sent
-    await page.waitForTimeout(500);
-    expect(searchTerm).toBe("rotate-keys");
+    await searchRequest;
   });
 
   test("config button in log row opens config modal", async ({ page }) => {

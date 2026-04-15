@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { setupCommonRoutes, setupFailFast } from "./helpers/routes.js";
+import { setupCommonRoutes, setupFailFast, expectNoUnmockedCalls } from "./helpers/routes.js";
 import { MOCK_TEST_STATUS, MOCK_TEST_FAILED, MOCK_TEST_WARNING } from "./fixtures/mock-test-data.js";
 import { MOCK_LOG_ENTRIES, MOCK_FAILED_LOG_ENTRIES, MOCK_WARNING_LOG_ENTRIES } from "./fixtures/mock-log-entries.js";
 
@@ -67,6 +67,10 @@ async function setupLogDetailRoutes(page, { testInfo, logEntries }) {
 }
 
 test.describe("log-detail.html — Log Detail", () => {
+  test.afterEach(async ({ page }) => {
+    expectNoUnmockedCalls(page);
+  });
+
   test("loads and renders log header (R16)", async ({ page }) => {
     await setupFailFast(page);
     await setupLogDetailRoutes(page, {
@@ -109,6 +113,13 @@ test.describe("log-detail.html — Log Detail", () => {
 
     // Check WARNING badge exists (entry-6 has result: "WARNING")
     await expect(page.locator('[data-entry-result="warning"]').first()).toBeVisible();
+
+    // Requirement badge renders as a clickable link when specLinks prefix matches (R7-specLinks)
+    const requirementLink = page.locator('.log-requirement a[href*="openid-connect-core"]').first();
+    await expect(requirementLink).toBeVisible();
+    await expect(requirementLink).toContainText("OIDCC-3.1.3.3");
+    await expect(requirementLink).toHaveAttribute("href", "https://openid.net/specs/openid-connect-core-1_0.html#section-3.1.3.3");
+    await expect(requirementLink).toHaveAttribute("target", "_blank");
   });
 
   test("clicking a log entry expands detailed content (R18)", async ({ page }) => {

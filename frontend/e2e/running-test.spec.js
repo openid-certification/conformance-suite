@@ -1,5 +1,6 @@
 import { test, expect } from "@playwright/test";
-import { setupCommonRoutes, setupFailFast } from "./helpers/routes.js";
+import { setupCommonRoutes, setupFailFast, expectNoUnmockedCalls } from "./helpers/routes.js";
+import { MOCK_TEST_RUNNING, MOCK_TEST_RUNNING_2 } from "./fixtures/mock-test-data.js";
 
 const NOW = Date.now();
 
@@ -20,11 +21,11 @@ const RUNNER_DETAIL_2 = {
   owner: { sub: "12345", iss: "https://accounts.google.com" },
 };
 
-/** Mock /api/info/:testId — shape used by the TEST_STATUS template */
-const INFO_RUNNING = { status: "RUNNING", result: null };
-const INFO_WAITING = { status: "WAITING", result: null };
-
 test.describe("running-test.html — Running Tests", () => {
+  test.afterEach(async ({ page }) => {
+    expectNoUnmockedCalls(page);
+  });
+
   test("loads and renders running tests (R12)", async ({ page }) => {
     await setupFailFast(page);
     await setupCommonRoutes(page);
@@ -59,14 +60,14 @@ test.describe("running-test.html — Running Tests", () => {
       route.fulfill({
         status: 200,
         contentType: "application/json",
-        body: JSON.stringify(INFO_RUNNING),
+        body: JSON.stringify(MOCK_TEST_RUNNING),
       }),
     );
     await page.route("**/api/info/test-running-002", (route) =>
       route.fulfill({
         status: 200,
         contentType: "application/json",
-        body: JSON.stringify(INFO_WAITING),
+        body: JSON.stringify(MOCK_TEST_RUNNING_2),
       }),
     );
 
@@ -114,7 +115,7 @@ test.describe("running-test.html — Running Tests", () => {
       route.fulfill({
         status: 200,
         contentType: "application/json",
-        body: JSON.stringify(INFO_RUNNING),
+        body: JSON.stringify(MOCK_TEST_RUNNING),
       }),
     );
 
@@ -178,7 +179,7 @@ test.describe("running-test.html — Running Tests", () => {
       route.fulfill({
         status: 200,
         contentType: "application/json",
-        body: JSON.stringify(INFO_RUNNING),
+        body: JSON.stringify(MOCK_TEST_RUNNING),
       }),
     );
 
@@ -224,7 +225,7 @@ test.describe("running-test.html — Running Tests", () => {
       route.fulfill({
         status: 200,
         contentType: "application/json",
-        body: JSON.stringify(INFO_RUNNING),
+        body: JSON.stringify(MOCK_TEST_RUNNING),
       }),
     );
 

@@ -2,7 +2,7 @@
  * Playwright page.route() helpers for E2E tests.
  *
  * All routes MUST be registered before page.goto() because fapi.ui.js fires
- * fetch('api/ui/spec_links?public=true') at script parse time (IIFE at line 741).
+ * fetch('api/ui/spec_links?public=true') at script parse time (loadSpecLinksMapping IIFE).
  *
  * Playwright matches routes in REVERSE registration order (last registered = first tried).
  * Register setupFailFast() FIRST, then specific routes, so the catch-all runs last.
@@ -48,15 +48,20 @@ export async function setupCommonRoutes(page, options = {}) {
     route.fulfill({
       status: 200,
       contentType: "application/json",
-      body: JSON.stringify({}),
+      body: JSON.stringify({
+        "OIDCC-": "https://openid.net/specs/openid-connect-core-1_0.html#section-",
+      }),
     }),
   );
 }
 
 /**
  * Register a wildcard /api/info/:testId route that returns MOCK_TEST_STATUS
- * with the testId from the URL. Pages that need specific data can register
- * a more specific route before this one.
+ * with the testId from the URL. To provide test-specific data, pass entries
+ * in testStatusMap — do NOT register separate /api/info/:id routes before
+ * calling this function, because this wildcard would be registered after them
+ * and Playwright checks last-registered routes first, causing it to shadow
+ * more specific routes.
  */
 export async function setupTestInfoRoute(page, testStatusMap = {}) {
   await page.route("**/api/info/**", (route) => {
@@ -95,14 +100,40 @@ export function wrapDataTablesResponse(data, requestUrl) {
  * MUST be called FIRST — Playwright matches routes in reverse registration
  * order, so the first-registered route runs last (as a true fallback).
  *
- * The handler aborts the request so unmocked calls fail immediately
- * instead of hanging for 30 seconds.
- *
+ * The handler aborts the request AND records the URL. After the test,
+ * call {@link expectNoUnmockedCalls} to fail the test if any unmocked
+ * API calls were made — route.abort() alone doesn't reliably fail tests
+ * because pages may catch fetch errors and render an error modal.
  */
 export async function setupFailFast(page) {
+  /** @type {string[]} */
+  page.__unmockedApiCalls = [];
+
   await page.route("**/api/**", (route) => {
     const url = route.request().url();
+    page.__unmockedApiCalls.push(url);
     console.error(`[fail-fast] Unmocked API route: ${url}`);
     return route.abort("failed");
   });
+}
+
+/**
+ * Assert that no unmocked API calls were recorded by setupFailFast.
+ * Call this at the end of each test (or in afterEach) to surface
+ * unmocked calls as real test failures.
+ *
+ * @param {import('@playwright/test').Page} page
+ */
+export function expectNoUnmockedCalls(page) {
+  if (!page.__unmockedApiCalls) {
+    throw new Error(
+      "setupFailFast() was not called for this test — unmocked API calls would not be detected",
+    );
+  }
+  const calls = page.__unmockedApiCalls;
+  if (calls.length > 0) {
+    throw new Error(
+      `Unmocked API calls detected:\n  ${calls.join("\n  ")}`,
+    );
+  }
 }

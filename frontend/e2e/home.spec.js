@@ -1,7 +1,11 @@
 import { test, expect } from "@playwright/test";
-import { setupCommonRoutes, setupFailFast } from "./helpers/routes.js";
+import { setupCommonRoutes, setupFailFast, expectNoUnmockedCalls } from "./helpers/routes.js";
 
 test.describe("index.html — Home page", () => {
+  test.afterEach(async ({ page }) => {
+    expectNoUnmockedCalls(page);
+  });
+
   test("loads with server info and user info (R25, R23)", async ({ page }) => {
     // Fail-fast registered first so it runs last (Playwright matches in reverse order)
     await setupFailFast(page);
