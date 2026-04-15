@@ -28,6 +28,21 @@ async function mswLoader(context) {
   }
 }
 
+/**
+ * Clean up Bootstrap modal artifacts between stories.
+ *
+ * Bootstrap appends `.modal-backdrop` to document.body and sets
+ * `overflow: hidden` on the body when a modal is open.  Storybook
+ * replaces the canvas element per-story but body-level artifacts
+ * survive, causing a persistent dark overlay and locked scroll.
+ */
+function cleanupBootstrapModals() {
+  document.querySelectorAll(".modal-backdrop").forEach((el) => el.remove());
+  document.body.classList.remove("modal-open");
+  document.body.style.removeProperty("overflow");
+  document.body.style.removeProperty("padding-right");
+}
+
 export default definePreview({
   parameters: {
     controls: {
@@ -38,4 +53,10 @@ export default definePreview({
     },
   },
   loaders: [mswLoader],
+  decorators: [
+    (story) => {
+      cleanupBootstrapModals();
+      return story();
+    },
+  ],
 });
