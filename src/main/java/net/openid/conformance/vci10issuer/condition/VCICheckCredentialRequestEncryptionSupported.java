@@ -61,6 +61,12 @@ public class VCICheckCredentialRequestEncryptionSupported extends AbstractVCIChe
 					args("key", keyEl, "jwks", jwks));
 			}
 			JsonObject key = keyEl.getAsJsonObject();
+			JsonElement ktyEl = key.get("kty");
+			if (ktyEl == null || !ktyEl.isJsonPrimitive() || OIDFJSON.getString(ktyEl).isBlank()) {
+				throw error("credential_issuer_metadata.credential_request_encryption.jwks.keys[" + i + "] "
+					+ "is missing a 'kty'",
+					args("key", key, "jwks", jwks));
+			}
 			JsonElement kidEl = key.get("kid");
 			if (kidEl == null || !kidEl.isJsonPrimitive()) {
 				throw error("credential_issuer_metadata.credential_request_encryption.jwks.keys[" + i + "] "
