@@ -1,6 +1,7 @@
 import { test, expect } from "@playwright/test";
 import { setupCommonRoutes, setupFailFast, setupTestInfoRoute, expectNoUnmockedCalls } from "./helpers/routes.js";
 import { MOCK_PLAN_DETAIL, MOCK_TEST_STATUS } from "./fixtures/mock-test-data.js";
+import { MOCK_ADMIN_USER } from "./fixtures/mock-users.js";
 
 test.describe("plan-detail.html — Plan Detail", () => {
   test.afterEach(async ({ page }) => {
@@ -154,5 +155,168 @@ test.describe("plan-detail.html — Plan Detail", () => {
     // Cancel → modal closes, no API call
     await deleteModal.locator('[data-bs-dismiss="modal"]').first().click();
     await expect(deleteModal).not.toBeVisible();
+  });
+
+  test("publish button opens confirmation modal with secrets warning (R1)", async ({ page }) => {
+    await setupFailFast(page);
+
+    await page.route("**/api/plan/plan-abc-123", (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(MOCK_PLAN_DETAIL),
+      }),
+    );
+
+    await setupTestInfoRoute(page);
+    await setupCommonRoutes(page, { user: MOCK_ADMIN_USER });
+
+    await page.goto("/plan-detail.html?plan=plan-abc-123");
+
+    // Publish button visible for admin user on unpublished plan
+    const publishBtn = page.locator("#publishBtn");
+    await expect(publishBtn).toBeVisible();
+
+    // Modal hidden initially
+    const publishModal = page.locator("#publishModal");
+    await expect(publishModal).not.toBeVisible();
+
+    // Click publish → modal opens with secrets warning
+    await publishBtn.click();
+    await expect(publishModal).toBeVisible();
+    await expect(publishModal).toContainText("keys, secrets, and all other test information publicly visible");
+  });
+
+  test("publish confirm sends POST /api/plan/:id/publish and navigates (R2)", async ({ page }) => {
+    await setupFailFast(page);
+
+    await page.route("**/api/plan/plan-abc-123?*", (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({ ...MOCK_PLAN_DETAIL, publish: "everything" }),
+      }),
+    );
+
+    await page.route("**/api/plan/plan-abc-123", (route) => {
+      if (route.request().method() === "DELETE") {
+        return route.fulfill({ status: 200, body: "" });
+      }
+      return route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(MOCK_PLAN_DETAIL),
+      });
+    });
+
+    await page.route("**/api/plan/plan-abc-123/publish", (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({ ...MOCK_PLAN_DETAIL, publish: "everything" }),
+      }),
+    );
+
+    await setupTestInfoRoute(page);
+    await setupCommonRoutes(page, { user: MOCK_ADMIN_USER });
+
+    await page.goto("/plan-detail.html?plan=plan-abc-123");
+
+    // Open publish modal
+    await page.locator("#publishBtn").click();
+    await expect(page.locator("#publishModal")).toBeVisible();
+
+    // Set up request interception BEFORE clicking
+    const publishRequest = page.waitForRequest((req) =>
+      req.url().includes("/api/plan/plan-abc-123/publish") && req.method() === "POST"
+    );
+
+    // Click the publish confirm button (has data-publish="everything")
+    await page.locator('#publishModal [data-publish="everything"]').click();
+
+    // Verify POST was sent with correct body
+    const req = await publishRequest;
+    expect(JSON.parse(req.postData())).toEqual({ publish: "everything" });
+
+    // Should navigate to public view
+    await page.waitForURL("**/plan-detail.html?plan=plan-abc-123&public=true");
+  });
+
+  test("publish cancel closes modal without POST (R3)", async ({ page }) => {
+    await setupFailFast(page);
+
+    let publishPostCalled = false;
+
+    await page.route("**/api/plan/plan-abc-123", (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(MOCK_PLAN_DETAIL),
+      }),
+    );
+
+    await page.route("**/api/plan/plan-abc-123/publish", (route) => {
+      publishPostCalled = true;
+      return route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({}),
+      });
+    });
+
+    await setupTestInfoRoute(page);
+    await setupCommonRoutes(page, { user: MOCK_ADMIN_USER });
+
+    await page.goto("/plan-detail.html?plan=plan-abc-123");
+
+    // Open modal
+    await page.locator("#publishBtn").click();
+    await expect(page.locator("#publishModal")).toBeVisible();
+
+    // Click Cancel (the button WITHOUT data-publish attribute)
+    await page.locator('#publishModal').getByRole("button", { name: "Cancel" }).click();
+
+    // Modal should close
+    await expect(page.locator("#publishModal")).not.toBeVisible();
+
+    // No POST should have been made
+    expect(publishPostCalled).toBe(false);
+  });
+
+  test("delete confirm sends DELETE /api/plan/:planId (R4)", async ({ page }) => {
+    await setupFailFast(page);
+
+    await page.route("**/api/plan/plan-abc-123", (route) => {
+      if (route.request().method() === "DELETE") {
+        return route.fulfill({ status: 200, body: "" });
+      }
+      return route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(MOCK_PLAN_DETAIL),
+      });
+    });
+
+    await setupTestInfoRoute(page);
+    await setupCommonRoutes(page);
+
+    await page.goto("/plan-detail.html?plan=plan-abc-123");
+
+    // Open delete modal
+    await page.locator("#deleteMutablePlanBtn").click();
+    await expect(page.locator("#deletePlanModal")).toBeVisible();
+
+    // Set up request interception BEFORE clicking confirm
+    const deleteRequest = page.waitForRequest((req) =>
+      req.url().includes("/api/plan/plan-abc-123") && req.method() === "DELETE"
+    );
+
+    // Click confirm delete
+    await page.locator("#confirmDeletePlanBtn").click();
+
+    // Verify DELETE was sent
+    const req = await deleteRequest;
+    expect(req.method()).toBe("DELETE");
+    expect(req.url()).toContain("/api/plan/plan-abc-123");
   });
 });
