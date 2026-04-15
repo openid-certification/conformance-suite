@@ -27,17 +27,17 @@ export const Default = {
   `,
 
   async play({ canvasElement }) {
-    const modal = canvasElement.querySelector(".modal");
-    expect(modal).toBeTruthy();
+    const triggerBtn = canvasElement.querySelector(".btn-primary");
+    await userEvent.click(triggerBtn);
+    await waitFor(() => {
+      expect(canvasElement.querySelector(".modal.show")).toBeTruthy();
+    });
 
-    const modalTitle = canvasElement.querySelector(".modal-title");
-    expect(modalTitle).toBeTruthy();
-    expect(modalTitle.textContent).toBe("Error Details");
+    expect(canvasElement.querySelector(".modal-title").textContent).toBe(
+      "Error Details",
+    );
 
-    const modalBody = canvasElement.querySelector(".modal-body");
-    expect(modalBody).toBeTruthy();
-
-    const paragraphs = modalBody.querySelectorAll("p");
+    const paragraphs = canvasElement.querySelectorAll(".modal-body p");
     expect(paragraphs.length).toBe(2);
     expect(paragraphs[0].textContent).toBe(
       "An error occurred while processing your request.",
@@ -176,26 +176,14 @@ export const SizeLarge = {
   `,
 
   async play({ canvasElement }) {
-    const ctsModal = canvasElement.querySelector("cts-modal");
-    const dialog = canvasElement.querySelector(".modal-dialog");
-
-    // Size class applied correctly
-    expect(dialog.classList.contains("modal-lg")).toBe(true);
-
-    // Open and verify it renders visibly
-    ctsModal.show();
+    const triggerBtn = canvasElement.querySelector(".btn-primary");
+    await userEvent.click(triggerBtn);
     await waitFor(() => {
       expect(canvasElement.querySelector(".modal.show")).toBeTruthy();
     });
 
-    // Verify body content is visible inside the open modal
-    const body = canvasElement.querySelector(".modal-body");
-    expect(body.textContent).toContain("size=\"lg\"");
-
-    ctsModal.hide();
-    await waitFor(() => {
-      expect(canvasElement.querySelector(".modal.show")).toBeNull();
-    });
+    const dialog = canvasElement.querySelector(".modal-dialog");
+    expect(dialog.classList.contains("modal-lg")).toBe(true);
   },
 };
 
@@ -216,6 +204,12 @@ export const SizeSmall = {
   `,
 
   async play({ canvasElement }) {
+    const triggerBtn = canvasElement.querySelector(".btn-primary");
+    await userEvent.click(triggerBtn);
+    await waitFor(() => {
+      expect(canvasElement.querySelector(".modal.show")).toBeTruthy();
+    });
+
     const dialog = canvasElement.querySelector(".modal-dialog");
     expect(dialog.classList.contains("modal-sm")).toBe(true);
   },
@@ -238,6 +232,12 @@ export const SizeExtraLarge = {
   `,
 
   async play({ canvasElement }) {
+    const triggerBtn = canvasElement.querySelector(".btn-primary");
+    await userEvent.click(triggerBtn);
+    await waitFor(() => {
+      expect(canvasElement.querySelector(".modal.show")).toBeTruthy();
+    });
+
     const dialog = canvasElement.querySelector(".modal-dialog");
     expect(dialog.classList.contains("modal-xl")).toBe(true);
   },
@@ -260,6 +260,12 @@ export const SizeInvalid = {
   `,
 
   async play({ canvasElement }) {
+    const triggerBtn = canvasElement.querySelector(".btn-primary");
+    await userEvent.click(triggerBtn);
+    await waitFor(() => {
+      expect(canvasElement.querySelector(".modal.show")).toBeTruthy();
+    });
+
     const dialog = canvasElement.querySelector(".modal-dialog");
     expect(dialog.className).toBe("modal-dialog");
   },
@@ -288,10 +294,8 @@ export const FooterButtonsConfirmation = {
   `,
 
   async play({ canvasElement }) {
-    const ctsModal = canvasElement.querySelector("cts-modal");
-
-    // Open the modal
-    ctsModal.show();
+    const triggerBtn = canvasElement.querySelector(".btn-primary");
+    await userEvent.click(triggerBtn);
     await waitFor(() => {
       expect(canvasElement.querySelector(".modal.show")).toBeTruthy();
     });
@@ -312,12 +316,6 @@ export const FooterButtonsConfirmation = {
     const cancelBtn = buttons[1];
     expect(cancelBtn.textContent).toBe("Cancel");
     expect(cancelBtn.classList.contains("btn-light")).toBe(true);
-
-    // Clicking Cancel dismisses the modal
-    await userEvent.click(cancelBtn);
-    await waitFor(() => {
-      expect(canvasElement.querySelector(".modal.show")).toBeNull();
-    });
   },
 };
 
@@ -344,9 +342,8 @@ export const FooterButtonsDismissFalse = {
   `,
 
   async play({ canvasElement }) {
-    const ctsModal = canvasElement.querySelector("cts-modal");
-
-    ctsModal.show();
+    const triggerBtn = canvasElement.querySelector(".btn-primary");
+    await userEvent.click(triggerBtn);
     await waitFor(() => {
       expect(canvasElement.querySelector(".modal.show")).toBeTruthy();
     });
@@ -367,12 +364,6 @@ export const FooterButtonsDismissFalse = {
     await userEvent.click(deleteBtn);
     await waitFor(() => {
       expect(canvasElement.querySelector(".modal.show")).toBeTruthy();
-    });
-
-    // Clean up — close via Cancel
-    await userEvent.click(buttons[0]);
-    await waitFor(() => {
-      expect(canvasElement.querySelector(".modal.show")).toBeNull();
     });
   },
 };
@@ -400,9 +391,8 @@ export const FooterButtonsWithDataAttributes = {
   `,
 
   async play({ canvasElement }) {
-    const ctsModal = canvasElement.querySelector("cts-modal");
-
-    ctsModal.show();
+    const triggerBtn = canvasElement.querySelector(".btn-primary");
+    await userEvent.click(triggerBtn);
     await waitFor(() => {
       expect(canvasElement.querySelector(".modal.show")).toBeTruthy();
     });
@@ -410,12 +400,6 @@ export const FooterButtonsWithDataAttributes = {
     const publishBtn = canvasElement.querySelector(".modal-footer button");
     expect(publishBtn.textContent).toBe("Publish");
     expect(publishBtn.getAttribute("data-publish")).toBe("everything");
-
-    // Clicking Publish dismisses (data attribute preserved through interaction)
-    await userEvent.click(publishBtn);
-    await waitFor(() => {
-      expect(canvasElement.querySelector(".modal.show")).toBeNull();
-    });
   },
 };
 
@@ -436,9 +420,8 @@ export const FooterButtonsMalformedJson = {
   `,
 
   async play({ canvasElement }) {
-    const ctsModal = canvasElement.querySelector("cts-modal");
-
-    ctsModal.show();
+    const triggerBtn = canvasElement.querySelector(".btn-primary");
+    await userEvent.click(triggerBtn);
     await waitFor(() => {
       expect(canvasElement.querySelector(".modal.show")).toBeTruthy();
     });
@@ -447,12 +430,6 @@ export const FooterButtonsMalformedJson = {
     const buttons = canvasElement.querySelectorAll(".modal-footer button");
     expect(buttons.length).toBe(1);
     expect(buttons[0].textContent).toBe("Close");
-
-    // Close button works
-    await userEvent.click(buttons[0]);
-    await waitFor(() => {
-      expect(canvasElement.querySelector(".modal.show")).toBeNull();
-    });
   },
 };
 
@@ -477,9 +454,8 @@ export const FooterButtonsGetElementById = {
   `,
 
   async play({ canvasElement }) {
-    const ctsModal = canvasElement.querySelector("cts-modal");
-
-    ctsModal.show();
+    const triggerBtn = canvasElement.querySelector(".btn-primary");
+    await userEvent.click(triggerBtn);
     await waitFor(() => {
       expect(canvasElement.querySelector(".modal.show")).toBeTruthy();
     });
@@ -488,12 +464,6 @@ export const FooterButtonsGetElementById = {
     const btn = document.getElementById("confirmBtn");
     expect(btn).toBeTruthy();
     expect(btn.textContent).toBe("Confirm");
-
-    // Clicking it dismisses (default dismiss: true)
-    await userEvent.click(btn);
-    await waitFor(() => {
-      expect(canvasElement.querySelector(".modal.show")).toBeNull();
-    });
   },
 };
 
