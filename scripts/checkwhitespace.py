@@ -33,7 +33,8 @@ extensions_to_check = [
 ]
 
 config_ignore = [
-    '.idea/'
+    '.idea/',
+    'src/main/resources/static/vendor/',
 ]
 
 extensions_no_tabs = [
