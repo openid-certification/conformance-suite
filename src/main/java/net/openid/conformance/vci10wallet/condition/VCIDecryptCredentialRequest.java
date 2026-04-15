@@ -84,6 +84,7 @@ public class VCIDecryptCredentialRequest extends AbstractCondition {
 		}
 
 		JWEAlgorithm algorithm = jweObject.getHeader().getAlgorithm();
+		String kid = jweObject.getHeader().getKeyID();
 
 		JWKSet jwkSet;
 		try {
@@ -92,11 +93,11 @@ public class VCIDecryptCredentialRequest extends AbstractCondition {
 			throw error("Failed to parse vci.credential_request_encryption_jwks", e);
 		}
 
-		JWK decryptionKey = JWEUtil.selectAsymmetricKeyForEncryption(jwkSet, algorithm);
+		JWK decryptionKey = JWEUtil.selectAsymmetricKeyForEncryption(jwkSet, algorithm, kid);
 		if (decryptionKey == null) {
 			String errorDescription = "No suitable key for decrypting the credential request was found";
 			VCICredentialErrorResponseUtil.updateCredentialErrorResponseInEnv(env, VciErrorCode.INVALID_CREDENTIAL_REQUEST, errorDescription);
-			throw error(errorDescription, args("algorithm", algorithm.getName()));
+			throw error(errorDescription, args("algorithm", algorithm.getName(), "kid", kid));
 		}
 
 		String decryptedPayload;
