@@ -1,11 +1,15 @@
 import { test, expect } from "@playwright/test";
-import { setupCommonRoutes, setupFailFast } from "./helpers/routes.js";
+import { setupCommonRoutes, setupFailFast, expectNoUnmockedCalls } from "./helpers/routes.js";
 import { MOCK_PLANS, MOCK_PLAN_NO_VARIANTS } from "./fixtures/mock-plans.js";
 
 /** All available plans including the no-variants plan */
 const ALL_PLANS = [...MOCK_PLANS, MOCK_PLAN_NO_VARIANTS];
 
 test.describe("schedule-test.html — Test Plan Scheduling", () => {
+  test.afterEach(async ({ page }) => {
+    expectNoUnmockedCalls(page);
+  });
+
   test("cascade populates specification families (R7)", async ({ page }) => {
     await setupFailFast(page);
 

@@ -1,8 +1,12 @@
 import { test, expect } from "@playwright/test";
-import { setupCommonRoutes, setupFailFast, setupTestInfoRoute, wrapDataTablesResponse } from "./helpers/routes.js";
+import { setupCommonRoutes, setupFailFast, setupTestInfoRoute, wrapDataTablesResponse, expectNoUnmockedCalls } from "./helpers/routes.js";
 import { MOCK_PLAN_LIST } from "./fixtures/mock-plans.js";
 
 test.describe("plans.html — Plans List", () => {
+  test.afterEach(async ({ page }) => {
+    expectNoUnmockedCalls(page);
+  });
+
   test("loads and renders plans in DataTable (R26)", async ({ page }) => {
     await setupFailFast(page);
 
