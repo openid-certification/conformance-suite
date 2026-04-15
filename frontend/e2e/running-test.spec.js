@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { setupCommonRoutes, setupFailFast } from "./helpers/routes.js";
+import { setupCommonRoutes, setupFailFast, expectNoUnmockedCalls } from "./helpers/routes.js";
 
 const NOW = Date.now();
 
@@ -25,6 +25,10 @@ const INFO_RUNNING = { status: "RUNNING", result: null };
 const INFO_WAITING = { status: "WAITING", result: null };
 
 test.describe("running-test.html — Running Tests", () => {
+  test.afterEach(async ({ page }) => {
+    expectNoUnmockedCalls(page);
+  });
+
   test("loads and renders running tests (R12)", async ({ page }) => {
     await setupFailFast(page);
     await setupCommonRoutes(page);

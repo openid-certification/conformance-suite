@@ -1,8 +1,12 @@
 import { test, expect } from "@playwright/test";
-import { setupCommonRoutes, setupFailFast, wrapDataTablesResponse } from "./helpers/routes.js";
+import { setupCommonRoutes, setupFailFast, wrapDataTablesResponse, expectNoUnmockedCalls } from "./helpers/routes.js";
 import { MOCK_LOG_LIST } from "./fixtures/mock-log-list.js";
 
 test.describe("logs.html — Logs List", () => {
+  test.afterEach(async ({ page }) => {
+    expectNoUnmockedCalls(page);
+  });
+
   test("loads and renders logs in DataTable (R27)", async ({ page }) => {
     await setupFailFast(page);
 
