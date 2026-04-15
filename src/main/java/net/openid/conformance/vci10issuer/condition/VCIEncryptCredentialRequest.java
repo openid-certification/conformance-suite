@@ -88,10 +88,8 @@ public class VCIEncryptCredentialRequest extends AbstractCondition {
 
 		String alg = encryptionKey.getAlgorithm().getName();
 
-		// enc is obtained from context: use the first value from enc_values_supported. The
-		// presence and non-emptiness of this array is already guaranteed by the encrypted-variant
-		// skip gate in AbstractVCIIssuerTestModule.onConfigure; throw here if it's not so the
-		// precondition is enforced in one place rather than papered over with a default.
+		// enc_values_supported is REQUIRED per OID4VCI 1.0 §12.2.4 — fail loudly rather than
+		// guessing a default when it is missing.
 		JsonElement encValuesEl = env.getElementFromObject("vci",
 			"credential_issuer_metadata.credential_request_encryption.enc_values_supported");
 		if (encValuesEl == null || !encValuesEl.isJsonArray() || encValuesEl.getAsJsonArray().isEmpty()) {

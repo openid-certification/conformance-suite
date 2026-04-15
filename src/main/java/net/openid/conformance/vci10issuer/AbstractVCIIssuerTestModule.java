@@ -186,7 +186,6 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractFAPI2SPFinalSe
 
 	@Override
 	protected void onConfigure(JsonObject config, String baseUrl) {
-		// Check if the issuer supports encryption
 		if (vciCredentialEncryption == VCICredentialEncryption.ENCRYPTED) {
 			callAndStopOnFailure(VCICheckCredentialResponseEncryptionSupported.class, "OID4VCI-1FINAL-12.2.4");
 			callAndStopOnFailure(VCICheckCredentialRequestEncryptionSupported.class, "OID4VCI-1FINAL-12.2.4");
@@ -196,8 +195,6 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractFAPI2SPFinalSe
 			boolean requestDeclared = env.getElementFromObject("vci",
 				"credential_issuer_metadata.credential_request_encryption") != null;
 
-			// If the issuer publishes neither credential_response_encryption nor credential_request_encryption,
-			// it does not support credential encryption at all — skip the encrypted variant of the test.
 			if (!responseDeclared && !requestDeclared) {
 				fireTestSkipped("Credential encryption is not supported by the credential issuer"
 					+ " - neither credential_response_encryption nor credential_request_encryption are"
@@ -205,8 +202,6 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractFAPI2SPFinalSe
 				return;
 			}
 
-			// Otherwise, per OID4VCI 1.0 Section 8.2, the two metadata blocks MUST appear together.
-			// Fail the test if exactly one is present.
 			callAndStopOnFailure(VCIEnsureCredentialEncryptionMetadataIsConsistent.class, "OID4VCI-1FINAL-8.2", "OID4VCI-1FINAL-12.2.4");
 		}
 
