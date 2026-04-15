@@ -1,8 +1,12 @@
 import { test, expect } from "@playwright/test";
-import { setupCommonRoutes, setupFailFast, setupTestInfoRoute } from "./helpers/routes.js";
+import { setupCommonRoutes, setupFailFast, setupTestInfoRoute, expectNoUnmockedCalls } from "./helpers/routes.js";
 import { MOCK_PLAN_DETAIL, MOCK_TEST_STATUS } from "./fixtures/mock-test-data.js";
 
 test.describe("plan-detail.html — Plan Detail", () => {
+  test.afterEach(async ({ page }) => {
+    expectNoUnmockedCalls(page);
+  });
+
   test("loads and renders plan info with modules (R28)", async ({ page }) => {
     await setupFailFast(page);
 
