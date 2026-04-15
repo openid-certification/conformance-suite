@@ -706,7 +706,7 @@ var FAPI_UI = {
 								var resultModal = bootstrap.Modal.getOrCreateInstance(myModalEl);
 
 								myModalEl.addEventListener('show.bs.modal', function (event) {
-									document.getElementById('privateLinkResultModalLabel').textContent =
+									document.getElementById('privateLinkResultModal-title').textContent =
 										clipboardSucceeded ? 'Private Link (Copied To Clipboard)' : 'Private Link';
 									document.getElementById('privateLinkResultModalBody').textContent = shareLink.link;
 									document.getElementById('privateLinkResultModalBodyMessage').textContent = shareLink.message;
