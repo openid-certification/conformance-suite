@@ -68,7 +68,8 @@ import net.openid.conformance.vci10issuer.condition.VCIAddCredentialResponseEncr
 import net.openid.conformance.vci10issuer.condition.VCICheckCredentialRequestEncryptionSupported;
 import net.openid.conformance.vci10issuer.condition.VCICheckCredentialResponseEncryptionSupported;
 import net.openid.conformance.vci10issuer.condition.VCIEncryptCredentialRequest;
-import net.openid.conformance.vci10issuer.condition.VCIEnsureCredentialEncryptionMetadataIsConsistent;
+import net.openid.conformance.vci10issuer.condition.VCIEnsureCredentialRequestEncryptionWhenResponseEncryptionOptional;
+import net.openid.conformance.vci10issuer.condition.VCIEnsureCredentialRequestEncryptionWhenResponseEncryptionRequired;
 import net.openid.conformance.sequence.client.ValidateSdJwtVcCredentialClaims;
 import net.openid.conformance.vci10issuer.condition.VCICheckForDeferredCredentialResponse;
 import net.openid.conformance.vci10issuer.condition.VCICreateCredentialRequest;
@@ -202,7 +203,11 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractFAPI2SPFinalSe
 				return;
 			}
 
-			callAndStopOnFailure(VCIEnsureCredentialEncryptionMetadataIsConsistent.class, "OID4VCI-1FINAL-8.2", "OID4VCI-1FINAL-12.2.4");
+			// The encrypted variant of this test needs the wallet to be able to encrypt credential
+			// requests, so in both §8.2 sub-cases (encryption_required=true and =false) a missing
+			// credential_request_encryption means we cannot proceed — stop on either failure.
+			callAndStopOnFailure(VCIEnsureCredentialRequestEncryptionWhenResponseEncryptionRequired.class, "OID4VCI-1FINAL-8.2", "OID4VCI-1FINAL-12.2.4");
+			callAndStopOnFailure(VCIEnsureCredentialRequestEncryptionWhenResponseEncryptionOptional.class, "OID4VCI-1FINAL-8.2", "OID4VCI-1FINAL-12.2.4");
 		}
 
 		// Store credential_resource_url for later use (before notification/deferred endpoints may overwrite it)
@@ -915,9 +920,12 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractFAPI2SPFinalSe
 
 		callAndContinueOnFailure(new EnsureHttpStatusCodeIsAnyOf(200, 202), ConditionResult.FAILURE, "OID4VCI-1FINAL-9.2");
 
-		// A successful (200) deferred response is encrypted as application/jwt when request/response
-		// encryption is in use; otherwise it is application/json. A still-pending 202 response is
-		// always application/json per Section 9.3.
+		// Per OID4VCI 1.0 Final §9.2, a Deferred Credential Response is encrypted (as
+		// application/jwt) when credential_response_encryption was requested, otherwise it is
+		// application/json. §9.2 does not carve out a special rule for a still-pending 202 —
+		// only the non-normative example shows application/json — so we deliberately treat a
+		// 202 as JSON here to match the worked example, and warn rather than fail if a
+		// transmitter returns application/jwt for a 202.
 		int deferredStatusCode = env.getInteger("endpoint_response", "status");
 		if (vciCredentialEncryption == VCICredentialEncryption.ENCRYPTED && deferredStatusCode == 200) {
 			callAndContinueOnFailure(EnsureContentTypeApplicationJwt.class, ConditionResult.FAILURE, "OID4VCI-1FINAL-9.2", "OID4VCI-1FINAL-10");
