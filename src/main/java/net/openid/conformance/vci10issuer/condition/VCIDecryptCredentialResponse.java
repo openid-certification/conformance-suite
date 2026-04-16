@@ -50,8 +50,10 @@ public class VCIDecryptCredentialResponse extends AbstractCondition {
 			JWK decryptionKey = JWEUtil.selectAsymmetricKeyForEncryption(jwkSet, algorithm, kid);
 
 			if (decryptionKey == null) {
-				throw error("No suitable key for decrypting the credential response was found in credential_encryption_jwks",
-					args("algorithm", algorithm.getName(), "kid", kid, "credential_encryption_jwks", encryptionJwks));
+				throw error("The credential response was encrypted with an alg/kid that does not match any key the test suite offered"
+					+ " in the credential request's credential_response_encryption.jwks."
+					+ " The issuer must encrypt to one of the keys the client advertised.",
+					args("algorithm", algorithm.getName(), "kid", kid, "offered_jwks", encryptionJwks));
 			}
 
 			// Decrypt the JWE
