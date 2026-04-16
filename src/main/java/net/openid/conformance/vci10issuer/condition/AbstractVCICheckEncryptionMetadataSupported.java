@@ -11,6 +11,11 @@ import net.openid.conformance.testmodule.Environment;
  * blocks of credential issuer metadata. Both blocks are OPTIONAL; when present they share the
  * required fields enc_values_supported, encryption_required, and the optional zip_values_supported.
  *
+ * <p>Structural/type checks (required fields, array-of-strings types, non-empty arrays) are
+ * covered by the JSON schema at {@code json-schemas/oid4vci/credential_issuer_metadata-1_0.json}
+ * via {@code VCICredentialIssuerMetadataValidation}; this condition and its subclasses only add
+ * semantic checks that go beyond what JSON Schema can express (e.g. JWK usability).
+ *
  * @see <a href="https://openid.net/specs/openid-4-verifiable-credential-issuance-1_0.html#section-12.2.4">OID4VCI Section 12.2.4 - Credential Issuer Metadata</a>
  */
 public abstract class AbstractVCICheckEncryptionMetadataSupported extends AbstractCondition {
@@ -18,7 +23,8 @@ public abstract class AbstractVCICheckEncryptionMetadataSupported extends Abstra
 	protected abstract String getMetadataKey();
 
 	/** Subclasses validate fields specific to request- or response-side encryption metadata. */
-	protected abstract void checkDirectionSpecificFields(JsonObject encryptionMetadata);
+	protected void checkDirectionSpecificFields(JsonObject encryptionMetadata) {
+	}
 
 	@Override
 	@PreEnvironment(required = "vci")
@@ -39,42 +45,9 @@ public abstract class AbstractVCICheckEncryptionMetadataSupported extends Abstra
 		JsonObject encryptionMetadata = el.getAsJsonObject();
 
 		checkDirectionSpecificFields(encryptionMetadata);
-		requireNonEmptyArray(encryptionMetadata, "enc_values_supported");
-		requireBoolean(encryptionMetadata, "encryption_required");
-		requireOptionalNonEmptyArray(encryptionMetadata, "zip_values_supported");
 
 		logSuccess("Checked " + key + " metadata", args(key, encryptionMetadata));
 
 		return env;
-	}
-
-	protected void requireNonEmptyArray(JsonObject parent, String field) {
-		JsonElement el = parent.get(field);
-		if (el == null || !el.isJsonArray()) {
-			throw error("Required " + getMetadataKey() + "." + field
-				+ " is missing or not a JSON array", args(field, el));
-		}
-		if (el.getAsJsonArray().isEmpty()) {
-			throw error(getMetadataKey() + "." + field + " must not be empty", args(field, el));
-		}
-	}
-
-	protected void requireBoolean(JsonObject parent, String field) {
-		JsonElement el = parent.get(field);
-		if (el == null || !el.isJsonPrimitive() || !el.getAsJsonPrimitive().isBoolean()) {
-			throw error("Required " + getMetadataKey() + "." + field
-				+ " is missing or not a JSON boolean", args(field, el));
-		}
-	}
-
-	protected void requireOptionalNonEmptyArray(JsonObject parent, String field) {
-		JsonElement el = parent.get(field);
-		if (el == null) {
-			return;
-		}
-		if (!el.isJsonArray() || el.getAsJsonArray().isEmpty()) {
-			throw error(getMetadataKey() + "." + field
-				+ " must not be an empty JSON array", args(field, el));
-		}
 	}
 }

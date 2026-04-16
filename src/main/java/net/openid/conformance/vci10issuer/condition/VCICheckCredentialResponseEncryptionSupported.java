@@ -1,7 +1,5 @@
 package net.openid.conformance.vci10issuer.condition;
 
-import com.google.gson.JsonObject;
-
 /**
  * Validates the credential_response_encryption block of credential issuer metadata, if present.
  *
@@ -12,10 +10,5 @@ public class VCICheckCredentialResponseEncryptionSupported extends AbstractVCICh
 	@Override
 	protected String getMetadataKey() {
 		return "credential_response_encryption";
-	}
-
-	@Override
-	protected void checkDirectionSpecificFields(JsonObject encryptionMetadata) {
-		requireNonEmptyArray(encryptionMetadata, "alg_values_supported");
 	}
 }
