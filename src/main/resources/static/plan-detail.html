@@ -229,9 +229,7 @@
 
                 FAPI_UI.setupPrivateLinkSharing('/api/plan/' + encodeURIComponent(planId) + '/share');
 
-                if (readonly) {
-                    document.getElementById('openIdImage').href = "javascript:void(0)";
-                }
+
 
                 document.querySelectorAll('[data-module]')?.forEach(function(element) {
                     element.onclick = function(evt) {
