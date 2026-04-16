@@ -83,6 +83,7 @@ frontend_e2e_test:
   needs: []
   image: mcr.microsoft.com/playwright:v1.59.1-noble
   script:
+    - node -v && npm -v
     - cd frontend
     - npm ci
     - npx playwright test --config playwright.config.js
