@@ -85,7 +85,7 @@ frontend_e2e_test:
   script:
     - node -v && npm -v
     - cd frontend
-    - npm ci
+    - npm install
     - npx playwright test --config playwright.config.js
   artifacts:
     when: on_failure
