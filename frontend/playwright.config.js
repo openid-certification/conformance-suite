@@ -20,7 +20,7 @@ export default defineConfig({
   ],
 
   webServer: {
-    command: "npx http-server ../src/main/resources/static -p 9876 -s",
+    command: "./node_modules/.bin/http-server ../src/main/resources/static -a 127.0.0.1 -p 9876 -s",
     port: 9876,
     reuseExistingServer: !process.env.CI,
   },
