@@ -12,6 +12,7 @@ import com.nimbusds.jose.jwk.JWKSet;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
+import net.openid.conformance.condition.client.AbstractCheckEndpointContentTypeReturned;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.util.JWEUtil;
 import net.openid.conformance.util.JWKUtil;
@@ -52,8 +53,8 @@ public class VCIDecryptCredentialRequest extends AbstractCondition {
 			throw error(errorDescription);
 		}
 
-		String normalizedContentType = contentType.toLowerCase().trim();
-		if (!normalizedContentType.startsWith("application/jwt")) {
+		String mimeType = AbstractCheckEndpointContentTypeReturned.getMimeTypeFromContentType(contentType);
+		if (!"application/jwt".equalsIgnoreCase(mimeType)) {
 			String errorDescription = "Credential request Content-Type is not application/jwt; "
 				+ "credential_response_encryption was requested so per OID4VCI 1.0 Section 8.2 "
 				+ "the credential request MUST be encrypted as a JWE with Content-Type: application/jwt";
