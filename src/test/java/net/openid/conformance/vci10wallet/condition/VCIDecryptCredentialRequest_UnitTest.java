@@ -122,6 +122,14 @@ public class VCIDecryptCredentialRequest_UnitTest {
 	}
 
 	@Test
+	public void testEvaluate_failsWhenContentTypeIsApplicationJwtPlusJson() {
+		// application/jwt is the only permitted Content-Type; application/jwt+json (or any other
+		// suffixed variant) MUST be rejected.
+		putIncomingRequest("application/jwt+json", "irrelevant");
+		assertThrows(ConditionError.class, () -> cond.execute(env));
+	}
+
+	@Test
 	public void testEvaluate_failsOnEmptyBodyWithJwtContentType() {
 		putIncomingRequest("application/jwt", "");
 		assertThrows(ConditionError.class, () -> cond.execute(env));
