@@ -23,9 +23,9 @@ test.describe("index.html — Home page", () => {
 
     // Navigation buttons are visible in the page body
     const homePage = page.locator("#homePage");
-    await expect(homePage.locator('a[href="schedule-test.html"]')).toBeVisible();
-    await expect(homePage.locator('a[href="logs.html"]')).toBeVisible();
-    await expect(homePage.locator('a[href="plans.html"]')).toBeVisible();
+    await expect(homePage.locator('cts-link-button[href="schedule-test.html"]')).toBeVisible();
+    await expect(homePage.locator('cts-link-button[href="logs.html"]')).toBeVisible();
+    await expect(homePage.locator('cts-link-button[href="plans.html"]')).toBeVisible();
   });
 
   test("unauthenticated state hides user info (R24)", async ({ page }) => {
@@ -44,10 +44,10 @@ test.describe("index.html — Home page", () => {
     // Navigation buttons are still visible in the page body (public links)
     const homePage = page.locator("#homePage");
     await expect(
-      homePage.locator('a[href="logs.html?public=true"]'),
+      homePage.locator('cts-link-button[href="logs.html?public=true"]'),
     ).toBeVisible();
     await expect(
-      homePage.locator('a[href="plans.html?public=true"]'),
+      homePage.locator('cts-link-button[href="plans.html?public=true"]'),
     ).toBeVisible();
   });
 });
