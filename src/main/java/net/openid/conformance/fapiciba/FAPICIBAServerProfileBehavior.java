@@ -99,19 +99,19 @@ public class FAPICIBAServerProfileBehavior {
 
 	/**
 	 * Validate profile-specific resource endpoint response headers.
-	 * Default validates interaction ID for first client only.
+	 * Default validates the resource response interaction ID for all clients,
+	 * and validates the returned value matches the sent one for the first client.
 	 */
 	public ConditionSequence validateResourceEndpointResponseHeaders(boolean isSecondClient) {
-		if (!isSecondClient) {
-			return new AbstractConditionSequence() {
-				@Override
-				public void evaluate() {
-					callAndContinueOnFailure(CheckForFAPIInteractionIdInResourceResponse.class, Condition.ConditionResult.FAILURE, "FAPI-R-6.2.1-11");
+		return new AbstractConditionSequence() {
+			@Override
+			public void evaluate() {
+				callAndContinueOnFailure(CheckForFAPIInteractionIdInResourceResponse.class, Condition.ConditionResult.FAILURE, "FAPI-R-6.2.1-11");
+				if (!isSecondClient) {
 					callAndContinueOnFailure(EnsureMatchingFAPIInteractionId.class, Condition.ConditionResult.FAILURE, "FAPI-R-6.2.1-11");
 				}
-			};
-		}
-		return null;
+			}
+		};
 	}
 
 	/**
