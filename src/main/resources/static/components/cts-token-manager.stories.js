@@ -326,6 +326,115 @@ export const CreateTokenError = {
   },
 };
 
+/**
+ * When navigator.clipboard.writeText rejects, the user needs a visible
+ * affordance to fall back to manual selection. Previously the failure was
+ * swallowed and the user had no idea why nothing copied.
+ */
+export const CopyTokenClipboardFailure = {
+  parameters: {
+    msw: {
+      handlers: [
+        http.get("/api/token", () => HttpResponse.json(MOCK_TOKENS)),
+        http.post("/api/token", () => HttpResponse.json(MOCK_CREATED_TOKEN)),
+      ],
+    },
+  },
+  render: () => html`<cts-token-manager></cts-token-manager>`,
+  async play({ canvasElement }) {
+    const canvas = within(canvasElement);
+
+    const originalClipboard = navigator.clipboard;
+    // Reject writeText — simulates permissions-denied / insecure-context.
+    Object.defineProperty(navigator, "clipboard", {
+      value: {
+        writeText: fn().mockRejectedValue(new Error("permission denied")),
+      },
+      writable: true,
+      configurable: true,
+    });
+
+    try {
+      await waitFor(() =>
+        expect(canvas.getByText("New temporary token")).toBeInTheDocument(),
+      );
+      await userEvent.click(canvas.getByText("New temporary token"));
+
+      // Wait for the created-token modal, then click Copy.
+      await waitFor(() => {
+        expect(canvas.getByTitle("Copy token to clipboard")).toBeInTheDocument();
+      });
+      await userEvent.click(canvas.getByTitle("Copy token to clipboard"));
+
+      // Failure feedback is rendered in an aria-live region so SR users
+      // hear the failure announcement.
+      await waitFor(() => {
+        const feedback = canvasElement.querySelector('[data-testid="copy-feedback"]');
+        expect(feedback).toBeTruthy();
+        expect(feedback.textContent).toContain("Copy failed");
+        expect(feedback.getAttribute("aria-live")).toBe("polite");
+        expect(feedback.getAttribute("role")).toBe("status");
+      });
+    } finally {
+      Object.defineProperty(navigator, "clipboard", {
+        value: originalClipboard,
+        writable: true,
+        configurable: true,
+      });
+    }
+  },
+};
+
+/**
+ * When navigator.clipboard is entirely absent (e.g. http:// context), the
+ * component should surface a distinct "not available" message without throwing.
+ */
+export const CopyTokenClipboardAbsent = {
+  parameters: {
+    msw: {
+      handlers: [
+        http.get("/api/token", () => HttpResponse.json(MOCK_TOKENS)),
+        http.post("/api/token", () => HttpResponse.json(MOCK_CREATED_TOKEN)),
+      ],
+    },
+  },
+  render: () => html`<cts-token-manager></cts-token-manager>`,
+  async play({ canvasElement }) {
+    const canvas = within(canvasElement);
+
+    const originalClipboard = navigator.clipboard;
+    Object.defineProperty(navigator, "clipboard", {
+      value: undefined,
+      writable: true,
+      configurable: true,
+    });
+
+    try {
+      await waitFor(() =>
+        expect(canvas.getByText("New temporary token")).toBeInTheDocument(),
+      );
+      await userEvent.click(canvas.getByText("New temporary token"));
+
+      await waitFor(() => {
+        expect(canvas.getByTitle("Copy token to clipboard")).toBeInTheDocument();
+      });
+      await userEvent.click(canvas.getByTitle("Copy token to clipboard"));
+
+      await waitFor(() => {
+        const feedback = canvasElement.querySelector('[data-testid="copy-feedback"]');
+        expect(feedback).toBeTruthy();
+        expect(feedback.textContent).toContain("Clipboard not available");
+      });
+    } finally {
+      Object.defineProperty(navigator, "clipboard", {
+        value: originalClipboard,
+        writable: true,
+        configurable: true,
+      });
+    }
+  },
+};
+
 export const AdminView = {
   parameters: {
     msw: {

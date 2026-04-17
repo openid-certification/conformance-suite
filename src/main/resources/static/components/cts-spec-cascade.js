@@ -8,6 +8,7 @@ class CtsSpecCascade extends LitElement {
     _selectedVersion: { state: true },
     _selectedPlan: { state: true },
     _loading: { state: true },
+    _error: { state: true },
   };
 
   createRenderRoot() { return this; }
@@ -20,6 +21,7 @@ class CtsSpecCascade extends LitElement {
     this._selectedVersion = "";
     this._selectedPlan = "";
     this._loading = false;
+    this._error = "";
   }
 
   connectedCallback() {
@@ -31,11 +33,21 @@ class CtsSpecCascade extends LitElement {
 
   async _fetchPlans() {
     this._loading = true;
+    this._error = "";
     try {
       const response = await fetch("/api/runner/available");
+      // The previous implementation called `response.json()` unconditionally,
+      // which let a 5xx with a JSON error body silently become "plans = [error
+      // payload]" and then fall through to an empty dropdown. Check ok first so
+      // real failures route to the error state rather than the empty state.
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
       this.plans = await response.json();
     } catch (err) {
       this.plans = [];
+      this._error = "Unable to load plans — please reload the page.";
+      console.warn("[cts-spec-cascade] /api/runner/available fetch failed:", err);
     } finally {
       this._loading = false;
     }
@@ -185,6 +197,22 @@ class CtsSpecCascade extends LitElement {
               <span class="visually-hidden">Loading available test plans...</span>
             </div>
           </div>
+        </div>
+      `;
+    }
+
+    if (this._error) {
+      return html`
+        <div class="alert alert-danger" role="alert" data-testid="spec-cascade-error">
+          ${this._error}
+        </div>
+      `;
+    }
+
+    if (this.plans && this.plans.length === 0) {
+      return html`
+        <div class="alert alert-info" role="status" data-testid="spec-cascade-empty">
+          No test plans are available.
         </div>
       `;
     }

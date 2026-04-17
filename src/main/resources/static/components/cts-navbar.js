@@ -42,9 +42,20 @@ class CtsNavbar extends LitElement {
   async _fetchUser() {
     try {
       const response = await fetch("/api/currentuser");
-      if (!response.ok) throw new Error("Not authenticated");
-      this._user = await response.json();
-    } catch {
+      if (response.ok) {
+        this._user = await response.json();
+      } else {
+        // 401 is the expected "not logged in" response; anything else is a real
+        // error we want operators to see in the console. Either way the UI
+        // falls back to the public nav — that's the only affordance that works
+        // without a user.
+        if (response.status !== 401) {
+          console.warn(`[cts-navbar] /api/currentuser responded ${response.status}`);
+        }
+        this._user = null;
+      }
+    } catch (err) {
+      console.warn("[cts-navbar] /api/currentuser fetch failed:", err);
       this._user = null;
     } finally {
       this._loading = false;

@@ -1,5 +1,5 @@
 import { html } from "lit";
-import { expect, within, waitFor } from "storybook/test";
+import { expect, within, waitFor, fn } from "storybook/test";
 import { http, HttpResponse } from "msw";
 import { MOCK_SERVER_INFO } from "@fixtures/mock-test-data.js";
 import "./cts-dashboard.js";
@@ -139,29 +139,47 @@ export const ServerInfoError = {
   async play({ canvasElement }) {
     const canvas = within(canvasElement);
 
-    // Cards should still render despite server info error
-    expect(canvas.getByText("Create a new test plan")).toBeInTheDocument();
-    expect(canvas.getByText("View all published test logs")).toBeInTheDocument();
-    expect(canvas.getByText("View API Documentation")).toBeInTheDocument();
+    // The server-info failure is non-critical, but silently swallowing it was
+    // the bug — we should see a console.warn so operators can diagnose.
+    const warnSpy = fn();
+    const origWarn = console.warn;
+    console.warn = warnSpy;
 
-    // All 6 cards present (authenticated by default)
-    const links = canvasElement.querySelectorAll("cts-link-button");
-    expect(links.length).toBe(6);
+    try {
+      // Cards should still render despite server info error
+      expect(canvas.getByText("Create a new test plan")).toBeInTheDocument();
+      expect(canvas.getByText("View all published test logs")).toBeInTheDocument();
+      expect(canvas.getByText("View API Documentation")).toBeInTheDocument();
 
-    // Footer text still present
-    expect(
-      canvas.getByText("OpenID Foundation conformance suite"),
-    ).toBeInTheDocument();
+      // All 6 cards present (authenticated by default)
+      const links = canvasElement.querySelectorAll("cts-link-button");
+      expect(links.length).toBe(6);
 
-    // Wait a tick for the fetch to complete, then verify no server info rendered
-    await waitFor(
-      () => {
-        const serverInfoDiv = canvasElement.querySelector(".serverInfo");
-        // The div exists but should have no version info inside
-        expect(serverInfoDiv.querySelector("#serverinfo-version")).toBeNull();
-      },
-      { timeout: 3000 },
-    );
+      // Footer text still present
+      expect(
+        canvas.getByText("OpenID Foundation conformance suite"),
+      ).toBeInTheDocument();
+
+      // Wait a tick for the fetch to complete, then verify no server info rendered
+      await waitFor(
+        () => {
+          const serverInfoDiv = canvasElement.querySelector(".serverInfo");
+          // The div exists but should have no version info inside
+          expect(serverInfoDiv.querySelector("#serverinfo-version")).toBeNull();
+        },
+        { timeout: 3000 },
+      );
+
+      // The 500 should have produced a console.warn mentioning the endpoint.
+      await waitFor(() => {
+        expect(warnSpy).toHaveBeenCalled();
+        const joined = warnSpy.mock.calls.flat().join(" ");
+        expect(joined).toContain("cts-dashboard");
+        expect(joined).toContain("/api/server");
+      });
+    } finally {
+      console.warn = origWarn;
+    }
   },
 };
 

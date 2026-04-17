@@ -38,9 +38,13 @@ class CtsDashboard extends LitElement {
       const response = await fetch("/api/server");
       if (response.ok) {
         this._serverInfo = await response.json();
+      } else {
+        // Server info is non-critical; cards render regardless. Log so operators
+        // can diagnose if /api/server starts failing silently.
+        console.warn(`[cts-dashboard] /api/server responded ${response.status}`);
       }
-    } catch {
-      // Server info is non-critical; cards render regardless
+    } catch (err) {
+      console.warn("[cts-dashboard] /api/server fetch failed:", err);
     } finally {
       this._loading = false;
     }

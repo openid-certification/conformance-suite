@@ -1,5 +1,5 @@
 import { html } from "lit";
-import { expect, within, waitFor } from "storybook/test";
+import { expect, within, waitFor, fn } from "storybook/test";
 import "./cts-navbar.js";
 
 export default {
@@ -310,5 +310,75 @@ export const ActivePageCreateTest = {
 
     const homeLink = canvas.getByText("Home");
     expect(homeLink.classList.contains("active")).toBe(false);
+  },
+};
+
+/**
+ * Non-401 failure from /api/currentuser (e.g. gateway 502, backend 500):
+ * the navbar still renders the public nav (it's chrome — no better fallback)
+ * but logs a warning so the failure is diagnosable.
+ */
+export const ServerErrorLogsWarning = {
+  args: { currentPage: "" },
+  decorators: [withMockUser(null, { status: 500 })],
+  render: ({ currentPage }) =>
+    html`<cts-navbar current-page="${currentPage}"></cts-navbar>`,
+
+  async play({ canvasElement }) {
+    const canvas = within(canvasElement);
+    const warnSpy = fn();
+    const origWarn = console.warn;
+    console.warn = warnSpy;
+
+    try {
+      await waitForNavbar(canvas);
+
+      // Should fall back to the public nav — same as the unauthenticated case.
+      expect(canvas.getByText("Published Logs")).toBeInTheDocument();
+      expect(canvas.queryByText("Logged in as")).toBeNull();
+
+      // Unlike 401, a 500 must warn so operators see the failure.
+      await waitFor(() => {
+        expect(warnSpy).toHaveBeenCalled();
+        const joined = warnSpy.mock.calls.flat().join(" ");
+        expect(joined).toContain("cts-navbar");
+        expect(joined).toContain("/api/currentuser");
+        expect(joined).toContain("500");
+      });
+    } finally {
+      console.warn = origWarn;
+    }
+  },
+};
+
+/**
+ * 401 is the expected response when the user is not logged in. The navbar
+ * must NOT warn — it would spam the console on every anonymous page load.
+ */
+export const UnauthenticatedNoWarn = {
+  args: { currentPage: "" },
+  decorators: [withUnauthenticated()],
+  render: ({ currentPage }) =>
+    html`<cts-navbar current-page="${currentPage}"></cts-navbar>`,
+
+  async play({ canvasElement }) {
+    const canvas = within(canvasElement);
+    const warnSpy = fn();
+    const origWarn = console.warn;
+    console.warn = warnSpy;
+
+    try {
+      await waitForNavbar(canvas);
+
+      // Public nav should render as usual…
+      expect(canvas.getByText("Published Logs")).toBeInTheDocument();
+      // …and no warn should have been emitted for the expected 401.
+      const currentuserWarns = warnSpy.mock.calls
+        .flat()
+        .filter((arg) => typeof arg === "string" && arg.includes("/api/currentuser"));
+      expect(currentuserWarns).toEqual([]);
+    } finally {
+      console.warn = origWarn;
+    }
   },
 };
