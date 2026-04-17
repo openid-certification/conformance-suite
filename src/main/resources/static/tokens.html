@@ -39,6 +39,10 @@
     <script type="importmap">{"imports":{"lit":"/vendor/lit/lit.js","lit/":"/vendor/lit/","@lit/reactive-element":"/vendor/lit/lit.js","@lit/reactive-element/":"/vendor/lit/","lit-html":"/vendor/lit/lit.js","lit-html/":"/vendor/lit/","lit-element/":"/vendor/lit/"}}</script>
     <script type="module" src="/components/cts-navbar.js"></script>
     <script type="module" src="/components/cts-modal.js"></script>
+    <script type="module" src="/components/cts-button.js"></script>
+    <script type="module" src="/components/cts-link-button.js"></script>
+    <script type="module" src="/components/cts-badge.js"></script>
+    <script type="module" src="/components/cts-icon.js"></script>
 </head>
 
 <body>
@@ -59,7 +63,7 @@
     </cts-modal>
 
     <cts-modal id="createdModal" heading="Token created" size="lg">
-        <button class="btn-clipboard btn btn-sm" data-clipboard-target="#tokenValue" alt="Copy token to clipboard" title="Copy token to clipboard"><span class="bi bi-box-arrow-in-right"></span></button>
+        <cts-button class="btn-clipboard" icon="box-arrow-in-right" data-clipboard-target="#tokenValue" title="Copy token to clipboard"></cts-button>
         <div class="wrapLongStrings">
             <p>Here is your new token. This value will only be displayed once.</p>
             <pre id="tokenValue"></pre>
@@ -142,7 +146,7 @@
                     {
                         title: 'Delete',
                         data: null,
-                        defaultContent: '<button class="btn btn-sm btn-danger bg-gradient border border-secondary deleteBtn">Delete</button>',
+                        defaultContent: '<cts-button variant="danger" label="Delete" class="deleteBtn"></cts-button>',
                         orderable: false
                     }
                 ],
