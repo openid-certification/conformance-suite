@@ -111,3 +111,6 @@ devenv.local.nix
 frontend/node_modules/
 frontend/storybook-static/
 .superpowers/
+
+# Local-only solution docs (kept on disk, not shared via MR)
+docs/solutions/web-components/cts-button-host-vs-inner-button-semantics-2026-04-17.md
