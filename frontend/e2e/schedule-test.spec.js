@@ -166,13 +166,11 @@ test.describe("schedule-test.html — Test Plan Scheduling", () => {
 
     await page.goto("/schedule-test.html");
 
-    // Wait for the page init chain to complete — the onclick handler on
-    // createPlanBtn is registered in loadScheduleTestPage(), which runs
-    // after loadAvailablePlans() populates the specFamilySelect options.
-    await expect(page.locator("#specFamilySelect option")).not.toHaveCount(1);
-
-    // Create button should be disabled initially (no plan selected)
-    const createBtn = page.locator("#createPlanBtn");
+    // Create button should be disabled initially (no plan selected).
+    // Query the inner native <button> rendered by cts-button — Playwright's
+    // toBeDisabled() reads the `:disabled` pseudo-class which applies to
+    // native form controls, not custom-element hosts.
+    const createBtn = page.locator("#createPlanBtn button");
     await expect(createBtn).toBeDisabled();
 
     // Wait for the onclick handler to be registered by loadScheduleTestPage()
@@ -408,7 +406,8 @@ test.describe("schedule-test.html — Test Plan Scheduling", () => {
     const optionCount = await familySelect.locator("option").count();
     expect(optionCount).toBe(1); // Only the "--- Select ---" default
 
-    // Create button should remain disabled (no plan can be selected)
-    await expect(page.locator("#createPlanBtn")).toBeDisabled();
+    // Create button should remain disabled (no plan can be selected).
+    // Targets the inner native button — see note in the R10 test.
+    await expect(page.locator("#createPlanBtn button")).toBeDisabled();
   });
 });
