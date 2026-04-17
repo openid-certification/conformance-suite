@@ -1,20 +1,5 @@
 import { LitElement, html, nothing } from "lit";
-
-const VARIANT_CLASSES = {
-  light: "btn-light",
-  info: "btn-info",
-  primary: "btn-primary",
-  danger: "btn-danger",
-  secondary: "btn-secondary",
-  success: "btn-success",
-  warning: "btn-warning",
-};
-
-const SIZE_CLASSES = {
-  sm: "btn-sm",
-  md: "",
-  lg: "btn-lg",
-};
+import { buildButtonClasses } from "./_button-classes.js";
 
 /**
  * Bootstrap-styled anchor that behaves like a button.
@@ -74,13 +59,10 @@ class CtsLinkButton extends LitElement {
   render() {
     const iconContent = this._renderIcon();
     const hasIcon = iconContent !== nothing;
-    const variantClass = VARIANT_CLASSES[this.variant] || "btn-light";
-    const sizeClass = SIZE_CLASSES[this.size] ?? "btn-sm";
-    const sizeSegment = sizeClass ? `${sizeClass} ` : "";
     const disabledClass = this.disabled ? " disabled" : "";
-    const widthClass = this.fullWidth ? " w-100" : "";
+    const anchorClass = buildButtonClasses({ variant: this.variant, size: this.size, fullWidth: this.fullWidth }) + disabledClass;
     return html`<a
-      class="btn ${sizeSegment}${variantClass} bg-gradient border border-secondary${disabledClass}${widthClass}"
+      class="${anchorClass}"
       href=${this.disabled ? nothing : this.href}
       role="button"
       aria-disabled=${this.disabled ? "true" : nothing}

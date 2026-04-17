@@ -1,3 +1,5 @@
+import { buildButtonClasses } from "./_button-classes.js";
+
 /**
  * A modal dialog web component that wraps Bootstrap 5's modal with a
  * declarative HTML API.
@@ -119,8 +121,7 @@ class CtsModal extends HTMLElement {
         // Default or malformed fallback: auto-generated Close button
         const footerCloseBtn = document.createElement("button");
         footerCloseBtn.type = "button";
-        footerCloseBtn.className =
-          "btn btn-sm btn-light bg-gradient border border-secondary";
+        footerCloseBtn.className = buildButtonClasses({ variant: "light", size: "sm" });
         footerCloseBtn.setAttribute("data-bs-dismiss", "modal");
         footerCloseBtn.textContent = "Close";
         footer.appendChild(footerCloseBtn);
@@ -172,8 +173,19 @@ class CtsModal extends HTMLElement {
     const btn = document.createElement("button");
     btn.type = "button";
 
-    const variant = desc.class || "btn-light";
-    btn.className = `btn btn-sm ${variant} bg-gradient border border-secondary`;
+    // desc.class may be a Bootstrap variant modifier ("btn-danger") or an
+    // arbitrary extra class. Strip the "btn-" prefix to get a variant key;
+    // if no prefix, append as an additive class after the canonical string.
+    let variantKey = "light";
+    let extraClass = "";
+    if (desc.class) {
+      if (desc.class.startsWith("btn-")) {
+        variantKey = desc.class.slice("btn-".length);
+      } else {
+        extraClass = ` ${desc.class}`;
+      }
+    }
+    btn.className = buildButtonClasses({ variant: variantKey, size: "sm" }) + extraClass;
 
     // dismiss defaults to true
     if (desc.dismiss !== false) {

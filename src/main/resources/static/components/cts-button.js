@@ -1,20 +1,5 @@
 import { LitElement, html, nothing } from "lit";
-
-const VARIANT_CLASSES = {
-  light: "btn-light",
-  info: "btn-info",
-  primary: "btn-primary",
-  danger: "btn-danger",
-  secondary: "btn-secondary",
-  success: "btn-success",
-  warning: "btn-warning",
-};
-
-const SIZE_CLASSES = {
-  sm: "btn-sm",
-  md: "",
-  lg: "btn-lg",
-};
+import { buildButtonClasses } from "./_button-classes.js";
 
 /**
  * Bootstrap-styled button. Dispatches a bubbling `cts-click` event in addition
@@ -97,13 +82,10 @@ class CtsButton extends LitElement {
     const isDisabled = this.disabled || this.loading;
     const iconContent = this._renderIcon();
     const hasIcon = iconContent !== nothing;
-    const variantClass = VARIANT_CLASSES[this.variant] || "btn-light";
-    const sizeClass = SIZE_CLASSES[this.size] ?? "btn-sm";
-    const sizeSegment = sizeClass ? `${sizeClass} ` : "";
-    const widthClass = this.fullWidth ? " w-100" : "";
+    const buttonClass = buildButtonClasses({ variant: this.variant, size: this.size, fullWidth: this.fullWidth });
     return html`<button
       type="${this.type}"
-      class="btn ${sizeSegment}${variantClass} bg-gradient border border-secondary${widthClass}"
+      class="${buttonClass}"
       ?disabled="${isDisabled}"
       @click="${this._handleClick}"
     >${iconContent}${hasIcon && this.label ? " " : ""}${this.label
