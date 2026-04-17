@@ -1,3 +1,14 @@
+/**
+ * Bootstrap-styled card container. Wraps its children in a `.card` /
+ * `.card-body` structure, with an optional `.card-header` driven by the
+ * `header` attribute.
+ *
+ * Vanilla HTMLElement — has no `static properties`; attributes are read
+ * directly in `connectedCallback`.
+ *
+ * @property {string} header - Optional header text (read from the `header`
+ *   attribute). When omitted, no header is rendered.
+ */
 class CtsCard extends HTMLElement {
   connectedCallback() {
     const header = this.getAttribute("header");

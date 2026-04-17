@@ -8,7 +8,8 @@
     "test:e2e": "playwright test",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build",
-    "test-storybook": "vitest --project=storybook --run"
+    "test-storybook": "vitest --project=storybook --run",
+    "lint:jsdoc": "bash scripts/lint-jsdoc-properties.sh"
   },
   "devDependencies": {
     "@playwright/test": "1.59.1",

@@ -1,5 +1,20 @@
 import { LitElement, html, nothing } from "lit";
 
+/**
+ * Renders a single form input driven by a JSON-schema fragment. Supports
+ * string, boolean, enum, JSON (object/array), and password inputs.
+ *
+ * @property {Object} schema - JSON-schema fragment for this field. May include
+ *   `type`, `format`, `enum`, `title`, `description`.
+ * @property {string} name - Field name used as the `field` key in
+ *   `cts-field-change` events.
+ * @property {string} value - Current field value (always stringified).
+ * @property {string} error - Validation error message shown below the input.
+ * @property {boolean} disabled - Disables the input.
+ *
+ * @fires cts-field-change - On every input/change with
+ *   `{ detail: { field, value } }`; bubbles.
+ */
 class CtsFormField extends LitElement {
   static properties = {
     schema: { type: Object },

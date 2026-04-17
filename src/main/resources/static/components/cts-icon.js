@@ -5,6 +5,13 @@ const SIZE_CLASSES = {
   lg: "fs-4",
 };
 
+/**
+ * Bootstrap Icons glyph wrapper. Renders a `<span class="bi bi-{name}">`.
+ *
+ * @property {string} name - Bootstrap Icons name without the `bi-` prefix
+ *   (e.g. `camera-fill`). Empty string renders nothing.
+ * @property {string} size - One of: sm, md (default), lg
+ */
 class CtsIcon extends LitElement {
   static properties = {
     name: { type: String },
