@@ -14,6 +14,7 @@ export default {
     icon: { control: "text" },
     loading: { control: "boolean" },
     disabled: { control: "boolean" },
+    fullWidth: { control: "boolean" },
     type: {
       control: "select",
       options: ["button", "submit"],
@@ -206,6 +207,57 @@ export const DisabledNoEvent = {
     await userEvent.click(btn, { pointerEventsCheck: 0 });
     expect(eventFired).toBe(false);
   },
+};
+
+export const FullWidth = {
+  args: {
+    variant: "info",
+    icon: "wrench-adjustable",
+    label: "View Config",
+  },
+  render: ({ variant, label, icon, disabled }) => html`
+    <div style="width: 400px; padding: 1rem; border: 1px dashed #ccc;">
+      <cts-button
+        variant="${variant}"
+        label="${label}"
+        icon="${icon}"
+        ?disabled="${disabled}"
+        full-width
+      ></cts-button>
+    </div>
+  `,
+
+  async play({ canvasElement }) {
+    const host = canvasElement.querySelector("cts-button");
+    await host.updateComplete;
+    const btn = host.querySelector("button");
+    expect(btn).toBeTruthy();
+    expect(btn.classList.contains("w-100")).toBe(true);
+    expect(host.style.display).toBe("block");
+  },
+};
+
+/**
+ * Stack of full-width buttons, the canonical action-list pattern used in the
+ * homepage, login page, and plan/log detail headers. The wrapping
+ * `.d-grid.gap-1` + `full-width` per child gives uniform stretched buttons
+ * with consistent vertical spacing.
+ *
+ * Pair `cts-button` (for click handlers) with `cts-link-button` (for
+ * navigation) inside the same grid — both honour `full-width` identically.
+ */
+export const FullWidthStack = {
+  render: () => html`
+    <div style="width: 240px; padding: 1rem; border: 1px dashed #ccc;">
+      <div class="d-grid gap-1">
+        <cts-button variant="light" icon="wrench-adjustable" label="View Config" full-width></cts-button>
+        <cts-button variant="light" icon="save2" label="Download all Logs" full-width></cts-button>
+        <cts-button variant="light" icon="bookmarks" label="Publish everything" full-width></cts-button>
+        <cts-button variant="light" icon="bookmarks" label="Private link" full-width></cts-button>
+        <cts-button variant="danger" icon="trash" label="Delete plan" full-width></cts-button>
+      </div>
+    </div>
+  `,
 };
 
 export const AllVariants = {

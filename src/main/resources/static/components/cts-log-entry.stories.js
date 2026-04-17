@@ -286,3 +286,72 @@ export const UploadRequired = {
     expect(canvas.getByText("REVIEW")).toBeInTheDocument();
   },
 };
+
+export const ClickMoreHttpRequest = {
+  render: () => html`<cts-log-entry .entry=${HTTP_REQUEST_ENTRY}></cts-log-entry>`,
+  async play({ canvasElement }) {
+    const canvas = within(canvasElement);
+    await waitFor(() => {
+      expect(canvas.getByText("REQUEST")).toBeInTheDocument();
+    });
+
+    // Block hidden initially
+    expect(canvasElement.querySelector(".moreInfo")).toBeNull();
+
+    // Click More to reveal request details
+    const moreBtn = canvas.getByText("More");
+    await moreBtn.click();
+
+    let moreInfo;
+    await waitFor(() => {
+      moreInfo = canvasElement.querySelector(".moreInfo");
+      expect(moreInfo).toBeTruthy();
+    });
+
+    // Revealed content includes method, URL substring, and a header key
+    const revealedText = moreInfo.textContent;
+    expect(revealedText).toContain("GET");
+    expect(revealedText).toContain("op.example.com/authorize");
+    expect(revealedText).toContain("Accept");
+
+    // Click again to collapse
+    await moreBtn.click();
+    await waitFor(() => {
+      expect(canvasElement.querySelector(".moreInfo")).toBeNull();
+    });
+  },
+};
+
+export const ClickMoreHttpResponse = {
+  render: () => html`<cts-log-entry .entry=${HTTP_RESPONSE_ENTRY}></cts-log-entry>`,
+  async play({ canvasElement }) {
+    const canvas = within(canvasElement);
+    await waitFor(() => {
+      expect(canvas.getByText("RESPONSE")).toBeInTheDocument();
+    });
+
+    // Block hidden initially
+    expect(canvasElement.querySelector(".moreInfo")).toBeNull();
+
+    // Click More to reveal response details
+    const moreBtn = canvas.getByText("More");
+    await moreBtn.click();
+
+    let moreInfo;
+    await waitFor(() => {
+      moreInfo = canvasElement.querySelector(".moreInfo");
+      expect(moreInfo).toBeTruthy();
+    });
+
+    // Revealed content includes status code and a body field
+    const revealedText = moreInfo.textContent;
+    expect(revealedText).toContain("200");
+    expect(revealedText).toContain("access_token");
+
+    // Click again to collapse
+    await moreBtn.click();
+    await waitFor(() => {
+      expect(canvasElement.querySelector(".moreInfo")).toBeNull();
+    });
+  },
+};

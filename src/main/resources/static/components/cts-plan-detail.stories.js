@@ -486,3 +486,159 @@ export const ActionsPublishedPlan = {
     expect(downloadAllBtn).toBeTruthy();
   },
 };
+
+export const ActionsGenerateLinkResult = {
+  render: () => html`
+    <cts-plan-actions .plan=${MOCK_PLAN_DETAIL}></cts-plan-actions>
+  `,
+  async play({ canvasElement }) {
+    // Open private link panel
+    const privateLinkBtn = canvasElement.querySelector(
+      '[data-testid="private-link-btn"]',
+    );
+    await userEvent.click(privateLinkBtn);
+
+    await waitFor(() => {
+      const panel = canvasElement.querySelector(
+        '[data-testid="private-link-panel"]',
+      );
+      expect(panel).toBeTruthy();
+    });
+
+    // Set days to 7 (valid)
+    const daysInput = canvasElement.querySelector("#privateLinkDays");
+    await userEvent.clear(daysInput);
+    await userEvent.type(daysInput, "7");
+
+    // Listen for the generate event before clicking
+    const spy = fn();
+    canvasElement.addEventListener("cts-generate-private-link", spy);
+
+    // Click Generate
+    const generateBtn = canvasElement.querySelector(".generate-link-btn");
+    await waitFor(() => expect(generateBtn.disabled).toBe(false));
+    await userEvent.click(generateBtn);
+
+    expect(spy).toHaveBeenCalledTimes(1);
+    const detail = spy.mock.calls[0][0].detail;
+    expect(detail.planId).toBe("plan-abc-123");
+    expect(detail.days).toBe(7);
+
+    // Simulate the parent wiring the result back into the component.
+    // The component never sets _privateLinkResult itself; the parent receives
+    // the cts-generate-private-link event, calls the server, and sets the URL
+    // on the element. This story exercises the full display path.
+    const el = canvasElement.querySelector("cts-plan-actions");
+    const generatedUrl =
+      "https://localhost.emobix.co.uk:8443/plan-detail.html?plan=plan-abc-123&token=mock-token-7d";
+    el._privateLinkResult = generatedUrl;
+    el.requestUpdate();
+
+    await waitFor(() => {
+      const result = canvasElement.querySelector(
+        '[data-testid="private-link-result"]',
+      );
+      expect(result).toBeTruthy();
+      expect(result.textContent).toContain(generatedUrl);
+    });
+  },
+};
+
+export const ActionsDeletePlanCancel = {
+  render: () => html`
+    <cts-plan-actions .plan=${MOCK_PLAN_DETAIL}></cts-plan-actions>
+  `,
+  async play({ canvasElement }) {
+    // Listen for delete event before any clicks — must NOT fire on cancel
+    const deleteSpy = fn();
+    canvasElement.addEventListener("cts-delete-plan", deleteSpy);
+
+    // Open delete confirm panel
+    const deleteBtn = canvasElement.querySelector(
+      '[data-testid="delete-plan-btn"]',
+    );
+    await userEvent.click(deleteBtn);
+
+    let confirmPanel;
+    await waitFor(() => {
+      confirmPanel = canvasElement.querySelector(
+        '[data-testid="delete-confirm-panel"]',
+      );
+      expect(confirmPanel).toBeTruthy();
+    });
+
+    // Click Cancel
+    const cancelBtn = Array.from(confirmPanel.querySelectorAll("button")).find(
+      (b) => b.textContent.trim() === "Cancel",
+    );
+    expect(cancelBtn).toBeTruthy();
+    await userEvent.click(cancelBtn);
+
+    // Panel should close
+    await waitFor(() => {
+      expect(
+        canvasElement.querySelector('[data-testid="delete-confirm-panel"]'),
+      ).toBeNull();
+    });
+
+    // No delete event fired
+    expect(deleteSpy).not.toHaveBeenCalled();
+
+    // Clicking Cancel-equivalent again is a no-op (panel already closed) —
+    // verify by re-opening and confirming the panel re-renders cleanly.
+    await userEvent.click(deleteBtn);
+    await waitFor(() => {
+      expect(
+        canvasElement.querySelector('[data-testid="delete-confirm-panel"]'),
+      ).toBeTruthy();
+    });
+    expect(deleteSpy).not.toHaveBeenCalled();
+  },
+};
+
+export const ActionsCopyConfig = {
+  render: () => html`
+    <cts-plan-actions .plan=${PLAN_WITH_CONFIG}></cts-plan-actions>
+  `,
+  async play({ canvasElement }) {
+    // Mock navigator.clipboard.writeText (same pattern as cts-log-entry CopyAsCurl)
+    const mockWriteText = fn().mockResolvedValue(undefined);
+    const originalClipboard = navigator.clipboard;
+    Object.defineProperty(navigator, "clipboard", {
+      value: { writeText: mockWriteText },
+      writable: true,
+      configurable: true,
+    });
+
+    try {
+      // Open the config panel
+      const viewConfigBtn = canvasElement.querySelector(
+        '[data-testid="view-config-btn"]',
+      );
+      await userEvent.click(viewConfigBtn);
+
+      await waitFor(() => {
+        const panel = canvasElement.querySelector(
+          '[data-testid="config-panel"]',
+        );
+        expect(panel).toBeTruthy();
+      });
+
+      // Click the Copy button inside the panel
+      const copyBtn = canvasElement.querySelector(".copy-config-btn");
+      expect(copyBtn).toBeTruthy();
+      await userEvent.click(copyBtn);
+
+      // Clipboard should have been called once with pretty-printed JSON
+      expect(mockWriteText).toHaveBeenCalledOnce();
+      const written = mockWriteText.mock.calls[0][0];
+      expect(written).toBe(JSON.stringify(PLAN_WITH_CONFIG.config, null, 4));
+    } finally {
+      Object.defineProperty(navigator, "clipboard", {
+        value: originalClipboard,
+        writable: true,
+        configurable: true,
+      });
+    }
+  },
+};

@@ -1,5 +1,7 @@
 import { LitElement, html, nothing } from "lit";
 import "./cts-badge.js";
+import "./cts-button.js";
+import "./cts-link-button.js";
 
 /**
  * Maps module status/result to badge variant.
@@ -108,22 +110,34 @@ class CtsPlanModules extends LitElement {
           <div class="d-grid gap-1">
             ${this._canRunTest()
               ? html`
-                <button
-                  class="btn btn-sm btn-light bg-gradient border border-secondary startBtn"
+                <cts-button
+                  class="startBtn"
                   data-testid="run-test-btn"
-                  @click=${() => this._handleRunTest(mod)}
-                ><span class="bi bi-play-fill"></span> Run Test</button>`
+                  variant="light"
+                  icon="play-fill"
+                  label="Run Test"
+                  full-width
+                  @cts-click=${() => this._handleRunTest(mod)}
+                ></cts-button>`
               : nothing}
             ${lastInstance
               ? html`
-                <a
-                  class="btn btn-sm btn-light bg-gradient border border-secondary viewBtn"
+                <cts-link-button
+                  class="viewBtn"
                   href="${logHref}"
-                ><span class="bi bi-file-earmark"></span> View Logs</a>
-                <button
-                  class="btn btn-sm btn-light bg-gradient border border-secondary downloadBtn"
-                  @click=${() => this._handleDownloadLog(lastInstance)}
-                ><span class="bi bi-save2"></span> Download Logs</button>`
+                  variant="light"
+                  icon="file-earmark"
+                  label="View Logs"
+                  full-width
+                ></cts-link-button>
+                <cts-button
+                  class="downloadBtn"
+                  variant="light"
+                  icon="save2"
+                  label="Download Logs"
+                  full-width
+                  @cts-click=${() => this._handleDownloadLog(lastInstance)}
+                ></cts-button>`
               : nothing}
           </div>
         </div>

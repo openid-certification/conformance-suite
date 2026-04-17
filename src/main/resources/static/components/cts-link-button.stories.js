@@ -14,6 +14,7 @@ export default {
     label: { control: "text" },
     icon: { control: "text" },
     disabled: { control: "boolean" },
+    fullWidth: { control: "boolean" },
   },
 };
 
@@ -83,6 +84,43 @@ export const Disabled = {
     expect(anchor.getAttribute("aria-disabled")).toBe("true");
     expect(anchor.getAttribute("tabindex")).toBe("-1");
     expect(anchor.hasAttribute("href")).toBe(false);
+  },
+};
+
+/**
+ * Stretches the button to fill its parent's width via the `full-width`
+ * boolean attribute. The component sets `display: block` on its host and adds
+ * `w-100` to the inner anchor — equivalent behavior to `cts-button` with the
+ * same attribute. Use inside `.d-grid` containers for action stacks.
+ */
+export const FullWidth = {
+  args: {
+    href: "schedule-test.html",
+    variant: "info",
+    icon: "files",
+    label: "Create a new test plan",
+  },
+  render: ({ href, variant, label, icon, disabled }) => html`
+    <div style="width: 400px; padding: 1rem; border: 1px dashed #ccc;">
+      <cts-link-button
+        href="${href}"
+        variant="${variant}"
+        label="${label}"
+        icon="${icon}"
+        ?disabled="${disabled}"
+        full-width
+      ></cts-link-button>
+    </div>
+  `,
+
+  async play({ canvasElement }) {
+    const host = canvasElement.querySelector("cts-link-button");
+    await host.updateComplete;
+    const anchor = host.querySelector("a");
+    expect(anchor).toBeTruthy();
+    expect(host.fullWidth).toBe(true);
+    expect(anchor.classList.contains("w-100")).toBe(true);
+    expect(host.style.display).toBe("block");
   },
 };
 
