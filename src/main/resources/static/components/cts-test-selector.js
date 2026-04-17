@@ -1,5 +1,17 @@
 import { LitElement, html, nothing } from "lit";
 
+/**
+ * Searchable, family-filterable list of test plans. Caller supplies the
+ * `plans` array and reacts to selection events.
+ *
+ * @property {Array} plans - Test plans to list; each has `planName`,
+ *   `displayName`, `specFamily`, `modules`, `summary`.
+ * @property {string} selected - Currently selected `planName`; the matching
+ *   row is highlighted.
+ *
+ * @fires cts-plan-select - When a list item is clicked, with
+ *   `{ detail: { plan } }`; bubbles.
+ */
 class CtsTestSelector extends LitElement {
   static properties = {
     plans: { type: Array },

@@ -1,6 +1,24 @@
 import { LitElement, html, nothing } from "lit";
 import "./cts-form-field.js";
 
+/**
+ * Dual-mode (Form / JSON) configuration editor. In Form mode, renders
+ * sections/fields driven by a JSON schema and optional UI schema. In JSON
+ * mode, offers a raw textarea that keeps `config` in sync on valid JSON.
+ *
+ * @property {Object} schema - JSON schema for the config; `properties` is
+ *   iterated to build fields.
+ * @property {Object} uiSchema - UI hints; `sections[]` groups properties into
+ *   fieldsets. Reflects the `ui-schema` attribute.
+ * @property {Object} config - Current configuration object.
+ * @property {Object} errors - Map of dotted-path field name to error message
+ *   string.
+ *
+ * @fires cts-config-change - On every field edit or valid JSON edit, with
+ *   `{ detail: { config } }`; bubbles.
+ * @fires cts-validate - When the Validate Configuration button is clicked;
+ *   bubbles.
+ */
 class CtsConfigForm extends LitElement {
   static properties = {
     schema: { type: Object },

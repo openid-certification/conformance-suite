@@ -9,6 +9,14 @@ const SERVER_INFO_LABELS = {
   build_time: "Build Time",
 };
 
+/**
+ * Home-page dashboard. Renders call-to-action buttons and a footer with
+ * server info fetched from `/api/server`.
+ *
+ * @property {boolean} isAuthenticated - Whether the current user is logged in;
+ *   gates the authenticated-only CTAs. Reflects the `is-authenticated`
+ *   attribute.
+ */
 class CtsDashboard extends LitElement {
   static properties = {
     isAuthenticated: { type: Boolean, attribute: "is-authenticated" },

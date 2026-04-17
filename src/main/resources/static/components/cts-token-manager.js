@@ -4,6 +4,14 @@ import { LitElement, html, nothing } from "lit";
 // assistive tech to finish reading the message. 2-3s is a common mistake.
 const COPY_FEEDBACK_DURATION_MS = 5000;
 
+/**
+ * Token management UI. Lists existing API tokens via `/api/token`, lets the
+ * user create temporary or permanent tokens, and confirms deletion. Admins
+ * see a read-only message instead (admins cannot create tokens).
+ *
+ * @property {boolean} isAdmin - Renders the admin read-only view instead of
+ *   the create/delete UI. Reflects the `is-admin` attribute.
+ */
 class CtsTokenManager extends LitElement {
   static properties = {
     isAdmin: { type: Boolean, attribute: "is-admin" },
