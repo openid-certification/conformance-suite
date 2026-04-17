@@ -103,7 +103,18 @@
                 return loadTokens();
             });
 
-            var clipboard = new ClipboardJS('.btn-clipboard');
+            // Target the inner <button> rendered by cts-button. This fails loudly
+            // if cts-button ever switches to shadow DOM (the selector stops
+            // matching) instead of silently breaking copy. See
+            // components/cts-button.js JSDoc for the light-DOM dependency note.
+            var clipboard = new ClipboardJS('.btn-clipboard > button', {
+                text: function(trigger) {
+                    var host = trigger.closest('.btn-clipboard');
+                    var sel = host && host.getAttribute('data-clipboard-target');
+                    var target = sel ? document.querySelector(sel) : null;
+                    return target ? target.textContent : '';
+                }
+            });
             clipboard.on('success', function(e) {
                 console.log(e);
             });

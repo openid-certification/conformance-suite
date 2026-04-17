@@ -239,6 +239,58 @@ export const WithRichContent = {
   },
 };
 
+/**
+ * Regression guard for the slot-children capture in `_render()`. cts-badge is
+ * a vanilla HTMLElement with `observedAttributes`, so changing an attribute
+ * like `variant` or `pill` triggers a full re-render. The rich slotted
+ * content must survive re-render: children are captured once and moved
+ * between wrappers on each render, so the `<em>` and `<a>` references stay
+ * live across attribute changes.
+ */
+export const RichContentRerenderStability = {
+  render: () => html`
+    <cts-badge variant="info-subtle" pill icon="info-circle-fill">
+      See the <a href="/docs">documentation</a> for <em>details</em>.
+    </cts-badge>
+  `,
+
+  async play({ canvasElement }) {
+    const host = canvasElement.querySelector("cts-badge");
+    expect(host).toBeTruthy();
+
+    // Capture the original slotted nodes — identity must be preserved.
+    const initialLink = host.querySelector("a");
+    const initialEm = host.querySelector("em");
+    expect(initialLink).toBeTruthy();
+    expect(initialEm).toBeTruthy();
+    expect(initialLink.getAttribute("href")).toBe("/docs");
+
+    // Mutate each observed attribute in turn.
+    host.setAttribute("variant", "danger");
+    host.removeAttribute("pill");
+    host.setAttribute("icon", "exclamation-triangle-fill");
+
+    // Wrapper reflects new state.
+    const badge = host.querySelector(".badge");
+    expect(badge).toBeTruthy();
+    expect(badge.classList.contains("bg-danger")).toBe(true);
+    expect(badge.classList.contains("rounded-pill")).toBe(false);
+    const icon = badge.querySelector("i.bi");
+    expect(icon.classList.contains("bi-exclamation-triangle-fill")).toBe(true);
+
+    // Same <a> and <em> nodes still present — they moved, they weren't recreated.
+    const rerenderedLink = host.querySelector("a");
+    const rerenderedEm = host.querySelector("em");
+    expect(rerenderedLink).toBe(initialLink);
+    expect(rerenderedEm).toBe(initialEm);
+    expect(rerenderedLink.getAttribute("href")).toBe("/docs");
+    expect(rerenderedEm.textContent).toBe("details");
+
+    // No recursive span nesting from repeated re-renders (one .badge wrapper).
+    expect(host.querySelectorAll(".badge").length).toBe(1);
+  },
+};
+
 export const CountPrefersOverLabel = {
   args: { variant: "success", count: 42, label: "Ignored" },
   render: ({ variant, count, label }) =>

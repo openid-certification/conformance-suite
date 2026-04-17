@@ -1,6 +1,6 @@
 import { test, expect } from "@playwright/test";
 import { setupCommonRoutes, setupFailFast, expectNoUnmockedCalls } from "./helpers/routes.js";
-import { MOCK_TEST_STATUS, MOCK_TEST_FAILED, MOCK_TEST_WARNING } from "./fixtures/mock-test-data.js";
+import { MOCK_TEST_STATUS, MOCK_TEST_FAILED, MOCK_TEST_WARNING, MOCK_TEST_RUNNING } from "./fixtures/mock-test-data.js";
 import { MOCK_LOG_ENTRIES, MOCK_FAILED_LOG_ENTRIES, MOCK_WARNING_LOG_ENTRIES } from "./fixtures/mock-log-entries.js";
 
 /**
@@ -8,8 +8,9 @@ import { MOCK_LOG_ENTRIES, MOCK_FAILED_LOG_ENTRIES, MOCK_WARNING_LOG_ENTRIES } f
  * Must be called after setupFailFast and before setupCommonRoutes
  * (in practice: after failFast, before goto).
  */
-async function setupLogDetailRoutes(page, { testInfo, logEntries }) {
+async function setupLogDetailRoutes(page, { testInfo, logEntries, runnerStatus, runnerError, runner404 }) {
   const testId = testInfo.testId;
+  const runnerStatusValue = runnerStatus ?? "FINISHED";
 
   // /api/info/:testId
   await page.route(`**/api/info/${testId}`, (route) =>
@@ -38,21 +39,26 @@ async function setupLogDetailRoutes(page, { testInfo, logEntries }) {
     });
   });
 
-  // /api/runner/:testId — return FINISHED to stop the reloader
-  await page.route(`**/api/runner/${testId}`, (route) =>
-    route.fulfill({
+  // /api/runner/:testId — drives the Active/Inactive/Archived/Error banner transitions.
+  // 404 triggers the .catch() branch and shows the Archived banner.
+  await page.route(`**/api/runner/${testId}`, (route) => {
+    if (runner404) {
+      return route.fulfill({ status: 404, body: "" });
+    }
+    return route.fulfill({
       status: 200,
       contentType: "application/json",
       body: JSON.stringify({
         id: testId,
         name: testInfo.testName,
-        status: "FINISHED",
+        status: runnerStatusValue,
         created: testInfo.created,
         updated: testInfo.created,
         owner: testInfo.owner,
+        ...(runnerError ? { error: runnerError } : {}),
       }),
-    }),
-  );
+    });
+  });
 
   // /api/plan/:planId — for the "Return to Plan" button
   if (testInfo.planId) {
@@ -272,6 +278,147 @@ test.describe("log-detail.html — Log Detail", () => {
 
     // Chevron should point down when collapsed
     await expect(moreBtn.locator(".bi-chevron-down")).toBeVisible();
+  });
+
+  // --- cts-alert banner visibility transitions ---
+  //
+  // The running-test header contains four cts-alert banners in
+  // templates/logHeader.html. Three are driven by the /api/runner response:
+  //   #runningTestActive   (info)    — runner status is RUNNING
+  //   #runningTestInactive (warning) — runner status is FINISHED/INTERRUPTED
+  //   #runningTestArchived (info)    — runner endpoint 404s
+  // The fourth (#runningTestSuccess) is dead template markup: no JS ever
+  // toggles its container visible, so it's intentionally not exercised here.
+
+  test("banner transitions: FINISHED runner shows Inactive, hides Active/Archived", async ({ page }) => {
+    await setupFailFast(page);
+    await setupLogDetailRoutes(page, {
+      testInfo: MOCK_TEST_STATUS,
+      logEntries: MOCK_LOG_ENTRIES,
+      runnerStatus: "FINISHED",
+    });
+    await setupCommonRoutes(page);
+
+    await page.goto("/log-detail.html?log=test-inst-001");
+
+    const active = page.locator("#runningTestActive");
+    const inactive = page.locator("#runningTestInactive");
+    const archived = page.locator("#runningTestArchived");
+
+    // Inactive banner visible — the warning "no longer running" state.
+    await expect(inactive).toBeVisible();
+    await expect(inactive.locator(".alert.alert-warning")).toBeVisible();
+
+    // Active is hidden inline (style.display = 'none').
+    await expect(active).toBeHidden();
+
+    // Archived banner present but collapsed (no .show class).
+    await expect(archived).toHaveClass(/collapse/);
+    await expect(archived).not.toHaveClass(/show/);
+  });
+
+  test("banner transitions: RUNNING runner shows Active, hides Inactive/Archived", async ({ page }) => {
+    await setupFailFast(page);
+    await setupLogDetailRoutes(page, {
+      testInfo: MOCK_TEST_RUNNING,
+      logEntries: MOCK_LOG_ENTRIES,
+      runnerStatus: "RUNNING",
+    });
+    await setupCommonRoutes(page);
+
+    await page.goto("/log-detail.html?log=test-running-001");
+
+    const active = page.locator("#runningTestActive");
+    const inactive = page.locator("#runningTestInactive");
+    const archived = page.locator("#runningTestArchived");
+
+    await expect(active).toBeVisible();
+    await expect(active.locator(".alert.alert-info")).toBeVisible();
+    await expect(inactive).toBeHidden();
+    await expect(archived).not.toHaveClass(/show/);
+  });
+
+  test("banner transitions: runner 404 shows Archived banner (dismissible info)", async ({ page }) => {
+    await setupFailFast(page);
+    await setupLogDetailRoutes(page, {
+      testInfo: MOCK_TEST_STATUS,
+      logEntries: MOCK_LOG_ENTRIES,
+      runner404: true,
+    });
+    await setupCommonRoutes(page);
+
+    await page.goto("/log-detail.html?log=test-inst-001");
+
+    const active = page.locator("#runningTestActive");
+    const inactive = page.locator("#runningTestInactive");
+    const archived = page.locator("#runningTestArchived");
+
+    // Archived becomes .show (Bootstrap collapse toggled on).
+    await expect(archived).toHaveClass(/show/);
+    await expect(archived.locator(".alert.alert-info.alert-dismissible")).toBeVisible();
+
+    // Active and Inactive forced hidden inline.
+    await expect(active).toBeHidden();
+    await expect(inactive).toBeHidden();
+  });
+
+  // --- finalError.html INTERRUPTED state path ---
+  //
+  // When /api/runner returns an `error` object, log-detail.html injects the
+  // FINAL_ERROR template (templates/finalError.html) into #runningTestError.
+  // The template renders a danger cts-alert containing a cts-button
+  // (#stacktraceBtn) that reveals the stacktrace list on click.
+
+  test("runner error response injects cts-alert + stacktrace reveals on click", async ({ page }) => {
+    await setupFailFast(page);
+    await setupLogDetailRoutes(page, {
+      testInfo: { ...MOCK_TEST_STATUS, status: "INTERRUPTED", result: null },
+      logEntries: MOCK_LOG_ENTRIES,
+      runnerStatus: "INTERRUPTED",
+      runnerError: {
+        error: "Something exploded",
+        error_class: "RuntimeException",
+        stacktrace: [
+          "at net.openid.ExampleCondition.evaluate(ExampleCondition.java:42)",
+          "at net.openid.TestRunner.run(TestRunner.java:99)",
+        ],
+        cause_stacktrace: [
+          "at net.openid.Inner.cause(Inner.java:7)",
+        ],
+      },
+    });
+    await setupCommonRoutes(page);
+
+    await page.goto("/log-detail.html?log=test-inst-001");
+
+    const errorContainer = page.locator("#runningTestError");
+    await expect(errorContainer).toHaveClass(/show/);
+
+    // The template renders a danger cts-alert.
+    const alert = errorContainer.locator("cts-alert[variant='danger']");
+    await expect(alert).toBeVisible();
+    await expect(alert).toContainText("Something exploded");
+    await expect(alert).toContainText("RuntimeException");
+
+    // Stacktrace and cause sections are collapsed until the button is clicked.
+    const stacktrace = page.locator("#stacktrace");
+    const causeStacktrace = page.locator("#causeStacktrace");
+    await expect(stacktrace).not.toHaveClass(/show/);
+    await expect(causeStacktrace).not.toHaveClass(/show/);
+
+    // The stacktrace cts-button is visible; click its inner <button>
+    // (the onclick is bound on the host, but clicking the inner button
+    //  still bubbles — this matches the real user interaction path).
+    const stacktraceBtn = page.locator("#stacktraceBtn");
+    await expect(stacktraceBtn).toBeVisible();
+    await stacktraceBtn.locator("button").click();
+
+    // After click: the button hides itself and both collapses expand.
+    await expect(stacktraceBtn).toBeHidden();
+    await expect(stacktrace).toHaveClass(/show/);
+    await expect(causeStacktrace).toHaveClass(/show/);
+    await expect(stacktrace).toContainText("ExampleCondition.evaluate");
+    await expect(causeStacktrace).toContainText("Inner.cause");
   });
 
   test("failure summary items are clickable", async ({ page }) => {
