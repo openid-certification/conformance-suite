@@ -13,6 +13,34 @@ import { buildButtonClasses } from "./_button-classes.js";
  * @property {boolean} disabled - Disables the button
  * @property {string} type - Native button type: "button" (default) or "submit"
  * @property {boolean} full-width - Stretches the button to fill its parent's width
+ *
+ * ## Programmatic activation
+ *
+ * `host.click()` and `$(host).trigger('click')` fire a synthetic click on the
+ * cts-button host element, NOT on the inner `<button>`. Lit's `@click` handler
+ * is registered on the inner button, so `_handleClick` does not run and
+ * `cts-click` is not dispatched. User clicks still work because the native
+ * click bubbles from inner button to host.
+ *
+ * To activate a cts-button programmatically from tests or automation:
+ *
+ * ```js
+ * // GOOD — triggers the Lit click handler and dispatches cts-click
+ * host.querySelector('button').click();
+ *
+ * // GOOD — listen for cts-click if you want the disabled/loading guard to fire
+ * host.addEventListener('cts-click', handler);
+ * ```
+ *
+ * ## Light-DOM dependencies
+ *
+ * cts-button intentionally renders to its own light DOM (see
+ * `createRenderRoot()`). ClipboardJS (`.btn-clipboard`), Bootstrap 5 data
+ * attributes (`data-bs-dismiss`, `data-bs-toggle`), and jQuery delegated
+ * handlers rely on the native click bubbling from the inner button through
+ * the host — all of these break silently if this component ever switches to
+ * shadow DOM or adds `event.preventDefault()` inside `_handleClick`. Do not
+ * change the render root without first migrating every consumer.
  */
 class CtsButton extends LitElement {
   static properties = {

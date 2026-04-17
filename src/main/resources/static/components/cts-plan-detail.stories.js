@@ -234,6 +234,55 @@ export const ModulesReadonly = {
   },
 };
 
+/**
+ * Covers the second half of cts-plan-modules' disabled Run Test branch:
+ * when a plan is marked `immutable` (published / certification-locked),
+ * `_canRunTest()` returns false and the Run Test cts-button is omitted.
+ * The readonly and immutable flags are OR'd inside the component, so either
+ * one alone must disable the branch.
+ */
+export const ModulesImmutable = {
+  render: () => html`
+    <cts-plan-modules
+      .modules=${MODULES_WITH_STATUS}
+      plan-id="plan-immutable-001"
+      is-immutable
+    ></cts-plan-modules>
+  `,
+  async play({ canvasElement }) {
+    const runBtns = canvasElement.querySelectorAll('[data-testid="run-test-btn"]');
+    expect(runBtns.length).toBe(0);
+
+    // Download Logs buttons still render for modules with instances.
+    const downloadBtns = canvasElement.querySelectorAll("cts-button.downloadBtn");
+    expect(downloadBtns.length).toBe(3);
+
+    // View Logs links still render.
+    const viewBtns = canvasElement.querySelectorAll(".viewBtn");
+    expect(viewBtns.length).toBe(3);
+  },
+};
+
+/**
+ * Both flags set together — certified+published plans viewed by the owner.
+ * Keeps the disabled branch robust against future refactors that might
+ * change the OR to an AND.
+ */
+export const ModulesReadonlyAndImmutable = {
+  render: () => html`
+    <cts-plan-modules
+      .modules=${MODULES_WITH_STATUS}
+      plan-id="plan-abc-123"
+      is-readonly
+      is-immutable
+    ></cts-plan-modules>
+  `,
+  async play({ canvasElement }) {
+    const runBtns = canvasElement.querySelectorAll('[data-testid="run-test-btn"]');
+    expect(runBtns.length).toBe(0);
+  },
+};
+
 // ==========================================================================
 // Plan Actions stories
 // ==========================================================================

@@ -1398,7 +1398,18 @@
                 }
             });
 
-            var clipboard = new ClipboardJS('.btn-clipboard');
+            // Target the inner <button> rendered by cts-button. This fails loudly
+            // if cts-button ever switches to shadow DOM (the selector stops
+            // matching) instead of silently breaking copy. See
+            // components/cts-button.js JSDoc for the light-DOM dependency note.
+            var clipboard = new ClipboardJS('.btn-clipboard > button', {
+                text: function(trigger) {
+                    var host = trigger.closest('.btn-clipboard');
+                    var sel = host && host.getAttribute('data-clipboard-target');
+                    var target = sel ? document.querySelector(sel) : null;
+                    return target ? target.textContent : '';
+                }
+            });
             clipboard.on('success', function(e) {
                 console.log(e);
             });
@@ -1522,20 +1533,23 @@ echo "-----BEGIN CERTIFICATE-----\n${requestDescription.request_mutual_tls.ca}\n
           // Ctrl+Shift+X / Cmd+Shift+X to repeat test
           if (isCtrlOrCmd && event.shiftKey) {
 
+            // cts-button host.click() fires only on the host, so Lit's @click
+            // handler on the inner <button> never runs. Target the inner
+            // button so both onclick-on-host and cts-click listeners fire.
             if (event.key.toLowerCase() === 'x') {
               event.preventDefault(); // prevent other default actions
-              const reloadBtn = document.getElementById('reloadBtn');
-              if (reloadBtn) {
-                reloadBtn.click();
+              const innerReload = document.querySelector('#reloadBtn button');
+              if (innerReload) {
+                innerReload.click();
               }
             }
 
             // Ctrl+Shift+U / Cmd+Shift+U to continUe to the next test
             if (event.key.toLowerCase() === 'u') {
                 event.preventDefault();
-                const continueBtn = document.getElementById('nextPlanBtn');
-                if (continueBtn) {
-                    continueBtn.click();
+                const innerContinue = document.querySelector('#nextPlanBtn button');
+                if (innerContinue) {
+                    innerContinue.click();
                 }
             }
           }

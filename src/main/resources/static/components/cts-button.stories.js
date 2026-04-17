@@ -187,6 +187,43 @@ export const ClickEvent = {
   },
 };
 
+/**
+ * Documents the `host.click()` vs inner `<button>.click()` divergence for
+ * cts-button. Programmatic activation via the host is a no-op because Lit
+ * registers `@click` on the inner button, which does not see synthetic clicks
+ * on its parent. This story is the regression canary: if it ever starts
+ * failing, either shadow DOM was enabled or `preventDefault` was introduced
+ * in `_handleClick`, both of which silently break ClipboardJS, Bootstrap
+ * `data-bs-*`, and jQuery-delegated handlers on cts-button hosts.
+ */
+export const HostClickDoesNotDispatch = {
+  args: { variant: "primary", label: "Programmatic" },
+  render: ({ variant, label }) =>
+    html`<cts-button variant="${variant}" label="${label}"></cts-button>`,
+
+  async play({ canvasElement }) {
+    const host = canvasElement.querySelector("cts-button");
+    await host.updateComplete;
+    const btn = host.querySelector("button");
+    expect(btn).toBeTruthy();
+
+    // Count cts-click events. Lit dispatches them from the host, so
+    // `e.target === host` in both cases — we just count invocations.
+    let ctsClickCount = 0;
+    canvasElement.addEventListener("cts-click", () => {
+      ctsClickCount += 1;
+    });
+
+    // Synthetic click on the host bypasses Lit's @click on the inner button.
+    host.click();
+    expect(ctsClickCount).toBe(0);
+
+    // Clicking the inner button (what a real user hits) dispatches cts-click.
+    btn.click();
+    expect(ctsClickCount).toBe(1);
+  },
+};
+
 export const DisabledNoEvent = {
   args: { variant: "light", label: "Cancel", disabled: true },
   render: ({ variant, label, loading, disabled }) =>
