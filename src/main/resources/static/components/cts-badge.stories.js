@@ -9,6 +9,7 @@ export default {
     variant: { control: "text" },
     label: { control: "text" },
     count: { control: "number" },
+    icon: { control: "text" },
     pill: { control: "boolean" },
     clickable: { control: "boolean" },
   },
@@ -59,6 +60,58 @@ export const BootstrapVariant = {
     const badge = canvasElement.querySelector(".badge.bg-danger");
     expect(badge).toBeTruthy();
     expect(badge.classList.contains("result-danger")).toBe(false);
+  },
+};
+
+export const InfoSubtle = {
+  args: { variant: "info-subtle", label: "Section description", pill: true },
+  render: ({ variant, label, pill }) =>
+    html`<cts-badge
+      variant="${variant}"
+      label="${label}"
+      ?pill="${pill}"
+    ></cts-badge>`,
+
+  async play({ canvasElement }) {
+    const badge = canvasElement.querySelector(".badge");
+    expect(badge).toBeTruthy();
+    expect(badge.classList.contains("bg-info-subtle")).toBe(true);
+    expect(badge.classList.contains("border")).toBe(true);
+    expect(badge.classList.contains("border-info-subtle")).toBe(true);
+    expect(badge.classList.contains("text-info-emphasis")).toBe(true);
+    expect(badge.classList.contains("rounded-pill")).toBe(true);
+    expect(badge.textContent.trim()).toBe("Section description");
+  },
+};
+
+export const WithIcon = {
+  args: {
+    variant: "info-subtle",
+    label: "This section relates to the entity under test",
+    icon: "info-circle-fill",
+    pill: true,
+  },
+  render: ({ variant, label, icon, pill }) =>
+    html`<cts-badge
+      variant="${variant}"
+      label="${label}"
+      icon="${icon}"
+      ?pill="${pill}"
+    ></cts-badge>`,
+
+  async play({ canvasElement }) {
+    const badge = canvasElement.querySelector(".badge");
+    expect(badge).toBeTruthy();
+    expect(badge.classList.contains("bg-info-subtle")).toBe(true);
+
+    const iconEl = badge.querySelector("i.bi");
+    expect(iconEl).toBeTruthy();
+    expect(iconEl.classList.contains("bi-info-circle-fill")).toBe(true);
+    expect(iconEl.getAttribute("aria-hidden")).toBe("true");
+
+    expect(badge.textContent.trim()).toContain(
+      "This section relates to the entity under test",
+    );
   },
 };
 
@@ -147,6 +200,43 @@ export const AllResultVariants = {
       )}
     </div>
   `,
+};
+
+/**
+ * When neither `label` nor `count` is set, the badge wraps whatever child
+ * nodes are inside the host element. This is the only way to embed `<a>`
+ * links, `<em>` emphasis, or other rich content inside a badge — used by
+ * the four federation entity headers in `schedule-test.html` to keep the
+ * link to the detailed instructions clickable.
+ */
+export const WithRichContent = {
+  render: () => html`
+    <cts-badge variant="info-subtle" pill icon="info-circle-fill">
+      This section relates to the entity under test, i.e. <em>your</em>
+      federation entity. See also the
+      <a href="https://openid.net/certification/federation_testing">detailed instructions</a>.
+    </cts-badge>
+  `,
+
+  async play({ canvasElement }) {
+    const badge = canvasElement.querySelector(".badge");
+    expect(badge).toBeTruthy();
+    expect(badge.classList.contains("bg-info-subtle")).toBe(true);
+
+    // Icon still renders before the slotted content
+    const iconEl = badge.querySelector("i.bi");
+    expect(iconEl).toBeTruthy();
+    expect(iconEl.classList.contains("bi-info-circle-fill")).toBe(true);
+
+    // The <em> emphasis and <a> link survive the migration
+    expect(badge.querySelector("em")).toBeTruthy();
+    const link = badge.querySelector("a");
+    expect(link).toBeTruthy();
+    expect(link.getAttribute("href")).toBe(
+      "https://openid.net/certification/federation_testing",
+    );
+    expect(link.textContent).toBe("detailed instructions");
+  },
 };
 
 export const CountPrefersOverLabel = {
