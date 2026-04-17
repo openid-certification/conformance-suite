@@ -1,5 +1,9 @@
 import { LitElement, html, nothing } from "lit";
 
+// Screen-reader announcement + visible feedback should stay long enough for
+// assistive tech to finish reading the message.
+const COPY_FEEDBACK_DURATION_MS = 5000;
+
 class CtsPlanActions extends LitElement {
   static properties = {
     plan: { type: Object },
@@ -10,6 +14,7 @@ class CtsPlanActions extends LitElement {
     _showPrivateLink: { state: true },
     _privateLinkDays: { state: true },
     _privateLinkResult: { state: true },
+    _copyFeedback: { state: true },
   };
 
   constructor() {
@@ -22,20 +27,50 @@ class CtsPlanActions extends LitElement {
     this._showPrivateLink = false;
     this._privateLinkDays = 30;
     this._privateLinkResult = "";
+    this._copyFeedback = "";
+    this._copyFeedbackTimer = null;
   }
 
   createRenderRoot() { return this; }
+
+  disconnectedCallback() {
+    super.disconnectedCallback();
+    if (this._copyFeedbackTimer) {
+      clearTimeout(this._copyFeedbackTimer);
+      this._copyFeedbackTimer = null;
+    }
+  }
 
   _handleViewConfig() {
     this._showConfig = !this._showConfig;
   }
 
   async _handleCopyConfig() {
-    if (this.plan && this.plan.config) {
-      await navigator.clipboard.writeText(
-        JSON.stringify(this.plan.config, null, 4),
+    if (!this.plan || !this.plan.config) return;
+    const text = JSON.stringify(this.plan.config, null, 4);
+    if (!navigator.clipboard) {
+      this._showCopyFeedback(
+        "Clipboard not available — please copy the JSON below manually.",
+      );
+      return;
+    }
+    try {
+      await navigator.clipboard.writeText(text);
+    } catch (err) {
+      console.warn("[cts-plan-actions] clipboard.writeText failed:", err);
+      this._showCopyFeedback(
+        "Copy failed — please copy the JSON below manually.",
       );
     }
+  }
+
+  _showCopyFeedback(message) {
+    this._copyFeedback = message;
+    if (this._copyFeedbackTimer) clearTimeout(this._copyFeedbackTimer);
+    this._copyFeedbackTimer = setTimeout(() => {
+      this._copyFeedback = "";
+      this._copyFeedbackTimer = null;
+    }, COPY_FEEDBACK_DURATION_MS);
   }
 
   _handleDownloadAll() {
@@ -137,13 +172,24 @@ class CtsPlanActions extends LitElement {
         <div class="card-body">
           <div class="d-flex justify-content-between align-items-center mb-2">
             <strong>Configuration for <code class="text-muted">${this.plan._id}</code></strong>
-            <button
-              class="btn btn-sm btn-outline-secondary copy-config-btn"
-              title="Copy config to clipboard"
-              @click=${() => this._handleCopyConfig()}
-            >
-              <span class="bi bi-clipboard" aria-hidden="true"></span> Copy
-            </button>
+            <div class="d-flex align-items-center gap-2">
+              ${this._copyFeedback
+                ? html`<span
+                    class="text-danger small"
+                    role="status"
+                    aria-live="polite"
+                    data-testid="copy-feedback"
+                    >${this._copyFeedback}</span
+                  >`
+                : nothing}
+              <button
+                class="btn btn-sm btn-outline-secondary copy-config-btn"
+                title="Copy config to clipboard"
+                @click=${() => this._handleCopyConfig()}
+              >
+                <span class="bi bi-clipboard" aria-hidden="true"></span> Copy
+              </button>
+            </div>
           </div>
           <div class="wrapLongStrings">
             <pre class="row-bg-light p-1 config-json">${configJson}</pre>

@@ -1,5 +1,9 @@
 import { LitElement, html, nothing } from "lit";
 
+// Screen-reader announcement + visible feedback should stay long enough for
+// assistive tech to finish reading the message. 2-3s is a common mistake.
+const COPY_FEEDBACK_DURATION_MS = 5000;
+
 class CtsTokenManager extends LitElement {
   static properties = {
     isAdmin: { type: Boolean, attribute: "is-admin" },
@@ -11,6 +15,7 @@ class CtsTokenManager extends LitElement {
     _showCreated: { state: true },
     _showDelete: { state: true },
     _showError: { state: true },
+    _copyFeedback: { state: true },
   };
 
   constructor() {
@@ -24,6 +29,16 @@ class CtsTokenManager extends LitElement {
     this._showCreated = false;
     this._showDelete = false;
     this._showError = false;
+    this._copyFeedback = "";
+    this._copyFeedbackTimer = null;
+  }
+
+  disconnectedCallback() {
+    super.disconnectedCallback();
+    if (this._copyFeedbackTimer) {
+      clearTimeout(this._copyFeedbackTimer);
+      this._copyFeedbackTimer = null;
+    }
   }
 
   // Use light DOM so Bootstrap CSS applies
@@ -128,13 +143,30 @@ class CtsTokenManager extends LitElement {
   }
 
   async _copyToken() {
-    if (this._createdToken) {
-      try {
-        await navigator.clipboard.writeText(this._createdToken);
-      } catch {
-        // Clipboard write may fail in some environments
-      }
+    if (!this._createdToken) return;
+    if (!navigator.clipboard) {
+      this._showCopyFeedback(
+        "Clipboard not available — please select the token text manually.",
+      );
+      return;
     }
+    try {
+      await navigator.clipboard.writeText(this._createdToken);
+    } catch (err) {
+      console.warn("[cts-token-manager] clipboard.writeText failed:", err);
+      this._showCopyFeedback(
+        "Copy failed — please select the token text manually.",
+      );
+    }
+  }
+
+  _showCopyFeedback(message) {
+    this._copyFeedback = message;
+    if (this._copyFeedbackTimer) clearTimeout(this._copyFeedbackTimer);
+    this._copyFeedbackTimer = setTimeout(() => {
+      this._copyFeedback = "";
+      this._copyFeedbackTimer = null;
+    }, COPY_FEEDBACK_DURATION_MS);
   }
 
   _formatDate(timestamp) {
@@ -269,7 +301,7 @@ class CtsTokenManager extends LitElement {
               </div>
               <div class="modal-body">
                 <div class="wrapLongStrings">
-                  <p>
+                  <p class="d-flex align-items-center gap-2">
                     <button
                       class="btn btn-sm btn-outline-secondary"
                       @click=${() => this._copyToken()}
@@ -277,6 +309,15 @@ class CtsTokenManager extends LitElement {
                     >
                       <span class="bi bi-clipboard"></span> Copy
                     </button>
+                    ${this._copyFeedback
+                      ? html`<span
+                          class="text-danger small"
+                          role="status"
+                          aria-live="polite"
+                          data-testid="copy-feedback"
+                          >${this._copyFeedback}</span
+                        >`
+                      : nothing}
                   </p>
                   <p>
                     Here is your new token. This value will only be displayed

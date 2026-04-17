@@ -284,3 +284,71 @@ export const LoadingState = {
     expect(srText.textContent).toBe("Loading available test plans...");
   },
 };
+
+/**
+ * A 5xx from /api/runner/available used to return a JSON error payload that
+ * the component then treated as "plans = [error object]", leaving the user
+ * staring at an empty dropdown with no idea what happened. The component now
+ * distinguishes load-failure from truly-empty.
+ */
+export const LoadErrorShowsBanner = {
+  parameters: {
+    msw: {
+      handlers: [
+        http.get("/api/runner/available", () =>
+          HttpResponse.json({ error: "backend down" }, { status: 500 }),
+        ),
+      ],
+    },
+  },
+  render: () => html`<cts-spec-cascade></cts-spec-cascade>`,
+  async play({ canvasElement }) {
+    const warnSpy = fn();
+    const origWarn = console.warn;
+    console.warn = warnSpy;
+    try {
+      await waitFor(() => {
+        const banner = canvasElement.querySelector('[data-testid="spec-cascade-error"]');
+        expect(banner).toBeTruthy();
+        expect(banner.textContent).toContain("Unable to load plans");
+      });
+
+      // No dropdowns should render in the error state.
+      expect(canvasElement.querySelector("#specFamilySelect")).toBeNull();
+      expect(canvasElement.querySelector('[data-testid="spec-cascade-empty"]')).toBeNull();
+
+      await waitFor(() => {
+        expect(warnSpy).toHaveBeenCalled();
+        const joined = warnSpy.mock.calls.flat().join(" ");
+        expect(joined).toContain("cts-spec-cascade");
+      });
+    } finally {
+      console.warn = origWarn;
+    }
+  },
+};
+
+/**
+ * The server returned an empty list — no plans for this deployment yet. This
+ * is the distinct-from-error case: the backend is healthy, there's just
+ * nothing to show. Route: empty response → info banner (not danger).
+ */
+export const LoadsEmptyShowsInfoBanner = {
+  parameters: {
+    msw: {
+      handlers: [
+        http.get("/api/runner/available", () => HttpResponse.json([])),
+      ],
+    },
+  },
+  render: () => html`<cts-spec-cascade></cts-spec-cascade>`,
+  async play({ canvasElement }) {
+    await waitFor(() => {
+      const empty = canvasElement.querySelector('[data-testid="spec-cascade-empty"]');
+      expect(empty).toBeTruthy();
+      expect(empty.textContent).toContain("No test plans are available");
+    });
+    // Error banner should NOT be showing — this is the healthy-but-empty case.
+    expect(canvasElement.querySelector('[data-testid="spec-cascade-error"]')).toBeNull();
+  },
+};

@@ -674,3 +674,50 @@ export const ActionsCopyConfig = {
     }
   },
 };
+
+export const ActionsCopyConfigClipboardFailure = {
+  render: () => html`
+    <cts-plan-actions .plan=${PLAN_WITH_CONFIG}></cts-plan-actions>
+  `,
+  async play({ canvasElement }) {
+    const originalClipboard = navigator.clipboard;
+    Object.defineProperty(navigator, "clipboard", {
+      value: {
+        writeText: fn().mockRejectedValue(new Error("permission denied")),
+      },
+      writable: true,
+      configurable: true,
+    });
+
+    try {
+      const viewConfigBtn = canvasElement.querySelector(
+        '[data-testid="view-config-btn"]',
+      );
+      await userEvent.click(viewConfigBtn);
+
+      await waitFor(() => {
+        expect(
+          canvasElement.querySelector('[data-testid="config-panel"]'),
+        ).toBeTruthy();
+      });
+
+      const copyBtn = canvasElement.querySelector(".copy-config-btn");
+      await userEvent.click(copyBtn);
+
+      // Failure feedback should render in the same flex container as Copy,
+      // announced politely so SRs read it without interrupting.
+      await waitFor(() => {
+        const feedback = canvasElement.querySelector('[data-testid="copy-feedback"]');
+        expect(feedback).toBeTruthy();
+        expect(feedback.textContent).toContain("Copy failed");
+        expect(feedback.getAttribute("aria-live")).toBe("polite");
+      });
+    } finally {
+      Object.defineProperty(navigator, "clipboard", {
+        value: originalClipboard,
+        writable: true,
+        configurable: true,
+      });
+    }
+  },
+};
