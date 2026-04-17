@@ -71,11 +71,10 @@ public class VCIDecryptCredentialResponse extends AbstractCondition {
 			endpointResponse.add("body_json", decryptedResponse);
 			endpointResponse.addProperty("encrypted", true);
 
-			// Store the JWE header for validation
-			JsonObject jweHeader = JWEUtil.jweHeaderAsJsonObject(jweObject);
-			env.putObject("credential_response_jwe_header", jweHeader);
-
+			// Store the JWE in the common environment format (value/claims/jwe_header) so
+			// downstream conditions can read it like any other JWE in the suite.
 			JsonObject credentialResponseJwe = JWEUtil.jweStringToJsonObjectForEnvironment(responseBody, decryptedResponse);
+			env.putObject("credential_response_jwe", credentialResponseJwe);
 
 			logSuccess("Decrypted credential response",
 				args("credential_response_jwe", credentialResponseJwe));
