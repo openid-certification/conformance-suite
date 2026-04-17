@@ -27,6 +27,7 @@ class CtsConfigForm extends LitElement {
     errors: { type: Object },
     _activeTab: { state: true },
     _jsonText: { state: true },
+    _jsonError: { state: true },
   };
 
   createRenderRoot() { return this; }
@@ -39,6 +40,7 @@ class CtsConfigForm extends LitElement {
     this.errors = {};
     this._activeTab = "form";
     this._jsonText = "";
+    this._jsonError = "";
   }
 
   _getFieldValue(fieldPath) {
@@ -70,14 +72,20 @@ class CtsConfigForm extends LitElement {
     this._jsonText = e.target.value;
     try {
       this.config = JSON.parse(this._jsonText);
+      this._jsonError = "";
       this.dispatchEvent(new CustomEvent("cts-config-change", { bubbles: true, detail: { config: this.config } }));
-    } catch {
-      // Invalid JSON -- don't update config until valid
+    } catch (err) {
+      // Invalid JSON — don't update config until valid, but surface the
+      // error so the user knows their edits aren't being saved.
+      this._jsonError = `Invalid JSON — configuration not updated (${err.message})`;
     }
   }
 
   _handleTabSwitch(tab) {
-    if (tab === "json") this._jsonText = JSON.stringify(this.config, null, 2);
+    if (tab === "json") {
+      this._jsonText = JSON.stringify(this.config, null, 2);
+      this._jsonError = "";
+    }
     this._activeTab = tab;
   }
 
@@ -140,8 +148,12 @@ class CtsConfigForm extends LitElement {
               </form>
             `
           : html`
-              <textarea class="form-control font-monospace" rows="20"
-                .value=${this._jsonText} @input=${this._handleJsonInput}></textarea>
+              <textarea class="form-control font-monospace${this._jsonError ? " is-invalid" : ""}"
+                rows="20" .value=${this._jsonText}
+                @input=${this._handleJsonInput}></textarea>
+              ${this._jsonError
+                ? html`<div class="invalid-feedback d-block" role="alert" aria-live="polite" data-testid="json-error">${this._jsonError}</div>`
+                : nothing}
             `}
       </div>
     `;
