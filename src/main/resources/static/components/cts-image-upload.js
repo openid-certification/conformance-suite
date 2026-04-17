@@ -69,9 +69,8 @@ class CtsImageUpload extends LitElement {
     this._error = "";
 
     try {
-      const formData = new FormData();
-      formData.append("file", file);
-
+      // The endpoint accepts the dataURL body directly (see ImageAPI#uploadImageToExistingLogEntry,
+      // `@RequestBody String encoded`); it is not a multipart upload.
       const url = `/api/log/${encodeURIComponent(this.testId)}/images/${encodeURIComponent(imageName)}`;
       const response = await fetch(url, {
         method: "POST",
