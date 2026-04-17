@@ -70,36 +70,36 @@
                     <div class="col-md-2">
                         <div class="d-grid gap-1">
                             <% if (!public) { %>
-                                <button class="btn btn-sm btn-light bg-gradient border border-secondary" id="showConfigBtn"><span class="bi bi-wrench-adjustable"></span> View Config</button>
+                                <cts-button id="showConfigBtn" variant="light" icon="wrench-adjustable" label="View Config" full-width></cts-button>
                             <% } %>
                             <% if (!readonly) { %>
-                                <a href="schedule-test.html?edit-plan=<%- plan._id %>" class="btn btn-sm btn-light bg-gradient border border-secondary" title="Create a new test plan based on the configuration used in this one"><span class="bi bi-pencil-square"></span> Edit configuration</a>
+                                <cts-link-button href="schedule-test.html?edit-plan=<%- plan._id %>" variant="light" icon="pencil-square" label="Edit configuration" title="Create a new test plan based on the configuration used in this one" full-width></cts-link-button>
                             <% } %>
                             <% if (!public || plan.publish == "everything") { %>
                                 <% if (FAPI_UI.currentUser && FAPI_UI.currentUser.isAdmin) { %>
-                                    <button class="btn btn-sm btn-light bg-gradient border border-secondary" id="downloadAllBtn"><span class="bi bi-save2"></span> Download all Logs</button>
+                                    <cts-button id="downloadAllBtn" variant="light" icon="save2" label="Download all Logs" full-width></cts-button>
                                 <% } %>
                             <% } %>
                             <% if (!readonly) { %>
                                 <% if (!plan.publish) { %>
                                     <% if (FAPI_UI.currentUser.isAdmin) { %>
-                                        <button class="btn btn-sm btn-light bg-gradient border border-secondary" data-publish="summary"><span class="bi bi-bookmarks"></span> Publish summary</button>
-                                        <button class="btn btn-sm btn-light bg-gradient border border-secondary" id="publishBtn"><span class="bi bi-bookmarks"></span> Publish everything</button>
+                                        <cts-button data-publish="summary" variant="light" icon="bookmarks" label="Publish summary" full-width></cts-button>
+                                        <cts-button id="publishBtn" variant="light" icon="bookmarks" label="Publish everything" full-width></cts-button>
                                     <% } %>
                                 <% } else { %>
                                     <% if (FAPI_UI.currentUser.isAdmin) { %>
-                                        <button class="btn btn-sm btn-light bg-gradient border border-secondary" id="unpublishBtn" data-publish=""><span class="bi bi-slash-circle"></span> Unpublish</button>
+                                        <cts-button id="unpublishBtn" data-publish="" variant="light" icon="slash-circle" label="Unpublish" full-width></cts-button>
                                     <% } %>
-                                    <a href="plan-detail.html?plan=<%- plan._id %>&public=true" class="btn btn-sm btn-info bg-gradient border border-secondary"><span class="bi bi-bookmarks"></span> Public link</a>
+                                    <cts-link-button href="plan-detail.html?plan=<%- plan._id %>&public=true" variant="info" icon="bookmarks" label="Public link" full-width></cts-link-button>
                                 <% } %>
-                                <button class="btn btn-sm btn-light bg-gradient border border-secondary" id="btnShareLink"><span class="bi bi-bookmarks"></span> Private link</button>
-                                <button class="btn btn-sm btn-light bg-gradient border border-secondary" id="certificationPackageBtn" title="Publish and prepare certification submission package" disabled><span class="bi bi-save2"></span> Publish for certification</button>
+                                <cts-button id="btnShareLink" variant="light" icon="bookmarks" label="Private link" full-width></cts-button>
+                                <cts-button id="certificationPackageBtn" variant="light" icon="save2" label="Publish for certification" title="Publish and prepare certification submission package" disabled full-width></cts-button>
                             <% } %>
                             <% if (plan.immutable && FAPI_UI.currentUser && FAPI_UI.currentUser.isAdmin) { %>
-                            <button class="btn btn-sm btn-light bg-gradient border border-secondary" id="removeImmutableFlagBtn" data-immutable="false"><span class="bi bi-pencil-square"></span> Make plan Mutable</button>
+                            <cts-button id="removeImmutableFlagBtn" data-immutable="false" variant="light" icon="pencil-square" label="Make plan Mutable" full-width></cts-button>
                             <% } %>
                             <% if (!plan.immutable && !readonly) { %>
-                            <button class="btn btn-sm btn-danger bg-gradient border border-secondary" id="deleteMutablePlanBtn"><span class="bi bi-trash"></span> Delete plan</button>
+                            <cts-button id="deleteMutablePlanBtn" variant="danger" icon="trash" label="Delete plan" full-width></cts-button>
                             <% } %>
                         </div>
                     </div>
@@ -116,11 +116,13 @@
                 <div class="col-md-2">
                     <div class="d-grid gap-1">
                         <% if (!readonly && !plan.immutable) { %>
-                        <button class="btn btn-sm btn-light bg-gradient border border-secondary startBtn" data-module="<%- module.testModule %>" data-variant="<%- JSON.stringify(module.variant) %>"><span class="bi bi-play-fill"></span> Run Test</button>
+                        <cts-button class="startBtn" data-module="<%- module.testModule %>" data-variant="<%- JSON.stringify(module.variant) %>" variant="light" icon="play-fill" label="Run Test" full-width></cts-button>
                         <% } %>
-                        <a class="btn btn-sm btn-light bg-gradient border border-secondary collapse viewBtn" href="log-detail.html?log=<%- encodeURIComponent(lastInstance) %><%- public ? '&public=true' : '' %>"><span class="bi bi-file-earmark"></span> View Logs</a>
+                        <% if (lastInstance) { %>
+                        <cts-link-button class="viewBtn" href="log-detail.html?log=<%- encodeURIComponent(lastInstance) %><%- public ? '&public=true' : '' %>" variant="light" icon="file-earmark" label="View Logs" full-width></cts-link-button>
                         <% if (!public || plan.publish == "everything") { %>
-                        <button class="btn btn-sm btn-light bg-gradient border border-secondary collapse downloadBtn"><span class="bi bi-save2"></span> Download Logs</button>
+                        <cts-button class="downloadBtn" variant="light" icon="save2" label="Download Logs" full-width></cts-button>
+                        <% } %>
                         <% } %>
                     </div>
                 </div>

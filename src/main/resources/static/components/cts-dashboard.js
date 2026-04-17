@@ -82,6 +82,7 @@ class CtsDashboard extends LitElement {
                         variant="info"
                         icon="files"
                         label="Create a new test plan"
+                        full-width
                       ></cts-link-button>
                       <br />
                       <cts-link-button
@@ -89,6 +90,7 @@ class CtsDashboard extends LitElement {
                         variant="info"
                         icon="files"
                         label="View my test logs"
+                        full-width
                       ></cts-link-button>
                       <br />
                       <cts-link-button
@@ -96,6 +98,7 @@ class CtsDashboard extends LitElement {
                         variant="info"
                         icon="bookmarks"
                         label="View my test plans"
+                        full-width
                       ></cts-link-button>
                       <br />
                     `
@@ -105,6 +108,7 @@ class CtsDashboard extends LitElement {
                   variant="info"
                   icon="files"
                   label="View all published test logs"
+                  full-width
                 ></cts-link-button>
                 <br />
                 <cts-link-button
@@ -112,6 +116,7 @@ class CtsDashboard extends LitElement {
                   variant="info"
                   icon="bookmarks"
                   label="View all published test plans"
+                  full-width
                 ></cts-link-button>
                 <br />
                 <cts-link-button
@@ -119,6 +124,7 @@ class CtsDashboard extends LitElement {
                   variant="info"
                   icon="bookmarks"
                   label="View API Documentation"
+                  full-width
                 ></cts-link-button>
               </div>
             </div>

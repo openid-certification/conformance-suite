@@ -10,6 +10,18 @@ const VARIANT_CLASSES = {
   warning: "btn-warning",
 };
 
+/**
+ * Bootstrap-styled button. Dispatches a bubbling `cts-click` event in addition
+ * to the native click.
+ *
+ * @property {string} variant - One of: light, info, primary, danger, secondary, success, warning
+ * @property {string} label - Visible text
+ * @property {string} icon - Bootstrap Icons name (without the `bi-` prefix)
+ * @property {boolean} loading - Shows a spinner and disables the button
+ * @property {boolean} disabled - Disables the button
+ * @property {string} type - Native button type: "button" (default) or "submit"
+ * @property {boolean} full-width - Stretches the button to fill its parent's width
+ */
 class CtsButton extends LitElement {
   static properties = {
     variant: { type: String },
@@ -18,6 +30,7 @@ class CtsButton extends LitElement {
     loading: { type: Boolean },
     disabled: { type: Boolean },
     type: { type: String },
+    fullWidth: { type: Boolean, attribute: "full-width", reflect: true },
   };
 
   constructor() {
@@ -28,9 +41,18 @@ class CtsButton extends LitElement {
     this.loading = false;
     this.disabled = false;
     this.type = "button";
+    this.fullWidth = false;
   }
 
   createRenderRoot() { return this; }
+
+  updated(changed) {
+    if (changed.has("fullWidth")) {
+      // Light-DOM components can't style their own host from CSS;
+      // set display imperatively so the host stretches in block/flex/grid parents.
+      this.style.display = this.fullWidth ? "block" : "";
+    }
+  }
 
   _handleClick() {
     if (this.disabled || this.loading) return;
@@ -67,9 +89,10 @@ class CtsButton extends LitElement {
     const iconContent = this._renderIcon();
     const hasIcon = iconContent !== nothing;
     const variantClass = VARIANT_CLASSES[this.variant] || "btn-light";
+    const widthClass = this.fullWidth ? " w-100" : "";
     return html`<button
       type="${this.type}"
-      class="btn btn-sm ${variantClass} bg-gradient border border-secondary"
+      class="btn btn-sm ${variantClass} bg-gradient border border-secondary${widthClass}"
       ?disabled="${isDisabled}"
       @click="${this._handleClick}"
     >${iconContent}${hasIcon && this.label ? " " : ""}${this.label

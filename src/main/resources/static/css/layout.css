@@ -5,9 +5,9 @@ body {
 }
 
 .pageHeader {
-	margin-top: 5px;
+	margin-top: 0;
 	margin-bottom: 20px;
-	padding-bottom: 10px;
+	padding: 0 1.5rem 10px;
 }
 
 .pageHeader img {
