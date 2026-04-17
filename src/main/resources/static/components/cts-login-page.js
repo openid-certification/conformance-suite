@@ -1,4 +1,5 @@
 import { LitElement, html, nothing } from "lit";
+import "./cts-link-button.js";
 
 /**
  * Login/register landing page. Offers Google/GitLab OAuth buttons and links to

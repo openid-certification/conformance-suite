@@ -201,7 +201,10 @@ class CtsLogDetailHeader extends LitElement {
   }
 
   _isRunning() {
-    const status = (this.testInfo?.status || "").toUpperCase();
+    // render() guards `!this.testInfo`, so everything downstream can assume
+    // testInfo is non-null. This keeps the optional-chaining style consistent
+    // with the rest of the render tree.
+    const status = (this.testInfo.status || "").toUpperCase();
     return status === "RUNNING" || status === "WAITING";
   }
 
