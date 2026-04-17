@@ -45,6 +45,7 @@ class CtsLinkButton extends LitElement {
   }
 
   // Icon names come from the Bootstrap Icons set (2000+ icons).
+  // Constructed from the icon prop, not a finite variant set.
   _iconClass() {
     return `bi bi-${this.icon}`;
   }
@@ -67,9 +68,7 @@ class CtsLinkButton extends LitElement {
       role="button"
       aria-disabled=${this.disabled ? "true" : nothing}
       tabindex=${this.disabled ? "-1" : nothing}
-    >${iconContent}${hasIcon && this.label ? " " : ""}${this.label
-        ? this.label
-        : nothing}</a
+    >${iconContent}${hasIcon && this.label ? " " : ""}${this.label}</a
     >`;
   }
 }

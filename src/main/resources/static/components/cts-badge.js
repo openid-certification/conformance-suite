@@ -37,10 +37,15 @@ const BOOTSTRAP_VARIANT_CLASSES = {
  * nodes are inside the host element. This is the only way to embed inline
  * `<a>`, `<em>`, or other rich content inside a badge.
  *
- * The slot children are captured ONCE on the first render. Children appended
- * after the element is connected are not picked up by subsequent re-renders.
- * If you need dynamic rich content, set the `label` attribute to the new
- * text or remove and re-add the element rather than mutating its children.
+ * The slot children are captured ONCE on the first render and cached on the
+ * instance (`_capturedChildren`). Every subsequent re-render moves the same
+ * cached nodes into the newly-built badge wrapper, so inline rich content
+ * survives attribute changes. HOWEVER, children APPENDED AFTER the first
+ * render are not picked up — they land inside the current `<span class=
+ * "badge">` wrapper and get discarded when the next re-render rebuilds the
+ * wrapper. If you need to swap in different rich content dynamically, set
+ * the `label` attribute (for plain text), remove + re-insert the element,
+ * or update `_capturedChildren` directly before triggering a re-render.
  *
  * @fires cts-badge-click - When the badge is clicked/activated while
  *   `clickable` is set. Bubbles and is composed.

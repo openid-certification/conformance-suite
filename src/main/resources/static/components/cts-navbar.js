@@ -44,6 +44,15 @@ class CtsNavbar extends LitElement {
 
   connectedCallback() {
     super.connectedCallback();
+    // Skip the auth probe on pages with statically-known anonymous state
+    // (login.html is the only one today). Previously every login-page load
+    // fired a /api/currentuser that inevitably 401'd, generating server
+    // log noise and a spurious ~150ms of loading chrome.
+    if (window.location.pathname.endsWith("/login.html")) {
+      this._user = null;
+      this._loading = false;
+      return;
+    }
     this._fetchUser();
   }
 

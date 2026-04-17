@@ -116,9 +116,7 @@ class CtsButton extends LitElement {
       class="${buttonClass}"
       ?disabled="${isDisabled}"
       @click="${this._handleClick}"
-    >${iconContent}${hasIcon && this.label ? " " : ""}${this.label
-        ? this.label
-        : nothing}</button
+    >${iconContent}${hasIcon && this.label ? " " : ""}${this.label}</button
     >`;
   }
 }

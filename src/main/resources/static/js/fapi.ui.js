@@ -444,7 +444,11 @@ var FAPI_UI = {
 			return fetch("/api/currentuser")
 				.then((response) => {
 					if (! response.ok) {
-						throw new Error("Network response was not OK");
+						// Tag the error with the status so the catch can
+						// distinguish expected-401 from real failures.
+						const err = new Error("Network response was not OK");
+						err.status = response.status;
+						throw err;
 					}
 
 					return response.json();
@@ -460,7 +464,12 @@ var FAPI_UI = {
 					}
 				})
 				.catch((error) => {
-					// User is not logged in; don't fill in the user info holder
+					// 401 is the expected "not logged in" path — stay quiet.
+					// Anything else (network error, 5xx) should log so operators
+					// can diagnose silent breakage.
+					if (error && error.status !== 401) {
+						console.warn("[fapi.ui.js getUserInfo] /api/currentuser failed:", error);
+					}
 				});
 
 		},
@@ -698,6 +707,7 @@ var FAPI_UI = {
 							]);
 						} catch (e) {
 							/* ClipboardItem not supported (e.g. older Firefox) */
+							console.warn("[fapi.ui.js ClipboardItem] async clipboard write unavailable:", e);
 						}
 
 						fetchPromise.then(shareLink => {
@@ -724,6 +734,10 @@ var FAPI_UI = {
 								showResultModal(false);
 							}
 						}).catch(error => {
+							// FAPI_UI.showError surfaces the modal for the user;
+							// console.warn gives operators a trail they can scrape
+							// without relying on the user to report the error.
+							console.warn("[fapi.ui.js privateLink] share-link generation failed:", error);
 							FAPI_UI.showError(error);
 						});
 					};
