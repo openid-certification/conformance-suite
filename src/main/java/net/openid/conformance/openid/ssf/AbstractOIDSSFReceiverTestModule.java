@@ -518,8 +518,11 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 				}
 			}
 
-			if (eventsBatch.moreAvailable()) {
-				// reschedule push task to publish remaining events
+			if (eventsBatch.moreAvailable() || eventStore.hasEventsForStream(streamId)) {
+				// Reschedule to deliver remaining events. The queue check covers events
+				// enqueued by delivery callbacks (e.g. afterPushDeliverySuccess generating
+				// new SETs after seeing the verification event) that were not yet visible
+				// when the original batch was polled.
 				scheduleTask(this, 1, TimeUnit.SECONDS);
 			}
 			return "done";
