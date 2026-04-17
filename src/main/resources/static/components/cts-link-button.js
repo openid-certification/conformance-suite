@@ -10,11 +10,18 @@ const VARIANT_CLASSES = {
   warning: "btn-warning",
 };
 
+const SIZE_CLASSES = {
+  sm: "btn-sm",
+  md: "",
+  lg: "btn-lg",
+};
+
 /**
  * Bootstrap-styled anchor that behaves like a button.
  *
  * @property {string} href - Target URL. Omitted when `disabled`.
  * @property {string} variant - One of: light, info, primary, danger, secondary, success, warning
+ * @property {string} size - One of: sm (default), md, lg
  * @property {string} label - Visible text
  * @property {string} icon - Bootstrap Icons name (without the `bi-` prefix)
  * @property {boolean} disabled - Renders as a disabled link (no href, aria-disabled, tabindex=-1)
@@ -24,6 +31,7 @@ class CtsLinkButton extends LitElement {
   static properties = {
     href: { type: String },
     variant: { type: String },
+    size: { type: String },
     label: { type: String },
     icon: { type: String },
     disabled: { type: Boolean },
@@ -34,6 +42,7 @@ class CtsLinkButton extends LitElement {
     super();
     this.href = "#";
     this.variant = "light";
+    this.size = "sm";
     this.label = "";
     this.icon = "";
     this.disabled = false;
@@ -66,10 +75,12 @@ class CtsLinkButton extends LitElement {
     const iconContent = this._renderIcon();
     const hasIcon = iconContent !== nothing;
     const variantClass = VARIANT_CLASSES[this.variant] || "btn-light";
+    const sizeClass = SIZE_CLASSES[this.size] ?? "btn-sm";
+    const sizeSegment = sizeClass ? `${sizeClass} ` : "";
     const disabledClass = this.disabled ? " disabled" : "";
     const widthClass = this.fullWidth ? " w-100" : "";
     return html`<a
-      class="btn btn-sm ${variantClass} bg-gradient border border-secondary${disabledClass}${widthClass}"
+      class="btn ${sizeSegment}${variantClass} bg-gradient border border-secondary${disabledClass}${widthClass}"
       href=${this.disabled ? nothing : this.href}
       role="button"
       aria-disabled=${this.disabled ? "true" : nothing}

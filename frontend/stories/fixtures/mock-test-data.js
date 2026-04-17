@@ -66,6 +66,17 @@ export const MOCK_PLAN_PUBLISHED = {
   immutable: true,
 };
 
+/**
+ * MOCK_PLAN_DETAIL.modules augmented with realistic status/result values.
+ * Module 1: PASSED, Module 2: WARNING, Module 3: FAILED, Module 4: PENDING (no instance).
+ */
+export const MOCK_MODULES_WITH_STATUS = [
+  { ...MOCK_PLAN_DETAIL.modules[0], status: "FINISHED", result: "PASSED" },
+  { ...MOCK_PLAN_DETAIL.modules[1], status: "FINISHED", result: "WARNING" },
+  { ...MOCK_PLAN_DETAIL.modules[2], status: "FINISHED", result: "FAILED" },
+  { ...MOCK_PLAN_DETAIL.modules[3], status: null, result: null },
+];
+
 /** GET /api/info/:testId response shape */
 export const MOCK_TEST_STATUS = {
   _id: "test-inst-001",

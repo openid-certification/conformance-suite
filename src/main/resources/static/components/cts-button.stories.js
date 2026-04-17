@@ -10,6 +10,10 @@ export default {
       control: "select",
       options: ["light", "info", "primary", "danger"],
     },
+    size: {
+      control: "select",
+      options: ["sm", "md", "lg"],
+    },
     label: { control: "text" },
     icon: { control: "text" },
     loading: { control: "boolean" },
@@ -269,4 +273,47 @@ export const AllVariants = {
       <cts-button variant="danger" label="Danger" icon="trash"></cts-button>
     </div>
   `,
+};
+
+/**
+ * The `size` attribute selects between Bootstrap's `btn-sm` (default), the
+ * native size (`md` = no class), and `btn-lg`. Use `lg` for prominent CTAs
+ * (login provider buttons, "Create Plan" on schedule-test, the action
+ * buttons on the tokens page). Default `sm` keeps every existing usage
+ * visually identical.
+ */
+export const Sizes = {
+  render: () => html`
+    <div style="display: flex; flex-wrap: wrap; gap: 0.5rem; padding: 1rem; align-items: center;">
+      <cts-button variant="primary" label="Small (default)" size="sm"></cts-button>
+      <cts-button variant="primary" label="Medium" size="md"></cts-button>
+      <cts-button variant="primary" label="Large" size="lg"></cts-button>
+    </div>
+  `,
+
+  async play({ canvasElement }) {
+    const buttons = canvasElement.querySelectorAll("cts-button button");
+    expect(buttons.length).toBe(3);
+    expect(buttons[0].classList.contains("btn-sm")).toBe(true);
+    expect(buttons[1].classList.contains("btn-sm")).toBe(false);
+    expect(buttons[1].classList.contains("btn-lg")).toBe(false);
+    expect(buttons[2].classList.contains("btn-lg")).toBe(true);
+  },
+};
+
+/**
+ * Unknown `size` values fall back to `sm` — same defensive behaviour as the
+ * `variant` attribute. Prevents regressions if a typo or stale value reaches
+ * the component.
+ */
+export const SizeFallback = {
+  render: () => html`
+    <cts-button variant="primary" label="Bogus size" size="huge"></cts-button>
+  `,
+
+  async play({ canvasElement }) {
+    const btn = canvasElement.querySelector("cts-button button");
+    expect(btn.classList.contains("btn-sm")).toBe(true);
+    expect(btn.classList.contains("btn-lg")).toBe(false);
+  },
 };
