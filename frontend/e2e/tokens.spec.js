@@ -142,8 +142,14 @@ test.describe("tokens.html — API Tokens", () => {
     );
   });
 
-  test("clicking Delete then Confirm fires DELETE /api/token/:id", async ({ page }) => {
+  test("clicking Delete then Confirm fires DELETE /api/token/:id and the row disappears", async ({ page }) => {
     await setupFailFast(page);
+
+    // Stateful token list: after DELETE succeeds, subsequent GETs return the
+    // reduced list so the page's post-delete refetch actually sees the row
+    // gone. The previous test only asserted the DELETE fired — a bug that
+    // left the row visible after server success would have gone uncaught.
+    let currentTokens = [...MOCK_TOKENS];
 
     await page.route("**/api/token?*", (route) => {
       if (route.request().method() !== "GET") {
@@ -152,14 +158,19 @@ test.describe("tokens.html — API Tokens", () => {
       return route.fulfill({
         status: 200,
         contentType: "application/json",
-        body: JSON.stringify(MOCK_TOKENS),
+        body: JSON.stringify(currentTokens),
       });
     });
 
-    // Mock DELETE /api/token/:id — match any token id
     await page.route("**/api/token/*", (route) => {
       if (route.request().method() !== "DELETE") {
         return route.fallback();
+      }
+      const url = route.request().url();
+      const match = url.match(/\/api\/token\/([^/?]+)/);
+      if (match) {
+        const deletedId = decodeURIComponent(match[1]);
+        currentTokens = currentTokens.filter((t) => t._id !== deletedId);
       }
       return route.fulfill({ status: 200, body: "" });
     });
@@ -168,10 +179,6 @@ test.describe("tokens.html — API Tokens", () => {
 
     await page.goto("/tokens.html");
 
-    // Locate the row for token-abc-001 by text (DataTables default sort is
-    // by Expires asc, so the row order isn't id-stable). Target the inner
-    // native button — Playwright clicks on host elements can miss the inner
-    // click handler depending on layout.
     const targetRow = page.locator("#tokensListing tbody tr", {
       hasText: "token-abc-001",
     });
@@ -179,8 +186,6 @@ test.describe("tokens.html — API Tokens", () => {
     const targetDelete = targetRow.locator("cts-button.deleteBtn button");
     await expect(targetDelete).toBeVisible();
 
-    // Set up the waitForRequest listener BEFORE the user gesture sequence so
-    // it's active when the DELETE eventually fires.
     const deleteRequest = page.waitForRequest(
       (req) =>
         req.method() === "DELETE" &&
@@ -189,12 +194,19 @@ test.describe("tokens.html — API Tokens", () => {
 
     await targetDelete.click();
 
-    // The deleteModal footer renders a #confirmDelete button (from cts-modal).
-    // Wait for it to be attached AND visible (Bootstrap fade-in finishes).
     const confirmBtn = page.locator("#confirmDelete");
     await confirmBtn.waitFor({ state: "visible" });
     await confirmBtn.click();
 
     await deleteRequest;
+
+    // After the DELETE completes and the page re-fetches, the row for
+    // token-abc-001 must be gone. The other token remains.
+    await expect(
+      page.locator("#tokensListing tbody tr", { hasText: "token-abc-001" }),
+    ).toHaveCount(0, { timeout: 5000 });
+    await expect(
+      page.locator("#tokensListing tbody tr", { hasText: "token-xyz-002" }),
+    ).toHaveCount(1);
   });
 });

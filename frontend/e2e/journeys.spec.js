@@ -246,4 +246,72 @@ test.describe("Cross-page journeys", () => {
     await expect(page.locator("#logHeader")).toContainText("oidcc-server");
     await expect(page.locator("#logHeader")).toContainText("test-run-001");
   });
+
+  /**
+   * Cross-page journey for the error path: schedule-test → POST /api/plan 400
+   * → user stays on schedule-test, #errorModal shown, cascade state intact.
+   * Complements the single-page error-branch spec in error-paths.spec.js
+   * with the full user-journey framing.
+   */
+  test("plan creation fails → user stays on schedule-test with error (R22)", async ({
+    page,
+  }) => {
+    await setupFailFast(page);
+
+    await page.route("**/api/plan/available", (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(ALL_PLANS),
+      }),
+    );
+
+    await page.route("**/api/lastconfig", (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({}),
+      }),
+    );
+
+    // POST /api/plan fails with a 400.
+    await page.route("**/api/plan?*", (route) => {
+      if (route.request().method() === "POST") {
+        return route.fulfill({
+          status: 400,
+          contentType: "application/json",
+          body: JSON.stringify({ error: "invalid variant selection" }),
+        });
+      }
+      return route.fallback();
+    });
+
+    await setupCommonRoutes(page);
+
+    await page.goto("/schedule-test.html");
+
+    // Fill the cascade to a submittable state using the no-variants plan.
+    await page.locator("#specFamilySelect").selectOption("OIDCC");
+    const entitySelect = page.locator("#entitySelect");
+    await expect(entitySelect).toBeVisible();
+    await entitySelect.selectOption("client-basic");
+
+    const createBtn = page.locator("#createPlanBtn");
+    await expect(createBtn).toBeEnabled({ timeout: 5000 });
+    await createBtn.click();
+
+    // Error modal appears; URL has NOT changed to /plan-detail.html.
+    const errorModal = page.locator("#errorModal");
+    await expect(errorModal).toBeVisible();
+    await expect(page).toHaveURL(/\/schedule-test\.html/);
+
+    // Cascade state is preserved so the user can fix + retry.
+    await expect(page.locator("#specFamilySelect")).toHaveValue("OIDCC");
+    await expect(entitySelect).toHaveValue("client-basic");
+
+    // Dismissing the modal leaves the page functional.
+    await errorModal.locator(".btn-close").first().click();
+    await expect(errorModal).toBeHidden();
+    await expect(createBtn).toBeEnabled();
+  });
 });
