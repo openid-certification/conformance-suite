@@ -83,10 +83,6 @@ publish-image:
     - if: $CI_COMMIT_BRANCH == "master"
       when: manual
       allow_failure: true
-    # TODO: remove after testing
-    - if: $CI_COMMIT_BRANCH == "gl1759-publish-docker-image"
-      when: manual
-      allow_failure: true
   script:
     - setup_docker
     - docker build -t "$CI_REGISTRY_IMAGE:$IMAGE_TAG" .
