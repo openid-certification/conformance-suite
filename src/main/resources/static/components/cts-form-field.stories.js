@@ -101,6 +101,64 @@ export const WithError = {
   },
 };
 
+/**
+ * The original WithError only covered the text-input branch. JSON / select /
+ * checkbox each render a different control and the `is-invalid` class has to
+ * land on the right element — these stories pin that contract.
+ */
+
+export const WithErrorTextarea = {
+  render: () => html`
+    <cts-form-field name="client.jwks"
+      .schema=${{ type: "object", format: "json", title: "Client JWKS" }}
+      value="not json" error="Must be valid JSON"></cts-form-field>
+  `,
+  async play({ canvasElement }) {
+    const textarea = canvasElement.querySelector("textarea");
+    expect(textarea).toBeTruthy();
+    expect(textarea.classList.contains("is-invalid")).toBe(true);
+    // is-invalid must NOT land on a sibling or parent.
+    expect(canvasElement.querySelector("input")).toBeNull();
+    expect(canvasElement.querySelector(".invalid-feedback").textContent).toBe(
+      "Must be valid JSON",
+    );
+  },
+};
+
+export const WithErrorSelect = {
+  render: () => html`
+    <cts-form-field name="client.token_endpoint_auth_method"
+      .schema=${{ type: "string", title: "Auth Method", enum: ["client_secret_basic", "private_key_jwt"] }}
+      value="" error="Pick an auth method"></cts-form-field>
+  `,
+  async play({ canvasElement }) {
+    const select = canvasElement.querySelector("select.form-select");
+    expect(select).toBeTruthy();
+    expect(select.classList.contains("is-invalid")).toBe(true);
+    expect(canvasElement.querySelector(".invalid-feedback").textContent).toBe(
+      "Pick an auth method",
+    );
+  },
+};
+
+export const WithErrorCheckbox = {
+  render: () => html`
+    <cts-form-field name="client.use_mtls"
+      .schema=${{ type: "boolean", title: "Use mTLS", description: "Enable mutual TLS" }}
+      value="false" error="mTLS is required for this profile"></cts-form-field>
+  `,
+  async play({ canvasElement }) {
+    const checkbox = canvasElement.querySelector('input[type="checkbox"]');
+    expect(checkbox).toBeTruthy();
+    // The invalid-feedback message still renders — Bootstrap's checkbox
+    // error affordance is via the sibling label/feedback, not via a class
+    // on the .form-check-input itself.
+    expect(canvasElement.querySelector(".invalid-feedback").textContent).toBe(
+      "mTLS is required for this profile",
+    );
+  },
+};
+
 export const ChangeEvent = {
   render: () => html`
     <cts-form-field name="server.issuer"

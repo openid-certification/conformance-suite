@@ -270,7 +270,14 @@ export const BlockEntry = {
     await waitFor(() => {
       const item = canvasElement.querySelector(".logItem");
       expect(item).toBeTruthy();
-      expect(item.style.borderLeft).toContain("3px solid");
+      // Block entries are visually distinguished by a colored left border.
+      // Assert both the width/style AND a non-transparent color so a regression
+      // that drops the color (leaving a black "3px solid") is caught.
+      const style = getComputedStyle(item);
+      expect(style.borderLeftWidth).toBe("3px");
+      expect(style.borderLeftStyle).toBe("solid");
+      expect(style.borderLeftColor).not.toBe("rgba(0, 0, 0, 0)");
+      expect(style.borderLeftColor).not.toBe("transparent");
     });
   },
 };

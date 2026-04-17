@@ -105,6 +105,42 @@ export const KeyboardNavigation = {
   },
 };
 
+/**
+ * Enter / Space on the focused tab re-dispatches `cts-tab-change`. With
+ * automatic activation (arrow keys already select on focus), these are
+ * defensive no-op aliases — but consumers writing manual-activation UIs
+ * expect Enter/Space to activate, so cts-tabs supports both patterns.
+ */
+export const KeyboardActivation = {
+  render: () => html`
+    <cts-tabs>
+      <cts-tab-panel label="Alpha" id="kaA"><p>Alpha</p></cts-tab-panel>
+      <cts-tab-panel label="Beta" id="kaB"><p>Beta</p></cts-tab-panel>
+    </cts-tabs>
+  `,
+
+  async play({ canvasElement }) {
+    const tabs = canvasElement.querySelectorAll('[role="tab"]');
+    const events = [];
+    canvasElement.addEventListener("cts-tab-change", (e) => events.push(e.detail.id));
+
+    tabs[1].focus();
+    // Arrow keys already selected tab[1]; Enter on the focused tab should
+    // re-fire cts-tab-change (defensively).
+    await userEvent.keyboard("{Enter}");
+    await waitFor(() => {
+      expect(events.filter((id) => id === "kaB").length).toBeGreaterThanOrEqual(1);
+    });
+
+    // Space on the focused tab also fires.
+    const beforeSpace = events.length;
+    await userEvent.keyboard(" ");
+    await waitFor(() => {
+      expect(events.length).toBeGreaterThan(beforeSpace);
+    });
+  },
+};
+
 export const TabChangeEvent = {
   render: () => html`
     <cts-tabs>

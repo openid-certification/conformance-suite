@@ -38,11 +38,13 @@ export const Default = {
 
 export const BottomPlacement = {
   render: () => html`
-    <cts-tooltip content="Visit the OpenID Foundation" placement="bottom">
-      <a href="https://openid.net" class="btn btn-sm btn-outline-primary"
-        >OpenID Foundation</a
-      >
-    </cts-tooltip>
+    <div style="padding: 80px;">
+      <cts-tooltip content="Visit the OpenID Foundation" placement="bottom">
+        <a href="https://openid.net" class="btn btn-sm btn-outline-primary"
+          >OpenID Foundation</a
+        >
+      </cts-tooltip>
+    </div>
   `,
 
   async play({ canvasElement }) {
@@ -53,6 +55,22 @@ export const BottomPlacement = {
     // Verify Bootstrap tooltip is initialized
     const instance = bootstrap.Tooltip.getInstance(anchor);
     expect(instance).toBeTruthy();
+
+    // Show the tooltip and verify its popup actually renders BELOW the anchor.
+    // Attribute presence alone is weak — a regression that forgets to pass
+    // placement through to Bootstrap would keep the attribute but render
+    // top-placement.
+    instance.show();
+    await waitFor(() => {
+      const popup = document.querySelector(".tooltip.show");
+      expect(popup).toBeTruthy();
+      const anchorRect = anchor.getBoundingClientRect();
+      const popupRect = popup.getBoundingClientRect();
+      // The popup's top edge should sit below (or at least not above) the
+      // anchor's bottom edge when placement is "bottom".
+      expect(popupRect.top).toBeGreaterThanOrEqual(anchorRect.bottom - 1);
+    });
+    instance.hide();
   },
 };
 

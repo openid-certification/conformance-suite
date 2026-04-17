@@ -114,8 +114,19 @@ class CtsTabs extends HTMLElement {
   _handleKeydown(e) {
     const tabs = Array.from(this.querySelectorAll('[role="tab"]'));
     const currentIndex = tabs.indexOf(e.target);
-    let newIndex;
 
+    // Enter / Space explicitly re-activate the focused tab. With automatic
+    // activation (arrow keys already select on focus), these are defensive
+    // redundancy — if a user presses Enter on the already-selected tab the
+    // change event fires again, matching what a manual-activation tablist
+    // would do. Consistent WCAG expectation, zero surprise.
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      if (currentIndex >= 0) this._selectTab(tabs[currentIndex].id);
+      return;
+    }
+
+    let newIndex;
     switch (e.key) {
       case "ArrowRight":
         newIndex = (currentIndex + 1) % tabs.length;
