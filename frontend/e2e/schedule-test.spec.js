@@ -65,6 +65,14 @@ test.describe("schedule-test.html — Test Plan Scheduling", () => {
 
     await setupFailFast(page);
 
+    await page.route("**/api/plan/available", (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(ALL_PLANS),
+      }),
+    );
+
     await page.route("**/api/lastconfig", (route) =>
       route.fulfill({
         status: 200,
@@ -73,11 +81,7 @@ test.describe("schedule-test.html — Test Plan Scheduling", () => {
       }),
     );
 
-    // Mock POST /api/plan — return a new plan ID.
-    // Registered BEFORE the more specific /api/plan/* routes below so
-    // that Playwright (which checks last-registered first) tries the
-    // specific routes before this glob — **/api/plan?* would otherwise
-    // intercept /api/plan/available because ? is a single-char wildcard.
+    // Mock POST /api/plan — return a new plan ID
     await page.route("**/api/plan?*", (route) => {
       if (route.request().method() === "POST") {
         postCalled = true;
@@ -102,14 +106,6 @@ test.describe("schedule-test.html — Test Plan Scheduling", () => {
           variant: {},
           config: {},
         }),
-      }),
-    );
-
-    await page.route("**/api/plan/available", (route) =>
-      route.fulfill({
-        status: 200,
-        contentType: "application/json",
-        body: JSON.stringify(ALL_PLANS),
       }),
     );
 
@@ -166,19 +162,9 @@ test.describe("schedule-test.html — Test Plan Scheduling", () => {
 
     await page.goto("/schedule-test.html");
 
-    // Wait for the page init chain to complete — the onclick handler on
-    // createPlanBtn is registered in loadScheduleTestPage(), which runs
-    // after loadAvailablePlans() populates the specFamilySelect options.
-    await expect(page.locator("#specFamilySelect option")).not.toHaveCount(1);
-
     // Create button should be disabled initially (no plan selected)
     const createBtn = page.locator("#createPlanBtn");
     await expect(createBtn).toBeDisabled();
-
-    // Wait for the onclick handler to be registered by loadScheduleTestPage()
-    await page.waitForFunction(
-      () => document.getElementById("createPlanBtn")?.onclick !== null,
-    );
 
     // The button is hidden (display:none on parent) when no plan is selected.
     // Use evaluate to invoke the onclick handler directly — it checks

@@ -7,6 +7,7 @@ import net.openid.conformance.testmodule.OIDFJSON;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -27,6 +28,38 @@ import java.security.spec.InvalidKeySpecException;
  * General utility class for calling endpoints and returning the full response
  */
 public abstract class AbstractCallEndpointWithPost extends AbstractCallEndpoint {
+
+	/**
+	 * POST a JSON string body to the given endpoint. The response (status, headers, body)
+	 * is stored in the environment under {@code responseEnvironmentKey}.
+	 */
+	protected Environment callEndpointWithJsonBody(Environment env, String jsonBody, String endpointUri, String endpointName, String responseEnvironmentKey) {
+		this.endpointName = endpointName;
+		this.responseEnvironmentKey = responseEnvironmentKey;
+
+		try {
+			RestTemplate restTemplate = createRestTemplate(env);
+
+			HttpHeaders headers = new HttpHeaders();
+			headers.setContentType(MediaType.APPLICATION_JSON);
+
+			HttpEntity<String> request = new HttpEntity<>(jsonBody, headers);
+			try {
+				ResponseEntity<String> response = restTemplate.exchange(endpointUri, HttpMethod.POST, request, String.class);
+				addFullResponse(env, response);
+			} catch (RestClientResponseException e) {
+				return handleRestClientResponseException(env, e);
+			} catch (RestClientException e) {
+				return handleClientException(env, e);
+			}
+
+			logSuccess("Got " + endpointName + " response", env.getObject(responseEnvironmentKey));
+			return env;
+		} catch (NoSuchAlgorithmException | KeyManagementException | CertificateException | InvalidKeySpecException |
+				 KeyStoreException | IOException | UnrecoverableKeyException e) {
+			throw error("Error creating HTTP Client", e);
+		}
+	}
 
 	protected Environment callEndpointWithPost(Environment env, ResponseErrorHandler errorHandler, String requestFormParametersEnvKey, String requestHeadersEnvKey, String endpointUri, String endpointName, String responseEnvironmentKey) {
 		this.endpointName = endpointUri;

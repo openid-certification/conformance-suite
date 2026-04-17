@@ -3,6 +3,7 @@
   "version": "0.0.1",
   "private": true,
   "type": "module",
+  "packageManager": "npm@11.12.1",
   "scripts": {
     "test:e2e": "playwright test",
     "storybook": "storybook dev -p 6006",
@@ -15,7 +16,7 @@
     "@storybook/addon-vitest": "^10.3.5",
     "@storybook/web-components-vite": "^10.3.5",
     "@vitest/browser-playwright": "^4.1.4",
-    "http-server": "^14.1.1",
+    "http-server": "14.1.1",
     "lit": "^3.2.1",
     "msw": "^2.13.3",
     "playwright": "1.59.1",

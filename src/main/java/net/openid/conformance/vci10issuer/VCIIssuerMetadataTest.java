@@ -4,6 +4,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.EnsureContentTypeJson;
+import net.openid.conformance.fapi2spfinal.AbstractFAPI2SPFinalDiscoveryEndpointVerification;
 import net.openid.conformance.sequence.client.VCIDiscoveryEndpointChecks;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.ClientAuthType;
@@ -107,7 +108,10 @@ public class VCIIssuerMetadataTest extends AbstractVciTest {
 	protected void checkAuthServerMetadata(String authServerMetadataPath) {
 		env.putObject("server", env.getElementFromObject("vci", authServerMetadataPath).getAsJsonObject());
 		try {
-			call(new VCIDiscoveryEndpointChecks(clientAuthType == ClientAuthType.CLIENT_ATTESTATION));
+			call(new VCIDiscoveryEndpointChecks());
+			if (clientAuthType == ClientAuthType.CLIENT_ATTESTATION) {
+				call(new AbstractFAPI2SPFinalDiscoveryEndpointVerification.ClientAttestationChecks());
+			}
 		} finally {
 			env.removeObject("server");
 		}

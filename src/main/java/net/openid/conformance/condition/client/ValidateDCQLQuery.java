@@ -37,7 +37,7 @@ public class ValidateDCQLQuery extends AbstractJsonSchemaBasedValidation {
 
 	@Override
 	protected void onValidationFailure(Environment env, JsonSchemaValidationResult validationResult, JsonSchemaValidationInput input) {
-		JsonSchemaValidationResult structuralErrors = validationResult.withoutAdditionalPropertiesErrors();
+		JsonSchemaValidationResult structuralErrors = validationResult.withoutUnknownPropertyErrors();
 		if (!structuralErrors.isValid()) {
 			super.onValidationFailure(env, structuralErrors, input);
 		}

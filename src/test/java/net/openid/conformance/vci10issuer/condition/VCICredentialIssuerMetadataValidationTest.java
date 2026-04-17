@@ -115,6 +115,19 @@ class VCICredentialIssuerMetadataValidationTest extends AbstractVciUnitTest {
 	}
 
 	@Test
+	void shouldReportValidationErrorForRequestEncryptionJwksAsArray() throws Exception {
+		// The OID4VCI 1.0 Final Appendix I example shows `credential_request_encryption.jwks`
+		// as a bare array, but the normative text in section 12.2.4 defines it as a JWK Set
+		// (object with a `keys` array). Spec errata https://github.com/openid/OpenID4VCI/pull/711
+		// corrects the example. Verify the bare-array form is rejected.
+		String metadataString = readFile("metadata/openid4vci-1_0/invalid-openid-credential-issuer-metadata-request-encryption-jwks-as-array.json");
+		env.putObject("vci", "credential_issuer_metadata", JsonParser.parseString(metadataString).getAsJsonObject());
+
+		Map<String, Object> data = assertValidationError(validation, env, eventLog);
+		assertContainsExpectedError(data, "$.credential_request_encryption.jwks", "array found, object expected");
+	}
+
+	@Test
 	void shouldReportValidationErrorForInvalidBdrExample1() throws Exception {
 		String metadataString = readFile("metadata/openid4vci-1_0/invalid-openid-credential-issuer-metadata-bdr-example1.json");
 		env.putObject("vci", "credential_issuer_metadata", JsonParser.parseString(metadataString).getAsJsonObject());

@@ -16,6 +16,14 @@ test.describe("Cross-page journeys", () => {
     await setupFailFast(page);
 
     // --- Schedule-test routes ---
+    await page.route("**/api/plan/available", (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(ALL_PLANS),
+      }),
+    );
+
     await page.route("**/api/lastconfig", (route) =>
       route.fulfill({
         status: 200,
@@ -24,11 +32,7 @@ test.describe("Cross-page journeys", () => {
       }),
     );
 
-    // POST /api/plan — create a new plan, return plan ID.
-    // Registered BEFORE /api/plan/available and /api/plan/plan-journey-001
-    // so those more specific routes are tried first (Playwright checks
-    // last-registered first, and **/api/plan?* would match them via its
-    // single-char wildcard ?).
+    // POST /api/plan — create a new plan, return plan ID
     await page.route("**/api/plan?*", (route) => {
       if (route.request().method() === "POST") {
         return route.fulfill({
@@ -107,14 +111,6 @@ test.describe("Cross-page journeys", () => {
       }),
     );
 
-    await page.route("**/api/plan/available", (route) =>
-      route.fulfill({
-        status: 200,
-        contentType: "application/json",
-        body: JSON.stringify(ALL_PLANS),
-      }),
-    );
-
     await setupTestInfoRoute(page, {
       "test-journey-001": {
         ...MOCK_TEST_STATUS,
@@ -130,7 +126,6 @@ test.describe("Cross-page journeys", () => {
     await page.goto("/schedule-test.html");
 
     await page.locator("#specFamilySelect").selectOption("OIDCC");
-    await expect(page.locator("#entitySelect")).toBeVisible();
     await page.locator("#entitySelect").selectOption("client-basic");
     await expect(page.locator("#planSelect")).toBeVisible();
 

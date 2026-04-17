@@ -83,10 +83,9 @@ frontend_e2e_test:
   needs: []
   image: mcr.microsoft.com/playwright:v1.59.1-noble
   script:
-    - node -v && npm -v
     - cd frontend
-    - npm install
-    - npx playwright test --config playwright.config.js
+    - npm ci --ignore-scripts
+    - ./node_modules/.bin/playwright test --config playwright.config.js
   artifacts:
     when: on_failure
     paths:

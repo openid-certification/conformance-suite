@@ -290,11 +290,14 @@ Unit test files follow the pattern `*_UnitTest.java` (e.g., `MyCondition_UnitTes
 Playwright E2E tests in `frontend/e2e/` validate the legacy static HTML pages (`src/main/resources/static/*.html`) with mocked API responses. No backend required.
 
 ```bash
-# Run E2E tests (from frontend/ directory)
+# Install frontend E2E dependencies deterministically
+cd frontend && npm ci --ignore-scripts
+
+# Run E2E tests
 cd frontend && npm run test:e2e
 
 # Run a single spec file
-cd frontend && npx playwright test e2e/home.spec.js
+cd frontend && ./node_modules/.bin/playwright test e2e/home.spec.js
 ```
 
 **When to run:** After modifying any file in `src/main/resources/static/` — HTML pages, `js/fapi.ui.js`, `templates/`, or `css/`. These tests catch regressions in page-level behavior.
