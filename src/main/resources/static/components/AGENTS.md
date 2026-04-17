@@ -178,6 +178,16 @@ async play({ canvasElement }) {
 Never assert on the `cts-button` host element's class list for variant
 correctness — the host does not carry variant classes; the inner button does.
 
+### Story file colocation for composite sub-components
+
+Stories may live in a parent's `.stories.js` when a sub-component is only
+rendered as part of a composite. For example, `cts-plan-header`,
+`cts-plan-modules`, and `cts-plan-actions` are each sub-components of
+`cts-plan-detail` — their stories live in `cts-plan-detail.stories.js`
+(prefixed `PlanHeader*`, `Modules*`, `Actions*`). The rule is **play-function
+coverage per component**, not one file per component. A dedicated
+`.stories.js` for an internal sub-component is optional.
+
 ---
 
 ## 7. No dynamic class concatenation
