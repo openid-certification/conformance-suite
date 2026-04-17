@@ -12,12 +12,6 @@
  * @property {string} placement - Tooltip placement (read from the
  *   `placement` attribute); defaults to `top`.
  */
-// Max time to wait for a dynamically-inserted child after the element is
-// connected. If no child appears within this window, we give up silently —
-// the component is probably being used incorrectly, but we don't want a
-// stray observer holding a reference forever.
-const DYNAMIC_INIT_TIMEOUT_MS = 2000;
-
 class CtsTooltip extends HTMLElement {
   connectedCallback() {
     const content = this.getAttribute("content") || "";
