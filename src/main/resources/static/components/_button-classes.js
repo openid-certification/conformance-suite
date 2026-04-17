@@ -13,6 +13,19 @@ export const VARIANT_CLASSES = {
   secondary: "btn-secondary",
   success: "btn-success",
   warning: "btn-warning",
+  dark: "btn-dark",
+  // Outline variants — Bootstrap 5 supports these as a parallel family. Some
+  // callers (cts-modal footer-buttons, legacy templates) pass `btn-outline-*`
+  // in a descriptor or attribute; without explicit entries, the variant lookup
+  // silently fell back to "light" and erased the outline intent.
+  "outline-light": "btn-outline-light",
+  "outline-info": "btn-outline-info",
+  "outline-primary": "btn-outline-primary",
+  "outline-danger": "btn-outline-danger",
+  "outline-secondary": "btn-outline-secondary",
+  "outline-success": "btn-outline-success",
+  "outline-warning": "btn-outline-warning",
+  "outline-dark": "btn-outline-dark",
 };
 
 /** @type {Object.<string, string>} Maps size name → Bootstrap modifier class (empty string = no class for md) */

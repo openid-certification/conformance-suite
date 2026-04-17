@@ -486,3 +486,157 @@ export const StaticBackdrop = {
     expect(footer).toBeNull();
   },
 };
+
+/**
+ * Footer-button icon support. Renders a `<span class="bi bi-...">` inside
+ * the button. The private-link modal on plan-detail relied on a pre-MR
+ * box-arrow-in-right icon on its Copy button; restoring that affordance
+ * drove this feature.
+ */
+export const FooterButtonsWithIcon = {
+  render: () => html`
+    <div>
+      <button
+        type="button"
+        class="btn btn-primary"
+        onclick="this.closest('div').querySelector('cts-modal').show()"
+      >
+        Open Copy Modal
+      </button>
+      <cts-modal
+        heading="Copy Result"
+        footer-buttons='[
+          {"label": "Copy to clipboard", "class": "btn-primary", "icon": "box-arrow-in-right", "dismiss": false},
+          {"label": "Close"}
+        ]'
+      >
+        <p>Here is your private link.</p>
+      </cts-modal>
+    </div>
+  `,
+
+  async play({ canvasElement }) {
+    const triggerBtn = canvasElement.querySelector(".btn-primary");
+    await userEvent.click(triggerBtn);
+    await waitFor(() => {
+      expect(canvasElement.querySelector(".modal.show")).toBeTruthy();
+    });
+
+    const copyBtn = canvasElement.querySelectorAll(".modal-footer button")[0];
+    expect(copyBtn.textContent.trim()).toContain("Copy to clipboard");
+
+    const icon = copyBtn.querySelector("span.bi");
+    expect(icon).toBeTruthy();
+    expect(icon.classList.contains("bi-box-arrow-in-right")).toBe(true);
+    expect(icon.getAttribute("aria-hidden")).toBe("true");
+  },
+};
+
+/**
+ * Unsanitizable icon values must be dropped entirely — we do NOT render
+ * `<span class="bi bi-">` which would show as a broken invisible icon. Ensures
+ * no HTML/class injection via the descriptor string.
+ */
+export const FooterButtonsIconRejected = {
+  render: () => html`
+    <div>
+      <button
+        type="button"
+        class="btn btn-primary"
+        onclick="this.closest('div').querySelector('cts-modal').show()"
+      >
+        Open
+      </button>
+      <cts-modal
+        heading="Injection Test"
+        footer-buttons='[{"label": "Bad", "icon": "<script>alert(1)</script>"}]'
+      >
+        <p>Bad icon value must be rejected.</p>
+      </cts-modal>
+    </div>
+  `,
+
+  async play({ canvasElement }) {
+    const triggerBtn = canvasElement.querySelector(".btn-primary");
+    await userEvent.click(triggerBtn);
+    await waitFor(() => {
+      expect(canvasElement.querySelector(".modal.show")).toBeTruthy();
+    });
+
+    const btn = canvasElement.querySelector(".modal-footer button");
+    // No span — sanitizer dropped the bad value instead of emitting bi-<script>...
+    expect(btn.querySelector("span.bi")).toBeNull();
+    // And no script tag was smuggled in either.
+    expect(canvasElement.querySelector("script")).toBeNull();
+    expect(btn.textContent.trim()).toBe("Bad");
+  },
+};
+
+/**
+ * Regression test for R-I3: desc.class="btn-outline-primary" used to be
+ * silently downgraded to btn-light because outline-* wasn't in VARIANT_CLASSES.
+ */
+export const FooterButtonsOutlineVariantIntact = {
+  render: () => html`
+    <div>
+      <button
+        type="button"
+        class="btn btn-primary"
+        onclick="this.closest('div').querySelector('cts-modal').show()"
+      >
+        Open
+      </button>
+      <cts-modal
+        heading="Variant Test"
+        footer-buttons='[
+          {"label": "Outline Primary", "class": "btn-outline-primary", "id": "outlineBtn"},
+          {"label": "Unknown Class", "class": "btn-custom-theme", "id": "customBtn"}
+        ]'
+      >
+        <p>Both buttons should keep their caller-supplied class intact.</p>
+      </cts-modal>
+    </div>
+  `,
+
+  async play({ canvasElement }) {
+    const triggerBtn = canvasElement.querySelector(".btn-primary");
+    await userEvent.click(triggerBtn);
+    await waitFor(() => {
+      expect(canvasElement.querySelector(".modal.show")).toBeTruthy();
+    });
+
+    const outlineBtn = document.getElementById("outlineBtn");
+    expect(outlineBtn).toBeTruthy();
+    // The outline variant must be preserved — NOT downgraded to btn-light.
+    expect(outlineBtn.classList.contains("btn-outline-primary")).toBe(true);
+    expect(outlineBtn.classList.contains("btn-light")).toBe(false);
+
+    // Truly unknown btn-* values fall through to additive-class mode rather
+    // than silently becoming btn-light. Caller-supplied class is preserved.
+    const customBtn = document.getElementById("customBtn");
+    expect(customBtn).toBeTruthy();
+    expect(customBtn.classList.contains("btn-custom-theme")).toBe(true);
+  },
+};
+
+/**
+ * aria-modal contract — set at connectedCallback regardless of show state,
+ * per the solution doc at docs/solutions/web-components/cts-modal-bootstrap-interop-2026-04-17.md.
+ */
+export const AriaAttributes = {
+  render: () =>
+    html`<cts-modal id="ariaModal" heading="ARIA Test">
+      <p>Dialog semantics.</p>
+    </cts-modal>`,
+
+  async play() {
+    const modalDiv = document.getElementById("ariaModal");
+    expect(modalDiv).toBeTruthy();
+    expect(modalDiv.getAttribute("role")).toBe("dialog");
+    expect(modalDiv.getAttribute("aria-modal")).toBe("true");
+    expect(modalDiv.getAttribute("aria-labelledby")).toBe("ariaModal-title");
+    const title = modalDiv.querySelector("#ariaModal-title");
+    expect(title).toBeTruthy();
+    expect(title.textContent).toBe("ARIA Test");
+  },
+};
