@@ -37,6 +37,11 @@ const BOOTSTRAP_VARIANT_CLASSES = {
  * nodes are inside the host element. This is the only way to embed inline
  * `<a>`, `<em>`, or other rich content inside a badge.
  *
+ * The slot children are captured ONCE on the first render. Children appended
+ * after the element is connected are not picked up by subsequent re-renders.
+ * If you need dynamic rich content, set the `label` attribute to the new
+ * text or remove and re-add the element rather than mutating its children.
+ *
  * @fires cts-badge-click - When the badge is clicked/activated while
  *   `clickable` is set. Bubbles and is composed.
  */

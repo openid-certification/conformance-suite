@@ -28,6 +28,8 @@ class CtsModal extends HTMLElement {
   static VALID_SIZES = new Set(["sm", "lg", "xl"]);
 
   connectedCallback() {
+    if (this._initialized) return;
+    this._initialized = true;
     const heading = this.getAttribute("heading");
     const size = this.getAttribute("size");
     const staticBackdrop = this.hasAttribute("static-backdrop");
