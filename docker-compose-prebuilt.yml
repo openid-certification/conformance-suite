@@ -1,0 +1,25 @@
+services:
+  mongodb:
+    image: mongo:6.0.13
+    volumes:
+     - ./mongo/data:/data/db
+  nginx:
+    build:
+      context: ./nginx
+    ports:
+     - "8443:8443"
+    depends_on:
+     - server
+  server:
+    image: registry.gitlab.com/openid/conformance-suite:${IMAGE_TAG:-unstable}
+    environment:
+      BASE_URL: https://localhost.emobix.co.uk:8443
+      MONGODB_HOST: mongodb
+      JAVA_EXTRA_ARGS: "--fintechlabs.devmode=true"
+    depends_on:
+     - mongodb
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "500k"
+        max-file: "5"
