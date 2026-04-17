@@ -317,3 +317,37 @@ export const SizeFallback = {
     expect(btn.classList.contains("btn-lg")).toBe(false);
   },
 };
+
+/**
+ * Demonstrates the correct integration pattern for updating a cts-button's
+ * variant at runtime: set the `.variant` property on the host element and
+ * await `updateComplete`. Class manipulation via `classList.add/remove` on
+ * the host does NOT work — Lit renders the inner `<button>`'s classes, not
+ * the host's.
+ *
+ * This pattern applies to all reactive properties: `.disabled`, `.loading`,
+ * `.label`, `.icon`, `.size`, `.fullWidth`.
+ */
+export const VariantPropertySetter = {
+  render: () => html`
+    <cts-button variant="light" label="Change me"></cts-button>
+  `,
+
+  async play({ canvasElement }) {
+    const host = canvasElement.querySelector("cts-button");
+    await host.updateComplete;
+
+    // Verify initial state — inner button has btn-light
+    const btn = host.querySelector("button");
+    expect(btn.classList.contains("btn-light")).toBe(true);
+    expect(btn.classList.contains("btn-success")).toBe(false);
+
+    // Use the property setter (the correct integration pattern)
+    host.variant = "success";
+    await host.updateComplete;
+
+    // Inner button now reflects the new variant
+    expect(btn.classList.contains("btn-success")).toBe(true);
+    expect(btn.classList.contains("btn-light")).toBe(false);
+  },
+};
