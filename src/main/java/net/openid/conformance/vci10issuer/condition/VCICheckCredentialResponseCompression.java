@@ -20,10 +20,10 @@ import net.openid.conformance.testmodule.OIDFJSON;
 public class VCICheckCredentialResponseCompression extends AbstractCondition {
 
 	@Override
-	@PreEnvironment(required = "credential_response_jwe_header")
+	@PreEnvironment(required = "credential_response_jwe")
 	public Environment evaluate(Environment env) {
 
-		JsonObject jweHeader = env.getObject("credential_response_jwe_header");
+		JsonObject jweHeader = (JsonObject) env.getElementFromObject("credential_response_jwe", "jwe_header");
 		JsonElement zipEl = jweHeader.get("zip");
 
 		// Check if the issuer metadata advertises zip_values_supported containing "DEF"
