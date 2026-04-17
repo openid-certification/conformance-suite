@@ -640,3 +640,99 @@ export const AriaAttributes = {
     expect(title.textContent).toBe("ARIA Test");
   },
 };
+
+/**
+ * Escape dismissal is controlled by `data-bs-keyboard`. Without `no-keyboard`,
+ * Bootstrap's Modal plugin listens for Escape and hides the dialog. Rather
+ * than simulate the keydown (Bootstrap's listener timing is flaky under
+ * vitest's browser runner), assert that the contract is wired correctly:
+ * `data-bs-keyboard` is NOT set on the inner div, which means Bootstrap
+ * applies its default keyboard-enabled behaviour.
+ */
+export const EscapeDismissal = {
+  render: () =>
+    html`<cts-modal id="escapeModal" heading="Escape Test">
+      <p>Press Escape to close.</p>
+    </cts-modal>`,
+
+  async play({ canvasElement }) {
+    const host = canvasElement.querySelector("cts-modal");
+    host.show();
+    const dialog = document.getElementById("escapeModal");
+    await waitFor(() => expect(dialog.classList.contains("show")).toBe(true));
+    // Absent attribute = Bootstrap default (keyboard enabled). The presence
+    // of StaticBackdropNoKeyboard's opposite assertion completes the pair.
+    expect(dialog.getAttribute("data-bs-keyboard")).toBeNull();
+    // Programmatic hide works — sanity check on the hide contract.
+    host.hide();
+    await waitFor(() => expect(dialog.classList.contains("show")).toBe(false));
+  },
+};
+
+/**
+ * `static-backdrop` + `no-keyboard`: the modal does NOT close on Escape
+ * (opposite of the above). Used for loading modals where the user must wait
+ * for completion.
+ */
+export const StaticBackdropNoKeyboard = {
+  render: () =>
+    html`<cts-modal
+      id="staticKbdModal"
+      heading="Loading..."
+      static-backdrop
+      no-keyboard
+    >
+      <div class="text-center"><span class="spinner-border"></span></div>
+    </cts-modal>`,
+
+  async play() {
+    const host = document.body.querySelector("cts-modal");
+    host.show();
+    const dialog = document.getElementById("staticKbdModal");
+    await waitFor(() => expect(dialog.classList.contains("show")).toBe(true));
+    // Keyboard is explicitly disabled.
+    expect(dialog.getAttribute("data-bs-keyboard")).toBe("false");
+    expect(dialog.getAttribute("data-bs-backdrop")).toBe("static");
+    // Escape should be a no-op.
+    document.dispatchEvent(
+      new KeyboardEvent("keydown", { key: "Escape", bubbles: true }),
+    );
+    // Allow a microtask + frame for Bootstrap's handler to potentially run.
+    await new Promise((r) => setTimeout(r, 100));
+    expect(dialog.classList.contains("show")).toBe(true);
+  },
+};
+
+/**
+ * Focus containment contract: the inner .modal has `tabindex="-1"` so it can
+ * receive focus programmatically when Bootstrap shows it. Bootstrap's own
+ * focus-return logic runs on `transitionend` which is unreliable under
+ * vitest's browser runner; this story asserts the static focus contract the
+ * component controls, and leaves focus-restoration as a visual-QA concern.
+ */
+export const FocusContract = {
+  render: () => html`
+    <div>
+      <button id="openFocusModal" type="button" class="btn btn-primary">
+        Open
+      </button>
+      <cts-modal id="focusModal" heading="Focus Contract Test">
+        <p>Focus container for dialog role.</p>
+      </cts-modal>
+    </div>
+  `,
+
+  async play({ canvasElement }) {
+    const trigger = canvasElement.querySelector("#openFocusModal");
+    expect(trigger).toBeTruthy();
+
+    // The inner modal div must be focusable by Bootstrap's show() logic —
+    // tabindex="-1" allows programmatic focus without making it tab-reachable.
+    const dialog = document.getElementById("focusModal");
+    expect(dialog.getAttribute("tabindex")).toBe("-1");
+    // And the dialog carries semantic role + aria-modal so screen readers
+    // trap virtual focus inside it while it's open.
+    expect(dialog.getAttribute("role")).toBe("dialog");
+    expect(dialog.getAttribute("aria-modal")).toBe("true");
+  },
+};
