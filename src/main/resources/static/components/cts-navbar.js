@@ -15,6 +15,14 @@ const PUBLIC_NAV_LINKS = [
   { page: "api-docs", label: "API Docs", href: "api-document.html" },
 ];
 
+/**
+ * Top-level navigation bar. Fetches the current user from `/api/currentuser`
+ * and renders either the authenticated nav or the public nav.
+ *
+ * @property {string} currentPage - Key of the active page (e.g. `home`,
+ *   `plans`, `logs`, `tokens`, `api-docs`); used to highlight the matching
+ *   link. Reflects the `current-page` attribute.
+ */
 class CtsNavbar extends LitElement {
   static properties = {
     currentPage: { type: String, attribute: "current-page" },

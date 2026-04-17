@@ -3,6 +3,21 @@ import { LitElement, html, nothing } from "lit";
 const UPLOAD_SIZE_LIMIT = 500 * 1024;
 const ACCEPTED_TYPES = ["image/jpeg", "image/png"];
 
+/**
+ * Image upload UI for test logs. Renders pending images that require an
+ * upload and previously-uploaded images, with client-side type/size validation
+ * (JPEG/PNG, 500KB max).
+ *
+ * @property {string} testId - Test log ID used in the upload URL. Reflects the
+ *   `test-id` attribute.
+ * @property {Array} pendingImages - Images awaiting upload; each item has
+ *   `{ name, description }`.
+ * @property {Array} existingImages - Already-uploaded images; each item has
+ *   `{ name, url }`.
+ *
+ * @fires cts-image-uploaded - After a successful POST, with
+ *   `{ detail: { testId, imageName } }`; bubbles.
+ */
 class CtsImageUpload extends LitElement {
   static properties = {
     testId: { type: String, attribute: "test-id" },

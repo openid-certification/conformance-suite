@@ -10,6 +10,15 @@ const HTTP_BADGES = {
   "redirect-in": { icon: "bi-arrow-down-circle", label: "REDIRECT-IN" },
 };
 
+/**
+ * Renders a single log entry row with result/http badges, requirements, and
+ * an expandable "More" panel for the raw details payload. Also supports
+ * copying HTTP request entries as a cURL command.
+ *
+ * @property {Object} entry - Log entry object from `/api/log/{testId}`; shape
+ *   includes `_id`, `time`, `result`, `http`, `src`, `msg`, `upload`,
+ *   `blockId`, `requirements`, and a nested `more` object.
+ */
 class CtsLogEntry extends LitElement {
   static properties = {
     entry: { type: Object },

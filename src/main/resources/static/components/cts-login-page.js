@@ -1,5 +1,16 @@
 import { LitElement, html, nothing } from "lit";
 
+/**
+ * Login/register landing page. Offers Google/GitLab OAuth buttons and links to
+ * the public logs and plans listings.
+ *
+ * @property {string} error - OAuth error message to display; empty hides the
+ *   alert.
+ * @property {boolean} logoutMessage - Shows the "You have been logged out"
+ *   banner. Reflects the `logout-message` attribute.
+ * @property {string} tokenAuthUrl - Optional URL loaded in a hidden iframe to
+ *   exchange a token. Reflects the `token-auth-url` attribute.
+ */
 class CtsLoginPage extends LitElement {
   static properties = {
     error: { type: String },

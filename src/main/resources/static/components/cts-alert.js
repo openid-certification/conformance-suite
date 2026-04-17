@@ -1,16 +1,3 @@
-/**
- * Bootstrap-styled alert with optional dismiss button. Default-slot children
- * are moved into the alert body, so any HTML (including other custom elements)
- * works as content.
- *
- * @property {string} variant - One of: info (default), success, warning, danger
- * @property {boolean} dismissible - Renders a close button that removes the
- *   alert from the DOM and dispatches `cts-alert-dismissed`
- *
- * @fires cts-alert-dismissed - When the close button is clicked. The event
- *   bubbles and is composed; the alert removes itself from the DOM
- *   immediately afterward.
- */
 const VARIANT_CLASSES = {
   info: "alert-info",
   success: "alert-success",
@@ -18,6 +5,24 @@ const VARIANT_CLASSES = {
   danger: "alert-danger",
 };
 
+/**
+ * Bootstrap-styled alert with optional dismiss button. Default-slot children
+ * are moved into the alert body, so any HTML (including other custom elements)
+ * works as content.
+ *
+ * Vanilla HTMLElement — has no `static properties`; attributes are read
+ * directly in `connectedCallback`.
+ *
+ * @property {string} variant - One of: info (default), success, warning,
+ *   danger (read from the `variant` attribute).
+ * @property {boolean} dismissible - Renders a close button that removes the
+ *   alert from the DOM and dispatches `cts-alert-dismissed` (presence of
+ *   the `dismissible` attribute).
+ *
+ * @fires cts-alert-dismissed - When the close button is clicked. The event
+ *   bubbles and is composed; the alert removes itself from the DOM
+ *   immediately afterward.
+ */
 class CtsAlert extends HTMLElement {
   connectedCallback() {
     if (this._initialized) return;

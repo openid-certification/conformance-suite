@@ -1,5 +1,18 @@
 import { LitElement, html, nothing } from "lit";
 
+/**
+ * Renders the header card for a plan-detail page: plan name, variant, ID,
+ * description, version, start time, owner (admin only), and certification
+ * profile.
+ *
+ * @property {Object} plan - Plan object from `/api/plan/{id}`; expects
+ *   `_id`, `planName`, `variant`, `description`, `version`, `started`,
+ *   `owner`, `certificationProfileName`, `summary`.
+ * @property {boolean} isAdmin - Reveals the Test Owner row. Reflects the
+ *   `is-admin` attribute.
+ * @property {boolean} isPublic - Hides owner row on public views. Reflects
+ *   the `is-public` attribute.
+ */
 class CtsPlanHeader extends LitElement {
   static properties = {
     plan: { type: Object },

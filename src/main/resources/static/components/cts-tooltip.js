@@ -1,3 +1,17 @@
+/**
+ * Declarative wrapper around Bootstrap's Tooltip plugin. Applies
+ * `data-bs-toggle="tooltip"` + `title` to the first child element and
+ * instantiates a `bootstrap.Tooltip` on connect; disposes the instance on
+ * disconnect.
+ *
+ * Vanilla HTMLElement — has no `static properties`; attributes are read
+ * directly in `connectedCallback`.
+ *
+ * @property {string} content - Tooltip text (read from the `content`
+ *   attribute).
+ * @property {string} placement - Tooltip placement (read from the
+ *   `placement` attribute); defaults to `top`.
+ */
 class CtsTooltip extends HTMLElement {
   connectedCallback() {
     const content = this.getAttribute("content") || "";

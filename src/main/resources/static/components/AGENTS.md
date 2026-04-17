@@ -14,8 +14,7 @@ The component has **reactive properties** whose changes should trigger a
 re-render of its own DOM. The canonical signal is: "if I change a property
 from the outside, the rendered output must update."
 
-Examples: `cts-button`, `cts-link-button`, `cts-navbar`, `cts-form-field`,
-`cts-tabs` (if it had reactive state).
+Examples: `cts-button`, `cts-link-button`, `cts-navbar`, `cts-form-field`.
 
 Lit handles the update scheduling; you declare `static properties` and write
 a `render()` method.
@@ -136,14 +135,26 @@ Implications:
 ## 5. JSDoc @property convention
 
 Every `cts-*` component **must** have a JSDoc `@property` annotation for
-each entry in its `static properties` declaration (LitElement) or each
-entry in `static observedAttributes` (vanilla HTMLElement).
+each entry in its `static properties` declaration (LitElement), each
+entry in `static observedAttributes` (vanilla HTMLElement with
+`attributeChangedCallback`), or — for vanilla HTMLElements that read
+attributes imperatively in `connectedCallback` — each `getAttribute(...)`
+call site. The rule is about documenting the component's external
+attribute/property API, not about the mechanism of property declaration.
+
+Underscore-prefixed internal state (`_loading`, `_tokens`, etc.) is
+intentionally NOT documented — by convention it is private and not part
+of the component's external API.
+
+Components that dispatch custom events should additionally declare
+`@fires eventName - description` for each `CustomEvent` they bubble.
 
 ```js
 /**
  * @property {string} variant - One of: light, info, primary, danger,
  *   secondary, success, warning
  * @property {boolean} disabled - Disables the button
+ * @fires cts-click - When the inner button is activated
  */
 class CtsButton extends LitElement {
   static properties = {
@@ -154,8 +165,11 @@ class CtsButton extends LitElement {
 }
 ```
 
-This is enforced in code review. If you add a new property, add the
-annotation in the same commit.
+This is enforced by `npm run lint:jsdoc` (see
+`frontend/scripts/lint-jsdoc-properties.sh`) AND in code review. The
+lint check is a presence check — it asserts every `cts-*.js` carries at
+least one `@property` tag. Semantic correctness (right types, complete
+coverage, accurate descriptions) remains a reviewer concern.
 
 ---
 
@@ -243,13 +257,31 @@ the map is parsed will throw a resolution error.
 
 | Component | Base class | Reactive? | Notes |
 |---|---|---|---|
-| `cts-button` | LitElement | Yes | Variant, size, loading, disabled |
-| `cts-link-button` | LitElement | Yes | Same shape as cts-button but renders `<a>` |
-| `cts-navbar` | LitElement | Yes | Fetches user via `/api/currentuser` on connect |
-| `cts-form-field` | LitElement | Yes | Schema-driven input field |
-| `cts-card` | HTMLElement | No | One-shot `connectedCallback` |
-| `cts-modal` | HTMLElement | No | Wraps Bootstrap 5 Modal; exposes `show()`/`hide()` |
 | `cts-alert` | HTMLElement | No | Optional dismiss; fires `cts-alert-dismissed` |
-| `cts-tooltip` | HTMLElement | No | Wraps Bootstrap 5 Tooltip on first child |
-| `cts-tabs` | HTMLElement | No | Restructures `<cts-tab-panel>` children into WCAG tablist |
 | `cts-badge` | HTMLElement | Partial | Uses `observedAttributes` for attribute-driven re-render |
+| `cts-batch-runner` | LitElement | Yes | Dispatches `cts-run-all` / `cts-run-remaining` |
+| `cts-button` | LitElement | Yes | Variant, size, loading, disabled |
+| `cts-card` | HTMLElement | No | One-shot `connectedCallback` — wraps children in Bootstrap card markup |
+| `cts-config-form` | LitElement | Yes | JSON-schema-driven form; schema/uiSchema/config/errors as Object props |
+| `cts-dashboard` | LitElement | Yes | Home-page card grid; fetches `/api/server` for footer info |
+| `cts-form-field` | LitElement | Yes | Schema-driven input field |
+| `cts-icon` | LitElement | Yes | Renders a Bootstrap Icon `<span>` from a name and size |
+| `cts-image-upload` | LitElement | Yes | Multi-image upload widget; fires `cts-image-uploaded` |
+| `cts-link-button` | LitElement | Yes | Same shape as cts-button but renders `<a>` |
+| `cts-log-detail-header` | LitElement | Yes | Header for log-detail page; dispatches several action events |
+| `cts-log-entry` | LitElement | Yes | Single log line; supports block start/end formatting |
+| `cts-log-viewer` | LitElement | Yes | Polls `/api/log/:id`; surfaces persistent failures as a banner |
+| `cts-login-page` | LitElement | Yes | Login form with OAuth2 buttons and logout-message slot |
+| `cts-modal` | HTMLElement | No | Wraps Bootstrap 5 Modal; exposes `show()`/`hide()` |
+| `cts-navbar` | LitElement | Yes | Fetches user via `/api/currentuser` on connect |
+| `cts-plan-actions` | LitElement | Yes | Plan-detail action bar; dispatches publish/delete/certify/etc. events |
+| `cts-plan-detail` | LitElement | Yes | Composite: header + modules + actions. See `cts-plan-detail.stories.js` for the sub-component stories |
+| `cts-plan-header` | LitElement | Yes | Sub-component of cts-plan-detail |
+| `cts-plan-list` | LitElement | Yes | Plans table; dispatches `cts-plan-navigate` |
+| `cts-plan-modules` | LitElement | Yes | Sub-component of cts-plan-detail; dispatches run/download events |
+| `cts-running-test-card` | LitElement | Yes | Active-test panel; dispatches `cts-download-log` |
+| `cts-spec-cascade` | LitElement | Yes | Family → entity → version → plan dropdowns; dispatches `cts-plan-selected` |
+| `cts-tabs` | HTMLElement | No | Restructures `<cts-tab-panel>` children into WCAG tablist; dispatches `cts-tab-change` |
+| `cts-test-selector` | LitElement | Yes | Plan-selector UI; dispatches `cts-plan-select` |
+| `cts-token-manager` | LitElement | Yes | Token CRUD; fetches `/api/token` |
+| `cts-tooltip` | HTMLElement | No | Wraps Bootstrap 5 Tooltip on first child |

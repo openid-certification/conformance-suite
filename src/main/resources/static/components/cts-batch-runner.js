@@ -1,6 +1,20 @@
 import { LitElement, html, nothing } from "lit";
 import "./cts-badge.js";
 
+/**
+ * "Run All" / "Run Remaining" controls and a grid of module status badges
+ * for a plan. Does not run the tests itself; emits events for the host page
+ * to act on.
+ *
+ * @property {string} planId - Plan id the batch applies to. Reflects the
+ *   `plan-id` attribute.
+ * @property {Array} modules - Plan modules; each has `testModule` and an
+ *   optional `instances` array used to derive pass/fail status.
+ *
+ * @fires cts-run-all - When the Run All button is clicked; bubbles.
+ * @fires cts-run-remaining - When the Run Remaining button is clicked;
+ *   bubbles.
+ */
 class CtsBatchRunner extends LitElement {
   static properties = {
     planId: { type: String, attribute: "plan-id" },

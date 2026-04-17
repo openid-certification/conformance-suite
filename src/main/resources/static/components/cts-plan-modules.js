@@ -35,6 +35,27 @@ function statusLabel(status, result) {
   return status;
 }
 
+/**
+ * Per-module rows for a plan-detail page. Each row shows status/result
+ * badges, the test module name and variant, the last test instance, and
+ * action buttons (Run / View Logs / Download Logs).
+ *
+ * @property {Array<Object>} modules - Modules rendered from the plan-detail
+ *   API response; see cts-plan-detail.stories.js for shape.
+ * @property {string} planId - Parent plan ID. Reflects the `plan-id`
+ *   attribute.
+ * @property {boolean} isReadonly - Hides the Run Test button. Reflects the
+ *   `is-readonly` attribute.
+ * @property {boolean} isImmutable - Hides the Run Test button on immutable
+ *   plans. Reflects the `is-immutable` attribute.
+ * @property {boolean} isPublic - Appends `&public=true` to log-detail links.
+ *   Reflects the `is-public` attribute.
+ *
+ * @fires cts-run-test - When the Run Test button is clicked, with
+ *   `{ detail: { testModule, variant } }`; bubbles.
+ * @fires cts-download-log - When the Download Logs button is clicked, with
+ *   `{ detail: { testId } }`; bubbles.
+ */
 class CtsPlanModules extends LitElement {
   static properties = {
     modules: { type: Array },

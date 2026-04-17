@@ -19,6 +19,54 @@ const STATUS_BADGE_VARIANTS = {
 
 const RESULT_TYPES = ["success", "failure", "warning", "review", "info"];
 
+/**
+ * @typedef {Object} TestInfo
+ * @property {string} testId - Test instance ID.
+ * @property {string} testName - Module class name.
+ * @property {string} status - One of: RUNNING, WAITING, FINISHED, INTERRUPTED.
+ * @property {string} result - Final result (PASSED/FAILED/WARNING/REVIEW/SKIPPED).
+ * @property {Array} results - Log entries used for the result/failure summary.
+ * @property {string} created - ISO timestamp of test creation.
+ * @property {string} description - Human-readable description.
+ * @property {string} version - Test module version.
+ * @property {Object} variant - Variant parameters map.
+ * @property {string} planId - Parent plan ID, if the test belongs to one.
+ * @property {Object} owner - `{ sub, iss }` owner identity (admin only).
+ * @property {Object} config - Test configuration JSON.
+ * @property {Object} exposed - Values exported by a running test.
+ * @property {string|boolean} publish - Publish mode ("summary", "everything") or falsy.
+ * @property {string} summary - Test-level summary shown as an info banner.
+ */
+
+/**
+ * Header card for the log-detail page. Shows status/result badges, metadata,
+ * a configuration viewer, a failure summary that deep-links into individual
+ * log entries, and action buttons (repeat, upload images, download, publish,
+ * start/stop). Does not perform the actions itself — emits events.
+ *
+ * @property {TestInfo} testInfo - The test info object fetched from
+ *   `/api/info`. Reflects the `test-info` attribute when set as a string.
+ * @property {boolean} isAdmin - Reveals admin-only rows and actions.
+ *   Reflects the `is-admin` attribute.
+ * @property {boolean} isPublic - Public (read-only) view hides repeat /
+ *   upload / publish actions. Reflects the `is-public` attribute.
+ *
+ * @fires cts-scroll-to-entry - When a failure-summary item is clicked, with
+ *   `{ detail: { entryId } }`; bubbles.
+ * @fires cts-repeat-test - When the Repeat Test button is clicked, with
+ *   `{ detail: { testId } }`; bubbles.
+ * @fires cts-upload-images - When the Upload Images button is clicked, with
+ *   `{ detail: { testId } }`; bubbles.
+ * @fires cts-download-log - When the Download Logs button is clicked, with
+ *   `{ detail: { testId } }`; bubbles.
+ * @fires cts-publish - When the Publish/Unpublish button is clicked, with
+ *   `{ detail: { testId, action } }` where `action` is `publish` or
+ *   `unpublish`; bubbles.
+ * @fires cts-start-test - When the Start button is clicked on a running /
+ *   waiting test, with `{ detail: { testId } }`; bubbles.
+ * @fires cts-stop-test - When the Stop button is clicked on a running /
+ *   waiting test, with `{ detail: { testId } }`; bubbles.
+ */
 class CtsLogDetailHeader extends LitElement {
   static properties = {
     testInfo: { type: Object, attribute: "test-info" },

@@ -1,5 +1,15 @@
 import { LitElement, html } from "lit";
 
+/**
+ * Four-level cascading selector (Specification -> Entity -> Version -> Plan)
+ * backed by `/api/runner/available`. Auto-selects single-option tiers.
+ *
+ * @property {Array} plans - Available plans. If not provided the component
+ *   fetches from `/api/runner/available` on connect.
+ *
+ * @fires cts-plan-selected - When a plan is chosen (manually or via
+ *   auto-select), with `{ detail: { plan } }`; bubbles.
+ */
 class CtsSpecCascade extends LitElement {
   static properties = {
     plans: { type: Array },
