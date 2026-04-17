@@ -12,8 +12,12 @@ import net.openid.conformance.variant.FAPI2FinalOPProfile;
 import net.openid.conformance.variant.VariantNotApplicable;
 import net.openid.conformance.variant.VariantParameters;
 import net.openid.conformance.vci10issuer.condition.CheckForUnexpectedParametersInCredentialIssuerMetadata;
+import net.openid.conformance.vci10issuer.condition.VCICheckCredentialRequestEncryptionSupported;
+import net.openid.conformance.vci10issuer.condition.VCICheckCredentialResponseEncryptionSupported;
 import net.openid.conformance.vci10issuer.condition.VCICheckRequiredMetadataFields;
 import net.openid.conformance.vci10issuer.condition.VCICredentialIssuerMetadataValidation;
+import net.openid.conformance.vci10issuer.condition.VCIEnsureCredentialRequestEncryptionWhenResponseEncryptionOptional;
+import net.openid.conformance.vci10issuer.condition.VCIEnsureCredentialRequestEncryptionWhenResponseEncryptionRequired;
 import net.openid.conformance.vci10issuer.condition.VCIEnsureHttpsUrlsMetadata;
 import net.openid.conformance.vci10issuer.condition.VCIExtractTlsInfoFromCredentialIssuer;
 import net.openid.conformance.vci10issuer.condition.VCIFetchOAuthorizationServerMetadata;
@@ -90,6 +94,20 @@ public class VCIIssuerMetadataTest extends AbstractVciTest {
 		callAndContinueOnFailure(VCIValidateCredentialIssuerUri.class, Condition.ConditionResult.FAILURE, "OID4VCI-1FINAL-12.2.1");
 		callAndContinueOnFailure(VCICredentialIssuerMetadataValidation.class, Condition.ConditionResult.FAILURE, "OID4VCI-1FINAL-12.2.3");
 		callAndContinueOnFailure(CheckForUnexpectedParametersInCredentialIssuerMetadata.class, Condition.ConditionResult.WARNING, "OID4VCI-1FINAL-12.2.3");
+
+		// credential_request_encryption and credential_response_encryption are both OPTIONAL, but
+		// if declared they MUST be well-formed per §12.2.4. §8.2 further requires the wallet to
+		// encrypt credential requests when credential_response_encryption is included, which
+		// derives two metadata consistency sub-cases:
+		//   Case A (encryption_required=true, request_encryption missing): the advertised
+		//          combination is provably unusable by any conformant wallet → FAILURE.
+		//   Case B (encryption_required=false, request_encryption missing): the metadata is
+		//          a footgun for wallets that opt into response encryption but still
+		//          interoperates with wallets that don't → WARNING.
+		callAndContinueOnFailure(VCICheckCredentialResponseEncryptionSupported.class, Condition.ConditionResult.FAILURE, "OID4VCI-1FINAL-12.2.4");
+		callAndContinueOnFailure(VCICheckCredentialRequestEncryptionSupported.class, Condition.ConditionResult.FAILURE, "OID4VCI-1FINAL-12.2.4");
+		callAndContinueOnFailure(VCIEnsureCredentialRequestEncryptionWhenResponseEncryptionRequired.class, Condition.ConditionResult.FAILURE, "OID4VCI-1FINAL-8.2");
+		callAndContinueOnFailure(VCIEnsureCredentialRequestEncryptionWhenResponseEncryptionOptional.class, Condition.ConditionResult.WARNING, "OID4VCI-1FINAL-8.2");
 
 		callAndContinueOnFailure(VCICheckForOldSdJwtFormatInCredentialConfigurations.class, Condition.ConditionResult.WARNING, "OID4VCI-1FINALA-A.3.1");
 		if (isHaip()) {

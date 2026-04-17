@@ -1,11 +1,14 @@
 package net.openid.conformance.util;
 
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import com.nimbusds.jose.Algorithm;
 import com.nimbusds.jose.EncryptionMethod;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWEAlgorithm;
 import com.nimbusds.jose.JWEDecrypter;
 import com.nimbusds.jose.JWEEncrypter;
+import com.nimbusds.jose.JWEObject;
 import com.nimbusds.jose.KeyLengthException;
 import com.nimbusds.jose.crypto.AESDecrypter;
 import com.nimbusds.jose.crypto.AESEncrypter;
@@ -28,12 +31,14 @@ import com.nimbusds.jose.jwk.OctetKeyPair;
 import com.nimbusds.jose.jwk.OctetSequenceKey;
 import com.nimbusds.jose.jwk.RSAKey;
 import com.nimbusds.jose.util.Base64URL;
+import com.nimbusds.jose.util.JSONObjectUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.text.ParseException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -41,14 +46,27 @@ public class JWEUtil {
 
 	private static Logger logger = LoggerFactory.getLogger(JWEUtil.class);
 	/**
-	 * returns a key that has the correct key type and optionally use=enc
-	 * or null if no key was found
-	 * Only for RSA or EC keys
+	 * Returns a key that has the correct key type and optionally use=enc,
+	 * or null if no key was found.
+	 * Only for RSA or EC keys.
 	 * @param jwkSet
 	 * @param alg
 	 * @return
 	 */
 	public static JWK selectAsymmetricKeyForEncryption(JWKSet jwkSet, JWEAlgorithm alg) {
+		return selectAsymmetricKeyForEncryption(jwkSet, alg, null);
+	}
+
+	/**
+	 * Returns a key that has the correct key type and optionally use=enc,
+	 * preferring an exact kid match when one is available from the JWE header.
+	 * Only for RSA or EC keys.
+	 * @param jwkSet
+	 * @param alg
+	 * @param kid
+	 * @return
+	 */
+	public static JWK selectAsymmetricKeyForEncryption(JWKSet jwkSet, JWEAlgorithm alg, String kid) {
 		if(jwkSet==null) {
 			return null;
 		}
@@ -61,9 +79,16 @@ public class JWEUtil {
 		}
 
 		JWKMatcher jwkMatcher = new JWKMatcher.Builder().keyType(keyType).keyUses(KeyUse.ENCRYPTION, null).build();
+		boolean requiresKidMatch = kid != null && !kid.isBlank();
 		JWK currentMatch = null;
 		for(JWK jwk : jwkSet.getKeys()) {
 			if(jwkMatcher.matches(jwk)) {
+				if (requiresKidMatch) {
+					if (kid.equals(jwk.getKeyID())) {
+						return jwk;
+					}
+					continue;
+				}
 				if(currentMatch==null) {
 					currentMatch = jwk;
 				} else {
@@ -273,6 +298,56 @@ public class JWEUtil {
 	public static boolean isSymmetricJWEAlgorithm(String algorithmName) {
 		JWEAlgorithm algorithm = JWEAlgorithm.parse(algorithmName);
 		return JWEAlgorithm.Family.SYMMETRIC.contains(algorithm);
+	}
+
+	/**
+	 * Returns the header of an encrypted or parsed {@link JWEObject} as a JsonObject.
+	 * Mirrors {@code JWTUtil.jwtHeaderAsJsonObject} but for bare JWEs. Nimbus always
+	 * strips null-valued header parameters.
+	 *
+	 * @param jweObject the JWE — either freshly encrypted via
+	 *                  {@link JWEObject#encrypt(JWEEncrypter)} or parsed via
+	 *                  {@link JWEObject#parse(String)}
+	 * @return the JWE header as a JsonObject
+	 */
+	public static JsonObject jweHeaderAsJsonObject(JWEObject jweObject) {
+		return JsonParser.parseString(
+			JSONObjectUtils.toJSONString(jweObject.getHeader().toJSONObject())).getAsJsonObject();
+	}
+
+	/**
+	 * Parses a compact-serialized JWE whose payload is a plain JSON object and returns a
+	 * log-friendly JsonObject with the same field names used by
+	 * {@code JWTUtil.jwtStringToJsonObjectForEnvironment(String, JsonObject, JsonObject)}
+	 * so test logs render JWT-wrapped and JSON-wrapped encrypted content the same way:
+	 *
+	 * <ul>
+	 *   <li>{@code value} — plaintext serialized as a string (mirroring the JWT variant
+	 *       where {@code value} is the decrypted inner JWT compact string, not the outer
+	 *       JWE)</li>
+	 *   <li>{@code claims} — plaintext parsed as a JsonObject</li>
+	 *   <li>{@code jwe_header} — header of the outer JWE</li>
+	 * </ul>
+	 *
+	 * <p>Unlike the JWT variant, there is no {@code header} entry because OID4VCI JWEs
+	 * wrap a plain JSON body rather than a nested signed JWT — there is no inner JWT
+	 * header to report.
+	 *
+	 * <p>This method does not attempt to decrypt the JWE — the caller is expected to
+	 * already have the plaintext and passes it as {@code payload}.
+	 *
+	 * @param jweAsString compact serialization of the JWE
+	 * @param payload     the plaintext JSON payload
+	 * @return JsonObject with {@code value}, {@code claims} and {@code jwe_header} entries
+	 * @throws ParseException if the compact JWE cannot be parsed
+	 */
+	public static JsonObject jweStringToJsonObjectForEnvironment(String jweAsString, JsonObject payload) throws ParseException {
+		JWEObject jweObject = JWEObject.parse(jweAsString);
+		JsonObject out = new JsonObject();
+		out.addProperty("value", payload.toString());
+		out.add("claims", payload);
+		out.add("jwe_header", jweHeaderAsJsonObject(jweObject));
+		return out;
 	}
 
 }

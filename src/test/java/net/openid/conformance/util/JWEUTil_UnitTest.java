@@ -1,9 +1,21 @@
 package net.openid.conformance.util;
 
+import com.nimbusds.jose.JWEAlgorithm;
+import com.nimbusds.jose.jwk.Curve;
+import com.nimbusds.jose.jwk.ECKey;
+import com.nimbusds.jose.jwk.JWK;
+import com.nimbusds.jose.jwk.JWKSet;
+import com.nimbusds.jose.jwk.KeyUse;
+import com.nimbusds.jose.jwk.gen.ECKeyGenerator;
 import com.nimbusds.jose.util.Base64URL;
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
+import java.util.UUID;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class JWEUTil_UnitTest {
@@ -71,6 +83,44 @@ public class JWEUTil_UnitTest {
 			() -> JWEUtil.deriveEncryptionKey("none", clientSecret));
 
 		assertEquals("Unable to parse key bit length from algorithm none", expectedException.getMessage());
+	}
+
+	@Test
+	public void selectAsymmetricKeyForEncryption_prefersMatchingKid() throws Exception {
+		ECKey firstKey = new ECKeyGenerator(Curve.P_256)
+			.algorithm(JWEAlgorithm.ECDH_ES)
+			.keyUse(KeyUse.ENCRYPTION)
+			.keyID(UUID.randomUUID().toString())
+			.generate();
+		ECKey secondKey = new ECKeyGenerator(Curve.P_256)
+			.algorithm(JWEAlgorithm.ECDH_ES)
+			.keyUse(KeyUse.ENCRYPTION)
+			.keyID(UUID.randomUUID().toString())
+			.generate();
+
+		JWK jwk = JWEUtil.selectAsymmetricKeyForEncryption(
+			new JWKSet(List.of(firstKey, secondKey)),
+			JWEAlgorithm.ECDH_ES,
+			secondKey.getKeyID());
+
+		assertNotNull(jwk);
+		assertEquals(secondKey.getKeyID(), jwk.getKeyID());
+	}
+
+	@Test
+	public void selectAsymmetricKeyForEncryption_returnsNullWhenKidDoesNotMatch() throws Exception {
+		ECKey key = new ECKeyGenerator(Curve.P_256)
+			.algorithm(JWEAlgorithm.ECDH_ES)
+			.keyUse(KeyUse.ENCRYPTION)
+			.keyID(UUID.randomUUID().toString())
+			.generate();
+
+		JWK jwk = JWEUtil.selectAsymmetricKeyForEncryption(
+			new JWKSet(List.of(key)),
+			JWEAlgorithm.ECDH_ES,
+			"missing-kid");
+
+		assertNull(jwk);
 	}
 
 }

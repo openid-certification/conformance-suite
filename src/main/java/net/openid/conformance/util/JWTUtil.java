@@ -203,7 +203,7 @@ public class JWTUtil {
 					throw new ParseException("No suitable key for decrypting this JWT was provided in the test configuration. A private key of the correct key type with 'use': 'enc' and other matching properties is required.", 0);
 				}
 				JWKSet jwkSet = JWKUtil.parseJWKSet(privateJwksWithEncKeys.toString());
-				decryptionKey = JWEUtil.selectAsymmetricKeyForEncryption(jwkSet, alg);
+				decryptionKey = JWEUtil.selectAsymmetricKeyForEncryption(jwkSet, alg, encryptedJWT.getHeader().getKeyID());
 				if (decryptionKey == null) {
 					throw new ParseException("No suitable key for decrypting this JWT was provided in the test configuration. A private key of the correct key type with 'use': 'enc' and other matching properties is required.", 0);
 				}
