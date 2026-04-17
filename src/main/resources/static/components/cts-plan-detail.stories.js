@@ -1,7 +1,10 @@
 import { html } from "lit";
 import { expect, within, waitFor, userEvent, fn } from "storybook/test";
-import { MOCK_PLAN_DETAIL, MOCK_PLAN_PUBLISHED } from "@fixtures/mock-test-data.js";
-import { MOCK_USER, MOCK_ADMIN_USER } from "@fixtures/mock-users.js";
+import {
+  MOCK_PLAN_DETAIL,
+  MOCK_PLAN_PUBLISHED,
+  MOCK_MODULES_WITH_STATUS,
+} from "@fixtures/mock-test-data.js";
 import "./cts-plan-header.js";
 import "./cts-plan-modules.js";
 import "./cts-plan-actions.js";
@@ -10,30 +13,7 @@ export default {
   title: "Components/cts-plan-detail",
 };
 
-// --- Mock data with status/result on modules for the modules component ---
-
-const MODULES_WITH_STATUS = [
-  {
-    ...MOCK_PLAN_DETAIL.modules[0],
-    status: "FINISHED",
-    result: "PASSED",
-  },
-  {
-    ...MOCK_PLAN_DETAIL.modules[1],
-    status: "FINISHED",
-    result: "WARNING",
-  },
-  {
-    ...MOCK_PLAN_DETAIL.modules[2],
-    status: "FINISHED",
-    result: "FAILED",
-  },
-  {
-    ...MOCK_PLAN_DETAIL.modules[3],
-    status: null,
-    result: null,
-  },
-];
+const MODULES_WITH_STATUS = MOCK_MODULES_WITH_STATUS;
 
 const PLAN_WITH_CONFIG = {
   ...MOCK_PLAN_DETAIL,
@@ -210,8 +190,11 @@ export const ModulesRunTest = {
     const spy = fn();
     canvasElement.addEventListener("cts-run-test", spy);
 
-    // Click the first Run Test button
-    const runBtn = canvasElement.querySelector('[data-testid="run-test-btn"]');
+    // Click the inner native button — userEvent.click on the cts-button host
+    // doesn't reach the inner @click handler.
+    const runBtn = canvasElement.querySelector(
+      '[data-testid="run-test-btn"] button',
+    );
     expect(runBtn).toBeTruthy();
     await userEvent.click(runBtn);
 
@@ -532,7 +515,7 @@ export const ActionsGenerateLinkResult = {
     const generatedUrl =
       "https://localhost.emobix.co.uk:8443/plan-detail.html?plan=plan-abc-123&token=mock-token-7d";
     el._privateLinkResult = generatedUrl;
-    el.requestUpdate();
+    await el.requestUpdate();
 
     await waitFor(() => {
       const result = canvasElement.querySelector(

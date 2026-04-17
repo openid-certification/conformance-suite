@@ -10,11 +10,18 @@ const VARIANT_CLASSES = {
   warning: "btn-warning",
 };
 
+const SIZE_CLASSES = {
+  sm: "btn-sm",
+  md: "",
+  lg: "btn-lg",
+};
+
 /**
  * Bootstrap-styled button. Dispatches a bubbling `cts-click` event in addition
  * to the native click.
  *
  * @property {string} variant - One of: light, info, primary, danger, secondary, success, warning
+ * @property {string} size - One of: sm (default), md, lg
  * @property {string} label - Visible text
  * @property {string} icon - Bootstrap Icons name (without the `bi-` prefix)
  * @property {boolean} loading - Shows a spinner and disables the button
@@ -25,6 +32,7 @@ const VARIANT_CLASSES = {
 class CtsButton extends LitElement {
   static properties = {
     variant: { type: String },
+    size: { type: String },
     label: { type: String },
     icon: { type: String },
     loading: { type: Boolean },
@@ -36,6 +44,7 @@ class CtsButton extends LitElement {
   constructor() {
     super();
     this.variant = "light";
+    this.size = "sm";
     this.label = "";
     this.icon = "";
     this.loading = false;
@@ -89,10 +98,12 @@ class CtsButton extends LitElement {
     const iconContent = this._renderIcon();
     const hasIcon = iconContent !== nothing;
     const variantClass = VARIANT_CLASSES[this.variant] || "btn-light";
+    const sizeClass = SIZE_CLASSES[this.size] ?? "btn-sm";
+    const sizeSegment = sizeClass ? `${sizeClass} ` : "";
     const widthClass = this.fullWidth ? " w-100" : "";
     return html`<button
       type="${this.type}"
-      class="btn btn-sm ${variantClass} bg-gradient border border-secondary${widthClass}"
+      class="btn ${sizeSegment}${variantClass} bg-gradient border border-secondary${widthClass}"
       ?disabled="${isDisabled}"
       @click="${this._handleClick}"
     >${iconContent}${hasIcon && this.label ? " " : ""}${this.label

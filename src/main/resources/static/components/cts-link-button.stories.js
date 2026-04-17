@@ -11,6 +11,10 @@ export default {
       control: "select",
       options: ["light", "info", "primary", "danger"],
     },
+    size: {
+      control: "select",
+      options: ["sm", "md", "lg"],
+    },
     label: { control: "text" },
     icon: { control: "text" },
     disabled: { control: "boolean" },
@@ -133,4 +137,44 @@ export const AllVariants = {
       <cts-link-button href="#" variant="danger" label="Danger" icon="trash"></cts-link-button>
     </div>
   `,
+};
+
+/**
+ * The `size` attribute mirrors `cts-button`. Login provider buttons on
+ * `login.html` and the action buttons in `tokenTable.html` use `lg` for
+ * prominence; everything else stays on the `sm` default.
+ */
+export const Sizes = {
+  render: () => html`
+    <div style="display: flex; flex-wrap: wrap; gap: 0.5rem; padding: 1rem; align-items: center;">
+      <cts-link-button href="#" variant="primary" label="Small (default)" size="sm"></cts-link-button>
+      <cts-link-button href="#" variant="primary" label="Medium" size="md"></cts-link-button>
+      <cts-link-button href="#" variant="primary" label="Large" size="lg"></cts-link-button>
+    </div>
+  `,
+
+  async play({ canvasElement }) {
+    const anchors = canvasElement.querySelectorAll("cts-link-button a");
+    expect(anchors.length).toBe(3);
+    expect(anchors[0].classList.contains("btn-sm")).toBe(true);
+    expect(anchors[1].classList.contains("btn-sm")).toBe(false);
+    expect(anchors[1].classList.contains("btn-lg")).toBe(false);
+    expect(anchors[2].classList.contains("btn-lg")).toBe(true);
+  },
+};
+
+/**
+ * Unknown `size` values fall back to `sm` (matches `variant`'s defensive
+ * fallback).
+ */
+export const SizeFallback = {
+  render: () => html`
+    <cts-link-button href="#" variant="primary" label="Bogus" size="huge"></cts-link-button>
+  `,
+
+  async play({ canvasElement }) {
+    const anchor = canvasElement.querySelector("cts-link-button a");
+    expect(anchor.classList.contains("btn-sm")).toBe(true);
+    expect(anchor.classList.contains("btn-lg")).toBe(false);
+  },
 };
