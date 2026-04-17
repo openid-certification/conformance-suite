@@ -2,6 +2,9 @@ import { LitElement, html, nothing } from "lit";
 import "./cts-badge.js";
 import "./cts-log-entry.js";
 
+const FAILURE_THRESHOLD = 3;
+const POLL_INTERVAL_MS = 3000;
+
 class CtsLogViewer extends LitElement {
   static properties = {
     testId: { type: String, attribute: "test-id" },
@@ -9,6 +12,7 @@ class CtsLogViewer extends LitElement {
     _entries: { state: true },
     _loading: { state: true },
     _collapsedBlocks: { state: true },
+    _error: { state: true },
   };
 
   createRenderRoot() { return this; }
@@ -20,8 +24,12 @@ class CtsLogViewer extends LitElement {
     this._entries = [];
     this._loading = true;
     this._collapsedBlocks = new Set();
+    this._error = "";
     this._latestTimestamp = 0;
     this._pollTimer = null;
+    this._consecutiveFailures = 0;
+    // Test hook: stories may override this to run the retry loop fast.
+    this._pollIntervalMs = POLL_INTERVAL_MS;
   }
 
   connectedCallback() {
@@ -31,7 +39,10 @@ class CtsLogViewer extends LitElement {
 
   disconnectedCallback() {
     super.disconnectedCallback();
-    if (this._pollTimer) clearTimeout(this._pollTimer);
+    if (this._pollTimer) {
+      clearTimeout(this._pollTimer);
+      this._pollTimer = null;
+    }
   }
 
   async _fetchEntries() {
@@ -39,17 +50,29 @@ class CtsLogViewer extends LitElement {
       let url = "/api/log/" + encodeURIComponent(this.testId);
       if (this._latestTimestamp > 0) url += "?since=" + this._latestTimestamp;
       const response = await fetch(url);
-      if (!response.ok) throw new Error("Failed to fetch log");
+      if (!response.ok) throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       const newEntries = await response.json();
       if (newEntries.length > 0) {
         this._entries = [...this._entries, ...newEntries];
         this._latestTimestamp = Math.max(...newEntries.map((e) => e.time || 0));
       }
-    } catch {
-      // Log fetch errors are non-fatal -- the viewer retries on next poll
+      this._consecutiveFailures = 0;
+      this._error = "";
+    } catch (err) {
+      this._consecutiveFailures += 1;
+      if (this._consecutiveFailures >= FAILURE_THRESHOLD) {
+        this._error = "Log connection lost — retrying…";
+      }
+      console.warn("[cts-log-viewer] /api/log fetch failed:", err);
     } finally {
       this._loading = false;
-      this._pollTimer = setTimeout(() => this._fetchEntries(), 3000);
+      // Guard after the in-flight fetch resolves: if the element was removed
+      // while we were awaiting, do NOT schedule another poll. Placing the check
+      // here (not at the top of _fetchEntries) lets an in-flight cycle finish
+      // cleanly without spawning a new one.
+      if (this.isConnected) {
+        this._pollTimer = setTimeout(() => this._fetchEntries(), this._pollIntervalMs);
+      }
     }
   }
 
@@ -100,9 +123,12 @@ class CtsLogViewer extends LitElement {
       return html`<div class="text-center p-3"><span class="spinner-border" role="status"></span> Loading log…</div>`;
     }
     return html`
+      ${this._error
+        ? html`<div class="alert alert-warning" role="status" aria-live="polite" data-testid="log-viewer-error">${this._error}</div>`
+        : nothing}
       ${this._renderResultSummary()}
       <div class="log-entries">${this._entries.map((entry) => this._renderEntry(entry))}</div>
-      ${this._entries.length === 0 ? html`<div class="text-muted text-center p-3">No log entries</div>` : nothing}
+      ${this._entries.length === 0 && !this._error ? html`<div class="text-muted text-center p-3">No log entries</div>` : nothing}
     `;
   }
 }
