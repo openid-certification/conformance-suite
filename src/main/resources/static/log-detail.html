@@ -42,6 +42,11 @@
     <script type="importmap">{"imports":{"lit":"/vendor/lit/lit.js","lit/":"/vendor/lit/","@lit/reactive-element":"/vendor/lit/lit.js","@lit/reactive-element/":"/vendor/lit/","lit-html":"/vendor/lit/lit.js","lit-html/":"/vendor/lit/","lit-element/":"/vendor/lit/"}}</script>
     <script type="module" src="/components/cts-navbar.js"></script>
     <script type="module" src="/components/cts-modal.js"></script>
+    <script type="module" src="/components/cts-button.js"></script>
+    <script type="module" src="/components/cts-link-button.js"></script>
+    <script type="module" src="/components/cts-badge.js"></script>
+    <script type="module" src="/components/cts-alert.js"></script>
+    <script type="module" src="/components/cts-icon.js"></script>
 </head>
 
 <body>
@@ -63,9 +68,7 @@
 
     <cts-modal id="configModal" heading="Configuration">
         <div>
-            <button class="btn-clipboard btn btn-sm" data-clipboard-target="#config" title="Copy config to clipboard">
-                <span class="bi bi-box-arrow-in-right"></span>
-            </button>
+            <cts-button class="btn-clipboard" icon="box-arrow-in-right" data-clipboard-target="#config" title="Copy config to clipboard"></cts-button>
             Configuration for <code id="configTestId" class="text-muted"></code>
         </div>
         <div class="wrapLongStrings">
@@ -89,7 +92,7 @@
             <div class="header"></div>
             <div id="fixedDiv">
                 <div class="d-grid">
-                    <button class="btn btn-sm btn-light bg-gradient border border-secondary" onclick="goToTop()" id="goToTopBtn"><span class="bi bi-arrow-up-circle"></span> Go to Top</button>
+                    <cts-button id="goToTopBtn" icon="arrow-up-circle" label="Go to Top" onclick="goToTop()"></cts-button>
                 </div>
             </div>
             <div class="logContent container-fluid">
@@ -250,8 +253,7 @@
                     }
 
                     if (document.getElementById('uploadBtn') !== null) {
-                        document.getElementById('uploadBtn').classList.add('btn-info');
-                        document.getElementById('uploadBtn').classList.remove('btn-light');
+                        document.getElementById('uploadBtn').variant = 'info';
                     }
                 } else {
                     if (document.getElementById('uploadCount') !== null) {
@@ -259,8 +261,7 @@
                     }
 
                     if (document.getElementById('uploadBtn') !== null) {
-                        document.getElementById('uploadBtn')?.classList.remove('btn-info');
-                        document.getElementById('uploadBtn')?.classList.add('btn-light');
+                        document.getElementById('uploadBtn').variant = 'light';
                     }
                 }
             })

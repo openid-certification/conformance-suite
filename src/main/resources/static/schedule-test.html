@@ -29,6 +29,9 @@
     <script type="module" src="/components/cts-navbar.js"></script>
     <script type="module" src="/components/cts-modal.js"></script>
     <script type="module" src="/components/cts-tabs.js"></script>
+    <script type="module" src="/components/cts-badge.js"></script>
+    <script type="module" src="/components/cts-button.js"></script>
+    <script type="module" src="/components/cts-alert.js"></script>
 
 </head>
 <body>
@@ -1652,10 +1655,7 @@
                                     <div class="row">
                                         <div class="col-2">Federation entity under test </div>
                                         <div class="col-10">
-                                            <span class="badge bg-info-subtle border border-info-subtle text-info-emphasis rounded-pill"><i class="bi bi-info-circle-fill"></i>
-                                                This section relates to the entity under test, i.e. <em>your</em> federation entity, the entity that will be the primary subject of the test suite.
-                                                See also the <a href="https://openid.net/certification/federation_testing">detailed instructions</a>.
-                                            </span>
+                                            <cts-badge variant="info-subtle" pill icon="info-circle-fill">This section relates to the entity under test, i.e. <em>your</em> federation entity, the entity that will be the primary subject of the test suite. See also the <a href="https://openid.net/certification/federation_testing">detailed instructions</a>.</cts-badge>
                                         </div>
                                     </div>
                                 </h3>
@@ -1707,10 +1707,7 @@
                                     <div class="row">
                                         <div class="col-2">Test suite OP </div>
                                         <div class="col-10">
-                                            <span class="badge bg-info-subtle border border-info-subtle text-info-emphasis rounded-pill"><i class="bi bi-info-circle-fill"></i>
-                                            This section relates to the <em>test suite</em> and how it behaves as an OpenID provider federation entity.
-                                            See also the <a href="https://openid.net/certification/federation_testing">detailed instructions</a>.
-                                            </span>
+                                            <cts-badge variant="info-subtle" pill icon="info-circle-fill">This section relates to the <em>test suite</em> and how it behaves as an OpenID provider federation entity. See also the <a href="https://openid.net/certification/federation_testing">detailed instructions</a>.</cts-badge>
                                         </div>
                                     </div>
                                 </h3>
@@ -1767,10 +1764,7 @@
                                     <div class="row">
                                         <div class="col-2">Test suite RP </div>
                                         <div class="col-10">
-                                            <span class="badge bg-info-subtle border border-info-subtle text-info-emphasis rounded-pill"><i class="bi bi-info-circle-fill"></i>
-                                            This section relates to the <em>test suite</em> and how it behaves as an OpenID relying party federation entity.
-                                            See also the <a href="https://openid.net/certification/federation_testing">detailed instructions</a>.
-                                            </span>
+                                            <cts-badge variant="info-subtle" pill icon="info-circle-fill">This section relates to the <em>test suite</em> and how it behaves as an OpenID relying party federation entity. See also the <a href="https://openid.net/certification/federation_testing">detailed instructions</a>.</cts-badge>
                                         </div>
                                     </div>
                                 </h3>
@@ -1827,9 +1821,7 @@
                                     <div class="row">
                                         <div class="col-2">Test suite trust anchor </div>
                                         <div class="col-10">
-                                            <span class="badge bg-info-subtle border border-info-subtle text-info-emphasis rounded-pill"><i class="bi bi-info-circle-fill"></i>
-                                            This section relates to the <em>test suite</em> and how it behaves as a trust anchor.
-                                            See also the <a href="https://openid.net/certification/federation_testing">detailed instructions</a>.</span>
+                                            <cts-badge variant="info-subtle" pill icon="info-circle-fill">This section relates to the <em>test suite</em> and how it behaves as a trust anchor. See also the <a href="https://openid.net/certification/federation_testing">detailed instructions</a>.</cts-badge>
                                         </div>
                                     </div>
                                 </h3>
@@ -1948,12 +1940,8 @@
                 <div class="card" style="width: 28rem;">
                     <div class="card-body">
                         <div class="d-grid">
-                            <button class="btn btn-lg btn-primary bg-gradient border border-secondary mb-3" id="createPlanBtn" disabled="">
-                                <span class="bi bi-flag-fill"></span> Create Test Plan
-                            </button>
-                            <button class="btn btn-lg btn-secondary bg-gradient border border-secondary" id="copyPlanUrlBtn" disabled="" data-bs-toggle="modal" data-bs-target="#copyTestPlanUrlModal">
-                                <span class="bi bi-clipboard"></span> Share Test Plan Configuration
-                            </button>
+                            <cts-button id="createPlanBtn" size="lg" variant="primary" class="mb-3" icon="flag-fill" label="Create Test Plan" disabled></cts-button>
+                            <cts-button id="copyPlanUrlBtn" size="lg" variant="secondary" icon="clipboard" label="Share Test Plan Configuration" data-bs-toggle="modal" data-bs-target="#copyTestPlanUrlModal" disabled></cts-button>
                         </div>
                     </div>
                 </div>
@@ -1969,12 +1957,12 @@
                         <div class="modal-body">
                             The Test Plan Configuration URL was copied to the clipboard.
 
-                            <p class="alert alert-danger">
+                            <cts-alert variant="danger">
                                 Please note, that the URL might contain <strong>private keys</strong>, <strong>secrets</strong>, and other <strong>sensitive information</strong> extracted from the Test Plan configuration, and sharing it will reveal these things to the recipient.
-                            </p>
+                            </cts-alert>
                         </div>
                         <div class="modal-footer">
-                            <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Close</button>
+                            <cts-button variant="primary" data-bs-dismiss="modal" label="Close"></cts-button>
                         </div>
                     </div>
                 </div>

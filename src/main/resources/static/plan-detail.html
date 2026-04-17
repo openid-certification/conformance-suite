@@ -34,6 +34,9 @@
     <script type="module" src="/components/cts-modal.js"></script>
     <script type="module" src="/components/cts-button.js"></script>
     <script type="module" src="/components/cts-link-button.js"></script>
+    <script type="module" src="/components/cts-alert.js"></script>
+    <script type="module" src="/components/cts-badge.js"></script>
+    <script type="module" src="/components/cts-icon.js"></script>
 </head>
 
 <body>
@@ -55,9 +58,7 @@
 
     <cts-modal id="configModal" heading="Configuration">
         <div>
-            <button class="btn-clipboard btn btn-sm" data-clipboard-target="#config" title="Copy config to clipboard">
-                <span class="bi bi-box-arrow-in-right"></span>
-            </button>
+            <cts-button class="btn-clipboard" icon="box-arrow-in-right" data-clipboard-target="#config" title="Copy config to clipboard"></cts-button>
             Configuration for <code id="configTestId" class="text-muted"></code>
         </div>
         <div class="wrapLongStrings">
@@ -119,9 +120,9 @@
                     </div>
 
                     <div class="modal-footer">
-                        <button id="cancelCertificationPackageFormModal" type="button" class="btn btn-sm btn-light bg-gradient border border-secondary" data-bs-dismiss="modal">Cancel</button>
-                        <button id="certificationPackageFormSubmitBtn" type="submit" class="btn btn-sm btn-primary bg-gradient border border-secondary">Create Certification Package</button>
-                        <button id="closeCertificationPackageFormModal" type="button" class="btn btn-sm btn-light bg-gradient border border-secondary" hidden>Close</button>
+                        <cts-button id="cancelCertificationPackageFormModal" data-bs-dismiss="modal" label="Cancel"></cts-button>
+                        <cts-button id="certificationPackageFormSubmitBtn" type="submit" variant="primary" label="Create Certification Package"></cts-button>
+                        <cts-button id="closeCertificationPackageFormModal" hidden label="Close"></cts-button>
                     </div>
                 </form>
             </div>
@@ -622,9 +623,7 @@
 
         function showDialogError(containerId, error) {
             document.getElementById(containerId).insertAdjacentHTML('beforeend',
-                '<div class="alert alert-danger">' +
-                '<button type="button" class="btn-close" data-bs-dismiss="alert">' +
-                '</button>' + error + '</div>');
+                '<cts-alert variant="danger" dismissible>' + error + '</cts-alert>');
         }
 
         /**

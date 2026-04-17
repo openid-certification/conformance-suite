@@ -31,6 +31,11 @@
     <script type="importmap">{"imports":{"lit":"/vendor/lit/lit.js","lit/":"/vendor/lit/","@lit/reactive-element":"/vendor/lit/lit.js","@lit/reactive-element/":"/vendor/lit/","lit-html":"/vendor/lit/lit.js","lit-html/":"/vendor/lit/","lit-element/":"/vendor/lit/"}}</script>
     <script type="module" src="/components/cts-navbar.js"></script>
     <script type="module" src="/components/cts-modal.js"></script>
+    <script type="module" src="/components/cts-button.js"></script>
+    <script type="module" src="/components/cts-link-button.js"></script>
+    <script type="module" src="/components/cts-alert.js"></script>
+    <script type="module" src="/components/cts-badge.js"></script>
+    <script type="module" src="/components/cts-icon.js"></script>
 
 <script type="text/javascript">
     document.addEventListener("DOMContentLoaded", () => {
@@ -84,8 +89,7 @@
     function formReset() {
         // reset the form
         document.querySelector('#additionalUploader .uploadBtn').disabled = true;
-        document.querySelector('#additionalUploader .uploadBtn').classList.remove('btn-success');
-        document.querySelector('#additionalUploader .uploadBtn').classList.add('btn-light');
+        document.querySelector('#additionalUploader .uploadBtn').variant = 'light';
 
         document.querySelector('#additionalUploader .imagePreview').src = '/images/placeholder.png';
 
@@ -131,8 +135,7 @@
                             el.querySelector('.imagePreview').src = content;
 
                             el.querySelector('.uploadBtn').disabled = false;
-                            el.querySelector('.uploadBtn').classList.remove('btn-light');
-                            el.querySelector('.uploadBtn').classList.add('btn-success');
+                            el.querySelector('.uploadBtn').variant = 'success';
                         };
 
                         // this reads the file data and triggers the 'onload' function above
@@ -206,8 +209,7 @@
 
                         // reset the form
                         el.querySelector('.uploadBtn').disabled = true;
-                        el.querySelector('.uploadBtn').classList.remove('btn-success');
-                        el.querySelector('.uploadBtn').classList.add('btn-light');
+                        el.querySelector('.uploadBtn').variant = 'light';
 
                         el.querySelector('.imagePreview').src = '/images/placeholder.png';
 
@@ -235,8 +237,7 @@
                     document.querySelector('#additionalUploader .imagePreview').src = content;
 
                     document.querySelector('#additionalUploader .uploadBtn').disabled = false;
-                    document.querySelector('#additionalUploader .uploadBtn').classList.remove('btn-light');
-                    document.querySelector('#additionalUploader .uploadBtn').classList.add('btn-success');
+                    document.querySelector('#additionalUploader .uploadBtn').variant = 'success';
                 };
 
                 // this reads the file data and triggers the 'onload' function above
@@ -341,8 +342,7 @@
                         parent.querySelectorAll('.logItem')?.forEach(function(element) {
                             element.querySelectorAll('.uploadBtn')?.forEach(function(element1) {
                                 element1.disabled = false;
-                                element1.classList.remove('btn-light');
-                                element1.classList.add('btn-success');
+                                element1.variant = 'success';
                             });
                         });
 
@@ -363,8 +363,7 @@
                                 parent.querySelector('.logItem')?.forEach(function(element) {
                                     element.querySelectorAll('.uploadBtn')?.forEach(function(element1) {
                                         element1.disabled = true;
-                                        element1.classList.remove('btn-success');
-                                        element1.classList.add('btn-light');
+                                        element1.variant = 'light';
                                     });
                                 });
 
@@ -530,7 +529,7 @@
                                 <span class="bi bi-camera-fill"></span> Select File</input>
                                     <input type="file" accept=".jpg,.jpeg,.png,image/png,image/jpeg" hidden>
                             </label>
-                            <button class="btn btn-sm btn-light bg-gradient border border-secondary uploadBtn" disabled>Upload</button>
+                            <cts-button class="uploadBtn" label="Upload" disabled></cts-button>
                         </div>
                     </div>
                 </div>

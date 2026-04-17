@@ -2,14 +2,14 @@
             <form action="/logout" method="post" class="row g-3">
                 <div class="col-auto">
                     <p class="form-control-plaintext">Logged in as
-                        <% if (userInfo.isAdmin) { %><small class="badge bg-danger">ADMIN</small> <%}%>
+                        <% if (userInfo.isAdmin) { %><cts-badge variant="danger" label="ADMIN"></cts-badge> <%}%>
                         <span class="text-primary" data-bs-toggle="tooltip" title="<%- userInfo.principal %>" data-bs-placement="bottom"><%- userInfo.displayName %></span></p>
                 </div>
                 <div class="col-auto">
-                    <% if (!userInfo.isAdmin && !userInfo.isGuest) { %><a class="btn btn-sm btn-light bg-gradient border border-secondary" href="/tokens.html">Tokens</a><% } %>
+                    <% if (!userInfo.isAdmin && !userInfo.isGuest) { %><cts-link-button href="/tokens.html" label="Tokens"></cts-link-button><% } %>
                 </div>
                 <div class="col-auto">
-                    <input type="submit" class="btn btn-sm btn-primary bg-gradient border border-secondary" value="Logout">
+                    <cts-button variant="primary" type="submit" label="Logout"></cts-button>
                 </div>
             </form>
         </div>
