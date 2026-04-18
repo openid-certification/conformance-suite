@@ -8,14 +8,7 @@ export default {
   argTypes: {
     currentPage: {
       control: "select",
-      options: [
-        "home",
-        "create-test",
-        "plans",
-        "logs",
-        "tokens",
-        "api-docs",
-      ],
+      options: ["home", "create-test", "plans", "logs", "tokens", "api-docs"],
     },
   },
 };
@@ -101,8 +94,7 @@ async function waitForNavbar(canvas) {
 export const Authenticated = {
   args: { currentPage: "home" },
   decorators: [withMockUser(MOCK_USER)],
-  render: ({ currentPage }) =>
-    html`<cts-navbar current-page="${currentPage}"></cts-navbar>`,
+  render: ({ currentPage }) => html`<cts-navbar current-page="${currentPage}"></cts-navbar>`,
 
   async play({ canvasElement }) {
     const canvas = within(canvasElement);
@@ -140,8 +132,7 @@ export const Authenticated = {
 export const Admin = {
   args: { currentPage: "home" },
   decorators: [withMockUser(MOCK_ADMIN)],
-  render: ({ currentPage }) =>
-    html`<cts-navbar current-page="${currentPage}"></cts-navbar>`,
+  render: ({ currentPage }) => html`<cts-navbar current-page="${currentPage}"></cts-navbar>`,
 
   async play({ canvasElement }) {
     const canvas = within(canvasElement);
@@ -153,15 +144,11 @@ export const Admin = {
 
     // Tokens nav link should be hidden for admin
     const navLinks = canvasElement.querySelectorAll(".nav-link");
-    const navLinkTexts = Array.from(navLinks).map((el) =>
-      el.textContent.trim(),
-    );
+    const navLinkTexts = Array.from(navLinks).map((el) => el.textContent.trim());
     expect(navLinkTexts).not.toContain("Tokens");
 
     // Tokens button in user info area should also be hidden
-    const tokensBtn = canvasElement.querySelector(
-      'a.btn[href="tokens.html"]',
-    );
+    const tokensBtn = canvasElement.querySelector('a.btn[href="tokens.html"]');
     expect(tokensBtn).toBeNull();
 
     // Logout still visible
@@ -172,8 +159,7 @@ export const Admin = {
 export const Guest = {
   args: { currentPage: "home" },
   decorators: [withMockUser(MOCK_GUEST)],
-  render: ({ currentPage }) =>
-    html`<cts-navbar current-page="${currentPage}"></cts-navbar>`,
+  render: ({ currentPage }) => html`<cts-navbar current-page="${currentPage}"></cts-navbar>`,
 
   async play({ canvasElement }) {
     const canvas = within(canvasElement);
@@ -185,15 +171,11 @@ export const Guest = {
 
     // Tokens nav link hidden for guest
     const navLinks = canvasElement.querySelectorAll(".nav-link");
-    const navLinkTexts = Array.from(navLinks).map((el) =>
-      el.textContent.trim(),
-    );
+    const navLinkTexts = Array.from(navLinks).map((el) => el.textContent.trim());
     expect(navLinkTexts).not.toContain("Tokens");
 
     // Tokens button in user info area also hidden
-    const tokensBtn = canvasElement.querySelector(
-      'a.btn[href="tokens.html"]',
-    );
+    const tokensBtn = canvasElement.querySelector('a.btn[href="tokens.html"]');
     expect(tokensBtn).toBeNull();
   },
 };
@@ -201,8 +183,7 @@ export const Guest = {
 export const Unauthenticated = {
   args: { currentPage: "" },
   decorators: [withUnauthenticated()],
-  render: ({ currentPage }) =>
-    html`<cts-navbar current-page="${currentPage}"></cts-navbar>`,
+  render: ({ currentPage }) => html`<cts-navbar current-page="${currentPage}"></cts-navbar>`,
 
   async play({ canvasElement }) {
     const canvas = within(canvasElement);
@@ -232,8 +213,7 @@ export const Unauthenticated = {
 export const Loading = {
   args: { currentPage: "home" },
   decorators: [withMockUser(MOCK_USER, { delay: 60000 })],
-  render: ({ currentPage }) =>
-    html`<cts-navbar current-page="${currentPage}"></cts-navbar>`,
+  render: ({ currentPage }) => html`<cts-navbar current-page="${currentPage}"></cts-navbar>`,
 
   async play({ canvasElement }) {
     const canvas = within(canvasElement);
@@ -260,8 +240,7 @@ export const Loading = {
 export const ActivePagePlans = {
   args: { currentPage: "plans" },
   decorators: [withMockUser(MOCK_USER)],
-  render: ({ currentPage }) =>
-    html`<cts-navbar current-page="${currentPage}"></cts-navbar>`,
+  render: ({ currentPage }) => html`<cts-navbar current-page="${currentPage}"></cts-navbar>`,
 
   async play({ canvasElement }) {
     const canvas = within(canvasElement);
@@ -280,8 +259,7 @@ export const ActivePagePlans = {
 export const ActivePageLogs = {
   args: { currentPage: "logs" },
   decorators: [withMockUser(MOCK_USER)],
-  render: ({ currentPage }) =>
-    html`<cts-navbar current-page="${currentPage}"></cts-navbar>`,
+  render: ({ currentPage }) => html`<cts-navbar current-page="${currentPage}"></cts-navbar>`,
 
   async play({ canvasElement }) {
     const canvas = within(canvasElement);
@@ -298,8 +276,7 @@ export const ActivePageLogs = {
 export const ActivePageCreateTest = {
   args: { currentPage: "create-test" },
   decorators: [withMockUser(MOCK_USER)],
-  render: ({ currentPage }) =>
-    html`<cts-navbar current-page="${currentPage}"></cts-navbar>`,
+  render: ({ currentPage }) => html`<cts-navbar current-page="${currentPage}"></cts-navbar>`,
 
   async play({ canvasElement }) {
     const canvas = within(canvasElement);
@@ -321,8 +298,7 @@ export const ActivePageCreateTest = {
 export const ServerErrorLogsWarning = {
   args: { currentPage: "" },
   decorators: [withMockUser(null, { status: 500 })],
-  render: ({ currentPage }) =>
-    html`<cts-navbar current-page="${currentPage}"></cts-navbar>`,
+  render: ({ currentPage }) => html`<cts-navbar current-page="${currentPage}"></cts-navbar>`,
 
   async play({ canvasElement }) {
     const canvas = within(canvasElement);
@@ -358,8 +334,7 @@ export const ServerErrorLogsWarning = {
 export const UnauthenticatedNoWarn = {
   args: { currentPage: "" },
   decorators: [withUnauthenticated()],
-  render: ({ currentPage }) =>
-    html`<cts-navbar current-page="${currentPage}"></cts-navbar>`,
+  render: ({ currentPage }) => html`<cts-navbar current-page="${currentPage}"></cts-navbar>`,
 
   async play({ canvasElement }) {
     const canvas = within(canvasElement);

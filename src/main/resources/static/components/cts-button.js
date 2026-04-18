@@ -66,7 +66,9 @@ class CtsButton extends LitElement {
     this.fullWidth = false;
   }
 
-  createRenderRoot() { return this; }
+  createRenderRoot() {
+    return this;
+  }
 
   updated(changed) {
     if (changed.has("fullWidth")) {
@@ -78,9 +80,7 @@ class CtsButton extends LitElement {
 
   _handleClick() {
     if (this.disabled || this.loading) return;
-    this.dispatchEvent(
-      new CustomEvent("cts-click", { bubbles: true, composed: true }),
-    );
+    this.dispatchEvent(new CustomEvent("cts-click", { bubbles: true, composed: true }));
   }
 
   // Icon names come from the Bootstrap Icons set (2000+ icons).
@@ -98,10 +98,7 @@ class CtsButton extends LitElement {
       ></span>`;
     }
     if (this.icon) {
-      return html`<span
-        class="${this._iconClass()}"
-        aria-hidden="true"
-      ></span>`;
+      return html`<span class="${this._iconClass()}" aria-hidden="true"></span>`;
     }
     return nothing;
   }
@@ -110,13 +107,17 @@ class CtsButton extends LitElement {
     const isDisabled = this.disabled || this.loading;
     const iconContent = this._renderIcon();
     const hasIcon = iconContent !== nothing;
-    const buttonClass = buildButtonClasses({ variant: this.variant, size: this.size, fullWidth: this.fullWidth });
+    const buttonClass = buildButtonClasses({
+      variant: this.variant,
+      size: this.size,
+      fullWidth: this.fullWidth,
+    });
     return html`<button
       type="${this.type}"
       class="${buttonClass}"
       ?disabled="${isDisabled}"
       @click="${this._handleClick}"
-    >${iconContent}${hasIcon && this.label ? " " : ""}${this.label}</button
+      >${iconContent}${hasIcon && this.label ? " " : ""}${this.label}</button
     >`;
   }
 }

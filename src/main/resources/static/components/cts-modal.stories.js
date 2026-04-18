@@ -33,18 +33,12 @@ export const Default = {
       expect(canvasElement.querySelector(".modal.show")).toBeTruthy();
     });
 
-    expect(canvasElement.querySelector(".modal-title").textContent).toBe(
-      "Error Details",
-    );
+    expect(canvasElement.querySelector(".modal-title").textContent).toBe("Error Details");
 
     const paragraphs = canvasElement.querySelectorAll(".modal-body p");
     expect(paragraphs.length).toBe(2);
-    expect(paragraphs[0].textContent).toBe(
-      "An error occurred while processing your request.",
-    );
-    expect(paragraphs[1].textContent).toBe(
-      "Please check the logs for more details.",
-    );
+    expect(paragraphs[0].textContent).toBe("An error occurred while processing your request.");
+    expect(paragraphs[1].textContent).toBe("Please check the logs for more details.");
 
     const closeBtn = canvasElement.querySelector(".btn-close");
     expect(closeBtn).toBeTruthy();
@@ -676,12 +670,7 @@ export const EscapeDismissal = {
  */
 export const StaticBackdropNoKeyboard = {
   render: () =>
-    html`<cts-modal
-      id="staticKbdModal"
-      heading="Loading..."
-      static-backdrop
-      no-keyboard
-    >
+    html`<cts-modal id="staticKbdModal" heading="Loading..." static-backdrop no-keyboard>
       <div class="text-center"><span class="spinner-border"></span></div>
     </cts-modal>`,
 
@@ -694,9 +683,7 @@ export const StaticBackdropNoKeyboard = {
     expect(dialog.getAttribute("data-bs-keyboard")).toBe("false");
     expect(dialog.getAttribute("data-bs-backdrop")).toBe("static");
     // Escape should be a no-op.
-    document.dispatchEvent(
-      new KeyboardEvent("keydown", { key: "Escape", bubbles: true }),
-    );
+    document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
     // Allow a microtask + frame for Bootstrap's handler to potentially run.
     await new Promise((r) => setTimeout(r, 100));
     expect(dialog.classList.contains("show")).toBe(true);
@@ -713,9 +700,7 @@ export const StaticBackdropNoKeyboard = {
 export const FocusContract = {
   render: () => html`
     <div>
-      <button id="openFocusModal" type="button" class="btn btn-primary">
-        Open
-      </button>
+      <button id="openFocusModal" type="button" class="btn btn-primary"> Open </button>
       <cts-modal id="focusModal" heading="Focus Contract Test">
         <p>Focus container for dialog role.</p>
       </cts-modal>

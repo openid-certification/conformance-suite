@@ -30,7 +30,9 @@ class CtsConfigForm extends LitElement {
     _jsonError: { state: true },
   };
 
-  createRenderRoot() { return this; }
+  createRenderRoot() {
+    return this;
+  }
 
   constructor() {
     super();
@@ -65,7 +67,9 @@ class CtsConfigForm extends LitElement {
     obj[parts[parts.length - 1]] = value;
     this.config = newConfig;
     this._jsonText = JSON.stringify(newConfig, null, 2);
-    this.dispatchEvent(new CustomEvent("cts-config-change", { bubbles: true, detail: { config: newConfig } }));
+    this.dispatchEvent(
+      new CustomEvent("cts-config-change", { bubbles: true, detail: { config: newConfig } }),
+    );
   }
 
   _handleJsonInput(e) {
@@ -73,7 +77,9 @@ class CtsConfigForm extends LitElement {
     try {
       this.config = JSON.parse(this._jsonText);
       this._jsonError = "";
-      this.dispatchEvent(new CustomEvent("cts-config-change", { bubbles: true, detail: { config: this.config } }));
+      this.dispatchEvent(
+        new CustomEvent("cts-config-change", { bubbles: true, detail: { config: this.config } }),
+      );
     } catch (err) {
       // Invalid JSON — don't update config until valid, but surface the
       // error so the user knows their edits aren't being saved.
@@ -101,8 +107,12 @@ class CtsConfigForm extends LitElement {
     if (sections.length === 0) {
       return Object.entries(properties).map(
         ([key, fieldSchema]) => html`
-          <cts-form-field name="${key}" .schema=${fieldSchema}
-            value="${this._getFieldValue(key)}" error="${this.errors?.[key] || ""}"></cts-form-field>
+          <cts-form-field
+            name="${key}"
+            .schema=${fieldSchema}
+            value="${this._getFieldValue(key)}"
+            error="${this.errors?.[key] || ""}"
+          ></cts-form-field>
         `,
       );
     }
@@ -115,9 +125,12 @@ class CtsConfigForm extends LitElement {
           <legend class="fs-6 fw-bold border-bottom pb-2">${section.title}</legend>
           ${Object.entries(sectionSchema.properties).map(
             ([key, fieldSchema]) => html`
-              <cts-form-field name="${section.key}.${key}" .schema=${fieldSchema}
+              <cts-form-field
+                name="${section.key}.${key}"
+                .schema=${fieldSchema}
                 value="${this._getFieldValue(`${section.key}.${key}`)}"
-                error="${this.errors?.[`${section.key}.${key}`] || ""}"></cts-form-field>
+                error="${this.errors?.[`${section.key}.${key}`] || ""}"
+              ></cts-form-field>
             `,
           )}
         </fieldset>
@@ -130,29 +143,47 @@ class CtsConfigForm extends LitElement {
       <div>
         <ul class="nav nav-tabs mb-3">
           <li class="nav-item">
-            <button class="nav-link${this._activeTab === "form" ? " active" : ""}"
-              @click=${() => this._handleTabSwitch("form")}>Form</button>
+            <button
+              class="nav-link${this._activeTab === "form" ? " active" : ""}"
+              @click=${() => this._handleTabSwitch("form")}
+              >Form</button
+            >
           </li>
           <li class="nav-item">
-            <button class="nav-link${this._activeTab === "json" ? " active" : ""}"
-              @click=${() => this._handleTabSwitch("json")}>JSON</button>
+            <button
+              class="nav-link${this._activeTab === "json" ? " active" : ""}"
+              @click=${() => this._handleTabSwitch("json")}
+              >JSON</button
+            >
           </li>
         </ul>
         ${this._activeTab === "form"
           ? html`
               <form @cts-field-change=${this._handleFieldChange} @submit=${this._handleValidate}>
                 ${this._renderSections()}
-                <button type="submit" class="btn btn-sm btn-primary bg-gradient border border-secondary">
+                <button
+                  type="submit"
+                  class="btn btn-sm btn-primary bg-gradient border border-secondary"
+                >
                   Validate Configuration
                 </button>
               </form>
             `
           : html`
-              <textarea class="form-control font-monospace${this._jsonError ? " is-invalid" : ""}"
-                rows="20" .value=${this._jsonText}
-                @input=${this._handleJsonInput}></textarea>
+              <textarea
+                class="form-control font-monospace${this._jsonError ? " is-invalid" : ""}"
+                rows="20"
+                .value=${this._jsonText}
+                @input=${this._handleJsonInput}
+              ></textarea>
               ${this._jsonError
-                ? html`<div class="invalid-feedback d-block" role="alert" aria-live="polite" data-testid="json-error">${this._jsonError}</div>`
+                ? html`<div
+                    class="invalid-feedback d-block"
+                    role="alert"
+                    aria-live="polite"
+                    data-testid="json-error"
+                    >${this._jsonError}</div
+                  >`
                 : nothing}
             `}
       </div>

@@ -47,7 +47,9 @@ export const PlanHeaderDefault = {
     expect(canvas.getByText("plan-abc-123")).toBeInTheDocument();
 
     // Description displayed
-    expect(canvas.getByText(/Basic Certification Profile authorization server test/)).toBeInTheDocument();
+    expect(
+      canvas.getByText(/Basic Certification Profile authorization server test/),
+    ).toBeInTheDocument();
 
     // Version displayed
     expect(canvas.getByText("5.1.24-SNAPSHOT (9063a08)")).toBeInTheDocument();
@@ -57,8 +59,7 @@ export const PlanHeaderDefault = {
 
     // Started date is rendered (non-empty)
     const startedRow = canvasElement.querySelectorAll(".row");
-    const startedValues = Array.from(startedRow)
-      .filter((r) => r.textContent.includes("Started:"));
+    const startedValues = Array.from(startedRow).filter((r) => r.textContent.includes("Started:"));
     expect(startedValues.length).toBeGreaterThan(0);
 
     // Certification profile is displayed
@@ -121,10 +122,7 @@ export const PlanHeaderPublished = {
 
 export const ModulesDefault = {
   render: () => html`
-    <cts-plan-modules
-      .modules=${MODULES_WITH_STATUS}
-      plan-id="plan-abc-123"
-    ></cts-plan-modules>
+    <cts-plan-modules .modules=${MODULES_WITH_STATUS} plan-id="plan-abc-123"></cts-plan-modules>
   `,
   async play({ canvasElement }) {
     const canvas = within(canvasElement);
@@ -132,7 +130,9 @@ export const ModulesDefault = {
     // All module names rendered
     expect(canvas.getByText("oidcc-server")).toBeInTheDocument();
     expect(canvas.getByText("oidcc-server-rotate-keys")).toBeInTheDocument();
-    expect(canvas.getByText("oidcc-ensure-redirect-uri-in-authorization-request")).toBeInTheDocument();
+    expect(
+      canvas.getByText("oidcc-ensure-redirect-uri-in-authorization-request"),
+    ).toBeInTheDocument();
     expect(canvas.getByText("oidcc-codereuse")).toBeInTheDocument();
 
     // Badges rendered with correct variants
@@ -161,8 +161,9 @@ export const ModulesDefault = {
     expect(canvas.getByText("test-inst-003")).toBeInTheDocument();
 
     // Module with no instance shows NONE
-    const noneTexts = Array.from(canvasElement.querySelectorAll(".col-md-10"))
-      .filter((el) => el.textContent.trim() === "NONE");
+    const noneTexts = Array.from(canvasElement.querySelectorAll(".col-md-10")).filter(
+      (el) => el.textContent.trim() === "NONE",
+    );
     expect(noneTexts.length).toBe(1);
 
     // Run Test buttons present (not readonly, not immutable by default)
@@ -181,10 +182,7 @@ export const ModulesDefault = {
 
 export const ModulesRunTest = {
   render: () => html`
-    <cts-plan-modules
-      .modules=${MODULES_WITH_STATUS}
-      plan-id="plan-abc-123"
-    ></cts-plan-modules>
+    <cts-plan-modules .modules=${MODULES_WITH_STATUS} plan-id="plan-abc-123"></cts-plan-modules>
   `,
   async play({ canvasElement }) {
     const spy = fn();
@@ -192,9 +190,7 @@ export const ModulesRunTest = {
 
     // Click the inner native button — userEvent.click on the cts-button host
     // doesn't reach the inner @click handler.
-    const runBtn = canvasElement.querySelector(
-      '[data-testid="run-test-btn"] button',
-    );
+    const runBtn = canvasElement.querySelector('[data-testid="run-test-btn"] button');
     expect(runBtn).toBeTruthy();
     await userEvent.click(runBtn);
 
@@ -288,9 +284,7 @@ export const ModulesReadonlyAndImmutable = {
 // ==========================================================================
 
 export const ActionsViewConfig = {
-  render: () => html`
-    <cts-plan-actions .plan=${PLAN_WITH_CONFIG}></cts-plan-actions>
-  `,
+  render: () => html` <cts-plan-actions .plan=${PLAN_WITH_CONFIG}></cts-plan-actions> `,
   async play({ canvasElement }) {
     const canvas = within(canvasElement);
 
@@ -322,9 +316,7 @@ export const ActionsViewConfig = {
 };
 
 export const ActionsPrivateLink = {
-  render: () => html`
-    <cts-plan-actions .plan=${MOCK_PLAN_DETAIL}></cts-plan-actions>
-  `,
+  render: () => html` <cts-plan-actions .plan=${MOCK_PLAN_DETAIL}></cts-plan-actions> `,
   async play({ canvasElement }) {
     // Private link panel not visible initially
     let panel = canvasElement.querySelector('[data-testid="private-link-panel"]');
@@ -354,9 +346,7 @@ export const ActionsPrivateLink = {
 };
 
 export const ActionsPrivateLinkValidation = {
-  render: () => html`
-    <cts-plan-actions .plan=${MOCK_PLAN_DETAIL}></cts-plan-actions>
-  `,
+  render: () => html` <cts-plan-actions .plan=${MOCK_PLAN_DETAIL}></cts-plan-actions> `,
   async play({ canvasElement }) {
     // Open private link panel
     const privateLinkBtn = canvasElement.querySelector('[data-testid="private-link-btn"]');
@@ -400,9 +390,7 @@ export const ActionsPrivateLinkValidation = {
 };
 
 export const ActionsDeletePlan = {
-  render: () => html`
-    <cts-plan-actions .plan=${MOCK_PLAN_DETAIL}></cts-plan-actions>
-  `,
+  render: () => html` <cts-plan-actions .plan=${MOCK_PLAN_DETAIL}></cts-plan-actions> `,
   async play({ canvasElement }) {
     const canvas = within(canvasElement);
 
@@ -432,9 +420,7 @@ export const ActionsDeletePlan = {
 
     // Cancel button present
     const cancelBtns = confirmPanel.querySelectorAll("button");
-    const cancelBtn = Array.from(cancelBtns).find(
-      (b) => b.textContent.trim() === "Cancel",
-    );
+    const cancelBtn = Array.from(cancelBtns).find((b) => b.textContent.trim() === "Cancel");
     expect(cancelBtn).toBeTruthy();
 
     // Verify cts-delete-plan event fires on confirm
@@ -499,7 +485,9 @@ export const ActionsPublishedPlan = {
     // Publish summary/everything should NOT be visible (already published)
     const publishSummaryBtn = canvasElement.querySelector('[data-testid="publish-summary-btn"]');
     expect(publishSummaryBtn).toBeNull();
-    const publishEverythingBtn = canvasElement.querySelector('[data-testid="publish-everything-btn"]');
+    const publishEverythingBtn = canvasElement.querySelector(
+      '[data-testid="publish-everything-btn"]',
+    );
     expect(publishEverythingBtn).toBeNull();
 
     // Public link should be visible
@@ -520,20 +508,14 @@ export const ActionsPublishedPlan = {
 };
 
 export const ActionsGenerateLinkResult = {
-  render: () => html`
-    <cts-plan-actions .plan=${MOCK_PLAN_DETAIL}></cts-plan-actions>
-  `,
+  render: () => html` <cts-plan-actions .plan=${MOCK_PLAN_DETAIL}></cts-plan-actions> `,
   async play({ canvasElement }) {
     // Open private link panel
-    const privateLinkBtn = canvasElement.querySelector(
-      '[data-testid="private-link-btn"]',
-    );
+    const privateLinkBtn = canvasElement.querySelector('[data-testid="private-link-btn"]');
     await userEvent.click(privateLinkBtn);
 
     await waitFor(() => {
-      const panel = canvasElement.querySelector(
-        '[data-testid="private-link-panel"]',
-      );
+      const panel = canvasElement.querySelector('[data-testid="private-link-panel"]');
       expect(panel).toBeTruthy();
     });
 
@@ -567,9 +549,7 @@ export const ActionsGenerateLinkResult = {
     await el.requestUpdate();
 
     await waitFor(() => {
-      const result = canvasElement.querySelector(
-        '[data-testid="private-link-result"]',
-      );
+      const result = canvasElement.querySelector('[data-testid="private-link-result"]');
       expect(result).toBeTruthy();
       expect(result.textContent).toContain(generatedUrl);
     });
@@ -577,25 +557,19 @@ export const ActionsGenerateLinkResult = {
 };
 
 export const ActionsDeletePlanCancel = {
-  render: () => html`
-    <cts-plan-actions .plan=${MOCK_PLAN_DETAIL}></cts-plan-actions>
-  `,
+  render: () => html` <cts-plan-actions .plan=${MOCK_PLAN_DETAIL}></cts-plan-actions> `,
   async play({ canvasElement }) {
     // Listen for delete event before any clicks — must NOT fire on cancel
     const deleteSpy = fn();
     canvasElement.addEventListener("cts-delete-plan", deleteSpy);
 
     // Open delete confirm panel
-    const deleteBtn = canvasElement.querySelector(
-      '[data-testid="delete-plan-btn"]',
-    );
+    const deleteBtn = canvasElement.querySelector('[data-testid="delete-plan-btn"]');
     await userEvent.click(deleteBtn);
 
     let confirmPanel;
     await waitFor(() => {
-      confirmPanel = canvasElement.querySelector(
-        '[data-testid="delete-confirm-panel"]',
-      );
+      confirmPanel = canvasElement.querySelector('[data-testid="delete-confirm-panel"]');
       expect(confirmPanel).toBeTruthy();
     });
 
@@ -608,9 +582,7 @@ export const ActionsDeletePlanCancel = {
 
     // Panel should close
     await waitFor(() => {
-      expect(
-        canvasElement.querySelector('[data-testid="delete-confirm-panel"]'),
-      ).toBeNull();
+      expect(canvasElement.querySelector('[data-testid="delete-confirm-panel"]')).toBeNull();
     });
 
     // No delete event fired
@@ -620,18 +592,14 @@ export const ActionsDeletePlanCancel = {
     // verify by re-opening and confirming the panel re-renders cleanly.
     await userEvent.click(deleteBtn);
     await waitFor(() => {
-      expect(
-        canvasElement.querySelector('[data-testid="delete-confirm-panel"]'),
-      ).toBeTruthy();
+      expect(canvasElement.querySelector('[data-testid="delete-confirm-panel"]')).toBeTruthy();
     });
     expect(deleteSpy).not.toHaveBeenCalled();
   },
 };
 
 export const ActionsCopyConfig = {
-  render: () => html`
-    <cts-plan-actions .plan=${PLAN_WITH_CONFIG}></cts-plan-actions>
-  `,
+  render: () => html` <cts-plan-actions .plan=${PLAN_WITH_CONFIG}></cts-plan-actions> `,
   async play({ canvasElement }) {
     // Mock navigator.clipboard.writeText (same pattern as cts-log-entry CopyAsCurl)
     const mockWriteText = fn().mockResolvedValue(undefined);
@@ -644,15 +612,11 @@ export const ActionsCopyConfig = {
 
     try {
       // Open the config panel
-      const viewConfigBtn = canvasElement.querySelector(
-        '[data-testid="view-config-btn"]',
-      );
+      const viewConfigBtn = canvasElement.querySelector('[data-testid="view-config-btn"]');
       await userEvent.click(viewConfigBtn);
 
       await waitFor(() => {
-        const panel = canvasElement.querySelector(
-          '[data-testid="config-panel"]',
-        );
+        const panel = canvasElement.querySelector('[data-testid="config-panel"]');
         expect(panel).toBeTruthy();
       });
 
@@ -676,9 +640,7 @@ export const ActionsCopyConfig = {
 };
 
 export const ActionsCopyConfigClipboardFailure = {
-  render: () => html`
-    <cts-plan-actions .plan=${PLAN_WITH_CONFIG}></cts-plan-actions>
-  `,
+  render: () => html` <cts-plan-actions .plan=${PLAN_WITH_CONFIG}></cts-plan-actions> `,
   async play({ canvasElement }) {
     const originalClipboard = navigator.clipboard;
     Object.defineProperty(navigator, "clipboard", {
@@ -690,15 +652,11 @@ export const ActionsCopyConfigClipboardFailure = {
     });
 
     try {
-      const viewConfigBtn = canvasElement.querySelector(
-        '[data-testid="view-config-btn"]',
-      );
+      const viewConfigBtn = canvasElement.querySelector('[data-testid="view-config-btn"]');
       await userEvent.click(viewConfigBtn);
 
       await waitFor(() => {
-        expect(
-          canvasElement.querySelector('[data-testid="config-panel"]'),
-        ).toBeTruthy();
+        expect(canvasElement.querySelector('[data-testid="config-panel"]')).toBeTruthy();
       });
 
       const copyBtn = canvasElement.querySelector(".copy-config-btn");

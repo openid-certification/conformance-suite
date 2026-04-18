@@ -83,18 +83,14 @@ class CtsNavbar extends LitElement {
     const links = this._user ? NAV_LINKS : PUBLIC_NAV_LINKS;
     const filteredLinks = this._user
       ? links.filter(
-          (link) =>
-            link.page !== "tokens" ||
-            (!this._user.isAdmin && !this._user.isGuest),
+          (link) => link.page !== "tokens" || (!this._user.isAdmin && !this._user.isGuest),
         )
       : links;
 
     return filteredLinks.map(
       (link) => html`
         <li class="nav-item">
-          <a
-            class="nav-link${this.currentPage === link.page ? " active" : ""}"
-            href="${link.href}"
+          <a class="nav-link${this.currentPage === link.page ? " active" : ""}" href="${link.href}"
             >${link.label}</a
           >
         </li>
@@ -104,9 +100,7 @@ class CtsNavbar extends LitElement {
 
   _renderUserInfo() {
     if (this._loading) {
-      return html`
-        <span class="navbar-text text-muted">Loading&hellip;</span>
-      `;
+      return html` <span class="navbar-text text-muted">Loading&hellip;</span> `;
     }
     if (!this._user) return nothing;
 
@@ -114,9 +108,7 @@ class CtsNavbar extends LitElement {
       <div class="d-flex align-items-center">
         <span class="navbar-text me-2">
           Logged in as
-          ${this._user.isAdmin
-            ? html`<small class="badge bg-danger ms-1">ADMIN</small>`
-            : nothing}
+          ${this._user.isAdmin ? html`<small class="badge bg-danger ms-1">ADMIN</small>` : nothing}
           <span
             class="text-primary ms-1"
             data-bs-toggle="tooltip"

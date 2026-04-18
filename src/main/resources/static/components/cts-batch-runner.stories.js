@@ -27,7 +27,8 @@ const MOCK_MODULES_NONE_RUN = [
 ];
 
 export const MixedResults = {
-  render: () => html`<cts-batch-runner plan-id="plan-123" .modules=${MOCK_MODULES_MIXED}></cts-batch-runner>`,
+  render: () =>
+    html`<cts-batch-runner plan-id="plan-123" .modules=${MOCK_MODULES_MIXED}></cts-batch-runner>`,
   async play({ canvasElement }) {
     const canvas = within(canvasElement);
     expect(canvas.getByText("Run All")).toBeTruthy();
@@ -43,7 +44,11 @@ export const MixedResults = {
 };
 
 export const AllComplete = {
-  render: () => html`<cts-batch-runner plan-id="plan-456" .modules=${MOCK_MODULES_ALL_DONE}></cts-batch-runner>`,
+  render: () =>
+    html`<cts-batch-runner
+      plan-id="plan-456"
+      .modules=${MOCK_MODULES_ALL_DONE}
+    ></cts-batch-runner>`,
   async play({ canvasElement }) {
     const canvas = within(canvasElement);
     expect(canvas.getByText("Run All")).toBeTruthy();
@@ -52,30 +57,42 @@ export const AllComplete = {
 };
 
 export const NoneRun = {
-  render: () => html`<cts-batch-runner plan-id="plan-789" .modules=${MOCK_MODULES_NONE_RUN}></cts-batch-runner>`,
+  render: () =>
+    html`<cts-batch-runner
+      plan-id="plan-789"
+      .modules=${MOCK_MODULES_NONE_RUN}
+    ></cts-batch-runner>`,
   async play({ canvasElement }) {
     const badges = canvasElement.querySelectorAll("cts-badge");
-    for (const badge of badges) { expect(badge.getAttribute("label")).toBe("PENDING"); }
+    for (const badge of badges) {
+      expect(badge.getAttribute("label")).toBe("PENDING");
+    }
   },
 };
 
 export const RunAllEvent = {
-  render: () => html`<cts-batch-runner plan-id="plan-123" .modules=${MOCK_MODULES_MIXED}></cts-batch-runner>`,
+  render: () =>
+    html`<cts-batch-runner plan-id="plan-123" .modules=${MOCK_MODULES_MIXED}></cts-batch-runner>`,
   async play({ canvasElement }) {
     const canvas = within(canvasElement);
     let eventFired = false;
-    canvasElement.addEventListener("cts-run-all", () => { eventFired = true; });
+    canvasElement.addEventListener("cts-run-all", () => {
+      eventFired = true;
+    });
     await userEvent.click(canvas.getByText("Run All"));
     expect(eventFired).toBe(true);
   },
 };
 
 export const RunRemainingEvent = {
-  render: () => html`<cts-batch-runner plan-id="plan-123" .modules=${MOCK_MODULES_MIXED}></cts-batch-runner>`,
+  render: () =>
+    html`<cts-batch-runner plan-id="plan-123" .modules=${MOCK_MODULES_MIXED}></cts-batch-runner>`,
   async play({ canvasElement }) {
     const canvas = within(canvasElement);
     let eventFired = false;
-    canvasElement.addEventListener("cts-run-remaining", () => { eventFired = true; });
+    canvasElement.addEventListener("cts-run-remaining", () => {
+      eventFired = true;
+    });
     await userEvent.click(canvas.getByText("Run Remaining"));
     expect(eventFired).toBe(true);
   },

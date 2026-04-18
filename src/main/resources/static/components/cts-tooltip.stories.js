@@ -26,8 +26,7 @@ export const Default = {
 
     // Bootstrap moves title to data-bs-original-title after initialization
     const tooltipText =
-      button.getAttribute("data-bs-original-title") ||
-      button.getAttribute("title");
+      button.getAttribute("data-bs-original-title") || button.getAttribute("title");
     expect(tooltipText).toBe("Click to copy the share URL");
 
     // Verify Bootstrap actually initialized the tooltip instance
@@ -40,9 +39,7 @@ export const BottomPlacement = {
   render: () => html`
     <div style="padding: 80px;">
       <cts-tooltip content="Visit the OpenID Foundation" placement="bottom">
-        <a href="https://openid.net" class="btn btn-sm btn-outline-primary"
-          >OpenID Foundation</a
-        >
+        <a href="https://openid.net" class="btn btn-sm btn-outline-primary">OpenID Foundation</a>
       </cts-tooltip>
     </div>
   `,

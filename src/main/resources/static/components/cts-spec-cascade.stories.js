@@ -15,9 +15,7 @@ export default {
 export const InitialState = {
   parameters: {
     msw: {
-      handlers: [
-        http.get("/api/runner/available", () => HttpResponse.json(MOCK_PLANS)),
-      ],
+      handlers: [http.get("/api/runner/available", () => HttpResponse.json(MOCK_PLANS))],
     },
   },
   render: () => html`<cts-spec-cascade></cts-spec-cascade>`,
@@ -40,9 +38,7 @@ export const InitialState = {
 export const SelectFamily = {
   parameters: {
     msw: {
-      handlers: [
-        http.get("/api/runner/available", () => HttpResponse.json(MOCK_PLANS)),
-      ],
+      handlers: [http.get("/api/runner/available", () => HttpResponse.json(MOCK_PLANS))],
     },
   },
   render: () => html`<cts-spec-cascade></cts-spec-cascade>`,
@@ -70,9 +66,7 @@ export const SelectFamily = {
 export const FullCascade = {
   parameters: {
     msw: {
-      handlers: [
-        http.get("/api/runner/available", () => HttpResponse.json(MOCK_PLANS)),
-      ],
+      handlers: [http.get("/api/runner/available", () => HttpResponse.json(MOCK_PLANS))],
     },
   },
   render: () => html`<cts-spec-cascade></cts-spec-cascade>`,
@@ -115,9 +109,7 @@ export const FullCascade = {
 export const PlanSelectedEvent = {
   parameters: {
     msw: {
-      handlers: [
-        http.get("/api/runner/available", () => HttpResponse.json(MOCK_PLANS)),
-      ],
+      handlers: [http.get("/api/runner/available", () => HttpResponse.json(MOCK_PLANS))],
     },
   },
   render: () => html`<cts-spec-cascade></cts-spec-cascade>`,
@@ -162,9 +154,7 @@ export const PlanSelectedEvent = {
 export const ResetOnFamilyChange = {
   parameters: {
     msw: {
-      handlers: [
-        http.get("/api/runner/available", () => HttpResponse.json(MOCK_PLANS)),
-      ],
+      handlers: [http.get("/api/runner/available", () => HttpResponse.json(MOCK_PLANS))],
     },
   },
   render: () => html`<cts-spec-cascade></cts-spec-cascade>`,
@@ -207,9 +197,7 @@ export const ResetOnFamilyChange = {
 export const SingleEntity = {
   parameters: {
     msw: {
-      handlers: [
-        http.get("/api/runner/available", () => HttpResponse.json(MOCK_PLANS)),
-      ],
+      handlers: [http.get("/api/runner/available", () => HttpResponse.json(MOCK_PLANS))],
     },
   },
   render: () => html`<cts-spec-cascade></cts-spec-cascade>`,
@@ -336,9 +324,7 @@ export const LoadErrorShowsBanner = {
 export const LoadsEmptyShowsInfoBanner = {
   parameters: {
     msw: {
-      handlers: [
-        http.get("/api/runner/available", () => HttpResponse.json([])),
-      ],
+      handlers: [http.get("/api/runner/available", () => HttpResponse.json([]))],
     },
   },
   render: () => html`<cts-spec-cascade></cts-spec-cascade>`,

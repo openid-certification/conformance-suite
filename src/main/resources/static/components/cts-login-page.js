@@ -41,9 +41,7 @@ class CtsLoginPage extends LitElement {
 
   _renderLogout() {
     if (!this.logoutMessage) return nothing;
-    return html`<p class="bg-info p-2 rounded" role="status">
-      You have been logged out.
-    </p>`;
+    return html`<p class="bg-info p-2 rounded" role="status"> You have been logged out. </p>`;
   }
 
   _renderTokenIframe() {

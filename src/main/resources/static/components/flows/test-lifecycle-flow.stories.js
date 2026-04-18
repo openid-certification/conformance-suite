@@ -1,10 +1,7 @@
 import { html } from "lit";
 import { expect, within, waitFor, fn } from "storybook/test";
 import { http, HttpResponse } from "msw";
-import {
-  MOCK_PLAN_DETAIL,
-  MOCK_TEST_FAILED,
-} from "@fixtures/mock-test-data.js";
+import { MOCK_PLAN_DETAIL, MOCK_TEST_FAILED } from "@fixtures/mock-test-data.js";
 import { MOCK_LOG_ENTRIES } from "@fixtures/mock-log-entries.js";
 import "../cts-plan-header.js";
 import "../cts-plan-modules.js";
@@ -72,15 +69,9 @@ export const PlanToLogDetail = {
   parameters: {
     msw: {
       handlers: [
-        http.get("/api/plan/:planId", () =>
-          HttpResponse.json(PLAN_WITH_RESULTS),
-        ),
-        http.get("/api/info/:testId", () =>
-          HttpResponse.json(FAILED_TEST_INFO),
-        ),
-        http.get("/api/log/:testId", () =>
-          HttpResponse.json(MOCK_LOG_ENTRIES),
-        ),
+        http.get("/api/plan/:planId", () => HttpResponse.json(PLAN_WITH_RESULTS)),
+        http.get("/api/info/:testId", () => HttpResponse.json(FAILED_TEST_INFO)),
+        http.get("/api/log/:testId", () => HttpResponse.json(MOCK_LOG_ENTRIES)),
       ],
     },
   },
@@ -106,7 +97,7 @@ export const PlanToLogDetail = {
         </div>
         <div id="log-section" style="display:none">
           <cts-log-detail-header .testInfo=${FAILED_TEST_INFO}></cts-log-detail-header>
-          <hr>
+          <hr />
           <cts-log-viewer test-id="test-fail-001"></cts-log-viewer>
         </div>
       </div>
@@ -203,7 +194,9 @@ export const AllTestsPassed = {
       });
 
       // All badges should be success variant
-      const badges = canvasElement.querySelectorAll('cts-plan-modules cts-badge[variant="success"]');
+      const badges = canvasElement.querySelectorAll(
+        'cts-plan-modules cts-badge[variant="success"]',
+      );
       expect(badges.length).toBeGreaterThan(0);
     });
   },

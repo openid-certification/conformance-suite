@@ -31,7 +31,9 @@ class CtsRunningTestCard extends LitElement {
     this.isAdmin = false;
   }
 
-  createRenderRoot() { return this; }
+  createRenderRoot() {
+    return this;
+  }
 
   _formatDate(dateStr) {
     if (!dateStr) return "";
@@ -80,24 +82,23 @@ class CtsRunningTestCard extends LitElement {
             <div class="col-md-11">${this._formatDate(test.created)}</div>
           </div>
           ${variantStr
-            ? html`
-              <div class="row">
+            ? html` <div class="row">
                 <div class="col-md-1">Variant:</div>
                 <div class="col-md-11">${variantStr}</div>
               </div>`
             : nothing}
           ${test.version
-            ? html`
-              <div class="row">
+            ? html` <div class="row">
                 <div class="col-md-1">Version:</div>
                 <div class="col-md-11">${test.version}</div>
               </div>`
             : nothing}
           ${this.isAdmin && test.owner
-            ? html`
-              <div class="row" data-testid="owner-row">
+            ? html` <div class="row" data-testid="owner-row">
                 <div class="col-md-1">Test Owner:</div>
-                <div class="col-md-11">${test.owner.sub}${test.owner.iss ? ` (${test.owner.iss})` : ""}</div>
+                <div class="col-md-11"
+                  >${test.owner.sub}${test.owner.iss ? ` (${test.owner.iss})` : ""}</div
+                >
               </div>`
             : nothing}
         </div>
@@ -106,11 +107,13 @@ class CtsRunningTestCard extends LitElement {
             <button
               class="btn btn-sm btn-light bg-gradient border border-secondary downloadBtn"
               @click="${this._handleDownload}"
-            ><span class="bi bi-save2"></span> Download Logs</button>
+              ><span class="bi bi-save2"></span> Download Logs</button
+            >
             <a
               class="btn btn-sm btn-light bg-gradient border border-secondary viewBtn"
               href="log-detail.html?log=${encodeURIComponent(test._id)}"
-            ><span class="bi bi-card-list"></span> View Test Details</a>
+              ><span class="bi bi-card-list"></span> View Test Details</a
+            >
           </div>
         </div>
       </div>

@@ -1,14 +1,8 @@
 import { html } from "lit";
 import { expect, within, waitFor } from "storybook/test";
 import { withMockFetch } from "@fixtures/helpers.js";
-import {
-  MOCK_TEST_FAILED,
-  MOCK_TEST_RUNNING,
-} from "@fixtures/mock-test-data.js";
-import {
-  MOCK_LOG_ENTRIES,
-  MOCK_EMPTY_LOG,
-} from "@fixtures/mock-log-entries.js";
+import { MOCK_TEST_FAILED, MOCK_TEST_RUNNING } from "@fixtures/mock-test-data.js";
+import { MOCK_LOG_ENTRIES, MOCK_EMPTY_LOG } from "@fixtures/mock-log-entries.js";
 
 import "../../../src/main/resources/static/components/cts-log-detail-header.js";
 import "../../../src/main/resources/static/components/cts-log-viewer.js";
@@ -50,9 +44,7 @@ export const Default = {
   decorators: [withMockFetch("/api/log/", MOCK_LOG_ENTRIES)],
   render: () => html`
     <div class="container-fluid p-3">
-      <cts-log-detail-header
-        .testInfo=${TEST_FAILED_WITH_RESULTS}
-      ></cts-log-detail-header>
+      <cts-log-detail-header .testInfo=${TEST_FAILED_WITH_RESULTS}></cts-log-detail-header>
       <cts-log-viewer test-id="test-fail-001"></cts-log-viewer>
     </div>
   `,
@@ -65,15 +57,11 @@ export const Default = {
     });
 
     // Header region: FAILED badge present
-    const failedBadge = canvasElement.querySelector(
-      'cts-badge[variant="failure"][label="FAILED"]',
-    );
+    const failedBadge = canvasElement.querySelector('cts-badge[variant="failure"][label="FAILED"]');
     expect(failedBadge).toBeTruthy();
 
     // Header region: failure summary section visible
-    const failureSummary = canvasElement.querySelector(
-      '[data-testid="failure-summary"]',
-    );
+    const failureSummary = canvasElement.querySelector('[data-testid="failure-summary"]');
     expect(failureSummary).toBeTruthy();
 
     // Viewer region: log entries loaded
@@ -93,9 +81,7 @@ export const RunningTestPage = {
   decorators: [withMockFetch("/api/log/", MOCK_EMPTY_LOG)],
   render: () => html`
     <div class="container-fluid p-3">
-      <cts-log-detail-header
-        .testInfo=${TEST_RUNNING_WITH_RESULTS}
-      ></cts-log-detail-header>
+      <cts-log-detail-header .testInfo=${TEST_RUNNING_WITH_RESULTS}></cts-log-detail-header>
       <cts-log-viewer test-id="test-running-001"></cts-log-viewer>
     </div>
   `,
@@ -104,16 +90,12 @@ export const RunningTestPage = {
 
     // Header region: RUNNING status
     await waitFor(() => {
-      const runningBadge = canvasElement.querySelector(
-        'cts-badge[label="RUNNING"]',
-      );
+      const runningBadge = canvasElement.querySelector('cts-badge[label="RUNNING"]');
       expect(runningBadge).toBeTruthy();
     });
 
     // Header region: running-test info block present
-    const runningInfo = canvasElement.querySelector(
-      '[data-testid="running-test-info"]',
-    );
+    const runningInfo = canvasElement.querySelector('[data-testid="running-test-info"]');
     expect(runningInfo).toBeTruthy();
 
     // Viewer region: empty log message present

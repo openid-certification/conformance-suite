@@ -58,9 +58,7 @@ test.describe("schedule-test.html — Test Plan Scheduling", () => {
     await expect(planSelect).toContainText("OpenID Connect Core: Basic Certification Profile");
   });
 
-  test("submission POSTs to /api/plan and redirects (R9)", async ({
-    page,
-  }) => {
+  test("submission POSTs to /api/plan and redirects (R9)", async ({ page }) => {
     let postCalled = false;
 
     await setupFailFast(page);
@@ -88,7 +86,10 @@ test.describe("schedule-test.html — Test Plan Scheduling", () => {
         return route.fulfill({
           status: 200,
           contentType: "application/json",
-          body: JSON.stringify({ id: "plan-new-001", name: "oidcc-client-basic-certification-test-plan" }),
+          body: JSON.stringify({
+            id: "plan-new-001",
+            name: "oidcc-client-basic-certification-test-plan",
+          }),
         });
       }
       return route.fallback();
@@ -183,9 +184,7 @@ test.describe("schedule-test.html — Test Plan Scheduling", () => {
     // Error modal should appear with "select a test plan" message
     const errorModal = page.locator("#errorModal");
     await expect(errorModal).toBeVisible();
-    await expect(page.locator("#errorMessage")).toContainText(
-      "select a test plan",
-    );
+    await expect(page.locator("#errorMessage")).toContainText("select a test plan");
 
     // Close the error modal
     await errorModal.locator('[data-bs-dismiss="modal"]').first().click();
@@ -230,18 +229,18 @@ test.describe("schedule-test.html — Test Plan Scheduling", () => {
     await expect(selects).toHaveCount(3);
 
     // Each dropdown has the correct options from the fixture's variantValues
-    const authSelect = page.locator('#vp_client_auth_type');
+    const authSelect = page.locator("#vp_client_auth_type");
     await expect(authSelect).toBeVisible();
     await expect(authSelect.locator("option")).toHaveCount(4); // "--- Select ---" + 3 values
     await expect(authSelect).toContainText("client_secret_basic");
     await expect(authSelect).toContainText("client_secret_post");
     await expect(authSelect).toContainText("private_key_jwt");
 
-    const responseSelect = page.locator('#vp_response_type');
+    const responseSelect = page.locator("#vp_response_type");
     await expect(responseSelect).toBeVisible();
     await expect(responseSelect.locator("option")).toHaveCount(2); // "--- Select ---" + 1 value
 
-    const metadataSelect = page.locator('#vp_server_metadata');
+    const metadataSelect = page.locator("#vp_server_metadata");
     await expect(metadataSelect).toBeVisible();
     await expect(metadataSelect.locator("option")).toHaveCount(3); // "--- Select ---" + 2 values
   });
@@ -285,7 +284,11 @@ test.describe("schedule-test.html — Test Plan Scheduling", () => {
           _id: "plan-new-002",
           planName: "oidcc-basic-certification-test-plan",
           modules: [],
-          variant: { client_auth_type: "client_secret_basic", response_type: "code", server_metadata: "discovery" },
+          variant: {
+            client_auth_type: "client_secret_basic",
+            response_type: "code",
+            server_metadata: "discovery",
+          },
           config: {},
         }),
       }),
@@ -309,8 +312,8 @@ test.describe("schedule-test.html — Test Plan Scheduling", () => {
     await expect(createBtn).toBeEnabled({ timeout: 5000 });
 
     // Set up request interception BEFORE clicking
-    const planRequest = page.waitForRequest((req) =>
-      req.url().includes("/api/plan?") && req.method() === "POST"
+    const planRequest = page.waitForRequest(
+      (req) => req.url().includes("/api/plan?") && req.method() === "POST",
     );
 
     // Click Create
@@ -363,9 +366,7 @@ test.describe("schedule-test.html — Test Plan Scheduling", () => {
     await expect(page.locator("#variantSelectors")).toBeHidden();
   });
 
-  test("degrades gracefully when /api/plan/available returns 500 (R11)", async ({
-    page,
-  }) => {
+  test("degrades gracefully when /api/plan/available returns 500 (R11)", async ({ page }) => {
     await setupFailFast(page);
 
     await page.route("**/api/plan/available", (route) =>

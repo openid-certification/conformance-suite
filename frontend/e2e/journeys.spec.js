@@ -1,5 +1,10 @@
 import { test, expect } from "@playwright/test";
-import { setupCommonRoutes, setupFailFast, setupTestInfoRoute, expectNoUnmockedCalls } from "./helpers/routes.js";
+import {
+  setupCommonRoutes,
+  setupFailFast,
+  setupTestInfoRoute,
+  expectNoUnmockedCalls,
+} from "./helpers/routes.js";
 import { MOCK_PLANS, MOCK_PLAN_NO_VARIANTS } from "./fixtures/mock-plans.js";
 import { MOCK_PLAN_DETAIL, MOCK_TEST_STATUS } from "./fixtures/mock-test-data.js";
 import { MOCK_LOG_ENTRIES } from "./fixtures/mock-log-entries.js";
@@ -135,7 +140,9 @@ test.describe("Cross-page journeys", () => {
 
     // === Step 2: Redirected to plan-detail.html ===
     await page.waitForURL("**/plan-detail.html?plan=plan-journey-001");
-    await expect(page.locator("#planHeader")).toContainText("oidcc-client-basic-certification-test-plan");
+    await expect(page.locator("#planHeader")).toContainText(
+      "oidcc-client-basic-certification-test-plan",
+    );
 
     // Verify module list rendered
     const moduleRows = page.locator("#planItems .logItem");
@@ -253,9 +260,7 @@ test.describe("Cross-page journeys", () => {
    * Complements the single-page error-branch spec in error-paths.spec.js
    * with the full user-journey framing.
    */
-  test("plan creation fails → user stays on schedule-test with error (R22)", async ({
-    page,
-  }) => {
+  test("plan creation fails → user stays on schedule-test with error (R22)", async ({ page }) => {
     await setupFailFast(page);
 
     await page.route("**/api/plan/available", (route) =>

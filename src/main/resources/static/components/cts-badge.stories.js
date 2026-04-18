@@ -66,11 +66,7 @@ export const BootstrapVariant = {
 export const InfoSubtle = {
   args: { variant: "info-subtle", label: "Section description", pill: true },
   render: ({ variant, label, pill }) =>
-    html`<cts-badge
-      variant="${variant}"
-      label="${label}"
-      ?pill="${pill}"
-    ></cts-badge>`,
+    html`<cts-badge variant="${variant}" label="${label}" ?pill="${pill}"></cts-badge>`,
 
   async play({ canvasElement }) {
     const badge = canvasElement.querySelector(".badge");
@@ -109,20 +105,14 @@ export const WithIcon = {
     expect(iconEl.classList.contains("bi-info-circle-fill")).toBe(true);
     expect(iconEl.getAttribute("aria-hidden")).toBe("true");
 
-    expect(badge.textContent.trim()).toContain(
-      "This section relates to the entity under test",
-    );
+    expect(badge.textContent.trim()).toContain("This section relates to the entity under test");
   },
 };
 
 export const WithCount = {
   args: { variant: "secondary", count: 5, pill: true },
   render: ({ variant, count, pill }) =>
-    html`<cts-badge
-      variant="${variant}"
-      count="${count}"
-      ?pill="${pill}"
-    ></cts-badge>`,
+    html`<cts-badge variant="${variant}" count="${count}" ?pill="${pill}"></cts-badge>`,
 
   async play({ canvasElement }) {
     const badge = canvasElement.querySelector(".badge");
@@ -136,11 +126,7 @@ export const WithCount = {
 export const Clickable = {
   args: { variant: "info", label: "Click me", clickable: true },
   render: ({ variant, label, clickable }) =>
-    html`<cts-badge
-      variant="${variant}"
-      label="${label}"
-      ?clickable="${clickable}"
-    ></cts-badge>`,
+    html`<cts-badge variant="${variant}" label="${label}" ?clickable="${clickable}"></cts-badge>`,
 
   async play({ canvasElement }) {
     const badge = canvasElement.querySelector(".badge");
@@ -193,10 +179,7 @@ export const AllResultVariants = {
         "finished",
       ].map(
         (variant) =>
-          html`<cts-badge
-            variant="${variant}"
-            label="${variant.toUpperCase()}"
-          ></cts-badge>`,
+          html`<cts-badge variant="${variant}" label="${variant.toUpperCase()}"></cts-badge>`,
       )}
     </div>
   `,
@@ -232,9 +215,7 @@ export const WithRichContent = {
     expect(badge.querySelector("em")).toBeTruthy();
     const link = badge.querySelector("a");
     expect(link).toBeTruthy();
-    expect(link.getAttribute("href")).toBe(
-      "https://openid.net/certification/federation_testing",
-    );
+    expect(link.getAttribute("href")).toBe("https://openid.net/certification/federation_testing");
     expect(link.textContent).toBe("detailed instructions");
   },
 };
@@ -294,11 +275,7 @@ export const RichContentRerenderStability = {
 export const CountPrefersOverLabel = {
   args: { variant: "success", count: 42, label: "Ignored" },
   render: ({ variant, count, label }) =>
-    html`<cts-badge
-      variant="${variant}"
-      count="${count}"
-      label="${label}"
-    ></cts-badge>`,
+    html`<cts-badge variant="${variant}" count="${count}" label="${label}"></cts-badge>`,
 
   async play({ canvasElement }) {
     const badge = canvasElement.querySelector(".badge");

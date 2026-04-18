@@ -50,12 +50,16 @@ export const SelectPlan = {
   render: () => html`<cts-test-selector .plans=${MOCK_PLANS}></cts-test-selector>`,
   async play({ canvasElement }) {
     let selectedPlan = null;
-    canvasElement.addEventListener("cts-plan-select", (e) => { selectedPlan = e.detail.plan; });
+    canvasElement.addEventListener("cts-plan-select", (e) => {
+      selectedPlan = e.detail.plan;
+    });
     const items = canvasElement.querySelectorAll(".list-group-item-action");
     await userEvent.click(items[1]);
     expect(selectedPlan).toBeTruthy();
     expect(selectedPlan.planName).toBe("oidcc-implicit-certification-test-plan");
-    await waitFor(() => { expect(items[1].classList.contains("active")).toBe(true); });
+    await waitFor(() => {
+      expect(items[1].classList.contains("active")).toBe(true);
+    });
   },
 };
 
@@ -65,7 +69,9 @@ export const NoResults = {
     const canvas = within(canvasElement);
     const searchInput = canvasElement.querySelector('input[placeholder="Search test plans..."]');
     await userEvent.type(searchInput, "nonexistent-plan-xyz");
-    await waitFor(() => { expect(canvas.getByText("No plans match your search")).toBeTruthy(); });
+    await waitFor(() => {
+      expect(canvas.getByText("No plans match your search")).toBeTruthy();
+    });
   },
 };
 

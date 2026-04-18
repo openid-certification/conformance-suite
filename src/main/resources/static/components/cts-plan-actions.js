@@ -63,7 +63,9 @@ class CtsPlanActions extends LitElement {
     this._copyFeedbackTimer = null;
   }
 
-  createRenderRoot() { return this; }
+  createRenderRoot() {
+    return this;
+  }
 
   disconnectedCallback() {
     super.disconnectedCallback();
@@ -81,18 +83,14 @@ class CtsPlanActions extends LitElement {
     if (!this.plan || !this.plan.config) return;
     const text = JSON.stringify(this.plan.config, null, 4);
     if (!navigator.clipboard) {
-      this._showCopyFeedback(
-        "Clipboard not available — please copy the JSON below manually.",
-      );
+      this._showCopyFeedback("Clipboard not available — please copy the JSON below manually.");
       return;
     }
     try {
       await navigator.clipboard.writeText(text);
     } catch (err) {
       console.warn("[cts-plan-actions] clipboard.writeText failed:", err);
-      this._showCopyFeedback(
-        "Copy failed — please copy the JSON below manually.",
-      );
+      this._showCopyFeedback("Copy failed — please copy the JSON below manually.");
     }
   }
 
@@ -257,10 +255,10 @@ class CtsPlanActions extends LitElement {
             class="btn btn-sm btn-primary generate-link-btn"
             ?disabled=${!isValid}
             @click=${() => this._handleGeneratePrivateLink()}
-          >Generate</button>
+            >Generate</button
+          >
           ${this._privateLinkResult
-            ? html`
-              <div class="mt-2" data-testid="private-link-result">
+            ? html` <div class="mt-2" data-testid="private-link-result">
                 <code>${this._privateLinkResult}</code>
               </div>`
             : nothing}
@@ -275,22 +273,30 @@ class CtsPlanActions extends LitElement {
     return html`
       <div class="card mt-2 border-danger" data-testid="delete-confirm-panel">
         <div class="card-body">
-          <p><strong>Clicking the "Delete plan" button will permanently and irrevocably:</strong></p>
+          <p
+            ><strong>Clicking the "Delete plan" button will permanently and irrevocably:</strong></p
+          >
           <ul>
             <li>Delete the test plan.</li>
             <li>Delete the test plan configuration.</li>
             <li>Delete the individual tests and logs belonging to the plan.</li>
           </ul>
-          <p><strong>This action cannot be undone and the data cannot be recovered after deletion.</strong></p>
+          <p
+            ><strong
+              >This action cannot be undone and the data cannot be recovered after deletion.</strong
+            ></p
+          >
           <div class="d-flex gap-2">
             <button
               class="btn btn-sm btn-light bg-gradient border border-secondary"
               @click=${() => this._handleDeleteCancel()}
-            >Cancel</button>
+              >Cancel</button
+            >
             <button
               class="btn btn-sm btn-danger bg-gradient border border-secondary confirm-delete-btn"
               @click=${() => this._handleDeleteConfirm()}
-            >Delete plan</button>
+              >Delete plan</button
+            >
           </div>
         </div>
       </div>
@@ -310,92 +316,88 @@ class CtsPlanActions extends LitElement {
           class="btn btn-sm btn-light bg-gradient border border-secondary"
           data-testid="view-config-btn"
           @click=${() => this._handleViewConfig()}
-        ><span class="bi bi-wrench-adjustable"></span> View Config</button>
+          ><span class="bi bi-wrench-adjustable"></span> View Config</button
+        >
 
         ${!this.isReadonly
-          ? html`
-            <a
+          ? html` <a
               href="schedule-test.html?edit-plan=${plan._id}"
               class="btn btn-sm btn-light bg-gradient border border-secondary"
               data-testid="edit-config-btn"
               title="Create a new test plan based on the configuration used in this one"
-            ><span class="bi bi-pencil-square"></span> Edit configuration</a>`
+              ><span class="bi bi-pencil-square"></span> Edit configuration</a
+            >`
           : nothing}
-
         ${this.isAdmin
-          ? html`
-            <button
+          ? html` <button
               class="btn btn-sm btn-light bg-gradient border border-secondary"
               data-testid="download-all-btn"
               @click=${() => this._handleDownloadAll()}
-            ><span class="bi bi-save2"></span> Download all Logs</button>`
+              ><span class="bi bi-save2"></span> Download all Logs</button
+            >`
           : nothing}
-
         ${!this.isReadonly && !isPublished && this.isAdmin
-          ? html`
-            <button
-              class="btn btn-sm btn-light bg-gradient border border-secondary"
-              data-testid="publish-summary-btn"
-              @click=${() => this._handlePublish("summary")}
-            ><span class="bi bi-bookmarks"></span> Publish summary</button>
-            <button
-              class="btn btn-sm btn-light bg-gradient border border-secondary"
-              data-testid="publish-everything-btn"
-              @click=${() => this._handlePublish("everything")}
-            ><span class="bi bi-bookmarks"></span> Publish everything</button>`
+          ? html` <button
+                class="btn btn-sm btn-light bg-gradient border border-secondary"
+                data-testid="publish-summary-btn"
+                @click=${() => this._handlePublish("summary")}
+                ><span class="bi bi-bookmarks"></span> Publish summary</button
+              >
+              <button
+                class="btn btn-sm btn-light bg-gradient border border-secondary"
+                data-testid="publish-everything-btn"
+                @click=${() => this._handlePublish("everything")}
+                ><span class="bi bi-bookmarks"></span> Publish everything</button
+              >`
           : nothing}
-
         ${!this.isReadonly && isPublished && this.isAdmin
-          ? html`
-            <button
-              class="btn btn-sm btn-light bg-gradient border border-secondary"
-              data-testid="unpublish-btn"
-              @click=${() => this._handleUnpublish()}
-            ><span class="bi bi-slash-circle"></span> Unpublish</button>
-            <a
-              href="plan-detail.html?plan=${plan._id}&public=true"
-              class="btn btn-sm btn-info bg-gradient border border-secondary"
-            ><span class="bi bi-bookmarks"></span> Public link</a>`
+          ? html` <button
+                class="btn btn-sm btn-light bg-gradient border border-secondary"
+                data-testid="unpublish-btn"
+                @click=${() => this._handleUnpublish()}
+                ><span class="bi bi-slash-circle"></span> Unpublish</button
+              >
+              <a
+                href="plan-detail.html?plan=${plan._id}&public=true"
+                class="btn btn-sm btn-info bg-gradient border border-secondary"
+                ><span class="bi bi-bookmarks"></span> Public link</a
+              >`
           : nothing}
-
         ${!this.isReadonly
-          ? html`
-            <button
-              class="btn btn-sm btn-light bg-gradient border border-secondary"
-              data-testid="private-link-btn"
-              @click=${() => this._handleTogglePrivateLink()}
-            ><span class="bi bi-bookmarks"></span> Private link</button>
-            <button
-              class="btn btn-sm btn-light bg-gradient border border-secondary"
-              data-testid="certify-btn"
-              disabled
-              title="Publish and prepare certification submission package"
-              @click=${() => this._handleCertify()}
-            ><span class="bi bi-save2"></span> Publish for certification</button>`
+          ? html` <button
+                class="btn btn-sm btn-light bg-gradient border border-secondary"
+                data-testid="private-link-btn"
+                @click=${() => this._handleTogglePrivateLink()}
+                ><span class="bi bi-bookmarks"></span> Private link</button
+              >
+              <button
+                class="btn btn-sm btn-light bg-gradient border border-secondary"
+                data-testid="certify-btn"
+                disabled
+                title="Publish and prepare certification submission package"
+                @click=${() => this._handleCertify()}
+                ><span class="bi bi-save2"></span> Publish for certification</button
+              >`
           : nothing}
-
         ${isImmutable && this.isAdmin
-          ? html`
-            <button
+          ? html` <button
               class="btn btn-sm btn-light bg-gradient border border-secondary"
               data-testid="make-mutable-btn"
               @click=${() => this._handleMakeMutable()}
-            ><span class="bi bi-pencil-square"></span> Make plan Mutable</button>`
+              ><span class="bi bi-pencil-square"></span> Make plan Mutable</button
+            >`
           : nothing}
-
         ${!isImmutable && !this.isReadonly
-          ? html`
-            <button
+          ? html` <button
               class="btn btn-sm btn-danger bg-gradient border border-secondary"
               data-testid="delete-plan-btn"
               @click=${() => this._handleDeleteClick()}
-            ><span class="bi bi-trash"></span> Delete plan</button>`
+              ><span class="bi bi-trash"></span> Delete plan</button
+            >`
           : nothing}
       </div>
 
-      ${this._renderConfigPanel()}
-      ${this._renderPrivateLinkPanel()}
-      ${this._renderDeleteConfirm()}
+      ${this._renderConfigPanel()} ${this._renderPrivateLinkPanel()} ${this._renderDeleteConfirm()}
     `;
   }
 }

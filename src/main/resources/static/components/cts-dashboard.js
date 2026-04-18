@@ -66,17 +66,12 @@ class CtsDashboard extends LitElement {
       .filter(([key]) => key in this._serverInfo)
       .map(
         ([key, label]) =>
-          html`${label}:
-            <span id="serverinfo-${key}">${this._serverInfo[key]}</span>`,
+          html`${label}: <span id="serverinfo-${key}">${this._serverInfo[key]}</span>`,
       );
     if (parts.length === 0) {
       return nothing;
     }
-    return html`<div>
-      ${parts.map(
-        (part, i) => html`${i > 0 ? " | " : ""}${part}`,
-      )}
-    </div>`;
+    return html`<div> ${parts.map((part, i) => html`${i > 0 ? " | " : ""}${part}`)} </div>`;
   }
 
   render() {

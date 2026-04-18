@@ -18,8 +18,7 @@ export default {
 
 export const Default = {
   args: { name: "play-fill", size: "md" },
-  render: ({ name, size }) =>
-    html`<cts-icon name="${name}" size="${size}"></cts-icon>`,
+  render: ({ name, size }) => html`<cts-icon name="${name}" size="${size}"></cts-icon>`,
 
   async play({ canvasElement }) {
     const icon = canvasElement.querySelector("span.bi");
@@ -35,8 +34,7 @@ export const Default = {
 
 export const Small = {
   args: { name: "search", size: "sm" },
-  render: ({ name, size }) =>
-    html`<cts-icon name="${name}" size="${size}"></cts-icon>`,
+  render: ({ name, size }) => html`<cts-icon name="${name}" size="${size}"></cts-icon>`,
 
   async play({ canvasElement }) {
     const icon = canvasElement.querySelector("span.bi");
@@ -49,8 +47,7 @@ export const Small = {
 
 export const Large = {
   args: { name: "trash", size: "lg" },
-  render: ({ name, size }) =>
-    html`<cts-icon name="${name}" size="${size}"></cts-icon>`,
+  render: ({ name, size }) => html`<cts-icon name="${name}" size="${size}"></cts-icon>`,
 
   async play({ canvasElement }) {
     const icon = canvasElement.querySelector("span.bi");
@@ -63,8 +60,7 @@ export const Large = {
 
 export const MissingName = {
   args: { name: "", size: "md" },
-  render: ({ name, size }) =>
-    html`<cts-icon name="${name}" size="${size}"></cts-icon>`,
+  render: ({ name, size }) => html`<cts-icon name="${name}" size="${size}"></cts-icon>`,
 
   async play({ canvasElement }) {
     const icon = canvasElement.querySelector("span.bi");
@@ -96,9 +92,7 @@ export const AllIcons = {
             style="display: flex; flex-direction: column; align-items: center; gap: 0.25rem; width: 5rem; text-align: center;"
           >
             <cts-icon name="${iconName}" size="lg"></cts-icon>
-            <small style="font-size: 0.65rem; word-break: break-all;"
-              >${iconName}</small
-            >
+            <small style="font-size: 0.65rem; word-break: break-all;">${iconName}</small>
           </div>
         `,
       )}

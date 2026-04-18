@@ -24,7 +24,9 @@ class CtsIcon extends LitElement {
     this.size = "md";
   }
 
-  createRenderRoot() { return this; }
+  createRenderRoot() {
+    return this;
+  }
 
   // Icon names come from the Bootstrap Icons set (2000+ icons).
   // Constructed from the name prop, not a finite variant set.

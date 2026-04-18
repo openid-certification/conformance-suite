@@ -132,8 +132,18 @@ export const AllVariants = {
   render: () => html`
     <div style="display: flex; flex-wrap: wrap; gap: 0.5rem; padding: 1rem;">
       <cts-link-button href="tokens.html" variant="light" label="Light"></cts-link-button>
-      <cts-link-button href="logs.html" variant="info" label="Info" icon="file-earmark"></cts-link-button>
-      <cts-link-button href="schedule-test.html" variant="primary" label="Primary" icon="plus-circle"></cts-link-button>
+      <cts-link-button
+        href="logs.html"
+        variant="info"
+        label="Info"
+        icon="file-earmark"
+      ></cts-link-button>
+      <cts-link-button
+        href="schedule-test.html"
+        variant="primary"
+        label="Primary"
+        icon="plus-circle"
+      ></cts-link-button>
       <cts-link-button href="#" variant="danger" label="Danger" icon="trash"></cts-link-button>
     </div>
   `,
@@ -147,7 +157,12 @@ export const AllVariants = {
 export const Sizes = {
   render: () => html`
     <div style="display: flex; flex-wrap: wrap; gap: 0.5rem; padding: 1rem; align-items: center;">
-      <cts-link-button href="#" variant="primary" label="Small (default)" size="sm"></cts-link-button>
+      <cts-link-button
+        href="#"
+        variant="primary"
+        label="Small (default)"
+        size="sm"
+      ></cts-link-button>
       <cts-link-button href="#" variant="primary" label="Medium" size="md"></cts-link-button>
       <cts-link-button href="#" variant="primary" label="Large" size="lg"></cts-link-button>
     </div>

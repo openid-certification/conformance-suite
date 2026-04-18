@@ -1,4 +1,4 @@
-# cts-* Component Conventions
+# cts-\* Component Conventions
 
 This document captures the authoring rules for all `cts-*` web components in
 this directory. Violating them is caught in code review; understanding them
@@ -77,27 +77,27 @@ not CSS class manipulation on the host.
 
 ```js
 // GOOD — Lit re-renders with the new variant class on the inner <button>
-el.variant = 'success';
+el.variant = "success";
 
 // BAD — the class lands on the cts-button host element, not on the inner
 // <button> rendered by Lit. The rendered button keeps its old classes.
-el.classList.add('btn-success');
-el.classList.remove('btn-light');
+el.classList.add("btn-success");
+el.classList.remove("btn-light");
 ```
 
 The same principle applies to all reactive properties:
 
 ```js
-el.disabled = true;      // GOOD — Lit propagates to inner button's disabled attr
-el.loading  = false;     // GOOD
-el.label    = 'Saved';   // GOOD
+el.disabled = true; // GOOD — Lit propagates to inner button's disabled attr
+el.loading = false; // GOOD
+el.label = "Saved"; // GOOD
 ```
 
 When the property change must be observed before the next frame (e.g., in
 a test assertion), await Lit's microtask flush:
 
 ```js
-el.variant = 'success';
+el.variant = "success";
 await el.updateComplete;
 // inner button now has btn-success
 ```
@@ -116,7 +116,7 @@ Implications:
 - To update displayed text dynamically, set the relevant **attribute**
   (`label`, `heading`) instead of mutating child nodes.
 - To embed inline rich content (`<a>`, `<em>`, `<strong>`), put raw HTML
-  *inside* the host element in the initial HTML. The slot wrapping preserves
+  _inside_ the host element in the initial HTML. The slot wrapping preserves
   it as-is.
 - To completely replace content, remove the element from the DOM and
   re-insert it — `connectedCallback` runs again on reconnect (for components
@@ -125,9 +125,7 @@ Implications:
 
 ```html
 <!-- Rich content preserved through the slot-children capture -->
-<cts-alert variant="info">
-  See the <a href="/docs">documentation</a> for details.
-</cts-alert>
+<cts-alert variant="info"> See the <a href="/docs">documentation</a> for details. </cts-alert>
 ```
 
 ---
@@ -211,13 +209,13 @@ the component file:
 
 ```js
 const VARIANT_CLASSES = {
-  light: 'btn-light',
-  info: 'btn-info',
-  primary: 'btn-primary',
-  danger: 'btn-danger',
-  secondary: 'btn-secondary',
-  success: 'btn-success',
-  warning: 'btn-warning',
+  light: "btn-light",
+  info: "btn-info",
+  primary: "btn-primary",
+  danger: "btn-danger",
+  secondary: "btn-secondary",
+  success: "btn-success",
+  warning: "btn-warning",
 };
 ```
 
@@ -242,7 +240,9 @@ Every page that uses a `cts-*` component must:
 2. Add a `<script type="module">` tag for **each component** used on that page:
 
 ```html
-<script type="importmap">{"imports":{"lit":"/vendor/lit/lit.js",...}}</script>
+<script type="importmap">
+  {"imports":{"lit":"/vendor/lit/lit.js",...}}
+</script>
 <script type="module" src="/components/cts-button.js"></script>
 <script type="module" src="/components/cts-navbar.js"></script>
 ```
@@ -255,33 +255,33 @@ the map is parsed will throw a resolution error.
 
 ## Quick reference
 
-| Component | Base class | Reactive? | Notes |
-|---|---|---|---|
-| `cts-alert` | HTMLElement | No | Optional dismiss; fires `cts-alert-dismissed` |
-| `cts-badge` | HTMLElement | Partial | Uses `observedAttributes` for attribute-driven re-render |
-| `cts-batch-runner` | LitElement | Yes | Dispatches `cts-run-all` / `cts-run-remaining` |
-| `cts-button` | LitElement | Yes | Variant, size, loading, disabled |
-| `cts-card` | HTMLElement | No | One-shot `connectedCallback` — wraps children in Bootstrap card markup |
-| `cts-config-form` | LitElement | Yes | JSON-schema-driven form; schema/uiSchema/config/errors as Object props |
-| `cts-dashboard` | LitElement | Yes | Home-page card grid; fetches `/api/server` for footer info |
-| `cts-form-field` | LitElement | Yes | Schema-driven input field |
-| `cts-icon` | LitElement | Yes | Renders a Bootstrap Icon `<span>` from a name and size |
-| `cts-image-upload` | LitElement | Yes | Multi-image upload widget; fires `cts-image-uploaded` |
-| `cts-link-button` | LitElement | Yes | Same shape as cts-button but renders `<a>` |
-| `cts-log-detail-header` | LitElement | Yes | Header for log-detail page; dispatches several action events |
-| `cts-log-entry` | LitElement | Yes | Single log line; supports block start/end formatting |
-| `cts-log-viewer` | LitElement | Yes | Polls `/api/log/:id`; surfaces persistent failures as a banner |
-| `cts-login-page` | LitElement | Yes | Login form with OAuth2 buttons and logout-message slot |
-| `cts-modal` | HTMLElement | No | Wraps Bootstrap 5 Modal; exposes `show()`/`hide()` |
-| `cts-navbar` | LitElement | Yes | Fetches user via `/api/currentuser` on connect |
-| `cts-plan-actions` | LitElement | Yes | Plan-detail action bar; dispatches publish/delete/certify/etc. events |
-| `cts-plan-detail` | LitElement | Yes | Composite: header + modules + actions. See `cts-plan-detail.stories.js` for the sub-component stories |
-| `cts-plan-header` | LitElement | Yes | Sub-component of cts-plan-detail |
-| `cts-plan-list` | LitElement | Yes | Plans table; dispatches `cts-plan-navigate` |
-| `cts-plan-modules` | LitElement | Yes | Sub-component of cts-plan-detail; dispatches run/download events |
-| `cts-running-test-card` | LitElement | Yes | Active-test panel; dispatches `cts-download-log` |
-| `cts-spec-cascade` | LitElement | Yes | Family → entity → version → plan dropdowns; dispatches `cts-plan-selected` |
-| `cts-tabs` | HTMLElement | No | Restructures `<cts-tab-panel>` children into WCAG tablist; dispatches `cts-tab-change` |
-| `cts-test-selector` | LitElement | Yes | Plan-selector UI; dispatches `cts-plan-select` |
-| `cts-token-manager` | LitElement | Yes | Token CRUD; fetches `/api/token` |
-| `cts-tooltip` | HTMLElement | No | Wraps Bootstrap 5 Tooltip on first child |
+| Component               | Base class  | Reactive? | Notes                                                                                                 |
+| ----------------------- | ----------- | --------- | ----------------------------------------------------------------------------------------------------- |
+| `cts-alert`             | HTMLElement | No        | Optional dismiss; fires `cts-alert-dismissed`                                                         |
+| `cts-badge`             | HTMLElement | Partial   | Uses `observedAttributes` for attribute-driven re-render                                              |
+| `cts-batch-runner`      | LitElement  | Yes       | Dispatches `cts-run-all` / `cts-run-remaining`                                                        |
+| `cts-button`            | LitElement  | Yes       | Variant, size, loading, disabled                                                                      |
+| `cts-card`              | HTMLElement | No        | One-shot `connectedCallback` — wraps children in Bootstrap card markup                                |
+| `cts-config-form`       | LitElement  | Yes       | JSON-schema-driven form; schema/uiSchema/config/errors as Object props                                |
+| `cts-dashboard`         | LitElement  | Yes       | Home-page card grid; fetches `/api/server` for footer info                                            |
+| `cts-form-field`        | LitElement  | Yes       | Schema-driven input field                                                                             |
+| `cts-icon`              | LitElement  | Yes       | Renders a Bootstrap Icon `<span>` from a name and size                                                |
+| `cts-image-upload`      | LitElement  | Yes       | Multi-image upload widget; fires `cts-image-uploaded`                                                 |
+| `cts-link-button`       | LitElement  | Yes       | Same shape as cts-button but renders `<a>`                                                            |
+| `cts-log-detail-header` | LitElement  | Yes       | Header for log-detail page; dispatches several action events                                          |
+| `cts-log-entry`         | LitElement  | Yes       | Single log line; supports block start/end formatting                                                  |
+| `cts-log-viewer`        | LitElement  | Yes       | Polls `/api/log/:id`; surfaces persistent failures as a banner                                        |
+| `cts-login-page`        | LitElement  | Yes       | Login form with OAuth2 buttons and logout-message slot                                                |
+| `cts-modal`             | HTMLElement | No        | Wraps Bootstrap 5 Modal; exposes `show()`/`hide()`                                                    |
+| `cts-navbar`            | LitElement  | Yes       | Fetches user via `/api/currentuser` on connect                                                        |
+| `cts-plan-actions`      | LitElement  | Yes       | Plan-detail action bar; dispatches publish/delete/certify/etc. events                                 |
+| `cts-plan-detail`       | LitElement  | Yes       | Composite: header + modules + actions. See `cts-plan-detail.stories.js` for the sub-component stories |
+| `cts-plan-header`       | LitElement  | Yes       | Sub-component of cts-plan-detail                                                                      |
+| `cts-plan-list`         | LitElement  | Yes       | Plans table; dispatches `cts-plan-navigate`                                                           |
+| `cts-plan-modules`      | LitElement  | Yes       | Sub-component of cts-plan-detail; dispatches run/download events                                      |
+| `cts-running-test-card` | LitElement  | Yes       | Active-test panel; dispatches `cts-download-log`                                                      |
+| `cts-spec-cascade`      | LitElement  | Yes       | Family → entity → version → plan dropdowns; dispatches `cts-plan-selected`                            |
+| `cts-tabs`              | HTMLElement | No        | Restructures `<cts-tab-panel>` children into WCAG tablist; dispatches `cts-tab-change`                |
+| `cts-test-selector`     | LitElement  | Yes       | Plan-selector UI; dispatches `cts-plan-select`                                                        |
+| `cts-token-manager`     | LitElement  | Yes       | Token CRUD; fetches `/api/token`                                                                      |
+| `cts-tooltip`           | HTMLElement | No        | Wraps Bootstrap 5 Tooltip on first child                                                              |

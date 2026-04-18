@@ -10,8 +10,12 @@ export default {
 
 export const EmptyForm = {
   render: () => html`
-    <cts-config-form .schema=${MOCK_SCHEMA.schema} .uiSchema=${MOCK_SCHEMA.uiSchema}
-      .config=${{}} .errors=${{}}></cts-config-form>
+    <cts-config-form
+      .schema=${MOCK_SCHEMA.schema}
+      .uiSchema=${MOCK_SCHEMA.uiSchema}
+      .config=${{}}
+      .errors=${{}}
+    ></cts-config-form>
   `,
   async play({ canvasElement }) {
     const canvas = within(canvasElement);
@@ -28,9 +32,15 @@ export const EmptyForm = {
 
 export const PrefilledForm = {
   render: () => html`
-    <cts-config-form .schema=${MOCK_SCHEMA.schema} .uiSchema=${MOCK_SCHEMA.uiSchema}
-      .config=${{ server: { issuer: "https://accounts.example.com" }, client: { client_id: "my-client" } }}
-      .errors=${{}}></cts-config-form>
+    <cts-config-form
+      .schema=${MOCK_SCHEMA.schema}
+      .uiSchema=${MOCK_SCHEMA.uiSchema}
+      .config=${{
+        server: { issuer: "https://accounts.example.com" },
+        client: { client_id: "my-client" },
+      }}
+      .errors=${{}}
+    ></cts-config-form>
   `,
   async play({ canvasElement }) {
     const issuerInput = canvasElement.querySelector('input[type="url"]');
@@ -41,15 +51,20 @@ export const PrefilledForm = {
 
 export const JsonTab = {
   render: () => html`
-    <cts-config-form .schema=${MOCK_SCHEMA.schema} .uiSchema=${MOCK_SCHEMA.uiSchema}
+    <cts-config-form
+      .schema=${MOCK_SCHEMA.schema}
+      .uiSchema=${MOCK_SCHEMA.uiSchema}
       .config=${{ server: { issuer: "https://example.com" } }}
-      .errors=${{}}></cts-config-form>
+      .errors=${{}}
+    ></cts-config-form>
   `,
   async play({ canvasElement }) {
     const canvas = within(canvasElement);
     const jsonTab = canvas.getByText("JSON");
     await userEvent.click(jsonTab);
-    await waitFor(() => { expect(jsonTab.classList.contains("active")).toBe(true); });
+    await waitFor(() => {
+      expect(jsonTab.classList.contains("active")).toBe(true);
+    });
     const textarea = canvasElement.querySelector("textarea.font-monospace");
     expect(textarea).toBeTruthy();
     const json = JSON.parse(textarea.value);
@@ -59,8 +74,11 @@ export const JsonTab = {
 
 export const WithValidationErrors = {
   render: () => html`
-    <cts-config-form .schema=${MOCK_SCHEMA.schema} .uiSchema=${MOCK_SCHEMA.uiSchema}
-      .config=${{}} .errors=${{ "server.issuer": "Required field", "client.jwks": "Invalid JSON" }}
+    <cts-config-form
+      .schema=${MOCK_SCHEMA.schema}
+      .uiSchema=${MOCK_SCHEMA.uiSchema}
+      .config=${{}}
+      .errors=${{ "server.issuer": "Required field", "client.jwks": "Invalid JSON" }}
     ></cts-config-form>
   `,
   async play({ canvasElement }) {
@@ -71,12 +89,18 @@ export const WithValidationErrors = {
 
 export const ConfigChangeEvent = {
   render: () => html`
-    <cts-config-form .schema=${MOCK_SCHEMA.schema} .uiSchema=${MOCK_SCHEMA.uiSchema}
-      .config=${{}} .errors=${{}}></cts-config-form>
+    <cts-config-form
+      .schema=${MOCK_SCHEMA.schema}
+      .uiSchema=${MOCK_SCHEMA.uiSchema}
+      .config=${{}}
+      .errors=${{}}
+    ></cts-config-form>
   `,
   async play({ canvasElement }) {
     let receivedConfig = null;
-    canvasElement.addEventListener("cts-config-change", (e) => { receivedConfig = e.detail.config; });
+    canvasElement.addEventListener("cts-config-change", (e) => {
+      receivedConfig = e.detail.config;
+    });
     const issuerInput = canvasElement.querySelector('input[type="url"]');
     await userEvent.type(issuerInput, "https://new.example.com");
     expect(receivedConfig).toBeTruthy();
@@ -86,14 +110,19 @@ export const ConfigChangeEvent = {
 
 export const ValidateEvent = {
   render: () => html`
-    <cts-config-form .schema=${MOCK_SCHEMA.schema} .uiSchema=${MOCK_SCHEMA.uiSchema}
+    <cts-config-form
+      .schema=${MOCK_SCHEMA.schema}
+      .uiSchema=${MOCK_SCHEMA.uiSchema}
       .config=${{ server: { issuer: "https://example.com" } }}
-      .errors=${{}}></cts-config-form>
+      .errors=${{}}
+    ></cts-config-form>
   `,
   async play({ canvasElement }) {
     const canvas = within(canvasElement);
     let validateFired = false;
-    canvasElement.addEventListener("cts-validate", () => { validateFired = true; });
+    canvasElement.addEventListener("cts-validate", () => {
+      validateFired = true;
+    });
     await userEvent.click(canvas.getByText("Validate Configuration"));
     expect(validateFired).toBe(true);
   },

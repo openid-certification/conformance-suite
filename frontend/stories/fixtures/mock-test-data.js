@@ -106,7 +106,8 @@ export const MOCK_TEST_RUNNING = {
   status: "RUNNING",
   result: null,
   exposed: {
-    authorization_endpoint_request: "https://op.example.com/authorize?client_id=test&redirect_uri=...",
+    authorization_endpoint_request:
+      "https://op.example.com/authorize?client_id=test&redirect_uri=...",
   },
 };
 

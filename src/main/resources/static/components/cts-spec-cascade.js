@@ -21,7 +21,9 @@ class CtsSpecCascade extends LitElement {
     _error: { state: true },
   };
 
-  createRenderRoot() { return this; }
+  createRenderRoot() {
+    return this;
+  }
 
   constructor() {
     super();
@@ -166,10 +168,12 @@ class CtsSpecCascade extends LitElement {
   }
 
   _emitPlanSelected(plan) {
-    this.dispatchEvent(new CustomEvent("cts-plan-selected", {
-      bubbles: true,
-      detail: { plan },
-    }));
+    this.dispatchEvent(
+      new CustomEvent("cts-plan-selected", {
+        bubbles: true,
+        detail: { plan },
+      }),
+    );
   }
 
   _renderRow(label, selectId, tooltipText, options, value, placeholder, changeHandler, visible) {
@@ -179,18 +183,25 @@ class CtsSpecCascade extends LitElement {
         <div class="col-md-10">
           <div class="input-group">
             <div class="input-group-text">
-              <span class="bi bi-info-circle-fill" data-bs-toggle="tooltip"
-                data-bs-placement="bottom" title="${tooltipText}"></span>
+              <span
+                class="bi bi-info-circle-fill"
+                data-bs-toggle="tooltip"
+                data-bs-placement="bottom"
+                title="${tooltipText}"
+              ></span>
             </div>
-            <select id="${selectId}" class="form-select" .value=${value}
-              @change=${changeHandler}>
+            <select id="${selectId}" class="form-select" .value=${value} @change=${changeHandler}>
               <option value="">${placeholder}</option>
-              ${options.map((opt) => html`
-                <option value="${typeof opt === "string" ? opt : opt.value}"
-                  ?selected=${value === (typeof opt === "string" ? opt : opt.value)}>
-                  ${typeof opt === "string" ? opt : opt.label}
-                </option>
-              `)}
+              ${options.map(
+                (opt) => html`
+                  <option
+                    value="${typeof opt === "string" ? opt : opt.value}"
+                    ?selected=${value === (typeof opt === "string" ? opt : opt.value)}
+                  >
+                    ${typeof opt === "string" ? opt : opt.label}
+                  </option>
+                `,
+              )}
             </select>
           </div>
         </div>
@@ -229,7 +240,8 @@ class CtsSpecCascade extends LitElement {
 
     const showEntity = this._selectedFamily && this._entities.length > 1;
     const showVersion = this._selectedEntity && this._versions.length > 1;
-    const showPlan = this._selectedEntity && this._selectedVersion && this._filteredPlans.length > 0;
+    const showPlan =
+      this._selectedEntity && this._selectedVersion && this._filteredPlans.length > 0;
 
     const planOptions = this._filteredPlans.map((p) => ({
       value: p.planName,

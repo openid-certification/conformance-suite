@@ -291,9 +291,19 @@ export const FullWidthStack = {
   render: () => html`
     <div style="width: 240px; padding: 1rem; border: 1px dashed #ccc;">
       <div class="d-grid gap-1">
-        <cts-button variant="light" icon="wrench-adjustable" label="View Config" full-width></cts-button>
+        <cts-button
+          variant="light"
+          icon="wrench-adjustable"
+          label="View Config"
+          full-width
+        ></cts-button>
         <cts-button variant="light" icon="save2" label="Download all Logs" full-width></cts-button>
-        <cts-button variant="light" icon="bookmarks" label="Publish everything" full-width></cts-button>
+        <cts-button
+          variant="light"
+          icon="bookmarks"
+          label="Publish everything"
+          full-width
+        ></cts-button>
         <cts-button variant="light" icon="bookmarks" label="Private link" full-width></cts-button>
         <cts-button variant="danger" icon="trash" label="Delete plan" full-width></cts-button>
       </div>
@@ -344,9 +354,7 @@ export const Sizes = {
  * the component.
  */
 export const SizeFallback = {
-  render: () => html`
-    <cts-button variant="primary" label="Bogus size" size="huge"></cts-button>
-  `,
+  render: () => html` <cts-button variant="primary" label="Bogus size" size="huge"></cts-button> `,
 
   async play({ canvasElement }) {
     const btn = canvasElement.querySelector("cts-button button");
@@ -366,9 +374,7 @@ export const SizeFallback = {
  * `.label`, `.icon`, `.size`, `.fullWidth`.
  */
 export const VariantPropertySetter = {
-  render: () => html`
-    <cts-button variant="light" label="Change me"></cts-button>
-  `,
+  render: () => html` <cts-button variant="light" label="Change me"></cts-button> `,
 
   async play({ canvasElement }) {
     const host = canvasElement.querySelector("cts-button");

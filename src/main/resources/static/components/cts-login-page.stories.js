@@ -24,26 +24,20 @@ export const Default = {
     // Page heading present
     await waitFor(() => {
       expect(
-        canvas.getByText(
-          "Login to or Register with the OpenID Foundation Conformance Suite",
-        ),
+        canvas.getByText("Login to or Register with the OpenID Foundation Conformance Suite"),
       ).toBeInTheDocument();
     });
 
     // Google OAuth button renders with correct href
     const googleBtn = canvas.getByText("Proceed with Google");
     expect(googleBtn).toBeInTheDocument();
-    expect(googleBtn.closest("a").getAttribute("href")).toBe(
-      "/oauth2/authorization/google",
-    );
+    expect(googleBtn.closest("a").getAttribute("href")).toBe("/oauth2/authorization/google");
     expect(googleBtn.closest("a").classList.contains("btn-danger")).toBe(true);
 
     // GitLab OAuth button renders with correct href
     const gitlabBtn = canvas.getByText("Proceed with GitLab");
     expect(gitlabBtn).toBeInTheDocument();
-    expect(gitlabBtn.closest("a").getAttribute("href")).toBe(
-      "/oauth2/authorization/gitlab",
-    );
+    expect(gitlabBtn.closest("a").getAttribute("href")).toBe("/oauth2/authorization/gitlab");
     expect(gitlabBtn.closest("a").classList.contains("btn-primary")).toBe(true);
 
     // Public links present
@@ -68,8 +62,7 @@ export const Default = {
 };
 
 export const WithError = {
-  render: () =>
-    html`<cts-login-page error="Invalid credentials"></cts-login-page>`,
+  render: () => html`<cts-login-page error="Invalid credentials"></cts-login-page>`,
 
   async play({ canvasElement }) {
     const canvas = within(canvasElement);
@@ -126,10 +119,7 @@ export const PostLogout = {
 };
 
 export const TokenAuth = {
-  render: () =>
-    html`<cts-login-page
-      token-auth-url="/login/ott?token=abc123"
-    ></cts-login-page>`,
+  render: () => html`<cts-login-page token-auth-url="/login/ott?token=abc123"></cts-login-page>`,
 
   async play({ canvasElement }) {
     const canvas = within(canvasElement);
@@ -147,9 +137,7 @@ export const TokenAuth = {
 
     // Page heading still visible
     expect(
-      canvas.getByText(
-        "Login to or Register with the OpenID Foundation Conformance Suite",
-      ),
+      canvas.getByText("Login to or Register with the OpenID Foundation Conformance Suite"),
     ).toBeInTheDocument();
 
     // No error or logout messages
@@ -159,11 +147,7 @@ export const TokenAuth = {
 };
 
 export const ErrorAndLogout = {
-  render: () =>
-    html`<cts-login-page
-      error="Session expired"
-      logout-message
-    ></cts-login-page>`,
+  render: () => html`<cts-login-page error="Session expired" logout-message></cts-login-page>`,
 
   async play({ canvasElement }) {
     const canvas = within(canvasElement);

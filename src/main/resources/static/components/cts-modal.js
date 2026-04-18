@@ -170,9 +170,7 @@ class CtsModal extends HTMLElement {
 
     // Dispatch cts-modal-close when Bootstrap hides the modal
     modal.addEventListener("hidden.bs.modal", () => {
-      this.dispatchEvent(
-        new CustomEvent("cts-modal-close", { bubbles: true, composed: true }),
-      );
+      this.dispatchEvent(new CustomEvent("cts-modal-close", { bubbles: true, composed: true }));
     });
 
     this._modalEl = modal;

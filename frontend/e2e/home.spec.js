@@ -43,11 +43,7 @@ test.describe("index.html — Home page", () => {
 
     // Navigation buttons are still visible in the page body (public links)
     const homePage = page.locator("#homePage");
-    await expect(
-      homePage.locator('cts-link-button[href="logs.html?public=true"]'),
-    ).toBeVisible();
-    await expect(
-      homePage.locator('cts-link-button[href="plans.html?public=true"]'),
-    ).toBeVisible();
+    await expect(homePage.locator('cts-link-button[href="logs.html?public=true"]')).toBeVisible();
+    await expect(homePage.locator('cts-link-button[href="plans.html?public=true"]')).toBeVisible();
   });
 });

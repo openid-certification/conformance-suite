@@ -14,9 +14,7 @@ export default {
 export const Authenticated = {
   parameters: {
     msw: {
-      handlers: [
-        http.get("/api/server", () => HttpResponse.json(MOCK_SERVER_INFO)),
-      ],
+      handlers: [http.get("/api/server", () => HttpResponse.json(MOCK_SERVER_INFO))],
     },
   },
   render: () => html`<cts-dashboard></cts-dashboard>`,
@@ -36,9 +34,7 @@ export const Authenticated = {
     const links = canvasElement.querySelectorAll("cts-link-button");
     expect(links.length).toBe(6);
 
-    const hrefs = Array.from(links).map((btn) =>
-      btn.querySelector("a")?.getAttribute("href"),
-    );
+    const hrefs = Array.from(links).map((btn) => btn.querySelector("a")?.getAttribute("href"));
     expect(hrefs).toContain("schedule-test.html");
     expect(hrefs).toContain("logs.html");
     expect(hrefs).toContain("plans.html");
@@ -47,18 +43,14 @@ export const Authenticated = {
     expect(hrefs).toContain("api-document.html");
 
     // Footer text present
-    expect(
-      canvas.getByText("OpenID Foundation conformance suite"),
-    ).toBeInTheDocument();
+    expect(canvas.getByText("OpenID Foundation conformance suite")).toBeInTheDocument();
   },
 };
 
 export const ServerInfo = {
   parameters: {
     msw: {
-      handlers: [
-        http.get("/api/server", () => HttpResponse.json(MOCK_SERVER_INFO)),
-      ],
+      handlers: [http.get("/api/server", () => HttpResponse.json(MOCK_SERVER_INFO))],
     },
   },
   render: () => html`<cts-dashboard></cts-dashboard>`,
@@ -92,13 +84,10 @@ export const ServerInfo = {
 export const Unauthenticated = {
   parameters: {
     msw: {
-      handlers: [
-        http.get("/api/server", () => HttpResponse.json(MOCK_SERVER_INFO)),
-      ],
+      handlers: [http.get("/api/server", () => HttpResponse.json(MOCK_SERVER_INFO))],
     },
   },
-  render: () =>
-    html`<cts-dashboard .isAuthenticated=${false}></cts-dashboard>`,
+  render: () => html`<cts-dashboard .isAuthenticated=${false}></cts-dashboard>`,
 
   async play({ canvasElement }) {
     const canvas = within(canvasElement);
@@ -118,20 +107,14 @@ export const Unauthenticated = {
     expect(links.length).toBe(3);
 
     // Footer still present
-    expect(
-      canvas.getByText("OpenID Foundation conformance suite"),
-    ).toBeInTheDocument();
+    expect(canvas.getByText("OpenID Foundation conformance suite")).toBeInTheDocument();
   },
 };
 
 export const ServerInfoError = {
   parameters: {
     msw: {
-      handlers: [
-        http.get("/api/server", () =>
-          new HttpResponse(null, { status: 500 }),
-        ),
-      ],
+      handlers: [http.get("/api/server", () => new HttpResponse(null, { status: 500 }))],
     },
   },
   render: () => html`<cts-dashboard></cts-dashboard>`,
@@ -156,9 +139,7 @@ export const ServerInfoError = {
       expect(links.length).toBe(6);
 
       // Footer text still present
-      expect(
-        canvas.getByText("OpenID Foundation conformance suite"),
-      ).toBeInTheDocument();
+      expect(canvas.getByText("OpenID Foundation conformance suite")).toBeInTheDocument();
 
       // Wait a tick for the fetch to complete, then verify no server info rendered
       await waitFor(
@@ -209,9 +190,7 @@ export const Loading = {
     expect(canvas.getByText("View API Documentation")).toBeInTheDocument();
 
     // Footer text is present
-    expect(
-      canvas.getByText("OpenID Foundation conformance suite"),
-    ).toBeInTheDocument();
+    expect(canvas.getByText("OpenID Foundation conformance suite")).toBeInTheDocument();
 
     // Server info has not loaded yet — no version info displayed
     const versionEl = canvasElement.querySelector("#serverinfo-version");

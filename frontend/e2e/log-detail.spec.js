@@ -1,14 +1,26 @@
 import { test, expect } from "@playwright/test";
 import { setupCommonRoutes, setupFailFast, expectNoUnmockedCalls } from "./helpers/routes.js";
-import { MOCK_TEST_STATUS, MOCK_TEST_FAILED, MOCK_TEST_WARNING, MOCK_TEST_RUNNING } from "./fixtures/mock-test-data.js";
-import { MOCK_LOG_ENTRIES, MOCK_FAILED_LOG_ENTRIES, MOCK_WARNING_LOG_ENTRIES } from "./fixtures/mock-log-entries.js";
+import {
+  MOCK_TEST_STATUS,
+  MOCK_TEST_FAILED,
+  MOCK_TEST_WARNING,
+  MOCK_TEST_RUNNING,
+} from "./fixtures/mock-test-data.js";
+import {
+  MOCK_LOG_ENTRIES,
+  MOCK_FAILED_LOG_ENTRIES,
+  MOCK_WARNING_LOG_ENTRIES,
+} from "./fixtures/mock-log-entries.js";
 
 /**
  * Helper: register log-detail-specific routes.
  * Must be called after setupFailFast and before setupCommonRoutes
  * (in practice: after failFast, before goto).
  */
-async function setupLogDetailRoutes(page, { testInfo, logEntries, runnerStatus, runnerError, runner404 }) {
+async function setupLogDetailRoutes(
+  page,
+  { testInfo, logEntries, runnerStatus, runnerError, runner404 },
+) {
   const testId = testInfo.testId;
   const runnerStatusValue = runnerStatus ?? "FINISHED";
 
@@ -124,7 +136,10 @@ test.describe("log-detail.html — Log Detail", () => {
     const requirementLink = page.locator('.log-requirement a[href*="openid-connect-core"]').first();
     await expect(requirementLink).toBeVisible();
     await expect(requirementLink).toContainText("OIDCC-3.1.3.3");
-    await expect(requirementLink).toHaveAttribute("href", "https://openid.net/specs/openid-connect-core-1_0.html#section-3.1.3.3");
+    await expect(requirementLink).toHaveAttribute(
+      "href",
+      "https://openid.net/specs/openid-connect-core-1_0.html#section-3.1.3.3",
+    );
     await expect(requirementLink).toHaveAttribute("target", "_blank");
   });
 
@@ -249,7 +264,9 @@ test.describe("log-detail.html — Log Detail", () => {
     expect(origTitle || "").toBeTruthy();
   });
 
-  test("log entry more panel shows HTTP request/response details and collapses on second click", async ({ page }) => {
+  test("log entry more panel shows HTTP request/response details and collapses on second click", async ({
+    page,
+  }) => {
     await setupFailFast(page);
     await setupLogDetailRoutes(page, {
       testInfo: MOCK_TEST_STATUS,
@@ -290,7 +307,9 @@ test.describe("log-detail.html — Log Detail", () => {
   // The fourth (#runningTestSuccess) is dead template markup: no JS ever
   // toggles its container visible, so it's intentionally not exercised here.
 
-  test("banner transitions: FINISHED runner shows Inactive, hides Active/Archived", async ({ page }) => {
+  test("banner transitions: FINISHED runner shows Inactive, hides Active/Archived", async ({
+    page,
+  }) => {
     await setupFailFast(page);
     await setupLogDetailRoutes(page, {
       testInfo: MOCK_TEST_STATUS,
@@ -317,7 +336,9 @@ test.describe("log-detail.html — Log Detail", () => {
     await expect(archived).not.toHaveClass(/show/);
   });
 
-  test("banner transitions: RUNNING runner shows Active, hides Inactive/Archived", async ({ page }) => {
+  test("banner transitions: RUNNING runner shows Active, hides Inactive/Archived", async ({
+    page,
+  }) => {
     await setupFailFast(page);
     await setupLogDetailRoutes(page, {
       testInfo: MOCK_TEST_RUNNING,
@@ -338,7 +359,9 @@ test.describe("log-detail.html — Log Detail", () => {
     await expect(archived).not.toHaveClass(/show/);
   });
 
-  test("banner transitions: runner 404 shows Archived banner (dismissible info)", async ({ page }) => {
+  test("banner transitions: runner 404 shows Archived banner (dismissible info)", async ({
+    page,
+  }) => {
     await setupFailFast(page);
     await setupLogDetailRoutes(page, {
       testInfo: MOCK_TEST_STATUS,
@@ -369,7 +392,9 @@ test.describe("log-detail.html — Log Detail", () => {
   // The template renders a danger cts-alert containing a cts-button
   // (#stacktraceBtn) that reveals the stacktrace list on click.
 
-  test("runner error response injects cts-alert + stacktrace reveals on click", async ({ page }) => {
+  test("runner error response injects cts-alert + stacktrace reveals on click", async ({
+    page,
+  }) => {
     await setupFailFast(page);
     await setupLogDetailRoutes(page, {
       testInfo: { ...MOCK_TEST_STATUS, status: "INTERRUPTED", result: null },
@@ -382,9 +407,7 @@ test.describe("log-detail.html — Log Detail", () => {
           "at net.openid.ExampleCondition.evaluate(ExampleCondition.java:42)",
           "at net.openid.TestRunner.run(TestRunner.java:99)",
         ],
-        cause_stacktrace: [
-          "at net.openid.Inner.cause(Inner.java:7)",
-        ],
+        cause_stacktrace: ["at net.openid.Inner.cause(Inner.java:7)"],
       },
     });
     await setupCommonRoutes(page);

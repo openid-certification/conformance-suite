@@ -12,8 +12,7 @@ export default {
 export const WithHeader = {
   render: () =>
     html`<cts-card header="Server Configuration"
-      ><p>Body content</p>
-      <p>More content</p></cts-card
+      ><p>Body content</p> <p>More content</p></cts-card
     >`,
 
   async play({ canvasElement }) {
@@ -36,8 +35,7 @@ export const WithHeader = {
 };
 
 export const WithoutHeader = {
-  render: () =>
-    html`<cts-card><p>Body only.</p></cts-card>`,
+  render: () => html`<cts-card><p>Body only.</p></cts-card>`,
 
   async play({ canvasElement }) {
     const card = canvasElement.querySelector(".card");

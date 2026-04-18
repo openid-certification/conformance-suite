@@ -86,9 +86,7 @@ test.describe("running-test.html — Running Tests", () => {
     await expect(rows.nth(1)).toContainText("WAITING");
   });
 
-  test("manual refresh re-fetches and updates statuses (R13)", async ({
-    page,
-  }) => {
+  test("manual refresh re-fetches and updates statuses (R13)", async ({ page }) => {
     let returnEmpty = false;
 
     await setupFailFast(page);
@@ -123,9 +121,7 @@ test.describe("running-test.html — Running Tests", () => {
 
     // Initially one test row
     await expect(page.locator(".runningTest")).toHaveCount(1);
-    await expect(page.locator(".runningTest").first()).toContainText(
-      "oidcc-server",
-    );
+    await expect(page.locator(".runningTest").first()).toContainText("oidcc-server");
 
     // Switch mock to return empty list, then click refresh
     returnEmpty = true;
@@ -191,10 +187,7 @@ test.describe("running-test.html — Running Tests", () => {
     // View Test Details link should point to log-detail with the correct test ID
     const viewBtn = row.locator(".viewBtn");
     await expect(viewBtn).toBeVisible();
-    await expect(viewBtn).toHaveAttribute(
-      "href",
-      "log-detail.html?log=test-running-001",
-    );
+    await expect(viewBtn).toHaveAttribute("href", "log-detail.html?log=test-running-001");
 
     // Download button should be present
     const downloadBtn = row.locator(".downloadBtn");

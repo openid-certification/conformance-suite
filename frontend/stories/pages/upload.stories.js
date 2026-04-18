@@ -18,9 +18,7 @@ const PENDING_IMAGES = [
   },
 ];
 
-const EXISTING_IMAGES = [
-  { name: "screenshot-result", url: "images/placeholder.png" },
-];
+const EXISTING_IMAGES = [{ name: "screenshot-result", url: "images/placeholder.png" }];
 
 export const Default = {
   render: () => html`
@@ -42,18 +40,14 @@ export const Default = {
     });
 
     // Pending region: both pending blocks render
-    const pendingBlocks = canvasElement.querySelectorAll(
-      '[data-testid="pending-image"]',
-    );
+    const pendingBlocks = canvasElement.querySelectorAll('[data-testid="pending-image"]');
     expect(pendingBlocks.length).toBe(2);
     expect(
       canvas.getByText("Screenshot of the login page after authentication"),
     ).toBeInTheDocument();
 
     // Existing region: existing block renders
-    const existingBlocks = canvasElement.querySelectorAll(
-      '[data-testid="existing-image"]',
-    );
+    const existingBlocks = canvasElement.querySelectorAll('[data-testid="existing-image"]');
     expect(existingBlocks.length).toBe(1);
     expect(canvas.getByText("screenshot-result")).toBeInTheDocument();
 
