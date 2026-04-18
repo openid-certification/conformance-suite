@@ -60,9 +60,9 @@ export const CreateTemporaryToken = {
       handlers: [
         http.get("/api/token", () => HttpResponse.json(MOCK_TOKENS)),
         http.post("/api/token", async ({ request }) => {
-          const body = await request.json();
+          const body = /** @type {{ permanent?: boolean } | null} */ (await request.json());
           // Verify permanent=false for temporary tokens
-          if (body.permanent === false) {
+          if (body && body.permanent === false) {
             return HttpResponse.json(MOCK_CREATED_TOKEN);
           }
           return HttpResponse.json(MOCK_CREATED_TOKEN);

@@ -175,9 +175,11 @@ test.describe("schedule-test.html — Test Plan Scheduling", () => {
     // planSelect.value and shows an error modal.
     await page.evaluate(() => {
       const btn = document.getElementById("createPlanBtn");
+      if (!btn) throw new Error("createPlanBtn not found");
       btn.removeAttribute("disabled");
       btn.style.display = "";
-      btn.closest("#launchButtons").style.display = "";
+      const launchButtons = /** @type {HTMLElement | null} */ (btn.closest("#launchButtons"));
+      if (launchButtons) launchButtons.style.display = "";
       btn.click();
     });
 

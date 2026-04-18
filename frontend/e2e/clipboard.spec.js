@@ -80,7 +80,9 @@ test.describe("ClipboardJS copy buttons render text from cts-button hosts", () =
     await page.goto("/plans.html");
 
     await page.evaluate(() => {
-      document.getElementById("config").textContent = '{"server.issuer":"https://op.example.com"}';
+      const config = document.getElementById("config");
+      if (!config) throw new Error("#config missing");
+      config.textContent = '{"server.issuer":"https://op.example.com"}';
       const modalEl = document.getElementById("configModal");
       bootstrap.Modal.getOrCreateInstance(modalEl).show();
     });
@@ -112,7 +114,9 @@ test.describe("ClipboardJS copy buttons render text from cts-button hosts", () =
     await page.goto("/logs.html");
 
     await page.evaluate(() => {
-      document.getElementById("config").textContent = '{"client.client_id":"test-client-id"}';
+      const config = document.getElementById("config");
+      if (!config) throw new Error("#config missing");
+      config.textContent = '{"client.client_id":"test-client-id"}';
       const modalEl = document.getElementById("configModal");
       bootstrap.Modal.getOrCreateInstance(modalEl).show();
     });
@@ -173,7 +177,9 @@ test.describe("ClipboardJS copy buttons render text from cts-button hosts", () =
     await expect(page.locator("cts-button.btn-clipboard")).toBeAttached();
 
     await page.evaluate(() => {
-      document.getElementById("tokenValue").textContent = "super-secret-token-value-123";
+      const tokenValue = document.getElementById("tokenValue");
+      if (!tokenValue) throw new Error("#tokenValue missing");
+      tokenValue.textContent = "super-secret-token-value-123";
       const modalEl = document.getElementById("createdModal");
       bootstrap.Modal.getOrCreateInstance(modalEl).show();
     });

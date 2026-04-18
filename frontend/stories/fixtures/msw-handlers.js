@@ -62,8 +62,8 @@ export const planHandlers = [
 
   // Share plan (private link)
   http.post("/api/plan/:planId/share", async ({ request }) => {
-    const body = await request.json();
-    const days = body.days || 30;
+    const body = /** @type {{ days?: number } | null} */ (await request.json());
+    const days = (body && body.days) || 30;
     return HttpResponse.json({
       url: `https://localhost.emobix.co.uk:8443/plan-detail.html?plan=plan-abc-123&token=mock-share-token-${days}d`,
     });

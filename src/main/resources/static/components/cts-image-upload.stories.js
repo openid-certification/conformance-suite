@@ -51,7 +51,7 @@ export const PendingImages = {
     const uploadButtons = canvas.getAllByText("Upload");
     expect(uploadButtons.length).toBe(2);
     for (const btn of uploadButtons) {
-      expect(btn.disabled).toBe(true);
+      expect(/** @type {HTMLButtonElement} */ (btn).disabled).toBe(true);
     }
 
     // No "All images uploaded" message
@@ -158,15 +158,16 @@ export const UploadSuccess = {
     await waitFor(
       () => {
         const uploadBtn = canvas.getByText("Upload");
-        expect(uploadBtn.disabled).toBe(false);
+        expect(/** @type {HTMLButtonElement} */ (uploadBtn).disabled).toBe(false);
       },
       { timeout: 3000 },
     );
 
     // Listen for the upload event
+    /** @type {any} */
     let uploadEvent = null;
     canvasElement.addEventListener("cts-image-uploaded", (e) => {
-      uploadEvent = e.detail;
+      uploadEvent = /** @type {CustomEvent} */ (e).detail;
     });
 
     // Click upload
@@ -228,7 +229,7 @@ export const UploadError = {
     await waitFor(
       () => {
         const uploadBtn = canvas.getByText("Upload");
-        expect(uploadBtn.disabled).toBe(false);
+        expect(/** @type {HTMLButtonElement} */ (uploadBtn).disabled).toBe(false);
       },
       { timeout: 3000 },
     );

@@ -45,7 +45,9 @@ export const Running = {
     expect(canvas.getByText(/View Test Details/)).toBeInTheDocument();
 
     // View Test Details link has correct href
-    const detailLink = canvas.getByText(/View Test Details/).closest("a");
+    const detailLink = /** @type {HTMLAnchorElement} */ (
+      canvas.getByText(/View Test Details/).closest("a")
+    );
     expect(detailLink.getAttribute("href")).toContain("log-detail.html?log=");
     expect(detailLink.getAttribute("href")).toContain(encodeURIComponent(RUNNING_TEST._id));
 
@@ -127,10 +129,11 @@ export const DownloadClick = {
     const canvas = within(canvasElement);
 
     let eventFired = false;
+    /** @type {any} */
     let eventDetail = null;
     canvasElement.addEventListener("cts-download-log", (e) => {
       eventFired = true;
-      eventDetail = e.detail;
+      eventDetail = /** @type {CustomEvent} */ (e).detail;
     });
 
     const downloadBtn = canvas.getByText(/Download Logs/);

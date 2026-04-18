@@ -81,7 +81,8 @@ class CtsConfigForm extends LitElement {
     } catch (err) {
       // Invalid JSON — don't update config until valid, but surface the
       // error so the user knows their edits aren't being saved.
-      this._jsonError = `Invalid JSON — configuration not updated (${err.message})`;
+      const message = err instanceof Error ? err.message : String(err);
+      this._jsonError = `Invalid JSON — configuration not updated (${message})`;
     }
   }
 

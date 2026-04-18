@@ -121,10 +121,11 @@ export const FailedTest = {
 
     // Click a failure entry and verify event fires
     let scrollEventFired = false;
+    /** @type {any} */
     let scrollDetail = null;
     canvasElement.addEventListener("cts-scroll-to-entry", (e) => {
       scrollEventFired = true;
-      scrollDetail = e.detail;
+      scrollDetail = /** @type {CustomEvent} */ (e).detail;
     });
 
     const failureText = canvas.getByText("ValidateIdToken: Signature invalid");

@@ -16,6 +16,15 @@ import {
  * Helper: register log-detail-specific routes.
  * Must be called after setupFailFast and before setupCommonRoutes
  * (in practice: after failFast, before goto).
+ *
+ * @param {import('@playwright/test').Page} page
+ * @param {{
+ *   testInfo: any,
+ *   logEntries: any,
+ *   runnerStatus?: string,
+ *   runnerError?: string | Record<string, unknown>,
+ *   runner404?: boolean,
+ * }} options
  */
 async function setupLogDetailRoutes(
   page,

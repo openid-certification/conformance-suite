@@ -45,9 +45,9 @@ export const FullFlow = {
       handlers: [
         http.get("/api/runner/available", () => HttpResponse.json(MOCK_PLANS)),
         http.post("/api/runner", async ({ request }) => {
-          const body = await request.json();
+          const body = /** @type {{ planName?: string } | null} */ (await request.json());
           return HttpResponse.json({
-            name: body.planName || "oidcc-server",
+            name: (body && body.planName) || "oidcc-server",
             id: "test-new-001",
             url: "https://localhost.emobix.co.uk:8443/log-detail.html?log=test-new-001",
           });
@@ -58,13 +58,15 @@ export const FullFlow = {
   render: () => {
     // Wire cascade → config form inline
     function handlePlanSelected() {
-      const form = document.querySelector("#flow-config-form");
+      const form = /** @type {any} */ (document.querySelector("#flow-config-form"));
       if (form) {
         form.schema = OIDCC_SCHEMA;
         form.config = {};
       }
       // Show config section
-      const configSection = document.querySelector("#config-section");
+      const configSection = /** @type {HTMLElement | null} */ (
+        document.querySelector("#config-section")
+      );
       if (configSection) configSection.style.display = "block";
     }
 
@@ -150,12 +152,14 @@ export const ChangePlanMidFlow = {
   },
   render: () => {
     function handlePlanSelected() {
-      const form = document.querySelector("#flow-config-form-2");
+      const form = /** @type {any} */ (document.querySelector("#flow-config-form-2"));
       if (form) {
         form.schema = OIDCC_SCHEMA;
         form.config = {};
       }
-      const configSection = document.querySelector("#config-section-2");
+      const configSection = /** @type {HTMLElement | null} */ (
+        document.querySelector("#config-section-2")
+      );
       if (configSection) configSection.style.display = "block";
     }
 

@@ -103,7 +103,7 @@ class CtsFormField extends LitElement {
           <input
             type="checkbox"
             class="form-check-input"
-            .checked=${this.value === "true" || this.value === true}
+            .checked=${this.value === "true" || /** @type {unknown} */ (this.value) === true}
             ?disabled=${this.disabled}
             @change=${this._handleCheckbox}
           />

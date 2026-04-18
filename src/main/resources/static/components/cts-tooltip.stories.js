@@ -62,7 +62,7 @@ export const BottomPlacement = {
       const popup = document.querySelector(".tooltip.show");
       expect(popup).toBeTruthy();
       const anchorRect = anchor.getBoundingClientRect();
-      const popupRect = popup.getBoundingClientRect();
+      const popupRect = /** @type {Element} */ (popup).getBoundingClientRect();
       // The popup's top edge should sit below (or at least not above) the
       // anchor's bottom edge when placement is "bottom".
       expect(popupRect.top).toBeGreaterThanOrEqual(anchorRect.bottom - 1);

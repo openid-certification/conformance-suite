@@ -564,17 +564,20 @@ export const ActionsDeletePlanCancel = {
     const deleteBtn = canvasElement.querySelector('[data-testid="delete-plan-btn"]');
     await userEvent.click(deleteBtn);
 
+    /** @type {Element | null | undefined} */
     let confirmPanel;
     await waitFor(() => {
       confirmPanel = canvasElement.querySelector('[data-testid="delete-confirm-panel"]');
       expect(confirmPanel).toBeTruthy();
     });
+    if (!confirmPanel) throw new Error("delete-confirm-panel did not appear");
 
     // Click Cancel
     const cancelBtn = Array.from(confirmPanel.querySelectorAll("button")).find(
-      (b) => b.textContent.trim() === "Cancel",
+      (b) => (b.textContent || "").trim() === "Cancel",
     );
     expect(cancelBtn).toBeTruthy();
+    if (!cancelBtn) throw new Error("Cancel button not found");
     await userEvent.click(cancelBtn);
 
     // Panel should close

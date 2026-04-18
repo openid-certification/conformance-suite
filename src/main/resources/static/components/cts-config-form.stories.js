@@ -97,9 +97,10 @@ export const ConfigChangeEvent = {
     ></cts-config-form>
   `,
   async play({ canvasElement }) {
+    /** @type {any} */
     let receivedConfig = null;
     canvasElement.addEventListener("cts-config-change", (e) => {
-      receivedConfig = e.detail.config;
+      receivedConfig = /** @type {CustomEvent} */ (e).detail.config;
     });
     const issuerInput = canvasElement.querySelector('input[type="url"]');
     await userEvent.type(issuerInput, "https://new.example.com");
