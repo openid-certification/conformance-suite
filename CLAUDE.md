@@ -313,7 +313,7 @@ cd frontend && ./node_modules/.bin/playwright test e2e/home.spec.js
 
 ## Frontend quality gates
 
-Lint, format, and type-check for the frontend are covered by the `frontend_lint` GitLab job, mirrored locally by `npm run test:ci` from `frontend/` (format:check → lint → type-check → lint:jsdoc). See `frontend/README.md` for the command reference and failure-mode decoder.
+Lint, format, and type-check for the frontend are covered by the `frontend_lint` GitLab job, mirrored locally by `npm run test:ci` from `frontend/` (format:check → lint → type-check → lint:jsdoc → lint:lit-analyzer). See `frontend/README.md` for the command reference and failure-mode decoder. `lit-analyzer` provides Lit-aware template diagnostics (unknown elements, wrong binding sigils, unclosed tags); `ts-lit-plugin` exposes the same diagnostics inside TypeScript-language-service IDEs.
 
 Severity ladder: default is `error`; R8 light-DOM preset warnings from `eslint-plugin-lit` / `eslint-plugin-wc` stay at `warn`; a named Legacy Overrides block in `frontend/eslint.config.js` tracks per-file exceptions to zero — never blanket `"off"`.
 
@@ -323,6 +323,7 @@ The CI job currently runs with `allow_failure: true` and is due to flip to block
 
 - **multipaz** (CBOR/COSE/mdoc library): Source is at https://github.com/openwallet-foundation/multipaz — use this to look up API details rather than unpacking JARs.
 - **Nimbus JOSE+JWT** (JWT/JWK/JWS/JWE library): Source is at https://bitbucket.org/connect2id/nimbus-jose-jwt/src/master/ — use this to look up API details rather than unpacking JARs.
+- **Lit** (web-components runtime): Vendored bundle at `src/main/resources/static/vendor/lit/lit.js` is the full [`lit-all.min.js`](https://github.com/lit/dist) release, so every directive (`classMap`, `repeat`, `when`, `ifDefined`, `ref`, …) is available at runtime without a bundler. Bump via `frontend/scripts/update-vendor-lit.sh` (pinned by git tag + SHA-256 digest).
 
 ## Creating New Tests
 

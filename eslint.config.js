@@ -158,17 +158,23 @@ export default [
       // - `lit/no-template-arrow` was previously "warn" globally; the Unit
       //   3+4 triage refactored every occurrence to the data-* + dataset
       //   delegation pattern. Promoted to "error" globally.
-      // - `lit/no-template-map` was previously "warn" globally; every
-      //   occurrence was resolved by hoisting the `.map()` call out of the
-      //   `html\`\`` template into a class method returning
-      //   `TemplateResult[]` — the canonical fix the rule documentation
-      //   points at. No repeat() directive usage: production serves a
-      //   minimal vendored lit bundle (`/vendor/lit/lit.js`) that does not
-      //   ship `lit/directives/*`, so hoisting is both the simplest and
-      //   the vendor-free path. Promoted to "error" globally.
       // - `lit/no-useless-template-literals` had zero baseline findings.
       //   Removed from the downgrade list; promoted to "error" as
       //   documentation of the surface area it covers.
+      //
+      // R8/R10 revision (2026-04-18, plan 2026-04-18-002):
+      // - `lit/no-template-map` is now "off". The hoisting-only policy
+      //   was grounded in a minimal vendored lit bundle that did not
+      //   ship `lit/directives/*`; plan 2026-04-18-002 swapped the
+      //   vendor file to `lit-all.min.js` (every directive exported
+      //   from one file), so `repeat()` is now a first-class option.
+      //   Both `repeat()` (with a stable key) and hoist-to-method
+      //   (returning `TemplateResult[]`) are valid patterns; the
+      //   reviewer picks based on whether a key exists. The rule
+      //   cannot distinguish those cases on its own, so leaving it at
+      //   "warn" would produce noise. Directive vocabulary is
+      //   documented in `frontend/README.md` and
+      //   `src/main/resources/static/components/AGENTS.md`.
 
       // R9 — High-catch-rate rules kept explicitly at error, even when the
       // preset already sets them. This is documentation: these are the rules
@@ -181,13 +187,13 @@ export default [
       "lit/no-classfield-shadowing": "error",
       "lit/lifecycle-super": "error",
       "lit/no-template-arrow": "error",
-      // Promoted 2026-04-18 (plan 2026-04-18-001). Not in
-      // lit/flat-recommended, so without this line a new `.map()` in a
-      // component template would slip through entirely. Per-file overrides
-      // for legacy small-list cases live in R10 below.
-      "lit/no-template-map": "error",
-      // Same story — not in the preset, but useless template literals are an
-      // unambiguous bug class.
+      // Relaxed 2026-04-18 (plan 2026-04-18-002). See the preamble block
+      // above: directives are now available at runtime, so `repeat()` and
+      // hoist-to-method are both valid. A new `.map()` inside an
+      // `html\`\`` template is no longer a bug class we can flag mechanically.
+      "lit/no-template-map": "off",
+      // Not in lit/flat-recommended, but useless template literals are an
+      // unambiguous bug class. Kept at error.
       "lit/no-useless-template-literals": "error",
       "wc/no-constructor-attributes": "error",
       "wc/no-invalid-element-name": "error",
@@ -275,13 +281,11 @@ export default [
   //   // scope: <short human description>
   //   { files: [<specific files>], rules: { "<rule>": "warn" } }
   //
-  // Current state (2026-04-18, post-hoist): zero entries. All surviving
-  // `lit/no-template-map` warnings were resolved by hoisting the `.map()`
-  // calls out of `html\`\`` templates into class methods returning
-  // `TemplateResult[]` — the canonical fix the rule was designed to enable.
-  // The repeat() directive is not used anywhere in the codebase; the
-  // production importmap only serves `/vendor/lit/lit.js` and does not
-  // bundle `lit/directives/*`, so hoisting is the vendor-free path.
+  // Current state (2026-04-18, post-plan-002): zero entries.
+  // `lit/no-template-map` was flipped to "off" globally in the component
+  // rules block above, so no per-file overrides are needed. The lit-all
+  // bundle (see plan 2026-04-18-002) makes `repeat()` + hoist-to-method
+  // a reviewer judgment call instead of an enforced rule.
   // ---------------------------------------------------------------------------
   // (Intentionally empty. Add entries here when elevating a preset-warn rule
   // to error surfaces findings on existing code.)

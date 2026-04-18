@@ -14,8 +14,9 @@
     "format:check": "prettier --config ./.prettierrc.json --check . ../src/main/resources/static/components",
     "lint": "eslint ../frontend ../src/main/resources/static/components",
     "lint:fix": "eslint --fix ../frontend ../src/main/resources/static/components",
+    "lint:lit-analyzer": "lit-analyzer \"../src/main/resources/static/components/**/cts-*.js\" --format list --rules.no-incompatible-type-binding warn --rules.no-nullable-attribute-binding warn",
     "type-check": "tsc --noEmit --pretty false -p tsconfig.json && tsc --noEmit --pretty false -p e2e/tsconfig.json",
-    "test:ci": "npm run format:check && npm run lint && npm run type-check && npm run lint:jsdoc",
+    "test:ci": "npm run format:check && npm run lint && npm run type-check && npm run lint:jsdoc && npm run lint:lit-analyzer",
     "test": "npm run test:ci && npm run test-storybook"
   },
   "engines": {
@@ -38,10 +39,12 @@
     "globals": "17.5.0",
     "http-server": "14.1.1",
     "lit": "3.3.2",
+    "lit-analyzer": "2.0.3",
     "msw": "2.13.4",
     "playwright": "1.59.1",
     "prettier": "3.8.3",
     "storybook": "10.3.5",
+    "ts-lit-plugin": "2.0.2",
     "typescript": "6.0.3",
     "vite": "8.0.8",
     "vitest": "4.1.4"

@@ -11,6 +11,7 @@
     "noImplicitAny": false,
     "skipLibCheck": true,
     "types": ["vitest/globals"],
+    "plugins": [{ "name": "ts-lit-plugin", "strict": false }],
     "paths": {
       "@fixtures/*": ["./stories/fixtures/*"],
       "lit": ["./node_modules/lit"],

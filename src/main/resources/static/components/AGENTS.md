@@ -247,6 +247,22 @@ Never use string interpolation like `` `btn-${variant}` ``. Reasons:
 3. CSP `style-src` configurations may reject dynamically-constructed class
    references.
 
+**For toggled-on/off class names in Lit templates**, use the `classMap`
+directive instead of concatenating strings into the `class` attribute:
+
+```js
+import { classMap } from "lit/directives/class-map.js";
+
+// GOOD
+html`<a class=${classMap({ "nav-link": true, active: this.isActive })}>…</a>`;
+
+// BAD — string concatenation
+html`<a class="nav-link${this.isActive ? " active" : ""}">…</a>`;
+```
+
+`classMap` is resolved at binding time, not via string interpolation, so
+Lit's template compiler can cache the static parts correctly.
+
 ---
 
 ## 8. Page integration
@@ -269,6 +285,60 @@ Every page that uses a `cts-*` component must:
 The `importmap` must appear **before** any `type="module"` script. Browsers
 process import maps synchronously; a module script that imports `lit` before
 the map is parsed will throw a resolution error.
+
+The map also aliases every `lit/directives/*.js` specifier to the same
+single bundle (`/vendor/lit/lit.js`, the `lit-all.min.js` build), so
+`import { repeat } from "lit/directives/repeat.js"` resolves without
+shipping a separate file per directive. A `window.litDisableBundleWarning
+= true` flag is set before the importmap to suppress Lit's on-load
+bundle-size notice (the bundle is chosen, not a mistake).
+
+**When adding a new directive entry** to the importmap, update all 10
+HTML pages under `src/main/resources/static/*.html` and add the new
+specifier to the `DIRECTIVE_PROBES` list in
+`frontend/e2e/lit-importmap.spec.js`. The importmap JSON is
+copy-pasted verbatim across pages; there is no single-source mechanism
+today. The Playwright drift-detection spec is the only automated
+backstop — it catches a page where the entry was forgotten, but only
+if the entry appears in `DIRECTIVE_PROBES`.
+
+---
+
+## 9. Directives available at runtime
+
+The vendored bundle exports every standard Lit directive. Import each
+from its sub-path — the importmap aliases them all back to the same
+bundle at runtime, so there is no per-directive network cost.
+
+| Directive         | Import path                          | Use for                                                                                                     |
+| ----------------- | ------------------------------------ | ----------------------------------------------------------------------------------------------------------- |
+| `classMap`        | `lit/directives/class-map.js`        | Toggled-on/off class names (see §7).                                                                        |
+| `styleMap`        | `lit/directives/style-map.js`        | Dynamic inline style objects.                                                                               |
+| `when`            | `lit/directives/when.js`             | `when(cond, ifTrue, ifFalse?)` — clearer than long ternaries.                                               |
+| `choose`          | `lit/directives/choose.js`           | Switch-style multi-branch rendering.                                                                        |
+| `repeat`          | `lit/directives/repeat.js`           | Keyed list rendering: `repeat(items, keyFn, templateFn)`. Use when item identity matters across re-renders. |
+| `map`             | `lit/directives/map.js`              | Unkeyed list rendering alternative to `.map()`.                                                             |
+| `join`            | `lit/directives/join.js`             | Interpose a separator between rendered items.                                                               |
+| `range`           | `lit/directives/range.js`            | Range iteration inside templates.                                                                           |
+| `keyed`           | `lit/directives/keyed.js`            | Force re-render of a subtree when a key changes.                                                            |
+| `guard`           | `lit/directives/guard.js`            | Memoize a subtree on dependency array.                                                                      |
+| `cache`           | `lit/directives/cache.js`            | Cache alternate subtrees across conditional swaps.                                                          |
+| `ifDefined`       | `lit/directives/if-defined.js`       | Omit an attribute when the value is `undefined`.                                                            |
+| `live`            | `lit/directives/live.js`             | Bind to the live DOM value (forms where DOM can drift from state).                                          |
+| `ref`             | `lit/directives/ref.js`              | Get a reference to an element — replaces `querySelector` patterns.                                          |
+| `until`           | `lit/directives/until.js`            | Render a placeholder until a promise resolves.                                                              |
+| `asyncAppend`     | `lit/directives/async-append.js`     | Append items from an async iterable.                                                                        |
+| `asyncReplace`    | `lit/directives/async-replace.js`    | Replace content as an async iterable yields.                                                                |
+| `templateContent` | `lit/directives/template-content.js` | Render cloned `<template>` element contents.                                                                |
+| `unsafeHTML`      | `lit/directives/unsafe-html.js`      | Render HTML from a trusted string (audit every use).                                                        |
+| `unsafeSVG`       | `lit/directives/unsafe-svg.js`       | Render SVG from a trusted string (audit every use).                                                         |
+| `unsafeMathml`    | `lit/directives/unsafe-mathml.js`    | Render MathML from a trusted string (audit every use).                                                      |
+
+Canonical docs: https://lit.dev/docs/templates/directives/
+
+Every directive is checked by `ts-lit-plugin` (IDE) and `lit-analyzer`
+CLI (under `npm run test:ci`). A misspelled import path or wrong binding
+sigil fails the lint step.
 
 ---
 
