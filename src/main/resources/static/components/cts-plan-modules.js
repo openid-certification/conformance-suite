@@ -4,6 +4,14 @@ import "./cts-badge.js";
 import "./cts-button.js";
 import "./cts-link-button.js";
 
+// Stable identity key for a module entry. Used both as the repeat() key
+// and as the data-module-key attribute the Run button reads back —
+// keeping them in sync means the click handler resolves to the right
+// module regardless of array order.
+function _moduleKey(mod) {
+  return `${mod.testModule}|${JSON.stringify(mod.variant ?? null)}`;
+}
+
 /**
  * Maps module status/result to badge variant.
  *
@@ -96,8 +104,8 @@ class CtsPlanModules extends LitElement {
   }
 
   _handleRunTest(e) {
-    const index = Number(e.currentTarget.dataset.moduleIndex);
-    const mod = this.modules?.[index];
+    const key = e.currentTarget.dataset.moduleKey;
+    const mod = this.modules?.find((m) => _moduleKey(m) === key);
     if (!mod) return;
     this.dispatchEvent(
       new CustomEvent("cts-run-test", {
@@ -111,7 +119,7 @@ class CtsPlanModules extends LitElement {
   }
 
   _handleDownloadLog(e) {
-    const testId = e.currentTarget.dataset.testId;
+    const testId = e.currentTarget.dataset.instanceId;
     if (!testId) return;
     this.dispatchEvent(
       new CustomEvent("cts-download-log", {
@@ -130,7 +138,7 @@ class CtsPlanModules extends LitElement {
     return !this.isReadonly && !this.isImmutable;
   }
 
-  _renderModuleRow(mod, index) {
+  _renderModuleRow(mod) {
     const lastInstance = this._getLastInstance(mod);
     const variant = statusBadgeVariant(mod.status, mod.result);
     const label = statusLabel(mod.status, mod.result);
@@ -150,7 +158,7 @@ class CtsPlanModules extends LitElement {
               ? html` <cts-button
                   class="startBtn"
                   data-testid="run-test-btn"
-                  data-module-index="${index}"
+                  data-module-key="${_moduleKey(mod)}"
                   variant="light"
                   icon="play-fill"
                   label="Run Test"
@@ -169,7 +177,7 @@ class CtsPlanModules extends LitElement {
                   ></cts-link-button>
                   <cts-button
                     class="downloadBtn"
-                    data-test-id="${lastInstance}"
+                    data-instance-id="${lastInstance}"
                     variant="light"
                     icon="save2"
                     label="Download Logs"
@@ -210,11 +218,7 @@ class CtsPlanModules extends LitElement {
 
     return html`
       <div class="container-fluid" id="planItems">
-        ${repeat(
-          this.modules,
-          (mod) => `${mod.testModule}|${JSON.stringify(mod.variant ?? null)}`,
-          (mod, index) => this._renderModuleRow(mod, index),
-        )}
+        ${repeat(this.modules, _moduleKey, (mod) => this._renderModuleRow(mod))}
       </div>
     `;
   }

@@ -90,7 +90,11 @@ class CtsBatchRunner extends LitElement {
         <div class="row g-2">
           ${repeat(
             this.modules,
-            (mod) => mod.testModule,
+            // testModule alone collides when a plan lists the same module
+            // twice with different variants (TestPlan.java's
+            // `testModulesWithVariants` is a supported shape). Mirror
+            // cts-plan-modules's key by encoding the variant too.
+            (mod) => `${mod.testModule}|${JSON.stringify(mod.variant ?? null)}`,
             (mod) => html`
               <div class="col-md-4 col-lg-3">
                 <div class="card">
