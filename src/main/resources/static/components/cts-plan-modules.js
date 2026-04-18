@@ -1,13 +1,15 @@
 import { LitElement, html, nothing } from "lit";
-import { repeat } from "lit/directives/repeat.js";
 import "./cts-badge.js";
 import "./cts-button.js";
 import "./cts-link-button.js";
 
-// Stable identity key for a module entry. Used both as the repeat() key
-// and as the data-module-key attribute the Run button reads back —
-// keeping them in sync means the click handler resolves to the right
-// module regardless of array order.
+/**
+ * Stable identity key for a module entry. Used as the data-module-key
+ * attribute the Run button reads back so the click handler resolves to
+ * the right module regardless of array order.
+ * @param {object} mod - Plan module with `testModule` and optional `variant`.
+ * @returns {string} Content-derived key (testModule plus serialized variant).
+ */
 function _moduleKey(mod) {
   return `${mod.testModule}|${JSON.stringify(mod.variant ?? null)}`;
 }
@@ -216,11 +218,11 @@ class CtsPlanModules extends LitElement {
       return html`<div class="text-muted text-center p-3">No modules in this plan</div>`;
     }
 
-    return html`
-      <div class="container-fluid" id="planItems">
-        ${repeat(this.modules, _moduleKey, (mod) => this._renderModuleRow(mod))}
-      </div>
-    `;
+    return html` <div class="container-fluid" id="planItems">${this._renderModuleRows()}</div> `;
+  }
+
+  _renderModuleRows() {
+    return this.modules.map((mod) => this._renderModuleRow(mod));
   }
 }
 

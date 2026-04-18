@@ -238,25 +238,7 @@ class CtsTokenManager extends LitElement {
             <th>Delete</th>
           </tr>
         </thead>
-        <tbody>
-          ${this._tokens.map(
-            (token) => html`
-              <tr>
-                <td>${token._id}</td>
-                <td>${this._formatDate(token.expires)}</td>
-                <td>
-                  <button
-                    class="btn btn-sm btn-danger bg-gradient border border-secondary"
-                    data-token-id=${token._id}
-                    @click=${this._handleDeleteClick}
-                  >
-                    Delete
-                  </button>
-                </td>
-              </tr>
-            `,
-          )}
-        </tbody>
+        <tbody>${this._renderTokenRows()}</tbody>
       </table>
     `;
   }
@@ -421,6 +403,26 @@ class CtsTokenManager extends LitElement {
         </div>
       </div>
     `;
+  }
+
+  _renderTokenRows() {
+    return this._tokens.map(
+      (token) => html`
+        <tr>
+          <td>${token._id}</td>
+          <td>${this._formatDate(token.expires)}</td>
+          <td>
+            <button
+              class="btn btn-sm btn-danger bg-gradient border border-secondary"
+              data-token-id=${token._id}
+              @click=${this._handleDeleteClick}
+            >
+              Delete
+            </button>
+          </td>
+        </tr>
+      `,
+    );
   }
 
   render() {

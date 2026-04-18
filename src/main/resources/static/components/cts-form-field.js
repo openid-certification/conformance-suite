@@ -1,5 +1,4 @@
 import { LitElement, html, nothing } from "lit";
-import { repeat } from "lit/directives/repeat.js";
 
 /**
  * Renders a single form input driven by a JSON-schema fragment. Supports
@@ -68,11 +67,7 @@ class CtsFormField extends LitElement {
           @change=${this._handleInput}
         >
           <option value="">Select...</option>
-          ${repeat(
-            fieldEnum,
-            (opt) => opt,
-            (opt) => html`<option value="${opt}" ?selected=${this.value === opt}>${opt}</option>`,
-          )}
+          ${this._renderEnumOptions(fieldEnum)}
         </select>
       `;
     }
@@ -124,6 +119,12 @@ class CtsFormField extends LitElement {
       @input=${this._handleInput}
       placeholder=${description || ""}
     />`;
+  }
+
+  _renderEnumOptions(fieldEnum) {
+    return fieldEnum.map(
+      (opt) => html`<option value="${opt}" ?selected=${this.value === opt}>${opt}</option>`,
+    );
   }
 
   render() {

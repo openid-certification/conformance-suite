@@ -1,5 +1,4 @@
 import { LitElement, html, nothing } from "lit";
-import { repeat } from "lit/directives/repeat.js";
 import "./cts-badge.js";
 import "./cts-modal.js";
 
@@ -143,25 +142,29 @@ class CtsPlanList extends LitElement {
 
   _renderModuleBadges(modules) {
     if (!modules || modules.length === 0) return nothing;
-    return html`
-      <div class="d-flex gap-1 flex-wrap">
-        ${modules.map((mod) => {
-          if (mod.result) {
-            const variant = RESULT_BADGE_VARIANTS[mod.result] || "info";
-            return html`<cts-badge
-              variant="${variant}"
-              label="${mod.testModule}"
-              title="${mod.testModule}: ${mod.result}"
-            ></cts-badge>`;
-          }
-          return html`<cts-badge
-            variant="secondary"
-            label="${mod.testModule}"
-            title="${mod.testModule}: not started"
-          ></cts-badge>`;
-        })}
-      </div>
-    `;
+    return html` <div class="d-flex gap-1 flex-wrap">${this._moduleBadgeList(modules)}</div> `;
+  }
+
+  _moduleBadgeList(modules) {
+    return modules.map((mod) => {
+      if (mod.result) {
+        const variant = RESULT_BADGE_VARIANTS[mod.result] || "info";
+        return html`<cts-badge
+          variant="${variant}"
+          label="${mod.testModule}"
+          title="${mod.testModule}: ${mod.result}"
+        ></cts-badge>`;
+      }
+      return html`<cts-badge
+        variant="secondary"
+        label="${mod.testModule}"
+        title="${mod.testModule}: not started"
+      ></cts-badge>`;
+    });
+  }
+
+  _renderRows(plans) {
+    return plans.map((plan) => this._renderRow(plan));
   }
 
   _renderTable(plans) {
@@ -178,13 +181,7 @@ class CtsPlanList extends LitElement {
             ${this.isAdmin ? html`<th>Owner</th>` : nothing}
           </tr>
         </thead>
-        <tbody>
-          ${repeat(
-            plans,
-            (plan) => plan._id,
-            (plan) => this._renderRow(plan),
-          )}
-        </tbody>
+        <tbody>${this._renderRows(plans)}</tbody>
       </table>
     `;
   }

@@ -85,7 +85,7 @@ class CtsTestSelector extends LitElement {
           <div class="col-md-4">
             <select class="form-select" @change=${this._handleFamilyFilter}>
               <option value="">All specifications</option>
-              ${this._families.map((f) => html`<option value="${f}">${f}</option>`)}
+              ${this._renderFamilyOptions()}
             </select>
           </div>
         </div>
@@ -126,6 +126,10 @@ class CtsTestSelector extends LitElement {
         </div>
       </div>
     `;
+  }
+
+  _renderFamilyOptions() {
+    return this._families.map((f) => html`<option value="${f}">${f}</option>`);
   }
 }
 customElements.define("cts-test-selector", CtsTestSelector);

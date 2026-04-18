@@ -194,21 +194,25 @@ class CtsSpecCascade extends LitElement {
             </div>
             <select id="${selectId}" class="form-select" .value=${value} @change=${changeHandler}>
               <option value="">${placeholder}</option>
-              ${options.map(
-                (opt) => html`
-                  <option
-                    value="${typeof opt === "string" ? opt : opt.value}"
-                    ?selected=${value === (typeof opt === "string" ? opt : opt.value)}
-                  >
-                    ${typeof opt === "string" ? opt : opt.label}
-                  </option>
-                `,
-              )}
+              ${this._renderSelectOptions(options, value)}
             </select>
           </div>
         </div>
       </div>
     `;
+  }
+
+  _renderSelectOptions(options, value) {
+    return options.map(
+      (opt) => html`
+        <option
+          value="${typeof opt === "string" ? opt : opt.value}"
+          ?selected=${value === (typeof opt === "string" ? opt : opt.value)}
+        >
+          ${typeof opt === "string" ? opt : opt.label}
+        </option>
+      `,
+    );
   }
 
   render() {

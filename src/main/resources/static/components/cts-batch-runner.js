@@ -1,5 +1,4 @@
 import { LitElement, html, nothing } from "lit";
-import { repeat } from "lit/directives/repeat.js";
 import "./cts-badge.js";
 
 /**
@@ -87,35 +86,29 @@ class CtsBatchRunner extends LitElement {
               >`
             : nothing}
         </div>
-        <div class="row g-2">
-          ${repeat(
-            this.modules,
-            // testModule alone collides when a plan lists the same module
-            // twice with different variants (TestPlan.java's
-            // `testModulesWithVariants` is a supported shape). Mirror
-            // cts-plan-modules's key by encoding the variant too.
-            (mod) => `${mod.testModule}|${JSON.stringify(mod.variant ?? null)}`,
-            (mod) => html`
-              <div class="col-md-4 col-lg-3">
-                <div class="card">
-                  <div class="card-body p-2">
-                    <div class="d-flex justify-content-between align-items-center">
-                      <small class="text-truncate" title="${mod.testModule}"
-                        >${mod.testModule}</small
-                      >
-                      <cts-badge
-                        variant="${this._moduleVariant(mod)}"
-                        label="${this._moduleResult(mod)}"
-                      ></cts-badge>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            `,
-          )}
-        </div>
+        <div class="row g-2">${this._renderModuleCards()}</div>
       </div>
     `;
+  }
+
+  _renderModuleCards() {
+    return this.modules.map(
+      (mod) => html`
+        <div class="col-md-4 col-lg-3">
+          <div class="card">
+            <div class="card-body p-2">
+              <div class="d-flex justify-content-between align-items-center">
+                <small class="text-truncate" title="${mod.testModule}">${mod.testModule}</small>
+                <cts-badge
+                  variant="${this._moduleVariant(mod)}"
+                  label="${this._moduleResult(mod)}"
+                ></cts-badge>
+              </div>
+            </div>
+          </div>
+        </div>
+      `,
+    );
   }
 }
 customElements.define("cts-batch-runner", CtsBatchRunner);
