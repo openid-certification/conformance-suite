@@ -153,9 +153,18 @@ export default [
       // `createRenderRoot() { return this; }`. Rules that assume shadow DOM
       // or penalize idiomatic light-DOM patterns are downgraded.
       "wc/attach-shadow-constructor": "off",
-      "lit/no-template-map": "warn",
-      "lit/no-template-arrow": "warn",
-      "lit/no-useless-template-literals": "warn",
+
+      // R8/R10 promotion (2026-04-18, plan 2026-04-18-001):
+      // - `lit/no-template-arrow` was previously "warn" globally; the Unit
+      //   3+4 triage refactored every occurrence to the data-* + dataset
+      //   delegation pattern. The rule now stands at preset default "error".
+      // - `lit/no-template-map` was previously "warn" globally; surviving
+      //   occurrences (small static lists where repeat() keying brings no
+      //   benefit, and components importing from the vendor lit bundle that
+      //   doesn't export repeat) are tracked as per-file overrides in R10
+      //   below. New uses outside those scopes are now errors.
+      // - `lit/no-useless-template-literals` had zero baseline findings.
+      //   Removed from the downgrade list; preset default "error" stands.
 
       // R9 — High-catch-rate rules kept explicitly at error, even when the
       // preset already sets them. This is documentation: these are the rules
@@ -167,6 +176,15 @@ export default [
       "lit/no-legacy-template-syntax": "error",
       "lit/no-classfield-shadowing": "error",
       "lit/lifecycle-super": "error",
+      "lit/no-template-arrow": "error",
+      // Promoted 2026-04-18 (plan 2026-04-18-001). Not in
+      // lit/flat-recommended, so without this line a new `.map()` in a
+      // component template would slip through entirely. Per-file overrides
+      // for legacy small-list cases live in R10 below.
+      "lit/no-template-map": "error",
+      // Same story — not in the preset, but useless template literals are an
+      // unambiguous bug class.
+      "lit/no-useless-template-literals": "error",
       "wc/no-constructor-attributes": "error",
       "wc/no-invalid-element-name": "error",
       "wc/no-typos": "error",
@@ -253,14 +271,77 @@ export default [
   //   // scope: <short human description>
   //   { files: [<specific files>], rules: { "<rule>": "warn" } }
   //
-  // Current state (2026-04-17): zero entries. All inline-fixable findings
-  // were addressed in the Unit 5 commit; all remaining findings are
-  // plugin-preset warnings that don't affect CI exit code. When R10 is
-  // pursued more strictly (preset-warn rules elevated to error), this list
-  // is where their per-file exceptions land.
+  // Current state (2026-04-18): 7 entries downgrading `lit/no-template-map`
+  // on a per-file basis. See the R8/R10 promotion comment above. Each entry
+  // names the file scope and a one-line rationale for why repeat() doesn't
+  // help (small lists, full-replace re-render, vendor bundle constraint).
+  // Cleanup IDs use the placeholder `ESLINT-WARN-NN` until a tracker is
+  // chosen; see plan 2026-04-18-001 § "Deferred to Separate Tasks".
   // ---------------------------------------------------------------------------
-  // (Intentionally empty. Add entries here when elevating a preset-warn rule
-  // to error surfaces findings on existing code.)
+
+  // [legacy-override] rule: lit/no-template-map
+  // filed: 2026-04-18, cleanup issue: ESLINT-WARN-01
+  // scope: cts-log-detail-header — RESULT_TYPES badges (5-element module
+  //   constant) and per-failure inline requirements badges (typically 0–3
+  //   items, no stable key beyond the string itself).
+  {
+    files: ["src/main/resources/static/components/cts-log-detail-header.js"],
+    rules: { "lit/no-template-map": "warn" },
+  },
+
+  // [legacy-override] rule: lit/no-template-map
+  // filed: 2026-04-18, cleanup issue: ESLINT-WARN-02
+  // scope: cts-log-entry — per-entry requirements badges (small static list)
+  //   and per-entry "more" panel rows from Object.entries (fixed shape).
+  {
+    files: ["src/main/resources/static/components/cts-log-entry.js"],
+    rules: { "lit/no-template-map": "warn" },
+  },
+
+  // [legacy-override] rule: lit/no-template-map
+  // filed: 2026-04-18, cleanup issue: ESLINT-WARN-03
+  // scope: cts-log-viewer — result-summary badges over Object.entries(counts);
+  //   at most ~6 result types, full re-render every poll cycle.
+  {
+    files: ["src/main/resources/static/components/cts-log-viewer.js"],
+    rules: { "lit/no-template-map": "warn" },
+  },
+
+  // [legacy-override] rule: lit/no-template-map
+  // filed: 2026-04-18, cleanup issue: ESLINT-WARN-04
+  // scope: cts-plan-list — per-plan modules-badges row (typically <20, no
+  //   stable per-badge identity beyond `testModule` name).
+  {
+    files: ["src/main/resources/static/components/cts-plan-list.js"],
+    rules: { "lit/no-template-map": "warn" },
+  },
+
+  // [legacy-override] rule: lit/no-template-map
+  // filed: 2026-04-18, cleanup issue: ESLINT-WARN-05
+  // scope: cts-spec-cascade — small <option> list inside cascading <select>;
+  //   full-replacement re-render, AND vendor lit bundle exposes no repeat().
+  {
+    files: ["src/main/resources/static/components/cts-spec-cascade.js"],
+    rules: { "lit/no-template-map": "warn" },
+  },
+
+  // [legacy-override] rule: lit/no-template-map
+  // filed: 2026-04-18, cleanup issue: ESLINT-WARN-06
+  // scope: cts-test-selector — _families <option> elements (5–10 entries);
+  //   inert text content, full re-render is cheap.
+  {
+    files: ["src/main/resources/static/components/cts-test-selector.js"],
+    rules: { "lit/no-template-map": "warn" },
+  },
+
+  // [legacy-override] rule: lit/no-template-map
+  // filed: 2026-04-18, cleanup issue: ESLINT-WARN-07
+  // scope: cts-token-manager — token rows (user-scoped small list, replaced
+  //   wholesale after every fetch); vendor lit bundle constraint applies.
+  {
+    files: ["src/main/resources/static/components/cts-token-manager.js"],
+    rules: { "lit/no-template-map": "warn" },
+  },
 
   // ---------------------------------------------------------------------------
   // 9. eslint-config-prettier/flat — MUST be last.
