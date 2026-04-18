@@ -110,3 +110,6 @@ devenv.local.nix
 # Frontend dev tooling
 node_modules
 frontend/storybook-static/
+frontend/.npm/
+frontend/test-results/
+frontend/playwright-report/
