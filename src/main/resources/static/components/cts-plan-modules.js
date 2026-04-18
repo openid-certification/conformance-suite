@@ -11,6 +11,8 @@ import "./cts-link-button.js";
  * - FINISHED + PASSED  -> "success"
  * - FINISHED + FAILED  -> "failure"
  * - FINISHED + WARNING -> "warning"
+ * @param status
+ * @param result
  */
 function statusBadgeVariant(status, result) {
   if (!status) return "secondary";
@@ -28,6 +30,11 @@ function statusBadgeVariant(status, result) {
   return "secondary";
 }
 
+/**
+ *
+ * @param status
+ * @param result
+ */
 function statusLabel(status, result) {
   if (!status) return "PENDING";
   if (status === "RUNNING") return "RUNNING";
@@ -39,8 +46,7 @@ function statusLabel(status, result) {
  * Per-module rows for a plan-detail page. Each row shows status/result
  * badges, the test module name and variant, the last test instance, and
  * action buttons (Run / View Logs / Download Logs).
- *
- * @property {Array<Object>} modules - Modules rendered from the plan-detail
+ * @property {Array<object>} modules - Modules rendered from the plan-detail
  *   API response; see cts-plan-detail.stories.js for shape.
  * @property {string} planId - Parent plan ID. Reflects the `plan-id`
  *   attribute.
@@ -50,7 +56,6 @@ function statusLabel(status, result) {
  *   plans. Reflects the `is-immutable` attribute.
  * @property {boolean} isPublic - Appends `&public=true` to log-detail links.
  *   Reflects the `is-public` attribute.
- *
  * @fires cts-run-test - When the Run Test button is clicked, with
  *   `{ detail: { testModule, variant } }`; bubbles.
  * @fires cts-download-log - When the Download Logs button is clicked, with

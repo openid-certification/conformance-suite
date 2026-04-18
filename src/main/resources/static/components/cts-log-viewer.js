@@ -9,7 +9,6 @@ const POLL_INTERVAL_MS = 3000;
  * Polls `/api/log/{testId}` for log entries and renders them via
  * `<cts-log-entry>` children. Supports collapsible blocks and shows a
  * connection-lost banner after repeated fetch failures.
- *
  * @property {string} testId - Test log ID to fetch. Reflects the `test-id`
  *   attribute.
  * @property {boolean} autoScroll - Auto-scroll to the newest entry as rows

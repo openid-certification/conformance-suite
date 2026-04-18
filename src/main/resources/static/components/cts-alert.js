@@ -12,13 +12,11 @@ const VARIANT_CLASSES = {
  *
  * Vanilla HTMLElement — has no `static properties`; attributes are read
  * directly in `connectedCallback`.
- *
  * @property {string} variant - One of: info (default), success, warning,
  *   danger (read from the `variant` attribute).
  * @property {boolean} dismissible - Renders a close button that removes the
  *   alert from the DOM and dispatches `cts-alert-dismissed` (presence of
  *   the `dismissible` attribute).
- *
  * @fires cts-alert-dismissed - When the close button is clicked. The event
  *   bubbles and is composed; the alert removes itself from the DOM
  *   immediately afterward.

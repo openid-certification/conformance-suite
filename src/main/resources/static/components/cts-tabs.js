@@ -5,7 +5,6 @@
  * Semantic container used as a direct child of `<cts-tabs>`. A vanilla
  * HTMLElement — all attributes are consumed by the parent `<cts-tabs>`
  * during its `connectedCallback` restructure pass.
- *
  * @property {string} label - Visible tab label (read from the `label`
  *   attribute by the parent `<cts-tabs>`).
  * @property {string} id - Optional panel id used for the generated
@@ -21,7 +20,6 @@ customElements.define("cts-tab-panel", CtsTabPanel);
  *
  * Vanilla HTMLElement — has no `static properties`; panel metadata comes
  * from attributes on each child `<cts-tab-panel>`.
- *
  * @fires cts-tab-change - When the active tab changes (click or keyboard),
  *   with `{ detail: { id } }` where `id` is the selected panel's id;
  *   bubbles.

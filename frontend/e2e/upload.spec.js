@@ -156,7 +156,7 @@ test.describe("upload.html — Image Uploader", () => {
       el.disabled = false;
     });
 
-    await expect(innerBtn).not.toBeDisabled();
+    await expect(innerBtn).toBeEnabled();
   });
 
   test("server error on initial load surfaces through the errorModal (cts-modal)", async ({

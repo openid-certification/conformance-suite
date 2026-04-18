@@ -4,8 +4,7 @@ import { LitElement, html, nothing } from "lit";
  * Renders the header card for a plan-detail page: plan name, variant, ID,
  * description, version, start time, owner (admin only), and certification
  * profile.
- *
- * @property {Object} plan - Plan object from `/api/plan/{id}`; expects
+ * @property {object} plan - Plan object from `/api/plan/{id}`; expects
  *   `_id`, `planName`, `variant`, `description`, `version`, `started`,
  *   `owner`, `certificationProfileName`, `summary`.
  * @property {boolean} isAdmin - Reveals the Test Owner row. Reflects the

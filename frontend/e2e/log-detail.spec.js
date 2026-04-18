@@ -162,7 +162,7 @@ test.describe("log-detail.html — Log Detail", () => {
 
     // The more info panel should be hidden initially
     const moreInfo = page.locator(".moreInfo").first();
-    await expect(moreInfo).not.toBeVisible();
+    await expect(moreInfo).toBeHidden();
 
     // Click the more button
     await moreBtn.click();
@@ -228,7 +228,7 @@ test.describe("log-detail.html — Log Detail", () => {
 
     // Config modal hidden initially
     const configModal = page.locator("#configModal");
-    await expect(configModal).not.toBeVisible();
+    await expect(configModal).toBeHidden();
 
     // Click config button → modal opens with JSON
     await configBtn.click();
@@ -238,7 +238,7 @@ test.describe("log-detail.html — Log Detail", () => {
 
     // Close modal
     await configModal.locator('[data-bs-dismiss="modal"]').first().click();
-    await expect(configModal).not.toBeVisible();
+    await expect(configModal).toBeHidden();
   });
 
   test("status and result tooltips render on header", async ({ page }) => {
@@ -291,7 +291,7 @@ test.describe("log-detail.html — Log Detail", () => {
 
     // Click again to collapse
     await moreBtn.click();
-    await expect(moreInfo).not.toBeVisible();
+    await expect(moreInfo).toBeHidden();
 
     // Chevron should point down when collapsed
     await expect(moreBtn.locator(".bi-chevron-down")).toBeVisible();

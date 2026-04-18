@@ -10,15 +10,13 @@ const COPY_FEEDBACK_DURATION_MS = 5000;
  * inline panels for view-config, private-link generation, and delete
  * confirmation. Does not perform the actions itself — emits events for the
  * host page to handle.
- *
- * @property {Object} plan - Plan object; expects `_id`, `config`,
+ * @property {object} plan - Plan object; expects `_id`, `config`,
  *   `publish`, `immutable`.
  * @property {boolean} isAdmin - Reveals publish / download-all / make-mutable
  *   actions. Reflects the `is-admin` attribute.
  * @property {boolean} isReadonly - Public view — hides edit, publish,
  *   private-link, certify, and delete actions. Reflects the `is-readonly`
  *   attribute.
- *
  * @fires cts-download-all - When the Download all Logs button is clicked,
  *   with `{ detail: { planId } }`; bubbles.
  * @fires cts-publish - When a Publish button is clicked, with

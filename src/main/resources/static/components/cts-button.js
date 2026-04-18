@@ -4,7 +4,6 @@ import { buildButtonClasses } from "./_button-classes.js";
 /**
  * Bootstrap-styled button. Dispatches a bubbling `cts-click` event in addition
  * to the native click.
- *
  * @property {string} variant - One of: light, info, primary, danger, secondary, success, warning
  * @property {string} size - One of: sm (default), md, lg
  * @property {string} label - Visible text

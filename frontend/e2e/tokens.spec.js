@@ -58,7 +58,7 @@ test.describe("tokens.html — API Tokens", () => {
 
     // Delete button is a <cts-button variant="danger" class="deleteBtn">
     const deleteButtons = page.locator("#tokensListing tbody tr cts-button.deleteBtn");
-    expect(await deleteButtons.count()).toBe(MOCK_TOKENS.length);
+    await expect(deleteButtons).toHaveCount(MOCK_TOKENS.length);
 
     const firstDelete = deleteButtons.first();
     await expect(firstDelete).toHaveAttribute("variant", "danger");

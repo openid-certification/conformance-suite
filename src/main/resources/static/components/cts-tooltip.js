@@ -6,7 +6,6 @@
  *
  * Vanilla HTMLElement — has no `static properties`; attributes are read
  * directly in `connectedCallback`.
- *
  * @property {string} content - Tooltip text (read from the `content`
  *   attribute).
  * @property {string} placement - Tooltip placement (read from the

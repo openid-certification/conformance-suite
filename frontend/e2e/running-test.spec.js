@@ -152,7 +152,7 @@ test.describe("running-test.html — Running Tests", () => {
     await expect(page.locator("#running-tests")).toBeEmpty();
   });
 
-  test("test rows contain View Test Details link and Download button", async ({ page }) => {
+  test("rows contain View Test Details link and Download button", async ({ page }) => {
     await setupFailFast(page);
     await setupCommonRoutes(page);
 

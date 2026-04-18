@@ -84,7 +84,7 @@ test.describe("plan-detail.html — Plan Detail", () => {
 
     // Config modal should be hidden initially
     const configModal = page.locator("#configModal");
-    await expect(configModal).not.toBeVisible();
+    await expect(configModal).toBeHidden();
 
     // Click the config button
     await configBtn.click();
@@ -97,7 +97,7 @@ test.describe("plan-detail.html — Plan Detail", () => {
 
     // Close the modal
     await configModal.locator('[data-bs-dismiss="modal"]').first().click();
-    await expect(configModal).not.toBeVisible();
+    await expect(configModal).toBeHidden();
   });
 
   test("module status badges render with tooltips after /api/info fetch", async ({ page }) => {
@@ -173,7 +173,7 @@ test.describe("plan-detail.html — Plan Detail", () => {
 
     // Confirmation modal should be hidden
     const deleteModal = page.locator("#deletePlanModal");
-    await expect(deleteModal).not.toBeVisible();
+    await expect(deleteModal).toBeHidden();
 
     // Click delete → confirmation modal appears
     await deleteBtn.click();
@@ -182,7 +182,7 @@ test.describe("plan-detail.html — Plan Detail", () => {
 
     // Cancel → modal closes, no API call
     await deleteModal.locator('[data-bs-dismiss="modal"]').first().click();
-    await expect(deleteModal).not.toBeVisible();
+    await expect(deleteModal).toBeHidden();
   });
 
   test("publish button opens confirmation modal with secrets warning (R1)", async ({ page }) => {
@@ -207,7 +207,7 @@ test.describe("plan-detail.html — Plan Detail", () => {
 
     // Modal hidden initially
     const publishModal = page.locator("#publishModal");
-    await expect(publishModal).not.toBeVisible();
+    await expect(publishModal).toBeHidden();
 
     // Click publish → modal opens with secrets warning
     await publishBtn.click();
@@ -307,7 +307,7 @@ test.describe("plan-detail.html — Plan Detail", () => {
     await page.locator("#publishModal").getByRole("button", { name: "Cancel" }).click();
 
     // Modal should close
-    await expect(page.locator("#publishModal")).not.toBeVisible();
+    await expect(page.locator("#publishModal")).toBeHidden();
 
     // No POST should have been made
     expect(publishPostCalled).toBe(false);

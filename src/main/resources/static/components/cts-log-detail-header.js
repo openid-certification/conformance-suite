@@ -20,7 +20,7 @@ const STATUS_BADGE_VARIANTS = {
 const RESULT_TYPES = ["success", "failure", "warning", "review", "info"];
 
 /**
- * @typedef {Object} TestInfo
+ * @typedef {object} TestInfo
  * @property {string} testId - Test instance ID.
  * @property {string} testName - Module class name.
  * @property {string} status - One of: RUNNING, WAITING, FINISHED, INTERRUPTED.
@@ -29,11 +29,11 @@ const RESULT_TYPES = ["success", "failure", "warning", "review", "info"];
  * @property {string} created - ISO timestamp of test creation.
  * @property {string} description - Human-readable description.
  * @property {string} version - Test module version.
- * @property {Object} variant - Variant parameters map.
+ * @property {object} variant - Variant parameters map.
  * @property {string} planId - Parent plan ID, if the test belongs to one.
- * @property {Object} owner - `{ sub, iss }` owner identity (admin only).
- * @property {Object} config - Test configuration JSON.
- * @property {Object} exposed - Values exported by a running test.
+ * @property {object} owner - `{ sub, iss }` owner identity (admin only).
+ * @property {object} config - Test configuration JSON.
+ * @property {object} exposed - Values exported by a running test.
  * @property {string|boolean} publish - Publish mode ("summary", "everything") or falsy.
  * @property {string} summary - Test-level summary shown as an info banner.
  */
@@ -43,14 +43,12 @@ const RESULT_TYPES = ["success", "failure", "warning", "review", "info"];
  * a configuration viewer, a failure summary that deep-links into individual
  * log entries, and action buttons (repeat, upload images, download, publish,
  * start/stop). Does not perform the actions itself — emits events.
- *
  * @property {TestInfo} testInfo - The test info object fetched from
  *   `/api/info`. Reflects the `test-info` attribute when set as a string.
  * @property {boolean} isAdmin - Reveals admin-only rows and actions.
  *   Reflects the `is-admin` attribute.
  * @property {boolean} isPublic - Public (read-only) view hides repeat /
  *   upload / publish actions. Reflects the `is-public` attribute.
- *
  * @fires cts-scroll-to-entry - When a failure-summary item is clicked, with
  *   `{ detail: { entryId } }`; bubbles.
  * @fires cts-repeat-test - When the Repeat Test button is clicked, with

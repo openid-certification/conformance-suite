@@ -5,7 +5,6 @@
  *
  * Vanilla HTMLElement — has no `static properties`; attributes are read
  * directly in `connectedCallback`.
- *
  * @property {string} header - Optional header text (read from the `header`
  *   attribute). When omitted, no header is rendered.
  */
