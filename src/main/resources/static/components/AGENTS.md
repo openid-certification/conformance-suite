@@ -332,7 +332,6 @@ bundle at runtime, so there is no per-directive network cost.
 | `templateContent` | `lit/directives/template-content.js` | Render cloned `<template>` element contents.                                                                |
 | `unsafeHTML`      | `lit/directives/unsafe-html.js`      | Render HTML from a trusted string (audit every use).                                                        |
 | `unsafeSVG`       | `lit/directives/unsafe-svg.js`       | Render SVG from a trusted string (audit every use).                                                         |
-| `unsafeMathml`    | `lit/directives/unsafe-mathml.js`    | Render MathML from a trusted string (audit every use).                                                      |
 
 Canonical docs: https://lit.dev/docs/templates/directives/
 
