@@ -135,6 +135,7 @@ export const BootstrapApiCompat = {
     // getElementById should find the inner .modal div (id transferred from host)
     const modalDiv = document.getElementById("testBackcompat");
     expect(modalDiv).toBeTruthy();
+    if (!modalDiv) throw new Error("testBackcompat modal not found");
     expect(modalDiv.classList.contains("modal")).toBe(true);
 
     // bootstrap.Modal API should work directly
@@ -457,6 +458,7 @@ export const FooterButtonsGetElementById = {
     // Button is reachable via getElementById (critical for JS binding compat)
     const btn = document.getElementById("confirmBtn");
     expect(btn).toBeTruthy();
+    if (!btn) throw new Error("confirmBtn not found");
     expect(btn.textContent).toBe("Confirm");
   },
 };
@@ -470,6 +472,7 @@ export const StaticBackdrop = {
   async play({ canvasElement }) {
     const modalDiv = document.getElementById("testStatic");
     expect(modalDiv).toBeTruthy();
+    if (!modalDiv) throw new Error("testStatic modal not found");
     expect(modalDiv.getAttribute("data-bs-backdrop")).toBe("static");
     expect(modalDiv.getAttribute("data-bs-keyboard")).toBe("false");
 
@@ -601,6 +604,7 @@ export const FooterButtonsOutlineVariantIntact = {
 
     const outlineBtn = document.getElementById("outlineBtn");
     expect(outlineBtn).toBeTruthy();
+    if (!outlineBtn) throw new Error("outlineBtn not found");
     // The outline variant must be preserved — NOT downgraded to btn-light.
     expect(outlineBtn.classList.contains("btn-outline-primary")).toBe(true);
     expect(outlineBtn.classList.contains("btn-light")).toBe(false);
@@ -609,6 +613,7 @@ export const FooterButtonsOutlineVariantIntact = {
     // than silently becoming btn-light. Caller-supplied class is preserved.
     const customBtn = document.getElementById("customBtn");
     expect(customBtn).toBeTruthy();
+    if (!customBtn) throw new Error("customBtn not found");
     expect(customBtn.classList.contains("btn-custom-theme")).toBe(true);
   },
 };
@@ -626,12 +631,13 @@ export const AriaAttributes = {
   async play() {
     const modalDiv = document.getElementById("ariaModal");
     expect(modalDiv).toBeTruthy();
+    if (!modalDiv) throw new Error("ariaModal not found");
     expect(modalDiv.getAttribute("role")).toBe("dialog");
     expect(modalDiv.getAttribute("aria-modal")).toBe("true");
     expect(modalDiv.getAttribute("aria-labelledby")).toBe("ariaModal-title");
     const title = modalDiv.querySelector("#ariaModal-title");
     expect(title).toBeTruthy();
-    expect(title.textContent).toBe("ARIA Test");
+    expect(/** @type {Element} */ (title).textContent).toBe("ARIA Test");
   },
 };
 
@@ -650,9 +656,12 @@ export const EscapeDismissal = {
     </cts-modal>`,
 
   async play({ canvasElement }) {
-    const host = canvasElement.querySelector("cts-modal");
+    const host = /** @type {HTMLElement & { show: () => void; hide: () => void }} */ (
+      canvasElement.querySelector("cts-modal")
+    );
     host.show();
     const dialog = document.getElementById("escapeModal");
+    if (!dialog) throw new Error("escapeModal not found");
     await waitFor(() => expect(dialog.classList.contains("show")).toBe(true));
     // Absent attribute = Bootstrap default (keyboard enabled). The presence
     // of StaticBackdropNoKeyboard's opposite assertion completes the pair.
@@ -675,9 +684,12 @@ export const StaticBackdropNoKeyboard = {
     </cts-modal>`,
 
   async play() {
-    const host = document.body.querySelector("cts-modal");
+    const host = /** @type {HTMLElement & { show: () => void }} */ (
+      document.body.querySelector("cts-modal")
+    );
     host.show();
     const dialog = document.getElementById("staticKbdModal");
+    if (!dialog) throw new Error("staticKbdModal not found");
     await waitFor(() => expect(dialog.classList.contains("show")).toBe(true));
     // Keyboard is explicitly disabled.
     expect(dialog.getAttribute("data-bs-keyboard")).toBe("false");
@@ -714,6 +726,7 @@ export const FocusContract = {
     // The inner modal div must be focusable by Bootstrap's show() logic —
     // tabindex="-1" allows programmatic focus without making it tab-reachable.
     const dialog = document.getElementById("focusModal");
+    if (!dialog) throw new Error("focusModal not found");
     expect(dialog.getAttribute("tabindex")).toBe("-1");
     // And the dialog carries semantic role + aria-modal so screen readers
     // trap virtual focus inside it while it's open.

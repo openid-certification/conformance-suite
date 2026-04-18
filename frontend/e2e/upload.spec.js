@@ -153,7 +153,7 @@ test.describe("upload.html — Image Uploader", () => {
     // queried cts-button element. Simulate that path directly (Lit re-renders
     // the inner <button> accordingly).
     await uploadBtn.evaluate((el) => {
-      el.disabled = false;
+      /** @type {HTMLElement & { disabled?: boolean }} */ (el).disabled = false;
     });
 
     await expect(innerBtn).toBeEnabled();

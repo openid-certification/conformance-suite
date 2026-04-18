@@ -309,11 +309,13 @@ export const ClickMoreHttpRequest = {
     const moreBtn = canvas.getByText("More");
     await moreBtn.click();
 
+    /** @type {Element | null | undefined} */
     let moreInfo;
     await waitFor(() => {
       moreInfo = canvasElement.querySelector(".moreInfo");
       expect(moreInfo).toBeTruthy();
     });
+    if (!moreInfo) throw new Error(".moreInfo did not appear");
 
     // Revealed content includes method, URL substring, and a header key
     const revealedText = moreInfo.textContent;
@@ -344,11 +346,13 @@ export const ClickMoreHttpResponse = {
     const moreBtn = canvas.getByText("More");
     await moreBtn.click();
 
+    /** @type {Element | null | undefined} */
     let moreInfo;
     await waitFor(() => {
       moreInfo = canvasElement.querySelector(".moreInfo");
       expect(moreInfo).toBeTruthy();
     });
+    if (!moreInfo) throw new Error(".moreInfo did not appear");
 
     // Revealed content includes status code and a body field
     const revealedText = moreInfo.textContent;

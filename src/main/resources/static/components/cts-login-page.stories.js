@@ -31,24 +31,30 @@ export const Default = {
     // Google OAuth button renders with correct href
     const googleBtn = canvas.getByText("Proceed with Google");
     expect(googleBtn).toBeInTheDocument();
-    expect(googleBtn.closest("a").getAttribute("href")).toBe("/oauth2/authorization/google");
-    expect(googleBtn.closest("a").classList.contains("btn-danger")).toBe(true);
+    const googleAnchor = /** @type {HTMLAnchorElement} */ (googleBtn.closest("a"));
+    expect(googleAnchor.getAttribute("href")).toBe("/oauth2/authorization/google");
+    expect(googleAnchor.classList.contains("btn-danger")).toBe(true);
 
     // GitLab OAuth button renders with correct href
     const gitlabBtn = canvas.getByText("Proceed with GitLab");
     expect(gitlabBtn).toBeInTheDocument();
-    expect(gitlabBtn.closest("a").getAttribute("href")).toBe("/oauth2/authorization/gitlab");
-    expect(gitlabBtn.closest("a").classList.contains("btn-primary")).toBe(true);
+    const gitlabAnchor = /** @type {HTMLAnchorElement} */ (gitlabBtn.closest("a"));
+    expect(gitlabAnchor.getAttribute("href")).toBe("/oauth2/authorization/gitlab");
+    expect(gitlabAnchor.classList.contains("btn-primary")).toBe(true);
 
     // Public links present
     expect(canvas.getByText("View published logs")).toBeInTheDocument();
     expect(canvas.getByText("View published plans")).toBeInTheDocument();
 
     // Public links have correct hrefs
-    const logsLink = canvas.getByText("View published logs").closest("a");
+    const logsLink = /** @type {HTMLAnchorElement} */ (
+      canvas.getByText("View published logs").closest("a")
+    );
     expect(logsLink.getAttribute("href")).toBe("logs.html?public=true");
 
-    const plansLink = canvas.getByText("View published plans").closest("a");
+    const plansLink = /** @type {HTMLAnchorElement} */ (
+      canvas.getByText("View published plans").closest("a")
+    );
     expect(plansLink.getAttribute("href")).toBe("plans.html?public=true");
 
     // No error or logout messages visible
@@ -82,7 +88,7 @@ export const WithError = {
     // Error details are in the dedicated span
     const details = alert.querySelector(".error-details");
     expect(details).toBeTruthy();
-    expect(details.textContent).toBe("Invalid credentials");
+    expect(/** @type {Element} */ (details).textContent).toBe("Invalid credentials");
 
     // No logout message
     expect(canvas.queryByRole("status")).toBeNull();

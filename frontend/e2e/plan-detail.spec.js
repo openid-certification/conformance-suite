@@ -266,7 +266,7 @@ test.describe("plan-detail.html — Plan Detail", () => {
 
     // Verify POST was sent with correct body
     const req = await publishRequest;
-    expect(JSON.parse(req.postData())).toEqual({ publish: "everything" });
+    expect(JSON.parse(req.postData() || "")).toEqual({ publish: "everything" });
 
     // Should navigate to public view
     await page.waitForURL("**/plan-detail.html?plan=plan-abc-123&public=true");

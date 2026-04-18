@@ -119,7 +119,8 @@ export const PersistentFailureBanner = {
       const banner = canvasElement.querySelector('[data-testid="log-viewer-error"]');
       expect(banner.getAttribute("aria-live")).toBe("polite");
     } finally {
-      if (window.fetch.__realFetch) window.fetch = window.fetch.__realFetch;
+      const patched = /** @type {typeof fetch & { __realFetch?: typeof fetch }} */ (window.fetch);
+      if (patched.__realFetch) window.fetch = patched.__realFetch;
       delete window.__ctsLogViewerFetchState;
     }
   },
@@ -161,7 +162,8 @@ export const RecoveryClearsBanner = {
         { timeout: 2000 },
       );
     } finally {
-      if (window.fetch.__realFetch) window.fetch = window.fetch.__realFetch;
+      const patched = /** @type {typeof fetch & { __realFetch?: typeof fetch }} */ (window.fetch);
+      if (patched.__realFetch) window.fetch = patched.__realFetch;
       delete window.__ctsLogViewerFetchState;
     }
   },
@@ -205,7 +207,8 @@ export const DisconnectStopsPolling = {
       // At most one in-flight poll may finish after remove(); we allow +1.
       expect(state.callCount).toBeLessThanOrEqual(countAtDisconnect + 1);
     } finally {
-      if (window.fetch.__realFetch) window.fetch = window.fetch.__realFetch;
+      const patched = /** @type {typeof fetch & { __realFetch?: typeof fetch }} */ (window.fetch);
+      if (patched.__realFetch) window.fetch = patched.__realFetch;
       delete window.__ctsLogViewerFetchState;
     }
   },

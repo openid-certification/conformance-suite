@@ -49,9 +49,10 @@ export const FamilyFilter = {
 export const SelectPlan = {
   render: () => html`<cts-test-selector .plans=${MOCK_PLANS}></cts-test-selector>`,
   async play({ canvasElement }) {
+    /** @type {any} */
     let selectedPlan = null;
     canvasElement.addEventListener("cts-plan-select", (e) => {
-      selectedPlan = e.detail.plan;
+      selectedPlan = /** @type {CustomEvent} */ (e).detail.plan;
     });
     const items = canvasElement.querySelectorAll(".list-group-item-action");
     await userEvent.click(items[1]);

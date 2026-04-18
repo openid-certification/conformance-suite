@@ -187,7 +187,7 @@ class CtsModal extends HTMLElement {
       }
       return parsed;
     } catch (e) {
-      console.warn("cts-modal: malformed footer-buttons JSON:", e.message);
+      console.warn("cts-modal: malformed footer-buttons JSON:", e instanceof Error ? e.message : e);
       return null;
     }
   }

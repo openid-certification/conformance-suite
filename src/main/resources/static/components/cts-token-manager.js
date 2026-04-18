@@ -67,7 +67,7 @@ class CtsTokenManager extends LitElement {
       }
       this._tokens = await response.json();
     } catch (err) {
-      this._error = err.message || "Failed to load tokens";
+      this._error = (err instanceof Error && err.message) || "Failed to load tokens";
       this._tokens = [];
     } finally {
       this._loading = false;
@@ -101,7 +101,7 @@ class CtsTokenManager extends LitElement {
       this._showCreated = true;
       await this._fetchTokens();
     } catch (err) {
-      this._error = err.message || "Failed to create token";
+      this._error = (err instanceof Error && err.message) || "Failed to create token";
       this._showError = true;
     }
   }
@@ -117,7 +117,7 @@ class CtsTokenManager extends LitElement {
       }
       await this._fetchTokens();
     } catch (err) {
-      this._error = err.message || "Failed to delete token";
+      this._error = (err instanceof Error && err.message) || "Failed to delete token";
       this._showError = true;
     }
   }

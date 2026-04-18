@@ -91,11 +91,11 @@ class CtsTabs extends HTMLElement {
       tab.setAttribute("aria-selected", isSelected ? "true" : "false");
       tab.setAttribute("tabindex", isSelected ? "0" : "-1");
       tab.classList.toggle("active", isSelected);
-      if (isSelected) tab.focus();
+      if (isSelected) /** @type {HTMLElement} */ (tab).focus();
     });
 
     allPanels.forEach((panel) => {
-      panel.hidden = panel.getAttribute("aria-labelledby") !== tabId;
+      /** @type {HTMLElement} */ (panel).hidden = panel.getAttribute("aria-labelledby") !== tabId;
     });
 
     // Fire change event with original panel id

@@ -66,7 +66,7 @@ class CtsPlanList extends LitElement {
       }
       this._plans = await response.json();
     } catch (err) {
-      this._error = err.message;
+      this._error = err instanceof Error ? err.message : String(err);
       this._plans = [];
     } finally {
       this._loading = false;
@@ -91,7 +91,9 @@ class CtsPlanList extends LitElement {
     this._selectedConfig = plan.config;
     this._selectedPlanId = plan._id;
     this.updateComplete.then(() => {
-      const modal = this.querySelector("#planConfigModal");
+      const modal = /** @type {HTMLElement & { show?: () => void }} */ (
+        this.querySelector("#planConfigModal")
+      );
       if (modal && typeof modal.show === "function") modal.show();
     });
   }

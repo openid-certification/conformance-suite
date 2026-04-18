@@ -202,9 +202,10 @@ export const ChangeEvent = {
     ></cts-form-field>
   `,
   async play({ canvasElement }) {
+    /** @type {any} */
     let receivedEvent = null;
     canvasElement.addEventListener("cts-field-change", (e) => {
-      receivedEvent = e.detail;
+      receivedEvent = /** @type {CustomEvent} */ (e).detail;
     });
     const input = canvasElement.querySelector("input");
     await userEvent.type(input, "https://example.com");

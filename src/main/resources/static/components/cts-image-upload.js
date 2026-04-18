@@ -71,7 +71,8 @@ class CtsImageUpload extends LitElement {
 
     const reader = new FileReader();
     reader.onload = (evt) => {
-      this._previews = { ...this._previews, [imageName]: evt.target.result };
+      const target = /** @type {FileReader} */ (evt.target);
+      this._previews = { ...this._previews, [imageName]: target.result };
     };
     reader.readAsDataURL(file);
   }
@@ -118,7 +119,7 @@ class CtsImageUpload extends LitElement {
         }),
       );
     } catch (err) {
-      this._error = err.message || "Upload failed";
+      this._error = (err instanceof Error && err.message) || "Upload failed";
     } finally {
       this._uploading = false;
     }

@@ -1,0 +1,37 @@
+{
+  "compilerOptions": {
+    "allowJs": true,
+    "checkJs": true,
+    "noEmit": true,
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "strict": true,
+    "noImplicitAny": false,
+    "skipLibCheck": true,
+    "types": ["vitest/globals"],
+    "paths": {
+      "@fixtures/*": ["./stories/fixtures/*"],
+      "lit": ["./node_modules/lit"],
+      "lit/*": ["./node_modules/lit/*"],
+      "storybook/test": ["./node_modules/storybook/dist/test/index.d.ts"],
+      "msw": ["./node_modules/msw"],
+      "msw/*": ["./node_modules/msw/*"]
+    }
+  },
+  "include": ["**/*.js", "globals.d.ts", "../src/main/resources/static/components/**/*.js"],
+  "exclude": [
+    "node_modules",
+    "test-results",
+    "playwright-report",
+    "storybook-static",
+    ".vite",
+    "e2e/**",
+    ".storybook/**",
+    "playwright.config.js",
+    "vitest.config.js",
+    "public/mockServiceWorker.js",
+    "**/*.min.js"
+  ]
+}
