@@ -1,4 +1,7 @@
 import { LitElement, html, nothing } from "lit";
+import { classMap } from "lit/directives/class-map.js";
+import { repeat } from "lit/directives/repeat.js";
+import { when } from "lit/directives/when.js";
 
 const NAV_LINKS = [
   { page: "home", label: "Home", href: "index.html" },
@@ -85,11 +88,21 @@ class CtsNavbar extends LitElement {
           (link) => link.page !== "tokens" || (!this._user.isAdmin && !this._user.isGuest),
         )
       : links;
+    // Prefix key by list context so `api-docs` (present in both NAV_LINKS and
+    // PUBLIC_NAV_LINKS) does not reuse DOM across an auth-state flip.
+    const keyPrefix = this._user ? "auth" : "pub";
 
-    return filteredLinks.map(
+    return repeat(
+      filteredLinks,
+      (link) => `${keyPrefix}:${link.page}`,
       (link) => html`
         <li class="nav-item">
-          <a class="nav-link${this.currentPage === link.page ? " active" : ""}" href="${link.href}"
+          <a
+            class=${classMap({
+              "nav-link": true,
+              active: this.currentPage === link.page,
+            })}
+            href="${link.href}"
             >${link.label}</a
           >
         </li>
@@ -107,7 +120,7 @@ class CtsNavbar extends LitElement {
       <div class="d-flex align-items-center">
         <span class="navbar-text me-2">
           Logged in as
-          ${this._user.isAdmin ? html`<small class="badge bg-danger ms-1">ADMIN</small>` : nothing}
+          ${when(this._user.isAdmin, () => html`<small class="badge bg-danger ms-1">ADMIN</small>`)}
           <span
             class="text-primary ms-1"
             data-bs-toggle="tooltip"
@@ -116,13 +129,15 @@ class CtsNavbar extends LitElement {
             >${this._user.displayName}</span
           >
         </span>
-        ${!this._user.isAdmin && !this._user.isGuest
-          ? html`<a
+        ${when(
+          !this._user.isAdmin && !this._user.isGuest,
+          () =>
+            html`<a
               class="btn btn-sm btn-light bg-gradient border border-secondary me-2"
               href="tokens.html"
               >Tokens</a
-            >`
-          : nothing}
+            >`,
+        )}
         <form action="/logout" method="post" class="d-inline">
           <input
             type="submit"
