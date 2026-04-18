@@ -1,4 +1,5 @@
 import { LitElement, html, nothing } from "lit";
+import { repeat } from "lit/directives/repeat.js";
 import "./cts-badge.js";
 import "./cts-button.js";
 import "./cts-link-button.js";
@@ -11,8 +12,11 @@ import "./cts-link-button.js";
  * - FINISHED + PASSED  -> "success"
  * - FINISHED + FAILED  -> "failure"
  * - FINISHED + WARNING -> "warning"
- * @param status
- * @param result
+ * @param {string|null} status - Module status: null, "RUNNING", or "FINISHED".
+ * @param {string|null} result - Module result when status is "FINISHED":
+ *   "PASSED", "FAILED", "WARNING", "REVIEW", "SKIPPED", or null.
+ * @returns {string} Badge variant name (e.g. "success", "failure",
+ *   "warning", "info", "secondary").
  */
 function statusBadgeVariant(status, result) {
   if (!status) return "secondary";
@@ -31,9 +35,10 @@ function statusBadgeVariant(status, result) {
 }
 
 /**
- *
- * @param status
- * @param result
+ * Maps module status/result to a human-readable badge label.
+ * @param {string|null} status - Module status: null, "RUNNING", or "FINISHED".
+ * @param {string|null} result - Module result when status is "FINISHED".
+ * @returns {string} Display label (e.g. "PENDING", "RUNNING", "PASSED").
  */
 function statusLabel(status, result) {
   if (!status) return "PENDING";
@@ -90,7 +95,10 @@ class CtsPlanModules extends LitElement {
       .join(", ");
   }
 
-  _handleRunTest(mod) {
+  _handleRunTest(e) {
+    const index = Number(e.currentTarget.dataset.moduleIndex);
+    const mod = this.modules?.[index];
+    if (!mod) return;
     this.dispatchEvent(
       new CustomEvent("cts-run-test", {
         bubbles: true,
@@ -102,7 +110,9 @@ class CtsPlanModules extends LitElement {
     );
   }
 
-  _handleDownloadLog(testId) {
+  _handleDownloadLog(e) {
+    const testId = e.currentTarget.dataset.testId;
+    if (!testId) return;
     this.dispatchEvent(
       new CustomEvent("cts-download-log", {
         bubbles: true,
@@ -120,7 +130,7 @@ class CtsPlanModules extends LitElement {
     return !this.isReadonly && !this.isImmutable;
   }
 
-  _renderModuleRow(mod) {
+  _renderModuleRow(mod, index) {
     const lastInstance = this._getLastInstance(mod);
     const variant = statusBadgeVariant(mod.status, mod.result);
     const label = statusLabel(mod.status, mod.result);
@@ -140,11 +150,12 @@ class CtsPlanModules extends LitElement {
               ? html` <cts-button
                   class="startBtn"
                   data-testid="run-test-btn"
+                  data-module-index="${index}"
                   variant="light"
                   icon="play-fill"
                   label="Run Test"
                   full-width
-                  @cts-click=${() => this._handleRunTest(mod)}
+                  @cts-click=${this._handleRunTest}
                 ></cts-button>`
               : nothing}
             ${lastInstance
@@ -158,11 +169,12 @@ class CtsPlanModules extends LitElement {
                   ></cts-link-button>
                   <cts-button
                     class="downloadBtn"
+                    data-test-id="${lastInstance}"
                     variant="light"
                     icon="save2"
                     label="Download Logs"
                     full-width
-                    @cts-click=${() => this._handleDownloadLog(lastInstance)}
+                    @cts-click=${this._handleDownloadLog}
                   ></cts-button>`
               : nothing}
           </div>
@@ -198,7 +210,11 @@ class CtsPlanModules extends LitElement {
 
     return html`
       <div class="container-fluid" id="planItems">
-        ${this.modules.map((mod) => this._renderModuleRow(mod))}
+        ${repeat(
+          this.modules,
+          (mod) => `${mod.testModule}|${JSON.stringify(mod.variant ?? null)}`,
+          (mod, index) => this._renderModuleRow(mod, index),
+        )}
       </div>
     `;
   }

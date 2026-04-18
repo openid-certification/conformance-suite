@@ -195,7 +195,7 @@ class CtsModal extends HTMLElement {
   /**
    * Create a button element from a descriptor object.
    * @param {object} desc - Button descriptor
-   * @returns {HTMLButtonElement}
+   * @returns {HTMLButtonElement} Button element ready to append to the modal footer
    */
   static _createButton(desc) {
     const btn = document.createElement("button");
@@ -261,8 +261,8 @@ class CtsModal extends HTMLElement {
    * Validate an icon name from a footer-buttons descriptor. Returns the name
    * if it matches `[a-z0-9-]+`, otherwise null. Descriptor JSON is
    * caller-supplied string data; this guard prevents HTML/class injection.
-   * @param {unknown} raw
-   * @returns {string|null}
+   * @param {unknown} raw - Caller-supplied icon-name value from a descriptor
+   * @returns {string|null} The validated icon name, or null when invalid or empty
    */
   static _sanitizeIconName(raw) {
     if (typeof raw !== "string" || !raw) return null;
