@@ -1,0 +1,14 @@
+# Legacy static assets (not migrated to the component-refactor tree)
+../src/main/resources/static/vendor/**
+../src/main/resources/static/js/fapi.ui.js
+../src/main/resources/static/*.html
+../src/main/resources/static/css/**
+
+# Generated / tooling output
+node_modules/
+test-results/
+playwright-report/
+storybook-static/
+.vite/
+public/mockServiceWorker.js
+**/*.min.js
