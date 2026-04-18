@@ -110,10 +110,9 @@ class CtsTokenManager extends LitElement {
   async _deleteToken(tokenId) {
     this._error = "";
     try {
-      const response = await fetch(
-        "/api/token/" + encodeURIComponent(tokenId),
-        { method: "DELETE" },
-      );
+      const response = await fetch("/api/token/" + encodeURIComponent(tokenId), {
+        method: "DELETE",
+      });
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
@@ -153,18 +152,14 @@ class CtsTokenManager extends LitElement {
   async _copyToken() {
     if (!this._createdToken) return;
     if (!navigator.clipboard) {
-      this._showCopyFeedback(
-        "Clipboard not available — please select the token text manually.",
-      );
+      this._showCopyFeedback("Clipboard not available — please select the token text manually.");
       return;
     }
     try {
       await navigator.clipboard.writeText(this._createdToken);
     } catch (err) {
       console.warn("[cts-token-manager] clipboard.writeText failed:", err);
-      this._showCopyFeedback(
-        "Copy failed — please select the token text manually.",
-      );
+      this._showCopyFeedback("Copy failed — please select the token text manually.");
     }
   }
 
@@ -197,8 +192,7 @@ class CtsTokenManager extends LitElement {
         <div class="row">
           <div class="col-md-12">
             <p class="admin-message">
-              Admin users cannot create tokens - please login as a non-admin
-              user.
+              Admin users cannot create tokens - please login as a non-admin user.
             </p>
           </div>
         </div>
@@ -220,16 +214,11 @@ class CtsTokenManager extends LitElement {
 
   _renderTokenTable() {
     if (this._tokens.length === 0) {
-      return html`<p class="no-tokens-message">
-        No tokens have been created yet.
-      </p>`;
+      return html`<p class="no-tokens-message"> No tokens have been created yet. </p>`;
     }
 
     return html`
-      <table
-        class="table table-striped table-bordered table-hover"
-        id="tokensListing"
-      >
+      <table class="table table-striped table-bordered table-hover" id="tokensListing">
         <thead>
           <tr>
             <th>Token ID</th>
@@ -289,12 +278,7 @@ class CtsTokenManager extends LitElement {
     if (!this._showCreated) return nothing;
 
     return html`
-      <div
-        class="modal-backdrop-lite"
-        role="dialog"
-        aria-label="Token created"
-        aria-modal="true"
-      >
+      <div class="modal-backdrop-lite" role="dialog" aria-label="Token created" aria-modal="true">
         <div class="modal d-block" tabindex="-1">
           <div class="modal-dialog modal-lg">
             <div class="modal-content">
@@ -327,10 +311,7 @@ class CtsTokenManager extends LitElement {
                         >`
                       : nothing}
                   </p>
-                  <p>
-                    Here is your new token. This value will only be displayed
-                    once.
-                  </p>
+                  <p> Here is your new token. This value will only be displayed once. </p>
                   <pre class="created-token-value">${this._createdToken}</pre>
                 </div>
               </div>
@@ -354,12 +335,7 @@ class CtsTokenManager extends LitElement {
     if (!this._showDelete) return nothing;
 
     return html`
-      <div
-        class="modal-backdrop-lite"
-        role="dialog"
-        aria-label="Delete token"
-        aria-modal="true"
-      >
+      <div class="modal-backdrop-lite" role="dialog" aria-label="Delete token" aria-modal="true">
         <div class="modal d-block" tabindex="-1">
           <div class="modal-dialog">
             <div class="modal-content">
@@ -373,9 +349,7 @@ class CtsTokenManager extends LitElement {
                 ></button>
               </div>
               <div class="modal-body">
-                <p>
-                  Are you sure? This will permanently remove this token.
-                </p>
+                <p> Are you sure? This will permanently remove this token. </p>
               </div>
               <div class="modal-footer">
                 <button
@@ -404,12 +378,7 @@ class CtsTokenManager extends LitElement {
     if (!this._showError) return nothing;
 
     return html`
-      <div
-        class="modal-backdrop-lite"
-        role="dialog"
-        aria-label="Error"
-        aria-modal="true"
-      >
+      <div class="modal-backdrop-lite" role="dialog" aria-label="Error" aria-modal="true">
         <div class="modal d-block" tabindex="-1">
           <div class="modal-dialog">
             <div class="modal-content">
@@ -453,13 +422,10 @@ class CtsTokenManager extends LitElement {
     return html`
       <div class="container-fluid">
         <div class="row">
-          <div class="col-md-12">
-            ${this._renderCreateButtons()} ${this._renderTokenTable()}
-          </div>
+          <div class="col-md-12"> ${this._renderCreateButtons()} ${this._renderTokenTable()} </div>
         </div>
       </div>
-      ${this._renderCreatedModal()} ${this._renderDeleteModal()}
-      ${this._renderErrorModal()}
+      ${this._renderCreatedModal()} ${this._renderDeleteModal()} ${this._renderErrorModal()}
     `;
   }
 }

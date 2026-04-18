@@ -126,7 +126,12 @@ export const MOCK_PLAN_LIST = [
     owner: { sub: "12345", iss: "https://accounts.google.com" },
     modules: [
       { testModule: "oidcc-server", instances: ["inst-001"], status: "FINISHED", result: "PASSED" },
-      { testModule: "oidcc-server-rotate-keys", instances: ["inst-002"], status: "FINISHED", result: "WARNING" },
+      {
+        testModule: "oidcc-server-rotate-keys",
+        instances: ["inst-002"],
+        status: "FINISHED",
+        result: "WARNING",
+      },
       { testModule: "oidcc-codereuse", instances: [], status: null, result: null },
     ],
     config: { "server.issuer": "https://op.example.com" },
@@ -141,8 +146,18 @@ export const MOCK_PLAN_LIST = [
     started: new Date(NOW - DAY_MS).toISOString(),
     owner: { sub: "12345", iss: "https://accounts.google.com" },
     modules: [
-      { testModule: "fapi2-security-profile-happy-flow", instances: ["inst-003"], status: "FINISHED", result: "PASSED" },
-      { testModule: "fapi2-security-profile-ensure-signed-request", instances: ["inst-004"], status: "FINISHED", result: "FAILED" },
+      {
+        testModule: "fapi2-security-profile-happy-flow",
+        instances: ["inst-003"],
+        status: "FINISHED",
+        result: "PASSED",
+      },
+      {
+        testModule: "fapi2-security-profile-ensure-signed-request",
+        instances: ["inst-004"],
+        status: "FINISHED",
+        result: "FAILED",
+      },
     ],
     config: { "server.issuer": "https://fapi.example.com" },
     publish: "summary",
@@ -156,7 +171,12 @@ export const MOCK_PLAN_LIST = [
     started: new Date(NOW - 5 * DAY_MS).toISOString(),
     owner: { sub: "admin-001", iss: "https://accounts.google.com" },
     modules: [
-      { testModule: "oidcc-server-implicit", instances: ["inst-005"], status: "FINISHED", result: "PASSED" },
+      {
+        testModule: "oidcc-server-implicit",
+        instances: ["inst-005"],
+        status: "FINISHED",
+        result: "PASSED",
+      },
     ],
     config: { "server.issuer": "https://implicit.example.com" },
     publish: "everything",

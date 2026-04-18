@@ -13,9 +13,7 @@ let started = false;
 async function mswLoader(context) {
   const { parameters } = context;
   const handlers = parameters?.msw?.handlers ?? [];
-  const handlerArray = Array.isArray(handlers)
-    ? handlers
-    : Object.values(handlers).flat();
+  const handlerArray = Array.isArray(handlers) ? handlers : Object.values(handlers).flat();
 
   if (!started) {
     await worker.start({ onUnhandledRequest: "bypass", quiet: true });

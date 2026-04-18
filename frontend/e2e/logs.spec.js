@@ -1,5 +1,10 @@
 import { test, expect } from "@playwright/test";
-import { setupCommonRoutes, setupFailFast, wrapDataTablesResponse, expectNoUnmockedCalls } from "./helpers/routes.js";
+import {
+  setupCommonRoutes,
+  setupFailFast,
+  wrapDataTablesResponse,
+  expectNoUnmockedCalls,
+} from "./helpers/routes.js";
 import { MOCK_LOG_LIST } from "./fixtures/mock-log-list.js";
 
 test.describe("logs.html — Logs List", () => {
@@ -12,10 +17,7 @@ test.describe("logs.html — Logs List", () => {
 
     // /api/log — DataTables server-side endpoint
     await page.route("**/api/log?*", (route) => {
-      const envelope = wrapDataTablesResponse(
-        MOCK_LOG_LIST,
-        route.request().url(),
-      );
+      const envelope = wrapDataTablesResponse(MOCK_LOG_LIST, route.request().url());
       return route.fulfill({
         status: 200,
         contentType: "application/json",
@@ -43,10 +45,7 @@ test.describe("logs.html — Logs List", () => {
     await setupFailFast(page);
 
     await page.route("**/api/log?*", (route) => {
-      const envelope = wrapDataTablesResponse(
-        MOCK_LOG_LIST,
-        route.request().url(),
-      );
+      const envelope = wrapDataTablesResponse(MOCK_LOG_LIST, route.request().url());
       return route.fulfill({
         status: 200,
         contentType: "application/json",
@@ -65,8 +64,8 @@ test.describe("logs.html — Logs List", () => {
     // action so the listener is active when the request fires
     const searchInput = page.locator("div.dataTables_filter input");
     await searchInput.fill("rotate-keys");
-    const searchRequest = page.waitForRequest((req) =>
-      req.url().includes("/api/log?") && req.url().includes("search=rotate-keys"),
+    const searchRequest = page.waitForRequest(
+      (req) => req.url().includes("/api/log?") && req.url().includes("search=rotate-keys"),
     );
     await searchInput.press("Enter");
     await searchRequest;
@@ -76,10 +75,7 @@ test.describe("logs.html — Logs List", () => {
     await setupFailFast(page);
 
     await page.route("**/api/log?*", (route) => {
-      const envelope = wrapDataTablesResponse(
-        MOCK_LOG_LIST,
-        route.request().url(),
-      );
+      const envelope = wrapDataTablesResponse(MOCK_LOG_LIST, route.request().url());
       return route.fulfill({
         status: 200,
         contentType: "application/json",

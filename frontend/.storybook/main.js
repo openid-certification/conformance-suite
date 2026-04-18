@@ -21,10 +21,7 @@ export default defineMain({
   // Vite can't resolve bare imports from there, so we alias them to frontend/node_modules.
   viteFinal(viteConfig) {
     viteConfig.resolve = viteConfig.resolve || {};
-    viteConfig.resolve.dedupe = [
-      ...(viteConfig.resolve.dedupe || []),
-      "lit",
-    ];
+    viteConfig.resolve.dedupe = [...(viteConfig.resolve.dedupe || []), "lit"];
     viteConfig.resolve.alias = {
       ...(viteConfig.resolve.alias || {}),
       // Resolve bare "lit" imports from components outside the Vite root
@@ -40,10 +37,7 @@ export default defineMain({
     // in src/main/resources/static/, outside the frontend/ Vite root)
     viteConfig.server = viteConfig.server || {};
     viteConfig.server.fs = viteConfig.server.fs || {};
-    viteConfig.server.fs.allow = [
-      ...(viteConfig.server.fs.allow || []),
-      join(here, "..", ".."),
-    ];
+    viteConfig.server.fs.allow = [...(viteConfig.server.fs.allow || []), join(here, "..", "..")];
     // Pre-bundle storybook/test so Vite resolves the CJS/ESM boundary correctly
     viteConfig.optimizeDeps = viteConfig.optimizeDeps || {};
     viteConfig.optimizeDeps.include = [

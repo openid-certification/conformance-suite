@@ -14,9 +14,7 @@ export default {
 export const Default = {
   parameters: {
     msw: {
-      handlers: [
-        http.get("/api/token", () => HttpResponse.json(MOCK_TOKENS)),
-      ],
+      handlers: [http.get("/api/token", () => HttpResponse.json(MOCK_TOKENS))],
     },
   },
   render: () => html`<cts-token-manager></cts-token-manager>`,
@@ -51,9 +49,7 @@ export const Default = {
     expect(canvas.getByText("New permanent token")).toBeInTheDocument();
 
     // Delete buttons in each row
-    const deleteButtons = canvasElement.querySelectorAll(
-      "table .btn-danger",
-    );
+    const deleteButtons = canvasElement.querySelectorAll("table .btn-danger");
     expect(deleteButtons.length).toBe(3);
   },
 };
@@ -98,9 +94,7 @@ export const CreateTemporaryToken = {
     // Modal shows the created token value
     await waitFor(() => {
       expect(
-        canvas.getByText(
-          "Here is your new token. This value will only be displayed once.",
-        ),
+        canvas.getByText("Here is your new token. This value will only be displayed once."),
       ).toBeInTheDocument();
     });
 
@@ -143,9 +137,7 @@ export const CreatePermanentToken = {
     // Modal shows the created token
     await waitFor(() => {
       expect(
-        canvas.getByText(
-          "Here is your new token. This value will only be displayed once.",
-        ),
+        canvas.getByText("Here is your new token. This value will only be displayed once."),
       ).toBeInTheDocument();
     });
 
@@ -185,27 +177,21 @@ export const DeleteToken = {
     });
 
     // Click the first Delete button
-    const deleteButtons = canvasElement.querySelectorAll(
-      "table .btn-danger",
-    );
+    const deleteButtons = canvasElement.querySelectorAll("table .btn-danger");
     expect(deleteButtons.length).toBe(3);
     await userEvent.click(deleteButtons[0]);
 
     // Confirmation modal appears
     await waitFor(() => {
       expect(
-        canvas.getByText(
-          "Are you sure? This will permanently remove this token.",
-        ),
+        canvas.getByText("Are you sure? This will permanently remove this token."),
       ).toBeInTheDocument();
     });
 
     // Click the Delete button in the confirmation modal
     // The modal footer has both "Delete" and "Cancel" buttons —
     // find the Delete button inside the modal footer
-    const modalFooterBtns = canvasElement.querySelectorAll(
-      ".modal-footer .btn-danger",
-    );
+    const modalFooterBtns = canvasElement.querySelectorAll(".modal-footer .btn-danger");
     expect(modalFooterBtns.length).toBeGreaterThan(0);
     await userEvent.click(modalFooterBtns[0]);
 
@@ -219,9 +205,7 @@ export const DeleteToken = {
 export const CancelDelete = {
   parameters: {
     msw: {
-      handlers: [
-        http.get("/api/token", () => HttpResponse.json(MOCK_TOKENS)),
-      ],
+      handlers: [http.get("/api/token", () => HttpResponse.json(MOCK_TOKENS))],
     },
   },
   render: () => html`<cts-token-manager></cts-token-manager>`,
@@ -234,17 +218,13 @@ export const CancelDelete = {
     });
 
     // Click the first Delete button
-    const deleteButtons = canvasElement.querySelectorAll(
-      "table .btn-danger",
-    );
+    const deleteButtons = canvasElement.querySelectorAll("table .btn-danger");
     await userEvent.click(deleteButtons[0]);
 
     // Confirmation modal appears
     await waitFor(() => {
       expect(
-        canvas.getByText(
-          "Are you sure? This will permanently remove this token.",
-        ),
+        canvas.getByText("Are you sure? This will permanently remove this token."),
       ).toBeInTheDocument();
     });
 
@@ -262,9 +242,7 @@ export const CancelDelete = {
 export const EmptyTokenList = {
   parameters: {
     msw: {
-      handlers: [
-        http.get("/api/token", () => HttpResponse.json([])),
-      ],
+      handlers: [http.get("/api/token", () => HttpResponse.json([]))],
     },
   },
   render: () => html`<cts-token-manager></cts-token-manager>`,
@@ -277,9 +255,7 @@ export const EmptyTokenList = {
     });
 
     // Empty state message is shown
-    expect(
-      canvas.getByText("No tokens have been created yet."),
-    ).toBeInTheDocument();
+    expect(canvas.getByText("No tokens have been created yet.")).toBeInTheDocument();
 
     // No table rendered
     const table = canvasElement.querySelector("table");
@@ -297,10 +273,7 @@ export const CreateTokenError = {
       handlers: [
         http.get("/api/token", () => HttpResponse.json(MOCK_TOKENS)),
         http.post("/api/token", () =>
-          HttpResponse.json(
-            { error: "Rate limit exceeded" },
-            { status: 500 },
-          ),
+          HttpResponse.json({ error: "Rate limit exceeded" }, { status: 500 }),
         ),
       ],
     },
@@ -355,9 +328,7 @@ export const CopyTokenClipboardFailure = {
     });
 
     try {
-      await waitFor(() =>
-        expect(canvas.getByText("New temporary token")).toBeInTheDocument(),
-      );
+      await waitFor(() => expect(canvas.getByText("New temporary token")).toBeInTheDocument());
       await userEvent.click(canvas.getByText("New temporary token"));
 
       // Wait for the created-token modal, then click Copy.
@@ -410,9 +381,7 @@ export const CopyTokenClipboardAbsent = {
     });
 
     try {
-      await waitFor(() =>
-        expect(canvas.getByText("New temporary token")).toBeInTheDocument(),
-      );
+      await waitFor(() => expect(canvas.getByText("New temporary token")).toBeInTheDocument());
       await userEvent.click(canvas.getByText("New temporary token"));
 
       await waitFor(() => {
@@ -451,9 +420,7 @@ export const AdminView = {
     // Admin message is shown
     await waitFor(() => {
       expect(
-        canvas.getByText(
-          "Admin users cannot create tokens - please login as a non-admin user.",
-        ),
+        canvas.getByText("Admin users cannot create tokens - please login as a non-admin user."),
       ).toBeInTheDocument();
     });
 

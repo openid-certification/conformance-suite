@@ -35,7 +35,9 @@ export const PendingImages = {
     expect(pendingBlocks.length).toBe(2);
 
     // Description text displayed
-    expect(canvas.getByText("Screenshot of the login page after authentication")).toBeInTheDocument();
+    expect(
+      canvas.getByText("Screenshot of the login page after authentication"),
+    ).toBeInTheDocument();
     expect(canvas.getByText("Screenshot of the consent page")).toBeInTheDocument();
 
     // Upload instructions present
@@ -193,10 +195,7 @@ export const UploadError = {
     msw: {
       handlers: [
         http.post("/api/log/test-upload-fail/images/:imageName", () =>
-          HttpResponse.json(
-            { error: "Internal server error" },
-            { status: 500 },
-          ),
+          HttpResponse.json({ error: "Internal server error" }, { status: 500 }),
         ),
       ],
     },

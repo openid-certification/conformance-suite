@@ -24,7 +24,9 @@ class CtsFormField extends LitElement {
     disabled: { type: Boolean },
   };
 
-  createRenderRoot() { return this; }
+  createRenderRoot() {
+    return this;
+  }
 
   constructor() {
     super();
@@ -36,15 +38,21 @@ class CtsFormField extends LitElement {
   }
 
   _handleInput(e) {
-    this.dispatchEvent(new CustomEvent("cts-field-change", {
-      bubbles: true, detail: { field: this.name, value: e.target.value },
-    }));
+    this.dispatchEvent(
+      new CustomEvent("cts-field-change", {
+        bubbles: true,
+        detail: { field: this.name, value: e.target.value },
+      }),
+    );
   }
 
   _handleCheckbox(e) {
-    this.dispatchEvent(new CustomEvent("cts-field-change", {
-      bubbles: true, detail: { field: this.name, value: e.target.checked },
-    }));
+    this.dispatchEvent(
+      new CustomEvent("cts-field-change", {
+        bubbles: true,
+        detail: { field: this.name, value: e.target.checked },
+      }),
+    );
   }
 
   _renderInput() {
@@ -54,42 +62,67 @@ class CtsFormField extends LitElement {
 
     if (fieldEnum) {
       return html`
-        <select class="form-select${invalidClass}" .value=${this.value || ""}
-          ?disabled=${this.disabled} @change=${this._handleInput}>
+        <select
+          class="form-select${invalidClass}"
+          .value=${this.value || ""}
+          ?disabled=${this.disabled}
+          @change=${this._handleInput}
+        >
           <option value="">Select...</option>
-          ${fieldEnum.map((opt) => html`<option value="${opt}" ?selected=${this.value === opt}>${opt}</option>`)}
+          ${fieldEnum.map(
+            (opt) => html`<option value="${opt}" ?selected=${this.value === opt}>${opt}</option>`,
+          )}
         </select>
       `;
     }
 
     if (type === "object" || type === "array" || format === "json") {
       return html`
-        <textarea class="form-control font-monospace${invalidClass}" rows="6"
-          .value=${this.value || ""} ?disabled=${this.disabled}
-          @input=${this._handleInput} placeholder=${description || ""}></textarea>
+        <textarea
+          class="form-control font-monospace${invalidClass}"
+          rows="6"
+          .value=${this.value || ""}
+          ?disabled=${this.disabled}
+          @input=${this._handleInput}
+          placeholder=${description || ""}
+        ></textarea>
       `;
     }
 
     if (format === "password") {
-      return html`<input type="password" class="form-control${invalidClass}"
-        .value=${this.value || ""} ?disabled=${this.disabled} @input=${this._handleInput} />`;
+      return html`<input
+        type="password"
+        class="form-control${invalidClass}"
+        .value=${this.value || ""}
+        ?disabled=${this.disabled}
+        @input=${this._handleInput}
+      />`;
     }
 
     if (type === "boolean") {
       return html`
         <div class="form-check">
-          <input type="checkbox" class="form-check-input"
+          <input
+            type="checkbox"
+            class="form-check-input"
             .checked=${this.value === "true" || this.value === true}
-            ?disabled=${this.disabled} @change=${this._handleCheckbox} />
+            ?disabled=${this.disabled}
+            @change=${this._handleCheckbox}
+          />
           ${description ? html`<label class="form-check-label">${description}</label>` : nothing}
         </div>
       `;
     }
 
     const inputType = format === "uri" ? "url" : "text";
-    return html`<input type="${inputType}" class="form-control${invalidClass}"
-      .value=${this.value || ""} ?disabled=${this.disabled}
-      @input=${this._handleInput} placeholder=${description || ""} />`;
+    return html`<input
+      type="${inputType}"
+      class="form-control${invalidClass}"
+      .value=${this.value || ""}
+      ?disabled=${this.disabled}
+      @input=${this._handleInput}
+      placeholder=${description || ""}
+    />`;
   }
 
   render() {
@@ -100,7 +133,9 @@ class CtsFormField extends LitElement {
         ${!isBoolean && title ? html`<label class="form-label fw-bold">${title}</label>` : nothing}
         ${this._renderInput()}
         ${this.error ? html`<div class="invalid-feedback d-block">${this.error}</div>` : nothing}
-        ${!isBoolean && description ? html`<small class="form-text text-muted">${description}</small>` : nothing}
+        ${!isBoolean && description
+          ? html`<small class="form-text text-muted">${description}</small>`
+          : nothing}
       </div>
     `;
   }

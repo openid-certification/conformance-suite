@@ -42,7 +42,9 @@ class CtsImageUpload extends LitElement {
     this._uploadedIds = new Set();
   }
 
-  createRenderRoot() { return this; }
+  createRenderRoot() {
+    return this;
+  }
 
   _validateFile(file) {
     if (!file) return null;
@@ -169,7 +171,10 @@ class CtsImageUpload extends LitElement {
               ${image.description
                 ? html`<p class="log-message wrapLongStrings">${image.description}</p>`
                 : nothing}
-              <p class="log-message wrapLongStrings">Please upload a screenshot showing just your web browser. Images must not be larger than 500 kilobytes.</p>
+              <p class="log-message wrapLongStrings"
+                >Please upload a screenshot showing just your web browser. Images must not be larger
+                than 500 kilobytes.</p
+              >
               <label class="btn btn-sm btn-light bg-gradient border border-secondary">
                 <span class="bi bi-camera-fill"></span> Select File
                 <input
@@ -180,10 +185,13 @@ class CtsImageUpload extends LitElement {
                 />
               </label>
               <button
-                class="btn btn-sm bg-gradient border border-secondary uploadBtn ${hasFile ? "btn-success" : "btn-light"}"
+                class="btn btn-sm bg-gradient border border-secondary uploadBtn ${hasFile
+                  ? "btn-success"
+                  : "btn-light"}"
                 ?disabled="${!hasFile || this._uploading}"
                 @click="${() => this._handleUpload(imageName)}"
-              >${this._uploading ? "Uploading..." : "Upload"}</button>
+                >${this._uploading ? "Uploading..." : "Upload"}</button
+              >
             </div>
           </div>
         </div>
@@ -226,21 +234,16 @@ class CtsImageUpload extends LitElement {
         ${this._error
           ? html`<div class="alert alert-danger" role="alert">${this._error}</div>`
           : nothing}
-
         ${hasExisting
-          ? html`
-            <h5>Uploaded Images</h5>
-            ${this.existingImages.map((img) => this._renderExistingImage(img))}`
+          ? html` <h5>Uploaded Images</h5>
+              ${this.existingImages.map((img) => this._renderExistingImage(img))}`
           : nothing}
-
         ${hasPending
           ? html`${this.pendingImages.map((img) => this._renderPendingImage(img))}`
           : nothing}
-
         ${!hasPending && !hasExisting
           ? html`<div class="alert alert-info" role="status">All images uploaded</div>`
           : nothing}
-
         ${!hasPending && hasExisting
           ? html`<div class="alert alert-info" role="status">All images uploaded</div>`
           : nothing}

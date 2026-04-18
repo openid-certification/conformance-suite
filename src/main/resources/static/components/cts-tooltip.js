@@ -32,10 +32,7 @@ class CtsTooltip extends HTMLElement {
       if (this._initTooltipIfReady()) this._stopObserving();
     });
     this._childObserver.observe(this, { childList: true });
-    this._initTimer = setTimeout(
-      () => this._stopObserving(),
-      DYNAMIC_INIT_TIMEOUT_MS,
-    );
+    this._initTimer = setTimeout(() => this._stopObserving(), DYNAMIC_INIT_TIMEOUT_MS);
   }
 
   _initTooltipIfReady() {

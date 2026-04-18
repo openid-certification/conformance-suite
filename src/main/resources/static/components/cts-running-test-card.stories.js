@@ -99,7 +99,8 @@ export const Interrupted = {
 };
 
 export const AdminView = {
-  render: () => html`<cts-running-test-card .test=${RUNNING_TEST} is-admin></cts-running-test-card>`,
+  render: () =>
+    html`<cts-running-test-card .test=${RUNNING_TEST} is-admin></cts-running-test-card>`,
   async play({ canvasElement }) {
     const canvas = within(canvasElement);
 

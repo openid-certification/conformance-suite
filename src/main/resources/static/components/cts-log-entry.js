@@ -25,7 +25,9 @@ class CtsLogEntry extends LitElement {
     _expanded: { state: true },
   };
 
-  createRenderRoot() { return this; }
+  createRenderRoot() {
+    return this;
+  }
 
   constructor() {
     super();
@@ -68,11 +70,19 @@ class CtsLogEntry extends LitElement {
     if (!badge) return nothing;
     return html`
       <span class="badge bg-info"><span class="bi ${badge.icon}"></span> ${badge.label}</span>
-      ${httpType === "request" ? html`
-        <span class="badge bg-secondary" role="button" title="Copy as cURL" @click=${this._copyCurl} style="cursor: pointer;">
-          <span class="bi bi-clipboard"></span> cURL
-        </span>
-      ` : nothing}
+      ${httpType === "request"
+        ? html`
+            <span
+              class="badge bg-secondary"
+              role="button"
+              title="Copy as cURL"
+              @click=${this._copyCurl}
+              style="cursor: pointer;"
+            >
+              <span class="bi bi-clipboard"></span> cURL
+            </span>
+          `
+        : nothing}
     `;
   }
 
@@ -81,9 +91,9 @@ class CtsLogEntry extends LitElement {
     if (!requirements || requirements.length === 0) return nothing;
     return html`
       <div class="labelCollection">
-        ${requirements.map((req) => html`
-          <span class="log-requirement badge bg-secondary">${req}</span>
-        `)}
+        ${requirements.map(
+          (req) => html` <span class="log-requirement badge bg-secondary">${req}</span> `,
+        )}
       </div>
     `;
   }
@@ -94,8 +104,10 @@ class CtsLogEntry extends LitElement {
     const count = Object.keys(more).length;
     const chevron = this._expanded ? "bi-chevron-up" : "bi-chevron-down";
     return html`
-      <button class="btn btn-sm btn-light bg-gradient border border-secondary"
-        @click=${this._toggleMore}>
+      <button
+        class="btn btn-sm btn-light bg-gradient border border-secondary"
+        @click=${this._toggleMore}
+      >
         <span class="badge rounded-pill bg-secondary text-light">${count}</span>
         More <span class="bi ${chevron}" aria-hidden="true"></span>
       </button>
@@ -108,12 +120,16 @@ class CtsLogEntry extends LitElement {
     return html`
       <div class="moreInfo mt-2">
         <dl class="row">
-          ${Object.entries(more).map(([key, value]) => html`
-            <dd class="col-sm-2 text-end text-break">${key}</dd>
-            <dt class="col-sm-10 text-start wrapLongStrings">
-              <pre class="mb-0">${typeof value === "string" ? value : JSON.stringify(value, null, 2)}</pre>
-            </dt>
-          `)}
+          ${Object.entries(more).map(
+            ([key, value]) => html`
+              <dd class="col-sm-2 text-end text-break">${key}</dd>
+              <dt class="col-sm-10 text-start wrapLongStrings">
+                <pre class="mb-0">
+${typeof value === "string" ? value : JSON.stringify(value, null, 2)}</pre
+                >
+              </dt>
+            `,
+          )}
         </dl>
       </div>
     `;
@@ -131,25 +147,30 @@ class CtsLogEntry extends LitElement {
           <div class="row">
             <div class="col-md-1">
               ${entry.time
-                ? html`<small class="text-muted">${new Date(entry.time).toLocaleTimeString()}</small>`
+                ? html`<small class="text-muted"
+                    >${new Date(entry.time).toLocaleTimeString()}</small
+                  >`
                 : nothing}
             </div>
             <div class="col-md-2 labelCollection">
               ${entry.result
-                ? html`<cts-badge variant="${entry.result.toLowerCase()}" label="${entry.result}"></cts-badge>`
+                ? html`<cts-badge
+                    variant="${entry.result.toLowerCase()}"
+                    label="${entry.result}"
+                  ></cts-badge>`
                 : nothing}
               ${this._renderHttpBadge()}
               ${entry.upload
-                ? html`<span class="badge bg-warning"><span class="bi bi-camera-fill"></span> IMAGE REQUIRED</span>`
+                ? html`<span class="badge bg-warning"
+                    ><span class="bi bi-camera-fill"></span> IMAGE REQUIRED</span
+                  >`
                 : nothing}
             </div>
             <div class="col-md-8">
               ${entry.src ? html`<small class="text-muted me-2">${entry.src}</small>` : nothing}
               ${entry.msg ? html`<span>${entry.msg}</span>` : nothing}
             </div>
-            <div class="col-md-1">
-              ${this._renderMoreButton()}
-            </div>
+            <div class="col-md-1"> ${this._renderMoreButton()} </div>
           </div>
           <div class="row">
             <div class="col-md-1"></div>

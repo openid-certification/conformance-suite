@@ -93,9 +93,7 @@ test.describe("logs.html — DataTables server error", () => {
     expectNoUnmockedCalls(page);
   });
 
-  test("GET /api/log 500 surfaces #errorModal and table stays empty", async ({
-    page,
-  }) => {
+  test("GET /api/log 500 surfaces #errorModal and table stays empty", async ({ page }) => {
     await setupFailFast(page);
 
     // DataTables ajax receives 500 — fapi.ui.js logs.html has a dedicated
@@ -198,9 +196,7 @@ test.describe("schedule-test.html — POST /api/plan 400", () => {
     expectNoUnmockedCalls(page);
   });
 
-  test("POST /api/plan 400 surfaces #errorModal; form state preserved", async ({
-    page,
-  }) => {
+  test("POST /api/plan 400 surfaces #errorModal; form state preserved", async ({ page }) => {
     const ALL_PLANS = [...MOCK_PLANS, MOCK_PLAN_NO_VARIANTS];
 
     await setupFailFast(page);

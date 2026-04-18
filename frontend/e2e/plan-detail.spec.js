@@ -1,5 +1,10 @@
 import { test, expect } from "@playwright/test";
-import { setupCommonRoutes, setupFailFast, setupTestInfoRoute, expectNoUnmockedCalls } from "./helpers/routes.js";
+import {
+  setupCommonRoutes,
+  setupFailFast,
+  setupTestInfoRoute,
+  expectNoUnmockedCalls,
+} from "./helpers/routes.js";
 import { MOCK_PLAN_DETAIL, MOCK_TEST_STATUS } from "./fixtures/mock-test-data.js";
 import { MOCK_ADMIN_USER } from "./fixtures/mock-users.js";
 
@@ -23,8 +28,16 @@ test.describe("plan-detail.html — Plan Detail", () => {
     // /api/info/:testId for each module with instances
     await setupTestInfoRoute(page, {
       "test-inst-001": { ...MOCK_TEST_STATUS, testId: "test-inst-001" },
-      "test-inst-002": { ...MOCK_TEST_STATUS, testId: "test-inst-002", testName: "oidcc-server-rotate-keys" },
-      "test-inst-003": { ...MOCK_TEST_STATUS, testId: "test-inst-003", testName: "oidcc-ensure-redirect-uri-in-authorization-request" },
+      "test-inst-002": {
+        ...MOCK_TEST_STATUS,
+        testId: "test-inst-002",
+        testName: "oidcc-server-rotate-keys",
+      },
+      "test-inst-003": {
+        ...MOCK_TEST_STATUS,
+        testId: "test-inst-003",
+        testName: "oidcc-ensure-redirect-uri-in-authorization-request",
+      },
     });
 
     await setupCommonRoutes(page);
@@ -99,9 +112,24 @@ test.describe("plan-detail.html — Plan Detail", () => {
     );
 
     await setupTestInfoRoute(page, {
-      "test-inst-001": { ...MOCK_TEST_STATUS, testId: "test-inst-001", status: "FINISHED", result: "PASSED" },
-      "test-inst-002": { ...MOCK_TEST_STATUS, testId: "test-inst-002", status: "FINISHED", result: "WARNING" },
-      "test-inst-003": { ...MOCK_TEST_STATUS, testId: "test-inst-003", status: "FINISHED", result: "FAILED" },
+      "test-inst-001": {
+        ...MOCK_TEST_STATUS,
+        testId: "test-inst-001",
+        status: "FINISHED",
+        result: "PASSED",
+      },
+      "test-inst-002": {
+        ...MOCK_TEST_STATUS,
+        testId: "test-inst-002",
+        status: "FINISHED",
+        result: "WARNING",
+      },
+      "test-inst-003": {
+        ...MOCK_TEST_STATUS,
+        testId: "test-inst-003",
+        status: "FINISHED",
+        result: "FAILED",
+      },
     });
 
     await setupCommonRoutes(page);
@@ -184,7 +212,9 @@ test.describe("plan-detail.html — Plan Detail", () => {
     // Click publish → modal opens with secrets warning
     await publishBtn.click();
     await expect(publishModal).toBeVisible();
-    await expect(publishModal).toContainText("keys, secrets, and all other test information publicly visible");
+    await expect(publishModal).toContainText(
+      "keys, secrets, and all other test information publicly visible",
+    );
   });
 
   test("publish confirm sends POST /api/plan/:id/publish and navigates (R2)", async ({ page }) => {
@@ -227,8 +257,8 @@ test.describe("plan-detail.html — Plan Detail", () => {
     await expect(page.locator("#publishModal")).toBeVisible();
 
     // Set up request interception BEFORE clicking
-    const publishRequest = page.waitForRequest((req) =>
-      req.url().includes("/api/plan/plan-abc-123/publish") && req.method() === "POST"
+    const publishRequest = page.waitForRequest(
+      (req) => req.url().includes("/api/plan/plan-abc-123/publish") && req.method() === "POST",
     );
 
     // Click the publish confirm button (has data-publish="everything")
@@ -274,7 +304,7 @@ test.describe("plan-detail.html — Plan Detail", () => {
     await expect(page.locator("#publishModal")).toBeVisible();
 
     // Click Cancel (the button WITHOUT data-publish attribute)
-    await page.locator('#publishModal').getByRole("button", { name: "Cancel" }).click();
+    await page.locator("#publishModal").getByRole("button", { name: "Cancel" }).click();
 
     // Modal should close
     await expect(page.locator("#publishModal")).not.toBeVisible();
@@ -307,8 +337,8 @@ test.describe("plan-detail.html — Plan Detail", () => {
     await expect(page.locator("#deletePlanModal")).toBeVisible();
 
     // Set up request interception BEFORE clicking confirm
-    const deleteRequest = page.waitForRequest((req) =>
-      req.url().includes("/api/plan/plan-abc-123") && req.method() === "DELETE"
+    const deleteRequest = page.waitForRequest(
+      (req) => req.url().includes("/api/plan/plan-abc-123") && req.method() === "DELETE",
     );
 
     // Click confirm delete

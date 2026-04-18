@@ -132,8 +132,6 @@ export function expectNoUnmockedCalls(page) {
   }
   const calls = page.__unmockedApiCalls;
   if (calls.length > 0) {
-    throw new Error(
-      `Unmocked API calls detected:\n  ${calls.join("\n  ")}`,
-    );
+    throw new Error(`Unmocked API calls detected:\n  ${calls.join("\n  ")}`);
   }
 }

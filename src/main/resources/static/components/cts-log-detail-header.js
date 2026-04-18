@@ -85,7 +85,9 @@ class CtsLogDetailHeader extends LitElement {
     this._failuresExpanded = true;
   }
 
-  createRenderRoot() { return this; }
+  createRenderRoot() {
+    return this;
+  }
 
   _formatDate(dateStr) {
     if (!dateStr) return "";
@@ -226,7 +228,10 @@ class CtsLogDetailHeader extends LitElement {
                 ? html`<cts-badge variant="${resultVariant}" label="${test.result}"></cts-badge>`
                 : nothing}
               ${test.status
-                ? html`<cts-badge variant="${STATUS_BADGE_VARIANTS[test.status] || "secondary"}" label="${test.status}"></cts-badge>`
+                ? html`<cts-badge
+                    variant="${STATUS_BADGE_VARIANTS[test.status] || "secondary"}"
+                    label="${test.status}"
+                  ></cts-badge>`
                 : nothing}
             </div>
 
@@ -236,8 +241,7 @@ class CtsLogDetailHeader extends LitElement {
                 <div class="col-md-10">${test.testName}</div>
               </div>
               ${variantStr
-                ? html`
-                  <div class="row">
+                ? html` <div class="row">
                     <div class="col-md-2">Variant:</div>
                     <div class="col-md-10">${variantStr}</div>
                   </div>`
@@ -251,49 +255,42 @@ class CtsLogDetailHeader extends LitElement {
                 <div class="col-md-10">${this._formatDate(test.created)}</div>
               </div>
               ${test.description
-                ? html`
-                  <div class="row">
+                ? html` <div class="row">
                     <div class="col-md-2">Description:</div>
                     <div class="col-md-10">${test.description}</div>
                   </div>`
                 : nothing}
               ${test.version
-                ? html`
-                  <div class="row">
+                ? html` <div class="row">
                     <div class="col-md-2">Test Version:</div>
                     <div class="col-md-10">${test.version}</div>
                   </div>`
                 : nothing}
               ${this.isAdmin && test.owner
-                ? html`
-                  <div class="row" data-testid="owner-row">
+                ? html` <div class="row" data-testid="owner-row">
                     <div class="col-md-2">Test Owner:</div>
-                    <div class="col-md-10">${test.owner.sub}${test.owner.iss ? ` (${test.owner.iss})` : ""}</div>
+                    <div class="col-md-10"
+                      >${test.owner.sub}${test.owner.iss ? ` (${test.owner.iss})` : ""}</div
+                    >
                   </div>`
                 : nothing}
               ${test.planId
-                ? html`
-                  <div class="row">
+                ? html` <div class="row">
                     <div class="col-md-2">Plan ID:</div>
                     <div class="col-md-10">${test.planId}</div>
                   </div>`
                 : nothing}
               ${test.summary
-                ? html`
-                  <div class="row">
+                ? html` <div class="row">
                     <div class="col-md-12">
                       <p class="bgSummary bg-info">${test.summary}</p>
                     </div>
                   </div>`
                 : nothing}
-
-              ${this._renderResultSummary()}
-              ${this._renderFailureSummary()}
+              ${this._renderResultSummary()} ${this._renderFailureSummary()}
             </div>
 
-            <div class="col-md-2">
-              ${this._renderActionButtons()}
-            </div>
+            <div class="col-md-2"> ${this._renderActionButtons()} </div>
           </div>
         </div>
       </div>
@@ -308,7 +305,12 @@ class CtsLogDetailHeader extends LitElement {
         <div class="col-md-10 labelCollection" data-testid="result-summary">
           ${RESULT_TYPES.map(
             (type) => html`
-              <span class="badge result-${type}">${type.toUpperCase()} <span class="badge rounded-pill" data-testid="count-${type}">${counts[type]}</span></span>
+              <span class="badge result-${type}"
+                >${type.toUpperCase()}
+                <span class="badge rounded-pill" data-testid="count-${type}"
+                  >${counts[type]}</span
+                ></span
+              >
             `,
           )}
         </div>
@@ -328,28 +330,43 @@ class CtsLogDetailHeader extends LitElement {
             role="button"
             tabindex="0"
             @click="${this._toggleFailures}"
-            @keydown="${(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); this._toggleFailures(); } }}"
+            @keydown="${(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                this._toggleFailures();
+              }
+            }}"
           >
             Failure summary:
             <span class="bi ${this._failuresExpanded ? "bi-chevron-up" : "bi-chevron-down"}"></span>
           </div>
           ${this._failuresExpanded
-            ? html`
-              <div data-testid="failure-list">
+            ? html` <div data-testid="failure-list">
                 ${failures.map(
-                  (item) => html`
-                    <div class="col-md-12">
-                      <span class="badge labelCollection result-${item.result.toLowerCase()}">${item.result}</span>
+                  (item) =>
+                    html` <div class="col-md-12">
+                      <span class="badge labelCollection result-${item.result.toLowerCase()}"
+                        >${item.result}</span
+                      >
                       ${(item.requirements || []).map(
-                        (req) => html`<span class="log-requirement badge labelCollection bg-secondary">${req}</span>`,
+                        (req) =>
+                          html`<span class="log-requirement badge labelCollection bg-secondary"
+                            >${req}</span
+                          >`,
                       )}
                       <span
                         class="failureText showHover"
                         role="button"
                         tabindex="0"
                         @click="${() => this._handleScrollToEntry(item._id)}"
-                        @keydown="${(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); this._handleScrollToEntry(item._id); } }}"
-                      >${item.src}: ${item.msg}</span>
+                        @keydown="${(e) => {
+                          if (e.key === "Enter" || e.key === " ") {
+                            e.preventDefault();
+                            this._handleScrollToEntry(item._id);
+                          }
+                        }}"
+                        >${item.src}: ${item.msg}</span
+                      >
                     </div>`,
                 )}
               </div>`
@@ -367,51 +384,56 @@ class CtsLogDetailHeader extends LitElement {
     return html`
       <div class="d-grid gap-1">
         ${!readonly
-          ? html`
-            <button
-              class="btn btn-sm btn-light bg-gradient border border-secondary"
-              @click="${this._handleRepeatTest}"
-              data-testid="repeat-test-btn"
-            ><span class="bi bi-arrow-down-up"></span> Repeat Test</button>
-            <button
-              class="btn btn-sm btn-light bg-gradient border border-secondary ${uploadCount ? "btn-info" : ""}"
-              @click="${this._handleUploadImages}"
-              data-testid="upload-images-btn"
-            ><span class="bi bi-file-image"></span> Upload Images
-              ${uploadCount
-                ? html`<span class="badge rounded-pill bg-secondary text-info">${uploadCount}</span>`
-                : nothing}
-            </button>`
+          ? html` <button
+                class="btn btn-sm btn-light bg-gradient border border-secondary"
+                @click="${this._handleRepeatTest}"
+                data-testid="repeat-test-btn"
+                ><span class="bi bi-arrow-down-up"></span> Repeat Test</button
+              >
+              <button
+                class="btn btn-sm btn-light bg-gradient border border-secondary ${uploadCount
+                  ? "btn-info"
+                  : ""}"
+                @click="${this._handleUploadImages}"
+                data-testid="upload-images-btn"
+                ><span class="bi bi-file-image"></span> Upload Images
+                ${uploadCount
+                  ? html`<span class="badge rounded-pill bg-secondary text-info"
+                      >${uploadCount}</span
+                    >`
+                  : nothing}
+              </button>`
           : nothing}
         <button
           class="btn btn-sm btn-light bg-gradient border border-secondary"
           @click="${this._toggleConfig}"
           data-testid="view-config-btn"
-        ><span class="bi bi-wrench-adjustable"></span> View Config</button>
+          ><span class="bi bi-wrench-adjustable"></span> View Config</button
+        >
         ${!readonly || test.publish === "everything"
-          ? html`
-            <button
+          ? html` <button
               class="btn btn-sm btn-light bg-gradient border border-secondary"
               @click="${this._handleDownloadLog}"
               data-testid="download-log-btn"
-            ><span class="bi bi-save2"></span> Download Logs</button>`
+              ><span class="bi bi-save2"></span> Download Logs</button
+            >`
           : nothing}
         ${test.planId
-          ? html`
-            <a
+          ? html` <a
               class="btn btn-sm btn-light bg-gradient border border-secondary"
               href="plan-detail.html?plan=${encodeURIComponent(test.planId)}"
               data-testid="return-to-plan-link"
-            ><span class="bi bi-bookmarks"></span> Return to Plan</a>`
+              ><span class="bi bi-bookmarks"></span> Return to Plan</a
+            >`
           : nothing}
         ${!readonly && this.isAdmin
-          ? html`
-            <button
+          ? html` <button
               class="btn btn-sm btn-light bg-gradient border border-secondary"
               @click="${this._handlePublish}"
               data-testid="publish-btn"
-            ><span class="bi ${test.publish ? "bi-slash-circle" : "bi-bookmarks"}"></span>
-              ${test.publish ? "Unpublish" : "Publish"}</button>`
+              ><span class="bi ${test.publish ? "bi-slash-circle" : "bi-bookmarks"}"></span>
+              ${test.publish ? "Unpublish" : "Publish"}</button
+            >`
           : nothing}
       </div>
     `;
@@ -434,7 +456,8 @@ class CtsLogDetailHeader extends LitElement {
             <button
               class="btn btn-sm btn-light bg-gradient border border-secondary"
               @click="${this._toggleConfig}"
-            ><span class="bi bi-x"></span> Close</button>
+              ><span class="bi bi-x"></span> Close</button
+            >
           </div>
           <div class="wrapLongStrings">
             <pre class="row-bg-light p-1" data-testid="config-json">${configJson}</pre>
@@ -453,11 +476,16 @@ class CtsLogDetailHeader extends LitElement {
       <div class="card mt-2" data-testid="running-test-info">
         <div class="card-body">
           ${isActive
-            ? html`<div class="alert alert-info"><b>This test is currently running.</b> Values exported from the test are available below along with any URLs that need to be visited interactively.</div>`
-            : html`<div class="alert alert-warning"><b>This test is waiting.</b> The test is awaiting user interaction or an external event.</div>`}
+            ? html`<div class="alert alert-info"
+                ><b>This test is currently running.</b> Values exported from the test are available
+                below along with any URLs that need to be visited interactively.</div
+              >`
+            : html`<div class="alert alert-warning"
+                ><b>This test is waiting.</b> The test is awaiting user interaction or an external
+                event.</div
+              >`}
           ${test.exposed && Object.keys(test.exposed).length > 0
-            ? html`
-              <div class="row mb-2">
+            ? html` <div class="row mb-2">
                 <div class="col-md-12">
                   <strong>Exported values:</strong>
                   <pre class="row-bg-light p-1">${JSON.stringify(test.exposed, null, 2)}</pre>
@@ -471,12 +499,14 @@ class CtsLogDetailHeader extends LitElement {
                   class="btn btn-sm btn-success bg-gradient border border-secondary"
                   @click="${this._handleStartTest}"
                   data-testid="start-btn"
-                ><span class="bi bi-play-fill"></span> Start</button>
+                  ><span class="bi bi-play-fill"></span> Start</button
+                >
                 <button
                   class="btn btn-sm btn-light bg-gradient border border-secondary"
                   @click="${this._handleStopTest}"
                   data-testid="stop-btn"
-                ><span class="bi bi-stop-fill"></span> Stop</button>
+                  ><span class="bi bi-stop-fill"></span> Stop</button
+                >
               </div>
             </div>
           </div>
@@ -489,9 +519,7 @@ class CtsLogDetailHeader extends LitElement {
     if (!this.testInfo) return nothing;
 
     return html`
-      ${this._renderTestInfoCard()}
-      ${this._renderConfigPanel()}
-      ${this._renderRunningTestInfo()}
+      ${this._renderTestInfoCard()} ${this._renderConfigPanel()} ${this._renderRunningTestInfo()}
     `;
   }
 }

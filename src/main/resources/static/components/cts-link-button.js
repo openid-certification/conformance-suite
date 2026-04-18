@@ -34,7 +34,9 @@ class CtsLinkButton extends LitElement {
     this.fullWidth = false;
   }
 
-  createRenderRoot() { return this; }
+  createRenderRoot() {
+    return this;
+  }
 
   updated(changed) {
     if (changed.has("fullWidth")) {
@@ -61,14 +63,16 @@ class CtsLinkButton extends LitElement {
     const iconContent = this._renderIcon();
     const hasIcon = iconContent !== nothing;
     const disabledClass = this.disabled ? " disabled" : "";
-    const anchorClass = buildButtonClasses({ variant: this.variant, size: this.size, fullWidth: this.fullWidth }) + disabledClass;
+    const anchorClass =
+      buildButtonClasses({ variant: this.variant, size: this.size, fullWidth: this.fullWidth }) +
+      disabledClass;
     return html`<a
       class="${anchorClass}"
       href=${this.disabled ? nothing : this.href}
       role="button"
       aria-disabled=${this.disabled ? "true" : nothing}
       tabindex=${this.disabled ? "-1" : nothing}
-    >${iconContent}${hasIcon && this.label ? " " : ""}${this.label}</a
+      >${iconContent}${hasIcon && this.label ? " " : ""}${this.label}</a
     >`;
   }
 }

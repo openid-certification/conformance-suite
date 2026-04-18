@@ -24,25 +24,19 @@ import {
 
 // --- Auth handlers ---
 
-export const authHandlers = [
-  http.get("/api/currentuser", () => HttpResponse.json(MOCK_USER)),
-];
+export const authHandlers = [http.get("/api/currentuser", () => HttpResponse.json(MOCK_USER))];
 
 export const adminAuthHandlers = [
   http.get("/api/currentuser", () => HttpResponse.json(MOCK_ADMIN_USER)),
 ];
 
 export const unauthenticatedHandlers = [
-  http.get("/api/currentuser", () =>
-    new HttpResponse(null, { status: 401 }),
-  ),
+  http.get("/api/currentuser", () => new HttpResponse(null, { status: 401 })),
 ];
 
 // --- Server info handlers ---
 
-export const serverHandlers = [
-  http.get("/api/server", () => HttpResponse.json(MOCK_SERVER_INFO)),
-];
+export const serverHandlers = [http.get("/api/server", () => HttpResponse.json(MOCK_SERVER_INFO))];
 
 // --- Plan handlers ---
 
@@ -56,9 +50,7 @@ export const planHandlers = [
     const isPublic = url.searchParams.get("public") === "true";
 
     // Return the full list (client-side filtering in the component)
-    const plans = isPublic
-      ? MOCK_PLAN_LIST.filter((p) => p.publish)
-      : MOCK_PLAN_LIST;
+    const plans = isPublic ? MOCK_PLAN_LIST.filter((p) => p.publish) : MOCK_PLAN_LIST;
     return HttpResponse.json(plans);
   }),
 
@@ -66,9 +58,7 @@ export const planHandlers = [
   http.get("/api/plan/:planId", () => HttpResponse.json(MOCK_PLAN_DETAIL)),
 
   // Publish plan
-  http.post("/api/plan/:planId/publish", () =>
-    new HttpResponse(null, { status: 200 }),
-  ),
+  http.post("/api/plan/:planId/publish", () => new HttpResponse(null, { status: 200 })),
 
   // Share plan (private link)
   http.post("/api/plan/:planId/share", async ({ request }) => {
@@ -80,14 +70,10 @@ export const planHandlers = [
   }),
 
   // Make plan mutable
-  http.post("/api/plan/:planId/makemutable", () =>
-    new HttpResponse(null, { status: 200 }),
-  ),
+  http.post("/api/plan/:planId/makemutable", () => new HttpResponse(null, { status: 200 })),
 
   // Delete plan
-  http.delete("/api/plan/:planId", () =>
-    new HttpResponse(null, { status: 200 }),
-  ),
+  http.delete("/api/plan/:planId", () => new HttpResponse(null, { status: 200 })),
 
   // Certification package
   http.post("/api/plan/:planId/certificationpackage", () =>
@@ -113,9 +99,7 @@ export const logHandlers = [
   http.get("/api/info/:testId", () => HttpResponse.json(MOCK_TEST_STATUS)),
 
   // Image upload
-  http.post("/api/log/:testId/uploadimage", () =>
-    new HttpResponse(null, { status: 200 }),
-  ),
+  http.post("/api/log/:testId/uploadimage", () => new HttpResponse(null, { status: 200 })),
 ];
 
 // --- Runner handlers ---
@@ -131,14 +115,10 @@ export const runnerHandlers = [
   ),
 
   // Running tests list
-  http.get("/api/runner/running", () =>
-    HttpResponse.json(MOCK_RUNNING_TESTS),
-  ),
+  http.get("/api/runner/running", () => HttpResponse.json(MOCK_RUNNING_TESTS)),
 
   // Running test detail
-  http.get("/api/runner/:testId", () =>
-    HttpResponse.json(MOCK_RUNNING_TESTS[0]),
-  ),
+  http.get("/api/runner/:testId", () => HttpResponse.json(MOCK_RUNNING_TESTS[0])),
 ];
 
 // --- Token handlers ---
@@ -151,9 +131,7 @@ export const tokenHandlers = [
   http.post("/api/token", () => HttpResponse.json(MOCK_CREATED_TOKEN)),
 
   // Delete token
-  http.delete("/api/token/:tokenId", () =>
-    new HttpResponse(null, { status: 200 }),
-  ),
+  http.delete("/api/token/:tokenId", () => new HttpResponse(null, { status: 200 })),
 ];
 
 // --- Convenience: all handlers combined ---

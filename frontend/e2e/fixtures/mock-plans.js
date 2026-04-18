@@ -15,15 +15,14 @@ export const MOCK_PLANS = [
       { testModule: "oidcc-ensure-redirect-uri-in-authorization-request" },
       { testModule: "oidcc-codereuse" },
     ],
-    configurationFields: [
-      "server.issuer",
-      "client.client_id",
-      "client.client_secret",
-    ],
+    configurationFields: ["server.issuer", "client.client_id", "client.client_secret"],
     hidesConfigurationFields: [],
     variants: {
       client_auth_type: {
-        variantInfo: { displayName: "Client Authentication Type", description: "How the client authenticates to the token endpoint" },
+        variantInfo: {
+          displayName: "Client Authentication Type",
+          description: "How the client authenticates to the token endpoint",
+        },
         variantValues: {
           client_secret_basic: { configurationFields: [], hidesConfigurationFields: [] },
           client_secret_post: { configurationFields: [], hidesConfigurationFields: [] },
@@ -37,7 +36,10 @@ export const MOCK_PLANS = [
         },
       },
       server_metadata: {
-        variantInfo: { displayName: "Server Metadata", description: "How server metadata is obtained" },
+        variantInfo: {
+          displayName: "Server Metadata",
+          description: "How server metadata is obtained",
+        },
         variantValues: {
           discovery: { configurationFields: [], hidesConfigurationFields: [] },
           static: { configurationFields: ["server.jwks_uri"], hidesConfigurationFields: [] },
@@ -57,16 +59,14 @@ export const MOCK_PLANS = [
       { testModule: "fapi2-security-profile-happy-flow" },
       { testModule: "fapi2-security-profile-ensure-signed-request" },
     ],
-    configurationFields: [
-      "server.issuer",
-      "client.client_id",
-      "client.jwks",
-      "mtls.cert",
-    ],
+    configurationFields: ["server.issuer", "client.client_id", "client.jwks", "mtls.cert"],
     hidesConfigurationFields: [],
     variants: {
       client_auth_type: {
-        variantInfo: { displayName: "Client Authentication Type", description: "How the client authenticates to the token endpoint" },
+        variantInfo: {
+          displayName: "Client Authentication Type",
+          description: "How the client authenticates to the token endpoint",
+        },
         variantValues: {
           private_key_jwt: { configurationFields: ["client.jwks"], hidesConfigurationFields: [] },
           mtls: { configurationFields: ["mtls.cert", "mtls.key"], hidesConfigurationFields: [] },

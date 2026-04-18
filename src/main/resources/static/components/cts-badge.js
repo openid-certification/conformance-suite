@@ -65,9 +65,7 @@ class CtsBadge extends HTMLElement {
 
   _variantClass() {
     const variant = this.getAttribute("variant") || "info";
-    return RESULT_VARIANT_CLASSES[variant]
-      || BOOTSTRAP_VARIANT_CLASSES[variant]
-      || "bg-info";
+    return RESULT_VARIANT_CLASSES[variant] || BOOTSTRAP_VARIANT_CLASSES[variant] || "bg-info";
   }
 
   _render() {
@@ -126,9 +124,7 @@ class CtsBadge extends HTMLElement {
   }
 
   _dispatchClick() {
-    this.dispatchEvent(
-      new CustomEvent("cts-badge-click", { bubbles: true, composed: true }),
-    );
+    this.dispatchEvent(new CustomEvent("cts-badge-click", { bubbles: true, composed: true }));
   }
 }
 

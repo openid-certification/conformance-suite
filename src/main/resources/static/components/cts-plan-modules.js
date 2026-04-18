@@ -74,7 +74,9 @@ class CtsPlanModules extends LitElement {
     this.isPublic = false;
   }
 
-  createRenderRoot() { return this; }
+  createRenderRoot() {
+    return this;
+  }
 
   _formatVariant(variant) {
     if (!variant || typeof variant !== "object") return "";
@@ -130,8 +132,7 @@ class CtsPlanModules extends LitElement {
         <div class="col-md-2">
           <div class="d-grid gap-1">
             ${this._canRunTest()
-              ? html`
-                <cts-button
+              ? html` <cts-button
                   class="startBtn"
                   data-testid="run-test-btn"
                   variant="light"
@@ -142,23 +143,22 @@ class CtsPlanModules extends LitElement {
                 ></cts-button>`
               : nothing}
             ${lastInstance
-              ? html`
-                <cts-link-button
-                  class="viewBtn"
-                  href="${logHref}"
-                  variant="light"
-                  icon="file-earmark"
-                  label="View Logs"
-                  full-width
-                ></cts-link-button>
-                <cts-button
-                  class="downloadBtn"
-                  variant="light"
-                  icon="save2"
-                  label="Download Logs"
-                  full-width
-                  @cts-click=${() => this._handleDownloadLog(lastInstance)}
-                ></cts-button>`
+              ? html` <cts-link-button
+                    class="viewBtn"
+                    href="${logHref}"
+                    variant="light"
+                    icon="file-earmark"
+                    label="View Logs"
+                    full-width
+                  ></cts-link-button>
+                  <cts-button
+                    class="downloadBtn"
+                    variant="light"
+                    icon="save2"
+                    label="Download Logs"
+                    full-width
+                    @cts-click=${() => this._handleDownloadLog(lastInstance)}
+                  ></cts-button>`
               : nothing}
           </div>
         </div>
@@ -167,10 +167,9 @@ class CtsPlanModules extends LitElement {
             <div class="col-md-2">Test Name:</div>
             <div class="col-md-10">
               ${mod.testModule}${mod.testSummary
-                ? html`<sup><span
-                    class="bi bi-question-circle-fill"
-                    title="${mod.testSummary}"
-                  ></span></sup>`
+                ? html`<sup
+                    ><span class="bi bi-question-circle-fill" title="${mod.testSummary}"></span
+                  ></sup>`
                 : nothing}
             </div>
           </div>

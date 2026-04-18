@@ -13,20 +13,50 @@ const MOCK_RESULTS = [
   { _id: "r1", result: "SUCCESS", src: "CheckConfig", msg: "Config valid" },
   { _id: "r2", result: "SUCCESS", src: "CheckJwks", msg: "JWKS valid" },
   { _id: "r3", result: "INFO", src: "LogInfo", msg: "Server contacted" },
-  { _id: "r4", result: "WARNING", src: "CheckScope", msg: "Extra scope", requirements: ["OIDCC-3.1"] },
+  {
+    _id: "r4",
+    result: "WARNING",
+    src: "CheckScope",
+    msg: "Extra scope",
+    requirements: ["OIDCC-3.1"],
+  },
 ];
 
 const MOCK_RESULTS_WITH_FAILURES = [
   ...MOCK_RESULTS,
-  { _id: "r5", result: "FAILURE", src: "ValidateIdToken", msg: "Signature invalid", requirements: ["OIDCC-3.1.3.7-6"] },
-  { _id: "r6", result: "FAILURE", src: "CheckClaims", msg: "Missing sub claim", requirements: ["OIDCC-5.1"] },
+  {
+    _id: "r5",
+    result: "FAILURE",
+    src: "ValidateIdToken",
+    msg: "Signature invalid",
+    requirements: ["OIDCC-3.1.3.7-6"],
+  },
+  {
+    _id: "r6",
+    result: "FAILURE",
+    src: "CheckClaims",
+    msg: "Missing sub claim",
+    requirements: ["OIDCC-5.1"],
+  },
   { _id: "r7", result: "SKIPPED", src: "OptionalCheck", msg: "Skipped optional" },
 ];
 
 const MOCK_RESULTS_WITH_UPLOADS = [
   ...MOCK_RESULTS,
-  { _id: "u1", result: "REVIEW", src: "CheckScreenshot", msg: "Screenshot required", upload: "screenshot_consent" },
-  { _id: "u2", result: "REVIEW", src: "CheckScreenshot2", msg: "Another screenshot", upload: "screenshot_auth" },
+  {
+    _id: "u1",
+    result: "REVIEW",
+    src: "CheckScreenshot",
+    msg: "Screenshot required",
+    upload: "screenshot_consent",
+  },
+  {
+    _id: "u2",
+    result: "REVIEW",
+    src: "CheckScreenshot2",
+    msg: "Another screenshot",
+    upload: "screenshot_auth",
+  },
 ];
 
 const COMPLETED_TEST = {
@@ -256,7 +286,8 @@ export const AllPassed = {
 };
 
 export const AdminActions = {
-  render: () => html`<cts-log-detail-header .testInfo=${COMPLETED_TEST} is-admin></cts-log-detail-header>`,
+  render: () =>
+    html`<cts-log-detail-header .testInfo=${COMPLETED_TEST} is-admin></cts-log-detail-header>`,
   async play({ canvasElement }) {
     const canvas = within(canvasElement);
     await waitFor(() => {
@@ -292,7 +323,11 @@ export const AdminActions = {
 };
 
 export const PublicView = {
-  render: () => html`<cts-log-detail-header .testInfo=${{ ...COMPLETED_TEST, publish: "everything" }} is-public></cts-log-detail-header>`,
+  render: () =>
+    html`<cts-log-detail-header
+      .testInfo=${{ ...COMPLETED_TEST, publish: "everything" }}
+      is-public
+    ></cts-log-detail-header>`,
   async play({ canvasElement }) {
     const canvas = within(canvasElement);
     await waitFor(() => {

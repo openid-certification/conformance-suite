@@ -7,8 +7,7 @@ const DAY_MS = 86400000;
 export const MOCK_PLAN_DETAIL = {
   _id: "plan-abc-123",
   planName: "oidcc-basic-certification-test-plan",
-  description:
-    "OpenID Connect Core: Basic Certification Profile authorization server test",
+  description: "OpenID Connect Core: Basic Certification Profile authorization server test",
   variant: {
     client_auth_type: "client_secret_basic",
     response_type: "code",
@@ -42,8 +41,7 @@ export const MOCK_PLAN_DETAIL = {
     },
     {
       testModule: "oidcc-ensure-redirect-uri-in-authorization-request",
-      testSummary:
-        "Ensure redirect_uri is included in authorization request",
+      testSummary: "Ensure redirect_uri is included in authorization request",
       variant: {
         client_auth_type: "client_secret_basic",
         response_type: "code",
@@ -76,8 +74,7 @@ export const MOCK_TEST_STATUS = {
   result: "PASSED",
   version: "5.1.24-SNAPSHOT (9063a08)",
   created: new Date(NOW - DAY_MS).toISOString(),
-  description:
-    "Tests the basic OpenID Connect authorization server functionality",
+  description: "Tests the basic OpenID Connect authorization server functionality",
   planId: "plan-abc-123",
   variant: {
     client_auth_type: "client_secret_basic",

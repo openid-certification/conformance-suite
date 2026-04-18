@@ -1,9 +1,5 @@
 import { test, expect } from "@playwright/test";
-import {
-  setupCommonRoutes,
-  setupFailFast,
-  expectNoUnmockedCalls,
-} from "./helpers/routes.js";
+import { setupCommonRoutes, setupFailFast, expectNoUnmockedCalls } from "./helpers/routes.js";
 import { MOCK_TOKEN_USER, MOCK_TOKENS } from "./fixtures/tokens-data.js";
 
 test.describe("tokens.html — API Tokens", () => {
@@ -37,9 +33,7 @@ test.describe("tokens.html — API Tokens", () => {
     expect(await rows.count()).toBeGreaterThanOrEqual(1);
 
     // Token IDs from the fixture should be rendered
-    await expect(page.locator("#tokensListing")).toContainText(
-      "token-abc-001",
-    );
+    await expect(page.locator("#tokensListing")).toContainText("token-abc-001");
   });
 
   test("each row's Delete button renders as cts-button with variant=danger", async ({ page }) => {
@@ -74,7 +68,9 @@ test.describe("tokens.html — API Tokens", () => {
     await expect(firstDelete.locator("button.btn-danger")).toBeVisible();
   });
 
-  test("three header action buttons render as size=lg cts-button / cts-link-button", async ({ page }) => {
+  test("three header action buttons render as size=lg cts-button / cts-link-button", async ({
+    page,
+  }) => {
     await setupFailFast(page);
 
     await page.route("**/api/token?*", (route) => {
@@ -114,7 +110,9 @@ test.describe("tokens.html — API Tokens", () => {
     await expect(apiDocs.locator("a.btn-lg")).toBeVisible();
   });
 
-  test("clipboard button in createdModal renders as cts-button with class btn-clipboard", async ({ page }) => {
+  test("clipboard button in createdModal renders as cts-button with class btn-clipboard", async ({
+    page,
+  }) => {
     await setupFailFast(page);
 
     await page.route("**/api/token?*", (route) => {
@@ -136,13 +134,12 @@ test.describe("tokens.html — API Tokens", () => {
     const clipboardBtn = page.locator("cts-button.btn-clipboard");
     await expect(clipboardBtn).toHaveCount(1);
     await expect(clipboardBtn).toHaveAttribute("icon", "box-arrow-in-right");
-    await expect(clipboardBtn).toHaveAttribute(
-      "data-clipboard-target",
-      "#tokenValue",
-    );
+    await expect(clipboardBtn).toHaveAttribute("data-clipboard-target", "#tokenValue");
   });
 
-  test("clicking Delete then Confirm fires DELETE /api/token/:id and the row disappears", async ({ page }) => {
+  test("clicking Delete then Confirm fires DELETE /api/token/:id and the row disappears", async ({
+    page,
+  }) => {
     await setupFailFast(page);
 
     // Stateful token list: after DELETE succeeds, subsequent GETs return the
@@ -187,9 +184,7 @@ test.describe("tokens.html — API Tokens", () => {
     await expect(targetDelete).toBeVisible();
 
     const deleteRequest = page.waitForRequest(
-      (req) =>
-        req.method() === "DELETE" &&
-        /\/api\/token\/token-abc-001$/.test(req.url()),
+      (req) => req.method() === "DELETE" && /\/api\/token\/token-abc-001$/.test(req.url()),
     );
 
     await targetDelete.click();
@@ -202,11 +197,12 @@ test.describe("tokens.html — API Tokens", () => {
 
     // After the DELETE completes and the page re-fetches, the row for
     // token-abc-001 must be gone. The other token remains.
-    await expect(
-      page.locator("#tokensListing tbody tr", { hasText: "token-abc-001" }),
-    ).toHaveCount(0, { timeout: 5000 });
-    await expect(
-      page.locator("#tokensListing tbody tr", { hasText: "token-xyz-002" }),
-    ).toHaveCount(1);
+    await expect(page.locator("#tokensListing tbody tr", { hasText: "token-abc-001" })).toHaveCount(
+      0,
+      { timeout: 5000 },
+    );
+    await expect(page.locator("#tokensListing tbody tr", { hasText: "token-xyz-002" })).toHaveCount(
+      1,
+    );
   });
 });

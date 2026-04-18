@@ -1,5 +1,11 @@
 import { test, expect } from "@playwright/test";
-import { setupCommonRoutes, setupFailFast, setupTestInfoRoute, wrapDataTablesResponse, expectNoUnmockedCalls } from "./helpers/routes.js";
+import {
+  setupCommonRoutes,
+  setupFailFast,
+  setupTestInfoRoute,
+  wrapDataTablesResponse,
+  expectNoUnmockedCalls,
+} from "./helpers/routes.js";
 import { MOCK_PLAN_LIST } from "./fixtures/mock-plans.js";
 
 test.describe("plans.html — Plans List", () => {
@@ -12,10 +18,7 @@ test.describe("plans.html — Plans List", () => {
 
     // /api/plan — DataTables server-side endpoint
     await page.route("**/api/plan?*", (route) => {
-      const envelope = wrapDataTablesResponse(
-        MOCK_PLAN_LIST,
-        route.request().url(),
-      );
+      const envelope = wrapDataTablesResponse(MOCK_PLAN_LIST, route.request().url());
       return route.fulfill({
         status: 200,
         contentType: "application/json",
@@ -40,19 +43,14 @@ test.describe("plans.html — Plans List", () => {
     );
 
     // Should show variant info
-    await expect(page.locator("#plansListing")).toContainText(
-      "client_secret_basic",
-    );
+    await expect(page.locator("#plansListing")).toContainText("client_secret_basic");
   });
 
   test("config button opens modal with plan configuration", async ({ page }) => {
     await setupFailFast(page);
 
     await page.route("**/api/plan?*", (route) => {
-      const envelope = wrapDataTablesResponse(
-        MOCK_PLAN_LIST,
-        route.request().url(),
-      );
+      const envelope = wrapDataTablesResponse(MOCK_PLAN_LIST, route.request().url());
       return route.fulfill({
         status: 200,
         contentType: "application/json",
@@ -87,10 +85,7 @@ test.describe("plans.html — Plans List", () => {
     await setupFailFast(page);
 
     await page.route("**/api/plan?*", (route) => {
-      const envelope = wrapDataTablesResponse(
-        MOCK_PLAN_LIST,
-        route.request().url(),
-      );
+      const envelope = wrapDataTablesResponse(MOCK_PLAN_LIST, route.request().url());
       return route.fulfill({
         status: 200,
         contentType: "application/json",
@@ -115,8 +110,8 @@ test.describe("plans.html — Plans List", () => {
     // so the listener is active when the request fires
     const searchBtn = page.locator("div.dataTables_filter button");
     await expect(searchBtn).toBeVisible();
-    const searchRequest = page.waitForRequest((req) =>
-      req.url().includes("/api/plan?") && req.url().includes("search=fapi2"),
+    const searchRequest = page.waitForRequest(
+      (req) => req.url().includes("/api/plan?") && req.url().includes("search=fapi2"),
     );
     await searchBtn.click();
     await searchRequest;

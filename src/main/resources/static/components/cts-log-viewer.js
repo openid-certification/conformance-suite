@@ -25,7 +25,9 @@ class CtsLogViewer extends LitElement {
     _error: { state: true },
   };
 
-  createRenderRoot() { return this; }
+  createRenderRoot() {
+    return this;
+  }
 
   constructor() {
     super();
@@ -102,7 +104,11 @@ class CtsLogViewer extends LitElement {
     return html`
       <div class="d-flex gap-2 mb-3 flex-wrap">
         ${Object.entries(counts).map(
-          ([result, count]) => html`<cts-badge variant="${result.toLowerCase()}" label="${result} (${count})"></cts-badge>`,
+          ([result, count]) =>
+            html`<cts-badge
+              variant="${result.toLowerCase()}"
+              label="${result} (${count})"
+            ></cts-badge>`,
         )}
       </div>
     `;
@@ -112,10 +118,15 @@ class CtsLogViewer extends LitElement {
     const isCollapsed = this._collapsedBlocks.has(entry.blockId);
     return html`
       <div class="row">
-        <div class="col-md-12 logItem startBlock p-2"
+        <div
+          class="col-md-12 logItem startBlock p-2"
           style="background: #336; color: white; cursor: pointer;"
-          @click=${() => this._toggleBlock(entry.blockId)}>
-          <span class="${isCollapsed ? "bi bi-chevron-right" : "bi bi-chevron-down"}" aria-hidden="true"></span>
+          @click=${() => this._toggleBlock(entry.blockId)}
+        >
+          <span
+            class="${isCollapsed ? "bi bi-chevron-right" : "bi bi-chevron-down"}"
+            aria-hidden="true"
+          ></span>
           ${entry.msg || entry.blockId}
         </div>
       </div>
@@ -130,15 +141,25 @@ class CtsLogViewer extends LitElement {
 
   render() {
     if (this._loading && this._entries.length === 0) {
-      return html`<div class="text-center p-3"><span class="spinner-border" role="status"></span> Loading log…</div>`;
+      return html`<div class="text-center p-3"
+        ><span class="spinner-border" role="status"></span> Loading log…</div
+      >`;
     }
     return html`
       ${this._error
-        ? html`<div class="alert alert-warning" role="status" aria-live="polite" data-testid="log-viewer-error">${this._error}</div>`
+        ? html`<div
+            class="alert alert-warning"
+            role="status"
+            aria-live="polite"
+            data-testid="log-viewer-error"
+            >${this._error}</div
+          >`
         : nothing}
       ${this._renderResultSummary()}
       <div class="log-entries">${this._entries.map((entry) => this._renderEntry(entry))}</div>
-      ${this._entries.length === 0 && !this._error ? html`<div class="text-muted text-center p-3">No log entries</div>` : nothing}
+      ${this._entries.length === 0 && !this._error
+        ? html`<div class="text-muted text-center p-3">No log entries</div>`
+        : nothing}
     `;
   }
 }

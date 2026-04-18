@@ -26,9 +26,7 @@ async function waitForPlansToLoad(canvasElement) {
 export const Default = {
   parameters: {
     msw: {
-      handlers: [
-        http.get("/api/plan", () => HttpResponse.json(MOCK_PLAN_LIST)),
-      ],
+      handlers: [http.get("/api/plan", () => HttpResponse.json(MOCK_PLAN_LIST))],
     },
   },
   render: () => html`<cts-plan-list></cts-plan-list>`,
@@ -65,9 +63,7 @@ export const Default = {
 export const Search = {
   parameters: {
     msw: {
-      handlers: [
-        http.get("/api/plan", () => HttpResponse.json(MOCK_PLAN_LIST)),
-      ],
+      handlers: [http.get("/api/plan", () => HttpResponse.json(MOCK_PLAN_LIST))],
     },
   },
   render: () => html`<cts-plan-list></cts-plan-list>`,
@@ -97,9 +93,7 @@ export const Search = {
 export const ClickPlanName = {
   parameters: {
     msw: {
-      handlers: [
-        http.get("/api/plan", () => HttpResponse.json(MOCK_PLAN_LIST)),
-      ],
+      handlers: [http.get("/api/plan", () => HttpResponse.json(MOCK_PLAN_LIST))],
     },
   },
   render: () => html`<cts-plan-list></cts-plan-list>`,
@@ -125,9 +119,7 @@ export const ClickPlanName = {
 export const ViewConfig = {
   parameters: {
     msw: {
-      handlers: [
-        http.get("/api/plan", () => HttpResponse.json(MOCK_PLAN_LIST)),
-      ],
+      handlers: [http.get("/api/plan", () => HttpResponse.json(MOCK_PLAN_LIST))],
     },
   },
   render: () => html`<cts-plan-list></cts-plan-list>`,
@@ -182,9 +174,7 @@ export const ViewConfig = {
 export const EmptyList = {
   parameters: {
     msw: {
-      handlers: [
-        http.get("/api/plan", () => HttpResponse.json([])),
-      ],
+      handlers: [http.get("/api/plan", () => HttpResponse.json([]))],
     },
   },
   render: () => html`<cts-plan-list></cts-plan-list>`,
@@ -232,11 +222,7 @@ export const LoadingState = {
 export const ApiError = {
   parameters: {
     msw: {
-      handlers: [
-        http.get("/api/plan", () =>
-          new HttpResponse(null, { status: 500 }),
-        ),
-      ],
+      handlers: [http.get("/api/plan", () => new HttpResponse(null, { status: 500 }))],
     },
   },
   render: () => html`<cts-plan-list></cts-plan-list>`,
@@ -258,9 +244,7 @@ export const ApiError = {
 export const AdminView = {
   parameters: {
     msw: {
-      handlers: [
-        http.get("/api/plan", () => HttpResponse.json(MOCK_PLAN_LIST)),
-      ],
+      handlers: [http.get("/api/plan", () => HttpResponse.json(MOCK_PLAN_LIST))],
     },
   },
   render: () => html`<cts-plan-list is-admin></cts-plan-list>`,
@@ -291,9 +275,7 @@ export const PublicView = {
         http.get("/api/plan", ({ request }) => {
           const url = new URL(request.url);
           const isPublic = url.searchParams.get("public") === "true";
-          const plans = isPublic
-            ? MOCK_PLAN_LIST.filter((p) => p.publish)
-            : MOCK_PLAN_LIST;
+          const plans = isPublic ? MOCK_PLAN_LIST.filter((p) => p.publish) : MOCK_PLAN_LIST;
           return HttpResponse.json(plans);
         }),
       ],

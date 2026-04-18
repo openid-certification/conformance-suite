@@ -26,7 +26,8 @@ export const MOCK_SCHEMA = {
             type: "string",
             format: "uri",
             title: "Authorization Endpoint",
-            description: "URL of the OP's authorization endpoint (auto-discovered from issuer if not set)",
+            description:
+              "URL of the OP's authorization endpoint (auto-discovered from issuer if not set)",
           },
         },
         required: ["issuer"],

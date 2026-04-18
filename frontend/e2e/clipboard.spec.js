@@ -89,9 +89,9 @@ test.describe("ClipboardJS copy buttons render text from cts-button hosts", () =
     await expect(copyBtn).toBeVisible();
     await copyBtn.click();
 
-    await expect.poll(() => readCopiedText(page)).toBe(
-      '{"server.issuer":"https://op.example.com"}',
-    );
+    await expect
+      .poll(() => readCopiedText(page))
+      .toBe('{"server.issuer":"https://op.example.com"}');
   });
 
   test("logs.html: config modal copy button copies #config text", async ({ page }) => {
@@ -121,9 +121,7 @@ test.describe("ClipboardJS copy buttons render text from cts-button hosts", () =
     await expect(copyBtn).toBeVisible();
     await copyBtn.click();
 
-    await expect.poll(() => readCopiedText(page)).toBe(
-      '{"client.client_id":"test-client-id"}',
-    );
+    await expect.poll(() => readCopiedText(page)).toBe('{"client.client_id":"test-client-id"}');
   });
 
   test("plan-detail.html: config modal copy button copies #config text", async ({ page }) => {

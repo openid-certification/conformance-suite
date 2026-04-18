@@ -1,9 +1,5 @@
 import { test, expect } from "@playwright/test";
-import {
-  setupCommonRoutes,
-  setupFailFast,
-  expectNoUnmockedCalls,
-} from "./helpers/routes.js";
+import { setupCommonRoutes, setupFailFast, expectNoUnmockedCalls } from "./helpers/routes.js";
 import {
   MOCK_IMAGES_PENDING,
   MOCK_IMAGES_EMPTY,
@@ -102,18 +98,13 @@ test.describe("upload.html — Image Uploader", () => {
     // because the label-wrapping-input pattern is file-picker specific and
     // out-of-scope for the cts-button migration. Verify the raw <label> is
     // still present with its hidden file input.
-    const label = page
-      .locator("#additionalUploader label.btn.btn-light")
-      .first();
+    const label = page.locator("#additionalUploader label.btn.btn-light").first();
     await expect(label).toBeVisible();
     await expect(label).toContainText("Select File");
 
     const fileInput = label.locator('input[type="file"]');
     await expect(fileInput).toHaveAttribute("hidden", "");
-    await expect(fileInput).toHaveAttribute(
-      "accept",
-      ".jpg,.jpeg,.png,image/png,image/jpeg",
-    );
+    await expect(fileInput).toHaveAttribute("accept", ".jpg,.jpeg,.png,image/png,image/jpeg");
   });
 
   test("pending image (from template) renders the Upload cts-button", async ({ page }) => {
@@ -128,9 +119,7 @@ test.describe("upload.html — Image Uploader", () => {
 
     // The pendingImageUploader.html template is injected via FAPI_UI.logTemplates.PENDING
     // for each image entry with `upload: ...`.
-    const pendingItem = page
-      .locator('#imageBlocks [data-upload-id="placeholder-1"]')
-      .first();
+    const pendingItem = page.locator('#imageBlocks [data-upload-id="placeholder-1"]').first();
     await expect(pendingItem).toBeVisible();
 
     // The template's Upload button is now a <cts-button class="uploadBtn">.
@@ -142,7 +131,9 @@ test.describe("upload.html — Image Uploader", () => {
     await expect(pendingUploadBtn.locator("button")).toBeDisabled();
   });
 
-  test("setting .disabled=false on cts-button.uploadBtn enables the inner button", async ({ page }) => {
+  test("setting .disabled=false on cts-button.uploadBtn enables the inner button", async ({
+    page,
+  }) => {
     await setupFailFast(page);
     await setupUploadRoutes(page, {
       testId: "test-upload-001",
@@ -168,7 +159,9 @@ test.describe("upload.html — Image Uploader", () => {
     await expect(innerBtn).not.toBeDisabled();
   });
 
-  test("server error on initial load surfaces through the errorModal (cts-modal)", async ({ page }) => {
+  test("server error on initial load surfaces through the errorModal (cts-modal)", async ({
+    page,
+  }) => {
     await setupFailFast(page);
 
     // Fail the images list load to trigger FAPI_UI.showError() → #errorModal.

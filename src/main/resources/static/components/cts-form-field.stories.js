@@ -9,24 +9,30 @@ export default {
 
 export const TextInput = {
   render: () => html`
-    <cts-form-field name="client.client_id"
+    <cts-form-field
+      name="client.client_id"
       .schema=${{ type: "string", title: "Client ID", description: "OAuth 2.0 client identifier" }}
-      value="my-client-123"></cts-form-field>
+      value="my-client-123"
+    ></cts-form-field>
   `,
   async play({ canvasElement }) {
     expect(canvasElement.querySelector("label").textContent).toContain("Client ID");
     const input = canvasElement.querySelector('input[type="text"]');
     expect(input).toBeTruthy();
     expect(input.value).toBe("my-client-123");
-    expect(canvasElement.querySelector(".form-text").textContent).toContain("OAuth 2.0 client identifier");
+    expect(canvasElement.querySelector(".form-text").textContent).toContain(
+      "OAuth 2.0 client identifier",
+    );
   },
 };
 
 export const UrlInput = {
   render: () => html`
-    <cts-form-field name="server.issuer"
+    <cts-form-field
+      name="server.issuer"
       .schema=${{ type: "string", format: "uri", title: "Issuer URL" }}
-      value="https://accounts.example.com"></cts-form-field>
+      value="https://accounts.example.com"
+    ></cts-form-field>
   `,
   async play({ canvasElement }) {
     const input = canvasElement.querySelector('input[type="url"]');
@@ -37,9 +43,11 @@ export const UrlInput = {
 
 export const PasswordInput = {
   render: () => html`
-    <cts-form-field name="client.client_secret"
+    <cts-form-field
+      name="client.client_secret"
       .schema=${{ type: "string", format: "password", title: "Client Secret" }}
-      value="s3cret"></cts-form-field>
+      value="s3cret"
+    ></cts-form-field>
   `,
   async play({ canvasElement }) {
     const input = canvasElement.querySelector('input[type="password"]');
@@ -50,9 +58,11 @@ export const PasswordInput = {
 
 export const JsonTextarea = {
   render: () => html`
-    <cts-form-field name="client.jwks"
+    <cts-form-field
+      name="client.jwks"
       .schema=${{ type: "object", format: "json", title: "Client JWKS" }}
-      value='{"keys":[{"kty":"RSA"}]}'></cts-form-field>
+      value='{"keys":[{"kty":"RSA"}]}'
+    ></cts-form-field>
   `,
   async play({ canvasElement }) {
     const textarea = canvasElement.querySelector("textarea");
@@ -63,9 +73,15 @@ export const JsonTextarea = {
 
 export const SelectDropdown = {
   render: () => html`
-    <cts-form-field name="client.token_endpoint_auth_method"
-      .schema=${{ type: "string", title: "Auth Method", enum: ["client_secret_basic", "client_secret_post", "private_key_jwt"] }}
-      value="client_secret_basic"></cts-form-field>
+    <cts-form-field
+      name="client.token_endpoint_auth_method"
+      .schema=${{
+        type: "string",
+        title: "Auth Method",
+        enum: ["client_secret_basic", "client_secret_post", "private_key_jwt"],
+      }}
+      value="client_secret_basic"
+    ></cts-form-field>
   `,
   async play({ canvasElement }) {
     const select = canvasElement.querySelector("select.form-select");
@@ -77,23 +93,30 @@ export const SelectDropdown = {
 
 export const BooleanCheckbox = {
   render: () => html`
-    <cts-form-field name="client.use_mtls"
+    <cts-form-field
+      name="client.use_mtls"
       .schema=${{ type: "boolean", title: "Use mTLS", description: "Enable mutual TLS" }}
-      value="true"></cts-form-field>
+      value="true"
+    ></cts-form-field>
   `,
   async play({ canvasElement }) {
     const checkbox = canvasElement.querySelector('input[type="checkbox"]');
     expect(checkbox).toBeTruthy();
     expect(checkbox.checked).toBe(true);
-    expect(canvasElement.querySelector(".form-check-label").textContent).toContain("Enable mutual TLS");
+    expect(canvasElement.querySelector(".form-check-label").textContent).toContain(
+      "Enable mutual TLS",
+    );
   },
 };
 
 export const WithError = {
   render: () => html`
-    <cts-form-field name="server.issuer"
+    <cts-form-field
+      name="server.issuer"
       .schema=${{ type: "string", format: "uri", title: "Issuer URL" }}
-      value="" error="Required field"></cts-form-field>
+      value=""
+      error="Required field"
+    ></cts-form-field>
   `,
   async play({ canvasElement }) {
     expect(canvasElement.querySelector("input").classList.contains("is-invalid")).toBe(true);
@@ -109,9 +132,12 @@ export const WithError = {
 
 export const WithErrorTextarea = {
   render: () => html`
-    <cts-form-field name="client.jwks"
+    <cts-form-field
+      name="client.jwks"
       .schema=${{ type: "object", format: "json", title: "Client JWKS" }}
-      value="not json" error="Must be valid JSON"></cts-form-field>
+      value="not json"
+      error="Must be valid JSON"
+    ></cts-form-field>
   `,
   async play({ canvasElement }) {
     const textarea = canvasElement.querySelector("textarea");
@@ -119,17 +145,22 @@ export const WithErrorTextarea = {
     expect(textarea.classList.contains("is-invalid")).toBe(true);
     // is-invalid must NOT land on a sibling or parent.
     expect(canvasElement.querySelector("input")).toBeNull();
-    expect(canvasElement.querySelector(".invalid-feedback").textContent).toBe(
-      "Must be valid JSON",
-    );
+    expect(canvasElement.querySelector(".invalid-feedback").textContent).toBe("Must be valid JSON");
   },
 };
 
 export const WithErrorSelect = {
   render: () => html`
-    <cts-form-field name="client.token_endpoint_auth_method"
-      .schema=${{ type: "string", title: "Auth Method", enum: ["client_secret_basic", "private_key_jwt"] }}
-      value="" error="Pick an auth method"></cts-form-field>
+    <cts-form-field
+      name="client.token_endpoint_auth_method"
+      .schema=${{
+        type: "string",
+        title: "Auth Method",
+        enum: ["client_secret_basic", "private_key_jwt"],
+      }}
+      value=""
+      error="Pick an auth method"
+    ></cts-form-field>
   `,
   async play({ canvasElement }) {
     const select = canvasElement.querySelector("select.form-select");
@@ -143,9 +174,12 @@ export const WithErrorSelect = {
 
 export const WithErrorCheckbox = {
   render: () => html`
-    <cts-form-field name="client.use_mtls"
+    <cts-form-field
+      name="client.use_mtls"
       .schema=${{ type: "boolean", title: "Use mTLS", description: "Enable mutual TLS" }}
-      value="false" error="mTLS is required for this profile"></cts-form-field>
+      value="false"
+      error="mTLS is required for this profile"
+    ></cts-form-field>
   `,
   async play({ canvasElement }) {
     const checkbox = canvasElement.querySelector('input[type="checkbox"]');
@@ -161,13 +195,17 @@ export const WithErrorCheckbox = {
 
 export const ChangeEvent = {
   render: () => html`
-    <cts-form-field name="server.issuer"
+    <cts-form-field
+      name="server.issuer"
       .schema=${{ type: "string", format: "uri", title: "Issuer URL" }}
-      value=""></cts-form-field>
+      value=""
+    ></cts-form-field>
   `,
   async play({ canvasElement }) {
     let receivedEvent = null;
-    canvasElement.addEventListener("cts-field-change", (e) => { receivedEvent = e.detail; });
+    canvasElement.addEventListener("cts-field-change", (e) => {
+      receivedEvent = e.detail;
+    });
     const input = canvasElement.querySelector("input");
     await userEvent.type(input, "https://example.com");
     expect(receivedEvent).toBeTruthy();
@@ -178,9 +216,12 @@ export const ChangeEvent = {
 
 export const Disabled = {
   render: () => html`
-    <cts-form-field name="server.issuer"
+    <cts-form-field
+      name="server.issuer"
       .schema=${{ type: "string", title: "Issuer URL" }}
-      value="https://locked.example.com" disabled></cts-form-field>
+      value="https://locked.example.com"
+      disabled
+    ></cts-form-field>
   `,
   async play({ canvasElement }) {
     expect(canvasElement.querySelector("input").disabled).toBe(true);

@@ -74,7 +74,7 @@ export const FullFlow = {
         <h4>Create a new test plan</h4>
         <cts-spec-cascade @cts-plan-selected=${handlePlanSelected}></cts-spec-cascade>
         <div id="config-section" style="display:none">
-          <hr>
+          <hr />
           <h5>Configuration</h5>
           <cts-config-form id="flow-config-form"></cts-config-form>
           <button class="btn btn-primary mt-3" id="submit-plan">Create Test Plan</button>
@@ -146,9 +146,7 @@ export const FullFlow = {
 export const ChangePlanMidFlow = {
   parameters: {
     msw: {
-      handlers: [
-        http.get("/api/runner/available", () => HttpResponse.json(MOCK_PLANS)),
-      ],
+      handlers: [http.get("/api/runner/available", () => HttpResponse.json(MOCK_PLANS))],
     },
   },
   render: () => {

@@ -36,7 +36,9 @@ class CtsPlanList extends LitElement {
     _selectedPlanId: { state: true },
   };
 
-  createRenderRoot() { return this; }
+  createRenderRoot() {
+    return this;
+  }
 
   constructor() {
     super();
@@ -98,9 +100,7 @@ class CtsPlanList extends LitElement {
 
   async _handleCopyConfig() {
     if (this._selectedConfig) {
-      await navigator.clipboard.writeText(
-        JSON.stringify(this._selectedConfig, null, 4),
-      );
+      await navigator.clipboard.writeText(JSON.stringify(this._selectedConfig, null, 4));
     }
   }
 
@@ -165,17 +165,13 @@ class CtsPlanList extends LitElement {
             ${this.isAdmin ? html`<th>Owner</th>` : nothing}
           </tr>
         </thead>
-        <tbody>
-          ${plans.map((plan) => this._renderRow(plan))}
-        </tbody>
+        <tbody> ${plans.map((plan) => this._renderRow(plan))} </tbody>
       </table>
     `;
   }
 
   _renderRow(plan) {
-    const ownerDisplay = plan.owner
-      ? plan.owner.sub || "unknown"
-      : "";
+    const ownerDisplay = plan.owner ? plan.owner.sub || "unknown" : "";
     return html`
       <tr>
         <td>
@@ -186,7 +182,8 @@ class CtsPlanList extends LitElement {
               e.preventDefault();
               this._handlePlanClick(plan._id);
             }}
-          >${plan.planName}</a>
+            >${plan.planName}</a
+          >
         </td>
         <td>${this._formatVariant(plan.variant)}</td>
         <td>${plan.description || ""}</td>
@@ -201,17 +198,13 @@ class CtsPlanList extends LitElement {
             <span class="bi bi-gear" aria-hidden="true"></span>
           </button>
         </td>
-        ${this.isAdmin
-          ? html`<td class="owner-cell">${ownerDisplay}</td>`
-          : nothing}
+        ${this.isAdmin ? html`<td class="owner-cell">${ownerDisplay}</td>` : nothing}
       </tr>
     `;
   }
 
   _renderConfigModal() {
-    const configJson = this._selectedConfig
-      ? JSON.stringify(this._selectedConfig, null, 4)
-      : "";
+    const configJson = this._selectedConfig ? JSON.stringify(this._selectedConfig, null, 4) : "";
     return html`
       <cts-modal id="planConfigModal" heading="Configuration">
         <div>
@@ -243,9 +236,7 @@ class CtsPlanList extends LitElement {
 
     if (this._error) {
       return html`
-        <div class="alert alert-danger" role="alert">
-          <strong>Error:</strong> ${this._error}
-        </div>
+        <div class="alert alert-danger" role="alert"> <strong>Error:</strong> ${this._error} </div>
       `;
     }
 
@@ -265,7 +256,6 @@ class CtsPlanList extends LitElement {
       ${filteredPlans.length > 0
         ? this._renderTable(filteredPlans)
         : html`<div class="text-muted text-center p-3">No test plans found</div>`}
-
       ${this._renderConfigModal()}
     `;
   }

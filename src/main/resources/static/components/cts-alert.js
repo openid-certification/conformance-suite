@@ -55,9 +55,7 @@ class CtsAlert extends HTMLElement {
   }
 
   _dismiss() {
-    this.dispatchEvent(
-      new CustomEvent("cts-alert-dismissed", { bubbles: true, composed: true }),
-    );
+    this.dispatchEvent(new CustomEvent("cts-alert-dismissed", { bubbles: true, composed: true }));
     this.remove();
   }
 }

@@ -35,7 +35,7 @@ export const MOCK_LOG_ENTRIES = [
       method: "GET",
       url: "https://op.example.com/authorize?client_id=test-client&redirect_uri=https%3A%2F%2Fexample.com%2Fcallback&response_type=code&scope=openid",
       headers: {
-        "Accept": "text/html",
+        Accept: "text/html",
         "User-Agent": "conformance-suite/5.1.24",
       },
     },
