@@ -74,6 +74,14 @@ class CtsTokenManager extends LitElement {
     }
   }
 
+  _createTemporaryToken() {
+    return this._createToken(false);
+  }
+
+  _createPermanentToken() {
+    return this._createToken(true);
+  }
+
   async _createToken(permanent) {
     this._error = "";
     try {
@@ -125,6 +133,11 @@ class CtsTokenManager extends LitElement {
   _openDeleteModal(tokenId) {
     this._deleteTokenId = tokenId;
     this._showDelete = true;
+  }
+
+  _handleDeleteClick(event) {
+    const tokenId = event.currentTarget.dataset.tokenId;
+    if (tokenId) this._openDeleteModal(tokenId);
   }
 
   _confirmDelete() {
@@ -234,7 +247,8 @@ class CtsTokenManager extends LitElement {
                 <td>
                   <button
                     class="btn btn-sm btn-danger bg-gradient border border-secondary"
-                    @click=${() => this._openDeleteModal(token._id)}
+                    data-token-id=${token._id}
+                    @click=${this._handleDeleteClick}
                   >
                     Delete
                   </button>
@@ -253,14 +267,14 @@ class CtsTokenManager extends LitElement {
         <button
           type="button"
           class="btn btn-lg btn-primary bg-gradient border border-secondary"
-          @click=${() => this._createToken(false)}
+          @click=${this._createTemporaryToken}
         >
           New temporary token
         </button>
         <button
           type="button"
           class="btn btn-lg btn-primary bg-gradient border border-secondary"
-          @click=${() => this._createToken(true)}
+          @click=${this._createPermanentToken}
         >
           New permanent token
         </button>
@@ -287,7 +301,7 @@ class CtsTokenManager extends LitElement {
                   type="button"
                   class="btn-close"
                   aria-label="Close"
-                  @click=${() => this._closeCreatedModal()}
+                  @click=${this._closeCreatedModal}
                 ></button>
               </div>
               <div class="modal-body">
@@ -295,7 +309,7 @@ class CtsTokenManager extends LitElement {
                   <p class="d-flex align-items-center gap-2">
                     <button
                       class="btn btn-sm btn-outline-secondary"
-                      @click=${() => this._copyToken()}
+                      @click=${this._copyToken}
                       title="Copy token to clipboard"
                     >
                       <span class="bi bi-clipboard"></span> Copy
@@ -318,7 +332,7 @@ class CtsTokenManager extends LitElement {
                 <button
                   type="button"
                   class="btn btn-sm btn-light bg-gradient border border-secondary"
-                  @click=${() => this._closeCreatedModal()}
+                  @click=${this._closeCreatedModal}
                 >
                   Close
                 </button>
@@ -344,7 +358,7 @@ class CtsTokenManager extends LitElement {
                   type="button"
                   class="btn-close"
                   aria-label="Close"
-                  @click=${() => this._cancelDelete()}
+                  @click=${this._cancelDelete}
                 ></button>
               </div>
               <div class="modal-body">
@@ -354,14 +368,14 @@ class CtsTokenManager extends LitElement {
                 <button
                   type="button"
                   class="btn btn-sm btn-danger bg-gradient border border-secondary"
-                  @click=${() => this._confirmDelete()}
+                  @click=${this._confirmDelete}
                 >
                   Delete
                 </button>
                 <button
                   type="button"
                   class="btn btn-sm btn-light bg-gradient border border-secondary"
-                  @click=${() => this._cancelDelete()}
+                  @click=${this._cancelDelete}
                 >
                   Cancel
                 </button>
@@ -387,7 +401,7 @@ class CtsTokenManager extends LitElement {
                   type="button"
                   class="btn-close"
                   aria-label="Close"
-                  @click=${() => this._closeErrorModal()}
+                  @click=${this._closeErrorModal}
                 ></button>
               </div>
               <div class="modal-body">
@@ -397,7 +411,7 @@ class CtsTokenManager extends LitElement {
                 <button
                   type="button"
                   class="btn btn-sm btn-light bg-gradient border border-secondary"
-                  @click=${() => this._closeErrorModal()}
+                  @click=${this._closeErrorModal}
                 >
                   Close
                 </button>

@@ -1,4 +1,5 @@
 import { LitElement, html, nothing } from "lit";
+import { repeat } from "lit/directives/repeat.js";
 
 const UPLOAD_SIZE_LIMIT = 500 * 1024;
 const ACCEPTED_TYPES = ["image/jpeg", "image/png"];
@@ -55,7 +56,9 @@ class CtsImageUpload extends LitElement {
     return null;
   }
 
-  _handleFileSelect(e, imageName) {
+  _handleFileSelect(e) {
+    const imageName = e.currentTarget.dataset.imageName;
+    if (!imageName) return;
     const file = e.target.files[0];
     if (!file) return;
 
@@ -77,7 +80,9 @@ class CtsImageUpload extends LitElement {
     reader.readAsDataURL(file);
   }
 
-  async _handleUpload(imageName) {
+  async _handleUpload(e) {
+    const imageName = e.currentTarget.dataset.imageName;
+    if (!imageName) return;
     const file = this._selectedFiles[imageName];
     if (!file || !this.testId) return;
 
@@ -180,7 +185,8 @@ class CtsImageUpload extends LitElement {
                   type="file"
                   accept=".jpg,.jpeg,.png,image/png,image/jpeg"
                   hidden
-                  @change="${(e) => this._handleFileSelect(e, imageName)}"
+                  data-image-name="${imageName}"
+                  @change="${this._handleFileSelect}"
                 />
               </label>
               <button
@@ -188,7 +194,8 @@ class CtsImageUpload extends LitElement {
                   ? "btn-success"
                   : "btn-light"}"
                 ?disabled="${!hasFile || this._uploading}"
-                @click="${() => this._handleUpload(imageName)}"
+                data-image-name="${imageName}"
+                @click="${this._handleUpload}"
                 >${this._uploading ? "Uploading..." : "Upload"}</button
               >
             </div>
@@ -235,10 +242,18 @@ class CtsImageUpload extends LitElement {
           : nothing}
         ${hasExisting
           ? html` <h5>Uploaded Images</h5>
-              ${this.existingImages.map((img) => this._renderExistingImage(img))}`
+              ${repeat(
+                this.existingImages,
+                (img) => img.name,
+                (img) => this._renderExistingImage(img),
+              )}`
           : nothing}
         ${hasPending
-          ? html`${this.pendingImages.map((img) => this._renderPendingImage(img))}`
+          ? html`${repeat(
+              this.pendingImages,
+              (img) => img.name,
+              (img) => this._renderPendingImage(img),
+            )}`
           : nothing}
         ${!hasPending && !hasExisting
           ? html`<div class="alert alert-info" role="status">All images uploaded</div>`

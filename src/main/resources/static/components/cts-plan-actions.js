@@ -119,6 +119,11 @@ class CtsPlanActions extends LitElement {
     );
   }
 
+  _handlePublishFromEvent(event) {
+    const mode = event.currentTarget.dataset.publishMode;
+    this._handlePublish(mode);
+  }
+
   _handleUnpublish() {
     this.dispatchEvent(
       new CustomEvent("cts-unpublish", {
@@ -213,7 +218,7 @@ class CtsPlanActions extends LitElement {
               <button
                 class="btn btn-sm btn-outline-secondary copy-config-btn"
                 title="Copy config to clipboard"
-                @click=${() => this._handleCopyConfig()}
+                @click=${this._handleCopyConfig}
               >
                 <span class="bi bi-clipboard" aria-hidden="true"></span> Copy
               </button>
@@ -252,7 +257,7 @@ class CtsPlanActions extends LitElement {
           <button
             class="btn btn-sm btn-primary generate-link-btn"
             ?disabled=${!isValid}
-            @click=${() => this._handleGeneratePrivateLink()}
+            @click=${this._handleGeneratePrivateLink}
             >Generate</button
           >
           ${this._privateLinkResult
@@ -287,12 +292,12 @@ class CtsPlanActions extends LitElement {
           <div class="d-flex gap-2">
             <button
               class="btn btn-sm btn-light bg-gradient border border-secondary"
-              @click=${() => this._handleDeleteCancel()}
+              @click=${this._handleDeleteCancel}
               >Cancel</button
             >
             <button
               class="btn btn-sm btn-danger bg-gradient border border-secondary confirm-delete-btn"
-              @click=${() => this._handleDeleteConfirm()}
+              @click=${this._handleDeleteConfirm}
               >Delete plan</button
             >
           </div>
@@ -313,7 +318,7 @@ class CtsPlanActions extends LitElement {
         <button
           class="btn btn-sm btn-light bg-gradient border border-secondary"
           data-testid="view-config-btn"
-          @click=${() => this._handleViewConfig()}
+          @click=${this._handleViewConfig}
           ><span class="bi bi-wrench-adjustable"></span> View Config</button
         >
 
@@ -330,7 +335,7 @@ class CtsPlanActions extends LitElement {
           ? html` <button
               class="btn btn-sm btn-light bg-gradient border border-secondary"
               data-testid="download-all-btn"
-              @click=${() => this._handleDownloadAll()}
+              @click=${this._handleDownloadAll}
               ><span class="bi bi-save2"></span> Download all Logs</button
             >`
           : nothing}
@@ -338,13 +343,15 @@ class CtsPlanActions extends LitElement {
           ? html` <button
                 class="btn btn-sm btn-light bg-gradient border border-secondary"
                 data-testid="publish-summary-btn"
-                @click=${() => this._handlePublish("summary")}
+                data-publish-mode="summary"
+                @click=${this._handlePublishFromEvent}
                 ><span class="bi bi-bookmarks"></span> Publish summary</button
               >
               <button
                 class="btn btn-sm btn-light bg-gradient border border-secondary"
                 data-testid="publish-everything-btn"
-                @click=${() => this._handlePublish("everything")}
+                data-publish-mode="everything"
+                @click=${this._handlePublishFromEvent}
                 ><span class="bi bi-bookmarks"></span> Publish everything</button
               >`
           : nothing}
@@ -352,7 +359,7 @@ class CtsPlanActions extends LitElement {
           ? html` <button
                 class="btn btn-sm btn-light bg-gradient border border-secondary"
                 data-testid="unpublish-btn"
-                @click=${() => this._handleUnpublish()}
+                @click=${this._handleUnpublish}
                 ><span class="bi bi-slash-circle"></span> Unpublish</button
               >
               <a
@@ -365,7 +372,7 @@ class CtsPlanActions extends LitElement {
           ? html` <button
                 class="btn btn-sm btn-light bg-gradient border border-secondary"
                 data-testid="private-link-btn"
-                @click=${() => this._handleTogglePrivateLink()}
+                @click=${this._handleTogglePrivateLink}
                 ><span class="bi bi-bookmarks"></span> Private link</button
               >
               <button
@@ -373,7 +380,7 @@ class CtsPlanActions extends LitElement {
                 data-testid="certify-btn"
                 disabled
                 title="Publish and prepare certification submission package"
-                @click=${() => this._handleCertify()}
+                @click=${this._handleCertify}
                 ><span class="bi bi-save2"></span> Publish for certification</button
               >`
           : nothing}
@@ -381,7 +388,7 @@ class CtsPlanActions extends LitElement {
           ? html` <button
               class="btn btn-sm btn-light bg-gradient border border-secondary"
               data-testid="make-mutable-btn"
-              @click=${() => this._handleMakeMutable()}
+              @click=${this._handleMakeMutable}
               ><span class="bi bi-pencil-square"></span> Make plan Mutable</button
             >`
           : nothing}
@@ -389,7 +396,7 @@ class CtsPlanActions extends LitElement {
           ? html` <button
               class="btn btn-sm btn-danger bg-gradient border border-secondary"
               data-testid="delete-plan-btn"
-              @click=${() => this._handleDeleteClick()}
+              @click=${this._handleDeleteClick}
               ><span class="bi bi-trash"></span> Delete plan</button
             >`
           : nothing}

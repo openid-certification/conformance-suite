@@ -1,4 +1,5 @@
 import { LitElement, html, nothing } from "lit";
+import { repeat } from "lit/directives/repeat.js";
 import "./cts-badge.js";
 
 const RESULT_BADGE_VARIANTS = {
@@ -133,6 +134,24 @@ class CtsLogDetailHeader extends LitElement {
         detail: { entryId },
       }),
     );
+  }
+
+  _handleFailureClick(event) {
+    const entryId = event.currentTarget.dataset.entryId;
+    if (entryId) this._handleScrollToEntry(entryId);
+  }
+
+  _handleFailureKeydown(event) {
+    if (event.key !== "Enter" && event.key !== " ") return;
+    event.preventDefault();
+    const entryId = event.currentTarget.dataset.entryId;
+    if (entryId) this._handleScrollToEntry(entryId);
+  }
+
+  _handleFailureSummaryKeydown(event) {
+    if (event.key !== "Enter" && event.key !== " ") return;
+    event.preventDefault();
+    this._toggleFailures();
   }
 
   _handleRepeatTest() {
@@ -327,22 +346,19 @@ class CtsLogDetailHeader extends LitElement {
             class="failureSummaryTitle"
             role="button"
             tabindex="0"
-            @click="${this._toggleFailures}"
-            @keydown="${(e) => {
-              if (e.key === "Enter" || e.key === " ") {
-                e.preventDefault();
-                this._toggleFailures();
-              }
-            }}"
+            @click=${this._toggleFailures}
+            @keydown=${this._handleFailureSummaryKeydown}
           >
             Failure summary:
             <span class="bi ${this._failuresExpanded ? "bi-chevron-up" : "bi-chevron-down"}"></span>
           </div>
           ${this._failuresExpanded
             ? html` <div data-testid="failure-list">
-                ${failures.map(
-                  (item) =>
-                    html` <div class="col-md-12">
+                ${repeat(
+                  failures,
+                  (item) => item._id,
+                  (item) => html`
+                    <div class="col-md-12">
                       <span class="badge labelCollection result-${item.result.toLowerCase()}"
                         >${item.result}</span
                       >
@@ -356,16 +372,13 @@ class CtsLogDetailHeader extends LitElement {
                         class="failureText showHover"
                         role="button"
                         tabindex="0"
-                        @click="${() => this._handleScrollToEntry(item._id)}"
-                        @keydown="${(e) => {
-                          if (e.key === "Enter" || e.key === " ") {
-                            e.preventDefault();
-                            this._handleScrollToEntry(item._id);
-                          }
-                        }}"
+                        data-entry-id=${item._id}
+                        @click=${this._handleFailureClick}
+                        @keydown=${this._handleFailureKeydown}
                         >${item.src}: ${item.msg}</span
                       >
-                    </div>`,
+                    </div>
+                  `,
                 )}
               </div>`
             : nothing}

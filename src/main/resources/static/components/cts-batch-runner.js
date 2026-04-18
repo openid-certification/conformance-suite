@@ -1,4 +1,5 @@
 import { LitElement, html, nothing } from "lit";
+import { repeat } from "lit/directives/repeat.js";
 import "./cts-badge.js";
 
 /**
@@ -87,7 +88,9 @@ class CtsBatchRunner extends LitElement {
             : nothing}
         </div>
         <div class="row g-2">
-          ${this.modules.map(
+          ${repeat(
+            this.modules,
+            (mod) => mod.testModule,
             (mod) => html`
               <div class="col-md-4 col-lg-3">
                 <div class="card">

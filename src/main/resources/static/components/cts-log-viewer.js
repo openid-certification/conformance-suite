@@ -1,4 +1,5 @@
 import { LitElement, html, nothing } from "lit";
+import { repeat } from "lit/directives/repeat.js";
 import "./cts-badge.js";
 import "./cts-log-entry.js";
 
@@ -94,6 +95,11 @@ class CtsLogViewer extends LitElement {
     this._collapsedBlocks = newSet;
   }
 
+  _handleBlockClick(event) {
+    const blockId = event.currentTarget.dataset.blockId;
+    if (blockId) this._toggleBlock(blockId);
+  }
+
   _renderResultSummary() {
     const counts = {};
     for (const entry of this._entries) {
@@ -120,7 +126,8 @@ class CtsLogViewer extends LitElement {
         <div
           class="col-md-12 logItem startBlock p-2"
           style="background: #336; color: white; cursor: pointer;"
-          @click=${() => this._toggleBlock(entry.blockId)}
+          data-block-id=${entry.blockId}
+          @click=${this._handleBlockClick}
         >
           <span
             class="${isCollapsed ? "bi bi-chevron-right" : "bi bi-chevron-down"}"
@@ -155,7 +162,13 @@ class CtsLogViewer extends LitElement {
           >`
         : nothing}
       ${this._renderResultSummary()}
-      <div class="log-entries">${this._entries.map((entry) => this._renderEntry(entry))}</div>
+      <div class="log-entries">
+        ${repeat(
+          this._entries,
+          (entry) => entry._id,
+          (entry) => this._renderEntry(entry),
+        )}
+      </div>
       ${this._entries.length === 0 && !this._error
         ? html`<div class="text-muted text-center p-3">No log entries</div>`
         : nothing}
