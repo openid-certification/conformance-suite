@@ -76,15 +76,6 @@ export const PlanToLogDetail = {
     },
   },
   render: () => {
-    let showLogDetail = false;
-
-    function handleViewLog() {
-      const planSection = document.querySelector("#plan-section");
-      const logSection = document.querySelector("#log-section");
-      if (planSection) planSection.style.display = "none";
-      if (logSection) logSection.style.display = "block";
-    }
-
     return html`
       <div class="container-fluid">
         <div id="plan-section">
@@ -219,8 +210,6 @@ export const RunTestEvent = {
     `;
   },
   async play({ canvasElement, step }) {
-    const canvas = within(canvasElement);
-
     const spy = fn();
     canvasElement.addEventListener("cts-run-test", spy);
 

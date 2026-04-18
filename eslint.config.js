@@ -80,6 +80,10 @@ export default [
 
   // ---------------------------------------------------------------------------
   // 2. Universal JS base
+  //
+  // Vendor globals: `bootstrap` (Bootstrap 5 JS API), `$` (jQuery), `_` (Lodash)
+  // are loaded by the HTML shell and referenced by light-DOM components.
+  // They're legitimate globals, not linting bugs.
   // ---------------------------------------------------------------------------
   js.configs.recommended,
   {
@@ -89,6 +93,9 @@ export default [
       globals: {
         ...globals.browser,
         ...globals.es2024,
+        bootstrap: "readonly",
+        $: "readonly",
+        _: "readonly",
       },
     },
   },
@@ -170,7 +177,21 @@ export default [
   },
 
   // ---------------------------------------------------------------------------
-  // 6. Playwright e2e specs
+  // 6. Node-context files — playwright.config.js and e2e specs run under Node,
+  //    not the browser. They need Node globals (process, Buffer) in addition
+  //    to whatever each plugin contributes.
+  // ---------------------------------------------------------------------------
+  {
+    files: ["frontend/playwright.config.js", "frontend/e2e/**/*.js"],
+    languageOptions: {
+      globals: {
+        ...globals.node,
+      },
+    },
+  },
+
+  // ---------------------------------------------------------------------------
+  // 7. Playwright e2e specs
   // ---------------------------------------------------------------------------
   {
     files: ["frontend/e2e/**/*.spec.js"],
@@ -190,7 +211,33 @@ export default [
   },
 
   // ---------------------------------------------------------------------------
-  // 7. eslint-config-prettier/flat — MUST be last.
+  // 8. Legacy overrides — tracked to zero (R10).
+  //
+  // This block is the named, per-rule, per-glob legacy-override tier. Each
+  // entry is a data item with a comment preamble citing rule name, filing
+  // date, and cleanup issue URL. Overrides downgrade rules from their
+  // promoted severity to "warn" on a bounded file scope — never a blanket
+  // "off", never an unbounded glob. A new file added to a covered glob but
+  // outside any override's `files:` scope still gets full severity for that
+  // rule. That's how this list stays honest.
+  //
+  // Required comment preamble shape:
+  //   // [legacy-override] rule: <rule-name>
+  //   // filed: <YYYY-MM-DD>, cleanup issue: <URL or "ISSUE-TODO-NN">
+  //   // scope: <short human description>
+  //   { files: [<specific files>], rules: { "<rule>": "warn" } }
+  //
+  // Current state (2026-04-17): zero entries. All inline-fixable findings
+  // were addressed in the Unit 5 commit; all remaining findings are
+  // plugin-preset warnings that don't affect CI exit code. When R10 is
+  // pursued more strictly (preset-warn rules elevated to error), this list
+  // is where their per-file exceptions land.
+  // ---------------------------------------------------------------------------
+  // (Intentionally empty. Add entries here when elevating a preset-warn rule
+  // to error surfaces findings on existing code.)
+
+  // ---------------------------------------------------------------------------
+  // 9. eslint-config-prettier/flat — MUST be last.
   //    Turns off every ESLint stylistic rule that would fight with Prettier's
   //    output. R4: Prettier never runs as an ESLint rule; ESLint only
   //    disables what Prettier already owns.
