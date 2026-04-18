@@ -8,10 +8,31 @@
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build",
     "test-storybook": "vitest --project=storybook --run",
-    "lint:jsdoc": "bash scripts/lint-jsdoc-properties.sh"
+    "lint:jsdoc": "bash scripts/lint-jsdoc-properties.sh",
+    "format": "prettier --config ./.prettierrc.json --write . ../src/main/resources/static/components",
+    "format:check": "prettier --config ./.prettierrc.json --check . ../src/main/resources/static/components"
+  },
+  "engines": {
+    "node": ">=22"
   },
   "devDependencies": {
     "@playwright/test": "1.59.1",
-    "http-server": "^14.1.1"
+    "@storybook/addon-mcp": "^0.5.0",
+    "@storybook/addon-vitest": "^10.3.5",
+    "@storybook/web-components-vite": "^10.3.5",
+    "@vitest/browser-playwright": "^4.1.4",
+    "http-server": "14.1.1",
+    "lit": "^3.2.1",
+    "msw": "^2.13.3",
+    "playwright": "1.59.1",
+    "prettier": "3.8.3",
+    "storybook": "^10.3.5",
+    "vite": "^6.3.3",
+    "vitest": "^4.1.4"
+  },
+  "msw": {
+    "workerDirectory": [
+      "public"
+    ]
   }
 }
