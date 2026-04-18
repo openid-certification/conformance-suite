@@ -108,5 +108,5 @@ devenv.local.nix
 .pre-commit-config.yaml
 
 # Frontend dev tooling
-frontend/node_modules/
+node_modules
 frontend/storybook-static/
