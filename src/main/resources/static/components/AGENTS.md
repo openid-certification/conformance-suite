@@ -163,11 +163,30 @@ class CtsButton extends LitElement {
 }
 ```
 
-This is enforced by `npm run lint:jsdoc` (see
-`frontend/scripts/lint-jsdoc-properties.sh`) AND in code review. The
-lint check is a presence check — it asserts every `cts-*.js` carries at
-least one `@property` tag. Semantic correctness (right types, complete
-coverage, accurate descriptions) remains a reviewer concern.
+This is enforced by **two complementary checks**, both of which run in
+`npm run test:ci` (locally and in the `frontend_lint` CI job). They
+catch different failure modes and do not duplicate each other:
+
+- **`npm run lint:jsdoc`** (the shell script at
+  `frontend/scripts/lint-jsdoc-properties.sh`) — a **presence** check
+  with zero false positives. It asserts every `cts-*.js` carries at
+  least one `@property` tag. If the JSDoc block is missing entirely,
+  this is the check that catches it.
+- **`eslint-plugin-jsdoc`** (runs as part of `npm run lint`) — a
+  **semantic** check _inside_ present blocks. It catches malformed
+  tags, property names that don't match the declared `static properties`,
+  and bad types via `require-property` / `check-property-names`. If the
+  JSDoc block exists but is wrong, this is the check that catches it.
+
+Both checks are kept intentionally — a parser-based tool dilutes the
+one signal the presence check gives, and a presence check can't see
+inside a malformed block. See
+[`docs/solutions/best-practices/jsdoc-property-presence-lint-2026-04-17.md`](../../../../../docs/solutions/best-practices/jsdoc-property-presence-lint-2026-04-17.md)
+for the decision record.
+
+Reviewer judgement — accurate descriptions, complete coverage of
+non-obvious semantics — remains a code-review concern beyond what
+either tool catches.
 
 ---
 
