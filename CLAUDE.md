@@ -311,6 +311,14 @@ cd frontend && ./node_modules/.bin/playwright test e2e/home.spec.js
 - Fixture data lives in `frontend/e2e/fixtures/` as ES modules
 - The `wrapDataTablesResponse()` helper wraps plain arrays in the `{draw, recordsTotal, recordsFiltered, data}` envelope for pages using jQuery DataTables with `serverSide: true` (plans.html, logs.html)
 
+## Frontend quality gates
+
+Lint, format, and type-check for the frontend are covered by the `frontend_lint` GitLab job, mirrored locally by `npm run test:ci` from `frontend/` (format:check → lint → type-check → lint:jsdoc). See `frontend/README.md` for the command reference and failure-mode decoder.
+
+Severity ladder: default is `error`; R8 light-DOM preset warnings from `eslint-plugin-lit` / `eslint-plugin-wc` stay at `warn`; a named Legacy Overrides block in `frontend/eslint.config.js` tracks per-file exceptions to zero — never blanket `"off"`.
+
+The CI job currently runs with `allow_failure: true` and is scheduled to promote to blocking on 2026-06-12 — see `.gitlab/ci-sunsets/2026-06-12-frontend-lint-allow-failure.md`.
+
 ## Key Dependencies
 
 - **multipaz** (CBOR/COSE/mdoc library): Source is at https://github.com/openwallet-foundation/multipaz — use this to look up API details rather than unpacking JARs.
