@@ -1,5 +1,4 @@
 import { LitElement, html, nothing } from "lit";
-import { repeat } from "lit/directives/repeat.js";
 
 const UPLOAD_SIZE_LIMIT = 500 * 1024;
 const ACCEPTED_TYPES = ["image/jpeg", "image/png"];
@@ -242,19 +241,9 @@ class CtsImageUpload extends LitElement {
           : nothing}
         ${hasExisting
           ? html` <h5>Uploaded Images</h5>
-              ${repeat(
-                this.existingImages,
-                (img) => img.name,
-                (img) => this._renderExistingImage(img),
-              )}`
+              ${this._renderExistingImages()}`
           : nothing}
-        ${hasPending
-          ? html`${repeat(
-              this.pendingImages,
-              (img) => img.name,
-              (img) => this._renderPendingImage(img),
-            )}`
-          : nothing}
+        ${hasPending ? this._renderPendingImages() : nothing}
         ${!hasPending && !hasExisting
           ? html`<div class="alert alert-info" role="status">All images uploaded</div>`
           : nothing}
@@ -263,6 +252,14 @@ class CtsImageUpload extends LitElement {
           : nothing}
       </div>
     `;
+  }
+
+  _renderExistingImages() {
+    return this.existingImages.map((img) => this._renderExistingImage(img));
+  }
+
+  _renderPendingImages() {
+    return this.pendingImages.map((img) => this._renderPendingImage(img));
   }
 }
 

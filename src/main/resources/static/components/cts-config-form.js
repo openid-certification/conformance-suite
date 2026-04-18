@@ -1,5 +1,4 @@
 import { LitElement, html, nothing } from "lit";
-import { repeat } from "lit/directives/repeat.js";
 import "./cts-form-field.js";
 
 /**
@@ -125,21 +124,23 @@ class CtsConfigForm extends LitElement {
       return html`
         <fieldset class="mb-4">
           <legend class="fs-6 fw-bold border-bottom pb-2">${section.title}</legend>
-          ${repeat(
-            Object.entries(sectionSchema.properties),
-            ([key]) => `${section.key}.${key}`,
-            ([key, fieldSchema]) => html`
-              <cts-form-field
-                name="${section.key}.${key}"
-                .schema=${fieldSchema}
-                value="${this._getFieldValue(`${section.key}.${key}`)}"
-                error="${this.errors?.[`${section.key}.${key}`] || ""}"
-              ></cts-form-field>
-            `,
-          )}
+          ${this._renderSectionFields(section.key, sectionSchema.properties)}
         </fieldset>
       `;
     });
+  }
+
+  _renderSectionFields(sectionKey, sectionProperties) {
+    return Object.entries(sectionProperties).map(
+      ([key, fieldSchema]) => html`
+        <cts-form-field
+          name="${sectionKey}.${key}"
+          .schema=${fieldSchema}
+          value="${this._getFieldValue(`${sectionKey}.${key}`)}"
+          error="${this.errors?.[`${sectionKey}.${key}`] || ""}"
+        ></cts-form-field>
+      `,
+    );
   }
 
   render() {

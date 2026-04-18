@@ -1,5 +1,4 @@
 import { LitElement, html, nothing } from "lit";
-import { repeat } from "lit/directives/repeat.js";
 import "./cts-badge.js";
 
 const RESULT_BADGE_VARIANTS = {
@@ -320,19 +319,21 @@ class CtsLogDetailHeader extends LitElement {
       <div class="row">
         <div class="col-md-2">Results:</div>
         <div class="col-md-10 labelCollection" data-testid="result-summary">
-          ${RESULT_TYPES.map(
-            (type) => html`
-              <span class="badge result-${type}"
-                >${type.toUpperCase()}
-                <span class="badge rounded-pill" data-testid="count-${type}"
-                  >${counts[type]}</span
-                ></span
-              >
-            `,
-          )}
+          ${this._renderResultBadges(counts)}
         </div>
       </div>
     `;
+  }
+
+  _renderResultBadges(counts) {
+    return RESULT_TYPES.map(
+      (type) => html`
+        <span class="badge result-${type}"
+          >${type.toUpperCase()}
+          <span class="badge rounded-pill" data-testid="count-${type}">${counts[type]}</span></span
+        >
+      `,
+    );
   }
 
   _renderFailureSummary() {
@@ -353,38 +354,39 @@ class CtsLogDetailHeader extends LitElement {
             <span class="bi ${this._failuresExpanded ? "bi-chevron-up" : "bi-chevron-down"}"></span>
           </div>
           ${this._failuresExpanded
-            ? html` <div data-testid="failure-list">
-                ${repeat(
-                  failures,
-                  (item) => item._id,
-                  (item) => html`
-                    <div class="col-md-12">
-                      <span class="badge labelCollection result-${item.result.toLowerCase()}"
-                        >${item.result}</span
-                      >
-                      ${(item.requirements || []).map(
-                        (req) =>
-                          html`<span class="log-requirement badge labelCollection bg-secondary"
-                            >${req}</span
-                          >`,
-                      )}
-                      <span
-                        class="failureText showHover"
-                        role="button"
-                        tabindex="0"
-                        data-entry-id=${item._id}
-                        @click=${this._handleFailureClick}
-                        @keydown=${this._handleFailureKeydown}
-                        >${item.src}: ${item.msg}</span
-                      >
-                    </div>
-                  `,
-                )}
-              </div>`
+            ? html`<div data-testid="failure-list">${this._renderFailureList(failures)}</div>`
             : nothing}
         </div>
       </div>
     `;
+  }
+
+  _renderFailureList(failures) {
+    return failures.map(
+      (item) => html`
+        <div class="col-md-12">
+          <span class="badge labelCollection result-${item.result.toLowerCase()}"
+            >${item.result}</span
+          >
+          ${this._renderRequirementBadges(item.requirements)}
+          <span
+            class="failureText showHover"
+            role="button"
+            tabindex="0"
+            data-entry-id=${item._id}
+            @click=${this._handleFailureClick}
+            @keydown=${this._handleFailureKeydown}
+            >${item.src}: ${item.msg}</span
+          >
+        </div>
+      `,
+    );
+  }
+
+  _renderRequirementBadges(requirements) {
+    return (requirements || []).map(
+      (req) => html`<span class="log-requirement badge labelCollection bg-secondary">${req}</span>`,
+    );
   }
 
   _renderActionButtons() {

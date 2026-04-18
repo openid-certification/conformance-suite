@@ -88,13 +88,13 @@ class CtsLogEntry extends LitElement {
   _renderRequirements() {
     const { requirements } = this.entry;
     if (!requirements || requirements.length === 0) return nothing;
-    return html`
-      <div class="labelCollection">
-        ${requirements.map(
-          (req) => html` <span class="log-requirement badge bg-secondary">${req}</span> `,
-        )}
-      </div>
-    `;
+    return html`<div class="labelCollection">${this._requirementBadges(requirements)}</div>`;
+  }
+
+  _requirementBadges(requirements) {
+    return requirements.map(
+      (req) => html`<span class="log-requirement badge bg-secondary">${req}</span>`,
+    );
   }
 
   _renderMoreButton() {
@@ -118,20 +118,22 @@ class CtsLogEntry extends LitElement {
     if (!this._expanded || !more) return nothing;
     return html`
       <div class="moreInfo mt-2">
-        <dl class="row">
-          ${Object.entries(more).map(
-            ([key, value]) => html`
-              <dd class="col-sm-2 text-end text-break">${key}</dd>
-              <dt class="col-sm-10 text-start wrapLongStrings">
-                <pre class="mb-0">
-${typeof value === "string" ? value : JSON.stringify(value, null, 2)}</pre
-                >
-              </dt>
-            `,
-          )}
-        </dl>
+        <dl class="row">${this._moreRows(more)}</dl>
       </div>
     `;
+  }
+
+  _moreRows(more) {
+    return Object.entries(more).map(
+      ([key, value]) => html`
+        <dd class="col-sm-2 text-end text-break">${key}</dd>
+        <dt class="col-sm-10 text-start wrapLongStrings">
+          <pre class="mb-0">
+${typeof value === "string" ? value : JSON.stringify(value, null, 2)}</pre
+          >
+        </dt>
+      `,
+    );
   }
 
   render() {

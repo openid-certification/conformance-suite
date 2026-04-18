@@ -1,5 +1,4 @@
 import { LitElement, html, nothing } from "lit";
-import { repeat } from "lit/directives/repeat.js";
 import "./cts-badge.js";
 import "./cts-log-entry.js";
 
@@ -107,16 +106,18 @@ class CtsLogViewer extends LitElement {
     }
     if (Object.keys(counts).length === 0) return nothing;
     return html`
-      <div class="d-flex gap-2 mb-3 flex-wrap">
-        ${Object.entries(counts).map(
-          ([result, count]) =>
-            html`<cts-badge
-              variant="${result.toLowerCase()}"
-              label="${result} (${count})"
-            ></cts-badge>`,
-        )}
-      </div>
+      <div class="d-flex gap-2 mb-3 flex-wrap">${this._renderCountBadges(counts)}</div>
     `;
+  }
+
+  _renderCountBadges(counts) {
+    return Object.entries(counts).map(
+      ([result, count]) =>
+        html`<cts-badge
+          variant="${result.toLowerCase()}"
+          label="${result} (${count})"
+        ></cts-badge>`,
+    );
   }
 
   _renderBlockStart(entry) {
@@ -162,17 +163,15 @@ class CtsLogViewer extends LitElement {
           >`
         : nothing}
       ${this._renderResultSummary()}
-      <div class="log-entries">
-        ${repeat(
-          this._entries,
-          (entry) => entry._id,
-          (entry) => this._renderEntry(entry),
-        )}
-      </div>
+      <div class="log-entries">${this._renderEntries()}</div>
       ${this._entries.length === 0 && !this._error
         ? html`<div class="text-muted text-center p-3">No log entries</div>`
         : nothing}
     `;
+  }
+
+  _renderEntries() {
+    return this._entries.map((entry) => this._renderEntry(entry));
   }
 }
 customElements.define("cts-log-viewer", CtsLogViewer);
