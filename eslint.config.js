@@ -117,6 +117,32 @@ export default [
       wc: wcPlugin,
       jsdoc: jsdocPlugin,
     },
+    settings: {
+      jsdoc: {
+        // Custom-element event names are kebab-case (`cts-foo-bar`), which is
+        // not a valid JSDoc *namepath* (namepaths use `.`/`#`/`~`, not `-`).
+        // The default @fires structure uses `namepath-referencing`, so every
+        // `@fires cts-foo` line trips `jsdoc/valid-types` ("Syntax error in
+        // namepath"). Overriding `name` to `namepath-or-url-referencing` keeps
+        // @fires's "may have a name" semantics (so kebab-case identifiers are
+        // accepted as names) while removing it from the strict namepath check
+        // (which only fires for `namepath-defining` / `namepath-referencing`
+        // — see eslint-plugin-jsdoc/src/jsdocUtils.js `tagMightHaveNamepath`).
+        // Trade-off: we lose `nameRequired: true` for @fires; an empty @fires
+        // would no longer be flagged. That's a code-review concern, not the
+        // class of bug `valid-types` was designed to catch.
+        // See docs/plans/2026-04-18-001-refactor-eslint-warning-triage-plan.md
+        structuredTags: {
+          fires: { name: "namepath-or-url-referencing" },
+          // @property gets the same treatment for the same reason: a
+          // `cts-modal` reflects boolean HTML attributes like `static-backdrop`
+          // and `no-keyboard`, which are kebab-case (the attribute name the
+          // user types), not valid JSDoc namepaths.
+          property: { name: "namepath-or-url-referencing" },
+          prop: { name: "namepath-or-url-referencing" },
+        },
+      },
+    },
     rules: {
       ...litPlugin.configs["flat/recommended"].rules,
       ...wcPlugin.configs["flat/recommended"].rules,
