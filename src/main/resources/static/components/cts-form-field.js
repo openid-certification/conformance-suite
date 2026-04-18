@@ -1,4 +1,5 @@
 import { LitElement, html, nothing } from "lit";
+import { classMap } from "lit/directives/class-map.js";
 
 /**
  * Renders a single form input driven by a JSON-schema fragment. Supports
@@ -56,12 +57,12 @@ class CtsFormField extends LitElement {
   _renderInput() {
     const { type, format, description } = this.schema;
     const fieldEnum = this.schema.enum;
-    const invalidClass = this.error ? " is-invalid" : "";
+    const isInvalid = Boolean(this.error);
 
     if (fieldEnum) {
       return html`
         <select
-          class="form-select${invalidClass}"
+          class=${classMap({ "form-select": true, "is-invalid": isInvalid })}
           .value=${this.value || ""}
           ?disabled=${this.disabled}
           @change=${this._handleInput}
@@ -75,7 +76,11 @@ class CtsFormField extends LitElement {
     if (type === "object" || type === "array" || format === "json") {
       return html`
         <textarea
-          class="form-control font-monospace${invalidClass}"
+          class=${classMap({
+            "form-control": true,
+            "font-monospace": true,
+            "is-invalid": isInvalid,
+          })}
           rows="6"
           .value=${this.value || ""}
           ?disabled=${this.disabled}
@@ -88,7 +93,7 @@ class CtsFormField extends LitElement {
     if (format === "password") {
       return html`<input
         type="password"
-        class="form-control${invalidClass}"
+        class=${classMap({ "form-control": true, "is-invalid": isInvalid })}
         .value=${this.value || ""}
         ?disabled=${this.disabled}
         @input=${this._handleInput}
@@ -113,7 +118,7 @@ class CtsFormField extends LitElement {
     const inputType = format === "uri" ? "url" : "text";
     return html`<input
       type="${inputType}"
-      class="form-control${invalidClass}"
+      class=${classMap({ "form-control": true, "is-invalid": isInvalid })}
       .value=${this.value || ""}
       ?disabled=${this.disabled}
       @input=${this._handleInput}

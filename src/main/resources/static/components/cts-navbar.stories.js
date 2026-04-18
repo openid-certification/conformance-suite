@@ -291,6 +291,40 @@ export const ActivePageCreateTest = {
 };
 
 /**
+ * Guards classMap-driven active-class toggle across a live `current-page`
+ * attribute change. Exercises the path that motivated adopting classMap:
+ * only one link should carry `active` after the attribute flips.
+ */
+export const ActivePageTransition = {
+  args: { currentPage: "plans" },
+  decorators: [withMockUser(MOCK_USER)],
+  render: ({ currentPage }) => html`<cts-navbar current-page="${currentPage}"></cts-navbar>`,
+
+  async play({ canvasElement }) {
+    const canvas = within(canvasElement);
+    await waitForNavbar(canvas);
+
+    const navbar = canvasElement.querySelector("cts-navbar");
+    expect(navbar).toBeTruthy();
+
+    // Initial: only Test Plans is active.
+    let activeLinks = canvasElement.querySelectorAll(".nav-link.active");
+    expect(activeLinks).toHaveLength(1);
+    expect(canvas.getByText("Test Plans").classList.contains("active")).toBe(true);
+
+    // Flip current-page; classMap must move `active` to the new link and
+    // strip it from the previous one.
+    navbar.setAttribute("current-page", "logs");
+    await navbar.updateComplete;
+
+    activeLinks = canvasElement.querySelectorAll(".nav-link.active");
+    expect(activeLinks).toHaveLength(1);
+    expect(canvas.getByText("Test Logs").classList.contains("active")).toBe(true);
+    expect(canvas.getByText("Test Plans").classList.contains("active")).toBe(false);
+  },
+};
+
+/**
  * Non-401 failure from /api/currentuser (e.g. gateway 502, backend 500):
  * the navbar still renders the public nav (it's chrome — no better fallback)
  * but logs a warning so the failure is diagnosable.
