@@ -94,6 +94,55 @@ frontend_e2e_test:
   only:
     - branches
 
+# frontend_lint: runs the same `npm run test:ci` chain contributors run locally
+# (format:check + lint + type-check + lint:jsdoc). Parallel to `build` (needs: []);
+# conceptually a peer of `check-trailing-whitespace` in the build stage.
+#
+# Unit 8 of docs/plans/2026-04-17-002-feat-frontend-lint-format-typecheck-ci-plan.md
+#
+# allow_failure: true is intentional and scheduled to sunset per R23 at T+6w.
+# The sunset document itself lands in Unit 9 at
+# .gitlab/ci-sunsets/2026-06-12-frontend-lint-allow-failure.md, which will
+# flip this to allow_failure: false.
+#
+# R22 promotion criteria (all three must hold before this job becomes blocking):
+#   1. Two-weeks-green on main (manual sign-off by Joseph or Thomas reading
+#      the GitLab job history dashboard).
+#   2. All open entries in the named legacy-override tier (eslint.config.js)
+#      are closed.
+#   3. A11y CI follow-up (Storybook a11y addon + @axe-core/playwright) has
+#      landed — see Unit 9's brainstorm stub + GitLab issue.
+#
+# --ignore-scripts justification: safe here because test:ci launches no
+# browser and doesn't need MSW's postinstall hook — the MSW worker is
+# pre-checked-in at frontend/public/mockServiceWorker.js. This is documented
+# in frontend/README.md so no one copies the flag into test:e2e (where it
+# would break browser provisioning).
+frontend_lint:
+  stage: build
+  interruptible: true
+  needs: []
+  image: node:22-alpine
+  cache:
+    key: frontend-npm
+    paths:
+      - frontend/.npm    # npm's package cache (populated via NPM_CONFIG_CACHE below)
+      # Do NOT cache frontend/node_modules: `npm ci` deletes it before install,
+      # so caching is pointless; restoring a stale copy can also cause ci-mode mismatch.
+  variables:
+    # npm's default cache is $HOME/.npm, which GitLab's cache directive can't reach.
+    # Override to a path inside $CI_PROJECT_DIR so the cache block above is effective.
+    NPM_CONFIG_CACHE: "$CI_PROJECT_DIR/frontend/.npm"
+  before_script:
+    - apk add --no-cache bash   # lint-jsdoc-properties.sh uses #!/usr/bin/env bash; Alpine ships ash only
+  script:
+    - cd frontend
+    - npm ci --cache ./.npm --prefer-offline --ignore-scripts
+    - npm run test:ci
+  allow_failure: true     # R22: sunset in 6 weeks — see Unit 9's sunset doc
+  only:
+    - branches
+
 .compare: &compare
   stage: compare
   interruptible: true
