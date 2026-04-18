@@ -1,4 +1,5 @@
 import { LitElement, html, nothing } from "lit";
+import { repeat } from "lit/directives/repeat.js";
 import "./cts-badge.js";
 import "./cts-modal.js";
 
@@ -87,6 +88,12 @@ class CtsPlanList extends LitElement {
     );
   }
 
+  _handlePlanLinkClick(event) {
+    event.preventDefault();
+    const planId = event.currentTarget.dataset.planId;
+    this._handlePlanClick(planId);
+  }
+
   _handleConfigClick(plan) {
     this._selectedConfig = plan.config;
     this._selectedPlanId = plan._id;
@@ -96,6 +103,12 @@ class CtsPlanList extends LitElement {
       );
       if (modal && typeof modal.show === "function") modal.show();
     });
+  }
+
+  _handleConfigButtonClick(event) {
+    const planId = event.currentTarget.dataset.planId;
+    const plan = this._plans.find((p) => p._id === planId);
+    if (plan) this._handleConfigClick(plan);
   }
 
   async _handleCopyConfig() {
@@ -165,7 +178,13 @@ class CtsPlanList extends LitElement {
             ${this.isAdmin ? html`<th>Owner</th>` : nothing}
           </tr>
         </thead>
-        <tbody> ${plans.map((plan) => this._renderRow(plan))} </tbody>
+        <tbody>
+          ${repeat(
+            plans,
+            (plan) => plan._id,
+            (plan) => this._renderRow(plan),
+          )}
+        </tbody>
       </table>
     `;
   }
@@ -178,10 +197,8 @@ class CtsPlanList extends LitElement {
           <a
             href="#"
             class="plan-name-link"
-            @click=${(e) => {
-              e.preventDefault();
-              this._handlePlanClick(plan._id);
-            }}
+            data-plan-id="${plan._id}"
+            @click=${this._handlePlanLinkClick}
             >${plan.planName}</a
           >
         </td>
@@ -193,7 +210,8 @@ class CtsPlanList extends LitElement {
           <button
             class="btn btn-sm btn-outline-secondary showConfigBtn"
             title="View configuration"
-            @click=${() => this._handleConfigClick(plan)}
+            data-plan-id="${plan._id}"
+            @click=${this._handleConfigButtonClick}
           >
             <span class="bi bi-gear" aria-hidden="true"></span>
           </button>
@@ -211,7 +229,7 @@ class CtsPlanList extends LitElement {
           <button
             class="btn btn-sm btn-outline-secondary me-2 copy-config-btn"
             title="Copy config to clipboard"
-            @click=${() => this._handleCopyConfig()}
+            @click=${this._handleCopyConfig}
           >
             <span class="bi bi-clipboard" aria-hidden="true"></span> Copy
           </button>

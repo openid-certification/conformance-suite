@@ -63,6 +63,12 @@ class CtsTestSelector extends LitElement {
     this.dispatchEvent(new CustomEvent("cts-plan-select", { bubbles: true, detail: { plan } }));
   }
 
+  _handleSelectPlanFromEvent(event) {
+    const planName = event.currentTarget.dataset.planName;
+    const plan = this.plans.find((p) => p.planName === planName);
+    if (plan) this._handleSelectPlan(plan);
+  }
+
   render() {
     return html`
       <div class="mb-3">
@@ -92,7 +98,8 @@ class CtsTestSelector extends LitElement {
                     class="list-group-item list-group-item-action${this.selected === plan.planName
                       ? " active"
                       : ""}"
-                    @click=${() => this._handleSelectPlan(plan)}
+                    data-plan-name="${plan.planName}"
+                    @click=${this._handleSelectPlanFromEvent}
                   >
                     <div class="d-flex justify-content-between align-items-center">
                       <div>

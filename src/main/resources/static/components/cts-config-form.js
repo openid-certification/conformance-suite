@@ -1,4 +1,5 @@
 import { LitElement, html, nothing } from "lit";
+import { repeat } from "lit/directives/repeat.js";
 import "./cts-form-field.js";
 
 /**
@@ -86,7 +87,9 @@ class CtsConfigForm extends LitElement {
     }
   }
 
-  _handleTabSwitch(tab) {
+  _handleTabSwitch(e) {
+    const tab = e.currentTarget.dataset.tab;
+    if (!tab) return;
     if (tab === "json") {
       this._jsonText = JSON.stringify(this.config, null, 2);
       this._jsonError = "";
@@ -122,7 +125,9 @@ class CtsConfigForm extends LitElement {
       return html`
         <fieldset class="mb-4">
           <legend class="fs-6 fw-bold border-bottom pb-2">${section.title}</legend>
-          ${Object.entries(sectionSchema.properties).map(
+          ${repeat(
+            Object.entries(sectionSchema.properties),
+            ([key]) => `${section.key}.${key}`,
             ([key, fieldSchema]) => html`
               <cts-form-field
                 name="${section.key}.${key}"
@@ -144,14 +149,16 @@ class CtsConfigForm extends LitElement {
           <li class="nav-item">
             <button
               class="nav-link${this._activeTab === "form" ? " active" : ""}"
-              @click=${() => this._handleTabSwitch("form")}
+              data-tab="form"
+              @click=${this._handleTabSwitch}
               >Form</button
             >
           </li>
           <li class="nav-item">
             <button
               class="nav-link${this._activeTab === "json" ? " active" : ""}"
-              @click=${() => this._handleTabSwitch("json")}
+              data-tab="json"
+              @click=${this._handleTabSwitch}
               >JSON</button
             >
           </li>

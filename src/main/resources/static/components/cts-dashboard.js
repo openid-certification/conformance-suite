@@ -70,7 +70,8 @@ class CtsDashboard extends LitElement {
     if (parts.length === 0) {
       return nothing;
     }
-    return html`<div> ${parts.map((part, i) => html`${i > 0 ? " | " : ""}${part}`)} </div>`;
+    const separated = parts.flatMap((part, i) => (i > 0 ? [" | ", part] : [part]));
+    return html`<div> ${separated} </div>`;
   }
 
   render() {
