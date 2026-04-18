@@ -22,7 +22,6 @@ const BOOTSTRAP_VARIANT_CLASSES = {
  * Bootstrap-styled badge. Supports result-state variants (success, failure,
  * warning, review, skipped, interrupted, info, finished) and Bootstrap
  * variants (primary, secondary, danger, light, dark, info-subtle).
- *
  * @property {string} variant - One of: success, failure, warning, review,
  *   skipped, interrupted, info (default), finished, primary, secondary,
  *   danger, light, dark, info-subtle
@@ -46,7 +45,6 @@ const BOOTSTRAP_VARIANT_CLASSES = {
  * wrapper. If you need to swap in different rich content dynamically, set
  * the `label` attribute (for plain text), remove + re-insert the element,
  * or update `_capturedChildren` directly before triggering a re-render.
- *
  * @fires cts-badge-click - When the badge is clicked/activated while
  *   `clickable` is set. Bubbles and is composed.
  */

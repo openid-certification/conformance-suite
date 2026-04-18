@@ -4,7 +4,6 @@ import "./cts-link-button.js";
 /**
  * Login/register landing page. Offers Google/GitLab OAuth buttons and links to
  * the public logs and plans listings.
- *
  * @property {string} error - OAuth error message to display; empty hides the
  *   alert.
  * @property {boolean} logoutMessage - Shows the "You have been logged out"

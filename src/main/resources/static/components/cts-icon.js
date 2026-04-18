@@ -7,7 +7,6 @@ const SIZE_CLASSES = {
 
 /**
  * Bootstrap Icons glyph wrapper. Renders a `<span class="bi bi-{name}">`.
- *
  * @property {string} name - Bootstrap Icons name without the `bi-` prefix
  *   (e.g. `camera-fill`). Empty string renders nothing.
  * @property {string} size - One of: sm, md (default), lg

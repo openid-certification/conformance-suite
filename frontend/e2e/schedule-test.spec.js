@@ -188,7 +188,7 @@ test.describe("schedule-test.html — Test Plan Scheduling", () => {
 
     // Close the error modal
     await errorModal.locator('[data-bs-dismiss="modal"]').first().click();
-    await expect(errorModal).not.toBeVisible();
+    await expect(errorModal).toBeHidden();
   });
 
   test("variant selectors render when plan has variants (R5)", async ({ page }) => {
@@ -395,8 +395,8 @@ test.describe("schedule-test.html — Test Plan Scheduling", () => {
     // the page degrades gracefully (no JS errors, no crash) rather than
     // explicit error handling.
     const familySelect = page.locator("#specFamilySelect");
-    const optionCount = await familySelect.locator("option").count();
-    expect(optionCount).toBe(1); // Only the "--- Select ---" default
+    const optionCount = familySelect.locator("option");
+    await expect(optionCount).toHaveCount(1); // Only the "--- Select ---" default
 
     // Create button should remain disabled (no plan can be selected).
     // Targets the inner native button — see note in the R10 test.

@@ -78,7 +78,7 @@ test.describe("plans.html — Plans List", () => {
 
     // Close the modal
     await configModal.locator('[data-bs-dismiss="modal"]').first().click();
-    await expect(configModal).not.toBeVisible();
+    await expect(configModal).toBeHidden();
   });
 
   test("search button triggers DataTable re-fetch with search term", async ({ page }) => {

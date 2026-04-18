@@ -114,6 +114,6 @@ test.describe("logs.html — Logs List", () => {
 
     // Close modal
     await configModal.locator('[data-bs-dismiss="modal"]').first().click();
-    await expect(configModal).not.toBeVisible();
+    await expect(configModal).toBeHidden();
   });
 });

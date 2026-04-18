@@ -15,12 +15,10 @@ const RESULT_BADGE_VARIANTS = {
  * Searchable table of test plans. Fetches from `/api/plan` (or
  * `/api/plan?public=true`) and renders rows with name, variant, module
  * badges, and a config viewer modal.
- *
  * @property {boolean} isAdmin - Adds the Owner column when true. Reflects the
  *   `is-admin` attribute.
  * @property {boolean} isPublic - Fetches the published plan listing and hides
  *   admin affordances. Reflects the `is-public` attribute.
- *
  * @fires cts-plan-navigate - When a plan name is clicked, with
  *   `{ detail: { planId } }`; bubbles and is composed.
  */

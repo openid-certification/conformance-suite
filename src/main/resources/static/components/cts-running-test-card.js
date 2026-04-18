@@ -10,12 +10,10 @@ const STATUS_BADGE_VARIANTS = {
 /**
  * Card summarising a currently running / waiting / interrupted test instance
  * with quick actions for downloading the log and viewing details.
- *
- * @property {Object} test - Test instance object; expects `_id`, `testName`,
+ * @property {object} test - Test instance object; expects `_id`, `testName`,
  *   `created`, `status`, `variant`, `version`, `owner`.
  * @property {boolean} isAdmin - Reveals the Test Owner row. Reflects the
  *   `is-admin` attribute.
- *
  * @fires cts-download-log - When the Download Logs button is clicked, with
  *   `{ detail: { testId } }`; bubbles.
  */

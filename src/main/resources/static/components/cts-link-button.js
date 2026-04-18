@@ -3,7 +3,6 @@ import { buildButtonClasses } from "./_button-classes.js";
 
 /**
  * Bootstrap-styled anchor that behaves like a button.
- *
  * @property {string} href - Target URL. Omitted when `disabled`.
  * @property {string} variant - One of: light, info, primary, danger, secondary, success, warning
  * @property {string} size - One of: sm (default), md, lg

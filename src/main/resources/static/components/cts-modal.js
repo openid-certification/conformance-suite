@@ -23,9 +23,7 @@ import { buildButtonClasses, VARIANT_CLASSES } from "./_button-classes.js";
  * {@link CtsModal#hide} methods that wrap `getOrCreateInstance` on the
  * inner div. Prefer those when you have a reference to the `<cts-modal>`
  * element itself.
- *
  * @see docs/solutions/web-components/cts-modal-bootstrap-interop-2026-04-17.md
- *
  * @property {string} heading - The modal title text
  * @property {string} [size] - Dialog size: "sm", "lg", or "xl"
  * @property {string} [footer-buttons] - JSON array of button descriptors
@@ -46,11 +44,9 @@ import { buildButtonClasses, VARIANT_CLASSES } from "./_button-classes.js";
  *     "id": "confirmDelete",      // optional — HTML id attribute
  *     "data": { "key": "value" }  // optional — data-* attributes
  *   }
- *
  * @property {boolean} [static-backdrop] - Prevents closing on backdrop click;
  *   also suppresses the header close button and auto-generated footer
  * @property {boolean} [no-keyboard] - Prevents closing via Escape key
- *
  * @fires cts-modal-close - When the modal finishes hiding (after Bootstrap's
  *   hidden.bs.modal event)
  */
@@ -179,7 +175,7 @@ class CtsModal extends HTMLElement {
   /**
    * Parse the footer-buttons JSON attribute.
    * @param {string|null} attr - Raw attribute value
-   * @returns {Array<Object>|null} Parsed array, or null if absent/malformed
+   * @returns {Array<object> | null} Parsed array, or null if absent/malformed
    */
   static _parseFooterButtons(attr) {
     if (!attr) return null;
@@ -198,7 +194,7 @@ class CtsModal extends HTMLElement {
 
   /**
    * Create a button element from a descriptor object.
-   * @param {Object} desc - Button descriptor
+   * @param {object} desc - Button descriptor
    * @returns {HTMLButtonElement}
    */
   static _createButton(desc) {
