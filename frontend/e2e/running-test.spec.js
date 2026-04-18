@@ -125,7 +125,7 @@ test.describe("running-test.html — Running Tests", () => {
 
     // Switch mock to return empty list, then click refresh
     returnEmpty = true;
-    await page.click("#refresh");
+    await page.locator("#refresh").click();
 
     // After refresh, no tests running
     await expect(page.locator(".runningTest")).toHaveCount(0);
