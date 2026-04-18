@@ -90,13 +90,13 @@ follow-up brainstorm/plan MR assigns themselves.
    parent plan.
 3. A plan document cuts the work into units.
 4. Implementation units land.
-5. The `frontend_lint` sunset
-   ([`../../.gitlab/ci-sunsets/2026-06-12-frontend-lint-allow-failure.md`](../../.gitlab/ci-sunsets/2026-06-12-frontend-lint-allow-failure.md))
-   verifies this gate has landed as one of its R22 preconditions.
+5. The `frontend_lint` sunset (calendar reminder on 2026-06-12, owned by
+   Joseph or Thomas) verifies this gate has landed as one of its R22
+   preconditions.
 
 ## References
 
 - Parent plan: [`docs/plans/2026-04-17-002-feat-frontend-lint-format-typecheck-ci-plan.md`](../plans/2026-04-17-002-feat-frontend-lint-format-typecheck-ci-plan.md)
 - Parent brainstorm: [`docs/brainstorms/2026-04-17-frontend-lint-format-typecheck-ci-requirements.md`](2026-04-17-frontend-lint-format-typecheck-ci-requirements.md)
-- Sunset document: [`.gitlab/ci-sunsets/2026-06-12-frontend-lint-allow-failure.md`](../../.gitlab/ci-sunsets/2026-06-12-frontend-lint-allow-failure.md)
+- Sunset: calendar reminder on 2026-06-12 (owner: Joseph or Thomas); R22 criteria live in the `.gitlab-ci.yml` comment block above the `frontend_lint` job.
 - Component authoring rules (light DOM, play functions): `src/main/resources/static/components/AGENTS.md` §2, §6
