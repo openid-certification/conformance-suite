@@ -356,7 +356,7 @@ class CtsPlanActions extends LitElement {
                 ><span class="bi bi-slash-circle"></span> Unpublish</button
               >
               <a
-                href="plan-detail.html?plan=${plan._id}&public=true"
+                href="plan-detail.html?plan=${plan._id}&amp;public=true"
                 class="btn btn-sm btn-info bg-gradient border border-secondary"
                 ><span class="bi bi-bookmarks"></span> Public link</a
               >`

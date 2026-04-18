@@ -41,24 +41,6 @@ const MOCK_RESULTS_WITH_FAILURES = [
   { _id: "r7", result: "SKIPPED", src: "OptionalCheck", msg: "Skipped optional" },
 ];
 
-const MOCK_RESULTS_WITH_UPLOADS = [
-  ...MOCK_RESULTS,
-  {
-    _id: "u1",
-    result: "REVIEW",
-    src: "CheckScreenshot",
-    msg: "Screenshot required",
-    upload: "screenshot_consent",
-  },
-  {
-    _id: "u2",
-    result: "REVIEW",
-    src: "CheckScreenshot2",
-    msg: "Another screenshot",
-    upload: "screenshot_auth",
-  },
-];
-
 const COMPLETED_TEST = {
   ...MOCK_TEST_STATUS,
   results: MOCK_RESULTS,
@@ -81,11 +63,6 @@ const ALL_PASSED_TEST = {
     { _id: "s2", result: "SUCCESS", src: "B", msg: "OK" },
     { _id: "s3", result: "INFO", src: "C", msg: "Note" },
   ],
-};
-
-const UPLOAD_TEST = {
-  ...MOCK_TEST_STATUS,
-  results: MOCK_RESULTS_WITH_UPLOADS,
 };
 
 // --- Stories ---

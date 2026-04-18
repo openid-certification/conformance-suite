@@ -81,7 +81,6 @@ export const CreateTemporaryToken = {
 
     // Mock clipboard
     const mockWriteText = fn().mockResolvedValue(undefined);
-    const originalClipboard = navigator.clipboard;
     Object.defineProperty(navigator, "clipboard", {
       value: { writeText: mockWriteText },
       writable: true,

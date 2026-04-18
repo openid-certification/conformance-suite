@@ -358,7 +358,6 @@ export const ActionsPrivateLinkValidation = {
     });
 
     const daysInput = canvasElement.querySelector("#privateLinkDays");
-    const generateBtn = canvasElement.querySelector(".generate-link-btn");
 
     // Clear and type 0 (invalid)
     await userEvent.clear(daysInput);
@@ -438,8 +437,6 @@ export const ActionsImmutablePlan = {
     <cts-plan-actions .plan=${PLAN_IMMUTABLE} is-admin is-readonly></cts-plan-actions>
   `,
   async play({ canvasElement }) {
-    const canvas = within(canvasElement);
-
     // Edit config should NOT be visible (readonly)
     const editBtn = canvasElement.querySelector('[data-testid="edit-config-btn"]');
     expect(editBtn).toBeNull();

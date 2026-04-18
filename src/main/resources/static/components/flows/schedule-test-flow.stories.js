@@ -57,8 +57,7 @@ export const FullFlow = {
   },
   render: () => {
     // Wire cascade → config form inline
-    function handlePlanSelected(e) {
-      const plan = e.detail.plan;
+    function handlePlanSelected() {
       const form = document.querySelector("#flow-config-form");
       if (form) {
         form.schema = OIDCC_SCHEMA;
@@ -150,9 +149,7 @@ export const ChangePlanMidFlow = {
     },
   },
   render: () => {
-    let currentPlan = null;
-    function handlePlanSelected(e) {
-      currentPlan = e.detail.plan;
+    function handlePlanSelected() {
       const form = document.querySelector("#flow-config-form-2");
       if (form) {
         form.schema = OIDCC_SCHEMA;
