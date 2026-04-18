@@ -63,7 +63,11 @@ class CtsSpecCascade extends LitElement {
     }
   }
 
-  /** Build a 3-level index: family -> entity -> version -> [plan, ...] */
+  /**
+   * Build a 3-level index: family -> entity -> version -> [plan, ...]
+   * @returns {object} Nested index keyed by spec family, then entity-under-test,
+   *   then spec version, with plan objects as the leaf array.
+   */
   get _planIndex() {
     const index = {};
     if (!this.plans) return index;
