@@ -33,7 +33,7 @@
     "eslint-config-prettier": "10.1.8",
     "eslint-plugin-jsdoc": "62.9.0",
     "eslint-plugin-lit": "2.2.1",
-    "eslint-plugin-playwright": "2.10.1",
+    "eslint-plugin-playwright": "2.10.2",
     "eslint-plugin-storybook": "10.3.5",
     "eslint-plugin-wc": "3.1.0",
     "globals": "17.5.0",
@@ -46,7 +46,7 @@
     "storybook": "10.3.5",
     "ts-lit-plugin": "2.0.2",
     "typescript": "6.0.3",
-    "vite": "8.0.8",
+    "vite": "8.0.9",
     "vitest": "4.1.4"
   },
   "msw": {
