@@ -29,24 +29,28 @@ public class OIDSSFCheckSupportedDeliveryMethods extends AbstractCondition {
 
 		List<String> supportedDeliveryMethods = OIDFJSON.convertJsonArrayToList(supportedDeliveryMethodsEl.getAsJsonArray());
 
-		Set<String> unknownDeliveryMethods = findUnknownDeliveryMethods(supportedDeliveryMethods);
+		Set<String> extensionDeliveryMethods = findExtensionDeliveryMethods(supportedDeliveryMethods);
 
-		if (!unknownDeliveryMethods.isEmpty()) {
-			throw error("Found unknown delivery methods in transmitter metadata. This may indicate the transmitter has misunderstood the spec, or it may be using extensions the test suite is unaware of.",
-				args("unknown_delivery_methods", unknownDeliveryMethods,
+		if (!extensionDeliveryMethods.isEmpty()) {
+			// Per SSF 1.0 6.1, delivery methods are identified by URIs and the spec
+			// does not restrict delivery_methods_supported to the two standard RFC
+			// URIs — extension methods (e.g. RISC-specific URIs) are permitted.
+			log("Transmitter metadata advertises delivery methods beyond RFC 8935/8936. Extension methods are permitted per SSF 1.0 6.1.",
+				args("extension_delivery_methods", extensionDeliveryMethods,
 					"delivery_methods_supported", supportedDeliveryMethods,
 					"standard_delivery_methods", STANDARD_DELIVERY_METHODS));
-		} else {
-			logSuccess("All found delivery methods in transmitter_metadata are supported",
-				args("delivery_methods_supported", supportedDeliveryMethods));
 		}
+
+		logSuccess("Transmitter metadata delivery_methods_supported validated",
+			args("delivery_methods_supported", supportedDeliveryMethods,
+				"standard_delivery_methods", STANDARD_DELIVERY_METHODS));
 
 		return env;
 	}
 
-	protected Set<String> findUnknownDeliveryMethods(List<String> supportedEventTypes) {
-		Set<String> unknownEventTypes = new LinkedHashSet<>(supportedEventTypes);
-		unknownEventTypes.removeAll(STANDARD_DELIVERY_METHODS);
-		return unknownEventTypes;
+	protected Set<String> findExtensionDeliveryMethods(List<String> supportedDeliveryMethods) {
+		Set<String> extensionMethods = new LinkedHashSet<>(supportedDeliveryMethods);
+		extensionMethods.removeAll(STANDARD_DELIVERY_METHODS);
+		return extensionMethods;
 	}
 }
