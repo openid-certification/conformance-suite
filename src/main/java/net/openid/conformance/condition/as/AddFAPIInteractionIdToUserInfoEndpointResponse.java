@@ -17,11 +17,11 @@ public class AddFAPIInteractionIdToUserInfoEndpointResponse extends AbstractCond
 
 		if (headers == null) {
 			headers = new JsonObject();
+			env.putObject("user_info_endpoint_response_headers", headers);
 		}
 
 		if (! Strings.isNullOrEmpty(fapiInteractionId)) {
 			headers.addProperty("x-fapi-interaction-id", fapiInteractionId);
-			env.putObject("user_info_endpoint_response_headers", headers);
 		}
 
 		logSuccess("Added FAPI Interaction ID to userinfo response headers", headers);

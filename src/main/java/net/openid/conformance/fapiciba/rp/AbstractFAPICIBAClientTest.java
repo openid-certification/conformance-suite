@@ -6,15 +6,12 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.Condition.ConditionResult;
-import net.openid.conformance.condition.as.AddACRClaimToIdTokenClaims;
 import net.openid.conformance.condition.as.AddAtHashToIdTokenClaims;
-import net.openid.conformance.condition.as.AddClaimsParameterSupportedTrueToServerConfiguration;
 import net.openid.conformance.condition.as.AddIdTokenSigningAlgsToServerConfiguration;
 import net.openid.conformance.condition.as.AddJwksUriToServerConfiguration;
 import net.openid.conformance.condition.as.AddTLSClientAuthToServerConfiguration;
 import net.openid.conformance.condition.as.AddTlsCertificateBoundAccessTokensTrueSupportedToServerConfiguration;
 import net.openid.conformance.condition.as.CalculateAtHash;
-import net.openid.conformance.condition.as.CheckCIBAModeIsPing;
 import net.openid.conformance.condition.as.CheckClientIdMatchesOnTokenRequestIfPresent;
 import net.openid.conformance.condition.as.CheckForClientCertificate;
 import net.openid.conformance.condition.as.CopyAccessTokenToClientCredentialsField;
@@ -29,27 +26,14 @@ import net.openid.conformance.condition.as.EnsureOpenIDInScopeRequest;
 import net.openid.conformance.condition.as.EnsureOptionalAuthorizationRequestParametersMatchRequestObject;
 import net.openid.conformance.condition.as.EnsureRequestObjectDoesNotContainRequestOrRequestUri;
 import net.openid.conformance.condition.as.EnsureRequestObjectDoesNotContainSubWithClientId;
-import net.openid.conformance.condition.as.EnsureScopeContainsConsents;
-import net.openid.conformance.condition.as.EnsureScopeContainsPayments;
-import net.openid.conformance.condition.as.EnsureScopeContainsResources;
 import net.openid.conformance.condition.as.ExtractClientCertificateFromRequestHeaders;
 import net.openid.conformance.condition.as.ExtractRequestedScopes;
-import net.openid.conformance.condition.as.ExtractServerSigningAlg;
 import net.openid.conformance.condition.as.FAPI1AdvancedValidateRequestObjectNBFClaim;
-import net.openid.conformance.condition.as.FAPIAddTokenEndpointAuthSigningAlgValuesSupportedToServer;
-import net.openid.conformance.condition.as.FAPIBrazilAddBrazilSpecificSettingsToServerConfiguration;
-import net.openid.conformance.condition.as.FAPIBrazilAddCPFAndCPNJToIdTokenClaims;
-import net.openid.conformance.condition.as.FAPIBrazilAddCPFAndCPNJToUserInfoClaims;
-import net.openid.conformance.condition.as.FAPIBrazilAddTokenEndpointAuthSigningAlgValuesSupportedToServer;
-import net.openid.conformance.condition.as.FAPIBrazilChangeConsentStatusToAuthorized;
 import net.openid.conformance.condition.as.FAPIBrazilExtractConsentRequest;
 import net.openid.conformance.condition.as.FAPIBrazilExtractPaymentInitiationRequest;
 import net.openid.conformance.condition.as.FAPIBrazilExtractPaymentsConsentRequest;
-import net.openid.conformance.condition.as.FAPIBrazilExtractRequestedScopeFromClientCredentialsGrant;
-import net.openid.conformance.condition.as.FAPIBrazilOBAddACRClaimToIdTokenClaims;
 import net.openid.conformance.condition.as.FAPIBrazilSignPaymentConsentResponse;
 import net.openid.conformance.condition.as.FAPIBrazilSignPaymentInitiationResponse;
-import net.openid.conformance.condition.as.FAPIBrazilValidateConsentScope;
 import net.openid.conformance.condition.as.FAPIEnsureMinimumClientKeyLength;
 import net.openid.conformance.condition.as.FAPIEnsureMinimumServerKeyLength;
 import net.openid.conformance.condition.as.FAPIValidateRequestObjectExp;
@@ -57,19 +41,14 @@ import net.openid.conformance.condition.as.FAPIValidateRequestObjectMediaType;
 import net.openid.conformance.condition.as.FAPIValidateRequestObjectSigningAlg;
 import net.openid.conformance.condition.as.FilterUserInfoForScopes;
 import net.openid.conformance.condition.as.GenerateBearerAccessToken;
-import net.openid.conformance.condition.as.GenerateIdTokenClaims;
 import net.openid.conformance.condition.as.GenerateIdTokenClaimsWith181DayExp;
 import net.openid.conformance.condition.as.LoadServerJWKs;
 import net.openid.conformance.condition.as.SetRsaAltServerJwks;
-import net.openid.conformance.condition.as.SetServerSigningAlgToPS256;
 import net.openid.conformance.condition.as.SetTokenEndpointAuthMethodsSupportedToPrivateKeyJWTOnly;
-import net.openid.conformance.condition.as.SignIdToken;
-import net.openid.conformance.condition.as.SignIdTokenWithX5tS256;
 import net.openid.conformance.condition.as.ValidateFAPIInteractionIdInResourceRequest;
 import net.openid.conformance.condition.as.ValidateRefreshToken;
 import net.openid.conformance.condition.as.ValidateRequestObjectSignature;
 import net.openid.conformance.condition.client.AddCibaTokenDeliveryModePingToTokenDeliveryModesSupported;
-import net.openid.conformance.condition.client.AddCibaTokenDeliveryModePollToTokenDeliveryModesSupported;
 import net.openid.conformance.condition.client.ExtractJWKsFromStaticClientConfiguration;
 import net.openid.conformance.condition.client.FAPIValidateRequestObjectIdTokenACRClaims;
 import net.openid.conformance.condition.client.GetStaticClientConfiguration;
@@ -88,7 +67,6 @@ import net.openid.conformance.condition.rs.ExtractFapiDateHeader;
 import net.openid.conformance.condition.rs.ExtractFapiInteractionIdHeader;
 import net.openid.conformance.condition.rs.ExtractFapiIpAddressHeader;
 import net.openid.conformance.condition.rs.ExtractXIdempotencyKeyHeader;
-import net.openid.conformance.condition.rs.FAPIBrazilEnsureAuthorizationRequestScopesContainAccounts;
 import net.openid.conformance.condition.rs.FAPIBrazilEnsureAuthorizationRequestScopesContainPayments;
 import net.openid.conformance.condition.rs.FAPIBrazilEnsureAuthorizationRequestScopesContainResources;
 import net.openid.conformance.condition.rs.FAPIBrazilEnsureClientCredentialsScopeContainedConsents;
@@ -119,6 +97,7 @@ import net.openid.conformance.sequence.as.GenerateOpenBankingBrazilAccountsEndpo
 import net.openid.conformance.sequence.as.ValidateClientAuthenticationWithMTLS;
 import net.openid.conformance.sequence.as.ValidateClientAuthenticationWithPrivateKeyJWT;
 import net.openid.conformance.testmodule.AbstractTestModule;
+import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.TestFailureException;
 import net.openid.conformance.variant.CIBAMode;
 import net.openid.conformance.variant.ClientAuthType;
@@ -176,7 +155,6 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 	private Class<? extends ConditionSequence> validateTokenEndpointClientAuthenticationSteps;
 	private Class<? extends ConditionSequence> validateBackchannelClientAuthenticationSteps;
 	private Class<? extends ConditionSequence> accountsEndpointProfileSteps;
-	private Class<? extends Condition> profileSpecificSignIdToken;
 
 	@VariantSetup(parameter = ClientAuthType.class, value = "mtls")
 	public void setupMTLS() {
@@ -194,22 +172,33 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 
 	@VariantSetup(parameter = FAPICIBAProfile.class, value = "plain_fapi")
 	public void setupPlainFapi() {
-		profileSpecificSignIdToken = SignIdToken.class;
+		profileBehavior = new FAPICIBARPProfileBehavior();
+		profileBehavior.setModule(this);
 	}
 
 	@VariantSetup(parameter = FAPICIBAProfile.class, value = "connectid_au")
 	public void setupConnectID() {
-		profileSpecificSignIdToken = SignIdToken.class;
+		profileBehavior = new ConnectIdAuCibaRPProfileBehavior();
+		profileBehavior.setModule(this);
+	}
+
+	@VariantSetup(parameter = FAPICIBAProfile.class, value = "openbanking_uk")
+	public void setupOpenBankingUk() {
+		profileBehavior = new OpenBankingUkCibaRPProfileBehavior();
+		profileBehavior.setModule(this);
 	}
 
 	@VariantSetup(parameter = FAPICIBAProfile.class, value = "openbanking_brazil")
 	public void setupOpenBankingBrazil() {
 		accountsEndpointProfileSteps = GenerateOpenBankingBrazilAccountsEndpointResponse.class;
-		profileSpecificSignIdToken = SignIdTokenWithX5tS256.class;
+		profileBehavior = new OpenBankingBrazilCibaRPProfileBehavior();
+		profileBehavior.setModule(this);
 	}
 
-	protected boolean isBrazil() {
-		return profile == FAPICIBAProfile.OPENBANKING_BRAZIL;
+	protected FAPICIBARPProfileBehavior profileBehavior;
+
+	public Environment getEnv() {
+		return env;
 	}
 
 	protected void addCustomValuesToIdToken() {	}
@@ -230,6 +219,7 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 	}
 
 	protected HttpStatus createBackchannelResponse() {
+		call(profileBehavior.applyProfileSpecificBackchannelEndpointResponse());
 		callAndStopOnFailure(CreateBackchannelEndpointResponse.class);
 		return HttpStatus.OK;
 	}
@@ -269,40 +259,19 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 		callAndStopOnFailure(ValidateServerJWKs.class, "RFC7517-1.1");
 
 		callAndStopOnFailure(AddCibaTokenDeliveryModePingToTokenDeliveryModesSupported.class);
-		if(isBrazil()) {
-			callAndStopOnFailure(CheckCIBAModeIsPing.class, Condition.ConditionResult.FAILURE, "BrazilCIBA-5.2.2");
-			callAndStopOnFailure(SetServerSigningAlgToPS256.class, "BrazilOB-6.1-1");
-			callAndStopOnFailure(AddClaimsParameterSupportedTrueToServerConfiguration.class, "BrazilOB-5.2.2-3");
-			callAndStopOnFailure(FAPIBrazilAddBrazilSpecificSettingsToServerConfiguration.class, "BrazilOB-5.2.2");
-		} else {
-			callAndStopOnFailure(AddCibaTokenDeliveryModePollToTokenDeliveryModesSupported.class);
-			callAndStopOnFailure(ExtractServerSigningAlg.class);
-		}
+		call(profileBehavior.applyProfileSpecificServerConfigurationSetup());
 
 		callAndStopOnFailure(AddIdTokenSigningAlgsToServerConfiguration.class);
 		callAndStopOnFailure(AddTlsCertificateBoundAccessTokensTrueSupportedToServerConfiguration.class, "FAPI2-4.3.1-9");
 
 		callAndStopOnFailure(addTokenEndpointAuthMethodSupported);
 
-		if(isBrazil()) {
-			callAndStopOnFailure(FAPIBrazilAddTokenEndpointAuthSigningAlgValuesSupportedToServer.class);
-			callAndStopOnFailure(BrazilAddBackchannelAuthenticationRequestSigningAlgValuesSupportedToServer.class);
-		} else {
-			callAndStopOnFailure(FAPIAddTokenEndpointAuthSigningAlgValuesSupportedToServer.class);
-			callAndStopOnFailure(AddBackchannelAuthenticationRequestSigningAlgValuesSupportedToServer.class);
-		}
+		call(profileBehavior.applyProfileSpecificServerAuthAlgSetup());
 
 		exposeEnvString("discoveryUrl");
 		exposeEnvString("issuer");
 
-		if(isBrazil()) {
-			exposeMtlsPath("consents_endpoint", FAPIBrazilRsPathConstants.BRAZIL_CONSENTS_PATH);
-			exposeMtlsPath("resource_endpoint", FAPIBrazilRsPathConstants.BRAZIL_RESOURCE_PATH);
-		} else if (FAPICIBAProfile.CONNECTID_AU.equals(getVariant(FAPICIBAProfile.class))) {
-			exposeEnvString("userinfo_endpoint", "server", "userinfo_endpoint");
-		} else {
-			exposeMtlsPath("accounts_endpoint", ACCOUNTS_PATH);
-		}
+		profileBehavior.exposeProfileSpecificEndpoints();
 
 		callAndStopOnFailure(CheckServerConfiguration.class);
 		callAndStopOnFailure(CheckNotificationEndpointServerConfiguration.class, "CIBA-9");
@@ -367,6 +336,9 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 				if (startingShutdown) {
 					throw new TestFailureException(getId(), "Client has incorrectly called '%s' after receiving a response that must cause it to stop interacting with the server".formatted(path));
 				}
+				if (profileBehavior.userInfoEndpointRequiresMTLS()) {
+					throw new TestFailureException(getId(), "Userinfo endpoint must be called over an mTLS secured connection using the userinfo_endpoint found in mtls_endpoint_aliases.");
+				}
 				return userinfoEndpoint(requestId);
 			default:
 				throw new TestFailureException(getId(), "Got unexpected HTTP call to " + path);
@@ -395,6 +367,8 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 				return backchannelEndpoint(requestId);
 			case "token":
 				return tokenEndpoint(requestId);
+			case "userinfo":
+				return userinfoEndpoint(requestId);
 			case ACCOUNTS_PATH:
 			case FAPIBrazilRsPathConstants.BRAZIL_ACCOUNTS_PATH:
 				return accountsEndpoint(requestId);
@@ -417,7 +391,7 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 		}
 	}
 
-	private void exposeMtlsPath(String name, String path) {
+	public void exposeMtlsPath(String name, String path) {
 		String baseUrlMtls = env.getString("base_mtls_url");
 		env.putString(name, baseUrlMtls + "/" + path);
 		exposeEnvString(name);
@@ -489,7 +463,9 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 	protected Object tokenEndpoint(String requestId) {
 		setStatus(Status.RUNNING);
 
-		call(exec().startBlock("Token endpoint").mapKey("token_endpoint_request", requestId));
+		call(exec().startBlock("Token endpoint")
+			.mapKey("token_endpoint_request", requestId)
+			.mapKey("incoming_request", requestId));
 
 		callAndStopOnFailure(CheckClientIdMatchesOnTokenRequestIfPresent.class, ConditionResult.FAILURE, "RFC6749-3.2.1");
 
@@ -507,8 +483,9 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 
 		switch (grantType) {
 			case "client_credentials":
-				if (isBrazil()) {
-					callAndStopOnFailure(FAPIBrazilExtractRequestedScopeFromClientCredentialsGrant.class);
+				ConditionSequence profileSpecificClientCredentialsGrantSteps = profileBehavior.getClientCredentialsGrantTypeSteps();
+				if (profileSpecificClientCredentialsGrantSteps != null) {
+					call(profileSpecificClientCredentialsGrantSteps);
 					return clientCredentialsGrantType();
 				}
 				break;
@@ -526,26 +503,37 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 		issueAccessToken();
 		issueRefreshToken(); // rotate refresh token
 		env.removeNativeValue("id_token");
+
+		call(profileBehavior.prepareNonResourceEndpointFapiInteractionId());
 		callAndStopOnFailure(CreateTokenEndpointResponse.class);
 
-		call(exec().unmapKey("token_endpoint_request").endBlock());
+		call(profileBehavior.addFapiInteractionIdToTokenEndpointResponse());
+
+		JsonObject headerJson = env.getObject("token_endpoint_response_headers");
+
+		call(exec().unmapKey("token_endpoint_request").unmapKey("incoming_request").endBlock());
 		setStatus(Status.WAITING);
 
-		return new ResponseEntity<Object>(env.getObject("token_endpoint_response"), HttpStatus.OK);
+		return new ResponseEntity<Object>(env.getObject("token_endpoint_response"), headersFromJson(headerJson), HttpStatus.OK);
 
 	}
 
 	protected Object clientCredentialsGrantType() {
 		callAndStopOnFailure(GenerateBearerAccessToken.class);
+
+		call(profileBehavior.prepareNonResourceEndpointFapiInteractionId());
 		callAndStopOnFailure(CreateTokenEndpointResponse.class);
 
 		// this puts the client credentials specific token into its own box for later
 		callAndStopOnFailure(CopyAccessTokenToClientCredentialsField.class);
+		call(profileBehavior.addFapiInteractionIdToTokenEndpointResponse());
 
-		call(exec().unmapKey("token_endpoint_request").endBlock());
+		JsonObject headerJson = env.getObject("token_endpoint_response_headers");
+
+		call(exec().unmapKey("token_endpoint_request").unmapKey("incoming_request").endBlock());
 		setStatus(Status.WAITING);
 
-		return new ResponseEntity<Object>(env.getObject("token_endpoint_response"), HttpStatus.OK);
+		return new ResponseEntity<Object>(env.getObject("token_endpoint_response"), headersFromJson(headerJson), HttpStatus.OK);
 	}
 
 	protected Object cibaGrantType() {
@@ -559,14 +547,18 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 		} else {
 			callAndStopOnFailure(VerifyThatPollingIntervalIsRespected.class, ConditionResult.FAILURE, "CIBA-7.3");
 
+			call(profileBehavior.prepareNonResourceEndpointFapiInteractionId());
 			statusCode = createTokenEndpointResponseForCiba();
 		}
 
+		call(profileBehavior.addFapiInteractionIdToTokenEndpointResponse());
 		tokenEndpointCallComplete();
 
-		call(exec().unmapKey("token_endpoint_request").endBlock());
+		JsonObject headerJson = env.getObject("token_endpoint_response_headers");
 
-		return new ResponseEntity<Object>(env.getObject("token_endpoint_response"), statusCode);
+		call(exec().unmapKey("token_endpoint_request").unmapKey("incoming_request").endBlock());
+
+		return new ResponseEntity<Object>(env.getObject("token_endpoint_response"), headersFromJson(headerJson), statusCode);
 	}
 
 	private HttpStatus createTokenEndpointResponseForCiba() {
@@ -578,6 +570,8 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 			issueIdToken();
 
 			createFinalTokenResponse();
+
+			call(profileBehavior.applyProfileSpecificTokenEndpointChecks());
 
 			callAndContinueOnFailure(RedeemAuthReqId.class, ConditionResult.INFO);
 			return HttpStatus.OK;
@@ -593,7 +587,7 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 
 		callAndStopOnFailure(GenerateIdTokenClaimsWith181DayExp.class);
 
-		callAndStopOnFailure(profileSpecificSignIdToken);
+		callAndStopOnFailure(profileBehavior.getSignIdTokenCondition());
 
 		JsonObject response = new JsonObject();
 		response.addProperty("id_token", env.getString("id_token"));
@@ -624,32 +618,21 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 
 		env.mapKey("authorization_request_object", "backchannel_request_object");
 
-		if(isBrazil()) {
-			callAndStopOnFailure(GenerateIdTokenClaimsWith181DayExp.class);
-			callAndStopOnFailure(FAPIBrazilAddCPFAndCPNJToIdTokenClaims.class, "BrazilOB-5.2.2.2", "BrazilOB-5.2.2.3");
-		} else {
-			callAndStopOnFailure(GenerateIdTokenClaims.class);
-		}
+		call(profileBehavior.applyProfileSpecificIdTokenClaims());
 
 		skipIfMissing(null, new String[] {"at_hash"}, ConditionResult.INFO,
 			AddAtHashToIdTokenClaims.class, ConditionResult.FAILURE, "OIDCC-3.3.2.11");
 
 		addCustomValuesToIdToken();
 
-		if(isBrazil()) {
-			skipIfMissing(null, new String[]{"requested_id_token_acr_values"}, ConditionResult.INFO,
-				FAPIBrazilOBAddACRClaimToIdTokenClaims.class, ConditionResult.FAILURE, "OIDCC-3.1.3.7-12");
-		} else {
-			skipIfMissing(null, new String[]{"requested_id_token_acr_values"}, ConditionResult.INFO,
-				AddACRClaimToIdTokenClaims.class, ConditionResult.FAILURE, "OIDCC-3.1.3.7-12");
-		}
+		call(profileBehavior.applyProfileSpecificAcrClaim());
 
 		env.unmapKey("authorization_request_object");
 
 	}
 
 	protected void signIdToken() {
-		callAndStopOnFailure(profileSpecificSignIdToken);
+		callAndStopOnFailure(profileBehavior.getSignIdTokenCondition());
 		addCustomSignatureOfIdToken();
 	}
 
@@ -683,18 +666,21 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 		callAndStopOnFailure(RequireBearerAccessToken.class);
 
 		callAndStopOnFailure(FilterUserInfoForScopes.class);
-		if(isBrazil()) {
-			callAndStopOnFailure(FAPIBrazilAddCPFAndCPNJToUserInfoClaims.class, "BrazilOB-5.2.2.2", "BrazilOB-5.2.2.3");
-		}
+		call(profileBehavior.applyProfileSpecificUserInfoChecks());
+
+		call(profileBehavior.prepareNonResourceEndpointFapiInteractionId());
+		call(profileBehavior.addFapiInteractionIdToUserInfoEndpointResponse());
 
 		JsonObject user = env.getObject("user_info_endpoint_response");
+		JsonObject headerJson = env.getObject("user_info_endpoint_response_headers");
 
 		callAndStopOnFailure(ClearAccessTokenFromRequest.class);
 
 		call(exec().unmapKey("incoming_request").endBlock());
-		setStatus(Status.WAITING);
 
-		return new ResponseEntity<Object>(user, HttpStatus.OK);
+		resourceEndpointCallComplete();
+
+		return new ResponseEntity<Object>(user, headersFromJson(headerJson), HttpStatus.OK);
 	}
 
 	protected ResponseEntity<?> backchannelEndpoint(String requestId) {
@@ -704,7 +690,7 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 
 		call(sequence(VerifyPostedFormData.class));
 
-		if(clientAuthType == ClientAuthType.MTLS || isBrazil()) {
+		if(clientAuthType == ClientAuthType.MTLS || profileBehavior.requiresMtlsForBackchannelEndpoint()) {
 			env.mapKey("token_endpoint_request", requestId);
 			checkMtlsCertificate();
 			env.unmapKey("token_endpoint_request");
@@ -719,38 +705,31 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 
 		env.mapKey("authorization_request_object", "backchannel_request_object");
 		validateRequestObjectForBackchannelEndpointRequest();
+		call(profileBehavior.applyProfileSpecificBackchannelRequestChecks());
 		env.unmapKey("authorization_request_object");
 
 		callAndContinueOnFailure(EnsureBackchannelRequestParametersDoNotAppearOutsideJwt.class, ConditionResult.FAILURE, "CIBA-7.1.1");
 		callAndContinueOnFailure(BackchannelRequestHasExactlyOneOfTheHintParameters.class, ConditionResult.FAILURE, "CIBA-7.1");
-		if (isBrazil()) {
-			callAndContinueOnFailure(BackchannelRequestRequestedExpiryIsIgnoredForBrazil.class, ConditionResult.FAILURE, "BrazilCIBA-6.2.6");
-		} else {
-			callAndContinueOnFailure(BackchannelRequestRequestedExpiryIsAnInteger.class, ConditionResult.FAILURE,"CIBA-7.1", "CIBA-7.1.1");
-		}
 
 		skipIfElementMissing("backchannel_request_object", "claims.id_token_hint", ConditionResult.SUCCESS, IdTokenIsSignedWithServerKey.class, ConditionResult.FAILURE, "CIBA-7.1");
-		if(isBrazil()) {
 
-			if (env.getElementFromObject("backchannel_request_object", "claims.login_hint") != null) {
-				callAndContinueOnFailure(EnsureLoginHintEqualsConsentId.class, ConditionResult.FAILURE);
-			} else {
-				throw new TestFailureException(getId(), "Open Banking/Insurance Brazil requires login_hint.");
-			}
-
-			callAndStopOnFailure(FAPIBrazilChangeConsentStatusToAuthorized.class);
-		}
+		call(exec().mapKey("incoming_request", requestId));
+		call(profileBehavior.prepareNonResourceEndpointFapiInteractionId());
 
 		HttpStatus httpStatus = createBackchannelResponse();
+		call(profileBehavior.addFapiInteractionIdToBackchannelEndpointResponse());
+
 		if(CIBAMode.PING.equals(cibaMode)) {
 			call(sequence(VerifyClientNotificationToken.class));
 			spawnThreadForPing();
 		}
 
-		call(exec().unmapKey("backchannel_endpoint_http_request").endBlock());
+		JsonObject headerJson = env.getObject("backchannel_endpoint_response_headers");
+
+		call(exec().unmapKey("backchannel_endpoint_http_request").unmapKey("incoming_request").endBlock());
 		backchannelEndpointCallComplete();
 
-		return new ResponseEntity<>(env.getObject("backchannel_endpoint_response"), httpStatus);
+		return new ResponseEntity<>(env.getObject("backchannel_endpoint_response"), headersFromJson(headerJson), httpStatus);
 	}
 
 	private void spawnThreadForPing() {
@@ -788,18 +767,7 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 		callAndContinueOnFailure(CreateEffectiveAuthorizationRequestParameters.class, ConditionResult.WARNING);
 		callAndStopOnFailure(ExtractRequestedScopes.class);
 
-		if(isBrazil()) {
-			callAndStopOnFailure(FAPIBrazilValidateConsentScope.class);
-			Boolean wasInitialConsentRequestToPaymentsEndpoint = env.getBoolean("payments_consent_endpoint_called");
-			if(wasInitialConsentRequestToPaymentsEndpoint) {
-				callAndStopOnFailure(EnsureScopeContainsPayments.class);
-			} else {
-				callAndStopOnFailure(EnsureScopeContainsConsents.class);
-				callAndStopOnFailure(EnsureScopeContainsResources.class);
-			}
-		} else {
-			callAndStopOnFailure(EnsureRequestedScopeIsEqualToConfiguredScopeDisregardingOrder.class);
-		}
+		call(profileBehavior.applyProfileSpecificBackchannelScopeChecks());
 
 		callAndStopOnFailure(EnsureOpenIDInScopeRequest.class, "FAPI1-BASE-5.2.3-7");
 
@@ -841,13 +809,7 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 
 		checkResourceEndpointRequest(false);
 
-		if(profile == FAPICIBAProfile.OPENBANKING_BRAZIL) {
-			callAndStopOnFailure(FAPIBrazilEnsureAuthorizationRequestScopesContainAccounts.class);
-			Boolean wasInitialConsentRequestToPaymentsEndpoint = env.getBoolean("payments_consent_endpoint_called");
-			if(wasInitialConsentRequestToPaymentsEndpoint) {
-				throw new TestFailureException(getId(), FAPIBrazilRsPathConstants.BRAZIL_PAYMENTS_CONSENTS_PATH + " was called. The test must end at the payment initiation endpoint");
-			}
-		}
+		call(profileBehavior.applyProfileSpecificAccountsEndpointChecks());
 
 		callAndStopOnFailure(CreateFapiInteractionIdIfNeeded.class, "FAPI1-BASE-6.2.1-11");
 		callAndStopOnFailure(CreateFAPIAccountEndpointResponse.class);
@@ -1047,6 +1009,8 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 		callAndContinueOnFailure(EnsureIncomingRequestContentTypeIsApplicationJwt.class, ConditionResult.FAILURE, "BrazilOB-6.1-4");
 
 		callAndContinueOnFailure(ExtractXIdempotencyKeyHeader.class, ConditionResult.FAILURE);
+
+		callAndContinueOnFailure(CreateFapiInteractionIdIfNeeded.class, ConditionResult.FAILURE, "FAPI1-BASE-6.2.1-11");
 
 		//ensure aud equals endpoint url	"BrazilOB-6.1"
 		callAndContinueOnFailure(FAPIBrazilValidatePaymentInitiationRequestAud.class, ConditionResult.FAILURE, "BrazilOB-6.1-3");

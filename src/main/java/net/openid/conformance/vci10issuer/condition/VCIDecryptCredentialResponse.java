@@ -9,7 +9,6 @@ import com.nimbusds.jose.JWEDecrypter;
 import com.nimbusds.jose.JWEObject;
 import com.nimbusds.jose.jwk.JWK;
 import com.nimbusds.jose.jwk.JWKSet;
-import com.nimbusds.jose.util.JSONObjectUtils;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
@@ -44,14 +43,17 @@ public class VCIDecryptCredentialResponse extends AbstractCondition {
 			// Parse the JWE
 			JWEObject jweObject = JWEObject.parse(responseBody);
 			JWEAlgorithm algorithm = jweObject.getHeader().getAlgorithm();
+			String kid = jweObject.getHeader().getKeyID();
 
 			// Get the decryption key from the configured JWKS
 			JWKSet jwkSet = JWKUtil.parseJWKSet(encryptionJwks.toString());
-			JWK decryptionKey = JWEUtil.selectAsymmetricKeyForEncryption(jwkSet, algorithm);
+			JWK decryptionKey = JWEUtil.selectAsymmetricKeyForEncryption(jwkSet, algorithm, kid);
 
 			if (decryptionKey == null) {
-				throw error("No suitable key for decrypting the credential response was found in credential_encryption_jwks",
-					args("algorithm", algorithm.getName(), "credential_encryption_jwks", encryptionJwks));
+				throw error("The credential response was encrypted with an alg/kid that does not match any key the test suite offered"
+					+ " in the credential request's credential_response_encryption.jwks."
+					+ " The issuer must encrypt to one of the keys the client advertised.",
+					args("algorithm", algorithm.getName(), "kid", kid, "offered_jwks", encryptionJwks));
 			}
 
 			// Decrypt the JWE
@@ -69,13 +71,13 @@ public class VCIDecryptCredentialResponse extends AbstractCondition {
 			endpointResponse.add("body_json", decryptedResponse);
 			endpointResponse.addProperty("encrypted", true);
 
-			// Store the JWE header for validation (using same approach as JWTUtil.jwtHeaderAsJsonObject)
-			JsonObject jweHeader = JsonParser.parseString(
-				JSONObjectUtils.toJSONString(jweObject.getHeader().toJSONObject())).getAsJsonObject();
-			env.putObject("credential_response_jwe_header", jweHeader);
+			// Store the JWE in the common environment format (value/claims/jwe_header) so
+			// downstream conditions can read it like any other JWE in the suite.
+			JsonObject credentialResponseJwe = JWEUtil.jweStringToJsonObjectForEnvironment(responseBody, decryptedResponse);
+			env.putObject("credential_response_jwe", credentialResponseJwe);
 
 			logSuccess("Decrypted credential response",
-				args("jwe_header", jweHeader, "decrypted_response", decryptedResponse));
+				args("credential_response_jwe", credentialResponseJwe));
 
 			return env;
 

@@ -19,7 +19,7 @@ public class VCICreateDeferredCredentialRequest extends AbstractCondition {
 
 	@Override
 	@PreEnvironment(strings = "deferred_transaction_id")
-	@PostEnvironment(strings = "resource_request_entity")
+	@PostEnvironment(required = "vci_credential_request_object", strings = "resource_request_entity")
 	public Environment evaluate(Environment env) {
 
 		String transactionId = env.getString("deferred_transaction_id");
@@ -29,6 +29,11 @@ public class VCICreateDeferredCredentialRequest extends AbstractCondition {
 
 		JsonObject requestBody = new JsonObject();
 		requestBody.addProperty("transaction_id", transactionId);
+
+		// Expose the deferred request as vci_credential_request_object so that it can flow through
+		// the shared credential request encryption pipeline (VCIAddCredentialResponseEncryptionToRequest
+		// + VCIEncryptCredentialRequest), mirroring the Credential Endpoint path.
+		env.putObject("vci_credential_request_object", requestBody);
 
 		String requestBodyString = requestBody.toString();
 		env.putString("resource_request_entity", requestBodyString);

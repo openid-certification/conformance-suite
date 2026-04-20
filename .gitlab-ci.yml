@@ -64,6 +64,62 @@ upload:
     exit_codes:
       - 137
 
+publish-image:
+  stage: upload
+  needs: ["build"]
+  image: docker:25.0.5-git
+  services:
+    - docker:dind
+  variables:
+    DOCKER_DRIVER: overlay2
+    # Override when triggering manually to publish a release tag (e.g. "5.1.0")
+    IMAGE_TAG: "latest"
+  rules:
+    - if: $CI_COMMIT_TAG
+      variables:
+        IMAGE_TAG: $CI_COMMIT_TAG
+      when: on_success
+    - if: $CI_COMMIT_BRANCH == "master"
+      when: on_success
+  script:
+    - setup_docker
+    - docker build -t "$CI_REGISTRY_IMAGE:$IMAGE_TAG" .
+    - echo "$CI_REGISTRY_PASSWORD" | docker login -u "$CI_REGISTRY_USER" --password-stdin "$CI_REGISTRY"
+    - docker push "$CI_REGISTRY_IMAGE:$IMAGE_TAG"
+    # When publishing from a git tag, also update :latest
+    - |
+      if [ -n "$CI_COMMIT_TAG" ]; then
+        docker tag "$CI_REGISTRY_IMAGE:$IMAGE_TAG" "$CI_REGISTRY_IMAGE:latest"
+        docker push "$CI_REGISTRY_IMAGE:latest"
+      fi
+
+publish-nginx-image:
+  stage: upload
+  needs: []
+  image: docker:25.0.5-git
+  services:
+    - docker:dind
+  variables:
+    DOCKER_DRIVER: overlay2
+    IMAGE_TAG: "latest"
+  rules:
+    - if: $CI_COMMIT_TAG
+      variables:
+        IMAGE_TAG: $CI_COMMIT_TAG
+      when: on_success
+    - if: $CI_COMMIT_BRANCH == "master"
+      when: on_success
+  script:
+    - setup_docker
+    - docker build -t "$CI_REGISTRY_IMAGE/nginx:$IMAGE_TAG" nginx/
+    - echo "$CI_REGISTRY_PASSWORD" | docker login -u "$CI_REGISTRY_USER" --password-stdin "$CI_REGISTRY"
+    - docker push "$CI_REGISTRY_IMAGE/nginx:$IMAGE_TAG"
+    - |
+      if [ -n "$CI_COMMIT_TAG" ]; then
+        docker tag "$CI_REGISTRY_IMAGE/nginx:$IMAGE_TAG" "$CI_REGISTRY_IMAGE/nginx:latest"
+        docker push "$CI_REGISTRY_IMAGE/nginx:latest"
+      fi
+
 test:
   <<: *maven
   stage: test
@@ -338,6 +394,7 @@ scale down env:
   environment:
     name: review/$CI_COMMIT_REF_NAME
   script:
+    - check_commit_is_current
     - auto-deploy use_kube_context || true
     - auto-deploy ensure_namespace
     - scale_down

@@ -7,7 +7,7 @@ import net.openid.conformance.testmodule.Environment;
 public class SetIntervalTo31Seconds extends AbstractCondition {
 
 	@Override
-	@PostEnvironment(strings = { "interval" })
+	@PostEnvironment(integers = { "interval" })
 	public Environment evaluate(Environment env) {
 		int interval = 31;
 		env.putInteger("interval", interval);
