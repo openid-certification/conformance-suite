@@ -3,9 +3,13 @@ package net.openid.conformance.sharing.privatelink;
 import net.openid.conformance.sharing.SharedAsset;
 import org.springframework.security.authentication.ott.OneTimeToken;
 
+import java.io.Serial;
 import java.time.Instant;
 
 public class PrivateLinkOneTimeToken implements OneTimeToken {
+
+	@Serial
+	private static final long serialVersionUID = 1L;
 
 	protected String tokenValue;
 
@@ -13,7 +17,7 @@ public class PrivateLinkOneTimeToken implements OneTimeToken {
 
 	protected Instant expiresAt;
 
-	protected SharedAsset sharedAsset;
+	protected transient SharedAsset sharedAsset;
 
 	@Override
 	public String getTokenValue() {

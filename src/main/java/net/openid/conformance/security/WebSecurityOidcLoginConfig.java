@@ -250,20 +250,19 @@ class WebSecurityOidcLoginConfig {
 		http.oneTimeTokenLogin(ott -> {
 			ott.authenticationProvider(new PrivateLinkOneTimeTokenAuthenticationProvider(oneTimeTokenService, privateLinkUserDetailsService));
 			ott.tokenGenerationSuccessHandler(new RedirectOneTimeTokenGenerationSuccessHandler("/index.html"));
-			ott.authenticationFailureHandler(loginFailureHandler);
-			ott.authenticationSuccessHandler(new AuthenticationSuccessHandler() {
+			ott.failureHandler(loginFailureHandler);
+			ott.successHandler(new AuthenticationSuccessHandler() {
 				@Override
 				public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
 					OneTimeTokenAuthenticationToken token = (OneTimeTokenAuthenticationToken) authentication;
-					PrivateLinkOneTimeToken privateLink = (PrivateLinkOneTimeToken)token.getDetails();
+					PrivateLinkOneTimeToken privateLink = (PrivateLinkOneTimeToken) token.getDetails();
 
 					// Validate the format of the supplied redirect url.
 					Matcher matcher = redirectUriPattern.matcher(privateLink.getSharedAsset().getRedirectUri());
 
-					if (! matcher.find()) {
+					if (!matcher.find()) {
 						response.sendRedirect("/access-denied");
-					}
-					else {
+					} else {
 						new DefaultRedirectStrategy().sendRedirect(request, response, privateLink.getSharedAsset().getRedirectUri());
 					}
 				}
