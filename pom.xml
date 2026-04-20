@@ -14,7 +14,7 @@
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>3.4.13</version>
+		<version>3.5.13</version>
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 
@@ -26,9 +26,11 @@
 		<jackson.version>2.15.1</jackson.version>
 		<kotlin.version>2.2.21</kotlin.version>
 
-		<!-- remove once upgrading to spring boot 3.5+ -->
-		<mockito.version>5.23.0</mockito.version>
-		<byte-buddy.version>1.18.3</byte-buddy.version>
+		<!-- remove when upgrading to Spring Boot 4.x -->
+		<thymeleaf.version>3.1.4.RELEASE</thymeleaf.version>
+		<thymeleaf-spring6.version>3.1.4.RELEASE</thymeleaf-spring6.version>
+		<commons-lang3.version>3.18.0</commons-lang3.version>
+		<bouncycastle.version>1.84</bouncycastle.version>
 	</properties>
 
 	<dependencies>
@@ -540,17 +542,17 @@
 			<dependency>
 				<groupId>org.bouncycastle</groupId>
 				<artifactId>bcprov-debug-jdk18on</artifactId>
-				<version>1.81</version>
+				<version>${bouncycastle.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>org.bouncycastle</groupId>
 				<artifactId>bctls-debug-jdk18on</artifactId>
-				<version>1.81</version>
+				<version>${bouncycastle.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>org.bouncycastle</groupId>
 				<artifactId>bcpkix-debug-jdk18on</artifactId>
-				<version>1.81</version>
+				<version>${bouncycastle.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>org.apache.commons</groupId>
@@ -566,22 +568,6 @@
 				<groupId>org.seleniumhq.selenium</groupId>
 				<artifactId>htmlunit3-driver</artifactId>
 				<version>4.30.0</version>
-			</dependency>
-			<dependency>
-				<groupId>org.mockito</groupId>
-				<artifactId>mockito-core</artifactId>
-				<version>${mockito.version}</version>
-				<scope>test</scope>
-			</dependency>
-			<dependency>
-				<groupId>net.bytebuddy</groupId>
-				<artifactId>byte-buddy</artifactId>
-				<version>${byte-buddy.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>net.bytebuddy</groupId>
-				<artifactId>byte-buddy-agent</artifactId>
-				<version>${byte-buddy.version}</version>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>

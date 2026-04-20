@@ -19,6 +19,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.autoconfigure.security.oauth2.client.OAuth2ClientProperties;
 import org.springframework.boot.autoconfigure.security.oauth2.client.OAuth2ClientPropertiesMapper;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Lazy;
@@ -49,11 +50,12 @@ import org.springframework.security.web.authentication.AuthenticationFailureHand
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
 import org.springframework.security.web.authentication.ott.RedirectOneTimeTokenGenerationSuccessHandler;
+import org.springframework.security.web.context.request.async.WebAsyncManagerIntegrationFilter;
 import org.springframework.security.web.header.HeaderWriter;
 import org.springframework.security.web.header.writers.DelegatingRequestMatcherHeaderWriter;
 import org.springframework.security.web.header.writers.frameoptions.XFrameOptionsHeaderWriter;
+import org.springframework.security.web.servlet.util.matcher.PathPatternRequestMatcher;
 import org.springframework.security.web.util.matcher.AndRequestMatcher;
-import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.security.web.util.matcher.NegatedRequestMatcher;
 import org.springframework.security.web.util.matcher.OrRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
@@ -71,10 +73,10 @@ import java.util.Set;
 import java.util.function.Consumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 @Configuration
 @Order(2)
+@EnableConfigurationProperties({OAuth2ClientProperties.class})
 class WebSecurityOidcLoginConfig {
 
 	private static final Logger logger = LoggerFactory.getLogger(DummyUserFilter.class);
@@ -143,10 +145,8 @@ class WebSecurityOidcLoginConfig {
 
 		http.csrf(AbstractHttpConfigurer::disable);
 
-		// enforce https
-		http.requiresChannel(channelRequest -> {
-			channelRequest.anyRequest().requiresSecure().channelProcessors(List.of(new RejectPlainHttpTrafficChannelProcessor()));
-		});
+		// Ensures that only https traffic is passed through the filter chain.
+		http.addFilterAfter(new RejectPlainHttpTrafficFilter(), WebAsyncManagerIntegrationFilter.class);
 
 		http.authorizeHttpRequests(httpRequests -> {
 			httpRequests //
@@ -250,20 +250,19 @@ class WebSecurityOidcLoginConfig {
 		http.oneTimeTokenLogin(ott -> {
 			ott.authenticationProvider(new PrivateLinkOneTimeTokenAuthenticationProvider(oneTimeTokenService, privateLinkUserDetailsService));
 			ott.tokenGenerationSuccessHandler(new RedirectOneTimeTokenGenerationSuccessHandler("/index.html"));
-			ott.authenticationFailureHandler(loginFailureHandler);
-			ott.authenticationSuccessHandler(new AuthenticationSuccessHandler() {
+			ott.failureHandler(loginFailureHandler);
+			ott.successHandler(new AuthenticationSuccessHandler() {
 				@Override
 				public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
 					OneTimeTokenAuthenticationToken token = (OneTimeTokenAuthenticationToken) authentication;
-					PrivateLinkOneTimeToken privateLink = (PrivateLinkOneTimeToken)token.getDetails();
+					PrivateLinkOneTimeToken privateLink = (PrivateLinkOneTimeToken) token.getDetails();
 
 					// Validate the format of the supplied redirect url.
 					Matcher matcher = redirectUriPattern.matcher(privateLink.getSharedAsset().getRedirectUri());
 
-					if (! matcher.find()) {
+					if (!matcher.find()) {
 						response.sendRedirect("/access-denied");
-					}
-					else {
+					} else {
 						new DefaultRedirectStrategy().sendRedirect(request, response, privateLink.getSharedAsset().getRedirectUri());
 					}
 				}
@@ -377,8 +376,8 @@ class WebSecurityOidcLoginConfig {
 
 	protected HeaderWriter getXFrameOptionsHeaderWriter() {
 
-		AntPathRequestMatcher checkSessionIframeMatcher = new AntPathRequestMatcher("/**/check_session_iframe");
-		AntPathRequestMatcher getSessionStateMatcher = new AntPathRequestMatcher("/**/get_session_state");
+		RequestMatcher checkSessionIframeMatcher = request -> request.getRequestURI().endsWith("/check_session_iframe");
+		RequestMatcher getSessionStateMatcher = request -> request.getRequestURI().endsWith("/get_session_state");
 		RequestMatcher orRequestMatcher = new OrRequestMatcher(checkSessionIframeMatcher, getSessionStateMatcher);
 
 		NegatedRequestMatcher negatedRequestMatcher = new NegatedRequestMatcher(orRequestMatcher);
@@ -410,9 +409,9 @@ class WebSecurityOidcLoginConfig {
 
 	private RequestMatcher publicRequestMatcher(String... patterns) {
 
+		List<RequestMatcher> requestMatchers = Arrays.stream(patterns).<RequestMatcher>map(pattern -> PathPatternRequestMatcher.withDefaults().matcher(pattern)).toList();
 		return new AndRequestMatcher(
-			new OrRequestMatcher(
-				Arrays.stream(patterns).map(AntPathRequestMatcher::new).collect(Collectors.toList())),
+			new OrRequestMatcher(requestMatchers),
 			new PublicRequestMatcher());
 	}
 
