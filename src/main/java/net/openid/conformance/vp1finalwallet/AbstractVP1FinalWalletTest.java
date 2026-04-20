@@ -880,6 +880,13 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 	@Override
 	public Object handleHttp(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, JsonObject requestParts) {
 
+		if (isKnownBotRequest(requestParts)) {
+			eventLog.log(getName(), args("msg", "Ignoring request from known bot",
+				"user-agent", getHeader(requestParts, "user-agent"),
+				"path", path));
+			return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+		}
+
 		setStatus(Status.RUNNING);
 
 		String requestId = "incoming_request_" + RandomStringUtils.secure().nextAlphanumeric(37);
@@ -934,6 +941,28 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 		});
 
 		return new ResponseEntity<Object>("", HttpStatus.NO_CONTENT);
+	}
+
+	private static String getHeader(JsonObject requestParts, String headerName) {
+		JsonElement headers = requestParts.get("headers");
+		if (headers == null || !headers.isJsonObject()) {
+			return null;
+		}
+		JsonElement value = headers.getAsJsonObject().get(headerName);
+		if (value == null || !value.isJsonPrimitive()) {
+			return null;
+		}
+		return OIDFJSON.getString(value);
+	}
+
+	private static boolean isKnownBotRequest(JsonObject requestParts) {
+		String userAgent = getHeader(requestParts, "user-agent");
+		if (userAgent == null) {
+			return false;
+		}
+		return userAgent.contains("Google-Read-Aloud")
+			|| userAgent.contains("Googlebot")
+			|| userAgent.contains("bingbot");
 	}
 
 	private void setStateToResponseReceived() {
