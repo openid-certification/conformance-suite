@@ -250,6 +250,7 @@ class Conformance(object):
     async def wait_for_state(self, module_id, required_states, timeout=240):
         timeout_at = time.time() + timeout
         last_status = None
+        poll_interval = float(os.getenv("CONFORMANCE_STATE_POLL_INTERVAL", 1))
 
         while True:
             if time.time() > timeout_at:
@@ -257,7 +258,17 @@ class Conformance(object):
                     f"Timed out waiting for test module {module_id} to be in one of states: {required_states}"
                 )
 
+            poll_start = time.time()
             info = await self.get_module_info(module_id)
+            poll_duration = time.time() - poll_start
+
+            # A normal poll takes <2s. If it took much longer, RetryTransport
+            # was retrying failed requests — the server was likely down and the
+            # module is probably stuck. Bail out so the caller can retry the module.
+            if poll_duration > 10:
+                raise ServerUnavailableError(
+                    f"Server was unavailable for {poll_duration:.0f}s during poll for {module_id}")
+
             status = info["status"]
 
             if status != last_status:
@@ -269,28 +280,27 @@ class Conformance(object):
             if status == "INTERRUPTED":
                 raise Exception(f"Test module {module_id} has moved to INTERRUPTED")
 
-            await asyncio.sleep(float(os.getenv("CONFORMANCE_STATE_POLL_INTERVAL", 1)))
+            await asyncio.sleep(poll_interval)
 
     async def wait_for_server_ready(self, timeout=360):
-        """Poll until the server responds successfully, or raise after timeout.
-
-        Uses a plain httpx client (bypassing RetryTransport) so each poll is a
-        single quick request rather than blocking for the full retry budget.
-        """
+        """Poll until the server responds successfully, or raise after timeout."""
         start = time.time()
         attempt = 0
         api_url = '{0}api/runner/available'.format(self.api_url_base)
         while True:
             attempt += 1
+            elapsed = time.time() - start
             try:
-                response = httpx.get(api_url, verify=False, timeout=10)
+                response = self.httpclient.get(api_url, timeout=10)
                 if response.status_code == 200:
-                    print('Server is ready after {:.0f}s ({} attempts)'.format(
-                        time.time() - start, attempt))
+                    print('Server is ready after {:.0f}s ({} attempts)'.format(elapsed, attempt))
                     return
+                print('Server returned {} on attempt {} ({:.0f}s elapsed)'.format(
+                    response.status_code, attempt, elapsed))
             except Exception as e:
-                pass
-            if time.time() - start >= timeout:
+                print('Server not ready on attempt {} ({:.0f}s elapsed): {}'.format(
+                    attempt, elapsed, e))
+            if elapsed >= timeout:
                 raise ServerUnavailableError(
                     'Server did not become ready within {}s'.format(timeout))
             await asyncio.sleep(10)
