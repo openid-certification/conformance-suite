@@ -25,6 +25,12 @@
 		<pmdVersion>7.23.0</pmdVersion>
 		<jackson.version>2.15.1</jackson.version>
 		<kotlin.version>2.2.21</kotlin.version>
+
+		<!-- remove when upgrading to Spring Boot 4.x -->
+		<thymeleaf.version>3.1.4.RELEASE</thymeleaf.version>
+		<thymeleaf-spring6.version>3.1.4.RELEASE</thymeleaf-spring6.version>
+		<commons-lang3.version>3.18.0</commons-lang3.version>
+		<bouncycastle.version>1.84</bouncycastle.version>
 	</properties>
 
 	<dependencies>
@@ -536,17 +542,17 @@
 			<dependency>
 				<groupId>org.bouncycastle</groupId>
 				<artifactId>bcprov-debug-jdk18on</artifactId>
-				<version>1.81</version>
+				<version>${bouncycastle.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>org.bouncycastle</groupId>
 				<artifactId>bctls-debug-jdk18on</artifactId>
-				<version>1.81</version>
+				<version>${bouncycastle.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>org.bouncycastle</groupId>
 				<artifactId>bcpkix-debug-jdk18on</artifactId>
-				<version>1.81</version>
+				<version>${bouncycastle.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>org.apache.commons</groupId>
