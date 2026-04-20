@@ -12,6 +12,7 @@ import net.openid.conformance.openid.ssf.conditions.events.OIDSSFCallPollEndpoin
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFCheckVerificationEventState;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFCheckVerificationEventSubjectId;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFEnsureAllCaepInteropEventsReceived;
+import net.openid.conformance.openid.ssf.conditions.events.OIDSSFEnsureUnsolicitedVerificationEventHasNoState;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFEnsureEventContainsStreamAudience;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFEnsureEventSignedWithRsa256;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFEnsureSecurityEventTokenContainsSingleEvent;
@@ -204,25 +205,39 @@ public class OIDSSFTransmitterStreamCaepInteropTest extends AbstractOIDSSFTransm
 		// which would block the HTTP handler thread from storing the push request.
 		//
 		// Per SSF 1.0 §8.1.4 a transmitter MAY deliver unsolicited verification
-		// events (no 'state') at any time, including before our triggered
-		// verification request is processed. We therefore loop: tolerate any
-		// unsolicited events that arrive first, and stop when we see the
-		// solicited event whose 'state' echoes the one we sent (§8.1.4.2).
+		// events (no 'state') at any time, and 8.1.4.2 says receivers MUST NOT
+		// depend on the verification event being delivered in any particular
+		// order relative to other queued events — CAEP events may therefore
+		// arrive before the solicited verification echo. We loop tolerating
+		// both unsolicited verification events and pre-echo CAEP events, and
+		// stop when we see the solicited verification event whose 'state' echoes
+		// the one we sent (8.1.4.2). CAEP events received in this window are
+		// preserved into receivedEventTypes so the second loop does not have
+		// to wait for them to be redelivered.
 		int unsolicitedSeen = 0;
 		boolean solicitedVerificationReceived = false;
+		Set<String> receivedEventTypes = new LinkedHashSet<>();
 
-		while (unsolicitedSeen < MAX_UNSOLICITED_VERIFICATION_EVENTS) {
+		while (unsolicitedSeen < MAX_UNSOLICITED_VERIFICATION_EVENTS && !solicitedVerificationReceived) {
 			waitForNextPushRequest();
+			callAndStopOnFailure(OIDSSFExtractVerificationEventFromPushRequest.class, "OIDSSF-8.1.4.1");
+			callAndStopOnFailure(OIDSSFParseVerificationEventToken.class, Condition.ConditionResult.FAILURE, "OIDSSF-8.1.4.1");
+
+			if (!currentEventIsVerificationEvent()) {
+				// Pre-echo CAEP event — preserve for later validation rather than discard.
+				processPushedCaepEvent(receivedEventTypes);
+				continue;
+			}
 
 			AtomicBoolean wasSolicited = new AtomicBoolean(false);
 			String blockTitle = unsolicitedSeen == 0
 				? "Validate verification event via PUSH delivery"
-				: "Validate verification event via PUSH delivery (after " + unsolicitedSeen + " unsolicited)";
+				: "Validate verification event via PUSH delivery (after " + unsolicitedSeen + " transmitter-initiated)";
 			eventLog.runBlock(blockTitle, () -> {
-				callAndStopOnFailure(OIDSSFExtractVerificationEventFromPushRequest.class, "OIDSSF-8.1.4.1");
-
-				validateSetCommon();
+				validateSetCommonAfterParsing();
 				callAndContinueOnFailure(OIDSSFCheckVerificationEventSubjectId.class, Condition.ConditionResult.FAILURE, "OIDSSF-8.1.4.1");
+
+				callAndContinueOnFailure(OIDSSFEnsureUnsolicitedVerificationEventHasNoState.class, Condition.ConditionResult.FAILURE, "OIDSSF-8.1.4.2");
 
 				if (currentVerificationEventHasState()) {
 					callAndContinueOnFailure(OIDSSFCheckVerificationEventState.class, Condition.ConditionResult.FAILURE, "OIDSSF-8.1.4.1");
@@ -234,47 +249,54 @@ public class OIDSSFTransmitterStreamCaepInteropTest extends AbstractOIDSSFTransm
 
 			if (wasSolicited.get()) {
 				solicitedVerificationReceived = true;
-				break;
+			} else {
+				unsolicitedSeen++;
 			}
-			unsolicitedSeen++;
 		}
 
 		if (!solicitedVerificationReceived) {
 			throw new TestFailureException(getId(),
-				"Received " + unsolicitedSeen + " unsolicited verification events without a solicited one — "
+				"Received " + unsolicitedSeen + " transmitter-initiated verification events without a solicited one — "
 					+ "transmitter never echoed the state from the verification request (SSF 1.0 §8.1.4.2)");
 		}
 
-		Set<String> receivedEventTypes = new LinkedHashSet<>();
-
 		// Keep receiving push events until all expected CAEP event types arrive, or timeout.
-		// Non-CAEP events (e.g. verification) may arrive and are skipped without counting.
+		// Non-CAEP events (e.g. further verification events) are skipped without counting.
 		while (!receivedEventTypes.containsAll(expectedCaepEventTypes)) {
 			waitForNextPushRequest();
 			callAndStopOnFailure(OIDSSFExtractVerificationEventFromPushRequest.class, "OIDSSF-8.1.4.1");
-
-			// Parse first to determine the event type for the block name
 			callAndStopOnFailure(OIDSSFParseVerificationEventToken.class, Condition.ConditionResult.FAILURE, "OIDSSF-8.1.4.1");
-			callAndContinueOnFailure(OIDSSFExtractCaepEventData.class, Condition.ConditionResult.FAILURE, "OIDCAEP-3");
-			String eventType = env.getString("ssf", "caep_event.type");
-			if (eventType == null) {
-				// Non-CAEP event (e.g. SSF verification) — skip and wait for next
-				continue;
-			}
-			String eventName = eventType.substring(eventType.lastIndexOf('/') + 1);
-
-			eventLog.runBlock("Validate CAEP event: " + eventName, () -> {
-				validateSetCommonAfterParsing();
-
-				receivedEventTypes.add(eventType);
-				callAndContinueOnFailure(OIDSSFValidateCaepCommonOptionalFields.class, Condition.ConditionResult.FAILURE, "OIDCAEP-2");
-				validateCaepEventFields(eventType);
-			});
+			processPushedCaepEvent(receivedEventTypes);
 		}
 
 		eventLog.runBlock("Verify all expected CAEP Interop events received", () -> {
 			callAndContinueOnFailure(new OIDSSFEnsureAllCaepInteropEventsReceived(expectedCaepEventTypes, receivedEventTypes),
 				Condition.ConditionResult.FAILURE, "CAEPIOP-3");
+		});
+	}
+
+	/**
+	 * Validates an already-parsed pushed SET as a CAEP event. If the SET is not
+	 * a CAEP event (e.g. it is a verification event), this method is a no-op —
+	 * callers branch on event type separately. On a CAEP event the type is
+	 * recorded in {@code receivedEventTypes} and the event-type-specific checks
+	 * are run. Assumes {@link OIDSSFParseVerificationEventToken} has already
+	 * populated {@code set_token} / {@code ssf.verification.token}.
+	 */
+	protected void processPushedCaepEvent(Set<String> receivedEventTypes) {
+		callAndContinueOnFailure(OIDSSFExtractCaepEventData.class, Condition.ConditionResult.FAILURE, "OIDCAEP-3");
+		String eventType = env.getString("ssf", "caep_event.type");
+		if (eventType == null) {
+			return;
+		}
+		String eventName = eventType.substring(eventType.lastIndexOf('/') + 1);
+
+		eventLog.runBlock("Validate CAEP event: " + eventName, () -> {
+			validateSetCommonAfterParsing();
+
+			receivedEventTypes.add(eventType);
+			callAndContinueOnFailure(OIDSSFValidateCaepCommonOptionalFields.class, Condition.ConditionResult.FAILURE, "OIDCAEP-2");
+			validateCaepEventFields(eventType);
 		});
 	}
 
@@ -297,6 +319,16 @@ public class OIDSSFTransmitterStreamCaepInteropTest extends AbstractOIDSSFTransm
 		}
 
 		Set<String> receivedEventTypes = new LinkedHashSet<>();
+
+		// Per SSF 1.0 8.1.4.2 receivers MUST NOT depend on the verification
+		// event being delivered in any particular order relative to other
+		// queued events. Process any CAEP events that arrived in the same
+		// POLL_ONLY response so they are not lost — RFC 8936 §2.4 makes
+		// re-delivery of un-acknowledged SETs OPTIONAL.
+		JsonElement firstPollSetsEl = env.getElementFromObject("ssf", "poll.sets");
+		if (firstPollSetsEl != null && firstPollSetsEl.isJsonObject() && !firstPollSetsEl.getAsJsonObject().isEmpty()) {
+			processCaepEventsFromPollResponse(firstPollSetsEl.getAsJsonObject(), receivedEventTypes);
+		}
 
 		// Poll repeatedly until all 3 CAEP event types are received, or timeout.
 		// Each poll acknowledges previously received SETs and retrieves new ones.

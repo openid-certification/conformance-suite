@@ -36,7 +36,7 @@ public class OIDSSFLogAcceptedUnsolicitedVerificationEvent extends AbstractCondi
 			}
 		}
 
-		logSuccess("Accepted unsolicited verification event without 'state' (SSF 1.0 §8.1.4-2)",
+		logSuccess("Accepted transmitter-initiated verification event without 'state'",
 			args("jti", jti));
 
 		return env;

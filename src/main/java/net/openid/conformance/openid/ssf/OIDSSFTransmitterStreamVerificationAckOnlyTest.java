@@ -13,7 +13,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 	summary = """
 		This test triggers a verification event, retrieves it via POLL_ONLY, \
 		then acknowledges it using ACKNOWLEDGE_ONLY mode (acknowledge without retrieving new events). \
-		Unsolicited verification events (without 'state') are accepted per SSF 1.0 §8.1.4-2; \
+		Transmitter-initiated verification events (without 'state') are accepted per SSF 1.0 8.1.4-2; \
 		the test succeeds once a verification event carrying the expected 'state' is found and \
 		validated, and the subsequent acknowledgment request succeeds.""",
 	profile = "OIDSSF"

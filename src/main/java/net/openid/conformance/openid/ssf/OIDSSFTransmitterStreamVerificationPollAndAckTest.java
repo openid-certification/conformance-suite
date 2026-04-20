@@ -15,8 +15,8 @@ import net.openid.conformance.variant.VariantNotApplicable;
 		The first event is retrieved via POLL_ONLY to obtain SETs for acknowledgment. \
 		A second verification event is then triggered, and POLL_AND_ACKNOWLEDGE is used to \
 		simultaneously acknowledge the first event and retrieve the second. \
-		Unsolicited verification events (without 'state') in either poll response are accepted \
-		per SSF 1.0 §8.1.4-2; the test succeeds once the solicited second verification event \
+		Transmitter-initiated verification events (without 'state') in either poll response are accepted \
+		per SSF 1.0 8.1.4-2; the test succeeds once the solicited second verification event \
 		is retrieved and its 'state' validated.""",
 	profile = "OIDSSF"
 )

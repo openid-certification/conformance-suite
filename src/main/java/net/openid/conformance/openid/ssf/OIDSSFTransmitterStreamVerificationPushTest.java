@@ -2,6 +2,7 @@ package net.openid.conformance.openid.ssf;
 
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFCheckVerificationEventState;
+import net.openid.conformance.openid.ssf.conditions.events.OIDSSFEnsureUnsolicitedVerificationEventHasNoState;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFExtractVerificationEventFromPushRequest;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFLogAcceptedUnsolicitedVerificationEvent;
 import net.openid.conformance.openid.ssf.delivery.SSfPushRequest;
@@ -19,8 +20,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 		This test triggers a verification event and awaits the SET delivered \
 		to the exposed push endpoint. \
 		The test succeeds if the verification event is successfully received and validated. \
-		Any unsolicited verification events (without a 'state' claim) that arrive before \
-		the solicited response are accepted per SSF 1.0 §8.1.4-2 — the loop keeps waiting \
+		Any transmitter-initiated verification events (without a 'state' claim) that arrive before \
+		the solicited response are accepted per SSF 1.0 8.1.4-2 — the loop keeps waiting \
 		until a verification event with matching state is delivered.""",
 	profile = "OIDSSF"
 )
@@ -46,18 +47,20 @@ public class OIDSSFTransmitterStreamVerificationPushTest extends AbstractOIDSSFT
 				throw new TestFailureException(getId(),
 					"Did not receive a solicited verification event (with 'state') via PUSH delivery"
 						+ (unsolicitedSeen > 0
-							? " after " + unsolicitedSeen + " unsolicited event(s)"
+							? " after " + unsolicitedSeen + " transmitter-initiated event(s)"
 							: ""));
 			}
 
 			AtomicBoolean wasSolicited = new AtomicBoolean(false);
 			String blockTitle = unsolicitedSeen == 0
 				? "Verify verification event received via PUSH delivery"
-				: "Verify verification event received via PUSH delivery (after " + unsolicitedSeen + " unsolicited)";
+				: "Verify verification event received via PUSH delivery (after " + unsolicitedSeen + " transmitter-initiated verification)";
 			eventLog.runBlock(blockTitle, () -> {
 				callAndStopOnFailure(OIDSSFExtractVerificationEventFromPushRequest.class, "OIDSSF-8.1.4.1");
 				parseVerificationEventInResponse();
 				verifyParsedVerificationEventCommon();
+
+				callAndContinueOnFailure(OIDSSFEnsureUnsolicitedVerificationEventHasNoState.class, Condition.ConditionResult.FAILURE, "OIDSSF-8.1.4.2");
 
 				if (currentVerificationEventHasState()) {
 					callAndContinueOnFailure(OIDSSFCheckVerificationEventState.class, Condition.ConditionResult.FAILURE, "OIDSSF-8.1.4.1");
@@ -75,7 +78,7 @@ public class OIDSSFTransmitterStreamVerificationPushTest extends AbstractOIDSSFT
 		}
 
 		throw new TestFailureException(getId(),
-			"Received " + unsolicitedSeen + " unsolicited verification events without a solicited one — "
+			"Received " + unsolicitedSeen + " transmitter-initiated verification events without a solicited one — "
 				+ "transmitter never echoed the state from the verification request");
 	}
 }
