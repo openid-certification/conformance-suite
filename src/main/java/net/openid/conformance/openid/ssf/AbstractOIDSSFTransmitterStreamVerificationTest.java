@@ -24,6 +24,7 @@ import net.openid.conformance.openid.ssf.conditions.events.OIDSSFTriggerVerifica
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFValidateSecurityEventTokenAudClaim;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFValidateSecurityEventTokenTxnClaim;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFVerifySignatureOfVerificationEventToken;
+import net.openid.conformance.openid.ssf.conditions.events.OIDSSFWaitForMinVerificationInterval;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFCheckTransmitterMetadataIssuerMatchesIssuerInResponse;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFCreateStreamConditionSequence;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFDeleteStreamConfigCall;
@@ -101,6 +102,9 @@ public abstract class AbstractOIDSSFTransmitterStreamVerificationTest extends Ab
 			call(exec().unmapKey("endpoint_response"));
 		});
 
+		eventLog.runBlock("Wait after stream creation for any transmitter-initiated requests",
+			() -> callAndContinueOnFailure(WaitFor5Seconds.class, Condition.ConditionResult.INFO));
+
 		triggerVerificationEvent();
 
 		performVerification();
@@ -110,6 +114,7 @@ public abstract class AbstractOIDSSFTransmitterStreamVerificationTest extends Ab
 
 	protected void triggerVerificationEvent() {
 		eventLog.runBlock("Trigger verification event", () -> {
+			callAndContinueOnFailure(OIDSSFWaitForMinVerificationInterval.class, Condition.ConditionResult.INFO, "OIDSSF-8.1.4.1");
 			callAndStopOnFailure(OIDSSFTriggerVerificationEvent.class, "OIDSSF-8.1.4.2", "CAEPIOP-2.3.8.2");
 			call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
 			callAndStopOnFailure(EnsureHttpStatusCodeIs204.class, "OIDSSF-8.1.4.2");
