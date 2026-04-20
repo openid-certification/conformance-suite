@@ -1,9 +1,10 @@
 package net.openid.conformance.condition.as;
 
+import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 
-public class CheckRequestUriMethodParameter extends AbstractEnsureResponseType {
+public class CheckRequestUriMethodParameter extends AbstractCondition {
 
 	@Override
 	@PreEnvironment(required = "authorization_endpoint_http_request_params")
