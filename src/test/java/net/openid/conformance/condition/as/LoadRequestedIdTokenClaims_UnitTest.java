@@ -67,6 +67,28 @@ public class LoadRequestedIdTokenClaims_UnitTest
 	}
 
 	@Test
+	public void testEvaluate_cibaFlow() {
+		env.removeObject(CreateEffectiveAuthorizationPARRequestParameters.ENV_KEY);
+		env.putObject("backchannel_request_object", "claims.id_token", requestedClaims);
+
+		cond.execute(env);
+
+		assertEquals("user@example.com", env.getString("id_token_claims", "email"));
+		assertEquals("Demo T. User", env.getString("id_token_claims", "name"));
+	}
+
+	@Test
+	public void testEvaluate_cibaFlowNested() {
+		env.removeObject(CreateEffectiveAuthorizationPARRequestParameters.ENV_KEY);
+		env.putObject("backchannel_request_object", "claims.claims.id_token", requestedClaims);
+
+		cond.execute(env);
+
+		assertEquals("user@example.com", env.getString("id_token_claims", "email"));
+		assertEquals("Demo T. User", env.getString("id_token_claims", "name"));
+	}
+
+	@Test
 	public void testEvaluate_essentialAsString() {
 		assertThrows(OIDFJSON.UnexpectedJsonTypeException.class, () -> {
 			essentialTrue.addProperty("essential", "true");

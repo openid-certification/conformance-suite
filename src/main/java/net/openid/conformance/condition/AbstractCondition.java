@@ -125,6 +125,18 @@ public abstract class AbstractCondition implements Condition, DataUtils {
 						throw alreadyLoggedPrePostError("[pre] Something unexpected happened (this could be caused by something you did wrong, or it may be an issue in the test suite - please review the instructions and your configuration, if you still see a problem please contact " + SUPPORT_EMAIL + " with the full details) - couldn't find string in environment: " + s);
 					}
 				}
+				for (String i : pre.integers()) {
+					if (env.getInteger(i) == null) {
+						logger.info(testId + ": [pre] Test condition " + this.getClass().getSimpleName() + " failure, couldn't find integer in environment: " + i);
+						log.log(this.getMessage(), args(
+							"msg", "Something unexpected happened (this could be caused by something you did wrong, or it may be an issue in the test suite - please review the instructions and your configuration, if you still see a problem please contact " + SUPPORT_EMAIL + " with the full details) - couldn't find required integer in environment before evaluation: " + i,
+							"expected", i,
+							"result", ConditionResult.FAILURE,
+							"requirements", this.getRequirements()
+						));
+						throw alreadyLoggedPrePostError("[pre] Something unexpected happened (this could be caused by something you did wrong, or it may be an issue in the test suite - please review the instructions and your configuration, if you still see a problem please contact " + SUPPORT_EMAIL + " with the full details) - couldn't find integer in environment: " + i);
+					}
+				}
 			}
 
 			// evaluate the condition and assign its results back to our environment
@@ -165,6 +177,18 @@ public abstract class AbstractCondition implements Condition, DataUtils {
 							"requirements", this.getRequirements()
 						));
 						throw alreadyLoggedPrePostError("[post] Something unexpected happened (this could be caused by something you did wrong, or it may be an issue in the test suite - please review the instructions and your configuration, if you still see a problem please contact " + SUPPORT_EMAIL + " with the full details) - couldn't find string in environment: " + s);
+					}
+				}
+				for (String i : post.integers()) {
+					if (env.getInteger(i) == null) {
+						logger.info(testId + ": [post] Test condition " + this.getClass().getSimpleName() + " failure, couldn't find integer in environment: " + i);
+						log.log(this.getMessage(), args(
+							"msg", "Something unexpected happened (this could be caused by something you did wrong, or it may be an issue in the test suite - please review the instructions and your configuration, if you still see a problem please contact " + SUPPORT_EMAIL + " with the full details) - couldn't find required integer in environment after evaluation: " + i,
+							"expected", i,
+							"result", ConditionResult.FAILURE,
+							"requirements", this.getRequirements()
+						));
+						throw alreadyLoggedPrePostError("[post] Something unexpected happened (this could be caused by something you did wrong, or it may be an issue in the test suite - please review the instructions and your configuration, if you still see a problem please contact " + SUPPORT_EMAIL + " with the full details) - couldn't find integer in environment: " + i);
 					}
 				}
 			}

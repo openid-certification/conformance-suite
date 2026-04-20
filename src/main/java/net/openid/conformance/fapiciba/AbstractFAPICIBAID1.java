@@ -7,14 +7,11 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.as.CheckAuthReqIdInCallback;
-import net.openid.conformance.condition.as.CheckCIBAModeIsPing;
 import net.openid.conformance.condition.as.CheckNotificationCallbackOnlyAuthReqId;
 import net.openid.conformance.condition.as.EnsureServerJwksDoesNotContainPrivateOrSymmetricKeys;
-import net.openid.conformance.condition.as.FAPIBrazilSetPaymentDateToToday;
 import net.openid.conformance.condition.as.FAPIEnsureMinimumClientKeyLength;
 import net.openid.conformance.condition.as.FAPIEnsureMinimumServerKeyLength;
 import net.openid.conformance.condition.as.VerifyBearerTokenHeaderCallback;
-import net.openid.conformance.condition.client.AddAudAsPaymentInitiationUriToRequestObject;
 import net.openid.conformance.condition.client.AddAudToRequestObject;
 import net.openid.conformance.condition.client.AddAuthReqIdToTokenEndpointRequest;
 import net.openid.conformance.condition.client.AddBindingMessageToAuthorizationEndpointRequest;
@@ -29,17 +26,11 @@ import net.openid.conformance.condition.client.AddClientNameToDynamicRegistratio
 import net.openid.conformance.condition.client.AddClientNotificationTokenToAuthorizationEndpointRequest;
 import net.openid.conformance.condition.client.AddClientX509CertificateClaimToPublicJWKs;
 import net.openid.conformance.condition.client.AddEmptyResponseTypesArrayToDynamicRegistrationRequest;
-import net.openid.conformance.condition.client.AddEndToEndIdToPaymentRequestEntityClaims;
 import net.openid.conformance.condition.client.AddExpToRequestObject;
-import net.openid.conformance.condition.client.AddFAPIAuthDateToResourceEndpointRequest;
-import net.openid.conformance.condition.client.AddFAPIInteractionIdToResourceEndpointRequest;
 import net.openid.conformance.condition.client.AddHintToAuthorizationEndpointRequest;
 import net.openid.conformance.condition.client.AddIatToRequestObject;
 import net.openid.conformance.condition.client.AddIdTokenSigningAlgPS256ToDynamicRegistrationRequest;
-import net.openid.conformance.condition.client.AddIdempotencyKeyHeader;
-import net.openid.conformance.condition.client.AddIssAsCertificateOuToRequestObject;
 import net.openid.conformance.condition.client.AddIssToRequestObject;
-import net.openid.conformance.condition.client.AddJtiAsUuidToRequestObject;
 import net.openid.conformance.condition.client.AddJtiToRequestObject;
 import net.openid.conformance.condition.client.AddNbfToRequestObject;
 import net.openid.conformance.condition.client.AddPublicJwksToDynamicRegistrationRequest;
@@ -61,7 +52,6 @@ import net.openid.conformance.condition.client.CheckErrorDescriptionFromBackchan
 import net.openid.conformance.condition.client.CheckErrorDescriptionFromTokenEndpointResponseErrorContainsCRLFTAB;
 import net.openid.conformance.condition.client.CheckForAccessTokenValue;
 import net.openid.conformance.condition.client.CheckForDateHeaderInResourceResponse;
-import net.openid.conformance.condition.client.CheckForFAPIInteractionIdInResourceResponse;
 import net.openid.conformance.condition.client.CheckForRefreshTokenValue;
 import net.openid.conformance.condition.client.CheckIfBackchannelAuthenticationEndpointResponseError;
 import net.openid.conformance.condition.client.CheckIfTokenEndpointResponseError;
@@ -82,19 +72,14 @@ import net.openid.conformance.condition.client.CreateCIBANotificationEndpointUri
 import net.openid.conformance.condition.client.CreateEmptyAuthorizationEndpointRequest;
 import net.openid.conformance.condition.client.CreateEmptyDynamicRegistrationRequest;
 import net.openid.conformance.condition.client.CreateEmptyResourceEndpointRequestHeaders;
-import net.openid.conformance.condition.client.CreateIdempotencyKey;
-import net.openid.conformance.condition.client.CreatePaymentRequestEntityClaims;
 import net.openid.conformance.condition.client.CreateRandomClientNotificationToken;
-import net.openid.conformance.condition.client.CreateRandomFAPIInteractionId;
 import net.openid.conformance.condition.client.CreateTokenEndpointRequestForCIBAGrant;
-import net.openid.conformance.condition.client.EnsureAccessTokenValuesAreDifferent;
 import net.openid.conformance.condition.client.EnsureContentTypeApplicationJwt;
 import net.openid.conformance.condition.client.EnsureErrorTokenEndpointInvalidRequest;
 import net.openid.conformance.condition.client.EnsureErrorTokenEndpointSlowdownOrAuthorizationPending;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs200or201;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs201;
 import net.openid.conformance.condition.client.EnsureIdTokenContainsKid;
-import net.openid.conformance.condition.client.EnsureMatchingFAPIInteractionId;
 import net.openid.conformance.condition.client.EnsureMinimumAccessTokenEntropy;
 import net.openid.conformance.condition.client.EnsureMinimumAccessTokenLength;
 import net.openid.conformance.condition.client.EnsureMinimumAuthenticationRequestIdEntropy;
@@ -118,8 +103,6 @@ import net.openid.conformance.condition.client.ExtractRtHash;
 import net.openid.conformance.condition.client.ExtractSignedJwtFromResourceResponse;
 import net.openid.conformance.condition.client.ExtractTLSTestValuesFromOBResourceConfiguration;
 import net.openid.conformance.condition.client.ExtractTLSTestValuesFromResourceConfiguration;
-import net.openid.conformance.condition.client.FAPIBrazilSignPaymentInitiationRequest;
-import net.openid.conformance.condition.client.FAPIBrazilValidateExpiresIn;
 import net.openid.conformance.condition.client.FAPIBrazilValidateIdTokenExp;
 import net.openid.conformance.condition.client.FAPIBrazilValidateIdTokenSigningAlg;
 import net.openid.conformance.condition.client.FAPIBrazilValidateResourceResponseSigningAlg;
@@ -135,13 +118,9 @@ import net.openid.conformance.condition.client.GetDynamicServerConfiguration;
 import net.openid.conformance.condition.client.GetResourceEndpointConfiguration;
 import net.openid.conformance.condition.client.GetStaticClient2Configuration;
 import net.openid.conformance.condition.client.GetStaticClientConfiguration;
-import net.openid.conformance.condition.client.SetApplicationJwtAcceptHeaderForResourceEndpointRequest;
-import net.openid.conformance.condition.client.SetApplicationJwtContentTypeHeaderForResourceEndpointRequest;
-import net.openid.conformance.condition.client.SetHintTypeToLoginHint;
 import net.openid.conformance.condition.client.SetLoginHintToConsentId;
 import net.openid.conformance.condition.client.SetProtectedResourceUrlToAccountsEndpoint;
 import net.openid.conformance.condition.client.SetProtectedResourceUrlToSingleResourceEndpoint;
-import net.openid.conformance.condition.client.SetResourceMethodToPost;
 import net.openid.conformance.condition.client.SignRequestObject;
 import net.openid.conformance.condition.client.SignRequestObjectIncludeMediaType;
 import net.openid.conformance.condition.client.StoreOriginalClient2Configuration;
@@ -181,12 +160,10 @@ import net.openid.conformance.sequence.client.AddMTLSClientAuthenticationToReque
 import net.openid.conformance.sequence.client.AddPrivateKeyJWTClientAuthenticationToBackchannelRequest;
 import net.openid.conformance.sequence.client.CallDynamicRegistrationEndpointAndVerifySuccessfulResponse;
 import net.openid.conformance.sequence.client.CreateJWTClientAuthenticationAssertionAndAddToTokenEndpointRequest;
-import net.openid.conformance.sequence.client.OpenBankingBrazilPreAuthorizationSteps;
-import net.openid.conformance.sequence.client.OpenBankingUkPreAuthorizationSteps;
 import net.openid.conformance.sequence.client.PerformStandardIdTokenChecks;
-import net.openid.conformance.sequence.client.RefreshTokenRequestSteps;
 import net.openid.conformance.sequence.client.SupportMTLSEndpointAliases;
 import net.openid.conformance.testmodule.AbstractTestModule;
+import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.TestFailureException;
 import net.openid.conformance.variant.CIBAMode;
 import net.openid.conformance.variant.ClientAuthType;
@@ -268,22 +245,16 @@ import java.util.function.Supplier;
 public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 
 	// for variants to fill in by calling the setup... family of methods
-	private Class<? extends ConditionSequence> resourceConfiguration;
 	private Supplier<? extends ConditionSequence> addBackchannelClientAuthentication;
 	protected Class<? extends ConditionSequence> addTokenEndpointClientAuthentication;
 	private Class<? extends ConditionSequence> addTokenEndpointAuthToRegistrationRequest;
-	private Class<? extends ConditionSequence> additionalClientRegistrationSteps;
-	private Supplier<? extends ConditionSequence> preAuthorizationSteps;
-	private Class<? extends ConditionSequence> additionalProfileAuthorizationEndpointSetupSteps;
-	private Class<? extends ConditionSequence> additionalProfileIdTokenValidationSteps;
 	private Class<? extends ConditionSequence> supportMTLSEndpointAliases;
+
+	protected FAPICIBAServerProfileBehavior profileBehavior;
+
 	// this is also used to control if the test does the ping or poll behaviours for waiting for the user to
 	// authenticate
 	protected CIBAMode testType;
-	protected boolean isBrazil() {
-		FAPICIBAProfile profile = getVariant(FAPICIBAProfile.class);
-		return profile == FAPICIBAProfile.OPENBANKING_BRAZIL;
-	}
 
 	public void setAddBackchannelClientAuthentication(Supplier<? extends ConditionSequence> addBackchannelClientAuthentication) {
 		this.addBackchannelClientAuthentication = addBackchannelClientAuthentication;
@@ -433,21 +404,22 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 
 		// Set up the resource endpoint configuration
 		callAndStopOnFailure(GetResourceEndpointConfiguration.class);
-		call(sequence(resourceConfiguration));
+		call(sequence(profileBehavior.getResourceConfiguration()));
 
 		callAndStopOnFailure(ExtractTLSTestValuesFromResourceConfiguration.class);
 		callAndContinueOnFailure(ExtractTLSTestValuesFromOBResourceConfiguration.class, Condition.ConditionResult.INFO);
 
-		if(isBrazil()) {
-			callAndStopOnFailure(CheckCIBAModeIsPing.class, Condition.ConditionResult.FAILURE, "BrazilCIBA-5.2.2");
-			callAndStopOnFailure(SetHintTypeToLoginHint.class, Condition.ConditionResult.FAILURE, "BrazilCIBA-5.2.2");
-		}
+		call(profileBehavior.onConfigure());
 
 		onConfigure();
 
 		setStatus(Status.CONFIGURED);
 
 		fireSetupDone();
+	}
+
+	public Environment getEnv() {
+		return env;
 	}
 
 	protected boolean scopeContains(String requiredScope) {
@@ -574,8 +546,8 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 
 		call(sequence(addTokenEndpointAuthToRegistrationRequest));
 
-		if (additionalClientRegistrationSteps != null) {
-			call(sequence(additionalClientRegistrationSteps));
+		if (profileBehavior.getAdditionalClientRegistrationSteps() != null) {
+			call(sequence(profileBehavior.getAdditionalClientRegistrationSteps()));
 		}
 
 		callAndStopOnFailure(AddTLSBoundAccessTokensTrueToDynamicRegistrationRequest.class);
@@ -646,8 +618,8 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 	}
 
 	protected void performPreAuthorizationSteps() {
-		if (preAuthorizationSteps != null) {
-			call(sequence(preAuthorizationSteps));
+		if (profileBehavior.getPreAuthorizationSteps() != null) {
+			call(sequence(profileBehavior.getPreAuthorizationSteps()));
 		}
 	}
 
@@ -846,8 +818,8 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 	}
 
 	protected void performProfileAuthorizationEndpointSetup() {
-		if (additionalProfileAuthorizationEndpointSetupSteps != null) {
-			call(sequence(additionalProfileAuthorizationEndpointSetupSteps));
+		if (profileBehavior.getProfileAuthorizationEndpointSetupSteps() != null) {
+			call(sequence(profileBehavior.getProfileAuthorizationEndpointSetupSteps()));
 		}
 	}
 
@@ -931,10 +903,7 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 		callAndContinueOnFailure(ExtractExpiresInFromTokenEndpointResponse.class, Condition.ConditionResult.WARNING, "CIBA-10.1.1", "RFC6749-5.1");
 		skipIfMissing(new String[] { "expires_in" }, null, Condition.ConditionResult.INFO,
 			ValidateExpiresIn.class, Condition.ConditionResult.FAILURE, "RFC6749-5.1");
-		if (isBrazil()) {
-			skipIfMissing(new String[] { "expires_in" }, null, Condition.ConditionResult.INFO,
-				FAPIBrazilValidateExpiresIn.class, Condition.ConditionResult.FAILURE, "BrazilOB-5.2.2-13");
-		}
+		call(profileBehavior.validateExpiresIn());
 
 		callAndContinueOnFailure(CheckForRefreshTokenValue.class, Condition.ConditionResult.INFO);
 
@@ -1028,8 +997,8 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 	}
 
 	protected void performProfileIdTokenValidation() {
-		if (additionalProfileIdTokenValidationSteps != null) {
-			call(sequence(additionalProfileIdTokenValidationSteps));
+		if (profileBehavior.getProfileIdTokenValidationSteps() != null) {
+			call(sequence(profileBehavior.getProfileIdTokenValidationSteps()));
 		}
 	}
 
@@ -1045,68 +1014,15 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 
 		callAndStopOnFailure(CreateEmptyResourceEndpointRequestHeaders.class);
 
-		if (!isSecondClient()) {
-			// these are optional; only add them for the first client
-			callAndStopOnFailure(AddFAPIAuthDateToResourceEndpointRequest.class);
+		call(profileBehavior.addResourceEndpointProfileHeaders(isSecondClient()));
 
-			callAndStopOnFailure(CreateRandomFAPIInteractionId.class);
-
-			callAndStopOnFailure(AddFAPIInteractionIdToResourceEndpointRequest.class);
-		}
-
-		if (isBrazil()) {
-			// There's an option to add payments in a future iteration, so I'd prefer to just keep it here
-			// even though we're implementing a simpler resource endpoint call for the time being
-			boolean isPayments = false;
-			if (isPayments) {
-
-				// setup to call the payments initiation API, which requires a signed jwt request body
-				call(sequenceOf(condition(CreateIdempotencyKey.class), condition(AddIdempotencyKeyHeader.class)));
-				callAndStopOnFailure(SetApplicationJwtContentTypeHeaderForResourceEndpointRequest.class);
-				callAndStopOnFailure(SetApplicationJwtAcceptHeaderForResourceEndpointRequest.class);
-				callAndStopOnFailure(SetResourceMethodToPost.class);
-				callAndStopOnFailure(CreatePaymentRequestEntityClaims.class);
-				callAndStopOnFailure(AddEndToEndIdToPaymentRequestEntityClaims.class);
-
-				// we reuse the request object conditions to add various jwt claims; it would perhaps make sense to make
-				// these more generic.
-				call(exec().mapKey("request_object_claims", "resource_request_entity_claims"));
-
-				// aud (in the JWT request): the Resource Provider (eg the institution holding the account) must validate if the value of the aud field matches the endpoint being triggered;
-				callAndStopOnFailure(AddAudAsPaymentInitiationUriToRequestObject.class, "BrazilOB-6.1");
-
-				//iss (in the JWT request and in the JWT response): the receiver of the message shall validate if the value of the iss field matches the organisationId of the sender;
-				callAndStopOnFailure(AddIssAsCertificateOuToRequestObject.class, "BrazilOB-6.1");
-
-				//jti (in the JWT request and in the JWT response): the value of the jti field shall be filled with the UUID defined by the institution according to [RFC4122] version 4;
-				callAndStopOnFailure(AddJtiAsUuidToRequestObject.class, "BrazilOB-6.1");
-
-				//iat (in the JWT request and in the JWT response): the iat field shall be filled with the message generation time and according to the standard established in [RFC7519](https:// datatracker.ietf.org/doc/html/rfc7519#section-2) to the NumericDate format.
-				callAndStopOnFailure(AddIatToRequestObject.class, "BrazilOB-6.1");
-
-				call(exec().unmapKey("request_object_claims"));
-
-				callAndStopOnFailure(FAPIBrazilSignPaymentInitiationRequest.class);
-			}
-		}
+		call(profileBehavior.setupResourceEndpointRequestBody());
 
 		callAndStopOnFailure(CallProtectedResource.class, "FAPI-R-6.2.1-1", "FAPI-R-6.2.1-3");
 
 		call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
 
-		if (isBrazil()) {
-
-			ConditionSequence sequence =
-				new RefreshTokenRequestSteps(isSecondClient(), addTokenEndpointClientAuthentication)
-					.skip(EnsureAccessTokenValuesAreDifferent.class, "");
-
-			int httpStatus = env.getInteger("endpoint_response", "status");
-			for(int i = 0; i < 3 && httpStatus == 401; i++) {
-				call(sequence);
-				callAndStopOnFailure(CallProtectedResource.class, "FAPI-R-6.2.1-1", "FAPI-R-6.2.1-3");
-				httpStatus = env.getInteger("endpoint_response", "status");
-			}
-		}
+		updateResourceRequestAndCallProtectedResource(isSecondClient(), addTokenEndpointClientAuthentication);
 
 		Optional<ConditionSequence> statusCheckingSequence = getBrazilPaymentsStatusCodeCheck();
 		call(statusCheckingSequence.orElse(
@@ -1116,15 +1032,26 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 
 		callAndContinueOnFailure(CheckForDateHeaderInResourceResponse.class, Condition.ConditionResult.FAILURE, "FAPI-R-6.2.1-10");
 
-		callAndContinueOnFailure(CheckForFAPIInteractionIdInResourceResponse.class, Condition.ConditionResult.FAILURE, "FAPI-R-6.2.1-11");
-
-		if (!isSecondClient()) {
-			callAndContinueOnFailure(EnsureMatchingFAPIInteractionId.class, Condition.ConditionResult.FAILURE, "FAPI-R-6.2.1-11");
-		}
+		call(profileBehavior.validateResourceEndpointResponseHeaders(isSecondClient()));
 
 		callAndContinueOnFailure(EnsureResourceResponseReturnedJsonContentType.class, Condition.ConditionResult.FAILURE, "FAPI1-BASE-6.2.1-9", "FAPI1-BASE-6.2.1-10");
 
+		profileBehavior.validateResourceEndpointResponse();
+
 		eventLog.endBlock();
+	}
+
+	protected void updateResourceRequestAndCallProtectedResource(boolean isSecondClient, Class<? extends ConditionSequence> addTokenEndpointClientAuthentication) {
+		ConditionSequence sequence = profileBehavior.createUpdateResourceRequestSteps(isSecondClient, addTokenEndpointClientAuthentication);
+		if (sequence == null) {
+			return;
+		}
+		int httpStatus = env.getInteger("endpoint_response", "status");
+		for(int i = 0; i < 3 && httpStatus == 401; i++) {
+			call(sequence);
+			callAndStopOnFailure(CallProtectedResource.class, "FAPI-R-6.2.1-1", "FAPI-R-6.2.1-3");
+			httpStatus = env.getInteger("endpoint_response", "status");
+		}
 	}
 
 	protected void validateBrazilPaymentInitiationSignedResponse() {
@@ -1322,44 +1249,26 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 
 	@VariantSetup(parameter = FAPICIBAProfile.class, value = "plain_fapi")
 	public void setupPlainFapi() {
-		resourceConfiguration = FAPIResourceConfiguration.class;
-		additionalClientRegistrationSteps = null;
-		preAuthorizationSteps = null;
-		additionalProfileAuthorizationEndpointSetupSteps = null;
-		additionalProfileIdTokenValidationSteps = PlainFapiProfileIdTokenValidationSteps.class;
+		profileBehavior = new FAPICIBAServerProfileBehavior();
+		profileBehavior.setModule(this);
 	}
 
 	@VariantSetup(parameter = FAPICIBAProfile.class, value = "openbanking_uk")
 	public void setupOpenBankingUk() {
-		resourceConfiguration = OpenBankingUkResourceConfiguration.class;
-		additionalClientRegistrationSteps = OpenBankingUkClientRegistrationSteps.class;
-		preAuthorizationSteps = () -> new OpenBankingUkPreAuthorizationSteps(isSecondClient(), addTokenEndpointClientAuthentication);
-		additionalProfileAuthorizationEndpointSetupSteps = OpenBankingUkProfileAuthorizationEndpointSetupSteps.class;
-		additionalProfileIdTokenValidationSteps = OpenBankingUkProfileIdTokenValidationSteps.class;
+		profileBehavior = new OpenBankingUkCibaServerProfileBehavior();
+		profileBehavior.setModule(this);
 	}
 
 	@VariantSetup(parameter = FAPICIBAProfile.class, value = "openbanking_brazil")
 	public void setupOpenBankingBrazil() {
-		resourceConfiguration = FAPIResourceConfiguration.class;
-		additionalClientRegistrationSteps = null;
-		preAuthorizationSteps = () -> createBrazilPreauthSteps();
-		additionalProfileAuthorizationEndpointSetupSteps = OpenBankingBrazilProfileAuthorizationEndpointSetupSteps.class;
-		additionalProfileIdTokenValidationSteps = OpenBankingBrazilProfileIdTokenValidationSteps.class;
+		profileBehavior = new OpenBankingBrazilCibaServerProfileBehavior();
+		profileBehavior.setModule(this);
 	}
 
-	protected ConditionSequence createBrazilPreauthSteps() {
-		boolean isSecondClient = isSecondClient();
-		boolean isDpop = false;
-		boolean isBrazilOpenInsurance = false;
-		boolean stopAfterConsentEndpoint = false;
-		boolean payments = false;
-		return new OpenBankingBrazilPreAuthorizationSteps(
-			isSecondClient, isDpop, addTokenEndpointClientAuthentication, payments, isBrazilOpenInsurance, stopAfterConsentEndpoint, false
-		);
-	}
-
-	protected void updatePaymentConsent() {
-		callAndStopOnFailure(FAPIBrazilSetPaymentDateToToday.class);
+	@VariantSetup(parameter = FAPICIBAProfile.class, value = "connectid_au")
+	public void setupConnectIdAu() {
+		profileBehavior = new ConnectIdAuCibaServerProfileBehavior();
+		profileBehavior.setModule(this);
 	}
 
 	/**
