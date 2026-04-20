@@ -75,7 +75,7 @@ public class ValidateVpClientMetadataEncryptionForHaip extends AbstractCondition
 					}
 				}
 			} catch (ParseException e) {
-				// Already checked by other conditions
+				log("Skipping unparseable JWKS key", args("key", keyEl));
 			}
 		}
 
