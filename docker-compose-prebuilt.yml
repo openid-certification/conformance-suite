@@ -9,7 +9,7 @@ services:
         max-size: "500k"
         max-file: "5"
   nginx:
-    image: registry.gitlab.com/openid/conformance-suite/nginx:${IMAGE_TAG:-unstable}
+    image: registry.gitlab.com/openid/conformance-suite/nginx:${IMAGE_TAG:-latest}
     ports:
      - "8443:8443"
     depends_on:
@@ -20,7 +20,7 @@ services:
         max-size: "500k"
         max-file: "5"
   server:
-    image: registry.gitlab.com/openid/conformance-suite:${IMAGE_TAG:-unstable}
+    image: registry.gitlab.com/openid/conformance-suite:${IMAGE_TAG:-latest}
     environment:
       BASE_URL: ${BASE_URL:-https://localhost.emobix.co.uk:8443}
       MONGODB_HOST: mongodb
