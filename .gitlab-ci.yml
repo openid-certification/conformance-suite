@@ -154,8 +154,6 @@ frontend_e2e_test:
 # (format:check + lint + type-check + lint:jsdoc). Parallel to `build` (needs: []);
 # conceptually a peer of `check-trailing-whitespace` in the build stage.
 #
-# Unit 8 of docs/plans/2026-04-17-002-feat-frontend-lint-format-typecheck-ci-plan.md
-#
 # Promotion criterion (R22):
 # - Job has been green on `main` for 2 consecutive weeks
 #   (Joseph or Thomas sign-off in the MR that flips allow_failure)
@@ -194,7 +192,7 @@ frontend_lint:
     - apk add --no-cache bash   # lint-jsdoc-properties.sh uses #!/usr/bin/env bash; Alpine ships ash only
   script:
     - cd frontend
-    - npm install --cache ./.npm --prefer-offline --ignore-scripts
+    - npm ci --ignore-scripts
     - npm run test:ci
   allow_failure: true     # R22: sunset in 6 weeks — see Unit 9's sunset doc
   only:
