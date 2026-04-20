@@ -284,7 +284,14 @@ async def run_test_module(moduledict, plan_id, test_info, test_time_taken, varia
                         await conformance.wait_for_state(module_id, ["FINISHED"])
                     else:
                         # the 'client' is our own OP tests
+                        restart_count_before = len(restart_detections)
                         attempt_plan_results.extend(await run_test_plan({"test":op_plan}, op_plan["config_file"], output_dir, client_certs))
+                        if len(restart_detections) > restart_count_before:
+                            # A server restart was detected while running the nested op_plan. The
+                            # outer RP test module's alias registration is likely lost on the
+                            # restarted server, so trigger the outer retry to recreate it.
+                            raise ServerUnavailableError(
+                                "Server restart detected during nested op_plan; outer RP test {} is likely stale".format(module_id))
                 elif re.match(r'fapi-rw-id2-client-.*', module) or \
                     re.match(r'fapi1-advanced-final-client-.*', module):
                     print("FAPI client test: " + module + " " + json.dumps(variant))
