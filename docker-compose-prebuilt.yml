@@ -1,6 +1,6 @@
 services:
   mongodb:
-    image: ${MONGODB_IMAGE:-mongo:8.0.20}
+    image: ${MONGODB_IMAGE:-mongo:6.0.13}
     volumes:
      - ./mongo/data:/data/db
     logging:
