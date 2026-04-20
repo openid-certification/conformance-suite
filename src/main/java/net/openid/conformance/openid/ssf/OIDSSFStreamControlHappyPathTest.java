@@ -28,7 +28,17 @@ import net.openid.conformance.testmodule.PublishTestModule;
 @PublishTestModule(
 	testName = "openid-ssf-stream-control-happy-path",
 	displayName = "OpenID Shared Signals Framework: Validate Stream Control (Happy Path)",
-	summary = "This test verifies the behavior of the stream control. It performs stream create, read, update, replace, delete operations and attempts to update the stream status.",
+	summary = """
+		This test verifies stream configuration management (happy path).
+		The testsuite expects to observe the following interactions:
+		 * create a stream
+		 * read the stream configuration
+		 * update the stream
+		 * replace the stream
+		 * read the stream status
+		 * update the stream status
+		 * delete the stream
+		""",
 	profile = "OIDSSF",
 	configurationFields = {
 		"ssf.transmitter.issuer",

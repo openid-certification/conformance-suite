@@ -61,17 +61,23 @@ import java.util.concurrent.atomic.AtomicBoolean;
 	testName = "openid-ssf-transmitter-stream-caep-interop",
 	displayName = "OpenID Shared Signals Framework: CAEP Interop Transmitter Test",
 	summary = """
-		This test exercises a transmitter against the CAEP Interop Profile 1.0 receiver expectations.
-		It performs stream creation, configuration read, status read, and stream verification.
-		After successful verification, the test waits for the transmitter to deliver CAEP events. \
-		The expected events are determined from the stream's events_delivered field — \
-		per CAEPIOP Section 3, implementations MAY support one or more of the CAEP use cases \
-		(session-revoked, credential-change, device-compliance-change). \
-		These events must be triggered on the transmitter side (e.g. via the transmitter's admin UI) \
-		and can be delivered in any order. \
-		Each received CAEP event is validated against the CAEP 1.0 Final specification.
-		For PUSH delivery, events are received on the exposed push endpoint.
-		For POLL delivery, events are retrieved and acknowledged via consecutive poll requests.""",
+		This test verifies a transmitter against the CAEP Interop Profile 1.0.
+		The testsuite expects to observe the following interactions:
+		 * create a stream
+		 * read the stream configuration
+		 * read the stream status
+		 * trigger and receive the stream verification event
+		 * receive the expected CAEP events (session-revoked, credential-change,
+		   device-compliance-change — as advertised in events_delivered)
+		 * delete the stream
+
+		The expected CAEP events are determined from the stream's events_delivered field.
+		These events must be triggered on the transmitter side (e.g. via the transmitter's
+		admin UI) and may be delivered in any order. Each received CAEP event is validated
+		against the CAEP 1.0 Final specification. For PUSH delivery, events are received on
+		the exposed push endpoint; for POLL delivery, events are retrieved and acknowledged
+		via consecutive poll requests.
+		""",
 	profile = "OIDSSF",
 	configurationFields = {
 		"ssf.transmitter.issuer",

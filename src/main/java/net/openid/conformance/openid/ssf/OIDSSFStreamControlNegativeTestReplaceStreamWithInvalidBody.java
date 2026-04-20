@@ -11,7 +11,13 @@ import net.openid.conformance.variant.VariantNotApplicable;
 @PublishTestModule(
 	testName = "openid-ssf-stream-control-error-replace-stream-with-invalid-body",
 	displayName = "Attempt to replace Stream Configuration with invalid body.",
-	summary = "This test verifies the behavior of the stream control for error cases. It attempts to replace a stream configuration with invalid body.",
+	summary = """
+		This test verifies that the transmitter rejects a stream replacement with a malformed request body.
+		The testsuite expects to observe the following interactions:
+		 * create a stream
+		 * attempt to replace the stream with a malformed request body
+		 * transmitter rejects the request with a 400 response
+		""",
 	profile = "OIDSSF"
 )
 @VariantNotApplicable(parameter = SsfProfile.class, values = "caep_interop")

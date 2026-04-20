@@ -21,7 +21,14 @@ import net.openid.conformance.variant.VariantParameters;
 @PublishTestModule(
 	testName = "openid-ssf-stream-subject-control",
 	displayName = "OpenID Shared Signals Framework: Validate Subject Control",
-	summary = "This test verifies the behavior of the subject control.",
+	summary = """
+		This test verifies stream subject management (happy path).
+		The testsuite expects to observe the following interactions:
+		 * create a stream
+		 * add a subject to the stream
+		 * remove the subject from the stream
+		 * delete the stream
+		""",
 	profile = "OIDSSF",
 	configurationFields = {
 		"ssf.transmitter.issuer",
