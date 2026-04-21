@@ -47,6 +47,19 @@ cd frontend && npm ci --ignore-scripts && npm run test:ci
 `package-lock.json` exactly (no lockfile mutation, no postinstall scripts —
 the MSW worker is pre-committed at `frontend/public/mockServiceWorker.js`).
 
+When you **bump or add a dependency**, regenerate the lockfile with
+explicit platform flags so it records the Linux optional deps CI needs
+(otherwise `npm install` on macOS produces a host-biased lockfile that
+`npm ci` rejects inside `node:22-alpine`):
+
+```bash
+rm -rf node_modules package-lock.json
+npm install --ignore-scripts --os=linux --cpu=x64 --libc=musl
+npm ci --ignore-scripts    # restore a host-native node_modules/
+```
+
+Commit only `frontend/package-lock.json` alongside your `package.json` change.
+
 ## Failure-mode decoder
 
 - **`format:check` fails** — Prettier reports a diff. Fix: `npm run format` (writes `--write`).
