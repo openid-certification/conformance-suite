@@ -1,5 +1,6 @@
 package net.openid.conformance.openid.ssf;
 
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -121,10 +122,18 @@ public class AbstractOIDSSFTransmitterTestModule extends AbstractOIDSSFTestModul
 
 	protected String pushAuthorizationHeader;
 
+	protected SsfDeliveryMode deliveryMode;
+
 	@Override
 	public void start() {
 		pushAuthorizationHeader = generatePushAuthorizationHeader();
 		super.start();
+	}
+
+	@Override
+	public void configure(JsonObject config, String baseUrl, String externalUrlOverride, String baseMtlsUrl) {
+		deliveryMode = Objects.requireNonNull(getVariant(SsfDeliveryMode.class));
+		super.configure(config, baseUrl, externalUrlOverride, baseMtlsUrl);
 	}
 
 	protected String generatePushAuthorizationHeader() {
@@ -169,8 +178,6 @@ public class AbstractOIDSSFTransmitterTestModule extends AbstractOIDSSFTestModul
 	}
 
 	protected void checkDeliveryMethod() {
-		SsfDeliveryMode deliveryMode = getVariant(SsfDeliveryMode.class);
-
 		callAndStopOnFailure(new OIDSSFEnsureDeliveryMethodIsSupported(deliveryMode));
 	}
 
@@ -309,11 +316,56 @@ public class AbstractOIDSSFTransmitterTestModule extends AbstractOIDSSFTestModul
 
 			eventLog.log(getName(), "Processing recorded ssf-push endpoint request with id: " + pushRequest.id());
 			env.putObject("ssf", "push_request", pushRequest.requestParts());
+			env.putString("ssf", "push_request_received_at", pushRequest.receivedAt().toString());
 			onPushDeliveryReceived(pushRequest.path(), pushRequest.requestParts());
 
 			return pushRequest;
 		} catch (InterruptedException e) {
 			throw new RuntimeException(e);
 		}
+	}
+
+	/**
+	 * Returns {@code true} if the most recently parsed verification token (stored
+	 * at {@code ssf.verification.token.claims}) contains an SSF stream verification
+	 * event in its {@code events} claim. Used by callers that iterate SETs from a
+	 * poll or push delivery to skip non-verification events during the verification
+	 * phase.
+	 */
+	protected boolean currentEventIsVerificationEvent() {
+		JsonElement claimsEl = env.getElementFromObject("ssf", "verification.token.claims");
+		if (claimsEl == null || !claimsEl.isJsonObject()) {
+			return false;
+		}
+		JsonObject events = claimsEl.getAsJsonObject().getAsJsonObject("events");
+		if (events == null) {
+			return false;
+		}
+		return events.has(SsfEvents.SSF_STREAM_VERIFICATION_EVENT_TYPE);
+	}
+
+	/**
+	 * Returns {@code true} if the most recently parsed verification event contains
+	 * a {@code state} claim. Per SSF 1.0 §8.1.4.2, a verification event with
+	 * {@code state} is a solicited response to a receiver-issued verification
+	 * request (and the state MUST match what was sent); a verification event
+	 * without {@code state} is transmitter-initiated (unsolicited) and MUST NOT
+	 * carry one. Callers looping for a specific solicited response use this to
+	 * decide whether to stop.
+	 */
+	protected boolean currentVerificationEventHasState() {
+		JsonElement claimsEl = env.getElementFromObject("ssf", "verification.token.claims");
+		if (claimsEl == null || !claimsEl.isJsonObject()) {
+			return false;
+		}
+		JsonObject events = claimsEl.getAsJsonObject().getAsJsonObject("events");
+		if (events == null) {
+			return false;
+		}
+		JsonElement verificationEventEl = events.get(SsfEvents.SSF_STREAM_VERIFICATION_EVENT_TYPE);
+		if (verificationEventEl == null || !verificationEventEl.isJsonObject()) {
+			return false;
+		}
+		return verificationEventEl.getAsJsonObject().has("state");
 	}
 }

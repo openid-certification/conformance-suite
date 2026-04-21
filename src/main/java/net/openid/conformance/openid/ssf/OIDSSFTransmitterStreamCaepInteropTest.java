@@ -12,6 +12,7 @@ import net.openid.conformance.openid.ssf.conditions.events.OIDSSFCallPollEndpoin
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFCheckVerificationEventState;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFCheckVerificationEventSubjectId;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFEnsureAllCaepInteropEventsReceived;
+import net.openid.conformance.openid.ssf.conditions.events.OIDSSFEnsureUnsolicitedVerificationEventHasNoState;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFEnsureEventContainsStreamAudience;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFEnsureEventSignedWithRsa256;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFEnsureSecurityEventTokenContainsSingleEvent;
@@ -23,7 +24,7 @@ import net.openid.conformance.openid.ssf.conditions.events.OIDSSFEnsureSecurityE
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFExtractCaepEventData;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFExtractReceivedSETs;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFExtractVerificationEventFromPushRequest;
-import net.openid.conformance.openid.ssf.conditions.events.OIDSSFExtractVerificationEventFromReceivedSETs;
+import net.openid.conformance.openid.ssf.conditions.events.OIDSSFLogAcceptedUnsolicitedVerificationEvent;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFParseVerificationEventToken;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFTriggerVerificationEvent;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFValidateCaepCommonOptionalFields;
@@ -33,6 +34,7 @@ import net.openid.conformance.openid.ssf.conditions.events.OIDSSFWarnNonStandard
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFValidateSecurityEventTokenAudClaim;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFValidateSecurityEventTokenTxnClaim;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFVerifySignatureOfVerificationEventToken;
+import net.openid.conformance.openid.ssf.conditions.events.OIDSSFWaitForMinVerificationInterval;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFCheckStreamAudience;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFCheckStreamDeliveryMethod;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFCheckSupportedEventsForStream;
@@ -53,6 +55,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 @PublishTestModule(
 	testName = "openid-ssf-transmitter-stream-caep-interop",
@@ -77,6 +80,15 @@ import java.util.Set;
 )
 public class OIDSSFTransmitterStreamCaepInteropTest extends AbstractOIDSSFTransmitterTestModule {
 
+	/**
+	 * Maximum number of unsolicited (stateless) verification events to tolerate
+	 * while waiting for the solicited response. Per SSF 1.0 §8.1.4 a transmitter
+	 * MAY deliver unsolicited verification events at any time; per §8.1.4.2 the
+	 * transmitter MUST echo the state of a verification request, so after
+	 * tolerating some unsolicited events we still require the solicited echo.
+	 */
+	protected static final int MAX_UNSOLICITED_VERIFICATION_EVENTS = 10;
+
 	volatile boolean streamDeletedSuccessfully = false;
 
 	/**
@@ -100,8 +112,6 @@ public class OIDSSFTransmitterStreamCaepInteropTest extends AbstractOIDSSFTransm
 		eventLog.runBlock("Prepare Transmitter Access", this::obtainTransmitterAccessToken);
 
 		eventLog.runBlock("Clean stream environment if necessary", this::cleanUpStreamConfigurationIfNecessary);
-
-		SsfDeliveryMode deliveryMode = getVariant(SsfDeliveryMode.class);
 
 		eventLog.runBlock("Create Stream Configuration", () -> {
 			env.putString("ssf", "delivery_method", deliveryMode.getAlias());
@@ -153,6 +163,7 @@ public class OIDSSFTransmitterStreamCaepInteropTest extends AbstractOIDSSFTransm
 		}
 
 		eventLog.runBlock("Trigger Stream Verification", () -> {
+			callAndContinueOnFailure(OIDSSFWaitForMinVerificationInterval.class, Condition.ConditionResult.INFO, "OIDSSF-8.1.4.1");
 			callAndStopOnFailure(OIDSSFTriggerVerificationEvent.class, "OIDSSF-8.1.4.2", "CAEPIOP-2.3.8.2");
 			call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
 			callAndStopOnFailure(EnsureHttpStatusCodeIs204.class, "OIDSSF-8.1.4.2");
@@ -192,45 +203,100 @@ public class OIDSSFTransmitterStreamCaepInteropTest extends AbstractOIDSSFTransm
 	protected void receiveEventsViaPush() {
 		// Wait for push OUTSIDE runBlock — runBlock is synchronized on eventLog,
 		// which would block the HTTP handler thread from storing the push request.
-		waitForNextPushRequest();
-		eventLog.runBlock("Validate verification event via PUSH delivery", () -> {
-			callAndStopOnFailure(OIDSSFExtractVerificationEventFromPushRequest.class, "OIDSSF-8.1.4.1");
-
-			validateSetCommon();
-			callAndContinueOnFailure(OIDSSFCheckVerificationEventState.class, Condition.ConditionResult.FAILURE, "OIDSSF-8.1.4.1");
-			callAndContinueOnFailure(OIDSSFCheckVerificationEventSubjectId.class, Condition.ConditionResult.FAILURE, "OIDSSF-8.1.4.1");
-		});
-
+		//
+		// Per SSF 1.0 §8.1.4 a transmitter MAY deliver unsolicited verification
+		// events (no 'state') at any time, and 8.1.4.2 says receivers MUST NOT
+		// depend on the verification event being delivered in any particular
+		// order relative to other queued events — CAEP events may therefore
+		// arrive before the solicited verification echo. We loop tolerating
+		// both unsolicited verification events and pre-echo CAEP events, and
+		// stop when we see the solicited verification event whose 'state' echoes
+		// the one we sent (8.1.4.2). CAEP events received in this window are
+		// preserved into receivedEventTypes so the second loop does not have
+		// to wait for them to be redelivered.
+		int unsolicitedSeen = 0;
+		boolean solicitedVerificationReceived = false;
 		Set<String> receivedEventTypes = new LinkedHashSet<>();
 
+		while (unsolicitedSeen < MAX_UNSOLICITED_VERIFICATION_EVENTS && !solicitedVerificationReceived) {
+			waitForNextPushRequest();
+			callAndStopOnFailure(OIDSSFExtractVerificationEventFromPushRequest.class, "OIDSSF-8.1.4.1");
+			callAndStopOnFailure(OIDSSFParseVerificationEventToken.class, Condition.ConditionResult.FAILURE, "OIDSSF-8.1.4.1");
+
+			if (!currentEventIsVerificationEvent()) {
+				// Pre-echo CAEP event — preserve for later validation rather than discard.
+				processPushedCaepEvent(receivedEventTypes);
+				continue;
+			}
+
+			AtomicBoolean wasSolicited = new AtomicBoolean(false);
+			String blockTitle = unsolicitedSeen == 0
+				? "Validate verification event via PUSH delivery"
+				: "Validate verification event via PUSH delivery (after " + unsolicitedSeen + " transmitter-initiated)";
+			eventLog.runBlock(blockTitle, () -> {
+				validateSetCommonAfterParsing();
+				callAndContinueOnFailure(OIDSSFCheckVerificationEventSubjectId.class, Condition.ConditionResult.FAILURE, "OIDSSF-8.1.4.1");
+
+				callAndContinueOnFailure(OIDSSFEnsureUnsolicitedVerificationEventHasNoState.class, Condition.ConditionResult.FAILURE, "OIDSSF-8.1.4.2");
+
+				if (currentVerificationEventHasState()) {
+					callAndContinueOnFailure(OIDSSFCheckVerificationEventState.class, Condition.ConditionResult.FAILURE, "OIDSSF-8.1.4.1");
+					wasSolicited.set(true);
+				} else {
+					callAndContinueOnFailure(OIDSSFLogAcceptedUnsolicitedVerificationEvent.class, Condition.ConditionResult.INFO, "OIDSSF-8.1.4");
+				}
+			});
+
+			if (wasSolicited.get()) {
+				solicitedVerificationReceived = true;
+			} else {
+				unsolicitedSeen++;
+			}
+		}
+
+		if (!solicitedVerificationReceived) {
+			throw new TestFailureException(getId(),
+				"Received " + unsolicitedSeen + " transmitter-initiated verification events without a solicited one — "
+					+ "transmitter never echoed the state from the verification request (SSF 1.0 §8.1.4.2)");
+		}
+
 		// Keep receiving push events until all expected CAEP event types arrive, or timeout.
-		// Non-CAEP events (e.g. verification) may arrive and are skipped without counting.
+		// Non-CAEP events (e.g. further verification events) are skipped without counting.
 		while (!receivedEventTypes.containsAll(expectedCaepEventTypes)) {
 			waitForNextPushRequest();
 			callAndStopOnFailure(OIDSSFExtractVerificationEventFromPushRequest.class, "OIDSSF-8.1.4.1");
-
-			// Parse first to determine the event type for the block name
 			callAndStopOnFailure(OIDSSFParseVerificationEventToken.class, Condition.ConditionResult.FAILURE, "OIDSSF-8.1.4.1");
-			callAndContinueOnFailure(OIDSSFExtractCaepEventData.class, Condition.ConditionResult.FAILURE, "OIDCAEP-3");
-			String eventType = env.getString("ssf", "caep_event.type");
-			if (eventType == null) {
-				// Non-CAEP event (e.g. SSF verification) — skip and wait for next
-				continue;
-			}
-			String eventName = eventType.substring(eventType.lastIndexOf('/') + 1);
-
-			eventLog.runBlock("Validate CAEP event: " + eventName, () -> {
-				validateSetCommonAfterParsing();
-
-				receivedEventTypes.add(eventType);
-				callAndContinueOnFailure(OIDSSFValidateCaepCommonOptionalFields.class, Condition.ConditionResult.FAILURE, "OIDCAEP-2");
-				validateCaepEventFields(eventType);
-			});
+			processPushedCaepEvent(receivedEventTypes);
 		}
 
 		eventLog.runBlock("Verify all expected CAEP Interop events received", () -> {
 			callAndContinueOnFailure(new OIDSSFEnsureAllCaepInteropEventsReceived(expectedCaepEventTypes, receivedEventTypes),
 				Condition.ConditionResult.FAILURE, "CAEPIOP-3");
+		});
+	}
+
+	/**
+	 * Validates an already-parsed pushed SET as a CAEP event. If the SET is not
+	 * a CAEP event (e.g. it is a verification event), this method is a no-op —
+	 * callers branch on event type separately. On a CAEP event the type is
+	 * recorded in {@code receivedEventTypes} and the event-type-specific checks
+	 * are run. Assumes {@link OIDSSFParseVerificationEventToken} has already
+	 * populated {@code set_token} / {@code ssf.verification.token}.
+	 */
+	protected void processPushedCaepEvent(Set<String> receivedEventTypes) {
+		callAndContinueOnFailure(OIDSSFExtractCaepEventData.class, Condition.ConditionResult.FAILURE, "OIDCAEP-3");
+		String eventType = env.getString("ssf", "caep_event.type");
+		if (eventType == null) {
+			return;
+		}
+		String eventName = eventType.substring(eventType.lastIndexOf('/') + 1);
+
+		eventLog.runBlock("Validate CAEP event: " + eventName, () -> {
+			validateSetCommonAfterParsing();
+
+			receivedEventTypes.add(eventType);
+			callAndContinueOnFailure(OIDSSFValidateCaepCommonOptionalFields.class, Condition.ConditionResult.FAILURE, "OIDCAEP-2");
+			validateCaepEventFields(eventType);
 		});
 	}
 
@@ -240,14 +306,29 @@ public class OIDSSFTransmitterStreamCaepInteropTest extends AbstractOIDSSFTransm
 			callAndStopOnFailure(OIDSSFCallPollEndpoint.class, "OIDSSF-8.1.4.1", "RFC8936-2.4");
 			env.mapKey("ssf_polling_response", "resource_endpoint_response_full");
 			callAndStopOnFailure(OIDSSFExtractReceivedSETs.class);
-			callAndStopOnFailure(OIDSSFExtractVerificationEventFromReceivedSETs.class);
-
-			validateSetCommon();
-			callAndContinueOnFailure(OIDSSFCheckVerificationEventState.class, Condition.ConditionResult.FAILURE, "OIDSSF-8.1.4.1");
-			callAndContinueOnFailure(OIDSSFCheckVerificationEventSubjectId.class, Condition.ConditionResult.FAILURE, "OIDSSF-8.1.4.1");
 		});
 
+		// Iterate every SET in the poll response, tolerating unsolicited
+		// (stateless) verification events per SSF 1.0 §8.1.4, and require that
+		// at least one solicited (stated) verification event is present — the
+		// transmitter MUST echo the request state per §8.1.4.2.
+		if (!iterateAndValidatePolledVerificationEvents()) {
+			throw new TestFailureException(getId(),
+				"POLL response did not contain a solicited verification event (with matching 'state') — "
+					+ "transmitter did not echo the state from the verification request (SSF 1.0 §8.1.4.2)");
+		}
+
 		Set<String> receivedEventTypes = new LinkedHashSet<>();
+
+		// Per SSF 1.0 8.1.4.2 receivers MUST NOT depend on the verification
+		// event being delivered in any particular order relative to other
+		// queued events. Process any CAEP events that arrived in the same
+		// POLL_ONLY response so they are not lost — RFC 8936 §2.4 makes
+		// re-delivery of un-acknowledged SETs OPTIONAL.
+		JsonElement firstPollSetsEl = env.getElementFromObject("ssf", "poll.sets");
+		if (firstPollSetsEl != null && firstPollSetsEl.isJsonObject() && !firstPollSetsEl.getAsJsonObject().isEmpty()) {
+			processCaepEventsFromPollResponse(firstPollSetsEl.getAsJsonObject(), receivedEventTypes);
+		}
 
 		// Poll repeatedly until all 3 CAEP event types are received, or timeout.
 		// Each poll acknowledges previously received SETs and retrieves new ones.
@@ -295,6 +376,66 @@ public class OIDSSFTransmitterStreamCaepInteropTest extends AbstractOIDSSFTransm
 				callAndStopOnFailure(OIDSSFCallPollEndpoint.class, "OIDSSF-8.1.4.1", "RFC8936-2.4");
 			}
 		});
+	}
+
+	/**
+	 * Iterates every SET in the current {@code ssf.poll.sets} object. For each
+	 * verification-type SET, runs the CAEP-profile common validation and the
+	 * subject-id check. If the verification event carries a {@code state} it
+	 * MUST match {@code ssf.verification.state}, and iteration stops; if it
+	 * carries no state it is accepted as transmitter-initiated (unsolicited)
+	 * per SSF 1.0 §8.1.4.2 and iteration continues. Non-verification SETs are
+	 * logged and skipped (they'll be processed by {@link #processCaepEventsFromPollResponse}
+	 * in later iterations).
+	 *
+	 * @return {@code true} if a solicited (stated) verification event was found
+	 *         and fully validated; {@code false} otherwise.
+	 */
+	protected boolean iterateAndValidatePolledVerificationEvents() {
+		JsonElement pollSetsEl = env.getElementFromObject("ssf", "poll.sets");
+		if (pollSetsEl == null || !pollSetsEl.isJsonObject()) {
+			return false;
+		}
+		JsonObject pollSets = pollSetsEl.getAsJsonObject();
+		if (pollSets.isEmpty()) {
+			return false;
+		}
+
+		int setIndex = 0;
+		int totalSets = pollSets.size();
+		for (Map.Entry<String, JsonElement> entry : pollSets.entrySet()) {
+			setIndex++;
+			String jti = entry.getKey();
+			String setJwt = OIDFJSON.getString(entry.getValue());
+			env.putString("ssf", "verification.jwt", setJwt);
+
+			AtomicBoolean wasSolicited = new AtomicBoolean(false);
+			int idx = setIndex;
+			eventLog.runBlock("Validate polled SET " + idx + "/" + totalSets + " (jti=" + jti + ")", () -> {
+				validateSetCommon();
+
+				if (!currentEventIsVerificationEvent()) {
+					eventLog.log(getName(),
+						args("msg", "Skipping non-verification SET during verification phase",
+							"jti", jti));
+					return;
+				}
+
+				callAndContinueOnFailure(OIDSSFCheckVerificationEventSubjectId.class, Condition.ConditionResult.FAILURE, "OIDSSF-8.1.4.1");
+
+				if (currentVerificationEventHasState()) {
+					callAndContinueOnFailure(OIDSSFCheckVerificationEventState.class, Condition.ConditionResult.FAILURE, "OIDSSF-8.1.4.1");
+					wasSolicited.set(true);
+				} else {
+					callAndContinueOnFailure(OIDSSFLogAcceptedUnsolicitedVerificationEvent.class, Condition.ConditionResult.INFO, "OIDSSF-8.1.4");
+				}
+			});
+
+			if (wasSolicited.get()) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	protected void processCaepEventsFromPollResponse(JsonObject pollSets, Set<String> receivedEventTypes) {

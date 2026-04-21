@@ -18,7 +18,7 @@ import java.util.concurrent.TimeUnit;
 		The testsuite expects to observe the following interactions:
 		 * create a stream
 		 * trigger a verification event
-		 * acknowledge a verification event (200 OK on PUSH, or explicit ack on POLL)
+		 * acknowledge a verification event (202 Accepted on PUSH per RFC 8935 2.2, or explicit ack on POLL)
 		 * delete the stream
 		""",
 	profile = "OIDSSF"

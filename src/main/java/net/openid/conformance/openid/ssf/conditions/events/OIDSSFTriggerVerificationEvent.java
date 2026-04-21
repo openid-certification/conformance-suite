@@ -5,6 +5,7 @@ import com.google.gson.JsonObject;
 import net.openid.conformance.openid.ssf.conditions.AbstractOIDSSFTransmitterEndpointCall;
 import net.openid.conformance.testmodule.Environment;
 
+import java.time.Instant;
 import java.util.Map;
 import java.util.UUID;
 
@@ -37,6 +38,11 @@ public class OIDSSFTriggerVerificationEvent extends AbstractOIDSSFTransmitterEnd
 					"state", state
 				)
 			));
+
+		// Record the moment this verification request is sent so a subsequent
+		// trigger can honor the transmitter's advertised min_verification_interval
+		// (SSF 1.0 7.1.1.1) via OIDSSFWaitForMinVerificationInterval.
+		env.putString("ssf", "last_verification_trigger_at", Instant.now().toString());
 	}
 
 	@Override
