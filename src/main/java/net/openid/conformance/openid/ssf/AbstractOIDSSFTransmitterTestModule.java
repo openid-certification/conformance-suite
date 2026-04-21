@@ -125,7 +125,6 @@ import java.util.concurrent.TimeUnit;
 @VariantNotApplicableWhen(parameter = ClientAuthType.class, values = "*",
 	whenParameter = SsfAuthMode.class, hasValues = "static")
 @VariantNotApplicable(parameter = ClientAuthType.class, values = "client_attestation")
-
 public class AbstractOIDSSFTransmitterTestModule extends AbstractOIDSSFTestModule {
 
 	protected BlockingDeque<SSfPushRequest> pushRequests = new LinkedBlockingDeque<>();
