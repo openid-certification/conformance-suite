@@ -76,26 +76,28 @@ async function setupPermissiveApiMocks(page) {
 }
 
 /**
- * Assert that no uncaught page errors were recorded by the `pageerror`
- * listener that `setupPermissiveApiMocks` attached. Fails the test with a
- * joined list of error messages when any were captured.
+ * Fails the test when the `pageerror` listener from `setupPermissiveApiMocks`
+ * recorded any uncaught page errors. Throws loudly if the setup helper was
+ * never called, matching the `expectNoUnmockedCalls` guard in `helpers/routes.js`.
  *
  * @param {import('@playwright/test').Page & { __pageErrors?: Error[] }} page
  */
 function expectNoPageErrors(page) {
-  const errors = page.__pageErrors ?? [];
-  if (errors.length > 0) {
-    const messages = errors.map((e) => e.message).join("\n  ");
+  if (!page.__pageErrors) {
+    throw new Error(
+      "setupPermissiveApiMocks() was not called for this test — page errors would not be detected",
+    );
+  }
+  if (page.__pageErrors.length > 0) {
+    const messages = page.__pageErrors.map((e) => e.message).join("\n  ");
     throw new Error(`Unexpected page errors:\n  ${messages}`);
   }
 }
 
-const BUNDLE_WARNING_TEXT = "Lit has been loaded from a bundle";
-
 /**
- * Collect Lit-bundle warnings emitted on `page` for the duration of a single
- * navigation. Extracted to module scope so the filter conditional lives
- * outside the `test` body (eslint `playwright/no-conditional-in-test`).
+ * Collects Lit-bundle console warnings for a single navigation. Extracted
+ * to module scope so the filter `if` lives outside any `test` body (eslint
+ * `playwright/no-conditional-in-test`).
  *
  * @param {import('@playwright/test').Page} page
  * @returns {{ warnings: string[], stop: () => void }}
@@ -105,7 +107,7 @@ function captureBundleWarnings(page) {
   const warnings = [];
   /** @param {import('@playwright/test').ConsoleMessage} msg */
   const listener = (msg) => {
-    if (msg.type() === "warning" && msg.text().includes(BUNDLE_WARNING_TEXT)) {
+    if (msg.type() === "warning" && msg.text().includes("Lit has been loaded from a bundle")) {
       warnings.push(msg.text());
     }
   };
