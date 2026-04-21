@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { setupCommonRoutes, setupFailFast, expectNoUnmockedCalls } from "./helpers/routes.js";
+import { setupCommonRoutes } from "./helpers/routes.js";
 
 /**
  * Drift-detection for the Lit importmap.
@@ -13,6 +13,13 @@ import { setupCommonRoutes, setupFailFast, expectNoUnmockedCalls } from "./helpe
  * The probes assert the specific named export exists (not just "any function
  * export"), so a misconfigured alias that returns a Lit module *without* the
  * expected directive name would fail here instead of silently at runtime.
+ *
+ * API hygiene is intentionally NOT enforced here — pages fire many different
+ * `/api/**` endpoints at parse time (logs, plans, tokens, runner status, …),
+ * and this test doesn't care about any of them. Individual page specs own
+ * their own endpoint mocks and `setupFailFast`/`expectNoUnmockedCalls`
+ * coverage. A permissive catch-all returns empty JSON so page JS can render
+ * without uncaught fetch errors while the importmap probes run.
  */
 
 const PAGES = [
@@ -36,15 +43,29 @@ const DIRECTIVE_PROBES = [
   { specifier: "lit/directives/ref.js", exportName: "ref" },
 ];
 
-test.describe("Lit importmap", () => {
-  test.afterEach(async ({ page }) => {
-    expectNoUnmockedCalls(page);
-  });
+/**
+ * Register a permissive catch-all for `/api/**` first, then layer the
+ * specific `setupCommonRoutes` mocks on top. Playwright matches the
+ * most-recently-registered handler first, so the common routes (currentuser,
+ * server, spec_links) still win; anything else falls through to `{}`.
+ *
+ * @param {import('@playwright/test').Page} page
+ */
+async function setupPermissiveApiMocks(page) {
+  await page.route("**/api/**", (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: "{}",
+    }),
+  );
+  await setupCommonRoutes(page);
+}
 
+test.describe("Lit importmap", () => {
   for (const pagePath of PAGES) {
     test(`${pagePath} resolves every probed directive to its named export`, async ({ page }) => {
-      await setupFailFast(page);
-      await setupCommonRoutes(page);
+      await setupPermissiveApiMocks(page);
 
       await page.goto(pagePath);
 
@@ -68,8 +89,7 @@ test.describe("Lit importmap", () => {
   test("every probed directive resolves to the same module instance (single bundle)", async ({
     page,
   }) => {
-    await setupFailFast(page);
-    await setupCommonRoutes(page);
+    await setupPermissiveApiMocks(page);
     await page.goto("/index.html");
 
     const sameAsLitModule = await page.evaluate(async (probes) => {
@@ -97,8 +117,7 @@ test.describe("Lit importmap", () => {
   });
 
   test("litDisableBundleWarning is set on every page", async ({ page }) => {
-    await setupFailFast(page);
-    await setupCommonRoutes(page);
+    await setupPermissiveApiMocks(page);
 
     const consoleWarnings = [];
     page.on("console", (msg) => {
