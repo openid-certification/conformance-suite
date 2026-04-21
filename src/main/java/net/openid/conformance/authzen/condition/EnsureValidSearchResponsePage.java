@@ -31,8 +31,8 @@ public class EnsureValidSearchResponsePage extends AbstractCondition {
 		if(!nextTokenElem.isJsonPrimitive() || !nextTokenElem.getAsJsonPrimitive().isString()) {
 			throw error("The next_token element in the Search results page object is not a string", args("authzen_search_endpoint_response", searchResponse));
 		} else {
-			if(!Strings.isNullOrEmpty(OIDFJSON.getString(pageElem))) {
-				env.putString("authzen_search_endpoint_request_page_token", OIDFJSON.getString(pageObj.get("next_token")));
+			if(!Strings.isNullOrEmpty(OIDFJSON.getString(nextTokenElem))) {
+				env.putString("authzen_search_endpoint_request_page_token", OIDFJSON.getString(nextTokenElem));
 			}
 		}
 
