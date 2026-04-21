@@ -179,6 +179,11 @@ public interface TestModule {
 	/**
 	 * Mark the test as skipped (untestable). This method will throw a
 	 * TestSkippedException to skip any further conditions from running.
+	 *
+	 * The test status must be RUNNING when this is called — the thrown
+	 * exception is caught by the framework's exception handler, which calls
+	 * fireTestFinished() (which requires RUNNING status).
+	 *
 	 * @param msg Reason for skipping the test
 	 */
 	void fireTestSkipped(String msg) throws TestSkippedException;
