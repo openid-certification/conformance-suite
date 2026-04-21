@@ -1,5 +1,6 @@
 package net.openid.conformance.authzen.condition;
 
+import com.google.common.base.Strings;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
@@ -19,7 +20,7 @@ public class CreateAuthzenApiEndpointRequestSearchPage extends CreateAuthzenApiE
 
 		// Set token in page if exists,
 		// token in the initial paginated request should not be set since no token exist yet
-		if(env.containsObject("authzen_search_endpoint_request_page_token")) {
+		if(!Strings.isNullOrEmpty(env.getString("authzen_search_endpoint_request_page_token"))) {
 			page.addProperty("token", env.getString("authzen_search_endpoint_request_page_token"));
 		} else {
 			page.remove("token");

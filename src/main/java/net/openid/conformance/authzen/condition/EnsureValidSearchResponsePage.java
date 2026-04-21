@@ -15,7 +15,7 @@ public class EnsureValidSearchResponsePage extends AbstractCondition {
 	public Environment evaluate(Environment env) {
 		JsonObject searchResponse = env.getObject("authzen_search_endpoint_response");
 		JsonElement pageElem = searchResponse.get("page");
-		env.removeObject("authzen_search_endpoint_request_page_token");  // clear old page token
+		env.removeNativeValue("authzen_search_endpoint_request_page_token");  // clear old page token
 		if (null == pageElem) {
 			logSuccess("Search results does not contain a page element");
 			return env;
