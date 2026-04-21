@@ -33,7 +33,14 @@ import net.openid.conformance.variant.VariantParameters;
 @PublishTestModule(
 	testName = "openid-ssf-transmitter-metadata",
 	displayName = "OpenID Shared Signals Framework: Validate Transmitter Metadata",
-	summary = "This test verifies the information of the transmitter metadata.",
+	summary = """
+		This test verifies the transmitter metadata document.
+		The testsuite expects to observe the following interactions:
+		 * fetch the transmitter configuration metadata
+		 * validate required fields are present
+		 * validate advertised delivery methods
+		 * validate advertised supported event types
+		""",
 	profile = "OIDSSF"
 )
 @VariantParameters({ServerMetadata.class, SsfDeliveryMode.class,})

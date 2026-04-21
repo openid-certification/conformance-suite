@@ -17,12 +17,17 @@ import java.util.concurrent.atomic.AtomicBoolean;
 	testName = "openid-ssf-transmitter-stream-verification-push",
 	displayName = "OpenID Shared Signals Framework: Stream Verification via PUSH delivery",
 	summary = """
-		This test triggers a verification event and awaits the SET delivered \
-		to the exposed push endpoint. \
-		The test succeeds if the verification event is successfully received and validated. \
-		Any transmitter-initiated verification events (without a 'state' claim) that arrive before \
-		the solicited response are accepted per SSF 1.0 8.1.4-2 — the loop keeps waiting \
-		until a verification event with matching state is delivered.""",
+		This test verifies stream verification via PUSH delivery.
+		The testsuite expects to observe the following interactions:
+		 * create a stream with a push delivery endpoint
+		 * trigger a verification event
+		 * receive the verification event via PUSH delivery
+		 * validate the verification event
+
+		Transmitter-initiated verification events (without 'state') that arrive before
+		the solicited response are accepted per SSF 1.0 §8.1.4-2; the test succeeds
+		once a verification event with matching 'state' is delivered.
+		""",
 	profile = "OIDSSF"
 )
 @VariantNotApplicable(parameter = SsfDeliveryMode.class, values = "poll")

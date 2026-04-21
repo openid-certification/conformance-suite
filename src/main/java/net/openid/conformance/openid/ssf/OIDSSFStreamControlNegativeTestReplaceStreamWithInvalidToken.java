@@ -11,7 +11,13 @@ import net.openid.conformance.variant.VariantNotApplicable;
 @PublishTestModule(
 	testName = "openid-ssf-stream-control-error-replace-stream-with-invalid-token",
 	displayName = "Attempt to replace Stream Configuration with invalid access token.",
-	summary = "This test verifies the behavior of the stream control for error cases. It attempts to replace a stream configuration with an invalid access token.",
+	summary = """
+		This test verifies that the transmitter rejects a stream replacement with an invalid access token.
+		The testsuite expects to observe the following interactions:
+		 * create a stream
+		 * attempt to replace the stream with an invalid access token
+		 * transmitter rejects the request with a 401 response
+		""",
 	profile = "OIDSSF"
 )
 @VariantNotApplicable(parameter = SsfProfile.class, values = "caep_interop")

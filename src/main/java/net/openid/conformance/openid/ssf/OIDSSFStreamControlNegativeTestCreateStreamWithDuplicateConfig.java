@@ -9,7 +9,13 @@ import net.openid.conformance.testmodule.PublishTestModule;
 @PublishTestModule(
 	testName = "openid-ssf-stream-control-error-create-stream-with-duplicate-config",
 	displayName = "Attempt to create multiple stream configurations with same access token.",
-	summary = "This test verifies the behavior of the stream control for error cases. It attempts to create multiple stream configurations with the same access token.",
+	summary = """
+		This test verifies that the transmitter rejects a second stream creation for the same Receiver.
+		The testsuite expects to observe the following interactions:
+		 * create a stream
+		 * attempt to create a second stream with the same access token
+		 * transmitter rejects the second request with a 409 response
+		""",
 	profile = "OIDSSF"
 )
 public class OIDSSFStreamControlNegativeTestCreateStreamWithDuplicateConfig extends AbstractStreamControlErrorTest {

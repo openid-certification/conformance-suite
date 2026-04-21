@@ -11,11 +11,17 @@ import net.openid.conformance.variant.VariantNotApplicable;
 	testName = "openid-ssf-transmitter-stream-verification-poll-only",
 	displayName = "OpenID Shared Signals Framework: Stream Verification via POLL_ONLY",
 	summary = """
-		This test triggers a verification event and retrieves it using POLL_ONLY mode \
-		(retrieve events without acknowledging). The test iterates every SET in the poll \
-		response — transmitter-initiated verification events (without 'state') are accepted per \
-		SSF 1.0 8.1.4-2, and the test succeeds once a verification event carrying the \
-		expected 'state' is found and validated.""",
+		This test verifies stream verification via the POLL_ONLY poll mode.
+		The testsuite expects to observe the following interactions:
+		 * create a stream
+		 * trigger a verification event
+		 * retrieve the verification event via POLL_ONLY (without acknowledging)
+		 * validate the verification event
+
+		Transmitter-initiated verification events (without 'state') are accepted per
+		SSF 1.0 §8.1.4-2; the test succeeds once a verification event carrying the
+		expected 'state' is found and validated.
+		""",
 	profile = "OIDSSF"
 )
 @VariantNotApplicable(parameter = SsfDeliveryMode.class, values = "push")

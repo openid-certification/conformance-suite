@@ -10,7 +10,13 @@ import net.openid.conformance.testmodule.PublishTestModule;
 @PublishTestModule(
 	testName = "openid-ssf-stream-control-error-delete-stream-with-invalid-token",
 	displayName = "Attempt to delete a Stream Configuration with invalid access token.",
-	summary = "This test verifies the behavior of the stream control for error cases. It attempts to delete a stream configuration with an invalid access token.",
+	summary = """
+		This test verifies that the transmitter rejects a stream deletion with an invalid access token.
+		The testsuite expects to observe the following interactions:
+		 * create a stream
+		 * attempt to delete the stream with an invalid access token
+		 * transmitter rejects the request with a 401 response
+		""",
 	profile = "OIDSSF"
 )
 public class OIDSSFStreamControlNegativeTestDeleteStreamWithInvalidAccessToken extends AbstractStreamControlErrorTest {

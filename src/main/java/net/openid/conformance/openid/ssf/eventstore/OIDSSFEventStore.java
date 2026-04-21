@@ -21,6 +21,8 @@ public interface OIDSSFEventStore {
 
 	EventsBatch pollEvents(String streamId, int maxCount, boolean waitForEvents, long waitTimeSeconds);
 
+	boolean hasEventsForStream(String streamId);
+
 	void purgeStreamEvents(String streamId);
 
 	OIDSSFSecurityEvent registerAckForStreamEvent(String streamId, String jti);

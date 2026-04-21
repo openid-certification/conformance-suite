@@ -11,13 +11,17 @@ import net.openid.conformance.variant.VariantNotApplicable;
 	testName = "openid-ssf-transmitter-stream-verification-poll-and-ack",
 	displayName = "OpenID Shared Signals Framework: Stream Verification via POLL_AND_ACKNOWLEDGE",
 	summary = """
-		This test verifies the POLL_AND_ACKNOWLEDGE poll mode by triggering two verification events. \
-		The first event is retrieved via POLL_ONLY to obtain SETs for acknowledgment. \
-		A second verification event is then triggered, and POLL_AND_ACKNOWLEDGE is used to \
-		simultaneously acknowledge the first event and retrieve the second. \
-		Transmitter-initiated verification events (without 'state') in either poll response are accepted \
-		per SSF 1.0 8.1.4-2; the test succeeds once the solicited second verification event \
-		is retrieved and its 'state' validated.""",
+		This test verifies stream verification via the POLL_AND_ACKNOWLEDGE poll mode.
+		The testsuite expects to observe the following interactions:
+		 * create a stream
+		 * trigger a first verification event and retrieve it via POLL_ONLY
+		 * trigger a second verification event
+		 * acknowledge the first event and retrieve the second via POLL_AND_ACKNOWLEDGE
+		 * validate the solicited second verification event
+
+		Transmitter-initiated verification events (without 'state') in either poll
+		response are accepted per SSF 1.0 §8.1.4-2.
+		""",
 	profile = "OIDSSF"
 )
 @VariantNotApplicable(parameter = SsfDeliveryMode.class, values = "push")

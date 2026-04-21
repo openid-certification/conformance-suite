@@ -16,7 +16,7 @@ public class OIDSSFPrepareStreamConfigObjectSetDeliveryMethod extends AbstractOI
 		JsonObject delivery = createDeliveryObject(env);
 		if (delivery != null) {
 			streamConfig.add("delivery", delivery);
-			logSuccess("Added 'delivery' to stream configuration", args("config", streamConfig, "delivery", delivery));
+			log("Added 'delivery' to stream configuration", args("config", streamConfig, "delivery", delivery));
 		} else {
 			log("No 'delivery' added to stream configuration");
 		}

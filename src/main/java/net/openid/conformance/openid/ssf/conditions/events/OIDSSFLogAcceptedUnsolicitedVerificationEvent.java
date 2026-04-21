@@ -18,7 +18,7 @@ import net.openid.conformance.testmodule.OIDFJSON;
  * {@code jti} of the accepted event when available, so the iteration history
  * is visible to reviewers.
  * <p>
- * {@link OIDSSFParseVerificationEventToken} should have been called first so
+ * {@link OIDSSFParseSecurityEventToken} should have been called first so
  * that the token claims are available under {@code ssf.verification.token.claims}.
  */
 public class OIDSSFLogAcceptedUnsolicitedVerificationEvent extends AbstractCondition {

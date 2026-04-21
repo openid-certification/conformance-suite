@@ -25,7 +25,7 @@ import net.openid.conformance.openid.ssf.conditions.events.OIDSSFExtractCaepEven
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFExtractReceivedSETs;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFExtractVerificationEventFromPushRequest;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFLogAcceptedUnsolicitedVerificationEvent;
-import net.openid.conformance.openid.ssf.conditions.events.OIDSSFParseVerificationEventToken;
+import net.openid.conformance.openid.ssf.conditions.events.OIDSSFParseSecurityEventToken;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFTriggerVerificationEvent;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFValidateCaepCommonOptionalFields;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFValidateCaepCredentialChangeEvent;
@@ -33,7 +33,7 @@ import net.openid.conformance.openid.ssf.conditions.events.OIDSSFValidateCaepDev
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFWarnNonStandardCaepCredentialChangeValues;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFValidateSecurityEventTokenAudClaim;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFValidateSecurityEventTokenTxnClaim;
-import net.openid.conformance.openid.ssf.conditions.events.OIDSSFVerifySignatureOfVerificationEventToken;
+import net.openid.conformance.openid.ssf.conditions.events.OIDSSFVerifySignatureOfSecurityEventToken;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFWaitForMinVerificationInterval;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFCheckStreamAudience;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFCheckStreamDeliveryMethod;
@@ -61,17 +61,23 @@ import java.util.concurrent.atomic.AtomicBoolean;
 	testName = "openid-ssf-transmitter-stream-caep-interop",
 	displayName = "OpenID Shared Signals Framework: CAEP Interop Transmitter Test",
 	summary = """
-		This test exercises a transmitter against the CAEP Interop Profile 1.0 receiver expectations.
-		It performs stream creation, configuration read, status read, and stream verification.
-		After successful verification, the test waits for the transmitter to deliver CAEP events. \
-		The expected events are determined from the stream's events_delivered field — \
-		per CAEPIOP Section 3, implementations MAY support one or more of the CAEP use cases \
-		(session-revoked, credential-change, device-compliance-change). \
-		These events must be triggered on the transmitter side (e.g. via the transmitter's admin UI) \
-		and can be delivered in any order. \
-		Each received CAEP event is validated against the CAEP 1.0 Final specification.
-		For PUSH delivery, events are received on the exposed push endpoint.
-		For POLL delivery, events are retrieved and acknowledged via consecutive poll requests.""",
+		This test verifies a transmitter against the CAEP Interop Profile 1.0.
+		The testsuite expects to observe the following interactions:
+		 * create a stream
+		 * read the stream configuration
+		 * read the stream status
+		 * trigger and receive the stream verification event
+		 * receive the expected CAEP events (session-revoked, credential-change,
+		   device-compliance-change — as advertised in events_delivered)
+		 * delete the stream
+
+		The expected CAEP events are determined from the stream's events_delivered field.
+		These events must be triggered on the transmitter side (e.g. via the transmitter's
+		admin UI) and may be delivered in any order. Each received CAEP event is validated
+		against the CAEP 1.0 Final specification. For PUSH delivery, events are received on
+		the exposed push endpoint; for POLL delivery, events are retrieved and acknowledged
+		via consecutive poll requests.
+		""",
 	profile = "OIDSSF",
 	configurationFields = {
 		"ssf.transmitter.issuer",
@@ -221,7 +227,7 @@ public class OIDSSFTransmitterStreamCaepInteropTest extends AbstractOIDSSFTransm
 		while (unsolicitedSeen < MAX_UNSOLICITED_VERIFICATION_EVENTS && !solicitedVerificationReceived) {
 			waitForNextPushRequest();
 			callAndStopOnFailure(OIDSSFExtractVerificationEventFromPushRequest.class, "OIDSSF-8.1.4.1");
-			callAndStopOnFailure(OIDSSFParseVerificationEventToken.class, Condition.ConditionResult.FAILURE, "OIDSSF-8.1.4.1");
+			callAndStopOnFailure(OIDSSFParseSecurityEventToken.class, Condition.ConditionResult.FAILURE, "OIDSSF-8.1.4.1");
 
 			if (!currentEventIsVerificationEvent()) {
 				// Pre-echo CAEP event — preserve for later validation rather than discard.
@@ -265,7 +271,7 @@ public class OIDSSFTransmitterStreamCaepInteropTest extends AbstractOIDSSFTransm
 		while (!receivedEventTypes.containsAll(expectedCaepEventTypes)) {
 			waitForNextPushRequest();
 			callAndStopOnFailure(OIDSSFExtractVerificationEventFromPushRequest.class, "OIDSSF-8.1.4.1");
-			callAndStopOnFailure(OIDSSFParseVerificationEventToken.class, Condition.ConditionResult.FAILURE, "OIDSSF-8.1.4.1");
+			callAndStopOnFailure(OIDSSFParseSecurityEventToken.class, Condition.ConditionResult.FAILURE, "OIDSSF-8.1.4.1");
 			processPushedCaepEvent(receivedEventTypes);
 		}
 
@@ -280,7 +286,7 @@ public class OIDSSFTransmitterStreamCaepInteropTest extends AbstractOIDSSFTransm
 	 * a CAEP event (e.g. it is a verification event), this method is a no-op —
 	 * callers branch on event type separately. On a CAEP event the type is
 	 * recorded in {@code receivedEventTypes} and the event-type-specific checks
-	 * are run. Assumes {@link OIDSSFParseVerificationEventToken} has already
+	 * are run. Assumes {@link OIDSSFParseSecurityEventToken} has already
 	 * populated {@code set_token} / {@code ssf.verification.token}.
 	 */
 	protected void processPushedCaepEvent(Set<String> receivedEventTypes) {
@@ -304,6 +310,7 @@ public class OIDSSFTransmitterStreamCaepInteropTest extends AbstractOIDSSFTransm
 		eventLog.runBlock("Poll for verification event", () -> {
 			env.putString("ssf", "poll.mode", OIDSSFCallPollEndpoint.PollMode.POLL_ONLY.name());
 			callAndStopOnFailure(OIDSSFCallPollEndpoint.class, "OIDSSF-8.1.4.1", "RFC8936-2.4");
+			validatePollResponseStatus();
 			env.mapKey("ssf_polling_response", "resource_endpoint_response_full");
 			callAndStopOnFailure(OIDSSFExtractReceivedSETs.class);
 		});
@@ -338,6 +345,7 @@ public class OIDSSFTransmitterStreamCaepInteropTest extends AbstractOIDSSFTransm
 			eventLog.runBlock("Poll for CAEP events (attempt " + (attempt + 1) + ")", () -> {
 				env.putString("ssf", "poll.mode", OIDSSFCallPollEndpoint.PollMode.POLL_AND_ACKNOWLEDGE.name());
 				callAndStopOnFailure(OIDSSFCallPollEndpoint.class, "OIDSSF-8.1.4.1", "RFC8936-2.4");
+				validatePollResponseStatus();
 				env.mapKey("ssf_polling_response", "resource_endpoint_response_full");
 				callAndStopOnFailure(OIDSSFExtractReceivedSETs.class);
 			});
@@ -374,6 +382,7 @@ public class OIDSSFTransmitterStreamCaepInteropTest extends AbstractOIDSSFTransm
 			if (remainingSets != null && remainingSets.isJsonObject() && !remainingSets.getAsJsonObject().isEmpty()) {
 				env.putString("ssf", "poll.mode", OIDSSFCallPollEndpoint.PollMode.ACKNOWLEDGE_ONLY.name());
 				callAndStopOnFailure(OIDSSFCallPollEndpoint.class, "OIDSSF-8.1.4.1", "RFC8936-2.4");
+				validatePollResponseStatus();
 			}
 		});
 	}
@@ -438,12 +447,22 @@ public class OIDSSFTransmitterStreamCaepInteropTest extends AbstractOIDSSFTransm
 		return false;
 	}
 
+	/**
+	 * Per RFC 8936 §2.5, a successful poll request returns 200 OK. Map the polling response to
+	 * endpoint_response, run the status check, then unmap so the cleanup is always paired.
+	 */
+	protected void validatePollResponseStatus() {
+		call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
+		callAndContinueOnFailure(EnsureHttpStatusCodeIs200.class, Condition.ConditionResult.FAILURE, "RFC8936-2.5");
+		call(exec().unmapKey("endpoint_response"));
+	}
+
 	protected void processCaepEventsFromPollResponse(JsonObject pollSets, Set<String> receivedEventTypes) {
 		for (Map.Entry<String, JsonElement> entry : pollSets.entrySet()) {
 			String setToken = OIDFJSON.getString(entry.getValue());
 			env.putString("ssf", "verification.jwt", setToken);
 
-			callAndStopOnFailure(OIDSSFParseVerificationEventToken.class, Condition.ConditionResult.FAILURE, "OIDSSF-8.1.4.1");
+			callAndStopOnFailure(OIDSSFParseSecurityEventToken.class, Condition.ConditionResult.FAILURE, "OIDSSF-8.1.4.1");
 			callAndContinueOnFailure(OIDSSFExtractCaepEventData.class, Condition.ConditionResult.FAILURE, "OIDCAEP-3");
 			String eventType = env.getString("ssf", "caep_event.type");
 			if (eventType == null) {
@@ -467,7 +486,7 @@ public class OIDSSFTransmitterStreamCaepInteropTest extends AbstractOIDSSFTransm
 	 * Includes parsing the JWT token.
 	 */
 	protected void validateSetCommon() {
-		callAndStopOnFailure(OIDSSFParseVerificationEventToken.class, Condition.ConditionResult.FAILURE, "OIDSSF-8.1.4.1");
+		callAndStopOnFailure(OIDSSFParseSecurityEventToken.class, Condition.ConditionResult.FAILURE, "OIDSSF-8.1.4.1");
 		validateSetCommonAfterParsing();
 	}
 
@@ -476,7 +495,7 @@ public class OIDSSFTransmitterStreamCaepInteropTest extends AbstractOIDSSFTransm
 	 * (i.e. {@code set_token} is already in the environment).
 	 */
 	protected void validateSetCommonAfterParsing() {
-		callAndContinueOnFailure(OIDSSFVerifySignatureOfVerificationEventToken.class, Condition.ConditionResult.WARNING);
+		callAndContinueOnFailure(OIDSSFVerifySignatureOfSecurityEventToken.class, Condition.ConditionResult.WARNING);
 		callAndContinueOnFailure(OIDSSFEnsureEventSignedWithRsa256.class, Condition.ConditionResult.FAILURE, "CAEPIOP-2.6");
 		callAndContinueOnFailure(OIDSSFEnsureSecurityEventTokenUsesTypeSecEventJwt.class, Condition.ConditionResult.FAILURE, "OIDSSF-4.1.1");
 		callAndContinueOnFailure(OIDSSFEnsureSecurityEventTokenContainsSingleEvent.class, Condition.ConditionResult.FAILURE, "CAEPIOP-2.8.1");

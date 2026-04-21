@@ -9,7 +9,12 @@ import net.openid.conformance.testmodule.PublishTestModule;
 @PublishTestModule(
 	testName = "openid-ssf-stream-control-error-create-stream-with-broken-input",
 	displayName = "Attempt to create Stream Configuration with broken input.",
-	summary = "This test verifies the behavior of the stream control for error cases. It attempts to create a stream configuration with broken input.",
+	summary = """
+		This test verifies that the transmitter rejects a stream creation with a malformed request body.
+		The testsuite expects to observe the following interactions:
+		 * attempt to create a stream with a malformed request body
+		 * transmitter rejects the request with a 400 response
+		""",
 	profile = "OIDSSF"
 )
 public class OIDSSFStreamControlNegativeTestCreateStreamWithBrokenInput extends AbstractStreamControlErrorTest {
