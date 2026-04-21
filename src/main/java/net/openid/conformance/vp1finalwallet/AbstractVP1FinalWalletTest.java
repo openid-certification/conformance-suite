@@ -103,7 +103,6 @@ import net.openid.conformance.condition.client.ValidateJWEHeaderEncMatchesReques
 import net.openid.conformance.condition.client.ValidateJWEHeaderKidIsInClientMetadataJWKs;
 import net.openid.conformance.condition.client.ValidateSdJwtKbSdHash;
 import net.openid.conformance.condition.client.ValidateSdJwtKeyBindingSignature;
-import net.openid.conformance.condition.client.CheckForUnexpectedParametersInDcqlQuery;
 import net.openid.conformance.condition.client.WarnMockWalletResponse;
 import net.openid.conformance.condition.common.CheckAuthorizationEndpointIsValidUri;
 import net.openid.conformance.condition.common.CheckDistinctKeyIdValueInClientJWKs;

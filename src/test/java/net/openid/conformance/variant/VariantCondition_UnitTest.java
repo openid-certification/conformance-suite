@@ -72,27 +72,27 @@ class VariantCondition_UnitTest {
 		assertTrue(byPrefix.containsKey("web-origin"), "should have web-origin modules");
 		assertTrue(byPrefix.containsKey("x509_san_dns"), "should have x509_san_dns modules");
 
-		// web-origin entry uses request_uri_unsigned and excludes InvalidRequestObjectSignature
-		// HappyFlowNoState is also excluded via @VariantNotApplicable for dc_api.jwt
+		// web-origin entry uses request_uri_unsigned and therefore excludes
+		// InvalidRequestObjectSignature and WrongExpectedOrigins (both @VariantNotApplicable
+		// for request_uri_unsigned). MismatchedClientIdInRequestObject is also excluded
+		// via @VariantNotApplicable for dc_api.jwt. HappyFlowNoState is excluded for dc_api.jwt.
 		Set<String> webOriginModules = byPrefix.get("web-origin").stream()
 			.map(Plan.Module::getTestModule)
 			.collect(Collectors.toSet());
 		assertEquals(Set.of(
 			"oid4vp-1final-wallet-alternate-happy-flow",
-			"oid4vp-1final-wallet-negative-test-mismatched-client-id",
 			"oid4vp-1final-wallet-negative-test-missing-nonce",
-			"oid4vp-1final-wallet-negative-test-invalid-client-id-prefix",
-			"oid4vp-1final-wallet-negative-test-wrong-expected-origins"
+			"oid4vp-1final-wallet-negative-test-invalid-client-id-prefix"
 		), webOriginModules);
 
-		// x509_san_dns entry uses request_uri_signed and includes InvalidRequestObjectSignature
+		// x509_san_dns entry uses request_uri_signed and includes InvalidRequestObjectSignature.
+		// MismatchedClientIdInRequestObject is excluded via @VariantNotApplicable for dc_api.jwt.
 		Set<String> sanDnsModules = byPrefix.get("x509_san_dns").stream()
 			.map(Plan.Module::getTestModule)
 			.collect(Collectors.toSet());
 		assertEquals(Set.of(
 			"oid4vp-1final-wallet-alternate-happy-flow",
 			"oid4vp-1final-wallet-negative-test-invalid-request-object-signature",
-			"oid4vp-1final-wallet-negative-test-mismatched-client-id",
 			"oid4vp-1final-wallet-negative-test-missing-nonce",
 			"oid4vp-1final-wallet-negative-test-invalid-client-id-prefix",
 			"oid4vp-1final-wallet-negative-test-wrong-expected-origins"
