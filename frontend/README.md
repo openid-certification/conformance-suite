@@ -47,28 +47,6 @@ cd frontend && npm ci --ignore-scripts && npm run test:ci
 `package-lock.json` exactly (no lockfile mutation, no postinstall scripts —
 the MSW worker is pre-committed at `frontend/public/mockServiceWorker.js`).
 
-## Install vs lockfile regeneration
-
-Two different jobs, two different commands:
-
-- **Sync with the committed lockfile** (the common case — after `git pull`,
-  or when setting up a fresh checkout): `npm ci --ignore-scripts`. Does not
-  mutate `package-lock.json`.
-- **Regenerate the lockfile** (only after you change `package.json` —
-  bumping a dep, adding a new one, removing one):
-  `./scripts/regen-lockfile.sh`. The script runs `npm install` inside the
-  same `node:22-alpine` image CI uses, via Corepack-pinned npm, and writes
-  the result back to your working tree. The regen leaves `node_modules/`
-  removed because the container's install is Linux-native; follow it with
-  `npm ci --ignore-scripts` to restore a host-native `node_modules/`.
-
-  Avoid running `npm install` directly on macOS — npm records
-  platform-biased optional deps there, which then break `npm ci` in Linux
-  CI.
-
-Commit only `frontend/package-lock.json` after a regeneration (your
-`frontend/package.json` change should already be staged separately).
-
 ## Failure-mode decoder
 
 - **`format:check` fails** — Prettier reports a diff. Fix: `npm run format` (writes `--write`).

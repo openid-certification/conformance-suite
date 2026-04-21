@@ -174,20 +174,10 @@ frontend_e2e_test:
 # in frontend/README.md so no one copies the flag into test:e2e (where it
 # would break browser provisioning).
 #
-# corepack enable npm justification: two compounding issues made `npm ci` fail
-# on this job before the fix:
-#   1. Platform-biased lockfile. `npm install` on macOS records only the
-#      optional deps relevant to the host platform and omits the Linux
-#      binaries (esbuild, rollup, lightningcss, …) that Alpine needs. The
-#      resulting lockfile passes `npm ci` locally on macOS and fails here
-#      with "Missing: X from lock file" / "Invalid: Y does not satisfy Z".
-#      Fix: regenerate the lockfile inside node:22-alpine (see
-#      frontend/scripts/regen-lockfile.sh).
-#   2. npm major mismatch. node:22-alpine ships npm 10.9.7 but package.json
-#      pins `packageManager: npm@11.12.1`; the two majors encode optional
-#      peer deps differently in the lockfile. Fix: `corepack enable npm`
-#      shims npm to the pinned version so CI and contributors use the same
-#      tool.
+# corepack enable npm justification: node:22-alpine ships npm 10.9.7 but
+# package.json pins `packageManager: npm@11.12.1`, and the two majors encode
+# optional peer deps differently in the lockfile. `corepack enable npm` shims
+# npm to the pinned version so CI and contributors use the same tool.
 frontend_lint:
   stage: build
   interruptible: true
