@@ -28,6 +28,37 @@ lint/format/type-check globs reach into that directory via `../` paths.
 cd frontend && npm ci && npm run test:ci
 ```
 
+## First-time setup
+
+Enable Corepack once so `npm` inside `frontend/` matches the `packageManager` pin
+in `package.json` (currently `npm@11.12.1`). Corepack ships with Node 16.13+ and
+is on by default in Node 22+, but the shim for `npm` needs one explicit opt-in:
+
+```bash
+corepack enable npm
+```
+
+Afterwards, `npm --version` inside `frontend/` will report the pinned version
+regardless of what your global `npm` happens to be. CI does the same in
+`frontend_lint`, so contributors and CI agree on one tool.
+
+## Install vs lockfile regeneration
+
+Two different jobs, two different commands:
+
+- **Sync with the committed lockfile** (the common case — after `git pull`, or
+  when setting up a fresh checkout): `npm ci`. This does not mutate
+  `package-lock.json`; it installs exactly what the lockfile says.
+- **Regenerate the lockfile** (only after you change `package.json` — bumping
+  a dep, adding a new one, removing one): `./scripts/regen-lockfile.sh`. The
+  script runs `npm install` inside the same `node:22-alpine` image CI uses,
+  via Corepack-pinned npm, and writes the result back to your working tree.
+  Avoid running `npm install` directly on macOS: npm records platform-biased
+  optional deps, which then break `npm ci` in Linux CI.
+
+Commit only `frontend/package-lock.json` after a regeneration (your
+`frontend/package.json` change should already be staged separately).
+
 ## Failure-mode decoder
 
 - **`format:check` fails** — Prettier reports a diff. Fix: `npm run format` (writes `--write`).
