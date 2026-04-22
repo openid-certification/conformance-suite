@@ -28,6 +28,8 @@ public class ValidateDisclosedClaimsMatchDcqlQuery extends AbstractCondition {
 				args("credential_id", credentialId, "dcql_query", dcqlQuery));
 		}
 
+		// TODO: This currently inherits DcqlQueryUtils' "flatten all claims" behavior and therefore
+		// does not yet honor DCQL claim_sets semantics when deciding which claims are required.
 		Set<List<String>> requestedClaimPaths = DcqlQueryUtils.extractClaimPathsFromCredential(matchingCredential);
 		if (requestedClaimPaths.isEmpty()) {
 			log("DCQL credential entry has no claims, skipping claims validation");

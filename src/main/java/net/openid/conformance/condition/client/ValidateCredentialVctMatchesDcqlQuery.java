@@ -10,10 +10,6 @@ import net.openid.conformance.testmodule.OIDFJSON;
 
 /**
  * Validates that the credential's vct value matches what the DCQL query requested.
- *
- * The DCQL query specifies expected vct values in credentials[].meta.vct_values.
- * The credential_id from the VP token response identifies which DCQL credential
- * entry to match against.
  */
 public class ValidateCredentialVctMatchesDcqlQuery extends AbstractCondition {
 
@@ -28,28 +24,13 @@ public class ValidateCredentialVctMatchesDcqlQuery extends AbstractCondition {
 
 		String credentialId = env.getString("credential_id");
 		JsonObject dcqlQuery = env.getObject("dcql_query");
-		JsonArray credentials = dcqlQuery.getAsJsonArray("credentials");
-
-		if (credentials == null) {
-			throw error("DCQL query does not contain a credentials array");
-		}
-
-		// Find the credential entry matching the credential_id from the response
-		JsonObject matchingCredential = null;
-		for (JsonElement credEl : credentials) {
-			JsonObject cred = credEl.getAsJsonObject();
-			if (cred.has("id") && credentialId.equals(OIDFJSON.getString(cred.get("id")))) {
-				matchingCredential = cred;
-				break;
-			}
-		}
+		JsonObject matchingCredential = DcqlQueryUtils.findCredentialById(dcqlQuery, credentialId);
 
 		if (matchingCredential == null) {
-			throw error("No DCQL credential entry found matching credential_id from VP token",
+			throw error("No DCQL credential entry found matching credential_id",
 				args("credential_id", credentialId, "dcql_query", dcqlQuery));
 		}
 
-		// Check vct_values in meta
 		JsonElement metaEl = matchingCredential.get("meta");
 		if (metaEl == null || !metaEl.isJsonObject()) {
 			log("DCQL credential entry has no meta field, skipping vct validation");
