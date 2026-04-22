@@ -398,7 +398,7 @@ public abstract class AbstractVP1FinalVerifierTest extends AbstractTestModule {
 				callAndContinueOnFailure(VP1FinalValidateClientMetadataJwksForEncryptedResponse.class, ConditionResult.FAILURE, "OID4VP-1FINAL-8.3");
 				callAndContinueOnFailure(ValidateVpClientMetadataJwksKeysArePublic.class, ConditionResult.FAILURE, "OID4VP-1FINAL-5.1");
 				if (getVariant(VPProfile.class) == VPProfile.HAIP) {
-					callAndContinueOnFailure(ValidateVpClientMetadataEncryptionForHaip.class, ConditionResult.FAILURE, "HAIP-4.3");
+					callAndContinueOnFailure(ValidateVpClientMetadataEncryptionForHaip.class, ConditionResult.FAILURE, "HAIP-5-5", "OID4VP-1FINAL-8.3");
 				}
 				break;
 			case DIRECT_POST:

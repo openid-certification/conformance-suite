@@ -1,6 +1,8 @@
 package net.openid.conformance.sequence.client;
 
 import net.openid.conformance.condition.Condition.ConditionResult;
+import net.openid.conformance.condition.client.ClearStatusListTokenEndpointResponse;
+import net.openid.conformance.condition.client.EnsureContentTypeStatusListJwt;
 import net.openid.conformance.condition.client.ValidateCredentialCnfJwkIsPublicKey;
 import net.openid.conformance.condition.client.WarnIfUnexpectedFieldsInCredentialCnf;
 import net.openid.conformance.condition.client.WarnIfUnknownFieldsInCredentialCnfJwk;
@@ -64,6 +66,10 @@ public class ValidateSdJwtVcCredentialClaims extends AbstractConditionSequence {
 		}
 		callAndContinueOnFailure(ValidateSdJwtDisclosureSaltsAreUnique.class,
 			ConditionResult.FAILURE, "SDJWT-4.2.1");
+		// Clear any status list response carried over from a previous credential
+		// so the content-type check below doesn't see stale state.
+		callAndContinueOnFailure(ClearStatusListTokenEndpointResponse.class,
+			ConditionResult.FAILURE);
 		if (haip) {
 			callAndContinueOnFailure(ValidateSdJwtCredentialX5cCertificateChain.class,
 				ConditionResult.FAILURE, "HAIP-6.1.1");
@@ -75,5 +81,7 @@ public class ValidateSdJwtVcCredentialClaims extends AbstractConditionSequence {
 			callAndContinueOnFailure(ValidateCredentialStatusList.class,
 				ConditionResult.FAILURE, "OTSL-6.2");
 		}
+		callAndContinueOnFailure(EnsureContentTypeStatusListJwt.class,
+			ConditionResult.FAILURE, "OTSL-8.2");
 	}
 }
