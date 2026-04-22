@@ -8,17 +8,14 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.condition.as.AddVP1FinalDCQLVPTokenToAuthorizationEndpointResponseParams;
-import net.openid.conformance.condition.as.CheckForUnexpectedClaimsInClaimsParameter;
-import net.openid.conformance.condition.as.CheckForUnexpectedOpenIdClaims;
 import net.openid.conformance.condition.as.CheckForUnexpectedParametersInVpAuthorizationRequest;
 import net.openid.conformance.condition.as.CheckNoClientIdSchemeParameter;
 import net.openid.conformance.condition.as.CheckNoPresentationDefinitionInVpAuthorizationRequest;
 import net.openid.conformance.condition.as.EnsureClientIdMatchesResponseUri;
 import net.openid.conformance.condition.as.CheckNoRedirectUriInVpAuthorizationRequest;
 import net.openid.conformance.condition.as.CheckNoScopeParameter;
-import net.openid.conformance.condition.as.CheckRequestClaimsParameterMemberValues;
-import net.openid.conformance.condition.as.CheckRequestClaimsParameterValues;
 import net.openid.conformance.condition.as.CheckRequestUriMethodParameter;
+import net.openid.conformance.condition.as.WarnIfRequestUriMethodInRequestObject;
 import net.openid.conformance.condition.as.CheckForUnexpectedPropertiesInVerifierInfo;
 import net.openid.conformance.condition.as.CheckVerifierInfoInVpAuthorizationRequest;
 import net.openid.conformance.condition.as.CreateAuthorizationEndpointResponseParams;
@@ -51,11 +48,14 @@ import net.openid.conformance.condition.as.SetRequestUriParameterSupportedToTrue
 import net.openid.conformance.condition.as.VP1FinalCheckForKeyIdInClientMetadataJWKs;
 import net.openid.conformance.condition.as.VP1FinalCheckForUnexpectedParametersInVpClientMetadata;
 import net.openid.conformance.condition.as.VP1FinalEncryptVPResponse;
+import net.openid.conformance.condition.as.ValidateVpClientMetadataEncryptionForHaip;
+import net.openid.conformance.condition.as.ValidateVpClientMetadataJwksKeysArePublic;
 import net.openid.conformance.condition.as.VP1FinalValidateClientMetadataJwksForEncryptedResponse;
 import net.openid.conformance.condition.as.VP1FinalValidateVpFormatsSupportedInClientMetadata;
 import net.openid.conformance.condition.as.ValidateDirectPostResponse;
 import net.openid.conformance.condition.as.ValidateEncryptedRequestObjectHasKid;
 import net.openid.conformance.condition.as.ValidateRequestObjectIat;
+import net.openid.conformance.condition.as.ValidateRequestObjectAudForVP;
 import net.openid.conformance.condition.as.ValidateRequestObjectIssIfPresent;
 import net.openid.conformance.condition.as.ValidateRequestObjectMaxAge;
 import net.openid.conformance.condition.as.ValidateRequestObjectSignatureAgainstX5cHeader;
@@ -358,6 +358,8 @@ public abstract class AbstractVP1FinalVerifierTest extends AbstractTestModule {
 		callAndContinueOnFailure(CheckNoClientIdSchemeParameter.class, ConditionResult.FAILURE);
 		callAndContinueOnFailure(CheckNoScopeParameter.class, ConditionResult.FAILURE, "OID4VP-1FINAL-5.1");
 		callAndContinueOnFailure(CheckRequestUriMethodParameter.class, ConditionResult.FAILURE, "OID4VP-1FINAL-5.1");
+		skipIfMissing(null, new String[]{"authorization_request_object"}, ConditionResult.INFO,
+			WarnIfRequestUriMethodInRequestObject.class, ConditionResult.WARNING, "OID4VP-1FINAL-5.1");
 		callAndContinueOnFailure(CheckForUnexpectedParametersInVpAuthorizationRequest.class, ConditionResult.WARNING);
 		callAndContinueOnFailure(CheckVerifierInfoInVpAuthorizationRequest.class, ConditionResult.FAILURE, "OID4VP-1FINAL-5.1");
 		callAndContinueOnFailure(CheckForUnexpectedPropertiesInVerifierInfo.class, ConditionResult.WARNING, "OID4VP-1FINAL-5.1");
@@ -394,6 +396,10 @@ public abstract class AbstractVP1FinalVerifierTest extends AbstractTestModule {
 			case DIRECT_POST_JWT:
 				callAndContinueOnFailure(VP1FinalCheckForKeyIdInClientMetadataJWKs.class, ConditionResult.FAILURE, "OID4VP-1FINAL-5.1");
 				callAndContinueOnFailure(VP1FinalValidateClientMetadataJwksForEncryptedResponse.class, ConditionResult.FAILURE, "OID4VP-1FINAL-8.3");
+				callAndContinueOnFailure(ValidateVpClientMetadataJwksKeysArePublic.class, ConditionResult.FAILURE, "OID4VP-1FINAL-5.1");
+				if (getVariant(VPProfile.class) == VPProfile.HAIP) {
+					callAndContinueOnFailure(ValidateVpClientMetadataEncryptionForHaip.class, ConditionResult.FAILURE, "HAIP-4.3");
+				}
 				break;
 			case DIRECT_POST:
 				break;
@@ -416,10 +422,8 @@ public abstract class AbstractVP1FinalVerifierTest extends AbstractTestModule {
 		// If present, warn if it doesn't match client_id as it may indicate a verifier misconfiguration.
 		callAndContinueOnFailure(ValidateRequestObjectIssIfPresent.class, ConditionResult.WARNING, "OID4VP-1FINAL-5");
 
-		// FIXME needs to allow self-issued.me
-		//callAndContinueOnFailure(ValidateRequestObjectAud.class, ConditionResult.WARNING, "OIDCC-6.1");
+		callAndContinueOnFailure(ValidateRequestObjectAudForVP.class, ConditionResult.WARNING, "OID4VP-1FINAL-5.9");
 
-		// FIXME probably need to somehow validate the x5c header is trusted/valid for the client
 		callAndContinueOnFailure(ValidateRequestObjectSignatureAgainstX5cHeader.class, ConditionResult.FAILURE, "OID4VP-1FINAL-5.9.3");
 	}
 
@@ -455,19 +459,6 @@ public abstract class AbstractVP1FinalVerifierTest extends AbstractTestModule {
 		callAndContinueOnFailure(CheckForUnexpectedParametersInDcqlQuery.class, ConditionResult.WARNING, "OID4VP-1FINAL-6");
 		// Test harness check: ensures verifier requests the credential format matching the test configuration
 		callAndContinueOnFailure(CheckDCQLQueryCredentialFormatMatchesTestConfiguration.class, ConditionResult.FAILURE);
-
-		// FIXME not sure why this might be missing? the unexpected claims stuff should be on the auth parameters, not the request object ones
-//		skipIfElementMissing("authorization_request_object", "claims", ConditionResult.INFO,
-//			CheckForUnexpectedClaimsInRequestObject.class, ConditionResult.WARNING, "RFC6749-4.1.1", "OIDCC-3.1.2.1", "RFC7636-4.3", "OAuth2-RT-2.1", "RFC7519-4.1", "DPOP-10", "RFC8485-4.1", "RFC8707-2.1", "RFC9396-2");
-
-		skipIfElementMissing(CreateEffectiveAuthorizationRequestParameters.ENV_KEY, "claims", ConditionResult.INFO,
-			CheckForUnexpectedClaimsInClaimsParameter.class, ConditionResult.WARNING, "OIDCC-5.5");
-		skipIfElementMissing(CreateEffectiveAuthorizationRequestParameters.ENV_KEY, "claims", ConditionResult.INFO,
-			CheckForUnexpectedOpenIdClaims.class, ConditionResult.WARNING, "OIDCC-5.1", "OIDCC-5.5.1.1", "BrazilOB-5.2.2.3", "BrazilOB-5.2.2.4", "OBSP-3.4");
-		skipIfElementMissing(CreateEffectiveAuthorizationRequestParameters.ENV_KEY, "claims", ConditionResult.INFO,
-			CheckRequestClaimsParameterValues.class, ConditionResult.FAILURE, "OIDCC-5.5");
-		skipIfElementMissing(CreateEffectiveAuthorizationRequestParameters.ENV_KEY, "claims", ConditionResult.INFO,
-			CheckRequestClaimsParameterMemberValues.class, ConditionResult.FAILURE, "OIDCC-5.5.1");
 
 		callAndStopOnFailure(CreateAuthorizationEndpointResponseParams.class);
 

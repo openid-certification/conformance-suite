@@ -1,14 +1,15 @@
 package net.openid.conformance.condition.as;
 
+import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 
-public class CheckRequestUriMethodParameter extends AbstractEnsureResponseType {
+public class CheckRequestUriMethodParameter extends AbstractCondition {
 
 	@Override
-	@PreEnvironment(required = CreateEffectiveAuthorizationRequestParameters.ENV_KEY)
+	@PreEnvironment(required = "authorization_endpoint_http_request_params")
 	public Environment evaluate(Environment env) {
-		String requestUriMethod = env.getString(CreateEffectiveAuthorizationRequestParameters.ENV_KEY, "request_uri_method");
+		String requestUriMethod = env.getString("authorization_endpoint_http_request_params", "request_uri_method");
 
 		if (requestUriMethod != null) {
 			if (requestUriMethod.equals("get")) {
