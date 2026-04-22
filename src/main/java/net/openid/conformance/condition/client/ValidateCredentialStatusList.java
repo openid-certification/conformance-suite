@@ -24,8 +24,10 @@ import java.util.Map;
  * Validates the credential's status via the Token Status List mechanism.
  *
  * Fetches the status list token from the URI in the credential's status claim,
- * verifies its signature, stores it in the environment as "status_list_token",
- * and checks the credential's status value.
+ * verifies its signature, stores the parsed JWT in the environment as
+ * "status_list_token" and the raw HTTP response as
+ * "status_list_token_endpoint_response", and checks the credential's status
+ * value.
  *
  * The caller should only invoke this condition when the credential contains
  * a status claim.
@@ -66,6 +68,9 @@ public class ValidateCredentialStatusList extends AbstractVerifyJwsSignature {
 		} catch (Exception e) {
 			throw error("Unable to retrieve status list token from uri " + uri, e);
 		}
+
+		env.putObject("status_list_token_endpoint_response",
+			convertResponseForEnvironment("status list token endpoint", statusListTokenJwtResponse));
 
 		if (!statusListTokenJwtResponse.getStatusCode().is2xxSuccessful()) {
 			throw error("Failed to retrieve status list token from uri " + uri, args("status", statusListTokenJwtResponse.getStatusCode()));
