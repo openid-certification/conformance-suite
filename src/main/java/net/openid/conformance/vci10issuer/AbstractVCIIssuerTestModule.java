@@ -111,6 +111,8 @@ import net.openid.conformance.vci10issuer.condition.VCIWaitForTxCode;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.web.servlet.ModelAndView;
 
+import java.util.List;
+
 @VariantParameters({
 	VCIGrantType.class,
 	VCIAuthorizationCodeFlowVariant.class,
@@ -172,7 +174,24 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractFAPI2SPFinalSe
 	@Override
 	public void configure(JsonObject config, String baseUrl, String externalUrlOverride, String baseMtlsUrl) {
 		initializeVciVariants();
+		List<String> requiredProofTypes = getRequiredProofTypes();
+		if (!requiredProofTypes.isEmpty()) {
+			env.putString("vci_required_proof_types", String.join(",", requiredProofTypes));
+		}
 		super.configure(config, baseUrl, externalUrlOverride, baseMtlsUrl);
+	}
+
+	/**
+	 * Ordered preference list of proof types this test needs ("jwt", "attestation"). The first entry
+	 * that is advertised in the credential configuration's proof_types_supported wins. Returning an
+	 * empty list (the default) lets the config hint and first-available fallback decide.
+	 *
+	 * Use this to make per-proof-type negative tests self-selecting when the issuer supports multiple
+	 * proof types, so a single plan run covers both. The subclass's start() is still expected to fire
+	 * fireTestSkipped if none of the preferred proof types is present.
+	 */
+	protected List<String> getRequiredProofTypes() {
+		return List.of();
 	}
 
 	@Override
