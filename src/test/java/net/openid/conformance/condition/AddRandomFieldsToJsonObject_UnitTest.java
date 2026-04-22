@@ -3,6 +3,7 @@ package net.openid.conformance.condition;
 import com.google.gson.JsonObject;
 import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.Environment;
+import net.openid.conformance.testmodule.OIDFJSON;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -48,14 +49,14 @@ public class AddRandomFieldsToJsonObject_UnitTest {
 		// The same JsonObject reference was mutated in place, and exactly one new property was added.
 		assertSame(target, env.getObject(ENV_KEY));
 		assertEquals(originalKeys.size() + 1, target.keySet().size());
-		assertEquals("value", target.get("existing").getAsString());
+		assertEquals("value", OIDFJSON.getString(target.get("existing")));
 
 		String addedKey = target.keySet().stream()
 			.filter(k -> !originalKeys.contains(k))
 			.findFirst()
 			.orElseThrow();
 		assertEquals(16, addedKey.length());
-		String addedValue = target.get(addedKey).getAsString();
+		String addedValue = OIDFJSON.getString(target.get(addedKey));
 		assertEquals(16, addedValue.length());
 	}
 
