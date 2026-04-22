@@ -30,7 +30,7 @@ public class ValidateVpClientMetadataEncryptionForHaip extends AbstractCondition
 			CreateEffectiveAuthorizationRequestParameters.ENV_KEY, "client_metadata.encrypted_response_enc_values_supported");
 
 		if (encValuesEl == null || !encValuesEl.isJsonArray()) {
-			throw error("HAIP requires encrypted_response_enc_values_supported in client_metadata",
+			throw error("HAIP section 5 requires encrypted_response_enc_values_supported in client_metadata",
 				args("client_metadata_field", "encrypted_response_enc_values_supported"));
 		}
 
@@ -48,7 +48,7 @@ public class ValidateVpClientMetadataEncryptionForHaip extends AbstractCondition
 		}
 
 		if (!hasA128GCM || !hasA256GCM) {
-			throw error("HAIP requires encrypted_response_enc_values_supported to contain both A128GCM and A256GCM",
+			throw error("HAIP section 5 requires encrypted_response_enc_values_supported to contain both A128GCM and A256GCM",
 				args("encrypted_response_enc_values_supported", encValues));
 		}
 
@@ -56,12 +56,12 @@ public class ValidateVpClientMetadataEncryptionForHaip extends AbstractCondition
 		JsonElement jwksEl = env.getElementFromObject(
 			CreateEffectiveAuthorizationRequestParameters.ENV_KEY, "client_metadata.jwks");
 		if (jwksEl == null) {
-			throw error("HAIP requires jwks in client_metadata for encrypted responses");
+			throw error("HAIP section 5 requires encrypted responses and hence requires a jwks in client_metadata");
 		}
 
 		JsonArray keys = jwksEl.getAsJsonObject().getAsJsonArray("keys");
 		if (keys == null || keys.isEmpty()) {
-			throw error("client_metadata jwks has no keys");
+			throw error("client_metadata jwks has no keys. HAIP section 5 requires encrypted responses and hence requires a jwks with keys in client_metadata");
 		}
 
 		boolean foundEcdhEsP256 = false;
@@ -80,11 +80,11 @@ public class ValidateVpClientMetadataEncryptionForHaip extends AbstractCondition
 		}
 
 		if (!foundEcdhEsP256) {
-			throw error("HAIP requires a JWKS key with alg=ECDH-ES and P-256 curve in client_metadata",
+			throw error("HAIP section 5 (and the 'alg' requirement in OID4VP section 8.3 requires a JWKS key with alg=ECDH-ES and P-256 curve in client_metadata",
 				args("jwks", jwksEl));
 		}
 
-		logSuccess("client_metadata encryption parameters satisfy HAIP requirements",
+		logSuccess("client_metadata encryption parameters satisfy HAIP & OID4VP requirements",
 			args("encrypted_response_enc_values_supported", encValues));
 		return env;
 	}
