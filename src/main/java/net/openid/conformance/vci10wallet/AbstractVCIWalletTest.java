@@ -754,8 +754,7 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 	}
 
 	protected void configureSupportedCredentialConfigurations() {
-
-		JsonObject supportedCredentialConfigurations = getSupportedCredentialConfigurations();
+		JsonObject supportedCredentialConfigurations = getSupportedCredentialConfigurations(getTestExecutionManager().getTestId());
 		env.getObject("credential_issuer_metadata").add("credential_configurations_supported", supportedCredentialConfigurations);
 
 		JsonObject scopeToCredentialConfigsMap = new JsonObject();
@@ -777,8 +776,8 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 		env.putObject("credential_configuration_id_scope_map", scopeToCredentialConfigsMap);
 	}
 
-	protected JsonObject getSupportedCredentialConfigurations() {
-		return customizeSupportedCredentials(VCICredentialConfigurations.getDefault());
+	protected JsonObject getSupportedCredentialConfigurations(String testId) {
+		return customizeSupportedCredentials(VCICredentialConfigurations.getDefault(testId));
 	}
 
 	protected JsonObject customizeSupportedCredentials(JsonObject supportedCredentials) {

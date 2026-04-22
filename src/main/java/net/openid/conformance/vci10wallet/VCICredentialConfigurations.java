@@ -20,7 +20,7 @@ public class VCICredentialConfigurations {
 					"credential_metadata": {
 						"display": [
 						{
-							"name": "Fake PID",
+							"name": "Fake PID ${testId}",
 							"description": "OpenID Conformance Test Fake PID description"
 						}
 						]
@@ -40,7 +40,7 @@ public class VCICredentialConfigurations {
 					"credential_metadata": {
 						"display": [
 						{
-							"name": "Fake PID",
+							"name": "Fake PID: Attestation ${testId}",
 							"description": "OpenID Conformance Test Fake PID description"
 						}
 						]
@@ -61,7 +61,7 @@ public class VCICredentialConfigurations {
 					"credential_metadata": {
 						"display": [
 						{
-							"name": "Fake PID: JWT Proof with Key Attestation",
+							"name": "Fake PID: JWT Proof with Key Attestation ${testId}",
 							"description": "OpenID Conformance Test Fake PID description"
 						}
 						]
@@ -82,7 +82,7 @@ public class VCICredentialConfigurations {
 					"credential_metadata": {
 						"display": [
 						{
-							"name": "Fake PID: Attestation Proof with Key Attestation",
+							"name": "Fake PID: Attestation Proof with Key Attestation ${testId}",
 							"description": "OpenID Conformance Test Fake PID description"
 						}
 						]
@@ -107,7 +107,7 @@ public class VCICredentialConfigurations {
 					"credential_metadata": {
 						"display": [
 						{
-							"name": "Fake PID: JWT and Attestation Proof with Key Attestation",
+							"name": "Fake PID: JWT and Attestation Proof with Key Attestation ${testId}",
 							"description": "OpenID Conformance Test Fake PID description"
 						}
 						]
@@ -127,7 +127,7 @@ public class VCICredentialConfigurations {
 					"credential_metadata": {
 						"display": [
 						{
-							"name": "Fake PID (mdoc)",
+							"name": "Fake PID (mdoc) ${testId}",
 							"description": "OpenID Conformance Test Fake PID in mso_mdoc format"
 						}
 						]
@@ -147,7 +147,7 @@ public class VCICredentialConfigurations {
 					"credential_metadata": {
 						"display": [
 						{
-							"name": "Fake PID (mdoc)",
+							"name": "Fake PID (mdoc): Attestation ${testId}",
 							"description": "OpenID Conformance Test Fake PID in mso_mdoc format"
 						}
 						]
@@ -168,7 +168,7 @@ public class VCICredentialConfigurations {
 					"credential_metadata": {
 						"display": [
 						{
-							"name": "Fake PID (mdoc): JWT Proof with Key Attestation",
+							"name": "Fake PID (mdoc): JWT Proof with Key Attestation ${testId}",
 							"description": "OpenID Conformance Test Fake PID in mso_mdoc format"
 						}
 						]
@@ -189,7 +189,7 @@ public class VCICredentialConfigurations {
 					"credential_metadata": {
 						"display": [
 						{
-							"name": "Fake PID (mdoc): Attestation Proof with Key Attestation",
+							"name": "Fake PID (mdoc): Attestation Proof with Key Attestation ${testId}",
 							"description": "OpenID Conformance Test Fake PID in mso_mdoc format"
 						}
 						]
@@ -209,7 +209,7 @@ public class VCICredentialConfigurations {
 					"credential_metadata": {
 						"display": [
 						{
-							"name": "Fake mDL (ISO 18013-5)",
+							"name": "Fake mDL (ISO 18013-5) ${testId}",
 							"description": "OpenID Conformance Test Fake Mobile Driver's License"
 						}
 						]
@@ -229,7 +229,7 @@ public class VCICredentialConfigurations {
 					"credential_metadata": {
 						"display": [
 						{
-							"name": "Fake mDL (ISO 18013-5)",
+							"name": "Fake mDL (ISO 18013-5): Attestation ${testId}",
 							"description": "OpenID Conformance Test Fake Mobile Driver's License"
 						}
 						]
@@ -243,7 +243,7 @@ public class VCICredentialConfigurations {
 					"credential_metadata": {
 						"display": [
 						{
-							"name": "Fake PID (No Holder Binding)",
+							"name": "Fake PID (No Holder Binding) ${testId}",
 							"description": "OpenID Conformance Test Fake PID without cryptographic holder binding"
 						}
 						]
@@ -263,7 +263,7 @@ public class VCICredentialConfigurations {
 					"credential_metadata": {
 						"display": [
 						{
-							"name": "Fake OpenID Certification",
+							"name": "Fake OpenID Certification ${testId}",
 							"description": "OpenID Conformance Test Fake Certification"
 						}
 						]
@@ -283,7 +283,7 @@ public class VCICredentialConfigurations {
 					"credential_metadata": {
 						"display": [
 						{
-							"name": "Fake OpenID Certification",
+							"name": "Fake OpenID Certification (mdoc) ${testId}",
 							"description": "OpenID Conformance Test Fake Certification"
 						}
 						]
@@ -293,7 +293,8 @@ public class VCICredentialConfigurations {
 			}
 		""";
 
-	public static JsonObject getDefault() {
-		return JsonParser.parseString(DEFAULT_JSON_STRING).getAsJsonObject();
+	public static JsonObject getDefault(String testId) {
+		String jsonString = DEFAULT_JSON_STRING.replace("${testId}", testId);
+		return JsonParser.parseString(jsonString).getAsJsonObject();
 	}
 }
