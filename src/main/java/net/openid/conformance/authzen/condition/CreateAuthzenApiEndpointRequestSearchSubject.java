@@ -18,7 +18,7 @@ public class CreateAuthzenApiEndpointRequestSearchSubject extends CreateAuthzenA
 		JsonObject subject = createAuthzenApiEndpointRequestParameter(env).getAsJsonObject();
 		JsonObject request = env.getObject("authzen_api_endpoint_request");
 		request.add("subject", subject);
-		logSuccess("Created API subject parameter", args(requestParameterName, subject));
+		logSuccess("Created Search API subject parameter", args(requestParameterName, subject));
 		return env;
 	}
 }
