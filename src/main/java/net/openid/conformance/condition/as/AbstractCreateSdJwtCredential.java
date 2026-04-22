@@ -3,7 +3,7 @@ package net.openid.conformance.condition.as;
 import com.authlete.sd.Disclosure;
 import com.authlete.sd.SDJWT;
 import com.authlete.sd.SDObjectBuilder;
-import com.google.gson.JsonArray;
+import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.nimbusds.jose.JOSEException;
@@ -18,10 +18,10 @@ import com.nimbusds.jose.produce.JWSSignerFactory;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import net.openid.conformance.condition.AbstractCondition;
+import net.openid.conformance.condition.client.DcqlQueryUtils;
 import net.openid.conformance.condition.client.ValidateSdJwtKbSdHash;
 import net.openid.conformance.extensions.MultiJWSSignerFactory;
 import net.openid.conformance.testmodule.Environment;
-import net.openid.conformance.testmodule.OIDFJSON;
 
 import java.security.NoSuchAlgorithmException;
 import java.text.ParseException;
@@ -40,6 +40,8 @@ import java.util.Map;
 import java.util.Set;
 
 public abstract class AbstractCreateSdJwtCredential extends AbstractCondition {
+
+	private static final Gson gson = new Gson();
 
 	protected final Map<String, Object> additionalClaims;
 
@@ -227,21 +229,9 @@ public abstract class AbstractCreateSdJwtCredential extends AbstractCondition {
 			return disclosures;
 		}
 
-		Set<String> requestedClaims = new HashSet<>();
-		JsonArray credentials = dcqlQuery.getAsJsonArray("credentials");
-		if (credentials != null) {
-			for (JsonElement credEl : credentials) {
-				JsonArray claimsArray = credEl.getAsJsonObject().getAsJsonArray("claims");
-				if (claimsArray != null) {
-					for (JsonElement claimEl : claimsArray) {
-						JsonArray path = claimEl.getAsJsonObject().getAsJsonArray("path");
-						if (path != null && !path.isEmpty() && path.get(0).isJsonPrimitive()) {
-							requestedClaims.add(OIDFJSON.getString(path.get(0)));
-						}
-					}
-				}
-			}
-		}
+		// TODO: This currently inherits DcqlQueryUtils' "flatten all claims" behavior and therefore
+		// does not yet minimize disclosures based on DCQL claim_sets semantics.
+		Set<String> requestedClaims = DcqlQueryUtils.extractRequestedClaimNames(dcqlQuery);
 
 		if (requestedClaims.isEmpty()) {
 			log("DCQL query did not request any claims, omitting all selectively-disclosable disclosures",
@@ -267,7 +257,7 @@ public abstract class AbstractCreateSdJwtCredential extends AbstractCondition {
 		while (!toScan.isEmpty()) {
 			Disclosure current = toScan.poll();
 			Set<String> referencedDigests = new HashSet<>();
-			collectReferencedDigests(current.getClaimValue(), referencedDigests);
+			DcqlQueryUtils.collectReferencedDigests(gson.toJsonTree(current.getClaimValue()), referencedDigests);
 			for (String digest : referencedDigests) {
 				Disclosure child = byDigest.get(digest);
 				if (child != null && kept.add(child)) {
@@ -289,31 +279,6 @@ public abstract class AbstractCreateSdJwtCredential extends AbstractCondition {
 				"filtered_disclosures", filtered.size()));
 
 		return filtered;
-	}
-
-	@SuppressWarnings("unchecked")
-	private static void collectReferencedDigests(Object value, Set<String> digests) {
-		if (value instanceof Map<?, ?> map) {
-			for (Map.Entry<?, ?> entry : map.entrySet()) {
-				Object key = entry.getKey();
-				Object v = entry.getValue();
-				if ("_sd".equals(key) && v instanceof List<?> list) {
-					for (Object item : list) {
-						if (item instanceof String s) {
-							digests.add(s);
-						}
-					}
-				} else if ("...".equals(key) && v instanceof String s) {
-					digests.add(s);
-				} else {
-					collectReferencedDigests(v, digests);
-				}
-			}
-		} else if (value instanceof List<?> list) {
-			for (Object item : list) {
-				collectReferencedDigests(item, digests);
-			}
-		}
 	}
 
 	private JWSAlgorithm getSigningAlgorithm(JWK signingJwk) {
