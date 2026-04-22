@@ -5,6 +5,7 @@ import net.openid.conformance.variant.VariantSelection;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 /**
  * A collection of test modules intended to be run with a single
@@ -104,23 +105,43 @@ public interface TestPlan {
 	 * Optionally, {@code applicableWhen} conditions can restrict this entry to only apply when
 	 * the user-selected variants match. All conditions must be satisfied (AND logic);
 	 * each condition matches if the user's value is any of the condition's values (OR logic).
+	 *
+	 * Optionally, {@code optionalVariants} lists variant parameters that are plan-level context:
+	 * modules in this entry may or may not declare them. This allows entries that mix modules
+	 * from different levels (e.g. FAPI2SP modules alongside VCI modules) to set variant values
+	 * that only some modules understand, while still catching typos for non-optional variants.
 	 */
 	class ModuleListEntry {
 		public final List<Class<? extends TestModule>> testModules;
 		public final List<Variant> variant;
 		public final List<VariantCondition> applicableWhen;
+		public final Set<Class<? extends Enum<?>>> optionalVariants;
 
 		public ModuleListEntry(List<Class<? extends TestModule>> testModules,
 							   List<Variant> variant) {
-			this(testModules, variant, List.of());
+			this(testModules, variant, List.of(), Set.of());
 		}
 
 		public ModuleListEntry(List<Class<? extends TestModule>> testModules,
 							   List<Variant> variant,
 							   List<VariantCondition> applicableWhen) {
+			this(testModules, variant, applicableWhen, Set.of());
+		}
+
+		public ModuleListEntry(List<Class<? extends TestModule>> testModules,
+							   List<Variant> variant,
+							   Set<Class<? extends Enum<?>>> optionalVariants) {
+			this(testModules, variant, List.of(), optionalVariants);
+		}
+
+		public ModuleListEntry(List<Class<? extends TestModule>> testModules,
+							   List<Variant> variant,
+							   List<VariantCondition> applicableWhen,
+							   Set<Class<? extends Enum<?>>> optionalVariants) {
 			this.testModules = testModules;
 			this.variant = variant;
 			this.applicableWhen = applicableWhen;
+			this.optionalVariants = optionalVariants;
 		}
 	}
 

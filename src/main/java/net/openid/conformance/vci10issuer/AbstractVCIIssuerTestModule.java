@@ -58,6 +58,10 @@ import net.openid.conformance.testmodule.TestFailureException;
 import net.openid.conformance.variant.ClientAuthType;
 import net.openid.conformance.variant.ConfigurationFields;
 import net.openid.conformance.variant.FAPI2FinalOPProfile;
+import net.openid.conformance.variant.VariantConfigurationFields;
+import net.openid.conformance.variant.VariantHidesConfigurationFields;
+import net.openid.conformance.variant.VariantNotApplicableWhen;
+import net.openid.conformance.variant.VariantParameters;
 import net.openid.conformance.variant.FAPI2SenderConstrainMethod;
 import net.openid.conformance.variant.VCI1FinalCredentialFormat;
 import net.openid.conformance.variant.VCIAuthorizationCodeFlowVariant;
@@ -107,6 +111,12 @@ import net.openid.conformance.vci10issuer.condition.VCIWaitForTxCode;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.web.servlet.ModelAndView;
 
+@VariantParameters({
+	VCIGrantType.class,
+	VCIAuthorizationCodeFlowVariant.class,
+	VCI1FinalCredentialFormat.class,
+	VCICredentialEncryption.class,
+})
 @ConfigurationFields({
 	"vci.credential_issuer_url",
 	"client.client_id",
@@ -116,6 +126,25 @@ import org.springframework.web.servlet.ModelAndView;
 	"vci.key_attestation_jwks",
 	"vci.authorization_server",
 })
+// VCI grant type configuration
+@VariantConfigurationFields(parameter = VCIGrantType.class, value = "pre_authorization_code",
+	configurationFields = {"vci.static_tx_code"})
+// VCI flow variant hides
+@VariantHidesConfigurationFields(parameter = VCIAuthorizationCodeFlowVariant.class, value = "wallet_initiated",
+	configurationFields = {"vci.credential_offer_endpoint"})
+@VariantNotApplicableWhen(
+	parameter = VCIGrantType.class,
+	values = {"pre_authorization_code"},
+	whenParameter = FAPI2FinalOPProfile.class,
+	hasValues = "vci_haip"
+)
+// Client attestation configuration field hides
+@VariantHidesConfigurationFields(parameter = ClientAuthType.class, value = "client_attestation",
+	configurationFields = {"client.jwks"})
+@VariantHidesConfigurationFields(parameter = ClientAuthType.class, value = "private_key_jwt",
+	configurationFields = {"vci.client_attestation_issuer", "vci.client_attestation_trust_anchor"})
+@VariantHidesConfigurationFields(parameter = ClientAuthType.class, value = "mtls",
+	configurationFields = {"vci.client_attestation_issuer", "vci.client_attestation_trust_anchor"})
 public abstract class AbstractVCIIssuerTestModule extends AbstractFAPI2SPFinalServerTestModule {
 
 	protected ClientAuthType clientAuthType;
