@@ -6,6 +6,7 @@ Runs against a live server in non-dev mode (no DummyUserFilter) with API token
 authentication. Tests cover:
 - Share link (private link) access control for plan sharing
 - Share link access control for test-level sharing
+- Share-link JWT used directly as Authorization: Bearer on the API chain
 - Unauthenticated access rejection
 - Public access to published plans
 - API token lifecycle
@@ -89,14 +90,23 @@ def create_test_from_plan(admin_client, base_url, plan_id, module_name):
     return body["id"]
 
 
+def _extract_share_token(response):
+    """Pull the JWT from a /share response and sanity-check it matches the `link`."""
+    body = response.json()
+    token = body["token"]
+    link_token = urllib.parse.parse_qs(urllib.parse.urlparse(body["link"]).query)["token"][0]
+    if token != link_token:
+        raise Exception("Share response inconsistency: token field does not match link query parameter")
+    return token
+
+
 def generate_plan_share_link(admin_client, base_url, plan_id, exp_days="1"):
     """Generate a share link for a plan, return the JWT token."""
     api_url = f"{base_url}api/plan/{plan_id}/share"
     response = admin_client.post(api_url, params={"exp": exp_days})
     if response.status_code != 200:
         raise Exception(f"Failed to generate plan share link: HTTP {response.status_code} {response.text[:300]}")
-    link = response.json()["link"]
-    return urllib.parse.parse_qs(urllib.parse.urlparse(link).query)["token"][0]
+    return _extract_share_token(response)
 
 
 def generate_test_share_link(admin_client, base_url, test_id, exp_days="1"):
@@ -105,8 +115,19 @@ def generate_test_share_link(admin_client, base_url, test_id, exp_days="1"):
     response = admin_client.post(api_url, params={"exp": exp_days})
     if response.status_code != 200:
         raise Exception(f"Failed to generate test share link: HTTP {response.status_code} {response.text[:300]}")
-    link = response.json()["link"]
-    return urllib.parse.parse_qs(urllib.parse.urlparse(link).query)["token"][0]
+    return _extract_share_token(response)
+
+
+def bearer_client(base_url, jwt_token, verify_ssl):
+    """Return an httpx.Client that sends the share JWT as Authorization: Bearer.
+
+    Stateless: no cookies, no session. The server's API filter chain must recognise
+    the JWT purely from the Authorization header via ShareJwtBearerAuthenticationProvider.
+    """
+    return httpx.Client(
+        verify=verify_ssl,
+        timeout=20,
+        headers={"Authorization": f"Bearer {jwt_token}"})
 
 
 def authenticate_private_link(base_url, jwt_token, verify_ssl):
@@ -394,6 +415,144 @@ def run_tests():
     runner.check_status("Test share: cannot view other test", resp, 404)
 
     tl_client.close()
+
+    # ===================================================================
+    # 2b. SHARE-LINK JWT AS API BEARER TOKEN (plan-level)
+    # ===================================================================
+    # Same allow/deny matrix as the session flow above, but the JWT is sent
+    # directly as Authorization: Bearer on the /api/* filter chain — no
+    # /login/ott dance, no session cookie.
+    print("\n--- 2b. Plan JWT as Bearer: precondition check ---")
+    plan_bearer = bearer_client(base_url, plan_jwt, verify_ssl)
+
+    resp = plan_bearer.get(f"{base_url}api/currentuser")
+    runner.check_status("Plan JWT Bearer: currentuser reachable", resp, 200)
+    if resp.status_code == 200:
+        info = resp.json()
+        runner.check("Plan JWT Bearer: user is guest",
+                     info.get("isGuest", False),
+                     f"isGuest={info.get('isGuest')}")
+        runner.check("Plan JWT Bearer: user is not admin",
+                     not info.get("isAdmin", True),
+                     f"isAdmin={info.get('isAdmin')}")
+
+    print("\n--- 2b. Plan JWT as Bearer: allowed access ---")
+    resp = plan_bearer.get(f"{base_url}api/plan/{plan_id}")
+    runner.check_status("Plan JWT Bearer: can view shared plan", resp, 200)
+
+    resp = plan_bearer.get(f"{base_url}api/info/{test_id}")
+    runner.check_status("Plan JWT Bearer: can view test info", resp, 200)
+
+    resp = plan_bearer.get(f"{base_url}api/log/{test_id}")
+    runner.check_status("Plan JWT Bearer: can view test log", resp, 200)
+
+    print("\n--- 2b. Plan JWT as Bearer: denied access ---")
+    resp = plan_bearer.get(f"{base_url}api/plan/{other_plan_id}")
+    runner.check_status("Plan JWT Bearer: cannot view other plan", resp, 404)
+
+    resp = plan_bearer.post(f"{base_url}api/plan/{plan_id}/share", params={"exp": "1"})
+    runner.check_status("Plan JWT Bearer: cannot create share link", resp, 403)
+
+    resp = plan_bearer.post(f"{base_url}api/info/{test_id}/share", params={"exp": "1"})
+    runner.check_status("Plan JWT Bearer: cannot share test", resp, 403)
+
+    resp = plan_bearer.post(f"{base_url}api/plan/{plan_id}/publish")
+    runner.check_status("Plan JWT Bearer: cannot publish", resp, 403)
+
+    resp = plan_bearer.delete(f"{base_url}api/plan/{plan_id}")
+    runner.check_status("Plan JWT Bearer: cannot delete plan", resp, 403)
+
+    resp = plan_bearer.post(f"{base_url}api/plan",
+                            params={"planName": plan_name},
+                            content=config,
+                            headers={"Content-Type": "application/json"})
+    runner.check_status("Plan JWT Bearer: cannot create new plan", resp, 403)
+
+    resp = plan_bearer.get(f"{base_url}api/token")
+    runner.check_status("Plan JWT Bearer: cannot list tokens", resp, 403)
+
+    # Collection endpoints are not in the private-link allow-list
+    resp = plan_bearer.get(f"{base_url}api/log")
+    runner.check_status_in("Plan JWT Bearer: cannot list all logs", resp, {401, 403})
+
+    # Other /api/* endpoints not in the private-link allow-list
+    resp = plan_bearer.get(f"{base_url}api/runner/available")
+    runner.check_status_in("Plan JWT Bearer: cannot hit runner", resp, {401, 403})
+
+    resp = plan_bearer.get(f"{base_url}api/server")
+    runner.check_status_in("Plan JWT Bearer: cannot hit api/server", resp, {401, 403})
+
+    # HTML pages are served by the non-API filter chain which has no BearerTokenAuthenticationFilter.
+    # The Bearer JWT therefore cannot reach log-detail.html / plan-detail.html — those require a
+    # /login/ott-established session. Expect redirect to login or 401/403.
+    plan_bearer_no_redirect = httpx.Client(
+        verify=verify_ssl, timeout=20, follow_redirects=False,
+        headers={"Authorization": f"Bearer {plan_jwt}"})
+    resp = plan_bearer_no_redirect.get(f"{base_url}plan-detail.html?plan={plan_id}")
+    runner.check_status_in("Plan JWT Bearer: cannot access plan-detail.html",
+                           resp, {302, 401, 403})
+    resp = plan_bearer_no_redirect.get(f"{base_url}log-detail.html?log={test_id}")
+    runner.check_status_in("Plan JWT Bearer: cannot access log-detail.html",
+                           resp, {302, 401, 403})
+    plan_bearer_no_redirect.close()
+
+    plan_bearer.close()
+
+    # ===================================================================
+    # 2c. SHARE-LINK JWT AS API BEARER TOKEN (test-level)
+    # ===================================================================
+    print("\n--- 2c. Test JWT as Bearer: access control ---")
+    test_bearer = bearer_client(base_url, test_jwt, verify_ssl)
+
+    resp = test_bearer.get(f"{base_url}api/currentuser")
+    runner.check_status("Test JWT Bearer: currentuser reachable", resp, 200)
+    if resp.status_code == 200:
+        runner.check("Test JWT Bearer: user is guest",
+                     resp.json().get("isGuest", False),
+                     f"isGuest={resp.json().get('isGuest')}")
+
+    resp = test_bearer.get(f"{base_url}api/info/{test_id}")
+    runner.check_status("Test JWT Bearer: can view shared test info", resp, 200)
+
+    resp = test_bearer.get(f"{base_url}api/log/{test_id}")
+    runner.check_status("Test JWT Bearer: can view shared test log", resp, 200)
+
+    resp = test_bearer.get(f"{base_url}api/plan/{plan_id}")
+    runner.check_status("Test JWT Bearer: can view containing plan", resp, 200)
+
+    resp = test_bearer.get(f"{base_url}api/info/{other_test_id}")
+    runner.check_status("Test JWT Bearer: cannot view other test", resp, 404)
+
+    resp = test_bearer.get(f"{base_url}api/plan/{other_plan_id}")
+    runner.check_status("Test JWT Bearer: cannot view other plan", resp, 404)
+
+    test_bearer.close()
+
+    # ===================================================================
+    # 2d. INVALID BEARER JWTs
+    # ===================================================================
+    print("\n--- 2d. Invalid Bearer JWTs ---")
+
+    tampered_jwt = list(plan_jwt)
+    last_dot = plan_jwt.rfind(".")
+    tampered_jwt[last_dot + 1] = "B" if tampered_jwt[last_dot + 1] == "A" else "A"
+    tamper_client = bearer_client(base_url, "".join(tampered_jwt), verify_ssl)
+    resp = tamper_client.get(f"{base_url}api/plan/{plan_id}")
+    runner.check_status("Bearer JWT: tampered signature rejected", resp, 401)
+    tamper_client.close()
+
+    garbage_client = bearer_client(base_url, "not-a-jwt", verify_ssl)
+    resp = garbage_client.get(f"{base_url}api/plan/{plan_id}")
+    runner.check_status("Bearer JWT: malformed token rejected", resp, 401)
+    garbage_client.close()
+
+    # Regression: the admin API token used throughout these tests is presented
+    # as Authorization: Bearer and continues to work — this validates the
+    # two-provider chain order in WebSecurityResourceServerConfig.
+    api_token_bearer = bearer_client(base_url, token, verify_ssl)
+    resp = api_token_bearer.get(f"{base_url}api/currentuser")
+    runner.check_status("Bearer regression: opaque API token still authenticates", resp, 200)
+    api_token_bearer.close()
 
     # ===================================================================
     # 3. UNAUTHENTICATED ACCESS REJECTION
