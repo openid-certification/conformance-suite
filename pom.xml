@@ -505,6 +505,19 @@
 			</plugin>
 		</plugins>
 		<finalName>fapi-test-suite</finalName>
+		<resources>
+			<resource>
+				<directory>src/main/resources</directory>
+				<excludes>
+					<!-- Storybook stories are dev-only; keep them out of the production JAR.
+					     The ** glob covers the current components/ layout and the anticipated
+					     components/flows/ subdirectory referenced in frontend/.storybook/main.js. -->
+					<exclude>static/components/**/*.stories.js</exclude>
+					<!-- Contributor-facing Markdown docs (e.g. AGENTS.md) aren't browser assets. -->
+					<exclude>static/**/*.md</exclude>
+				</excludes>
+			</resource>
+		</resources>
 		<pluginManagement>
 			<plugins>
 				<plugin>
