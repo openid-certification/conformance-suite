@@ -15,30 +15,26 @@ public class EnsureAuthzenSearchResponseValsMatchExpectedVals extends AbstractCo
 	public Environment evaluate(Environment env) {
 		JsonArray expected = env.getElementFromObject("authzen_search_endpoint_expected_response", "results").getAsJsonArray();
 		JsonArray results = env.getElementFromObject("authzen_search_endpoint_response", "results").getAsJsonArray();
-		if (expected.size() != results.size()) {
-			throw error("The number of results elements in the response does not match expected",
-				args("expected", expected.size(), "actual", results.size()));
-		}
 
 		List<JsonElement> expectedList = expected.deepCopy().asList();
 		List<JsonElement> resultsList = results.deepCopy().asList();
 
 		resultsList.removeAll(expectedList);
+		expectedList.removeAll(results.asList());
+		// resultsList now contains unexpected elements
+		// expectedList now contains missing elements not returned
+
 		if(!resultsList.isEmpty()) { // should not contain any elements after removing all expected elements
-			expectedList.removeAll(results.asList());
-			// resultsList now contains unexpected elements
-			// expectedList now contains missing elements not returned
-			if(!expectedList.isEmpty() && !resultsList.isEmpty()) {
+			if(!expectedList.isEmpty()) {
 				throw error("Search results do not match", args("missing expected elements", expectedList, "unexpected elements", resultsList));
-			} else if(!resultsList.isEmpty()) {
+			} else {
 				throw error("Search results contains unexpected elements", args("unexpected elements", resultsList));
-			} else if(!expectedList.isEmpty()) {
-				throw error("Search results is missing expected elements", args("missing expected elements", expectedList));
 			}
+		} else if(!expectedList.isEmpty()){
+			throw error("Search results is missing expected elements", args("missing expected elements", expectedList));
 		}
 
 		logSuccess("The search response match expected values");
 		return env;
 	}
-
 }
