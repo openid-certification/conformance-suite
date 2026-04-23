@@ -19,10 +19,16 @@ public class OIDSSFExtractReceivedSETs extends AbstractCondition {
 
 		JsonObject setsObject = bodyJson.getAsJsonObject("sets");
 		if (setsObject != null && !setsObject.isEmpty()) {
-			env.putObject("ssf","poll.sets", setsObject);
+			env.putObject("ssf", "poll.sets", setsObject);
 			logSuccess("Extracted sets", args("sets", setsObject, "set_keys", setsObject.keySet()));
 		} else {
-			log("Found empty or missing sets in polling response", args("polling_response", ssfPollingResponse));
+			// Reset poll.sets to an empty object so the next POLL_AND_ACKNOWLEDGE iteration
+			// does not re-ack jtis from the previous (non-empty) poll response. Per RFC 8936
+			// §2.4, a transmitter that has acknowledged a SET removes it from its queue, so
+			// the receiver should only ack what it most recently received.
+			env.putObject("ssf", "poll.sets", new JsonObject());
+			log("Found empty or missing sets in polling response",
+				args("polling_response", bodyJson));
 		}
 
 		return env;

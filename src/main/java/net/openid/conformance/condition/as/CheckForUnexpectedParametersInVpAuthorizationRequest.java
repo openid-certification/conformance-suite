@@ -23,7 +23,7 @@ public class CheckForUnexpectedParametersInVpAuthorizationRequest extends Abstra
 		"verifier_info",
 		// these are legal, and we have separate conditions that deal with them:
 		"scope", // not valid when using dcql_query
-		"request_uri_method", // handled by CheckRequestUriMethodParameter
+		"request_uri_method", // URL-only parameter; WarnIfRequestUriMethodInRequestObject flags it in JAR
 		// not really authorization parameters but these appear when we unpack the request object
 		"aud",
 		"iss",

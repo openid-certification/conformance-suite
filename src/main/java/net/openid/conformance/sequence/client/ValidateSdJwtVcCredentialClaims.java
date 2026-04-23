@@ -1,7 +1,11 @@
 package net.openid.conformance.sequence.client;
 
 import net.openid.conformance.condition.Condition.ConditionResult;
+import net.openid.conformance.condition.client.ClearStatusListTokenEndpointResponse;
+import net.openid.conformance.condition.client.EnsureContentTypeStatusListJwt;
 import net.openid.conformance.condition.client.ValidateCredentialCnfJwkIsPublicKey;
+import net.openid.conformance.condition.client.WarnIfUnexpectedFieldsInCredentialCnf;
+import net.openid.conformance.condition.client.WarnIfUnknownFieldsInCredentialCnfJwk;
 import net.openid.conformance.condition.client.ValidateCredentialJWTExp;
 import net.openid.conformance.condition.client.ValidateCredentialJWTHeaderTyp;
 import net.openid.conformance.condition.client.ValidateCredentialJWTIat;
@@ -9,8 +13,8 @@ import net.openid.conformance.condition.client.ValidateSdJwtCredentialX5cCertifi
 import net.openid.conformance.condition.client.ValidateSdJwtDisclosureSaltsAreUnique;
 import net.openid.conformance.condition.client.ValidateCredentialJWTNbf;
 import net.openid.conformance.condition.client.ValidateCredentialJWTVct;
-import net.openid.conformance.condition.client.ValidateCredentialValidityByStatusListIfPresent;
-import net.openid.conformance.condition.client.ValidateCredentialValidityByStatusListIfPresentForHaip;
+import net.openid.conformance.condition.client.ValidateCredentialStatusList;
+import net.openid.conformance.condition.client.ValidateCredentialStatusListForHaip;
 import net.openid.conformance.condition.client.ValidateCredentialValidityInfoIsPresent;
 import net.openid.conformance.sequence.AbstractConditionSequence;
 
@@ -55,19 +59,29 @@ public class ValidateSdJwtVcCredentialClaims extends AbstractConditionSequence {
 		if (requiresCnf) {
 			callAndContinueOnFailure(ValidateCredentialCnfJwkIsPublicKey.class,
 				ConditionResult.FAILURE, "SDJWT-4.1.2");
+			callAndContinueOnFailure(WarnIfUnexpectedFieldsInCredentialCnf.class,
+				ConditionResult.WARNING, "SDJWT-4.1.2");
+			callAndContinueOnFailure(WarnIfUnknownFieldsInCredentialCnfJwk.class,
+				ConditionResult.WARNING, "SDJWT-4.1.2");
 		}
 		callAndContinueOnFailure(ValidateSdJwtDisclosureSaltsAreUnique.class,
 			ConditionResult.FAILURE, "SDJWT-4.2.1");
+		// Clear any status list response carried over from a previous credential
+		// so the content-type check below doesn't see stale state.
+		callAndContinueOnFailure(ClearStatusListTokenEndpointResponse.class,
+			ConditionResult.FAILURE);
 		if (haip) {
 			callAndContinueOnFailure(ValidateSdJwtCredentialX5cCertificateChain.class,
 				ConditionResult.FAILURE, "HAIP-6.1.1");
-			callAndContinueOnFailure(ValidateCredentialValidityByStatusListIfPresentForHaip.class,
+			callAndContinueOnFailure(ValidateCredentialStatusListForHaip.class,
 				ConditionResult.FAILURE, "OTSL-6.2", "HAIP-6.1");
 			callAndContinueOnFailure(ValidateCredentialValidityInfoIsPresent.class,
 				ConditionResult.WARNING, "HAIP-6.1-2.2");
 		} else {
-			callAndContinueOnFailure(ValidateCredentialValidityByStatusListIfPresent.class,
+			callAndContinueOnFailure(ValidateCredentialStatusList.class,
 				ConditionResult.FAILURE, "OTSL-6.2");
 		}
+		callAndContinueOnFailure(EnsureContentTypeStatusListJwt.class,
+			ConditionResult.FAILURE, "OTSL-8.2");
 	}
 }

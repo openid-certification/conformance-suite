@@ -9,7 +9,12 @@ import net.openid.conformance.testmodule.PublishTestModule;
 @PublishTestModule(
 	testName = "openid-ssf-stream-control-error-create-stream-with-invalid-token",
 	displayName = "Attempt to create Stream Configuration with invalid access token.",
-	summary = "This test verifies the behavior of the stream control for error cases. It attempts to create a stream configuration with an invalid access token.",
+	summary = """
+		This test verifies that the transmitter rejects a stream creation with an invalid access token.
+		The testsuite expects to observe the following interactions:
+		 * attempt to create a stream with an invalid access token
+		 * transmitter rejects the request with a 401 response
+		""",
 	profile = "OIDSSF"
 )
 public class OIDSSFStreamControlNegativeTestCreateStreamWithInvalidAccessToken extends AbstractStreamControlErrorTest {

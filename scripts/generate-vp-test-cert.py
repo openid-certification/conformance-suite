@@ -172,8 +172,10 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--hostname", action="append", default=[], help="Extra hostname to add to cert SAN")
     parser.add_argument("--output", help="Write EC credential signing JWK to file")
+    parser.add_argument("--second-output", help="Write a second EC credential signing JWK (different key, same CA) to file")
     parser.add_argument("--server-output", help="Write RSA server signing JWK to file")
     parser.add_argument("--ca-output", help="Write CA trust anchor PEM to file")
+    parser.add_argument("--ca-key-output", help="Write CA private key as EC JWK to file")
     parser.add_argument("--json", action="store_true", help="Print EC credential JWK as JSON to stdout")
     args = parser.parse_args()
 
@@ -193,6 +195,10 @@ def main():
     if args.output:
         _write_jwk(ec_jwk, args.output)
 
+    if args.second_output:
+        ec_jwk_2 = generate_ec_jwk(ca_key, ca_cert, san_names)
+        _write_jwk(ec_jwk_2, args.second_output)
+
     if args.server_output:
         rsa_jwk = generate_rsa_jwk(ca_key, ca_cert, san_names)
         _write_jwk(rsa_jwk, args.server_output)
@@ -204,6 +210,17 @@ def main():
     else:
         print("\nCA Trust Anchor PEM:", file=sys.stderr)
         print(ca_pem, file=sys.stderr)
+
+    if args.ca_key_output:
+        pn = ca_key.private_numbers()
+        ca_jwk = {
+            "kty": "EC",
+            "crv": "P-256",
+            "x": _int_to_base64url(pn.public_numbers.x, 32),
+            "y": _int_to_base64url(pn.public_numbers.y, 32),
+            "d": _int_to_base64url(pn.private_value, 32),
+        }
+        _write_jwk(ca_jwk, args.ca_key_output)
 
 
 if __name__ == "__main__":

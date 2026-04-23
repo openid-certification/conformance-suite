@@ -11,10 +11,14 @@ import net.openid.conformance.variant.VariantNotApplicable;
 	testName = "openid-ssf-transmitter-stream-verification-error-push-no-auth",
 	displayName = "OpenID Shared Signals Framework: Validate anonymous Push-Based SET delivery",
 	summary = """
-		This test verifies that the SET event delivery via HTTP PUSH works without an authorization header.
-		The test uses no push authorization header and ensures that the Transmitter also uses no authorization header for the HTTP PUSH delivery.
-		Then the test triggers a verification and awaits the verification event via HTTP PUSH delivery
-		The test fails if the push delivery is performed with a push authorization header.
+		This test verifies PUSH delivery without a push authorization header.
+		The testsuite expects to observe the following interactions:
+		 * create a stream without configuring a push authorization header
+		 * trigger a verification event
+		 * receive the verification event via PUSH delivery without an Authorization header
+		 * validate the verification event
+
+		The test fails if the transmitter includes an Authorization header on the push delivery.
 		""",
 	profile = "OIDSSF"
 )

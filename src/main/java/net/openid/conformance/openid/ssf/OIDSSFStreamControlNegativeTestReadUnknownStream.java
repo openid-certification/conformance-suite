@@ -9,7 +9,12 @@ import net.openid.conformance.testmodule.PublishTestModule;
 @PublishTestModule(
 	testName = "openid-ssf-stream-control-error-read-unknown-stream",
 	displayName = "Attempt to read an non existing Stream Configuration a valid access token.",
-	summary = "This test verifies the behavior of the stream control for error cases. It attempts to read a non-existing stream configuration a valid access token.",
+	summary = """
+		This test verifies that the transmitter rejects a read of a non-existing stream.
+		The testsuite expects to observe the following interactions:
+		 * attempt to read a non-existing stream with a valid access token
+		 * transmitter rejects the request with a 404 response
+		""",
 	profile = "OIDSSF"
 )
 public class OIDSSFStreamControlNegativeTestReadUnknownStream extends AbstractStreamControlErrorTest {

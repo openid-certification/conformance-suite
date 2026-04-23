@@ -28,7 +28,17 @@ import net.openid.conformance.testmodule.PublishTestModule;
 @PublishTestModule(
 	testName = "openid-ssf-stream-control-happy-path",
 	displayName = "OpenID Shared Signals Framework: Validate Stream Control (Happy Path)",
-	summary = "This test verifies the behavior of the stream control. It performs stream create, read, update, replace, delete operations and attempts to update the stream status.",
+	summary = """
+		This test verifies stream configuration management (happy path).
+		The testsuite expects to observe the following interactions:
+		 * create a stream
+		 * read the stream configuration
+		 * update the stream
+		 * replace the stream
+		 * read the stream status
+		 * update the stream status
+		 * delete the stream
+		""",
 	profile = "OIDSSF",
 	configurationFields = {
 		"ssf.transmitter.issuer",
@@ -55,7 +65,6 @@ public class OIDSSFStreamControlHappyPathTest extends AbstractOIDSSFTransmitterT
 
 		eventLog.runBlock("Create Stream Configuration", () -> {
 
-			SsfDeliveryMode deliveryMode = getVariant(SsfDeliveryMode.class);
 			env.putString("ssf", "delivery_method", deliveryMode.getAlias());
 			if (deliveryMode == SsfDeliveryMode.PUSH) {
 				configurePushAuthorizationHeader(null, pushAuthorizationHeader);
@@ -97,7 +106,6 @@ public class OIDSSFStreamControlHappyPathTest extends AbstractOIDSSFTransmitterT
 			// this is still not supported in the caep.dev reference env :-/
 			eventLog.runBlock("Update Stream Configuration", () -> {
 
-				SsfDeliveryMode deliveryMode = getVariant(SsfDeliveryMode.class);
 				env.putString("ssf", "delivery_method", deliveryMode.getAlias());
 
 				call(sequence(OIDSSFUpdateStreamConditionSequence.class));

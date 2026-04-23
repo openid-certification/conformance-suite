@@ -220,6 +220,7 @@ public class TestRunner implements DataUtils {
 														  Model m) {
 		final JsonObject config;
 		final VariantSelection testVariant;
+		String planName = null;
 		Map<String, String> variantFromPlanDefinition = null;
 
 		// private link users ar not permitted to run tests.
@@ -236,6 +237,7 @@ public class TestRunner implements DataUtils {
 			}
 			// stop if the plan is immutable
 			Plan testPlan = planService.getTestPlan(planId);
+			planName = testPlan.getPlanName();
 			if(testPlan.getImmutable()!=null && testPlan.getImmutable()) {
 				//the plan is immutable
 				return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
@@ -317,7 +319,7 @@ public class TestRunner implements DataUtils {
 
 		TestModule test;
 		try {
-			test = createTestModule(testName, id, config, testVariant);
+			test = createTestModule(testName, id, config, testVariant, planName);
 		} catch (IllegalArgumentException | SecurityException e) {
 
 			logger.warn(id + ": Couldn't create test module", e);
@@ -626,7 +628,7 @@ public class TestRunner implements DataUtils {
 		}
 	}
 
-	private TestModule createTestModule(String testName, String id, JsonObject config, VariantSelection variant) {
+	private TestModule createTestModule(String testName, String id, JsonObject config, VariantSelection variant, String planName) {
 
 		VariantService.TestModuleHolder holder = variantService.getTestModule(testName);
 
@@ -642,12 +644,22 @@ public class TestRunner implements DataUtils {
 		TestExecutionManager executionManager = new TestExecutionManager(id, executorCompletionService, authenticationFacade, support);
 		BrowserControl browser = new BrowserControl(config, id, wrappedEventLog, executionManager, imageService);
 
+		// When running as part of a test plan, pass the plan's combined parameters so that
+		// modules can access variant values declared by sibling modules in the plan
+		Map<String, VariantService.ParameterHolder<? extends Enum<?>>> planParametersByName = null;
+		if (planName != null) {
+			VariantService.TestPlanHolder planHolder = variantService.getTestPlan(planName);
+			if (planHolder != null) {
+				planParametersByName = planHolder.getParametersByName();
+			}
+		}
+
 		TestModule module;
 
 		if (variant == null) {
-			module = holder.newInstance(VariantSelection.EMPTY);
+			module = holder.newInstance(VariantSelection.EMPTY, planParametersByName);
 		} else {
-			module = holder.newInstance(variant);
+			module = holder.newInstance(variant, planParametersByName);
 		}
 
 		// pass in all the components for this test module to execute

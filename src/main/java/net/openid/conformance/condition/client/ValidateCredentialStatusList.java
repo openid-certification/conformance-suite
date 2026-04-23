@@ -10,6 +10,7 @@ import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.oauth.statuslists.TokenStatusList;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
+import net.openid.conformance.util.JWTUtil;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -19,7 +20,19 @@ import org.springframework.web.client.RestTemplate;
 import java.text.ParseException;
 import java.util.Map;
 
-public class ValidateCredentialValidityByStatusListIfPresent extends AbstractVerifyJwsSignature {
+/**
+ * Validates the credential's status via the Token Status List mechanism.
+ *
+ * Fetches the status list token from the URI in the credential's status claim,
+ * verifies its signature, stores the parsed JWT in the environment as
+ * "status_list_token" and the raw HTTP response as
+ * "status_list_token_endpoint_response", and checks the credential's status
+ * value.
+ *
+ * The caller should only invoke this condition when the credential contains
+ * a status claim.
+ */
+public class ValidateCredentialStatusList extends AbstractVerifyJwsSignature {
 
 	@Override
 	@PreEnvironment(required = {"sdjwt"})
@@ -33,7 +46,7 @@ public class ValidateCredentialValidityByStatusListIfPresent extends AbstractVer
 
 		JsonObject statusClaimObj = statusEl.getAsJsonObject();
 		if (!statusClaimObj.has("status_list")) {
-			throw error("Missing status_list found in status claim");
+			throw error("Missing status_list in status claim");
 		}
 
 		JsonObject statusListClaim = statusClaimObj.getAsJsonObject("status_list");
@@ -47,25 +60,29 @@ public class ValidateCredentialValidityByStatusListIfPresent extends AbstractVer
 
 		int idx = OIDFJSON.getInt(statusListClaim.get("idx"));
 		String uri = OIDFJSON.getString(statusListClaim.get("uri"));
-		// validate token status via status list from uri with idx
-		// see: https://datatracker.ietf.org/doc/html/draft-ietf-oauth-status-list-12#section-8.3
 
-		// fetch referenced token_status list token
+		// Fetch the status list token
 		ResponseEntity<String> statusListTokenJwtResponse;
 		try {
 			statusListTokenJwtResponse = fetchStatusListToken(env, uri);
 		} catch (Exception e) {
-			throw error("Unable to retrieve statuslist token from uri " + uri, e);
+			throw error("Unable to retrieve status list token from uri " + uri, e);
 		}
 
+		env.putObject("status_list_token_endpoint_response",
+			convertResponseForEnvironment("status list token endpoint", statusListTokenJwtResponse));
+
 		if (!statusListTokenJwtResponse.getStatusCode().is2xxSuccessful()) {
-			throw error("Failed to retrieve statuslist token from uri " + uri, args("status", statusListTokenJwtResponse.getStatusCode()));
+			throw error("Failed to retrieve status list token from uri " + uri, args("status", statusListTokenJwtResponse.getStatusCode()));
 		}
 
 		TokenStatusList.Status status;
-		// Status List in JSON Format, see: https://datatracker.ietf.org/doc/html/draft-ietf-oauth-status-list-12#section-4.2
 		try {
 			String statusListTokenJwtString = statusListTokenJwtResponse.getBody();
+
+			// Store the status list token JWT in the environment for downstream conditions
+			env.putObject("status_list_token", JWTUtil.jwtStringToJsonObjectForEnvironment(statusListTokenJwtString));
+
 			JWTClaimsSet jwtClaimsSet = verifyAndParseStatusListToken(statusListTokenJwtString, env);
 
 			Map<String, Object> statusList = jwtClaimsSet.getJSONObjectClaim("status_list");
@@ -89,7 +106,6 @@ public class ValidateCredentialValidityByStatusListIfPresent extends AbstractVer
 			Long bits = (Long) statusList.get("bits");
 			String lst = (String) statusList.get("lst");
 
-			// ensure token based on index is valid according to TokenStatusList
 			TokenStatusList tokenStatusList = TokenStatusList.decode(lst, bits.intValue());
 			status = tokenStatusList.getStatus(idx);
 

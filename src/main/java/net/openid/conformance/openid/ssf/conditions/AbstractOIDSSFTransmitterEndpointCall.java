@@ -106,7 +106,7 @@ public abstract class AbstractOIDSSFTransmitterEndpointCall extends AbstractCall
 		prepareRequest(env);
 
 		callProtectedResource(env);
-		logSuccess("Called resource endpoint");
+		log("Called resource endpoint",args("endpoint", env.getString("protected_resource_url")));
 
 		return env;
 	}

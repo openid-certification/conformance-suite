@@ -142,10 +142,6 @@ import net.openid.conformance.variant.FAPI2FinalOPProfile;
 import net.openid.conformance.variant.FAPI2SenderConstrainMethod;
 import net.openid.conformance.variant.FAPIOpenIDConnect;
 import net.openid.conformance.variant.FAPIResponseMode;
-import net.openid.conformance.variant.VCI1FinalCredentialFormat;
-import net.openid.conformance.variant.VCIAuthorizationCodeFlowVariant;
-import net.openid.conformance.variant.VCICredentialEncryption;
-import net.openid.conformance.variant.VCIGrantType;
 import net.openid.conformance.variant.VariantConfigurationFields;
 import net.openid.conformance.variant.VariantHidesConfigurationFields;
 import net.openid.conformance.variant.VariantNotApplicable;
@@ -165,10 +161,6 @@ import java.util.function.Supplier;
 	FAPI2FinalOPProfile.class,
 	FAPIResponseMode.class,
 	AuthorizationRequestType.class,
-	VCIGrantType.class,
-	VCIAuthorizationCodeFlowVariant.class,
-	VCI1FinalCredentialFormat.class,
-	VCICredentialEncryption.class,
 })
 @VariantConfigurationFields(parameter = FAPI2FinalOPProfile.class, value = "plain_fapi", configurationFields = {
 	"resource.resourceMethod",
@@ -271,31 +263,6 @@ import java.util.function.Supplier;
 @VariantConfigurationFields(parameter = AuthorizationRequestType.class, value = "rar", configurationFields = {
 	"resource.richAuthorizationRequest",
 })
-// Hide VCI params for non-VCI profiles
-@VariantNotApplicableWhen(
-	parameter = VCIGrantType.class,
-	values = {"authorization_code", "pre_authorization_code"},
-	whenParameter = FAPI2FinalOPProfile.class,
-	hasValues = {"plain_fapi", "openbanking_uk", "consumerdataright_au", "openbanking_brazil", "connectid_au", "cbuae", "fapi_client_credentials_grant"}
-)
-@VariantNotApplicableWhen(
-	parameter = VCIAuthorizationCodeFlowVariant.class,
-	values = {"wallet_initiated", "issuer_initiated"},
-	whenParameter = FAPI2FinalOPProfile.class,
-	hasValues = {"plain_fapi", "openbanking_uk", "consumerdataright_au", "openbanking_brazil", "connectid_au", "cbuae", "fapi_client_credentials_grant"}
-)
-@VariantNotApplicableWhen(
-	parameter = VCI1FinalCredentialFormat.class,
-	values = {"sd_jwt_vc", "mdoc"},
-	whenParameter = FAPI2FinalOPProfile.class,
-	hasValues = {"plain_fapi", "openbanking_uk", "consumerdataright_au", "openbanking_brazil", "connectid_au", "cbuae", "fapi_client_credentials_grant"}
-)
-@VariantNotApplicableWhen(
-	parameter = VCICredentialEncryption.class,
-	values = {"plain", "encrypted"},
-	whenParameter = FAPI2FinalOPProfile.class,
-	hasValues = {"plain_fapi", "openbanking_uk", "consumerdataright_au", "openbanking_brazil", "connectid_au", "cbuae", "fapi_client_credentials_grant"}
-)
 // Hide FAPI2-only params for VCI and client_credentials_grant profiles
 @VariantNotApplicableWhen(
 	parameter = FAPIOpenIDConnect.class,
@@ -319,12 +286,6 @@ import java.util.function.Supplier;
 @VariantNotApplicableWhen(
 	parameter = AuthorizationRequestType.class,
 	values = {"rar"},
-	whenParameter = FAPI2FinalOPProfile.class,
-	hasValues = "vci_haip"
-)
-@VariantNotApplicableWhen(
-	parameter = VCIGrantType.class,
-	values = {"pre_authorization_code"},
 	whenParameter = FAPI2FinalOPProfile.class,
 	hasValues = "vci_haip"
 )
@@ -359,19 +320,6 @@ import java.util.function.Supplier;
 	"vci.client_attester_keys_jwks",
 	"vci.client_attestation_issuer"
 })
-@VariantHidesConfigurationFields(parameter = ClientAuthType.class, value = "client_attestation",
-	configurationFields = {"client.jwks"})
-// VCI grant type configuration
-@VariantConfigurationFields(parameter = VCIGrantType.class, value = "pre_authorization_code",
-	configurationFields = {"vci.static_tx_code"})
-// VCI flow variant hides
-@VariantHidesConfigurationFields(parameter = VCIAuthorizationCodeFlowVariant.class, value = "wallet_initiated",
-	configurationFields = {"vci.credential_offer_endpoint"})
-// Client attestation hides for non-attestation auth types
-@VariantHidesConfigurationFields(parameter = ClientAuthType.class, value = "private_key_jwt",
-	configurationFields = {"vci.client_attestation_issuer", "vci.client_attestation_trust_anchor"})
-@VariantHidesConfigurationFields(parameter = ClientAuthType.class, value = "mtls",
-	configurationFields = {"vci.client_attestation_issuer", "vci.client_attestation_trust_anchor"})
 public abstract class AbstractFAPI2SPFinalServerTestModule extends AbstractRedirectServerTestModule {
 
 	protected int whichClient;

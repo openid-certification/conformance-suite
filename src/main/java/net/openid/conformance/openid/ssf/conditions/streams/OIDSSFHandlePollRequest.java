@@ -93,6 +93,11 @@ public class OIDSSFHandlePollRequest extends AbstractOIDSSFHandleReceiverRequest
 			log("Process acknowledgements for stream events for stream_id=" + streamId, args("ack", acks));
 			for (String jti : acks) {
 				OIDSSFSecurityEvent ackedEvent = eventStore.registerAckForStreamEvent(streamId, jti);
+				if (ackedEvent == null) {
+					log("Receiver acknowledged unknown SET jti=" + jti + " for stream_id=" + streamId,
+						args("jti", jti, "stream_id", streamId));
+					continue;
+				}
 				onStreamEventAcknowledged.accept(streamId, jti, ackedEvent);
 			}
 		}

@@ -1,12 +1,11 @@
 package net.openid.conformance.openid.ssf.conditions.streams;
 
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.openid.conformance.openid.ssf.SsfEvents;
 import net.openid.conformance.openid.ssf.eventstore.OIDSSFEventStore;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
-
-import java.util.Map;
 
 public class OIDSSFGenerateStreamVerificationSET extends AbstractOIDSSFGenerateStreamSET {
 
@@ -16,7 +15,15 @@ public class OIDSSFGenerateStreamVerificationSET extends AbstractOIDSSFGenerateS
 
 	@Override
 	protected JsonObject getEventData(JsonObject streamConfig) {
-		return OIDFJSON.convertMapToJsonObject(Map.of("state", OIDFJSON.tryGetString(streamConfig.get("_verification_state"))));
+		// "state" is optional in a verification event (SSF 1.0 §8.1.4-2).
+		// It is only included when a prior verification request supplied one;
+		// otherwise this is an ad-hoc / unsolicited verification event.
+		JsonObject eventData = new JsonObject();
+		JsonElement stateEl = streamConfig.get("_verification_state");
+		if (stateEl != null && !stateEl.isJsonNull()) {
+			eventData.addProperty("state", OIDFJSON.getString(stateEl));
+		}
+		return eventData;
 	}
 
 	@Override

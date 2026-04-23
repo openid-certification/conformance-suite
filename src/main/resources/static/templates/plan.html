@@ -55,7 +55,7 @@
                         <% if (plan.summary) { %>
                         <div class="row">
                             <div class="col-md-12">
-                                <p class="bgSummary bg-info"><%- plan.summary %></p>
+                                <p class="bgSummary bg-info"><%= plan.summary.replace(new RegExp('\r?\n', 'g'), '<br />').replace(/`([^`]+)`/g, '<code>$1</code>') %></p>
                             </div>
 
                         </div>

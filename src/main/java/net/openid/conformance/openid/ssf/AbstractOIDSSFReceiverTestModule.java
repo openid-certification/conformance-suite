@@ -11,6 +11,7 @@ import net.openid.conformance.condition.common.CheckIncomingRequestMethodIsGet;
 import net.openid.conformance.openid.ssf.conditions.OIDSSFGenerateServerJWKs;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFSecurityEvent;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFGenerateStreamVerificationSET;
+import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFGenerateUnsolicitedStreamVerificationSET;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFHandleAuthorizationHeader;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFHandlePollRequest;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFHandlePushDeliveryToReceiver;
@@ -36,6 +37,7 @@ import net.openid.conformance.openid.ssf.variant.SsfDeliveryMode;
 import net.openid.conformance.openid.ssf.variant.SsfProfile;
 import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.util.BaseUrlUtil;
+import net.openid.conformance.util.OAuthUriUtil;
 import net.openid.conformance.variant.ConfigurationFields;
 import net.openid.conformance.variant.VariantParameters;
 import org.apache.commons.lang3.RandomStringUtils;
@@ -85,6 +87,10 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 
 		env.putString("ssf", "issuer", issuer);
 		exposeEnvString("ssf_issuer", "ssf", "issuer");
+
+		String configurationUrl = OAuthUriUtil.generateWellKnownUrlForPath(issuer, "ssf-configuration");
+		env.putString("ssf", "configuration_url", configurationUrl);
+		exposeEnvString("ssf_configuration_url", "ssf", "configuration_url");
 
 		JsonObject transmitterMetadata = generateTransmitterMetadata(issuer);
 		env.putObject("ssf", "transmitter_metadata", transmitterMetadata);
@@ -349,7 +355,13 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 				callAndContinueOnFailure(OIDSSFHandleStreamCreateRequest.class, Condition.ConditionResult.FAILURE, "OIDSSF-8.1.1.1");
 				JsonObject createResult = env.getElementFromObject("ssf", "stream_op_result").getAsJsonObject();
 				JsonElement error = createResult.get("error");
-				afterStreamCreation(OIDFJSON.tryGetString(createResult.get("stream_id")), createResult, error);
+				String createdStreamId = OIDFJSON.tryGetString(createResult.get("stream_id"));
+				afterStreamCreation(createdStreamId, createResult, error);
+
+				if (error == null && createdStreamId != null
+					&& shouldDeliverUnsolicitedStreamVerificationAfterStreamCreation()) {
+					deliverUnsolicitedStreamVerificationEvent(createdStreamId);
+				}
 
 				return handleResultWithBody(createResult);
 			}
@@ -412,6 +424,44 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 
 	protected void afterStreamUpdate(String streamId, JsonObject updateResult, JsonElement error) {
 		// NOOP
+	}
+
+	/**
+	 * Whether the transmitter emulator should deliver an unsolicited stream
+	 * verification event — carrying no {@code state} claim — immediately after
+	 * a stream is successfully created. See SSF 1.0 §8.1.4-2: a transmitter MAY
+	 * deliver a verification event at any time after stream creation, and the
+	 * {@code state} member is optional.
+	 * <p>
+	 * Defaults to {@code false} so existing tests are unaffected. Subclasses may
+	 * override to opt in.
+	 */
+	protected boolean shouldDeliverUnsolicitedStreamVerificationAfterStreamCreation() {
+		return false;
+	}
+
+	/**
+	 * Generates a stream verification SET for {@code streamId} without a
+	 * {@code state} claim and enqueues it in the event store. For push delivery,
+	 * schedules an immediate push delivery task. For poll delivery, the event
+	 * becomes available on the next poll request.
+	 * <p>
+	 * Spec references:
+	 * <ul>
+	 *   <li>SSF 1.0 §8.1.4 — "A Transmitter MAY send a Verification Event at any
+	 *       time, even if one was not requested by the Event Receiver."
+	 *   <li>SSF 1.0 §8.1.4.2 — "If the Verification Event is initiated by the
+	 *       Transmitter then this parameter [state] MUST not be set."
+	 * </ul>
+	 */
+	protected void deliverUnsolicitedStreamVerificationEvent(String streamId) {
+		callAndContinueOnFailure(new OIDSSFGenerateUnsolicitedStreamVerificationSET(eventStore, streamId),
+			Condition.ConditionResult.FAILURE, "OIDSSF-8.1.4", "OIDSSF-8.1.4.2");
+
+		JsonObject streamConfig = OIDSSFStreamUtils.getStreamConfig(env, streamId);
+		if (OIDSSFStreamUtils.isPushDelivery(streamConfig)) {
+			scheduleTask(new OIDSSFHandlePushDeliveryTask(streamId), 1, TimeUnit.SECONDS);
+		}
 	}
 
 	protected ResponseEntity<?> handleResultWithBody(JsonObject createResult) {
@@ -503,7 +553,10 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 			// TODO handle SSF PUSH retry???
 			for (var event : eventsBatch.events()) {
 				callAndContinueOnFailure(new OIDSSFHandlePushDeliveryToReceiver(streamId, event, AbstractOIDSSFReceiverTestModule.this::afterPushDeliverySuccess), Condition.ConditionResult.WARNING, "OIDSSF-6.1.1");
-				callAndContinueOnFailure(new EnsureHttpStatusCodeIsAnyOf(200, 202),  Condition.ConditionResult.WARNING, "OIDSSF-8.1.2.2");
+				// RFC 8935 §2.2: "the SET Recipient SHALL acknowledge successful
+				// transmission by responding with HTTP Response Status Code 202 (Accepted)."
+				// SHALL → FAILURE severity per the conformance-suite convention.
+				callAndContinueOnFailure(new EnsureHttpStatusCodeIsAnyOf(202), Condition.ConditionResult.FAILURE, "RFC8935-2.2");
 				try {
 					Thread.sleep(1000);
 				} catch (InterruptedException e) {
@@ -513,8 +566,11 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 				}
 			}
 
-			if (eventsBatch.moreAvailable()) {
-				// reschedule push task to publish remaining events
+			if (eventsBatch.moreAvailable() || eventStore.hasEventsForStream(streamId)) {
+				// Reschedule to deliver remaining events. The queue check covers events
+				// enqueued by delivery callbacks (e.g. afterPushDeliverySuccess generating
+				// new SETs after seeing the verification event) that were not yet visible
+				// when the original batch was polled.
 				scheduleTask(this, 1, TimeUnit.SECONDS);
 			}
 			return "done";

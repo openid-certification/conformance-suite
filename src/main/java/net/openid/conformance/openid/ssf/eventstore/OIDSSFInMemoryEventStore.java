@@ -128,6 +128,12 @@ public class OIDSSFInMemoryEventStore implements OIDSSFEventStore {
 	}
 
 	@Override
+	public boolean hasEventsForStream(String streamId) {
+		BlockingQueue<OIDSSFSecurityEvent> queue = getStreamEventQueue(streamId);
+		return queue != null && !queue.isEmpty();
+	}
+
+	@Override
 	public void purgeStreamEvents(String streamId) {
 		BlockingQueue<OIDSSFSecurityEvent> queue = getStreamEventQueue(streamId);
 		streamEventQueueCache.invalidate(streamId);
