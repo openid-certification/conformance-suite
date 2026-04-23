@@ -111,6 +111,7 @@ public class GsonArrayToBsonArrayConverter_UnitTest {
 		in.put("b", true);
 
 		Map<String, Object> out = GsonArrayToBsonArrayConverter.convertUnloggableValuesInMap(in);
+		BsonEncoding.assertEncodable(in);
 
 		assertEquals("text", out.get("s"));
 		assertEquals(1, out.get("i"));
@@ -125,6 +126,7 @@ public class GsonArrayToBsonArrayConverter_UnitTest {
 		in.put("s", "text");
 
 		Map<String, Object> out = GsonArrayToBsonArrayConverter.convertUnloggableValuesInMap(in);
+		BsonEncoding.assertEncodable(in);
 
 		assertTrue(in != out);
 		assertEquals(1, in.size());
@@ -140,6 +142,7 @@ public class GsonArrayToBsonArrayConverter_UnitTest {
 		in.put("arr", arr);
 
 		Map<String, Object> out = GsonArrayToBsonArrayConverter.convertUnloggableValuesInMap(in);
+		BsonEncoding.assertEncodable(in);
 
 		assertInstanceOf(BsonArray.class, out.get("arr"));
 		BsonArray converted = (BsonArray) out.get("arr");
@@ -159,6 +162,7 @@ public class GsonArrayToBsonArrayConverter_UnitTest {
 		in.put("obj", obj);
 
 		Map<String, Object> out = GsonArrayToBsonArrayConverter.convertUnloggableValuesInMap(in);
+		BsonEncoding.assertEncodable(in);
 
 		assertSame(obj, out.get("obj"));
 	}
@@ -174,6 +178,7 @@ public class GsonArrayToBsonArrayConverter_UnitTest {
 		in.put("key", key);
 
 		Map<String, Object> out = GsonArrayToBsonArrayConverter.convertUnloggableValuesInMap(in);
+		BsonEncoding.assertEncodable(in);
 
 		assertInstanceOf(JsonElement.class, out.get("key"));
 		JsonElement converted = (JsonElement) out.get("key");
@@ -190,6 +195,7 @@ public class GsonArrayToBsonArrayConverter_UnitTest {
 		in.put("set", set);
 
 		Map<String, Object> out = GsonArrayToBsonArrayConverter.convertUnloggableValuesInMap(in);
+		BsonEncoding.assertEncodable(in);
 
 		assertInstanceOf(JsonElement.class, out.get("set"));
 		JsonElement converted = (JsonElement) out.get("set");
@@ -208,6 +214,7 @@ public class GsonArrayToBsonArrayConverter_UnitTest {
 		in.put("claims", claims);
 
 		Map<String, Object> out = GsonArrayToBsonArrayConverter.convertUnloggableValuesInMap(in);
+		BsonEncoding.assertEncodable(in);
 
 		assertInstanceOf(JsonElement.class, out.get("claims"));
 		JsonObject converted = ((JsonElement) out.get("claims")).getAsJsonObject();
@@ -224,6 +231,7 @@ public class GsonArrayToBsonArrayConverter_UnitTest {
 		in.put("hdr", header);
 
 		Map<String, Object> out = GsonArrayToBsonArrayConverter.convertUnloggableValuesInMap(in);
+		BsonEncoding.assertEncodable(in);
 
 		assertInstanceOf(JsonElement.class, out.get("hdr"));
 		JsonObject converted = ((JsonElement) out.get("hdr")).getAsJsonObject();
@@ -243,6 +251,7 @@ public class GsonArrayToBsonArrayConverter_UnitTest {
 		in.put("n", lazy);
 
 		Map<String, Object> out = GsonArrayToBsonArrayConverter.convertUnloggableValuesInMap(in);
+		BsonEncoding.assertEncodable(in);
 
 		assertInstanceOf(Long.class, out.get("n"));
 		assertEquals(42L, out.get("n"));
@@ -257,6 +266,7 @@ public class GsonArrayToBsonArrayConverter_UnitTest {
 		in.put("n", lazy);
 
 		Map<String, Object> out = GsonArrayToBsonArrayConverter.convertUnloggableValuesInMap(in);
+		BsonEncoding.assertEncodable(in);
 
 		assertInstanceOf(Long.class, out.get("n"));
 		assertEquals(4294967296L, out.get("n"));
@@ -270,6 +280,7 @@ public class GsonArrayToBsonArrayConverter_UnitTest {
 		in.put("n", lazy);
 
 		Map<String, Object> out = GsonArrayToBsonArrayConverter.convertUnloggableValuesInMap(in);
+		BsonEncoding.assertEncodable(in);
 
 		assertInstanceOf(Double.class, out.get("n"));
 		assertEquals(1.5d, out.get("n"));
@@ -284,6 +295,7 @@ public class GsonArrayToBsonArrayConverter_UnitTest {
 		in.put("n", lazy);
 
 		Map<String, Object> out = GsonArrayToBsonArrayConverter.convertUnloggableValuesInMap(in);
+		BsonEncoding.assertEncodable(in);
 
 		assertInstanceOf(Double.class, out.get("n"));
 		assertEquals(1e10d, (double) out.get("n"));
@@ -297,6 +309,7 @@ public class GsonArrayToBsonArrayConverter_UnitTest {
 		in.put("list", Arrays.asList("one", "two"));
 
 		Map<String, Object> out = GsonArrayToBsonArrayConverter.convertUnloggableValuesInMap(in);
+		BsonEncoding.assertEncodable(in);
 
 		assertInstanceOf(JsonArray.class, out.get("list"));
 		JsonArray arr = (JsonArray) out.get("list");
@@ -314,6 +327,7 @@ public class GsonArrayToBsonArrayConverter_UnitTest {
 		in.put("list", items);
 
 		Map<String, Object> out = GsonArrayToBsonArrayConverter.convertUnloggableValuesInMap(in);
+		BsonEncoding.assertEncodable(in);
 
 		JsonArray arr = (JsonArray) out.get("list");
 		assertEquals(2, arr.size());
@@ -331,6 +345,7 @@ public class GsonArrayToBsonArrayConverter_UnitTest {
 		in.put("list", items);
 
 		Map<String, Object> out = GsonArrayToBsonArrayConverter.convertUnloggableValuesInMap(in);
+		BsonEncoding.assertEncodable(in);
 
 		JsonArray arr = (JsonArray) out.get("list");
 		assertEquals(1, arr.size());
