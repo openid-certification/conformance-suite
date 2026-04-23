@@ -1,7 +1,6 @@
 package net.openid.conformance.condition.client;
 
 import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.JWSHeader;
 import com.nimbusds.jose.crypto.ECDSASigner;
@@ -11,26 +10,26 @@ import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.condition.ConditionError;
+import net.openid.conformance.logging.BsonEncoding;
 import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.oauth.statuslists.TokenStatusList;
 import net.openid.conformance.testmodule.Environment;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.http.ResponseEntity;
 
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @ExtendWith(MockitoExtension.class)
-public class ValidateCredentialStatusListForHaip_UnitTest {
+public class ValidateStatusListTokenX5cCertificateChain_UnitTest {
 
 	private static final String NON_SELF_SIGNED_JWK = """
 		{
@@ -67,32 +66,26 @@ public class ValidateCredentialStatusListForHaip_UnitTest {
 	@Spy
 	private Environment env = new Environment();
 
-	@Mock
-	private TestInstanceEventLog eventLog;
+	private final TestInstanceEventLog eventLog = BsonEncoding.testInstanceEventLog();
 
-	private TestableValidateCredentialStatusListForHaip cond;
+	private ValidateStatusListTokenX5cCertificateChain cond;
 
 	@BeforeEach
 	public void setUp() {
-		cond = new TestableValidateCredentialStatusListForHaip();
+		cond = new ValidateStatusListTokenX5cCertificateChain();
 		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
+	}
 
-		JsonObject statusList = new JsonObject();
-		statusList.addProperty("idx", 0);
-		statusList.addProperty("uri", "https://issuer.example.com/statuslists/1");
-
-		JsonObject status = new JsonObject();
-		status.add("status_list", statusList);
-
-		JsonObject claims = new JsonObject();
-		claims.add("status", status);
-		env.putObject("sdjwt", "credential.claims", claims);
+	@Test
+	public void testEvaluate_skipsWhenNoStatusListToken() {
+		cond.execute(env);
+		assertFalse(env.containsObject("status_list_token"));
 	}
 
 	@Test
 	public void testEvaluate_acceptsValidStatusListTokenWithNonSelfSignedX5c() throws Exception {
 		ECKey signingKey = (ECKey) JWK.parse(NON_SELF_SIGNED_JWK);
-		cond.setResponse(ResponseEntity.ok(createSignedStatusListToken(signingKey, signingKey.getX509CertChain(), TokenStatusList.Status.VALID)));
+		putStatusListToken(createSignedStatusListToken(signingKey, signingKey.getX509CertChain()));
 
 		cond.execute(env);
 	}
@@ -100,7 +93,7 @@ public class ValidateCredentialStatusListForHaip_UnitTest {
 	@Test
 	public void testEvaluate_rejectsMissingX5c() throws Exception {
 		ECKey signingKey = (ECKey) JWK.parse(NON_SELF_SIGNED_JWK);
-		cond.setResponse(ResponseEntity.ok(createSignedStatusListToken(signingKey, null, TokenStatusList.Status.VALID)));
+		putStatusListToken(createSignedStatusListToken(signingKey, null));
 
 		assertThrows(ConditionError.class, () -> cond.execute(env));
 	}
@@ -108,7 +101,7 @@ public class ValidateCredentialStatusListForHaip_UnitTest {
 	@Test
 	public void testEvaluate_rejectsSelfSignedLeafCertificate() throws Exception {
 		ECKey signingKey = (ECKey) JWK.parse(SELF_SIGNED_JWK);
-		cond.setResponse(ResponseEntity.ok(createSignedStatusListToken(signingKey, signingKey.getX509CertChain(), TokenStatusList.Status.VALID)));
+		putStatusListToken(createSignedStatusListToken(signingKey, signingKey.getX509CertChain()));
 
 		assertThrows(ConditionError.class, () -> cond.execute(env));
 	}
@@ -120,13 +113,20 @@ public class ValidateCredentialStatusListForHaip_UnitTest {
 		List<com.nimbusds.jose.util.Base64> x5cChain = new ArrayList<>(signingKey.getX509CertChain());
 		x5cChain.addAll(selfSignedKey.getX509CertChain());
 
-		cond.setResponse(ResponseEntity.ok(createSignedStatusListToken(signingKey, x5cChain, TokenStatusList.Status.VALID)));
+		putStatusListToken(createSignedStatusListToken(signingKey, x5cChain));
 
 		assertThrows(ConditionError.class, () -> cond.execute(env));
 	}
 
-	private String createSignedStatusListToken(ECKey signingKey, List<com.nimbusds.jose.util.Base64> x5cChain, TokenStatusList.Status credentialStatus) throws Exception {
-		TokenStatusList tokenStatusList = TokenStatusList.create(new byte[] { (byte) credentialStatus.getTypeValue() }, 1);
+	private void putStatusListToken(String jwt) throws Exception {
+		env.putObject("status_list_token",
+			net.openid.conformance.util.JWTUtil.jwtStringToJsonObjectForEnvironment(jwt));
+	}
+
+	private String createSignedStatusListToken(ECKey signingKey,
+			List<com.nimbusds.jose.util.Base64> x5cChain) throws Exception {
+		TokenStatusList tokenStatusList = TokenStatusList.create(
+			new byte[] { (byte) TokenStatusList.Status.VALID.getTypeValue() }, 1);
 		Instant now = Instant.now();
 
 		JWTClaimsSet claimsSet = new JWTClaimsSet.Builder()
@@ -145,18 +145,5 @@ public class ValidateCredentialStatusListForHaip_UnitTest {
 		SignedJWT jwt = new SignedJWT(headerBuilder.build(), claimsSet);
 		jwt.sign(new ECDSASigner(signingKey.toECPrivateKey()));
 		return jwt.serialize();
-	}
-
-	private static class TestableValidateCredentialStatusListForHaip extends ValidateCredentialStatusListForHaip {
-		private ResponseEntity<String> response;
-
-		void setResponse(ResponseEntity<String> response) {
-			this.response = response;
-		}
-
-		@Override
-		protected ResponseEntity<String> fetchStatusListToken(Environment env, String uri) {
-			return response;
-		}
 	}
 }

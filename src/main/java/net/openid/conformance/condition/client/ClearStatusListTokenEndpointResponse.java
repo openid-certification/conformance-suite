@@ -4,17 +4,18 @@ import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.testmodule.Environment;
 
 /**
- * Clears any status_list_token_endpoint_response left over from a previous
- * credential so downstream header checks do not see stale state when this
- * credential has no status claim (or the fetch throws before a response is
- * stored).
+ * Clears any status list state left over from a previous credential so split
+ * status list validation conditions do not consume stale data.
  */
 public class ClearStatusListTokenEndpointResponse extends AbstractCondition {
 
 	@Override
 	public Environment evaluate(Environment env) {
 		env.removeObject("status_list_token_endpoint_response");
-		logSuccess("Cleared any previous status_list_token_endpoint_response");
+		env.removeObject("status_list_token");
+		env.removeNativeValue("status_list_idx");
+		env.removeNativeValue("status_list_uri");
+		logSuccess("Cleared any previous status list validation state");
 		return env;
 	}
 }
