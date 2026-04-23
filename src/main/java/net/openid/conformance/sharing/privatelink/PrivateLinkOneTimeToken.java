@@ -19,6 +19,14 @@ public class PrivateLinkOneTimeToken implements OneTimeToken {
 
 	protected transient SharedAsset sharedAsset;
 
+	public static PrivateLinkOneTimeToken forSharedAsset(String tokenValue, SharedAsset sharedAsset) {
+		PrivateLinkOneTimeToken token = new PrivateLinkOneTimeToken();
+		token.setTokenValue(tokenValue);
+		token.setUsername("Guest " + Integer.toString(sharedAsset.getTokenId().hashCode(), 36));
+		token.setSharedAsset(sharedAsset);
+		return token;
+	}
+
 	@Override
 	public String getTokenValue() {
 		return tokenValue;

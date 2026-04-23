@@ -245,12 +245,27 @@ class AssetSharing_UnitTest {
 	// --- generateShareLink ---
 
 	@Test
-	void generateShareLink_returns_link_and_message() {
+	void generateShareLink_returns_link_token_and_message() {
 		Map<String, String> result = assetSharing.generateShareLink(PLAN_ID, null, OWNER, "7");
 
 		assertTrue(result.containsKey("link"));
+		assertTrue(result.containsKey("token"));
 		assertTrue(result.containsKey("message"));
 		assertTrue(result.get("link").startsWith(BASE_URL + "/login.html?token="));
+	}
+
+	@Test
+	void generateShareLink_token_matches_jwt_embedded_in_link() {
+		Map<String, String> result = assetSharing.generateShareLink(PLAN_ID, null, OWNER, "7");
+
+		String token = result.get("token");
+		String link = result.get("link");
+		assertEquals(BASE_URL + "/login.html?token=" + token, link);
+
+		// The returned token is a usable share JWT on its own.
+		SharedAsset asset = assetSharing.getSharedAssetFromSharingToken(token);
+		assertNotNull(asset);
+		assertEquals(PLAN_ID, asset.getPlanId());
 	}
 
 	@Test
