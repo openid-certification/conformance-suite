@@ -5,6 +5,7 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
+import com.google.gson.internal.LazilyParsedNumber;
 import com.nimbusds.jose.JWSHeader;
 import com.nimbusds.jose.jwk.JWK;
 import com.nimbusds.jose.jwk.JWKSet;
@@ -45,7 +46,15 @@ public class GsonArrayToBsonArrayConverter implements Converter<JsonArray, BsonA
 			return JsonParser.parseString(set.toString());
 		} else if (value instanceof JWSHeader header) {
 			return JsonParser.parseString(header.toString());
-		} else if (value instanceof List<?> list) {
+		} else if (value instanceof LazilyParsedNumber lpn) {
+			// BSON has no codec for Gson's lazy-parsed number; coerce to a standard Java number.
+			try {
+				return Long.parseLong(lpn.toString());
+			} catch (NumberFormatException ignored) {
+				return Double.parseDouble(lpn.toString());
+			}
+		}
+		else if (value instanceof List<?> list) {
 			JsonArray arr = new JsonArray();
 			for (Object item : list) {
 				Object converted = convertValue(item);
