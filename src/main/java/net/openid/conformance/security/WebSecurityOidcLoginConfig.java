@@ -154,6 +154,8 @@ class WebSecurityOidcLoginConfig {
 					"/login.html",  //
 					"/css/**",  //
 					"/js/**",  //
+					"/vendor/**", // bundled third-party libs (bootstrap, lit, jquery, ...)
+					"/components/**", // Lit web components loaded by public pages
 					"/images/**", //
 					"/templates/**", //
 					"/favicon.ico",  //
