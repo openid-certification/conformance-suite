@@ -44,6 +44,7 @@ import net.openid.conformance.condition.client.CheckIfSecondClientIdInX509CertSa
 import net.openid.conformance.condition.client.CheckNoPresentationSubmissionParameter;
 import net.openid.conformance.condition.client.CheckNonceInBindingJwt;
 import net.openid.conformance.condition.client.CheckOnlyRequestedClaimsDisclosed;
+import net.openid.conformance.condition.client.CheckOnlyRequestedMdocElementsDisclosed;
 import net.openid.conformance.condition.client.CheckStateInAuthorizationResponse;
 import net.openid.conformance.condition.client.CheckTypInBindingJwt;
 import net.openid.conformance.condition.client.CheckUrlFragmentContainsCodeVerifier;
@@ -99,11 +100,13 @@ import net.openid.conformance.condition.client.ValidateCredentialIsUnpaddedBase6
 import net.openid.conformance.condition.client.ValidateCredentialVctMatchesDcqlQuery;
 import net.openid.conformance.condition.client.ValidateDCQLQuery;
 import net.openid.conformance.condition.client.ValidateDisclosedClaimsMatchDcqlQuery;
+import net.openid.conformance.condition.client.ValidateDisclosedMdocClaimsMatchDcqlQuery;
 import net.openid.conformance.condition.client.ValidateJWEBodyDoesNotIncludeIssExpAud;
 import net.openid.conformance.condition.client.ValidateJWEHeaderAlgMatchesRequestedAlgorithm;
 import net.openid.conformance.condition.client.ValidateJWEHeaderCtyJson;
 import net.openid.conformance.condition.client.ValidateJWEHeaderEncMatchesRequestedAlgorithm;
 import net.openid.conformance.condition.client.ValidateJWEHeaderKidIsInClientMetadataJWKs;
+import net.openid.conformance.condition.client.ValidateMdocDocTypeMatchesDcqlQuery;
 import net.openid.conformance.condition.client.ValidateSdJwtKbSdHash;
 import net.openid.conformance.condition.client.ValidateSdJwtKeyBindingSignature;
 import net.openid.conformance.condition.client.ValidateVpTokenCredentialIdMatchesDcqlQuery;
@@ -617,6 +620,11 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 				}
 				callAndStopOnFailure(ParseCredentialAsMdoc.class);
 				call(new ValidateMdocCredential(false, getVariant(VPProfile.class) == VPProfile.HAIP));
+
+				eventLog.startBlock(currentClientString() + "Verify credential matches DCQL query");
+				callAndContinueOnFailure(ValidateMdocDocTypeMatchesDcqlQuery.class, ConditionResult.FAILURE, "OID4VP-1FINAL-6.4.1");
+				callAndContinueOnFailure(ValidateDisclosedMdocClaimsMatchDcqlQuery.class, ConditionResult.FAILURE, "OID4VP-1FINAL-6.4.1");
+				callAndContinueOnFailure(CheckOnlyRequestedMdocElementsDisclosed.class, ConditionResult.FAILURE, "OID4VP-1FINAL-6.4.1");
 				break;
 
 			case SD_JWT_VC:
