@@ -4,12 +4,12 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.condition.ConditionError;
+import net.openid.conformance.logging.BsonEncoding;
 import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.Environment;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -21,8 +21,13 @@ public class ValidateExpiresIn_UnitTest {
 	@Spy
 	private Environment env = new Environment();
 
-	@Mock
-	private TestInstanceEventLog eventLog;
+	// Using the real TestInstanceEventLog via BsonEncoding.testInstanceEventLog() (rather than a
+	// Mockito mock) means every log(...) call made by the condition under test is BSON-encoded
+	// the same way DBEventLog would encode it in production. This catches the class of
+	// regression where a value in a log payload has no BSON codec — failing at unit-test time
+	// instead of at runtime against a live MongoDB. Any condition _UnitTest can adopt the same
+	// pattern by swapping its @Mock TestInstanceEventLog field for this one-liner.
+	private final TestInstanceEventLog eventLog = BsonEncoding.testInstanceEventLog();
 
 	private JsonObject goodInteger;
 	private JsonObject badStringNumeric;
