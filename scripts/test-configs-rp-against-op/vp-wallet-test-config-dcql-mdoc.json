@@ -16,19 +16,19 @@
                     "id": "my_credential",
                     "format": "mso_mdoc",
                     "meta": {
-                        "doctype_value": "org.iso.7367.1.mVRC"
+                        "doctype_value": "org.iso.18013.5.1.mDL"
                     },
                     "claims": [
                         {
                             "path": [
-                                "org.iso.7367.1",
-                                "vehicle_holder"
+                                "org.iso.18013.5.1",
+                                "document_number"
                             ]
                         },
                         {
                             "path": [
                                 "org.iso.18013.5.1",
-                                "first_name"
+                                "birth_date"
                             ]
                         }
                     ]
