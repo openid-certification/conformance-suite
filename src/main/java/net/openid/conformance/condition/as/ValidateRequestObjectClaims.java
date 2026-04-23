@@ -63,21 +63,6 @@ public class ValidateRequestObjectClaims extends AbstractCondition {
 				log("Token has future not-before", args("not-before", new Date(nbf * 1000L), "now", now));
 			}
 		}
-		//Also see CreateEffectiveAuthorizationRequestParameters for max_age processing
-		JsonElement maxAgeElement  = env.getElementFromObject("authorization_request_object", "claims.max_age");
-		if (maxAgeElement == null) {
-			log("Request object does not contain a max_age claim");
-		} else if(maxAgeElement.isJsonNull()) {
-			//EnsureNumericRequestObjectClaimsAreNotNull handles the JsonNull case
-			//Additionally, CreateEffectiveAuthorizationRequestParameters completely ignores max_age when it is json null
-		} else {
-			try {
-				Number maxAge = OIDFJSON.getNumber(maxAgeElement);
-				log("max_age is correctly encoded as a number", args("max_age", maxAge));
-			} catch (OIDFJSON.UnexpectedJsonTypeException ex) {
-				throw error("max_age is not encoded as a number", args("max_age", maxAgeElement));
-			}
-		}
 
 		validateJti(env);
 
