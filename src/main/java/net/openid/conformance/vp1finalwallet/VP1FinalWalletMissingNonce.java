@@ -9,8 +9,9 @@ import net.openid.conformance.testmodule.TestFailureException;
 @PublishTestModule(
 	testName = "oid4vp-1final-wallet-negative-test-missing-nonce",
 	displayName = "OID4VP-1.0-FINAL: Authorization request without nonce",
-	summary = "Sends an authorization request without a nonce parameter. The nonce is required for key binding JWT "
-		+ "verification. The wallet should reject the request and display an error, a screenshot of which must be uploaded.",
+	summary = """
+		Sends an authorization request without a nonce parameter. The nonce is required for key binding JWT \
+		verification. The wallet should reject the request and display an error, a screenshot of which must be uploaded.""",
 	profile = "OID4VP-1FINAL"
 )
 public class VP1FinalWalletMissingNonce extends AbstractVP1FinalWalletTest {

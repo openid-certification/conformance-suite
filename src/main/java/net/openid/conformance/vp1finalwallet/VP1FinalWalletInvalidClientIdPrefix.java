@@ -9,9 +9,10 @@ import net.openid.conformance.testmodule.TestFailureException;
 @PublishTestModule(
 	testName = "oid4vp-1final-wallet-negative-test-invalid-client-id-prefix",
 	displayName = "OID4VP-1.0-FINAL: Invalid client_id prefix scheme",
-	summary = "Sends a request with an unrecognized client_id prefix scheme (e.g. 'invalid_scheme:'). "
-		+ "The wallet must reject requests with unknown client_id prefix values. "
-		+ "The wallet should display an error, a screenshot of which must be uploaded.",
+	summary = """
+		Sends a request with an unrecognized client_id prefix scheme (e.g. 'invalid_scheme:'). \
+		The wallet must reject requests with unknown client_id prefix values. \
+		The wallet should display an error, a screenshot of which must be uploaded.""",
 	profile = "OID4VP-1FINAL"
 )
 public class VP1FinalWalletInvalidClientIdPrefix extends AbstractVP1FinalWalletTest {
