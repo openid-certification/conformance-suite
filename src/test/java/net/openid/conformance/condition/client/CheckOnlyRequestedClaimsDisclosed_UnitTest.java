@@ -427,6 +427,45 @@ public class CheckOnlyRequestedClaimsDisclosed_UnitTest {
 	}
 
 	@Test
+	public void testEvaluate_integerArrayElementReferencedByJwtBodyPasses() {
+		// Non-string array element: the disclosure value is an integer. Regression test for the
+		// bug where re-constructing the Disclosure via Gson would coerce the integer to a Double,
+		// producing a digest that did not match the issuer's and incorrectly flagging the
+		// disclosure as orphaned.
+		Disclosure arrayElement = new Disclosure("salt1", null, 2);
+
+		String dcql = """
+			{
+			  "credentials": [
+			    {
+			      "id": "my_credential",
+			      "format": "dc+sd-jwt",
+			      "claims": [
+			        {"path": ["scores"]}
+			      ]
+			    }
+			  ]
+			}
+			""";
+		String decoded = """
+			{
+			  "scores": [2]
+			}
+			""";
+
+		JsonArray disclosures = new JsonArray();
+		disclosures.add(arrayElement.getJson());
+
+		String credentialJson = String.format(
+			"{\"scores\": [{\"...\": \"%s\"}]}", arrayElement.digest());
+		JsonObject credential = JsonParser.parseString(credentialJson).getAsJsonObject();
+
+		setupEnvironment(dcql, "my_credential", decoded, disclosures, credential);
+
+		cond.execute(env);
+	}
+
+	@Test
 	public void testEvaluate_descendantDisclosurePasses() {
 		// OID4VP §7.3: DCQL path ["address"] selects the address claim with its sub-claims.
 		// A wallet disclosing the nested "street_address" is fulfilling the request, not

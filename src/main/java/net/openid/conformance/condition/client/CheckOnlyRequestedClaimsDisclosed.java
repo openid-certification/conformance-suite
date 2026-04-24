@@ -1,7 +1,6 @@
 package net.openid.conformance.condition.client;
 
 import com.authlete.sd.Disclosure;
-import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -11,7 +10,9 @@ import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -74,9 +75,8 @@ public class CheckOnlyRequestedClaimsDisclosed extends AbstractCondition {
 		//   object property disclosures: [salt, claimName, value]
 		//   array element disclosures:   [salt, value]
 		record ObjectProperty(String name, JsonElement value) {}
-		record ArrayElement(String salt, JsonElement value, String raw) {}
 		List<ObjectProperty> objectProperties = new ArrayList<>();
-		List<ArrayElement> arrayElements = new ArrayList<>();
+		List<String> arrayElementRaws = new ArrayList<>();
 		for (JsonElement disclosureEl : disclosures) {
 			String disclosureStr = OIDFJSON.getString(disclosureEl);
 			JsonArray disclosure = JsonParser.parseString(disclosureStr).getAsJsonArray();
@@ -85,10 +85,7 @@ public class CheckOnlyRequestedClaimsDisclosed extends AbstractCondition {
 					OIDFJSON.getString(disclosure.get(1)),
 					disclosure.get(2)));
 			} else if (disclosure.size() == 2) {
-				arrayElements.add(new ArrayElement(
-					OIDFJSON.getString(disclosure.get(0)),
-					disclosure.get(1),
-					disclosureStr));
+				arrayElementRaws.add(disclosureStr);
 			}
 		}
 
@@ -106,14 +103,16 @@ public class CheckOnlyRequestedClaimsDisclosed extends AbstractCondition {
 		}
 
 		List<String> orphanArrayElementDisclosures = new ArrayList<>();
-		Gson gson = new Gson();
-		for (ArrayElement ae : arrayElements) {
-			// Reconstruct via the constructor so authlete recomputes its canonical JSON
-			// encoding before hashing — defaults to SHA-256, matching the issuer.
-			Object value = gson.fromJson(ae.value(), Object.class);
-			String digest = new Disclosure(ae.salt(), null, value).digest();
+		for (String raw : arrayElementRaws) {
+			// The digest for a disclosure is computed over the base64url-encoded disclosure
+			// bytes (SD-JWT §4.2.3). Env storage holds the decoded JSON form, so re-encode it
+			// and parse via authlete so digest() hashes the original byte sequence — avoids
+			// lossy Gson round-trips (e.g. integer array elements coerced to Double).
+			String base64url = Base64.getUrlEncoder().withoutPadding()
+				.encodeToString(raw.getBytes(StandardCharsets.UTF_8));
+			String digest = Disclosure.parse(base64url).digest();
 			if (!referencedDigests.contains(digest)) {
-				orphanArrayElementDisclosures.add(ae.raw());
+				orphanArrayElementDisclosures.add(raw);
 			}
 		}
 
