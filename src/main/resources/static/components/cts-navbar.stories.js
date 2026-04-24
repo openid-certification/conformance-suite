@@ -39,9 +39,22 @@ const MOCK_GUEST = {
 /**
  * Creates a decorator that intercepts fetch("/api/currentuser") with a
  * configurable response, and restores the real fetch after the story unmounts.
+ * Also clears sessionStorage so cts-navbar's user cache does not leak the
+ * previous story's mock response into the next story.
  */
 function withMockUser(mockResponse, { delay = 0, status = 200 } = {}) {
   return (storyFn) => {
+    // Keep stories hermetic: cts-navbar reads /api/currentuser result from
+    // sessionStorage on first render to stabilize across real-app page
+    // navigations; inside Storybook, each story must start clean so its
+    // assertions (e.g. "Loading…" state in the Loading story) hold.
+    try {
+      sessionStorage.clear();
+    } catch {
+      // Storybook sometimes runs in sandboxed contexts where sessionStorage
+      // is unavailable; the stories still render, just without isolation
+      // guarantees when run in that mode.
+    }
     const realFetch = window.fetch;
     window.fetch = (url, opts) => {
       if (typeof url === "string" && url.includes("/api/currentuser")) {
