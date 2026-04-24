@@ -10,6 +10,9 @@ public abstract class AbstractSetAuthzenApiEndpoint extends AbstractCondition {
 		String endpointUrl = env.getString("pdp", endpointConfigPath);
 		if(Strings.isNullOrEmpty(endpointUrl)) { // use default if not set
 			endpointUrl = env.getString("pdp", "policy_decision_point");
+			if(Strings.isNullOrEmpty(endpointUrl)) {
+				throw error("Missing 'policy_decision_point' in metadata configuration");
+			}
 			if(!endpointUrl.endsWith("/")) {
 				endpointUrl += "/";
 			}
