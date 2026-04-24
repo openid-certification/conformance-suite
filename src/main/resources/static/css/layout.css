@@ -80,7 +80,15 @@ body {
 }
 
 .pageHeader img {
-	max-height: 40px;
+	/*
+	 * Explicit dimensions reserve the logo's 100x40 box at first layout
+	 * so the navbar's internal flex row does not reflow when the image
+	 * loads (openid.png is 900x360, a 5:2 aspect ratio, rendered at
+	 * 40px height = 100px width). Without these, the <img> reserves
+	 * zero space pre-load, contributing to cts-navbar's internal CLS.
+	 */
+	width: 100px;
+	height: 40px;
 }
 
 h1 {
