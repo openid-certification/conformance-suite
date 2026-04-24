@@ -18,6 +18,13 @@ const PUBLIC_NAV_LINKS = [
   { page: "api-docs", label: "API Docs", href: "api-document.html" },
 ];
 
+// sessionStorage key for the last-seen /api/currentuser response. Read
+// synchronously in connectedCallback so the first paint across
+// navigations matches the outgoing page's state (no "Loading…" flash
+// between pages the user is already authenticated on). Cleared on 401
+// / explicit login-page visit / logout redirect.
+const USER_CACHE_KEY = "cts-navbar:user";
+
 /**
  * Top-level navigation bar. Fetches the current user from `/api/currentuser`
  * and renders either the authenticated nav or the public nav.
@@ -51,9 +58,33 @@ class CtsNavbar extends LitElement {
     // fired a /api/currentuser that inevitably 401'd, generating server
     // log noise and a spurious ~150ms of loading chrome.
     if (window.location.pathname.endsWith("/login.html")) {
+      // Clear the cache too — the user reached login.html because they
+      // logged out or their session expired; the next authenticated visit
+      // should re-fetch rather than render a ghost logged-in state.
+      try {
+        sessionStorage.removeItem(USER_CACHE_KEY);
+      } catch {
+        // sessionStorage may throw in privacy-mode or sandboxed contexts;
+        // the cache is best-effort, so swallow and continue.
+      }
       this._user = null;
       this._loading = false;
       return;
+    }
+    // Seed from the cache before fetching so the first render on this
+    // page matches what the outgoing page showed. The async fetch still
+    // runs and overwrites the cache, but any state-equal result causes
+    // no visual change — the navbar appears to stay put across pages
+    // and the View Transitions morph (layout.css) is a visual no-op.
+    try {
+      const cached = sessionStorage.getItem(USER_CACHE_KEY);
+      if (cached) {
+        this._user = JSON.parse(cached);
+        this._loading = false;
+      }
+    } catch {
+      // Corrupt cache or sessionStorage unavailable; fall through to
+      // fetch-as-loading.
     }
     this._fetchUser();
   }
@@ -63,6 +94,11 @@ class CtsNavbar extends LitElement {
       const response = await fetch("/api/currentuser");
       if (response.ok) {
         this._user = await response.json();
+        try {
+          sessionStorage.setItem(USER_CACHE_KEY, JSON.stringify(this._user));
+        } catch {
+          // Quota exceeded or sessionStorage unavailable; best-effort.
+        }
       } else {
         // 401 is the expected "not logged in" response; anything else is a real
         // error we want operators to see in the console. Either way the UI
@@ -72,10 +108,17 @@ class CtsNavbar extends LitElement {
           console.warn(`[cts-navbar] /api/currentuser responded ${response.status}`);
         }
         this._user = null;
+        try {
+          sessionStorage.removeItem(USER_CACHE_KEY);
+        } catch {
+          // best-effort
+        }
       }
     } catch (err) {
       console.warn("[cts-navbar] /api/currentuser fetch failed:", err);
-      this._user = null;
+      // Network failure: preserve the cache and the currently-rendered
+      // user state. A transient offline blip shouldn't make the user
+      // appear logged out.
     } finally {
       this._loading = false;
     }
