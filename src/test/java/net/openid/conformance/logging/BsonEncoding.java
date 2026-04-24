@@ -10,6 +10,7 @@ import org.bson.codecs.EncoderContext;
 import org.bson.codecs.configuration.CodecConfigurationException;
 import org.bson.codecs.configuration.CodecRegistry;
 import org.bson.io.BasicOutputBuffer;
+import org.mockito.Mockito;
 import org.springframework.data.mongodb.core.convert.MappingMongoConverter;
 import org.springframework.data.mongodb.core.convert.MongoCustomConversions;
 import org.springframework.data.mongodb.core.convert.NoOpDbRefResolver;
@@ -47,6 +48,12 @@ public final class BsonEncoding {
 	 * through {@link #assertEncodable(Map)} / {@link #assertEncodable(JsonObject)}, so any
 	 * un-encodable value in a log payload fails the test immediately with a clear message.
 	 *
+	 * <p>The returned instance is a Mockito spy wrapping a real {@link TestInstanceEventLog} —
+	 * that way test code can still call {@code verify(eventLog).log(...)} (e.g. via
+	 * {@code AbstractVciUnitTest.assertValidationError}) and Mockito-based argument captors
+	 * continue to work, while the underlying log call is actually dispatched and its payload
+	 * BSON-encoded.
+	 *
 	 * <p>Adoption in an existing {@code _UnitTest}: remove the {@code @Mock TestInstanceEventLog}
 	 * field and replace it with
 	 * <pre>
@@ -76,7 +83,7 @@ public final class BsonEncoding {
 			public void createIndexes() {
 			}
 		});
-		return real;
+		return Mockito.spy(real);
 	}
 
 	/**
