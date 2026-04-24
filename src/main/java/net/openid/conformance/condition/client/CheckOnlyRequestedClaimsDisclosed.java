@@ -42,6 +42,10 @@ public class CheckOnlyRequestedClaimsDisclosed extends AbstractCondition {
 			return env;
 		}
 
+		// TODO: This treats every claim path declared under "claims" as requested, so it does not
+		// yet implement DCQL claim_sets semantics. When claim_sets are present a wallet returning
+		// claims from any one of the options will pass here even though only one option should be
+		// honored. Matching TODOs in DcqlQueryUtils and AbstractCreateSdJwtCredential.
 		Set<List<String>> requestedClaimPaths = DcqlQueryUtils.extractClaimPathsFromCredential(matchingCredential);
 
 		if (requestedClaimPaths.isEmpty()) {
