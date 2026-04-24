@@ -99,7 +99,7 @@ public class CheckOnlyRequestedClaimsDisclosed extends AbstractCondition {
 			DcqlQueryUtils.collectReferencedDigests(op.value(), referencedDigests);
 			Set<List<String>> matchingPaths = DcqlQueryUtils.findMatchingClaimPaths(decoded, op.name(), op.value());
 			boolean requested = matchingPaths.stream()
-				.anyMatch(path -> DcqlQueryUtils.isRequestedPathOrAncestor(requestedClaimPaths, path));
+				.anyMatch(path -> DcqlQueryUtils.isRequestedPathAncestorOrDescendant(requestedClaimPaths, path));
 			if (!requested) {
 				unrequestedDisclosures.add(op.name());
 			}

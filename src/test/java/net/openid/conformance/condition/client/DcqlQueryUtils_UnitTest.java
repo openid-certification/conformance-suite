@@ -148,6 +148,41 @@ class DcqlQueryUtils_UnitTest {
 		assertFalse(DcqlQueryUtils.isClaimPathPresent(decoded, List.of("address", "region")));
 	}
 
+	@Test
+	void isRequestedPathAncestorOrDescendant_exactMatch() {
+		Set<List<String>> requested = Set.of(List.of("address", "street_address"));
+		assertTrue(DcqlQueryUtils.isRequestedPathAncestorOrDescendant(requested, List.of("address", "street_address")));
+	}
+
+	@Test
+	void isRequestedPathAncestorOrDescendant_ancestorOfRequested() {
+		// Wallet discloses the "address" parent so the requested nested claim can be revealed.
+		Set<List<String>> requested = Set.of(List.of("address", "street_address"));
+		assertTrue(DcqlQueryUtils.isRequestedPathAncestorOrDescendant(requested, List.of("address")));
+	}
+
+	@Test
+	void isRequestedPathAncestorOrDescendant_descendantOfRequested() {
+		// OID4VP §7.3: DCQL path ["address"] selects address with its sub-claims, so a nested
+		// "street_address" disclosure is fulfilling (not over-disclosing) the request.
+		Set<List<String>> requested = Set.of(List.of("address"));
+		assertTrue(DcqlQueryUtils.isRequestedPathAncestorOrDescendant(requested, List.of("address", "street_address")));
+	}
+
+	@Test
+	void isRequestedPathAncestorOrDescendant_unrelatedPath() {
+		Set<List<String>> requested = Set.of(List.of("address"));
+		assertFalse(DcqlQueryUtils.isRequestedPathAncestorOrDescendant(requested, List.of("email")));
+	}
+
+	@Test
+	void isRequestedPathAncestorOrDescendant_siblingNotMatched() {
+		// "address.locality" shares the "address" ancestor with the requested "address.street_address"
+		// but is neither an ancestor nor descendant of it.
+		Set<List<String>> requested = Set.of(List.of("address", "street_address"));
+		assertFalse(DcqlQueryUtils.isRequestedPathAncestorOrDescendant(requested, List.of("address", "locality")));
+	}
+
 	private JsonObject createDcqlWithCredential(String id) {
 		JsonObject dcql = new JsonObject();
 		JsonArray credentials = new JsonArray();
