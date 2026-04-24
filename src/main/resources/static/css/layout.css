@@ -12,28 +12,40 @@ html {
 }
 
 /*
- * Cross-document View Transitions. For same-origin navigations between
- * the suite's static HTML pages, let the browser smoothly cross-fade
- * between documents instead of the hard cut that is the default.
+ * Cross-document View Transitions for paint-holding between pages.
  *
- * Giving cts-navbar a named `view-transition-name` tells the browser
- * to treat the outgoing and incoming navbars as the same element — it
- * morphs between them rather than fading one out and the other in.
- * Combined with cts-navbar's sessionStorage cache of /api/currentuser
- * (so both sides render the same logged-in state from the first paint),
- * the morph is a visual no-op and the navbar appears stationary while
- * the rest of the page cross-fades beneath it.
+ * The cache in cts-navbar.js makes the nav render identically from
+ * first paint, but there is still a brief window between FCP and the
+ * cts-navbar custom-element upgrade where the nav slot is the
+ * invisible 80px reserved by the :not(:defined) fallback — that
+ * window reads as a "blink" when navigating between pages.
  *
- * Graceful fallback: browsers without View Transitions (Firefox,
- * older Safari) use instant navigation, which is what they do today.
- * No JS, no polyfill, strict progressive enhancement.
+ * @view-transition + navigation: auto gives the browser paint-holding:
+ * it freezes the outgoing document on screen until the incoming
+ * document is genuinely ready to paint the full nav, so the handoff
+ * looks continuous.
+ *
+ * We do NOT want the UA's default cross-fade — forcing the old
+ * snapshots to opacity 0 instantly renders the handoff as a hard cut,
+ * not a fade. Without this, the old snapshot sits at opacity 1 behind
+ * the new snapshot, and semi-transparent elements on the new page
+ * (e.g. schedule-test's loading modal backdrop) ghost the old page
+ * through. With it, only the new snapshot is visible during the
+ * transition window, and the effect is indistinguishable from an
+ * instant swap — except the browser had time to paint the full nav
+ * before swapping.
  */
 @view-transition {
 	navigation: auto;
 }
 
-cts-navbar {
-	view-transition-name: site-navbar;
+::view-transition-old(*),
+::view-transition-new(*) {
+	animation: none;
+}
+
+::view-transition-old(*) {
+	opacity: 0;
 }
 
 /*
