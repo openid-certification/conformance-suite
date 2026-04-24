@@ -3,6 +3,7 @@ package net.openid.conformance.condition.client;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 
 import java.util.ArrayList;
@@ -159,6 +160,45 @@ public class DcqlQueryUtils {
 			}
 		}
 		return false;
+	}
+
+	/**
+	 * Return the <code>meta.doctype_value</code> string for a DCQL credential entry, or null
+	 * when either the <code>meta</code> object or the <code>doctype_value</code> member is absent.
+	 */
+	public static String extractMdocDoctypeValue(JsonObject credential) {
+		JsonElement metaEl = credential.get("meta");
+		if (metaEl == null || !metaEl.isJsonObject()) {
+			return null;
+		}
+		JsonElement valueEl = metaEl.getAsJsonObject().get("doctype_value");
+		if (valueEl == null) {
+			return null;
+		}
+		return OIDFJSON.getString(valueEl);
+	}
+
+	/**
+	 * Read the <code>mdoc.disclosed_elements</code> object from the environment and flatten it into
+	 * a set of <code>[namespace, elementIdentifier]</code> paths for comparison against DCQL claim paths.
+	 */
+	public static Set<List<String>> extractDisclosedMdocPaths(Environment env) {
+		Set<List<String>> paths = new HashSet<>();
+		JsonElement disclosedEl = env.getElementFromObject("mdoc", "disclosed_elements");
+		if (disclosedEl == null || !disclosedEl.isJsonObject()) {
+			return paths;
+		}
+		for (var entry : disclosedEl.getAsJsonObject().entrySet()) {
+			String namespace = entry.getKey();
+			JsonElement namesEl = entry.getValue();
+			if (!namesEl.isJsonArray()) {
+				continue;
+			}
+			for (JsonElement nameEl : namesEl.getAsJsonArray()) {
+				paths.add(List.of(namespace, OIDFJSON.getString(nameEl)));
+			}
+		}
+		return paths;
 	}
 
 	/**

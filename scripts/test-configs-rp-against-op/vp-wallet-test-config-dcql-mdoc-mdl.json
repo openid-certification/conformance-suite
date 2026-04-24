@@ -1,6 +1,6 @@
 {
     "alias": "oidf-vp-test-verifier",
-    "description": "OID4VP RP against OP (wallet test - DCQL - mdoc negative - invalid session transcript)",
+    "description": "OID4VP RP against OP (wallet test - DCQL - mdoc mDL)",
     "server": {
         "authorization_endpoint": "{BASEURL}test/a/oidf-vp-test-wallet/authorize"
     },
@@ -22,13 +22,13 @@
                         {
                             "path": [
                                 "org.iso.18013.5.1",
-                                "document_number"
+                                "family_name"
                             ]
                         },
                         {
                             "path": [
                                 "org.iso.18013.5.1",
-                                "birth_date"
+                                "given_name"
                             ]
                         }
                     ]

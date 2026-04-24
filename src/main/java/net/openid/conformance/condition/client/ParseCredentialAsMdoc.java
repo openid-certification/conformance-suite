@@ -1,5 +1,6 @@
 package net.openid.conformance.condition.client;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.nimbusds.jose.jwk.JWK;
 import com.nimbusds.jose.util.Base64URL;
@@ -24,7 +25,7 @@ import java.util.Set;
 public class ParseCredentialAsMdoc extends AbstractCondition {
 	@Override
 	@PreEnvironment(strings = { "credential", "session_transcript" })
-	@PostEnvironment(strings = { "mdoc_credential_cbor" })
+	@PostEnvironment(required = { "mdoc" }, strings = { "mdoc_credential_cbor" })
 	public Environment evaluate(Environment env) {
 		// as per ISO 18013-7, vp_token is a base64url-encoded-without-padding DeviceResponse data structure as defined in ISO/IEC 18013-5.
 		String mdocBase64 = env.getString("credential");
@@ -97,7 +98,24 @@ public class ParseCredentialAsMdoc extends AbstractCondition {
 				args("cbor_diagnostic", diagnostics));
 		}
 
-		logSuccess("Parsed mdoc & validated issuer-signed and device-signed data", args("cbor_diagnostic", diagnostics));
+		DeviceResponseParser.Document doc = docs.get(0);
+		JsonObject disclosedElements = new JsonObject();
+		for (String namespace : doc.getIssuerNamespaces()) {
+			JsonArray elementNames = new JsonArray();
+			for (String elementName : doc.getIssuerEntryNames(namespace)) {
+				elementNames.add(elementName);
+			}
+			disclosedElements.add(namespace, elementNames);
+		}
+		JsonObject mdoc = new JsonObject();
+		mdoc.addProperty("docType", doc.getDocType());
+		mdoc.add("disclosed_elements", disclosedElements);
+		env.putObject("mdoc", mdoc);
+
+		logSuccess("Parsed mdoc & validated issuer-signed and device-signed data",
+			args("cbor_diagnostic", diagnostics,
+				"docType", doc.getDocType(),
+				"disclosed_elements", disclosedElements));
 
 		return env;
 	}
