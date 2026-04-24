@@ -16,6 +16,9 @@ public abstract class AbstractSetAuthzenApiEndpoint extends AbstractCondition {
 			endpointUrl += "access/v1/";
 
 			switch (endpointConfigPath) {
+				case "access_evaluation_endpoint":
+					endpointUrl += "evaluation";
+					break;
 				case "access_evaluations_endpoint":
 					endpointUrl += "evaluations";
 					break;
