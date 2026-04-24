@@ -50,11 +50,19 @@ public class CreateClientAttestationProofJwt extends AbstractSignJWT {
 			claims.addProperty("challenge", attestationChallenge);
 		}
 
+		customizeClaims(claims);
+
 		JsonObject jwks = JWKUtil.createJwksObjectFromJwkObjects(JsonParser.parseString(clientInstanceKey).getAsJsonObject());
 
 		signJWT(env, claims, jwks, true);
 
 		return env;
+	}
+
+	/**
+	 * Hook for negative tests to tweak the claims before signing.
+	 */
+	protected void customizeClaims(JsonObject claims) {
 	}
 
 	@Override

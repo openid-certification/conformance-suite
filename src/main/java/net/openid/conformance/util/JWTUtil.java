@@ -54,6 +54,34 @@ public class JWTUtil {
 	}
 
 	/**
+	 * Validates an 'nbf' (Not Before) claim value per RFC 7519.
+	 * Checks that the value is a number, not before 2024 (catches millisecond timestamps and
+	 * epoch-default bugs), and not in the future (with 5 minutes clock skew tolerance).
+	 *
+	 * @param nbf the raw claim value from the JWT payload (may be null)
+	 * @return the validated timestamp in seconds, or -1 if nbf is null (not present)
+	 * @throws IllegalArgumentException if the value is not a number, out of range, or in the future
+	 */
+	public static long validateNbfClaim(Object nbf) {
+		if (nbf == null) {
+			return -1;
+		}
+		if (!(nbf instanceof Number)) {
+			throw new IllegalArgumentException("'nbf' claim is not a number");
+		}
+		long nbfValue = ((Number) nbf).longValue();
+		if (nbfValue < MIN_REASONABLE_TIMESTAMP) {
+			throw new IllegalArgumentException("'nbf' claim value " + nbfValue
+				+ " is too far in the past (this may indicate the value is not a unix timestamp in seconds)");
+		}
+		long nowSeconds = System.currentTimeMillis() / 1000L;
+		if (nbfValue > nowSeconds + CLOCK_SKEW_SECONDS) {
+			throw new IllegalArgumentException("'nbf' claim value " + nbfValue + " is in the future (now: " + nowSeconds + ")");
+		}
+		return nbfValue;
+	}
+
+	/**
 	 * Validates an 'exp' (Expiration Time) claim value per RFC 7519.
 	 * Checks that the value is a number, not more than 50 years in the future (catches millisecond timestamps),
 	 * and not in the past (with 5 minutes clock skew tolerance).
