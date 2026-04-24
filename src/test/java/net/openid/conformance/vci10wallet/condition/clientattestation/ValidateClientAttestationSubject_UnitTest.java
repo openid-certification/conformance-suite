@@ -34,6 +34,8 @@ public class ValidateClientAttestationSubject_UnitTest {
 	}
 
 	private void setupEnv(String attestationSub, String popIss) {
+		env.putString("client", "client_id", CLIENT_ID);
+
 		JsonObject attestationClaims = new JsonObject();
 		if (attestationSub != null) {
 			attestationClaims.addProperty("sub", attestationSub);
@@ -64,6 +66,12 @@ public class ValidateClientAttestationSubject_UnitTest {
 	}
 
 	@Test
+	public void testEvaluate_subMatchesPopIssButNotSelectedClientFails() {
+		setupEnv("other_client_id", "other_client_id");
+		assertThrows(ConditionError.class, () -> cond.execute(env));
+	}
+
+	@Test
 	public void testEvaluate_missingSubFails() {
 		setupEnv(null, CLIENT_ID);
 		assertThrows(ConditionError.class, () -> cond.execute(env));
@@ -77,6 +85,7 @@ public class ValidateClientAttestationSubject_UnitTest {
 
 	@Test
 	public void testEvaluate_missingClientAttestationObjectFails() {
+		env.putString("client", "client_id", CLIENT_ID);
 		JsonObject pop = new JsonObject();
 		pop.add("claims", new JsonObject());
 		env.putObject("client_attestation_pop_object", pop);
@@ -85,11 +94,29 @@ public class ValidateClientAttestationSubject_UnitTest {
 
 	@Test
 	public void testEvaluate_missingClientAttestationPopObjectFails() {
+		env.putString("client", "client_id", CLIENT_ID);
 		JsonObject attestation = new JsonObject();
 		JsonObject attestationClaims = new JsonObject();
 		attestationClaims.addProperty("sub", CLIENT_ID);
 		attestation.add("claims", attestationClaims);
 		env.putObject("client_attestation_object", attestation);
+		assertThrows(ConditionError.class, () -> cond.execute(env));
+	}
+
+	@Test
+	public void testEvaluate_missingClientFails() {
+		JsonObject attestationClaims = new JsonObject();
+		attestationClaims.addProperty("sub", CLIENT_ID);
+		JsonObject attestation = new JsonObject();
+		attestation.add("claims", attestationClaims);
+		env.putObject("client_attestation_object", attestation);
+
+		JsonObject popClaims = new JsonObject();
+		popClaims.addProperty("iss", CLIENT_ID);
+		JsonObject pop = new JsonObject();
+		pop.add("claims", popClaims);
+		env.putObject("client_attestation_pop_object", pop);
+
 		assertThrows(ConditionError.class, () -> cond.execute(env));
 	}
 }

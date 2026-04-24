@@ -849,10 +849,10 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 
 
 	/**
-	 * If client2 is configured, check the client_id on the token request and switch
-	 * to the matching client config. Always resets to client1 first to handle repeated calls.
+	 * If client2 is configured, inspect the authenticated request and switch to the matching
+	 * client config. Always resets to client1 first to handle repeated calls.
 	 */
-	protected void switchToMatchingClientForTokenEndpoint() {
+	protected void switchToMatchingClientForRequest(String requestObjectKey) {
 		unmapClient();
 
 		JsonObject client2 = env.getObject("client2");
@@ -860,11 +860,11 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 			return;
 		}
 
-		String requestClientId = env.getString("token_endpoint_request", "body_form_params.client_id");
+		String requestClientId = env.getString(requestObjectKey, "body_form_params.client_id");
 
 		// For client_attestation, client_id is in the attestation PoP JWT's "iss" claim
 		if (requestClientId == null && clientAuthType == ClientAuthType.CLIENT_ATTESTATION) {
-			String popHeader = env.getString("token_endpoint_request", "headers.oauth-client-attestation-pop");
+			String popHeader = env.getString(requestObjectKey, "headers.oauth-client-attestation-pop");
 			if (popHeader != null) {
 				try {
 					SignedJWT popJwt = SignedJWT.parse(popHeader);
@@ -2045,6 +2045,8 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 	protected void authenticateParEndpointRequest(String requestId) {
 		call(exec().mapKey("token_endpoint_request", requestId));
 
+		switchToMatchingClientForRequest(requestId);
+
 		if (clientAuthType == ClientAuthType.MTLS || profileRequiresMtlsEverywhere) {
 			// there is generally no requirement to present an MTLS certificate at the PAR endpoint when using private_key_jwt.
 			// (This differs to the token endpoint, where an MTLS certificate must always be presented, as one is
@@ -2211,7 +2213,7 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 		}
 
 		// If client2 is configured, check if the incoming request is from client2 and switch
-		switchToMatchingClientForTokenEndpoint();
+		switchToMatchingClientForRequest(requestId);
 
 		callAndStopOnFailure(CheckClientIdMatchesOnTokenRequestIfPresent.class, ConditionResult.FAILURE, "RFC6749-3.2.1");
 
