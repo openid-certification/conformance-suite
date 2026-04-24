@@ -1,3 +1,72 @@
+/*
+ * Reserve the scrollbar gutter permanently. Bootstrap modals briefly
+ * set `body { overflow: hidden }` when shown and add padding-right to
+ * compensate for the disappearing scrollbar. Reserving the gutter on
+ * <html> keeps scrollbar-width space stable across that transition,
+ * which avoids any horizontal layout shift the modal lifecycle could
+ * otherwise produce. Broadly useful beyond this codebase — prevents
+ * scrollbar-appearance CLS on any long page that briefly shrinks.
+ */
+html {
+	scrollbar-gutter: stable;
+}
+
+/*
+ * cts-* FOUC fallback: hide or reserve space for every web-component host
+ * until its definition is registered with `customElements.define(...)`.
+ * Without this, first paint shows zero-height hosts (cts-navbar) or raw
+ * pre-upgrade modal children (cts-modal's spinner, error text, config form)
+ * that get laid out, then re-laid-out when the component upgrades — a
+ * large Cumulative Layout Shift.
+ *
+ * Three regimes:
+ *  - visibility: hidden  — reserves layout for inline-flow primitives
+ *                          (cts-button, cts-link-button, cts-badge,
+ *                          cts-icon). These flow inline with surrounding
+ *                          text/content and visibility:hidden preserves
+ *                          their inline box dimensions.
+ *  - display: block + min-height — for block-level hosts whose height
+ *                          must be reserved. cts-navbar is ~80px tall
+ *                          post-upgrade; without `display: block`,
+ *                          `visibility: hidden` on an inline-default
+ *                          custom element does NOT reserve vertical
+ *                          space, so slow-to-upgrade pages (large inline
+ *                          scripts, many blocking resources) shift
+ *                          everything below the navbar down by its full
+ *                          height when the component finally defines.
+ *  - display: none       — takes no space pre-upgrade. Used only for
+ *                          cts-modal, whose raw pre-upgrade children
+ *                          (spinner, error text) should never appear in
+ *                          the document flow; post-upgrade the Bootstrap
+ *                          .modal wrapper itself is display:none so the
+ *                          effective layout does not change.
+ *
+ * Components deliberately NOT listed here:
+ *  - cts-alert, cts-tabs, cts-tab-panel: their post-upgrade layout can be
+ *    smaller than pre-upgrade (an alert may not render at all, tabs show
+ *    only one panel). Hiding them pre-upgrade with display:none causes a
+ *    larger 0 -> full-height shift on definition than allowing the raw
+ *    children to flow. They rely on modulepreload to upgrade before
+ *    first paint instead.
+ */
+cts-button:not(:defined),
+cts-link-button:not(:defined),
+cts-badge:not(:defined),
+cts-icon:not(:defined) {
+	visibility: hidden;
+}
+
+cts-navbar:not(:defined) {
+	visibility: hidden;
+	display: block;
+	/* 50px content + 10px bottom padding + 20px margin-bottom = 80px */
+	min-height: 80px;
+}
+
+cts-modal:not(:defined) {
+	display: none;
+}
+
 /** Generic styles **/
 body {
 	font-family: 'PT Sans', sans-serif;
