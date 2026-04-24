@@ -33,7 +33,17 @@ public class AddOptionalNonMatchingCredentialToDcqlQuery extends AbstractConditi
 		}
 
 		JsonArray credentials = dcqlQuery.getAsJsonArray("credentials");
-		String originalId = OIDFJSON.getString(credentials.get(0).getAsJsonObject().get("id"));
+		JsonObject originalCredential = credentials.get(0).getAsJsonObject();
+		String originalId = OIDFJSON.getString(originalCredential.get("id"));
+
+		// The fake credential below is built for SD-JWT VC (uses "vct_values"). Other credential
+		// formats (e.g. mdoc uses "doctype_value") would require a different meta shape, so refuse
+		// to produce silently-malformed DCQL.
+		String originalFormat = OIDFJSON.getString(originalCredential.get("format"));
+		if (!"dc+sd-jwt".equals(originalFormat)) {
+			throw error("Only dc+sd-jwt credentials are supported when adding an optional non-matching credential",
+				args("format", originalFormat, "dcql_query", dcqlQuery));
+		}
 
 		// Add a fake credential entry that can never match
 		String fakeId = "nonexistent_credential";
