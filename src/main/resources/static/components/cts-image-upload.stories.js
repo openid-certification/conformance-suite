@@ -14,8 +14,8 @@ const MOCK_PENDING_IMAGES = [
 ];
 
 const MOCK_EXISTING_IMAGES = [
-  { name: "screenshot-result", url: "images/placeholder.png" },
-  { name: "screenshot-token", url: "images/placeholder.png" },
+  { name: "screenshot-result", url: "images/placeholder.jpg" },
+  { name: "screenshot-token", url: "images/placeholder.jpg" },
 ];
 
 // --- Stories ---
@@ -110,7 +110,7 @@ export const ExistingImages = {
     const imgs = canvasElement.querySelectorAll('[data-testid="existing-image"] img');
     expect(imgs.length).toBe(2);
     for (const img of imgs) {
-      expect(img.getAttribute("src")).toBe("images/placeholder.png");
+      expect(img.getAttribute("src")).toBe("images/placeholder.jpg");
     }
 
     // "All images uploaded" message shown since no pending images
