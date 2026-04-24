@@ -17,11 +17,12 @@ import net.openid.conformance.vci10issuer.condition.VciErrorCode;
 @PublishTestModule(
 	testName = "oid4vci-1_0-issuer-fail-invalid-key-attestation-signature",
 	displayName = "OID4VCI 1.0: Issuer fail on invalid key attestation signature",
-	summary = "This test case checks for proper error handling when a key attestation with an invalid signature is submitted. " +
-		"The test sends a credential request with a key attestation JWT where the signature has been modified to be invalid. " +
-		"The issuer must reject this request with an invalid_proof error. " +
-		"Note: This test only runs when key attestation is required by the credential configuration. " +
-		"If key attestation is not required, the test will be skipped.",
+	summary = """
+		This test case checks for proper error handling when a key attestation with an invalid signature is submitted. \
+		The test sends a credential request with a key attestation JWT where the signature has been modified to be invalid. \
+		The issuer must reject this request with an invalid_proof error. \
+		Note: This test only runs when key attestation is required by the credential configuration. \
+		If key attestation is not required, the test will be skipped.""",
 	profile = "OID4VCI-1_0"
 )
 public class VCIIssuerFailOnInvalidKeyAttestationSignature extends AbstractVCIIssuerTestModule {
