@@ -47,6 +47,7 @@ import net.openid.conformance.condition.as.SetRsaAltServerJwks;
 import net.openid.conformance.condition.as.SetTokenEndpointAuthMethodsSupportedToPrivateKeyJWTOnly;
 import net.openid.conformance.condition.as.ValidateFAPIInteractionIdInResourceRequest;
 import net.openid.conformance.condition.as.ValidateRefreshToken;
+import net.openid.conformance.condition.as.ValidateRequestObjectMaxAge;
 import net.openid.conformance.condition.as.ValidateRequestObjectSignature;
 import net.openid.conformance.condition.client.AddCibaTokenDeliveryModePingToTokenDeliveryModesSupported;
 import net.openid.conformance.condition.client.ExtractJWKsFromStaticClientConfiguration;
@@ -755,6 +756,7 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 		validateRequestObjectCommonChecks();
 
 		callAndStopOnFailure(ValidateBackchannelRequestObjectClaims.class);
+		callAndStopOnFailure(ValidateRequestObjectMaxAge.class, "OIDCC-13.3");
 		callAndStopOnFailure(ValidateBackchannelRequestObjectSigningAlgMatchesSupported.class, "CIBA-4");
 
 		env.mapKey("authorization_endpoint_http_request_params", "backchannel_endpoint_http_request_params");

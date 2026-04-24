@@ -130,6 +130,7 @@ import net.openid.conformance.condition.as.ValidateFAPIInteractionIdInResourceRe
 import net.openid.conformance.condition.as.ValidateRedirectUri;
 import net.openid.conformance.condition.as.ValidateRefreshToken;
 import net.openid.conformance.condition.as.ValidateRequestObjectClaims;
+import net.openid.conformance.condition.as.ValidateRequestObjectMaxAge;
 import net.openid.conformance.condition.as.ValidateRequestObjectSignature;
 import net.openid.conformance.condition.as.jarm.GenerateJARMResponseClaims;
 import net.openid.conformance.condition.as.jarm.SendJARMResponseWitResponseModeQuery;
@@ -1472,6 +1473,7 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 			callAndContinueOnFailure(FAPI1AdvancedValidateRequestObjectNBFClaim.class, ConditionResult.FAILURE, "FAPI2-MS-ID1-5.3.1-3");
 		}
 		callAndStopOnFailure(ValidateRequestObjectClaims.class);
+		callAndStopOnFailure(ValidateRequestObjectMaxAge.class, "OIDCC-13.3");
 		callAndContinueOnFailure(EnsureNumericRequestObjectClaimsAreNotNull.class, Condition.ConditionResult.WARNING, "OIDCC-13.3");
 		callAndContinueOnFailure(EnsureRequestObjectDoesNotContainRequestOrRequestUri.class, ConditionResult.FAILURE, "OIDCC-6.1");
 		callAndContinueOnFailure(EnsureRequestObjectDoesNotContainSubWithClientId.class, ConditionResult.FAILURE, "JAR-10.8");
