@@ -139,6 +139,7 @@ public class AssetSharing {
 		String supplementalMessage = keyManager.privateLinkKeyWasConfigured() ? "" : "INFO: This link will be invalidated on a server restart";
 		return Map.of(
 			"link", baseURL + "/login.html?token=" + oneTimeToken.getTokenValue(),
+			"token", oneTimeToken.getTokenValue(),
 			"message", supplementalMessage);
 	}
 

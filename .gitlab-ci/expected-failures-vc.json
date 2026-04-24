@@ -232,5 +232,14 @@
         "condition": "WarnMockWalletResponse",
         "expected-result": "failure",
         "comment": "Mock wallet response used for DC API integration testing - not testing a real wallet"
+    },
+    {
+        "test-name": "oid4vci-1_0-wallet-test-credential-issuance",
+        "variant": "*",
+        "configuration-filename": "*vci-wallet-test-config.json",
+        "current-block": "Credential endpoint",
+        "condition": "CheckForUnexpectedParametersInCredentialRequest",
+        "expected-result": "warning",
+        "comment": "The test suite warns about unexpected parameters in credential requests, which are deliberately sent by the issuer test."
     }
 ]

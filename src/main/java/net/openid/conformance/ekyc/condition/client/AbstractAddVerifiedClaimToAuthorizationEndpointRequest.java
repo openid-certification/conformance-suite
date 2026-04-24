@@ -31,7 +31,7 @@ public abstract class AbstractAddVerifiedClaimToAuthorizationEndpointRequest ext
 			} else if(verifiedClaimsNamesElement.isJsonPrimitive()) {
 				verifiedClaimsNamesArray = OIDFJSON.packJsonElementIntoJsonArray(verifiedClaimsNamesElement);
 			} else {
-				throw error("ekyc.verified_claims_names is not JSON array or primitive", args("ekyc.verified_claims_names", verifiedClaimsNamesElement));
+				throw error("ekyc.verified_claims_names is not JSON array or primitive", args("verified_claims_names", verifiedClaimsNamesElement));
 			}
 			for(JsonElement claimName : verifiedClaimsNamesArray) {
 				if(!verifiedClaimsSupportedList.contains(claimName)) {

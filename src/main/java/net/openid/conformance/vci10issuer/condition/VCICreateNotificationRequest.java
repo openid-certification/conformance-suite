@@ -31,7 +31,7 @@ public class VCICreateNotificationRequest extends AbstractCondition {
 
 	@Override
 	@PreEnvironment(strings = "notification_id")
-	@PostEnvironment(strings = "resource_request_entity")
+	@PostEnvironment(strings = "resource_request_entity", required = "notification_request_body")
 	public Environment evaluate(Environment env) {
 
 		String notificationId = env.getString("notification_id");
@@ -45,6 +45,7 @@ public class VCICreateNotificationRequest extends AbstractCondition {
 
 		String requestBodyString = requestBody.toString();
 		env.putString("resource_request_entity", requestBodyString);
+		env.putObject("notification_request_body", requestBody);
 
 		logSuccess("Created notification request",
 			args("request_body", requestBody, "event", event, "notification_id", notificationId));

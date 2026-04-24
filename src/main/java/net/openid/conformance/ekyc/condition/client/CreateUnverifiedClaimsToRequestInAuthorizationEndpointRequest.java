@@ -84,7 +84,7 @@ public class CreateUnverifiedClaimsToRequestInAuthorizationEndpointRequest exten
 				requestedUnverifiedClaimsList = new JsonArray();
 				requestedUnverifiedClaimsList.add(unverifiedClaimsElement);
 			} else {
-				throw error("ekyc.unverified_claims_names is not JSON array or primitive", args("ekyc.unverified_claims_names", unverifiedClaimsElement));
+				throw error("ekyc.unverified_claims_names is not JSON array or primitive", args("unverified_claims_names", unverifiedClaimsElement));
 			}
 		} else {
 			requestedUnverifiedClaimsList = claimsSupportedArray;  // use claims from claims_supported

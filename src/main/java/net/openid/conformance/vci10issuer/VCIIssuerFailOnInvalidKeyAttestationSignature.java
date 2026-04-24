@@ -7,6 +7,8 @@ import net.openid.conformance.vci10issuer.condition.VCIInvalidateKeyAttestationS
 import net.openid.conformance.vci10issuer.condition.VCIValidateCredentialErrorResponse;
 import net.openid.conformance.vci10issuer.condition.VciErrorCode;
 
+import java.util.List;
+
 /**
  * Negative test that verifies the issuer properly rejects key attestations with invalid signatures.
  * This test invalidates the signature on the key attestation JWT and expects the issuer to
@@ -25,6 +27,15 @@ import net.openid.conformance.vci10issuer.condition.VciErrorCode;
 	profile = "OID4VCI-1_0"
 )
 public class VCIIssuerFailOnInvalidKeyAttestationSignature extends AbstractVCIIssuerTestModule {
+
+	@Override
+	protected List<String> getRequiredProofTypes() {
+		// Prefer a proof_type=attestation entry when the issuer offers both, but fall back to
+		// proof_type=jwt (the start() skip logic below still enforces key_attestations_required
+		// for the jwt case, so the test only runs when key-attestation-signature validation is
+		// actually in scope).
+		return List.of("attestation", "jwt");
+	}
 
 	@Override
 	public void start() {

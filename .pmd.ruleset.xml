@@ -134,4 +134,30 @@
 					  value="ancestor::ClassOrInterfaceBodyDeclaration/Annotation/MarkerAnnotation/Name[@Image='PostConstruct']" />
 		</properties>
 	</rule>
+
+	<!--
+		Reject '.' in args() map keys. args() takes (key, value, key, value, ...); a string
+		literal at an even-indexed position (1st, 3rd, ... in 1-based XPath) is a map key.
+		Dotted map keys crash Spring Data's MappingMongoConverter with "Map key X contains
+		dots but no replacement was configured" when the log payload is inserted into MongoDB.
+		Use '_' instead (or restructure the args).
+	-->
+	<rule name="NoDottedKeysInArgsCall"
+		  language="java"
+		  message="args(...) map keys must not contain '.': MongoDB/MappingMongoConverter rejects dotted map keys."
+		  class="net.sourceforge.pmd.lang.rule.xpath.XPathRule">
+		<description>
+			Catches every string literal in a key position of an args(...) call, at any
+			nesting depth or line layout — closes the gaps the simpler Checkstyle regex
+			has (same-line only, first key only).
+		</description>
+		<priority>3</priority>
+		<properties>
+			<property name="xpath">
+				<value><![CDATA[
+//MethodCall[@MethodName='args']/ArgumentList/*[position() mod 2 = 1][self::StringLiteral][contains(@Image, '.')]
+]]></value>
+			</property>
+		</properties>
+	</rule>
 </ruleset>

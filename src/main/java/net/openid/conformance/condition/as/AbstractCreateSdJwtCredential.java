@@ -3,7 +3,9 @@ package net.openid.conformance.condition.as;
 import com.authlete.sd.Disclosure;
 import com.authlete.sd.SDJWT;
 import com.authlete.sd.SDObjectBuilder;
+import com.google.gson.Gson;
 import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JOSEObjectType;
 import com.nimbusds.jose.JWSAlgorithm;
@@ -16,6 +18,7 @@ import com.nimbusds.jose.produce.JWSSignerFactory;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import net.openid.conformance.condition.AbstractCondition;
+import net.openid.conformance.condition.client.DcqlQueryUtils;
 import net.openid.conformance.condition.client.ValidateSdJwtKbSdHash;
 import net.openid.conformance.extensions.MultiJWSSignerFactory;
 import net.openid.conformance.testmodule.Environment;
@@ -26,12 +29,19 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Deque;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public abstract class AbstractCreateSdJwtCredential extends AbstractCondition {
+
+	private static final Gson gson = new Gson();
 
 	protected final Map<String, Object> additionalClaims;
 
@@ -179,22 +189,96 @@ public abstract class AbstractCreateSdJwtCredential extends AbstractCondition {
 			throw error("Failed to sign SD-JWT credential", e, args("signing_jwk", credentialSigningJwkEl));
 		}
 
+		// Filter disclosures to only include claims requested in the DCQL query (data minimization)
+		List<Disclosure> filteredDisclosures = filterDisclosuresToDcqlRequest(env, disclosures);
+
 		String bindingJwt = null;
 
 		if (privateKey != null) {
 			String aud = env.getString("client", "client_id");
 			String sd_hash = null;
 			try {
-				sd_hash = ValidateSdJwtKbSdHash.getCalculatedSdHash(new SDJWT(jwt.serialize(), disclosures).toString());
+				sd_hash = ValidateSdJwtKbSdHash.getCalculatedSdHash(new SDJWT(jwt.serialize(), filteredDisclosures).toString());
 			} catch (NoSuchAlgorithmException e) {
 				throw error("Failed to create hash", e);
 			}
 			String nonce = env.getString("nonce");
 			bindingJwt = keyBindingJwt(privateKey, aud, nonce, sd_hash);
 		}
-		SDJWT sdJwt = new SDJWT(jwt.serialize(), disclosures, bindingJwt);
+		SDJWT sdJwt = new SDJWT(jwt.serialize(), filteredDisclosures, bindingJwt);
 
 		return sdJwt.toString();
+	}
+
+	/**
+	 * Filter disclosures to only include claims requested in the DCQL query.
+	 * If no DCQL query is present, returns all disclosures. If the DCQL credential
+	 * query omits claims entirely, returns no selectively-disclosable claims.
+	 *
+	 * Reachability-based: starts from object property disclosures whose claim name is
+	 * requested, then transitively keeps any nested SD claim or array element disclosure
+	 * referenced from a kept disclosure's value. Array element disclosures whose parent
+	 * was filtered out are dropped, since leaking them without their parent is itself an
+	 * over-disclosure.
+	 */
+	private List<Disclosure> filterDisclosuresToDcqlRequest(Environment env, List<Disclosure> disclosures) {
+		JsonObject dcqlQuery = env.getObject(ExtractDCQLQueryFromAuthorizationRequest.ENV_KEY);
+		if (dcqlQuery == null) {
+			// No DCQL in env: VCI issuance flows have no presentation request, and VPID3 with the
+			// Presentation Exchange query language never extracts a DCQL object. Return the full set.
+			return disclosures;
+		}
+
+		// TODO: This currently inherits DcqlQueryUtils' "flatten all claims" behavior and therefore
+		// does not yet minimize disclosures based on DCQL claim_sets semantics.
+		Set<String> requestedClaims = DcqlQueryUtils.extractRequestedClaimNames(dcqlQuery);
+
+		if (requestedClaims.isEmpty()) {
+			log("DCQL query did not request any claims, omitting all selectively-disclosable disclosures",
+				args("total_disclosures", disclosures.size()));
+			return List.of();
+		}
+
+		Map<String, Disclosure> byDigest = new HashMap<>();
+		for (Disclosure d : disclosures) {
+			byDigest.put(d.digest(), d);
+		}
+
+		Set<Disclosure> kept = new LinkedHashSet<>();
+		Deque<Disclosure> toScan = new ArrayDeque<>();
+		for (Disclosure d : disclosures) {
+			String claimName = d.getClaimName();
+			if (claimName != null && requestedClaims.contains(claimName)) {
+				kept.add(d);
+				toScan.add(d);
+			}
+		}
+
+		while (!toScan.isEmpty()) {
+			Disclosure current = toScan.poll();
+			Set<String> referencedDigests = new HashSet<>();
+			DcqlQueryUtils.collectReferencedDigests(gson.toJsonTree(current.getClaimValue()), referencedDigests);
+			for (String digest : referencedDigests) {
+				Disclosure child = byDigest.get(digest);
+				if (child != null && kept.add(child)) {
+					toScan.add(child);
+				}
+			}
+		}
+
+		List<Disclosure> filtered = new ArrayList<>();
+		for (Disclosure d : disclosures) {
+			if (kept.contains(d)) {
+				filtered.add(d);
+			}
+		}
+
+		log("Filtered SD-JWT disclosures to DCQL requested claims",
+			args("requested_claims", requestedClaims,
+				"total_disclosures", disclosures.size(),
+				"filtered_disclosures", filtered.size()));
+
+		return filtered;
 	}
 
 	private JWSAlgorithm getSigningAlgorithm(JWK signingJwk) {

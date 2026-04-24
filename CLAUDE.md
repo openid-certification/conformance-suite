@@ -281,6 +281,8 @@ When asked to review a commit or branch, structure the review by file and call o
 
 When making multi-file changes or library upgrades, create separate atomic commits per logical change. Before committing, verify the build passes for each commit independently.
 
+If the change closes or fixes a GitLab issue — either one the user named when asking for the work, or one that's obviously the driver from the context — end the commit message with a trailer line like `Closes #1650` or `Fixes #1650` (just the `#N`, not a URL). GitLab auto-closes the issue when the MR merges. If the connection to an issue isn't obvious, ask rather than guess.
+
 ## Test Naming Convention
 
 Unit test files follow the pattern `*_UnitTest.java` (e.g., `MyCondition_UnitTest.java`).

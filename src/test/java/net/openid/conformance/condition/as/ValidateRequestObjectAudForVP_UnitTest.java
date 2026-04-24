@@ -18,6 +18,8 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 @ExtendWith(MockitoExtension.class)
 public class ValidateRequestObjectAudForVP_UnitTest {
 
+	private static final String WALLET_ISSUER = "https://wallet.example.com/issuer";
+
 	@Spy
 	private Environment env = new Environment();
 
@@ -30,6 +32,10 @@ public class ValidateRequestObjectAudForVP_UnitTest {
 	public void setUp() throws Exception {
 		cond = new ValidateRequestObjectAudForVP();
 		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
+
+		JsonObject server = new JsonObject();
+		server.addProperty("issuer", WALLET_ISSUER);
+		env.putObject("server", server);
 	}
 
 	@Test
@@ -43,12 +49,9 @@ public class ValidateRequestObjectAudForVP_UnitTest {
 	}
 
 	@Test
-	public void testEvaluate_audIsVerifierBaseUrl() {
-		String verifierUrl = "https://example.com/verifier";
-		env.putString("base_url", verifierUrl);
-
+	public void testEvaluate_audIsWalletIssuer() {
 		JsonObject reqObj = JsonParser.parseString(
-			"{\"claims\": {\"aud\": \"" + verifierUrl + "\"}}"
+			"{\"claims\": {\"aud\": \"" + WALLET_ISSUER + "\"}}"
 		).getAsJsonObject();
 		env.putObject("authorization_request_object", reqObj);
 
@@ -66,12 +69,9 @@ public class ValidateRequestObjectAudForVP_UnitTest {
 	}
 
 	@Test
-	public void testEvaluate_audIsArrayContainingVerifierUrl() {
-		String verifierUrl = "https://example.com/verifier";
-		env.putString("base_url", verifierUrl);
-
+	public void testEvaluate_audIsArrayContainingWalletIssuer() {
 		JsonObject reqObj = JsonParser.parseString(
-			"{\"claims\": {\"aud\": [\"https://other.example.com\", \"" + verifierUrl + "\"]}}"
+			"{\"claims\": {\"aud\": [\"https://other.example.com\", \"" + WALLET_ISSUER + "\"]}}"
 		).getAsJsonObject();
 		env.putObject("authorization_request_object", reqObj);
 
@@ -79,9 +79,20 @@ public class ValidateRequestObjectAudForVP_UnitTest {
 	}
 
 	@Test
-	public void testEvaluate_audIsUnrecognizedString() {
+	public void testEvaluate_audIsBaseUrl() {
+		// Regression test for #1762: the verifier's base URL is NOT a valid aud per OID4VP §5.8.
 		env.putString("base_url", "https://example.com/verifier");
 
+		JsonObject reqObj = JsonParser.parseString(
+			"{\"claims\": {\"aud\": \"https://example.com/verifier\"}}"
+		).getAsJsonObject();
+		env.putObject("authorization_request_object", reqObj);
+
+		assertThrows(ConditionError.class, () -> cond.execute(env));
+	}
+
+	@Test
+	public void testEvaluate_audIsUnrecognizedString() {
 		JsonObject reqObj = JsonParser.parseString(
 			"{\"claims\": {\"aud\": \"https://unknown.example.com\"}}"
 		).getAsJsonObject();
@@ -102,8 +113,6 @@ public class ValidateRequestObjectAudForVP_UnitTest {
 
 	@Test
 	public void testEvaluate_audIsArrayWithNoRecognizedValues() {
-		env.putString("base_url", "https://example.com/verifier");
-
 		JsonObject reqObj = JsonParser.parseString(
 			"{\"claims\": {\"aud\": [\"https://unknown1.example.com\", \"https://unknown2.example.com\"]}}"
 		).getAsJsonObject();
