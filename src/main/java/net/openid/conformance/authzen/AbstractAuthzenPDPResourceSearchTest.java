@@ -4,6 +4,12 @@ import com.google.gson.JsonObject;
 import net.openid.conformance.authzen.condition.CreateAuthzenResourceSearchApiRequestSteps;
 import net.openid.conformance.authzen.condition.SetAuthzenApiEndpointToResourceSearchEndpoint;
 import net.openid.conformance.sequence.ConditionSequence;
+import net.openid.conformance.variant.PDPServerMetadata;
+import net.openid.conformance.variant.VariantConfigurationFields;
+
+@VariantConfigurationFields(parameter = PDPServerMetadata.class, value = "static", configurationFields = {
+	"pdp.search_resource_endpoint"
+})
 
 public abstract class AbstractAuthzenPDPResourceSearchTest extends AbstractAuthzenPDPSearchTest {
 

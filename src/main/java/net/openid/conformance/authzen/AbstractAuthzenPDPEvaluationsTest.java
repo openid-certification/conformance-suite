@@ -9,6 +9,12 @@ import net.openid.conformance.authzen.condition.ExtractAuthzenEvaluationsExpecte
 import net.openid.conformance.authzen.condition.SetAuthzenApiEndpointToAccessEvaluationsEndpoint;
 import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.sequence.ConditionSequence;
+import net.openid.conformance.variant.PDPServerMetadata;
+import net.openid.conformance.variant.VariantConfigurationFields;
+
+@VariantConfigurationFields(parameter = PDPServerMetadata.class, value = "static", configurationFields = {
+	"pdp.access_evaluations_endpoint"
+})
 
 public abstract class AbstractAuthzenPDPEvaluationsTest extends AbstractAuthzenPDPTest {
 
