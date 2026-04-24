@@ -427,6 +427,40 @@ public class CheckOnlyRequestedClaimsDisclosed_UnitTest {
 	}
 
 	@Test
+	public void testEvaluate_descendantDisclosurePasses() {
+		// OID4VP §7.3: DCQL path ["address"] selects the address claim with its sub-claims.
+		// A wallet disclosing the nested "street_address" is fulfilling the request, not
+		// over-disclosing, so this must pass.
+		String dcql = """
+			{
+			  "credentials": [
+			    {
+			      "id": "my_credential",
+			      "format": "dc+sd-jwt",
+			      "claims": [
+			        {"path": ["address"]}
+			      ]
+			    }
+			  ]
+			}
+			""";
+		String decoded = """
+			{
+			  "address": {
+			    "street_address": "123 Main St"
+			  }
+			}
+			""";
+		JsonArray disclosures = new JsonArray();
+		disclosures.add("[\"salt1\", \"address\", {\"_sd\": [\"digest1\"]}]");
+		disclosures.add("[\"salt2\", \"street_address\", \"123 Main St\"]");
+
+		setupEnvironment(dcql, "my_credential", decoded, disclosures);
+
+		cond.execute(env);
+	}
+
+	@Test
 	public void testEvaluate_arrayElementReferencedByJwtBodyPasses() {
 		// The credential JWT body itself contains the {"...": digest} reference. The array
 		// element disclosure is reachable from the body, so no orphan.
