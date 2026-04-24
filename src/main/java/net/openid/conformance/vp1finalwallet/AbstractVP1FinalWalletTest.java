@@ -2,6 +2,8 @@ package net.openid.conformance.vp1finalwallet;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParseException;
+import com.google.gson.JsonParser;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
@@ -938,16 +940,73 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 					break;
 			}
 
-			callAndStopOnFailure(ExtractVP1FinalBrowserApiResponse.class);
-
-			processReceivedResponse();
-
-			fireTestFinished();
+			processBrowserApiResponse();
 
 			return "done";
 		});
 
 		return new ResponseEntity<Object>("", HttpStatus.NO_CONTENT);
+	}
+
+	/**
+	 * Default handling of a Browser API response: treat it as the wallet's successful response
+	 * and finish the test. Negative-test subclasses override this to branch on whether the wallet
+	 * rejected (a thrown exception from navigator.credentials.get() arriving as {"exception": ...})
+	 * or incorrectly accepted the request.
+	 */
+	protected void processBrowserApiResponse() {
+		callAndStopOnFailure(ExtractVP1FinalBrowserApiResponse.class);
+
+		processReceivedResponse();
+
+		fireTestFinished();
+	}
+
+	/**
+	 * Helper for negative-test subclasses that expect the wallet to reject the Browser API request.
+	 *
+	 * <p>Parses the incoming body (same shape as produced by our frontend in log-detail.html, see
+	 * navigator.credentials.get() handling) and branches:</p>
+	 * <ul>
+	 *   <li>Body has {@code exception} — wallet rejected via a promise rejection. This is the
+	 *   expected behavior: show the error-screen screenshot placeholder and wait for upload.</li>
+	 *   <li>Body has {@code bad_response_type} — navigator.credentials.get() returned an unknown
+	 *   object type; fail the test.</li>
+	 *   <li>Otherwise (a fulfilled {@code data}/{@code protocol} response) — the wallet returned a
+	 *   credential instead of rejecting, which is what {@code successFailureMessage} describes;
+	 *   fail the test.</li>
+	 * </ul>
+	 */
+	protected void handleBrowserApiResponseAsNegativeTest(String successFailureMessage) {
+		JsonElement body = env.getElementFromObject("incoming_request", "body");
+		if (body == null) {
+			throw new TestFailureException(getId(), "No body received in Browser API submission");
+		}
+		if (!body.isJsonPrimitive() || !body.getAsJsonPrimitive().isString()) {
+			throw new TestFailureException(getId(), "Body received in Browser API submission is not a string: " + body);
+		}
+
+		JsonObject result;
+		try {
+			result = JsonParser.parseString(OIDFJSON.getString(body)).getAsJsonObject();
+		} catch (JsonParseException e) {
+			throw new TestFailureException(getId(), "Parsing JSON in Browser API submission failed: " + e.getMessage());
+		}
+
+		if (result.has("exception")) {
+			eventLog.log(getName(), args(
+				"msg", "Wallet rejected the request via the Browser API (navigator.credentials.get() promise rejected). This is the expected behavior for this negative test. The tester must upload a screenshot of the wallet's error screen for the test to transition to FINISHED.",
+				"exception", result.get("exception")));
+			createPlaceholder();
+			waitForPlaceholders();
+			setStatus(Status.WAITING);
+			return;
+		}
+		if (result.has("bad_response_type")) {
+			throw new TestFailureException(getId(),
+				"Browser API returned an object of unknown type: " + result.get("bad_response_type"));
+		}
+		throw new TestFailureException(getId(), successFailureMessage);
 	}
 
 	private static String getHeader(JsonObject requestParts, String headerName) {

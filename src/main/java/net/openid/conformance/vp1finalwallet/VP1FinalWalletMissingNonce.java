@@ -42,4 +42,10 @@ public class VP1FinalWalletMissingNonce extends AbstractVP1FinalWalletTest {
 	protected Object handleDirectPost(String requestId) {
 		throw new TestFailureException(getId(), "Direct post endpoint was called but the wallet should have rejected the request due to missing nonce");
 	}
+
+	@Override
+	protected void processBrowserApiResponse() {
+		handleBrowserApiResponseAsNegativeTest(
+			"Browser API returned a successful response but the wallet should have rejected the request due to missing nonce");
+	}
 }
