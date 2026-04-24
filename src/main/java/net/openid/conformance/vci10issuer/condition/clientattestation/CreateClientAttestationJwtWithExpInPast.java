@@ -13,7 +13,7 @@ public class CreateClientAttestationJwtWithExpInPast extends CreateClientAttesta
 
 	@Override
 	protected void customizeClaims(JsonObject claims) {
-		// 10 minutes in the past — beyond any reasonable clock skew tolerance (typically 60s).
+		// 10 minutes in the past — beyond the 5-minute clock-skew tolerance applied by JWTUtil.
 		long exp = Instant.now().minusSeconds(10 * 60).getEpochSecond();
 		claims.addProperty("exp", exp);
 	}

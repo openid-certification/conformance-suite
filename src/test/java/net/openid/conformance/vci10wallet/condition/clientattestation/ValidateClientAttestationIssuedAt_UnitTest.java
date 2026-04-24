@@ -65,7 +65,7 @@ public class ValidateClientAttestationIssuedAt_UnitTest {
 
 	@Test
 	public void testEvaluate_iatUnreasonablyInPastFails() {
-		// Millisecond timestamp interpreted as seconds; also predates JWTUtil's min-reasonable floor
+		// Predates JWTUtil's min-reasonable floor (2024) — catches epoch-default bugs
 		putAttestationWithIat(1L);
 		assertThrows(ConditionError.class, () -> cond.execute(env));
 	}
