@@ -5,20 +5,18 @@ import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
-
-import java.time.Instant;
+import net.openid.conformance.util.JWTUtil;
 
 /**
  * Validates the client attestation JWT's 'nbf' claim if present. Per OAuth 2.0
  * Attestation-Based Client Authentication §5.1, 'nbf' is OPTIONAL — the condition skips
- * when it is absent. When present, the current time must be at or after nbf (allowing
- * clock skew), and nbf must not be unreasonably far in the future.
+ * when it is absent. When present, 'nbf' must be a reasonable unix timestamp, not too
+ * far in the past (catching millisecond-timestamp or epoch-default bugs), and not in
+ * the future (allowing clock skew).
  *
  * @see <a href="https://datatracker.ietf.org/doc/html/draft-ietf-oauth-attestation-based-client-auth-07#section-5.1">OAuth 2.0 Attestation-Based Client Authentication §5.1</a>
  */
 public class ValidateClientAttestationNotBefore extends AbstractCondition {
-
-	private static final long CLOCK_SKEW_SECONDS = 5 * 60;
 
 	@Override
 	@PreEnvironment(required = "client_attestation_object")
@@ -32,14 +30,14 @@ public class ValidateClientAttestationNotBefore extends AbstractCondition {
 		}
 
 		long nbf = OIDFJSON.getLong(nbfEl);
-		long now = Instant.now().getEpochSecond();
 
-		if (nbf > now + CLOCK_SKEW_SECONDS) {
-			throw error("Client attestation JWT nbf is in the future — attestation not yet valid",
-				args("nbf", nbf, "now", now, "clock_skew_seconds", CLOCK_SKEW_SECONDS));
+		try {
+			JWTUtil.validateNbfClaim(nbf);
+		} catch (IllegalArgumentException e) {
+			throw error("Client attestation JWT nbf claim is invalid: " + e.getMessage(), args("nbf", nbf));
 		}
 
-		logSuccess("Client attestation JWT nbf claim is valid", args("nbf", nbf, "now", now));
+		logSuccess("Client attestation JWT nbf claim is valid", args("nbf", nbf));
 
 		return env;
 	}

@@ -71,6 +71,13 @@ public class ValidateClientAttestationNotBefore_UnitTest {
 	}
 
 	@Test
+	public void testEvaluate_nbfUnreasonablyInPastFails() {
+		// Predates JWTUtil's min-reasonable floor (2024) — catches epoch-default bugs
+		putAttestationWithNbf(1L);
+		assertThrows(ConditionError.class, () -> cond.execute(env));
+	}
+
+	@Test
 	public void testEvaluate_missingClientAttestationObjectFails() {
 		assertThrows(ConditionError.class, () -> cond.execute(env));
 	}
