@@ -15,6 +15,10 @@ public class VCIValidateClientAuthenticationWithClientAttestationJWT extends Abs
 		callAndStopOnFailure(ValidateClientAttestationKeyBindingSignature.class, Condition.ConditionResult.FAILURE, "OAuth2-ATCA07-6.2");
 		callAndStopOnFailure(CheckForClientAttestationProofJwtReuse.class, Condition.ConditionResult.FAILURE, "OAuth2-ATCA07-10.2", "OAuth2-ATCA07-5.2");
 		callAndStopOnFailure(ValidateClientAttestationIssuer.class, Condition.ConditionResult.FAILURE, "OAuth2-ATCA07-6.2");
+		callAndStopOnFailure(ValidateClientAttestationSubject.class, Condition.ConditionResult.FAILURE, "OAuth2-ATCA07-5.1");
+		callAndStopOnFailure(ValidateClientAttestationExpiration.class, Condition.ConditionResult.FAILURE, "OAuth2-ATCA07-5.1", "OAuth2-ATCA07-6.2");
+		callAndStopOnFailure(ValidateClientAttestationIssuedAt.class, Condition.ConditionResult.FAILURE, "OAuth2-ATCA07-5.1");
+		callAndStopOnFailure(ValidateClientAttestationNotBefore.class, Condition.ConditionResult.FAILURE, "OAuth2-ATCA07-5.1");
 		callAndStopOnFailure(ValidateClientAttestationProofJwtAudience.class, Condition.ConditionResult.FAILURE, "OAuth2-ATCA07-5.2-5.2.1");
 		callAndStopOnFailure(ValidateClientAttestationX5cClaimInProofJwt.class,Condition.ConditionResult.FAILURE, "OAuth2-ATCA07-5.2-5.2.1");
 		// Validates challenge if attestation_challenge is present in the environment (i.e., challenge endpoint was used)

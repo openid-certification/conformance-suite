@@ -53,6 +53,8 @@ public class CreateClientAttestationJwt extends AbstractSignJWT {
 		cnf.add("jwk", clientInstanceKeyPublic);
 		claims.add("cnf", cnf);
 
+		customizeClaims(claims);
+
 		JsonObject jwks = clientAttesterKeysJwksEl.getAsJsonObject();
 
 		signJWT(env, claims, jwks, true, false,
@@ -60,6 +62,12 @@ public class CreateClientAttestationJwt extends AbstractSignJWT {
 			true);
 
 		return env;
+	}
+
+	/**
+	 * Hook for negative tests to tweak the claims before signing.
+	 */
+	protected void customizeClaims(JsonObject claims) {
 	}
 
 	@Override
