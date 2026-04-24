@@ -130,16 +130,31 @@ public class DcqlQueryUtils {
 	}
 
 	/**
-	 * Check whether the supplied path is either directly requested or is an ancestor of a requested path.
-	 * Ancestor matching is needed because nested SD-JWT claims may require disclosing the containing object.
+	 * Check whether the supplied path is within the scope of a requested path: directly equal, an
+	 * ancestor of a requested path, or a descendant of a requested path.
+	 *
+	 * <p>Ancestor matching is needed because nested SD-JWT claims may require disclosing the
+	 * containing object (e.g. DCQL requests {@code ["address", "street_address"]}, so the wallet
+	 * must also disclose {@code address} to reveal its child).
+	 *
+	 * <p>Descendant matching is needed because a path like {@code ["address"]} selects the
+	 * {@code address} claim with its sub-claims as the value (normative processing in OID4VP
+	 * §7.1; illustrated in §7.3): a wallet returning selectively-disclosable children of
+	 * {@code address} (e.g. {@code street_address}) is fulfilling that request, not over-disclosing.
 	 */
-	public static boolean isRequestedPathOrAncestor(Set<List<String>> requestedPaths, List<String> candidatePath) {
+	public static boolean isRequestedPathAncestorOrDescendant(Set<List<String>> requestedPaths, List<String> candidatePath) {
 		for (List<String> requestedPath : requestedPaths) {
 			if (requestedPath.equals(candidatePath)) {
 				return true;
 			}
+			// candidate is an ancestor of requested (needed to reach a deeper requested claim)
 			if (requestedPath.size() > candidatePath.size() &&
 				requestedPath.subList(0, candidatePath.size()).equals(candidatePath)) {
+				return true;
+			}
+			// candidate is a descendant of requested (requested points at a subtree root)
+			if (candidatePath.size() > requestedPath.size() &&
+				candidatePath.subList(0, requestedPath.size()).equals(requestedPath)) {
 				return true;
 			}
 		}

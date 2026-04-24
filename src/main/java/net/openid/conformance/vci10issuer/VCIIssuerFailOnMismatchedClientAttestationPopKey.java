@@ -27,13 +27,14 @@ import net.openid.conformance.vci10issuer.condition.clientattestation.ReplaceCli
 @PublishTestModule(
 	testName = "oid4vci-1_0-issuer-fail-mismatched-client-attestation-pop-key",
 	displayName = "OID4VCI 1.0: Issuer fail on mismatched client attestation pop key",
-	summary = "This test case checks for proper error handling when a client attestation " +
-		"proof-of-possession JWT is signed with a key that does not match the cnf.jwk in the " +
-		"attestation. Both signatures are cryptographically valid, but the PoP key is different " +
-		"from the attested key. The authorization server must reject this request with an " +
-		"invalid_client error. " +
-		"Note: This test requires client_auth_type=client_attestation variant. " +
-		"If a different client authentication method is used, the test will be skipped.",
+	summary = """
+		This test case checks for proper error handling when a client attestation \
+		proof-of-possession JWT is signed with a key that does not match the cnf.jwk in the \
+		attestation. Both signatures are cryptographically valid, but the PoP key is different \
+		from the attested key. The authorization server must reject this request with an \
+		invalid_client error. \
+		Note: This test requires client_auth_type=client_attestation variant. \
+		If a different client authentication method is used, the test will be skipped.""",
 	profile = "OID4VCI-1_0"
 )
 @VariantNotApplicable(parameter = ClientAuthType.class, values = {"mtls", "private_key_jwt"})

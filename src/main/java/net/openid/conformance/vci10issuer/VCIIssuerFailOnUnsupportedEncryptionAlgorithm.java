@@ -22,12 +22,13 @@ import net.openid.conformance.vci10issuer.condition.VciErrorCode;
 @PublishTestModule(
 	testName = "oid4vci-1_0-issuer-fail-unsupported-encryption-algorithm",
 	displayName = "OID4VCI 1.0: Issuer fail on unsupported encryption algorithm",
-	summary = "This test case checks for proper error handling when a credential request contains " +
-		"unsupported encryption parameters. The test sends a credential request with an invalid " +
-		"encryption algorithm in the credential_response_encryption parameter. " +
-		"The issuer must reject this request with an invalid_encryption_parameters error. " +
-		"Note: This test requires vci_credential_encryption=encrypted variant. " +
-		"If encryption is not enabled, the test will be skipped.",
+	summary = """
+		This test case checks for proper error handling when a credential request contains \
+		unsupported encryption parameters. The test sends a credential request with an invalid \
+		encryption algorithm in the credential_response_encryption parameter. \
+		The issuer must reject this request with an invalid_encryption_parameters error. \
+		Note: This test requires vci_credential_encryption=encrypted variant. \
+		If encryption is not enabled, the test will be skipped.""",
 	profile = "OID4VCI-1_0"
 )
 public class VCIIssuerFailOnUnsupportedEncryptionAlgorithm extends AbstractVCIIssuerTestModule {

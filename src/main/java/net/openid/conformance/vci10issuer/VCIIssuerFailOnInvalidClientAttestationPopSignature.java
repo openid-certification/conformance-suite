@@ -25,12 +25,13 @@ import net.openid.conformance.vci10issuer.condition.clientattestation.AddClientA
 @PublishTestModule(
 	testName = "oid4vci-1_0-issuer-fail-invalid-client-attestation-pop-signature",
 	displayName = "OID4VCI 1.0: Issuer fail on invalid client attestation pop signature",
-	summary = "This test case checks for proper error handling when a client attestation " +
-		"proof-of-possession JWT with an invalid signature is submitted. The test sends a PAR " +
-		"request with a client attestation pop JWT where the signature has been modified to be invalid. " +
-		"The authorization server must reject this request with an invalid_client error. " +
-		"Note: This test requires client_auth_type=client_attestation variant. " +
-		"If a different client authentication method is used, the test will be skipped.",
+	summary = """
+		This test case checks for proper error handling when a client attestation \
+		proof-of-possession JWT with an invalid signature is submitted. The test sends a PAR \
+		request with a client attestation pop JWT where the signature has been modified to be invalid. \
+		The authorization server must reject this request with an invalid_client error. \
+		Note: This test requires client_auth_type=client_attestation variant. \
+		If a different client authentication method is used, the test will be skipped.""",
 	profile = "OID4VCI-1_0"
 )
 @VariantNotApplicable(parameter = ClientAuthType.class, values = {"mtls", "private_key_jwt"})
