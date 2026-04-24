@@ -6,6 +6,8 @@ import net.openid.conformance.vci10issuer.condition.VCIInvalidateJwtProofSignatu
 import net.openid.conformance.vci10issuer.condition.VCIValidateCredentialErrorResponse;
 import net.openid.conformance.vci10issuer.condition.VciErrorCode;
 
+import java.util.List;
+
 /**
  * Negative test that verifies the issuer properly rejects JWT proofs with invalid signatures.
  * This test invalidates the signature on the JWT proof and expects the issuer to
@@ -23,6 +25,11 @@ import net.openid.conformance.vci10issuer.condition.VciErrorCode;
 	profile = "OID4VCI-1_0"
 )
 public class VCIIssuerFailOnInvalidJwtProofSignature extends AbstractVCIIssuerTestModule {
+
+	@Override
+	protected List<String> getRequiredProofTypes() {
+		return List.of("jwt");
+	}
 
 	@Override
 	public void start() {
