@@ -26,8 +26,11 @@ import net.openid.conformance.variant.AuthorizationRequestType;
 import net.openid.conformance.variant.ClientAuthType;
 import net.openid.conformance.variant.FAPI2AuthRequestMethod;
 import net.openid.conformance.variant.VCI1FinalCredentialFormat;
+import net.openid.conformance.variant.VCICredentialEncryption;
 import net.openid.conformance.vci10issuer.condition.CheckCacheControlHeaderContainsNoStore;
 import net.openid.conformance.vci10issuer.condition.VCIAddCredentialConfigurationIdToEnv;
+import net.openid.conformance.vci10issuer.condition.VCIAddCredentialResponseEncryptionToRequest;
+import net.openid.conformance.vci10issuer.condition.VCIEncryptCredentialRequest;
 import net.openid.conformance.vci10issuer.condition.VCICheckForDeferredCredentialResponse;
 import net.openid.conformance.vci10issuer.condition.VCICheckKeyAttestationJwksIfKeyAttestationIsRequired;
 import net.openid.conformance.vci10issuer.condition.VCICreateCredentialRequest;
@@ -262,8 +265,21 @@ public class VCIProfileBehavior extends FAPI2ProfileBehavior {
 
 		module.doCallAndStopOnFailure(VCICreateCredentialRequest.class, "OID4VCI-1FINAL-8.2");
 
+		boolean encrypted = module.getVariant(VCICredentialEncryption.class) == VCICredentialEncryption.ENCRYPTED;
+
+		if (encrypted) {
+			module.doCallAndStopOnFailure(VCIAddCredentialResponseEncryptionToRequest.class, "OID4VCI-1FINAL-8.2");
+		}
+
 		JsonObject credentialRequestObject = module.getEnv().getObject("vci_credential_request_object");
 		module.getEnv().putString("resource_request_entity", credentialRequestObject.toString());
+
+		// Per OID4VCI 1.0 Final 8.2, Credential Request encryption MUST be used when
+		// credential_response_encryption is included. Encrypt the serialized request as a JWE
+		// and set the Content-Type to application/jwt.
+		if (encrypted) {
+			module.doCallAndStopOnFailure(VCIEncryptCredentialRequest.class, "OID4VCI-1FINAL-8.2", "OID4VCI-1FINAL-10");
+		}
 	}
 
 	@Override

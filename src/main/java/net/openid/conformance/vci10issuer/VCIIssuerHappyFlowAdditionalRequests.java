@@ -4,7 +4,7 @@ import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.AddIpV6FapiCustomerIpAddressToResourceEndpointRequest;
 import net.openid.conformance.condition.client.CallProtectedResource;
 import net.openid.conformance.condition.client.ClearAcceptHeaderForResourceEndpointRequest;
-import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs200or201;
+import net.openid.conformance.condition.client.EnsureHttpStatusCodeIsAnyOf;
 import net.openid.conformance.condition.client.ExtractTLSTestValuesFromResourceConfiguration;
 import net.openid.conformance.condition.client.SetPermissiveAcceptHeaderForResourceEndpointRequest;
 import net.openid.conformance.condition.client.SetUtf8JsonAcceptHeadersForResourceEndpointRequest;
@@ -80,7 +80,7 @@ public class VCIIssuerHappyFlowAdditionalRequests extends AbstractVCIIssuerTestM
 		}
 
 		call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
-		callAndContinueOnFailure(EnsureHttpStatusCodeIs200or201.class, Condition.ConditionResult.FAILURE);
+		callAndContinueOnFailure(new EnsureHttpStatusCodeIsAnyOf(200, 202), Condition.ConditionResult.FAILURE, "OID4VCI-1FINAL-8.3");
 		call(exec().unmapKey("endpoint_response"));
 		eventLog.endBlock();
 
@@ -94,7 +94,7 @@ public class VCIIssuerHappyFlowAdditionalRequests extends AbstractVCIIssuerTestM
 			callAndStopOnFailure(CallProtectedResource.class, "RFC7231-5.3.2");
 		}
 		call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
-		callAndContinueOnFailure(EnsureHttpStatusCodeIs200or201.class, Condition.ConditionResult.FAILURE);
+		callAndContinueOnFailure(new EnsureHttpStatusCodeIsAnyOf(200, 202), Condition.ConditionResult.FAILURE, "OID4VCI-1FINAL-8.3");
 		call(exec().unmapKey("endpoint_response"));
 
 		callAndStopOnFailure(ClearAcceptHeaderForResourceEndpointRequest.class);
