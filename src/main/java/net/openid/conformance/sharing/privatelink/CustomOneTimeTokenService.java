@@ -26,17 +26,8 @@ public class CustomOneTimeTokenService implements OneTimeTokenService {
 	// The OneTimeToken can be consumed indefinitely. Expiry is enforced via the 'exp' claim
 	// of the token value JWT.
 	public OneTimeToken consume(OneTimeTokenAuthenticationToken authenticationToken) {
-
 		String tokenValue = authenticationToken.getTokenValue();
-
 		SharedAsset sharedAsset = assetSharing.getSharedAssetFromSharingToken(tokenValue);
-		PrivateLinkOneTimeToken privateLinkOneTimeToken = new PrivateLinkOneTimeToken();
-		privateLinkOneTimeToken.setTokenValue(tokenValue);
-
-		String username = "Guest " + Integer.toString(sharedAsset.getTokenId().hashCode(), 36);
-		privateLinkOneTimeToken.setUsername(username);
-		privateLinkOneTimeToken.setSharedAsset(sharedAsset);
-
-		return privateLinkOneTimeToken;
+		return PrivateLinkOneTimeToken.forSharedAsset(tokenValue, sharedAsset);
 	}
 }

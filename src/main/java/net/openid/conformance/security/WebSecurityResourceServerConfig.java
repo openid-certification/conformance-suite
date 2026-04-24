@@ -2,6 +2,7 @@ package net.openid.conformance.security;
 
 import com.nimbusds.jwt.proc.DefaultJWTProcessor;
 import jakarta.servlet.Filter;
+import net.openid.conformance.sharing.privatelink.ShareJwtBearerAuthenticationProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,7 +47,9 @@ public class WebSecurityResourceServerConfig {
 	private DummyUserFilter dummyUserFilter;
 
 	@Bean
-	protected SecurityFilterChain filterChainResourceServer(HttpSecurity http, ApiTokenAuthenticationProvider apiTokenAuthenticationProvider) throws Exception {
+	protected SecurityFilterChain filterChainResourceServer(HttpSecurity http,
+															ApiTokenAuthenticationProvider apiTokenAuthenticationProvider,
+															ShareJwtBearerAuthenticationProvider shareJwtBearerAuthenticationProvider) throws Exception {
 
 		http.securityMatcher(request -> {
 			// only handle API requests with this filter chain
@@ -87,7 +90,13 @@ public class WebSecurityResourceServerConfig {
 
 		http.oauth2ResourceServer(oauthResourceServer -> {
 			oauthResourceServer.opaqueToken(opaqueTokenConfigurer -> {
-				opaqueTokenConfigurer.authenticationManager(new ProviderManager(List.of(apiTokenAuthenticationProvider)));
+				// Order matters for efficiency only: share JWT parse failure is a cheap local
+				// check; the opaque-token path may hit the DB via TokenService.findToken.
+				// Each provider returns null for tokens it does not recognise, so
+				// ProviderManager falls through to the next.
+				opaqueTokenConfigurer.authenticationManager(new ProviderManager(List.of(
+					shareJwtBearerAuthenticationProvider,
+					apiTokenAuthenticationProvider)));
 			});
 		});
 

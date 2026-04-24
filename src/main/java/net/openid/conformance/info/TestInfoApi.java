@@ -109,7 +109,8 @@ public class TestInfoApi {
 	}
 
 	@PostMapping("/info/{testId}/share")
-	@Operation(summary = "Get private link to share test information")
+	@Operation(summary = "Get private link to share test information",
+		description = "Returns a JSON object with three fields: <code>link</code> (a browser URL that logs a guest in via a one-time token), <code>token</code> (the JWT on its own — usable directly as <code>Authorization: Bearer &lt;token&gt;</code> on the read-only endpoints <code>GET /api/plan/{id}</code>, <code>GET /api/info/{id}</code>, <code>GET /api/log/{id}</code>, <code>GET /api/currentuser</code>), and <code>message</code> (an informational notice when the private-link signing key is not persistently configured).")
 	@ApiResponses(value = {
 		@ApiResponse(responseCode = "200", description = "Retrieved successfully"),
 		@ApiResponse(responseCode = "404", description = "Couldn't find test plan for provided plan Id")
