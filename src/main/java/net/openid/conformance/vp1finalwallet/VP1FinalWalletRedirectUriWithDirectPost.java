@@ -10,10 +10,11 @@ import net.openid.conformance.variant.VariantNotApplicable;
 @PublishTestModule(
 	testName = "oid4vp-1final-wallet-negative-test-redirect-uri-with-direct-post",
 	displayName = "OID4VP-1.0-FINAL: redirect_uri sent with response_mode=direct_post",
-	summary = "Sends a redirect_uri parameter in the authorization request alongside response_uri when using direct_post. "
-		+ "As per https://openid.net/specs/openid-4-verifiable-presentations-1_0.html#section-8.2 "
-		+ "'If the redirect_uri Authorization Request parameter is present when the Response Mode is direct_post, the Wallet MUST return an invalid_request Authorization Response error.' "
-		+ "The wallet should reject this request and display an error, a screenshot of which must be uploaded.",
+	summary = """
+		Sends a redirect_uri parameter in the authorization request alongside response_uri when using direct_post. \
+		As per https://openid.net/specs/openid-4-verifiable-presentations-1_0.html#section-8.2 \
+		'If the redirect_uri Authorization Request parameter is present when the Response Mode is direct_post, the Wallet MUST return an invalid_request Authorization Response error.' \
+		The wallet should reject this request and display an error, a screenshot of which must be uploaded.""",
 	profile = "OID4VP-1FINAL"
 )
 @VariantNotApplicable(parameter = VP1FinalWalletResponseMode.class, values = {"dc_api", "dc_api.jwt"})

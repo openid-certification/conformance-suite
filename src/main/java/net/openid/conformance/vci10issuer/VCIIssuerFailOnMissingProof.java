@@ -18,11 +18,12 @@ import net.openid.conformance.vci10issuer.condition.VciErrorCode;
 @PublishTestModule(
 	testName = "oid4vci-1_0-issuer-fail-missing-proof",
 	displayName = "OID4VCI 1.0: Issuer fail on missing proof",
-	summary = "This test verifies that the issuer rejects a credential request that omits the required 'proofs' parameter. " +
-		"When the credential configuration requires cryptographic binding (proof), sending a request without proofs " +
-		"should result in an 'invalid_proof' error response. " +
-		"Note: This test requires a credential configuration that requires cryptographic binding (proof). " +
-		"If the selected credential configuration does not require proof, the test will be skipped.",
+	summary = """
+		This test verifies that the issuer rejects a credential request that omits the required 'proofs' parameter. \
+		When the credential configuration requires cryptographic binding (proof), sending a request without proofs \
+		should result in an 'invalid_proof' error response. \
+		Note: This test requires a credential configuration that requires cryptographic binding (proof). \
+		If the selected credential configuration does not require proof, the test will be skipped.""",
 	profile = "OID4VCI-1_0"
 )
 public class VCIIssuerFailOnMissingProof extends AbstractVCIIssuerTestModule {

@@ -11,9 +11,10 @@ import net.openid.conformance.variant.VariantNotApplicable;
 @PublishTestModule(
 	testName = "oid4vp-1final-wallet-negative-test-wrong-expected-origins",
 	displayName = "OID4VP-1.0-FINAL: Signed DC API request with wrong expected_origins",
-	summary = "Sends a signed DC API request with an incorrect expected_origins value. The wallet must validate "
-		+ "expected_origins and reject requests where the value does not match the actual origin. "
-		+ "The wallet should display an error, a screenshot of which must be uploaded.",
+	summary = """
+		Sends a signed DC API request with an incorrect expected_origins value. The wallet must validate \
+		expected_origins and reject requests where the value does not match the actual origin. \
+		The wallet should display an error, a screenshot of which must be uploaded.""",
 	profile = "OID4VP-1FINAL"
 )
 @VariantNotApplicable(parameter = VP1FinalWalletResponseMode.class, values = {"direct_post", "direct_post.jwt", "dc_api"})
@@ -46,5 +47,11 @@ public class VP1FinalWalletWrongExpectedOrigins extends AbstractVP1FinalWalletTe
 	@Override
 	protected Object handleDirectPost(String requestId) {
 		throw new TestFailureException(getId(), "Direct post endpoint was called but the wallet should have rejected the request due to wrong expected_origins");
+	}
+
+	@Override
+	protected void processBrowserApiResponse() {
+		handleBrowserApiResponseAsNegativeTest(
+			"Browser API returned a successful response but the wallet should have rejected the request due to wrong expected_origins");
 	}
 }

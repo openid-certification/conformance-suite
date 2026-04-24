@@ -11,9 +11,10 @@ import net.openid.conformance.variant.VariantNotApplicable;
 @PublishTestModule(
 	testName = "oid4vp-1final-wallet-negative-test-mismatched-client-id",
 	displayName = "OID4VP-1.0-FINAL: Mismatched client_id in request object and URL",
-	summary = "Sends a request where the client_id in the request object differs from the client_id in the URL parameter. "
-		+ "Per OID4VP section 5, these MUST be identical. The wallet must reject the request and display an error, "
-		+ "a screenshot of which must be uploaded.",
+	summary = """
+		Sends a request where the client_id in the request object differs from the client_id in the URL parameter. \
+		Per OID4VP section 5, these MUST be identical. The wallet must reject the request and display an error, \
+		a screenshot of which must be uploaded.""",
 	profile = "OID4VP-1FINAL"
 )
 @VariantNotApplicable(parameter = VP1FinalWalletResponseMode.class, values = {"dc_api", "dc_api.jwt"})

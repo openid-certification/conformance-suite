@@ -62,4 +62,10 @@ public class VP1FinalWalletInvalidRequestObjectSignature extends AbstractVP1Fina
 		throw new TestFailureException(getId(), "Direct post (response_uri) endpoint has been called but the wallet should have stopped because of the invalid signature on the request object.");
 	}
 
+	@Override
+	protected void processBrowserApiResponse() {
+		handleBrowserApiResponseAsNegativeTest(
+			"Browser API returned a successful response but the wallet should have stopped because of the invalid signature on the request object.");
+	}
+
 }

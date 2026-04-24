@@ -6,6 +6,7 @@ import kotlin.time.Clock
 import kotlin.time.Instant
 import kotlinx.io.bytestring.ByteString
 import kotlinx.io.bytestring.encodeToByteString
+import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
@@ -32,6 +33,7 @@ import org.multipaz.mdoc.mso.MobileSecurityObject
 import org.multipaz.mdoc.request.buildDeviceRequest
 import org.multipaz.mdoc.response.DeviceResponse
 import org.multipaz.mdoc.response.buildDeviceResponse
+import org.multipaz.request.MdocRequestedClaim
 import org.multipaz.sdjwt.SdJwt
 import org.multipaz.sdjwt.credential.KeyBoundSdJwtVcCredential
 import org.multipaz.sdjwt.credential.KeylessSdJwtVcCredential
@@ -72,23 +74,45 @@ object TestAppUtils {
     // This domain is for KeylessSdJwtVcCredential
     const val CREDENTIAL_DOMAIN_SDJWT_KEYLESS = "sdjwt_keyless"
 
-	fun generateDeviceResponse(sessionTranscript: ByteArray): ByteArray {
+	@JvmOverloads
+	fun generateDeviceResponse(
+		sessionTranscript: ByteArray,
+		requestedDocType: String? = null,
+		requestedClaims: Map<String, Set<String>>? = null
+	): ByteArray {
 		return runBlocking {
-			generateEncodedDeviceResponse(sessionTranscript)
+			generateEncodedDeviceResponse(sessionTranscript, requestedDocType, requestedClaims)
 		}
 	}
 
 	suspend fun generateEncodedDeviceResponse(
-		sessionTranscript: ByteArray
+		sessionTranscript: ByteArray,
+		requestedDocType: String? = null,
+		requestedClaims: Map<String, Set<String>>? = null
 	): ByteArray {
-		val document = documentStore!!.lookupDocument(mdlDocumentId!!)
+		val effectiveDocType = requestedDocType ?: DrivingLicense.getDocumentType().mdocDocumentType!!.docType
+		val docId = docTypeToDocumentId[effectiveDocType]
+			?: throw IllegalStateException("mock wallet has no document provisioned for docType $effectiveDocType")
+		val document = documentStore!!.lookupDocument(docId)
 		val credential = document!!.findCredential(
 			CREDENTIAL_DOMAIN_MDOC_NO_USER_AUTH, Clock.System.now()
 		) as MdocCredential
 
 		val issuerSigned = Cbor.decode(credential.issuerProvidedData.toByteArray())
-		val issuerNamespaces = IssuerNamespaces.fromDataItem(issuerSigned["nameSpaces"])
+		var issuerNamespaces = IssuerNamespaces.fromDataItem(issuerSigned["nameSpaces"])
 		val issuerAuthCoseSign1 = issuerSigned["issuerAuth"].asCoseSign1
+
+		if (requestedClaims != null) {
+			// Filter to the DCQL-requested (namespace, elementIdentifier) pairs. The returned
+			// IssuerNamespaces retains the original IssuerSignedItem references, so MSO digests
+			// over those items remain valid.
+			val filterList = requestedClaims.flatMap { (ns, elems) ->
+				elems.map {
+					MdocRequestedClaim("", credential.docType, ns, it, false, JsonArray(emptyList()))
+				}
+			}
+			issuerNamespaces = issuerNamespaces.filter(filterList)
+		}
 
 		val deviceKey = AsymmetricKey.anonymous(
 			credential.secureArea, credential.alias, Reason.Unspecified
@@ -176,6 +200,7 @@ object TestAppUtils {
 	var documentStore: DocumentStore? = null
 
 	private suspend fun documentStoreInit() {
+		docTypeToDocumentId.clear()
 		val storage = EphemeralStorage()
 		val softwareSecureArea = SoftwareSecureArea.create(storage)
 		val secureAreaRepository: SecureAreaRepository = SecureAreaRepository.Builder()
@@ -293,7 +318,7 @@ TvFLVc4ESGy3AtdC+g==
 				.setPassphraseRequired(userAuthenticationRequired, "1111", PassphraseConstraints.PIN_FOUR_DIGITS)
 				.build()
 	}
-	var mdlDocumentId: String? = null
+	val docTypeToDocumentId: MutableMap<String, String> = mutableMapOf()
 
 	suspend fun provisionTestDocuments(
         documentStore: DocumentStore,
@@ -312,7 +337,7 @@ TvFLVc4ESGy3AtdC+g==
     ) {
         require(deviceKeyAlgorithm.isSigning)
         require(deviceKeyMacAlgorithm == Algorithm.UNSET || deviceKeyMacAlgorithm.isKeyAgreement)
-        mdlDocumentId = provisionDocument(
+        provisionDocument(
             documentStore,
             secureArea,
             secureAreaCreateKeySettingsFunc,
@@ -435,6 +460,9 @@ TvFLVc4ESGy3AtdC+g==
                 numCredentialsPerDomain = numCredentialsPerDomain,
                 givenNameOverride = givenNameOverride
             )
+        }
+        documentType.mdocDocumentType?.docType?.let {
+            docTypeToDocumentId[it] = document.identifier
         }
 		return document.identifier
     }

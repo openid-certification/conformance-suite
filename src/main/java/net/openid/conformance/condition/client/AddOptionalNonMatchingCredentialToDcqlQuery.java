@@ -33,48 +33,39 @@ public class AddOptionalNonMatchingCredentialToDcqlQuery extends AbstractConditi
 		}
 
 		JsonArray credentials = dcqlQuery.getAsJsonArray("credentials");
-		String originalId = OIDFJSON.getString(credentials.get(0).getAsJsonObject().get("id"));
+		JsonObject originalCredential = credentials.get(0).getAsJsonObject();
+		String originalId = OIDFJSON.getString(originalCredential.get("id"));
+		String originalFormat = OIDFJSON.getString(originalCredential.get("format"));
 
-		// Add a fake credential entry that can never match
+		// Add a fake credential entry that can never match, with the same format as the original
+		// so a single-format test configuration still validates cleanly.
 		String fakeId = "nonexistent_credential";
 		JsonObject fakeCredential = new JsonObject();
 		fakeCredential.addProperty("id", fakeId);
-		fakeCredential.addProperty("format", "dc+sd-jwt");
+		fakeCredential.addProperty("format", originalFormat);
 		JsonObject fakeMeta = new JsonObject();
-		JsonArray fakeVctValues = new JsonArray();
-		fakeVctValues.add("urn:conformance-suite:nonexistent:credential:1");
-		fakeMeta.add("vct_values", fakeVctValues);
-		fakeCredential.add("meta", fakeMeta);
 		JsonArray fakeClaims = new JsonArray();
 		JsonObject fakeClaim = new JsonObject();
 		JsonArray fakePath = new JsonArray();
-		fakePath.add("nonexistent_claim");
+		if ("mso_mdoc".equals(originalFormat)) {
+			fakeMeta.addProperty("doctype_value", "org.conformance-suite.nonexistent.credential.1");
+			fakePath.add("org.conformance-suite.nonexistent.namespace.1");
+			fakePath.add("nonexistent_claim");
+		} else {
+			JsonArray fakeVctValues = new JsonArray();
+			fakeVctValues.add("urn:conformance-suite:nonexistent:credential:1");
+			fakeMeta.add("vct_values", fakeVctValues);
+			fakePath.add("nonexistent_claim");
+		}
+		fakeCredential.add("meta", fakeMeta);
 		fakeClaim.add("path", fakePath);
 		fakeClaims.add(fakeClaim);
 		fakeCredential.add("claims", fakeClaims);
 		credentials.add(fakeCredential);
 
-		// Add credential_sets: original is required, fake is optional
 		JsonArray credentialSets = new JsonArray();
-
-		JsonObject requiredSet = new JsonObject();
-		JsonArray requiredOptions = new JsonArray();
-		JsonArray requiredOption = new JsonArray();
-		requiredOption.add(originalId);
-		requiredOptions.add(requiredOption);
-		requiredSet.add("options", requiredOptions);
-		requiredSet.addProperty("required", true);
-		credentialSets.add(requiredSet);
-
-		JsonObject optionalSet = new JsonObject();
-		JsonArray optionalOptions = new JsonArray();
-		JsonArray optionalOption = new JsonArray();
-		optionalOption.add(fakeId);
-		optionalOptions.add(optionalOption);
-		optionalSet.add("options", optionalOptions);
-		optionalSet.addProperty("required", false);
-		credentialSets.add(optionalSet);
-
+		credentialSets.add(credentialSet(originalId, true));
+		credentialSets.add(credentialSet(fakeId, false));
 		dcqlQuery.add("credential_sets", credentialSets);
 
 		log("Added non-matching optional credential and credential_sets to DCQL query",
@@ -83,5 +74,16 @@ public class AddOptionalNonMatchingCredentialToDcqlQuery extends AbstractConditi
 				"dcql_query", dcqlQuery));
 
 		return env;
+	}
+
+	private static JsonObject credentialSet(String credentialId, boolean required) {
+		JsonObject set = new JsonObject();
+		JsonArray options = new JsonArray();
+		JsonArray option = new JsonArray();
+		option.add(credentialId);
+		options.add(option);
+		set.add("options", options);
+		set.addProperty("required", required);
+		return set;
 	}
 }
