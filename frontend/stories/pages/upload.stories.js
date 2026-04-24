@@ -18,7 +18,7 @@ const PENDING_IMAGES = [
   },
 ];
 
-const EXISTING_IMAGES = [{ name: "screenshot-result", url: "images/placeholder.png" }];
+const EXISTING_IMAGES = [{ name: "screenshot-result", url: "images/placeholder.jpg" }];
 
 export const Default = {
   render: () => html`

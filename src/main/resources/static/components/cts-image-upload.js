@@ -165,7 +165,7 @@ class CtsImageUpload extends LitElement {
             </div>
             <div class="col-md-3">
               <img
-                src="${preview || "images/placeholder.png"}"
+                src="${preview || "images/placeholder.jpg"}"
                 alt="${imageName}"
                 class="img-fluid mx-auto d-block imagePreview"
               />

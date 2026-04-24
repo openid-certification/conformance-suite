@@ -92,7 +92,7 @@
         document.querySelector('#additionalUploader .uploadBtn').disabled = true;
         document.querySelector('#additionalUploader .uploadBtn').variant = 'light';
 
-        document.querySelector('#additionalUploader .imagePreview').src = '/images/placeholder.png';
+        document.querySelector('#additionalUploader .imagePreview').src = '/images/placeholder.jpg';
 
         document.querySelector('#additionalUploader [type="file"]').value = '';
     }
@@ -212,7 +212,7 @@
                         el.querySelector('.uploadBtn').disabled = true;
                         el.querySelector('.uploadBtn').variant = 'light';
 
-                        el.querySelector('.imagePreview').src = '/images/placeholder.png';
+                        el.querySelector('.imagePreview').src = '/images/placeholder.jpg';
 
                         el.querySelector('[type="file"]').value = '';
                     });
@@ -371,7 +371,7 @@
                                 parent = parent.parentNode;
                             }
 
-                            target.src = '/images/placeholder.png';
+                            target.src = '/images/placeholder.jpg';
                             target.querySelector('[type="file"]').value = '';
 
                             return;
@@ -520,7 +520,7 @@
                         <div class="col-md-1"><div class="bg-info testStatusResultBlock"><span class="bi bi-cloud-upload"></span></div></div>
                         <div class="col-md-3">
                             <!-- image preview -->
-                            <img src="images/placeholder.png" alt="" class="img-fluid mx-auto d-block imagePreview imagePasteTarget" />
+                            <img src="images/placeholder.jpg" alt="" class="img-fluid mx-auto d-block imagePreview imagePasteTarget" />
                         </div>
                         <div class="col-md-8">
                             <p class="log-message wrapLongStrings">Use this form to upload additional images to the test log.</p>
