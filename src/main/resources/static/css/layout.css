@@ -17,7 +17,7 @@ html {
  * The cache in cts-navbar.js makes the nav render identically from
  * first paint, but there is still a brief window between FCP and the
  * cts-navbar custom-element upgrade where the nav slot is the
- * invisible 80px reserved by the :not(:defined) fallback — that
+ * invisible 60px reserved by the :not(:defined) fallback — that
  * window reads as a "blink" when navigating between pages.
  *
  * @view-transition + navigation: auto gives the browser paint-holding:
@@ -63,7 +63,7 @@ html {
  *                          text/content and visibility:hidden preserves
  *                          their inline box dimensions.
  *  - display: block + min-height — for block-level hosts whose height
- *                          must be reserved. cts-navbar is ~80px tall
+ *                          must be reserved. cts-navbar is 60px tall
  *                          post-upgrade; without `display: block`,
  *                          `visibility: hidden` on an inline-default
  *                          custom element does NOT reserve vertical
@@ -96,8 +96,13 @@ cts-icon:not(:defined) {
 cts-navbar:not(:defined) {
 	visibility: hidden;
 	display: block;
-	/* 50px content + 10px bottom padding + 20px margin-bottom = 80px */
-	min-height: 80px;
+	background: var(--ink-900);
+	/* Matches the post-upgrade .cts-nav `height: 60px`. The OIDF redesign
+	 * (U15) flattened the navbar to a 60px chrome rectangle with no
+	 * external margin, so the fallback reservation matches the rendered
+	 * footprint exactly. The background prevents a momentary white flash
+	 * before the upgrade paints the dark chrome. */
+	min-height: 60px;
 }
 
 cts-modal:not(:defined) {

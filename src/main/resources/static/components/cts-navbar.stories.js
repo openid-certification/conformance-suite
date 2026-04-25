@@ -375,6 +375,86 @@ export const ServerErrorLogsWarning = {
 };
 
 /**
+ * Visual contract: the rendered DOM matches the OIDF design system navbar
+ * preview structure (`project/preview/components-navbar.html`). Asserts the
+ * scoped class names and the avatar element are present so the design-token
+ * stylesheet (--ink-900 / --orange-400 / etc.) actually applies.
+ */
+export const DesignSystemStructure = {
+  args: { currentPage: "plans" },
+  decorators: [withMockUser(MOCK_USER)],
+  render: ({ currentPage }) => html`<cts-navbar current-page="${currentPage}"></cts-navbar>`,
+
+  async play({ canvasElement }) {
+    const canvas = within(canvasElement);
+    await waitForNavbar(canvas);
+
+    // Container uses the OIDF .cts-nav class — that's what the scoped
+    // stylesheet selector keys off, so missing this class means the dark
+    // chrome will not paint.
+    const nav = canvasElement.querySelector("nav.cts-nav");
+    expect(nav).toBeTruthy();
+
+    // Brand block on the left.
+    const brand = canvasElement.querySelector(".cts-nav .cts-brand");
+    expect(brand).toBeTruthy();
+    expect(canvasElement.querySelector('.cts-brand img[alt="OpenID"]')).toBeTruthy();
+    expect(canvas.getByText("CONFORMANCE SUITE")).toBeInTheDocument();
+
+    // Centered link block.
+    const navlinks = canvasElement.querySelector(".cts-nav .cts-navlinks");
+    expect(navlinks).toBeTruthy();
+    const links = navlinks.querySelectorAll("a.cts-navlink");
+    expect(links.length).toBeGreaterThanOrEqual(5);
+
+    // Right-hand block with the avatar circle.
+    const navright = canvasElement.querySelector(".cts-nav .cts-navright");
+    expect(navright).toBeTruthy();
+    const avatar = canvasElement.querySelector(".cts-nav .cts-avatar");
+    expect(avatar).toBeTruthy();
+    // Initials fall back to two letters from the display name ("Test User" -> "TU").
+    expect(avatar.textContent.trim()).toBe("TU");
+  },
+};
+
+/**
+ * FOUC: the `:not(:defined)` fallback in css/layout.css must reserve 60px of
+ * vertical space so content below the navbar does not shift when the custom
+ * element finally upgrades. Verifies the rule both selects cts-navbar hosts
+ * and applies the 60px min-height — see
+ * docs/solutions/web-components/cts-navbar-inline-visibility-bug-2026-04-24.md.
+ */
+export const FoucFallbackReservesHeight = {
+  args: { currentPage: "" },
+  decorators: [withUnauthenticated()],
+  render: ({ currentPage }) => html`<cts-navbar current-page="${currentPage}"></cts-navbar>`,
+
+  async play() {
+    // The fallback rule lives in css/layout.css (loaded by preview-head.html
+    // for every story). Locate it and assert it both reserves a block-level
+    // box AND a 60px height — both are required for the rule to actually
+    // reserve vertical space on a custom-element host. See
+    // docs/solutions/web-components/cts-navbar-inline-visibility-bug-2026-04-24.md
+    // for why visibility:hidden alone is a silent no-op.
+    const sheet = Array.from(document.styleSheets).find((s) =>
+      (s.href || "").includes("/css/layout.css"),
+    );
+    expect(sheet).toBeTruthy();
+    const cssRules = /** @type {CSSStyleRule[]} */ (
+      Array.from(/** @type {CSSStyleSheet} */ (sheet).cssRules)
+    );
+    const fallback = cssRules.find(
+      (r) => r.selectorText && r.selectorText.includes("cts-navbar:not(:defined)"),
+    );
+    expect(fallback).toBeTruthy();
+    const fb = /** @type {CSSStyleRule} */ (fallback);
+    expect(fb.style.minHeight).toBe("60px");
+    expect(fb.style.display).toBe("block");
+    expect(fb.style.visibility).toBe("hidden");
+  },
+};
+
+/**
  * 401 is the expected response when the user is not logged in. The navbar
  * must NOT warn — it would spam the console on every anonymous page load.
  */
