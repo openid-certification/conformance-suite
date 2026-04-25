@@ -1,2 +1,18 @@
 
-<cts-badge variant="<%- result.toLowerCase() %>" label="<%- result.toUpperCase() %> <%- value ? value : '0' %>"></cts-badge>
+<%
+// `result` is one of the lowercase per-condition aggregation keys
+// ('success', 'failure', 'warning', 'review', 'info') passed in from
+// log-detail.html. Map to canonical cts-badge variants; `info` keeps the
+// `info-subtle` utility variant since aggregated info messages aren't a
+// status.
+var variantMap = {
+  success: 'pass',
+  failure: 'fail',
+  warning: 'warn',
+  review: 'review',
+  info: 'info-subtle',
+  skipped: 'skip',
+};
+var summaryVariant = variantMap[(result || '').toLowerCase()] || 'skip';
+%>
+<cts-badge variant="<%- summaryVariant %>" label="<%- result.toUpperCase() %> <%- value ? value : '0' %>"></cts-badge>

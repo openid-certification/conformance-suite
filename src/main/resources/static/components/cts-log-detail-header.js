@@ -5,48 +5,54 @@ import "./cts-link-button.js";
 import "./cts-alert.js";
 
 /**
- * Result -> cts-badge variant lookup. The values are the legacy
- * cts-badge alias names (`success` / `failure` / `warning` / ...) which
- * map to the canonical OIDF status palette inside cts-badge itself.
+ * Top-level test result -> canonical cts-badge variant. INTERRUPTED maps to
+ * `fail` because an interrupted run did not complete successfully and we
+ * surface that alongside the FINISHED/INTERRUPTED status badge.
  * Lookup table per components/AGENTS.md §7 (no dynamic class concatenation).
  * @type {Object.<string, string>}
  */
 const RESULT_BADGE_VARIANTS = {
-  PASSED: "success",
-  FAILED: "failure",
-  WARNING: "warning",
+  PASSED: "pass",
+  FAILED: "fail",
+  WARNING: "warn",
   REVIEW: "review",
-  SKIPPED: "skipped",
-  INTERRUPTED: "interrupted",
+  SKIPPED: "skip",
+  INTERRUPTED: "fail",
 };
 
 /**
- * Status -> cts-badge variant lookup. Same alias rules as
- * RESULT_BADGE_VARIANTS.
+ * Test running-state -> canonical cts-badge variant. FINISHED is neutral
+ * (`skip`) because the sibling result badge carries the outcome; WAITING
+ * uses `warn` to signal user action; INTERRUPTED matches RESULT_BADGE_VARIANTS.
  * @type {Object.<string, string>}
  */
 const STATUS_BADGE_VARIANTS = {
-  RUNNING: "info",
-  WAITING: "warning",
-  FINISHED: "finished",
-  INTERRUPTED: "interrupted",
+  RUNNING: "running",
+  WAITING: "warn",
+  FINISHED: "skip",
+  INTERRUPTED: "fail",
 };
 
 /**
- * Result aggregations rendered in the "Results:" summary row.
+ * Per-condition result keys (lowercase, mirroring backend log entries) used
+ * to aggregate counts in the "Results:" summary row. These keys must match
+ * `entry.result.toLowerCase()` from the backend (success/failure/warning/
+ * review/info), so they are intentionally NOT the canonical badge variant
+ * names — see RESULT_TYPE_BADGE_VARIANTS for the key -> variant mapping.
  * @type {ReadonlyArray<string>}
  */
 const RESULT_TYPES = ["success", "failure", "warning", "review", "info"];
 
 /**
- * Result aggregation key -> cts-badge variant lookup used in the result
- * count row.
+ * Per-condition result key -> canonical cts-badge variant. `info` aggregates
+ * informational log messages (not a status), so it keeps the retokenized
+ * `info-subtle` utility variant on the status-info palette.
  * @type {Object.<string, string>}
  */
 const RESULT_TYPE_BADGE_VARIANTS = {
-  success: "success",
-  failure: "failure",
-  warning: "warning",
+  success: "pass",
+  failure: "fail",
+  warning: "warn",
   review: "review",
   info: "info-subtle",
 };
@@ -451,7 +457,7 @@ class CtsLogDetailHeader extends LitElement {
   _renderTestInfoCard() {
     const test = this.testInfo;
     const variantStr = this._formatVariant(test.variant);
-    const resultVariant = RESULT_BADGE_VARIANTS[test.result] || "secondary";
+    const resultVariant = RESULT_BADGE_VARIANTS[test.result] || "skip";
 
     return html`
       <div class="logHeaderCard">
@@ -463,7 +469,7 @@ class CtsLogDetailHeader extends LitElement {
                 : nothing}
               ${test.status
                 ? html`<cts-badge
-                    variant="${STATUS_BADGE_VARIANTS[test.status] || "secondary"}"
+                    variant="${STATUS_BADGE_VARIANTS[test.status] || "skip"}"
                     label="${test.status}"
                   ></cts-badge>`
                 : nothing}
@@ -579,7 +585,7 @@ class CtsLogDetailHeader extends LitElement {
       (item) => html`
         <div class="failureItem">
           <cts-badge
-            variant="${RESULT_BADGE_VARIANTS[item.result] || "secondary"}"
+            variant="${RESULT_BADGE_VARIANTS[item.result] || "skip"}"
             label="${item.result}"
           ></cts-badge>
           ${this._renderRequirementBadges(item.requirements)}

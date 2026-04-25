@@ -15,33 +15,34 @@ function _moduleKey(mod) {
 }
 
 /**
- * Maps module status/result to badge variant.
+ * Maps module status/result to a canonical cts-badge variant.
  *
- * - null status  -> "pending" (secondary)
- * - RUNNING      -> "info"
- * - FINISHED + PASSED  -> "success"
- * - FINISHED + FAILED  -> "failure"
- * - FINISHED + WARNING -> "warning"
+ * - null status        -> "skip" (PENDING — neutral until run)
+ * - RUNNING            -> "running"
+ * - FINISHED + PASSED  -> "pass"
+ * - FINISHED + FAILED  -> "fail"
+ * - FINISHED + WARNING -> "warn"
+ * - FINISHED + REVIEW  -> "review"
+ * - FINISHED + SKIPPED -> "skip"
  * @param {string|null} status - Module status: null, "RUNNING", or "FINISHED".
  * @param {string|null} result - Module result when status is "FINISHED":
  *   "PASSED", "FAILED", "WARNING", "REVIEW", "SKIPPED", or null.
- * @returns {string} Badge variant name (e.g. "success", "failure",
- *   "warning", "info", "secondary").
+ * @returns {string} Canonical cts-badge variant.
  */
 function statusBadgeVariant(status, result) {
-  if (!status) return "secondary";
-  if (status === "RUNNING") return "info";
+  if (!status) return "skip";
+  if (status === "RUNNING") return "running";
   if (status === "FINISHED") {
     const map = {
-      PASSED: "success",
-      FAILED: "failure",
-      WARNING: "warning",
+      PASSED: "pass",
+      FAILED: "fail",
+      WARNING: "warn",
       REVIEW: "review",
-      SKIPPED: "skipped",
+      SKIPPED: "skip",
     };
-    return map[result] || "secondary";
+    return map[result] || "skip";
   }
-  return "secondary";
+  return "skip";
 }
 
 /**

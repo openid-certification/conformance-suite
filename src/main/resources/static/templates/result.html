@@ -1,4 +1,21 @@
 
-<div class="labelCollection" data-entry-result="<%- item.result.toLowerCase() %>">
-    <cts-badge class="log-result" variant="<%- item.result.toLowerCase() %>" label="<%- item.result.toUpperCase() %>"></cts-badge>
+<%
+// Map per-condition log result (SUCCESS/FAILURE/WARNING/INFO/REVIEW/SKIPPED/
+// INTERRUPTED) to a canonical cts-badge variant. Mirrors the mapping in
+// cts-log-entry.js so legacy log entries render with the same status palette
+// as the web-component path.
+var resultKey = (item.result || '').toLowerCase();
+var variantMap = {
+  success: 'pass',
+  failure: 'fail',
+  warning: 'warn',
+  info: 'info-subtle',
+  review: 'review',
+  skipped: 'skip',
+  interrupted: 'fail',
+};
+var resultVariant = variantMap[resultKey] || 'skip';
+%>
+<div class="labelCollection" data-entry-result="<%- resultKey %>">
+    <cts-badge class="log-result" variant="<%- resultVariant %>" label="<%- item.result.toUpperCase() %>"></cts-badge>
 </div>

@@ -7,19 +7,19 @@ const FAILURE_THRESHOLD = 3;
 const POLL_INTERVAL_MS = 3000;
 
 /**
- * Maps the raw log-entry `result` value to a cts-badge variant. The values
- * are the legacy alias names accepted by cts-badge (`success` / `failure`
- * / ...) which route to the canonical OIDF status palette inside the badge
- * itself. Lookup table per components/AGENTS.md §7 (no dynamic class
- * concatenation).
+ * Maps the raw log-entry `result` value to a canonical cts-badge variant
+ * from the OIDF status palette. Lookup table per components/AGENTS.md §7
+ * (no dynamic class concatenation). INFO renders on the status-info palette
+ * via the retained `info-subtle` utility variant — info messages aren't a
+ * status, they're aggregated counts.
  * @type {Object.<string, string>}
  */
 const COUNT_BADGE_VARIANTS = {
-  SUCCESS: "success",
-  FAILURE: "failure",
-  WARNING: "warning",
+  SUCCESS: "pass",
+  FAILURE: "fail",
+  WARNING: "warn",
   REVIEW: "review",
-  SKIPPED: "skipped",
+  SKIPPED: "skip",
   INFO: "info-subtle",
 };
 
@@ -216,7 +216,7 @@ class CtsLogViewer extends LitElement {
     return Object.entries(counts).map(
       ([result, count]) =>
         html`<cts-badge
-          variant="${COUNT_BADGE_VARIANTS[result] || "secondary"}"
+          variant="${COUNT_BADGE_VARIANTS[result] || "skip"}"
           label="${result} (${count})"
         ></cts-badge>`,
     );
