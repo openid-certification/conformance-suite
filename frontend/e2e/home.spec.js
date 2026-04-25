@@ -13,7 +13,7 @@ test.describe("index.html — Home page", () => {
 
     await page.goto("/index.html");
 
-    // Server version info renders in the footer
+    // Server version info renders in the dashboard footer (cts-dashboard owns it)
     await expect(page.locator(".serverInfo")).toContainText("5.1.24-SNAPSHOT");
 
     // User info renders in the navbar
@@ -21,11 +21,13 @@ test.describe("index.html — Home page", () => {
     await expect(navbar).toContainText("Test User");
     await expect(navbar).toContainText("Logged in as");
 
-    // Navigation buttons are visible in the page body
+    // Navigation tiles are visible in the dashboard
     const homePage = page.locator("#homePage");
-    await expect(homePage.locator('cts-link-button[href="schedule-test.html"]')).toBeVisible();
-    await expect(homePage.locator('cts-link-button[href="logs.html"]')).toBeVisible();
-    await expect(homePage.locator('cts-link-button[href="plans.html"]')).toBeVisible();
+    await expect(
+      homePage.locator('a.oidf-dashboard-tile[href="schedule-test.html"]'),
+    ).toBeVisible();
+    await expect(homePage.locator('a.oidf-dashboard-tile[href="logs.html"]')).toBeVisible();
+    await expect(homePage.locator('a.oidf-dashboard-tile[href="plans.html"]')).toBeVisible();
   });
 
   test("unauthenticated state hides user info (R24)", async ({ page }) => {
@@ -41,9 +43,13 @@ test.describe("index.html — Home page", () => {
     const navbar = page.locator("cts-navbar");
     await expect(navbar).not.toContainText("Logged in as");
 
-    // Navigation buttons are still visible in the page body (public links)
+    // Public tiles are visible in the dashboard
     const homePage = page.locator("#homePage");
-    await expect(homePage.locator('cts-link-button[href="logs.html?public=true"]')).toBeVisible();
-    await expect(homePage.locator('cts-link-button[href="plans.html?public=true"]')).toBeVisible();
+    await expect(
+      homePage.locator('a.oidf-dashboard-tile[href="logs.html?public=true"]'),
+    ).toBeVisible();
+    await expect(
+      homePage.locator('a.oidf-dashboard-tile[href="plans.html?public=true"]'),
+    ).toBeVisible();
   });
 });
