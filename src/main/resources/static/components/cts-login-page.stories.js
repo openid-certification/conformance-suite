@@ -22,18 +22,27 @@ export const Default = {
   async play({ canvasElement }) {
     const canvas = within(canvasElement);
 
-    // Page heading present
+    // Form heading present
     await waitFor(() => {
-      expect(
-        canvas.getByText("Login to or Register with the OpenID Foundation Conformance Suite"),
-      ).toBeInTheDocument();
+      expect(canvas.getByText("Sign in to continue")).toBeInTheDocument();
     });
 
-    // Centered card wrapper renders on the muted background
+    // Two-pane shell renders on the muted background
     const wrapper = canvasElement.querySelector(".oidf-login-page");
     expect(wrapper).toBeTruthy();
     const card = canvasElement.querySelector(".oidf-login-card");
     expect(card).toBeTruthy();
+
+    // Brand band renders the OIDF wordmark and capability pillars
+    const brand = canvasElement.querySelector(".oidf-login-brand");
+    expect(brand).toBeTruthy();
+    const brandLogo = /** @type {HTMLImageElement} */ (
+      canvasElement.querySelector(".oidf-login-brand__logo")
+    );
+    expect(brandLogo).toBeTruthy();
+    expect(brandLogo.getAttribute("src")).toBe("/images/openid-dark.svg");
+    expect(brandLogo.getAttribute("alt")).toBe("OpenID");
+    expect(canvasElement.querySelectorAll(".oidf-login-brand__pillars li").length).toBe(4);
 
     // Google OAuth button renders with correct href via cts-link-button -> <a>
     const googleAnchor = /** @type {HTMLAnchorElement} */ (
@@ -46,6 +55,8 @@ export const Default = {
     expect(googleAnchor.classList.contains("oidf-btn-secondary")).toBe(true);
     expect(googleAnchor.classList.contains("btn-danger")).toBe(false);
     expect(googleAnchor.classList.contains("btn")).toBe(false);
+    // Vendor mark precedes the label
+    expect(googleAnchor.querySelector(".bi.bi-google")).toBeTruthy();
 
     // GitLab OAuth button renders with correct href
     const gitlabAnchor = /** @type {HTMLAnchorElement} */ (
@@ -56,21 +67,24 @@ export const Default = {
     expect(gitlabAnchor.classList.contains("oidf-btn")).toBe(true);
     expect(gitlabAnchor.classList.contains("oidf-btn-secondary")).toBe(true);
     expect(gitlabAnchor.classList.contains("btn-primary")).toBe(false);
+    expect(gitlabAnchor.querySelector(".bi.bi-gitlab")).toBeTruthy();
 
     // Public links present
     expect(canvas.getByText("View published logs")).toBeInTheDocument();
     expect(canvas.getByText("View published plans")).toBeInTheDocument();
 
-    // Public links have correct hrefs
+    // Public links have correct hrefs and live in rich-list anchors
     const logsLink = /** @type {HTMLAnchorElement} */ (
       canvas.getByText("View published logs").closest("a")
     );
     expect(logsLink.getAttribute("href")).toBe("logs.html?public=true");
+    expect(logsLink.classList.contains("oidf-login-link")).toBe(true);
 
     const plansLink = /** @type {HTMLAnchorElement} */ (
       canvas.getByText("View published plans").closest("a")
     );
     expect(plansLink.getAttribute("href")).toBe("plans.html?public=true");
+    expect(plansLink.classList.contains("oidf-login-link")).toBe(true);
 
     // No error or logout cts-alert renders by default
     expect(canvasElement.querySelector("cts-alert")).toBeNull();
@@ -164,10 +178,8 @@ export const TokenAuth = {
     expect(iframe.style.display).toBe("none");
     expect(iframe.getAttribute("title")).toBe("Token authentication");
 
-    // Page heading still visible
-    expect(
-      canvas.getByText("Login to or Register with the OpenID Foundation Conformance Suite"),
-    ).toBeInTheDocument();
+    // Form heading still visible
+    expect(canvas.getByText("Sign in to continue")).toBeInTheDocument();
 
     // No error or logout cts-alert
     expect(canvasElement.querySelector("cts-alert")).toBeNull();
