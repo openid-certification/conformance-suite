@@ -60,6 +60,35 @@ npm ci --ignore-scripts    # restore a host-native node_modules/
 
 Commit only `frontend/package-lock.json` alongside your `package.json` change.
 
+## Design tokens
+
+The OIDF design system ships as two token files served from
+`/css/` on every page (link order matters):
+
+1. **`oidf-tokens.css`** — vendored verbatim from the design archive.
+   Single source of truth for `--oidf-*`, `--ink-*`, `--orange-*`,
+   `--rust-*`, `--sand-*`, `--space-*`, `--radius-*`, `--shadow-*`,
+   `--font-sans`, `--font-mono`, `--ease-standard`, `--focus-ring`.
+   Re-vendor from upstream rather than editing in place.
+2. **`oidf-app.css`** — load-bearing compatibility layer. Carries the
+   body `font-family: var(--font-sans)` rule (replaces the historical
+   PT Sans link), the `.collapse` / `.collapse.show` toggle (mirrors
+   Bootstrap's behavior so collapsed-by-default markup keeps its
+   intent once `bootstrap.min.css` leaves), and the
+   `dialog:not([open]) { display: none }` first-paint hide rule for
+   the new `<dialog>`-based `cts-modal`. Links AFTER `layout.css`
+   so its body rule wins.
+
+**Typography:** Helvetica Neue → Arial Nova → Nimbus Sans → Arial
+fallback for sans-serif (no Google Fonts download); JetBrains Mono
+via Google Fonts CDN for code/JWT/JSON pages (`log-detail`,
+`schedule-test`, `tokens`, `upload`).
+
+**`cts-*` consumption rule:** components reach for tokens through
+scoped `<style>` blocks in their render method. No hard-coded hex,
+spacing, or radius values in `cts-*` markup. No project-wide utility
+CSS — page and component layouts own their own styles.
+
 ## Failure-mode decoder
 
 - **`format:check` fails** — Prettier reports a diff. Fix: `npm run format` (writes `--write`).

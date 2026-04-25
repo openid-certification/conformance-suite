@@ -1,0 +1,51 @@
+/* ================================================================
+   OIDF App — shared layout primitives + Bootstrap-removal compat
+
+   Companion to oidf-tokens.css. Carries the small set of rules that
+   are genuinely shared across pages, plus a handful of compatibility
+   rules that must outlive Bootstrap (see plan
+   docs/plans/2026-04-25-001-feat-oidf-design-system-bootstrap-removal-plan.md
+   U3 + Adv F3, F5, F13).
+
+   This file MUST link AFTER layout.css so its body { font-family }
+   rule overrides layout.css line 109 once the PT Sans link is gone.
+   No project-wide utility CSS lives here — page and component
+   layouts own their own styles via tokens.
+   ================================================================ */
+
+/* ---- Body font safety net ---------------------------------------
+   layout.css:109 used to hardcode `body { font-family: 'PT Sans',
+   sans-serif; font-size: 16px; }`. Once the PT Sans link is removed,
+   the cascade would fall through to OS sans-serif unless this rule
+   takes over. Keeps body text on the OIDF Helvetica Neue stack via
+   --font-sans. (Adv F5)
+   ---------------------------------------------------------------- */
+body {
+  font-family: var(--font-sans);
+}
+
+/* ---- Bootstrap .collapse compatibility --------------------------
+   12+ markup sites still use the `class="collapse"` /
+   `class="collapse show"` pair (login banners, log-header buttons,
+   stacktrace toggles, more-info panels). Until those surfaces are
+   migrated, mirror Bootstrap's default toggle behavior so the
+   collapsed-by-default elements stay collapsed once bootstrap.min.css
+   leaves the page. (Adv F3)
+   ---------------------------------------------------------------- */
+.collapse {
+  display: none;
+}
+.collapse.show {
+  display: block;
+}
+
+/* ---- Native <dialog> first-paint hide ---------------------------
+   The new <dialog>-based cts-modal needs to be hidden before
+   showModal() is called; without this rule, an empty dialog frame
+   would briefly flash during component upgrade on slow paints.
+   (Adv F13 — anchored here so cts-modal can land in U9 without
+   carrying the rule itself.)
+   ---------------------------------------------------------------- */
+dialog:not([open]) {
+  display: none;
+}
