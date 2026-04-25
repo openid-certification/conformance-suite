@@ -31,11 +31,19 @@ export const Running = {
     // Test ID displayed
     expect(canvas.getByText(RUNNING_TEST._id)).toBeInTheDocument();
 
-    // Status badge shows RUNNING with info variant
+    // Status badge shows RUNNING with the design-system `running` variant
     const badge = canvasElement.querySelector("cts-badge");
     expect(badge).toBeTruthy();
     expect(badge.getAttribute("label")).toBe("RUNNING");
-    expect(badge.getAttribute("variant")).toBe("info");
+    expect(badge.getAttribute("variant")).toBe("running");
+
+    // The running variant renders the design-system spinning circular SVG
+    // (an inline <svg> wrapped in .cts-badge-spin), NOT the legacy
+    // `bi bi-arrow-clockwise` glyph.
+    const spinner = canvasElement.querySelector("cts-badge .cts-badge-spin svg");
+    expect(spinner).toBeTruthy();
+    const legacyGlyph = canvasElement.querySelector(".bi-arrow-clockwise");
+    expect(legacyGlyph).toBeNull();
 
     // Created date is rendered
     expect(canvas.getByText("Created:")).toBeInTheDocument();
@@ -54,6 +62,10 @@ export const Running = {
     // Owner row NOT visible (isAdmin is false by default)
     const ownerRow = canvasElement.querySelector('[data-testid="owner-row"]');
     expect(ownerRow).toBeNull();
+
+    // No progress bar when `progress` is unset
+    const progressBar = canvasElement.querySelector('[role="progressbar"]');
+    expect(progressBar).toBeNull();
   },
 };
 
@@ -65,11 +77,11 @@ export const Waiting = {
     // Test name displayed
     expect(canvas.getByText("oidcc-server-rotate-keys")).toBeInTheDocument();
 
-    // Status badge shows WAITING with warning variant
+    // Status badge shows WAITING with the design-system `warn` variant
     const badge = canvasElement.querySelector("cts-badge");
     expect(badge).toBeTruthy();
     expect(badge.getAttribute("label")).toBe("WAITING");
-    expect(badge.getAttribute("variant")).toBe("warning");
+    expect(badge.getAttribute("variant")).toBe("warn");
 
     // Variant info displayed
     expect(canvas.getByText("Variant:")).toBeInTheDocument();
@@ -88,7 +100,7 @@ export const Interrupted = {
     // Test name displayed
     expect(canvas.getByText("oidcc-ensure-redirect-uri")).toBeInTheDocument();
 
-    // Status badge shows INTERRUPTED with interrupted variant
+    // Status badge shows INTERRUPTED with the legacy `interrupted` variant
     const badge = canvasElement.querySelector("cts-badge");
     expect(badge).toBeTruthy();
     expect(badge.getAttribute("label")).toBe("INTERRUPTED");
@@ -123,11 +135,49 @@ export const AdminView = {
   },
 };
 
+/**
+ * Asserts the orange-400 progress bar advances on prop change. Starts at
+ * 35%, then bumps to 80% and verifies the inline `width` style follows.
+ */
+export const WithProgressBar = {
+  render: () =>
+    html`<cts-running-test-card .test=${RUNNING_TEST} .progress=${35}></cts-running-test-card>`,
+  async play({ canvasElement }) {
+    const card =
+      /** @type {HTMLElement & { progress: number, updateComplete: Promise<unknown> }} */ (
+        canvasElement.querySelector("cts-running-test-card")
+      );
+    expect(card).toBeTruthy();
+
+    // Initial 35% fill rendered with the inline width style and
+    // accessible role="progressbar" semantics.
+    const progressBar = canvasElement.querySelector('[role="progressbar"]');
+    expect(progressBar).toBeTruthy();
+    expect(progressBar.getAttribute("aria-valuenow")).toBe("35");
+    expect(progressBar.getAttribute("aria-valuemin")).toBe("0");
+    expect(progressBar.getAttribute("aria-valuemax")).toBe("100");
+
+    const fill = /** @type {HTMLElement} */ (canvasElement.querySelector(".cts-rtc-progress-fill"));
+    expect(fill).toBeTruthy();
+    expect(fill.style.width).toBe("35%");
+
+    // Advance the prop; the bar should follow on the next render.
+    card.progress = 80;
+    await card.updateComplete;
+
+    const updatedBar = canvasElement.querySelector('[role="progressbar"]');
+    expect(updatedBar.getAttribute("aria-valuenow")).toBe("80");
+
+    const updatedFill = /** @type {HTMLElement} */ (
+      canvasElement.querySelector(".cts-rtc-progress-fill")
+    );
+    expect(updatedFill.style.width).toBe("80%");
+  },
+};
+
 export const DownloadClick = {
   render: () => html`<cts-running-test-card .test=${RUNNING_TEST}></cts-running-test-card>`,
   async play({ canvasElement }) {
-    const canvas = within(canvasElement);
-
     let eventFired = false;
     /** @type {any} */
     let eventDetail = null;
@@ -136,8 +186,15 @@ export const DownloadClick = {
       eventDetail = /** @type {CustomEvent} */ (e).detail;
     });
 
-    const downloadBtn = canvas.getByText(/Download Logs/);
-    await userEvent.click(downloadBtn);
+    // The Download Logs control is now a cts-button — click its inner
+    // <button>, which is what bubbles native + cts-click events.
+    const downloadHost = /** @type {HTMLElement} */ (
+      canvasElement.querySelector("cts-button.downloadBtn")
+    );
+    expect(downloadHost).toBeTruthy();
+    const innerBtn = /** @type {HTMLButtonElement} */ (downloadHost.querySelector("button"));
+    expect(innerBtn).toBeTruthy();
+    await userEvent.click(innerBtn);
 
     expect(eventFired).toBe(true);
     expect(eventDetail.testId).toBe(RUNNING_TEST._id);
