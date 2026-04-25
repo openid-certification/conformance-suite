@@ -12,10 +12,10 @@ test.describe("logs.html — Logs List", () => {
     expectNoUnmockedCalls(page);
   });
 
-  test("loads and renders logs in DataTable (R27)", async ({ page }) => {
+  test("loads and renders logs in cts-data-table (R27)", async ({ page }) => {
     await setupFailFast(page);
 
-    // /api/log — DataTables server-side endpoint
+    // /api/log — DataTables-style server-side endpoint
     await page.route("**/api/log?*", (route) => {
       const envelope = wrapDataTablesResponse(MOCK_LOG_LIST, route.request().url());
       return route.fulfill({
@@ -29,8 +29,10 @@ test.describe("logs.html — Logs List", () => {
 
     await page.goto("/logs.html");
 
-    // Wait for DataTable to render rows
-    const rows = page.locator("#logsListing tbody tr");
+    // Wait for cts-data-table to render rows. The host element keeps the
+    // legacy `#logsListing` id; the inner table lives in light DOM so the
+    // descendant selector still matches.
+    const rows = page.locator("#logsListing .oidf-dt-table tbody tr[data-row-index]");
     await expect(rows.first()).toBeVisible();
 
     // Should show test names
@@ -41,7 +43,7 @@ test.describe("logs.html — Logs List", () => {
     await expect(page.locator("#logsListing")).toContainText("WARNING");
   });
 
-  test("search triggers DataTable re-fetch with Enter key", async ({ page }) => {
+  test("search triggers cts-data-table re-fetch with Enter key", async ({ page }) => {
     await setupFailFast(page);
 
     await page.route("**/api/log?*", (route) => {
@@ -58,11 +60,13 @@ test.describe("logs.html — Logs List", () => {
     await page.goto("/logs.html");
 
     // Wait for initial table load
-    await expect(page.locator("#logsListing tbody tr").first()).toBeVisible();
+    await expect(
+      page.locator("#logsListing .oidf-dt-table tbody tr[data-row-index]").first(),
+    ).toBeVisible();
 
     // Type search term and press Enter — set up waitForRequest BEFORE the
     // action so the listener is active when the request fires
-    const searchInput = page.locator("div.dataTables_filter input");
+    const searchInput = page.locator("#logsListing .oidf-dt-search-input");
     await searchInput.fill("rotate-keys");
     const searchRequest = page.waitForRequest(
       (req) => req.url().includes("/api/log?") && req.url().includes("search=rotate-keys"),
@@ -100,10 +104,15 @@ test.describe("logs.html — Logs List", () => {
     await page.goto("/logs.html");
 
     // Wait for rows
-    await expect(page.locator("#logsListing tbody tr").first()).toBeVisible();
+    await expect(
+      page.locator("#logsListing .oidf-dt-table tbody tr[data-row-index]").first(),
+    ).toBeVisible();
 
-    // Click config button in the first row
-    const configBtn = page.locator(".showConfigBtn").first();
+    // Click the inner <button> rendered by the .showConfigBtn cts-button host.
+    // Targeting the inner button rather than the host element matches the
+    // pattern in plans.spec.js (and avoids edge cases where Playwright's
+    // host-bbox click misses the actual button on hosts with margin/padding).
+    const configBtn = page.locator(".showConfigBtn button").first();
     await expect(configBtn).toBeVisible();
     await configBtn.click();
 
