@@ -33,13 +33,25 @@ export const MixedResults = {
     const canvas = within(canvasElement);
     expect(canvas.getByText("Run All")).toBeTruthy();
     expect(canvas.getByText("Run Remaining")).toBeTruthy();
-    const cards = canvasElement.querySelectorAll(".card");
-    expect(cards.length).toBe(MOCK_MODULES_MIXED.length);
+    const tiles = canvasElement.querySelectorAll(".oidf-batch-runner-tile");
+    expect(tiles.length).toBe(MOCK_MODULES_MIXED.length);
     const badges = canvasElement.querySelectorAll("cts-badge");
     const passedBadges = Array.from(badges).filter((b) => b.getAttribute("label") === "PASSED");
     expect(passedBadges.length).toBe(1);
+    expect(passedBadges[0].getAttribute("variant")).toBe("pass");
+    const failedBadges = Array.from(badges).filter((b) => b.getAttribute("label") === "FAILED");
+    expect(failedBadges.length).toBe(1);
+    expect(failedBadges[0].getAttribute("variant")).toBe("fail");
+    const warningBadges = Array.from(badges).filter((b) => b.getAttribute("label") === "WARNING");
+    expect(warningBadges.length).toBe(1);
+    expect(warningBadges[0].getAttribute("variant")).toBe("warn");
     const pendingBadges = Array.from(badges).filter((b) => b.getAttribute("label") === "PENDING");
     expect(pendingBadges.length).toBe(2);
+    expect(pendingBadges[0].getAttribute("variant")).toBe("skip");
+    // Sanity check: the canonical b-pass / b-fail / b-warn / b-skip classes
+    // from cts-badge are present on the rendered inner spans.
+    const passSpan = passedBadges[0].querySelector(".badge");
+    expect(passSpan?.classList.contains("b-pass")).toBe(true);
   },
 };
 
@@ -66,6 +78,7 @@ export const NoneRun = {
     const badges = canvasElement.querySelectorAll("cts-badge");
     for (const badge of badges) {
       expect(badge.getAttribute("label")).toBe("PENDING");
+      expect(badge.getAttribute("variant")).toBe("skip");
     }
   },
 };
@@ -101,7 +114,7 @@ export const RunRemainingEvent = {
 export const EmptyModules = {
   render: () => html`<cts-batch-runner plan-id="plan-000" .modules=${[]}></cts-batch-runner>`,
   async play({ canvasElement }) {
-    const cards = canvasElement.querySelectorAll(".card");
-    expect(cards.length).toBe(0);
+    const tiles = canvasElement.querySelectorAll(".oidf-batch-runner-tile");
+    expect(tiles.length).toBe(0);
   },
 };
