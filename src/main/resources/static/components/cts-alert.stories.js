@@ -81,37 +81,52 @@ export const Danger = {
 
 /**
  * Setting `dismissible` renders a close button (icon-only ghost button with
- * `aria-label="Close"`). Clicking it removes the alert from the DOM and
- * dispatches a `cts-alert-dismissed` event that bubbles for parent listeners.
+ * `aria-label="Close"` and a `bi-x` glyph). Clicking it removes the alert
+ * from the DOM and dispatches a `cts-alert-dismissed` event that bubbles
+ * for parent listeners.
+ *
+ * Renders two alerts so visual-regression tooling and human reviewers can
+ * see the resting state of a dismissible alert; the play function only
+ * dismisses the first, leaving the second on the canvas.
  */
 export const Dismissible = {
   args: { variant: "info", dismissible: true },
   render: ({ variant, dismissible }) => html`
-    <cts-alert variant="${variant}" ?dismissible="${dismissible}">
+    <cts-alert data-testid="dismiss-me" variant="${variant}" ?dismissible="${dismissible}">
       <strong>This alert dismisses on close.</strong>
-      Click the × to remove it.
+      Click the close button to remove it.
+    </cts-alert>
+    <cts-alert data-testid="stays-visible" variant="${variant}" ?dismissible="${dismissible}">
+      <strong>This alert is left on the canvas</strong> so you can see what a dismissible alert
+      looks like at rest.
     </cts-alert>
   `,
 
   async play({ canvasElement }) {
-    const host = canvasElement.querySelector("cts-alert");
-    const alert = canvasElement.querySelector(".oidf-alert");
-    expect(alert).toBeTruthy();
+    const dismissTarget = canvasElement.querySelector('cts-alert[data-testid="dismiss-me"]');
+    const survivor = canvasElement.querySelector('cts-alert[data-testid="stays-visible"]');
+    expect(dismissTarget).toBeTruthy();
+    expect(survivor).toBeTruthy();
 
-    const closeBtn = alert.querySelector("button.oidf-alert-close");
+    const closeBtn = dismissTarget.querySelector("button.oidf-alert-close");
     expect(closeBtn).toBeTruthy();
     expect(closeBtn.getAttribute("aria-label")).toBe("Close");
     // Bootstrap's btn-close class must NOT be emitted.
     expect(closeBtn.classList.contains("btn-close")).toBe(false);
+    const closeIcon = closeBtn.querySelector("i.bi.bi-x");
+    expect(closeIcon).toBeTruthy();
+    expect(closeIcon.getAttribute("aria-hidden")).toBe("true");
 
     let dismissed = false;
-    host.addEventListener("cts-alert-dismissed", () => {
+    dismissTarget.addEventListener("cts-alert-dismissed", () => {
       dismissed = true;
     });
 
     await userEvent.click(closeBtn);
     expect(dismissed).toBe(true);
-    expect(canvasElement.querySelector("cts-alert")).toBeNull();
+    // Only the first alert is removed; the second remains on the canvas.
+    expect(canvasElement.querySelector('cts-alert[data-testid="dismiss-me"]')).toBeNull();
+    expect(canvasElement.querySelector('cts-alert[data-testid="stays-visible"]')).toBeTruthy();
   },
 };
 
