@@ -10,9 +10,6 @@
     <meta charset="UTF-8">
     <title>OIDF Conformance: Test Plan</title>
 
-    <!-- Latest compiled and minified CSS -->
-    <link rel="stylesheet" href="/vendor/bootstrap/css/bootstrap.min.css">
-
     <!-- Boostrap Icons -->
     <link rel="stylesheet" href="/vendor/bootstrap-icons/css/bootstrap-icons.css">
 
@@ -20,13 +17,7 @@
     <link rel="stylesheet" type="text/css" href="css/layout.css">
     <link rel="stylesheet" href="/css/oidf-app.css">
 
-    <!-- Popper (necessary for Bootstrap's tooltips) -->
-    <script src="/vendor/popper/js/popper.min.js"></script>
-    <!-- Latest compiled and minified JavaScript -->
-    <script src="/vendor/bootstrap/js/bootstrap.min.js"></script>
-
     <script src="/vendor/lodash/js/lodash.min.js"></script>
-    <script src="/vendor/clipboard/js/clipboard.min.js"></script>
 
     <script type="text/javascript" src="js/fapi.ui.js"></script>
     <script>window.litDisableBundleWarning = true;</script>
@@ -38,6 +29,72 @@
     <script type="module" src="/components/cts-alert.js"></script>
     <script type="module" src="/components/cts-badge.js"></script>
     <script type="module" src="/components/cts-icon.js"></script>
+    <script type="module" src="/components/cts-crumb.js"></script>
+    <script type="module" src="/components/cts-tooltip.js"></script>
+    <script type="module" src="/components/cts-plan-header.js"></script>
+    <script type="module" src="/components/cts-plan-actions.js"></script>
+    <script type="module" src="/components/cts-plan-modules.js"></script>
+
+    <style>
+        .oidf-plan-detail-page {
+            padding: var(--space-5) var(--space-6);
+            max-width: 1320px;
+            margin: 0 auto;
+            font-family: var(--font-sans);
+        }
+        .oidf-plan-detail-crumb {
+            margin-bottom: var(--space-3);
+        }
+        .oidf-plan-detail-grid {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) 240px;
+            gap: var(--space-5);
+            align-items: start;
+        }
+        @media (max-width: 900px) {
+            .oidf-plan-detail-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        .oidf-cert-package-form .form-text {
+            color: var(--fg-soft);
+            font-size: var(--fs-12);
+            margin-top: var(--space-1);
+        }
+        .oidf-cert-package-form ol {
+            padding-left: var(--space-5);
+        }
+        .oidf-cert-package-form fieldset {
+            border: 1px solid var(--border);
+            border-radius: var(--radius-2);
+            padding: var(--space-3);
+            margin: 0;
+        }
+        .oidf-cert-package-form .top10 {
+            margin-top: var(--space-2);
+        }
+        .oidf-cert-package-form .top15 {
+            margin-top: var(--space-3);
+        }
+        .oidf-cert-package-form .top30 {
+            margin-top: var(--space-5);
+        }
+        .oidf-cert-package-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: var(--space-2);
+            margin-top: var(--space-4);
+        }
+        .oidf-private-link-result {
+            margin-top: var(--space-3);
+            padding: var(--space-3);
+            background: var(--ink-50);
+            border-radius: var(--radius-2);
+            font-family: var(--font-mono);
+            font-size: var(--fs-12);
+            word-break: break-all;
+        }
+    </style>
 </head>
 
 <body>
@@ -57,574 +114,81 @@
         </div>
     </cts-modal>
 
-    <cts-modal id="configModal" heading="Configuration">
-        <div>
-            <cts-button class="btn-clipboard" icon="box-arrow-in-right" data-clipboard-target="#config" title="Copy config to clipboard"></cts-button>
-            Configuration for <code id="configTestId" class="text-muted"></code>
-        </div>
-        <div class="wrapLongStrings">
-            <pre id="config" class="row-bg-light p-1"></pre>
-        </div>
-    </cts-modal>
-
     <cts-modal id="publishModal" heading="Publish"
-        footer-buttons='[{"label": "Publish", "data": {"publish": "everything"}}, {"label": "Cancel"}]'>
+        footer-buttons='[{"label": "Publish", "class": "btn-primary", "id": "confirmPublishBtn", "data": {"publish": "everything"}, "dismiss": false}, {"label": "Cancel"}]'>
         Are you sure? This will make all keys, secrets, and all other test information publicly visible.
     </cts-modal>
 
-    <!-- Certification submission modal -->
-    <div class="modal" id="certificationPackageModal" tabindex="-1" role="dialog" aria-labelledby="errorLabel" data-bs-backdrop="static">
-        <div class="modal-dialog modal-lg" role="document">
-            <div class="modal-content pad28">
-                <div class="modal-header">
-                    <h4 class="modal-title" id="errorLabel">Prepare Certification Submission Package</h4>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <form class="form" name="certificationPackageForm" id="certificationPackageForm" action="" method="post" enctype="multipart/form-data" >
-                    <div id="certificationPackageFormModalBody" class="modal-body">
-                    <div id="certificationPackageFormErrors"></div>
-                    <p><strong>Clicking the &quot;Create Certification Package&quot; button will trigger the following:</strong></p>
-                    <ol class="top15">
-                        <li>
-                            <strong>The test plan will be published.</strong>
-                            <p class="form-text">This will make all keys, secrets, and all other test information publicly visible.</p>
-                        </li>
-                        <li>
-                            <strong>The test plan will be marked as immutable.</strong>
-                            <p class="form-text">You will not be able to run tests under this plan, once you click the Create Certification Package button.</p>
-                        </li>
-                        <li>
-                            <strong>A zip file containing your certification submission package will be downloaded to your computer.</strong>
-                            <p class="form-text">Please follow <a class="darkblue" href="https://openid.net/certification/instructions/" target="instructions">the submission instructions</a>
-                            to complete the certification process.</p>
-                        </li>
-                    </ol>
+    <!-- Certification submission modal (converted from raw Bootstrap modal in U35) -->
+    <cts-modal id="certificationPackageModal" heading="Prepare Certification Submission Package" size="lg" static-backdrop>
+        <form class="oidf-cert-package-form" name="certificationPackageForm" id="certificationPackageForm" action="" method="post" enctype="multipart/form-data">
+            <div id="certificationPackageFormModalBody">
+                <div id="certificationPackageFormErrors"></div>
+                <p><strong>Clicking the &quot;Create Certification Package&quot; button will trigger the following:</strong></p>
+                <ol class="top15">
+                    <li>
+                        <strong>The test plan will be published.</strong>
+                        <p class="form-text">This will make all keys, secrets, and all other test information publicly visible.</p>
+                    </li>
+                    <li>
+                        <strong>The test plan will be marked as immutable.</strong>
+                        <p class="form-text">You will not be able to run tests under this plan, once you click the Create Certification Package button.</p>
+                    </li>
+                    <li>
+                        <strong>A zip file containing your certification submission package will be downloaded to your computer.</strong>
+                        <p class="form-text">Please follow <a href="https://openid.net/certification/instructions/" target="instructions">the submission instructions</a>
+                        to complete the certification process.</p>
+                    </li>
+                </ol>
 
-                    <p class="top30"><strong>Please upload the required files to be included the package:</strong></p>
-                    <div>
-                        <div class="mb-3 row">
-                            <fieldset>
-                                <strong>1.</strong> <strong>Client data</strong> (For RP Tests Only)
-                                <p><input class="top10" type="file" id="clientSideDataBtn" name="clientSideData" accept="application/zip"></p>
-                                <p class="form-text">Client side logs and similar additional data. Only needed for RP tests. Must be a zip file.</p>
-                            </fieldset>
-                        </div>
-                    </div>
-                </div>
-
-                    <div id="certificationPackageDownloaded" class="modal-body" hidden>
-                        <p>The certification package zip file is being downloaded to your computer. You may close this dialog, and when the download
-                            is complete then you will find the zip file in your browser download directory.</p>
-                        <p>Please proceed to <a class="darkblue" href="https://openid.atlassian.net/servicedesk/customer/portal/3/group/3/create/10016" target="ocs">the certification request form</a>
-                            to submit it.</p>
-                        <p><b>Warning: don't change the zip file, as it will not be accepted during certification publishing process.</b></p>
-                    </div>
-
-                    <div class="modal-footer">
-                        <cts-button id="cancelCertificationPackageFormModal" data-bs-dismiss="modal" label="Cancel"></cts-button>
-                        <cts-button id="certificationPackageFormSubmitBtn" type="submit" variant="primary" label="Create Certification Package"></cts-button>
-                        <cts-button id="closeCertificationPackageFormModal" hidden label="Close"></cts-button>
-                    </div>
-                </form>
+                <p class="top30"><strong>Please upload the required files to be included the package:</strong></p>
+                <fieldset>
+                    <strong>1.</strong> <strong>Client data</strong> (For RP Tests Only)
+                    <p class="top10"><input type="file" id="clientSideDataBtn" name="clientSideData" accept="application/zip"></p>
+                    <p class="form-text">Client side logs and similar additional data. Only needed for RP tests. Must be a zip file.</p>
+                </fieldset>
             </div>
-        </div>
-    </div>
 
+            <div id="certificationPackageDownloaded" hidden>
+                <p>The certification package zip file is being downloaded to your computer. You may close this dialog, and when the download
+                    is complete then you will find the zip file in your browser download directory.</p>
+                <p>Please proceed to <a href="https://openid.atlassian.net/servicedesk/customer/portal/3/group/3/create/10016" target="ocs">the certification request form</a>
+                    to submit it.</p>
+                <p><b>Warning: don't change the zip file, as it will not be accepted during certification publishing process.</b></p>
+            </div>
+
+            <div class="oidf-cert-package-actions">
+                <cts-button id="cancelCertificationPackageFormModal" label="Cancel"></cts-button>
+                <cts-button id="certificationPackageFormSubmitBtn" type="submit" variant="primary" label="Create Certification Package"></cts-button>
+                <cts-button id="closeCertificationPackageFormModal" hidden label="Close"></cts-button>
+            </div>
+        </form>
+    </cts-modal>
 
     <cts-modal id="reRunTestModal" heading="Run test confirmation"
-        footer-buttons='[{"label": "Sure, Run it", "class": "btn-danger", "id": "reRunTestModalBtn"}, {"label": "Cancel"}]'>
+        footer-buttons='[{"label": "Sure, Run it", "class": "btn-danger", "id": "reRunTestModalBtn", "dismiss": false}, {"label": "Cancel"}]'>
         Are you sure you want to rerun this test? It is owned by a different user.
     </cts-modal>
 
-    <cts-modal id="deletePlanModal" heading="Delete plan"
-        footer-buttons='[{"label": "Cancel"}, {"label": "Delete plan", "class": "btn-danger", "id": "confirmDeletePlanBtn", "dismiss": false}]'>
-        <div id="deleteMutablePlanModalBody">
-
-            <p><strong>Clicking the "Delete plan" button will permanently and irrevocably:</strong>
-                <ul>
-                    <li>Delete the test plan.</li>
-                    <li>Delete the test plan configuration.</li>
-                    <li>Delete the individual tests and logs belonging to the plan.</li>
-                </ul>
-            </p>
-            <p class="top10"><strong>This action cannot be undone and the data cannot be recovered after deletion.</strong></p>
-            <p class="top10">After deletion, this page will be reloaded and you will see an <strong>HTTP 404 Not Found</strong>
-            error, confirming that the deletion was successful.</p>
-
-        </div>
-    </cts-modal>
-
-    <!-- resident DOM -->
-    <div class="container-fluid">
-        <div id="planDetail">
-            <div class="header"></div>
-            <div class="content container-fluid">
-                <!-- main page is rendered here -->
+    <main id="planDetail" class="oidf-plan-detail-page">
+        <cts-crumb id="planDetailCrumb" class="oidf-plan-detail-crumb"></cts-crumb>
+        <div class="oidf-plan-detail-grid">
+            <div>
+                <cts-plan-header id="planDetailHeader"></cts-plan-header>
+                <cts-plan-modules id="planDetailModules"></cts-plan-modules>
             </div>
+            <cts-plan-actions id="planDetailActions"></cts-plan-actions>
         </div>
-    </div>
+    </main>
 
     <script type="text/javascript">
-
-        function getPlan(planId, public) {
-            return fetch('/api/plan/' + encodeURIComponent(planId) + (public ? '?public=true' : ''))
-            .then((response) => {
-                if (!response.ok) {
-                    return Promise.reject(response);
-                }
-
-                return response.json();
-            })
-            .then((data) => {
-                var readonly = public || !FAPI_UI.currentUser || FAPI_UI.currentUser.isGuest;
-                document.getElementById('certificationPackageForm').setAttribute('action','/api/plan/'+planId+'/certificationpackage');
-                document.querySelectorAll('.content')?.forEach(function(element) {
-                    element.insertAdjacentHTML('beforeend', FAPI_UI.logTemplates.PLAN_START({ plan: data, public: public, readonly: readonly, variant: FAPI_UI.formatVariant(data.variant)}));
-                });
-
-                if (document.getElementById('downloadAllBtn') != null) {
-                    document.getElementById('downloadAllBtn').onclick = function(evt) {
-                        evt.preventDefault();
-                        window.open('/api/plan/exporthtml/' + encodeURIComponent(planId) + (public ? '?public=true' : ''));
-                    };
-                }
-
-                // wire up configuration button
-                if (document.getElementById('showConfigBtn') != null) {
-                    document.getElementById('showConfigBtn').onclick = function(evt) {
-                        evt.preventDefault();
-                        document.getElementById('config').innerHTML = _.escape(JSON.stringify(data.config, null, 4));
-                        document.getElementById('configTestId').innerHTML = _.escape(planId);
-
-                        document.getElementById('configModal').show();
-                    };
-                }
-
-                // wire up publish button
-                if (document.getElementById('publishBtn') != null) {
-                    document.getElementById('publishBtn').onclick = function(evt) {
-                        evt.preventDefault();
-
-                        document.getElementById('publishModal').show();
-                    };
-                }
-
-                if (document.getElementById('certificationPackageBtn') != null) {
-                    document.getElementById('certificationPackageBtn').onclick = function(evt) {
-                        evt.preventDefault();
-
-                        // certificationPackageModal is still a raw Bootstrap
-                        // modal (`<div class="modal">`); U35 converts it to a
-                        // cts-modal as part of the plan-detail Phase D work.
-                        // Until then, use Bootstrap's Modal API to open it.
-                        bootstrap.Modal.getOrCreateInstance(
-                            document.getElementById('certificationPackageModal'),
-                        ).show();
-                    };
-                }
-
-                if(document.querySelector('#deleteMutablePlanBtn')) {
-                    document.querySelector('#deleteMutablePlanBtn').addEventListener('click', _ => {
-                        document.getElementById('deletePlanModal').show();
-                    });
-                }
-
-                FAPI_UI.setupPrivateLinkSharing('/api/plan/' + encodeURIComponent(planId) + '/share');
-
-
-
-                document.querySelectorAll('[data-module]')?.forEach(function(element) {
-                    element.onclick = function(evt) {
-                        evt.preventDefault();
-                        var testName = this.dataset.module;
-                        var variant = this.dataset.variant;
-                        if(FAPI_UI.currentUser.sub !== data.owner.sub){
-                            document.getElementById('reRunTestModalBtn').dataset.testName = testName;
-                            document.getElementById('reRunTestModalBtn').dataset.variant = variant;
-
-                            document.getElementById('reRunTestModal').show();
-                        } else {
-                            runTest(testName, (variant !== "null") ? variant : null, planId);
-                        }
-                    };
-                });
-
-                document.querySelectorAll('[data-instance-id]')?.forEach(function(element) {
-                    var testId = element.dataset.instanceId;
-
-                    if (testId) {
-                        // wire up the download button
-                        element.querySelectorAll('.downloadBtn')?.forEach(function(element1) {
-                            element1.onclick = function(evt) {
-                                evt.preventDefault();
-                                window.open('/api/log/export/' + encodeURIComponent(testId) + (public ? '?public=true' : ''));
-                            };
-
-                            element1.classList.add('show');
-                        });
-
-                        // show the view button
-                        element.querySelectorAll('.viewBtn')?.forEach(function(element1) {
-                            element1.style.display = 'inline-block';
-                        });
-
-                        // fetch the test status
-                        console.log('Fetching |' + testId + '|');
-                        fetch('/api/info/' + encodeURIComponent(testId) + (public ? '?public=true' : ''))
-                        .then((response) => {
-                            if (!response.ok) {
-                                return Promise.reject(response);
-                            }
-
-                            return response.json();
-                        })
-                        .then((data) => {
-                            element.querySelectorAll('.testStatusAndResult')?.forEach(function(element1) {
-                                element1.innerHTML = FAPI_UI.logTemplates.TEST_STATUS({test: data});
-                            });
-
-                            element.querySelectorAll('.testVersion')?.forEach(function(element1) {
-                                element1.innerHTML = FAPI_UI.logTemplates.TEST_VERSION({testVersion: data.version});
-                            });
-
-                            FAPI_UI.activeTooltip();
-                            if(data.status === 'FINISHED'
-                                && (["PASSED", "WARNING", "REVIEW"].includes(data.result))
-                                && document.querySelector('#certificationPackageBtn')) {
-                                    document.querySelector('#certificationPackageBtn').disabled = false;
-                            }
-                        })
-                        .catch((error) => {
-                            if (error instanceof Response) {
-                                // We have a 'Respose' object.
-                                if (error.status == 404) {
-                                    // If the latest run is not accessible (an admin has re-run the test or it's unpublished),
-                                    // we won't be able to fetch the status (error 404).
-                                    // Just ignore it.
-                                }
-                                else {
-                                    var message = error.statusText;
-                                    var responseClone = error.clone();
-
-                                    error.text()
-                                    .then(textError => {
-                                        // Text error thrown by the app
-                                        messageParsed = true;
-
-                                        try {
-                                            const errorObj = JSON.parse(textError);
-
-                                            if (errorObj.error.length != 0) {
-                                                message = errorObj.error;
-                                            }
-                                        }
-                                        catch (e) {
-                                        }
-
-                                        FAPI_UI.showError({code: error.status.toString(), error: message});
-                                    })
-                                    .catch(error1 => {
-                                        // JSON error thrown by the app
-                                        responseClone.json()
-                                        .then(jsonError => {
-                                            if (typeof (jsonError) === 'string' && jsonError.length != 0) {
-                                                message = jsonError;
-                                            }
-
-                                            FAPI_UI.showError({code: error.status.toString(), error: message});
-                                        })
-                                        .catch(genericError => {
-                                            // Error thrown by the server
-                                            FAPI_UI.showError({code: error.status.toString(), error: error.statusText});
-                                        });
-                                    });
-                                }
-                            } else {
-                                // Network error automatically detected by fetch.
-                                FAPI_UI.showError({code: "", error: error});
-                            }
-                        });
-                    } else {
-                        // render an "UNKNOWN" field
-                        element.querySelectorAll('.testStatusAndResult')?.forEach(function(element1) {
-                            element1.innerHTML = FAPI_UI.logTemplates.TEST_STATUS({test: {}});
-                        });
-                        element.querySelectorAll('.testVersion')?.forEach(function(element1) {
-                            element1.innerHTML = FAPI_UI.logTemplates.TEST_VERSION({testVersion: ''});
-                        });
-                        FAPI_UI.activeTooltip();
-                    }
-                });
-
-                document.querySelectorAll('[data-publish]')?.forEach(function(element) {
-
-                    element.onclick = function(evt) {
-                        evt.preventDefault();
-
-                        var publish = this.dataset.publish;
-
-                        fetch('/api/plan/' + encodeURIComponent(planId) + '/publish', {
-                            method: "POST",
-                            headers: {
-                                "Content-Type": "application/json",
-                            },
-                            body: JSON.stringify({ publish: publish }),
-                        })
-                        .then((response) => {
-                            if (!response.ok) {
-                                return Promise.reject(response);
-                            }
-
-                            return response.json();
-                        })
-                        .then((data) => {
-                            // redirect to the published version or reload
-                            window.location.assign('/plan-detail.html?plan=' + encodeURIComponent(planId) + (publish ? '&public=true' : ''));
-                        })
-                        .catch((error) => {
-                            if (error instanceof Response) {
-                                // We have a 'Respose' object.
-                                var message = error.statusText;
-                                var responseClone = error.clone();
-
-                                error.text()
-                                .then(textError => {
-                                    // Text error thrown by the app
-                                    messageParsed = true;
-
-                                    try {
-                                        const errorObj = JSON.parse(textError);
-
-                                        if (errorObj.error.length != 0) {
-                                            message = errorObj.error;
-                                        }
-                                    }
-                                    catch (e) {
-                                    }
-
-                                    FAPI_UI.showError({code: error.status.toString(), error: message});
-                                })
-                                .catch(error1 => {
-                                    // JSON error thrown by the app
-                                    responseClone.json()
-                                    .then(jsonError => {
-                                        if (typeof (jsonError) === 'string' && jsonError.length != 0) {
-                                            message = jsonError;
-                                        }
-
-                                        FAPI_UI.showError({code: error.status.toString(), error: message});
-                                    })
-                                    .catch(genericError => {
-                                        // Error thrown by the server
-                                        FAPI_UI.showError({code: error.status.toString(), error: error.statusText});
-                                    });
-                                });
-                            } else {
-                                // Network error automatically detected by fetch.
-                                FAPI_UI.showError({code: "", error: error});
-                            }
-                        });
-                    };
-                });
-
-                //only for making an immutable plan mutable again
-                document.querySelectorAll('[data-immutable]')?.forEach(function(element) {
-                    element.onclick = function(evt) {
-                        evt.preventDefault();
-
-                        fetch('/api/plan/' + encodeURIComponent(planId) + '/makemutable', {
-                            method: "POST",
-                            headers: {
-                                "Content-Type": "application/x-www-form-urlencoded",
-                            },
-                        })
-                        .then((response) => {
-                            if (!response.ok) {
-                                return Promise.reject(response);
-                            }
-
-                            // redirect to the published version or reload
-                            window.location.assign('/plan-detail.html?plan=' + encodeURIComponent(planId));
-                        })
-                        .catch((error) => {
-                            if (error instanceof Response) {
-                                // We have a 'Respose' object.
-                                var message = error.statusText;
-                                var responseClone = error.clone();
-
-                                error.text()
-                                .then(textError => {
-                                    // Text error thrown by the app
-                                    messageParsed = true;
-
-                                    try {
-                                        const errorObj = JSON.parse(textError);
-
-                                        if (errorObj.error.length != 0) {
-                                            message = errorObj.error;
-                                        }
-                                    }
-                                    catch (e) {
-                                    }
-
-                                    FAPI_UI.showError({code: error.status.toString(), error: message});
-                                })
-                                .catch(error1 => {
-                                    // JSON error thrown by the app
-                                    responseClone.json()
-                                    .then(jsonError => {
-                                        if (typeof (jsonError) === 'string' && jsonError.length != 0) {
-                                            message = jsonError;
-                                        }
-
-                                        FAPI_UI.showError({code: error.status.toString(), error: message});
-                                    })
-                                    .catch(genericError => {
-                                        // Error thrown by the server
-                                        FAPI_UI.showError({code: error.status.toString(), error: error.statusText});
-                                    });
-                                });
-                            } else {
-                                // Network error automatically detected by fetch.
-                                FAPI_UI.showError({code: "", error: error});
-                            }
-                        });
-                    };
-                });
-
-                document.getElementById('reRunTestModalBtn').onclick = function(evt) {
-                    evt.preventDefault();
-                    var testName = this.dataset.testName;
-                    var variant = this.dataset.variant;
-                    runTest(testName, (variant !== "null") ? variant : null, planId);
-                };
-            })
-            .catch((error) => {
-                if (error instanceof Response) {
-                    // We have a 'Respose' object.
-                    var message = error.statusText;
-                    var responseClone = error.clone();
-
-                    error.text()
-                    .then(textError => {
-                        // Text error thrown by the app
-                        messageParsed = true;
-
-                        try {
-                            const errorObj = JSON.parse(textError);
-
-                            if (errorObj.error.length != 0) {
-                                message = errorObj.error;
-                            }
-                        }
-                        catch (e) {
-                        }
-
-                        FAPI_UI.showError({code: error.status.toString(), error: message});
-                    })
-                    .catch(error1 => {
-                        // JSON error thrown by the app
-                        responseClone.json()
-                        .then(jsonError => {
-                            if (typeof (jsonError) === 'string' && jsonError.length != 0) {
-                                message = jsonError;
-                            }
-
-                            FAPI_UI.showError({code: error.status.toString(), error: message});
-                        })
-                        .catch(genericError => {
-                            // Error thrown by the server
-                            FAPI_UI.showError({code: error.status.toString(), error: error.statusText});
-                        });
-                    });
-                } else {
-                    // Network error automatically detected by fetch.
-                    FAPI_UI.showError({code: "", error: error});
-                }
-
-                // Percolate the error up.
-                return Promise.reject(error);
-            });
-        }
-
-        function runTest(testName, testVariant, planId) {
-            var runTestUrl = '/api/runner?test=' + encodeURIComponent(testName) + '&plan=' + encodeURIComponent(planId);
-
-            if (testVariant !== null && testVariant !== undefined) {
-                runTestUrl += '&variant=' + encodeURIComponent(testVariant);
-            }
-
-            FAPI_UI.showBusy('Creating a new test for ' + testName + '...');
-
-            fetch(runTestUrl, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-            })
-            .then((response) => {
-                if (!response.ok) {
-                    return Promise.reject(response);
-                }
-
-                return response.json();
-            })
-            .then((data) => {
-                // we need to switch to the new window now
-                window.location.assign('/log-detail.html?log=' + encodeURIComponent(data.id));
-            })
-            .catch((error) => {
-                if (error instanceof Response) {
-                    // We have a 'Respose' object.
-                    var message = error.statusText;
-                    var responseClone = error.clone();
-
-                    error.text()
-                    .then(textError => {
-                        // Text error thrown by the app
-                        messageParsed = true;
-
-                        try {
-                            const errorObj = JSON.parse(textError);
-
-                            if (errorObj.error.length != 0) {
-                                message = errorObj.error;
-                            }
-                        }
-                        catch (e) {
-                        }
-
-                        FAPI_UI.showError({code: error.status.toString(), error: message});
-                    })
-                    .catch(error1 => {
-                        // JSON error thrown by the app
-                        responseClone.json()
-                        .then(jsonError => {
-                            if (typeof (jsonError) === 'string' && jsonError.length != 0) {
-                                message = jsonError;
-                            }
-
-                            FAPI_UI.showError({code: error.status.toString(), error: message});
-                        })
-                        .catch(genericError => {
-                            // Error thrown by the server
-                            FAPI_UI.showError({code: error.status.toString(), error: error.statusText});
-                        });
-                    });
-                } else {
-                    // Network error automatically detected by fetch.
-                    FAPI_UI.showError({code: "", error: error});
-                }
-            });
-        }
-
         function showDialogError(containerId, error) {
             document.getElementById(containerId).insertAdjacentHTML('beforeend',
                 '<cts-alert variant="danger" dismissible>' + error + '</cts-alert>');
         }
 
         /**
-         * Checks file inputs to make sure they're within max file size limits
+         * Checks file inputs to make sure they're within max file size limits.
          * @param filesToCheck array of file 'input' element IDs to check
          * @param maxFileSize max file size
          * @return {number} -1 if all files are less than maxFileSize
@@ -632,10 +196,10 @@
          *                   in the list
          */
         function validateFileSizes(filesToCheck, maxFileSize) {
-            for(var i = 0; i < filesToCheck.length; i++) {
+            for (var i = 0; i < filesToCheck.length; i++) {
                 var file = document.getElementById(filesToCheck[i]);
-                if(file.files && file.files.length > 0) {
-                    if(file.files[0].size > maxFileSize) {
+                if (file.files && file.files.length > 0) {
+                    if (file.files[0].size > maxFileSize) {
                         return i;
                     }
                 }
@@ -643,87 +207,451 @@
             return -1;
         }
 
-        document.getElementById('certificationPackageForm').addEventListener("submit", function(evt){
+        function getPlan(planId, isPublic) {
+            return fetch('/api/plan/' + encodeURIComponent(planId) + (isPublic ? '?public=true' : ''))
+                .then((response) => {
+                    if (!response.ok) {
+                        return Promise.reject(response);
+                    }
+                    return response.json();
+                })
+                .then((data) => {
+                    var readonly = isPublic || !FAPI_UI.currentUser || FAPI_UI.currentUser.isGuest;
+                    var isAdmin = !!(FAPI_UI.currentUser && FAPI_UI.currentUser.isAdmin);
 
-            const filesToCheck = [ "clientSideDataBtn" ];
-            const maxFileSize = 1024000;
-            const fileNum = validateFileSizes(filesToCheck, maxFileSize);
-            if (fileNum >= 0) {
-                evt.preventDefault();
-                showDialogError('certificationPackageFormErrors', document.getElementById(filesToCheck[fileNum]).files[0].name + ' exceeded the maximum allowed size of ' + maxFileSize + ' bytes.');
-                return false;
+                    document.getElementById('certificationPackageForm')
+                        .setAttribute('action', '/api/plan/' + planId + '/certificationpackage');
+
+                    // Breadcrumb: Plans > <plan name>
+                    var crumb = document.getElementById('planDetailCrumb');
+                    crumb.items = [
+                        { label: 'Plans', target: '/plans.html' },
+                        { label: data.planName || planId, target: '' },
+                    ];
+
+                    // Header
+                    var header = document.getElementById('planDetailHeader');
+                    header.plan = data;
+                    header.isAdmin = isAdmin;
+                    header.isPublic = isPublic;
+
+                    // Modules
+                    var modulesEl = document.getElementById('planDetailModules');
+                    modulesEl.modules = (data.modules || []).map(function (mod) {
+                        // Preserve the original module shape; copy `instances`
+                        // into a fresh array so cts-plan-modules' internal
+                        // _getLastInstance() reads from a stable list (the
+                        // legacy template called .pop() on the original array).
+                        return Object.assign({}, mod, {
+                            instances: Array.isArray(mod.instances) ? mod.instances.slice() : [],
+                        });
+                    });
+                    modulesEl.planId = planId;
+                    modulesEl.isReadonly = readonly;
+                    modulesEl.isImmutable = !!data.immutable;
+                    modulesEl.isPublic = isPublic;
+
+                    // Actions
+                    var actionsEl = document.getElementById('planDetailActions');
+                    actionsEl.plan = data;
+                    actionsEl.isAdmin = isAdmin;
+                    actionsEl.isReadonly = readonly;
+
+                    // Wire up action events from cts-plan-actions ----------
+
+                    actionsEl.addEventListener('cts-download-all', function () {
+                        window.open('/api/plan/exporthtml/' + encodeURIComponent(planId)
+                            + (isPublic ? '?public=true' : ''));
+                    });
+
+                    actionsEl.addEventListener('cts-publish', function (evt) {
+                        // Open the secrets-warning confirmation modal (R1).
+                        // The modal's "Publish" button has data-publish set
+                        // from the descriptor; rewrite it for this run so the
+                        // mode (summary | everything) the user picked sticks.
+                        var confirmBtn = document.getElementById('confirmPublishBtn');
+                        if (confirmBtn) {
+                            confirmBtn.setAttribute('data-publish', evt.detail.mode);
+                        }
+                        document.getElementById('publishModal').show();
+                    });
+
+                    actionsEl.addEventListener('cts-unpublish', function () {
+                        sendPublish(planId, '');
+                    });
+
+                    actionsEl.addEventListener('cts-make-mutable', function () {
+                        makeMutable(planId);
+                    });
+
+                    actionsEl.addEventListener('cts-certify', function () {
+                        document.getElementById('certificationPackageModal').show();
+                    });
+
+                    actionsEl.addEventListener('cts-delete-plan', function () {
+                        deletePlan(planId);
+                    });
+
+                    actionsEl.addEventListener('cts-generate-private-link', function (evt) {
+                        var days = evt.detail.days;
+                        var uri = '/api/plan/' + encodeURIComponent(planId) + '/share?exp='
+                            + encodeURIComponent(days);
+                        var fetchPromise = fetch(uri, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                        }).then((response) => {
+                            if (!response.ok) {
+                                return Promise.reject(response);
+                            }
+                            return response.json();
+                        });
+
+                        // Start clipboard.write() synchronously inside the
+                        // event handler so Safari permits it; the ClipboardItem
+                        // resolves later from the fetch promise.
+                        var clipboardWritePromise = null;
+                        try {
+                            clipboardWritePromise = navigator.clipboard.write([
+                                new ClipboardItem({
+                                    'text/plain': fetchPromise.then(shareLink =>
+                                        new Blob([shareLink.link], { type: 'text/plain' })),
+                                }),
+                            ]);
+                        } catch (e) {
+                            console.warn('[plan-detail] async clipboard write unavailable:', e);
+                        }
+
+                        fetchPromise.then((shareLink) => {
+                            // Write the link into cts-plan-actions's internal
+                            // result-display state. Reaching into the private
+                            // `_privateLinkResult` is how the page signals
+                            // "show the result"; the property is a Lit `state`
+                            // so assigning it triggers a re-render.
+                            actionsEl._privateLinkResult = shareLink.link;
+
+                            if (clipboardWritePromise) {
+                                clipboardWritePromise
+                                    .then(() => null, () => null);
+                            }
+                        }).catch((error) => {
+                            console.warn('[plan-detail] private link generation failed:', error);
+                            handleApiError(error);
+                        });
+                    });
+
+                    // Wire up module events -------------------------------
+
+                    modulesEl.addEventListener('cts-run-test', function (evt) {
+                        var testName = evt.detail.testModule;
+                        var variant = evt.detail.variant;
+                        if (FAPI_UI.currentUser && data.owner
+                            && FAPI_UI.currentUser.sub !== data.owner.sub) {
+                            var btn = document.getElementById('reRunTestModalBtn');
+                            btn.dataset.testName = testName;
+                            btn.dataset.variant = JSON.stringify(variant);
+                            document.getElementById('reRunTestModal').show();
+                        } else {
+                            runTest(testName, variant, planId);
+                        }
+                    });
+
+                    modulesEl.addEventListener('cts-download-log', function (evt) {
+                        window.open('/api/log/export/' + encodeURIComponent(evt.detail.testId)
+                            + (isPublic ? '?public=true' : ''));
+                    });
+
+                    // Fetch per-module status. Each module row carries the
+                    // last instance ID via data-instance-id on .module-row;
+                    // for each non-empty ID, fetch /api/info and merge the
+                    // status/result back into the corresponding module entry
+                    // so the badge re-renders with the live result.
+                    var modulesData = modulesEl.modules.slice();
+                    var hasAnyPassedReviewWarning = false;
+                    Promise.all(modulesData.map(function (mod, idx) {
+                        var lastInstance = mod.instances[mod.instances.length - 1];
+                        if (!lastInstance) return Promise.resolve();
+                        return fetch('/api/info/' + encodeURIComponent(lastInstance)
+                            + (isPublic ? '?public=true' : ''))
+                            .then((response) => {
+                                if (!response.ok) {
+                                    return Promise.reject(response);
+                                }
+                                return response.json();
+                            })
+                            .then((info) => {
+                                modulesData[idx] = Object.assign({}, modulesData[idx], {
+                                    status: info.status,
+                                    result: info.result,
+                                });
+                                if (info.status === 'FINISHED'
+                                    && ['PASSED', 'WARNING', 'REVIEW'].includes(info.result)) {
+                                    hasAnyPassedReviewWarning = true;
+                                }
+                            })
+                            .catch((error) => {
+                                if (error instanceof Response && error.status === 404) {
+                                    // Latest run inaccessible (e.g. unpublished
+                                    // by an admin). Leave the row at PENDING.
+                                    return;
+                                }
+                                handleApiError(error);
+                            });
+                    })).then(() => {
+                        // Reassign so cts-plan-modules observes the change.
+                        modulesEl.modules = modulesData;
+
+                        // The certify button lives inside cts-plan-actions.
+                        // It is rendered with `disabled` and reaching into
+                        // the host's inner button to enable it would couple
+                        // page code to the component's internals; instead,
+                        // toggle a class the component reads via attribute.
+                        // For now, find the button host and clear `disabled`
+                        // on the inner button if any test passed/warning/review.
+                        if (hasAnyPassedReviewWarning) {
+                            var certifyHost = actionsEl.querySelector('[data-testid="certify-btn"]');
+                            if (certifyHost) {
+                                var inner = certifyHost.querySelector('button');
+                                if (inner) inner.disabled = false;
+                            }
+                        }
+                    });
+                })
+                .catch((error) => {
+                    handleApiError(error);
+                    return Promise.reject(error);
+                });
+        }
+
+        function sendPublish(planId, publish) {
+            fetch('/api/plan/' + encodeURIComponent(planId) + '/publish', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ publish: publish }),
+            })
+                .then((response) => {
+                    if (!response.ok) {
+                        return Promise.reject(response);
+                    }
+                    return response.json();
+                })
+                .then(() => {
+                    window.location.assign('/plan-detail.html?plan=' + encodeURIComponent(planId)
+                        + (publish ? '&public=true' : ''));
+                })
+                .catch(handleApiError);
+        }
+
+        function makeMutable(planId) {
+            fetch('/api/plan/' + encodeURIComponent(planId) + '/makemutable', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            })
+                .then((response) => {
+                    if (!response.ok) {
+                        return Promise.reject(response);
+                    }
+                    window.location.assign('/plan-detail.html?plan=' + encodeURIComponent(planId));
+                })
+                .catch(handleApiError);
+        }
+
+        function deletePlan(planId) {
+            fetch('/api/plan/' + encodeURIComponent(planId), {
+                method: 'DELETE',
+            })
+                .then(() => {
+                    window.location.reload();
+                })
+                .catch((error) => {
+                    FAPI_UI.showError(error);
+                });
+        }
+
+        function runTest(testName, testVariant, planId) {
+            var runTestUrl = '/api/runner?test=' + encodeURIComponent(testName)
+                + '&plan=' + encodeURIComponent(planId);
+
+            if (testVariant !== null && testVariant !== undefined) {
+                runTestUrl += '&variant=' + encodeURIComponent(typeof testVariant === 'string'
+                    ? testVariant : JSON.stringify(testVariant));
+            }
+
+            FAPI_UI.showBusy('Creating a new test for ' + testName + '...');
+
+            fetch(runTestUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+            })
+                .then((response) => {
+                    if (!response.ok) {
+                        return Promise.reject(response);
+                    }
+                    return response.json();
+                })
+                .then((data) => {
+                    window.location.assign('/log-detail.html?log=' + encodeURIComponent(data.id));
+                })
+                .catch(handleApiError);
+        }
+
+        /**
+         * Surface a failed fetch to the user via the error modal. Mirrors
+         * the legacy nested-catch pattern previously inlined at every fetch
+         * site, but extracted so each call site stays focused on its own
+         * happy-path flow. Network errors and HTTP errors with text/JSON
+         * bodies are normalised to {code, error} for FAPI_UI.showError.
+         */
+        function handleApiError(error) {
+            if (error instanceof Response) {
+                var message = error.statusText;
+                var responseClone = error.clone();
+                error.text()
+                    .then((textError) => {
+                        try {
+                            const errorObj = JSON.parse(textError);
+                            if (errorObj.error.length != 0) {
+                                message = errorObj.error;
+                            }
+                        } catch (e) {
+                            // Response body was not JSON; keep statusText.
+                        }
+                        FAPI_UI.showError({ code: error.status.toString(), error: message });
+                    })
+                    .catch(() => {
+                        responseClone.json()
+                            .then((jsonError) => {
+                                if (typeof jsonError === 'string' && jsonError.length != 0) {
+                                    message = jsonError;
+                                }
+                                FAPI_UI.showError({ code: error.status.toString(), error: message });
+                            })
+                            .catch(() => {
+                                FAPI_UI.showError({ code: error.status.toString(), error: error.statusText });
+                            });
+                    });
             } else {
-                // Hide previous modal content and the cancel and certification package buttons
+                FAPI_UI.showError({ code: '', error: error });
+            }
+        }
+
+        /**
+         * Wire up the modals and crumb. Runs from DOMContentLoaded so the
+         * cts-modal/cts-button/cts-crumb custom elements have upgraded —
+         * footer-button descriptors and slotted children only exist in the
+         * DOM after the component's connectedCallback runs. Reaching for
+         * these IDs at script parse time was a `null.addEventListener`
+         * crash.
+         */
+        function wireUpStaticHandlers(planId) {
+            document.getElementById('certificationPackageForm').addEventListener('submit', function (evt) {
+                const filesToCheck = ['clientSideDataBtn'];
+                const maxFileSize = 1024000;
+                const fileNum = validateFileSizes(filesToCheck, maxFileSize);
+                if (fileNum >= 0) {
+                    evt.preventDefault();
+                    showDialogError('certificationPackageFormErrors',
+                        document.getElementById(filesToCheck[fileNum]).files[0].name
+                        + ' exceeded the maximum allowed size of ' + maxFileSize + ' bytes.');
+                    return false;
+                }
+
+                // Hide previous content + cancel/submit buttons; reveal the
+                // download-info content + Close button.
                 document.querySelector('#certificationPackageFormModalBody').hidden = true;
                 document.querySelector('#cancelCertificationPackageFormModal').hidden = true;
                 document.querySelector('#certificationPackageFormSubmitBtn').hidden = true;
 
-                // Show the file download info content in the modal and the close button
                 document.querySelector('#certificationPackageDownloaded').hidden = false;
                 document.querySelector('#closeCertificationPackageFormModal').hidden = false;
-
                 return true;
+            });
+
+            document.getElementById('cancelCertificationPackageFormModal').addEventListener('cts-click', function () {
+                document.getElementById('certificationPackageModal').hide();
+            });
+
+            document.getElementById('closeCertificationPackageFormModal').addEventListener('cts-click', function () {
+                document.getElementById('certificationPackageModal').hide();
+                window.location.reload();
+            });
+
+            // publishModal — confirm button POSTs and navigates. The button
+            // is generated by cts-modal from the footer-buttons descriptor;
+            // it only exists after the component's connectedCallback runs.
+            var confirmPublishBtn = document.getElementById('confirmPublishBtn');
+            if (confirmPublishBtn) {
+                confirmPublishBtn.addEventListener('click', function (evt) {
+                    evt.preventDefault();
+                    var publish = this.getAttribute('data-publish') || '';
+                    document.getElementById('publishModal').hide();
+                    sendPublish(planId, publish);
+                });
             }
-        });
 
-        document.getElementById('closeCertificationPackageFormModal').onclick = function(evt) {
-            // Raw Bootstrap modal; matches the open path above.
-            bootstrap.Modal.getInstance(
-                document.getElementById('certificationPackageModal'),
-            )?.hide();
-            window.location.reload();
-        };
+            // reRunTestModal — confirm runs the test
+            var reRunBtn = document.getElementById('reRunTestModalBtn');
+            if (reRunBtn) {
+                reRunBtn.addEventListener('click', function (evt) {
+                    evt.preventDefault();
+                    var testName = this.dataset.testName;
+                    var variantRaw = this.dataset.variant;
+                    var variant = null;
+                    try {
+                        variant = variantRaw && variantRaw !== 'null' ? JSON.parse(variantRaw) : null;
+                    } catch (e) {
+                        variant = variantRaw;
+                    }
+                    document.getElementById('reRunTestModal').hide();
+                    runTest(testName, variant, planId);
+                });
+            }
 
-        document.addEventListener("DOMContentLoaded", () => {
+            // Crumb navigation — bubble target into a window navigation
+            document.getElementById('planDetailCrumb').addEventListener('cts-crumb-navigate', function (evt) {
+                if (evt.detail && evt.detail.target) {
+                    window.location.assign(evt.detail.target);
+                }
+            });
+        }
+
+        /**
+         * Wait for the cts-modal / cts-button / cts-plan-* custom elements
+         * to be defined. customElements.whenDefined() resolves once the
+         * element class is registered; only then are footer-button
+         * descriptors materialised and getElementById('confirmPublishBtn')
+         * returns the rendered <button>.
+         */
+        function waitForComponents() {
+            return Promise.all([
+                customElements.whenDefined('cts-modal'),
+                customElements.whenDefined('cts-button'),
+                customElements.whenDefined('cts-plan-header'),
+                customElements.whenDefined('cts-plan-actions'),
+                customElements.whenDefined('cts-plan-modules'),
+                customElements.whenDefined('cts-crumb'),
+            ]);
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
             var urlParams = new URLSearchParams(window.location.search);
             var planId = urlParams.get('plan');
-            var public = Boolean(urlParams.get('public'));
+            var isPublic = Boolean(urlParams.get('public'));
 
             FAPI_UI.showBusy();
 
-            FAPI_UI.loadPlanTemplates() // Load the templates
-            .then(function() {
-                return FAPI_UI.getUserInfo() // Then get the current user info
-            }).then(function() {
-                return getPlan(planId, public); // Only once the user is loaded, then render the plan info
-            }).finally(function() {
-                FAPI_UI.activeTooltip();
-                FAPI_UI.hideBusy();
-            });
-
-            // Target the inner <button> rendered by cts-button. This fails loudly
-            // if cts-button ever switches to shadow DOM (the selector stops
-            // matching) instead of silently breaking copy. See
-            // components/cts-button.js JSDoc for the light-DOM dependency note.
-            var clipboard = new ClipboardJS('.btn-clipboard > button', {
-                text: function(trigger) {
-                    var host = trigger.closest('.btn-clipboard');
-                    var sel = host && host.getAttribute('data-clipboard-target');
-                    var target = sel ? document.querySelector(sel) : null;
-                    return target ? target.textContent : '';
-                }
-            });
-            clipboard.on('success', function(e) {
-                console.log(e);
-            });
-            clipboard.on('error', function(e) {
-                console.log(e);
-            });
-
-
-            document.querySelector('#confirmDeletePlanBtn').addEventListener('click', evt => {
-                fetch('/api/plan/' + encodeURIComponent(planId), {
-                    method:'DELETE'
-                }).then(response => {
-                    document.getElementById('deletePlanModal')?.hide();
-                    window.location.reload();
-                    return;
-                }).catch(error => {
-                    document.getElementById('deletePlanModal')?.hide();
-                    FAPI_UI.showError(error);
+            waitForComponents()
+                .then(function () {
+                    wireUpStaticHandlers(planId);
+                })
+                .then(function () {
+                    return FAPI_UI.getUserInfo();
+                })
+                .then(function () {
+                    return getPlan(planId, isPublic);
+                })
+                .finally(function () {
+                    FAPI_UI.hideBusy();
                 });
-            });
-
         });
     </script>
 
