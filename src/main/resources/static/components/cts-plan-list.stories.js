@@ -21,6 +21,22 @@ async function waitForPlansToLoad(canvasElement) {
   );
 }
 
+/**
+ * Resolve the inner `<button>` rendered inside a cts-button host with the
+ * given selector. Required because cts-button renders to its own light DOM
+ * and Lit binds `@click` on the inner `<button>` (a click on the host does
+ * not fire the inner handler — see components/AGENTS.md §2).
+ *
+ * @param {Element | null | undefined} host
+ * @returns {HTMLButtonElement}
+ */
+function innerButton(host) {
+  if (!host) throw new Error("innerButton: host element is null");
+  const btn = host.querySelector("button");
+  if (!btn) throw new Error("innerButton: no <button> inside host");
+  return /** @type {HTMLButtonElement} */ (btn);
+}
+
 // --- Stories ---
 
 export const Default = {
@@ -126,10 +142,11 @@ export const ViewConfig = {
   async play({ canvasElement }) {
     await waitForPlansToLoad(canvasElement);
 
-    // Click the first Config button
-    const configBtn = canvasElement.querySelector(".showConfigBtn");
-    expect(configBtn).toBeTruthy();
-    await userEvent.click(configBtn);
+    // Click the first Config button (target the inner <button> rendered by
+    // cts-button — clicking the host bypasses Lit's @click handler).
+    const configBtnHost = canvasElement.querySelector(".showConfigBtn");
+    expect(configBtnHost).toBeTruthy();
+    await userEvent.click(innerButton(configBtnHost));
 
     // Modal should open showing config JSON
     await waitFor(() => {
@@ -154,9 +171,9 @@ export const ViewConfig = {
       configurable: true,
     });
 
-    const copyBtn = canvasElement.querySelector(".copy-config-btn");
-    expect(copyBtn).toBeTruthy();
-    await userEvent.click(copyBtn);
+    const copyBtnHost = canvasElement.querySelector(".copy-config-btn");
+    expect(copyBtnHost).toBeTruthy();
+    await userEvent.click(innerButton(copyBtnHost));
 
     await waitFor(() => {
       expect(clipboardSpy).toHaveBeenCalled();
@@ -230,8 +247,9 @@ export const ApiError = {
     const canvas = within(canvasElement);
     await waitForPlansToLoad(canvasElement);
 
-    // Error alert should be displayed
-    const alert = canvasElement.querySelector(".alert-danger");
+    // Error alert should be displayed (cts-alert renders .oidf-alert-danger
+    // after U8 retokenization; Bootstrap's .alert-danger is no longer used).
+    const alert = canvasElement.querySelector(".oidf-alert-danger");
     expect(alert).toBeTruthy();
     expect(canvas.getByText(/Failed to load test plans/)).toBeInTheDocument();
 
@@ -298,3 +316,34 @@ export const PublicView = {
     expect(canvas.queryByText("Owner")).toBeNull();
   },
 };
+
+/**
+ * Adv F12 (U17): the rendered plan-list table must not carry any of
+ * Bootstrap's table-* utility classes. All header / hover / divider
+ * styling lives in scoped CSS (.planTable) driven by OIDF tokens.
+ */
+export const TableHasNoBootstrapClasses = {
+  parameters: {
+    msw: {
+      handlers: [http.get("/api/plan", () => HttpResponse.json(MOCK_PLAN_LIST))],
+    },
+  },
+  render: () => html`<cts-plan-list></cts-plan-list>`,
+  async play({ canvasElement }) {
+    await waitForPlansToLoad(canvasElement);
+
+    const table = canvasElement.querySelector("table");
+    expect(table).toBeTruthy();
+    if (!table) return;
+
+    // No `table-*` utility classes should remain on the rendered <table>.
+    const classNames = Array.from(table.classList);
+    const bootstrapTableClasses = classNames.filter((c) => c.startsWith("table"));
+    expect(bootstrapTableClasses).toEqual([]);
+
+    // Token-styled .planTable class should be present instead.
+    expect(table.classList.contains("planTable")).toBe(true);
+  },
+};
+
+export {};

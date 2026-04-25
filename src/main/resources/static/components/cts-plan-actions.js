@@ -1,8 +1,139 @@
 import { LitElement, html, nothing } from "lit";
+import "./cts-button.js";
+import "./cts-link-button.js";
 
 // Screen-reader announcement + visible feedback should stay long enough for
 // assistive tech to finish reading the message.
 const COPY_FEEDBACK_DURATION_MS = 5000;
+
+const STYLE_ID = "cts-plan-actions-styles";
+
+// Scoped CSS for the plan-detail action rail. Buttons stack vertically
+// with a small gap; the inline panels (config, private link, delete
+// confirm) reuse the OIDF card surface tokens. The destructive confirm
+// panel switches to the rust palette for emphasis (matches the design
+// archive's failure tone).
+const STYLE_TEXT = `
+  cts-plan-actions {
+    display: block;
+  }
+  cts-plan-actions .planActionStack {
+    display: grid;
+    gap: var(--space-1);
+  }
+  cts-plan-actions .planActionPanel {
+    margin-top: var(--space-3);
+    background: var(--bg-elev);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-3);
+    padding: var(--space-4);
+  }
+  cts-plan-actions .planActionPanel.is-danger {
+    border-color: var(--status-fail-border);
+    background: var(--status-fail-bg);
+  }
+  cts-plan-actions .planActionPanel h6 {
+    margin: 0 0 var(--space-2);
+    font-size: var(--fs-13);
+    font-weight: var(--fw-bold);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--fg-soft);
+  }
+  cts-plan-actions .planConfigToolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-2);
+    margin-bottom: var(--space-2);
+  }
+  cts-plan-actions .planConfigToolbar code {
+    font-family: var(--font-mono);
+    font-size: var(--fs-12);
+    color: var(--fg-soft);
+    background: var(--ink-50);
+    padding: 1px 6px;
+    border-radius: var(--radius-1);
+  }
+  cts-plan-actions .planConfigToolbarRight {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+  }
+  cts-plan-actions .planConfigToolbar .copy-feedback {
+    font-size: var(--fs-12);
+    color: var(--rust-400);
+  }
+  cts-plan-actions .planConfigJson {
+    font-family: var(--font-mono);
+    font-size: var(--fs-12);
+    background: var(--ink-50);
+    color: var(--ink-900);
+    border-radius: var(--radius-2);
+    padding: var(--space-3);
+    margin: 0;
+    white-space: pre-wrap;
+    word-break: break-word;
+    max-height: 60vh;
+    overflow: auto;
+  }
+  cts-plan-actions .planLinkInput {
+    display: block;
+    width: 100%;
+    box-sizing: border-box;
+    height: 32px;
+    padding: 0 var(--space-2);
+    font-family: var(--font-sans);
+    font-size: var(--fs-13);
+    color: var(--fg);
+    background: var(--bg-elev);
+    border: 1px solid var(--ink-300);
+    border-radius: var(--radius-2);
+  }
+  cts-plan-actions .planLinkInput:focus {
+    outline: none;
+    border-color: var(--orange-400);
+    box-shadow: var(--focus-ring);
+  }
+  cts-plan-actions .planLinkLabel {
+    display: block;
+    font-size: var(--fs-12);
+    color: var(--fg-soft);
+    margin-bottom: var(--space-1);
+  }
+  cts-plan-actions .planLinkResult {
+    margin-top: var(--space-2);
+    font-family: var(--font-mono);
+    font-size: var(--fs-12);
+    color: var(--ink-900);
+    background: var(--ink-50);
+    padding: var(--space-2);
+    border-radius: var(--radius-2);
+    word-break: break-all;
+  }
+  cts-plan-actions .planDeleteWarning {
+    color: var(--ink-900);
+    font-size: var(--fs-13);
+    line-height: var(--lh-base);
+  }
+  cts-plan-actions .planDeleteWarning ul {
+    margin: var(--space-2) 0;
+    padding-left: var(--space-5);
+  }
+  cts-plan-actions .planDeleteActions {
+    display: flex;
+    gap: var(--space-2);
+    margin-top: var(--space-3);
+  }
+`;
+
+function ensureStylesInjected() {
+  if (document.getElementById(STYLE_ID)) return;
+  const style = document.createElement("style");
+  style.id = STYLE_ID;
+  style.textContent = STYLE_TEXT;
+  document.head.appendChild(style);
+}
 
 /**
  * Action rail for a plan-detail page. Renders a stack of buttons whose
@@ -10,6 +141,11 @@ const COPY_FEEDBACK_DURATION_MS = 5000;
  * inline panels for view-config, private-link generation, and delete
  * confirmation. Does not perform the actions itself — emits events for the
  * host page to handle.
+ *
+ * Light DOM. Scoped CSS is injected once on first connect; every button
+ * is a `cts-button` (or `cts-link-button` for navigations), so the visual
+ * layer follows the OIDF token system.
+ *
  * @property {object} plan - Plan object; expects `_id`, `config`,
  *   `publish`, `immutable`.
  * @property {boolean} isAdmin - Reveals publish / download-all / make-mutable
@@ -62,6 +198,7 @@ class CtsPlanActions extends LitElement {
   }
 
   createRenderRoot() {
+    ensureStylesInjected();
     return this;
   }
 
@@ -201,33 +338,31 @@ class CtsPlanActions extends LitElement {
       : "No configuration available";
 
     return html`
-      <div class="card mt-2" data-testid="config-panel">
-        <div class="card-body">
-          <div class="d-flex justify-content-between align-items-center mb-2">
-            <strong>Configuration for <code class="text-muted">${this.plan._id}</code></strong>
-            <div class="d-flex align-items-center gap-2">
-              ${this._copyFeedback
-                ? html`<span
-                    class="text-danger small"
-                    role="status"
-                    aria-live="polite"
-                    data-testid="copy-feedback"
-                    >${this._copyFeedback}</span
-                  >`
-                : nothing}
-              <button
-                class="btn btn-sm btn-outline-secondary copy-config-btn"
-                title="Copy config to clipboard"
-                @click=${this._handleCopyConfig}
-              >
-                <span class="bi bi-clipboard" aria-hidden="true"></span> Copy
-              </button>
-            </div>
-          </div>
-          <div class="wrapLongStrings">
-            <pre class="row-bg-light p-1 config-json">${configJson}</pre>
+      <div class="planActionPanel" data-testid="config-panel">
+        <div class="planConfigToolbar">
+          <strong>Configuration for <code>${this.plan._id}</code></strong>
+          <div class="planConfigToolbarRight">
+            ${this._copyFeedback
+              ? html`<span
+                  class="copy-feedback"
+                  role="status"
+                  aria-live="polite"
+                  data-testid="copy-feedback"
+                  >${this._copyFeedback}</span
+                >`
+              : nothing}
+            <cts-button
+              class="copy-config-btn"
+              variant="secondary"
+              size="sm"
+              icon="clipboard"
+              label="Copy"
+              title="Copy config to clipboard"
+              @cts-click=${this._handleCopyConfig}
+            ></cts-button>
           </div>
         </div>
+        <pre class="planConfigJson config-json">${configJson}</pre>
       </div>
     `;
   }
@@ -237,35 +372,35 @@ class CtsPlanActions extends LitElement {
     const isValid = this._isPrivateLinkDaysValid();
 
     return html`
-      <div class="card mt-2" data-testid="private-link-panel">
-        <div class="card-body">
-          <h6>Generate Private Link</h6>
-          <div class="mb-2">
-            <label for="privateLinkDays" class="form-label">
-              Number of days the link will be valid (1-1000):
-            </label>
-            <input
-              type="number"
-              id="privateLinkDays"
-              class="form-control form-control-sm"
-              min="1"
-              max="1000"
-              .value=${String(this._privateLinkDays)}
-              @input=${this._handlePrivateLinkDaysInput}
-            />
-          </div>
-          <button
-            class="btn btn-sm btn-primary generate-link-btn"
+      <div class="planActionPanel" data-testid="private-link-panel">
+        <h6>Generate Private Link</h6>
+        <label for="privateLinkDays" class="planLinkLabel">
+          Number of days the link will be valid (1-1000):
+        </label>
+        <input
+          type="number"
+          id="privateLinkDays"
+          class="planLinkInput"
+          min="1"
+          max="1000"
+          .value=${String(this._privateLinkDays)}
+          @input=${this._handlePrivateLinkDaysInput}
+        />
+        <div style="margin-top: var(--space-2);">
+          <cts-button
+            class="generate-link-btn"
+            variant="primary"
+            size="sm"
+            label="Generate"
             ?disabled=${!isValid}
-            @click=${this._handleGeneratePrivateLink}
-            >Generate</button
-          >
-          ${this._privateLinkResult
-            ? html` <div class="mt-2" data-testid="private-link-result">
-                <code>${this._privateLinkResult}</code>
-              </div>`
-            : nothing}
+            @cts-click=${this._handleGeneratePrivateLink}
+          ></cts-button>
         </div>
+        ${this._privateLinkResult
+          ? html`<div class="planLinkResult" data-testid="private-link-result">
+              <code>${this._privateLinkResult}</code>
+            </div>`
+          : nothing}
       </div>
     `;
   }
@@ -274,8 +409,8 @@ class CtsPlanActions extends LitElement {
     if (!this._showDeleteConfirm) return nothing;
 
     return html`
-      <div class="card mt-2 border-danger" data-testid="delete-confirm-panel">
-        <div class="card-body">
+      <div class="planActionPanel is-danger" data-testid="delete-confirm-panel">
+        <div class="planDeleteWarning">
           <p
             ><strong>Clicking the "Delete plan" button will permanently and irrevocably:</strong></p
           >
@@ -289,18 +424,21 @@ class CtsPlanActions extends LitElement {
               >This action cannot be undone and the data cannot be recovered after deletion.</strong
             ></p
           >
-          <div class="d-flex gap-2">
-            <button
-              class="btn btn-sm btn-light bg-gradient border border-secondary"
-              @click=${this._handleDeleteCancel}
-              >Cancel</button
-            >
-            <button
-              class="btn btn-sm btn-danger bg-gradient border border-secondary confirm-delete-btn"
-              @click=${this._handleDeleteConfirm}
-              >Delete plan</button
-            >
-          </div>
+        </div>
+        <div class="planDeleteActions">
+          <cts-button
+            variant="secondary"
+            size="sm"
+            label="Cancel"
+            @cts-click=${this._handleDeleteCancel}
+          ></cts-button>
+          <cts-button
+            class="confirm-delete-btn"
+            variant="danger"
+            size="sm"
+            label="Delete plan"
+            @cts-click=${this._handleDeleteConfirm}
+          ></cts-button>
         </div>
       </div>
     `;
@@ -314,91 +452,124 @@ class CtsPlanActions extends LitElement {
     const isImmutable = Boolean(plan.immutable);
 
     return html`
-      <div class="d-grid gap-1" data-testid="plan-actions">
-        <button
-          class="btn btn-sm btn-light bg-gradient border border-secondary"
+      <div class="planActionStack" data-testid="plan-actions">
+        <cts-button
+          variant="secondary"
+          size="sm"
+          icon="wrench-adjustable"
+          label="View Config"
+          full-width
           data-testid="view-config-btn"
-          @click=${this._handleViewConfig}
-          ><span class="bi bi-wrench-adjustable"></span> View Config</button
-        >
+          @cts-click=${this._handleViewConfig}
+        ></cts-button>
 
         ${!this.isReadonly
-          ? html` <a
+          ? html`<cts-link-button
               href="schedule-test.html?edit-plan=${plan._id}"
-              class="btn btn-sm btn-light bg-gradient border border-secondary"
+              variant="secondary"
+              size="sm"
+              icon="pencil-square"
+              label="Edit configuration"
+              full-width
               data-testid="edit-config-btn"
               title="Create a new test plan based on the configuration used in this one"
-              ><span class="bi bi-pencil-square"></span> Edit configuration</a
-            >`
+            ></cts-link-button>`
           : nothing}
         ${this.isAdmin
-          ? html` <button
-              class="btn btn-sm btn-light bg-gradient border border-secondary"
+          ? html`<cts-button
+              variant="secondary"
+              size="sm"
+              icon="save2"
+              label="Download all Logs"
+              full-width
               data-testid="download-all-btn"
-              @click=${this._handleDownloadAll}
-              ><span class="bi bi-save2"></span> Download all Logs</button
-            >`
+              @cts-click=${this._handleDownloadAll}
+            ></cts-button>`
           : nothing}
         ${!this.isReadonly && !isPublished && this.isAdmin
-          ? html` <button
-                class="btn btn-sm btn-light bg-gradient border border-secondary"
+          ? html`<cts-button
+                variant="secondary"
+                size="sm"
+                icon="bookmarks"
+                label="Publish summary"
+                full-width
                 data-testid="publish-summary-btn"
                 data-publish-mode="summary"
-                @click=${this._handlePublishFromEvent}
-                ><span class="bi bi-bookmarks"></span> Publish summary</button
-              >
-              <button
-                class="btn btn-sm btn-light bg-gradient border border-secondary"
+                @cts-click=${this._handlePublishFromEvent}
+              ></cts-button>
+              <cts-button
+                variant="secondary"
+                size="sm"
+                icon="bookmarks"
+                label="Publish everything"
+                full-width
                 data-testid="publish-everything-btn"
                 data-publish-mode="everything"
-                @click=${this._handlePublishFromEvent}
-                ><span class="bi bi-bookmarks"></span> Publish everything</button
-              >`
+                @cts-click=${this._handlePublishFromEvent}
+              ></cts-button>`
           : nothing}
         ${!this.isReadonly && isPublished && this.isAdmin
-          ? html` <button
-                class="btn btn-sm btn-light bg-gradient border border-secondary"
+          ? html`<cts-button
+                variant="secondary"
+                size="sm"
+                icon="slash-circle"
+                label="Unpublish"
+                full-width
                 data-testid="unpublish-btn"
-                @click=${this._handleUnpublish}
-                ><span class="bi bi-slash-circle"></span> Unpublish</button
-              >
-              <a
+                @cts-click=${this._handleUnpublish}
+              ></cts-button>
+              <cts-link-button
                 href="plan-detail.html?plan=${plan._id}&amp;public=true"
-                class="btn btn-sm btn-info bg-gradient border border-secondary"
-                ><span class="bi bi-bookmarks"></span> Public link</a
-              >`
+                variant="primary"
+                size="sm"
+                icon="bookmarks"
+                label="Public link"
+                full-width
+              ></cts-link-button>`
           : nothing}
         ${!this.isReadonly
-          ? html` <button
-                class="btn btn-sm btn-light bg-gradient border border-secondary"
+          ? html`<cts-button
+                variant="secondary"
+                size="sm"
+                icon="bookmarks"
+                label="Private link"
+                full-width
                 data-testid="private-link-btn"
-                @click=${this._handleTogglePrivateLink}
-                ><span class="bi bi-bookmarks"></span> Private link</button
-              >
-              <button
-                class="btn btn-sm btn-light bg-gradient border border-secondary"
-                data-testid="certify-btn"
+                @cts-click=${this._handleTogglePrivateLink}
+              ></cts-button>
+              <cts-button
+                variant="primary"
+                size="sm"
+                icon="save2"
+                label="Publish for certification"
+                full-width
                 disabled
                 title="Publish and prepare certification submission package"
-                @click=${this._handleCertify}
-                ><span class="bi bi-save2"></span> Publish for certification</button
-              >`
+                data-testid="certify-btn"
+                @cts-click=${this._handleCertify}
+              ></cts-button>`
           : nothing}
         ${isImmutable && this.isAdmin
-          ? html` <button
-              class="btn btn-sm btn-light bg-gradient border border-secondary"
+          ? html`<cts-button
+              variant="secondary"
+              size="sm"
+              icon="pencil-square"
+              label="Make plan Mutable"
+              full-width
               data-testid="make-mutable-btn"
-              @click=${this._handleMakeMutable}
-              ><span class="bi bi-pencil-square"></span> Make plan Mutable</button
-            >`
+              @cts-click=${this._handleMakeMutable}
+            ></cts-button>`
           : nothing}
         ${!isImmutable && !this.isReadonly
-          ? html` <button
-              class="btn btn-sm btn-danger bg-gradient border border-secondary"
+          ? html`<cts-button
+              variant="danger"
+              size="sm"
+              icon="trash"
+              label="Delete plan"
+              full-width
               data-testid="delete-plan-btn"
-              @click=${this._handleDeleteClick}
-              ><span class="bi bi-trash"></span> Delete plan</button
-            >`
+              @cts-click=${this._handleDeleteClick}
+            ></cts-button>`
           : nothing}
       </div>
 
@@ -408,3 +579,5 @@ class CtsPlanActions extends LitElement {
 }
 
 customElements.define("cts-plan-actions", CtsPlanActions);
+
+export {};

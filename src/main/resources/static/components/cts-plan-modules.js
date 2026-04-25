@@ -57,10 +57,88 @@ function statusLabel(status, result) {
   return status;
 }
 
+const STYLE_ID = "cts-plan-modules-styles";
+
+// Scoped CSS for the plan-modules list. Adopts the design archive's
+// `.module-row` pattern (`project/ui_kits/certification-suite/app.css`):
+// 4-column grid `28px 1fr auto auto` with a mono row number, name + meta
+// stack, status badge, and right-side action stack. Mono number/duration
+// styling uses `--font-mono` per the archive.
+const STYLE_TEXT = `
+  cts-plan-modules {
+    display: block;
+  }
+  cts-plan-modules .planModulesCard {
+    background: var(--bg-elev);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-3);
+    overflow: hidden;
+  }
+  cts-plan-modules .module-row {
+    display: grid;
+    grid-template-columns: 28px 1fr auto auto;
+    gap: var(--space-3);
+    padding: var(--space-3) var(--space-4);
+    border-bottom: 1px solid var(--ink-100);
+    align-items: center;
+  }
+  cts-plan-modules .module-row:last-child {
+    border-bottom: 0;
+  }
+  cts-plan-modules .module-row .num {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--fg-soft);
+  }
+  cts-plan-modules .module-row .name {
+    font-weight: var(--fw-bold);
+    font-size: var(--fs-13);
+    color: var(--fg);
+    word-break: break-word;
+  }
+  cts-plan-modules .module-row .name .desc {
+    color: var(--fg-soft);
+    font-weight: var(--fw-regular);
+    font-size: var(--fs-12);
+    margin-top: 1px;
+  }
+  cts-plan-modules .module-row .name .desc .mono {
+    font-family: var(--font-mono);
+  }
+  cts-plan-modules .module-row .name .help-icon {
+    color: var(--fg-faint);
+    margin-left: var(--space-1);
+    font-size: var(--fs-12);
+    vertical-align: super;
+  }
+  cts-plan-modules .module-row .actionStack {
+    display: grid;
+    grid-auto-flow: column;
+    gap: var(--space-1);
+  }
+  cts-plan-modules .planModulesEmpty {
+    padding: var(--space-5);
+    text-align: center;
+    color: var(--fg-soft);
+  }
+`;
+
+function ensureStylesInjected() {
+  if (document.getElementById(STYLE_ID)) return;
+  const style = document.createElement("style");
+  style.id = STYLE_ID;
+  style.textContent = STYLE_TEXT;
+  document.head.appendChild(style);
+}
+
 /**
  * Per-module rows for a plan-detail page. Each row shows status/result
  * badges, the test module name and variant, the last test instance, and
  * action buttons (Run / View Logs / Download Logs).
+ *
+ * Light DOM. Scoped CSS is injected once on first connect; rows adopt the
+ * design archive's `.module-row` 4-column grid (`28px 1fr auto auto`).
+ *
  * @property {Array<object>} modules - Modules rendered from the plan-detail
  *   API response; see cts-plan-detail.stories.js for shape.
  * @property {string} planId - Parent plan ID. Reflects the `plan-id`
@@ -95,6 +173,7 @@ class CtsPlanModules extends LitElement {
   }
 
   createRenderRoot() {
+    ensureStylesInjected();
     return this;
   }
 
@@ -140,7 +219,18 @@ class CtsPlanModules extends LitElement {
     return !this.isReadonly && !this.isImmutable;
   }
 
-  _renderModuleRow(mod) {
+  /**
+   * Format a 1-based row number as a zero-padded string (matches the design
+   * archive's "01" / "02" mono row numbers).
+   * @param {number} index - 1-based row index.
+   * @returns {string} 2-digit zero-padded number (e.g. "01"); falls back to
+   *   the raw string when the count exceeds 2 digits.
+   */
+  _rowNumber(index) {
+    return String(index).padStart(2, "0");
+  }
+
+  _renderModuleRow(mod, index) {
     const lastInstance = this._getLastInstance(mod);
     const variant = statusBadgeVariant(mod.status, mod.result);
     const label = statusLabel(mod.status, mod.result);
@@ -150,64 +240,55 @@ class CtsPlanModules extends LitElement {
       : null;
 
     return html`
-      <div class="row logItem" data-instance-id="${lastInstance || ""}">
-        <div class="col-md-2 testStatusAndResult">
-          <cts-badge variant="${variant}" label="${label}"></cts-badge>
+      <div class="module-row" data-instance-id="${lastInstance || ""}">
+        <span class="num">${this._rowNumber(index + 1)}</span>
+        <div class="name">
+          ${mod.testModule}${mod.testSummary
+            ? html`<span
+                class="bi bi-question-circle-fill help-icon"
+                title="${mod.testSummary}"
+                aria-hidden="true"
+              ></span>`
+            : nothing}
+          <div class="desc">
+            <span class="mono">${variantStr}</span>
+            ${variantStr ? html` · ` : nothing}Test ID:
+            <span class="mono">${lastInstance || "NONE"}</span>
+          </div>
         </div>
-        <div class="col-md-2">
-          <div class="d-grid gap-1">
-            ${this._canRunTest()
-              ? html` <cts-button
-                  class="startBtn"
-                  data-testid="run-test-btn"
-                  data-module-key="${_moduleKey(mod)}"
-                  variant="light"
-                  icon="play-fill"
-                  label="Run Test"
-                  full-width
-                  @cts-click=${this._handleRunTest}
+        <cts-badge variant="${variant}" label="${label}"></cts-badge>
+        <div class="actionStack">
+          ${this._canRunTest()
+            ? html`<cts-button
+                class="startBtn"
+                data-testid="run-test-btn"
+                data-module-key="${_moduleKey(mod)}"
+                variant="primary"
+                size="sm"
+                icon="play-fill"
+                label="Run Test"
+                @cts-click=${this._handleRunTest}
+              ></cts-button>`
+            : nothing}
+          ${lastInstance
+            ? html`<cts-link-button
+                  class="viewBtn"
+                  href="${logHref}"
+                  variant="secondary"
+                  size="sm"
+                  icon="file-earmark"
+                  label="View Logs"
+                ></cts-link-button>
+                <cts-button
+                  class="downloadBtn"
+                  data-instance-id="${lastInstance}"
+                  variant="ghost"
+                  size="sm"
+                  icon="save2"
+                  label="Download Logs"
+                  @cts-click=${this._handleDownloadLog}
                 ></cts-button>`
-              : nothing}
-            ${lastInstance
-              ? html` <cts-link-button
-                    class="viewBtn"
-                    href="${logHref}"
-                    variant="light"
-                    icon="file-earmark"
-                    label="View Logs"
-                    full-width
-                  ></cts-link-button>
-                  <cts-button
-                    class="downloadBtn"
-                    data-instance-id="${lastInstance}"
-                    variant="light"
-                    icon="save2"
-                    label="Download Logs"
-                    full-width
-                    @cts-click=${this._handleDownloadLog}
-                  ></cts-button>`
-              : nothing}
-          </div>
-        </div>
-        <div class="col-md-8">
-          <div class="row">
-            <div class="col-md-2">Test Name:</div>
-            <div class="col-md-10">
-              ${mod.testModule}${mod.testSummary
-                ? html`<sup
-                    ><span class="bi bi-question-circle-fill" title="${mod.testSummary}"></span
-                  ></sup>`
-                : nothing}
-            </div>
-          </div>
-          <div class="row">
-            <div class="col-md-2">Variant:</div>
-            <div class="col-md-10">${variantStr}</div>
-          </div>
-          <div class="row">
-            <div class="col-md-2">Test ID:</div>
-            <div class="col-md-10">${lastInstance || "NONE"}</div>
-          </div>
+            : nothing}
         </div>
       </div>
     `;
@@ -215,15 +296,17 @@ class CtsPlanModules extends LitElement {
 
   render() {
     if (!this.modules || this.modules.length === 0) {
-      return html`<div class="text-muted text-center p-3">No modules in this plan</div>`;
+      return html`<div class="planModulesEmpty">No modules in this plan</div>`;
     }
 
-    return html` <div class="container-fluid" id="planItems">${this._renderModuleRows()}</div> `;
+    return html`<div class="planModulesCard" id="planItems">${this._renderModuleRows()}</div>`;
   }
 
   _renderModuleRows() {
-    return this.modules.map((mod) => this._renderModuleRow(mod));
+    return this.modules.map((mod, idx) => this._renderModuleRow(mod, idx));
   }
 }
 
 customElements.define("cts-plan-modules", CtsPlanModules);
+
+export {};

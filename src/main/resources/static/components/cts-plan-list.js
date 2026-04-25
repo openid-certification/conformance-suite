@@ -1,6 +1,8 @@
 import { LitElement, html, nothing } from "lit";
 import "./cts-badge.js";
 import "./cts-modal.js";
+import "./cts-button.js";
+import "./cts-alert.js";
 
 const RESULT_BADGE_VARIANTS = {
   PASSED: "success",
@@ -11,10 +13,168 @@ const RESULT_BADGE_VARIANTS = {
   INTERRUPTED: "interrupted",
 };
 
+const STYLE_ID = "cts-plan-list-styles";
+
+// Scoped CSS for the plan-list table chrome. Mirrors the design archive's
+// `.tbl-wrap` / `.tbl` rules in `project/ui_kits/certification-suite/app.css`:
+// a single bordered/rounded surface, sticky uppercase header on `--ink-50`,
+// row hover on `--ink-50`, and `--ink-100` row dividers. No Bootstrap table
+// classes are emitted (Adv F12).
+const STYLE_TEXT = `
+  cts-plan-list {
+    display: block;
+  }
+  cts-plan-list .planSearch {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: 0 var(--space-3);
+    height: 36px;
+    border: 1px solid var(--ink-300);
+    border-radius: var(--radius-2);
+    background: var(--bg-elev);
+    margin-bottom: var(--space-4);
+    max-width: 480px;
+  }
+  cts-plan-list .planSearch input {
+    flex: 1;
+    border: 0;
+    background: transparent;
+    font-family: var(--font-sans);
+    font-size: var(--fs-13);
+    color: var(--fg);
+    outline: none;
+    padding: 0;
+  }
+  cts-plan-list .planSearch input::placeholder {
+    color: var(--fg-faint);
+  }
+  cts-plan-list .planSearch:focus-within {
+    box-shadow: var(--focus-ring);
+    border-color: var(--orange-400);
+  }
+  cts-plan-list .planTableWrap {
+    background: var(--bg-elev);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-3);
+    overflow: hidden;
+  }
+  cts-plan-list .planTable {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: var(--fs-13);
+  }
+  cts-plan-list .planTable th {
+    position: sticky;
+    top: 0;
+    text-align: left;
+    padding: 10px 14px;
+    background: var(--ink-50);
+    border-bottom: 1px solid var(--border);
+    font-size: var(--fs-12);
+    font-weight: var(--fw-bold);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--fg-soft);
+  }
+  cts-plan-list .planTable td {
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--ink-100);
+    vertical-align: middle;
+    color: var(--fg);
+  }
+  cts-plan-list .planTable tbody tr:hover td {
+    background: var(--ink-50);
+  }
+  cts-plan-list .planTable tbody tr:last-child td {
+    border-bottom: 0;
+  }
+  cts-plan-list .planTable .plan-name-link {
+    color: var(--fg-link);
+    text-decoration: none;
+    font-weight: var(--fw-bold);
+  }
+  cts-plan-list .planTable .plan-name-link:hover {
+    text-decoration: underline;
+  }
+  cts-plan-list .planTable .moduleBadgeStack {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-1);
+  }
+  cts-plan-list .planEmpty {
+    padding: var(--space-5);
+    text-align: center;
+    color: var(--fg-soft);
+  }
+  cts-plan-list .planLoading {
+    padding: var(--space-5);
+    text-align: center;
+    color: var(--fg-soft);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-2);
+  }
+  cts-plan-list .planLoading .spinner-border {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    border: 2px solid var(--border-strong);
+    border-top-color: var(--orange-400);
+    border-radius: 50%;
+    animation: cts-plan-list-spin 0.9s linear infinite;
+  }
+  @keyframes cts-plan-list-spin {
+    to { transform: rotate(360deg); }
+  }
+  cts-plan-list .planConfigToolbar {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    margin-bottom: var(--space-2);
+  }
+  cts-plan-list .planConfigToolbar code {
+    font-family: var(--font-mono);
+    font-size: var(--fs-12);
+    color: var(--fg-soft);
+    background: var(--ink-50);
+    padding: 1px 6px;
+    border-radius: var(--radius-1);
+  }
+  cts-plan-list .planConfigJson {
+    font-family: var(--font-mono);
+    font-size: var(--fs-12);
+    background: var(--ink-50);
+    color: var(--ink-900);
+    border-radius: var(--radius-2);
+    padding: var(--space-3);
+    margin: 0;
+    white-space: pre-wrap;
+    word-break: break-word;
+    max-height: 60vh;
+    overflow: auto;
+  }
+`;
+
+function ensureStylesInjected() {
+  if (document.getElementById(STYLE_ID)) return;
+  const style = document.createElement("style");
+  style.id = STYLE_ID;
+  style.textContent = STYLE_TEXT;
+  document.head.appendChild(style);
+}
+
 /**
  * Searchable table of test plans. Fetches from `/api/plan` (or
  * `/api/plan?public=true`) and renders rows with name, variant, module
  * badges, and a config viewer modal.
+ *
+ * Light DOM. Scoped CSS is injected once on first connect; the rendered
+ * `<table>` carries no Bootstrap `table-*` classes — header, hover, and
+ * border styling all route through the scoped `.planTable` rules above
+ * (Adv F12).
+ *
  * @property {boolean} isAdmin - Adds the Owner column when true. Reflects the
  *   `is-admin` attribute.
  * @property {boolean} isPublic - Fetches the published plan listing and hides
@@ -35,6 +195,7 @@ class CtsPlanList extends LitElement {
   };
 
   createRenderRoot() {
+    ensureStylesInjected();
     return this;
   }
 
@@ -142,7 +303,7 @@ class CtsPlanList extends LitElement {
 
   _renderModuleBadges(modules) {
     if (!modules || modules.length === 0) return nothing;
-    return html` <div class="d-flex gap-1 flex-wrap">${this._moduleBadgeList(modules)}</div> `;
+    return html`<div class="moduleBadgeStack">${this._moduleBadgeList(modules)}</div>`;
   }
 
   _moduleBadgeList(modules) {
@@ -169,20 +330,22 @@ class CtsPlanList extends LitElement {
 
   _renderTable(plans) {
     return html`
-      <table class="table table-striped table-bordered table-hover">
-        <thead>
-          <tr>
-            <th>Plan Name</th>
-            <th>Variant</th>
-            <th>Description</th>
-            <th>Started</th>
-            <th>Modules</th>
-            <th>Config</th>
-            ${this.isAdmin ? html`<th>Owner</th>` : nothing}
-          </tr>
-        </thead>
-        <tbody>${this._renderRows(plans)}</tbody>
-      </table>
+      <div class="planTableWrap">
+        <table class="planTable">
+          <thead>
+            <tr>
+              <th>Plan Name</th>
+              <th>Variant</th>
+              <th>Description</th>
+              <th>Started</th>
+              <th>Modules</th>
+              <th>Config</th>
+              ${this.isAdmin ? html`<th>Owner</th>` : nothing}
+            </tr>
+          </thead>
+          <tbody> ${this._renderRows(plans)} </tbody>
+        </table>
+      </div>
     `;
   }
 
@@ -204,14 +367,15 @@ class CtsPlanList extends LitElement {
         <td>${this._formatDate(plan.started)}</td>
         <td>${this._renderModuleBadges(plan.modules)}</td>
         <td>
-          <button
-            class="btn btn-sm btn-outline-secondary showConfigBtn"
+          <cts-button
+            class="showConfigBtn"
+            variant="ghost"
+            size="sm"
+            icon="gear"
             title="View configuration"
             data-plan-id="${plan._id}"
-            @click=${this._handleConfigButtonClick}
-          >
-            <span class="bi bi-gear" aria-hidden="true"></span>
-          </button>
+            @cts-click=${this._handleConfigButtonClick}
+          ></cts-button>
         </td>
         ${this.isAdmin ? html`<td class="owner-cell">${ownerDisplay}</td>` : nothing}
       </tr>
@@ -222,19 +386,19 @@ class CtsPlanList extends LitElement {
     const configJson = this._selectedConfig ? JSON.stringify(this._selectedConfig, null, 4) : "";
     return html`
       <cts-modal id="planConfigModal" heading="Configuration">
-        <div>
-          <button
-            class="btn btn-sm btn-outline-secondary me-2 copy-config-btn"
+        <div class="planConfigToolbar">
+          <cts-button
+            class="copy-config-btn"
+            variant="secondary"
+            size="sm"
+            icon="clipboard"
+            label="Copy"
             title="Copy config to clipboard"
-            @click=${this._handleCopyConfig}
-          >
-            <span class="bi bi-clipboard" aria-hidden="true"></span> Copy
-          </button>
-          Configuration for <code class="text-muted">${this._selectedPlanId}</code>
+            @cts-click=${this._handleCopyConfig}
+          ></cts-button>
+          <span>Configuration for <code>${this._selectedPlanId}</code></span>
         </div>
-        <div class="wrapLongStrings mt-2">
-          <pre class="row-bg-light p-1 config-json">${configJson}</pre>
-        </div>
+        <pre class="planConfigJson config-json">${configJson}</pre>
       </cts-modal>
     `;
   }
@@ -242,26 +406,28 @@ class CtsPlanList extends LitElement {
   render() {
     if (this._loading) {
       return html`
-        <div class="text-center p-4">
+        <div class="planLoading">
           <span class="spinner-border" role="status"></span>
-          <span class="ms-2">Loading test plans...</span>
+          <span>Loading test plans...</span>
         </div>
       `;
     }
 
     if (this._error) {
       return html`
-        <div class="alert alert-danger" role="alert"> <strong>Error:</strong> ${this._error} </div>
+        <cts-alert variant="danger" role="alert">
+          <strong>Error:</strong> ${this._error}
+        </cts-alert>
       `;
     }
 
     const filteredPlans = this._filteredPlans();
 
     return html`
-      <div class="mb-3">
+      <div class="planSearch">
+        <span class="bi bi-search" aria-hidden="true"></span>
         <input
           type="text"
-          class="form-control"
           placeholder="Search test plans..."
           .value=${this._searchQuery}
           @input=${this._handleSearchInput}
@@ -270,10 +436,12 @@ class CtsPlanList extends LitElement {
 
       ${filteredPlans.length > 0
         ? this._renderTable(filteredPlans)
-        : html`<div class="text-muted text-center p-3">No test plans found</div>`}
+        : html`<div class="planEmpty">No test plans found</div>`}
       ${this._renderConfigModal()}
     `;
   }
 }
 
 customElements.define("cts-plan-list", CtsPlanList);
+
+export {};
