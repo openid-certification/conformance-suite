@@ -24,6 +24,10 @@ public class CheckForUnexpectedParametersInVpAuthorizationRequest extends Abstra
 		// these are legal, and we have separate conditions that deal with them:
 		"scope", // not valid when using dcql_query
 		"request_uri_method", // URL-only parameter; WarnIfRequestUriMethodInRequestObject flags it in JAR
+		// only valid when request_uri_method=post; EnsureWalletNonceClaimMatchesPostedValue checks the
+		// value matches in POST flows, and EnsureNoWalletNonceInRequestObject confirms it is absent in
+		// non-POST flows.
+		"wallet_nonce",
 		// not really authorization parameters but these appear when we unpack the request object
 		"aud",
 		"iss",
