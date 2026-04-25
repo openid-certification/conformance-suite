@@ -49,3 +49,23 @@ body {
 dialog:not([open]) {
   display: none;
 }
+
+/* ---- Anchors-as-buttons: never carry the body-link underline ----
+   oidf-tokens.css applies `a { text-decoration: underline }` to make
+   prose links visible. Buttons rendered as anchors (cts-link-button,
+   Bootstrap `.btn` on `<a>`, the post-U5 `.oidf-btn` family) are not
+   prose links and must not show an underline in any state. Targets
+   the inner anchor inside the cts-link-button host so it works both
+   before and after U5's retokenization.
+   ---------------------------------------------------------------- */
+cts-link-button > a,
+cts-link-button > a:hover,
+cts-link-button > a:focus,
+.btn,
+.btn:hover,
+.btn:focus,
+.oidf-btn,
+.oidf-btn:hover,
+.oidf-btn:focus {
+  text-decoration: none;
+}
