@@ -12,11 +12,15 @@ const STYLE_TEXT = `
   cts-crumb {
     display: inline-flex;
     align-items: center;
-    gap: var(--space-2);
     font-family: var(--font-sans);
     font-size: var(--fs-13);
     line-height: var(--lh-base);
     color: var(--fg);
+  }
+  cts-crumb .crumbNav {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
   }
   cts-crumb .crumbItem {
     display: inline-flex;
@@ -51,6 +55,7 @@ const STYLE_TEXT = `
     color: var(--fg-faint);
     display: inline-flex;
     align-items: center;
+    line-height: 1;
   }
 `;
 
