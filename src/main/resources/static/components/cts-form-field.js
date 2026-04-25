@@ -4,6 +4,13 @@ import { classMap } from "lit/directives/class-map.js";
 /**
  * Renders a single form input driven by a JSON-schema fragment. Supports
  * string, boolean, enum, JSON (object/array), and password inputs.
+ *
+ * Light DOM. Scoped CSS lives in a single `<style>` element injected into
+ * `<head>` on first connect (gated by a module-level flag) so the rules
+ * appear once regardless of how many `cts-form-field` instances are on the
+ * page. Class names are namespaced under `.oidf-form-field` so they do not
+ * bleed onto unrelated inputs in the consumer's DOM.
+ *
  * @property {object} schema - JSON-schema fragment for this field. May include
  *   `type`, `format`, `enum`, `title`, `description`.
  * @property {string} name - Field name used as the `field` key in
@@ -14,6 +21,126 @@ import { classMap } from "lit/directives/class-map.js";
  * @fires cts-field-change - On every input/change with
  *   `{ detail: { field, value } }`; bubbles.
  */
+
+const STYLE_ID = "cts-form-field-styles";
+
+// Inline SVG chevron used as the custom select indicator. Stroke colour is
+// `--ink-500` (`#71695E`) — encoded as `%2371695E` in the data: URL.
+const SELECT_CHEVRON =
+  "url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 16 16'><path fill='none' stroke='%2371695E' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M4 6l4 4 4-4'/></svg>\")";
+
+const STYLE_TEXT = `
+.oidf-form-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  margin-bottom: var(--space-4);
+}
+.oidf-form-field .oidf-label {
+  /* mirrors .t-overline from oidf-tokens.css */
+  color: var(--fg-soft);
+}
+.oidf-form-field .oidf-input,
+.oidf-form-field .oidf-select,
+.oidf-form-field .oidf-textarea {
+  width: 100%;
+  box-sizing: border-box;
+  padding: var(--space-3);
+  border: 1px solid var(--ink-300);
+  border-radius: var(--radius-2);
+  background: var(--bg-elev);
+  color: var(--fg);
+  font-family: var(--font-sans);
+  font-size: var(--fs-13);
+  line-height: var(--lh-base);
+}
+.oidf-form-field .oidf-input,
+.oidf-form-field .oidf-select {
+  height: 34px;
+  padding-top: 0;
+  padding-bottom: 0;
+}
+.oidf-form-field .oidf-textarea {
+  min-height: calc(var(--space-6) * 4);
+  resize: vertical;
+}
+.oidf-form-field .oidf-input.is-mono,
+.oidf-form-field .oidf-textarea.is-mono {
+  font-family: var(--font-mono);
+  font-size: var(--fs-12);
+}
+.oidf-form-field .oidf-select {
+  appearance: none;
+  -webkit-appearance: none;
+  padding-right: 36px;
+  background-image: ${SELECT_CHEVRON};
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+}
+.oidf-form-field .oidf-input:focus,
+.oidf-form-field .oidf-select:focus,
+.oidf-form-field .oidf-textarea:focus {
+  outline: none;
+  border-color: var(--orange-400);
+  box-shadow: var(--focus-ring);
+}
+.oidf-form-field .oidf-input:disabled,
+.oidf-form-field .oidf-select:disabled,
+.oidf-form-field .oidf-textarea:disabled {
+  background: var(--bg-muted);
+  color: var(--fg-faint);
+  cursor: not-allowed;
+}
+.oidf-form-field .oidf-input.is-error,
+.oidf-form-field .oidf-select.is-error,
+.oidf-form-field .oidf-textarea.is-error {
+  border-color: var(--rust-400);
+}
+.oidf-form-field .oidf-error {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  color: var(--rust-500);
+  font-family: var(--font-sans);
+  font-size: var(--fs-12);
+  line-height: var(--lh-snug);
+}
+.oidf-form-field .oidf-help {
+  /* mirrors .t-meta from oidf-tokens.css */
+  color: var(--fg-soft);
+}
+.oidf-form-field .oidf-checkbox-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+.oidf-form-field .oidf-checkbox {
+  width: var(--space-4);
+  height: var(--space-4);
+  margin: 0;
+  accent-color: var(--orange-400);
+}
+.oidf-form-field .oidf-checkbox:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+  border-radius: var(--radius-1);
+}
+.oidf-form-field .oidf-checkbox-label {
+  font-family: var(--font-sans);
+  font-size: var(--fs-13);
+  line-height: var(--lh-snug);
+  color: var(--fg);
+}
+`;
+
+function injectStyles() {
+  if (document.getElementById(STYLE_ID)) return;
+  const style = document.createElement("style");
+  style.id = STYLE_ID;
+  style.textContent = STYLE_TEXT;
+  document.head.appendChild(style);
+}
+
 class CtsFormField extends LitElement {
   static properties = {
     schema: { type: Object },
@@ -34,6 +161,11 @@ class CtsFormField extends LitElement {
     this.value = "";
     this.error = "";
     this.disabled = false;
+  }
+
+  connectedCallback() {
+    super.connectedCallback();
+    injectStyles();
   }
 
   _handleInput(e) {
@@ -62,7 +194,7 @@ class CtsFormField extends LitElement {
     if (fieldEnum) {
       return html`
         <select
-          class=${classMap({ "form-select": true, "is-invalid": isInvalid })}
+          class=${classMap({ "oidf-select": true, "is-error": isInvalid })}
           .value=${this.value || ""}
           ?disabled=${this.disabled}
           @change=${this._handleInput}
@@ -77,9 +209,9 @@ class CtsFormField extends LitElement {
       return html`
         <textarea
           class=${classMap({
-            "form-control": true,
-            "font-monospace": true,
-            "is-invalid": isInvalid,
+            "oidf-textarea": true,
+            "is-mono": true,
+            "is-error": isInvalid,
           })}
           rows="6"
           .value=${this.value || ""}
@@ -93,7 +225,7 @@ class CtsFormField extends LitElement {
     if (format === "password") {
       return html`<input
         type="password"
-        class=${classMap({ "form-control": true, "is-invalid": isInvalid })}
+        class=${classMap({ "oidf-input": true, "is-error": isInvalid })}
         .value=${this.value || ""}
         ?disabled=${this.disabled}
         @input=${this._handleInput}
@@ -102,15 +234,15 @@ class CtsFormField extends LitElement {
 
     if (type === "boolean") {
       return html`
-        <div class="form-check">
+        <div class="oidf-checkbox-row">
           <input
             type="checkbox"
-            class="form-check-input"
+            class="oidf-checkbox"
             .checked=${this.value === "true" || /** @type {unknown} */ (this.value) === true}
             ?disabled=${this.disabled}
             @change=${this._handleCheckbox}
           />
-          ${description ? html`<label class="form-check-label">${description}</label>` : nothing}
+          ${description ? html`<label class="oidf-checkbox-label">${description}</label>` : nothing}
         </div>
       `;
     }
@@ -118,7 +250,7 @@ class CtsFormField extends LitElement {
     const inputType = format === "uri" ? "url" : "text";
     return html`<input
       type="${inputType}"
-      class=${classMap({ "form-control": true, "is-invalid": isInvalid })}
+      class=${classMap({ "oidf-input": true, "is-error": isInvalid })}
       .value=${this.value || ""}
       ?disabled=${this.disabled}
       @input=${this._handleInput}
@@ -136,12 +268,12 @@ class CtsFormField extends LitElement {
     const { title, description, type } = this.schema;
     const isBoolean = type === "boolean";
     return html`
-      <div class="mb-3">
-        ${!isBoolean && title ? html`<label class="form-label fw-bold">${title}</label>` : nothing}
+      <div class="oidf-form-field">
+        ${!isBoolean && title ? html`<span class="oidf-label t-overline">${title}</span>` : nothing}
         ${this._renderInput()}
-        ${this.error ? html`<div class="invalid-feedback d-block">${this.error}</div>` : nothing}
+        ${this.error ? html`<span class="oidf-error" role="alert">${this.error}</span>` : nothing}
         ${!isBoolean && description
-          ? html`<small class="form-text text-muted">${description}</small>`
+          ? html`<span class="oidf-help t-meta">${description}</span>`
           : nothing}
       </div>
     `;

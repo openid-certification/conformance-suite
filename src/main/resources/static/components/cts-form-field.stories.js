@@ -16,13 +16,18 @@ export const TextInput = {
     ></cts-form-field>
   `,
   async play({ canvasElement }) {
-    expect(canvasElement.querySelector("label").textContent).toContain("Client ID");
+    const label = canvasElement.querySelector(".oidf-label");
+    expect(label).toBeTruthy();
+    expect(label.textContent).toContain("Client ID");
+    // .t-overline carries the OIDF label typography (uppercase / bold / fg-soft).
+    expect(label.classList.contains("t-overline")).toBe(true);
     const input = canvasElement.querySelector('input[type="text"]');
     expect(input).toBeTruthy();
+    expect(input.classList.contains("oidf-input")).toBe(true);
     expect(input.value).toBe("my-client-123");
-    expect(canvasElement.querySelector(".form-text").textContent).toContain(
-      "OAuth 2.0 client identifier",
-    );
+    const help = canvasElement.querySelector(".oidf-help");
+    expect(help.textContent).toContain("OAuth 2.0 client identifier");
+    expect(help.classList.contains("t-meta")).toBe(true);
   },
 };
 
@@ -37,6 +42,7 @@ export const UrlInput = {
   async play({ canvasElement }) {
     const input = canvasElement.querySelector('input[type="url"]');
     expect(input).toBeTruthy();
+    expect(input.classList.contains("oidf-input")).toBe(true);
     expect(input.value).toBe("https://accounts.example.com");
   },
 };
@@ -52,6 +58,7 @@ export const PasswordInput = {
   async play({ canvasElement }) {
     const input = canvasElement.querySelector('input[type="password"]');
     expect(input).toBeTruthy();
+    expect(input.classList.contains("oidf-input")).toBe(true);
     expect(input.value).toBe("s3cret");
   },
 };
@@ -67,7 +74,9 @@ export const JsonTextarea = {
   async play({ canvasElement }) {
     const textarea = canvasElement.querySelector("textarea");
     expect(textarea).toBeTruthy();
-    expect(textarea.classList.contains("font-monospace")).toBe(true);
+    expect(textarea.classList.contains("oidf-textarea")).toBe(true);
+    // JSON inputs render in monospace.
+    expect(textarea.classList.contains("is-mono")).toBe(true);
   },
 };
 
@@ -84,7 +93,7 @@ export const SelectDropdown = {
     ></cts-form-field>
   `,
   async play({ canvasElement }) {
-    const select = canvasElement.querySelector("select.form-select");
+    const select = canvasElement.querySelector("select.oidf-select");
     expect(select).toBeTruthy();
     const options = select.querySelectorAll("option");
     expect(options.length).toBe(4); // 3 enum + 1 placeholder
@@ -102,10 +111,10 @@ export const BooleanCheckbox = {
   async play({ canvasElement }) {
     const checkbox = canvasElement.querySelector('input[type="checkbox"]');
     expect(checkbox).toBeTruthy();
+    expect(checkbox.classList.contains("oidf-checkbox")).toBe(true);
     expect(checkbox.checked).toBe(true);
-    expect(canvasElement.querySelector(".form-check-label").textContent).toContain(
-      "Enable mutual TLS",
-    );
+    const checkLabel = canvasElement.querySelector(".oidf-checkbox-label");
+    expect(checkLabel.textContent).toContain("Enable mutual TLS");
   },
 };
 
@@ -119,14 +128,20 @@ export const WithError = {
     ></cts-form-field>
   `,
   async play({ canvasElement }) {
-    expect(canvasElement.querySelector("input").classList.contains("is-invalid")).toBe(true);
-    expect(canvasElement.querySelector(".invalid-feedback").textContent).toBe("Required field");
+    const input = canvasElement.querySelector("input");
+    // Error state lands on the rendered control via .is-error so the rust
+    // border colour applies — no host-level class manipulation.
+    expect(input.classList.contains("is-error")).toBe(true);
+    const error = canvasElement.querySelector(".oidf-error");
+    expect(error).toBeTruthy();
+    expect(error.textContent).toBe("Required field");
+    expect(error.getAttribute("role")).toBe("alert");
   },
 };
 
 /**
  * The original WithError only covered the text-input branch. JSON / select /
- * checkbox each render a different control and the `is-invalid` class has to
+ * checkbox each render a different control and the `is-error` class has to
  * land on the right element — these stories pin that contract.
  */
 
@@ -142,10 +157,10 @@ export const WithErrorTextarea = {
   async play({ canvasElement }) {
     const textarea = canvasElement.querySelector("textarea");
     expect(textarea).toBeTruthy();
-    expect(textarea.classList.contains("is-invalid")).toBe(true);
-    // is-invalid must NOT land on a sibling or parent.
+    expect(textarea.classList.contains("is-error")).toBe(true);
+    // is-error must NOT land on a sibling or parent.
     expect(canvasElement.querySelector("input")).toBeNull();
-    expect(canvasElement.querySelector(".invalid-feedback").textContent).toBe("Must be valid JSON");
+    expect(canvasElement.querySelector(".oidf-error").textContent).toBe("Must be valid JSON");
   },
 };
 
@@ -163,12 +178,10 @@ export const WithErrorSelect = {
     ></cts-form-field>
   `,
   async play({ canvasElement }) {
-    const select = canvasElement.querySelector("select.form-select");
+    const select = canvasElement.querySelector("select.oidf-select");
     expect(select).toBeTruthy();
-    expect(select.classList.contains("is-invalid")).toBe(true);
-    expect(canvasElement.querySelector(".invalid-feedback").textContent).toBe(
-      "Pick an auth method",
-    );
+    expect(select.classList.contains("is-error")).toBe(true);
+    expect(canvasElement.querySelector(".oidf-error").textContent).toBe("Pick an auth method");
   },
 };
 
@@ -184,10 +197,9 @@ export const WithErrorCheckbox = {
   async play({ canvasElement }) {
     const checkbox = canvasElement.querySelector('input[type="checkbox"]');
     expect(checkbox).toBeTruthy();
-    // The invalid-feedback message still renders — Bootstrap's checkbox
-    // error affordance is via the sibling label/feedback, not via a class
-    // on the .form-check-input itself.
-    expect(canvasElement.querySelector(".invalid-feedback").textContent).toBe(
+    // The error message still renders next to the checkbox row — the visual
+    // signal is the rust-coloured message, not a class on the checkbox itself.
+    expect(canvasElement.querySelector(".oidf-error").textContent).toBe(
       "mTLS is required for this profile",
     );
   },
@@ -226,5 +238,30 @@ export const Disabled = {
   `,
   async play({ canvasElement }) {
     expect(canvasElement.querySelector("input").disabled).toBe(true);
+  },
+};
+
+/**
+ * Focus state must be keyboard-visible: the input picks up the OIDF orange
+ * border + focus ring (`--focus-ring`) the moment it gains focus. We assert
+ * via the computed style after focusing the rendered control.
+ */
+export const FocusState = {
+  render: () => html`
+    <cts-form-field
+      name="server.issuer"
+      .schema=${{ type: "string", title: "Issuer URL" }}
+      value=""
+    ></cts-form-field>
+  `,
+  async play({ canvasElement }) {
+    const input = /** @type {HTMLInputElement} */ (canvasElement.querySelector("input"));
+    input.focus();
+    expect(document.activeElement).toBe(input);
+    const computed = getComputedStyle(input);
+    // --orange-400 = #EB8B35 → rgb(235, 139, 53)
+    expect(computed.borderTopColor).toBe("rgb(235, 139, 53)");
+    // --focus-ring expands to a 3px box-shadow; assert it is non-empty.
+    expect(computed.boxShadow).not.toBe("none");
   },
 };
