@@ -179,11 +179,11 @@ body {
 
 .pageHeader img {
 	/*
-	 * Explicit dimensions reserve the logo's 100x40 box at first layout
-	 * so the navbar's internal flex row does not reflow when the image
-	 * loads (openid.png is 900x360, a 5:2 aspect ratio, rendered at
-	 * 40px height = 100px width). Without these, the <img> reserves
-	 * zero space pre-load, contributing to cts-navbar's internal CLS.
+	 * Explicit dimensions reserve the logo's box at first layout so any
+	 * legacy `.pageHeader` block does not reflow when the image loads.
+	 * The cts-navbar uses openid-dark.svg with width/height attributes
+	 * on the <img> itself for CLS; this rule covers any non-component
+	 * page-header that still renders a raster logo.
 	 */
 	width: 100px;
 	height: 40px;
