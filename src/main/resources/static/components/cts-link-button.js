@@ -84,6 +84,7 @@ const STYLE_TEXT = `
   color: var(--ink-900);
   cursor: pointer;
   text-decoration: none;
+  box-sizing: border-box;
   transition: background var(--dur-1) var(--ease-standard),
               border-color var(--dur-1) var(--ease-standard),
               color var(--dur-1) var(--ease-standard);
