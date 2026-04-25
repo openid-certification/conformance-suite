@@ -18,13 +18,13 @@ import org.jetbrains.annotations.NotNull;
 	displayName = "OID4VP-1.0-FINAL: Alternate happy flow",
 	summary = """
 		Performs the normal flow with the following differences:
-		- Includes optional 'state' parameter
-		- Uses a longer 'nonce' (32 chars) and 'state' (64 chars)
+		- Includes the optional 'state' parameter, using a longer-than-default value (64 chars)
+		- Uses a longer 'nonce' than the default (32 chars)
 		- Includes a random authorization endpoint parameter (which must be ignored)
 		- Includes an 'iss' claim in the request object that does not match 'client_id' (which must be ignored as per VP spec section 5)
-		- Reordered query parameters in the redirect URL
 		- Encryption key without 'use: enc' (for encrypted response modes)
-		- response_uri response returns a redirect_uri which the wallet must open""",
+		- Reordered query parameters in the redirect URL (no-op for DC API response modes, which don't use a redirect URL)
+		- response_uri response returns a redirect_uri which the wallet must open (no-op for DC API response modes; for ISO mdoc the default flow already returns a redirect_uri)""",
 	profile = "OID4VP-1FINAL"
 )
 
