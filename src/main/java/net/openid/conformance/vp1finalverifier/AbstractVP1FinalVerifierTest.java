@@ -9,6 +9,7 @@ import jakarta.servlet.http.HttpSession;
 import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.condition.as.AddVP1FinalDCQLVPTokenToAuthorizationEndpointResponseParams;
 import net.openid.conformance.condition.as.CheckForUnexpectedParametersInVpAuthorizationRequest;
+import net.openid.conformance.condition.as.CheckForUnexpectedParametersInVpAuthorizationEndpointHttpRequest;
 import net.openid.conformance.condition.as.CheckNoClientIdSchemeParameter;
 import net.openid.conformance.condition.as.CheckNoPresentationDefinitionInVpAuthorizationRequest;
 import net.openid.conformance.condition.as.EnsureClientIdMatchesResponseUri;
@@ -296,6 +297,8 @@ public abstract class AbstractVP1FinalVerifierTest extends AbstractTestModule {
 			callAndContinueOnFailure(EnsureOptionalAuthorizationRequestParametersMatchRequestObject.class,
 										ConditionResult.WARNING, "OIDCC-6.1", "OIDCC-6.2");
 		}
+
+		callAndContinueOnFailure(CheckForUnexpectedParametersInVpAuthorizationEndpointHttpRequest.class, ConditionResult.WARNING);
 
 		callAndStopOnFailure(CreateEffectiveAuthorizationRequestParameters.class, "OIDCC-6.1", "OIDCC-6.2");
 
