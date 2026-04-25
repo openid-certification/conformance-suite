@@ -118,9 +118,11 @@ test.describe("plans.html — Plans List", () => {
     await expect(searchInput).toBeVisible();
     await searchInput.fill("fapi2");
 
-    // Click the explicit-mode Search button. The cts-data-table commits
-    // the search synchronously on `cts-click` and skips the 250ms debounce.
-    const searchBtn = page.locator("#plansListing .oidf-dt-search-btn button");
+    // Click the explicit-mode inline submit button. cts-data-table renders
+    // it inside the search pill once the draft input differs from the
+    // committed search; clicking commits synchronously and skips the
+    // 250ms debounce.
+    const searchBtn = page.locator("#plansListing .oidf-dt-search-submit");
     await expect(searchBtn).toBeVisible();
     const searchRequest = page.waitForRequest(
       (req) => req.url().includes("/api/plan?") && req.url().includes("search=fapi2"),
