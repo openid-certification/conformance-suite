@@ -7,31 +7,52 @@ export default {
   component: "cts-tooltip",
 };
 
+// --- Helpers ---
+
+/**
+ * Returns the singleton .oidf-tooltip currently rendered into document.body,
+ * or null when there isn't one. The component appends to body so it escapes
+ * any clipping ancestor; this is the integration contract.
+ *
+ * @returns {HTMLElement | null}
+ */
+function getTooltipEl() {
+  return /** @type {HTMLElement | null} */ (document.body.querySelector(".oidf-tooltip"));
+}
+
 // --- Stories ---
 
 export const Default = {
   render: () => html`
-    <cts-tooltip content="Click to copy the share URL" placement="top">
-      <button class="btn btn-sm btn-light bg-gradient border border-secondary">
-        <span class="bi bi-files" aria-hidden="true"></span> Copy
-      </button>
-    </cts-tooltip>
+    <div style="padding: 80px;">
+      <cts-tooltip content="Click to copy the share URL" placement="top">
+        <button>Copy</button>
+      </cts-tooltip>
+    </div>
   `,
 
   async play({ canvasElement }) {
-    const button = canvasElement.querySelector("button");
+    const button = /** @type {HTMLButtonElement} */ (canvasElement.querySelector("button"));
     expect(button).toBeTruthy();
-    expect(button.getAttribute("data-bs-toggle")).toBe("tooltip");
-    expect(button.getAttribute("data-bs-placement")).toBe("top");
 
-    // Bootstrap moves title to data-bs-original-title after initialization
-    const tooltipText =
-      button.getAttribute("data-bs-original-title") || button.getAttribute("title");
-    expect(tooltipText).toBe("Click to copy the share URL");
+    // No Bootstrap leftovers: data-bs-toggle MUST NOT be set on the trigger.
+    expect(button.hasAttribute("data-bs-toggle")).toBe(false);
+    expect(button.hasAttribute("data-bs-placement")).toBe(false);
 
-    // Verify Bootstrap actually initialized the tooltip instance
-    const instance = bootstrap.Tooltip.getInstance(button);
-    expect(instance).toBeTruthy();
+    // Hover renders the tooltip into document.body.
+    await userEvent.hover(button);
+    await waitFor(() => {
+      const tip = getTooltipEl();
+      expect(tip).toBeTruthy();
+      expect(tip?.textContent).toContain("Click to copy the share URL");
+      expect(tip?.getAttribute("data-placement")).toBe("top");
+    });
+
+    // Unhover removes it.
+    await userEvent.unhover(button);
+    await waitFor(() => {
+      expect(getTooltipEl()).toBeNull();
+    });
   },
 };
 
@@ -39,50 +60,51 @@ export const BottomPlacement = {
   render: () => html`
     <div style="padding: 80px;">
       <cts-tooltip content="Visit the OpenID Foundation" placement="bottom">
-        <a href="https://openid.net" class="btn btn-sm btn-outline-primary">OpenID Foundation</a>
+        <a href="https://openid.net">OpenID Foundation</a>
       </cts-tooltip>
     </div>
   `,
 
   async play({ canvasElement }) {
-    const anchor = canvasElement.querySelector("a");
+    const anchor = /** @type {HTMLAnchorElement} */ (canvasElement.querySelector("a"));
     expect(anchor).toBeTruthy();
-    expect(anchor.getAttribute("data-bs-placement")).toBe("bottom");
 
-    // Verify Bootstrap tooltip is initialized
-    const instance = bootstrap.Tooltip.getInstance(anchor);
-    expect(instance).toBeTruthy();
-
-    // Show the tooltip and verify its popup actually renders BELOW the anchor.
-    // Attribute presence alone is weak — a regression that forgets to pass
-    // placement through to Bootstrap would keep the attribute but render
-    // top-placement.
-    instance.show();
+    await userEvent.hover(anchor);
     await waitFor(() => {
-      const popup = document.querySelector(".tooltip.show");
-      expect(popup).toBeTruthy();
+      const tip = getTooltipEl();
+      expect(tip).toBeTruthy();
+      expect(tip?.getAttribute("data-placement")).toBe("bottom");
+
+      // Verify the popup actually renders BELOW the anchor — placement
+      // attribute presence alone is not enough; a regression that forgets
+      // to use placement in _position() would still set the attribute
+      // but render in the wrong spot.
       const anchorRect = anchor.getBoundingClientRect();
-      const popupRect = /** @type {Element} */ (popup).getBoundingClientRect();
-      // The popup's top edge should sit below (or at least not above) the
-      // anchor's bottom edge when placement is "bottom".
-      expect(popupRect.top).toBeGreaterThanOrEqual(anchorRect.bottom - 1);
+      const tipRect = /** @type {HTMLElement} */ (tip).getBoundingClientRect();
+      expect(tipRect.top).toBeGreaterThanOrEqual(anchorRect.bottom - 1);
     });
-    instance.hide();
+
+    await userEvent.unhover(anchor);
+    await waitFor(() => expect(getTooltipEl()).toBeNull());
   },
 };
 
 export const NoContent = {
   render: () => html`
     <cts-tooltip>
-      <button class="btn btn-sm btn-secondary">No tooltip</button>
+      <button>No tooltip</button>
     </cts-tooltip>
   `,
 
   async play({ canvasElement }) {
-    const button = canvasElement.querySelector("button");
+    const button = /** @type {HTMLButtonElement} */ (canvasElement.querySelector("button"));
     expect(button).toBeTruthy();
-    // No content attribute means no tooltip should be initialized
-    expect(button.hasAttribute("data-bs-toggle")).toBe(false);
+
+    // Without content, hover is a no-op.
+    await userEvent.hover(button);
+    // Give the (non-existent) tooltip a chance not to appear.
+    await new Promise((r) => setTimeout(r, 50));
+    expect(getTooltipEl()).toBeNull();
   },
 };
 
@@ -90,27 +112,169 @@ export const TooltipAppearsOnHover = {
   render: () => html`
     <div style="padding: 60px;">
       <cts-tooltip content="Hover tooltip text" placement="top">
-        <button class="btn btn-primary">Hover me</button>
+        <button>Hover me</button>
       </cts-tooltip>
     </div>
   `,
 
   async play({ canvasElement }) {
-    const button = canvasElement.querySelector("button");
+    const button = /** @type {HTMLButtonElement} */ (canvasElement.querySelector("button"));
 
-    // No tooltip visible initially
-    expect(document.querySelector(".tooltip.show")).toBeNull();
+    expect(getTooltipEl()).toBeNull();
 
-    // Hover to trigger tooltip
     await userEvent.hover(button);
     await waitFor(() => {
-      expect(document.querySelector(".tooltip.show")).toBeTruthy();
+      const tip = getTooltipEl();
+      expect(tip).toBeTruthy();
+      expect(tip?.textContent).toContain("Hover tooltip text");
     });
 
-    // Unhover to dismiss
     await userEvent.unhover(button);
+    await waitFor(() => expect(getTooltipEl()).toBeNull());
+  },
+};
+
+export const FocusAndEscapeDismiss = {
+  render: () => html`
+    <div style="padding: 60px;">
+      <cts-tooltip content="Focus tooltip text" placement="top">
+        <button>Focus me</button>
+      </cts-tooltip>
+      <button id="other">Elsewhere</button>
+    </div>
+  `,
+
+  async play({ canvasElement }) {
+    const button = /** @type {HTMLButtonElement} */ (canvasElement.querySelector("button"));
+    const other = /** @type {HTMLButtonElement} */ (canvasElement.querySelector("#other"));
+
+    // Focusing the trigger shows the tooltip.
+    button.focus();
     await waitFor(() => {
-      expect(document.querySelector(".tooltip.show")).toBeNull();
+      expect(getTooltipEl()).toBeTruthy();
     });
+
+    // Escape dismisses without moving focus.
+    await userEvent.keyboard("{Escape}");
+    await waitFor(() => expect(getTooltipEl()).toBeNull());
+    expect(document.activeElement).toBe(button);
+
+    // Re-focus → blur to another element dismisses.
+    button.focus();
+    await waitFor(() => expect(getTooltipEl()).toBeTruthy());
+    other.focus();
+    await waitFor(() => expect(getTooltipEl()).toBeNull());
+  },
+};
+
+export const DynamicallyInsertedChild = {
+  render: () => html`
+    <div style="padding: 60px;">
+      <cts-tooltip
+        id="dynamic-tooltip"
+        content="Wired after insertion"
+        placement="top"
+      ></cts-tooltip>
+    </div>
+  `,
+
+  async play({ canvasElement }) {
+    const host = /** @type {HTMLElement} */ (canvasElement.querySelector("#dynamic-tooltip"));
+    expect(host).toBeTruthy();
+
+    // Dynamically insert the trigger after connect — the MutationObserver
+    // inside cts-tooltip should still wire up listeners.
+    const button = document.createElement("button");
+    button.textContent = "Dynamic trigger";
+    host.appendChild(button);
+
+    await waitFor(() => {
+      // Hover should now show the tooltip — confirms the observer wired up.
+      const promise = userEvent.hover(button);
+      return promise.then(() => {
+        const tip = getTooltipEl();
+        expect(tip).toBeTruthy();
+        expect(tip?.textContent).toContain("Wired after insertion");
+      });
+    });
+
+    await userEvent.unhover(button);
+    await waitFor(() => expect(getTooltipEl()).toBeNull());
+  },
+};
+
+export const AutoPlacementFlipsBelow = {
+  render: () => html`
+    <!-- Trigger pinned to the very top of the viewport with no room above.
+         Auto placement should pick "bottom". -->
+    <div style="padding: 0; margin: 0; position: relative;">
+      <cts-tooltip content="Flips below" placement="auto">
+        <button style="position: fixed; top: 4px; left: 200px;">Top edge</button>
+      </cts-tooltip>
+    </div>
+  `,
+
+  async play() {
+    const button = /** @type {HTMLButtonElement} */ (document.querySelector("button"));
+    expect(button).toBeTruthy();
+
+    await userEvent.hover(button);
+    await waitFor(() => {
+      const tip = getTooltipEl();
+      expect(tip).toBeTruthy();
+      // Top has 4px of room — far less than the tip's height — so auto
+      // must flip to bottom.
+      expect(tip?.getAttribute("data-placement")).toBe("bottom");
+    });
+
+    await userEvent.unhover(button);
+    await waitFor(() => expect(getTooltipEl()).toBeNull());
+  },
+};
+
+export const RepositionsOnReshow = {
+  render: () => html`
+    <div style="padding: 80px;">
+      <cts-tooltip content="Recomputed each show" placement="top">
+        <button id="moving-trigger">Recompute me</button>
+      </cts-tooltip>
+    </div>
+  `,
+
+  async play({ canvasElement }) {
+    const button = /** @type {HTMLButtonElement} */ (canvasElement.querySelector("button"));
+
+    // First show.
+    await userEvent.hover(button);
+    /** @type {HTMLElement | null} */
+    let tip = null;
+    await waitFor(() => {
+      tip = getTooltipEl();
+      expect(tip).toBeTruthy();
+    });
+    const firstLeft = parseFloat(
+      /** @type {HTMLElement} */ (/** @type {unknown} */ (tip)).style.left,
+    );
+    await userEvent.unhover(button);
+    await waitFor(() => expect(getTooltipEl()).toBeNull());
+
+    // Move the trigger sideways. On the next mouseenter, position must be
+    // recomputed against the new bounding rect — so the tooltip's left
+    // coordinate should be different from the first show.
+    button.style.position = "relative";
+    button.style.left = "200px";
+
+    await userEvent.hover(button);
+    await waitFor(() => {
+      tip = getTooltipEl();
+      expect(tip).toBeTruthy();
+    });
+    const secondLeft = parseFloat(
+      /** @type {HTMLElement} */ (/** @type {unknown} */ (tip)).style.left,
+    );
+    expect(secondLeft).not.toBe(firstLeft);
+
+    await userEvent.unhover(button);
+    await waitFor(() => expect(getTooltipEl()).toBeNull());
   },
 };
