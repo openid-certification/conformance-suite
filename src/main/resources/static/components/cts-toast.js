@@ -118,13 +118,19 @@ cts-toast:not(:defined) {
   margin: 0;
   width: 20px;
   height: 20px;
-  line-height: 1;
-  font-size: 18px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   color: var(--fg-muted);
   opacity: 0.7;
   cursor: pointer;
   flex-shrink: 0;
   border-radius: var(--radius-2);
+}
+.oidf-toast-close i {
+  font-size: 18px;
+  line-height: 1;
+  display: block;
 }
 .oidf-toast-close:hover,
 .oidf-toast-close:focus-visible {
@@ -315,7 +321,7 @@ class CtsToast extends LitElement {
         aria-label="Dismiss"
         @click=${this._onDismissClick}
       >
-        ×
+        <i class="bi bi-x" aria-hidden="true"></i>
       </button>
     </div>`;
   }

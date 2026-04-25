@@ -61,14 +61,16 @@ export const OkStatic = {
 
 /**
  * Happy path: clicking the dismiss button removes the toast immediately
- * and dispatches `cts-toast-dismiss`.
+ * and dispatches `cts-toast-dismiss`. The close glyph is a Bootstrap Icons
+ * `bi-x` element (not a literal `×` character) so it centres optically
+ * inside the 20×20 button.
  */
 export const Dismissible = {
   render: () => html`
     <cts-toast-host>
       <cts-toast
         title="Heads up"
-        message="Click the × to dismiss me."
+        message="Click the close button to dismiss me."
         kind="ok"
         .duration=${0}
       ></cts-toast>
@@ -87,6 +89,9 @@ export const Dismissible = {
     const closeBtn = toast.querySelector("button.oidf-toast-close");
     expect(closeBtn).toBeTruthy();
     expect(closeBtn.getAttribute("aria-label")).toBe("Dismiss");
+    const closeIcon = closeBtn.querySelector("i.bi.bi-x");
+    expect(closeIcon).toBeTruthy();
+    expect(closeIcon.getAttribute("aria-hidden")).toBe("true");
 
     await userEvent.click(closeBtn);
     expect(dismissed).toBe(true);
