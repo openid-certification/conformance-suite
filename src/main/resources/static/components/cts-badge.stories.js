@@ -17,39 +17,209 @@ export default {
 
 // --- Stories ---
 
-export const Success = {
+// Canonical design-system status variants. Each maps to a `b-*` class
+// painted from the `--status-*` token group in `oidf-tokens.css`.
+
+export const Pass = {
+  args: { variant: "pass", label: "Passed" },
+  render: ({ variant, label }) =>
+    html`<cts-badge variant="${variant}" label="${label}"></cts-badge>`,
+
+  async play({ canvasElement }) {
+    const badge = canvasElement.querySelector(".badge");
+    expect(badge).toBeTruthy();
+    expect(badge.classList.contains("b-pass")).toBe(true);
+    expect(badge.textContent.trim()).toBe("Passed");
+  },
+};
+
+export const Fail = {
+  args: { variant: "fail", label: "Failed" },
+  render: ({ variant, label }) =>
+    html`<cts-badge variant="${variant}" label="${label}"></cts-badge>`,
+
+  async play({ canvasElement }) {
+    const badge = canvasElement.querySelector(".badge");
+    expect(badge).toBeTruthy();
+    expect(badge.classList.contains("b-fail")).toBe(true);
+    expect(badge.textContent.trim()).toBe("Failed");
+  },
+};
+
+export const Warn = {
+  args: { variant: "warn", label: "Warning" },
+  render: ({ variant, label }) =>
+    html`<cts-badge variant="${variant}" label="${label}"></cts-badge>`,
+
+  async play({ canvasElement }) {
+    const badge = canvasElement.querySelector(".badge");
+    expect(badge).toBeTruthy();
+    expect(badge.classList.contains("b-warn")).toBe(true);
+    expect(badge.textContent.trim()).toBe("Warning");
+    // Bootstrap legacy class must NOT leak through.
+    expect(badge.classList.contains("bg-warning")).toBe(false);
+  },
+};
+
+export const Running = {
+  args: { variant: "running", label: "Running" },
+  render: ({ variant, label }) =>
+    html`<cts-badge variant="${variant}" label="${label}"></cts-badge>`,
+
+  async play({ canvasElement }) {
+    const badge = canvasElement.querySelector(".badge");
+    expect(badge).toBeTruthy();
+    expect(badge.classList.contains("b-run")).toBe(true);
+
+    // Spinner is the inline SVG, not a `bi bi-arrow-clockwise` icon.
+    const spin = badge.querySelector(".cts-badge-spin");
+    expect(spin).toBeTruthy();
+    const svg = spin.querySelector("svg");
+    expect(svg).toBeTruthy();
+    // namespace should be SVG, not the HTML default (otherwise children
+    // render as inert HTMLUnknownElements and the spinner is invisible).
+    expect(svg.namespaceURI).toBe("http://www.w3.org/2000/svg");
+    expect(svg.querySelector("circle")).toBeTruthy();
+    expect(svg.querySelector("path")).toBeTruthy();
+
+    // No bootstrap arrow-clockwise icon.
+    expect(badge.querySelector("i.bi-arrow-clockwise")).toBeFalsy();
+
+    // Bootstrap legacy class must NOT leak through.
+    expect(badge.classList.contains("bg-info")).toBe(false);
+  },
+};
+
+export const Skip = {
+  args: { variant: "skip", label: "Skipped" },
+  render: ({ variant, label }) =>
+    html`<cts-badge variant="${variant}" label="${label}"></cts-badge>`,
+
+  async play({ canvasElement }) {
+    const badge = canvasElement.querySelector(".badge");
+    expect(badge).toBeTruthy();
+    expect(badge.classList.contains("b-skip")).toBe(true);
+    expect(badge.textContent.trim()).toBe("Skipped");
+  },
+};
+
+export const Review = {
+  args: { variant: "review", label: "Review" },
+  render: ({ variant, label }) =>
+    html`<cts-badge variant="${variant}" label="${label}"></cts-badge>`,
+
+  async play({ canvasElement }) {
+    const badge = canvasElement.querySelector(".badge");
+    expect(badge).toBeTruthy();
+    expect(badge.classList.contains("b-rev")).toBe(true);
+    expect(badge.textContent.trim()).toBe("Review");
+  },
+};
+
+// --- Running variant: spinner replaces any icon attribute ---
+
+/**
+ * The `running` variant renders the design-system inline SVG spinner.
+ * Even when an `icon` attribute is provided, the spinner takes priority
+ * (the design archive specifies a single circular spinner glyph, so we
+ * never render both).
+ */
+export const RunningIgnoresIconAttribute = {
+  args: { variant: "running", label: "Running", icon: "arrow-clockwise" },
+  render: ({ variant, label, icon }) =>
+    html`<cts-badge variant="${variant}" label="${label}" icon="${icon}"></cts-badge>`,
+
+  async play({ canvasElement }) {
+    const badge = canvasElement.querySelector(".badge");
+    expect(badge).toBeTruthy();
+    expect(badge.classList.contains("b-run")).toBe(true);
+
+    // Spinner present.
+    expect(badge.querySelector(".cts-badge-spin")).toBeTruthy();
+
+    // No `bi bi-arrow-clockwise` icon, even though icon="arrow-clockwise"
+    // was passed.
+    expect(badge.querySelector("i.bi-arrow-clockwise")).toBeFalsy();
+    expect(badge.querySelector("i.bi")).toBeFalsy();
+  },
+};
+
+// --- Legacy aliases (back-compat with batch-runner / log-viewer / plan-modules) ---
+
+/**
+ * Existing callers in `cts-batch-runner.js`, `cts-log-viewer.js`, and
+ * `cts-plan-modules.js` pass `success` / `failure` / `warning` /
+ * `info` / `skipped`. Those legacy names must keep rendering until those
+ * components migrate to the canonical names.
+ */
+export const LegacyAliasSuccess = {
   args: { variant: "success", label: "SUCCESS" },
   render: ({ variant, label }) =>
     html`<cts-badge variant="${variant}" label="${label}"></cts-badge>`,
 
   async play({ canvasElement }) {
-    const badge = canvasElement.querySelector(".badge.result-success");
+    const badge = canvasElement.querySelector(".badge");
     expect(badge).toBeTruthy();
-    expect(badge.textContent.trim()).toBe("SUCCESS");
+    expect(badge.classList.contains("b-pass")).toBe(true);
   },
 };
 
-export const Failure = {
+export const LegacyAliasFailure = {
   args: { variant: "failure", label: "FAILURE" },
   render: ({ variant, label }) =>
     html`<cts-badge variant="${variant}" label="${label}"></cts-badge>`,
 
   async play({ canvasElement }) {
-    const badge = canvasElement.querySelector(".badge.result-failure");
+    const badge = canvasElement.querySelector(".badge");
     expect(badge).toBeTruthy();
+    expect(badge.classList.contains("b-fail")).toBe(true);
   },
 };
 
-export const Warning = {
+export const LegacyAliasWarning = {
   args: { variant: "warning", label: "WARNING" },
   render: ({ variant, label }) =>
     html`<cts-badge variant="${variant}" label="${label}"></cts-badge>`,
 
   async play({ canvasElement }) {
-    const badge = canvasElement.querySelector(".badge.result-warning");
+    const badge = canvasElement.querySelector(".badge");
     expect(badge).toBeTruthy();
+    expect(badge.classList.contains("b-warn")).toBe(true);
+    // No Bootstrap leakage.
+    expect(badge.classList.contains("bg-warning")).toBe(false);
   },
 };
+
+export const LegacyAliasInfo = {
+  args: { variant: "info", label: "RUNNING" },
+  render: ({ variant, label }) =>
+    html`<cts-badge variant="${variant}" label="${label}"></cts-badge>`,
+
+  async play({ canvasElement }) {
+    const badge = canvasElement.querySelector(".badge");
+    expect(badge).toBeTruthy();
+    // `info` is the legacy name for "running" used by cts-batch-runner.
+    expect(badge.classList.contains("b-run")).toBe(true);
+    // Spinner is rendered for the running variant.
+    expect(badge.querySelector(".cts-badge-spin")).toBeTruthy();
+    // No Bootstrap leakage.
+    expect(badge.classList.contains("bg-info")).toBe(false);
+  },
+};
+
+export const LegacyAliasSkipped = {
+  args: { variant: "skipped", label: "SKIPPED" },
+  render: ({ variant, label }) =>
+    html`<cts-badge variant="${variant}" label="${label}"></cts-badge>`,
+
+  async play({ canvasElement }) {
+    const badge = canvasElement.querySelector(".badge");
+    expect(badge).toBeTruthy();
+    expect(badge.classList.contains("b-skip")).toBe(true);
+  },
+};
+
+// --- Bootstrap utility variants (kept for non-status uses) ---
 
 export const BootstrapVariant = {
   args: { variant: "danger", label: "ADMIN" },
@@ -57,9 +227,9 @@ export const BootstrapVariant = {
     html`<cts-badge variant="${variant}" label="${label}"></cts-badge>`,
 
   async play({ canvasElement }) {
-    const badge = canvasElement.querySelector(".badge.bg-danger");
+    const badge = canvasElement.querySelector(".badge");
     expect(badge).toBeTruthy();
-    expect(badge.classList.contains("result-danger")).toBe(false);
+    expect(badge.classList.contains("bg-danger")).toBe(true);
   },
 };
 
@@ -71,12 +241,13 @@ export const InfoSubtle = {
   async play({ canvasElement }) {
     const badge = canvasElement.querySelector(".badge");
     expect(badge).toBeTruthy();
-    expect(badge.classList.contains("bg-info-subtle")).toBe(true);
-    expect(badge.classList.contains("border")).toBe(true);
-    expect(badge.classList.contains("border-info-subtle")).toBe(true);
-    expect(badge.classList.contains("text-info-emphasis")).toBe(true);
-    expect(badge.classList.contains("rounded-pill")).toBe(true);
+    // Retokenized scoped class on the design-system status-info palette.
+    expect(badge.classList.contains("b-info-subtle")).toBe(true);
     expect(badge.textContent.trim()).toBe("Section description");
+    // Bootstrap classes must NOT leak through.
+    expect(badge.classList.contains("bg-info-subtle")).toBe(false);
+    expect(badge.classList.contains("border-info-subtle")).toBe(false);
+    expect(badge.classList.contains("text-info-emphasis")).toBe(false);
   },
 };
 
@@ -98,7 +269,7 @@ export const WithIcon = {
   async play({ canvasElement }) {
     const badge = canvasElement.querySelector(".badge");
     expect(badge).toBeTruthy();
-    expect(badge.classList.contains("bg-info-subtle")).toBe(true);
+    expect(badge.classList.contains("b-info-subtle")).toBe(true);
 
     const iconEl = badge.querySelector("i.bi");
     expect(iconEl).toBeTruthy();
@@ -118,13 +289,12 @@ export const WithCount = {
     const badge = canvasElement.querySelector(".badge");
     expect(badge).toBeTruthy();
     expect(badge.textContent.trim()).toBe("5");
-    expect(badge.classList.contains("rounded-pill")).toBe(true);
     expect(badge.classList.contains("bg-secondary")).toBe(true);
   },
 };
 
 export const Clickable = {
-  args: { variant: "info", label: "Click me", clickable: true },
+  args: { variant: "running", label: "Click me", clickable: true },
   render: ({ variant, label, clickable }) =>
     html`<cts-badge variant="${variant}" label="${label}" ?clickable="${clickable}"></cts-badge>`,
 
@@ -145,7 +315,7 @@ export const Clickable = {
 };
 
 export const NotClickable = {
-  args: { variant: "info", label: "Not clickable" },
+  args: { variant: "running", label: "Not clickable" },
   render: ({ variant, label }) =>
     html`<cts-badge variant="${variant}" label="${label}"></cts-badge>`,
 
@@ -165,24 +335,24 @@ export const NotClickable = {
   },
 };
 
-export const AllResultVariants = {
+export const AllStatusVariants = {
   render: () => html`
     <div style="display: flex; flex-wrap: wrap; gap: 0.5rem; padding: 1rem;">
-      ${[
-        "success",
-        "failure",
-        "warning",
-        "review",
-        "skipped",
-        "interrupted",
-        "info",
-        "finished",
-      ].map(
+      ${["pass", "fail", "warn", "running", "skip", "review"].map(
         (variant) =>
           html`<cts-badge variant="${variant}" label="${variant.toUpperCase()}"></cts-badge>`,
       )}
     </div>
   `,
+
+  async play({ canvasElement }) {
+    const badges = canvasElement.querySelectorAll("cts-badge .badge");
+    expect(badges.length).toBe(6);
+    const expectedClasses = ["b-pass", "b-fail", "b-warn", "b-run", "b-skip", "b-rev"];
+    badges.forEach((badge, i) => {
+      expect(badge.classList.contains(expectedClasses[i])).toBe(true);
+    });
+  },
 };
 
 /**
@@ -204,7 +374,7 @@ export const WithRichContent = {
   async play({ canvasElement }) {
     const badge = canvasElement.querySelector(".badge");
     expect(badge).toBeTruthy();
-    expect(badge.classList.contains("bg-info-subtle")).toBe(true);
+    expect(badge.classList.contains("b-info-subtle")).toBe(true);
 
     // Icon still renders before the slotted content
     const iconEl = badge.querySelector("i.bi");
@@ -221,16 +391,42 @@ export const WithRichContent = {
 };
 
 /**
- * Regression guard for the slot-children capture in `_render()`. cts-badge is
- * a vanilla HTMLElement with `observedAttributes`, so changing an attribute
- * like `variant` or `pill` triggers a full re-render. The rich slotted
- * content must survive re-render: children are captured once and moved
- * between wrappers on each render, so the `<em>` and `<a>` references stay
- * live across attribute changes.
+ * Multi-line edge case: a badge containing an explicit `<br>` collapses
+ * its corner radius to 9px (per the design archive's badge-radius
+ * decision) so the wrapped content does not look squashed inside a fully-
+ * rounded pill. The `:has(br)` selector in the scoped stylesheet is what
+ * triggers the override.
+ */
+export const MultiLineWraps = {
+  render: () => html`
+    <cts-badge variant="info-subtle">
+      This is a deliberately long badge label<br />that wraps onto a second line so we can verify
+      the corner radius collapses to 9px.
+    </cts-badge>
+  `,
+
+  async play({ canvasElement }) {
+    const badge = canvasElement.querySelector(".badge");
+    expect(badge).toBeTruthy();
+    expect(badge.querySelector("br")).toBeTruthy();
+    // The `:has(br)` override should resolve to the 9px radius. We assert
+    // the computed style rather than re-checking the rule string.
+    const computed = window.getComputedStyle(badge);
+    expect(computed.borderTopLeftRadius).toBe("9px");
+  },
+};
+
+/**
+ * Regression guard for the slot-children capture in `_render()`.
+ * cts-badge is a vanilla HTMLElement with `observedAttributes`, so
+ * changing an attribute like `variant` triggers a full re-render. The
+ * rich slotted content must survive re-render: children are captured
+ * once and moved between wrappers on each render, so the `<em>` and
+ * `<a>` references stay live across attribute changes.
  */
 export const RichContentRerenderStability = {
   render: () => html`
-    <cts-badge variant="info-subtle" pill icon="info-circle-fill">
+    <cts-badge variant="info-subtle" icon="info-circle-fill">
       See the <a href="/docs">documentation</a> for <em>details</em>.
     </cts-badge>
   `,
@@ -247,15 +443,13 @@ export const RichContentRerenderStability = {
     expect(initialLink.getAttribute("href")).toBe("/docs");
 
     // Mutate each observed attribute in turn.
-    host.setAttribute("variant", "danger");
-    host.removeAttribute("pill");
+    host.setAttribute("variant", "fail");
     host.setAttribute("icon", "exclamation-triangle-fill");
 
     // Wrapper reflects new state.
     const badge = host.querySelector(".badge");
     expect(badge).toBeTruthy();
-    expect(badge.classList.contains("bg-danger")).toBe(true);
-    expect(badge.classList.contains("rounded-pill")).toBe(false);
+    expect(badge.classList.contains("b-fail")).toBe(true);
     const icon = badge.querySelector("i.bi");
     expect(icon.classList.contains("bi-exclamation-triangle-fill")).toBe(true);
 
@@ -273,7 +467,7 @@ export const RichContentRerenderStability = {
 };
 
 export const CountPrefersOverLabel = {
-  args: { variant: "success", count: 42, label: "Ignored" },
+  args: { variant: "pass", count: 42, label: "Ignored" },
   render: ({ variant, count, label }) =>
     html`<cts-badge variant="${variant}" count="${count}" label="${label}"></cts-badge>`,
 
