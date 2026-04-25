@@ -1,51 +1,211 @@
 import { LitElement, html, nothing } from "lit";
 
-/** @type {Object.<string, string>} Maps variant name → Bootstrap modifier class */
+/**
+ * Maps variant name → OIDF token-styled modifier class.
+ *
+ * Wave-1 (U4) used Bootstrap's `btn-{variant}` table here. U5 swaps that for
+ * the OIDF token-styled `oidf-btn-*` set defined inline below. The legacy
+ * variant names (`light`, `info`, `success`, `warning`, `dark`) remain as
+ * aliases to keep call sites that still pass them rendering correctly per
+ * the plan's Variant Migration table:
+ *
+ *   - `light`   → `secondary` (white + ink-300 border)
+ *   - `info`    → `primary`   (orange-400 CTA)
+ *   - `success` → `secondary` (no tone accent yet)
+ *   - `warning` → `secondary`
+ *   - `dark`    → `secondary`
+ *   - `outline-*` → corresponding non-outline (the visual gap closed once
+ *                   `secondary` became the white-with-border variant)
+ *
+ * @type {Object.<string, string>}
+ */
 const VARIANT_CLASSES = {
-  light: "btn-light",
-  info: "btn-info",
-  primary: "btn-primary",
-  danger: "btn-danger",
-  secondary: "btn-secondary",
-  success: "btn-success",
-  warning: "btn-warning",
-  dark: "btn-dark",
-  "outline-light": "btn-outline-light",
-  "outline-info": "btn-outline-info",
-  "outline-primary": "btn-outline-primary",
-  "outline-danger": "btn-outline-danger",
-  "outline-secondary": "btn-outline-secondary",
-  "outline-success": "btn-outline-success",
-  "outline-warning": "btn-outline-warning",
-  "outline-dark": "btn-outline-dark",
-};
-
-/** @type {Object.<string, string>} Maps size name → Bootstrap modifier class (empty string = no class for md) */
-const SIZE_CLASSES = {
-  sm: "btn-sm",
-  md: "",
-  lg: "btn-lg",
+  primary: "oidf-btn-primary",
+  secondary: "oidf-btn-secondary",
+  ghost: "oidf-btn-ghost",
+  danger: "oidf-btn-danger",
+  // Legacy aliases — see Variant Migration table above.
+  light: "oidf-btn-secondary",
+  info: "oidf-btn-primary",
+  success: "oidf-btn-secondary",
+  warning: "oidf-btn-secondary",
+  dark: "oidf-btn-secondary",
+  "outline-light": "oidf-btn-secondary",
+  "outline-info": "oidf-btn-primary",
+  "outline-primary": "oidf-btn-primary",
+  "outline-danger": "oidf-btn-danger",
+  "outline-secondary": "oidf-btn-secondary",
+  "outline-success": "oidf-btn-secondary",
+  "outline-warning": "oidf-btn-secondary",
+  "outline-dark": "oidf-btn-secondary",
 };
 
 /**
- * Build the full Bootstrap button class string.
+ * Maps size name → OIDF token-styled size modifier class. The default `md`
+ * size carries no modifier — height/padding come from the base `.oidf-btn`
+ * rule.
+ *
+ * @type {Object.<string, string>}
+ */
+const SIZE_CLASSES = {
+  sm: "oidf-btn-sm",
+  md: "",
+  lg: "oidf-btn-lg",
+};
+
+/**
+ * Build the full OIDF button class string.
  *
  * @param {Object} options
- * @param {string} [options.variant="light"] - Variant key. Unknown values fall back to "light".
- * @param {string} [options.size="sm"] - Size key. Unknown values fall back to "sm".
- * @returns {string} Full class string, e.g. `"btn btn-sm btn-primary"`
+ * @param {string} [options.variant="secondary"] - Variant key. Unknown values fall back to `secondary`.
+ * @param {string} [options.size="sm"] - Size key. Unknown values fall back to `sm`.
+ * @returns {string} Full class string, e.g. `"oidf-btn oidf-btn-sm oidf-btn-primary"`
  */
-function buildButtonClasses({ variant = "light", size = "sm" } = {}) {
-  const variantClass = VARIANT_CLASSES[variant] ?? "btn-light";
-  const sizeClass = SIZE_CLASSES[size] ?? "btn-sm";
+function buildButtonClasses({ variant = "secondary", size = "sm" } = {}) {
+  const variantClass = VARIANT_CLASSES[variant] ?? "oidf-btn-secondary";
+  const sizeClass = SIZE_CLASSES[size] ?? "oidf-btn-sm";
   const sizeSegment = sizeClass ? `${sizeClass} ` : "";
-  return `btn ${sizeSegment}${variantClass}`;
+  return `oidf-btn ${sizeSegment}${variantClass}`;
+}
+
+const STYLE_ID = "cts-button-styles";
+
+// Scoped CSS for OIDF buttons. Mirrors
+// project/preview/components-buttons.html from the OIDF design archive: a
+// 36px-tall token-driven button surface with primary/secondary/ghost/danger
+// variants and sm/md/lg sizes. Used by both cts-button and cts-link-button.
+const STYLE_TEXT = `
+.oidf-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  height: 36px;
+  padding: 0 var(--space-4);
+  font-family: var(--font-sans);
+  font-size: var(--fs-14);
+  font-weight: var(--fw-bold);
+  line-height: 1;
+  border: 1px solid transparent;
+  border-radius: var(--radius-2);
+  background: transparent;
+  color: var(--ink-900);
+  cursor: pointer;
+  text-decoration: none;
+  transition: background var(--dur-1) var(--ease-standard),
+              border-color var(--dur-1) var(--ease-standard),
+              color var(--dur-1) var(--ease-standard);
+}
+.oidf-btn:hover {
+  text-decoration: none;
+}
+.oidf-btn:focus {
+  outline: none;
+}
+.oidf-btn:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+.oidf-btn[disabled],
+.oidf-btn[aria-disabled="true"] {
+  opacity: 0.55;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.oidf-btn-primary {
+  background: var(--orange-400);
+  color: var(--ink-0);
+  border-color: var(--orange-400);
+}
+.oidf-btn-primary:hover {
+  background: var(--orange-500);
+  border-color: var(--orange-500);
+  color: var(--ink-0);
+}
+
+.oidf-btn-secondary {
+  background: var(--ink-0);
+  color: var(--ink-900);
+  border-color: var(--ink-300);
+}
+.oidf-btn-secondary:hover {
+  background: var(--ink-50);
+  color: var(--ink-900);
+}
+
+.oidf-btn-ghost {
+  background: transparent;
+  color: var(--ink-900);
+  border-color: transparent;
+}
+.oidf-btn-ghost:hover {
+  background: var(--ink-100);
+  color: var(--ink-900);
+}
+
+.oidf-btn-danger {
+  background: var(--rust-400);
+  color: var(--ink-0);
+  border-color: var(--rust-400);
+}
+.oidf-btn-danger:hover {
+  background: var(--rust-500);
+  border-color: var(--rust-500);
+  color: var(--ink-0);
+}
+
+.oidf-btn-sm {
+  height: 30px;
+  padding: 0 var(--space-3);
+  font-size: var(--fs-13);
+}
+.oidf-btn-lg {
+  height: 44px;
+  padding: 0 var(--space-5);
+  font-size: var(--fs-15);
+}
+
+.oidf-btn-spinner {
+  width: 12px;
+  height: 12px;
+  animation: oidf-btn-spin 0.9s linear infinite;
+}
+.oidf-btn-spinner-track {
+  stroke: var(--ink-300);
+}
+.oidf-btn-spinner-head {
+  stroke: var(--orange-400);
+}
+@keyframes oidf-btn-spin {
+  to { transform: rotate(360deg); }
+}
+
+cts-button[full-width],
+cts-link-button[full-width] {
+  display: block;
+}
+cts-button[full-width] .oidf-btn,
+cts-link-button[full-width] .oidf-btn {
+  width: 100%;
+}
+`;
+
+function injectStyles() {
+  if (document.getElementById(STYLE_ID)) return;
+  const style = document.createElement("style");
+  style.id = STYLE_ID;
+  style.textContent = STYLE_TEXT;
+  document.head.appendChild(style);
 }
 
 /**
- * Bootstrap-styled button. Dispatches a bubbling `cts-click` event in addition
- * to the native click.
- * @property {string} variant - One of: light, info, primary, danger, secondary, success, warning
+ * OIDF token-styled button. Dispatches a bubbling `cts-click` event in
+ * addition to the native click.
+ *
+ * @property {string} variant - One of: primary, secondary, ghost, danger.
+ *   Legacy aliases accepted: light/info/success/warning/dark and their
+ *   `outline-*` forms (each maps to the closest new variant).
  * @property {string} size - One of: sm (default), md, lg
  * @property {string} label - Visible text
  * @property {string} icon - Bootstrap Icons name (without the `bi-` prefix)
@@ -53,6 +213,7 @@ function buildButtonClasses({ variant = "light", size = "sm" } = {}) {
  * @property {boolean} disabled - Disables the button
  * @property {string} type - Native button type: "button" (default) or "submit"
  * @property {boolean} full-width - Stretches the button to fill its parent's width
+ * @fires cts-click - When the inner button is activated (not fired while disabled or loading)
  *
  * ## Programmatic activation
  *
@@ -96,7 +257,7 @@ class CtsButton extends LitElement {
 
   constructor() {
     super();
-    this.variant = "light";
+    this.variant = "secondary";
     this.size = "sm";
     this.label = "";
     this.icon = "";
@@ -106,16 +267,13 @@ class CtsButton extends LitElement {
     this.fullWidth = false;
   }
 
-  createRenderRoot() {
-    return this;
+  connectedCallback() {
+    super.connectedCallback();
+    injectStyles();
   }
 
-  updated(changed) {
-    if (changed.has("fullWidth")) {
-      // Light-DOM components can't style their own host from CSS;
-      // set display imperatively so the host stretches in block/flex/grid parents.
-      this.style.display = this.fullWidth ? "block" : "";
-    }
+  createRenderRoot() {
+    return this;
   }
 
   _handleClick() {
@@ -131,11 +289,31 @@ class CtsButton extends LitElement {
 
   _renderIcon() {
     if (this.loading) {
-      return html`<span
-        class="spinner-border spinner-border-sm"
+      // Inline SVG ring spinner — replaces Bootstrap's spinner-border markup.
+      // Sized 12×12 to match the previous spinner-border-sm footprint, with
+      // an ink-300 track and an orange-400 head driven by token vars.
+      return html`<svg
+        class="oidf-btn-spinner"
+        viewBox="0 0 16 16"
         role="status"
         aria-hidden="true"
-      ></span>`;
+      >
+        <circle
+          class="oidf-btn-spinner-track"
+          cx="8"
+          cy="8"
+          r="6"
+          fill="none"
+          stroke-width="2"
+        ></circle>
+        <path
+          class="oidf-btn-spinner-head"
+          d="M14 8a6 6 0 0 0-6-6"
+          fill="none"
+          stroke-width="2"
+          stroke-linecap="round"
+        ></path>
+      </svg>`;
     }
     if (this.icon) {
       return html`<span class="${this._iconClass()}" aria-hidden="true"></span>`;
@@ -162,3 +340,5 @@ class CtsButton extends LitElement {
 }
 
 customElements.define("cts-button", CtsButton);
+
+export {};

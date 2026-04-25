@@ -9,7 +9,7 @@ export default {
     href: { control: "text" },
     variant: {
       control: "select",
-      options: ["light", "info", "primary", "danger"],
+      options: ["primary", "secondary", "ghost", "danger"],
     },
     size: {
       control: "select",
@@ -25,7 +25,7 @@ export default {
 // --- Stories ---
 
 export const Default = {
-  args: { href: "tokens.html", variant: "light", label: "Tokens" },
+  args: { href: "tokens.html", variant: "secondary", label: "Tokens" },
   render: ({ href, variant, label, disabled }) =>
     html`<cts-link-button
       href="${href}"
@@ -38,16 +38,19 @@ export const Default = {
     const anchor = canvasElement.querySelector("a");
     expect(anchor).toBeTruthy();
     expect(anchor.getAttribute("href")).toBe("tokens.html");
-    expect(anchor.classList.contains("btn")).toBe(true);
-    expect(anchor.classList.contains("btn-sm")).toBe(true);
-    expect(anchor.classList.contains("btn-light")).toBe(true);
+    expect(anchor.classList.contains("oidf-btn")).toBe(true);
+    expect(anchor.classList.contains("oidf-btn-sm")).toBe(true);
+    expect(anchor.classList.contains("oidf-btn-secondary")).toBe(true);
     expect(anchor.getAttribute("role")).toBe("button");
     expect(anchor.textContent.trim()).toBe("Tokens");
+    // Ensure the legacy Bootstrap btn classes are no longer rendered.
+    expect(anchor.classList.contains("btn")).toBe(false);
+    expect(anchor.classList.contains("btn-light")).toBe(false);
   },
 };
 
 export const WithIcon = {
-  args: { variant: "info", icon: "file-earmark", label: "View Log" },
+  args: { variant: "primary", icon: "file-earmark", label: "View Log" },
   render: ({ variant, label, icon, disabled }) =>
     html`<cts-link-button
       variant="${variant}"
@@ -59,7 +62,8 @@ export const WithIcon = {
   async play({ canvasElement }) {
     const anchor = canvasElement.querySelector("a");
     expect(anchor).toBeTruthy();
-    expect(anchor.classList.contains("btn-info")).toBe(true);
+    expect(anchor.classList.contains("oidf-btn")).toBe(true);
+    expect(anchor.classList.contains("oidf-btn-primary")).toBe(true);
 
     const iconEl = anchor.querySelector("span.bi");
     expect(iconEl).toBeTruthy();
@@ -68,8 +72,8 @@ export const WithIcon = {
   },
 };
 
-export const Disabled = {
-  args: { href: "tokens.html", variant: "light", label: "Tokens", disabled: true },
+export const Ghost = {
+  args: { href: "logs.html", variant: "ghost", label: "View log" },
   render: ({ href, variant, label, disabled }) =>
     html`<cts-link-button
       href="${href}"
@@ -81,7 +85,23 @@ export const Disabled = {
   async play({ canvasElement }) {
     const anchor = canvasElement.querySelector("a");
     expect(anchor).toBeTruthy();
-    expect(anchor.classList.contains("disabled")).toBe(true);
+    expect(anchor.classList.contains("oidf-btn-ghost")).toBe(true);
+  },
+};
+
+export const Disabled = {
+  args: { href: "tokens.html", variant: "secondary", label: "Tokens", disabled: true },
+  render: ({ href, variant, label, disabled }) =>
+    html`<cts-link-button
+      href="${href}"
+      variant="${variant}"
+      label="${label}"
+      ?disabled="${disabled}"
+    ></cts-link-button>`,
+
+  async play({ canvasElement }) {
+    const anchor = canvasElement.querySelector("a");
+    expect(anchor).toBeTruthy();
     expect(anchor.getAttribute("aria-disabled")).toBe("true");
     expect(anchor.getAttribute("tabindex")).toBe("-1");
     expect(anchor.hasAttribute("href")).toBe(false);
@@ -90,14 +110,14 @@ export const Disabled = {
 
 /**
  * Stretches the button to fill its parent's width via the `full-width`
- * boolean attribute. The component sets `display: block` on its host —
- * equivalent behavior to `cts-button` with the same attribute. Use inside
- * `.d-grid` containers for action stacks.
+ * boolean attribute. The component is laid out as a block via the
+ * `cts-link-button[full-width]` rule injected by the component (matches
+ * `cts-button`). Use inside `.d-grid` containers for action stacks.
  */
 export const FullWidth = {
   args: {
     href: "schedule-test.html",
-    variant: "info",
+    variant: "primary",
     icon: "files",
     label: "Create a new test plan",
   },
@@ -120,29 +140,51 @@ export const FullWidth = {
     const anchor = host.querySelector("a");
     expect(anchor).toBeTruthy();
     expect(host.fullWidth).toBe(true);
-    expect(host.style.display).toBe("block");
+    expect(getComputedStyle(host).display).toBe("block");
   },
 };
 
 export const AllVariants = {
   render: () => html`
     <div style="display: flex; flex-wrap: wrap; gap: 0.5rem; padding: 1rem;">
-      <cts-link-button href="tokens.html" variant="light" label="Light"></cts-link-button>
+      <cts-link-button href="tokens.html" variant="secondary" label="Secondary"></cts-link-button>
       <cts-link-button
         href="logs.html"
-        variant="info"
-        label="Info"
-        icon="file-earmark"
-      ></cts-link-button>
-      <cts-link-button
-        href="schedule-test.html"
         variant="primary"
         label="Primary"
-        icon="plus-circle"
+        icon="file-earmark"
       ></cts-link-button>
+      <cts-link-button href="logs.html" variant="ghost" label="Ghost"></cts-link-button>
       <cts-link-button href="#" variant="danger" label="Danger" icon="trash"></cts-link-button>
     </div>
   `,
+};
+
+/**
+ * Legacy variant aliases mirror the `cts-button` table — they exist so that
+ * call sites still passing `light`, `info`, `success`, `warning`, `dark`,
+ * or `outline-*` continue to render the closest new OIDF variant.
+ */
+export const LegacyVariantAliases = {
+  render: () => html`
+    <div style="display: flex; flex-wrap: wrap; gap: 0.5rem; padding: 1rem;">
+      <cts-link-button href="#" variant="light" label="light → secondary"></cts-link-button>
+      <cts-link-button href="#" variant="info" label="info → primary"></cts-link-button>
+      <cts-link-button
+        href="#"
+        variant="outline-primary"
+        label="outline-primary → primary"
+      ></cts-link-button>
+    </div>
+  `,
+
+  async play({ canvasElement }) {
+    const anchors = canvasElement.querySelectorAll("cts-link-button a");
+    expect(anchors.length).toBe(3);
+    expect(anchors[0].classList.contains("oidf-btn-secondary")).toBe(true);
+    expect(anchors[1].classList.contains("oidf-btn-primary")).toBe(true);
+    expect(anchors[2].classList.contains("oidf-btn-primary")).toBe(true);
+  },
 };
 
 /**
@@ -167,10 +209,10 @@ export const Sizes = {
   async play({ canvasElement }) {
     const anchors = canvasElement.querySelectorAll("cts-link-button a");
     expect(anchors.length).toBe(3);
-    expect(anchors[0].classList.contains("btn-sm")).toBe(true);
-    expect(anchors[1].classList.contains("btn-sm")).toBe(false);
-    expect(anchors[1].classList.contains("btn-lg")).toBe(false);
-    expect(anchors[2].classList.contains("btn-lg")).toBe(true);
+    expect(anchors[0].classList.contains("oidf-btn-sm")).toBe(true);
+    expect(anchors[1].classList.contains("oidf-btn-sm")).toBe(false);
+    expect(anchors[1].classList.contains("oidf-btn-lg")).toBe(false);
+    expect(anchors[2].classList.contains("oidf-btn-lg")).toBe(true);
   },
 };
 
@@ -185,7 +227,7 @@ export const SizeFallback = {
 
   async play({ canvasElement }) {
     const anchor = canvasElement.querySelector("cts-link-button a");
-    expect(anchor.classList.contains("btn-sm")).toBe(true);
-    expect(anchor.classList.contains("btn-lg")).toBe(false);
+    expect(anchor.classList.contains("oidf-btn-sm")).toBe(true);
+    expect(anchor.classList.contains("oidf-btn-lg")).toBe(false);
   },
 };

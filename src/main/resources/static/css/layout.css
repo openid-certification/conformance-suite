@@ -93,6 +93,17 @@ cts-icon:not(:defined) {
 	visibility: hidden;
 }
 
+/* Block-level full-width fallback: the inline-flow visibility:hidden rule
+ * above does not reserve vertical height for a block-level host. When
+ * `[full-width]` is set we know the post-upgrade host renders as a block
+ * (the OIDF button rule injected by cts-button.js), so reserve the
+ * default 36px size pre-upgrade to keep CLS at zero. */
+cts-button[full-width]:not(:defined),
+cts-link-button[full-width]:not(:defined) {
+	display: block;
+	min-height: 36px;
+}
+
 cts-navbar:not(:defined) {
 	visibility: hidden;
 	display: block;
