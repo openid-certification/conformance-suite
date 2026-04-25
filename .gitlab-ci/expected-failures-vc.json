@@ -241,5 +241,50 @@
         "condition": "CheckForUnexpectedParametersInCredentialRequest",
         "expected-result": "warning",
         "comment": "The test suite warns about unexpected parameters in credential requests, which are deliberately sent by the issuer test."
+    },
+    {
+        "test-name": "oid4vp-1final-wallet-negative-test-unknown-transaction-data-type",
+        "variant": "*",
+        "configuration-filename": "*vp-wallet-test-config-dcql-sdjwt.json",
+        "current-block": "",
+        "condition": "oid4vp-1final-wallet-negative-test-unknown-transaction-data-type",
+        "expected-result": "failure",
+        "comment": "Wallet test interrupts when the paired verifier-side rejects the request (which is the expected behavior - verifier-side correctly refuses our unknown transaction_data type)"
+    },
+    {
+        "test-name": "oid4vp-1final-verifier-happy-flow",
+        "variant": "*",
+        "configuration-filename": "*vp-verifier-test-config-transaction-data.json",
+        "current-block": "Authorization endpoint",
+        "condition": "CheckNoTransactionDataInVpAuthorizationRequest",
+        "expected-result": "failure",
+        "comment": "Paired wallet negative test deliberately sends transaction_data with an unknown type; verifier-side (acting as wallet) correctly rejects per OID4VP §5"
+    },
+    {
+        "test-name": "oid4vp-1final-verifier-happy-flow",
+        "variant": "*",
+        "configuration-filename": "*vp-verifier-test-config-transaction-data.json",
+        "current-block": "Authorization endpoint",
+        "condition": "CheckForUnexpectedParametersInVpAuthorizationRequest",
+        "expected-result": "warning",
+        "comment": "Paired wallet negative test deliberately sends transaction_data, which the unknown-params check also flags"
+    },
+    {
+        "test-name": "oid4vp-1final-verifier-happy-flow",
+        "variant": "*",
+        "configuration-filename": "*vp-verifier-test-config-transaction-data.json",
+        "current-block": "Authorization endpoint",
+        "condition": "EnsureHttpStatusCodeIs200",
+        "expected-result": "failure",
+        "comment": "Paired wallet negative test bails out after verifier-side rejects the request, so no successful HTTP 200 is exchanged"
+    },
+    {
+        "test-name": "oid4vp-1final-verifier-happy-flow",
+        "variant": "*",
+        "configuration-filename": "*vp-verifier-test-config-transaction-data.json",
+        "current-block": "Authorization endpoint",
+        "condition": "ValidateDirectPostResponse",
+        "expected-result": "warning",
+        "comment": "Paired wallet negative test bails out after verifier-side rejects the request, so no direct_post response is sent to validate"
     }
 ]

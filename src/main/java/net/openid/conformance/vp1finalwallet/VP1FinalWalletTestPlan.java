@@ -37,7 +37,8 @@ public class VP1FinalWalletTestPlan implements TestPlan {
 		VP1FinalWalletRedirectUriWithDirectPost.class,
 		VP1FinalWalletMissingNonce.class,
 		VP1FinalWalletWrongExpectedOrigins.class,
-		VP1FinalWalletInvalidClientIdPrefix.class
+		VP1FinalWalletInvalidClientIdPrefix.class,
+		VP1FinalWalletUnknownTransactionDataType.class
 	);
 
 	@Override
