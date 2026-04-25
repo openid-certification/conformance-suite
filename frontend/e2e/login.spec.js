@@ -31,7 +31,7 @@ test.describe("login.html — Login page", () => {
     await expect(gitlabBtn).toContainText("Proceed with GitLab");
   });
 
-  test("both OAuth buttons render at size=lg (inner anchor has btn-lg)", async ({ page }) => {
+  test("both OAuth buttons render at size=lg (inner anchor has oidf-btn-lg)", async ({ page }) => {
     await setupFailFast(page);
     await setupLoginRoutes(page);
 
@@ -40,11 +40,11 @@ test.describe("login.html — Login page", () => {
     const googleAnchor = page.locator('cts-link-button[href="/oauth2/authorization/google"] a');
     const gitlabAnchor = page.locator('cts-link-button[href="/oauth2/authorization/gitlab"] a');
 
-    await expect(googleAnchor).toHaveClass(/\bbtn-lg\b/);
-    await expect(gitlabAnchor).toHaveClass(/\bbtn-lg\b/);
+    await expect(googleAnchor).toHaveClass(/\boidf-btn-lg\b/);
+    await expect(gitlabAnchor).toHaveClass(/\boidf-btn-lg\b/);
   });
 
-  test("Google button uses variant=danger (inner anchor has btn-danger)", async ({ page }) => {
+  test("Google button uses variant=danger (inner anchor has oidf-btn-danger)", async ({ page }) => {
     await setupFailFast(page);
     await setupLoginRoutes(page);
 
@@ -52,11 +52,11 @@ test.describe("login.html — Login page", () => {
 
     const googleAnchor = page.locator('cts-link-button[href="/oauth2/authorization/google"] a');
 
-    await expect(googleAnchor).toHaveClass(/\bbtn-danger\b/);
+    await expect(googleAnchor).toHaveClass(/\boidf-btn-danger\b/);
     await expect(googleAnchor).toHaveAttribute("href", "/oauth2/authorization/google");
   });
 
-  test("GitLab button uses variant=primary (inner anchor has btn-primary)", async ({ page }) => {
+  test("GitLab button uses variant=primary (inner anchor has oidf-btn-primary)", async ({ page }) => {
     await setupFailFast(page);
     await setupLoginRoutes(page);
 
@@ -64,7 +64,7 @@ test.describe("login.html — Login page", () => {
 
     const gitlabAnchor = page.locator('cts-link-button[href="/oauth2/authorization/gitlab"] a');
 
-    await expect(gitlabAnchor).toHaveClass(/\bbtn-primary\b/);
+    await expect(gitlabAnchor).toHaveClass(/\boidf-btn-primary\b/);
     await expect(gitlabAnchor).toHaveAttribute("href", "/oauth2/authorization/gitlab");
   });
 

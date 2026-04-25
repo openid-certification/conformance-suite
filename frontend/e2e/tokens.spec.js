@@ -64,8 +64,8 @@ test.describe("tokens.html — API Tokens", () => {
     await expect(firstDelete).toHaveAttribute("variant", "danger");
     await expect(firstDelete).toHaveAttribute("label", "Delete");
 
-    // The cts-button renders an inner <button> with .btn-danger
-    await expect(firstDelete.locator("button.btn-danger")).toBeVisible();
+    // The cts-button renders an inner <button> with .oidf-btn-danger
+    await expect(firstDelete.locator("button.oidf-btn-danger")).toBeVisible();
   });
 
   test("three header action buttons render as size=lg cts-button / cts-link-button", async ({
@@ -104,10 +104,10 @@ test.describe("tokens.html — API Tokens", () => {
     await expect(apiDocs).toHaveAttribute("size", "lg");
     await expect(apiDocs).toHaveAttribute("variant", "primary");
 
-    // Inner elements should carry the .btn-lg class
-    await expect(newTemporary.locator("button.btn-lg")).toBeVisible();
-    await expect(newPermanent.locator("button.btn-lg")).toBeVisible();
-    await expect(apiDocs.locator("a.btn-lg")).toBeVisible();
+    // Inner elements should carry the .oidf-btn-lg class
+    await expect(newTemporary.locator("button.oidf-btn-lg")).toBeVisible();
+    await expect(newPermanent.locator("button.oidf-btn-lg")).toBeVisible();
+    await expect(apiDocs.locator("a.oidf-btn-lg")).toBeVisible();
   });
 
   test("clipboard button in createdModal renders as cts-button with class btn-clipboard", async ({

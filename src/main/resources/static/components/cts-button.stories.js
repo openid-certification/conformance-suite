@@ -8,7 +8,7 @@ export default {
   argTypes: {
     variant: {
       control: "select",
-      options: ["light", "info", "primary", "danger"],
+      options: ["primary", "secondary", "ghost", "danger"],
     },
     size: {
       control: "select",
@@ -29,7 +29,7 @@ export default {
 // --- Stories ---
 
 export const Default = {
-  args: { variant: "light", label: "Cancel" },
+  args: { variant: "secondary", label: "Cancel" },
   render: ({ variant, label, loading, disabled }) =>
     html`<cts-button
       variant="${variant}"
@@ -41,16 +41,19 @@ export const Default = {
   async play({ canvasElement }) {
     const btn = canvasElement.querySelector("button");
     expect(btn).toBeTruthy();
-    expect(btn.classList.contains("btn")).toBe(true);
-    expect(btn.classList.contains("btn-sm")).toBe(true);
-    expect(btn.classList.contains("btn-light")).toBe(true);
+    expect(btn.classList.contains("oidf-btn")).toBe(true);
+    expect(btn.classList.contains("oidf-btn-sm")).toBe(true);
+    expect(btn.classList.contains("oidf-btn-secondary")).toBe(true);
     expect(btn.disabled).toBe(false);
     expect(btn.textContent.trim()).toBe("Cancel");
+    // Ensure the legacy Bootstrap btn classes are no longer rendered.
+    expect(btn.classList.contains("btn")).toBe(false);
+    expect(btn.classList.contains("btn-light")).toBe(false);
   },
 };
 
-export const InfoWithIcon = {
-  args: { variant: "info", label: "Create Test Plan", icon: "wrench-adjustable" },
+export const SecondaryWithIcon = {
+  args: { variant: "secondary", label: "Create Test Plan", icon: "wrench-adjustable" },
   render: ({ variant, label, icon, loading, disabled }) =>
     html`<cts-button
       variant="${variant}"
@@ -63,7 +66,8 @@ export const InfoWithIcon = {
   async play({ canvasElement }) {
     const btn = canvasElement.querySelector("button");
     expect(btn).toBeTruthy();
-    expect(btn.classList.contains("btn-info")).toBe(true);
+    expect(btn.classList.contains("oidf-btn")).toBe(true);
+    expect(btn.classList.contains("oidf-btn-secondary")).toBe(true);
 
     const icon = btn.querySelector("span.bi");
     expect(icon).toBeTruthy();
@@ -86,11 +90,31 @@ export const Primary = {
   async play({ canvasElement }) {
     const btn = canvasElement.querySelector("button");
     expect(btn).toBeTruthy();
-    expect(btn.classList.contains("btn-primary")).toBe(true);
+    expect(btn.classList.contains("oidf-btn")).toBe(true);
+    expect(btn.classList.contains("oidf-btn-primary")).toBe(true);
 
     const icon = btn.querySelector("span.bi");
     expect(icon).toBeTruthy();
     expect(icon.classList.contains("bi-search")).toBe(true);
+  },
+};
+
+export const Ghost = {
+  args: { variant: "ghost", label: "View log" },
+  render: ({ variant, label, icon, loading, disabled }) =>
+    html`<cts-button
+      variant="${variant}"
+      label="${label}"
+      icon="${icon}"
+      ?loading="${loading}"
+      ?disabled="${disabled}"
+    ></cts-button>`,
+
+  async play({ canvasElement }) {
+    const btn = canvasElement.querySelector("button");
+    expect(btn).toBeTruthy();
+    expect(btn.classList.contains("oidf-btn")).toBe(true);
+    expect(btn.classList.contains("oidf-btn-ghost")).toBe(true);
   },
 };
 
@@ -108,7 +132,8 @@ export const Danger = {
   async play({ canvasElement }) {
     const btn = canvasElement.querySelector("button");
     expect(btn).toBeTruthy();
-    expect(btn.classList.contains("btn-danger")).toBe(true);
+    expect(btn.classList.contains("oidf-btn")).toBe(true);
+    expect(btn.classList.contains("oidf-btn-danger")).toBe(true);
 
     const icon = btn.querySelector("span.bi");
     expect(icon).toBeTruthy();
@@ -131,20 +156,22 @@ export const Loading = {
     expect(btn).toBeTruthy();
     expect(btn.disabled).toBe(true);
 
-    const spinner = btn.querySelector("span.spinner-border");
+    // Loading indicator is now an inline SVG spinner — no more Bootstrap
+    // spinner-border markup.
+    const spinner = btn.querySelector("svg.oidf-btn-spinner");
     expect(spinner).toBeTruthy();
-    expect(spinner.classList.contains("spinner-border-sm")).toBe(true);
     expect(spinner.getAttribute("role")).toBe("status");
     expect(spinner.getAttribute("aria-hidden")).toBe("true");
+    expect(btn.querySelector("span.spinner-border")).toBeNull();
 
-    // No icon when loading
+    // No Bootstrap-icon span when loading.
     const icon = btn.querySelector("span.bi");
     expect(icon).toBeNull();
   },
 };
 
 export const Disabled = {
-  args: { variant: "light", label: "Cancel", disabled: true },
+  args: { variant: "secondary", label: "Cancel", disabled: true },
   render: ({ variant, label, loading, disabled }) =>
     html`<cts-button
       variant="${variant}"
@@ -222,7 +249,7 @@ export const HostClickDoesNotDispatch = {
 };
 
 export const DisabledNoEvent = {
-  args: { variant: "light", label: "Cancel", disabled: true },
+  args: { variant: "secondary", label: "Cancel", disabled: true },
   render: ({ variant, label, loading, disabled }) =>
     html`<cts-button
       variant="${variant}"
@@ -249,7 +276,7 @@ export const DisabledNoEvent = {
 
 export const FullWidth = {
   args: {
-    variant: "info",
+    variant: "primary",
     icon: "wrench-adjustable",
     label: "View Config",
   },
@@ -270,7 +297,10 @@ export const FullWidth = {
     await host.updateComplete;
     const btn = host.querySelector("button");
     expect(btn).toBeTruthy();
-    expect(host.style.display).toBe("block");
+    // Block-level layout is driven by the `[full-width]` CSS rule injected
+    // by the component, so we assert on the computed style rather than the
+    // imperative inline `style.display` set by the previous Wave-1 build.
+    expect(getComputedStyle(host).display).toBe("block");
   },
 };
 
@@ -288,19 +318,29 @@ export const FullWidthStack = {
     <div style="width: 240px; padding: 1rem; border: 1px dashed #ccc;">
       <div class="d-grid gap-1">
         <cts-button
-          variant="light"
+          variant="secondary"
           icon="wrench-adjustable"
           label="View Config"
           full-width
         ></cts-button>
-        <cts-button variant="light" icon="save2" label="Download all Logs" full-width></cts-button>
         <cts-button
-          variant="light"
+          variant="secondary"
+          icon="save2"
+          label="Download all Logs"
+          full-width
+        ></cts-button>
+        <cts-button
+          variant="secondary"
           icon="bookmarks"
           label="Publish everything"
           full-width
         ></cts-button>
-        <cts-button variant="light" icon="bookmarks" label="Private link" full-width></cts-button>
+        <cts-button
+          variant="secondary"
+          icon="bookmarks"
+          label="Private link"
+          full-width
+        ></cts-button>
         <cts-button variant="danger" icon="trash" label="Delete plan" full-width></cts-button>
       </div>
     </div>
@@ -310,20 +350,54 @@ export const FullWidthStack = {
 export const AllVariants = {
   render: () => html`
     <div style="display: flex; flex-wrap: wrap; gap: 0.5rem; padding: 1rem;">
-      <cts-button variant="light" label="Light"></cts-button>
-      <cts-button variant="info" label="Info" icon="info-circle-fill"></cts-button>
-      <cts-button variant="primary" label="Primary" icon="search"></cts-button>
-      <cts-button variant="danger" label="Danger" icon="trash"></cts-button>
+      <cts-button variant="primary" label="Run plan" icon="play-fill"></cts-button>
+      <cts-button variant="secondary" label="Cancel"></cts-button>
+      <cts-button variant="ghost" label="View log"></cts-button>
+      <cts-button variant="danger" label="Delete" icon="trash"></cts-button>
     </div>
   `,
 };
 
 /**
- * The `size` attribute selects between Bootstrap's `btn-sm` (default), the
- * native size (`md` = no class), and `btn-lg`. Use `lg` for prominent CTAs
- * (login provider buttons, "Create Plan" on schedule-test, the action
- * buttons on the tokens page). Default `sm` keeps every existing usage
- * visually identical.
+ * The legacy Bootstrap-era variant names (`light`, `info`, `success`,
+ * `warning`, `dark`, `outline-*`) remain accepted as aliases that map to
+ * the closest new OIDF variant. This story keeps regressions visible if
+ * the alias table in cts-button.js drifts.
+ */
+export const LegacyVariantAliases = {
+  render: () => html`
+    <div style="display: flex; flex-wrap: wrap; gap: 0.5rem; padding: 1rem;">
+      <cts-button variant="light" label="light → secondary"></cts-button>
+      <cts-button variant="info" label="info → primary"></cts-button>
+      <cts-button variant="success" label="success → secondary"></cts-button>
+      <cts-button variant="warning" label="warning → secondary"></cts-button>
+      <cts-button variant="dark" label="dark → secondary"></cts-button>
+      <cts-button variant="outline-primary" label="outline-primary → primary"></cts-button>
+    </div>
+  `,
+
+  async play({ canvasElement }) {
+    const buttons = canvasElement.querySelectorAll("cts-button button");
+    expect(buttons.length).toBe(6);
+    // light → secondary
+    expect(buttons[0].classList.contains("oidf-btn-secondary")).toBe(true);
+    // info → primary
+    expect(buttons[1].classList.contains("oidf-btn-primary")).toBe(true);
+    // success → secondary
+    expect(buttons[2].classList.contains("oidf-btn-secondary")).toBe(true);
+    // warning → secondary
+    expect(buttons[3].classList.contains("oidf-btn-secondary")).toBe(true);
+    // dark → secondary
+    expect(buttons[4].classList.contains("oidf-btn-secondary")).toBe(true);
+    // outline-primary → primary
+    expect(buttons[5].classList.contains("oidf-btn-primary")).toBe(true);
+  },
+};
+
+/**
+ * Three sizes drive 30/36/44px button heights via the `oidf-btn-sm` /
+ * `oidf-btn-lg` modifiers (default `md` carries no modifier — height comes
+ * from the base `.oidf-btn` rule).
  */
 export const Sizes = {
   render: () => html`
@@ -337,10 +411,10 @@ export const Sizes = {
   async play({ canvasElement }) {
     const buttons = canvasElement.querySelectorAll("cts-button button");
     expect(buttons.length).toBe(3);
-    expect(buttons[0].classList.contains("btn-sm")).toBe(true);
-    expect(buttons[1].classList.contains("btn-sm")).toBe(false);
-    expect(buttons[1].classList.contains("btn-lg")).toBe(false);
-    expect(buttons[2].classList.contains("btn-lg")).toBe(true);
+    expect(buttons[0].classList.contains("oidf-btn-sm")).toBe(true);
+    expect(buttons[1].classList.contains("oidf-btn-sm")).toBe(false);
+    expect(buttons[1].classList.contains("oidf-btn-lg")).toBe(false);
+    expect(buttons[2].classList.contains("oidf-btn-lg")).toBe(true);
   },
 };
 
@@ -354,8 +428,8 @@ export const SizeFallback = {
 
   async play({ canvasElement }) {
     const btn = canvasElement.querySelector("cts-button button");
-    expect(btn.classList.contains("btn-sm")).toBe(true);
-    expect(btn.classList.contains("btn-lg")).toBe(false);
+    expect(btn.classList.contains("oidf-btn-sm")).toBe(true);
+    expect(btn.classList.contains("oidf-btn-lg")).toBe(false);
   },
 };
 
@@ -370,23 +444,23 @@ export const SizeFallback = {
  * `.label`, `.icon`, `.size`, `.fullWidth`.
  */
 export const VariantPropertySetter = {
-  render: () => html` <cts-button variant="light" label="Change me"></cts-button> `,
+  render: () => html` <cts-button variant="secondary" label="Change me"></cts-button> `,
 
   async play({ canvasElement }) {
     const host = canvasElement.querySelector("cts-button");
     await host.updateComplete;
 
-    // Verify initial state — inner button has btn-light
+    // Verify initial state — inner button has oidf-btn-secondary
     const btn = host.querySelector("button");
-    expect(btn.classList.contains("btn-light")).toBe(true);
-    expect(btn.classList.contains("btn-success")).toBe(false);
+    expect(btn.classList.contains("oidf-btn-secondary")).toBe(true);
+    expect(btn.classList.contains("oidf-btn-primary")).toBe(false);
 
     // Use the property setter (the correct integration pattern)
-    host.variant = "success";
+    host.variant = "primary";
     await host.updateComplete;
 
     // Inner button now reflects the new variant
-    expect(btn.classList.contains("btn-success")).toBe(true);
-    expect(btn.classList.contains("btn-light")).toBe(false);
+    expect(btn.classList.contains("oidf-btn-primary")).toBe(true);
+    expect(btn.classList.contains("oidf-btn-secondary")).toBe(false);
   },
 };
