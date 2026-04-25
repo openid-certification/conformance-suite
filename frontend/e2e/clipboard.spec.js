@@ -50,6 +50,23 @@ async function installClipboardSpy(page) {
         original = wrapped;
       },
     });
+    // Also spy on navigator.clipboard.writeText so the cts-plan-actions
+    // copy flow (which uses the modern Async Clipboard API directly,
+    // not ClipboardJS) is observable in tests too. The test harness
+    // requires user-activation for real clipboard writes; the spy
+    // resolves immediately so the await chain inside _handleCopyConfig
+    // doesn't time out.
+    if (navigator.clipboard) {
+      const originalWriteText = navigator.clipboard.writeText.bind(navigator.clipboard);
+      navigator.clipboard.writeText = (text) => {
+        window.__copiedText = text;
+        try {
+          return originalWriteText(text);
+        } catch {
+          return Promise.resolve();
+        }
+      };
+    }
   });
 }
 
@@ -128,7 +145,9 @@ test.describe("ClipboardJS copy buttons render text from cts-button hosts", () =
     await expect.poll(() => readCopiedText(page)).toBe('{"client.client_id":"test-client-id"}');
   });
 
-  test("plan-detail.html: config modal copy button copies #config text", async ({ page }) => {
+  test("plan-detail.html: cts-plan-actions inline copy button copies plan config", async ({
+    page,
+  }) => {
     await installClipboardSpy(page);
     await setupFailFast(page);
 
@@ -145,11 +164,14 @@ test.describe("ClipboardJS copy buttons render text from cts-button hosts", () =
 
     await page.goto("/plan-detail.html?plan=plan-abc-123");
 
-    // The real View Config button fills #config and opens the modal.
-    await page.locator("#showConfigBtn").click();
-    await expect(page.locator("#configModal")).toBeVisible();
+    // After U35, the plan config viewer is an inline panel inside
+    // cts-plan-actions, not a modal. The Copy button uses
+    // navigator.clipboard.writeText directly (not ClipboardJS).
+    await page.locator('cts-plan-actions [data-testid="view-config-btn"] button').click();
+    const configPanel = page.locator('cts-plan-actions [data-testid="config-panel"]');
+    await expect(configPanel).toBeVisible();
 
-    const copyBtn = page.locator("#configModal cts-button.btn-clipboard > button");
+    const copyBtn = configPanel.locator("cts-button.copy-config-btn > button");
     await expect(copyBtn).toBeVisible();
     await copyBtn.click();
 
