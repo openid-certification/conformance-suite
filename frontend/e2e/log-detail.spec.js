@@ -264,13 +264,15 @@ test.describe("log-detail.html — Log Detail", () => {
     const statusBlock = page.locator("#testStatusAndResult");
     await expect(statusBlock).toBeVisible();
 
-    // Tooltip trigger elements should exist
-    const tooltips = statusBlock.locator('[data-bs-toggle="tooltip"]');
-    await expect(tooltips.first()).toBeVisible();
+    // After Bootstrap removal (U36), tooltip triggers are <cts-tooltip>
+    // wrappers around the help-icon span. The component reads its tooltip
+    // body from the `content` attribute, so we assert that attribute is
+    // populated rather than poking at the now-gone Bootstrap state.
+    const tooltips = statusBlock.locator("cts-tooltip");
+    await expect(tooltips.first()).toBeAttached();
 
-    // Bootstrap moves title to data-bs-original-title after tooltip init
-    const origTitle = await tooltips.first().getAttribute("data-bs-original-title");
-    expect(origTitle || "").toBeTruthy();
+    const content = await tooltips.first().getAttribute("content");
+    expect(content || "").toBeTruthy();
   });
 
   test("log entry more panel shows HTTP request/response details and collapses on second click", async ({
