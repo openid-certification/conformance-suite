@@ -54,6 +54,15 @@ export const PendingImages = {
       expect(/** @type {HTMLButtonElement} */ (btn).disabled).toBe(true);
     }
 
+    // Drop-zone styling lands on the file-picker label.
+    const dropzones = canvasElement.querySelectorAll(".oidf-image-upload__dropzone");
+    expect(dropzones.length).toBe(2);
+    const dropzone = /** @type {HTMLElement} */ (dropzones[0]);
+    const dropzoneStyle = getComputedStyle(dropzone);
+    // --ink-300 = #C7C2B8 → rgb(199, 194, 184)
+    expect(dropzoneStyle.borderTopColor).toBe("rgb(199, 194, 184)");
+    expect(dropzoneStyle.borderTopStyle).toBe("dashed");
+
     // No "All images uploaded" message
     expect(canvas.queryByText("All images uploaded")).toBeNull();
   },
@@ -74,6 +83,7 @@ export const NoPendingImages = {
     const status = canvas.getByRole("status");
     expect(status).toBeInTheDocument();
     expect(status.textContent).toContain("All images uploaded");
+    expect(status.classList.contains("oidf-image-upload__alert")).toBe(true);
 
     // No file inputs rendered
     const pendingBlocks = canvasElement.querySelectorAll('[data-testid="pending-image"]');
@@ -102,8 +112,8 @@ export const ExistingImages = {
     expect(canvas.getByText("screenshot-result")).toBeInTheDocument();
     expect(canvas.getByText("screenshot-token")).toBeInTheDocument();
 
-    // Success status blocks with check icons
-    const successBlocks = canvasElement.querySelectorAll(".bg-success");
+    // Token-styled "uploaded" status badges (was Bootstrap .bg-success)
+    const successBlocks = canvasElement.querySelectorAll(".oidf-image-upload__status--uploaded");
     expect(successBlocks.length).toBe(2);
 
     // Images have src attributes
@@ -186,7 +196,7 @@ export const UploadSuccess = {
     expect(uploadEvent.imageName).toBe("screenshot-login");
 
     // No error message
-    const alert = canvasElement.querySelector(".alert-danger");
+    const alert = canvasElement.querySelector(".oidf-image-upload__alert--error");
     expect(alert).toBeNull();
   },
 };
@@ -241,7 +251,7 @@ export const UploadError = {
     // Wait for error message to appear
     await waitFor(
       () => {
-        const alert = canvasElement.querySelector(".alert-danger");
+        const alert = canvasElement.querySelector(".oidf-image-upload__alert--error");
         expect(alert).toBeTruthy();
         expect(alert.textContent).toContain("Internal server error");
       },
