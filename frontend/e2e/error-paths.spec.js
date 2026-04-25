@@ -69,13 +69,13 @@ test.describe("plan-detail.html — dynamic error alert injection", () => {
     await expect(alert).toHaveAttribute("dismissible", "");
 
     // The inner rendered markup reflects the variant + dismiss affordance.
-    const alertBody = alert.locator(".alert.alert-danger.alert-dismissible");
+    const alertBody = alert.locator(".oidf-alert.oidf-alert-danger");
     await expect(alertBody).toBeVisible();
     await expect(alertBody).toContainText("oversized.zip");
     await expect(alertBody).toContainText("exceeded the maximum allowed size");
 
     // Dismiss clears the alert from the DOM.
-    await alertBody.locator("button.btn-close").click();
+    await alertBody.locator("button.oidf-alert-close").click();
     await expect(errorContainer.locator("cts-alert")).toHaveCount(0);
   });
 });
