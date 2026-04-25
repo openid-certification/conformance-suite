@@ -113,7 +113,7 @@ test.describe("logs.html — Logs List", () => {
     await expect(page.locator("#config")).toContainText("server.issuer");
 
     // Close modal
-    await configModal.locator('[data-bs-dismiss="modal"]').first().click();
+    await configModal.locator('.oidf-modal-close').first().click();
     await expect(configModal).toBeHidden();
   });
 });

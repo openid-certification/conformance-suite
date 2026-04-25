@@ -196,9 +196,7 @@
                         document.getElementById('config').innerHTML = _.escape(JSON.stringify(data.config, null, 4));
                         document.getElementById('configTestId').innerHTML = _.escape(planId);
 
-                        var myModalEl = document.getElementById('configModal');
-                        var modal     = bootstrap.Modal.getOrCreateInstance(myModalEl);
-                        modal.show();
+                        document.getElementById('configModal').show();
                     };
                 }
 
@@ -207,9 +205,7 @@
                     document.getElementById('publishBtn').onclick = function(evt) {
                         evt.preventDefault();
 
-                        var myModalEl = document.getElementById('publishModal');
-                        var modal     = bootstrap.Modal.getOrCreateInstance(myModalEl);
-                        modal.show();
+                        document.getElementById('publishModal').show();
                     };
                 }
 
@@ -217,17 +213,19 @@
                     document.getElementById('certificationPackageBtn').onclick = function(evt) {
                         evt.preventDefault();
 
-                        var myModalEl = document.getElementById('certificationPackageModal');
-                        var modal     = bootstrap.Modal.getOrCreateInstance(myModalEl);
-                        modal.show();
+                        // certificationPackageModal is still a raw Bootstrap
+                        // modal (`<div class="modal">`); U35 converts it to a
+                        // cts-modal as part of the plan-detail Phase D work.
+                        // Until then, use Bootstrap's Modal API to open it.
+                        bootstrap.Modal.getOrCreateInstance(
+                            document.getElementById('certificationPackageModal'),
+                        ).show();
                     };
                 }
 
                 if(document.querySelector('#deleteMutablePlanBtn')) {
                     document.querySelector('#deleteMutablePlanBtn').addEventListener('click', _ => {
-                        var myModalEl = document.getElementById('deletePlanModal');
-                        var modal     = bootstrap.Modal.getOrCreateInstance(myModalEl);
-                        modal.show();
+                        document.getElementById('deletePlanModal').show();
                     });
                 }
 
@@ -244,9 +242,7 @@
                             document.getElementById('reRunTestModalBtn').dataset.testName = testName;
                             document.getElementById('reRunTestModalBtn').dataset.variant = variant;
 
-                            var myModalEl = document.getElementById('reRunTestModal');
-                            var modal     = bootstrap.Modal.getOrCreateInstance(myModalEl);
-                            modal.show();
+                            document.getElementById('reRunTestModal').show();
                         } else {
                             runTest(testName, (variant !== "null") ? variant : null, planId);
                         }
@@ -671,12 +667,10 @@
         });
 
         document.getElementById('closeCertificationPackageFormModal').onclick = function(evt) {
-            var myModalEl = document.getElementById('certificationPackageModal');
-            var modal     = bootstrap.Modal.getInstance(myModalEl);
-
-            if (modal != null) {
-                modal.hide();
-            }
+            // Raw Bootstrap modal; matches the open path above.
+            bootstrap.Modal.getInstance(
+                document.getElementById('certificationPackageModal'),
+            )?.hide();
             window.location.reload();
         };
 
@@ -721,21 +715,11 @@
                 fetch('/api/plan/' + encodeURIComponent(planId), {
                     method:'DELETE'
                 }).then(response => {
-                    var myModalEl = document.getElementById('deletePlanModal');
-                    var modal     = bootstrap.Modal.getInstance(myModalEl);
-
-                    if (modal != null) {
-                        modal.hide();
-                    }
+                    document.getElementById('deletePlanModal')?.hide();
                     window.location.reload();
                     return;
                 }).catch(error => {
-                    var myModalEl = document.getElementById('deletePlanModal');
-                    var modal     = bootstrap.Modal.getInstance(myModalEl);
-
-                    if (modal != null) {
-                        modal.hide();
-                    }
+                    document.getElementById('deletePlanModal')?.hide();
                     FAPI_UI.showError(error);
                 });
             });

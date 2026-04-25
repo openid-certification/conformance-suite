@@ -191,9 +191,7 @@
                             });
                         });
 
-                        var myModalEl = document.getElementById('deleteModal');
-                        var modal     = bootstrap.Modal.getOrCreateInstance(myModalEl);
-                        modal.show();
+                        document.getElementById('deleteModal').show();
                     });
                 },
                 order: [[1, "asc"]] // sort by the "expires" column, ascending, by default
@@ -218,9 +216,7 @@
             .then((data) => {
                 document.getElementById('tokenValue').innerHTML = _.escape(data.token);
 
-                var myModalEl = document.getElementById('createdModal');
-                var modal     = bootstrap.Modal.getOrCreateInstance(myModalEl);
-                modal.show();
+                document.getElementById('createdModal').show();
 
                 $('#tokensListing').DataTable().ajax.reload();
             })

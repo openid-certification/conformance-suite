@@ -315,7 +315,7 @@ test.describe("Cross-page journeys", () => {
     await expect(entitySelect).toHaveValue("client-basic");
 
     // Dismissing the modal leaves the page functional.
-    await errorModal.locator(".btn-close").first().click();
+    await errorModal.locator(".oidf-modal-close").first().click();
     await expect(errorModal).toBeHidden();
     await expect(createBtn).toBeEnabled();
   });

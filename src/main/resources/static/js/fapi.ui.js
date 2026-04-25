@@ -550,18 +550,11 @@ var FAPI_UI = {
 			}
 
 			FAPI_UI.hideBusy(); // only one modal at a time
-			var myModalEl = document.getElementById('errorModal');
-			var modal     = bootstrap.Modal.getOrCreateInstance(myModalEl);
-			modal.show();
+			document.getElementById('errorModal').show();
 		},
 
 		hideError : function() {
-			var myModalEl = document.getElementById('errorModal');
-			var modal     = bootstrap.Modal.getInstance(myModalEl);
-
-			if (modal != null) {
-			    modal.hide();
-			}
+			document.getElementById('errorModal')?.hide();
 		},
 
 		showBusy : function(label, message) {
@@ -576,18 +569,11 @@ var FAPI_UI = {
 
 			FAPI_UI.hideError(); // only one modal at a time
 
-			var myModalEl = document.getElementById('loadingModal');
-			var modal     = bootstrap.Modal.getOrCreateInstance(myModalEl);
-			modal.show();
+			document.getElementById('loadingModal').show();
 		},
 
 		hideBusy : function() {
-			var myModalEl = document.getElementById('loadingModal');
-			var modal     = bootstrap.Modal.getInstance(myModalEl);
-
-			if (modal != null) {
-			    modal.hide();
-			}
+			document.getElementById('loadingModal')?.hide();
 		},
 
 		// responsible for converting any dot syntax in our key parameter into object refs
@@ -650,8 +636,7 @@ var FAPI_UI = {
 			document.getElementById('btnShareLink').onclick = function(evt) {
 				evt.preventDefault();
 
-				var myModalEl = document.getElementById('privateLinkExpirationModal');
-				var modal     = bootstrap.Modal.getOrCreateInstance(myModalEl);
+				var modal = document.getElementById('privateLinkExpirationModal');
 
 				if (document.getElementById('privateLinkExpirationModalBtn') !== null) {
 					// Restrict the input to digits and navigation/deletion keys only.
@@ -712,15 +697,17 @@ var FAPI_UI = {
 
 						fetchPromise.then(shareLink => {
 							var showResultModal = function(clipboardSucceeded) {
-								var myModalEl = document.getElementById('privateLinkResultModal');
-								var resultModal = bootstrap.Modal.getOrCreateInstance(myModalEl);
+								var resultModal = document.getElementById('privateLinkResultModal');
 
-								myModalEl.addEventListener('show.bs.modal', function (event) {
-									document.getElementById('privateLinkResultModal-title').textContent =
-										clipboardSucceeded ? 'Private Link (Copied To Clipboard)' : 'Private Link';
-									document.getElementById('privateLinkResultModalBody').textContent = shareLink.link;
-									document.getElementById('privateLinkResultModalBodyMessage').textContent = shareLink.message;
-								}, { once: true });
+								// Synchronously populate the modal body before showing.
+								// In the Bootstrap era this lived in a one-shot
+								// modal-show lifecycle listener; <dialog>'s show()
+								// is synchronous so an inline block does the same
+								// job without a lifecycle hook.
+								document.getElementById('privateLinkResultModal-title').textContent =
+									clipboardSucceeded ? 'Private Link (Copied To Clipboard)' : 'Private Link';
+								document.getElementById('privateLinkResultModalBody').textContent = shareLink.link;
+								document.getElementById('privateLinkResultModalBodyMessage').textContent = shareLink.message;
 
 								resultModal.show();
 							};

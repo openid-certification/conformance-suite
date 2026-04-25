@@ -124,7 +124,7 @@ test.describe("logs.html — DataTables server error", () => {
 
     // T-8 "realistic next action": dismissing the modal doesn't navigate the
     // user away — the page is still usable (e.g. reload to retry).
-    await errorModal.locator(".btn-close").first().click();
+    await errorModal.locator(".oidf-modal-close").first().click();
     await expect(errorModal).toBeHidden();
     await expect(page).toHaveURL(/\/logs\.html/);
   });
@@ -181,7 +181,7 @@ test.describe("log-detail.html — /api/info/:id 404", () => {
 
     // T-8 "realistic next action": after dismissing the modal, the navbar is
     // still rendered and offers a way back to the app.
-    await errorModal.locator(".btn-close").first().click();
+    await errorModal.locator(".oidf-modal-close").first().click();
     await expect(errorModal).toBeHidden();
     const navbar = page.locator("cts-navbar");
     await expect(navbar).toBeVisible();
@@ -260,7 +260,7 @@ test.describe("schedule-test.html — POST /api/plan 400", () => {
     // schedule-test.html (not navigated away to a plan that doesn't exist)
     // AND their cascade selections are preserved — they can retry without
     // re-entering everything.
-    await errorModal.locator(".btn-close").first().click();
+    await errorModal.locator(".oidf-modal-close").first().click();
     await expect(errorModal).toBeHidden();
     await expect(page).toHaveURL(/\/schedule-test\.html/);
     await expect(page.locator("#specFamilySelect")).toHaveValue("OIDCC");
