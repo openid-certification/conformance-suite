@@ -106,7 +106,6 @@ cts-modal:not(:defined) {
 
 /** Generic styles **/
 body {
-	font-family: 'PT Sans', sans-serif;
 	font-size: 16px;
 }
 

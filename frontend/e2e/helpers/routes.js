@@ -18,12 +18,24 @@ import { MOCK_TEST_STATUS } from "../fixtures/mock-test-data.js";
  * - /api/server
  * - api/ui/spec_links (note: no leading slash — the IIFE uses a relative URL)
  *
+ * Also stubs Google Fonts so the JetBrains Mono <link> on
+ * log-detail/schedule-test/tokens/upload never stalls page.goto() on a real
+ * CDN fetch — the resulting load-event delay was the source of intermittent
+ * modal/visibility flakes after the OIDF design tokens landed.
+ *
  * @param {import('@playwright/test').Page} page
  * @param {object} [options]
  * @param {object|null} [options.user] - User data, or null for 401
  */
 export async function setupCommonRoutes(page, options = {}) {
   const user = options.user !== undefined ? options.user : MOCK_USER;
+
+  await page.route("**fonts.googleapis.com/**", (route) =>
+    route.fulfill({ status: 200, contentType: "text/css", body: "" }),
+  );
+  await page.route("**fonts.gstatic.com/**", (route) =>
+    route.fulfill({ status: 200, contentType: "font/woff2", body: "" }),
+  );
 
   await page.route("**/api/currentuser", (route) => {
     if (user === null) {
