@@ -2,6 +2,7 @@ import { html } from "lit";
 import { expect, within, waitFor } from "storybook/test";
 import "./cts-login-page.js";
 import "./cts-link-button.js";
+import "./cts-alert.js";
 
 export default {
   title: "Pages/cts-login-page",
@@ -28,19 +29,33 @@ export const Default = {
       ).toBeInTheDocument();
     });
 
-    // Google OAuth button renders with correct href
-    const googleBtn = canvas.getByText("Proceed with Google");
-    expect(googleBtn).toBeInTheDocument();
-    const googleAnchor = /** @type {HTMLAnchorElement} */ (googleBtn.closest("a"));
+    // Centered card wrapper renders on the muted background
+    const wrapper = canvasElement.querySelector(".oidf-login-page");
+    expect(wrapper).toBeTruthy();
+    const card = canvasElement.querySelector(".oidf-login-card");
+    expect(card).toBeTruthy();
+
+    // Google OAuth button renders with correct href via cts-link-button -> <a>
+    const googleAnchor = /** @type {HTMLAnchorElement} */ (
+      canvas.getByText("Proceed with Google").closest("a")
+    );
+    expect(googleAnchor).toBeTruthy();
     expect(googleAnchor.getAttribute("href")).toBe("/oauth2/authorization/google");
-    expect(googleAnchor.classList.contains("btn-danger")).toBe(true);
+    // Token-styled button class — Bootstrap btn-* must NOT leak through.
+    expect(googleAnchor.classList.contains("oidf-btn")).toBe(true);
+    expect(googleAnchor.classList.contains("oidf-btn-secondary")).toBe(true);
+    expect(googleAnchor.classList.contains("btn-danger")).toBe(false);
+    expect(googleAnchor.classList.contains("btn")).toBe(false);
 
     // GitLab OAuth button renders with correct href
-    const gitlabBtn = canvas.getByText("Proceed with GitLab");
-    expect(gitlabBtn).toBeInTheDocument();
-    const gitlabAnchor = /** @type {HTMLAnchorElement} */ (gitlabBtn.closest("a"));
+    const gitlabAnchor = /** @type {HTMLAnchorElement} */ (
+      canvas.getByText("Proceed with GitLab").closest("a")
+    );
+    expect(gitlabAnchor).toBeTruthy();
     expect(gitlabAnchor.getAttribute("href")).toBe("/oauth2/authorization/gitlab");
-    expect(gitlabAnchor.classList.contains("btn-primary")).toBe(true);
+    expect(gitlabAnchor.classList.contains("oidf-btn")).toBe(true);
+    expect(gitlabAnchor.classList.contains("oidf-btn-secondary")).toBe(true);
+    expect(gitlabAnchor.classList.contains("btn-primary")).toBe(false);
 
     // Public links present
     expect(canvas.getByText("View published logs")).toBeInTheDocument();
@@ -57,13 +72,16 @@ export const Default = {
     );
     expect(plansLink.getAttribute("href")).toBe("plans.html?public=true");
 
-    // No error or logout messages visible
-    expect(canvas.queryByRole("alert")).toBeNull();
-    expect(canvas.queryByRole("status")).toBeNull();
+    // No error or logout cts-alert renders by default
+    expect(canvasElement.querySelector("cts-alert")).toBeNull();
 
     // No hidden iframe
     const iframe = canvasElement.querySelector("iframe");
     expect(iframe).toBeNull();
+
+    // Bootstrap layout classes must NOT leak through.
+    expect(canvasElement.querySelector(".container-fluid")).toBeNull();
+    expect(canvasElement.querySelector(".row")).toBeNull();
   },
 };
 
@@ -73,25 +91,26 @@ export const WithError = {
   async play({ canvasElement }) {
     const canvas = within(canvasElement);
 
-    // Error alert is visible
+    // Error alert is visible — the inner div carries role="alert" from cts-alert.
     await waitFor(() => {
-      const alert = canvas.getByRole("alert");
-      expect(alert).toBeInTheDocument();
+      const alert = canvasElement.querySelector(".oidf-alert-danger");
+      expect(alert).toBeTruthy();
     });
 
-    // Error alert contains the error text
-    const alert = canvas.getByRole("alert");
+    const alert = /** @type {HTMLElement} */ (canvasElement.querySelector(".oidf-alert-danger"));
+    expect(alert.getAttribute("role")).toBe("alert");
     expect(alert.textContent).toContain("There was an error logging you in:");
     expect(alert.textContent).toContain("Invalid credentials");
-    expect(alert.classList.contains("bg-danger")).toBe(true);
+    // Bootstrap bg-* must NOT leak through.
+    expect(alert.classList.contains("bg-danger")).toBe(false);
 
     // Error details are in the dedicated span
     const details = alert.querySelector(".error-details");
     expect(details).toBeTruthy();
     expect(/** @type {Element} */ (details).textContent).toBe("Invalid credentials");
 
-    // No logout message
-    expect(canvas.queryByRole("status")).toBeNull();
+    // No logout cts-alert
+    expect(canvasElement.querySelector(".oidf-alert-info")).toBeNull();
 
     // OAuth buttons still render
     expect(canvas.getByText("Proceed with Google")).toBeInTheDocument();
@@ -105,18 +124,22 @@ export const PostLogout = {
   async play({ canvasElement }) {
     const canvas = within(canvasElement);
 
-    // Logout message is visible
+    // Logout message is rendered inside a cts-alert with the info variant.
     await waitFor(() => {
-      const status = canvas.getByRole("status");
-      expect(status).toBeInTheDocument();
+      const alert = canvasElement.querySelector(".oidf-alert-info");
+      expect(alert).toBeTruthy();
     });
 
-    const status = canvas.getByRole("status");
-    expect(status.textContent).toContain("You have been logged out.");
-    expect(status.classList.contains("bg-info")).toBe(true);
+    const host = canvasElement.querySelector("cts-alert[variant='info']");
+    expect(host).toBeTruthy();
 
-    // No error message
-    expect(canvas.queryByRole("alert")).toBeNull();
+    const alert = /** @type {HTMLElement} */ (canvasElement.querySelector(".oidf-alert-info"));
+    expect(alert.textContent).toContain("You have been logged out.");
+    // Bootstrap bg-info must NOT leak through.
+    expect(alert.classList.contains("bg-info")).toBe(false);
+
+    // No error cts-alert
+    expect(canvasElement.querySelector(".oidf-alert-danger")).toBeNull();
 
     // OAuth buttons still render
     expect(canvas.getByText("Proceed with Google")).toBeInTheDocument();
@@ -136,7 +159,7 @@ export const TokenAuth = {
       expect(iframe).toBeTruthy();
     });
 
-    const iframe = canvasElement.querySelector("iframe");
+    const iframe = /** @type {HTMLIFrameElement} */ (canvasElement.querySelector("iframe"));
     expect(iframe.getAttribute("src")).toBe("/login/ott?token=abc123");
     expect(iframe.style.display).toBe("none");
     expect(iframe.getAttribute("title")).toBe("Token authentication");
@@ -146,9 +169,8 @@ export const TokenAuth = {
       canvas.getByText("Login to or Register with the OpenID Foundation Conformance Suite"),
     ).toBeInTheDocument();
 
-    // No error or logout messages
-    expect(canvas.queryByRole("alert")).toBeNull();
-    expect(canvas.queryByRole("status")).toBeNull();
+    // No error or logout cts-alert
+    expect(canvasElement.querySelector("cts-alert")).toBeNull();
   },
 };
 
@@ -158,21 +180,25 @@ export const ErrorAndLogout = {
   async play({ canvasElement }) {
     const canvas = within(canvasElement);
 
-    // Both error and logout messages are visible
+    // Both error and logout cts-alerts are rendered.
     await waitFor(() => {
-      expect(canvas.getByRole("alert")).toBeInTheDocument();
-      expect(canvas.getByRole("status")).toBeInTheDocument();
+      expect(canvasElement.querySelector(".oidf-alert-danger")).toBeTruthy();
+      expect(canvasElement.querySelector(".oidf-alert-info")).toBeTruthy();
     });
 
     // Error alert contains the error text
-    const alert = canvas.getByRole("alert");
-    expect(alert.textContent).toContain("Session expired");
-    expect(alert.classList.contains("bg-danger")).toBe(true);
+    const errorAlert = /** @type {HTMLElement} */ (
+      canvasElement.querySelector(".oidf-alert-danger")
+    );
+    expect(errorAlert.textContent).toContain("Session expired");
+    expect(errorAlert.classList.contains("bg-danger")).toBe(false);
 
     // Logout message is also shown
-    const status = canvas.getByRole("status");
-    expect(status.textContent).toContain("You have been logged out.");
-    expect(status.classList.contains("bg-info")).toBe(true);
+    const logoutAlert = /** @type {HTMLElement} */ (
+      canvasElement.querySelector(".oidf-alert-info")
+    );
+    expect(logoutAlert.textContent).toContain("You have been logged out.");
+    expect(logoutAlert.classList.contains("bg-info")).toBe(false);
 
     // OAuth buttons still render
     expect(canvas.getByText("Proceed with Google")).toBeInTheDocument();

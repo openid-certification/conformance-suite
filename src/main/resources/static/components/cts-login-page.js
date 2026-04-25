@@ -1,9 +1,89 @@
 import { LitElement, html, nothing } from "lit";
 import "./cts-link-button.js";
+import "./cts-alert.js";
+
+const STYLE_ID = "cts-login-page-styles";
+
+// Scoped styles for the login page. The wrapper centers a single card on a
+// `--bg-muted` background, mirroring the design archive's auth-form preview
+// (`project/preview/components-forms.html`). The 60px subtraction on
+// `min-height` accounts for the `cts-navbar` height so the card sits
+// vertically centered in the remaining viewport. All colors, spacing,
+// radii, and shadows come from `oidf-tokens.css` — no Bootstrap classes
+// are emitted by this component anymore.
+const STYLE_TEXT = `
+.oidf-login-page {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: calc(100vh - 60px);
+  padding: var(--space-8) var(--space-4);
+  background: var(--bg-muted);
+}
+.oidf-login-card {
+  width: 100%;
+  max-width: 480px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  padding: var(--space-8) var(--space-6);
+  background: var(--bg-elev);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-3);
+  box-shadow: var(--shadow-2);
+}
+.oidf-login-title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--fs-24);
+  font-weight: var(--fw-bold);
+  line-height: var(--lh-snug);
+  color: var(--ink-900);
+  text-align: center;
+}
+.oidf-login-providers {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+.oidf-login-divider {
+  display: block;
+  height: 1px;
+  margin: var(--space-2) 0;
+  background: var(--border);
+  border: 0;
+}
+.oidf-login-secondary {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+.oidf-login-error-details {
+  font-family: var(--font-mono);
+  font-size: var(--fs-13);
+}
+`;
+
+function injectStyles() {
+  if (document.getElementById(STYLE_ID)) return;
+  const style = document.createElement("style");
+  style.id = STYLE_ID;
+  style.textContent = STYLE_TEXT;
+  document.head.appendChild(style);
+}
 
 /**
  * Login/register landing page. Offers Google/GitLab OAuth buttons and links to
  * the public logs and plans listings.
+ *
+ * Renders a centered card on a `--bg-muted` background. The error banner uses
+ * `cts-alert variant="danger"`; the post-logout banner uses
+ * `cts-alert variant="info"`. Provider buttons render via `cts-link-button`
+ * (`variant="secondary"` per U23's design-system mapping). All Bootstrap
+ * `container`/`row`/`col-*`/`text-center`/`bg-*`/`btn-*` classes have been
+ * removed; styling is driven entirely by `oidf-tokens.css` plus the scoped
+ * `.oidf-login-page*` rules injected on first mount.
+ *
  * @property {string} error - OAuth error message to display; empty hides the
  *   alert.
  * @property {boolean} logoutMessage - Shows the "You have been logged out"
@@ -25,22 +105,29 @@ class CtsLoginPage extends LitElement {
     this.tokenAuthUrl = "";
   }
 
-  // Use light DOM so Bootstrap CSS applies
+  connectedCallback() {
+    super.connectedCallback();
+    injectStyles();
+  }
+
+  // Light DOM keeps the component composable with sibling pages and lets
+  // global styles (oidf-tokens.css, layout.css) cascade in. The render-root
+  // contract is preserved from the pre-U23 implementation.
   createRenderRoot() {
     return this;
   }
 
   _renderError() {
     if (!this.error) return nothing;
-    return html`<p class="bg-danger p-2 rounded text-white" role="alert">
+    return html`<cts-alert variant="danger">
       There was an error logging you in:
-      <span class="error-details">${this.error}</span>
-    </p>`;
+      <span class="oidf-login-error-details error-details">${this.error}</span>
+    </cts-alert>`;
   }
 
   _renderLogout() {
     if (!this.logoutMessage) return nothing;
-    return html`<p class="bg-info p-2 rounded" role="status"> You have been logged out. </p>`;
+    return html`<cts-alert variant="info" role="status"> You have been logged out. </cts-alert>`;
   }
 
   _renderTokenIframe() {
@@ -54,45 +141,46 @@ class CtsLoginPage extends LitElement {
 
   render() {
     return html`
-      <div class="container-fluid" id="loginContent">
-        <div class="row">
-          <div class="col-xs-12 col-md-6 col-md-offset-3 mx-auto center-text">
-            <h1 class="text-center">
-              Login to or Register with the OpenID Foundation Conformance Suite
-            </h1>
-            ${this._renderError()} ${this._renderLogout()}
-            <p class="text-center">
-              <a
-                class="btn btn-lg btn-danger bg-gradient border border-secondary"
-                href="/oauth2/authorization/google"
-                >Proceed with Google</a
-              >
-              <a
-                class="btn btn-lg btn-primary bg-gradient border border-secondary"
-                href="/oauth2/authorization/gitlab"
-                >Proceed with GitLab</a
-              >
-            </p>
+      <div class="oidf-login-page" id="loginContent">
+        <section class="oidf-login-card">
+          <h1 class="oidf-login-title">
+            Login to or Register with the OpenID Foundation Conformance Suite
+          </h1>
+          ${this._renderError()}${this._renderLogout()}
+          <div class="oidf-login-providers">
+            <cts-link-button
+              variant="secondary"
+              size="lg"
+              href="/oauth2/authorization/google"
+              label="Proceed with Google"
+              full-width
+            ></cts-link-button>
+            <cts-link-button
+              variant="secondary"
+              size="lg"
+              href="/oauth2/authorization/gitlab"
+              label="Proceed with GitLab"
+              full-width
+            ></cts-link-button>
           </div>
-        </div>
-        <div class="row">
-          <div class="mx-auto col-md-2">
-            <div class="d-grid gap-2">
-              <cts-link-button
-                href="logs.html?public=true"
-                variant="info"
-                icon="files"
-                label="View published logs"
-              ></cts-link-button>
-              <cts-link-button
-                href="plans.html?public=true"
-                variant="info"
-                icon="bookmarks"
-                label="View published plans"
-              ></cts-link-button>
-            </div>
+          <hr class="oidf-login-divider" />
+          <div class="oidf-login-secondary">
+            <cts-link-button
+              href="logs.html?public=true"
+              variant="ghost"
+              icon="files"
+              label="View published logs"
+              full-width
+            ></cts-link-button>
+            <cts-link-button
+              href="plans.html?public=true"
+              variant="ghost"
+              icon="bookmarks"
+              label="View published plans"
+              full-width
+            ></cts-link-button>
           </div>
-        </div>
+        </section>
         ${this._renderTokenIframe()}
       </div>
     `;
@@ -100,3 +188,5 @@ class CtsLoginPage extends LitElement {
 }
 
 customElements.define("cts-login-page", CtsLoginPage);
+
+export {};
