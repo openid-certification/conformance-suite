@@ -55,13 +55,19 @@ const STYLES = `
     margin: 0;
     width: 20px;
     height: 20px;
-    line-height: 1;
-    font-size: 18px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     color: inherit;
     opacity: 0.7;
     cursor: pointer;
     flex-shrink: 0;
     border-radius: var(--radius-2, 4px);
+  }
+  .oidf-alert-close i {
+    font-size: 18px;
+    line-height: 1;
+    display: block;
   }
   .oidf-alert-close:hover,
   .oidf-alert-close:focus-visible {
@@ -131,9 +137,10 @@ class CtsAlert extends HTMLElement {
       closeBtn.type = "button";
       closeBtn.className = "oidf-alert-close";
       closeBtn.setAttribute("aria-label", "Close");
-      // Inline multiplication sign (U+00D7) — visually a close glyph,
-      // injected as text (not innerHTML) for XSS hygiene.
-      closeBtn.textContent = "×";
+      const closeIcon = document.createElement("i");
+      closeIcon.className = "bi bi-x";
+      closeIcon.setAttribute("aria-hidden", "true");
+      closeBtn.appendChild(closeIcon);
       closeBtn.addEventListener("click", () => this._dismiss());
       alert.appendChild(closeBtn);
     }
