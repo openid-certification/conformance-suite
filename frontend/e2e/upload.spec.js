@@ -94,11 +94,11 @@ test.describe("upload.html — Image Uploader", () => {
 
     await page.goto("/upload.html?log=test-upload-001");
 
-    // The file-picker label on upload.html:529 is NOT wrapped in a cts-button
-    // because the label-wrapping-input pattern is file-picker specific and
-    // out-of-scope for the cts-button migration. Verify the raw <label> is
-    // still present with its hidden file input.
-    const label = page.locator("#additionalUploader label.btn.btn-light").first();
+    // The file-picker label is NOT wrapped in a cts-button because the
+    // label-wrapping-input pattern is file-picker specific and out-of-scope
+    // for the cts-button migration. After U34 the label uses the
+    // OIDF-token-styled .upload-filepicker class instead of .btn.btn-light.
+    const label = page.locator("#additionalUploader label.upload-filepicker").first();
     await expect(label).toBeVisible();
     await expect(label).toContainText("Select File");
 
@@ -157,6 +157,62 @@ test.describe("upload.html — Image Uploader", () => {
     });
 
     await expect(innerBtn).toBeEnabled();
+  });
+
+  test("page renders cts-page-head and cts-form-field for the description input", async ({
+    page,
+  }) => {
+    await setupFailFast(page);
+    await setupUploadRoutes(page, {
+      testId: "test-upload-001",
+      images: MOCK_IMAGES_EMPTY,
+    });
+    await setupCommonRoutes(page);
+
+    await page.goto("/upload.html?log=test-upload-001");
+
+    // U34 composes the page via cts-page-head + cts-form-field. Verify the
+    // page-head heading shows up with the expected title text and that the
+    // description field is rendered as a labelled cts-form-field with the
+    // schema-derived "Description" label.
+    const pageHead = page.locator("cts-page-head");
+    await expect(pageHead).toBeVisible();
+    await expect(pageHead).toContainText("Image Uploader");
+
+    const field = page.locator("#additionalUploader cts-form-field");
+    await expect(field).toHaveCount(1);
+    // cts-form-field renders an <input class="oidf-input"> in light DOM
+    // and a sibling <span class="oidf-label"> driven by schema.title.
+    await expect(field.locator("span.oidf-label")).toContainText("Description");
+    await expect(field.locator("input.oidf-input")).toBeVisible();
+  });
+
+  test("clicking Upload with no description surfaces the error modal", async ({ page }) => {
+    await setupFailFast(page);
+    await setupUploadRoutes(page, {
+      testId: "test-upload-001",
+      images: MOCK_IMAGES_EMPTY,
+    });
+    await setupCommonRoutes(page);
+
+    await page.goto("/upload.html?log=test-upload-001");
+
+    // Force-enable the Upload button — the page only enables it after a file
+    // is selected, but the description-required validation runs on click
+    // independently of file selection.
+    const uploadBtn = page.locator("#additionalUploader cts-button.uploadBtn");
+    await uploadBtn.evaluate((el) => {
+      /** @type {HTMLElement & { disabled?: boolean }} */ (el).disabled = false;
+    });
+
+    // Click the rendered inner button (host.click() does not fire the inner
+    // click handler — see components/AGENTS.md §2).
+    await uploadBtn.locator("button").click();
+
+    // The validation surfaces through FAPI_UI.showError() → #errorModal.
+    const errorModal = page.locator("#errorModal");
+    await expect(errorModal).toBeVisible();
+    await expect(errorModal).toContainText("Description required");
   });
 
   test("server error on initial load surfaces through the errorModal (cts-modal)", async ({

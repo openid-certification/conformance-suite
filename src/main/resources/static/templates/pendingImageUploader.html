@@ -1,28 +1,26 @@
-        <div class="row">
-            <div class="col-md-12 logItem" data-upload-id="<%- item.upload %>">
-                <div class="row">
-                    <div class="col-md-1"><div class="bg-warning testStatusResultBlock"><span class="bi bi-cloud-upload"></span></div></div>
-                    <div class="col-md-3">
-                        <!-- image preview -->
-                        <img src="images/placeholder.jpg" alt="" class="img-fluid mx-auto d-block imagePreview imagePasteTarget" />
-                    </div>
-                    <div class="col-md-8">
-                        <!-- test details and form controls -->
-                        <% if (item.src) { %>
-                            <%= FAPI_UI.logTemplates.SOURCE({item: item}) %>
-                        <% } %>
-                        <% if (item.msg) { %>
-                            <%= FAPI_UI.logTemplates.MESSAGE({item: item}) %>
-                        <% } %>
+        <div class="upload-item logItem" data-upload-id="<%- item.upload %>">
+            <span class="upload-item__status upload-item__status--pending" aria-hidden="true">
+                <span class="bi bi-cloud-upload"></span>
+            </span>
+            <img src="images/placeholder.jpg" alt="" class="upload-item__thumb imagePreview imagePasteTarget" />
+            <div class="upload-item__body">
+                <!-- test details and form controls -->
+                <% if (item.src) { %>
+                    <div class="upload-item__source"><%= FAPI_UI.logTemplates.SOURCE({item: item}) %></div>
+                <% } %>
+                <% if (item.msg) { %>
+                    <%= FAPI_UI.logTemplates.MESSAGE({item: item}) %>
+                <% } %>
 
-                        <p class="log-message wrapLongStrings">Please upload a screenshot showing just your web browser. Please resize your web browser to an appropriate (i.e. small) size before taking the screenshot. Images must not be larger than 500 kilobytes; if larger please trying converting to jpg format before uploading.</p>
+                <p class="upload-item__hint">Please upload a screenshot showing just your web browser. Please resize your web browser to an appropriate (i.e. small) size before taking the screenshot. Images must not be larger than 500 kilobytes; if larger please trying converting to jpg format before uploading.</p>
 
-                        <label class="btn btn-sm btn-light bg-gradient border border-secondary">
-                            <span class="bi bi-camera-fill"></span> Select File</input>
-                                <input type="file" accept=".jpg,.jpeg,.png,image/png,image/jpeg" hidden>
-                        </label>
-                        <cts-button class="uploadBtn" label="Upload" disabled></cts-button>
-                    </div>
+                <div class="upload-item__actions">
+                    <label class="upload-filepicker">
+                        <span class="bi bi-camera-fill" aria-hidden="true"></span>
+                        <span>Select File</span>
+                        <input type="file" accept=".jpg,.jpeg,.png,image/png,image/jpeg" hidden>
+                    </label>
+                    <cts-button class="uploadBtn" label="Upload" disabled></cts-button>
                 </div>
             </div>
         </div>
