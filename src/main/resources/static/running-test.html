@@ -7,20 +7,12 @@
     <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
     <title>OIDF Conformance: Conformance Suite</title>
 
-    <!-- Latest compiled and minified CSS -->
-    <link rel="stylesheet" href="/vendor/bootstrap/css/bootstrap.min.css">
-
     <!-- Boostrap Icons -->
     <link rel="stylesheet" href="/vendor/bootstrap-icons/css/bootstrap-icons.css">
 
     <link rel="stylesheet" href="/css/oidf-tokens.css">
     <link rel="stylesheet" type="text/css" href="css/layout.css">
     <link rel="stylesheet" href="/css/oidf-app.css">
-
-    <!-- Popper (necessary for Bootstrap's tooltips) -->
-    <script src="/vendor/popper/js/popper.min.js"></script>
-    <!-- Latest compiled and minified JavaScript -->
-    <script src="/vendor/bootstrap/js/bootstrap.min.js"></script>
 
     <script src="/vendor/lodash/js/lodash.min.js"></script>
 
@@ -33,6 +25,22 @@
     <script type="module" src="/components/cts-link-button.js"></script>
     <script type="module" src="/components/cts-badge.js"></script>
     <script type="module" src="/components/cts-icon.js"></script>
+    <script type="module" src="/components/cts-page-head.js"></script>
+    <script type="module" src="/components/cts-running-test-card.js"></script>
+
+    <style>
+        .oidf-running-tests-page {
+            padding: var(--space-5) var(--space-6);
+            max-width: 1320px;
+            margin: 0 auto;
+            font-family: var(--font-sans);
+        }
+        .oidf-running-tests-list {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-4);
+        }
+    </style>
 
 </head>
 <body>
@@ -52,27 +60,15 @@
         </div>
     </cts-modal>
 
-    <div class="container-fluid">
-        <div id="viewRunningTestPage">
-            <div class="row">
-                <div class="col-md-12">
-                    <h3>Running tests</h3>
-                </div>
-            </div>
-            <div class="row">
-                <div class="col-md-2">
-                    <div class="d-grid">
-                        <cts-button id="refresh" icon="arrow-repeat" label="Refresh"></cts-button>
-                    </div>
-                </div>
+    <main id="viewRunningTestPage" class="oidf-running-tests-page">
+        <cts-page-head title="Running tests">
+            <cts-button slot="actions" id="refresh" icon="arrow-repeat" label="Refresh"></cts-button>
+        </cts-page-head>
 
-                <div class="col-md-10" id="running-tests">
-                    <!-- running tests get attached here -->
-                </div>
-            </div>
-
+        <div id="running-tests" class="oidf-running-tests-list">
+            <!-- running tests get attached here -->
         </div>
-    </div>
+    </main>
 
     <script type="text/javascript">
         document.addEventListener("DOMContentLoaded", () => {
@@ -88,12 +84,36 @@
         });
 
         function loadRunningTest() {
-            document.getElementById('refresh').onclick = function(event) {
+            // The Refresh control is a <cts-button> — it dispatches a bubbling
+            // `cts-click` event when activated. Native click also bubbles, but
+            // listening on `cts-click` matches the design-system contract and
+            // honours the disabled/loading guard inside cts-button.
+            document.getElementById('refresh').addEventListener('cts-click', function() {
                 updateRunningTable();
-            };
+            });
 
             // refresh the running table right now
             updateRunningTable();
+        }
+
+        /**
+         * Adapts the /api/runner/:testId payload (which uses `id` and `name`)
+         * to the shape <cts-running-test-card> expects (`_id` and `testName`).
+         * Field renames live here so the Mustache template stays a thin
+         * placeholder and the card receives a stable contract.
+         */
+        function adaptRunnerDetailToCardTest(data) {
+            return {
+                _id: data.id,
+                testName: data.name,
+                created: data.created,
+                updated: data.updated,
+                owner: data.owner,
+                variant: data.variant,
+                version: data.version,
+                status: data.status,
+                result: data.result,
+            };
         }
 
         /**
@@ -132,10 +152,23 @@
                     var runningTestsElement = document.getElementById('running-tests');
                     runningTestsElement.insertAdjacentHTML('beforeend', runningTest);
 
-                    runningTestsElement.querySelector('[data-instance-id="' + testId + '"]').querySelector('.downloadBtn').onclick = function(evt) {
-                        evt.preventDefault();
-                        window.open('/api/log/' + encodeURIComponent(testId) + '?dl=true');
-                    };
+                    var card = runningTestsElement.querySelector('cts-running-test-card[data-instance-id="' + testId + '"]');
+
+                    // Hand the runner payload to the card. It will render the
+                    // status badge from `test.status` once the /api/info
+                    // follow-up below merges status/result into this object.
+                    card.test = adaptRunnerDetailToCardTest(data);
+                    card.isAdmin = !!(FAPI_UI.currentUser && FAPI_UI.currentUser.isAdmin);
+
+                    // The card emits cts-download-log when the Download Logs
+                    // button is clicked — replaces the legacy .downloadBtn
+                    // onclick wiring on the rendered template markup.
+                    card.addEventListener('cts-download-log', function(evt) {
+                        var id = evt.detail && evt.detail.testId;
+                        if (id) {
+                            window.open('/api/log/' + encodeURIComponent(id) + '?dl=true');
+                        }
+                    });
 
                 }).then(function() {
                     return fetch('/api/info/' + encodeURIComponent(testId))
@@ -147,10 +180,19 @@
                         return response.json();
                     })
                     .then((data) => {
-                        var testElement = document.querySelector('[data-instance-id="' + testId + '"]')
+                        var card = document.querySelector('cts-running-test-card[data-instance-id="' + testId + '"]');
+                        if (!card) return;
 
-                        testElement.querySelector('.testStatusAndResult').innerHTML = FAPI_UI.logTemplates.TEST_STATUS({test: data});
-                        FAPI_UI.activeTooltip();
+                        // Merge the fresher status/result/variant/version from
+                        // /api/info into the card. Reassign `test` (rather than
+                        // mutating in place) so Lit observes the change and
+                        // re-renders the status badge.
+                        card.test = Object.assign({}, card.test, {
+                            status: data.status,
+                            result: data.result,
+                            variant: data.variant,
+                            version: data.version,
+                        });
                     })
                     .catch((error) => {
                         if (error instanceof Response) {
