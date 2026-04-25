@@ -216,70 +216,77 @@ public class VCIProfileBehavior extends FAPI2ProfileBehavior {
 
 	@Override
 	public ConditionSequence setupResourceEndpointRequestBody() {
-		// Call nonce endpoint before returning the sequence, since sequences
-		// don't have direct env access for conditional logic
-		callNonceEndpointIfNeeded();
-
-		module.getEnv().putString("resource", "resourceMethod", "POST");
-		module.getEnv().putString("resource", "resourceMediaType", "application/json");
-		module.getEnv().putString("resource_endpoint_request_headers", "Content-Type", "application/json");
-
-		generateProofAndPopulateCredentialRequest();
-
-		// Return null — all work is done above via direct module calls
-		return null;
-	}
-
-	protected void callNonceEndpointIfNeeded() {
-		Boolean requiresCryptographicBinding = module.getEnv().getBoolean("vci_requires_cryptographic_binding");
-		if (requiresCryptographicBinding == null || !requiresCryptographicBinding) {
-			return;
-		}
-		if (module.getEnv().getElementFromObject("vci", "credential_issuer_metadata.nonce_endpoint") == null) {
-			return;
-		}
-		module.doCallAndStopOnFailure(CallCredentialIssuerNonceEndpoint.class, "OID4VCI-1FINAL-7.1");
-
-		module.getEnv().mapKey("endpoint_response", "nonce_endpoint_response");
-		module.doCallAndContinueOnFailure(EnsureHttpStatusCodeIs200.class, ConditionResult.FAILURE, "OID4VCI-1FINAL-7.2");
-		module.doCallAndContinueOnFailure(EnsureContentTypeJson.class, ConditionResult.WARNING, "OID4VCI-1FINAL-7.2");
-		module.doCallAndContinueOnFailure(CheckCacheControlHeaderContainsNoStore.class, ConditionResult.FAILURE, "OID4VCI-1FINAL-7.2");
-		module.doCallAndStopOnFailure(VCIValidateCredentialNonceResponse.class, "OID4VCI-1FINAL-7.2");
-		module.getEnv().unmapKey("endpoint_response");
-	}
-
-	protected void generateProofAndPopulateCredentialRequest() {
-		Boolean requiresCryptographicBinding = module.getEnv().getBoolean("vci_requires_cryptographic_binding");
-
-		if (requiresCryptographicBinding != null && requiresCryptographicBinding) {
-			module.doCallAndContinueOnFailure(VCIGenerateKeyAttestationIfNecessary.class, ConditionResult.FAILURE,
-				"HAIPA-D.1", "OID4VCI-1FINALA-D.1");
-
-			String proofTypeKey = module.getEnv().getString("vci_proof_type_key");
-			if ("jwt".equals(proofTypeKey)) {
-				module.doCallAndStopOnFailure(VCIGenerateJwtProof.class, "OID4VCI-1FINALA-F.1");
-			} else if ("attestation".equals(proofTypeKey)) {
-				module.doCallAndStopOnFailure(VCIGenerateAttestationProof.class, "OID4VCI-1FINALA-F.3");
+		return new AbstractConditionSequence() {
+			@Override
+			public void evaluate() {
+				call(callNonceEndpointIfNeeded());
+				call(exec().putString("resource", "resourceMethod", "POST"));
+				call(exec().putString("resource", "resourceMediaType", "application/json"));
+				call(exec().putString("resource_endpoint_request_headers", "Content-Type", "application/json"));
+				call(generateProofAndPopulateCredentialRequest());
 			}
-		}
+		};
+	}
 
-		module.doCallAndStopOnFailure(VCICreateCredentialRequest.class, "OID4VCI-1FINAL-8.2");
+	protected ConditionSequence callNonceEndpointIfNeeded() {
+		return new AbstractConditionSequence() {
+			@Override
+			public void evaluate() {
+				Boolean requiresCryptographicBinding = module.getEnv().getBoolean("vci_requires_cryptographic_binding");
+				if (requiresCryptographicBinding == null || !requiresCryptographicBinding) {
+					return;
+				}
+				if (module.getEnv().getElementFromObject("vci", "credential_issuer_metadata.nonce_endpoint") == null) {
+					return;
+				}
 
-		boolean encrypted = module.getVariant(VCICredentialEncryption.class) == VCICredentialEncryption.ENCRYPTED;
+				callAndStopOnFailure(CallCredentialIssuerNonceEndpoint.class, "OID4VCI-1FINAL-7.1");
+				call(exec().mapKey("endpoint_response", "nonce_endpoint_response"));
+				callAndContinueOnFailure(EnsureHttpStatusCodeIs200.class, ConditionResult.FAILURE, "OID4VCI-1FINAL-7.2");
+				callAndContinueOnFailure(EnsureContentTypeJson.class, ConditionResult.WARNING, "OID4VCI-1FINAL-7.2");
+				callAndContinueOnFailure(CheckCacheControlHeaderContainsNoStore.class, ConditionResult.FAILURE, "OID4VCI-1FINAL-7.2");
+				callAndStopOnFailure(VCIValidateCredentialNonceResponse.class, "OID4VCI-1FINAL-7.2");
+				call(exec().unmapKey("endpoint_response"));
+			}
+		};
+	}
 
-		if (encrypted) {
-			module.doCallAndStopOnFailure(VCIAddCredentialResponseEncryptionToRequest.class, "OID4VCI-1FINAL-8.2");
-		}
+	protected ConditionSequence generateProofAndPopulateCredentialRequest() {
+		return new AbstractConditionSequence() {
+			@Override
+			public void evaluate() {
+				Boolean requiresCryptographicBinding = module.getEnv().getBoolean("vci_requires_cryptographic_binding");
 
-		JsonObject credentialRequestObject = module.getEnv().getObject("vci_credential_request_object");
-		module.getEnv().putString("resource_request_entity", credentialRequestObject.toString());
+				if (requiresCryptographicBinding != null && requiresCryptographicBinding) {
+					callAndContinueOnFailure(VCIGenerateKeyAttestationIfNecessary.class, ConditionResult.FAILURE,
+						"HAIPA-D.1", "OID4VCI-1FINALA-D.1");
 
-		// Per OID4VCI 1.0 Final 8.2, Credential Request encryption MUST be used when
-		// credential_response_encryption is included. Encrypt the serialized request as a JWE
-		// and set the Content-Type to application/jwt.
-		if (encrypted) {
-			module.doCallAndStopOnFailure(VCIEncryptCredentialRequest.class, "OID4VCI-1FINAL-8.2", "OID4VCI-1FINAL-10");
-		}
+					String proofTypeKey = module.getEnv().getString("vci_proof_type_key");
+					if ("jwt".equals(proofTypeKey)) {
+						callAndStopOnFailure(VCIGenerateJwtProof.class, "OID4VCI-1FINALA-F.1");
+					} else if ("attestation".equals(proofTypeKey)) {
+						callAndStopOnFailure(VCIGenerateAttestationProof.class, "OID4VCI-1FINALA-F.3");
+					}
+				}
+
+				callAndStopOnFailure(VCICreateCredentialRequest.class, "OID4VCI-1FINAL-8.2");
+
+				boolean encrypted = module.getVariant(VCICredentialEncryption.class) == VCICredentialEncryption.ENCRYPTED;
+				if (encrypted) {
+					callAndStopOnFailure(VCIAddCredentialResponseEncryptionToRequest.class, "OID4VCI-1FINAL-8.2");
+				}
+
+				JsonObject credentialRequestObject = module.getEnv().getObject("vci_credential_request_object");
+				call(exec().putString("resource_request_entity", credentialRequestObject.toString()));
+
+				// Per OID4VCI 1.0 Final 8.2, Credential Request encryption MUST be used when
+				// credential_response_encryption is included. Encrypt the serialized request as a JWE
+				// and set the Content-Type to application/jwt.
+				if (encrypted) {
+					callAndStopOnFailure(VCIEncryptCredentialRequest.class, "OID4VCI-1FINAL-8.2", "OID4VCI-1FINAL-10");
+				}
+			}
+		};
 	}
 
 	@Override
@@ -289,8 +296,8 @@ public class VCIProfileBehavior extends FAPI2ProfileBehavior {
 			@Override
 			public void evaluate() {
 				// Call nonce endpoint for a fresh nonce before regenerating the proof
-				callNonceEndpointIfNeeded();
-				generateProofAndPopulateCredentialRequest();
+				call(callNonceEndpointIfNeeded());
+				call(generateProofAndPopulateCredentialRequest());
 				if (createDpopForResourceEndpointSteps != null) {
 					call(sequence(createDpopForResourceEndpointSteps));
 				}
