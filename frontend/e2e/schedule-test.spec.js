@@ -189,7 +189,7 @@ test.describe("schedule-test.html — Test Plan Scheduling", () => {
     await expect(page.locator("#errorMessage")).toContainText("select a test plan");
 
     // Close the error modal
-    await errorModal.locator('.oidf-modal-close').first().click();
+    await errorModal.locator(".oidf-modal-close").first().click();
     await expect(errorModal).toBeHidden();
   });
 
