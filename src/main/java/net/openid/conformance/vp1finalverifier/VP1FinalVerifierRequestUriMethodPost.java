@@ -4,6 +4,7 @@ import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.condition.as.CreateWalletNonce;
 import net.openid.conformance.condition.as.EnsureRequestUriHasNoFragment;
 import net.openid.conformance.condition.as.EnsureRequestUriIsHttps;
+import net.openid.conformance.condition.as.EnsureWalletNonceClaimMatchesPostedValue;
 import net.openid.conformance.condition.as.PostToRequestUriAndExtractRequestObject;
 import net.openid.conformance.testmodule.PublishTestModule;
 
@@ -32,6 +33,7 @@ public class VP1FinalVerifierRequestUriMethodPost extends AbstractVP1FinalVerifi
 
 		callAndStopOnFailure(CreateWalletNonce.class, "OID4VP-1FINAL-5.10");
 		callAndStopOnFailure(PostToRequestUriAndExtractRequestObject.class, "OID4VP-1FINAL-5.10");
+		callAndContinueOnFailure(EnsureWalletNonceClaimMatchesPostedValue.class, ConditionResult.FAILURE, "OID4VP-1FINAL-5.10");
 		callAndContinueOnFailure(EnsureRequestUriIsHttps.class, ConditionResult.FAILURE, "JAR-5.2");
 		callAndContinueOnFailure(EnsureRequestUriHasNoFragment.class, ConditionResult.FAILURE);
 	}
