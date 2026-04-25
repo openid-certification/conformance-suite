@@ -73,17 +73,20 @@ test.describe("running-test.html — Running Tests", () => {
 
     await page.goto("/running-test.html");
 
-    // Two test rows rendered
-    const rows = page.locator(".runningTest");
-    await expect(rows).toHaveCount(2);
+    // Two cards rendered. After U32 each row is a <cts-running-test-card>
+    // (light-DOM), driven by the `runningTest.html` template stub +
+    // inline JS that sets `.test`/`.isAdmin` on the host.
+    const cards = page.locator("cts-running-test-card");
+    await expect(cards).toHaveCount(2);
 
-    // First test shows name and status
-    await expect(rows.nth(0)).toContainText("oidcc-server");
-    await expect(rows.nth(0)).toContainText("RUNNING");
+    // First test shows name and status (status badge text comes from cts-badge,
+    // which the card sets from /api/info → test.status).
+    await expect(cards.nth(0)).toContainText("oidcc-server");
+    await expect(cards.nth(0).locator("cts-badge")).toHaveAttribute("label", "RUNNING");
 
     // Second test shows name and status
-    await expect(rows.nth(1)).toContainText("oidcc-server-rotate-keys");
-    await expect(rows.nth(1)).toContainText("WAITING");
+    await expect(cards.nth(1)).toContainText("oidcc-server-rotate-keys");
+    await expect(cards.nth(1).locator("cts-badge")).toHaveAttribute("label", "WAITING");
   });
 
   test("manual refresh re-fetches and updates statuses (R13)", async ({ page }) => {
@@ -119,16 +122,18 @@ test.describe("running-test.html — Running Tests", () => {
 
     await page.goto("/running-test.html");
 
-    // Initially one test row
-    await expect(page.locator(".runningTest")).toHaveCount(1);
-    await expect(page.locator(".runningTest").first()).toContainText("oidcc-server");
+    // Initially one card
+    await expect(page.locator("cts-running-test-card")).toHaveCount(1);
+    await expect(page.locator("cts-running-test-card").first()).toContainText("oidcc-server");
 
-    // Switch mock to return empty list, then click refresh
+    // Switch mock to return empty list, then click the Refresh cts-button.
+    // The host listens on `cts-click`, but a native click on the inner
+    // <button> dispatches it (cts-button._handleClick).
     returnEmpty = true;
-    await page.locator("#refresh").click();
+    await page.locator("#refresh button").click();
 
     // After refresh, no tests running
-    await expect(page.locator(".runningTest")).toHaveCount(0);
+    await expect(page.locator("cts-running-test-card")).toHaveCount(0);
   });
 
   test("empty state when no tests are running (R15)", async ({ page }) => {
@@ -145,8 +150,8 @@ test.describe("running-test.html — Running Tests", () => {
 
     await page.goto("/running-test.html");
 
-    // No test rows rendered
-    await expect(page.locator(".runningTest")).toHaveCount(0);
+    // No cards rendered
+    await expect(page.locator("cts-running-test-card")).toHaveCount(0);
 
     // The running-tests container is empty
     await expect(page.locator("#running-tests")).toBeEmpty();
@@ -181,21 +186,25 @@ test.describe("running-test.html — Running Tests", () => {
 
     await page.goto("/running-test.html");
 
-    const row = page.locator(".runningTest").first();
-    await expect(row).toBeVisible();
+    const card = page.locator("cts-running-test-card").first();
+    await expect(card).toBeVisible();
 
-    // View Test Details link should point to log-detail with the correct test ID
-    const viewBtn = row.locator(".viewBtn");
+    // View Test Details link should point to log-detail with the correct
+    // test ID. cts-link-button renders the inner <a>.
+    const viewBtn = card.locator(".viewBtn");
     await expect(viewBtn).toBeVisible();
-    await expect(viewBtn).toHaveAttribute("href", "log-detail.html?log=test-running-001");
+    await expect(viewBtn.locator("a")).toHaveAttribute(
+      "href",
+      "log-detail.html?log=test-running-001",
+    );
 
     // Download button should be present
-    const downloadBtn = row.locator(".downloadBtn");
+    const downloadBtn = card.locator(".downloadBtn");
     await expect(downloadBtn).toBeVisible();
     await expect(downloadBtn).toContainText("Download Logs");
   });
 
-  test("status tooltips render on test status blocks", async ({ page }) => {
+  test("status badge reflects the test status from /api/info", async ({ page }) => {
     await setupFailFast(page);
     await setupCommonRoutes(page);
 
@@ -224,16 +233,10 @@ test.describe("running-test.html — Running Tests", () => {
 
     await page.goto("/running-test.html");
 
-    // Wait for status to render
-    const statusBlock = page.locator(".testStatusResultBlock").first();
-    await expect(statusBlock).toBeVisible();
-    await expect(statusBlock).toContainText("RUNNING");
-
-    // Tooltip trigger should exist with help text
-    const tooltip = statusBlock.locator('[data-bs-toggle="tooltip"]');
-    await expect(tooltip).toBeVisible();
-    // Bootstrap moves title to data-bs-original-title after tooltip init
-    const origTitle = await tooltip.getAttribute("data-bs-original-title");
-    expect(origTitle || "").toContain("actively executing");
+    // The cts-badge inside the card carries the canonical RUNNING status
+    // and the design-system `running` variant (which renders the spinner).
+    const badge = page.locator("cts-running-test-card").first().locator("cts-badge");
+    await expect(badge).toHaveAttribute("label", "RUNNING");
+    await expect(badge).toHaveAttribute("variant", "running");
   });
 });

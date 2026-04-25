@@ -484,7 +484,13 @@ var FAPI_UI = {
 				}
 			});
 
-			const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl));
+			// Skip when bootstrap.Tooltip isn't loaded — happens on pages that
+			// have already migrated off bootstrap.min.js (Phase D in flight).
+			// U40 deletes this whole function once every page has migrated.
+			if (typeof bootstrap === 'undefined' || !bootstrap.Tooltip) {
+				return;
+			}
+			[...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl));
 
 		},
 
