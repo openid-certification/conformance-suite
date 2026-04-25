@@ -130,6 +130,8 @@ const STYLE_TEXT = `
   font-size: var(--fs-13);
   line-height: var(--lh-base);
   resize: vertical;
+  /* Reset legacy layout.css \`input[type=text], textarea { text-indent: 5px }\`. */
+  text-indent: 0;
 }
 .oidf-config-form-json:focus {
   outline: none;

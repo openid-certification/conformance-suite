@@ -30,6 +30,9 @@ const SELECT_CHEVRON =
   "url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 16 16'><path fill='none' stroke='%2371695E' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M4 6l4 4 4-4'/></svg>\")";
 
 const STYLE_TEXT = `
+cts-form-field {
+  display: block;
+}
 .oidf-form-field {
   display: flex;
   flex-direction: column;
@@ -53,6 +56,9 @@ const STYLE_TEXT = `
   font-family: var(--font-sans);
   font-size: var(--fs-13);
   line-height: var(--lh-base);
+  /* Reset legacy layout.css \`input[type=text], textarea { text-indent: 5px }\` so
+     design-system inputs land at the same x-offset regardless of input type. */
+  text-indent: 0;
 }
 .oidf-form-field .oidf-input,
 .oidf-form-field .oidf-select {
