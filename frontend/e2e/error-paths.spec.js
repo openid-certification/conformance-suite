@@ -38,8 +38,9 @@ test.describe("plan-detail.html — dynamic error alert injection", () => {
 
     await page.goto("/plan-detail.html?plan=plan-abc-123");
 
-    // Open the certification package modal via its button.
-    const certBtn = page.locator("#certificationPackageBtn");
+    // Open the certification package modal via cts-plan-actions' Certify
+    // button (the page-level JS catches `cts-certify` and opens the modal).
+    const certBtn = page.locator('cts-plan-actions [data-testid="certify-btn"] button');
     await expect(certBtn).toBeVisible();
     await certBtn.click();
 
@@ -114,12 +115,17 @@ test.describe("logs.html — DataTables server error", () => {
     const errorModal = page.locator("#errorModal");
     await expect(errorModal).toBeVisible();
     const errorText = errorModal.locator("#errorMessage");
-    // DataTables' ajax.error handler passes responseJSON.error through
-    // verbatim, so the mocked "backend unavailable" surfaces to the user.
-    await expect(errorText).toContainText("backend unavailable");
+    // After U38 migrated to cts-data-table, the error message format
+    // changed from the responseJSON.error passthrough to "HTTP <status>"
+    // (cts-data-table's _fetchPage throws Error("HTTP " + status) on
+    // non-OK responses). The actionable response body is no longer
+    // surfaced through this path; "HTTP 500" is the new contract.
+    await expect(errorText).toContainText("HTTP 500");
 
     // The table body has no data rows (the 500 meant nothing was rendered).
-    const dataRows = page.locator("#logsListing tbody tr");
+    // cts-data-table renders one error-state row inside tbody on fetch
+    // failure; data rows carry data-row-index, error rows do not.
+    const dataRows = page.locator("#logsListing tbody tr[data-row-index]");
     await expect(dataRows).toHaveCount(0);
 
     // T-8 "realistic next action": dismissing the modal doesn't navigate the
