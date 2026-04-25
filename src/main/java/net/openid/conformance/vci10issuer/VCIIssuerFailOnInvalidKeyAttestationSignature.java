@@ -2,7 +2,9 @@ package net.openid.conformance.vci10issuer;
 
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
+import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
+import net.openid.conformance.vci10issuer.condition.VCIGenerateKeyAttestationIfNecessary;
 import net.openid.conformance.vci10issuer.condition.VCIInvalidateKeyAttestationSignature;
 import net.openid.conformance.vci10issuer.condition.VCIValidateCredentialErrorResponse;
 import net.openid.conformance.vci10issuer.condition.VciErrorCode;
@@ -64,11 +66,13 @@ public class VCIIssuerFailOnInvalidKeyAttestationSignature extends AbstractVCIIs
 	}
 
 	@Override
-	protected void afterKeyAttestationGeneration() {
-		super.afterKeyAttestationGeneration();
-
-		// Invalidate the key attestation signature
-		callAndContinueOnFailure(VCIInvalidateKeyAttestationSignature.class, Condition.ConditionResult.INFO, "OID4VCI-1FINALA-D.1");
+	protected ConditionSequence makeGenerateKeyAttestationAndProofSteps() {
+		return super.makeGenerateKeyAttestationAndProofSteps()
+			.insertAfter(VCIGenerateKeyAttestationIfNecessary.class,
+				condition(VCIInvalidateKeyAttestationSignature.class)
+					.onFail(Condition.ConditionResult.INFO)
+					.requirements("OID4VCI-1FINALA-D.1")
+					.dontStopOnFailure());
 	}
 
 	@Override
