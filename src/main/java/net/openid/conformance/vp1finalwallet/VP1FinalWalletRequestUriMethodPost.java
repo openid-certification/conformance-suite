@@ -4,7 +4,9 @@ import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.condition.client.AddReceivedWalletNonceToRequestObjectClaims;
 import net.openid.conformance.condition.client.AddRequestUriMethodPostToRedirectUrl;
 import net.openid.conformance.condition.client.CheckForUnexpectedParametersInRequestUriPost;
+import net.openid.conformance.condition.client.EnsureIncomingRequestAcceptHeaderIsApplicationOauthAuthzReqJwt;
 import net.openid.conformance.condition.client.EnsureIncomingRequestContentTypeIsFormUrlEncoded;
+import net.openid.conformance.condition.client.EnsureIncomingUrlQueryIsEmpty;
 import net.openid.conformance.condition.client.ExtractWalletMetadataAndNonceFromRequestUriPost;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
@@ -45,6 +47,8 @@ public class VP1FinalWalletRequestUriMethodPost extends AbstractVP1FinalWalletTe
 		String incomingMethod = env.getString("incoming_request", "method");
 		if ("POST".equals(incomingMethod)) {
 			eventLog.log(getName(), "Wallet correctly used HTTP POST to fetch request_uri");
+			callAndContinueOnFailure(EnsureIncomingUrlQueryIsEmpty.class, ConditionResult.FAILURE, "OID4VP-1FINAL-5.10");
+			callAndContinueOnFailure(EnsureIncomingRequestAcceptHeaderIsApplicationOauthAuthzReqJwt.class, ConditionResult.FAILURE, "OID4VP-1FINAL-5.10");
 			callAndContinueOnFailure(EnsureIncomingRequestContentTypeIsFormUrlEncoded.class, ConditionResult.FAILURE, "OID4VP-1FINAL-5.10");
 			callAndContinueOnFailure(CheckForUnexpectedParametersInRequestUriPost.class, ConditionResult.WARNING, "OID4VP-1FINAL-5.10");
 			callAndContinueOnFailure(ExtractWalletMetadataAndNonceFromRequestUriPost.class, ConditionResult.INFO, "OID4VP-1FINAL-5.10");
