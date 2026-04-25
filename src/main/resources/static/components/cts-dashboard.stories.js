@@ -22,7 +22,7 @@ export const Authenticated = {
   async play({ canvasElement }) {
     const canvas = within(canvasElement);
 
-    // All 6 cards should be visible for authenticated users
+    // All 6 tiles should be visible for authenticated users
     expect(canvas.getByText("Create a new test plan")).toBeInTheDocument();
     expect(canvas.getByText("View my test logs")).toBeInTheDocument();
     expect(canvas.getByText("View my test plans")).toBeInTheDocument();
@@ -30,11 +30,11 @@ export const Authenticated = {
     expect(canvas.getByText("View all published test plans")).toBeInTheDocument();
     expect(canvas.getByText("View API Documentation")).toBeInTheDocument();
 
-    // Verify hrefs on cts-link-button anchors
-    const links = canvasElement.querySelectorAll("cts-link-button");
-    expect(links.length).toBe(6);
+    // Verify hrefs on tile anchors
+    const tiles = canvasElement.querySelectorAll("a.oidf-dashboard-tile");
+    expect(tiles.length).toBe(6);
 
-    const hrefs = Array.from(links).map((btn) => btn.querySelector("a")?.getAttribute("href"));
+    const hrefs = Array.from(tiles).map((tile) => tile.getAttribute("href"));
     expect(hrefs).toContain("schedule-test.html");
     expect(hrefs).toContain("logs.html");
     expect(hrefs).toContain("plans.html");
@@ -42,8 +42,22 @@ export const Authenticated = {
     expect(hrefs).toContain("plans.html?public=true");
     expect(hrefs).toContain("api-document.html");
 
+    // Each tile renders a Bootstrap Icons glyph
+    for (const tile of tiles) {
+      expect(tile.querySelector(".oidf-dashboard-tile-icon .bi")).toBeTruthy();
+      expect(tile.querySelector(".oidf-dashboard-tile-label")).toBeTruthy();
+    }
+
+    // Grid container present
+    const grid = canvasElement.querySelector(".oidf-dashboard-grid");
+    expect(grid).toBeTruthy();
+
     // Footer text present
     expect(canvas.getByText("OpenID Foundation conformance suite")).toBeInTheDocument();
+    // Footer carries the .t-meta token class so type stays on the design-system scale
+    const footer = canvasElement.querySelector("footer.oidf-dashboard-footer");
+    expect(footer).toBeTruthy();
+    expect(footer.classList.contains("t-meta")).toBe(true);
   },
 };
 
@@ -92,19 +106,19 @@ export const Unauthenticated = {
   async play({ canvasElement }) {
     const canvas = within(canvasElement);
 
-    // Auth-only cards should be hidden
+    // Auth-only tiles should be hidden
     expect(canvas.queryByText("Create a new test plan")).toBeNull();
     expect(canvas.queryByText("View my test logs")).toBeNull();
     expect(canvas.queryByText("View my test plans")).toBeNull();
 
-    // Public cards should be visible
+    // Public tiles should be visible
     expect(canvas.getByText("View all published test logs")).toBeInTheDocument();
     expect(canvas.getByText("View all published test plans")).toBeInTheDocument();
     expect(canvas.getByText("View API Documentation")).toBeInTheDocument();
 
-    // Only 3 link buttons rendered
-    const links = canvasElement.querySelectorAll("cts-link-button");
-    expect(links.length).toBe(3);
+    // Only 3 tile anchors rendered
+    const tiles = canvasElement.querySelectorAll("a.oidf-dashboard-tile");
+    expect(tiles.length).toBe(3);
 
     // Footer still present
     expect(canvas.getByText("OpenID Foundation conformance suite")).toBeInTheDocument();
@@ -129,14 +143,14 @@ export const ServerInfoError = {
     console.warn = warnSpy;
 
     try {
-      // Cards should still render despite server info error
+      // Tiles should still render despite server info error
       expect(canvas.getByText("Create a new test plan")).toBeInTheDocument();
       expect(canvas.getByText("View all published test logs")).toBeInTheDocument();
       expect(canvas.getByText("View API Documentation")).toBeInTheDocument();
 
-      // All 6 cards present (authenticated by default)
-      const links = canvasElement.querySelectorAll("cts-link-button");
-      expect(links.length).toBe(6);
+      // All 6 tiles present (authenticated by default)
+      const tiles = canvasElement.querySelectorAll("a.oidf-dashboard-tile");
+      expect(tiles.length).toBe(6);
 
       // Footer text still present
       expect(canvas.getByText("OpenID Foundation conformance suite")).toBeInTheDocument();
@@ -181,7 +195,7 @@ export const Loading = {
   async play({ canvasElement }) {
     const canvas = within(canvasElement);
 
-    // Cards render immediately, regardless of server info loading
+    // Tiles render immediately, regardless of server info loading
     expect(canvas.getByText("Create a new test plan")).toBeInTheDocument();
     expect(canvas.getByText("View my test logs")).toBeInTheDocument();
     expect(canvas.getByText("View my test plans")).toBeInTheDocument();
