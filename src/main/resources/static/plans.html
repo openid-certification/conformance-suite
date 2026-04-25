@@ -232,9 +232,7 @@
                         $('#config').html(_.escape(JSON.stringify(data.config, null, 4)));
                         $('#configTestId').html(_.escape(data._id));
 
-                        var myModalEl = document.getElementById('configModal');
-                        var modal     = bootstrap.Modal.getOrCreateInstance(myModalEl);
-                        modal.show();
+                        document.getElementById('configModal').show();
                     });
                 },
                 drawCallback: function() {

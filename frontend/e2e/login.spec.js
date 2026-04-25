@@ -56,7 +56,9 @@ test.describe("login.html — Login page", () => {
     await expect(googleAnchor).toHaveAttribute("href", "/oauth2/authorization/google");
   });
 
-  test("GitLab button uses variant=primary (inner anchor has oidf-btn-primary)", async ({ page }) => {
+  test("GitLab button uses variant=primary (inner anchor has oidf-btn-primary)", async ({
+    page,
+  }) => {
     await setupFailFast(page);
     await setupLoginRoutes(page);
 

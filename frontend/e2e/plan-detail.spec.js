@@ -96,7 +96,7 @@ test.describe("plan-detail.html — Plan Detail", () => {
     await expect(page.locator("#configTestId")).toContainText("plan-abc-123");
 
     // Close the modal
-    await configModal.locator('[data-bs-dismiss="modal"]').first().click();
+    await configModal.locator('.oidf-modal-close').first().click();
     await expect(configModal).toBeHidden();
   });
 
@@ -181,7 +181,7 @@ test.describe("plan-detail.html — Plan Detail", () => {
     await expect(deleteModal).toContainText("permanently and irrevocably");
 
     // Cancel → modal closes, no API call
-    await deleteModal.locator('[data-bs-dismiss="modal"]').first().click();
+    await deleteModal.locator('.oidf-modal-close').first().click();
     await expect(deleteModal).toBeHidden();
   });
 

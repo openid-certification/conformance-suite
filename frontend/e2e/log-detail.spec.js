@@ -246,7 +246,7 @@ test.describe("log-detail.html — Log Detail", () => {
     await expect(page.locator("#configTestId")).toContainText("test-inst-001");
 
     // Close modal
-    await configModal.locator('[data-bs-dismiss="modal"]').first().click();
+    await configModal.locator('.oidf-modal-close').first().click();
     await expect(configModal).toBeHidden();
   });
 

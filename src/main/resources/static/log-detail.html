@@ -387,9 +387,7 @@
                         document.getElementById('reloadBtn').onclick = function(evt) {
                             evt.preventDefault();
                             if(FAPI_UI.currentUser.sub !== data.owner.sub){
-                                var myModalEl = document.getElementById('reRunTestModal');
-                                var modal     = bootstrap.Modal.getOrCreateInstance(myModalEl);
-                                modal.show();
+                                document.getElementById('reRunTestModal').show();
                             } else {
                                 runTest(data.testName, data.variant, data.planId, data.config, testId);
                             }
@@ -403,9 +401,7 @@
                             document.getElementById('config').innerHTML = _.escape(JSON.stringify(data.config, null, 4));
                             document.getElementById('configTestId').innerHTML = _.escape(testId);
 
-                            var myModalEl = document.getElementById('configModal');
-                            var modal     = bootstrap.Modal.getOrCreateInstance(myModalEl);
-                            modal.show();
+                            document.getElementById('configModal').show();
                         };
                     }
 
@@ -426,9 +422,7 @@
                         document.getElementById('publishBtn').onclick = function(evt) {
                             evt.preventDefault();
 
-                            var myModalEl = document.getElementById('publishModal');
-                            var modal     = bootstrap.Modal.getOrCreateInstance(myModalEl);
-                            modal.show();
+                            document.getElementById('publishModal').show();
                         };
                     }
 

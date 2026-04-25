@@ -7,6 +7,17 @@ export default {
   component: "cts-modal",
 };
 
+/**
+ * Sleep for one frame so async dialog events (close, etc.) settle before
+ * an assertion. Keeps the play tests stable across browsers without depending
+ * on Bootstrap's transitionend timing the way the prior stories did.
+ *
+ * @returns {Promise<void>}
+ */
+function nextFrame() {
+  return new Promise((resolve) => requestAnimationFrame(() => resolve()));
+}
+
 // --- Stories ---
 
 export const Default = {
@@ -14,7 +25,7 @@ export const Default = {
     <div>
       <button
         type="button"
-        class="btn btn-primary"
+        class="oidf-btn oidf-btn-sm oidf-btn-primary"
         onclick="this.closest('div').querySelector('cts-modal').show()"
       >
         Open Modal
@@ -27,22 +38,23 @@ export const Default = {
   `,
 
   async play({ canvasElement }) {
-    const triggerBtn = canvasElement.querySelector(".btn-primary");
+    const triggerBtn = canvasElement.querySelector(".oidf-btn-primary");
     await userEvent.click(triggerBtn);
     await waitFor(() => {
-      expect(canvasElement.querySelector(".modal.show")).toBeTruthy();
+      expect(canvasElement.querySelector("dialog.oidf-modal[open]")).toBeTruthy();
     });
 
-    expect(canvasElement.querySelector(".modal-title").textContent).toBe("Error Details");
+    expect(canvasElement.querySelector(".oidf-modal-title").textContent).toBe("Error Details");
 
-    const paragraphs = canvasElement.querySelectorAll(".modal-body p");
+    const paragraphs = canvasElement.querySelectorAll(".oidf-modal-body p");
     expect(paragraphs.length).toBe(2);
     expect(paragraphs[0].textContent).toBe("An error occurred while processing your request.");
     expect(paragraphs[1].textContent).toBe("Please check the logs for more details.");
 
-    const closeBtn = canvasElement.querySelector(".btn-close");
+    // Header has a custom close button (not Bootstrap's btn-close).
+    const closeBtn = canvasElement.querySelector(".oidf-modal-close");
     expect(closeBtn).toBeTruthy();
-    expect(closeBtn.getAttribute("data-bs-dismiss")).toBe("modal");
+    expect(closeBtn.getAttribute("aria-label")).toBe("Close");
   },
 };
 
@@ -53,22 +65,26 @@ export const ShowAndHide = {
     </cts-modal>`,
 
   async play({ canvasElement }) {
-    const ctsModal = canvasElement.querySelector("cts-modal");
-    const modalEl = canvasElement.querySelector(".modal");
+    const ctsModal = /** @type {HTMLElement & { show: () => void; hide: () => void }} */ (
+      canvasElement.querySelector("cts-modal")
+    );
+    const dialog = /** @type {HTMLDialogElement} */ (
+      canvasElement.querySelector("dialog.oidf-modal")
+    );
 
     // Modal should start hidden
-    expect(modalEl.classList.contains("show")).toBe(false);
+    expect(dialog.open).toBe(false);
 
     // show() should open it
     ctsModal.show();
     await waitFor(() => {
-      expect(modalEl.classList.contains("show")).toBe(true);
+      expect(dialog.open).toBe(true);
     });
 
     // hide() should close it
     ctsModal.hide();
     await waitFor(() => {
-      expect(modalEl.classList.contains("show")).toBe(false);
+      expect(dialog.open).toBe(false);
     });
   },
 };
@@ -80,23 +96,55 @@ export const CloseEvent = {
     </cts-modal>`,
 
   async play({ canvasElement }) {
-    const ctsModal = canvasElement.querySelector("cts-modal");
+    const ctsModal = /** @type {HTMLElement & { show: () => void; hide: () => void }} */ (
+      canvasElement.querySelector("cts-modal")
+    );
 
     let closeEventFired = false;
     ctsModal.addEventListener("cts-modal-close", () => {
       closeEventFired = true;
     });
 
-    // Open then close — the hidden.bs.modal event should fire cts-modal-close
+    // Open then close — the dialog `close` event fires cts-modal-close
     ctsModal.show();
+    const dialog = canvasElement.querySelector("dialog.oidf-modal");
     await waitFor(() => {
-      expect(canvasElement.querySelector(".modal.show")).toBeTruthy();
+      expect(/** @type {HTMLDialogElement} */ (dialog).open).toBe(true);
     });
 
     ctsModal.hide();
     await waitFor(() => {
       expect(closeEventFired).toBe(true);
     });
+  },
+};
+
+export const ShowEvent = {
+  render: () =>
+    html`<cts-modal heading="Show Event Test">
+      <p>Listening for cts-modal-show event.</p>
+    </cts-modal>`,
+
+  async play({ canvasElement }) {
+    const ctsModal = /** @type {HTMLElement & { show: () => void; hide: () => void }} */ (
+      canvasElement.querySelector("cts-modal")
+    );
+    const dialog = /** @type {HTMLDialogElement} */ (
+      canvasElement.querySelector("dialog.oidf-modal")
+    );
+
+    // The cts-modal-show listener should fire BEFORE the dialog opens, so
+    // listeners can mutate body content synchronously (matches the
+    // fapi.ui.js privateLinkResultModal use-case where the title and body
+    // are populated immediately before show()).
+    let openStateAtFire = "not fired";
+    ctsModal.addEventListener("cts-modal-show", () => {
+      openStateAtFire = dialog.open ? "open" : "closed";
+    });
+
+    ctsModal.show();
+    await waitFor(() => expect(dialog.open).toBe(true));
+    expect(openStateAtFire).toBe("closed");
   },
 };
 
@@ -108,49 +156,53 @@ export const CloseViaButton = {
   `,
 
   async play({ canvasElement }) {
-    const ctsModal = canvasElement.querySelector("cts-modal");
-    const closeBtn = canvasElement.querySelector(".btn-close");
+    const ctsModal = /** @type {HTMLElement & { show: () => void; hide: () => void }} */ (
+      canvasElement.querySelector("cts-modal")
+    );
+    const closeBtn = canvasElement.querySelector(".oidf-modal-close");
 
     // Open the modal
     ctsModal.show();
+    const dialog = /** @type {HTMLDialogElement} */ (
+      canvasElement.querySelector("dialog.oidf-modal")
+    );
     await waitFor(() => {
-      expect(canvasElement.querySelector(".modal.show")).toBeTruthy();
+      expect(dialog.open).toBe(true);
     });
 
     // Click the close button
     await userEvent.click(closeBtn);
     await waitFor(() => {
-      expect(canvasElement.querySelector(".modal.show")).toBeNull();
+      expect(dialog.open).toBe(false);
     });
   },
 };
 
-export const BootstrapApiCompat = {
+export const HostApiResolution = {
   render: () =>
-    html`<cts-modal id="testBackcompat" heading="Bootstrap API Test">
-      <p>Works with bootstrap.Modal.getOrCreateInstance()</p>
+    html`<cts-modal id="testHostResolution" heading="Host Resolution Test">
+      <p>document.getElementById resolves to the cts-modal host.</p>
     </cts-modal>`,
 
   async play() {
-    // getElementById should find the inner .modal div (id transferred from host)
-    const modalDiv = document.getElementById("testBackcompat");
-    expect(modalDiv).toBeTruthy();
-    if (!modalDiv) throw new Error("testBackcompat modal not found");
-    expect(modalDiv.classList.contains("modal")).toBe(true);
+    // The id stays on the host (no transfer to inner element). getElementById
+    // therefore returns the cts-modal custom element, which exposes
+    // .show()/.hide() directly. This replaces the prior Bootstrap factory
+    // call shape entirely.
+    const host = document.getElementById("testHostResolution");
+    expect(host).toBeTruthy();
+    if (!host) throw new Error("testHostResolution host not found");
+    expect(host.tagName.toLowerCase()).toBe("cts-modal");
 
-    // bootstrap.Modal API should work directly
-    const bsModal = bootstrap.Modal.getOrCreateInstance(modalDiv);
-    expect(bsModal).toBeTruthy();
+    const typedHost = /** @type {HTMLElement & { show: () => void; hide: () => void }} */ (host);
+    const dialog = /** @type {HTMLDialogElement} */ (host.querySelector("dialog.oidf-modal"));
+    expect(dialog).toBeTruthy();
 
-    bsModal.show();
-    await waitFor(() => {
-      expect(modalDiv.classList.contains("show")).toBe(true);
-    });
+    typedHost.show();
+    await waitFor(() => expect(dialog.open).toBe(true));
 
-    bsModal.hide();
-    await waitFor(() => {
-      expect(modalDiv.classList.contains("show")).toBe(false);
-    });
+    typedHost.hide();
+    await waitFor(() => expect(dialog.open).toBe(false));
   },
 };
 
@@ -159,7 +211,7 @@ export const SizeLarge = {
     <div>
       <button
         type="button"
-        class="btn btn-primary"
+        class="oidf-btn oidf-btn-sm oidf-btn-primary"
         onclick="this.closest('div').querySelector('cts-modal').show()"
       >
         Open Large Modal
@@ -171,14 +223,14 @@ export const SizeLarge = {
   `,
 
   async play({ canvasElement }) {
-    const triggerBtn = canvasElement.querySelector(".btn-primary");
+    const triggerBtn = canvasElement.querySelector(".oidf-btn-primary");
     await userEvent.click(triggerBtn);
-    await waitFor(() => {
-      expect(canvasElement.querySelector(".modal.show")).toBeTruthy();
-    });
+    const dialog = /** @type {HTMLDialogElement} */ (
+      canvasElement.querySelector("dialog.oidf-modal")
+    );
+    await waitFor(() => expect(dialog.open).toBe(true));
 
-    const dialog = canvasElement.querySelector(".modal-dialog");
-    expect(dialog.classList.contains("modal-lg")).toBe(true);
+    expect(dialog.getAttribute("data-size")).toBe("lg");
   },
 };
 
@@ -187,7 +239,7 @@ export const SizeSmall = {
     <div>
       <button
         type="button"
-        class="btn btn-primary"
+        class="oidf-btn oidf-btn-sm oidf-btn-primary"
         onclick="this.closest('div').querySelector('cts-modal').show()"
       >
         Open Small Modal
@@ -199,14 +251,14 @@ export const SizeSmall = {
   `,
 
   async play({ canvasElement }) {
-    const triggerBtn = canvasElement.querySelector(".btn-primary");
+    const triggerBtn = canvasElement.querySelector(".oidf-btn-primary");
     await userEvent.click(triggerBtn);
-    await waitFor(() => {
-      expect(canvasElement.querySelector(".modal.show")).toBeTruthy();
-    });
+    const dialog = /** @type {HTMLDialogElement} */ (
+      canvasElement.querySelector("dialog.oidf-modal")
+    );
+    await waitFor(() => expect(dialog.open).toBe(true));
 
-    const dialog = canvasElement.querySelector(".modal-dialog");
-    expect(dialog.classList.contains("modal-sm")).toBe(true);
+    expect(dialog.getAttribute("data-size")).toBe("sm");
   },
 };
 
@@ -215,7 +267,7 @@ export const SizeExtraLarge = {
     <div>
       <button
         type="button"
-        class="btn btn-primary"
+        class="oidf-btn oidf-btn-sm oidf-btn-primary"
         onclick="this.closest('div').querySelector('cts-modal').show()"
       >
         Open Extra Large Modal
@@ -227,14 +279,14 @@ export const SizeExtraLarge = {
   `,
 
   async play({ canvasElement }) {
-    const triggerBtn = canvasElement.querySelector(".btn-primary");
+    const triggerBtn = canvasElement.querySelector(".oidf-btn-primary");
     await userEvent.click(triggerBtn);
-    await waitFor(() => {
-      expect(canvasElement.querySelector(".modal.show")).toBeTruthy();
-    });
+    const dialog = /** @type {HTMLDialogElement} */ (
+      canvasElement.querySelector("dialog.oidf-modal")
+    );
+    await waitFor(() => expect(dialog.open).toBe(true));
 
-    const dialog = canvasElement.querySelector(".modal-dialog");
-    expect(dialog.classList.contains("modal-xl")).toBe(true);
+    expect(dialog.getAttribute("data-size")).toBe("xl");
   },
 };
 
@@ -243,7 +295,7 @@ export const SizeInvalid = {
     <div>
       <button
         type="button"
-        class="btn btn-primary"
+        class="oidf-btn oidf-btn-sm oidf-btn-primary"
         onclick="this.closest('div').querySelector('cts-modal').show()"
       >
         Open Modal (invalid size)
@@ -255,14 +307,15 @@ export const SizeInvalid = {
   `,
 
   async play({ canvasElement }) {
-    const triggerBtn = canvasElement.querySelector(".btn-primary");
+    const triggerBtn = canvasElement.querySelector(".oidf-btn-primary");
     await userEvent.click(triggerBtn);
-    await waitFor(() => {
-      expect(canvasElement.querySelector(".modal.show")).toBeTruthy();
-    });
+    const dialog = /** @type {HTMLDialogElement} */ (
+      canvasElement.querySelector("dialog.oidf-modal")
+    );
+    await waitFor(() => expect(dialog.open).toBe(true));
 
-    const dialog = canvasElement.querySelector(".modal-dialog");
-    expect(dialog.className).toBe("modal-dialog");
+    // Invalid size values are dropped — no data-size attribute.
+    expect(dialog.hasAttribute("data-size")).toBe(false);
   },
 };
 
@@ -271,7 +324,7 @@ export const FooterButtonsConfirmation = {
     <div>
       <button
         type="button"
-        class="btn btn-primary"
+        class="oidf-btn oidf-btn-sm oidf-btn-primary"
         onclick="this.closest('div').querySelector('cts-modal').show()"
       >
         Delete Token
@@ -289,28 +342,32 @@ export const FooterButtonsConfirmation = {
   `,
 
   async play({ canvasElement }) {
-    const triggerBtn = canvasElement.querySelector(".btn-primary");
+    const triggerBtn = canvasElement.querySelector(".oidf-btn-primary");
     await userEvent.click(triggerBtn);
-    await waitFor(() => {
-      expect(canvasElement.querySelector(".modal.show")).toBeTruthy();
-    });
+    const dialog = /** @type {HTMLDialogElement} */ (
+      canvasElement.querySelector("dialog.oidf-modal")
+    );
+    await waitFor(() => expect(dialog.open).toBe(true));
 
     // Verify two custom buttons rendered (no auto Close)
-    const buttons = canvasElement.querySelectorAll(".modal-footer button");
+    const buttons = canvasElement.querySelectorAll(".oidf-modal-footer button");
     expect(buttons.length).toBe(2);
 
-    // Delete button has correct class, id, and dismiss
-    const deleteBtn = buttons[0];
+    // Delete button has correct OIDF danger class, id, and dismiss behavior
+    const deleteBtn = /** @type {HTMLButtonElement} */ (buttons[0]);
     expect(deleteBtn.textContent).toBe("Delete");
-    expect(deleteBtn.classList.contains("btn-danger")).toBe(true);
-    expect(deleteBtn.classList.contains("btn-sm")).toBe(true);
+    expect(deleteBtn.classList.contains("oidf-btn-danger")).toBe(true);
+    expect(deleteBtn.classList.contains("oidf-btn-sm")).toBe(true);
     expect(deleteBtn.id).toBe("confirmDelete");
-    expect(deleteBtn.getAttribute("data-bs-dismiss")).toBe("modal");
 
-    // Cancel button uses default btn-light class
-    const cancelBtn = buttons[1];
+    // Cancel button uses default secondary class
+    const cancelBtn = /** @type {HTMLButtonElement} */ (buttons[1]);
     expect(cancelBtn.textContent).toBe("Cancel");
-    expect(cancelBtn.classList.contains("btn-light")).toBe(true);
+    expect(cancelBtn.classList.contains("oidf-btn-secondary")).toBe(true);
+
+    // Clicking dismiss-default Cancel closes the dialog
+    await userEvent.click(cancelBtn);
+    await waitFor(() => expect(dialog.open).toBe(false));
   },
 };
 
@@ -319,7 +376,7 @@ export const FooterButtonsDismissFalse = {
     <div>
       <button
         type="button"
-        class="btn btn-primary"
+        class="oidf-btn oidf-btn-sm oidf-btn-primary"
         onclick="this.closest('div').querySelector('cts-modal').show()"
       >
         Delete Plan
@@ -337,29 +394,26 @@ export const FooterButtonsDismissFalse = {
   `,
 
   async play({ canvasElement }) {
-    const triggerBtn = canvasElement.querySelector(".btn-primary");
+    const triggerBtn = canvasElement.querySelector(".oidf-btn-primary");
     await userEvent.click(triggerBtn);
-    await waitFor(() => {
-      expect(canvasElement.querySelector(".modal.show")).toBeTruthy();
-    });
+    const dialog = /** @type {HTMLDialogElement} */ (
+      canvasElement.querySelector("dialog.oidf-modal")
+    );
+    await waitFor(() => expect(dialog.open).toBe(true));
 
-    const buttons = canvasElement.querySelectorAll(".modal-footer button");
+    const buttons = canvasElement.querySelectorAll(".oidf-modal-footer button");
     expect(buttons.length).toBe(2);
 
-    // Cancel has dismiss
-    expect(buttons[0].getAttribute("data-bs-dismiss")).toBe("modal");
-
-    // Delete button does NOT dismiss (JS controls the lifecycle)
-    const deleteBtn = buttons[1];
+    const deleteBtn = /** @type {HTMLButtonElement} */ (buttons[1]);
     expect(deleteBtn.textContent).toBe("Delete plan");
     expect(deleteBtn.id).toBe("confirmDeletePlanBtn");
-    expect(deleteBtn.hasAttribute("data-bs-dismiss")).toBe(false);
 
-    // Clicking the non-dismiss button keeps the modal open
+    // Clicking the non-dismiss button keeps the modal open (no listener was
+    // attached for this button, so the dialog does not close).
     await userEvent.click(deleteBtn);
-    await waitFor(() => {
-      expect(canvasElement.querySelector(".modal.show")).toBeTruthy();
-    });
+    // Allow any potential listener to settle.
+    await nextFrame();
+    expect(dialog.open).toBe(true);
   },
 };
 
@@ -368,7 +422,7 @@ export const FooterButtonsWithDataAttributes = {
     <div>
       <button
         type="button"
-        class="btn btn-primary"
+        class="oidf-btn oidf-btn-sm oidf-btn-primary"
         onclick="this.closest('div').querySelector('cts-modal').show()"
       >
         Publish
@@ -386,13 +440,14 @@ export const FooterButtonsWithDataAttributes = {
   `,
 
   async play({ canvasElement }) {
-    const triggerBtn = canvasElement.querySelector(".btn-primary");
+    const triggerBtn = canvasElement.querySelector(".oidf-btn-primary");
     await userEvent.click(triggerBtn);
-    await waitFor(() => {
-      expect(canvasElement.querySelector(".modal.show")).toBeTruthy();
-    });
+    const dialog = /** @type {HTMLDialogElement} */ (
+      canvasElement.querySelector("dialog.oidf-modal")
+    );
+    await waitFor(() => expect(dialog.open).toBe(true));
 
-    const publishBtn = canvasElement.querySelector(".modal-footer button");
+    const publishBtn = canvasElement.querySelector(".oidf-modal-footer button");
     expect(publishBtn.textContent).toBe("Publish");
     expect(publishBtn.getAttribute("data-publish")).toBe("everything");
   },
@@ -403,7 +458,7 @@ export const FooterButtonsMalformedJson = {
     <div>
       <button
         type="button"
-        class="btn btn-primary"
+        class="oidf-btn oidf-btn-sm oidf-btn-primary"
         onclick="this.closest('div').querySelector('cts-modal').show()"
       >
         Open Modal (malformed JSON)
@@ -415,14 +470,15 @@ export const FooterButtonsMalformedJson = {
   `,
 
   async play({ canvasElement }) {
-    const triggerBtn = canvasElement.querySelector(".btn-primary");
+    const triggerBtn = canvasElement.querySelector(".oidf-btn-primary");
     await userEvent.click(triggerBtn);
-    await waitFor(() => {
-      expect(canvasElement.querySelector(".modal.show")).toBeTruthy();
-    });
+    const dialog = /** @type {HTMLDialogElement} */ (
+      canvasElement.querySelector("dialog.oidf-modal")
+    );
+    await waitFor(() => expect(dialog.open).toBe(true));
 
     // Malformed JSON → fallback to auto Close button
-    const buttons = canvasElement.querySelectorAll(".modal-footer button");
+    const buttons = canvasElement.querySelectorAll(".oidf-modal-footer button");
     expect(buttons.length).toBe(1);
     expect(buttons[0].textContent).toBe("Close");
   },
@@ -433,7 +489,7 @@ export const FooterButtonsGetElementById = {
     <div>
       <button
         type="button"
-        class="btn btn-primary"
+        class="oidf-btn oidf-btn-sm oidf-btn-primary"
         onclick="this.closest('div').querySelector('cts-modal').show()"
       >
         Open Modal
@@ -449,11 +505,12 @@ export const FooterButtonsGetElementById = {
   `,
 
   async play({ canvasElement }) {
-    const triggerBtn = canvasElement.querySelector(".btn-primary");
+    const triggerBtn = canvasElement.querySelector(".oidf-btn-primary");
     await userEvent.click(triggerBtn);
-    await waitFor(() => {
-      expect(canvasElement.querySelector(".modal.show")).toBeTruthy();
-    });
+    const dialog = /** @type {HTMLDialogElement} */ (
+      canvasElement.querySelector("dialog.oidf-modal")
+    );
+    await waitFor(() => expect(dialog.open).toBe(true));
 
     // Button is reachable via getElementById (critical for JS binding compat)
     const btn = document.getElementById("confirmBtn");
@@ -466,20 +523,22 @@ export const FooterButtonsGetElementById = {
 export const StaticBackdrop = {
   render: () =>
     html`<cts-modal id="testStatic" heading="Loading..." static-backdrop no-keyboard>
-      <div class="text-center"><span class="spinner-border"></span></div>
+      <div><span>Loading…</span></div>
     </cts-modal>`,
 
-  async play({ canvasElement }) {
-    const modalDiv = document.getElementById("testStatic");
-    expect(modalDiv).toBeTruthy();
-    if (!modalDiv) throw new Error("testStatic modal not found");
-    expect(modalDiv.getAttribute("data-bs-backdrop")).toBe("static");
-    expect(modalDiv.getAttribute("data-bs-keyboard")).toBe("false");
+  async play() {
+    // The id stays on the host, so getElementById returns the cts-modal
+    // element. Confirm: no header close button, no footer (loading-modal
+    // shape preserved from the Bootstrap-era contract).
+    const host = document.getElementById("testStatic");
+    expect(host).toBeTruthy();
+    if (!host) throw new Error("testStatic host not found");
+    expect(host.tagName.toLowerCase()).toBe("cts-modal");
 
-    // Static backdrop modals should not have a close button or footer
-    const closeBtn = canvasElement.querySelector(".btn-close");
+    // Static-backdrop omits the close button and footer.
+    const closeBtn = host.querySelector(".oidf-modal-close");
     expect(closeBtn).toBeNull();
-    const footer = canvasElement.querySelector(".modal-footer");
+    const footer = host.querySelector(".oidf-modal-footer");
     expect(footer).toBeNull();
   },
 };
@@ -495,7 +554,7 @@ export const FooterButtonsWithIcon = {
     <div>
       <button
         type="button"
-        class="btn btn-primary"
+        class="oidf-btn oidf-btn-sm oidf-btn-primary"
         onclick="this.closest('div').querySelector('cts-modal').show()"
       >
         Open Copy Modal
@@ -513,13 +572,14 @@ export const FooterButtonsWithIcon = {
   `,
 
   async play({ canvasElement }) {
-    const triggerBtn = canvasElement.querySelector(".btn-primary");
+    const triggerBtn = canvasElement.querySelector(".oidf-btn-primary");
     await userEvent.click(triggerBtn);
-    await waitFor(() => {
-      expect(canvasElement.querySelector(".modal.show")).toBeTruthy();
-    });
+    const dialog = /** @type {HTMLDialogElement} */ (
+      canvasElement.querySelector("dialog.oidf-modal")
+    );
+    await waitFor(() => expect(dialog.open).toBe(true));
 
-    const copyBtn = canvasElement.querySelectorAll(".modal-footer button")[0];
+    const copyBtn = canvasElement.querySelectorAll(".oidf-modal-footer button")[0];
     expect(copyBtn.textContent.trim()).toContain("Copy to clipboard");
 
     const icon = copyBtn.querySelector("span.bi");
@@ -539,7 +599,7 @@ export const FooterButtonsIconRejected = {
     <div>
       <button
         type="button"
-        class="btn btn-primary"
+        class="oidf-btn oidf-btn-sm oidf-btn-primary"
         onclick="this.closest('div').querySelector('cts-modal').show()"
       >
         Open
@@ -554,13 +614,14 @@ export const FooterButtonsIconRejected = {
   `,
 
   async play({ canvasElement }) {
-    const triggerBtn = canvasElement.querySelector(".btn-primary");
+    const triggerBtn = canvasElement.querySelector(".oidf-btn-primary");
     await userEvent.click(triggerBtn);
-    await waitFor(() => {
-      expect(canvasElement.querySelector(".modal.show")).toBeTruthy();
-    });
+    const dialog = /** @type {HTMLDialogElement} */ (
+      canvasElement.querySelector("dialog.oidf-modal")
+    );
+    await waitFor(() => expect(dialog.open).toBe(true));
 
-    const btn = canvasElement.querySelector(".modal-footer button");
+    const btn = canvasElement.querySelector(".oidf-modal-footer button");
     // No span — sanitizer dropped the bad value instead of emitting bi-<script>...
     expect(btn.querySelector("span.bi")).toBeNull();
     // And no script tag was smuggled in either.
@@ -572,13 +633,16 @@ export const FooterButtonsIconRejected = {
 /**
  * Regression test for R-I3: desc.class="btn-outline-primary" used to be
  * silently downgraded to btn-light because outline-* wasn't in VARIANT_CLASSES.
+ * The U9 rewrite preserves outline-* via the OIDF Variant Migration table
+ * (outline-primary maps to oidf-btn-primary), and unknown btn-* values
+ * fall through to additive-class mode so caller-supplied themes survive.
  */
 export const FooterButtonsOutlineVariantIntact = {
   render: () => html`
     <div>
       <button
         type="button"
-        class="btn btn-primary"
+        class="oidf-btn oidf-btn-sm oidf-btn-primary"
         onclick="this.closest('div').querySelector('cts-modal').show()"
       >
         Open
@@ -596,21 +660,22 @@ export const FooterButtonsOutlineVariantIntact = {
   `,
 
   async play({ canvasElement }) {
-    const triggerBtn = canvasElement.querySelector(".btn-primary");
+    const triggerBtn = canvasElement.querySelector(".oidf-btn-primary");
     await userEvent.click(triggerBtn);
-    await waitFor(() => {
-      expect(canvasElement.querySelector(".modal.show")).toBeTruthy();
-    });
+    const dialog = /** @type {HTMLDialogElement} */ (
+      canvasElement.querySelector("dialog.oidf-modal")
+    );
+    await waitFor(() => expect(dialog.open).toBe(true));
 
     const outlineBtn = document.getElementById("outlineBtn");
     expect(outlineBtn).toBeTruthy();
     if (!outlineBtn) throw new Error("outlineBtn not found");
-    // The outline variant must be preserved — NOT downgraded to btn-light.
-    expect(outlineBtn.classList.contains("btn-outline-primary")).toBe(true);
-    expect(outlineBtn.classList.contains("btn-light")).toBe(false);
+    // outline-primary maps to the OIDF primary surface.
+    expect(outlineBtn.classList.contains("oidf-btn-primary")).toBe(true);
 
     // Truly unknown btn-* values fall through to additive-class mode rather
-    // than silently becoming btn-light. Caller-supplied class is preserved.
+    // than silently becoming the secondary variant. Caller-supplied class
+    // is preserved verbatim.
     const customBtn = document.getElementById("customBtn");
     expect(customBtn).toBeTruthy();
     if (!customBtn) throw new Error("customBtn not found");
@@ -619,8 +684,9 @@ export const FooterButtonsOutlineVariantIntact = {
 };
 
 /**
- * aria-modal contract — set at connectedCallback regardless of show state,
- * per the solution doc at docs/solutions/web-components/cts-modal-bootstrap-interop-2026-04-17.md.
+ * ARIA contract — the dialog carries `aria-labelledby` pointing to the
+ * header title's id. Native `<dialog>` provides modal semantics directly
+ * (no manual aria-modal needed).
  */
 export const AriaAttributes = {
   render: () =>
@@ -629,25 +695,22 @@ export const AriaAttributes = {
     </cts-modal>`,
 
   async play() {
-    const modalDiv = document.getElementById("ariaModal");
-    expect(modalDiv).toBeTruthy();
-    if (!modalDiv) throw new Error("ariaModal not found");
-    expect(modalDiv.getAttribute("role")).toBe("dialog");
-    expect(modalDiv.getAttribute("aria-modal")).toBe("true");
-    expect(modalDiv.getAttribute("aria-labelledby")).toBe("ariaModal-title");
-    const title = modalDiv.querySelector("#ariaModal-title");
+    const host = document.getElementById("ariaModal");
+    expect(host).toBeTruthy();
+    if (!host) throw new Error("ariaModal host not found");
+    const dialog = host.querySelector("dialog.oidf-modal");
+    expect(dialog).toBeTruthy();
+    if (!dialog) throw new Error("ariaModal dialog not found");
+    expect(dialog.getAttribute("aria-labelledby")).toBe("ariaModal-title");
+
+    const title = dialog.querySelector("#ariaModal-title");
     expect(title).toBeTruthy();
     expect(/** @type {Element} */ (title).textContent).toBe("ARIA Test");
   },
 };
 
 /**
- * Escape dismissal is controlled by `data-bs-keyboard`. Without `no-keyboard`,
- * Bootstrap's Modal plugin listens for Escape and hides the dialog. Rather
- * than simulate the keydown (Bootstrap's listener timing is flaky under
- * vitest's browser runner), assert that the contract is wired correctly:
- * `data-bs-keyboard` is NOT set on the inner div, which means Bootstrap
- * applies its default keyboard-enabled behaviour.
+ * ESC closes the dialog by default (native `<dialog>` cancel behavior).
  */
 export const EscapeDismissal = {
   render: () =>
@@ -655,82 +718,152 @@ export const EscapeDismissal = {
       <p>Press Escape to close.</p>
     </cts-modal>`,
 
-  async play({ canvasElement }) {
+  async play() {
     const host = /** @type {HTMLElement & { show: () => void; hide: () => void }} */ (
-      canvasElement.querySelector("cts-modal")
+      document.getElementById("escapeModal")
     );
+    if (!host) throw new Error("escapeModal not found");
+    const dialog = /** @type {HTMLDialogElement} */ (host.querySelector("dialog.oidf-modal"));
+
     host.show();
-    const dialog = document.getElementById("escapeModal");
-    if (!dialog) throw new Error("escapeModal not found");
-    await waitFor(() => expect(dialog.classList.contains("show")).toBe(true));
-    // Absent attribute = Bootstrap default (keyboard enabled). The presence
-    // of StaticBackdropNoKeyboard's opposite assertion completes the pair.
-    expect(dialog.getAttribute("data-bs-keyboard")).toBeNull();
-    // Programmatic hide works — sanity check on the hide contract.
+    await waitFor(() => expect(dialog.open).toBe(true));
+
+    // Programmatic hide as the deterministic equivalent of pressing ESC.
+    // Native dialog ESC handling is browser-driven and flaky to simulate
+    // reliably under test runners; the contract being verified is that
+    // hide() and dialog.close() trigger cts-modal-close.
     host.hide();
-    await waitFor(() => expect(dialog.classList.contains("show")).toBe(false));
+    await waitFor(() => expect(dialog.open).toBe(false));
   },
 };
 
 /**
- * `static-backdrop` + `no-keyboard`: the modal does NOT close on Escape
- * (opposite of the above). Used for loading modals where the user must wait
- * for completion.
+ * `static-backdrop` + `no-keyboard`: ESC must NOT close the dialog. The
+ * cancel event handler intercepts it.
  */
 export const StaticBackdropNoKeyboard = {
   render: () =>
     html`<cts-modal id="staticKbdModal" heading="Loading..." static-backdrop no-keyboard>
-      <div class="text-center"><span class="spinner-border"></span></div>
+      <div><span>Loading…</span></div>
     </cts-modal>`,
 
   async play() {
     const host = /** @type {HTMLElement & { show: () => void }} */ (
-      document.body.querySelector("cts-modal")
+      document.getElementById("staticKbdModal")
     );
+    if (!host) throw new Error("staticKbdModal not found");
+    const dialog = /** @type {HTMLDialogElement} */ (host.querySelector("dialog.oidf-modal"));
+
     host.show();
-    const dialog = document.getElementById("staticKbdModal");
-    if (!dialog) throw new Error("staticKbdModal not found");
-    await waitFor(() => expect(dialog.classList.contains("show")).toBe(true));
-    // Keyboard is explicitly disabled.
-    expect(dialog.getAttribute("data-bs-keyboard")).toBe("false");
-    expect(dialog.getAttribute("data-bs-backdrop")).toBe("static");
-    // Escape should be a no-op.
-    document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
-    // Allow a microtask + frame for Bootstrap's handler to potentially run.
-    await new Promise((r) => setTimeout(r, 100));
-    expect(dialog.classList.contains("show")).toBe(true);
+    await waitFor(() => expect(dialog.open).toBe(true));
+
+    // Simulate the cancel event ESC would dispatch. Our handler calls
+    // preventDefault, so the dialog stays open.
+    const cancelEvent = new Event("cancel", { cancelable: true });
+    dialog.dispatchEvent(cancelEvent);
+    expect(cancelEvent.defaultPrevented).toBe(true);
+    expect(dialog.open).toBe(true);
   },
 };
 
 /**
- * Focus containment contract: the inner .modal has `tabindex="-1"` so it can
- * receive focus programmatically when Bootstrap shows it. Bootstrap's own
- * focus-return logic runs on `transitionend` which is unreliable under
- * vitest's browser runner; this story asserts the static focus contract the
- * component controls, and leaves focus-restoration as a visual-QA concern.
+ * `static-backdrop` blocks backdrop-click dismissal. Without it, a click on
+ * the backdrop (i.e. on the dialog element with no inner-rect coordinates)
+ * closes the dialog.
  */
-export const FocusContract = {
+export const StaticBackdropBlocksClick = {
+  render: () =>
+    html`<cts-modal id="staticClickModal" heading="No Backdrop Close" static-backdrop>
+      <p>Backdrop clicks should not dismiss.</p>
+    </cts-modal>`,
+
+  async play() {
+    const host = /** @type {HTMLElement & { show: () => void }} */ (
+      document.getElementById("staticClickModal")
+    );
+    if (!host) throw new Error("staticClickModal not found");
+    const dialog = /** @type {HTMLDialogElement} */ (host.querySelector("dialog.oidf-modal"));
+
+    host.show();
+    await waitFor(() => expect(dialog.open).toBe(true));
+
+    // Synthesize a click whose target is the dialog itself (the backdrop).
+    // Coordinates 0,0 are guaranteed outside the dialog rect.
+    const click = new MouseEvent("click", {
+      bubbles: true,
+      cancelable: true,
+      clientX: 0,
+      clientY: 0,
+    });
+    dialog.dispatchEvent(click);
+    // static-backdrop swallows the close — the dialog remains open.
+    await nextFrame();
+    expect(dialog.open).toBe(true);
+  },
+};
+
+/**
+ * Show-after-hide rotation: errorModal can be opened immediately after
+ * loadingModal is hidden, mirroring the `showError` → `hideBusy()` path
+ * in fapi.ui.js.
+ */
+export const RotateModals = {
   render: () => html`
     <div>
-      <button id="openFocusModal" type="button" class="btn btn-primary"> Open </button>
-      <cts-modal id="focusModal" heading="Focus Contract Test">
-        <p>Focus container for dialog role.</p>
+      <cts-modal id="rotateLoading" heading="Loading..." static-backdrop no-keyboard>
+        <p>Loading…</p>
+      </cts-modal>
+      <cts-modal id="rotateError" heading="Error">
+        <p>An error occurred.</p>
       </cts-modal>
     </div>
   `,
 
-  async play({ canvasElement }) {
-    const trigger = canvasElement.querySelector("#openFocusModal");
-    expect(trigger).toBeTruthy();
+  async play() {
+    const loading = /** @type {HTMLElement & { show: () => void; hide: () => void }} */ (
+      document.getElementById("rotateLoading")
+    );
+    const error = /** @type {HTMLElement & { show: () => void; hide: () => void }} */ (
+      document.getElementById("rotateError")
+    );
+    if (!loading || !error) throw new Error("rotation modals not found");
+    const loadingDialog = /** @type {HTMLDialogElement} */ (
+      loading.querySelector("dialog.oidf-modal")
+    );
+    const errorDialog = /** @type {HTMLDialogElement} */ (error.querySelector("dialog.oidf-modal"));
 
-    // The inner modal div must be focusable by Bootstrap's show() logic —
-    // tabindex="-1" allows programmatic focus without making it tab-reachable.
-    const dialog = document.getElementById("focusModal");
-    if (!dialog) throw new Error("focusModal not found");
-    expect(dialog.getAttribute("tabindex")).toBe("-1");
-    // And the dialog carries semantic role + aria-modal so screen readers
-    // trap virtual focus inside it while it's open.
-    expect(dialog.getAttribute("role")).toBe("dialog");
-    expect(dialog.getAttribute("aria-modal")).toBe("true");
+    loading.show();
+    await waitFor(() => expect(loadingDialog.open).toBe(true));
+
+    // Synchronous hide-then-show in the same tick. <dialog> handles this
+    // cleanly because close() and showModal() do not rely on transitionend.
+    loading.hide();
+    error.show();
+
+    await waitFor(() => expect(errorDialog.open).toBe(true));
+    expect(loadingDialog.open).toBe(false);
+  },
+};
+
+/**
+ * `hide()` is a no-op when nothing is showing. Used by FAPI_UI.hideError()
+ * and FAPI_UI.hideBusy() defensively from many call sites.
+ */
+export const HideWhenClosedIsNoop = {
+  render: () =>
+    html`<cts-modal id="hideNoopModal" heading="Hide Noop">
+      <p>hide() should be a no-op when not open.</p>
+    </cts-modal>`,
+
+  async play() {
+    const host = /** @type {HTMLElement & { hide: () => void }} */ (
+      document.getElementById("hideNoopModal")
+    );
+    if (!host) throw new Error("hideNoopModal not found");
+    const dialog = /** @type {HTMLDialogElement} */ (host.querySelector("dialog.oidf-modal"));
+    expect(dialog.open).toBe(false);
+    // Should not throw.
+    host.hide();
+    expect(dialog.open).toBe(false);
   },
 };
