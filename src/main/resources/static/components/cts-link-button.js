@@ -200,7 +200,11 @@ function injectStyles() {
  *   `outline-*` forms.
  * @property {string} size - One of: sm (default), md, lg
  * @property {string} label - Visible text
- * @property {string} icon - Bootstrap Icons name (without the `bi-` prefix)
+ * @property {string} icon - Bootstrap Icons name (without the `bi-` prefix).
+ *   When `target="_blank"` is set and `icon` is omitted, defaults to
+ *   `box-arrow-up-right` to signal the link opens in a new tab.
+ * @property {string} target - Anchor target attribute (e.g. `_blank`). When
+ *   `_blank` is used, `rel="noopener noreferrer"` is added automatically.
  * @property {boolean} disabled - Renders as a disabled link (no href, aria-disabled, tabindex=-1)
  * @property {boolean} full-width - Stretches the button to fill its parent's width
  */
@@ -211,6 +215,7 @@ class CtsLinkButton extends LitElement {
     size: { type: String },
     label: { type: String },
     icon: { type: String },
+    target: { type: String },
     disabled: { type: Boolean },
     fullWidth: { type: Boolean, attribute: "full-width", reflect: true },
   };
@@ -222,6 +227,7 @@ class CtsLinkButton extends LitElement {
     this.size = "sm";
     this.label = "";
     this.icon = "";
+    this.target = "";
     this.disabled = false;
     this.fullWidth = false;
   }
@@ -237,28 +243,36 @@ class CtsLinkButton extends LitElement {
 
   // Icon names come from the Bootstrap Icons set (2000+ icons).
   // Constructed from the icon prop, not a finite variant set.
-  _iconClass() {
-    return `bi bi-${this.icon}`;
-  }
-
-  _renderIcon() {
-    if (this.icon) {
-      return html`<span class="${this._iconClass()}" aria-hidden="true"></span>`;
-    }
-    return nothing;
+  _iconClass(name) {
+    return `bi bi-${name}`;
   }
 
   render() {
-    const iconContent = this._renderIcon();
-    const hasIcon = iconContent !== nothing;
     const anchorClass = buildButtonClasses({ variant: this.variant, size: this.size });
+    const isExternal = this.target === "_blank";
+    const leadingIcon = this.icon
+      ? html`<span class="${this._iconClass(this.icon)}" aria-hidden="true"></span>`
+      : nothing;
+    // External-link indicator goes after the label so it reads as
+    // "API Documentation ↗", matching the well-known convention. Only
+    // emitted when target=_blank and the caller hasn't supplied a custom icon.
+    const trailingIcon =
+      isExternal && !this.icon
+        ? html`<span class="${this._iconClass("box-arrow-up-right")}" aria-hidden="true"></span>`
+        : nothing;
+    const hasLeading = leadingIcon !== nothing;
+    const hasTrailing = trailingIcon !== nothing;
     return html`<a
       class="${anchorClass}"
       href=${this.disabled ? nothing : this.href}
       role="button"
+      target=${this.target || nothing}
+      rel=${isExternal ? "noopener noreferrer" : nothing}
       aria-disabled=${this.disabled ? "true" : nothing}
       tabindex=${this.disabled ? "-1" : nothing}
-      >${iconContent}${hasIcon && this.label ? " " : ""}${this.label}</a
+      >${leadingIcon}${hasLeading && this.label ? " " : ""}${this.label}${hasTrailing && this.label
+        ? " "
+        : ""}${trailingIcon}</a
     >`;
   }
 }
