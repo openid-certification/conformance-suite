@@ -77,7 +77,7 @@ test.describe("plans.html — Plans List", () => {
     await expect(page.locator("#config")).toContainText("server.issuer");
 
     // Close the modal
-    await configModal.locator('.oidf-modal-close').first().click();
+    await configModal.locator(".oidf-modal-close").first().click();
     await expect(configModal).toBeHidden();
   });
 
