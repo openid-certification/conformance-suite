@@ -25,11 +25,14 @@ export const Info = {
   `,
 
   async play({ canvasElement }) {
-    const alert = canvasElement.querySelector(".alert");
+    const alert = canvasElement.querySelector(".oidf-alert");
     expect(alert).toBeTruthy();
-    expect(alert.classList.contains("alert-info")).toBe(true);
+    expect(alert.classList.contains("oidf-alert-info")).toBe(true);
     expect(alert.getAttribute("role")).toBe("alert");
     expect(alert.textContent).toContain("test is currently running");
+    // Bootstrap classes must NOT leak through.
+    expect(alert.classList.contains("alert")).toBe(false);
+    expect(alert.classList.contains("alert-info")).toBe(false);
   },
 };
 
@@ -42,8 +45,8 @@ export const Success = {
   `,
 
   async play({ canvasElement }) {
-    const alert = canvasElement.querySelector(".alert");
-    expect(alert.classList.contains("alert-success")).toBe(true);
+    const alert = canvasElement.querySelector(".oidf-alert");
+    expect(alert.classList.contains("oidf-alert-success")).toBe(true);
   },
 };
 
@@ -57,8 +60,8 @@ export const Warning = {
   `,
 
   async play({ canvasElement }) {
-    const alert = canvasElement.querySelector(".alert");
-    expect(alert.classList.contains("alert-warning")).toBe(true);
+    const alert = canvasElement.querySelector(".oidf-alert");
+    expect(alert.classList.contains("oidf-alert-warning")).toBe(true);
   },
 };
 
@@ -71,15 +74,15 @@ export const Danger = {
   `,
 
   async play({ canvasElement }) {
-    const alert = canvasElement.querySelector(".alert");
-    expect(alert.classList.contains("alert-danger")).toBe(true);
+    const alert = canvasElement.querySelector(".oidf-alert");
+    expect(alert.classList.contains("oidf-alert-danger")).toBe(true);
   },
 };
 
 /**
- * Setting `dismissible` renders a Bootstrap close button. Clicking it removes
- * the alert from the DOM and dispatches a `cts-alert-dismissed` event that
- * bubbles for parent listeners.
+ * Setting `dismissible` renders a close button (icon-only ghost button with
+ * `aria-label="Close"`). Clicking it removes the alert from the DOM and
+ * dispatches a `cts-alert-dismissed` event that bubbles for parent listeners.
  */
 export const Dismissible = {
   args: { variant: "info", dismissible: true },
@@ -92,12 +95,14 @@ export const Dismissible = {
 
   async play({ canvasElement }) {
     const host = canvasElement.querySelector("cts-alert");
-    const alert = canvasElement.querySelector(".alert");
-    expect(alert.classList.contains("alert-dismissible")).toBe(true);
+    const alert = canvasElement.querySelector(".oidf-alert");
+    expect(alert).toBeTruthy();
 
-    const closeBtn = alert.querySelector("button.btn-close");
+    const closeBtn = alert.querySelector("button.oidf-alert-close");
     expect(closeBtn).toBeTruthy();
     expect(closeBtn.getAttribute("aria-label")).toBe("Close");
+    // Bootstrap's btn-close class must NOT be emitted.
+    expect(closeBtn.classList.contains("btn-close")).toBe(false);
 
     let dismissed = false;
     host.addEventListener("cts-alert-dismissed", () => {
@@ -122,29 +127,32 @@ export const VariantFallback = {
   `,
 
   async play({ canvasElement }) {
-    const alert = canvasElement.querySelector(".alert");
-    expect(alert.classList.contains("alert-info")).toBe(true);
+    const alert = canvasElement.querySelector(".oidf-alert");
+    expect(alert.classList.contains("oidf-alert-info")).toBe(true);
   },
 };
 
 /**
- * The default slot accepts any HTML, including other custom elements. This
- * is essential for the `templates/logHeader.html` migration where alerts wrap
- * `<strong>` headings, links, and inline icons.
+ * The default slot accepts any HTML, including links, inline emphasis, and
+ * other custom elements. This is essential for the `templates/logHeader.html`
+ * migration where alerts wrap `<strong>` headings, `<em>` emphasis, and links.
  */
 export const NestedContent = {
   render: () => html`
     <cts-alert variant="info">
       <strong>Heading</strong>
-      <p>Paragraph below.</p>
+      <p>Paragraph below with <em>emphasis</em>.</p>
       <a href="#">A link inside the alert.</a>
     </cts-alert>
   `,
 
   async play({ canvasElement }) {
-    const alert = canvasElement.querySelector(".alert");
-    expect(alert.querySelector("strong")).toBeTruthy();
-    expect(alert.querySelector("p").textContent).toBe("Paragraph below.");
-    expect(alert.querySelector("a").getAttribute("href")).toBe("#");
+    const alert = canvasElement.querySelector(".oidf-alert");
+    const body = alert.querySelector(".oidf-alert-body");
+    expect(body).toBeTruthy();
+    expect(body.querySelector("strong")).toBeTruthy();
+    expect(body.querySelector("em").textContent).toBe("emphasis");
+    expect(body.querySelector("p").textContent).toContain("Paragraph below");
+    expect(body.querySelector("a").getAttribute("href")).toBe("#");
   },
 };

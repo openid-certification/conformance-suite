@@ -335,7 +335,7 @@ test.describe("log-detail.html — Log Detail", () => {
 
     // Inactive banner visible — the warning "no longer running" state.
     await expect(inactive).toBeVisible();
-    await expect(inactive.locator(".alert.alert-warning")).toBeVisible();
+    await expect(inactive.locator(".oidf-alert.oidf-alert-warning")).toBeVisible();
 
     // Active is hidden inline (style.display = 'none').
     await expect(active).toBeHidden();
@@ -363,7 +363,7 @@ test.describe("log-detail.html — Log Detail", () => {
     const archived = page.locator("#runningTestArchived");
 
     await expect(active).toBeVisible();
-    await expect(active.locator(".alert.alert-info")).toBeVisible();
+    await expect(active.locator(".oidf-alert.oidf-alert-info")).toBeVisible();
     await expect(inactive).toBeHidden();
     await expect(archived).not.toHaveClass(/show/);
   });
@@ -387,7 +387,7 @@ test.describe("log-detail.html — Log Detail", () => {
 
     // Archived becomes .show (Bootstrap collapse toggled on).
     await expect(archived).toHaveClass(/show/);
-    await expect(archived.locator(".alert.alert-info.alert-dismissible")).toBeVisible();
+    await expect(archived.locator(".oidf-alert.oidf-alert-info")).toBeVisible();
 
     // Active and Inactive forced hidden inline.
     await expect(active).toBeHidden();
