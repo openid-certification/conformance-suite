@@ -184,10 +184,8 @@ export const AllTestsPassed = {
         expect(canvas.getByText("oidcc-basic-certification-test-plan")).toBeInTheDocument();
       });
 
-      // All badges should be success variant
-      const badges = canvasElement.querySelectorAll(
-        'cts-plan-modules cts-badge[variant="success"]',
-      );
+      // All badges should render on the canonical `pass` palette.
+      const badges = canvasElement.querySelectorAll('cts-plan-modules cts-badge[variant="pass"]');
       expect(badges.length).toBeGreaterThan(0);
     });
   },

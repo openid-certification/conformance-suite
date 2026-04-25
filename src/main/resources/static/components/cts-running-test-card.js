@@ -4,17 +4,16 @@ import "./cts-button.js";
 import "./cts-link-button.js";
 
 /**
- * Maps a backend test status to the design-system status badge variant.
- * `RUNNING` uses the canonical `running` variant so cts-badge renders the
- * spinning circular SVG (not the legacy `bi bi-arrow-clockwise` glyph).
- * `WAITING` reuses the warn palette; `INTERRUPTED` reuses the legacy
- * Bootstrap `interrupted` utility class still supported by cts-badge.
+ * Maps a backend test status to a canonical cts-badge variant. RUNNING
+ * triggers the spinning circular SVG; WAITING uses the warn palette to
+ * signal that user action is required; INTERRUPTED maps to `fail` because
+ * an interrupted run did not complete successfully.
  * @type {Object.<string, string>}
  */
 const STATUS_BADGE_VARIANTS = {
   RUNNING: "running",
   WAITING: "warn",
-  INTERRUPTED: "interrupted",
+  INTERRUPTED: "fail",
 };
 
 const STYLE_ID = "cts-running-test-card-styles";

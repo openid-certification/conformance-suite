@@ -102,9 +102,8 @@ export const CompletedTest = {
     expect(canvas.getByText("Description:")).toBeInTheDocument();
     expect(canvas.getByText("Test Version:")).toBeInTheDocument();
 
-    // Result badge shows PASSED (cts-badge accepts the legacy `success`
-    // alias and routes it to the canonical `pass` palette).
-    const resultBadge = canvasElement.querySelector('cts-badge[variant="success"][label="PASSED"]');
+    // Result badge shows PASSED on the canonical `pass` palette.
+    const resultBadge = canvasElement.querySelector('cts-badge[variant="pass"][label="PASSED"]');
     expect(resultBadge).toBeTruthy();
 
     // Result summary row present
@@ -122,7 +121,7 @@ export const FailedTest = {
     });
 
     // FAILED result badge visible
-    const failedBadge = canvasElement.querySelector('cts-badge[variant="failure"][label="FAILED"]');
+    const failedBadge = canvasElement.querySelector('cts-badge[variant="fail"][label="FAILED"]');
     expect(failedBadge).toBeTruthy();
 
     // Failure summary section is visible
@@ -271,7 +270,7 @@ export const AllPassed = {
     });
 
     // Result badge shows PASSED
-    const resultBadge = canvasElement.querySelector('cts-badge[variant="success"][label="PASSED"]');
+    const resultBadge = canvasElement.querySelector('cts-badge[variant="pass"][label="PASSED"]');
     expect(resultBadge).toBeTruthy();
 
     // Failure summary section is NOT shown when there are no failures

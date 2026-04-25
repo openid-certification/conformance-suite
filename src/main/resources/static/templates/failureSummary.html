@@ -1,5 +1,20 @@
+            <%
+            // Failure-summary entries are limited by log-detail.html to
+            // SKIPPED/INTERRUPTED/FAILURE/WARNING. Map to canonical
+            // cts-badge variants; INTERRUPTED is failure-like.
+            var failureVariantMap = {
+              success: 'pass',
+              failure: 'fail',
+              warning: 'warn',
+              review: 'review',
+              skipped: 'skip',
+              interrupted: 'fail',
+              info: 'info-subtle',
+            };
+            var failureVariant = failureVariantMap[(item.result || '').toLowerCase()] || 'skip';
+            %>
             <div class="failureSummaryItem">
-                <cts-badge class="labelCollection" variant="<%- item.result.toLowerCase() %>" label="<%- item.result.toUpperCase() %>"></cts-badge>
+                <cts-badge class="labelCollection" variant="<%- failureVariant %>" label="<%- item.result.toUpperCase() %>"></cts-badge>
 
                 <% _.each(item.requirements, function(requirement) {
                 var sectionIndex = '';

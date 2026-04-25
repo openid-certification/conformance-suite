@@ -1,7 +1,7 @@
 /**
- * Maps the design-system status variants to scoped class names used by
- * the injected stylesheet. These are the canonical names callers should
- * use going forward.
+ * Canonical design-system status variants. These map to the
+ * `--status-*` token group in `oidf-tokens.css` via the scoped CSS in
+ * STYLE_TEXT. Use these for any badge that conveys test outcome.
  * @type {Object.<string, string>}
  */
 const STATUS_VARIANT_CLASSES = {
@@ -14,38 +14,22 @@ const STATUS_VARIANT_CLASSES = {
 };
 
 /**
- * Backwards-compatible aliases for legacy variant names still used by
- * batch-runner / log-viewer / plan-modules. Maps the legacy variant name
- * to one of STATUS_VARIANT_CLASSES' keys.
+ * Utility variants kept for non-status uses where the canonical status
+ * palette is the wrong semantic fit:
+ *   - `primary`   — emphasis (e.g. an active filter pill)
+ *   - `secondary` — neutral tag/chip (e.g. spec requirement labels)
+ *   - `danger`    — role marker (e.g. the ADMIN badge in the navbar)
+ *   - `info-subtle` — informational call-out, retokenized onto the
+ *     `--status-info-*` palette (used by federation entity section blocks
+ *     in schedule-test.html and aggregated info-message counts)
+ * These intentionally live outside STATUS_VARIANT_CLASSES; they are not
+ * test outcomes.
  * @type {Object.<string, string>}
  */
-const LEGACY_STATUS_ALIASES = {
-  success: "pass",
-  failure: "fail",
-  warning: "warn",
-  info: "running", // batch-runner uses variant="info" to mean "running"
-  skipped: "skip",
-};
-
-/**
- * Bootstrap variants kept for callers that still need brand/utility
- * colors (e.g. the secondary "PENDING" badge, the danger-colored "ADMIN"
- * marker). These map to Bootstrap classes that survive the design-token
- * migration; they are intentionally NOT in STATUS_VARIANT_CLASSES because
- * they are not part of the design-system status palette.
- * @type {Object.<string, string>}
- */
-const BOOTSTRAP_VARIANT_CLASSES = {
+const UTILITY_VARIANT_CLASSES = {
   primary: "bg-primary",
   secondary: "bg-secondary",
   danger: "bg-danger",
-  light: "bg-light",
-  dark: "bg-dark",
-  finished: "result-finished",
-  interrupted: "result-interrupted",
-  // info-subtle is retokenized to the design-system status-info palette
-  // (see STYLE_TEXT below); the class name is preserved so existing markup
-  // in schedule-test.html and the WithRichContent story keeps working.
   "info-subtle": "b-info-subtle",
 };
 
@@ -84,6 +68,14 @@ const STYLE_TEXT = `
     letter-spacing: 0.06em;
     text-transform: uppercase;
     line-height: 1;
+    /* The inline-flex baseline is synthesized from the first flex item, so a
+       text-only badge anchors on the text baseline while a spinner-led badge
+       (running) anchors on the bottom of the empty inline-block, which pushes
+       the badge upward relative to its text-only neighbours. Pin to middle so
+       placement is independent of inner content. Pair with border-box so the
+       1px border on b-rev doesn't grow the box and shift it up either. */
+    vertical-align: middle;
+    box-sizing: border-box;
   }
   cts-badge .badge:has(br) {
     border-radius: 9px;
@@ -221,19 +213,15 @@ function buildSpinner() {
  * `icon` attribute, matching the design archive's "perfectly symmetric
  * circular spinner" decision (no `bi bi-arrow-clockwise` icon).
  *
- * Legacy variant aliases are accepted so existing callers keep working
- * during the design-system migration: `success` -> `pass`, `failure` ->
- * `fail`, `warning` -> `warn`, `info` -> `running`, `skipped` -> `skip`.
- * Bootstrap variants `primary`, `secondary`, `danger`, `light`, `dark`,
- * `finished`, `interrupted`, and `info-subtle` are still supported for
- * brand/utility uses; `info-subtle` is retokenized onto the
- * `--status-info-*` palette but keeps its class name for backwards-
- * compatibility with `schedule-test.html`.
+ * Utility variants `primary`, `secondary`, `danger`, and `info-subtle`
+ * are retained for non-status uses (filter emphasis, requirement chips,
+ * the ADMIN role marker, federation entity section blocks). They are
+ * intentionally *not* part of the status palette — pick one of the
+ * canonical status names for any badge that conveys test outcome.
  *
- * @property {string} variant - One of (canonical): pass, fail, warn,
- *   running, skip, review. Legacy aliases: success, failure, warning,
- *   info, skipped. Bootstrap utility variants: primary, secondary,
- *   danger, light, dark, finished, interrupted, info-subtle.
+ * @property {string} variant - Canonical status: pass, fail, warn,
+ *   running, skip, review. Utility (non-status): primary, secondary,
+ *   danger, info-subtle.
  * @property {string} label - Visible text
  * @property {number} count - Numeric content; overrides `label` when set
  * @property {string} icon - Bootstrap Icons name (without the `bi-`
@@ -277,31 +265,25 @@ class CtsBadge extends HTMLElement {
   }
 
   /**
-   * Resolves the configured variant (after legacy alias remapping) to its
-   * scoped CSS class. Falls back to `b-rev` for unknown variants so the
-   * badge still renders with a defined background/foreground rather than
-   * appearing as unstyled inline text.
-   * @returns {string} Space-separated class list for the inner span.
+   * Resolves the configured variant to its scoped CSS class. Falls back
+   * to `b-rev` for unknown variants so the badge still renders with a
+   * defined background/foreground rather than as unstyled inline text.
+   * @returns {string} Class name for the inner span.
    */
   _variantClass() {
     const raw = this.getAttribute("variant") || "running";
-    const canonical = LEGACY_STATUS_ALIASES[raw] || raw;
     return (
-      STATUS_VARIANT_CLASSES[canonical] ||
-      BOOTSTRAP_VARIANT_CLASSES[canonical] ||
-      STATUS_VARIANT_CLASSES.review
+      STATUS_VARIANT_CLASSES[raw] || UTILITY_VARIANT_CLASSES[raw] || STATUS_VARIANT_CLASSES.review
     );
   }
 
   /**
-   * Returns true when the resolved variant is the spinner-bearing
-   * `running` variant (after legacy alias remapping).
+   * Returns true when the configured variant is the spinner-bearing
+   * `running` variant.
    * @returns {boolean}
    */
   _isRunning() {
-    const raw = this.getAttribute("variant") || "running";
-    const canonical = LEGACY_STATUS_ALIASES[raw] || raw;
-    return canonical === "running";
+    return (this.getAttribute("variant") || "running") === "running";
   }
 
   _render() {
