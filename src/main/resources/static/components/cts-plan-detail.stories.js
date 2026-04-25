@@ -13,6 +13,24 @@ export default {
   title: "Components/cts-plan-detail",
 };
 
+/**
+ * Resolve the inner `<button>` rendered inside a cts-button host located by
+ * data-testid. cts-button renders to its own light DOM and Lit binds
+ * `@click` on the inner `<button>`, so a click on the host doesn't fire
+ * the inner handler (see components/AGENTS.md §2).
+ *
+ * @param {HTMLElement} canvasElement
+ * @param {string} testId
+ * @returns {HTMLButtonElement}
+ */
+function innerButton(canvasElement, testId) {
+  const host = canvasElement.querySelector(`[data-testid="${testId}"]`);
+  if (!host) throw new Error(`No element with data-testid="${testId}"`);
+  const btn = host.querySelector("button");
+  if (!btn) throw new Error(`No <button> inside [data-testid="${testId}"]`);
+  return /** @type {HTMLButtonElement} */ (btn);
+}
+
 const MODULES_WITH_STATUS = MOCK_MODULES_WITH_STATUS;
 
 const PLAN_WITH_CONFIG = {
@@ -57,10 +75,11 @@ export const PlanHeaderDefault = {
     // Variant displayed as key=value
     expect(canvas.getByText(/client_auth_type=client_secret_basic/)).toBeInTheDocument();
 
-    // Started date is rendered (non-empty)
-    const startedRow = canvasElement.querySelectorAll(".row");
-    const startedValues = Array.from(startedRow).filter((r) => r.textContent.includes("Started:"));
-    expect(startedValues.length).toBeGreaterThan(0);
+    // Started date is rendered (Started: term + non-empty value cell).
+    // After U17 the meta rows are a token-styled <dl>; the term + colon
+    // text matches the legacy "Label:" convention so test queries keep
+    // working unchanged.
+    expect(canvas.getByText("Started:")).toBeInTheDocument();
 
     // Certification profile is displayed
     expect(canvas.getByText("OC Basic OP")).toBeInTheDocument();
@@ -160,8 +179,11 @@ export const ModulesDefault = {
     expect(canvas.getByText("test-inst-002")).toBeInTheDocument();
     expect(canvas.getByText("test-inst-003")).toBeInTheDocument();
 
-    // Module with no instance shows NONE
-    const noneTexts = Array.from(canvasElement.querySelectorAll(".col-md-10")).filter(
+    // Module with no instance shows NONE in the test-ID slot of .desc .mono.
+    // After U17 the per-row meta lives in a single .desc line ("Variant · Test
+    // ID: <mono>"), so we find the mono spans and count the ones reading
+    // "NONE".
+    const noneTexts = Array.from(canvasElement.querySelectorAll(".module-row .desc .mono")).filter(
       (el) => el.textContent.trim() === "NONE",
     );
     expect(noneTexts.length).toBe(1);
@@ -292,10 +314,8 @@ export const ActionsViewConfig = {
     let configPanel = canvasElement.querySelector('[data-testid="config-panel"]');
     expect(configPanel).toBeNull();
 
-    // Click View Config button
-    const viewConfigBtn = canvasElement.querySelector('[data-testid="view-config-btn"]');
-    expect(viewConfigBtn).toBeTruthy();
-    await userEvent.click(viewConfigBtn);
+    // Click View Config button (target the inner <button>)
+    await userEvent.click(innerButton(canvasElement, "view-config-btn"));
 
     // Config panel should now be visible
     await waitFor(() => {
@@ -323,9 +343,7 @@ export const ActionsPrivateLink = {
     expect(panel).toBeNull();
 
     // Click Private link button
-    const privateLinkBtn = canvasElement.querySelector('[data-testid="private-link-btn"]');
-    expect(privateLinkBtn).toBeTruthy();
-    await userEvent.click(privateLinkBtn);
+    await userEvent.click(innerButton(canvasElement, "private-link-btn"));
 
     // Panel should now be visible
     await waitFor(() => {
@@ -338,19 +356,21 @@ export const ActionsPrivateLink = {
     expect(daysInput).toBeTruthy();
     expect(daysInput.value).toBe("30");
 
-    // Generate button should be enabled (30 is valid)
-    const generateBtn = canvasElement.querySelector(".generate-link-btn");
-    expect(generateBtn).toBeTruthy();
-    expect(generateBtn.disabled).toBe(false);
+    // Generate button should be enabled (30 is valid). The disabled state
+    // is reflected onto the inner <button> rendered by cts-button.
+    const generateHost = canvasElement.querySelector(".generate-link-btn");
+    expect(generateHost).toBeTruthy();
+    const generateBtnInner = generateHost?.querySelector("button");
+    expect(generateBtnInner).toBeTruthy();
+    expect(generateBtnInner?.disabled).toBe(false);
   },
 };
 
 export const ActionsPrivateLinkValidation = {
   render: () => html` <cts-plan-actions .plan=${MOCK_PLAN_DETAIL}></cts-plan-actions> `,
   async play({ canvasElement }) {
-    // Open private link panel
-    const privateLinkBtn = canvasElement.querySelector('[data-testid="private-link-btn"]');
-    await userEvent.click(privateLinkBtn);
+    // Open private link panel (target the inner <button>)
+    await userEvent.click(innerButton(canvasElement, "private-link-btn"));
 
     await waitFor(() => {
       const panel = canvasElement.querySelector('[data-testid="private-link-panel"]');
@@ -359,13 +379,14 @@ export const ActionsPrivateLinkValidation = {
 
     const daysInput = canvasElement.querySelector("#privateLinkDays");
 
-    // Clear and type 0 (invalid)
+    // Clear and type 0 (invalid). The disabled state is reflected onto the
+    // inner <button> rendered by cts-button — the host doesn't carry it.
     await userEvent.clear(daysInput);
     await userEvent.type(daysInput, "0");
 
     await waitFor(() => {
-      const btn = canvasElement.querySelector(".generate-link-btn");
-      expect(btn.disabled).toBe(true);
+      const inner = canvasElement.querySelector(".generate-link-btn button");
+      expect(inner?.disabled).toBe(true);
     });
 
     // Clear and type 1001 (invalid)
@@ -373,8 +394,8 @@ export const ActionsPrivateLinkValidation = {
     await userEvent.type(daysInput, "1001");
 
     await waitFor(() => {
-      const btn = canvasElement.querySelector(".generate-link-btn");
-      expect(btn.disabled).toBe(true);
+      const inner = canvasElement.querySelector(".generate-link-btn button");
+      expect(inner?.disabled).toBe(true);
     });
 
     // Clear and type 500 (valid)
@@ -382,8 +403,8 @@ export const ActionsPrivateLinkValidation = {
     await userEvent.type(daysInput, "500");
 
     await waitFor(() => {
-      const btn = canvasElement.querySelector(".generate-link-btn");
-      expect(btn.disabled).toBe(false);
+      const inner = canvasElement.querySelector(".generate-link-btn button");
+      expect(inner?.disabled).toBe(false);
     });
   },
 };
@@ -397,10 +418,8 @@ export const ActionsDeletePlan = {
     let confirmPanel = canvasElement.querySelector('[data-testid="delete-confirm-panel"]');
     expect(confirmPanel).toBeNull();
 
-    // Click Delete plan button
-    const deleteBtn = canvasElement.querySelector('[data-testid="delete-plan-btn"]');
-    expect(deleteBtn).toBeTruthy();
-    await userEvent.click(deleteBtn);
+    // Click Delete plan button (target the inner <button>)
+    await userEvent.click(innerButton(canvasElement, "delete-plan-btn"));
 
     // Confirm panel should appear
     await waitFor(() => {
@@ -412,19 +431,22 @@ export const ActionsDeletePlan = {
     expect(canvas.getByText(/permanently and irrevocably/)).toBeInTheDocument();
     expect(canvas.getByText(/cannot be undone/)).toBeInTheDocument();
 
-    // Confirm delete button present
-    const confirmBtn = canvasElement.querySelector(".confirm-delete-btn");
+    // Confirm delete button present (cts-button host carries the class).
+    const confirmBtnHost = canvasElement.querySelector(".confirm-delete-btn");
+    expect(confirmBtnHost).toBeTruthy();
+    expect(confirmBtnHost?.textContent?.trim()).toBe("Delete plan");
+    const confirmBtn = confirmBtnHost?.querySelector("button");
     expect(confirmBtn).toBeTruthy();
-    expect(confirmBtn.textContent.trim()).toBe("Delete plan");
 
-    // Cancel button present
-    const cancelBtns = confirmPanel.querySelectorAll("button");
-    const cancelBtn = Array.from(cancelBtns).find((b) => b.textContent.trim() === "Cancel");
+    // Cancel button present (no testid — find by inner button text).
+    const innerButtons = confirmPanel ? Array.from(confirmPanel.querySelectorAll("button")) : [];
+    const cancelBtn = innerButtons.find((b) => (b.textContent || "").trim() === "Cancel");
     expect(cancelBtn).toBeTruthy();
 
     // Verify cts-delete-plan event fires on confirm
     const spy = fn();
     canvasElement.addEventListener("cts-delete-plan", spy);
+    if (!confirmBtn) throw new Error("confirm-delete-btn inner button missing");
     await userEvent.click(confirmBtn);
 
     expect(spy).toHaveBeenCalledTimes(1);
@@ -446,14 +468,14 @@ export const ActionsImmutablePlan = {
     expect(deleteBtn).toBeNull();
 
     // Make Mutable should be visible (admin + immutable)
-    const mutableBtn = canvasElement.querySelector('[data-testid="make-mutable-btn"]');
-    expect(mutableBtn).toBeTruthy();
-    expect(mutableBtn.textContent).toContain("Make plan Mutable");
+    const mutableBtnHost = canvasElement.querySelector('[data-testid="make-mutable-btn"]');
+    expect(mutableBtnHost).toBeTruthy();
+    expect(mutableBtnHost?.textContent).toContain("Make plan Mutable");
 
-    // Verify event fires on click
+    // Verify event fires on click (target the inner <button>)
     const spy = fn();
     canvasElement.addEventListener("cts-make-mutable", spy);
-    await userEvent.click(mutableBtn);
+    await userEvent.click(innerButton(canvasElement, "make-mutable-btn"));
 
     expect(spy).toHaveBeenCalledTimes(1);
     expect(spy.mock.calls[0][0].detail.planId).toBe("plan-immutable-001");
@@ -475,9 +497,9 @@ export const ActionsPublishedPlan = {
     const canvas = within(canvasElement);
 
     // Unpublish button visible (admin + published + not readonly)
-    const unpublishBtn = canvasElement.querySelector('[data-testid="unpublish-btn"]');
-    expect(unpublishBtn).toBeTruthy();
-    expect(unpublishBtn.textContent).toContain("Unpublish");
+    const unpublishBtnHost = canvasElement.querySelector('[data-testid="unpublish-btn"]');
+    expect(unpublishBtnHost).toBeTruthy();
+    expect(unpublishBtnHost?.textContent).toContain("Unpublish");
 
     // Publish summary/everything should NOT be visible (already published)
     const publishSummaryBtn = canvasElement.querySelector('[data-testid="publish-summary-btn"]');
@@ -487,13 +509,13 @@ export const ActionsPublishedPlan = {
     );
     expect(publishEverythingBtn).toBeNull();
 
-    // Public link should be visible
+    // Public link should be visible (rendered as a cts-link-button → <a>)
     expect(canvas.getByText("Public link")).toBeInTheDocument();
 
-    // Verify unpublish event
+    // Verify unpublish event (target the inner <button>)
     const spy = fn();
     canvasElement.addEventListener("cts-unpublish", spy);
-    await userEvent.click(unpublishBtn);
+    await userEvent.click(innerButton(canvasElement, "unpublish-btn"));
 
     expect(spy).toHaveBeenCalledTimes(1);
     expect(spy.mock.calls[0][0].detail.planId).toBe("plan-abc-123");
@@ -508,8 +530,7 @@ export const ActionsGenerateLinkResult = {
   render: () => html` <cts-plan-actions .plan=${MOCK_PLAN_DETAIL}></cts-plan-actions> `,
   async play({ canvasElement }) {
     // Open private link panel
-    const privateLinkBtn = canvasElement.querySelector('[data-testid="private-link-btn"]');
-    await userEvent.click(privateLinkBtn);
+    await userEvent.click(innerButton(canvasElement, "private-link-btn"));
 
     await waitFor(() => {
       const panel = canvasElement.querySelector('[data-testid="private-link-panel"]');
@@ -525,10 +546,12 @@ export const ActionsGenerateLinkResult = {
     const spy = fn();
     canvasElement.addEventListener("cts-generate-private-link", spy);
 
-    // Click Generate
-    const generateBtn = canvasElement.querySelector(".generate-link-btn");
-    await waitFor(() => expect(generateBtn.disabled).toBe(false));
-    await userEvent.click(generateBtn);
+    // Click Generate (target the inner <button>; cts-button host carries
+    // the .generate-link-btn class).
+    const generateInner = canvasElement.querySelector(".generate-link-btn button");
+    await waitFor(() => expect(generateInner?.disabled).toBe(false));
+    if (!generateInner) throw new Error("generate-link-btn inner <button> missing");
+    await userEvent.click(generateInner);
 
     expect(spy).toHaveBeenCalledTimes(1);
     const detail = spy.mock.calls[0][0].detail;
@@ -560,9 +583,8 @@ export const ActionsDeletePlanCancel = {
     const deleteSpy = fn();
     canvasElement.addEventListener("cts-delete-plan", deleteSpy);
 
-    // Open delete confirm panel
-    const deleteBtn = canvasElement.querySelector('[data-testid="delete-plan-btn"]');
-    await userEvent.click(deleteBtn);
+    // Open delete confirm panel (target the inner <button>)
+    await userEvent.click(innerButton(canvasElement, "delete-plan-btn"));
 
     /** @type {Element | null | undefined} */
     let confirmPanel;
@@ -572,7 +594,7 @@ export const ActionsDeletePlanCancel = {
     });
     if (!confirmPanel) throw new Error("delete-confirm-panel did not appear");
 
-    // Click Cancel
+    // Click Cancel — find the inner <button> whose visible text is "Cancel".
     const cancelBtn = Array.from(confirmPanel.querySelectorAll("button")).find(
       (b) => (b.textContent || "").trim() === "Cancel",
     );
@@ -588,9 +610,9 @@ export const ActionsDeletePlanCancel = {
     // No delete event fired
     expect(deleteSpy).not.toHaveBeenCalled();
 
-    // Clicking Cancel-equivalent again is a no-op (panel already closed) —
-    // verify by re-opening and confirming the panel re-renders cleanly.
-    await userEvent.click(deleteBtn);
+    // Clicking the delete-plan trigger again re-opens the panel cleanly
+    // (regression guard against state leaking across cancel + reopen).
+    await userEvent.click(innerButton(canvasElement, "delete-plan-btn"));
     await waitFor(() => {
       expect(canvasElement.querySelector('[data-testid="delete-confirm-panel"]')).toBeTruthy();
     });
@@ -611,19 +633,22 @@ export const ActionsCopyConfig = {
     });
 
     try {
-      // Open the config panel
-      const viewConfigBtn = canvasElement.querySelector('[data-testid="view-config-btn"]');
-      await userEvent.click(viewConfigBtn);
+      // Open the config panel (target the inner <button>)
+      await userEvent.click(innerButton(canvasElement, "view-config-btn"));
 
       await waitFor(() => {
         const panel = canvasElement.querySelector('[data-testid="config-panel"]');
         expect(panel).toBeTruthy();
       });
 
-      // Click the Copy button inside the panel
-      const copyBtn = canvasElement.querySelector(".copy-config-btn");
-      expect(copyBtn).toBeTruthy();
-      await userEvent.click(copyBtn);
+      // Click the Copy button inside the panel (cts-button host carries
+      // the .copy-config-btn class; click the inner <button>).
+      const copyHost = canvasElement.querySelector(".copy-config-btn");
+      expect(copyHost).toBeTruthy();
+      const copyInner = copyHost?.querySelector("button");
+      expect(copyInner).toBeTruthy();
+      if (!copyInner) throw new Error("copy-config-btn inner <button> missing");
+      await userEvent.click(copyInner);
 
       // Clipboard should have been called once with pretty-printed JSON
       expect(mockWriteText).toHaveBeenCalledOnce();
@@ -652,23 +677,24 @@ export const ActionsCopyConfigClipboardFailure = {
     });
 
     try {
-      const viewConfigBtn = canvasElement.querySelector('[data-testid="view-config-btn"]');
-      await userEvent.click(viewConfigBtn);
+      // Open the config panel (target the inner <button>)
+      await userEvent.click(innerButton(canvasElement, "view-config-btn"));
 
       await waitFor(() => {
         expect(canvasElement.querySelector('[data-testid="config-panel"]')).toBeTruthy();
       });
 
-      const copyBtn = canvasElement.querySelector(".copy-config-btn");
-      await userEvent.click(copyBtn);
+      const copyInner = canvasElement.querySelector(".copy-config-btn button");
+      if (!copyInner) throw new Error("copy-config-btn inner <button> missing");
+      await userEvent.click(copyInner);
 
       // Failure feedback should render in the same flex container as Copy,
       // announced politely so SRs read it without interrupting.
       await waitFor(() => {
         const feedback = canvasElement.querySelector('[data-testid="copy-feedback"]');
         expect(feedback).toBeTruthy();
-        expect(feedback.textContent).toContain("Copy failed");
-        expect(feedback.getAttribute("aria-live")).toBe("polite");
+        expect(feedback?.textContent).toContain("Copy failed");
+        expect(feedback?.getAttribute("aria-live")).toBe("polite");
       });
     } finally {
       Object.defineProperty(navigator, "clipboard", {
@@ -679,3 +705,5 @@ export const ActionsCopyConfigClipboardFailure = {
     }
   },
 };
+
+export {};

@@ -1,9 +1,96 @@
 import { LitElement, html, nothing } from "lit";
 
+const STYLE_ID = "cts-plan-header-styles";
+
+// Scoped CSS for the plan-detail page header. Mirrors the design archive's
+// `.page-head` composition (`project/ui_kits/certification-suite/app.css`):
+// title in `.t-h1`, sub-meta as a row of mono key/value pairs, optional
+// admin/certification rows, and a soft "summary" callout. The token-based
+// label/value grid replaces the prior Bootstrap col-md-1/col-md-11 layout.
+const STYLE_TEXT = `
+  cts-plan-header {
+    display: block;
+  }
+  cts-plan-header .planHeadCard {
+    background: var(--bg-elev);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-3);
+    padding: var(--space-5);
+    margin-bottom: var(--space-4);
+  }
+  cts-plan-header .planTitle {
+    margin: 0 0 var(--space-2);
+  }
+  cts-plan-header .planMeta {
+    display: grid;
+    grid-template-columns: max-content 1fr;
+    column-gap: var(--space-4);
+    row-gap: var(--space-2);
+    align-items: baseline;
+    margin-top: var(--space-3);
+  }
+  cts-plan-header .planMeta dt {
+    font-size: var(--fs-12);
+    font-weight: var(--fw-bold);
+    color: var(--fg-soft);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin: 0;
+  }
+  cts-plan-header .planMeta dd {
+    font-size: var(--fs-13);
+    color: var(--fg);
+    margin: 0;
+    word-break: break-word;
+  }
+  cts-plan-header .planMeta dd code,
+  cts-plan-header .planMeta .mono {
+    font-family: var(--font-mono);
+    font-size: var(--fs-12);
+    color: var(--fg);
+    background: var(--ink-50);
+    padding: 1px 6px;
+    border-radius: var(--radius-1);
+  }
+  cts-plan-header .planSummary {
+    margin-top: var(--space-4);
+    padding: var(--space-3) var(--space-4);
+    background: var(--status-info-bg);
+    color: var(--ink-900);
+    border-left: 3px solid var(--status-info);
+    border-radius: var(--radius-2);
+    font-size: var(--fs-13);
+  }
+  cts-plan-header .planDisclaimer {
+    margin-top: var(--space-4);
+    padding-top: var(--space-3);
+    border-top: 1px solid var(--divider);
+    font-size: var(--fs-12);
+    color: var(--fg-soft);
+    line-height: var(--lh-base);
+  }
+  cts-plan-header .planDisclaimer a {
+    color: var(--fg-link);
+  }
+`;
+
+function ensureStylesInjected() {
+  if (document.getElementById(STYLE_ID)) return;
+  const style = document.createElement("style");
+  style.id = STYLE_ID;
+  style.textContent = STYLE_TEXT;
+  document.head.appendChild(style);
+}
+
 /**
  * Renders the header card for a plan-detail page: plan name, variant, ID,
  * description, version, start time, owner (admin only), and certification
  * profile.
+ *
+ * Light DOM. Scoped CSS is injected once on first connect; the title uses
+ * the `.t-h1` typography utility from the OIDF token sheet, and the
+ * meta-pairs render as a `<dl>` styled with the token grid.
+ *
  * @property {object} plan - Plan object from `/api/plan/{id}`; expects
  *   `_id`, `planName`, `variant`, `description`, `version`, `started`,
  *   `owner`, `certificationProfileName`, `summary`.
@@ -27,6 +114,7 @@ class CtsPlanHeader extends LitElement {
   }
 
   createRenderRoot() {
+    ensureStylesInjected();
     return this;
   }
 
@@ -52,79 +140,57 @@ class CtsPlanHeader extends LitElement {
     const plan = this.plan;
     if (!plan || !plan._id) return nothing;
 
+    const variantText = this._formatVariant(plan.variant);
+    const startedText = this._formatDate(plan.started);
+    const showOwner = !this.isPublic && this.isAdmin && plan.owner;
+    const ownerText = showOwner
+      ? `${plan.owner.sub}${plan.owner.iss ? ` (${plan.owner.iss})` : ""}`
+      : "";
+
     return html`
-      <div class="card">
-        <div class="card-body bg-gradient">
-          <div class="row" id="planHeader">
-            <div class="col-md-12">
-              <div class="row">
-                <div class="col-md-1">Plan Name:</div>
-                <div class="col-md-11">${plan.planName}</div>
-              </div>
+      <div class="planHeadCard" id="planHeader">
+        <h1 class="planTitle t-h1">${plan.planName}</h1>
+        <dl class="planMeta">
+          <dt>Variant:</dt>
+          <dd><span class="mono">${variantText}</span></dd>
 
-              <div class="row">
-                <div class="col-md-1">Variant:</div>
-                <div class="col-md-11">${this._formatVariant(plan.variant)}</div>
-              </div>
+          <dt>Plan ID:</dt>
+          <dd><span class="mono">${plan._id}</span></dd>
 
-              <div class="row">
-                <div class="col-md-1">Plan ID:</div>
-                <div class="col-md-11">${plan._id}</div>
-              </div>
+          <dt>Description:</dt>
+          <dd>${plan.description}</dd>
 
-              <div class="row">
-                <div class="col-md-1">Description:</div>
-                <div class="col-md-11">${plan.description}</div>
-              </div>
+          <dt>Plan Version:</dt>
+          <dd><span class="mono">${plan.version}</span></dd>
 
-              <div class="row">
-                <div class="col-md-1">Plan Version:</div>
-                <div class="col-md-11">${plan.version}</div>
-              </div>
+          <dt>Started:</dt>
+          <dd>${startedText}</dd>
 
-              <div class="row">
-                <div class="col-md-1">Started:</div>
-                <div class="col-md-11">${this._formatDate(plan.started)}</div>
-              </div>
+          ${showOwner
+            ? html`
+                <dt data-testid="owner-row">Test Owner:</dt>
+                <dd>${ownerText}</dd>
+              `
+            : nothing}
+          ${plan.certificationProfileName
+            ? html`
+                <dt data-testid="certification-row">Certification profile:</dt>
+                <dd>${this._formatCertificationProfile(plan.certificationProfileName)}</dd>
+              `
+            : nothing}
+        </dl>
 
-              ${!this.isPublic && this.isAdmin && plan.owner
-                ? html` <div class="row" data-testid="owner-row">
-                    <div class="col-md-1">Test Owner:</div>
-                    <div class="col-md-11">
-                      ${plan.owner.sub}${plan.owner.iss ? ` (${plan.owner.iss})` : ""}
-                    </div>
-                  </div>`
-                : nothing}
-              ${plan.certificationProfileName
-                ? html` <div class="row" data-testid="certification-row">
-                    <div class="col-md-1">Certification profile:</div>
-                    <div class="col-md-11">
-                      ${this._formatCertificationProfile(plan.certificationProfileName)}
-                    </div>
-                  </div>`
-                : nothing}
-              ${plan.summary
-                ? html` <div class="row">
-                    <div class="col-md-12">
-                      <p class="bgSummary bg-info">${plan.summary}</p>
-                    </div>
-                  </div>`
-                : nothing}
+        ${plan.summary ? html`<div class="planSummary">${plan.summary}</div>` : nothing}
 
-              <div class="row top10">
-                <div class="col-md-12">
-                  These test results were generated by the OpenID Foundation conformance suite. By
-                  themselves, they are not proof that a deployment is conformant nor that it meets
-                  the requirements for certification. For a list of certified deployments, see
-                  <a href="https://openid.net/certification/">https://openid.net/certification/</a>
-                  - to be added to this list follow
-                  <a href="https://openid.net/certification/instructions/"
-                    >the certification instructions.</a
-                  >
-                </div>
-              </div>
-            </div>
-          </div>
+        <div class="planDisclaimer">
+          These test results were generated by the OpenID Foundation conformance suite. By
+          themselves, they are not proof that a deployment is conformant nor that it meets the
+          requirements for certification. For a list of certified deployments, see
+          <a href="https://openid.net/certification/">https://openid.net/certification/</a> - to be
+          added to this list follow
+          <a href="https://openid.net/certification/instructions/"
+            >the certification instructions.</a
+          >
         </div>
       </div>
     `;
@@ -132,3 +198,5 @@ class CtsPlanHeader extends LitElement {
 }
 
 customElements.define("cts-plan-header", CtsPlanHeader);
+
+export {};
