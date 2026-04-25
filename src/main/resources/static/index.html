@@ -7,20 +7,12 @@
     <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
     <title>OIDF Conformance: Conformance Suite</title>
 
-    <!-- Latest compiled and minified CSS -->
-    <link rel="stylesheet" href="/vendor/bootstrap/css/bootstrap.min.css">
-
     <!-- Boostrap Icons -->
     <link rel="stylesheet" href="/vendor/bootstrap-icons/css/bootstrap-icons.css">
 
     <link rel="stylesheet" href="/css/oidf-tokens.css">
     <link rel="stylesheet" type="text/css" href="css/layout.css">
     <link rel="stylesheet" href="/css/oidf-app.css">
-
-    <!-- Popper (necessary for Bootstrap's tooltips) -->
-    <script src="/vendor/popper/js/popper.min.js"></script>
-    <!-- Latest compiled and minified JavaScript -->
-    <script src="/vendor/bootstrap/js/bootstrap.min.js"></script>
 
     <script src="/vendor/lodash/js/lodash.min.js"></script>
 
@@ -30,45 +22,37 @@
     <script>window.litDisableBundleWarning = true;</script>
     <script type="importmap">{"imports":{"lit":"/vendor/lit/lit.js","lit/":"/vendor/lit/","lit/directives/async-append.js":"/vendor/lit/lit.js","lit/directives/async-replace.js":"/vendor/lit/lit.js","lit/directives/cache.js":"/vendor/lit/lit.js","lit/directives/choose.js":"/vendor/lit/lit.js","lit/directives/class-map.js":"/vendor/lit/lit.js","lit/directives/guard.js":"/vendor/lit/lit.js","lit/directives/if-defined.js":"/vendor/lit/lit.js","lit/directives/join.js":"/vendor/lit/lit.js","lit/directives/keyed.js":"/vendor/lit/lit.js","lit/directives/live.js":"/vendor/lit/lit.js","lit/directives/map.js":"/vendor/lit/lit.js","lit/directives/range.js":"/vendor/lit/lit.js","lit/directives/ref.js":"/vendor/lit/lit.js","lit/directives/repeat.js":"/vendor/lit/lit.js","lit/directives/style-map.js":"/vendor/lit/lit.js","lit/directives/template-content.js":"/vendor/lit/lit.js","lit/directives/unsafe-html.js":"/vendor/lit/lit.js","lit/directives/unsafe-svg.js":"/vendor/lit/lit.js","lit/directives/until.js":"/vendor/lit/lit.js","lit/directives/when.js":"/vendor/lit/lit.js","@lit/reactive-element":"/vendor/lit/lit.js","@lit/reactive-element/":"/vendor/lit/","lit-html":"/vendor/lit/lit.js","lit-html/":"/vendor/lit/","lit-element/":"/vendor/lit/"}}</script>
     <script type="module" src="/components/cts-navbar.js"></script>
-    <script type="module" src="/components/cts-link-button.js"></script>
+    <script type="module" src="/components/cts-dashboard.js"></script>
 
 </head>
 <body>
 
     <cts-navbar current-page="home"></cts-navbar>
-    <div class="container-fluid">
-        <div id="homePage">
-            <div class="row">
-                <div class="col-md-4"></div>
-                <div class="col-md-4">
-                    <div class="d-grid gap-0">
-                        <cts-link-button href="schedule-test.html" variant="info" icon="files" label="Create a new test plan" full-width></cts-link-button>
-                        <br>
-                        <cts-link-button href="logs.html" variant="info" icon="files" label="View my test logs" full-width></cts-link-button>
-                        <br>
-                        <cts-link-button href="plans.html" variant="info" icon="bookmarks" label="View my test plans" full-width></cts-link-button>
-                        <br>
-                        <cts-link-button href="logs.html?public=true" variant="info" icon="files" label="View all published test logs" full-width></cts-link-button>
-                        <br>
-                        <cts-link-button href="plans.html?public=true" variant="info" icon="bookmarks" label="View all published test plans" full-width></cts-link-button>
-                        <br>
-                        <cts-link-button href="api-document.html" variant="info" icon="bookmarks" label="View API Documentation" full-width></cts-link-button>
-                    </div>
-                </div>
-                <div class="col-md-4"></div>
-            </div>
-        </div>
-    </div>
+    <cts-dashboard></cts-dashboard>
 
     <script type="text/javascript">
+        // Wire the dashboard's auth-gated tiles to /api/currentuser. cts-navbar
+        // performs its own auth probe; mirroring it here keeps the dashboard
+        // independent of navbar internals (and matches the cts-dashboard
+        // contract: the host sets `is-authenticated`).
         document.addEventListener('DOMContentLoaded', () => {
-            FAPI_UI.loadServerInfo();
+            fetch('/api/currentuser')
+                .then((response) => {
+                    const dashboard = document.querySelector('cts-dashboard');
+                    if (!dashboard) return;
+                    if (response.ok) {
+                        dashboard.setAttribute('is-authenticated', '');
+                    } else {
+                        dashboard.removeAttribute('is-authenticated');
+                    }
+                })
+                .catch(() => {
+                    // Network failure: leave the default (authenticated) state
+                    // so the tiles render. cts-dashboard tolerates a missing
+                    // server-info fetch the same way.
+                });
         });
     </script>
 
-    <footer class="pageFooter">
-        <span class="muted">OpenID Foundation conformance suite</span>
-        <div class="serverInfo"></div>
-    </footer>
 </body>
 </html>
