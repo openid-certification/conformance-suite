@@ -8,15 +8,22 @@ import {
 } from "./helpers/routes.js";
 import { MOCK_PLAN_LIST } from "./fixtures/mock-plans.js";
 
+/**
+ * After U37 plans.html is driven by `<cts-data-table>` instead of jQuery
+ * DataTables. The page keeps `id="plansListing"` on the host so the
+ * `#plansListing tbody tr` selector still resolves — the cts-data-table
+ * renders a `<table class="oidf-dt-table">` directly into its light DOM.
+ */
+
 test.describe("plans.html — Plans List", () => {
   test.afterEach(async ({ page }) => {
     expectNoUnmockedCalls(page);
   });
 
-  test("loads and renders plans in DataTable (R26)", async ({ page }) => {
+  test("loads and renders plans in cts-data-table", async ({ page }) => {
     await setupFailFast(page);
 
-    // /api/plan — DataTables server-side endpoint
+    // /api/plan — DataTables-style server-side endpoint
     await page.route("**/api/plan?*", (route) => {
       const envelope = wrapDataTablesResponse(MOCK_PLAN_LIST, route.request().url());
       return route.fulfill({
@@ -33,8 +40,10 @@ test.describe("plans.html — Plans List", () => {
 
     await page.goto("/plans.html");
 
-    // Wait for DataTable to render rows
-    const rows = page.locator("#plansListing tbody tr");
+    // Wait for the cts-data-table to render rows (the host is upgraded
+    // first, then the imperative columns / cellRenderer setup triggers a
+    // reload(), then the response paints data-row-index="N" rows).
+    const rows = page.locator("#plansListing tbody tr[data-row-index]");
     await expect(rows.first()).toBeVisible();
 
     // Should show plan names
@@ -64,10 +73,12 @@ test.describe("plans.html — Plans List", () => {
     await page.goto("/plans.html");
 
     // Wait for rows to render
-    await expect(page.locator("#plansListing tbody tr").first()).toBeVisible();
+    await expect(page.locator("#plansListing tbody tr[data-row-index]").first()).toBeVisible();
 
-    // Click the config button in the first row
-    const configBtn = page.locator(".showConfigBtn").first();
+    // Click the config button in the first row. The cts-data-table row
+    // wires the click via the `cts-click` event that bubbles from the
+    // inner <button>, so we click the inner button directly.
+    const configBtn = page.locator(".showConfigBtn button").first();
     await expect(configBtn).toBeVisible();
     await configBtn.click();
 
@@ -81,7 +92,7 @@ test.describe("plans.html — Plans List", () => {
     await expect(configModal).toBeHidden();
   });
 
-  test("search button triggers DataTable re-fetch with search term", async ({ page }) => {
+  test("search button triggers cts-data-table re-fetch with search term", async ({ page }) => {
     await setupFailFast(page);
 
     await page.route("**/api/plan?*", (route) => {
@@ -99,16 +110,17 @@ test.describe("plans.html — Plans List", () => {
     await page.goto("/plans.html");
 
     // Wait for initial table load
-    await expect(page.locator("#plansListing tbody tr").first()).toBeVisible();
+    await expect(page.locator("#plansListing tbody tr[data-row-index]").first()).toBeVisible();
 
-    // Type a search term into the DataTables search input
-    const searchInput = page.locator("div.dataTables_filter input");
+    // Type a search term into the cts-data-table's search input. The
+    // input lives inside the host as `.oidf-dt-search-input`.
+    const searchInput = page.locator("#plansListing .oidf-dt-search-input");
     await expect(searchInput).toBeVisible();
     await searchInput.fill("fapi2");
 
-    // Click the search button — set up waitForRequest BEFORE the click
-    // so the listener is active when the request fires
-    const searchBtn = page.locator("div.dataTables_filter button");
+    // Click the explicit-mode Search button. The cts-data-table commits
+    // the search synchronously on `cts-click` and skips the 250ms debounce.
+    const searchBtn = page.locator("#plansListing .oidf-dt-search-btn button");
     await expect(searchBtn).toBeVisible();
     const searchRequest = page.waitForRequest(
       (req) => req.url().includes("/api/plan?") && req.url().includes("search=fapi2"),

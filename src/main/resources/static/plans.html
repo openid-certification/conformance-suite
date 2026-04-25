@@ -9,9 +9,6 @@
     <meta charset="UTF-8">
     <title>OIDF Conformance: Available plans</title>
 
-    <!-- Latest compiled and minified CSS -->
-    <link rel="stylesheet" href="/vendor/bootstrap/css/bootstrap.min.css">
-
     <!-- Boostrap Icons -->
     <link rel="stylesheet" href="/vendor/bootstrap-icons/css/bootstrap-icons.css">
 
@@ -19,21 +16,8 @@
     <link rel="stylesheet" type="text/css" href="css/layout.css">
     <link rel="stylesheet" href="/css/oidf-app.css">
 
-    <link rel="stylesheet" href="/vendor/datatables/css/dataTables.bootstrap5.min.css">
-
-    <!-- Popper (necessary for Bootstrap's tooltips) -->
-    <script src="/vendor/popper/js/popper.min.js"></script>
-    <!-- Latest compiled and minified JavaScript -->
-    <script src="/vendor/bootstrap/js/bootstrap.min.js"></script>
-
     <script src="/vendor/lodash/js/lodash.min.js"></script>
     <script src="/vendor/clipboard/js/clipboard.min.js"></script>
-
-    <!-- jQuery (necessary for DataTables -->
-    <script src="/vendor/jquery/js/jquery.min.js"></script>
-    <!-- DataTables -->
-    <script src="/vendor/datatables/js/jquery.dataTables.min.js"></script>
-    <script src="/vendor/datatables/js/dataTables.bootstrap5.min.js"></script>
 
     <script type="text/javascript" src="js/fapi.ui.js"></script>
     <script>window.litDisableBundleWarning = true;</script>
@@ -44,6 +28,7 @@
     <script type="module" src="/components/cts-link-button.js"></script>
     <script type="module" src="/components/cts-badge.js"></script>
     <script type="module" src="/components/cts-icon.js"></script>
+    <script type="module" src="/components/cts-data-table.js"></script>
 </head>
 
 <body>
@@ -55,13 +40,16 @@
         <div class="row">
             <div class="col-md-12">
 
-                <table id="plansListing" class="table table-striped table-bordered table-hover">
-                    <thead>
-                    </thead>
-
-                    <tbody>
-                    </tbody>
-                </table>
+                <cts-data-table
+                    id="plansListing"
+                    ajax-url="/api/plan"
+                    page-size="25"
+                    server-side
+                    request-shape="datatables-comma-order"
+                    search-mode="explicit"
+                    search-placeholder="Search plans"
+                    empty-state="No plans yet"
+                ></cts-data-table>
 
             </div>
         </div>
@@ -94,8 +82,28 @@
 
     <script>
         /**
+         * Parse an HTML string produced by a lodash template into a
+         * DocumentFragment so cts-data-table's `cellRenderer` can return it
+         * and Lit will mount it as DOM (rather than escape it as text).
          *
+         * SAFETY: the HTML strings passed in come from `FAPI_UI.logTemplates`,
+         * which compile static templates (templates/configButton.html,
+         * planDetailButton.html, planModules.html, owner.html, date.html)
+         * with lodash. Every place a row value flows into the template uses
+         * the `<%- %>` (HTML-escaping) interpolation form, not `<%= %>`. So
+         * the resulting HTML string is built from a trusted template plus
+         * server data that has been escaped at template-render time.
+         *
+         * `<template>.innerHTML = …` here is functionally the same as the
+         * jQuery `$(rendered)` calls the legacy DataTables code used; the
+         * trust boundary is unchanged.
          */
+        function htmlToFragment(htmlString) {
+            var template = document.createElement('template');
+            template.innerHTML = htmlString;
+            return template.content;
+        }
+
         document.addEventListener("DOMContentLoaded", () => {
             var urlParams = new URLSearchParams(window.location.search);
             var public = Boolean(urlParams.get('public'));
@@ -133,185 +141,171 @@
         });
 
         /**
+         * Configure the cts-data-table imperatively. The columns array uses
+         * `cellRenderer` to delegate to the existing lodash/Mustache templates
+         * (PLAN_DETAIL, CONFIG, DATE, PLAN_MODULES, OWNER) so the per-cell
+         * markup stays unchanged after the migration off jQuery DataTables.
          *
-         */
-
-        /**
-         *
+         * Sort by `started` desc by default — the legacy code sorted by
+         * column index 5, which silently meant "Started" in the admin view
+         * and "Modules" in the public view. Sorting by key is unambiguous.
          */
         function loadAvailablePlans(public) {
-            return $('#plansListing').DataTable({
-                serverSide: true,
-                ajax: {
-                    url: '/api/plan' + (public ? '?public=true' : ''),
-                    cache: true,
-                    data: function(data) {
-                        // Translate query parameters into a simpler schema
-                        return {
-                            draw: data.draw,
-                            start: data.start,
-                            length: data.length,
-                            search: data.search.value,
-                            order: _.map(data.order, function(x) {
-                                return data.columns[x.column].data + ',' + x.dir;
-                            }).join(',')
-                        };
+            return customElements.whenDefined('cts-data-table').then(function() {
+                var table = document.getElementById('plansListing');
+
+                var columns = [
+                    {
+                        key: '_id',
+                        label: 'Instance ID',
                     },
-                    error: function(jqxhr, status, error) {
-                        FAPI_UI.showError(jqxhr.responseJSON ? jqxhr.responseJSON : {
-                            code: jqxhr.status,
-                            error: error
-                        });
+                    {
+                        key: 'config',
+                        label: 'Config',
+                        visible: !public,
+                    },
+                    {
+                        key: 'planName',
+                        label: 'Name',
+                        sortable: true,
+                    },
+                    {
+                        key: 'variant',
+                        label: 'Variant',
+                    },
+                    {
+                        key: 'description',
+                        label: 'Description',
+                        sortable: true,
+                    },
+                    {
+                        key: 'started',
+                        label: 'Started',
+                        sortable: true,
+                    },
+                    {
+                        key: 'modules',
+                        label: 'Modules',
+                    },
+                    {
+                        key: 'owner',
+                        label: 'Owner',
+                        visible: !public && FAPI_UI.currentUser && FAPI_UI.currentUser.isAdmin,
+                    },
+                ];
+
+                table.columns = columns;
+                table.cellRenderer = function(row, columnKey) {
+                    switch (columnKey) {
+                        case '_id':
+                            return htmlToFragment(
+                                FAPI_UI.logTemplates.PLAN_DETAIL({ id: row._id, public: public })
+                            );
+                        case 'config':
+                            return htmlToFragment(FAPI_UI.logTemplates.CONFIG());
+                        case 'planName':
+                            // Plain text — escape to mirror the legacy
+                            // DataTables.render.text() default for this column.
+                            return row.planName == null ? '' : String(row.planName);
+                        case 'variant':
+                            return FAPI_UI.formatVariant(row.variant);
+                        case 'description':
+                            return row.description == null ? '' : String(row.description);
+                        case 'started':
+                            if (row.started == null || row.started === '') return '';
+                            return FAPI_UI.logTemplates.DATE({ date: row.started });
+                        case 'modules':
+                            return htmlToFragment(
+                                FAPI_UI.logTemplates.PLAN_MODULES({ modules: row.modules || [] })
+                            );
+                        case 'owner':
+                            return htmlToFragment(
+                                FAPI_UI.logTemplates.OWNER({ owner: row.owner ? row.owner : {} })
+                            );
+                        default:
+                            return '';
                     }
-                },
-                columns: [
-                    {
-                        title: 'Instance ID',
-                        data: '_id',
-                        render: {
-                            display: function(data) { return FAPI_UI.logTemplates.PLAN_DETAIL({ id: data, public: public }); }
-                        }
-                    },
-                    {
-                        title: 'Config',
-                        data: null,
-                        render: {
-                            display: function() { return FAPI_UI.logTemplates.CONFIG(); }
-                        },
-                        createdCell: function(cell) { $(cell).addClass('configColumn'); },
-                        orderable: false,
-                        visible: !public
-                    },
-                    {
-                        title: 'Name',
-                        data: 'planName',
-                        render: $('#plansListing').DataTable.render.text()
-                    },
-                    {
-                        title: 'Variant',
-                        data: 'variant',
-                        defaultContent: '',
-                        render: {
-                            display: function(v) { return FAPI_UI.formatVariant(v); }
-                        }
-                    },
-                    {
-                        title: 'Description',
-                        data: 'description',
-                        render: $('#plansListing').DataTable.render.text(),
-                        defaultContent: ''
-                    },
-                    {
-                        title: 'Started',
-                        data: 'started',
-                        render: {
-                            display: function(data) { return FAPI_UI.logTemplates.DATE({ date: data }); }
-                        }
-                    },
-                    {
-                        title: 'Modules',
-                        data: 'modules',
-                        render: {
-                            display: function(data) { return FAPI_UI.logTemplates.PLAN_MODULES({ modules: data }); }
-                        },
-                        orderable: false
-                    },
-                    {
-                        title: 'Owner',
-                        data: function(row) { return { owner: row.owner ? row.owner : {} }; },
-                        render: {
-                            display: function(data) { return FAPI_UI.logTemplates.OWNER(data); }
-                        },
-                        visible: !public && FAPI_UI.currentUser && FAPI_UI.currentUser.isAdmin
-                    }
-                ],
-                createdRow: function(row, data) {
-                    // wire up configuration button
-                    $('.showConfigBtn', row).click(function(evt) {
-                        evt.preventDefault();
-                        $('#config').html(_.escape(JSON.stringify(data.config, null, 4)));
-                        $('#configTestId').html(_.escape(data._id));
+                };
+                table.initialSort = { column: 'started', direction: 'desc' };
 
-                        document.getElementById('configModal').show();
-                    });
-                },
-                drawCallback: function() {
-                    FAPI_UI.activeTooltip();
-                    fetchTestResults($('#plansListing').DataTable(), public);
-                },
-                pagingType: "simple",
-                language: {
-                    info: "Showing _START_ to _END_",
-                    infoEmpty: "No entries to show",
-                    infoFiltered: ""
-                },
-                initComplete: function() {
-                    var api = this.api();
-                    var container = api.table().container();
-                    var searchInput = $('div.dataTables_filter input', container);
-
-                    // Disable default live-search behaviour
-                    searchInput.off();
-
-                    // Add a search button after the input
-                    var searchBtn = $('<cts-button variant="primary" class="ms-2" icon="search" label="Search"></cts-button>');
-                    searchInput.after(searchBtn);
-
-                    function doSearch() {
-                        FAPI_UI.showBusy('Searching...');
-                        api.search(searchInput.val()).draw();
-                    }
-
-                    searchBtn.on('click', doSearch);
-
-                    searchInput.on('keydown', function(e) {
-                        if (e.key === 'Enter' || e.keyCode === 13) {
-                            e.preventDefault();
-                            doSearch();
-                        }
-                    });
-
-                    // Hide busy indicator when AJAX completes
-                    api.on('xhr.dt', function() {
-                        FAPI_UI.hideBusy();
-                    });
-                },
-                order: [[5, "desc"]] // sort by the "date" column, descending, by default
-            });
-        }
-
-        function fetchTestResults(dt, public) {
-            // for every visible row
-            dt.rows(':visible').every(function (index) {
-                var row = dt.row(index);
-                // look for any test instances that haven't been loaded
-                $('[data-instance]', row.node()).each(function() {
-
-                    var el = $(this);
-
-                    var testId = el.data('instance');
-
-                    if (testId) {
-                        // get this instance's status
-                        $.ajax({
-                            type: 'GET',
-                            url: '/api/info/' + encodeURIComponent(testId) + (public ? '?public=true' : ''),
-                            data: {},
-                            success: function(data) {
-                                el.data('instance', ''); // clear the data attribute so we don't re-fetch
-                                if (data.result) {
-                                    el.removeClass('testResult-unknown');
-                                    el.addClass('testResult-' + data.result.toLowerCase());
-                                }
-                            },
-                            error: function() {
-
-                            }
+                // Wire per-row imperative behaviour that DataTables previously
+                // owned via createdRow / drawCallback:
+                //   - bind .showConfigBtn click to the configModal,
+                //   - kick off the test-status fetch cascade,
+                //   - re-run the legacy tooltip wiring (no-op once
+                //     bootstrap.Tooltip is dropped, kept for symmetry).
+                table.addEventListener('cts-row-rendered', function(evt) {
+                    var rowEl = evt.detail.rowEl;
+                    var data = evt.detail.row;
+                    var btn = rowEl.querySelector('.showConfigBtn');
+                    if (btn) {
+                        btn.addEventListener('cts-click', function(clickEvt) {
+                            clickEvt.preventDefault();
+                            document.getElementById('config').textContent =
+                                JSON.stringify(data.config, null, 4);
+                            document.getElementById('configTestId').textContent = data._id;
+                            document.getElementById('configModal').show();
                         });
                     }
                 });
-            });
 
+                table.addEventListener('cts-draw-complete', function() {
+                    FAPI_UI.activeTooltip();
+                    fetchTestResults(table, public);
+                });
+
+                table.addEventListener('cts-data-loaded', function() {
+                    FAPI_UI.hideBusy();
+                });
+                table.addEventListener('cts-data-error', function(evt) {
+                    var err = evt.detail && evt.detail.error;
+                    FAPI_UI.showError({
+                        code: '',
+                        error: err && err.message ? err.message : String(err)
+                    });
+                });
+
+                // Re-trigger the first fetch now that columns / cellRenderer
+                // are wired up. The component's initial connectedCallback
+                // already issued one with empty columns; this paints the real
+                // table.
+                table.reload();
+            });
+        }
+
+        /**
+         * For every visible row, look up any test instances that haven't been
+         * loaded yet and fetch their status so the colour-coded boxes from
+         * planModules.html can resolve from .testResult-unknown to the actual
+         * pass/fail/warning state.
+         */
+        function fetchTestResults(table, public) {
+            var rowEls = table.querySelectorAll('.oidf-dt-table tbody tr[data-row-index]');
+            rowEls.forEach(function(rowEl) {
+                rowEl.querySelectorAll('[data-instance]').forEach(function(el) {
+                    var testId = el.getAttribute('data-instance');
+                    if (!testId) return;
+
+                    fetch('/api/info/' + encodeURIComponent(testId)
+                            + (public ? '?public=true' : ''))
+                        .then(function(response) {
+                            if (!response.ok) return null;
+                            return response.json();
+                        })
+                        .then(function(data) {
+                            // clear the data attribute so we don't re-fetch
+                            el.setAttribute('data-instance', '');
+                            if (data && data.result) {
+                                el.classList.remove('testResult-unknown');
+                                el.classList.add('testResult-' + data.result.toLowerCase());
+                            }
+                        })
+                        .catch(function() {
+                            /* swallow — same behaviour as the legacy
+                             * jQuery error: function() {} branch */
+                        });
+                });
+            });
         }
 
     </script>
