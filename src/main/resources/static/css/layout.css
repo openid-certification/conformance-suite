@@ -104,6 +104,52 @@ cts-link-button[full-width]:not(:defined) {
 	min-height: 36px;
 }
 
+/* cts-empty-state is "often used as a block-level fill" (Coherence F4) — a
+ * dashboard tile slot, a table-empty row, an onboarding surface. The
+ * post-upgrade layout is a centered flex column whose intrinsic height
+ * depends on the content (icon + heading + body + CTA), but pre-upgrade
+ * the host has no children and would collapse to zero. Reserve a
+ * conservative 120px so the surrounding layout (cards, table rows) does
+ * not jump when the component upgrades. */
+cts-empty-state:not(:defined) {
+	display: block;
+	min-height: 120px;
+}
+
+/* cts-data-table replaces jQuery DataTables on plans.html / logs.html /
+ * tokens.html. Pre-upgrade the host has no children and would collapse to
+ * zero height, leaving the page chrome jumpy until the AJAX round-trip
+ * resolves. Reserve a conservative 200px (roughly: search row + sticky
+ * header + a couple of rows) so the surrounding layout settles before the
+ * fetch returns. `display: block` is required because the inline-default
+ * custom element would otherwise ignore `min-height`. */
+cts-data-table:not(:defined) {
+	display: block;
+	min-height: 200px;
+}
+
+/* cts-page-head is the standard page header pattern used by every
+ * page-level migration in Phase D (32px title + optional subtitle +
+ * actions slot). The post-upgrade footprint is roughly 80px tall (32px
+ * title + 13px subtitle + the bottom border + spacing). Reserve that
+ * height pre-upgrade so the page body does not jump when the component
+ * defines. `display: block` is required because the inline-default
+ * custom element would otherwise ignore `min-height`. */
+cts-page-head:not(:defined) {
+	display: block;
+	min-height: 80px;
+}
+
+/* cts-stat is a block-level dashboard tile (overline label + display-font
+ * value + optional delta). Reserve ~80px so a grid of tiles does not
+ * collapse to zero height pre-upgrade; the post-upgrade height comes out
+ * close to this with the OIDF spacing scale (~12px label + 32px value +
+ * ~17px delta + gaps). */
+cts-stat:not(:defined) {
+	display: block;
+	min-height: 80px;
+}
+
 cts-navbar:not(:defined) {
 	visibility: hidden;
 	display: block;
