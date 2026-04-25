@@ -26,6 +26,7 @@ import net.openid.conformance.condition.as.CreateSdJwtKbCredential;
 import net.openid.conformance.condition.as.EnsureAuthorizationRequestContainsPkceCodeChallenge;
 import net.openid.conformance.condition.as.EnsureClientIdInAuthorizationRequestParametersMatchRequestObject;
 import net.openid.conformance.condition.as.EnsureMatchingClientId;
+import net.openid.conformance.condition.as.EnsureNoWalletNonceInRequestObject;
 import net.openid.conformance.condition.as.EnsureNumericRequestObjectClaimsAreNotNull;
 import net.openid.conformance.condition.as.EnsureOptionalAuthorizationRequestParametersMatchRequestObject;
 import net.openid.conformance.condition.as.EnsureRequestObjectDoesNotContainRequestOrRequestUri;
@@ -360,6 +361,14 @@ public abstract class AbstractVP1FinalVerifierTest extends AbstractTestModule {
 		callAndContinueOnFailure(CheckRequestUriMethodParameter.class, ConditionResult.FAILURE, "OID4VP-1FINAL-5.1");
 		skipIfMissing(null, new String[]{"authorization_request_object"}, ConditionResult.INFO,
 			WarnIfRequestUriMethodInRequestObject.class, ConditionResult.WARNING, "OID4VP-1FINAL-5.1");
+		// wallet_nonce is a request-object claim that the verifier should only emit when responding
+		// to a wallet POST that included wallet_nonce. In POST mode, VP1FinalVerifierRequestUriMethodPost
+		// runs EnsureWalletNonceClaimMatchesPostedValue to verify the value; here we ensure it is absent.
+		String requestUriMethod = env.getString("authorization_endpoint_http_request_params", "request_uri_method");
+		if (!"post".equals(requestUriMethod)) {
+			skipIfMissing(null, new String[]{"authorization_request_object"}, ConditionResult.INFO,
+				EnsureNoWalletNonceInRequestObject.class, ConditionResult.FAILURE, "OID4VP-1FINAL-5.10");
+		}
 		callAndContinueOnFailure(CheckForUnexpectedParametersInVpAuthorizationRequest.class, ConditionResult.WARNING);
 		callAndContinueOnFailure(CheckVerifierInfoInVpAuthorizationRequest.class, ConditionResult.FAILURE, "OID4VP-1FINAL-5.1");
 		callAndContinueOnFailure(CheckForUnexpectedPropertiesInVerifierInfo.class, ConditionResult.WARNING, "OID4VP-1FINAL-5.1");
