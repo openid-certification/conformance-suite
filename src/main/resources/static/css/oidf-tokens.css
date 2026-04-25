@@ -1,0 +1,257 @@
+/* ================================================================
+   Vendored from the OIDF Certification Test Suite design archive.
+
+   Source:  openid-certification-design-system /
+            project/colors_and_type.css
+   Pinned:  2026-04-25
+   Notes:   Verbatim copy. Do not modify in-place — re-vendor from the
+            archive when upstream changes. The "Foundations" comment
+            block below is the upstream license/header preserved as-is.
+   ================================================================ */
+
+/* ================================================================
+   OpenID Certification Test Suite — Foundations
+   ----------------------------------------------------------------
+   Palette is anchored on the user-provided wireframe alternates from
+   the 2022 Brand Guide (slide 7): a calmer, deeper variant of OIDF
+   Orange paired with a neutral charcoal/sand for the testing tool.
+   The brand-pure OIDF Orange (#F69100) is preserved as an accent for
+   logo + Certified mark only.
+   ================================================================ */
+
+:root {
+  /* ---- Palette (user-provided; from "Alternates for wireframe mock-ups") ---- */
+  --oidf-ink:        #1A1611;   /* warm near-black charcoal — text + dense surfaces */
+  --oidf-fog:        #DFDCD5;   /* warm light gray — borders, rails, chrome */
+  --oidf-sand:       #CDBBA3;   /* warm tan — secondary surfaces, supportive bands */
+  --oidf-orange:     #EB8B35;   /* primary action, brand orange (warmer) */
+  --oidf-rust:       #A43604;   /* deep red, errors / failure / destructive */
+
+  /* ---- Brand-true OIDF Orange — reserve for logo + Certified mark only ---- */
+  --oidf-orange-pure: #F69100;
+
+  /* ---- Neutral ramp (warm taupe / stone — tinted to match OIDF warm palette) ---- */
+  --ink-0:  #FFFFFF;
+  --ink-50: #F8F7F5;   /* hint of warm in app bg */
+  --ink-100: #EFEDE9;  /* sunken surfaces, dividers */
+  --ink-200: #DFDCD5;  /* borders, rails, chrome */
+  --ink-300: #C7C2B8;  /* strong borders, disabled outlines */
+  --ink-400: #A09A8E;  /* placeholder, faint icon */
+  --ink-500: #71695E;  /* tertiary text / metadata */
+  --ink-600: #4F4940;  /* secondary text */
+  --ink-700: #322E28;  /* dense surfaces */
+  --ink-800: #232019;  /* sidebar / heavy chrome */
+  --ink-900: #1A1611;  /* primary text — warmer near-black */
+
+  /* ---- Sand ramp (warm) ---- */
+  --sand-50:  #FAF6F1;
+  --sand-100: #F1E9DC;
+  --sand-200: #E2D4BF;
+  --sand-300: #CDBBA3;  /* = --oidf-sand */
+  --sand-400: #B19877;
+  --sand-500: #8E7553;
+
+  /* ---- Orange ramp ---- */
+  --orange-50:  #FDF1E5;
+  --orange-100: #FADCBE;
+  --orange-200: #F5BC8A;
+  --orange-300: #EFA059;
+  --orange-400: #EB8B35;   /* = --oidf-orange */
+  --orange-500: #D27420;
+  --orange-600: #A85816;
+  --orange-700: #7E3F0D;
+
+  /* ---- Rust / Red ramp ---- */
+  --rust-50:  #FBEBE3;
+  --rust-100: #F4C8B3;
+  --rust-200: #DC8A65;
+  --rust-300: #C46032;
+  --rust-400: #A43604;    /* = --oidf-rust */
+  --rust-500: #832C03;
+
+  /* ---- Semantic surface + foreground ---- */
+  --bg:        var(--ink-0);
+  --bg-muted:  var(--ink-50);
+  --bg-sunken: var(--ink-100);
+  --bg-elev:   var(--ink-0);
+  --bg-ink:    var(--ink-900);
+  --bg-sand:   var(--sand-50);
+
+  --fg:        var(--ink-900);   /* primary text */
+  --fg-muted:  var(--ink-600);   /* secondary text */
+  --fg-soft:   var(--ink-500);   /* tertiary / labels / metadata */
+  --fg-faint:  var(--ink-400);   /* placeholder, disabled */
+  --fg-on-ink: var(--ink-0);
+  --fg-on-orange: var(--ink-0);
+  --fg-link:   var(--orange-500);
+
+  --border:        var(--ink-200);
+  --border-strong: var(--ink-300);
+  --border-ink:    var(--ink-900);
+  --divider:       var(--ink-100);
+
+  /* ---- Status palette (test-suite specific) ---- */
+  --status-pass:        #2F7D3C;   /* calm green, used sparingly */
+  --status-pass-bg:     #E6F1E5;
+  --status-pass-border: #B6D4B5;
+
+  --status-fail:        var(--rust-400);
+  --status-fail-bg:     var(--rust-50);
+  --status-fail-border: var(--rust-100);
+
+  --status-warning:        var(--orange-500);
+  --status-warning-bg:     var(--orange-50);
+  --status-warning-border: var(--orange-100);
+
+  --status-running:        #1E5A8C;   /* steady blue for active runs */
+  --status-running-bg:     #E5EEF5;
+  --status-running-border: #B6CCDF;
+
+  --status-skipped:        var(--ink-500);
+  --status-skipped-bg:     var(--ink-100);
+  --status-skipped-border: var(--ink-200);
+
+  --status-info:        #1E5A8C;
+  --status-info-bg:     #E5EEF5;
+  --status-info-border: #B6CCDF;
+
+  /* ---- Focus ring ---- */
+  --focus-ring: 0 0 0 3px rgba(235, 139, 53, 0.35);
+
+  /* ---- Typography ----
+     Audience is developers; UI is dashboards + forms.
+     Stack prefers Helvetica Neue → Arial Nova → Nimbus Sans → Arial as final
+     widely-installed fallback. Display reuses the same stack at weight 900.
+     Mono for code/JWT/JSON: JetBrains Mono via Google Fonts.
+  */
+  --font-sans: 'Helvetica Neue', 'Arial Nova', 'Nimbus Sans', Arial, sans-serif;
+  --font-display: 'Helvetica Neue', 'Arial Nova', 'Nimbus Sans', Arial, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+
+  /* Base size & line-height */
+  --fs-12: 12px;
+  --fs-13: 13px;
+  --fs-14: 14px;
+  --fs-15: 15px;
+  --fs-16: 16px;
+  --fs-18: 18px;
+  --fs-20: 20px;
+  --fs-24: 24px;
+  --fs-28: 28px;
+  --fs-32: 32px;
+  --fs-40: 40px;
+  --fs-56: 56px;
+  --fs-72: 72px;
+
+  --lh-tight: 1.15;
+  --lh-snug:  1.3;
+  --lh-base:  1.5;
+  --lh-loose: 1.65;
+
+  /* Weights — Helvetica Neue / Arial Nova / Nimbus Sans / Arial all support 400/700/900 */
+  --fw-regular: 400;
+  --fw-bold:    700;
+  --fw-black:   900;
+
+  /* ---- Spacing scale (4px base) ---- */
+  --space-0: 0;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+  --space-20: 80px;
+
+  /* ---- Radii ---- */
+  --radius-0: 0;
+  --radius-1: 2px;     /* tight rectilinear feel — matches the technical, engineered tone */
+  --radius-2: 4px;
+  --radius-3: 6px;
+  --radius-4: 8px;
+  --radius-pill: 999px;
+
+  /* ---- Elevation / shadow (warm-tinted from --ink-900 #1A1611) ---- */
+  --shadow-1: 0 1px 0 rgba(26, 22, 17, 0.05), 0 1px 2px rgba(26, 22, 17, 0.07);
+  --shadow-2: 0 1px 2px rgba(26, 22, 17, 0.06), 0 4px 12px rgba(26, 22, 17, 0.09);
+  --shadow-3: 0 2px 4px rgba(26, 22, 17, 0.07), 0 12px 28px rgba(26, 22, 17, 0.16);
+  --shadow-inset: inset 0 1px 0 rgba(26, 22, 17, 0.05);
+
+  /* ---- Motion ---- */
+  --ease-standard: cubic-bezier(0.2, 0.0, 0.0, 1.0);
+  --ease-emphasized: cubic-bezier(0.2, 0.0, 0.0, 1.2);
+  --dur-1: 120ms;
+  --dur-2: 180ms;
+  --dur-3: 280ms;
+
+  /* ---- Layout ---- */
+  --maxw-narrow: 720px;
+  --maxw-page:   1200px;
+  --maxw-wide:   1440px;
+}
+
+/* ================================================================
+   Semantic typography rules
+   ================================================================ */
+
+html {
+  font-family: var(--font-sans);
+  font-size: var(--fs-14);
+  line-height: var(--lh-base);
+  color: var(--fg);
+  background: var(--bg);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body { margin: 0; }
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-display);
+  font-weight: var(--fw-black);
+  color: var(--fg);
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+
+h1 { font-size: var(--fs-40); line-height: var(--lh-tight); }
+h2 { font-size: var(--fs-28); line-height: var(--lh-tight); }
+h3 { font-size: var(--fs-20); line-height: var(--lh-snug); }
+h4 { font-size: var(--fs-16); line-height: var(--lh-snug); font-weight: var(--fw-bold); font-family: var(--font-sans); letter-spacing: 0; }
+h5 { font-size: var(--fs-14); line-height: var(--lh-snug); font-weight: var(--fw-bold); font-family: var(--font-sans); text-transform: uppercase; letter-spacing: 0.06em; color: var(--fg-muted); }
+h6 { font-size: var(--fs-12); line-height: var(--lh-snug); font-weight: var(--fw-bold); font-family: var(--font-sans); text-transform: uppercase; letter-spacing: 0.08em; color: var(--fg-soft); }
+
+p  { margin: 0; }
+small { font-size: var(--fs-12); color: var(--fg-muted); }
+
+code, kbd, samp, pre {
+  font-family: var(--font-mono);
+  font-size: 0.92em;
+}
+
+a {
+  color: var(--fg-link);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 2px;
+}
+a:hover { color: var(--orange-600); }
+
+::selection { background: var(--orange-200); color: var(--ink-900); }
+
+/* Utility text styles you can reach for from JSX */
+.t-display   { font-family: var(--font-display); font-weight: var(--fw-black); font-size: var(--fs-56); line-height: var(--lh-tight); letter-spacing: -0.015em; }
+.t-title     { font-family: var(--font-display); font-weight: var(--fw-black); font-size: var(--fs-32); line-height: var(--lh-tight); }
+.t-h1        { font-family: var(--font-display); font-weight: var(--fw-black); font-size: var(--fs-28); line-height: var(--lh-tight); }
+.t-h2        { font-family: var(--font-sans);    font-weight: var(--fw-bold);  font-size: var(--fs-20); line-height: var(--lh-snug); }
+.t-h3        { font-family: var(--font-sans);    font-weight: var(--fw-bold);  font-size: var(--fs-16); line-height: var(--lh-snug); }
+.t-body      { font-family: var(--font-sans);    font-weight: var(--fw-regular); font-size: var(--fs-14); line-height: var(--lh-base); }
+.t-body-lg   { font-family: var(--font-sans);    font-weight: var(--fw-regular); font-size: var(--fs-16); line-height: var(--lh-base); }
+.t-meta      { font-family: var(--font-sans);    font-weight: var(--fw-regular); font-size: var(--fs-13); line-height: var(--lh-snug); color: var(--fg-soft); }
+.t-overline  { font-family: var(--font-sans);    font-weight: var(--fw-bold);  font-size: var(--fs-12); line-height: var(--lh-snug); letter-spacing: 0.08em; text-transform: uppercase; color: var(--fg-soft); }
+.t-mono      { font-family: var(--font-mono);    font-size: var(--fs-13); line-height: var(--lh-snug); }
+.t-mono-sm   { font-family: var(--font-mono);    font-size: var(--fs-12); line-height: var(--lh-snug); }
