@@ -1,13 +1,130 @@
-import { LitElement, html, nothing } from "lit";
+import { LitElement, html } from "lit";
+import "./cts-modal.js";
+import "./cts-button.js";
+import "./cts-link-button.js";
 
 // Screen-reader announcement + visible feedback should stay long enough for
 // assistive tech to finish reading the message. 2-3s is a common mistake.
 const COPY_FEEDBACK_DURATION_MS = 5000;
 
+const STYLE_ID = "cts-token-manager-styles";
+
+// Scoped CSS for the OIDF-tokenized token-manager surface. Replaces the
+// Bootstrap container/row/col scaffolding and the legacy `.table table-*`
+// styling that comes from Bootstrap. The token list table keeps its
+// `id="tokensListing"` so the existing E2E selectors still match; it picks
+// up token-driven cell padding, header background, and row separators here.
+// U33 will swap the table for `<cts-data-table>` — until then this scoped
+// CSS keeps the table legible after Bootstrap removal.
+const STYLE_TEXT = `
+.cts-token-manager {
+  display: block;
+  padding: var(--space-4) var(--space-5);
+  font-family: var(--font-sans);
+  color: var(--fg);
+}
+.cts-token-manager-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-bottom: var(--space-4);
+}
+.cts-token-manager-message {
+  font-size: var(--fs-13);
+  color: var(--fg-muted);
+  margin: 0 0 var(--space-3) 0;
+}
+.cts-token-manager-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--fs-13);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-2);
+  overflow: hidden;
+}
+.cts-token-manager-table thead th {
+  text-align: left;
+  font-weight: var(--fw-bold);
+  padding: var(--space-3) var(--space-3);
+  background: var(--ink-50);
+  color: var(--ink-900);
+  border-bottom: 1px solid var(--border);
+}
+.cts-token-manager-table tbody td {
+  padding: var(--space-3) var(--space-3);
+  border-bottom: 1px solid var(--border);
+  vertical-align: middle;
+  color: var(--fg);
+}
+.cts-token-manager-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+.cts-token-manager-table tbody tr:nth-child(odd) td {
+  background: var(--ink-50);
+}
+.cts-token-manager-table tbody tr:hover td {
+  background: var(--ink-100);
+}
+.cts-token-manager-created-modal-body p {
+  margin: 0 0 var(--space-3) 0;
+}
+.cts-token-manager-created-modal-body p:last-child {
+  margin-bottom: 0;
+}
+.cts-token-manager-copy-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+.cts-token-manager-copy-feedback {
+  font-size: var(--fs-12);
+  color: var(--rust-500);
+}
+.cts-token-manager-token-value {
+  background: var(--ink-50);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-2);
+  padding: var(--space-3);
+  font-family: var(--font-mono);
+  font-size: var(--fs-13);
+  color: var(--fg);
+  white-space: pre-wrap;
+  word-break: break-all;
+  margin: 0;
+}
+.cts-token-manager-error-message {
+  margin: 0;
+  color: var(--rust-500);
+  font-size: var(--fs-13);
+}
+`;
+
+/**
+ * Inject the cts-token-manager scoped stylesheet into `<head>` exactly once.
+ * Idempotent: subsequent calls find the existing `<style>` tag by id and
+ * bail.
+ * @returns {void}
+ */
+function injectStyles() {
+  if (document.getElementById(STYLE_ID)) return;
+  const style = document.createElement("style");
+  style.id = STYLE_ID;
+  style.textContent = STYLE_TEXT;
+  document.head.appendChild(style);
+}
+
 /**
  * Token management UI. Lists existing API tokens via `/api/token`, lets the
  * user create temporary or permanent tokens, and confirms deletion. Admins
  * see a read-only message instead (admins cannot create tokens).
+ *
+ * The three modals (Token created / Delete confirmation / Error) are
+ * rendered as `<cts-modal>` instances so they survive Bootstrap CSS removal
+ * (Phase E of the OIDF design-system migration). The host's `.show()` /
+ * `.hide()` methods drive open/close; `cts-modal-close` on the delete
+ * modal clears `_deleteTokenId` regardless of how the dialog was dismissed
+ * (Cancel button, ESC, backdrop click, or header close).
  * @property {boolean} isAdmin - Renders the admin read-only view instead of
  *   the create/delete UI. Reflects the `is-admin` attribute.
  */
@@ -19,9 +136,6 @@ class CtsTokenManager extends LitElement {
     _createdToken: { state: true },
     _deleteTokenId: { state: true },
     _error: { state: true },
-    _showCreated: { state: true },
-    _showDelete: { state: true },
-    _showError: { state: true },
     _copyFeedback: { state: true },
   };
 
@@ -33,11 +147,14 @@ class CtsTokenManager extends LitElement {
     this._createdToken = "";
     this._deleteTokenId = "";
     this._error = "";
-    this._showCreated = false;
-    this._showDelete = false;
-    this._showError = false;
     this._copyFeedback = "";
     this._copyFeedbackTimer = null;
+  }
+
+  connectedCallback() {
+    super.connectedCallback();
+    injectStyles();
+    this._fetchTokens();
   }
 
   disconnectedCallback() {
@@ -48,14 +165,9 @@ class CtsTokenManager extends LitElement {
     }
   }
 
-  // Use light DOM so Bootstrap CSS applies
+  // Light DOM keeps document.getElementById and global CSS tokens in scope.
   createRenderRoot() {
     return this;
-  }
-
-  connectedCallback() {
-    super.connectedCallback();
-    this._fetchTokens();
   }
 
   async _fetchTokens() {
@@ -101,16 +213,16 @@ class CtsTokenManager extends LitElement {
           // Use statusText as fallback
         }
         this._error = message;
-        this._showError = true;
+        await this._showModal("createdErrorModal");
         return;
       }
       const data = await response.json();
       this._createdToken = data.token;
-      this._showCreated = true;
+      await this._showModal("createdTokenModal");
       await this._fetchTokens();
     } catch (err) {
       this._error = (err instanceof Error && err.message) || "Failed to create token";
-      this._showError = true;
+      await this._showModal("createdErrorModal");
     }
   }
 
@@ -126,39 +238,88 @@ class CtsTokenManager extends LitElement {
       await this._fetchTokens();
     } catch (err) {
       this._error = (err instanceof Error && err.message) || "Failed to delete token";
-      this._showError = true;
+      await this._showModal("createdErrorModal");
     }
   }
 
-  _openDeleteModal(tokenId) {
-    this._deleteTokenId = tokenId;
-    this._showDelete = true;
+  /**
+   * Imperatively open one of the local cts-modal hosts after the next Lit
+   * render flushes. The cts-modal element is rendered via Lit, so we wait
+   * for `updateComplete` before reaching for it — otherwise the first
+   * open-after-state-change would race the Lit microtask.
+   * @param {string} modalRefId - Local id of the cts-modal in light DOM
+   * @returns {Promise<void>}
+   */
+  async _showModal(modalRefId) {
+    await this.updateComplete;
+    const modal = /** @type {(HTMLElement & { show?: () => void }) | null} */ (
+      this.querySelector(`#${modalRefId}`)
+    );
+    if (modal && typeof modal.show === "function") modal.show();
+  }
+
+  /**
+   * Imperatively close one of the local cts-modal hosts.
+   * @param {string} modalRefId - Local id of the cts-modal in light DOM
+   * @returns {void}
+   */
+  _hideModal(modalRefId) {
+    const modal = /** @type {(HTMLElement & { hide?: () => void }) | null} */ (
+      this.querySelector(`#${modalRefId}`)
+    );
+    if (modal && typeof modal.hide === "function") modal.hide();
   }
 
   _handleDeleteClick(event) {
-    const tokenId = event.currentTarget.dataset.tokenId;
-    if (tokenId) this._openDeleteModal(tokenId);
+    const host = /** @type {HTMLElement} */ (event.currentTarget);
+    const tokenId = host.dataset.tokenId;
+    if (!tokenId) return;
+    this._deleteTokenId = tokenId;
+    this._showModal("deleteTokenModal");
   }
 
-  _confirmDelete() {
-    if (this._deleteTokenId) {
-      this._deleteToken(this._deleteTokenId);
-      this._deleteTokenId = "";
-    }
-    this._showDelete = false;
-  }
-
-  _cancelDelete() {
+  /**
+   * Confirm-delete handler wired via the cts-modal `footer-buttons`
+   * descriptor. The descriptor sets `id: "confirmDeleteBtn"` and
+   * `dismiss: false` so the button stays under our control — we close the
+   * modal first, then issue the delete. Listener is attached once in
+   * `updated()` (see comment there).
+   * @returns {void}
+   */
+  _handleConfirmDelete() {
+    const tokenId = this._deleteTokenId;
     this._deleteTokenId = "";
-    this._showDelete = false;
+    this._hideModal("deleteTokenModal");
+    if (tokenId) {
+      this._deleteToken(tokenId);
+    }
   }
 
-  _closeCreatedModal() {
-    this._showCreated = false;
+  /**
+   * Wire up the confirm-delete button click after every render. The footer
+   * button is created by cts-modal during its `connectedCallback`, which
+   * only runs once Lit appends the cts-modal host. The first render in
+   * the loading state does not include the modals, so we re-check on every
+   * `updated()` and attach the listener exactly once via the
+   * `_confirmDeleteWired` flag.
+   * @returns {void}
+   */
+  updated() {
+    if (this.isAdmin || this._confirmDeleteWired) return;
+    const confirmBtn = this.querySelector("#confirmDeleteBtn");
+    if (confirmBtn) {
+      confirmBtn.addEventListener("click", () => this._handleConfirmDelete());
+      this._confirmDeleteWired = true;
+    }
   }
 
-  _closeErrorModal() {
-    this._showError = false;
+  /**
+   * Reset state when the delete modal closes — covers Cancel button, ESC,
+   * backdrop click, and header close button uniformly.
+   * @returns {void}
+   */
+  _handleDeleteModalClose() {
+    this._deleteTokenId = "";
   }
 
   async _copyToken() {
@@ -200,37 +361,23 @@ class CtsTokenManager extends LitElement {
 
   _renderAdminView() {
     return html`
-      <div class="container-fluid">
-        <div class="row">
-          <div class="col-md-12">
-            <p class="admin-message">
-              Admin users cannot create tokens - please login as a non-admin user.
-            </p>
-          </div>
-        </div>
-      </div>
-    `;
-  }
-
-  _renderLoading() {
-    return html`
-      <div class="container-fluid">
-        <div class="row">
-          <div class="col-md-12">
-            <p>Loading...</p>
-          </div>
-        </div>
+      <div class="cts-token-manager">
+        <p class="cts-token-manager-message admin-message">
+          Admin users cannot create tokens - please login as a non-admin user.
+        </p>
       </div>
     `;
   }
 
   _renderTokenTable() {
     if (this._tokens.length === 0) {
-      return html`<p class="no-tokens-message"> No tokens have been created yet. </p>`;
+      return html`<p class="cts-token-manager-message no-tokens-message">
+        No tokens have been created yet.
+      </p>`;
     }
 
     return html`
-      <table class="table table-striped table-bordered table-hover" id="tokensListing">
+      <table class="cts-token-manager-table" id="tokensListing">
         <thead>
           <tr>
             <th>Token ID</th>
@@ -245,162 +392,25 @@ class CtsTokenManager extends LitElement {
 
   _renderCreateButtons() {
     return html`
-      <p>
-        <button
-          type="button"
-          class="btn btn-lg btn-primary bg-gradient border border-secondary"
-          @click=${this._createTemporaryToken}
-        >
-          New temporary token
-        </button>
-        <button
-          type="button"
-          class="btn btn-lg btn-primary bg-gradient border border-secondary"
-          @click=${this._createPermanentToken}
-        >
-          New permanent token
-        </button>
-        <a
-          class="btn btn-lg btn-primary bg-gradient border border-secondary"
+      <div class="cts-token-manager-actions">
+        <cts-button
+          variant="primary"
+          size="lg"
+          label="New temporary token"
+          @cts-click=${this._createTemporaryToken}
+        ></cts-button>
+        <cts-button
+          variant="primary"
+          size="lg"
+          label="New permanent token"
+          @cts-click=${this._createPermanentToken}
+        ></cts-button>
+        <cts-link-button
+          variant="secondary"
+          size="lg"
           href="/api-document.html"
-          >API Documentation</a
-        >
-      </p>
-    `;
-  }
-
-  _renderCreatedModal() {
-    if (!this._showCreated) return nothing;
-
-    return html`
-      <div class="modal-backdrop-lite" role="dialog" aria-label="Token created" aria-modal="true">
-        <div class="modal d-block" tabindex="-1">
-          <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-              <div class="modal-header">
-                <h4 class="modal-title">Token created</h4>
-                <button
-                  type="button"
-                  class="btn-close"
-                  aria-label="Close"
-                  @click=${this._closeCreatedModal}
-                ></button>
-              </div>
-              <div class="modal-body">
-                <div class="wrapLongStrings">
-                  <p class="d-flex align-items-center gap-2">
-                    <button
-                      class="btn btn-sm btn-outline-secondary"
-                      @click=${this._copyToken}
-                      title="Copy token to clipboard"
-                    >
-                      <span class="bi bi-clipboard"></span> Copy
-                    </button>
-                    ${this._copyFeedback
-                      ? html`<span
-                          class="text-danger small"
-                          role="status"
-                          aria-live="polite"
-                          data-testid="copy-feedback"
-                          >${this._copyFeedback}</span
-                        >`
-                      : nothing}
-                  </p>
-                  <p> Here is your new token. This value will only be displayed once. </p>
-                  <pre class="created-token-value">${this._createdToken}</pre>
-                </div>
-              </div>
-              <div class="modal-footer">
-                <button
-                  type="button"
-                  class="btn btn-sm btn-light bg-gradient border border-secondary"
-                  @click=${this._closeCreatedModal}
-                >
-                  Close
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    `;
-  }
-
-  _renderDeleteModal() {
-    if (!this._showDelete) return nothing;
-
-    return html`
-      <div class="modal-backdrop-lite" role="dialog" aria-label="Delete token" aria-modal="true">
-        <div class="modal d-block" tabindex="-1">
-          <div class="modal-dialog">
-            <div class="modal-content">
-              <div class="modal-header">
-                <h4 class="modal-title">Delete</h4>
-                <button
-                  type="button"
-                  class="btn-close"
-                  aria-label="Close"
-                  @click=${this._cancelDelete}
-                ></button>
-              </div>
-              <div class="modal-body">
-                <p> Are you sure? This will permanently remove this token. </p>
-              </div>
-              <div class="modal-footer">
-                <button
-                  type="button"
-                  class="btn btn-sm btn-danger bg-gradient border border-secondary"
-                  @click=${this._confirmDelete}
-                >
-                  Delete
-                </button>
-                <button
-                  type="button"
-                  class="btn btn-sm btn-light bg-gradient border border-secondary"
-                  @click=${this._cancelDelete}
-                >
-                  Cancel
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    `;
-  }
-
-  _renderErrorModal() {
-    if (!this._showError) return nothing;
-
-    return html`
-      <div class="modal-backdrop-lite" role="dialog" aria-label="Error" aria-modal="true">
-        <div class="modal d-block" tabindex="-1">
-          <div class="modal-dialog">
-            <div class="modal-content">
-              <div class="modal-header">
-                <h4 class="modal-title">Error</h4>
-                <button
-                  type="button"
-                  class="btn-close"
-                  aria-label="Close"
-                  @click=${this._closeErrorModal}
-                ></button>
-              </div>
-              <div class="modal-body">
-                <p class="error-message">Error: ${this._error}</p>
-              </div>
-              <div class="modal-footer">
-                <button
-                  type="button"
-                  class="btn btn-sm btn-light bg-gradient border border-secondary"
-                  @click=${this._closeErrorModal}
-                >
-                  Close
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
+          label="API Documentation"
+        ></cts-link-button>
       </div>
     `;
   }
@@ -412,17 +422,87 @@ class CtsTokenManager extends LitElement {
           <td>${token._id}</td>
           <td>${this._formatDate(token.expires)}</td>
           <td>
-            <button
-              class="btn btn-sm btn-danger bg-gradient border border-secondary"
+            <cts-button
+              class="deleteBtn"
+              variant="danger"
+              size="sm"
+              label="Delete"
               data-token-id=${token._id}
-              @click=${this._handleDeleteClick}
-            >
-              Delete
-            </button>
+              @cts-click=${this._handleDeleteClick}
+            ></cts-button>
           </td>
         </tr>
       `,
     );
+  }
+
+  /**
+   * Three modals rendered as cts-modal hosts. Children are captured by
+   * cts-modal once on first connect and physically moved into the inner
+   * `.oidf-modal-body` div — Lit retains direct references to those nodes
+   * so subsequent text-content updates (e.g. `${this._createdToken}`)
+   * still flow through. Adding/removing top-level children of the
+   * cts-modal host between renders is unsupported, so the structure here
+   * stays stable: the `_copyFeedback` span is always rendered and only
+   * its content varies.
+   * @returns {ReturnType<typeof html>} Lit template containing the three
+   *   `<cts-modal>` instances (Token created / Delete / Error).
+   */
+  _renderModals() {
+    return html`
+      <cts-modal id="createdTokenModal" heading="Token created" size="lg">
+        <div class="cts-token-manager-created-modal-body">
+          <div class="cts-token-manager-copy-row">
+            <cts-button
+              variant="secondary"
+              size="sm"
+              icon="clipboard"
+              label="Copy"
+              title="Copy token to clipboard"
+              @cts-click=${this._copyToken}
+            ></cts-button>
+            <span
+              class="cts-token-manager-copy-feedback"
+              role="status"
+              aria-live="polite"
+              data-testid="copy-feedback"
+              >${this._copyFeedback || ""}</span
+            >
+          </div>
+          <p>Here is your new token. This value will only be displayed once.</p>
+          <pre class="cts-token-manager-token-value created-token-value">${this._createdToken}</pre>
+        </div>
+      </cts-modal>
+
+      <cts-modal
+        id="deleteTokenModal"
+        heading="Delete"
+        footer-buttons='[{"label":"Delete","class":"btn-danger","id":"confirmDeleteBtn","dismiss":false},{"label":"Cancel"}]'
+        @cts-modal-close=${this._handleDeleteModalClose}
+      >
+        <p>Are you sure? This will permanently remove this token.</p>
+      </cts-modal>
+
+      <cts-modal id="createdErrorModal" heading="Error">
+        <p class="cts-token-manager-error-message error-message">Error: ${this._error}</p>
+      </cts-modal>
+    `;
+  }
+
+  /**
+   * Render the table area: a loading placeholder during fetches, an empty
+   * state when the API returns no tokens, or the data table otherwise.
+   * Kept separate from `render()` so the modals stay mounted across
+   * fetch / refetch cycles — re-mounting `<cts-modal>` would lose any
+   * imperatively wired listeners (e.g. confirm-delete).
+   * @returns {ReturnType<typeof html>} Lit template for the loading,
+   *   empty, or populated table state.
+   */
+  _renderTableArea() {
+    if (this._loading) {
+      return html`<p class="cts-token-manager-message">Loading...</p>`;
+    }
+    return this._renderTokenTable();
   }
 
   render() {
@@ -430,19 +510,15 @@ class CtsTokenManager extends LitElement {
       return this._renderAdminView();
     }
 
-    if (this._loading) {
-      return this._renderLoading();
-    }
-
     return html`
-      <div class="container-fluid">
-        <div class="row">
-          <div class="col-md-12"> ${this._renderCreateButtons()} ${this._renderTokenTable()} </div>
-        </div>
+      <div class="cts-token-manager">
+        ${this._renderCreateButtons()} ${this._renderTableArea()}
       </div>
-      ${this._renderCreatedModal()} ${this._renderDeleteModal()} ${this._renderErrorModal()}
+      ${this._renderModals()}
     `;
   }
 }
 
 customElements.define("cts-token-manager", CtsTokenManager);
+
+export {};
