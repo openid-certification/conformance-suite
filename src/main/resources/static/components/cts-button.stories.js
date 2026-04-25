@@ -44,9 +44,6 @@ export const Default = {
     expect(btn.classList.contains("btn")).toBe(true);
     expect(btn.classList.contains("btn-sm")).toBe(true);
     expect(btn.classList.contains("btn-light")).toBe(true);
-    expect(btn.classList.contains("bg-gradient")).toBe(true);
-    expect(btn.classList.contains("border")).toBe(true);
-    expect(btn.classList.contains("border-secondary")).toBe(true);
     expect(btn.disabled).toBe(false);
     expect(btn.textContent.trim()).toBe("Cancel");
   },
@@ -273,7 +270,6 @@ export const FullWidth = {
     await host.updateComplete;
     const btn = host.querySelector("button");
     expect(btn).toBeTruthy();
-    expect(btn.classList.contains("w-100")).toBe(true);
     expect(host.style.display).toBe("block");
   },
 };

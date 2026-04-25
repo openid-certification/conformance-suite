@@ -1,5 +1,46 @@
 import { LitElement, html, nothing } from "lit";
-import { buildButtonClasses } from "./_button-classes.js";
+
+/** @type {Object.<string, string>} Maps variant name → Bootstrap modifier class */
+const VARIANT_CLASSES = {
+  light: "btn-light",
+  info: "btn-info",
+  primary: "btn-primary",
+  danger: "btn-danger",
+  secondary: "btn-secondary",
+  success: "btn-success",
+  warning: "btn-warning",
+  dark: "btn-dark",
+  "outline-light": "btn-outline-light",
+  "outline-info": "btn-outline-info",
+  "outline-primary": "btn-outline-primary",
+  "outline-danger": "btn-outline-danger",
+  "outline-secondary": "btn-outline-secondary",
+  "outline-success": "btn-outline-success",
+  "outline-warning": "btn-outline-warning",
+  "outline-dark": "btn-outline-dark",
+};
+
+/** @type {Object.<string, string>} Maps size name → Bootstrap modifier class (empty string = no class for md) */
+const SIZE_CLASSES = {
+  sm: "btn-sm",
+  md: "",
+  lg: "btn-lg",
+};
+
+/**
+ * Build the full Bootstrap button class string.
+ *
+ * @param {Object} options
+ * @param {string} [options.variant="light"] - Variant key. Unknown values fall back to "light".
+ * @param {string} [options.size="sm"] - Size key. Unknown values fall back to "sm".
+ * @returns {string} Full class string, e.g. `"btn btn-sm btn-primary"`
+ */
+function buildButtonClasses({ variant = "light", size = "sm" } = {}) {
+  const variantClass = VARIANT_CLASSES[variant] ?? "btn-light";
+  const sizeClass = SIZE_CLASSES[size] ?? "btn-sm";
+  const sizeSegment = sizeClass ? `${sizeClass} ` : "";
+  return `btn ${sizeSegment}${variantClass}`;
+}
 
 /**
  * Bootstrap-styled button. Dispatches a bubbling `cts-click` event in addition
@@ -109,7 +150,6 @@ class CtsButton extends LitElement {
     const buttonClass = buildButtonClasses({
       variant: this.variant,
       size: this.size,
-      fullWidth: this.fullWidth,
     });
     return html`<button
       type="${this.type}"

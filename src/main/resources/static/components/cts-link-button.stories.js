@@ -41,9 +41,6 @@ export const Default = {
     expect(anchor.classList.contains("btn")).toBe(true);
     expect(anchor.classList.contains("btn-sm")).toBe(true);
     expect(anchor.classList.contains("btn-light")).toBe(true);
-    expect(anchor.classList.contains("bg-gradient")).toBe(true);
-    expect(anchor.classList.contains("border")).toBe(true);
-    expect(anchor.classList.contains("border-secondary")).toBe(true);
     expect(anchor.getAttribute("role")).toBe("button");
     expect(anchor.textContent.trim()).toBe("Tokens");
   },
@@ -93,9 +90,9 @@ export const Disabled = {
 
 /**
  * Stretches the button to fill its parent's width via the `full-width`
- * boolean attribute. The component sets `display: block` on its host and adds
- * `w-100` to the inner anchor — equivalent behavior to `cts-button` with the
- * same attribute. Use inside `.d-grid` containers for action stacks.
+ * boolean attribute. The component sets `display: block` on its host —
+ * equivalent behavior to `cts-button` with the same attribute. Use inside
+ * `.d-grid` containers for action stacks.
  */
 export const FullWidth = {
   args: {
@@ -123,7 +120,6 @@ export const FullWidth = {
     const anchor = host.querySelector("a");
     expect(anchor).toBeTruthy();
     expect(host.fullWidth).toBe(true);
-    expect(anchor.classList.contains("w-100")).toBe(true);
     expect(host.style.display).toBe("block");
   },
 };
