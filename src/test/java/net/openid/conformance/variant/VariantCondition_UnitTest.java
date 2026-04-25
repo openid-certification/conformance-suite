@@ -39,7 +39,7 @@ class VariantCondition_UnitTest {
 		// direct_post.jwt entry uses x509_hash + request_uri_signed
 		assertEquals(Set.of(
 			"oid4vp-1final-wallet-alternate-happy-flow",
-			"oid4vp-1final-wallet-happy-flow-no-state",
+			"oid4vp-1final-wallet-happy-flow",
 			"oid4vp-1final-wallet-request-uri-method-post",
 			"oid4vp-1final-wallet-fewer-claims-than-available",
 			"oid4vp-1final-wallet-optional-credential-set",
@@ -78,12 +78,13 @@ class VariantCondition_UnitTest {
 		// web-origin entry uses request_uri_unsigned and therefore excludes
 		// InvalidRequestObjectSignature and WrongExpectedOrigins (both @VariantNotApplicable
 		// for request_uri_unsigned). MismatchedClientIdInRequestObject is also excluded
-		// via @VariantNotApplicable for dc_api.jwt. HappyFlowNoState is excluded for dc_api.jwt.
+		// via @VariantNotApplicable for dc_api.jwt.
 		Set<String> webOriginModules = byPrefix.get("web-origin").stream()
 			.map(Plan.Module::getTestModule)
 			.collect(Collectors.toSet());
 		assertEquals(Set.of(
 			"oid4vp-1final-wallet-alternate-happy-flow",
+			"oid4vp-1final-wallet-happy-flow",
 			"oid4vp-1final-wallet-fewer-claims-than-available",
 			"oid4vp-1final-wallet-optional-credential-set",
 			"oid4vp-1final-wallet-no-claims-in-dcql-query",
@@ -98,6 +99,7 @@ class VariantCondition_UnitTest {
 			.collect(Collectors.toSet());
 		assertEquals(Set.of(
 			"oid4vp-1final-wallet-alternate-happy-flow",
+			"oid4vp-1final-wallet-happy-flow",
 			"oid4vp-1final-wallet-fewer-claims-than-available",
 			"oid4vp-1final-wallet-optional-credential-set",
 			"oid4vp-1final-wallet-no-claims-in-dcql-query",
