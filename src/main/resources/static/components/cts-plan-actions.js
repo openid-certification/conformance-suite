@@ -543,7 +543,6 @@ class CtsPlanActions extends LitElement {
                 icon="save2"
                 label="Publish for certification"
                 full-width
-                disabled
                 title="Publish and prepare certification submission package"
                 data-testid="certify-btn"
                 @cts-click=${this._handleCertify}
