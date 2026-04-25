@@ -10,9 +10,6 @@
 
 <title>OIDF Conformance: Image Uploader</title>
 
-<!-- Latest compiled and minified CSS -->
-<link rel="stylesheet" href="/vendor/bootstrap/css/bootstrap.min.css">
-
 <!-- Boostrap Icons -->
 <link rel="stylesheet" href="/vendor/bootstrap-icons/css/bootstrap-icons.css">
 
@@ -22,10 +19,136 @@
 <link rel="stylesheet" type="text/css" href="css/layout.css">
 <link rel="stylesheet" href="/css/oidf-app.css">
 
-<!-- Popper (necessary for Bootstrap's tooltips) -->
-<script src="/vendor/popper/js/popper.min.js"></script>
-<!-- Latest compiled and minified JavaScript -->
-<script src="/vendor/bootstrap/js/bootstrap.min.js" type="text/javascript"></script>
+<style>
+    /* Page-level layout for upload.html. Mirrors the cts-image-upload
+       component's class names so the per-item templates (existingImage.html,
+       pendingImageUploader.html) and the static "additional uploader" block
+       all share one visual language. The cts-image-upload component injects
+       its own copy of these rules when it mounts; we duplicate the small
+       subset we need here so the templates work even though no
+       <cts-image-upload> instance is present on the page. */
+    .upload-page {
+        max-width: var(--maxw-page);
+        margin: 0 auto;
+        padding: var(--space-5);
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-5);
+    }
+    .upload-test-info {
+        background: var(--bg-elev);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-2);
+        padding: var(--space-4);
+        font-family: var(--font-sans);
+        font-size: var(--fs-13);
+        color: var(--fg);
+    }
+    .upload-list {
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-3);
+    }
+    .upload-item {
+        display: grid;
+        grid-template-columns: var(--space-6) auto 1fr;
+        gap: var(--space-4);
+        align-items: start;
+        padding: var(--space-4);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-2);
+        background: var(--bg-elev);
+    }
+    .upload-item__status {
+        width: var(--space-6);
+        height: var(--space-6);
+        border-radius: var(--radius-pill);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--fg-on-ink);
+        font-size: var(--fs-14);
+    }
+    .upload-item__status--pending {
+        background: var(--orange-400);
+    }
+    .upload-item__status--uploaded {
+        background: var(--status-pass);
+    }
+    .upload-item__thumb {
+        width: 96px;
+        height: 96px;
+        object-fit: cover;
+        border: 1px dashed var(--ink-300);
+        border-radius: var(--radius-2);
+        background: var(--bg-muted);
+        padding: var(--space-1);
+    }
+    .upload-item__body {
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-2);
+        min-width: 0;
+    }
+    .upload-item__hint {
+        margin: 0;
+        font-family: var(--font-sans);
+        font-size: var(--fs-13);
+        line-height: var(--lh-snug);
+        color: var(--fg-soft);
+        word-break: break-word;
+    }
+    .upload-item__source {
+        font-family: var(--font-mono);
+        font-size: var(--fs-12);
+        color: var(--fg-muted);
+    }
+    .upload-item__source a {
+        color: var(--fg-link);
+    }
+    .upload-item__actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--space-2);
+        align-items: center;
+    }
+    /* Token-styled file-picker label. The wrapping <label> + hidden <input
+       type="file"> pattern stays — it is the only standards-compliant way to
+       trigger the file picker from a styled affordance and is a deliberate
+       choice (see U13 + the existing upload.spec.js note). */
+    .upload-filepicker {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: var(--space-2);
+        height: 34px;
+        padding: 0 var(--space-4);
+        border: 1px solid var(--ink-300);
+        border-radius: var(--radius-2);
+        background: var(--bg-elev);
+        color: var(--fg);
+        font-family: var(--font-sans);
+        font-size: var(--fs-13);
+        font-weight: var(--fw-bold);
+        cursor: pointer;
+        transition: background var(--dur-1) var(--ease-standard),
+            border-color var(--dur-1) var(--ease-standard);
+    }
+    .upload-filepicker:hover {
+        border-color: var(--ink-500);
+    }
+    .upload-filepicker:focus-within {
+        outline: none;
+        box-shadow: var(--focus-ring);
+        border-color: var(--orange-400);
+    }
+    .upload-loading {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: var(--space-3);
+    }
+</style>
 
 <script src="/vendor/lodash/js/lodash.min.js"></script>
 
@@ -39,6 +162,9 @@
     <script type="module" src="/components/cts-alert.js"></script>
     <script type="module" src="/components/cts-badge.js"></script>
     <script type="module" src="/components/cts-icon.js"></script>
+    <script type="module" src="/components/cts-page-head.js"></script>
+    <script type="module" src="/components/cts-form-field.js"></script>
+    <script type="module" src="/components/cts-image-upload.js"></script>
 
 <script type="text/javascript">
     document.addEventListener("DOMContentLoaded", () => {
@@ -89,6 +215,13 @@
         return true;
     }
 
+    function getDescriptionField() {
+        // The description input lives inside a <cts-form-field>. The Lit
+        // element renders an <input class="oidf-input"> in light DOM, so we
+        // can reach the underlying input via querySelector.
+        return document.querySelector('#additionalUploader cts-form-field input');
+    }
+
     function formReset() {
         // reset the form
         document.querySelector('#additionalUploader .uploadBtn').disabled = true;
@@ -97,6 +230,14 @@
         document.querySelector('#additionalUploader .imagePreview').src = '/images/placeholder.jpg';
 
         document.querySelector('#additionalUploader [type="file"]').value = '';
+
+        // Clear the description input. cts-form-field is uncontrolled here —
+        // we manipulate the inner <input> directly because the page has no
+        // outer state holding the field's value.
+        const desc = getDescriptionField();
+        if (desc) {
+            desc.value = '';
+        }
     }
 
     function loadImagesForLog(testId) {
@@ -250,9 +391,20 @@
             document.querySelector('#additionalUploader .uploadBtn').onclick = function(evt) {
                 evt.preventDefault();
 
-                var desc = document.querySelector('#additionalUploader #uploadDescription').value;
+                // The description input is required by the spec — without
+                // a description the upload entry has no context. Surface the
+                // error through the same FAPI_UI.showError() modal the rest
+                // of the page uses; the cts-form-field's `error` property is
+                // not bound here because the page has no outer state holding
+                // the field's value.
+                var descField = getDescriptionField();
+                var desc = descField ? descField.value.trim() : '';
+                if (!desc) {
+                    FAPI_UI.showError({error: "Description required", message: "Please enter a description for this screenshot"});
+                    return;
+                }
 
-                var url = "/api/log/" + encodeURIComponent(testId) + '/images' + (desc ? '?description=' + encodeURIComponent(desc) : '');
+                var url = "/api/log/" + encodeURIComponent(testId) + '/images?description=' + encodeURIComponent(desc);
 
                 fetch(url, {
                     method: "POST",
@@ -497,54 +649,66 @@
     </cts-modal>
 
     <cts-modal id="loadingModal" heading="Loading..." static-backdrop no-keyboard>
-        <div class="text-center">
+        <div class="upload-loading">
             <img src="/images/spinner.gif" width="100px" height="30px" alt="Loading" />
-        </div>
-        <div>
             <span id="loadingMessage"></span>
         </div>
     </cts-modal>
 
-    <div class="container-fluid">
-        <div class="card p-3">
-            <div id="testInfo" class="card-body">
-            </div>
+    <main class="upload-page">
+        <cts-page-head title="Image Uploader" sub="Upload screenshots required by this test run."></cts-page-head>
+
+        <div id="testInfo" class="upload-test-info">
         </div>
 
-        <div class="logContent container-fluid">
+        <div class="upload-list">
             <div id="imageBlocks">
 
             </div>
 
-            <div class="row">
-                <div class="col-md-12 logItem" id="additionalUploader">
-                    <div class="row">
-                        <div class="col-md-1"><div class="bg-info testStatusResultBlock"><span class="bi bi-cloud-upload"></span></div></div>
-                        <div class="col-md-3">
-                            <!-- image preview -->
-                            <img src="images/placeholder.jpg" alt="" class="img-fluid mx-auto d-block imagePreview imagePasteTarget" />
-                        </div>
-                        <div class="col-md-8">
-                            <p class="log-message wrapLongStrings">Use this form to upload additional images to the test log.</p>
+            <div class="upload-item logItem" id="additionalUploader">
+                <span class="upload-item__status upload-item__status--pending" aria-hidden="true">
+                    <span class="bi bi-cloud-upload"></span>
+                </span>
+                <img src="images/placeholder.jpg" alt="" class="upload-item__thumb imagePreview imagePasteTarget" />
+                <div class="upload-item__body">
+                    <p class="upload-item__hint">Use this form to upload additional images to the test log.</p>
 
-                            <input type="text" class="form-control" placeholder="Description" id="uploadDescription" />
-                            <label class="btn btn-sm btn-light bg-gradient border border-secondary">
-                                <span class="bi bi-camera-fill"></span> Select File</input>
-                                    <input type="file" accept=".jpg,.jpeg,.png,image/png,image/jpeg" hidden>
-                            </label>
-                            <cts-button class="uploadBtn" label="Upload" disabled></cts-button>
-                        </div>
+                    <cts-form-field name="uploadDescription" id="uploadDescription"></cts-form-field>
+
+                    <div class="upload-item__actions">
+                        <label class="upload-filepicker">
+                            <span class="bi bi-camera-fill" aria-hidden="true"></span>
+                            <span>Select File</span>
+                            <input type="file" accept=".jpg,.jpeg,.png,image/png,image/jpeg" hidden>
+                        </label>
+                        <cts-button class="uploadBtn" label="Upload" disabled></cts-button>
                     </div>
                 </div>
             </div>
-
         </div>
 
-    </div>
+    </main>
 
     <footer class="pageFooter">
         <span class="muted">OpenID Foundation conformance suite</span>
     </footer>
+
+    <script>
+        // cts-form-field is property-driven (Lit). Hand it a JSON-schema
+        // fragment imperatively from the page so the field renders a
+        // labelled "Description" text input via cts-form-field's standard
+        // render path. The custom-element upgrade may run before or after
+        // DOMContentLoaded depending on script order; assigning .schema is
+        // safe in both orderings because Lit picks up the property on its
+        // first render.
+        document.addEventListener("DOMContentLoaded", () => {
+            const field = document.querySelector('#additionalUploader cts-form-field');
+            if (field) {
+                field.schema = { type: 'string', title: 'Description' };
+            }
+        });
+    </script>
 
 </body>
 
