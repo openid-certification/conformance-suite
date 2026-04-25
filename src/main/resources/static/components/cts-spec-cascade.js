@@ -1,13 +1,120 @@
 import { LitElement, html } from "lit";
+import { classMap } from "lit/directives/class-map.js";
 
 /**
  * Four-level cascading selector (Specification -> Entity -> Version -> Plan)
  * backed by `/api/runner/available`. Auto-selects single-option tiers.
+ *
+ * Light DOM. Scoped CSS lives in a single `<style>` element injected into
+ * `<head>` on first connect (gated by a module-level flag). The component
+ * emits OIDF-tokenized class names (`.oidf-spec-cascade__*`) that mirror
+ * `cts-form-field`'s `.oidf-select` styling so the dropdowns visually align
+ * with other OIDF form controls.
+ *
  * @property {Array} plans - Available plans. If not provided the component
  *   fetches from `/api/runner/available` on connect.
  * @fires cts-plan-selected - When a plan is chosen (manually or via
  *   auto-select), with `{ detail: { plan } }`; bubbles.
  */
+
+const STYLE_ID = "cts-spec-cascade-styles";
+
+// Inline SVG chevron used as the custom select indicator. Stroke colour is
+// `--ink-500` (`#71695E`) — encoded as `%2371695E` in the data: URL.
+const SELECT_CHEVRON =
+  "url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 16 16'><path fill='none' stroke='%2371695E' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M4 6l4 4 4-4'/></svg>\")";
+
+const STYLE_TEXT = `
+.oidf-spec-cascade {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--space-4);
+  margin-bottom: var(--space-4);
+}
+@media (max-width: 768px) {
+  .oidf-spec-cascade {
+    grid-template-columns: 1fr;
+  }
+}
+.oidf-spec-cascade__field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-width: 0;
+}
+.oidf-spec-cascade__label {
+  /* mirrors .t-overline from oidf-tokens.css */
+  font-family: var(--font-sans);
+  font-weight: var(--fw-bold);
+  font-size: var(--fs-12);
+  line-height: var(--lh-snug);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--fg-soft);
+}
+.oidf-spec-cascade__select {
+  width: 100%;
+  box-sizing: border-box;
+  height: 34px;
+  padding: 0 36px 0 var(--space-3);
+  border: 1px solid var(--ink-300);
+  border-radius: var(--radius-2);
+  background: var(--bg-elev);
+  color: var(--fg);
+  font-family: var(--font-sans);
+  font-size: var(--fs-13);
+  line-height: var(--lh-base);
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: ${SELECT_CHEVRON};
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+}
+.oidf-spec-cascade__select:focus {
+  outline: none;
+  border-color: var(--orange-400);
+  box-shadow: var(--focus-ring);
+}
+.oidf-spec-cascade__select:disabled {
+  background-color: var(--bg-muted);
+  color: var(--fg-faint);
+  cursor: not-allowed;
+}
+.oidf-spec-cascade__loading,
+.oidf-spec-cascade__alert {
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-2);
+  border: 1px solid;
+  font-family: var(--font-sans);
+  font-size: var(--fs-13);
+  line-height: var(--lh-base);
+}
+.oidf-spec-cascade__loading {
+  background: var(--bg-muted);
+  border-color: var(--border);
+  color: var(--fg-soft);
+  text-align: center;
+}
+.oidf-spec-cascade__alert--error {
+  background: var(--status-fail-bg);
+  border-color: var(--status-fail-border);
+  color: var(--rust-500);
+}
+.oidf-spec-cascade__alert--info {
+  background: var(--status-info-bg);
+  border-color: var(--status-info-border);
+  color: var(--status-info);
+}
+`;
+
+function injectStyles() {
+  if (document.getElementById(STYLE_ID)) return;
+  const style = document.createElement("style");
+  style.id = STYLE_ID;
+  style.textContent = STYLE_TEXT;
+  document.head.appendChild(style);
+}
+
 class CtsSpecCascade extends LitElement {
   static properties = {
     plans: { type: Array },
@@ -36,6 +143,7 @@ class CtsSpecCascade extends LitElement {
 
   connectedCallback() {
     super.connectedCallback();
+    injectStyles();
     if (!this.plans) {
       this._fetchPlans();
     }
@@ -178,26 +286,23 @@ class CtsSpecCascade extends LitElement {
     );
   }
 
-  _renderRow(label, selectId, tooltipText, options, value, placeholder, changeHandler, visible) {
+  _renderField(label, selectId, options, value, placeholder, changeHandler, visible) {
     return html`
-      <div class="mb-3 row" style="${visible ? "" : "display:none"}">
-        <label for="${selectId}" class="col-md-2 col-form-label">${label}</label>
-        <div class="col-md-10">
-          <div class="input-group">
-            <div class="input-group-text">
-              <span
-                class="bi bi-info-circle-fill"
-                data-bs-toggle="tooltip"
-                data-bs-placement="bottom"
-                title="${tooltipText}"
-              ></span>
-            </div>
-            <select id="${selectId}" class="form-select" .value=${value} @change=${changeHandler}>
-              <option value="">${placeholder}</option>
-              ${this._renderSelectOptions(options, value)}
-            </select>
-          </div>
-        </div>
+      <div
+        class="oidf-spec-cascade__field"
+        data-testid="${selectId}-field"
+        style="${visible ? "" : "display:none"}"
+      >
+        <label for="${selectId}" class="oidf-spec-cascade__label">${label}</label>
+        <select
+          id="${selectId}"
+          class="oidf-spec-cascade__select"
+          .value=${value}
+          @change=${changeHandler}
+        >
+          <option value="">${placeholder}</option>
+          ${this._renderSelectOptions(options, value)}
+        </select>
       </div>
     `;
   }
@@ -218,19 +323,22 @@ class CtsSpecCascade extends LitElement {
   render() {
     if (this._loading) {
       return html`
-        <div class="mb-3 row">
-          <div class="col-md-12 text-center">
-            <div class="spinner-border text-primary" role="status">
-              <span class="visually-hidden">Loading available test plans...</span>
-            </div>
-          </div>
+        <div class="oidf-spec-cascade__loading" role="status">
+          <span>Loading available test plans...</span>
         </div>
       `;
     }
 
     if (this._error) {
       return html`
-        <div class="alert alert-danger" role="alert" data-testid="spec-cascade-error">
+        <div
+          class=${classMap({
+            "oidf-spec-cascade__alert": true,
+            "oidf-spec-cascade__alert--error": true,
+          })}
+          role="alert"
+          data-testid="spec-cascade-error"
+        >
           ${this._error}
         </div>
       `;
@@ -238,7 +346,14 @@ class CtsSpecCascade extends LitElement {
 
     if (this.plans && this.plans.length === 0) {
       return html`
-        <div class="alert alert-info" role="status" data-testid="spec-cascade-empty">
+        <div
+          class=${classMap({
+            "oidf-spec-cascade__alert": true,
+            "oidf-spec-cascade__alert--info": true,
+          })}
+          role="status"
+          data-testid="spec-cascade-empty"
+        >
           No test plans are available.
         </div>
       `;
@@ -260,47 +375,47 @@ class CtsSpecCascade extends LitElement {
     }));
 
     return html`
-      ${this._renderRow(
-        "Specification",
-        "specFamilySelect",
-        "Select the specification family you want to run tests for.",
-        this._families,
-        this._selectedFamily,
-        "--- Select a Specification ---",
-        (e) => this._handleFamilyChange(e),
-        true,
-      )}
-      ${this._renderRow(
-        "Entity Under Test",
-        "entitySelect",
-        "Select the type of implementation you are testing, such as a client, authorization server, wallet, verifier, or issuer.",
-        this._entities,
-        this._selectedEntity,
-        "--- Select Entity ---",
-        (e) => this._handleEntityChange(e),
-        showEntity,
-      )}
-      ${this._renderRow(
-        "Version",
-        "specVersionSelect",
-        "Select the specification version you'd like to test with.",
-        versionOpts,
-        this._selectedVersion,
-        "--- Select Version ---",
-        (e) => this._handleVersionChange(e),
-        showVersion,
-      )}
-      ${this._renderRow(
-        "Test Plan",
-        "planSelect",
-        "Select the exact test plan you want to run.",
-        planOptions,
-        this._selectedPlan,
-        "--- Select A Test Plan ----",
-        (e) => this._handlePlanChange(e),
-        showPlan,
-      )}
+      <div class="oidf-spec-cascade">
+        ${this._renderField(
+          "Specification",
+          "specFamilySelect",
+          this._families,
+          this._selectedFamily,
+          "--- Select a Specification ---",
+          (e) => this._handleFamilyChange(e),
+          true,
+        )}
+        ${this._renderField(
+          "Entity Under Test",
+          "entitySelect",
+          this._entities,
+          this._selectedEntity,
+          "--- Select Entity ---",
+          (e) => this._handleEntityChange(e),
+          showEntity,
+        )}
+        ${this._renderField(
+          "Version",
+          "specVersionSelect",
+          versionOpts,
+          this._selectedVersion,
+          "--- Select Version ---",
+          (e) => this._handleVersionChange(e),
+          showVersion,
+        )}
+        ${this._renderField(
+          "Test Plan",
+          "planSelect",
+          planOptions,
+          this._selectedPlan,
+          "--- Select A Test Plan ----",
+          (e) => this._handlePlanChange(e),
+          showPlan,
+        )}
+      </div>
     `;
   }
 }
 customElements.define("cts-spec-cascade", CtsSpecCascade);
+
+export {};

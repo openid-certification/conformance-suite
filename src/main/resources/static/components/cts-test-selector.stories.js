@@ -12,23 +12,28 @@ export const Default = {
   render: () => html`<cts-test-selector .plans=${MOCK_PLANS}></cts-test-selector>`,
   async play({ canvasElement }) {
     const canvas = within(canvasElement);
-    const searchInput = canvasElement.querySelector('input[placeholder="Search test plans..."]');
+    const searchInput = canvasElement.querySelector(".oidf-test-selector__search");
     expect(searchInput).toBeTruthy();
-    const select = canvasElement.querySelector("select.form-select");
+    expect(searchInput.getAttribute("placeholder")).toBe("Search test plans...");
+    const select = canvasElement.querySelector(".oidf-test-selector__family");
     expect(select).toBeTruthy();
-    const items = canvasElement.querySelectorAll(".list-group-item");
+    const items = canvasElement.querySelectorAll(".oidf-test-selector__row");
     expect(items.length).toBe(MOCK_PLANS.length);
     expect(canvas.getByText("OpenID Connect Core: Basic Certification Profile")).toBeTruthy();
+    // No Bootstrap remnants in the rendered output
+    expect(canvasElement.querySelector(".form-control")).toBeNull();
+    expect(canvasElement.querySelector(".form-select")).toBeNull();
+    expect(canvasElement.querySelector(".list-group-item")).toBeNull();
   },
 };
 
 export const SearchFilter = {
   render: () => html`<cts-test-selector .plans=${MOCK_PLANS}></cts-test-selector>`,
   async play({ canvasElement }) {
-    const searchInput = canvasElement.querySelector('input[placeholder="Search test plans..."]');
+    const searchInput = canvasElement.querySelector(".oidf-test-selector__search");
     await userEvent.type(searchInput, "FAPI");
     await waitFor(() => {
-      const items = canvasElement.querySelectorAll(".list-group-item-action");
+      const items = canvasElement.querySelectorAll(".oidf-test-selector__row");
       expect(items.length).toBe(2);
     });
   },
@@ -37,10 +42,10 @@ export const SearchFilter = {
 export const FamilyFilter = {
   render: () => html`<cts-test-selector .plans=${MOCK_PLANS}></cts-test-selector>`,
   async play({ canvasElement }) {
-    const select = canvasElement.querySelector("select.form-select");
+    const select = canvasElement.querySelector(".oidf-test-selector__family");
     await userEvent.selectOptions(select, "OIDCC");
     await waitFor(() => {
-      const items = canvasElement.querySelectorAll(".list-group-item-action");
+      const items = canvasElement.querySelectorAll(".oidf-test-selector__row");
       expect(items.length).toBe(3);
     });
   },
@@ -54,13 +59,32 @@ export const SelectPlan = {
     canvasElement.addEventListener("cts-plan-select", (e) => {
       selectedPlan = /** @type {CustomEvent} */ (e).detail.plan;
     });
-    const items = canvasElement.querySelectorAll(".list-group-item-action");
+    const items = canvasElement.querySelectorAll(".oidf-test-selector__row");
     await userEvent.click(items[1]);
     expect(selectedPlan).toBeTruthy();
     expect(selectedPlan.planName).toBe("oidcc-implicit-certification-test-plan");
     await waitFor(() => {
-      expect(items[1].classList.contains("active")).toBe(true);
+      expect(items[1].classList.contains("is-active")).toBe(true);
     });
+  },
+};
+
+/**
+ * Hover swaps the row background to `--ink-50`. We can't observe the actual
+ * pseudo-class style from JSDOM, but we can verify the rule is registered in
+ * the injected stylesheet so a regression in the head-injection pipeline is
+ * caught.
+ */
+export const RowHoverStyleRegistered = {
+  render: () => html`<cts-test-selector .plans=${MOCK_PLANS}></cts-test-selector>`,
+  async play() {
+    const styleEl = document.getElementById("cts-test-selector-styles");
+    expect(styleEl).toBeTruthy();
+    const css = styleEl?.textContent || "";
+    expect(css).toContain(".oidf-test-selector__row:hover");
+    expect(css).toContain("var(--ink-50)");
+    expect(css).toContain(".oidf-test-selector__row:focus-visible");
+    expect(css).toContain("var(--focus-ring)");
   },
 };
 
@@ -68,7 +92,7 @@ export const NoResults = {
   render: () => html`<cts-test-selector .plans=${MOCK_PLANS}></cts-test-selector>`,
   async play({ canvasElement }) {
     const canvas = within(canvasElement);
-    const searchInput = canvasElement.querySelector('input[placeholder="Search test plans..."]');
+    const searchInput = canvasElement.querySelector(".oidf-test-selector__search");
     await userEvent.type(searchInput, "nonexistent-plan-xyz");
     await waitFor(() => {
       expect(canvas.getByText("No plans match your search")).toBeTruthy();
@@ -87,7 +111,7 @@ export const EmptyPlans = {
 export const ModuleCount = {
   render: () => html`<cts-test-selector .plans=${MOCK_PLANS}></cts-test-selector>`,
   async play({ canvasElement }) {
-    const badges = canvasElement.querySelectorAll(".badge.bg-secondary.rounded-pill");
+    const badges = canvasElement.querySelectorAll(".oidf-test-selector__row-count");
     expect(badges.length).toBeGreaterThan(0);
     expect(badges[0].textContent).toBe("4");
   },
