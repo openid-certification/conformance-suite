@@ -5,9 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>OIDF Conformance: Login</title>
 
-    <!-- Latest compiled and minified CSS -->
-    <link rel="stylesheet" href="/vendor/bootstrap/css/bootstrap.min.css">
-
     <!-- Boostrap Icons -->
     <link rel="stylesheet" href="/vendor/bootstrap-icons/css/bootstrap-icons.css">
 
@@ -18,34 +15,12 @@
     <script>window.litDisableBundleWarning = true;</script>
     <script type="importmap">{"imports":{"lit":"/vendor/lit/lit.js","lit/":"/vendor/lit/","lit/directives/async-append.js":"/vendor/lit/lit.js","lit/directives/async-replace.js":"/vendor/lit/lit.js","lit/directives/cache.js":"/vendor/lit/lit.js","lit/directives/choose.js":"/vendor/lit/lit.js","lit/directives/class-map.js":"/vendor/lit/lit.js","lit/directives/guard.js":"/vendor/lit/lit.js","lit/directives/if-defined.js":"/vendor/lit/lit.js","lit/directives/join.js":"/vendor/lit/lit.js","lit/directives/keyed.js":"/vendor/lit/lit.js","lit/directives/live.js":"/vendor/lit/lit.js","lit/directives/map.js":"/vendor/lit/lit.js","lit/directives/range.js":"/vendor/lit/lit.js","lit/directives/ref.js":"/vendor/lit/lit.js","lit/directives/repeat.js":"/vendor/lit/lit.js","lit/directives/style-map.js":"/vendor/lit/lit.js","lit/directives/template-content.js":"/vendor/lit/lit.js","lit/directives/unsafe-html.js":"/vendor/lit/lit.js","lit/directives/unsafe-svg.js":"/vendor/lit/lit.js","lit/directives/until.js":"/vendor/lit/lit.js","lit/directives/when.js":"/vendor/lit/lit.js","@lit/reactive-element":"/vendor/lit/lit.js","@lit/reactive-element/":"/vendor/lit/","lit-html":"/vendor/lit/lit.js","lit-html/":"/vendor/lit/","lit-element/":"/vendor/lit/"}}</script>
     <script type="module" src="/components/cts-navbar.js"></script>
-    <script type="module" src="/components/cts-link-button.js"></script>
+    <script type="module" src="/components/cts-login-page.js"></script>
 </head>
 <body>
     <cts-navbar current-page=""></cts-navbar>
 
-    <div id="loginContent" class="container-fluid">
-        <div class="row">
-            <div class="col-xs-12 col-md-6 col-md-offset-3 mx-auto center-text">
-                <h1 class="text-center">Login to or Register with the OpenID Foundation Conformance Suite</h1>
-                <p id="error" class="bg-danger collapse">There was an error logging you in: <span id="error-details"></span></p>
-                <p id="logout" class="bg-info collapse">You have been logged out.</p>
-                <p class="text-center">
-                    <cts-link-button variant="danger" size="lg" href="/oauth2/authorization/google" label="Proceed with Google"></cts-link-button>
-                    <cts-link-button variant="primary" size="lg" href="/oauth2/authorization/gitlab" label="Proceed with GitLab"></cts-link-button>
-                </p>
-            </div>
-        </div>
-        <div class="row">
-            <div class="mx-auto col-md-2">
-                <div class="d-grid gap-2">
-                    <cts-link-button href="logs.html?public=true" variant="info" icon="files" label="View published logs" full-width></cts-link-button>
-                    <cts-link-button href="plans.html?public=true" variant="info" icon="bookmarks" label="View published plans" full-width></cts-link-button>
-                </div>
-            </div>
-        </div>
-    </div>
-    <!-- Include all compiled plugins (below), or include individual files as needed -->
-    <script src="/vendor/bootstrap/js/bootstrap.min.js"></script>
+    <cts-login-page id="loginPage"></cts-login-page>
 
     <footer class="pageFooter">
         <span class="muted">OpenID Foundation conformance suite</span>
@@ -53,24 +28,26 @@
 
     <script type="text/javascript">
         document.addEventListener("DOMContentLoaded", () => {
-            var urlParams = new URLSearchParams(window.location.search);
+            const urlParams = new URLSearchParams(window.location.search);
+            const loginPage = document.getElementById("loginPage");
 
-            var error = urlParams.get('error');
-            var logout = urlParams.get('logout');
-
+            const error = urlParams.get("error");
             if (error) {
-                   document.getElementById('error').classList.add('show');
-                   document.getElementById('error-details').textContent = error;
+                loginPage.setAttribute("error", error);
             }
 
+            const logout = urlParams.get("logout");
             if (logout) {
-                   document.getElementById('logout').classList.add('show');
+                loginPage.setAttribute("logout-message", "");
             }
 
-            let token = urlParams.get("token");
+            const token = urlParams.get("token");
             if (token) {
-                // Hide the normal login UI while the private link is being processed
-                document.getElementById('loginContent').style.display = 'none';
+                // Hide the normal login UI while the private link is being processed.
+                // The cts-login-page renders a hidden iframe pointing at token-auth-url;
+                // we still need to drive the form submit / navigation lifecycle here
+                // because it depends on cross-frame access to the contentWindow.
+                loginPage.style.display = "none";
 
                 const iframe = document.createElement("iframe");
                 iframe.style.display = "none";
