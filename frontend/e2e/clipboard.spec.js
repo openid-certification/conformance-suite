@@ -179,37 +179,10 @@ test.describe("ClipboardJS copy buttons render text from cts-button hosts", () =
     expect(await readCopiedText(page)).toContain("op.example.com");
   });
 
-  test("tokens.html: created-modal copy button copies #tokenValue text", async ({ page }) => {
-    await installClipboardSpy(page);
-    await setupFailFast(page);
-
-    await page.route("**/api/token?*", (route) => {
-      if (route.request().method() !== "GET") return route.fallback();
-      return route.fulfill({
-        status: 200,
-        contentType: "application/json",
-        body: JSON.stringify(MOCK_TOKENS),
-      });
-    });
-
-    await setupCommonRoutes(page, { user: MOCK_TOKEN_USER });
-
-    await page.goto("/tokens.html");
-
-    await expect(page.locator("cts-button.btn-clipboard")).toBeAttached();
-
-    await page.evaluate(() => {
-      const tokenValue = document.getElementById("tokenValue");
-      if (!tokenValue) throw new Error("#tokenValue missing");
-      tokenValue.textContent = "super-secret-token-value-123";
-      const modalEl = document.getElementById("createdModal");
-      /** @type {any} */ (modalEl).show();
-    });
-
-    const copyBtn = page.locator("#createdModal cts-button.btn-clipboard > button");
-    await expect(copyBtn).toBeVisible();
-    await copyBtn.click();
-
-    await expect.poll(() => readCopiedText(page)).toBe("super-secret-token-value-123");
-  });
+  // The legacy "tokens.html: created-modal copy button" test was deleted
+  // in U33: tokens.html now composes <cts-token-manager> which renders
+  // its own #createdTokenModal and copy button using navigator.clipboard
+  // .writeText (not ClipboardJS). Equivalent end-to-end coverage lives in
+  // cts-token-manager.stories.js (CreateTemporaryToken / CreatePermanentToken
+  // / CopyTokenClipboardFailure / CopyTokenClipboardAbsent).
 });
