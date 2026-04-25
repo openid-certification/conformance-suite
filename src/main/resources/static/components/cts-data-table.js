@@ -62,8 +62,12 @@ import "./cts-form-field.js";
  *   `order[0][column]=N&order[0][dir]=D&columns[N][data]=KEY` form.
  * @property {string} searchMode - One of `live-debounced` or
  *   `explicit`. Defaults to `explicit` — search fires on Enter or
- *   button click only (matching plans/logs today). `live-debounced`
- *   re-fetches on every keystroke after the 250ms debounce.
+ *   inline-submit click only (matching plans/logs today). `live-debounced`
+ *   re-fetches on every keystroke after the 250ms debounce. Across both
+ *   modes, `Escape` clears the input and commits the empty search, and
+ *   the leading × button does the same. After a non-empty search is
+ *   committed, an active-filter chip is rendered below the input
+ *   showing the live query + filtered count, with a "Show all" reset.
  * @property {object} initialSort - `{ column, direction }` to seed
  *   the sort state on first mount. `direction` is `asc` or `desc`.
  * @property {Function} cellRenderer - Optional `(row, columnKey,
@@ -111,28 +115,50 @@ const STYLE_TEXT = `
   }
   cts-data-table .oidf-dt-search {
     display: flex;
-    align-items: center;
+    flex-direction: column;
     gap: var(--space-2);
     margin-bottom: var(--space-4);
+  }
+  cts-data-table .oidf-dt-search-row {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
   }
   cts-data-table .oidf-dt-search-input-wrap {
     display: flex;
     align-items: center;
     gap: var(--space-2);
-    padding: 0 var(--space-3);
-    height: 36px;
+    padding: 0 var(--space-2) 0 var(--space-3);
+    height: 34px;
     border: 1px solid var(--ink-300);
     border-radius: var(--radius-2);
     background: var(--bg-elev);
     flex: 1;
     max-width: 480px;
+    transition: border-color var(--dur-1) var(--ease-standard),
+      box-shadow var(--dur-1) var(--ease-standard);
+  }
+  cts-data-table .oidf-dt-search-input-wrap:hover {
+    border-color: var(--ink-400);
   }
   cts-data-table .oidf-dt-search-input-wrap:focus-within {
     box-shadow: var(--focus-ring);
     border-color: var(--orange-400);
   }
+  cts-data-table .oidf-dt-search-leading {
+    display: inline-flex;
+    align-items: center;
+    color: var(--ink-400);
+    line-height: 1;
+    flex-shrink: 0;
+  }
+  cts-data-table .oidf-dt-search-leading i {
+    font-size: 14px;
+    line-height: 1;
+  }
   cts-data-table .oidf-dt-search-input {
     flex: 1;
+    min-width: 0;
     border: 0;
     background: transparent;
     font-family: var(--font-sans);
@@ -140,9 +166,105 @@ const STYLE_TEXT = `
     color: var(--fg);
     outline: none;
     padding: 0;
+    /* Reset legacy layout.css text-indent so the search caret sits flush
+       against the leading bi-search glyph instead of being pushed 5px right. */
+    text-indent: 0;
   }
   cts-data-table .oidf-dt-search-input::placeholder {
     color: var(--fg-faint);
+  }
+  cts-data-table .oidf-dt-search-input::-webkit-search-cancel-button,
+  cts-data-table .oidf-dt-search-input::-webkit-search-decoration {
+    -webkit-appearance: none;
+    appearance: none;
+  }
+  cts-data-table .oidf-dt-search-clear,
+  cts-data-table .oidf-dt-search-submit {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    height: 24px;
+    width: 24px;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: var(--fg-soft);
+    border-radius: var(--radius-2);
+    cursor: pointer;
+    transition: background var(--dur-1) var(--ease-standard),
+      color var(--dur-1) var(--ease-standard),
+      opacity var(--dur-1) var(--ease-standard);
+  }
+  cts-data-table .oidf-dt-search-clear:hover,
+  cts-data-table .oidf-dt-search-submit:hover {
+    background: var(--ink-100);
+    color: var(--fg);
+  }
+  cts-data-table .oidf-dt-search-clear:focus-visible,
+  cts-data-table .oidf-dt-search-submit:focus-visible {
+    outline: none;
+    box-shadow: var(--focus-ring);
+  }
+  cts-data-table .oidf-dt-search-clear i,
+  cts-data-table .oidf-dt-search-submit i {
+    font-size: 14px;
+    line-height: 1;
+  }
+  cts-data-table .oidf-dt-search-submit {
+    color: var(--orange-500);
+  }
+  cts-data-table .oidf-dt-search-filter {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    align-self: flex-start;
+    max-width: 100%;
+    padding: 4px var(--space-2) 4px var(--space-3);
+    background: var(--orange-50);
+    border: 1px solid var(--orange-100);
+    border-radius: var(--radius-pill);
+    font-size: var(--fs-12);
+    color: var(--ink-800);
+    line-height: 1.3;
+  }
+  cts-data-table .oidf-dt-search-filter-label {
+    color: var(--fg-soft);
+  }
+  cts-data-table .oidf-dt-search-filter-query {
+    font-family: var(--font-mono);
+    font-size: var(--fs-12);
+    color: var(--ink-900);
+    max-width: 220px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  cts-data-table .oidf-dt-search-filter-count {
+    color: var(--fg-soft);
+  }
+  cts-data-table .oidf-dt-search-filter-reset {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 8px;
+    background: transparent;
+    border: 0;
+    border-radius: var(--radius-pill);
+    color: var(--orange-600);
+    font-size: var(--fs-12);
+    font-weight: var(--fw-bold);
+    cursor: pointer;
+    transition: background var(--dur-1) var(--ease-standard),
+      color var(--dur-1) var(--ease-standard);
+  }
+  cts-data-table .oidf-dt-search-filter-reset:hover {
+    background: var(--orange-100);
+    color: var(--orange-700);
+  }
+  cts-data-table .oidf-dt-search-filter-reset:focus-visible {
+    outline: none;
+    box-shadow: var(--focus-ring);
   }
   cts-data-table .oidf-dt-table-wrap {
     background: var(--bg-elev);
@@ -179,10 +301,15 @@ const STYLE_TEXT = `
     color: var(--fg);
   }
   cts-data-table .oidf-dt-sort-arrow {
-    display: inline-block;
+    display: inline-flex;
+    align-items: center;
     margin-left: var(--space-1);
-    font-size: 10px;
     color: var(--fg-faint);
+    line-height: 1;
+  }
+  cts-data-table .oidf-dt-sort-arrow i {
+    font-size: 12px;
+    line-height: 1;
   }
   cts-data-table .oidf-dt-sort-arrow.is-active {
     color: var(--orange-400);
@@ -645,11 +772,39 @@ class CtsDataTable extends LitElement {
     if (e.key === "Enter") {
       e.preventDefault();
       this._commitSearch();
+      return;
+    }
+    if (e.key === "Escape" && (this._searchInput !== "" || this._search !== "")) {
+      e.preventDefault();
+      this._clearSearch();
     }
   }
 
   _onSearchButton() {
     this._commitSearch();
+  }
+
+  _onSearchClear() {
+    this._clearSearch();
+    // Restore focus to the input so the user can keep typing.
+    const input = /** @type {HTMLInputElement | null} */ (
+      this.querySelector(".oidf-dt-search-input")
+    );
+    if (input) input.focus();
+  }
+
+  _clearSearch() {
+    if (this._searchInput === "" && this._search === "") return;
+    this._searchInput = "";
+    this._search = "";
+    this._currentPage = 0;
+    if (this.serverSide) {
+      if (this._debounceTimer) {
+        clearTimeout(this._debounceTimer);
+        this._debounceTimer = null;
+      }
+      this._fetchPage();
+    }
   }
 
   _commitSearch() {
@@ -765,7 +920,11 @@ class CtsDataTable extends LitElement {
 
   _renderHeaderCell(column) {
     const isActive = this._sortColumn === column.key;
-    const arrow = isActive ? (this._sortDir === "desc" ? "▼" : "▲") : "↕";
+    const arrowIcon = isActive
+      ? this._sortDir === "desc"
+        ? "caret-down-fill"
+        : "caret-up-fill"
+      : "chevron-expand";
     const headerClasses = column.sortable ? "is-sortable" : "";
     return html`
       <th
@@ -775,7 +934,9 @@ class CtsDataTable extends LitElement {
       >
         ${column.label || ""}
         ${column.sortable
-          ? html`<span class="oidf-dt-sort-arrow ${isActive ? "is-active" : ""}">${arrow}</span>`
+          ? html`<span class="oidf-dt-sort-arrow ${isActive ? "is-active" : ""}"
+              ><i class="bi bi-${arrowIcon}" aria-hidden="true"></i
+            ></span>`
           : nothing}
       </th>
     `;
@@ -806,29 +967,76 @@ class CtsDataTable extends LitElement {
 
   _renderSearch() {
     if (this.searchPlaceholder === "") return nothing;
+    const hasDraft = this._searchInput !== "";
+    const draftDiffersFromCommitted = this._searchInput !== this._search;
+    const showSubmit = this.searchMode === "explicit" && draftDiffersFromCommitted;
+    const ariaLabel = this.searchPlaceholder || "Search";
     return html`
       <div class="oidf-dt-search">
-        <div class="oidf-dt-search-input-wrap">
-          <span class="bi bi-search" aria-hidden="true"></span>
-          <input
-            type="text"
-            class="oidf-dt-search-input"
-            placeholder=${this.searchPlaceholder || "Search"}
-            .value=${this._searchInput}
-            @input=${this._onSearchInput}
-            @keydown=${this._onSearchKeydown}
-            aria-label=${this.searchPlaceholder || "Search"}
-          />
+        <div class="oidf-dt-search-row">
+          <div class="oidf-dt-search-input-wrap">
+            <span class="oidf-dt-search-leading" aria-hidden="true">
+              <i class="bi bi-search"></i>
+            </span>
+            <input
+              type="search"
+              class="oidf-dt-search-input"
+              placeholder=${this.searchPlaceholder || "Search"}
+              .value=${this._searchInput}
+              @input=${this._onSearchInput}
+              @keydown=${this._onSearchKeydown}
+              aria-label=${ariaLabel}
+              autocomplete="off"
+              spellcheck="false"
+            />
+            ${hasDraft
+              ? html`<button
+                  type="button"
+                  class="oidf-dt-search-clear"
+                  aria-label="Clear search"
+                  title="Clear search"
+                  @click=${this._onSearchClear}
+                >
+                  <i class="bi bi-x-lg" aria-hidden="true"></i>
+                </button>`
+              : nothing}
+            ${showSubmit
+              ? html`<button
+                  type="button"
+                  class="oidf-dt-search-submit"
+                  aria-label="Apply search"
+                  title="Apply search (Enter)"
+                  @click=${this._onSearchButton}
+                >
+                  <i class="bi bi-arrow-return-left" aria-hidden="true"></i>
+                </button>`
+              : nothing}
+          </div>
         </div>
-        ${this.searchMode === "explicit"
-          ? html`<cts-button
-              class="oidf-dt-search-btn"
-              variant="primary"
-              icon="search"
-              label="Search"
-              @cts-click=${this._onSearchButton}
-            ></cts-button>`
-          : nothing}
+        ${this._renderFilterChip()}
+      </div>
+    `;
+  }
+
+  _renderFilterChip() {
+    if (!this._search) return nothing;
+    const count = this._filteredRows;
+    const total = this._totalRows;
+    let countText;
+    if (total > 0 && count !== total) {
+      countText = `${count} of ${total}`;
+    } else {
+      countText = `${count} match${count === 1 ? "" : "es"}`;
+    }
+    return html`
+      <div class="oidf-dt-search-filter" role="status" aria-live="polite">
+        <span class="oidf-dt-search-filter-label">Filtered to</span>
+        <span class="oidf-dt-search-filter-query" title=${this._search}>${this._search}</span>
+        <span class="oidf-dt-search-filter-count">· ${countText}</span>
+        <button type="button" class="oidf-dt-search-filter-reset" @click=${this._onSearchClear}>
+          <i class="bi bi-x" aria-hidden="true"></i>
+          Show all
+        </button>
       </div>
     `;
   }

@@ -226,6 +226,10 @@ export const SearchExplicit = {
     const searchInput = canvasElement.querySelector(".oidf-dt-search-input");
     expect(searchInput).toBeTruthy();
 
+    // Before typing, the inline submit button should not be visible
+    // (draft equals committed = empty).
+    expect(canvasElement.querySelector(".oidf-dt-search-submit")).toBeNull();
+
     // Type without pressing Enter — should NOT fetch (rows unchanged).
     await userEvent.type(searchInput, "Test plan 5");
 
@@ -236,9 +240,13 @@ export const SearchExplicit = {
     ).length;
     expect(stillTen).toBe(10);
 
-    // Click the search button — fetch fires, rows narrow.
-    const searchBtnHost = canvasElement.querySelector(".oidf-dt-search-btn");
-    const searchBtn = searchBtnHost.querySelector("button");
+    // Now that draft differs from the committed search, the inline submit
+    // button is rendered inside the search pill.
+    const searchBtn = canvasElement.querySelector(".oidf-dt-search-submit");
+    expect(searchBtn).toBeTruthy();
+    expect(searchBtn.getAttribute("aria-label")).toBe("Apply search");
+
+    // Click the inline submit button — fetch fires, rows narrow.
     await userEvent.click(searchBtn);
 
     await waitFor(
@@ -246,6 +254,141 @@ export const SearchExplicit = {
         const rows = canvasElement.querySelectorAll(".oidf-dt-table tbody tr[data-row-index]");
         // Match "Test plan 5" → row-005 (single match given our fixture).
         expect(rows.length).toBe(1);
+      },
+      { timeout: 2000 },
+    );
+
+    // After committing, the submit button is no longer visible (draft
+    // matches committed) and the active-filter chip appears below.
+    await waitFor(() => {
+      expect(canvasElement.querySelector(".oidf-dt-search-submit")).toBeNull();
+      const chip = canvasElement.querySelector(".oidf-dt-search-filter");
+      expect(chip).toBeTruthy();
+      expect(chip.textContent).toContain("Filtered to");
+      expect(chip.querySelector(".oidf-dt-search-filter-query").textContent).toBe("Test plan 5");
+    });
+  },
+};
+
+/**
+ * After a search is committed, an active-filter chip is rendered beneath
+ * the search pill. Clicking the chip's "Show all" button clears the
+ * search and restores the unfiltered row set.
+ */
+export const SearchActiveFilterChip = {
+  parameters: {
+    msw: {
+      handlers: [
+        http.get("/api/sample", ({ request }) =>
+          HttpResponse.json(applyServerContract(SERVER_ROWS, new URL(request.url))),
+        ),
+      ],
+    },
+  },
+  render: () =>
+    html`<cts-data-table
+      .columns=${COLUMNS_DEFAULT}
+      page-size="10"
+      server-side
+      ajax-url="/api/sample"
+      search-mode="explicit"
+      search-placeholder="Search rows"
+    ></cts-data-table>`,
+  async play({ canvasElement }) {
+    const host = canvasElement.querySelector("cts-data-table");
+    await host.updateComplete;
+    await waitFor(() => {
+      const rows = canvasElement.querySelectorAll(".oidf-dt-table tbody tr[data-row-index]");
+      expect(rows.length).toBe(10);
+    });
+
+    // Drive a committed search via the public API so the chip rendering
+    // path is exercised regardless of input/keyboard noise.
+    host.search("Test plan 5");
+    await waitFor(
+      () => {
+        const rows = canvasElement.querySelectorAll(".oidf-dt-table tbody tr[data-row-index]");
+        expect(rows.length).toBe(1);
+      },
+      { timeout: 2000 },
+    );
+
+    // Chip surfaces the committed query + filtered count.
+    const chip = canvasElement.querySelector(".oidf-dt-search-filter");
+    expect(chip).toBeTruthy();
+    expect(chip.getAttribute("role")).toBe("status");
+    expect(chip.querySelector(".oidf-dt-search-filter-query").textContent).toBe("Test plan 5");
+    expect(chip.querySelector(".oidf-dt-search-filter-count").textContent).toContain("1 of 27");
+
+    // Click "Show all" — the chip vanishes, all rows return, the input clears.
+    const reset = chip.querySelector(".oidf-dt-search-filter-reset");
+    expect(reset).toBeTruthy();
+    await userEvent.click(reset);
+
+    await waitFor(
+      () => {
+        const rows = canvasElement.querySelectorAll(".oidf-dt-table tbody tr[data-row-index]");
+        expect(rows.length).toBe(10);
+        expect(canvasElement.querySelector(".oidf-dt-search-filter")).toBeNull();
+        expect(canvasElement.querySelector(".oidf-dt-search-input").value).toBe("");
+      },
+      { timeout: 2000 },
+    );
+  },
+};
+
+/**
+ * Pressing `Escape` inside the search input clears the field and
+ * commits the cleared state, restoring all rows. Useful for quickly
+ * resetting a filter without reaching for the chip.
+ */
+export const SearchEscapeClears = {
+  parameters: {
+    msw: {
+      handlers: [
+        http.get("/api/sample", ({ request }) =>
+          HttpResponse.json(applyServerContract(SERVER_ROWS, new URL(request.url))),
+        ),
+      ],
+    },
+  },
+  render: () =>
+    html`<cts-data-table
+      .columns=${COLUMNS_DEFAULT}
+      page-size="10"
+      server-side
+      ajax-url="/api/sample"
+      search-mode="explicit"
+      search-placeholder="Search rows"
+    ></cts-data-table>`,
+  async play({ canvasElement }) {
+    const host = canvasElement.querySelector("cts-data-table");
+    await host.updateComplete;
+    await waitFor(() => {
+      const rows = canvasElement.querySelectorAll(".oidf-dt-table tbody tr[data-row-index]");
+      expect(rows.length).toBe(10);
+    });
+
+    // Apply a filter through the public API so we have something to clear.
+    host.search("Test plan 7");
+    await waitFor(
+      () => {
+        const rows = canvasElement.querySelectorAll(".oidf-dt-table tbody tr[data-row-index]");
+        expect(rows.length).toBe(1);
+      },
+      { timeout: 2000 },
+    );
+
+    const input = canvasElement.querySelector(".oidf-dt-search-input");
+    input.focus();
+    await userEvent.keyboard("{Escape}");
+
+    await waitFor(
+      () => {
+        expect(input.value).toBe("");
+        expect(canvasElement.querySelector(".oidf-dt-search-filter")).toBeNull();
+        const rows = canvasElement.querySelectorAll(".oidf-dt-table tbody tr[data-row-index]");
+        expect(rows.length).toBe(10);
       },
       { timeout: 2000 },
     );
