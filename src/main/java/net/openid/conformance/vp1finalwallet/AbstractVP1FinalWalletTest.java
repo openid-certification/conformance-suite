@@ -845,23 +845,9 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 				break;
 			case REQUEST_URI_SIGNED:
 				seq = createAuthorizationRedirectStepsSignedRequestUri();
-				switch (clientIdPrefix) {
-					case DECENTRALIZED_IDENTIFIER:
-						//Remove x5c header, only the kid header is mandatory for DIDs, which is set in the jwks parameter
-						seq.replace(SignRequestObjectIncludeX5cHeaderIfAvailable.class, condition(SignRequestObjectIncludeTypHeader.class));
-						break;
-					case X509_SAN_DNS:
-					case X509_HASH:
-						// x5c header is mandatory for x509 san dns (and/or mdl profile)
-						seq.replace(SignRequestObjectIncludeX5cHeaderIfAvailable.class, condition(SignRequestObjectIncludeX5cHeader.class));
-						break;
-					case REDIRECT_URI:
-						throw new RuntimeException("redirect_uri client id scheme not valid for signed requests");
-					case PRE_REGISTERED:
-						// otherwise follow the default (use x5c header if it's available)
-						break;
-					case WEB_ORIGIN:
-						throw new RuntimeException("web-origin client id scheme not valid for signed requests");
+				Class<? extends Condition> signer = getActiveSigningCondition();
+				if (signer != SignRequestObjectIncludeX5cHeaderIfAvailable.class) {
+					seq.replace(SignRequestObjectIncludeX5cHeaderIfAvailable.class, condition(signer));
 				}
 				break;
 			case REQUEST_URI_MULTISIGNED:
@@ -878,6 +864,27 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 
 	protected Class<? extends Condition> getRequestUriRedirectCondition() {
 		return BuildRequestObjectByReferenceRedirectToAuthorizationEndpointWithoutDuplicates.class;
+	}
+
+	/**
+	 * The condition class used to (re)create {@code request_object} from {@code request_object_claims}
+	 * for the active variant. Single source of truth for the variant -> signer mapping; consumed by
+	 * both {@link #createAuthorizationRedirect()} and the POST-mode re-sign path.
+	 */
+	protected Class<? extends Condition> getActiveSigningCondition() {
+		return switch (requestMethod) {
+			case REQUEST_URI_UNSIGNED -> SerializeRequestObjectWithNullAlgorithm.class;
+			case REQUEST_URI_SIGNED -> switch (clientIdPrefix) {
+				case DECENTRALIZED_IDENTIFIER -> SignRequestObjectIncludeTypHeader.class;
+				case X509_SAN_DNS, X509_HASH -> SignRequestObjectIncludeX5cHeader.class;
+				case PRE_REGISTERED -> SignRequestObjectIncludeX5cHeaderIfAvailable.class;
+				case REDIRECT_URI -> throw new RuntimeException("redirect_uri client id scheme not valid for signed requests");
+				case WEB_ORIGIN -> throw new RuntimeException("web-origin client id scheme not valid for signed requests");
+			};
+			case REQUEST_URI_MULTISIGNED -> CreateMultiSignedRequestObject.class;
+			default -> throw new RuntimeException("getActiveSigningCondition: requestMethod " + requestMethod
+				+ " has no associated signing condition");
+		};
 	}
 
 	protected void validateRequestUriFetchMethod() {
@@ -1075,11 +1082,13 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 	protected Object handleRequestUriRequest(String requestId) {
 		setStatus(Status.RUNNING);
 
-		String requestObject = env.getString("request_object");
-
 		call(exec().mapKey("incoming_request", requestId));
 		validateRequestUriFetchMethod();
 		call(exec().unmapKey("incoming_request"));
+
+		// Read the request object after validateRequestUriFetchMethod() in case the subclass
+		// re-signed it after extracting parameters from the wallet's POST body.
+		String requestObject = env.getString("request_object");
 
 		switch (testState) {
 			case INITIAL:
