@@ -127,8 +127,19 @@ export const SuccessEntry = {
     expect(canvas.getByText("Server configuration valid")).toBeInTheDocument();
     expect(canvas.getByText("CheckServerConfiguration")).toBeInTheDocument();
 
-    const badge = canvasElement.querySelector('cts-badge[variant="success"]');
+    // Canonical OIDF status palette: SUCCESS -> pass.
+    const badge = canvasElement.querySelector('cts-badge[variant="pass"]');
     expect(badge).toBeTruthy();
+
+    // 5-column grid layout from U16 (110px / 70px / 60px / 1fr / auto).
+    const item = canvasElement.querySelector(".logItem");
+    const style = getComputedStyle(item);
+    expect(style.display).toBe("grid");
+    // Browsers resolve grid-template-columns to a track list of computed
+    // pixel values (or `auto`); a 5-track layout has 5 whitespace-separated
+    // entries regardless of how `1fr` and `auto` end up resolving.
+    const tracks = style.gridTemplateColumns.split(/\s+/).filter(Boolean);
+    expect(tracks.length).toBe(5);
   },
 };
 
@@ -140,11 +151,15 @@ export const FailureEntry = {
       expect(canvas.getByText("FAILURE")).toBeInTheDocument();
     });
 
-    const badge = canvasElement.querySelector('cts-badge[variant="failure"]');
+    const badge = canvasElement.querySelector('cts-badge[variant="fail"]');
     expect(badge).toBeTruthy();
 
     expect(canvas.getByText("OIDCC-3.1.3.7-6")).toBeInTheDocument();
     expect(canvas.getByText("OIDCC-3.1.3.7-7")).toBeInTheDocument();
+
+    // Failure rows get the left-edge red gradient marker class.
+    const item = canvasElement.querySelector(".logItem");
+    expect(item.classList.contains("is-fail")).toBe(true);
   },
 };
 
@@ -156,10 +171,14 @@ export const WarningEntry = {
       expect(canvas.getByText("WARNING")).toBeInTheDocument();
     });
 
-    const badge = canvasElement.querySelector('cts-badge[variant="warning"]');
+    const badge = canvasElement.querySelector('cts-badge[variant="warn"]');
     expect(badge).toBeTruthy();
 
     expect(canvas.getByText("OIDCC-3.1.3.3")).toBeInTheDocument();
+
+    // Warning rows get the left-edge orange gradient marker class.
+    const item = canvasElement.querySelector(".logItem");
+    expect(item.classList.contains("is-warn")).toBe(true);
   },
 };
 
@@ -273,6 +292,7 @@ export const BlockEntry = {
       // Block entries are visually distinguished by a colored left border.
       // Assert both the width/style AND a non-transparent color so a regression
       // that drops the color (leaving a black "3px solid") is caught.
+      expect(item.classList.contains("is-block")).toBe(true);
       const style = getComputedStyle(item);
       expect(style.borderLeftWidth).toBe("3px");
       expect(style.borderLeftStyle).toBe("solid");
@@ -287,7 +307,7 @@ export const UploadRequired = {
   async play({ canvasElement }) {
     const canvas = within(canvasElement);
     await waitFor(() => {
-      expect(canvas.getByText("IMAGE REQUIRED")).toBeInTheDocument();
+      expect(canvas.getByText("IMAGE")).toBeInTheDocument();
     });
 
     expect(canvas.getByText("REVIEW")).toBeInTheDocument();

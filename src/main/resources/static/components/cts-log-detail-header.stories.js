@@ -65,6 +65,24 @@ const ALL_PASSED_TEST = {
   ],
 };
 
+/**
+ * Resolve the inner `<button>` rendered inside a cts-button host with the
+ * given data-testid. Required because cts-button renders to its own light
+ * DOM and Lit binds `@click` on the inner `<button>` (see cts-button
+ * HostClickDoesNotDispatch story for the rationale).
+ *
+ * @param {HTMLElement} canvasElement
+ * @param {string} testId
+ * @returns {HTMLButtonElement}
+ */
+function innerButton(canvasElement, testId) {
+  const host = canvasElement.querySelector(`[data-testid="${testId}"]`);
+  if (!host) throw new Error(`No element with data-testid="${testId}"`);
+  const btn = host.querySelector("button");
+  if (!btn) throw new Error(`No <button> inside [data-testid="${testId}"]`);
+  return /** @type {HTMLButtonElement} */ (btn);
+}
+
 // --- Stories ---
 
 export const CompletedTest = {
@@ -75,7 +93,8 @@ export const CompletedTest = {
       expect(canvas.getByText("oidcc-server")).toBeInTheDocument();
     });
 
-    // Test info fields
+    // Test info fields (token-styled "Label: value" rows; labels are plain
+    // text inside .logMetaLabel divs).
     expect(canvas.getByText("Test Name:")).toBeInTheDocument();
     expect(canvas.getByText(COMPLETED_TEST.testId)).toBeInTheDocument();
     expect(canvas.getByText("Test ID:")).toBeInTheDocument();
@@ -83,7 +102,8 @@ export const CompletedTest = {
     expect(canvas.getByText("Description:")).toBeInTheDocument();
     expect(canvas.getByText("Test Version:")).toBeInTheDocument();
 
-    // Result badge shows PASSED
+    // Result badge shows PASSED (cts-badge accepts the legacy `success`
+    // alias and routes it to the canonical `pass` palette).
     const resultBadge = canvasElement.querySelector('cts-badge[variant="success"][label="PASSED"]');
     expect(resultBadge).toBeTruthy();
 
@@ -177,9 +197,9 @@ export const ViewConfig = {
     let configPanel = canvasElement.querySelector('[data-testid="config-panel"]');
     expect(configPanel).toBeNull();
 
-    // Click View Config button
-    const viewConfigBtn = canvasElement.querySelector('[data-testid="view-config-btn"]');
-    expect(viewConfigBtn).toBeTruthy();
+    // Click View Config button (target the inner <button> rendered by
+    // cts-button — clicking the host bypasses Lit's @click handler).
+    const viewConfigBtn = innerButton(canvasElement, "view-config-btn");
     await userEvent.click(viewConfigBtn);
 
     // Config panel is now visible
@@ -195,7 +215,7 @@ export const ViewConfig = {
     expect(configJson.textContent).toContain("https://op.example.com");
 
     // Click close to hide
-    const closeBtn = configPanel.querySelector("button");
+    const closeBtn = configPanel.querySelector("cts-button button");
     await userEvent.click(closeBtn);
 
     await waitFor(() => {
@@ -215,8 +235,7 @@ export const RepeatTest = {
     const repeatHandler = fn();
     canvasElement.addEventListener("cts-repeat-test", repeatHandler);
 
-    const repeatBtn = canvasElement.querySelector('[data-testid="repeat-test-btn"]');
-    expect(repeatBtn).toBeTruthy();
+    const repeatBtn = innerButton(canvasElement, "repeat-test-btn");
     await userEvent.click(repeatBtn);
 
     expect(repeatHandler).toHaveBeenCalledOnce();
@@ -232,8 +251,10 @@ export const ReturnToPlan = {
       expect(canvas.getByText("oidcc-server")).toBeInTheDocument();
     });
 
-    // Plan link is present with correct href
-    const planLink = canvasElement.querySelector('[data-testid="return-to-plan-link"]');
+    // Plan link is present with correct href (rendered as cts-link-button → <a>).
+    const planLinkHost = canvasElement.querySelector('[data-testid="return-to-plan-link"]');
+    expect(planLinkHost).toBeTruthy();
+    const planLink = planLinkHost.querySelector("a");
     expect(planLink).toBeTruthy();
     expect(planLink.getAttribute("href")).toContain("plan-detail.html?plan=");
     expect(planLink.getAttribute("href")).toContain(encodeURIComponent(COMPLETED_TEST.planId));
@@ -286,13 +307,14 @@ export const AdminActions = {
     expect(canvasElement.querySelector('[data-testid="return-to-plan-link"]')).toBeTruthy();
 
     // Publish button visible for admin
-    const publishBtn = canvasElement.querySelector('[data-testid="publish-btn"]');
-    expect(publishBtn).toBeTruthy();
+    const publishBtnHost = canvasElement.querySelector('[data-testid="publish-btn"]');
+    expect(publishBtnHost).toBeTruthy();
     expect(canvas.getByText(/Publish/)).toBeInTheDocument();
 
     // Click publish and verify event
     const publishHandler = fn();
     canvasElement.addEventListener("cts-publish", publishHandler);
+    const publishBtn = innerButton(canvasElement, "publish-btn");
     await userEvent.click(publishBtn);
 
     expect(publishHandler).toHaveBeenCalledOnce();
