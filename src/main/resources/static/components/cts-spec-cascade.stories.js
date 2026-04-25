@@ -9,6 +9,14 @@ export default {
   component: "cts-spec-cascade",
 };
 
+// Helper: locate the wrapping field for a given <select id="...">. The
+// component wraps each select in a `.oidf-spec-cascade__field` element with a
+// `data-testid="<selectId>-field"` so tests can assert visibility regardless
+// of the OIDF class names.
+function fieldFor(canvasElement, selectId) {
+  return canvasElement.querySelector(`[data-testid="${selectId}-field"]`);
+}
+
 // --- Stories ---
 
 /** Only the Specification dropdown is visible on initial load. */
@@ -24,13 +32,13 @@ export const InitialState = {
     await waitFor(() => {
       expect(canvas.getByLabelText("Specification")).toBeInTheDocument();
     });
-    // Entity, Version, and Plan rows should be hidden
-    const entityRow = canvasElement.querySelector("#entitySelect")?.closest(".mb-3.row");
-    expect(entityRow?.style.display).toBe("none");
-    const versionRow = canvasElement.querySelector("#specVersionSelect")?.closest(".mb-3.row");
-    expect(versionRow?.style.display).toBe("none");
-    const planRow = canvasElement.querySelector("#planSelect")?.closest(".mb-3.row");
-    expect(planRow?.style.display).toBe("none");
+    // Entity, Version, and Plan fields should be hidden
+    expect(fieldFor(canvasElement, "entitySelect")?.style.display).toBe("none");
+    expect(fieldFor(canvasElement, "specVersionSelect")?.style.display).toBe("none");
+    expect(fieldFor(canvasElement, "planSelect")?.style.display).toBe("none");
+    // The Specification select should carry the OIDF class
+    const familySelect = canvasElement.querySelector("#specFamilySelect");
+    expect(familySelect?.classList.contains("oidf-spec-cascade__select")).toBe(true);
   },
 };
 
@@ -52,9 +60,9 @@ export const SelectFamily = {
     await waitFor(() => {
       const entitySelect = canvasElement.querySelector("#entitySelect");
       expect(entitySelect).toBeTruthy();
-      // OIDCC has OP and RP entities, so the entity row should be visible
-      const entityRow = entitySelect.closest(".mb-3.row");
-      expect(entityRow.style.display).not.toBe("none");
+      // OIDCC has OP and RP entities, so the entity field should be visible
+      const entityField = fieldFor(canvasElement, "entitySelect");
+      expect(entityField.style.display).not.toBe("none");
       // Should have OP and RP options plus the placeholder
       const options = entitySelect.querySelectorAll("option");
       expect(options.length).toBe(3); // placeholder + OP + RP
@@ -80,19 +88,19 @@ export const FullCascade = {
     const familySelect = canvas.getByLabelText("Specification");
     await userEvent.selectOptions(familySelect, "OIDCC");
 
-    // Step 2: Entity row becomes visible, select OP
+    // Step 2: Entity field becomes visible, select OP
     await waitFor(() => {
-      const entityRow = canvasElement.querySelector("#entitySelect").closest(".mb-3.row");
-      expect(entityRow.style.display).not.toBe("none");
+      const entityField = fieldFor(canvasElement, "entitySelect");
+      expect(entityField.style.display).not.toBe("none");
     });
     const entitySelect = canvasElement.querySelector("#entitySelect");
     await userEvent.selectOptions(entitySelect, "OP");
 
     // Step 3: OIDCC + OP has only one version (Final), so version auto-selects
-    // and plan row should appear
+    // and plan field should appear
     await waitFor(() => {
-      const planRow = canvasElement.querySelector("#planSelect").closest(".mb-3.row");
-      expect(planRow.style.display).not.toBe("none");
+      const planField = fieldFor(canvasElement, "planSelect");
+      expect(planField.style.display).not.toBe("none");
     });
 
     // Step 4: Select a plan
@@ -127,16 +135,16 @@ export const PlanSelectedEvent = {
     await userEvent.selectOptions(familySelect, "OIDCC");
 
     await waitFor(() => {
-      const entityRow = canvasElement.querySelector("#entitySelect").closest(".mb-3.row");
-      expect(entityRow.style.display).not.toBe("none");
+      const entityField = fieldFor(canvasElement, "entitySelect");
+      expect(entityField.style.display).not.toBe("none");
     });
 
     const entitySelect = canvasElement.querySelector("#entitySelect");
     await userEvent.selectOptions(entitySelect, "OP");
 
     await waitFor(() => {
-      const planRow = canvasElement.querySelector("#planSelect").closest(".mb-3.row");
-      expect(planRow.style.display).not.toBe("none");
+      const planField = fieldFor(canvasElement, "planSelect");
+      expect(planField.style.display).not.toBe("none");
     });
 
     const planSelect = canvasElement.querySelector("#planSelect");
@@ -169,16 +177,16 @@ export const ResetOnFamilyChange = {
     await userEvent.selectOptions(familySelect, "OIDCC");
 
     await waitFor(() => {
-      const entityRow = canvasElement.querySelector("#entitySelect").closest(".mb-3.row");
-      expect(entityRow.style.display).not.toBe("none");
+      const entityField = fieldFor(canvasElement, "entitySelect");
+      expect(entityField.style.display).not.toBe("none");
     });
 
     const entitySelect = canvasElement.querySelector("#entitySelect");
     await userEvent.selectOptions(entitySelect, "OP");
 
     await waitFor(() => {
-      const planRow = canvasElement.querySelector("#planSelect").closest(".mb-3.row");
-      expect(planRow.style.display).not.toBe("none");
+      const planField = fieldFor(canvasElement, "planSelect");
+      expect(planField.style.display).not.toBe("none");
     });
 
     // Now change family to FAPI
@@ -193,7 +201,7 @@ export const ResetOnFamilyChange = {
   },
 };
 
-/** A family with only one entity auto-selects that entity (row stays hidden). */
+/** A family with only one entity auto-selects that entity (field stays hidden). */
 export const SingleEntity = {
   parameters: {
     msw: {
@@ -207,7 +215,7 @@ export const SingleEntity = {
       expect(canvas.getByLabelText("Specification")).toBeInTheDocument();
     });
 
-    // FAPI has only one entity (OP), so entity row should remain hidden
+    // FAPI has only one entity (OP), so entity field should remain hidden
     const familySelect = canvas.getByLabelText("Specification");
     await userEvent.selectOptions(familySelect, "FAPI");
 
@@ -215,9 +223,8 @@ export const SingleEntity = {
       const entitySelect = canvasElement.querySelector("#entitySelect");
       // Entity auto-selected to OP
       expect(entitySelect.value).toBe("OP");
-      // Entity row should be hidden since there is only one entity
-      const entityRow = entitySelect.closest(".mb-3.row");
-      expect(entityRow.style.display).toBe("none");
+      // Entity field should be hidden since there is only one entity
+      expect(fieldFor(canvasElement, "entitySelect").style.display).toBe("none");
     });
   },
 };
@@ -248,7 +255,7 @@ export const WithProvidedPlans = {
   },
 };
 
-/** While loading from the API, a spinner is shown. */
+/** While loading from the API, a status banner is shown. */
 export const LoadingState = {
   parameters: {
     msw: {
@@ -262,14 +269,12 @@ export const LoadingState = {
   },
   render: () => html`<cts-spec-cascade></cts-spec-cascade>`,
   async play({ canvasElement }) {
-    // The spinner should be visible while the request is in flight
+    // The loading banner should be visible while the request is in flight
     await waitFor(() => {
-      const spinner = canvasElement.querySelector(".spinner-border");
-      expect(spinner).toBeTruthy();
+      const loading = canvasElement.querySelector(".oidf-spec-cascade__loading");
+      expect(loading).toBeTruthy();
+      expect(loading.textContent).toContain("Loading available test plans...");
     });
-
-    const srText = canvasElement.querySelector(".visually-hidden");
-    expect(srText.textContent).toBe("Loading available test plans...");
   },
 };
 
@@ -299,6 +304,8 @@ export const LoadErrorShowsBanner = {
         const banner = canvasElement.querySelector('[data-testid="spec-cascade-error"]');
         expect(banner).toBeTruthy();
         expect(banner.textContent).toContain("Unable to load plans");
+        // The error banner uses the OIDF alert tokens
+        expect(banner.classList.contains("oidf-spec-cascade__alert--error")).toBe(true);
       });
 
       // No dropdowns should render in the error state.
@@ -333,6 +340,7 @@ export const LoadsEmptyShowsInfoBanner = {
       const empty = canvasElement.querySelector('[data-testid="spec-cascade-empty"]');
       expect(empty).toBeTruthy();
       expect(empty.textContent).toContain("No test plans are available");
+      expect(empty.classList.contains("oidf-spec-cascade__alert--info")).toBe(true);
     });
     // Error banner should NOT be showing — this is the healthy-but-empty case.
     expect(canvasElement.querySelector('[data-testid="spec-cascade-error"]')).toBeNull();
