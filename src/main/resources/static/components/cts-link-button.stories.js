@@ -189,7 +189,7 @@ export const LegacyVariantAliases = {
 
 /**
  * The `size` attribute mirrors `cts-button`. Login provider buttons on
- * `login.html` and the action buttons in `tokenTable.html` use `lg` for
+ * `login.html` and the action buttons in `cts-token-manager` use `lg` for
  * prominence; everything else stays on the `sm` default.
  */
 export const Sizes = {

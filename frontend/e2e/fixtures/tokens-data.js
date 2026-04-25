@@ -1,8 +1,9 @@
 /** Mock data for tokens.html E2E tests. */
 
 /**
- * A non-admin, non-guest user so tokenTable.html renders the action buttons
- * and the tokens DataTable (the admin branch hides both).
+ * A non-admin, non-guest user so cts-token-manager renders the action
+ * buttons and the tokens table (the `is-admin` branch hides both and
+ * shows a read-only message instead).
  */
 export const MOCK_TOKEN_USER = {
   iss: "https://accounts.google.com",
@@ -15,8 +16,8 @@ export const MOCK_TOKEN_USER = {
 
 /**
  * Sample tokens returned by GET /api/token. The endpoint returns a plain
- * array, not a DataTables server-side envelope — the DataTable uses
- * `dataSrc: ''` to consume it directly.
+ * array — cts-token-manager fetches the array directly via `fetch()` and
+ * iterates it in the Lit template.
  */
 export const MOCK_TOKENS = [
   {

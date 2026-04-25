@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="mobile-web-app-capable" content="yes">
@@ -8,9 +8,6 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta charset="UTF-8">
     <title>OIDF Conformance: API tokens</title>
-
-    <!-- Latest compiled and minified CSS -->
-    <link rel="stylesheet" href="/vendor/bootstrap/css/bootstrap.min.css">
 
     <!-- Boostrap Icons -->
     <link rel="stylesheet" href="/vendor/bootstrap-icons/css/bootstrap-icons.css">
@@ -21,249 +18,46 @@
     <link rel="stylesheet" type="text/css" href="css/layout.css">
     <link rel="stylesheet" href="/css/oidf-app.css">
 
-    <link rel="stylesheet" href="/vendor/datatables/css/dataTables.bootstrap5.min.css">
-
-    <!-- Popper (necessary for Bootstrap's tooltips) -->
-    <script src="/vendor/popper/js/popper.min.js"></script>
-    <!-- Latest compiled and minified JavaScript -->
-    <script src="/vendor/bootstrap/js/bootstrap.min.js"></script>
-
-    <script src="/vendor/lodash/js/lodash.min.js"></script>
-    <script src="/vendor/clipboard/js/clipboard.min.js"></script>
-
-    <!-- jQuery (necessary for DataTables -->
-    <script src="/vendor/jquery/js/jquery.min.js"></script>
-    <!-- DataTables -->
-    <script src="/vendor/datatables/js/jquery.dataTables.min.js"></script>
-    <script src="/vendor/datatables/js/dataTables.bootstrap5.min.js"></script>
-
-    <script type="text/javascript" src="js/fapi.ui.js"></script>
     <script>window.litDisableBundleWarning = true;</script>
     <script type="importmap">{"imports":{"lit":"/vendor/lit/lit.js","lit/":"/vendor/lit/","lit/directives/async-append.js":"/vendor/lit/lit.js","lit/directives/async-replace.js":"/vendor/lit/lit.js","lit/directives/cache.js":"/vendor/lit/lit.js","lit/directives/choose.js":"/vendor/lit/lit.js","lit/directives/class-map.js":"/vendor/lit/lit.js","lit/directives/guard.js":"/vendor/lit/lit.js","lit/directives/if-defined.js":"/vendor/lit/lit.js","lit/directives/join.js":"/vendor/lit/lit.js","lit/directives/keyed.js":"/vendor/lit/lit.js","lit/directives/live.js":"/vendor/lit/lit.js","lit/directives/map.js":"/vendor/lit/lit.js","lit/directives/range.js":"/vendor/lit/lit.js","lit/directives/ref.js":"/vendor/lit/lit.js","lit/directives/repeat.js":"/vendor/lit/lit.js","lit/directives/style-map.js":"/vendor/lit/lit.js","lit/directives/template-content.js":"/vendor/lit/lit.js","lit/directives/unsafe-html.js":"/vendor/lit/lit.js","lit/directives/unsafe-svg.js":"/vendor/lit/lit.js","lit/directives/until.js":"/vendor/lit/lit.js","lit/directives/when.js":"/vendor/lit/lit.js","@lit/reactive-element":"/vendor/lit/lit.js","@lit/reactive-element/":"/vendor/lit/","lit-html":"/vendor/lit/lit.js","lit-html/":"/vendor/lit/","lit-element/":"/vendor/lit/"}}</script>
     <script type="module" src="/components/cts-navbar.js"></script>
-    <script type="module" src="/components/cts-modal.js"></script>
-    <script type="module" src="/components/cts-button.js"></script>
-    <script type="module" src="/components/cts-link-button.js"></script>
-    <script type="module" src="/components/cts-badge.js"></script>
-    <script type="module" src="/components/cts-icon.js"></script>
+    <script type="module" src="/components/cts-token-manager.js"></script>
 </head>
 
 <body>
 
     <cts-navbar current-page="tokens"></cts-navbar>
 
-    <!-- resident DOM -->
-    <div class="container-fluid">
-        <div class="row">
-            <div class="col-md-12" id="tokenTable">
-                <p>Loading...</p>
-            </div>
-        </div>
-    </div>
+    <cts-token-manager></cts-token-manager>
 
-    <cts-modal id="errorModal" heading="Error">
-        Error: <span id="errorMessage"></span>
-    </cts-modal>
-
-    <cts-modal id="createdModal" heading="Token created" size="lg">
-        <cts-button class="btn-clipboard" icon="box-arrow-in-right" data-clipboard-target="#tokenValue" title="Copy token to clipboard"></cts-button>
-        <div class="wrapLongStrings">
-            <p>Here is your new token. This value will only be displayed once.</p>
-            <pre id="tokenValue"></pre>
-        </div>
-    </cts-modal>
-
-    <cts-modal id="deleteModal" heading="Delete" footer-buttons='[{"label":"Delete","id":"confirmDelete"},{"label":"Cancel"}]'>
-        Are you sure? This permanently remove this token.
-    </cts-modal>
-
-    <script>
-        /**
-         *
-         */
-        document.addEventListener("DOMContentLoaded", () => {
-
-            FAPI_UI.loadTokenListTemplates()
-            .then(function() {
-                return FAPI_UI.getUserInfo();
-            })
-            .then(function() {
-                document.getElementById('tokenTable').innerHTML = FAPI_UI.logTemplates.TOKEN_TABLE({userInfo: FAPI_UI.currentUser});
-                // wire up create buttons
-                if (document.getElementById('newTemporaryToken') !== null) {
-                    document.getElementById('newTemporaryToken').onclick = function(evt) {
-                        evt.preventDefault();
-                        newToken(false);
-                    };
-                }
-
-                if (document.getElementById('newPermanentToken') !== null) {
-                    document.getElementById('newPermanentToken').onclick = function(evt) {
-                        evt.preventDefault();
-                        newToken(true);
-                    };
-                }
-                return loadTokens();
-            });
-
-            // Target the inner <button> rendered by cts-button. This fails loudly
-            // if cts-button ever switches to shadow DOM (the selector stops
-            // matching) instead of silently breaking copy. See
-            // components/cts-button.js JSDoc for the light-DOM dependency note.
-            var clipboard = new ClipboardJS('.btn-clipboard > button', {
-                text: function(trigger) {
-                    var host = trigger.closest('.btn-clipboard');
-                    var sel = host && host.getAttribute('data-clipboard-target');
-                    var target = sel ? document.querySelector(sel) : null;
-                    return target ? target.textContent : '';
-                }
-            });
-            clipboard.on('success', function(e) {
-                console.log(e);
-            });
-            clipboard.on('error', function(e) {
-                console.log(e);
-            });
+    <script type="text/javascript">
+        // Probe /api/currentuser so cts-token-manager renders the read-only
+        // admin view for admin sessions. cts-navbar performs its own auth
+        // probe; mirroring it here keeps cts-token-manager independent of
+        // navbar internals. cts-token-manager defaults `isAdmin=false` and
+        // re-renders when the attribute toggles, so the network roundtrip
+        // does not block the initial table fetch — the admin path simply
+        // swaps in its read-only message once the response lands.
+        document.addEventListener('DOMContentLoaded', () => {
+            fetch('/api/currentuser')
+                .then((response) => {
+                    if (!response.ok) return null;
+                    return response.json();
+                })
+                .then((user) => {
+                    const manager = document.querySelector('cts-token-manager');
+                    if (!manager) return;
+                    if (user && user.isAdmin) {
+                        manager.setAttribute('is-admin', '');
+                    }
+                })
+                .catch(() => {
+                    // Network failure: leave the default (non-admin) view so
+                    // the user still sees the create/list UI. The CRUD calls
+                    // themselves surface server errors via the component's
+                    // own error modal.
+                });
         });
-
-        /**
-         *
-         */
-        function loadTokens() {
-            return $('#tokensListing').DataTable({
-                ajax: {
-                    url: '/api/token',
-                    dataSrc: '',
-                    error: function(jqxhr, status, error) {
-                        if (status == "abort") {
-                            // Request was aborted (probably a reload); not an error
-                            return;
-                        }
-                        FAPI_UI.showError(jqxhr.responseJSON ? jqxhr.responseJSON : {
-                            code: jqxhr.status,
-                            error: error
-                        });
-                    }
-                },
-                columns: [
-                    {
-                        title: 'Token ID',
-                        data: '_id'
-                    },
-                    {
-                        title: 'Expires',
-                        data: function(row) { return row.expires || null; },
-                        render: {
-                            display: function(data) { return data ? FAPI_UI.logTemplates.DATE({ date: data }) : 'Never'; }
-                        }
-                    },
-                    {
-                        title: 'Delete',
-                        data: null,
-                        defaultContent: '<cts-button variant="danger" label="Delete" class="deleteBtn"></cts-button>',
-                        orderable: false
-                    }
-                ],
-                createdRow: function(row, data) {
-                    // wire up delete button
-                    var id = data._id;
-                    $('.deleteBtn', row).click(function(evt) {
-                        evt.preventDefault();
-                        $('#confirmDelete').click(function(evt) {
-                            evt.preventDefault();
-                            $.ajax({
-                                type: 'DELETE',
-                                url: '/api/token/' + encodeURIComponent(id),
-                                beforeSend: function(jqxhr) {
-                                    // Prevent browser from trying to parse an empty OK response as XML
-                                    jqxhr.overrideMimeType("text/plain");
-                                },
-                                success: function() {
-                                    // reload the list of tokens
-                                    $('#tokensListing').DataTable().ajax.reload();
-                                },
-                                error: function(jqxhr, status, error) {
-                                    FAPI_UI.showError(jqxhr.responseJSON ? jqxhr.responseJSON : {
-                                        code: jqxhr.status,
-                                        error: error
-                                    });
-                                }
-                            });
-                        });
-
-                        document.getElementById('deleteModal').show();
-                    });
-                },
-                order: [[1, "asc"]] // sort by the "expires" column, ascending, by default
-            });
-        }
-
-        function newToken(permanent) {
-            fetch('/api/token', {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({ permanent: permanent }),
-            })
-            .then((response) => {
-                if (!response.ok) {
-                    return Promise.reject(response);
-                }
-
-                return response.json();
-            })
-            .then((data) => {
-                document.getElementById('tokenValue').innerHTML = _.escape(data.token);
-
-                document.getElementById('createdModal').show();
-
-                $('#tokensListing').DataTable().ajax.reload();
-            })
-            .catch((error) => {
-                if (error instanceof Response) {
-                    // We have a 'Respose' object.
-                    var message = error.statusText;
-                    var responseClone = error.clone();
-
-                    error.text()
-                    .then(textError => {
-                        // Text error thrown by the app
-                        messageParsed = true;
-
-                        try {
-                            const errorObj = JSON.parse(textError);
-
-                            if (errorObj.error.length != 0) {
-                                message = errorObj.error;
-                            }
-                        }
-                        catch (e) {
-                        }
-
-                        FAPI_UI.showError({code: error.status.toString(), error: message});
-                    })
-                    .catch(error1 => {
-                        // JSON error thrown by the app
-                        responseClone.json()
-                        .then(jsonError => {
-                            if (typeof (jsonError) === 'string' && jsonError.length != 0) {
-                                message = jsonError;
-                            }
-
-                            FAPI_UI.showError({code: error.status.toString(), error: message});
-                        })
-                        .catch(genericError => {
-                            // Error thrown by the server
-                            FAPI_UI.showError({code: error.status.toString(), error: error.statusText});
-                        });
-                    });
-                } else {
-                    // Network error automatically detected by fetch.
-                    FAPI_UI.showError({code: "", error: error});
-                }
-            });
-        }
     </script>
 
     <footer class="pageFooter">

@@ -196,7 +196,7 @@ export const CreatePermanentToken = {
     // The heading is rendered as `.oidf-modal-title` (cts-modal contract).
     const modalTitle = createdModal.querySelector(".oidf-modal-title");
     expect(modalTitle).toBeTruthy();
-    expect(modalTitle.textContent).toBe("Token created");
+    expect(modalTitle?.textContent).toBe("Token created");
 
     // Modal carries the size="lg" attribute → dialog has data-size="lg".
     expect(dialog.getAttribute("data-size")).toBe("lg");

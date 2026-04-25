@@ -177,7 +177,16 @@ class CtsTokenManager extends LitElement {
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
-      this._tokens = await response.json();
+      const body = await response.json();
+      // Defensive: a non-array response (error envelope, unexpected shape)
+      // would crash render() at `_tokens.map(...)`. Coerce to [] and surface
+      // an inline error if the server's reply doesn't match the contract.
+      if (Array.isArray(body)) {
+        this._tokens = body;
+      } else {
+        this._tokens = [];
+        this._error = "Unexpected /api/token response shape";
+      }
     } catch (err) {
       this._error = (err instanceof Error && err.message) || "Failed to load tokens";
       this._tokens = [];
