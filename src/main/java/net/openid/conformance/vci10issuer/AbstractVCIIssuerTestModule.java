@@ -2,7 +2,6 @@ package net.openid.conformance.vci10issuer;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
-import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import jakarta.servlet.http.HttpServletRequest;
@@ -53,7 +52,7 @@ import net.openid.conformance.openid.federation.CallCredentialIssuerNonceEndpoin
 import net.openid.conformance.sequence.AbstractConditionSequence;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.sequence.client.SetupPkceAndAddToAuthorizationRequest;
-import net.openid.conformance.testmodule.OIDFJSON;
+import net.openid.conformance.testmodule.IterateEnvironmentArray;
 import net.openid.conformance.testmodule.TestFailureException;
 import net.openid.conformance.variant.ClientAuthType;
 import net.openid.conformance.variant.ConfigurationFields;
@@ -812,22 +811,16 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractFAPI2SPFinalSe
 		// Extract and validate all credentials (same for both paths)
 		callAndStopOnFailure(VCIExtractCredentialResponse.class, ConditionResult.FAILURE, "OID4VCI-1FINAL-8.3");
 
-		// Iterate over all extracted credentials and validate each one
-		JsonArray extractedCredentials = env.getObject("extracted_credentials").getAsJsonArray("list");
-		for (int i = 0; i < extractedCredentials.size(); i++) {
-			String credential = OIDFJSON.getString(extractedCredentials.get(i));
-			env.putString("credential", credential);
-
-			if (extractedCredentials.size() > 1) {
-				eventLog.startBlock(currentClientString() + "Verify credential " + (i + 1) + " of " + extractedCredentials.size());
-			} else {
-				eventLog.startBlock(currentClientString() + "Verify credential");
+		call(new IterateEnvironmentArray("extracted_credentials", "list", () -> new AbstractConditionSequence() {
+			@Override
+			public void evaluate() {
+				AbstractVCIIssuerTestModule.this.verifyCredential();
 			}
-
-			verifyCredential();
-
-			eventLog.endBlock();
-		}
+		})
+			.currentString("credential")
+			.logBlockLabels(ctx -> ctx.getIterationCount() > 1
+				? currentClientString() + "Verify credential " + ctx.getIteration() + " of " + ctx.getIterationCount()
+				: currentClientString() + "Verify credential"));
 
 		call(exec().unmapKey("endpoint_response"));
 		callAndContinueOnFailure(CheckForDateHeaderInResourceResponse.class, ConditionResult.FAILURE, "RFC7231-7.1.1.2");
