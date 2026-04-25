@@ -22,12 +22,22 @@ export const Default = {
   async play({ canvasElement }) {
     const tablist = canvasElement.querySelector('[role="tablist"]');
     expect(tablist).toBeTruthy();
+    // Token-styled tablist — Bootstrap classes are gone.
+    expect(tablist.classList.contains("oidf-tabs")).toBe(true);
+    expect(tablist.classList.contains("nav")).toBe(false);
+    expect(tablist.classList.contains("nav-tabs")).toBe(false);
 
     const tabs = canvasElement.querySelectorAll('[role="tab"]');
     expect(tabs.length).toBe(2);
 
     expect(tabs[0].getAttribute("aria-selected")).toBe("true");
     expect(tabs[1].getAttribute("aria-selected")).toBe("false");
+
+    // Active tab carries the token active class; the inactive does not.
+    expect(tabs[0].classList.contains("oidf-tab")).toBe(true);
+    expect(tabs[0].classList.contains("oidf-tab-active")).toBe(true);
+    expect(tabs[1].classList.contains("oidf-tab")).toBe(true);
+    expect(tabs[1].classList.contains("oidf-tab-active")).toBe(false);
 
     // Tab controls panel by original id
     expect(tabs[0].getAttribute("aria-controls")).toBe("formTab");
@@ -60,6 +70,9 @@ export const SwitchTab = {
     await waitFor(() => {
       expect(tabs[0].getAttribute("aria-selected")).toBe("false");
       expect(tabs[1].getAttribute("aria-selected")).toBe("true");
+      // Active class moves to the newly-selected tab.
+      expect(tabs[0].classList.contains("oidf-tab-active")).toBe(false);
+      expect(tabs[1].classList.contains("oidf-tab-active")).toBe(true);
       expect(panels[0].hidden).toBe(true);
       expect(panels[1].hidden).toBe(false);
     });
@@ -177,5 +190,57 @@ export const ThreeTabs = {
     expect(tabs[0].textContent.trim()).toBe("Overview");
     expect(tabs[1].textContent.trim()).toBe("Details");
     expect(tabs[2].textContent.trim()).toBe("History");
+  },
+};
+
+/**
+ * Visual contract from `project/preview/components-tabs.html` — four tabs
+ * with optional count badges, matching the design archive verbatim.
+ * Active tab uses the orange-400 underline; active count badge uses
+ * orange-50 / orange-600. Inactive count badges use ink-100 / fg-muted.
+ */
+export const WithCountBadges = {
+  render: () => html`
+    <cts-tabs>
+      <cts-tab-panel label="Modules" count="24" id="cbModules">
+        <p>Modules content</p>
+      </cts-tab-panel>
+      <cts-tab-panel label="Log" count="1.4k" id="cbLog">
+        <p>Log content</p>
+      </cts-tab-panel>
+      <cts-tab-panel label="Conditions" count="2" id="cbConditions">
+        <p>Conditions content</p>
+      </cts-tab-panel>
+      <cts-tab-panel label="Settings" id="cbSettings">
+        <p>Settings content</p>
+      </cts-tab-panel>
+    </cts-tabs>
+  `,
+
+  async play({ canvasElement }) {
+    const tabs = canvasElement.querySelectorAll('[role="tab"]');
+    expect(tabs.length).toBe(4);
+
+    // Tabs that declared a count render a badge; tabs without count don't.
+    const counts = canvasElement.querySelectorAll(".oidf-tab-count");
+    expect(counts.length).toBe(3);
+    expect(counts[0].textContent).toBe("24");
+    expect(counts[1].textContent).toBe("1.4k");
+    expect(counts[2].textContent).toBe("2");
+
+    // The first (active) tab carries both label and count inside it.
+    expect(tabs[0].querySelector(".oidf-tab-label").textContent).toBe("Modules");
+    expect(tabs[0].querySelector(".oidf-tab-count").textContent).toBe("24");
+
+    // Settings tab has no count badge.
+    expect(tabs[3].querySelector(".oidf-tab-count")).toBeNull();
+    expect(tabs[3].querySelector(".oidf-tab-label").textContent).toBe("Settings");
+
+    // Click the Log tab — active class follows.
+    await userEvent.click(tabs[1]);
+    await waitFor(() => {
+      expect(tabs[0].classList.contains("oidf-tab-active")).toBe(false);
+      expect(tabs[1].classList.contains("oidf-tab-active")).toBe(true);
+    });
   },
 };
