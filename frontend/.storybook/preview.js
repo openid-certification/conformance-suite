@@ -1,5 +1,6 @@
 import { definePreview } from "@storybook/web-components-vite";
 import { setupWorker } from "msw/browser";
+import { MINIMAL_VIEWPORTS } from "storybook/viewport";
 
 // Create a shared MSW worker instance (no default handlers — stories provide them)
 const worker = setupWorker();
@@ -48,6 +49,14 @@ export default definePreview({
         color: /(background|color)$/i,
         date: /Date$/i,
       },
+    },
+    // Register a small set of viewport presets so individual stories can
+    // pin themselves to "mobile1" (320×568) etc. via globals.viewport.
+    // MINIMAL_VIEWPORTS is the four-preset variant (small mobile, large
+    // mobile, tablet, desktop) — enough to prove responsive contracts
+    // without flooding the picker with 30 device profiles.
+    viewport: {
+      options: MINIMAL_VIEWPORTS,
     },
   },
   loaders: [mswLoader],
