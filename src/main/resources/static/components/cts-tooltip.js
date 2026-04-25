@@ -64,22 +64,22 @@ function injectStylesOnce() {
       border: ${ARROW_HALF_PX}px solid transparent;
     }
     .oidf-tooltip[data-placement="top"] .oidf-tooltip__arrow {
-      bottom: -${ARROW_HALF_PX * 2}px;
+      bottom: -${ARROW_HALF_PX}px;
       border-top-color: var(--ink-900);
       border-bottom-width: 0;
     }
     .oidf-tooltip[data-placement="bottom"] .oidf-tooltip__arrow {
-      top: -${ARROW_HALF_PX * 2}px;
+      top: -${ARROW_HALF_PX}px;
       border-bottom-color: var(--ink-900);
       border-top-width: 0;
     }
     .oidf-tooltip[data-placement="left"] .oidf-tooltip__arrow {
-      right: -${ARROW_HALF_PX * 2}px;
+      right: -${ARROW_HALF_PX}px;
       border-left-color: var(--ink-900);
       border-right-width: 0;
     }
     .oidf-tooltip[data-placement="right"] .oidf-tooltip__arrow {
-      left: -${ARROW_HALF_PX * 2}px;
+      left: -${ARROW_HALF_PX}px;
       border-right-color: var(--ink-900);
       border-left-width: 0;
     }
