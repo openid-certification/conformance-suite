@@ -418,6 +418,7 @@ class CtsTokenManager extends LitElement {
           variant="secondary"
           size="lg"
           href="/api-document.html"
+          target="_blank"
           label="API Documentation"
         ></cts-link-button>
       </div>
