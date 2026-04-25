@@ -389,29 +389,6 @@ var FAPI_UI = {
 			return Promise.allSettled(promises);
 		},
 
-		loadTokenListTemplates: function() {
-			const p1 = fetch('templates/date.html')
-				.then((response) => response.text())
-				.then((data) => {
-					FAPI_UI.logTemplates.DATE = _.template(data);
-				});
-
-			const p2 = fetch('templates/tokenTable.html')
-				.then((response) => response.text())
-				.then((data) => {
-					FAPI_UI.logTemplates.TOKEN_TABLE = _.template(data);
-				});
-
-			const p3 = fetch('templates/userinfo.html')
-				.then((response) => response.text())
-				.then((data) => {
-					FAPI_UI.logTemplates.USER_INFO = _.template(data);
-				});
-
-			const promises = [p1, p2, p3];
-
-			return Promise.allSettled(promises);
-		},
 		//when you add a new value to this list also update net.openid.conformance.export.LogEntryHelper
 		visibleFields : ["msg", "src", "time", "result", "requirements", "upload", "testOwner", "testId", "http", "blockId", "startBlock"],
 
@@ -460,7 +437,6 @@ var FAPI_UI = {
 					const elem = document.getElementById('userInfoHolder');
 					if (elem && FAPI_UI.logTemplates.USER_INFO) {
 						elem.innerHTML = FAPI_UI.logTemplates.USER_INFO({userInfo: userInfo});
-						FAPI_UI.activeTooltip();
 					}
 				})
 				.catch((error) => {
@@ -476,6 +452,11 @@ var FAPI_UI = {
 
 		activeTooltip : function() {
 
+			// Tooltip behavior itself now lives in `<cts-tooltip>` (see U35/U36/U39).
+			// schedule-test.html still injects legacy `data-bs-toggle="tooltip"`
+			// markup dynamically and calls this helper, so we keep the title
+			// whitespace-trim pass. U39 will migrate that markup to `<cts-tooltip>`
+			// and delete the remaining call sites; this whole function can then go.
 			const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
 			[...tooltipTriggerList].forEach((tooltipTriggerEl) => {
 				const title = tooltipTriggerEl.getAttribute('title');
@@ -483,14 +464,6 @@ var FAPI_UI = {
 					tooltipTriggerEl.setAttribute('title', title.replace(/\s+/g, ' ').trim());
 				}
 			});
-
-			// Skip when bootstrap.Tooltip isn't loaded — happens on pages that
-			// have already migrated off bootstrap.min.js (Phase D in flight).
-			// U40 deletes this whole function once every page has migrated.
-			if (typeof bootstrap === 'undefined' || !bootstrap.Tooltip) {
-				return;
-			}
-			[...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl));
 
 		},
 
