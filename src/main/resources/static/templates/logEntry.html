@@ -1,96 +1,67 @@
-          <div class="row">
-            <div data-item-entry-id="<%- item._id %>" class="col-md-12 logItem"<%
-                if (item.blockId) {
-                    var bgColor = randomColor({seed: item.blockId, luminosity: 'dark'});
-                    %> style="border-left: 3px solid <%- bgColor %>"<%
-                } %>>
+          <div data-item-entry-id="<%- item._id %>" class="logItem"<%
+              if (item.blockId) {
+                  var bgColor = randomColor({seed: item.blockId, luminosity: 'dark'});
+                  %> style="border-left: 3px solid <%- bgColor %>"<%
+              } %>>
 
-                <div class="row"><!-- time / result & http / source / owner -->
+              <div class="log-entry-time">
+                  <% if (item.time) { %>
+                      <%= FAPI_UI.logTemplates.TIME({item: item}) %>
+                  <% } %>
+              </div>
 
-                    <div class="col-md-1">
-                    <% if (item.time) { %>
-                        <%= FAPI_UI.logTemplates.TIME({item: item}) %>
-                    <% } %>
+              <div class="log-entry-labels labelCollection">
+                  <% if (item.result) { %>
+                  <%= FAPI_UI.logTemplates.RESULT({item: item}) %>
+                  <% } %>
 
-                    </div>
+                  <% if (item.http) { %>
+                    <%= FAPI_UI.logTemplates.HTTP({http: item.http}) %>
+                  <% } %>
 
-                    <div class="col-md-2 labelCollection">
-                      <% if (item.result) { %>
-                      <%= FAPI_UI.logTemplates.RESULT({item: item}) %>
-                      <% } %>
+                  <% if (item.upload) { %>
+                    <span class="log-http-badge log-http-badge--upload"><cts-icon name="camera-fill"></cts-icon> IMAGE REQUIRED</span>
+                  <% } %>
 
-                      <% if (item.http) { %>
-                        <%= FAPI_UI.logTemplates.HTTP({http: item.http}) %>
-                      <% } %>
+                  <% if (item.img) { %>
+                    <cts-badge variant="review" icon="camera-fill" label="IMAGE"></cts-badge>
+                  <% } %>
 
-                      <% if (item.upload) { %>
-                        <span class="badge bg-warning"><cts-icon name="camera-fill"></cts-icon> IMAGE REQUIRED</span>
-                      <% } %>
+                  <% if (item.src) { %>
+                      <%= FAPI_UI.logTemplates.SOURCE({item: item}) %>
+                  <% } %>
+              </div>
 
-                      <% if (item.img) { %>
-                        <span class="badge result-review"><cts-icon name="camera-fill"></cts-icon> IMAGE</span>
-                      <% } %>
+              <% if (!public) { %>
+              <div class="log-entry-owner">
+                  <% if (item.testOwner
+                          && (item.testOwner.iss != FAPI_UI.currentUser.iss
+                              || item.testOwner.sub != FAPI_UI.currentUser.sub)) { %>
+                      <%= FAPI_UI.logTemplates.OWNER({owner: item.testOwner}) %>
+                  <% } %>
+              </div>
+              <% } %>
 
-                        <% if (!item.result && !item.http && !item.upload && !item.img) { %>
-                        &nbsp;
-                        <% } %>
-                    </div>
+              <div class="log-entry-more moreButtonContainer"></div>
 
-                    <div class="col-md-8">
-                        <% if (item.src) { %>
-                            <%= FAPI_UI.logTemplates.SOURCE({item: item}) %>
-                        <% } %>
-                    </div>
+              <div class="log-entry-requirements">
+                  <% if (item.requirements) { %>
+                      <%= FAPI_UI.logTemplates.REQUIREMENTS({item: item}) %>
+                  <% } %>
+              </div>
 
-                    <% if (!public) { %>
-                    <div class="col-md-1">
-                        <% if (item.testOwner
-                                && (item.testOwner.iss != FAPI_UI.currentUser.iss
-                                    || item.testOwner.sub != FAPI_UI.currentUser.sub)) { %>
-                            <%= FAPI_UI.logTemplates.OWNER({owner: item.testOwner}) %>
-                        <% } %>
-                    </div>
-                    <% } %>
-                </div>
+              <% if (item.msg) { %>
+              <div class="log-entry-message">
+                  <%= FAPI_UI.logTemplates.MESSAGE({item: item}) %>
+              </div>
+              <% } %>
 
-                <div class="row"><!-- more button / requirements / message -->
-                    <div class="col-md-1 moreButtonContainer">
+              <% if (!public && item.upload) { %>
+              <div class="log-entry-upload" data-image-required="true">
+                  <%= FAPI_UI.logTemplates.UPLOAD({item: item}) %>
+              </div>
+              <% } %>
 
-                    </div>
+              <div class="log-entry-more-info moreInfoContainer"></div>
 
-                    <div class="col-md-2">
-                        <% if (item.requirements) { %>
-                            <%= FAPI_UI.logTemplates.REQUIREMENTS({item: item}) %>
-                        <% } else { %>
-                            &nbsp;
-                        <% } %>
-                    </div>
-
-                    <div class="col-md-9">
-                        <% if (item.msg) { %>
-                            <div class="row">
-                                <div class="col-md-12">
-                                            <%= FAPI_UI.logTemplates.MESSAGE({item: item}) %>
-                                </div>
-                            </div>
-                        <% } %>
-                        <% if (!public && item.upload) { %>
-                                <div class="row" data-image-required="true"><!-- image upload (if necessary) -->
-                                            <div class="col-md-12">
-                                       <%= FAPI_UI.logTemplates.UPLOAD({item: item}) %>
-                                        </div>
-                            </div>
-                        <% } %>
-
-                    </div>
-
-                </div>
-
-                <div class="row"><!-- more info panel -->
-                    <div class="moreInfoContainer">
-
-                    </div>
-                </div>
-
-            </div>
           </div>

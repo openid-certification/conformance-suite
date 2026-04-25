@@ -1,143 +1,110 @@
-            <div class="card">
-                <div class="card-body" data-instance-id="<%- test.testId %>">
-                  <div class="row" id="logHeader"> <!-- main header -->
+            <div class="log-header-card">
+                <div class="log-header-grid" data-instance-id="<%- test.testId %>" id="logHeader">
 
-                    <div class="col-md-2" id="testStatusAndResult"><!-- status and results block -->
+                    <div id="testStatusAndResult"><!-- status and results block -->
 
                     </div>
 
-                    <div class="col-md-8"> <!-- main info -->
-                        <div class="row">
-                            <div class="col-md-2">Test Name:</div>
-                            <div class="col-md-10"><%- test.testName %></div>
-                        </div>
-                        <div class="row">
-                            <div class="col-md-2">Variant:</div>
-                            <div class="col-md-10"><%- variant %></div>
-                        </div>
-                        <div class="row">
-                            <div class="col-md-2">Test ID:</div>
-                            <div class="col-md-10"><%- test.testId %></div>
-                        </div>
-                        <div class="row">
-                            <div class="col-md-2">Created:</div>
-                            <div class="col-md-10"><%- new Date(test.started) %></div>
-                        </div>
+                    <div class="log-header-meta"> <!-- main info -->
+                        <div class="log-header-meta-label">Test Name:</div>
+                        <div><%- test.testName %></div>
 
-                        <div class="row">
-                            <div class="col-md-2">Description:</div>
-                            <div class="col-md-10"><%- test.description %></div>
-                        </div>
+                        <div class="log-header-meta-label">Variant:</div>
+                        <div><%- variant %></div>
 
-                        <div class="row">
-                            <div class="col-md-2">Test Version:</div>
-                            <div class="col-md-10"><%- test.version %></div>
-                        </div>
+                        <div class="log-header-meta-label">Test ID:</div>
+                        <div><%- test.testId %></div>
+
+                        <div class="log-header-meta-label">Created:</div>
+                        <div><%- new Date(test.started) %></div>
+
+                        <div class="log-header-meta-label">Description:</div>
+                        <div><%- test.description %></div>
+
+                        <div class="log-header-meta-label">Test Version:</div>
+                        <div><%- test.version %></div>
 
                         <% if (!public && FAPI_UI.currentUser && FAPI_UI.currentUser.isAdmin) { %>
-                        <div class="row">
-                            <div class="col-md-2">Test Owner:</div>
-                            <div class="col-md-10">
-                                <%= FAPI_UI.logTemplates.OWNER({owner: test.owner}) %>
-                            </div>
+                        <div class="log-header-meta-label">Test Owner:</div>
+                        <div>
+                            <%= FAPI_UI.logTemplates.OWNER({owner: test.owner}) %>
                         </div>
                         <% } %>
                         <% if (test.planId) { %>
-                        <div class="row">
-                            <div class="col-md-2">Plan ID:</div>
-                            <div class="col-md-10"><%- test.planId %></div>
-                        </div>
+                        <div class="log-header-meta-label">Plan ID:</div>
+                        <div><%- test.planId %></div>
                         <% } %>
 
                         <% if (test.summary) { %>
-                        <div class="row">
-                            <div class="col-md-12">
-                                <p class="bgSummary bg-info"><%= test.summary.replace(new RegExp('\r?\n', 'g'), '<br />').replace(/`([^`]+)`/g, '<code>$1</code>') %></p>
-                            </div>
-
+                        <div class="log-header-meta-summary">
+                            <p class="bgSummary"><%= test.summary.replace(new RegExp('\r?\n', 'g'), '<br />').replace(/`([^`]+)`/g, '<code>$1</code>') %></p>
                         </div>
                         <% } %>
 
-                        <div class="row">
-                            <!-- calculated test results -->
-                            <div class="col-md-2">Results:</div>
-                            <div class="col-md-10 labelCollection" id="testResultSummary">
-
-                            </div>
+                        <div class="log-header-meta-summary log-results-row">
+                            <span class="log-results-label">Results:</span>
+                            <div class="labelCollection" id="testResultSummary"></div>
                         </div>
 
-                        <div class="row failureSummary">
-                            <div class="col-md-12 failureSummaryTitle" hidden>Failure summary:</div>
+                        <div class="log-header-meta-summary failureSummary">
+                            <div class="failureSummaryTitle" hidden>Failure summary:</div>
                         </div>
                     </div>
 
-                    <div class="col-md-2"> <!-- controls -->
-                        <div class="d-grid gap-2">
-                            <% if (!readonly) { %>
-                            <cts-button id="reloadBtn" icon="arrow-down-up" label="Repeat Test"></cts-button>
-                            <div class="d-flex align-items-center gap-2">
-                                <cts-button id="uploadBtn" icon="file-image" label="Upload Images"></cts-button>
-                                <span class="badge rounded-pill bg-secondary text-info" id="uploadCount"></span>
-                            </div>
-                            <% } %>
-                            <% if (!public) { %>
-                            <cts-button id="showConfigBtn" icon="wrench-adjustable" label="View Config"></cts-button>
-                            <% } %>
-                            <% if (!readonly) { %>
-                            <cts-button id="editConfigBtn" icon="pencil-square" label="Edit configuration" title="Create a new test plan based on the configuration used in this one"></cts-button>
-                            <% } %>
-                            <% if (!public || test.publish == "everything") { %>
-                            <cts-button id="downloadBtn" icon="save2" label="Download Logs"></cts-button>
-                            <% } %>
-                            <cts-button id="planBtn" icon="bookmarks" label="Return to Plan"></cts-button>
-                            <% if (!readonly) { %>
-                            <cts-button id="nextPlanBtn" icon="skip-forward-fill" label="Continue Plan" title="Run the next test in this test plan"></cts-button>
-                            <cts-button id="btnShareLink" icon="bookmarks" label="Private link"></cts-button>
-                            <% if (!test.publish && FAPI_UI.currentUser.isAdmin) { %>
-                            <cts-button data-publish="summary" icon="bookmarks" label="Publish summary"></cts-button>
-                            <cts-button id="publishBtn" icon="bookmarks" label="Publish everything"></cts-button>
-                            <% } else { %>
-                                <% if (FAPI_UI.currentUser.isAdmin) { %>
-                            <cts-button id="unpublishBtn" data-publish="" icon="slash-circle" label="Unpublish"></cts-button>
-                                <% } %>
-                            <cts-link-button href="log-detail.html?log=<%- encodeURIComponent(test.testId) %>&public=true" variant="info" icon="bookmarks" label="Public link"></cts-link-button>
-                            <% } %>
-                            <% } %>
+                    <div class="log-header-controls"> <!-- controls -->
+                        <% if (!readonly) { %>
+                        <cts-button id="reloadBtn" icon="arrow-down-up" label="Repeat Test"></cts-button>
+                        <div class="log-upload-row">
+                            <cts-button id="uploadBtn" icon="file-image" label="Upload Images"></cts-button>
+                            <span class="log-upload-count" id="uploadCount"></span>
                         </div>
+                        <% } %>
+                        <% if (!public) { %>
+                        <cts-button id="showConfigBtn" icon="wrench-adjustable" label="View Config"></cts-button>
+                        <% } %>
+                        <% if (!readonly) { %>
+                        <cts-button id="editConfigBtn" icon="pencil-square" label="Edit configuration" title="Create a new test plan based on the configuration used in this one"></cts-button>
+                        <% } %>
+                        <% if (!public || test.publish == "everything") { %>
+                        <cts-button id="downloadBtn" icon="save2" label="Download Logs"></cts-button>
+                        <% } %>
+                        <cts-button id="planBtn" icon="bookmarks" label="Return to Plan"></cts-button>
+                        <% if (!readonly) { %>
+                        <cts-button id="nextPlanBtn" icon="skip-forward-fill" label="Continue Plan" title="Run the next test in this test plan"></cts-button>
+                        <cts-button id="btnShareLink" icon="bookmarks" label="Private link"></cts-button>
+                        <% if (!test.publish && FAPI_UI.currentUser.isAdmin) { %>
+                        <cts-button data-publish="summary" icon="bookmarks" label="Publish summary"></cts-button>
+                        <cts-button id="publishBtn" icon="bookmarks" label="Publish everything"></cts-button>
+                        <% } else { %>
+                            <% if (FAPI_UI.currentUser.isAdmin) { %>
+                        <cts-button id="unpublishBtn" data-publish="" icon="slash-circle" label="Unpublish"></cts-button>
+                            <% } %>
+                        <cts-link-button href="log-detail.html?log=<%- encodeURIComponent(test.testId) %>&public=true" variant="info" icon="bookmarks" label="Public link"></cts-link-button>
+                        <% } %>
+                        <% } %>
                     </div>
 
-                  </div>
                 </div>
             </div>
             <% if (!readonly) { %>
-            <div class="card collapse" id="runningTestInformation">
-                <div class="card-body">
+            <div class="log-running-card collapse" id="runningTestInformation">
                   <div id="runningTestError" class="collapse"></div>
                   <cts-alert variant="info" id="runningTestActive"><b>This test is currently running.</b> Values exported from the test are available below along with any URLs that need to be visited interactively.</cts-alert>
                   <cts-alert variant="warning" id="runningTestInactive"><b>This test is no longer running.</b> Values exported from the test are available for review below. This test will be automatically removed from the test runner, but the logs will remain at this URL.</cts-alert>
-                  <div class="row">
-                    <div id="runningTestSuccess" class="collapse col-md-12">
-                        <cts-alert variant="success"><strong>The test has completed successfully!</strong></cts-alert>
-                    </div>
+                  <div id="runningTestSuccess" class="collapse">
+                      <cts-alert variant="success"><strong>The test has completed successfully!</strong></cts-alert>
                   </div>
-                  <div class="row">
+                  <div class="log-running-grid">
                     <!-- attach controls and information for an actively running test here -->
-                    <div class="col-md-5" id="runningTestExport">
-
-                    </div>
-                    <div class="col-md-6" id="runningTestBrowser">
-
-                    </div>
-                    <div class="col-md-1">
-                        <div class="d-grid gap-2">
-                            <cts-button id="startBtn" class="collapse" variant="success" icon="play-fill" label="Start"></cts-button>
-                            <cts-button id="stopBtn" class="collapse" icon="stop-fill" label="Stop"></cts-button>
-                        </div>
+                    <div id="runningTestExport"></div>
+                    <div id="runningTestBrowser"></div>
+                    <div class="log-header-controls">
+                        <cts-button id="startBtn" class="collapse" variant="success" icon="play-fill" label="Start"></cts-button>
+                        <cts-button id="stopBtn" class="collapse" icon="stop-fill" label="Stop"></cts-button>
                     </div>
                   </div>
-                </div>
             </div>
-            <cts-alert variant="info" dismissible id="runningTestArchived" class="container collapse">
+            <cts-alert variant="info" dismissible id="runningTestArchived" class="collapse">
               <b>This test is no longer running.</b> This log has been archived and can be viewed or downloaded.
             </cts-alert>
             <% } %>

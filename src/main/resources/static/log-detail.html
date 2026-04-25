@@ -13,9 +13,6 @@
 <meta charset="UTF-8">
 <title>OIDF Conformance: Test Detail</title>
 
-<!-- Latest compiled and minified CSS -->
-<link rel="stylesheet" href="/vendor/bootstrap/css/bootstrap.min.css">
-
 <!-- Boostrap Icons -->
 <link rel="stylesheet" href="/vendor/bootstrap-icons/css/bootstrap-icons.css">
 
@@ -26,11 +23,6 @@
 <link rel="stylesheet" href="/css/oidf-tokens.css">
 <link rel="stylesheet" type="text/css" href="css/layout.css">
 <link rel="stylesheet" href="/css/oidf-app.css">
-
-<!-- Popper (necessary for Bootstrap's tooltips) -->
-<script src="/vendor/popper/js/popper.min.js"></script>
-<!-- Latest compiled and minified JavaScript -->
-<script src="/vendor/bootstrap/js/bootstrap.min.js"></script>
 
 <script src="/vendor/lodash/js/lodash.min.js"></script>
 <script src="/vendor/clipboard/js/clipboard.min.js"></script>
@@ -50,6 +42,384 @@
     <script type="module" src="/components/cts-badge.js"></script>
     <script type="module" src="/components/cts-alert.js"></script>
     <script type="module" src="/components/cts-icon.js"></script>
+    <script type="module" src="/components/cts-crumb.js"></script>
+    <script type="module" src="/components/cts-tooltip.js"></script>
+
+    <style>
+        /* ----------------------------------------------------------------
+           Page-level layout for log-detail.html and the templates it
+           injects (logHeader.html, logEntry.html, more.html, browser.html,
+           startBlock.html, finalError.html, failureSummary.html, etc.).
+           Replaces the legacy Bootstrap grid (`row` / `col-md-N`) with
+           token-based scoped layout. Class names are kept verbose and
+           prefixed with `log-` so they don't collide with the rest of
+           the codebase.
+           ---------------------------------------------------------------- */
+
+        .log-page {
+            max-width: var(--maxw-page);
+            margin: 0 auto;
+            padding: var(--space-4) var(--space-5);
+            font-family: var(--font-sans);
+        }
+
+        /* Header card replaces .card / .card-body */
+        .log-header-card {
+            background: var(--bg-elev);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-3);
+            padding: var(--space-4);
+            margin-bottom: var(--space-4);
+        }
+        .log-header-grid {
+            display: grid;
+            grid-template-columns: minmax(160px, 220px) 1fr minmax(180px, 240px);
+            gap: var(--space-4);
+            align-items: start;
+        }
+        .log-header-meta {
+            display: grid;
+            grid-template-columns: minmax(120px, max-content) 1fr;
+            gap: var(--space-2) var(--space-3);
+            font-size: var(--fs-13);
+            color: var(--fg);
+        }
+        .log-header-meta-label {
+            color: var(--fg-soft);
+            font-weight: var(--fw-bold);
+        }
+        .log-header-meta-summary {
+            grid-column: 1 / -1;
+        }
+        .log-header-meta-summary p {
+            margin: 0;
+        }
+        .log-header-controls {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-2);
+        }
+        .log-header-controls .log-upload-row {
+            display: flex;
+            align-items: center;
+            gap: var(--space-2);
+        }
+        .log-upload-count {
+            display: inline-flex;
+            min-width: 24px;
+            justify-content: center;
+            background: var(--ink-100);
+            color: var(--fg);
+            font-family: var(--font-mono);
+            font-size: var(--fs-12);
+            font-weight: var(--fw-bold);
+            border-radius: var(--radius-pill);
+            padding: 0 8px;
+        }
+        .log-results-row {
+            display: flex;
+            gap: var(--space-3);
+            align-items: baseline;
+            margin-top: var(--space-3);
+        }
+        .log-results-row .log-results-label {
+            color: var(--fg-soft);
+            font-weight: var(--fw-bold);
+            min-width: 90px;
+        }
+
+        /* Failure summary block (failureSummary.html) */
+        .failureSummary {
+            margin-top: var(--space-3);
+        }
+        .failureSummaryTitle {
+            font-weight: var(--fw-bold);
+            color: var(--fg);
+            margin-bottom: var(--space-2);
+        }
+
+        /* Running test info card */
+        .log-running-card {
+            background: var(--bg-elev);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-3);
+            padding: var(--space-4);
+            margin-bottom: var(--space-4);
+        }
+        .log-running-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr auto;
+            gap: var(--space-3);
+            align-items: start;
+        }
+
+        /* logEntry.html — token-based replacement for the col-md-N grid.
+           Keeps the existing `.logItem` selector working for JS lookups
+           but routes layout through CSS Grid + tokens. */
+        .logContent {
+            display: flex;
+            flex-direction: column;
+        }
+        .logItem {
+            display: grid;
+            grid-template-columns: 110px 1fr auto;
+            grid-template-rows: auto auto auto;
+            gap: var(--space-1) var(--space-3);
+            padding: var(--space-2) var(--space-3);
+            border-bottom: 1px solid var(--border);
+            font-size: var(--fs-13);
+        }
+        .logItem.startBlock {
+            grid-template-columns: 110px 1fr auto;
+            padding: var(--space-2) var(--space-3);
+        }
+        .log-entry-time {
+            grid-row: 1;
+            grid-column: 1;
+            font-family: var(--font-mono);
+            font-size: var(--fs-12);
+            color: var(--fg-soft);
+        }
+        .log-entry-labels {
+            grid-row: 1;
+            grid-column: 2;
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--space-1);
+            align-items: center;
+        }
+        .log-entry-labels .log-source {
+            color: var(--fg-soft);
+            font-size: var(--fs-12);
+            margin-left: var(--space-2);
+        }
+        .log-entry-owner {
+            grid-row: 1;
+            grid-column: 3;
+            justify-self: end;
+        }
+        .log-entry-more {
+            grid-row: 2;
+            grid-column: 1;
+            display: flex;
+            justify-content: flex-start;
+        }
+        .log-entry-requirements {
+            grid-row: 2;
+            grid-column: 2;
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--space-1);
+        }
+        .log-entry-message {
+            grid-row: 3;
+            grid-column: 1 / -1;
+            color: var(--fg);
+            line-height: var(--lh-base);
+            word-break: break-word;
+        }
+        .log-entry-upload {
+            grid-row: 4;
+            grid-column: 1 / -1;
+        }
+        .log-entry-more-info {
+            grid-row: 5;
+            grid-column: 1 / -1;
+        }
+
+        /* startBlock.html */
+        .logItem.startBlock {
+            grid-template-rows: auto;
+            font-weight: var(--fw-bold);
+        }
+        .logItem.startBlock .log-entry-message {
+            grid-row: 1;
+            grid-column: 2;
+            color: inherit;
+        }
+
+        /* moreButton.html */
+        .moreBtn {
+            display: inline-flex;
+            align-items: center;
+            gap: var(--space-1);
+            appearance: none;
+            background: var(--bg);
+            border: 1px solid var(--border-strong);
+            border-radius: var(--radius-2);
+            color: var(--fg);
+            font-family: inherit;
+            font-size: var(--fs-12);
+            font-weight: var(--fw-bold);
+            padding: 2px var(--space-2);
+            cursor: pointer;
+        }
+        .moreBtn:hover {
+            background: var(--ink-50);
+        }
+        .moreBtn:focus-visible {
+            outline: none;
+            box-shadow: var(--focus-ring);
+        }
+        .moreBtn .moreCount {
+            background: var(--ink-100);
+            color: var(--fg-muted);
+            border-radius: var(--radius-pill);
+            padding: 0 6px;
+            font-size: 10px;
+        }
+
+        /* more.html — key/value grid that replaces dl.row + col-sm-N.
+           NB: the legacy template inverted the semantic <dt>/<dd>: keys
+           were rendered as <dd> and values as <dt>. The JS that extracts
+           request fields for the cURL generator reads `dt.previousElementSibling`
+           assuming this swap, so we preserve it. .moreKey/.moreValue
+           classes carry the visual roles (label / body) regardless of
+           tag name. */
+        .moreInfo dl {
+            display: grid;
+            grid-template-columns: minmax(120px, 200px) 1fr;
+            gap: var(--space-2) var(--space-3);
+            margin: 0;
+        }
+        .moreInfo .moreKey {
+            margin: 0;
+            color: var(--fg-soft);
+            font-weight: var(--fw-bold);
+            text-align: right;
+            word-break: break-word;
+        }
+        .moreInfo .moreValue {
+            margin: 0;
+            color: var(--fg);
+            word-break: break-word;
+            min-width: 0;
+        }
+
+        /* http.html badges (request/response/etc) */
+        .log-http {
+            display: inline-flex;
+            gap: var(--space-1);
+            align-items: center;
+        }
+        .log-http-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            background: var(--status-info-bg);
+            color: var(--status-info);
+            border: 1px solid var(--status-info-border);
+            border-radius: var(--radius-pill);
+            padding: 0 8px;
+            font-size: var(--fs-12);
+            font-weight: var(--fw-bold);
+        }
+        .log-http-badge--upload {
+            background: var(--status-warning-bg);
+            color: var(--status-warning);
+            border-color: var(--status-warning-border);
+        }
+        .log-http-curl {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            background: transparent;
+            color: var(--fg-muted);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-pill);
+            padding: 0 8px;
+            font-size: var(--fs-12);
+            cursor: pointer;
+            user-select: none;
+        }
+        .log-http-curl:hover {
+            background: var(--ink-50);
+            color: var(--fg);
+        }
+
+        /* requirements.html — keep the inline link pill */
+        .log-requirement {
+            display: inline-block;
+        }
+        .log-requirement a {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            background: var(--ink-50);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-pill);
+            color: var(--fg);
+            font-family: var(--font-mono);
+            font-size: var(--fs-12);
+            padding: 1px var(--space-2);
+            text-decoration: none;
+        }
+        .log-requirement a:hover {
+            background: var(--ink-100);
+        }
+
+        /* exported.html / browser.html: dl.row + col-sm-N replacement */
+        .log-exported-grid {
+            display: grid;
+            grid-template-columns: minmax(120px, 25%) 1fr;
+            gap: var(--space-2) var(--space-3);
+            margin: 0;
+        }
+        .log-exported-grid > .log-exported-key {
+            text-align: right;
+            color: var(--fg-soft);
+            font-weight: var(--fw-bold);
+        }
+        .log-browser-grid {
+            display: grid;
+            grid-template-columns: minmax(140px, 25%) 1fr;
+            gap: var(--space-2) var(--space-3);
+            margin: 0;
+        }
+        .log-browser-grid > dt {
+            text-align: right;
+        }
+        .log-browser-grid > dd {
+            margin: 0;
+        }
+        .log-browser-grid .log-browser-url {
+            font-style: italic;
+            word-break: break-all;
+        }
+        .log-browser-card {
+            background: var(--bg-elev);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-2);
+            padding: var(--space-3);
+        }
+
+        /* userinfo.html (rendered by cts-navbar mostly, but template is
+           still loaded for compatibility) */
+        .log-userinfo {
+            display: flex;
+            gap: var(--space-2);
+            align-items: center;
+        }
+
+        /* statusAndResult.html — colored status pill blocks */
+        .testStatusResultBlock {
+            text-align: center;
+            font-weight: var(--fw-bold);
+            padding: var(--space-2);
+            border-radius: var(--radius-2);
+            margin-bottom: var(--space-2);
+            font-size: var(--fs-13);
+        }
+
+        /* fixedDiv (Go to Top button) */
+        #fixedDiv {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            z-index: 100;
+            display: none;
+        }
+    </style>
 </head>
 
 <body>
@@ -61,7 +431,7 @@
     </cts-modal>
 
     <cts-modal id="loadingModal" heading="Loading..." static-backdrop no-keyboard>
-        <div class="text-center">
+        <div style="text-align: center;">
             <img src="/images/spinner.gif" width="100px" height="30px" alt="Loading" />
         </div>
         <div>
@@ -72,10 +442,10 @@
     <cts-modal id="configModal" heading="Configuration">
         <div>
             <cts-button class="btn-clipboard" icon="box-arrow-in-right" data-clipboard-target="#config" title="Copy config to clipboard"></cts-button>
-            Configuration for <code id="configTestId" class="text-muted"></code>
+            Configuration for <code id="configTestId" style="color: var(--fg-muted);"></code>
         </div>
         <div class="wrapLongStrings">
-            <pre id="config" class="row-bg-light p-1"></pre>
+            <pre id="config" class="row-bg-light" style="padding: var(--space-1);"></pre>
         </div>
     </cts-modal>
 
@@ -90,19 +460,18 @@
     </cts-modal>
 
     <!-- resident DOM -->
-    <div class="container-fluid">
+    <main class="log-page">
+        <cts-crumb id="logDetailCrumb"></cts-crumb>
         <div id="logDetail">
             <div class="header"></div>
             <div id="fixedDiv">
-                <div class="d-grid">
-                    <cts-button id="goToTopBtn" icon="arrow-up-circle" label="Go to Top" onclick="goToTop()"></cts-button>
-                </div>
+                <cts-button id="goToTopBtn" icon="arrow-up-circle" label="Go to Top" onclick="goToTop()"></cts-button>
             </div>
-            <div class="logContent container-fluid">
+            <div class="logContent">
                 <!-- log items are rendered here -->
             </div>
         </div>
-    </div>
+    </main>
 
     <script type="text/javascript">
         function getLogs(testId, public) {
@@ -359,6 +728,30 @@
                 var existing = document.querySelectorAll(`#logDetail .header [data-instance-id='${testId}']`);
 
                 if (existing.length == 0) {
+                    // Build the breadcrumb trail from the loaded test info.
+                    // Logs page (or plan-detail when there's a plan) -> this
+                    // test ID. cts-crumb dispatches `cts-crumb-navigate` on
+                    // click; the listener routes the user to the right page.
+                    const crumb = document.getElementById('logDetailCrumb');
+                    if (crumb) {
+                        const items = [];
+                        if (data.planId) {
+                            items.push({
+                                label: 'Plan',
+                                target: '/plan-detail.html?plan=' + encodeURIComponent(data.planId) + (public ? '&public=true' : '')
+                            });
+                        } else {
+                            items.push({ label: 'Logs', target: '/logs.html' });
+                        }
+                        items.push({ label: data.testId, target: '' });
+                        crumb.items = items;
+                        crumb.addEventListener('cts-crumb-navigate', function(evt) {
+                            if (evt.detail && evt.detail.target) {
+                                window.location.assign(evt.detail.target);
+                            }
+                        });
+                    }
+
                     document.querySelector('#logDetail .header').innerHTML =
                         FAPI_UI.logTemplates.LOG_START({
                             test: data,

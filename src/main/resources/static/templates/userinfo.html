@@ -1,15 +1,10 @@
-        <div id="userInfoData" class="float-end">
-            <form action="/logout" method="post" class="row g-3">
-                <div class="col-auto">
-                    <p class="form-control-plaintext">Logged in as
-                        <% if (userInfo.isAdmin) { %><cts-badge variant="danger" label="ADMIN"></cts-badge> <%}%>
-                        <span class="text-primary" data-bs-toggle="tooltip" title="<%- userInfo.principal %>" data-bs-placement="bottom"><%- userInfo.displayName %></span></p>
-                </div>
-                <div class="col-auto">
-                    <% if (!userInfo.isAdmin && !userInfo.isGuest) { %><cts-link-button href="/tokens.html" label="Tokens"></cts-link-button><% } %>
-                </div>
-                <div class="col-auto">
-                    <cts-button variant="primary" type="submit" label="Logout"></cts-button>
-                </div>
+        <div id="userInfoData" class="log-userinfo">
+            <form action="/logout" method="post" class="log-userinfo">
+                <p style="margin: 0;">Logged in as
+                    <% if (userInfo.isAdmin) { %><cts-badge variant="danger" label="ADMIN"></cts-badge> <%}%>
+                    <cts-tooltip content="<%- userInfo.principal %>" placement="bottom"><span style="color: var(--fg-link);" tabindex="0"><%- userInfo.displayName %></span></cts-tooltip>
+                </p>
+                <% if (!userInfo.isAdmin && !userInfo.isGuest) { %><cts-link-button href="/tokens.html" label="Tokens"></cts-link-button><% } %>
+                <cts-button variant="primary" type="submit" label="Logout"></cts-button>
             </form>
         </div>

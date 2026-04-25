@@ -1,5 +1,5 @@
             <div class="moreInfo collapse">
-                <dl class="row">
+                <dl>
             <%
                 // regular expression for displaying JWTs
                 var jwtRe = /^(e[yw][a-zA-Z0-9_-]+)\.([a-zA-Z0-9_-]+)\.([a-zA-Z0-9_-]+)(\.([a-zA-Z0-9_-]+)\.([a-zA-Z0-9_-]+))?$/;
@@ -9,8 +9,8 @@
 
                 %>
 
-                    <dt class="col-sm-2 text-end text-break" data-bs-toggle="tooltip" title="stacktrace" data-bs-placement="bottom">stacktrace</dt>
-                    <dd class="col-sm-10 text-start wrapLongStrings row-bg-light">
+                    <dt class="moreKey" title="stacktrace">stacktrace</dt>
+                    <dd class="moreValue wrapLongStrings row-bg-light">
                         <ul>
                             <% _.each(more['stacktrace'], function(v) { %>
                                 <li><%- v %></li>
@@ -39,12 +39,12 @@
                         return;
                     }
             %>
-                    <dd class="col-sm-2 text-end text-break" data-bs-toggle="tooltip" title="<%- key %>" data-bs-placement="bottom"><%- key %></dd>
-                    <dt class="col-sm-10 text-start wrapLongStrings row-bg-light">
+                    <dd class="moreKey" title="<%- key %>"><%- key %></dd>
+                    <dt class="moreValue wrapLongStrings row-bg-light">
             <% if (key == 'schema_link') { %>
                 <a href="<%- value %>"><%- value %></a>
             <% } else if (key == 'img') { %>
-                <img src="<%- value %>" class="img-fluid mx-auto imagePreview">
+                <img src="<%- value %>" class="imagePreview" style="max-width: 100%; height: auto; display: block; margin: 0 auto;">
             <% } else if (value != null && !_.isUndefined(value.verifiable_jws)) { %>
                 <% var tokenJWTSplit = jwtRe.exec(value.verifiable_jws);%>
 
@@ -60,7 +60,7 @@
 
                         var link = 'https://jwt.io/#debugger-io?' + urlData;
                 %>
-                        <div class="fitContent"><a href="<%- link %>"><img src="/images/jwt_io_badge.png" class="img-fluid mx-auto marginTopBottom5"></a></div>
+                        <div class="fitContent"><a href="<%- link %>"><img src="/images/jwt_io_badge.png" class="marginTopBottom5" style="max-width: 100%; height: auto; display: block; margin: 5px auto;"></a></div>
                 <% } %>
             <% } else if (key == 'stacktrace' || key == 'cause_stacktrace') { %>
                 <ul>
@@ -87,3 +87,4 @@
             %>
                 </dl>
             </div>
+
