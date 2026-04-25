@@ -1,6 +1,5 @@
 package net.openid.conformance.fapi2spfinal;
 
-import com.google.gson.JsonArray;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.condition.client.CheckDiscEndpointGrantTypesSupportedContainsAuthorizationCode;
@@ -23,7 +22,7 @@ import net.openid.conformance.sequence.client.CreateVCICredentialRequestSteps;
 import net.openid.conformance.sequence.client.GenerateVCIKeyAttestationAndProofSteps;
 import net.openid.conformance.sequence.client.ValidateVCINonceEndpointResponse;
 import net.openid.conformance.sequence.client.VCIDiscoveryEndpointChecks;
-import net.openid.conformance.testmodule.OIDFJSON;
+import net.openid.conformance.testmodule.IterateEnvironmentArray;
 import net.openid.conformance.variant.AuthorizationRequestType;
 import net.openid.conformance.variant.ClientAuthType;
 import net.openid.conformance.variant.FAPI2AuthRequestMethod;
@@ -282,46 +281,50 @@ public class VCIProfileBehavior extends FAPI2ProfileBehavior {
 	}
 
 	@Override
-	public void validateResourceEndpointResponse() {
-		module.getEnv().mapKey("endpoint_response", "resource_endpoint_response_full");
-		module.doCallAndContinueOnFailure(EnsureContentTypeJson.class, ConditionResult.FAILURE, "OID4VCI-1FINAL-8.3");
-		module.doCallAndContinueOnFailure(VCIValidateNoUnknownKeysInCredentialResponse.class, ConditionResult.WARNING, "OID4VCI-1FINAL-8.3");
+	public ConditionSequence validateResourceEndpointResponse() {
+		return new AbstractConditionSequence() {
+			@Override
+			public void evaluate() {
+				call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
+				callAndContinueOnFailure(EnsureContentTypeJson.class, ConditionResult.FAILURE, "OID4VCI-1FINAL-8.3");
+				callAndContinueOnFailure(VCIValidateNoUnknownKeysInCredentialResponse.class, ConditionResult.WARNING, "OID4VCI-1FINAL-8.3");
 
-		module.doCallAndStopOnFailure(VCICheckForDeferredCredentialResponse.class, "OID4VCI-1FINAL-9");
-		module.doCallAndStopOnFailure(VCIExtractCredentialResponse.class, "OID4VCI-1FINAL-8.3");
+				callAndStopOnFailure(VCICheckForDeferredCredentialResponse.class, "OID4VCI-1FINAL-9");
+				callAndStopOnFailure(VCIExtractCredentialResponse.class, "OID4VCI-1FINAL-8.3");
 
-		JsonArray extractedCredentials = module.getEnv().getObject("extracted_credentials").getAsJsonArray("list");
-		for (int i = 0; i < extractedCredentials.size(); i++) {
-			String credential = OIDFJSON.getString(extractedCredentials.get(i));
-			module.getEnv().putString("credential", credential);
+				call(new IterateEnvironmentArray("extracted_credentials", "list", () -> verifyCredential())
+					.currentString("credential")
+					.logBlockLabels(ctx -> ctx.getIterationCount() > 1
+						? module.currentClientString() + "Verify credential " + ctx.getIteration() + " of " + ctx.getIterationCount()
+						: module.currentClientString() + "Verify credential"));
 
-			String blockLabel = extractedCredentials.size() > 1
-				? module.currentClientString() + "Verify credential " + (i + 1) + " of " + extractedCredentials.size()
-				: module.currentClientString() + "Verify credential";
-			module.getEventLog().startBlock(blockLabel);
-			verifyCredential();
-			module.getEventLog().endBlock();
-		}
-		module.getEnv().unmapKey("endpoint_response");
+				call(exec().unmapKey("endpoint_response"));
+			}
+		};
 	}
 
-	protected void verifyCredential() {
-		Boolean requiresCryptographicBinding = module.getEnv().getBoolean("vci_requires_cryptographic_binding");
-		String format = module.getEnv().getString("vci_credential_configuration", "format");
+	protected ConditionSequence verifyCredential() {
+		return new AbstractConditionSequence() {
+			@Override
+			public void evaluate() {
+				Boolean requiresCryptographicBinding = module.getEnv().getBoolean("vci_requires_cryptographic_binding");
+				String format = module.getEnv().getString("vci_credential_configuration", "format");
 
-		if ("mso_mdoc".equals(format)) {
-			module.doCallAndContinueOnFailure(ValidateCredentialIsUnpaddedBase64Url.class, ConditionResult.FAILURE, "OID4VCI-1FINALA-A.2.4");
-			module.doCallAndContinueOnFailure(ParseMdocCredentialFromVCIIssuance.class, ConditionResult.FAILURE, "OID4VCI-1FINALA-A.2");
-			module.doCallAndContinueOnFailure(ValidateMdocIssuerSignedSignature.class, ConditionResult.FAILURE, "OID4VCI-1FINALA-A.2");
-		} else {
-			module.doCallAndContinueOnFailure(ParseCredentialAsSdJwt.class, ConditionResult.FAILURE, "SDJWT-4");
-			module.doCallAndContinueOnFailure(ValidateCredentialJWTIat.class, ConditionResult.FAILURE, "SDJWTVC-3.2.2.2-5.2");
-			module.doCallAndContinueOnFailure(ValidateCredentialJWTVct.class, ConditionResult.FAILURE, "SDJWTVC-3.2.2.2-3.5");
-			module.doCallAndContinueOnFailure(ValidateCredentialJWTHeaderTyp.class, ConditionResult.FAILURE, "SDJWTVC-3.2.1");
-			if (requiresCryptographicBinding != null && requiresCryptographicBinding) {
-				module.doCallAndContinueOnFailure(ValidateCredentialCnfJwkIsPublicKey.class, ConditionResult.FAILURE, "SDJWT-4.1.2");
+				if ("mso_mdoc".equals(format)) {
+					callAndContinueOnFailure(ValidateCredentialIsUnpaddedBase64Url.class, ConditionResult.FAILURE, "OID4VCI-1FINALA-A.2.4");
+					callAndContinueOnFailure(ParseMdocCredentialFromVCIIssuance.class, ConditionResult.FAILURE, "OID4VCI-1FINALA-A.2");
+					callAndContinueOnFailure(ValidateMdocIssuerSignedSignature.class, ConditionResult.FAILURE, "OID4VCI-1FINALA-A.2");
+				} else {
+					callAndContinueOnFailure(ParseCredentialAsSdJwt.class, ConditionResult.FAILURE, "SDJWT-4");
+					callAndContinueOnFailure(ValidateCredentialJWTIat.class, ConditionResult.FAILURE, "SDJWTVC-3.2.2.2-5.2");
+					callAndContinueOnFailure(ValidateCredentialJWTVct.class, ConditionResult.FAILURE, "SDJWTVC-3.2.2.2-3.5");
+					callAndContinueOnFailure(ValidateCredentialJWTHeaderTyp.class, ConditionResult.FAILURE, "SDJWTVC-3.2.1");
+					if (requiresCryptographicBinding != null && requiresCryptographicBinding) {
+						callAndContinueOnFailure(ValidateCredentialCnfJwkIsPublicKey.class, ConditionResult.FAILURE, "SDJWT-4.1.2");
+					}
+				}
 			}
-		}
+		};
 	}
 
 	@Override

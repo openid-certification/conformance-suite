@@ -235,8 +235,9 @@ public class FAPI2ProfileBehavior {
 	 * Validate profile-specific signed response from the resource endpoint.
 	 * Default does nothing.
 	 */
-	public void validateResourceEndpointResponse() {
+	public ConditionSequence validateResourceEndpointResponse() {
 		// plain FAPI: no signed response validation
+		return null;
 	}
 
 	/**
