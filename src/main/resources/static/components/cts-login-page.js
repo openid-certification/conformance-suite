@@ -73,6 +73,8 @@ const STYLE_TEXT = `
   display: block;
   height: 28px;
   width: auto;
+  position: relative;
+  top: -3px;
 }
 .oidf-login-brand__eyebrow {
   display: inline-block;
@@ -109,13 +111,12 @@ const STYLE_TEXT = `
 }
 .oidf-login-brand__pillars li {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: var(--space-2);
 }
 .oidf-login-brand__pillars .bi {
   color: var(--orange-300);
   flex: 0 0 auto;
-  margin-top: 2px;
 }
 .oidf-login-brand__footer {
   margin-top: auto;
@@ -166,14 +167,16 @@ const STYLE_TEXT = `
 
 /* Bootstrap Icons ships bi-google but not bi-gitlab. Render the GitLab
    tanuki mark via a CSS mask so it inherits currentColor and sizes off
-   the surrounding font-size, matching the bi-google glyph beside it. */
+   the surrounding font-size, matching the bi-google glyph beside it.
+   Path is the SimpleIcons 24×24 tanuki silhouette — fits its declared
+   viewBox so the body isn't clipped. */
 .oidf-login-page .bi-gitlab {
   display: inline-block;
   width: 1em;
   height: 1em;
   background-color: currentColor;
-  -webkit-mask: url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32' fill='currentColor'%3E%3Cpath d='M31.46 12.78 31.41 12.65 26.05 .68A1.4 1.4 0 0 0 24.71 0a1.4 1.4 0 0 0-1.34.66L19 11.31H13L8.65.65A1.4 1.4 0 0 0 7.31 0a1.4 1.4 0 0 0-1.34.69L.59 12.65l-.05.13a9.83 9.83 0 0 0 3.27 11.4l.02.01.05.04 8.07 6.05 4 3.03 2.43 1.84a1.65 1.65 0 0 0 2 0l2.44-1.84 4-3.03 8.12-6.08.02-.02a9.83 9.83 0 0 0 3.27-11.4z'/%3E%3C/svg%3E") no-repeat center / contain;
-  mask: url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32' fill='currentColor'%3E%3Cpath d='M31.46 12.78 31.41 12.65 26.05 .68A1.4 1.4 0 0 0 24.71 0a1.4 1.4 0 0 0-1.34.66L19 11.31H13L8.65.65A1.4 1.4 0 0 0 7.31 0a1.4 1.4 0 0 0-1.34.69L.59 12.65l-.05.13a9.83 9.83 0 0 0 3.27 11.4l.02.01.05.04 8.07 6.05 4 3.03 2.43 1.84a1.65 1.65 0 0 0 2 0l2.44-1.84 4-3.03 8.12-6.08.02-.02a9.83 9.83 0 0 0 3.27-11.4z'/%3E%3C/svg%3E") no-repeat center / contain;
+  -webkit-mask: url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='m23.6004 9.5927-.0337-.0862L20.3.9814a.851.851 0 0 0-.3362-.405.875.875 0 0 0-.9997.0539.875.875 0 0 0-.29.4399l-2.2055 6.748H7.5375l-2.2057-6.748a.8573.8573 0 0 0-.29-.4412.8748.8748 0 0 0-.9997-.0537.8585.8585 0 0 0-.3362.4049L.4332 9.5015l-.0335.0875a6.0959 6.0959 0 0 0 2.0218 7.0432l.0113.0083.03.0224 5.0008 3.7462 2.4744 1.8732 1.5071 1.1389a1.0098 1.0098 0 0 0 1.2197 0l1.5071-1.1389 2.4744-1.8732 5.0307-3.7686.0125-.0098a6.0959 6.0959 0 0 0 2.021-7.042z'/%3E%3C/svg%3E") no-repeat center / contain;
+  mask: url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='m23.6004 9.5927-.0337-.0862L20.3.9814a.851.851 0 0 0-.3362-.405.875.875 0 0 0-.9997.0539.875.875 0 0 0-.29.4399l-2.2055 6.748H7.5375l-2.2057-6.748a.8573.8573 0 0 0-.29-.4412.8748.8748 0 0 0-.9997-.0537.8585.8585 0 0 0-.3362.4049L.4332 9.5015l-.0335.0875a6.0959 6.0959 0 0 0 2.0218 7.0432l.0113.0083.03.0224 5.0008 3.7462 2.4744 1.8732 1.5071 1.1389a1.0098 1.0098 0 0 0 1.2197 0l1.5071-1.1389 2.4744-1.8732 5.0307-3.7686.0125-.0098a6.0959 6.0959 0 0 0 2.021-7.042z'/%3E%3C/svg%3E") no-repeat center / contain;
   vertical-align: -0.125em;
 }
 .oidf-login-page .bi-gitlab::before {
