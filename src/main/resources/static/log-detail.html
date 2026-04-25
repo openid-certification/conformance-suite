@@ -1205,7 +1205,6 @@
 
                 // update the status and result regardless of whether we rendered the header in full
                 document.querySelector('#logDetail .header #testStatusAndResult').innerHTML = FAPI_UI.logTemplates.TEST_STATUS({test: data});
-                FAPI_UI.activeTooltip();
             })
             .catch((error) => {
                 if (error instanceof Response) {
