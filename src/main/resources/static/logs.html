@@ -9,9 +9,6 @@
     <meta charset="UTF-8">
     <title>OIDF Conformance: Available logs</title>
 
-    <!-- Latest compiled and minified CSS -->
-    <link rel="stylesheet" href="/vendor/bootstrap/css/bootstrap.min.css">
-
     <!-- Boostrap Icons -->
     <link rel="stylesheet" href="/vendor/bootstrap-icons/css/bootstrap-icons.css">
 
@@ -19,21 +16,8 @@
     <link rel="stylesheet" type="text/css" href="css/layout.css">
     <link rel="stylesheet" href="/css/oidf-app.css">
 
-    <link rel="stylesheet" href="/vendor/datatables/css/dataTables.bootstrap5.min.css">
-
-    <!-- Popper (necessary for Bootstrap's tooltips) -->
-    <script src="/vendor/popper/js/popper.min.js"></script>
-    <!-- Latest compiled and minified JavaScript -->
-    <script src="/vendor/bootstrap/js/bootstrap.min.js"></script>
-
     <script src="/vendor/lodash/js/lodash.min.js"></script>
     <script src="/vendor/clipboard/js/clipboard.min.js"></script>
-
-    <!-- jQuery (necessary for DataTables -->
-    <script src="/vendor/jquery/js/jquery.min.js"></script>
-    <!-- DataTables -->
-    <script src="/vendor/datatables/js/jquery.dataTables.min.js"></script>
-    <script src="/vendor/datatables/js/dataTables.bootstrap5.min.js"></script>
 
     <script type="text/javascript" src="js/fapi.ui.js"></script>
     <script>window.litDisableBundleWarning = true;</script>
@@ -44,6 +28,8 @@
     <script type="module" src="/components/cts-link-button.js"></script>
     <script type="module" src="/components/cts-badge.js"></script>
     <script type="module" src="/components/cts-icon.js"></script>
+    <script type="module" src="/components/cts-data-table.js"></script>
+    <script type="module" src="/components/cts-empty-state.js"></script>
 </head>
 
 <body>
@@ -51,21 +37,12 @@
     <cts-navbar current-page="logs"></cts-navbar>
 
     <!-- resident DOM -->
-    <div class="container-fluid">
-        <div class="row">
-            <div class="col-md-12">
-
-                <table id="logsListing" class="table table-striped table-bordered table-hover">
-                    <thead>
-                    </thead>
-
-                    <tbody>
-                    </tbody>
-                </table>
-
-            </div>
-        </div>
-    </div>
+    <main style="padding: var(--space-4, 16px);">
+        <!-- Mount point. cts-data-table is created imperatively in JS so the
+             cellRenderer / columns / initialSort can be wired up *before*
+             connectedCallback() runs (it reads initialSort once on connect). -->
+        <div id="logsListingMount"></div>
+    </main>
 
 
     <cts-modal id="errorModal" heading="Error">
@@ -92,224 +69,185 @@
     </cts-modal>
 
 
-    <script>
-        /**
-         *
-         */
+    <script type="module">
+        // Lit-html and unsafeHTML let the cellRenderer return TemplateResults
+        // that embed the HTML produced by the existing Mustache templates
+        // (configButton.html / logDetailButton.html / planDetailButton.html /
+        // date.html / owner.html). The templates are trusted: they live in
+        // /templates/ and emit HTML escaped via lodash `<%- %>` interpolation.
+        import { html } from "lit";
+        import { unsafeHTML } from "lit/directives/unsafe-html.js";
+
         document.addEventListener("DOMContentLoaded", () => {
-            var urlParams = new URLSearchParams(window.location.search);
-            var public = Boolean(urlParams.get('public'));
+            const urlParams = new URLSearchParams(window.location.search);
+            const isPublic = Boolean(urlParams.get("public"));
 
             FAPI_UI.showBusy();
             FAPI_UI.loadLogListTemplates()
-            .then(function() {
-                return FAPI_UI.getUserInfo();
-            }).then(function() {
-                return loadAvailableLogs(public);
-            }).finally(function() {
-                FAPI_UI.hideBusy();
-            });
+                .then(() => FAPI_UI.getUserInfo())
+                .then(() => loadAvailableLogs(isPublic))
+                .finally(() => FAPI_UI.hideBusy());
+            // The table's `cts-data-loaded` listener (see loadAvailableLogs)
+            // also calls hideBusy() to cover the search / sort / page round-trips.
 
             // Target the inner <button> rendered by cts-button. This fails loudly
             // if cts-button ever switches to shadow DOM (the selector stops
             // matching) instead of silently breaking copy. See
             // components/cts-button.js JSDoc for the light-DOM dependency note.
-            var clipboard = new ClipboardJS('.btn-clipboard > button', {
-                text: function(trigger) {
-                    var host = trigger.closest('.btn-clipboard');
-                    var sel = host && host.getAttribute('data-clipboard-target');
-                    var target = sel ? document.querySelector(sel) : null;
-                    return target ? target.textContent : '';
-                }
+            const clipboard = new ClipboardJS(".btn-clipboard > button", {
+                text: function (trigger) {
+                    const host = trigger.closest(".btn-clipboard");
+                    const sel = host && host.getAttribute("data-clipboard-target");
+                    const target = sel ? document.querySelector(sel) : null;
+                    return target ? target.textContent : "";
+                },
             });
-            clipboard.on('success', function(e) {
+            clipboard.on("success", function (e) {
                 console.log(e);
             });
-            clipboard.on('error', function(e) {
+            clipboard.on("error", function (e) {
                 console.log(e);
             });
         });
 
-        /**
-         *
-         */
+        async function loadAvailableLogs(isPublic) {
+            // Wait for the custom-element registration so we can set imperative
+            // properties (cellRenderer, columns, initialSort) BEFORE the element
+            // mounts and runs connectedCallback() — the component reads
+            // initialSort once at connect time, so wiring it after is too late.
+            await customElements.whenDefined("cts-data-table");
 
-        /**
-         *
-         */
-        function loadAvailableLogs(public) {
-            return new Promise((resolve, reject) => {
-                const dataTable = $('#logsListing').DataTable({
-                    serverSide: true,
-                    ajax: {
-                        url: '/api/log' + (public ? '?public=true' : ''),
-                        cache: true,
-                        data: function(data) {
-                            // Translate query parameters into a simpler schema
-                            return {
-                                draw: data.draw,
-                                start: data.start,
-                                length: data.length,
-                                search: data.search.value,
-                                order: _.map(data.order, function(x) {
-                                    return data.columns[x.column].data + ',' + x.dir;
-                                }).join(',')
-                            };
-                        },
-                        error: function(jqxhr, status, error) {
-                            FAPI_UI.showError(jqxhr.responseJSON ? jqxhr.responseJSON : {
-                                code: jqxhr.status,
-                                error: error
-                            });
-                        }
-                    },
-                    columns: [
-                        {
-                            title: 'Instance ID',
-                            data: 'testId',
-                            render: {
-                                display: function(data) { return FAPI_UI.logTemplates.LOG_DETAIL({ id: data, public: public }); }
-                            }
-                        },
-                        {
-                            title: 'Config',
-                            data: null,
-                            render: {
-                                display: function() { return FAPI_UI.logTemplates.CONFIG(); }
-                            },
-                            createdCell: function(cell) { $(cell).addClass('configColumn'); },
-                            orderable: false,
-                            visible: !public
-                        },
-                        {
-                            title: 'Name',
-                            data: 'testName',
-                            render: $('#logsListing').DataTable.render.text()
-                        },
-                        {
-                            title: 'Variant',
-                            data: 'variant',
-                            defaultContent: '',
-                            render: {
-                                display: function(v) { return FAPI_UI.formatVariant(v); }
-                            }
-                        },
-                        {
-                            title: 'Description',
-                            data: 'description',
-                            render: $('#logsListing').DataTable.render.text(),
-                            defaultContent: ''
-                        },
-                        {
-                            title: 'Started',
-                            data: 'started',
-                            render: {
-                                display: function(data) { return FAPI_UI.logTemplates.DATE({ date: data }); }
-                            }
-                        },
-                        {
-                            title: 'Plan ID',
-                            data: 'planId',
-                            defaultContent: '',
-                            render: {
-                                display: function(data) {
-                                    if (data)
-                                        return FAPI_UI.logTemplates.PLAN_DETAIL({ id: data, public: public });
-                                    else
-                                        return '';
+            const mount = document.getElementById("logsListingMount");
+
+            const table = document.createElement("cts-data-table");
+            table.id = "logsListing";
+            table.setAttribute(
+                "ajax-url",
+                "/api/log" + (isPublic ? "?public=true" : ""),
+            );
+            table.setAttribute("page-size", "25");
+            table.setAttribute("server-side", "");
+            table.setAttribute("request-shape", "datatables-comma-order");
+            table.setAttribute("search-mode", "explicit");
+            table.setAttribute("search-placeholder", "Search logs");
+            table.setAttribute("empty-state", "No logs to show");
+
+            // Build the column descriptors. Visibility for "Config" and "Owner"
+            // depends on the public flag and the current user's admin status,
+            // mirroring the original DataTables `visible:` predicates.
+            const showAdmin = !isPublic && FAPI_UI.currentUser && FAPI_UI.currentUser.isAdmin;
+            const columns = [
+                { key: "testId", label: "Instance ID" },
+                ...(isPublic ? [] : [{ key: "_config", label: "Config" }]),
+                { key: "testName", label: "Name" },
+                { key: "variant", label: "Variant" },
+                { key: "description", label: "Description" },
+                { key: "started", label: "Started", sortable: true },
+                { key: "planId", label: "Plan ID" },
+                { key: "status", label: "Status" },
+                { key: "result", label: "Result" },
+                ...(showAdmin ? [{ key: "owner", label: "Owner" }] : []),
+            ];
+            table.columns = columns;
+            table.initialSort = { column: "started", direction: "desc" };
+
+            // Per-cell renderer. The callback shape is JSON-incompatible (matches
+            // the contract in components/cts-data-table.js).
+            table.cellRenderer = (row, columnKey) => {
+                switch (columnKey) {
+                    case "testId":
+                        return html`${unsafeHTML(
+                            FAPI_UI.logTemplates.LOG_DETAIL({
+                                id: row.testId,
+                                public: isPublic,
+                            }),
+                        )}`;
+                    case "_config":
+                        // Config cell needs the legacy `.configColumn` class for
+                        // styling parity with logs prior to the migration.
+                        return html`<span class="configColumn"
+                            >${unsafeHTML(FAPI_UI.logTemplates.CONFIG())}</span
+                        >`;
+                    case "testName":
+                    case "description":
+                        // Equivalent to DataTables' `render.text()` — escaped value.
+                        return row[columnKey] == null ? "" : String(row[columnKey]);
+                    case "variant":
+                        return FAPI_UI.formatVariant(row.variant);
+                    case "started":
+                        return row.started
+                            ? html`${unsafeHTML(
+                                  FAPI_UI.logTemplates.DATE({ date: row.started }),
+                              )}`
+                            : "";
+                    case "planId":
+                        return row.planId
+                            ? html`${unsafeHTML(
+                                  FAPI_UI.logTemplates.PLAN_DETAIL({
+                                      id: row.planId,
+                                      public: isPublic,
+                                  }),
+                              )}`
+                            : "";
+                    case "owner":
+                        return html`${unsafeHTML(
+                            FAPI_UI.logTemplates.OWNER({
+                                owner: row.owner ? row.owner : {},
+                            }),
+                        )}`;
+                    default:
+                        return undefined;
+                }
+            };
+
+            // Mirror the Mustache showConfigBtn click wiring previously done
+            // inside DataTables `createdRow`. cts-data-table fires
+            // `cts-row-rendered` per row after each draw — we wire each row's
+            // showConfigBtn there.
+            table.addEventListener("cts-row-rendered", (evt) => {
+                const { row, rowEl } = evt.detail;
+                const btnHosts = rowEl.querySelectorAll(".showConfigBtn");
+                btnHosts.forEach((btnHost) => {
+                    btnHost.addEventListener("click", (clickEvt) => {
+                        clickEvt.preventDefault();
+                        if (!row.planId) return;
+                        fetch(
+                            "/api/plan/" +
+                                encodeURIComponent(row.planId) +
+                                (isPublic ? "?public=true" : ""),
+                        )
+                            .then((response) => {
+                                if (!response.ok) {
+                                    return Promise.reject(response);
                                 }
-                            }
-                        },
-                        {
-                            title: 'Status',
-                            data: 'status',
-                            defaultContent: ''
-                        },
-                        {
-                            title: 'Result',
-                            data: 'result',
-                            defaultContent: ''
-                        },
-                        {
-                            title: 'Owner',
-                            data: function(row) { return { owner: row.owner ? row.owner : {} }; },
-                            render: {
-                                display: function(data) { return FAPI_UI.logTemplates.OWNER(data); }
-                            },
-                            visible: !public && FAPI_UI.currentUser && FAPI_UI.currentUser.isAdmin
-                        }
-                    ],
-                    createdRow: function(row, data) {
-                        // wire up configuration button
-                        $('.showConfigBtn', row).click(function(evt) {
-                            evt.preventDefault();
-
-                            fetch('/api/plan/' + encodeURIComponent(data.planId) + (public ? '?public=true' : ''))
-                                .then((response) => {
-                                    if (!response.ok) {
-                                        return Promise.reject(response);
-                                    }
-
-                                    return response.json();
-                                }).then(jsonData => {
-
-
-                                $('#config').html(_.escape(JSON.stringify(jsonData.config, null, 4)));
-                                $('#configTestId').html(_.escape(data.testId));
-
-                                document.getElementById('configModal').show();
+                                return response.json();
+                            })
+                            .then((jsonData) => {
+                                document.getElementById("config").textContent =
+                                    JSON.stringify(jsonData.config, null, 4);
+                                document.getElementById("configTestId").textContent =
+                                    row.testId;
+                                document.getElementById("configModal").show();
                             });
-                        });
-                    },
-                    pagingType: "simple",
-                    language: {
-                        info: "Showing _START_ to _END_",
-                        infoEmpty: "No entries to show",
-                        infoFiltered: ""
-                    },
-                    initComplete: function() {
-                        var api = this.api();
-                        var container = api.table().container();
-                        var searchInput = $('div.dataTables_filter input', container);
-
-                        // Disable default live-search behaviour
-                        searchInput.off();
-
-                        // Add a search button after the input
-                        var searchBtn = $('<cts-button variant="primary" class="ms-2" icon="search" label="Search"></cts-button>');
-                        searchInput.after(searchBtn);
-
-                        function doSearch() {
-                            FAPI_UI.showBusy('Searching...');
-                            api.search(searchInput.val()).draw();
-                        }
-
-                        searchBtn.on('click', doSearch);
-
-                        searchInput.on('keydown', function(e) {
-                            if (e.key === 'Enter' || e.keyCode === 13) {
-                                e.preventDefault();
-                                doSearch();
-                            }
-                        });
-
-                        // Hide busy indicator when AJAX completes
-                        api.on('xhr.dt', function() {
-                            FAPI_UI.hideBusy();
-                        });
-                    },
-                    order: [[5, "desc"]] // sort by the "date" column, descending, by default
-                });
-
-                dataTable.on('xhr.dt', function() {
-                    resolve(dataTable); // Resolve with the DataTable instance if needed
-                });
-
-                // Handle potential errors (optional)
-                dataTable.on('error.dt', function(e, settings, techNote, message) {
-                    reject(new Error(message));
+                    });
                 });
             });
+
+            // Hide the loading spinner on every successful (or failed) data
+            // round-trip. Mirrors the legacy `xhr.dt` listener.
+            table.addEventListener("cts-data-loaded", () => FAPI_UI.hideBusy());
+            table.addEventListener("cts-data-error", (evt) => {
+                const err = evt.detail && evt.detail.error;
+                FAPI_UI.showError(
+                    err && err.responseJSON
+                        ? err.responseJSON
+                        : { code: err && err.status, error: err && err.message },
+                );
+            });
+
+            // Now insert. connectedCallback runs synchronously, reads
+            // initialSort, then queueMicrotask schedules the first fetch.
+            mount.replaceChildren(table);
         }
     </script>
 
