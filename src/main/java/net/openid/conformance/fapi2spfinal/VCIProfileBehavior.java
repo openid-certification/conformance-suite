@@ -1,7 +1,6 @@
 package net.openid.conformance.fapi2spfinal;
 
 import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.condition.client.CheckDiscEndpointGrantTypesSupportedContainsAuthorizationCode;
@@ -32,7 +31,6 @@ import net.openid.conformance.variant.VCI1FinalCredentialFormat;
 import net.openid.conformance.variant.VCICredentialEncryption;
 import net.openid.conformance.vci10issuer.condition.CheckCacheControlHeaderContainsNoStore;
 import net.openid.conformance.vci10issuer.condition.VCIAddCredentialConfigurationIdToEnv;
-import net.openid.conformance.vci10issuer.condition.VCIEncryptCredentialRequest;
 import net.openid.conformance.vci10issuer.condition.VCICheckForDeferredCredentialResponse;
 import net.openid.conformance.vci10issuer.condition.VCICheckKeyAttestationJwksIfKeyAttestationIsRequired;
 import net.openid.conformance.vci10issuer.condition.VCIDetermineCredentialConfigurationTransferMethod;
@@ -258,13 +256,6 @@ public class VCIProfileBehavior extends FAPI2ProfileBehavior {
 
 				boolean encrypted = module.getVariant(VCICredentialEncryption.class) == VCICredentialEncryption.ENCRYPTED;
 				call(new CreateVCICredentialRequestSteps(encrypted));
-
-				JsonObject credentialRequestObject = module.getEnv().getObject("vci_credential_request_object");
-				call(exec().putString("resource_request_entity", credentialRequestObject.toString()));
-
-				if (encrypted) {
-					callAndStopOnFailure(VCIEncryptCredentialRequest.class, "OID4VCI-1FINAL-8.2", "OID4VCI-1FINAL-10");
-				}
 			}
 		};
 	}

@@ -1,8 +1,10 @@
 package net.openid.conformance.sequence.client;
 
 import net.openid.conformance.sequence.AbstractConditionSequence;
+import net.openid.conformance.vci10issuer.condition.SerializeVCICredentialRequestObject;
 import net.openid.conformance.vci10issuer.condition.VCIAddCredentialResponseEncryptionToRequest;
 import net.openid.conformance.vci10issuer.condition.VCICreateCredentialRequest;
+import net.openid.conformance.vci10issuer.condition.VCIEncryptCredentialRequest;
 
 public class CreateVCICredentialRequestSteps extends AbstractConditionSequence {
 
@@ -18,11 +20,12 @@ public class CreateVCICredentialRequestSteps extends AbstractConditionSequence {
 
 		if (encrypted) {
 			callAndStopOnFailure(VCIAddCredentialResponseEncryptionToRequest.class, "OID4VCI-1FINAL-8.2");
-			afterCredentialResponseEncryptionAdded();
 		}
-	}
 
-	protected void afterCredentialResponseEncryptionAdded() {
-		// Default implementation does nothing.
+		callAndStopOnFailure(SerializeVCICredentialRequestObject.class, "OID4VCI-1FINAL-8.2");
+
+		if (encrypted) {
+			callAndStopOnFailure(VCIEncryptCredentialRequest.class, "OID4VCI-1FINAL-8.2", "OID4VCI-1FINAL-10");
+		}
 	}
 }

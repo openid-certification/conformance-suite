@@ -653,32 +653,11 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractFAPI2SPFinalSe
 	}
 
 	protected void createCredentialRequest() {
-		call(new CreateVCICredentialRequestSteps(vciCredentialEncryption == VCICredentialEncryption.ENCRYPTED) {
-			@Override
-			protected void afterCredentialResponseEncryptionAdded() {
-				AbstractVCIIssuerTestModule.this.afterCredentialResponseEncryptionAdded();
-			}
-		});
-
-		JsonObject credentialRequestObject = env.getObject("vci_credential_request_object");
-		String requestBodyString = serializeCredentialRequestObject(credentialRequestObject);
-		env.putString("resource_request_entity", requestBodyString);
-
-		if (vciCredentialEncryption == VCICredentialEncryption.ENCRYPTED) {
-			callAndStopOnFailure(VCIEncryptCredentialRequest.class, "OID4VCI-1FINAL-8.2", "OID4VCI-1FINAL-10");
-		}
+		call(makeCreateCredentialRequestSteps());
 	}
 
-	/**
-	 * Hook called after credential_response_encryption is added to the credential request.
-	 * Override this method in subclasses to modify the encryption parameters.
-	 */
-	protected void afterCredentialResponseEncryptionAdded() {
-		// Default implementation does nothing
-	}
-
-	protected String serializeCredentialRequestObject(JsonObject credentialRequestObject) {
-		return credentialRequestObject.toString();
+	protected ConditionSequence makeCreateCredentialRequestSteps() {
+		return new CreateVCICredentialRequestSteps(vciCredentialEncryption == VCICredentialEncryption.ENCRYPTED);
 	}
 
 	/**
