@@ -185,6 +185,12 @@ const STYLE_TEXT = `
   to { transform: rotate(360deg); }
 }
 
+/* Collapse the host's inline line-box so no extra vertical space surrounds the button. */
+cts-button,
+cts-link-button {
+  line-height: 1;
+}
+
 cts-button[full-width],
 cts-link-button[full-width] {
   display: block;
