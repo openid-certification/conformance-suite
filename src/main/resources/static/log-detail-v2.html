@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+<!-- Mirror redirect: ?ff=legacy clears the cts-lit-log opt-in cookie and
+     bounces back to the legacy log-detail.html so a maintainer can flip
+     a single user out of the new-page render path from EITHER URL. The
+     script is the symmetric counterpart of the redirect at the top of
+     log-detail.html's <head>. Both scripts are removed by the flag-flip
+     MR (per the U1 plan's Cleanup MR diff preview). -->
+<script>
+  (function ctsLitLogMirrorRedirect() {
+    try {
+      var params = new URLSearchParams(window.location.search);
+      var ff = params.get('ff');
+      if (ff !== 'legacy') return;  // Only react to ?ff=legacy.
+      document.cookie = 'cts-lit-log=; max-age=0; path=/; SameSite=Lax';
+      params.delete('ff');
+      var search = params.toString();
+      var target = 'log-detail.html'
+        + (search ? '?' + search : '')
+        + window.location.hash;
+      window.location.replace(target);
+    } catch (e) {
+      // Render the new page as usual on any unexpected failure.
+    }
+  })();
+</script>
+
+<!-- ────────────────────────────────────────────────────────────────────
+     Sticky-bar host-overflow audit (per U1 plan §"Open spec gaps for
+     this unit", item P1). U2 will introduce a `position: sticky` status
+     bar; sticky positioning fails silently when ANY ancestor of the
+     sticky element has `overflow: hidden | auto | clip` or `transform:`.
+     The ancestor chain on log-detail-v2 is:
+         <body>             — no overflow, no transform
+         <main.log-page-v2> — no overflow, no transform (page-grid below)
+         <cts-log-detail-header> — light DOM, scoped CSS sets
+                                    `display: block` only
+     None of these break sticky. U2 may therefore mount the status bar
+     anywhere inside <main.log-page-v2> without DOM reparenting.
+     ──────────────────────────────────────────────────────────────────── -->
+
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+
+<!-- As per https://developer.chrome.com/blog/digital-credentials-api-origin-trial#participate_in_the_origin_trial -->
+<meta http-equiv="origin-trial" content="Ak6yRqDEJnQl6dIoCp8cYItDTJOtrob5TnMXBHzy4M/18VMLkOs4YEr1TC/PtnpAs0SFzOop0TV3J/fXVfbJlAgAAACCeyJvcmlnaW4iOiJodHRwczovL2NlcnRpZmljYXRpb24ub3BlbmlkLm5ldDo0NDMiLCJmZWF0dXJlIjoiV2ViSWRlbnRpdHlEaWdpdGFsQ3JlZGVudGlhbHMiLCJleHBpcnkiOjE3NjA0MDAwMDAsImlzU3ViZG9tYWluIjp0cnVlfQ==">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta charset="UTF-8">
+<title>OIDF Conformance: Test Detail</title>
+
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap">
+<link rel="preload" as="font" type="font/woff2" href="/fonts/inter/Inter-Variable.woff2" crossorigin>
+<link rel="stylesheet" href="/css/oidf-tokens.css">
+<link rel="stylesheet" href="/css/oidf-app.css">
+
+<!-- Vendor JS used only by the running-test slot wiring (browser-URL QR
+     code + copy-to-clipboard) inside js/log-detail-v2.js. Loaded as
+     classic <script> so the global QRCode / ClipboardJS bindings are
+     ready before the bootstrap module evaluates. -->
+<script src="/vendor/clipboard/js/clipboard.min.js"></script>
+<script src="/js/cts-clipboard-resolver.js"></script>
+<script src="/vendor/qrcode/js/qrcode.min.js"></script>
+
+<!-- Importmap copied verbatim from log-detail.html. The shared list of
+     directives keeps the lit-importmap drift-detection spec
+     (frontend/e2e/lit-importmap.spec.js) green when this page joins
+     the PAGES roster. -->
+<script>window.litDisableBundleWarning = true;</script>
+<script type="importmap">{"imports":{"lit":"/vendor/lit/lit.js","lit/":"/vendor/lit/","lit/directives/async-append.js":"/vendor/lit/lit.js","lit/directives/async-replace.js":"/vendor/lit/lit.js","lit/directives/cache.js":"/vendor/lit/lit.js","lit/directives/choose.js":"/vendor/lit/lit.js","lit/directives/class-map.js":"/vendor/lit/lit.js","lit/directives/guard.js":"/vendor/lit/lit.js","lit/directives/if-defined.js":"/vendor/lit/lit.js","lit/directives/join.js":"/vendor/lit/lit.js","lit/directives/keyed.js":"/vendor/lit/lit.js","lit/directives/live.js":"/vendor/lit/lit.js","lit/directives/map.js":"/vendor/lit/lit.js","lit/directives/range.js":"/vendor/lit/lit.js","lit/directives/ref.js":"/vendor/lit/lit.js","lit/directives/repeat.js":"/vendor/lit/lit.js","lit/directives/style-map.js":"/vendor/lit/lit.js","lit/directives/template-content.js":"/vendor/lit/lit.js","lit/directives/unsafe-html.js":"/vendor/lit/lit.js","lit/directives/unsafe-svg.js":"/vendor/lit/lit.js","lit/directives/until.js":"/vendor/lit/lit.js","lit/directives/when.js":"/vendor/lit/lit.js","@lit/reactive-element":"/vendor/lit/lit.js","@lit/reactive-element/":"/vendor/lit/","lit-html":"/vendor/lit/lit.js","lit-html/":"/vendor/lit/","lit-element/":"/vendor/lit/"}}</script>
+
+<!-- Component modules. cts-log-detail-header transitively pulls in
+     cts-test-nav-controls, cts-button, cts-link-button, cts-badge,
+     cts-alert, cts-icon, cts-json-editor, and the test-summary-split
+     helper, so we don't have to declare them individually. -->
+<script type="module" src="/components/cts-navbar.js"></script>
+<script type="module" src="/components/cts-modal.js"></script>
+<script type="module" src="/components/cts-crumb.js"></script>
+<script type="module" src="/components/cts-tooltip.js"></script>
+<script type="module" src="/components/cts-log-detail-header.js"></script>
+<script type="module" src="/components/cts-log-viewer.js"></script>
+
+<!-- New-page bootstrap. Loads after components — module ordering is
+     stable because each script type="module" defers until the document
+     is parsed. -->
+<script type="module" src="/js/log-detail-v2.js"></script>
+
+<style>
+  /* Page-local layout for log-detail-v2.html. The single-column grid
+     today carries the breadcrumb + header + viewer. U8 will widen this
+     into a two-column layout (rail + main) on viewports ≥ 960 px; the
+     `.log-page-v2` class is the seam U8 will key off. */
+  .log-page-v2 {
+    max-width: var(--maxw-page);
+    margin: 0 auto;
+    padding: var(--space-4) var(--space-5);
+    font-family: var(--font-sans);
+  }
+
+  /* Spinner tokens for the loadingModal. Matches the legacy page so
+     visual continuity is preserved during the rollout window. */
+  .v2-spinner-host {
+    text-align: center;
+  }
+</style>
+</head>
+
+<body>
+  <a class="oidf-skip-link" href="#main-content">Skip to main content</a>
+
+  <cts-navbar current-page=""></cts-navbar>
+
+  <!-- Page-level modals. Show/hide is imperative via cts-modal.show()
+       and .hide(); the new-page bootstrap owns those calls (no FAPI_UI
+       wrapper). -->
+  <cts-modal id="errorModal" heading="Error">
+    Error: <span id="errorMessage"></span>
+  </cts-modal>
+
+  <cts-modal id="loadingModal" heading="Loading..." static-backdrop no-keyboard>
+    <div class="v2-spinner-host">
+      <img src="/images/spinner.gif" width="100px" height="30px" alt="Loading" />
+    </div>
+    <div><span id="loadingMessage"></span></div>
+  </cts-modal>
+
+  <!-- Private-link flow modals. The bootstrap wires their show/hide
+       around the cts-share-link event. The expiration modal collects
+       the day count; the result modal renders the returned URL. -->
+  <cts-modal
+    id="privateLinkExpirationModal"
+    heading="Create private link"
+    footer-buttons='[{"label": "Create link", "id": "privateLinkCreateBtn", "data": {"action": "create"}}, {"label": "Cancel"}]'
+  >
+    <p>How many days should this link remain active?</p>
+    <label for="privateLinkExpirationDays" style="display: block; margin-top: var(--space-2);">
+      Expiration in days (1–3650)
+      <input
+        id="privateLinkExpirationDays"
+        type="number"
+        min="1"
+        max="3650"
+        value="30"
+        style="display: block; width: 6em; margin-top: var(--space-1);"
+      />
+    </label>
+  </cts-modal>
+
+  <cts-modal id="privateLinkResultModal" heading="Private link">
+    <p id="privateLinkMessage"></p>
+    <textarea
+      id="privateLinkUrl"
+      readonly
+      rows="3"
+      aria-label="Private link URL"
+      style="width: 100%; font-family: var(--font-mono); font-size: var(--fs-13);"
+    ></textarea>
+  </cts-modal>
+
+  <!-- Resident DOM — the Lit triad mounts here. Bootstrap fetches
+       /api/info, populates header.testInfo, sets viewer.testId, and
+       wires the action events. -->
+  <main id="main-content" class="log-page-v2">
+    <cts-crumb id="logDetailCrumb"></cts-crumb>
+    <cts-log-detail-header id="logDetailHeader"></cts-log-detail-header>
+    <cts-log-viewer id="logViewer"></cts-log-viewer>
+  </main>
+</body>
+
+</html>

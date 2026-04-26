@@ -28,6 +28,7 @@ interface Window {
 // `play` function. Not part of runtime component API.
 interface Window {
   __ctsLogViewerFetchState?: any;
+  __ctsFirstFetchResolved?: any;
   __copiedText?: string | null;
 }
 

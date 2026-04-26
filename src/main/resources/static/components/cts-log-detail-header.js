@@ -5,6 +5,7 @@ import "./cts-button.js";
 import "./cts-link-button.js";
 import "./cts-alert.js";
 import "./cts-json-editor.js";
+import "./cts-test-nav-controls.js";
 import { splitTestSummary } from "./test-summary-split.js";
 
 /**
@@ -285,11 +286,19 @@ function ensureStylesInjected() {
  *   `{ detail: { testId } }`; bubbles.
  * @fires cts-upload-images - When the Upload Images button is clicked, with
  *   `{ detail: { testId } }`; bubbles.
+ * @fires cts-edit-config - When the Edit configuration button is clicked,
+ *   with `{ detail: { testId, planId, config } }`; bubbles. The page-level
+ *   handler navigates to schedule-test.html seeded with the supplied
+ *   `planId` (preferred) or `config`.
+ * @fires cts-share-link - When the Private link button is clicked, with
+ *   `{ detail: { testId } }`; bubbles. The page-level handler opens the
+ *   private-link expiration modal and POSTs to `/api/info/{testId}/share`.
  * @fires cts-download-log - When the Download Logs button is clicked, with
  *   `{ detail: { testId } }`; bubbles.
- * @fires cts-publish - When the Publish/Unpublish button is clicked, with
- *   `{ detail: { testId, action } }` where `action` is `publish` or
- *   `unpublish`; bubbles.
+ * @fires cts-publish - When a Publish (summary / everything) or Unpublish
+ *   button is clicked, with `{ detail: { testId, action, mode? } }` where
+ *   `action` is `publish` or `unpublish` and `mode` is `summary` or
+ *   `everything` (omitted for unpublish); bubbles.
  * @fires cts-start-test - When the Start button is clicked on a running /
  *   waiting test, with `{ detail: { testId } }`; bubbles.
  * @fires cts-stop-test - When the Stop button is clicked on a running /
@@ -411,16 +420,51 @@ class CtsLogDetailHeader extends LitElement {
     );
   }
 
-  _handlePublish() {
+  _handleEditConfig() {
+    this.dispatchEvent(
+      new CustomEvent("cts-edit-config", {
+        bubbles: true,
+        detail: {
+          testId: this.testInfo.testId,
+          planId: this.testInfo.planId || null,
+          config: this.testInfo.config || null,
+        },
+      }),
+    );
+  }
+
+  _handleShareLink() {
+    this.dispatchEvent(
+      new CustomEvent("cts-share-link", {
+        bubbles: true,
+        detail: { testId: this.testInfo.testId },
+      }),
+    );
+  }
+
+  _dispatchPublish(action, mode) {
     this.dispatchEvent(
       new CustomEvent("cts-publish", {
         bubbles: true,
         detail: {
           testId: this.testInfo.testId,
-          action: this.testInfo.publish ? "unpublish" : "publish",
+          action,
+          ...(mode ? { mode } : {}),
         },
       }),
     );
+  }
+
+  _handlePublishSummary() {
+    this._dispatchPublish("publish", "summary");
+  }
+
+  _handlePublishEverything() {
+    this._dispatchPublish("publish", "everything");
+  }
+
+  _handleUnpublish() {
+    this._dispatchPublish("unpublish", null);
   }
 
   _handleStartTest() {
@@ -457,6 +501,14 @@ class CtsLogDetailHeader extends LitElement {
     return status === "RUNNING" || status === "WAITING";
   }
 
+  _shouldShowRunningCard() {
+    // RUNNING and WAITING are mid-flight states. INTERRUPTED also keeps the
+    // card visible so the page-level FINAL_ERROR alert has a host to render
+    // into via the [data-slot="error"] placeholder. FINISHED hides the card.
+    const status = (this.testInfo.status || "").toUpperCase();
+    return status === "RUNNING" || status === "WAITING" || status === "INTERRUPTED";
+  }
+
   _isReadonly() {
     return this.isPublic;
   }
@@ -488,38 +540,38 @@ class CtsLogDetailHeader extends LitElement {
                 <div class="logMetaValue">${test.testName}</div>
                 ${variantStr
                   ? html`
-                      <div class="logMetaLabel">Variant:</div>
-                      <div class="logMetaValue">${variantStr}</div>
+                      <div class="logMetaLabel"> Variant: </div>
+                      <div class="logMetaValue"> ${variantStr} </div>
                     `
                   : nothing}
                 <div class="logMetaLabel">Test ID:</div>
                 <div class="logMetaValue">${test.testId}</div>
                 <div class="logMetaLabel">Created:</div>
-                <div class="logMetaValue">${this._formatDate(test.created)}</div>
+                <div class="logMetaValue"> ${this._formatDate(test.created)} </div>
                 ${test.description
                   ? html`
-                      <div class="logMetaLabel">Description:</div>
-                      <div class="logMetaValue">${test.description}</div>
+                      <div class="logMetaLabel"> Description: </div>
+                      <div class="logMetaValue"> ${test.description} </div>
                     `
                   : nothing}
                 ${test.version
                   ? html`
-                      <div class="logMetaLabel">Test Version:</div>
-                      <div class="logMetaValue">${test.version}</div>
+                      <div class="logMetaLabel"> Test Version: </div>
+                      <div class="logMetaValue"> ${test.version} </div>
                     `
                   : nothing}
                 ${this.isAdmin && test.owner
                   ? html`
-                      <div class="logMetaLabel" data-testid="owner-row">Test Owner:</div>
-                      <div class="logMetaValue"
-                        >${test.owner.sub}${test.owner.iss ? ` (${test.owner.iss})` : ""}</div
-                      >
+                      <div class="logMetaLabel" data-testid="owner-row"> Test Owner: </div>
+                      <div class="logMetaValue">
+                        ${test.owner.sub}${test.owner.iss ? ` (${test.owner.iss})` : ""}
+                      </div>
                     `
                   : nothing}
                 ${test.planId
                   ? html`
-                      <div class="logMetaLabel">Plan ID:</div>
-                      <div class="logMetaValue">${test.planId}</div>
+                      <div class="logMetaLabel"> Plan ID: </div>
+                      <div class="logMetaValue"> ${test.planId} </div>
                     `
                   : nothing}
               </div>
@@ -601,9 +653,9 @@ class CtsLogDetailHeader extends LitElement {
           <cts-icon name="${this._failuresExpanded ? "chevron-up" : "chevron-down"}"></cts-icon>
         </div>
         ${this._failuresExpanded
-          ? html`<div class="failureList" data-testid="failure-list"
-              >${this._renderFailureList(failures)}</div
-            >`
+          ? html`<div class="failureList" data-testid="failure-list">
+              ${this._renderFailureList(failures)}
+            </div>`
           : nothing}
       </div>
     `;
@@ -643,6 +695,14 @@ class CtsLogDetailHeader extends LitElement {
 
     return html`
       <div class="logActionStack">
+        <cts-test-nav-controls
+          id="testNavControls"
+          data-testid="test-nav-controls"
+          test-id="${test.testId}"
+          plan-id="${test.planId || ""}"
+          ?readonly=${readonly}
+          ?public-view=${this.isPublic}
+        ></cts-test-nav-controls>
         ${!readonly
           ? html`
               <cts-button
@@ -671,6 +731,17 @@ class CtsLogDetailHeader extends LitElement {
           data-testid="view-config-btn"
           @cts-click=${this._toggleConfig}
         ></cts-button>
+        ${!readonly
+          ? html`<cts-button
+              variant="secondary"
+              size="sm"
+              icon="edit-pencil-01"
+              label="Edit configuration"
+              title="Create a new test plan based on the configuration used in this one"
+              data-testid="edit-config-btn"
+              @cts-click=${this._handleEditConfig}
+            ></cts-button>`
+          : nothing}
         ${!readonly || test.publish === "everything"
           ? html`<cts-button
               variant="secondary"
@@ -691,17 +762,70 @@ class CtsLogDetailHeader extends LitElement {
               data-testid="return-to-plan-link"
             ></cts-link-button>`
           : nothing}
-        ${!readonly && this.isAdmin
+        ${!readonly
           ? html`<cts-button
               variant="secondary"
               size="sm"
-              icon="${test.publish ? "close-circle" : "bookmark"}"
-              label="${test.publish ? "Unpublish" : "Publish"}"
-              data-testid="publish-btn"
-              @cts-click=${this._handlePublish}
+              icon="bookmark"
+              label="Private link"
+              data-testid="share-link-btn"
+              @cts-click=${this._handleShareLink}
             ></cts-button>`
           : nothing}
+        ${this._renderPublishButtons()}
       </div>
+    `;
+  }
+
+  _renderPublishButtons() {
+    const test = this.testInfo;
+    const readonly = this._isReadonly();
+    if (readonly) return nothing;
+
+    if (!test.publish) {
+      // Pre-publish: admin sees the summary + everything split.
+      if (!this.isAdmin) return nothing;
+      return html`
+        <cts-button
+          variant="secondary"
+          size="sm"
+          icon="bookmark"
+          label="Publish summary"
+          data-testid="publish-summary-btn"
+          @cts-click=${this._handlePublishSummary}
+        ></cts-button>
+        <cts-button
+          variant="secondary"
+          size="sm"
+          icon="bookmark"
+          label="Publish everything"
+          data-testid="publish-btn"
+          @cts-click=${this._handlePublishEverything}
+        ></cts-button>
+      `;
+    }
+
+    // Already published: admin sees Unpublish; everyone (admin or not, in
+    // non-readonly state) sees the public link.
+    return html`
+      ${this.isAdmin
+        ? html`<cts-button
+            variant="secondary"
+            size="sm"
+            icon="close-circle"
+            label="Unpublish"
+            data-testid="unpublish-btn"
+            @cts-click=${this._handleUnpublish}
+          ></cts-button>`
+        : nothing}
+      <cts-link-button
+        variant="secondary"
+        size="sm"
+        icon="bookmark"
+        label="Public link"
+        href="log-detail.html?log=${encodeURIComponent(test.testId)}&amp;public=true"
+        data-testid="public-link"
+      ></cts-link-button>
     `;
   }
 
@@ -740,27 +864,33 @@ class CtsLogDetailHeader extends LitElement {
   }
 
   _renderRunningTestInfo() {
-    if (!this._isRunning()) return nothing;
+    if (!this._shouldShowRunningCard()) return nothing;
     const test = this.testInfo;
-    const isActive = test.status === "RUNNING";
+    const status = (test.status || "").toUpperCase();
+    const isInterrupted = status === "INTERRUPTED";
 
     return html`
       <div class="logSecondaryCard" data-testid="running-test-info">
         <div class="logSecondaryBody">
-          ${isActive
+          <div id="runningTestError" data-slot="error" data-testid="running-error-slot"></div>
+          ${status === "RUNNING"
             ? html`<cts-alert variant="info"
                 ><b>This test is currently running.</b> Values exported from the test are available
                 below along with any URLs that need to be visited interactively.</cts-alert
               >`
-            : html`<cts-alert variant="warning"
-                ><b>This test is waiting.</b> The test is awaiting user interaction or an external
-                event.</cts-alert
-              >`}
+            : status === "WAITING"
+              ? html`<cts-alert variant="warning"
+                  ><b>This test is waiting.</b> The test is awaiting user interaction or an external
+                  event.</cts-alert
+                >`
+              : html`<cts-alert variant="danger"
+                  ><b>This test was interrupted.</b> See the error details above.</cts-alert
+                >`}
           <div class="runningTestRow">
             ${test.exposed && Object.keys(test.exposed).length > 0
               ? html`
                   <div>
-                    <div class="runningExportedLabel">Exported values:</div>
+                    <div class="runningExportedLabel"> Exported values: </div>
                     <cts-json-editor
                       class="runningExportedBlock"
                       readonly
@@ -770,24 +900,31 @@ class CtsLogDetailHeader extends LitElement {
                   </div>
                 `
               : nothing}
-            <div class="runningTestActions">
-              <cts-button
-                variant="primary"
-                size="sm"
-                icon="play"
-                label="Start"
-                data-testid="start-btn"
-                @cts-click=${this._handleStartTest}
-              ></cts-button>
-              <cts-button
-                variant="secondary"
-                size="sm"
-                icon="stop"
-                label="Stop"
-                data-testid="stop-btn"
-                @cts-click=${this._handleStopTest}
-              ></cts-button>
-            </div>
+            <div
+              id="runningTestBrowser"
+              data-slot="browser"
+              data-testid="running-browser-slot"
+            ></div>
+            ${isInterrupted
+              ? nothing
+              : html`<div class="runningTestActions">
+                  <cts-button
+                    variant="primary"
+                    size="sm"
+                    icon="play"
+                    label="Start"
+                    data-testid="start-btn"
+                    @cts-click=${this._handleStartTest}
+                  ></cts-button>
+                  <cts-button
+                    variant="secondary"
+                    size="sm"
+                    icon="stop"
+                    label="Stop"
+                    data-testid="stop-btn"
+                    @cts-click=${this._handleStopTest}
+                  ></cts-button>
+                </div>`}
           </div>
         </div>
       </div>
