@@ -354,7 +354,7 @@ export const PublicView = {
 };
 
 // --- R24: summary zone splitting ---
-// Plan: docs/plans/2026-04-25-007-feat-r24-test-description-vs-instructions-plan.md
+// Plan: docs/plans/2026-04-25-008-feat-r24-test-description-vs-instructions-plan.md
 // The component splits `test.summary` on the marker `\n\n---\n\n` into an
 // "About this test" descriptive zone and a "What you need to do" warning
 // zone. These stories cover the three rendering paths: no marker, with

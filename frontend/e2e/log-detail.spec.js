@@ -488,7 +488,7 @@ test.describe("log-detail.html — Log Detail", () => {
   });
 
   // R24: split test description from user instructions in the blue summary box.
-  // Plan: docs/plans/2026-04-25-007-feat-r24-test-description-vs-instructions-plan.md
+  // Plan: docs/plans/2026-04-25-008-feat-r24-test-description-vs-instructions-plan.md
   test("R24: summary with split marker renders About + What-you-need-to-do zones", async ({
     page,
   }) => {
@@ -513,6 +513,12 @@ test.describe("log-detail.html — Log Detail", () => {
     await expect(aboutZone).toContainText("must not result in errors");
     await expect(instructionsZone).toContainText("What you need to do");
     await expect(instructionsZone).toContainText("Please remove any cookies");
+
+    // The literal `---` marker is consumed by the splitter, not surfaced
+    // to the user — verifying this protects the contract that test
+    // authors can rely on the marker being invisible after rendering.
+    await expect(aboutZone).not.toContainText("---");
+    await expect(instructionsZone).not.toContainText("---");
 
     // Instructions zone is wrapped in a warning-variant cts-alert (action-coded palette).
     const instructionsAlert = page.locator('cts-alert[variant="warning"]', {
@@ -571,9 +577,7 @@ test.describe("log-detail.html — Log Detail", () => {
       }));
     }
 
-    test("renders unified nav cluster with Module X of N for a mid-plan test", async ({
-      page,
-    }) => {
+    test("renders unified nav cluster with Module X of N for a mid-plan test", async ({ page }) => {
       await setupFailFast(page);
       await setupLogDetailRoutes(page, {
         testInfo: MOCK_TEST_STATUS,
