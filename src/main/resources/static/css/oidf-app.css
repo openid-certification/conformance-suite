@@ -17,7 +17,7 @@
    layout.css:109 used to hardcode `body { font-family: 'PT Sans',
    sans-serif; font-size: 16px; }`. Once the PT Sans link is removed,
    the cascade would fall through to OS sans-serif unless this rule
-   takes over. Keeps body text on the OIDF Helvetica Neue stack via
+   takes over. Keeps body text on the OIDF self-hosted Inter stack via
    --font-sans. (Adv F5)
    ---------------------------------------------------------------- */
 body {
