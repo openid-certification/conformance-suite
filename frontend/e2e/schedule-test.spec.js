@@ -404,4 +404,100 @@ test.describe("schedule-test.html — Test Plan Scheduling", () => {
     // Targets the inner native button — see note in the R10 test.
     await expect(page.locator("#createPlanBtn button")).toBeDisabled();
   });
+
+  // --- R13 placeholder tests (deferred until R13 implementation MR) -----
+  //
+  // The R13 MR will change the page so that selecting a new plan type
+  // clears the config form, and a new "Load last config" control restores
+  // the previous config on demand. The MR is required to expose
+  // `data-testid="load-last-config"` on the new control so the second
+  // placeholder below resolves cleanly when `.fixme` is removed.
+  //
+  // The third behavioral assertion the brainstorm originally proposed —
+  // "switching plan types after edits does not silently lose a saved
+  // config" — was dropped as tautological: today no save flow exists,
+  // so there is nothing to lose. If R13 introduces a save flow, that MR
+  // is responsible for adding the corresponding test.
+
+  test.fixme("R13: selecting a new plan type clears the config form", async ({ page }) => {
+    // Asserts: after selecting plan A, populating its config, then
+    //          switching to plan B, all rendered config inputs have empty
+    //          values. Deferred until R13 implementation MR.
+    await setupFailFast(page);
+
+    await page.route("**/api/plan/available", (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(ALL_PLANS),
+      }),
+    );
+
+    await page.route("**/api/lastconfig", (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({}),
+      }),
+    );
+
+    await setupCommonRoutes(page);
+    await page.goto("/schedule-test.html");
+
+    // Pick OIDCC basic, populate the config textarea, then switch to FAPI.
+    await page.locator("#specFamilySelect").selectOption("OIDCC");
+    await page.locator("#entitySelect").selectOption("basic");
+    await page
+      .locator("#config")
+      .fill('{"alias":"about-to-be-cleared","server.issuer":"https://x.test"}');
+
+    await page.locator("#specFamilySelect").selectOption("FAPI");
+
+    // After R13, the config textarea should be empty after the switch.
+    await expect(page.locator("#config")).toHaveValue("");
+  });
+
+  test.fixme("R13: clicking 'Load last config' restores the previous config", async ({ page }) => {
+    // Asserts: a control exposed at `data-testid="load-last-config"`
+    //          (contract bound on R13's MR — see plan
+    //          docs/plans/2026-04-25-003-...) repopulates the config
+    //          form with the most recent saved config when clicked.
+    //          Deferred until R13 implementation MR.
+    await setupFailFast(page);
+
+    await page.route("**/api/plan/available", (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(ALL_PLANS),
+      }),
+    );
+
+    await page.route("**/api/lastconfig", (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({
+          alias: "from-last-config",
+          "server.issuer": "https://restored.example.com",
+        }),
+      }),
+    );
+
+    await setupCommonRoutes(page);
+    await page.goto("/schedule-test.html");
+
+    // Land on a plan with a config form; ensure form starts empty (per R13's
+    // new behavior — no auto-load on init).
+    await page.locator("#specFamilySelect").selectOption("OIDCC");
+    await page.locator("#entitySelect").selectOption("basic");
+    await expect(page.locator("#config")).toHaveValue("");
+
+    // Click the new "Load last config" control.
+    await page.getByTestId("load-last-config").click();
+
+    // The config textarea should now contain the /api/lastconfig payload.
+    await expect(page.locator("#config")).not.toHaveValue("");
+    await expect(page.locator("#config")).toContainText("from-last-config");
+  });
 });

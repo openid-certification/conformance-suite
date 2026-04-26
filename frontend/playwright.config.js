@@ -12,6 +12,12 @@ export default defineConfig({
     trace: "on-first-retry",
   },
 
+  // Project- and platform-agnostic snapshot file names so locally generated
+  // snapshots match what CI produces. Single project (chromium), single
+  // tested rendering surface — the disambiguator suffixes add noise without
+  // value and would split locally-generated baselines from CI's.
+  snapshotPathTemplate: "{snapshotDir}/{testFileDir}/{testFileName}-snapshots/{arg}{ext}",
+
   projects: [
     {
       name: "chromium",
