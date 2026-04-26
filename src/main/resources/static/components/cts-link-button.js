@@ -1,4 +1,5 @@
 import { LitElement, html, nothing } from "lit";
+import "./cts-icon.js";
 
 /**
  * Maps variant name → OIDF token-styled modifier class.
@@ -242,24 +243,18 @@ class CtsLinkButton extends LitElement {
     return this;
   }
 
-  // Icon names come from the Bootstrap Icons set (2000+ icons).
-  // Constructed from the icon prop, not a finite variant set.
-  _iconClass(name) {
-    return `bi bi-${name}`;
-  }
-
   render() {
     const anchorClass = buildButtonClasses({ variant: this.variant, size: this.size });
     const isExternal = this.target === "_blank";
     const leadingIcon = this.icon
-      ? html`<span class="${this._iconClass(this.icon)}" aria-hidden="true"></span>`
+      ? html`<cts-icon name="${this.icon}" aria-hidden="true"></cts-icon>`
       : nothing;
     // External-link indicator goes after the label so it reads as
     // "API Documentation ↗", matching the well-known convention. Only
     // emitted when target=_blank and the caller hasn't supplied a custom icon.
     const trailingIcon =
       isExternal && !this.icon
-        ? html`<span class="${this._iconClass("box-arrow-up-right")}" aria-hidden="true"></span>`
+        ? html`<cts-icon name="external-link" aria-hidden="true"></cts-icon>`
         : nothing;
     const hasLeading = leadingIcon !== nothing;
     const hasTrailing = trailingIcon !== nothing;
