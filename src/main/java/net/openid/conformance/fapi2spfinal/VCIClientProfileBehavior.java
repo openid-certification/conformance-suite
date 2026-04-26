@@ -2,6 +2,7 @@ package net.openid.conformance.fapi2spfinal;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import net.openid.conformance.vci10wallet.VCICredentialConfigurations;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -20,13 +21,23 @@ import org.springframework.http.ResponseEntity;
  * <ul>
  *   <li>Exposes {@code credential_issuer} to the user so a HAIP wallet can be configured
  *       with the credential issuer URL (the same as the test base URL).</li>
- *   <li>Serves minimal {@code /.well-known/openid-credential-issuer} metadata pointing
- *       back to our base URL as the authorization server. This is enough for a HAIP
- *       wallet to discover the AS and run the FAPI2SP client tests; full credential
- *       issuance flow lives on {@code AbstractVCIWalletTest} for now.</li>
+ *   <li>Serves {@code /.well-known/openid-credential-issuer} metadata pointing back to our
+ *       base URL as the authorization server, with the same default credential
+ *       configurations as {@link net.openid.conformance.vci10wallet.AbstractVCIWalletTest}
+ *       (so wallets configured for any of the standard SD-JWT or mdoc credential types
+ *       can resolve their requested credential_configuration_id).</li>
  * </ul>
+ *
+ * <p>The credential / nonce / deferred / notification endpoints are advertised but not
+ * implemented here — the FAPI2SP client tests don't exercise them. End-to-end credential
+ * issuance for HAIP wallets uses {@code AbstractVCIWalletTest}'s own modules.
  */
 public class VCIClientProfileBehavior extends FAPI2ClientProfileBehavior {
+
+	private static final String CREDENTIAL_PATH = "credential";
+	private static final String NONCE_PATH = "nonce";
+	private static final String DEFERRED_CREDENTIAL_PATH = "deferred_credential";
+	private static final String NOTIFICATION_PATH = "notification";
 
 	@Override
 	public void exposeProfileEndpoints() {
@@ -47,30 +58,27 @@ public class VCIClientProfileBehavior extends FAPI2ClientProfileBehavior {
 	}
 
 	/**
-	 * Build a minimal HAIP-compliant credential issuer metadata document. The wallet only
-	 * needs {@code authorization_servers} for OAuth-only conformance tests, but we include
-	 * a placeholder {@code credential_endpoint} and one entry under
-	 * {@code credential_configurations_supported} to satisfy the OID4VCI 1.0 Final REQUIRED
-	 * fields.
+	 * Build credential issuer metadata for the FAPI2SP-client-test side of the VCI HAIP
+	 * wallet plan. Uses the same default {@code credential_configurations_supported} as
+	 * {@link AbstractVCIWalletTest} so wallets configured for any of the standard
+	 * SD-JWT VC or mdoc credential types resolve correctly.
 	 */
 	protected JsonObject buildCredentialIssuerMetadata() {
 		String baseUrl = baseUrlWithTrailingSlash();
 
 		JsonObject metadata = new JsonObject();
 		metadata.addProperty("credential_issuer", baseUrl);
-		metadata.addProperty("credential_endpoint", baseUrl + "credential");
+		metadata.addProperty("credential_endpoint", baseUrl + CREDENTIAL_PATH);
+		metadata.addProperty("nonce_endpoint", baseUrl + NONCE_PATH);
+		metadata.addProperty("deferred_credential_endpoint", baseUrl + DEFERRED_CREDENTIAL_PATH);
+		metadata.addProperty("notification_endpoint", baseUrl + NOTIFICATION_PATH);
 
 		JsonArray authServers = new JsonArray();
 		authServers.add(baseUrl);
 		metadata.add("authorization_servers", authServers);
 
-		JsonObject configs = new JsonObject();
-		JsonObject placeholder = new JsonObject();
-		placeholder.addProperty("format", "dc+sd-jwt");
-		placeholder.addProperty("vct", "urn:vct:fapi2sp_test_credential");
-		placeholder.addProperty("scope", "fapi2sp_test_credential");
-		configs.add("fapi2sp_test_credential", placeholder);
-		metadata.add("credential_configurations_supported", configs);
+		metadata.add("credential_configurations_supported",
+			VCICredentialConfigurations.getDefault(module.getId()));
 
 		return metadata;
 	}
