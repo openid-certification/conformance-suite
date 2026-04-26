@@ -83,6 +83,13 @@ const STYLE_TEXT = `
     padding: 1px 6px;
     border-radius: var(--radius-1);
   }
+  /* '.planConfigJson' (and the '.config-json' sibling on the same element)
+     are pre-existing class names from when this slot rendered a <pre>;
+     the slot is now a <cts-json-editor> inside the cts-modal. Do not
+     rename without updating all three call sites at once: this CSS rule,
+     the '.config-json' selector that cts-plan-list.stories.js + the
+     ClipboardJS handlers in plans.html / logs.html / log-detail.html
+     match on, and the data-clipboard-target=".config-json" attribute. */
   cts-plan-list .planConfigJson {
     display: block;
     margin: 0;
