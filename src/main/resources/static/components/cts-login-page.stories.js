@@ -41,7 +41,7 @@ export const Default = {
     );
     expect(brandLogo).toBeTruthy();
     expect(brandLogo.getAttribute("src")).toBe("/images/openid-dark.svg");
-    expect(brandLogo.getAttribute("alt")).toBe("OpenID");
+    expect(brandLogo.getAttribute("alt")).toBe("OpenID Foundation");
     expect(canvasElement.querySelectorAll(".oidf-login-brand__pillars li").length).toBe(4);
 
     // Google OAuth button renders with correct href via cts-link-button -> <a>
