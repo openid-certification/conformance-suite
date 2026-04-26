@@ -33,11 +33,12 @@
 </head>
 
 <body>
+    <a class="oidf-skip-link" href="#main-content">Skip to main content</a>
 
     <cts-navbar current-page="logs"></cts-navbar>
 
     <!-- resident DOM -->
-    <main style="padding: var(--space-4, 16px);">
+    <main id="main-content" style="padding: var(--space-4, 16px);">
         <!-- Mount point. cts-data-table is created imperatively in JS so the
              cellRenderer / columns / initialSort can be wired up *before*
              connectedCallback() runs (it reads initialSort once on connect). -->

@@ -69,3 +69,31 @@ cts-link-button > a:focus,
 .oidf-btn:focus {
   text-decoration: none;
 }
+
+/* ---- Skip-to-main-content link ----------------------------------
+   Visually hidden until focused. Keyboard users tab to it as the
+   first focusable element on the page and jump past the navbar to
+   the page's primary content. Each page is responsible for placing
+   the anchor as the first child of <body> and pointing it at a
+   landmark id (typically `#main-content`).
+   ---------------------------------------------------------------- */
+.oidf-skip-link {
+  position: absolute;
+  top: 0;
+  left: 0;
+  transform: translateY(-200%);
+  z-index: 9999;
+  padding: var(--space-2) var(--space-4);
+  background: var(--bg-elev);
+  color: var(--ink-900);
+  font-weight: var(--fw-bold);
+  text-decoration: none;
+  border-radius: var(--radius-2);
+  box-shadow: var(--shadow-2);
+}
+.oidf-skip-link:focus,
+.oidf-skip-link:focus-visible {
+  transform: translateY(var(--space-2));
+  outline: none;
+  box-shadow: var(--focus-ring);
+}

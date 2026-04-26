@@ -25,10 +25,13 @@
 </head>
 
 <body>
+    <a class="oidf-skip-link" href="#main-content">Skip to main content</a>
 
     <cts-navbar current-page="tokens"></cts-navbar>
 
-    <cts-token-manager></cts-token-manager>
+    <main id="main-content">
+        <cts-token-manager></cts-token-manager>
+    </main>
 
     <script type="text/javascript">
         // Probe /api/currentuser so cts-token-manager renders the read-only
