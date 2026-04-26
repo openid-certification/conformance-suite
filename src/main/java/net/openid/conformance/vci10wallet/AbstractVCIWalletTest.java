@@ -22,7 +22,6 @@ import net.openid.conformance.condition.as.AddIssToAuthorizationEndpointResponse
 import net.openid.conformance.condition.as.AddResponseTypeCodeToServerConfiguration;
 import net.openid.conformance.condition.as.AddSupportedAuthorizationTypesToServerConfiguration;
 import net.openid.conformance.condition.as.AddTlsCertificateBoundAccessTokensTrueSupportedToServerConfiguration;
-import net.openid.conformance.condition.as.CalculateAtHash;
 import net.openid.conformance.condition.as.CheckClientIdMatchesOnTokenRequestIfPresent;
 import net.openid.conformance.condition.as.CheckForClientCertificate;
 import net.openid.conformance.condition.as.CheckForInvalidCharsInNonce;
@@ -63,7 +62,6 @@ import net.openid.conformance.condition.as.FAPI2AddTokenEndpointAuthSigningAlgVa
 import net.openid.conformance.condition.as.FAPIEnsureMinimumClientKeyLength;
 import net.openid.conformance.condition.as.FAPIEnsureMinimumServerKeyLength;
 import net.openid.conformance.condition.as.FilterUserInfoForScopes;
-import net.openid.conformance.condition.as.GenerateAccessTokenExpiration;
 import net.openid.conformance.condition.as.GenerateAttestationChallenge;
 import net.openid.conformance.condition.as.GenerateAttestationChallengeResponse;
 import net.openid.conformance.condition.as.GenerateBearerAccessToken;
@@ -2416,13 +2414,6 @@ public abstract class AbstractVCIWalletTest extends net.openid.conformance.fapi2
 		}
 		env.putString("code_challenge", codeChallenge);
 		env.putString("code_challenge_method", codeChallengeMethod);
-	}
-
-	@Override
-	protected void issueAccessToken() {
-		callAndStopOnFailure(generateSenderConstrainedAccessToken);
-		callAndContinueOnFailure(GenerateAccessTokenExpiration.class, ConditionResult.INFO);
-		callAndStopOnFailure(CalculateAtHash.class, "OIDCC-3.3.2.11");
 	}
 
 	@Override
