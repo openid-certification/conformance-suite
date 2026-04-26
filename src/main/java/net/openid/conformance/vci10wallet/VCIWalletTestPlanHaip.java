@@ -71,6 +71,8 @@ public class VCIWalletTestPlanHaip implements TestPlan {
 					new Variant(VCIGrantType.class, "authorization_code"),
 					new Variant(AuthorizationRequestType.class, "simple"),
 					new Variant(ClientAuthType.class, "client_attestation"),
+					new Variant(FAPIClientType.class, "plain_oauth"),
+					new Variant(FAPIResponseMode.class, "plain_response"),
 					new Variant(VCICredentialIssuanceMode.class, "immediate"),
 					new Variant(VCICredentialEncryption.class, "plain")
 				)
@@ -84,6 +86,8 @@ public class VCIWalletTestPlanHaip implements TestPlan {
 					new Variant(VCIGrantType.class, "authorization_code"),
 					new Variant(AuthorizationRequestType.class, "simple"),
 					new Variant(ClientAuthType.class, "client_attestation"),
+					new Variant(FAPIClientType.class, "plain_oauth"),
+					new Variant(FAPIResponseMode.class, "plain_response"),
 					new Variant(VCICredentialIssuanceMode.class, "deferred"),
 					new Variant(VCICredentialEncryption.class, "plain")
 				)
@@ -97,6 +101,8 @@ public class VCIWalletTestPlanHaip implements TestPlan {
 					new Variant(VCIGrantType.class, "authorization_code"),
 					new Variant(AuthorizationRequestType.class, "simple"),
 					new Variant(ClientAuthType.class, "client_attestation"),
+					new Variant(FAPIClientType.class, "plain_oauth"),
+					new Variant(FAPIResponseMode.class, "plain_response"),
 					new Variant(VCICredentialIssuanceMode.class, "immediate"),
 					new Variant(VCICredentialEncryption.class, "encrypted")
 				)
