@@ -215,6 +215,10 @@ import org.springframework.web.servlet.view.RedirectView;
 	whenParameter = FAPI2FinalOPProfile.class,
 	hasValues = {"fapi_client_credentials_grant"}
 )
+@VariantConfigurationFields(parameter = ClientAuthType.class, value = "client_attestation", configurationFields = {
+	"vci.client_attestation_issuer",
+	"vci.client_attestation_trust_anchor"
+})
 public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule {
 
 	public static final String ACCOUNT_REQUESTS_PATH = "open-banking/v1.1/account-requests";
