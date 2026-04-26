@@ -232,6 +232,7 @@ import net.openid.conformance.vci10wallet.condition.VCILogGeneratedCredentialIss
 import net.openid.conformance.vci10wallet.condition.VCIPreparePreAuthorizationCode;
 import net.openid.conformance.vci10wallet.condition.VCIResolveRequestedCredentialConfigurationFromRequest;
 import net.openid.conformance.vci10wallet.condition.VCIValidateAttestedKeysInKeyAttestationFromJwtProof;
+import net.openid.conformance.vci10wallet.condition.EnsureKeyAttestationHasX5cClaim;
 import net.openid.conformance.vci10wallet.condition.ValidateKeyAttestationX5cCertificateChain;
 import net.openid.conformance.vci10wallet.condition.VCIValidateCredentialRequestAttestationProof;
 import net.openid.conformance.vci10wallet.condition.VCIValidateCredentialRequestDiVpProof;
@@ -1373,6 +1374,12 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 				errorResponse = callAndContinueOnFailureOrReturnErrorResponse(VCIValidateCredentialRequestAttestationProof.class, ConditionResult.FAILURE, "OID4VCI-1FINALA-F.3", "OID4VCI-1FINALA-F.4", "HAIP-4.5.1");
 				if (errorResponse != null) {
 					return errorResponse;
+				}
+				if (fapi2Profile == FAPI2FinalOPProfile.VCI_HAIP) {
+					errorResponse = callAndContinueOnFailureOrReturnErrorResponse(EnsureKeyAttestationHasX5cClaim.class, ConditionResult.FAILURE, "HAIP-4.5.1");
+					if (errorResponse != null) {
+						return errorResponse;
+					}
 				}
 				errorResponse = callAndContinueOnFailureOrReturnErrorResponse(ValidateKeyAttestationX5cCertificateChain.class, ConditionResult.FAILURE, "HAIP-4.5.1");
 			} else if ("di_vp".equals(proofType)) {
