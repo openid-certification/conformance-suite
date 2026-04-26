@@ -2,7 +2,13 @@ package net.openid.conformance.fapi2spfinal;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import net.openid.conformance.sequence.AbstractConditionSequence;
+import net.openid.conformance.sequence.ConditionSequence;
+import net.openid.conformance.testmodule.TestFailureException;
+import net.openid.conformance.variant.ClientAuthType;
 import net.openid.conformance.vci10wallet.VCICredentialConfigurations;
+import net.openid.conformance.vci10wallet.condition.clientattestation.AddClientAttestationSigningAlgValuesSupportedToServerConfiguration;
+import net.openid.conformance.vci10wallet.condition.clientattestation.VCIRegisterClientAttestationTrustAnchor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -38,6 +44,33 @@ public class VCIClientProfileBehavior extends FAPI2ClientProfileBehavior {
 	private static final String NONCE_PATH = "nonce";
 	private static final String DEFERRED_CREDENTIAL_PATH = "deferred_credential";
 	private static final String NOTIFICATION_PATH = "notification";
+
+	@Override
+	public ConditionSequence additionalServerConfiguration() {
+		if (module.clientAuthType != ClientAuthType.CLIENT_ATTESTATION) {
+			return null;
+		}
+
+		// Validate the wallet test config has the VCI client-attestation fields populated.
+		// The fields are declared via @VariantConfigurationFields on AbstractFAPI2SPFinalClientTest
+		// so the schedule-test UI prompts for them; this catches the case where they're left blank.
+		if (module.getEnv().getString("config", "vci.client_attestation_issuer") == null) {
+			throw new TestFailureException(module.getId(),
+				"'Client attestation issuer' field is missing from the 'VCI' section in the test configuration");
+		}
+		if (module.getEnv().getString("config", "vci.client_attestation_trust_anchor") == null) {
+			throw new TestFailureException(module.getId(),
+				"'Client attestation trust anchor' field is missing from the 'VCI' section in the test configuration");
+		}
+
+		return new AbstractConditionSequence() {
+			@Override
+			public void evaluate() {
+				callAndStopOnFailure(AddClientAttestationSigningAlgValuesSupportedToServerConfiguration.class, "OAuth2-ATCA07-10.1");
+				callAndStopOnFailure(VCIRegisterClientAttestationTrustAnchor.class);
+			}
+		};
+	}
 
 	@Override
 	public void exposeProfileEndpoints() {

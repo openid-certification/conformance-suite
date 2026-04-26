@@ -377,6 +377,7 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 		}
 
 		callAndStopOnFailure(addTokenEndpointAuthMethodSupported);
+		call(profileBehavior.additionalServerConfiguration());
 		if (profileBehavior.shouldRegisterPAREndpoint()) {
 			call(sequence(AddPARToServerConfiguration.class));
 		}
