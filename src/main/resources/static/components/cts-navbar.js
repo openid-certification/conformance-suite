@@ -525,7 +525,7 @@ function renderExternalLinkIcon() {
     aria-hidden="true"
   >
     <path
-      d="M5.5 10.5l5-5M10.5 5.5h-4M10.5 5.5v4"
+      d="M5 11l9-9M14 2h-5M14 2v5"
       stroke="currentColor"
       stroke-width="1.5"
       fill="none"
@@ -533,7 +533,7 @@ function renderExternalLinkIcon() {
       stroke-linejoin="round"
     />
     <path
-      d="M9 2.5H3v11h11V8"
+      d="M9 4H2v10h10V7"
       stroke="currentColor"
       stroke-width="1.5"
       fill="none"
@@ -880,7 +880,7 @@ class CtsNavbar extends LitElement {
           </svg>
         </button>
         <a class="cts-brand navbar-brand" href="index.html">
-          <img src="/images/openid-dark.svg" alt="OpenID" width="93" height="28" />
+          <img src="/images/openid-dark.svg" alt="OpenID Foundation" width="93" height="28" />
           <span class="cts-brand-name">CONFORMANCE SUITE</span>
         </a>
         <ul class="cts-navlinks navbar-nav" id="cts-navlinks">

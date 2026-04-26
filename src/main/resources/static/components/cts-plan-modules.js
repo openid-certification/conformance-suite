@@ -122,6 +122,20 @@ const STYLE_TEXT = `
     text-align: center;
     color: var(--fg-soft);
   }
+  /* R28: status badges wrap in an anchor to log-detail when an instance
+     exists, so a click on the lozenge takes the user to the test's logs.
+     The anchor matches the badge's pill silhouette and inherits color so
+     the badge's own foreground stays in charge of its text. */
+  cts-plan-modules .moduleStatusLink {
+    display: inline-flex;
+    text-decoration: none;
+    color: inherit;
+    border-radius: var(--radius-pill);
+  }
+  cts-plan-modules .moduleStatusLink:focus-visible {
+    outline: 2px solid var(--orange-400);
+    outline-offset: 2px;
+  }
 `;
 
 function ensureStylesInjected() {
@@ -150,6 +164,11 @@ function ensureStylesInjected() {
  *   plans. Reflects the `is-immutable` attribute.
  * @property {boolean} isPublic - Appends `&public=true` to log-detail links.
  *   Reflects the `is-public` attribute.
+ * The status badge is rendered as a real `<a>` link to `log-detail.html`
+ * when a test instance exists (R28), so clicking the lozenge takes the
+ * user to that test's log page. Modules with no instance render the
+ * badge unwrapped.
+ *
  * @fires cts-run-test - When the Run Test button is clicked, with
  *   `{ detail: { testModule, variant } }`; bubbles.
  * @fires cts-download-log - When the Download Logs button is clicked, with
@@ -240,6 +259,17 @@ class CtsPlanModules extends LitElement {
       ? `log-detail.html?log=${encodeURIComponent(lastInstance)}${this.isPublic ? "&public=true" : ""}`
       : null;
 
+    const badge = html`<cts-badge variant="${variant}" label="${label}"></cts-badge>`;
+    const linkedBadge = lastInstance
+      ? html`<a
+          class="moduleStatusLink"
+          data-testid="module-status-link"
+          href="${logHref}"
+          aria-label="View logs for ${mod.testModule} (${label})"
+          >${badge}</a
+        >`
+      : badge;
+
     return html`
       <div class="module-row" data-instance-id="${lastInstance || ""}">
         <span class="num">${this._rowNumber(index + 1)}</span>
@@ -257,7 +287,7 @@ class CtsPlanModules extends LitElement {
             <span class="mono">${lastInstance || "NONE"}</span>
           </div>
         </div>
-        <cts-badge variant="${variant}" label="${label}"></cts-badge>
+        ${linkedBadge}
         <div class="actionStack">
           ${this._canRunTest()
             ? html`<cts-button

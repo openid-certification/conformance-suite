@@ -153,6 +153,11 @@ function ensureStylesInjected() {
  * @property {boolean} isReadonly - Public view — hides edit, publish,
  *   private-link, certify, and delete actions. Reflects the `is-readonly`
  *   attribute.
+ * @property {boolean} canCertify - Gates the "Publish for certification"
+ *   button visibility (R26). True when the plan has at least one FINISHED
+ *   test and none of the finished tests have a FAILED result. Computed by
+ *   the host page after polling per-module status. Reflects the
+ *   `can-certify` attribute.
  * @fires cts-download-all - When the Download all Logs button is clicked,
  *   with `{ detail: { planId } }`; bubbles.
  * @fires cts-publish - When a Publish button is clicked, with
@@ -175,6 +180,7 @@ class CtsPlanActions extends LitElement {
     plan: { type: Object },
     isAdmin: { type: Boolean, attribute: "is-admin" },
     isReadonly: { type: Boolean, attribute: "is-readonly" },
+    canCertify: { type: Boolean, attribute: "can-certify" },
     _showConfig: { state: true },
     _showDeleteConfirm: { state: true },
     _showPrivateLink: { state: true },
@@ -188,6 +194,7 @@ class CtsPlanActions extends LitElement {
     this.plan = {};
     this.isAdmin = false;
     this.isReadonly = false;
+    this.canCertify = false;
     this._showConfig = false;
     this._showDeleteConfirm = false;
     this._showPrivateLink = false;
@@ -529,24 +536,26 @@ class CtsPlanActions extends LitElement {
           : nothing}
         ${!this.isReadonly
           ? html`<cts-button
-                variant="secondary"
-                size="sm"
-                icon="bookmarks"
-                label="Private link"
-                full-width
-                data-testid="private-link-btn"
-                @cts-click=${this._handleTogglePrivateLink}
-              ></cts-button>
-              <cts-button
-                variant="primary"
-                size="sm"
-                icon="save2"
-                label="Publish for certification"
-                full-width
-                title="Publish and prepare certification submission package"
-                data-testid="certify-btn"
-                @cts-click=${this._handleCertify}
-              ></cts-button>`
+              variant="secondary"
+              size="sm"
+              icon="bookmarks"
+              label="Private link"
+              full-width
+              data-testid="private-link-btn"
+              @cts-click=${this._handleTogglePrivateLink}
+            ></cts-button>`
+          : nothing}
+        ${!this.isReadonly && this.canCertify
+          ? html`<cts-button
+              variant="primary"
+              size="sm"
+              icon="save2"
+              label="Publish for certification"
+              full-width
+              title="Publish and prepare certification submission package"
+              data-testid="certify-btn"
+              @cts-click=${this._handleCertify}
+            ></cts-button>`
           : nothing}
         ${isImmutable && this.isAdmin
           ? html`<cts-button
@@ -561,7 +570,7 @@ class CtsPlanActions extends LitElement {
           : nothing}
         ${!isImmutable && !this.isReadonly
           ? html`<cts-button
-              variant="danger"
+              variant="ghost"
               size="sm"
               icon="trash"
               label="Delete plan"
