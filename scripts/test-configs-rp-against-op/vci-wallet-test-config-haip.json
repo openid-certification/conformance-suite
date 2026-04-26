@@ -1,0 +1,73 @@
+{
+    "alias": "oidf-vci-wallet-test",
+    "description": "VCI Wallet test config for running against issuer tests (HAIP profile)",
+    "server": {
+        "jwks": {
+            "keys": [
+                {vp-server-jwk.json}
+            ]
+        }
+    },
+    "client": {
+        "client_id": "52480754053",
+        "scope": "accounts",
+        "jwks": {
+            "keys": [
+                {
+                    "kty": "EC",
+                    "use": "sig",
+                    "crv": "P-256",
+                    "kid": "vci-example-key-1",
+                    "x": "yHNp8QgNiVSxSxIH_n_nH23dpUDlNhbgvLKSrjK1hDs",
+                    "y": "3_rlpW_FXqghp8dKPpkjfvbfACQQFLFZwJXxOr319Ac",
+                    "alg": "ES256"
+                }
+            ]
+        },
+        "certificate": "-----BEGIN CERTIFICATE-----\nMIIDlTCCAn2gAwIBAgIJAKRJoaX7BlZbMA0GCSqGSIb3DQEBCwUAMGAxCzAJBgNV\nBAYTAlVTMRMwEQYDVQQIDApTb21lLVN0YXRlMR0wGwYDVQQKDBRBdXRobGV0ZSBU\nZXN0IENsaWVudDEdMBsGA1UEAwwUQXV0aGxldGUgVGVzdCBDbGllbnQwIBcNMTgw\nNTI1MjA1NzU0WhgPMjEwNjAxMDQyMDU3NTRaMGAxCzAJBgNVBAYTAlVTMRMwEQYD\nVQQIDApTb21lLVN0YXRlMR0wGwYDVQQKDBRBdXRobGV0ZSBUZXN0IENsaWVudDEd\nMBsGA1UEAwwUQXV0aGxldGUgVGVzdCBDbGllbnQwggEiMA0GCSqGSIb3DQEBAQUA\nA4IBDwAwggEKAoIBAQDEWwl/Q+nuL8KXbObpVzww1VkHwLF4W9QxrPI1V0Uh6V9r\nxUjrfSbtWNEQVDwQmoW8M1XjnRnGvdNRd0m6gNEQLKsqRN2xIvPdR0IO+2b+y7WJ\n9XlwdqHAFSWQJtoHzBAmkRirRMJrQSW5sB/NIBmyVqUdTV/FghNjc+IiPF4X1kxw\nwOzm7y2zlHZUpiPQknwPbWNeyunj/XQRrqWPg+RXzAKIjbVprxGaT8CexKu6oEae\nd8BCTO0rJIOkmjXZMl+SDhXQn9GHKFh60UlJddxVngxhX63MAQ1GsO8HsjrLgO3q\n4LmTDVHkprLy/wgBRDfo0IHb3gWhbOuRGMLLMKKvAgMBAAGjUDBOMB0GA1UdDgQW\nBBRuwpA4lqWaOkwmPcTQR8CH0Iv3vjAfBgNVHSMEGDAWgBRuwpA4lqWaOkwmPcTQ\nR8CH0Iv3vjAMBgNVHRMEBTADAQH/MA0GCSqGSIb3DQEBCwUAA4IBAQBiCmvQmmKq\nI/8sB312HTEFlvtpbYp429eNCGXWloOOqVQkJaBnvy9YUS/wCgusyKeMBgbgpV0s\n8bp/gEW2/MnlWW9+fbFuhzRRwvuV/7je1Avv9Y06RH8GKJYwk2j6qcO7Mn9kVhln\nlKxGdFxm/i0OBuZnUe/KDxKPjVEdUJbxAFfxdq4cUjfewMuoxsYruIDnLXjTBcj2\nPbJ6vcPzq/6TYwxRmnrXIAO6Nxe8ZNXn2x2+njwrUKW4WPQ7u3dyHlD+M3iTpm3T\nwSgg0FSYiBcXhWJLQCJVEb0kbKJ/PDmcvomusQWTL/0epS62azWG8PUUs4v9Xeae\nmAbHqPGh+5Bo\n-----END CERTIFICATE-----\n",
+        "redirect_uri": "{LOCALBASEURL}test/a/oidf-vci-issuer-test/callback"
+    },
+    "credential": {
+        "signing_jwk": {
+            "kty": "EC",
+            "crv": "P-256",
+            "alg": "ES256",
+            "use": "sig",
+            "x": "p-_IHEO9b_XZIyW2SHyYrRyMndwcWjGhnhS-yF6HRiY",
+            "y": "_6IzIjawRYvQLdrypBlCqeBh27jR2tLNUq8h86deoe8",
+            "d": "Gkmh-vjcuC8QStQqLqM_PhJQUp8KepSGGL2-stl79Bs",
+            "kid": "ct_credential_signing_key",
+            "x5c": [
+                "MIICTDCCAdKgAwIBAgIUPlAaWKujE4TvY8sCwXmyDMGgOIwwCgYIKoZIzj0EAwIwLDEqMCgGA1UEAwwhT3BlbklENFZDSSBDb25mb3JtYW5jZSBUZXN0cyBSb290MB4XDTI2MDExNTE2NTQyNFoXDTI4MDQxOTE2NTQyNFowUTELMAkGA1UEBhMCREUxFzAVBgNVBAoMDkV4YW1wbGUgSXNzdWVyMRAwDgYDVQQLDAdPSUQ0VkNJMRcwFQYDVQQDDA5pc3N1ZXIuZXhhbXBsZTBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABKfvyBxDvW/12SMltkh8mK0cjJ3cHFoxoZ4Uvsheh0Ym/6IzIjawRYvQLdrypBlCqeBh27jR2tLNUq8h86deoe+jgawwgakwDAYDVR0TAQH/BAIwADAOBgNVHQ8BAf8EBAMCB4AwHQYDVR0lBBYwFAYIKwYBBQUHAwIGCCsGAQUFBwMBMB0GA1UdDgQWBBSNQHXEutjrfQDfbTgLG0mHepGesjAfBgNVHSMEGDAWgBTgt/z+s54ZDXsVA/YQLaW4RI7WajAqBgNVHREEIzAhgg5pc3N1ZXIuZXhhbXBsZYIJbG9jYWxob3N0hwR/AAABMAoGCCqGSM49BAMCA2gAMGUCMQC24WF0JjXEH0MuirdaXckJuxQUR2N7m3CO2WnUvnmnvEVUfgrUB0G78SFL0LDbuHECMByQ90GH0dB94Z2/4D6f4uDm0j9m6LHTEM0XrW9JcGT2fDMfVEMgUYrMod6yHWbgSw=="
+            ]
+        }
+    },
+    "maxWaitForAdditionalRequestSeconds": 10,
+    "vci": {
+        "credential_offer_endpoint": "{LOCALBASEURL}test/a/oidf-vci-issuer-test/credential_offer",
+        "client_attestation_issuer": "https://client-attester.example.org/",
+        "client_attestation_trust_anchor": "-----BEGIN CERTIFICATE-----\nMIICKzCCAbGgAwIBAgIUCshnTMlbzyFnjG17iOdOhdZGp4owCgYIKoZIzj0EAwMw\nLDEqMCgGA1UEAwwhT3BlbklENFZDSSBDb25mb3JtYW5jZSBUZXN0cyBSb290MB4X\nDTI2MDExNTE2NTQyNFoXDTQxMDExMTE2NTQyNFowLDEqMCgGA1UEAwwhT3BlbklE\nNFZDSSBDb25mb3JtYW5jZSBUZXN0cyBSb290MHYwEAYHKoZIzj0CAQYFK4EEACID\nYgAELDjIIc5bYkiQCKrBDTkDnF9wkO1lNI4og9rERzeatPdIT6g/Q6vHIOA7UPZo\nFRv5m+lN50xsaAaZzXgqeX1VxVD71FQBkT+CnpqRbcgAcpug5wC36N7Pgddu8H/v\nT8lWo4GTMIGQMBIGA1UdEwEB/wQIMAYBAf8CAQAwDgYDVR0PAQH/BAQDAgEGMB0G\nA1UdDgQWBBTgt/z+s54ZDXsVA/YQLaW4RI7WajBLBgNVHREERDBCghZsb2NhbGhv\nc3QuZW1vYml4LmNvLnVrgihzdGFuemFlZC10cmloeWRyb3h5LXNoZW5hLm5ncm9r\nLWZyZWUuZGV2MAoGCCqGSM49BAMDA2gAMGUCMQCuRHw+0d1av0FKQwqyl2UJgI4F\nXBFSQiyQj25Uii6g4mK5sUVDV3txBvPku5G7AKsCMDJYACWvj8Ll3CPfxJ+nQib6\nXWCTUoo7AOlBMecuvI86XRClZgDacEAOsYt2WyqBFg==\n-----END CERTIFICATE-----\n",
+        "key_attestation_trust_anchor_pem": "-----BEGIN CERTIFICATE-----\nMIICKzCCAbGgAwIBAgIUCshnTMlbzyFnjG17iOdOhdZGp4owCgYIKoZIzj0EAwMw\nLDEqMCgGA1UEAwwhT3BlbklENFZDSSBDb25mb3JtYW5jZSBUZXN0cyBSb290MB4X\nDTI2MDExNTE2NTQyNFoXDTQxMDExMTE2NTQyNFowLDEqMCgGA1UEAwwhT3BlbklE\nNFZDSSBDb25mb3JtYW5jZSBUZXN0cyBSb290MHYwEAYHKoZIzj0CAQYFK4EEACID\nYgAELDjIIc5bYkiQCKrBDTkDnF9wkO1lNI4og9rERzeatPdIT6g/Q6vHIOA7UPZo\nFRv5m+lN50xsaAaZzXgqeX1VxVD71FQBkT+CnpqRbcgAcpug5wC36N7Pgddu8H/v\nT8lWo4GTMIGQMBIGA1UdEwEB/wQIMAYBAf8CAQAwDgYDVR0PAQH/BAQDAgEGMB0G\nA1UdDgQWBBTgt/z+s54ZDXsVA/YQLaW4RI7WajBLBgNVHREERDBCghZsb2NhbGhv\nc3QuZW1vYml4LmNvLnVrgihzdGFuemFlZC10cmloeWRyb3h5LXNoZW5hLm5ncm9r\nLWZyZWUuZGV2MAoGCCqGSM49BAMDA2gAMGUCMQCuRHw+0d1av0FKQwqyl2UJgI4F\nXBFSQiyQj25Uii6g4mK5sUVDV3txBvPku5G7AKsCMDJYACWvj8Ll3CPfxJ+nQib6\nXWCTUoo7AOlBMecuvI86XRClZgDacEAOsYt2WyqBFg==\n-----END CERTIFICATE-----\n"
+    },
+    "browser": [
+        {
+            "comment": "expect an immediate redirect back to the conformance suite",
+            "match": "https://*/test/a/oidf-vci-issuer-test/credential_offer*",
+            "tasks": [
+                {
+                    "task": "Verify Complete",
+                    "match": "https://*/test/a/oidf-vci-issuer-test/credential_offer*",
+                    "commands": [
+                        [
+                            "wait",
+                            "xpath",
+                            "//*",
+                            5,
+                            "The response has been sent to the server for processing"
+                        ]
+                    ]
+                }
+            ]
+        }
+    ]
+}
