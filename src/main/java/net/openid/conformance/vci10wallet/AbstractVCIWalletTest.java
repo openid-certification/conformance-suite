@@ -92,7 +92,6 @@ import net.openid.conformance.condition.as.ValidateClientAssertionClaimsForPAREn
 import net.openid.conformance.condition.as.ValidateEncryptedRequestObjectHasKid;
 import net.openid.conformance.condition.as.ValidateFAPIInteractionIdInResourceRequest;
 import net.openid.conformance.condition.as.ValidateRefreshToken;
-import net.openid.conformance.condition.as.jarm.GenerateJARMResponseClaims;
 import net.openid.conformance.condition.as.par.CreatePAREndpointResponse;
 import net.openid.conformance.condition.as.par.EnsureAuthorizationRequestContainsOnlyExpectedParamsWhenUsingPAR;
 import net.openid.conformance.condition.as.par.EnsureAuthorizationRequestDoesNotContainRequestWhenUsingPAR;
@@ -2528,12 +2527,6 @@ public abstract class AbstractVCIWalletTest extends net.openid.conformance.fapi2
 				CreateEffectiveAuthorizationRequestParameters.STATE, ConditionResult.INFO,
 				CheckStateLength.class, ConditionResult.WARNING);
 		}
-	}
-
-	@Override
-	protected void generateJARMResponseClaims() {
-		callAndStopOnFailure(GenerateJARMResponseClaims.class, "JARM-2.1.1");
-		addCustomValuesToJarmResponse();
 	}
 
 	@Override
