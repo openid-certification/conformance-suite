@@ -73,11 +73,6 @@ import net.openid.conformance.condition.as.FAPI1AdvancedValidateRequestObjectNBF
 import net.openid.conformance.condition.as.FAPI2AddRequestObjectSigningAlgValuesSupportedToServerConfiguration;
 import net.openid.conformance.condition.as.FAPI2AddTokenEndpointAuthSigningAlgValuesSupportedToServer;
 import net.openid.conformance.condition.as.FAPI2ValidateRequestObjectSigningAlg;
-import net.openid.conformance.condition.as.FAPIBrazilExtractConsentRequest;
-import net.openid.conformance.condition.as.FAPIBrazilExtractPaymentInitiationRequest;
-import net.openid.conformance.condition.as.FAPIBrazilExtractPaymentsConsentRequest;
-import net.openid.conformance.condition.as.FAPIBrazilSignPaymentConsentResponse;
-import net.openid.conformance.condition.as.FAPIBrazilSignPaymentInitiationResponse;
 import net.openid.conformance.condition.as.FAPIEnsureMinimumClientKeyLength;
 import net.openid.conformance.condition.as.FAPIEnsureMinimumServerKeyLength;
 import net.openid.conformance.condition.as.FAPIValidateRequestObjectExp;
@@ -134,7 +129,6 @@ import net.openid.conformance.condition.rs.CreateFAPIAccountEndpointResponse;
 import net.openid.conformance.condition.rs.CreateOpenBankingAccountRequestResponse;
 import net.openid.conformance.condition.rs.CreateResourceEndpointDpopErrorResponse;
 import net.openid.conformance.condition.rs.CreateResourceServerDpopNonce;
-import net.openid.conformance.condition.rs.EnsureIncomingRequestContentTypeIsApplicationJwt;
 import net.openid.conformance.condition.rs.EnsureIncomingRequestMethodIsGet;
 import net.openid.conformance.condition.rs.EnsureIncomingRequestMethodIsPost;
 import net.openid.conformance.condition.rs.ExtractBearerAccessTokenFromHeader;
@@ -143,28 +137,7 @@ import net.openid.conformance.condition.rs.ExtractDpopProofFromHeader;
 import net.openid.conformance.condition.rs.ExtractFapiDateHeader;
 import net.openid.conformance.condition.rs.ExtractFapiInteractionIdHeader;
 import net.openid.conformance.condition.rs.ExtractFapiIpAddressHeader;
-import net.openid.conformance.condition.rs.ExtractXIdempotencyKeyHeader;
-import net.openid.conformance.condition.rs.FAPIBrazilEnsureAuthorizationRequestScopesContainPayments;
-import net.openid.conformance.condition.rs.FAPIBrazilEnsureClientCredentialsScopeContainedConsents;
-import net.openid.conformance.condition.rs.FAPIBrazilEnsureClientCredentialsScopeContainedPayments;
-import net.openid.conformance.condition.rs.FAPIBrazilEnsureConsentRequestIssEqualsOrganizationId;
-import net.openid.conformance.condition.rs.FAPIBrazilEnsureConsentRequestJtiIsUUIDv4;
-import net.openid.conformance.condition.rs.FAPIBrazilEnsurePaymentInitiationRequestIssEqualsOrganizationId;
-import net.openid.conformance.condition.rs.FAPIBrazilEnsurePaymentInitiationRequestJtiIsUUIDv4;
-import net.openid.conformance.condition.rs.FAPIBrazilExtractCertificateSubjectFromIncomingMTLSCertifiate;
-import net.openid.conformance.condition.rs.FAPIBrazilExtractCertificateSubjectFromServerJwks;
-import net.openid.conformance.condition.rs.FAPIBrazilFetchClientOrganizationJwksFromDirectory;
-import net.openid.conformance.condition.rs.FAPIBrazilGenerateGetConsentResponse;
-import net.openid.conformance.condition.rs.FAPIBrazilGenerateGetPaymentConsentResponse;
-import net.openid.conformance.condition.rs.FAPIBrazilGenerateNewConsentResponse;
-import net.openid.conformance.condition.rs.FAPIBrazilGenerateNewPaymentInitiationResponse;
-import net.openid.conformance.condition.rs.FAPIBrazilGenerateNewPaymentsConsentResponse;
 import net.openid.conformance.condition.rs.FAPIBrazilRsPathConstants;
-import net.openid.conformance.condition.rs.FAPIBrazilValidateConsentRequestIat;
-import net.openid.conformance.condition.rs.FAPIBrazilValidateJwtSignatureUsingOrganizationJwks;
-import net.openid.conformance.condition.rs.FAPIBrazilValidatePaymentConsentRequestAud;
-import net.openid.conformance.condition.rs.FAPIBrazilValidatePaymentInitiationRequestAud;
-import net.openid.conformance.condition.rs.FAPIBrazilValidatePaymentInitiationRequestIat;
 import net.openid.conformance.condition.rs.GenerateAccountRequestId;
 import net.openid.conformance.condition.rs.LoadUserInfo;
 import net.openid.conformance.condition.rs.RequireDpopAccessToken;
@@ -1717,182 +1690,6 @@ public abstract class AbstractVCIWalletTest extends net.openid.conformance.fapi2
 			call(sequence(validateSenderConstrainedTokenSteps));
 		}
 		validateResourceEndpointHeaders();
-		return responseEntity;
-	}
-
-	@Override
-	protected Object brazilHandleNewConsentRequest(String requestId, boolean isPayments) {
-		setStatus(Status.RUNNING);
-		call(exec().startBlock("New consent endpoint").mapKey("incoming_request", requestId));
-		env.putBoolean("payments_consent_endpoint_called", isPayments);
-		call(exec().mapKey("token_endpoint_request", requestId));
-		checkMtlsCertificate();
-		call(exec().unmapKey("token_endpoint_request"));
-
-		//Requires method=POST. defined in API docs
-		callAndStopOnFailure(EnsureIncomingRequestMethodIsPost.class);
-
-		checkResourceEndpointRequestForVci(true);
-
-		if (isPayments) {
-			callAndStopOnFailure(FAPIBrazilExtractCertificateSubjectFromServerJwks.class);
-			callAndContinueOnFailure(FAPIBrazilEnsureClientCredentialsScopeContainedPayments.class, ConditionResult.FAILURE);
-			callAndContinueOnFailure(FAPIBrazilExtractPaymentsConsentRequest.class, ConditionResult.FAILURE, "BrazilOB-5.2.2-8");
-			callAndContinueOnFailure(EnsureIncomingRequestContentTypeIsApplicationJwt.class, ConditionResult.FAILURE, "BrazilOB-6.1");
-			callAndContinueOnFailure(ExtractXIdempotencyKeyHeader.class, ConditionResult.FAILURE);
-			//ensure aud equals endpoint url	"BrazilOB-6.1"
-			callAndContinueOnFailure(FAPIBrazilValidatePaymentConsentRequestAud.class, ConditionResult.FAILURE, "RFC7519-4.1.3", "BrazilOB-6.1");
-			//ensure ISS equals TLS certificate organizational unit
-			callAndContinueOnFailure(FAPIBrazilExtractCertificateSubjectFromIncomingMTLSCertifiate.class, ConditionResult.FAILURE, "BrazilOB-6.1");
-			callAndContinueOnFailure(FAPIBrazilEnsureConsentRequestIssEqualsOrganizationId.class, ConditionResult.FAILURE, "BrazilOB-6.1");
-			//ensure jti is uuid	"BrazilOB-6.1"
-			callAndContinueOnFailure(FAPIBrazilEnsureConsentRequestJtiIsUUIDv4.class, ConditionResult.FAILURE, "BrazilOB-6.1");
-			callAndContinueOnFailure(FAPIBrazilValidateConsentRequestIat.class, ConditionResult.FAILURE, "BrazilOB-6.1");
-
-			callAndContinueOnFailure(FAPIBrazilFetchClientOrganizationJwksFromDirectory.class, ConditionResult.FAILURE, "BrazilOB-6.1");
-			env.mapKey("parsed_client_request_jwt", "new_consent_request");
-			callAndContinueOnFailure(FAPIBrazilValidateJwtSignatureUsingOrganizationJwks.class, ConditionResult.FAILURE, "BrazilOB-6.1");
-			env.unmapKey("parsed_client_request_jwt");
-
-		} else {
-			callAndContinueOnFailure(FAPIBrazilEnsureClientCredentialsScopeContainedConsents.class, ConditionResult.FAILURE);
-			callAndContinueOnFailure(FAPIBrazilExtractConsentRequest.class, ConditionResult.FAILURE, "BrazilOB-5.2.2-8");
-		}
-
-		callAndContinueOnFailure(CreateFapiInteractionIdIfNeeded.class, ConditionResult.FAILURE, "FAPI2-IMP-2.1.1");
-
-		ResponseEntity<Object> responseEntity = null;
-		if (isDpopConstrain() && !Strings.isNullOrEmpty(env.getString("resource_endpoint_dpop_nonce_error"))) {
-			callAndContinueOnFailure(CreateResourceEndpointDpopErrorResponse.class, ConditionResult.FAILURE);
-			responseEntity = new ResponseEntity<>(env.getObject("resource_endpoint_response"), headersFromJson(env.getObject("resource_endpoint_response_headers")), HttpStatus.valueOf(env.getInteger("resource_endpoint_response_http_status").intValue()));
-		} else {
-			if (isPayments) {
-				callAndContinueOnFailure(FAPIBrazilGenerateNewPaymentsConsentResponse.class, ConditionResult.FAILURE, "BrazilOB-5.2.2-8");
-				callAndContinueOnFailure(FAPIBrazilSignPaymentConsentResponse.class, ConditionResult.FAILURE, "BrazilOB-6.1-2");
-				String signedConsentResponse = env.getString("signed_consent_response");
-				JsonObject headerJson = env.getObject("consent_response_headers");
-
-				HttpHeaders headers = headersFromJson(headerJson);
-				headers.setContentType(DATAUTILS_MEDIATYPE_APPLICATION_JWT);
-				responseEntity = new ResponseEntity<>(signedConsentResponse, headers, HttpStatus.CREATED);
-			} else {
-				callAndContinueOnFailure(FAPIBrazilGenerateNewConsentResponse.class, ConditionResult.FAILURE, "BrazilOB-5.2.2-8");
-				JsonObject response = env.getObject("consent_response");
-				JsonObject headerJson = env.getObject("consent_response_headers");
-				responseEntity = new ResponseEntity<>(response, headersFromJson(headerJson), HttpStatus.CREATED);
-			}
-			callAndContinueOnFailure(ClearAccessTokenFromRequest.class, ConditionResult.FAILURE);
-		}
-
-		call(exec().unmapKey("incoming_request").endBlock());
-
-		setStatus(Status.WAITING);
-
-		return responseEntity;
-	}
-
-
-	@Override
-	protected Object brazilHandleGetConsentRequest(String requestId, String path, boolean isPayments) {
-		setStatus(Status.RUNNING);
-		call(exec().startBlock("Get consent endpoint").mapKey("incoming_request", requestId));
-		call(exec().mapKey("token_endpoint_request", requestId));
-		checkMtlsCertificate();
-		call(exec().unmapKey("token_endpoint_request"));
-
-
-		checkResourceEndpointRequestForVci(true);
-		callAndContinueOnFailure(CreateFapiInteractionIdIfNeeded.class, ConditionResult.FAILURE, "FAPI2-IMP-2.1.1");
-
-		String requestedConsentId = path.substring(path.lastIndexOf('/') + 1);
-		env.putString("requested_consent_id", requestedConsentId);
-
-		ResponseEntity<Object> responseEntity = null;
-		if (isDpopConstrain() && !Strings.isNullOrEmpty(env.getString("resource_endpoint_dpop_nonce_error"))) {
-			callAndContinueOnFailure(CreateResourceEndpointDpopErrorResponse.class, ConditionResult.FAILURE);
-			responseEntity = new ResponseEntity<>(env.getObject("resource_endpoint_response"), headersFromJson(env.getObject("resource_endpoint_response_headers")), HttpStatus.valueOf(env.getInteger("resource_endpoint_response_http_status").intValue()));
-		} else {
-			if (isPayments) {
-				callAndContinueOnFailure(FAPIBrazilGenerateGetPaymentConsentResponse.class, ConditionResult.FAILURE, "BrazilOB-6.1");
-				callAndContinueOnFailure(FAPIBrazilSignPaymentConsentResponse.class, ConditionResult.FAILURE, "BrazilOB-6.1");
-				String signedConsentResponse = env.getString("signed_consent_response");
-				JsonObject headerJson = env.getObject("consent_response_headers");
-
-				HttpHeaders headers = headersFromJson(headerJson);
-				headers.setContentType(DATAUTILS_MEDIATYPE_APPLICATION_JWT);
-				responseEntity = new ResponseEntity<>(signedConsentResponse, headers, HttpStatus.OK);
-
-			} else {
-				callAndContinueOnFailure(FAPIBrazilGenerateGetConsentResponse.class, ConditionResult.FAILURE, "BrazilOB-5.2.2-8");
-				JsonObject response = env.getObject("consent_response");
-				JsonObject headerJson = env.getObject("consent_response_headers");
-				responseEntity = new ResponseEntity<>(response, headersFromJson(headerJson), HttpStatus.OK);
-			}
-
-			callAndContinueOnFailure(ClearAccessTokenFromRequest.class, ConditionResult.FAILURE);
-		}
-
-		call(exec().unmapKey("incoming_request").endBlock());
-
-		setStatus(Status.WAITING);
-
-		return responseEntity;
-	}
-
-	@Override
-	protected Object brazilHandleNewPaymentInitiationRequest(String requestId) {
-		setStatus(Status.RUNNING);
-
-		call(exec().mapKey("token_endpoint_request", requestId));
-		checkMtlsCertificate();
-		call(exec().unmapKey("token_endpoint_request"));
-
-		call(exec().startBlock("Payment initiation endpoint").mapKey("incoming_request", requestId));
-		//Requires method=POST. defined in API docs
-		callAndContinueOnFailure(EnsureIncomingRequestMethodIsPost.class, ConditionResult.FAILURE);
-
-		checkResourceEndpointRequestForVci(false);
-
-		callAndContinueOnFailure(FAPIBrazilEnsureAuthorizationRequestScopesContainPayments.class, ConditionResult.FAILURE);
-
-		callAndContinueOnFailure(FAPIBrazilExtractPaymentInitiationRequest.class, ConditionResult.FAILURE, "BrazilOB-5.2.2-8");
-		env.mapKey("parsed_client_request_jwt", "payment_initiation_request");
-		callAndContinueOnFailure(FAPIBrazilValidateJwtSignatureUsingOrganizationJwks.class, ConditionResult.FAILURE, "BrazilOB-6.1");
-		env.unmapKey("parsed_client_request_jwt");
-
-		callAndContinueOnFailure(EnsureIncomingRequestContentTypeIsApplicationJwt.class, ConditionResult.FAILURE, "BrazilOB-6.1");
-
-		callAndContinueOnFailure(ExtractXIdempotencyKeyHeader.class, ConditionResult.FAILURE);
-
-		//ensure aud equals endpoint url	"BrazilOB-6.1"
-		callAndContinueOnFailure(FAPIBrazilValidatePaymentInitiationRequestAud.class, ConditionResult.FAILURE, "BrazilOB-6.1");
-		//ensure ISS equals TLS certificate organizational unit
-		callAndContinueOnFailure(FAPIBrazilExtractCertificateSubjectFromIncomingMTLSCertifiate.class, ConditionResult.FAILURE, "BrazilOB-6.1");
-		callAndContinueOnFailure(FAPIBrazilEnsurePaymentInitiationRequestIssEqualsOrganizationId.class, ConditionResult.FAILURE, "BrazilOB-6.1");
-		callAndContinueOnFailure(FAPIBrazilEnsurePaymentInitiationRequestJtiIsUUIDv4.class, ConditionResult.FAILURE, "BrazilOB-6.1");
-		callAndContinueOnFailure(FAPIBrazilValidatePaymentInitiationRequestIat.class, ConditionResult.FAILURE, "BrazilOB-6.1");
-
-
-		ResponseEntity<Object> responseEntity = null;
-		if (isDpopConstrain() && !Strings.isNullOrEmpty(env.getString("resource_endpoint_dpop_nonce_error"))) {
-			callAndContinueOnFailure(CreateResourceEndpointDpopErrorResponse.class, ConditionResult.FAILURE);
-			setStatus(Status.WAITING);
-			responseEntity = new ResponseEntity<>(env.getObject("resource_endpoint_response"), headersFromJson(env.getObject("resource_endpoint_response_headers")), HttpStatus.valueOf(env.getInteger("resource_endpoint_response_http_status").intValue()));
-		} else {
-			callAndContinueOnFailure(FAPIBrazilGenerateNewPaymentInitiationResponse.class, ConditionResult.FAILURE, "BrazilOB-5.2.2-8");
-			callAndContinueOnFailure(FAPIBrazilSignPaymentInitiationResponse.class, ConditionResult.FAILURE, "BrazilOB-6.1");
-			String signedConsentResponse = env.getString("signed_payment_initiation_response");
-			JsonObject headerJson = env.getObject("payment_initiation_response_headers");
-
-			HttpHeaders headers = headersFromJson(headerJson);
-			headers.setContentType(DATAUTILS_MEDIATYPE_APPLICATION_JWT);
-			responseEntity = new ResponseEntity<>(signedConsentResponse, headers, HttpStatus.CREATED);
-
-			callAndContinueOnFailure(ClearAccessTokenFromRequest.class, ConditionResult.FAILURE);
-			resourceEndpointCallComplete();
-		}
-
-		call(exec().unmapKey("incoming_request").endBlock());
 		return responseEntity;
 	}
 
