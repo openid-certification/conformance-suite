@@ -85,7 +85,7 @@ const STYLE_TEXT = `
   padding: 0 var(--space-4);
   font-family: var(--font-sans);
   font-size: var(--fs-14);
-  font-weight: var(--fw-bold);
+  font-weight: var(--fw-medium);
   /* Even-pixel line-height so Inter's cap-height resolves to whole pixels.
      A 16px line-box on 13px (sm), 14px (md), or 15px (lg, overridden below)
      text leaves consistent breathing room and aligns the text baseline with

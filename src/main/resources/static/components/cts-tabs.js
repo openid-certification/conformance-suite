@@ -46,7 +46,7 @@ const STYLE_TEXT = `
   padding: var(--space-3) var(--space-4);
   font-family: inherit;
   font-size: var(--fs-13);
-  font-weight: var(--fw-bold);
+  font-weight: var(--fw-medium);
   color: var(--ink-500);
   cursor: pointer;
   transition: color var(--dur-1) var(--ease-standard),
@@ -75,7 +75,7 @@ const STYLE_TEXT = `
   background: var(--ink-100);
   color: var(--fg-muted);
   font-size: var(--fs-12);
-  font-weight: var(--fw-bold);
+  font-weight: var(--fw-medium);
   line-height: 1.4;
 }
 .oidf-tab-active .oidf-tab-count {

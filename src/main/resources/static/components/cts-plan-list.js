@@ -72,7 +72,7 @@ const STYLE_TEXT = `
     background: var(--ink-50);
     border-bottom: 1px solid var(--border);
     font-size: var(--fs-12);
-    font-weight: var(--fw-bold);
+    font-weight: var(--fw-medium);
     text-transform: uppercase;
     letter-spacing: 0.06em;
     color: var(--fg-soft);
@@ -92,7 +92,7 @@ const STYLE_TEXT = `
   cts-plan-list .planTable .plan-name-link {
     color: var(--fg-link);
     text-decoration: none;
-    font-weight: var(--fw-bold);
+    font-weight: var(--fw-medium);
   }
   cts-plan-list .planTable .plan-name-link:hover {
     text-decoration: underline;

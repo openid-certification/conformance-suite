@@ -77,7 +77,7 @@ const STYLE_TEXT = `
   padding: 0 var(--space-4);
   font-family: var(--font-sans);
   font-size: var(--fs-14);
-  font-weight: var(--fw-bold);
+  font-weight: var(--fw-medium);
   line-height: 1;
   border: 1px solid transparent;
   border-radius: var(--radius-2);

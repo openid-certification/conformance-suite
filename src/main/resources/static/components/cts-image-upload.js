@@ -125,7 +125,7 @@ const STYLE_TEXT = `
   color: var(--fg);
   font-family: var(--font-sans);
   font-size: var(--fs-13);
-  font-weight: var(--fw-bold);
+  font-weight: var(--fw-medium);
   cursor: pointer;
   transition: background var(--dur-1) var(--ease-standard),
     border-color var(--dur-1) var(--ease-standard);
