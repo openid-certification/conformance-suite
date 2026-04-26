@@ -135,21 +135,58 @@ const STYLE_ID = "cts-log-entry-styles";
 // Failure rows get a left-edge red gradient; warning rows the orange
 // equivalent. Inline `<code>` inside the body uses the --ink-50 surface
 // described in the design preview.
+//
+// U3 (2026-04-26): the host establishes a `container-type: inline-size`
+// query so the row reflow tracks the entry's *container* width rather than
+// the viewport. Below 640px (small layout) the grid drops to two visual
+// rows — meta cluster on top, body+actions on the second row, footer/More
+// panel on a third row when present. At >= 640px the existing five-column
+// track resumes via the @container override below. This matches
+// cts-plan-modules.js's container-query precedent.
+//
+// Positioning-context audit: `container-type: inline-size` establishes a
+// containing block for absolute / fixed descendants per the CSS Containment
+// spec. cts-log-entry has no positioned descendants today (badges are
+// static, the More button is static, the cURL button is static). The
+// constraint is forward-looking: any future tooltip or popover added inside
+// an entry will position relative to the entry host, not the viewport.
 const STYLE_TEXT = `
   cts-log-entry {
     display: block;
     border-bottom: 1px solid var(--ink-100);
     font-size: var(--fs-13);
+    container-type: inline-size;
+    container-name: ctsLogEntry;
   }
   cts-log-entry:last-child { border-bottom: 0; }
 
+  /* Default = small layout (no @container required). Applies whenever the
+     wide @container rule below does not match — including in browsers
+     without @container support, which then see the small layout at every
+     width. */
   cts-log-entry .logItem {
     display: grid;
-    grid-template-columns: 110px 70px 60px 1fr auto;
-    gap: var(--space-3);
+    grid-template-columns: 1fr auto;
+    grid-template-areas:
+      "metaRow metaRow"
+      "body    actions"
+      "footer  footer";
+    gap: var(--space-2) var(--space-3);
     padding: var(--space-2) var(--space-3);
     align-items: start;
   }
+  cts-log-entry .logMetaRow {
+    grid-area: metaRow;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2);
+    font-size: var(--fs-12);
+    min-width: 0;
+  }
+  cts-log-entry .logBody { grid-area: body; }
+  cts-log-entry .logActions { grid-area: actions; }
+  cts-log-entry .logFooter { grid-area: footer; }
   cts-log-entry .logItem.is-fail {
     background: linear-gradient(90deg, rgba(164,54,4,0.04), transparent 60%);
   }
@@ -217,7 +254,6 @@ const STYLE_TEXT = `
   }
 
   cts-log-entry .logFooter {
-    grid-column: 4 / -1;
     display: flex;
     flex-direction: column;
     gap: var(--space-2);
@@ -293,6 +329,28 @@ const STYLE_TEXT = `
     white-space: pre-wrap;
     word-break: break-word;
   }
+
+  /* Wide layout. Restores the original five-column track (timestamp /
+     severity / http / body / actions). The .logMetaRow flex wrapper
+     vanishes via display: contents so its three children participate in
+     the parent grid as if the wrapper didn't exist — preserving today's
+     column order without a markup change. */
+  @container ctsLogEntry (min-width: 640px) {
+    cts-log-entry .logItem {
+      grid-template-columns: 110px 70px 60px 1fr auto;
+      grid-template-areas: none;
+      gap: var(--space-3);
+    }
+    cts-log-entry .logMetaRow {
+      display: contents;
+    }
+    cts-log-entry .logBody { grid-area: auto; }
+    cts-log-entry .logActions { grid-area: auto; }
+    cts-log-entry .logFooter {
+      grid-area: auto;
+      grid-column: 4 / -1;
+    }
+  }
 `;
 
 function ensureStylesInjected() {
@@ -304,8 +362,13 @@ function ensureStylesInjected() {
 }
 
 /**
- * Renders a single log entry row in a 5-column grid (timestamp / severity
- * badge / HTTP marker / body / More toggle). Failure rows get a left-edge
+ * Renders a single log entry row. Layout reflows via container queries on the
+ * host: at >= 640px the row is a 5-column grid (timestamp / severity badge /
+ * HTTP marker / body / More toggle); below 640px it collapses to two visual
+ * rows (meta cluster on row 1, body+actions on row 2, More panel on row 3).
+ * Container queries — not viewport media queries — so the entry reflows based
+ * on its container's width, supporting future side-by-side compare views and
+ * narrow rails without coupling to viewport size. Failure rows get a left-edge
  * red gradient; warning rows the orange equivalent. Block-start entries
  * (`entry.blockId` set) gain a 3px orange left border.
  *
@@ -478,11 +541,13 @@ class CtsLogEntry extends LitElement {
 
     return html`
       <div class="${itemClasses.join(" ")}">
-        <div class="logTime">
-          ${entry.time ? new Date(entry.time).toLocaleTimeString() : nothing}
+        <div class="logMetaRow">
+          <div class="logTime">
+            ${entry.time ? new Date(entry.time).toLocaleTimeString() : nothing}
+          </div>
+          <div class="logSeverity">${this._renderSeverityBadges()}</div>
+          <div class="logHttp">${this._renderHttpBadge()}</div>
         </div>
-        <div class="logSeverity">${this._renderSeverityBadges()}</div>
-        <div class="logHttp">${this._renderHttpBadge()}</div>
         <div class="logBody">
           ${entry.src ? html`<span class="logSrc">${entry.src}</span>` : nothing}
           ${entry.msg ? html`<span>${entry.msg}</span>` : nothing}

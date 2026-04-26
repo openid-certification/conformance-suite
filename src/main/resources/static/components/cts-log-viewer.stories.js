@@ -209,6 +209,48 @@ export const MountedFromExistingPage = {
 // before the test runner's listener attaches), so coverage is deferred
 // to the consumer.
 
+// --- U3: container-query reflow at narrow widths ---
+// Plan: docs/plans/2026-04-26-004-feat-log-entry-container-query-reflow-plan.md
+// Renders the viewer at 360px container width so each cts-log-entry triggers
+// its small-layout reflow. Validates that the rail of entries (and any
+// start-block headers) stack legibly without horizontal overflow when the
+// container is narrower than the 640px container-query threshold.
+
+export const MobileContainer = {
+  decorators: [
+    withMockFetch("/api/log/", MOCK_LOG_ENTRIES),
+    (storyFn) => html`
+      <div
+        style="width: 360px; max-width: 100%; border: 1px dashed var(--ink-300); resize: horizontal; overflow: auto;"
+      >
+        ${storyFn()}
+      </div>
+    `,
+  ],
+  render: () => html`<cts-log-viewer test-id="test-mobile-001"></cts-log-viewer>`,
+  async play({ canvasElement }) {
+    await waitForLogLoad(canvasElement);
+
+    const entries = canvasElement.querySelectorAll(".logItem");
+    expect(entries.length).toBeGreaterThan(0);
+
+    // Every entry's container query is satisfied (host width < 640px), so
+    // each row should be on the small grid (1fr auto) — not the wide
+    // 5-track layout. Sample the first one.
+    const firstItem = entries[0];
+    const style = getComputedStyle(firstItem);
+    const tracks = style.gridTemplateColumns.split(/\s+/).filter(Boolean);
+    expect(tracks.length).toBe(2);
+
+    // No horizontal overflow on the entries stream — the regression this
+    // story is meant to catch.
+    const stream = canvasElement.querySelector(".logEntries") ?? entries[0].parentElement;
+    if (stream) {
+      expect(stream.scrollWidth).toBeLessThanOrEqual(stream.clientWidth);
+    }
+  },
+};
+
 export const DisconnectStopsPolling = {
   decorators: [
     (storyFn) => {
