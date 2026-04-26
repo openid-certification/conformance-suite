@@ -17,6 +17,7 @@
 
     <script src="/vendor/lodash/js/lodash.min.js"></script>
     <script src="/vendor/clipboard/js/clipboard.min.js"></script>
+    <script src="/js/cts-clipboard-resolver.js"></script>
 
     <script type="text/javascript" src="js/fapi.ui.js"></script>
     <script>window.litDisableBundleWarning = true;</script>
@@ -124,19 +125,12 @@
             // if cts-button ever switches to shadow DOM (the selector stops
             // matching) instead of silently breaking copy. See
             // components/cts-button.js JSDoc for the light-DOM dependency note.
+            // Shared resolver lives in /js/cts-clipboard-resolver.js so the
+            // "prefer .value over textContent" rule (needed because Monaco
+            // virtualises long content) is defined in one place across
+            // log-detail.html, logs.html, and plans.html.
             var clipboard = new ClipboardJS('.btn-clipboard > button', {
-                text: function(trigger) {
-                    var host = trigger.closest('.btn-clipboard');
-                    var sel = host && host.getAttribute('data-clipboard-target');
-                    var target = sel ? document.querySelector(sel) : null;
-                    if (!target) return '';
-                    // cts-json-editor (and <input>/<textarea>) expose the
-                    // copy source as `.value`; Monaco virtualises long
-                    // content so `textContent` may not contain the full
-                    // JSON. Prefer `.value` whenever the target carries it.
-                    if (typeof target.value === 'string') return target.value;
-                    return target.textContent;
-                }
+                text: window.ctsResolveClipboardJsonText
             });
             clipboard.on('success', function(e) {
                 console.log(e);
