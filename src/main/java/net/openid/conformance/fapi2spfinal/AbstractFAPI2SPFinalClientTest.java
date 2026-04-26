@@ -78,6 +78,7 @@ import net.openid.conformance.condition.as.GenerateServerConfigurationMTLS;
 import net.openid.conformance.condition.as.LoadServerJWKs;
 import net.openid.conformance.condition.as.SendAuthorizationResponseWithResponseModeQuery;
 import net.openid.conformance.condition.as.SetRsaAltServerJwks;
+import net.openid.conformance.condition.as.SetTokenEndpointAuthMethodsSupportedToAttestJwtClientAuthOnly;
 import net.openid.conformance.condition.as.SetTokenEndpointAuthMethodsSupportedToPrivateKeyJWTOnly;
 import net.openid.conformance.condition.as.SignIdToken;
 import net.openid.conformance.condition.as.ValidateAuthorizationCode;
@@ -155,6 +156,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 import net.openid.conformance.variant.VariantNotApplicableWhen;
 import net.openid.conformance.variant.VariantParameters;
 import net.openid.conformance.variant.VariantSetup;
+import net.openid.conformance.vci10wallet.condition.clientattestation.VCIValidateClientAuthenticationWithClientAttestationJWT;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -1428,6 +1430,12 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 		validateClientAuthenticationSteps = ValidateClientAuthenticationWithPrivateKeyJWT.class;
 	}
 
+	@VariantSetup(parameter = ClientAuthType.class, value = "client_attestation")
+	public void setupClientAttestation() {
+		addTokenEndpointAuthMethodSupported = SetTokenEndpointAuthMethodsSupportedToAttestJwtClientAuthOnly.class;
+		validateClientAuthenticationSteps = VCIValidateClientAuthenticationWithClientAttestationJWT.class;
+	}
+
 	protected void initProfileBehavior(FAPI2ClientProfileBehavior behavior) {
 		profileBehavior = behavior;
 		profileBehavior.setModule(this);
@@ -1466,6 +1474,16 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 	@VariantSetup(parameter = FAPI2FinalOPProfile.class, value = "cbuae")
 	public void setupCbuae() {
 		initProfileBehavior(new CbuaeClientProfileBehavior());
+	}
+
+	@VariantSetup(parameter = FAPI2FinalOPProfile.class, value = "vci")
+	public void setupVci() {
+		initProfileBehavior(new VCIClientProfileBehavior());
+	}
+
+	@VariantSetup(parameter = FAPI2FinalOPProfile.class, value = "vci_haip")
+	public void setupVciHaip() {
+		initProfileBehavior(new VCIHaipClientProfileBehavior());
 	}
 
 	@VariantSetup(parameter = FAPIResponseMode.class, value = "plain_response")
