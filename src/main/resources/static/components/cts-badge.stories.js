@@ -71,7 +71,7 @@ export const Running = {
     expect(badge).toBeTruthy();
     expect(badge.classList.contains("b-run")).toBe(true);
 
-    // Spinner is the inline SVG, not a `bi bi-arrow-clockwise` icon.
+    // Spinner is rendered as an inline namespaced <svg>, not a coolicons glyph.
     const spin = badge.querySelector(".cts-badge-spin");
     expect(spin).toBeTruthy();
     const svg = spin.querySelector("svg");
@@ -81,9 +81,6 @@ export const Running = {
     expect(svg.namespaceURI).toBe("http://www.w3.org/2000/svg");
     expect(svg.querySelector("circle")).toBeTruthy();
     expect(svg.querySelector("path")).toBeTruthy();
-
-    // No bootstrap arrow-clockwise icon.
-    expect(badge.querySelector("i.bi-arrow-clockwise")).toBeFalsy();
 
     // Bootstrap legacy class must NOT leak through.
     expect(badge.classList.contains("bg-info")).toBe(false);
@@ -134,13 +131,11 @@ export const RunningIgnoresIconAttribute = {
     expect(badge).toBeTruthy();
     expect(badge.classList.contains("b-run")).toBe(true);
 
-    // Spinner present.
+    // Spinner present — and the running variant suppresses the icon
+    // attribute, so even when icon="arrows-reload-01" is passed the
+    // glyph does NOT also render alongside the spinner.
     expect(badge.querySelector(".cts-badge-spin")).toBeTruthy();
-
-    // No `bi bi-arrow-clockwise` icon, even though icon="arrows-reload-01"
-    // was passed.
-    expect(badge.querySelector("i.bi-arrow-clockwise")).toBeFalsy();
-    expect(badge.querySelector("i.bi")).toBeFalsy();
+    expect(badge.querySelector("cts-icon")).toBeNull();
   },
 };
 

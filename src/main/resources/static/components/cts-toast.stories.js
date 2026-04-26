@@ -62,7 +62,7 @@ export const OkStatic = {
 /**
  * Happy path: clicking the dismiss button removes the toast immediately
  * and dispatches `cts-toast-dismiss`. The close glyph is a Bootstrap Icons
- * `bi-x` element (not a literal `×` character) so it centres optically
+ * `cts-icon` element (not a literal `×` character) so it centres optically
  * inside the 20×20 button.
  */
 export const Dismissible = {
@@ -171,7 +171,7 @@ export const StackedToasts = {
 
 /**
  * Edge case: `kind="error"` swaps the green pass rule for the rust-400
- * fail rule and renders the `bi-x-circle` glyph instead of `bi-check-circle`.
+ * fail rule and renders the `close-circle` glyph instead of `circle-check`.
  */
 export const ErrorKind = {
   render: () => html`
@@ -195,7 +195,7 @@ export const ErrorKind = {
     const icon = toast.querySelector("cts-icon");
     expect(icon.getAttribute("name")).toBe("close-circle");
 
-    // The bi-x-circle glyph is rendered by cts-icon as <cts-icon name="close-circle"></cts-icon>.
+    // Failure variants render the close-circle glyph via cts-icon.
     const glyph = toast.querySelector("span.bi");
     expect(glyph).toBeTruthy();
     expect(glyph.classList.contains("close-circle")).toBe(true);

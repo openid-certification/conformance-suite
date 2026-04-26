@@ -91,9 +91,6 @@ const STYLE_TEXT = `
     text-transform: none;
     letter-spacing: 0;
   }
-  cts-badge .badge i.bi {
-    font-size: 11px;
-  }
   cts-badge .b-pass {
     background: var(--status-pass-bg);
     color: var(--status-pass);
@@ -220,7 +217,7 @@ function buildSpinner() {
  *
  * `running` automatically renders an inline SVG spinner instead of any
  * `icon` attribute, matching the design archive's "perfectly symmetric
- * circular spinner" decision (no `bi bi-arrow-clockwise` icon).
+ * circular spinner" decision (no static glyph).
  *
  * Utility variants `primary`, `secondary`, `danger`, and `info-subtle`
  * are retained for non-status uses (filter emphasis, requirement chips,

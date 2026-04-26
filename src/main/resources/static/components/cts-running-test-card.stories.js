@@ -38,12 +38,9 @@ export const Running = {
     expect(badge.getAttribute("variant")).toBe("running");
 
     // The running variant renders the design-system spinning circular SVG
-    // (an inline <svg> wrapped in .cts-badge-spin), NOT the legacy
-    // `bi bi-arrow-clockwise` glyph.
+    // (an inline <svg> wrapped in .cts-badge-spin).
     const spinner = canvasElement.querySelector("cts-badge .cts-badge-spin svg");
     expect(spinner).toBeTruthy();
-    const legacyGlyph = canvasElement.querySelector(".bi-arrow-clockwise");
-    expect(legacyGlyph).toBeNull();
 
     // Created date is rendered
     expect(canvas.getByText("Created:")).toBeInTheDocument();

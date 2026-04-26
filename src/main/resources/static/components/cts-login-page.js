@@ -167,7 +167,7 @@ const STYLE_TEXT = `
   align-items: center;
   gap: var(--space-2);
 }
-.oidf-login-brand__pillars .bi {
+.oidf-login-brand__pillars cts-icon {
   color: var(--orange-300);
   flex: 0 0 auto;
 }

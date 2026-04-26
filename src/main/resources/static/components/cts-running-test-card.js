@@ -112,8 +112,7 @@ function injectStyles() {
  * `var(--dur-3) var(--ease-standard)` when the prop changes.
  *
  * The running-status spinner is provided by cts-badge[variant="running"]
- * (a 1.1s `currentColor` SVG arc). The legacy `bi bi-arrow-clockwise` glyph
- * is no longer rendered.
+ * (a 1.1s `currentColor` SVG arc). A static glyph is not rendered.
  *
  * @property {object} test - Test instance object; expects `_id`, `testName`,
  *   `created`, `status`, `variant`, `version`, `owner`.

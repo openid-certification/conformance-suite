@@ -544,10 +544,9 @@ export const StaticBackdrop = {
 };
 
 /**
- * Footer-button icon support. Renders a `<span class="bi bi-...">` inside
- * the button. The private-link modal on plan-detail relied on a pre-MR
- * box-arrow-in-right icon on its Copy button; restoring that affordance
- * drove this feature.
+ * Footer-button icon support. Renders a `<cts-icon name="...">` inside
+ * the button. The private-link modal on plan-detail relied on an arrow
+ * icon on its Copy button; restoring that affordance drove this feature.
  */
 export const FooterButtonsWithIcon = {
   render: () => html`
@@ -591,7 +590,7 @@ export const FooterButtonsWithIcon = {
 
 /**
  * Unsanitizable icon values must be dropped entirely — we do NOT render
- * `<span class="bi bi-">` which would show as a broken invisible icon. Ensures
+ * `<cts-icon name="">` which would resolve to an empty fetch. Ensures
  * no HTML/class injection via the descriptor string.
  */
 export const FooterButtonsIconRejected = {

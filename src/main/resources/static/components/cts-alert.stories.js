@@ -81,7 +81,7 @@ export const Danger = {
 
 /**
  * Setting `dismissible` renders a close button (icon-only ghost button with
- * `aria-label="Close"` and a `bi-x` glyph). Clicking it removes the alert
+ * `aria-label="Close"` and a `cts-icon name="close-md"`). Clicking it removes the alert
  * from the DOM and dispatches a `cts-alert-dismissed` event that bubbles
  * for parent listeners.
  *
