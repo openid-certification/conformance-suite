@@ -190,4 +190,95 @@ test.describe("ClipboardJS copy buttons render text from cts-button hosts", () =
   // .writeText (not ClipboardJS). Equivalent end-to-end coverage lives in
   // cts-token-manager.stories.js (CreateTemporaryToken / CreatePermanentToken
   // / CopyTokenClipboardFailure / CopyTokenClipboardAbsent).
+
+  // Fallback-path coverage: when Monaco's loader is blocked the wrapper
+  // renders a real <textarea> instead. The shared resolver in
+  // /js/cts-clipboard-resolver.js still has to read `.value` (now off the
+  // textarea) for the copy to land. Without these tests, only
+  // schedule-test-monaco.spec.js exercises the loader-blocked path — and
+  // it doesn't touch the configModal copy button on plans.html / logs.html.
+
+  test("plans.html (Monaco fallback): copy button still copies #config.value", async ({ page }) => {
+    await installClipboardSpy(page);
+    await setupFailFast(page);
+
+    // Block Monaco BEFORE goto so the wrapper falls back on first render.
+    await page.route("**/vendor/monaco-editor/**", (route) =>
+      route.fulfill({ status: 503, body: "" }),
+    );
+
+    await page.route("**/api/plan?*", (route) => {
+      const envelope = wrapDataTablesResponse([], route.request().url());
+      return route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(envelope),
+      });
+    });
+
+    await setupCommonRoutes(page);
+
+    await page.goto("/plans.html");
+
+    // Wait for the fallback textarea — Monaco MUST NOT mount.
+    const fallback = page.locator("cts-json-editor#config .oidf-json-editor-fallback");
+    await expect(fallback).toBeAttached({ timeout: 10000 });
+    await expect(page.locator("cts-json-editor#config .monaco-editor")).toHaveCount(0);
+
+    await page.evaluate(() => {
+      const config = /** @type {any} */ (document.getElementById("config"));
+      if (!config) throw new Error("#config missing");
+      config.value = '{"server.issuer":"https://op.example.com"}';
+      const modalEl = document.getElementById("configModal");
+      /** @type {any} */ (modalEl).show();
+    });
+
+    const copyBtn = page.locator("cts-button.btn-clipboard > button");
+    await expect(copyBtn).toBeVisible();
+    await copyBtn.click();
+
+    await expect
+      .poll(() => readCopiedText(page))
+      .toBe('{"server.issuer":"https://op.example.com"}');
+  });
+
+  test("logs.html (Monaco fallback): copy button still copies #config.value", async ({ page }) => {
+    await installClipboardSpy(page);
+    await setupFailFast(page);
+
+    await page.route("**/vendor/monaco-editor/**", (route) =>
+      route.fulfill({ status: 503, body: "" }),
+    );
+
+    await page.route("**/api/log?*", (route) => {
+      const envelope = wrapDataTablesResponse(MOCK_LOG_LIST, route.request().url());
+      return route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(envelope),
+      });
+    });
+
+    await setupCommonRoutes(page);
+
+    await page.goto("/logs.html");
+
+    const fallback = page.locator("cts-json-editor#config .oidf-json-editor-fallback");
+    await expect(fallback).toBeAttached({ timeout: 10000 });
+    await expect(page.locator("cts-json-editor#config .monaco-editor")).toHaveCount(0);
+
+    await page.evaluate(() => {
+      const config = /** @type {any} */ (document.getElementById("config"));
+      if (!config) throw new Error("#config missing");
+      config.value = '{"client.client_id":"test-client-id"}';
+      const modalEl = document.getElementById("configModal");
+      /** @type {any} */ (modalEl).show();
+    });
+
+    const copyBtn = page.locator("cts-button.btn-clipboard > button");
+    await expect(copyBtn).toBeVisible();
+    await copyBtn.click();
+
+    await expect.poll(() => readCopiedText(page)).toBe('{"client.client_id":"test-client-id"}');
+  });
 });
