@@ -152,18 +152,22 @@ export const ViewConfig = {
     // <cts-json-editor> — Monaco virtualises rendered content, so we read
     // the editor's `.value` property rather than asserting on textContent.
     // The cts-modal moves its slotted children into an inner <dialog>, so
-    // search via document rather than canvasElement to be robust.
-    await waitFor(
-      () => {
-        const editor = /** @type {any} */ (
-          document.querySelector("cts-json-editor.config-json")
-        );
-        if (!editor) throw new Error("cts-json-editor.config-json not yet attached");
-        expect(editor.value).toContain("server.issuer");
-        expect(editor.value).toContain("https://op.example.com");
-      },
-      { timeout: 10000 },
+    // search via document rather than canvasElement to be robust. Wait
+    // for host attachment first, then `whenReady()` instead of polling
+    // for inner DOM — keeps render-timing details inside the wrapper.
+    const editor = /** @type {any} */ (
+      await waitFor(
+        () => {
+          const el = document.querySelector("cts-json-editor.config-json");
+          if (!el) throw new Error("cts-json-editor.config-json not yet attached");
+          return el;
+        },
+        { timeout: 10000 },
+      )
     );
+    await editor.whenReady();
+    expect(editor.value).toContain("server.issuer");
+    expect(editor.value).toContain("https://op.example.com");
 
     // Plan ID shown in the modal
     const canvas = within(canvasElement);

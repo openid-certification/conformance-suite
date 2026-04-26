@@ -1,5 +1,5 @@
 import { html } from "lit";
-import { expect, waitFor } from "storybook/test";
+import { expect } from "storybook/test";
 import "./cts-json-editor.js";
 
 const SAMPLE_JSON = JSON.stringify(
@@ -31,23 +31,17 @@ export default {
 };
 
 /**
- * Resolve a deferred until either Monaco mounts (`.monaco-editor`) or the
- * fallback textarea renders. Both are valid story-success terminal states
- * (the fallback path is a first-class behaviour, not a degraded one).
+ * Resolve a deferred once the `<cts-json-editor>` inside the canvas has
+ * an interactive surface — either Monaco or the fallback textarea. Both
+ * are valid terminal states; the helper just delegates to the primitive's
+ * own `whenReady()` Promise so stories stay agnostic to render timing.
  * @param {Element} canvasElement
  * @returns {Promise<{kind: "monaco"|"fallback", el: Element}>}
  */
 async function waitForReady(canvasElement) {
-  return waitFor(
-    () => {
-      const monaco = canvasElement.querySelector(".monaco-editor");
-      if (monaco) return { kind: "monaco", el: monaco };
-      const fallback = canvasElement.querySelector(".oidf-json-editor-fallback");
-      if (fallback) return { kind: "fallback", el: fallback };
-      throw new Error("cts-json-editor not yet ready");
-    },
-    { timeout: 10000 },
-  );
+  const host = /** @type {any} */ (canvasElement.querySelector("cts-json-editor"));
+  if (!host) throw new Error("cts-json-editor host not found in canvas");
+  return host.whenReady();
 }
 
 /**
@@ -155,6 +149,24 @@ export const ValueRoundTrips = {
     // Synchronous — the setter writes to Monaco / fallback and updates
     // the internal field eagerly.
     expect(host.value).toBe(next);
+  },
+};
+
+export const WhenReadyResolvesWithSurface = {
+  render: () => html`<cts-json-editor aria-label="Test plan configuration JSON"></cts-json-editor>`,
+  async play({ canvasElement }) {
+    // The primitive exposes `whenReady()` so consumers don't have to know
+    // whether the Monaco surface or the fallback textarea is the active
+    // implementation — both resolve to the same `{kind, el}` shape.
+    const host = /** @type {any} */ (canvasElement.querySelector("cts-json-editor"));
+    const ready = await host.whenReady();
+    expect(["monaco", "fallback"]).toContain(ready.kind);
+    expect(ready.el).toBeTruthy();
+    expect(ready.el.isConnected).toBe(true);
+    // Awaiting the same Promise after first resolution must yield the same
+    // result; consumers may call whenReady() any number of times.
+    const second = await host.whenReady();
+    expect(second).toBe(ready);
   },
 };
 

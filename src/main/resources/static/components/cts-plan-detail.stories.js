@@ -429,14 +429,16 @@ export const ActionsViewConfig = {
     // The editor is the only way the plan reaches the user — assert via
     // its `.value` property; Monaco's text content is virtualised so
     // `textContent` may not contain the full JSON until the user scrolls.
-    const configJson = await waitFor(() => {
-      const el = /** @type {any} */ (canvasElement.querySelector("cts-json-editor.config-json"));
-      if (!el) throw new Error("cts-json-editor.config-json not yet attached");
-      const ready =
-        el.querySelector(".monaco-editor") || el.querySelector(".oidf-json-editor-fallback");
-      if (!ready) throw new Error("cts-json-editor host not yet rendered");
-      return el;
-    });
+    // `whenReady()` resolves regardless of whether Monaco mounted or the
+    // fallback textarea took over; both expose `.value` identically.
+    const configJson = /** @type {any} */ (
+      await waitFor(() => {
+        const el = canvasElement.querySelector("cts-json-editor.config-json");
+        if (!el) throw new Error("cts-json-editor.config-json not yet attached");
+        return el;
+      })
+    );
+    await configJson.whenReady();
     expect(configJson.getAttribute("readonly")).not.toBeNull();
     expect(configJson.value).toContain("server.issuer");
     expect(configJson.value).toContain("https://op.example.com");
