@@ -119,7 +119,7 @@ const STYLE_TEXT = `
 }
 .oidf-dashboard-tile-label {
   font-family: var(--font-sans);
-  font-weight: var(--fw-bold);
+  font-weight: var(--fw-medium);
   font-size: var(--fs-15);
   line-height: var(--lh-snug);
   color: var(--fg);
