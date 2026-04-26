@@ -92,7 +92,6 @@ import net.openid.conformance.condition.as.SendAuthorizationResponseWithResponse
 import net.openid.conformance.condition.as.SetRsaAltServerJwks;
 import net.openid.conformance.condition.as.SetTokenEndpointAuthMethodsSupportedToAttestJwtClientAuthOnly;
 import net.openid.conformance.condition.as.SetTokenEndpointAuthMethodsSupportedToPrivateKeyJWTOnly;
-import net.openid.conformance.condition.as.SignIdToken;
 import net.openid.conformance.condition.as.ValidateAuthorizationCode;
 import net.openid.conformance.condition.as.ValidateClientAssertionAudClaimIsIssuerAsString;
 import net.openid.conformance.condition.as.ValidateClientAssertionClaims;
@@ -2477,15 +2476,6 @@ public abstract class AbstractVCIWalletTest extends net.openid.conformance.fapi2
 	}
 
 	@Override
-	protected void issueIdToken(boolean isAuthorizationEndpoint) {
-		prepareIdTokenClaims(isAuthorizationEndpoint);
-
-		signIdToken();
-
-		encryptIdToken(isAuthorizationEndpoint);
-	}
-
-	@Override
 	protected void issueAccessToken() {
 		callAndStopOnFailure(generateSenderConstrainedAccessToken);
 		callAndContinueOnFailure(GenerateAccessTokenExpiration.class, ConditionResult.INFO);
@@ -2527,27 +2517,6 @@ public abstract class AbstractVCIWalletTest extends net.openid.conformance.fapi2
 
 		skipIfMissing(null, new String[]{"requested_id_token_acr_values"}, ConditionResult.INFO,
 			AddACRClaimToIdTokenClaims.class, ConditionResult.FAILURE, "OIDCC-3.1.3.7-12");
-	}
-
-	@Override
-	protected void signIdToken() {
-		callAndStopOnFailure(SignIdToken.class);
-
-		addCustomSignatureOfIdToken();
-	}
-
-	/**
-	 * This method does not actually encrypt id_tokens, even when id_token_encrypted_response_alg is set
-	 * "5.2.3.1.  ID Token as detached signature" reads:
-	 * "5. shall support both signed and signed & encrypted ID Tokens."
-	 * So an implementation MUST support non-encrypted id_tokens too and we do NOT allow testers to run all tests with id_token
-	 * encryption enabled, encryption will be enabled only for certain tests and the rest will return non-encrypted id_tokens.
-	 * Second client will be used for encrypted id_token tests. First client does not need to have an encryption key
-	 *
-	 * @param isAuthorizationEndpoint
-	 */
-	@Override
-	protected void encryptIdToken(boolean isAuthorizationEndpoint) {
 	}
 
 	@Override
