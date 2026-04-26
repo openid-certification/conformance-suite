@@ -34,6 +34,7 @@
     <script type="module" src="/components/cts-badge.js"></script>
     <script type="module" src="/components/cts-button.js"></script>
     <script type="module" src="/components/cts-alert.js"></script>
+    <script type="module" src="/components/cts-json-editor.js"></script>
 
 </head>
 <body>
@@ -1932,8 +1933,7 @@
                         </cts-tab-panel>
 
                         <cts-tab-panel label="JSON" id="JSONInput">
-                            <textarea autocomplete="off" autocorrect="off" autocapitalize="off"
-                                      spellcheck="false" id="config" placeholder="{JSON data}"></textarea>
+                            <cts-json-editor id="config" aria-label="Test plan configuration JSON" placeholder="{JSON data}"></cts-json-editor>
                         </cts-tab-panel>
                     </cts-tabs>
                 </div>
