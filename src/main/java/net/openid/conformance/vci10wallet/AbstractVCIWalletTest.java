@@ -308,6 +308,9 @@ import java.util.concurrent.TimeUnit;
 @VariantConfigurationFields(parameter = ClientAuthType.class, value = "private_key_jwt", configurationFields = {
 	"client.jwks"
 })
+@VariantHidesConfigurationFields(parameter = FAPI2FinalOPProfile.class, value = "vci_haip", configurationFields = {
+	"vci.key_attestation_jwks"
+})
 @VariantNotApplicableWhen(
 	parameter = VCICredentialOfferParameterVariant.class,
 	values = {"by_value", "by_reference"},  // all values
