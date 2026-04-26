@@ -1,7 +1,9 @@
 package net.openid.conformance.fapi2spfinal;
 
 import net.openid.conformance.condition.AbstractCondition;
+import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.Condition.ConditionResult;
+import net.openid.conformance.condition.client.BuildRequestObjectByReferenceRedirectToAuthorizationEndpointWithoutDuplicates;
 import net.openid.conformance.condition.client.CheckDiscEndpointGrantTypesSupportedContainsAuthorizationCode;
 import net.openid.conformance.condition.client.CheckDiscEndpointTokenEndpointAuthMethodsSupportedContainsPrivateKeyOrTlsClientOrAttestation;
 import net.openid.conformance.condition.client.EnsureContentTypeJson;
@@ -80,6 +82,15 @@ public class VCIProfileBehavior extends FAPI2ProfileBehavior {
 			callAndContinueOnFailure(CheckDiscEndpointGrantTypesSupportedContainsAuthorizationCode.class, ConditionResult.FAILURE);
 			call(new VCIDiscoveryEndpointChecks());
 		}
+	}
+
+	@Override
+	public Class<? extends Condition> getPARRedirectBuilderCondition() {
+		// FAPI2-SP-FINAL-5.3.3.2-6 / PAR-4: when PAR is used the auth redirect must
+		// contain only client_id and request_uri. The lenient default builder includes
+		// duplicates for compatibility with non-strict ASs; VCI / VCI HAIP wallets are
+		// strict, so use the WithoutDuplicates variant here.
+		return BuildRequestObjectByReferenceRedirectToAuthorizationEndpointWithoutDuplicates.class;
 	}
 
 	@Override

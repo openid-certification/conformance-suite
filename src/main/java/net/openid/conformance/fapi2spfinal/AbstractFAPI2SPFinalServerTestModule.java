@@ -20,7 +20,6 @@ import net.openid.conformance.condition.client.AddNbfToRequestObject;
 import net.openid.conformance.condition.client.AddNonceToAuthorizationEndpointRequest;
 import net.openid.conformance.condition.client.AddPlainErrorResponseAsAuthorizationEndpointResponseForJARM;
 import net.openid.conformance.condition.client.AddStateToAuthorizationEndpointRequest;
-import net.openid.conformance.condition.client.BuildRequestObjectByReferenceRedirectToAuthorizationEndpoint;
 import net.openid.conformance.condition.client.BuildRequestObjectByValueRedirectToAuthorizationEndpoint;
 import net.openid.conformance.condition.client.BuildRequestObjectPostToPAREndpoint;
 import net.openid.conformance.condition.client.BuildUnsignedPAREndpointRequest;
@@ -1189,7 +1188,7 @@ public abstract class AbstractFAPI2SPFinalServerTestModule extends AbstractRedir
 
 	protected void performPARRedirectWithRequestUri() {
 		eventLog.startBlock(currentClientString() + "Make request to authorization endpoint");
-		callAndStopOnFailure(BuildRequestObjectByReferenceRedirectToAuthorizationEndpoint.class, "PAR-4");
+		callAndStopOnFailure(profileBehavior.getPARRedirectBuilderCondition(), "PAR-4");
 		performRedirect();
 	}
 

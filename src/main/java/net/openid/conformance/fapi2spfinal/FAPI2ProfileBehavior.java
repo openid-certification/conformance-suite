@@ -4,6 +4,7 @@ import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.condition.client.AddFAPIAuthDateToResourceEndpointRequest;
+import net.openid.conformance.condition.client.BuildRequestObjectByReferenceRedirectToAuthorizationEndpoint;
 import net.openid.conformance.condition.client.AddFAPIInteractionIdToResourceEndpointRequest;
 import net.openid.conformance.condition.client.AddIpV4FapiCustomerIpAddressToResourceEndpointRequest;
 import net.openid.conformance.condition.client.CheckDiscEndpointGrantTypesSupportedContainsAuthorizationCode;
@@ -92,6 +93,19 @@ public class FAPI2ProfileBehavior {
 
 	public boolean shouldEncryptRequestObject(boolean isPar) {
 		return false;
+	}
+
+	/**
+	 * The condition that builds the auth-endpoint redirect URL after PAR. Default returns
+	 * the lenient builder that includes the {@code response_type / scope / redirect_uri /
+	 * client_id} duplicates alongside {@code request_uri}, matching the long-standing
+	 * suite behavior most ASs tolerate. Profiles that pair against strict FAPI2-SP
+	 * authorization endpoints (e.g. VCI / VCI HAIP) override to return the
+	 * {@code WithoutDuplicates} variant so the redirect contains only {@code client_id}
+	 * and {@code request_uri} per FAPI2-SP-FINAL-5.3.3.2-6 / PAR-4.
+	 */
+	public Class<? extends Condition> getPARRedirectBuilderCondition() {
+		return BuildRequestObjectByReferenceRedirectToAuthorizationEndpoint.class;
 	}
 
 	// --- Action methods returning ConditionSequence (null = no-op) ---
