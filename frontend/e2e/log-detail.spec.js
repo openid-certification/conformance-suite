@@ -308,14 +308,14 @@ test.describe("log-detail.html — Log Detail", () => {
     await expect(moreInfo).toBeVisible();
 
     // Chevron should point up when expanded
-    await expect(moreBtn.locator(".bi-chevron-up")).toBeVisible();
+    await expect(moreBtn.locator('cts-icon[name="chevron-up"]')).toBeVisible();
 
     // Click again to collapse
     await moreBtn.click();
     await expect(moreInfo).toBeHidden();
 
     // Chevron should point down when collapsed
-    await expect(moreBtn.locator(".bi-chevron-down")).toBeVisible();
+    await expect(moreBtn.locator('cts-icon[name="chevron-down"]')).toBeVisible();
   });
 
   // --- cts-alert banner visibility transitions ---
