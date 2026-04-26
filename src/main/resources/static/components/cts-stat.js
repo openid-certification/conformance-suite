@@ -42,7 +42,7 @@ const STYLE_TEXT = `
 }
 .oidf-stat-value {
   font-family: var(--font-display);
-  font-weight: var(--fw-black);
+  font-weight: var(--fw-bold);
   font-size: var(--fs-32);
   line-height: var(--lh-tight);
   color: var(--fg);

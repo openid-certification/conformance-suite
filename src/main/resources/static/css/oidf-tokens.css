@@ -183,14 +183,13 @@
   --lh-base:  1.5;
   --lh-loose: 1.65;
 
-  /* Weights — Inter Variable covers 100..900 continuously; the four named cuts
+  /* Weights — Inter Variable covers 100..900 continuously; the three named cuts
      below match the discrete weights the design system actually uses. Medium
      (500) carries interactive UI controls — buttons, badges, tabs, navlinks —
      so they sit clearly above body copy without competing with bold headings. */
   --fw-regular: 400;
   --fw-medium:  500;
   --fw-bold:    700;
-  --fw-black:   900;
 
   /* ---- Spacing scale (4px base) ---- */
   --space-0: 0;
@@ -251,7 +250,7 @@ body { margin: 0; }
 
 h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-display);
-  font-weight: var(--fw-black);
+  font-weight: var(--fw-bold);
   color: var(--fg);
   margin: 0;
   letter-spacing: -0.01em;
@@ -283,9 +282,9 @@ a:hover { color: var(--orange-600); }
 ::selection { background: var(--orange-200); color: var(--ink-900); }
 
 /* Utility text styles you can reach for from JSX */
-.t-display   { font-family: var(--font-display); font-weight: var(--fw-black); font-size: var(--fs-56); line-height: var(--lh-tight); letter-spacing: -0.015em; }
-.t-title     { font-family: var(--font-display); font-weight: var(--fw-black); font-size: var(--fs-32); line-height: var(--lh-tight); }
-.t-h1        { font-family: var(--font-display); font-weight: var(--fw-black); font-size: var(--fs-28); line-height: var(--lh-tight); }
+.t-display   { font-family: var(--font-display); font-weight: var(--fw-bold); font-size: var(--fs-56); line-height: var(--lh-tight); letter-spacing: -0.015em; }
+.t-title     { font-family: var(--font-display); font-weight: var(--fw-bold); font-size: var(--fs-32); line-height: var(--lh-tight); }
+.t-h1        { font-family: var(--font-display); font-weight: var(--fw-bold); font-size: var(--fs-28); line-height: var(--lh-tight); }
 .t-h2        { font-family: var(--font-sans);    font-weight: var(--fw-bold);  font-size: var(--fs-20); line-height: var(--lh-snug); }
 .t-h3        { font-family: var(--font-sans);    font-weight: var(--fw-bold);  font-size: var(--fs-16); line-height: var(--lh-snug); }
 .t-body      { font-family: var(--font-sans);    font-weight: var(--fw-regular); font-size: var(--fs-14); line-height: var(--lh-base); }

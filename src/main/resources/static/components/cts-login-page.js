@@ -140,7 +140,7 @@ const STYLE_TEXT = `
 .oidf-login-brand__headline {
   margin: 0;
   font-family: var(--font-display);
-  font-weight: var(--fw-black);
+  font-weight: var(--fw-bold);
   font-size: var(--fs-20);
   line-height: var(--lh-snug);
   letter-spacing: -0.01em;
@@ -200,7 +200,7 @@ const STYLE_TEXT = `
   margin: 0;
   font-family: var(--font-display);
   font-size: var(--fs-24);
-  font-weight: var(--fw-black);
+  font-weight: var(--fw-bold);
   line-height: var(--lh-tight);
   letter-spacing: -0.01em;
   color: var(--ink-900);
