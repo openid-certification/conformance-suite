@@ -223,12 +223,12 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 
 	public static final String ACCOUNT_REQUESTS_PATH = "open-banking/v1.1/account-requests";
 	public static final String ACCOUNTS_PATH = "open-banking/v1.1/accounts";
-	private Class<? extends Condition> addTokenEndpointAuthMethodSupported;
-	private Class<? extends ConditionSequence> validateClientAuthenticationSteps;
-	private Class<? extends ConditionSequence> configureResponseModeSteps;
-	private Class<? extends Condition> generateSenderConstrainedAccessToken;
-	private Class<? extends ConditionSequence> validateSenderConstrainedTokenSteps;  // for bearer tokens
-	private Class<? extends ConditionSequence> validateSenderConstrainedClientCredentialAccessTokenSteps;  // client credential access tokens
+	protected Class<? extends Condition> addTokenEndpointAuthMethodSupported;
+	protected Class<? extends ConditionSequence> validateClientAuthenticationSteps;
+	protected Class<? extends ConditionSequence> configureResponseModeSteps;
+	protected Class<? extends Condition> generateSenderConstrainedAccessToken;
+	protected Class<? extends ConditionSequence> validateSenderConstrainedTokenSteps;  // for bearer tokens
+	protected Class<? extends ConditionSequence> validateSenderConstrainedClientCredentialAccessTokenSteps;  // client credential access tokens
 	private SenderContrainTokenRequestHelper senderConstrainTokenRequestHelper;
 
 	protected FAPI2ClientProfileBehavior profileBehavior;
