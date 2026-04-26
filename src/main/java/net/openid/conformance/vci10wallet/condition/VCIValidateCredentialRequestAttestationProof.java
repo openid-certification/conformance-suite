@@ -9,6 +9,7 @@ import com.nimbusds.jose.crypto.ECDSAVerifier;
 import com.nimbusds.jose.jwk.Curve;
 import com.nimbusds.jose.jwk.ECKey;
 import com.nimbusds.jose.jwk.JWK;
+import com.nimbusds.jose.util.Base64;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import net.openid.conformance.condition.ConditionError;
@@ -20,6 +21,7 @@ import net.openid.conformance.vci10issuer.condition.VciErrorCode;
 import net.openid.conformance.vci10issuer.util.VCICredentialErrorResponseUtil;
 
 import java.text.ParseException;
+import java.util.List;
 
 public class VCIValidateCredentialRequestAttestationProof extends AbstractVCIValidateCredentialRequestProof {
 
@@ -53,12 +55,20 @@ public class VCIValidateCredentialRequestAttestationProof extends AbstractVCIVal
 			}
 			log("Found expected algorithm for Key attestation in proof type: " + proofType, args("algorithm", header.getAlgorithm()));
 
-			JsonObject keyAttestationJwksObj = env.getElementFromObject("config", "vci.key_attestation_jwks").getAsJsonObject();
-			if (keyAttestationJwksObj == null) {
-				throw error("Key attestation JWKS is missing in test config. Please add a Key Attestation JWKS with public keys to the test configuration.");
+			// Per HAIP §4.5.1 / RFC 7515 §4.1.6, when x5c is present in the JWS header,
+			// it carries the key used to sign the JWT — verify against the leaf cert. Otherwise
+			// (non-HAIP) fall back to the configured vci.key_attestation_jwks.
+			JWK walletPublicKey;
+			List<Base64> x5cChain = header.getX509CertChain();
+			if (x5cChain != null && !x5cChain.isEmpty()) {
+				walletPublicKey = extractPublicJwkFromX5c(env, attestationJwt, x5cChain);
+			} else {
+				JsonObject keyAttestationJwksObj = env.getElementFromObject("config", "vci.key_attestation_jwks").getAsJsonObject();
+				if (keyAttestationJwksObj == null) {
+					throw error("Key attestation JWKS is missing in test config. Please add a Key Attestation JWKS with public keys to the test configuration.");
+				}
+				walletPublicKey = JWKUtil.getSigningKey(keyAttestationJwksObj);
 			}
-
-			JWK walletPublicKey = JWKUtil.getSigningKey(keyAttestationJwksObj);
 
 			if (!(walletPublicKey instanceof ECKey ecPublicKey)) {
 				String errorDescription = "key Attestation validation failed: Key found but is not an ECKey for kid: " + header.getKeyID();
