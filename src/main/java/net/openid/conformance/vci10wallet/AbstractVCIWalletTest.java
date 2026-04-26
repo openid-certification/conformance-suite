@@ -11,7 +11,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import net.openid.conformance.condition.AbstractCondition;
-import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.condition.as.AddCodeChallengeMethodToServerConfiguration;
@@ -22,7 +21,6 @@ import net.openid.conformance.condition.as.AddIssSupportedToServerConfiguration;
 import net.openid.conformance.condition.as.AddIssToAuthorizationEndpointResponseParams;
 import net.openid.conformance.condition.as.AddResponseTypeCodeToServerConfiguration;
 import net.openid.conformance.condition.as.AddSupportedAuthorizationTypesToServerConfiguration;
-import net.openid.conformance.condition.as.AddTLSClientAuthToServerConfiguration;
 import net.openid.conformance.condition.as.AddTlsCertificateBoundAccessTokensTrueSupportedToServerConfiguration;
 import net.openid.conformance.condition.as.CalculateAtHash;
 import net.openid.conformance.condition.as.CheckClientIdMatchesOnTokenRequestIfPresent;
@@ -76,8 +74,6 @@ import net.openid.conformance.condition.as.GenerateServerConfigurationMTLS;
 import net.openid.conformance.condition.as.LoadServerJWKs;
 import net.openid.conformance.condition.as.SendAuthorizationResponseWithResponseModeQuery;
 import net.openid.conformance.condition.as.SetRsaAltServerJwks;
-import net.openid.conformance.condition.as.SetTokenEndpointAuthMethodsSupportedToAttestJwtClientAuthOnly;
-import net.openid.conformance.condition.as.SetTokenEndpointAuthMethodsSupportedToPrivateKeyJWTOnly;
 import net.openid.conformance.condition.as.ValidateAuthorizationCode;
 import net.openid.conformance.condition.as.ValidateClientAssertionAudClaimIsIssuerAsString;
 import net.openid.conformance.condition.as.ValidateClientAssertionClaims;
@@ -124,12 +120,10 @@ import net.openid.conformance.condition.rs.RequireDpopAccessToken;
 import net.openid.conformance.condition.rs.RequireDpopClientCredentialAccessToken;
 import net.openid.conformance.condition.rs.RequireMtlsAccessToken;
 import net.openid.conformance.condition.rs.RequireMtlsClientCredentialsAccessToken;
-import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.sequence.as.AddPARToServerConfiguration;
 import net.openid.conformance.sequence.as.PerformDpopProofParRequestChecks;
 import net.openid.conformance.sequence.as.PerformDpopProofResourceRequestChecks;
 import net.openid.conformance.sequence.as.PerformDpopProofTokenRequestChecks;
-import net.openid.conformance.sequence.as.ValidateClientAuthenticationWithMTLS;
 import net.openid.conformance.sequence.as.ValidateClientAuthenticationWithPrivateKeyJWT;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
@@ -207,7 +201,6 @@ import net.openid.conformance.vci10wallet.condition.clientattestation.AddClientA
 import net.openid.conformance.vci10wallet.condition.clientattestation.VCIRegisterClientAttestationTrustAnchor;
 import net.openid.conformance.condition.client.EnsureKeyAttestationTrustAnchorConfigured;
 import net.openid.conformance.vci10wallet.condition.clientattestation.VCIRegisterKeyAttestationTrustAnchor;
-import net.openid.conformance.vci10wallet.condition.clientattestation.VCIValidateClientAuthenticationWithClientAttestationJWT;
 import net.openid.conformance.vci10wallet.condition.statuslist.VCIGenerateJwtStatusListToken;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.http.HttpHeaders;
@@ -317,12 +310,6 @@ public abstract class AbstractVCIWalletTest extends net.openid.conformance.fapi2
 	// 60 second lifetime per FAPI2-SP-FINAL-5.3.2.1-11 https://openid.net/specs/fapi-security-profile-2_0-final.html#section-5.3.2.1-2.11
 	public static final long AUTHORIZATION_CODE_LIFETIME_SECONDS = 60;
 
-	private Class<? extends Condition> addTokenEndpointAuthMethodSupported;
-	private Class<? extends ConditionSequence> validateClientAuthenticationSteps;
-	private Class<? extends ConditionSequence> configureResponseModeSteps;
-	private Class<? extends Condition> generateSenderConstrainedAccessToken;
-	private Class<? extends ConditionSequence> validateSenderConstrainedTokenSteps;  // for bearer tokens
-	private Class<? extends ConditionSequence> validateSenderConstrainedClientCredentialAccessTokenSteps;  // client credential access tokens
 	private SenderContrainTokenRequestHelper senderConstrainTokenRequestHelper;
 
 	protected FAPI2FinalOPProfile fapi2Profile;
@@ -2668,32 +2655,6 @@ public abstract class AbstractVCIWalletTest extends net.openid.conformance.fapi2
 			responseEntity = new ResponseEntity<>(accountsEndpointResponse, headersFromJson(headerJson), HttpStatus.OK);
 		}
 		return responseEntity;
-	}
-
-	@VariantSetup(parameter = ClientAuthType.class, value = "mtls")
-	@Override
-	public void setupMTLS() {
-		addTokenEndpointAuthMethodSupported = AddTLSClientAuthToServerConfiguration.class;
-		validateClientAuthenticationSteps = ValidateClientAuthenticationWithMTLS.class;
-	}
-
-	@VariantSetup(parameter = ClientAuthType.class, value = "private_key_jwt")
-	@Override
-	public void setupPrivateKeyJwt() {
-		addTokenEndpointAuthMethodSupported = SetTokenEndpointAuthMethodsSupportedToPrivateKeyJWTOnly.class;
-		validateClientAuthenticationSteps = ValidateClientAuthenticationWithPrivateKeyJWT.class;
-	}
-
-	@VariantSetup(parameter = ClientAuthType.class, value = "client_attestation")
-	@Override
-	public void setupClientAttestation() {
-		addTokenEndpointAuthMethodSupported = SetTokenEndpointAuthMethodsSupportedToAttestJwtClientAuthOnly.class;
-		validateClientAuthenticationSteps = VCIValidateClientAuthenticationWithClientAttestationJWT.class;
-	}
-
-	@Override
-	public void setupResponseModePlain() {
-		configureResponseModeSteps = null;
 	}
 
 	@VariantSetup(parameter = FAPI2SenderConstrainMethod.class, value = "mtls")
