@@ -38,7 +38,12 @@ const MOCK_RESULTS_WITH_FAILURES = [
     msg: "Missing sub claim",
     requirements: ["OIDCC-5.1"],
   },
-  { _id: "r7", result: "SKIPPED", src: "OptionalCheck", msg: "Skipped optional" },
+  {
+    _id: "r7",
+    result: "SKIPPED",
+    src: "OptionalCheck",
+    msg: "Skipped optional",
+  },
 ];
 
 const COMPLETED_TEST = {
@@ -210,16 +215,16 @@ export const ViewConfig = {
     // Config JSON renders inside the read-only Monaco editor. Monaco
     // virtualises long content, so we read `.value` rather than
     // `textContent` — the property is the wrapper's documented contract.
-    const configJson = await waitFor(() => {
-      const el = /** @type {any} */ (
-        canvasElement.querySelector('cts-json-editor[data-testid="config-json"]')
-      );
-      if (!el) throw new Error("cts-json-editor[data-testid='config-json'] not yet attached");
-      const ready =
-        el.querySelector(".monaco-editor") || el.querySelector(".oidf-json-editor-fallback");
-      if (!ready) throw new Error("cts-json-editor host not yet rendered");
-      return el;
-    });
+    // `whenReady()` resolves on either the Monaco or fallback path, so
+    // the test stays agnostic to which surface mounted.
+    const configJson = /** @type {any} */ (
+      await waitFor(() => {
+        const el = canvasElement.querySelector('cts-json-editor[data-testid="config-json"]');
+        if (!el) throw new Error("cts-json-editor[data-testid='config-json'] not yet attached");
+        return el;
+      })
+    );
+    await configJson.whenReady();
     expect(configJson.getAttribute("readonly")).not.toBeNull();
     expect(configJson.value).toContain("server.issuer");
     expect(configJson.value).toContain("https://op.example.com");
@@ -380,7 +385,10 @@ const SUMMARY_WITH_INSTRUCTIONS =
 export const WithDescriptionOnly = {
   render: () =>
     html`<cts-log-detail-header
-      .testInfo=${{ ...COMPLETED_TEST, summary: SUMMARY_DESCRIPTION_ONLY }}
+      .testInfo=${{
+        ...COMPLETED_TEST,
+        summary: SUMMARY_DESCRIPTION_ONLY,
+      }}
     ></cts-log-detail-header>`,
   async play({ canvasElement }) {
     const canvas = within(canvasElement);
@@ -404,7 +412,10 @@ export const WithDescriptionOnly = {
 export const WithUserInstructions = {
   render: () =>
     html`<cts-log-detail-header
-      .testInfo=${{ ...COMPLETED_TEST, summary: SUMMARY_WITH_INSTRUCTIONS }}
+      .testInfo=${{
+        ...COMPLETED_TEST,
+        summary: SUMMARY_WITH_INSTRUCTIONS,
+      }}
     ></cts-log-detail-header>`,
   async play({ canvasElement }) {
     const canvas = within(canvasElement);

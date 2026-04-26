@@ -4,25 +4,29 @@ import { MOCK_SCHEMA } from "@fixtures/mock-schema.js";
 import "./cts-config-form.js";
 
 /**
- * Resolve once the `<cts-json-editor>` inside the JSON tab has either Monaco
- * or its fallback textarea attached. Both are valid mounted states; tests
- * read `.value` from the `<cts-json-editor>` host either way.
+ * Resolve once the `<cts-json-editor>` inside the JSON tab is interactive
+ * (Monaco mounted or fallback textarea rendered). Tests read `.value` off
+ * the host element after this resolves.
+ *
+ * The host is conditionally rendered when the JSON tab activates, so we
+ * first poll for attachment, then delegate to the primitive's own
+ * `whenReady()` Promise instead of polling for inner DOM.
  * @param {Element} canvasElement
  * @returns {Promise<HTMLElement>}
  */
 async function waitForJsonEditor(canvasElement) {
-  return waitFor(
-    () => {
-      const editor = canvasElement.querySelector("cts-json-editor.oidf-config-form-json");
-      if (!editor) throw new Error("cts-json-editor not yet attached");
-      const ready =
-        editor.querySelector(".monaco-editor") ||
-        editor.querySelector(".oidf-json-editor-fallback");
-      if (!ready) throw new Error("cts-json-editor host not yet rendered");
-      return /** @type {HTMLElement} */ (editor);
-    },
-    { timeout: 10000 },
+  const editor = /** @type {any} */ (
+    await waitFor(
+      () => {
+        const el = canvasElement.querySelector("cts-json-editor.oidf-config-form-json");
+        if (!el) throw new Error("cts-json-editor.oidf-config-form-json not yet attached");
+        return el;
+      },
+      { timeout: 10000 },
+    )
   );
+  await editor.whenReady();
+  return /** @type {HTMLElement} */ (editor);
 }
 
 export default {
@@ -159,7 +163,10 @@ export const WithValidationErrors = {
       .schema=${MOCK_SCHEMA.schema}
       .uiSchema=${MOCK_SCHEMA.uiSchema}
       .config=${{}}
-      .errors=${{ "server.issuer": "Required field", "client.jwks": "Invalid JSON" }}
+      .errors=${{
+        "server.issuer": "Required field",
+        "client.jwks": "Invalid JSON",
+      }}
     ></cts-config-form>
   `,
   async play({ canvasElement }) {

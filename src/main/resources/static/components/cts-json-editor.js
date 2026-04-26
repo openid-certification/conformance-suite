@@ -131,6 +131,14 @@ function defineOidfTheme(monaco) {
 const STYLE_ID = "cts-json-editor-styles";
 
 const STYLE_TEXT = `
+/* Custom elements default to display: inline, which makes the host
+   collapse to its content's size and prevents min-height from working as
+   page-level callers expect. Defaulting the host to display: block lets
+   pages omit "display: block" from inline styles; per-page min-height
+   (when needed) remains the only inline configuration. */
+cts-json-editor {
+  display: block;
+}
 .oidf-json-editor {
   display: block;
   width: 100%;
@@ -217,6 +225,13 @@ function injectStyles() {
  * @fires change - On every editor edit; bubbles, mirrors `<textarea>`.
  *   Both `input` and `change` are dispatched together so listeners on
  *   either name keep working when migrating from a `<textarea>`.
+ *
+ * Consumers awaiting an interactive editor (Storybook plays, Playwright
+ * specs, downstream Lit elements that need to focus on mount) should use
+ * `await el.whenReady()` rather than polling for `.monaco-editor` or
+ * `.oidf-json-editor-fallback`. The Promise resolves with the same
+ * `{kind, el}` shape regardless of which surface mounted, so call sites
+ * stay agnostic to whether Monaco booted or the fallback path took over.
  */
 class CtsJsonEditor extends LitElement {
   static properties = {
@@ -252,6 +267,18 @@ class CtsJsonEditor extends LitElement {
     this._model = null;
     /** @type {boolean} Internal guard against echo dispatch when our setter writes back to Monaco. */
     this._suppressDispatch = false;
+
+    // Public readiness Promise. Created eagerly in the constructor so that
+    // a consumer calling `await el.whenReady()` synchronously after `new`
+    // (or immediately after declarative render) never races with
+    // `connectedCallback()`. Resolved exactly once — either by the Monaco
+    // mount path or the fallback render path inside `_bootMonaco()`.
+    /** @type {(value: {kind: "monaco"|"fallback", el: Element}) => void} */
+    this._readyResolve = () => {};
+    /** @type {Promise<{kind: "monaco"|"fallback", el: Element}>} */
+    this._readyPromise = new Promise((resolve) => {
+      this._readyResolve = resolve;
+    });
   }
 
   createRenderRoot() {
@@ -302,6 +329,11 @@ class CtsJsonEditor extends LitElement {
         console.warn("cts-json-editor: Monaco failed to load, falling back to textarea.", err);
       }
       this._status = "fallback";
+      // Render() commits the fallback DOM on the next Lit cycle; await
+      // updateComplete so whenReady() callers get a non-null `el`.
+      await this.updateComplete;
+      const fallbackEl = this.querySelector(".oidf-json-editor-fallback");
+      if (fallbackEl) this._readyResolve({ kind: "fallback", el: fallbackEl });
       return;
     }
     if (!this.isConnected) return;
@@ -338,6 +370,31 @@ class CtsJsonEditor extends LitElement {
       this._dispatchChange();
       this.requestUpdate("value");
     });
+
+    // monaco.editor.create attaches `.monaco-editor` synchronously into the
+    // host container, so a query immediately after the call resolves the
+    // node consumers want to interact with.
+    const monacoNode = host.querySelector(".monaco-editor");
+    if (monacoNode) this._readyResolve({ kind: "monaco", el: monacoNode });
+  }
+
+  /**
+   * Resolves once the editor is interactive — either Monaco has mounted
+   * (`kind: "monaco"`) or the fallback `<textarea>` has rendered
+   * (`kind: "fallback"`). The Promise is created in the constructor and
+   * resolves exactly once per instance, so callers can safely await it
+   * any number of times.
+   *
+   * Storybook plays, Playwright specs, and downstream Lit elements that
+   * need to focus / set selection / read `.value` after mount should call
+   * this instead of polling for the inner DOM, since the polling pattern
+   * is brittle to render-timing changes inside the wrapper.
+   * @returns {Promise<{kind: "monaco"|"fallback", el: Element}>} Resolves
+   *   with the inner surface node and a discriminator describing which
+   *   path mounted. Both kinds satisfy the `.value` contract via the host.
+   */
+  whenReady() {
+    return this._readyPromise;
   }
 
   /**
