@@ -127,7 +127,6 @@ import net.openid.conformance.condition.common.RARSupport;
 import net.openid.conformance.condition.common.RARSupport.EnsureEffectiveAuthorizationEndpointRequestContainsValidRAR;
 import net.openid.conformance.condition.rs.ClearAccessTokenFromRequest;
 import net.openid.conformance.condition.rs.CreateFAPIAccountEndpointResponse;
-import net.openid.conformance.condition.rs.CreateOpenBankingAccountRequestResponse;
 import net.openid.conformance.condition.rs.CreateResourceEndpointDpopErrorResponse;
 import net.openid.conformance.condition.rs.CreateResourceServerDpopNonce;
 import net.openid.conformance.condition.rs.EnsureIncomingRequestMethodIsGet;
@@ -139,7 +138,6 @@ import net.openid.conformance.condition.rs.ExtractFapiDateHeader;
 import net.openid.conformance.condition.rs.ExtractFapiInteractionIdHeader;
 import net.openid.conformance.condition.rs.ExtractFapiIpAddressHeader;
 import net.openid.conformance.condition.rs.FAPIBrazilRsPathConstants;
-import net.openid.conformance.condition.rs.GenerateAccountRequestId;
 import net.openid.conformance.condition.rs.LoadUserInfo;
 import net.openid.conformance.condition.rs.RequireDpopAccessToken;
 import net.openid.conformance.condition.rs.RequireDpopClientCredentialAccessToken;
@@ -2743,51 +2741,6 @@ public abstract class AbstractVCIWalletTest extends net.openid.conformance.fapi2
 	protected void generateJARMResponseClaims() {
 		callAndStopOnFailure(GenerateJARMResponseClaims.class, "JARM-2.1.1");
 		addCustomValuesToJarmResponse();
-	}
-
-	/**
-	 * OpenBanking account request API
-	 *
-	 * @param requestId
-	 * @return
-	 */
-	@Override
-	protected Object accountRequestsEndpoint(String requestId) {
-
-		setStatus(Status.RUNNING);
-
-		call(exec().startBlock("Account request endpoint")
-			.mapKey("incoming_request", requestId));
-
-		checkResourceEndpointRequestForVci(true);
-
-		ResponseEntity<Object> responseObject = null;
-		if (isDpopConstrain() && !Strings.isNullOrEmpty(env.getString("resource_endpoint_dpop_nonce_error"))) {
-			callAndContinueOnFailure(CreateResourceEndpointDpopErrorResponse.class, ConditionResult.FAILURE);
-			responseObject = new ResponseEntity<>(env.getObject("resource_endpoint_response"), headersFromJson(env.getObject("resource_endpoint_response_headers")), HttpStatus.valueOf(env.getInteger("resource_endpoint_response_http_status").intValue()));
-		} else {
-			// TODO: should we clear the old headers?
-			callAndStopOnFailure(GenerateAccountRequestId.class);
-			exposeEnvString("account_request_id");
-
-			callAndStopOnFailure(CreateFapiInteractionIdIfNeeded.class, "FAPI2-IMP-2.1.1");
-
-			callAndStopOnFailure(CreateOpenBankingAccountRequestResponse.class);
-
-			JsonObject accountRequestResponse = env.getObject("account_request_response");
-			JsonObject headerJson = env.getObject("account_request_response_headers");
-
-			callAndStopOnFailure(ClearAccessTokenFromRequest.class);
-			responseObject = new ResponseEntity<>(accountRequestResponse, headersFromJson(headerJson), HttpStatus.OK);
-			if (requireResourceServerEndpointDpopNonce()) {
-				callAndContinueOnFailure(CreateResourceServerDpopNonce.class, ConditionResult.INFO);
-			}
-		}
-		call(exec().unmapKey("incoming_request").endBlock());
-
-		setStatus(Status.WAITING);
-
-		return responseObject;
 	}
 
 	@Override
