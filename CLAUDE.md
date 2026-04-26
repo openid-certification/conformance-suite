@@ -336,6 +336,7 @@ The CI job currently runs with `allow_failure: true` and is due to flip to block
 - **multipaz** (CBOR/COSE/mdoc library): Source is at https://github.com/openwallet-foundation/multipaz — use this to look up API details rather than unpacking JARs.
 - **Nimbus JOSE+JWT** (JWT/JWK/JWS/JWE library): Source is at https://bitbucket.org/connect2id/nimbus-jose-jwt/src/master/ — use this to look up API details rather than unpacking JARs.
 - **Lit** (web-components runtime): Vendored bundle at `src/main/resources/static/vendor/lit/lit.js` is the full [`lit-all.min.js`](https://github.com/lit/dist) release, so every directive (`classMap`, `repeat`, `when`, `ifDefined`, `ref`, …) is available at runtime without a bundler. Bump via `frontend/scripts/update-vendor-lit.sh` (pinned by git tag + SHA-256 digest).
+- **Monaco editor** (JSON editor for `schedule-test.html`): Vendored AMD distribution at `src/main/resources/static/vendor/monaco-editor/vs/`. The single supported entry point is the `<cts-json-editor>` Lit primitive — pages must NEVER call `monaco.editor.create(...)` directly, since that bypasses the wrapper's lazy-load, fallback-to-textarea, and disposal lifecycle. Bump via `frontend/scripts/update-vendor-monaco.sh` (pinned by version + tarball SHA-256). See `src/main/resources/static/vendor/monaco-editor/README.md` for the curated minimal subset rationale.
 
 ## Creating New Tests
 

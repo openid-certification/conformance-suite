@@ -355,6 +355,7 @@ sigil fails the lint step.
 | `cts-form-field`        | LitElement  | Yes       | Schema-driven input field                                                                             |
 | `cts-icon`              | LitElement  | Yes       | Renders a Bootstrap Icon `<span>` from a name and size                                                |
 | `cts-image-upload`      | LitElement  | Yes       | Multi-image upload widget; fires `cts-image-uploaded`                                                 |
+| `cts-json-editor`       | LitElement  | Yes       | Drop-in `<textarea>` replacement wrapping the vendored Monaco AMD bundle; falls back to `<textarea>` when Monaco fails to load |
 | `cts-link-button`       | LitElement  | Yes       | Same shape as cts-button but renders `<a>`                                                            |
 | `cts-log-detail-header` | LitElement  | Yes       | Header for log-detail page; dispatches several action events                                          |
 | `cts-log-entry`         | LitElement  | Yes       | Single log line; supports block start/end formatting                                                  |
