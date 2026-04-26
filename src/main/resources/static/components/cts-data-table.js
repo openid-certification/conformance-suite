@@ -168,7 +168,7 @@ const STYLE_TEXT = `
     outline: none;
     padding: 0;
     /* Reset legacy layout.css text-indent so the search caret sits flush
-       against the leading bi-search glyph instead of being pushed 5px right. */
+       against the leading cts-icon glyph instead of being pushed 5px right. */
     text-indent: 0;
   }
   cts-data-table .oidf-dt-search-input::placeholder {
