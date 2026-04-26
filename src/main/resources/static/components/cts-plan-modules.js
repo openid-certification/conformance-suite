@@ -74,6 +74,13 @@ const STYLE_TEXT = `
     border: 1px solid var(--border);
     border-radius: var(--radius-3);
     overflow: hidden;
+    /* Establish a query container so per-row reflow tracks the card's
+       own width rather than the viewport. At desktop widths with the
+       cts-plan-actions rail beside this card the card can be ~700px
+       even though the viewport is much wider, and the squeeze shows
+       up there long before the 640px viewport breakpoint trips. */
+    container-type: inline-size;
+    container-name: planModulesCard;
   }
   cts-plan-modules .module-row {
     display: grid;
@@ -113,13 +120,17 @@ const STYLE_TEXT = `
     vertical-align: super;
   }
   /* Flex (not grid) so the action buttons can wrap onto a second line
-     when the row reflows on phones — grid-auto-flow does not wrap. The
-     justify-content keeps the buttons hugging the right edge whether
-     they sit alongside the badge (wide) or fill their own row (narrow). */
+     when the row reflows on narrow cards — grid-auto-flow does not wrap.
+     justify-content hugs the buttons to the right edge whether they sit
+     alongside the badge (wide) or fill their own row (narrow). The
+     explicit align-items keeps button text on the same y-baseline as
+     the badge label when the row's content height is taller than a
+     single button (e.g. when the name column wraps to multiple lines). */
   cts-plan-modules .module-row .actionStack {
     display: flex;
     flex-wrap: wrap;
     justify-content: flex-end;
+    align-items: center;
     gap: var(--space-1);
   }
   cts-plan-modules .planModulesEmpty {
@@ -133,6 +144,7 @@ const STYLE_TEXT = `
      the badge's own foreground stays in charge of its text. */
   cts-plan-modules .moduleStatusLink {
     display: inline-flex;
+    align-items: center;
     text-decoration: none;
     color: inherit;
     border-radius: var(--radius-pill);
@@ -141,12 +153,17 @@ const STYLE_TEXT = `
     outline: 2px solid var(--orange-400);
     outline-offset: 2px;
   }
-  /* Phone reflow. Drops the actions column and lets the action stack
-     span the full row width on a second line, so module names and
-     status badges keep their breathing room and touch targets stay at
-     the cts-button minimum height. The 640px breakpoint matches the
-     established mobile threshold used by cts-navbar and layout.css. */
-  @media (max-width: 640px) {
+  /* Narrow-card reflow. Drops the actions column and lets the action
+     stack span the full row width on a second line, so module names
+     and status badges keep their breathing room and touch targets
+     stay at the cts-button minimum height. The 780px threshold
+     covers two squeeze zones the viewport-only breakpoint missed:
+     (1) ~900–1000px viewports where the action rail is still beside
+     the card and the card itself is ~700px wide, and (2) the
+     general phone path. Container queries route the decision through
+     the card's own inline size, so the rail-beside vs rail-below
+     state does not matter. */
+  @container planModulesCard (max-width: 780px) {
     cts-plan-modules .module-row {
       grid-template-columns: 28px minmax(0, 1fr) auto;
       padding: var(--space-3);
