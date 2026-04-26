@@ -277,6 +277,10 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 		setStatus(status);
 	}
 
+	void doExposeEnvString(String key) {
+		exposeEnvString(key);
+	}
+
 	Command doExec() {
 		return exec();
 	}
@@ -534,7 +538,12 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 		if (path.startsWith("/.well-known/oauth-authorization-server")) {
 			response = discoveryEndpoint();
 		} else {
-			response = super.handleWellKnown(path, req, res, session, requestParts);
+			Object profileResponse = profileBehavior.handleProfileSpecificWellKnown(path);
+			if (profileResponse != null) {
+				response = profileResponse;
+			} else {
+				response = super.handleWellKnown(path, req, res, session, requestParts);
+			}
 		}
 		return response;
 	}
