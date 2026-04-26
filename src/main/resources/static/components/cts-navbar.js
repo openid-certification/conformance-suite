@@ -368,7 +368,7 @@ const STYLE_TEXT = `
   border-radius: var(--radius-2);
   color: var(--ink-100);
   font-size: var(--fs-13);
-  font-weight: 500;
+  font-weight: var(--fw-medium);
   font-family: inherit;
   text-decoration: none;
   text-align: left;
