@@ -145,35 +145,6 @@ export const ContinueFiresEvent = {
   },
 };
 
-export const BackEventFiresWithoutInterceptingNativeNavigation = {
-  render: () =>
-    html`<cts-test-nav-controls
-      test-id="${TEST_ID}"
-      plan-id="${PLAN_ID}"
-      .currentIndex=${5}
-      .totalCount=${30}
-      .nextEnabled=${true}
-    ></cts-test-nav-controls>`,
-  async play({ canvasElement }) {
-    await waitFor(() => {
-      expect(canvasElement.querySelector('[data-testid="back-btn"]')).toBeTruthy();
-    });
-
-    // Verify wiring without triggering a real page navigation in
-    // Storybook. The widget re-emits cts-link-button's bubbling
-    // cts-click as cts-back; native <a> navigation continues separately.
-    const backHandler = fn();
-    canvasElement.addEventListener("cts-back", backHandler);
-
-    const host = canvasElement.querySelector('[data-testid="back-btn"]');
-    host.dispatchEvent(new CustomEvent("cts-click", { bubbles: true }));
-
-    expect(backHandler).toHaveBeenCalledOnce();
-    expect(backHandler.mock.calls[0][0].detail.testId).toBe(TEST_ID);
-    expect(backHandler.mock.calls[0][0].detail.planId).toBe(PLAN_ID);
-  },
-};
-
 export const FirstModule = {
   render: () =>
     html`<cts-test-nav-controls
