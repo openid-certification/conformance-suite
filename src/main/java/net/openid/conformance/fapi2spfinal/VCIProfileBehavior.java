@@ -322,7 +322,7 @@ public class VCIProfileBehavior extends FAPI2ProfileBehavior {
 			public void evaluate() {
 				callAndContinueOnFailure(ValidateCredentialIsUnpaddedBase64Url.class, ConditionResult.FAILURE, "OID4VCI-1FINALA-A.2.4");
 				callAndContinueOnFailure(ParseMdocCredentialFromVCIIssuance.class, ConditionResult.FAILURE, "OID4VCI-1FINALA-A.2");
-				call(new ValidateMdocCredential(true, false));
+				call(new ValidateMdocCredential(true, isHaip()));
 			}
 		};
 	}
@@ -332,9 +332,19 @@ public class VCIProfileBehavior extends FAPI2ProfileBehavior {
 			@Override
 			public void evaluate() {
 				callAndContinueOnFailure(ParseCredentialAsSdJwt.class, ConditionResult.FAILURE, "SDJWT-4");
-				call(new ValidateSdJwtVcCredentialClaims(requiresCryptographicBinding, false));
+				call(new ValidateSdJwtVcCredentialClaims(requiresCryptographicBinding, isHaip()));
 			}
 		};
+	}
+
+	/**
+	 * Whether this profile behavior is for HAIP. Used to parametrise
+	 * {@link ValidateMdocCredential} and {@link ValidateSdJwtVcCredentialClaims} so the HAIP-only
+	 * checks (revocation mechanism, x5c chains, validity-info presence) are included only on
+	 * HAIP runs.
+	 */
+	protected boolean isHaip() {
+		return false;
 	}
 
 	@Override

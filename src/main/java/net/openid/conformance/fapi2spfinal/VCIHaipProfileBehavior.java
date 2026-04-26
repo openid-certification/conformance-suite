@@ -2,14 +2,9 @@ package net.openid.conformance.fapi2spfinal;
 
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.Condition.ConditionResult;
-import net.openid.conformance.condition.client.ParseCredentialAsSdJwt;
-import net.openid.conformance.condition.client.ParseMdocCredentialFromVCIIssuance;
-import net.openid.conformance.condition.client.ValidateCredentialIsUnpaddedBase64Url;
 import net.openid.conformance.condition.client.CheckDiscEndpointTokenEndpointAuthMethodsSupportedContainsAttestation;
 import net.openid.conformance.sequence.AbstractConditionSequence;
 import net.openid.conformance.sequence.ConditionSequence;
-import net.openid.conformance.sequence.client.ValidateMdocCredential;
-import net.openid.conformance.sequence.client.ValidateSdJwtVcCredentialClaims;
 import net.openid.conformance.testmodule.ConditionCallBuilder;
 import net.openid.conformance.variant.VCI1FinalCredentialFormat;
 import net.openid.conformance.vci10issuer.condition.VCIDetermineCredentialConfigurationTransferMethod;
@@ -57,25 +52,7 @@ public class VCIHaipProfileBehavior extends VCIProfileBehavior {
 	}
 
 	@Override
-	protected ConditionSequence verifyMdocCredential() {
-		return new AbstractConditionSequence() {
-			@Override
-			public void evaluate() {
-				callAndContinueOnFailure(ValidateCredentialIsUnpaddedBase64Url.class, ConditionResult.FAILURE, "OID4VCI-1FINALA-A.2.4");
-				callAndContinueOnFailure(ParseMdocCredentialFromVCIIssuance.class, ConditionResult.FAILURE, "OID4VCI-1FINALA-A.2");
-				call(new ValidateMdocCredential(true, true));
-			}
-		};
-	}
-
-	@Override
-	protected ConditionSequence verifySdJwtCredential(boolean requiresCryptographicBinding) {
-		return new AbstractConditionSequence() {
-			@Override
-			public void evaluate() {
-				callAndContinueOnFailure(ParseCredentialAsSdJwt.class, ConditionResult.FAILURE, "SDJWT-4");
-				call(new ValidateSdJwtVcCredentialClaims(requiresCryptographicBinding, true));
-			}
-		};
+	protected boolean isHaip() {
+		return true;
 	}
 }
