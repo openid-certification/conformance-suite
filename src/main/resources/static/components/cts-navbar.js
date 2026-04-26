@@ -121,7 +121,7 @@ const STYLE_TEXT = `
 }
 .cts-nav .cts-brand-name {
   font-family: var(--font-display);
-  font-weight: var(--fw-black);
+  font-weight: var(--fw-bold);
   font-size: var(--fs-13);
   letter-spacing: 0.04em;
   color: var(--ink-0);

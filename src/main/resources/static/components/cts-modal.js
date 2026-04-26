@@ -97,7 +97,7 @@ dialog.oidf-modal::backdrop {
 .oidf-modal-title {
   margin: 0;
   font-family: var(--font-display);
-  font-weight: var(--fw-black, 900);
+  font-weight: var(--fw-bold, 700);
   font-size: var(--fs-18);
   color: var(--fg);
 }
