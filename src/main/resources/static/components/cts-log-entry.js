@@ -1,6 +1,7 @@
 import { LitElement, html, nothing } from "lit";
 import "./cts-icon.js";
 import "./cts-badge.js";
+import "./cts-button.js";
 
 /**
  * Maps a log entry's `result` value (case-insensitive) to a `cts-badge`
@@ -195,36 +196,6 @@ const STYLE_TEXT = `
     justify-content: flex-end;
   }
 
-  cts-log-entry .moreBtn {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--space-1);
-    appearance: none;
-    background: var(--bg);
-    border: 1px solid var(--border-strong);
-    border-radius: var(--radius-2);
-    color: var(--fg);
-    font-family: inherit;
-    font-size: var(--fs-12);
-    font-weight: var(--fw-medium);
-    padding: 2px var(--space-2);
-    cursor: pointer;
-    transition: background var(--dur-1) var(--ease-standard);
-  }
-  cts-log-entry .moreBtn:hover { background: var(--ink-50); }
-  cts-log-entry .moreBtn:focus-visible {
-    outline: none;
-    box-shadow: var(--focus-ring);
-  }
-  cts-log-entry .moreBtn .moreCount {
-    background: var(--ink-100);
-    color: var(--fg-muted);
-    border-radius: var(--radius-pill);
-    padding: 0 6px;
-    font-size: 10px;
-    line-height: 1.5;
-  }
-
   cts-log-entry .curlBtn {
     appearance: none;
     background: transparent;
@@ -341,8 +312,13 @@ function ensureStylesInjected() {
  * tokens vendored in `oidf-tokens.css`. No Bootstrap classes are emitted.
  *
  * Severity is rendered via `cts-badge` (canonical `pass`/`fail`/`warn`/etc.
- * variants). The "More" toggle reveals an `.moreInfo` panel listing every
- * key in `entry.more`. R30: keys named `expected` / `actual` (or prefixed
+ * variants). The "More" toggle is composed of a `cts-badge` (count chip)
+ * and a `cts-button` (`size="xs"`, `variant="secondary"`, chevron via
+ * `icon`); the `.moreBtn` class on the cts-button host preserves the
+ * legacy DOM hook used by `log-detail.html`'s non-Lit code path and the
+ * Playwright spec. Clicking the button reveals the `.moreInfo` panel
+ * listing every key in `entry.more`. R30: keys named `expected` / `actual`
+ * (or prefixed
  * `expected_…` / `actual_…`) are surfaced with semantic labels ("Expected
  * (per spec)" / "Actual (received)") and rendered in expected → actual →
  * other order so users don't have to translate raw JSON keys to compare
@@ -445,10 +421,15 @@ class CtsLogEntry extends LitElement {
     const count = Object.keys(more).length;
     const chevron = this._expanded ? "chevron-up" : "chevron-down";
     return html`
-      <button type="button" class="moreBtn" @click=${this._toggleMore}>
-        <span class="moreCount">${count}</span>
-        More <cts-icon name="${chevron}" aria-hidden="true"></cts-icon>
-      </button>
+      <cts-badge variant="secondary" count="${count}"></cts-badge>
+      <cts-button
+        class="moreBtn"
+        variant="secondary"
+        size="xs"
+        icon="${chevron}"
+        label="More"
+        @cts-click=${this._toggleMore}
+      ></cts-button>
     `;
   }
 
