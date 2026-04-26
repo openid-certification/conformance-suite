@@ -65,6 +65,13 @@ const STYLE_TEXT = `
     font-size: var(--fs-12);
     color: var(--rust-400);
   }
+  /* '.planConfigJson' (and the '.config-json' sibling on the same element)
+     are pre-existing class names from when this slot rendered a <pre>;
+     the slot is now a <cts-json-editor>. Do not rename without updating
+     all three call sites at once: this CSS rule, the '.config-json'
+     selector that frontend/e2e/clipboard.spec.js + plan-detail.spec.js
+     match on, and the data-clipboard-target=".config-json" attribute
+     on the cts-button copy host. */
   cts-plan-actions .planConfigJson {
     display: block;
     margin: 0;

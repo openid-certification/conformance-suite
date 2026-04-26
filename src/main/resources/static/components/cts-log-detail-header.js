@@ -193,6 +193,11 @@ const STYLE_TEXT = `
     gap: var(--space-3);
     margin-bottom: var(--space-3);
   }
+  /* '.configBlock' is a pre-existing class name from when this slot
+     rendered a <pre>; the slot is now a <cts-json-editor>. The companion
+     'data-testid="config-json"' attribute (used by cts-log-detail-header
+     .stories.js to find the editor) is the test seam — keep both in
+     sync if either is renamed. */
   cts-log-detail-header .configBlock {
     display: block;
     margin: 0;
@@ -207,6 +212,10 @@ const STYLE_TEXT = `
     font-weight: var(--fw-bold);
     color: var(--fg);
   }
+  /* '.runningExportedBlock' is a pre-existing class name from when this
+     slot rendered a <pre>; the slot is now a <cts-json-editor>. Used
+     only as a CSS hook (no test/clipboard seam), so renaming requires
+     coordinating only with this CSS rule and the matching call site. */
   cts-log-detail-header .runningExportedBlock {
     display: block;
     margin: var(--space-2) 0 0 0;
