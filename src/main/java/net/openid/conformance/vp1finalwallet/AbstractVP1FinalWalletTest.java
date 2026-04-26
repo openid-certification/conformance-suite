@@ -137,6 +137,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+
 @VariantParameters({
 	VPProfile.class,
 	VP1FinalWalletCredentialFormat.class,
@@ -212,6 +215,13 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 	protected VP1FinalWalletCredentialFormat credentialFormat;
 	protected VP1FinalWalletClientIdPrefix clientIdPrefix;
 	protected volatile TestState testState = TestState.INITIAL;
+
+	// Set when the mock-wallet response background task is started; counted down once that task
+	// has finished writing all its log entries. handleBrowserApiSubmission awaits it before doing
+	// any work that could lead to fireTestFinished(), to prevent the finalisation task from
+	// cancelling the mock-wallet thread mid-log-write — which produces non-deterministic diffs in
+	// the CI compare job.
+	private volatile CountDownLatch mockWalletResponseLatch;
 
 	@Override
 	public final void configure(JsonObject config, String baseUrl, String externalUrlOverride, String baseMtlsUrl) {
@@ -754,48 +764,55 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 		if (mockEl == null || !OIDFJSON.getBoolean(mockEl)) {
 			return;
 		}
+		mockWalletResponseLatch = new CountDownLatch(1);
 		getTestExecutionManager().runInBackground(() -> {
-			setStatus(Status.RUNNING);
-			callAndContinueOnFailure(WarnMockWalletResponse.class, ConditionResult.FAILURE);
+			try {
+				setStatus(Status.RUNNING);
+				callAndContinueOnFailure(WarnMockWalletResponse.class, ConditionResult.FAILURE);
 
-			// For DC API the KB JWT aud must be "origin:<origin>", not the full client_id
-			String origin = env.getString("origin");
-			if (origin != null) {
-				env.putString("client", "client_id", "origin:" + origin);
-			}
-
-			// Set up effective_authorization_endpoint_request so existing conditions can read from it
-			env.putObject("effective_authorization_endpoint_request",
-				env.getObject("authorization_endpoint_request").deepCopy());
-
-			// Generate credential and build VP response using existing conditions
-			callAndStopOnFailure(CreateSdJwtKbCredential.class);
-			callAndStopOnFailure(ExtractDCQLQueryFromAuthorizationRequest.class);
-			callAndStopOnFailure(CreateAuthorizationEndpointResponseParams.class);
-			callAndStopOnFailure(AddVP1FinalDCQLVPTokenToAuthorizationEndpointResponseParams.class);
-			if (responseMode == VP1FinalWalletResponseMode.DC_API_JWT) {
-				// VP1FinalEncryptVPResponse reads from authorization_request_object.claims.client_metadata.
-				// For unsigned DC API requests there's no request object, so construct one from
-				// the authorization request parameters (which contain the correct client_metadata
-				// with only the encryption key in the JWKS).
-				if (!env.containsObject("authorization_request_object")) {
-					JsonObject claims = new JsonObject();
-					claims.add("client_metadata", env.getElementFromObject(
-						"authorization_endpoint_request", "client_metadata").deepCopy());
-					JsonObject requestObject = new JsonObject();
-					requestObject.add("claims", claims);
-					env.putObject("authorization_request_object", requestObject);
+				// For DC API the KB JWT aud must be "origin:<origin>", not the full client_id
+				String origin = env.getString("origin");
+				if (origin != null) {
+					env.putString("client", "client_id", "origin:" + origin);
 				}
-				callAndStopOnFailure(VP1FinalEncryptVPResponse.class);
+
+				// Set up effective_authorization_endpoint_request so existing conditions can read from it
+				env.putObject("effective_authorization_endpoint_request",
+					env.getObject("authorization_endpoint_request").deepCopy());
+
+				// Generate credential and build VP response using existing conditions
+				callAndStopOnFailure(CreateSdJwtKbCredential.class);
+				callAndStopOnFailure(ExtractDCQLQueryFromAuthorizationRequest.class);
+				callAndStopOnFailure(CreateAuthorizationEndpointResponseParams.class);
+				callAndStopOnFailure(AddVP1FinalDCQLVPTokenToAuthorizationEndpointResponseParams.class);
+				if (responseMode == VP1FinalWalletResponseMode.DC_API_JWT) {
+					// VP1FinalEncryptVPResponse reads from authorization_request_object.claims.client_metadata.
+					// For unsigned DC API requests there's no request object, so construct one from
+					// the authorization request parameters (which contain the correct client_metadata
+					// with only the encryption key in the JWKS).
+					if (!env.containsObject("authorization_request_object")) {
+						JsonObject claims = new JsonObject();
+						claims.add("client_metadata", env.getElementFromObject(
+							"authorization_endpoint_request", "client_metadata").deepCopy());
+						JsonObject requestObject = new JsonObject();
+						requestObject.add("claims", claims);
+						env.putObject("authorization_request_object", requestObject);
+					}
+					callAndStopOnFailure(VP1FinalEncryptVPResponse.class);
+				}
+
+				// Wrap in DC API format and POST to submit URL
+				callAndStopOnFailure(SubmitMockWalletBrowserApiResponse.class);
+
+				// Return to WAITING so handleBrowserApiSubmission can transition to RUNNING
+				// when it processes the POST response, just like a real wallet interaction.
+				setStatus(Status.WAITING);
+				return "done";
+			} finally {
+				// Always count down so handleBrowserApiSubmission isn't left waiting if this
+				// task throws or is cancelled.
+				mockWalletResponseLatch.countDown();
 			}
-
-			// Wrap in DC API format and POST to submit URL
-			callAndStopOnFailure(SubmitMockWalletBrowserApiResponse.class);
-
-			// Return to WAITING so handleBrowserApiSubmission can transition to RUNNING
-			// when it processes the POST response, just like a real wallet interaction.
-			setStatus(Status.WAITING);
-			return "done";
 		});
 	}
 
@@ -934,6 +951,15 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 	private Object handleBrowserApiSubmission(String requestId) {
 
 		getTestExecutionManager().runInBackground(() -> {
+			// If the mock-wallet response task is still flushing its log entries, wait for it
+			// before doing anything that could lead to fireTestFinished() — once finalisation
+			// fires cancelAllBackgroundTasksExceptFinalisation() the mock-wallet thread is
+			// killed mid-write, producing non-deterministic diffs in the CI compare job.
+			CountDownLatch latch = mockWalletResponseLatch;
+			if (latch != null && !latch.await(30, TimeUnit.SECONDS)) {
+				eventLog.log(getName(), "Timed out waiting for mock wallet response task to finish");
+			}
+
 			// process the callback
 			setStatus(Status.RUNNING);
 			call(exec().startBlock("Process Browser API result").mapKey("incoming_request", requestId));
