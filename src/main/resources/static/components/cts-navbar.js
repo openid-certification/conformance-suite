@@ -2,6 +2,7 @@ import { LitElement, html } from "lit";
 import { classMap } from "lit/directives/class-map.js";
 import { repeat } from "lit/directives/repeat.js";
 import { when } from "lit/directives/when.js";
+import "./cts-icon.js";
 
 const NAV_LINKS = [
   { page: "home", label: "Home", href: "index.html" },
@@ -179,13 +180,13 @@ const STYLE_TEXT = `
 }
 /* Pull the icon a hair toward the baseline so it visually centers next
  * to the cap-height of the label rather than the line-height midpoint. */
-.cts-nav .cts-navlink-external .cts-navlink-external-icon {
+.cts-nav .cts-navlink-external cts-icon {
   display: block;
   color: var(--ink-400);
   transform: translateY(0.5px);
 }
-.cts-nav .cts-navlink-external:hover:not(.active) .cts-navlink-external-icon,
-.cts-nav .cts-navlink-external.active .cts-navlink-external-icon {
+.cts-nav .cts-navlink-external:hover:not(.active) cts-icon,
+.cts-nav .cts-navlink-external.active cts-icon {
   color: currentColor;
 }
 .cts-nav .cts-navright {
@@ -511,39 +512,6 @@ function injectStyles() {
 }
 
 /**
- * Compact arrow-out-of-box icon used to mark nav links that open in a new
- * tab. Lives next to the label so the affordance is visible without a
- * tooltip — the standard convention from MDN, Heroicons, GitHub, etc.
- * @returns {ReturnType<typeof html>} The icon as a Lit template fragment.
- */
-function renderExternalLinkIcon() {
-  return html`<svg
-    class="cts-navlink-external-icon"
-    viewBox="0 0 16 16"
-    width="11"
-    height="11"
-    aria-hidden="true"
-  >
-    <path
-      d="M5 11l9-9M14 2h-5M14 2v5"
-      stroke="currentColor"
-      stroke-width="1.5"
-      fill="none"
-      stroke-linecap="round"
-      stroke-linejoin="round"
-    />
-    <path
-      d="M9 4H2v10h10V7"
-      stroke="currentColor"
-      stroke-width="1.5"
-      fill="none"
-      stroke-linecap="round"
-      stroke-linejoin="round"
-    />
-  </svg>`;
-}
-
-/**
  * Compute up to two-letter initials from a display name. Falls back to a
  * single dot when the name is empty so the avatar circle never renders
  * empty (which would look like a misaligned colored dot).
@@ -772,7 +740,7 @@ class CtsNavbar extends LitElement {
             href="${link.href}"
             target=${link.external ? "_blank" : "_self"}
             rel=${link.external ? "noopener noreferrer" : ""}
-            >${link.label}${link.external ? renderExternalLinkIcon() : ""}</a
+            >${link.label}${link.external ? html`<cts-icon name="external-link" size="16"></cts-icon>` : ""}</a
           >
         </li>
       `,

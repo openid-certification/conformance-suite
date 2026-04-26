@@ -1,4 +1,5 @@
 import { html } from "lit";
+import "./cts-icon.js";
 import { expect, within, waitFor, fn, userEvent } from "storybook/test";
 import "./cts-navbar.js";
 
@@ -495,17 +496,32 @@ export const ApiDocsIsExternalLink = {
     expect(apiLink.getAttribute("rel")).toBe("noopener noreferrer");
     expect(apiLink.classList.contains("cts-navlink-external")).toBe(true);
 
-    const icon = /** @type {SVGElement} */ (apiLink.querySelector(".cts-navlink-external-icon"));
-    expect(icon).toBeTruthy();
-    expect(icon.tagName.toLowerCase()).toBe("svg");
-    expect(icon.getAttribute("aria-hidden")).toBe("true");
+    // cts-icon updates async via Lit. Re-query inside waitFor so the
+    // assertion is timing-stable across the navbar's reactive re-renders.
+    let icon;
+    let iconSvg;
+    await waitFor(
+      () => {
+        const link = canvasElement.querySelector('.cts-navlink[href="api-document.html"]');
+        expect(link).toBeTruthy();
+        icon = link.querySelector('cts-icon[name="external-link"]');
+        expect(icon).toBeTruthy();
+        iconSvg = icon.querySelector("svg");
+        expect(iconSvg).toBeTruthy();
+      },
+      { timeout: 5000 },
+    );
+    expect(iconSvg.getAttribute("aria-hidden")).toBe("true");
+    expect(iconSvg.querySelector("use").getAttribute("href")).toBe(
+      "/vendor/coolicons/icons/external-link.svg#i",
+    );
 
     // No other nav link should carry external-link signals — only API Docs.
     const otherInternalLink = /** @type {HTMLAnchorElement} */ (
       canvasElement.querySelector('.cts-navlink[href="plans.html"]')
     );
     expect(otherInternalLink.getAttribute("target")).toBe("_self");
-    expect(otherInternalLink.querySelector(".cts-navlink-external-icon")).toBeNull();
+    expect(otherInternalLink.querySelector('cts-icon[name="external-link"]')).toBeNull();
   },
 };
 
