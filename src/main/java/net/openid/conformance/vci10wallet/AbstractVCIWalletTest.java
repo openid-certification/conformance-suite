@@ -67,7 +67,6 @@ import net.openid.conformance.condition.as.GenerateAttestationChallengeResponse;
 import net.openid.conformance.condition.as.GenerateBearerAccessToken;
 import net.openid.conformance.condition.as.GenerateCredentialNonce;
 import net.openid.conformance.condition.as.GenerateCredentialNonceResponse;
-import net.openid.conformance.condition.as.GenerateDpopAccessToken;
 import net.openid.conformance.condition.as.GenerateServerConfigurationMTLS;
 import net.openid.conformance.condition.as.LoadServerJWKs;
 import net.openid.conformance.condition.as.SendAuthorizationResponseWithResponseModeQuery;
@@ -106,21 +105,14 @@ import net.openid.conformance.condition.rs.CreateResourceServerDpopNonce;
 import net.openid.conformance.condition.rs.EnsureIncomingRequestMethodIsGet;
 import net.openid.conformance.condition.rs.EnsureIncomingRequestMethodIsPost;
 import net.openid.conformance.condition.rs.ExtractBearerAccessTokenFromHeader;
-import net.openid.conformance.condition.rs.ExtractDpopAccessTokenFromHeader;
-import net.openid.conformance.condition.rs.ExtractDpopProofFromHeader;
 import net.openid.conformance.condition.rs.ExtractFapiDateHeader;
 import net.openid.conformance.condition.rs.ExtractFapiInteractionIdHeader;
 import net.openid.conformance.condition.rs.ExtractFapiIpAddressHeader;
 import net.openid.conformance.condition.rs.FAPIBrazilRsPathConstants;
 import net.openid.conformance.condition.rs.LoadUserInfo;
-import net.openid.conformance.condition.rs.RequireDpopAccessToken;
-import net.openid.conformance.condition.rs.RequireDpopClientCredentialAccessToken;
 import net.openid.conformance.condition.rs.RequireMtlsAccessToken;
 import net.openid.conformance.condition.rs.RequireMtlsClientCredentialsAccessToken;
 import net.openid.conformance.sequence.as.AddPARToServerConfiguration;
-import net.openid.conformance.sequence.as.PerformDpopProofParRequestChecks;
-import net.openid.conformance.sequence.as.PerformDpopProofResourceRequestChecks;
-import net.openid.conformance.sequence.as.PerformDpopProofTokenRequestChecks;
 import net.openid.conformance.sequence.as.ValidateClientAuthenticationWithPrivateKeyJWT;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
@@ -292,7 +284,6 @@ public abstract class AbstractVCIWalletTest extends net.openid.conformance.fapi2
 	// 60 second lifetime per FAPI2-SP-FINAL-5.3.2.1-11 https://openid.net/specs/fapi-security-profile-2_0-final.html#section-5.3.2.1-2.11
 	public static final long AUTHORIZATION_CODE_LIFETIME_SECONDS = 60;
 
-	private SenderContrainTokenRequestHelper senderConstrainTokenRequestHelper;
 
 	protected FAPI2FinalOPProfile fapi2Profile;
 
@@ -1714,43 +1705,15 @@ public abstract class AbstractVCIWalletTest extends net.openid.conformance.fapi2
 		callAndContinueOnFailure(EnsureClientCertificateMatches.class, ConditionResult.FAILURE);
 	}
 
-	private abstract static class SenderContrainTokenRequestHelper {
-		public abstract void checkParRequest();
-
-		public abstract void checkTokenRequest();
-
-		public abstract void checkResourceRequest();
-	}
-
-	private class DPopTokenRequestHelper extends SenderContrainTokenRequestHelper {
+	/**
+	 * VCI-flavoured MTLS sender-constrain helper. Differs from the inherited AFCT
+	 * implementation by skipping {@code EnsureBearerAccessTokenNotInParams} — that
+	 * check is performed by {@link #checkResourceEndpointRequestForVci(boolean)}
+	 * with VCI-specific error wrapping.
+	 */
+	private class VciMtlsTokenRequestHelper extends SenderContrainTokenRequestHelper {
 		@Override
 		public void checkParRequest() {
-			env.removeObject("incoming_dpop_proof");
-			skipIfElementMissing("incoming_request", "headers.dpop", ConditionResult.INFO, ExtractDpopProofFromHeader.class, ConditionResult.FAILURE, "DPOP-5");
-			if (env.containsObject("incoming_dpop_proof")) {
-				call(sequence(PerformDpopProofParRequestChecks.class));
-			}
-		}
-
-		@Override
-		public void checkTokenRequest() {
-			callAndStopOnFailure(ExtractDpopProofFromHeader.class, "DPOP-5");
-			call(sequence(PerformDpopProofTokenRequestChecks.class));
-		}
-
-		@Override
-		public void checkResourceRequest() {
-			callAndStopOnFailure(ExtractDpopProofFromHeader.class, "DPOP-5");
-			// Need to also extract the DPoP Access token for resource requests
-			callAndStopOnFailure(ExtractDpopAccessTokenFromHeader.class, "DPOP-7");
-			call(sequence(PerformDpopProofResourceRequestChecks.class));
-		}
-	}
-
-	private class MtlsTokenRequestHelper extends SenderContrainTokenRequestHelper {
-		@Override
-		public void checkParRequest() {
-
 		}
 
 		@Override
@@ -1759,8 +1722,6 @@ public abstract class AbstractVCIWalletTest extends net.openid.conformance.fapi2
 
 		@Override
 		public void checkResourceRequest() {
-			// EnsureBearerAccessTokenNotInParams is not called here as it is already
-			// called with VCI error wrapping in checkResourceEndpointRequestForVci()
 			callAndStopOnFailure(ExtractBearerAccessTokenFromHeader.class, "FAPI2-SP-FINAL-5.3.4-2");
 		}
 	}
@@ -2511,16 +2472,7 @@ public abstract class AbstractVCIWalletTest extends net.openid.conformance.fapi2
 		generateSenderConstrainedAccessToken = GenerateBearerAccessToken.class;
 		validateSenderConstrainedTokenSteps = RequireMtlsAccessToken.class;
 		validateSenderConstrainedClientCredentialAccessTokenSteps = RequireMtlsClientCredentialsAccessToken.class;
-		senderConstrainTokenRequestHelper = new MtlsTokenRequestHelper();
-	}
-
-	@VariantSetup(parameter = FAPI2SenderConstrainMethod.class, value = "dpop")
-	@Override
-	public void setupSenderConstrainMethodDPop() {
-		generateSenderConstrainedAccessToken = GenerateDpopAccessToken.class;
-		validateSenderConstrainedTokenSteps = RequireDpopAccessToken.class;
-		validateSenderConstrainedClientCredentialAccessTokenSteps = RequireDpopClientCredentialAccessToken.class;
-		senderConstrainTokenRequestHelper = new DPopTokenRequestHelper();
+		senderConstrainTokenRequestHelper = new VciMtlsTokenRequestHelper();
 	}
 
 }

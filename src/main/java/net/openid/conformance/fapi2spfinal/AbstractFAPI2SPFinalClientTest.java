@@ -229,7 +229,7 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 	protected Class<? extends Condition> generateSenderConstrainedAccessToken;
 	protected Class<? extends ConditionSequence> validateSenderConstrainedTokenSteps;  // for bearer tokens
 	protected Class<? extends ConditionSequence> validateSenderConstrainedClientCredentialAccessTokenSteps;  // client credential access tokens
-	private SenderContrainTokenRequestHelper senderConstrainTokenRequestHelper;
+	protected SenderContrainTokenRequestHelper senderConstrainTokenRequestHelper;
 
 	protected FAPI2ClientProfileBehavior profileBehavior;
 
@@ -719,7 +719,14 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 		callAndContinueOnFailure(EnsureClientCertificateMatches.class, ConditionResult.FAILURE);
 	}
 
-	private abstract static class SenderContrainTokenRequestHelper {
+	/**
+	 * Per-sender-constrain helper used to validate incoming PAR / token / resource
+	 * requests. Subclasses are wired in via {@code @VariantSetup} based on
+	 * {@link FAPI2SenderConstrainMethod}. Visible to subclasses (incl.
+	 * {@code AbstractVCIWalletTest}) so they can extend with profile-specific variants
+	 * (e.g. VCI's MTLS helper that omits {@code EnsureBearerAccessTokenNotInParams}).
+	 */
+	public abstract static class SenderContrainTokenRequestHelper {
 		public abstract void checkParRequest();
 		public abstract void checkTokenRequest();
 		public abstract void checkResourceRequest();
