@@ -26,11 +26,12 @@ import {
  *   runnerStatus?: string,
  *   runnerError?: string | Record<string, unknown>,
  *   runner404?: boolean,
+ *   planModules?: Array<{ testModule: string, variant?: object|null }>,
  * }} options
  */
 async function setupLogDetailRoutes(
   page,
-  { testInfo, logEntries, runnerStatus, runnerError, runner404 },
+  { testInfo, logEntries, runnerStatus, runnerError, runner404, planModules },
 ) {
   const testId = testInfo.testId;
   const runnerStatusValue = runnerStatus ?? "FINISHED";
@@ -83,13 +84,20 @@ async function setupLogDetailRoutes(
     });
   });
 
-  // /api/plan/:planId — for the "Return to Plan" button
+  // /api/plan/:planId — for the cts-test-nav-controls widget
+  // (Return-to-Plan link, Continue Plan button, "Module X of N"
+  // progress indicator). Pass `planModules` to drive the widget's
+  // currentIndex/totalCount/nextEnabled state.
   if (testInfo.planId) {
     await page.route(`**/api/plan/${testInfo.planId}`, (route) =>
       route.fulfill({
         status: 200,
         contentType: "application/json",
-        body: JSON.stringify({ _id: testInfo.planId, planName: "test-plan" }),
+        body: JSON.stringify({
+          _id: testInfo.planId,
+          planName: "test-plan",
+          ...(planModules ? { modules: planModules } : {}),
+        }),
       }),
     );
   }
@@ -480,7 +488,7 @@ test.describe("log-detail.html — Log Detail", () => {
   });
 
   // R24: split test description from user instructions in the blue summary box.
-  // Plan: docs/plans/2026-04-25-008-feat-r24-test-description-vs-instructions-plan.md
+  // Plan: docs/plans/2026-04-25-007-feat-r24-test-description-vs-instructions-plan.md
   test("R24: summary with split marker renders About + What-you-need-to-do zones", async ({
     page,
   }) => {
@@ -538,5 +546,177 @@ test.describe("log-detail.html — Log Detail", () => {
 
     // No instructions zone when the marker is absent.
     await expect(instructionsZone).toHaveCount(0);
+  });
+
+  // R21: group test navigation controls (back / repeat / continue / progress)
+  // into a single cts-test-nav-controls widget. Plan:
+  // docs/plans/2026-04-25-007-feat-test-nav-controls-widget-plan.md
+  test.describe("R21: test navigation widget", () => {
+    /**
+     * Build a modules array where the test under test sits at
+     * `currentIndex` (matches MOCK_TEST_STATUS's testName + variant).
+     * @param {number} currentIndex
+     * @param {number} total
+     */
+    function modulesAt(currentIndex, total) {
+      return Array.from({ length: total }, (_, i) => ({
+        testModule: i === currentIndex ? "oidcc-server" : `oidcc-other-${i}`,
+        variant:
+          i === currentIndex
+            ? {
+                client_auth_type: "client_secret_basic",
+                response_type: "code",
+              }
+            : null,
+      }));
+    }
+
+    test("renders unified nav cluster with Module X of N for a mid-plan test", async ({
+      page,
+    }) => {
+      await setupFailFast(page);
+      await setupLogDetailRoutes(page, {
+        testInfo: MOCK_TEST_STATUS,
+        logEntries: MOCK_LOG_ENTRIES,
+        planModules: modulesAt(5, 30),
+      });
+      await setupCommonRoutes(page);
+
+      await page.goto("/log-detail.html?log=test-inst-001");
+
+      const widget = page.locator("cts-test-nav-controls");
+      await expect(widget).toBeVisible();
+
+      // Semantic grouping
+      const group = widget.locator('[role="group"]');
+      await expect(group).toHaveAttribute("aria-label", "Test plan navigation");
+
+      // Progress count + ARIA values
+      await expect(widget).toContainText("Module 6 of 30");
+      const progressBar = widget.locator('[role="progressbar"]');
+      await expect(progressBar).toHaveAttribute("aria-valuenow", "6");
+      await expect(progressBar).toHaveAttribute("aria-valuemin", "1");
+      await expect(progressBar).toHaveAttribute("aria-valuemax", "30");
+
+      // All three controls present
+      await expect(widget.locator('[data-testid="back-btn"]')).toBeVisible();
+      await expect(widget.locator('[data-testid="repeat-btn"]')).toBeVisible();
+      await expect(widget.locator('[data-testid="continue-btn"]')).toBeVisible();
+
+      // Return to Plan link points at plan-detail.html with the planId
+      const backHref = await widget.locator('[data-testid="back-btn"] a').getAttribute("href");
+      expect(backHref).toContain("plan-detail.html?plan=");
+      expect(backHref).toContain(encodeURIComponent(MOCK_TEST_STATUS.planId));
+    });
+
+    test("hides Continue Plan on the last module; progress reads N of N", async ({ page }) => {
+      await setupFailFast(page);
+      await setupLogDetailRoutes(page, {
+        testInfo: MOCK_TEST_STATUS,
+        logEntries: MOCK_LOG_ENTRIES,
+        planModules: modulesAt(2, 3), // last position in a 3-module plan
+      });
+      await setupCommonRoutes(page);
+
+      await page.goto("/log-detail.html?log=test-inst-001");
+
+      const widget = page.locator("cts-test-nav-controls");
+      await expect(widget).toContainText("Module 3 of 3");
+
+      // Continue button is hidden when there is no next module — the
+      // progress text "Module N of N" carries the end-of-plan signal.
+      await expect(widget.locator('[data-testid="continue-btn"]')).toHaveCount(0);
+
+      // Back and Repeat are still rendered
+      await expect(widget.locator('[data-testid="back-btn"]')).toBeVisible();
+      await expect(widget.locator('[data-testid="repeat-btn"]')).toBeVisible();
+    });
+
+    test("readonly (?public=true) view shows only Return to Plan", async ({ page }) => {
+      await setupFailFast(page);
+      const publishedTest = {
+        ...MOCK_TEST_STATUS,
+        publish: "everything",
+      };
+      // The public view fetches /api/info with ?public=true on the URL —
+      // route both forms so the route handler matches under either path.
+      await page.route(`**/api/info/${publishedTest.testId}?public=true`, (route) =>
+        route.fulfill({
+          status: 200,
+          contentType: "application/json",
+          body: JSON.stringify(publishedTest),
+        }),
+      );
+      await setupLogDetailRoutes(page, {
+        testInfo: publishedTest,
+        logEntries: MOCK_LOG_ENTRIES,
+      });
+      await setupCommonRoutes(page);
+
+      await page.goto("/log-detail.html?log=test-inst-001&public=true");
+
+      const widget = page.locator("cts-test-nav-controls");
+      await expect(widget.locator('[data-testid="back-btn"]')).toBeVisible();
+
+      // Repeat / Continue are not rendered in the public/readonly view.
+      await expect(widget.locator('[data-testid="repeat-btn"]')).toHaveCount(0);
+      await expect(widget.locator('[data-testid="continue-btn"]')).toHaveCount(0);
+
+      // Back link appends &public=true so the linked plan-detail
+      // page renders its public-share variant — same semantic as the
+      // legacy planBtn JS appended this flag conditionally.
+      const backHref = await widget.locator('[data-testid="back-btn"] a').getAttribute("href");
+      expect(backHref).toContain("&public=true");
+    });
+
+    test("Cmd+Shift+U keyboard shortcut activates Continue Plan via the widget", async ({
+      page,
+    }) => {
+      await setupFailFast(page);
+      await setupLogDetailRoutes(page, {
+        testInfo: MOCK_TEST_STATUS,
+        logEntries: MOCK_LOG_ENTRIES,
+        planModules: modulesAt(0, 3),
+      });
+      // The shortcut path: press → page-level keydown → click the
+      // widget's inner button → cts-continue event → fetch
+      // /api/runner. Hold the runner request indefinitely so the
+      // page does not navigate away mid-assertion.
+      await page.route("**/api/runner?**", () => {
+        // never resolves — pin the page so we can read the cts-continue spy
+      });
+      await setupCommonRoutes(page);
+
+      await page.goto("/log-detail.html?log=test-inst-001");
+
+      const continueBtn = page.locator('cts-test-nav-controls [data-testid="continue-btn"]');
+      await expect(continueBtn).toBeVisible();
+
+      // Spy on the bubbling cts-continue event before triggering
+      // the shortcut. The event fires synchronously from the inner
+      // button click; the page only navigates after the runner fetch
+      // resolves (which the route stub above never does).
+      await page.evaluate(() => {
+        // @ts-expect-error — runtime window probe
+        window.__r21ContinueFired = false;
+        document.addEventListener(
+          "cts-continue",
+          // @ts-expect-error — runtime window probe
+          () => (window.__r21ContinueFired = true),
+        );
+      });
+
+      // Match the page's keydown handler: Ctrl+Shift+U on non-Mac,
+      // Meta+Shift+U on Mac. The handler reads navigator.platform to
+      // decide which modifier to accept, so try both.
+      await page.keyboard.press("Meta+Shift+U");
+      await page.keyboard.press("Control+Shift+U");
+
+      const fired = await page.evaluate(() => {
+        // @ts-expect-error — runtime window probe
+        return window.__r21ContinueFired;
+      });
+      expect(fired).toBe(true);
+    });
   });
 });

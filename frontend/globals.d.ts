@@ -9,6 +9,20 @@
 
 declare const bootstrap: any;
 
+// Monaco editor — lazy-loaded by `<cts-json-editor>` via the AMD bundle at
+// `/vendor/monaco-editor/vs/loader.js`. The wrapper is the only consumer;
+// the type is intentionally `any` since we don't ship `@types/monaco-editor`
+// and the surface we touch is small (`monaco.editor.create`, `defineTheme`,
+// `setModelLanguage`, `EditorOption.readOnly`). The AMD loader registers
+// `window.require` which we configure with the `vs/` path, then drive into
+// `require(['vs/editor/editor.main'], …)`. `MonacoEnvironment.getWorkerUrl`
+// is read by Monaco at editor-create time to resolve the JSON web worker.
+interface Window {
+  monaco?: any;
+  require?: any;
+  MonacoEnvironment?: { getWorkerUrl: (...args: string[]) => string };
+}
+
 // Test-only side channels set by story decorators (`withProgrammableFetch`,
 // `withMockFetch`) to coordinate state between a decorator and its story's
 // `play` function. Not part of runtime component API.

@@ -86,8 +86,15 @@
                     </div>
 
                     <div class="log-header-controls"> <!-- controls -->
+                        <!-- Test-plan navigation cluster (R20 + R21): groups
+                             Return to Plan, Repeat Test, Continue Plan and a
+                             "Module X of N" progress indicator into a single
+                             role="group" widget. Renders nothing until
+                             log-detail.html sets plan-id / currentIndex /
+                             totalCount after fetching /api/plan, so non-plan
+                             tests show no cluster at all. -->
+                        <cts-test-nav-controls id="testNavControls" data-testid="test-nav-controls"></cts-test-nav-controls>
                         <% if (!readonly) { %>
-                        <cts-button id="reloadBtn" icon="arrow-down-up" label="Repeat Test"></cts-button>
                         <div class="log-upload-row">
                             <cts-button id="uploadBtn" icon="image-01" label="Upload Images"></cts-button>
                             <span class="log-upload-count" id="uploadCount"></span>
@@ -102,9 +109,7 @@
                         <% if (!public || test.publish == "everything") { %>
                         <cts-button id="downloadBtn" icon="save" label="Download Logs"></cts-button>
                         <% } %>
-                        <cts-button id="planBtn" icon="bookmark" label="Return to Plan"></cts-button>
                         <% if (!readonly) { %>
-                        <cts-button id="nextPlanBtn" icon="skip-forward" label="Continue Plan" title="Run the next test in this test plan"></cts-button>
                         <cts-button id="btnShareLink" icon="bookmark" label="Private link"></cts-button>
                         <% if (!test.publish && FAPI_UI.currentUser.isAdmin) { %>
                         <cts-button data-publish="summary" icon="bookmark" label="Publish summary"></cts-button>
