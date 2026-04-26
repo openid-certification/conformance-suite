@@ -60,23 +60,16 @@ import net.openid.conformance.condition.as.EnsureClientCertificateMatches;
 import net.openid.conformance.condition.as.EnsureClientIdInAuthorizationRequestParametersMatchRequestObject;
 import net.openid.conformance.condition.as.EnsureClientJwksDoesNotContainPrivateOrSymmetricKeys;
 import net.openid.conformance.condition.as.EnsureMatchingClientId;
-import net.openid.conformance.condition.as.EnsureNumericRequestObjectClaimsAreNotNull;
 import net.openid.conformance.condition.as.EnsurePAREndpointRequestDoesNotContainRequestUriParameter;
-import net.openid.conformance.condition.as.EnsureRequestObjectDoesNotContainRequestOrRequestUri;
-import net.openid.conformance.condition.as.EnsureRequestObjectDoesNotContainSubWithClientId;
 import net.openid.conformance.condition.as.EnsureResponseTypeIsCode;
 import net.openid.conformance.condition.as.ExtractClientCertificateFromRequestHeaders;
 import net.openid.conformance.condition.as.ExtractParAuthorizationCodeDpopBindingKey;
 import net.openid.conformance.condition.as.ExtractRequestedScopes;
 import net.openid.conformance.condition.as.ExtractServerSigningAlg;
-import net.openid.conformance.condition.as.FAPI1AdvancedValidateRequestObjectNBFClaim;
 import net.openid.conformance.condition.as.FAPI2AddRequestObjectSigningAlgValuesSupportedToServerConfiguration;
 import net.openid.conformance.condition.as.FAPI2AddTokenEndpointAuthSigningAlgValuesSupportedToServer;
-import net.openid.conformance.condition.as.FAPI2ValidateRequestObjectSigningAlg;
 import net.openid.conformance.condition.as.FAPIEnsureMinimumClientKeyLength;
 import net.openid.conformance.condition.as.FAPIEnsureMinimumServerKeyLength;
-import net.openid.conformance.condition.as.FAPIValidateRequestObjectExp;
-import net.openid.conformance.condition.as.FAPIValidateRequestObjectMediaType;
 import net.openid.conformance.condition.as.FilterUserInfoForScopes;
 import net.openid.conformance.condition.as.GenerateAccessTokenExpiration;
 import net.openid.conformance.condition.as.GenerateAttestationChallenge;
@@ -99,9 +92,6 @@ import net.openid.conformance.condition.as.ValidateClientAssertionClaimsForPAREn
 import net.openid.conformance.condition.as.ValidateEncryptedRequestObjectHasKid;
 import net.openid.conformance.condition.as.ValidateFAPIInteractionIdInResourceRequest;
 import net.openid.conformance.condition.as.ValidateRefreshToken;
-import net.openid.conformance.condition.as.ValidateRequestObjectClaims;
-import net.openid.conformance.condition.as.ValidateRequestObjectMaxAge;
-import net.openid.conformance.condition.as.ValidateRequestObjectSignature;
 import net.openid.conformance.condition.as.jarm.GenerateJARMResponseClaims;
 import net.openid.conformance.condition.as.par.CreatePAREndpointResponse;
 import net.openid.conformance.condition.as.par.EnsureAuthorizationRequestContainsOnlyExpectedParamsWhenUsingPAR;
@@ -2320,24 +2310,6 @@ public abstract class AbstractVCIWalletTest extends net.openid.conformance.fapi2
 
 		return new RedirectView(redirectTo, false, false, false);
 
-	}
-
-	/**
-	 * Common checks applicable to both PAR endpoint and authorization requests
-	 */
-	@Override
-	protected void validateRequestObjectCommonChecks() {
-		callAndStopOnFailure(FAPI2ValidateRequestObjectSigningAlg.class, "FAPI2-SP-FINAL-5.4");
-		callAndContinueOnFailure(FAPIValidateRequestObjectMediaType.class, ConditionResult.WARNING, "JAR-4");
-		callAndStopOnFailure(FAPIValidateRequestObjectExp.class, "RFC7519-4.1.4", "FAPI2-MS-ID1-5.3.1-4");
-		callAndContinueOnFailure(FAPI1AdvancedValidateRequestObjectNBFClaim.class, ConditionResult.FAILURE, "FAPI2-MS-ID1-5.3.1-3");
-		callAndStopOnFailure(ValidateRequestObjectClaims.class);
-		callAndStopOnFailure(ValidateRequestObjectMaxAge.class, "OIDCC-13.3");
-		callAndContinueOnFailure(EnsureNumericRequestObjectClaimsAreNotNull.class, ConditionResult.WARNING, "OIDCC-13.3");
-		callAndContinueOnFailure(EnsureRequestObjectDoesNotContainRequestOrRequestUri.class, ConditionResult.FAILURE, "OIDCC-6.1");
-		callAndContinueOnFailure(EnsureRequestObjectDoesNotContainSubWithClientId.class, ConditionResult.FAILURE, "JAR-10.8");
-		callAndStopOnFailure(ValidateRequestObjectSignature.class, "FAPI2-MS-ID1-5.3.1-1");
-		validateRedirectUriInRequestObject();
 	}
 
 	@Override
