@@ -250,36 +250,9 @@
             color: inherit;
         }
 
-        /* moreButton.html */
-        .moreBtn {
-            display: inline-flex;
-            align-items: center;
-            gap: var(--space-1);
-            appearance: none;
-            background: var(--bg);
-            border: 1px solid var(--border-strong);
-            border-radius: var(--radius-2);
-            color: var(--fg);
-            font-family: inherit;
-            font-size: var(--fs-12);
-            font-weight: var(--fw-bold);
-            padding: 2px var(--space-2);
-            cursor: pointer;
-        }
-        .moreBtn:hover {
-            background: var(--ink-50);
-        }
-        .moreBtn:focus-visible {
-            outline: none;
-            box-shadow: var(--focus-ring);
-        }
-        .moreBtn .moreCount {
-            background: var(--ink-100);
-            color: var(--fg-muted);
-            border-radius: var(--radius-pill);
-            padding: 0 6px;
-            font-size: 10px;
-        }
+        /* moreButton.html — composed of cts-badge (count chip) + cts-button
+           (size="xs", variant="secondary"); both primitives own their own
+           tokenized styles, so no .moreBtn CSS lives here anymore. */
 
         /* more.html — key/value grid that replaces dl.row + col-sm-N.
            NB: the legacy template inverted the semantic <dt>/<dd>: keys
@@ -580,21 +553,16 @@
                             el.querySelector('.moreButtonContainer').insertAdjacentHTML('beforeend', moreButton);
                             el.querySelector('.moreInfoContainer').insertAdjacentHTML('beforeend', moreInfo);
 
-                            // wire up the button
+                            // wire up the button. The .moreBtn class lives on the
+                            // cts-button host (light DOM forwards classes), so the
+                            // selector still resolves and click bubbles from the
+                            // inner native button. Chevron swap goes through
+                            // cts-button's reactive `icon` property.
                             el.querySelector('.moreBtn').onclick = function(evt) {
-                                const chevron = this.querySelector('cts-icon');
-                                if (this.dataset.activated === "true") {
-                                    // it's already been activated, need to hide things
-                                    el.querySelector('.moreInfo').classList.remove('show'); // hide the content
-                                    if (chevron) chevron.setAttribute('name', 'chevron-down');
-                                    this.dataset.activated = "false";
-
-                                } else {
-                                    // need to show the collapsed entity
-                                    el.querySelector('.moreInfo').classList.add('show'); // show the content
-                                    if (chevron) chevron.setAttribute('name', 'chevron-up');
-                                    this.dataset.activated = "true";
-                                }
+                                const expanded = this.dataset.activated === "true";
+                                el.querySelector('.moreInfo').classList.toggle('show', !expanded);
+                                this.setAttribute('icon', expanded ? 'chevron-down' : 'chevron-up');
+                                this.dataset.activated = expanded ? "false" : "true";
                             };
 
                             // prettyprint any raw JSON values
