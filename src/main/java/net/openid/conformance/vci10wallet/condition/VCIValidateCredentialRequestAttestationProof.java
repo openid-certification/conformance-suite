@@ -11,6 +11,7 @@ import com.nimbusds.jose.jwk.Curve;
 import com.nimbusds.jose.jwk.ECKey;
 import com.nimbusds.jose.jwk.JWK;
 import com.nimbusds.jose.util.Base64;
+import com.nimbusds.jose.util.X509CertUtils;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import net.openid.conformance.condition.ConditionError;
@@ -21,15 +22,30 @@ import net.openid.conformance.util.JWTUtil;
 import net.openid.conformance.vci10issuer.condition.VciErrorCode;
 import net.openid.conformance.vci10issuer.util.VCICredentialErrorResponseUtil;
 
+import java.security.cert.X509Certificate;
 import java.text.ParseException;
 import java.util.List;
 
 public class VCIValidateCredentialRequestAttestationProof extends AbstractVCIValidateCredentialRequestProof {
 
+	private static final String VCI_HAIP_PROFILE = "vci_haip";
+
 	@Override
 	protected void validateProof(Environment env, String proofType, String expectedAudience, String credentialConfigurationId, JsonObject credentialConfiguration, JsonObject keyAttestationRequired) {
+		// For proof_type=attestation, this condition only parses the JWT and stores it in env.
+		// Subsequent validation (typ, alg, x5c, signature, claims) is performed by separate
+		// conditions wired into AbstractVCIWalletTest.handleCredentialRequest.
+		// The validateKeyAttestation(...) method below is retained for use by the nested
+		// key-attestation case in VCIValidateCredentialRequestJwtProof.
 		String attestationJwt = env.getString("proof_attestation", "value");
-		validateKeyAttestation(env, proofType, attestationJwt);
+		try {
+			env.putObject("vci", "key_attestation_jwt", JWTUtil.jwtStringToJsonObjectForEnvironment(attestationJwt));
+		} catch (ParseException e) {
+			String errorDescription = "Key attestation validation of proof failed: could not parse JWT";
+			VCICredentialErrorResponseUtil.updateCredentialErrorResponseInEnv(env, VciErrorCode.INVALID_PROOF, errorDescription);
+			throw error(errorDescription, e, args("attestation", attestationJwt));
+		}
+		logSuccess("Parsed key attestation JWT for proof type: " + proofType, args("proof_type", proofType));
 	}
 
 	protected void validateKeyAttestation(Environment env, String proofType, String attestationJwt) {
@@ -56,20 +72,7 @@ public class VCIValidateCredentialRequestAttestationProof extends AbstractVCIVal
 			}
 			log("Found expected algorithm for Key attestation in proof type: " + proofType, args("algorithm", header.getAlgorithm()));
 
-			// Per HAIP §4.5.1 / RFC 7515 §4.1.6, when x5c is present in the JWS header,
-			// it carries the key used to sign the JWT — verify against the leaf cert. Otherwise
-			// (non-HAIP) fall back to the configured vci.key_attestation_jwks.
-			JWK walletPublicKey;
-			List<Base64> x5cChain = header.getX509CertChain();
-			if (x5cChain != null && !x5cChain.isEmpty()) {
-				walletPublicKey = extractPublicJwkFromX5c(env, attestationJwt, x5cChain);
-			} else {
-				JsonElement keyAttestationJwksEl = env.getElementFromObject("config", "vci.key_attestation_jwks");
-				if (keyAttestationJwksEl == null) {
-					throw error("'Key Attestation JWKS' field is missing from the 'Key Attestation' section in the test configuration");
-				}
-				walletPublicKey = JWKUtil.getSigningKey(keyAttestationJwksEl.getAsJsonObject());
-			}
+			JWK walletPublicKey = resolveKeyAttestationSigningKey(env, attestationJwt, header);
 
 			if (!(walletPublicKey instanceof ECKey ecPublicKey)) {
 				String errorDescription = "key Attestation validation failed: Key found but is not an ECKey for kid: " + header.getKeyID();
@@ -123,6 +126,58 @@ public class VCIValidateCredentialRequestAttestationProof extends AbstractVCIVal
 			String errorDescription = "Attestation validation failed: Unexpected error during validation of proof type: " + proofType;
 			VCICredentialErrorResponseUtil.updateCredentialErrorResponseInEnv(env, VciErrorCode.INVALID_PROOF, errorDescription);
 			throw error(errorDescription, e);
+		}
+	}
+
+	protected JWK resolveKeyAttestationSigningKey(Environment env, String attestationJwt, JWSHeader header) throws ParseException {
+		// Per HAIP §4.5.1 / RFC 7515 §4.1.6, when x5c is present in the JWS header,
+		// it carries the key used to sign the JWT. Validate the chain and verify against
+		// the leaf certificate. Non-HAIP requests without x5c fall back to configured JWKS.
+		List<Base64> x5cChain = header.getX509CertChain();
+		if (x5cChain != null) {
+			if (x5cChain.isEmpty()) {
+				String errorDescription = "Key attestation JWT header x5c claim MUST NOT be empty";
+				VCICredentialErrorResponseUtil.updateCredentialErrorResponseInEnv(env, VciErrorCode.INVALID_PROOF, errorDescription);
+				throw error(errorDescription, args("jwt", attestationJwt, "header", header.toJSONObject()));
+			}
+			validateKeyAttestationX5cCertificateChain(env, x5cChain);
+			return extractPublicJwkFromX5c(env, attestationJwt, x5cChain);
+		}
+
+		if (isHaipProfile(env)) {
+			String errorDescription = "Key attestation JWT header MUST contain an x5c claim per HAIP §4.5.1";
+			VCICredentialErrorResponseUtil.updateCredentialErrorResponseInEnv(env, VciErrorCode.INVALID_PROOF, errorDescription);
+			throw error(errorDescription, args("jwt", attestationJwt, "header", header.toJSONObject()));
+		}
+
+		JsonElement keyAttestationJwksEl = env.getElementFromObject("config", "vci.key_attestation_jwks");
+		if (keyAttestationJwksEl == null) {
+			throw error("'Key Attestation JWKS' field is missing from the 'Key Attestation' section in the test configuration");
+		}
+		return JWKUtil.getSigningKey(keyAttestationJwksEl.getAsJsonObject());
+	}
+
+	private boolean isHaipProfile(Environment env) {
+		return VCI_HAIP_PROFILE.equals(env.getString("vci", "fapi_profile"));
+	}
+
+	private void validateKeyAttestationX5cCertificateChain(Environment env, List<Base64> x5cChain) {
+		try {
+			List<X509Certificate> certs = parseX5cCertificatesFromNimbusBase64(x5cChain);
+
+			String trustAnchorPem = env.getString("vci", "key_attestation_trust_anchor_pem");
+			X509Certificate trustAnchorCert = trustAnchorPem != null ? X509CertUtils.parse(trustAnchorPem) : null;
+
+			validateX5cCertificateChain(certs, trustAnchorCert);
+
+			logSuccess("Validated key attestation x5c certificate chain",
+				args("x5c", x5cChain,
+					"leaf_cert_subject", certs.get(0).getSubjectX500Principal().getName(),
+					"chain_length", certs.size()));
+		} catch (ConditionError e) {
+			VCICredentialErrorResponseUtil.updateCredentialErrorResponseInEnv(env, VciErrorCode.INVALID_PROOF,
+				"Key attestation x5c certificate chain validation failed");
+			throw e;
 		}
 	}
 

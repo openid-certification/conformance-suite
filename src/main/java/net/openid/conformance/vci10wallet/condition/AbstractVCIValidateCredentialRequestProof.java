@@ -9,7 +9,7 @@ import com.nimbusds.jose.jwk.JWKSet;
 import com.nimbusds.jose.jwk.RSAKey;
 import com.nimbusds.jose.util.Base64;
 import com.nimbusds.jose.util.X509CertUtils;
-import net.openid.conformance.condition.AbstractCondition;
+import net.openid.conformance.condition.AbstractValidateX5cCertificateChain;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.util.JWKUtil;
@@ -23,7 +23,7 @@ import java.security.interfaces.RSAPublicKey;
 import java.text.ParseException;
 import java.util.List;
 
-public abstract class AbstractVCIValidateCredentialRequestProof extends AbstractCondition {
+public abstract class AbstractVCIValidateCredentialRequestProof extends AbstractValidateX5cCertificateChain {
 
 	@Override
 	public Environment evaluate(Environment env) {

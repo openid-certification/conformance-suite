@@ -15,17 +15,27 @@ import java.security.cert.X509Certificate;
 import java.util.List;
 
 /**
- * Validates the x5c certificate chain in a key attestation JWT.
+ * Validates the x5c certificate chain in a key attestation JWT and verifies the JWT
+ * signature against the leaf certificate's public key.
  *
- * Per HAIP section 4.5.1:
- * - The leaf certificate MUST NOT be self-signed
- * - The trust anchor MUST NOT be included in the x5c chain
- * - If a trust anchor is configured, the chain must be verifiable against it
+ * Per HAIP §4.5.1 / RFC 7515 §4.1.6, when x5c is present it carries the public key
+ * used to verify the JWT signature. Combining chain validation and signature verification
+ * in one condition prevents the "split key" gap where the JWT was signed by one key but
+ * the x5c chain happened to validate independently.
+ *
+ * Skips silently when x5c is absent. The HAIP-mandatory case is enforced by
+ * {@link EnsureKeyAttestationHasX5cClaim} which is wired before this condition under HAIP.
+ * The non-HAIP-x5c-absent case is handled by
+ * {@link VerifyKeyAttestationSignatureUsingConfigJwks} which is wired after this condition
+ * for non-HAIP plans.
+ *
+ * On success, sets {@code key_attestation_signature_verified = true} in env so the
+ * JWKS fallback knows it can skip.
  */
 public class ValidateKeyAttestationX5cCertificateChain extends AbstractValidateX5cCertificateChain {
 
 	@Override
-	@PreEnvironment(required = {"vci"})
+	@PreEnvironment(required = "vci")
 	public Environment evaluate(Environment env) {
 
 		JsonObject keyAttestationJwt = env.getElementFromObject("vci", "key_attestation_jwt").getAsJsonObject();
@@ -33,9 +43,11 @@ public class ValidateKeyAttestationX5cCertificateChain extends AbstractValidateX
 
 		JsonElement x5cEl = header.get("x5c");
 		if (x5cEl == null || !x5cEl.isJsonArray() || x5cEl.getAsJsonArray().isEmpty()) {
-			log("No x5c claim found in key attestation JWT header, skipping certificate chain checks");
+			log("No x5c claim in key attestation JWT header — skipping chain validation");
 			return env;
 		}
+
+		String rawJwt = OIDFJSON.getString(keyAttestationJwt.get("value"));
 
 		try {
 			List<String> x5c = OIDFJSON.convertJsonArrayToList(x5cEl.getAsJsonArray());
@@ -45,8 +57,11 @@ public class ValidateKeyAttestationX5cCertificateChain extends AbstractValidateX
 			X509Certificate trustAnchorCert = trustAnchorPem != null ? X509CertUtils.parse(trustAnchorPem) : null;
 
 			validateX5cCertificateChain(certs, trustAnchorCert);
+			verifyJwtSignatureWithX5cLeafCert(rawJwt, certs);
 
-			logSuccess("Validated key attestation x5c certificate chain",
+			env.putBoolean("key_attestation_signature_verified", true);
+
+			logSuccess("Validated key attestation x5c certificate chain and signature",
 				args("x5c", x5c,
 					"leaf_cert_subject", certs.get(0).getSubjectX500Principal().getName(),
 					"chain_length", certs.size()));
