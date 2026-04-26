@@ -1,6 +1,7 @@
 import { LitElement, html, nothing } from "lit";
 import "./cts-button.js";
 import "./cts-link-button.js";
+import "./cts-json-editor.js";
 
 // Screen-reader announcement + visible feedback should stay long enough for
 // assistive tech to finish reading the message.
@@ -65,17 +66,10 @@ const STYLE_TEXT = `
     color: var(--rust-400);
   }
   cts-plan-actions .planConfigJson {
-    font-family: var(--font-mono);
-    font-size: var(--fs-12);
-    background: var(--ink-50);
-    color: var(--ink-900);
-    border-radius: var(--radius-2);
-    padding: var(--space-3);
+    display: block;
     margin: 0;
-    white-space: pre-wrap;
-    word-break: break-word;
     max-height: 60vh;
-    overflow: auto;
+    min-height: calc(var(--space-6) * 14);
   }
   cts-plan-actions .planLinkInput {
     display: block;
@@ -369,7 +363,12 @@ class CtsPlanActions extends LitElement {
             ></cts-button>
           </div>
         </div>
-        <pre class="planConfigJson config-json">${configJson}</pre>
+        <cts-json-editor
+          class="planConfigJson config-json"
+          readonly
+          aria-label="Plan configuration JSON"
+          .value=${configJson}
+        ></cts-json-editor>
       </div>
     `;
   }
@@ -464,7 +463,7 @@ class CtsPlanActions extends LitElement {
           variant="secondary"
           size="sm"
           icon="settings"
-          label="View Config"
+          label="View configuration"
           full-width
           data-testid="view-config-btn"
           @cts-click=${this._handleViewConfig}

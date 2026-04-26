@@ -44,6 +44,7 @@
     <script type="module" src="/components/cts-crumb.js"></script>
     <script type="module" src="/components/cts-tooltip.js"></script>
     <script type="module" src="/components/cts-test-nav-controls.js"></script>
+    <script type="module" src="/components/cts-json-editor.js"></script>
     <script type="module" src="/components/test-summary-split.js"></script>
 
     <style>
@@ -457,7 +458,7 @@
             Configuration for <code id="configTestId" style="color: var(--fg-muted);"></code>
         </div>
         <div class="wrapLongStrings">
-            <pre id="config" class="row-bg-light" style="padding: var(--space-1);"></pre>
+            <cts-json-editor id="config" readonly aria-label="Test configuration JSON" style="display: block; min-height: calc(var(--space-6) * 20);"></cts-json-editor>
         </div>
     </cts-modal>
 
@@ -813,7 +814,11 @@
                     if (document.getElementById('showConfigBtn') !== null) {
                         document.getElementById('showConfigBtn').onclick = function(evt) {
                             evt.preventDefault();
-                            document.getElementById('config').innerHTML = _.escape(JSON.stringify(data.config, null, 4));
+                            // cts-json-editor exposes `.value` as a string, mirroring
+                            // <textarea> semantics. Monaco renders text content (no
+                            // markup), so the lodash _.escape that guarded the legacy
+                            // <pre> is no longer required.
+                            document.getElementById('config').value = JSON.stringify(data.config, null, 4);
                             document.getElementById('configTestId').innerHTML = _.escape(testId);
 
                             document.getElementById('configModal').show();
@@ -1827,7 +1832,13 @@
                     var host = trigger.closest('.btn-clipboard');
                     var sel = host && host.getAttribute('data-clipboard-target');
                     var target = sel ? document.querySelector(sel) : null;
-                    return target ? target.textContent : '';
+                    if (!target) return '';
+                    // cts-json-editor (and <input>/<textarea>) expose the
+                    // copy source as `.value`; Monaco virtualises long
+                    // content so `textContent` may not contain the full
+                    // JSON. Prefer `.value` whenever the target carries it.
+                    if (typeof target.value === 'string') return target.value;
+                    return target.textContent;
                 }
             });
             clipboard.on('success', function(e) {

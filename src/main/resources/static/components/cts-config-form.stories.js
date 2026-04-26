@@ -3,6 +3,28 @@ import { expect, within, waitFor, userEvent } from "storybook/test";
 import { MOCK_SCHEMA } from "@fixtures/mock-schema.js";
 import "./cts-config-form.js";
 
+/**
+ * Resolve once the `<cts-json-editor>` inside the JSON tab has either Monaco
+ * or its fallback textarea attached. Both are valid mounted states; tests
+ * read `.value` from the `<cts-json-editor>` host either way.
+ * @param {Element} canvasElement
+ * @returns {Promise<HTMLElement>}
+ */
+async function waitForJsonEditor(canvasElement) {
+  return waitFor(
+    () => {
+      const editor = canvasElement.querySelector("cts-json-editor.oidf-config-form-json");
+      if (!editor) throw new Error("cts-json-editor not yet attached");
+      const ready =
+        editor.querySelector(".monaco-editor") ||
+        editor.querySelector(".oidf-json-editor-fallback");
+      if (!ready) throw new Error("cts-json-editor host not yet rendered");
+      return /** @type {HTMLElement} */ (editor);
+    },
+    { timeout: 10000 },
+  );
+}
+
 export default {
   title: "Components/cts-config-form",
   component: "cts-config-form",
@@ -48,7 +70,7 @@ export const EmptyForm = {
     expect(canvasElement.querySelector(".form-control")).toBeNull();
     expect(canvasElement.querySelector(".nav-tabs")).toBeNull();
     expect(canvasElement.querySelector(".nav-link")).toBeNull();
-    expect(canvasElement.querySelector(".btn-primary")).toBeTruthy(); // from cts-button, not config-form
+    expect(canvasElement.querySelector(".oidf-btn-primary")).toBeTruthy(); // from cts-button, not config-form
   },
 };
 
@@ -93,11 +115,10 @@ export const JsonTab = {
       expect(jsonTab.classList.contains("is-active")).toBe(true);
     });
     expect(jsonTab.getAttribute("aria-selected")).toBe("true");
-    const textarea = canvasElement.querySelector("textarea.oidf-config-form-json");
-    expect(textarea).toBeTruthy();
-    expect(textarea.classList.contains("is-error")).toBe(false);
-    expect(textarea.getAttribute("aria-invalid")).toBe("false");
-    const json = JSON.parse(textarea.value);
+    const editor = await waitForJsonEditor(canvasElement);
+    expect(editor.classList.contains("is-error")).toBe(false);
+    expect(editor.getAttribute("aria-invalid")).toBe("false");
+    const json = JSON.parse(/** @type {any} */ (editor).value);
     expect(json.server.issuer).toBe("https://example.com");
   },
 };
@@ -114,17 +135,18 @@ export const InvalidJsonShowsError = {
   async play({ canvasElement }) {
     const canvas = within(canvasElement);
     await userEvent.click(canvas.getByText("JSON"));
-    const textarea = /** @type {HTMLTextAreaElement} */ (
-      canvasElement.querySelector("textarea.oidf-config-form-json")
-    );
-    expect(textarea).toBeTruthy();
-    // Replace the textarea content with garbage to trigger the JSON parse error.
-    await userEvent.clear(textarea);
-    await userEvent.type(textarea, "{not valid");
+    const editor = await waitForJsonEditor(canvasElement);
+    // Drive the parse-error path by assigning an invalid JSON string and
+    // dispatching `input` — the wrapper exposes the same contract the
+    // legacy textarea did, but Monaco's keystroke surface is harder to
+    // type into reliably under jsdom. The host's `_handleJsonInput`
+    // reads `e.target.value`, which is what setting `.value` produces.
+    /** @type {any} */ (editor).value = "{not valid";
+    editor.dispatchEvent(new Event("input", { bubbles: true }));
     await waitFor(() => {
-      expect(textarea.classList.contains("is-error")).toBe(true);
+      expect(editor.classList.contains("is-error")).toBe(true);
     });
-    expect(textarea.getAttribute("aria-invalid")).toBe("true");
+    expect(editor.getAttribute("aria-invalid")).toBe("true");
     const errorEl = canvasElement.querySelector('[data-testid="json-error"]');
     expect(errorEl).toBeTruthy();
     expect(errorEl.classList.contains("oidf-config-form-json-error")).toBe(true);

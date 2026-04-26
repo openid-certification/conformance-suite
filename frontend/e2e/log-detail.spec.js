@@ -231,7 +231,7 @@ test.describe("log-detail.html — Log Detail", () => {
     await expect(page.locator(".failureSummaryTitle")).toBeVisible();
   });
 
-  test("View Config button opens modal with test configuration JSON", async ({ page }) => {
+  test("View configuration button opens modal with test configuration JSON", async ({ page }) => {
     await setupFailFast(page);
     await setupLogDetailRoutes(page, {
       testInfo: MOCK_TEST_STATUS,
@@ -252,7 +252,23 @@ test.describe("log-detail.html — Log Detail", () => {
     // Click config button → modal opens with JSON
     await configBtn.click();
     await expect(configModal).toBeVisible();
-    await expect(page.locator("#config")).toContainText("server.issuer");
+    // The `#config` element is now <cts-json-editor>; Monaco virtualises
+    // its rendered content, so we read `.value` from the host instead of
+    // asserting on text content. The wrapper exposes `.value` as a plain
+    // string regardless of whether Monaco or the textarea fallback rendered.
+    // Monaco can take several seconds to boot on cold CI. Match the 10s
+    // timeout used by the corresponding Storybook plays so this spec does
+    // not flake on slow runners (per testing-reviewer T3).
+    await expect
+      .poll(
+        async () =>
+          page.evaluate(() => {
+            const el = /** @type {any} */ (document.getElementById("config"));
+            return el ? el.value : "";
+          }),
+        { timeout: 10000 },
+      )
+      .toContain("server.issuer");
     await expect(page.locator("#configTestId")).toContainText("test-inst-001");
 
     // Close modal

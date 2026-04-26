@@ -4,6 +4,7 @@ import "./cts-badge.js";
 import "./cts-button.js";
 import "./cts-link-button.js";
 import "./cts-alert.js";
+import "./cts-json-editor.js";
 import { splitTestSummary } from "./test-summary-split.js";
 
 /**
@@ -193,15 +194,9 @@ const STYLE_TEXT = `
     margin-bottom: var(--space-3);
   }
   cts-log-detail-header .configBlock {
-    background: var(--ink-50);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-2);
-    padding: var(--space-3);
-    font-family: var(--font-mono);
-    font-size: var(--fs-12);
+    display: block;
     margin: 0;
-    white-space: pre-wrap;
-    word-break: break-word;
+    min-height: calc(var(--space-6) * 14);
   }
   cts-log-detail-header .runningTestRow {
     display: flex;
@@ -213,15 +208,9 @@ const STYLE_TEXT = `
     color: var(--fg);
   }
   cts-log-detail-header .runningExportedBlock {
+    display: block;
     margin: var(--space-2) 0 0 0;
-    background: var(--ink-50);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-2);
-    padding: var(--space-3);
-    font-family: var(--font-mono);
-    font-size: var(--fs-12);
-    white-space: pre-wrap;
-    word-break: break-word;
+    min-height: calc(var(--space-6) * 10);
   }
   cts-log-detail-header .runningTestActions {
     display: flex;
@@ -669,7 +658,7 @@ class CtsLogDetailHeader extends LitElement {
           variant="secondary"
           size="sm"
           icon="settings"
-          label="View Config"
+          label="View configuration"
           data-testid="view-config-btn"
           @cts-click=${this._toggleConfig}
         ></cts-button>
@@ -729,7 +718,13 @@ class CtsLogDetailHeader extends LitElement {
               @cts-click=${this._toggleConfig}
             ></cts-button>
           </div>
-          <pre class="configBlock" data-testid="config-json">${configJson}</pre>
+          <cts-json-editor
+            class="configBlock"
+            data-testid="config-json"
+            readonly
+            aria-label="Test configuration JSON"
+            .value=${configJson}
+          ></cts-json-editor>
         </div>
       </div>
     `;
@@ -757,7 +752,12 @@ class CtsLogDetailHeader extends LitElement {
               ? html`
                   <div>
                     <div class="runningExportedLabel">Exported values:</div>
-                    <pre class="runningExportedBlock">${JSON.stringify(test.exposed, null, 2)}</pre>
+                    <cts-json-editor
+                      class="runningExportedBlock"
+                      readonly
+                      aria-label="Exported test values"
+                      .value=${JSON.stringify(test.exposed, null, 2)}
+                    ></cts-json-editor>
                   </div>
                 `
               : nothing}

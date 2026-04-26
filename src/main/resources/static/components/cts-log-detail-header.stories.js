@@ -196,7 +196,7 @@ export const ViewConfig = {
     let configPanel = canvasElement.querySelector('[data-testid="config-panel"]');
     expect(configPanel).toBeNull();
 
-    // Click View Config button (target the inner <button> rendered by
+    // Click View configuration button (target the inner <button> rendered by
     // cts-button — clicking the host bypasses Lit's @click handler).
     const viewConfigBtn = innerButton(canvasElement, "view-config-btn");
     await userEvent.click(viewConfigBtn);
@@ -207,11 +207,22 @@ export const ViewConfig = {
       expect(configPanel).toBeTruthy();
     });
 
-    // Config JSON is shown
-    const configJson = canvasElement.querySelector('[data-testid="config-json"]');
-    expect(configJson).toBeTruthy();
-    expect(configJson.textContent).toContain("server.issuer");
-    expect(configJson.textContent).toContain("https://op.example.com");
+    // Config JSON renders inside the read-only Monaco editor. Monaco
+    // virtualises long content, so we read `.value` rather than
+    // `textContent` — the property is the wrapper's documented contract.
+    const configJson = await waitFor(() => {
+      const el = /** @type {any} */ (
+        canvasElement.querySelector('cts-json-editor[data-testid="config-json"]')
+      );
+      if (!el) throw new Error("cts-json-editor[data-testid='config-json'] not yet attached");
+      const ready =
+        el.querySelector(".monaco-editor") || el.querySelector(".oidf-json-editor-fallback");
+      if (!ready) throw new Error("cts-json-editor host not yet rendered");
+      return el;
+    });
+    expect(configJson.getAttribute("readonly")).not.toBeNull();
+    expect(configJson.value).toContain("server.issuer");
+    expect(configJson.value).toContain("https://op.example.com");
 
     // Click close to hide
     const closeBtn = configPanel.querySelector("cts-button button");
@@ -333,7 +344,7 @@ export const PublicView = {
       expect(canvas.getByText("oidcc-server")).toBeInTheDocument();
     });
 
-    // View Config is visible (always visible)
+    // View configuration is visible (always visible)
     expect(canvasElement.querySelector('[data-testid="view-config-btn"]')).toBeTruthy();
 
     // Download is visible (publish === "everything")

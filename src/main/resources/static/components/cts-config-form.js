@@ -2,11 +2,15 @@ import { LitElement, html, nothing } from "lit";
 import { classMap } from "lit/directives/class-map.js";
 import "./cts-form-field.js";
 import "./cts-button.js";
+import "./cts-json-editor.js";
 
 /**
  * Dual-mode (Form / JSON) configuration editor. In Form mode, renders
  * sections/fields driven by a JSON schema and optional UI schema. In JSON
- * mode, offers a raw textarea that keeps `config` in sync on valid JSON.
+ * mode, hosts a Monaco-backed `<cts-json-editor>` that keeps `config` in sync
+ * on valid JSON. The editor exposes `.value` as a plain string and dispatches
+ * `input`/`change` events identical to a `<textarea>`, so the parse-error
+ * UX below it stays unchanged.
  *
  * Light DOM. Scoped CSS lives in a single `<style>` element injected into
  * `<head>` on first connect (gated by a module-level flag) so the rules
@@ -17,7 +21,7 @@ import "./cts-button.js";
  * The schema-driven fields delegate to `cts-form-field`, which already
  * carries the `.oidf-input` / `.oidf-select` / `.oidf-textarea` / `.oidf-error`
  * tokenized look. This container only owns the surrounding tabs, section
- * fieldsets, divider lines, and the JSON textarea.
+ * fieldsets, divider lines, and the JSON editor host.
  *
  * NOTE: The legacy `schedule-test.html` page renders its own static HTML
  * form using `.config-form-element*` / `[data-json-target]` / `[data-json-type]`
@@ -118,27 +122,12 @@ const STYLE_TEXT = `
   margin-top: var(--space-4);
 }
 .oidf-config-form-json {
+  display: block;
   width: 100%;
   box-sizing: border-box;
   min-height: calc(var(--space-6) * 16);
-  padding: var(--space-3);
-  border: 1px solid var(--ink-300);
-  border-radius: var(--radius-2);
-  background: var(--bg-elev);
-  color: var(--fg);
-  font-family: var(--font-mono);
-  font-size: var(--fs-13);
-  line-height: var(--lh-base);
-  resize: vertical;
-  /* Reset legacy layout.css \`input[type=text], textarea { text-indent: 5px }\`. */
-  text-indent: 0;
 }
-.oidf-config-form-json:focus {
-  outline: none;
-  border-color: var(--orange-400);
-  box-shadow: var(--focus-ring);
-}
-.oidf-config-form-json.is-error {
+.oidf-config-form-json.is-error .oidf-json-editor {
   border-color: var(--rust-400);
 }
 .oidf-config-form-json-error {
@@ -335,16 +324,16 @@ class CtsConfigForm extends LitElement {
               </form>
             `
           : html`
-              <textarea
+              <cts-json-editor
                 class=${classMap({
                   "oidf-config-form-json": true,
                   "is-error": Boolean(this._jsonError),
                 })}
-                rows="20"
+                aria-label="Configuration JSON"
                 aria-invalid=${this._jsonError ? "true" : "false"}
                 .value=${this._jsonText}
                 @input=${this._handleJsonInput}
-              ></textarea>
+              ></cts-json-editor>
               ${this._jsonError
                 ? html`<div
                     class="oidf-config-form-json-error"
