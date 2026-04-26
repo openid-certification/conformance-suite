@@ -360,7 +360,7 @@ class CtsLoginPage extends LitElement {
         <img
           class="oidf-login-brand__logo"
           src="/images/openid-dark.svg"
-          alt="OpenID"
+          alt="OpenID Foundation"
           width="93"
           height="28"
         />
@@ -393,7 +393,7 @@ class CtsLoginPage extends LitElement {
 
   render() {
     return html`
-      <div class="oidf-login-page" id="loginContent">
+      <main class="oidf-login-page" id="loginContent">
         <section class="oidf-login-card">
           ${this._renderBrand()}
           <div class="oidf-login-form">
@@ -455,7 +455,7 @@ class CtsLoginPage extends LitElement {
           </div>
         </section>
         ${this._renderTokenIframe()}
-      </div>
+      </main>
     `;
   }
 }
