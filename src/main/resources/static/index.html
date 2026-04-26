@@ -26,9 +26,12 @@
 
 </head>
 <body>
+    <a class="oidf-skip-link" href="#main-content">Skip to main content</a>
 
     <cts-navbar current-page="home"></cts-navbar>
-    <cts-dashboard></cts-dashboard>
+    <main id="main-content">
+        <cts-dashboard></cts-dashboard>
+    </main>
 
     <script type="text/javascript">
         // Wire the dashboard's auth-gated tiles to /api/currentuser. cts-navbar
