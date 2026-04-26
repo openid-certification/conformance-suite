@@ -175,15 +175,21 @@ public class VCIClientProfileBehavior extends FAPI2ClientProfileBehavior {
 
 	/**
 	 * Minimal credential endpoint (also used for deferred_credential) — marks the test
-	 * complete on first call and returns a placeholder credential response. The FAPI2SP
-	 * client tests have already validated the OAuth-level behavior by the time the wallet
-	 * reaches this endpoint; we don't implement actual credential issuance here (that's
-	 * {@code VCIWalletTest*}'s job).
+	 * complete on first call and returns a placeholder credential response in the OID4VCI
+	 * 1.0 Final § 8.3 shape ({@code {"credentials": [{"credential": "<value>"}]}}). The
+	 * FAPI2SP client tests have already validated the OAuth-level behavior by the time the
+	 * wallet reaches this endpoint; we don't implement actual credential issuance here
+	 * (that's {@code VCIWalletTest*}'s job), so the credential value is a placeholder
+	 * string.
 	 */
 	protected ResponseEntity<JsonObject> handleCredentialEndpoint() {
 		module.doSetStatus(Status.RUNNING);
+		JsonObject credentialEntry = new JsonObject();
+		credentialEntry.addProperty("credential", "fapi2sp-client-test-placeholder-credential");
+		JsonArray credentials = new JsonArray();
+		credentials.add(credentialEntry);
 		JsonObject body = new JsonObject();
-		body.addProperty("credential", "fapi2sp-client-test-placeholder-credential");
+		body.add("credentials", credentials);
 		module.resourceEndpointCallComplete();
 		return ResponseEntity.status(HttpStatus.OK)
 			.contentType(MediaType.APPLICATION_JSON)
