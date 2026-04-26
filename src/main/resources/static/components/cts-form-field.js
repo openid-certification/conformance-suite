@@ -320,9 +320,7 @@ class CtsFormField extends LitElement {
           : nothing}
         ${this._renderInput()}
         ${this.error
-          ? html`<span id="${this._uid}-error" class="oidf-error" role="alert"
-              >${this.error}</span
-            >`
+          ? html`<span id="${this._uid}-error" class="oidf-error" role="alert">${this.error}</span>`
           : nothing}
         ${!isBoolean && description
           ? html`<span id="${this._uid}-help" class="oidf-help t-meta">${description}</span>`
