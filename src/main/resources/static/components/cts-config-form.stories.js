@@ -127,6 +127,53 @@ export const JsonTab = {
   },
 };
 
+export const ValidJsonDispatchesConfigChange = {
+  render: () => html`
+    <cts-config-form
+      .schema=${MOCK_SCHEMA.schema}
+      .uiSchema=${MOCK_SCHEMA.uiSchema}
+      .config=${{ server: { issuer: "https://example.com" } }}
+      .errors=${{}}
+    ></cts-config-form>
+  `,
+  async play({ canvasElement }) {
+    const canvas = within(canvasElement);
+    /** @type {any} */
+    let receivedConfig = null;
+    canvasElement.addEventListener("cts-config-change", (e) => {
+      receivedConfig = /** @type {CustomEvent} */ (e).detail.config;
+    });
+
+    await userEvent.click(canvas.getByText("JSON"));
+    const editor = await waitForJsonEditor(canvasElement);
+
+    // Drive the success branch end-to-end — the parse-error branch is
+    // covered by InvalidJsonShowsError above. After the swap to
+    // <cts-json-editor>, this is the only story that confirms a valid
+    // edit through the editor still flows through `_handleJsonInput` →
+    // `JSON.parse` → `cts-config-change`. The wrapper accepts `.value`
+    // assignment as the equivalent of typing, mirroring the legacy
+    // <textarea> contract.
+    const nextJson = JSON.stringify(
+      { server: { issuer: "https://updated.example.com" }, client: { client_id: "abc-123" } },
+      null,
+      2,
+    );
+    /** @type {any} */ (editor).value = nextJson;
+    editor.dispatchEvent(new Event("input", { bubbles: true }));
+
+    await waitFor(() => {
+      expect(receivedConfig).toBeTruthy();
+    });
+    expect(receivedConfig.server.issuer).toBe("https://updated.example.com");
+    expect(receivedConfig.client.client_id).toBe("abc-123");
+    // The error state must NOT be set on the success branch — the
+    // parse-error overlay is what InvalidJsonShowsError already covers.
+    expect(editor.classList.contains("is-error")).toBe(false);
+    expect(editor.getAttribute("aria-invalid")).toBe("false");
+  },
+};
+
 export const InvalidJsonShowsError = {
   render: () => html`
     <cts-config-form
