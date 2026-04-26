@@ -89,6 +89,30 @@ export const MOCK_TEST_STATUS = {
   exposed: {},
 };
 
+/**
+ * GET /api/info/:testId — summary contains the R24 split marker
+ * `\n\n---\n\n`. The pre-marker half describes what the test checks;
+ * the post-marker half is imperative user instructions. The frontend
+ * (cts-log-detail-header) renders the two halves as separate
+ * "About this test" and "What you need to do" zones.
+ */
+export const MOCK_TEST_STATUS_WITH_INSTRUCTIONS = {
+  ...MOCK_TEST_STATUS,
+  _id: "test-instr-001",
+  testId: "test-instr-001",
+  summary:
+    "This test calls the authorization endpoint with a login_hint, which must not result in errors.\n\n---\n\nPlease remove any cookies you may have received from the OpenID Provider before proceeding. A fresh login page is needed.",
+};
+
+/** GET /api/info/:testId — summary present, no R24 split marker. */
+export const MOCK_TEST_STATUS_WITH_DESCRIPTION_ONLY = {
+  ...MOCK_TEST_STATUS,
+  _id: "test-desc-001",
+  testId: "test-desc-001",
+  summary:
+    "This test calls the authorization endpoint and verifies the OP returns a normal login page.",
+};
+
 /** GET /api/info/:testId — FAILED */
 export const MOCK_TEST_FAILED = {
   ...MOCK_TEST_STATUS,

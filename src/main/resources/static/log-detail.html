@@ -93,6 +93,34 @@
         .log-header-meta-summary p {
             margin: 0;
         }
+
+        /* R24: summary zones (About this test / What you need to do).
+           Live-page counterpart of the cts-log-detail-header.js styles.
+           Plan: docs/plans/2026-04-25-008-feat-r24-test-description-vs-instructions-plan.md */
+        .log-header-meta cts-alert {
+            grid-column: 1 / -1;
+        }
+        .log-header-meta cts-alert + cts-alert {
+            margin-top: var(--space-2);
+        }
+        .summaryZone {
+            display: block;
+        }
+        .summaryEyebrow {
+            display: block;
+            font-size: var(--fs-12);
+            font-weight: var(--fw-bold);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--fg-soft);
+            margin-bottom: var(--space-2);
+        }
+        .summaryZone--instructions .summaryEyebrow {
+            color: var(--status-warning);
+        }
+        .summaryBody {
+            color: var(--fg);
+        }
         .log-header-controls {
             display: flex;
             flex-direction: column;

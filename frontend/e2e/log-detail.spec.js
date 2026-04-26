@@ -5,6 +5,8 @@ import {
   MOCK_TEST_FAILED,
   MOCK_TEST_WARNING,
   MOCK_TEST_RUNNING,
+  MOCK_TEST_STATUS_WITH_INSTRUCTIONS,
+  MOCK_TEST_STATUS_WITH_DESCRIPTION_ONLY,
 } from "./fixtures/mock-test-data.js";
 import {
   MOCK_LOG_ENTRIES,
@@ -475,5 +477,66 @@ test.describe("log-detail.html — Log Detail", () => {
 
     // Click the failure text — should not throw an error (scrolls to entry)
     await failureText.click();
+  });
+
+  // R24: split test description from user instructions in the blue summary box.
+  // Plan: docs/plans/2026-04-25-008-feat-r24-test-description-vs-instructions-plan.md
+  test("R24: summary with split marker renders About + What-you-need-to-do zones", async ({
+    page,
+  }) => {
+    await setupFailFast(page);
+    await setupLogDetailRoutes(page, {
+      testInfo: MOCK_TEST_STATUS_WITH_INSTRUCTIONS,
+      logEntries: MOCK_LOG_ENTRIES,
+    });
+    await setupCommonRoutes(page);
+
+    await page.goto("/log-detail.html?log=test-instr-001");
+
+    const aboutZone = page.locator('[data-testid="about-test-zone"]');
+    const instructionsZone = page.locator('[data-testid="user-instructions-zone"]');
+
+    await expect(aboutZone).toBeVisible();
+    await expect(instructionsZone).toBeVisible();
+
+    // Description content lands in the about zone; instructions in the
+    // instructions zone. The split marker is consumed and not surfaced.
+    await expect(aboutZone).toContainText("About this test");
+    await expect(aboutZone).toContainText("must not result in errors");
+    await expect(instructionsZone).toContainText("What you need to do");
+    await expect(instructionsZone).toContainText("Please remove any cookies");
+
+    // Instructions zone is wrapped in a warning-variant cts-alert (action-coded palette).
+    const instructionsAlert = page.locator('cts-alert[variant="warning"]', {
+      has: page.locator('[data-testid="user-instructions-zone"]'),
+    });
+    await expect(instructionsAlert).toBeVisible();
+
+    // About zone is wrapped in an info-variant cts-alert (the "blue box").
+    const aboutAlert = page.locator('cts-alert[variant="info"]', {
+      has: page.locator('[data-testid="about-test-zone"]'),
+    });
+    await expect(aboutAlert).toBeVisible();
+  });
+
+  test("R24: summary without split marker renders only the About zone", async ({ page }) => {
+    await setupFailFast(page);
+    await setupLogDetailRoutes(page, {
+      testInfo: MOCK_TEST_STATUS_WITH_DESCRIPTION_ONLY,
+      logEntries: MOCK_LOG_ENTRIES,
+    });
+    await setupCommonRoutes(page);
+
+    await page.goto("/log-detail.html?log=test-desc-001");
+
+    const aboutZone = page.locator('[data-testid="about-test-zone"]');
+    const instructionsZone = page.locator('[data-testid="user-instructions-zone"]');
+
+    await expect(aboutZone).toBeVisible();
+    await expect(aboutZone).toContainText("About this test");
+    await expect(aboutZone).toContainText("normal login page");
+
+    // No instructions zone when the marker is absent.
+    await expect(instructionsZone).toHaveCount(0);
   });
 });
