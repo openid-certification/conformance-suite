@@ -29,6 +29,7 @@
     <script type="module" src="/components/cts-icon.js"></script>
     <script type="module" src="/components/cts-data-table.js"></script>
     <script type="module" src="/components/cts-empty-state.js"></script>
+    <script type="module" src="/components/cts-json-editor.js"></script>
 </head>
 
 <body>
@@ -64,7 +65,7 @@
             Configuration for <code id="configTestId" class="text-muted"></code>
         </div>
         <div class="wrapLongStrings">
-            <pre id="config" class="row-bg-light p-1"></pre>
+            <cts-json-editor id="config" readonly aria-label="Test configuration JSON" style="display: block; min-height: calc(var(--space-6) * 20);"></cts-json-editor>
         </div>
     </cts-modal>
 
@@ -99,7 +100,13 @@
                     const host = trigger.closest(".btn-clipboard");
                     const sel = host && host.getAttribute("data-clipboard-target");
                     const target = sel ? document.querySelector(sel) : null;
-                    return target ? target.textContent : "";
+                    if (!target) return "";
+                    // cts-json-editor (and <input>/<textarea>) expose the
+                    // copy source as `.value`; Monaco virtualises long
+                    // content so `textContent` may not contain the full
+                    // JSON. Prefer `.value` whenever the target carries it.
+                    if (typeof target.value === "string") return target.value;
+                    return target.textContent;
                 },
             });
             clipboard.on("success", function (e) {
@@ -223,7 +230,10 @@
                                 return response.json();
                             })
                             .then((jsonData) => {
-                                document.getElementById("config").textContent =
+                                // cts-json-editor exposes `.value` (string) — Monaco
+                                // virtualises rendered content, so textContent only
+                                // shows what's currently visible, not the full config.
+                                document.getElementById("config").value =
                                     JSON.stringify(jsonData.config, null, 4);
                                 document.getElementById("configTestId").textContent =
                                     row.testId;

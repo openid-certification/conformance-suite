@@ -1,5 +1,5 @@
 import { html } from "lit";
-import { expect, within, waitFor, userEvent, fn } from "storybook/test";
+import { expect, within, waitFor, userEvent, spyOn } from "storybook/test";
 import { http, HttpResponse } from "msw";
 import { MOCK_PLAN_LIST } from "@fixtures/mock-plans.js";
 import "./cts-plan-list.js";
@@ -148,13 +148,22 @@ export const ViewConfig = {
     expect(configBtnHost).toBeTruthy();
     await userEvent.click(innerButton(configBtnHost));
 
-    // Modal should open showing config JSON
-    await waitFor(() => {
-      const configJson = canvasElement.querySelector(".config-json");
-      expect(configJson).toBeTruthy();
-      expect(configJson.textContent).toContain("server.issuer");
-      expect(configJson.textContent).toContain("https://op.example.com");
-    });
+    // Modal should open. The config JSON now renders inside a read-only
+    // <cts-json-editor> — Monaco virtualises rendered content, so we read
+    // the editor's `.value` property rather than asserting on textContent.
+    // The cts-modal moves its slotted children into an inner <dialog>, so
+    // search via document rather than canvasElement to be robust.
+    await waitFor(
+      () => {
+        const editor = /** @type {any} */ (
+          document.querySelector("cts-json-editor.config-json")
+        );
+        if (!editor) throw new Error("cts-json-editor.config-json not yet attached");
+        expect(editor.value).toContain("server.issuer");
+        expect(editor.value).toContain("https://op.example.com");
+      },
+      { timeout: 10000 },
+    );
 
     // Plan ID shown in the modal
     const canvas = within(canvasElement);
@@ -162,14 +171,12 @@ export const ViewConfig = {
       expect(canvas.getByText("plan-001")).toBeInTheDocument();
     });
 
-    // Mock clipboard and test copy button
-    const clipboardSpy = fn();
-    const originalClipboard = navigator.clipboard;
-    Object.defineProperty(navigator, "copy", {
-      value: { writeText: clipboardSpy },
-      writable: true,
-      configurable: true,
-    });
+    // Spy on navigator.clipboard.writeText. Headless Chromium denies real
+    // clipboard writes (NotAllowedError, plus a "document not focused"
+    // failure mode), so the spy both observes the call and replaces the
+    // implementation. restoreMocks: true in vitest.config.js auto-restores
+    // after the test — no explicit teardown needed.
+    const clipboardSpy = spyOn(navigator.clipboard, "writeText").mockResolvedValue();
 
     const copyBtnHost = canvasElement.querySelector(".copy-config-btn");
     expect(copyBtnHost).toBeTruthy();
@@ -177,13 +184,6 @@ export const ViewConfig = {
 
     await waitFor(() => {
       expect(clipboardSpy).toHaveBeenCalled();
-    });
-
-    // Restore clipboard
-    Object.defineProperty(navigator, "copy", {
-      value: originalClipboard,
-      writable: true,
-      configurable: true,
     });
   },
 };
@@ -319,8 +319,10 @@ export const PublicView = {
 
 /**
  * Adv F12 (U17): the rendered plan-list table must not carry any of
- * Bootstrap's table-* utility classes. All header / hover / divider
- * styling lives in scoped CSS (.planTable) driven by OIDF tokens.
+ * Bootstrap's table-* utility classes. After the cts-plan-list refactor
+ * delegates table chrome to cts-data-table, the rendered <table> carries
+ * the token-styled `.oidf-dt-table` class instead of the legacy
+ * `.planTable` class.
  */
 export const TableHasNoBootstrapClasses = {
   parameters: {
@@ -341,8 +343,8 @@ export const TableHasNoBootstrapClasses = {
     const bootstrapTableClasses = classNames.filter((c) => c.startsWith("table"));
     expect(bootstrapTableClasses).toEqual([]);
 
-    // Token-styled .planTable class should be present instead.
-    expect(table.classList.contains("planTable")).toBe(true);
+    // Token-styled cts-data-table class should be present instead.
+    expect(table.classList.contains("oidf-dt-table")).toBe(true);
   },
 };
 

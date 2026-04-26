@@ -28,6 +28,7 @@
     <script type="module" src="/components/cts-badge.js"></script>
     <script type="module" src="/components/cts-icon.js"></script>
     <script type="module" src="/components/cts-data-table.js"></script>
+    <script type="module" src="/components/cts-json-editor.js"></script>
 </head>
 
 <body>
@@ -75,7 +76,7 @@
             Configuration for <code id="configTestId" class="text-muted"></code>
         </div>
         <div class="wrapLongStrings">
-            <pre id="config" class="row-bg-light p-1"></pre>
+            <cts-json-editor id="config" readonly aria-label="Plan configuration JSON" style="display: block; min-height: calc(var(--space-6) * 20);"></cts-json-editor>
         </div>
     </cts-modal>
 
@@ -128,7 +129,13 @@
                     var host = trigger.closest('.btn-clipboard');
                     var sel = host && host.getAttribute('data-clipboard-target');
                     var target = sel ? document.querySelector(sel) : null;
-                    return target ? target.textContent : '';
+                    if (!target) return '';
+                    // cts-json-editor (and <input>/<textarea>) expose the
+                    // copy source as `.value`; Monaco virtualises long
+                    // content so `textContent` may not contain the full
+                    // JSON. Prefer `.value` whenever the target carries it.
+                    if (typeof target.value === 'string') return target.value;
+                    return target.textContent;
                 }
             });
             clipboard.on('success', function(e) {
@@ -241,7 +248,11 @@
                     if (btn) {
                         btn.addEventListener('cts-click', function(clickEvt) {
                             clickEvt.preventDefault();
-                            document.getElementById('config').textContent =
+                            // cts-json-editor exposes `.value` (string) instead of
+                            // textContent — Monaco virtualises rendered content,
+                            // so the textContent path would only show the visible
+                            // portion of long configs.
+                            document.getElementById('config').value =
                                 JSON.stringify(data.config, null, 4);
                             document.getElementById('configTestId').textContent = data._id;
                             document.getElementById('configModal').show();

@@ -3,6 +3,8 @@ import "./cts-badge.js";
 import "./cts-modal.js";
 import "./cts-button.js";
 import "./cts-alert.js";
+import "./cts-data-table.js";
+import "./cts-json-editor.js";
 
 const RESULT_BADGE_VARIANTS = {
   PASSED: "success",
@@ -15,89 +17,28 @@ const RESULT_BADGE_VARIANTS = {
 
 const STYLE_ID = "cts-plan-list-styles";
 
-// Scoped CSS for the plan-list table chrome. Mirrors the design archive's
-// `.tbl-wrap` / `.tbl` rules in `project/ui_kits/certification-suite/app.css`:
-// a single bordered/rounded surface, sticky uppercase header on `--ink-50`,
-// row hover on `--ink-50`, and `--ink-100` row dividers. No Bootstrap table
-// classes are emitted (Adv F12).
+// Scoped CSS for the plan-list-specific bits that cts-data-table doesn't
+// own: the module badge stack, the plan-name link inside the planName cell,
+// the loading spinner shown before the table mounts, and the config modal
+// chrome. The search input and table chrome (border, sticky header, hover,
+// dividers) all come from cts-data-table now (Adv F12). The legacy plan
+// listing is unpaged, so the pager strip is suppressed.
 const STYLE_TEXT = `
   cts-plan-list {
     display: block;
   }
-  cts-plan-list .planSearch {
-    display: flex;
-    align-items: center;
-    gap: var(--space-2);
-    padding: 0 var(--space-3);
-    height: 36px;
-    border: 1px solid var(--ink-300);
-    border-radius: var(--radius-2);
-    background: var(--bg-elev);
-    margin-bottom: var(--space-4);
-    max-width: 480px;
+  cts-plan-list cts-data-table .oidf-dt-pager {
+    display: none;
   }
-  cts-plan-list .planSearch input {
-    flex: 1;
-    border: 0;
-    background: transparent;
-    font-family: var(--font-sans);
-    font-size: var(--fs-13);
-    color: var(--fg);
-    outline: none;
-    padding: 0;
-  }
-  cts-plan-list .planSearch input::placeholder {
-    color: var(--fg-faint);
-  }
-  cts-plan-list .planSearch:focus-within {
-    box-shadow: var(--focus-ring);
-    border-color: var(--orange-400);
-  }
-  cts-plan-list .planTableWrap {
-    background: var(--bg-elev);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-3);
-    overflow: hidden;
-  }
-  cts-plan-list .planTable {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: var(--fs-13);
-  }
-  cts-plan-list .planTable th {
-    position: sticky;
-    top: 0;
-    text-align: left;
-    padding: 10px 14px;
-    background: var(--ink-50);
-    border-bottom: 1px solid var(--border);
-    font-size: var(--fs-12);
-    font-weight: var(--fw-medium);
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    color: var(--fg-soft);
-  }
-  cts-plan-list .planTable td {
-    padding: 12px 14px;
-    border-bottom: 1px solid var(--ink-100);
-    vertical-align: middle;
-    color: var(--fg);
-  }
-  cts-plan-list .planTable tbody tr:hover td {
-    background: var(--ink-50);
-  }
-  cts-plan-list .planTable tbody tr:last-child td {
-    border-bottom: 0;
-  }
-  cts-plan-list .planTable .plan-name-link {
+  cts-plan-list .plan-name-link {
     color: var(--fg-link);
     text-decoration: none;
     font-weight: var(--fw-medium);
   }
-  cts-plan-list .planTable .plan-name-link:hover {
+  cts-plan-list .plan-name-link:hover {
     text-decoration: underline;
   }
-  cts-plan-list .planTable .moduleBadgeStack {
+  cts-plan-list .moduleBadgeStack {
     display: flex;
     flex-wrap: wrap;
     gap: var(--space-1);
@@ -143,17 +84,10 @@ const STYLE_TEXT = `
     border-radius: var(--radius-1);
   }
   cts-plan-list .planConfigJson {
-    font-family: var(--font-mono);
-    font-size: var(--fs-12);
-    background: var(--ink-50);
-    color: var(--ink-900);
-    border-radius: var(--radius-2);
-    padding: var(--space-3);
+    display: block;
     margin: 0;
-    white-space: pre-wrap;
-    word-break: break-word;
     max-height: 60vh;
-    overflow: auto;
+    min-height: calc(var(--space-6) * 14);
   }
 `;
 
@@ -170,10 +104,12 @@ function ensureStylesInjected() {
  * `/api/plan?public=true`) and renders rows with name, variant, module
  * badges, and a config viewer modal.
  *
- * Light DOM. Scoped CSS is injected once on first connect; the rendered
- * `<table>` carries no Bootstrap `table-*` classes — header, hover, and
- * border styling all route through the scoped `.planTable` rules above
- * (Adv F12).
+ * Light DOM. Scoped CSS is injected once on first connect. The table
+ * chrome and the advanced search affordances (clear button, active-filter
+ * chip with "Show all" reset, Escape-to-clear) are delegated to
+ * `<cts-data-table>` in client-side, live-debounced mode. cts-plan-list
+ * supplies a `cellRenderer` for the bespoke cells (plan-link click,
+ * variant formatter, formatted date, module badge stack, config button).
  *
  * @property {boolean} isAdmin - Adds the Owner column when true. Reflects the
  *   `is-admin` attribute.
@@ -189,7 +125,6 @@ class CtsPlanList extends LitElement {
     _plans: { state: true },
     _loading: { state: true },
     _error: { state: true },
-    _searchQuery: { state: true },
     _selectedConfig: { state: true },
     _selectedPlanId: { state: true },
   };
@@ -206,9 +141,16 @@ class CtsPlanList extends LitElement {
     this._plans = [];
     this._loading = true;
     this._error = null;
-    this._searchQuery = "";
     this._selectedConfig = null;
     this._selectedPlanId = "";
+    // The cellRenderer's TemplateResult is interpolated and rendered by
+    // cts-data-table. Lit's EventPart dispatches event listeners with `this`
+    // set to the rendering host (cts-data-table), not this component, so we
+    // pre-bind every handler that may be wired through cellRenderer.
+    this._cellRenderer = this._cellRenderer.bind(this);
+    this._handlePlanLinkClick = this._handlePlanLinkClick.bind(this);
+    this._handleConfigButtonClick = this._handleConfigButtonClick.bind(this);
+    this._handleCopyConfig = this._handleCopyConfig.bind(this);
   }
 
   connectedCallback() {
@@ -232,10 +174,6 @@ class CtsPlanList extends LitElement {
     } finally {
       this._loading = false;
     }
-  }
-
-  _handleSearchInput(e) {
-    this._searchQuery = e.target.value;
   }
 
   _handlePlanClick(planId) {
@@ -291,16 +229,6 @@ class CtsPlanList extends LitElement {
     return date.toLocaleString();
   }
 
-  _filteredPlans() {
-    if (!this._searchQuery.trim()) return this._plans;
-    const query = this._searchQuery.toLowerCase();
-    return this._plans.filter((plan) => {
-      const nameMatch = (plan.planName || "").toLowerCase().includes(query);
-      const descMatch = (plan.description || "").toLowerCase().includes(query);
-      return nameMatch || descMatch;
-    });
-  }
-
   _renderModuleBadges(modules) {
     if (!modules || modules.length === 0) return nothing;
     return html`<div class="moduleBadgeStack">${this._moduleBadgeList(modules)}</div>`;
@@ -324,62 +252,59 @@ class CtsPlanList extends LitElement {
     });
   }
 
-  _renderRows(plans) {
-    return plans.map((plan) => this._renderRow(plan));
+  _columns() {
+    const cols = [
+      { key: "planName", label: "Plan Name" },
+      { key: "variant", label: "Variant" },
+      { key: "description", label: "Description" },
+      { key: "started", label: "Started" },
+      { key: "modules", label: "Modules" },
+      { key: "_config", label: "Config" },
+    ];
+    if (this.isAdmin) cols.push({ key: "owner.sub", label: "Owner" });
+    return cols;
   }
 
-  _renderTable(plans) {
-    return html`
-      <div class="planTableWrap">
-        <table class="planTable">
-          <thead>
-            <tr>
-              <th>Plan Name</th>
-              <th>Variant</th>
-              <th>Description</th>
-              <th>Started</th>
-              <th>Modules</th>
-              <th>Config</th>
-              ${this.isAdmin ? html`<th>Owner</th>` : nothing}
-            </tr>
-          </thead>
-          <tbody> ${this._renderRows(plans)} </tbody>
-        </table>
-      </div>
-    `;
+  _cellRenderer(row, key) {
+    // Event listeners reference handlers that are pre-bound in the
+    // constructor. Lit's EventPart in cts-data-table dispatches with `this`
+    // set to the cts-data-table host, but the bound functions retain their
+    // original `this` (CtsPlanList) regardless of how Lit invokes them.
+    if (key === "planName") {
+      return html`<a
+        href="#"
+        class="plan-name-link"
+        data-plan-id="${row._id}"
+        @click=${this._handlePlanLinkClick}
+        >${row.planName}</a
+      >`;
+    }
+    if (key === "variant") return this._formatVariant(row.variant);
+    if (key === "started") return this._formatDate(row.started);
+    if (key === "modules") return this._renderModuleBadges(row.modules);
+    if (key === "_config") {
+      return html`<cts-button
+        class="showConfigBtn"
+        variant="ghost"
+        size="sm"
+        icon="settings"
+        title="View configuration"
+        data-plan-id="${row._id}"
+        @cts-click=${this._handleConfigButtonClick}
+      ></cts-button>`;
+    }
+    if (key === "owner.sub") {
+      const display = row.owner ? row.owner.sub || "unknown" : "";
+      return html`<span class="owner-cell">${display}</span>`;
+    }
+    return undefined;
   }
 
-  _renderRow(plan) {
-    const ownerDisplay = plan.owner ? plan.owner.sub || "unknown" : "";
-    return html`
-      <tr>
-        <td>
-          <a
-            href="#"
-            class="plan-name-link"
-            data-plan-id="${plan._id}"
-            @click=${this._handlePlanLinkClick}
-            >${plan.planName}</a
-          >
-        </td>
-        <td>${this._formatVariant(plan.variant)}</td>
-        <td>${plan.description || ""}</td>
-        <td>${this._formatDate(plan.started)}</td>
-        <td>${this._renderModuleBadges(plan.modules)}</td>
-        <td>
-          <cts-button
-            class="showConfigBtn"
-            variant="ghost"
-            size="sm"
-            icon="settings"
-            title="View configuration"
-            data-plan-id="${plan._id}"
-            @cts-click=${this._handleConfigButtonClick}
-          ></cts-button>
-        </td>
-        ${this.isAdmin ? html`<td class="owner-cell">${ownerDisplay}</td>` : nothing}
-      </tr>
-    `;
+  _rowClass() {
+    // Stable class name on each <tr> so consumers (and existing tests that
+    // filter on `tbody tr`) can target rendered rows without the data-row-index
+    // attribute alone.
+    return "planRow";
   }
 
   _renderConfigModal() {
@@ -398,7 +323,12 @@ class CtsPlanList extends LitElement {
           ></cts-button>
           <span>Configuration for <code>${this._selectedPlanId}</code></span>
         </div>
-        <pre class="planConfigJson config-json">${configJson}</pre>
+        <cts-json-editor
+          class="planConfigJson config-json"
+          readonly
+          aria-label="Plan configuration JSON"
+          .value=${configJson}
+        ></cts-json-editor>
       </cts-modal>
     `;
   }
@@ -421,22 +351,22 @@ class CtsPlanList extends LitElement {
       `;
     }
 
-    const filteredPlans = this._filteredPlans();
+    if (this._plans.length === 0) {
+      return html`<div class="planEmpty">No test plans found</div>`;
+    }
 
     return html`
-      <div class="planSearch">
-        <cts-icon name="search-magnifying-glass" aria-hidden="true"></cts-icon>
-        <input
-          type="text"
-          placeholder="Search test plans..."
-          .value=${this._searchQuery}
-          @input=${this._handleSearchInput}
-        />
-      </div>
-
-      ${filteredPlans.length > 0
-        ? this._renderTable(filteredPlans)
-        : html`<div class="planEmpty">No test plans found</div>`}
+      <cts-data-table
+        .columns=${this._columns()}
+        .rows=${this._plans}
+        .serverSide=${false}
+        page-size="1000"
+        search-placeholder="Search test plans..."
+        search-mode="live-debounced"
+        empty-state="No test plans match your search"
+        .cellRenderer=${this._cellRenderer}
+        .rowClass=${this._rowClass}
+      ></cts-data-table>
       ${this._renderConfigModal()}
     `;
   }

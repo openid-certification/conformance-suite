@@ -59,11 +59,11 @@ test.describe("plan-detail.html — Plan Detail", () => {
     await expect(moduleRows.nth(0)).toContainText("oidcc-server");
     await expect(moduleRows.nth(1)).toContainText("oidcc-server-rotate-keys");
 
-    // View Config action button visible (rendered by cts-plan-actions)
+    // View configuration action button visible (rendered by cts-plan-actions)
     await expect(page.locator('[data-testid="view-config-btn"]')).toBeVisible();
   });
 
-  test("View Config button opens an inline panel with plan configuration JSON", async ({
+  test("View configuration button opens an inline panel with plan configuration JSON", async ({
     page,
   }) => {
     await setupFailFast(page);
@@ -81,7 +81,7 @@ test.describe("plan-detail.html — Plan Detail", () => {
 
     await page.goto("/plan-detail.html?plan=plan-abc-123");
 
-    // Wait for the View Config button to render
+    // Wait for the View configuration button to render
     const configBtn = page.locator('[data-testid="view-config-btn"]');
     await expect(configBtn).toBeVisible();
 
@@ -91,12 +91,30 @@ test.describe("plan-detail.html — Plan Detail", () => {
     // Click the inner <button> inside cts-button (Lit binds @click on the inner button)
     await configBtn.locator("button").click();
 
-    // Panel appears and shows the plan's config JSON
+    // Panel appears with the plan ID and the config JSON inside the
+    // read-only Monaco editor. Monaco virtualises rendered content, so we
+    // assert on the editor's `.value` rather than the panel's textContent.
     const configPanel = page.locator('[data-testid="config-panel"]');
     await expect(configPanel).toBeVisible();
-    await expect(configPanel).toContainText("server.issuer");
-    await expect(configPanel).toContainText("op.example.com");
     await expect(configPanel).toContainText("plan-abc-123");
+    await expect
+      .poll(
+        () =>
+          page.evaluate(() => {
+            const el = /** @type {any} */ (document.querySelector("cts-json-editor.config-json"));
+            return el ? el.value : "";
+          }),
+        { timeout: 10000 },
+      )
+      .toContain("server.issuer");
+    // Both substrings are free reads off the same `.value` string;
+    // preserving the pre-swap assertion (testing-reviewer T4) keeps the
+    // JSON content check honest rather than relying on key existence alone.
+    const configValue = await page.evaluate(() => {
+      const el = /** @type {any} */ (document.querySelector("cts-json-editor.config-json"));
+      return el ? el.value : "";
+    });
+    expect(configValue).toContain("op.example.com");
   });
 
   test("module status badges render after /api/info fetch", async ({ page }) => {

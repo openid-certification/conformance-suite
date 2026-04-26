@@ -97,9 +97,12 @@ test.describe("ClipboardJS copy buttons render text from cts-button hosts", () =
     await page.goto("/plans.html");
 
     await page.evaluate(() => {
-      const config = document.getElementById("config");
+      // #config is now <cts-json-editor>; populate via .value (string),
+      // not .textContent — Monaco virtualises text content, and the
+      // ClipboardJS handler now reads .value when the target exposes it.
+      const config = /** @type {any} */ (document.getElementById("config"));
       if (!config) throw new Error("#config missing");
-      config.textContent = '{"server.issuer":"https://op.example.com"}';
+      config.value = '{"server.issuer":"https://op.example.com"}';
       const modalEl = document.getElementById("configModal");
       /** @type {any} */ (modalEl).show();
     });
@@ -131,9 +134,11 @@ test.describe("ClipboardJS copy buttons render text from cts-button hosts", () =
     await page.goto("/logs.html");
 
     await page.evaluate(() => {
-      const config = document.getElementById("config");
+      // #config is now <cts-json-editor>; populate via .value, see notes
+      // in the plans.html test above for the rationale.
+      const config = /** @type {any} */ (document.getElementById("config"));
       if (!config) throw new Error("#config missing");
-      config.textContent = '{"client.client_id":"test-client-id"}';
+      config.value = '{"client.client_id":"test-client-id"}';
       const modalEl = document.getElementById("configModal");
       /** @type {any} */ (modalEl).show();
     });

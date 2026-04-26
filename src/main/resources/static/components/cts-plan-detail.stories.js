@@ -1,5 +1,5 @@
 import { html } from "lit";
-import { expect, within, waitFor, userEvent, fn } from "storybook/test";
+import { expect, within, waitFor, userEvent, fn, spyOn } from "storybook/test";
 import {
   MOCK_PLAN_DETAIL,
   MOCK_PLAN_PUBLISHED,
@@ -416,7 +416,7 @@ export const ActionsViewConfig = {
     let configPanel = canvasElement.querySelector('[data-testid="config-panel"]');
     expect(configPanel).toBeNull();
 
-    // Click View Config button (target the inner <button>)
+    // Click View configuration button (target the inner <button>)
     await userEvent.click(innerButton(canvasElement, "view-config-btn"));
 
     // Config panel should now be visible
@@ -425,12 +425,22 @@ export const ActionsViewConfig = {
       expect(configPanel).toBeTruthy();
     });
 
-    // JSON content displayed
-    const configJson = canvasElement.querySelector(".config-json");
-    expect(configJson).toBeTruthy();
-    expect(configJson.textContent).toContain("server.issuer");
-    expect(configJson.textContent).toContain("https://op.example.com");
-    expect(configJson.textContent).toContain("client.client_id");
+    // JSON content displayed in the Monaco-backed read-only editor.
+    // The editor is the only way the plan reaches the user — assert via
+    // its `.value` property; Monaco's text content is virtualised so
+    // `textContent` may not contain the full JSON until the user scrolls.
+    const configJson = await waitFor(() => {
+      const el = /** @type {any} */ (canvasElement.querySelector("cts-json-editor.config-json"));
+      if (!el) throw new Error("cts-json-editor.config-json not yet attached");
+      const ready =
+        el.querySelector(".monaco-editor") || el.querySelector(".oidf-json-editor-fallback");
+      if (!ready) throw new Error("cts-json-editor host not yet rendered");
+      return el;
+    });
+    expect(configJson.getAttribute("readonly")).not.toBeNull();
+    expect(configJson.value).toContain("server.issuer");
+    expect(configJson.value).toContain("https://op.example.com");
+    expect(configJson.value).toContain("client.client_id");
 
     // Plan ID displayed
     expect(canvas.getByText("plan-abc-123")).toBeInTheDocument();
@@ -561,7 +571,7 @@ export const ActionsImmutablePlan = {
     <cts-plan-actions .plan=${PLAN_IMMUTABLE} is-admin is-readonly></cts-plan-actions>
   `,
   async play({ canvasElement }) {
-    // Edit config should NOT be visible (readonly)
+    // Edit configuration should NOT be visible (readonly)
     const editBtn = canvasElement.querySelector('[data-testid="edit-config-btn"]');
     expect(editBtn).toBeNull();
 
@@ -582,7 +592,7 @@ export const ActionsImmutablePlan = {
     expect(spy).toHaveBeenCalledTimes(1);
     expect(spy.mock.calls[0][0].detail.planId).toBe("plan-immutable-001");
 
-    // View Config should still be available
+    // View configuration should still be available
     const viewConfigBtn = canvasElement.querySelector('[data-testid="view-config-btn"]');
     expect(viewConfigBtn).toBeTruthy();
   },
@@ -725,86 +735,77 @@ export const ActionsDeletePlanCancel = {
 export const ActionsCopyConfig = {
   render: () => html` <cts-plan-actions .plan=${PLAN_WITH_CONFIG}></cts-plan-actions> `,
   async play({ canvasElement }) {
-    // Mock navigator.clipboard.writeText (same pattern as cts-log-entry CopyAsCurl)
-    const mockWriteText = fn().mockResolvedValue(undefined);
-    const originalClipboard = navigator.clipboard;
-    Object.defineProperty(navigator, "copy", {
-      value: { writeText: mockWriteText },
-      writable: true,
-      configurable: true,
+    // Spy on navigator.clipboard.writeText. Headless Chromium denies real
+    // clipboard writes (NotAllowedError + "document not focused"), so the
+    // spy both observes the call and replaces the implementation.
+    // restoreMocks: true in vitest.config.js handles teardown.
+    const mockWriteText = spyOn(navigator.clipboard, "writeText").mockResolvedValue();
+
+    // Open the config panel (target the inner <button>)
+    await userEvent.click(innerButton(canvasElement, "view-config-btn"));
+
+    await waitFor(() => {
+      const panel = canvasElement.querySelector('[data-testid="config-panel"]');
+      expect(panel).toBeTruthy();
     });
 
-    try {
-      // Open the config panel (target the inner <button>)
-      await userEvent.click(innerButton(canvasElement, "view-config-btn"));
+    // Click the Copy button inside the panel (cts-button host carries
+    // the .copy-config-btn class; click the inner <button>).
+    const copyHost = canvasElement.querySelector(".copy-config-btn");
+    expect(copyHost).toBeTruthy();
+    const copyInner = copyHost?.querySelector("button");
+    expect(copyInner).toBeTruthy();
+    if (!copyInner) throw new Error("copy-config-btn inner <button> missing");
+    await userEvent.click(copyInner);
 
-      await waitFor(() => {
-        const panel = canvasElement.querySelector('[data-testid="config-panel"]');
-        expect(panel).toBeTruthy();
-      });
-
-      // Click the Copy button inside the panel (cts-button host carries
-      // the .copy-config-btn class; click the inner <button>).
-      const copyHost = canvasElement.querySelector(".copy-config-btn");
-      expect(copyHost).toBeTruthy();
-      const copyInner = copyHost?.querySelector("button");
-      expect(copyInner).toBeTruthy();
-      if (!copyInner) throw new Error("copy-config-btn inner <button> missing");
-      await userEvent.click(copyInner);
-
-      // Clipboard should have been called once with pretty-printed JSON
+    // Clipboard should have been called once with pretty-printed JSON.
+    // _handleCopyConfig is async and awaits writeText, so wait for the
+    // spy rather than asserting synchronously after the click.
+    await waitFor(() => {
       expect(mockWriteText).toHaveBeenCalledOnce();
-      const written = mockWriteText.mock.calls[0][0];
-      expect(written).toBe(JSON.stringify(PLAN_WITH_CONFIG.config, null, 4));
-    } finally {
-      Object.defineProperty(navigator, "copy", {
-        value: originalClipboard,
-        writable: true,
-        configurable: true,
-      });
-    }
+    });
+    const written = mockWriteText.mock.calls[0][0];
+    expect(written).toBe(JSON.stringify(PLAN_WITH_CONFIG.config, null, 4));
   },
 };
 
 export const ActionsCopyConfigClipboardFailure = {
   render: () => html` <cts-plan-actions .plan=${PLAN_WITH_CONFIG}></cts-plan-actions> `,
   async play({ canvasElement }) {
-    const originalClipboard = navigator.clipboard;
-    Object.defineProperty(navigator, "copy", {
-      value: {
-        writeText: fn().mockRejectedValue(new Error("permission denied")),
-      },
-      writable: true,
-      configurable: true,
+    // Spy with a rejecting implementation — simulates permissions-denied /
+    // insecure-context. restoreMocks: true in vitest.config.js auto-restores
+    // the original method after the test.
+    const writeTextSpy = spyOn(navigator.clipboard, "writeText").mockRejectedValue(
+      new Error("permission denied"),
+    );
+
+    // Open the config panel (target the inner <button>)
+    await userEvent.click(innerButton(canvasElement, "view-config-btn"));
+
+    await waitFor(() => {
+      expect(canvasElement.querySelector('[data-testid="config-panel"]')).toBeTruthy();
     });
 
-    try {
-      // Open the config panel (target the inner <button>)
-      await userEvent.click(innerButton(canvasElement, "view-config-btn"));
+    const copyInner = canvasElement.querySelector(".copy-config-btn button");
+    if (!copyInner) throw new Error("copy-config-btn inner <button> missing");
+    await userEvent.click(copyInner);
 
-      await waitFor(() => {
-        expect(canvasElement.querySelector('[data-testid="config-panel"]')).toBeTruthy();
-      });
+    // Anchor the failure-path assertion on the spy first (testing-reviewer
+    // T6): a regression that silently no-ops the click could still render
+    // unrelated feedback, so we want writeText itself as the ground truth
+    // before checking the user-visible copy-failed message.
+    await waitFor(() => {
+      expect(writeTextSpy).toHaveBeenCalledOnce();
+    });
 
-      const copyInner = canvasElement.querySelector(".copy-config-btn button");
-      if (!copyInner) throw new Error("copy-config-btn inner <button> missing");
-      await userEvent.click(copyInner);
-
-      // Failure feedback should render in the same flex container as Copy,
-      // announced politely so SRs read it without interrupting.
-      await waitFor(() => {
-        const feedback = canvasElement.querySelector('[data-testid="copy-feedback"]');
-        expect(feedback).toBeTruthy();
-        expect(feedback?.textContent).toContain("Copy failed");
-        expect(feedback?.getAttribute("aria-live")).toBe("polite");
-      });
-    } finally {
-      Object.defineProperty(navigator, "copy", {
-        value: originalClipboard,
-        writable: true,
-        configurable: true,
-      });
-    }
+    // Failure feedback should render in the same flex container as Copy,
+    // announced politely so SRs read it without interrupting.
+    await waitFor(() => {
+      const feedback = canvasElement.querySelector('[data-testid="copy-feedback"]');
+      expect(feedback).toBeTruthy();
+      expect(feedback?.textContent).toContain("Copy failed");
+      expect(feedback?.getAttribute("aria-live")).toBe("polite");
+    });
   },
 };
 
