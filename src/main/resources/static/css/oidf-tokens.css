@@ -162,7 +162,8 @@
   --lh-base:  1.5;
   --lh-loose: 1.65;
 
-  /* Weights — Helvetica Neue / Arial Nova / Nimbus Sans / Arial all support 400/700/900 */
+  /* Weights — Inter Variable covers 100..900 continuously; the three named cuts
+     below match the discrete weights the design system actually uses. */
   --fw-regular: 400;
   --fw-bold:    700;
   --fw-black:   900;

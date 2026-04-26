@@ -44,7 +44,7 @@ export const Default = {
     expect(value.textContent.trim()).toBe("128");
     // Default tone leaves the value at --fg (no tone colour).
     const valueComputed = window.getComputedStyle(value);
-    expect(valueComputed.fontFamily).toContain("Helvetica");
+    expect(valueComputed.fontFamily).toContain("Inter");
     expect(valueComputed.fontWeight).toBe("900");
     expect(valueComputed.fontSize).toBe("32px");
 
