@@ -352,3 +352,103 @@ export const PublicView = {
     expect(ownerRow).toBeNull();
   },
 };
+
+// --- R24: summary zone splitting ---
+// Plan: docs/plans/2026-04-25-007-feat-r24-test-description-vs-instructions-plan.md
+// The component splits `test.summary` on the marker `\n\n---\n\n` into an
+// "About this test" descriptive zone and a "What you need to do" warning
+// zone. These stories cover the three rendering paths: no marker, with
+// marker, and no summary at all.
+
+const SUMMARY_DESCRIPTION_ONLY =
+  "This test calls the authorization endpoint and verifies the OP returns a normal login page.";
+
+const SUMMARY_WITH_INSTRUCTIONS =
+  "This test calls the authorization endpoint with a login_hint, which must not result in errors.\n\n---\n\nPlease remove any cookies you may have received from the OpenID Provider before proceeding. A fresh login page is needed.";
+
+export const WithDescriptionOnly = {
+  render: () =>
+    html`<cts-log-detail-header
+      .testInfo=${{ ...COMPLETED_TEST, summary: SUMMARY_DESCRIPTION_ONLY }}
+    ></cts-log-detail-header>`,
+  async play({ canvasElement }) {
+    const canvas = within(canvasElement);
+    await waitFor(() => {
+      expect(canvas.getByText("oidcc-server")).toBeInTheDocument();
+    });
+
+    // About-this-test zone renders with eyebrow + body
+    const aboutZone = canvasElement.querySelector('[data-testid="about-test-zone"]');
+    expect(aboutZone).toBeTruthy();
+    expect(aboutZone.textContent).toContain("About this test");
+    expect(aboutZone.textContent).toContain("normal login page");
+
+    // No instructions zone when the marker is absent
+    const instructionsZone = canvasElement.querySelector('[data-testid="user-instructions-zone"]');
+    expect(instructionsZone).toBeNull();
+
+    // Description body lives inside an info-variant cts-alert (the blue box)
+    const aboutAlert = aboutZone.closest("cts-alert");
+    expect(aboutAlert).toBeTruthy();
+    expect(aboutAlert.getAttribute("variant")).toBe("info");
+  },
+};
+
+export const WithUserInstructions = {
+  render: () =>
+    html`<cts-log-detail-header
+      .testInfo=${{ ...COMPLETED_TEST, summary: SUMMARY_WITH_INSTRUCTIONS }}
+    ></cts-log-detail-header>`,
+  async play({ canvasElement }) {
+    const canvas = within(canvasElement);
+    await waitFor(() => {
+      expect(canvas.getByText("oidcc-server")).toBeInTheDocument();
+    });
+
+    // Both zones render
+    const aboutZone = canvasElement.querySelector('[data-testid="about-test-zone"]');
+    const instructionsZone = canvasElement.querySelector('[data-testid="user-instructions-zone"]');
+    expect(aboutZone).toBeTruthy();
+    expect(instructionsZone).toBeTruthy();
+
+    // Description half lives in the about zone; instructions half in the
+    // instructions zone. Marker text is not visible to the operator.
+    expect(aboutZone.textContent).toContain("must not result in errors");
+    expect(aboutZone.textContent).not.toContain("Please remove any cookies");
+    expect(instructionsZone.textContent).toContain("Please remove any cookies");
+    expect(instructionsZone.textContent).not.toContain("must not result in errors");
+
+    // Instructions zone is wrapped in a warning-variant cts-alert
+    const instructionsAlert = instructionsZone.closest("cts-alert");
+    expect(instructionsAlert).toBeTruthy();
+    expect(instructionsAlert.getAttribute("variant")).toBe("warning");
+
+    // Eyebrow captions are present on both zones
+    expect(aboutZone.textContent).toContain("About this test");
+    expect(instructionsZone.textContent).toContain("What you need to do");
+
+    // Visual order: about zone precedes instructions zone in the DOM
+    const order = aboutZone.compareDocumentPosition(instructionsZone);
+    expect(order & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  },
+};
+
+export const WithoutSummary = {
+  render: () =>
+    html`<cts-log-detail-header
+      .testInfo=${{ ...COMPLETED_TEST, summary: undefined }}
+    ></cts-log-detail-header>`,
+  async play({ canvasElement }) {
+    const canvas = within(canvasElement);
+    await waitFor(() => {
+      expect(canvas.getByText("oidcc-server")).toBeInTheDocument();
+    });
+
+    // Neither summary zone renders when there is no summary
+    expect(canvasElement.querySelector('[data-testid="about-test-zone"]')).toBeNull();
+    expect(canvasElement.querySelector('[data-testid="user-instructions-zone"]')).toBeNull();
+
+    // The rest of the metadata grid still renders
+    expect(canvas.getByText("Test Name:")).toBeInTheDocument();
+  },
+};

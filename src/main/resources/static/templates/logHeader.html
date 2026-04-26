@@ -35,10 +35,44 @@
                         <div><%- test.planId %></div>
                         <% } %>
 
-                        <% if (test.summary) { %>
-                        <div class="log-header-meta-summary">
-                            <p class="bgSummary"><%= test.summary.replace(new RegExp('\r?\n', 'g'), '<br />').replace(/`([^`]+)`/g, '<code>$1</code>') %></p>
-                        </div>
+                        <%
+                          // R24 split: separate descriptive content from imperative
+                          // user instructions. Test authors opt in by placing the
+                          // marker `\n\n---\n\n` (a Markdown horizontal rule on its
+                          // own line, with blank lines around it) inside their
+                          // @PublishTestModule.summary() value. The pre-marker half
+                          // renders in the "About this test" zone; the post-marker
+                          // half renders in the "What you need to do" warning zone.
+                          // Plan: docs/plans/2026-04-25-008-feat-r24-test-description-vs-instructions-plan.md
+                          var SUMMARY_SPLIT_MARKER = "\n\n---\n\n";
+                          var rawSummary = test.summary || "";
+                          var splitIdx = rawSummary.indexOf(SUMMARY_SPLIT_MARKER);
+                          var summaryDescription = splitIdx >= 0
+                            ? rawSummary.slice(0, splitIdx).trim()
+                            : rawSummary.trim();
+                          var summaryInstructions = splitIdx >= 0
+                            ? rawSummary.slice(splitIdx + SUMMARY_SPLIT_MARKER.length).trim()
+                            : "";
+                          function formatSummaryHtml(s) {
+                            return s.replace(new RegExp('\r?\n', 'g'), '<br />')
+                                    .replace(/`([^`]+)`/g, '<code>$1</code>');
+                          }
+                        %>
+                        <% if (summaryDescription) { %>
+                        <cts-alert variant="info">
+                            <div class="summaryZone summaryZone--about" data-testid="about-test-zone">
+                                <span class="summaryEyebrow">About this test</span>
+                                <div class="summaryBody bgSummary"><%= formatSummaryHtml(summaryDescription) %></div>
+                            </div>
+                        </cts-alert>
+                        <% } %>
+                        <% if (summaryInstructions) { %>
+                        <cts-alert variant="warning">
+                            <div class="summaryZone summaryZone--instructions" data-testid="user-instructions-zone">
+                                <span class="summaryEyebrow">What you need to do</span>
+                                <div class="summaryBody bgSummary"><%= formatSummaryHtml(summaryInstructions) %></div>
+                            </div>
+                        </cts-alert>
                         <% } %>
 
                         <div class="log-header-meta-summary log-results-row">
