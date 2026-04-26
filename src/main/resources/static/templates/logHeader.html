@@ -36,23 +36,16 @@
                         <% } %>
 
                         <%
-                          // R24 split: separate descriptive content from imperative
-                          // user instructions. Test authors opt in by placing the
-                          // marker `\n\n---\n\n` (a Markdown horizontal rule on its
-                          // own line, with blank lines around it) inside their
-                          // @PublishTestModule.summary() value. The pre-marker half
-                          // renders in the "About this test" zone; the post-marker
-                          // half renders in the "What you need to do" warning zone.
+                          // R24 split: descriptive content vs. imperative user
+                          // instructions, separated by the marker exposed by
+                          // /components/test-summary-split.js (loaded as a
+                          // module from log-detail.html). The shared splitter
+                          // also normalises CRLF, so summaries saved with
+                          // Windows line endings still split correctly.
                           // Plan: docs/plans/2026-04-25-008-feat-r24-test-description-vs-instructions-plan.md
-                          var SUMMARY_SPLIT_MARKER = "\n\n---\n\n";
-                          var rawSummary = test.summary || "";
-                          var splitIdx = rawSummary.indexOf(SUMMARY_SPLIT_MARKER);
-                          var summaryDescription = splitIdx >= 0
-                            ? rawSummary.slice(0, splitIdx).trim()
-                            : rawSummary.trim();
-                          var summaryInstructions = splitIdx >= 0
-                            ? rawSummary.slice(splitIdx + SUMMARY_SPLIT_MARKER.length).trim()
-                            : "";
+                          var summarySplit = window.CTS_summarySplit.splitTestSummary(test.summary);
+                          var summaryDescription = summarySplit.description;
+                          var summaryInstructions = summarySplit.instructions;
                           function formatSummaryHtml(s) {
                             return s.replace(new RegExp('\r?\n', 'g'), '<br />')
                                     .replace(/`([^`]+)`/g, '<code>$1</code>');

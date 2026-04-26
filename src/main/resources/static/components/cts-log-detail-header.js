@@ -4,6 +4,7 @@ import "./cts-badge.js";
 import "./cts-button.js";
 import "./cts-link-button.js";
 import "./cts-alert.js";
+import { splitTestSummary } from "./test-summary-split.js";
 
 /**
  * Top-level test result -> canonical cts-badge variant. INTERRUPTED maps to
@@ -59,40 +60,6 @@ const RESULT_TYPE_BADGE_VARIANTS = {
 };
 
 const STYLE_ID = "cts-log-detail-header-styles";
-
-/**
- * Sentinel that splits the descriptive part of `test.summary` from the
- * imperative "user instructions" part. Test authors opt in by inserting
- * this marker into the `summary` argument of `@PublishTestModule` —
- * a Markdown horizontal rule on its own line, with blank lines around
- * it. Chosen to be visually meaningful in raw Java source and trivially
- * absent from existing summaries. R24 origin: `docs/brainstorms/2026-04-13-cts-ux-improvement-plan-requirements.md`.
- * @type {string}
- */
-const SUMMARY_SPLIT_MARKER = "\n\n---\n\n";
-
-/**
- * Split a `test.summary` string into its descriptive and imperative
- * halves on the first occurrence of `SUMMARY_SPLIT_MARKER`. Splitting on
- * the first marker only lets a description contain inline `---` blocks
- * without losing them to the splitter. Whitespace-only halves are
- * normalised to the empty string so the renderer can branch cleanly.
- * @param {string|null|undefined} rawSummary - Raw `test.summary` value
- *   carried over from the backend; may contain the split marker.
- * @returns {{ description: string, instructions: string }} Trimmed
- *   halves; either may be the empty string.
- */
-function splitTestSummary(rawSummary) {
-  if (!rawSummary) return { description: "", instructions: "" };
-  const idx = rawSummary.indexOf(SUMMARY_SPLIT_MARKER);
-  if (idx < 0) {
-    const trimmed = rawSummary.trim();
-    return { description: trimmed, instructions: "" };
-  }
-  const descriptionPart = rawSummary.slice(0, idx).trim();
-  const instructionsPart = rawSummary.slice(idx + SUMMARY_SPLIT_MARKER.length).trim();
-  return { description: descriptionPart, instructions: instructionsPart };
-}
 
 // Scoped CSS for the log-detail header. All values flow from oidf-tokens.css.
 // Mirrors the design archive's card pattern for the test summary panel; the
@@ -262,29 +229,6 @@ const STYLE_TEXT = `
     gap: var(--space-2);
     max-width: 200px;
   }
-
-  cts-log-detail-header .summaryZone {
-    margin-top: var(--space-3);
-  }
-  cts-log-detail-header .summaryZone + .summaryZone {
-    margin-top: var(--space-2);
-  }
-  cts-log-detail-header .summaryEyebrow {
-    display: block;
-    font-size: var(--fs-12);
-    font-weight: var(--fw-bold);
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: var(--fg-soft);
-    margin-bottom: var(--space-2);
-  }
-  cts-log-detail-header .summaryZone--instructions .summaryEyebrow {
-    color: var(--status-warning);
-  }
-  cts-log-detail-header .summaryBody {
-    color: var(--fg);
-    white-space: pre-line;
-  }
 `;
 
 function ensureStylesInjected() {
@@ -314,13 +258,11 @@ function ensureStylesInjected() {
  * @property {string} summary - Test-level summary. Renders as an
  *   "About this test" zone above the metadata. Test authors who want
  *   to surface imperative user instructions (e.g. "remove cookies
- *   before proceeding") as a distinct callout can split the summary
- *   with the marker `\n\n---\n\n` (a Markdown horizontal rule on its
- *   own line, with blank lines around it). When the marker is present,
- *   the post-marker text renders in a separate "What you need to do"
- *   warning callout. Splitting happens at render time only — the
- *   backend `@PublishTestModule.summary()` contract is unchanged. R24
- *   origin: `docs/brainstorms/2026-04-13-cts-ux-improvement-plan-requirements.md`.
+ *   before proceeding") as a distinct callout split the summary with
+ *   the marker exposed by `./test-summary-split.js`
+ *   (`SUMMARY_SPLIT_MARKER`). Splitting happens at render time only —
+ *   the backend `@PublishTestModule.summary()` contract is unchanged.
+ *   R24 origin: `docs/brainstorms/2026-04-13-cts-ux-improvement-plan-requirements.md`.
  */
 
 /**
