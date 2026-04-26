@@ -277,7 +277,9 @@ export const ClickMoreToggle = {
     expect(canvasElement.querySelector(".moreInfo")).toBeNull();
 
     expect(canvasElement.querySelector("cts-button.moreBtn")).toBeTruthy();
-    expect(canvasElement.querySelector("cts-badge")).toBeTruthy();
+    const countBadge = canvasElement.querySelector("cts-badge[count]");
+    expect(countBadge).toBeTruthy();
+    expect(countBadge.textContent.trim()).toBe(String(Object.keys(ENTRY_WITH_MORE.more).length));
 
     const moreBtn = canvas.getByText("More");
     await moreBtn.click();

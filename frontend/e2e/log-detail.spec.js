@@ -323,7 +323,12 @@ test.describe("log-detail.html — Log Detail", () => {
     const moreInfo = page.locator(".moreInfo").first();
     await expect(moreInfo).toBeVisible();
 
-    // Chevron should point up when expanded
+    // Chevron should point up when expanded. Assert both the host's reactive
+    // `icon` attribute (the actual contract the legacy click handler writes)
+    // and the rendered `cts-icon[name=...]` (the downstream effect cts-button
+    // produces) so a future cts-button refactor that breaks reactive icon
+    // re-render fails loudly here.
+    await expect(moreBtn).toHaveAttribute("icon", "chevron-up");
     await expect(moreBtn.locator('cts-icon[name="chevron-up"]')).toBeVisible();
 
     // Click again to collapse
@@ -331,6 +336,7 @@ test.describe("log-detail.html — Log Detail", () => {
     await expect(moreInfo).toBeHidden();
 
     // Chevron should point down when collapsed
+    await expect(moreBtn).toHaveAttribute("icon", "chevron-down");
     await expect(moreBtn.locator('cts-icon[name="chevron-down"]')).toBeVisible();
   });
 

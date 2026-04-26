@@ -194,6 +194,8 @@ const STYLE_TEXT = `
   cts-log-entry .logActions {
     display: flex;
     justify-content: flex-end;
+    align-items: center;
+    gap: var(--space-1);
   }
 
   cts-log-entry .curlBtn {
