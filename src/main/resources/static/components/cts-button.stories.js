@@ -69,10 +69,10 @@ export const SecondaryWithIcon = {
     expect(btn.classList.contains("oidf-btn")).toBe(true);
     expect(btn.classList.contains("oidf-btn-secondary")).toBe(true);
 
-    const icon = btn.querySelector("span.bi");
-    expect(icon).toBeTruthy();
-    expect(icon.classList.contains("settings")).toBe(true);
-    expect(icon.getAttribute("aria-hidden")).toBe("true");
+    const iconEl = btn.querySelector("cts-icon");
+    expect(iconEl).toBeTruthy();
+    expect(iconEl.getAttribute("name")).toBe("settings");
+    expect(iconEl.getAttribute("aria-hidden")).toBe("true");
   },
 };
 
@@ -93,9 +93,9 @@ export const Primary = {
     expect(btn.classList.contains("oidf-btn")).toBe(true);
     expect(btn.classList.contains("oidf-btn-primary")).toBe(true);
 
-    const icon = btn.querySelector("span.bi");
-    expect(icon).toBeTruthy();
-    expect(icon.classList.contains("search-magnifying-glass")).toBe(true);
+    const iconEl = btn.querySelector("cts-icon");
+    expect(iconEl).toBeTruthy();
+    expect(iconEl.getAttribute("name")).toBe("search-magnifying-glass");
   },
 };
 
@@ -135,9 +135,9 @@ export const Danger = {
     expect(btn.classList.contains("oidf-btn")).toBe(true);
     expect(btn.classList.contains("oidf-btn-danger")).toBe(true);
 
-    const icon = btn.querySelector("span.bi");
-    expect(icon).toBeTruthy();
-    expect(icon.classList.contains("trash-empty")).toBe(true);
+    const iconEl = btn.querySelector("cts-icon");
+    expect(iconEl).toBeTruthy();
+    expect(iconEl.getAttribute("name")).toBe("trash-empty");
   },
 };
 
@@ -164,9 +164,8 @@ export const Loading = {
     expect(spinner.getAttribute("aria-hidden")).toBe("true");
     expect(btn.querySelector("span.spinner-border")).toBeNull();
 
-    // No Bootstrap-icon span when loading.
-    const icon = btn.querySelector("span.bi");
-    expect(icon).toBeNull();
+    // No glyph icon renders while the spinner is showing.
+    expect(btn.querySelector("cts-icon")).toBeNull();
   },
 };
 
@@ -278,7 +277,7 @@ export const FullWidth = {
   args: {
     variant: "primary",
     icon: "settings",
-    label: "View Config",
+    label: "View configuration",
   },
   render: ({ variant, label, icon, disabled }) => html`
     <div style="width: 400px; padding: 1rem; border: 1px dashed #ccc;">
@@ -317,12 +316,7 @@ export const FullWidthStack = {
   render: () => html`
     <div style="width: 240px; padding: 1rem; border: 1px dashed #ccc;">
       <div class="d-grid gap-1">
-        <cts-button
-          variant="secondary"
-          icon="settings"
-          label="View Config"
-          full-width
-        ></cts-button>
+        <cts-button variant="secondary" icon="settings" label="View configuration" full-width></cts-button>
         <cts-button
           variant="secondary"
           icon="save"
@@ -395,13 +389,15 @@ export const LegacyVariantAliases = {
 };
 
 /**
- * Three sizes drive 30/36/44px button heights via the `oidf-btn-sm` /
- * `oidf-btn-lg` modifiers (default `md` carries no modifier — height comes
- * from the base `.oidf-btn` rule).
+ * Four sizes drive 24/30/36/44px button heights via the `oidf-btn-xs` /
+ * `oidf-btn-sm` / `oidf-btn-lg` modifiers (default `md` carries no modifier
+ * — height comes from the base `.oidf-btn` rule). `xs` is intended for
+ * dense surfaces like log entry "More" toggles where `sm` reads too tall.
  */
 export const Sizes = {
   render: () => html`
     <div style="display: flex; flex-wrap: wrap; gap: 0.5rem; padding: 1rem; align-items: center;">
+      <cts-button variant="primary" label="Extra small" size="xs"></cts-button>
       <cts-button variant="primary" label="Small (default)" size="sm"></cts-button>
       <cts-button variant="primary" label="Medium" size="md"></cts-button>
       <cts-button variant="primary" label="Large" size="lg"></cts-button>
@@ -410,11 +406,12 @@ export const Sizes = {
 
   async play({ canvasElement }) {
     const buttons = canvasElement.querySelectorAll("cts-button button");
-    expect(buttons.length).toBe(3);
-    expect(buttons[0].classList.contains("oidf-btn-sm")).toBe(true);
-    expect(buttons[1].classList.contains("oidf-btn-sm")).toBe(false);
-    expect(buttons[1].classList.contains("oidf-btn-lg")).toBe(false);
-    expect(buttons[2].classList.contains("oidf-btn-lg")).toBe(true);
+    expect(buttons.length).toBe(4);
+    expect(buttons[0].classList.contains("oidf-btn-xs")).toBe(true);
+    expect(buttons[1].classList.contains("oidf-btn-sm")).toBe(true);
+    expect(buttons[2].classList.contains("oidf-btn-sm")).toBe(false);
+    expect(buttons[2].classList.contains("oidf-btn-lg")).toBe(false);
+    expect(buttons[3].classList.contains("oidf-btn-lg")).toBe(true);
   },
 };
 

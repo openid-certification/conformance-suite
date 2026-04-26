@@ -42,9 +42,9 @@ export const Authenticated = {
     expect(hrefs).toContain("plans.html?public=true");
     expect(hrefs).toContain("api-document.html");
 
-    // Each tile renders a Bootstrap Icons glyph
+    // Each tile renders a coolicons glyph via cts-icon.
     for (const tile of tiles) {
-      expect(tile.querySelector(".oidf-dashboard-tile-icon .bi")).toBeTruthy();
+      expect(tile.querySelector(".oidf-dashboard-tile-icon cts-icon")).toBeTruthy();
       expect(tile.querySelector(".oidf-dashboard-tile-label")).toBeTruthy();
     }
 

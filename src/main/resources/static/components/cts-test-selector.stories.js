@@ -17,6 +17,9 @@ export const Default = {
     expect(searchInput.getAttribute("placeholder")).toBe("Search test plans...");
     const select = canvasElement.querySelector(".oidf-test-selector__family");
     expect(select).toBeTruthy();
+    // The family filter has no visible label in the toolbar — assistive tech relies on
+    // the explicit aria-label for an accessible name.
+    expect(select.getAttribute("aria-label")).toBe("Filter test plans by specification family");
     const items = canvasElement.querySelectorAll(".oidf-test-selector__row");
     expect(items.length).toBe(MOCK_PLANS.length);
     expect(canvas.getByText("OpenID Connect Core: Basic Certification Profile")).toBeTruthy();
@@ -35,6 +38,78 @@ export const SearchFilter = {
     await waitFor(() => {
       const items = canvasElement.querySelectorAll(".oidf-test-selector__row");
       expect(items.length).toBe(2);
+    });
+  },
+};
+
+/**
+ * The trailing × button clears the search and refocuses the input.
+ * Mirrors the simplified live-debounced shape of the cts-data-table
+ * pattern — no submit affordance, since filtering happens as the user
+ * types.
+ */
+export const SearchClearButton = {
+  render: () => html`<cts-test-selector .plans=${MOCK_PLANS}></cts-test-selector>`,
+  async play({ canvasElement }) {
+    const searchInput = /** @type {HTMLInputElement} */ (
+      canvasElement.querySelector(".oidf-test-selector__search")
+    );
+
+    // No clear button while the field is empty.
+    expect(canvasElement.querySelector(".oidf-test-selector__search-clear")).toBeNull();
+
+    await userEvent.type(searchInput, "FAPI");
+    await waitFor(() => {
+      const items = canvasElement.querySelectorAll(".oidf-test-selector__row");
+      expect(items.length).toBe(2);
+    });
+
+    // Clear button appears once the field has content.
+    const clearBtn = /** @type {HTMLButtonElement} */ (
+      canvasElement.querySelector(".oidf-test-selector__search-clear")
+    );
+    expect(clearBtn).toBeTruthy();
+    expect(clearBtn.getAttribute("aria-label")).toBe("Clear search");
+
+    await userEvent.click(clearBtn);
+
+    // Field is empty, all rows are back, clear button is gone, focus
+    // is back on the input so the user can keep typing.
+    await waitFor(() => {
+      expect(searchInput.value).toBe("");
+      const items = canvasElement.querySelectorAll(".oidf-test-selector__row");
+      expect(items.length).toBe(MOCK_PLANS.length);
+    });
+    expect(canvasElement.querySelector(".oidf-test-selector__search-clear")).toBeNull();
+    expect(document.activeElement).toBe(searchInput);
+  },
+};
+
+/**
+ * Pressing Escape inside the search input clears it. Same affordance
+ * as the clear button, exposed to keyboard users without reaching for
+ * the mouse.
+ */
+export const SearchEscapeClears = {
+  render: () => html`<cts-test-selector .plans=${MOCK_PLANS}></cts-test-selector>`,
+  async play({ canvasElement }) {
+    const searchInput = /** @type {HTMLInputElement} */ (
+      canvasElement.querySelector(".oidf-test-selector__search")
+    );
+
+    await userEvent.type(searchInput, "FAPI");
+    await waitFor(() => {
+      const items = canvasElement.querySelectorAll(".oidf-test-selector__row");
+      expect(items.length).toBe(2);
+    });
+
+    searchInput.focus();
+    await userEvent.keyboard("{Escape}");
+
+    await waitFor(() => {
+      expect(searchInput.value).toBe("");
+      const items = canvasElement.querySelectorAll(".oidf-test-selector__row");
+      expect(items.length).toBe(MOCK_PLANS.length);
     });
   },
 };

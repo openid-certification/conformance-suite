@@ -113,11 +113,11 @@ const STYLE_TEXT = `
   height: 28px;
   width: auto;
   /* Optical lift — the OpenID mark's baseline sits a touch low against
-   * the wordmark; -3px aligns the visual center of the logo with the
+   * the wordmark; -4px aligns the visual center of the logo with the
    * wordmark's cap-height row. Reset to 0 on mobile where the wordmark
    * is hidden and the lift would just look like a misalignment. */
   position: relative;
-  top: -3px;
+  top: -4px;
 }
 .cts-nav .cts-brand-name {
   font-family: var(--font-display);

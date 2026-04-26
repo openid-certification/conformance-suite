@@ -42,11 +42,15 @@ export const CollapsibleBlocks = {
     expect(blockStarts.length).toBeGreaterThan(0);
     const firstBlock = blockStarts[0];
     await userEvent.click(firstBlock);
-    const chevronAfterCollapse = firstBlock.querySelector(".bi");
-    expect(chevronAfterCollapse.classList.contains("chevron-right")).toBe(true);
+    await waitFor(() => {
+      const chevron = firstBlock.querySelector("cts-icon");
+      expect(chevron.getAttribute("name")).toBe("chevron-right");
+    });
     await userEvent.click(firstBlock);
-    const chevronAfterExpand = firstBlock.querySelector(".bi");
-    expect(chevronAfterExpand.classList.contains("chevron-down")).toBe(true);
+    await waitFor(() => {
+      const chevron = firstBlock.querySelector("cts-icon");
+      expect(chevron.getAttribute("name")).toBe("chevron-down");
+    });
   },
 };
 
@@ -79,7 +83,7 @@ export const AllSuccess = {
     const badges = canvasElement.querySelectorAll("cts-badge");
     for (const badge of badges) {
       if (badge.getAttribute("variant")) {
-        expect(badge.getAttribute("variant")).toBe("success");
+        expect(badge.getAttribute("variant")).toBe("pass");
       }
     }
   },

@@ -65,9 +65,9 @@ export const WithIcon = {
     expect(anchor.classList.contains("oidf-btn")).toBe(true);
     expect(anchor.classList.contains("oidf-btn-primary")).toBe(true);
 
-    const iconEl = anchor.querySelector("span.bi");
+    const iconEl = anchor.querySelector("cts-icon");
     expect(iconEl).toBeTruthy();
-    expect(iconEl.classList.contains("file-blank")).toBe(true);
+    expect(iconEl.getAttribute("name")).toBe("file-blank");
     expect(iconEl.getAttribute("aria-hidden")).toBe("true");
   },
 };
@@ -155,7 +155,12 @@ export const AllVariants = {
         icon="file-blank"
       ></cts-link-button>
       <cts-link-button href="logs.html" variant="ghost" label="Ghost"></cts-link-button>
-      <cts-link-button href="#" variant="danger" label="Danger" icon="trash-empty"></cts-link-button>
+      <cts-link-button
+        href="#"
+        variant="danger"
+        label="Danger"
+        icon="trash-empty"
+      ></cts-link-button>
     </div>
   `,
 };
@@ -188,13 +193,15 @@ export const LegacyVariantAliases = {
 };
 
 /**
- * The `size` attribute mirrors `cts-button`. Login provider buttons on
- * `login.html` and the action buttons in `cts-token-manager` use `lg` for
- * prominence; everything else stays on the `sm` default.
+ * The `size` attribute mirrors `cts-button` — including the new `xs` for
+ * dense rows. Login provider buttons on `login.html` and the action buttons
+ * in `cts-token-manager` use `lg` for prominence; everything else stays on
+ * the `sm` default.
  */
 export const Sizes = {
   render: () => html`
     <div style="display: flex; flex-wrap: wrap; gap: 0.5rem; padding: 1rem; align-items: center;">
+      <cts-link-button href="#" variant="primary" label="Extra small" size="xs"></cts-link-button>
       <cts-link-button
         href="#"
         variant="primary"
@@ -208,11 +215,12 @@ export const Sizes = {
 
   async play({ canvasElement }) {
     const anchors = canvasElement.querySelectorAll("cts-link-button a");
-    expect(anchors.length).toBe(3);
-    expect(anchors[0].classList.contains("oidf-btn-sm")).toBe(true);
-    expect(anchors[1].classList.contains("oidf-btn-sm")).toBe(false);
-    expect(anchors[1].classList.contains("oidf-btn-lg")).toBe(false);
-    expect(anchors[2].classList.contains("oidf-btn-lg")).toBe(true);
+    expect(anchors.length).toBe(4);
+    expect(anchors[0].classList.contains("oidf-btn-xs")).toBe(true);
+    expect(anchors[1].classList.contains("oidf-btn-sm")).toBe(true);
+    expect(anchors[2].classList.contains("oidf-btn-sm")).toBe(false);
+    expect(anchors[2].classList.contains("oidf-btn-lg")).toBe(false);
+    expect(anchors[3].classList.contains("oidf-btn-lg")).toBe(true);
   },
 };
 

@@ -24,6 +24,12 @@ import { classMap } from "lit/directives/class-map.js";
 
 const STYLE_ID = "cts-form-field-styles";
 
+// Per-instance unique id used to wire the <label for>, aria-describedby, and
+// aria-invalid relationships. `name` is not unique enough — the same schema
+// (e.g. `client.client_id`) is rendered for both `client` and `client2` blocks
+// on schedule-test.html, which would collide if used directly as an id.
+let uidCounter = 0;
+
 // Inline SVG chevron used as the custom select indicator. Stroke colour is
 // `--ink-500` (`#71695E`) — encoded as `%2371695E` in the data: URL.
 const SELECT_CHEVRON =
@@ -40,7 +46,10 @@ cts-form-field {
   margin-bottom: var(--space-4);
 }
 .oidf-form-field .oidf-label {
-  /* mirrors .t-overline from oidf-tokens.css */
+  font-family: var(--font-sans);
+  font-weight: var(--fw-bold);
+  font-size: var(--fs-12);
+  line-height: var(--lh-snug);
   color: var(--fg-soft);
 }
 .oidf-form-field .oidf-input,
@@ -82,6 +91,9 @@ cts-form-field {
   background-image: ${SELECT_CHEVRON};
   background-repeat: no-repeat;
   background-position: right 12px center;
+  /* Native <select> centers its closed-state text inconsistently across browsers
+     when line-height inflates the line box; pin to 1 inside the fixed 34px height. */
+  line-height: 1;
 }
 .oidf-form-field .oidf-input:focus,
 .oidf-form-field .oidf-select:focus,
@@ -124,7 +136,7 @@ cts-form-field {
   width: var(--space-4);
   height: var(--space-4);
   margin: 0;
-  accent-color: var(--orange-400);
+  accent-color: var(--orange-500);
 }
 .oidf-form-field .oidf-checkbox:focus-visible {
   outline: none;
@@ -167,6 +179,14 @@ class CtsFormField extends LitElement {
     this.value = "";
     this.error = "";
     this.disabled = false;
+    this._uid = `cts-ff-${++uidCounter}`;
+  }
+
+  _describedByIds() {
+    const ids = [];
+    if (this.error) ids.push(`${this._uid}-error`);
+    if (this.schema && this.schema.description) ids.push(`${this._uid}-help`);
+    return ids.length ? ids.join(" ") : null;
   }
 
   connectedCallback() {
@@ -196,13 +216,19 @@ class CtsFormField extends LitElement {
     const { type, format, description } = this.schema;
     const fieldEnum = this.schema.enum;
     const isInvalid = Boolean(this.error);
+    const describedBy = this._describedByIds();
+    const ariaInvalid = isInvalid ? "true" : nothing;
+    const ariaDescribedBy = describedBy || nothing;
 
     if (fieldEnum) {
       return html`
         <select
+          id="${this._uid}"
           class=${classMap({ "oidf-select": true, "is-error": isInvalid })}
           .value=${this.value || ""}
           ?disabled=${this.disabled}
+          aria-invalid=${ariaInvalid}
+          aria-describedby=${ariaDescribedBy}
           @change=${this._handleInput}
         >
           <option value="">Select...</option>
@@ -214,6 +240,7 @@ class CtsFormField extends LitElement {
     if (type === "object" || type === "array" || format === "json") {
       return html`
         <textarea
+          id="${this._uid}"
           class=${classMap({
             "oidf-textarea": true,
             "is-mono": true,
@@ -222,6 +249,8 @@ class CtsFormField extends LitElement {
           rows="6"
           .value=${this.value || ""}
           ?disabled=${this.disabled}
+          aria-invalid=${ariaInvalid}
+          aria-describedby=${ariaDescribedBy}
           @input=${this._handleInput}
           placeholder=${description || ""}
         ></textarea>
@@ -231,9 +260,12 @@ class CtsFormField extends LitElement {
     if (format === "password") {
       return html`<input
         type="password"
+        id="${this._uid}"
         class=${classMap({ "oidf-input": true, "is-error": isInvalid })}
         .value=${this.value || ""}
         ?disabled=${this.disabled}
+        aria-invalid=${ariaInvalid}
+        aria-describedby=${ariaDescribedBy}
         @input=${this._handleInput}
       />`;
     }
@@ -243,12 +275,17 @@ class CtsFormField extends LitElement {
         <div class="oidf-checkbox-row">
           <input
             type="checkbox"
+            id="${this._uid}"
             class="oidf-checkbox"
             .checked=${this.value === "true" || /** @type {unknown} */ (this.value) === true}
             ?disabled=${this.disabled}
+            aria-invalid=${ariaInvalid}
+            aria-describedby=${ariaDescribedBy}
             @change=${this._handleCheckbox}
           />
-          ${description ? html`<label class="oidf-checkbox-label">${description}</label>` : nothing}
+          ${description
+            ? html`<label class="oidf-checkbox-label" for="${this._uid}">${description}</label>`
+            : nothing}
         </div>
       `;
     }
@@ -256,9 +293,12 @@ class CtsFormField extends LitElement {
     const inputType = format === "uri" ? "url" : "text";
     return html`<input
       type="${inputType}"
+      id="${this._uid}"
       class=${classMap({ "oidf-input": true, "is-error": isInvalid })}
       .value=${this.value || ""}
       ?disabled=${this.disabled}
+      aria-invalid=${ariaInvalid}
+      aria-describedby=${ariaDescribedBy}
       @input=${this._handleInput}
       placeholder=${description || ""}
     />`;
@@ -275,11 +315,17 @@ class CtsFormField extends LitElement {
     const isBoolean = type === "boolean";
     return html`
       <div class="oidf-form-field">
-        ${!isBoolean && title ? html`<span class="oidf-label t-overline">${title}</span>` : nothing}
+        ${!isBoolean && title
+          ? html`<label class="oidf-label" for="${this._uid}">${title}</label>`
+          : nothing}
         ${this._renderInput()}
-        ${this.error ? html`<span class="oidf-error" role="alert">${this.error}</span>` : nothing}
+        ${this.error
+          ? html`<span id="${this._uid}-error" class="oidf-error" role="alert"
+              >${this.error}</span
+            >`
+          : nothing}
         ${!isBoolean && description
-          ? html`<span class="oidf-help t-meta">${description}</span>`
+          ? html`<span id="${this._uid}-help" class="oidf-help t-meta">${description}</span>`
           : nothing}
       </div>
     `;

@@ -127,7 +127,7 @@ const STYLE_TEXT = `
   height: 28px;
   width: auto;
   position: relative;
-  top: -3px;
+  top: -4px;
 }
 .oidf-login-brand__eyebrow {
   display: inline-block;

@@ -41,6 +41,7 @@ const VARIANT_CLASSES = {
  * @type {Object.<string, string>}
  */
 const SIZE_CLASSES = {
+  xs: "oidf-btn-xs",
   sm: "oidf-btn-sm",
   md: "",
   lg: "oidf-btn-lg",
@@ -149,6 +150,15 @@ const STYLE_TEXT = `
   color: var(--ink-0);
 }
 
+.oidf-btn-xs {
+  /* Compact size used to replace bespoke "More" / pill-style buttons. 24px
+     = 16px line-box + 4px top + 4px bottom on the 4px grid. fs-12 +
+     space-1 horizontal padding keeps it visibly smaller than sm. Kept in
+     sync with cts-button.js. */
+  height: 24px;
+  padding: 0 var(--space-1);
+  font-size: var(--fs-12);
+}
 .oidf-btn-sm {
   height: 30px;
   padding: 0 var(--space-3);
@@ -200,7 +210,7 @@ function injectStyles() {
  * @property {string} variant - One of: primary, secondary, ghost, danger.
  *   Legacy aliases accepted: light/info/success/warning/dark and their
  *   `outline-*` forms.
- * @property {string} size - One of: sm (default), md, lg
+ * @property {string} size - One of: xs, sm (default), md, lg
  * @property {string} label - Visible text
  * @property {string} icon - Bootstrap Icons name (without the `bi-` prefix).
  *   When `target="_blank"` is set and `icon` is omitted, defaults to

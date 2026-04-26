@@ -97,11 +97,12 @@ export const Interrupted = {
     // Test name displayed
     expect(canvas.getByText("oidcc-ensure-redirect-uri")).toBeInTheDocument();
 
-    // Status badge shows INTERRUPTED with the legacy `interrupted` variant
+    // INTERRUPTED status maps to the canonical `fail` variant — see
+    // STATUS_BADGE_VARIANTS in cts-running-test-card.js.
     const badge = canvasElement.querySelector("cts-badge");
     expect(badge).toBeTruthy();
     expect(badge.getAttribute("label")).toBe("INTERRUPTED");
-    expect(badge.getAttribute("variant")).toBe("interrupted");
+    expect(badge.getAttribute("variant")).toBe("fail");
 
     // Buttons present
     expect(canvas.getByText(/Download Logs/)).toBeInTheDocument();

@@ -1,5 +1,6 @@
 import { LitElement, html, nothing } from "lit";
 import { classMap } from "lit/directives/class-map.js";
+import "./cts-icon.js";
 
 /**
  * Searchable, family-filterable list of test plans. Caller supplies the
@@ -7,9 +8,11 @@ import { classMap } from "lit/directives/class-map.js";
  *
  * Light DOM. Scoped CSS lives in a single `<style>` element injected into
  * `<head>` on first connect (gated by a module-level flag). Styling uses
- * OIDF tokens — the search input and family filter mirror `cts-form-field`'s
- * `.oidf-input` / `.oidf-select`, and each list row hovers/focuses with
- * `--ink-50` / `--focus-ring`.
+ * OIDF tokens — the search input mirrors cts-data-table's
+ * `.oidf-dt-search-input-wrap` (leading magnifier glyph + trailing clear
+ * button) but in its simplified live-debounced form: filtering happens as
+ * the user types, so there is no submit/return affordance. Pressing Escape
+ * also clears the field.
  *
  * @property {Array} plans - Test plans to list; each has `planName`,
  *   `displayName`, `specFamily`, `modules`, `summary`.
@@ -43,12 +46,11 @@ const STYLE_TEXT = `
     grid-template-columns: 1fr;
   }
 }
-.oidf-test-selector__search,
+.oidf-test-selector__search-wrap,
 .oidf-test-selector__family {
   width: 100%;
   box-sizing: border-box;
   height: 34px;
-  padding: 0 var(--space-3);
   border: 1px solid var(--ink-300);
   border-radius: var(--radius-2);
   background: var(--bg-elev);
@@ -60,19 +62,80 @@ const STYLE_TEXT = `
 .oidf-test-selector__family {
   appearance: none;
   -webkit-appearance: none;
-  padding-right: 36px;
+  padding: 0 36px 0 var(--space-3);
   background-image: ${SELECT_CHEVRON};
   background-repeat: no-repeat;
   background-position: right 12px center;
+  /* See cts-form-field .oidf-select — pin to 1 for crisp closed-state baseline. */
+  line-height: 1;
 }
-.oidf-test-selector__search:focus,
+.oidf-test-selector__search-wrap {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 0 var(--space-2);
+  transition: border-color var(--dur-1) var(--ease-standard),
+    box-shadow var(--dur-1) var(--ease-standard);
+}
+.oidf-test-selector__search-wrap:hover {
+  border-color: var(--ink-400);
+}
+.oidf-test-selector__search-wrap:focus-within,
 .oidf-test-selector__family:focus {
   outline: none;
   border-color: var(--orange-400);
   box-shadow: var(--focus-ring);
 }
+.oidf-test-selector__search-leading {
+  display: inline-flex;
+  align-items: center;
+  color: var(--ink-400);
+  flex-shrink: 0;
+}
+.oidf-test-selector__search {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  background: transparent;
+  font-family: var(--font-sans);
+  font-size: var(--fs-13);
+  line-height: 16px;
+  color: var(--fg);
+  outline: none;
+  padding: 0;
+  text-indent: 0;
+}
+.oidf-test-selector__search::-webkit-search-cancel-button,
+.oidf-test-selector__search::-webkit-search-decoration {
+  -webkit-appearance: none;
+  appearance: none;
+}
 .oidf-test-selector__search::placeholder {
   color: var(--fg-faint);
+}
+.oidf-test-selector__search-clear {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  height: 24px;
+  width: 24px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--fg-soft);
+  border-radius: var(--radius-2);
+  cursor: pointer;
+  transition: background var(--dur-1) var(--ease-standard),
+    color var(--dur-1) var(--ease-standard);
+}
+.oidf-test-selector__search-clear:hover {
+  background: var(--ink-100);
+  color: var(--fg);
+}
+.oidf-test-selector__search-clear:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
 }
 .oidf-test-selector__list {
   display: flex;
@@ -228,6 +291,20 @@ class CtsTestSelector extends LitElement {
   _handleSearch(e) {
     this._searchTerm = e.target.value;
   }
+  _handleSearchKeydown(e) {
+    if (e.key === "Escape" && this._searchTerm !== "") {
+      e.preventDefault();
+      this._searchTerm = "";
+    }
+  }
+  _handleSearchClear() {
+    this._searchTerm = "";
+    // Restore focus to the input so the user can keep typing.
+    const input = /** @type {HTMLInputElement | null} */ (
+      this.querySelector(".oidf-test-selector__search")
+    );
+    if (input) input.focus();
+  }
   _handleFamilyFilter(e) {
     this._selectedFamily = e.target.value;
   }
@@ -247,14 +324,40 @@ class CtsTestSelector extends LitElement {
     return html`
       <div class="oidf-test-selector">
         <div class="oidf-test-selector__filters">
-          <input
-            type="text"
-            class="oidf-test-selector__search"
-            placeholder="Search test plans..."
-            .value=${this._searchTerm}
-            @input=${this._handleSearch}
-          />
-          <select class="oidf-test-selector__family" @change=${this._handleFamilyFilter}>
+          <div class="oidf-test-selector__search-wrap">
+            <cts-icon
+              name="search-magnifying-glass"
+              class="oidf-test-selector__search-leading"
+              aria-hidden="true"
+            ></cts-icon>
+            <input
+              type="search"
+              class="oidf-test-selector__search"
+              placeholder="Search test plans..."
+              aria-label="Search test plans"
+              autocomplete="off"
+              spellcheck="false"
+              .value=${this._searchTerm}
+              @input=${this._handleSearch}
+              @keydown=${this._handleSearchKeydown}
+            />
+            ${this._searchTerm
+              ? html`<button
+                  type="button"
+                  class="oidf-test-selector__search-clear"
+                  aria-label="Clear search"
+                  title="Clear search (Esc)"
+                  @click=${this._handleSearchClear}
+                >
+                  <cts-icon name="close-md" aria-hidden="true"></cts-icon>
+                </button>`
+              : nothing}
+          </div>
+          <select
+            class="oidf-test-selector__family"
+            aria-label="Filter test plans by specification family"
+            @change=${this._handleFamilyFilter}
+          >
             <option value="">All specifications</option>
             ${this._renderFamilyOptions()}
           </select>

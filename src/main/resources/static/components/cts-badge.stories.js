@@ -191,9 +191,9 @@ export const WithIcon = {
     expect(badge).toBeTruthy();
     expect(badge.classList.contains("b-info-subtle")).toBe(true);
 
-    const iconEl = badge.querySelector("i.bi");
+    const iconEl = badge.querySelector("cts-icon");
     expect(iconEl).toBeTruthy();
-    expect(iconEl.classList.contains("info")).toBe(true);
+    expect(iconEl.getAttribute("name")).toBe("info");
     expect(iconEl.getAttribute("aria-hidden")).toBe("true");
 
     expect(badge.textContent.trim()).toContain("This section relates to the entity under test");
@@ -297,9 +297,9 @@ export const WithRichContent = {
     expect(badge.classList.contains("b-info-subtle")).toBe(true);
 
     // Icon still renders before the slotted content
-    const iconEl = badge.querySelector("i.bi");
+    const iconEl = badge.querySelector("cts-icon");
     expect(iconEl).toBeTruthy();
-    expect(iconEl.classList.contains("info")).toBe(true);
+    expect(iconEl.getAttribute("name")).toBe("info");
 
     // The <em> emphasis and <a> link survive the migration
     expect(badge.querySelector("em")).toBeTruthy();
@@ -370,8 +370,8 @@ export const RichContentRerenderStability = {
     const badge = host.querySelector(".badge");
     expect(badge).toBeTruthy();
     expect(badge.classList.contains("b-fail")).toBe(true);
-    const icon = badge.querySelector("i.bi");
-    expect(icon.classList.contains("triangle-warning")).toBe(true);
+    const icon = badge.querySelector("cts-icon");
+    expect(icon.getAttribute("name")).toBe("triangle-warning");
 
     // Same <a> and <em> nodes still present — they moved, they weren't recreated.
     const rerenderedLink = host.querySelector("a");

@@ -232,8 +232,10 @@ class CtsLogViewer extends LitElement {
         data-block-id=${entry.blockId}
         @click=${this._handleBlockClick}
       >
-        <cts-icon name="${isCollapsed ? "chevron-right" : "chevron-down"}"
-          aria-hidden="true"></cts-icon>
+        <cts-icon
+          name="${isCollapsed ? "chevron-right" : "chevron-down"}"
+          aria-hidden="true"
+        ></cts-icon>
         ${entry.msg || entry.blockId}
       </button>
     `;

@@ -19,15 +19,23 @@ export const TextInput = {
     const label = canvasElement.querySelector(".oidf-label");
     expect(label).toBeTruthy();
     expect(label.textContent).toContain("Client ID");
-    // .t-overline carries the OIDF label typography (uppercase / bold / fg-soft).
-    expect(label.classList.contains("t-overline")).toBe(true);
+    // OIDF label typography (bold / fs-12 / fg-soft) lives on .oidf-label directly,
+    // sentence-cased — no longer borrowing the uppercase .t-overline utility.
+    expect(getComputedStyle(label).textTransform).toBe("none");
+    // The label must be a real <label> with `for` pointing at the input id, so
+    // clicking the label focuses the field and screen readers announce the name.
+    expect(label.tagName).toBe("LABEL");
     const input = canvasElement.querySelector('input[type="text"]');
     expect(input).toBeTruthy();
     expect(input.classList.contains("oidf-input")).toBe(true);
     expect(input.value).toBe("my-client-123");
+    expect(input.id).toBeTruthy();
+    expect(label.getAttribute("for")).toBe(input.id);
     const help = canvasElement.querySelector(".oidf-help");
     expect(help.textContent).toContain("OAuth 2.0 client identifier");
     expect(help.classList.contains("t-meta")).toBe(true);
+    // aria-describedby links the help span back to the input.
+    expect(input.getAttribute("aria-describedby") || "").toContain(help.id);
   },
 };
 
@@ -97,6 +105,16 @@ export const SelectDropdown = {
     expect(select).toBeTruthy();
     const options = select.querySelectorAll("option");
     expect(options.length).toBe(4); // 3 enum + 1 placeholder
+    // Label/select must be wired so screen readers announce "Auth Method" when
+    // the dropdown is focused.
+    const label = canvasElement.querySelector("label.oidf-label");
+    expect(label).toBeTruthy();
+    expect(select.id).toBeTruthy();
+    expect(label.getAttribute("for")).toBe(select.id);
+    // line-height: 1 → resolved value matches font-size, preventing the
+    // closed-state text from drifting inside the fixed 34px height across browsers.
+    const cs = getComputedStyle(select);
+    expect(cs.lineHeight).toBe(cs.fontSize);
   },
 };
 
@@ -115,6 +133,10 @@ export const BooleanCheckbox = {
     expect(checkbox.checked).toBe(true);
     const checkLabel = canvasElement.querySelector(".oidf-checkbox-label");
     expect(checkLabel.textContent).toContain("Enable mutual TLS");
+    // Clicking the label text toggles the checkbox — `for` must point at the
+    // input id, otherwise the click target is silently broken.
+    expect(checkbox.id).toBeTruthy();
+    expect(checkLabel.getAttribute("for")).toBe(checkbox.id);
   },
 };
 
@@ -132,10 +154,14 @@ export const WithError = {
     // Error state lands on the rendered control via .is-error so the rust
     // border colour applies — no host-level class manipulation.
     expect(input.classList.contains("is-error")).toBe(true);
+    // ARIA mirrors the visual error state for assistive tech.
+    expect(input.getAttribute("aria-invalid")).toBe("true");
     const error = canvasElement.querySelector(".oidf-error");
     expect(error).toBeTruthy();
     expect(error.textContent).toBe("Required field");
     expect(error.getAttribute("role")).toBe("alert");
+    expect(error.id).toBeTruthy();
+    expect(input.getAttribute("aria-describedby") || "").toContain(error.id);
   },
 };
 

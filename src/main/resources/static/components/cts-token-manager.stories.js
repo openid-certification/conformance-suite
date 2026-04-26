@@ -1,5 +1,5 @@
 import { html } from "lit";
-import { expect, within, waitFor, fn, userEvent } from "storybook/test";
+import { expect, within, waitFor, userEvent, spyOn } from "storybook/test";
 import { http, HttpResponse } from "msw";
 import { MOCK_TOKENS, MOCK_CREATED_TOKEN } from "@fixtures/mock-tokens.js";
 import "./cts-token-manager.js";
@@ -108,13 +108,11 @@ export const CreateTemporaryToken = {
       expect(canvas.getByText("New temporary token")).toBeInTheDocument();
     });
 
-    // Mock clipboard
-    const mockWriteText = fn().mockResolvedValue(undefined);
-    Object.defineProperty(navigator, "copy", {
-      value: { writeText: mockWriteText },
-      writable: true,
-      configurable: true,
-    });
+    // Spy on navigator.clipboard.writeText. The previous version mocked
+    // navigator.copy by mistake; with the spy, the production code path
+    // runs against a stub that resolves cleanly. restoreMocks: true in
+    // vitest.config.js handles teardown.
+    const mockWriteText = spyOn(navigator.clipboard, "writeText").mockResolvedValue();
 
     // Click the temporary token button — the inner <button> rendered by
     // cts-button is what receives the actual click in the browser.
@@ -406,49 +404,36 @@ export const CopyTokenClipboardFailure = {
   async play({ canvasElement }) {
     const canvas = within(canvasElement);
 
-    const originalClipboard = navigator.clipboard;
-    // Reject writeText — simulates permissions-denied / insecure-context.
-    Object.defineProperty(navigator, "copy", {
-      value: {
-        writeText: fn().mockRejectedValue(new Error("permission denied")),
-      },
-      writable: true,
-      configurable: true,
+    // Spy with a rejecting implementation — simulates permissions-denied /
+    // insecure-context. restoreMocks: true in vitest.config.js auto-restores
+    // the original method after the test.
+    spyOn(navigator.clipboard, "writeText").mockRejectedValue(new Error("permission denied"));
+
+    await waitFor(() => expect(canvas.getByText("New temporary token")).toBeInTheDocument());
+    await userEvent.click(canvas.getByText("New temporary token"));
+
+    // Wait for the created-token modal, then click Copy.
+    const createdModal = /** @type {HTMLElement} */ (
+      canvasElement.querySelector("#createdTokenModal")
+    );
+    const dialog = /** @type {HTMLDialogElement} */ (
+      createdModal.querySelector("dialog.oidf-modal")
+    );
+    await waitFor(() => expect(dialog.open).toBe(true));
+
+    const copyHost = canvas.getByTitle("Copy token to clipboard");
+    const copyInnerBtn = /** @type {HTMLButtonElement} */ (copyHost.querySelector("button"));
+    await userEvent.click(copyInnerBtn);
+
+    // Failure feedback is rendered in an aria-live region so SR users
+    // hear the failure announcement.
+    await waitFor(() => {
+      const feedback = canvasElement.querySelector('[data-testid="copy-feedback"]');
+      expect(feedback).toBeTruthy();
+      expect(feedback.textContent).toContain("Copy failed");
+      expect(feedback.getAttribute("aria-live")).toBe("polite");
+      expect(feedback.getAttribute("role")).toBe("status");
     });
-
-    try {
-      await waitFor(() => expect(canvas.getByText("New temporary token")).toBeInTheDocument());
-      await userEvent.click(canvas.getByText("New temporary token"));
-
-      // Wait for the created-token modal, then click Copy.
-      const createdModal = /** @type {HTMLElement} */ (
-        canvasElement.querySelector("#createdTokenModal")
-      );
-      const dialog = /** @type {HTMLDialogElement} */ (
-        createdModal.querySelector("dialog.oidf-modal")
-      );
-      await waitFor(() => expect(dialog.open).toBe(true));
-
-      const copyHost = canvas.getByTitle("Copy token to clipboard");
-      const copyInnerBtn = /** @type {HTMLButtonElement} */ (copyHost.querySelector("button"));
-      await userEvent.click(copyInnerBtn);
-
-      // Failure feedback is rendered in an aria-live region so SR users
-      // hear the failure announcement.
-      await waitFor(() => {
-        const feedback = canvasElement.querySelector('[data-testid="copy-feedback"]');
-        expect(feedback).toBeTruthy();
-        expect(feedback.textContent).toContain("Copy failed");
-        expect(feedback.getAttribute("aria-live")).toBe("polite");
-        expect(feedback.getAttribute("role")).toBe("status");
-      });
-    } finally {
-      Object.defineProperty(navigator, "copy", {
-        value: originalClipboard,
-        writable: true,
-        configurable: true,
-      });
-    }
   },
 };
 
@@ -469,8 +454,14 @@ export const CopyTokenClipboardAbsent = {
   async play({ canvasElement }) {
     const canvas = within(canvasElement);
 
+    // The component checks `if (!navigator.clipboard)` to fall back to the
+    // not-available branch, so a spy on writeText isn't enough — we have
+    // to make the whole property undefined. Object.defineProperty needs
+    // configurable: true on both sides so the restore works. (The previous
+    // version targeted navigator.copy by mistake, leaving navigator.clipboard
+    // present and the not-available branch never reached.)
     const originalClipboard = navigator.clipboard;
-    Object.defineProperty(navigator, "copy", {
+    Object.defineProperty(navigator, "clipboard", {
       value: undefined,
       writable: true,
       configurable: true,
@@ -498,7 +489,7 @@ export const CopyTokenClipboardAbsent = {
         expect(feedback.textContent).toContain("Clipboard not available");
       });
     } finally {
-      Object.defineProperty(navigator, "copy", {
+      Object.defineProperty(navigator, "clipboard", {
         value: originalClipboard,
         writable: true,
         configurable: true,

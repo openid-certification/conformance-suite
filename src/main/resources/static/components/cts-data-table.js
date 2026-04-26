@@ -129,8 +129,9 @@ const STYLE_TEXT = `
     display: flex;
     align-items: center;
     gap: var(--space-2);
-    padding: 0 var(--space-2) 0 var(--space-3);
+    padding: 0 var(--space-2);
     height: 34px;
+    cursor: text;
     border: 1px solid var(--ink-300);
     border-radius: var(--radius-2);
     background: var(--bg-elev);
@@ -164,6 +165,7 @@ const STYLE_TEXT = `
     background: transparent;
     font-family: var(--font-sans);
     font-size: var(--fs-13);
+    line-height: 1rem;
     color: var(--fg);
     outline: none;
     padding: 0;
@@ -207,10 +209,15 @@ const STYLE_TEXT = `
     outline: none;
     box-shadow: var(--focus-ring);
   }
-  cts-data-table .oidf-dt-search-clear i,
-  cts-data-table .oidf-dt-search-submit i {
-    font-size: 14px;
-    line-height: 1;
+  cts-data-table .oidf-dt-search-clear cts-icon svg {
+    width: var(--space-3);
+    height: var(--space-3);
+  }
+  /* When both action buttons are visible, pull the submit slightly closer
+     to the clear so the pair reads as one action cluster, distinct from
+     the gap between the input and the cluster. */
+  cts-data-table .oidf-dt-search-clear + .oidf-dt-search-submit {
+    margin-left: calc(var(--space-1) - var(--space-2));
   }
   cts-data-table .oidf-dt-search-submit {
     color: var(--orange-500);
@@ -247,7 +254,7 @@ const STYLE_TEXT = `
   cts-data-table .oidf-dt-search-filter-reset {
     display: inline-flex;
     align-items: center;
-    gap: 4px;
+    gap: 2px;
     padding: 2px 8px;
     background: transparent;
     border: 0;
@@ -266,6 +273,10 @@ const STYLE_TEXT = `
   cts-data-table .oidf-dt-search-filter-reset:focus-visible {
     outline: none;
     box-shadow: var(--focus-ring);
+  }
+  cts-data-table .oidf-dt-search-filter-reset cts-icon svg {
+    width: var(--space-3);
+    height: var(--space-3);
   }
   cts-data-table .oidf-dt-table-wrap {
     background: var(--bg-elev);
@@ -294,6 +305,12 @@ const STYLE_TEXT = `
     z-index: 1;
     white-space: nowrap;
   }
+  cts-data-table .oidf-dt-th-inner {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    line-height: 1;
+  }
   cts-data-table .oidf-dt-table th.is-sortable {
     cursor: pointer;
     user-select: none;
@@ -301,19 +318,22 @@ const STYLE_TEXT = `
   cts-data-table .oidf-dt-table th.is-sortable:hover {
     color: var(--fg);
   }
+  cts-data-table .oidf-dt-table th.is-sortable:hover
+    .oidf-dt-sort-arrow:not(.is-active) {
+    color: var(--ink-500);
+  }
   cts-data-table .oidf-dt-sort-arrow {
     display: inline-flex;
     align-items: center;
-    margin-left: var(--space-1);
-    color: var(--fg-faint);
-    line-height: 1;
-  }
-  cts-data-table .oidf-dt-sort-arrow i {
-    font-size: 12px;
-    line-height: 1;
+    justify-content: center;
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+    color: var(--ink-300);
+    transition: color var(--dur-1) var(--ease-standard);
   }
   cts-data-table .oidf-dt-sort-arrow.is-active {
-    color: var(--orange-400);
+    color: var(--orange-500);
   }
   cts-data-table .oidf-dt-table td {
     padding: 12px 14px;
@@ -785,6 +805,27 @@ class CtsDataTable extends LitElement {
     this._commitSearch();
   }
 
+  /**
+   * Make the whole input pill behave as a focus target: clicking the leading
+   * icon or the gaps inside the wrap focuses the inner <input>. Buttons
+   * inside the wrap (clear / submit) handle their own clicks unchanged.
+   *
+   * Uses mousedown + preventDefault rather than click so focus never visibly
+   * lands on the non-focusable leading <cts-icon> in between.
+   *
+   * @param {MouseEvent} e
+   */
+  _onSearchWrapMouseDown(e) {
+    const target = /** @type {Element} */ (e.target);
+    if (target.closest("button")) return;
+    const input = /** @type {HTMLInputElement | null} */ (
+      this.querySelector(".oidf-dt-search-input")
+    );
+    if (!input || target === input) return;
+    e.preventDefault();
+    input.focus();
+  }
+
   _onSearchClear() {
     this._clearSearch();
     // Restore focus to the input so the user can keep typing.
@@ -921,24 +962,39 @@ class CtsDataTable extends LitElement {
 
   _renderHeaderCell(column) {
     const isActive = this._sortColumn === column.key;
+    const isDesc = isActive && this._sortDir === "desc";
+    // Keep the sort indicator inside one icon family (coolicons "arrow") so
+    // the glyph weight and arrowhead style stay consistent across neutral /
+    // asc / desc states. Mixing arrows with carets used to make the active
+    // state pop in an awkward, "different family" way.
     const arrowIcon = isActive
-      ? this._sortDir === "desc"
-        ? "caret-down-md"
-        : "caret-up-md"
+      ? isDesc
+        ? "arrow-down-md"
+        : "arrow-up-md"
       : "arrow-down-up";
     const headerClasses = column.sortable ? "is-sortable" : "";
+    const ariaSort = column.sortable
+      ? isActive
+        ? isDesc
+          ? "descending"
+          : "ascending"
+        : "none"
+      : nothing;
     return html`
       <th
         class=${headerClasses}
         data-column-key=${column.key}
+        aria-sort=${ariaSort}
         @click=${column.sortable ? this._onHeaderClick : null}
       >
-        ${column.label || ""}
-        ${column.sortable
-          ? html`<span class="oidf-dt-sort-arrow ${isActive ? "is-active" : ""}"
-              ><cts-icon name="${arrowIcon}" aria-hidden="true"></cts-icon
-            ></span>`
-          : nothing}
+        <span class="oidf-dt-th-inner">
+          <span class="oidf-dt-th-label">${column.label || ""}</span>
+          ${column.sortable
+            ? html`<span class="oidf-dt-sort-arrow ${isActive ? "is-active" : ""}"
+                ><cts-icon name="${arrowIcon}" size="16" aria-hidden="true"></cts-icon
+              ></span>`
+            : nothing}
+        </span>
       </th>
     `;
   }
@@ -975,7 +1031,7 @@ class CtsDataTable extends LitElement {
     return html`
       <div class="oidf-dt-search">
         <div class="oidf-dt-search-row">
-          <div class="oidf-dt-search-input-wrap">
+          <div class="oidf-dt-search-input-wrap" @mousedown=${this._onSearchWrapMouseDown}>
             <cts-icon
               name="search-magnifying-glass"
               class="oidf-dt-search-leading"
@@ -997,7 +1053,7 @@ class CtsDataTable extends LitElement {
                   type="button"
                   class="oidf-dt-search-clear"
                   aria-label="Clear search"
-                  title="Clear search"
+                  title="Clear search (Esc)"
                   @click=${this._onSearchClear}
                 >
                   <cts-icon name="close-lg" aria-hidden="true"></cts-icon>
@@ -1011,7 +1067,7 @@ class CtsDataTable extends LitElement {
                   title="Apply search (Enter)"
                   @click=${this._onSearchButton}
                 >
-                  <cts-icon name="arrow-undo-down-left" aria-hidden="true"></cts-icon>
+                  <cts-icon name="arrow-undo-down-left" size="16" aria-hidden="true"></cts-icon>
                 </button>`
               : nothing}
           </div>
