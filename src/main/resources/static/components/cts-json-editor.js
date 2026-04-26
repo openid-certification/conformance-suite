@@ -220,7 +220,13 @@ function injectStyles() {
  */
 class CtsJsonEditor extends LitElement {
   static properties = {
-    value: { type: String },
+    // `noAccessor: true` lets us keep the manual get/set value pair below.
+    // Without it Lit's finalize() would Object.defineProperty over our
+    // accessors at prototype level, silently disabling the setter's
+    // dispatch-suppression and Monaco sync logic. Lit's reactive update
+    // pipeline still fires via the explicit requestUpdate("value", prev)
+    // calls inside the setter.
+    value: { type: String, noAccessor: true },
     placeholder: { type: String },
     readonly: { type: Boolean, reflect: true },
     language: { type: String },
