@@ -55,8 +55,8 @@ export const Default = {
     expect(googleAnchor.classList.contains("oidf-btn-secondary")).toBe(true);
     expect(googleAnchor.classList.contains("btn-danger")).toBe(false);
     expect(googleAnchor.classList.contains("btn")).toBe(false);
-    // Vendor mark precedes the label
-    expect(googleAnchor.querySelector(".bi.bi-google")).toBeTruthy();
+    // Vendor mark precedes the label — inline brand SVG, not part of cts-icon.
+    expect(googleAnchor.querySelector('svg[data-brand="google"]')).toBeTruthy();
 
     // GitLab OAuth button renders with correct href
     const gitlabAnchor = /** @type {HTMLAnchorElement} */ (
@@ -67,7 +67,7 @@ export const Default = {
     expect(gitlabAnchor.classList.contains("oidf-btn")).toBe(true);
     expect(gitlabAnchor.classList.contains("oidf-btn-secondary")).toBe(true);
     expect(gitlabAnchor.classList.contains("btn-primary")).toBe(false);
-    expect(gitlabAnchor.querySelector(".bi.bi-gitlab")).toBeTruthy();
+    expect(gitlabAnchor.querySelector('svg[data-brand="gitlab"]')).toBeTruthy();
 
     // Public links present
     expect(canvas.getByText("View published logs")).toBeInTheDocument();

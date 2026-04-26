@@ -2,6 +2,58 @@ import { LitElement, html, nothing } from "lit";
 import "./cts-link-button.js";
 import "./cts-alert.js";
 
+// Brand-mark SVGs for the social-login buttons. These are NOT part of the
+// coolicons set — coolicons does not ship brand glyphs. Inlining the marks
+// here keeps the brand assets colocated with their only consumer (per the
+// 2026-04-25 brand-icon carve-out decision in plan 2026-04-25-004 U6) and
+// avoids a parallel "brand registry" component to maintain.
+//
+// Google: official multicolour G mark from Google Identity Branding
+// Guidelines (https://developers.google.com/identity/branding-guidelines).
+// Multicolour fills are baked in — the mark must NOT inherit currentColor,
+// per Google's brand requirements.
+const GOOGLE_BRAND_SVG = html`<svg
+  class="oidf-login-brand-mark"
+  xmlns="http://www.w3.org/2000/svg"
+  viewBox="0 0 24 24"
+  data-brand="google"
+  aria-hidden="true"
+>
+  <path
+    fill="#4285F4"
+    d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+  ></path>
+  <path
+    fill="#34A853"
+    d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+  ></path>
+  <path
+    fill="#FBBC05"
+    d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
+  ></path>
+  <path
+    fill="#EA4335"
+    d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+  ></path>
+</svg>`;
+
+// GitLab: tanuki silhouette from GitLab Press Kit
+// (https://about.gitlab.com/press/press-kit/). currentColor lets the mark
+// follow the button text colour through hover/focus states, matching the
+// rest of the design system.
+const GITLAB_BRAND_SVG = html`<svg
+  class="oidf-login-brand-mark"
+  xmlns="http://www.w3.org/2000/svg"
+  viewBox="0 0 24 24"
+  data-brand="gitlab"
+  fill="currentColor"
+  aria-hidden="true"
+>
+  <path
+    d="m23.6004 9.5927-.0337-.0862L20.3.9814a.851.851 0 0 0-.3362-.405.875.875 0 0 0-.9997.0539.875.875 0 0 0-.29.4399l-2.2055 6.748H7.5375l-2.2057-6.748a.8573.8573 0 0 0-.29-.4412.8748.8748 0 0 0-.9997-.0537.8585.8585 0 0 0-.3362.4049L.4332 9.5015l-.0335.0875a6.0959 6.0959 0 0 0 2.0218 7.0432l.0113.0083.03.0224 5.0008 3.7462 2.4744 1.8732 1.5071 1.1389a1.0098 1.0098 0 0 0 1.2197 0l1.5071-1.1389 2.4744-1.8732 5.0307-3.7686.0125-.0098a6.0959 6.0959 0 0 0 2.021-7.042z"
+  ></path>
+</svg>`;
+
 const STYLE_ID = "cts-login-page-styles";
 
 // Scoped styles for the login page. Two-pane layout at >=860px (warm-ink
@@ -164,23 +216,30 @@ const STYLE_TEXT = `
   flex-direction: column;
   gap: var(--space-3);
 }
+/* Brand-button anchors render as plain <a> rather than cts-link-button
+   (so the inline brand SVG can replace the icon slot). They still need
+   the design-system full-width treatment that [full-width] gives to
+   cts-link-button, plus an inline-flex layout so the brand mark and
+   label centre on the button. */
+.oidf-login-providers > a.oidf-btn {
+  width: 100%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+}
 
-/* Bootstrap Icons ships bi-google but not bi-gitlab. Render the GitLab
-   tanuki mark via a CSS mask so it inherits currentColor and sizes off
-   the surrounding font-size, matching the bi-google glyph beside it.
-   Path is the SimpleIcons 24×24 tanuki silhouette — fits its declared
-   viewBox so the body isn't clipped. */
-.oidf-login-page .bi-gitlab {
+/* Brand-mark SVGs sit inside the social-login anchors. They share the
+   button's text-color via currentColor for the GitLab tanuki silhouette,
+   while the Google G keeps its official multicolor palette. Sized to
+   1em so they track the surrounding label font-size, matching the
+   button height the design system gives them. */
+.oidf-login-page .oidf-login-brand-mark {
   display: inline-block;
   width: 1em;
   height: 1em;
-  background-color: currentColor;
-  -webkit-mask: url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='m23.6004 9.5927-.0337-.0862L20.3.9814a.851.851 0 0 0-.3362-.405.875.875 0 0 0-.9997.0539.875.875 0 0 0-.29.4399l-2.2055 6.748H7.5375l-2.2057-6.748a.8573.8573 0 0 0-.29-.4412.8748.8748 0 0 0-.9997-.0537.8585.8585 0 0 0-.3362.4049L.4332 9.5015l-.0335.0875a6.0959 6.0959 0 0 0 2.0218 7.0432l.0113.0083.03.0224 5.0008 3.7462 2.4744 1.8732 1.5071 1.1389a1.0098 1.0098 0 0 0 1.2197 0l1.5071-1.1389 2.4744-1.8732 5.0307-3.7686.0125-.0098a6.0959 6.0959 0 0 0 2.021-7.042z'/%3E%3C/svg%3E") no-repeat center / contain;
-  mask: url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='m23.6004 9.5927-.0337-.0862L20.3.9814a.851.851 0 0 0-.3362-.405.875.875 0 0 0-.9997.0539.875.875 0 0 0-.29.4399l-2.2055 6.748H7.5375l-2.2057-6.748a.8573.8573 0 0 0-.29-.4412.8748.8748 0 0 0-.9997-.0537.8585.8585 0 0 0-.3362.4049L.4332 9.5015l-.0335.0875a6.0959 6.0959 0 0 0 2.0218 7.0432l.0113.0083.03.0224 5.0008 3.7462 2.4744 1.8732 1.5071 1.1389a1.0098 1.0098 0 0 0 1.2197 0l1.5071-1.1389 2.4744-1.8732 5.0307-3.7686.0125-.0098a6.0959 6.0959 0 0 0 2.021-7.042z'/%3E%3C/svg%3E") no-repeat center / contain;
   vertical-align: -0.125em;
-}
-.oidf-login-page .bi-gitlab::before {
-  content: "";
+  flex-shrink: 0;
 }
 
 /* Labelled divider between primary and secondary actions */
@@ -406,22 +465,18 @@ class CtsLoginPage extends LitElement {
             </header>
             ${this._renderError()}${this._renderLogout()}
             <div class="oidf-login-providers">
-              <cts-link-button
-                variant="secondary"
-                size="lg"
-                icon="google"
+              <a
+                class="oidf-btn oidf-btn-secondary oidf-btn-lg"
                 href="/oauth2/authorization/google"
-                label="Proceed with Google"
-                full-width
-              ></cts-link-button>
-              <cts-link-button
-                variant="secondary"
-                size="lg"
-                icon="gitlab"
+                role="button"
+                >${GOOGLE_BRAND_SVG} Proceed with Google</a
+              >
+              <a
+                class="oidf-btn oidf-btn-secondary oidf-btn-lg"
                 href="/oauth2/authorization/gitlab"
-                label="Proceed with GitLab"
-                full-width
-              ></cts-link-button>
+                role="button"
+                >${GITLAB_BRAND_SVG} Proceed with GitLab</a
+              >
             </div>
             <div class="oidf-login-divider" role="separator">
               <span>Or browse without signing in</span>

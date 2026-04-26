@@ -1,4 +1,5 @@
 import { LitElement, html, nothing } from "lit";
+import "./cts-icon.js";
 
 /**
  * Maps variant name → OIDF token-styled modifier class.
@@ -282,12 +283,6 @@ class CtsButton extends LitElement {
     this.dispatchEvent(new CustomEvent("cts-click", { bubbles: true, composed: true }));
   }
 
-  // Icon names come from the Bootstrap Icons set (2000+ icons).
-  // Constructed from the icon prop, not a finite variant set.
-  _iconClass() {
-    return `bi bi-${this.icon}`;
-  }
-
   _renderIcon() {
     if (this.loading) {
       // Inline SVG ring spinner — replaces Bootstrap's spinner-border markup.
@@ -317,7 +312,7 @@ class CtsButton extends LitElement {
       </svg>`;
     }
     if (this.icon) {
-      return html`<span class="${this._iconClass()}" aria-hidden="true"></span>`;
+      return html`<cts-icon name="${this.icon}" aria-hidden="true"></cts-icon>`;
     }
     return nothing;
   }
