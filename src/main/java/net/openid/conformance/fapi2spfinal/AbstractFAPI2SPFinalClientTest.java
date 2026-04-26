@@ -2,6 +2,7 @@ package net.openid.conformance.fapi2spfinal;
 
 import com.google.common.base.Strings;
 import com.google.gson.JsonObject;
+import com.nimbusds.jwt.SignedJWT;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
@@ -161,6 +162,8 @@ import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.servlet.view.RedirectView;
+
+import java.text.ParseException;
 
 @VariantParameters({
 	ClientAuthType.class,
@@ -447,6 +450,13 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 		validateClientJwks(false);
 		validateClientConfiguration();
 
+		eventLog.endBlock();
+
+		// Also load client2 config if present, for tests that exercise a second client
+		// (e.g. fapi2-security-profile-final-ensure-authorization-code-is-bound-to-client).
+		if (env.getElementFromObject("config", "client2.client_id") != null) {
+			configureSecondClient();
+		}
 	}
 
 	// This is currently unused as FAPI2 doesn't have the encrypted id token tests that
@@ -481,6 +491,43 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 		env.unmapKey("client");
 		env.unmapKey("client_jwks");
 		env.unmapKey("client_public_jwks");
+	}
+
+	/**
+	 * If client2 is configured, inspect the incoming request and switch to the matching
+	 * client config for downstream condition checks (client_id matching, attestation
+	 * subject validation, etc.). Always resets to client1 first to handle repeated calls.
+	 */
+	protected void switchToMatchingClientForRequest(String requestObjectKey) {
+		unmapClient();
+
+		JsonObject client2 = env.getObject("client2");
+		if (client2 == null) {
+			return;
+		}
+
+		String requestClientId = env.getString(requestObjectKey, "body_form_params.client_id");
+
+		// For client_attestation, the client_id is in the attestation PoP JWT's "iss" claim
+		if (requestClientId == null && clientAuthType == ClientAuthType.CLIENT_ATTESTATION) {
+			String popHeader = env.getString(requestObjectKey, "headers.oauth-client-attestation-pop");
+			if (popHeader != null) {
+				try {
+					SignedJWT popJwt = SignedJWT.parse(popHeader);
+					requestClientId = popJwt.getJWTClaimsSet().getIssuer();
+				} catch (ParseException e) {
+					// Can't parse — leave as null, client auth will fail downstream
+				}
+			}
+		}
+
+		if (requestClientId == null) {
+			return;
+		}
+		String client2Id = OIDFJSON.getString(client2.get("client_id"));
+		if (requestClientId.equals(client2Id)) {
+			switchToSecondClient();
+		}
 	}
 
 	protected void validateClientJwks(boolean isSecondClient)
@@ -777,6 +824,8 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 	protected void authenticateParEndpointRequest(String requestId) {
 		call(exec().mapKey("token_endpoint_request", requestId));
 
+		switchToMatchingClientForRequest(requestId);
+
 		if(clientAuthType == ClientAuthType.MTLS || profileRequiresMtlsEverywhere) {
 			// there is generally no requirement to present an MTLS certificate at the PAR endpoint when using private_key_jwt.
 			// (This differs to the token endpoint, where an MTLS certificate must always be presented, as one is
@@ -913,6 +962,8 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 		if (mapIncomingRequest) {
 			call(exec().mapKey("incoming_request", requestId));
 		}
+
+		switchToMatchingClientForRequest(requestId);
 
 		callAndStopOnFailure(CheckClientIdMatchesOnTokenRequestIfPresent.class, ConditionResult.FAILURE, "RFC6749-3.2.1");
 

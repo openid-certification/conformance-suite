@@ -6,7 +6,6 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.nimbusds.jose.jwk.JWK;
-import com.nimbusds.jwt.SignedJWT;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
@@ -738,42 +737,6 @@ public abstract class AbstractVCIWalletTest extends net.openid.conformance.fapi2
 		//switch back to the first client
 		unmapClient();
 		eventLog.endBlock();
-	}
-
-	/**
-	 * If client2 is configured, inspect the authenticated request and switch to the matching
-	 * client config. Always resets to client1 first to handle repeated calls.
-	 */
-	protected void switchToMatchingClientForRequest(String requestObjectKey) {
-		unmapClient();
-
-		JsonObject client2 = env.getObject("client2");
-		if (client2 == null) {
-			return;
-		}
-
-		String requestClientId = env.getString(requestObjectKey, "body_form_params.client_id");
-
-		// For client_attestation, client_id is in the attestation PoP JWT's "iss" claim
-		if (requestClientId == null && clientAuthType == ClientAuthType.CLIENT_ATTESTATION) {
-			String popHeader = env.getString(requestObjectKey, "headers.oauth-client-attestation-pop");
-			if (popHeader != null) {
-				try {
-					SignedJWT popJwt = SignedJWT.parse(popHeader);
-					requestClientId = popJwt.getJWTClaimsSet().getIssuer();
-				} catch (ParseException e) {
-					// Can't parse — leave as null, client auth will fail later
-				}
-			}
-		}
-
-		if (requestClientId == null) {
-			return;
-		}
-		String client2Id = OIDFJSON.getString(client2.get("client_id"));
-		if (requestClientId.equals(client2Id)) {
-			switchToSecondClient();
-		}
 	}
 
 	@Override
