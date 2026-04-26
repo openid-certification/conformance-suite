@@ -14,9 +14,6 @@ import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.condition.ConditionError;
-import net.openid.conformance.condition.as.AddACRClaimToIdTokenClaims;
-import net.openid.conformance.condition.as.AddAtHashToIdTokenClaims;
-import net.openid.conformance.condition.as.AddCHashToIdTokenClaims;
 import net.openid.conformance.condition.as.AddCodeChallengeMethodToServerConfiguration;
 import net.openid.conformance.condition.as.AddCodeToAuthorizationEndpointResponseParams;
 import net.openid.conformance.condition.as.AddDpopSigningAlgValuesSupportedToServerConfiguration;
@@ -24,13 +21,10 @@ import net.openid.conformance.condition.as.AddIdTokenSigningAlgsToServerConfigur
 import net.openid.conformance.condition.as.AddIssSupportedToServerConfiguration;
 import net.openid.conformance.condition.as.AddIssToAuthorizationEndpointResponseParams;
 import net.openid.conformance.condition.as.AddResponseTypeCodeToServerConfiguration;
-import net.openid.conformance.condition.as.AddSHashToIdTokenClaims;
 import net.openid.conformance.condition.as.AddSupportedAuthorizationTypesToServerConfiguration;
 import net.openid.conformance.condition.as.AddTLSClientAuthToServerConfiguration;
 import net.openid.conformance.condition.as.AddTlsCertificateBoundAccessTokensTrueSupportedToServerConfiguration;
 import net.openid.conformance.condition.as.CalculateAtHash;
-import net.openid.conformance.condition.as.CalculateCHash;
-import net.openid.conformance.condition.as.CalculateSHash;
 import net.openid.conformance.condition.as.CheckClientIdMatchesOnTokenRequestIfPresent;
 import net.openid.conformance.condition.as.CheckForClientCertificate;
 import net.openid.conformance.condition.as.CheckForInvalidCharsInNonce;
@@ -78,7 +72,6 @@ import net.openid.conformance.condition.as.GenerateBearerAccessToken;
 import net.openid.conformance.condition.as.GenerateCredentialNonce;
 import net.openid.conformance.condition.as.GenerateCredentialNonceResponse;
 import net.openid.conformance.condition.as.GenerateDpopAccessToken;
-import net.openid.conformance.condition.as.GenerateIdTokenClaims;
 import net.openid.conformance.condition.as.GenerateServerConfigurationMTLS;
 import net.openid.conformance.condition.as.LoadServerJWKs;
 import net.openid.conformance.condition.as.SendAuthorizationResponseWithResponseModeQuery;
@@ -311,9 +304,6 @@ public abstract class AbstractVCIWalletTest extends net.openid.conformance.fapi2
 	private Class<? extends Condition> addTokenEndpointAuthMethodSupported;
 	private Class<? extends ConditionSequence> validateClientAuthenticationSteps;
 	private Class<? extends ConditionSequence> configureResponseModeSteps;
-	private Class<? extends ConditionSequence> authorizationCodeGrantTypeProfileSteps;
-	private Class<? extends ConditionSequence> authorizationEndpointProfileSteps;
-	private Class<? extends ConditionSequence> accountsEndpointProfileSteps;
 	private Class<? extends Condition> generateSenderConstrainedAccessToken;
 	private Class<? extends ConditionSequence> validateSenderConstrainedTokenSteps;  // for bearer tokens
 	private Class<? extends ConditionSequence> validateSenderConstrainedClientCredentialAccessTokenSteps;  // client credential access tokens
@@ -2449,43 +2439,6 @@ public abstract class AbstractVCIWalletTest extends net.openid.conformance.fapi2
 	}
 
 	@Override
-	protected void prepareIdTokenClaims(boolean isAuthorizationEndpoint) {
-
-		//3.3.3.6 The at_hash and c_hash Claims MAY be omitted from the ID Token returned from the Token Endpoint even when these Claims are present in the ID Token returned from the Authorization Endpoint,
-		//TODO skip or add?
-		if (isAuthorizationEndpoint) {
-			callAndStopOnFailure(CalculateCHash.class, "OIDCC-3.3.2.11");
-			// FIXME = No obvkous FAPI2 equivalent. PKCE replaces s_hash
-			skipIfElementMissing(CreateEffectiveAuthorizationRequestParameters.ENV_KEY, CreateEffectiveAuthorizationRequestParameters.STATE,
-				ConditionResult.INFO, CalculateSHash.class, ConditionResult.FAILURE);
-		}
-
-		callAndStopOnFailure(GenerateIdTokenClaims.class);
-
-		if (!isAuthorizationEndpoint && authorizationCodeGrantTypeProfileSteps != null) {
-			call(sequence(authorizationCodeGrantTypeProfileSteps));
-		}
-
-		if (isAuthorizationEndpoint && authorizationEndpointProfileSteps != null) {
-			call(sequence(authorizationEndpointProfileSteps));
-		}
-
-		//TODO skip or add?
-		if (isAuthorizationEndpoint) {
-			callAndStopOnFailure(AddCHashToIdTokenClaims.class, "OIDCC-3.3.2.11");
-			skipIfMissing(null, new String[]{"s_hash"}, ConditionResult.INFO,
-				AddSHashToIdTokenClaims.class, ConditionResult.FAILURE);
-		}
-		skipIfMissing(null, new String[]{"at_hash"}, ConditionResult.INFO,
-			AddAtHashToIdTokenClaims.class, ConditionResult.FAILURE, "OIDCC-3.3.2.11");
-
-		addCustomValuesToIdToken();
-
-		skipIfMissing(null, new String[]{"requested_id_token_acr_values"}, ConditionResult.INFO,
-			AddACRClaimToIdTokenClaims.class, ConditionResult.FAILURE, "OIDCC-3.1.3.7-12");
-	}
-
-	@Override
 	protected void createAuthorizationEndpointResponse() {
 		callAndStopOnFailure(CreateAuthorizationEndpointResponseParams.class);
 
@@ -2551,10 +2504,6 @@ public abstract class AbstractVCIWalletTest extends net.openid.conformance.fapi2
 
 		callAndStopOnFailure(CreateFAPIAccountEndpointResponse.class);
 
-		if (accountsEndpointProfileSteps != null) {
-			call(sequence(accountsEndpointProfileSteps));
-		}
-
 		callAndStopOnFailure(ClearAccessTokenFromRequest.class);
 
 		call(exec().unmapKey("incoming_request").endBlock());
@@ -2597,13 +2546,6 @@ public abstract class AbstractVCIWalletTest extends net.openid.conformance.fapi2
 	public void setupClientAttestation() {
 		addTokenEndpointAuthMethodSupported = SetTokenEndpointAuthMethodsSupportedToAttestJwtClientAuthOnly.class;
 		validateClientAuthenticationSteps = VCIValidateClientAuthenticationWithClientAttestationJWT.class;
-	}
-
-	@Override
-	public void setupPlainFapi() {
-		authorizationCodeGrantTypeProfileSteps = null;
-		authorizationEndpointProfileSteps = null;
-		accountsEndpointProfileSteps = null;
 	}
 
 	@Override
