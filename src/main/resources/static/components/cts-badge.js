@@ -1,3 +1,5 @@
+import "./cts-icon.js";
+
 /**
  * Canonical design-system status variants. These map to the
  * `--status-*` token group in `oidf-tokens.css` via the scoped CSS in
@@ -325,8 +327,8 @@ class CtsBadge extends HTMLElement {
         span.appendChild(document.createTextNode(" "));
       }
     } else if (icon) {
-      const iconEl = document.createElement("i");
-      iconEl.className = `bi bi-${icon}`;
+      const iconEl = document.createElement("cts-icon");
+      iconEl.setAttribute("name", icon);
       iconEl.setAttribute("aria-hidden", "true");
       span.appendChild(iconEl);
       if (hasCount || hasLabel || useSlot) {

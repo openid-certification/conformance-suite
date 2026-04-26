@@ -443,7 +443,7 @@
 
     <cts-modal id="configModal" heading="Configuration">
         <div>
-            <cts-button class="btn-clipboard" icon="box-arrow-in-right" data-clipboard-target="#config" title="Copy config to clipboard"></cts-button>
+            <cts-button class="btn-clipboard" icon="log-out" data-clipboard-target="#config" title="Copy config to clipboard"></cts-button>
             Configuration for <code id="configTestId" style="color: var(--fg-muted);"></code>
         </div>
         <div class="wrapLongStrings">
@@ -467,7 +467,7 @@
         <div id="logDetail">
             <div class="header"></div>
             <div id="fixedDiv">
-                <cts-button id="goToTopBtn" icon="arrow-up-circle" label="Go to Top" onclick="goToTop()"></cts-button>
+                <cts-button id="goToTopBtn" icon="arrow-circle-up" label="Go to Top" onclick="goToTop()"></cts-button>
             </div>
             <div class="logContent">
                 <!-- log items are rendered here -->
@@ -571,18 +571,17 @@
 
                             // wire up the button
                             el.querySelector('.moreBtn').onclick = function(evt) {
+                                const chevron = this.querySelector('cts-icon');
                                 if (this.dataset.activated === "true") {
                                     // it's already been activated, need to hide things
                                     el.querySelector('.moreInfo').classList.remove('show'); // hide the content
-                                    this.querySelector('.bi').classList.remove('bi-chevron-up');
-                                    this.querySelector('.bi').classList.add('bi-chevron-down');
+                                    if (chevron) chevron.setAttribute('name', 'chevron-down');
                                     this.dataset.activated = "false";
 
                                 } else {
                                     // need to show the collapsed entity
                                     el.querySelector('.moreInfo').classList.add('show'); // show the content
-                                    this.querySelector('.bi').classList.remove('bi-chevron-down');
-                                    this.querySelector('.bi').classList.add('bi-chevron-up');
+                                    if (chevron) chevron.setAttribute('name', 'chevron-up');
                                     this.dataset.activated = "true";
                                 }
                             };

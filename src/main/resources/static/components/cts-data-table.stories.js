@@ -37,7 +37,7 @@ function applyServerContract(rows, url) {
   const draw = Number(url.searchParams.get("draw") || "1");
   const start = Number(url.searchParams.get("start") || "0");
   const length = Number(url.searchParams.get("length") || "10");
-  const search = (url.searchParams.get("search") || "").toLowerCase();
+  const search = (url.searchParams.get("search-magnifying-glass") || "").toLowerCase();
   const order = url.searchParams.get("order") || "";
 
   let filtered = rows;

@@ -562,7 +562,7 @@ export const FooterButtonsWithIcon = {
       <cts-modal
         heading="Copy Result"
         footer-buttons='[
-          {"label": "Copy to clipboard", "class": "btn-primary", "icon": "box-arrow-in-right", "dismiss": false},
+          {"label": "Copy to clipboard", "class": "btn-primary", "icon": "log-out", "dismiss": false},
           {"label": "Close"}
         ]'
       >
@@ -584,7 +584,7 @@ export const FooterButtonsWithIcon = {
 
     const icon = copyBtn.querySelector("span.bi");
     expect(icon).toBeTruthy();
-    expect(icon.classList.contains("bi-box-arrow-in-right")).toBe(true);
+    expect(icon.classList.contains("log-out")).toBe(true);
     expect(icon.getAttribute("aria-hidden")).toBe("true");
   },
 };

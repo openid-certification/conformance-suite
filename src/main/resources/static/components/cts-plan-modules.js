@@ -312,11 +312,8 @@ class CtsPlanModules extends LitElement {
         <span class="num">${this._rowNumber(index + 1)}</span>
         <div class="name">
           ${mod.testModule}${mod.testSummary
-            ? html`<span
-                class="bi bi-question-circle-fill help-icon"
-                title="${mod.testSummary}"
-                aria-hidden="true"
-              ></span>`
+            ? html`<cts-icon name="circle-help" class="help-icon" title="${mod.testSummary}"
+                aria-hidden="true"></cts-icon>`
             : nothing}
           <div class="desc">
             <span class="mono">${variantStr}</span>
@@ -333,7 +330,7 @@ class CtsPlanModules extends LitElement {
                 data-module-key="${_moduleKey(mod)}"
                 variant="primary"
                 size="sm"
-                icon="play-fill"
+                icon="play"
                 label="Run Test"
                 @cts-click=${this._handleRunTest}
               ></cts-button>`
@@ -344,7 +341,7 @@ class CtsPlanModules extends LitElement {
                   href="${logHref}"
                   variant="secondary"
                   size="sm"
-                  icon="file-earmark"
+                  icon="file-blank"
                   label="View Logs"
                 ></cts-link-button>
                 <cts-button
@@ -352,7 +349,7 @@ class CtsPlanModules extends LitElement {
                   data-instance-id="${lastInstance}"
                   variant="ghost"
                   size="sm"
-                  icon="save2"
+                  icon="save"
                   label="Download Logs"
                   @cts-click=${this._handleDownloadLog}
                 ></cts-button>`

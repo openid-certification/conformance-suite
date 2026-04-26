@@ -371,7 +371,7 @@ class CtsPlanList extends LitElement {
             class="showConfigBtn"
             variant="ghost"
             size="sm"
-            icon="gear"
+            icon="settings"
             title="View configuration"
             data-plan-id="${plan._id}"
             @cts-click=${this._handleConfigButtonClick}
@@ -391,7 +391,7 @@ class CtsPlanList extends LitElement {
             class="copy-config-btn"
             variant="secondary"
             size="sm"
-            icon="clipboard"
+            icon="copy"
             label="Copy"
             title="Copy config to clipboard"
             @cts-click=${this._handleCopyConfig}
@@ -425,7 +425,7 @@ class CtsPlanList extends LitElement {
 
     return html`
       <div class="planSearch">
-        <span class="bi bi-search" aria-hidden="true"></span>
+        <cts-icon name="search-magnifying-glass" aria-hidden="true"></cts-icon>
         <input
           type="text"
           placeholder="Search test plans..."

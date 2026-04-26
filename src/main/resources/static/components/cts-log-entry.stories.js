@@ -243,7 +243,7 @@ export const CopyAsCurl = {
   async play({ canvasElement }) {
     const mockWriteText = fn().mockResolvedValue(undefined);
     const originalClipboard = navigator.clipboard;
-    Object.defineProperty(navigator, "clipboard", {
+    Object.defineProperty(navigator, "copy", {
       value: { writeText: mockWriteText },
       writable: true,
       configurable: true,
@@ -263,7 +263,7 @@ export const CopyAsCurl = {
     expect(curlCmd).toContain("op.example.com");
 
     // Restore
-    Object.defineProperty(navigator, "clipboard", {
+    Object.defineProperty(navigator, "copy", {
       value: originalClipboard,
       writable: true,
       configurable: true,

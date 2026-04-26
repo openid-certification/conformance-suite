@@ -1,5 +1,6 @@
 import { LitElement, html, nothing } from "lit";
 import { repeat } from "lit/directives/repeat.js";
+import "./cts-icon.js";
 
 const SERVER_INFO_LABELS = {
   external_ip: "External IP",
@@ -27,34 +28,34 @@ const TILES = [
   {
     key: "schedule",
     href: "schedule-test.html",
-    icon: "file-earmark-plus",
+    icon: "file-add",
     label: "Create a new test plan",
     authOnly: true,
   },
   {
     key: "my-logs",
     href: "logs.html",
-    icon: "journal-text",
+    icon: "book",
     label: "View my test logs",
     authOnly: true,
   },
   {
     key: "my-plans",
     href: "plans.html",
-    icon: "bookmark-star",
+    icon: "bookmark",
     label: "View my test plans",
     authOnly: true,
   },
   {
     key: "public-logs",
     href: "logs.html?public=true",
-    icon: "journal",
+    icon: "book",
     label: "View all published test logs",
   },
   {
     key: "public-plans",
     href: "plans.html?public=true",
-    icon: "bookmarks",
+    icon: "bookmark",
     label: "View all published test plans",
   },
   {
@@ -239,7 +240,7 @@ class CtsDashboard extends LitElement {
     return html`
       <a class="oidf-dashboard-tile" href=${tile.href}>
         <span class="oidf-dashboard-tile-icon" aria-hidden="true">
-          <span class="bi bi-${tile.icon}"></span>
+          <cts-icon name="${tile.icon}"></cts-icon>
         </span>
         <span class="oidf-dashboard-tile-label">${tile.label}</span>
       </a>

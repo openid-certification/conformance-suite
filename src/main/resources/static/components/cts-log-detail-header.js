@@ -1,4 +1,5 @@
 import { LitElement, html, nothing } from "lit";
+import "./cts-icon.js";
 import "./cts-badge.js";
 import "./cts-button.js";
 import "./cts-link-button.js";
@@ -569,7 +570,7 @@ class CtsLogDetailHeader extends LitElement {
           @keydown=${this._handleFailureSummaryKeydown}
         >
           Failure summary:
-          <span class="bi ${this._failuresExpanded ? "bi-chevron-up" : "bi-chevron-down"}"></span>
+          <cts-icon name="${this._failuresExpanded ? "chevron-up" : "chevron-down"}"></cts-icon>
         </div>
         ${this._failuresExpanded
           ? html`<div class="failureList" data-testid="failure-list"
@@ -627,7 +628,7 @@ class CtsLogDetailHeader extends LitElement {
               <cts-button
                 variant="${uploadCount ? "primary" : "secondary"}"
                 size="sm"
-                icon="file-image"
+                icon="image-01"
                 label="${uploadCount ? `Upload Images (${uploadCount})` : "Upload Images"}"
                 data-testid="upload-images-btn"
                 @cts-click=${this._handleUploadImages}
@@ -637,7 +638,7 @@ class CtsLogDetailHeader extends LitElement {
         <cts-button
           variant="secondary"
           size="sm"
-          icon="wrench-adjustable"
+          icon="settings"
           label="View Config"
           data-testid="view-config-btn"
           @cts-click=${this._toggleConfig}
@@ -646,7 +647,7 @@ class CtsLogDetailHeader extends LitElement {
           ? html`<cts-button
               variant="secondary"
               size="sm"
-              icon="save2"
+              icon="save"
               label="Download Logs"
               data-testid="download-log-btn"
               @cts-click=${this._handleDownloadLog}
@@ -656,7 +657,7 @@ class CtsLogDetailHeader extends LitElement {
           ? html`<cts-link-button
               variant="secondary"
               size="sm"
-              icon="bookmarks"
+              icon="bookmark"
               label="Return to Plan"
               href="plan-detail.html?plan=${encodeURIComponent(test.planId)}"
               data-testid="return-to-plan-link"
@@ -666,7 +667,7 @@ class CtsLogDetailHeader extends LitElement {
           ? html`<cts-button
               variant="secondary"
               size="sm"
-              icon="${test.publish ? "slash-circle" : "bookmarks"}"
+              icon="${test.publish ? "close-circle" : "bookmark"}"
               label="${test.publish ? "Unpublish" : "Publish"}"
               data-testid="publish-btn"
               @cts-click=${this._handlePublish}
@@ -734,7 +735,7 @@ class CtsLogDetailHeader extends LitElement {
               <cts-button
                 variant="primary"
                 size="sm"
-                icon="play-fill"
+                icon="play"
                 label="Start"
                 data-testid="start-btn"
                 @cts-click=${this._handleStartTest}
@@ -742,7 +743,7 @@ class CtsLogDetailHeader extends LitElement {
               <cts-button
                 variant="secondary"
                 size="sm"
-                icon="stop-fill"
+                icon="stop"
                 label="Stop"
                 data-testid="stop-btn"
                 @cts-click=${this._handleStopTest}

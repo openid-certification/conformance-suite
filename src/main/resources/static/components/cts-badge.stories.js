@@ -125,7 +125,7 @@ export const Review = {
  * never render both).
  */
 export const RunningIgnoresIconAttribute = {
-  args: { variant: "running", label: "Running", icon: "arrow-clockwise" },
+  args: { variant: "running", label: "Running", icon: "arrows-reload-01" },
   render: ({ variant, label, icon }) =>
     html`<cts-badge variant="${variant}" label="${label}" icon="${icon}"></cts-badge>`,
 
@@ -137,7 +137,7 @@ export const RunningIgnoresIconAttribute = {
     // Spinner present.
     expect(badge.querySelector(".cts-badge-spin")).toBeTruthy();
 
-    // No `bi bi-arrow-clockwise` icon, even though icon="arrow-clockwise"
+    // No `bi bi-arrow-clockwise` icon, even though icon="arrows-reload-01"
     // was passed.
     expect(badge.querySelector("i.bi-arrow-clockwise")).toBeFalsy();
     expect(badge.querySelector("i.bi")).toBeFalsy();
@@ -180,7 +180,7 @@ export const WithIcon = {
   args: {
     variant: "info-subtle",
     label: "This section relates to the entity under test",
-    icon: "info-circle-fill",
+    icon: "info",
     pill: true,
   },
   render: ({ variant, label, icon, pill }) =>
@@ -198,7 +198,7 @@ export const WithIcon = {
 
     const iconEl = badge.querySelector("i.bi");
     expect(iconEl).toBeTruthy();
-    expect(iconEl.classList.contains("bi-info-circle-fill")).toBe(true);
+    expect(iconEl.classList.contains("info")).toBe(true);
     expect(iconEl.getAttribute("aria-hidden")).toBe("true");
 
     expect(badge.textContent.trim()).toContain("This section relates to the entity under test");
@@ -289,7 +289,7 @@ export const AllStatusVariants = {
  */
 export const WithRichContent = {
   render: () => html`
-    <cts-badge variant="info-subtle" pill icon="info-circle-fill">
+    <cts-badge variant="info-subtle" pill icon="info">
       This section relates to the entity under test, i.e. <em>your</em>
       federation entity. See also the
       <a href="https://openid.net/certification/federation_testing">detailed instructions</a>.
@@ -304,7 +304,7 @@ export const WithRichContent = {
     // Icon still renders before the slotted content
     const iconEl = badge.querySelector("i.bi");
     expect(iconEl).toBeTruthy();
-    expect(iconEl.classList.contains("bi-info-circle-fill")).toBe(true);
+    expect(iconEl.classList.contains("info")).toBe(true);
 
     // The <em> emphasis and <a> link survive the migration
     expect(badge.querySelector("em")).toBeTruthy();
@@ -351,7 +351,7 @@ export const MultiLineWraps = {
  */
 export const RichContentRerenderStability = {
   render: () => html`
-    <cts-badge variant="info-subtle" icon="info-circle-fill">
+    <cts-badge variant="info-subtle" icon="info">
       See the <a href="/docs">documentation</a> for <em>details</em>.
     </cts-badge>
   `,
@@ -369,14 +369,14 @@ export const RichContentRerenderStability = {
 
     // Mutate each observed attribute in turn.
     host.setAttribute("variant", "fail");
-    host.setAttribute("icon", "exclamation-triangle-fill");
+    host.setAttribute("icon", "triangle-warning");
 
     // Wrapper reflects new state.
     const badge = host.querySelector(".badge");
     expect(badge).toBeTruthy();
     expect(badge.classList.contains("b-fail")).toBe(true);
     const icon = badge.querySelector("i.bi");
-    expect(icon.classList.contains("bi-exclamation-triangle-fill")).toBe(true);
+    expect(icon.classList.contains("triangle-warning")).toBe(true);
 
     // Same <a> and <em> nodes still present — they moved, they weren't recreated.
     const rerenderedLink = host.querySelector("a");

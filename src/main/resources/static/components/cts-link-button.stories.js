@@ -50,7 +50,7 @@ export const Default = {
 };
 
 export const WithIcon = {
-  args: { variant: "primary", icon: "file-earmark", label: "View Log" },
+  args: { variant: "primary", icon: "file-blank", label: "View Log" },
   render: ({ variant, label, icon, disabled }) =>
     html`<cts-link-button
       variant="${variant}"
@@ -67,7 +67,7 @@ export const WithIcon = {
 
     const iconEl = anchor.querySelector("span.bi");
     expect(iconEl).toBeTruthy();
-    expect(iconEl.classList.contains("bi-file-earmark")).toBe(true);
+    expect(iconEl.classList.contains("file-blank")).toBe(true);
     expect(iconEl.getAttribute("aria-hidden")).toBe("true");
   },
 };
@@ -152,10 +152,10 @@ export const AllVariants = {
         href="logs.html"
         variant="primary"
         label="Primary"
-        icon="file-earmark"
+        icon="file-blank"
       ></cts-link-button>
       <cts-link-button href="logs.html" variant="ghost" label="Ghost"></cts-link-button>
-      <cts-link-button href="#" variant="danger" label="Danger" icon="trash"></cts-link-button>
+      <cts-link-button href="#" variant="danger" label="Danger" icon="trash-empty"></cts-link-button>
     </div>
   `,
 };

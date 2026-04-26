@@ -1,5 +1,6 @@
 import { LitElement, html, nothing } from "lit";
 import { repeat } from "lit/directives/repeat.js";
+import "./cts-icon.js";
 import "./cts-empty-state.js";
 import "./cts-button.js";
 import "./cts-badge.js";
@@ -614,7 +615,7 @@ class CtsDataTable extends LitElement {
     url.searchParams.set("draw", String(draw));
     url.searchParams.set("start", String(this._currentPage * this.pageSize));
     url.searchParams.set("length", String(this.pageSize));
-    url.searchParams.set("search", this._search || "");
+    url.searchParams.set("search-magnifying-glass", this._search || "");
 
     if (this._sortColumn) {
       const dir = this._sortDir === "desc" ? "desc" : "asc";
@@ -922,9 +923,9 @@ class CtsDataTable extends LitElement {
     const isActive = this._sortColumn === column.key;
     const arrowIcon = isActive
       ? this._sortDir === "desc"
-        ? "caret-down-fill"
-        : "caret-up-fill"
-      : "chevron-expand";
+        ? "caret-down-md"
+        : "caret-up-md"
+      : "arrow-down-up";
     const headerClasses = column.sortable ? "is-sortable" : "";
     return html`
       <th
@@ -935,7 +936,7 @@ class CtsDataTable extends LitElement {
         ${column.label || ""}
         ${column.sortable
           ? html`<span class="oidf-dt-sort-arrow ${isActive ? "is-active" : ""}"
-              ><i class="bi bi-${arrowIcon}" aria-hidden="true"></i
+              ><cts-icon name="${arrowIcon}" aria-hidden="true"></cts-icon
             ></span>`
           : nothing}
       </th>
@@ -975,9 +976,7 @@ class CtsDataTable extends LitElement {
       <div class="oidf-dt-search">
         <div class="oidf-dt-search-row">
           <div class="oidf-dt-search-input-wrap">
-            <span class="oidf-dt-search-leading" aria-hidden="true">
-              <i class="bi bi-search"></i>
-            </span>
+            <cts-icon name="search-magnifying-glass" class="oidf-dt-search-leading" aria-hidden="true"></cts-icon>
             <input
               type="search"
               class="oidf-dt-search-input"
@@ -997,7 +996,7 @@ class CtsDataTable extends LitElement {
                   title="Clear search"
                   @click=${this._onSearchClear}
                 >
-                  <i class="bi bi-x-lg" aria-hidden="true"></i>
+                  <cts-icon name="close-lg" aria-hidden="true"></cts-icon>
                 </button>`
               : nothing}
             ${showSubmit
@@ -1008,7 +1007,7 @@ class CtsDataTable extends LitElement {
                   title="Apply search (Enter)"
                   @click=${this._onSearchButton}
                 >
-                  <i class="bi bi-arrow-return-left" aria-hidden="true"></i>
+                  <cts-icon name="arrow-undo-down-left" aria-hidden="true"></cts-icon>
                 </button>`
               : nothing}
           </div>
@@ -1034,7 +1033,7 @@ class CtsDataTable extends LitElement {
         <span class="oidf-dt-search-filter-query" title=${this._search}>${this._search}</span>
         <span class="oidf-dt-search-filter-count">· ${countText}</span>
         <button type="button" class="oidf-dt-search-filter-reset" @click=${this._onSearchClear}>
-          <i class="bi bi-x" aria-hidden="true"></i>
+          <cts-icon name="close-md" aria-hidden="true"></cts-icon>
           Show all
         </button>
       </div>

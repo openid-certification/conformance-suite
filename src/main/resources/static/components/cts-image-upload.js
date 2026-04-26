@@ -328,7 +328,7 @@ class CtsImageUpload extends LitElement {
             class="oidf-image-upload__status oidf-image-upload__status--uploaded"
             aria-hidden="true"
           >
-            <span class="bi bi-check-circle-fill"></span>
+            <cts-icon name="circle-check"></cts-icon>
           </span>
           <span></span>
           <p class="oidf-image-upload__message">${imageName} uploaded successfully.</p>
@@ -349,7 +349,7 @@ class CtsImageUpload extends LitElement {
           class="oidf-image-upload__status oidf-image-upload__status--pending"
           aria-hidden="true"
         >
-          <span class="bi bi-cloud-upload"></span>
+          <cts-icon name="cloud-upload"></cts-icon>
         </span>
         <img
           src="${preview || "images/placeholder.jpg"}"
@@ -366,7 +366,7 @@ class CtsImageUpload extends LitElement {
           >
           <div class="oidf-image-upload__actions">
             <label class="oidf-image-upload__dropzone">
-              <span class="bi bi-camera-fill" aria-hidden="true"></span>
+              <cts-icon name="camera" aria-hidden="true"></cts-icon>
               <span>Select File</span>
               <input
                 type="file"
@@ -396,7 +396,7 @@ class CtsImageUpload extends LitElement {
           class="oidf-image-upload__status oidf-image-upload__status--uploaded"
           aria-hidden="true"
         >
-          <span class="bi bi-check-circle-fill"></span>
+          <cts-icon name="circle-check"></cts-icon>
         </span>
         <img src="${image.url}" alt="${image.name}" class="oidf-image-upload__thumb imagePreview" />
         <p class="oidf-image-upload__message">${image.name}</p>

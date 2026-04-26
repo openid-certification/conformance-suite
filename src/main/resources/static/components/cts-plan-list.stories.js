@@ -165,7 +165,7 @@ export const ViewConfig = {
     // Mock clipboard and test copy button
     const clipboardSpy = fn();
     const originalClipboard = navigator.clipboard;
-    Object.defineProperty(navigator, "clipboard", {
+    Object.defineProperty(navigator, "copy", {
       value: { writeText: clipboardSpy },
       writable: true,
       configurable: true,
@@ -180,7 +180,7 @@ export const ViewConfig = {
     });
 
     // Restore clipboard
-    Object.defineProperty(navigator, "clipboard", {
+    Object.defineProperty(navigator, "copy", {
       value: originalClipboard,
       writable: true,
       configurable: true,

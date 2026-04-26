@@ -155,7 +155,7 @@ class CtsBatchRunner extends LitElement {
           <cts-button
             variant="primary"
             size="sm"
-            icon="play-fill"
+            icon="play"
             label="Run All"
             ?disabled=${this._running}
             @cts-click=${this._handleRunAll}
@@ -164,7 +164,7 @@ class CtsBatchRunner extends LitElement {
             ? html`<cts-button
                 variant="secondary"
                 size="sm"
-                icon="play-fill"
+                icon="play"
                 label="Run Remaining"
                 ?disabled=${this._running}
                 @cts-click=${this._handleRunRemaining}

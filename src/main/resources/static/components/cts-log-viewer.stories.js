@@ -43,10 +43,10 @@ export const CollapsibleBlocks = {
     const firstBlock = blockStarts[0];
     await userEvent.click(firstBlock);
     const chevronAfterCollapse = firstBlock.querySelector(".bi");
-    expect(chevronAfterCollapse.classList.contains("bi-chevron-right")).toBe(true);
+    expect(chevronAfterCollapse.classList.contains("chevron-right")).toBe(true);
     await userEvent.click(firstBlock);
     const chevronAfterExpand = firstBlock.querySelector(".bi");
-    expect(chevronAfterExpand.classList.contains("bi-chevron-down")).toBe(true);
+    expect(chevronAfterExpand.classList.contains("chevron-down")).toBe(true);
   },
 };
 
