@@ -4,7 +4,6 @@ import com.google.common.base.Strings;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 import com.nimbusds.jose.jwk.JWK;
 import com.nimbusds.jwt.SignedJWT;
 import jakarta.servlet.http.HttpServletRequest;
@@ -119,7 +118,6 @@ import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.testmodule.TestFailureException;
 import net.openid.conformance.testmodule.UserFacing;
-import net.openid.conformance.util.TemplateProcessor;
 import net.openid.conformance.variant.AuthorizationRequestType;
 import net.openid.conformance.variant.ConfigurationFields;
 import net.openid.conformance.variant.FAPI2AuthRequestMethod;
@@ -200,7 +198,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.servlet.view.RedirectView;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import java.net.URI;
 import java.text.ParseException;
 import java.util.HashMap;
 import java.util.Map;
@@ -508,10 +505,7 @@ public abstract class AbstractVCIWalletTest extends net.openid.conformance.fapi2
 	}
 
 	protected String generateWellKnownUrlForPath(String issuer, String wellKnownTypePath) {
-		URI serverIssuerUri = URI.create(issuer);
-		String serverIssuerPath = serverIssuerUri.getPath();
-		String wellKnownBaseUrl = serverIssuerUri.getScheme() + "://" + serverIssuerUri.getAuthority() + "/.well-known";
-		return wellKnownBaseUrl + "/" + wellKnownTypePath + serverIssuerPath;
+		return VCICredentialIssuerMetadataBuilder.generateWellKnownUrlForPath(issuer, wellKnownTypePath);
 	}
 
 	protected void checkCredentialSigningKey(Environment env) {
@@ -557,111 +551,27 @@ public abstract class AbstractVCIWalletTest extends net.openid.conformance.fapi2
 	}
 
 	protected JsonObject getCredentialIssuerMetadata() {
-
-		String baseUrl = env.getString("base_url");
-		String mtlsBaseUrl = env.getString("base_mtls_url");
-
-		if (baseUrl.isEmpty()) {
-			throw new TestFailureException(getId(), "Base URL is empty");
+		try {
+			return VCICredentialIssuerMetadataBuilder.buildCredentialIssuerMetadata(env,
+				new VCICredentialIssuerMetadataBuilder.Config(
+					CREDENTIAL_PATH,
+					NONCE_PATH,
+					DEFERRED_CREDENTIAL_PATH,
+					NOTIFICATION_PATH,
+					isMTLSConstrain(),
+					notificationsSupportEnabled,
+					vciCredentialEncryption == VCICredentialEncryption.ENCRYPTED));
+		} catch (IllegalStateException e) {
+			throw new TestFailureException(getId(), e.getMessage());
 		}
-
-		if (mtlsBaseUrl.isEmpty()) {
-			throw new TestFailureException(getId(), "Base MTLS URL is empty");
-		}
-
-		if (!baseUrl.endsWith("/")) {
-			baseUrl = baseUrl + "/";
-		}
-		if (!mtlsBaseUrl.endsWith("/")) {
-			mtlsBaseUrl = mtlsBaseUrl + "/";
-		}
-
-		String credentialIssuer = baseUrl;
-		String credentialEndpointUrl = (isMTLSConstrain() ? mtlsBaseUrl : baseUrl) + CREDENTIAL_PATH;
-		String nonceEndpointUrl = (isMTLSConstrain() ? mtlsBaseUrl : baseUrl) + NONCE_PATH;
-		String deferredCredentialEndpointUrl = (isMTLSConstrain() ? mtlsBaseUrl : baseUrl) + DEFERRED_CREDENTIAL_PATH;
-		String notificationEndpointUrl = (isMTLSConstrain() ? mtlsBaseUrl : baseUrl) + NOTIFICATION_PATH;
-
-		String metadata = TemplateProcessor.process("""
-			{
-				"credential_issuer": "$(credentialIssuer)",
-				"credential_endpoint": "$(credentialEndpoint)",
-				"nonce_endpoint": "$(nonceEndpoint)",
-				"deferred_credential_endpoint": "$(deferredCredentialEndpoint)",
-				"notification_endpoint": "$(notificationEndpoint)",
-				"authorization_servers": [ "$(credentialIssuer)" ]
-			}
-			""", Map.of(
-			"credentialIssuer", credentialIssuer,
-			"credentialEndpoint", credentialEndpointUrl,
-			"nonceEndpoint", nonceEndpointUrl,
-			"deferredCredentialEndpoint", deferredCredentialEndpointUrl,
-			"notificationEndpoint", notificationEndpointUrl
-		));
-
-		String credentialIssuerMetadataUrl = generateWellKnownUrlForPath(credentialIssuer, "openid-credential-issuer");
-		env.putString("credential_issuer_metadata_url", credentialIssuerMetadataUrl);
-
-		env.putString("credential_issuer", credentialIssuer);
-		env.putString("credential_issuer_nonce_endpoint_url", nonceEndpointUrl);
-		env.putString("credential_issuer_credential_endpoint_url", credentialEndpointUrl);
-		env.putString("credential_issuer_deferred_credential_endpoint_url", deferredCredentialEndpointUrl);
-		env.putString("credential_issuer_notification_endpoint_url", notificationEndpointUrl);
-
-		JsonObject metadataJson = JsonParser.parseString(metadata).getAsJsonObject();
-
-		if (!notificationsSupportEnabled) {
-			metadataJson.remove("notification_endpoint");
-			env.removeNativeValue("credential_issuer_notification_endpoint_url");
-		}
-
-		// Add credential response encryption metadata if encryption is enabled
-		if (vciCredentialEncryption == VCICredentialEncryption.ENCRYPTED) {
-			JsonObject responseEnc = createResponseEncryptionConfig();
-			metadataJson.add("credential_response_encryption", responseEnc);
-
-			// Per OID4VCI 1.0 Final Section 8.2, Credential Request encryption MUST be used when
-			// credential_response_encryption is included; advertise the issuer's request encryption
-			// JWKS so the wallet can encrypt credential requests to it.
-			JsonObject requestEnc = createRequestEncryptionConfig();
-			metadataJson.add("credential_request_encryption", requestEnc);
-		}
-
-		return metadataJson;
 	}
 
 	protected JsonObject createRequestEncryptionConfig() {
-		JsonObject requestEnc = new JsonObject();
-
-		JsonObject publicJwks = (JsonObject) env.getElementFromObject("vci", "credential_request_encryption_public_jwks");
-		requestEnc.add("jwks", publicJwks);
-
-		JsonArray encValues = new JsonArray();
-		encValues.add("A256GCM");
-		encValues.add("A128GCM");
-		encValues.add("A256CBC-HS512");
-		encValues.add("A128CBC-HS256");
-		requestEnc.add("enc_values_supported", encValues);
-		requestEnc.addProperty("encryption_required", false);
-		return requestEnc;
+		return VCICredentialIssuerMetadataBuilder.createRequestEncryptionConfig(env);
 	}
 
 	protected JsonObject createResponseEncryptionConfig() {
-		JsonObject responseEnc = new JsonObject();
-		JsonArray algValues = new JsonArray();
-		algValues.add("ECDH-ES");
-		algValues.add("ECDH-ES+A256KW");
-		algValues.add("ECDH-ES+A128KW");
-		responseEnc.add("alg_values_supported", algValues);
-
-		JsonArray encValues = new JsonArray();
-		encValues.add("A256GCM");
-		encValues.add("A128GCM");
-		encValues.add("A256CBC-HS512");
-		encValues.add("A128CBC-HS256");
-		responseEnc.add("enc_values_supported", encValues);
-		responseEnc.addProperty("encryption_required", false);
-		return responseEnc;
+		return VCICredentialIssuerMetadataBuilder.createResponseEncryptionConfig();
 	}
 
 	protected void configureSupportedCredentialConfigurations() {
