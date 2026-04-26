@@ -1,4 +1,10 @@
 
-<button class="moreBtn" data-activated="false">
-    <span class="moreCount"><%- _.size(more) %></span> More <cts-icon name="chevron-down"></cts-icon>
-</button>
+<cts-badge variant="secondary" count="<%- _.size(more) %>"></cts-badge>
+<cts-button
+    class="moreBtn"
+    variant="secondary"
+    size="xs"
+    icon="chevron-down"
+    label="More"
+    data-activated="false"
+></cts-button>
