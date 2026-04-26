@@ -12,29 +12,32 @@ import net.openid.conformance.condition.client.ValidateResourceResponseJwtClaims
 import net.openid.conformance.condition.client.ValidateResourceResponseSignature;
 import net.openid.conformance.sequence.AbstractConditionSequence;
 
-public class ValidateBrazilPaymentInitiationSignedResponse extends AbstractConditionSequence {
+public class ValidateBrazilSignedResponse extends AbstractConditionSequence {
 
 	private final String responseFullKey;
 	private final boolean fetchOrganisationJwksUri;
 
-	/**
-	 * Validates the post-authentication payment-initiation response stored under
-	 * {@code resource_endpoint_response_full}. Assumes the organisation jwks_uri has
-	 * already been resolved during pre-auth.
-	 */
-	public ValidateBrazilPaymentInitiationSignedResponse() {
-		this("resource_endpoint_response_full", false);
+	private ValidateBrazilSignedResponse(String responseFullKey, boolean fetchOrganisationJwksUri) {
+		this.responseFullKey = responseFullKey;
+		this.fetchOrganisationJwksUri = fetchOrganisationJwksUri;
 	}
 
 	/**
-	 * @param responseFullKey env key holding the response under validation (full HTTP response object)
-	 * @param fetchOrganisationJwksUri when true, resolves the organisation's jwks_uri via
-	 *   {@link FAPIBrazilGetKeystoreJwksUri} before fetching the org's jwks. Use for the pre-auth
-	 *   consent-endpoint flow where no prior step has resolved it.
+	 * For the post-authentication payment-initiation response stored under
+	 * {@code resource_endpoint_response_full}. Assumes the organisation jwks_uri has already been
+	 * resolved during pre-auth.
 	 */
-	public ValidateBrazilPaymentInitiationSignedResponse(String responseFullKey, boolean fetchOrganisationJwksUri) {
-		this.responseFullKey = responseFullKey;
-		this.fetchOrganisationJwksUri = fetchOrganisationJwksUri;
+	public static ValidateBrazilSignedResponse forResourceResponse() {
+		return new ValidateBrazilSignedResponse("resource_endpoint_response_full", false);
+	}
+
+	/**
+	 * For the pre-authentication consent-endpoint response stored under
+	 * {@code consent_endpoint_response_full}. Resolves the organisation's jwks_uri inline via
+	 * {@link FAPIBrazilGetKeystoreJwksUri} since no prior step has done so.
+	 */
+	public static ValidateBrazilSignedResponse forConsentResponse() {
+		return new ValidateBrazilSignedResponse("consent_endpoint_response_full", true);
 	}
 
 	@Override
@@ -50,7 +53,6 @@ public class ValidateBrazilPaymentInitiationSignedResponse extends AbstractCondi
 
 		callAndContinueOnFailure(FAPIBrazilValidateResourceResponseTyp.class, ConditionResult.FAILURE, "BrazilOB-6.1");
 
-		// signature needs to be validated against the organisation jwks
 		if (fetchOrganisationJwksUri) {
 			callAndStopOnFailure(FAPIBrazilGetKeystoreJwksUri.class, ConditionResult.FAILURE);
 		}

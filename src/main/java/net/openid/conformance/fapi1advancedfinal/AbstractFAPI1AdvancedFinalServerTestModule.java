@@ -158,7 +158,7 @@ import net.openid.conformance.sequence.client.OpenBankingUkPreAuthorizationSteps
 import net.openid.conformance.sequence.client.PerformStandardIdTokenChecks;
 import net.openid.conformance.sequence.client.SetupPkceAndAddToAuthorizationRequest;
 import net.openid.conformance.sequence.client.SupportMTLSEndpointAliases;
-import net.openid.conformance.sequence.client.ValidateBrazilPaymentInitiationSignedResponse;
+import net.openid.conformance.sequence.client.ValidateBrazilSignedResponse;
 import net.openid.conformance.sequence.client.ValidateOpenBankingUkIdToken;
 import net.openid.conformance.testmodule.AbstractRedirectServerTestModule;
 import net.openid.conformance.testmodule.TestFailureException;
@@ -930,7 +930,7 @@ public abstract class AbstractFAPI1AdvancedFinalServerTestModule extends Abstrac
 		}
 
 		if (brazilPayments.isTrue()) {
-			call(new ValidateBrazilPaymentInitiationSignedResponse());
+			call(ValidateBrazilSignedResponse.forResourceResponse());
 		} else {
 			callAndContinueOnFailure(EnsureResourceResponseReturnedJsonContentType.class, Condition.ConditionResult.FAILURE, "FAPI1-BASE-6.2.1-9", "FAPI1-BASE-6.2.1-10");
 		}

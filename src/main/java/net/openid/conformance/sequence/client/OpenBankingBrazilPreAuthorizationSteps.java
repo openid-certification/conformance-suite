@@ -171,7 +171,7 @@ public class OpenBankingBrazilPreAuthorizationSteps extends AbstractConditionSeq
 				return;
 			}
 
-			call(new ValidateBrazilPaymentInitiationSignedResponse("consent_endpoint_response_full", true));
+			call(ValidateBrazilSignedResponse.forConsentResponse());
 		} else {
 			if (openInsurance) {
 				callAndStopOnFailure(CreateIdempotencyKey.class);
