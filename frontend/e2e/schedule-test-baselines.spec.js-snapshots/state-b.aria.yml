@@ -13,9 +13,9 @@
   - option "--- Select Entity ---"
   - option "basic" [selected]
   - option "client-basic"
-- text: Test Plan
-- combobox "Test Plan":
-  - option "--- Select A Test Plan ----"
+- text: Test Type
+- combobox "Test Type":
+  - option "--- Select A Test Type ----"
   - 'option "OpenID Connect Core: Basic Certification Profile" [selected]'
 - text: Server Metadata
 - combobox "Server Metadata":
