@@ -177,6 +177,18 @@ public class FAPI2ClientProfileBehavior {
 	}
 
 	/**
+	 * Handle a profile-specific well-known path (e.g. {@code /.well-known/openid-credential-issuer}).
+	 * Return {@code null} if the profile does not claim the path; the abstract module then falls
+	 * through to its default well-known routing (which handles {@code /.well-known/oauth-authorization-server}).
+	 *
+	 * <p>VCI overrides to serve credential issuer metadata so HAIP wallets can perform their
+	 * standard credential-issuer-first discovery against our emulated AS.
+	 */
+	public Object handleProfileSpecificWellKnown(String path) {
+		return null;
+	}
+
+	/**
 	 * Whether this profile owns the given path on the mtls endpoint.
 	 * Brazil overrides for consents / payments / payment-initiation paths.
 	 */
