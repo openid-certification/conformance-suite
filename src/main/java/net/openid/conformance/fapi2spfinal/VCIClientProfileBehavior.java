@@ -16,6 +16,8 @@ import org.springframework.http.ResponseEntity;
 
 import java.security.SecureRandom;
 import java.util.Base64;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Profile behavior for VCI (Verifiable Credentials Issuance) client tests.
@@ -54,6 +56,14 @@ public class VCIClientProfileBehavior extends FAPI2ClientProfileBehavior {
 	private static final String NONCE_PATH = "nonce";
 	private static final String DEFERRED_CREDENTIAL_PATH = "deferred_credential";
 	private static final String NOTIFICATION_PATH = "notification";
+
+	/** Seconds to wait for additional issuer-test requests after the credential endpoint
+	 * has been called before firing test finished. */
+	private static final long DELAYED_FINISH_SECONDS = 10;
+
+	/** Tracks whether the delayed finish has already been scheduled, so repeat calls to
+	 * the credential endpoint don't pile up tasks. */
+	private final AtomicBoolean finishScheduled = new AtomicBoolean(false);
 
 	@Override
 	public ConditionSequence validateAuthorizationRequestScope() {
@@ -174,13 +184,16 @@ public class VCIClientProfileBehavior extends FAPI2ClientProfileBehavior {
 	}
 
 	/**
-	 * Minimal credential endpoint (also used for deferred_credential) — marks the test
-	 * complete on first call and returns a placeholder credential response in the OID4VCI
-	 * 1.0 Final § 8.3 shape ({@code {"credentials": [{"credential": "<value>"}]}}). The
-	 * FAPI2SP client tests have already validated the OAuth-level behavior by the time the
-	 * wallet reaches this endpoint; we don't implement actual credential issuance here
-	 * (that's {@code VCIWalletTest*}'s job), so the credential value is a placeholder
-	 * string.
+	 * Minimal credential endpoint (also used for deferred_credential) — returns a
+	 * placeholder credential response in the OID4VCI 1.0 Final § 8.3 shape
+	 * ({@code {"credentials": [{"credential": "<value>"}]}}) and schedules a delayed test
+	 * completion (so subsequent issuer-test calls to e.g. notification can still complete
+	 * before the wallet test fires {@code FINISHED}). The FAPI2SP client tests don't
+	 * implement actual credential issuance — the placeholder will fail issuer-side
+	 * format validation (e.g. {@code ParseMdocCredentialFromVCIIssuance}), which is
+	 * expected: the wallet-side OAuth checks have already passed by this point. For
+	 * end-to-end credential issuance against an issuer test, use the
+	 * {@code oid4vci-1_0-wallet-test-credential-issuance} module instead.
 	 */
 	protected ResponseEntity<JsonObject> handleCredentialEndpoint() {
 		module.doSetStatus(Status.RUNNING);
@@ -190,7 +203,8 @@ public class VCIClientProfileBehavior extends FAPI2ClientProfileBehavior {
 		credentials.add(credentialEntry);
 		JsonObject body = new JsonObject();
 		body.add("credentials", credentials);
-		module.resourceEndpointCallComplete();
+		scheduleDelayedTestFinish();
+		module.doSetStatus(Status.WAITING);
 		return ResponseEntity.status(HttpStatus.OK)
 			.contentType(MediaType.APPLICATION_JSON)
 			.body(body);
@@ -204,6 +218,23 @@ public class VCIClientProfileBehavior extends FAPI2ClientProfileBehavior {
 		module.doSetStatus(Status.RUNNING);
 		module.doSetStatus(Status.WAITING);
 		return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+	}
+
+	/**
+	 * Schedule a one-shot background task that fires test finished after a short delay.
+	 * Lets paired issuer tests continue to probe other endpoints (notification, etc.)
+	 * after the credential endpoint without {@code resourceEndpointCallComplete}'s
+	 * immediate FINISHED state breaking subsequent {@code setStatus(RUNNING)} calls.
+	 */
+	private void scheduleDelayedTestFinish() {
+		if (!finishScheduled.compareAndSet(false, true)) {
+			return;
+		}
+		module.getTestExecutionManager().scheduleInBackground(() -> {
+			module.doSetStatus(Status.RUNNING);
+			module.fireTestFinished();
+			return null;
+		}, DELAYED_FINISH_SECONDS, TimeUnit.SECONDS);
 	}
 
 	private static String randomNonce() {
