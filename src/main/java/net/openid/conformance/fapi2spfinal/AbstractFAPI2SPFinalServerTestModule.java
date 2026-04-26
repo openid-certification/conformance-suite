@@ -791,6 +791,13 @@ public abstract class AbstractFAPI2SPFinalServerTestModule extends AbstractRedir
 			int i = 0;
 			while(i < MAX_RETRY){
 				createDpopForTokenEndpoint();
+				if (i > 0) {
+					// Regenerate client authentication on retry — required for client_attestation
+					// (OAuth2-ATCA07-10.2: each PoP must have a fresh jti, ASs SHOULD detect
+					// reuse). For mtls / private_key_jwt this is harmless; the assertion
+					// timestamps just refresh.
+					addClientAuthenticationToTokenEndpointRequest();
+				}
 				callAndStopOnFailure(CallTokenEndpointAllowingDpopNonceErrorAndReturnFullResponse.class, requirements);
 				if(Strings.isNullOrEmpty(env.getString("token_endpoint_dpop_nonce_error"))) {
 					break;
@@ -1203,6 +1210,13 @@ public abstract class AbstractFAPI2SPFinalServerTestModule extends AbstractRedir
 			int i = 0;
 			while(i < MAX_RETRY){
 				createDpopForParEndpoint();
+				if (i > 0) {
+					// Regenerate client authentication on retry — required for client_attestation
+					// (OAuth2-ATCA07-10.2: each PoP must have a fresh jti, ASs SHOULD detect
+					// reuse). For mtls / private_key_jwt this is harmless; the assertion
+					// timestamps just refresh.
+					addClientAuthenticationToPAREndpointRequest();
+				}
 				callAndStopOnFailure(CallPAREndpointAllowingDpopNonceError.class, requirements);
 				if(Strings.isNullOrEmpty(env.getString("par_endpoint_dpop_nonce_error"))) {
 					break;
