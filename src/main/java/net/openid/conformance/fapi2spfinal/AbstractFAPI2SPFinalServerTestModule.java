@@ -411,8 +411,6 @@ public abstract class AbstractFAPI2SPFinalServerTestModule extends AbstractRedir
 			callAndContinueOnFailure(RARSupport.ExtractRARFromConfig.class, Condition.ConditionResult.FAILURE);
 		}
 
-		call(profileBehavior.afterServerConfigurationFetched());
-
 		whichClient = 1;
 
 		// Set up the client configuration
