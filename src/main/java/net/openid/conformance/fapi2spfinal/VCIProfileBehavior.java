@@ -300,7 +300,7 @@ public class VCIProfileBehavior extends FAPI2ProfileBehavior {
 		};
 	}
 
-	protected ConditionSequence verifyCredential() {
+	public ConditionSequence verifyCredential() {
 		return new AbstractConditionSequence() {
 			@Override
 			public void evaluate() {

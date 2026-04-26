@@ -39,15 +39,12 @@ import net.openid.conformance.condition.client.EnsureHttpStatusCodeIsAnyOf;
 import net.openid.conformance.condition.client.EnsureMatchingFAPIInteractionId;
 import net.openid.conformance.condition.client.ExtractMTLSCertificatesFromConfiguration;
 import net.openid.conformance.condition.client.GetStaticClientConfiguration;
-import net.openid.conformance.condition.client.ParseCredentialAsSdJwt;
-import net.openid.conformance.condition.client.ParseMdocCredentialFromVCIIssuance;
 import net.openid.conformance.condition.client.SetAuthorizationEndpointRequestResponseTypeToCode;
 import net.openid.conformance.condition.client.SetProtectedResourceUrlToSingleResourceEndpoint;
-import net.openid.conformance.condition.client.ValidateCredentialIsUnpaddedBase64Url;
 import net.openid.conformance.condition.client.ValidateMTLSCertificatesHeader;
-import net.openid.conformance.sequence.client.ValidateMdocCredential;
 import net.openid.conformance.condition.common.RARSupport;
 import net.openid.conformance.fapi2spfinal.AbstractFAPI2SPFinalServerTestModule;
+import net.openid.conformance.fapi2spfinal.VCIProfileBehavior;
 import net.openid.conformance.openid.federation.CallCredentialIssuerNonceEndpoint;
 import net.openid.conformance.sequence.AbstractConditionSequence;
 import net.openid.conformance.sequence.ConditionSequence;
@@ -75,7 +72,6 @@ import net.openid.conformance.vci10issuer.condition.VCICheckCredentialResponseEn
 import net.openid.conformance.vci10issuer.condition.VCIEncryptCredentialRequest;
 import net.openid.conformance.vci10issuer.condition.VCIEnsureCredentialRequestEncryptionWhenResponseEncryptionOptional;
 import net.openid.conformance.vci10issuer.condition.VCIEnsureCredentialRequestEncryptionWhenResponseEncryptionRequired;
-import net.openid.conformance.sequence.client.ValidateSdJwtVcCredentialClaims;
 import net.openid.conformance.vci10issuer.condition.VCICheckForDeferredCredentialResponse;
 import net.openid.conformance.vci10issuer.condition.VCICreateDeferredCredentialRequest;
 import net.openid.conformance.vci10issuer.condition.VCICreateNotificationRequest;
@@ -188,6 +184,17 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractFAPI2SPFinalSe
 	 */
 	protected List<String> getRequiredProofTypes() {
 		return List.of();
+	}
+
+	/**
+	 * The profile behavior for VCI issuer tests is always either {@link VCIProfileBehavior} or
+	 * {@link net.openid.conformance.fapi2spfinal.VCIHaipProfileBehavior}, set via the
+	 * {@code vci} / {@code vci_haip} {@link net.openid.conformance.variant.VariantSetup} methods on
+	 * the FAPI2SPFinal parent. Provide a typed accessor so VCI-specific delegation doesn't need to
+	 * cast at every call site.
+	 */
+	protected VCIProfileBehavior vciProfileBehavior() {
+		return (VCIProfileBehavior) profileBehavior;
 	}
 
 	@Override
@@ -778,12 +785,8 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractFAPI2SPFinalSe
 		// Extract and validate all credentials (same for both paths)
 		callAndStopOnFailure(VCIExtractCredentialResponse.class, ConditionResult.FAILURE, "OID4VCI-1FINAL-8.3");
 
-		call(new IterateEnvironmentArray("extracted_credentials", "list", () -> new AbstractConditionSequence() {
-			@Override
-			public void evaluate() {
-				AbstractVCIIssuerTestModule.this.verifyCredential();
-			}
-		})
+		call(new IterateEnvironmentArray("extracted_credentials", "list",
+				() -> vciProfileBehavior().verifyCredential())
 			.currentString("credential")
 			.logBlockLabels(ctx -> ctx.getIterationCount() > 1
 				? currentClientString() + "Verify credential " + ctx.getIteration() + " of " + ctx.getIterationCount()
@@ -799,27 +802,6 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractFAPI2SPFinalSe
 		}
 
 		sendNotificationIfSupported();
-	}
-
-	/**
-	 * Verifies a single credential from the credential response.
-	 */
-	protected void verifyCredential() {
-		Boolean requiresCryptographicBinding = env.getBoolean("vci_requires_cryptographic_binding");
-
-		if (vciCredentialFormat == VCI1FinalCredentialFormat.MDOC) {
-			callAndContinueOnFailure(ValidateCredentialIsUnpaddedBase64Url.class,
-				ConditionResult.FAILURE, "OID4VCI-1FINALA-A.2.4");
-			callAndContinueOnFailure(ParseMdocCredentialFromVCIIssuance.class,
-				ConditionResult.FAILURE, "OID4VCI-1FINALA-A.2");
-			call(new ValidateMdocCredential(true, fapi2Profile == FAPI2FinalOPProfile.VCI_HAIP));
-		} else if (vciCredentialFormat == VCI1FinalCredentialFormat.SD_JWT_VC) {
-			callAndContinueOnFailure(ParseCredentialAsSdJwt.class,
-				ConditionResult.FAILURE, "SDJWT-4");
-			boolean requiresCnf = requiresCryptographicBinding != null && requiresCryptographicBinding;
-			boolean isHaip = fapi2Profile == FAPI2FinalOPProfile.VCI_HAIP;
-			call(new ValidateSdJwtVcCredentialClaims(requiresCnf, isHaip));
-		}
 	}
 
 	// --- Notification endpoint ---
