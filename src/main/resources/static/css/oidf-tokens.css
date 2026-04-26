@@ -183,9 +183,12 @@
   --lh-base:  1.5;
   --lh-loose: 1.65;
 
-  /* Weights — Inter Variable covers 100..900 continuously; the three named cuts
-     below match the discrete weights the design system actually uses. */
+  /* Weights — Inter Variable covers 100..900 continuously; the four named cuts
+     below match the discrete weights the design system actually uses. Medium
+     (500) carries interactive UI controls — buttons, badges, tabs, navlinks —
+     so they sit clearly above body copy without competing with bold headings. */
   --fw-regular: 400;
+  --fw-medium:  500;
   --fw-bold:    700;
   --fw-black:   900;
 

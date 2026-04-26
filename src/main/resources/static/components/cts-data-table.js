@@ -254,7 +254,7 @@ const STYLE_TEXT = `
     border-radius: var(--radius-pill);
     color: var(--orange-600);
     font-size: var(--fs-12);
-    font-weight: var(--fw-bold);
+    font-weight: var(--fw-medium);
     cursor: pointer;
     transition: background var(--dur-1) var(--ease-standard),
       color var(--dur-1) var(--ease-standard);
@@ -287,7 +287,7 @@ const STYLE_TEXT = `
     background: var(--ink-50);
     border-bottom: 1px solid var(--border);
     font-size: var(--fs-12);
-    font-weight: var(--fw-bold);
+    font-weight: var(--fw-medium);
     text-transform: uppercase;
     letter-spacing: 0.06em;
     color: var(--fg-soft);
@@ -976,7 +976,11 @@ class CtsDataTable extends LitElement {
       <div class="oidf-dt-search">
         <div class="oidf-dt-search-row">
           <div class="oidf-dt-search-input-wrap">
-            <cts-icon name="search-magnifying-glass" class="oidf-dt-search-leading" aria-hidden="true"></cts-icon>
+            <cts-icon
+              name="search-magnifying-glass"
+              class="oidf-dt-search-leading"
+              aria-hidden="true"
+            ></cts-icon>
             <input
               type="search"
               class="oidf-dt-search-input"

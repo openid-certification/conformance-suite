@@ -127,7 +127,7 @@ const STYLE_TEXT = `
   min-width: 0;
 }
 .oidf-test-selector__row-name {
-  font-weight: var(--fw-bold);
+  font-weight: var(--fw-medium);
   color: var(--fg);
   word-break: break-word;
 }
@@ -150,7 +150,7 @@ const STYLE_TEXT = `
   background: var(--ink-100);
   color: var(--fg-soft);
   font-size: var(--fs-12);
-  font-weight: var(--fw-bold);
+  font-weight: var(--fw-medium);
   font-family: var(--font-sans);
 }
 .oidf-test-selector__row-summary {

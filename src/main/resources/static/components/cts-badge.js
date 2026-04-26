@@ -69,7 +69,7 @@ const STYLE_TEXT = `
     padding: 2px 10px;
     border-radius: var(--radius-pill, 999px);
     font-size: 11px;
-    font-weight: var(--fw-bold, 700);
+    font-weight: var(--fw-medium, 500);
     letter-spacing: 0.06em;
     text-transform: uppercase;
     /* Even-pixel line-height aligned to the 16px inline-chrome rhythm shared

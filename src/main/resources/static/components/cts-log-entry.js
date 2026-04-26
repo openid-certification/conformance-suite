@@ -112,7 +112,7 @@ const STYLE_TEXT = `
     color: var(--fg);
     font-family: inherit;
     font-size: var(--fs-12);
-    font-weight: var(--fw-bold);
+    font-weight: var(--fw-medium);
     padding: 2px var(--space-2);
     cursor: pointer;
     transition: background var(--dur-1) var(--ease-standard);
@@ -139,7 +139,7 @@ const STYLE_TEXT = `
     color: var(--fg-muted);
     font-family: var(--font-mono);
     font-size: 10px;
-    font-weight: var(--fw-bold);
+    font-weight: var(--fw-medium);
     padding: 1px 6px;
     cursor: pointer;
   }

@@ -154,7 +154,7 @@ const STYLE_TEXT = `
   padding: var(--space-2) var(--space-3);
   color: var(--ink-200);
   font-size: var(--fs-13);
-  font-weight: 600;
+  font-weight: var(--fw-medium);
   text-decoration: none;
   border-radius: var(--radius-2);
   background: transparent;
@@ -200,7 +200,7 @@ const STYLE_TEXT = `
   align-items: center;
   padding: 2px var(--space-2);
   font-size: 10px;
-  font-weight: var(--fw-bold);
+  font-weight: var(--fw-medium);
   letter-spacing: 0.06em;
   text-transform: uppercase;
   background: var(--rust-400);
@@ -217,7 +217,7 @@ const STYLE_TEXT = `
   border: 1px solid var(--ink-600);
   border-radius: var(--radius-2);
   font-size: var(--fs-12);
-  font-weight: 600;
+  font-weight: var(--fw-medium);
   font-family: inherit;
   cursor: pointer;
   text-decoration: none;
@@ -273,7 +273,7 @@ const STYLE_TEXT = `
   align-items: center;
   justify-content: center;
   font-size: var(--fs-12);
-  font-weight: var(--fw-bold);
+  font-weight: var(--fw-medium);
   font-family: var(--font-sans);
   flex-shrink: 0;
   /* Subtle inner shadow on hover keeps the affordance discoverable
@@ -337,7 +337,7 @@ const STYLE_TEXT = `
   align-items: center;
   gap: var(--space-2);
   flex-wrap: wrap;
-  font-weight: var(--fw-bold);
+  font-weight: var(--fw-medium);
   font-size: var(--fs-14);
   color: var(--ink-0);
   line-height: 1.25;
@@ -740,7 +740,9 @@ class CtsNavbar extends LitElement {
             href="${link.href}"
             target=${link.external ? "_blank" : "_self"}
             rel=${link.external ? "noopener noreferrer" : ""}
-            >${link.label}${link.external ? html`<cts-icon name="external-link" size="16"></cts-icon>` : ""}</a
+            >${link.label}${link.external
+              ? html`<cts-icon name="external-link" size="16"></cts-icon>`
+              : ""}</a
           >
         </li>
       `,

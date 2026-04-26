@@ -67,7 +67,7 @@ const STYLE_TEXT = `
   padding: var(--space-3) var(--space-4);
   font-family: inherit;
   font-size: var(--fs-13);
-  font-weight: var(--fw-bold);
+  font-weight: var(--fw-medium);
   color: var(--ink-500);
   cursor: pointer;
   transition: color var(--dur-1) var(--ease-standard),
@@ -102,7 +102,7 @@ const STYLE_TEXT = `
 .oidf-config-form-section-title {
   /* mirrors .t-overline from oidf-tokens.css */
   font-family: var(--font-sans);
-  font-weight: var(--fw-bold);
+  font-weight: var(--fw-medium);
   font-size: var(--fs-12);
   line-height: var(--lh-snug);
   letter-spacing: 0.08em;
