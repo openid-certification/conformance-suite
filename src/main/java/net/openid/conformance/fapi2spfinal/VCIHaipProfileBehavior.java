@@ -4,6 +4,7 @@ import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.condition.client.CheckDiscEndpointTokenEndpointAuthMethodsSupportedContainsAttestation;
 import net.openid.conformance.sequence.ConditionSequence;
+import net.openid.conformance.testmodule.Command;
 import net.openid.conformance.testmodule.ConditionCallBuilder;
 import net.openid.conformance.variant.VCI1FinalCredentialFormat;
 import net.openid.conformance.vci10issuer.condition.VCIDetermineCredentialConfigurationTransferMethod;
@@ -43,6 +44,15 @@ public class VCIHaipProfileBehavior extends VCIProfileBehavior {
 			.then(new ConditionCallBuilder(VCIValidateNonceEndpointInIssuerMetadata.class)
 				.onFail(ConditionResult.FAILURE)
 				.requirements("HAIP-4.1-5"));
+	}
+
+	@Override
+	public ConditionSequence configureClientExtra() {
+		// HAIP requires ES256 as the DPoP signing algorithm for both clients
+		Command setDpopSigningAlgs = new Command()
+			.putString("client", "dpop_signing_alg", "ES256")
+			.putString("client2", "dpop_signing_alg", "ES256");
+		return super.configureClientExtra().butFirst(setDpopSigningAlgs);
 	}
 
 	@Override
