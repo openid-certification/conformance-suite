@@ -9,17 +9,14 @@ import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs200;
 import net.openid.conformance.condition.client.ParseCredentialAsSdJwt;
 import net.openid.conformance.condition.client.ParseMdocCredentialFromVCIIssuance;
 import net.openid.conformance.condition.client.SetProtectedResourceUrlToSingleResourceEndpoint;
-import net.openid.conformance.condition.client.ValidateCredentialCnfJwkIsPublicKey;
 import net.openid.conformance.condition.client.ValidateCredentialIsUnpaddedBase64Url;
-import net.openid.conformance.condition.client.ValidateCredentialJWTHeaderTyp;
-import net.openid.conformance.condition.client.ValidateCredentialJWTIat;
-import net.openid.conformance.condition.client.ValidateCredentialJWTVct;
-import net.openid.conformance.condition.client.ValidateMdocIssuerSignedSignature;
 import net.openid.conformance.openid.federation.CallCredentialIssuerNonceEndpoint;
 import net.openid.conformance.sequence.AbstractConditionSequence;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.sequence.client.CreateVCICredentialRequestSteps;
 import net.openid.conformance.sequence.client.GenerateVCIKeyAttestationAndProofSteps;
+import net.openid.conformance.sequence.client.ValidateMdocCredential;
+import net.openid.conformance.sequence.client.ValidateSdJwtVcCredentialClaims;
 import net.openid.conformance.sequence.client.ValidateVCINonceEndpointResponse;
 import net.openid.conformance.sequence.client.VCIDiscoveryEndpointChecks;
 import net.openid.conformance.testmodule.IterateEnvironmentArray;
@@ -325,7 +322,7 @@ public class VCIProfileBehavior extends FAPI2ProfileBehavior {
 			public void evaluate() {
 				callAndContinueOnFailure(ValidateCredentialIsUnpaddedBase64Url.class, ConditionResult.FAILURE, "OID4VCI-1FINALA-A.2.4");
 				callAndContinueOnFailure(ParseMdocCredentialFromVCIIssuance.class, ConditionResult.FAILURE, "OID4VCI-1FINALA-A.2");
-				callAndContinueOnFailure(ValidateMdocIssuerSignedSignature.class, ConditionResult.FAILURE, "OID4VCI-1FINALA-A.2");
+				call(new ValidateMdocCredential(true, false));
 			}
 		};
 	}
@@ -335,12 +332,7 @@ public class VCIProfileBehavior extends FAPI2ProfileBehavior {
 			@Override
 			public void evaluate() {
 				callAndContinueOnFailure(ParseCredentialAsSdJwt.class, ConditionResult.FAILURE, "SDJWT-4");
-				callAndContinueOnFailure(ValidateCredentialJWTIat.class, ConditionResult.FAILURE, "SDJWTVC-3.2.2.2-5.2");
-				callAndContinueOnFailure(ValidateCredentialJWTVct.class, ConditionResult.FAILURE, "SDJWTVC-3.2.2.2-3.5");
-				callAndContinueOnFailure(ValidateCredentialJWTHeaderTyp.class, ConditionResult.FAILURE, "SDJWTVC-3.2.1");
-				if (requiresCryptographicBinding) {
-					callAndContinueOnFailure(ValidateCredentialCnfJwkIsPublicKey.class, ConditionResult.FAILURE, "SDJWT-4.1.2");
-				}
+				call(new ValidateSdJwtVcCredentialClaims(requiresCryptographicBinding, false));
 			}
 		};
 	}
