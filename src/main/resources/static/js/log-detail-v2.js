@@ -80,6 +80,46 @@ async function fetchCurrentUser() {
   }
 }
 
+/** ──────────── testInfo fan-out ──────────── */
+
+/**
+ * Filter the per-condition `results` array down to the entries the failure
+ * summary surfaces. Mirrors `cts-log-detail-header._getFailures()` so the
+ * page-level `#ctsTopFailureSummary` and the in-header instance render
+ * the same list. Kept in this file (not exported from the component) to
+ * avoid coupling the bootstrap to component internals.
+ *
+ * @param {any} testInfo
+ * @returns {Array<any>}
+ */
+function selectFailures(testInfo) {
+  if (!testInfo || !Array.isArray(testInfo.results)) return [];
+  return testInfo.results.filter(
+    (entry) =>
+      entry.result === "FAILURE" ||
+      entry.result === "WARNING" ||
+      entry.result === "SKIPPED" ||
+      entry.result === "INTERRUPTED",
+  );
+}
+
+/**
+ * Push a fresh `testInfo` to the header and the filtered failures to the
+ * page-level summary. Single update site so any future re-fetch path
+ * (uploaded-images stamping, runner-poll state changes, etc.) keeps both
+ * instances in sync without duplicating the filter.
+ *
+ * @param {any} testInfo
+ */
+function applyTestInfo(testInfo) {
+  /** @type {any} */
+  const header = document.getElementById("logDetailHeader");
+  if (header) header.testInfo = testInfo;
+  /** @type {any} */
+  const topFailureSummary = document.getElementById("ctsTopFailureSummary");
+  if (topFailureSummary) topFailureSummary.failures = selectFailures(testInfo);
+}
+
 /** ──────────── /api/info ──────────── */
 
 async function fetchTestInfo() {
@@ -172,8 +212,7 @@ async function fetchUploadedImageCount(testInfo) {
       for (let i = 0; i < count && i < stamped.length; i++) {
         stamped[i] = { ...stamped[i], upload: true };
       }
-      const header = document.getElementById("logDetailHeader");
-      if (header) header.testInfo = { ...testInfo, results: stamped };
+      applyTestInfo({ ...testInfo, results: stamped });
     }
   } catch (err) {
     console.warn("[log-detail-v2] /api/uploaded-images failed:", err);
@@ -564,9 +603,7 @@ function handleKeydown(event) {
   // without introducing a divergence in keyboard-shortcut behaviour
   // between the two pages during the rollout window.
   // eslint-disable-next-line deprecation/deprecation -- see comment above
-  const legacyPlatform = /** @type {string} */ (
-    /** @type {any} */ (navigator).platform || ""
-  );
+  const legacyPlatform = /** @type {string} */ (/** @type {any} */ (navigator).platform || "");
   const platform =
     (navigator.userAgentData && navigator.userAgentData.platform) ||
     legacyPlatform ||
@@ -633,7 +670,7 @@ async function bootstrap() {
     return;
   }
 
-  if (header) header.testInfo = testInfo;
+  applyTestInfo(testInfo);
   updateBreadcrumb(testInfo);
 
   if (viewer) {
