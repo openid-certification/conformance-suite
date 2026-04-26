@@ -313,6 +313,16 @@ cd frontend && ./node_modules/.bin/playwright test e2e/home.spec.js
 - Fixture data lives in `frontend/e2e/fixtures/` as ES modules
 - The `wrapDataTablesResponse()` helper wraps plain arrays in the `{draw, recordsTotal, recordsFiltered, data}` envelope for pages using jQuery DataTables with `serverSide: true` (plans.html, logs.html)
 
+## Icons
+
+All icons render via `<cts-icon name="<kebab>" size="16|20|24">`. The icon library is **coolicons v4.1**, vendored as per-icon SVG files at `src/main/resources/static/vendor/coolicons/icons/{name}.svg` — one file per icon, each ~3 KB, served individually. HTTP/2 multiplexes the small parallel requests, the browser caches per URL, and only the icons actually used hit the network.
+
+- **Usage:** `<cts-icon name="external-link" size="20">` — the `name` attribute is the filename (without `.svg`); the `size` value is one of `16` / `20` / `24` (legacy aliases `sm`/`md`/`lg` still work). Sizes track `--space-4`/`--space-5`/`--space-6` and stroke colour follows `currentColor`, so consumers do not need any additional styling for theming.
+- **Discoverability:** browse the AllIcons grid in Storybook (**Primitives/cts-icon → AllIcons**) for the full list of vendored names. Or `ls src/main/resources/static/vendor/coolicons/icons/`.
+- **Adding a new icon:** when a call site needs an icon that isn't already vendored, follow the one-shot Python snippet documented in `src/main/resources/static/vendor/coolicons/README.md` (extract one symbol from the upstream sprite into a per-icon file). Do NOT add a build step.
+- **Brand glyphs (Google, GitLab):** intentionally outside `cts-icon`. coolicons does not ship brand marks. Brand SVGs are inlined as `html\`<svg ...>\`` constants in `src/main/resources/static/components/cts-login-page.js` and used only there. If a future call site needs a brand mark, follow the same colocation pattern; do NOT add brand glyphs to the coolicons set.
+- **Do NOT:** hand-roll inline `<svg>` paths for icons (use `cts-icon`); reference Bootstrap Icons (`bi-*` classes — removed); construct icon classes via string concatenation (no `className = \`bi bi-\${name}\`` — create a `cts-icon` element instead).
+
 ## Frontend quality gates
 
 Lint, format, and type-check for the frontend are covered by the `frontend_lint` GitLab job, mirrored locally by `npm run test:ci` from `frontend/` (format:check → lint → type-check → lint:jsdoc → lint:lit-analyzer). See `frontend/README.md` for the command reference and failure-mode decoder. `lit-analyzer` provides Lit-aware template diagnostics (unknown elements, wrong binding sigils, unclosed tags); `ts-lit-plugin` exposes the same diagnostics inside TypeScript-language-service IDEs.
