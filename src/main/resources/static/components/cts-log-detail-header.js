@@ -61,6 +61,24 @@ const RESULT_TYPE_BADGE_VARIANTS = {
   info: "info-subtle",
 };
 
+/**
+ * Per-condition result key -> compact glyph used in the sticky status bar's
+ * result-pill cluster (e.g. `✓ 47`, `✗ 3`). The verbose `_renderResultBadges`
+ * renders the same data as `SUCCESS 47` / `FAILURE 3` for the metadata card
+ * below the bar; the bar's pills shrink to a leading glyph + count so the
+ * cluster fits between the status pill and the primary action at tablet
+ * widths. Lookup table per components/AGENTS.md §7 (no dynamic class
+ * concatenation).
+ * @type {Object.<string, string>}
+ */
+const RESULT_TYPE_PILL_GLYPHS = {
+  success: "✓",
+  failure: "✗",
+  warning: "⚠",
+  review: "?",
+  info: "ⓘ",
+};
+
 const STYLE_ID = "cts-log-detail-header-styles";
 
 // Scoped CSS for the log-detail header. All values flow from oidf-tokens.css.
@@ -70,6 +88,76 @@ const STYLE_ID = "cts-log-detail-header-styles";
 const STYLE_TEXT = `
   cts-log-detail-header {
     display: block;
+  }
+
+  /* Sticky status bar (Region A in the brainstorm IA).
+     Lives above the legacy header card. Sticky-positions at tablet
+     and above; on mobile it scrolls away with the rest of the page so
+     the multi-line bar does not steal vertical room.
+     Z-index 10 keeps the bar above the connection-lost banner
+     (z-index 9 in cts-log-viewer's own styles) and above the legacy
+     header card (no z-index, default auto). */
+  cts-log-detail-header .ctsStatusBar {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    grid-template-areas:
+      "left   middle  primary"
+      "name   name    name";
+    column-gap: var(--space-3);
+    row-gap: var(--space-1);
+    align-items: center;
+    padding: var(--space-3) var(--space-4);
+    background: var(--bg-elev);
+    border-bottom: 1px solid var(--border);
+    z-index: 10;
+  }
+  cts-log-detail-header .ctsStatusBarLeft {
+    grid-area: left;
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    flex-wrap: wrap;
+  }
+  cts-log-detail-header .ctsStatusBarMiddle {
+    grid-area: middle;
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    flex-wrap: wrap;
+    min-width: 0;
+  }
+  cts-log-detail-header .ctsStatusBarSupport {
+    color: var(--fg-muted);
+    font-size: var(--fs-13);
+  }
+  cts-log-detail-header .ctsStatusBarPrimary {
+    grid-area: primary;
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+  }
+  /* Reserved for U7 (action overflow popover trigger). U2 ships this slot
+     empty; the slot host is the focus-trapping popover U7 attaches to.
+     Mirrors the data-slot="browser" / data-slot="error" pattern that
+     log-detail-v2.js already uses for page-level injection. */
+  cts-log-detail-header .ctsStatusBarOverflow {
+    display: contents;
+  }
+  cts-log-detail-header .ctsStatusBarTestName {
+    grid-area: name;
+    color: var(--fg-soft);
+    font-size: var(--fs-13);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 0;
+  }
+  @media (min-width: 640px) {
+    cts-log-detail-header .ctsStatusBar {
+      position: sticky;
+      top: 0;
+      box-shadow: var(--shadow-1);
+    }
   }
 
   cts-log-detail-header .logHeaderCard,
@@ -513,6 +601,138 @@ class CtsLogDetailHeader extends LitElement {
     return this.isPublic;
   }
 
+  // Sticky status bar (Region A). Three sibling render methods adapt to the
+  // lifecycle: _renderWaitingBar for WAITING, _renderRunningBar for RUNNING,
+  // _renderFinishedBar for FINISHED / INTERRUPTED. The bar publishes its
+  // measured height as --status-bar-height on document.documentElement for
+  // downstream sticky descendants (connection-lost banner, R32 entry anchors,
+  // U7 overflow popover). The same DOM node (id="ctsLogStatusBar") re-renders
+  // content as testInfo.status flips so Lit's reactive update swaps content
+  // without a full remount.
+  _renderStatusBar(test) {
+    const status = (test.status || "").toUpperCase();
+    if (status === "WAITING") return this._renderWaitingBar(test);
+    if (status === "RUNNING") return this._renderRunningBar(test);
+    return this._renderFinishedBar(test);
+  }
+
+  _renderStatusPill(status) {
+    if (!status) return nothing;
+    return html`<cts-badge
+      variant="${STATUS_BADGE_VARIANTS[status] || "skip"}"
+      label="${status}"
+    ></cts-badge>`;
+  }
+
+  _renderResultPills(counts) {
+    return RESULT_TYPES.filter((type) => counts[type] > 0).map(
+      (type) =>
+        html`<cts-badge
+          variant="${RESULT_TYPE_BADGE_VARIANTS[type]}"
+          label="${RESULT_TYPE_PILL_GLYPHS[type]} ${counts[type]}"
+          data-testid="status-bar-pill-${type}"
+        ></cts-badge>`,
+    );
+  }
+
+  _renderStatusBarTestName(test) {
+    const name = test.testName || "";
+    if (!name) return nothing;
+    return html`<div class="ctsStatusBarTestName" title="${name}">${name}</div>`;
+  }
+
+  _renderStatusBarOverflowSlot() {
+    // Reserved for U7 (action overflow popover trigger). Empty in U2.
+    // The slot's `data-slot` attribute mirrors the existing `data-slot=
+    // "browser"` / `data-slot="error"` pattern so page-level / U7 code
+    // can address it without coupling to Lit-internal binding ids.
+    return html`<div class="ctsStatusBarOverflow" data-slot="action-overflow"></div>`;
+  }
+
+  _renderWaitingBar(test) {
+    return html`
+      <div class="ctsStatusBar" id="ctsLogStatusBar" data-testid="status-bar">
+        <div class="ctsStatusBarLeft">
+          ${this._renderStatusPill("WAITING")}
+          <span class="ctsStatusBarSupport">Waiting for user input</span>
+        </div>
+        <div class="ctsStatusBarMiddle"></div>
+        <div class="ctsStatusBarPrimary">
+          <cts-button
+            variant="primary"
+            size="sm"
+            icon="play"
+            label="Start"
+            data-testid="status-bar-primary"
+            @cts-click=${this._handleStartTest}
+          ></cts-button>
+          ${this._renderStatusBarOverflowSlot()}
+        </div>
+        ${this._renderStatusBarTestName(test)}
+      </div>
+    `;
+  }
+
+  _renderRunningBar(test) {
+    const counts = this._getResultCounts();
+    return html`
+      <div class="ctsStatusBar" id="ctsLogStatusBar" data-testid="status-bar">
+        <div class="ctsStatusBarLeft">
+          ${this._renderStatusPill("RUNNING")}
+          <span class="ctsStatusBarSupport">Test running</span>
+        </div>
+        <div class="ctsStatusBarMiddle" data-testid="status-bar-pills">
+          ${this._renderResultPills(counts)}
+        </div>
+        <div class="ctsStatusBarPrimary">
+          <cts-button
+            variant="secondary"
+            size="sm"
+            icon="stop"
+            label="Stop"
+            data-testid="status-bar-primary"
+            @cts-click=${this._handleStopTest}
+          ></cts-button>
+          ${this._renderStatusBarOverflowSlot()}
+        </div>
+        ${this._renderStatusBarTestName(test)}
+      </div>
+    `;
+  }
+
+  _renderFinishedBar(test) {
+    const counts = this._getResultCounts();
+    const resultVariant = RESULT_BADGE_VARIANTS[test.result] || "skip";
+    const readonly = this._isReadonly();
+    return html`
+      <div class="ctsStatusBar" id="ctsLogStatusBar" data-testid="status-bar">
+        <div class="ctsStatusBarLeft">
+          ${test.result
+            ? html`<cts-badge variant="${resultVariant}" label="${test.result}"></cts-badge>`
+            : nothing}
+          ${this._renderStatusPill(test.status)}
+        </div>
+        <div class="ctsStatusBarMiddle" data-testid="status-bar-pills">
+          ${this._renderResultPills(counts)}
+        </div>
+        <div class="ctsStatusBarPrimary">
+          ${!readonly
+            ? html`<cts-button
+                variant="primary"
+                size="sm"
+                icon="arrow-down-up"
+                label="Repeat"
+                data-testid="status-bar-primary"
+                @cts-click=${this._handleRepeatTest}
+              ></cts-button>`
+            : nothing}
+          ${this._renderStatusBarOverflowSlot()}
+        </div>
+        ${this._renderStatusBarTestName(test)}
+      </div>
+    `;
+  }
+
   _renderTestInfoCard() {
     const test = this.testInfo;
     const variantStr = this._formatVariant(test.variant);
@@ -935,8 +1155,48 @@ class CtsLogDetailHeader extends LitElement {
     if (!this.testInfo) return nothing;
 
     return html`
-      ${this._renderTestInfoCard()} ${this._renderConfigPanel()} ${this._renderRunningTestInfo()}
+      ${this._renderStatusBar(this.testInfo)} ${this._renderTestInfoCard()}
+      ${this._renderConfigPanel()} ${this._renderRunningTestInfo()}
     `;
+  }
+
+  firstUpdated() {
+    this._observeStatusBar();
+  }
+
+  updated(changed) {
+    super.updated?.(changed);
+    // testInfo flips from null to non-null after the first /api/info fetch
+    // resolves, so the bar may not exist on the first render. Re-attempt
+    // the observer attach on every update until the bar is in the DOM.
+    if (!this._resizeObserver) this._observeStatusBar();
+  }
+
+  disconnectedCallback() {
+    super.disconnectedCallback();
+    if (this._resizeObserver) {
+      this._resizeObserver.disconnect();
+      this._resizeObserver = null;
+    }
+    // Clear the published custom property so a different page mounted
+    // afterwards does not inherit a stale measurement.
+    document.documentElement.style.removeProperty("--status-bar-height");
+  }
+
+  _observeStatusBar() {
+    const bar = this.querySelector(".ctsStatusBar");
+    if (!bar) return;
+    if (this._resizeObserver) return;
+    this._publishStatusBarHeight();
+    this._resizeObserver = new ResizeObserver(() => this._publishStatusBarHeight());
+    this._resizeObserver.observe(bar);
+  }
+
+  _publishStatusBarHeight() {
+    const bar = this.querySelector(".ctsStatusBar");
+    if (!bar) return;
+    const height = bar.getBoundingClientRect().height;
+    document.documentElement.style.setProperty("--status-bar-height", `${Math.ceil(height)}px`);
   }
 }
 

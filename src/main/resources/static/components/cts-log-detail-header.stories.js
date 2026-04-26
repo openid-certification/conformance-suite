@@ -700,3 +700,214 @@ export const WithTestNavControls = {
     expect(navHost.getAttribute("test-id")).toBe(COMPLETED_TEST.testId);
   },
 };
+
+// --- U2: mode-aware sticky status bar (Region A) ---
+// Plan: docs/plans/2026-04-26-003-feat-status-bar-sticky-and-mode-aware-plan.md
+// Each lifecycle (WAITING / RUNNING / FINISHED-PASSED / FINISHED-FAILED /
+// INTERRUPTED) renders a different combination of status pill, supporting
+// text, and primary action inside the bar's three columns. The bar
+// publishes its measured height as `--status-bar-height` on
+// document.documentElement so downstream sticky descendants
+// (connection-lost banner, R32 anchors, U7 overflow popover) coordinate
+// without re-measuring.
+
+const WAITING_TEST = {
+  ...MOCK_TEST_RUNNING,
+  status: "WAITING",
+  result: null,
+};
+
+const INTERRUPTED_TEST = {
+  ...MOCK_TEST_FAILED,
+  status: "INTERRUPTED",
+  result: "INTERRUPTED",
+  results: MOCK_RESULTS_WITH_FAILURES,
+};
+
+const RUNNING_TEST_WITH_RESULTS = {
+  ...MOCK_TEST_RUNNING,
+  results: MOCK_RESULTS,
+};
+
+export const StatusBarWaiting = {
+  render: () => html`<cts-log-detail-header .testInfo=${WAITING_TEST}></cts-log-detail-header>`,
+  async play({ canvasElement }) {
+    const bar = await waitFor(() => {
+      const el = canvasElement.querySelector('[data-testid="status-bar"]');
+      if (!el) throw new Error("status bar not yet rendered");
+      return el;
+    });
+
+    // Status pill renders WAITING on the warn palette.
+    const pill = bar.querySelector('cts-badge[label="WAITING"]');
+    expect(pill).toBeTruthy();
+    expect(pill.getAttribute("variant")).toBe("warn");
+
+    // Supporting text matches the R19 phrasing.
+    expect(bar.textContent).toContain("Waiting for user input");
+
+    // Primary action is "Start" and fires cts-start-test on click.
+    const primaryHost = bar.querySelector('[data-testid="status-bar-primary"]');
+    expect(primaryHost).toBeTruthy();
+    expect(within(primaryHost).getByText(/Start/)).toBeInTheDocument();
+
+    const startHandler = fn();
+    canvasElement.addEventListener("cts-start-test", startHandler);
+    await userEvent.click(innerButton(canvasElement, "status-bar-primary"));
+    expect(startHandler).toHaveBeenCalledOnce();
+    expect(startHandler.mock.calls[0][0].detail.testId).toBe(WAITING_TEST.testId);
+  },
+};
+
+export const StatusBarRunning = {
+  render: () =>
+    html`<cts-log-detail-header .testInfo=${RUNNING_TEST_WITH_RESULTS}></cts-log-detail-header>`,
+  async play({ canvasElement }) {
+    const bar = await waitFor(() => {
+      const el = canvasElement.querySelector('[data-testid="status-bar"]');
+      if (!el) throw new Error("status bar not yet rendered");
+      return el;
+    });
+
+    // Status pill renders RUNNING on the running palette.
+    const pill = bar.querySelector('cts-badge[label="RUNNING"]');
+    expect(pill).toBeTruthy();
+    expect(pill.getAttribute("variant")).toBe("running");
+
+    // Result-pill cluster renders compact glyphs + counts. Two SUCCESS,
+    // one INFO, one WARNING in MOCK_RESULTS — failure/review are zero so
+    // they are filtered out.
+    const pillCluster = bar.querySelector('[data-testid="status-bar-pills"]');
+    expect(pillCluster).toBeTruthy();
+    expect(pillCluster.querySelector('cts-badge[label="✓ 2"]')).toBeTruthy();
+    expect(pillCluster.querySelector('cts-badge[label="⚠ 1"]')).toBeTruthy();
+    expect(pillCluster.querySelector('cts-badge[label="ⓘ 1"]')).toBeTruthy();
+
+    // Primary action is "Stop" and fires cts-stop-test.
+    expect(within(bar).getByText(/Stop/)).toBeInTheDocument();
+    const stopHandler = fn();
+    canvasElement.addEventListener("cts-stop-test", stopHandler);
+    await userEvent.click(innerButton(canvasElement, "status-bar-primary"));
+    expect(stopHandler).toHaveBeenCalledOnce();
+  },
+};
+
+export const StatusBarFinishedPassed = {
+  render: () => html`<cts-log-detail-header .testInfo=${COMPLETED_TEST}></cts-log-detail-header>`,
+  async play({ canvasElement }) {
+    const bar = await waitFor(() => {
+      const el = canvasElement.querySelector('[data-testid="status-bar"]');
+      if (!el) throw new Error("status bar not yet rendered");
+      return el;
+    });
+
+    // Result pill (PASSED on pass palette) renders alongside FINISHED on
+    // skip palette. Both live inside the bar, both are addressable.
+    const passedPill = bar.querySelector('cts-badge[variant="pass"][label="PASSED"]');
+    const finishedPill = bar.querySelector('cts-badge[variant="skip"][label="FINISHED"]');
+    expect(passedPill).toBeTruthy();
+    expect(finishedPill).toBeTruthy();
+
+    // Primary action is "Repeat" and fires cts-repeat-test.
+    expect(within(bar).getByText(/Repeat/)).toBeInTheDocument();
+    const repeatHandler = fn();
+    canvasElement.addEventListener("cts-repeat-test", repeatHandler);
+    await userEvent.click(innerButton(canvasElement, "status-bar-primary"));
+    expect(repeatHandler).toHaveBeenCalledOnce();
+    expect(repeatHandler.mock.calls[0][0].detail.testId).toBe(COMPLETED_TEST.testId);
+
+    // Test name shows on row 2 (truncated container).
+    const testName = bar.querySelector(".ctsStatusBarTestName");
+    expect(testName).toBeTruthy();
+    expect(testName.textContent).toContain(COMPLETED_TEST.testName);
+  },
+};
+
+export const StatusBarFinishedFailed = {
+  render: () => html`<cts-log-detail-header .testInfo=${FAILED_TEST}></cts-log-detail-header>`,
+  async play({ canvasElement }) {
+    const bar = await waitFor(() => {
+      const el = canvasElement.querySelector('[data-testid="status-bar"]');
+      if (!el) throw new Error("status bar not yet rendered");
+      return el;
+    });
+
+    // FAILED on fail palette + FINISHED on skip palette.
+    expect(bar.querySelector('cts-badge[variant="fail"][label="FAILED"]')).toBeTruthy();
+    expect(bar.querySelector('cts-badge[variant="skip"][label="FINISHED"]')).toBeTruthy();
+
+    // Failure count flows into the result-pill cluster.
+    const pillCluster = bar.querySelector('[data-testid="status-bar-pills"]');
+    expect(pillCluster.querySelector('cts-badge[label="✗ 2"]')).toBeTruthy();
+    expect(pillCluster.querySelector('[data-testid="status-bar-pill-failure"]')).toBeTruthy();
+  },
+};
+
+export const StatusBarInterrupted = {
+  render: () => html`<cts-log-detail-header .testInfo=${INTERRUPTED_TEST}></cts-log-detail-header>`,
+  async play({ canvasElement }) {
+    const bar = await waitFor(() => {
+      const el = canvasElement.querySelector('[data-testid="status-bar"]');
+      if (!el) throw new Error("status bar not yet rendered");
+      return el;
+    });
+
+    // RESULT_BADGE_VARIANTS["INTERRUPTED"] === "fail" — verifies the
+    // mapping flows through the bar's _renderFinishedBar path.
+    const resultPill = bar.querySelector('cts-badge[label="INTERRUPTED"][variant="fail"]');
+    expect(resultPill).toBeTruthy();
+
+    // Status pill (separate badge) also renders INTERRUPTED on fail palette.
+    const statusPills = bar.querySelectorAll('cts-badge[label="INTERRUPTED"]');
+    expect(statusPills.length).toBeGreaterThanOrEqual(2);
+  },
+};
+
+export const StatusBarStickyOnScroll = {
+  render: () => html`
+    <div style="height: 2000px;">
+      <cts-log-detail-header .testInfo=${COMPLETED_TEST}></cts-log-detail-header>
+    </div>
+  `,
+  async play({ canvasElement }) {
+    const bar = await waitFor(() => {
+      const el = canvasElement.querySelector('[data-testid="status-bar"]');
+      if (!el) throw new Error("status bar not yet rendered");
+      return el;
+    });
+
+    // The bar is sticky at >= 640px. Storybook canvas in test mode is
+    // typically wider than the breakpoint; assert the computed
+    // `position` is `sticky`. (Avoid scroll-based assertions because
+    // the test runner's viewport size and scroll container are
+    // deterministic only at the computed-style level.)
+    const computed = getComputedStyle(bar);
+    expect(computed.position).toBe("sticky");
+    expect(computed.top).toBe("0px");
+    // z-index 10 stacks the bar above the connection-lost banner (9).
+    expect(computed.zIndex).toBe("10");
+  },
+};
+
+export const StatusBarPublishesHeightCustomProperty = {
+  render: () => html`<cts-log-detail-header .testInfo=${COMPLETED_TEST}></cts-log-detail-header>`,
+  async play({ canvasElement }) {
+    await waitFor(() => {
+      const el = canvasElement.querySelector('[data-testid="status-bar"]');
+      if (!el) throw new Error("status bar not yet rendered");
+      return el;
+    });
+
+    // After firstUpdated() runs the ResizeObserver attach + initial
+    // publish, document.documentElement carries an inline
+    // --status-bar-height value matching the bar's measured height.
+    await waitFor(() => {
+      const value = getComputedStyle(document.documentElement)
+        .getPropertyValue("--status-bar-height")
+        .trim();
+      // Non-zero, non-empty pixel value (e.g. "44px").
+      expect(value).toMatch(/^\d+px$/);
+      expect(value).not.toBe("0px");
+    });
+  },
+};

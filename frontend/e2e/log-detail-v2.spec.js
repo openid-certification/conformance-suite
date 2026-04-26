@@ -168,9 +168,7 @@ test.describe("log-detail-v2.html — new Lit-triad page", () => {
             },
             { once: true },
           );
-          const inner = document.querySelector(
-            'cts-button[data-testid="edit-config-btn"] button',
-          );
+          const inner = document.querySelector('cts-button[data-testid="edit-config-btn"] button');
           if (inner) /** @type {HTMLButtonElement} */ (inner).click();
         });
       })
@@ -256,5 +254,69 @@ test.describe("log-detail-v2.html — new Lit-triad page", () => {
     });
 
     expect(eventDetail).toMatchObject({ entryId: expect.any(String) });
+  });
+
+  test("sticky status bar pins to the top of the viewport on scroll", async ({ page }) => {
+    // U2: <cts-log-detail-header>'s status bar uses position: sticky at
+    // >= 640px. Playwright's default viewport (1280x720) sits in that
+    // range. The bar publishes its measured height to
+    // document.documentElement.--status-bar-height, which downstream
+    // sticky descendants (connection-lost banner, R32 entry anchors)
+    // read for top-offset coordination.
+    // Plan: docs/plans/2026-04-26-003-feat-status-bar-sticky-and-mode-aware-plan.md
+    await setupFailFast(page);
+    await setupV2Routes(page, {
+      testInfo: MOCK_TEST_STATUS,
+      logEntries: MOCK_LOG_ENTRIES,
+    });
+    await setupCommonRoutes(page);
+
+    await page.goto(`/log-detail-v2.html?log=${encodeURIComponent(MOCK_TEST_STATUS.testId)}`);
+
+    // Wait for the bar to mount before measuring.
+    const bar = page.locator('[data-testid="status-bar"]');
+    await expect(bar).toBeVisible();
+
+    // The component publishes a non-zero pixel value to the inline style
+    // on document.documentElement after firstUpdated() runs the
+    // ResizeObserver attach + initial measure. Downstream descendants
+    // (banner, R32 anchors) read this property for top-offset.
+    await expect
+      .poll(async () =>
+        page.evaluate(() =>
+          getComputedStyle(document.documentElement).getPropertyValue("--status-bar-height").trim(),
+        ),
+      )
+      .toMatch(/^\d+px$/);
+
+    const publishedHeight = await page.evaluate(() =>
+      getComputedStyle(document.documentElement).getPropertyValue("--status-bar-height").trim(),
+    );
+    expect(publishedHeight).not.toBe("0px");
+
+    // Pad the body so a 1200px scroll has somewhere to go without
+    // depending on the height of mock log entries.
+    await page.evaluate(() => {
+      document.body.style.minHeight = "3000px";
+    });
+    await page.evaluate(() => window.scrollTo(0, 1200));
+
+    // After scrolling, the sticky bar should still report top === 0
+    // because it pins to the viewport, not the document.
+    const top = await bar.evaluate((el) => el.getBoundingClientRect().top);
+    expect(top).toBe(0);
+
+    // Primary action button stays in the viewport (its top y is
+    // less than viewport height) so it remains clickable through
+    // the scroll. boundingBox() returns null only for elements with
+    // display: none / not in layout — the visibility assertion above
+    // already excludes that case, so destructure with a non-null cast.
+    const primary = page.locator('[data-testid="status-bar-primary"]');
+    const primaryBox = /** @type {{ x: number; y: number; width: number; height: number }} */ (
+      await primary.boundingBox()
+    );
+    expect(primaryBox).not.toBeNull();
+    const viewportHeight = page.viewportSize()?.height ?? 720;
+    expect(primaryBox.y).toBeLessThan(viewportHeight);
   });
 });
