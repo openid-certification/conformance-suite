@@ -51,7 +51,6 @@ import net.openid.conformance.condition.as.CreateMdocCredentialForVCI;
 import net.openid.conformance.condition.as.CreatePAREndpointDpopErrorResponse;
 import net.openid.conformance.condition.as.CreatePAREndpointInvalidClientErrorResponse;
 import net.openid.conformance.condition.as.CreateTokenEndpointInvalidClientErrorResponse;
-import net.openid.conformance.condition.as.CreateRefreshToken;
 import net.openid.conformance.condition.as.CreateSdJwtCredential;
 import net.openid.conformance.condition.as.CreateTokenEndpointDpopErrorResponse;
 import net.openid.conformance.condition.as.CreateTokenEndpointResponse;
@@ -61,7 +60,6 @@ import net.openid.conformance.condition.as.EnsureClientCertificateMatches;
 import net.openid.conformance.condition.as.EnsureClientIdInAuthorizationRequestParametersMatchRequestObject;
 import net.openid.conformance.condition.as.EnsureClientJwksDoesNotContainPrivateOrSymmetricKeys;
 import net.openid.conformance.condition.as.EnsureMatchingClientId;
-import net.openid.conformance.condition.as.EnsureMatchingRedirectUriInRequestObject;
 import net.openid.conformance.condition.as.EnsureNumericRequestObjectClaimsAreNotNull;
 import net.openid.conformance.condition.as.EnsurePAREndpointRequestDoesNotContainRequestUriParameter;
 import net.openid.conformance.condition.as.EnsureRequestObjectDoesNotContainRequestOrRequestUri;
@@ -106,7 +104,6 @@ import net.openid.conformance.condition.as.ValidateClientAssertionClaims;
 import net.openid.conformance.condition.as.ValidateClientAssertionClaimsForPAREndpoint;
 import net.openid.conformance.condition.as.ValidateEncryptedRequestObjectHasKid;
 import net.openid.conformance.condition.as.ValidateFAPIInteractionIdInResourceRequest;
-import net.openid.conformance.condition.as.ValidateRedirectUri;
 import net.openid.conformance.condition.as.ValidateRefreshToken;
 import net.openid.conformance.condition.as.ValidateRequestObjectClaims;
 import net.openid.conformance.condition.as.ValidateRequestObjectMaxAge;
@@ -386,28 +383,6 @@ public abstract class AbstractVCIWalletTest extends net.openid.conformance.fapi2
 	@Override
 	protected void addCustomValuesToIdToken() {
 		//Do nothing
-	}
-
-	@Override
-	protected void addCustomSignatureOfIdToken() {
-	}
-
-	@Override
-	protected void addCustomValuesToAuthorizationResponse() {
-	}
-
-	@Override
-	protected void endTestIfRequiredParametersAreMissing() {
-	}
-
-	@Override
-	protected Boolean isDpopConstrain() {
-		return fapi2SenderConstrainMethod == FAPI2SenderConstrainMethod.DPOP;
-	}
-
-	@Override
-	protected Boolean isMTLSConstrain() {
-		return fapi2SenderConstrainMethod == FAPI2SenderConstrainMethod.MTLS;
 	}
 
 	protected boolean isChallengeEndpointSupported() {
@@ -879,20 +854,6 @@ public abstract class AbstractVCIWalletTest extends net.openid.conformance.fapi2
 		if (requestClientId.equals(client2Id)) {
 			switchToSecondClient();
 		}
-	}
-
-	@Override
-	protected void switchToSecondClient() {
-		env.mapKey("client", "client2");
-		env.mapKey("client_jwks", "client_jwks2");
-		env.mapKey("client_public_jwks", "client_public_jwks2");
-	}
-
-	@Override
-	protected void unmapClient() {
-		env.unmapKey("client");
-		env.unmapKey("client_jwks");
-		env.unmapKey("client_public_jwks");
 	}
 
 	@Override
@@ -2147,10 +2108,6 @@ public abstract class AbstractVCIWalletTest extends net.openid.conformance.fapi2
 	}
 
 	@Override
-	protected void addCustomValuesToParResponse() {
-	}
-
-	@Override
 	protected JsonObject createPAREndpointResponse() {
 		callAndStopOnFailure(CreatePAREndpointResponse.class, "PAR-2.2");
 		addCustomValuesToParResponse();
@@ -2200,22 +2157,6 @@ public abstract class AbstractVCIWalletTest extends net.openid.conformance.fapi2
 			responseEntity = new ResponseEntity<>(user, HttpStatus.OK);
 		}
 		return responseEntity;
-	}
-
-	@Override
-	protected Object jwksEndpoint() {
-		return jwksEndpoint("server_public_jwks");
-	}
-
-	@Override
-	protected Object jwksEndpoint(String jwksReference) {
-
-		setStatus(Status.RUNNING);
-		JsonObject jwks = env.getObject(jwksReference);
-
-		setStatus(Status.WAITING);
-
-		return new ResponseEntity<Object>(jwks, HttpStatus.OK);
 	}
 
 	@Override
@@ -2411,11 +2352,6 @@ public abstract class AbstractVCIWalletTest extends net.openid.conformance.fapi2
 	}
 
 	@Override
-	protected void validateRedirectUriForAuthorizationCodeGrantType() {
-		callAndContinueOnFailure(ValidateRedirectUri.class, ConditionResult.FAILURE);
-	}
-
-	@Override
 	protected Object authorizationCodeGrantType(String requestId) {
 		senderConstrainTokenRequestHelper.checkTokenRequest();
 
@@ -2502,34 +2438,6 @@ public abstract class AbstractVCIWalletTest extends net.openid.conformance.fapi2
 			case SIMPLE ->
 				// we always add authorization_details to the token endpoint response
 				callAndStopOnFailure(RARSupport.AddRarToTokenEndpointResponse.class);
-		}
-	}
-
-	@Override
-	protected void setAuthorizationEndpointRequestParamsForHttpMethod() {
-		String httpMethod = env.getString("authorization_endpoint_http_request", "method");
-		JsonObject httpRequestObj = env.getObject("authorization_endpoint_http_request");
-		if ("POST".equals(httpMethod)) {
-			env.putObject("authorization_endpoint_http_request_params", httpRequestObj.getAsJsonObject("body_form_params"));
-		} else if ("GET".equals(httpMethod)) {
-			env.putObject("authorization_endpoint_http_request_params", httpRequestObj.getAsJsonObject("query_string_params"));
-		} else {
-			//this should not happen?
-			throw new TestFailureException(getId(), "Got unexpected HTTP method to authorization endpoint");
-		}
-	}
-
-	/**
-	 * Saves the PAR authorization request params in case it's unsigned/unencrypted
-	 */
-	@Override
-	protected void setParAuthorizationEndpointRequestParamsForHttpMethod() {
-		String httpMethod = env.getString("par_endpoint_http_request", "method");
-		JsonObject httpRequestObj = env.getObject("par_endpoint_http_request");
-		if ("POST".equals(httpMethod)) {
-			env.putObject("par_endpoint_http_request_params", httpRequestObj.getAsJsonObject("body_form_params"));
-		} else {
-			throw new TestFailureException(getId(), "Got unexpected HTTP method '" + httpMethod + "' to par endpoint");
 		}
 	}
 
@@ -2641,11 +2549,6 @@ public abstract class AbstractVCIWalletTest extends net.openid.conformance.fapi2
 		callAndContinueOnFailure(EnsureRequestObjectDoesNotContainSubWithClientId.class, ConditionResult.FAILURE, "JAR-10.8");
 		callAndStopOnFailure(ValidateRequestObjectSignature.class, "FAPI2-MS-ID1-5.3.1-1");
 		validateRedirectUriInRequestObject();
-	}
-
-	@Override
-	protected void validateRedirectUriInRequestObject() {
-		callAndContinueOnFailure(EnsureMatchingRedirectUriInRequestObject.class, ConditionResult.FAILURE);
 	}
 
 	@Override
@@ -2795,11 +2698,6 @@ public abstract class AbstractVCIWalletTest extends net.openid.conformance.fapi2
 	}
 
 	@Override
-	protected void issueRefreshToken() {
-		callAndStopOnFailure(CreateRefreshToken.class);
-	}
-
-	@Override
 	protected void prepareIdTokenClaims(boolean isAuthorizationEndpoint) {
 
 		//3.3.3.6 The at_hash and c_hash Claims MAY be omitted from the ID Token returned from the Token Endpoint even when these Claims are present in the ID Token returned from the Authorization Endpoint,
@@ -2899,10 +2797,6 @@ public abstract class AbstractVCIWalletTest extends net.openid.conformance.fapi2
 				CreateEffectiveAuthorizationRequestParameters.STATE, ConditionResult.INFO,
 				CheckStateLength.class, ConditionResult.WARNING);
 		}
-	}
-
-	@Override
-	protected void addCustomValuesToJarmResponse() {
 	}
 
 	@Override
@@ -3056,19 +2950,4 @@ public abstract class AbstractVCIWalletTest extends net.openid.conformance.fapi2
 		senderConstrainTokenRequestHelper = new DPopTokenRequestHelper();
 	}
 
-	@Override
-	protected void startWaitingForTimeout() {
-		this.startingShutdown = true;
-		getTestExecutionManager().runInBackground(() -> {
-			Thread.sleep(waitTimeoutSeconds * 1000);
-			if (getStatus().equals(Status.WAITING)) {
-				setStatus(Status.RUNNING);
-				//As the client hasn't called the token endpoint after 5 seconds, assume it has correctly detected the error and aborted.
-				fireTestFinished();
-			}
-
-			return "done";
-
-		});
-	}
 }
