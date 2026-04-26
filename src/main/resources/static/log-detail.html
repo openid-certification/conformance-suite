@@ -807,7 +807,7 @@
                     // R21: nav cluster (Return to Plan / Repeat Test /
                     // Continue Plan / progress) replaces the legacy
                     // reloadBtn / planBtn / nextPlanBtn IDs. The widget
-                    // emits cts-repeat / cts-continue / cts-back; the
+                    // emits cts-repeat / cts-continue; the
                     // /api/plan fetch below sets currentIndex /
                     // totalCount / nextEnabled once plan data is in.
                     var navControls = document.getElementById('testNavControls');
@@ -996,15 +996,10 @@
 
                     // Return-to-Plan navigation lives on the
                     // cts-test-nav-controls widget — it renders a
-                    // real <a href> that supports middle-click and
-                    // Cmd-click. The cts-back event fires alongside
-                    // for instrumentation; no preventDefault here so
-                    // native navigation still happens.
-                    if (data.planId && navControls) {
-                        navControls.addEventListener('cts-back', function() {
-                            // intentionally empty — native <a> handles navigation
-                        });
-                    }
+                    // real <a href> via cts-link-button that supports
+                    // middle-click and Cmd-click. No page-level
+                    // listener is needed; native link navigation
+                    // drives the transition to plan-detail.html.
 
                     if (!readonly && data.planId) {
                         fetch('/api/plan/' + encodeURIComponent(data.planId))

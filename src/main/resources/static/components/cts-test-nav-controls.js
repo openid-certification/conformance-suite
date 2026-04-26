@@ -85,8 +85,11 @@ function ensureStylesInjected() {
  * end-of-plan feedback.
  *
  * Return-to-Plan is a real `<a href>` (via cts-link-button) so middle-
- * click and Cmd-click open the plan in a new tab; the `cts-back` event
- * fires alongside for instrumentation parity.
+ * click and Cmd-click open the plan in a new tab. The widget does not
+ * fire a synthetic event on back-link activation — `cts-link-button`
+ * is a thin <a> wrapper without a `cts-click` event, and intercepting
+ * native link navigation would defeat the middle-click / Cmd-click
+ * affordance.
  *
  * @property {string} testId - Test instance ID; included in event details.
  * @property {string} planId - Parent plan ID. When falsy the widget
@@ -102,9 +105,6 @@ function ensureStylesInjected() {
  *   the Return-to-Plan link so the linked plan-detail page renders its
  *   public-share variant. Independent of `readonly` because a
  *   summary-published test is readonly but not (necessarily) public.
- * @fires cts-back - When Return to Plan is activated. The native link
- *   navigation still fires; this event is for instrumentation. Detail:
- *   `{ testId, planId }`. Bubbles.
  * @fires cts-repeat - When Repeat Test is clicked. Detail:
  *   `{ testId, planId }`. Bubbles.
  * @fires cts-continue - When Continue Plan is clicked. Detail:
@@ -139,15 +139,6 @@ class CtsTestNavControls extends LitElement {
 
   _detail() {
     return { testId: this.testId, planId: this.planId };
-  }
-
-  _handleBack() {
-    this.dispatchEvent(
-      new CustomEvent("cts-back", {
-        bubbles: true,
-        detail: this._detail(),
-      }),
-    );
   }
 
   _handleRepeat() {
@@ -209,7 +200,6 @@ class CtsTestNavControls extends LitElement {
         label="Return to Plan"
         href="${href}"
         data-testid="back-btn"
-        @cts-click=${this._handleBack}
       ></cts-link-button>
     `;
   }
