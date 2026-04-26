@@ -2,6 +2,7 @@ import { html } from "lit";
 import { expect, within, waitFor, userEvent } from "storybook/test";
 import { withMockFetch, withProgrammableFetch } from "@fixtures/helpers.js";
 import { MOCK_LOG_ENTRIES, MOCK_EMPTY_LOG, MOCK_SUCCESS_LOG } from "@fixtures/mock-log-entries.js";
+import { MOCK_TEST_STATUS } from "@fixtures/mock-test-data.js";
 import "./cts-log-viewer.js";
 
 export default {
@@ -172,6 +173,41 @@ export const RecoveryClearsBanner = {
     }
   },
 };
+
+// --- U1: log-detail-v2 page integration ---
+// Plan: docs/plans/2026-04-26-002-refactor-log-detail-page-to-lit-triad-plan.md
+// MountedFromExistingPage simulates how log-detail-v2.js mounts the viewer:
+// the bootstrap pre-fetches /api/info and passes the result via the new
+// `testInfo` reactive property, then the viewer's first /api/log poll fires
+// the cts-first-fetch-resolved event so the page can defer hash-anchor
+// scrolling until rows are in the DOM.
+
+export const MountedFromExistingPage = {
+  decorators: [withMockFetch("/api/log/", MOCK_LOG_ENTRIES)],
+  render: () =>
+    html`<cts-log-viewer test-id="test-inst-001" .testInfo=${MOCK_TEST_STATUS}></cts-log-viewer>`,
+  async play({ canvasElement }) {
+    await waitForLogLoad(canvasElement);
+
+    // testInfo flows through unchanged — the viewer doesn't render it
+    // (the header owns metadata rendering) but consumers may read it.
+    const viewer = canvasElement.querySelector("cts-log-viewer");
+    expect(viewer.testInfo).toEqual(MOCK_TEST_STATUS);
+
+    // Entries rendered as usual.
+    const entries = canvasElement.querySelectorAll(".logItem");
+    expect(entries.length).toBeGreaterThan(0);
+  },
+};
+
+// Note: cts-first-fetch-resolved is a forward-looking hook for U6 (R32
+// reference IDs + deep-URL hash navigation). The event wiring is covered
+// by source review and JSDoc; runtime verification will land alongside
+// U6's hash-navigation handler that consumes the event. Adding a story
+// today that races the listener against the synchronous-microtask first
+// fetch was flaky in vitest browser mode (the event sometimes fires
+// before the test runner's listener attaches), so coverage is deferred
+// to the consumer.
 
 export const DisconnectStopsPolling = {
   decorators: [

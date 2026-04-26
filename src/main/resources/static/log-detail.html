@@ -2,6 +2,41 @@
 <html>
 
 <head>
+<!-- Feature-flag redirect to log-detail-v2.html (Lit-triad page).
+     ?ff=lit-log     → set 30-day cts-lit-log cookie + redirect to v2
+     ?ff=legacy      → clear cookie, render this legacy page
+     cts-lit-log=1   → redirect to v2 on every load while present
+     (none of the above) → render the legacy page as today
+
+     Removed entirely by the flag-flip MR (see board doc and the U1
+     plan's Cleanup MR diff preview). Until then, every user-visible
+     bug fix MUST land on BOTH log-detail.html and log-detail-v2.html;
+     diverged behaviour blocks the flag-flip. -->
+<script>
+  (function ctsLitLogRedirect() {
+    try {
+      var params = new URLSearchParams(window.location.search);
+      var ff = params.get('ff');
+      if (ff === 'lit-log') {
+        document.cookie = 'cts-lit-log=1; max-age=2592000; path=/; SameSite=Lax';
+        params.delete('ff');
+      } else if (ff === 'legacy') {
+        document.cookie = 'cts-lit-log=; max-age=0; path=/; SameSite=Lax';
+        return;  // Continue rendering the legacy page.
+      }
+      var cookieOn = /(?:^|;\s*)cts-lit-log=1\b/.test(document.cookie);
+      if (!cookieOn) return;
+      var search = params.toString();
+      var target = 'log-detail-v2.html'
+        + (search ? '?' + search : '')
+        + window.location.hash;
+      window.location.replace(target);
+    } catch (e) {
+      // Render the legacy page as usual on any unexpected failure.
+    }
+  })();
+</script>
+
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 

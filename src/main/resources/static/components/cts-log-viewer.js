@@ -117,11 +117,20 @@ function ensureStylesInjected() {
  *   attribute.
  * @property {boolean} autoScroll - Auto-scroll to the newest entry as rows
  *   arrive. Reflects the `auto-scroll` attribute.
+ * @property {object} testInfo - Optional pre-fetched `/api/info` payload.
+ *   Stored without further processing; consumers (e.g. log-detail-v2.js)
+ *   may use it to coordinate header + viewer state without a second
+ *   fetch. Not reflected to an attribute.
+ * @fires cts-first-fetch-resolved - Fires once after the viewer's first
+ *   successful `/api/log` poll resolves with HTTP 200. Detail:
+ *   `{ testId, entriesCount }`. Bubbles. Used by log-detail-v2.js to
+ *   defer hash-anchor scroll-to-entry until rows are present in the DOM.
  */
 class CtsLogViewer extends LitElement {
   static properties = {
     testId: { type: String, attribute: "test-id" },
     autoScroll: { type: Boolean, attribute: "auto-scroll" },
+    testInfo: { type: Object, attribute: false },
     _entries: { state: true },
     _loading: { state: true },
     _collapsedBlocks: { state: true },
@@ -137,6 +146,7 @@ class CtsLogViewer extends LitElement {
     super();
     this.testId = "";
     this.autoScroll = true;
+    this.testInfo = null;
     this._entries = [];
     this._loading = true;
     this._collapsedBlocks = new Set();
@@ -146,11 +156,35 @@ class CtsLogViewer extends LitElement {
     this._consecutiveFailures = 0;
     // Test hook: stories may override this to run the retry loop fast.
     this._pollIntervalMs = POLL_INTERVAL_MS;
+    // Track whether the cts-first-fetch-resolved event has been dispatched
+    // already. The event is single-shot — it covers the new-page hash-
+    // navigation contract that depends on rows being in the DOM, not a
+    // continuous stream of poll resolutions.
+    this._firstFetchDispatched = false;
   }
 
   connectedCallback() {
     super.connectedCallback();
     if (this.testId) this._fetchEntries();
+  }
+
+  updated(changedProperties) {
+    super.updated(changedProperties);
+    // Kick off the first fetch when `testId` is assigned imperatively
+    // AFTER connectedCallback fired (the new-page bootstrap pattern in
+    // log-detail-v2.js: the viewer is declared statically in HTML, then
+    // `viewer.testId = …` is set once URL params are read). The legacy
+    // attribute path (`<cts-log-viewer test-id="…">`) is unaffected
+    // because that already feeds testId before connectedCallback runs.
+    if (
+      changedProperties.has("testId") &&
+      this.testId &&
+      !changedProperties.get("testId") &&
+      !this._pollTimer &&
+      this.isConnected
+    ) {
+      this._fetchEntries();
+    }
   }
 
   disconnectedCallback() {
@@ -162,6 +196,8 @@ class CtsLogViewer extends LitElement {
   }
 
   async _fetchEntries() {
+    let succeeded = false;
+    let entriesCount = 0;
     try {
       let url = "/api/log/" + encodeURIComponent(this.testId);
       if (this._latestTimestamp > 0) url += "?since=" + this._latestTimestamp;
@@ -174,6 +210,8 @@ class CtsLogViewer extends LitElement {
       }
       this._consecutiveFailures = 0;
       this._error = "";
+      succeeded = true;
+      entriesCount = this._entries.length;
     } catch (err) {
       this._consecutiveFailures += 1;
       if (this._consecutiveFailures >= FAILURE_THRESHOLD) {
@@ -182,6 +220,19 @@ class CtsLogViewer extends LitElement {
       console.warn("[cts-log-viewer] /api/log fetch failed:", err);
     } finally {
       this._loading = false;
+      // Single-shot event: dispatch only on the first successful resolution.
+      // The new log-detail page registers a hash-navigation handler that
+      // waits for this event before scrolling to an entry, so rows are
+      // guaranteed to be in the DOM by the time the scroll runs.
+      if (succeeded && !this._firstFetchDispatched) {
+        this._firstFetchDispatched = true;
+        this.dispatchEvent(
+          new CustomEvent("cts-first-fetch-resolved", {
+            bubbles: true,
+            detail: { testId: this.testId, entriesCount },
+          }),
+        );
+      }
       // Guard after the in-flight fetch resolves: if the element was removed
       // while we were awaiting, do NOT schedule another poll. Placing the check
       // here (not at the top of _fetchEntries) lets an in-flight cycle finish

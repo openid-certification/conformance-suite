@@ -463,3 +463,233 @@ export const WithoutSummary = {
     expect(canvas.getByText("Test Name:")).toBeInTheDocument();
   },
 };
+
+// --- U1: parity gaps closed for the log-detail-v2 page ---
+// Plan: docs/plans/2026-04-26-002-refactor-log-detail-page-to-lit-triad-plan.md
+// These stories cover the four newly-added affordances (Edit config, Share
+// link, Publish split, Public link), the two named-slot placeholders
+// (`[data-slot="browser"]`, `[data-slot="error"]`), and the cts-test-nav-controls
+// integration that the plan calls out as a hard parity requirement.
+
+export const WithEditConfigAction = {
+  render: () => html`<cts-log-detail-header .testInfo=${COMPLETED_TEST}></cts-log-detail-header>`,
+  async play({ canvasElement }) {
+    const canvas = within(canvasElement);
+    await waitFor(() => {
+      expect(canvas.getByText("oidcc-server")).toBeInTheDocument();
+    });
+
+    // Edit-configuration button is present in non-readonly state.
+    const editBtnHost = canvasElement.querySelector('[data-testid="edit-config-btn"]');
+    expect(editBtnHost).toBeTruthy();
+
+    const editHandler = fn();
+    canvasElement.addEventListener("cts-edit-config", editHandler);
+
+    const editBtn = innerButton(canvasElement, "edit-config-btn");
+    await userEvent.click(editBtn);
+
+    expect(editHandler).toHaveBeenCalledOnce();
+    const detail = editHandler.mock.calls[0][0].detail;
+    expect(detail.testId).toBe(COMPLETED_TEST.testId);
+    expect(detail.planId).toBe(COMPLETED_TEST.planId);
+    expect(detail.config).toEqual(COMPLETED_TEST.config);
+  },
+};
+
+export const WithShareLinkAction = {
+  render: () => html`<cts-log-detail-header .testInfo=${COMPLETED_TEST}></cts-log-detail-header>`,
+  async play({ canvasElement }) {
+    const canvas = within(canvasElement);
+    await waitFor(() => {
+      expect(canvas.getByText("oidcc-server")).toBeInTheDocument();
+    });
+
+    const shareBtnHost = canvasElement.querySelector('[data-testid="share-link-btn"]');
+    expect(shareBtnHost).toBeTruthy();
+
+    const shareHandler = fn();
+    canvasElement.addEventListener("cts-share-link", shareHandler);
+
+    const shareBtn = innerButton(canvasElement, "share-link-btn");
+    await userEvent.click(shareBtn);
+
+    expect(shareHandler).toHaveBeenCalledOnce();
+    expect(shareHandler.mock.calls[0][0].detail.testId).toBe(COMPLETED_TEST.testId);
+  },
+};
+
+export const AdminUnpublished = {
+  render: () =>
+    html`<cts-log-detail-header
+      .testInfo=${{ ...COMPLETED_TEST, publish: null }}
+      is-admin
+    ></cts-log-detail-header>`,
+  async play({ canvasElement }) {
+    const canvas = within(canvasElement);
+    await waitFor(() => {
+      expect(canvas.getByText("oidcc-server")).toBeInTheDocument();
+    });
+
+    // Pre-publish admin sees BOTH Publish-summary and Publish-everything.
+    const summaryHost = canvasElement.querySelector('[data-testid="publish-summary-btn"]');
+    const everythingHost = canvasElement.querySelector('[data-testid="publish-btn"]');
+    expect(summaryHost).toBeTruthy();
+    expect(everythingHost).toBeTruthy();
+
+    // Neither Unpublish nor Public link renders when not yet published.
+    expect(canvasElement.querySelector('[data-testid="unpublish-btn"]')).toBeNull();
+    expect(canvasElement.querySelector('[data-testid="public-link"]')).toBeNull();
+
+    const publishHandler = fn();
+    canvasElement.addEventListener("cts-publish", publishHandler);
+
+    // Click "Publish summary" → action: publish, mode: summary.
+    const summaryBtn = innerButton(canvasElement, "publish-summary-btn");
+    await userEvent.click(summaryBtn);
+
+    expect(publishHandler).toHaveBeenCalledOnce();
+    expect(publishHandler.mock.calls[0][0].detail.action).toBe("publish");
+    expect(publishHandler.mock.calls[0][0].detail.mode).toBe("summary");
+
+    // Click "Publish everything" → action: publish, mode: everything.
+    const everythingBtn = innerButton(canvasElement, "publish-btn");
+    await userEvent.click(everythingBtn);
+
+    expect(publishHandler).toHaveBeenCalledTimes(2);
+    expect(publishHandler.mock.calls[1][0].detail.action).toBe("publish");
+    expect(publishHandler.mock.calls[1][0].detail.mode).toBe("everything");
+  },
+};
+
+export const AdminPublished = {
+  render: () =>
+    html`<cts-log-detail-header
+      .testInfo=${{ ...COMPLETED_TEST, publish: "everything" }}
+      is-admin
+    ></cts-log-detail-header>`,
+  async play({ canvasElement }) {
+    const canvas = within(canvasElement);
+    await waitFor(() => {
+      expect(canvas.getByText("oidcc-server")).toBeInTheDocument();
+    });
+
+    // Post-publish admin sees Unpublish + Public link.
+    const unpublishHost = canvasElement.querySelector('[data-testid="unpublish-btn"]');
+    const publicLinkHost = canvasElement.querySelector('[data-testid="public-link"]');
+    expect(unpublishHost).toBeTruthy();
+    expect(publicLinkHost).toBeTruthy();
+
+    // Pre-publish split is hidden.
+    expect(canvasElement.querySelector('[data-testid="publish-summary-btn"]')).toBeNull();
+    expect(canvasElement.querySelector('[data-testid="publish-btn"]')).toBeNull();
+
+    // Public link href points back to the public URL of this test.
+    const publicLink = publicLinkHost.querySelector("a");
+    expect(publicLink).toBeTruthy();
+    expect(publicLink.getAttribute("href")).toContain(
+      `log-detail.html?log=${encodeURIComponent(COMPLETED_TEST.testId)}&public=true`,
+    );
+
+    // Click Unpublish → action: unpublish, no mode.
+    const publishHandler = fn();
+    canvasElement.addEventListener("cts-publish", publishHandler);
+
+    const unpublishBtn = innerButton(canvasElement, "unpublish-btn");
+    await userEvent.click(unpublishBtn);
+
+    expect(publishHandler).toHaveBeenCalledOnce();
+    expect(publishHandler.mock.calls[0][0].detail.action).toBe("unpublish");
+    expect(publishHandler.mock.calls[0][0].detail.mode).toBeUndefined();
+  },
+};
+
+export const WithRunningBrowserSlot = {
+  render: () => html`<cts-log-detail-header .testInfo=${RUNNING_TEST}></cts-log-detail-header>`,
+  async play({ canvasElement }) {
+    const canvas = within(canvasElement);
+    await waitFor(() => {
+      expect(canvas.getByText("oidcc-server")).toBeInTheDocument();
+    });
+
+    // The browser slot placeholder is present and addressable by the
+    // legacy `runningTestBrowser` ID + the `data-slot="browser"` test seam.
+    const slotById = canvasElement.querySelector("#runningTestBrowser");
+    const slotByAttr = canvasElement.querySelector('[data-slot="browser"]');
+    expect(slotById).toBeTruthy();
+    expect(slotByAttr).toBeTruthy();
+    expect(slotById).toBe(slotByAttr);
+
+    // Page-level JS injects content via DOM methods; the slot accepts it
+    // without the Lit re-render wiping it on the next reactive update.
+    const injected = document.createElement("button");
+    injected.setAttribute("data-testid", "injected-browser-btn");
+    injected.textContent = "Open in browser";
+    slotById.appendChild(injected);
+
+    await waitFor(() => {
+      expect(canvasElement.querySelector('[data-testid="injected-browser-btn"]')).toBeTruthy();
+    });
+  },
+};
+
+export const WithFinalErrorSlot = {
+  render: () =>
+    html`<cts-log-detail-header
+      .testInfo=${{ ...RUNNING_TEST, status: "INTERRUPTED" }}
+    ></cts-log-detail-header>`,
+  async play({ canvasElement }) {
+    const canvas = within(canvasElement);
+    await waitFor(() => {
+      expect(canvas.getByText("oidcc-server")).toBeInTheDocument();
+    });
+
+    // INTERRUPTED keeps the running-test card visible so the page can
+    // inject the FINAL_ERROR alert into the error slot.
+    const card = canvasElement.querySelector('[data-testid="running-test-info"]');
+    expect(card).toBeTruthy();
+
+    const slotById = canvasElement.querySelector("#runningTestError");
+    const slotByAttr = canvasElement.querySelector('[data-slot="error"]');
+    expect(slotById).toBeTruthy();
+    expect(slotByAttr).toBeTruthy();
+    expect(slotById).toBe(slotByAttr);
+
+    // Start/Stop are hidden when INTERRUPTED — restarting an interrupted
+    // run goes through the Repeat Test flow instead.
+    expect(canvasElement.querySelector('[data-testid="start-btn"]')).toBeNull();
+    expect(canvasElement.querySelector('[data-testid="stop-btn"]')).toBeNull();
+
+    // The interrupted-state alert variant is danger.
+    const alerts = canvasElement.querySelectorAll("cts-alert");
+    const interruptedAlert = Array.from(alerts).find((a) =>
+      (a.textContent || "").includes("interrupted"),
+    );
+    expect(interruptedAlert).toBeTruthy();
+    expect(interruptedAlert.getAttribute("variant")).toBe("danger");
+  },
+};
+
+export const WithTestNavControls = {
+  render: () => html`<cts-log-detail-header .testInfo=${COMPLETED_TEST}></cts-log-detail-header>`,
+  async play({ canvasElement }) {
+    const canvas = within(canvasElement);
+    await waitFor(() => {
+      expect(canvas.getByText("oidcc-server")).toBeInTheDocument();
+    });
+
+    // The header re-renders cts-test-nav-controls inside its own action
+    // stack so legacy bootstraps using `getElementById('testNavControls')`
+    // continue to find it. (See plan #007 + the U1 plan's Resolved decision
+    // §4 for why the ID lives on the host element.)
+    const navHost = canvasElement.querySelector("cts-test-nav-controls");
+    expect(navHost).toBeTruthy();
+    expect(navHost.getAttribute("id")).toBe("testNavControls");
+    expect(navHost.getAttribute("data-testid")).toBe("test-nav-controls");
+
+    // Plan-id and test-id flow through from testInfo so the cluster has
+    // enough data to render its progress + Return-to-Plan link.
+    expect(navHost.getAttribute("plan-id")).toBe(COMPLETED_TEST.planId);
+    expect(navHost.getAttribute("test-id")).toBe(COMPLETED_TEST.testId);
+  },
+};

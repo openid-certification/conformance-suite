@@ -29,6 +29,7 @@ import { setupCommonRoutes } from "./helpers/routes.js";
 const PAGES = [
   "/index.html",
   "/log-detail.html",
+  "/log-detail-v2.html",
   "/login.html",
   "/logs.html",
   "/plan-detail.html",
