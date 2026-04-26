@@ -1,11 +1,11 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 
 <head>
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="mobile-web-app-capable" content="yes">
 
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta charset="UTF-8">
     <title>OIDF Conformance: Test Plan</title>
@@ -367,7 +367,6 @@
                     // status/result back into the corresponding module entry
                     // so the badge re-renders with the live result.
                     var modulesData = modulesEl.modules.slice();
-                    var hasAnyPassedReviewWarning = false;
                     Promise.all(modulesData.map(function (mod, idx) {
                         var lastInstance = mod.instances[mod.instances.length - 1];
                         if (!lastInstance) return Promise.resolve();
@@ -384,10 +383,6 @@
                                     status: info.status,
                                     result: info.result,
                                 });
-                                if (info.status === 'FINISHED'
-                                    && ['PASSED', 'WARNING', 'REVIEW'].includes(info.result)) {
-                                    hasAnyPassedReviewWarning = true;
-                                }
                             })
                             .catch((error) => {
                                 if (error instanceof Response && error.status === 404) {
@@ -401,20 +396,19 @@
                         // Reassign so cts-plan-modules observes the change.
                         modulesEl.modules = modulesData;
 
-                        // The certify button lives inside cts-plan-actions.
-                        // It is rendered with `disabled` and reaching into
-                        // the host's inner button to enable it would couple
-                        // page code to the component's internals; instead,
-                        // toggle a class the component reads via attribute.
-                        // For now, find the button host and clear `disabled`
-                        // on the inner button if any test passed/warning/review.
-                        if (hasAnyPassedReviewWarning) {
-                            var certifyHost = actionsEl.querySelector('[data-testid="certify-btn"]');
-                            if (certifyHost) {
-                                var inner = certifyHost.querySelector('button');
-                                if (inner) inner.disabled = false;
-                            }
-                        }
+                        // R26: show "Publish for certification" only when at
+                        // least one test has FINISHED and none of the
+                        // FINISHED tests has a FAILED result. WARNING / REVIEW
+                        // / SKIPPED do not block certification — only an
+                        // explicit FAILED does. cts-plan-actions renders the
+                        // button when this property is true.
+                        var finished = modulesData.filter(function (m) {
+                            return m.status === 'FINISHED';
+                        });
+                        var hasFailed = finished.some(function (m) {
+                            return m.result === 'FAILED';
+                        });
+                        actionsEl.canCertify = finished.length > 0 && !hasFailed;
                     });
                 })
                 .catch((error) => {

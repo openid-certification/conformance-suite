@@ -157,8 +157,12 @@ class CtsPlanHeader extends LitElement {
           <dt>Plan ID:</dt>
           <dd><span class="mono">${plan._id}</span></dd>
 
-          <dt>Description:</dt>
-          <dd>${plan.description}</dd>
+          ${plan.description
+            ? html`
+                <dt data-testid="description-row">Description:</dt>
+                <dd>${plan.description}</dd>
+              `
+            : nothing}
 
           <dt>Plan Version:</dt>
           <dd><span class="mono">${plan.version}</span></dd>

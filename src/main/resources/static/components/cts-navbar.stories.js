@@ -155,7 +155,7 @@ export const Authenticated = {
     expect(homeLink.classList.contains("active")).toBe(true);
 
     // OpenID logo present.
-    const logo = canvasElement.querySelector('img[alt="OpenID"]');
+    const logo = canvasElement.querySelector('img[alt="OpenID Foundation"]');
     expect(logo).toBeTruthy();
   },
 };
@@ -246,7 +246,7 @@ export const Unauthenticated = {
     expect(signIn.getAttribute("href")).toBe("login.html");
 
     // Logo still present.
-    const logo = canvasElement.querySelector('img[alt="OpenID"]');
+    const logo = canvasElement.querySelector('img[alt="OpenID Foundation"]');
     expect(logo).toBeTruthy();
   },
 };
@@ -268,7 +268,7 @@ export const Loading = {
     });
 
     // Logo visible while loading.
-    const logo = canvasElement.querySelector('img[alt="OpenID"]');
+    const logo = canvasElement.querySelector('img[alt="OpenID Foundation"]');
     expect(logo).toBeTruthy();
 
     // While loading, user is null so component shows public nav links.
@@ -666,7 +666,7 @@ export const DesignSystemStructure = {
     const brand = canvasElement.querySelector(".cts-nav .cts-brand");
     expect(brand).toBeTruthy();
     const brandLogo = /** @type {HTMLImageElement} */ (
-      canvasElement.querySelector('.cts-brand img[alt="OpenID"]')
+      canvasElement.querySelector('.cts-brand img[alt="OpenID Foundation"]')
     );
     expect(brandLogo).toBeTruthy();
     expect(brandLogo.getAttribute("src")).toBe("/images/openid-dark.svg");

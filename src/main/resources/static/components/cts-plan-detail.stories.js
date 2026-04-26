@@ -113,6 +113,29 @@ export const PlanHeaderAdmin = {
   },
 };
 
+/**
+ * R9 (Unit 5): a plan without a description must NOT render an empty
+ * "Description:" row. The header conditionally suppresses the dt/dd pair
+ * when `plan.description` is falsy.
+ */
+export const PlanHeaderNoDescription = {
+  render: () => {
+    const plan = { ...MOCK_PLAN_DETAIL, description: "" };
+    return html`<cts-plan-header .plan=${plan}></cts-plan-header>`;
+  },
+  async play({ canvasElement }) {
+    const canvas = within(canvasElement);
+
+    // Plan name still rendered
+    expect(canvas.getByText("oidcc-basic-certification-test-plan")).toBeInTheDocument();
+
+    // The Description row is suppressed entirely
+    const descRow = canvasElement.querySelector('[data-testid="description-row"]');
+    expect(descRow).toBeNull();
+    expect(canvas.queryByText("Description:")).toBeNull();
+  },
+};
+
 export const PlanHeaderPublished = {
   render: () => html`<cts-plan-header .plan=${MOCK_PLAN_PUBLISHED} is-admin></cts-plan-header>`,
   async play({ canvasElement }) {
@@ -154,25 +177,41 @@ export const ModulesDefault = {
     ).toBeInTheDocument();
     expect(canvas.getByText("oidcc-codereuse")).toBeInTheDocument();
 
-    // Badges rendered with correct variants
+    // Badges rendered with correct variants. cts-plan-modules maps
+    // FINISHED+result onto the canonical status palette names defined by
+    // cts-badge: pass, warn, fail, skip, review, running.
     const badges = canvasElement.querySelectorAll("cts-badge");
     expect(badges.length).toBe(4);
 
-    // First badge: PASSED -> success
-    expect(badges[0].getAttribute("variant")).toBe("success");
+    // First badge: PASSED -> pass
+    expect(badges[0].getAttribute("variant")).toBe("pass");
     expect(badges[0].getAttribute("label")).toBe("PASSED");
 
-    // Second badge: WARNING -> warning
-    expect(badges[1].getAttribute("variant")).toBe("warning");
+    // Second badge: WARNING -> warn
+    expect(badges[1].getAttribute("variant")).toBe("warn");
     expect(badges[1].getAttribute("label")).toBe("WARNING");
 
-    // Third badge: FAILED -> failure
-    expect(badges[2].getAttribute("variant")).toBe("failure");
+    // Third badge: FAILED -> fail
+    expect(badges[2].getAttribute("variant")).toBe("fail");
     expect(badges[2].getAttribute("label")).toBe("FAILED");
 
-    // Fourth badge: null -> PENDING (secondary)
-    expect(badges[3].getAttribute("variant")).toBe("secondary");
+    // Fourth badge: no status -> PENDING (skip palette)
+    expect(badges[3].getAttribute("variant")).toBe("skip");
     expect(badges[3].getAttribute("label")).toBe("PENDING");
+
+    // R28: badges for modules with a test instance are wrapped in an
+    // anchor that links to the test's log page. The fourth module has
+    // no instance, so its badge is unwrapped.
+    const statusLinks = canvasElement.querySelectorAll('[data-testid="module-status-link"]');
+    expect(statusLinks.length).toBe(3);
+    expect(statusLinks[0].getAttribute("href")).toContain("log-detail.html?log=test-inst-001");
+    expect(statusLinks[2].getAttribute("href")).toContain("log-detail.html?log=test-inst-003");
+
+    // The link wraps the badge; the badge itself is unchanged in shape.
+    expect(statusLinks[0].querySelector("cts-badge")).toBe(badges[0]);
+
+    // The fourth badge is rendered without a wrapping anchor.
+    expect(badges[3].closest('[data-testid="module-status-link"]')).toBeNull();
 
     // Test IDs rendered
     expect(canvas.getByText("test-inst-001")).toBeInTheDocument();
@@ -304,6 +343,69 @@ export const ModulesReadonlyAndImmutable = {
 // ==========================================================================
 // Plan Actions stories
 // ==========================================================================
+
+/**
+ * R23 (Unit 3): the "Delete plan" trigger sits in the action rail next to
+ * the other plan actions. It must remain discoverable but no longer use
+ * the prominent destructive variant — that visual emphasis is reserved
+ * for the destructive confirm button inside the panel itself.
+ */
+export const ActionsDeleteVariant = {
+  render: () => html` <cts-plan-actions .plan=${MOCK_PLAN_DETAIL}></cts-plan-actions> `,
+  async play({ canvasElement }) {
+    const deleteHost = canvasElement.querySelector('[data-testid="delete-plan-btn"]');
+    expect(deleteHost).toBeTruthy();
+
+    // Trigger is no longer the destructive variant; the inner button keeps
+    // the ghost styling so it sits visually with the secondary actions.
+    expect(deleteHost?.getAttribute("variant")).toBe("ghost");
+
+    // Open the confirm panel.
+    await userEvent.click(innerButton(canvasElement, "delete-plan-btn"));
+    await waitFor(() => {
+      expect(canvasElement.querySelector('[data-testid="delete-confirm-panel"]')).toBeTruthy();
+    });
+
+    // The confirmation step keeps the destructive variant so the
+    // irreversible action is still visually distinct at the moment the
+    // user makes the final commitment.
+    const confirmHost = canvasElement.querySelector(".confirm-delete-btn");
+    expect(confirmHost?.getAttribute("variant")).toBe("danger");
+  },
+};
+
+/**
+ * R26 (Unit 3): the "Publish for certification" button is hidden by
+ * default. The host page flips `can-certify` once it has confirmed at
+ * least one FINISHED test exists with no FAILED result.
+ */
+export const ActionsCertifyHiddenByDefault = {
+  render: () => html` <cts-plan-actions .plan=${MOCK_PLAN_DETAIL}></cts-plan-actions> `,
+  async play({ canvasElement }) {
+    const certifyBtn = canvasElement.querySelector('[data-testid="certify-btn"]');
+    expect(certifyBtn).toBeNull();
+
+    // Other actions still render so the rail is not empty.
+    const privateLinkBtn = canvasElement.querySelector('[data-testid="private-link-btn"]');
+    expect(privateLinkBtn).toBeTruthy();
+  },
+};
+
+export const ActionsCertifyVisibleWhenCanCertify = {
+  render: () => html` <cts-plan-actions .plan=${MOCK_PLAN_DETAIL} can-certify></cts-plan-actions> `,
+  async play({ canvasElement }) {
+    const certifyBtn = canvasElement.querySelector('[data-testid="certify-btn"]');
+    expect(certifyBtn).toBeTruthy();
+    expect(certifyBtn?.textContent).toContain("Publish for certification");
+
+    // The certify event fires when the inner button is clicked.
+    const spy = fn();
+    canvasElement.addEventListener("cts-certify", spy);
+    await userEvent.click(innerButton(canvasElement, "certify-btn"));
+    expect(spy).toHaveBeenCalledTimes(1);
+    expect(spy.mock.calls[0][0].detail.planId).toBe("plan-abc-123");
+  },
+};
 
 export const ActionsViewConfig = {
   render: () => html` <cts-plan-actions .plan=${PLAN_WITH_CONFIG}></cts-plan-actions> `,

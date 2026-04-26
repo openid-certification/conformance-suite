@@ -141,9 +141,15 @@ test.describe("plan-detail.html — Plan Detail", () => {
 
     // Wait for /api/info to merge status into the first row's badge.
     // cts-plan-modules renders a cts-badge per row whose label reflects
-    // the result text (PASSED / WARNING / FAILED / PENDING).
+    // the result text (PASSED / WARNING / FAILED / PENDING) and whose
+    // variant maps onto the canonical cts-badge status palette.
     await expect(firstRow.locator("cts-badge")).toHaveAttribute("label", "PASSED");
-    await expect(firstRow.locator("cts-badge")).toHaveAttribute("variant", "success");
+    await expect(firstRow.locator("cts-badge")).toHaveAttribute("variant", "pass");
+
+    // R28: the badge is wrapped in a link to that test's log page when
+    // the module has an instance.
+    const statusLink = firstRow.locator('[data-testid="module-status-link"]');
+    await expect(statusLink).toHaveAttribute("href", /log-detail\.html\?log=test-inst-001/);
 
     // Each module name has a help-icon tooltip wrapper. Hovering the
     // testSummary help-icon mounts an .oidf-tooltip in document.body.
@@ -372,27 +378,52 @@ test.describe("plan-detail.html — Plan Detail", () => {
     const certModal = page.locator("#certificationPackageModal");
     await expect(certModal).toBeHidden();
 
-    // The Certify button is rendered with `disabled`. The page's
-    // post-/api/info wiring enables it once a passing test exists;
-    // here we strip the host's disabled property so the inner @click
-    // handler fires and dispatches cts-click. cts-button's
-    // `_handleClick` guards on `this.disabled`, so flipping the host
-    // is the right knob.
-    await page.evaluate(() => {
-      const host = /** @type {HTMLElement & {disabled?: boolean}} */ (
-        document.querySelector('[data-testid="certify-btn"]')
-      );
-      if (host) {
-        host.disabled = false;
-        host.removeAttribute("disabled");
-        const inner = host.querySelector("button");
-        if (inner) inner.click();
-      }
-    });
+    // R26: the Certify button is hidden until the plan-detail page has
+    // resolved /api/info for each module and confirmed at least one
+    // FINISHED test with no FAILED result. The default test-info fixture
+    // returns PASSED for every instance, so it appears after polling.
+    const certifyBtn = page.locator('[data-testid="certify-btn"]');
+    await expect(certifyBtn).toBeVisible();
+
+    await certifyBtn.locator("button").click();
 
     // The certification package modal opens
     await expect(certModal).toBeVisible();
     await expect(certModal).toContainText("Prepare Certification Submission Package");
     await expect(certModal).toContainText("Create Certification Package");
+  });
+
+  test("certify button stays hidden when any module FAILED (R26)", async ({ page }) => {
+    await setupFailFast(page);
+
+    await page.route("**/api/plan/plan-abc-123", (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(MOCK_PLAN_DETAIL),
+      }),
+    );
+
+    // Mix of PASSED and FAILED — Publish for certification must stay hidden.
+    await setupTestInfoRoute(page, {
+      "test-inst-001": { ...MOCK_TEST_STATUS, testId: "test-inst-001", result: "PASSED" },
+      "test-inst-002": { ...MOCK_TEST_STATUS, testId: "test-inst-002", result: "PASSED" },
+      "test-inst-003": { ...MOCK_TEST_STATUS, testId: "test-inst-003", result: "FAILED" },
+    });
+
+    await setupCommonRoutes(page);
+
+    await page.goto("/plan-detail.html?plan=plan-abc-123");
+
+    // Wait for the page to finish wiring the action rail. The Private
+    // link button is always rendered in the same branch as Certify and
+    // arrives first, so we use it as the readiness signal.
+    await expect(page.locator('[data-testid="private-link-btn"]')).toBeVisible();
+
+    // Wait for /api/info to drain so canCertify has had a chance to flip.
+    await page.waitForLoadState("networkidle");
+
+    // No certify button — at least one FAILED result.
+    await expect(page.locator('[data-testid="certify-btn"]')).toHaveCount(0);
   });
 });
