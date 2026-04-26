@@ -1,9 +1,5 @@
 import { test, expect } from "@playwright/test";
-import {
-  setupCommonRoutes,
-  setupFailFast,
-  expectNoUnmockedCalls,
-} from "./helpers/routes.js";
+import { setupCommonRoutes, setupFailFast, expectNoUnmockedCalls } from "./helpers/routes.js";
 import { MOCK_PLANS, MOCK_PLAN_NO_VARIANTS } from "./fixtures/mock-plans.js";
 
 /**
@@ -71,8 +67,7 @@ test.describe("schedule-test.html — R12 Monaco JSON editor", () => {
         const host = document.getElementById("config");
         if (!host) return false;
         return Boolean(
-          host.querySelector(".monaco-editor") ||
-            host.querySelector(".oidf-json-editor-fallback"),
+          host.querySelector(".monaco-editor") || host.querySelector(".oidf-json-editor-fallback"),
         );
       },
       null,
@@ -101,8 +96,9 @@ test.describe("schedule-test.html — R12 Monaco JSON editor", () => {
     await page.waitForFunction(
       () => {
         const host = document.getElementById("config");
-        return host?.querySelector(".monaco-editor") ||
-          host?.querySelector(".oidf-json-editor-fallback");
+        return (
+          host?.querySelector(".monaco-editor") || host?.querySelector(".oidf-json-editor-fallback")
+        );
       },
       null,
       { timeout: 10000 },
