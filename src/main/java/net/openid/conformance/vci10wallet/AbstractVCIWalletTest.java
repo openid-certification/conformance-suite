@@ -804,11 +804,6 @@ public abstract class AbstractVCIWalletTest extends net.openid.conformance.fapi2
 		eventLog.endBlock();
 	}
 
-	@Override
-	protected void validateClientConfiguration() {
-	}
-
-
 	/**
 	 * If client2 is configured, inspect the authenticated request and switch to the matching
 	 * client config. Always resets to client1 first to handle repeated calls.
