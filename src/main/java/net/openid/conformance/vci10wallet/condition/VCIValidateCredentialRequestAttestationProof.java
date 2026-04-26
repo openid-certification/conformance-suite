@@ -1,5 +1,6 @@
 package net.openid.conformance.vci10wallet.condition;
 
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWSAlgorithm;
@@ -63,11 +64,11 @@ public class VCIValidateCredentialRequestAttestationProof extends AbstractVCIVal
 			if (x5cChain != null && !x5cChain.isEmpty()) {
 				walletPublicKey = extractPublicJwkFromX5c(env, attestationJwt, x5cChain);
 			} else {
-				JsonObject keyAttestationJwksObj = env.getElementFromObject("config", "vci.key_attestation_jwks").getAsJsonObject();
-				if (keyAttestationJwksObj == null) {
-					throw error("Key attestation JWKS is missing in test config. Please add a Key Attestation JWKS with public keys to the test configuration.");
+				JsonElement keyAttestationJwksEl = env.getElementFromObject("config", "vci.key_attestation_jwks");
+				if (keyAttestationJwksEl == null) {
+					throw error("'Key Attestation JWKS' field is missing from the 'Key Attestation' section in the test configuration");
 				}
-				walletPublicKey = JWKUtil.getSigningKey(keyAttestationJwksObj);
+				walletPublicKey = JWKUtil.getSigningKey(keyAttestationJwksEl.getAsJsonObject());
 			}
 
 			if (!(walletPublicKey instanceof ECKey ecPublicKey)) {
