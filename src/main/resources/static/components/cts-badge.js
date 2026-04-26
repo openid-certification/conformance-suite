@@ -63,13 +63,20 @@ const STYLE_TEXT = `
     display: inline-flex;
     align-items: center;
     gap: 5px;
-    padding: 3px 10px;
+    /* Padding reduced from 3px to 2px to absorb the line-height bump from
+       11px (line-height: 1) to 16px while keeping visible height close to
+       the previous 17px (was 3+11+3, now 2+16+2 = 20px). */
+    padding: 2px 10px;
     border-radius: var(--radius-pill, 999px);
     font-size: 11px;
     font-weight: var(--fw-bold, 700);
     letter-spacing: 0.06em;
     text-transform: uppercase;
-    line-height: 1;
+    /* Even-pixel line-height aligned to the 16px inline-chrome rhythm shared
+       with cts-button. Mixed inline (badge next to button) now have matching
+       line-box heights, so cap-heights land at the same y-coordinate instead
+       of drifting by Inter's metric residuals. */
+    line-height: 16px;
     /* The inline-flex baseline is synthesized from the first flex item, so a
        text-only badge anchors on the text baseline while a spinner-led badge
        (running) anchors on the bottom of the empty inline-block, which pushes

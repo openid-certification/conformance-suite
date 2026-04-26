@@ -86,7 +86,13 @@ const STYLE_TEXT = `
   font-family: var(--font-sans);
   font-size: var(--fs-14);
   font-weight: var(--fw-bold);
-  line-height: 1;
+  /* Even-pixel line-height so Inter's cap-height resolves to whole pixels.
+     A 16px line-box on 13px (sm), 14px (md), or 15px (lg, overridden below)
+     text leaves consistent breathing room and aligns the text baseline with
+     adjacent inline chrome (badges, link-buttons) sharing the same 16px
+     line-box. line-height:1 produced odd 13/14/15px boxes whose cap-heights
+     drifted by sub-pixel amounts when mixed inline. */
+  line-height: 16px;
   border: 1px solid transparent;
   border-radius: var(--radius-2);
   background: transparent;
@@ -166,6 +172,8 @@ const STYLE_TEXT = `
   height: 44px;
   padding: 0 var(--space-5);
   font-size: var(--fs-15);
+  /* 4px-grid line-height for the larger 15px text. */
+  line-height: 20px;
 }
 
 .oidf-btn-spinner {
