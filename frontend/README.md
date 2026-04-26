@@ -97,6 +97,37 @@ CSS — page and component layouts own their own styles.
 - **`lint:jsdoc` fails** — A `cts-*` class is missing its class-level JSDoc block with `@property` tags. Fix: add the JSDoc block above the class (see "JSDoc dual-convention" below).
 - **`lint:lit-analyzer` fails** — A Lit template diagnostic errored. Common causes: unknown HTML tag name (typo), wrong binding sigil (`class=` vs `.class=` vs `?class=`), unclosed tag, property name mismatch on a `cts-*` child. Fix: the CLI output points at the offending line; read the rule name in the message and the Lit error docs (https://lit.dev/msg/) for context.
 
+## `schedule-test.html` snapshot baselines
+
+`e2e/schedule-test-baselines.spec.js` captures DOM HTML + accessibility-tree
+snapshots for `schedule-test.html` in three states (empty new plan; cascade
+mid-selection; plan with config loaded). The point is to make drift visible
+when the five Tier 1 R-MRs (R9, R13, R14, R15, R42) land on this page —
+unintended changes show up as snapshot diffs you can read line by line.
+
+**When to refresh** — only when an MR intentionally changes `schedule-test.html`'s
+rendered output or accessibility tree. Unintended diffs are bugs, not noise.
+
+**How to refresh** — `cd frontend && npx playwright test schedule-test-baselines.spec.js --update-snapshots`.
+
+**First-run UX caveat** — Playwright fails the test on the same run that
+generates a missing snapshot (this is by design — `updateSnapshots: "missing"`
+default + `_failWithError`). Re-run without `--update-snapshots` to confirm
+the regenerated snapshot passes. The first failure isn't a bug.
+
+**What to commit** — both the spec change and the regenerated snapshot files
+in the same commit, so reviewers see the diff as one reviewable unit.
+
+**What snapshots cover** — missing labels, structural drift, aria role/name
+changes. They do **not** reliably catch label/input _misassociation_
+(`<label for="X">…<input id="Y">` looks identical to "no label" in the
+aria tree). The dedicated `assertLabelInputPairing` and `assertNoIdCollisions`
+helpers in `e2e/helpers/assertions.js` catch that class. Reviewers should
+verify both pass on every refresh.
+
+Stress-test command before committing baselines:
+`npx playwright test schedule-test-baselines.spec.js --repeat-each=10 --workers=5`.
+
 ## Severity ladder (R10)
 
 Default severity is `error`. Plugin-preset warnings from `eslint-plugin-lit` /

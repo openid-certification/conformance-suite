@@ -1,0 +1,10 @@
+- paragraph:
+  - text: Please see
+  - link "OpenID Foundation Certification Instructions":
+    - /url: https://openid.net/certification/instructions/
+  - text: .
+- text: Specification 
+- combobox "Specification":
+  - option "--- Select a Specification ---" [selected]
+  - option "FAPI"
+  - option "OIDCC"
