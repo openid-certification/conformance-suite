@@ -106,6 +106,29 @@
   .v2-spinner-host {
     text-align: center;
   }
+
+  /* U4 — failure-summary breakpoint swap. Two `<cts-failure-summary>`
+     instances render simultaneously: one inside the header card
+     (desktop position) and one directly below the sticky status bar
+     (mobile / tablet position). CSS hides whichever doesn't apply at
+     the current breakpoint. The render-twice-hide-one pattern avoids a
+     JS-driven appendChild that would re-mount the component and reset
+     its `_expanded` state. */
+  @media (min-width: 1024px) {
+    #ctsTopFailureSummary { display: none; }
+  }
+  @media (max-width: 1023px) {
+    cts-log-detail-header cts-failure-summary { display: none; }
+  }
+  /* Tighten the page-level instance's spacing — at narrow widths it
+     sits right below the sticky bar and benefits from a slim margin
+     instead of the in-card border-top + padding-top the embedded
+     instance carries. */
+  #ctsTopFailureSummary .failureSummary {
+    margin-top: var(--space-3);
+    border-top: 0;
+    padding-top: 0;
+  }
 </style>
 </head>
 
@@ -167,6 +190,12 @@
   <main id="main-content" class="log-page-v2">
     <cts-crumb id="logDetailCrumb"></cts-crumb>
     <cts-log-detail-header id="logDetailHeader"></cts-log-detail-header>
+    <!-- Page-level cts-failure-summary instance (mobile / tablet
+         position, U4). The desktop instance is rendered inside the
+         header card; CSS in <head> hides whichever doesn't apply at
+         the current breakpoint. Custom element is registered via the
+         transitive import from cts-log-detail-header.js. -->
+    <cts-failure-summary id="ctsTopFailureSummary"></cts-failure-summary>
     <cts-log-viewer id="logViewer"></cts-log-viewer>
   </main>
 </body>

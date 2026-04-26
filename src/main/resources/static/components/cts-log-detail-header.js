@@ -6,6 +6,7 @@ import "./cts-link-button.js";
 import "./cts-alert.js";
 import "./cts-json-editor.js";
 import "./cts-test-nav-controls.js";
+import "./cts-failure-summary.js";
 import { splitTestSummary } from "./test-summary-split.js";
 
 /**
@@ -220,61 +221,6 @@ const STYLE_TEXT = `
     gap: var(--space-1);
   }
 
-  cts-log-detail-header .failureSummary {
-    margin-top: var(--space-4);
-    border-top: 1px solid var(--border);
-    padding-top: var(--space-3);
-  }
-  cts-log-detail-header .failureSummaryTitle {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--space-2);
-    font-weight: var(--fw-bold);
-    color: var(--fg);
-    cursor: pointer;
-    border-radius: var(--radius-2);
-  }
-  cts-log-detail-header .failureSummaryTitle:focus-visible {
-    outline: none;
-    box-shadow: var(--focus-ring);
-  }
-  cts-log-detail-header .failureList {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-2);
-    margin-top: var(--space-3);
-  }
-  cts-log-detail-header .failureItem {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: var(--space-2);
-    font-size: var(--fs-13);
-  }
-  cts-log-detail-header .failureText {
-    color: var(--fg);
-    cursor: pointer;
-    text-decoration: underline;
-    text-decoration-thickness: 1px;
-    text-underline-offset: 2px;
-    border-radius: var(--radius-2);
-  }
-  cts-log-detail-header .failureText:hover { color: var(--fg-link); }
-  cts-log-detail-header .failureText:focus-visible {
-    outline: none;
-    box-shadow: var(--focus-ring);
-  }
-  cts-log-detail-header .logRequirementBadge {
-    display: inline-block;
-    background: var(--ink-50);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-pill);
-    color: var(--fg-muted);
-    font-family: var(--font-mono);
-    font-size: var(--fs-12);
-    padding: 1px var(--space-2);
-  }
-
   cts-log-detail-header .configHeader {
     display: flex;
     align-items: center;
@@ -368,8 +314,9 @@ function ensureStylesInjected() {
  *   Reflects the `is-admin` attribute.
  * @property {boolean} isPublic - Public (read-only) view hides repeat /
  *   upload / publish actions. Reflects the `is-public` attribute.
- * @fires cts-scroll-to-entry - When a failure-summary item is clicked, with
- *   `{ detail: { entryId } }`; bubbles.
+ * @fires cts-scroll-to-entry - Bubbled up from the embedded
+ *   `cts-failure-summary` child when a failure row is activated, with
+ *   `{ detail: { entryId } }`. Bubbles AND is composed.
  * @fires cts-repeat-test - When the Repeat Test button is clicked, with
  *   `{ detail: { testId } }`; bubbles.
  * @fires cts-upload-images - When the Upload Images button is clicked, with
@@ -398,7 +345,6 @@ class CtsLogDetailHeader extends LitElement {
     isAdmin: { type: Boolean, attribute: "is-admin" },
     isPublic: { type: Boolean, attribute: "is-public" },
     _configVisible: { state: true },
-    _failuresExpanded: { state: true },
   };
 
   constructor() {
@@ -407,7 +353,6 @@ class CtsLogDetailHeader extends LitElement {
     this.isAdmin = false;
     this.isPublic = false;
     this._configVisible = false;
-    this._failuresExpanded = true;
   }
 
   createRenderRoot() {
@@ -452,33 +397,6 @@ class CtsLogDetailHeader extends LitElement {
         entry.result === "SKIPPED" ||
         entry.result === "INTERRUPTED",
     );
-  }
-
-  _handleScrollToEntry(entryId) {
-    this.dispatchEvent(
-      new CustomEvent("cts-scroll-to-entry", {
-        bubbles: true,
-        detail: { entryId },
-      }),
-    );
-  }
-
-  _handleFailureClick(event) {
-    const entryId = event.currentTarget.dataset.entryId;
-    if (entryId) this._handleScrollToEntry(entryId);
-  }
-
-  _handleFailureKeydown(event) {
-    if (event.key !== "Enter" && event.key !== " ") return;
-    event.preventDefault();
-    const entryId = event.currentTarget.dataset.entryId;
-    if (entryId) this._handleScrollToEntry(entryId);
-  }
-
-  _handleFailureSummaryKeydown(event) {
-    if (event.key !== "Enter" && event.key !== " ") return;
-    event.preventDefault();
-    this._toggleFailures();
   }
 
   _handleRepeatTest() {
@@ -575,10 +493,6 @@ class CtsLogDetailHeader extends LitElement {
 
   _toggleConfig() {
     this._configVisible = !this._configVisible;
-  }
-
-  _toggleFailures() {
-    this._failuresExpanded = !this._failuresExpanded;
   }
 
   _isRunning() {
@@ -796,7 +710,10 @@ class CtsLogDetailHeader extends LitElement {
                   : nothing}
               </div>
               ${this._renderSummaryZones(test.summary)} ${this._renderResultSummary()}
-              ${this._renderFailureSummary()}
+              <cts-failure-summary
+                data-testid="header-failure-summary"
+                .failures=${this._getFailures()}
+              ></cts-failure-summary>
             </div>
 
             <div>${this._renderActionButtons()}</div>
@@ -854,58 +771,6 @@ class CtsLogDetailHeader extends LitElement {
         ></cts-badge>
       `,
     );
-  }
-
-  _renderFailureSummary() {
-    const failures = this._getFailures();
-    if (failures.length === 0) return nothing;
-
-    return html`
-      <div class="failureSummary" data-testid="failure-summary">
-        <div
-          class="failureSummaryTitle"
-          role="button"
-          tabindex="0"
-          @click=${this._toggleFailures}
-          @keydown=${this._handleFailureSummaryKeydown}
-        >
-          Failure summary:
-          <cts-icon name="${this._failuresExpanded ? "chevron-up" : "chevron-down"}"></cts-icon>
-        </div>
-        ${this._failuresExpanded
-          ? html`<div class="failureList" data-testid="failure-list">
-              ${this._renderFailureList(failures)}
-            </div>`
-          : nothing}
-      </div>
-    `;
-  }
-
-  _renderFailureList(failures) {
-    return failures.map(
-      (item) => html`
-        <div class="failureItem">
-          <cts-badge
-            variant="${RESULT_BADGE_VARIANTS[item.result] || "skip"}"
-            label="${item.result}"
-          ></cts-badge>
-          ${this._renderRequirementBadges(item.requirements)}
-          <span
-            class="failureText"
-            role="button"
-            tabindex="0"
-            data-entry-id=${item._id}
-            @click=${this._handleFailureClick}
-            @keydown=${this._handleFailureKeydown}
-            >${item.src}: ${item.msg}</span
-          >
-        </div>
-      `,
-    );
-  }
-
-  _renderRequirementBadges(requirements) {
-    return (requirements || []).map((req) => html`<span class="logRequirementBadge">${req}</span>`);
   }
 
   _renderActionButtons() {

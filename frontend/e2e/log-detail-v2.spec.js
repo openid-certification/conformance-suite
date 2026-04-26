@@ -256,6 +256,101 @@ test.describe("log-detail-v2.html — new Lit-triad page", () => {
     expect(eventDetail).toMatchObject({ entryId: expect.any(String) });
   });
 
+  test("failure summary swaps between header and page-level positions at 1024px breakpoint", async ({
+    page,
+  }) => {
+    // U4: two `<cts-failure-summary>` instances render simultaneously in
+    // log-detail-v2.html — one inside the header card (desktop position)
+    // and one directly below the sticky status bar
+    // (`#ctsTopFailureSummary`, mobile/tablet position). Page-level CSS
+    // hides whichever doesn't apply at the current breakpoint
+    // (`render-twice-hide-one`).
+    // Plan: docs/plans/2026-04-26-005-feat-extract-cts-failure-summary-plan.md
+    const failedTestInfo = {
+      ...MOCK_TEST_FAILED,
+      results: [
+        {
+          _id: "swap-r1",
+          result: "FAILURE",
+          src: "ValidateIdToken",
+          msg: "Signature invalid",
+        },
+      ],
+    };
+
+    await setupFailFast(page);
+    await setupV2Routes(page, {
+      testInfo: failedTestInfo,
+      logEntries: MOCK_FAILED_LOG_ENTRIES,
+    });
+    await setupCommonRoutes(page);
+
+    await page.goto(`/log-detail-v2.html?log=${encodeURIComponent(failedTestInfo.testId)}`);
+
+    // Wait for the failure summary to mount inside the header before
+    // measuring breakpoints — the header reactively renders when
+    // testInfo lands.
+    await expect(page.locator("cts-log-detail-header cts-failure-summary")).toBeAttached();
+
+    // Desktop (≥ 1024px): in-header instance is visible, page-level
+    // instance is `display: none`.
+    await page.setViewportSize({ width: 1280, height: 800 });
+    const headerSummaryDisplay = await page.evaluate(
+      () =>
+        getComputedStyle(
+          /** @type {Element} */ (
+            document.querySelector("cts-log-detail-header cts-failure-summary")
+          ),
+        ).display,
+    );
+    const topSummaryDisplay = await page.evaluate(
+      () =>
+        getComputedStyle(/** @type {Element} */ (document.getElementById("ctsTopFailureSummary")))
+          .display,
+    );
+    expect(headerSummaryDisplay).not.toBe("none");
+    expect(topSummaryDisplay).toBe("none");
+
+    // Tablet (< 1024px): inverse — page-level visible, in-header hidden.
+    await page.setViewportSize({ width: 768, height: 1024 });
+    const headerSummaryDisplayTablet = await page.evaluate(
+      () =>
+        getComputedStyle(
+          /** @type {Element} */ (
+            document.querySelector("cts-log-detail-header cts-failure-summary")
+          ),
+        ).display,
+    );
+    const topSummaryDisplayTablet = await page.evaluate(
+      () =>
+        getComputedStyle(/** @type {Element} */ (document.getElementById("ctsTopFailureSummary")))
+          .display,
+    );
+    expect(headerSummaryDisplayTablet).toBe("none");
+    expect(topSummaryDisplayTablet).not.toBe("none");
+
+    // The visible (page-level) instance still bubbles
+    // cts-scroll-to-entry to the document — same contract as the
+    // in-header instance.
+    const eventDetail = await page.evaluate(() => {
+      return new Promise((resolve) => {
+        document.addEventListener(
+          "cts-scroll-to-entry",
+          /** @param {Event} e */ (e) => {
+            const detail = /** @type {CustomEvent} */ (e).detail;
+            resolve(detail);
+          },
+          { once: true },
+        );
+        const failure = document.querySelector(
+          "#ctsTopFailureSummary .failureSummary .failureText",
+        );
+        if (failure) /** @type {HTMLElement} */ (failure).click();
+      });
+    });
+    expect(eventDetail).toMatchObject({ entryId: "swap-r1" });
+  });
+
   test("entries stream does not overflow horizontally at 375px viewport", async ({ page }) => {
     // U3: cts-log-entry uses a container query keyed on the host's inline
     // size to reflow at < 640px. At 375px the entries stream must stack
