@@ -1,0 +1,4 @@
+monaco-editor 0.45.0
+tarball: https://registry.npmjs.org/monaco-editor/-/monaco-editor-0.45.0.tgz
+sha256: 1aa02fd4319545377de0ae10faab957f75ae0060dcc7c09915950613f232c4ab
+vendored on 2026-04-26T05:14:22Z by frontend/scripts/update-vendor-monaco.sh
