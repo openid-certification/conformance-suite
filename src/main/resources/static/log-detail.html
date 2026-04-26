@@ -43,6 +43,7 @@
     <script type="module" src="/components/cts-icon.js"></script>
     <script type="module" src="/components/cts-crumb.js"></script>
     <script type="module" src="/components/cts-tooltip.js"></script>
+    <script type="module" src="/components/cts-test-nav-controls.js"></script>
 
     <style>
         /* ----------------------------------------------------------------
@@ -803,15 +804,26 @@
 
                     FAPI_UI.setupPrivateLinkSharing('/api/info/' + encodeURIComponent(testId) + '/share');
 
-                    if (document.getElementById('reloadBtn') !== null) {
-                        document.getElementById('reloadBtn').onclick = function(evt) {
-                            evt.preventDefault();
-                            if(FAPI_UI.currentUser.sub !== data.owner.sub){
+                    // R21: nav cluster (Return to Plan / Repeat Test /
+                    // Continue Plan / progress) replaces the legacy
+                    // reloadBtn / planBtn / nextPlanBtn IDs. The widget
+                    // emits cts-repeat / cts-continue / cts-back; the
+                    // /api/plan fetch below sets currentIndex /
+                    // totalCount / nextEnabled once plan data is in.
+                    var navControls = document.getElementById('testNavControls');
+                    if (navControls) {
+                        navControls.testId = data.testId;
+                        navControls.planId = data.planId || "";
+                        navControls.publicView = !!public;
+                        navControls.readonly = !!readonly;
+
+                        navControls.addEventListener('cts-repeat', function() {
+                            if (FAPI_UI.currentUser.sub !== data.owner.sub) {
                                 document.getElementById('reRunTestModal').show();
                             } else {
                                 runTest(data.testName, data.variant, data.planId, data.config, testId);
                             }
-                        };
+                        });
                     }
 
                     // wire up configuration button
@@ -982,12 +994,16 @@
 
                     }
 
-                    if (data.planId) {
-                        document.getElementById('planBtn').onclick = function(evt) {
-                            evt.preventDefault();
-                            window.location.assign('/plan-detail.html?plan=' + encodeURIComponent(data.planId) + (public ? '&public=true' : ''));
-                        };
-                        document.getElementById('planBtn').style.display = '';
+                    // Return-to-Plan navigation lives on the
+                    // cts-test-nav-controls widget — it renders a
+                    // real <a href> that supports middle-click and
+                    // Cmd-click. The cts-back event fires alongside
+                    // for instrumentation; no preventDefault here so
+                    // native navigation still happens.
+                    if (data.planId && navControls) {
+                        navControls.addEventListener('cts-back', function() {
+                            // intentionally empty — native <a> handles navigation
+                        });
                     }
 
                     if (!readonly && data.planId) {
@@ -1008,22 +1024,36 @@
                             if (_.isEmpty(variant)) {
                                 variant = null;
                             }
-                            var thisModuleIndex = _.findIndex(planData.modules, function (module) {
+                            // Older /api/plan responses may not include a
+                            // modules array. Treat that as "no plan
+                            // modules visible" rather than crashing on
+                            // .modules.length.
+                            var planModules = Array.isArray(planData.modules) ? planData.modules : [];
+
+                            var thisModuleIndex = _.findIndex(planModules, function (module) {
                                 if (_.isEmpty(module.variant)) {
                                     module.variant = null;
                                 }
                                 return module.testModule == data.testName && _.isEqual(module.variant, variant);
                             });
 
-                            if (thisModuleIndex >= 0 && thisModuleIndex < (planData.modules.length - 1)) {
+                            var hasNextModule = thisModuleIndex >= 0 && thisModuleIndex < (planModules.length - 1);
+
+                            // Feed the nav widget the plan position so it can
+                            // render "Module X of N" and decide whether to
+                            // show the Continue Plan button.
+                            if (navControls) {
+                                navControls.currentIndex = thisModuleIndex;
+                                navControls.totalCount = planModules.length;
+                                navControls.nextEnabled = hasNextModule;
+                            }
+
+                            if (hasNextModule) {
                                 // there's a "next" module we can run in this test plan
+                                var nextModule = planModules[thisModuleIndex + 1];
 
-                                var nextModule = planData.modules[thisModuleIndex + 1];
-
-                                if (document.getElementById('nextPlanBtn') !== null) {
-                                    document.getElementById('nextPlanBtn').onclick = function(evt) {
-                                        evt.preventDefault();
-
+                                if (navControls) {
+                                    navControls.addEventListener('cts-continue', function() {
                                         FAPI_UI.showBusy('Creating a new test for ' + nextModule.testModule + '...');
 
                                         var runTestUrl = '/api/runner?test=' + encodeURIComponent(nextModule.testModule) + '&plan=' + encodeURIComponent(data.planId);
@@ -1096,11 +1126,7 @@
                                             // don't update anymore
                                             stopReloader();
                                         });
-                                    }
-                                }
-
-                                if (document.getElementById('nextPlanBtn') !== null) {
-                                    document.getElementById('nextPlanBtn').style.display = '';
+                                    });
                                 }
                             }
 
@@ -1952,9 +1978,12 @@ echo "-----BEGIN CERTIFICATE-----\n${requestDescription.request_mutual_tls.ca}\n
             // cts-button host.click() fires only on the host, so Lit's @click
             // handler on the inner <button> never runs. Target the inner
             // button so both onclick-on-host and cts-click listeners fire.
+            // After R21, the buttons live inside <cts-test-nav-controls>;
+            // select via data-testid rather than legacy reloadBtn /
+            // nextPlanBtn IDs.
             if (event.key.toLowerCase() === 'x') {
               event.preventDefault(); // prevent other default actions
-              const innerReload = document.querySelector('#reloadBtn button');
+              const innerReload = document.querySelector('cts-test-nav-controls [data-testid="repeat-btn"] button');
               if (innerReload) {
                 innerReload.click();
               }
@@ -1963,7 +1992,7 @@ echo "-----BEGIN CERTIFICATE-----\n${requestDescription.request_mutual_tls.ca}\n
             // Ctrl+Shift+U / Cmd+Shift+U to continUe to the next test
             if (event.key.toLowerCase() === 'u') {
                 event.preventDefault();
-                const innerContinue = document.querySelector('#nextPlanBtn button');
+                const innerContinue = document.querySelector('cts-test-nav-controls [data-testid="continue-btn"] button');
                 if (innerContinue) {
                     innerContinue.click();
                 }
