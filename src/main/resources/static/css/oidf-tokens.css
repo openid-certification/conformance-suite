@@ -15,6 +15,15 @@
      with different metrics on macOS, Windows, and Linux, causing
      vertical baseline drift. Inter is declared by the @font-face
      block immediately below.
+   - Layout coordination: --status-bar-height token added (default 0px).
+     Published at runtime by <cts-log-detail-header>'s sticky status bar
+     (see U2 of the log-viewer redesign,
+     docs/plans/2026-04-26-003-feat-status-bar-sticky-and-mode-aware-plan.md).
+     Sticky descendants (connection-lost banner, R32 entry anchors,
+     overflow popover) read this property to coordinate top-offset and
+     z-index stacking. Pages that do not mount the component fall back
+     to 0px so callers like `top: var(--status-bar-height)` resolve
+     cleanly.
    ================================================================ */
 
 /* Inter v4.1 — variable woff2, upright, weight axis 100..900.
@@ -230,6 +239,11 @@
   --maxw-narrow: 720px;
   --maxw-page:   1200px;
   --maxw-wide:   1440px;
+
+  /* Published at runtime by <cts-log-detail-header>'s sticky status bar.
+     Default 0px so pages that do not mount the component still resolve
+     `top: var(--status-bar-height)` cleanly. */
+  --status-bar-height: 0px;
 }
 
 /* ================================================================

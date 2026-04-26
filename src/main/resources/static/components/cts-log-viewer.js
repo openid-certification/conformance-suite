@@ -40,6 +40,23 @@ const STYLE_TEXT = `
     gap: var(--space-2);
     margin-bottom: var(--space-3);
   }
+  /* Connection-lost banner stacks below the cts-log-detail-header sticky
+     status bar (z-index 10) at top: var(--status-bar-height). The status
+     bar publishes its measured height to document.documentElement; pages
+     that do not mount the header fall back to the 0px default in
+     oidf-tokens.css, leaving the banner pinned to the top of the page.
+     Mirrors the bar sticky-only-at-tablet+ behaviour: on small viewports
+     the banner is static and scrolls with the content. */
+  cts-log-viewer .logViewerErrorBanner {
+    margin-bottom: var(--space-3);
+  }
+  @media (min-width: 640px) {
+    cts-log-viewer .logViewerErrorBanner {
+      position: sticky;
+      top: var(--status-bar-height);
+      z-index: 9;
+    }
+  }
   cts-log-viewer .logEntries {
     border: 1px solid var(--border);
     border-radius: var(--radius-3);
@@ -307,9 +324,11 @@ class CtsLogViewer extends LitElement {
     }
     return html`
       ${this._error
-        ? html`<cts-alert variant="warning" data-testid="log-viewer-error" aria-live="polite"
-            >${this._error}</cts-alert
-          >`
+        ? html`<div class="logViewerErrorBanner">
+            <cts-alert variant="warning" data-testid="log-viewer-error" aria-live="polite"
+              >${this._error}</cts-alert
+            >
+          </div>`
         : nothing}
       ${this._renderResultSummary()}
       <div class="logEntries">${this._renderEntries()}</div>
