@@ -5,7 +5,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
-    <title>OIDF Conformance: Conformance Suite</title>
+    <title>OIDF Conformance: Schedule new test</title>
 
     <!-- Latest compiled and minified CSS -->
     <link rel="stylesheet" href="/vendor/bootstrap/css/bootstrap.min.css">
@@ -105,14 +105,14 @@
                 </div>
             </div>
             <div class="mb-3 row" id="planRow" style="display:none">
-                <label for="planSelect" class="col-md-2 col-form-label">Test Plan</label>
+                <label for="planSelect" class="col-md-2 col-form-label">Test Type</label>
                 <div class="col-md-10">
                     <div class="input-group">
                         <div class="input-group-text">
                             <cts-icon name="info" data-bs-toggle="tooltip" data-bs-placement="bottom" title="" data-bs-original-title="Select the exact test plan you want to run."></cts-icon>
                         </div>
                         <select id="planSelect" class="form-select">
-                            <option value="select">--- Select A Test Plan ----</option>
+                            <option value="select">--- Select A Test Type ----</option>
                         </select>
                     </div>
                 </div>
@@ -2181,7 +2181,7 @@
             // Reset downstream
             entitySelect.replaceChildren(new Option('--- Select Entity ---', ''));
             specVersionSelect.replaceChildren(new Option('--- Select Version ---', ''));
-            planSelect.replaceChildren(new Option('--- Select A Test Plan ----', 'select'));
+            planSelect.replaceChildren(new Option('--- Select A Test Type ----', 'select'));
             entityRow.style.display = 'none';
             specVersionRow.style.display = 'none';
             planRow.style.display = 'none';
@@ -2220,7 +2220,7 @@
             if (planSelect.value && planSelect.value !== 'select') savedCascadeSelections.plan = planSelect.value;
 
             specVersionSelect.replaceChildren(new Option('--- Select Version ---', ''));
-            planSelect.replaceChildren(new Option('--- Select A Test Plan ----', 'select'));
+            planSelect.replaceChildren(new Option('--- Select A Test Type ----', 'select'));
             specVersionRow.style.display = 'none';
             planRow.style.display = 'none';
 
@@ -2255,7 +2255,7 @@
             // Save current downstream selection before resetting
             if (planSelect.value && planSelect.value !== 'select') savedCascadeSelections.plan = planSelect.value;
 
-            planSelect.replaceChildren(new Option('--- Select A Test Plan ----', 'select'));
+            planSelect.replaceChildren(new Option('--- Select A Test Type ----', 'select'));
             planRow.style.display = 'none';
 
             if (!family || !entity || !FAPI_UI.planIndex[family] ||

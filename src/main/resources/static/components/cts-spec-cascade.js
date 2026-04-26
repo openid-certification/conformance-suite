@@ -405,11 +405,11 @@ class CtsSpecCascade extends LitElement {
           showVersion,
         )}
         ${this._renderField(
-          "Test Plan",
+          "Test Type",
           "planSelect",
           planOptions,
           this._selectedPlan,
-          "--- Select A Test Plan ----",
+          "--- Select A Test Type ----",
           (e) => this._handlePlanChange(e),
           showPlan,
         )}

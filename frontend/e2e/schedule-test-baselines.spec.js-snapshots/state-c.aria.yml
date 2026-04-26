@@ -13,9 +13,9 @@
   - option "--- Select Entity ---"
   - option "basic"
   - option "client-basic" [selected]
-- text: Test Plan
-- combobox "Test Plan":
-  - option "--- Select A Test Plan ----"
+- text: Test Type
+- combobox "Test Type":
+  - option "--- Select A Test Type ----"
   - 'option "OpenID Connect Client: Basic Certification" [selected]'
 - heading "Configure Test" [level=3]
 - tablist:
