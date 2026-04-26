@@ -232,9 +232,13 @@ import net.openid.conformance.vci10wallet.condition.VCILogGeneratedCredentialIss
 import net.openid.conformance.vci10wallet.condition.VCIPreparePreAuthorizationCode;
 import net.openid.conformance.vci10wallet.condition.VCIResolveRequestedCredentialConfigurationFromRequest;
 import net.openid.conformance.vci10wallet.condition.VCIValidateAttestedKeysInKeyAttestationFromJwtProof;
+import net.openid.conformance.vci10wallet.condition.EnsureKeyAttestationAlgIsES256;
 import net.openid.conformance.vci10wallet.condition.EnsureKeyAttestationHasX5cClaim;
+import net.openid.conformance.vci10wallet.condition.EnsureKeyAttestationTypIsKeyAttestationJwt;
+import net.openid.conformance.vci10wallet.condition.ValidateKeyAttestationNonce;
 import net.openid.conformance.vci10wallet.condition.ValidateKeyAttestationX5cCertificateChain;
 import net.openid.conformance.vci10wallet.condition.VCIValidateCredentialRequestAttestationProof;
+import net.openid.conformance.vci10wallet.condition.VerifyKeyAttestationSignatureUsingConfigJwks;
 import net.openid.conformance.vci10wallet.condition.VCIValidateCredentialRequestDiVpProof;
 import net.openid.conformance.vci10wallet.condition.VCIValidateCredentialRequestJwtProof;
 import net.openid.conformance.vci10wallet.condition.CheckForUnexpectedParametersInCredentialRequest;
@@ -456,6 +460,7 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 		authorizationRequestType = getVariant(AuthorizationRequestType.class);
 
 		fapi2Profile = getVariant(FAPI2FinalOPProfile.class);
+		env.putString("vci", "fapi_profile", fapi2Profile.toString());
 		vciCredentialFormat = getVariant(VCI1FinalCredentialFormat.class);
 		vciCredentialIssuanceMode = getVariant(VCICredentialIssuanceMode.class);
 		vciCredentialEncryption = getVariant(VCICredentialEncryption.class);
@@ -1368,23 +1373,53 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 
 			String proofType = env.getString("proof_type");
 			if ("jwt".equals(proofType)) {
-				errorResponse = callAndContinueOnFailureOrReturnErrorResponse(VCIValidateCredentialRequestJwtProof.class, ConditionResult.FAILURE, "OID4VCI-1FINALA-F.1", "OID4VCI-1FINALA-F.4");
+				errorResponse = callAndContinueOnFailureOrReturnErrorResponse(VCIValidateCredentialRequestJwtProof.class, ConditionResult.FAILURE, "OID4VCI-1FINALA-F.1", "OID4VCI-1FINALA-F.4", "HAIP-4.5.1");
 				if (errorResponse != null) {
 					return errorResponse;
 				}
 				errorResponse = callAndContinueOnFailureOrReturnErrorResponse(VCIValidateAttestedKeysInKeyAttestationFromJwtProof.class, ConditionResult.FAILURE, "OID4VCI-1FINALA-F.1", "OID4VCI-1FINALA-F.4");
 			} else if ("attestation".equals(proofType)) {
-				errorResponse = callAndContinueOnFailureOrReturnErrorResponse(VCIValidateCredentialRequestAttestationProof.class, ConditionResult.FAILURE, "OID4VCI-1FINALA-F.3", "OID4VCI-1FINALA-F.4", "HAIP-4.5.1");
+				// Parse JWT and store in env at vci.key_attestation_jwt (value, header, claims)
+				errorResponse = callAndContinueOnFailureOrReturnErrorResponse(VCIValidateCredentialRequestAttestationProof.class, ConditionResult.FAILURE, "OID4VCI-1FINALA-F.3", "OID4VCI-1FINALA-F.4");
 				if (errorResponse != null) {
 					return errorResponse;
 				}
+				// Structural JWT header checks
+				errorResponse = callAndContinueOnFailureOrReturnErrorResponse(EnsureKeyAttestationTypIsKeyAttestationJwt.class, ConditionResult.FAILURE, "OID4VCI-1FINALA-D.1");
+				if (errorResponse != null) {
+					return errorResponse;
+				}
+				// HAIP §4.5.1 mandates ES256 for key attestations; OID4VCI Appendix D.1 does not
+				// constrain the algorithm, so this check is wired only for HAIP.
 				if (fapi2Profile == FAPI2FinalOPProfile.VCI_HAIP) {
+					errorResponse = callAndContinueOnFailureOrReturnErrorResponse(EnsureKeyAttestationAlgIsES256.class, ConditionResult.FAILURE, "HAIP-4.5.1");
+					if (errorResponse != null) {
+						return errorResponse;
+					}
 					errorResponse = callAndContinueOnFailureOrReturnErrorResponse(EnsureKeyAttestationHasX5cClaim.class, ConditionResult.FAILURE, "HAIP-4.5.1");
 					if (errorResponse != null) {
 						return errorResponse;
 					}
 				}
+				// When x5c is present: validate chain AND verify JWT signature against the leaf cert.
+				// When x5c is absent (non-HAIP): silently skips; signature verification is handled
+				// by VerifyKeyAttestationSignatureUsingConfigJwks below.
 				errorResponse = callAndContinueOnFailureOrReturnErrorResponse(ValidateKeyAttestationX5cCertificateChain.class, ConditionResult.FAILURE, "HAIP-4.5.1");
+				if (errorResponse != null) {
+					return errorResponse;
+				}
+				// Non-HAIP fallback: when x5c is absent, verify signature using configured JWKS.
+				if (fapi2Profile != FAPI2FinalOPProfile.VCI_HAIP) {
+					errorResponse = callAndContinueOnFailureOrReturnErrorResponse(VerifyKeyAttestationSignatureUsingConfigJwks.class, ConditionResult.FAILURE, "OID4VCI-1FINALA-F.3");
+					if (errorResponse != null) {
+						return errorResponse;
+					}
+				}
+				// Validate claims (nonce) — runs last, after signature verification
+				errorResponse = callAndContinueOnFailureOrReturnErrorResponse(ValidateKeyAttestationNonce.class, ConditionResult.FAILURE, "OID4VCI-1FINALA-F.3");
+				if (errorResponse != null) {
+					return errorResponse;
+				}
 			} else if ("di_vp".equals(proofType)) {
 				errorResponse = callAndContinueOnFailureOrReturnErrorResponse(VCIValidateCredentialRequestDiVpProof.class, ConditionResult.FAILURE, "OID4VCI-1FINALA-F.2", "OID4VCI-1FINALA-F.4");
 			}

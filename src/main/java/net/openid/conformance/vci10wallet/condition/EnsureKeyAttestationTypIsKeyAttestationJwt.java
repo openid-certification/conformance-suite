@@ -1,20 +1,20 @@
 package net.openid.conformance.vci10wallet.condition;
 
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
+import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.vci10issuer.condition.VciErrorCode;
 import net.openid.conformance.vci10issuer.util.VCICredentialErrorResponseUtil;
 
 /**
- * Ensures the key attestation JWT header carries an x5c claim.
- *
- * Per HAIP §4.5.1, "the public key used to validate the key attestation signature
- * MUST be included in the x5c JOSE header parameter." Called only on the HAIP path.
+ * Verifies the key attestation JWT header `typ` is `key-attestation+jwt`
+ * per OID4VCI Appendix D.1.
  */
-public class EnsureKeyAttestationHasX5cClaim extends AbstractCondition {
+public class EnsureKeyAttestationTypIsKeyAttestationJwt extends AbstractCondition {
+
+	private static final String EXPECTED_TYP = "key-attestation+jwt";
 
 	@Override
 	@PreEnvironment(required = "vci")
@@ -23,14 +23,14 @@ public class EnsureKeyAttestationHasX5cClaim extends AbstractCondition {
 		JsonObject keyAttestationJwt = env.getElementFromObject("vci", "key_attestation_jwt").getAsJsonObject();
 		JsonObject header = keyAttestationJwt.getAsJsonObject("header");
 
-		JsonElement x5cEl = header.get("x5c");
-		if (x5cEl == null || !x5cEl.isJsonArray() || x5cEl.getAsJsonArray().isEmpty()) {
-			String errorDescription = "Key attestation JWT header MUST contain an x5c claim per HAIP §4.5.1";
+		String actual = header.has("typ") ? OIDFJSON.getString(header.get("typ")) : null;
+		if (!EXPECTED_TYP.equals(actual)) {
+			String errorDescription = "Key attestation JWT header 'typ' must be '" + EXPECTED_TYP + "'";
 			VCICredentialErrorResponseUtil.updateCredentialErrorResponseInEnv(env, VciErrorCode.INVALID_PROOF, errorDescription);
-			throw error(errorDescription, args("header", header));
+			throw error(errorDescription, args("expected", EXPECTED_TYP, "actual", actual));
 		}
 
-		logSuccess("Key attestation JWT header contains x5c claim");
+		logSuccess("Key attestation JWT header 'typ' is '" + EXPECTED_TYP + "'");
 		return env;
 	}
 }
