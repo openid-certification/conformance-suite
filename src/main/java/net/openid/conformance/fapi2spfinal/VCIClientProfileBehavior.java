@@ -46,6 +46,15 @@ public class VCIClientProfileBehavior extends FAPI2ClientProfileBehavior {
 	private static final String NOTIFICATION_PATH = "notification";
 
 	@Override
+	public ConditionSequence validateAuthorizationRequestScope() {
+		// VCI requested scopes correspond to credential_configuration_id values from the
+		// credential issuer metadata (e.g. org.iso.18013.5.1.mDL), not the test's
+		// client.scope. Skip the strict scope-equality check; AbstractVCIWalletTest
+		// does the same in its checkRequestedScopes() override.
+		return null;
+	}
+
+	@Override
 	public ConditionSequence additionalServerConfiguration() {
 		if (module.clientAuthType != ClientAuthType.CLIENT_ATTESTATION) {
 			return null;
