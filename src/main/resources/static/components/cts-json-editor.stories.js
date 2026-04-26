@@ -95,8 +95,7 @@ function forceFallback() {
 }
 
 export const Default = {
-  render: () =>
-    html`<cts-json-editor aria-label="Test plan configuration JSON"></cts-json-editor>`,
+  render: () => html`<cts-json-editor aria-label="Test plan configuration JSON"></cts-json-editor>`,
   async play({ canvasElement }) {
     const ready = await waitForReady(canvasElement);
     const host = canvasElement.querySelector("cts-json-editor");
@@ -199,10 +198,7 @@ export const Fallback = {
     },
   ],
   render: () =>
-    html`<cts-json-editor
-      aria-label="Fallback textarea"
-      .value=${SAMPLE_JSON}
-    ></cts-json-editor>`,
+    html`<cts-json-editor aria-label="Fallback textarea" .value=${SAMPLE_JSON}></cts-json-editor>`,
   async play({ canvasElement }) {
     const ready = await waitForReady(canvasElement);
     expect(ready.kind).toBe("fallback");
