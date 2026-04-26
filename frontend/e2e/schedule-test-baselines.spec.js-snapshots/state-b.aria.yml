@@ -1,34 +1,34 @@
 - paragraph:
-    - text: Please see
-    - link "OpenID Foundation Certification Instructions":
-        - /url: https://openid.net/certification/instructions/
-    - text: .
-- text: Specification 
+  - text: Please see
+  - link "OpenID Foundation Certification Instructions":
+    - /url: https://openid.net/certification/instructions/
+  - text: .
+- text: Specification
 - combobox "Specification":
-    - option "--- Select a Specification ---"
-    - option "FAPI"
-    - option "OIDCC" [selected]
-- text: Entity Under Test 
+  - option "--- Select a Specification ---"
+  - option "FAPI"
+  - option "OIDCC" [selected]
+- text: Entity Under Test
 - combobox "Entity Under Test":
-    - option "--- Select Entity ---"
-    - option "basic" [selected]
-    - option "client-basic"
-- text: Test Plan 
+  - option "--- Select Entity ---"
+  - option "basic" [selected]
+  - option "client-basic"
+- text: Test Plan
 - combobox "Test Plan":
-    - option "--- Select A Test Plan ----"
-    - 'option "OpenID Connect Core: Basic Certification Profile" [selected]'
-- text: Server Metadata 
+  - option "--- Select A Test Plan ----"
+  - 'option "OpenID Connect Core: Basic Certification Profile" [selected]'
+- text: Server Metadata
 - combobox "Server Metadata":
-    - option "--- Select A Variant ----" [selected]
-    - option "discovery"
-    - option "static"
-- text: Response Type 
+  - option "--- Select A Variant ----" [selected]
+  - option "discovery"
+  - option "static"
+- text: Response Type
 - combobox "Response Type":
-    - option "--- Select A Variant ----" [selected]
-    - option "code"
-- text: Client Authentication Type 
+  - option "--- Select A Variant ----" [selected]
+  - option "code"
+- text: Client Authentication Type
 - combobox "Client Authentication Type":
-    - option "--- Select A Variant ----" [selected]
-    - option "client_secret_basic"
-    - option "client_secret_post"
-    - option "private_key_jwt"
+  - option "--- Select A Variant ----" [selected]
+  - option "client_secret_basic"
+  - option "client_secret_post"
+  - option "private_key_jwt"

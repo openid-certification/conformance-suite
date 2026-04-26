@@ -20,22 +20,36 @@
 import { expect } from "@playwright/test";
 
 /**
- * Capture a Locator's innerHTML with Lit's per-render template markers
- * normalized so DOM snapshots are stable across runs.
+ * Capture a Locator's innerHTML with non-deterministic markup normalized so
+ * DOM snapshots are stable across runs.
  *
- * Lit emits comments like `<!--?lit$869712824$-->` to mark dynamic content
- * positions. The numeric ID is generated per-template-instance and varies
- * across sessions, breaking byte-equal DOM snapshots. Replacing the digits
- * with a placeholder preserves the structural information (the marker's
- * position relative to other content) while removing the run-to-run
- * variability.
+ * Two sources of run-to-run variance are scrubbed:
+ *
+ * 1. Lit per-template-instance markers — Lit emits comments like
+ *    `<!--?lit$869712824$-->` to mark dynamic content positions. The numeric
+ *    ID is generated fresh on each render. Digits are replaced with `NNNN`
+ *    so the marker's structural position is preserved without the variance.
+ *
+ * 2. Monaco editor internals inside `<cts-json-editor>` — Monaco renders a
+ *    deeply nested tree whose scrollbar visibility classes (`visible scrollbar
+ *    horizontal` vs `invisible scrollbar horizontal fade`), inline `style`
+ *    geometry, and per-instance ARIA wiring shift between renders. The
+ *    baseline tests care that a `<cts-json-editor>` is at a given position
+ *    with the expected attributes — not what Monaco draws inside it. The
+ *    children of every `<cts-json-editor>` are replaced with a stable
+ *    `<!--monaco-internals-->` placeholder.
  *
  * @param {import('@playwright/test').Locator} locator
  * @returns {Promise<string>}
  */
 export async function getNormalizedInnerHTML(locator) {
   const html = await locator.innerHTML();
-  return html.replace(/<!--\?lit\$\d+\$-->/g, "<!--?lit$NNNN$-->");
+  return html
+    .replace(/<!--\?lit\$\d+\$-->/g, "<!--?lit$NNNN$-->")
+    .replace(
+      /(<cts-json-editor\b[^>]*>)[\s\S]*?(<\/cts-json-editor>)/g,
+      "$1<!--monaco-internals-->$2",
+    );
 }
 
 /**

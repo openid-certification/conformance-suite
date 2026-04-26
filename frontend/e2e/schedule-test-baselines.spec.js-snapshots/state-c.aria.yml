@@ -1,39 +1,39 @@
 - paragraph:
-    - text: Please see
-    - link "OpenID Foundation Certification Instructions":
-        - /url: https://openid.net/certification/instructions/
-    - text: .
-- text: Specification 
+  - text: Please see
+  - link "OpenID Foundation Certification Instructions":
+    - /url: https://openid.net/certification/instructions/
+  - text: .
+- text: Specification
 - combobox "Specification":
-    - option "--- Select a Specification ---"
-    - option "FAPI"
-    - option "OIDCC" [selected]
-- text: Entity Under Test 
+  - option "--- Select a Specification ---"
+  - option "FAPI"
+  - option "OIDCC" [selected]
+- text: Entity Under Test
 - combobox "Entity Under Test":
-    - option "--- Select Entity ---"
-    - option "basic"
-    - option "client-basic" [selected]
-- text: Test Plan 
+  - option "--- Select Entity ---"
+  - option "basic"
+  - option "client-basic" [selected]
+- text: Test Plan
 - combobox "Test Plan":
-    - option "--- Select A Test Plan ----"
-    - 'option "OpenID Connect Client: Basic Certification" [selected]'
+  - option "--- Select A Test Plan ----"
+  - 'option "OpenID Connect Client: Basic Certification" [selected]'
 - heading "Configure Test" [level=3]
 - tablist:
-    - tab "Form" [selected]
-    - tab "JSON"
+  - tab "Form" [selected]
+  - tab "JSON"
 - tabpanel "Form":
-    - heading "Test Information" [level=3]
-    - text: alias 
-    - textbox
-    - text: description 
-    - textbox
-    - text: publish 
-    - combobox:
-        - option "No" [selected]
-        - option "Summary"
-        - option "Everything"
-    - heading "Server" [level=3]
-    - text: issuer 
-    - textbox
+  - heading "Test Information" [level=3]
+  - text: alias
+  - textbox
+  - text: description
+  - textbox
+  - text: publish
+  - combobox:
+    - option "No" [selected]
+    - option "Summary"
+    - option "Everything"
+  - heading "Server" [level=3]
+  - text: issuer
+  - textbox
 - button "Create Test Plan"
 - button "Share Test Plan Configuration"
