@@ -273,7 +273,10 @@ export const ReturnToPlan = {
     expect(planLink).toBeTruthy();
     expect(planLink.getAttribute("href")).toContain("plan-detail.html?plan=");
     expect(planLink.getAttribute("href")).toContain(encodeURIComponent(COMPLETED_TEST.planId));
-    expect(canvas.getByText(/Return to Plan/)).toBeInTheDocument();
+    // The action-stack's Return-to-Plan link AND cts-test-nav-controls's
+    // Back-link both render with "Return to Plan" text when the test
+    // belongs to a plan, so query within the action-stack host only.
+    expect(within(planLinkHost).getByText(/Return to Plan/)).toBeInTheDocument();
   },
 };
 
@@ -321,12 +324,15 @@ export const AdminActions = {
     expect(canvasElement.querySelector('[data-testid="download-log-btn"]')).toBeTruthy();
     expect(canvasElement.querySelector('[data-testid="return-to-plan-link"]')).toBeTruthy();
 
-    // Publish button visible for admin
+    // Publish-everything button visible for admin in pre-publish state.
+    // The Publish split (summary + everything) renders both options when
+    // !test.publish && admin; data-testid="publish-btn" is on the
+    // "Publish everything" host so existing call sites keep working.
     const publishBtnHost = canvasElement.querySelector('[data-testid="publish-btn"]');
     expect(publishBtnHost).toBeTruthy();
-    expect(canvas.getByText(/Publish/)).toBeInTheDocument();
+    expect(within(publishBtnHost).getByText(/Publish everything/)).toBeInTheDocument();
 
-    // Click publish and verify event
+    // Click "Publish everything" and verify event
     const publishHandler = fn();
     canvasElement.addEventListener("cts-publish", publishHandler);
     const publishBtn = innerButton(canvasElement, "publish-btn");
@@ -334,6 +340,7 @@ export const AdminActions = {
 
     expect(publishHandler).toHaveBeenCalledOnce();
     expect(publishHandler.mock.calls[0][0].detail.action).toBe("publish");
+    expect(publishHandler.mock.calls[0][0].detail.mode).toBe("everything");
   },
 };
 
