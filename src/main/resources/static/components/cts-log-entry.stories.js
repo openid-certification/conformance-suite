@@ -187,15 +187,12 @@ export const SuccessEntry = {
     const badge = canvasElement.querySelector('cts-badge[variant="pass"]');
     expect(badge).toBeTruthy();
 
-    // 5-column grid layout from U16 (110px / 70px / 60px / 1fr / auto).
+    // U3: layout reflows via container queries — track-count assertions
+    // moved to the explicit-width SmallContainerLayout / DesktopContainerLayout
+    // stories below so they don't depend on the storybook canvas width.
     const item = canvasElement.querySelector(".logItem");
     const style = getComputedStyle(item);
     expect(style.display).toBe("grid");
-    // Browsers resolve grid-template-columns to a track list of computed
-    // pixel values (or `auto`); a 5-track layout has 5 whitespace-separated
-    // entries regardless of how `1fr` and `auto` end up resolving.
-    const tracks = style.gridTemplateColumns.split(/\s+/).filter(Boolean);
-    expect(tracks.length).toBe(5);
   },
 };
 
@@ -569,5 +566,130 @@ export const SubstringBoundaryRespectsPrefix = {
     expect(dts[0].classList.contains("moreInfo-key--expected")).toBe(false);
     // Label is humanized only, no "Expected (per spec)" prefix.
     expect(dts[0].textContent.trim()).toBe("Unexpected field");
+  },
+};
+
+// --- U3: container-query reflow ----------------------------------------
+// Plan: docs/plans/2026-04-26-004-feat-log-entry-container-query-reflow-plan.md
+// Each story wraps the entry in a fixed-width container so the host's
+// inline-size matches the named breakpoint without relying on the
+// storybook canvas width. The dashed border + `resize: horizontal` is a
+// manual-QA convenience: drag the wrapper edge in storybook to watch the
+// layout flip at 640px without re-running the story.
+
+/**
+ * Below the 640px container-query threshold the row collapses to:
+ *   row 1: meta (timestamp · severity · http) — wraps via flex
+ *   row 2: body + actions
+ *   row 3: footer (more panel) when expanded
+ * The grid uses `grid-template-areas` so the existing inner classes carry
+ * the layout without a markup change at small widths.
+ */
+export const SmallContainerLayout = {
+  decorators: [
+    (Story) => html`
+      <div
+        style="width: 360px; max-width: 100%; border: 1px dashed var(--ink-300); resize: horizontal; overflow: auto;"
+      >
+        ${Story()}
+      </div>
+    `,
+  ],
+  render: () => html`<cts-log-entry .entry=${HTTP_REQUEST_ENTRY}></cts-log-entry>`,
+  async play({ canvasElement }) {
+    const canvas = within(canvasElement);
+    await waitFor(() => {
+      expect(canvas.getByText("REQUEST")).toBeInTheDocument();
+    });
+
+    const item = canvasElement.querySelector(".logItem");
+    if (!item) throw new Error(".logItem did not render");
+    const style = getComputedStyle(item);
+
+    // Default (small) layout uses two grid columns: 1fr + auto.
+    const tracks = style.gridTemplateColumns.split(/\s+/).filter(Boolean);
+    expect(tracks.length).toBe(2);
+
+    // Named grid areas drive the row layout below 640px. Browsers serialize
+    // grid-template-areas as quoted strings; assert the metaRow row exists.
+    expect(style.gridTemplateAreas).toContain("metaRow");
+
+    // The .logMetaRow wrapper participates in layout (not display: contents)
+    // at small widths so its three children stack as a flex row.
+    const metaRow = canvasElement.querySelector(".logMetaRow");
+    if (!metaRow) throw new Error(".logMetaRow did not render");
+    expect(getComputedStyle(metaRow).display).toBe("flex");
+  },
+};
+
+/**
+ * Exactly at the 640px container-query threshold the wide layout takes
+ * effect — verifies the boundary inclusively (`min-width: 640px`).
+ */
+export const BoundaryContainerLayout = {
+  decorators: [(Story) => html` <div style="width: 640px; max-width: 100%;">${Story()}</div> `],
+  render: () => html`<cts-log-entry .entry=${HTTP_REQUEST_ENTRY}></cts-log-entry>`,
+  async play({ canvasElement }) {
+    const canvas = within(canvasElement);
+    await waitFor(() => {
+      expect(canvas.getByText("REQUEST")).toBeInTheDocument();
+    });
+
+    const item = canvasElement.querySelector(".logItem");
+    if (!item) throw new Error(".logItem did not render");
+    const style = getComputedStyle(item);
+
+    // Five-track grid: 110px / 70px / 60px / 1fr / auto.
+    const tracks = style.gridTemplateColumns.split(/\s+/).filter(Boolean);
+    expect(tracks.length).toBe(5);
+
+    // Wide layout flattens the .logMetaRow wrapper via display: contents so
+    // its children rejoin the parent grid as direct cells.
+    const metaRow = canvasElement.querySelector(".logMetaRow");
+    if (!metaRow) throw new Error(".logMetaRow did not render");
+    expect(getComputedStyle(metaRow).display).toBe("contents");
+  },
+};
+
+/** Tablet width — well past the 640px threshold. */
+export const TabletContainerLayout = {
+  decorators: [(Story) => html` <div style="width: 720px; max-width: 100%;">${Story()}</div> `],
+  render: () => html`<cts-log-entry .entry=${HTTP_REQUEST_ENTRY}></cts-log-entry>`,
+  async play({ canvasElement }) {
+    const canvas = within(canvasElement);
+    await waitFor(() => {
+      expect(canvas.getByText("REQUEST")).toBeInTheDocument();
+    });
+
+    const item = canvasElement.querySelector(".logItem");
+    if (!item) throw new Error(".logItem did not render");
+    const tracks = getComputedStyle(item).gridTemplateColumns.split(/\s+/).filter(Boolean);
+    expect(tracks.length).toBe(5);
+  },
+};
+
+/**
+ * Desktop width — the U16-era 5-column track is the designed-for surface.
+ * Carries the explicit track-count assertion that used to live on the
+ * default SuccessEntry story (which is now layout-neutral because the
+ * canvas width can no longer be assumed wide).
+ */
+export const DesktopContainerLayout = {
+  decorators: [(Story) => html` <div style="width: 1280px; max-width: 100%;">${Story()}</div> `],
+  render: () => html`<cts-log-entry .entry=${HTTP_REQUEST_ENTRY}></cts-log-entry>`,
+  async play({ canvasElement }) {
+    const canvas = within(canvasElement);
+    await waitFor(() => {
+      expect(canvas.getByText("REQUEST")).toBeInTheDocument();
+    });
+
+    const item = canvasElement.querySelector(".logItem");
+    if (!item) throw new Error(".logItem did not render");
+    const style = getComputedStyle(item);
+
+    // U16-era five-column track: 110px / 70px / 60px / 1fr / auto.
+    const tracks = style.gridTemplateColumns.split(/\s+/).filter(Boolean);
+    expect(tracks.length).toBe(5);
+    expect(style.gridTemplateColumns).toMatch(/110px\s+70px\s+60px/);
   },
 };

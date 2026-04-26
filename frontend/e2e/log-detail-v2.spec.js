@@ -256,6 +256,40 @@ test.describe("log-detail-v2.html — new Lit-triad page", () => {
     expect(eventDetail).toMatchObject({ entryId: expect.any(String) });
   });
 
+  test("entries stream does not overflow horizontally at 375px viewport", async ({ page }) => {
+    // U3: cts-log-entry uses a container query keyed on the host's inline
+    // size to reflow at < 640px. At 375px the entries stream must stack
+    // each row's meta cluster on top of body+actions rather than overflow
+    // horizontally — measured directly on the .logEntries scroll container.
+    // Plan: docs/plans/2026-04-26-004-feat-log-entry-container-query-reflow-plan.md
+    await page.setViewportSize({ width: 375, height: 800 });
+
+    await setupFailFast(page);
+    await setupV2Routes(page, {
+      testInfo: MOCK_TEST_STATUS,
+      logEntries: MOCK_LOG_ENTRIES,
+    });
+    await setupCommonRoutes(page);
+
+    await page.goto(`/log-detail-v2.html?log=${encodeURIComponent(MOCK_TEST_STATUS.testId)}`);
+
+    // Wait for at least one row to land in the DOM.
+    await expect(page.locator(".logItem").first()).toBeVisible();
+
+    const overflow = await page.evaluate(() => {
+      const stream = document.querySelector("cts-log-viewer .logEntries");
+      if (!stream) return { found: false, scrollWidth: 0, clientWidth: 0 };
+      return {
+        found: true,
+        scrollWidth: stream.scrollWidth,
+        clientWidth: stream.clientWidth,
+      };
+    });
+
+    expect(overflow.found).toBe(true);
+    expect(overflow.scrollWidth).toBeLessThanOrEqual(overflow.clientWidth);
+  });
+
   test("sticky status bar pins to the top of the viewport on scroll", async ({ page }) => {
     // U2: <cts-log-detail-header>'s status bar uses position: sticky at
     // >= 640px. Playwright's default viewport (1280x720) sits in that
