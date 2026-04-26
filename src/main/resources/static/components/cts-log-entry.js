@@ -1,4 +1,5 @@
 import { LitElement, html, nothing } from "lit";
+import "./cts-icon.js";
 import "./cts-badge.js";
 
 /**
@@ -23,12 +24,12 @@ const RESULT_BADGE_VARIANTS = {
  * @type {Object.<string, {icon: string, label: string}>}
  */
 const HTTP_BADGES = {
-  request: { icon: "bi-arrow-right", label: "REQUEST" },
-  response: { icon: "bi-arrow-left", label: "RESPONSE" },
-  incoming: { icon: "bi-arrow-down", label: "INCOMING" },
-  outgoing: { icon: "bi-arrow-up", label: "OUTGOING" },
-  redirect: { icon: "bi-send-fill", label: "REDIRECT" },
-  "redirect-in": { icon: "bi-arrow-down-circle", label: "REDIRECT-IN" },
+  request: { icon: "arrow-right-md", label: "REQUEST" },
+  response: { icon: "arrow-left-md", label: "RESPONSE" },
+  incoming: { icon: "arrow-down-md", label: "INCOMING" },
+  outgoing: { icon: "arrow-up-md", label: "OUTGOING" },
+  redirect: { icon: "paper-plane", label: "REDIRECT" },
+  "redirect-in": { icon: "arrow-circle-down", label: "REDIRECT-IN" },
 };
 
 const STYLE_ID = "cts-log-entry-styles";
@@ -286,7 +287,7 @@ class CtsLogEntry extends LitElement {
           ></cts-badge>`
         : nothing}
       ${entry.upload
-        ? html`<cts-badge variant="warn" icon="camera-fill" label="IMAGE"></cts-badge>`
+        ? html`<cts-badge variant="warn" icon="camera" label="IMAGE"></cts-badge>`
         : nothing}
     `;
   }
@@ -299,7 +300,7 @@ class CtsLogEntry extends LitElement {
       <cts-badge variant="running" label="${badge.label}"></cts-badge>
       ${httpType === "request"
         ? html`<button type="button" class="curlBtn" title="Copy as cURL" @click=${this._copyCurl}>
-            <span class="bi bi-clipboard" aria-hidden="true"></span> cURL
+            <cts-icon name="copy" aria-hidden="true"></cts-icon> cURL
           </button>`
         : nothing}
     `;
@@ -319,11 +320,11 @@ class CtsLogEntry extends LitElement {
     const { more } = this.entry;
     if (!more || Object.keys(more).length === 0) return nothing;
     const count = Object.keys(more).length;
-    const chevron = this._expanded ? "bi-chevron-up" : "bi-chevron-down";
+    const chevron = this._expanded ? "chevron-up" : "chevron-down";
     return html`
       <button type="button" class="moreBtn" @click=${this._toggleMore}>
         <span class="moreCount">${count}</span>
-        More <span class="bi ${chevron}" aria-hidden="true"></span>
+        More <cts-icon name="${chevron}" aria-hidden="true"></cts-icon>
       </button>
     `;
   }

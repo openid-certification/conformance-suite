@@ -362,7 +362,7 @@ class CtsPlanActions extends LitElement {
               class="copy-config-btn"
               variant="secondary"
               size="sm"
-              icon="clipboard"
+              icon="copy"
               label="Copy"
               title="Copy config to clipboard"
               @cts-click=${this._handleCopyConfig}
@@ -463,7 +463,7 @@ class CtsPlanActions extends LitElement {
         <cts-button
           variant="secondary"
           size="sm"
-          icon="wrench-adjustable"
+          icon="settings"
           label="View Config"
           full-width
           data-testid="view-config-btn"
@@ -475,7 +475,7 @@ class CtsPlanActions extends LitElement {
               href="schedule-test.html?edit-plan=${plan._id}"
               variant="secondary"
               size="sm"
-              icon="pencil-square"
+              icon="edit-pencil-01"
               label="Edit configuration"
               full-width
               data-testid="edit-config-btn"
@@ -486,7 +486,7 @@ class CtsPlanActions extends LitElement {
           ? html`<cts-button
               variant="secondary"
               size="sm"
-              icon="save2"
+              icon="save"
               label="Download all Logs"
               full-width
               data-testid="download-all-btn"
@@ -497,7 +497,7 @@ class CtsPlanActions extends LitElement {
           ? html`<cts-button
                 variant="secondary"
                 size="sm"
-                icon="bookmarks"
+                icon="bookmark"
                 label="Publish summary"
                 full-width
                 data-testid="publish-summary-btn"
@@ -507,7 +507,7 @@ class CtsPlanActions extends LitElement {
               <cts-button
                 variant="secondary"
                 size="sm"
-                icon="bookmarks"
+                icon="bookmark"
                 label="Publish everything"
                 full-width
                 data-testid="publish-everything-btn"
@@ -519,7 +519,7 @@ class CtsPlanActions extends LitElement {
           ? html`<cts-button
                 variant="secondary"
                 size="sm"
-                icon="slash-circle"
+                icon="close-circle"
                 label="Unpublish"
                 full-width
                 data-testid="unpublish-btn"
@@ -529,7 +529,7 @@ class CtsPlanActions extends LitElement {
                 href="plan-detail.html?plan=${plan._id}&amp;public=true"
                 variant="primary"
                 size="sm"
-                icon="bookmarks"
+                icon="bookmark"
                 label="Public link"
                 full-width
               ></cts-link-button>`
@@ -538,7 +538,7 @@ class CtsPlanActions extends LitElement {
           ? html`<cts-button
               variant="secondary"
               size="sm"
-              icon="bookmarks"
+              icon="bookmark"
               label="Private link"
               full-width
               data-testid="private-link-btn"
@@ -549,7 +549,7 @@ class CtsPlanActions extends LitElement {
           ? html`<cts-button
               variant="primary"
               size="sm"
-              icon="save2"
+              icon="save"
               label="Publish for certification"
               full-width
               title="Publish and prepare certification submission package"
@@ -561,7 +561,7 @@ class CtsPlanActions extends LitElement {
           ? html`<cts-button
               variant="secondary"
               size="sm"
-              icon="pencil-square"
+              icon="edit-pencil-01"
               label="Make plan Mutable"
               full-width
               data-testid="make-mutable-btn"
@@ -572,7 +572,7 @@ class CtsPlanActions extends LitElement {
           ? html`<cts-button
               variant="ghost"
               size="sm"
-              icon="trash"
+              icon="trash-empty"
               label="Delete plan"
               full-width
               data-testid="delete-plan-btn"

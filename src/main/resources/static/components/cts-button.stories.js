@@ -53,7 +53,7 @@ export const Default = {
 };
 
 export const SecondaryWithIcon = {
-  args: { variant: "secondary", label: "Create Test Plan", icon: "wrench-adjustable" },
+  args: { variant: "secondary", label: "Create Test Plan", icon: "settings" },
   render: ({ variant, label, icon, loading, disabled }) =>
     html`<cts-button
       variant="${variant}"
@@ -71,13 +71,13 @@ export const SecondaryWithIcon = {
 
     const icon = btn.querySelector("span.bi");
     expect(icon).toBeTruthy();
-    expect(icon.classList.contains("bi-wrench-adjustable")).toBe(true);
+    expect(icon.classList.contains("settings")).toBe(true);
     expect(icon.getAttribute("aria-hidden")).toBe("true");
   },
 };
 
 export const Primary = {
-  args: { variant: "primary", label: "Search", icon: "search" },
+  args: { variant: "primary", label: "Search", icon: "search-magnifying-glass" },
   render: ({ variant, label, icon, loading, disabled }) =>
     html`<cts-button
       variant="${variant}"
@@ -95,7 +95,7 @@ export const Primary = {
 
     const icon = btn.querySelector("span.bi");
     expect(icon).toBeTruthy();
-    expect(icon.classList.contains("bi-search")).toBe(true);
+    expect(icon.classList.contains("search-magnifying-glass")).toBe(true);
   },
 };
 
@@ -119,7 +119,7 @@ export const Ghost = {
 };
 
 export const Danger = {
-  args: { variant: "danger", label: "Delete", icon: "trash" },
+  args: { variant: "danger", label: "Delete", icon: "trash-empty" },
   render: ({ variant, label, icon, loading, disabled }) =>
     html`<cts-button
       variant="${variant}"
@@ -137,7 +137,7 @@ export const Danger = {
 
     const icon = btn.querySelector("span.bi");
     expect(icon).toBeTruthy();
-    expect(icon.classList.contains("bi-trash")).toBe(true);
+    expect(icon.classList.contains("trash-empty")).toBe(true);
   },
 };
 
@@ -277,7 +277,7 @@ export const DisabledNoEvent = {
 export const FullWidth = {
   args: {
     variant: "primary",
-    icon: "wrench-adjustable",
+    icon: "settings",
     label: "View Config",
   },
   render: ({ variant, label, icon, disabled }) => html`
@@ -319,29 +319,29 @@ export const FullWidthStack = {
       <div class="d-grid gap-1">
         <cts-button
           variant="secondary"
-          icon="wrench-adjustable"
+          icon="settings"
           label="View Config"
           full-width
         ></cts-button>
         <cts-button
           variant="secondary"
-          icon="save2"
+          icon="save"
           label="Download all Logs"
           full-width
         ></cts-button>
         <cts-button
           variant="secondary"
-          icon="bookmarks"
+          icon="bookmark"
           label="Publish everything"
           full-width
         ></cts-button>
         <cts-button
           variant="secondary"
-          icon="bookmarks"
+          icon="bookmark"
           label="Private link"
           full-width
         ></cts-button>
-        <cts-button variant="danger" icon="trash" label="Delete plan" full-width></cts-button>
+        <cts-button variant="danger" icon="trash-empty" label="Delete plan" full-width></cts-button>
       </div>
     </div>
   `,
@@ -350,10 +350,10 @@ export const FullWidthStack = {
 export const AllVariants = {
   render: () => html`
     <div style="display: flex; flex-wrap: wrap; gap: 0.5rem; padding: 1rem;">
-      <cts-button variant="primary" label="Run plan" icon="play-fill"></cts-button>
+      <cts-button variant="primary" label="Run plan" icon="play"></cts-button>
       <cts-button variant="secondary" label="Cancel"></cts-button>
       <cts-button variant="ghost" label="View log"></cts-button>
-      <cts-button variant="danger" label="Delete" icon="trash"></cts-button>
+      <cts-button variant="danger" label="Delete" icon="trash-empty"></cts-button>
     </div>
   `,
 };

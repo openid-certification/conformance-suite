@@ -466,7 +466,7 @@ class CtsTokenManager extends LitElement {
             <cts-button
               variant="secondary"
               size="sm"
-              icon="clipboard"
+              icon="copy"
               label="Copy"
               title="Copy token to clipboard"
               @cts-click=${this._copyToken}

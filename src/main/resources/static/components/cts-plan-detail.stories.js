@@ -728,7 +728,7 @@ export const ActionsCopyConfig = {
     // Mock navigator.clipboard.writeText (same pattern as cts-log-entry CopyAsCurl)
     const mockWriteText = fn().mockResolvedValue(undefined);
     const originalClipboard = navigator.clipboard;
-    Object.defineProperty(navigator, "clipboard", {
+    Object.defineProperty(navigator, "copy", {
       value: { writeText: mockWriteText },
       writable: true,
       configurable: true,
@@ -757,7 +757,7 @@ export const ActionsCopyConfig = {
       const written = mockWriteText.mock.calls[0][0];
       expect(written).toBe(JSON.stringify(PLAN_WITH_CONFIG.config, null, 4));
     } finally {
-      Object.defineProperty(navigator, "clipboard", {
+      Object.defineProperty(navigator, "copy", {
         value: originalClipboard,
         writable: true,
         configurable: true,
@@ -770,7 +770,7 @@ export const ActionsCopyConfigClipboardFailure = {
   render: () => html` <cts-plan-actions .plan=${PLAN_WITH_CONFIG}></cts-plan-actions> `,
   async play({ canvasElement }) {
     const originalClipboard = navigator.clipboard;
-    Object.defineProperty(navigator, "clipboard", {
+    Object.defineProperty(navigator, "copy", {
       value: {
         writeText: fn().mockRejectedValue(new Error("permission denied")),
       },
@@ -799,7 +799,7 @@ export const ActionsCopyConfigClipboardFailure = {
         expect(feedback?.getAttribute("aria-live")).toBe("polite");
       });
     } finally {
-      Object.defineProperty(navigator, "clipboard", {
+      Object.defineProperty(navigator, "copy", {
         value: originalClipboard,
         writable: true,
         configurable: true,

@@ -1,3 +1,5 @@
+import "./cts-icon.js";
+
 const VARIANT_CLASSES = {
   info: "oidf-alert-info",
   success: "oidf-alert-success",
@@ -137,8 +139,8 @@ class CtsAlert extends HTMLElement {
       closeBtn.type = "button";
       closeBtn.className = "oidf-alert-close";
       closeBtn.setAttribute("aria-label", "Close");
-      const closeIcon = document.createElement("i");
-      closeIcon.className = "bi bi-x";
+      const closeIcon = document.createElement("cts-icon");
+      closeIcon.setAttribute("name", "close-md");
       closeIcon.setAttribute("aria-hidden", "true");
       closeBtn.appendChild(closeIcon);
       closeBtn.addEventListener("click", () => this._dismiss());

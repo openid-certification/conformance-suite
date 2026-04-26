@@ -70,36 +70,36 @@
                     <div class="col-md-2">
                         <div class="d-grid gap-1">
                             <% if (!public) { %>
-                                <cts-button id="showConfigBtn" variant="secondary" icon="wrench-adjustable" label="View Config" full-width></cts-button>
+                                <cts-button id="showConfigBtn" variant="secondary" icon="settings" label="View Config" full-width></cts-button>
                             <% } %>
                             <% if (!readonly) { %>
-                                <cts-link-button href="schedule-test.html?edit-plan=<%- plan._id %>" variant="secondary" icon="pencil-square" label="Edit configuration" title="Create a new test plan based on the configuration used in this one" full-width></cts-link-button>
+                                <cts-link-button href="schedule-test.html?edit-plan=<%- plan._id %>" variant="secondary" icon="edit-pencil-01" label="Edit configuration" title="Create a new test plan based on the configuration used in this one" full-width></cts-link-button>
                             <% } %>
                             <% if (!public || plan.publish == "everything") { %>
                                 <% if (FAPI_UI.currentUser && FAPI_UI.currentUser.isAdmin) { %>
-                                    <cts-button id="downloadAllBtn" variant="secondary" icon="save2" label="Download all Logs" full-width></cts-button>
+                                    <cts-button id="downloadAllBtn" variant="secondary" icon="save" label="Download all Logs" full-width></cts-button>
                                 <% } %>
                             <% } %>
                             <% if (!readonly) { %>
                                 <% if (!plan.publish) { %>
                                     <% if (FAPI_UI.currentUser.isAdmin) { %>
-                                        <cts-button data-publish="summary" variant="secondary" icon="bookmarks" label="Publish summary" full-width></cts-button>
-                                        <cts-button id="publishBtn" variant="secondary" icon="bookmarks" label="Publish everything" full-width></cts-button>
+                                        <cts-button data-publish="summary" variant="secondary" icon="bookmark" label="Publish summary" full-width></cts-button>
+                                        <cts-button id="publishBtn" variant="secondary" icon="bookmark" label="Publish everything" full-width></cts-button>
                                     <% } %>
                                 <% } else { %>
                                     <% if (FAPI_UI.currentUser.isAdmin) { %>
-                                        <cts-button id="unpublishBtn" data-publish="" variant="secondary" icon="slash-circle" label="Unpublish" full-width></cts-button>
+                                        <cts-button id="unpublishBtn" data-publish="" variant="secondary" icon="close-circle" label="Unpublish" full-width></cts-button>
                                     <% } %>
-                                    <cts-link-button href="plan-detail.html?plan=<%- plan._id %>&public=true" variant="primary" icon="bookmarks" label="Public link" full-width></cts-link-button>
+                                    <cts-link-button href="plan-detail.html?plan=<%- plan._id %>&public=true" variant="primary" icon="bookmark" label="Public link" full-width></cts-link-button>
                                 <% } %>
-                                <cts-button id="btnShareLink" variant="secondary" icon="bookmarks" label="Private link" full-width></cts-button>
-                                <cts-button id="certificationPackageBtn" variant="secondary" icon="save2" label="Publish for certification" title="Publish and prepare certification submission package" disabled full-width></cts-button>
+                                <cts-button id="btnShareLink" variant="secondary" icon="bookmark" label="Private link" full-width></cts-button>
+                                <cts-button id="certificationPackageBtn" variant="secondary" icon="save" label="Publish for certification" title="Publish and prepare certification submission package" disabled full-width></cts-button>
                             <% } %>
                             <% if (plan.immutable && FAPI_UI.currentUser && FAPI_UI.currentUser.isAdmin) { %>
-                            <cts-button id="removeImmutableFlagBtn" data-immutable="false" variant="secondary" icon="pencil-square" label="Make plan Mutable" full-width></cts-button>
+                            <cts-button id="removeImmutableFlagBtn" data-immutable="false" variant="secondary" icon="edit-pencil-01" label="Make plan Mutable" full-width></cts-button>
                             <% } %>
                             <% if (!plan.immutable && !readonly) { %>
-                            <cts-button id="deleteMutablePlanBtn" variant="danger" icon="trash" label="Delete plan" full-width></cts-button>
+                            <cts-button id="deleteMutablePlanBtn" variant="danger" icon="trash-empty" label="Delete plan" full-width></cts-button>
                             <% } %>
                         </div>
                     </div>
@@ -116,12 +116,12 @@
                 <div class="col-md-2">
                     <div class="d-grid gap-1">
                         <% if (!readonly && !plan.immutable) { %>
-                        <cts-button class="startBtn" data-module="<%- module.testModule %>" data-variant="<%- JSON.stringify(module.variant) %>" variant="secondary" icon="play-fill" label="Run Test" full-width></cts-button>
+                        <cts-button class="startBtn" data-module="<%- module.testModule %>" data-variant="<%- JSON.stringify(module.variant) %>" variant="secondary" icon="play" label="Run Test" full-width></cts-button>
                         <% } %>
                         <% if (lastInstance) { %>
-                        <cts-link-button class="viewBtn" href="log-detail.html?log=<%- encodeURIComponent(lastInstance) %><%- public ? '&public=true' : '' %>" variant="secondary" icon="file-earmark" label="View Logs" full-width></cts-link-button>
+                        <cts-link-button class="viewBtn" href="log-detail.html?log=<%- encodeURIComponent(lastInstance) %><%- public ? '&public=true' : '' %>" variant="secondary" icon="file-blank" label="View Logs" full-width></cts-link-button>
                         <% if (!public || plan.publish == "everything") { %>
-                        <cts-button class="downloadBtn" variant="secondary" icon="save2" label="Download Logs" full-width></cts-button>
+                        <cts-button class="downloadBtn" variant="secondary" icon="save" label="Download Logs" full-width></cts-button>
                         <% } %>
                         <% } %>
                     </div>
@@ -129,7 +129,7 @@
                 <div class="col-md-8">
                     <div class="row">
                         <div class="col-md-2">Test Name:</div>
-                        <div class="col-md-10"><%- module.testModule %><sup><cts-tooltip content="<%- module.testSummary ? module.testSummary : '' %>" placement="right"><span class="bi bi-question-circle-fill"></span></cts-tooltip></sup></div>
+                        <div class="col-md-10"><%- module.testModule %><sup><cts-tooltip content="<%- module.testSummary ? module.testSummary : '' %>" placement="right"><cts-icon name="circle-help"></cts-icon></cts-tooltip></sup></div>
                     </div>
                     <div class="row">
                         <div class="col-md-2">Variant:</div>

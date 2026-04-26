@@ -110,7 +110,7 @@ export const CreateTemporaryToken = {
 
     // Mock clipboard
     const mockWriteText = fn().mockResolvedValue(undefined);
-    Object.defineProperty(navigator, "clipboard", {
+    Object.defineProperty(navigator, "copy", {
       value: { writeText: mockWriteText },
       writable: true,
       configurable: true,
@@ -408,7 +408,7 @@ export const CopyTokenClipboardFailure = {
 
     const originalClipboard = navigator.clipboard;
     // Reject writeText — simulates permissions-denied / insecure-context.
-    Object.defineProperty(navigator, "clipboard", {
+    Object.defineProperty(navigator, "copy", {
       value: {
         writeText: fn().mockRejectedValue(new Error("permission denied")),
       },
@@ -443,7 +443,7 @@ export const CopyTokenClipboardFailure = {
         expect(feedback.getAttribute("role")).toBe("status");
       });
     } finally {
-      Object.defineProperty(navigator, "clipboard", {
+      Object.defineProperty(navigator, "copy", {
         value: originalClipboard,
         writable: true,
         configurable: true,
@@ -470,7 +470,7 @@ export const CopyTokenClipboardAbsent = {
     const canvas = within(canvasElement);
 
     const originalClipboard = navigator.clipboard;
-    Object.defineProperty(navigator, "clipboard", {
+    Object.defineProperty(navigator, "copy", {
       value: undefined,
       writable: true,
       configurable: true,
@@ -498,7 +498,7 @@ export const CopyTokenClipboardAbsent = {
         expect(feedback.textContent).toContain("Clipboard not available");
       });
     } finally {
-      Object.defineProperty(navigator, "clipboard", {
+      Object.defineProperty(navigator, "copy", {
         value: originalClipboard,
         writable: true,
         configurable: true,

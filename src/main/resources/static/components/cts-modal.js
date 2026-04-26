@@ -1,3 +1,5 @@
+import "./cts-icon.js";
+
 /**
  * Maps a footer-button descriptor variant key → OIDF token-styled
  * `oidf-btn-*` modifier class. Mirrors the table in `cts-button.js` so
@@ -201,12 +203,12 @@ function injectStyles() {
  *                                       //   Unknown values become an additive
  *                                       //   class so caller-supplied themes
  *                                       //   are not silently downgraded.
- *     "icon": "trash",                  // optional — Bootstrap Icon name
+ *     "icon": "trash-empty",                  // optional — Bootstrap Icon name
  *                                       //   (sanitized against `[a-z0-9-]+`)
  *     "dismiss": true,                  // optional — clicking closes the
  *                                       //   dialog. Default true.
  *     "id": "confirmDelete",            // optional — HTML id
- *     "data": { "key": "value" }        // optional — data-* attributes
+ *     "data": { "lock": "value" }        // optional — data-* attributes
  *   }
  * @property {string} heading - The modal title text
  * @property {string} [size] - Dialog size: "sm", "lg", or "xl" (default ~520px)
@@ -265,8 +267,8 @@ class CtsModal extends HTMLElement {
       closeBtn.type = "button";
       closeBtn.className = "oidf-modal-close";
       closeBtn.setAttribute("aria-label", "Close");
-      const closeIcon = document.createElement("i");
-      closeIcon.className = "bi bi-x";
+      const closeIcon = document.createElement("cts-icon");
+      closeIcon.setAttribute("name", "close-md");
       closeIcon.setAttribute("aria-hidden", "true");
       closeBtn.appendChild(closeIcon);
       closeBtn.addEventListener("click", () => this.hide());
@@ -426,11 +428,11 @@ class CtsModal extends HTMLElement {
 
     // Icon + label. Sanitize the icon name against [a-z0-9-]; values that
     // fail the check are dropped entirely — we do not emit an empty
-    // `<span class="bi bi-">` (an invisible broken icon is worse than none).
+    // `<cts-icon>` (an invisible broken icon is worse than none).
     const sanitizedIcon = CtsModal._sanitizeIconName(desc.icon);
     if (sanitizedIcon) {
-      const iconEl = document.createElement("span");
-      iconEl.className = `bi bi-${sanitizedIcon}`;
+      const iconEl = document.createElement("cts-icon");
+      iconEl.setAttribute("name", sanitizedIcon);
       iconEl.setAttribute("aria-hidden", "true");
       btn.appendChild(iconEl);
       btn.appendChild(document.createTextNode(" "));

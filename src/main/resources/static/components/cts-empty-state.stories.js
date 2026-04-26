@@ -141,7 +141,7 @@ export const SlottedCta = {
     <cts-empty-state
       heading="No tokens issued yet"
       body="Generate an API token to integrate with the conformance suite."
-      icon="key"
+      icon="lock"
     >
       <button type="button" id="slotted-cta" class="oidf-btn oidf-btn-sm oidf-btn-primary">
         Generate token
@@ -178,7 +178,7 @@ export const FillsContainer = {
       <cts-empty-state
         heading="No log entries"
         body="Run a test to populate the log viewer."
-        icon="journal-text"
+        icon="book"
         cta-label="Run a test"
         cta-href="schedule-test.html"
       ></cts-empty-state>

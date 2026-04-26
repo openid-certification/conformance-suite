@@ -55,31 +55,31 @@
                         <% if (!readonly) { %>
                         <cts-button id="reloadBtn" icon="arrow-down-up" label="Repeat Test"></cts-button>
                         <div class="log-upload-row">
-                            <cts-button id="uploadBtn" icon="file-image" label="Upload Images"></cts-button>
+                            <cts-button id="uploadBtn" icon="image-01" label="Upload Images"></cts-button>
                             <span class="log-upload-count" id="uploadCount"></span>
                         </div>
                         <% } %>
                         <% if (!public) { %>
-                        <cts-button id="showConfigBtn" icon="wrench-adjustable" label="View Config"></cts-button>
+                        <cts-button id="showConfigBtn" icon="settings" label="View Config"></cts-button>
                         <% } %>
                         <% if (!readonly) { %>
-                        <cts-button id="editConfigBtn" icon="pencil-square" label="Edit configuration" title="Create a new test plan based on the configuration used in this one"></cts-button>
+                        <cts-button id="editConfigBtn" icon="edit-pencil-01" label="Edit configuration" title="Create a new test plan based on the configuration used in this one"></cts-button>
                         <% } %>
                         <% if (!public || test.publish == "everything") { %>
-                        <cts-button id="downloadBtn" icon="save2" label="Download Logs"></cts-button>
+                        <cts-button id="downloadBtn" icon="save" label="Download Logs"></cts-button>
                         <% } %>
-                        <cts-button id="planBtn" icon="bookmarks" label="Return to Plan"></cts-button>
+                        <cts-button id="planBtn" icon="bookmark" label="Return to Plan"></cts-button>
                         <% if (!readonly) { %>
-                        <cts-button id="nextPlanBtn" icon="skip-forward-fill" label="Continue Plan" title="Run the next test in this test plan"></cts-button>
-                        <cts-button id="btnShareLink" icon="bookmarks" label="Private link"></cts-button>
+                        <cts-button id="nextPlanBtn" icon="skip-forward" label="Continue Plan" title="Run the next test in this test plan"></cts-button>
+                        <cts-button id="btnShareLink" icon="bookmark" label="Private link"></cts-button>
                         <% if (!test.publish && FAPI_UI.currentUser.isAdmin) { %>
-                        <cts-button data-publish="summary" icon="bookmarks" label="Publish summary"></cts-button>
-                        <cts-button id="publishBtn" icon="bookmarks" label="Publish everything"></cts-button>
+                        <cts-button data-publish="summary" icon="bookmark" label="Publish summary"></cts-button>
+                        <cts-button id="publishBtn" icon="bookmark" label="Publish everything"></cts-button>
                         <% } else { %>
                             <% if (FAPI_UI.currentUser.isAdmin) { %>
-                        <cts-button id="unpublishBtn" data-publish="" icon="slash-circle" label="Unpublish"></cts-button>
+                        <cts-button id="unpublishBtn" data-publish="" icon="close-circle" label="Unpublish"></cts-button>
                             <% } %>
-                        <cts-link-button href="log-detail.html?log=<%- encodeURIComponent(test.testId) %>&public=true" variant="info" icon="bookmarks" label="Public link"></cts-link-button>
+                        <cts-link-button href="log-detail.html?log=<%- encodeURIComponent(test.testId) %>&public=true" variant="info" icon="bookmark" label="Public link"></cts-link-button>
                         <% } %>
                         <% } %>
                     </div>
@@ -99,8 +99,8 @@
                     <div id="runningTestExport"></div>
                     <div id="runningTestBrowser"></div>
                     <div class="log-header-controls">
-                        <cts-button id="startBtn" class="collapse" variant="success" icon="play-fill" label="Start"></cts-button>
-                        <cts-button id="stopBtn" class="collapse" icon="stop-fill" label="Stop"></cts-button>
+                        <cts-button id="startBtn" class="collapse" variant="success" icon="play" label="Start"></cts-button>
+                        <cts-button id="stopBtn" class="collapse" icon="stop" label="Stop"></cts-button>
                     </div>
                   </div>
             </div>

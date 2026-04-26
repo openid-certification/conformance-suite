@@ -7,7 +7,7 @@
                             <input type="hidden" name="<%- param.name %>" value="<%- param.value %>" />
                             <% }); %>
                         </form>
-                        <dt><cts-button class="visitBtn" variant="primary" icon="send-fill" label="Proceed with test" data-method="<%- val.method %>" data-url="<%- val.originalUrl %>" title="To continue the test, click here to open the url to be visited in a new tab"></cts-button></dt>
+                        <dt><cts-button class="visitBtn" variant="primary" icon="paper-plane" label="Proceed with test" data-method="<%- val.method %>" data-url="<%- val.originalUrl %>" title="To continue the test, click here to open the url to be visited in a new tab"></cts-button></dt>
                         <% if (val.method === 'POST') { %>
                             <dd class="wrapLongStrings">
                                     <pre style="border: 1px solid var(--border); padding: var(--space-3);"><code style="word-break: break-all;">POST <%- val.url %> HTTP 1.1
@@ -25,11 +25,11 @@ Content-Type: application/x-www-form-urlencoded
                         <% } %>
                     <% }); %>
                     <% _.each(browser.browserApiRequests, function(val) { %>
-                        <dt><cts-button class="visitBrowserApiBtn" variant="primary" icon="send-fill" label="Proceed with test via browser API (preview)" data-browserapirequest="<%- JSON.stringify(val.request) %>" data-browserapisubmiturl="<%- val.submitUrl %>" title="To continue the test, click here to open the url to be visited in a new tab"></cts-button></dt>
+                        <dt><cts-button class="visitBrowserApiBtn" variant="primary" icon="paper-plane" label="Proceed with test via browser API (preview)" data-browserapirequest="<%- JSON.stringify(val.request) %>" data-browserapisubmiturl="<%- val.submitUrl %>" title="To continue the test, click here to open the url to be visited in a new tab"></cts-button></dt>
                         <dd class="wrapLongStrings log-browser-url"><%- JSON.stringify(val.request) %></dd>
                     <% }); %>
                     <% _.each(browser.visitedUrlsWithMethod, function(val) { %>
-                        <dt><cts-button icon="send-fill" label="Visited" disabled></cts-button></dt>
+                        <dt><cts-button icon="paper-plane" label="Visited" disabled></cts-button></dt>
                         <% if (val.method === 'POST') { %>
                         <dd class="wrapLongStrings">
                             <pre style="border: 1px solid var(--border); padding: var(--space-3);"><code style="word-break: break-all;">POST <%- val.url %> HTTP 1.1

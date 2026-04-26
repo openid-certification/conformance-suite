@@ -52,7 +52,7 @@ export const OkStatic = {
     // Pass kind drives the green status-pass left rule and a
     // check-circle glyph.
     const icon = toast.querySelector("cts-icon");
-    expect(icon.getAttribute("name")).toBe("check-circle");
+    expect(icon.getAttribute("name")).toBe("circle-check");
     // Bootstrap toast classes must NOT leak through.
     expect(card.classList.contains("toast")).toBe(false);
     expect(card.classList.contains("toast-body")).toBe(false);
@@ -89,7 +89,7 @@ export const Dismissible = {
     const closeBtn = toast.querySelector("button.oidf-toast-close");
     expect(closeBtn).toBeTruthy();
     expect(closeBtn.getAttribute("aria-label")).toBe("Dismiss");
-    const closeIcon = closeBtn.querySelector("i.bi.bi-x");
+    const closeIcon = closeBtn.querySelector('cts-icon[name="close-md"]');
     expect(closeIcon).toBeTruthy();
     expect(closeIcon.getAttribute("aria-hidden")).toBe("true");
 
@@ -193,12 +193,12 @@ export const ErrorKind = {
     expect(card.getAttribute("style")).toContain("--rust-400");
 
     const icon = toast.querySelector("cts-icon");
-    expect(icon.getAttribute("name")).toBe("x-circle");
+    expect(icon.getAttribute("name")).toBe("close-circle");
 
-    // The bi-x-circle glyph is rendered by cts-icon as <span class="bi bi-x-circle">.
+    // The bi-x-circle glyph is rendered by cts-icon as <cts-icon name="close-circle"></cts-icon>.
     const glyph = toast.querySelector("span.bi");
     expect(glyph).toBeTruthy();
-    expect(glyph.classList.contains("bi-x-circle")).toBe(true);
+    expect(glyph.classList.contains("close-circle")).toBe(true);
   },
 };
 
@@ -220,6 +220,6 @@ export const UnknownKindFallback = {
   async play({ canvasElement }) {
     const toast = canvasElement.querySelector("cts-toast");
     const icon = toast.querySelector("cts-icon");
-    expect(icon.getAttribute("name")).toBe("check-circle");
+    expect(icon.getAttribute("name")).toBe("circle-check");
   },
 };

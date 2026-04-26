@@ -113,7 +113,7 @@ export const Dismissible = {
     expect(closeBtn.getAttribute("aria-label")).toBe("Close");
     // Bootstrap's btn-close class must NOT be emitted.
     expect(closeBtn.classList.contains("btn-close")).toBe(false);
-    const closeIcon = closeBtn.querySelector("i.bi.bi-x");
+    const closeIcon = closeBtn.querySelector('cts-icon[name="close-md"]');
     expect(closeIcon).toBeTruthy();
     expect(closeIcon.getAttribute("aria-hidden")).toBe("true");
 

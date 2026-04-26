@@ -241,7 +241,7 @@ class CtsRunningTestCard extends LitElement {
             class="downloadBtn"
             variant="secondary"
             size="sm"
-            icon="save2"
+            icon="save"
             label="Download Logs"
             full-width
             @cts-click="${this._handleDownload}"
@@ -250,7 +250,7 @@ class CtsRunningTestCard extends LitElement {
             class="viewBtn"
             variant="secondary"
             size="sm"
-            icon="card-list"
+            icon="label"
             label="View Test Details"
             full-width
             href="log-detail.html?log=${encodeURIComponent(test._id)}"

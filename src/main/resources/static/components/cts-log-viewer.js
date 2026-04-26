@@ -1,4 +1,5 @@
 import { LitElement, html, nothing } from "lit";
+import "./cts-icon.js";
 import "./cts-badge.js";
 import "./cts-alert.js";
 import "./cts-log-entry.js";
@@ -231,10 +232,8 @@ class CtsLogViewer extends LitElement {
         data-block-id=${entry.blockId}
         @click=${this._handleBlockClick}
       >
-        <span
-          class="${isCollapsed ? "bi bi-chevron-right" : "bi bi-chevron-down"}"
-          aria-hidden="true"
-        ></span>
+        <cts-icon name="${isCollapsed ? "chevron-right" : "chevron-down"}"
+          aria-hidden="true"></cts-icon>
         ${entry.msg || entry.blockId}
       </button>
     `;

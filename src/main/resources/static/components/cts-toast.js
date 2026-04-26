@@ -16,12 +16,12 @@ import "./cts-icon.js";
 const KIND_STYLES = {
   ok: {
     ruleVar: "--status-pass",
-    icon: "check-circle",
+    icon: "circle-check",
     iconColorVar: "--status-pass",
   },
   error: {
     ruleVar: "--rust-400",
-    icon: "x-circle",
+    icon: "close-circle",
     iconColorVar: "--rust-400",
   },
 };
@@ -321,7 +321,7 @@ class CtsToast extends LitElement {
         aria-label="Dismiss"
         @click=${this._onDismissClick}
       >
-        <i class="bi bi-x" aria-hidden="true"></i>
+        <cts-icon name="close-md" aria-hidden="true"></cts-icon>
       </button>
     </div>`;
   }
