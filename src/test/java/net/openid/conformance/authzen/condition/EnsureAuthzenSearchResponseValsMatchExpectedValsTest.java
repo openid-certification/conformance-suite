@@ -5,24 +5,24 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.ConditionError;
+import net.openid.conformance.logging.BsonEncoding;
 import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.Environment;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @ExtendWith(MockitoExtension.class)
 class EnsureAuthzenSearchResponseValsMatchExpectedValsTest {
 	@Spy
 	private Environment env = new Environment();
 
-	@Mock
-	private TestInstanceEventLog eventLog;
+	private final TestInstanceEventLog eventLog = BsonEncoding.testInstanceEventLog();
 
 	private EnsureAuthzenSearchResponseValsMatchExpectedVals cond;
 
@@ -55,7 +55,7 @@ class EnsureAuthzenSearchResponseValsMatchExpectedValsTest {
 	}
 
 	@Test
-	public void testEvaluate_noError() {
+	public void testEvaluate_single_value_response_noError() {
 		String expectedJson = """
 		[
 			{
@@ -74,7 +74,7 @@ class EnsureAuthzenSearchResponseValsMatchExpectedValsTest {
 	}
 
 	@Test
-	public void testEvaluate_noError2() {
+	public void testEvaluate_multiple_value_response_noError() {
 		String expectedJson = """
 		[
 			{
@@ -95,33 +95,107 @@ class EnsureAuthzenSearchResponseValsMatchExpectedValsTest {
 	}
 
 	@Test
-	public void testEvaluate_error_different_response_size() {
+	public void testEvaluate_empty_response_noError() {
 		String expectedJson = """
 		[
-			{
-				"name": "view"
-			},
-			{
-				"name2": "view"
-			}
 		]""";
 
 		String actualJson = """
 		[
-			{
-				"name": "view"
-			}
 		]""";
 
-		assertThrows(ConditionError.class, () -> performTest(expectedJson, actualJson));
+		performTest(expectedJson, actualJson);
 	}
 
 	@Test
-	public void testEvaluate_error_different_response_size_correct_values() {
+	public void testEvaluate_error_missing_response() {
 		String expectedJson = """
 		[
 			{
 				"name": "view"
+			}
+		]""";
+
+		String actualJson = """
+		[
+		]""";
+
+		Throwable e = assertThrows(ConditionError.class, () -> performTest(expectedJson, actualJson));
+		assertTrue(e.getMessage().contains("Search result is missing expected elements"));
+	}
+
+	@Test
+	public void testEvaluate_error_empty_expected_response() {
+		String expectedJson = """
+		[
+		]""";
+
+		String actualJson = """
+		[
+			{
+				"name": "view"
+			}
+		]""";
+
+		Throwable e = assertThrows(ConditionError.class, () -> performTest(expectedJson, actualJson));
+		assertTrue(e.getMessage().contains("Search result contains unexpected elements"));
+	}
+
+	@Test
+	public void testEvaluate_error_response_size_less_than_expected() {
+		String expectedJson = """
+		[
+			{
+				"name": "view"
+			},
+			{
+				"name": "view2"
+			}
+		]""";
+
+		String actualJson = """
+		[
+			{
+				"name": "view"
+			}
+		]""";
+
+		Throwable e = assertThrows(ConditionError.class, () -> performTest(expectedJson, actualJson));
+		assertTrue(e.getMessage().contains("Search result is missing expected elements"));
+	}
+
+	@Test
+	public void testEvaluate_error_response_more_than_expected_size() {
+		String expectedJson = """
+		[
+			{
+				"name": "view"
+			}
+		]""";
+
+		String actualJson = """
+		[
+			{
+				"name": "view"
+			},
+			{
+				"name": "view2"
+			}
+		]""";
+
+		Throwable e = assertThrows(ConditionError.class, () -> performTest(expectedJson, actualJson));
+		assertTrue(e.getMessage().contains("Search result contains unexpected elements"));
+	}
+
+	@Test
+	public void testEvaluate_duplicate_expected_values_noError() {
+		String expectedJson = """
+		[
+			{
+				"name": "view"
+			},
+			{
+				"name": "view2"
 			},
 			{
 				"name": "view"
@@ -130,6 +204,31 @@ class EnsureAuthzenSearchResponseValsMatchExpectedValsTest {
 
 		String actualJson = """
 		[
+			{
+				"name": "view"
+			},
+			{
+				"name": "view2"
+			}
+		]""";
+
+		performTest(expectedJson, actualJson);
+	}
+
+	@Test
+	public void testEvaluate_duplicate_response_values_noError() {
+		String expectedJson = """
+		[
+			{
+				"name": "view"
+			}
+		]""";
+
+		String actualJson = """
+		[
+			{
+				"name": "view"
+			},
 			{
 				"name": "view"
 			}
@@ -157,8 +256,8 @@ class EnsureAuthzenSearchResponseValsMatchExpectedValsTest {
 			}
 		]""";
 
-
-		assertThrows(ConditionError.class, () -> performTest(expectedJson, actualJson));
+		Throwable e = assertThrows(ConditionError.class, () -> performTest(expectedJson, actualJson));
+		assertTrue(e.getMessage().contains("Search result is missing expected elements"));
 	}
 
 	@Test
@@ -180,8 +279,8 @@ class EnsureAuthzenSearchResponseValsMatchExpectedValsTest {
 			}
 		]""";
 
-
-		assertThrows(ConditionError.class, () -> performTest(expectedJson, actualJson));
+		Throwable e = assertThrows(ConditionError.class, () -> performTest(expectedJson, actualJson));
+		assertTrue(e.getMessage().contains("Search result contains unexpected elements"));
 	}
 
 	@Test
@@ -206,8 +305,8 @@ class EnsureAuthzenSearchResponseValsMatchExpectedValsTest {
 			}
 		]""";
 
-
-		assertThrows(ConditionError.class, () -> performTest(expectedJson, actualJson));
+		Throwable e = assertThrows(ConditionError.class, () -> performTest(expectedJson, actualJson));
+		assertTrue(e.getMessage().contains("Search result does not match"));
 	}
 
 }
