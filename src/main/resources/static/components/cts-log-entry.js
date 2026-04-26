@@ -32,6 +32,100 @@ const HTTP_BADGES = {
   "redirect-in": { icon: "arrow-circle-down", label: "REDIRECT-IN" },
 };
 
+/**
+ * Canonical labels for the two semantic kinds R30 surfaces in the More panel.
+ * Keys match the `kind` field on `classifyMoreEntries` rows.
+ * @type {Object.<string, string>}
+ */
+const MORE_KIND_LABELS = {
+  expected: "Expected (per spec)",
+  actual: "Actual (received)",
+};
+
+/**
+ * Modifier class for the `<dt>` of each kind. Lookup table per components/AGENTS.md §7
+ * (no dynamic class concatenation in templates — even for closed-set unions).
+ * @type {Object.<string, string>}
+ */
+const MORE_KIND_KEY_CLASSES = {
+  expected: "moreInfo-key--expected",
+  actual: "moreInfo-key--actual",
+  other: "moreInfo-key--other",
+};
+
+/**
+ * Modifier class for the `<dd>` of each kind. Same lookup-table policy as
+ * MORE_KIND_KEY_CLASSES.
+ * @type {Object.<string, string>}
+ */
+const MORE_KIND_VALUE_CLASSES = {
+  expected: "moreInfo-value--expected",
+  actual: "moreInfo-value--actual",
+  other: "moreInfo-value--other",
+};
+
+/**
+ * Humanize a snake_case identifier for display: replace underscores with
+ * spaces and capitalize the first character only ("sentence case"). Domain
+ * abbreviations stay lower-case in their own segment ("Http method", not
+ * "HTTP method"); the codebase favors that softer rendering over per-word
+ * title-casing, which would read awkwardly for keys like `expires_in`.
+ * @param {string} key Raw key (e.g. `access_token`).
+ * @returns {string} Humanized label (e.g. `"Access token"`); empty string if `key` is falsy.
+ */
+function humanizeKey(key) {
+  if (!key) return "";
+  const spaced = key.replace(/_/g, " ");
+  return spaced.charAt(0).toUpperCase() + spaced.slice(1);
+}
+
+/**
+ * Classify each entry in `more` as `"expected"`, `"actual"`, or `"other"`,
+ * and reorder so expected rows render first, actual second, other third.
+ * Insertion order is preserved within each bucket. Classification is by
+ * exact match (`expected` / `actual`) or strict prefix (`expected_…` /
+ * `actual_…`) — substrings like `unexpected_field` do NOT match.
+ * @param {Object.<string, unknown>} more The raw `entry.more` payload.
+ * @returns {Array<{kind: "expected"|"actual"|"other", key: string, displayLabel: string, value: unknown}>} Rows ready to render, ordered expected → actual → other.
+ */
+function classifyMoreEntries(more) {
+  if (!more || typeof more !== "object") return [];
+  const expectedRows = [];
+  const actualRows = [];
+  const otherRows = [];
+  for (const [key, value] of Object.entries(more)) {
+    /** @type {"expected"|"actual"|"other"} */
+    let kind;
+    let suffix = "";
+    if (key === "expected") {
+      kind = "expected";
+    } else if (key === "actual") {
+      kind = "actual";
+    } else if (key.startsWith("expected_")) {
+      kind = "expected";
+      suffix = key.slice("expected_".length);
+    } else if (key.startsWith("actual_")) {
+      kind = "actual";
+      suffix = key.slice("actual_".length);
+    } else {
+      kind = "other";
+    }
+    let displayLabel;
+    if (kind === "other") {
+      displayLabel = humanizeKey(key);
+    } else if (suffix) {
+      displayLabel = `${MORE_KIND_LABELS[kind]} — ${humanizeKey(suffix)}`;
+    } else {
+      displayLabel = MORE_KIND_LABELS[kind];
+    }
+    const row = { kind, key, displayLabel, value };
+    if (kind === "expected") expectedRows.push(row);
+    else if (kind === "actual") actualRows.push(row);
+    else otherRows.push(row);
+  }
+  return [...expectedRows, ...actualRows, ...otherRows];
+}
+
 const STYLE_ID = "cts-log-entry-styles";
 
 // Scoped CSS for the OIDF token-styled log row. Mirrors the design archive's
@@ -190,11 +284,35 @@ const STYLE_TEXT = `
     text-align: right;
     word-break: break-word;
   }
+  /* R30: semantic labels for "expected" (per spec) and "actual" (received).
+     Color is paired with explicit text labels so the meaning never relies
+     on color alone. The row-level .is-fail / .is-warn gradient on the entry
+     itself carries the failure cue, so the per-row treatment here stays
+     subtle to avoid double-signaling. */
+  cts-log-entry .moreInfo-key--expected {
+    color: var(--status-info);
+    border-right: 2px solid var(--status-info);
+    padding-right: var(--space-2);
+  }
+  cts-log-entry .moreInfo-key--actual {
+    color: var(--ink-700);
+    border-right: 2px solid var(--ink-400);
+    padding-right: var(--space-2);
+  }
   cts-log-entry .moreInfo dd {
     margin: 0;
     color: var(--fg);
     word-break: break-word;
   }
+  cts-log-entry .moreInfo-value--expected {
+    color: var(--status-info);
+  }
+  /* moreInfo-key--other / moreInfo-value--actual / moreInfo-value--other
+     have no rules by design — those rows inherit the default <dt> / <dd>
+     treatment so the labeled expected/actual rows pop visually. The hook
+     classes are still emitted (and asserted by the cts-log-entry play
+     tests) so future stylesheet work can target them without churning
+     the render template. */
   cts-log-entry .moreInfo pre {
     margin: 0;
     font-family: var(--font-mono);
@@ -224,8 +342,13 @@ function ensureStylesInjected() {
  *
  * Severity is rendered via `cts-badge` (canonical `pass`/`fail`/`warn`/etc.
  * variants). The "More" toggle reveals an `.moreInfo` panel listing every
- * key in `entry.more`. HTTP request entries also expose a "cURL" copy
- * button that writes a curl command to the clipboard.
+ * key in `entry.more`. R30: keys named `expected` / `actual` (or prefixed
+ * `expected_…` / `actual_…`) are surfaced with semantic labels ("Expected
+ * (per spec)" / "Actual (received)") and rendered in expected → actual →
+ * other order so users don't have to translate raw JSON keys to compare
+ * what the spec required vs what the implementation produced. HTTP request
+ * entries also expose a "cURL" copy button that writes a curl command to
+ * the clipboard.
  *
  * @property {object} entry - Log entry object from `/api/log/{testId}`; shape
  *   includes `_id`, `time`, `result`, `http`, `src`, `msg`, `upload`,
@@ -332,13 +455,16 @@ class CtsLogEntry extends LitElement {
   _renderMorePanel() {
     const { more } = this.entry;
     if (!this._expanded || !more) return nothing;
+    const rows = classifyMoreEntries(more);
     return html`
       <div class="moreInfo">
         <dl>
-          ${Object.entries(more).map(
-            ([key, value]) => html`
-              <dt>${key}</dt>
-              <dd>
+          ${rows.map(
+            ({ kind, key, displayLabel, value }) => html`
+              <dt class="moreInfo-key ${MORE_KIND_KEY_CLASSES[kind]}" data-key="${key}">
+                ${displayLabel}
+              </dt>
+              <dd class="moreInfo-value ${MORE_KIND_VALUE_CLASSES[kind]}">
                 <pre>${typeof value === "string" ? value : JSON.stringify(value, null, 2)}</pre>
               </dd>
             `,
