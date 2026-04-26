@@ -133,6 +133,17 @@ const STYLE_TEXT = `
     align-items: center;
     gap: var(--space-1);
   }
+  /* In this row the badge pill itself reads ~1px low against the sm
+     action buttons (cap-height drift: 11px caps in a 16px line-box land
+     ~1px lower than 13px caps in the same line-box). Nudge the whole pill
+     up 1px — leaving the inner padding alone — so it visually aligns with
+     "Run Test" / "View Logs" / "Download Logs" without changing layout
+     flow (position is relative-only, no margin reflow). */
+  cts-plan-modules .module-row > cts-badge,
+  cts-plan-modules .module-row > .moduleStatusLink {
+    position: relative;
+    top: -1px;
+  }
   cts-plan-modules .planModulesEmpty {
     padding: var(--space-5);
     text-align: center;
@@ -312,8 +323,12 @@ class CtsPlanModules extends LitElement {
         <span class="num">${this._rowNumber(index + 1)}</span>
         <div class="name">
           ${mod.testModule}${mod.testSummary
-            ? html`<cts-icon name="circle-help" class="help-icon" title="${mod.testSummary}"
-                aria-hidden="true"></cts-icon>`
+            ? html`<cts-icon
+                name="circle-help"
+                class="help-icon"
+                title="${mod.testSummary}"
+                aria-hidden="true"
+              ></cts-icon>`
             : nothing}
           <div class="desc">
             <span class="mono">${variantStr}</span>

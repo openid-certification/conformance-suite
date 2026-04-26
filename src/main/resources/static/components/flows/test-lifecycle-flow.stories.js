@@ -116,7 +116,7 @@ export const PlanToLogDetail = {
     });
 
     await step("Verify action buttons present", async () => {
-      const viewConfigBtns = canvas.getAllByText("View Config");
+      const viewConfigBtns = canvas.getAllByText("View configuration");
       expect(viewConfigBtns.length).toBeGreaterThan(0);
     });
 

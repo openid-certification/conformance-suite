@@ -59,6 +59,20 @@ const STYLE_ID = "cts-badge-styles";
  * the same `--status-info-*` palette.
  */
 const STYLE_TEXT = `
+  cts-badge {
+    /* Host defaults to inline, which means its height collapses to the
+       inherited line-box (e.g. ~24px at line-height 1.5 × 16px) rather
+       than the actual 20px badge. In a flex container with
+       align-items: center, that mismatched line-box pushes the visible
+       pill off-center relative to sibling text (e.g. cts-batch-runner
+       tiles, where the PASSED/FAILED/WARNING badges sat ~2px below the
+       runner name). Promoting the host to inline-flex makes its box
+       exactly track the inner .badge, so flex centering aligns to what
+       the user sees. vertical-align: middle preserves the existing
+       inline-text behavior next to surrounding prose. */
+    display: inline-flex;
+    vertical-align: middle;
+  }
   cts-badge .badge {
     display: inline-flex;
     align-items: center;

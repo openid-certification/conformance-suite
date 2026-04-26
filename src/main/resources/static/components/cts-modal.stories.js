@@ -581,10 +581,10 @@ export const FooterButtonsWithIcon = {
     const copyBtn = canvasElement.querySelectorAll(".oidf-modal-footer button")[0];
     expect(copyBtn.textContent.trim()).toContain("Copy to clipboard");
 
-    const icon = copyBtn.querySelector("span.bi");
-    expect(icon).toBeTruthy();
-    expect(icon.classList.contains("log-out")).toBe(true);
-    expect(icon.getAttribute("aria-hidden")).toBe("true");
+    const iconEl = copyBtn.querySelector("cts-icon");
+    expect(iconEl).toBeTruthy();
+    expect(iconEl.getAttribute("name")).toBe("log-out");
+    expect(iconEl.getAttribute("aria-hidden")).toBe("true");
   },
 };
 
@@ -621,8 +621,8 @@ export const FooterButtonsIconRejected = {
     await waitFor(() => expect(dialog.open).toBe(true));
 
     const btn = canvasElement.querySelector(".oidf-modal-footer button");
-    // No span — sanitizer dropped the bad value instead of emitting bi-<script>...
-    expect(btn.querySelector("span.bi")).toBeNull();
+    // Sanitizer dropped the bad value instead of emitting <cts-icon name="<script>...">.
+    expect(btn.querySelector("cts-icon")).toBeNull();
     // And no script tag was smuggled in either.
     expect(canvasElement.querySelector("script")).toBeNull();
     expect(btn.textContent.trim()).toBe("Bad");

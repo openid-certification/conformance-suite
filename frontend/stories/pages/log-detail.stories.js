@@ -56,8 +56,8 @@ export const Default = {
       expect(canvas.getByText("oidcc-server")).toBeInTheDocument();
     });
 
-    // Header region: FAILED badge present
-    const failedBadge = canvasElement.querySelector('cts-badge[variant="failure"][label="FAILED"]');
+    // Header region: FAILED badge present (FAILED → canonical `fail` variant)
+    const failedBadge = canvasElement.querySelector('cts-badge[variant="fail"][label="FAILED"]');
     expect(failedBadge).toBeTruthy();
 
     // Header region: failure summary section visible

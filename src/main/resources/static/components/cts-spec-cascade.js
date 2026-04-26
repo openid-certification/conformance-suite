@@ -63,7 +63,8 @@ const STYLE_TEXT = `
   color: var(--fg);
   font-family: var(--font-sans);
   font-size: var(--fs-13);
-  line-height: var(--lh-base);
+  /* See cts-form-field .oidf-select — pin to 1 for crisp closed-state baseline. */
+  line-height: 1;
   appearance: none;
   -webkit-appearance: none;
   background-image: ${SELECT_CHEVRON};

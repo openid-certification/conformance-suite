@@ -55,7 +55,7 @@ export const Default = {
       .querySelectorAll("cts-badge");
     expect(moduleBadges.length).toBe(MOCK_MODULES_WITH_STATUS.length);
 
-    // Actions region: View Config button present (always visible)
+    // Actions region: View configuration button present (always visible)
     const viewConfigBtn = canvasElement.querySelector('[data-testid="view-config-btn"]');
     expect(viewConfigBtn).toBeTruthy();
 

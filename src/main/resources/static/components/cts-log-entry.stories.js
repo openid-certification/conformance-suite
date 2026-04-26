@@ -1,5 +1,5 @@
 import { html } from "lit";
-import { expect, within, waitFor, fn } from "storybook/test";
+import { expect, within, waitFor, spyOn } from "storybook/test";
 import "./cts-log-entry.js";
 
 export default {
@@ -300,13 +300,11 @@ export const ClickMoreToggle = {
 export const CopyAsCurl = {
   render: () => html`<cts-log-entry .entry=${HTTP_REQUEST_ENTRY}></cts-log-entry>`,
   async play({ canvasElement }) {
-    const mockWriteText = fn().mockResolvedValue(undefined);
-    const originalClipboard = navigator.clipboard;
-    Object.defineProperty(navigator, "copy", {
-      value: { writeText: mockWriteText },
-      writable: true,
-      configurable: true,
-    });
+    // Spy on navigator.clipboard.writeText. The previous version mocked
+    // navigator.copy by mistake; the real clipboard call then failed in
+    // headless Chromium with NotAllowedError. restoreMocks: true in
+    // vitest.config.js handles teardown.
+    const writeSpy = spyOn(navigator.clipboard, "writeText").mockResolvedValue();
 
     const canvas = within(canvasElement);
     await waitFor(() => {
@@ -316,17 +314,10 @@ export const CopyAsCurl = {
     const curlBtn = canvas.getByText("cURL");
     await curlBtn.click();
 
-    expect(mockWriteText).toHaveBeenCalledOnce();
-    const curlCmd = mockWriteText.mock.calls[0][0];
+    await waitFor(() => expect(writeSpy).toHaveBeenCalledOnce());
+    const curlCmd = writeSpy.mock.calls[0][0];
     expect(curlCmd).toContain("curl -X GET");
     expect(curlCmd).toContain("op.example.com");
-
-    // Restore
-    Object.defineProperty(navigator, "copy", {
-      value: originalClipboard,
-      writable: true,
-      configurable: true,
-    });
   },
 };
 

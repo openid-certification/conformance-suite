@@ -49,6 +49,7 @@ const VARIANT_CLASSES = {
  * @type {Object.<string, string>}
  */
 const SIZE_CLASSES = {
+  xs: "oidf-btn-xs",
   sm: "oidf-btn-sm",
   md: "",
   lg: "oidf-btn-lg",
@@ -74,18 +75,21 @@ const STYLE_ID = "cts-button-styles";
 // Scoped CSS for OIDF buttons. Mirrors
 // project/preview/components-buttons.html from the OIDF design archive: a
 // 36px-tall token-driven button surface with primary/secondary/ghost/danger
-// variants and sm/md/lg sizes. Used by both cts-button and cts-link-button.
+// variants and xs/sm/md/lg sizes. Used by both cts-button and cts-link-button.
 const STYLE_TEXT = `
 .oidf-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: var(--space-2);
+  gap: var(--space-1);
   height: 36px;
-  padding: 0 var(--space-4);
+  padding: 0 var(--space-3);
   font-family: var(--font-sans);
   font-size: var(--fs-14);
   font-weight: var(--fw-medium);
+  /* Labels are single-line by contract — narrow stacks (e.g. the 240px
+     plan-detail action rail) must never wrap a label onto two lines. */
+  white-space: nowrap;
   /* Even-pixel line-height so Inter's cap-height resolves to whole pixels.
      A 16px line-box on 13px (sm), 14px (md), or 15px (lg, overridden below)
      text leaves consistent breathing room and aligns the text baseline with
@@ -163,14 +167,23 @@ const STYLE_TEXT = `
   color: var(--ink-0);
 }
 
+.oidf-btn-xs {
+  /* Compact size used to replace bespoke "More" / pill-style buttons that
+     used to live in cts-log-entry. 24px = 16px line-box + 4px top + 4px
+     bottom, on the 4px grid. fs-12 + space-1 horizontal padding keeps it
+     visibly smaller than sm. */
+  height: 24px;
+  padding: 0 var(--space-1);
+  font-size: var(--fs-12);
+}
 .oidf-btn-sm {
   height: 30px;
-  padding: 0 var(--space-3);
+  padding: 0 var(--space-2);
   font-size: var(--fs-13);
 }
 .oidf-btn-lg {
   height: 44px;
-  padding: 0 var(--space-5);
+  padding: 0 var(--space-4);
   font-size: var(--fs-15);
   /* 4px-grid line-height for the larger 15px text. */
   line-height: 20px;
@@ -216,7 +229,7 @@ function injectStyles() {
  * @property {string} variant - One of: primary, secondary, ghost, danger.
  *   Legacy aliases accepted: light/info/success/warning/dark and their
  *   `outline-*` forms (each maps to the closest new variant).
- * @property {string} size - One of: sm (default), md, lg
+ * @property {string} size - One of: xs, sm (default), md, lg
  * @property {string} label - Visible text
  * @property {string} icon - Bootstrap Icons name (without the `bi-` prefix)
  * @property {boolean} loading - Shows a spinner and disables the button

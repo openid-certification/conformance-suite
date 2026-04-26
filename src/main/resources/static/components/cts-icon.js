@@ -93,9 +93,19 @@ class CtsIcon extends LitElement {
     // file's baked-in `stroke="currentColor"`, so the icon inherits the
     // surrounding text colour without needing any host-level rule.
     return html`<style>
+        cts-icon {
+          /* inline-flex with center alignment guarantees the SVG sits at the
+             optical centre of the host box regardless of the parent's
+             line-height, font metrics, or whether the parent is a flex
+             container. Without this, the SVG (display: inline-block) inherits
+             the parent's line-box descender space and floats low. */
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          line-height: 0;
+        }
         svg[data-cts-icon-size] {
-          display: inline-block;
-          line-height: 1;
+          display: block;
           flex-shrink: 0;
         }
         svg[data-cts-icon-size="16"] {
@@ -111,11 +121,9 @@ class CtsIcon extends LitElement {
           height: var(--space-6);
         }
       </style>
-      <svg
-        viewBox="0 0 24 24"
-        data-cts-icon-size="${size}"
-        aria-hidden="true"
-      ><use href="${ICONS_BASE}/${this.name}.svg#i"></use></svg>`;
+      <svg viewBox="0 0 24 24" data-cts-icon-size="${size}" aria-hidden="true">
+        <use href="${ICONS_BASE}/${this.name}.svg#i"></use>
+      </svg>`;
   }
 }
 

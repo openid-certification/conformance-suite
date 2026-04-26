@@ -16,7 +16,8 @@ export default {
 
 // Helper: locate the rendered SVG inside a cts-icon host. The component
 // uses light DOM, so the SVG is a direct descendant of the host element.
-const findIconSvg = (canvasElement) => canvasElement.querySelector("cts-icon svg[data-cts-icon-size]");
+const findIconSvg = (canvasElement) =>
+  canvasElement.querySelector("cts-icon svg[data-cts-icon-size]");
 
 // --- Stories ---
 

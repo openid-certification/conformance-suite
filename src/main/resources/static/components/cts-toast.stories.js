@@ -194,11 +194,6 @@ export const ErrorKind = {
 
     const icon = toast.querySelector("cts-icon");
     expect(icon.getAttribute("name")).toBe("close-circle");
-
-    // Failure variants render the close-circle glyph via cts-icon.
-    const glyph = toast.querySelector("span.bi");
-    expect(glyph).toBeTruthy();
-    expect(glyph.classList.contains("close-circle")).toBe(true);
   },
 };
 
