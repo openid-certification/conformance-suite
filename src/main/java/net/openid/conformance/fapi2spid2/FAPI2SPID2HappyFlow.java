@@ -25,6 +25,7 @@ import net.openid.conformance.condition.common.DisallowTLS10;
 import net.openid.conformance.condition.common.DisallowTLS11;
 import net.openid.conformance.condition.common.EnsureTLS12WithFAPICiphers;
 import net.openid.conformance.sequence.ConditionSequence;
+import net.openid.conformance.sequence.client.ValidateBrazilPaymentInitiationSignedResponse;
 import net.openid.conformance.testmodule.Command;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.FAPI2ID2OPProfile;
@@ -147,7 +148,7 @@ public class FAPI2SPID2HappyFlow extends AbstractFAPI2SPID2MultipleClient {
 		callAndContinueOnFailure(EnsureHttpStatusCodeIs200or201.class, Condition.ConditionResult.FAILURE);
 		call(exec().unmapKey("endpoint_response"));
 		if (brazilPayments) {
-			validateBrazilPaymentInitiationSignedResponse();
+			call(new ValidateBrazilPaymentInitiationSignedResponse());
 		}
 
 		updateResourceRequest();
@@ -161,7 +162,7 @@ public class FAPI2SPID2HappyFlow extends AbstractFAPI2SPID2MultipleClient {
 		callAndContinueOnFailure(EnsureHttpStatusCodeIs200or201.class, Condition.ConditionResult.FAILURE);
 		call(exec().unmapKey("endpoint_response"));
 		if (brazilPayments) {
-			validateBrazilPaymentInitiationSignedResponse();
+			call(new ValidateBrazilPaymentInitiationSignedResponse());
 		}
 
 		callAndStopOnFailure(ClearAcceptHeaderForResourceEndpointRequest.class);

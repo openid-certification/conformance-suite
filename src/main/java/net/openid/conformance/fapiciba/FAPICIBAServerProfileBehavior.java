@@ -118,8 +118,9 @@ public class FAPICIBAServerProfileBehavior {
 	 * Validate profile-specific response from the resource endpoint.
 	 * Default does nothing.
 	 */
-	public void validateResourceEndpointResponse() {
+	public ConditionSequence validateResourceEndpointResponse() {
 		// No-op by default
+		return null;
 	}
 
 	/**

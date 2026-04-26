@@ -34,6 +34,7 @@ import net.openid.conformance.condition.common.FAPIBrazilCheckKeyAlgInClientJWKs
 import net.openid.conformance.sequence.AbstractConditionSequence;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.sequence.client.OpenBankingBrazilPreAuthorizationSteps;
+import net.openid.conformance.sequence.client.ValidateBrazilPaymentInitiationSignedResponse;
 
 import java.util.function.Supplier;
 
@@ -160,12 +161,7 @@ public class OpenBankingBrazilProfileBehavior extends FAPI2ProfileBehavior {
 	@Override
 	public ConditionSequence validateResourceEndpointResponse() {
 		if (module.scopeContains("payments")) {
-			return new AbstractConditionSequence() {
-				@Override
-				public void evaluate() {
-					module.validateBrazilPaymentInitiationSignedResponse();
-				}
-			};
+			return new ValidateBrazilPaymentInitiationSignedResponse();
 		}
 		return null;
 	}
