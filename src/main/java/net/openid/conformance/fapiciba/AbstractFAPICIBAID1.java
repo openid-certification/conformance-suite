@@ -74,11 +74,9 @@ import net.openid.conformance.condition.client.CreateEmptyDynamicRegistrationReq
 import net.openid.conformance.condition.client.CreateEmptyResourceEndpointRequestHeaders;
 import net.openid.conformance.condition.client.CreateRandomClientNotificationToken;
 import net.openid.conformance.condition.client.CreateTokenEndpointRequestForCIBAGrant;
-import net.openid.conformance.condition.client.EnsureContentTypeApplicationJwt;
 import net.openid.conformance.condition.client.EnsureErrorTokenEndpointInvalidRequest;
 import net.openid.conformance.condition.client.EnsureErrorTokenEndpointSlowdownOrAuthorizationPending;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs200or201;
-import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs201;
 import net.openid.conformance.condition.client.EnsureIdTokenContainsKid;
 import net.openid.conformance.condition.client.EnsureMinimumAccessTokenEntropy;
 import net.openid.conformance.condition.client.EnsureMinimumAccessTokenLength;
@@ -100,13 +98,10 @@ import net.openid.conformance.condition.client.ExtractMTLSCertificates2FromConfi
 import net.openid.conformance.condition.client.ExtractMTLSCertificatesFromConfiguration;
 import net.openid.conformance.condition.client.ExtractRefreshTokenFromTokenResponse;
 import net.openid.conformance.condition.client.ExtractRtHash;
-import net.openid.conformance.condition.client.ExtractSignedJwtFromResourceResponse;
 import net.openid.conformance.condition.client.ExtractTLSTestValuesFromOBResourceConfiguration;
 import net.openid.conformance.condition.client.ExtractTLSTestValuesFromResourceConfiguration;
 import net.openid.conformance.condition.client.FAPIBrazilValidateIdTokenExp;
 import net.openid.conformance.condition.client.FAPIBrazilValidateIdTokenSigningAlg;
-import net.openid.conformance.condition.client.FAPIBrazilValidateResourceResponseSigningAlg;
-import net.openid.conformance.condition.client.FAPIBrazilValidateResourceResponseTyp;
 import net.openid.conformance.condition.client.FAPICIBAValidateIdTokenAuthRequestIdClaims;
 import net.openid.conformance.condition.client.FAPICIBAValidateRtHash;
 import net.openid.conformance.condition.client.FAPIValidateIdTokenEncryptionAlg;
@@ -144,8 +139,6 @@ import net.openid.conformance.condition.client.ValidateIdTokenNotIncludeCHashAnd
 import net.openid.conformance.condition.client.ValidateMTLSCertificates2Header;
 import net.openid.conformance.condition.client.ValidateMTLSCertificatesAsX509;
 import net.openid.conformance.condition.client.ValidateMTLSCertificatesHeader;
-import net.openid.conformance.condition.client.ValidateResourceResponseJwtClaims;
-import net.openid.conformance.condition.client.ValidateResourceResponseSignature;
 import net.openid.conformance.condition.client.ValidateServerJWKs;
 import net.openid.conformance.condition.common.CheckCIBAServerConfiguration;
 import net.openid.conformance.condition.common.CheckDistinctKeyIdValueInClientJWKs;
@@ -1036,7 +1029,7 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 
 		callAndContinueOnFailure(EnsureResourceResponseReturnedJsonContentType.class, Condition.ConditionResult.FAILURE, "FAPI1-BASE-6.2.1-9", "FAPI1-BASE-6.2.1-10");
 
-		profileBehavior.validateResourceEndpointResponse();
+		call(profileBehavior.validateResourceEndpointResponse());
 
 		eventLog.endBlock();
 	}
@@ -1052,34 +1045,6 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 			callAndStopOnFailure(CallProtectedResource.class, "FAPI-R-6.2.1-1", "FAPI-R-6.2.1-3");
 			httpStatus = env.getInteger("endpoint_response", "status");
 		}
-	}
-
-	protected void validateBrazilPaymentInitiationSignedResponse() {
-		call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
-		call(exec().mapKey("endpoint_response_jwt", "consent_endpoint_response_jwt"));
-		callAndContinueOnFailure(EnsureContentTypeApplicationJwt.class, Condition.ConditionResult.FAILURE, "BrazilOB-6.1");
-		callAndContinueOnFailure(EnsureHttpStatusCodeIs201.class, Condition.ConditionResult.FAILURE);
-
-		callAndStopOnFailure(ExtractSignedJwtFromResourceResponse.class, "BrazilOB-6.1");
-
-		callAndContinueOnFailure(FAPIBrazilValidateResourceResponseSigningAlg.class, Condition.ConditionResult.FAILURE, "BrazilOB-6.1");
-
-		callAndContinueOnFailure(FAPIBrazilValidateResourceResponseTyp.class, Condition.ConditionResult.FAILURE, "BrazilOB-6.1");
-
-		// signature needs to be validated against the organisation jwks (already fetched during pre-auth steps)
-
-		call(exec().mapKey("server", "org_server"));
-		call(exec().mapKey("server_jwks", "org_server_jwks"));
-		callAndStopOnFailure(FetchServerKeys.class);
-		call(exec().unmapKey("server"));
-		call(exec().unmapKey("server_jwks"));
-
-		callAndContinueOnFailure(ValidateResourceResponseSignature.class, Condition.ConditionResult.FAILURE, "BrazilOB-6.1");
-
-		callAndContinueOnFailure(ValidateResourceResponseJwtClaims.class, Condition.ConditionResult.FAILURE, "BrazilOB-6.1");
-
-		call(exec().unmapKey("endpoint_response"));
-		call(exec().unmapKey("endpoint_response_jwt"));
 	}
 
 	protected void verifyNotificationCallback(JsonObject requestParts){

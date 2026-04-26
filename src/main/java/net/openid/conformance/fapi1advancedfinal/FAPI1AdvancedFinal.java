@@ -28,6 +28,7 @@ import net.openid.conformance.condition.common.DisallowTLS10;
 import net.openid.conformance.condition.common.DisallowTLS11;
 import net.openid.conformance.condition.common.EnsureTLS12WithFAPICiphers;
 import net.openid.conformance.sequence.ConditionSequence;
+import net.openid.conformance.sequence.client.ValidateBrazilPaymentInitiationSignedResponse;
 import net.openid.conformance.testmodule.Command;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.FAPI1FinalOPProfile;
@@ -175,7 +176,7 @@ public class FAPI1AdvancedFinal extends AbstractFAPI1AdvancedFinalMultipleClient
 		callAndContinueOnFailure(EnsureHttpStatusCodeIs200or201.class, Condition.ConditionResult.FAILURE);
 		call(exec().unmapKey("endpoint_response"));
 		if (brazilPayments.isTrue()) {
-			validateBrazilPaymentInitiationSignedResponse();
+			call(new ValidateBrazilPaymentInitiationSignedResponse());
 		}
 
 		updateResourceRequest();
@@ -185,7 +186,7 @@ public class FAPI1AdvancedFinal extends AbstractFAPI1AdvancedFinalMultipleClient
 		callAndContinueOnFailure(EnsureHttpStatusCodeIs200or201.class, Condition.ConditionResult.FAILURE);
 		call(exec().unmapKey("endpoint_response"));
 		if (brazilPayments.isTrue()) {
-			validateBrazilPaymentInitiationSignedResponse();
+			call(new ValidateBrazilPaymentInitiationSignedResponse());
 		}
 
 		callAndStopOnFailure(ClearAcceptHeaderForResourceEndpointRequest.class);

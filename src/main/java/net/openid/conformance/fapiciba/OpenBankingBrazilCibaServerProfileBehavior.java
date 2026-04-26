@@ -21,6 +21,7 @@ import net.openid.conformance.sequence.AbstractConditionSequence;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.sequence.client.OpenBankingBrazilPreAuthorizationSteps;
 import net.openid.conformance.sequence.client.RefreshTokenRequestSteps;
+import net.openid.conformance.sequence.client.ValidateBrazilPaymentInitiationSignedResponse;
 
 import java.util.function.Supplier;
 
@@ -116,9 +117,10 @@ public class OpenBankingBrazilCibaServerProfileBehavior extends FAPICIBAServerPr
 	}
 
 	@Override
-	public void validateResourceEndpointResponse() {
+	public ConditionSequence validateResourceEndpointResponse() {
 		if (module.scopeContains("payments")) {
-			module.validateBrazilPaymentInitiationSignedResponse();
+			return new ValidateBrazilPaymentInitiationSignedResponse();
 		}
+		return null;
 	}
 }

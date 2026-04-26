@@ -303,7 +303,7 @@ public class FAPI2SPFinalDpopNegativeTests extends AbstractFAPI2SPFinalServerTes
 		// and not because the access token had stopped working for some reason etc.
 		eventLog.startBlock("Check a correct DPoP proof still works");
 		callResourceEndpointSteps(() -> makeUpdateResourceRequestSteps(), true, true, "DPOP-7.1");
-		profileBehavior.validateResourceEndpointResponse();
+		call(profileBehavior.validateResourceEndpointResponse());
 
 
 	}

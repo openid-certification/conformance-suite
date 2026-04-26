@@ -1,15 +1,17 @@
 package net.openid.conformance.vci10issuer;
 
-import com.google.gson.JsonObject;
 import net.openid.conformance.condition.AddRandomFieldsToJsonObject;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.condition.client.AddRandomParameterToAuthorizationEndpointRequest;
 import net.openid.conformance.condition.client.CallProtectedResource;
 import net.openid.conformance.condition.client.EnsureIdTokenDoesNotContainNonRequestedClaims;
+import net.openid.conformance.sequence.AbstractConditionSequence;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.VCICredentialEncryption;
+import net.openid.conformance.vci10issuer.condition.VCIAddCredentialResponseEncryptionToRequest;
+import net.openid.conformance.vci10issuer.condition.SerializeVCICredentialRequestObject;
 import net.openid.conformance.vci10issuer.condition.VCIAddCompressionToCredentialRequestEncryption;
 import net.openid.conformance.vci10issuer.condition.VCICheckCredentialResponseCompression;
 
@@ -38,14 +40,6 @@ public class VCIIssuerHappyFlow extends AbstractVCIIssuerTestModule {
 	}
 
 	@Override
-	protected void afterCredentialResponseEncryptionAdded() {
-		super.afterCredentialResponseEncryptionAdded();
-		if (addCompressionToNextRequest) {
-			callAndStopOnFailure(VCIAddCompressionToCredentialRequestEncryption.class, "OID4VCI-1FINAL-8.2");
-		}
-	}
-
-	@Override
 	protected ConditionSequence makeCreateAuthorizationRequestSteps(boolean usePkce) {
 		return super.makeCreateAuthorizationRequestSteps(usePkce)
 			.then(condition(AddRandomParameterToAuthorizationEndpointRequest.class)
@@ -71,17 +65,36 @@ public class VCIIssuerHappyFlow extends AbstractVCIIssuerTestModule {
 	}
 
 	@Override
-	protected String serializeCredentialRequestObject(JsonObject credentialRequestObject) {
-		// Inject a random top-level unknown field so we can verify the issuer ignores it per
-		// OID4VCI 1.0 §8.2 ("The Credential Issuer MUST ignore any unrecognized parameters").
-		// We deliberately do not inject into nested objects: 'proofs' is required by §8.2 to
-		// contain exactly one parameter (named as the proof type), and the §8.2 ignore-unknowns
-		// clause does not explicitly extend to tightly-defined nested structures such as
-		// 'credential_response_encryption'.
-		callAndStopOnFailure(
-			new AddRandomFieldsToJsonObject("credential request", "vci_credential_request_object"),
-			"OID4VCI-1FINAL-8.2");
-		return super.serializeCredentialRequestObject(credentialRequestObject);
+	protected ConditionSequence makeCreateCredentialRequestSteps() {
+		ConditionSequence steps = super.makeCreateCredentialRequestSteps();
+		// VCIAddCredentialResponseEncryptionToRequest is only added by the parent when encryption
+		// is enabled; insertAfter would otherwise fail on the non-encrypted variant.
+		if (vciCredentialEncryption == VCICredentialEncryption.ENCRYPTED) {
+			steps = steps.insertAfter(VCIAddCredentialResponseEncryptionToRequest.class, new AbstractConditionSequence() {
+				@Override
+				public void evaluate() {
+					if (addCompressionToNextRequest) {
+						callAndStopOnFailure(VCIAddCompressionToCredentialRequestEncryption.class, "OID4VCI-1FINAL-8.2");
+					}
+				}
+			});
+		}
+		return steps
+			.replace(SerializeVCICredentialRequestObject.class, new AbstractConditionSequence() {
+				@Override
+				public void evaluate() {
+					// Inject a random top-level unknown field so we can verify the issuer ignores it per
+					// OID4VCI 1.0 §8.2 ("The Credential Issuer MUST ignore any unrecognized parameters").
+					// We deliberately do not inject into nested objects: 'proofs' is required by §8.2 to
+					// contain exactly one parameter (named as the proof type), and the §8.2 ignore-unknowns
+					// clause does not explicitly extend to tightly-defined nested structures such as
+					// 'credential_response_encryption'.
+					callAndStopOnFailure(
+						new AddRandomFieldsToJsonObject("credential request", "vci_credential_request_object"),
+						"OID4VCI-1FINAL-8.2");
+					callAndStopOnFailure(SerializeVCICredentialRequestObject.class, "OID4VCI-1FINAL-8.2");
+				}
+			});
 	}
 
 	@Override

@@ -3,6 +3,7 @@ package net.openid.conformance.testmodule;
 import com.google.common.base.Strings;
 import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableMap;
+import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.nimbusds.jose.crypto.bc.BouncyCastleProviderSingleton;
@@ -487,6 +488,41 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 		}
 	}
 
+	protected void call(IterateEnvironmentArray builder) {
+		JsonElement sourceElement = env.getElementFromObject(builder.getSourceObject(), builder.getSourcePath());
+		if (sourceElement == null) {
+			throw new TestFailureException(getId(), "Missing environment array for iteration at "
+				+ builder.getSourceObject() + "." + builder.getSourcePath());
+		}
+		if (!sourceElement.isJsonArray()) {
+			throw new TestFailureException(getId(), "Expected environment array for iteration at "
+				+ builder.getSourceObject() + "." + builder.getSourcePath());
+		}
+
+		JsonArray sourceArray = sourceElement.getAsJsonArray();
+		try {
+			for (int i = 0; i < sourceArray.size(); i++) {
+				JsonElement element = sourceArray.get(i);
+				builder.prepareIteration(env, element, i, sourceArray.size());
+
+				String blockLabel = builder.getLogBlockLabel(element, i, sourceArray.size());
+				if (!Strings.isNullOrEmpty(blockLabel)) {
+					eventLog.startBlock(blockLabel);
+				}
+
+				try {
+					call(builder.getSequenceCallBuilder());
+				} finally {
+					if (!Strings.isNullOrEmpty(blockLabel)) {
+						eventLog.endBlock();
+					}
+				}
+			}
+		} finally {
+			builder.cleanupAfterIteration(env, sourceArray.size());
+		}
+	}
+
 	/**
 	 * Dispatch function to call a more specific subclass as needed.
 	 */
@@ -495,6 +531,8 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 			call(callBuilder);
 		} else if (builder instanceof Command command) {
 			call(command);
+		} else if (builder instanceof IterateEnvironmentArray iterateEnvironmentArray) {
+			call(iterateEnvironmentArray);
 		} else if (builder instanceof ConditionSequence sequence) {
 			call(sequence);
 		} else if (builder instanceof ConditionSequenceCallBuilder callBuilder) {

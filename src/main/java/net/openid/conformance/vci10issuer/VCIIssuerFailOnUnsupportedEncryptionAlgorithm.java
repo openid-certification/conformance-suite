@@ -1,7 +1,9 @@
 package net.openid.conformance.vci10issuer;
 
+import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.VCICredentialEncryption;
+import net.openid.conformance.vci10issuer.condition.VCIAddCredentialResponseEncryptionToRequest;
 import net.openid.conformance.vci10issuer.condition.VCIUseUnsupportedEncryptionAlgorithm;
 import net.openid.conformance.vci10issuer.condition.VCIValidateCredentialErrorResponse;
 import net.openid.conformance.vci10issuer.condition.VciErrorCode;
@@ -46,11 +48,11 @@ public class VCIIssuerFailOnUnsupportedEncryptionAlgorithm extends AbstractVCIIs
 	}
 
 	@Override
-	protected void afterCredentialResponseEncryptionAdded() {
-		super.afterCredentialResponseEncryptionAdded();
-
-		// Replace the encryption algorithm with an unsupported one
-		callAndStopOnFailure(VCIUseUnsupportedEncryptionAlgorithm.class, "OID4VCI-1FINAL-8.2");
+	protected ConditionSequence makeCreateCredentialRequestSteps() {
+		return super.makeCreateCredentialRequestSteps()
+			.insertAfter(VCIAddCredentialResponseEncryptionToRequest.class,
+				condition(VCIUseUnsupportedEncryptionAlgorithm.class)
+					.requirements("OID4VCI-1FINAL-8.2"));
 	}
 
 	@Override

@@ -2,7 +2,6 @@ package net.openid.conformance.vci10issuer;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
-import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import jakarta.servlet.http.HttpServletRequest;
@@ -40,20 +39,20 @@ import net.openid.conformance.condition.client.EnsureHttpStatusCodeIsAnyOf;
 import net.openid.conformance.condition.client.EnsureMatchingFAPIInteractionId;
 import net.openid.conformance.condition.client.ExtractMTLSCertificatesFromConfiguration;
 import net.openid.conformance.condition.client.GetStaticClientConfiguration;
-import net.openid.conformance.condition.client.ParseCredentialAsSdJwt;
-import net.openid.conformance.condition.client.ParseMdocCredentialFromVCIIssuance;
 import net.openid.conformance.condition.client.SetAuthorizationEndpointRequestResponseTypeToCode;
 import net.openid.conformance.condition.client.SetProtectedResourceUrlToSingleResourceEndpoint;
-import net.openid.conformance.condition.client.ValidateCredentialIsUnpaddedBase64Url;
 import net.openid.conformance.condition.client.ValidateMTLSCertificatesHeader;
-import net.openid.conformance.sequence.client.ValidateMdocCredential;
 import net.openid.conformance.condition.common.RARSupport;
 import net.openid.conformance.fapi2spfinal.AbstractFAPI2SPFinalServerTestModule;
+import net.openid.conformance.fapi2spfinal.VCIProfileBehavior;
 import net.openid.conformance.openid.federation.CallCredentialIssuerNonceEndpoint;
 import net.openid.conformance.sequence.AbstractConditionSequence;
 import net.openid.conformance.sequence.ConditionSequence;
+import net.openid.conformance.sequence.client.CreateVCICredentialRequestSteps;
+import net.openid.conformance.sequence.client.GenerateVCIKeyAttestationAndProofSteps;
 import net.openid.conformance.sequence.client.SetupPkceAndAddToAuthorizationRequest;
-import net.openid.conformance.testmodule.OIDFJSON;
+import net.openid.conformance.sequence.client.ValidateVCINonceEndpointResponse;
+import net.openid.conformance.testmodule.IterateEnvironmentArray;
 import net.openid.conformance.testmodule.TestFailureException;
 import net.openid.conformance.variant.ClientAuthType;
 import net.openid.conformance.variant.ConfigurationFields;
@@ -67,16 +66,13 @@ import net.openid.conformance.variant.VCI1FinalCredentialFormat;
 import net.openid.conformance.variant.VCIAuthorizationCodeFlowVariant;
 import net.openid.conformance.variant.VCICredentialEncryption;
 import net.openid.conformance.variant.VCIGrantType;
-import net.openid.conformance.vci10issuer.condition.CheckCacheControlHeaderContainsNoStore;
 import net.openid.conformance.vci10issuer.condition.VCIAddCredentialResponseEncryptionToRequest;
 import net.openid.conformance.vci10issuer.condition.VCICheckCredentialRequestEncryptionSupported;
 import net.openid.conformance.vci10issuer.condition.VCICheckCredentialResponseEncryptionSupported;
 import net.openid.conformance.vci10issuer.condition.VCIEncryptCredentialRequest;
 import net.openid.conformance.vci10issuer.condition.VCIEnsureCredentialRequestEncryptionWhenResponseEncryptionOptional;
 import net.openid.conformance.vci10issuer.condition.VCIEnsureCredentialRequestEncryptionWhenResponseEncryptionRequired;
-import net.openid.conformance.sequence.client.ValidateSdJwtVcCredentialClaims;
 import net.openid.conformance.vci10issuer.condition.VCICheckForDeferredCredentialResponse;
-import net.openid.conformance.vci10issuer.condition.VCICreateCredentialRequest;
 import net.openid.conformance.vci10issuer.condition.VCICreateDeferredCredentialRequest;
 import net.openid.conformance.vci10issuer.condition.VCICreateNotificationRequest;
 import net.openid.conformance.vci10issuer.condition.VCICreateTokenEndpointRequestForPreAuthorizedCodeGrant;
@@ -89,18 +85,14 @@ import net.openid.conformance.vci10issuer.condition.VCIExtractNotificationIdFrom
 import net.openid.conformance.vci10issuer.condition.VCIExtractPreAuthorizedCodeAndTxCodeFromCredentialOffer;
 import net.openid.conformance.vci10issuer.condition.VCIExtractTxCodeFromRequest;
 import net.openid.conformance.vci10issuer.condition.VCIFetchCredentialOfferFromCredentialOfferUri;
-import net.openid.conformance.vci10issuer.condition.VCIGenerateAttestationProof;
 import net.openid.conformance.vci10issuer.condition.VCIGenerateClientJwksIfMissing;
 import net.openid.conformance.vci10issuer.condition.VCIGenerateCredentialEncryptionJwks;
-import net.openid.conformance.vci10issuer.condition.VCIGenerateJwtProof;
-import net.openid.conformance.vci10issuer.condition.VCIGenerateKeyAttestationIfNecessary;
 import net.openid.conformance.vci10issuer.condition.VCIGenerateRichAuthorizationRequestForCredential;
 import net.openid.conformance.vci10issuer.condition.VCIResolveDeferredCredentialEndpointToUse;
 import net.openid.conformance.vci10issuer.condition.VCIResolveNotificationEndpointToUse;
 import net.openid.conformance.vci10issuer.condition.VCITryAddingIssuerStateToAuthorizationRequest;
 import net.openid.conformance.vci10issuer.condition.VCITryToExtractIssuerStateFromCredentialOffer;
 import net.openid.conformance.vci10issuer.condition.VCIUseStaticTxCodeFromConfig;
-import net.openid.conformance.vci10issuer.condition.VCIValidateCredentialNonceResponse;
 import net.openid.conformance.vci10issuer.condition.CheckForUnexpectedParametersInCredentialOffer;
 import net.openid.conformance.vci10issuer.condition.VCIValidateCredentialOffer;
 import net.openid.conformance.vci10issuer.condition.VCIValidateCredentialOfferRequestParams;
@@ -192,6 +184,17 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractFAPI2SPFinalSe
 	 */
 	protected List<String> getRequiredProofTypes() {
 		return List.of();
+	}
+
+	/**
+	 * The profile behavior for VCI issuer tests is always either {@link VCIProfileBehavior} or
+	 * {@link net.openid.conformance.fapi2spfinal.VCIHaipProfileBehavior}, set via the
+	 * {@code vci} / {@code vci_haip} {@link net.openid.conformance.variant.VariantSetup} methods on
+	 * the FAPI2SPFinal parent. Provide a typed accessor so VCI-specific delegation doesn't need to
+	 * cast at every call site.
+	 */
+	protected VCIProfileBehavior vciProfileBehavior() {
+		return (VCIProfileBehavior) profileBehavior;
 	}
 
 	@Override
@@ -657,36 +660,11 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractFAPI2SPFinalSe
 	}
 
 	protected void createCredentialRequest() {
-		callAndStopOnFailure(VCICreateCredentialRequest.class, "OID4VCI-1FINAL-8.2");
-
-		// Add encryption parameters if encryption is enabled
-		if (vciCredentialEncryption == VCICredentialEncryption.ENCRYPTED) {
-			callAndStopOnFailure(VCIAddCredentialResponseEncryptionToRequest.class, "OID4VCI-1FINAL-8.2");
-			afterCredentialResponseEncryptionAdded();
-		}
-
-		JsonObject credentialRequestObject = env.getObject("vci_credential_request_object");
-		String requestBodyString = serializeCredentialRequestObject(credentialRequestObject);
-		env.putString("resource_request_entity", requestBodyString);
-
-		// Per OID4VCI 1.0 Final Section 8.2, Credential Request encryption MUST be used when
-		// credential_response_encryption is included. Encrypt the serialized request as a JWE
-		// and set the Content-Type to application/jwt.
-		if (vciCredentialEncryption == VCICredentialEncryption.ENCRYPTED) {
-			callAndStopOnFailure(VCIEncryptCredentialRequest.class, "OID4VCI-1FINAL-8.2", "OID4VCI-1FINAL-10");
-		}
+		call(makeCreateCredentialRequestSteps());
 	}
 
-	/**
-	 * Hook called after credential_response_encryption is added to the credential request.
-	 * Override this method in subclasses to modify the encryption parameters.
-	 */
-	protected void afterCredentialResponseEncryptionAdded() {
-		// Default implementation does nothing
-	}
-
-	protected String serializeCredentialRequestObject(JsonObject credentialRequestObject) {
-		return credentialRequestObject.toString();
+	protected ConditionSequence makeCreateCredentialRequestSteps() {
+		return new CreateVCICredentialRequestSteps(vciCredentialEncryption == VCICredentialEncryption.ENCRYPTED);
 	}
 
 	/**
@@ -694,17 +672,12 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractFAPI2SPFinalSe
 	 * Called when cryptographic binding is required.
 	 */
 	protected void generateKeyAttestationAndProof() {
-		callAndContinueOnFailure(VCIGenerateKeyAttestationIfNecessary.class,
-			ConditionResult.FAILURE, "HAIPA-D.1", "OID4VCI-1FINALA-D.1");
-		afterKeyAttestationGeneration();
+		call(makeGenerateKeyAttestationAndProofSteps());
+	}
 
+	protected ConditionSequence makeGenerateKeyAttestationAndProofSteps() {
 		String proofTypeKey = env.getString("vci_proof_type_key");
-		if ("jwt".equals(proofTypeKey)) {
-			callAndStopOnFailure(VCIGenerateJwtProof.class, "OID4VCI-1FINALA-F.1");
-		} else if ("attestation".equals(proofTypeKey)) {
-			callAndStopOnFailure(VCIGenerateAttestationProof.class, "OID4VCI-1FINALA-F.3");
-		}
-		afterProofGeneration();
+		return new GenerateVCIKeyAttestationAndProofSteps(proofTypeKey);
 	}
 
 	/**
@@ -812,22 +785,12 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractFAPI2SPFinalSe
 		// Extract and validate all credentials (same for both paths)
 		callAndStopOnFailure(VCIExtractCredentialResponse.class, ConditionResult.FAILURE, "OID4VCI-1FINAL-8.3");
 
-		// Iterate over all extracted credentials and validate each one
-		JsonArray extractedCredentials = env.getObject("extracted_credentials").getAsJsonArray("list");
-		for (int i = 0; i < extractedCredentials.size(); i++) {
-			String credential = OIDFJSON.getString(extractedCredentials.get(i));
-			env.putString("credential", credential);
-
-			if (extractedCredentials.size() > 1) {
-				eventLog.startBlock(currentClientString() + "Verify credential " + (i + 1) + " of " + extractedCredentials.size());
-			} else {
-				eventLog.startBlock(currentClientString() + "Verify credential");
-			}
-
-			verifyCredential();
-
-			eventLog.endBlock();
-		}
+		call(new IterateEnvironmentArray("extracted_credentials", "list",
+				() -> vciProfileBehavior().verifyCredential())
+			.currentString("credential")
+			.logBlockLabels(ctx -> ctx.getIterationCount() > 1
+				? currentClientString() + "Verify credential " + ctx.getIteration() + " of " + ctx.getIterationCount()
+				: currentClientString() + "Verify credential"));
 
 		call(exec().unmapKey("endpoint_response"));
 		callAndContinueOnFailure(CheckForDateHeaderInResourceResponse.class, ConditionResult.FAILURE, "RFC7231-7.1.1.2");
@@ -839,27 +802,6 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractFAPI2SPFinalSe
 		}
 
 		sendNotificationIfSupported();
-	}
-
-	/**
-	 * Verifies a single credential from the credential response.
-	 */
-	protected void verifyCredential() {
-		Boolean requiresCryptographicBinding = env.getBoolean("vci_requires_cryptographic_binding");
-
-		if (vciCredentialFormat == VCI1FinalCredentialFormat.MDOC) {
-			callAndContinueOnFailure(ValidateCredentialIsUnpaddedBase64Url.class,
-				ConditionResult.FAILURE, "OID4VCI-1FINALA-A.2.4");
-			callAndContinueOnFailure(ParseMdocCredentialFromVCIIssuance.class,
-				ConditionResult.FAILURE, "OID4VCI-1FINALA-A.2");
-			call(new ValidateMdocCredential(true, fapi2Profile == FAPI2FinalOPProfile.VCI_HAIP));
-		} else if (vciCredentialFormat == VCI1FinalCredentialFormat.SD_JWT_VC) {
-			callAndContinueOnFailure(ParseCredentialAsSdJwt.class,
-				ConditionResult.FAILURE, "SDJWT-4");
-			boolean requiresCnf = requiresCryptographicBinding != null && requiresCryptographicBinding;
-			boolean isHaip = fapi2Profile == FAPI2FinalOPProfile.VCI_HAIP;
-			call(new ValidateSdJwtVcCredentialClaims(requiresCnf, isHaip));
-		}
 	}
 
 	// --- Notification endpoint ---
@@ -988,25 +930,7 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractFAPI2SPFinalSe
 
 	protected void afterNonceEndpointResponse() {
 		call(exec().mapKey("endpoint_response", "nonce_endpoint_response"));
-		callAndContinueOnFailure(EnsureHttpStatusCodeIs200.class, ConditionResult.FAILURE, "OID4VCI-1FINAL-7.2");
-		callAndContinueOnFailure(EnsureContentTypeJson.class, ConditionResult.WARNING, "OID4VCI-1FINAL-7.2");
-
-		callAndContinueOnFailure(CheckCacheControlHeaderContainsNoStore.class, ConditionResult.FAILURE, "OID4VCI-1FINAL-7.2");
-		callAndStopOnFailure(VCIValidateCredentialNonceResponse.class, ConditionResult.FAILURE, "OID4VCI-1FINAL-7.2");
-	}
-
-	/**
-	 * Hook called after key attestation generation but before proof generation.
-	 */
-	protected void afterKeyAttestationGeneration() {
-		// Default implementation does nothing
-	}
-
-	/**
-	 * Hook called after proof generation but before creating the credential request.
-	 */
-	protected void afterProofGeneration() {
-		// Default implementation does nothing
+		call(new ValidateVCINonceEndpointResponse());
 	}
 
 	// --- Second client support ---
