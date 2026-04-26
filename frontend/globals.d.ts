@@ -31,6 +31,20 @@ interface Window {
   __copiedText?: string | null;
 }
 
+// R24 split-summary helper exposed for the lodash Mustache template
+// (`templates/logHeader.html`). Components use the ES-module import
+// directly; only the legacy template path needs the global. Declared
+// here so TypeScript accepts the `window.CTS_summarySplit = ...`
+// assignment in `components/test-summary-split.js`.
+interface Window {
+  CTS_summarySplit?: {
+    SUMMARY_SPLIT_MARKER: string;
+    splitTestSummary: (
+      raw: string | null | undefined,
+    ) => { description: string; instructions: string };
+  };
+}
+
 // Playwright E2E specs run under Node and occasionally touch Node globals
 // (e.g. `Buffer.alloc` for setInputFiles). @types/node would be overkill for
 // a single reference; declare the narrow surface we actually use instead.

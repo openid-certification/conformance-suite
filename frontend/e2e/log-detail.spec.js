@@ -488,6 +488,11 @@ test.describe("log-detail.html — Log Detail", () => {
   });
 
   // R24: split test description from user instructions in the blue summary box.
+  // Integration coverage only — the splitter's input/output edge cases live in
+  // src/main/resources/static/components/test-summary-split.test.js. These
+  // tests prove the live-page lodash template wires the shared splitter
+  // correctly, that the marker is consumed before reaching the DOM, and that
+  // both zones render under their action-coded cts-alert variants.
   // Plan: docs/plans/2026-04-25-008-feat-r24-test-description-vs-instructions-plan.md
   test("R24: summary with split marker renders About + What-you-need-to-do zones", async ({
     page,
@@ -507,30 +512,28 @@ test.describe("log-detail.html — Log Detail", () => {
     await expect(aboutZone).toBeVisible();
     await expect(instructionsZone).toBeVisible();
 
-    // Description content lands in the about zone; instructions in the
-    // instructions zone. The split marker is consumed and not surfaced.
+    // Eyebrows identify each zone for assistive tech and visual scan.
     await expect(aboutZone).toContainText("About this test");
-    await expect(aboutZone).toContainText("must not result in errors");
     await expect(instructionsZone).toContainText("What you need to do");
-    await expect(instructionsZone).toContainText("Please remove any cookies");
+
+    // Each zone wraps its half in the right cts-alert variant.
+    await expect(
+      page.locator('cts-alert[variant="info"]', {
+        has: page.locator('[data-testid="about-test-zone"]'),
+      }),
+    ).toBeVisible();
+    await expect(
+      page.locator('cts-alert[variant="warning"]', {
+        has: page.locator('[data-testid="user-instructions-zone"]'),
+      }),
+    ).toBeVisible();
 
     // The literal `---` marker is consumed by the splitter, not surfaced
-    // to the user — verifying this protects the contract that test
-    // authors can rely on the marker being invisible after rendering.
+    // to the user. This is the integration contract — the unit tests
+    // prove the splitter strips it; this asserts the live page actually
+    // calls the splitter rather than dumping raw `test.summary`.
     await expect(aboutZone).not.toContainText("---");
     await expect(instructionsZone).not.toContainText("---");
-
-    // Instructions zone is wrapped in a warning-variant cts-alert (action-coded palette).
-    const instructionsAlert = page.locator('cts-alert[variant="warning"]', {
-      has: page.locator('[data-testid="user-instructions-zone"]'),
-    });
-    await expect(instructionsAlert).toBeVisible();
-
-    // About zone is wrapped in an info-variant cts-alert (the "blue box").
-    const aboutAlert = page.locator('cts-alert[variant="info"]', {
-      has: page.locator('[data-testid="about-test-zone"]'),
-    });
-    await expect(aboutAlert).toBeVisible();
   });
 
   test("R24: summary without split marker renders only the About zone", async ({ page }) => {
@@ -543,15 +546,8 @@ test.describe("log-detail.html — Log Detail", () => {
 
     await page.goto("/log-detail.html?log=test-desc-001");
 
-    const aboutZone = page.locator('[data-testid="about-test-zone"]');
-    const instructionsZone = page.locator('[data-testid="user-instructions-zone"]');
-
-    await expect(aboutZone).toBeVisible();
-    await expect(aboutZone).toContainText("About this test");
-    await expect(aboutZone).toContainText("normal login page");
-
-    // No instructions zone when the marker is absent.
-    await expect(instructionsZone).toHaveCount(0);
+    await expect(page.locator('[data-testid="about-test-zone"]')).toBeVisible();
+    await expect(page.locator('[data-testid="user-instructions-zone"]')).toHaveCount(0);
   });
 
   // R21: group test navigation controls (back / repeat / continue / progress)

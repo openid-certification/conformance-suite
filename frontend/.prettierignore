@@ -3,6 +3,8 @@
 ../src/main/resources/static/js/fapi.ui.js
 ../src/main/resources/static/*.html
 ../src/main/resources/static/css/**
+# lodash `_.template()` files; Prettier's HTML mode mangles `<% %>` blocks.
+../src/main/resources/static/templates/**
 
 # Generated / tooling output
 node_modules/

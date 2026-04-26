@@ -18,7 +18,8 @@
       "lit/*": ["./node_modules/lit/*"],
       "storybook/test": ["./node_modules/storybook/dist/test/index.d.ts"],
       "msw": ["./node_modules/msw"],
-      "msw/*": ["./node_modules/msw/*"]
+      "msw/*": ["./node_modules/msw/*"],
+      "vitest": ["./node_modules/vitest"]
     }
   },
   "include": ["**/*.js", "globals.d.ts", "../src/main/resources/static/components/**/*.js"],

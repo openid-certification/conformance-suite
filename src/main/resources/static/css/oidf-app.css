@@ -97,3 +97,31 @@ cts-link-button > a:focus,
   outline: none;
   box-shadow: var(--focus-ring);
 }
+
+/* ---- R24: test-summary zones -----------------------------------
+   "About this test" (info) and "What you need to do" (warning)
+   render inside `cts-alert` callouts on the log-detail page. Both
+   the Lit component (`cts-log-detail-header`, light DOM) and the
+   lodash Mustache template (`templates/logHeader.html`) emit the
+   same class names; one stylesheet serves both renderers.
+   Plan: docs/plans/2026-04-25-008-feat-r24-test-description-vs-instructions-plan.md
+   ---------------------------------------------------------------- */
+.summaryZone {
+  display: block;
+}
+.summaryEyebrow {
+  display: block;
+  font-size: var(--fs-12);
+  font-weight: var(--fw-bold);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--fg-soft);
+  margin-bottom: var(--space-2);
+}
+.summaryZone--instructions .summaryEyebrow {
+  color: var(--status-warning);
+}
+.summaryBody {
+  color: var(--fg);
+  white-space: pre-line;
+}
