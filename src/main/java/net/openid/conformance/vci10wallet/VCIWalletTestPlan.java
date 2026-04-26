@@ -3,6 +3,8 @@ package net.openid.conformance.vci10wallet;
 import net.openid.conformance.plan.PublishTestPlan;
 import net.openid.conformance.plan.TestPlan;
 import net.openid.conformance.testmodule.TestModule;
+import net.openid.conformance.variant.FAPIClientType;
+import net.openid.conformance.variant.FAPIResponseMode;
 
 import java.util.List;
 
@@ -27,6 +29,8 @@ public class VCIWalletTestPlan implements TestPlan {
 			new ModuleListEntry(
 				testModules,
 				List.of(
+					new Variant(FAPIClientType.class, "plain_oauth"),
+					new Variant(FAPIResponseMode.class, "plain_response")
 				)
 			)
 		);
