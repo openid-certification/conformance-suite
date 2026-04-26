@@ -3,7 +3,6 @@ package net.openid.conformance.fapi2spfinal;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.condition.client.CheckDiscEndpointTokenEndpointAuthMethodsSupportedContainsAttestation;
-import net.openid.conformance.sequence.AbstractConditionSequence;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.ConditionCallBuilder;
 import net.openid.conformance.variant.VCI1FinalCredentialFormat;
@@ -41,14 +40,9 @@ public class VCIHaipProfileBehavior extends VCIProfileBehavior {
 	@Override
 	public ConditionSequence fetchServerConfiguration(boolean isOpenId) {
 		return super.fetchServerConfiguration(isOpenId)
-			.then(new AbstractConditionSequence() {
-				@Override
-				public void evaluate() {
-					call(new ConditionCallBuilder(VCIValidateNonceEndpointInIssuerMetadata.class)
-						.onFail(ConditionResult.FAILURE)
-						.requirements("HAIP-4.1-5"));
-				}
-			});
+			.then(new ConditionCallBuilder(VCIValidateNonceEndpointInIssuerMetadata.class)
+				.onFail(ConditionResult.FAILURE)
+				.requirements("HAIP-4.1-5"));
 	}
 
 	@Override
