@@ -127,6 +127,20 @@ public class FAPI2ClientProfileBehavior {
 	}
 
 	/**
+	 * Additional server configuration steps that depend on the resolved {@link
+	 * net.openid.conformance.variant.ClientAuthType}. Runs after
+	 * {@code addTokenEndpointAuthMethodSupported} and before PAR / token-endpoint-auth
+	 * signing algs are registered.
+	 *
+	 * <p>VCI overrides for {@code client_attestation}: validates the required config
+	 * fields are present, registers the client-attestation trust anchor, and adds the
+	 * client-attestation signing alg values to the server configuration.
+	 */
+	public ConditionSequence additionalServerConfiguration() {
+		return null;
+	}
+
+	/**
 	 * Whether to load userinfo (only meaningful for auth-code-flow profiles that may issue
 	 * id_tokens). Defaults to true; client-credentials-only profiles override to false.
 	 */
