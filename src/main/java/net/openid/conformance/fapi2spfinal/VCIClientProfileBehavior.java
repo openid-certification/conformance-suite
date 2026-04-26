@@ -52,6 +52,8 @@ public class VCIClientProfileBehavior extends FAPI2ClientProfileBehavior {
 
 	private static final String CREDENTIAL_PATH = "credential";
 	private static final String NONCE_PATH = "nonce";
+	private static final String DEFERRED_CREDENTIAL_PATH = "deferred_credential";
+	private static final String NOTIFICATION_PATH = "notification";
 
 	@Override
 	public ConditionSequence validateAuthorizationRequestScope() {
@@ -109,7 +111,10 @@ public class VCIClientProfileBehavior extends FAPI2ClientProfileBehavior {
 
 	@Override
 	public boolean claimsHttpPath(String path) {
-		return CREDENTIAL_PATH.equals(path) || NONCE_PATH.equals(path);
+		return CREDENTIAL_PATH.equals(path)
+			|| NONCE_PATH.equals(path)
+			|| DEFERRED_CREDENTIAL_PATH.equals(path)
+			|| NOTIFICATION_PATH.equals(path);
 	}
 
 	@Override
@@ -117,7 +122,10 @@ public class VCIClientProfileBehavior extends FAPI2ClientProfileBehavior {
 		if (NONCE_PATH.equals(path)) {
 			return handleNonceEndpoint();
 		}
-		// CREDENTIAL_PATH
+		if (NOTIFICATION_PATH.equals(path)) {
+			return handleNotificationEndpoint();
+		}
+		// CREDENTIAL_PATH or DEFERRED_CREDENTIAL_PATH
 		return handleCredentialEndpoint();
 	}
 
@@ -125,14 +133,10 @@ public class VCIClientProfileBehavior extends FAPI2ClientProfileBehavior {
 	 * Build credential issuer metadata for the FAPI2SP-client-test side of the VCI HAIP
 	 * wallet plan. Uses the same default {@code credential_configurations_supported} as
 	 * {@link AbstractVCIWalletTest} so wallets configured for any of the standard
-	 * SD-JWT VC or mdoc credential types resolve correctly.
-	 *
-	 * <p>Only {@code credential_endpoint} (REQUIRED per OID4VCI 1.0 Final) is advertised
-	 * besides {@code authorization_servers} and {@code credential_configurations_supported}.
-	 * Optional endpoints ({@code nonce_endpoint}, {@code deferred_credential_endpoint},
-	 * {@code notification_endpoint}) are omitted — the FAPI2SP client tests don't run a
-	 * full credential-issuance flow, so a HAIP wallet that respects the metadata won't
-	 * try to call them.
+	 * SD-JWT VC or mdoc credential types resolve correctly. Advertises all the standard
+	 * VCI endpoints (credential, nonce, deferred_credential, notification) so that issuer
+	 * tests paired against this wallet can exercise the full VCI surface — minimal
+	 * handlers below let those calls succeed.
 	 */
 	protected JsonObject buildCredentialIssuerMetadata() {
 		String baseUrl = baseUrlWithTrailingSlash();
@@ -140,6 +144,9 @@ public class VCIClientProfileBehavior extends FAPI2ClientProfileBehavior {
 		JsonObject metadata = new JsonObject();
 		metadata.addProperty("credential_issuer", baseUrl);
 		metadata.addProperty("credential_endpoint", baseUrl + CREDENTIAL_PATH);
+		metadata.addProperty("nonce_endpoint", baseUrl + NONCE_PATH);
+		metadata.addProperty("deferred_credential_endpoint", baseUrl + DEFERRED_CREDENTIAL_PATH);
+		metadata.addProperty("notification_endpoint", baseUrl + NOTIFICATION_PATH);
 
 		JsonArray authServers = new JsonArray();
 		authServers.add(baseUrl);
@@ -167,10 +174,11 @@ public class VCIClientProfileBehavior extends FAPI2ClientProfileBehavior {
 	}
 
 	/**
-	 * Minimal credential endpoint — marks the test complete on first call and returns a
-	 * placeholder credential response. The FAPI2SP client tests have already validated
-	 * the OAuth-level behavior by the time the wallet reaches this endpoint; we don't
-	 * implement actual credential issuance here (that's {@code VCIWalletTest*}'s job).
+	 * Minimal credential endpoint (also used for deferred_credential) — marks the test
+	 * complete on first call and returns a placeholder credential response. The FAPI2SP
+	 * client tests have already validated the OAuth-level behavior by the time the wallet
+	 * reaches this endpoint; we don't implement actual credential issuance here (that's
+	 * {@code VCIWalletTest*}'s job).
 	 */
 	protected ResponseEntity<JsonObject> handleCredentialEndpoint() {
 		module.doSetStatus(Status.RUNNING);
@@ -180,6 +188,16 @@ public class VCIClientProfileBehavior extends FAPI2ClientProfileBehavior {
 		return ResponseEntity.status(HttpStatus.OK)
 			.contentType(MediaType.APPLICATION_JSON)
 			.body(body);
+	}
+
+	/**
+	 * Minimal notification endpoint — accepts the notification and returns 204 No Content
+	 * per OID4VCI 1.0 Final § 10.2.
+	 */
+	protected ResponseEntity<Void> handleNotificationEndpoint() {
+		module.doSetStatus(Status.RUNNING);
+		module.doSetStatus(Status.WAITING);
+		return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
 	}
 
 	private static String randomNonce() {
