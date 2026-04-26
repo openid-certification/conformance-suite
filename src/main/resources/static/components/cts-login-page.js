@@ -1,6 +1,7 @@
 import { LitElement, html, nothing } from "lit";
 import "./cts-link-button.js";
 import "./cts-alert.js";
+import "./cts-icon.js";
 
 // Brand-mark SVGs for the social-login buttons. These are NOT part of the
 // coolicons set — coolicons does not ship brand glyphs. Inlining the marks
@@ -430,19 +431,19 @@ class CtsLoginPage extends LitElement {
       </h2>
       <ul class="oidf-login-brand__pillars">
         <li>
-          <span class="bi bi-shield-check" aria-hidden="true"></span>
+          <cts-icon name="shield-check" aria-hidden="true"></cts-icon>
           OpenID Connect, FAPI 1 &amp; FAPI 2
         </li>
         <li>
-          <span class="bi bi-shield-check" aria-hidden="true"></span>
+          <cts-icon name="shield-check" aria-hidden="true"></cts-icon>
           Identity Assurance &amp; OpenID Federation
         </li>
         <li>
-          <span class="bi bi-shield-check" aria-hidden="true"></span>
+          <cts-icon name="shield-check" aria-hidden="true"></cts-icon>
           Verifiable Credentials &amp; Presentations
         </li>
         <li>
-          <span class="bi bi-shield-check" aria-hidden="true"></span>
+          <cts-icon name="shield-check" aria-hidden="true"></cts-icon>
           CIBA, SSF &amp; AuthZEN
         </li>
       </ul>
@@ -484,26 +485,26 @@ class CtsLoginPage extends LitElement {
             <nav class="oidf-login-secondary" aria-label="Public resources">
               <a class="oidf-login-link" href="logs.html?public=true">
                 <span class="oidf-login-link__icon">
-                  <span class="bi bi-files" aria-hidden="true"></span>
+                  <cts-icon name="files" aria-hidden="true"></cts-icon>
                 </span>
                 <span class="oidf-login-link__body">
                   <span class="oidf-login-link__title">View published logs</span>
                   <span class="oidf-login-link__meta">Browse historical certification runs</span>
                 </span>
                 <span class="oidf-login-link__chevron">
-                  <span class="bi bi-arrow-right" aria-hidden="true"></span>
+                  <cts-icon name="arrow-right-md" aria-hidden="true"></cts-icon>
                 </span>
               </a>
               <a class="oidf-login-link" href="plans.html?public=true">
                 <span class="oidf-login-link__icon">
-                  <span class="bi bi-bookmarks" aria-hidden="true"></span>
+                  <cts-icon name="bookmark" aria-hidden="true"></cts-icon>
                 </span>
                 <span class="oidf-login-link__body">
                   <span class="oidf-login-link__title">View published plans</span>
                   <span class="oidf-login-link__meta">Explore current and past test plans</span>
                 </span>
                 <span class="oidf-login-link__chevron">
-                  <span class="bi bi-arrow-right" aria-hidden="true"></span>
+                  <cts-icon name="arrow-right-md" aria-hidden="true"></cts-icon>
                 </span>
               </a>
             </nav>
