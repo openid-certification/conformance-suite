@@ -134,6 +134,15 @@ function applyTestInfo(testInfo) {
     // takes zero vertical room.
     topTestSummary.summary = (testInfo && testInfo.summary) || "";
   }
+  /** @type {any} */
+  const rail = document.getElementById("ctsLogToc");
+  if (rail) {
+    // U8 — keep the rail's compact failure summary in lockstep with the
+    // page-level instance. The viewer-driven blocks list arrives via the
+    // cts-blocks-updated event in setupLogToc().
+    rail.failures = selectFailures(testInfo);
+    rail.testId = testId;
+  }
 }
 
 /**
@@ -637,6 +646,58 @@ function handleScrollToEntry(evt) {
   target.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
+/**
+ * U8 — handle a click on a cts-log-toc rail row. The rail dispatches
+ * `cts-scroll-to-block` with `{ blockId }`; the matching <details> in the
+ * entries stream opens before scrolling so the row above the block is
+ * the visible anchor instead of the block header. Mirrors the
+ * scroll-to-entry handler's open-on-collapse contract.
+ *
+ * @param {Event} evt
+ */
+function handleScrollToBlock(evt) {
+  const detail = /** @type {CustomEvent} */ (evt).detail || {};
+  const blockId = detail.blockId;
+  if (!blockId) return;
+  const target = /** @type {HTMLDetailsElement | null} */ (
+    document.querySelector(`details.logBlock[data-block-id="${blockId.replace(/"/g, '\\"')}"]`)
+  );
+  if (!target) return;
+  target.open = true;
+  target.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+/**
+ * U8 — wire the wide-viewport rail. Reads the user preference once at
+ * bootstrap and adds the `--with-toc` modifier on <main> when enabled.
+ * The rail itself owns its own `display: none` toggle (so a future
+ * setEnabled() call from the U7 overflow can flip visibility without
+ * re-mounting), but the page-level grid switch only happens here.
+ *
+ * Listens for `cts-blocks-updated` from cts-log-viewer so the rail's
+ * blocks array re-syncs with each polling cycle.
+ */
+function setupLogToc() {
+  /** @type {any} */
+  const rail = document.getElementById("ctsLogToc");
+  if (!rail) return;
+  let preferenceEnabled = true;
+  try {
+    preferenceEnabled = localStorage.getItem("cts-log-toc-rail-enabled") !== "false";
+  } catch {
+    preferenceEnabled = true;
+  }
+  const main = document.getElementById("main-content");
+  if (preferenceEnabled && main) {
+    main.classList.add("log-page-v2--with-toc");
+  }
+  document.addEventListener("cts-scroll-to-block", handleScrollToBlock);
+  document.addEventListener("cts-blocks-updated", (evt) => {
+    const blocks = /** @type {CustomEvent} */ (evt).detail && evt.detail.blocks;
+    if (Array.isArray(blocks)) rail.blocks = blocks;
+  });
+}
+
 /** ──────────── Keyboard shortcuts ──────────── */
 
 function handleKeydown(event) {
@@ -681,6 +742,7 @@ async function bootstrap() {
 
   document.addEventListener("cts-scroll-to-entry", handleScrollToEntry);
   document.addEventListener("keydown", handleKeydown);
+  setupLogToc();
   // U6: cts-log-viewer dispatches cts-references-updated after each
   // successful poll that appended rows. Forward the map to every
   // failure summary instance so chips render in lockstep with the

@@ -262,6 +262,14 @@ class CtsLogViewer extends LitElement {
      */
     this._blockCounts = new Map();
     /**
+     * Per-block summary list keyed by `blockId` insertion order, sourced
+     * from `_entries`'s `startBlock` rows. Recomputed in willUpdate
+     * whenever `_entries` changes; consumed by U8's cts-log-toc rail
+     * via `getBlockSummaries()` and the `cts-blocks-updated` event.
+     * @type {Array<{ blockId: string, label: string, counts: { success: number, failure: number, warning: number, review: number, info: number, total: number } }>}
+     */
+    this._blockSummaries = [];
+    /**
      * Map of `entry._id` → `LOG-NNNN` for every entry in `_entries`,
      * recomputed in `willUpdate` whenever `_entries` changes. The plain
      * object shape (rather than a Map) lets consumers JSON-stringify it
@@ -294,7 +302,51 @@ class CtsLogViewer extends LitElement {
     if (changedProps.has("_entries")) {
       this._blockCounts = this._aggregateBlockCounts();
       this._references = this._buildReferences();
+      this._blockSummaries = this._collectBlockSummaries();
     }
+  }
+
+  /**
+   * Build the rail-friendly view of `_entries`: one summary per
+   * `startBlock` entry, in the order the entries arrived. Each summary
+   * carries the `blockId`, the human-readable `label` (the startBlock
+   * row's `msg`, falling back to the blockId when the message is
+   * missing), and the aggregated `counts` from `_blockCounts`. U8's
+   * cts-log-toc consumes this list verbatim — keeping the walk inside
+   * the viewer means the rail does not need access to `_entries`.
+   * @returns {Array<{ blockId: string, label: string, counts: { success: number, failure: number, warning: number, review: number, info: number, total: number } }>}
+   */
+  _collectBlockSummaries() {
+    const summaries = [];
+    for (const entry of this._entries) {
+      if (!entry.startBlock || !entry.blockId) continue;
+      const counts = this._blockCounts.get(entry.blockId) || {
+        success: 0,
+        failure: 0,
+        warning: 0,
+        review: 0,
+        info: 0,
+        total: 0,
+      };
+      summaries.push({
+        blockId: entry.blockId,
+        label: entry.msg || entry.blockId,
+        counts,
+      });
+    }
+    return summaries;
+  }
+
+  /**
+   * Public read-only view of the block-summary list. The rail (U8) reads
+   * this once on mount and again whenever the viewer dispatches
+   * `cts-blocks-updated`. Returns a defensive copy so downstream
+   * consumers cannot mutate the cached list and trigger phantom
+   * recomputes.
+   * @returns {Array<{ blockId: string, label: string, counts: { success: number, failure: number, warning: number, review: number, info: number, total: number } }>}
+   */
+  getBlockSummaries() {
+    return Array.isArray(this._blockSummaries) ? this._blockSummaries.slice() : [];
   }
 
   /**
@@ -476,12 +528,22 @@ class CtsLogViewer extends LitElement {
       // it grows. Wait for `updateComplete` so the willUpdate-rebuilt
       // `_references` is the value being shipped; otherwise polling
       // additions lag one cycle behind.
+      // U8: emit cts-blocks-updated alongside cts-references-updated so
+      // the cts-log-toc rail re-syncs its block list on the same cadence.
+      // Same updateComplete gating reason — the willUpdate-rebuilt
+      // `_blockSummaries` must be the value shipped to consumers.
       if (succeeded && appendedAny) {
         this.updateComplete.then(() => {
           this.dispatchEvent(
             new CustomEvent("cts-references-updated", {
               bubbles: true,
               detail: { testId: this.testId, references: this._references },
+            }),
+          );
+          this.dispatchEvent(
+            new CustomEvent("cts-blocks-updated", {
+              bubbles: true,
+              detail: { testId: this.testId, blocks: this.getBlockSummaries() },
             }),
           );
         });

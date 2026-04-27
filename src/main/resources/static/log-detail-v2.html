@@ -77,13 +77,15 @@
      cts-test-nav-controls, cts-button, cts-link-button, cts-badge,
      cts-alert, cts-icon, cts-json-editor, cts-test-summary,
      cts-action-overflow, and the test-summary-split helper, so we
-     don't have to declare them individually. -->
+     don't have to declare them individually. cts-log-toc carries its
+     own cts-failure-summary import for the rail's compact instance. -->
 <script type="module" src="/components/cts-navbar.js"></script>
 <script type="module" src="/components/cts-modal.js"></script>
 <script type="module" src="/components/cts-crumb.js"></script>
 <script type="module" src="/components/cts-tooltip.js"></script>
 <script type="module" src="/components/cts-log-detail-header.js"></script>
 <script type="module" src="/components/cts-log-viewer.js"></script>
+<script type="module" src="/components/cts-log-toc.js"></script>
 
 <!-- New-page bootstrap. Loads after components — module ordering is
      stable because each script type="module" defers until the document
@@ -91,15 +93,34 @@
 <script type="module" src="/js/log-detail-v2.js"></script>
 
 <style>
-  /* Page-local layout for log-detail-v2.html. The single-column grid
-     today carries the breadcrumb + header + viewer. U8 will widen this
-     into a two-column layout (rail + main) on viewports ≥ 960 px; the
-     `.log-page-v2` class is the seam U8 will key off. */
+  /* Page-local layout for log-detail-v2.html. Single-column at narrow
+     widths; widens to a two-column grid (main + rail) at ≥ 1440 px when
+     the user preference allows U8's cts-log-toc. The
+     `.log-page-v2--with-toc` modifier is added by js/log-detail-v2.js
+     on bootstrap when the preference is enabled. */
   .log-page-v2 {
     max-width: var(--maxw-page);
     margin: 0 auto;
     padding: var(--space-4) var(--space-5);
     font-family: var(--font-sans);
+  }
+  /* U8 — wide-viewport rail. The 320px right column matches the rail's
+     intrinsic width budget; the rest of the row flexes for the entries
+     stream. Below 1440px the grid collapses back to a single column,
+     and the rail host hides via `display: none` so it doesn't reserve
+     vertical space. */
+  @media (min-width: 1440px) {
+    .log-page-v2--with-toc {
+      display: grid;
+      grid-template-columns: 1fr 320px;
+      gap: var(--space-5);
+      align-items: start;
+    }
+  }
+  @media (max-width: 1439px) {
+    #ctsLogToc {
+      display: none;
+    }
   }
 
   /* Spinner tokens for the loadingModal. Matches the legacy page so
@@ -210,25 +231,34 @@
 
   <!-- Resident DOM — the Lit triad mounts here. Bootstrap fetches
        /api/info, populates header.testInfo, sets viewer.testId, and
-       wires the action events. -->
+       wires the action events. The .log-page-v2-main wrapper holds the
+       single-column content; cts-log-toc is the second grid column at
+       ≥ 1440 px when the user preference is enabled. -->
   <main id="main-content" class="log-page-v2">
-    <cts-crumb id="logDetailCrumb"></cts-crumb>
-    <cts-log-detail-header id="logDetailHeader"></cts-log-detail-header>
-    <!-- Page-level cts-test-summary instance (Region B1, U7). Carries
-         the WAITING-state instructions banner above the failure summary,
-         hoisted out of the header card so it can sit between the sticky
-         status bar and the viewer at narrow widths. CSS in <head> hides
-         this at desktop where the header card's instance shows. The
-         element is registered via the transitive import from
-         cts-log-detail-header.js. -->
-    <cts-test-summary id="ctsTopTestSummary"></cts-test-summary>
-    <!-- Page-level cts-failure-summary instance (mobile / tablet
-         position, U4). The desktop instance is rendered inside the
-         header card; CSS in <head> hides whichever doesn't apply at
-         the current breakpoint. Custom element is registered via the
-         transitive import from cts-log-detail-header.js. -->
-    <cts-failure-summary id="ctsTopFailureSummary"></cts-failure-summary>
-    <cts-log-viewer id="logViewer"></cts-log-viewer>
+    <div class="log-page-v2-main">
+      <cts-crumb id="logDetailCrumb"></cts-crumb>
+      <cts-log-detail-header id="logDetailHeader"></cts-log-detail-header>
+      <!-- Page-level cts-test-summary instance (Region B1, U7). Carries
+           the WAITING-state instructions banner above the failure summary,
+           hoisted out of the header card so it can sit between the sticky
+           status bar and the viewer at narrow widths. CSS in <head> hides
+           this at desktop where the header card's instance shows. The
+           element is registered via the transitive import from
+           cts-log-detail-header.js. -->
+      <cts-test-summary id="ctsTopTestSummary"></cts-test-summary>
+      <!-- Page-level cts-failure-summary instance (mobile / tablet
+           position, U4). The desktop instance is rendered inside the
+           header card; CSS in <head> hides whichever doesn't apply at
+           the current breakpoint. Custom element is registered via the
+           transitive import from cts-log-detail-header.js. -->
+      <cts-failure-summary id="ctsTopFailureSummary"></cts-failure-summary>
+      <cts-log-viewer id="logViewer"></cts-log-viewer>
+    </div>
+    <!-- Wide-viewport TOC rail (U8). Hidden below 1440 px and when the
+         user preference (`cts-log-toc-rail-enabled`) is "false". The
+         page bootstrap toggles `.log-page-v2--with-toc` on <main> to
+         flip the grid layout when the rail is enabled. -->
+    <cts-log-toc id="ctsLogToc"></cts-log-toc>
   </main>
 </body>
 
