@@ -294,6 +294,9 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 		// Set up the client configuration
 		configureClient();
 
+		// Expose the VP profile in env so conditions can branch on HAIP via Profile.isHaip(env).
+		env.putString("vp", "vp_profile", getVariant(VPProfile.class).toString());
+
 		callAndStopOnFailure(RegisterCredentialTrustAnchor.class);
 		if (getVariant(VPProfile.class) == VPProfile.HAIP) {
 			callAndContinueOnFailure(EnsureCredentialTrustAnchorConfigured.class, Condition.ConditionResult.FAILURE);
