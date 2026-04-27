@@ -651,6 +651,11 @@ class CtsLogDetailHeader extends LitElement {
         icon: "bookmark",
       });
     }
+    // TODO(U8 follow-up): wire a "Hide log structure rail" / "Show log
+    // structure rail" toggle item that flips the cts-log-toc preference
+    // (localStorage key "cts-log-toc-rail-enabled") and calls
+    // ctsLogToc.setEnabled(...). Tracked in the U8 plan's "Open spec
+    // gaps for this unit > [P1] User-preference toggle home" section.
     return actions;
   }
 

@@ -51,9 +51,11 @@ export const Default = {
   async play({ canvasElement }) {
     const canvas = within(canvasElement);
 
-    // Header region: test name renders
+    // Header region: test name renders. Since U2 the test name appears
+    // in two places (the sticky bar's truncated row + the metadata
+    // table's value row), so use getAllByText to allow both.
     await waitFor(() => {
-      expect(canvas.getByText("oidcc-server")).toBeInTheDocument();
+      expect(canvas.getAllByText("oidcc-server").length).toBeGreaterThan(0);
     });
 
     // Header region: FAILED badge present (FAILED → canonical `fail` variant)
