@@ -65,7 +65,9 @@ import net.openid.conformance.condition.client.CreateRedirectUri;
 import net.openid.conformance.condition.client.CreateVP1FinalVerifierIsoMdocDCAPISessionTranscript;
 import net.openid.conformance.condition.client.CreateVP1FinalWalletIsoMdocRedirectSessionTranscript;
 import net.openid.conformance.condition.client.DecryptResponse;
+import net.openid.conformance.condition.client.EnsureClientRequestObjectTrustAnchorConfigured;
 import net.openid.conformance.condition.client.EnsureCredentialTrustAnchorConfigured;
+import net.openid.conformance.condition.client.EnsureStatusListTrustAnchorConfigured;
 import net.openid.conformance.condition.client.EnsureIncomingRequestContentTypeIsFormUrlEncoded;
 import net.openid.conformance.condition.client.EnsureIncomingUrlQueryIsEmpty;
 import net.openid.conformance.condition.client.ExtractAuthorizationEndpointResponse;
@@ -80,6 +82,7 @@ import net.openid.conformance.condition.client.GetStaticClientConfiguration;
 import net.openid.conformance.condition.client.GetStaticServerConfiguration;
 import net.openid.conformance.condition.client.ParseCredentialAsMdoc;
 import net.openid.conformance.condition.client.ParseCredentialAsSdJwtKb;
+import net.openid.conformance.condition.client.RegisterClientRequestObjectTrustAnchor;
 import net.openid.conformance.condition.client.RegisterCredentialTrustAnchor;
 import net.openid.conformance.condition.client.RegisterStatusListTrustAnchor;
 import net.openid.conformance.condition.client.SerializeRequestObjectWithNullAlgorithm;
@@ -170,7 +173,8 @@ import java.util.concurrent.TimeUnit;
 })
 @VariantConfigurationFields(parameter = VPProfile.class, value = "haip", configurationFields = {
 	"credential.trust_anchor_pem",
-	"credential.status_list_trust_anchor_pem"
+	"credential.status_list_trust_anchor_pem",
+	"client.request_object_trust_anchor_pem"
 })
 @VariantConfigurationFields(parameter = VP1FinalWalletRequestMethod.class, value = "request_uri_multisigned", configurationFields = {
 	"client2.jwks",
@@ -298,10 +302,13 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 		env.putString("vp", "vp_profile", getVariant(VPProfile.class).toString());
 
 		callAndStopOnFailure(RegisterCredentialTrustAnchor.class);
+		callAndStopOnFailure(RegisterStatusListTrustAnchor.class);
+		callAndStopOnFailure(RegisterClientRequestObjectTrustAnchor.class);
 		if (getVariant(VPProfile.class) == VPProfile.HAIP) {
 			callAndContinueOnFailure(EnsureCredentialTrustAnchorConfigured.class, Condition.ConditionResult.FAILURE);
+			callAndContinueOnFailure(EnsureStatusListTrustAnchorConfigured.class, Condition.ConditionResult.FAILURE);
+			callAndContinueOnFailure(EnsureClientRequestObjectTrustAnchorConfigured.class, Condition.ConditionResult.FAILURE);
 		}
-		callAndStopOnFailure(RegisterStatusListTrustAnchor.class);
 
 		if (credentialFormat == VP1FinalWalletCredentialFormat.ISO_MDL) {
 			// ISO spec always creates a redirect returned from response_uri

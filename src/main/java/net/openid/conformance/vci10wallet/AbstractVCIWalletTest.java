@@ -250,6 +250,7 @@ import net.openid.conformance.vci10wallet.condition.VCIValidateTxCode;
 import net.openid.conformance.vci10wallet.condition.VCIVerifyIssuerStateInAuthorizationRequest;
 import net.openid.conformance.vci10wallet.condition.clientattestation.AddClientAttestationSigningAlgValuesSupportedToServerConfiguration;
 import net.openid.conformance.vci10wallet.condition.clientattestation.VCIRegisterClientAttestationTrustAnchor;
+import net.openid.conformance.condition.client.EnsureKeyAttestationTrustAnchorConfigured;
 import net.openid.conformance.vci10wallet.condition.clientattestation.VCIRegisterKeyAttestationTrustAnchor;
 import net.openid.conformance.vci10wallet.condition.clientattestation.VCIValidateClientAuthenticationWithClientAttestationJWT;
 import net.openid.conformance.vci10wallet.condition.statuslist.VCIGenerateJwtStatusListToken;
@@ -534,6 +535,9 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 		}
 
 		callAndStopOnFailure(VCIRegisterKeyAttestationTrustAnchor.class);
+		if (fapi2Profile == FAPI2FinalOPProfile.VCI_HAIP) {
+			callAndContinueOnFailure(EnsureKeyAttestationTrustAnchorConfigured.class, ConditionResult.FAILURE, "HAIP-4.5.1");
+		}
 
 		configureCredentialIssuerMetadata();
 		configureOauthAuthorizationServerMetadata();
