@@ -2,6 +2,7 @@ import { LitElement, html, nothing } from "lit";
 import "./cts-badge.js";
 import "./cts-button.js";
 import "./cts-link-button.js";
+import "./cts-tooltip.js";
 
 /**
  * Stable identity key for a module entry. Used as the data-module-key
@@ -104,6 +105,18 @@ const STYLE_TEXT = `
     color: var(--fg);
     word-break: break-word;
   }
+  /* Inline-flex row keeps the help-icon optically centred on the test
+     module name without relying on vertical-align hacks. align-items:
+     center sits the 16px icon on the same axis as the bold 13px text;
+     the gap replaces a margin so icon-only rows behave the same as
+     icon+text rows. flex-wrap lets long module names break across
+     multiple visual lines while keeping the icon hugged to the end. */
+  cts-plan-modules .module-row .name .nameLine {
+    display: inline-flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--space-1);
+  }
   cts-plan-modules .module-row .name .desc {
     color: var(--fg-soft);
     font-weight: var(--fw-regular);
@@ -113,11 +126,26 @@ const STYLE_TEXT = `
   cts-plan-modules .module-row .name .desc .mono {
     font-family: var(--font-mono);
   }
+  /* display: contents removes cts-tooltip's own box from layout so its
+     child cts-icon becomes a direct flex child of .nameLine. Without
+     this, cts-tooltip (a custom element, display: inline by default)
+     carries an inherited text line-box even though it has no text
+     content — the icon then sits within that ghost line-box, and the
+     flex container centres the line-box rather than the icon itself,
+     producing a sub-pixel optical drift. With contents, align-items:
+     center aligns the 16×16 icon box directly. cts-tooltip's hover/
+     focus wiring is unaffected because it targets the cts-icon child,
+     not cts-tooltip's own box. */
+  cts-plan-modules .module-row .name .help {
+    display: contents;
+  }
   cts-plan-modules .module-row .name .help-icon {
     color: var(--fg-faint);
-    margin-left: var(--space-1);
-    font-size: var(--fs-12);
-    vertical-align: super;
+  }
+  cts-plan-modules .module-row .name .help-icon:focus-visible {
+    outline: 2px solid var(--orange-400);
+    outline-offset: 2px;
+    border-radius: var(--radius-1);
   }
   /* Flex (not grid) so the action buttons can wrap onto a second line
      when the row reflows on narrow cards — grid-auto-flow does not wrap.
@@ -322,14 +350,20 @@ class CtsPlanModules extends LitElement {
       <div class="module-row" data-instance-id="${lastInstance || ""}">
         <span class="num">${this._rowNumber(index + 1)}</span>
         <div class="name">
-          ${mod.testModule}${mod.testSummary
-            ? html`<cts-icon
-                name="circle-help"
-                class="help-icon"
-                title="${mod.testSummary}"
-                aria-hidden="true"
-              ></cts-icon>`
-            : nothing}
+          <span class="nameLine">
+            <span class="moduleName">${mod.testModule}</span>
+            ${mod.testSummary
+              ? html`<cts-tooltip class="help" content="${mod.testSummary}" placement="top"
+                  ><cts-icon
+                    name="circle-help"
+                    size="16"
+                    class="help-icon"
+                    tabindex="0"
+                    aria-label="Test summary"
+                  ></cts-icon
+                ></cts-tooltip>`
+              : nothing}
+          </span>
           <div class="desc">
             <span class="mono">${variantStr}</span>
             ${variantStr ? html` · ` : nothing}Test ID:
