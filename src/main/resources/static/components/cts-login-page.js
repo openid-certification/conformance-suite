@@ -321,6 +321,7 @@ const STYLE_TEXT = `
   color: var(--fg-muted);
 }
 .oidf-login-link__chevron {
+  display: contents;
   color: var(--fg-soft);
   font-size: var(--fs-14);
   transition: transform var(--dur-1) var(--ease-standard),
@@ -354,10 +355,14 @@ function injectStyles() {
  * panel on the right at viewports >=860px, collapsing to a single column on
  * narrow screens. The error banner uses `cts-alert variant="danger"`; the
  * post-logout banner uses `cts-alert variant="info"`. Provider buttons render
- * via `cts-link-button` (`variant="secondary"` per U23's design-system
- * mapping) and pick up Bootstrap-Icons vendor glyphs through the `icon` prop
- * (`google`, `gitlab`). All styling comes from `oidf-tokens.css` plus the
- * scoped `.oidf-login-*` rules injected on first mount.
+ * as plain `<a class="oidf-btn oidf-btn-secondary oidf-btn-lg">` anchors
+ * with the inline Google/GitLab brand SVG taking the leading-icon slot —
+ * `cts-link-button`'s `icon` prop only accepts a coolicons name, and
+ * brand glyphs are intentionally outside the cts-icon set (per the
+ * 2026-04-25 brand-icon carve-out). The `oidf-btn` styles arrive via the
+ * `cts-link-button.js` import which injects them at module load. All
+ * other styling comes from `oidf-tokens.css` plus the scoped
+ * `.oidf-login-*` rules injected on first mount.
  *
  * @property {string} error - OAuth error message to display; empty hides the
  *   alert.
