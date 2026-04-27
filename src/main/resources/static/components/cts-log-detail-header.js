@@ -7,7 +7,8 @@ import "./cts-alert.js";
 import "./cts-json-editor.js";
 import "./cts-test-nav-controls.js";
 import "./cts-failure-summary.js";
-import { splitTestSummary } from "./test-summary-split.js";
+import "./cts-test-summary.js";
+import "./cts-action-overflow.js";
 
 /**
  * Top-level test result -> canonical cts-badge variant. INTERRUPTED maps to
@@ -210,6 +211,18 @@ const STYLE_TEXT = `
   cts-log-detail-header .logActionStack cts-button,
   cts-log-detail-header .logActionStack cts-link-button {
     width: 100%;
+  }
+  /* U7 — at tablet widths the status bar's overflow popover carries the
+     secondary actions. Hide the duplicate vertical stack inside the
+     header card so the metadata column has room to breathe. The stack
+     re-appears at desktop (≥ 1024px) where the redundancy with the
+     status bar is intentional (per the U7 plan's [P2] acceptance:
+     "the redundancy is acceptable — the status bar is the glance
+     affordance, the card is the thoroughness affordance"). */
+  @media (max-width: 1023px) {
+    cts-log-detail-header .logActionStack {
+      display: none;
+    }
   }
 
   cts-log-detail-header .logResultRow {
@@ -556,11 +569,121 @@ class CtsLogDetailHeader extends LitElement {
   }
 
   _renderStatusBarOverflowSlot() {
-    // Reserved for U7 (action overflow popover trigger). Empty in U2.
-    // The slot's `data-slot` attribute mirrors the existing `data-slot=
-    // "browser"` / `data-slot="error"` pattern so page-level / U7 code
-    // can address it without coupling to Lit-internal binding ids.
-    return html`<div class="ctsStatusBarOverflow" data-slot="action-overflow"></div>`;
+    // The kebab-triggered popover hosts the secondary actions (Upload
+    // Images, View configuration, Edit configuration, Download Logs,
+    // Publish, Share Link). The same slot still carries the existing
+    // `data-slot="action-overflow"` attribute for page-level code that
+    // wants to address the slot host without coupling to Lit-internal
+    // binding ids. WAITING tests skip the slot entirely — the bar carries
+    // only Start there, and the secondary actions are not relevant
+    // pre-run (no logs to download, no upload affordances yet).
+    if (!this.testInfo) return nothing;
+    const actions = this._buildOverflowActions();
+    if (actions.length === 0) return nothing;
+    return html`<div class="ctsStatusBarOverflow" data-slot="action-overflow">
+      <cts-action-overflow
+        data-testid="status-bar-overflow"
+        .actions=${actions}
+        @cts-overflow-action=${this._handleOverflowAction}
+      ></cts-action-overflow>
+    </div>`;
+  }
+
+  _buildOverflowActions() {
+    const test = this.testInfo;
+    if (!test) return [];
+    const readonly = this._isReadonly();
+    const status = (test.status || "").toUpperCase();
+    // Pre-run: no overflow surface — the only meaningful action is Start,
+    // which already lives in the bar's primary slot.
+    if (status === "WAITING") return [];
+
+    const uploadCount = this._getUploadCount();
+    /** @type {Array<{ id: string, label: string, icon?: string, hidden?: boolean, variant?: string }>} */
+    const actions = [
+      {
+        id: "upload-images",
+        label: uploadCount ? `Upload Images (${uploadCount})` : "Upload Images",
+        icon: "image-01",
+        hidden: readonly,
+      },
+      {
+        id: "view-config",
+        label: "View configuration",
+        icon: "settings",
+      },
+      {
+        id: "edit-config",
+        label: "Edit configuration",
+        icon: "edit-pencil-01",
+        hidden: readonly,
+      },
+      {
+        id: "download-log",
+        label: "Download Logs",
+        icon: "save",
+        hidden: readonly && test.publish !== "everything",
+      },
+    ];
+    if (!readonly && this.isAdmin && !test.publish) {
+      actions.push({
+        id: "publish-summary",
+        label: "Publish summary",
+        icon: "bookmark",
+      });
+      actions.push({
+        id: "publish-everything",
+        label: "Publish everything",
+        icon: "bookmark",
+      });
+    }
+    if (!readonly && this.isAdmin && test.publish) {
+      actions.push({
+        id: "unpublish",
+        label: "Unpublish",
+        icon: "close-circle",
+      });
+    }
+    if (!readonly) {
+      actions.push({
+        id: "share-link",
+        label: "Private link",
+        icon: "bookmark",
+      });
+    }
+    return actions;
+  }
+
+  _handleOverflowAction(event) {
+    const id = event.detail && event.detail.actionId;
+    switch (id) {
+      case "upload-images":
+        this._handleUploadImages();
+        break;
+      case "view-config":
+        this._toggleConfig();
+        break;
+      case "edit-config":
+        this._handleEditConfig();
+        break;
+      case "download-log":
+        this._handleDownloadLog();
+        break;
+      case "publish-summary":
+        this._handlePublishSummary();
+        break;
+      case "publish-everything":
+        this._handlePublishEverything();
+        break;
+      case "unpublish":
+        this._handleUnpublish();
+        break;
+      case "share-link":
+        this._handleShareLink();
+        break;
+      default:
+        break;
+    }
   }
 
   _renderWaitingBar(test) {
@@ -709,7 +832,11 @@ class CtsLogDetailHeader extends LitElement {
                     `
                   : nothing}
               </div>
-              ${this._renderSummaryZones(test.summary)} ${this._renderResultSummary()}
+              <cts-test-summary
+                data-testid="header-test-summary"
+                .summary=${test.summary || ""}
+              ></cts-test-summary>
+              ${this._renderResultSummary()}
               <cts-failure-summary
                 data-testid="header-failure-summary"
                 .failures=${this._getFailures()}
@@ -720,30 +847,6 @@ class CtsLogDetailHeader extends LitElement {
           </div>
         </div>
       </div>
-    `;
-  }
-
-  _renderSummaryZones(rawSummary) {
-    const { description, instructions } = splitTestSummary(rawSummary);
-    if (!description && !instructions) return nothing;
-
-    return html`
-      ${description
-        ? html`<cts-alert variant="info">
-            <div class="summaryZone summaryZone--about" data-testid="about-test-zone">
-              <span class="summaryEyebrow">About this test</span>
-              <div class="summaryBody">${description}</div>
-            </div>
-          </cts-alert>`
-        : nothing}
-      ${instructions
-        ? html`<cts-alert variant="warning">
-            <div class="summaryZone summaryZone--instructions" data-testid="user-instructions-zone">
-              <span class="summaryEyebrow">What you need to do</span>
-              <div class="summaryBody">${instructions}</div>
-            </div>
-          </cts-alert>`
-        : nothing}
     `;
   }
 

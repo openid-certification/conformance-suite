@@ -95,7 +95,7 @@ export const CompletedTest = {
   async play({ canvasElement }) {
     const canvas = within(canvasElement);
     await waitFor(() => {
-      expect(canvas.getByText("oidcc-server")).toBeInTheDocument();
+      expect(canvas.getAllByText("oidcc-server").length).toBeGreaterThan(0);
     });
 
     // Test info fields (token-styled "Label: value" rows; labels are plain
@@ -122,7 +122,7 @@ export const FailedTest = {
   async play({ canvasElement }) {
     const canvas = within(canvasElement);
     await waitFor(() => {
-      expect(canvas.getByText("oidcc-server")).toBeInTheDocument();
+      expect(canvas.getAllByText("oidcc-server").length).toBeGreaterThan(0);
     });
 
     // FAILED result badge visible
@@ -165,7 +165,7 @@ export const RunningTest = {
   async play({ canvasElement }) {
     const canvas = within(canvasElement);
     await waitFor(() => {
-      expect(canvas.getByText("oidcc-server")).toBeInTheDocument();
+      expect(canvas.getAllByText("oidcc-server").length).toBeGreaterThan(0);
     });
 
     // Status shows RUNNING
@@ -178,14 +178,17 @@ export const RunningTest = {
 
     expect(canvas.getByText(/This test is currently running/)).toBeInTheDocument();
 
-    // Start and Stop buttons present
+    // Start and Stop buttons present in the running-test card. The
+    // sticky status bar also surfaces a Stop primary action when
+    // RUNNING, so /Start/ and /Stop/ each match in two places —
+    // assert per-host instead of via the global text query.
     const startBtn = canvasElement.querySelector('[data-testid="start-btn"]');
     expect(startBtn).toBeTruthy();
-    expect(canvas.getByText(/Start/)).toBeInTheDocument();
+    expect(within(startBtn).getByText(/Start/)).toBeInTheDocument();
 
     const stopBtn = canvasElement.querySelector('[data-testid="stop-btn"]');
     expect(stopBtn).toBeTruthy();
-    expect(canvas.getByText(/Stop/)).toBeInTheDocument();
+    expect(within(stopBtn).getByText(/Stop/)).toBeInTheDocument();
   },
 };
 
@@ -194,7 +197,7 @@ export const ViewConfig = {
   async play({ canvasElement }) {
     const canvas = within(canvasElement);
     await waitFor(() => {
-      expect(canvas.getByText("oidcc-server")).toBeInTheDocument();
+      expect(canvas.getAllByText("oidcc-server").length).toBeGreaterThan(0);
     });
 
     // Config panel is initially hidden
@@ -244,7 +247,7 @@ export const RepeatTest = {
   async play({ canvasElement }) {
     const canvas = within(canvasElement);
     await waitFor(() => {
-      expect(canvas.getByText("oidcc-server")).toBeInTheDocument();
+      expect(canvas.getAllByText("oidcc-server").length).toBeGreaterThan(0);
     });
 
     const repeatHandler = fn();
@@ -263,7 +266,7 @@ export const ReturnToPlan = {
   async play({ canvasElement }) {
     const canvas = within(canvasElement);
     await waitFor(() => {
-      expect(canvas.getByText("oidcc-server")).toBeInTheDocument();
+      expect(canvas.getAllByText("oidcc-server").length).toBeGreaterThan(0);
     });
 
     // Plan link is present with correct href (rendered as cts-link-button → <a>).
@@ -285,7 +288,7 @@ export const AllPassed = {
   async play({ canvasElement }) {
     const canvas = within(canvasElement);
     await waitFor(() => {
-      expect(canvas.getByText("oidcc-server")).toBeInTheDocument();
+      expect(canvas.getAllByText("oidcc-server").length).toBeGreaterThan(0);
     });
 
     // Result badge shows PASSED
@@ -308,7 +311,7 @@ export const AdminActions = {
   async play({ canvasElement }) {
     const canvas = within(canvasElement);
     await waitFor(() => {
-      expect(canvas.getByText("oidcc-server")).toBeInTheDocument();
+      expect(canvas.getAllByText("oidcc-server").length).toBeGreaterThan(0);
     });
 
     // Owner row visible for admin
@@ -353,7 +356,7 @@ export const PublicView = {
   async play({ canvasElement }) {
     const canvas = within(canvasElement);
     await waitFor(() => {
-      expect(canvas.getByText("oidcc-server")).toBeInTheDocument();
+      expect(canvas.getAllByText("oidcc-server").length).toBeGreaterThan(0);
     });
 
     // View configuration is visible (always visible)
@@ -400,7 +403,7 @@ export const WithDescriptionOnly = {
   async play({ canvasElement }) {
     const canvas = within(canvasElement);
     await waitFor(() => {
-      expect(canvas.getByText("oidcc-server")).toBeInTheDocument();
+      expect(canvas.getAllByText("oidcc-server").length).toBeGreaterThan(0);
     });
 
     const aboutZone = canvasElement.querySelector('[data-testid="about-test-zone"]');
@@ -427,7 +430,7 @@ export const WithUserInstructions = {
   async play({ canvasElement }) {
     const canvas = within(canvasElement);
     await waitFor(() => {
-      expect(canvas.getByText("oidcc-server")).toBeInTheDocument();
+      expect(canvas.getAllByText("oidcc-server").length).toBeGreaterThan(0);
     });
 
     const aboutZone = canvasElement.querySelector('[data-testid="about-test-zone"]');
@@ -459,7 +462,7 @@ export const WithoutSummary = {
   async play({ canvasElement }) {
     const canvas = within(canvasElement);
     await waitFor(() => {
-      expect(canvas.getByText("oidcc-server")).toBeInTheDocument();
+      expect(canvas.getAllByText("oidcc-server").length).toBeGreaterThan(0);
     });
 
     // Neither summary zone renders when there is no summary
@@ -483,7 +486,7 @@ export const WithEditConfigAction = {
   async play({ canvasElement }) {
     const canvas = within(canvasElement);
     await waitFor(() => {
-      expect(canvas.getByText("oidcc-server")).toBeInTheDocument();
+      expect(canvas.getAllByText("oidcc-server").length).toBeGreaterThan(0);
     });
 
     // Edit-configuration button is present in non-readonly state.
@@ -509,7 +512,7 @@ export const WithShareLinkAction = {
   async play({ canvasElement }) {
     const canvas = within(canvasElement);
     await waitFor(() => {
-      expect(canvas.getByText("oidcc-server")).toBeInTheDocument();
+      expect(canvas.getAllByText("oidcc-server").length).toBeGreaterThan(0);
     });
 
     const shareBtnHost = canvasElement.querySelector('[data-testid="share-link-btn"]');
@@ -535,7 +538,7 @@ export const AdminUnpublished = {
   async play({ canvasElement }) {
     const canvas = within(canvasElement);
     await waitFor(() => {
-      expect(canvas.getByText("oidcc-server")).toBeInTheDocument();
+      expect(canvas.getAllByText("oidcc-server").length).toBeGreaterThan(0);
     });
 
     // Pre-publish admin sees BOTH Publish-summary and Publish-everything.
@@ -578,7 +581,7 @@ export const AdminPublished = {
   async play({ canvasElement }) {
     const canvas = within(canvasElement);
     await waitFor(() => {
-      expect(canvas.getByText("oidcc-server")).toBeInTheDocument();
+      expect(canvas.getAllByText("oidcc-server").length).toBeGreaterThan(0);
     });
 
     // Post-publish admin sees Unpublish + Public link.
@@ -616,7 +619,7 @@ export const WithRunningBrowserSlot = {
   async play({ canvasElement }) {
     const canvas = within(canvasElement);
     await waitFor(() => {
-      expect(canvas.getByText("oidcc-server")).toBeInTheDocument();
+      expect(canvas.getAllByText("oidcc-server").length).toBeGreaterThan(0);
     });
 
     // The browser slot placeholder is present and addressable by the
@@ -648,7 +651,7 @@ export const WithFinalErrorSlot = {
   async play({ canvasElement }) {
     const canvas = within(canvasElement);
     await waitFor(() => {
-      expect(canvas.getByText("oidcc-server")).toBeInTheDocument();
+      expect(canvas.getAllByText("oidcc-server").length).toBeGreaterThan(0);
     });
 
     // INTERRUPTED keeps the running-test card visible so the page can
@@ -682,7 +685,7 @@ export const WithTestNavControls = {
   async play({ canvasElement }) {
     const canvas = within(canvasElement);
     await waitFor(() => {
-      expect(canvas.getByText("oidcc-server")).toBeInTheDocument();
+      expect(canvas.getAllByText("oidcc-server").length).toBeGreaterThan(0);
     });
 
     // The header re-renders cts-test-nav-controls inside its own action
@@ -909,5 +912,144 @@ export const StatusBarPublishesHeightCustomProperty = {
       expect(value).toMatch(/^\d+px$/);
       expect(value).not.toBe("0px");
     });
+  },
+};
+
+// --- U7: action overflow popover (status bar slot) ---
+// Plan: docs/plans/2026-04-26-008-feat-action-overflow-and-cts-test-summary-extraction-plan.md
+// The status bar's <slot name="action-overflow"> is filled by a
+// <cts-action-overflow> with the secondary actions (Upload Images, View
+// configuration, Edit configuration, Download Logs, Publish, Share Link).
+// The desktop header card still renders the full vertical action stack
+// for thoroughness; the overflow is the glance affordance the bar
+// surfaces at every viewport width.
+
+export const StatusBarOverflowSecondaryActions = {
+  render: () => html`<cts-log-detail-header .testInfo=${COMPLETED_TEST}></cts-log-detail-header>`,
+  async play({ canvasElement }) {
+    const overflow = await waitFor(() => {
+      const el = canvasElement.querySelector('[data-testid="status-bar-overflow"]');
+      if (!el) throw new Error("status-bar-overflow not yet rendered");
+      return /** @type {any} */ (el);
+    });
+
+    // The overflow lives inside the bar's reserved slot.
+    const slot = canvasElement.querySelector('[data-slot="action-overflow"]');
+    expect(slot).toBeTruthy();
+    expect(slot.contains(overflow)).toBe(true);
+
+    // Non-readonly, non-admin: visible actions = upload, view-config,
+    // edit-config, download-log (no publish, no unpublish), plus
+    // share-link. Five rows.
+    const items = overflow.querySelectorAll(".overflowItem");
+    expect(items.length).toBe(5);
+    const labels = Array.from(items, (el) => el.textContent.trim());
+    expect(labels).toEqual(
+      expect.arrayContaining([
+        expect.stringContaining("Upload Images"),
+        expect.stringContaining("View configuration"),
+        expect.stringContaining("Edit configuration"),
+        expect.stringContaining("Download Logs"),
+        expect.stringContaining("Private link"),
+      ]),
+    );
+  },
+};
+
+export const StatusBarOverflowAdminWithPublish = {
+  render: () =>
+    html`<cts-log-detail-header
+      .testInfo=${{ ...COMPLETED_TEST, publish: null }}
+      is-admin
+    ></cts-log-detail-header>`,
+  async play({ canvasElement }) {
+    const overflow = await waitFor(() => {
+      const el = canvasElement.querySelector('[data-testid="status-bar-overflow"]');
+      if (!el) throw new Error("status-bar-overflow not yet rendered");
+      return /** @type {any} */ (el);
+    });
+    // Admin pre-publish: secondary actions + Publish summary + Publish
+    // everything; Unpublish hidden until after a publish call. Seven rows.
+    const items = overflow.querySelectorAll(".overflowItem");
+    expect(items.length).toBe(7);
+    const labels = Array.from(items, (el) => el.textContent.trim());
+    expect(labels.some((s) => s.includes("Publish summary"))).toBe(true);
+    expect(labels.some((s) => s.includes("Publish everything"))).toBe(true);
+    expect(labels.some((s) => s.includes("Unpublish"))).toBe(false);
+  },
+};
+
+export const StatusBarOverflowSkippedForWaiting = {
+  render: () => html`<cts-log-detail-header .testInfo=${WAITING_TEST}></cts-log-detail-header>`,
+  async play({ canvasElement }) {
+    await waitFor(() => {
+      const el = canvasElement.querySelector('[data-testid="status-bar"]');
+      if (!el) throw new Error("status bar not yet rendered");
+      return el;
+    });
+    // Pre-run there's nothing meaningful to overflow — Start is the only
+    // action and lives in the bar's primary slot. The overflow trigger
+    // is intentionally absent so the bar reads as a single Start CTA.
+    expect(canvasElement.querySelector('[data-testid="status-bar-overflow"]')).toBeNull();
+  },
+};
+
+export const StatusBarOverflowDispatchesEditConfig = {
+  render: () => html`<cts-log-detail-header .testInfo=${COMPLETED_TEST}></cts-log-detail-header>`,
+  async play({ canvasElement }) {
+    const overflow = /** @type {any} */ (
+      await waitFor(() => {
+        const el = canvasElement.querySelector('[data-testid="status-bar-overflow"]');
+        if (!el) throw new Error("status-bar-overflow not yet rendered");
+        return el;
+      })
+    );
+
+    const editHandler = fn();
+    canvasElement.addEventListener("cts-edit-config", editHandler);
+
+    // Open the popover via the trigger and click the edit-config row.
+    const trigger = overflow.querySelector('[data-testid="overflow-trigger"]');
+    await userEvent.click(trigger);
+    await waitFor(() => {
+      const popover = overflow.querySelector('[data-testid="overflow-popover"]');
+      if (!popover || !popover.matches(":popover-open")) {
+        throw new Error("popover not yet open");
+      }
+      return popover;
+    });
+    const editItem = overflow.querySelector('.overflowItem[data-action-id="edit-config"]');
+    await userEvent.click(editItem);
+
+    expect(editHandler).toHaveBeenCalledOnce();
+    expect(editHandler.mock.calls[0][0].detail.testId).toBe(COMPLETED_TEST.testId);
+  },
+};
+
+// --- U7: cts-test-summary extraction ---
+// The summary alerts moved out of cts-log-detail-header into the
+// cts-test-summary sibling component. They still render inside the
+// header card at desktop (the [data-testid] selectors are preserved
+// on the new component's DOM, so existing R24 stories above keep
+// passing). The page-level instance is asserted via log-detail-v2 e2e.
+
+export const TestSummaryRendersAsSiblingComponent = {
+  render: () =>
+    html`<cts-log-detail-header
+      .testInfo=${{ ...COMPLETED_TEST, summary: SUMMARY_WITH_INSTRUCTIONS }}
+    ></cts-log-detail-header>`,
+  async play({ canvasElement }) {
+    await waitFor(() => {
+      const el = canvasElement.querySelector('[data-testid="header-test-summary"]');
+      if (!el) throw new Error("header-test-summary not yet rendered");
+      return el;
+    });
+    // The header now hosts a cts-test-summary sibling rather than
+    // rendering the alerts inline; the about/instructions zones live
+    // inside that component.
+    const summaryHost = canvasElement.querySelector('[data-testid="header-test-summary"]');
+    expect(summaryHost.tagName.toLowerCase()).toBe("cts-test-summary");
+    expect(summaryHost.querySelector('[data-testid="about-test-zone"]')).toBeTruthy();
+    expect(summaryHost.querySelector('[data-testid="user-instructions-zone"]')).toBeTruthy();
   },
 };

@@ -75,8 +75,9 @@
 
 <!-- Component modules. cts-log-detail-header transitively pulls in
      cts-test-nav-controls, cts-button, cts-link-button, cts-badge,
-     cts-alert, cts-icon, cts-json-editor, and the test-summary-split
-     helper, so we don't have to declare them individually. -->
+     cts-alert, cts-icon, cts-json-editor, cts-test-summary,
+     cts-action-overflow, and the test-summary-split helper, so we
+     don't have to declare them individually. -->
 <script type="module" src="/components/cts-navbar.js"></script>
 <script type="module" src="/components/cts-modal.js"></script>
 <script type="module" src="/components/cts-crumb.js"></script>
@@ -128,6 +129,29 @@
     margin-top: var(--space-3);
     border-top: 0;
     padding-top: 0;
+  }
+
+  /* U7 — test-summary breakpoint swap. Same render-twice-hide-one
+     pattern as the failure summary above. The header card's instance
+     carries the description (B4) at desktop; the page-level instance
+     hosts the WAITING-state instructions banner (B1) at narrow widths,
+     where it must sit below the sticky bar and above the failure
+     summary. */
+  @media (min-width: 1024px) {
+    #ctsTopTestSummary { display: none; }
+  }
+  @media (max-width: 1023px) {
+    cts-log-detail-header cts-test-summary { display: none; }
+  }
+  /* Visual rhythm at narrow widths: the page-level instance sits
+     immediately below the sticky bar, so add the same outer spacing
+     the in-card instance picks up from the metadata table's gap. */
+  #ctsTopTestSummary {
+    display: block;
+    margin-top: var(--space-3);
+  }
+  @media (min-width: 1024px) {
+    #ctsTopTestSummary { margin-top: 0; }
   }
 </style>
 </head>
@@ -190,6 +214,14 @@
   <main id="main-content" class="log-page-v2">
     <cts-crumb id="logDetailCrumb"></cts-crumb>
     <cts-log-detail-header id="logDetailHeader"></cts-log-detail-header>
+    <!-- Page-level cts-test-summary instance (Region B1, U7). Carries
+         the WAITING-state instructions banner above the failure summary,
+         hoisted out of the header card so it can sit between the sticky
+         status bar and the viewer at narrow widths. CSS in <head> hides
+         this at desktop where the header card's instance shows. The
+         element is registered via the transitive import from
+         cts-log-detail-header.js. -->
+    <cts-test-summary id="ctsTopTestSummary"></cts-test-summary>
     <!-- Page-level cts-failure-summary instance (mobile / tablet
          position, U4). The desktop instance is rendered inside the
          header card; CSS in <head> hides whichever doesn't apply at
