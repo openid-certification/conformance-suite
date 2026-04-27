@@ -931,7 +931,7 @@ class CtsLogDetailHeader extends LitElement {
             <cts-button
               variant="secondary"
               size="sm"
-              icon="x"
+              icon="close-md"
               label="Close"
               @cts-click=${this._toggleConfig}
             ></cts-button>
