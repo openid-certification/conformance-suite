@@ -48,6 +48,26 @@ export const Authenticated = {
       expect(tile.querySelector(".oidf-dashboard-tile-label")).toBeTruthy();
     }
 
+    // The "View API Documentation" tile points at a separate app surface
+    // (Swagger-UI), so it opens in a new tab and shows an external-link
+    // affordance + screen-reader hint. Other tiles must NOT carry these.
+    const apiDocsTile = Array.from(tiles).find(
+      (t) => t.getAttribute("href") === "api-document.html",
+    );
+    expect(apiDocsTile).toBeTruthy();
+    expect(apiDocsTile.getAttribute("target")).toBe("_blank");
+    expect(apiDocsTile.getAttribute("rel")).toBe("noopener noreferrer");
+    expect(apiDocsTile.querySelector(".oidf-dashboard-tile-external cts-icon")).toBeTruthy();
+    expect(
+      apiDocsTile.querySelector('.oidf-dashboard-tile-external cts-icon[name="external-link"]'),
+    ).toBeTruthy();
+    expect(apiDocsTile.querySelector(".oidf-sr-only")?.textContent).toContain("opens in a new tab");
+    for (const tile of tiles) {
+      if (tile === apiDocsTile) continue;
+      expect(tile.getAttribute("target")).toBeNull();
+      expect(tile.querySelector(".oidf-dashboard-tile-external")).toBeNull();
+    }
+
     // Grid container present
     const grid = canvasElement.querySelector(".oidf-dashboard-grid");
     expect(grid).toBeTruthy();

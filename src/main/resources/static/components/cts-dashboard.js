@@ -1,5 +1,6 @@
 import { LitElement, html, nothing } from "lit";
 import { repeat } from "lit/directives/repeat.js";
+import { ifDefined } from "lit/directives/if-defined.js";
 import "./cts-icon.js";
 
 const SERVER_INFO_LABELS = {
@@ -21,6 +22,10 @@ const SERVER_INFO_LABELS = {
  * @property {string} icon - Bootstrap Icons name (without the `bi-` prefix).
  * @property {string} label - Visible tile label.
  * @property {boolean} [authOnly] - When true, only render for authenticated users.
+ * @property {boolean} [external] - When true, the tile opens in a new tab and
+ *   shows an external-link affordance + screen-reader hint. Use for tiles that
+ *   navigate to a separate app surface (e.g. Swagger-UI) rather than another
+ *   page of the conformance-suite UI.
  */
 
 /** @type {DashboardTile[]} */
@@ -63,6 +68,7 @@ const TILES = [
     href: "api-document.html",
     icon: "book",
     label: "View API Documentation",
+    external: true,
   },
 ];
 
@@ -80,6 +86,7 @@ const STYLE_TEXT = `
   gap: var(--space-4);
 }
 .oidf-dashboard-tile {
+  position: relative;
   display: flex;
   flex-direction: column;
   gap: var(--space-3);
@@ -123,6 +130,31 @@ const STYLE_TEXT = `
   font-size: var(--fs-15);
   line-height: var(--lh-snug);
   color: var(--fg);
+}
+.oidf-dashboard-tile-external {
+  position: absolute;
+  top: var(--space-3);
+  right: var(--space-3);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--fg-soft);
+  transition: color var(--dur-1) var(--ease-standard);
+}
+.oidf-dashboard-tile:hover .oidf-dashboard-tile-external,
+.oidf-dashboard-tile:focus-visible .oidf-dashboard-tile-external {
+  color: var(--orange-500);
+}
+.oidf-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 .oidf-dashboard-footer {
   margin-top: var(--space-12);
@@ -238,11 +270,22 @@ class CtsDashboard extends LitElement {
 
   _renderTile(tile) {
     return html`
-      <a class="oidf-dashboard-tile" href=${tile.href}>
+      <a
+        class="oidf-dashboard-tile"
+        href=${tile.href}
+        target=${ifDefined(tile.external ? "_blank" : undefined)}
+        rel=${ifDefined(tile.external ? "noopener noreferrer" : undefined)}
+      >
         <span class="oidf-dashboard-tile-icon" aria-hidden="true">
           <cts-icon name="${tile.icon}"></cts-icon>
         </span>
         <span class="oidf-dashboard-tile-label">${tile.label}</span>
+        ${tile.external
+          ? html`<span class="oidf-dashboard-tile-external" aria-hidden="true">
+                <cts-icon name="external-link" size="16"></cts-icon>
+              </span>
+              <span class="oidf-sr-only">(opens in a new tab)</span>`
+          : nothing}
       </a>
     `;
   }
