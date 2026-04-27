@@ -217,7 +217,9 @@ import org.springframework.web.servlet.view.RedirectView;
 )
 @VariantConfigurationFields(parameter = ClientAuthType.class, value = "client_attestation", configurationFields = {
 	"vci.client_attestation_issuer",
-	"vci.client_attestation_trust_anchor"
+	"vci.client_attestation_trust_anchor",
+	"vci.key_attestation_trust_anchor_pem",
+	"credential.signing_jwk"
 })
 public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule {
 
@@ -297,8 +299,16 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 		callAndStopOnFailure(conditionClass, requirements);
 	}
 
+	void doCallAndStopOnFailure(Condition condition, String... requirements) {
+		callAndStopOnFailure(condition, requirements);
+	}
+
 	void doCallAndContinueOnFailure(Class<? extends Condition> conditionClass, ConditionResult onFail, String... requirements) {
 		callAndContinueOnFailure(conditionClass, onFail, requirements);
+	}
+
+	void doCall(net.openid.conformance.sequence.ConditionSequence sequence) {
+		call(sequence);
 	}
 
 	protected abstract void addCustomValuesToIdToken();
