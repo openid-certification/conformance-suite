@@ -70,8 +70,10 @@ import net.openid.conformance.condition.client.CheckForUnexpectedParametersInDcq
 import net.openid.conformance.condition.client.ConfigurationRequestsTestIsSkipped;
 import net.openid.conformance.condition.client.CreateVP1FinalVerifierIsoMdocRedirectSessionTranscriptEncrypted;
 import net.openid.conformance.condition.client.CreateVP1FinalVerifierIsoMdocRedirectSessionTranscriptUnencrypted;
+import net.openid.conformance.condition.client.EnsureClientRequestObjectTrustAnchorConfigured;
 import net.openid.conformance.condition.client.EnsureContentTypeJson;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs200;
+import net.openid.conformance.condition.client.RegisterClientRequestObjectTrustAnchor;
 import net.openid.conformance.condition.client.ValidateDCQLQuery;
 import net.openid.conformance.condition.client.ValidateServerJWKs;
 import net.openid.conformance.condition.common.CheckDistinctKeyIdValueInServerJWKs;
@@ -97,6 +99,9 @@ import org.springframework.web.servlet.view.RedirectView;
 })
 @VariantConfigurationFields(parameter = VP1FinalVerifierClientIdPrefix.class, value = "x509_san_dns", configurationFields = {
 	"client.client_id"
+})
+@VariantConfigurationFields(parameter = VPProfile.class, value = "haip", configurationFields = {
+	"client.request_object_trust_anchor_pem"
 })
 @VariantNotApplicableWhen(
 	parameter = VP1FinalVerifierResponseMode.class,
@@ -227,6 +232,11 @@ public abstract class AbstractVP1FinalVerifierTest extends AbstractTestModule {
 			case REDIRECT_URI -> {
 				// client_id equals the response_uri for this scheme; validated dynamically below
 			}
+		}
+
+		callAndStopOnFailure(RegisterClientRequestObjectTrustAnchor.class);
+		if (getVariant(VPProfile.class) == VPProfile.HAIP) {
+			callAndContinueOnFailure(EnsureClientRequestObjectTrustAnchorConfigured.class, ConditionResult.FAILURE, "OID4VP-1FINAL-5.9.3");
 		}
 	}
 

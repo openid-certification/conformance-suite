@@ -66,6 +66,7 @@ import net.openid.conformance.condition.client.CreateVP1FinalVerifierIsoMdocDCAP
 import net.openid.conformance.condition.client.CreateVP1FinalWalletIsoMdocRedirectSessionTranscript;
 import net.openid.conformance.condition.client.DecryptResponse;
 import net.openid.conformance.condition.client.EnsureCredentialTrustAnchorConfigured;
+import net.openid.conformance.condition.client.EnsureStatusListTrustAnchorConfigured;
 import net.openid.conformance.condition.client.EnsureIncomingRequestContentTypeIsFormUrlEncoded;
 import net.openid.conformance.condition.client.EnsureIncomingUrlQueryIsEmpty;
 import net.openid.conformance.condition.client.ExtractAuthorizationEndpointResponse;
@@ -298,10 +299,11 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 		env.putString("vp", "vp_profile", getVariant(VPProfile.class).toString());
 
 		callAndStopOnFailure(RegisterCredentialTrustAnchor.class);
-		if (getVariant(VPProfile.class) == VPProfile.HAIP) {
-			callAndContinueOnFailure(EnsureCredentialTrustAnchorConfigured.class, Condition.ConditionResult.FAILURE);
-		}
 		callAndStopOnFailure(RegisterStatusListTrustAnchor.class);
+		if (getVariant(VPProfile.class) == VPProfile.HAIP) {
+			callAndContinueOnFailure(EnsureCredentialTrustAnchorConfigured.class, Condition.ConditionResult.FAILURE, "HAIP-6.1");
+			callAndContinueOnFailure(EnsureStatusListTrustAnchorConfigured.class, Condition.ConditionResult.FAILURE, "HAIP-6.1");
+		}
 
 		if (credentialFormat == VP1FinalWalletCredentialFormat.ISO_MDL) {
 			// ISO spec always creates a redirect returned from response_uri
