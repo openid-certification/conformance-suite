@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "private": true,
   "type": "module",
-  "packageManager": "npm@11.12.1",
+  "packageManager": "npm@11.13.0",
   "scripts": {
     "test:e2e": "playwright test",
     "storybook": "storybook dev -p 6006",
