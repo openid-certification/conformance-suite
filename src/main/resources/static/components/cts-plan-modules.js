@@ -335,7 +335,19 @@ class CtsPlanModules extends LitElement {
       ? `log-detail.html?log=${encodeURIComponent(lastInstance)}${this.isPublic ? "&public=true" : ""}`
       : null;
 
-    const badge = html`<cts-badge variant="${variant}" label="${label}"></cts-badge>`;
+    // The anchor wrapper (.moduleStatusLink) intentionally strips the
+    // link's own affordance (text-decoration: none, no hover) so the
+    // badge silhouette is the visible click target. Mark the badge
+    // `interactive` so the affordance rule renders the 1px ring on it
+    // — without this, the wrapped badge looks identical to a read-only
+    // status pill and the click affordance disappears (Q3-NO case in
+    // the badge affordance rule).
+    const interactiveBadge = lastInstance;
+    const badge = html`<cts-badge
+      variant="${variant}"
+      label="${label}"
+      ?interactive="${interactiveBadge}"
+    ></cts-badge>`;
     const linkedBadge = lastInstance
       ? html`<a
           class="moduleStatusLink"

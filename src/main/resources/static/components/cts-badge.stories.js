@@ -12,6 +12,7 @@ export default {
     icon: { control: "text" },
     pill: { control: "boolean" },
     clickable: { control: "boolean" },
+    interactive: { control: "boolean" },
   },
 };
 
@@ -219,11 +220,13 @@ export const WithCount = {
  * The `secondary` variant is the canonical neutral tag/chip — used for
  * spec requirement labels (e.g. `OIDCC-3.1.3.7-6`), version markers, and
  * other content that should read as a code-like identifier rather than a
- * status pill. The chip paints with a monospace font, a subtle warm-neutral
- * surface, and a 1px inset box-shadow ring. Because the ring is a shadow
- * (not a `border`), the chip's box dimensions are identical to the
- * unbordered status variants — so a row mixing `pass` / `fail` / requirement
- * chips never reflows by 1px when toggling between variants.
+ * status pill. The chip paints with a monospace font and a subtle
+ * warm-neutral surface. By default it is read-only (no ring); set
+ * `interactive` (or `clickable`) to add the affordance ring on top of
+ * the same fill. Because the ring is an inset box-shadow (not a real
+ * border), the chip's box dimensions are identical in both states — so
+ * a row mixing `pass` / `fail` / requirement chips never reflows by 1px
+ * when toggling affordance.
  */
 export const Requirement = {
   args: { variant: "secondary", label: "OIDCC-3.1.3.7-6" },
@@ -242,12 +245,12 @@ export const Requirement = {
     expect(computed.fontFamily.toLowerCase()).toContain("mono");
     // Normal case + zero tracking — these are labels, not banners.
     expect(computed.textTransform).toBe("none");
-    // Inset ring instead of a real border. With box-shadow:none the
-    // visual would collapse to a borderless chip, so the computed
-    // box-shadow must be present.
-    expect(computed.boxShadow).not.toBe("none");
-    // No `border` property — the ring is purely a shadow so the box
-    // dimensions are stable across variants.
+    // Read-only default: no affordance ring.
+    expect(badge.classList.contains("is-interactive")).toBe(false);
+    expect(computed.boxShadow).toBe("none");
+    // No `border` property — affordance is delivered exclusively by an
+    // inset shadow on `is-interactive`, never by a real border, so box
+    // dimensions remain stable across affordance states.
     expect(parseFloat(computed.borderTopWidth)).toBe(0);
   },
 };
@@ -258,10 +261,20 @@ export const Clickable = {
     html`<cts-badge variant="${variant}" label="${label}" ?clickable="${clickable}"></cts-badge>`,
 
   async play({ canvasElement }) {
+    const host = canvasElement.querySelector("cts-badge");
     const badge = canvasElement.querySelector(".badge");
     expect(badge).toBeTruthy();
     expect(badge.getAttribute("role")).toBe("button");
     expect(badge.getAttribute("tabindex")).toBe("0");
+
+    // `clickable` implies the interactive visual treatment without
+    // mutating the host's `interactive` attribute.
+    expect(badge.classList.contains("is-interactive")).toBe(true);
+    expect(host.hasAttribute("interactive")).toBe(false);
+
+    // Inset ring is the affordance signal — must be rendered.
+    const computed = window.getComputedStyle(badge);
+    expect(computed.boxShadow).not.toBe("none");
 
     let clicked = false;
     canvasElement.addEventListener("cts-badge-click", () => {
@@ -283,6 +296,11 @@ export const NotClickable = {
     expect(badge).toBeTruthy();
     expect(badge.getAttribute("role")).toBeNull();
     expect(badge.getAttribute("tabindex")).toBeNull();
+
+    // Read-only default: no affordance ring, no is-interactive class.
+    expect(badge.classList.contains("is-interactive")).toBe(false);
+    const computed = window.getComputedStyle(badge);
+    expect(computed.boxShadow).toBe("none");
 
     let clicked = false;
     canvasElement.addEventListener("cts-badge-click", () => {
@@ -434,5 +452,262 @@ export const CountPrefersOverLabel = {
     const badge = canvasElement.querySelector(".badge");
     expect(badge).toBeTruthy();
     expect(badge.textContent.trim()).toBe("42");
+  },
+};
+
+// --- Affordance rule: interactive vs read-only ---
+//
+// Every variant supports two states. Read-only (default) renders the
+// fill alone; interactive adds a 1px inset box-shadow ring on top of
+// the same fill plus a hover/focus treatment. The ring is the
+// affordance signal that distinguishes interactable badges from
+// read-only labels at a glance. Set via `interactive` (visual only) or
+// `clickable` (visual + role=button + keyboard + event).
+
+/**
+ * Per-variant interactive sibling stories. Each asserts that the
+ * affordance ring renders when `interactive` is set, regardless of
+ * the underlying variant. The fill is unchanged from the read-only
+ * story; only the inset box-shadow appears.
+ */
+export const PassInteractive = {
+  args: { variant: "pass", label: "Passed", interactive: true },
+  render: ({ variant, label, interactive }) =>
+    html`<cts-badge
+      variant="${variant}"
+      label="${label}"
+      ?interactive="${interactive}"
+    ></cts-badge>`,
+
+  async play({ canvasElement }) {
+    const badge = canvasElement.querySelector(".badge");
+    expect(badge.classList.contains("b-pass")).toBe(true);
+    expect(badge.classList.contains("is-interactive")).toBe(true);
+    expect(window.getComputedStyle(badge).boxShadow).not.toBe("none");
+  },
+};
+
+export const FailInteractive = {
+  args: { variant: "fail", label: "Failed", interactive: true },
+  render: ({ variant, label, interactive }) =>
+    html`<cts-badge
+      variant="${variant}"
+      label="${label}"
+      ?interactive="${interactive}"
+    ></cts-badge>`,
+
+  async play({ canvasElement }) {
+    const badge = canvasElement.querySelector(".badge");
+    expect(badge.classList.contains("b-fail")).toBe(true);
+    expect(badge.classList.contains("is-interactive")).toBe(true);
+    expect(window.getComputedStyle(badge).boxShadow).not.toBe("none");
+  },
+};
+
+export const WarnInteractive = {
+  args: { variant: "warn", label: "Warning", interactive: true },
+  render: ({ variant, label, interactive }) =>
+    html`<cts-badge
+      variant="${variant}"
+      label="${label}"
+      ?interactive="${interactive}"
+    ></cts-badge>`,
+
+  async play({ canvasElement }) {
+    const badge = canvasElement.querySelector(".badge");
+    expect(badge.classList.contains("b-warn")).toBe(true);
+    expect(badge.classList.contains("is-interactive")).toBe(true);
+    expect(window.getComputedStyle(badge).boxShadow).not.toBe("none");
+  },
+};
+
+export const RunningInteractive = {
+  args: { variant: "running", label: "Running", interactive: true },
+  render: ({ variant, label, interactive }) =>
+    html`<cts-badge
+      variant="${variant}"
+      label="${label}"
+      ?interactive="${interactive}"
+    ></cts-badge>`,
+
+  async play({ canvasElement }) {
+    const badge = canvasElement.querySelector(".badge");
+    expect(badge.classList.contains("b-run")).toBe(true);
+    expect(badge.classList.contains("is-interactive")).toBe(true);
+    expect(window.getComputedStyle(badge).boxShadow).not.toBe("none");
+    // Spinner still renders even with interactive ring.
+    expect(badge.querySelector(".cts-badge-spin")).toBeTruthy();
+  },
+};
+
+export const SkipInteractive = {
+  args: { variant: "skip", label: "Skipped", interactive: true },
+  render: ({ variant, label, interactive }) =>
+    html`<cts-badge
+      variant="${variant}"
+      label="${label}"
+      ?interactive="${interactive}"
+    ></cts-badge>`,
+
+  async play({ canvasElement }) {
+    const badge = canvasElement.querySelector(".badge");
+    expect(badge.classList.contains("b-skip")).toBe(true);
+    expect(badge.classList.contains("is-interactive")).toBe(true);
+    expect(window.getComputedStyle(badge).boxShadow).not.toBe("none");
+  },
+};
+
+export const ReviewInteractive = {
+  args: { variant: "review", label: "Review", interactive: true },
+  render: ({ variant, label, interactive }) =>
+    html`<cts-badge
+      variant="${variant}"
+      label="${label}"
+      ?interactive="${interactive}"
+    ></cts-badge>`,
+
+  async play({ canvasElement }) {
+    const badge = canvasElement.querySelector(".badge");
+    expect(badge.classList.contains("b-rev")).toBe(true);
+    expect(badge.classList.contains("is-interactive")).toBe(true);
+    expect(window.getComputedStyle(badge).boxShadow).not.toBe("none");
+  },
+};
+
+export const SecondaryInteractive = {
+  args: { variant: "secondary", label: "OIDCC-3.1.3.7-6", interactive: true },
+  render: ({ variant, label, interactive }) =>
+    html`<cts-badge
+      variant="${variant}"
+      label="${label}"
+      ?interactive="${interactive}"
+    ></cts-badge>`,
+
+  async play({ canvasElement }) {
+    const badge = canvasElement.querySelector(".badge");
+    expect(badge.classList.contains("b-secondary")).toBe(true);
+    expect(badge.classList.contains("is-interactive")).toBe(true);
+    expect(window.getComputedStyle(badge).boxShadow).not.toBe("none");
+  },
+};
+
+export const InfoSubtleInteractive = {
+  args: {
+    variant: "info-subtle",
+    label: "Section description",
+    interactive: true,
+  },
+  render: ({ variant, label, interactive }) =>
+    html`<cts-badge
+      variant="${variant}"
+      label="${label}"
+      ?interactive="${interactive}"
+    ></cts-badge>`,
+
+  async play({ canvasElement }) {
+    const badge = canvasElement.querySelector(".badge");
+    expect(badge.classList.contains("b-info-subtle")).toBe(true);
+    expect(badge.classList.contains("is-interactive")).toBe(true);
+    expect(window.getComputedStyle(badge).boxShadow).not.toBe("none");
+  },
+};
+
+/**
+ * R6 regression guard: the readonly Review chip dropped its ring, so its
+ * fill must be visible against a white page surface. The fill switched
+ * from `var(--bg, #fff)` to `var(--bg-muted)` (#F8F7F5). Without this
+ * change the readonly Review chip would render as white-on-white and
+ * disappear against most app backgrounds.
+ */
+export const ReviewReadonlyHasFill = {
+  args: { variant: "review", label: "Review" },
+  render: ({ variant, label }) =>
+    html`<cts-badge variant="${variant}" label="${label}"></cts-badge>`,
+
+  async play({ canvasElement }) {
+    const badge = canvasElement.querySelector(".badge");
+    expect(badge.classList.contains("b-rev")).toBe(true);
+    expect(badge.classList.contains("is-interactive")).toBe(false);
+
+    // No ring (read-only) but the fill is non-white so the chip is
+    // visible against a white page surface.
+    const computed = window.getComputedStyle(badge);
+    expect(computed.boxShadow).toBe("none");
+    expect(computed.backgroundColor).not.toBe("rgb(255, 255, 255)");
+    expect(computed.backgroundColor).not.toBe("rgba(0, 0, 0, 0)");
+  },
+};
+
+/**
+ * Toggle the `interactive` attribute at runtime and confirm the
+ * affordance ring follows. Mirrors the slot-survival guarantee of
+ * `RichContentRerenderStability`: attribute changes drive a re-render,
+ * but the rendered DOM tracks the new state and slot children survive.
+ */
+export const ToggleInteractive = {
+  render: () => html` <cts-badge variant="info-subtle" label="Toggle me"></cts-badge> `,
+
+  async play({ canvasElement }) {
+    const host = canvasElement.querySelector("cts-badge");
+    let badge = canvasElement.querySelector(".badge");
+    expect(badge.classList.contains("is-interactive")).toBe(false);
+    expect(window.getComputedStyle(badge).boxShadow).toBe("none");
+
+    host.setAttribute("interactive", "");
+    badge = canvasElement.querySelector(".badge");
+    expect(badge.classList.contains("is-interactive")).toBe(true);
+    expect(window.getComputedStyle(badge).boxShadow).not.toBe("none");
+
+    host.removeAttribute("interactive");
+    badge = canvasElement.querySelector(".badge");
+    expect(badge.classList.contains("is-interactive")).toBe(false);
+    expect(window.getComputedStyle(badge).boxShadow).toBe("none");
+
+    // Setting `clickable` flips the visual on without reflecting an
+    // `interactive` attribute back onto the host.
+    host.setAttribute("clickable", "");
+    badge = canvasElement.querySelector(".badge");
+    expect(badge.classList.contains("is-interactive")).toBe(true);
+    expect(host.hasAttribute("interactive")).toBe(false);
+  },
+};
+
+/**
+ * Side-by-side grid: every variant in both states. Useful for
+ * designer review and visual diff. The play() asserts that exactly
+ * the expected half of badges render the affordance ring.
+ */
+export const AllVariantsBothStates = {
+  render: () => html`
+    <div
+      style="display: grid; grid-template-columns: auto auto; gap: 0.75rem 1.5rem; padding: 1rem;"
+    >
+      <strong>Read-only</strong>
+      <strong>Interactive</strong>
+      ${["pass", "fail", "warn", "running", "skip", "review", "secondary", "info-subtle"].flatMap(
+        (variant) => [
+          html`<cts-badge variant="${variant}" label="${variant}"></cts-badge>`,
+          html`<cts-badge variant="${variant}" label="${variant}" interactive></cts-badge>`,
+        ],
+      )}
+    </div>
+  `,
+
+  async play({ canvasElement }) {
+    const badges = canvasElement.querySelectorAll(".badge");
+    // 8 variants × 2 states = 16 badges.
+    expect(badges.length).toBe(16);
+
+    badges.forEach((badge, i) => {
+      const computed = window.getComputedStyle(badge);
+      // Even index = read-only column; odd = interactive column.
+      const expectedInteractive = i % 2 === 1;
+      expect(badge.classList.contains("is-interactive")).toBe(expectedInteractive);
+      if (expectedInteractive) {
+        expect(computed.boxShadow).not.toBe("none");
+      } else {
+        expect(computed.boxShadow).toBe("none");
+      }
+    });
   },
 };
