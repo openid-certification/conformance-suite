@@ -220,7 +220,7 @@ export const WithCount = {
  * spec requirement labels (e.g. `OIDCC-3.1.3.7-6`), version markers, and
  * other content that should read as a code-like identifier rather than a
  * status pill. The chip paints with a monospace font, a subtle warm-neutral
- * surface, and a 1px outset box-shadow ring. Because the ring is a shadow
+ * surface, and a 1px inset box-shadow ring. Because the ring is a shadow
  * (not a `border`), the chip's box dimensions are identical to the
  * unbordered status variants — so a row mixing `pass` / `fail` / requirement
  * chips never reflows by 1px when toggling between variants.
@@ -242,7 +242,7 @@ export const Requirement = {
     expect(computed.fontFamily.toLowerCase()).toContain("mono");
     // Normal case + zero tracking — these are labels, not banners.
     expect(computed.textTransform).toBe("none");
-    // Outset ring instead of a real border. With box-shadow:none the
+    // Inset ring instead of a real border. With box-shadow:none the
     // visual would collapse to a borderless chip, so the computed
     // box-shadow must be present.
     expect(computed.boxShadow).not.toBe("none");
