@@ -420,6 +420,57 @@ export const BlockCountsUpdateOnPolling = {
   },
 };
 
+/**
+ * U6: when the page loads with a `#LOG-NNNN` URL fragment, the viewer
+ * scrolls to the matching entry after its first successful fetch
+ * resolves. Storybook can't manipulate the real address bar, so the
+ * story uses the History API to seed a hash before mounting and spies
+ * on `Element.prototype.scrollIntoView` to confirm the right entry was
+ * targeted (the test environment doesn't actually scroll fixed-height
+ * Storybook canvases).
+ */
+export const InitialLoadHashScroll = {
+  decorators: [withMockFetch("/api/log/", MOCK_LOG_ENTRIES)],
+  render: () => html`<cts-log-viewer test-id="test-abc-123"></cts-log-viewer>`,
+  async play({ canvasElement }) {
+    // Seed the hash *before* the viewer's first fetch resolves. The
+    // first row in MOCK_LOG_ENTRIES becomes LOG-0001, etc.; LOG-0003
+    // points at the third entry.
+    const previousHash = window.location.hash;
+    history.replaceState(null, "", "#LOG-0003");
+
+    /** @type {Set<HTMLElement>} */
+    const scrolled = new Set();
+    const realScrollIntoView = Element.prototype.scrollIntoView;
+    Element.prototype.scrollIntoView = /** @type {Element["scrollIntoView"]} */ (
+      function () {
+        scrolled.add(/** @type {HTMLElement} */ (this));
+        // Don't actually scroll — the canvas iframe's geometry trips up
+        // other tests in the same suite if we yield real scroll motion.
+      }
+    );
+
+    try {
+      await waitForLogLoad(canvasElement);
+
+      // Wait for the deferred (microtask + updateComplete) hash scroll.
+      await waitFor(() => {
+        const target = /** @type {HTMLElement | null} */ (canvasElement.querySelector("#LOG-0003"));
+        expect(target).toBeTruthy();
+        if (target) expect(scrolled.has(target)).toBe(true);
+      });
+
+      // The host carries id=LOG-0003 (mirrored from the referenceId prop).
+      const target = canvasElement.querySelector("#LOG-0003");
+      if (!target) throw new Error("anchor target not present");
+      expect(target.tagName).toBe("CTS-LOG-ENTRY");
+    } finally {
+      Element.prototype.scrollIntoView = realScrollIntoView;
+      history.replaceState(null, "", previousHash || " ");
+    }
+  },
+};
+
 export const DisconnectStopsPolling = {
   decorators: [
     (storyFn) => {

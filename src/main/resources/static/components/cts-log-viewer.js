@@ -8,6 +8,18 @@ const FAILURE_THRESHOLD = 3;
 const POLL_INTERVAL_MS = 3000;
 
 /**
+ * Format a 1-based ordinal as the canonical `LOG-NNNN` label. Padding to
+ * four digits gives 9999 stable references per test before the label
+ * widens; modules in this codebase rarely exceed a couple of thousand
+ * entries, so the four-digit width holds for the foreseeable future.
+ * @param {number} ordinal 1-based position in `_entries`.
+ * @returns {string} e.g. `"LOG-0042"`.
+ */
+function formatReferenceId(ordinal) {
+  return `LOG-${String(ordinal).padStart(4, "0")}`;
+}
+
+/**
  * Maps the raw log-entry `result` value to a canonical cts-badge variant
  * from the OIDF status palette. Lookup table per components/AGENTS.md §7
  * (no dynamic class concatenation). INFO renders on the status-info palette
@@ -199,6 +211,12 @@ function ensureStylesInjected() {
  *   successful `/api/log` poll resolves with HTTP 200. Detail:
  *   `{ testId, entriesCount }`. Bubbles. Used by log-detail-v2.js to
  *   defer hash-anchor scroll-to-entry until rows are present in the DOM.
+ * @fires cts-references-updated - Fires after each successful poll once
+ *   the per-entry `LOG-NNNN` reference map has been recomputed. Detail:
+ *   `{ testId, references }`, where `references` is an
+ *   `Object<entryId, referenceId>` plain object so consumers (e.g. the
+ *   page-level cts-failure-summary instances) can render reference chips
+ *   without a second walk over `_entries`. Bubbles.
  */
 class CtsLogViewer extends LitElement {
   static properties = {
@@ -243,6 +261,19 @@ class CtsLogViewer extends LitElement {
      * @type {Map<string, { success: number, failure: number, warning: number, review: number, info: number, total: number }>}
      */
     this._blockCounts = new Map();
+    /**
+     * Map of `entry._id` → `LOG-NNNN` for every entry in `_entries`,
+     * recomputed in `willUpdate` whenever `_entries` changes. The plain
+     * object shape (rather than a Map) lets consumers JSON-stringify it
+     * for storybook fixtures and avoids cross-realm `instanceof Map`
+     * fragility when the page boundary mounts the viewer.
+     * @type {Object.<string, string>}
+     */
+    this._references = Object.create(null);
+    // U6: tracks whether the initial-load #LOG-NNNN scroll has already run.
+    // Single-shot, so subsequent polls don't re-scroll the user every
+    // POLL_INTERVAL_MS while they read.
+    this._initialHashScrolled = false;
   }
 
   connectedCallback() {
@@ -262,7 +293,37 @@ class CtsLogViewer extends LitElement {
   willUpdate(changedProps) {
     if (changedProps.has("_entries")) {
       this._blockCounts = this._aggregateBlockCounts();
+      this._references = this._buildReferences();
     }
+  }
+
+  /**
+   * Build the `entry._id` → `LOG-NNNN` lookup. Indexes every entry in
+   * `_entries` (including `startBlock` rows so the ordinal stays stable
+   * across the chronological stream — gaps in user-visible chips are
+   * intentional, since startBlock rows render as `<summary>` and not as
+   * `<cts-log-entry>`). Skips entries without an `_id` defensively.
+   * @returns {Object.<string, string>}
+   */
+  _buildReferences() {
+    /** @type {Object.<string, string>} */
+    const refs = Object.create(null);
+    for (let i = 0; i < this._entries.length; i++) {
+      const id = this._entries[i] && this._entries[i]._id;
+      if (id) refs[id] = formatReferenceId(i + 1);
+    }
+    return refs;
+  }
+
+  /**
+   * Public read-only view of the `_id` → `LOG-NNNN` reference map. The
+   * page-level cts-failure-summary instances consume this so the
+   * failure-row chip and the entry-row chip resolve to the same label
+   * without re-walking the entries on each render.
+   * @returns {Object.<string, string>}
+   */
+  get references() {
+    return this._references;
   }
 
   /**
@@ -348,6 +409,7 @@ class CtsLogViewer extends LitElement {
   async _fetchEntries() {
     let succeeded = false;
     let entriesCount = 0;
+    let appendedAny = false;
     try {
       let url = "/api/log/" + encodeURIComponent(this.testId);
       if (this._latestTimestamp > 0) url += "?since=" + this._latestTimestamp;
@@ -355,8 +417,32 @@ class CtsLogViewer extends LitElement {
       if (!response.ok) throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       const newEntries = await response.json();
       if (newEntries.length > 0) {
+        // U6: warn on out-of-order delivery. The ordinal index is the
+        // entry's position in the cumulative buffer (`_entries`), so a
+        // poll cycle that delivers an entry whose `time` is older than
+        // the latest cached timestamp implies a future page reload may
+        // produce a different ordering — and therefore a different
+        // LOG-NNNN for the same entry. `startBlock` rows can legitimately
+        // arrive out-of-order (they describe a block whose first child
+        // already streamed) and are exempt.
+        for (const e of newEntries) {
+          const time = e && e.time;
+          if (
+            this._latestTimestamp > 0 &&
+            typeof time === "number" &&
+            time < this._latestTimestamp &&
+            !e.startBlock
+          ) {
+            console.warn(
+              "[cts-log-viewer] out-of-order entry detected — LOG-NNNN may shift across reloads",
+              { entryId: e._id, entryTime: time, latestKnown: this._latestTimestamp },
+            );
+            break;
+          }
+        }
         this._entries = [...this._entries, ...newEntries];
         this._latestTimestamp = Math.max(...newEntries.map((e) => e.time || 0));
+        appendedAny = true;
       }
       this._consecutiveFailures = 0;
       this._error = "";
@@ -383,6 +469,31 @@ class CtsLogViewer extends LitElement {
           }),
         );
       }
+      // U6: dispatch the per-entry reference map after every successful
+      // poll that appended rows. Page-level consumers (the failure
+      // summary instances) update their `references` prop in response
+      // so chip rendering stays in lockstep with the entries stream as
+      // it grows. Wait for `updateComplete` so the willUpdate-rebuilt
+      // `_references` is the value being shipped; otherwise polling
+      // additions lag one cycle behind.
+      if (succeeded && appendedAny) {
+        this.updateComplete.then(() => {
+          this.dispatchEvent(
+            new CustomEvent("cts-references-updated", {
+              bubbles: true,
+              detail: { testId: this.testId, references: this._references },
+            }),
+          );
+        });
+      }
+      // U6: initial-load hash navigation — fires once after the first
+      // successful resolution that left rows in the DOM. queueMicrotask
+      // defers the lookup past Lit's pending update so getElementById
+      // sees the freshly-rendered host elements.
+      if (succeeded && !this._initialHashScrolled && this._entries.length > 0) {
+        this._initialHashScrolled = true;
+        this.updateComplete.then(() => this._scrollToHashIfPresent());
+      }
       // Guard after the in-flight fetch resolves: if the element was removed
       // while we were awaiting, do NOT schedule another poll. Placing the check
       // here (not at the top of _fetchEntries) lets an in-flight cycle finish
@@ -391,6 +502,31 @@ class CtsLogViewer extends LitElement {
         this._pollTimer = setTimeout(() => this._fetchEntries(), this._pollIntervalMs);
       }
     }
+  }
+
+  /**
+   * Initial-load hash scroll. Reads `window.location.hash`; when it
+   * matches `^#LOG-\d+$`, opens any collapsed `<details>` ancestor of
+   * the matching entry (U5's per-block aggregation) before scrolling
+   * the entry into view. Honours the entry's `scroll-margin-top` so
+   * the row lands below the sticky status bar (U2). No-ops gracefully
+   * when the hash points at an out-of-range ordinal (e.g. `#LOG-9999`
+   * on a 50-entry test).
+   */
+  _scrollToHashIfPresent() {
+    if (typeof window === "undefined") return;
+    const hash = window.location.hash;
+    if (!/^#LOG-\d+$/.test(hash)) return;
+    const target = document.getElementById(hash.slice(1));
+    if (!target) return;
+    let parent = target.parentElement;
+    while (parent) {
+      if (parent.tagName === "DETAILS") {
+        /** @type {HTMLDetailsElement} */ (parent).open = true;
+      }
+      parent = parent.parentElement;
+    }
+    target.scrollIntoView({ behavior: "smooth", block: "start" });
   }
 
   /**
@@ -511,8 +647,14 @@ class CtsLogViewer extends LitElement {
         flushBlock();
         currentBlockId = entryBlockId;
       }
+      const referenceId = (entry && entry._id && this._references[entry._id]) || "";
       blockChildren.push(
-        html`<cts-log-entry .entry=${entry} data-entry-id=${entry._id}></cts-log-entry>`,
+        html`<cts-log-entry
+          .entry=${entry}
+          .referenceId=${referenceId}
+          .testId=${this.testId}
+          data-entry-id=${entry._id}
+        ></cts-log-entry>`,
       );
     }
     flushBlock();

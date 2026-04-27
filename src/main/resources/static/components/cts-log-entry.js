@@ -2,6 +2,7 @@ import { LitElement, html, nothing } from "lit";
 import "./cts-icon.js";
 import "./cts-badge.js";
 import "./cts-button.js";
+import "./cts-log-entry-id.js";
 
 /**
  * Maps a log entry's `result` value (case-insensitive) to a `cts-badge`
@@ -157,6 +158,14 @@ const STYLE_TEXT = `
     font-size: var(--fs-13);
     container-type: inline-size;
     container-name: ctsLogEntry;
+    /* U6: when this entry is the target of a #LOG-NNNN deep link, leave
+       breathing room above so the row lands below the sticky status bar
+       (U2) and any persistent banner instead of being scrolled under
+       them. --status-bar-height is published by cts-log-detail-header;
+       --banner-height is reserved for any future persistent banner
+       (e.g. flag-flip rollback notice); it falls back to 0px when not
+       present. */
+    scroll-margin-top: calc(var(--status-bar-height, 0px) + var(--banner-height, 0px) + var(--space-4));
   }
   cts-log-entry:last-child { border-bottom: 0; }
 
@@ -169,11 +178,16 @@ const STYLE_TEXT = `
     grid-template-columns: 1fr auto;
     grid-template-areas:
       "metaRow metaRow"
+      "logId   logId"
       "body    actions"
       "footer  footer";
     gap: var(--space-2) var(--space-3);
     padding: var(--space-2) var(--space-3);
     align-items: start;
+  }
+  cts-log-entry .logIdRow {
+    grid-area: logId;
+    min-width: 0;
   }
   cts-log-entry .logMetaRow {
     grid-area: metaRow;
@@ -221,6 +235,16 @@ const STYLE_TEXT = `
     font-size: var(--fs-12);
     margin-right: var(--space-2);
   }
+  /* U6: chip placement.
+     Default (small layout) shows the chip in its own grid row — see the
+     "logId" area in grid-template-areas above — and hides the inline
+     instance that lives inside .logBody. The wide @container rule
+     below inverts both visibilities so the chip reads inline next to
+     the source label on desktop. Two render positions, one visible at
+     a time, so a tap target is always present in the right place
+     without requiring container-query observation in JS. */
+  cts-log-entry .logIdInline { display: none; }
+  cts-log-entry .logIdRow cts-log-entry-id { display: inline-flex; }
   cts-log-entry .logBody code {
     background: var(--ink-50);
     padding: 1px 5px;
@@ -350,6 +374,14 @@ const STYLE_TEXT = `
       grid-area: auto;
       grid-column: 4 / -1;
     }
+    /* U6: hide the small-layout row chip and reveal the inline one inside
+       .logBody (rendered between the source label and the message text). */
+    cts-log-entry .logIdRow { display: none; }
+    cts-log-entry .logIdInline {
+      display: inline-flex;
+      margin-right: var(--space-2);
+      vertical-align: middle;
+    }
   }
 `;
 
@@ -394,10 +426,21 @@ function ensureStylesInjected() {
  * @property {object} entry - Log entry object from `/api/log/{testId}`; shape
  *   includes `_id`, `time`, `result`, `http`, `src`, `msg`, `upload`,
  *   `blockId`, `requirements`, and a nested `more` object.
+ * @property {string} referenceId - Human-readable ordinal label such as
+ *   `"LOG-0042"` (U6). When set, the entry renders a copyable chip and
+ *   the host element receives `id="LOG-0042"` so URL fragments resolve.
+ *   Empty string omits both. Reflects nothing — the host id is set
+ *   imperatively in `willUpdate` so the attribute and the host id stay
+ *   in sync without a string-template `class=` binding.
+ * @property {string} testId - Test instance ID forwarded to the chip so
+ *   the deep URL it copies always carries `?log={testId}#{referenceId}`,
+ *   disambiguating the same `LOG-NNNN` across re-runs.
  */
 class CtsLogEntry extends LitElement {
   static properties = {
     entry: { type: Object },
+    referenceId: { type: String, attribute: "reference-id" },
+    testId: { type: String, attribute: "test-id" },
     _expanded: { state: true },
   };
 
@@ -409,7 +452,25 @@ class CtsLogEntry extends LitElement {
   constructor() {
     super();
     this.entry = {};
+    this.referenceId = "";
+    this.testId = "";
     this._expanded = false;
+  }
+
+  /**
+   * Mirror `referenceId` to the host element's `id` attribute so URL
+   * fragment navigation (`#LOG-0042`) lands the user on this entry.
+   * Doing this in `willUpdate` (rather than via `reflect: true`) keeps
+   * the property name (`referenceId`) free of attribute-name semantics
+   * — the host id is the *value* of referenceId, not the literal string
+   * `referenceId`.
+   * @param {Map<string, unknown>} changed
+   */
+  willUpdate(changed) {
+    if (changed.has("referenceId")) {
+      if (this.referenceId) this.id = this.referenceId;
+      else this.removeAttribute("id");
+    }
   }
 
   _toggleMore() {
@@ -539,6 +600,17 @@ class CtsLogEntry extends LitElement {
     if (isWarn) itemClasses.push("is-warn");
     if (entry.blockId) itemClasses.push("is-block");
 
+    // U6: the chip is rendered in two positions; CSS hides whichever one
+    // does not match the current container width. Both bind to the same
+    // referenceId/testId so a deep-URL click yields identical clipboard
+    // contents regardless of the visible layout.
+    const idChip = this.referenceId
+      ? html`<cts-log-entry-id
+          reference-id=${this.referenceId}
+          test-id=${this.testId}
+        ></cts-log-entry-id>`
+      : nothing;
+
     return html`
       <div class="${itemClasses.join(" ")}">
         <div class="logMetaRow">
@@ -548,8 +620,10 @@ class CtsLogEntry extends LitElement {
           <div class="logSeverity">${this._renderSeverityBadges()}</div>
           <div class="logHttp">${this._renderHttpBadge()}</div>
         </div>
+        ${this.referenceId ? html`<div class="logIdRow">${idChip}</div>` : nothing}
         <div class="logBody">
           ${entry.src ? html`<span class="logSrc">${entry.src}</span>` : nothing}
+          ${this.referenceId ? html`<span class="logIdInline">${idChip}</span>` : nothing}
           ${entry.msg ? html`<span>${entry.msg}</span>` : nothing}
         </div>
         <div class="logActions">${this._renderMoreButton()}</div>

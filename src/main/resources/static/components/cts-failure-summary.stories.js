@@ -1,5 +1,5 @@
 import { html } from "lit";
-import { expect, within, waitFor, fn, userEvent } from "storybook/test";
+import { expect, within, waitFor, fn, userEvent, spyOn } from "storybook/test";
 import "./cts-failure-summary.js";
 
 export default {
@@ -243,6 +243,41 @@ export const EmitsScrollEvent = {
       expect(handler.mock.calls[0][0].composed).toBe(true);
     } finally {
       document.removeEventListener("cts-scroll-to-entry", handler);
+    }
+  },
+};
+
+export const WithReferences = {
+  render: () =>
+    html`<cts-failure-summary
+      .failures=${FAILURES}
+      .references=${{ r5: "LOG-0008", r6: "LOG-0019", r4: "LOG-0024" }}
+      test-id="abc123"
+    ></cts-failure-summary>`,
+  async play({ canvasElement }) {
+    await waitFor(() => {
+      const el = canvasElement.querySelector('[data-testid="failure-list"]');
+      if (!el) throw new Error("failure-list not yet rendered");
+      return el;
+    });
+
+    // One reference chip per failure row, with the right label.
+    const chips = canvasElement.querySelectorAll('[data-testid="log-entry-id-chip"]');
+    expect(chips).toHaveLength(3);
+    expect(chips[0].textContent).toContain("LOG-0008");
+    expect(chips[1].textContent).toContain("LOG-0019");
+    expect(chips[2].textContent).toContain("LOG-0024");
+
+    // The chip click copies the deep URL — same contract as the entry chip.
+    const writeSpy = spyOn(navigator.clipboard, "writeText").mockResolvedValue();
+    try {
+      await /** @type {HTMLButtonElement} */ (chips[0]).click();
+      await waitFor(() => expect(writeSpy).toHaveBeenCalledOnce());
+      const copied = writeSpy.mock.calls[0][0];
+      expect(copied).toContain("log=abc123");
+      expect(copied).toContain("#LOG-0008");
+    } finally {
+      writeSpy.mockRestore();
     }
   },
 };
