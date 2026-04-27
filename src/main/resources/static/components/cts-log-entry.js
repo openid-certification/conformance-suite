@@ -184,6 +184,9 @@ const STYLE_TEXT = `
     gap: var(--space-2) var(--space-3);
     padding: var(--space-2) var(--space-3);
     align-items: start;
+    /* Anchor for the .is-block ::before stripe so it lays over the row's
+       left edge without pushing content inward. */
+    position: relative;
   }
   cts-log-entry .logIdRow {
     grid-area: logId;
@@ -207,8 +210,20 @@ const STYLE_TEXT = `
   cts-log-entry .logItem.is-warn {
     background: linear-gradient(90deg, rgba(235,139,53,0.06), transparent 60%);
   }
-  cts-log-entry .logItem.is-block {
-    border-left: 3px solid var(--orange-400);
+  /* Block-membership cue. Rendered as an absolutely-positioned ::before
+     stripe (rather than a real border-left) so blocked rows and
+     non-blocked rows share the same content start position — a real
+     border would push everything 3px to the right and break vertical
+     alignment between siblings. */
+  cts-log-entry .logItem.is-block::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: 3px;
+    background: var(--orange-400);
+    pointer-events: none;
   }
 
   cts-log-entry .logTime {
