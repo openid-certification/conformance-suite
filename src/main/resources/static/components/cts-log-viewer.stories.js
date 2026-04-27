@@ -1,7 +1,15 @@
 import { html } from "lit";
 import { expect, within, waitFor, userEvent } from "storybook/test";
 import { withMockFetch, withProgrammableFetch } from "@fixtures/helpers.js";
-import { MOCK_LOG_ENTRIES, MOCK_EMPTY_LOG, MOCK_SUCCESS_LOG } from "@fixtures/mock-log-entries.js";
+import {
+  MOCK_LOG_ENTRIES,
+  MOCK_EMPTY_LOG,
+  MOCK_SUCCESS_LOG,
+  MOCK_BLOCKS_WITH_STATUS,
+  MOCK_BLOCKS_POLL_FIRST,
+  MOCK_BLOCKS_POLL_SECOND,
+  MOCK_EMPTY_BLOCK,
+} from "@fixtures/mock-log-entries.js";
 import { MOCK_TEST_STATUS } from "@fixtures/mock-test-data.js";
 import "./cts-log-viewer.js";
 
@@ -39,18 +47,25 @@ export const CollapsibleBlocks = {
   render: () => html`<cts-log-viewer test-id="test-abc-123"></cts-log-viewer>`,
   async play({ canvasElement }) {
     await waitForLogLoad(canvasElement);
-    const blockStarts = canvasElement.querySelectorAll(".startBlock");
-    expect(blockStarts.length).toBeGreaterThan(0);
-    const firstBlock = blockStarts[0];
-    await userEvent.click(firstBlock);
+    // Each block renders as a <details> with a <summary class="startBlock">;
+    // the visual chevron rotation is keyed on the [open] attribute via
+    // scoped CSS, so the assertion is on the host element's open state
+    // rather than a chevron-name swap (the icon name is always
+    // chevron-down — rotation handles the directional cue).
+    const blocks = canvasElement.querySelectorAll("details.logBlock");
+    expect(blocks.length).toBeGreaterThan(0);
+    const firstBlock = blocks[0];
+    const firstSummary = firstBlock.querySelector("summary.startBlock");
+    expect(firstBlock.open).toBe(true);
+
+    await userEvent.click(firstSummary);
     await waitFor(() => {
-      const chevron = firstBlock.querySelector("cts-icon");
-      expect(chevron.getAttribute("name")).toBe("chevron-right");
+      expect(firstBlock.open).toBe(false);
     });
-    await userEvent.click(firstBlock);
+
+    await userEvent.click(firstSummary);
     await waitFor(() => {
-      const chevron = firstBlock.querySelector("cts-icon");
-      expect(chevron.getAttribute("name")).toBe("chevron-down");
+      expect(firstBlock.open).toBe(true);
     });
   },
 };
@@ -247,6 +262,160 @@ export const MobileContainer = {
     const stream = canvasElement.querySelector(".logEntries") ?? entries[0].parentElement;
     if (stream) {
       expect(stream.scrollWidth).toBeLessThanOrEqual(stream.clientWidth);
+    }
+  },
+};
+
+// --- U5: per-block status aggregation + <details> semantics ---
+// Plan: docs/plans/2026-04-26-006-feat-r27-per-block-status-aggregation-plan.md
+
+export const BlocksWithStatus = {
+  decorators: [withMockFetch("/api/log/", MOCK_BLOCKS_WITH_STATUS)],
+  render: () => html`<cts-log-viewer test-id="test-blocks-001"></cts-log-viewer>`,
+  async play({ canvasElement }) {
+    await waitForLogLoad(canvasElement);
+
+    // Three <details> blocks rendered, each with a startBlock summary.
+    const blocks = canvasElement.querySelectorAll("details.logBlock");
+    expect(blocks.length).toBe(3);
+
+    const blockA = canvasElement.querySelector('details[data-block-id="block-a"]');
+    const blockB = canvasElement.querySelector('details[data-block-id="block-b"]');
+    const blockC = canvasElement.querySelector('details[data-block-id="block-c"]');
+    expect(blockA).toBeTruthy();
+    expect(blockB).toBeTruthy();
+    expect(blockC).toBeTruthy();
+
+    // Block A: 2 successes — single ✓2 chip.
+    const aBadges = blockA.querySelectorAll(".startBlockCounts cts-badge");
+    expect(aBadges.length).toBe(1);
+    expect(aBadges[0].getAttribute("variant")).toBe("pass");
+    expect(aBadges[0].getAttribute("label")).toBe("✓2");
+
+    // Block B: 1 success + 1 failure — ✓1 then ✗1, in spec order.
+    const bBadges = blockB.querySelectorAll(".startBlockCounts cts-badge");
+    expect(bBadges.length).toBe(2);
+    expect(bBadges[0].getAttribute("variant")).toBe("pass");
+    expect(bBadges[0].getAttribute("label")).toBe("✓1");
+    expect(bBadges[1].getAttribute("variant")).toBe("fail");
+    expect(bBadges[1].getAttribute("label")).toBe("✗1");
+
+    // Block C: 1 warning + 1 info — INFO is excluded by design, so the
+    // cluster shows only ⚠1.
+    const cBadges = blockC.querySelectorAll(".startBlockCounts cts-badge");
+    expect(cBadges.length).toBe(1);
+    expect(cBadges[0].getAttribute("variant")).toBe("warn");
+    expect(cBadges[0].getAttribute("label")).toBe("⚠1");
+  },
+};
+
+export const EmptyBlock = {
+  decorators: [withMockFetch("/api/log/", MOCK_EMPTY_BLOCK)],
+  render: () => html`<cts-log-viewer test-id="test-empty-block-001"></cts-log-viewer>`,
+  async play({ canvasElement }) {
+    await waitForLogLoad(canvasElement);
+
+    const block = canvasElement.querySelector('details[data-block-id="block-empty"]');
+    expect(block).toBeTruthy();
+
+    // No children → no badges in the cluster (graceful empty state).
+    const badges = block.querySelectorAll(".startBlockCounts cts-badge");
+    expect(badges.length).toBe(0);
+
+    // Summary still renders the header text from msg.
+    const summary = block.querySelector("summary.startBlock");
+    expect(summary.textContent).toContain("Awaiting checks");
+  },
+};
+
+export const BlockExpandsAndCollapses = {
+  decorators: [withMockFetch("/api/log/", MOCK_BLOCKS_WITH_STATUS)],
+  render: () => html`<cts-log-viewer test-id="test-blocks-001"></cts-log-viewer>`,
+  async play({ canvasElement }) {
+    await waitForLogLoad(canvasElement);
+
+    const block = canvasElement.querySelector('details[data-block-id="block-a"]');
+    expect(block).toBeTruthy();
+
+    // Default: open. Children visible.
+    expect(block.open).toBe(true);
+    const childrenWhenOpen = block.querySelectorAll("cts-log-entry");
+    expect(childrenWhenOpen.length).toBeGreaterThan(0);
+    // The chevron icon's effective rotation is keyed on [open] in scoped
+    // CSS — when open, no rotation is applied.
+    const chevron = block.querySelector("summary.startBlock cts-icon");
+    expect(chevron.getAttribute("name")).toBe("chevron-down");
+
+    // Click the summary to collapse.
+    const summary = block.querySelector("summary.startBlock");
+    await userEvent.click(summary);
+    await waitFor(() => {
+      expect(block.open).toBe(false);
+    });
+
+    // Click again to expand.
+    await userEvent.click(summary);
+    await waitFor(() => {
+      expect(block.open).toBe(true);
+    });
+  },
+};
+
+export const BlockCountsUpdateOnPolling = {
+  decorators: [
+    (storyFn) => {
+      const state = {
+        callCount: 0,
+        responder: function () {
+          this.callCount += 1;
+          // First poll returns 3 entries (block start + 2 successes);
+          // every subsequent poll returns the second batch (the third
+          // success + failure). The viewer uses `since` to dedupe but
+          // appends new entries; returning the same delta repeatedly is
+          // fine for the assertion (we only need to observe the
+          // ✓2 → ✓3 ✗1 transition once).
+          const body = this.callCount === 1 ? MOCK_BLOCKS_POLL_FIRST : MOCK_BLOCKS_POLL_SECOND;
+          return new Response(JSON.stringify(body), {
+            status: 200,
+            headers: { "Content-Type": "application/json" },
+          });
+        },
+      };
+      // The fetch mock is left in place across the polling cycle; the
+      // play function restores real fetch in its finally block.
+      return withProgrammableFetch("/api/log/", state)(storyFn);
+    },
+  ],
+  render: () =>
+    html`<cts-log-viewer test-id="test-poll-001" ._pollIntervalMs=${20}></cts-log-viewer>`,
+  async play({ canvasElement }) {
+    try {
+      // First wait: badges land on ✓2 (single chip).
+      await waitFor(
+        () => {
+          const block = canvasElement.querySelector('details[data-block-id="block-poll"]');
+          expect(block).toBeTruthy();
+          const badges = block.querySelectorAll(".startBlockCounts cts-badge");
+          expect(badges.length).toBe(1);
+          expect(badges[0].getAttribute("label")).toBe("✓2");
+        },
+        { timeout: 1500 },
+      );
+
+      // After the second poll, the cluster transitions to ✓3 ✗1.
+      await waitFor(
+        () => {
+          const block = canvasElement.querySelector('details[data-block-id="block-poll"]');
+          const badges = block.querySelectorAll(".startBlockCounts cts-badge");
+          expect(badges.length).toBe(2);
+          expect(badges[0].getAttribute("label")).toBe("✓3");
+          expect(badges[1].getAttribute("label")).toBe("✗1");
+        },
+        { timeout: 2000 },
+      );
+    } finally {
+      const patched = /** @type {typeof fetch & { __realFetch?: typeof fetch }} */ (window.fetch);
+      if (patched.__realFetch) window.fetch = patched.__realFetch;
     }
   },
 };
