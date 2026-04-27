@@ -42,8 +42,12 @@ export const Running = {
     const spinner = canvasElement.querySelector("cts-badge .cts-badge-spin svg");
     expect(spinner).toBeTruthy();
 
-    // Created date is rendered
-    expect(canvas.getByText("Created:")).toBeInTheDocument();
+    // Created meta item is rendered (no label-row chrome — type + position
+    // carries it; assertion targets the data-testid attached in the meta
+    // item template).
+    const createdItem = canvasElement.querySelector('[data-testid="meta-created"]');
+    expect(createdItem).toBeTruthy();
+    expect(createdItem.textContent).toContain("Created");
 
     // Buttons present
     expect(canvas.getByText(/Download Logs/)).toBeInTheDocument();
@@ -80,8 +84,13 @@ export const Waiting = {
     expect(badge.getAttribute("label")).toBe("WAITING");
     expect(badge.getAttribute("variant")).toBe("warn");
 
-    // Variant info displayed
-    expect(canvas.getByText("Variant:")).toBeInTheDocument();
+    // Variants are concatenated into a single mono string (matches
+    // cts-plan-header's variant convention), so there's exactly one
+    // meta-variant item carrying both pairs.
+    const variantItems = canvasElement.querySelectorAll('[data-testid="meta-variant"]');
+    expect(variantItems.length).toBe(1);
+    expect(variantItems[0].textContent).toContain("client_auth_type: client_secret_basic");
+    expect(variantItems[0].textContent).toContain("response_type: code");
 
     // Buttons present
     expect(canvas.getByText(/Download Logs/)).toBeInTheDocument();
@@ -116,10 +125,12 @@ export const AdminView = {
   async play({ canvasElement }) {
     const canvas = within(canvasElement);
 
-    // Owner row IS visible
-    const ownerRow = canvasElement.querySelector('[data-testid="owner-row"]');
-    expect(ownerRow).toBeTruthy();
-    expect(canvas.getByText("Test Owner:")).toBeInTheDocument();
+    // Owner meta item IS visible. Owner is the only meta entry that keeps a
+    // visible "Owner:" key — the bare sub/iss values would otherwise read as
+    // an unlabelled string of digits.
+    const ownerItem = canvasElement.querySelector('[data-testid="owner-row"]');
+    expect(ownerItem).toBeTruthy();
+    expect(ownerItem.textContent).toContain("Owner:");
 
     // Owner info is rendered
     expect(canvas.getByText(/12345/)).toBeInTheDocument();
@@ -179,7 +190,7 @@ export const DownloadClick = {
     let eventFired = false;
     /** @type {any} */
     let eventDetail = null;
-    canvasElement.addEventListener("cts-download-log", (e) => {
+    canvasElement.addEventListener("cts-download-log", (/** @type {Event} */ e) => {
       eventFired = true;
       eventDetail = /** @type {CustomEvent} */ (e).detail;
     });
