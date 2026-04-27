@@ -23,7 +23,7 @@ const STYLE_ID = "cts-log-toc-styles";
 
 // Scoped CSS for the right-rail TOC. The host's outer visibility (≥ 1440px
 // AND user-preference enabled) is owned by the page CSS in
-// log-detail-v2.html — this stylesheet just describes the rail's own
+// log-detail.html — this stylesheet just describes the rail's own
 // internal layout.
 const STYLE_TEXT = `
   cts-log-toc {

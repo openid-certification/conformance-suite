@@ -116,7 +116,7 @@ export const EmptyDuringWaiting = {
     );
     await rail.updateComplete;
     // Empty rail self-hides via the `hidden` attribute so the page-level
-    // grid (`.log-page-v2--with-toc:has(#ctsLogToc:not([hidden]))`)
+    // grid (`.log-page--with-toc:has(#ctsLogToc:not([hidden]))`)
     // collapses to single column and the main content reclaims the
     // 320px slot. The aside is still in the DOM (so populating
     // `.blocks` later un-hides without a re-mount) but `display: none`
