@@ -1,6 +1,10 @@
 import { test, expect } from "@playwright/test";
 import { setupCommonRoutes, setupFailFast, expectNoUnmockedCalls } from "./helpers/routes.js";
-import { MOCK_TEST_STATUS, MOCK_TEST_FAILED } from "./fixtures/mock-test-data.js";
+import {
+  MOCK_TEST_STATUS,
+  MOCK_TEST_FAILED,
+  MOCK_TEST_RUNNING,
+} from "./fixtures/mock-test-data.js";
 import {
   MOCK_LOG_ENTRIES,
   MOCK_FAILED_LOG_ENTRIES,
@@ -843,5 +847,257 @@ test.describe("log-detail-v2.html — new Lit-triad page", () => {
     await expect(badges).toHaveCount(2, { timeout: 8000 });
     await expect(badges.nth(0)).toHaveAttribute("label", "✓3");
     await expect(badges.nth(1)).toHaveAttribute("label", "✗1");
+  });
+
+  // ──────────── U1: DC API handler + archived banner parity ────────────
+  // Mirrors the legacy DC handler at log-detail.html:1491–1538 and the
+  // archived banner trigger at log-detail.html:1662–1664. Wire format is
+  // frozen — Java parses it structurally in
+  // src/main/java/.../ExtractBrowserApiResponse.java and
+  // ExtractVP1FinalBrowserApiResponse.java. Schema lives in
+  // js/log-detail-v2.js handleVisitBrowserApi.
+
+  test("DC API: success POSTs {data, protocol} to submitUrl", async ({ page }) => {
+    await setupFailFast(page);
+    const testIdLocal = MOCK_TEST_RUNNING.testId;
+    const submitUrl = `https://example.com/api/dc-callback/${testIdLocal}`;
+    const browserApiRequest = { providers: [{ protocol: "openid4vp", request: "abc" }] };
+
+    await page.route(`**/api/info/${testIdLocal}*`, (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({ ...MOCK_TEST_RUNNING, planId: undefined }),
+      }),
+    );
+    await page.route(`**/api/log/${testIdLocal}**`, (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(MOCK_LOG_ENTRIES),
+      }),
+    );
+    await page.route(`**/api/runner/${testIdLocal}`, (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({
+          status: "WAITING",
+          browser: { browserApiRequests: [{ request: browserApiRequest, submitUrl }] },
+        }),
+      }),
+    );
+    await page.route("**/api/uploaded-images*", (route) =>
+      route.fulfill({ status: 200, contentType: "application/json", body: "[]" }),
+    );
+
+    /** @type {{ url: string, body: string }[]} */
+    const captured = [];
+    await page.route(submitUrl, async (route) => {
+      const req = route.request();
+      captured.push({ url: req.url(), body: req.postData() || "" });
+      await route.fulfill({ status: 200, body: "" });
+    });
+
+    // Stub navigator.credentials.get BEFORE the page loads so the v2
+    // bootstrap and the click handler both see the mock. Use init script
+    // so it runs in every document context. Override via Object.defineProperty
+    // because navigator.credentials is a non-writable accessor in Chromium.
+    await page.addInitScript(() => {
+      class DigitalCredential {
+        constructor(data, protocol) {
+          /** @type {any} */ (this).data = data;
+          /** @type {any} */ (this).protocol = protocol;
+        }
+      }
+      Object.defineProperty(navigator, "credentials", {
+        configurable: true,
+        value: {
+          get: async () => new DigitalCredential("ABC123", "openid4vp"),
+        },
+      });
+    });
+
+    await setupCommonRoutes(page);
+    await page.goto(`/log-detail-v2.html?log=${encodeURIComponent(testIdLocal)}`);
+
+    // Wait for the running-test browser slot to render the DC button and click it.
+    const apiBtn = page.locator(".visitBrowserApiBtn button").first();
+    await expect(apiBtn).toBeVisible();
+    await apiBtn.click();
+
+    await expect.poll(() => captured.length, { timeout: 5000 }).toBeGreaterThan(0);
+    const post = JSON.parse(captured[0].body);
+    expect(post).toEqual({ data: "ABC123", protocol: "openid4vp" });
+  });
+
+  test("DC API: exception POSTs {exception:{name,message}} and surfaces error chrome", async ({
+    page,
+  }) => {
+    await setupFailFast(page);
+    const testIdLocal = MOCK_TEST_RUNNING.testId;
+    const submitUrl = `https://example.com/api/dc-callback/${testIdLocal}`;
+
+    await page.route(`**/api/info/${testIdLocal}*`, (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({ ...MOCK_TEST_RUNNING, planId: undefined }),
+      }),
+    );
+    await page.route(`**/api/log/${testIdLocal}**`, (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(MOCK_LOG_ENTRIES),
+      }),
+    );
+    await page.route(`**/api/runner/${testIdLocal}`, (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({
+          status: "WAITING",
+          browser: { browserApiRequests: [{ request: { foo: "bar" }, submitUrl }] },
+        }),
+      }),
+    );
+    await page.route("**/api/uploaded-images*", (route) =>
+      route.fulfill({ status: 200, contentType: "application/json", body: "[]" }),
+    );
+
+    /** @type {{ body: string }[]} */
+    const captured = [];
+    await page.route(submitUrl, async (route) => {
+      captured.push({ body: route.request().postData() || "" });
+      await route.fulfill({ status: 200, body: "" });
+    });
+
+    await page.addInitScript(() => {
+      Object.defineProperty(navigator, "credentials", {
+        configurable: true,
+        value: {
+          get: async () => {
+            const err = new Error("user dismissed");
+            err.name = "NotAllowedError";
+            throw err;
+          },
+        },
+      });
+    });
+
+    await setupCommonRoutes(page);
+    await page.goto(`/log-detail-v2.html?log=${encodeURIComponent(testIdLocal)}`);
+
+    const apiBtn = page.locator(".visitBrowserApiBtn button").first();
+    await expect(apiBtn).toBeVisible();
+    await apiBtn.click();
+
+    await expect.poll(() => captured.length, { timeout: 5000 }).toBeGreaterThan(0);
+    const post = JSON.parse(captured[0].body);
+    expect(post).toEqual({ exception: { name: "NotAllowedError", message: "user dismissed" } });
+
+    // Error chrome is the v2 page's #errorModal (showError), not window.alert.
+    await expect(page.locator("#errorModal")).toBeVisible();
+    await expect(page.locator("#errorMessage")).toContainText("user dismissed");
+  });
+
+  test("DC API: non-DigitalCredential response POSTs {bad_response_type}", async ({ page }) => {
+    await setupFailFast(page);
+    const testIdLocal = MOCK_TEST_RUNNING.testId;
+    const submitUrl = `https://example.com/api/dc-callback/${testIdLocal}`;
+
+    await page.route(`**/api/info/${testIdLocal}*`, (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({ ...MOCK_TEST_RUNNING, planId: undefined }),
+      }),
+    );
+    await page.route(`**/api/log/${testIdLocal}**`, (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(MOCK_LOG_ENTRIES),
+      }),
+    );
+    await page.route(`**/api/runner/${testIdLocal}`, (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({
+          status: "WAITING",
+          browser: { browserApiRequests: [{ request: { foo: "bar" }, submitUrl }] },
+        }),
+      }),
+    );
+    await page.route("**/api/uploaded-images*", (route) =>
+      route.fulfill({ status: 200, contentType: "application/json", body: "[]" }),
+    );
+
+    /** @type {{ body: string }[]} */
+    const captured = [];
+    await page.route(submitUrl, async (route) => {
+      captured.push({ body: route.request().postData() || "" });
+      await route.fulfill({ status: 200, body: "" });
+    });
+
+    await page.addInitScript(() => {
+      class PasswordCredential {}
+      Object.defineProperty(navigator, "credentials", {
+        configurable: true,
+        value: {
+          get: async () => new PasswordCredential(),
+        },
+      });
+    });
+
+    await setupCommonRoutes(page);
+    await page.goto(`/log-detail-v2.html?log=${encodeURIComponent(testIdLocal)}`);
+
+    const apiBtn = page.locator(".visitBrowserApiBtn button").first();
+    await expect(apiBtn).toBeVisible();
+    await apiBtn.click();
+
+    await expect.poll(() => captured.length, { timeout: 5000 }).toBeGreaterThan(0);
+    const post = JSON.parse(captured[0].body);
+    expect(post).toEqual({ bad_response_type: "PasswordCredential" });
+  });
+
+  test("archived banner appears when /api/runner returns 404 for a once-running test", async ({
+    page,
+  }) => {
+    await setupFailFast(page);
+    const testIdLocal = MOCK_TEST_RUNNING.testId;
+
+    await page.route(`**/api/info/${testIdLocal}*`, (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({ ...MOCK_TEST_RUNNING, planId: undefined }),
+      }),
+    );
+    await page.route(`**/api/log/${testIdLocal}**`, (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(MOCK_LOG_ENTRIES),
+      }),
+    );
+    // Runner reports the test is gone — mirrors the legacy `.catch` path.
+    await page.route(`**/api/runner/${testIdLocal}`, (route) =>
+      route.fulfill({ status: 404, body: "" }),
+    );
+    await page.route("**/api/uploaded-images*", (route) =>
+      route.fulfill({ status: 200, contentType: "application/json", body: "[]" }),
+    );
+    await setupCommonRoutes(page);
+
+    await page.goto(`/log-detail-v2.html?log=${encodeURIComponent(testIdLocal)}`);
+
+    const banner = page.locator('[data-testid="archived-banner"]');
+    await expect(banner).toBeVisible({ timeout: 8000 });
+    await expect(banner).toContainText("This test is no longer running.");
+    await expect(banner).toContainText("This log has been archived");
   });
 });

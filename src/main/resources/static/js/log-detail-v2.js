@@ -292,7 +292,9 @@ function startRunnerPolling(testInfo) {
     try {
       const response = await fetch("/api/runner/" + encodeURIComponent(testId));
       if (response.status === 404) {
-        // Archived — no further state to render.
+        // Runner no longer holds state for this test — mirror the legacy
+        // page's archived-banner trigger (`log-detail.html:1662–1664`).
+        setArchivedBanner(true);
         return;
       }
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
@@ -302,13 +304,25 @@ function startRunnerPolling(testInfo) {
       // Continue polling while the runner is still active.
       const runnerStatus = (data.status || "").toUpperCase();
       if (runnerStatus === "RUNNING" || runnerStatus === "WAITING") {
+        setArchivedBanner(false);
         runnerPollState.active = window.setTimeout(pollOnce, POLL_INTERVAL_MS);
+      } else {
+        // Runner has reported a terminal state (FINISHED / INTERRUPTED) —
+        // legacy hid the archived banner here too because the runner still
+        // owned the record. Keep parity.
+        setArchivedBanner(false);
       }
     } catch (err) {
       console.warn("[log-detail-v2] /api/runner failed:", err);
       // Back off and retry once.
       runnerPollState.active = window.setTimeout(pollOnce, POLL_INTERVAL_MS * 2);
     }
+  }
+
+  function setArchivedBanner(archived) {
+    /** @type {any} */
+    const header = document.getElementById("logDetailHeader");
+    if (header) header.archived = !!archived;
   }
 
   runnerPollState.active = window.setTimeout(pollOnce, 0);
@@ -332,16 +346,22 @@ function renderBrowserSlot(browser) {
   const slot = findSlot("browser");
   if (!slot) return;
   clearSlot(slot);
-  if (!browser || !browser.urls || browser.urls.length === 0) return;
+  if (!browser) return;
+  const hasUrls = Array.isArray(browser.urls) && browser.urls.length > 0;
+  const hasApiRequests =
+    Array.isArray(browser.browserApiRequests) && browser.browserApiRequests.length > 0;
+  if (!hasUrls && !hasApiRequests) return;
 
   const wrapper = document.createElement("div");
   wrapper.className = "v2-browser-wrapper";
 
-  const heading = document.createElement("p");
-  heading.textContent = "Visit one of the following URLs to interact with the test:";
-  wrapper.appendChild(heading);
+  if (hasUrls) {
+    const heading = document.createElement("p");
+    heading.textContent = "Visit one of the following URLs to interact with the test:";
+    wrapper.appendChild(heading);
+  }
 
-  for (const entry of browser.urls) {
+  for (const entry of hasUrls ? browser.urls : []) {
     const url = typeof entry === "string" ? entry : entry.url;
     const method = typeof entry === "string" ? "GET" : entry.method || "GET";
     if (!url) continue;
@@ -394,7 +414,117 @@ function renderBrowserSlot(browser) {
     wrapper.appendChild(row);
   }
 
+  // browserApiRequests — Digital Credentials API rows (mirrors the
+  // legacy `templates/browser.html:27–30` block). Each entry has
+  // `{ request, submitUrl }`. The button stays presentational; the page
+  // owns navigator.credentials.* and the POST. Wire format is frozen —
+  // see `handleVisitBrowserApi` and the Java consumers
+  // `ExtractBrowserApiResponse.java` / `ExtractVP1FinalBrowserApiResponse.java`.
+  if (Array.isArray(browser.browserApiRequests)) {
+    for (const apiReq of browser.browserApiRequests) {
+      if (!apiReq || !apiReq.request) continue;
+      const requestJson = JSON.stringify(apiReq.request);
+      const submitUrl = apiReq.submitUrl || "";
+
+      const row = document.createElement("div");
+      row.className = "v2-browser-row";
+      row.style.display = "flex";
+      row.style.flexDirection = "column";
+      row.style.gap = "var(--space-2)";
+      row.style.marginBottom = "var(--space-3)";
+
+      const apiBtn = document.createElement("cts-button");
+      apiBtn.classList.add("visitBrowserApiBtn");
+      apiBtn.setAttribute("variant", "primary");
+      apiBtn.setAttribute("size", "sm");
+      apiBtn.setAttribute("icon", "paper-plane");
+      apiBtn.setAttribute("label", "Proceed with test via browser API (preview)");
+      apiBtn.dataset.browserapirequest = requestJson;
+      apiBtn.dataset.browserapisubmiturl = submitUrl;
+      apiBtn.addEventListener("cts-click", handleVisitBrowserApi);
+      row.appendChild(apiBtn);
+
+      const reqLabel = document.createElement("code");
+      reqLabel.textContent = requestJson;
+      reqLabel.style.fontFamily = "var(--font-mono)";
+      reqLabel.style.fontSize = "var(--fs-13)";
+      reqLabel.style.wordBreak = "break-all";
+      row.appendChild(reqLabel);
+
+      wrapper.appendChild(row);
+    }
+  }
+
   slot.appendChild(wrapper);
+}
+
+/**
+ * Digital Credentials API handler. Wire format is frozen — Java parses it
+ * structurally in `ExtractBrowserApiResponse` /
+ * `ExtractVP1FinalBrowserApiResponse`. Three branches:
+ *   - `submitUrl === ""`: legacy `navigator.credentials.create` path.
+ *   - success + DigitalCredential: POST `{data, protocol}`.
+ *   - success + non-DigitalCredential: POST `{bad_response_type}`.
+ *   - exception: POST `{exception: {name, message}}` and surface via
+ *     `showError` (legacy used `alert()` — replaced per the leaf-component
+ *     principle's "error chrome at the page level" rule).
+ *
+ * @param {Event} evt
+ */
+async function handleVisitBrowserApi(evt) {
+  const host = /** @type {HTMLElement} */ (evt.currentTarget);
+  /** @type {any} */
+  let request;
+  try {
+    request = JSON.parse(host.dataset.browserapirequest || "");
+  } catch (parseErr) {
+    showError(`Invalid browser API request payload: ${parseErr.message}`);
+    return;
+  }
+  const submitUrl = host.dataset.browserapisubmiturl || "";
+
+  if (submitUrl === "") {
+    // Legacy parity: when no submitUrl is provided, the test wants the
+    // wallet to be created (not got). Fire-and-forget; the wallet does
+    // its own thing from there.
+    try {
+      // eslint-disable-next-line compat/compat
+      navigator.credentials.create(request);
+    } catch (err) {
+      showError(`navigator.credentials.create failed: ${err.message}`);
+    }
+    return;
+  }
+
+  /**
+   * @param {Record<string, unknown>} body
+   */
+  const postResult = (body) =>
+    fetch(submitUrl, {
+      method: "POST",
+      body: JSON.stringify(body),
+    });
+
+  try {
+    // eslint-disable-next-line compat/compat
+    const credentialResponse = await navigator.credentials.get(request);
+    if (credentialResponse && credentialResponse.constructor.name === "DigitalCredential") {
+      /** @type {any} */
+      const cred = credentialResponse;
+      await postResult({ data: cred.data, protocol: cred.protocol });
+    } else {
+      await postResult({
+        bad_response_type: credentialResponse ? credentialResponse.constructor.name : "null",
+      });
+    }
+  } catch (err) {
+    try {
+      await postResult({ exception: { name: err.name, message: err.message } });
+    } catch (postErr) {
+      console.warn("[log-detail-v2] failed to POST browser API exception:", postErr);
+    }
+    showError(err.message || String(err));
+  }
 }
 
 async function handleVisitUrl(evt) {
