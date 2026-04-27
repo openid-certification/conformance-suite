@@ -460,7 +460,6 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 		authorizationRequestType = getVariant(AuthorizationRequestType.class);
 
 		fapi2Profile = getVariant(FAPI2FinalOPProfile.class);
-		env.putString("vci", "fapi_profile", fapi2Profile.toString());
 		vciCredentialFormat = getVariant(VCI1FinalCredentialFormat.class);
 		vciCredentialIssuanceMode = getVariant(VCICredentialIssuanceMode.class);
 		vciCredentialEncryption = getVariant(VCICredentialEncryption.class);

@@ -150,6 +150,9 @@ public abstract class AbstractVP1FinalVerifierTest extends AbstractTestModule {
 
 		env.putString("credential_format", getVariant(VP1FinalVerifierCredentialFormat.class).toString());
 
+		// Expose the VP profile in env so conditions can branch on HAIP via Profile.isHaip(env).
+		env.putString("vp", "vp_profile", getVariant(VPProfile.class).toString());
+
 		configureServerConfiguration();
 
 		String authz = env.getString("server", "authorization_endpoint");

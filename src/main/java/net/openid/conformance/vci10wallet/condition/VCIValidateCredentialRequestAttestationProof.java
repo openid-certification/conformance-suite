@@ -15,6 +15,7 @@ import com.nimbusds.jose.util.X509CertUtils;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import net.openid.conformance.condition.ConditionError;
+import net.openid.conformance.condition.Profile;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.util.JWKUtil;
@@ -27,8 +28,6 @@ import java.text.ParseException;
 import java.util.List;
 
 public class VCIValidateCredentialRequestAttestationProof extends AbstractVCIValidateCredentialRequestProof {
-
-	private static final String VCI_HAIP_PROFILE = "vci_haip";
 
 	@Override
 	protected void validateProof(Environment env, String proofType, String expectedAudience, String credentialConfigurationId, JsonObject credentialConfiguration, JsonObject keyAttestationRequired) {
@@ -144,7 +143,7 @@ public class VCIValidateCredentialRequestAttestationProof extends AbstractVCIVal
 			return extractPublicJwkFromX5c(env, attestationJwt, x5cChain);
 		}
 
-		if (isHaipProfile(env)) {
+		if (Profile.isHaip(env)) {
 			String errorDescription = "Key attestation JWT header MUST contain an x5c claim per HAIP §4.5.1";
 			VCICredentialErrorResponseUtil.updateCredentialErrorResponseInEnv(env, VciErrorCode.INVALID_PROOF, errorDescription);
 			throw error(errorDescription, args("jwt", attestationJwt, "header", header.toJSONObject()));
@@ -155,10 +154,6 @@ public class VCIValidateCredentialRequestAttestationProof extends AbstractVCIVal
 			throw error("'Key Attestation JWKS' field is missing from the 'Key Attestation' section in the test configuration");
 		}
 		return JWKUtil.getSigningKey(keyAttestationJwksEl.getAsJsonObject());
-	}
-
-	private boolean isHaipProfile(Environment env) {
-		return VCI_HAIP_PROFILE.equals(env.getString("vci", "fapi_profile"));
 	}
 
 	private void validateKeyAttestationX5cCertificateChain(Environment env, List<Base64> x5cChain) {
