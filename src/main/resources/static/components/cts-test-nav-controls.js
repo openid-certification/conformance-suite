@@ -100,13 +100,24 @@ function ensureStylesInjected() {
  * @property {boolean} nextEnabled - Whether a next module exists. Drives
  *   visibility of the Continue Plan button.
  * @property {boolean} readonly - When true (public/readonly view), only
- *   Return to Plan is rendered; Repeat and Continue are hidden.
+ *   Return to Plan is rendered; Repeat and Continue are hidden. Ignored
+ *   in `slim` mode where the back link does not exist either.
  * @property {boolean} publicView - When true, appends `&public=true` to
  *   the Return-to-Plan link so the linked plan-detail page renders its
  *   public-share variant. Independent of `readonly` because a
  *   summary-published test is readonly but not (necessarily) public.
+ *   No-op in `slim` mode.
+ * @property {boolean} slim - When true, the widget renders only the
+ *   progress indicator and (when applicable) the Continue Plan CTA.
+ *   Used by the v2 log-detail page where the page-level breadcrumb
+ *   already carries the back affordance and the sticky status bar's
+ *   primary action already carries Repeat — emitting them here too
+ *   would duplicate two prominent affordances inside one viewport.
+ *   The legacy log-detail.html keeps `slim=false` so it retains the
+ *   full Return / Repeat / Continue cluster (no breadcrumb-driven back
+ *   nav, no status-bar-primary Repeat to inherit from).
  * @fires cts-repeat - When Repeat Test is clicked. Detail:
- *   `{ testId, planId }`. Bubbles.
+ *   `{ testId, planId }`. Bubbles. Not fired in `slim` mode (no button).
  * @fires cts-continue - When Continue Plan is clicked. Detail:
  *   `{ testId, planId }`. Bubbles.
  */
@@ -119,6 +130,7 @@ class CtsTestNavControls extends LitElement {
     nextEnabled: { type: Boolean, attribute: "next-enabled" },
     readonly: { type: Boolean },
     publicView: { type: Boolean, attribute: "public-view" },
+    slim: { type: Boolean },
   };
 
   constructor() {
@@ -130,6 +142,7 @@ class CtsTestNavControls extends LitElement {
     this.nextEnabled = false;
     this.readonly = false;
     this.publicView = false;
+    this.slim = false;
   }
 
   createRenderRoot() {
@@ -233,6 +246,35 @@ class CtsTestNavControls extends LitElement {
 
   render() {
     if (!this.planId) return nothing;
+
+    // Slim mode (used by log-detail-v2): the page-level breadcrumb
+    // already carries the back affordance and cts-log-detail-header's
+    // sticky status bar primary already carries the Repeat action, so
+    // we render only progress + (optional) Continue. The legacy page
+    // uses slim=false so it keeps the full Return / Repeat / Continue
+    // cluster as its own primary affordance home.
+    if (this.slim) {
+      const showProgress = (Number(this.totalCount) || 0) > 0;
+      const showContinue = !this.readonly && this.nextEnabled;
+      // Bail out when neither the progress widget nor the Continue
+      // button has anything to render. This is the transient state
+      // between the page's first paint and the /api/plan fetch
+      // resolving (totalCount stays at the default 0 until the
+      // bootstrap sets it). Returning `nothing` leaves the host with
+      // no children, which lets the page-level
+      // `:has(cts-test-nav-controls:empty)` selector hide the
+      // wrapping .ctsNavRow so its border-bottom doesn't sit alone
+      // under the status bar.
+      if (!showProgress && !showContinue) return nothing;
+      return html`
+        <div class="cts-tnc-group" role="group" aria-label="Test plan navigation">
+          ${this._renderProgress()}
+          ${showContinue
+            ? html`<div class="cts-tnc-buttons">${this._renderContinueButton()}</div>`
+            : nothing}
+        </div>
+      `;
+    }
 
     return html`
       <div class="cts-tnc-group" role="group" aria-label="Test plan navigation">

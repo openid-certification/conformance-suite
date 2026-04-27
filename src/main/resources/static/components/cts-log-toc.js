@@ -198,6 +198,10 @@ class CtsLogToc extends LitElement {
     this._activeBlockId = null;
     /** @type {IntersectionObserver | null} */
     this._intersectionObserver = null;
+    // Mirrors localStorage(`cts-log-toc-rail-enabled`). Defaults to `true`
+    // so any pre-connectedCallback `_applyVisibility()` from a Lit-driven
+    // `updated()` doesn't false-hide the rail before the preference is read.
+    this._preferenceEnabled = true;
   }
 
   createRenderRoot() {
@@ -207,9 +211,8 @@ class CtsLogToc extends LitElement {
 
   connectedCallback() {
     super.connectedCallback();
-    if (!readPreference()) {
-      this.style.display = "none";
-    }
+    this._preferenceEnabled = readPreference();
+    this._applyVisibility();
   }
 
   /**
@@ -221,7 +224,25 @@ class CtsLogToc extends LitElement {
    */
   setEnabled(enabled) {
     writePreference(enabled);
-    this.style.display = enabled ? "" : "none";
+    this._preferenceEnabled = enabled;
+    this._applyVisibility();
+  }
+
+  /**
+   * Single source of truth for "is this rail visible right now". Combines
+   * the user preference (off via `setEnabled(false)`) with the empty-data
+   * fallback (no blocks AND no failures means the column is dead weight)
+   * and projects the result onto the `hidden` attribute. The page-level
+   * grid CSS reads this attribute via `:has()` to collapse the second
+   * column back into the main content area, so an interrupted-before-run
+   * test no longer reserves a 320px slot for an empty heading card.
+   */
+  _applyVisibility() {
+    const blocksLen = Array.isArray(this.blocks) ? this.blocks.length : 0;
+    const failuresLen = Array.isArray(this.failures) ? this.failures.length : 0;
+    const isEmpty = blocksLen === 0 && failuresLen === 0;
+    const shouldHide = !this._preferenceEnabled || isEmpty;
+    this.toggleAttribute("hidden", shouldHide);
   }
 
   firstUpdated() {
@@ -237,6 +258,12 @@ class CtsLogToc extends LitElement {
     // .observe() runs, hence the firstUpdated + per-update reattach.
     if (changed.has("blocks")) {
       this._setupScrollSpy();
+    }
+    // Re-evaluate visibility on every props change so the page grid
+    // collapses (or re-expands) the moment the rail's content state
+    // crosses the empty/non-empty boundary.
+    if (changed.has("blocks") || changed.has("failures")) {
+      this._applyVisibility();
     }
   }
 

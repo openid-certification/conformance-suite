@@ -720,7 +720,13 @@ function handleKeydown(event) {
   const key = event.key.toLowerCase();
   if (key === "x") {
     event.preventDefault();
-    const inner = document.querySelector('cts-test-nav-controls [data-testid="repeat-btn"] button');
+    // The Repeat button lives in the status bar primary slot now —
+    // cts-test-nav-controls' "Repeat Test" was removed once the status
+    // bar took over the affordance. Both clicks dispatch the same
+    // cts-repeat-test event the page already wires through handleRepeat.
+    const inner = document.querySelector(
+      'cts-log-detail-header [data-testid="status-bar-primary"] button',
+    );
     if (inner) inner.click();
   } else if (key === "u") {
     event.preventDefault();
@@ -770,9 +776,9 @@ async function bootstrap() {
     header.addEventListener("cts-start-test", handleStartTest);
     header.addEventListener("cts-stop-test", handleStopTest);
     header.addEventListener("cts-repeat-test", handleRepeat);
-    // cts-test-nav-controls bubbles cts-repeat / cts-continue through
-    // the header host; addEventListener on the header catches them.
-    header.addEventListener("cts-repeat", handleRepeat);
+    // cts-test-nav-controls only bubbles cts-continue now — the
+    // duplicate "Repeat Test" button was removed; the status bar
+    // primary owns the cts-repeat-test event by itself.
     header.addEventListener("cts-continue", handleContinue);
   }
 

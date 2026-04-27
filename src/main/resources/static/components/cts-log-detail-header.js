@@ -126,8 +126,16 @@ const STYLE_TEXT = `
   /* Sticky status bar (Region A — unchanged from U2). Sticks at tablet
      and above; on mobile it scrolls away. Z-index 10 keeps the bar
      above the connection-lost banner (z-index 9 in cts-log-viewer's
-     own styles). */
+     own styles).
+     'position: relative' is set unconditionally (not just inside the
+     >=640px sticky branch) so the ::after gradient — used as the
+     bar's elevation effect in place of a 'box-shadow' — has a
+     positioning ancestor at every viewport. The pseudo itself only
+     paints when sticky kicks in (see the >=640px branch below); on
+     mobile it stays display:none so no fake shadow streaks across the
+     hero as the bar scrolls past with the page. */
   cts-log-detail-header .ctsStatusBar {
+    position: relative;
     display: grid;
     grid-template-columns: auto 1fr auto;
     grid-template-areas:
@@ -136,14 +144,43 @@ const STYLE_TEXT = `
     column-gap: var(--space-3);
     row-gap: var(--space-1);
     align-items: center;
-    /* Horizontal padding is var(--space-5) on every zone (bar, nav row,
-       hero, drawer) so the leading edge of every text block — verdict
-       pill, "Return to Plan", "ABOUT THIS TEST" eyebrow, "Test details"
-       summary — sits on the same vertical axis. */
-    padding: var(--space-3) var(--space-5);
+    /* Horizontal padding is owned by the page wrapper now (via the
+       .log-page-v2 container's padding-inline), so the bar, nav row,
+       hero, and drawer all use vertical-only padding here. The leading
+       edge of every text block — verdict pill, "ABOUT THIS TEST"
+       eyebrow, "Test details" summary — still aligns on a single
+       vertical axis because the page wrapper sets the inset for the
+       whole stack. */
+    padding-block: var(--space-3);
+    padding-inline: 0;
     background: var(--bg-elev);
     border-bottom: 1px solid var(--border);
     z-index: 10;
+  }
+  /* Faux drop-shadow for the sticky bar. A real 'box-shadow' bleeds
+     past the bar's left/right edges (the rule's spread fades outward
+     in every direction), which reads as two grey wings poking out of
+     a page that has no other floating chrome. Substituting an
+     absolutely-positioned ::after with a top-to-bottom gradient
+     constrains the shadow to exactly the bar's width — 'left: 0;
+     right: 0' matches the bar's content box, and the gradient fades
+     from a low-opacity ink to transparent over a few pixels so the
+     elevation cue still reads at a glance.
+     'pointer-events: none' keeps the pseudo from blocking clicks on
+     the section directly below the bar (failure summary chips,
+     drawer summaries, log entry rows). The pseudo is hidden by
+     default and only painted on the sticky branch below — no fake
+     shadow on mobile, where the bar scrolls with the content. */
+  cts-log-detail-header .ctsStatusBar::after {
+    content: "";
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    height: var(--space-2);
+    pointer-events: none;
+    display: none;
+    background: linear-gradient(to bottom, rgba(0, 0, 0, 0.12), rgba(0, 0, 0, 0));
   }
   cts-log-detail-header .ctsStatusBarLeft {
     grid-area: left;
@@ -208,7 +245,13 @@ const STYLE_TEXT = `
     cts-log-detail-header .ctsStatusBar {
       position: sticky;
       top: 0;
-      box-shadow: var(--shadow-1);
+    }
+    /* Reveal the faux drop-shadow only when the bar is sticky. A
+       static bar at mobile widths gets no shadow — it sits flush with
+       the hero below it and the 1px border-bottom is the only
+       elevation cue needed. */
+    cts-log-detail-header .ctsStatusBar::after {
+      display: block;
     }
   }
 
@@ -224,6 +267,15 @@ const STYLE_TEXT = `
   cts-log-detail-header .ctsNavRow {
     padding: var(--space-2) var(--space-5);
     border-bottom: 1px solid var(--border);
+  }
+  /* Hide the nav row when the embedded cts-test-nav-controls renders
+     nothing — for example, an ad-hoc test (no planId) or the brief
+     window before /api/plan resolves (totalCount=0, slim mode, no
+     Continue). Without this, the row's padding + border-bottom would
+     paint as an empty divider directly under the sticky status bar,
+     reading as a broken section break. */
+  cts-log-detail-header .ctsNavRow:has(cts-test-nav-controls:empty) {
+    display: none;
   }
   cts-log-detail-header .ctsNavRow cts-test-nav-controls .cts-tnc-group {
     flex-direction: row;
@@ -261,10 +313,11 @@ const STYLE_TEXT = `
      hero its weight. The eyebrow / headline / body type-scale ramp
      replaces the legacy card's internal grid. */
   cts-log-detail-header .ctsHero {
-    /* Horizontal padding aligns with .ctsStatusBar / .ctsNavRow /
-       .ctsDrawer; vertical stays generous so the hero earns its
-       weight via space, not edge inset. */
-    padding: var(--space-5);
+    /* Horizontal padding is owned by the page wrapper (.log-page-v2
+       padding-inline); the hero keeps its generous vertical inset so
+       it earns its weight via space, not edge chrome. */
+    padding-block: var(--space-5);
+    padding-inline: 0;
     border-bottom: 1px solid var(--border);
     display: flex;
     flex-direction: column;
@@ -347,7 +400,7 @@ const STYLE_TEXT = `
      borders between disclosures are 1px dividers continuing the
      section rhythm. */
   cts-log-detail-header .ctsDrawer {
-    padding: 0 var(--space-5);
+    padding: 0;
   }
   cts-log-detail-header .ctsDrawer details {
     border-bottom: 1px solid var(--border);
@@ -385,7 +438,7 @@ const STYLE_TEXT = `
     transform: rotate(90deg);
   }
   cts-log-detail-header .ctsDrawer .ctsDrawerBody {
-    padding: 0 0 var(--space-4) var(--space-5);
+    padding: 0 0 var(--space-4) var(--space-6);
   }
   @media (prefers-reduced-motion: reduce) {
     cts-log-detail-header .ctsDrawer summary cts-icon {
@@ -1000,6 +1053,15 @@ class CtsLogDetailHeader extends LitElement {
   // ──────────────────────────── nav row ────────────────────────────
 
   _renderTestNavControlsRow(test) {
+    // `slim` removes the cluster's Return-to-Plan and Repeat-Test
+    // buttons. The page-level breadcrumb (cts-crumb in
+    // log-detail-v2.html) already links back to the plan, and the
+    // sticky status bar's primary action already carries Repeat — so
+    // emitting them again here would duplicate two prominent
+    // affordances inside one viewport. The legacy log-detail.html mounts
+    // cts-test-nav-controls without `slim`, so that page keeps the full
+    // cluster (it has no breadcrumb-driven back nav and no
+    // status-bar-primary Repeat to inherit from).
     return html`
       <div class="ctsNavRow" data-testid="nav-row">
         <cts-test-nav-controls
@@ -1009,6 +1071,7 @@ class CtsLogDetailHeader extends LitElement {
           plan-id="${test.planId || ""}"
           ?readonly=${this._isReadonly()}
           ?public-view=${this.isPublic}
+          slim
         ></cts-test-nav-controls>
       </div>
     `;

@@ -209,6 +209,13 @@ function injectStyles() {
   document.head.appendChild(style);
 }
 
+// Inject at module load so consumers that import this file purely for the
+// shared `oidf-btn` class family (e.g. cts-login-page renders plain <a>
+// brand buttons next to inline Google/GitLab SVGs that can't go through
+// the `icon` prop) get the stylesheet without first having to mount a
+// <cts-link-button>. The STYLE_ID gate keeps it idempotent.
+injectStyles();
+
 /**
  * OIDF token-styled anchor that behaves like a button.
  *

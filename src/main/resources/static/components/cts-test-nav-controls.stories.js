@@ -52,7 +52,8 @@ export const MidPlan = {
     expect(progressBar.getAttribute("aria-valuemin")).toBe("1");
     expect(progressBar.getAttribute("aria-valuemax")).toBe("30");
 
-    // All three controls present
+    // All three controls present (default / non-slim mode used by the
+    // legacy log-detail.html page).
     expect(canvas.getByText(/Return to Plan/)).toBeInTheDocument();
     expect(canvas.getByText(/Repeat Test/)).toBeInTheDocument();
     expect(canvas.getByText(/Continue Plan/)).toBeInTheDocument();
@@ -273,5 +274,94 @@ export const ProgressClampsOutOfRangeIndex = {
     const progressBar = canvasElement.querySelector('[role="progressbar"]');
     expect(progressBar.getAttribute("aria-valuenow")).toBe("30");
     expect(progressBar.getAttribute("aria-valuemax")).toBe("30");
+  },
+};
+
+export const SlimMidPlan = {
+  // Slim mode is what the v2 log-detail page uses: the page-level
+  // breadcrumb owns "Return to Plan" and the sticky status bar primary
+  // owns "Repeat", so this widget contributes only progress + Continue.
+  render: () =>
+    html`<cts-test-nav-controls
+      test-id="${TEST_ID}"
+      plan-id="${PLAN_ID}"
+      .currentIndex=${5}
+      .totalCount=${30}
+      .nextEnabled=${true}
+      slim
+    ></cts-test-nav-controls>`,
+  async play({ canvasElement }) {
+    const canvas = within(canvasElement);
+    await waitFor(() => {
+      expect(canvas.getByText("Module 6 of 30")).toBeInTheDocument();
+    });
+
+    expect(canvasElement.querySelector('[data-testid="back-btn"]')).toBeNull();
+    expect(canvasElement.querySelector('[data-testid="repeat-btn"]')).toBeNull();
+    expect(canvasElement.querySelector('[data-testid="continue-btn"]')).toBeTruthy();
+    expect(canvas.getByText(/Continue Plan/)).toBeInTheDocument();
+  },
+};
+
+export const SlimEmptyDuringPlanLoad = {
+  // Transient state during the /api/plan fetch: planId is set but
+  // totalCount is still 0 and nextEnabled is false. The slim cluster
+  // has nothing useful to render, so it returns `nothing` — leaving
+  // the host element empty. The page-level
+  // `.ctsNavRow:has(cts-test-nav-controls:empty)` rule then hides
+  // the wrapping nav row so its border-bottom doesn't paint a stray
+  // divider under the sticky status bar.
+  render: () =>
+    html`<cts-test-nav-controls
+      test-id="${TEST_ID}"
+      plan-id="${PLAN_ID}"
+      .currentIndex=${0}
+      .totalCount=${0}
+      .nextEnabled=${false}
+      slim
+    ></cts-test-nav-controls>`,
+  async play({ canvasElement }) {
+    const host = /** @type {any} */ (
+      await waitFor(() => {
+        const el = canvasElement.querySelector("cts-test-nav-controls");
+        if (!el) throw new Error("host not yet mounted");
+        return el;
+      })
+    );
+    await host.updateComplete;
+    // No semantic content rendered — the page-level
+    // `:has(cts-test-nav-controls:empty)` selector relies on the
+    // host having no element children, which is what render() ->
+    // nothing produces (Lit only commits a comment marker, never an
+    // element, when the top-level template is `nothing`).
+    expect(host.querySelector('[role="group"]')).toBeNull();
+    expect(host.querySelector('[role="progressbar"]')).toBeNull();
+    expect(host.querySelector('[data-testid="continue-btn"]')).toBeNull();
+  },
+};
+
+export const SlimLastModuleProgressOnly = {
+  // End of the plan in slim mode: Continue is hidden because there is
+  // no next module, so the cluster collapses to just the progress
+  // indicator. Back nav lives in the breadcrumb; Repeat lives in the
+  // sticky status bar primary.
+  render: () =>
+    html`<cts-test-nav-controls
+      test-id="${TEST_ID}"
+      plan-id="${PLAN_ID}"
+      .currentIndex=${29}
+      .totalCount=${30}
+      .nextEnabled=${false}
+      slim
+    ></cts-test-nav-controls>`,
+  async play({ canvasElement }) {
+    const canvas = within(canvasElement);
+    await waitFor(() => {
+      expect(canvas.getByText("Module 30 of 30")).toBeInTheDocument();
+    });
+
+    expect(canvasElement.querySelector('[data-testid="back-btn"]')).toBeNull();
+    expect(canvasElement.querySelector('[data-testid="repeat-btn"]')).toBeNull();
+    expect(canvasElement.querySelector('[data-testid="continue-btn"]')).toBeNull();
   },
 };

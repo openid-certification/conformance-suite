@@ -108,9 +108,17 @@
      intrinsic width budget; the rest of the row flexes for the entries
      stream. Below 1440px the grid collapses back to a single column,
      and the rail host hides via `display: none` so it doesn't reserve
-     vertical space. */
+     vertical space.
+
+     The `:has(#ctsLogToc:not([hidden]))` guard means the grid only
+     activates when the rail is actually visible. The rail itself drops
+     a `hidden` attribute when (a) the user disabled the preference or
+     (b) it has zero blocks AND zero failures (e.g. an INTERRUPTED test
+     that never ran a condition). In either case the page collapses to
+     single-column and the main content reclaims the full page width
+     instead of leaving a 320px column reserved for an empty heading. */
   @media (min-width: 1440px) {
-    .log-page-v2--with-toc {
+    .log-page-v2--with-toc:has(#ctsLogToc:not([hidden])) {
       display: grid;
       grid-template-columns: 1fr 320px;
       gap: var(--space-5);
