@@ -2,40 +2,19 @@
 <html>
 
 <head>
-<!-- Feature-flag redirect to log-detail-v2.html (Lit-triad page).
-     ?ff=lit-log     → set 30-day cts-lit-log cookie + redirect to v2
-     ?ff=legacy      → clear cookie, render this legacy page
-     cts-lit-log=1   → redirect to v2 on every load while present
-     (none of the above) → render the legacy page as today
-
-     Removed entirely by the flag-flip MR (see board doc and the U1
-     plan's Cleanup MR diff preview). Until then, every user-visible
-     bug fix MUST land on BOTH log-detail.html and log-detail-v2.html;
-     diverged behaviour blocks the flag-flip. -->
-<script>
-  (function ctsLitLogRedirect() {
-    try {
-      var params = new URLSearchParams(window.location.search);
-      var ff = params.get('ff');
-      if (ff === 'lit-log') {
-        document.cookie = 'cts-lit-log=1; max-age=2592000; path=/; SameSite=Lax';
-        params.delete('ff');
-      } else if (ff === 'legacy') {
-        document.cookie = 'cts-lit-log=; max-age=0; path=/; SameSite=Lax';
-        return;  // Continue rendering the legacy page.
-      }
-      var cookieOn = /(?:^|;\s*)cts-lit-log=1\b/.test(document.cookie);
-      if (!cookieOn) return;
-      var search = params.toString();
-      var target = 'log-detail-v2.html'
-        + (search ? '?' + search : '')
-        + window.location.hash;
-      window.location.replace(target);
-    } catch (e) {
-      // Render the legacy page as usual on any unexpected failure.
-    }
-  })();
-</script>
+<!-- ────────────────────────────────────────────────────────────────────
+     Sticky-bar host-overflow audit (per U1 plan §"Open spec gaps for
+     this unit", item P1). U2 will introduce a `position: sticky` status
+     bar; sticky positioning fails silently when ANY ancestor of the
+     sticky element has `overflow: hidden | auto | clip` or `transform:`.
+     The ancestor chain on log-detail-v2 is:
+         <body>             — no overflow, no transform
+         <main.log-page-v2> — no overflow, no transform (page-grid below)
+         <cts-log-detail-header> — light DOM, scoped CSS sets
+                                    `display: block` only
+     None of these break sticky. U2 may therefore mount the status bar
+     anywhere inside <main.log-page-v2> without DOM reparenting.
+     ──────────────────────────────────────────────────────────────────── -->
 
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
@@ -43,1958 +22,227 @@
 <!-- As per https://developer.chrome.com/blog/digital-credentials-api-origin-trial#participate_in_the_origin_trial -->
 <meta http-equiv="origin-trial" content="Ak6yRqDEJnQl6dIoCp8cYItDTJOtrob5TnMXBHzy4M/18VMLkOs4YEr1TC/PtnpAs0SFzOop0TV3J/fXVfbJlAgAAACCeyJvcmlnaW4iOiJodHRwczovL2NlcnRpZmljYXRpb24ub3BlbmlkLm5ldDo0NDMiLCJmZWF0dXJlIjoiV2ViSWRlbnRpdHlEaWdpdGFsQ3JlZGVudGlhbHMiLCJleHBpcnkiOjE3NjA0MDAwMDAsImlzU3ViZG9tYWluIjp0cnVlfQ==">
 
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta charset="UTF-8">
 <title>OIDF Conformance: Test Detail</title>
 
-<!-- Boostrap Icons -->
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap">
-<link rel="stylesheet" href="/vendor/prettify/css/prettify.css" />
-
 <link rel="preload" as="font" type="font/woff2" href="/fonts/inter/Inter-Variable.woff2" crossorigin>
 <link rel="stylesheet" href="/css/oidf-tokens.css">
-<link rel="stylesheet" type="text/css" href="css/layout.css">
 <link rel="stylesheet" href="/css/oidf-app.css">
 
-<script src="/vendor/lodash/js/lodash.min.js"></script>
+<!-- Vendor JS used only by the running-test slot wiring (browser-URL QR
+     code + copy-to-clipboard) inside js/log-detail-v2.js. Loaded as
+     classic <script> so the global QRCode / ClipboardJS bindings are
+     ready before the bootstrap module evaluates. -->
 <script src="/vendor/clipboard/js/clipboard.min.js"></script>
 <script src="/js/cts-clipboard-resolver.js"></script>
-<script src="/vendor/chroma/js/chroma.min.js"></script>
-<script src="/vendor/randomcolor/js/randomColor.js"></script>
-
-<script src="/vendor/prettify/js/prettify.js"></script>
 <script src="/vendor/qrcode/js/qrcode.min.js"></script>
 
-<script type="text/javascript" src="js/fapi.ui.js"></script>
-    <script>window.litDisableBundleWarning = true;</script>
-    <script type="importmap">{"imports":{"lit":"/vendor/lit/lit.js","lit/":"/vendor/lit/","lit/directives/async-append.js":"/vendor/lit/lit.js","lit/directives/async-replace.js":"/vendor/lit/lit.js","lit/directives/cache.js":"/vendor/lit/lit.js","lit/directives/choose.js":"/vendor/lit/lit.js","lit/directives/class-map.js":"/vendor/lit/lit.js","lit/directives/guard.js":"/vendor/lit/lit.js","lit/directives/if-defined.js":"/vendor/lit/lit.js","lit/directives/join.js":"/vendor/lit/lit.js","lit/directives/keyed.js":"/vendor/lit/lit.js","lit/directives/live.js":"/vendor/lit/lit.js","lit/directives/map.js":"/vendor/lit/lit.js","lit/directives/range.js":"/vendor/lit/lit.js","lit/directives/ref.js":"/vendor/lit/lit.js","lit/directives/repeat.js":"/vendor/lit/lit.js","lit/directives/style-map.js":"/vendor/lit/lit.js","lit/directives/template-content.js":"/vendor/lit/lit.js","lit/directives/unsafe-html.js":"/vendor/lit/lit.js","lit/directives/unsafe-svg.js":"/vendor/lit/lit.js","lit/directives/until.js":"/vendor/lit/lit.js","lit/directives/when.js":"/vendor/lit/lit.js","@lit/reactive-element":"/vendor/lit/lit.js","@lit/reactive-element/":"/vendor/lit/","lit-html":"/vendor/lit/lit.js","lit-html/":"/vendor/lit/","lit-element/":"/vendor/lit/"}}</script>
-    <script type="module" src="/components/cts-navbar.js"></script>
-    <script type="module" src="/components/cts-modal.js"></script>
-    <script type="module" src="/components/cts-button.js"></script>
-    <script type="module" src="/components/cts-link-button.js"></script>
-    <script type="module" src="/components/cts-badge.js"></script>
-    <script type="module" src="/components/cts-alert.js"></script>
-    <script type="module" src="/components/cts-icon.js"></script>
-    <script type="module" src="/components/cts-crumb.js"></script>
-    <script type="module" src="/components/cts-tooltip.js"></script>
-    <script type="module" src="/components/cts-test-nav-controls.js"></script>
-    <script type="module" src="/components/cts-json-editor.js"></script>
-    <script type="module" src="/components/test-summary-split.js"></script>
+<!-- Importmap copied verbatim from log-detail.html. The shared list of
+     directives keeps the lit-importmap drift-detection spec
+     (frontend/e2e/lit-importmap.spec.js) green when this page joins
+     the PAGES roster. -->
+<script>window.litDisableBundleWarning = true;</script>
+<script type="importmap">{"imports":{"lit":"/vendor/lit/lit.js","lit/":"/vendor/lit/","lit/directives/async-append.js":"/vendor/lit/lit.js","lit/directives/async-replace.js":"/vendor/lit/lit.js","lit/directives/cache.js":"/vendor/lit/lit.js","lit/directives/choose.js":"/vendor/lit/lit.js","lit/directives/class-map.js":"/vendor/lit/lit.js","lit/directives/guard.js":"/vendor/lit/lit.js","lit/directives/if-defined.js":"/vendor/lit/lit.js","lit/directives/join.js":"/vendor/lit/lit.js","lit/directives/keyed.js":"/vendor/lit/lit.js","lit/directives/live.js":"/vendor/lit/lit.js","lit/directives/map.js":"/vendor/lit/lit.js","lit/directives/range.js":"/vendor/lit/lit.js","lit/directives/ref.js":"/vendor/lit/lit.js","lit/directives/repeat.js":"/vendor/lit/lit.js","lit/directives/style-map.js":"/vendor/lit/lit.js","lit/directives/template-content.js":"/vendor/lit/lit.js","lit/directives/unsafe-html.js":"/vendor/lit/lit.js","lit/directives/unsafe-svg.js":"/vendor/lit/lit.js","lit/directives/until.js":"/vendor/lit/lit.js","lit/directives/when.js":"/vendor/lit/lit.js","@lit/reactive-element":"/vendor/lit/lit.js","@lit/reactive-element/":"/vendor/lit/","lit-html":"/vendor/lit/lit.js","lit-html/":"/vendor/lit/","lit-element/":"/vendor/lit/"}}</script>
 
-    <style>
-        /* ----------------------------------------------------------------
-           Page-level layout for log-detail.html and the templates it
-           injects (logHeader.html, logEntry.html, more.html, browser.html,
-           startBlock.html, finalError.html, failureSummary.html, etc.).
-           Replaces the legacy Bootstrap grid (`row` / `col-md-N`) with
-           token-based scoped layout. Class names are kept verbose and
-           prefixed with `log-` so they don't collide with the rest of
-           the codebase.
-           ---------------------------------------------------------------- */
+<!-- Component modules. cts-log-detail-header transitively pulls in
+     cts-test-nav-controls, cts-button, cts-link-button, cts-badge,
+     cts-alert, cts-icon, cts-json-editor, cts-test-summary,
+     cts-action-overflow, and the test-summary-split helper, so we
+     don't have to declare them individually. cts-log-toc carries its
+     own cts-failure-summary import for the rail's compact instance. -->
+<script type="module" src="/components/cts-navbar.js"></script>
+<script type="module" src="/components/cts-modal.js"></script>
+<script type="module" src="/components/cts-crumb.js"></script>
+<script type="module" src="/components/cts-tooltip.js"></script>
+<script type="module" src="/components/cts-log-detail-header.js"></script>
+<script type="module" src="/components/cts-log-viewer.js"></script>
+<script type="module" src="/components/cts-log-toc.js"></script>
 
-        .log-page {
-            max-width: var(--maxw-page);
-            margin: 0 auto;
-            padding: var(--space-4) var(--space-5);
-            font-family: var(--font-sans);
-        }
+<!-- New-page bootstrap. Loads after components — module ordering is
+     stable because each script type="module" defers until the document
+     is parsed. -->
+<script type="module" src="/js/log-detail-v2.js"></script>
 
-        /* Header card replaces .card / .card-body */
-        .log-header-card {
-            background: var(--bg-elev);
-            border: 1px solid var(--border);
-            border-radius: var(--radius-3);
-            padding: var(--space-4);
-            margin-bottom: var(--space-4);
-        }
-        .log-header-grid {
-            display: grid;
-            grid-template-columns: minmax(160px, 220px) 1fr minmax(180px, 240px);
-            gap: var(--space-4);
-            align-items: start;
-        }
-        .log-header-meta {
-            display: grid;
-            grid-template-columns: minmax(120px, max-content) 1fr;
-            gap: var(--space-2) var(--space-3);
-            font-size: var(--fs-13);
-            color: var(--fg);
-        }
-        .log-header-meta-label {
-            color: var(--fg-soft);
-            font-weight: var(--fw-bold);
-        }
-        .log-header-meta-summary {
-            grid-column: 1 / -1;
-        }
-        .log-header-meta-summary p {
-            margin: 0;
-        }
-        /* R24 zones (.summaryZone / .summaryEyebrow) live in oidf-app.css.
-           Page-local rule: cts-alert children of .log-header-meta span the
-           full grid width so the new zones occupy the same column the
-           legacy summary paragraph used. */
-        .log-header-meta cts-alert {
-            grid-column: 1 / -1;
-        }
-        .log-header-meta cts-alert + cts-alert {
-            margin-top: var(--space-2);
-        }
-        .log-header-controls {
-            display: flex;
-            flex-direction: column;
-            gap: var(--space-2);
-        }
-        .log-header-controls .log-upload-row {
-            display: flex;
-            align-items: center;
-            gap: var(--space-2);
-        }
-        .log-upload-count {
-            display: inline-flex;
-            min-width: 24px;
-            justify-content: center;
-            background: var(--ink-100);
-            color: var(--fg);
-            font-family: var(--font-mono);
-            font-size: var(--fs-12);
-            font-weight: var(--fw-bold);
-            border-radius: var(--radius-pill);
-            padding: 0 8px;
-        }
-        .log-results-row {
-            display: flex;
-            gap: var(--space-3);
-            align-items: baseline;
-            margin-top: var(--space-3);
-        }
-        .log-results-row .log-results-label {
-            color: var(--fg-soft);
-            font-weight: var(--fw-bold);
-            min-width: 90px;
-        }
+<style>
+  /* Page-local layout for log-detail-v2.html. Single-column at narrow
+     widths; widens to a two-column grid (main + rail) at ≥ 1440 px when
+     the user preference allows U8's cts-log-toc. The
+     `.log-page-v2--with-toc` modifier is added by js/log-detail-v2.js
+     on bootstrap when the preference is enabled. */
+  .log-page-v2 {
+    max-width: var(--maxw-page);
+    margin: 0 auto;
+    padding: var(--space-4) var(--space-5);
+    font-family: var(--font-sans);
+  }
+  /* U8 — wide-viewport rail. The 320px right column matches the rail's
+     intrinsic width budget; the rest of the row flexes for the entries
+     stream. Below 1440px the grid collapses back to a single column,
+     and the rail host hides via `display: none` so it doesn't reserve
+     vertical space.
 
-        /* Failure summary block (failureSummary.html) */
-        .failureSummary {
-            margin-top: var(--space-3);
-        }
-        .failureSummaryTitle {
-            font-weight: var(--fw-bold);
-            color: var(--fg);
-            margin-bottom: var(--space-2);
-        }
+     The `:has(#ctsLogToc:not([hidden]))` guard means the grid only
+     activates when the rail is actually visible. The rail itself drops
+     a `hidden` attribute when (a) the user disabled the preference or
+     (b) it has zero blocks AND zero failures (e.g. an INTERRUPTED test
+     that never ran a condition). In either case the page collapses to
+     single-column and the main content reclaims the full page width
+     instead of leaving a 320px column reserved for an empty heading. */
+  @media (min-width: 1440px) {
+    .log-page-v2--with-toc:has(#ctsLogToc:not([hidden])) {
+      display: grid;
+      grid-template-columns: 1fr 320px;
+      gap: var(--space-5);
+      align-items: start;
+    }
+  }
+  @media (max-width: 1439px) {
+    #ctsLogToc {
+      display: none;
+    }
+  }
 
-        /* Running test info card */
-        .log-running-card {
-            background: var(--bg-elev);
-            border: 1px solid var(--border);
-            border-radius: var(--radius-3);
-            padding: var(--space-4);
-            margin-bottom: var(--space-4);
-        }
-        .log-running-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr auto;
-            gap: var(--space-3);
-            align-items: start;
-        }
+  /* Spinner tokens for the loadingModal. Matches the legacy page so
+     visual continuity is preserved during the rollout window. */
+  .v2-spinner-host {
+    text-align: center;
+  }
 
-        /* logEntry.html — token-based replacement for the col-md-N grid.
-           Keeps the existing `.logItem` selector working for JS lookups
-           but routes layout through CSS Grid + tokens. */
-        .logContent {
-            display: flex;
-            flex-direction: column;
-        }
-        .logItem {
-            display: grid;
-            grid-template-columns: 110px 1fr auto;
-            grid-template-rows: auto auto auto;
-            gap: var(--space-1) var(--space-3);
-            padding: var(--space-2) var(--space-3);
-            border-bottom: 1px solid var(--border);
-            font-size: var(--fs-13);
-        }
-        .logItem.startBlock {
-            grid-template-columns: 110px 1fr auto;
-            padding: var(--space-2) var(--space-3);
-        }
-        .log-entry-time {
-            grid-row: 1;
-            grid-column: 1;
-            font-family: var(--font-mono);
-            font-size: var(--fs-12);
-            color: var(--fg-soft);
-        }
-        .log-entry-labels {
-            grid-row: 1;
-            grid-column: 2;
-            display: flex;
-            flex-wrap: wrap;
-            gap: var(--space-1);
-            align-items: center;
-        }
-        .log-entry-labels .log-source {
-            color: var(--fg-soft);
-            font-size: var(--fs-12);
-            margin-left: var(--space-2);
-        }
-        .log-entry-owner {
-            grid-row: 1;
-            grid-column: 3;
-            justify-self: end;
-        }
-        .log-entry-more {
-            grid-row: 2;
-            grid-column: 1;
-            display: flex;
-            justify-content: flex-start;
-            align-items: center;
-            gap: var(--space-1);
-        }
-        .log-entry-requirements {
-            grid-row: 2;
-            grid-column: 2;
-            display: flex;
-            flex-wrap: wrap;
-            gap: var(--space-1);
-        }
-        .log-entry-message {
-            grid-row: 3;
-            grid-column: 1 / -1;
-            color: var(--fg);
-            line-height: var(--lh-base);
-            word-break: break-word;
-        }
-        .log-entry-upload {
-            grid-row: 4;
-            grid-column: 1 / -1;
-        }
-        .log-entry-more-info {
-            grid-row: 5;
-            grid-column: 1 / -1;
-        }
+  /* U4 — failure-summary breakpoint swap. Two `<cts-failure-summary>`
+     instances render simultaneously: one inside the header card
+     (desktop position) and one directly below the sticky status bar
+     (mobile / tablet position). CSS hides whichever doesn't apply at
+     the current breakpoint. The render-twice-hide-one pattern avoids a
+     JS-driven appendChild that would re-mount the component and reset
+     its `_expanded` state. */
+  @media (min-width: 1024px) {
+    #ctsTopFailureSummary { display: none; }
+  }
+  @media (max-width: 1023px) {
+    cts-log-detail-header cts-failure-summary { display: none; }
+  }
+  /* Tighten the page-level instance's spacing — at narrow widths it
+     sits right below the sticky bar and benefits from a slim margin
+     instead of the in-card border-top + padding-top the embedded
+     instance carries. */
+  #ctsTopFailureSummary .failureSummary {
+    margin-top: var(--space-3);
+    border-top: 0;
+    padding-top: 0;
+  }
 
-        /* startBlock.html */
-        .logItem.startBlock {
-            grid-template-rows: auto;
-            font-weight: var(--fw-bold);
-        }
-        .logItem.startBlock .log-entry-message {
-            grid-row: 1;
-            grid-column: 2;
-            color: inherit;
-        }
-
-        /* moreButton.html — composed of cts-badge (count chip) + cts-button
-           (size="xs", variant="secondary"); both primitives own their own
-           tokenized styles, so no .moreBtn CSS lives here anymore. */
-
-        /* more.html — key/value grid that replaces dl.row + col-sm-N.
-           NB: the legacy template inverted the semantic <dt>/<dd>: keys
-           were rendered as <dd> and values as <dt>. The JS that extracts
-           request fields for the cURL generator reads `dt.previousElementSibling`
-           assuming this swap, so we preserve it. .moreKey/.moreValue
-           classes carry the visual roles (label / body) regardless of
-           tag name. */
-        .moreInfo dl {
-            display: grid;
-            grid-template-columns: minmax(120px, 200px) 1fr;
-            gap: var(--space-2) var(--space-3);
-            margin: 0;
-        }
-        .moreInfo .moreKey {
-            margin: 0;
-            color: var(--fg-soft);
-            font-weight: var(--fw-bold);
-            text-align: right;
-            word-break: break-word;
-        }
-        .moreInfo .moreValue {
-            margin: 0;
-            color: var(--fg);
-            word-break: break-word;
-            min-width: 0;
-        }
-
-        /* http.html badges (request/response/etc) */
-        .log-http {
-            display: inline-flex;
-            gap: var(--space-1);
-            align-items: center;
-        }
-        .log-http-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-            background: var(--status-info-bg);
-            color: var(--status-info);
-            border: 1px solid var(--status-info-border);
-            border-radius: var(--radius-pill);
-            padding: 0 8px;
-            font-size: var(--fs-12);
-            font-weight: var(--fw-bold);
-        }
-        .log-http-badge--upload {
-            background: var(--status-warning-bg);
-            color: var(--status-warning);
-            border-color: var(--status-warning-border);
-        }
-        .log-http-curl {
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-            background: transparent;
-            color: var(--fg-muted);
-            border: 1px solid var(--border);
-            border-radius: var(--radius-pill);
-            padding: 0 8px;
-            font-size: var(--fs-12);
-            cursor: pointer;
-            user-select: none;
-        }
-        .log-http-curl:hover {
-            background: var(--ink-50);
-            color: var(--fg);
-        }
-
-        /* requirements.html — keep the inline link pill */
-        .log-requirement {
-            display: inline-block;
-        }
-        .log-requirement a {
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-            background: var(--ink-50);
-            border: 1px solid var(--border);
-            border-radius: var(--radius-pill);
-            color: var(--fg);
-            font-family: var(--font-mono);
-            font-size: var(--fs-12);
-            padding: 1px var(--space-2);
-            text-decoration: none;
-        }
-        .log-requirement a:hover {
-            background: var(--ink-100);
-        }
-
-        /* exported.html / browser.html: dl.row + col-sm-N replacement */
-        .log-exported-grid {
-            display: grid;
-            grid-template-columns: minmax(120px, 25%) 1fr;
-            gap: var(--space-2) var(--space-3);
-            margin: 0;
-        }
-        .log-exported-grid > .log-exported-key {
-            text-align: right;
-            color: var(--fg-soft);
-            font-weight: var(--fw-bold);
-        }
-        .log-browser-grid {
-            display: grid;
-            grid-template-columns: minmax(140px, 25%) 1fr;
-            gap: var(--space-2) var(--space-3);
-            margin: 0;
-        }
-        .log-browser-grid > dt {
-            text-align: right;
-        }
-        .log-browser-grid > dd {
-            margin: 0;
-        }
-        .log-browser-grid .log-browser-url {
-            font-style: italic;
-            word-break: break-all;
-        }
-        .log-browser-card {
-            background: var(--bg-elev);
-            border: 1px solid var(--border);
-            border-radius: var(--radius-2);
-            padding: var(--space-3);
-        }
-
-        /* userinfo.html (rendered by cts-navbar mostly, but template is
-           still loaded for compatibility) */
-        .log-userinfo {
-            display: flex;
-            gap: var(--space-2);
-            align-items: center;
-        }
-
-        /* statusAndResult.html — colored status pill blocks */
-        .testStatusResultBlock {
-            text-align: center;
-            font-weight: var(--fw-bold);
-            padding: var(--space-2);
-            border-radius: var(--radius-2);
-            margin-bottom: var(--space-2);
-            font-size: var(--fs-13);
-        }
-
-        /* fixedDiv (Go to Top button) */
-        #fixedDiv {
-            position: fixed;
-            bottom: 24px;
-            right: 24px;
-            z-index: 100;
-            display: none;
-        }
-    </style>
+  /* U7 — test-summary breakpoint swap. Same render-twice-hide-one
+     pattern as the failure summary above. The header card's instance
+     carries the description (B4) at desktop; the page-level instance
+     hosts the WAITING-state instructions banner (B1) at narrow widths,
+     where it must sit below the sticky bar and above the failure
+     summary. */
+  @media (min-width: 1024px) {
+    #ctsTopTestSummary { display: none; }
+  }
+  @media (max-width: 1023px) {
+    cts-log-detail-header cts-test-summary { display: none; }
+  }
+  /* Visual rhythm at narrow widths: the page-level instance sits
+     immediately below the sticky bar, so add the same outer spacing
+     the in-card instance picks up from the metadata table's gap. */
+  #ctsTopTestSummary {
+    display: block;
+    margin-top: var(--space-3);
+  }
+  @media (min-width: 1024px) {
+    #ctsTopTestSummary { margin-top: 0; }
+  }
+</style>
 </head>
 
 <body>
-    <a class="oidf-skip-link" href="#main-content">Skip to main content</a>
-
-    <cts-navbar current-page=""></cts-navbar>
-
-    <cts-modal id="errorModal" heading="Error">
-        Error: <span id="errorMessage"></span>
-    </cts-modal>
-
-    <cts-modal id="loadingModal" heading="Loading..." static-backdrop no-keyboard>
-        <div style="text-align: center;">
-            <img src="/images/spinner.gif" width="100px" height="30px" alt="Loading" />
-        </div>
-        <div>
-            <span id="loadingMessage"></span>
-        </div>
-    </cts-modal>
-
-    <cts-modal id="configModal" heading="Configuration">
-        <div>
-            <cts-button class="btn-clipboard" icon="log-out" data-clipboard-target="#config" title="Copy config to clipboard"></cts-button>
-            Configuration for <code id="configTestId" style="color: var(--fg-muted);"></code>
-        </div>
-        <div class="wrapLongStrings">
-            <cts-json-editor id="config" readonly aria-label="Test configuration JSON" style="min-height: calc(var(--space-6) * 20);"></cts-json-editor>
-        </div>
-    </cts-modal>
-
-    <cts-modal id="publishModal" heading="Publish"
-        footer-buttons='[{"label": "Publish", "data": {"publish": "everything"}}, {"label": "Cancel"}]'>
-        Are you sure? This will make all keys, secrets, and all other test information publicly visible.
-    </cts-modal>
-
-    <cts-modal id="reRunTestModal" heading="Run test confirmation"
-        footer-buttons='[{"label": "Sure, Run it", "class": "btn-danger", "id": "reRunTestModalBtn"}, {"label": "Cancel"}]'>
-        Are you sure you want to rerun this test? It is owned by a different user.
-    </cts-modal>
-
-    <!-- resident DOM -->
-    <main id="main-content" class="log-page">
-        <cts-crumb id="logDetailCrumb"></cts-crumb>
-        <div id="logDetail">
-            <div class="header"></div>
-            <div id="fixedDiv">
-                <cts-button id="goToTopBtn" icon="arrow-circle-up" label="Go to Top" onclick="goToTop()"></cts-button>
-            </div>
-            <div class="logContent">
-                <!-- log items are rendered here -->
-            </div>
-        </div>
-    </main>
-
-    <script type="text/javascript">
-        function getLogs(testId, public) {
-
-            return fetch('/api/log/' + encodeURIComponent(testId) + '?public=' + public + ( FAPI_UI.latestTestEntry > 0 ? '&since=' + encodeURIComponent(FAPI_UI.latestTestEntry) : ''))
-            .then((response) => {
-                if (!response.ok) {
-                    return Promise.reject(response);
-                }
-
-                return response.json();
-            })
-            .then((data) => {
-                // clear any existing log items
-                //$('#logDetail .logContent').html('');
-
-                if (data.length > 0) {
-                    // we got some potentially new test data, reload faster
-                    FAPI_UI.resetReloadPause();
-                } else {
-                    // we didn't get new data, slow down
-                    FAPI_UI.incrementReloadPause();
-                }
-
-                var startBlock = '';
-                _.each(data, function(item, i) {
-
-                    var existing = document.querySelectorAll(`[data-item-entry-id='${item._id}']`);
-
-                    // check to see if we've seen it before
-                    if (existing.length == 0) {
-
-                        if (item.blockId && item.startBlock) {
-                            // render the start-block special entry
-                            var el = document.createElement("div");
-                            el.innerHTML = FAPI_UI.logTemplates.START_BLOCK({
-                                item: item
-                            });
-                        } else {
-                            // render the base element
-                            var el = document.createElement("div");
-                            el.innerHTML = FAPI_UI.logTemplates.LOG_DETAIL({
-                                item: item,
-                                public: public
-                            });
-                        }
-
-                        if(item.startBlock) startBlock = item.msg + ': ';
-
-                        if ('result' in item &&
-                            (item.result === 'SKIPPED' ||
-                            item.result === 'INTERRUPTED' ||
-                            item.result === 'FAILURE' ||
-                            item.result === 'WARNING')) {
-
-                            var failureDetailInfo = FAPI_UI.logTemplates.FAILURE_SUMMARY({
-                                item: item,
-                                startBlock: item.blockId != null ? startBlock : ''
-                            });
-
-                            document.querySelector('.failureSummaryTitle').removeAttribute('hidden');
-
-                            const newDiv = document.createElement("div");
-                            newDiv.insertAdjacentHTML('beforeend', failureDetailInfo);
-                            newDiv.querySelector('.failureText').onclick = function(evt) {
-
-                                const rect = document.querySelector(`[data-item-entry-id='${item._id}']`).getBoundingClientRect();
-                                const top = rect.top + window.scrollY;
-
-                                window.scrollTo({top: top - 200, behavior: 'smooth'});
-                            };
-                            document.querySelector('.failureSummary').append(newDiv);
-                        }
-
-                        document.querySelector('#logDetail .logContent').append(el);
-
-                        // see if we've got any "extra" bits that we want to display in a block
-                        var more = _.pickBy(item, function(value, key) {
-                            return !_.includes(FAPI_UI.visibleFields, key) && !key.startsWith("_");
-                        });
-
-                        if (!_.isEmpty(more)) {
-                            // we have extra fields so let's attach them
-                            var moreButton = FAPI_UI.logTemplates.MORE_BUTTON({
-                                more: more,
-                                item: item
-                            });
-                            var moreInfo = FAPI_UI.logTemplates.MORE({
-                                more: more,
-                                item: item
-                            });
-
-                            el.querySelector('.moreButtonContainer').insertAdjacentHTML('beforeend', moreButton);
-                            el.querySelector('.moreInfoContainer').insertAdjacentHTML('beforeend', moreInfo);
-
-                            // wire up the button. The .moreBtn class lives on the
-                            // cts-button host (light DOM forwards classes), so the
-                            // selector still resolves and click bubbles from the
-                            // inner native button. Chevron swap goes through
-                            // cts-button's reactive `icon` property.
-                            el.querySelector('.moreBtn').onclick = function(evt) {
-                                const expanded = this.dataset.activated === "true";
-                                el.querySelector('.moreInfo').classList.toggle('show', !expanded);
-                                this.setAttribute('icon', expanded ? 'chevron-down' : 'chevron-up');
-                                this.dataset.activated = expanded ? "false" : "true";
-                            };
-
-                            // prettyprint any raw JSON values
-                            PR.prettyPrint();
-                        } else {
-                            el.querySelector('.moreButtonContainer').insertAdjacentHTML('beforeend', "&nbsp;");
-                        }
-
-                        // write down the "last" log entry we've seen so far so we don't have to re-fetch it at all; if it does happen we can ignore it
-                        FAPI_UI.latestTestEntry = _.max([FAPI_UI.latestTestEntry, item.time]);
-
-                    } else {
-                           // skipping an existing element
-                           //console.log('Skipping existing: ' + item._id);
-                           // TODO: update log entries that have been updated (such as an automated placeholder fulfillment)
-                    }
-
-                });
-
-                // total the amounts for display
-                const allResults = [];
-                document.querySelectorAll('[data-entry-result]')?.forEach(function(element) {
-                    allResults.push(element.dataset.entryResult);
-                });
-
-                var resultTotals = _.countBy(allResults, _.identity());
-
-                var possibleResults = ['success', 'failure', 'warning', 'review', 'info'];
-                var results = '';
-                _.each(possibleResults, function(result) {
-                       results += FAPI_UI.logTemplates.SUMMARY({result: result, value: resultTotals[result]});
-                });
-                document.getElementById('testResultSummary').innerHTML = results;
-
-                // count up any "image required" items
-                const uploadCount  = document.querySelectorAll('[data-image-required]')?.length;
-                if (uploadCount) {
-                    if (document.getElementById('uploadCount') !== null) {
-                        document.getElementById('uploadCount').innerHTML = uploadCount;
-                    }
-
-                    if (document.getElementById('uploadBtn') !== null) {
-                        document.getElementById('uploadBtn').variant = 'info';
-                    }
-                } else {
-                    if (document.getElementById('uploadCount') !== null) {
-                        document.getElementById('uploadCount').innerHTML = '';
-                    }
-
-                    if (document.getElementById('uploadBtn') !== null) {
-                        document.getElementById('uploadBtn').variant = 'light';
-                    }
-                }
-            })
-            .catch((error) => {
-                if (error instanceof Response) {
-                    // We have a 'Respose' object.
-                    var message = error.statusText;
-                    var responseClone = error.clone();
-
-                    error.text()
-                    .then(textError => {
-                        // Text error thrown by the app
-                        messageParsed = true;
-
-                        try {
-                            const errorObj = JSON.parse(textError);
-
-                            if (errorObj.error.length != 0) {
-                                message = errorObj.error;
-                            }
-                        }
-                        catch (e) {
-                        }
-
-                        FAPI_UI.showError({code: error.status.toString(), error: message});
-                    })
-                    .catch(error1 => {
-                        // JSON error thrown by the app
-                        responseClone.json()
-                        .then(jsonError => {
-                            if (typeof (jsonError) === 'string' && jsonError.length != 0) {
-                                message = jsonError;
-                            }
-
-                            FAPI_UI.showError({code: error.status.toString(), error: message});
-                        })
-                        .catch(genericError => {
-                            // Error thrown by the server
-                            FAPI_UI.showError({code: error.status.toString(), error: error.statusText});
-                        });
-                    });
-                } else {
-                    // Network error automatically detected by fetch.
-                    FAPI_UI.showError({code: "", error: error});
-                }
-
-                // don't update anymore
-                stopReloader();
-            });
-        }
-
-        let fixedDiv= document.getElementById("fixedDiv");
-        window.onscroll = function() {scrollFunction()};
-
-        function scrollFunction() {
-            const scrollDistance = 400
-            if (document.body.scrollTop > scrollDistance || document.documentElement.scrollTop > scrollDistance) {
-            fixedDiv.style.display = "block";
-            } else {
-            fixedDiv.style.display = "none";
-            }
-        }
-
-        function goToTop() {
-          document.body.scrollTop = 0;
-          document.documentElement.scrollTop = 0;
-        }
-
-        function getHeader(testId, public) {
-            // this is the page header, fill it in with log details
-            let infoUrl = '/api/info/' + encodeURIComponent(testId) + (public ? '?public=true' : '');
-            return fetch(infoUrl)
-            .then((response) => {
-                if (!response.ok) {
-                    return Promise.reject(response);
-                }
-
-                return response.json();
-            })
-            .then((data) => {
-                // save the status for the 'active' panel later
-                if (data.status) {
-                    if (FAPI_UI.status != data.status.toLowerCase()) {
-                        FAPI_UI.resetReloadPause(); // the status changed, might want to pay more attention
-                        FAPI_UI.status = data.status.toLowerCase();
-                    }
-                }
-
-                var readonly = public || !FAPI_UI.currentUser || FAPI_UI.currentUser.isGuest;
-
-                // see if we've already rendered this
-                var existing = document.querySelectorAll(`#logDetail .header [data-instance-id='${testId}']`);
-
-                if (existing.length == 0) {
-                    // Build the breadcrumb trail from the loaded test info.
-                    // Logs page (or plan-detail when there's a plan) -> this
-                    // test ID. cts-crumb dispatches `cts-crumb-navigate` on
-                    // click; the listener routes the user to the right page.
-                    const crumb = document.getElementById('logDetailCrumb');
-                    if (crumb) {
-                        const items = [];
-                        if (data.planId) {
-                            items.push({
-                                label: 'Plan',
-                                target: '/plan-detail.html?plan=' + encodeURIComponent(data.planId) + (public ? '&public=true' : '')
-                            });
-                        } else {
-                            items.push({ label: 'Logs', target: '/logs.html' });
-                        }
-                        items.push({ label: data.testId, target: '' });
-                        crumb.items = items;
-                        crumb.addEventListener('cts-crumb-navigate', function(evt) {
-                            if (evt.detail && evt.detail.target) {
-                                window.location.assign(evt.detail.target);
-                            }
-                        });
-                    }
-
-                    document.querySelector('#logDetail .header').innerHTML =
-                        FAPI_UI.logTemplates.LOG_START({
-                            test: data,
-                            public: public,
-                            readonly: readonly,
-                            variant: FAPI_UI.formatVariant(data.variant)
-                        });
-
-                    if (document.getElementById('downloadBtn') !== null) {
-                        document.getElementById('downloadBtn').onclick = function(evt) {
-                            evt.preventDefault();
-                            window.open('/api/log/exporthtml/' + encodeURIComponent(testId) + (public ? '?public=true' : ''));
-                        };
-                    }
-
-                    if (document.getElementById('uploadBtn') !== null) {
-                        document.getElementById('uploadBtn').onclick = function(evt) {
-                            evt.preventDefault();
-                            window.open('/upload.html?log=' + encodeURIComponent(testId));
-                        };
-                    }
-
-                    FAPI_UI.setupPrivateLinkSharing('/api/info/' + encodeURIComponent(testId) + '/share');
-
-                    // R21: nav cluster (Return to Plan / Repeat Test /
-                    // Continue Plan / progress) replaces the legacy
-                    // reloadBtn / planBtn / nextPlanBtn IDs. The widget
-                    // emits cts-repeat / cts-continue; the
-                    // /api/plan fetch below sets currentIndex /
-                    // totalCount / nextEnabled once plan data is in.
-                    var navControls = document.getElementById('testNavControls');
-                    if (navControls) {
-                        navControls.testId = data.testId;
-                        navControls.planId = data.planId || "";
-                        navControls.publicView = !!public;
-                        navControls.readonly = !!readonly;
-
-                        navControls.addEventListener('cts-repeat', function() {
-                            if (FAPI_UI.currentUser.sub !== data.owner.sub) {
-                                document.getElementById('reRunTestModal').show();
-                            } else {
-                                runTest(data.testName, data.variant, data.planId, data.config, testId);
-                            }
-                        });
-                    }
-
-                    // wire up configuration button
-                    if (document.getElementById('showConfigBtn') !== null) {
-                        document.getElementById('showConfigBtn').onclick = function(evt) {
-                            evt.preventDefault();
-                            // cts-json-editor exposes `.value` as a string, mirroring
-                            // <textarea> semantics. Monaco renders text content (no
-                            // markup), so the lodash _.escape that guarded the legacy
-                            // <pre> is no longer required.
-                            document.getElementById('config').value = JSON.stringify(data.config, null, 4);
-                            document.getElementById('configTestId').innerHTML = _.escape(testId);
-
-                            document.getElementById('configModal').show();
-                        };
-                    }
-
-                    if (document.getElementById('editConfigBtn') !== null) {
-                        document.getElementById('editConfigBtn').onclick = function(evt) {
-                            evt.preventDefault();
-                            if (data.planId) {
-                                window.location.assign('/schedule-test.html?edit-plan=' + encodeURIComponent(data.planId));
-                            } else {
-                                window.location.assign('/schedule-test.html?edit-test=' + encodeURIComponent(data.testId));
-                            }
-                        };
-                        document.getElementById('editConfigBtn').style.display = '';
-                    }
-
-                    // wire up publish button
-                    if (document.getElementById('publishBtn') !== null) {
-                        document.getElementById('publishBtn').onclick = function(evt) {
-                            evt.preventDefault();
-
-                            document.getElementById('publishModal').show();
-                        };
-                    }
-
-                    if (document.getElementById('stopBtn') !== null) {
-                        document.getElementById('stopBtn').onclick = function(evt) {
-                            evt.preventDefault();
-                            FAPI_UI.showBusy('Stopping test...');
-
-                            fetch('/api/runner/' + encodeURIComponent(testId), {
-                                method: "DELETE",
-                            })
-                            .then((response) => {
-                                if (!response.ok) {
-                                    return Promise.reject(response);
-                                }
-
-                                stopReloader();
-                                return reload(testId);
-                            })
-                            .catch((error) => {
-                                if (error instanceof Response) {
-                                    // We have a 'Respose' object.
-                                    var message = error.statusText;
-                                    var responseClone = error.clone();
-
-                                    error.text()
-                                    .then(textError => {
-                                        // Text error thrown by the app
-                                        messageParsed = true;
-
-                                        try {
-                                            const errorObj = JSON.parse(textError);
-
-                                            if (errorObj.error.length != 0) {
-                                                message = errorObj.error;
-                                            }
-                                        }
-                                        catch (e) {
-                                        }
-
-                                        FAPI_UI.showError({code: error.status.toString(), error: message});
-                                    })
-                                    .catch(error1 => {
-                                        // JSON error thrown by the app
-                                        responseClone.json()
-                                        .then(jsonError => {
-                                            if (typeof (jsonError) === 'string' && jsonError.length != 0) {
-                                                message = jsonError;
-                                            }
-
-                                            FAPI_UI.showError({code: error.status.toString(), error: message});
-                                        })
-                                        .catch(genericError => {
-                                            // Error thrown by the server
-                                            FAPI_UI.showError({code: error.status.toString(), error: error.statusText});
-                                        });
-                                    });
-                                } else {
-                                    // Network error automatically detected by fetch.
-                                    FAPI_UI.showError({code: "", error: error});
-                                }
-
-                                stopReloader();
-                                return reload(testId);
-                            })
-                            .finally(function() {
-                                FAPI_UI.hideBusy();
-                            });
-                        };
-
-                    }
-
-                    if (document.getElementById('startBtn') !== null) {
-                        document.getElementById('startBtn').onclick = function(evt) {
-                            evt.preventDefault();
-                            FAPI_UI.showBusy('Starting test...');
-
-                            fetch('/api/runner/' + encodeURIComponent(testId), {
-                                method: "POST",
-                            })
-                            .then((response) => {
-                                if (!response.ok) {
-                                    return Promise.reject(response);
-                                }
-
-                                return reload(testId);
-                            })
-                            .catch((error) => {
-                                if (error instanceof Response) {
-                                    // We have a 'Respose' object.
-                                    var message = error.statusText;
-                                    var responseClone = error.clone();
-
-                                    error.text()
-                                    .then(textError => {
-                                        // Text error thrown by the app
-                                        messageParsed = true;
-
-                                        try {
-                                            const errorObj = JSON.parse(textError);
-
-                                            if (errorObj.error.length != 0) {
-                                                message = errorObj.error;
-                                            }
-                                        }
-                                        catch (e) {
-                                        }
-
-                                        FAPI_UI.showError({code: error.status.toString(), error: message});
-                                    })
-                                    .catch(error1 => {
-                                        // JSON error thrown by the app
-                                        responseClone.json()
-                                        .then(jsonError => {
-                                            if (typeof (jsonError) === 'string' && jsonError.length != 0) {
-                                                message = jsonError;
-                                            }
-
-                                            FAPI_UI.showError({code: error.status.toString(), error: message});
-                                        })
-                                        .catch(genericError => {
-                                            // Error thrown by the server
-                                            FAPI_UI.showError({code: error.status.toString(), error: error.statusText});
-                                        });
-                                    });
-                                } else {
-                                    // Network error automatically detected by fetch.
-                                    FAPI_UI.showError({code: "", error: error});
-                                }
-
-                                stopReloader();
-                            })
-                            .finally(function() {
-                                FAPI_UI.hideBusy();
-                            });
-                        };
-
-                    }
-
-                    // Return-to-Plan navigation lives on the
-                    // cts-test-nav-controls widget — it renders a
-                    // real <a href> via cts-link-button that supports
-                    // middle-click and Cmd-click. No page-level
-                    // listener is needed; native link navigation
-                    // drives the transition to plan-detail.html.
-
-                    if (!readonly && data.planId) {
-                        fetch('/api/plan/' + encodeURIComponent(data.planId))
-                        .then((response) => {
-                            if (!response.ok) {
-                                return Promise.reject(response);
-                            }
-
-                            return response.json();
-                        })
-                        .then((planData) => {
-                            var variant = _.clone(data.variant);
-                            function removeUserConfiguredVariant(value, key, map) {
-                                delete variant[key];
-                            }
-                            _.each(planData.variant, removeUserConfiguredVariant);
-                            if (_.isEmpty(variant)) {
-                                variant = null;
-                            }
-                            // Older /api/plan responses may not include a
-                            // modules array. Treat that as "no plan
-                            // modules visible" rather than crashing on
-                            // .modules.length.
-                            var planModules = Array.isArray(planData.modules) ? planData.modules : [];
-
-                            var thisModuleIndex = _.findIndex(planModules, function (module) {
-                                if (_.isEmpty(module.variant)) {
-                                    module.variant = null;
-                                }
-                                return module.testModule == data.testName && _.isEqual(module.variant, variant);
-                            });
-
-                            var hasNextModule = thisModuleIndex >= 0 && thisModuleIndex < (planModules.length - 1);
-
-                            // Feed the nav widget the plan position so it can
-                            // render "Module X of N" and decide whether to
-                            // show the Continue Plan button.
-                            if (navControls) {
-                                navControls.currentIndex = thisModuleIndex;
-                                navControls.totalCount = planModules.length;
-                                navControls.nextEnabled = hasNextModule;
-                            }
-
-                            if (hasNextModule) {
-                                // there's a "next" module we can run in this test plan
-                                var nextModule = planModules[thisModuleIndex + 1];
-
-                                if (navControls) {
-                                    navControls.addEventListener('cts-continue', function() {
-                                        FAPI_UI.showBusy('Creating a new test for ' + nextModule.testModule + '...');
-
-                                        var runTestUrl = '/api/runner?test=' + encodeURIComponent(nextModule.testModule) + '&plan=' + encodeURIComponent(data.planId);
-                                        var testVariant = nextModule.variant;
-                                        if (testVariant !== null && testVariant !== undefined) {
-                                            runTestUrl += '&variant=' + encodeURIComponent(JSON.stringify(testVariant));
-                                        }
-
-                                        fetch(runTestUrl, {
-                                            method: "POST",
-                                            headers: {
-                                                "Content-Type": "application/json",
-                                            },
-                                        })
-                                        .then((response) => {
-                                            if (!response.ok) {
-                                                return Promise.reject(response);
-                                            }
-
-                                            return response.json();
-                                        })
-                                        .then((data) => {
-                                            // we need to switch to the new window now
-                                            var newUrl = window.location.href.replace(testId, data.id);
-                                            window.location.assign(newUrl);
-                                        })
-                                        .catch((error) => {
-                                            if (error instanceof Response) {
-                                                // We have a 'Respose' object.
-                                                var message = error.statusText;
-                                                var responseClone = error.clone();
-
-                                                error.text()
-                                                .then(textError => {
-                                                    // Text error thrown by the app
-                                                    messageParsed = true;
-
-                                                    try {
-                                                        const errorObj = JSON.parse(textError);
-
-                                                        if (errorObj.error.length != 0) {
-                                                            message = errorObj.error;
-                                                        }
-                                                    }
-                                                    catch (e) {
-                                                    }
-
-                                                    FAPI_UI.showError({code: error.status.toString(), error: message});
-                                                })
-                                                .catch(error1 => {
-                                                    // JSON error thrown by the app
-                                                    responseClone.json()
-                                                    .then(jsonError => {
-                                                        if (typeof (jsonError) === 'string' && jsonError.length != 0) {
-                                                            message = jsonError;
-                                                        }
-
-                                                        FAPI_UI.showError({code: error.status.toString(), error: message});
-                                                    })
-                                                    .catch(genericError => {
-                                                        // Error thrown by the server
-                                                        FAPI_UI.showError({code: error.status.toString(), error: error.statusText});
-                                                    });
-                                                });
-                                            } else {
-                                                // Network error automatically detected by fetch.
-                                                FAPI_UI.showError({code: "", error: error});
-                                            }
-
-                                            // don't update anymore
-                                            stopReloader();
-                                        });
-                                    });
-                                }
-                            }
-
-                            document.querySelector('[data-publish]').onclick = function(evt) {
-                                evt.preventDefault();
-
-                                var publish = this.dataset.publish;
-
-                                fetch('/api/info/' + encodeURIComponent(testId) + '/publish', {
-                                    method: "POST",
-                                    headers: {
-                                        "Content-Type": "application/json",
-                                    },
-                                    body: JSON.stringify({ publish: publish }),
-                                })
-                                .then((response) => {
-                                    if (!response.ok) {
-                                        return Promise.reject(response);
-                                    }
-
-                                    return response.json();
-                                })
-                                .then((data) => {
-                                   // redirect to the published version or reload
-                                   window.location.assign('/log-detail.html?log=' + encodeURIComponent(testId) + (publish ? '&public=true' : ''));
-                                })
-                                .catch((error) => {
-                                    if (error instanceof Response) {
-                                        // We have a 'Respose' object.
-                                        var message = error.statusText;
-                                        var responseClone = error.clone();
-
-                                        error.text()
-                                        .then(textError => {
-                                            // Text error thrown by the app
-                                            messageParsed = true;
-
-                                            try {
-                                                const errorObj = JSON.parse(textError);
-
-                                                if (errorObj.error.length != 0) {
-                                                    message = errorObj.error;
-                                                }
-                                            }
-                                            catch (e) {
-                                            }
-
-                                            FAPI_UI.showError({code: error.status.toString(), error: message});
-                                        })
-                                        .catch(error1 => {
-                                            // JSON error thrown by the app
-                                            responseClone.json()
-                                            .then(jsonError => {
-                                                if (typeof (jsonError) === 'string' && jsonError.length != 0) {
-                                                    message = jsonError;
-                                                }
-
-                                                FAPI_UI.showError({code: error.status.toString(), error: message});
-                                            })
-                                            .catch(genericError => {
-                                                // Error thrown by the server
-                                                FAPI_UI.showError({code: error.status.toString(), error: error.statusText});
-                                            });
-                                        });
-                                    } else {
-                                        // Network error automatically detected by fetch.
-                                        FAPI_UI.showError({code: "", error: error});
-                                    }
-                                });
-                            }
-                        })
-                        .catch((error) => {
-                            if (error instanceof Response) {
-                                // We have a 'Respose' object.
-                                var message = error.statusText;
-                                var responseClone = error.clone();
-
-                                error.text()
-                                .then(textError => {
-                                    // Text error thrown by the app
-                                    messageParsed = true;
-
-                                    try {
-                                        const errorObj = JSON.parse(textError);
-
-                                        if (errorObj.error.length != 0) {
-                                            message = errorObj.error;
-                                        }
-                                    }
-                                    catch (e) {
-                                    }
-
-                                    FAPI_UI.showError({code: error.status.toString(), error: message});
-                                })
-                                .catch(error1 => {
-                                    // JSON error thrown by the app
-                                    responseClone.json()
-                                    .then(jsonError => {
-                                        if (typeof (jsonError) === 'string' && jsonError.length != 0) {
-                                            message = jsonError;
-                                        }
-
-                                        FAPI_UI.showError({code: error.status.toString(), error: message});
-                                    })
-                                    .catch(genericError => {
-                                        // Error thrown by the server
-                                        FAPI_UI.showError({code: error.status.toString(), error: error.statusText});
-                                    });
-                                });
-                            } else {
-                                // Network error automatically detected by fetch.
-                                FAPI_UI.showError({code: "", error: error});
-                            }
-
-                            // don't update anymore
-                            stopReloader();
-                        });
-                    }
-
-                    if (document.getElementById('reRunTestModalBtn') !== null) {
-                        document.getElementById('reRunTestModalBtn').onclick = function(evt) {
-                            evt.preventDefault();
-                            runTest(data.testName, data.variant, data.planId, data.config, testId);
-                        };
-                    }
-
-
-                }
-
-                // update the status and result regardless of whether we rendered the header in full
-                document.querySelector('#logDetail .header #testStatusAndResult').innerHTML = FAPI_UI.logTemplates.TEST_STATUS({test: data});
-            })
-            .catch((error) => {
-                if (error instanceof Response) {
-                    // We have a 'Respose' object.
-                    var message = error.statusText;
-                    var responseClone = error.clone();
-
-                    error.text()
-                    .then(textError => {
-                        // Text error thrown by the app
-                        messageParsed = true;
-
-                        try {
-                            const errorObj = JSON.parse(textError);
-
-                            if (errorObj.error.length != 0) {
-                                message = errorObj.error;
-                            }
-                        }
-                        catch (e) {
-                        }
-
-                        FAPI_UI.showError({code: error.status.toString(), error: message});
-                    })
-                    .catch(error1 => {
-                        // JSON error thrown by the app
-                        responseClone.json()
-                        .then(jsonError => {
-                            if (typeof (jsonError) === 'string' && jsonError.length != 0) {
-                                message = jsonError;
-                            }
-
-                            FAPI_UI.showError({code: error.status.toString(), error: message});
-                        })
-                        .catch(genericError => {
-                            // Error thrown by the server
-                            FAPI_UI.showError({code: error.status.toString(), error: error.statusText});
-                        });
-                    });
-                } else {
-                    // Network error automatically detected by fetch.
-                    FAPI_UI.showError({code: "", error: error});
-                }
-
-                // don't update anymore
-                stopReloader();
-
-                // Percolate the error up.
-                return Promise.reject(error);
-            });
-        }
-
-        function isPendingInteraction() {
-            if (FAPI_UI.status == 'interrupted') {
-                return false;
-            }
-
-            if (document.querySelectorAll('#runningTestBrowser .visitBtn')?.length) {
-                return true;
-            }
-
-            if (document.getElementById('startBtn') !== null) {
-                if (document.getElementById('startBtn').classList.contains('show')) {
-                    return true;
-                }
-            }
-
-            return false;
-        }
-
-        function updateTestInfoStickiness(testId) {
-            // make the running test information section float/pin to the top of the window
-            // when there's a button in there the user needs to press
-            const testHeader = document.querySelector(`#logDetail .header [data-instance-id='${testId}']`);
-
-            if (testHeader === null) {
-                return;
-            }
-
-            const rect = testHeader.getBoundingClientRect();
-            const headerInfoDivOffsetTop = rect.top + window.scrollY;
-
-            if (rect.width == 0) {
-                return;
-            }
-            var sticky = headerInfoDivOffsetTop + rect.height + 20;
-
-            if (document.getElementById('runningTestInformation') !== null) {
-                document.getElementById('runningTestInformation').style.width = document.getElementById('logDetail');
-
-                if (window.scrollTop > sticky && isPendingInteraction()) {
-                    document.getElementById('runningTestInformation').classList.add('sticky');
-                } else {
-                    document.getElementById('runningTestInformation').classList.remove('sticky');
-                }
-            }
-        }
-
-        function getActive(testId) {
-
-            return fetch('/api/runner/' + encodeURIComponent(testId))
-            .then((response) => {
-                if (!response.ok) {
-                    return Promise.reject(response);
-                }
-
-                return response.json();
-            })
-            .then((data) => {
-                // show the overall container
-                if (document.getElementById('runningTestInformation') !== null) {
-                    document.getElementById('runningTestInformation').classList.add('show');
-                }
-
-                // if it's an active test, keep it updated unless we figure out otherwise
-                FAPI_UI.running = true;
-
-                // found an active test, light up the buttons appropriately
-                if (FAPI_UI.status) {
-                    if (FAPI_UI.status == 'finished' || FAPI_UI.status == 'interrupted') {
-                        // can't start or stop a stopped test
-                        if (document.getElementById('startBtn') !== null) {
-                            document.getElementById('startBtn').classList.remove('show');
-                        }
-
-                        if (document.getElementById('stopBtn') !== null) {
-                            document.getElementById('stopBtn').classList.remove('show');
-                        }
-
-                        // show the "stopped" alert and hide the other
-                        if (document.getElementById('runningTestActive') !== null) {
-                            document.getElementById('runningTestActive').style.display = 'none';
-                        }
-
-                        if (document.getElementById('runningTestInactive') !== null) {
-                            document.getElementById('runningTestInactive').style.display = '';
-                        }
-
-                        if (document.getElementById('runningTestArchived') !== null) {
-                            document.getElementById('runningTestArchived').classList.remove('show');
-                        }
-                        // no need to keep updating either
-                        stopReloader();
-                    } else {
-                        // this test is currently running and can potentially be stopped
-                        if (document.getElementById('stopBtn') !== null) {
-                            document.getElementById('stopBtn').classList.add('show');
-                        }
-
-                        if (document.getElementById('runningTestActive') !== null) {
-                            document.getElementById('runningTestActive').style.display = '';
-                        }
-
-                        if (document.getElementById('runningTestInactive') !== null) {
-                            document.getElementById('runningTestInactive').style.display = 'none';
-                        }
-
-                        if (document.getElementById('runningTestArchived') !== null) {
-                            document.getElementById('runningTestArchived').classList.remove('show');
-                        }
-
-                        // if the test is currently in a "configured" state it can also be started
-                        if (document.getElementById('startBtn') !== null) {
-                            if (FAPI_UI.status == 'configured') {
-                                document.getElementById('startBtn').classList.add('show');
-                            } else {
-                                // otherwise, the test can't be started
-                                document.getElementById('startBtn').classList.remove('show');
-                            }
-                        }
-                    }
-                    updateTestInfoStickiness(testId);
-                }
-
-                // display the exported data
-                if(data.exposed) {
-                    var newExposedDataJson = JSON.stringify(data.exposed);
-                    var currentExposedDataJson = document.body.dataset.currentExposedDataJson;
-                    if(currentExposedDataJson != newExposedDataJson) {
-                        document.body.dataset.currentExposedDataJson = newExposedDataJson;
-
-                        if (document.getElementById('runningTestExport') !== null) {
-                            document.getElementById('runningTestExport').innerHTML = FAPI_UI.logTemplates.EXPORTED({
-                                exported: data.exposed
-                            });
-                        }
-                    }
-                }
-
-                // display the browser control data
-                if (data.browser) {
-
-                    try {
-                        data.browser.urlsWithMethod = data.browser.urlsWithMethod.map((url) => {
-                            let formData = parseUrl(url);
-                            return {
-                                url: formData.url,
-                                originalUrl: url.url,
-                                params: formData.params,
-                                queryParams: formData.queryParams,
-                                method: url.method
-                            };
-                        });
-                        data.browser.visitedUrlsWithMethod = data.browser.visitedUrlsWithMethod.map((url) => {
-                            let formData = parseUrl(url);
-                            return {
-                                url: formData.url,
-                                originalUrl: url.url,
-                                params: formData.params,
-                                queryParams: formData.queryParams,
-                                method: url.method
-                            }
-                        });
-                    } catch (err) {
-                        FAPI_UI.showError({ error: `${err.message}` });
-                        throw err;
-                    }
-
-                    var newBrowserJson = JSON.stringify(data.browser);
-                    var currentBrowserJson = document.body.dataset.currentBrowserJson;
-                    if(currentBrowserJson != newBrowserJson) {
-                        document.body.dataset.currentBrowserJson = newBrowserJson;
-                        if (document.getElementById('runningTestBrowser') !== null) {
-                            document.getElementById('runningTestBrowser').innerHTML = FAPI_UI.logTemplates.BROWSER({
-                                browser: data.browser
-                            });
-                        }
-
-                       if (data.browser.show_qr_code) {
-                            document.querySelectorAll('#runningTestBrowser .qr').forEach(qr => {
-                                new QRCode(qr, {
-                                    text: qr.dataset.url,
-                                    correctLevel: QRCode.CorrectLevel.L,
-                                    version: 20
-                                });
-                            });
-                       }
-
-                        updateTestInfoStickiness(testId);
-
-                        if (document.querySelector('#runningTestBrowser .visitBrowserApiBtn') !== null) {
-                            document.querySelector('#runningTestBrowser .visitBrowserApiBtn').onclick = async function (evt) {
-                                evt.preventDefault();
-                                let browserApiRequest = JSON.parse(this.dataset.browserapirequest);
-                                let browserApiSubmitUrl = this.dataset.browserapisubmiturl;
-
-                                if (browserApiSubmitUrl === "") {
-                                    navigator.credentials.create(browserApiRequest)
-                                } else {
-                                    const xhr = new XMLHttpRequest();
-                                    xhr.open('POST', browserApiSubmitUrl, true);
-                                    xhr.responseType = "json";
-                                    xhr.onload = function () {
-                                        console.log('XMLHttpRequest call succeeded. Response:' + JSON.stringify(this.response));
-                                    };
-                                    xhr.onerror = function (error) {
-                                        console.log('Error from XMLHttpRequest');
-                                    };
-                                    try {
-                                        const credentialResponse = await navigator.credentials.get(browserApiRequest)
-
-                                        console.log("credential response");
-                                        console.log(credentialResponse);
-                                        if (credentialResponse.constructor.name === 'DigitalCredential') {
-                                            const data = credentialResponse.data
-                                            const protocol = credentialResponse.protocol
-                                            console.log("Response Data: " + data + " Protocol: " + protocol)
-                                            xhr.send(JSON.stringify({"data": data, "protocol": protocol}));
-                                        } else {
-                                            xhr.send(JSON.stringify({"bad_response_type": credentialResponse.constructor.name}));
-                                            throw new Error("Unknown response type")
-                                        }
-
-                                    } catch (err) {
-                                        console.log("Exception");
-                                        console.log(err);
-                                        xhr.send(JSON.stringify({
-                                            "exception": {
-                                                "name": err.name,
-                                                "message": err.message
-                                            }
-                                        }));
-                                        alert(err)
-                                    }
-                                }
-                            }
-                        }
-
-
-                        if (document.querySelector('#runningTestBrowser .visitBtn') !== null) {
-                            document.querySelector('#runningTestBrowser .visitBtn').onclick = function(evt) {
-                                evt.preventDefault();
-                                var url = this.dataset.url;
-                                let method = this.dataset.method;
-
-                                FAPI_UI.showBusy('Opening target URL', 'Opening: ' + url);
-
-                                var win;
-                                if (method === 'POST') {
-                                    win = {
-                                        focus: () => {}
-                                    };
-                                    document.querySelector('form.redirect').submit();
-                                } else {
-                                    win = window.open(url, '_blank');
-                                }
-
-                                if (win) {
-                                    win.focus();
-
-                                    fetch('/api/runner/browser/' + encodeURIComponent(testId) + '/visit?url=' + encodeURIComponent(url), {
-                                        method: "POST",
-                                    })
-                                    .then((response) => {
-                                        if (!response.ok) {
-                                            return Promise.reject(response);
-                                        }
-
-                                        return reload(testId);
-                                    })
-                                    .catch((error) => {
-                                        if (error instanceof Response) {
-                                            // We have a 'Respose' object.
-                                            var message = error.statusText;
-                                            var responseClone = error.clone();
-
-                                            error.text()
-                                            .then(textError => {
-                                                // Text error thrown by the app
-                                                messageParsed = true;
-
-                                                const errorObj = JSON.parse(textError);
-
-                                                if (errorObj.error.length != 0) {
-                                                    message = errorObj.error;
-                                                }
-
-                                                FAPI_UI.showError({code: error.status.toString(), error: message});
-                                            })
-                                            .catch(error1 => {
-                                                // JSON error thrown by the app
-                                                responseClone.json()
-                                                .then(jsonError => {
-                                                    if (typeof (jsonError) === 'string' && jsonError.length != 0) {
-                                                        message = jsonError;
-                                                    }
-
-                                                    FAPI_UI.showError({code: error.status.toString(), error: message});
-                                                })
-                                                .catch(genericError => {
-                                                    // Error thrown by the server
-                                                    FAPI_UI.showError({code: error.status.toString(), error: error.statusText});
-                                                });
-                                            });
-                                        } else {
-                                            // Network error automatically detected by fetch.
-                                            FAPI_UI.showError({code: "", error: error});
-                                        }
-
-                                        // don't update anymore
-                                        stopReloader();
-                                    })
-                                    .finally(function() {
-                                        FAPI_UI.hideBusy();
-                                    });
-                                } else {
-                                    FAPI_UI.showError({
-                                        error: "Couldn't open the url: " + url
-                                    });
-                                }
-                            };
-                        }
-                    }
-                }
-
-                // if there's a final test error, display it
-                if (data.error) {
-                    if (document.getElementById('runningTestError') !== null) {
-                        document.getElementById('runningTestError').innerHTML = FAPI_UI.logTemplates.FINAL_ERROR({
-                            error: data.error
-                        });
-                        document.getElementById('runningTestError').classList.add('show');
-                    }
-
-                    if (document.getElementById('stacktraceBtn') != null) {
-                        document.getElementById('stacktraceBtn').onclick = function (event) {
-                            event.preventDefault();
-                            document.getElementById('stacktraceBtn').style.display = 'none';
-                            document.getElementById('stacktrace').classList.add('show');
-                            document.getElementById('causeStacktrace').classList.add('show');
-                        };
-                    }
-                }
-            })
-            .catch((error) => {
-                // test isn't currently in the runner, can't start or stop it
-                if (document.getElementById('startBtn') !== null) {
-                    document.getElementById('startBtn').classList.remove('show');
-                }
-
-                if (document.getElementById('stopBtn') !== null) {
-                    document.getElementById('stopBtn').classList.remove('show');
-                }
-
-                if (document.getElementById('runningTestActive') !== null) {
-                    document.getElementById('runningTestActive').style.display = 'none';
-                }
-
-                if (document.getElementById('runningTestInactive') !== null) {
-                    document.getElementById('runningTestInactive').style.display = 'none';
-                }
-
-                if (document.getElementById('runningTestArchived') !== null) {
-                    document.getElementById('runningTestArchived').classList.add('show');
-                }
-
-                // don't update anymore
-                stopReloaderNow();
-                updateTestInfoStickiness();
-            });
-        }
-
-        function startReloader(testId) {
-            clearTimeout(FAPI_UI.reloader);
-            if (FAPI_UI.running) {
-                FAPI_UI.reloader = setTimeout(function() {
-                    return reload(testId)
-                    .finally(function() {
-                        if (FAPI_UI.running) {
-                            startReloader(testId);
-                        }
-                    });
-                }, FAPI_UI.reloadPause);
-            }
-        }
-
-        // delay stopping the reloader for a little bit to get any last minute additions to the logs
-        function stopReloader() {
-            setTimeout(function() {
-                stopReloaderNow();
-            }, FAPI_UI.maxReloadPause);
-        }
-
-        function stopReloaderNow() {
-            FAPI_UI.running = false;
-            clearTimeout(FAPI_UI.reloader);
-        }
-
-        function reload(testId) {
-            return Promise.resolve().then(function() {
-                return getHeader(testId, false);
-            }).then(function() {
-                return getLogs(testId, false);
-            }).then(function() {
-                return getActive(testId);
-            });
-        }
-
-        function runTest(testName, testVariant, planId, config, oldTestId) {
-            var runTestUrl = '/api/runner?test=' + encodeURIComponent(testName) + (planId ? '&plan=' + encodeURIComponent(planId) : '');
-
-            if (testVariant !== null && testVariant !== undefined) {
-                runTestUrl += '&variant=' + encodeURIComponent(JSON.stringify(testVariant));
-            }
-
-            FAPI_UI.showBusy('Creating a clone of this test...');
-
-            fetch(runTestUrl, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: planId ? undefined : JSON.stringify(config),
-            })
-            .then((response) => {
-                if (!response.ok) {
-                    return Promise.reject(response);
-                }
-
-                return response.json();
-            })
-            .then((data) => {
-                // we need to switch to the new window now
-                var newUrl = window.location.href.replace(oldTestId, data.id);
-                window.location.assign(newUrl);
-            })
-            .catch((error) => {
-                if (error instanceof Response) {
-                    // We have a 'Respose' object.
-                    var message = error.statusText;
-                    var responseClone = error.clone();
-
-                    error.text()
-                    .then(textError => {
-                        // Text error thrown by the app
-                        messageParsed = true;
-
-                        const errorObj = JSON.parse(textError);
-
-                        if (errorObj.error.length != 0) {
-                            message = errorObj.error;
-                        }
-
-                        FAPI_UI.showError({code: error.status.toString(), error: message});
-                    })
-                    .catch(error1 => {
-                        // JSON error thrown by the app
-                        responseClone.json()
-                        .then(jsonError => {
-                            if (typeof (jsonError) === 'string' && jsonError.length != 0) {
-                                message = jsonError;
-                            }
-
-                            FAPI_UI.showError({code: error.status.toString(), error: message});
-                        })
-                        .catch(genericError => {
-                            // Error thrown by the server
-                            FAPI_UI.showError({code: error.status.toString(), error: error.statusText});
-                        });
-                    });
-                } else {
-                    // Network error automatically detected by fetch.
-                    FAPI_UI.showError({code: "", error: error});
-                }
-
-                // don't update anymore
-                stopReloader();
-            });
-        }
-
-        function pinVisitSectionOnTopWindow() {
-            // make the running test information section float/pin to the top of the window
-            // when the user scroll down and the 'Visit' button was enable
-            let runningTestInfo = document.getElementById('runningTestInformation');
-            if (runningTestInfo) {
-                const rect = runningTestInfo.getBoundingClientRect();
-                const sticky = rect.top + window.scrollY;
-
-                runningTestInfo.style.width = document.getElementById('logDetail');
-
-                window.addEventListener("scroll", function(){
-                    if (window.scrollTop > sticky && isPendingInteraction()) {
-                        runningTestInfo.classList.add('sticky');
-                    } else {
-                        runningTestInfo.classList.remove('sticky');
-                    }
-                });
-            }
-        }
-
-        document.addEventListener("DOMContentLoaded", () => {
-            var urlParams = new URLSearchParams(window.location.search);
-            var testId = urlParams.get('log');
-            var public = Boolean(urlParams.get('public'));
-            var promiseError = false;
-
-            FAPI_UI.showBusy();
-
-            FAPI_UI.loadLogDetailTemplates() // Load the templates
-            .then(function() {
-                return FAPI_UI.getUserInfo();
-            }).then(function() {
-                return getHeader(testId, public); // render the header, which includes test info
-            }).then(function() {
-                return getLogs(testId, public); // render the log entries themselves
-            }).then(function() {
-                if (!public)
-                    return getActive(testId); // check to see if the test is currently active
-            }).catch((error) => {
-                promiseError = true;
-            }).finally(function() {
-                FAPI_UI.hideBusy();
-
-                if (! promiseError) {
-                    if (!public) {
-                        startReloader(testId); // periodically reload the page as long as the test is active
-                        pinVisitSectionOnTopWindow();
-                    }
-                    scrollToAnchorIfPresent();
-                }
-            });
-
-            // Target the inner <button> rendered by cts-button. This fails loudly
-            // if cts-button ever switches to shadow DOM (the selector stops
-            // matching) instead of silently breaking copy. See
-            // components/cts-button.js JSDoc for the light-DOM dependency note.
-            // Shared resolver lives in /js/cts-clipboard-resolver.js so the
-            // "prefer .value over textContent" rule (needed because Monaco
-            // virtualises long content) is defined in one place across
-            // log-detail.html, logs.html, and plans.html.
-            var clipboard = new ClipboardJS('.btn-clipboard > button', {
-                text: window.ctsResolveClipboardJsonText
-            });
-            clipboard.on('success', function(e) {
-                console.log(e);
-            });
-            clipboard.on('error', function(e) {
-                console.log(e);
-            });
-        });
-
-        function scrollToAnchorIfPresent() {
-            if (window.location.hash === '') {
-                return;
-            }
-
-            let scrollTargetElement = document.querySelector(window.location.hash);
-            if (scrollTargetElement !== null) {
-                scrollTargetElement.scrollIntoView();
-            }
-        }
-
-        function parseUrl(urlWithMethod) {
-            let urlString = urlWithMethod.url;
-            let url = new URL(urlString);
-            let baseUrl = url.origin + url.pathname;
-            let queryParams = url.searchParams || '';
-            let params = Array.from(queryParams.entries()).map(function(pair) {
-                let param = {
-                  name: pair[0],
-                  value: pair[1]
-                }
-                return param;
-            });
-            return {
-                url: baseUrl,
-                queryParams: queryParams.toString(),
-                params: params
-            };
-        }
-
-        function copyRequestAsCurl(event) {
-
-            const logItemDiv = event.target.closest(".logItem");
-            if (!logItemDiv) {
-                console.error("Could not find the log item container.");
-                return;
-            }
-
-            const requestDescription = extractRequestDescription(logItemDiv);
-
-            const curlCommand = generateCurlCommandFromRequestDescrition(requestDescription);
-
-            navigator.clipboard.writeText(curlCommand).then(() => {
-                console.log("cURL command copied to clipboard!.");
-            }).catch(err => {
-                console.error("Failed to copy cURL command: ", err);
-            });
-        }
-
-        function extractRequestDescription(logItemDiv) {
-            return [...logItemDiv.querySelectorAll(".moreInfo dt")]
-                .reduce((map, it) => {
-                    let key = it.previousElementSibling.textContent;
-                    if (!key) {
-                        return map;
-                    }
-
-                    let value = it.innerText.trim();
-                    if (["request_headers", "request_mutual_tls"].includes(key)) {
-                        // parse request_headers for CURL command generation
-                        value = JSON.parse(value);
-                    }
-
-                    map[key] = value;
-                    return map;
-                }, {});
-        }
-
-        function generateCurlCommandFromRequestDescrition(requestDescription) {
-            const method = requestDescription.request_method || "GET";
-            const url = requestDescription.request_uri || "";
-            const headers = requestDescription.request_headers || {};
-            const body = requestDescription.request_body || "";
-
-            const headerStrings = Object.entries(headers)
-                .map(([key, value]) => `-H "${key}: ${value}"`)
-                .join(" ");
-
-            let requestMutualTls = requestDescription.request_mutual_tls;
-            let mtlsParams = requestMutualTls ? "--insecure --cert \"$CLIENT_CERT\" --key \"$CLIENT_KEY\"" : "";
-
-            let curlCommandProlog = "";
-            if (requestMutualTls) {
-                let mtlsSetupProlog = `
-CLIENT_CERT=/tmp/conformance_tests_client.crt
-echo "-----BEGIN CERTIFICATE-----\n${requestDescription.request_mutual_tls.cert}\n-----END CERTIFICATE-----" > "$CLIENT_CERT"
-CLIENT_KEY=/tmp/conformance_tests_client.key
-echo "-----BEGIN PRIVATE KEY-----\n${requestDescription.request_mutual_tls.key}\n-----END PRIVATE KEY-----\n" > "$CLIENT_KEY"
-`;
-
-                if (requestMutualTls.ca) {
-                    // add CA cert to client_cert file
-                    mtlsSetupProlog += `
-echo "-----BEGIN CERTIFICATE-----\n${requestDescription.request_mutual_tls.ca}\n-----END CERTIFICATE-----" >> "$CLIENT_CERT"
-`;
-                }
-
-                curlCommandProlog += mtlsSetupProlog
-            }
-
-            let curlCommand = `${curlCommandProlog} curl ${mtlsParams} -X ${method} "${url}" ${headerStrings} ${
-                body ? `--data '${body}'` : ""
-            }`;
-
-            return curlCommand;
-        }
-
-
-        document.addEventListener('keydown', function(event) {
-          const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
-          const isCtrlOrCmd = isMac ? event.metaKey : event.ctrlKey;
-
-          // Ctrl+Shift+X / Cmd+Shift+X to repeat test
-          if (isCtrlOrCmd && event.shiftKey) {
-
-            // cts-button host.click() fires only on the host, so Lit's @click
-            // handler on the inner <button> never runs. Target the inner
-            // button so both onclick-on-host and cts-click listeners fire.
-            // After R21, the buttons live inside <cts-test-nav-controls>;
-            // select via data-testid rather than legacy reloadBtn /
-            // nextPlanBtn IDs.
-            if (event.key.toLowerCase() === 'x') {
-              event.preventDefault(); // prevent other default actions
-              const innerReload = document.querySelector('cts-test-nav-controls [data-testid="repeat-btn"] button');
-              if (innerReload) {
-                innerReload.click();
-              }
-            }
-
-            // Ctrl+Shift+U / Cmd+Shift+U to continUe to the next test
-            if (event.key.toLowerCase() === 'u') {
-                event.preventDefault();
-                const innerContinue = document.querySelector('cts-test-nav-controls [data-testid="continue-btn"] button');
-                if (innerContinue) {
-                    innerContinue.click();
-                }
-            }
-          }
-        });
-
-    </script>
-
-
-    <footer class="pageFooter">
-        <span class="muted">OpenID Foundation conformance suite</span>
-    </footer>
-
+  <a class="oidf-skip-link" href="#main-content">Skip to main content</a>
+
+  <cts-navbar current-page=""></cts-navbar>
+
+  <!-- Page-level modals. Show/hide is imperative via cts-modal.show()
+       and .hide(); the new-page bootstrap owns those calls (no FAPI_UI
+       wrapper). -->
+  <cts-modal id="errorModal" heading="Error">
+    Error: <span id="errorMessage"></span>
+  </cts-modal>
+
+  <cts-modal id="loadingModal" heading="Loading..." static-backdrop no-keyboard>
+    <div class="v2-spinner-host">
+      <img src="/images/spinner.gif" width="100px" height="30px" alt="Loading" />
+    </div>
+    <div><span id="loadingMessage"></span></div>
+  </cts-modal>
+
+  <!-- Private-link flow modals. The bootstrap wires their show/hide
+       around the cts-share-link event. The expiration modal collects
+       the day count; the result modal renders the returned URL. -->
+  <cts-modal
+    id="privateLinkExpirationModal"
+    heading="Create private link"
+    footer-buttons='[{"label": "Create link", "id": "privateLinkCreateBtn", "data": {"action": "create"}}, {"label": "Cancel"}]'
+  >
+    <p>How many days should this link remain active?</p>
+    <label for="privateLinkExpirationDays" style="display: block; margin-top: var(--space-2);">
+      Expiration in days (1–3650)
+      <input
+        id="privateLinkExpirationDays"
+        type="number"
+        min="1"
+        max="3650"
+        value="30"
+        style="display: block; width: 6em; margin-top: var(--space-1);"
+      />
+    </label>
+  </cts-modal>
+
+  <cts-modal id="privateLinkResultModal" heading="Private link">
+    <p id="privateLinkMessage"></p>
+    <textarea
+      id="privateLinkUrl"
+      readonly
+      rows="3"
+      aria-label="Private link URL"
+      style="width: 100%; font-family: var(--font-mono); font-size: var(--fs-13);"
+    ></textarea>
+  </cts-modal>
+
+  <!-- Resident DOM — the Lit triad mounts here. Bootstrap fetches
+       /api/info, populates header.testInfo, sets viewer.testId, and
+       wires the action events. The .log-page-v2-main wrapper holds the
+       single-column content; cts-log-toc is the second grid column at
+       ≥ 1440 px when the user preference is enabled. -->
+  <main id="main-content" class="log-page-v2">
+    <div class="log-page-v2-main">
+      <cts-crumb id="logDetailCrumb"></cts-crumb>
+      <cts-log-detail-header id="logDetailHeader"></cts-log-detail-header>
+      <!-- Page-level cts-test-summary instance (Region B1, U7). Carries
+           the WAITING-state instructions banner above the failure summary,
+           hoisted out of the header card so it can sit between the sticky
+           status bar and the viewer at narrow widths. CSS in <head> hides
+           this at desktop where the header card's instance shows. The
+           element is registered via the transitive import from
+           cts-log-detail-header.js. -->
+      <cts-test-summary id="ctsTopTestSummary"></cts-test-summary>
+      <!-- Page-level cts-failure-summary instance (mobile / tablet
+           position, U4). The desktop instance is rendered inside the
+           header card; CSS in <head> hides whichever doesn't apply at
+           the current breakpoint. Custom element is registered via the
+           transitive import from cts-log-detail-header.js. -->
+      <cts-failure-summary id="ctsTopFailureSummary"></cts-failure-summary>
+      <cts-log-viewer id="logViewer"></cts-log-viewer>
+    </div>
+    <!-- Wide-viewport TOC rail (U8). Hidden below 1440 px and when the
+         user preference (`cts-log-toc-rail-enabled`) is "false". The
+         page bootstrap toggles `.log-page-v2--with-toc` on <main> to
+         flip the grid layout when the rail is enabled. -->
+    <cts-log-toc id="ctsLogToc"></cts-log-toc>
+  </main>
 </body>
 
 </html>
