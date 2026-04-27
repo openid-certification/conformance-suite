@@ -3,6 +3,7 @@ package net.openid.conformance.vci10wallet.condition.clientattestation;
 import com.google.gson.JsonElement;
 import com.nimbusds.jose.util.X509CertUtils;
 import net.openid.conformance.condition.AbstractValidateX5cCertificateChain;
+import net.openid.conformance.condition.Profile;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 
@@ -32,7 +33,7 @@ public class ValidateClientAttestationX5cClaimInProofJwt extends AbstractValidat
 		X509Certificate trustAnchorCert = X509CertUtils.parse(trustAnchorPem);
 
 		List<X509Certificate> certs = parseX5cCertificatesFromStrings(x5c);
-		validateX5cCertificateChain(certs, trustAnchorCert);
+		validateX5cCertificateChain(certs, trustAnchorCert, Profile.isHaip(env));
 
 		logSuccess("Validation of certificate chain in x5c claim successful against trust anchor certificate",
 			args("x5c", x5cEl,

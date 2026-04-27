@@ -114,9 +114,14 @@ if [ -n "$NGROK_URL" ]; then
     # Generate VP test signing key+cert with ngrok hostname in SAN so x509_san_dns tests work
     if [ "$TEST_SUITE" = "--vc-tests" ]; then
         echo "==> Generating VP test cert with ngrok hostname in SAN..."
+        # Regenerate all three artifacts together so the CA, EC credential signing key, and
+        # RSA server signing key form a consistent chain. vp-server-jwk.json is what the
+        # suite uses to sign status list tokens; if we regenerate the CA without also
+        # regenerating it, the status list x5c chain won't trace back to the new CA.
         python3 "${SUITE_DIR}/scripts/generate-vp-test-cert.py" \
             --hostname "$NGROK_HOSTNAME" \
             --output "${SUITE_DIR}/scripts/certs-keys/vp-signing-jwk.json" \
+            --server-output "${SUITE_DIR}/scripts/certs-keys/vp-server-jwk.json" \
             --ca-output "${SUITE_DIR}/scripts/certs-keys/vp-signing-ca.crt"
     fi
 fi
@@ -157,7 +162,7 @@ cleanup() {
     kill "$SERVER_PID" 2>/dev/null || true
     wait "$SERVER_PID" 2>/dev/null || true
     # Restore VP signing JWK and CA cert overwritten by generate-vp-test-cert.py
-    git -C "$SUITE_DIR" checkout -- scripts/certs-keys/vp-signing-jwk.json scripts/certs-keys/vp-signing-ca.crt 2>/dev/null || true
+    git -C "$SUITE_DIR" checkout -- scripts/certs-keys/vp-signing-jwk.json scripts/certs-keys/vp-server-jwk.json scripts/certs-keys/vp-signing-ca.crt 2>/dev/null || true
     echo "==> Done."
 }
 trap cleanup EXIT INT TERM
