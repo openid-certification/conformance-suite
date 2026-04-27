@@ -14,3 +14,7 @@ storybook-static/
 .vite/
 public/mockServiceWorker.js
 **/*.min.js
+
+# Playwright snapshot baselines — recorded byte-for-byte from the live page;
+# reformatting would diverge from runtime output and fail the next test run.
+e2e/**/*-snapshots/**

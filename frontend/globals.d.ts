@@ -40,9 +40,10 @@ interface Window {
 interface Window {
   CTS_summarySplit?: {
     SUMMARY_SPLIT_MARKER: string;
-    splitTestSummary: (
-      raw: string | null | undefined,
-    ) => { description: string; instructions: string };
+    splitTestSummary: (raw: string | null | undefined) => {
+      description: string;
+      instructions: string;
+    };
   };
 }
 

@@ -316,7 +316,12 @@ export const FullWidthStack = {
   render: () => html`
     <div style="width: 240px; padding: 1rem; border: 1px dashed #ccc;">
       <div class="d-grid gap-1">
-        <cts-button variant="secondary" icon="settings" label="View configuration" full-width></cts-button>
+        <cts-button
+          variant="secondary"
+          icon="settings"
+          label="View configuration"
+          full-width
+        ></cts-button>
         <cts-button
           variant="secondary"
           icon="save"
