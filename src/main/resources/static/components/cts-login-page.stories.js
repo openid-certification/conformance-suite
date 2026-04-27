@@ -55,6 +55,13 @@ export const Default = {
     expect(googleAnchor.classList.contains("oidf-btn-secondary")).toBe(true);
     expect(googleAnchor.classList.contains("btn-danger")).toBe(false);
     expect(googleAnchor.classList.contains("btn")).toBe(false);
+    // The shared <style id="cts-button-styles"> block must be in <head>, otherwise
+    // the brand anchors render as plain text links instead of 44px lg buttons.
+    // (Prior regression: cts-link-button.js only injected on connectedCallback,
+    // and this page never mounts one — so the import was a silent no-op.)
+    expect(document.getElementById("cts-button-styles")).toBeTruthy();
+    const googleStyle = getComputedStyle(googleAnchor);
+    expect(googleStyle.height).toBe("44px");
     // Vendor mark precedes the label — inline brand SVG, not part of cts-icon.
     expect(googleAnchor.querySelector('svg[data-brand="google"]')).toBeTruthy();
 

@@ -105,17 +105,47 @@ export const ClickDispatchesScrollEvent = {
 };
 
 export const EmptyDuringWaiting = {
-  render: () => WIDE_HOST(html`<cts-log-toc .blocks=${[]}></cts-log-toc>`),
+  render: () => WIDE_HOST(html`<cts-log-toc .blocks=${[]} .failures=${[]}></cts-log-toc>`),
   async play({ canvasElement }) {
-    await waitFor(() => {
-      const el = canvasElement.querySelector("aside");
-      if (!el) throw new Error("rail not yet rendered");
-      return el;
-    });
-    // Title is always there so the empty rail still anchors the column.
-    const title = canvasElement.querySelector(".ctsLogTocTitle");
-    expect(title.textContent).toBe("Test structure");
-    expect(canvasElement.querySelector('[data-testid="toc-list"]')).toBeNull();
+    const rail = /** @type {any} */ (
+      await waitFor(() => {
+        const el = canvasElement.querySelector("cts-log-toc");
+        if (!el) throw new Error("rail not yet rendered");
+        return el;
+      })
+    );
+    await rail.updateComplete;
+    // Empty rail self-hides via the `hidden` attribute so the page-level
+    // grid (`.log-page-v2--with-toc:has(#ctsLogToc:not([hidden]))`)
+    // collapses to single column and the main content reclaims the
+    // 320px slot. The aside is still in the DOM (so populating
+    // `.blocks` later un-hides without a re-mount) but `display: none`
+    // means it takes zero layout space.
+    expect(rail.hasAttribute("hidden")).toBe(true);
+  },
+};
+
+export const ReappearsWhenBlocksArrive = {
+  // Mirrors the streaming-poll case: the rail starts empty (so it's
+  // hidden), then a polling cycle delivers a non-empty blocks array.
+  // The rail must drop the hidden attribute so the page grid re-expands.
+  render: () =>
+    WIDE_HOST(html`<cts-log-toc id="reappearRail" .blocks=${[]} .failures=${[]}></cts-log-toc>`),
+  async play({ canvasElement }) {
+    const rail = /** @type {any} */ (
+      await waitFor(() => {
+        const el = canvasElement.querySelector("cts-log-toc");
+        if (!el) throw new Error("rail not yet rendered");
+        return el;
+      })
+    );
+    await rail.updateComplete;
+    expect(rail.hasAttribute("hidden")).toBe(true);
+
+    rail.blocks = BLOCKS;
+    await rail.updateComplete;
+    expect(rail.hasAttribute("hidden")).toBe(false);
+    expect(canvasElement.querySelector('[data-testid="toc-list"]')).toBeTruthy();
   },
 };
 
@@ -187,14 +217,18 @@ export const PreferenceTogglesVisibility = {
         return el;
       })
     );
-    expect(rail.style.display).toBe("");
+    await rail.updateComplete;
+    // Visibility is now expressed via the `hidden` attribute (rather
+    // than inline style.display) so the same signal also lets the
+    // page-level grid collapse via `:has(#ctsLogToc:not([hidden]))`.
+    expect(rail.hasAttribute("hidden")).toBe(false);
 
     rail.setEnabled(false);
-    expect(rail.style.display).toBe("none");
+    expect(rail.hasAttribute("hidden")).toBe(true);
     expect(localStorage.getItem("cts-log-toc-rail-enabled")).toBe("false");
 
     rail.setEnabled(true);
-    expect(rail.style.display).toBe("");
+    expect(rail.hasAttribute("hidden")).toBe(false);
     expect(localStorage.getItem("cts-log-toc-rail-enabled")).toBe("true");
   },
 };

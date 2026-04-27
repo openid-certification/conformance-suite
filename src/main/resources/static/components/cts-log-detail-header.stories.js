@@ -733,6 +733,16 @@ export const WithTestNavControls = {
     expect(navHost.getAttribute("data-testid")).toBe("test-nav-controls");
     expect(navHost.getAttribute("plan-id")).toBe(COMPLETED_TEST.planId);
     expect(navHost.getAttribute("test-id")).toBe(COMPLETED_TEST.testId);
+    // The header always opts the cluster into `slim`. Without slim the
+    // cluster would render Return-to-Plan + Repeat alongside the
+    // status bar's primary "Repeat" and the page-level breadcrumb's
+    // "Plan" item — duplicating two prominent affordances inside one
+    // viewport.
+    expect(navHost.hasAttribute("slim")).toBe(true);
+    // The status bar primary already provides Repeat for FINISHED
+    // tests; the slim cluster must NOT render its own Repeat copy.
+    expect(navRow.querySelector('[data-testid="repeat-btn"]')).toBeNull();
+    expect(navRow.querySelector('[data-testid="back-btn"]')).toBeNull();
   },
 };
 
