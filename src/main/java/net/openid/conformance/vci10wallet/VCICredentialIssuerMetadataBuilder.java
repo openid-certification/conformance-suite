@@ -4,6 +4,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import net.openid.conformance.testmodule.Environment;
+import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.util.TemplateProcessor;
 
 import java.net.URI;
@@ -177,6 +178,32 @@ public final class VCICredentialIssuerMetadataBuilder {
 		requestEnc.add("enc_values_supported", encValues);
 		requestEnc.addProperty("encryption_required", false);
 		return requestEnc;
+	}
+
+	/**
+	 * Add a {@code credential_configurations_supported} entry to the metadata and build the
+	 * {@code credential_configuration_id_scope_map} env object that maps each scope value to
+	 * the list of credential configuration ids advertising that scope. Mirrors
+	 * {@code AbstractVCIWalletTest.configureSupportedCredentialConfigurations}.
+	 */
+	public static void configureSupportedCredentialConfigurations(Environment env, JsonObject credentialIssuerMetadata, JsonObject supportedCredentialConfigurations) {
+		credentialIssuerMetadata.add("credential_configurations_supported", supportedCredentialConfigurations);
+
+		JsonObject scopeToCredentialConfigsMap = new JsonObject();
+		for (String configurationId : supportedCredentialConfigurations.keySet()) {
+			JsonObject credentialConfiguration = supportedCredentialConfigurations.getAsJsonObject(configurationId);
+			if (credentialConfiguration.has("scope")) {
+				String scope = OIDFJSON.getString(credentialConfiguration.get("scope"));
+				JsonArray configs = scopeToCredentialConfigsMap.getAsJsonArray(scope);
+				if (configs == null) {
+					configs = new JsonArray();
+				}
+				configs.add(configurationId);
+				scopeToCredentialConfigsMap.add(scope, configs);
+			}
+		}
+
+		env.putObject("credential_configuration_id_scope_map", scopeToCredentialConfigsMap);
 	}
 
 	/**
