@@ -129,6 +129,14 @@ const STYLE_TEXT = `
     outline: none;
     box-shadow: var(--focus-ring);
   }
+  /* Override the page-wide .logItem:hover rule from css/layout.css (a
+     near-white #f6fefe that, applied to the dark startBlock summary,
+     would leave --fg-on-ink text on a near-white background — visually
+     unreadable). Lift to --ink-600 instead so the hover affordance reads
+     as elevation on a dark surface and the foreground stays legible. */
+  cts-log-viewer .startBlock:hover {
+    background: var(--ink-600);
+  }
   cts-log-viewer .startBlockMsg {
     flex: 1 1 auto;
     min-width: 0;
