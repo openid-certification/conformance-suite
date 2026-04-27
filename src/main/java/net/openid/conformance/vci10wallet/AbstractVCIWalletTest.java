@@ -576,25 +576,8 @@ public abstract class AbstractVCIWalletTest extends net.openid.conformance.fapi2
 
 	protected void configureSupportedCredentialConfigurations() {
 		JsonObject supportedCredentialConfigurations = getSupportedCredentialConfigurations(getTestExecutionManager().getTestId());
-		env.getObject("credential_issuer_metadata").add("credential_configurations_supported", supportedCredentialConfigurations);
-
-		JsonObject scopeToCredentialConfigsMap = new JsonObject();
-
-		for (var configurationId : supportedCredentialConfigurations.keySet()) {
-			JsonObject credentialConfiguration = supportedCredentialConfigurations.getAsJsonObject(configurationId);
-			if (credentialConfiguration.has("scope")) {
-				String scope = OIDFJSON.getString(credentialConfiguration.get("scope"));
-
-				JsonArray configs = scopeToCredentialConfigsMap.getAsJsonArray(scope);
-				if (configs == null) {
-					configs = new JsonArray();
-				}
-				configs.add(configurationId);
-				scopeToCredentialConfigsMap.add(scope, configs);
-			}
-		}
-
-		env.putObject("credential_configuration_id_scope_map", scopeToCredentialConfigsMap);
+		VCICredentialIssuerMetadataBuilder.configureSupportedCredentialConfigurations(env,
+			env.getObject("credential_issuer_metadata"), supportedCredentialConfigurations);
 	}
 
 	protected JsonObject getSupportedCredentialConfigurations(String testId) {
