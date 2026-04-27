@@ -19,7 +19,9 @@ const STATUS_VARIANT_CLASSES = {
  * Utility variants kept for non-status uses where the canonical status
  * palette is the wrong semantic fit:
  *   - `primary`   — emphasis (e.g. an active filter pill)
- *   - `secondary` — neutral tag/chip (e.g. spec requirement labels)
+ *   - `secondary` — neutral tag/chip (e.g. spec requirement labels);
+ *     scoped in STYLE_TEXT as `b-secondary` (mono font, neutral surface,
+ *     ring border), distinct from a full pill of saturated color.
  *   - `danger`    — role marker (e.g. the ADMIN badge in the navbar)
  *   - `info-subtle` — informational call-out, retokenized onto the
  *     `--status-info-*` palette (used by federation entity section blocks
@@ -30,7 +32,7 @@ const STATUS_VARIANT_CLASSES = {
  */
 const UTILITY_VARIANT_CLASSES = {
   primary: "bg-primary",
-  secondary: "bg-secondary",
+  secondary: "b-secondary",
   danger: "bg-danger",
   "info-subtle": "b-info-subtle",
 };
@@ -57,6 +59,13 @@ const STYLE_ID = "cts-badge-styles";
  * `b-info-subtle` retokenizes the legacy Bootstrap `info-subtle` look
  * (used for section description blocks in `schedule-test.html`) onto
  * the same `--status-info-*` palette.
+ *
+ * Bordered variants (`b-rev`, `b-info-subtle`, `b-secondary`) use an
+ * outset 1px box-shadow as a "simili-border" rather than the `border`
+ * property. This keeps the box-model dimensions identical to the
+ * unbordered variants — toggling between e.g. `pass` and `review` on
+ * the same line produces no 1px reflow, and inline-flex centering is
+ * insensitive to whether a ring is drawn.
  */
 const STYLE_TEXT = `
   cts-badge {
@@ -95,10 +104,10 @@ const STYLE_TEXT = `
        text-only badge anchors on the text baseline while a spinner-led badge
        (running) anchors on the bottom of the empty inline-block, which pushes
        the badge upward relative to its text-only neighbours. Pin to middle so
-       placement is independent of inner content. Pair with border-box so the
-       1px border on b-rev doesn't grow the box and shift it up either. */
+       placement is independent of inner content. Bordered variants use an
+       outset box-shadow ring (see below) instead of the border property,
+       so the box dimensions are independent of the variant. */
     vertical-align: middle;
-    box-sizing: border-box;
   }
   cts-badge .badge:has(br) {
     border-radius: 9px;
@@ -127,15 +136,37 @@ const STYLE_TEXT = `
   }
   cts-badge .b-rev {
     background: var(--bg, #fff);
-    border: 1px solid var(--border-strong, #C7C2B8);
+    box-shadow: 0 0 0 1px var(--border-strong, #C7C2B8);
     color: var(--ink-700, #322E28);
   }
   cts-badge .b-info-subtle {
     background: var(--status-info-bg);
-    border: 1px solid var(--status-info-border);
+    box-shadow: 0 0 0 1px var(--status-info-border);
     color: var(--ink-900);
     text-transform: none;
     letter-spacing: 0;
+  }
+  /* Neutral chip variant — used for spec requirement labels (e.g.
+     OIDCC-3.1.3.7-6) and other tag-like content that should not adopt
+     a saturated status color. Mono font signals "code-like identifier",
+     normal-case + zero tracking signals "this is a label, not a banner".
+     Horizontal padding is tightened from the default 10px to 8px to
+     keep the chip compact next to neighbouring prose; vertical padding
+     stays at the default 2px so the outer height matches the status
+     pills (2 + 16 + 2 = 20px) — mixed rows of chips and status pills
+     should sit at the same height. The 1px ring is an outset
+     box-shadow so the chip occupies the same box as a borderless
+     variant. */
+  cts-badge .b-secondary {
+    background: var(--ink-50);
+    box-shadow: 0 0 0 1px var(--border);
+    color: var(--fg-muted);
+    font-family: var(--font-mono);
+    font-size: var(--fs-12);
+    font-weight: var(--fw-regular, 400);
+    letter-spacing: 0;
+    text-transform: none;
+    padding: 2px var(--space-2);
   }
   /* Inline anchors carry the badge's own color so a link inside an
      "info-subtle" badge reads blueish, not the global orange link color. */
