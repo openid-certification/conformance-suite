@@ -307,3 +307,8 @@ a:hover { color: var(--orange-600); }
 .t-overline  { font-family: var(--font-sans);    font-weight: var(--fw-bold);  font-size: var(--fs-12); line-height: var(--lh-snug); letter-spacing: 0.08em; text-transform: uppercase; color: var(--fg-soft); }
 .t-mono      { font-family: var(--font-mono);    font-size: var(--fs-13); line-height: var(--lh-snug); }
 .t-mono-sm   { font-family: var(--font-mono);    font-size: var(--fs-12); line-height: var(--lh-snug); }
+
+/* Inter is proportional, so stacked timestamps otherwise jitter horizontally
+   as digit widths change row-to-row. `tabular-nums` opts into the OpenType
+   `tnum` feature to keep digit columns aligned. */
+.tabular-nums { font-variant-numeric: tabular-nums; }

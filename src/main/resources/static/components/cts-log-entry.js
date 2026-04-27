@@ -231,6 +231,9 @@ const STYLE_TEXT = `
     font-size: var(--fs-12);
     color: var(--fg-soft);
     padding-top: 2px;
+    /* Inter and the mono fall-back stack render proportional digits otherwise,
+       which makes the colon column drift row-to-row in stacked log entries. */
+    font-variant-numeric: tabular-nums;
   }
   cts-log-entry .logSeverity,
   cts-log-entry .logHttp {

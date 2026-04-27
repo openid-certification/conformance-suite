@@ -123,6 +123,8 @@ export const Default = {
     // Date column uses the YYYY-MM-DD HH:MM format.
     const dateCell = firstRow.querySelectorAll("td")[3];
     expect(/\d{4}-\d{2}-\d{2} \d{2}:\d{2}/.test(dateCell.textContent.trim())).toBe(true);
+    expect(dateCell.classList.contains("oidf-dt-cell-date")).toBe(true);
+    expect(getComputedStyle(dateCell).fontVariantNumeric).toContain("tabular-nums");
   },
 };
 

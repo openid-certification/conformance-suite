@@ -209,7 +209,7 @@ class CtsTestNavControls extends LitElement {
       <cts-button
         variant="secondary"
         size="sm"
-        icon="arrow-down-up"
+        icon="arrows-reload-01"
         label="Repeat Test"
         data-testid="repeat-btn"
         @cts-click=${this._handleRepeat}

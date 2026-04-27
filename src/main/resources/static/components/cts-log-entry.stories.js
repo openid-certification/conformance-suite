@@ -193,6 +193,9 @@ export const SuccessEntry = {
     const item = canvasElement.querySelector(".logItem");
     const style = getComputedStyle(item);
     expect(style.display).toBe("grid");
+
+    const time = canvasElement.querySelector(".logTime");
+    expect(getComputedStyle(time).fontVariantNumeric).toContain("tabular-nums");
   },
 };
 

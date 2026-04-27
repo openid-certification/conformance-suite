@@ -354,6 +354,9 @@ const STYLE_TEXT = `
     font-family: var(--font-mono);
     font-size: var(--fs-12);
   }
+  cts-data-table .oidf-dt-cell-date {
+    font-variant-numeric: tabular-nums;
+  }
   cts-data-table .oidf-dt-loading,
   cts-data-table .oidf-dt-error {
     padding: var(--space-5);
@@ -390,7 +393,7 @@ function injectStyles() {
 /** @type {Object<string, string>} Lookup table from format name → CSS class for the cell wrapper. */
 const FORMAT_CELL_CLASSES = {
   mono: "oidf-dt-cell-mono",
-  date: "",
+  date: "oidf-dt-cell-date",
   badge: "",
 };
 

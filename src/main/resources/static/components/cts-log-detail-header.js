@@ -634,7 +634,7 @@ class CtsLogDetailHeader extends LitElement {
             ? html`<cts-button
                 variant="primary"
                 size="sm"
-                icon="arrow-down-up"
+                icon="arrows-reload-01"
                 label="Repeat"
                 data-testid="status-bar-primary"
                 @cts-click=${this._handleRepeatTest}
@@ -681,7 +681,7 @@ class CtsLogDetailHeader extends LitElement {
                 <div class="logMetaLabel">Test ID:</div>
                 <div class="logMetaValue">${test.testId}</div>
                 <div class="logMetaLabel">Created:</div>
-                <div class="logMetaValue"> ${this._formatDate(test.created)} </div>
+                <div class="logMetaValue tabular-nums"> ${this._formatDate(test.created)} </div>
                 ${test.description
                   ? html`
                       <div class="logMetaLabel"> Description: </div>
@@ -793,7 +793,7 @@ class CtsLogDetailHeader extends LitElement {
               <cts-button
                 variant="secondary"
                 size="sm"
-                icon="arrow-down-up"
+                icon="arrows-reload-01"
                 label="Repeat Test"
                 data-testid="repeat-test-btn"
                 @cts-click=${this._handleRepeatTest}
