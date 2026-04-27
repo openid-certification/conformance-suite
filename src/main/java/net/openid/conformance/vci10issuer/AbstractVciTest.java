@@ -26,6 +26,7 @@ public abstract class AbstractVciTest extends AbstractTestModule {
 
 		clientAuthType = getVariant(ClientAuthType.class);
 		fapi2Profile = getVariant(FAPI2FinalOPProfile.class);
+		env.putString("vci", "fapi_profile", fapi2Profile.toString());
 
 		// Perform any custom configuration
 		onConfigure(config, baseUrl);
