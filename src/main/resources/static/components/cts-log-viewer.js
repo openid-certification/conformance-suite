@@ -197,12 +197,12 @@ function ensureStylesInjected() {
  * @property {boolean} autoScroll - Auto-scroll to the newest entry as rows
  *   arrive. Reflects the `auto-scroll` attribute.
  * @property {object} testInfo - Optional pre-fetched `/api/info` payload.
- *   Stored without further processing; consumers (e.g. log-detail-v2.js)
+ *   Stored without further processing; consumers (e.g. log-detail.js)
  *   may use it to coordinate header + viewer state without a second
  *   fetch. Not reflected to an attribute.
  * @fires cts-first-fetch-resolved - Fires once after the viewer's first
  *   successful `/api/log` poll resolves with HTTP 200. Detail:
- *   `{ testId, entriesCount }`. Bubbles. Used by log-detail-v2.js to
+ *   `{ testId, entriesCount }`. Bubbles. Used by log-detail.js to
  *   defer hash-anchor scroll-to-entry until rows are present in the DOM.
  * @fires cts-references-updated - Fires after each successful poll once
  *   the per-entry `LOG-NNNN` reference map has been recomputed. Detail:
@@ -428,7 +428,7 @@ class CtsLogViewer extends LitElement {
     super.updated(changedProperties);
     // Kick off the first fetch when `testId` is assigned imperatively
     // AFTER connectedCallback fired (the new-page bootstrap pattern in
-    // log-detail-v2.js: the viewer is declared statically in HTML, then
+    // log-detail.js: the viewer is declared statically in HTML, then
     // `viewer.testId = …` is set once URL params are read). The legacy
     // attribute path (`<cts-log-viewer test-id="…">`) is unaffected
     // because that already feeds testId before connectedCallback runs.
@@ -650,7 +650,7 @@ class CtsLogViewer extends LitElement {
    *
    * Each `<cts-log-entry>` host is stamped with `data-entry-id` so the
    * document-level `cts-scroll-to-entry` listener (in
-   * `js/log-detail-v2.js`) can locate the target by the same `_id` the
+   * `js/log-detail.js`) can locate the target by the same `_id` the
    * failure-summary dispatches in its event detail.
    */
   _renderEntries() {

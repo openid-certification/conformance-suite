@@ -704,7 +704,7 @@ export const WithRunningBrowserSlot = {
 
     // The browser slot moved from the secondary card into the running
     // hero. The legacy id="runningTestBrowser" + data-slot="browser"
-    // selectors are preserved so log-detail-v2.js's slot-injection
+    // selectors are preserved so log-detail.js's slot-injection
     // pattern keeps working without modification.
     const slotById = canvasElement.querySelector("#runningTestBrowser");
     const slotByAttr = canvasElement.querySelector('[data-slot="browser"]');

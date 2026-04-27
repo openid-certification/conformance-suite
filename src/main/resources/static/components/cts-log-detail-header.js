@@ -145,7 +145,7 @@ const STYLE_TEXT = `
     row-gap: var(--space-1);
     align-items: center;
     /* Horizontal padding is owned by the page wrapper now (via the
-       .log-page-v2 container's padding-inline), so the bar, nav row,
+       .log-page container's padding-inline), so the bar, nav row,
        hero, and drawer all use vertical-only padding here. The leading
        edge of every text block — verdict pill, "ABOUT THIS TEST"
        eyebrow, "Test details" summary — still aligns on a single
@@ -313,7 +313,7 @@ const STYLE_TEXT = `
      hero its weight. The eyebrow / headline / body type-scale ramp
      replaces the legacy card's internal grid. */
   cts-log-detail-header .ctsHero {
-    /* Horizontal padding is owned by the page wrapper (.log-page-v2
+    /* Horizontal padding is owned by the page wrapper (.log-page
        padding-inline); the hero keeps its generous vertical inset so
        it earns its weight via space, not edge chrome. */
     padding-block: var(--space-5);
@@ -530,12 +530,12 @@ function ensureStylesInjected() {
  *     viewport width).
  *   - `[data-slot="browser"]` and `[data-slot="error"]` placeholders
  *     remain inside the WAITING / RUNNING / INTERRUPTED hero so
- *     `js/log-detail-v2.js` can inject the browser-URL prompt and the
+ *     `js/log-detail.js` can inject the browser-URL prompt and the
  *     FINAL_ERROR alert.
  *   - `[data-slot="action-overflow"]` remains inside the sticky bar
  *     for the kebab-popover host.
  *   - `cts-failure-summary` still renders inside the host so
- *     `applyReferences()` in `log-detail-v2.js` can set `.references`
+ *     `applyReferences()` in `log-detail.js` can set `.references`
  *     and `.testId` on it for the R32 chip rendering.
  *
  * @property {TestInfo} testInfo - The test info object fetched from
@@ -1062,7 +1062,7 @@ class CtsLogDetailHeader extends LitElement {
   _renderTestNavControlsRow(test) {
     // `slim` removes the cluster's Return-to-Plan and Repeat-Test
     // buttons. The page-level breadcrumb (cts-crumb in
-    // log-detail-v2.html) already links back to the plan, and the
+    // log-detail.html) already links back to the plan, and the
     // sticky status bar's primary action already carries Repeat — so
     // emitting them again here would duplicate two prominent
     // affordances inside one viewport. The legacy log-detail.html mounts

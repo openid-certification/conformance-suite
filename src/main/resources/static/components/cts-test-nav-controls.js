@@ -247,7 +247,7 @@ class CtsTestNavControls extends LitElement {
   render() {
     if (!this.planId) return nothing;
 
-    // Slim mode (used by log-detail-v2): the page-level breadcrumb
+    // Slim mode (used by log-detail): the page-level breadcrumb
     // already carries the back affordance and cts-log-detail-header's
     // sticky status bar primary already carries the Repeat action, so
     // we render only progress + (optional) Continue. The legacy page

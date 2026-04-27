@@ -189,9 +189,9 @@ export const RecoveryClearsBanner = {
   },
 };
 
-// --- U1: log-detail-v2 page integration ---
+// --- U1: log-detail page integration ---
 // Plan: docs/plans/2026-04-26-002-refactor-log-detail-page-to-lit-triad-plan.md
-// MountedFromExistingPage simulates how log-detail-v2.js mounts the viewer:
+// MountedFromExistingPage simulates how log-detail.js mounts the viewer:
 // the bootstrap pre-fetches /api/info and passes the result via the new
 // `testInfo` reactive property, then the viewer's first /api/log poll fires
 // the cts-first-fetch-resolved event so the page can defer hash-anchor

@@ -226,7 +226,7 @@ export const EmitsScrollEvent = {
     });
 
     // Listen at document level — that's where the page-level handler
-    // (js/log-detail-v2.js) attaches. The event is bubbles + composed, so
+    // (js/log-detail.js) attaches. The event is bubbles + composed, so
     // it reaches document regardless of where the component is mounted.
     const handler = fn();
     document.addEventListener("cts-scroll-to-entry", handler);
@@ -298,7 +298,7 @@ export const KeyboardActivation = {
       // failureText is a real <a> anchor — natively focusable, natively
       // activated by Enter. The component's click handler preventDefaults
       // the navigation and dispatches cts-scroll-to-entry; the page-level
-      // handler in js/log-detail-v2.js does the smooth scroll.
+      // handler in js/log-detail.js does the smooth scroll.
       const firstRow = /** @type {HTMLAnchorElement} */ (
         canvasElement.querySelector('.failureItem a.failureText[data-entry-id="r5"]')
       );

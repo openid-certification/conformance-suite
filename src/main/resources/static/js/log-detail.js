@@ -1,5 +1,5 @@
 /**
- * Bootstrap for log-detail-v2.html — the Lit-triad-based replacement for
+ * Bootstrap for log-detail.html — the Lit-triad-based replacement for
  * log-detail.html. This module:
  *
  *   1. Fetches `/api/info`, `/api/plan`, and `/api/runner` for the test
@@ -76,7 +76,7 @@ async function fetchCurrentUser() {
     const user = await response.json();
     isAdmin = !!(user && user.isAdmin);
   } catch (err) {
-    console.warn("[log-detail-v2] /api/currentuser failed:", err);
+    console.warn("[log-detail] /api/currentuser failed:", err);
   }
 }
 
@@ -242,7 +242,7 @@ async function fetchAndApplyPlanState(testInfo) {
     navControls.totalCount = modules.length;
     navControls.nextEnabled = safeIndex >= 0 && safeIndex + 1 < modules.length;
   } catch (err) {
-    console.warn("[log-detail-v2] /api/plan failed:", err);
+    console.warn("[log-detail] /api/plan failed:", err);
   }
 }
 
@@ -268,7 +268,7 @@ async function fetchUploadedImageCount(testInfo) {
       applyTestInfo({ ...testInfo, results: stamped });
     }
   } catch (err) {
-    console.warn("[log-detail-v2] /api/uploaded-images failed:", err);
+    console.warn("[log-detail] /api/uploaded-images failed:", err);
   }
 }
 
@@ -313,7 +313,7 @@ function startRunnerPolling(testInfo) {
         setArchivedBanner(false);
       }
     } catch (err) {
-      console.warn("[log-detail-v2] /api/runner failed:", err);
+      console.warn("[log-detail] /api/runner failed:", err);
       // Back off and retry once.
       runnerPollState.active = window.setTimeout(pollOnce, POLL_INTERVAL_MS * 2);
     }
@@ -521,7 +521,7 @@ async function handleVisitBrowserApi(evt) {
     try {
       await postResult({ exception: { name: err.name, message: err.message } });
     } catch (postErr) {
-      console.warn("[log-detail-v2] failed to POST browser API exception:", postErr);
+      console.warn("[log-detail] failed to POST browser API exception:", postErr);
     }
     showError(err.message || String(err));
   }
@@ -727,8 +727,8 @@ async function handlePublish(evt) {
     // the public read-only view (matches legacy behaviour).
     const next =
       action === "publish"
-        ? `/log-detail-v2.html?log=${encodeURIComponent(eventTestId)}&public=true`
-        : `/log-detail-v2.html?log=${encodeURIComponent(eventTestId)}`;
+        ? `/log-detail.html?log=${encodeURIComponent(eventTestId)}&public=true`
+        : `/log-detail.html?log=${encodeURIComponent(eventTestId)}`;
     window.location.assign(next);
   } catch (err) {
     hideBusy();
@@ -791,7 +791,7 @@ async function handleRepeat(evt) {
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
     const data = await response.json();
     if (data && data.id) {
-      window.location.assign(`/log-detail-v2.html?log=${encodeURIComponent(data.id)}`);
+      window.location.assign(`/log-detail.html?log=${encodeURIComponent(data.id)}`);
     } else {
       window.location.reload();
     }
@@ -816,7 +816,7 @@ async function handleContinue(evt) {
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
     const data = await response.json();
     if (data && data.id) {
-      window.location.assign(`/log-detail-v2.html?log=${encodeURIComponent(data.id)}`);
+      window.location.assign(`/log-detail.html?log=${encodeURIComponent(data.id)}`);
     } else {
       window.location.reload();
     }
@@ -891,7 +891,7 @@ function setupLogToc() {
   }
   const main = document.getElementById("main-content");
   if (preferenceEnabled && main) {
-    main.classList.add("log-page-v2--with-toc");
+    main.classList.add("log-page--with-toc");
   }
   document.addEventListener("cts-scroll-to-block", handleScrollToBlock);
   document.addEventListener("cts-blocks-updated", (evt) => {

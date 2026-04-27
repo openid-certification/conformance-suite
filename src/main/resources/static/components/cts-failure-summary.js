@@ -184,7 +184,7 @@ function ensureStylesInjected() {
  *
  * The dispatched `cts-scroll-to-entry` event is `composed: true` AND
  * `bubbles: true` so the listener established at `document` level
- * (`js/log-detail-v2.js`) catches it from any DOM position the component
+ * (`js/log-detail.js`) catches it from any DOM position the component
  * is mounted in — including future shadow-DOM hosts (e.g. if U8's rail
  * ever moves into a shadow root).
  *
@@ -261,7 +261,7 @@ class CtsFailureSummary extends LitElement {
    * Click handler for failureText anchors. Cancels native anchor
    * navigation (the `#entry-…` href is a semantic marker, not a
    * deep-link target) and dispatches `cts-scroll-to-entry` so the
-   * page-level handler in `js/log-detail-v2.js` can open any closed
+   * page-level handler in `js/log-detail.js` can open any closed
    * `<details>` ancestor and smooth-scroll to the matching log entry.
    */
   _handleRowClick(event) {
