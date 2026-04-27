@@ -193,8 +193,8 @@ class CtsPlanHeader extends LitElement {
           <a href="https://openid.net/certification/">https://openid.net/certification/</a> - to be
           added to this list follow
           <a href="https://openid.net/certification/instructions/"
-            >the certification instructions.</a
-          >
+            >the certification instructions</a
+          >.
         </div>
       </div>
     `;
