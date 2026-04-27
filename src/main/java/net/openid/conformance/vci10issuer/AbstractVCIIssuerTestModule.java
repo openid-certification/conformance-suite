@@ -9,8 +9,6 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.Condition.ConditionResult;
-import net.openid.conformance.condition.client.EnsureCredentialTrustAnchorConfigured;
-import net.openid.conformance.condition.client.EnsureStatusListTrustAnchorConfigured;
 import net.openid.conformance.condition.client.RegisterCredentialTrustAnchor;
 import net.openid.conformance.condition.client.RegisterStatusListTrustAnchor;
 import net.openid.conformance.condition.client.AddFAPIInteractionIdToResourceEndpointRequest;
