@@ -544,6 +544,11 @@ function ensureStylesInjected() {
  *   Reflects the `is-admin` attribute.
  * @property {boolean} isPublic - Public (read-only) view hides repeat /
  *   upload / publish actions. Reflects the `is-public` attribute.
+ * @property {boolean} archived - When `true`, renders the archived-test
+ *   info banner above the hero. Mirrors the legacy `#runningTestArchived`
+ *   alert (`templates/logHeader.html:139–141`) shown when the runner no
+ *   longer holds state for this test (e.g. `/api/runner/{testId}` returns
+ *   404). Reflects the `archived` attribute.
  * @fires cts-scroll-to-entry - Bubbled up from the embedded
  *   `cts-failure-summary` child when a failure row is activated, with
  *   `{ detail: { entryId } }`. Bubbles AND is composed.
@@ -574,6 +579,7 @@ class CtsLogDetailHeader extends LitElement {
     testInfo: { type: Object, attribute: "test-info" },
     isAdmin: { type: Boolean, attribute: "is-admin" },
     isPublic: { type: Boolean, attribute: "is-public" },
+    archived: { type: Boolean, attribute: "archived" },
   };
 
   constructor() {
@@ -581,6 +587,7 @@ class CtsLogDetailHeader extends LitElement {
     this.testInfo = null;
     this.isAdmin = false;
     this.isPublic = false;
+    this.archived = false;
   }
 
   createRenderRoot() {
@@ -1333,7 +1340,18 @@ class CtsLogDetailHeader extends LitElement {
     if (!this.testInfo) return nothing;
     return html`
       ${this._renderStatusBar(this.testInfo)} ${this._renderTestNavControlsRow(this.testInfo)}
-      ${this._renderHero(this.testInfo)} ${this._renderDrawer(this.testInfo)}
+      ${this._renderArchivedBanner()} ${this._renderHero(this.testInfo)}
+      ${this._renderDrawer(this.testInfo)}
+    `;
+  }
+
+  _renderArchivedBanner() {
+    if (!this.archived) return nothing;
+    return html`
+      <cts-alert variant="info" dismissible id="runningTestArchived" data-testid="archived-banner">
+        <b>This test is no longer running.</b> This log has been archived and can be viewed or
+        downloaded.
+      </cts-alert>
     `;
   }
 

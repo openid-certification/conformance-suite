@@ -262,6 +262,49 @@ export const RunningTest = {
   },
 };
 
+/**
+ * Archived state — `archived` reactive prop renders the legacy
+ * `runningTestArchived` info banner above the hero. The page sets
+ * `header.archived = true` when `/api/runner/{testId}` returns 404
+ * (mirrors `log-detail.html:1662–1664`). Banner is dismissible.
+ */
+export const ArchivedTest = {
+  render: () =>
+    html`<cts-log-detail-header
+      .testInfo=${COMPLETED_TEST}
+      archived
+    ></cts-log-detail-header>`,
+  async play({ canvasElement }) {
+    await waitFor(() => {
+      const banner = canvasElement.querySelector('[data-testid="archived-banner"]');
+      if (!banner) throw new Error("archived-banner not yet rendered");
+      return banner;
+    });
+    const banner = canvasElement.querySelector('[data-testid="archived-banner"]');
+    expect(banner).toBeTruthy();
+    expect(banner.getAttribute("variant")).toBe("info");
+    expect(banner.textContent).toContain("This test is no longer running.");
+    expect(banner.textContent).toContain("This log has been archived");
+  },
+};
+
+/**
+ * Default state has no archived banner — verifies `archived=false` keeps
+ * the prior chrome unchanged.
+ */
+export const NotArchivedHasNoBanner = {
+  render: () => html`<cts-log-detail-header .testInfo=${COMPLETED_TEST}></cts-log-detail-header>`,
+  async play({ canvasElement }) {
+    await waitFor(() => {
+      const bar = canvasElement.querySelector('[data-testid="status-bar-primary"]');
+      if (!bar) throw new Error("status bar not yet rendered");
+      return bar;
+    });
+    const banner = canvasElement.querySelector('[data-testid="archived-banner"]');
+    expect(banner).toBeFalsy();
+  },
+};
+
 export const RepeatViaStatusBar = {
   render: () => html`<cts-log-detail-header .testInfo=${COMPLETED_TEST}></cts-log-detail-header>`,
   async play({ canvasElement }) {
