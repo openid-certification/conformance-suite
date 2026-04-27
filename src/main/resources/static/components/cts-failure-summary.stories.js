@@ -147,10 +147,14 @@ export const WithRequirements = {
       return el;
     });
 
-    // Three requirement chips total (one + two).
-    const chips = canvasElement.querySelectorAll(".logRequirementBadge");
+    // Three requirement chips total (one + two). Requirement IDs render
+    // through cts-badge[variant="secondary"] now (mono-font neutral chip).
+    const chips = canvasElement.querySelectorAll('cts-badge[variant="secondary"]');
     expect(chips).toHaveLength(3);
     expect(chips[0].textContent.trim()).toBe("OIDCC-3.1.3.7-6");
+    // The scoped b-secondary class is what paints the chip; if it's
+    // missing we'd silently fall back to bare cts-badge defaults.
+    expect(chips[0].querySelector(".badge.b-secondary")).toBeTruthy();
   },
 };
 
@@ -180,8 +184,8 @@ export const Compact = {
     expect(rows).toHaveLength(2);
 
     // Requirement chips are hidden by [compact] CSS — the elements are
-    // still in the DOM but `display: none`.
-    const chip = canvasElement.querySelector(".logRequirementBadge");
+    // still in the DOM but `display: none` on the host cts-badge.
+    const chip = canvasElement.querySelector('cts-badge[variant="secondary"]');
     expect(chip).toBeTruthy();
     expect(getComputedStyle(chip).display).toBe("none");
   },
@@ -256,21 +260,29 @@ export const KeyboardActivation = {
     document.addEventListener("cts-scroll-to-entry", handler);
 
     try {
-      // First row's failure-text span has role="button" and tabindex="0",
-      // so it accepts focus; Enter activates the same code path as click.
-      const firstRow = /** @type {HTMLElement} */ (
-        canvasElement.querySelector('.failureItem .failureText[data-entry-id="r5"]')
+      // failureText is a real <a> anchor — natively focusable, natively
+      // activated by Enter. The component's click handler preventDefaults
+      // the navigation and dispatches cts-scroll-to-entry; the page-level
+      // handler in js/log-detail-v2.js does the smooth scroll.
+      const firstRow = /** @type {HTMLAnchorElement} */ (
+        canvasElement.querySelector('.failureItem a.failureText[data-entry-id="r5"]')
       );
+      expect(firstRow).toBeTruthy();
+      // The href is a marker for the entry id; preventDefault on click
+      // keeps the URL fragment from changing, but the value should still
+      // be set so the anchor reads as a within-page link.
+      expect(firstRow.getAttribute("href")).toBe("#entry-r5");
+
       firstRow.focus();
       expect(document.activeElement).toBe(firstRow);
 
       await userEvent.keyboard("{Enter}");
       expect(handler).toHaveBeenCalledOnce();
       expect(handler.mock.calls[0][0].detail.entryId).toBe("r5");
-
-      // Space also activates (per ARIA "button" widget convention).
-      await userEvent.keyboard(" ");
-      expect(handler).toHaveBeenCalledTimes(2);
+      // Anchors only respond to Enter natively — Space scrolls the page,
+      // it does not activate the link. That is the correct anchor
+      // semantics; if Space-activation is later required, the element
+      // should switch back to a button role.
     } finally {
       document.removeEventListener("cts-scroll-to-entry", handler);
     }
