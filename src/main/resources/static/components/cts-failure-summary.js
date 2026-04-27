@@ -56,8 +56,11 @@ const STYLE_TEXT = `
   /* In grouped mode the outer list stacks groups (not rows). Bump the gap
      between groups (so each cluster reads as discrete) and the gap below
      the section title (so the section break is unambiguously larger than
-     the inter-group break). Spacing scale: 20 / 16 / 8 / 4 from
-     section -> group -> header-row -> row-row. */
+     the inter-group break). Spacing scale: 20 / 16 / 8 / 8 from
+     section -> group -> header-row -> row-row. The row-to-row gap stays
+     at space-2 in both flat and grouped mode so the inner rhythm doesn't
+     visibly tighten when groupByBlock is toggled on; group-vs-row
+     separation is carried entirely by the wider outer-list gap. */
   cts-failure-summary[group-by-block] .failureList {
     gap: var(--space-4);
     margin-top: var(--space-5);
@@ -69,14 +72,15 @@ const STYLE_TEXT = `
   }
   /* Block-group label sits one step below the section title in the
      hierarchy: smaller, lighter, slightly tracked. Reads as a data-
-     structure label, not as competing prose. */
+     structure label, not as competing prose. The space below the header
+     is owned by the flex gap on .failureBlockGroup, so no margin is
+     needed here — adding one would double-count with the gap. */
   cts-failure-summary .failureBlockHeader {
     font-size: var(--fs-12);
     font-weight: var(--fw-medium);
     color: var(--fg-soft);
     letter-spacing: 0.02em;
-    margin-top: 0;
-    margin-bottom: var(--space-2);
+    margin: 0;
   }
   cts-failure-summary .failureBlockCount {
     color: var(--fg-faint);
@@ -86,11 +90,15 @@ const STYLE_TEXT = `
        (11 failures)) baseline-aligned across stacked group headers. */
     font-variant-numeric: tabular-nums;
   }
-  /* Tighter row rhythm inside a group — rows feel like a cluster bound
-     to the label above, separated from neighboring clusters by the
-     larger outer-list gap. */
-  cts-failure-summary .failureBlockGroup .failureItem + .failureItem {
-    margin-top: var(--space-1);
+  /* Inside a group the failureBlockGroup is a flex container so the
+     row-to-row rhythm uses the same gap mechanic (and the same
+     space-2 value) as the flat-mode failureList. Previously this used
+     a sibling-margin of space-1, which made grouped rows visibly
+     tighter than flat rows for no semantic reason. */
+  cts-failure-summary .failureBlockGroup {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
   }
   cts-failure-summary .failureItem {
     display: flex;
@@ -99,9 +107,13 @@ const STYLE_TEXT = `
     gap: var(--space-2);
     font-size: var(--fs-13);
   }
-  cts-failure-summary .failureText {
+  cts-failure-summary .failureText,
+  cts-failure-summary .failureText:visited {
+    /* Native anchor: explicit color so the user-agent link palette
+       (typically blue) doesn't override the design-system tone. The
+       anchor reads as text-with-an-underline rather than a saturated
+       link, which matches the look used before the role swap. */
     color: var(--fg);
-    cursor: pointer;
     text-decoration: underline;
     text-decoration-thickness: 1px;
     text-underline-offset: 2px;
@@ -112,20 +124,12 @@ const STYLE_TEXT = `
     outline: none;
     box-shadow: var(--focus-ring);
   }
-  cts-failure-summary .logRequirementBadge {
-    display: inline-block;
-    background: var(--ink-50);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-pill);
-    color: var(--fg-muted);
-    font-family: var(--font-mono);
-    font-size: var(--fs-12);
-    padding: 1px var(--space-2);
-  }
 
   /* Compact rendering for the wide-viewport rail (U8). Drop the title +
      requirement badges to stay inside the rail's narrow width budget;
-     each row collapses to a single ellipsised line. */
+     each row collapses to a single ellipsised line. Requirement chips
+     render as cts-badge[variant="secondary"]; we hide them on the host
+     element selector so the inner .badge wrapper inherits display:none. */
   cts-failure-summary[compact] .failureSummaryTitle { display: none; }
   cts-failure-summary[compact] .failureBlockHeader { display: none; }
   cts-failure-summary[compact] .failureList {
@@ -143,7 +147,7 @@ const STYLE_TEXT = `
     text-overflow: ellipsis;
     min-width: 0;
   }
-  cts-failure-summary[compact] .logRequirementBadge { display: none; }
+  cts-failure-summary[compact] cts-badge[variant="secondary"] { display: none; }
 `;
 
 function ensureStylesInjected() {
@@ -237,20 +241,23 @@ class CtsFailureSummary extends LitElement {
     );
   }
 
+  /**
+   * Click handler for failureText anchors. Cancels native anchor
+   * navigation (the `#entry-…` href is a semantic marker, not a
+   * deep-link target) and dispatches `cts-scroll-to-entry` so the
+   * page-level handler in `js/log-detail-v2.js` can open any closed
+   * `<details>` ancestor and smooth-scroll to the matching log entry.
+   */
   _handleRowClick(event) {
-    const entryId = event.currentTarget.dataset.entryId;
-    if (entryId) this._dispatchScrollToEntry(entryId);
-  }
-
-  _handleRowKeydown(event) {
-    if (event.key !== "Enter" && event.key !== " ") return;
     event.preventDefault();
     const entryId = event.currentTarget.dataset.entryId;
     if (entryId) this._dispatchScrollToEntry(entryId);
   }
 
   _renderRequirementBadges(requirements) {
-    return (requirements || []).map((req) => html`<span class="logRequirementBadge">${req}</span>`);
+    return (requirements || []).map(
+      (req) => html`<cts-badge variant="secondary" label="${req}"></cts-badge>`,
+    );
   }
 
   _renderFailureRow(item) {
@@ -261,14 +268,12 @@ class CtsFailureSummary extends LitElement {
           label="${item.result}"
         ></cts-badge>
         ${this._renderRequirementBadges(item.requirements)}
-        <span
+        <a
           class="failureText"
-          role="button"
-          tabindex="0"
+          href="#entry-${item._id}"
           data-entry-id=${item._id}
           @click=${this._handleRowClick}
-          @keydown=${this._handleRowKeydown}
-          >${item.src}: ${item.msg}</span
+          >${item.src}: ${item.msg}</a
         >
       </div>
     `;
