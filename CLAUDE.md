@@ -323,6 +323,28 @@ All icons render via `<cts-icon name="<kebab>" size="16|20|24">`. The icon libra
 - **Brand glyphs (Google, GitLab):** intentionally outside `cts-icon`. coolicons does not ship brand marks. Brand SVGs are inlined as `html\`<svg ...>\`` constants in `src/main/resources/static/components/cts-login-page.js` and used only there. If a future call site needs a brand mark, follow the same colocation pattern; do NOT add brand glyphs to the coolicons set.
 - **Do NOT:** hand-roll inline `<svg>` paths for icons (use `cts-icon`); reference Bootstrap Icons (`bi-*` classes — removed); construct icon classes via string concatenation (no `className = \`bi bi-\${name}\`` — create a `cts-icon` element instead).
 
+## Badges
+
+All status pills, label chips, and count badges render via `<cts-badge variant="<name>">`. The status palette (`pass` / `fail` / `warn` / `running` / `skip` / `review`) and the utility variants (`primary` / `secondary` / `danger` / `info-subtle`) are token-routed through `oidf-tokens.css`. See `src/main/resources/static/components/cts-badge.js` and Storybook **Primitives/cts-badge** for the full inventory.
+
+**Affordance rule:** every variant supports two visual states. The state must reflect whether clicking the badge does anything.
+
+- **Read-only (default):** fill only, no border. The badge is a label for state — pass/fail/warn/running/skip status, role marker (`ADMIN`), spec requirement chip, count summary, etc. The user does not click on it to do anything.
+- **Interactive:** fill + 1px inset `box-shadow` ring + hover/focus. The badge is itself a click target, or it sits inside a wrapper that has stripped its own affordance (e.g., an `<a>` with `text-decoration: none`) so the badge silhouette is what the user perceives as clickable.
+
+**When to use which attribute:**
+- **`interactive`** — visual only. Adds the ring without `role="button"`. Use when the badge sits inside an `<a>` or `<button>` whose own affordance is invisible (no underline, no hover) so the badge needs to carry the affordance signal itself. Existing example: `cts-plan-modules.js` wraps the module status pill in a no-decoration anchor to log-detail; the badge is marked `interactive` so the affordance reads.
+- **`clickable`** — semantic + visual. Adds `role="button"`, `tabindex="0"`, keyboard activation, and emits `cts-badge-click`. Implies `interactive` visually — a clickable badge always renders the ring even when `interactive` is not set. Use when the badge IS the click target and is not already wrapped in an `<a>`/`<button>`/parent click handler.
+
+**Affordance decision tree (from the badge sweep plan, `docs/plans/2026-04-27-001-feat-badge-affordance-rule-plan.md`):**
+1. Is the cts-badge itself the click target? Yes → `clickable`. No → step 2.
+2. Is the badge wrapped in an interactive element (`<a>`, `<button>`, parent click handler)? No → leave read-only. Yes → step 3.
+3. Does the wrapper provide its own visible affordance (link underline, button background, hover state)? Yes → leave read-only (the wrapper is doing the work; adding the ring is redundant noise). No → `interactive`.
+
+**Token deviation:** The readonly `b-rev` (Review) chip uses `var(--bg-muted)` (#F8F7F5) as its background fill. The token system does not currently define a `--status-review-bg`; if one lands in the archive, switch the fill to that token. Update the JSDoc block in `cts-badge.js` if the deviation is resolved.
+
+- **Do NOT:** hand-roll a 1px `border` around a chip-like element to fake the affordance ring — use `cts-badge` with `interactive`/`clickable`. The component implements the ring as an inset `box-shadow` so the box-model dimensions are identical in both states; a real `border` would shift the box by 1px when toggling affordance. Do NOT add `clickable` to a badge that is already inside a clickable parent (`<a>` or `<button>`) — that nests `role="button"` inside link/button semantics and produces ambiguous keyboard activation. Do NOT use `bg-warning` / `bg-info` / `bg-info-subtle` / `border-info-subtle` / `text-info-emphasis` Bootstrap utility classes — those are removed; use the canonical variants instead.
+
 ## Frontend quality gates
 
 Lint, format, and type-check for the frontend are covered by the `frontend_lint` GitLab job, mirrored locally by `npm run test:ci` from `frontend/` (format:check → lint → type-check → lint:jsdoc → lint:lit-analyzer). See `frontend/README.md` for the command reference and failure-mode decoder. `lit-analyzer` provides Lit-aware template diagnostics (unknown elements, wrong binding sigils, unclosed tags); `ts-lit-plugin` exposes the same diagnostics inside TypeScript-language-service IDEs.

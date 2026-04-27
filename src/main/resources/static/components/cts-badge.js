@@ -4,6 +4,15 @@ import "./cts-icon.js";
  * Canonical design-system status variants. These map to the
  * `--status-*` token group in `oidf-tokens.css` via the scoped CSS in
  * STYLE_TEXT. Use these for any badge that conveys test outcome.
+ *
+ * Every variant supports two affordance states:
+ *   - **Read-only** (default) — fill only, no border ring. The badge is
+ *     a label for state, not a click target.
+ *   - **Interactive** — fill + 1px inset `box-shadow` ring + hover/focus.
+ *     Set via `interactive` (visual only) or `clickable` (visual +
+ *     `role="button"` + keyboard support + event). The ring is the
+ *     affordance signal that distinguishes interactable badges from
+ *     read-only labels at a glance.
  * @type {Object.<string, string>}
  */
 const STATUS_VARIANT_CLASSES = {
@@ -20,14 +29,16 @@ const STATUS_VARIANT_CLASSES = {
  * palette is the wrong semantic fit:
  *   - `primary`   — emphasis (e.g. an active filter pill)
  *   - `secondary` — neutral tag/chip (e.g. spec requirement labels);
- *     scoped in STYLE_TEXT as `b-secondary` (mono font, neutral surface,
- *     ring border), distinct from a full pill of saturated color.
+ *     scoped in STYLE_TEXT as `b-secondary` (mono font, neutral surface).
+ *     Read-only by default; opt into the ring via `interactive` /
+ *     `clickable` to signal affordance.
  *   - `danger`    — role marker (e.g. the ADMIN badge in the navbar)
  *   - `info-subtle` — informational call-out, retokenized onto the
  *     `--status-info-*` palette (used by federation entity section blocks
  *     in schedule-test.html and aggregated info-message counts)
  * These intentionally live outside STATUS_VARIANT_CLASSES; they are not
- * test outcomes.
+ * test outcomes. Like the status variants, all utility variants support
+ * both read-only and interactive affordance states.
  * @type {Object.<string, string>}
  */
 const UTILITY_VARIANT_CLASSES = {
@@ -47,27 +58,33 @@ const STYLE_ID = "cts-badge-styles";
  * (`--radius-pill`); multi-line content (badges containing a `<br>`)
  * collapses to the 9px corner specified in the design archive.
  *
- * `b-rev` (Review) reuses the `--status-info-*` palette: the design
- * archive's preview renders Review on a white surface with a
- * `--ink-300` border / `--ink-700` text. The token system does not
- * currently define a separate Review palette, so we use the calmer
- * blue info palette to differentiate Review from neutral skipped
- * content while staying within the published tokens. Document this
- * deviation in the JSDoc and revisit if a `--status-review-*` group
- * lands in the archive.
+ * **Affordance rule:** every variant supports both an interactive and a
+ * read-only state. The interactive state adds a 1px inset `box-shadow`
+ * ring on top of the variant's fill; the read-only state renders the
+ * fill only. The class `is-interactive` on the inner `<span class="badge">`
+ * toggles the ring — the render path adds it whenever `interactive` or
+ * `clickable` is set on the host. Read-only is the default; the ring
+ * communicates "you can click this" and is reserved for badges where the
+ * affordance is real.
+ *
+ * `b-rev` (Review) renders on `--bg-muted` (warm-neutral, #F8F7F5) with
+ * `--ink-700` text. The fill is identical in both states — the ring is
+ * the only difference. Without the ring, a white background would
+ * vanish against the page; `--bg-muted` keeps Review legible as a
+ * read-only chip. The token system does not currently define a
+ * `--status-review-bg`; revisit if one lands in the archive.
  *
  * `b-info-subtle` retokenizes the legacy Bootstrap `info-subtle` look
  * (used for section description blocks in `schedule-test.html`) onto
  * the same `--status-info-*` palette.
  *
- * Bordered variants (`b-rev`, `b-info-subtle`, `b-secondary`) use an
- * inset 1px box-shadow as a "simili-border" rather than the `border`
- * property. This keeps the box-model dimensions identical to the
- * unbordered variants — toggling between e.g. `pass` and `review` on
- * the same line produces no 1px reflow, and inline-flex centering is
+ * Interactive variants use an inset 1px box-shadow as a "simili-border"
+ * rather than the `border` property. This keeps the box-model
+ * dimensions identical to the read-only state — toggling `interactive`
+ * on/off produces no 1px reflow, and inline-flex centering is
  * insensitive to whether a ring is drawn. Inset (vs. outset) keeps
- * the rendered footprint inside the border box, so a bordered chip
- * occupies the exact same pixels as a borderless one.
+ * the rendered footprint inside the border box, so a ringed chip
+ * occupies the exact same pixels as a ringless one.
  */
 const STYLE_TEXT = `
   cts-badge {
@@ -137,13 +154,11 @@ const STYLE_TEXT = `
     color: var(--status-skipped);
   }
   cts-badge .b-rev {
-    background: var(--bg, #fff);
-    box-shadow: inset 0 0 0 1px var(--border-strong, #C7C2B8);
+    background: var(--bg-muted, #F8F7F5);
     color: var(--ink-700, #322E28);
   }
   cts-badge .b-info-subtle {
     background: var(--status-info-bg);
-    box-shadow: inset 0 0 0 1px var(--status-info-border);
     color: var(--ink-900);
     text-transform: none;
     letter-spacing: 0;
@@ -156,12 +171,9 @@ const STYLE_TEXT = `
      keep the chip compact next to neighbouring prose; vertical padding
      stays at the default 2px so the outer height matches the status
      pills (2 + 16 + 2 = 20px) — mixed rows of chips and status pills
-     should sit at the same height. The 1px ring is an inset
-     box-shadow so the chip occupies the same box as a borderless
-     variant. */
+     should sit at the same height. */
   cts-badge .b-secondary {
     background: var(--ink-50);
-    box-shadow: inset 0 0 0 1px var(--border);
     color: var(--fg-muted);
     font-family: var(--font-mono);
     font-size: var(--fs-12);
@@ -169,6 +181,52 @@ const STYLE_TEXT = `
     letter-spacing: 0;
     text-transform: none;
     padding: 2px var(--space-2);
+  }
+  /* Affordance rule: interactive badges (set via the 'interactive' or
+     'clickable' host attribute, both reflected as 'is-interactive' on
+     the inner span by the render path) carry a 1px inset box-shadow
+     ring on top of the variant fill. Read-only badges have no ring.
+     The ring color is tonally matched to each variant's fill — pure
+     grey on a saturated fill reads as a misaligned border, so each
+     status variant uses its own foreground token (the dark sibling of
+     the variant fill) which keeps the ring inside the same hue family.
+     Neutral variants (skip, secondary, info-subtle, review) keep their
+     existing neutral ring tokens. */
+  cts-badge .badge.is-interactive {
+    box-shadow: inset 0 0 0 1px var(--border);
+    cursor: pointer;
+  }
+  cts-badge .b-pass.is-interactive {
+    box-shadow: inset 0 0 0 1px var(--status-pass);
+  }
+  cts-badge .b-fail.is-interactive {
+    box-shadow: inset 0 0 0 1px var(--status-fail);
+  }
+  cts-badge .b-warn.is-interactive {
+    box-shadow: inset 0 0 0 1px var(--status-warning);
+  }
+  cts-badge .b-run.is-interactive {
+    box-shadow: inset 0 0 0 1px var(--status-running);
+  }
+  cts-badge .b-skip.is-interactive {
+    box-shadow: inset 0 0 0 1px var(--status-skipped);
+  }
+  cts-badge .b-info-subtle.is-interactive {
+    box-shadow: inset 0 0 0 1px var(--status-info-border);
+  }
+  cts-badge .b-rev.is-interactive {
+    box-shadow: inset 0 0 0 1px var(--border-strong, #C7C2B8);
+  }
+  /* Hover and focus affordance — only on interactive badges. Read-only
+     badges deliberately render no hover state so they read as labels,
+     not buttons. filter: brightness darkens any variant fill
+     uniformly without per-variant tuning. */
+  cts-badge .badge.is-interactive:hover {
+    filter: brightness(0.97);
+  }
+  cts-badge .badge.is-interactive:focus-visible {
+    outline: 2px solid var(--rust-400, #C75A3F);
+    outline-offset: 2px;
   }
   /* Inline anchors carry the badge's own color so a link inside an
      "info-subtle" badge reads blueish, not the global orange link color. */
@@ -283,8 +341,17 @@ function buildSpinner() {
  *   default badge radius is now the pill radius, so this attribute is a
  *   no-op for status variants. It is still read so existing markup that
  *   sets `pill` continues to render unchanged.
+ * @property {boolean} interactive - Visual-only affordance. Adds a 1px
+ *   inset ring (and hover state) on top of the variant's fill so the
+ *   badge reads as "you can click this." Use when the badge sits inside
+ *   an interactive wrapper (`<a>`, `<button>`, parent click handler) and
+ *   the wrapper does not already provide its own visible affordance. Does
+ *   NOT add `role="button"` or keyboard handling — for that, use
+ *   `clickable`.
  * @property {boolean} clickable - Gives the badge a `button` role,
- *   keyboard support, and emits `cts-badge-click` on activation
+ *   keyboard support, and emits `cts-badge-click` on activation. Implies
+ *   `interactive` visually — a clickable badge always carries the
+ *   affordance ring even when `interactive` is not set.
  *
  * When neither `label` nor `count` is set, the badge wraps whatever child
  * nodes are inside the host element. This is the only way to embed inline
@@ -304,7 +371,15 @@ function buildSpinner() {
  *   `clickable` is set. Bubbles and is composed.
  */
 class CtsBadge extends HTMLElement {
-  static observedAttributes = ["variant", "label", "count", "icon", "pill", "clickable"];
+  static observedAttributes = [
+    "variant",
+    "label",
+    "count",
+    "icon",
+    "pill",
+    "clickable",
+    "interactive",
+  ];
 
   connectedCallback() {
     if (this._initialized) return;
@@ -349,6 +424,11 @@ class CtsBadge extends HTMLElement {
 
     const variantClass = this._variantClass();
     const clickable = this.hasAttribute("clickable");
+    // `clickable` implies `interactive` visually; the inner-span class
+    // is the single source of truth for the affordance ring. Reading
+    // both attributes here (rather than reflecting one onto the other
+    // via setAttribute) avoids any attributeChangedCallback re-entry.
+    const interactive = clickable || this.hasAttribute("interactive");
     const icon = this.getAttribute("icon") || "";
     const label = this.getAttribute("label") || "";
     const countAttr = this.getAttribute("count");
@@ -358,7 +438,7 @@ class CtsBadge extends HTMLElement {
     const running = this._isRunning();
 
     const span = document.createElement("span");
-    span.className = `badge ${variantClass}`;
+    span.className = interactive ? `badge ${variantClass} is-interactive` : `badge ${variantClass}`;
     if (clickable) {
       span.setAttribute("role", "button");
       span.setAttribute("tabindex", "0");
