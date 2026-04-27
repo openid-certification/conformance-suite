@@ -209,7 +209,46 @@ export const WithCount = {
     const badge = canvasElement.querySelector(".badge");
     expect(badge).toBeTruthy();
     expect(badge.textContent.trim()).toBe("5");
-    expect(badge.classList.contains("bg-secondary")).toBe(true);
+    // `secondary` is the neutral chip variant (mono-font, ring-bordered)
+    // used for spec requirement labels and similar tag-like content.
+    expect(badge.classList.contains("b-secondary")).toBe(true);
+  },
+};
+
+/**
+ * The `secondary` variant is the canonical neutral tag/chip — used for
+ * spec requirement labels (e.g. `OIDCC-3.1.3.7-6`), version markers, and
+ * other content that should read as a code-like identifier rather than a
+ * status pill. The chip paints with a monospace font, a subtle warm-neutral
+ * surface, and a 1px outset box-shadow ring. Because the ring is a shadow
+ * (not a `border`), the chip's box dimensions are identical to the
+ * unbordered status variants — so a row mixing `pass` / `fail` / requirement
+ * chips never reflows by 1px when toggling between variants.
+ */
+export const Requirement = {
+  args: { variant: "secondary", label: "OIDCC-3.1.3.7-6" },
+  render: ({ variant, label }) =>
+    html`<cts-badge variant="${variant}" label="${label}"></cts-badge>`,
+
+  async play({ canvasElement }) {
+    const badge = canvasElement.querySelector(".badge");
+    expect(badge).toBeTruthy();
+    expect(badge.classList.contains("b-secondary")).toBe(true);
+    expect(badge.textContent.trim()).toBe("OIDCC-3.1.3.7-6");
+
+    const computed = window.getComputedStyle(badge);
+    // Mono font signals "code-like identifier" — distinguishes the chip
+    // from the all-caps status pills.
+    expect(computed.fontFamily.toLowerCase()).toContain("mono");
+    // Normal case + zero tracking — these are labels, not banners.
+    expect(computed.textTransform).toBe("none");
+    // Outset ring instead of a real border. With box-shadow:none the
+    // visual would collapse to a borderless chip, so the computed
+    // box-shadow must be present.
+    expect(computed.boxShadow).not.toBe("none");
+    // No `border` property — the ring is purely a shadow so the box
+    // dimensions are stable across variants.
+    expect(parseFloat(computed.borderTopWidth)).toBe(0);
   },
 };
 
