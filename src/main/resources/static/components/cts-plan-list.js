@@ -287,7 +287,8 @@ class CtsPlanList extends LitElement {
       >`;
     }
     if (key === "variant") return this._formatVariant(row.variant);
-    if (key === "started") return this._formatDate(row.started);
+    if (key === "started")
+      return html`<span class="tabular-nums">${this._formatDate(row.started)}</span>`;
     if (key === "modules") return this._renderModuleBadges(row.modules);
     if (key === "_config") {
       return html`<cts-button

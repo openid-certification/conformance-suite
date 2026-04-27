@@ -168,7 +168,7 @@ class CtsPlanHeader extends LitElement {
           <dd><span class="mono">${plan.version}</span></dd>
 
           <dt>Started:</dt>
-          <dd>${startedText}</dd>
+          <dd class="tabular-nums">${startedText}</dd>
 
           ${showOwner
             ? html`

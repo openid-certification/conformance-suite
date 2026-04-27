@@ -212,7 +212,7 @@ class CtsRunningTestCard extends LitElement {
           </div>
           <div class="cts-rtc-row">
             <div class="cts-rtc-label">Created:</div>
-            <div class="cts-rtc-value">${this._formatDate(test.created)}</div>
+            <div class="cts-rtc-value tabular-nums">${this._formatDate(test.created)}</div>
           </div>
           ${variantStr
             ? html`<div class="cts-rtc-row">

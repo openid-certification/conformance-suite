@@ -430,7 +430,7 @@ class CtsTokenManager extends LitElement {
       (token) => html`
         <tr>
           <td>${token._id}</td>
-          <td>${this._formatDate(token.expires)}</td>
+          <td><span class="tabular-nums">${this._formatDate(token.expires)}</span></td>
           <td>
             <cts-button
               class="deleteBtn"
