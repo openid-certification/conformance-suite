@@ -25,7 +25,7 @@ export const Default = {
   args: {
     heading: "No test plans yet",
     body: "Create your first plan to get started running conformance tests.",
-    icon: "inbox",
+    icon: "folder-open",
     ctaLabel: "Create a plan",
     ctaHref: "schedule-test.html",
   },
@@ -48,7 +48,7 @@ export const Default = {
     // Icon glyph rendered above the heading.
     const iconHost = host.querySelector("cts-icon");
     expect(iconHost).toBeTruthy();
-    expect(iconHost.getAttribute("name")).toBe("inbox");
+    expect(iconHost.getAttribute("name")).toBe("folder-open");
     expect(iconHost.getAttribute("size")).toBe("24");
 
     // Heading text matches.
