@@ -438,8 +438,14 @@ test.describe("plan-detail.html — Plan Detail", () => {
     // arrives first, so we use it as the readiness signal.
     await expect(page.locator('[data-testid="private-link-btn"]')).toBeVisible();
 
-    // Wait for /api/info to drain so canCertify has had a chance to flip.
-    await page.waitForLoadState("networkidle");
+    // Positive readiness signal that the FAILED /api/info has been
+    // processed: a row's badge attribute only resolves to "FAILED" after
+    // that fetch settles. Asserting this *before* the negative certify-btn
+    // check avoids the flaky `networkidle` waiter (which Playwright
+    // discourages for polling apps) while proving the canCertify path
+    // has consumed its inputs. We match by attribute rather than by row
+    // index so the test stays robust as the fixture grows new modules.
+    await expect(page.locator('#planItems .module-row cts-badge[label="FAILED"]')).toBeVisible();
 
     // No certify button — at least one FAILED result.
     await expect(page.locator('[data-testid="certify-btn"]')).toHaveCount(0);

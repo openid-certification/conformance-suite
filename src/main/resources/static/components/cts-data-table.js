@@ -967,11 +967,7 @@ class CtsDataTable extends LitElement {
     // the glyph weight and arrowhead style stay consistent across neutral /
     // asc / desc states. Mixing arrows with carets used to make the active
     // state pop in an awkward, "different family" way.
-    const arrowIcon = isActive
-      ? isDesc
-        ? "arrow-down-md"
-        : "arrow-up-md"
-      : "arrow-down-up";
+    const arrowIcon = isActive ? (isDesc ? "arrow-down-md" : "arrow-up-md") : "arrow-down-up";
     const headerClasses = column.sortable ? "is-sortable" : "";
     const ariaSort = column.sortable
       ? isActive

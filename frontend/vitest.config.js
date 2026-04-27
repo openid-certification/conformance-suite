@@ -45,9 +45,7 @@ export default defineConfig({
         test: {
           name: "unit",
           environment: "node",
-          include: [
-            join(here, "../src/main/resources/static/components/**/*.test.js"),
-          ],
+          include: [join(here, "../src/main/resources/static/components/**/*.test.js")],
         },
       },
     ],

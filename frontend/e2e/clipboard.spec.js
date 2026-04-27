@@ -8,7 +8,6 @@ import {
 } from "./helpers/routes.js";
 import { MOCK_PLAN_DETAIL } from "./fixtures/mock-test-data.js";
 import { MOCK_LOG_LIST } from "./fixtures/mock-log-list.js";
-import { MOCK_TOKEN_USER, MOCK_TOKENS } from "./fixtures/tokens-data.js";
 
 /**
  * Guards ClipboardJS + cts-button integration on every page that renders a
