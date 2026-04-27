@@ -249,9 +249,14 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 		env.putString("client_id_scheme", clientIdPrefix.toString());
 
 		// As per ISO 18013-7 B.5.3 "Nonces shall have a minimum length of 16 bytes".
-		// Use a slightly longer value so the nonce comfortably passes the Shannon entropy
-		// check in the verifier tests (EnsureMinimumNonceEntropy, which requires 96 bits).
-		env.putInteger("requested_nonce_length", 24);
+		// CreateRandomNonceValue produces (length-4) random alphanumeric chars + a
+		// deterministic "-._~" suffix, so only (length-4) chars carry randomness.
+		// Use 26 (= 22 random alphanumeric + 4 fixed) so the nonce comfortably passes
+		// the verifier-side Shannon entropy check (VP1FinalEnsureMinimumNonceEntropy
+		// requires 96 bits) even when the random draw happens to have low character
+		// diversity. Shorter values such as 24 occasionally dipped below the 96-bit
+		// threshold in CI.
+		env.putInteger("requested_nonce_length", 26);
 
 		switch (responseMode) {
 			case DIRECT_POST:

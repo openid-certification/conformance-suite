@@ -2,9 +2,9 @@ package net.openid.conformance.vp1finalverifier;
 
 import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.condition.as.CheckForInvalidCharsInNonce;
-import net.openid.conformance.condition.as.CheckNonceMaximumLength;
-import net.openid.conformance.condition.as.CheckNonceMinimumLength;
-import net.openid.conformance.condition.as.EnsureMinimumNonceEntropy;
+import net.openid.conformance.condition.as.VP1FinalCheckNonceMaximumLength;
+import net.openid.conformance.condition.as.VP1FinalCheckNonceMinimumLength;
+import net.openid.conformance.condition.as.VP1FinalEnsureMinimumNonceEntropy;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 /**
@@ -35,10 +35,15 @@ public class VP1FinalVerifierHappyFlow extends AbstractVP1FinalVerifierTest {
 	protected void extractNonceFromAuthorizationEndpointRequestParameters() {
 		super.extractNonceFromAuthorizationEndpointRequestParameters();
 
-		// https://github.com/openid/OpenID4VP/issues/707 may clarify further nonce requirements
+		// Section 5.2 of OID4VP 1.0 Final requires the nonce to be a "fresh,
+		// cryptographically random number with sufficient entropy" but does not bound
+		// its length. The VP1FinalEnsureMinimumNonceEntropy check verifies the entropy
+		// requirement; the length checks promote interoperability by flagging values
+		// outside the range the suite itself generates on the wallet side.
+		// https://github.com/openid/OpenID4VP/issues/707 may clarify further nonce requirements.
 		callAndContinueOnFailure(CheckForInvalidCharsInNonce.class, ConditionResult.FAILURE, "OID4VP-1FINAL-5.2");
-		callAndContinueOnFailure(CheckNonceMinimumLength.class, ConditionResult.WARNING);
-		callAndContinueOnFailure(CheckNonceMaximumLength.class, ConditionResult.WARNING);
-		callAndContinueOnFailure(EnsureMinimumNonceEntropy.class, ConditionResult.WARNING);
+		callAndContinueOnFailure(VP1FinalCheckNonceMinimumLength.class, ConditionResult.WARNING, "OID4VP-1FINAL-5.2");
+		callAndContinueOnFailure(VP1FinalCheckNonceMaximumLength.class, ConditionResult.WARNING, "OID4VP-1FINAL-5.2");
+		callAndContinueOnFailure(VP1FinalEnsureMinimumNonceEntropy.class, ConditionResult.WARNING, "OID4VP-1FINAL-5.2");
 	}
 }
