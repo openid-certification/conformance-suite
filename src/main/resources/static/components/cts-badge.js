@@ -61,11 +61,13 @@ const STYLE_ID = "cts-badge-styles";
  * the same `--status-info-*` palette.
  *
  * Bordered variants (`b-rev`, `b-info-subtle`, `b-secondary`) use an
- * outset 1px box-shadow as a "simili-border" rather than the `border`
+ * inset 1px box-shadow as a "simili-border" rather than the `border`
  * property. This keeps the box-model dimensions identical to the
  * unbordered variants — toggling between e.g. `pass` and `review` on
  * the same line produces no 1px reflow, and inline-flex centering is
- * insensitive to whether a ring is drawn.
+ * insensitive to whether a ring is drawn. Inset (vs. outset) keeps
+ * the rendered footprint inside the border box, so a bordered chip
+ * occupies the exact same pixels as a borderless one.
  */
 const STYLE_TEXT = `
   cts-badge {
@@ -105,7 +107,7 @@ const STYLE_TEXT = `
        (running) anchors on the bottom of the empty inline-block, which pushes
        the badge upward relative to its text-only neighbours. Pin to middle so
        placement is independent of inner content. Bordered variants use an
-       outset box-shadow ring (see below) instead of the border property,
+       inset box-shadow ring (see below) instead of the border property,
        so the box dimensions are independent of the variant. */
     vertical-align: middle;
   }
@@ -136,12 +138,12 @@ const STYLE_TEXT = `
   }
   cts-badge .b-rev {
     background: var(--bg, #fff);
-    box-shadow: 0 0 0 1px var(--border-strong, #C7C2B8);
+    box-shadow: inset 0 0 0 1px var(--border-strong, #C7C2B8);
     color: var(--ink-700, #322E28);
   }
   cts-badge .b-info-subtle {
     background: var(--status-info-bg);
-    box-shadow: 0 0 0 1px var(--status-info-border);
+    box-shadow: inset 0 0 0 1px var(--status-info-border);
     color: var(--ink-900);
     text-transform: none;
     letter-spacing: 0;
@@ -154,12 +156,12 @@ const STYLE_TEXT = `
      keep the chip compact next to neighbouring prose; vertical padding
      stays at the default 2px so the outer height matches the status
      pills (2 + 16 + 2 = 20px) — mixed rows of chips and status pills
-     should sit at the same height. The 1px ring is an outset
+     should sit at the same height. The 1px ring is an inset
      box-shadow so the chip occupies the same box as a borderless
      variant. */
   cts-badge .b-secondary {
     background: var(--ink-50);
-    box-shadow: 0 0 0 1px var(--border);
+    box-shadow: inset 0 0 0 1px var(--border);
     color: var(--fg-muted);
     font-family: var(--font-mono);
     font-size: var(--fs-12);
