@@ -47,25 +47,50 @@ const STYLE_TEXT = `
     outline: none;
     box-shadow: var(--focus-ring);
   }
-  cts-failure-summary .failureBlockGroup + .failureBlockGroup {
-    margin-top: var(--space-3);
-  }
-  cts-failure-summary .failureBlockHeader {
-    font-weight: var(--fw-bold);
-    color: var(--fg-soft);
-    font-size: var(--fs-13);
-    margin-top: var(--space-3);
-  }
-  cts-failure-summary .failureBlockCount {
-    color: var(--fg-muted);
-    font-weight: var(--fw-regular);
-    margin-left: var(--space-2);
-  }
   cts-failure-summary .failureList {
     display: flex;
     flex-direction: column;
     gap: var(--space-2);
     margin-top: var(--space-3);
+  }
+  /* In grouped mode the outer list stacks groups (not rows). Bump the gap
+     between groups (so each cluster reads as discrete) and the gap below
+     the section title (so the section break is unambiguously larger than
+     the inter-group break). Spacing scale: 20 / 16 / 8 / 4 from
+     section -> group -> header-row -> row-row. */
+  cts-failure-summary[group-by-block] .failureList {
+    gap: var(--space-4);
+    margin-top: var(--space-5);
+  }
+  cts-failure-summary .failureBlockGroup + .failureBlockGroup {
+    /* Gap on the outer flex list now owns the inter-group spacing; the
+       legacy sibling-margin would stack on top of it. */
+    margin-top: 0;
+  }
+  /* Block-group label sits one step below the section title in the
+     hierarchy: smaller, lighter, slightly tracked. Reads as a data-
+     structure label, not as competing prose. */
+  cts-failure-summary .failureBlockHeader {
+    font-size: var(--fs-12);
+    font-weight: var(--fw-medium);
+    color: var(--fg-soft);
+    letter-spacing: 0.02em;
+    margin-top: 0;
+    margin-bottom: var(--space-2);
+  }
+  cts-failure-summary .failureBlockCount {
+    color: var(--fg-faint);
+    font-weight: var(--fw-regular);
+    margin-left: var(--space-2);
+    /* tabular-nums keeps multi-digit counts (e.g. (2 failures) vs.
+       (11 failures)) baseline-aligned across stacked group headers. */
+    font-variant-numeric: tabular-nums;
+  }
+  /* Tighter row rhythm inside a group — rows feel like a cluster bound
+     to the label above, separated from neighboring clusters by the
+     larger outer-list gap. */
+  cts-failure-summary .failureBlockGroup .failureItem + .failureItem {
+    margin-top: var(--space-1);
   }
   cts-failure-summary .failureItem {
     display: flex;
