@@ -149,8 +149,8 @@ export const VariantFallback = {
 
 /**
  * The default slot accepts any HTML, including links, inline emphasis, and
- * other custom elements. This is essential for the `templates/logHeader.html`
- * migration where alerts wrap `<strong>` headings, `<em>` emphasis, and links.
+ * other custom elements — used by the log-detail header to wrap `<strong>`
+ * headings, `<em>` emphasis, and links inline.
  */
 export const NestedContent = {
   render: () => html`

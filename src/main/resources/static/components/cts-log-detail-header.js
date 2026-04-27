@@ -545,10 +545,9 @@ function ensureStylesInjected() {
  * @property {boolean} isPublic - Public (read-only) view hides repeat /
  *   upload / publish actions. Reflects the `is-public` attribute.
  * @property {boolean} archived - When `true`, renders the archived-test
- *   info banner above the hero. Mirrors the legacy `#runningTestArchived`
- *   alert (`templates/logHeader.html:139–141`) shown when the runner no
- *   longer holds state for this test (e.g. `/api/runner/{testId}` returns
- *   404). Reflects the `archived` attribute.
+ *   info banner above the hero. Set by the page when the runner no longer
+ *   holds state for this test (e.g. `/api/runner/{testId}` returns 404).
+ *   Reflects the `archived` attribute.
  * @fires cts-scroll-to-entry - Bubbled up from the embedded
  *   `cts-failure-summary` child when a failure row is activated, with
  *   `{ detail: { entryId } }`. Bubbles AND is composed.

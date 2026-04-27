@@ -78,9 +78,8 @@ function ensureStylesInjected() {
  * `nothing` when `planId` is empty (an ad-hoc test that does not belong
  * to a plan), so the cluster simply disappears for non-plan tests.
  *
- * The Continue button is rendered only when `nextEnabled` is true,
- * matching the legacy `templates/logHeader.html` behaviour where
- * `#nextPlanBtn` is hidden until a next module exists. The progress
+ * The Continue button is rendered only when `nextEnabled` is true
+ * (mirrors the legacy hide-when-no-next-module behaviour). The progress
  * block keeps rendering and reads "Module N of N" so the user has clear
  * end-of-plan feedback.
  *
