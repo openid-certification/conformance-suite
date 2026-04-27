@@ -24,6 +24,21 @@ const COUNT_BADGE_VARIANTS = {
   INFO: "info-subtle",
 };
 
+/**
+ * Symbol + variant + count for the per-block status badges rendered inside
+ * each block's `<summary>`. Lookup table per components/AGENTS.md §7
+ * (no dynamic class concatenation). INFO is intentionally absent — a block
+ * with 47 INFO entries and zero problems should read clean, not noisy.
+ * Keys mirror lowercase `result` values produced by `_aggregateBlockCounts`.
+ * @type {Array<{ key: string, symbol: string, variant: string }>}
+ */
+const BLOCK_BADGE_SPECS = [
+  { key: "success", symbol: "✓", variant: "pass" },
+  { key: "failure", symbol: "✗", variant: "fail" },
+  { key: "warning", symbol: "⚠", variant: "warn" },
+  { key: "review", symbol: "◆", variant: "review" },
+];
+
 const STYLE_ID = "cts-log-viewer-styles";
 
 // Scoped CSS for the log viewer chrome. Failure banner uses cts-alert.
@@ -92,6 +107,9 @@ const STYLE_TEXT = `
   @keyframes cts-log-viewer-spin {
     to { transform: rotate(360deg); }
   }
+  /* Block-start <summary> rows. Native <details>/<summary> gives us
+     keyboard collapse semantics for free; we strip the default disclosure
+     marker because the chevron icon already carries the affordance. */
   cts-log-viewer .startBlock {
     display: flex;
     align-items: center;
@@ -103,11 +121,42 @@ const STYLE_TEXT = `
     font-size: var(--fs-13);
     font-weight: var(--fw-bold);
     border: 0;
+    list-style: none;
   }
+  cts-log-viewer .startBlock::-webkit-details-marker { display: none; }
+  cts-log-viewer .startBlock::marker { content: ""; }
   cts-log-viewer .startBlock:focus-visible {
     outline: none;
     box-shadow: var(--focus-ring);
   }
+  cts-log-viewer .startBlockMsg {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+  /* Compact ✓N ✗N ⚠N ◆N badge cluster on the right of the summary row.
+     tabular-nums keeps the integer portions baseline-aligned across stacked
+     block headers so the visual rhythm holds even with mixed digit widths. */
+  cts-log-viewer .startBlockCounts {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-1);
+    flex: 0 0 auto;
+    font-variant-numeric: tabular-nums;
+  }
+  /* CSS-only chevron swap: a single <cts-icon name="chevron-down"> rotates
+     -90deg when the <details> is closed. This stays correct under any
+     toggle path (mouse, keyboard, programmatic open=true) because it reads
+     the [open] attribute directly — no Lit re-render race. */
+  cts-log-viewer .logBlock > .startBlock cts-icon {
+    transition: transform 120ms ease-in-out;
+  }
+  cts-log-viewer .logBlock:not([open]) > .startBlock cts-icon {
+    transform: rotate(-90deg);
+  }
+  /* The legacy implementation hid collapsed children with a CSS rule keyed
+     on _collapsedBlocks. With <details>, the browser does that for us via
+     the open/closed state; no extra rule needed. */
 `;
 
 function ensureStylesInjected() {
@@ -178,11 +227,87 @@ class CtsLogViewer extends LitElement {
     // navigation contract that depends on rows being in the DOM, not a
     // continuous stream of poll resolutions.
     this._firstFetchDispatched = false;
+    /**
+     * Per-block result-count cache keyed by `blockId`. Recomputed in
+     * willUpdate whenever `_entries` changes; consumed by
+     * `_renderBlockBadges` and exposed via the `blockCounts` getter so
+     * U8's TOC rail can read the same data without a second walk.
+     * @type {Map<string, { success: number, failure: number, warning: number, review: number, info: number, total: number }>}
+     */
+    this._blockCounts = new Map();
   }
 
   connectedCallback() {
     super.connectedCallback();
     if (this.testId) this._fetchEntries();
+  }
+
+  /**
+   * Recompute the per-block result counts whenever the entries stream
+   * changes. Single-pass O(n) walk; with ~5000 entries (a long FAPI2
+   * module) this runs once per polling cycle (~3s), which is negligible.
+   * Re-running on every `_entries` update keeps the badge totals in sync
+   * with streaming additions without a separate subscription.
+   *
+   * @param {Map<string, unknown>} changedProps
+   */
+  willUpdate(changedProps) {
+    if (changedProps.has("_entries")) {
+      this._blockCounts = this._aggregateBlockCounts();
+    }
+  }
+
+  /**
+   * Walk `_entries` once and bucket each entry's `result` under its
+   * `blockId`. Trusts the backend's chronological-with-`blockId`
+   * contract: a `startBlock` entry seeds an empty bucket; subsequent
+   * entries with the same `blockId` increment that bucket. Defensive
+   * guard: child entries whose `blockId` has no corresponding
+   * `startBlock` (rare cross-poll-cycle race) are silently dropped from
+   * aggregation; the next poll catches up. The user-visible impact is a
+   * brief under-count in the badges; the UI never crashes.
+   *
+   * @returns {Map<string, { success: number, failure: number, warning: number, review: number, info: number, total: number }>}
+   */
+  _aggregateBlockCounts() {
+    /** @type {Map<string, { success: number, failure: number, warning: number, review: number, info: number, total: number }>} */
+    const counts = new Map();
+    for (const entry of this._entries) {
+      if (entry.startBlock) {
+        if (!counts.has(entry.blockId)) {
+          counts.set(entry.blockId, {
+            success: 0,
+            failure: 0,
+            warning: 0,
+            review: 0,
+            info: 0,
+            total: 0,
+          });
+        }
+        continue;
+      }
+      if (!entry.blockId) continue;
+      const bucket = counts.get(entry.blockId);
+      if (!bucket) continue;
+      const result = (entry.result || "").toLowerCase();
+      if (result === "success") bucket.success += 1;
+      else if (result === "failure") bucket.failure += 1;
+      else if (result === "warning") bucket.warning += 1;
+      else if (result === "review") bucket.review += 1;
+      else if (result === "info") bucket.info += 1;
+      bucket.total += 1;
+    }
+    return counts;
+  }
+
+  /**
+   * Public read-only view of the per-block aggregation map. U8's TOC
+   * rail consumes this via the host element so the rail and the inline
+   * block badges stay in lockstep without duplicating the walk.
+   * @returns {Map<string, { success: number, failure: number, warning: number, review: number, info: number, total: number }>}
+   */
+  get blockCounts() {
+    return this._blockCounts;
   }
 
   updated(changedProperties) {
@@ -260,19 +385,28 @@ class CtsLogViewer extends LitElement {
     }
   }
 
-  _toggleBlock(blockId) {
+  /**
+   * `<details>` toggle handler. Mirrors the element's `open` state into
+   * `_collapsedBlocks` so collapse choices survive a polling-driven
+   * re-render. Reading `event.currentTarget.open` (the post-toggle
+   * value) is the source of truth — Lit's `?open=` binding restores
+   * this on the next render.
+   * @param {Event} event
+   */
+  _handleBlockToggle(event) {
+    const target = /** @type {HTMLDetailsElement & { dataset: DOMStringMap }} */ (
+      event.currentTarget
+    );
+    const blockId = target.dataset.blockId;
+    if (!blockId) return;
     const newSet = new Set(this._collapsedBlocks);
-    if (newSet.has(blockId)) newSet.delete(blockId);
+    if (target.open) newSet.delete(blockId);
     else newSet.add(blockId);
     this._collapsedBlocks = newSet;
   }
 
-  _handleBlockClick(event) {
-    const blockId = event.currentTarget.dataset.blockId;
-    if (blockId) this._toggleBlock(blockId);
-  }
-
   _renderResultSummary() {
+    /** @type {Object.<string, number>} */
     const counts = {};
     for (const entry of this._entries) {
       if (entry.result) counts[entry.result] = (counts[entry.result] || 0) + 1;
@@ -291,28 +425,90 @@ class CtsLogViewer extends LitElement {
     );
   }
 
-  _renderBlockStart(entry) {
-    const isCollapsed = this._collapsedBlocks.has(entry.blockId);
-    return html`
-      <button
-        type="button"
-        class="logItem startBlock"
-        data-block-id=${entry.blockId}
-        @click=${this._handleBlockClick}
-      >
-        <cts-icon
-          name="${isCollapsed ? "chevron-right" : "chevron-down"}"
-          aria-hidden="true"
-        ></cts-icon>
-        ${entry.msg || entry.blockId}
-      </button>
-    `;
+  /**
+   * Render the compact `✓N ✗N ⚠N ◆N` cluster inside a block's summary
+   * row. INFO is intentionally omitted — a block with 47 INFO and zero
+   * problems should read clean. Empty buckets are skipped so a passing
+   * block reads as a single `✓N` chip rather than four chips with three
+   * zero-counts.
+   * @param {{ success: number, failure: number, warning: number, review: number, info: number, total: number } | undefined} counts
+   */
+  _renderBlockBadges(counts) {
+    if (!counts || counts.total === 0) return nothing;
+    return BLOCK_BADGE_SPECS.map(({ key, symbol, variant }) => {
+      const n = counts[key];
+      if (!n) return nothing;
+      return html`<cts-badge variant="${variant}" label="${symbol}${n}"></cts-badge>`;
+    });
   }
 
-  _renderEntry(entry) {
-    if (entry.startBlock) return this._renderBlockStart(entry);
-    if (entry.blockId && this._collapsedBlocks.has(entry.blockId)) return nothing;
-    return html`<cts-log-entry .entry=${entry}></cts-log-entry>`;
+  /**
+   * Group entries by the block they belong to and render each block as a
+   * `<details>` element with a `<summary>` carrying the block label and
+   * the per-block status badges. Entries that arrive before any block
+   * starts (or have no `blockId`) render as flat siblings — preserves
+   * the legacy behaviour for pre-block prefix entries.
+   *
+   * Each `<cts-log-entry>` host is stamped with `data-entry-id` so the
+   * document-level `cts-scroll-to-entry` listener (in
+   * `js/log-detail-v2.js`) can locate the target by the same `_id` the
+   * failure-summary dispatches in its event detail.
+   */
+  _renderEntries() {
+    /** @type {Array<unknown>} */
+    const out = [];
+    /** @type {string | null} */
+    let currentBlockId = null;
+    /** @type {Array<unknown>} */
+    let blockChildren = [];
+    /** @type {{ msg?: string, blockId: string } | null} */
+    let blockStart = null;
+
+    const flushBlock = () => {
+      if (currentBlockId === null) {
+        out.push(...blockChildren);
+      } else {
+        const counts = this._blockCounts.get(currentBlockId);
+        const isCollapsed = this._collapsedBlocks.has(currentBlockId);
+        const headerText = (blockStart && blockStart.msg) || currentBlockId;
+        out.push(html`
+          <details
+            class="logBlock"
+            data-block-id=${currentBlockId}
+            ?open=${!isCollapsed}
+            @toggle=${this._handleBlockToggle}
+          >
+            <summary class="logItem startBlock">
+              <cts-icon name="chevron-down" aria-hidden="true"></cts-icon>
+              <span class="startBlockMsg">${headerText}</span>
+              <span class="startBlockCounts">${this._renderBlockBadges(counts)}</span>
+            </summary>
+            ${blockChildren}
+          </details>
+        `);
+      }
+      blockChildren = [];
+      blockStart = null;
+    };
+
+    for (const entry of this._entries) {
+      if (entry.startBlock) {
+        flushBlock();
+        currentBlockId = entry.blockId || null;
+        blockStart = { msg: entry.msg, blockId: entry.blockId };
+        continue;
+      }
+      const entryBlockId = entry.blockId || null;
+      if (entryBlockId !== currentBlockId) {
+        flushBlock();
+        currentBlockId = entryBlockId;
+      }
+      blockChildren.push(
+        html`<cts-log-entry .entry=${entry} data-entry-id=${entry._id}></cts-log-entry>`,
+      );
+    }
+    flushBlock();
+    return out;
   }
 
   render() {
@@ -336,10 +532,6 @@ class CtsLogViewer extends LitElement {
         ? html`<div class="logEmpty">No log entries</div>`
         : nothing}
     `;
-  }
-
-  _renderEntries() {
-    return this._entries.map((entry) => this._renderEntry(entry));
   }
 }
 customElements.define("cts-log-viewer", CtsLogViewer);

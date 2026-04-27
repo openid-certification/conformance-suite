@@ -1,7 +1,13 @@
 import { test, expect } from "@playwright/test";
 import { setupCommonRoutes, setupFailFast, expectNoUnmockedCalls } from "./helpers/routes.js";
 import { MOCK_TEST_STATUS, MOCK_TEST_FAILED } from "./fixtures/mock-test-data.js";
-import { MOCK_LOG_ENTRIES, MOCK_FAILED_LOG_ENTRIES } from "./fixtures/mock-log-entries.js";
+import {
+  MOCK_LOG_ENTRIES,
+  MOCK_FAILED_LOG_ENTRIES,
+  MOCK_BLOCKS_WITH_STATUS,
+  MOCK_BLOCKS_POLL_FIRST,
+  MOCK_BLOCKS_POLL_SECOND,
+} from "./fixtures/mock-log-entries.js";
 
 /**
  * Coverage for log-detail-v2.html — the new Lit-triad-based page.
@@ -447,5 +453,171 @@ test.describe("log-detail-v2.html — new Lit-triad page", () => {
     expect(primaryBox).not.toBeNull();
     const viewportHeight = page.viewportSize()?.height ?? 720;
     expect(primaryBox.y).toBeLessThan(viewportHeight);
+  });
+
+  // U5 — Per-block status aggregation + <details> semantics.
+  // Plan: docs/plans/2026-04-26-006-feat-r27-per-block-status-aggregation-plan.md
+  test("per-block status badges render in each block summary", async ({ page }) => {
+    await setupFailFast(page);
+    await setupV2Routes(page, {
+      testInfo: { ...MOCK_TEST_STATUS, testId: "test-blocks-001" },
+      logEntries: MOCK_BLOCKS_WITH_STATUS,
+    });
+    await setupCommonRoutes(page);
+
+    await page.goto(`/log-detail-v2.html?log=${encodeURIComponent("test-blocks-001")}`);
+
+    await expect(page.locator('details[data-block-id="block-a"]')).toBeAttached();
+    await expect(page.locator('details[data-block-id="block-b"]')).toBeAttached();
+    await expect(page.locator('details[data-block-id="block-c"]')).toBeAttached();
+
+    // Block A: ✓2 only.
+    const aBadges = page.locator('details[data-block-id="block-a"] .startBlockCounts cts-badge');
+    await expect(aBadges).toHaveCount(1);
+    await expect(aBadges.first()).toHaveAttribute("label", "✓2");
+
+    // Block B: ✓1 ✗1, in spec order.
+    const bBadges = page.locator('details[data-block-id="block-b"] .startBlockCounts cts-badge');
+    await expect(bBadges).toHaveCount(2);
+    await expect(bBadges.nth(0)).toHaveAttribute("label", "✓1");
+    await expect(bBadges.nth(1)).toHaveAttribute("label", "✗1");
+
+    // Block C: ⚠1 only — INFO is excluded by design.
+    const cBadges = page.locator('details[data-block-id="block-c"] .startBlockCounts cts-badge');
+    await expect(cBadges).toHaveCount(1);
+    await expect(cBadges.first()).toHaveAttribute("label", "⚠1");
+  });
+
+  test("clicking a block summary collapses the children via <details>", async ({ page }) => {
+    await setupFailFast(page);
+    await setupV2Routes(page, {
+      testInfo: { ...MOCK_TEST_STATUS, testId: "test-blocks-001" },
+      logEntries: MOCK_BLOCKS_WITH_STATUS,
+    });
+    await setupCommonRoutes(page);
+
+    await page.goto(`/log-detail-v2.html?log=${encodeURIComponent("test-blocks-001")}`);
+
+    const block = page.locator('details[data-block-id="block-a"]');
+    await expect(block).toBeAttached();
+    expect(await block.evaluate((el) => /** @type {HTMLDetailsElement} */ (el).open)).toBe(true);
+
+    await block.locator("summary.startBlock").click();
+
+    await expect
+      .poll(async () => block.evaluate((el) => /** @type {HTMLDetailsElement} */ (el).open))
+      .toBe(false);
+  });
+
+  test("failure-summary jump-link opens a collapsed block and scrolls the entry into view", async ({
+    page,
+  }) => {
+    // Block-aware failed test info: the failure entry's _id (blk-b-2)
+    // matches a child of <details data-block-id="block-b">. The bootstrap's
+    // document-level cts-scroll-to-entry handler must walk up to the
+    // <details> ancestor and set open=true before scrolling.
+    const failedTestInfo = {
+      ...MOCK_TEST_FAILED,
+      testId: "test-blocks-001",
+      results: [
+        {
+          _id: "blk-b-2",
+          result: "FAILURE",
+          src: "ValidateIdToken",
+          msg: "Signature validation failed",
+        },
+      ],
+    };
+
+    await setupFailFast(page);
+    await setupV2Routes(page, {
+      testInfo: failedTestInfo,
+      logEntries: MOCK_BLOCKS_WITH_STATUS,
+    });
+    await setupCommonRoutes(page);
+
+    await page.goto(`/log-detail-v2.html?log=${encodeURIComponent("test-blocks-001")}`);
+
+    const block = page.locator('details[data-block-id="block-b"]');
+    await expect(block).toBeAttached();
+
+    // Pre-condition: collapse block B so the jump-link has work to do.
+    await block.locator("summary.startBlock").click();
+    await expect
+      .poll(async () => block.evaluate((el) => /** @type {HTMLDetailsElement} */ (el).open))
+      .toBe(false);
+
+    // Click the matching failure-summary item — the visible instance at the
+    // current viewport (the page-level #ctsTopFailureSummary one for the
+    // default 1280x720 viewport falls under desktop, so click the in-header
+    // one). Use first() to avoid ambiguity between the two render-twice-
+    // hide-one positions.
+    const link = page.locator(`.failureSummary .failureText[data-entry-id="blk-b-2"]`).first();
+    await expect(link).toBeAttached();
+    await link.click();
+
+    // Block B re-opens.
+    await expect
+      .poll(async () => block.evaluate((el) => /** @type {HTMLDetailsElement} */ (el).open))
+      .toBe(true);
+
+    // Target entry is now visible (not display:none under collapsed parent).
+    const entry = page.locator(`cts-log-entry[data-entry-id="blk-b-2"]`);
+    await expect(entry).toBeVisible();
+  });
+
+  test("polling-driven badge updates as new entries arrive", async ({ page }) => {
+    // Custom /api/log route: first call returns batch 1 (✓2); subsequent
+    // calls return batch 2 (the third success + failure). The viewer
+    // polls every POLL_INTERVAL_MS (3s) — we don't override that here;
+    // expect.poll handles waiting for the next cycle.
+    //
+    // Route registration order: setupFailFast() must come FIRST because
+    // Playwright matches routes in reverse registration order. Our
+    // specific routes register after, so they take priority over the
+    // catch-all unmocked-call recorder.
+    await setupFailFast(page);
+
+    let callCount = 0;
+    const testIdLocal = "test-poll-001";
+    await page.route(`**/api/log/${testIdLocal}**`, (route) => {
+      callCount += 1;
+      const body = callCount === 1 ? MOCK_BLOCKS_POLL_FIRST : MOCK_BLOCKS_POLL_SECOND;
+      return route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(body),
+      });
+    });
+    await page.route(`**/api/info/${testIdLocal}*`, (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({ ...MOCK_TEST_STATUS, testId: testIdLocal, planId: undefined }),
+      }),
+    );
+    await page.route(`**/api/runner/${testIdLocal}`, (route) =>
+      route.fulfill({ status: 404, body: "" }),
+    );
+    await page.route("**/api/uploaded-images*", (route) =>
+      route.fulfill({ status: 200, contentType: "application/json", body: "[]" }),
+    );
+    await setupCommonRoutes(page);
+
+    await page.goto(`/log-detail-v2.html?log=${encodeURIComponent(testIdLocal)}`);
+
+    const block = page.locator('details[data-block-id="block-poll"]');
+    const badges = block.locator(".startBlockCounts cts-badge");
+
+    // Initial state: ✓2.
+    await expect(badges).toHaveCount(1);
+    await expect(badges.first()).toHaveAttribute("label", "✓2");
+
+    // After the second poll fires, the cluster should transition to ✓3 ✗1.
+    // Default poll interval is 3s; allow up to 8s for the next cycle plus
+    // re-render to land.
+    await expect(badges).toHaveCount(2, { timeout: 8000 });
+    await expect(badges.nth(0)).toHaveAttribute("label", "✓3");
+    await expect(badges.nth(1)).toHaveAttribute("label", "✗1");
   });
 });
