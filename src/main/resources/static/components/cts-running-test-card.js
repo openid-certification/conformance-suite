@@ -168,6 +168,12 @@ const STYLE_TEXT = `
       grid-area: meta;
       flex-direction: row;
       flex-wrap: wrap;
+      /* Baseline-align across items so the mono variant/version (--fs-12)
+         and the sans-serif "Created 5m ago" / "Owner: ..." items (--fs-13)
+         share the same text baseline. Without this, the smaller mono items
+         settle to the bottom of the flex line and visually drop ~1-2px
+         below the larger items. */
+      align-items: baseline;
       gap: var(--space-1) var(--space-4);
     }
     .cts-rtc-actions {
