@@ -249,8 +249,10 @@ export const HttpRequestEntry = {
     const curlBtn = canvas.getByText("cURL");
     expect(curlBtn).toBeInTheDocument();
 
-    const moreBtn = canvas.getByText("More");
-    expect(moreBtn).toBeInTheDocument();
+    // The disclosure toggle is icon + count (no "More" text); query it
+    // by its class hook instead of by visible label.
+    const moreBtn = canvasElement.querySelector(".moreBtn button");
+    expect(moreBtn).toBeTruthy();
   },
 };
 
@@ -271,17 +273,20 @@ export const ClickMoreToggle = {
   async play({ canvasElement }) {
     const canvas = within(canvasElement);
     await waitFor(() => {
-      expect(canvas.getByText("More")).toBeInTheDocument();
+      expect(canvasElement.querySelector("cts-button.moreBtn")).toBeTruthy();
     });
 
     expect(canvasElement.querySelector(".moreInfo")).toBeNull();
 
-    expect(canvasElement.querySelector("cts-button.moreBtn")).toBeTruthy();
-    const countBadge = canvasElement.querySelector("cts-badge[count]");
-    expect(countBadge).toBeTruthy();
-    expect(countBadge.textContent.trim()).toBe(String(Object.keys(ENTRY_WITH_MORE.more).length));
-
-    const moreBtn = canvas.getByText("More");
+    // The disclosure toggle is a single ghost button labeled "Details".
+    // Confirm both the class hook and the visible label before driving
+    // the click path.
+    const moreHost = canvasElement.querySelector("cts-button.moreBtn");
+    expect(moreHost).toBeTruthy();
+    expect(moreHost.getAttribute("label")).toBe("Details");
+    const moreBtn = moreHost.querySelector("button");
+    expect(moreBtn).toBeTruthy();
+    expect(moreBtn.getAttribute("aria-expanded")).toBe("false");
     await moreBtn.click();
 
     await waitFor(() => {
@@ -294,7 +299,13 @@ export const ClickMoreToggle = {
     expect(canvas.getByText("Token type")).toBeInTheDocument();
     expect(canvasElement.querySelector('[data-key="access_token"]')).toBeTruthy();
 
-    await moreBtn.click();
+    // After expanding, aria-expanded flips to true so screen readers
+    // announce the new state without depending on the chevron glyph alone.
+    expect(canvasElement.querySelector(".moreBtn button").getAttribute("aria-expanded")).toBe(
+      "true",
+    );
+
+    await canvasElement.querySelector(".moreBtn button").click();
 
     await waitFor(() => {
       expect(canvasElement.querySelector(".moreInfo")).toBeNull();
@@ -334,7 +345,8 @@ export const NoMoreFields = {
       expect(canvas.getByText("Test passed")).toBeInTheDocument();
     });
 
-    expect(canvas.queryByText("More")).toBeNull();
+    // No `more` payload → no disclosure toggle should render at all.
+    expect(canvasElement.querySelector(".moreBtn")).toBeNull();
   },
 };
 
@@ -390,7 +402,8 @@ export const ClickMoreHttpRequest = {
     expect(canvasElement.querySelector(".moreInfo")).toBeNull();
 
     // Click More to reveal request details
-    const moreBtn = canvas.getByText("More");
+    const moreBtn = canvasElement.querySelector(".moreBtn button");
+    if (!moreBtn) throw new Error(".moreBtn button did not render");
     await moreBtn.click();
 
     /** @type {Element | null | undefined} */
@@ -427,7 +440,8 @@ export const ClickMoreHttpResponse = {
     expect(canvasElement.querySelector(".moreInfo")).toBeNull();
 
     // Click More to reveal response details
-    const moreBtn = canvas.getByText("More");
+    const moreBtn = canvasElement.querySelector(".moreBtn button");
+    if (!moreBtn) throw new Error(".moreBtn button did not render");
     await moreBtn.click();
 
     /** @type {Element | null | undefined} */
@@ -465,7 +479,8 @@ export const ExpectedVsActualEntry = {
       expect(canvas.getByText("FAILURE")).toBeInTheDocument();
     });
 
-    const moreBtn = canvas.getByText("More");
+    const moreBtn = canvasElement.querySelector(".moreBtn button");
+    if (!moreBtn) throw new Error(".moreBtn button did not render");
     await moreBtn.click();
 
     /** @type {Element | null | undefined} */
@@ -511,7 +526,8 @@ export const ExpectedActualSuffixVariants = {
       expect(canvas.getByText("FAILURE")).toBeInTheDocument();
     });
 
-    const moreBtn = canvas.getByText("More");
+    const moreBtn = canvasElement.querySelector(".moreBtn button");
+    if (!moreBtn) throw new Error(".moreBtn button did not render");
     await moreBtn.click();
 
     /** @type {Element | null | undefined} */
@@ -557,7 +573,8 @@ export const SubstringBoundaryRespectsPrefix = {
       expect(canvas.getByText("WARNING")).toBeInTheDocument();
     });
 
-    const moreBtn = canvas.getByText("More");
+    const moreBtn = canvasElement.querySelector(".moreBtn button");
+    if (!moreBtn) throw new Error(".moreBtn button did not render");
     await moreBtn.click();
 
     /** @type {Element | null | undefined} */
@@ -699,10 +716,15 @@ export const DesktopContainerLayout = {
     if (!item) throw new Error(".logItem did not render");
     const style = getComputedStyle(item);
 
-    // U16-era five-column track: 110px / 70px / 60px / 1fr / auto.
+    // Five-column track: 92px (logTime) / max-content (severity) /
+    // max-content (http) / 1fr (body) / auto (actions). The two
+    // max-content columns resolve to the rendered badge widths, so the
+    // assertion below pins only the fixed timestamp column and the column
+    // count — relying on resolved pixel values for max-content tracks
+    // would couple this test to badge typography.
     const tracks = style.gridTemplateColumns.split(/\s+/).filter(Boolean);
     expect(tracks.length).toBe(5);
-    expect(style.gridTemplateColumns).toMatch(/110px\s+70px\s+60px/);
+    expect(tracks[0]).toBe("92px");
   },
 };
 
