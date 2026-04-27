@@ -121,6 +121,19 @@ function applyTestInfo(testInfo) {
     topFailureSummary.failures = selectFailures(testInfo);
     topFailureSummary.testId = testId;
   }
+  /** @type {any} */
+  const topTestSummary = document.getElementById("ctsTopTestSummary");
+  if (topTestSummary) {
+    // U7 / Region B1: the page-level instance shows the WAITING-state
+    // instructions banner above the failure summary. The header card's
+    // instance keeps showing the full split (description + instructions)
+    // at desktop. Pass the raw summary; the cts-test-summary component's
+    // splitter renders the instructions zone whenever it exists, and the
+    // cts-test-summary returns `nothing` when neither half is present
+    // (e.g. a FINISHED test with no summary), so the empty instance
+    // takes zero vertical room.
+    topTestSummary.summary = (testInfo && testInfo.summary) || "";
+  }
 }
 
 /**
