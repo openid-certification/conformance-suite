@@ -9,11 +9,9 @@
  * line endings still split correctly. The first marker wins, so a
  * description containing inline `---` blocks survives intact.
  *
- * Both renderers consume this module:
- *   - the Lit component `cts-log-detail-header` imports `splitTestSummary`
- *   - the lodash Mustache template `templates/logHeader.html` reads
- *     `window.CTS_summarySplit.splitTestSummary` (set up at module load
- *     when running in a browser)
+ * The Lit component `cts-log-detail-header` imports `splitTestSummary`
+ * directly. The browser module-load also exposes
+ * `window.CTS_summarySplit.splitTestSummary` for any non-module consumer.
  *
  * Backend `@PublishTestModule.summary()` is unchanged; splitting is a
  * render-time concern only.
