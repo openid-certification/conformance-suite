@@ -693,3 +693,116 @@ export const DesktopContainerLayout = {
     expect(style.gridTemplateColumns).toMatch(/110px\s+70px\s+60px/);
   },
 };
+
+/**
+ * U6: at small container widths (< 640 px) the reference chip lives in
+ * its own grid row above the body, between the meta row and the body
+ * row, so it never crowds the message text in the narrow column.
+ */
+export const EntryIdAtSmallLayout = {
+  decorators: [(Story) => html` <div style="width: 360px; max-width: 100%;">${Story()}</div> `],
+  render: () =>
+    html`<cts-log-entry
+      .entry=${SUCCESS_ENTRY}
+      reference-id="LOG-0007"
+      test-id="storybook-test"
+    ></cts-log-entry>`,
+  async play({ canvasElement }) {
+    const host = await waitFor(() => {
+      const el = canvasElement.querySelector("cts-log-entry");
+      if (!el) throw new Error("cts-log-entry did not render");
+      return /** @type {HTMLElement} */ (el);
+    });
+
+    // The host carries the referenceId as its `id` so URL fragments resolve.
+    expect(host.id).toBe("LOG-0007");
+
+    // The small-layout slot is visible; the inline slot is collapsed.
+    const row = canvasElement.querySelector(".logIdRow");
+    const inline = canvasElement.querySelector(".logIdInline");
+    if (!row) throw new Error(".logIdRow did not render");
+    if (!inline) throw new Error(".logIdInline did not render");
+    expect(getComputedStyle(row).display).not.toBe("none");
+    expect(getComputedStyle(inline).display).toBe("none");
+
+    // The visible chip carries the right reference label.
+    const chip = row.querySelector('[data-testid="log-entry-id-chip"]');
+    if (!chip) throw new Error("chip did not render in row slot");
+    expect(chip.textContent).toContain("LOG-0007");
+  },
+};
+
+/**
+ * U6: at desktop container widths (≥ 640 px) the chip renders inline
+ * inside the body cell, after the source label and before the message
+ * text. This is the compact, "in-flow" placement.
+ */
+export const EntryIdAtDesktopLayout = {
+  decorators: [(Story) => html` <div style="width: 1280px; max-width: 100%;">${Story()}</div> `],
+  render: () =>
+    html`<cts-log-entry
+      .entry=${SUCCESS_ENTRY}
+      reference-id="LOG-0042"
+      test-id="storybook-test"
+    ></cts-log-entry>`,
+  async play({ canvasElement }) {
+    await waitFor(() => {
+      const el = canvasElement.querySelector("cts-log-entry");
+      if (!el) throw new Error("cts-log-entry did not render");
+      return el;
+    });
+
+    const row = canvasElement.querySelector(".logIdRow");
+    const inline = canvasElement.querySelector(".logIdInline");
+    if (!row) throw new Error(".logIdRow did not render");
+    if (!inline) throw new Error(".logIdInline did not render");
+    expect(getComputedStyle(row).display).toBe("none");
+    expect(getComputedStyle(inline).display).not.toBe("none");
+
+    // The inline chip lives inside .logBody (so it sits between the
+    // source label and the message text in the body's flow).
+    const body = canvasElement.querySelector(".logBody");
+    if (!body) throw new Error(".logBody did not render");
+    expect(body.contains(inline)).toBe(true);
+  },
+};
+
+/**
+ * U6: the entry's outer wrapper (the host element) carries scroll-
+ * margin-top derived from --status-bar-height + --banner-height so
+ * deep-link navigation lands the row visibly below the sticky chrome.
+ * The story sets a 56 px status bar height on documentElement and
+ * asserts the resolved scroll-margin-top reflects it.
+ */
+export const EntryAnchorScrollMargin = {
+  render: () =>
+    html`<cts-log-entry
+      .entry=${SUCCESS_ENTRY}
+      reference-id="LOG-0099"
+      test-id="storybook-test"
+    ></cts-log-entry>`,
+  async play({ canvasElement }) {
+    // Simulate a sticky bar publishing its height — U2's mechanic.
+    const prev = document.documentElement.style.getPropertyValue("--status-bar-height");
+    document.documentElement.style.setProperty("--status-bar-height", "56px");
+    try {
+      const host = await waitFor(() => {
+        const el = canvasElement.querySelector("cts-log-entry");
+        if (!el) throw new Error("cts-log-entry did not render");
+        return /** @type {HTMLElement} */ (el);
+      });
+
+      const margin = getComputedStyle(host).scrollMarginTop;
+      // Resolved px should include the 56 px from the status bar plus
+      // an additional spacing-token allowance (--space-4). Anything ≥ 56
+      // is acceptable; the actual value will be 56 + 16 (--space-4) for
+      // a total of 72 px.
+      const px = parseFloat(margin);
+      expect(Number.isFinite(px)).toBe(true);
+      expect(px).toBeGreaterThanOrEqual(56);
+    } finally {
+      if (prev) document.documentElement.style.setProperty("--status-bar-height", prev);
+      else document.documentElement.style.removeProperty("--status-bar-height");
+    }
+  },
+};

@@ -117,7 +117,38 @@ function applyTestInfo(testInfo) {
   if (header) header.testInfo = testInfo;
   /** @type {any} */
   const topFailureSummary = document.getElementById("ctsTopFailureSummary");
-  if (topFailureSummary) topFailureSummary.failures = selectFailures(testInfo);
+  if (topFailureSummary) {
+    topFailureSummary.failures = selectFailures(testInfo);
+    topFailureSummary.testId = testId;
+  }
+}
+
+/**
+ * Apply the latest `entry._id` → `LOG-NNNN` map (U6) to every failure
+ * summary instance on the page so reference chips render alongside each
+ * failure row. Two instances: the page-level `#ctsTopFailureSummary`
+ * (mobile / tablet position) and the in-header instance the
+ * cts-log-detail-header renders inside its card. Both consume the same
+ * map; missing entries simply omit the chip.
+ *
+ * @param {Object.<string, string>} references
+ */
+function applyReferences(references) {
+  /** @type {any} */
+  const topFailureSummary = document.getElementById("ctsTopFailureSummary");
+  if (topFailureSummary) {
+    topFailureSummary.references = references;
+    topFailureSummary.testId = testId;
+  }
+  /** @type {any} */
+  const header = document.getElementById("logDetailHeader");
+  if (header) {
+    const inHeaderSummary = header.querySelector("cts-failure-summary");
+    if (inHeaderSummary) {
+      inHeaderSummary.references = references;
+      inHeaderSummary.testId = testId;
+    }
+  }
 }
 
 /** ──────────── /api/info ──────────── */
@@ -637,6 +668,14 @@ async function bootstrap() {
 
   document.addEventListener("cts-scroll-to-entry", handleScrollToEntry);
   document.addEventListener("keydown", handleKeydown);
+  // U6: cts-log-viewer dispatches cts-references-updated after each
+  // successful poll that appended rows. Forward the map to every
+  // failure summary instance so chips render in lockstep with the
+  // entries stream.
+  document.addEventListener("cts-references-updated", (evt) => {
+    const refs = /** @type {CustomEvent} */ (evt).detail && evt.detail.references;
+    if (refs) applyReferences(refs);
+  });
 
   await fetchCurrentUser();
 

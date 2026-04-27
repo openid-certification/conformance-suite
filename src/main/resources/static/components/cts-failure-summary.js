@@ -1,6 +1,7 @@
 import { LitElement, html, nothing } from "lit";
 import "./cts-icon.js";
 import "./cts-badge.js";
+import "./cts-log-entry-id.js";
 
 /**
  * Maps a failure entry's `result` value to the canonical `cts-badge` variant
@@ -148,6 +149,7 @@ const STYLE_TEXT = `
     min-width: 0;
   }
   cts-failure-summary[compact] cts-badge[variant="secondary"] { display: none; }
+  cts-failure-summary[compact] cts-log-entry-id { display: none; }
 `;
 
 function ensureStylesInjected() {
@@ -194,6 +196,15 @@ function ensureStylesInjected() {
  * @property {boolean} groupByBlock - Group failures by `blockId` with a
  *   block header above each group. Reflects the `group-by-block`
  *   attribute. Defaults to false (flat list).
+ * @property {Object.<string, string>} references - Plain `entry._id` →
+ *   `LOG-NNNN` map shipped by `cts-log-viewer` (U6). When a failure's
+ *   `_id` resolves to a reference, the row renders a `cts-log-entry-id`
+ *   chip alongside the severity badge so the same shareable identifier
+ *   appears at the failure-summary jump-link and the entry itself.
+ *   Empty / missing references render no chip and the row falls back
+ *   to its pre-U6 layout.
+ * @property {string} testId - Test instance ID forwarded to each chip
+ *   so deep URLs always carry `?log={testId}#{referenceId}`.
  * @fires cts-scroll-to-entry - When a failure row is clicked or activated
  *   by Enter / Space, with `{ detail: { entryId } }`. Bubbles AND is
  *   composed so the document-level listener catches the event regardless
@@ -204,6 +215,8 @@ class CtsFailureSummary extends LitElement {
     failures: { type: Array },
     compact: { type: Boolean, reflect: true },
     groupByBlock: { type: Boolean, attribute: "group-by-block", reflect: true },
+    references: { type: Object },
+    testId: { type: String, attribute: "test-id" },
     _expanded: { state: true },
   };
 
@@ -213,6 +226,9 @@ class CtsFailureSummary extends LitElement {
     this.failures = [];
     this.compact = false;
     this.groupByBlock = false;
+    /** @type {Object.<string, string>} */
+    this.references = Object.create(null);
+    this.testId = "";
     this._expanded = true;
   }
 
@@ -261,12 +277,19 @@ class CtsFailureSummary extends LitElement {
   }
 
   _renderFailureRow(item) {
+    const referenceId = (this.references && this.references[item._id]) || "";
     return html`
       <div class="failureItem">
         <cts-badge
           variant="${RESULT_BADGE_VARIANTS[item.result] || "skip"}"
           label="${item.result}"
         ></cts-badge>
+        ${referenceId
+          ? html`<cts-log-entry-id
+              reference-id=${referenceId}
+              test-id=${this.testId}
+            ></cts-log-entry-id>`
+          : nothing}
         ${this._renderRequirementBadges(item.requirements)}
         <a
           class="failureText"
