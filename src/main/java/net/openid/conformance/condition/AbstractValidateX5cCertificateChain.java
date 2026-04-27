@@ -77,15 +77,22 @@ public abstract class AbstractValidateX5cCertificateChain extends AbstractCondit
 	/**
 	 * Validate an x5c certificate chain, optionally with strict RFC 5280 PKIX path validation.
 	 *
-	 * In strict mode the trust anchor is mandatory and full PKIX checks are performed
-	 * (intermediate validity, BasicConstraints CA:true, KeyUsage keyCertSign, name chaining,
-	 * critical extensions). CRL/OCSP revocation checking is disabled.
+	 * In strict mode, RFC 5280 PKIX path validation runs only when a trust anchor is
+	 * configured (intermediate validity, BasicConstraints CA:true, KeyUsage keyCertSign,
+	 * name chaining, critical extensions; CRL/OCSP revocation checking is disabled).
+	 * If strict mode is requested without a trust anchor the helper logs a notice and
+	 * falls back to the legacy chain walk; the fail-fast "configure a trust anchor"
+	 * UX lives in the {@code Ensure*TrustAnchorConfigured} preconditions wired into
+	 * test modules at setup time.
 	 *
 	 * @param certs the parsed certificate chain, leaf first
-	 * @param trustAnchor trust anchor certificate; mandatory in strict mode, optional otherwise
-	 * @param strictPkix if true, perform RFC 5280 PKIX path validation
+	 * @param trustAnchor trust anchor certificate; required for strict PKIX, optional otherwise
+	 * @param strictPkix if true, perform RFC 5280 PKIX path validation when a trust anchor is configured
 	 */
 	protected void validateX5cCertificateChain(List<X509Certificate> certs, X509Certificate trustAnchor, boolean strictPkix) {
+		if (strictPkix && trustAnchor == null) {
+			log("Strict PKIX path validation requested but no trust anchor is configured — falling back to legacy chain walk. Configure a trust anchor to enable RFC 5280 PKIX validation.");
+		}
 		try {
 			X509CertificateUtil.validateX5cCertificateChain(certs, trustAnchor, strictPkix);
 		} catch (X509CertificateUtil.X5cCertificateChainException e) {

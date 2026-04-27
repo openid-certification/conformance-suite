@@ -42,6 +42,9 @@ import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
 public class AbstractValidateX5cCertificateChain_UnitTest {
@@ -357,11 +360,18 @@ public class AbstractValidateX5cCertificateChain_UnitTest {
 	}
 
 	@Test
-	public void strictMode_nullTrustAnchor_fails() {
-		ConditionError e = assertThrows(ConditionError.class, () ->
+	public void strictMode_nullTrustAnchor_fallsBackToLegacyWalk() {
+		// Strict PKIX requires a trust anchor; when none is configured the helper falls
+		// through to the legacy walk rather than blocking the test outright. The fail-fast
+		// "trust anchor required" UX lives in the EnsureCredentialTrustAnchorConfigured /
+		// EnsureClientRequestObjectTrustAnchorConfigured preconditions wired into test modules.
+		// The 2-cert chain is leaf+intermediate-from-root; the legacy walk verifies the
+		// intermediate is not self-signed (trust anchor exclusion) and walks parent signatures.
+		assertDoesNotThrow(() ->
 			cond.validateX5cCertificateChain(List.of(pkixLeafCert, pkixIntermediateCert), null, true));
-		assertTrue(e.getMessage().contains("trust anchor"),
-			"expected message to mention trust anchor, was: " + e.getMessage());
+
+		verify(eventLog).log(eq(TestableCondition.class.getSimpleName()), argThat((String msg) ->
+			msg != null && msg.contains("falling back to legacy chain walk")));
 	}
 
 	@Test

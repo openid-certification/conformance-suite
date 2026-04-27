@@ -105,15 +105,18 @@ public class X509CertificateUtil {
 	 * against the trust anchor.
 	 *
 	 * In strict mode this additionally performs full RFC 5280 PKIX path validation via
-	 * {@link CertPathValidator}, which checks intermediate certificate validity windows,
+	 * {@link CertPathValidator} — which checks intermediate certificate validity windows,
 	 * BasicConstraints CA:true on intermediates, KeyUsage keyCertSign on intermediates,
-	 * name chaining, critical extensions, and other RFC 5280 requirements. A trust anchor is
-	 * mandatory in strict mode. CRL/OCSP revocation checking is disabled (out of scope for the
-	 * conformance suite).
+	 * name chaining, critical extensions, and other RFC 5280 requirements — but only when
+	 * a trust anchor is configured. If strict mode is requested without a trust anchor the
+	 * method falls through to the legacy chain walk; callers are expected to surface the
+	 * "configure a trust anchor" requirement via separate precondition conditions at test
+	 * setup time. CRL/OCSP revocation checking is disabled (out of scope for the conformance
+	 * suite).
 	 *
 	 * @param certs the parsed certificate chain, leaf first
-	 * @param trustAnchor trust anchor certificate; mandatory in strict mode, optional otherwise
-	 * @param strictPkix if true, perform RFC 5280 PKIX path validation
+	 * @param trustAnchor trust anchor certificate; required for strict PKIX, optional otherwise
+	 * @param strictPkix if true, perform RFC 5280 PKIX path validation when a trust anchor is configured
 	 * @throws X5cCertificateChainException with a descriptive message if validation fails
 	 */
 	public static void validateX5cCertificateChain(List<X509Certificate> certs,
@@ -146,11 +149,14 @@ public class X509CertificateUtil {
 			}
 		}
 
-		if (strictPkix) {
-			if (trustAnchor == null) {
-				throw new X5cCertificateChainException(
-					"Strict PKIX validation requires a configured trust anchor");
-			}
+		// Strict PKIX path validation runs only when a trust anchor is configured.
+		// HAIP requires the user to configure a trust anchor; the conditions
+		// surface that requirement via EnsureCredentialTrustAnchorConfigured /
+		// EnsureClientRequestObjectTrustAnchorConfigured precondition checks at test
+		// setup. When this helper is called in HAIP mode without a trust anchor (e.g.
+		// when testing an external issuer that hasn't been configured with a CA root),
+		// fall through to the legacy walk so the test isn't blocked entirely.
+		if (strictPkix && trustAnchor != null) {
 			validatePkixPath(certs, trustAnchor);
 			return;
 		}
