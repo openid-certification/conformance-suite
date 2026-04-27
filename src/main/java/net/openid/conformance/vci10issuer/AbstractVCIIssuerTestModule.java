@@ -9,6 +9,8 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.Condition.ConditionResult;
+import net.openid.conformance.condition.client.EnsureCredentialTrustAnchorConfigured;
+import net.openid.conformance.condition.client.EnsureStatusListTrustAnchorConfigured;
 import net.openid.conformance.condition.client.RegisterCredentialTrustAnchor;
 import net.openid.conformance.condition.client.RegisterStatusListTrustAnchor;
 import net.openid.conformance.condition.client.AddFAPIInteractionIdToResourceEndpointRequest;
@@ -30,6 +32,8 @@ import net.openid.conformance.condition.client.CreateRandomNonceValue;
 import net.openid.conformance.condition.client.CreateRandomStateValue;
 import net.openid.conformance.condition.client.CreateTokenEndpointRequestForAuthorizationCodeGrant;
 import net.openid.conformance.condition.client.EnsureContentTypeApplicationJwt;
+import net.openid.conformance.condition.client.EnsureCredentialTrustAnchorConfigured;
+import net.openid.conformance.condition.client.EnsureStatusListTrustAnchorConfigured;
 import net.openid.conformance.condition.client.EnsureContentTypeJson;
 import net.openid.conformance.condition.client.EnsureHttpStatusCode;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs200;
@@ -217,6 +221,10 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractFAPI2SPFinalSe
 
 		callAndStopOnFailure(RegisterCredentialTrustAnchor.class);
 		callAndStopOnFailure(RegisterStatusListTrustAnchor.class);
+		if (getVariant(FAPI2FinalOPProfile.class) == FAPI2FinalOPProfile.VCI_HAIP) {
+			callAndContinueOnFailure(EnsureCredentialTrustAnchorConfigured.class, Condition.ConditionResult.FAILURE, "HAIP-6.1");
+			callAndContinueOnFailure(EnsureStatusListTrustAnchorConfigured.class, Condition.ConditionResult.FAILURE, "HAIP-6.1");
+		}
 
 		call(profileBehavior.configureClientExtra());
 		call(profileBehavior.configureClientAttestation());
