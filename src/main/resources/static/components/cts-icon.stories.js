@@ -142,19 +142,26 @@ export const LegacySizeAliases = {
   },
 };
 
-// AllIcons: a grid of every coolicons file currently vendored. The list
-// matches the actual filenames in
-// src/main/resources/static/vendor/coolicons/icons/, so adding a new icon
-// to that directory means appending the filename here. The story doubles
-// as a discoverability surface (browseable catalog) and as a smoke test
-// (any broken file shows up as an empty grid cell).
+// AllIcons: the actively-used subset of vendored coolicons — every icon
+// that production templates, Lit components, dashboard configs, and
+// stories currently render. The full vendored set under
+// src/main/resources/static/vendor/coolicons/icons/ is much larger
+// (~440 files); this catalog is the curated browseable surface for the
+// icons the app actually uses. When a feature starts rendering a new
+// icon, append it here in alphabetical position. The story doubles as a
+// discoverability surface and as a smoke test — any broken file shows
+// up as an empty grid cell, and the play assertion below verifies every
+// entry resolves to a real /vendor/coolicons/icons/<name>.svg#i URL.
 const VENDORED_ICON_NAMES = [
   "arrow-circle-down",
   "arrow-down-md",
+  "arrow-down-up",
   "arrow-left-md",
   "arrow-right-md",
   "arrow-undo-down-left",
   "arrow-up-md",
+  "arrows-reload-01",
+  "book",
   "bookmark",
   "camera",
   "chevron-down",
@@ -170,12 +177,16 @@ const VENDORED_ICON_NAMES = [
   "copy",
   "edit-pencil-01",
   "external-link",
+  "file-add",
   "file-blank",
   "files",
+  "folder-open",
   "globe",
   "info",
+  "link",
   "log-out",
   "paper-plane",
+  "play",
   "search-magnifying-glass",
   "settings",
   "shield-check",
