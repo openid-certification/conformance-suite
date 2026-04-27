@@ -341,15 +341,24 @@ export const BlockEntry = {
     await waitFor(() => {
       const item = canvasElement.querySelector(".logItem");
       expect(item).toBeTruthy();
-      // Block entries are visually distinguished by a colored left border.
-      // Assert both the width/style AND a non-transparent color so a regression
-      // that drops the color (leaving a black "3px solid") is caught.
       expect(item.classList.contains("is-block")).toBe(true);
-      const style = getComputedStyle(item);
-      expect(style.borderLeftWidth).toBe("3px");
-      expect(style.borderLeftStyle).toBe("solid");
-      expect(style.borderLeftColor).not.toBe("rgba(0, 0, 0, 0)");
-      expect(style.borderLeftColor).not.toBe("transparent");
+
+      // The block-membership cue is a ::before pseudo-element rather
+      // than a real border-left, so blocked rows and non-blocked rows
+      // share the same content start position. Assert the pseudo's
+      // width AND a non-transparent background so a regression that
+      // drops the orange-400 token is caught.
+      const beforeStyle = getComputedStyle(item, "::before");
+      expect(beforeStyle.content).toBe('""');
+      expect(beforeStyle.position).toBe("absolute");
+      expect(beforeStyle.width).toBe("3px");
+      expect(beforeStyle.backgroundColor).not.toBe("rgba(0, 0, 0, 0)");
+      expect(beforeStyle.backgroundColor).not.toBe("transparent");
+
+      // Inline alignment regression guard: the row itself must NOT
+      // carry a real border-left (any width > 0 would push content).
+      const itemStyle = getComputedStyle(item);
+      expect(itemStyle.borderLeftWidth).toBe("0px");
     });
   },
 };
