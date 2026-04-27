@@ -121,11 +121,6 @@ const STYLE_ID = "cts-log-detail-header-styles";
 const STYLE_TEXT = `
   cts-log-detail-header {
     display: block;
-    margin-bottom: var(--space-4);
-  }
-
-  cts-log-detail-header #runningTestArchived {
-    margin-bottom: var(--space-4);
   }
 
   /* Sticky status bar (Region A — unchanged from U2). Sticks at tablet
@@ -158,6 +153,7 @@ const STYLE_TEXT = `
        whole stack. */
     padding-block: var(--space-3);
     padding-inline: 0;
+    margin-bottom: var(--space-4);
     background: var(--bg-elev);
     border-bottom: 1px solid var(--border);
     z-index: 10;
