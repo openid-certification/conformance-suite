@@ -169,12 +169,18 @@ test.describe("plan-detail.html — Plan Detail", () => {
     const statusLink = firstRow.locator('[data-testid="module-status-link"]');
     await expect(statusLink).toHaveAttribute("href", /log-detail\.html\?log=test-inst-001/);
 
-    // Each module name has a help-icon tooltip wrapper. Hovering the
-    // testSummary help-icon mounts an .oidf-tooltip in document.body.
-    // The icon presence confirms the tooltip wrap is intact (the
-    // cts-tooltip wrap is supplied at the page-component level).
+    // Each module name with a testSummary is wrapped in a cts-tooltip
+    // whose content attribute carries the summary. Hovering the help-icon
+    // mounts a positioned .oidf-tooltip in document.body. We assert the
+    // attribute carries the right text and that the tooltip pops on hover —
+    // that exercises the full wrap (no stale `title=` regression).
+    const helpTooltip = firstRow.locator("cts-tooltip.help");
+    await expect(helpTooltip).toHaveAttribute("content", /Verify basic OpenID Connect/);
     const helpIcon = firstRow.locator(".help-icon");
-    await expect(helpIcon).toHaveAttribute("title", /Verify basic OpenID Connect/);
+    await expect(helpIcon).not.toHaveAttribute("title", /.+/);
+    await helpIcon.hover();
+    const popover = page.locator(".oidf-tooltip");
+    await expect(popover).toContainText(/Verify basic OpenID Connect/);
   });
 
   test("delete plan button reveals an inline delete-confirmation panel", async ({ page }) => {

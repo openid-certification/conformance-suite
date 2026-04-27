@@ -238,6 +238,20 @@ export const ModulesDefault = {
     // Download buttons present for modules with instances
     const downloadBtns = canvasElement.querySelectorAll(".downloadBtn");
     expect(downloadBtns.length).toBe(3);
+
+    // testSummary is exposed via a cts-tooltip wrapper (not a native `title=`),
+    // and the help-icon trigger sits inside an inline-flex .nameLine row so
+    // it stays optically centred next to the bold module name. The icon must
+    // be focusable for keyboard users (cts-tooltip listens for focusin).
+    const helpTooltips = canvasElement.querySelectorAll("cts-tooltip.help");
+    expect(helpTooltips.length).toBe(MODULES_WITH_STATUS.length);
+    expect(helpTooltips[0].getAttribute("content")).toMatch(/Verify basic OpenID Connect/);
+    const firstHelpIcon = helpTooltips[0].querySelector(".help-icon");
+    expect(firstHelpIcon).toBeTruthy();
+    expect(firstHelpIcon.getAttribute("size")).toBe("16");
+    expect(firstHelpIcon.getAttribute("tabindex")).toBe("0");
+    expect(firstHelpIcon.hasAttribute("title")).toBe(false);
+    expect(firstHelpIcon.closest(".nameLine")).toBeTruthy();
   },
 };
 
