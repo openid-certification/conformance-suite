@@ -46,6 +46,18 @@ const MOCK_RESULTS_WITH_FAILURES = [
   },
 ];
 
+const MOCK_RESULTS_WARNING_ONLY = [
+  { _id: "p1", result: "SUCCESS", src: "A", msg: "OK" },
+  { _id: "p2", result: "SUCCESS", src: "B", msg: "OK" },
+  {
+    _id: "p3",
+    result: "WARNING",
+    src: "EnsureRecommendedScope",
+    msg: "Recommended scope missing",
+    requirements: ["OIDCC-5.4"],
+  },
+];
+
 const COMPLETED_TEST = {
   ...MOCK_TEST_STATUS,
   results: MOCK_RESULTS,
@@ -54,6 +66,12 @@ const COMPLETED_TEST = {
 const FAILED_TEST = {
   ...MOCK_TEST_FAILED,
   results: MOCK_RESULTS_WITH_FAILURES,
+};
+
+const WARNING_TEST = {
+  ...MOCK_TEST_STATUS,
+  result: "WARNING",
+  results: MOCK_RESULTS_WARNING_ONLY,
 };
 
 const RUNNING_TEST = {
@@ -88,6 +106,35 @@ function innerButton(canvasElement, testId) {
   return /** @type {HTMLButtonElement} */ (btn);
 }
 
+/**
+ * Open the kebab popover and click the action item with the given id.
+ * Most "secondary" actions (Edit configuration, Share link, Publish, etc.)
+ * now live exclusively in the status bar's overflow popover after the
+ * vertical action stack was removed in the hierarchy redesign.
+ *
+ * @param {HTMLElement} canvasElement
+ * @param {string} actionId - The `id` field on the actions array entry
+ *   (e.g., "edit-config", "share-link", "publish-summary").
+ */
+async function clickOverflowAction(canvasElement, actionId) {
+  const overflow = /** @type {any} */ (
+    canvasElement.querySelector('[data-testid="status-bar-overflow"]')
+  );
+  if (!overflow) throw new Error("No status-bar-overflow on this story");
+  const trigger = overflow.querySelector('[data-testid="overflow-trigger"]');
+  await userEvent.click(trigger);
+  await waitFor(() => {
+    const popover = overflow.querySelector('[data-testid="overflow-popover"]');
+    if (!popover || !popover.matches(":popover-open")) {
+      throw new Error("popover not yet open");
+    }
+    return popover;
+  });
+  const item = overflow.querySelector(`.overflowItem[data-action-id="${actionId}"]`);
+  if (!item) throw new Error(`No overflow item with action id "${actionId}"`);
+  await userEvent.click(item);
+}
+
 // --- Stories ---
 
 export const CompletedTest = {
@@ -98,22 +145,29 @@ export const CompletedTest = {
       expect(canvas.getAllByText("oidcc-server").length).toBeGreaterThan(0);
     });
 
-    // Test info fields (token-styled "Label: value" rows; labels are plain
-    // text inside .logMetaLabel divs).
-    expect(canvas.getByText("Test Name:")).toBeInTheDocument();
-    expect(canvas.getByText(COMPLETED_TEST.testId)).toBeInTheDocument();
-    expect(canvas.getByText("Test ID:")).toBeInTheDocument();
-    expect(canvas.getByText("Created:")).toBeInTheDocument();
-    expect(canvas.getByText("Description:")).toBeInTheDocument();
-    expect(canvas.getByText("Test Version:")).toBeInTheDocument();
-
-    // Result badge shows PASSED on the canonical `pass` palette.
+    // Result badge shows PASSED on the canonical `pass` palette (sticky bar).
     const resultBadge = canvasElement.querySelector('cts-badge[variant="pass"][label="PASSED"]');
     expect(resultBadge).toBeTruthy();
 
-    // Result summary row present
-    const resultSummary = canvasElement.querySelector('[data-testid="result-summary"]');
-    expect(resultSummary).toBeTruthy();
+    // PASSED hero renders the R24 "About this test" section.
+    const summaryHero = canvasElement.querySelector('[data-testid="hero-summary"]');
+    expect(summaryHero).toBeTruthy();
+    expect(summaryHero.textContent).toContain("About this test");
+
+    // Drawer renders both disclosures, both closed by default.
+    const drawer = canvasElement.querySelector('[data-testid="drawer"]');
+    expect(drawer).toBeTruthy();
+    const detailsBlocks = drawer.querySelectorAll("details");
+    expect(detailsBlocks.length).toBe(2);
+    expect(detailsBlocks[0].open).toBe(false);
+    expect(detailsBlocks[1].open).toBe(false);
+
+    // The metadata table is rendered inside the closed Test details
+    // disclosure — the labels exist in the DOM so `getByText` finds them
+    // even when the parent details element is collapsed.
+    expect(canvas.getByText("Test Name:")).toBeInTheDocument();
+    expect(canvas.getByText("Test ID:")).toBeInTheDocument();
+    expect(canvas.getByText("Created:")).toBeInTheDocument();
   },
 };
 
@@ -125,25 +179,27 @@ export const FailedTest = {
       expect(canvas.getAllByText("oidcc-server").length).toBeGreaterThan(0);
     });
 
-    // FAILED result badge visible
+    // FAILED result badge visible in the sticky bar.
     const failedBadge = canvasElement.querySelector('cts-badge[variant="fail"][label="FAILED"]');
     expect(failedBadge).toBeTruthy();
 
-    // Failure summary section is visible
-    const failureSummary = canvasElement.querySelector('[data-testid="failure-summary"]');
+    // FAILED hero is the failure list. Eyebrow + count headline + the
+    // embedded cts-failure-summary.
+    const failureHero = canvasElement.querySelector('[data-testid="hero-failures"]');
+    expect(failureHero).toBeTruthy();
+    expect(failureHero.textContent).toContain("Findings");
+    // Two FAILUREs + one WARNING + one SKIPPED in MOCK_RESULTS_WITH_FAILURES.
+    expect(failureHero.textContent).toContain("2 failures");
+    expect(failureHero.textContent).toContain("1 warning");
+
+    const failureSummary = failureHero.querySelector('[data-testid="failure-summary"]');
     expect(failureSummary).toBeTruthy();
 
-    expect(canvas.getByText("Failure summary:")).toBeInTheDocument();
-
-    // Failure entries are clickable
-    const failureList = canvasElement.querySelector('[data-testid="failure-list"]');
-    expect(failureList).toBeTruthy();
-
-    // Check that failure text includes source and message
+    // Failure entries are rendered with src + msg.
     expect(canvas.getByText("ValidateIdToken: Signature invalid")).toBeInTheDocument();
     expect(canvas.getByText("CheckClaims: Missing sub claim")).toBeInTheDocument();
 
-    // Click a failure entry and verify event fires
+    // Click a failure entry and verify the bubbled cts-scroll-to-entry event.
     let scrollEventFired = false;
     /** @type {any} */
     let scrollDetail = null;
@@ -160,6 +216,27 @@ export const FailedTest = {
   },
 };
 
+export const WarningOnlyTest = {
+  render: () => html`<cts-log-detail-header .testInfo=${WARNING_TEST}></cts-log-detail-header>`,
+  async play({ canvasElement }) {
+    await waitFor(() => {
+      const el = canvasElement.querySelector('[data-testid="hero-failures"]');
+      if (!el) throw new Error("hero-failures not yet rendered");
+      return el;
+    });
+
+    // WARNING result uses the same hero pattern as FAILED — the warnings
+    // list is the page's primary affordance. Verdict shrinks to bar chrome.
+    const warningBadge = canvasElement.querySelector('cts-badge[variant="warn"][label="WARNING"]');
+    expect(warningBadge).toBeTruthy();
+
+    const failureHero = canvasElement.querySelector('[data-testid="hero-failures"]');
+    expect(failureHero).toBeTruthy();
+    expect(failureHero.textContent).toContain("1 warning");
+    expect(failureHero.textContent).not.toContain("failures");
+  },
+};
+
 export const RunningTest = {
   render: () => html`<cts-log-detail-header .testInfo=${RUNNING_TEST}></cts-log-detail-header>`,
   async play({ canvasElement }) {
@@ -168,58 +245,68 @@ export const RunningTest = {
       expect(canvas.getAllByText("oidcc-server").length).toBeGreaterThan(0);
     });
 
-    // Status shows RUNNING
+    // Status shows RUNNING in the sticky bar.
     const statusBadge = canvasElement.querySelector('cts-badge[label="RUNNING"]');
     expect(statusBadge).toBeTruthy();
 
-    // Running test info section is visible
-    const runningInfo = canvasElement.querySelector('[data-testid="running-test-info"]');
-    expect(runningInfo).toBeTruthy();
+    // RUNNING hero renders inside the host (was the secondary card pre-redesign).
+    const runningHero = canvasElement.querySelector('[data-testid="hero-running"]');
+    expect(runningHero).toBeTruthy();
+    expect(canvas.getByText(/Live values from the running test/)).toBeInTheDocument();
 
-    expect(canvas.getByText(/This test is currently running/)).toBeInTheDocument();
-
-    // Start and Stop buttons present in the running-test card. The
-    // sticky status bar also surfaces a Stop primary action when
-    // RUNNING, so /Start/ and /Stop/ each match in two places —
-    // assert per-host instead of via the global text query.
-    const startBtn = canvasElement.querySelector('[data-testid="start-btn"]');
-    expect(startBtn).toBeTruthy();
-    expect(within(startBtn).getByText(/Start/)).toBeInTheDocument();
-
+    // Stop button lives inside the hero footer; the sticky bar also
+    // surfaces a Stop primary action when RUNNING.
     const stopBtn = canvasElement.querySelector('[data-testid="stop-btn"]');
     expect(stopBtn).toBeTruthy();
     expect(within(stopBtn).getByText(/Stop/)).toBeInTheDocument();
   },
 };
 
-export const ViewConfig = {
+export const RepeatViaStatusBar = {
   render: () => html`<cts-log-detail-header .testInfo=${COMPLETED_TEST}></cts-log-detail-header>`,
   async play({ canvasElement }) {
-    const canvas = within(canvasElement);
     await waitFor(() => {
-      expect(canvas.getAllByText("oidcc-server").length).toBeGreaterThan(0);
+      const el = canvasElement.querySelector('[data-testid="status-bar-primary"]');
+      if (!el) throw new Error("status-bar-primary not yet rendered");
+      return el;
     });
 
-    // Config panel is initially hidden
-    let configPanel = canvasElement.querySelector('[data-testid="config-panel"]');
-    expect(configPanel).toBeNull();
+    // Repeat lives ONLY in the sticky bar's primary slot now (the legacy
+    // vertical action stack was removed in the hierarchy redesign).
+    const repeatHandler = fn();
+    canvasElement.addEventListener("cts-repeat-test", repeatHandler);
 
-    // Click View configuration button (target the inner <button> rendered by
-    // cts-button — clicking the host bypasses Lit's @click handler).
-    const viewConfigBtn = innerButton(canvasElement, "view-config-btn");
-    await userEvent.click(viewConfigBtn);
+    await userEvent.click(innerButton(canvasElement, "status-bar-primary"));
 
-    // Config panel is now visible
+    expect(repeatHandler).toHaveBeenCalledOnce();
+    expect(repeatHandler.mock.calls[0][0].detail.testId).toBe(COMPLETED_TEST.testId);
+  },
+};
+
+export const ViewConfigViaKebab = {
+  render: () => html`<cts-log-detail-header .testInfo=${COMPLETED_TEST}></cts-log-detail-header>`,
+  async play({ canvasElement }) {
     await waitFor(() => {
-      configPanel = canvasElement.querySelector('[data-testid="config-panel"]');
-      expect(configPanel).toBeTruthy();
+      const el = canvasElement.querySelector('[data-testid="drawer-config"]');
+      if (!el) throw new Error("drawer-config not yet rendered");
+      return el;
     });
 
-    // Config JSON renders inside the read-only Monaco editor. Monaco
-    // virtualises long content, so we read `.value` rather than
-    // `textContent` — the property is the wrapper's documented contract.
-    // `whenReady()` resolves on either the Monaco or fallback path, so
-    // the test stays agnostic to which surface mounted.
+    // The Configuration disclosure lives in the drawer; closed by default.
+    const configDetails = /** @type {any} */ (
+      canvasElement.querySelector('[data-testid="drawer-config"]')
+    );
+    expect(configDetails.open).toBe(false);
+
+    // Click the kebab → "View configuration" — the redesigned action
+    // routes to the drawer disclosure (was a standalone secondary card).
+    await clickOverflowAction(canvasElement, "view-config");
+
+    await waitFor(() => {
+      expect(configDetails.open).toBe(true);
+    });
+
+    // Config JSON renders inside the read-only Monaco editor.
     const configJson = /** @type {any} */ (
       await waitFor(() => {
         const el = canvasElement.querySelector('cts-json-editor[data-testid="config-json"]');
@@ -231,77 +318,24 @@ export const ViewConfig = {
     expect(configJson.getAttribute("readonly")).not.toBeNull();
     expect(configJson.value).toContain("server.issuer");
     expect(configJson.value).toContain("https://op.example.com");
-
-    // Click close to hide
-    const closeBtn = configPanel.querySelector("cts-button button");
-    await userEvent.click(closeBtn);
-
-    await waitFor(() => {
-      expect(canvasElement.querySelector('[data-testid="config-panel"]')).toBeNull();
-    });
-  },
-};
-
-export const RepeatTest = {
-  render: () => html`<cts-log-detail-header .testInfo=${COMPLETED_TEST}></cts-log-detail-header>`,
-  async play({ canvasElement }) {
-    const canvas = within(canvasElement);
-    await waitFor(() => {
-      expect(canvas.getAllByText("oidcc-server").length).toBeGreaterThan(0);
-    });
-
-    const repeatHandler = fn();
-    canvasElement.addEventListener("cts-repeat-test", repeatHandler);
-
-    const repeatBtn = innerButton(canvasElement, "repeat-test-btn");
-    await userEvent.click(repeatBtn);
-
-    expect(repeatHandler).toHaveBeenCalledOnce();
-    expect(repeatHandler.mock.calls[0][0].detail.testId).toBe(COMPLETED_TEST.testId);
-  },
-};
-
-export const ReturnToPlan = {
-  render: () => html`<cts-log-detail-header .testInfo=${COMPLETED_TEST}></cts-log-detail-header>`,
-  async play({ canvasElement }) {
-    const canvas = within(canvasElement);
-    await waitFor(() => {
-      expect(canvas.getAllByText("oidcc-server").length).toBeGreaterThan(0);
-    });
-
-    // Plan link is present with correct href (rendered as cts-link-button → <a>).
-    const planLinkHost = canvasElement.querySelector('[data-testid="return-to-plan-link"]');
-    expect(planLinkHost).toBeTruthy();
-    const planLink = planLinkHost.querySelector("a");
-    expect(planLink).toBeTruthy();
-    expect(planLink.getAttribute("href")).toContain("plan-detail.html?plan=");
-    expect(planLink.getAttribute("href")).toContain(encodeURIComponent(COMPLETED_TEST.planId));
-    // The action-stack's Return-to-Plan link AND cts-test-nav-controls's
-    // Back-link both render with "Return to Plan" text when the test
-    // belongs to a plan, so query within the action-stack host only.
-    expect(within(planLinkHost).getByText(/Return to Plan/)).toBeInTheDocument();
   },
 };
 
 export const AllPassed = {
   render: () => html`<cts-log-detail-header .testInfo=${ALL_PASSED_TEST}></cts-log-detail-header>`,
   async play({ canvasElement }) {
-    const canvas = within(canvasElement);
     await waitFor(() => {
-      expect(canvas.getAllByText("oidcc-server").length).toBeGreaterThan(0);
+      const el = canvasElement.querySelector('[data-testid="hero-summary"]');
+      if (!el) throw new Error("hero-summary not yet rendered");
+      return el;
     });
 
-    // Result badge shows PASSED
+    // PASSED + no failures → summary hero, NOT failure hero.
     const resultBadge = canvasElement.querySelector('cts-badge[variant="pass"][label="PASSED"]');
     expect(resultBadge).toBeTruthy();
 
-    // Failure summary section is NOT shown when there are no failures
-    const failureSummary = canvasElement.querySelector('[data-testid="failure-summary"]');
-    expect(failureSummary).toBeNull();
-
-    // Result summary still shows
-    const resultSummary = canvasElement.querySelector('[data-testid="result-summary"]');
-    expect(resultSummary).toBeTruthy();
+    expect(canvasElement.querySelector('[data-testid="hero-failures"]')).toBeNull();
+    expect(canvasElement.querySelector('[data-testid="hero-summary"]')).toBeTruthy();
   },
 };
 
@@ -314,36 +348,21 @@ export const AdminActions = {
       expect(canvas.getAllByText("oidcc-server").length).toBeGreaterThan(0);
     });
 
-    // Owner row visible for admin
+    // Owner row lives inside the (closed) Test details drawer disclosure.
+    // The label is in the DOM so getByText finds it; the row is just not
+    // visually rendered until the disclosure opens.
     const ownerRow = canvasElement.querySelector('[data-testid="owner-row"]');
     expect(ownerRow).toBeTruthy();
     expect(canvas.getByText("Test Owner:")).toBeInTheDocument();
     expect(canvas.getByText(/12345/)).toBeInTheDocument();
 
-    // All action buttons visible for admin (non-public, non-readonly)
-    expect(canvasElement.querySelector('[data-testid="repeat-test-btn"]')).toBeTruthy();
-    expect(canvasElement.querySelector('[data-testid="upload-images-btn"]')).toBeTruthy();
-    expect(canvasElement.querySelector('[data-testid="view-config-btn"]')).toBeTruthy();
-    expect(canvasElement.querySelector('[data-testid="download-log-btn"]')).toBeTruthy();
-    expect(canvasElement.querySelector('[data-testid="return-to-plan-link"]')).toBeTruthy();
-
-    // Publish-everything button visible for admin in pre-publish state.
-    // The Publish split (summary + everything) renders both options when
-    // !test.publish && admin; data-testid="publish-btn" is on the
-    // "Publish everything" host so existing call sites keep working.
-    const publishBtnHost = canvasElement.querySelector('[data-testid="publish-btn"]');
-    expect(publishBtnHost).toBeTruthy();
-    expect(within(publishBtnHost).getByText(/Publish everything/)).toBeInTheDocument();
-
-    // Click "Publish everything" and verify event
-    const publishHandler = fn();
-    canvasElement.addEventListener("cts-publish", publishHandler);
-    const publishBtn = innerButton(canvasElement, "publish-btn");
-    await userEvent.click(publishBtn);
-
-    expect(publishHandler).toHaveBeenCalledOnce();
-    expect(publishHandler.mock.calls[0][0].detail.action).toBe("publish");
-    expect(publishHandler.mock.calls[0][0].detail.mode).toBe("everything");
+    // Admin pre-publish: kebab carries Publish summary + Publish everything.
+    const overflow = canvasElement.querySelector('[data-testid="status-bar-overflow"]');
+    expect(overflow).toBeTruthy();
+    const items = overflow.querySelectorAll(".overflowItem");
+    const labels = Array.from(items, (el) => el.textContent.trim());
+    expect(labels.some((s) => s.includes("Publish summary"))).toBe(true);
+    expect(labels.some((s) => s.includes("Publish everything"))).toBe(true);
   },
 };
 
@@ -359,40 +378,40 @@ export const PublicView = {
       expect(canvas.getAllByText("oidcc-server").length).toBeGreaterThan(0);
     });
 
-    // View configuration is visible (always visible)
-    expect(canvasElement.querySelector('[data-testid="view-config-btn"]')).toBeTruthy();
+    // Public view: kebab is present but Repeat / Edit / Publish / Share
+    // are filtered out. View configuration + Download Logs (because
+    // publish === "everything") remain.
+    const overflow = canvasElement.querySelector('[data-testid="status-bar-overflow"]');
+    expect(overflow).toBeTruthy();
+    const items = overflow.querySelectorAll(".overflowItem");
+    const labels = Array.from(items, (el) => el.textContent.trim());
+    expect(labels.some((s) => s.includes("View configuration"))).toBe(true);
+    expect(labels.some((s) => s.includes("Download Logs"))).toBe(true);
+    expect(labels.some((s) => s.includes("Edit configuration"))).toBe(false);
+    expect(labels.some((s) => s.includes("Private link"))).toBe(false);
+    expect(labels.some((s) => s.includes("Publish"))).toBe(false);
 
-    // Download is visible (publish === "everything")
-    expect(canvasElement.querySelector('[data-testid="download-log-btn"]')).toBeTruthy();
+    // No Repeat in the sticky bar primary slot (readonly).
+    expect(canvasElement.querySelector('[data-testid="status-bar-primary"]')).toBeNull();
 
-    // Return to Plan is visible
-    expect(canvasElement.querySelector('[data-testid="return-to-plan-link"]')).toBeTruthy();
-
-    // Repeat Test, Upload Images, Publish are NOT visible in public view
-    expect(canvasElement.querySelector('[data-testid="repeat-test-btn"]')).toBeNull();
-    expect(canvasElement.querySelector('[data-testid="upload-images-btn"]')).toBeNull();
-    expect(canvasElement.querySelector('[data-testid="publish-btn"]')).toBeNull();
-
-    // Owner row is not visible (not admin)
-    const ownerRow = canvasElement.querySelector('[data-testid="owner-row"]');
-    expect(ownerRow).toBeNull();
+    // Owner row is not in the DOM (not admin).
+    expect(canvasElement.querySelector('[data-testid="owner-row"]')).toBeNull();
   },
 };
 
-// --- R24: summary zone splitting ---
+// --- R24: summary zone splitting (PASSED hero context) ---
 // Plan: docs/plans/2026-04-25-008-feat-r24-test-description-vs-instructions-plan.md
-// These stories assert the *rendered shape* the component emits for each
-// summary path (no marker / with marker / no summary). The splitter's
-// per-input-variation logic is covered exhaustively by the colocated
-// `test-summary-split.test.js` unit tests, so play assertions here stay
-// focused on DOM structure and not on input/output enumeration.
+// In the new hierarchy, the description half of the summary ("About this
+// test") is the dominant element of the PASSED hero. The instructions
+// half ("What you need to do") only renders in the WAITING hero — see
+// the WaitingHeroWithInstructions story below for that path.
 
 const SUMMARY_DESCRIPTION_ONLY = "This is a plain test summary, no marker present.";
 
 const SUMMARY_WITH_INSTRUCTIONS =
   "Descriptive part of the summary.\n\n---\n\nImperative part of the summary.";
 
-export const WithDescriptionOnly = {
+export const PassedHeroDescriptionOnly = {
   render: () =>
     html`<cts-log-detail-header
       .testInfo=${{
@@ -401,25 +420,22 @@ export const WithDescriptionOnly = {
       }}
     ></cts-log-detail-header>`,
   async play({ canvasElement }) {
-    const canvas = within(canvasElement);
     await waitFor(() => {
-      expect(canvas.getAllByText("oidcc-server").length).toBeGreaterThan(0);
+      const el = canvasElement.querySelector('[data-testid="hero-summary"]');
+      if (!el) throw new Error("hero-summary not yet rendered");
+      return el;
     });
 
-    const aboutZone = canvasElement.querySelector('[data-testid="about-test-zone"]');
-    expect(aboutZone).toBeTruthy();
-    expect(aboutZone.textContent).toContain("About this test");
+    const summaryHero = canvasElement.querySelector('[data-testid="hero-summary"]');
+    expect(summaryHero.textContent).toContain("About this test");
+    expect(summaryHero.textContent).toContain("This is a plain test summary");
 
-    // No instructions zone when the marker is absent.
+    // Instructions zone is intentionally NOT rendered in PASSED state.
     expect(canvasElement.querySelector('[data-testid="user-instructions-zone"]')).toBeNull();
-
-    // Description body lives inside an info-variant cts-alert (the blue box).
-    const aboutAlert = aboutZone.closest("cts-alert");
-    expect(aboutAlert.getAttribute("variant")).toBe("info");
   },
 };
 
-export const WithUserInstructions = {
+export const PassedHeroDescriptionAndMarkerSplit = {
   render: () =>
     html`<cts-log-detail-header
       .testInfo=${{
@@ -428,76 +444,120 @@ export const WithUserInstructions = {
       }}
     ></cts-log-detail-header>`,
   async play({ canvasElement }) {
-    const canvas = within(canvasElement);
     await waitFor(() => {
-      expect(canvas.getAllByText("oidcc-server").length).toBeGreaterThan(0);
+      const el = canvasElement.querySelector('[data-testid="hero-summary"]');
+      if (!el) throw new Error("hero-summary not yet rendered");
+      return el;
     });
 
-    const aboutZone = canvasElement.querySelector('[data-testid="about-test-zone"]');
-    const instructionsZone = canvasElement.querySelector('[data-testid="user-instructions-zone"]');
-    expect(aboutZone).toBeTruthy();
-    expect(instructionsZone).toBeTruthy();
+    const summaryHero = canvasElement.querySelector('[data-testid="hero-summary"]');
+    expect(summaryHero.textContent).toContain("Descriptive part of the summary.");
 
-    // Eyebrow captions identify each zone.
-    expect(aboutZone.textContent).toContain("About this test");
-    expect(instructionsZone.textContent).toContain("What you need to do");
-
-    // Each zone is wrapped in the right cts-alert variant — info for
-    // descriptive context, warning for action-required.
-    expect(aboutZone.closest("cts-alert").getAttribute("variant")).toBe("info");
-    expect(instructionsZone.closest("cts-alert").getAttribute("variant")).toBe("warning");
-
-    // Visual order: description precedes instructions in the DOM so an
-    // operator reads context before action.
-    const order = aboutZone.compareDocumentPosition(instructionsZone);
-    expect(order & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    // The instructions half of the marker-split summary stays out of the
+    // PASSED hero. It only renders during the WAITING lifecycle.
+    expect(summaryHero.textContent).not.toContain("Imperative part of the summary.");
   },
 };
 
-export const WithoutSummary = {
+export const PassedHeroFallbackPlaceholder = {
   render: () =>
     html`<cts-log-detail-header
-      .testInfo=${{ ...COMPLETED_TEST, summary: undefined }}
+      .testInfo=${{ ...COMPLETED_TEST, summary: undefined, description: undefined }}
     ></cts-log-detail-header>`,
   async play({ canvasElement }) {
-    const canvas = within(canvasElement);
     await waitFor(() => {
-      expect(canvas.getAllByText("oidcc-server").length).toBeGreaterThan(0);
+      const el = canvasElement.querySelector('[data-testid="hero-summary"]');
+      if (!el) throw new Error("hero-summary not yet rendered");
+      return el;
     });
 
-    // Neither summary zone renders when there is no summary
-    expect(canvasElement.querySelector('[data-testid="about-test-zone"]')).toBeNull();
-    expect(canvasElement.querySelector('[data-testid="user-instructions-zone"]')).toBeNull();
-
-    // The rest of the metadata grid still renders
-    expect(canvas.getByText("Test Name:")).toBeInTheDocument();
+    // When neither summary nor description are available, the hero shows
+    // a quiet placeholder rather than collapsing — the hero's structural
+    // weight in the page stays consistent across tests.
+    const summaryHero = canvasElement.querySelector('[data-testid="hero-summary"]');
+    expect(summaryHero.textContent).toContain("About this test");
+    expect(summaryHero.textContent).toContain("No description available");
   },
 };
 
-// --- U1: parity gaps closed for the log-detail-v2 page ---
-// Plan: docs/plans/2026-04-26-002-refactor-log-detail-page-to-lit-triad-plan.md
-// These stories cover the four newly-added affordances (Edit config, Share
-// link, Publish split, Public link), the two named-slot placeholders
-// (`[data-slot="browser"]`, `[data-slot="error"]`), and the cts-test-nav-controls
-// integration that the plan calls out as a hard parity requirement.
+// --- WAITING hero ---
 
-export const WithEditConfigAction = {
-  render: () => html`<cts-log-detail-header .testInfo=${COMPLETED_TEST}></cts-log-detail-header>`,
+const WAITING_TEST = {
+  ...MOCK_TEST_RUNNING,
+  status: "WAITING",
+  result: null,
+};
+
+const WAITING_TEST_WITH_INSTRUCTIONS = {
+  ...WAITING_TEST,
+  summary: SUMMARY_WITH_INSTRUCTIONS,
+};
+
+export const WaitingHeroWithInstructions = {
+  render: () =>
+    html`<cts-log-detail-header
+      .testInfo=${WAITING_TEST_WITH_INSTRUCTIONS}
+    ></cts-log-detail-header>`,
   async play({ canvasElement }) {
-    const canvas = within(canvasElement);
     await waitFor(() => {
-      expect(canvas.getAllByText("oidcc-server").length).toBeGreaterThan(0);
+      const el = canvasElement.querySelector('[data-testid="hero-waiting"]');
+      if (!el) throw new Error("hero-waiting not yet rendered");
+      return el;
     });
 
-    // Edit-configuration button is present in non-readonly state.
-    const editBtnHost = canvasElement.querySelector('[data-testid="edit-config-btn"]');
-    expect(editBtnHost).toBeTruthy();
+    const waitingHero = canvasElement.querySelector('[data-testid="hero-waiting"]');
+    expect(waitingHero.textContent).toContain("Action required");
+    expect(waitingHero.textContent).toContain("Imperative part of the summary.");
+
+    // Description half intentionally NOT rendered here — that's the PASSED
+    // hero's job. WAITING focuses the operator on what to do, not what
+    // the test is about.
+    expect(waitingHero.textContent).not.toContain("Descriptive part of the summary.");
+
+    // Start button anchors the bottom of the hero.
+    const startBtn = canvasElement.querySelector('[data-testid="start-btn"]');
+    expect(startBtn).toBeTruthy();
+
+    const startHandler = fn();
+    canvasElement.addEventListener("cts-start-test", startHandler);
+    await userEvent.click(innerButton(canvasElement, "start-btn"));
+    expect(startHandler).toHaveBeenCalledOnce();
+  },
+};
+
+export const WaitingHeroFallbackInstructions = {
+  render: () => html`<cts-log-detail-header .testInfo=${WAITING_TEST}></cts-log-detail-header>`,
+  async play({ canvasElement }) {
+    await waitFor(() => {
+      const el = canvasElement.querySelector('[data-testid="hero-waiting"]');
+      if (!el) throw new Error("hero-waiting not yet rendered");
+      return el;
+    });
+
+    // No summary marker — fall back to the generic "Click Start" copy.
+    const waitingHero = canvasElement.querySelector('[data-testid="hero-waiting"]');
+    expect(waitingHero.textContent).toContain("Click Start when you're ready.");
+  },
+};
+
+// --- U1 parity: the four affordances + the two slots + nav-controls ---
+// Plan: docs/plans/2026-04-26-002-refactor-log-detail-page-to-lit-triad-plan.md
+// Edit-config / Share-link / Publish all moved into the kebab popover
+// after the vertical action stack was removed in the hierarchy redesign.
+
+export const EditConfigViaKebab = {
+  render: () => html`<cts-log-detail-header .testInfo=${COMPLETED_TEST}></cts-log-detail-header>`,
+  async play({ canvasElement }) {
+    await waitFor(() => {
+      const el = canvasElement.querySelector('[data-testid="status-bar-overflow"]');
+      if (!el) throw new Error("status-bar-overflow not yet rendered");
+      return el;
+    });
 
     const editHandler = fn();
     canvasElement.addEventListener("cts-edit-config", editHandler);
 
-    const editBtn = innerButton(canvasElement, "edit-config-btn");
-    await userEvent.click(editBtn);
+    await clickOverflowAction(canvasElement, "edit-config");
 
     expect(editHandler).toHaveBeenCalledOnce();
     const detail = editHandler.mock.calls[0][0].detail;
@@ -507,22 +567,19 @@ export const WithEditConfigAction = {
   },
 };
 
-export const WithShareLinkAction = {
+export const ShareLinkViaKebab = {
   render: () => html`<cts-log-detail-header .testInfo=${COMPLETED_TEST}></cts-log-detail-header>`,
   async play({ canvasElement }) {
-    const canvas = within(canvasElement);
     await waitFor(() => {
-      expect(canvas.getAllByText("oidcc-server").length).toBeGreaterThan(0);
+      const el = canvasElement.querySelector('[data-testid="status-bar-overflow"]');
+      if (!el) throw new Error("status-bar-overflow not yet rendered");
+      return el;
     });
-
-    const shareBtnHost = canvasElement.querySelector('[data-testid="share-link-btn"]');
-    expect(shareBtnHost).toBeTruthy();
 
     const shareHandler = fn();
     canvasElement.addEventListener("cts-share-link", shareHandler);
 
-    const shareBtn = innerButton(canvasElement, "share-link-btn");
-    await userEvent.click(shareBtn);
+    await clickOverflowAction(canvasElement, "share-link");
 
     expect(shareHandler).toHaveBeenCalledOnce();
     expect(shareHandler.mock.calls[0][0].detail.testId).toBe(COMPLETED_TEST.testId);
@@ -536,39 +593,28 @@ export const AdminUnpublished = {
       is-admin
     ></cts-log-detail-header>`,
   async play({ canvasElement }) {
-    const canvas = within(canvasElement);
-    await waitFor(() => {
-      expect(canvas.getAllByText("oidcc-server").length).toBeGreaterThan(0);
+    const overflow = await waitFor(() => {
+      const el = canvasElement.querySelector('[data-testid="status-bar-overflow"]');
+      if (!el) throw new Error("status-bar-overflow not yet rendered");
+      return el;
     });
 
-    // Pre-publish admin sees BOTH Publish-summary and Publish-everything.
-    const summaryHost = canvasElement.querySelector('[data-testid="publish-summary-btn"]');
-    const everythingHost = canvasElement.querySelector('[data-testid="publish-btn"]');
-    expect(summaryHost).toBeTruthy();
-    expect(everythingHost).toBeTruthy();
-
-    // Neither Unpublish nor Public link renders when not yet published.
-    expect(canvasElement.querySelector('[data-testid="unpublish-btn"]')).toBeNull();
-    expect(canvasElement.querySelector('[data-testid="public-link"]')).toBeNull();
+    // Admin pre-publish: both Publish-summary and Publish-everything
+    // appear in the kebab, no Unpublish.
+    const labels = Array.from(overflow.querySelectorAll(".overflowItem"), (el) =>
+      el.textContent.trim(),
+    );
+    expect(labels.some((s) => s.includes("Publish summary"))).toBe(true);
+    expect(labels.some((s) => s.includes("Publish everything"))).toBe(true);
+    expect(labels.some((s) => s.includes("Unpublish"))).toBe(false);
 
     const publishHandler = fn();
     canvasElement.addEventListener("cts-publish", publishHandler);
 
-    // Click "Publish summary" → action: publish, mode: summary.
-    const summaryBtn = innerButton(canvasElement, "publish-summary-btn");
-    await userEvent.click(summaryBtn);
-
+    await clickOverflowAction(canvasElement, "publish-summary");
     expect(publishHandler).toHaveBeenCalledOnce();
     expect(publishHandler.mock.calls[0][0].detail.action).toBe("publish");
     expect(publishHandler.mock.calls[0][0].detail.mode).toBe("summary");
-
-    // Click "Publish everything" → action: publish, mode: everything.
-    const everythingBtn = innerButton(canvasElement, "publish-btn");
-    await userEvent.click(everythingBtn);
-
-    expect(publishHandler).toHaveBeenCalledTimes(2);
-    expect(publishHandler.mock.calls[1][0].detail.action).toBe("publish");
-    expect(publishHandler.mock.calls[1][0].detail.mode).toBe("everything");
   },
 };
 
@@ -579,34 +625,24 @@ export const AdminPublished = {
       is-admin
     ></cts-log-detail-header>`,
   async play({ canvasElement }) {
-    const canvas = within(canvasElement);
-    await waitFor(() => {
-      expect(canvas.getAllByText("oidcc-server").length).toBeGreaterThan(0);
+    const overflow = await waitFor(() => {
+      const el = canvasElement.querySelector('[data-testid="status-bar-overflow"]');
+      if (!el) throw new Error("status-bar-overflow not yet rendered");
+      return el;
     });
 
-    // Post-publish admin sees Unpublish + Public link.
-    const unpublishHost = canvasElement.querySelector('[data-testid="unpublish-btn"]');
-    const publicLinkHost = canvasElement.querySelector('[data-testid="public-link"]');
-    expect(unpublishHost).toBeTruthy();
-    expect(publicLinkHost).toBeTruthy();
-
-    // Pre-publish split is hidden.
-    expect(canvasElement.querySelector('[data-testid="publish-summary-btn"]')).toBeNull();
-    expect(canvasElement.querySelector('[data-testid="publish-btn"]')).toBeNull();
-
-    // Public link href points back to the public URL of this test.
-    const publicLink = publicLinkHost.querySelector("a");
-    expect(publicLink).toBeTruthy();
-    expect(publicLink.getAttribute("href")).toContain(
-      `log-detail.html?log=${encodeURIComponent(COMPLETED_TEST.testId)}&public=true`,
+    // Admin post-publish: Unpublish appears, Publish-summary / -everything do not.
+    const labels = Array.from(overflow.querySelectorAll(".overflowItem"), (el) =>
+      el.textContent.trim(),
     );
+    expect(labels.some((s) => s.includes("Unpublish"))).toBe(true);
+    expect(labels.some((s) => s.includes("Publish summary"))).toBe(false);
+    expect(labels.some((s) => s.includes("Publish everything"))).toBe(false);
 
-    // Click Unpublish → action: unpublish, no mode.
     const publishHandler = fn();
     canvasElement.addEventListener("cts-publish", publishHandler);
 
-    const unpublishBtn = innerButton(canvasElement, "unpublish-btn");
-    await userEvent.click(unpublishBtn);
+    await clickOverflowAction(canvasElement, "unpublish");
 
     expect(publishHandler).toHaveBeenCalledOnce();
     expect(publishHandler.mock.calls[0][0].detail.action).toBe("unpublish");
@@ -617,21 +653,24 @@ export const AdminPublished = {
 export const WithRunningBrowserSlot = {
   render: () => html`<cts-log-detail-header .testInfo=${RUNNING_TEST}></cts-log-detail-header>`,
   async play({ canvasElement }) {
-    const canvas = within(canvasElement);
     await waitFor(() => {
-      expect(canvas.getAllByText("oidcc-server").length).toBeGreaterThan(0);
+      const el = canvasElement.querySelector('[data-testid="hero-running"]');
+      if (!el) throw new Error("hero-running not yet rendered");
+      return el;
     });
 
-    // The browser slot placeholder is present and addressable by the
-    // legacy `runningTestBrowser` ID + the `data-slot="browser"` test seam.
+    // The browser slot moved from the secondary card into the running
+    // hero. The legacy id="runningTestBrowser" + data-slot="browser"
+    // selectors are preserved so log-detail-v2.js's slot-injection
+    // pattern keeps working without modification.
     const slotById = canvasElement.querySelector("#runningTestBrowser");
     const slotByAttr = canvasElement.querySelector('[data-slot="browser"]');
     expect(slotById).toBeTruthy();
     expect(slotByAttr).toBeTruthy();
     expect(slotById).toBe(slotByAttr);
 
-    // Page-level JS injects content via DOM methods; the slot accepts it
-    // without the Lit re-render wiping it on the next reactive update.
+    // Page-level JS injects content via DOM methods; the slot accepts
+    // the injection without Lit's reactive re-render wiping it.
     const injected = document.createElement("button");
     injected.setAttribute("data-testid", "injected-browser-btn");
     injected.textContent = "Open in browser";
@@ -649,30 +688,22 @@ export const WithFinalErrorSlot = {
       .testInfo=${{ ...RUNNING_TEST, status: "INTERRUPTED" }}
     ></cts-log-detail-header>`,
   async play({ canvasElement }) {
-    const canvas = within(canvasElement);
     await waitFor(() => {
-      expect(canvas.getAllByText("oidcc-server").length).toBeGreaterThan(0);
+      const el = canvasElement.querySelector('[data-testid="hero-interrupted"]');
+      if (!el) throw new Error("hero-interrupted not yet rendered");
+      return el;
     });
 
-    // INTERRUPTED keeps the running-test card visible so the page can
-    // inject the FINAL_ERROR alert into the error slot.
-    const card = canvasElement.querySelector('[data-testid="running-test-info"]');
-    expect(card).toBeTruthy();
-
+    // INTERRUPTED renders the failure-hero pattern with the FINAL_ERROR
+    // alert pinned at the top via the existing `[data-slot="error"]`.
     const slotById = canvasElement.querySelector("#runningTestError");
     const slotByAttr = canvasElement.querySelector('[data-slot="error"]');
     expect(slotById).toBeTruthy();
     expect(slotByAttr).toBeTruthy();
     expect(slotById).toBe(slotByAttr);
 
-    // Start/Stop are hidden when INTERRUPTED — restarting an interrupted
-    // run goes through the Repeat Test flow instead.
-    expect(canvasElement.querySelector('[data-testid="start-btn"]')).toBeNull();
-    expect(canvasElement.querySelector('[data-testid="stop-btn"]')).toBeNull();
-
     // The interrupted-state alert variant is danger.
-    const alerts = canvasElement.querySelectorAll("cts-alert");
-    const interruptedAlert = Array.from(alerts).find((a) =>
+    const interruptedAlert = Array.from(canvasElement.querySelectorAll("cts-alert")).find((a) =>
       (a.textContent || "").includes("interrupted"),
     );
     expect(interruptedAlert).toBeTruthy();
@@ -683,42 +714,33 @@ export const WithFinalErrorSlot = {
 export const WithTestNavControls = {
   render: () => html`<cts-log-detail-header .testInfo=${COMPLETED_TEST}></cts-log-detail-header>`,
   async play({ canvasElement }) {
-    const canvas = within(canvasElement);
     await waitFor(() => {
-      expect(canvas.getAllByText("oidcc-server").length).toBeGreaterThan(0);
+      const el = canvasElement.querySelector("cts-test-nav-controls");
+      if (!el) throw new Error("cts-test-nav-controls not yet rendered");
+      return el;
     });
 
-    // The header re-renders cts-test-nav-controls inside its own action
-    // stack so legacy bootstraps using `getElementById('testNavControls')`
-    // continue to find it. (See plan #007 + the U1 plan's Resolved decision
-    // §4 for why the ID lives on the host element.)
-    const navHost = canvasElement.querySelector("cts-test-nav-controls");
+    // The nav cluster was promoted out of the legacy vertical action
+    // stack and now sits in the .ctsNavRow directly under the sticky
+    // bar — always visible at every viewport (the legacy stack hid at
+    // <1024px, taking the cluster with it).
+    const navRow = canvasElement.querySelector('[data-testid="nav-row"]');
+    expect(navRow).toBeTruthy();
+
+    const navHost = navRow.querySelector("cts-test-nav-controls");
     expect(navHost).toBeTruthy();
     expect(navHost.getAttribute("id")).toBe("testNavControls");
     expect(navHost.getAttribute("data-testid")).toBe("test-nav-controls");
-
-    // Plan-id and test-id flow through from testInfo so the cluster has
-    // enough data to render its progress + Return-to-Plan link.
     expect(navHost.getAttribute("plan-id")).toBe(COMPLETED_TEST.planId);
     expect(navHost.getAttribute("test-id")).toBe(COMPLETED_TEST.testId);
   },
 };
 
-// --- U2: mode-aware sticky status bar (Region A) ---
+// --- U2 sticky status bar (unchanged from before this redesign) ---
 // Plan: docs/plans/2026-04-26-003-feat-status-bar-sticky-and-mode-aware-plan.md
-// Each lifecycle (WAITING / RUNNING / FINISHED-PASSED / FINISHED-FAILED /
-// INTERRUPTED) renders a different combination of status pill, supporting
-// text, and primary action inside the bar's three columns. The bar
-// publishes its measured height as `--status-bar-height` on
-// document.documentElement so downstream sticky descendants
-// (connection-lost banner, R32 anchors, U7 overflow popover) coordinate
-// without re-measuring.
-
-const WAITING_TEST = {
-  ...MOCK_TEST_RUNNING,
-  status: "WAITING",
-  result: null,
-};
+// These verify the bar's lifecycle behaviour is unaffected by the
+// hierarchy redesign — the bar's mechanics are stable across the
+// brief-driven changes to the hero + drawer below.
 
 const INTERRUPTED_TEST = {
   ...MOCK_TEST_FAILED,
@@ -741,19 +763,17 @@ export const StatusBarWaiting = {
       return el;
     });
 
-    // Status pill renders WAITING on the warn palette.
     const pill = bar.querySelector('cts-badge[label="WAITING"]');
     expect(pill).toBeTruthy();
     expect(pill.getAttribute("variant")).toBe("warn");
-
-    // Supporting text matches the R19 phrasing.
     expect(bar.textContent).toContain("Waiting for user input");
 
-    // Primary action is "Start" and fires cts-start-test on click.
     const primaryHost = bar.querySelector('[data-testid="status-bar-primary"]');
     expect(primaryHost).toBeTruthy();
     expect(within(primaryHost).getByText(/Start/)).toBeInTheDocument();
 
+    // Both the bar primary AND the hero footer carry Start during WAITING.
+    // Asserting the bar fires the event keeps the U2 contract.
     const startHandler = fn();
     canvasElement.addEventListener("cts-start-test", startHandler);
     await userEvent.click(innerButton(canvasElement, "status-bar-primary"));
@@ -772,22 +792,17 @@ export const StatusBarRunning = {
       return el;
     });
 
-    // Status pill renders RUNNING on the running palette.
     const pill = bar.querySelector('cts-badge[label="RUNNING"]');
     expect(pill).toBeTruthy();
     expect(pill.getAttribute("variant")).toBe("running");
 
-    // Result-pill cluster renders compact glyphs + counts. Two SUCCESS,
-    // one INFO, one WARNING in MOCK_RESULTS — failure/review are zero so
-    // they are filtered out.
+    // Result-pill cluster: 2 SUCCESS, 1 INFO, 1 WARNING in MOCK_RESULTS.
     const pillCluster = bar.querySelector('[data-testid="status-bar-pills"]');
     expect(pillCluster).toBeTruthy();
     expect(pillCluster.querySelector('cts-badge[label="✓ 2"]')).toBeTruthy();
     expect(pillCluster.querySelector('cts-badge[label="⚠ 1"]')).toBeTruthy();
     expect(pillCluster.querySelector('cts-badge[label="ⓘ 1"]')).toBeTruthy();
 
-    // Primary action is "Stop" and fires cts-stop-test.
-    expect(within(bar).getByText(/Stop/)).toBeInTheDocument();
     const stopHandler = fn();
     canvasElement.addEventListener("cts-stop-test", stopHandler);
     await userEvent.click(innerButton(canvasElement, "status-bar-primary"));
@@ -804,22 +819,16 @@ export const StatusBarFinishedPassed = {
       return el;
     });
 
-    // Result pill (PASSED on pass palette) renders alongside FINISHED on
-    // skip palette. Both live inside the bar, both are addressable.
-    const passedPill = bar.querySelector('cts-badge[variant="pass"][label="PASSED"]');
-    const finishedPill = bar.querySelector('cts-badge[variant="skip"][label="FINISHED"]');
-    expect(passedPill).toBeTruthy();
-    expect(finishedPill).toBeTruthy();
-
-    // Primary action is "Repeat" and fires cts-repeat-test.
+    expect(bar.querySelector('cts-badge[variant="pass"][label="PASSED"]')).toBeTruthy();
+    expect(bar.querySelector('cts-badge[variant="skip"][label="FINISHED"]')).toBeTruthy();
     expect(within(bar).getByText(/Repeat/)).toBeInTheDocument();
+
     const repeatHandler = fn();
     canvasElement.addEventListener("cts-repeat-test", repeatHandler);
     await userEvent.click(innerButton(canvasElement, "status-bar-primary"));
     expect(repeatHandler).toHaveBeenCalledOnce();
     expect(repeatHandler.mock.calls[0][0].detail.testId).toBe(COMPLETED_TEST.testId);
 
-    // Test name shows on row 2 (truncated container).
     const testName = bar.querySelector(".ctsStatusBarTestName");
     expect(testName).toBeTruthy();
     expect(testName.textContent).toContain(COMPLETED_TEST.testName);
@@ -835,11 +844,9 @@ export const StatusBarFinishedFailed = {
       return el;
     });
 
-    // FAILED on fail palette + FINISHED on skip palette.
     expect(bar.querySelector('cts-badge[variant="fail"][label="FAILED"]')).toBeTruthy();
     expect(bar.querySelector('cts-badge[variant="skip"][label="FINISHED"]')).toBeTruthy();
 
-    // Failure count flows into the result-pill cluster.
     const pillCluster = bar.querySelector('[data-testid="status-bar-pills"]');
     expect(pillCluster.querySelector('cts-badge[label="✗ 2"]')).toBeTruthy();
     expect(pillCluster.querySelector('[data-testid="status-bar-pill-failure"]')).toBeTruthy();
@@ -855,12 +862,9 @@ export const StatusBarInterrupted = {
       return el;
     });
 
-    // RESULT_BADGE_VARIANTS["INTERRUPTED"] === "fail" — verifies the
-    // mapping flows through the bar's _renderFinishedBar path.
     const resultPill = bar.querySelector('cts-badge[label="INTERRUPTED"][variant="fail"]');
     expect(resultPill).toBeTruthy();
 
-    // Status pill (separate badge) also renders INTERRUPTED on fail palette.
     const statusPills = bar.querySelectorAll('cts-badge[label="INTERRUPTED"]');
     expect(statusPills.length).toBeGreaterThanOrEqual(2);
   },
@@ -879,15 +883,9 @@ export const StatusBarStickyOnScroll = {
       return el;
     });
 
-    // The bar is sticky at >= 640px. Storybook canvas in test mode is
-    // typically wider than the breakpoint; assert the computed
-    // `position` is `sticky`. (Avoid scroll-based assertions because
-    // the test runner's viewport size and scroll container are
-    // deterministic only at the computed-style level.)
     const computed = getComputedStyle(bar);
     expect(computed.position).toBe("sticky");
     expect(computed.top).toBe("0px");
-    // z-index 10 stacks the bar above the connection-lost banner (9).
     expect(computed.zIndex).toBe("10");
   },
 };
@@ -901,28 +899,21 @@ export const StatusBarPublishesHeightCustomProperty = {
       return el;
     });
 
-    // After firstUpdated() runs the ResizeObserver attach + initial
-    // publish, document.documentElement carries an inline
-    // --status-bar-height value matching the bar's measured height.
     await waitFor(() => {
       const value = getComputedStyle(document.documentElement)
         .getPropertyValue("--status-bar-height")
         .trim();
-      // Non-zero, non-empty pixel value (e.g. "44px").
       expect(value).toMatch(/^\d+px$/);
       expect(value).not.toBe("0px");
     });
   },
 };
 
-// --- U7: action overflow popover (status bar slot) ---
+// --- U7 kebab popover (unchanged from before this redesign) ---
 // Plan: docs/plans/2026-04-26-008-feat-action-overflow-and-cts-test-summary-extraction-plan.md
-// The status bar's <slot name="action-overflow"> is filled by a
-// <cts-action-overflow> with the secondary actions (Upload Images, View
-// configuration, Edit configuration, Download Logs, Publish, Share Link).
-// The desktop header card still renders the full vertical action stack
-// for thoroughness; the overflow is the glance affordance the bar
-// surfaces at every viewport width.
+// The kebab item count + dispatch behaviour is unaffected by the hierarchy
+// redesign. The vertical action stack that used to duplicate these items
+// at desktop has been removed.
 
 export const StatusBarOverflowSecondaryActions = {
   render: () => html`<cts-log-detail-header .testInfo=${COMPLETED_TEST}></cts-log-detail-header>`,
@@ -933,14 +924,12 @@ export const StatusBarOverflowSecondaryActions = {
       return /** @type {any} */ (el);
     });
 
-    // The overflow lives inside the bar's reserved slot.
     const slot = canvasElement.querySelector('[data-slot="action-overflow"]');
     expect(slot).toBeTruthy();
     expect(slot.contains(overflow)).toBe(true);
 
-    // Non-readonly, non-admin: visible actions = upload, view-config,
-    // edit-config, download-log (no publish, no unpublish), plus
-    // share-link. Five rows.
+    // Non-readonly, non-admin: upload, view-config, edit-config,
+    // download-log, share-link → 5 rows.
     const items = overflow.querySelectorAll(".overflowItem");
     expect(items.length).toBe(5);
     const labels = Array.from(items, (el) => el.textContent.trim());
@@ -968,8 +957,8 @@ export const StatusBarOverflowAdminWithPublish = {
       if (!el) throw new Error("status-bar-overflow not yet rendered");
       return /** @type {any} */ (el);
     });
-    // Admin pre-publish: secondary actions + Publish summary + Publish
-    // everything; Unpublish hidden until after a publish call. Seven rows.
+    // Admin pre-publish: 5 base actions + Publish summary + Publish
+    // everything = 7. Unpublish is hidden until after a publish call.
     const items = overflow.querySelectorAll(".overflowItem");
     expect(items.length).toBe(7);
     const labels = Array.from(items, (el) => el.textContent.trim());
@@ -987,9 +976,6 @@ export const StatusBarOverflowSkippedForWaiting = {
       if (!el) throw new Error("status bar not yet rendered");
       return el;
     });
-    // Pre-run there's nothing meaningful to overflow — Start is the only
-    // action and lives in the bar's primary slot. The overflow trigger
-    // is intentionally absent so the bar reads as a single Start CTA.
     expect(canvasElement.querySelector('[data-testid="status-bar-overflow"]')).toBeNull();
   },
 };
@@ -997,59 +983,73 @@ export const StatusBarOverflowSkippedForWaiting = {
 export const StatusBarOverflowDispatchesEditConfig = {
   render: () => html`<cts-log-detail-header .testInfo=${COMPLETED_TEST}></cts-log-detail-header>`,
   async play({ canvasElement }) {
-    const overflow = /** @type {any} */ (
-      await waitFor(() => {
-        const el = canvasElement.querySelector('[data-testid="status-bar-overflow"]');
-        if (!el) throw new Error("status-bar-overflow not yet rendered");
-        return el;
-      })
-    );
+    await waitFor(() => {
+      const el = canvasElement.querySelector('[data-testid="status-bar-overflow"]');
+      if (!el) throw new Error("status-bar-overflow not yet rendered");
+      return el;
+    });
 
     const editHandler = fn();
     canvasElement.addEventListener("cts-edit-config", editHandler);
 
-    // Open the popover via the trigger and click the edit-config row.
-    const trigger = overflow.querySelector('[data-testid="overflow-trigger"]');
-    await userEvent.click(trigger);
-    await waitFor(() => {
-      const popover = overflow.querySelector('[data-testid="overflow-popover"]');
-      if (!popover || !popover.matches(":popover-open")) {
-        throw new Error("popover not yet open");
-      }
-      return popover;
-    });
-    const editItem = overflow.querySelector('.overflowItem[data-action-id="edit-config"]');
-    await userEvent.click(editItem);
+    await clickOverflowAction(canvasElement, "edit-config");
 
     expect(editHandler).toHaveBeenCalledOnce();
     expect(editHandler.mock.calls[0][0].detail.testId).toBe(COMPLETED_TEST.testId);
   },
 };
 
-// --- U7: cts-test-summary extraction ---
-// The summary alerts moved out of cts-log-detail-header into the
-// cts-test-summary sibling component. They still render inside the
-// header card at desktop (the [data-testid] selectors are preserved
-// on the new component's DOM, so existing R24 stories above keep
-// passing). The page-level instance is asserted via log-detail-v2 e2e.
+// --- Drawer (Region C) ---
+// The Test details + Configuration disclosures replace the legacy
+// _renderConfigPanel standalone secondary card and surface the metadata
+// table that used to live inline inside the .logHeaderCard. Both
+// disclosures are closed by default; native `<details>` semantics
+// handle keyboard a11y.
 
-export const TestSummaryRendersAsSiblingComponent = {
-  render: () =>
-    html`<cts-log-detail-header
-      .testInfo=${{ ...COMPLETED_TEST, summary: SUMMARY_WITH_INSTRUCTIONS }}
-    ></cts-log-detail-header>`,
+export const DrawerExpandedRevealsMetadata = {
+  render: () => html`<cts-log-detail-header .testInfo=${COMPLETED_TEST}></cts-log-detail-header>`,
+  async play({ canvasElement }) {
+    const detailsHost = /** @type {any} */ (
+      await waitFor(() => {
+        const el = canvasElement.querySelector('[data-testid="drawer-test-details"]');
+        if (!el) throw new Error("drawer-test-details not yet rendered");
+        return el;
+      })
+    );
+
+    expect(detailsHost.open).toBe(false);
+
+    // Open the disclosure via summary click — the same mechanic a real
+    // user would use.
+    const summary = detailsHost.querySelector("summary");
+    await userEvent.click(summary);
+    await waitFor(() => expect(detailsHost.open).toBe(true));
+
+    // Metadata table is now visible inside the open disclosure.
+    const metaTable = detailsHost.querySelector(".logMetaTable");
+    expect(metaTable).toBeTruthy();
+    expect(metaTable.textContent).toContain("Test ID:");
+    expect(metaTable.textContent).toContain(COMPLETED_TEST.testId);
+    expect(metaTable.textContent).toContain("Plan ID:");
+    expect(metaTable.textContent).toContain(COMPLETED_TEST.planId);
+  },
+};
+
+export const DrawerCollapsedByDefault = {
+  render: () => html`<cts-log-detail-header .testInfo=${COMPLETED_TEST}></cts-log-detail-header>`,
   async play({ canvasElement }) {
     await waitFor(() => {
-      const el = canvasElement.querySelector('[data-testid="header-test-summary"]');
-      if (!el) throw new Error("header-test-summary not yet rendered");
+      const el = canvasElement.querySelector('[data-testid="drawer"]');
+      if (!el) throw new Error("drawer not yet rendered");
       return el;
     });
-    // The header now hosts a cts-test-summary sibling rather than
-    // rendering the alerts inline; the about/instructions zones live
-    // inside that component.
-    const summaryHost = canvasElement.querySelector('[data-testid="header-test-summary"]');
-    expect(summaryHost.tagName.toLowerCase()).toBe("cts-test-summary");
-    expect(summaryHost.querySelector('[data-testid="about-test-zone"]')).toBeTruthy();
-    expect(summaryHost.querySelector('[data-testid="user-instructions-zone"]')).toBeTruthy();
+
+    // Both disclosures default to closed. The `open` attribute is the
+    // single source of truth for visibility; CSS handles the chevron
+    // rotation.
+    const testDetails = canvasElement.querySelector('[data-testid="drawer-test-details"]');
+    const configDetails = canvasElement.querySelector('[data-testid="drawer-config"]');
+    expect(testDetails.open).toBe(false);
+    expect(configDetails.open).toBe(false);
   },
 };
