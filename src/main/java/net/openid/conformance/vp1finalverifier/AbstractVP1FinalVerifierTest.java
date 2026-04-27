@@ -9,6 +9,7 @@ import jakarta.servlet.http.HttpSession;
 import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.condition.as.AddVP1FinalDCQLVPTokenToAuthorizationEndpointResponseParams;
 import net.openid.conformance.condition.as.CheckForUnexpectedParametersInVpAuthorizationRequest;
+import net.openid.conformance.condition.as.CheckNoTransactionDataInVpAuthorizationRequest;
 import net.openid.conformance.condition.as.CheckNoClientIdSchemeParameter;
 import net.openid.conformance.condition.as.CheckNoPresentationDefinitionInVpAuthorizationRequest;
 import net.openid.conformance.condition.as.EnsureClientIdMatchesResponseUri;
@@ -361,6 +362,7 @@ public abstract class AbstractVP1FinalVerifierTest extends AbstractTestModule {
 		skipIfMissing(null, new String[]{"authorization_request_object"}, ConditionResult.INFO,
 			WarnIfRequestUriMethodInRequestObject.class, ConditionResult.WARNING, "OID4VP-1FINAL-5.1");
 		callAndContinueOnFailure(CheckForUnexpectedParametersInVpAuthorizationRequest.class, ConditionResult.WARNING);
+		callAndContinueOnFailure(CheckNoTransactionDataInVpAuthorizationRequest.class, ConditionResult.FAILURE, "OID4VP-1FINAL-5", "OID4VP-1FINAL-5.1", "OID4VP-1FINAL-8.4");
 		callAndContinueOnFailure(CheckVerifierInfoInVpAuthorizationRequest.class, ConditionResult.FAILURE, "OID4VP-1FINAL-5.1");
 		callAndContinueOnFailure(CheckForUnexpectedPropertiesInVerifierInfo.class, ConditionResult.WARNING, "OID4VP-1FINAL-5.1");
 

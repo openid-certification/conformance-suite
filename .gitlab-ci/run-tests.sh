@@ -421,6 +421,9 @@ makeVcTests() {
 
     # VP 1.0 Final - request_uri_method=post
     TESTS="${TESTS} oid4vp-1final-verifier-test-plan[$VPPROFILE][$SDJWT][$SANDNS][$SIGNEDREQ][$DIRECTPOST]:oid4vp-1final-verifier-request-uri-method-post{oid4vp-1final-wallet-test-plan[$VPPROFILE][$SDJWT][$SANDNS][$SIGNEDREQ][$DIRECTPOST]:oid4vp-1final-wallet-request-uri-method-post}${CONFIGS}/vp-wallet-test-config-dcql-sdjwt.json ${CONFIGS}/vp-verifier-test-config.json"
+    # VP 1.0 Final - wallet negative test: unknown transaction_data type
+    # Uses a dedicated verifier config so the expected-failure entries (verifier-side rejection of transaction_data) only apply to this paired run.
+    TESTS="${TESTS} oid4vp-1final-verifier-test-plan[$VPPROFILE][$SDJWT][$SANDNS][$SIGNEDREQ][$DIRECTPOST]:oid4vp-1final-verifier-happy-flow{oid4vp-1final-wallet-test-plan[$VPPROFILE][$SDJWT][$SANDNS][$SIGNEDREQ][$DIRECTPOST]:oid4vp-1final-wallet-negative-test-unknown-transaction-data-type}${CONFIGS}/vp-wallet-test-config-dcql-sdjwt.json ${CONFIGS}/vp-verifier-test-config-transaction-data.json"
     # VP 1.0 Final - DCQL variation tests (fewer claims, optional credential_set, no claims)
     TESTS="${TESTS} oid4vp-1final-verifier-test-plan[$VPPROFILE][$SDJWT][$SANDNS][$SIGNEDREQ][$DIRECTPOST]:oid4vp-1final-verifier-happy-flow{oid4vp-1final-wallet-test-plan[$VPPROFILE][$SDJWT][$SANDNS][$SIGNEDREQ][$DIRECTPOST]:oid4vp-1final-wallet-fewer-claims-than-available}${CONFIGS}/vp-wallet-test-config-dcql-sdjwt.json ${CONFIGS}/vp-verifier-test-config.json"
     TESTS="${TESTS} oid4vp-1final-verifier-test-plan[$VPPROFILE][$SDJWT][$SANDNS][$SIGNEDREQ][$DIRECTPOST]:oid4vp-1final-verifier-happy-flow{oid4vp-1final-wallet-test-plan[$VPPROFILE][$SDJWT][$SANDNS][$SIGNEDREQ][$DIRECTPOST]:oid4vp-1final-wallet-optional-credential-set}${CONFIGS}/vp-wallet-test-config-dcql-sdjwt.json ${CONFIGS}/vp-verifier-test-config.json"
