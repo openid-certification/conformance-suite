@@ -124,6 +124,10 @@ const STYLE_TEXT = `
     margin-bottom: var(--space-4);
   }
 
+  cts-log-detail-header #runningTestArchived {
+    margin-bottom: var(--space-4);
+  }
+
   /* Sticky status bar (Region A — unchanged from U2). Sticks at tablet
      and above; on mobile it scrolls away. Z-index 10 keeps the bar
      above the connection-lost banner (z-index 9 in cts-log-viewer's
