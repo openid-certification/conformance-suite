@@ -21,10 +21,70 @@ import {
  * and that the new affordances (Edit configuration, Share Link,
  * Repeat Test) fire the expected events / navigations.
  *
- * The legacy log-detail.spec.js continues to assert the legacy path
- * unchanged — both specs run side by side during the rollout window.
- *
  * Plan: docs/plans/2026-04-26-002-refactor-log-detail-page-to-lit-triad-plan.md
+ *
+ * ─────────────────────────────────────────────────────────────────────
+ * U2 — Coverage matrix vs legacy frontend/e2e/log-detail.spec.js
+ * ─────────────────────────────────────────────────────────────────────
+ * The legacy spec is the behavioral oracle for parity. For each
+ * legacy test() block, this matrix records either the v2 equivalent
+ * here or an explicit "obsolete: <reason>" note. Built during U2 of
+ * docs/plans/2026-04-27-002-refactor-retire-legacy-log-detail-plan.md.
+ *
+ * R16 "loads and renders log header" → covered by
+ *     "renders cts-log-detail-header with test metadata".
+ * R17 "renders log entries with source/message/result badges" →
+ *     covered by "renders cts-log-viewer with mocked log entries"
+ *     and "per-block status badges render in each block summary".
+ * R18 "clicking a log entry expands detailed content" → covered at
+ *     component scope by cts-log-entry stories; v2 page-level
+ *     expansion is exercised by "clicking a block summary collapses
+ *     the children via <details>".
+ * R19 "failed test shows failure summary section" → covered by
+ *     "failure summary jump-link bubbles cts-scroll-to-entry to the
+ *     page" and "failure summary swaps between header and page-level
+ *     positions".
+ * R20 "warning results are styled distinctly from failures and
+ *     passes" → obsolete at e2e scope: variant rendering is owned by
+ *     cts-badge stories; v2 uses canonical badge variants throughout
+ *     and a regression there would be caught by the badge story
+ *     suite, not log-detail e2e.
+ * "View configuration button opens modal with test configuration
+ *     JSON" → covered by "Edit configuration button fires
+ *     cts-edit-config" plus the cts-action-overflow stories that
+ *     drive the new kebab-housed view-config flow; the legacy modal
+ *     template (templates/privateLinkModals.html, etc.) is gone in U5.
+ * "status and result tooltips render on header" → obsolete: the v2
+ *     sticky bar uses self-describing cts-badge labels (PASSED /
+ *     FAILED / RUNNING). No tooltip surface remains in the new chrome.
+ * "log entry more panel shows HTTP request/response details and
+ *     collapses on second click" → covered at component scope by
+ *     cts-log-entry stories.
+ * "banner transitions: FINISHED runner shows Inactive, hides
+ *     Active/Archived" → obsolete: the legacy three-banner Active /
+ *     Inactive / Archived semantics collapsed in v2 into the hero's
+ *     lifecycle-driven dispatch. FINISHED is the absence of the
+ *     RUNNING / WAITING / archived states.
+ * "banner transitions: RUNNING runner shows Active" → obsolete: the
+ *     RUNNING hero (data-testid="hero-running") replaces the legacy
+ *     #runningTestActive banner; verified by the
+ *     cts-log-detail-header RunningTest story.
+ * "banner transitions: runner 404 shows Archived banner" → covered
+ *     by "archived banner appears when /api/runner returns 404".
+ * "runner error response injects cts-alert + stacktrace reveals on
+ *     click" → covered by "INTERRUPTED runner error renders danger
+ *     alert with stacktrace toggle" (this file).
+ * "failure summary items are clickable" → covered by "failure
+ *     summary jump-link bubbles cts-scroll-to-entry" and
+ *     "failure-summary jump-link opens a collapsed block".
+ * R24 split-marker variants → covered by cts-log-detail-header
+ *     stories (PassedHeroDescriptionAndMarkerSplit /
+ *     PassedHeroDescriptionOnly / WaitingHeroWithInstructions /
+ *     WaitingHeroFallbackInstructions).
+ * R21 nav widget (4 legacy tests) → covered at component scope by
+ *     cts-test-nav-controls.stories.js; v2 page-level wiring is the
+ *     same handler set.
+ * ─────────────────────────────────────────────────────────────────────
  */
 
 /**
@@ -1062,6 +1122,78 @@ test.describe("log-detail-v2.html — new Lit-triad page", () => {
     await expect.poll(() => captured.length, { timeout: 5000 }).toBeGreaterThan(0);
     const post = JSON.parse(captured[0].body);
     expect(post).toEqual({ bad_response_type: "PasswordCredential" });
+  });
+
+  test("INTERRUPTED runner error renders danger alert with stacktrace toggle", async ({
+    page,
+  }) => {
+    await setupFailFast(page);
+    const testIdLocal = MOCK_TEST_RUNNING.testId;
+
+    await page.route(`**/api/info/${testIdLocal}*`, (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({
+          ...MOCK_TEST_RUNNING,
+          status: "INTERRUPTED",
+          result: null,
+          planId: undefined,
+        }),
+      }),
+    );
+    await page.route(`**/api/log/${testIdLocal}**`, (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(MOCK_LOG_ENTRIES),
+      }),
+    );
+    await page.route(`**/api/runner/${testIdLocal}`, (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({
+          status: "INTERRUPTED",
+          error: {
+            error: "Something exploded",
+            error_class: "RuntimeException",
+            stacktrace: [
+              "at net.openid.ExampleCondition.evaluate(ExampleCondition.java:42)",
+              "at net.openid.TestRunner.run(TestRunner.java:99)",
+            ],
+            cause_stacktrace: ["at net.openid.Inner.cause(Inner.java:7)"],
+          },
+        }),
+      }),
+    );
+    await page.route("**/api/uploaded-images*", (route) =>
+      route.fulfill({ status: 200, contentType: "application/json", body: "[]" }),
+    );
+    await setupCommonRoutes(page);
+
+    await page.goto(`/log-detail-v2.html?log=${encodeURIComponent(testIdLocal)}`);
+
+    const errorSlot = page.locator('[data-testid="running-error-slot"]');
+    const alert = errorSlot.locator('cts-alert[variant="danger"]');
+    await expect(alert).toBeVisible();
+    await expect(alert).toContainText("Something exploded");
+    await expect(alert).toContainText("RuntimeException");
+
+    const stacktrace = page.locator("#stacktrace");
+    const causeStacktrace = page.locator("#causeStacktrace");
+    await expect(stacktrace).toBeHidden();
+    await expect(causeStacktrace).toBeHidden();
+
+    const stacktraceBtn = page.locator("#stacktraceBtn");
+    await expect(stacktraceBtn).toBeVisible();
+    await stacktraceBtn.locator("button").click();
+
+    await expect(stacktraceBtn).toBeHidden();
+    await expect(stacktrace).toHaveClass(/show/);
+    await expect(causeStacktrace).toHaveClass(/show/);
+    await expect(stacktrace).toContainText("ExampleCondition.evaluate");
+    await expect(causeStacktrace).toContainText("Inner.cause");
   });
 
   test("archived banner appears when /api/runner returns 404 for a once-running test", async ({

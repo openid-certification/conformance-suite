@@ -548,7 +548,16 @@ async function handleVisitUrl(evt) {
   }
 }
 
-/** Render the FINAL_ERROR alert into the error slot. */
+/**
+ * Render the FINAL_ERROR alert into the error slot. The /api/runner
+ * payload's `error` object uses the legacy field shape consumed by
+ * `templates/finalError.html`: `{ error, error_class, stacktrace[],
+ * cause_stacktrace[] }`. Match it byte-for-byte so v2 reads the same
+ * data legacy did. Stacktrace + cause_stacktrace are arrays rendered
+ * as <ul><li> — both reveal together when the toggle is clicked
+ * (mirrors the legacy behavior at log-detail.html where #stacktrace
+ * and #causeStacktrace toggle as a pair).
+ */
 function renderErrorSlot(error) {
   const slot = findSlot("error");
   if (!slot) return;
@@ -558,32 +567,95 @@ function renderErrorSlot(error) {
   const alert = document.createElement("cts-alert");
   alert.setAttribute("variant", "danger");
 
+  if (typeof error === "string") {
+    const message = document.createElement("div");
+    message.textContent = error;
+    alert.appendChild(message);
+    slot.appendChild(alert);
+    return;
+  }
+
   const heading = document.createElement("strong");
-  heading.textContent = "The test was interrupted.";
+  heading.textContent = "There was an error while running the test:";
   alert.appendChild(heading);
 
-  const message = document.createElement("div");
-  message.style.marginTop = "var(--space-2)";
-  message.textContent = typeof error === "string" ? error : error.message || "Unknown error";
-  alert.appendChild(message);
+  const summary = document.createElement("em");
+  summary.style.marginLeft = "var(--space-2)";
+  const errorText = error.error || error.message || "Unknown error";
+  summary.textContent = error.error_class
+    ? `${errorText} (${error.error_class})`
+    : `${errorText}`;
+  alert.appendChild(summary);
+  alert.appendChild(document.createTextNode("."));
 
-  if (typeof error === "object" && error.stacktrace) {
-    const toggle = document.createElement("cts-button");
-    toggle.setAttribute("variant", "secondary");
-    toggle.setAttribute("size", "sm");
-    toggle.setAttribute("label", "Show stack trace");
-    const stackPre = document.createElement("pre");
-    stackPre.style.display = "none";
-    stackPre.style.whiteSpace = "pre-wrap";
-    stackPre.style.fontFamily = "var(--font-mono)";
-    stackPre.style.fontSize = "var(--fs-12)";
-    stackPre.style.marginTop = "var(--space-2)";
-    stackPre.textContent = error.stacktrace;
-    toggle.addEventListener("cts-click", () => {
-      stackPre.style.display = stackPre.style.display === "none" ? "block" : "none";
+  const hasStack = Array.isArray(error.stacktrace) && error.stacktrace.length > 0;
+  const hasCause = Array.isArray(error.cause_stacktrace) && error.cause_stacktrace.length > 0;
+
+  if (hasStack || hasCause) {
+    const toggleBtn = document.createElement("cts-button");
+    toggleBtn.id = "stacktraceBtn";
+    toggleBtn.setAttribute("variant", "secondary");
+    toggleBtn.setAttribute("size", "sm");
+    toggleBtn.setAttribute("label", "Show Stacktrace");
+
+    const buildList = (id, items) => {
+      const ul = document.createElement("ul");
+      ul.id = id;
+      ul.style.display = "none";
+      ul.style.fontFamily = "var(--font-mono)";
+      ul.style.fontSize = "var(--fs-12)";
+      ul.style.marginTop = "var(--space-2)";
+      for (const line of items) {
+        const li = document.createElement("li");
+        li.textContent = line;
+        ul.appendChild(li);
+      }
+      // Mirror the legacy class contract — log-detail.spec.js asserts
+      // `toHaveClass(/show/)` after the toggle click. We add the class
+      // imperatively from the listener, but expose `id` so spec
+      // assertions continue to anchor on the same selectors.
+      return ul;
+    };
+
+    /** @type {HTMLElement[]} */
+    const reveals = [];
+    if (hasStack) {
+      const stackEl = buildList("stacktrace", error.stacktrace);
+      alert.appendChild(toggleBtn);
+      alert.appendChild(stackEl);
+      reveals.push(stackEl);
+    } else {
+      alert.appendChild(toggleBtn);
+    }
+
+    if (hasCause) {
+      const causeWrapper = document.createElement("div");
+      causeWrapper.id = "causeStacktrace";
+      causeWrapper.style.display = "none";
+      const causeHeading = document.createElement("h6");
+      causeHeading.textContent = "Cause:";
+      causeHeading.style.marginTop = "var(--space-3)";
+      causeWrapper.appendChild(causeHeading);
+      const causeUl = document.createElement("ul");
+      causeUl.style.fontFamily = "var(--font-mono)";
+      causeUl.style.fontSize = "var(--fs-12)";
+      for (const line of error.cause_stacktrace) {
+        const li = document.createElement("li");
+        li.textContent = line;
+        causeUl.appendChild(li);
+      }
+      causeWrapper.appendChild(causeUl);
+      alert.appendChild(causeWrapper);
+      reveals.push(causeWrapper);
+    }
+
+    toggleBtn.addEventListener("cts-click", () => {
+      for (const el of reveals) {
+        el.style.display = el.style.display === "none" ? "block" : "none";
+        el.classList.add("show");
+      }
+      toggleBtn.style.display = "none";
     });
-    alert.appendChild(toggle);
-    alert.appendChild(stackPre);
   }
 
   slot.appendChild(alert);
