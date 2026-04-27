@@ -40,7 +40,7 @@
     "http-server": "14.1.1",
     "lit": "3.3.2",
     "lit-analyzer": "2.0.3",
-    "msw": "2.13.4",
+    "msw": "2.13.6",
     "playwright": "1.59.1",
     "prettier": "3.8.3",
     "storybook": "10.3.5",
