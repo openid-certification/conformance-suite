@@ -282,6 +282,8 @@ class CtsButton extends LitElement {
     disabled: { type: Boolean },
     type: { type: String },
     fullWidth: { type: Boolean, attribute: "full-width", reflect: true },
+    ariaLabel: { type: String, attribute: "aria-label" },
+    ariaExpanded: { type: String, attribute: "aria-expanded" },
   };
 
   constructor() {
@@ -294,6 +296,8 @@ class CtsButton extends LitElement {
     this.disabled = false;
     this.type = "button";
     this.fullWidth = false;
+    this.ariaLabel = "";
+    this.ariaExpanded = "";
   }
 
   connectedCallback() {
@@ -339,7 +343,12 @@ class CtsButton extends LitElement {
       </svg>`;
     }
     if (this.icon) {
-      return html`<cts-icon name="${this.icon}" aria-hidden="true"></cts-icon>`;
+      // Scale the glyph to the button height. cts-icon defaults to 20, which
+      // overpowers an xs button (24px tall, 12px text) and looks slightly
+      // heavy in sm too. Use 16 for xs/sm, 20 for md, 24 for lg so the icon
+      // height stays roughly half the button height across the size scale.
+      const iconSize = this.size === "lg" ? "24" : this.size === "md" ? "20" : "16";
+      return html`<cts-icon name="${this.icon}" size="${iconSize}" aria-hidden="true"></cts-icon>`;
     }
     return nothing;
   }
@@ -352,10 +361,20 @@ class CtsButton extends LitElement {
       variant: this.variant,
       size: this.size,
     });
+    // Forward optional accessibility hints onto the inner native button.
+    // Bindings are unquoted so a `nothing` value removes the attribute
+    // entirely; a quoted binding would write `aria-label=""` (which screen
+    // readers treat as "no accessible name", overriding the visible text).
+    // Host-level aria-label doesn't apply because the host is the
+    // cts-button custom element, not the focusable target.
+    const ariaLabelAttr = this.ariaLabel ? this.ariaLabel : nothing;
+    const ariaExpandedAttr = this.ariaExpanded ? this.ariaExpanded : nothing;
     return html`<button
       type="${this.type}"
       class="${buttonClass}"
       ?disabled="${isDisabled}"
+      aria-label=${ariaLabelAttr}
+      aria-expanded=${ariaExpandedAttr}
       @click="${this._handleClick}"
       >${iconContent}${hasIcon && this.label ? " " : ""}${this.label}</button
     >`;

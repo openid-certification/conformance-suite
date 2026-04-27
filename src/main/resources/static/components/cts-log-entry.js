@@ -238,9 +238,10 @@ const STYLE_TEXT = `
   cts-log-entry .logSeverity,
   cts-log-entry .logHttp {
     display: flex;
-    align-items: flex-start;
+    align-items: center;
     flex-wrap: wrap;
     gap: var(--space-1);
+    min-width: 0;
   }
   cts-log-entry .logBody {
     line-height: var(--lh-base);
@@ -277,24 +278,6 @@ const STYLE_TEXT = `
     gap: var(--space-1);
   }
 
-  cts-log-entry .curlBtn {
-    appearance: none;
-    background: transparent;
-    border: 1px solid var(--border);
-    border-radius: var(--radius-2);
-    color: var(--fg-muted);
-    font-family: var(--font-mono);
-    font-size: 10px;
-    font-weight: var(--fw-medium);
-    padding: 1px 6px;
-    cursor: pointer;
-  }
-  cts-log-entry .curlBtn:hover { background: var(--ink-50); color: var(--fg); }
-  cts-log-entry .curlBtn:focus-visible {
-    outline: none;
-    box-shadow: var(--focus-ring);
-  }
-
   cts-log-entry .logFooter {
     display: flex;
     flex-direction: column;
@@ -323,47 +306,63 @@ const STYLE_TEXT = `
     padding: var(--space-3);
     font-size: var(--fs-12);
   }
+  /* Stacked layout: each label sits above its value at every container
+     width. The earlier two-column grid (dt | dd) read well only when
+     labels were short and values fit on one line — for HTTP debug data
+     (multi-line JSON, long URLs) the narrow 1fr value column forced
+     character-level word-break that was painful to scan. Stacking gives
+     each value the full panel width, so URLs wrap on word boundaries
+     and JSON lines break at expected indentation. Spacing rhythm: tight
+     between a label and its value (dt→dd ≈ 4px), looser between groups
+     (dd→next dt ≈ 16px) so each label/value pair reads as one unit. */
   cts-log-entry .moreInfo dl {
-    display: grid;
-    grid-template-columns: minmax(120px, 200px) 1fr;
-    gap: var(--space-2) var(--space-3);
     margin: 0;
   }
   cts-log-entry .moreInfo dt {
+    font-family: var(--font-sans);
+    font-size: var(--fs-12);
+    font-weight: var(--fw-medium);
     color: var(--fg-soft);
-    font-weight: var(--fw-bold);
-    text-align: right;
-    word-break: break-word;
-  }
-  /* R30: semantic labels for "expected" (per spec) and "actual" (received).
-     Color is paired with explicit text labels so the meaning never relies
-     on color alone. The row-level .is-fail / .is-warn gradient on the entry
-     itself carries the failure cue, so the per-row treatment here stays
-     subtle to avoid double-signaling. */
-  cts-log-entry .moreInfo-key--expected {
-    color: var(--status-info);
-    border-right: 2px solid var(--status-info);
-    padding-right: var(--space-2);
-  }
-  cts-log-entry .moreInfo-key--actual {
-    color: var(--ink-700);
-    border-right: 2px solid var(--ink-400);
-    padding-right: var(--space-2);
+    letter-spacing: 0.02em;
+    margin: 0 0 var(--space-1) 0;
+    text-align: left;
   }
   cts-log-entry .moreInfo dd {
-    margin: 0;
+    margin: 0 0 var(--space-4) 0;
+    padding-left: var(--space-3);
+    border-left: 2px solid var(--ink-200);
     color: var(--fg);
     word-break: break-word;
   }
-  cts-log-entry .moreInfo-value--expected {
+  cts-log-entry .moreInfo dd:last-child {
+    margin-bottom: 0;
+  }
+  /* R30: semantic cue for "expected" (per spec) and "actual" (received).
+     The cue rides on (a) the dt label color and (b) the dd's coloured
+     left border + value tint. Pairing color with explicit text labels
+     means the meaning never relies on color alone. The row-level
+     .is-fail / .is-warn gradient on the entry itself carries the failure
+     cue, so the per-row treatment here stays subtle to avoid
+     double-signaling. */
+  cts-log-entry .moreInfo-key--expected {
     color: var(--status-info);
   }
-  /* moreInfo-key--other / moreInfo-value--actual / moreInfo-value--other
-     have no rules by design — those rows inherit the default <dt> / <dd>
-     treatment so the labeled expected/actual rows pop visually. The hook
-     classes are still emitted (and asserted by the cts-log-entry play
-     tests) so future stylesheet work can target them without churning
-     the render template. */
+  cts-log-entry .moreInfo-key--actual {
+    color: var(--ink-700);
+  }
+  cts-log-entry .moreInfo-value--expected {
+    border-left-color: var(--status-info);
+    color: var(--status-info);
+  }
+  cts-log-entry .moreInfo-value--actual {
+    border-left-color: var(--ink-400);
+  }
+  /* moreInfo-key--other / moreInfo-value--other have no rules by design —
+     those rows inherit the neutral dt/dd treatment so the labeled
+     expected/actual rows pop visually. The hook classes are still
+     emitted (and asserted by the cts-log-entry play tests) so future
+     stylesheet work can target them without churning the render
+     template. */
   cts-log-entry .moreInfo pre {
     margin: 0;
     font-family: var(--font-mono);
@@ -376,10 +375,17 @@ const STYLE_TEXT = `
      severity / http / body / actions). The .logMetaRow flex wrapper
      vanishes via display: contents so its three children participate in
      the parent grid as if the wrapper didn't exist — preserving today's
-     column order without a markup change. */
+     column order without a markup change.
+
+     Severity and HTTP columns are auto-sized (max-content) so badges
+     never overflow into the body. Earlier fixed widths (70px/60px) caused
+     "REQUEST" + cURL to spill across the body text on rows where the
+     status pill was wider than its column. The body column (1fr) absorbs
+     whatever is left after the meta cluster and the actions tray sit at
+     their natural widths. */
   @container ctsLogEntry (min-width: 640px) {
     cts-log-entry .logItem {
-      grid-template-columns: 110px 70px 60px 1fr auto;
+      grid-template-columns: 92px max-content max-content 1fr auto;
       grid-template-areas: none;
       gap: var(--space-3);
     }
@@ -542,9 +548,15 @@ class CtsLogEntry extends LitElement {
     return html`
       <cts-badge variant="running" label="${badge.label}"></cts-badge>
       ${httpType === "request"
-        ? html`<button type="button" class="curlBtn" title="Copy as cURL" @click=${this._copyCurl}>
-            <cts-icon name="copy" aria-hidden="true"></cts-icon> cURL
-          </button>`
+        ? html`<cts-button
+            class="curlBtn"
+            variant="secondary"
+            size="xs"
+            icon="copy"
+            label="cURL"
+            title="Copy as cURL"
+            @cts-click=${this._copyCurl}
+          ></cts-button>`
         : nothing}
     `;
   }
@@ -562,16 +574,22 @@ class CtsLogEntry extends LitElement {
   _renderMoreButton() {
     const { more } = this.entry;
     if (!more || Object.keys(more).length === 0) return nothing;
-    const count = Object.keys(more).length;
     const chevron = this._expanded ? "chevron-up" : "chevron-down";
+    // Subtle disclosure: chevron + "Details" in a ghost button.
+    // No border, no count number — "Details" tells the user *what* will
+    // appear (request payload, expected/actual values, headers …) rather
+    // than just how many items, which on its own delivers no meaning.
+    // Visually this recedes behind the FAILURE/SUCCESS pills that need
+    // attention. The .moreBtn class hook is preserved for log-detail.html
+    // and the e2e specs that rely on it.
     return html`
-      <cts-badge variant="secondary" count="${count}"></cts-badge>
       <cts-button
         class="moreBtn"
-        variant="secondary"
+        variant="ghost"
         size="xs"
         icon="${chevron}"
-        label="More"
+        label="Details"
+        aria-expanded="${this._expanded ? "true" : "false"}"
         @cts-click=${this._toggleMore}
       ></cts-button>
     `;
