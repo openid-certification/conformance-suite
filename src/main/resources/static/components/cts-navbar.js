@@ -407,6 +407,12 @@ const STYLE_TEXT = `
   .cts-nav {
     gap: var(--space-3);
   }
+  /* Nudge the brand up a few pixels on small screens to optically align
+   * with the hamburger and avatar icons in the collapsed row. */
+  .cts-nav .cts-brand {
+    position: relative;
+    top: -3px;
+  }
   .cts-nav .cts-brand-name {
     display: none;
   }
