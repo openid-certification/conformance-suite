@@ -82,7 +82,7 @@ const STYLE_TEXT = `
 }
 .oidf-dashboard-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: var(--space-4);
 }
 .oidf-dashboard-tile {
@@ -198,8 +198,7 @@ function injectStyles() {
 /**
  * Home-page dashboard. Renders a token-styled tile grid of primary-task
  * shortcuts and a footer with server info fetched from `/api/server`.
- * Layout matches the design archive's `.stats` block
- * (`grid-template-columns: repeat(4, 1fr)`); tile surface is the same
+ * Layout uses a 3-column grid at desktop widths; tile surface is the same
  * `oidf-card`-style chrome used elsewhere in the design system.
  * @property {boolean} isAuthenticated - Whether the current user is logged in;
  *   gates the authenticated-only tiles. Reflects the `is-authenticated`
