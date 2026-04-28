@@ -16,7 +16,10 @@
     "lint:fix": "eslint --fix ../frontend ../src/main/resources/static/components",
     "lint:lit-analyzer": "lit-analyzer \"../src/main/resources/static/components/**/cts-*.js\" --format list --rules.no-incompatible-type-binding warn --rules.no-nullable-attribute-binding warn",
     "type-check": "tsc --noEmit --pretty false -p tsconfig.json && tsc --noEmit --pretty false -p e2e/tsconfig.json",
-    "test:ci": "npm run format:check && npm run lint && npm run type-check && npm run lint:jsdoc && npm run lint:lit-analyzer",
+    "codegen": "bash scripts/codegen.sh",
+    "codegen:offline": "bash scripts/codegen.sh --offline",
+    "codegen:check": "bash scripts/codegen.sh --offline && git diff --exit-code -- src/api/api-types.d.ts src/api/openapi.json src/api/samples",
+    "test:ci": "npm run format:check && npm run lint && npm run type-check && npm run lint:jsdoc && npm run lint:lit-analyzer && npm run codegen:check",
     "test": "npm run test:ci && npm run test-storybook"
   },
   "engines": {
@@ -41,8 +44,10 @@
     "lit": "3.3.2",
     "lit-analyzer": "2.0.3",
     "msw": "2.13.6",
+    "openapi-typescript": "7.13.0",
     "playwright": "1.59.1",
     "prettier": "3.8.3",
+    "quicktype": "23.2.6",
     "storybook": "10.3.5",
     "ts-lit-plugin": "2.0.2",
     "typescript": "6.0.3",
