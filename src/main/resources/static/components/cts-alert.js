@@ -21,7 +21,6 @@ const STYLES = `
     padding: var(--space-3, 12px) var(--space-4, 16px);
     border-radius: var(--radius-3, 6px);
     border: 1px solid;
-    margin-bottom: var(--space-3, 12px);
     font-size: var(--fs-13, 13px);
     line-height: var(--lh-base, 1.5);
   }
