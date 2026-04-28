@@ -4,7 +4,10 @@ import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.condition.as.CreateWalletNonce;
 import net.openid.conformance.condition.as.EnsureRequestUriHasNoFragment;
 import net.openid.conformance.condition.as.EnsureRequestUriIsHttps;
+import net.openid.conformance.condition.as.EnsureWalletNonceClaimMatchesPostedValue;
 import net.openid.conformance.condition.as.PostToRequestUriAndExtractRequestObject;
+import net.openid.conformance.condition.client.EnsureContentTypeApplicationOauthAuthzReqJwt;
+import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs200;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
@@ -32,8 +35,19 @@ public class VP1FinalVerifierRequestUriMethodPost extends AbstractVP1FinalVerifi
 
 		callAndStopOnFailure(CreateWalletNonce.class, "OID4VP-1FINAL-5.10");
 		callAndStopOnFailure(PostToRequestUriAndExtractRequestObject.class, "OID4VP-1FINAL-5.10");
+
+		validateRequestUriPostResponse();
+
+		callAndContinueOnFailure(EnsureWalletNonceClaimMatchesPostedValue.class, ConditionResult.FAILURE, "OID4VP-1FINAL-5.10");
 		callAndContinueOnFailure(EnsureRequestUriIsHttps.class, ConditionResult.FAILURE, "JAR-5.2");
 		callAndContinueOnFailure(EnsureRequestUriHasNoFragment.class, ConditionResult.FAILURE);
+	}
+
+	private void validateRequestUriPostResponse() {
+		call(exec().mapKey("endpoint_response", "request_uri_post_response"));
+		callAndContinueOnFailure(EnsureHttpStatusCodeIs200.class, ConditionResult.FAILURE, "OID4VP-1FINAL-5.10");
+		callAndContinueOnFailure(EnsureContentTypeApplicationOauthAuthzReqJwt.class, ConditionResult.FAILURE, "OID4VP-1FINAL-5.10");
+		call(exec().unmapKey("endpoint_response"));
 	}
 
 }

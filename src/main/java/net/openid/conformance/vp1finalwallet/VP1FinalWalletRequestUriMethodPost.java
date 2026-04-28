@@ -1,8 +1,12 @@
 package net.openid.conformance.vp1finalwallet;
 
 import net.openid.conformance.condition.Condition.ConditionResult;
+import net.openid.conformance.condition.client.AddReceivedWalletNonceToRequestObjectClaims;
 import net.openid.conformance.condition.client.AddRequestUriMethodPostToRedirectUrl;
+import net.openid.conformance.condition.client.CheckForUnexpectedParametersInRequestUriPost;
+import net.openid.conformance.condition.client.EnsureIncomingRequestAcceptHeaderIsApplicationOauthAuthzReqJwt;
 import net.openid.conformance.condition.client.EnsureIncomingRequestContentTypeIsFormUrlEncoded;
+import net.openid.conformance.condition.client.EnsureIncomingUrlQueryIsEmpty;
 import net.openid.conformance.condition.client.ExtractWalletMetadataAndNonceFromRequestUriPost;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
@@ -43,8 +47,19 @@ public class VP1FinalWalletRequestUriMethodPost extends AbstractVP1FinalWalletTe
 		String incomingMethod = env.getString("incoming_request", "method");
 		if ("POST".equals(incomingMethod)) {
 			eventLog.log(getName(), "Wallet correctly used HTTP POST to fetch request_uri");
+			callAndContinueOnFailure(EnsureIncomingUrlQueryIsEmpty.class, ConditionResult.FAILURE, "OID4VP-1FINAL-5.10");
+			callAndContinueOnFailure(EnsureIncomingRequestAcceptHeaderIsApplicationOauthAuthzReqJwt.class, ConditionResult.FAILURE, "OID4VP-1FINAL-5.10");
 			callAndContinueOnFailure(EnsureIncomingRequestContentTypeIsFormUrlEncoded.class, ConditionResult.FAILURE, "OID4VP-1FINAL-5.10");
+			callAndContinueOnFailure(CheckForUnexpectedParametersInRequestUriPost.class, ConditionResult.WARNING, "OID4VP-1FINAL-5.10");
 			callAndContinueOnFailure(ExtractWalletMetadataAndNonceFromRequestUriPost.class, ConditionResult.INFO, "OID4VP-1FINAL-5.10");
+
+			if (env.getString("received_wallet_nonce") != null) {
+				// Per OID4VP §5.10, a verifier that receives wallet_nonce in the POST body MUST include it
+				// as a top-level claim in the returned Request Object. The request object was signed earlier
+				// during createAuthorizationRedirect(); add the claim and re-sign now that we have the value.
+				callAndStopOnFailure(AddReceivedWalletNonceToRequestObjectClaims.class, "OID4VP-1FINAL-5.10");
+				callAndStopOnFailure(getActiveSigningCondition());
+			}
 		} else {
 			walletUsedGetInsteadOfPost = true;
 		}
