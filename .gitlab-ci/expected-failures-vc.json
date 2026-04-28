@@ -58,7 +58,7 @@
         "comment": "ISO mdl spec requires require_signed_request_object to be passed but it doesn't do anything useful"
     },
     {
-        "test-name": "oid4vp-1final-wallet-happy-flow-no-state",
+        "test-name": "oid4vp-1final-wallet-happy-flow",
         "variant": {
             "credential_format": "iso_mdl"
         },
@@ -69,7 +69,7 @@
         "comment": "Wallet receives credential with invalid session transcript from the verifier negative test"
     },
     {
-        "test-name": "oid4vp-1final-wallet-happy-flow-no-state",
+        "test-name": "oid4vp-1final-wallet-happy-flow",
         "variant": {
             "credential_format": "sd_jwt_vc"
         },
@@ -80,7 +80,7 @@
         "comment": "Wallet receives credential with invalid KB-JWT signature from the verifier negative test"
     },
     {
-        "test-name": "oid4vp-1final-wallet-happy-flow-no-state",
+        "test-name": "oid4vp-1final-wallet-happy-flow",
         "variant": {
             "credential_format": "sd_jwt_vc"
         },
@@ -91,7 +91,7 @@
         "comment": "Wallet receives credential with invalid sd_hash in KB-JWT from the verifier negative test"
     },
     {
-        "test-name": "oid4vp-1final-wallet-happy-flow-no-state",
+        "test-name": "oid4vp-1final-wallet-happy-flow",
         "variant": {
             "credential_format": "sd_jwt_vc"
         },
@@ -102,7 +102,7 @@
         "comment": "Wallet receives credential with invalid nonce in KB-JWT from the verifier negative test"
     },
     {
-        "test-name": "oid4vp-1final-wallet-happy-flow-no-state",
+        "test-name": "oid4vp-1final-wallet-happy-flow",
         "variant": {
             "credential_format": "sd_jwt_vc"
         },
@@ -113,7 +113,7 @@
         "comment": "Wallet receives credential with invalid aud in KB-JWT from the verifier negative test"
     },
     {
-        "test-name": "oid4vp-1final-wallet-happy-flow-no-state",
+        "test-name": "oid4vp-1final-wallet-happy-flow",
         "variant": {
             "credential_format": "sd_jwt_vc"
         },
@@ -124,7 +124,7 @@
         "comment": "Wallet receives credential with iat in the past from the verifier negative test"
     },
     {
-        "test-name": "oid4vp-1final-wallet-happy-flow-no-state",
+        "test-name": "oid4vp-1final-wallet-happy-flow",
         "variant": {
             "credential_format": "sd_jwt_vc"
         },
