@@ -328,7 +328,6 @@ const STYLE_TEXT = `
     border-bottom: 1px solid var(--border);
     display: flex;
     flex-direction: column;
-    gap: var(--space-4);
   }
   /* Page-injected slots ([data-slot="error"], [data-slot="browser"])
      are empty until log-detail.js injects an alert or browser-URL
