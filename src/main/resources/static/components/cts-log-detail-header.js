@@ -417,6 +417,7 @@ const STYLE_TEXT = `
      section rhythm. */
   cts-log-detail-header .ctsDrawer {
     padding: 0;
+    margin-bottom: 20px;
   }
   cts-log-detail-header .ctsDrawer details {
     border-bottom: 1px solid var(--border);
