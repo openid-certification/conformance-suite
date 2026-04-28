@@ -315,9 +315,7 @@ const STYLE_TEXT = `
      replaces the legacy card's internal grid. */
   cts-log-detail-header .ctsHero {
     /* Horizontal padding is owned by the page wrapper (.log-page
-       padding-inline); the hero keeps its generous vertical inset so
-       it earns its weight via space, not edge chrome. */
-    padding-block: var(--space-5);
+       padding-inline). */
     padding-inline: 0;
     border-bottom: 1px solid var(--border);
     display: flex;
