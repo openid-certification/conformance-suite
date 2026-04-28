@@ -2,6 +2,7 @@ import { html } from "lit";
 import { expect, within, waitFor, fn, userEvent } from "storybook/test";
 import { MOCK_TEST_STATUS, MOCK_TEST_RUNNING, MOCK_TEST_FAILED } from "@fixtures/mock-test-data.js";
 import "./cts-log-detail-header.js";
+import { renderErrorIntoSlot } from "../js/log-detail-error-slot.js";
 
 export default {
   title: "Components/cts-log-detail-header",
@@ -270,10 +271,7 @@ export const RunningTest = {
  */
 export const ArchivedTest = {
   render: () =>
-    html`<cts-log-detail-header
-      .testInfo=${COMPLETED_TEST}
-      archived
-    ></cts-log-detail-header>`,
+    html`<cts-log-detail-header .testInfo=${COMPLETED_TEST} archived></cts-log-detail-header>`,
   async play({ canvasElement }) {
     await waitFor(() => {
       const banner = canvasElement.querySelector('[data-testid="archived-banner"]');
@@ -751,6 +749,86 @@ export const WithFinalErrorSlot = {
     );
     expect(interruptedAlert).toBeTruthy();
     expect(interruptedAlert.getAttribute("variant")).toBe("danger");
+  },
+};
+
+/**
+ * Demonstrates the FINAL_ERROR alert actually rendered into the
+ * `[data-slot="error"]` placeholder. The empty slot lives inside
+ * cts-log-detail-header; population is normally driven by the
+ * `/api/runner/{testId}` polling loop in `js/log-detail.js`. This
+ * story bypasses the polling loop and calls `renderErrorIntoSlot`
+ * directly with a sample error payload, so the same construction
+ * code that runs in production paints the alert in Storybook.
+ *
+ * Use this story to visually verify the alert layout, the
+ * stacktrace toggle, and the cause-section reveal.
+ */
+const SAMPLE_RUNNER_ERROR = {
+  error: "Connection refused while contacting authorization server",
+  error_class: "ConnectException",
+  stacktrace: [
+    "java.net.ConnectException: Connection refused",
+    "  at java.base/sun.nio.ch.Net.pollConnect(Native Method)",
+    "  at java.base/sun.nio.ch.Net.pollConnectNow(Net.java:672)",
+    "  at net.openid.conformance.runner.TestRunner.runTest(TestRunner.java:412)",
+    "  at net.openid.conformance.runner.TestExecutionManager.runInBackground(TestExecutionManager.java:188)",
+  ],
+  cause_stacktrace: [
+    "java.nio.channels.UnresolvedAddressException",
+    "  at java.base/sun.nio.ch.Net.checkAddress(Net.java:149)",
+    "  at java.base/sun.nio.ch.SocketChannelImpl.checkRemote(SocketChannelImpl.java:863)",
+  ],
+};
+
+export const WithFinalErrorSlotPopulated = {
+  render: () =>
+    html`<cts-log-detail-header
+      .testInfo=${{ ...RUNNING_TEST, status: "INTERRUPTED" }}
+    ></cts-log-detail-header>`,
+  async play({ canvasElement }) {
+    // Wait for the header to render so the slot exists in the DOM.
+    const slot = await waitFor(() => {
+      const el = canvasElement.querySelector('[data-slot="error"]');
+      if (!el) throw new Error("error slot not yet rendered");
+      return el;
+    });
+
+    // Drive the slot through the same code path js/log-detail.js
+    // uses on each /api/runner poll. Story stays faithful to the
+    // production render path as long as renderErrorIntoSlot evolves.
+    renderErrorIntoSlot(slot, SAMPLE_RUNNER_ERROR);
+
+    // The injected alert is the danger-variant FINAL_ERROR — distinct
+    // from the hero region's "interrupted" alert which is also danger.
+    // We anchor on the heading text the helper writes, not on variant.
+    const finalErrorAlert = Array.from(slot.querySelectorAll("cts-alert")).find((a) =>
+      (a.textContent || "").includes("There was an error while running the test"),
+    );
+    expect(finalErrorAlert).toBeTruthy();
+    expect(finalErrorAlert.getAttribute("variant")).toBe("danger");
+    expect(finalErrorAlert.textContent).toContain("ConnectException");
+
+    // Stacktrace + cause are present but hidden until the toggle is
+    // clicked — mirrors the legacy reveal-on-click contract.
+    const stack = slot.querySelector("#stacktrace");
+    const cause = slot.querySelector("#causeStacktrace");
+    expect(stack).toBeTruthy();
+    expect(cause).toBeTruthy();
+    expect(stack.style.display).toBe("none");
+    expect(cause.style.display).toBe("none");
+
+    const toggle = slot.querySelector("#stacktraceBtn");
+    expect(toggle).toBeTruthy();
+    await userEvent.click(toggle);
+
+    // After the toggle fires, both blocks reveal together and the
+    // toggle button hides itself.
+    expect(stack.style.display).toBe("block");
+    expect(cause.style.display).toBe("block");
+    expect(stack.classList.contains("show")).toBe(true);
+    expect(cause.classList.contains("show")).toBe(true);
+    expect(toggle.style.display).toBe("none");
   },
 };
 
