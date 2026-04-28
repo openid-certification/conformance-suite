@@ -181,7 +181,7 @@ const STYLE_TEXT = `
     height: var(--space-2);
     pointer-events: none;
     display: none;
-    background: linear-gradient(to bottom, rgba(0, 0, 0, 0.12), rgba(0, 0, 0, 0));
+    background: linear-gradient(to bottom, rgba(0, 0, 0, 0.07), rgba(0, 0, 0, 0));
   }
   cts-log-detail-header .ctsStatusBarLeft {
     grid-area: left;
