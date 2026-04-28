@@ -338,6 +338,14 @@ const STYLE_TEXT = `
   cts-log-detail-header .ctsHero > [data-slot]:not(:has(*)) {
     display: contents;
   }
+  /* Once the error slot is populated by log-detail.js, separate the
+     injected FINAL_ERROR alert from the sibling "interrupted" alert
+     that follows it. Margin lives on the slot (not on the parent as a
+     blanket 'gap') so the rest of the hero — running/waiting/summary
+     variants — remains visually unchanged. */
+  cts-log-detail-header .ctsHero > [data-slot="error"]:has(*) {
+    margin-bottom: var(--space-3);
+  }
   /* Eyebrow + headline are a single title group (Gestalt proximity),
      so they sit 4px apart instead of inheriting the 16px hero gap. */
   cts-log-detail-header .ctsHeroEyebrow {

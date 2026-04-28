@@ -711,10 +711,17 @@ export const WithRunningBrowserSlot = {
     expect(slotById).toBe(slotByAttr);
 
     // Page-level JS injects content via DOM methods; the slot accepts
-    // the injection without Lit's reactive re-render wiping it.
-    const injected = document.createElement("button");
+    // the injection without Lit's reactive re-render wiping it. Use a
+    // cts-button here (not a plain <button>) so the story matches what
+    // js/log-detail.js's renderBrowserSlot actually appends in
+    // production — otherwise the rendered button looks unstyled and
+    // misrepresents the live behaviour.
+    const injected = document.createElement("cts-button");
     injected.setAttribute("data-testid", "injected-browser-btn");
-    injected.textContent = "Open in browser";
+    injected.setAttribute("variant", "primary");
+    injected.setAttribute("size", "sm");
+    injected.setAttribute("icon", "external-link");
+    injected.setAttribute("label", "Open in browser");
     slotById.appendChild(injected);
 
     await waitFor(() => {
@@ -820,7 +827,14 @@ export const WithFinalErrorSlotPopulated = {
 
     const toggle = slot.querySelector("#stacktraceBtn");
     expect(toggle).toBeTruthy();
-    await userEvent.click(toggle);
+    // cts-button binds @click on the inner <button> (light DOM); a
+    // userEvent.click on the host element does not bubble through to
+    // the inner handler that emits cts-click. Click the inner button
+    // directly — same shape as the innerButton() helper used elsewhere
+    // in this file.
+    const toggleInner = toggle.querySelector("button");
+    expect(toggleInner).toBeTruthy();
+    await userEvent.click(toggleInner);
 
     // After the toggle fires, both blocks reveal together and the
     // toggle button hides itself.

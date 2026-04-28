@@ -50,11 +50,17 @@ export function renderErrorIntoSlot(slot, error) {
   const hasCause = Array.isArray(error.cause_stacktrace) && error.cause_stacktrace.length > 0;
 
   if (hasStack || hasCause) {
+    // Stacktrace reveal is progressive disclosure of debug detail —
+    // it should sit quietly inside the danger alert, not compete with
+    // it as a sibling action. ghost + xs gives a low-emphasis text
+    // affordance with a chevron, matching the "expand for details"
+    // pattern used elsewhere in the suite.
     const toggleBtn = document.createElement("cts-button");
     toggleBtn.id = "stacktraceBtn";
-    toggleBtn.setAttribute("variant", "secondary");
-    toggleBtn.setAttribute("size", "sm");
-    toggleBtn.setAttribute("label", "Show Stacktrace");
+    toggleBtn.setAttribute("variant", "ghost");
+    toggleBtn.setAttribute("size", "xs");
+    toggleBtn.setAttribute("icon", "chevron-down");
+    toggleBtn.setAttribute("label", "Show stacktrace");
 
     const buildList = (id, items) => {
       const ul = document.createElement("ul");
