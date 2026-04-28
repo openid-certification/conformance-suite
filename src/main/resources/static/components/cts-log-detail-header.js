@@ -485,6 +485,18 @@ const STYLE_TEXT = `
     color: var(--fg);
     word-break: break-word;
   }
+  /* Mirror cts-plan-header's .mono chip — small monospace pill for
+     IDs, versions, and variant strings so a reader comparing the
+     plan-detail header with the test-detail drawer sees the same
+     visual treatment for the same kind of data. */
+  cts-log-detail-header .logMetaValue .mono {
+    font-family: var(--font-mono);
+    font-size: var(--fs-12);
+    color: var(--fg);
+    background: var(--ink-50);
+    padding: 1px 6px;
+    border-radius: var(--radius-1);
+  }
 
   /* Configuration JSON inside the Configuration disclosure. Same
      min-height as the legacy stand-alone config panel so Monaco
@@ -620,7 +632,10 @@ class CtsLogDetailHeader extends LitElement {
 
   _formatDate(dateStr) {
     if (!dateStr) return "";
-    return new Date(dateStr).toString();
+    // Match the locale-aware short form used by cts-plan-header so a
+    // user comparing the plan-detail header with the test-detail
+    // drawer sees the same date format in both surfaces.
+    return new Date(dateStr).toLocaleString();
   }
 
   /**
@@ -1318,11 +1333,11 @@ class CtsLogDetailHeader extends LitElement {
         ${variantStr
           ? html`
               <div class="logMetaLabel">Variant:</div>
-              <div class="logMetaValue">${variantStr}</div>
+              <div class="logMetaValue"><span class="mono">${variantStr}</span></div>
             `
           : nothing}
         <div class="logMetaLabel">Test ID:</div>
-        <div class="logMetaValue">${test.testId}</div>
+        <div class="logMetaValue"><span class="mono">${test.testId}</span></div>
         <div class="logMetaLabel">Created:</div>
         <div class="logMetaValue tabular-nums">${this._formatDate(test.created)}</div>
         ${test.description
@@ -1334,7 +1349,7 @@ class CtsLogDetailHeader extends LitElement {
         ${test.version
           ? html`
               <div class="logMetaLabel">Test Version:</div>
-              <div class="logMetaValue">${test.version}</div>
+              <div class="logMetaValue"><span class="mono">${test.version}</span></div>
             `
           : nothing}
         ${this.isAdmin && test.owner
@@ -1348,7 +1363,7 @@ class CtsLogDetailHeader extends LitElement {
         ${test.planId
           ? html`
               <div class="logMetaLabel">Plan ID:</div>
-              <div class="logMetaValue">${test.planId}</div>
+              <div class="logMetaValue"><span class="mono">${test.planId}</span></div>
             `
           : nothing}
       </div>
