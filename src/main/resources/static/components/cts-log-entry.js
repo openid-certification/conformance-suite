@@ -156,8 +156,6 @@ const STYLE_TEXT = `
     display: block;
     border-bottom: 1px solid var(--ink-100);
     font-size: var(--fs-13);
-    container-type: inline-size;
-    container-name: ctsLogEntry;
     /* U6: when this entry is the target of a #LOG-NNNN deep link, leave
        breathing room above so the row lands below the sticky status bar
        (U2) and any persistent banner instead of being scrolled under
@@ -383,11 +381,30 @@ const STYLE_TEXT = `
      status pill was wider than its column. The body column (1fr) absorbs
      whatever is left after the meta cluster and the actions tray sit at
      their natural widths. */
-  @container ctsLogEntry (min-width: 640px) {
+  @container ctsLogViewer (min-width: 640px) {
+    /* Default wide layout: each .logItem owns its own 5-column
+       grid. Used by entries nested inside .logBlock, which keep
+       their own per-row badge sizing. The top-level override below
+       switches to subgrid so badges align across the whole log. */
     cts-log-entry .logItem {
       grid-template-columns: 92px max-content max-content 1fr auto;
       grid-template-areas: none;
       gap: var(--space-3);
+      border-bottom: 1px solid var(--ink-100);
+    }
+    cts-log-entry:last-child .logItem {
+      border-bottom: 0;
+    }
+    /* Top-level entries (direct children of .logEntries) subgrid
+       into the master grid in cts-log-viewer so timestamp /
+       severity / http / body / actions columns are sized once
+       across ALL top-level rows by the widest content in each
+       track. cts-log-entry hosts are display: contents at this
+       width (see cts-log-viewer.js), so .logItem is a direct
+       child of the parent grid and one level of subgrid is enough. */
+    .logEntries > cts-log-entry .logItem {
+      grid-template-columns: subgrid;
+      grid-column: 1 / -1;
     }
     cts-log-entry .logMetaRow {
       display: contents;
