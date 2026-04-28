@@ -156,6 +156,7 @@ const STYLE_TEXT = `
      single button (e.g. when the name column wraps to multiple lines). */
   cts-plan-modules .module-row .actionStack {
     display: flex;
+    flex-direction: row-reverse;
     flex-wrap: wrap;
     justify-content: flex-end;
     align-items: center;
