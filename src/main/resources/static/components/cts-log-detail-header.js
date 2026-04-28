@@ -142,11 +142,10 @@ const STYLE_TEXT = `
       "left   middle  primary"
       "name   name    name";
     column-gap: var(--space-3);
-    row-gap: var(--space-1);
+    row-gap: var(--space-2);
     align-items: center;
     padding: 20px;
     margin-inline: -20px;
-    margin-bottom: var(--space-4);
     background: var(--bg-elev);
     border-bottom: 1px solid var(--border);
     z-index: 10;
@@ -259,7 +258,7 @@ const STYLE_TEXT = `
      without touching the component itself — the override is scoped
      to the .ctsNavRow descendant context only. */
   cts-log-detail-header .ctsNavRow {
-    padding: var(--space-2) 0;
+    padding: var(--space-4) 0;
     border-bottom: 1px solid var(--border);
   }
   /* Hide the nav row when the embedded cts-test-nav-controls renders
@@ -302,18 +301,50 @@ const STYLE_TEXT = `
     width: auto;
   }
 
+  /* Archived banner — rendered as a sibling alert between the nav
+     row and the hero when the test is no longer live on the runner.
+     Without explicit margins it sits flush against the nav row's
+     border-bottom above and the hero's first child below, breaking
+     the section rhythm. The block margin matches the hero's
+     padding-block-start so the banner reads as belonging to the
+     hero zone (a status note about it) rather than as a third,
+     orphaned section between nav and hero. */
+  cts-log-detail-header > cts-alert[data-testid="archived-banner"] {
+    display: block;
+    margin-block: var(--space-5) 0;
+  }
+
   /* Hero — the lifecycle-driven dominant zone. Flat section on the
      page background; no card chrome. Generous padding gives the
      hero its weight. The eyebrow / headline / body type-scale ramp
      replaces the legacy card's internal grid. */
   cts-log-detail-header .ctsHero {
     /* Horizontal padding is owned by the page wrapper (.log-page
-       padding-inline). */
+       padding-inline). Vertical padding gives the hero its own
+       breathing room as a section so it never sits flush against the
+       nav row's border above or the drawer summaries below. */
     padding-inline: 0;
+    padding-block: var(--space-5) var(--space-6);
     border-bottom: 1px solid var(--border);
     display: flex;
     flex-direction: column;
-    gap: var(--space-3);
+    gap: var(--space-4);
+  }
+  /* Page-injected slots ([data-slot="error"], [data-slot="browser"])
+     are empty until log-detail.js injects an alert or browser-URL
+     prompt. 'display: contents' makes the slot disappear from the
+     flex flow while empty, so the parent's gap skips it. The moment
+     log-detail.js appends a child element, :not(:has(*)) stops
+     matching and the slot rejoins the flex flow with the standard
+     gap above and below. */
+  cts-log-detail-header .ctsHero > [data-slot]:not(:has(*)) {
+    display: contents;
+  }
+  /* Eyebrow + headline are a single title group (Gestalt proximity),
+     so they sit 4px apart instead of inheriting the 16px hero gap.
+     Negative margin-top shrinks the effective gap on this one pair. */
+  cts-log-detail-header .ctsHero > .ctsHeroEyebrow + .ctsHeroHeadline {
+    margin-top: calc(var(--space-1) - var(--space-4));
   }
   cts-log-detail-header .ctsHeroEyebrow {
     font-size: var(--fs-12);
@@ -347,7 +378,6 @@ const STYLE_TEXT = `
     font-size: var(--fs-14);
   }
   cts-log-detail-header .ctsHeroFooter {
-    margin-top: var(--space-2);
     display: flex;
     flex-wrap: wrap;
     gap: var(--space-2);
@@ -921,7 +951,7 @@ class CtsLogDetailHeader extends LitElement {
       actions.push({
         id: "share-link",
         label: "Private link",
-        icon: "bookmark",
+        icon: "lock",
       });
     }
     // TODO(U8 follow-up): wire a "Hide log structure rail" / "Show log

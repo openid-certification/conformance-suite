@@ -1,6 +1,7 @@
 import { LitElement, html, nothing } from "lit";
 import { classMap } from "lit/directives/class-map.js";
 import "./cts-icon.js";
+import "./cts-tooltip.js";
 
 const STYLE_ID = "cts-log-entry-id-styles";
 
@@ -228,18 +229,19 @@ class CtsLogEntryId extends LitElement {
       logIdChip: true,
       "logIdChip--copied": this._copied,
     };
-    return html`<button
-      type="button"
-      class=${classMap(chipClasses)}
-      aria-label=${ariaLabel}
-      title="Click to copy link · Right-click to copy ${this.referenceId}"
-      data-testid="log-entry-id-chip"
-      @click=${this._handleClick}
-      @contextmenu=${this._handleContextMenu}
-    >
-      <cts-icon name="link" size="16" aria-hidden="true"></cts-icon>
-      <span>${this.referenceId}</span>
-    </button>`;
+    const tooltipContent = `Click to copy link · Right-click to copy ${this.referenceId}`;
+    return html`<cts-tooltip content=${tooltipContent} placement="top"
+      ><button
+        type="button"
+        class=${classMap(chipClasses)}
+        aria-label=${ariaLabel}
+        data-testid="log-entry-id-chip"
+        @click=${this._handleClick}
+        @contextmenu=${this._handleContextMenu}
+      >
+        <cts-icon name="link" size="16" aria-hidden="true"></cts-icon>
+        <span>${this.referenceId}</span>
+      </button></cts-tooltip>`;
   }
 }
 

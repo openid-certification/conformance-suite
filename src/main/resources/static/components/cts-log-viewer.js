@@ -86,6 +86,56 @@ const STYLE_TEXT = `
   cts-log-viewer .logEntries:empty {
     display: none;
   }
+  /* Master grid for horizontal alignment across rows. The widest
+     severity badge (e.g. INTERRUPTED) and the widest source/HTTP cell
+     in the visible set determine the column width once at the parent;
+     each row's .logItem then subgrids into these tracks so the source
+     column starts at the same x-position on every row regardless of
+     the badge text length. Only kicks in at the wide layout — below
+     640px each entry keeps its own two-column stacked layout, where
+     per-row alignment is not a concern. */
+  cts-log-viewer {
+    /* Container scope for the wide-layout master grid below. Moved
+       up from cts-log-entry so the parent .logEntries can establish
+       a single-level subgrid: each .logItem subgrids directly into
+       the parent's 5-track template instead of cascading through two
+       host elements (cts-log-entry + .logItem), which Chrome's track
+       sizing algorithm fails to propagate intrinsic widths through. */
+    container-type: inline-size;
+    container-name: ctsLogViewer;
+  }
+  @container ctsLogViewer (min-width: 640px) {
+    cts-log-viewer .logEntries {
+      display: grid;
+      /* minmax(0, 1fr) on the body track prevents 1fr from eating
+         the budget for the auto badge columns. The badge columns use
+         'auto' (= minmax(min-content, max-content)) so they size to
+         the widest badge across ALL rows that subgrid into this
+         parent — that is the alignment the screenshot was missing. */
+      grid-template-columns: 92px auto auto minmax(0, 1fr) auto;
+      column-gap: var(--space-3);
+    }
+    /* Top-level cts-log-entry hosts vanish so each .logItem
+       participates directly in .logEntries as a single-level
+       subgrid descendant — that is what aligns the severity column
+       across rows. The host's row separator (1px border-bottom)
+       is restored on .logItem in cts-log-entry.js.
+
+       Nested entries inside <details class="logBlock"> use the
+       per-entry grid (defined in cts-log-entry.js's default wide
+       block) instead of subgrid: Chrome's subgrid track
+       propagation does not work through two consecutive
+       contents-eliding ancestors, and switching .logBlock to a
+       subgrid relay also fails. The block container keeps its
+       default block flow; only its position in the parent grid is
+       set so it spans all tracks as a divider section. */
+    cts-log-viewer .logEntries > cts-log-entry {
+      display: contents;
+    }
+    cts-log-viewer .logEntries > .logBlock {
+      grid-column: 1 / -1;
+    }
+  }
   cts-log-viewer .logEmpty {
     padding: var(--space-5);
     text-align: center;
