@@ -234,7 +234,9 @@ class CtsDashboard extends LitElement {
     try {
       const response = await fetch("/api/server");
       if (response.ok) {
-        this._serverInfo = await response.json();
+        /** @type {import('@cts-api/api-types').paths['/api/server']['get']['responses']['200']['content']['application/json']} */
+        const data = await response.json();
+        this._serverInfo = data;
       } else {
         // Server info is non-critical; tiles render regardless. Log so operators
         // can diagnose if /api/server starts failing silently.
@@ -248,14 +250,14 @@ class CtsDashboard extends LitElement {
   }
 
   _renderServerInfo() {
-    if (!this._serverInfo) {
+    const serverInfo = this._serverInfo;
+    if (!serverInfo) {
       return nothing;
     }
     const parts = Object.entries(SERVER_INFO_LABELS)
-      .filter(([key]) => key in this._serverInfo)
+      .filter(([key]) => key in serverInfo)
       .map(
-        ([key, label]) =>
-          html`${label}: <span id="serverinfo-${key}">${this._serverInfo[key]}</span>`,
+        ([key, label]) => html`${label}: <span id="serverinfo-${key}">${serverInfo[key]}</span>`,
       );
     if (parts.length === 0) {
       return nothing;
