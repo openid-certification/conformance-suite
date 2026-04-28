@@ -118,12 +118,25 @@ function loadMonaco() {
 function defineOidfTheme(monaco) {
   const cs = window.getComputedStyle(document.documentElement);
   const bg = cs.getPropertyValue("--bg-elev").trim() || "#ffffff";
+  // --bg-muted is the design-system token for sunken/display surfaces
+  // (alerts, drawer body backgrounds). Read-only editors paint with it
+  // so they visually rhyme with surrounding read-only chrome rather
+  // than mimicking an editable input.
+  const bgMuted = cs.getPropertyValue("--bg-muted").trim() || "#F8F7F5";
   monaco.editor.defineTheme("oidf-light", {
     base: "vs",
     inherit: true,
     rules: [],
     colors: {
       "editor.background": bg,
+    },
+  });
+  monaco.editor.defineTheme("oidf-light-readonly", {
+    base: "vs",
+    inherit: true,
+    rules: [],
+    colors: {
+      "editor.background": bgMuted,
     },
   });
 }
@@ -216,9 +229,15 @@ function injectStyles() {
  *   empty. Rendered by the fallback textarea's native placeholder when
  *   Monaco is unavailable; Monaco does not render placeholder text in
  *   the empty editor (the visual hint moves to surrounding labels).
- * @property {boolean} readonly - When true, the editor rejects edits.
- *   Reflected to Monaco's `readOnly` option and the fallback textarea's
- *   `readonly` attribute.
+ * @property {boolean} readonly - When true, the editor rejects edits and
+ *   paints with the muted "display surface" canvas (`oidf-light-readonly`
+ *   theme + `--bg-muted` host background) so the surface itself signals
+ *   "display only" rather than mimicking an editable input. Reflected to
+ *   Monaco's `readOnly` / `domReadOnly` options and the fallback
+ *   textarea's `readonly` attribute. The `[readonly]` attribute on the
+ *   host is what consumer CSS targets (the host suppresses the orange
+ *   focus ring in this state — clicking a read-only surface is not a
+ *   meaningful interaction).
  * @property {string} language - Monaco language id. Defaults to "json".
  *   Changing it after first render rebuilds the model language.
  * @fires input - On every editor edit; bubbles, mirrors `<textarea>`.
@@ -349,9 +368,11 @@ class CtsJsonEditor extends LitElement {
     this._model = monaco.editor.createModel(this._value || "", this.language);
     this._editor = monaco.editor.create(host, {
       model: this._model,
-      theme: "oidf-light",
+      theme: this.readonly ? "oidf-light-readonly" : "oidf-light",
       automaticLayout: true,
       readOnly: this.readonly,
+      domReadOnly: this.readonly,
+      cursorStyle: this.readonly ? "line-thin" : "line",
       minimap: { enabled: false },
       lineNumbers: "off",
       lineDecorationsWidth: 0,
@@ -434,7 +455,12 @@ class CtsJsonEditor extends LitElement {
 
   updated(changed) {
     if (changed.has("readonly") && this._editor) {
-      this._editor.updateOptions({ readOnly: this.readonly });
+      this._editor.updateOptions({
+        readOnly: this.readonly,
+        domReadOnly: this.readonly,
+        cursorStyle: this.readonly ? "line-thin" : "line",
+        theme: this.readonly ? "oidf-light-readonly" : "oidf-light",
+      });
     }
     if (changed.has("language") && this._model && window.monaco) {
       window.monaco.editor.setModelLanguage(this._model, this.language);
