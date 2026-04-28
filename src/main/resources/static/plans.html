@@ -214,7 +214,17 @@
                             return row.description == null ? '' : String(row.description);
                         case 'started':
                             if (row.started == null || row.started === '') return '';
-                            return FAPI_UI.logTemplates.DATE({ date: row.started });
+                            // The DATE template returns an HTML string
+                            // (`<span class="tabular-nums">…</span>`).
+                            // cts-data-table treats raw strings as text
+                            // and escapes them, so without
+                            // htmlToFragment the markup renders verbatim
+                            // in the cell. The other columns route
+                            // through htmlToFragment for the same
+                            // reason; this one was the odd one out.
+                            return htmlToFragment(
+                                FAPI_UI.logTemplates.DATE({ date: row.started })
+                            );
                         case 'modules':
                             return htmlToFragment(
                                 FAPI_UI.logTemplates.PLAN_MODULES({ modules: row.modules || [] })

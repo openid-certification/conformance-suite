@@ -53,6 +53,17 @@ test.describe("plans.html — Plans List", () => {
 
     // Should show variant info
     await expect(page.locator("#plansListing")).toContainText("client_secret_basic");
+
+    // Started timestamps render as a real <span class="tabular-nums">
+    // node, NOT as the literal markup string. The DATE template
+    // returns an HTML fragment; without htmlToFragment on the started
+    // case, cts-data-table escaped the markup and the user saw
+    // `<span class="tabular-nums">…</span>` as visible text. Guard
+    // the wrap by asserting the span is in the DOM and that the
+    // literal markup does not leak into the row text.
+    const startedSpan = rows.first().locator("span.tabular-nums").first();
+    await expect(startedSpan).toBeVisible();
+    await expect(rows.first()).not.toContainText('<span class="tabular-nums">');
   });
 
   test("config button opens modal with plan configuration", async ({ page }) => {
