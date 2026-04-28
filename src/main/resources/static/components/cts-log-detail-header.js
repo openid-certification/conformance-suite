@@ -341,11 +341,7 @@ const STYLE_TEXT = `
     display: contents;
   }
   /* Eyebrow + headline are a single title group (Gestalt proximity),
-     so they sit 4px apart instead of inheriting the 16px hero gap.
-     Negative margin-top shrinks the effective gap on this one pair. */
-  cts-log-detail-header .ctsHero > .ctsHeroEyebrow + .ctsHeroHeadline {
-    margin-top: calc(var(--space-1) - var(--space-4));
-  }
+     so they sit 4px apart instead of inheriting the 16px hero gap. */
   cts-log-detail-header .ctsHeroEyebrow {
     font-size: var(--fs-12);
     font-weight: var(--fw-bold);
