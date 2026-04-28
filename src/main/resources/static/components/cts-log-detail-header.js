@@ -266,7 +266,7 @@ const STYLE_TEXT = `
      without touching the component itself — the override is scoped
      to the .ctsNavRow descendant context only. */
   cts-log-detail-header .ctsNavRow {
-    padding: var(--space-2) var(--space-5);
+    padding: var(--space-2) 0;
     border-bottom: 1px solid var(--border);
   }
   /* Hide the nav row when the embedded cts-test-nav-controls renders
