@@ -93,7 +93,7 @@
      single-column and the main content reclaims the full page width
      instead of leaving a 320px column reserved for an empty heading. */
   @media (min-width: 1440px) {
-    .log-page--with-toc:has(#ctsLogToc:not([hidden])) {
+    .log-page--with-toc {
       display: grid;
       grid-template-columns: 1fr 320px;
       gap: var(--space-5);
