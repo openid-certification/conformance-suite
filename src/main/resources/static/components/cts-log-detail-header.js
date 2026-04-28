@@ -144,15 +144,8 @@ const STYLE_TEXT = `
     column-gap: var(--space-3);
     row-gap: var(--space-1);
     align-items: center;
-    /* Horizontal padding is owned by the page wrapper now (via the
-       .log-page container's padding-inline), so the bar, nav row,
-       hero, and drawer all use vertical-only padding here. The leading
-       edge of every text block — verdict pill, "ABOUT THIS TEST"
-       eyebrow, "Test details" summary — still aligns on a single
-       vertical axis because the page wrapper sets the inset for the
-       whole stack. */
-    padding-block: var(--space-3);
-    padding-inline: 0;
+    padding: 20px;
+    margin-inline: -20px;
     margin-bottom: var(--space-4);
     background: var(--bg-elev);
     border-bottom: 1px solid var(--border);
