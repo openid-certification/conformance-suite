@@ -389,6 +389,13 @@ class CtsJsonEditor extends LitElement {
       domReadOnly: this.readonly,
       cursorStyle: this.readonly ? "line-thin" : "line",
       minimap: { enabled: false },
+      // Monaco renders an "overview ruler" strip on the right edge that
+      // proxies the minimap (error markers, cursor positions). For a
+      // form-field JSON editor this is decorative chrome we don't need
+      // — collapse the lanes and border so the strip disappears flush.
+      overviewRulerLanes: 0,
+      overviewRulerBorder: false,
+      hideCursorInOverviewRuler: true,
       lineNumbers: "off",
       lineDecorationsWidth: 0,
       glyphMargin: false,
