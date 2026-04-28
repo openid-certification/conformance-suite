@@ -324,8 +324,7 @@ const STYLE_TEXT = `
        breathing room as a section so it never sits flush against the
        nav row's border above or the drawer summaries below. */
     padding-inline: 0;
-    padding-block: var(--space-5) var(--space-6);
-    border-bottom: 1px solid var(--border);
+    padding-block: var(--space-5) var(--space-2);
     display: flex;
     flex-direction: column;
   }
