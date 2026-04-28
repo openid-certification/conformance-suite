@@ -9,7 +9,9 @@ const STYLE_ID = "cts-plan-header-styles";
 // label/value grid replaces the prior Bootstrap col-md-1/col-md-11 layout.
 const STYLE_TEXT = `
   cts-plan-header {
-    display: block;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
   }
   cts-plan-header .planTitle {
     margin: 0 0 var(--space-2);
