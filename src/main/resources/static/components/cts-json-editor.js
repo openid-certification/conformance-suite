@@ -166,10 +166,22 @@ cts-json-editor {
   position: relative;
   box-sizing: border-box;
 }
-.oidf-json-editor:focus-within {
+/* Focus ring is meaningful only on editable editors. Clicking a
+   read-only surface does nothing, so painting the orange ring there
+   would mislead users about the affordance. */
+cts-json-editor:not([readonly]) .oidf-json-editor:focus-within {
   outline: none;
   border-color: var(--orange-400);
   box-shadow: var(--focus-ring);
+}
+/* Read-only host paints with the same muted canvas as the Monaco
+   theme so the affordance survives the Monaco-pre-mount paint window
+   and the fallback textarea path (Monaco failed to load). The left
+   inset rail is a quiet visual anchor that signals "display surface"
+   without competing with the aria-label or surrounding chrome. */
+cts-json-editor[readonly] .oidf-json-editor {
+  background: var(--bg-muted);
+  box-shadow: inset 2px 0 0 var(--ink-200);
 }
 .oidf-json-editor-host {
   width: 100%;
@@ -190,6 +202,9 @@ cts-json-editor {
   resize: vertical;
   text-indent: 0;
   box-sizing: border-box;
+}
+cts-json-editor[readonly] .oidf-json-editor-fallback {
+  background: var(--bg-muted);
 }
 .oidf-json-editor-fallback:focus {
   outline: none;
