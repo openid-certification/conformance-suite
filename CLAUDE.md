@@ -54,6 +54,24 @@ java -jar target/fapi-test-suite.jar --spring.profiles.active=dev
 
 The app runs at `https://localhost.emobix.co.uk:8443` (regular) and `:8444` (mTLS).
 
+### Dev loop (save-and-see)
+
+The `dev` profile activates `spring-boot-devtools` plus a source-tree static handler so edits under `src/main/resources/static/` reflect on the next browser load (LiveReload reloads the tab automatically; plain F5 also works), and Java edits trigger a fast classloader restart in ~5 seconds.
+
+```bash
+mvn spring-boot:run -Dspring-boot.run.profiles=dev
+```
+
+In IntelliJ, set the Spring Boot run config's "Active profiles" to `dev` and enable "Build project automatically" + the Registry flag `compiler.automake.allow.when.app.running` so save triggers a recompile.
+
+LiveReload runs on port 35729; install a LiveReload browser extension or rely on auto-injected `livereload.js` (DevTools serves it on the same origin). Static-only edits do not need a JVM restart — DevTools watches `src/main/resources/static` per `spring.devtools.restart.additional-paths` in `application-dev.properties`.
+
+If save-and-see does not work, you are most likely running the packaged fat JAR (`java -jar target/fapi-test-suite.jar`) instead of `spring-boot:run` — the production JAR intentionally excludes DevTools.
+
+**Production-parity invariant.** `spring-boot-devtools` MUST stay `<scope>provided</scope>` in `pom.xml`. The `maven-enforcer-plugin` rule `enforce-devtools-scope` fails the build at `validate` phase if the scope drifts to `compile`/`runtime`/`test`/`system`. Do not bypass the rule.
+
+**Never set `SPRING_PROFILES_ACTIVE=dev` in a non-dev environment.** The dev profile activates `DummyUserFilter` (`fintechlabs.devmode=true`), which injects a synthetic admin-level user on every request and bypasses real authentication. The DevTools properties added alongside that flag do not change this risk, but they do live in the same file — read `application-dev.properties` end-to-end before deploying any environment that loads it.
+
 ### Running integration tests
 
 Use `scripts/run-integration-tests.sh`, which handles building, server lifecycle, readiness checks, and test execution in one command. Output is automatically captured to `/tmp/integration-test-<timestamp>.log` — the script prints the log path before redirecting, then use `Read` to inspect results.

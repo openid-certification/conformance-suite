@@ -4,6 +4,25 @@ Tooling home for the CTS frontend: Prettier, ESLint, tsc, Storybook, Playwright.
 The actual web components live in `../src/main/resources/static/components/` —
 lint/format/type-check globs reach into that directory via `../` paths.
 
+## Dev loop (save-and-see)
+
+Run the backend with the `dev` profile so static-asset edits under
+`../src/main/resources/static/` reflect on the next browser load without a
+rebuild:
+
+```bash
+mvn spring-boot:run -Dspring-boot.run.profiles=dev
+```
+
+LiveReload (port 35729) auto-refreshes the tab; plain F5 also works. Java edits
+trigger a fast classloader restart (~5s). See the "Dev loop" section in the
+top-level [`CLAUDE.md`](../CLAUDE.md) for the full launch path, the
+production-parity invariant, and the `SPRING_PROFILES_ACTIVE=dev` warning.
+
+For Java↔JS API type parity, the codegen pipeline at `src/api/` snapshots
+`/v3/api-docs` and runtime sample responses into committed `.d.ts` types — see
+[`src/api/README.md`](src/api/README.md) for the `npm run codegen` workflow.
+
 ## Local commands
 
 | Script                      | What it does                                                                                               | When to run                                          |
