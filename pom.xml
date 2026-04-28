@@ -465,6 +465,40 @@
 				</executions>
 			</plugin>
 			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-enforcer-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>enforce-devtools-scope</id>
+						<phase>validate</phase>
+						<goals>
+							<goal>enforce</goal>
+						</goals>
+						<configuration>
+							<rules>
+								<!--
+								spring-boot-devtools MUST stay <scope>provided</scope> so it is
+								excluded from the production fat JAR by spring-boot-maven-plugin's
+								repackage goal. <optional>true</optional> is a defensive
+								belt-and-suspenders flag (see pom.xml dependency block).
+								See CLAUDE.md "Dev loop" for the full invariant.
+								-->
+								<bannedDependencies>
+									<searchTransitive>false</searchTransitive>
+									<excludes>
+										<exclude>org.springframework.boot:spring-boot-devtools:*:*:compile</exclude>
+										<exclude>org.springframework.boot:spring-boot-devtools:*:*:runtime</exclude>
+										<exclude>org.springframework.boot:spring-boot-devtools:*:*:test</exclude>
+										<exclude>org.springframework.boot:spring-boot-devtools:*:*:system</exclude>
+									</excludes>
+									<message>spring-boot-devtools must remain &lt;scope&gt;provided&lt;/scope&gt; to keep DevTools out of the production fat JAR. See CLAUDE.md "Dev loop".</message>
+								</bannedDependencies>
+							</rules>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
 				<groupId>org.jetbrains.kotlin</groupId>
 				<artifactId>kotlin-maven-plugin</artifactId>
 				<version>${kotlin.version}</version>
