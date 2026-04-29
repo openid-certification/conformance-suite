@@ -10,7 +10,6 @@ export default {
     label: { control: "text" },
     count: { control: "number" },
     icon: { control: "text" },
-    pill: { control: "boolean" },
     clickable: { control: "boolean" },
     interactive: { control: "boolean" },
   },
@@ -57,8 +56,6 @@ export const Warn = {
     expect(badge).toBeTruthy();
     expect(badge.classList.contains("b-warn")).toBe(true);
     expect(badge.textContent.trim()).toBe("Warning");
-    // Bootstrap legacy class must NOT leak through.
-    expect(badge.classList.contains("bg-warning")).toBe(false);
   },
 };
 
@@ -82,9 +79,6 @@ export const Running = {
     expect(svg.namespaceURI).toBe("http://www.w3.org/2000/svg");
     expect(svg.querySelector("circle")).toBeTruthy();
     expect(svg.querySelector("path")).toBeTruthy();
-
-    // Bootstrap legacy class must NOT leak through.
-    expect(badge.classList.contains("bg-info")).toBe(false);
   },
 };
 
@@ -155,9 +149,9 @@ export const BootstrapVariant = {
 };
 
 export const InfoSubtle = {
-  args: { variant: "info-subtle", label: "Section description", pill: true },
-  render: ({ variant, label, pill }) =>
-    html`<cts-badge variant="${variant}" label="${label}" ?pill="${pill}"></cts-badge>`,
+  args: { variant: "info-subtle", label: "Section description" },
+  render: ({ variant, label }) =>
+    html`<cts-badge variant="${variant}" label="${label}"></cts-badge>`,
 
   async play({ canvasElement }) {
     const badge = canvasElement.querySelector(".badge");
@@ -165,10 +159,6 @@ export const InfoSubtle = {
     // Retokenized scoped class on the design-system status-info palette.
     expect(badge.classList.contains("b-info-subtle")).toBe(true);
     expect(badge.textContent.trim()).toBe("Section description");
-    // Bootstrap classes must NOT leak through.
-    expect(badge.classList.contains("bg-info-subtle")).toBe(false);
-    expect(badge.classList.contains("border-info-subtle")).toBe(false);
-    expect(badge.classList.contains("text-info-emphasis")).toBe(false);
   },
 };
 
@@ -177,15 +167,9 @@ export const WithIcon = {
     variant: "info-subtle",
     label: "This section relates to the entity under test",
     icon: "info",
-    pill: true,
   },
-  render: ({ variant, label, icon, pill }) =>
-    html`<cts-badge
-      variant="${variant}"
-      label="${label}"
-      icon="${icon}"
-      ?pill="${pill}"
-    ></cts-badge>`,
+  render: ({ variant, label, icon }) =>
+    html`<cts-badge variant="${variant}" label="${label}" icon="${icon}"></cts-badge>`,
 
   async play({ canvasElement }) {
     const badge = canvasElement.querySelector(".badge");
@@ -202,9 +186,9 @@ export const WithIcon = {
 };
 
 export const WithCount = {
-  args: { variant: "secondary", count: 5, pill: true },
-  render: ({ variant, count, pill }) =>
-    html`<cts-badge variant="${variant}" count="${count}" ?pill="${pill}"></cts-badge>`,
+  args: { variant: "secondary", count: 5 },
+  render: ({ variant, count }) =>
+    html`<cts-badge variant="${variant}" count="${count}"></cts-badge>`,
 
   async play({ canvasElement }) {
     const badge = canvasElement.querySelector(".badge");

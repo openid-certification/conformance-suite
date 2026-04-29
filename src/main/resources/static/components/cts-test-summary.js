@@ -10,7 +10,9 @@ const STYLE_ID = "cts-test-summary-styles";
 // preserved when the alerts move out of the header card.
 const STYLE_TEXT = `
   cts-test-summary {
-    display: block;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
   }
 
   cts-test-summary .summaryZone {
