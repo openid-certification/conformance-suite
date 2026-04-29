@@ -58,6 +58,7 @@ const STYLE_TEXT = `
   }
   cts-plan-header .planDisclaimer {
     margin-top: var(--space-4);
+    margin-bottom: var(--space-4);
     padding-top: var(--space-3);
     border-top: 1px solid var(--divider);
     font-size: var(--fs-12);

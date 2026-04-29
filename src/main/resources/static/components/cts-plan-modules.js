@@ -160,7 +160,7 @@ const STYLE_TEXT = `
     flex-wrap: wrap;
     justify-content: flex-end;
     align-items: center;
-    gap: var(--space-1);
+    gap: var(--space-3);
   }
   /* In this row the badge pill itself reads ~1px low against the sm
      action buttons (cap-height drift: 11px caps in a 16px line-box land
