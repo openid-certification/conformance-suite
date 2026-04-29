@@ -107,7 +107,8 @@ const STYLE_ID = "cts-log-detail-header-styles";
 //   │   FAILED/WARNING/REVIEW       → count headline + failure   │  fs-20 head
 //   │   INTERRUPTED                 → error slot + failure list  │
 //   │   PASSED/SKIPPED              → R24 description prose      │  fs-15 body
-//   │   WAITING                     → R24 instructions + Start   │
+//   │   WAITING                     → R24 instructions (Start in │
+//   │                                 sticky bar, not duplicated) │
 //   │   RUNNING                     → exposed values + Stop      │
 //   ├───────────────────────────────────────────────────────────┤
 //   │ Drawer (Region C — two <details> disclosures)             │
@@ -549,7 +550,8 @@ function ensureStylesInjected() {
  *      `docs/brainstorms/2026-04-26-cts-log-detail-header-hierarchy-requirements.md`:
  *      FAILED / WARNING / REVIEW render the failure list as the hero;
  *      PASSED / SKIPPED render the R24 "About this test" description;
- *      WAITING renders R24 instructions + Start; RUNNING renders the
+ *      WAITING renders R24 instructions (Start lives in the sticky
+ *      status bar, not duplicated in the hero); RUNNING renders the
  *      running-test card content (info alert + exposed values +
  *      browser slot + Stop); INTERRUPTED renders the failure list with
  *      the FINAL_ERROR alert pinned at the top of the hero.
@@ -1226,8 +1228,10 @@ class CtsLogDetailHeader extends LitElement {
 
   /**
    * WAITING hero — R24 instructions ("What you need to do") + the
-   * browser-URL slot + Start CTA. The slot remains so page-level JS
-   * can inject browser-URL prompts during the WAITING window.
+   * browser-URL slot. The Start CTA lives in the sticky status bar
+   * (its primary action for WAITING tests), so the hero does not
+   * duplicate it. The slot remains so page-level JS can inject
+   * browser-URL prompts during the WAITING window.
    */
   _renderWaitingHero(test) {
     const summarySplit = splitTestSummary(test.summary || "");
@@ -1238,16 +1242,6 @@ class CtsLogDetailHeader extends LitElement {
         <div class="ctsHeroBody">${instructions}</div>
         ${this._renderExposedValues(test)}
         <div id="runningTestBrowser" data-slot="browser" data-testid="running-browser-slot"></div>
-        <div class="ctsHeroFooter">
-          <cts-button
-            variant="primary"
-            size="sm"
-            icon="play"
-            label="Start"
-            data-testid="start-btn"
-            @cts-click=${this._handleStartTest}
-          ></cts-button>
-        </div>
       </div>
     `;
   }
