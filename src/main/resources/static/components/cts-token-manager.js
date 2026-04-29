@@ -60,7 +60,7 @@ const STYLE_TEXT = `
 .cts-token-manager-table tbody tr:last-child td {
   border-bottom: 0;
 }
-.cts-token-manager-table tbody tr:nth-child(odd) td {
+.cts-token-manager-table tbody tr:nth-child(even) td {
   background: var(--ink-50);
 }
 .cts-token-manager-table tbody tr:hover td {
