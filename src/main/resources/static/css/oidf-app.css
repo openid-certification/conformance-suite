@@ -135,6 +135,14 @@ cts-link-button > a:focus,
 .schedule-test-page > h2 {
   margin: 0 0 var(--space-6);
 }
+/* layout.css line 205 sets `h3 { padding: 10px }` globally, which leaves
+   every section heading on this page (Configure Test, the schema-driven
+   config-form-container headers, the story's "Configuration" hero) optically
+   indented from the rest of the column. Strip the inline padding here so
+   the section headings flush-align with cascade rows and form fields. */
+.schedule-test-page h3 {
+  padding-inline: 0;
+}
 .schedule-test-instructions {
   margin: 0 0 var(--space-5);
   font-size: var(--fs-14);
