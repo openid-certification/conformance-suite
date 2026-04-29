@@ -255,11 +255,9 @@ export const RunningTest = {
     expect(runningHero).toBeTruthy();
     expect(canvas.getByText(/Live values from the running test/)).toBeInTheDocument();
 
-    // Stop button lives inside the hero footer; the sticky bar also
-    // surfaces a Stop primary action when RUNNING.
-    const stopBtn = canvasElement.querySelector('[data-testid="stop-btn"]');
-    expect(stopBtn).toBeTruthy();
-    expect(within(stopBtn).getByText(/Stop/)).toBeInTheDocument();
+    // Stop action is surfaced exclusively in the sticky bar's primary slot.
+    const stickyStop = canvasElement.querySelector('[data-testid="status-bar-primary"]');
+    expect(stickyStop).toBeTruthy();
   },
 };
 
