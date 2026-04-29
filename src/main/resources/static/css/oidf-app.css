@@ -125,3 +125,208 @@ cts-link-button > a:focus,
   color: var(--fg);
   white-space: pre-line;
 }
+
+/* ---- schedule-test page wrapper -------------------------------- */
+.schedule-test-page {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: var(--space-6) var(--space-5);
+}
+.schedule-test-instructions {
+  margin: 0 0 var(--space-5);
+  font-size: var(--fs-14);
+  color: var(--fg-soft, var(--ink-600));
+}
+
+/* ---- schedule-test cascade + config form (U39 of bootstrap-removal plan)
+   Token-based replacements for Bootstrap's `.row .col-md-* .input-group
+   .input-group-text .form-control .form-select` scaffolding used inside
+   schedule-test.html. The legacy class names (`config-form-element`,
+   `config-form-container*`, `input-group`, `is-invalid`) are preserved as
+   the JS↔DOM contract — this stylesheet retokenizes their look while the
+   page's inline JS keeps scraping the same selectors.
+   ---------------------------------------------------------------- */
+.cascade-row {
+  display: grid;
+  grid-template-columns: clamp(140px, 18%, 220px) 1fr;
+  gap: var(--space-3) var(--space-4);
+  align-items: center;
+  margin-bottom: var(--space-4);
+}
+.cascade-row > label {
+  font-size: var(--fs-14);
+  font-weight: var(--fw-medium);
+  color: var(--fg);
+}
+.cascade-row .input-group {
+  display: flex;
+  align-items: stretch;
+  gap: 0;
+  background: var(--bg-elev);
+  border: 1px solid var(--ink-300);
+  border-radius: var(--radius-2);
+  overflow: hidden;
+}
+.cascade-row .input-group:focus-within {
+  border-color: var(--orange-400);
+  box-shadow: var(--focus-ring);
+}
+.cascade-row .input-group-text {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 var(--space-3);
+  background: var(--bg-muted);
+  border-right: 1px solid var(--ink-200);
+  color: var(--ink-500);
+}
+.cascade-row select,
+.cascade-row .form-select,
+.cascade-row .form-control {
+  flex: 1;
+  width: auto;
+  min-width: 0;
+  height: 34px;
+  border: 0;
+  background: transparent;
+  padding: 0 var(--space-3);
+  font-family: var(--font-sans);
+  font-size: var(--fs-13);
+  color: var(--fg);
+  appearance: auto;
+}
+.cascade-row select:focus,
+.cascade-row .form-select:focus,
+.cascade-row .form-control:focus {
+  outline: none;
+  box-shadow: none;
+}
+@media (max-width: 640px) {
+  .cascade-row {
+    grid-template-columns: 1fr;
+    gap: var(--space-2);
+  }
+}
+
+/* Schema-driven config form sections + rows */
+.config-form-container {
+  margin-top: var(--space-6);
+  padding: var(--space-5);
+  background: var(--bg-elev);
+  border: 1px solid var(--ink-100);
+  border-radius: var(--radius-3);
+}
+.config-form-container-header {
+  font-size: var(--fs-16);
+  font-weight: var(--fw-bold);
+  color: var(--fg);
+  margin: 0 0 var(--space-4) 0;
+  padding-bottom: var(--space-3);
+  border-bottom: 1px solid var(--ink-100);
+}
+.config-form-container-header__intro {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+}
+.config-form-container-header__intro > span {
+  flex: 0 0 auto;
+}
+.config-form-container-header__intro > cts-badge {
+  flex: 1 1 280px;
+  min-width: 0;
+}
+.config-form-element-container {
+  display: grid;
+  grid-template-columns: clamp(180px, 24%, 280px) 1fr;
+  gap: var(--space-2) var(--space-4);
+  align-items: flex-start;
+  margin-bottom: var(--space-3);
+}
+.config-form-element-container .key {
+  font-family: var(--font-mono);
+  font-size: var(--fs-12);
+  color: var(--ink-700);
+  padding-top: var(--space-2);
+  word-break: break-word;
+}
+.config-form-element-container .key a {
+  font-family: var(--font-sans);
+}
+.config-form-element-container .input-group {
+  display: flex;
+  align-items: stretch;
+  gap: 0;
+  background: var(--bg-elev);
+  border: 1px solid var(--ink-300);
+  border-radius: var(--radius-2);
+  overflow: hidden;
+}
+.config-form-element-container .input-group:focus-within {
+  border-color: var(--orange-400);
+  box-shadow: var(--focus-ring);
+}
+.config-form-element-container .input-group-text {
+  display: flex;
+  align-items: flex-start;
+  padding: var(--space-2) var(--space-3) 0;
+  background: var(--bg-muted);
+  border-right: 1px solid var(--ink-200);
+  color: var(--ink-500);
+}
+.config-form-element-container .config-form-element {
+  flex: 1;
+  width: auto;
+  min-width: 0;
+  border: 0;
+  background: transparent;
+  padding: var(--space-2) var(--space-3);
+  font-family: var(--font-sans);
+  font-size: var(--fs-13);
+  color: var(--fg);
+  line-height: var(--lh-base);
+}
+.config-form-element-container input.config-form-element,
+.config-form-element-container select.config-form-element {
+  height: 34px;
+  padding-top: 0;
+  padding-bottom: 0;
+}
+.config-form-element-container textarea.config-form-element {
+  min-height: calc(var(--space-6) * 4);
+  resize: vertical;
+  font-family: var(--font-mono);
+  font-size: var(--fs-12);
+}
+.config-form-element-container .config-form-element:focus {
+  outline: none;
+  box-shadow: none;
+}
+.config-form-element-container .config-form-element.is-invalid {
+  /* The input-group ring already shows error on focus; nothing to add here */
+}
+.config-form-element-container .invalid-feedback {
+  grid-column: 2;
+  color: var(--rust-400, #c44e2a);
+  font-size: var(--fs-12);
+  margin-top: var(--space-1);
+}
+@media (max-width: 640px) {
+  .config-form-element-container {
+    grid-template-columns: 1fr;
+    gap: var(--space-1);
+  }
+  .config-form-element-container .invalid-feedback {
+    grid-column: 1;
+  }
+}
+
+/* Launch panel — replaces the Bootstrap card around the Create / Share buttons */
+.launch-panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  width: min(28rem, 100%);
+  margin: var(--space-6) auto 0;
+}
