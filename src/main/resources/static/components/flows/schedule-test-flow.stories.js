@@ -4,6 +4,7 @@ import { http, HttpResponse } from "msw";
 import { MOCK_PLANS } from "@fixtures/mock-plans.js";
 import "../cts-spec-cascade.js";
 import "../cts-config-form.js";
+import "../cts-button.js";
 
 export default {
   title: "Flows/Schedule Test",
@@ -71,14 +72,21 @@ export const FullFlow = {
     }
 
     return html`
-      <div class="container-fluid">
-        <h4>Create a new test plan</h4>
+      <div class="schedule-test-page">
+        <h2>Create a new test plan</h2>
         <cts-spec-cascade @cts-plan-selected=${handlePlanSelected}></cts-spec-cascade>
         <div id="config-section" style="display:none">
-          <hr />
-          <h5>Configuration</h5>
+          <h3>Configuration</h3>
           <cts-config-form id="flow-config-form"></cts-config-form>
-          <button class="btn btn-primary mt-3" id="submit-plan">Create Test Plan</button>
+          <div class="launch-panel">
+            <cts-button
+              id="submit-plan"
+              size="lg"
+              variant="primary"
+              icon="flag"
+              label="Create Test Plan"
+            ></cts-button>
+          </div>
         </div>
       </div>
     `;
@@ -99,7 +107,7 @@ export const FullFlow = {
 
     await step("Select entity OP", async () => {
       await waitFor(() => {
-        const entityRow = canvasElement.querySelector("#entitySelect")?.closest(".mb-3.row");
+        const entityRow = canvasElement.querySelector('[data-testid="entitySelect-field"]');
         expect(entityRow?.style.display).not.toBe("none");
       });
       const entitySelect = canvasElement.querySelector("#entitySelect");
@@ -108,7 +116,7 @@ export const FullFlow = {
 
     await step("Select plan", async () => {
       await waitFor(() => {
-        const planRow = canvasElement.querySelector("#planSelect")?.closest(".mb-3.row");
+        const planRow = canvasElement.querySelector('[data-testid="planSelect-field"]');
         expect(planRow?.style.display).not.toBe("none");
       });
       const planSelect = canvasElement.querySelector("#planSelect");
@@ -164,7 +172,7 @@ export const ChangePlanMidFlow = {
     }
 
     return html`
-      <div class="container-fluid">
+      <div class="schedule-test-page">
         <cts-spec-cascade @cts-plan-selected=${handlePlanSelected}></cts-spec-cascade>
         <div id="config-section-2" style="display:none">
           <cts-config-form id="flow-config-form-2"></cts-config-form>
@@ -183,14 +191,14 @@ export const ChangePlanMidFlow = {
       await userEvent.selectOptions(specSelect, "OIDCC");
 
       await waitFor(() => {
-        const entityRow = canvasElement.querySelector("#entitySelect")?.closest(".mb-3.row");
+        const entityRow = canvasElement.querySelector('[data-testid="entitySelect-field"]');
         expect(entityRow?.style.display).not.toBe("none");
       });
       const entitySelect = canvasElement.querySelector("#entitySelect");
       await userEvent.selectOptions(entitySelect, "OP");
 
       await waitFor(() => {
-        const planRow = canvasElement.querySelector("#planSelect")?.closest(".mb-3.row");
+        const planRow = canvasElement.querySelector('[data-testid="planSelect-field"]');
         expect(planRow?.style.display).not.toBe("none");
       });
       const planSelect = canvasElement.querySelector("#planSelect");
