@@ -18,6 +18,11 @@ const MONACO_VS_PATH = "/vendor/monaco-editor/vs";
  */
 const MONACO_LOAD_TIMEOUT_MS = 8000;
 
+/** Minimum editor height in pixels (≈ 4 lines). */
+const EDITOR_MIN_HEIGHT_PX = 80;
+/** Maximum editor height before the editor scrolls internally. */
+const EDITOR_MAX_HEIGHT_PX = 350;
+
 /**
  * Singleton Promise resolving to `window.monaco` once Monaco's AMD bundle
  * has booted. Multiple `<cts-json-editor>` instances on the same page
@@ -155,7 +160,6 @@ cts-json-editor {
 .oidf-json-editor {
   display: block;
   width: 100%;
-  min-height: calc(var(--space-6) * 16);
   border: 1px solid var(--ink-300);
   border-radius: var(--radius-2);
   background: var(--bg-elev);
@@ -165,6 +169,7 @@ cts-json-editor {
   overflow: hidden;
   position: relative;
   box-sizing: border-box;
+  padding: 6px;
 }
 /* Focus ring is meaningful only on editable editors. Clicking a
    read-only surface does nothing, so painting the orange ring there
@@ -185,8 +190,7 @@ cts-json-editor[readonly] .oidf-json-editor {
 }
 .oidf-json-editor-host {
   width: 100%;
-  height: 100%;
-  min-height: inherit;
+  min-height: 80px;
 }
 .oidf-json-editor-fallback {
   display: block;
@@ -389,6 +393,7 @@ class CtsJsonEditor extends LitElement {
       domReadOnly: this.readonly,
       cursorStyle: this.readonly ? "line-thin" : "line",
       minimap: { enabled: false },
+      guides: { indentation: false },
       // Monaco renders an "overview ruler" strip on the right edge that
       // proxies the minimap (error markers, cursor positions). For a
       // form-field JSON editor this is decorative chrome we don't need
@@ -407,6 +412,16 @@ class CtsJsonEditor extends LitElement {
       formatOnPaste: false,
       wordWrap: "off",
     });
+
+    const updateHeight = () => {
+      const contentHeight = Math.max(
+        EDITOR_MIN_HEIGHT_PX,
+        Math.min(EDITOR_MAX_HEIGHT_PX, this._editor.getContentHeight()),
+      );
+      host.style.height = `${contentHeight}px`;
+    };
+    this._editor.onDidContentSizeChange(updateHeight);
+    updateHeight();
 
     this._editor.onDidChangeModelContent(() => {
       if (this._suppressDispatch) return;
