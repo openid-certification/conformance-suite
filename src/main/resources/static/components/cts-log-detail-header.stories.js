@@ -555,13 +555,16 @@ export const WaitingHeroWithInstructions = {
     // the test is about.
     expect(waitingHero.textContent).not.toContain("Descriptive part of the summary.");
 
-    // Start button anchors the bottom of the hero.
-    const startBtn = canvasElement.querySelector('[data-testid="start-btn"]');
-    expect(startBtn).toBeTruthy();
+    // The hero must NOT carry its own Start button — Start is the
+    // sticky status bar's primary action for WAITING tests, and a
+    // duplicate inside the hero would split the operator's attention
+    // between two identical CTAs in the same viewport.
+    expect(waitingHero.querySelector('[data-testid="start-btn"]')).toBeNull();
 
+    // Start is exercised through the status-bar primary instead.
     const startHandler = fn();
     canvasElement.addEventListener("cts-start-test", startHandler);
-    await userEvent.click(innerButton(canvasElement, "start-btn"));
+    await userEvent.click(innerButton(canvasElement, "status-bar-primary"));
     expect(startHandler).toHaveBeenCalledOnce();
   },
 };
