@@ -239,7 +239,7 @@ class CtsLogEntryId extends LitElement {
         @click=${this._handleClick}
         @contextmenu=${this._handleContextMenu}
       >
-        <cts-icon name="link" size="16" aria-hidden="true"></cts-icon>
+        <cts-icon name="copy" size="16" aria-hidden="true"></cts-icon>
         <span>${this.referenceId}</span>
       </button></cts-tooltip>`;
   }

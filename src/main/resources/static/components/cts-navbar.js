@@ -108,8 +108,6 @@ const STYLE_TEXT = `
   text-decoration: none;
   color: var(--ink-0);
   flex-shrink: 0;
-  position: relative;
-  top: -3px;
 }
 .cts-nav .cts-brand img {
   height: 28px;
