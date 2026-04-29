@@ -132,6 +132,9 @@ cts-link-button > a:focus,
   margin: 0 auto;
   padding: var(--space-6) var(--space-5);
 }
+.schedule-test-page > h2 {
+  margin: 0 0 var(--space-6);
+}
 .schedule-test-instructions {
   margin: 0 0 var(--space-5);
   font-size: var(--fs-14);
