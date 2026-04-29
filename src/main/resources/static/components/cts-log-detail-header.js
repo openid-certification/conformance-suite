@@ -109,7 +109,7 @@ const STYLE_ID = "cts-log-detail-header-styles";
 //   │   PASSED/SKIPPED              → R24 description prose      │  fs-15 body
 //   │   WAITING                     → R24 instructions (Start in │
 //   │                                 sticky bar, not duplicated) │
-//   │   RUNNING                     → exposed values + Stop      │
+//   │   RUNNING                     → exposed values             │
 //   ├───────────────────────────────────────────────────────────┤
 //   │ Drawer (Region C — two <details> disclosures)             │
 //   │   ▸ Test details (metadata table; closed by default)      │
@@ -355,6 +355,7 @@ const STYLE_TEXT = `
     text-transform: uppercase;
     letter-spacing: 0.04em;
     color: var(--fg-soft);
+    margin-top: var(--space-4);
   }
   cts-log-detail-header .ctsHeroHeadline {
     font-size: var(--fs-20);
@@ -380,12 +381,6 @@ const STYLE_TEXT = `
     font-style: italic;
     font-size: var(--fs-14);
   }
-  cts-log-detail-header .ctsHeroFooter {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--space-2);
-  }
-
   /* Failure hero — wraps cts-failure-summary and elevates each row's
      type / spacing so the failure list reads as the page's primary
      affordance. Hide cts-failure-summary's own accordion title (the
@@ -417,7 +412,6 @@ const STYLE_TEXT = `
   }
   cts-log-detail-header .ctsExposedJson {
     display: block;
-    min-height: calc(var(--space-6) * 10);
   }
 
   /* Drawer (Region C) — two <details> disclosures. Native semantics +
@@ -553,7 +547,7 @@ function ensureStylesInjected() {
  *      WAITING renders R24 instructions (Start lives in the sticky
  *      status bar, not duplicated in the hero); RUNNING renders the
  *      running-test card content (info alert + exposed values +
- *      browser slot + Stop); INTERRUPTED renders the failure list with
+ *      browser slot); INTERRUPTED renders the failure list with
  *      the FINAL_ERROR alert pinned at the top of the hero.
  *   3. Region C drawer — two `<details>` disclosures stacked
  *      (Test details, Configuration), both closed by default.
@@ -1247,9 +1241,7 @@ class CtsLogDetailHeader extends LitElement {
   }
 
   /**
-   * RUNNING hero — info alert + exposed values + browser slot + Stop.
-   * The Stop button is intentionally redundant with the sticky bar's
-   * primary action; for live runs the action *is* the job.
+   * RUNNING hero — info alert + exposed values + browser slot.
    */
   _renderRunningHero(test) {
     return html`
@@ -1261,16 +1253,6 @@ class CtsLogDetailHeader extends LitElement {
         </cts-alert>
         ${this._renderExposedValues(test)}
         <div id="runningTestBrowser" data-slot="browser" data-testid="running-browser-slot"></div>
-        <div class="ctsHeroFooter">
-          <cts-button
-            variant="secondary"
-            size="sm"
-            icon="stop"
-            label="Stop"
-            data-testid="stop-btn"
-            @cts-click=${this._handleStopTest}
-          ></cts-button>
-        </div>
       </div>
     `;
   }
