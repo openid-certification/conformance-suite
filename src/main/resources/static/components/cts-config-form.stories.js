@@ -47,13 +47,14 @@ export const EmptyForm = {
     const canvas = within(canvasElement);
     // Container carries the OIDF namespace so scoped CSS rules apply.
     expect(canvasElement.querySelector(".oidf-config-form")).toBeTruthy();
-    // Tabs render with the OIDF tab classes; the form tab is active by default.
-    const formTab = canvas.getByText("Form");
-    const jsonTab = canvas.getByText("JSON");
-    expect(formTab.classList.contains("oidf-config-form-tab")).toBe(true);
-    expect(jsonTab.classList.contains("oidf-config-form-tab")).toBe(true);
-    expect(formTab.classList.contains("is-active")).toBe(true);
-    expect(jsonTab.classList.contains("is-active")).toBe(false);
+    // Tabs delegate to <cts-tabs>, which renders the OIDF tablist primitive.
+    // The form tab is active by default (cts-tabs marks the first panel active).
+    const formTab = canvas.getByRole("tab", { name: "Form" });
+    const jsonTab = canvas.getByRole("tab", { name: "JSON" });
+    expect(formTab.classList.contains("oidf-tab")).toBe(true);
+    expect(jsonTab.classList.contains("oidf-tab")).toBe(true);
+    expect(formTab.classList.contains("oidf-tab-active")).toBe(true);
+    expect(jsonTab.classList.contains("oidf-tab-active")).toBe(false);
     expect(formTab.getAttribute("aria-selected")).toBe("true");
     expect(jsonTab.getAttribute("aria-selected")).toBe("false");
     // Sections render with OIDF section markup and overline-style legends.
@@ -113,10 +114,10 @@ export const JsonTab = {
   `,
   async play({ canvasElement }) {
     const canvas = within(canvasElement);
-    const jsonTab = canvas.getByText("JSON");
+    const jsonTab = canvas.getByRole("tab", { name: "JSON" });
     await userEvent.click(jsonTab);
     await waitFor(() => {
-      expect(jsonTab.classList.contains("is-active")).toBe(true);
+      expect(jsonTab.classList.contains("oidf-tab-active")).toBe(true);
     });
     expect(jsonTab.getAttribute("aria-selected")).toBe("true");
     const editor = await waitForJsonEditor(canvasElement);
@@ -144,7 +145,7 @@ export const ValidJsonDispatchesConfigChange = {
       receivedConfig = /** @type {CustomEvent} */ (e).detail.config;
     });
 
-    await userEvent.click(canvas.getByText("JSON"));
+    await userEvent.click(canvas.getByRole("tab", { name: "JSON" }));
     const editor = await waitForJsonEditor(canvasElement);
 
     // Drive the success branch end-to-end — the parse-error branch is
@@ -185,7 +186,7 @@ export const InvalidJsonShowsError = {
   `,
   async play({ canvasElement }) {
     const canvas = within(canvasElement);
-    await userEvent.click(canvas.getByText("JSON"));
+    await userEvent.click(canvas.getByRole("tab", { name: "JSON" }));
     const editor = await waitForJsonEditor(canvasElement);
     // Drive the parse-error path by assigning an invalid JSON string and
     // dispatching `input` — the wrapper exposes the same contract the

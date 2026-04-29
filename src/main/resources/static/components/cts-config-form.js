@@ -3,6 +3,7 @@ import { classMap } from "lit/directives/class-map.js";
 import "./cts-form-field.js";
 import "./cts-button.js";
 import "./cts-json-editor.js";
+import "./cts-tabs.js";
 
 /**
  * Dual-mode (Form / JSON) configuration editor. In Form mode, renders
@@ -20,8 +21,11 @@ import "./cts-json-editor.js";
  *
  * The schema-driven fields delegate to `cts-form-field`, which already
  * carries the `.oidf-input` / `.oidf-select` / `.oidf-textarea` / `.oidf-error`
- * tokenized look. This container only owns the surrounding tabs, section
- * fieldsets, divider lines, and the JSON editor host.
+ * tokenized look. The Form/JSON tabs delegate to `<cts-tabs>` /
+ * `<cts-tab-panel>`, so the tab chrome (underline, orange-400 active
+ * indicator, keyboard navigation) matches the rest of the suite without
+ * duplicating CSS. This container only owns the section fieldsets, divider
+ * lines, and the JSON editor host.
  *
  * NOTE: The legacy `schedule-test.html` page renders its own static HTML
  * form using `.config-form-element*` / `[data-json-target]` / `[data-json-type]`
@@ -48,49 +52,6 @@ const STYLE_TEXT = `
 .oidf-config-form {
   font-family: var(--font-sans);
   color: var(--fg);
-}
-.oidf-config-form-tabs {
-  display: flex;
-  gap: 0;
-  border-bottom: 1px solid var(--border);
-  margin: 0 0 var(--space-5) 0;
-  padding: 0;
-  list-style: none;
-}
-.oidf-config-form-tabs > li {
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-.oidf-config-form-tab {
-  appearance: none;
-  background: transparent;
-  border: 0;
-  border-bottom: 2px solid transparent;
-  margin-bottom: -1px;
-  padding: var(--space-3) var(--space-4);
-  font-family: inherit;
-  font-size: var(--fs-13);
-  font-weight: var(--fw-medium);
-  color: var(--ink-500);
-  cursor: pointer;
-  transition: color var(--dur-1) var(--ease-standard),
-              border-color var(--dur-1) var(--ease-standard);
-}
-.oidf-config-form-tab:hover {
-  color: var(--ink-900);
-}
-.oidf-config-form-tab:focus {
-  outline: none;
-}
-.oidf-config-form-tab:focus-visible {
-  outline: none;
-  box-shadow: var(--focus-ring);
-  border-radius: var(--radius-2);
-}
-.oidf-config-form-tab.is-active {
-  color: var(--ink-900);
-  border-bottom-color: var(--orange-400);
 }
 .oidf-config-form-section {
   border: 0;
@@ -154,9 +115,9 @@ class CtsConfigForm extends LitElement {
     uiSchema: { type: Object, attribute: "ui-schema" },
     config: { type: Object },
     errors: { type: Object },
-    _activeTab: { state: true },
     _jsonText: { state: true },
     _jsonError: { state: true },
+    _jsonTabActivated: { state: true },
   };
 
   createRenderRoot() {
@@ -169,9 +130,17 @@ class CtsConfigForm extends LitElement {
     this.uiSchema = {};
     this.config = {};
     this.errors = {};
-    this._activeTab = "form";
     this._jsonText = "";
     this._jsonError = "";
+    // Lazy-mount guard for `<cts-json-editor>`. Monaco's `editor.create()`
+    // measures its host on mount; if the host sits inside a `<cts-tabs>`
+    // panel that's currently `hidden` (the inactive tab), the host reports
+    // zero width/height and Monaco's `automaticLayout` ResizeObserver does
+    // not reliably recover when the panel later becomes visible. Mounting
+    // the editor only after the JSON tab has been activated at least once
+    // sidesteps the issue and matches the pre-cts-tabs render contract
+    // (the editor never existed while the Form tab was active).
+    this._jsonTabActivated = false;
   }
 
   connectedCallback() {
@@ -222,14 +191,15 @@ class CtsConfigForm extends LitElement {
     }
   }
 
-  _handleTabSwitch(e) {
-    const tab = e.currentTarget.dataset.tab;
-    if (!tab) return;
-    if (tab === "json") {
+  _handleTabChange(e) {
+    // cts-tabs fires `cts-tab-change` with the activated panel id. Use it
+    // as both the form→JSON serialization trigger and the lazy-mount cue
+    // for the editor (see `_jsonTabActivated` in the constructor).
+    if (e.detail?.id === "cts-config-form-json-panel") {
       this._jsonText = JSON.stringify(this.config, null, 2);
       this._jsonError = "";
+      this._jsonTabActivated = true;
     }
-    this._activeTab = tab;
   }
 
   _handleValidate(e) {
@@ -280,71 +250,48 @@ class CtsConfigForm extends LitElement {
   }
 
   render() {
-    const isFormTab = this._activeTab === "form";
-    const isJsonTab = this._activeTab === "json";
     return html`
       <div class="oidf-config-form">
-        <ul class="oidf-config-form-tabs" role="tablist">
-          <li role="presentation">
-            <button
-              type="button"
-              class=${classMap({ "oidf-config-form-tab": true, "is-active": isFormTab })}
-              role="tab"
-              aria-selected=${isFormTab ? "true" : "false"}
-              data-tab="form"
-              @click=${this._handleTabSwitch}
-            >
-              Form
-            </button>
-          </li>
-          <li role="presentation">
-            <button
-              type="button"
-              class=${classMap({ "oidf-config-form-tab": true, "is-active": isJsonTab })}
-              role="tab"
-              aria-selected=${isJsonTab ? "true" : "false"}
-              data-tab="json"
-              @click=${this._handleTabSwitch}
-            >
-              JSON
-            </button>
-          </li>
-        </ul>
-        ${isFormTab
-          ? html`
-              <form @cts-field-change=${this._handleFieldChange} @submit=${this._handleValidate}>
-                ${this._renderSections()}
-                <div class="oidf-config-form-actions">
-                  <cts-button
-                    type="submit"
-                    variant="primary"
-                    label="Validate Configuration"
-                  ></cts-button>
-                </div>
-              </form>
-            `
-          : html`
-              <cts-json-editor
-                class=${classMap({
-                  "oidf-config-form-json": true,
-                  "is-error": Boolean(this._jsonError),
-                })}
-                aria-label="Configuration JSON"
-                aria-invalid=${this._jsonError ? "true" : "false"}
-                .value=${this._jsonText}
-                @input=${this._handleJsonInput}
-              ></cts-json-editor>
-              ${this._jsonError
-                ? html`<div
-                    class="oidf-config-form-json-error"
-                    role="alert"
-                    aria-live="polite"
-                    data-testid="json-error"
-                  >
-                    ${this._jsonError}
-                  </div>`
-                : nothing}
-            `}
+        <cts-tabs @cts-tab-change=${this._handleTabChange}>
+          <cts-tab-panel label="Form" id="cts-config-form-form-panel">
+            <form @cts-field-change=${this._handleFieldChange} @submit=${this._handleValidate}>
+              ${this._renderSections()}
+              <div class="oidf-config-form-actions">
+                <cts-button
+                  type="submit"
+                  variant="primary"
+                  label="Validate Configuration"
+                ></cts-button>
+              </div>
+            </form>
+          </cts-tab-panel>
+          <cts-tab-panel label="JSON" id="cts-config-form-json-panel">
+            ${this._jsonTabActivated
+              ? html`
+                  <cts-json-editor
+                    class=${classMap({
+                      "oidf-config-form-json": true,
+                      "is-error": Boolean(this._jsonError),
+                    })}
+                    aria-label="Configuration JSON"
+                    aria-invalid=${this._jsonError ? "true" : "false"}
+                    .value=${this._jsonText}
+                    @input=${this._handleJsonInput}
+                  ></cts-json-editor>
+                  ${this._jsonError
+                    ? html`<div
+                        class="oidf-config-form-json-error"
+                        role="alert"
+                        aria-live="polite"
+                        data-testid="json-error"
+                      >
+                        ${this._jsonError}
+                      </div>`
+                    : nothing}
+                `
+              : nothing}
+          </cts-tab-panel>
+        </cts-tabs>
       </div>
     `;
   }
