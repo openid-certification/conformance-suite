@@ -143,8 +143,6 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractFAPI2SPFinalSe
 
 	protected ClientAuthType clientAuthType;
 
-	protected FAPI2FinalOPProfile fapi2Profile;
-
 	protected VCIGrantType vciGrantType;
 	protected VCIAuthorizationCodeFlowVariant vciAuthorizationCodeFlowVariant;
 
@@ -156,7 +154,6 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractFAPI2SPFinalSe
 
 	protected void initializeVciVariants() {
 		clientAuthType = getVariant(ClientAuthType.class);
-		fapi2Profile = getVariant(FAPI2FinalOPProfile.class);
 		vciGrantType = getVariant(VCIGrantType.class);
 		vciAuthorizationCodeFlowVariant = getVariant(VCIAuthorizationCodeFlowVariant.class);
 		vciCredentialFormat = getVariant(VCI1FinalCredentialFormat.class);
@@ -221,19 +218,10 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractFAPI2SPFinalSe
 		callAndStopOnFailure(RegisterCredentialTrustAnchor.class);
 		callAndStopOnFailure(RegisterStatusListTrustAnchor.class);
 
-		if (fapi2Profile == FAPI2FinalOPProfile.VCI_HAIP) {
-			setupHaipClients();
-		}
-
 		call(profileBehavior.configureClientExtra());
 		call(profileBehavior.configureClientAttestation());
 
 		validateClientConfiguration();
-	}
-
-	protected void setupHaipClients() {
-		env.putString("client", "dpop_signing_alg", "ES256");
-		env.putString("client2", "dpop_signing_alg", "ES256");
 	}
 
 	@Override

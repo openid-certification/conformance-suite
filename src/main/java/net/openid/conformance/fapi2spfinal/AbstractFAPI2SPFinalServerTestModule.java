@@ -411,8 +411,6 @@ public abstract class AbstractFAPI2SPFinalServerTestModule extends AbstractRedir
 			callAndContinueOnFailure(RARSupport.ExtractRARFromConfig.class, Condition.ConditionResult.FAILURE);
 		}
 
-		call(profileBehavior.afterServerConfigurationFetched());
-
 		whichClient = 1;
 
 		// Set up the client configuration
@@ -1071,14 +1069,6 @@ public abstract class AbstractFAPI2SPFinalServerTestModule extends AbstractRedir
 
 	Environment getEnv() {
 		return env;
-	}
-
-	void doCallAndStopOnFailure(Class<? extends Condition> conditionClass, String... requirements) {
-		callAndStopOnFailure(conditionClass, requirements);
-	}
-
-	void doCallAndContinueOnFailure(Class<? extends Condition> conditionClass, Condition.ConditionResult onFail, String... requirements) {
-		callAndContinueOnFailure(conditionClass, onFail, requirements);
 	}
 
 	protected void switchToSecondClient() {

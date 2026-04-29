@@ -2,14 +2,9 @@ package net.openid.conformance.fapi2spfinal;
 
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.Condition.ConditionResult;
-import net.openid.conformance.condition.client.ParseCredentialAsSdJwt;
-import net.openid.conformance.condition.client.ParseMdocCredentialFromVCIIssuance;
-import net.openid.conformance.condition.client.ValidateCredentialIsUnpaddedBase64Url;
 import net.openid.conformance.condition.client.CheckDiscEndpointTokenEndpointAuthMethodsSupportedContainsAttestation;
-import net.openid.conformance.sequence.AbstractConditionSequence;
 import net.openid.conformance.sequence.ConditionSequence;
-import net.openid.conformance.sequence.client.ValidateMdocCredential;
-import net.openid.conformance.sequence.client.ValidateSdJwtVcCredentialClaims;
+import net.openid.conformance.testmodule.Command;
 import net.openid.conformance.testmodule.ConditionCallBuilder;
 import net.openid.conformance.variant.VCI1FinalCredentialFormat;
 import net.openid.conformance.vci10issuer.condition.VCIDetermineCredentialConfigurationTransferMethod;
@@ -46,36 +41,22 @@ public class VCIHaipProfileBehavior extends VCIProfileBehavior {
 	@Override
 	public ConditionSequence fetchServerConfiguration(boolean isOpenId) {
 		return super.fetchServerConfiguration(isOpenId)
-			.then(new AbstractConditionSequence() {
-				@Override
-				public void evaluate() {
-					call(new ConditionCallBuilder(VCIValidateNonceEndpointInIssuerMetadata.class)
-						.onFail(ConditionResult.FAILURE)
-						.requirements("HAIP-4.1-5"));
-				}
-			});
+			.then(new ConditionCallBuilder(VCIValidateNonceEndpointInIssuerMetadata.class)
+				.onFail(ConditionResult.FAILURE)
+				.requirements("HAIP-4.1-5"));
 	}
 
 	@Override
-	protected ConditionSequence verifyMdocCredential() {
-		return new AbstractConditionSequence() {
-			@Override
-			public void evaluate() {
-				callAndContinueOnFailure(ValidateCredentialIsUnpaddedBase64Url.class, ConditionResult.FAILURE, "OID4VCI-1FINALA-A.2.4");
-				callAndContinueOnFailure(ParseMdocCredentialFromVCIIssuance.class, ConditionResult.FAILURE, "OID4VCI-1FINALA-A.2");
-				call(new ValidateMdocCredential(true, true));
-			}
-		};
+	public ConditionSequence configureClientExtra() {
+		// HAIP requires ES256 as the DPoP signing algorithm for both clients
+		Command setDpopSigningAlgs = new Command()
+			.putString("client", "dpop_signing_alg", "ES256")
+			.putString("client2", "dpop_signing_alg", "ES256");
+		return super.configureClientExtra().butFirst(setDpopSigningAlgs);
 	}
 
 	@Override
-	protected ConditionSequence verifySdJwtCredential(boolean requiresCryptographicBinding) {
-		return new AbstractConditionSequence() {
-			@Override
-			public void evaluate() {
-				callAndContinueOnFailure(ParseCredentialAsSdJwt.class, ConditionResult.FAILURE, "SDJWT-4");
-				call(new ValidateSdJwtVcCredentialClaims(requiresCryptographicBinding, true));
-			}
-		};
+	protected boolean isHaip() {
+		return true;
 	}
 }

@@ -18,7 +18,7 @@ import net.openid.conformance.condition.client.SetDpopIatToOneHourInFuture;
 import net.openid.conformance.condition.client.SetDpopIatToOneHourInPast;
 import net.openid.conformance.condition.client.SignDpopProof;
 import net.openid.conformance.sequence.ConditionSequence;
-import net.openid.conformance.sequence.client.ValidateBrazilPaymentInitiationSignedResponse;
+import net.openid.conformance.sequence.client.ValidateBrazilSignedResponse;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.variant.FAPI2SenderConstrainMethod;
 import net.openid.conformance.variant.VariantNotApplicable;
@@ -311,7 +311,7 @@ public class FAPI2SPID2DpopNegativeTests extends AbstractFAPI2SPID2ServerTestMod
 		eventLog.startBlock("Check a correct DPoP proof still works");
 		callResourceEndpointSteps(() -> makeUpdateResourceRequestSteps(), true, true, "DPOP-7.1");
 		if (brazilPayments) {
-			call(new ValidateBrazilPaymentInitiationSignedResponse());
+			call(ValidateBrazilSignedResponse.forResourceResponse());
 		}
 
 
