@@ -55,6 +55,12 @@ spec:
               name: fintechlabs-signing-key
               key: jwk
               optional: true
+        - name: DEPRECATED_SIGNING_KEY
+          valueFrom:
+            secretKeyRef:
+              name: fintechlabs-deprecated-signing-key
+              key: jwk
+              optional: true
         - name: PRIVATE_LINK_SIGNING_KEY
           valueFrom:
             secretKeyRef:
