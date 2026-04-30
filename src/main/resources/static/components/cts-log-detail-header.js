@@ -1362,10 +1362,20 @@ class CtsLogDetailHeader extends LitElement {
 
   _renderArchivedBanner() {
     if (!this.archived) return nothing;
+    // R22: the archived banner fires on a /api/runner 404 regardless of
+    // terminal status (log-detail.js polls RUNNING/WAITING/INTERRUPTED),
+    // so a status-blind "completed" lead would be wrong for INTERRUPTED
+    // tests. Branch the bold sentence on the recorded terminal state.
+    const status = (this.testInfo?.status || "").toUpperCase();
+    const lead =
+      status === "FINISHED"
+        ? "This test has completed."
+        : status === "INTERRUPTED"
+          ? "This test was interrupted."
+          : "This test is no longer active.";
     return html`
       <cts-alert variant="info" dismissible id="runningTestArchived" data-testid="archived-banner">
-        <b>This test is no longer running.</b> This log has been archived and can be viewed or
-        downloaded.
+        <b>${lead}</b> This log has been archived and can be viewed or downloaded.
       </cts-alert>
     `;
   }

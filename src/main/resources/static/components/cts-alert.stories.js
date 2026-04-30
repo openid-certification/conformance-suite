@@ -54,7 +54,7 @@ export const Warning = {
   args: { variant: "warning" },
   render: ({ variant }) => html`
     <cts-alert variant="${variant}">
-      <strong>This test is no longer running.</strong>
+      <strong>This test was interrupted.</strong>
       Values exported from the test are available for review.
     </cts-alert>
   `,
