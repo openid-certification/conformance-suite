@@ -279,7 +279,9 @@ export const ArchivedTest = {
     const banner = canvasElement.querySelector('[data-testid="archived-banner"]');
     expect(banner).toBeTruthy();
     expect(banner.getAttribute("variant")).toBe("info");
-    expect(banner.textContent).toContain("This test is no longer running.");
+    // COMPLETED_TEST inherits status: "FINISHED" from MOCK_TEST_STATUS, so
+    // R22's status-conditional banner emits the FINISHED lead.
+    expect(banner.textContent).toContain("This test has completed.");
     expect(banner.textContent).toContain("This log has been archived");
   },
 };

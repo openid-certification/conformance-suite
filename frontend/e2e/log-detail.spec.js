@@ -1229,7 +1229,12 @@ test.describe("log-detail.html — new Lit-triad page", () => {
 
     const banner = page.locator('[data-testid="archived-banner"]');
     await expect(banner).toBeVisible({ timeout: 8000 });
-    await expect(banner).toContainText("This test is no longer running.");
+    // The /api/info mock above returns MOCK_TEST_RUNNING (status: "RUNNING").
+    // R22's banner falls through to the default branch — neither FINISHED
+    // nor INTERRUPTED — so the lead reads "This test is no longer active."
+    // semantically correct: the runner is gone, but we don't have a
+    // definitive terminal status to claim "completed" or "interrupted".
+    await expect(banner).toContainText("This test is no longer active.");
     await expect(banner).toContainText("This log has been archived");
   });
 });
