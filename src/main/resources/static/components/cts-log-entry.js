@@ -2,7 +2,9 @@ import { LitElement, html, nothing } from "lit";
 import "./cts-icon.js";
 import "./cts-badge.js";
 import "./cts-button.js";
+import "./cts-tooltip.js";
 import "./cts-log-entry-id.js";
+import { flashCopyConfirmed } from "../js/cts-copy-flash.js";
 
 /**
  * Maps a log entry's `result` value (case-insensitive) to a `cts-badge`
@@ -240,6 +242,12 @@ const STYLE_TEXT = `
     flex-wrap: wrap;
     gap: var(--space-1);
     min-width: 0;
+  }
+  /* cts-tooltip is a behaviour-only wrapper; collapse its inline box so
+     the wrapped cts-button aligns directly within the .logHttp flex row
+     instead of inheriting cts-tooltip's ghost line-box. */
+  cts-log-entry .logHttp cts-tooltip {
+    display: contents;
   }
   cts-log-entry .logBody {
     line-height: var(--lh-base);
@@ -538,9 +546,19 @@ class CtsLogEntry extends LitElement {
     return parts.join(" \\\n  ");
   }
 
-  async _copyCurl() {
+  async _copyCurl(event) {
+    // Capture currentTarget synchronously: by the time the await
+    // resolves the event has finished dispatching and currentTarget is
+    // null (per the DOM spec), so reading it later loses the trigger.
+    const trigger = event && event.currentTarget;
     const curl = this._formatCurl();
-    await navigator.clipboard.writeText(curl);
+    try {
+      await navigator.clipboard.writeText(curl);
+    } catch (err) {
+      console.warn("[cts-log-entry] clipboard.writeText failed:", err);
+      return;
+    }
+    flashCopyConfirmed(trigger);
   }
 
   _renderSeverityBadges() {
@@ -565,15 +583,16 @@ class CtsLogEntry extends LitElement {
     return html`
       <cts-badge variant="running" label="${badge.label}"></cts-badge>
       ${httpType === "request"
-        ? html`<cts-button
-            class="curlBtn"
-            variant="secondary"
-            size="xs"
-            icon="copy"
-            label="cURL"
-            title="Copy as cURL"
-            @cts-click=${this._copyCurl}
-          ></cts-button>`
+        ? html`<cts-tooltip content="Copy as cURL" placement="top"
+            ><cts-button
+              class="curlBtn"
+              variant="secondary"
+              size="xxs"
+              icon="copy"
+              label="cURL"
+              @cts-click=${this._copyCurl}
+            ></cts-button
+          ></cts-tooltip>`
         : nothing}
     `;
   }

@@ -18,6 +18,7 @@
     <script src="/vendor/lodash/js/lodash.min.js"></script>
     <script src="/vendor/clipboard/js/clipboard.min.js"></script>
     <script src="/js/cts-clipboard-resolver.js"></script>
+    <script type="module" src="/js/cts-copy-flash.js"></script>
 
     <script type="text/javascript" src="js/fapi.ui.js"></script>
     <script>window.litDisableBundleWarning = true;</script>
@@ -134,6 +135,14 @@
             });
             clipboard.on('success', function(e) {
                 console.log(e);
+                // Flash the copy icon on the cts-button host (the wrapper
+                // ClipboardJS matched on `.btn-clipboard > button`). Defer
+                // to next microtask in case ctsCopyFlash hasn't finished
+                // module evaluation yet.
+                if (typeof window.ctsCopyFlash === 'function') {
+                    var host = e.trigger && e.trigger.closest && e.trigger.closest('.btn-clipboard');
+                    if (host) window.ctsCopyFlash(host);
+                }
             });
             clipboard.on('error', function(e) {
                 console.log(e);

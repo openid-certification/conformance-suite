@@ -5,6 +5,7 @@ import "./cts-button.js";
 import "./cts-alert.js";
 import "./cts-data-table.js";
 import "./cts-json-editor.js";
+import { flashCopyConfirmed } from "../js/cts-copy-flash.js";
 
 const RESULT_BADGE_VARIANTS = {
   PASSED: "success",
@@ -216,10 +217,18 @@ class CtsPlanList extends LitElement {
     if (plan) this._handleConfigClick(plan);
   }
 
-  async _handleCopyConfig() {
-    if (this._selectedConfig) {
+  async _handleCopyConfig(event) {
+    // Capture currentTarget synchronously: the await below clears it
+    // because event dispatch has completed by the time we resume.
+    const trigger = event && event.currentTarget;
+    if (!this._selectedConfig) return;
+    try {
       await navigator.clipboard.writeText(JSON.stringify(this._selectedConfig, null, 4));
+    } catch (err) {
+      console.warn("[cts-plan-list] clipboard.writeText failed:", err);
+      return;
     }
+    flashCopyConfirmed(trigger);
   }
 
   _formatVariant(variant) {

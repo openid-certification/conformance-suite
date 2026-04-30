@@ -36,6 +36,7 @@
     <script type="module" src="/components/cts-alert.js"></script>
     <script type="module" src="/components/cts-tooltip.js"></script>
     <script type="module" src="/components/cts-json-editor.js"></script>
+    <script type="module" src="/js/cts-copy-flash.js"></script>
 
 </head>
 <body>
@@ -2240,11 +2241,20 @@
             };
 
             let copyPlanUrlBtn = document.getElementById('copyPlanUrlBtn');
-            copyPlanUrlBtn.onclick = function(evt)  {
+            copyPlanUrlBtn.onclick = async function(evt)  {
                 // sync json with current form
                 updateJSONFromFormElements();
                 let url = createTestPlanParameterUrl();
-                navigator.clipboard.writeText(url);
+                try {
+                    await navigator.clipboard.writeText(url);
+                } catch (err) {
+                    console.warn('[schedule-test] clipboard.writeText failed:', err);
+                    document.getElementById('copyTestPlanUrlModal').show();
+                    return;
+                }
+                if (typeof window.ctsCopyFlash === 'function') {
+                    window.ctsCopyFlash(copyPlanUrlBtn);
+                }
                 document.getElementById('copyTestPlanUrlModal').show();
             }
 

@@ -12,7 +12,7 @@ export default {
     },
     size: {
       control: "select",
-      options: ["sm", "md", "lg"],
+      options: ["xxs", "xs", "sm", "md", "lg"],
     },
     label: { control: "text" },
     icon: { control: "text" },
@@ -394,14 +394,17 @@ export const LegacyVariantAliases = {
 };
 
 /**
- * Four sizes drive 24/30/36/44px button heights via the `oidf-btn-xs` /
- * `oidf-btn-sm` / `oidf-btn-lg` modifiers (default `md` carries no modifier
- * — height comes from the base `.oidf-btn` rule). `xs` is intended for
- * dense surfaces like log entry "More" toggles where `sm` reads too tall.
+ * Five sizes drive 20/24/30/36/44px button heights via the `oidf-btn-xxs` /
+ * `oidf-btn-xs` / `oidf-btn-sm` / `oidf-btn-lg` modifiers (default `md`
+ * carries no modifier — height comes from the base `.oidf-btn` rule).
+ * `xxs` is a chip-scale used inline next to badges (e.g. the cURL copy
+ * affordance in cts-log-entry); `xs` is intended for dense surfaces like
+ * log entry "More" toggles where `sm` reads too tall.
  */
 export const Sizes = {
   render: () => html`
     <div style="display: flex; flex-wrap: wrap; gap: 0.5rem; padding: 1rem; align-items: center;">
+      <cts-button variant="primary" label="Chip" size="xxs"></cts-button>
       <cts-button variant="primary" label="Extra small" size="xs"></cts-button>
       <cts-button variant="primary" label="Small (default)" size="sm"></cts-button>
       <cts-button variant="primary" label="Medium" size="md"></cts-button>
@@ -411,12 +414,13 @@ export const Sizes = {
 
   async play({ canvasElement }) {
     const buttons = canvasElement.querySelectorAll("cts-button button");
-    expect(buttons.length).toBe(4);
-    expect(buttons[0].classList.contains("oidf-btn-xs")).toBe(true);
-    expect(buttons[1].classList.contains("oidf-btn-sm")).toBe(true);
-    expect(buttons[2].classList.contains("oidf-btn-sm")).toBe(false);
-    expect(buttons[2].classList.contains("oidf-btn-lg")).toBe(false);
-    expect(buttons[3].classList.contains("oidf-btn-lg")).toBe(true);
+    expect(buttons.length).toBe(5);
+    expect(buttons[0].classList.contains("oidf-btn-xxs")).toBe(true);
+    expect(buttons[1].classList.contains("oidf-btn-xs")).toBe(true);
+    expect(buttons[2].classList.contains("oidf-btn-sm")).toBe(true);
+    expect(buttons[3].classList.contains("oidf-btn-sm")).toBe(false);
+    expect(buttons[3].classList.contains("oidf-btn-lg")).toBe(false);
+    expect(buttons[4].classList.contains("oidf-btn-lg")).toBe(true);
   },
 };
 
