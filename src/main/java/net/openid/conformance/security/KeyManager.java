@@ -30,6 +30,9 @@ public class KeyManager {
 	@Value("${fintechlabs.signingKey:}")
 	private String signingKey;
 
+	@Value("${fintechlabs.deprecatedSigningKey:}")
+	private String deprecatedSigningKey;
+
 	@Value("${fintechlabs.privateLinkSigningKey:}")
 	private String privateLinkSigningKey;
 
@@ -56,6 +59,19 @@ public class KeyManager {
 		}
 	}
 
+	private JWK decodeKey(String key) {
+		JWK jwk = null;
+
+		// Decode the Base64 encoded signing key and add to the key set.
+		try {
+			String decodedKey = new String(Base64.getDecoder().decode(key));
+			jwk = JWK.parse(decodedKey);
+		} catch (IllegalArgumentException | ParseException e) {
+		}
+
+		return jwk;
+	}
+
 	@PostConstruct
 	public void initializeKeyManager() {
 		List<JWK> keyList = new ArrayList<>();
@@ -73,18 +89,29 @@ public class KeyManager {
 		}
 		else {
 			// Decode the Base64 encoded signing key and add to the key set.
-			try {
-				String decodedKey = new String(Base64.getDecoder().decode(signingKey));
+			jwk = decodeKey(signingKey);
 
-				jwk = JWK.parse(decodedKey);
-				signingKeyId = jwk.getKeyID();
-			} catch (IllegalArgumentException | ParseException e) {
+			if (jwk == null) {
 				throw new IllegalStateException("Couldn't decode signing key");
 			}
+			signingKeyId = jwk.getKeyID();
 		}
 
 		// Add this key to the key set for publcation at the 'jwks' endpoint.
 		keyList.add(jwk);
+
+		// For a limited period publish the previous (deprecated) signing key.
+		if (! deprecatedSigningKey.isEmpty()) {
+			// Decode the Base64 encoded key and add to the key set.
+			jwk = decodeKey(deprecatedSigningKey);
+
+			if (jwk == null) {
+				throw new IllegalStateException("Couldn't decode deprecated signing key");
+			}
+
+			// Add this key to the key set for publcation at the 'jwks' endpoint.
+			keyList.add(jwk);
+		}
 
 		// Create the key set.
 		jwkSet = new JWKSet(keyList);
@@ -101,11 +128,9 @@ public class KeyManager {
 		}
 		else {
 			// Decode the Base64 encoded private link signing key.
-			try {
-				String decodedKey = new String(Base64.getDecoder().decode(privateLinkSigningKey));
+			privateLinkJWK = decodeKey(privateLinkSigningKey);
 
-				privateLinkJWK = JWK.parse(decodedKey);
-			} catch (IllegalArgumentException | ParseException e) {
+			if (jwk == null) {
 				throw new IllegalStateException("Couldn't decode private link signing key");
 			}
 
