@@ -96,7 +96,7 @@ const STYLE_TEXT = `
   }
   cts-plan-modules .module-row .num {
     font-family: var(--font-mono);
-    font-size: 11px;
+    font-size: var(--fs-11);
     color: var(--fg-soft);
   }
   cts-plan-modules .module-row .name {

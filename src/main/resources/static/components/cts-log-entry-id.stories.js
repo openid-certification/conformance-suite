@@ -10,6 +10,24 @@ export default {
 const REFERENCE_ID = "LOG-0042";
 const TEST_ID = "abc123";
 
+/**
+ * Resolves the chip's clickable inner span. The chip renders as a
+ * <cts-badge variant="secondary" clickable>, which puts role="button"
+ * + tabindex on the inner <span class="badge"> rather than the host.
+ * Tests dispatch native clicks against that inner element; the custom
+ * cts-badge-click event then bubbles to the cts-log-entry-id host.
+ * @param {Element} canvasElement
+ */
+async function getClickTarget(canvasElement) {
+  return waitFor(() => {
+    const host = canvasElement.querySelector('[data-testid="log-entry-id-chip"]');
+    if (!host) throw new Error("chip not yet rendered");
+    const target = host.querySelector('[role="button"]');
+    if (!target) throw new Error("clickable inner span not yet rendered");
+    return /** @type {HTMLElement} */ (target);
+  });
+}
+
 /** Default chip — left-click copies the deep URL. */
 export const Default = {
   render: () =>
@@ -20,21 +38,17 @@ export const Default = {
     document.addEventListener("cts-reference-copied", handler);
 
     try {
-      const button = await waitFor(() => {
-        const el = canvasElement.querySelector('[data-testid="log-entry-id-chip"]');
-        if (!el) throw new Error("chip not yet rendered");
-        return /** @type {HTMLButtonElement} */ (el);
-      });
+      const clickTarget = await getClickTarget(canvasElement);
 
       // The visible label is the reference id; the icon comes from cts-icon.
-      expect(button.textContent).toContain(REFERENCE_ID);
-      expect(canvasElement.querySelector('cts-icon[name="link"]')).toBeTruthy();
+      expect(clickTarget.textContent).toContain(REFERENCE_ID);
+      expect(canvasElement.querySelector('cts-icon[name="copy"]')).toBeTruthy();
 
-      // Real button (focusable, keyboard-activated by default).
-      expect(button.tagName).toBe("BUTTON");
-      expect(button.getAttribute("aria-label")).toContain(REFERENCE_ID);
+      // Inner role=button span — keyboard-activated by cts-badge.
+      expect(clickTarget.getAttribute("role")).toBe("button");
+      expect(clickTarget.getAttribute("aria-label")).toContain(REFERENCE_ID);
 
-      await button.click();
+      await clickTarget.click();
 
       await waitFor(() => expect(writeSpy).toHaveBeenCalledOnce());
       const copied = writeSpy.mock.calls[0][0];
@@ -73,18 +87,13 @@ export const RightClickCopiesPlain = {
     document.addEventListener("cts-reference-copied", handler);
 
     try {
-      const button = await waitFor(() => {
-        const el = canvasElement.querySelector('[data-testid="log-entry-id-chip"]');
-        if (!el) throw new Error("chip not yet rendered");
-        return /** @type {HTMLButtonElement} */ (el);
-      });
+      const clickTarget = await getClickTarget(canvasElement);
 
-      // dispatchEvent with cancelable: true so preventDefault can be observed.
+      // contextmenu dispatched on the inner span bubbles to the
+      // cts-log-entry-id host, where _handleContextMenu calls
+      // event.preventDefault().
       const ctx = new MouseEvent("contextmenu", { bubbles: true, cancelable: true });
-      const ok = button.dispatchEvent(ctx);
-
-      // The chip preventDefaults the context menu so the native browser
-      // menu does not appear; dispatchEvent returns false when canceled.
+      const ok = clickTarget.dispatchEvent(ctx);
       expect(ok).toBe(false);
 
       await waitFor(() => expect(writeSpy).toHaveBeenCalledOnce());
@@ -101,9 +110,10 @@ export const RightClickCopiesPlain = {
 };
 
 /**
- * After a successful copy the chip briefly carries the
- * `.logIdChip--copied` modifier so the user gets visual confirmation
- * even though the clipboard write itself is invisible.
+ * After a successful copy the icon briefly flips to a checkmark via the
+ * shared cts-copy-flash helper, then reverts to the original copy icon.
+ * The animation is the canonical local-success affordance for every
+ * "copy to clipboard" button in the suite.
  */
 export const CopiedFeedback = {
   render: () =>
@@ -111,16 +121,18 @@ export const CopiedFeedback = {
   async play({ canvasElement }) {
     spyOn(navigator.clipboard, "writeText").mockResolvedValue();
 
-    const button = await waitFor(() => {
-      const el = canvasElement.querySelector('[data-testid="log-entry-id-chip"]');
-      if (!el) throw new Error("chip not yet rendered");
-      return /** @type {HTMLButtonElement} */ (el);
-    });
+    const clickTarget = await getClickTarget(canvasElement);
+    const badge = canvasElement.querySelector('[data-testid="log-entry-id-chip"]');
 
-    expect(button.classList.contains("logIdChip--copied")).toBe(false);
-    await button.click();
+    // Pre-click: copy icon is showing.
+    expect(badge.querySelector('cts-icon[name="copy"]')).toBeTruthy();
+    expect(badge.querySelector('cts-icon[name="check"]')).toBeNull();
+
+    await clickTarget.click();
+
+    // After a successful copy, the icon swaps to "check".
     await waitFor(() => {
-      expect(button.classList.contains("logIdChip--copied")).toBe(true);
+      expect(badge.querySelector('cts-icon[name="check"]')).toBeTruthy();
     });
   },
 };

@@ -110,7 +110,7 @@ const STYLE_TEXT = `
        the previous 17px (was 3+11+3, now 2+16+2 = 20px). */
     padding: 2px 10px;
     border-radius: var(--radius-pill, 999px);
-    font-size: 11px;
+    font-size: var(--fs-11);
     font-weight: var(--fw-medium, 500);
     letter-spacing: 0.06em;
     text-transform: uppercase;
@@ -379,6 +379,7 @@ class CtsBadge extends HTMLElement {
     "pill",
     "clickable",
     "interactive",
+    "aria-label",
   ];
 
   connectedCallback() {
@@ -442,6 +443,12 @@ class CtsBadge extends HTMLElement {
     if (clickable) {
       span.setAttribute("role", "button");
       span.setAttribute("tabindex", "0");
+      // Forward aria-label from the host so the role="button" inner span
+      // has an accessible name. Without this, screen readers announce the
+      // visible text only, which for icon-led badges (e.g. the log-entry
+      // ID chip) is just a code like "LOG-0042" — losing the click hint.
+      const ariaLabel = this.getAttribute("aria-label");
+      if (ariaLabel) span.setAttribute("aria-label", ariaLabel);
       span.addEventListener("click", () => this._dispatchClick());
       span.addEventListener("keydown", (e) => {
         if (e.key === "Enter" || e.key === " ") {

@@ -2,6 +2,7 @@ import { LitElement, html, nothing } from "lit";
 import "./cts-button.js";
 import "./cts-link-button.js";
 import "./cts-json-editor.js";
+import { flashCopyConfirmed } from "../js/cts-copy-flash.js";
 
 // Screen-reader announcement + visible feedback should stay long enough for
 // assistive tech to finish reading the message.
@@ -222,7 +223,10 @@ class CtsPlanActions extends LitElement {
     this._showConfig = !this._showConfig;
   }
 
-  async _handleCopyConfig() {
+  async _handleCopyConfig(event) {
+    // Capture currentTarget synchronously: the await below clears it
+    // because event dispatch has completed by the time we resume.
+    const trigger = event && event.currentTarget;
     if (!this.plan || !this.plan.config) return;
     const text = JSON.stringify(this.plan.config, null, 4);
     if (!navigator.clipboard) {
@@ -234,7 +238,9 @@ class CtsPlanActions extends LitElement {
     } catch (err) {
       console.warn("[cts-plan-actions] clipboard.writeText failed:", err);
       this._showCopyFeedback("Copy failed — please copy the JSON below manually.");
+      return;
     }
+    flashCopyConfirmed(trigger);
   }
 
   _showCopyFeedback(message) {

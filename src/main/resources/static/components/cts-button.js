@@ -49,6 +49,7 @@ const VARIANT_CLASSES = {
  * @type {Object.<string, string>}
  */
 const SIZE_CLASSES = {
+  xxs: "oidf-btn-xxs",
   xs: "oidf-btn-xs",
   sm: "oidf-btn-sm",
   md: "",
@@ -167,6 +168,17 @@ const STYLE_TEXT = `
   color: var(--ink-0);
 }
 
+.oidf-btn-xxs {
+  /* Chip-scale button used inline beside HTTP/badge chips (e.g. the cURL
+     copy affordance in cts-log-entry). 20px height continues the 4px-grid
+     ladder one step below xs. The 11px text and 12px line-box sit on whole
+     pixels so Inter's cap-height stays crisp; line-height is tightened
+     from the base 16px because a 16px line-box would not fit a 20px box. */
+  height: 20px;
+  padding: 0 var(--space-1);
+  font-size: var(--fs-11);
+  line-height: 12px;
+}
 .oidf-btn-xs {
   /* Compact size used to replace bespoke "More" / pill-style buttons that
      used to live in cts-log-entry. 24px = 16px line-box + 4px top + 4px
@@ -242,7 +254,9 @@ injectStyles();
  * @property {string} variant - One of: primary, secondary, ghost, danger.
  *   Legacy aliases accepted: light/info/success/warning/dark and their
  *   `outline-*` forms (each maps to the closest new variant).
- * @property {string} size - One of: xs, sm (default), md, lg
+ * @property {string} size - One of: xxs, xs, sm (default), md, lg. `xxs`
+ *   is a 20px chip-scale used inline next to badges (e.g. the cURL copy
+ *   affordance in cts-log-entry); for general use prefer `xs` or larger.
  * @property {string} label - Visible text
  * @property {string} icon - Bootstrap Icons name (without the `bi-` prefix)
  * @property {boolean} loading - Shows a spinner and disables the button
