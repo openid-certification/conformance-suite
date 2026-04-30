@@ -734,6 +734,9 @@ security_test:
     kubectl delete secret fintechlabs-signing-key \
       --namespace="$KUBE_NAMESPACE" \
       --ignore-not-found=true
+    kubectl delete secret fintechlabs-deprecated-signing-key \
+      --namespace="$KUBE_NAMESPACE" \
+      --ignore-not-found=true
     kubectl delete secret fintechlabs-private-link-signing-key \
       --namespace="$KUBE_NAMESPACE" \
       --ignore-not-found=true
@@ -741,6 +744,9 @@ security_test:
     kubectl create secret generic fintechlabs-signing-key \
       --namespace="$KUBE_NAMESPACE" \
       --from-literal=jwk="$SIGNING_KEY"
+    kubectl create secret generic fintechlabs-deprecated-signing-key \
+      --namespace="$KUBE_NAMESPACE" \
+      --from-literal=jwk="$DEPRECATED_SIGNING_KEY"
     kubectl create secret generic fintechlabs-private-link-signing-key \
       --namespace="$KUBE_NAMESPACE" \
       --from-literal=jwk="$PRIVATE_LINK_SIGNING_KEY"

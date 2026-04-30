@@ -41,6 +41,7 @@ class AssetSharing_UnitTest {
 	void setUp() {
 		keyManager = new KeyManager();
 		ReflectionTestUtils.setField(keyManager, "signingKey", "");
+		ReflectionTestUtils.setField(keyManager, "deprecatedSigningKey", "");
 		ReflectionTestUtils.setField(keyManager, "privateLinkSigningKey", "");
 		keyManager.initializeKeyManager();
 
