@@ -194,6 +194,49 @@ export const ThreeTabs = {
 };
 
 /**
+ * Accessible-name forwarding contract: when the host `<cts-tabs>` carries
+ * `aria-label` (or `aria-labelledby`), the value lands on the generated
+ * `<ul role="tablist">` and is stripped from the host so AT do not
+ * double-announce. Also asserts the default `aria-orientation`.
+ */
+export const WithAriaLabel = {
+  render: () => html`
+    <cts-tabs aria-label="Configure test input mode">
+      <cts-tab-panel label="Form" id="alA"><p>Form</p></cts-tab-panel>
+      <cts-tab-panel label="JSON" id="alB"><p>JSON</p></cts-tab-panel>
+    </cts-tabs>
+  `,
+
+  async play({ canvasElement }) {
+    const host = canvasElement.querySelector("cts-tabs");
+    const tablist = canvasElement.querySelector('[role="tablist"]');
+
+    expect(tablist.getAttribute("aria-label")).toBe("Configure test input mode");
+    expect(tablist.getAttribute("aria-orientation")).toBe("horizontal");
+    // Host is stripped so the name is announced once, on the tablist.
+    expect(host.hasAttribute("aria-label")).toBe(false);
+  },
+};
+
+export const WithAriaLabelledBy = {
+  render: () => html`
+    <h3 id="alb-heading">Configure test</h3>
+    <cts-tabs aria-labelledby="alb-heading">
+      <cts-tab-panel label="Form" id="albA"><p>Form</p></cts-tab-panel>
+      <cts-tab-panel label="JSON" id="albB"><p>JSON</p></cts-tab-panel>
+    </cts-tabs>
+  `,
+
+  async play({ canvasElement }) {
+    const host = canvasElement.querySelector("cts-tabs");
+    const tablist = canvasElement.querySelector('[role="tablist"]');
+
+    expect(tablist.getAttribute("aria-labelledby")).toBe("alb-heading");
+    expect(host.hasAttribute("aria-labelledby")).toBe(false);
+  },
+};
+
+/**
  * Visual contract from `project/preview/components-tabs.html` — four tabs
  * with optional count badges, matching the design archive verbatim.
  * Active tab uses the orange-400 underline; active count badge uses

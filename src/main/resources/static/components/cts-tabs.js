@@ -104,6 +104,16 @@ function injectStyles() {
  * `<head>` on first connect (gated by a module-level flag) so the rules
  * appear once regardless of how many `cts-tabs` instances are on the page.
  *
+ * @property {string} aria-label - Optional accessible name for the
+ *   tablist. Forwarded to the generated `<ul role="tablist">` and removed
+ *   from the host so AT do not double-announce. Use when the tablist is
+ *   not preceded by a visible heading that already names it.
+ * @property {string} aria-labelledby - Optional id reference for the
+ *   tablist's accessible name. Takes precedence over `aria-label`.
+ *   Forwarded to the generated tablist and removed from the host.
+ * @property {string} aria-orientation - Tablist orientation. Forwarded
+ *   to the generated tablist; defaults to `"horizontal"` (matching the
+ *   keyboard handler's left/right arrow semantics).
  * @fires cts-tab-change - When the active tab changes (click or keyboard),
  *   with `{ detail: { id } }` where `id` is the selected panel's id;
  *   bubbles.
@@ -118,6 +128,24 @@ class CtsTabs extends HTMLElement {
     const tablist = document.createElement("ul");
     tablist.className = "oidf-tabs";
     tablist.setAttribute("role", "tablist");
+    tablist.setAttribute(
+      "aria-orientation",
+      this.getAttribute("aria-orientation") || "horizontal",
+    );
+
+    // Forward the accessible name to the tablist and strip it from the host
+    // so screen readers announce it once, on the role="tablist" element
+    // (where it actually labels the widget).
+    const ariaLabelledBy = this.getAttribute("aria-labelledby");
+    const ariaLabel = this.getAttribute("aria-label");
+    if (ariaLabelledBy) {
+      tablist.setAttribute("aria-labelledby", ariaLabelledBy);
+      this.removeAttribute("aria-labelledby");
+    } else if (ariaLabel) {
+      tablist.setAttribute("aria-label", ariaLabel);
+      this.removeAttribute("aria-label");
+    }
+    this.removeAttribute("aria-orientation");
 
     const panelContainer = document.createElement("div");
 
