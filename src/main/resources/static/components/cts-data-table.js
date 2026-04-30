@@ -960,7 +960,7 @@ class CtsDataTable extends LitElement {
     const monoClass = column.mono && !column.format ? "oidf-dt-cell-mono" : "";
     const cls = [wrapperClass, monoClass].filter(Boolean).join(" ");
     const content = this._renderCellContent(row, column);
-    return html`<td class=${cls}>${content}</td>`;
+    return html`<td class=${cls} data-column-key=${column.key}>${content}</td>`;
   }
 
   _renderHeaderCell(column) {

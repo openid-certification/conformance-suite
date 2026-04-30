@@ -34,6 +34,10 @@ const STYLE_TEXT = `
   color: var(--fg-muted);
   margin: 0 0 var(--space-3) 0;
 }
+.cts-token-manager [data-column-key="_actions"] {
+  width: 1%;
+  white-space: nowrap;
+}
 .cts-token-manager-created-modal-body p {
   margin: 0 0 var(--space-3) 0;
 }
