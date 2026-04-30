@@ -61,10 +61,11 @@ export const Default = {
     // Permanent token shows "Never" for expiry
     expect(canvas.getByText("Never")).toBeInTheDocument();
 
-    // Table structure is correct — uses tokenized class, not Bootstrap.
-    const table = canvasElement.querySelector("table#tokensListing");
-    expect(table).toBeTruthy();
-    expect(table.classList.contains("cts-token-manager-table")).toBe(true);
+    // The token list is delegated to cts-data-table; the host carries the
+    // id="tokensListing" so existing descendant selectors keep working.
+    const tokensListing = canvasElement.querySelector("cts-data-table#tokensListing");
+    expect(tokensListing).toBeTruthy();
+    expect(tokensListing.querySelector("table.oidf-dt-table")).toBeTruthy();
 
     // Column headers present
     expect(canvas.getByText("Token ID")).toBeInTheDocument();
@@ -75,7 +76,9 @@ export const Default = {
     expect(canvas.getByText("New permanent token")).toBeInTheDocument();
 
     // Delete buttons in each row — one cts-button per row.
-    const deleteButtons = canvasElement.querySelectorAll("table cts-button.deleteBtn");
+    const deleteButtons = canvasElement.querySelectorAll(
+      "cts-data-table#tokensListing cts-button.deleteBtn",
+    );
     expect(deleteButtons.length).toBe(3);
 
     // No legacy Bootstrap classes remain in the rendered DOM.
@@ -333,11 +336,10 @@ export const EmptyTokenList = {
       expect(canvas.getByText("No tokens have been created yet.")).toBeInTheDocument();
     });
 
-    // No token-listing table rendered in the empty state. cts-modal hosts
-    // are still mounted (they live alongside the table region) but they
-    // are not `<table>` elements so the strict selector still finds none.
-    const table = canvasElement.querySelector("table#tokensListing");
-    expect(table).toBeNull();
+    // No token-listing rendered in the empty state. The cts-data-table host
+    // is gated by `_tokens.length === 0` so it should not be in the DOM.
+    const tokensListing = canvasElement.querySelector("cts-data-table#tokensListing");
+    expect(tokensListing).toBeNull();
 
     // Create buttons are still present
     expect(canvas.getByText("New temporary token")).toBeInTheDocument();

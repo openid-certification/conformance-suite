@@ -2,6 +2,8 @@ import { LitElement, html } from "lit";
 import "./cts-modal.js";
 import "./cts-button.js";
 import "./cts-link-button.js";
+import "./cts-data-table.js";
+import { flashCopyConfirmed } from "../js/cts-copy-flash.js";
 
 // Screen-reader announcement + visible feedback should stay long enough for
 // assistive tech to finish reading the message. 2-3s is a common mistake.
@@ -9,13 +11,11 @@ const COPY_FEEDBACK_DURATION_MS = 5000;
 
 const STYLE_ID = "cts-token-manager-styles";
 
-// Scoped CSS for the OIDF-tokenized token-manager surface. Replaces the
-// Bootstrap container/row/col scaffolding and the legacy `.table table-*`
-// styling that comes from Bootstrap. The token list table keeps its
-// `id="tokensListing"` so the existing E2E selectors still match; it picks
-// up token-driven cell padding, header background, and row separators here.
-// U33 will swap the table for `<cts-data-table>` — until then this scoped
-// CSS keeps the table legible after Bootstrap removal.
+// Scoped CSS for the OIDF-tokenized token-manager surface. The token list
+// itself is delegated to `<cts-data-table>` (which carries its own table
+// chrome, striping, hover, and empty-state); these rules cover only the
+// page-level scaffolding (padding, action bar, status messages) and the
+// modal body styling.
 const STYLE_TEXT = `
 .cts-token-manager {
   display: block;
@@ -33,38 +33,6 @@ const STYLE_TEXT = `
   font-size: var(--fs-13);
   color: var(--fg-muted);
   margin: 0 0 var(--space-3) 0;
-}
-.cts-token-manager-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: var(--fs-13);
-  background: var(--bg);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-2);
-  overflow: hidden;
-}
-.cts-token-manager-table thead th {
-  text-align: left;
-  font-weight: var(--fw-bold);
-  padding: var(--space-3) var(--space-3);
-  background: var(--ink-50);
-  color: var(--ink-900);
-  border-bottom: 1px solid var(--border);
-}
-.cts-token-manager-table tbody td {
-  padding: var(--space-3) var(--space-3);
-  border-bottom: 1px solid var(--border);
-  vertical-align: middle;
-  color: var(--fg);
-}
-.cts-token-manager-table tbody tr:last-child td {
-  border-bottom: 0;
-}
-.cts-token-manager-table tbody tr:nth-child(even) td {
-  background: var(--ink-50);
-}
-.cts-token-manager-table tbody tr:hover td {
-  background: var(--ink-100);
 }
 .cts-token-manager-created-modal-body p {
   margin: 0 0 var(--space-3) 0;
@@ -119,6 +87,13 @@ function injectStyles() {
  * user create temporary or permanent tokens, and confirms deletion. Admins
  * see a read-only message instead (admins cannot create tokens).
  *
+ * The token list is delegated to `<cts-data-table>` in client-side mode;
+ * the wrapper supplies columns, the `_tokens` array as `rows`, and a
+ * `cellRenderer` for the formatted-date and delete-button cells. The
+ * `id="tokensListing"` is hoisted to the cts-data-table host so existing
+ * descendant selectors (`#tokensListing tbody tr`, `cts-button.deleteBtn`)
+ * keep working.
+ *
  * The three modals (Token created / Delete confirmation / Error) are
  * rendered as `<cts-modal>` instances so they survive Bootstrap CSS removal
  * (Phase E of the OIDF design-system migration). The host's `.show()` /
@@ -149,6 +124,12 @@ class CtsTokenManager extends LitElement {
     this._error = "";
     this._copyFeedback = "";
     this._copyFeedbackTimer = null;
+    // The cellRenderer's TemplateResult is interpolated and rendered by
+    // cts-data-table. Lit's EventPart dispatches event listeners with `this`
+    // set to the rendering host (cts-data-table), not this component, so we
+    // pre-bind every handler that may be wired through cellRenderer.
+    this._cellRenderer = this._cellRenderer.bind(this);
+    this._handleDeleteClick = this._handleDeleteClick.bind(this);
   }
 
   connectedCallback() {
@@ -331,7 +312,10 @@ class CtsTokenManager extends LitElement {
     this._deleteTokenId = "";
   }
 
-  async _copyToken() {
+  async _copyToken(event) {
+    // Capture currentTarget synchronously: the await below clears it
+    // because event dispatch has completed by the time we resume.
+    const trigger = event && event.currentTarget;
     if (!this._createdToken) return;
     if (!navigator.clipboard) {
       this._showCopyFeedback("Clipboard not available — please select the token text manually.");
@@ -342,7 +326,9 @@ class CtsTokenManager extends LitElement {
     } catch (err) {
       console.warn("[cts-token-manager] clipboard.writeText failed:", err);
       this._showCopyFeedback("Copy failed — please select the token text manually.");
+      return;
     }
+    flashCopyConfirmed(trigger);
   }
 
   _showCopyFeedback(message) {
@@ -386,17 +372,46 @@ class CtsTokenManager extends LitElement {
     }
 
     return html`
-      <table class="cts-token-manager-table" id="tokensListing">
-        <thead>
-          <tr>
-            <th>Token ID</th>
-            <th>Expires</th>
-            <th>Delete</th>
-          </tr>
-        </thead>
-        <tbody>${this._renderTokenRows()}</tbody>
-      </table>
+      <cts-data-table
+        id="tokensListing"
+        .columns=${this._columns()}
+        .rows=${this._tokens}
+        .serverSide=${false}
+        page-size="1000"
+        search-placeholder=""
+        .cellRenderer=${this._cellRenderer}
+        .rowClass=${this._rowClass}
+      ></cts-data-table>
     `;
+  }
+
+  _columns() {
+    return [
+      { key: "_id", label: "Token ID" },
+      { key: "expires", label: "Expires" },
+      { key: "_actions", label: "Delete" },
+    ];
+  }
+
+  _cellRenderer(row, key) {
+    if (key === "expires") {
+      return html`<span class="tabular-nums">${this._formatDate(row.expires)}</span>`;
+    }
+    if (key === "_actions") {
+      return html`<cts-button
+        class="deleteBtn"
+        variant="danger"
+        size="sm"
+        label="Delete"
+        data-token-id=${row._id}
+        @cts-click=${this._handleDeleteClick}
+      ></cts-button>`;
+    }
+    return undefined;
+  }
+
+  _rowClass() {
+    return "tokenRow";
   }
 
   _renderCreateButtons() {
@@ -423,27 +438,6 @@ class CtsTokenManager extends LitElement {
         ></cts-link-button>
       </div>
     `;
-  }
-
-  _renderTokenRows() {
-    return this._tokens.map(
-      (token) => html`
-        <tr>
-          <td>${token._id}</td>
-          <td><span class="tabular-nums">${this._formatDate(token.expires)}</span></td>
-          <td>
-            <cts-button
-              class="deleteBtn"
-              variant="danger"
-              size="sm"
-              label="Delete"
-              data-token-id=${token._id}
-              @cts-click=${this._handleDeleteClick}
-            ></cts-button>
-          </td>
-        </tr>
-      `,
-    );
   }
 
   /**

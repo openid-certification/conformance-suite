@@ -52,8 +52,10 @@ test.describe("tokens.html — API Tokens", () => {
     await expect(page.locator("#tokensListing")).toContainText("token-abc-001");
     await expect(page.locator("#tokensListing")).toContainText("token-xyz-002");
 
-    // The token list table is the OIDF-tokenized variant, not Bootstrap-styled
-    await expect(page.locator("table#tokensListing")).toHaveClass(/cts-token-manager-table/);
+    // The token list is delegated to cts-data-table; the host carries the
+    // id="tokensListing" so descendant selectors keep working. The inner
+    // <table class="oidf-dt-table"> is rendered by cts-data-table itself.
+    await expect(page.locator("cts-data-table#tokensListing table.oidf-dt-table")).toBeVisible();
   });
 
   test("each row's Delete button renders as cts-button with variant=danger", async ({ page }) => {
@@ -217,7 +219,7 @@ test.describe("tokens.html — API Tokens", () => {
     // The table never materializes because the fetch failed; the empty
     // state message renders in its place once the loading flag clears.
     await expect(page.locator("cts-token-manager .no-tokens-message")).toBeVisible();
-    await expect(page.locator("table#tokensListing")).toHaveCount(0);
+    await expect(page.locator("cts-data-table#tokensListing")).toHaveCount(0);
 
     // Create buttons are still present so the user is not stranded.
     await expect(page.locator('cts-button[label="New temporary token"]')).toBeVisible();
