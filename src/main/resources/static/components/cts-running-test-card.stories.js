@@ -78,10 +78,12 @@ export const Waiting = {
     // Test name displayed
     expect(canvas.getByText("oidcc-server-rotate-keys")).toBeInTheDocument();
 
-    // Status badge shows WAITING with the design-system `warn` variant
+    // Status badge shows the R19 friendly label with the design-system
+    // `warn` variant. The underlying status enum stays "WAITING" — only
+    // the rendered label is mapped at render time.
     const badge = canvasElement.querySelector("cts-badge");
     expect(badge).toBeTruthy();
-    expect(badge.getAttribute("label")).toBe("WAITING");
+    expect(badge.getAttribute("label")).toBe("Waiting for user input");
     expect(badge.getAttribute("variant")).toBe("warn");
 
     // Variants are concatenated into a single mono string (matches
