@@ -251,11 +251,6 @@ textarea {
 	background-color: #f6fefe;
 }
 
-#running-tests {
-	border-left: 1px #eee solid;
-	border-top: 1px #eee solid;
-}
-
 .testResult {
 	margin: 10px 0;
 	padding: 5px;
