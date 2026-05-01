@@ -14,7 +14,7 @@ public class EnsureNoRefreshTokenInTokenResponse extends AbstractCondition {
 			logSuccess("No refresh token found");
 			return env;
 		} else {
-			throw error("Unexpected refresh tokeni found");
+			throw error("Unexpected refresh token found. This will not be tested.");
 		}
 	}
 
