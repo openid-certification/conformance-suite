@@ -825,8 +825,7 @@ public abstract class AbstractFAPI2SPFinalServerTestModule extends AbstractRedir
 		// https://gitlab.com/openid/conformance-suite/issues/617
 
 		if (clientCredentialsGrant) {
-			// FIXME: Treating as a warning until there is a resolution in:
-			// https://bitbucket.org/openid/fapi/issues/756/certification-team-query-refresh-tokens-in
+			// As per: https://bitbucket.org/openid/fapi/issues/756/certification-team-query-refresh-tokens-in
 			callAndContinueOnFailure(EnsureNoRefreshTokenInTokenResponse.class, ConditionResult.WARNING, "RFC6749-4.4.3");
 		}
 		else {
