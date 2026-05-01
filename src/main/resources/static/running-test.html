@@ -26,6 +26,7 @@
     <script type="module" src="/components/cts-icon.js"></script>
     <script type="module" src="/components/cts-page-head.js"></script>
     <script type="module" src="/components/cts-running-test-card.js"></script>
+    <script type="module" src="/components/cts-empty-state.js"></script>
 
     <style>
         .oidf-running-tests-page {
@@ -124,7 +125,19 @@
                 .then((response) => response.json())
                 .then((data) => {
                     //console.log('running: ', JSON.stringify(data));
-                    document.getElementById('running-tests').innerHTML = "";
+                    var container = document.getElementById('running-tests');
+                    container.replaceChildren();
+
+                    if (!data || data.length === 0) {
+                        var empty = document.createElement('cts-empty-state');
+                        empty.setAttribute('icon', 'play-circle');
+                        empty.setAttribute('heading', 'No tests are currently running');
+                        empty.setAttribute('body', 'Schedule a test to see it appear here while it runs.');
+                        empty.setAttribute('cta-label', 'Schedule a test');
+                        empty.setAttribute('cta-href', 'schedule-test.html');
+                        container.appendChild(empty);
+                        return;
+                    }
 
                     var promise = Promise.resolve();
 

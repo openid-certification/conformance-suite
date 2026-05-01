@@ -5,6 +5,7 @@ import { MOCK_RUNNING_TESTS } from "@fixtures/mock-test-data.js";
 import "../../../src/main/resources/static/components/cts-page-head.js";
 import "../../../src/main/resources/static/components/cts-button.js";
 import "../../../src/main/resources/static/components/cts-running-test-card.js";
+import "../../../src/main/resources/static/components/cts-empty-state.js";
 
 // Recreates `running-test.html` for design review without requiring a live
 // backend. Mirrors the page chrome (page-head + refresh action, vertical
@@ -90,26 +91,60 @@ export const Default = {
 
 /**
  * Empty state — what the page looks like when no tests are running for
- * the signed-in user. The page chrome (header, refresh action) still
- * renders; the list area is simply empty.
+ * the signed-in user. Page chrome (header, refresh action) renders, and
+ * the list area is filled with a `cts-empty-state` that explains why the
+ * area is blank and offers a primary action to schedule a new test.
+ *
+ * The real page wires this up inside `updateRunningTable()` in
+ * `running-test.html`: when `/api/runner/running` returns an empty array,
+ * a `cts-empty-state` element with the same attributes is appended to
+ * `#running-tests`. Mirroring the rendered shape here means the visual
+ * diff in Storybook matches what the real user sees.
  */
 export const Empty = {
   render: () => html`
     ${PAGE_STYLES}
     <main id="viewRunningTestPage" class="oidf-running-tests-page">
       <cts-page-head title="Running tests">
-        <cts-button slot="actions" id="refresh" icon="arrow-reload-02" label="Refresh"></cts-button>
+        <cts-button
+          slot="actions"
+          id="refresh"
+          icon="arrow-reload-02"
+          label="Refresh"
+        ></cts-button>
       </cts-page-head>
 
-      <div id="running-tests" class="oidf-running-tests-list"></div>
+      <div id="running-tests" class="oidf-running-tests-list">
+        <cts-empty-state
+          icon="play-circle"
+          heading="No tests are currently running"
+          body="Schedule a test to see it appear here while it runs."
+          cta-label="Schedule a test"
+          cta-href="schedule-test.html"
+        ></cts-empty-state>
+      </div>
     </main>
   `,
   async play({ canvasElement }) {
     await waitFor(() => {
       expect(within(canvasElement).getByText("Running tests")).toBeInTheDocument();
     });
+
+    // No cards rendered.
     const cards = canvasElement.querySelectorAll("cts-running-test-card");
     expect(cards.length).toBe(0);
+
+    // Empty state explains the blank list and offers a path forward.
+    const emptyState = canvasElement.querySelector("cts-empty-state");
+    expect(emptyState).toBeTruthy();
+    expect(emptyState.textContent).toContain("No tests are currently running");
+    expect(emptyState.textContent).toContain("Schedule a test");
+
+    // The primary CTA renders the built-in cts-link-button to the
+    // schedule-test page.
+    const cta = emptyState.querySelector("cts-link-button");
+    expect(cta).toBeTruthy();
+    expect(cta.getAttribute("href")).toBe("schedule-test.html");
   },
 };
 
