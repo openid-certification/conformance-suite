@@ -155,8 +155,15 @@ test.describe("running-test.html — Running Tests", () => {
     // No cards rendered
     await expect(page.locator("cts-running-test-card")).toHaveCount(0);
 
-    // The running-tests container is empty
-    await expect(page.locator("#running-tests")).toBeEmpty();
+    // Empty state renders inside the list container, explaining the blank
+    // area and offering a primary CTA to the schedule-test page.
+    const emptyState = page.locator("#running-tests cts-empty-state");
+    await expect(emptyState).toBeVisible();
+    await expect(emptyState).toContainText("No tests are currently running");
+    await expect(emptyState.locator("cts-link-button")).toHaveAttribute(
+      "href",
+      "schedule-test.html",
+    );
   });
 
   test("rows contain View Test Details link and Download button", async ({ page }) => {
