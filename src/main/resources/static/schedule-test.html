@@ -1659,8 +1659,51 @@
                 return registerGenerateJwksListeners();
             }).finally(function() {
                 FAPI_UI.activeTooltip();
+                wireConfigFormLabels();
             });
         });
+
+        /**
+         * R42: pair every static .config-form-element-container's .key div
+         * with its <input> / <select> / <textarea> by replacing the div with
+         * a <label> and wiring `for` / `id`. The static markup ships ~137 of
+         * these containers as `<div class="key">` + `<input data-json-target>`,
+         * with no programmatic association — screen readers announce nothing
+         * when the input gains focus, and an agent walking the DOM cannot map
+         * a label string to its input.
+         *
+         * The .key class is element-agnostic (selector-only, no DIV/LABEL
+         * specificity in oidf-app.css), so swapping the element type is a
+         * pure semantic upgrade — the surrounding grid layout is unchanged.
+         * Field ids derive from the input's `data-json-target` (dotted keys
+         * like `ssf.transmitter.issuer` become dash-joined slugs) plus a
+         * monotonic counter so the same `data-json-target` repeated across
+         * spec-family sections gets distinct ids.
+         */
+        function wireConfigFormLabels() {
+            let counter = 0;
+            const containers = document.querySelectorAll('.config-form-element-container');
+            for (const container of containers) {
+                const keyEl = container.querySelector('.key');
+                const control = container.querySelector('input, select, textarea');
+                if (!keyEl || !control) continue;
+                if (control.id) continue; // already wired (e.g. variant selectors)
+                const target = control.getAttribute('data-json-target') || '';
+                const slug = target.replace(/[^a-zA-Z0-9]+/g, '-').replace(/^-|-$/g, '') || 'field';
+                const id = `cfg-${slug}-${counter}`;
+                counter += 1;
+                control.id = id;
+                if (keyEl.tagName === 'LABEL') {
+                    keyEl.setAttribute('for', id);
+                    continue;
+                }
+                const label = document.createElement('label');
+                label.className = keyEl.className;
+                label.setAttribute('for', id);
+                while (keyEl.firstChild) label.appendChild(keyEl.firstChild);
+                keyEl.replaceWith(label);
+            }
+        }
 
         function applyConfigPreset() {
             let searchParams = new URLSearchParams(window.location.search);
