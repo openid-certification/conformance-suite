@@ -6,7 +6,6 @@ import com.nimbusds.jose.util.X509CertUtils;
 import net.openid.conformance.condition.AbstractValidateX5cCertificateChain;
 import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.condition.PreEnvironment;
-import net.openid.conformance.condition.Profile;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.vci10issuer.condition.VciErrorCode;
@@ -57,7 +56,7 @@ public class ValidateKeyAttestationX5cCertificateChain extends AbstractValidateX
 			String trustAnchorPem = env.getString("vci", "key_attestation_trust_anchor_pem");
 			X509Certificate trustAnchorCert = trustAnchorPem != null ? X509CertUtils.parse(trustAnchorPem) : null;
 
-			validateX5cCertificateChain(certs, trustAnchorCert, Profile.isHaip(env));
+			validateX5cCertificateChain(certs, trustAnchorCert);
 			verifyJwtSignatureWithX5cLeafCert(rawJwt, certs);
 
 			env.putBoolean("key_attestation_signature_verified", true);

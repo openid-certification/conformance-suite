@@ -83,44 +83,27 @@ public class X509CertificateUtil {
 	}
 
 	/**
-	 * Validate an x5c certificate chain (legacy / non-strict mode).
+	 * Validate an x5c certificate chain.
 	 *
-	 * Equivalent to {@link #validateX5cCertificateChain(List, X509Certificate, boolean)} with
-	 * {@code strictPkix=false}.
+	 * Always performs leaf validity, leaf-not-self-signed, and trust-anchor-exclusion checks.
+	 *
+	 * When a trust anchor is supplied, performs full RFC 5280 PKIX path validation via
+	 * {@link CertPathValidator}: intermediate certificate validity windows, BasicConstraints
+	 * CA:true on intermediates, KeyUsage keyCertSign on intermediates, name chaining, critical
+	 * extensions. Callers wanting strict PKIX must therefore configure a trust anchor; the
+	 * conditions framework surfaces that requirement via {@code Ensure*TrustAnchorConfigured}
+	 * preconditions wired into the relevant test-module HAIP branch. CRL/OCSP revocation
+	 * checking is disabled (out of scope for the conformance suite).
+	 *
+	 * When no trust anchor is supplied, performs the legacy walk only (parent-signature walk
+	 * up the chain plus a "trust anchor MUST NOT be in the chain" self-signed-last-cert check).
 	 *
 	 * @param certs the parsed certificate chain, leaf first
-	 * @param trustAnchor optional trust anchor certificate; null if not available
+	 * @param trustAnchor trust anchor certificate; non-null triggers strict PKIX validation
 	 * @throws X5cCertificateChainException with a descriptive message if validation fails
 	 */
 	public static void validateX5cCertificateChain(List<X509Certificate> certs,
 		X509Certificate trustAnchor) throws X5cCertificateChainException {
-		validateX5cCertificateChain(certs, trustAnchor, false);
-	}
-
-	/**
-	 * Validate an x5c certificate chain.
-	 *
-	 * In non-strict mode this performs leaf validity, leaf-not-self-signed, simple parent-signature
-	 * walking, trust anchor exclusion, and (if a trust anchor is supplied) signature verification
-	 * against the trust anchor.
-	 *
-	 * In strict mode this additionally performs full RFC 5280 PKIX path validation via
-	 * {@link CertPathValidator} — which checks intermediate certificate validity windows,
-	 * BasicConstraints CA:true on intermediates, KeyUsage keyCertSign on intermediates,
-	 * name chaining, critical extensions, and other RFC 5280 requirements — but only when
-	 * a trust anchor is configured. If strict mode is requested without a trust anchor the
-	 * method falls through to the legacy chain walk; callers are expected to surface the
-	 * "configure a trust anchor" requirement via separate precondition conditions at test
-	 * setup time. CRL/OCSP revocation checking is disabled (out of scope for the conformance
-	 * suite).
-	 *
-	 * @param certs the parsed certificate chain, leaf first
-	 * @param trustAnchor trust anchor certificate; required for strict PKIX, optional otherwise
-	 * @param strictPkix if true, perform RFC 5280 PKIX path validation when a trust anchor is configured
-	 * @throws X5cCertificateChainException with a descriptive message if validation fails
-	 */
-	public static void validateX5cCertificateChain(List<X509Certificate> certs,
-		X509Certificate trustAnchor, boolean strictPkix) throws X5cCertificateChainException {
 		if (certs.isEmpty()) {
 			throw new X5cCertificateChainException("x5c certificate chain is empty");
 		}
@@ -139,7 +122,6 @@ public class X509CertificateUtil {
 			throw new X5cCertificateChainException("Leaf certificate in x5c chain must not be self-signed");
 		}
 
-		// Trust anchor exclusion check applies in both modes — HAIP / RFC 7515 forbid it.
 		if (trustAnchor != null) {
 			for (X509Certificate cert : certs) {
 				if (cert.equals(trustAnchor)) {
@@ -147,21 +129,11 @@ public class X509CertificateUtil {
 						"Trust anchor certificate must not be included in x5c chain");
 				}
 			}
-		}
-
-		// Strict PKIX path validation runs only when a trust anchor is configured.
-		// HAIP requires the user to configure a trust anchor; the conditions
-		// surface that requirement via EnsureCredentialTrustAnchorConfigured /
-		// EnsureClientRequestObjectTrustAnchorConfigured precondition checks at test
-		// setup. When this helper is called in HAIP mode without a trust anchor (e.g.
-		// when testing an external issuer that hasn't been configured with a CA root),
-		// fall through to the legacy walk so the test isn't blocked entirely.
-		if (strictPkix && trustAnchor != null) {
 			validatePkixPath(certs, trustAnchor);
 			return;
 		}
 
-		// Legacy non-strict path
+		// No trust anchor: legacy walk only.
 		for (int i = 0; i < certs.size() - 1; i++) {
 			try {
 				certs.get(i).verify(certs.get(i + 1).getPublicKey());
@@ -173,15 +145,7 @@ public class X509CertificateUtil {
 			}
 		}
 
-		if (trustAnchor != null) {
-			X509Certificate lastCert = certs.get(certs.size() - 1);
-			try {
-				lastCert.verify(trustAnchor.getPublicKey());
-			} catch (Exception e) {
-				throw new X5cCertificateChainException(
-					"Last certificate in x5c chain is not signed by the trust anchor: " + e.getMessage());
-			}
-		} else if (certs.size() > 1) {
+		if (certs.size() > 1) {
 			X509Certificate lastCert = certs.get(certs.size() - 1);
 			if (isSelfSigned(lastCert)) {
 				throw new X5cCertificateChainException(

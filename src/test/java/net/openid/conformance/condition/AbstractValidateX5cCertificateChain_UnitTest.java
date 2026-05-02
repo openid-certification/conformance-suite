@@ -41,10 +41,6 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.argThat;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
 public class AbstractValidateX5cCertificateChain_UnitTest {
@@ -210,18 +206,6 @@ public class AbstractValidateX5cCertificateChain_UnitTest {
 	// -- Chain validation tests --
 
 	@Test
-	public void validTwoCertChainWithTrustAnchor() {
-		assertDoesNotThrow(() ->
-			cond.validateX5cCertificateChain(List.of(leafFromRootCert), rootCert));
-	}
-
-	@Test
-	public void validThreeCertChainWithTrustAnchor() {
-		assertDoesNotThrow(() ->
-			cond.validateX5cCertificateChain(List.of(leafCert, intermediateCert), rootCert));
-	}
-
-	@Test
 	public void validSingleCertNoTrustAnchor() {
 		assertDoesNotThrow(() ->
 			cond.validateX5cCertificateChain(List.of(leafFromRootCert), null));
@@ -345,40 +329,24 @@ public class AbstractValidateX5cCertificateChain_UnitTest {
 		return jwt.serialize();
 	}
 
-	// -- Strict PKIX mode tests --
+	// -- PKIX mode tests (active when a trust anchor is supplied) --
 
 	@Test
-	public void strictMode_validThreeCertChain_passes() {
+	public void pkixMode_validThreeCertChain_passes() {
 		assertDoesNotThrow(() ->
-			cond.validateX5cCertificateChain(List.of(pkixLeafCert, pkixIntermediateCert), pkixRootCert, true));
+			cond.validateX5cCertificateChain(List.of(pkixLeafCert, pkixIntermediateCert), pkixRootCert));
 	}
 
 	@Test
-	public void strictMode_validSingleLeafChain_passesWhenLeafSignedByAnchor() {
+	public void pkixMode_validSingleLeafChain_passesWhenLeafSignedByAnchor() {
 		assertDoesNotThrow(() ->
-			cond.validateX5cCertificateChain(List.of(pkixLeafFromRootCert), pkixRootCert, true));
+			cond.validateX5cCertificateChain(List.of(pkixLeafFromRootCert), pkixRootCert));
 	}
 
 	@Test
-	public void strictMode_nullTrustAnchor_fallsBackToLegacyWalk() {
-		// Strict PKIX requires a trust anchor; when none is configured the helper falls
-		// through to the legacy walk rather than blocking the test outright. The fail-fast
-		// "trust anchor required" UX lives in the EnsureCredentialTrustAnchorConfigured /
-		// EnsureClientRequestObjectTrustAnchorConfigured preconditions wired into test modules.
-		// The 2-cert chain is leaf+intermediate-from-root; the legacy walk verifies the
-		// intermediate is not self-signed (trust anchor exclusion) and walks parent signatures.
-		assertDoesNotThrow(() ->
-			cond.validateX5cCertificateChain(List.of(pkixLeafCert, pkixIntermediateCert), null, true));
-
-		verify(eventLog).log(eq(TestableCondition.class.getSimpleName()), argThat((String msg) ->
-			msg != null && msg.contains("falling back to legacy chain walk")));
-	}
-
-	@Test
-	public void strictMode_expiredIntermediate_fails() {
-		// Proves the gap exists today — non-strict mode currently passes this case.
-		// pkixLeaf is current-time-valid, but intermediateExpired is in the past.
-		// The leaf-of-chain validity check passes (leaf is valid); PKIX catches the expired intermediate.
+	public void pkixMode_expiredIntermediate_fails() {
+		// Proves the gap that legacy mode missed: pkixLeaf is current-time-valid, but
+		// intermediateExpired is in the past. PKIX path validation catches it.
 		X509Certificate leafSignedByExpiredIntermediate;
 		try {
 			Date notBefore = Date.from(Instant.now().minus(1, ChronoUnit.HOURS));
@@ -389,32 +357,35 @@ public class AbstractValidateX5cCertificateChain_UnitTest {
 			throw new RuntimeException(e);
 		}
 		assertThrows(ConditionError.class, () ->
-			cond.validateX5cCertificateChain(List.of(leafSignedByExpiredIntermediate, intermediateExpired), pkixRootCert, true));
+			cond.validateX5cCertificateChain(List.of(leafSignedByExpiredIntermediate, intermediateExpired), pkixRootCert));
 	}
 
 	@Test
-	public void strictMode_intermediateMissingBasicConstraints_fails() {
+	public void pkixMode_intermediateMissingBasicConstraints_fails() {
 		assertThrows(ConditionError.class, () ->
-			cond.validateX5cCertificateChain(List.of(leafForFailingIntermediates, intermediateNoExtensions), pkixRootCert, true));
+			cond.validateX5cCertificateChain(List.of(leafForFailingIntermediates, intermediateNoExtensions), pkixRootCert));
 	}
 
 	@Test
-	public void strictMode_intermediateBasicConstraintsCaFalse_fails() {
+	public void pkixMode_intermediateBasicConstraintsCaFalse_fails() {
 		assertThrows(ConditionError.class, () ->
-			cond.validateX5cCertificateChain(List.of(leafForFailingIntermediates, intermediateBasicConstraintsCaFalse), pkixRootCert, true));
+			cond.validateX5cCertificateChain(List.of(leafForFailingIntermediates, intermediateBasicConstraintsCaFalse), pkixRootCert));
 	}
 
 	@Test
-	public void strictMode_intermediateMissingKeyCertSign_fails() {
+	public void pkixMode_intermediateMissingKeyCertSign_fails() {
 		assertThrows(ConditionError.class, () ->
-			cond.validateX5cCertificateChain(List.of(leafForFailingIntermediates, intermediateNoKeyCertSign), pkixRootCert, true));
+			cond.validateX5cCertificateChain(List.of(leafForFailingIntermediates, intermediateNoKeyCertSign), pkixRootCert));
 	}
 
 	@Test
-	public void nonStrictMode_existingFixturesStillPass() {
-		// Pin the regression: the legacy walk does NOT enforce PKIX checks even in strict-failing scenarios.
+	public void legacyMode_skipsPkixWhenNoTrustAnchorSupplied() {
+		// Pin the legacy-walk semantics: with a null trust anchor the helper must not perform
+		// PKIX checks. A chain whose intermediate has no BasicConstraints/KeyUsage extensions
+		// (which strict PKIX would reject) passes the legacy walk because the parent-signature
+		// walk and last-cert-not-self-signed checks are all that runs.
 		assertDoesNotThrow(() ->
-			cond.validateX5cCertificateChain(List.of(leafForFailingIntermediates, intermediateNoExtensions), pkixRootCert, false));
+			cond.validateX5cCertificateChain(List.of(leafForFailingIntermediates, intermediateNoExtensions), null));
 	}
 
 	/**
