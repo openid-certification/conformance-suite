@@ -115,8 +115,8 @@ export const PlanHeaderAdmin = {
 
 /**
  * R9 (Unit 5): a plan without a description must NOT render an empty
- * "Description:" row. The header conditionally suppresses the dt/dd pair
- * when `plan.description` is falsy.
+ * lede paragraph. The header conditionally suppresses the .planLede
+ * element when `plan.description` is falsy.
  */
 export const PlanHeaderNoDescription = {
   render: () => {
@@ -129,10 +129,58 @@ export const PlanHeaderNoDescription = {
     // Plan name still rendered
     expect(canvas.getByText("oidcc-basic-certification-test-plan")).toBeInTheDocument();
 
-    // The Description row is suppressed entirely
+    // The description lede is suppressed entirely (no empty subtitle slot)
     const descRow = canvasElement.querySelector('[data-testid="description-row"]');
     expect(descRow).toBeNull();
-    expect(canvas.queryByText("Description:")).toBeNull();
+    expect(canvasElement.querySelector(".planLede")).toBeNull();
+  },
+};
+
+/**
+ * R9 (Unit 5): when the user set a description while scheduling the plan,
+ * it surfaces as a prominent lede paragraph between the plan title and
+ * the metadata grid — not buried inside the `<dl>`. The lede uses larger
+ * prose typography so the human-readable identifier the user typed is
+ * the first thing the eye lands on after the title.
+ */
+export const PlanHeaderDescriptionLede = {
+  render: () =>
+    html`<cts-plan-header
+      .plan=${{
+        ...MOCK_PLAN_DETAIL,
+        description: "BixeLab partner conformance run #5 for Acme Corp",
+      }}
+    ></cts-plan-header>`,
+  async play({ canvasElement }) {
+    const lede = /** @type {HTMLElement | null} */ (
+      canvasElement.querySelector('[data-testid="description-row"]')
+    );
+    if (!lede) throw new Error("description lede did not render");
+
+    // The lede is a <p>, not a dt/dd pair — it sits outside the meta grid.
+    expect(lede.tagName).toBe("P");
+    expect(lede.classList.contains("planLede")).toBe(true);
+    expect(lede.textContent).toContain("BixeLab partner conformance run #5 for Acme Corp");
+
+    // DOM order: title comes before the lede, lede comes before the meta grid.
+    // documentPosition asserts visual reading order without coupling to
+    // pixel coordinates that depend on canvas width.
+    const title = canvasElement.querySelector(".planTitle");
+    const meta = canvasElement.querySelector(".planMeta");
+    if (!title || !meta) throw new Error("title or meta grid did not render");
+    const FOLLOWING = Node.DOCUMENT_POSITION_FOLLOWING;
+    expect(title.compareDocumentPosition(lede) & FOLLOWING).toBeTruthy();
+    expect(lede.compareDocumentPosition(meta) & FOLLOWING).toBeTruthy();
+
+    // Typography: lede prose is larger than the metadata text. --fs-16
+    // resolves to 16 px in the OIDF token sheet; meta dd resolves to
+    // --fs-13 (13 px). The exact px values are an implementation detail,
+    // so assert the relationship rather than the literal pixels.
+    const ledeFs = parseFloat(getComputedStyle(lede).fontSize);
+    const sampleDd = canvasElement.querySelector(".planMeta dd");
+    if (!sampleDd) throw new Error(".planMeta dd did not render");
+    const ddFs = parseFloat(getComputedStyle(sampleDd).fontSize);
+    expect(ledeFs).toBeGreaterThan(ddFs);
   },
 };
 

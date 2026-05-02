@@ -16,6 +16,18 @@ const STYLE_TEXT = `
   cts-plan-header .planTitle {
     margin: 0 0 var(--space-2);
   }
+  /* R9: the user-set plan description (freeform identifier they typed
+     when scheduling) is the human-readable subject of this plan run.
+     Surface it as a lede paragraph directly under the title so the
+     reader's eye lands on it before the metadata grid. Suppressed
+     entirely when the user did not set one — no empty subtitle slot. */
+  cts-plan-header .planLede {
+    margin: 0 0 var(--space-2);
+    font-size: var(--fs-16);
+    line-height: var(--lh-snug);
+    color: var(--fg-soft);
+    overflow-wrap: anywhere;
+  }
   cts-plan-header .planMeta {
     display: grid;
     grid-template-columns: max-content 1fr;
@@ -79,13 +91,15 @@ function ensureStylesInjected() {
 }
 
 /**
- * Renders the header card for a plan-detail page: plan name, variant, ID,
- * description, version, start time, owner (admin only), and certification
- * profile.
+ * Renders the header card for a plan-detail page: plan name, optional
+ * description lede, variant, ID, version, start time, owner (admin only),
+ * and certification profile.
  *
  * Light DOM. Scoped CSS is injected once on first connect; the title uses
- * the `.t-h1` typography utility from the OIDF token sheet, and the
- * meta-pairs render as a `<dl>` styled with the token grid.
+ * the `.t-h1` typography utility from the OIDF token sheet, the user-set
+ * description renders as a prominent `.planLede` paragraph between the
+ * title and the metadata grid (R9), and the meta-pairs render as a `<dl>`
+ * styled with the token grid.
  *
  * @property {object} plan - Plan object from `/api/plan/{id}`; expects
  *   `_id`, `planName`, `variant`, `description`, `version`, `started`,
@@ -145,19 +159,15 @@ class CtsPlanHeader extends LitElement {
 
     return html`
       <h1 class="planTitle t-h1">${plan.planName}</h1>
+      ${plan.description
+        ? html`<p class="planLede" data-testid="description-row">${plan.description}</p>`
+        : nothing}
       <dl class="planMeta">
         <dt>Variant:</dt>
         <dd><span class="mono">${variantText}</span></dd>
 
         <dt>Plan ID:</dt>
         <dd><span class="mono">${plan._id}</span></dd>
-
-        ${plan.description
-          ? html`
-              <dt data-testid="description-row">Description:</dt>
-              <dd>${plan.description}</dd>
-            `
-          : nothing}
 
         <dt>Plan Version:</dt>
         <dd><span class="mono">${plan.version}</span></dd>
