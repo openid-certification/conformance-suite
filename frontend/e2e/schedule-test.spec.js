@@ -500,4 +500,91 @@ test.describe("schedule-test.html — Test Plan Scheduling", () => {
     await expect(page.locator("#config")).not.toHaveValue("");
     await expect(page.locator("#config")).toContainText("from-last-config");
   });
+
+  test("R42: static config-form fields are programmatically labelled", async ({ page }) => {
+    // wireConfigFormLabels() runs on DOMContentLoaded and replaces every
+    // .config-form-element-container's <div class="key"> with a <label
+    // class="key" for="…">, plus an `id` on the matching control. Without
+    // this, screen readers announce nothing on focus and an agent walking
+    // the DOM cannot map a field's text to its input. The form host stays
+    // `display: none` until a plan is selected, so we verify the wiring on
+    // DOM state directly instead of relying on Playwright's visibility
+    // heuristics.
+    await setupFailFast(page);
+
+    await page.route("**/api/plan/available", (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(ALL_PLANS),
+      }),
+    );
+
+    await page.route("**/api/lastconfig", (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({}),
+      }),
+    );
+
+    await setupCommonRoutes(page);
+    await page.goto("/schedule-test.html");
+
+    // Wait until DOMContentLoaded ran wireConfigFormLabels — the alias
+    // input always exists in the static markup, and after wiring it carries
+    // a non-empty `id`. Polling on the id lets us proceed without coupling
+    // to plan-selection state.
+    await expect
+      .poll(async () =>
+        page.evaluate(() => document.querySelector('input[data-json-target="alias"]')?.id || ""),
+      )
+      .not.toBe("");
+
+    // Sample three always-shown fields and one nested-section field.
+    // Pair-wise verification ensures the id-to-label mapping survives
+    // duplicate data-json-target values across spec-family sections.
+    const samples = await page.evaluate(() => {
+      const targets = ["alias", "description", "publish", "ssf.transmitter.issuer"];
+      return targets.map((target) => {
+        const control = document.querySelector(`[data-json-target="${target}"]`);
+        if (!control) return { target, found: false };
+        const id = control.id;
+        const label = id ? document.querySelector(`label[for="${id}"]`) : null;
+        return {
+          target,
+          found: true,
+          id,
+          labelTag: label?.tagName || null,
+          labelText: label?.textContent?.trim() || null,
+        };
+      });
+    });
+    for (const s of samples) {
+      expect(s.found, `expected control for data-json-target=${s.target}`).toBe(true);
+      expect(s.id, `expected id on data-json-target=${s.target}`).toBeTruthy();
+      expect(s.labelTag, `expected matching label[for] for ${s.target}`).toBe("LABEL");
+    }
+    // The first three labels match the visible field name verbatim. The
+    // SSF field has multi-word copy ("Transmitter Issuer"), so a substring
+    // check is safer than verbatim equality.
+    expect(samples[0].labelText).toBe("alias");
+    expect(samples[1].labelText).toBe("description");
+    expect(samples[2].labelText).toBe("publish");
+    expect(samples[3].labelText).toContain("Transmitter Issuer");
+
+    // Ids are unique. The full-page DOM has ~137 .config-form-element-container
+    // wrappers; each control id must appear exactly once even when the same
+    // data-json-target repeats across spec-family sections.
+    const ids = await page.evaluate(() =>
+      Array.from(
+        document.querySelectorAll(
+          ".config-form-element-container input[id], .config-form-element-container select[id], .config-form-element-container textarea[id]",
+        ),
+      ).map((el) => /** @type {HTMLElement} */ (el).id),
+    );
+    expect(ids.length).toBeGreaterThan(100);
+    const dupes = ids.filter((id, i) => ids.indexOf(id) !== i);
+    expect(dupes, "expected every wired control id to be unique").toEqual([]);
+  });
 });
