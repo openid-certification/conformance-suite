@@ -252,10 +252,7 @@ class CtsConfigForm extends LitElement {
   render() {
     return html`
       <div class="oidf-config-form">
-        <cts-tabs
-          aria-label="Configure test input mode"
-          @cts-tab-change=${this._handleTabChange}
-        >
+        <cts-tabs aria-label="Configure test input mode" @cts-tab-change=${this._handleTabChange}>
           <cts-tab-panel label="Form" id="cts-config-form-form-panel">
             <form @cts-field-change=${this._handleFieldChange} @submit=${this._handleValidate}>
               ${this._renderSections()}

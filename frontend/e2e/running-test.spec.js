@@ -88,7 +88,10 @@ test.describe("running-test.html — Running Tests", () => {
     // `test.status` enum stays "WAITING" (variant lookup, data hooks);
     // only the rendered badge label is mapped at render time.
     await expect(cards.nth(1)).toContainText("oidcc-server-rotate-keys");
-    await expect(cards.nth(1).locator("cts-badge")).toHaveAttribute("label", "Waiting for user input");
+    await expect(cards.nth(1).locator("cts-badge")).toHaveAttribute(
+      "label",
+      "Waiting for user input",
+    );
   });
 
   test("manual refresh re-fetches and updates statuses (R13)", async ({ page }) => {
