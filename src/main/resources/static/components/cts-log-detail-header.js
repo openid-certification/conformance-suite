@@ -481,7 +481,7 @@ const STYLE_TEXT = `
   }
   cts-log-detail-header .logMetaValue {
     color: var(--fg);
-    word-break: break-word;
+    overflow-wrap: anywhere;
   }
   /* Mirror cts-plan-header's .mono chip — small monospace pill for
      IDs, versions, and variant strings so a reader comparing the

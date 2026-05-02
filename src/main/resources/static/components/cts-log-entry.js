@@ -253,7 +253,13 @@ const STYLE_TEXT = `
     line-height: var(--lh-base);
     color: var(--fg);
     min-width: 0;
-    word-break: break-word;
+    /* R31: long URLs in log messages must not push content off-screen.
+       Combined with min-width: 0 on the Grid 1fr track, overflow-wrap
+       anywhere lets a single unbreakable URL wrap at any character when
+       the column is narrower than the URL, while still preferring word
+       boundaries for prose. Standard, modern equivalent of the legacy
+       non-standard word-break:break-word. */
+    overflow-wrap: anywhere;
   }
   cts-log-entry .logBody .logSrc {
     color: var(--fg-soft);
@@ -338,7 +344,7 @@ const STYLE_TEXT = `
     padding-left: var(--space-3);
     border-left: 2px solid var(--ink-200);
     color: var(--fg);
-    word-break: break-word;
+    overflow-wrap: anywhere;
   }
   cts-log-entry .moreInfo dd:last-child {
     margin-bottom: 0;
@@ -374,7 +380,7 @@ const STYLE_TEXT = `
     font-family: var(--font-mono);
     font-size: var(--fs-12);
     white-space: pre-wrap;
-    word-break: break-word;
+    overflow-wrap: anywhere;
   }
 
   /* Wide layout. Restores the original five-column track (timestamp /

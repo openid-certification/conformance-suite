@@ -598,6 +598,62 @@ export const SubstringBoundaryRespectsPrefix = {
   },
 };
 
+/**
+ * R31: a log message containing a single long unbreakable URL must wrap
+ * inside its grid track instead of pushing the body column wider than the
+ * container. The narrow wrapper (320 px) is well below the URL's intrinsic
+ * width; with `overflow-wrap: anywhere` + `min-width: 0` on the body track,
+ * the URL breaks at any character to fit. The play function asserts that
+ * the rendered body width does not exceed the wrapper width — i.e. the
+ * URL did not push the layout sideways.
+ */
+const LONG_URL_ENTRY = {
+  _id: "entry-long-url",
+  testId: "test-abc",
+  src: "BuildRedirectUri",
+  time: NOW - 6000,
+  msg: "Built redirect URI https://op.example.com/very/long/path/with/many/segments/and/an/exhaustively/verbose/query?client_id=conformance-suite-acme-corp-fapi2-final&scope=openid%20profile%20email%20payments&state=01J9X2KQZWZW8Y6V0E5T7H1P9R&nonce=01J9X2KQZWZW8Y6V0E5T7H1P9S&redirect_uri=https%3A%2F%2Fclient.example.com%2Fcallback",
+  result: "INFO",
+};
+
+export const LongUrlMessage = {
+  decorators: [
+    (Story) => html`
+      <div
+        data-testid="long-url-wrapper"
+        style="width: 320px; max-width: 100%; border: 1px dashed var(--ink-300); resize: horizontal; overflow: auto;"
+      >
+        ${Story()}
+      </div>
+    `,
+  ],
+  render: () => html`<cts-log-entry .entry=${LONG_URL_ENTRY}></cts-log-entry>`,
+  async play({ canvasElement }) {
+    const canvas = within(canvasElement);
+    await waitFor(() => {
+      expect(canvas.getByText(/Built redirect URI/)).toBeInTheDocument();
+    });
+
+    const wrapper = canvasElement.querySelector('[data-testid="long-url-wrapper"]');
+    if (!wrapper) throw new Error("wrapper did not render");
+    const body = canvasElement.querySelector(".logBody");
+    if (!body) throw new Error(".logBody did not render");
+
+    // R31: with overflow-wrap: anywhere + min-width: 0, the URL wraps
+    // inside the body column. The body's rendered width must therefore
+    // stay within the wrapper's content box — no horizontal overflow,
+    // no off-screen URL push.
+    const wrapperBox = wrapper.getBoundingClientRect();
+    const bodyBox = body.getBoundingClientRect();
+    expect(bodyBox.width).toBeLessThanOrEqual(wrapperBox.width);
+
+    // Sanity: the message text actually rendered (didn't get clipped to
+    // empty). A failing wrap rule would still leave the text in the DOM,
+    // so this is a presence check, not the wrap proof.
+    expect(body.textContent).toContain("op.example.com");
+  },
+};
+
 // --- U3: container-query reflow ----------------------------------------
 // Plan: docs/plans/2026-04-26-004-feat-log-entry-container-query-reflow-plan.md
 // Each story wraps the entry in a fixed-width container so the host's
