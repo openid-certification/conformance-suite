@@ -4,7 +4,6 @@ import com.nimbusds.jose.util.Base64;
 import com.nimbusds.jose.util.X509CertUtils;
 import com.nimbusds.jwt.SignedJWT;
 import net.openid.conformance.condition.AbstractValidateX5cCertificateChain;
-import net.openid.conformance.condition.Profile;
 import net.openid.conformance.testmodule.Environment;
 
 import java.security.cert.X509Certificate;
@@ -55,7 +54,7 @@ public class ValidateStatusListTokenX5cCertificateChain extends AbstractValidate
 
 		String trustAnchorPem = env.getString("status_list_trust_anchor_pem");
 		X509Certificate trustAnchor = trustAnchorPem != null ? X509CertUtils.parse(trustAnchorPem) : null;
-		validateX5cCertificateChain(certs, trustAnchor, Profile.isHaip(env));
+		validateX5cCertificateChain(certs, trustAnchor);
 
 		verifyJwtSignatureWithX5cLeafCert(statusListTokenJwtString, certs);
 

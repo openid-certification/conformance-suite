@@ -47,18 +47,6 @@ public class VCIValidateCredentialRequestAttestationProof_UnitTest {
 	}
 
 	@Test
-	public void haipMissingX5cSetsInvalidProofBeforeJwksFallback() throws Exception {
-		env.putString("vci", "fapi_profile", "vci_haip");
-
-		String keyAttestationJwt = createKeyAttestationJwt(null);
-
-		assertThrows(ConditionError.class, () -> cond.validateKeyAttestation(env, "jwt", keyAttestationJwt));
-		assertEquals("invalid_proof", env.getString("vci", "credential_error_response.body.error"));
-		assertEquals("Key attestation JWT header MUST contain an x5c claim per HAIP §4.5.1",
-			env.getString("vci", "credential_error_response.body.error_description"));
-	}
-
-	@Test
 	public void validatesNestedKeyAttestationX5cChainBeforeTrustingLeafKey() throws Exception {
 		String keyAttestationJwt = createKeyAttestationJwt(List.of(Base64.from(SELF_SIGNED_CERT)));
 

@@ -15,7 +15,6 @@ import com.nimbusds.jose.util.X509CertUtils;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import net.openid.conformance.condition.ConditionError;
-import net.openid.conformance.condition.Profile;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.util.JWKUtil;
@@ -141,12 +140,6 @@ public class VCIValidateCredentialRequestAttestationProof extends AbstractVCIVal
 			}
 			validateKeyAttestationX5cCertificateChain(env, x5cChain);
 			return extractPublicJwkFromX5c(env, attestationJwt, x5cChain);
-		}
-
-		if (Profile.isHaip(env)) {
-			String errorDescription = "Key attestation JWT header MUST contain an x5c claim per HAIP §4.5.1";
-			VCICredentialErrorResponseUtil.updateCredentialErrorResponseInEnv(env, VciErrorCode.INVALID_PROOF, errorDescription);
-			throw error(errorDescription, args("jwt", attestationJwt, "header", header.toJSONObject()));
 		}
 
 		JsonElement keyAttestationJwksEl = env.getElementFromObject("config", "vci.key_attestation_jwks");
