@@ -381,7 +381,7 @@ class CtsJsonEditor extends LitElement {
     // Wait for Lit to render the host placeholder before mounting Monaco.
     await this.updateComplete;
 
-    const host = this.querySelector(".oidf-json-editor-host");
+    const host = /** @type {HTMLElement | null} */ (this.querySelector(".oidf-json-editor-host"));
     if (!host) return;
 
     this._model = monaco.editor.createModel(this._value || "", this.language);

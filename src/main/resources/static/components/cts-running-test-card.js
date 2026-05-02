@@ -395,7 +395,8 @@ class CtsRunningTestCard extends LitElement {
     // working. The variant lookup above and any data-status hooks keep
     // reading the canonical enum literal (`test.status`) — only the
     // rendered text node carries the friendly label.
-    const badgeLabel = test.status === "WAITING" ? "Waiting for user input" : test.status || "UNKNOWN";
+    const badgeLabel =
+      test.status === "WAITING" ? "Waiting for user input" : test.status || "UNKNOWN";
 
     return html`
       <div class="cts-rtc-card" data-instance-id="${test._id}">

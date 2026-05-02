@@ -106,12 +106,7 @@ export const Empty = {
     ${PAGE_STYLES}
     <main id="viewRunningTestPage" class="oidf-running-tests-page">
       <cts-page-head title="Running tests">
-        <cts-button
-          slot="actions"
-          id="refresh"
-          icon="arrow-reload-02"
-          label="Refresh"
-        ></cts-button>
+        <cts-button slot="actions" id="refresh" icon="arrow-reload-02" label="Refresh"></cts-button>
       </cts-page-head>
 
       <div id="running-tests" class="oidf-running-tests-list">

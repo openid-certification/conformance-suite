@@ -128,10 +128,7 @@ class CtsTabs extends HTMLElement {
     const tablist = document.createElement("ul");
     tablist.className = "oidf-tabs";
     tablist.setAttribute("role", "tablist");
-    tablist.setAttribute(
-      "aria-orientation",
-      this.getAttribute("aria-orientation") || "horizontal",
-    );
+    tablist.setAttribute("aria-orientation", this.getAttribute("aria-orientation") || "horizontal");
 
     // Forward the accessible name to the tablist and strip it from the host
     // so screen readers announce it once, on the role="tablist" element

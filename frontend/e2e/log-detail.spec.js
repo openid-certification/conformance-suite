@@ -699,9 +699,7 @@ test.describe("log-detail.html — new Lit-triad page", () => {
 
     // Navigate directly with the hash already on the URL so the viewer
     // reads window.location.hash inside its first-fetch finally block.
-    await page.goto(
-      `/log-detail.html?log=${encodeURIComponent(MOCK_TEST_STATUS.testId)}#LOG-0005`,
-    );
+    await page.goto(`/log-detail.html?log=${encodeURIComponent(MOCK_TEST_STATUS.testId)}#LOG-0005`);
 
     // The targeted entry must be visible (not still hidden under chrome).
     const target = page.locator("#LOG-0005");
@@ -733,9 +731,7 @@ test.describe("log-detail.html — new Lit-triad page", () => {
     const errors = [];
     page.on("pageerror", (err) => errors.push(err.message));
 
-    await page.goto(
-      `/log-detail.html?log=${encodeURIComponent(MOCK_TEST_STATUS.testId)}#LOG-9999`,
-    );
+    await page.goto(`/log-detail.html?log=${encodeURIComponent(MOCK_TEST_STATUS.testId)}#LOG-9999`);
     // First entry still renders normally; the page recovers gracefully.
     await expect(page.locator("cts-log-entry").first()).toBeAttached();
     expect(errors).toHaveLength(0);
@@ -1124,9 +1120,7 @@ test.describe("log-detail.html — new Lit-triad page", () => {
     expect(post).toEqual({ bad_response_type: "PasswordCredential" });
   });
 
-  test("INTERRUPTED runner error renders danger alert with stacktrace toggle", async ({
-    page,
-  }) => {
+  test("INTERRUPTED runner error renders danger alert with stacktrace toggle", async ({ page }) => {
     await setupFailFast(page);
     const testIdLocal = MOCK_TEST_RUNNING.testId;
 

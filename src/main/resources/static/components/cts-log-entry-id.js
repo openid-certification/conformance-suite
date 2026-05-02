@@ -168,7 +168,8 @@ class CtsLogEntryId extends LitElement {
         @cts-badge-click=${this._handleClick}
         @contextmenu=${this._handleContextMenu}
         >${this.referenceId}</cts-badge
-      ></cts-tooltip>`;
+      ></cts-tooltip
+    >`;
   }
 }
 
