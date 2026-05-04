@@ -2,7 +2,6 @@ package net.openid.conformance.condition.as;
 
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.util.Base64;
-import com.nimbusds.jose.util.X509CertUtils;
 import com.nimbusds.jwt.SignedJWT;
 import net.openid.conformance.condition.AbstractValidateX5cCertificateChain;
 import net.openid.conformance.condition.PostEnvironment;
@@ -34,7 +33,7 @@ public class ValidateRequestObjectSignatureAgainstX5cHeader extends AbstractVali
 			List<X509Certificate> certs = parseX5cCertificatesFromNimbusBase64(x5c);
 
 			String trustAnchorPem = env.getString("client_request_object_trust_anchor_pem");
-			X509Certificate trustAnchor = trustAnchorPem != null ? X509CertUtils.parse(trustAnchorPem) : null;
+			X509Certificate trustAnchor = parseTrustAnchorPem(trustAnchorPem);
 			validateX5cCertificateChain(certs, trustAnchor);
 
 			// Check request_object_signing_alg if configured
