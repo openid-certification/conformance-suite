@@ -233,8 +233,11 @@ import net.openid.conformance.vci10wallet.condition.VCIPreparePreAuthorizationCo
 import net.openid.conformance.vci10wallet.condition.VCIResolveRequestedCredentialConfigurationFromRequest;
 import net.openid.conformance.vci10wallet.condition.VCIValidateAttestedKeysInKeyAttestationFromJwtProof;
 import net.openid.conformance.vci10wallet.condition.EnsureKeyAttestationAlgIsES256;
+import net.openid.conformance.vci10wallet.condition.EnsureKeyAttestationExpIsPresentForJwtProof;
 import net.openid.conformance.vci10wallet.condition.EnsureKeyAttestationHasX5cClaim;
 import net.openid.conformance.vci10wallet.condition.EnsureKeyAttestationTypIsKeyAttestationJwt;
+import net.openid.conformance.vci10wallet.condition.ValidateKeyAttestationExp;
+import net.openid.conformance.vci10wallet.condition.ValidateKeyAttestationIat;
 import net.openid.conformance.vci10wallet.condition.ValidateKeyAttestationNonce;
 import net.openid.conformance.vci10wallet.condition.ValidateKeyAttestationX5cCertificateChain;
 import net.openid.conformance.vci10wallet.condition.VCIValidateCredentialRequestAttestationProof;
@@ -1521,6 +1524,22 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 			if (errorResponse != null) {
 				return errorResponse;
 			}
+		}
+		errorResponse = callAndContinueOnFailureOrReturnErrorResponse(ValidateKeyAttestationIat.class, ConditionResult.FAILURE, "OID4VCI-1FINALA-D.1");
+		if (errorResponse != null) {
+			return errorResponse;
+		}
+		// OID4VCI Appendix D.1: 'exp' MUST be present when the attestation is used with the
+		// JWT proof type (i.e., the nested case).
+		if (Boolean.TRUE.equals(env.getBoolean("has_nested_key_attestation"))) {
+			errorResponse = callAndContinueOnFailureOrReturnErrorResponse(EnsureKeyAttestationExpIsPresentForJwtProof.class, ConditionResult.FAILURE, "OID4VCI-1FINALA-D.1");
+			if (errorResponse != null) {
+				return errorResponse;
+			}
+		}
+		errorResponse = callAndContinueOnFailureOrReturnErrorResponse(ValidateKeyAttestationExp.class, ConditionResult.FAILURE, "OID4VCI-1FINALA-D.1");
+		if (errorResponse != null) {
+			return errorResponse;
 		}
 		return callAndContinueOnFailureOrReturnErrorResponse(ValidateKeyAttestationNonce.class, ConditionResult.FAILURE, "OID4VCI-1FINALA-F.3");
 	}
