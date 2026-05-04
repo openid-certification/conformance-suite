@@ -16,7 +16,6 @@ public class CreateAuthzenApiEndpointRequestSearchPage extends CreateAuthzenApiE
 	@PreEnvironment(required = "authzen_api_endpoint_request")
 	public Environment evaluate(Environment env) {
 		JsonObject page = createAuthzenApiEndpointRequestParameter(env).getAsJsonObject();
-		JsonObject request = env.getObject("authzen_api_endpoint_request");
 
 		// Set page.token from env if it's not set
 		// token in the initial paginated request should not be set since no token exist yet
@@ -24,6 +23,13 @@ public class CreateAuthzenApiEndpointRequestSearchPage extends CreateAuthzenApiE
 			page.addProperty("token", env.getString("authzen_search_endpoint_request_page_token"));
 		}
 
+		if (page.size() == 0) {
+			// Nothing to add — the test supplied no page parameters and no page token is in env
+			log("No Search API page parameters to add to request");
+			return env;
+		}
+
+		JsonObject request = env.getObject("authzen_api_endpoint_request");
 		request.add("page", page);
 		logSuccess("Created Search API page parameter", args(requestParameterName, page));
 		return env;

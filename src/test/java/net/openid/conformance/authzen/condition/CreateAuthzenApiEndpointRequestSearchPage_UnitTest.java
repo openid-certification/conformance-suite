@@ -80,11 +80,39 @@ class CreateAuthzenApiEndpointRequestSearchPage_UnitTest {
 	}
 
 	@Test
+	public void emptyPageAndNoEnvToken_doesNotAddPageToRequest() {
+		cond("""
+			{
+			}""").execute(env);
+
+		assertFalse(env.getObject("authzen_api_endpoint_request").has("page"),
+			"page should not be added to request when neither payload nor env supplies a value");
+	}
+
+	@Test
+	public void nullPageParameterAndNoEnvToken_doesNotAddPageToRequest() {
+		cond(null).execute(env);
+
+		assertFalse(env.getObject("authzen_api_endpoint_request").has("page"));
+	}
+
+	@Test
+	public void nullPageParameterButEnvTokenSet_addsPageWithToken() {
+		env.putString("authzen_search_endpoint_request_page_token", "ENV-TOKEN");
+
+		cond(null).execute(env);
+
+		JsonObject page = pageInRequest();
+		assertEquals("ENV-TOKEN", OIDFJSON.getString(page.get("token")));
+	}
+
+	@Test
 	public void emptyEnvToken_doesNotAddToken() {
 		env.putString("authzen_search_endpoint_request_page_token", "");
 
 		cond("""
 			{
+				"limit": 5
 			}""").execute(env);
 
 		assertFalse(pageInRequest().has("token"));
