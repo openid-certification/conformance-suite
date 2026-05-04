@@ -1,5 +1,6 @@
 package net.openid.conformance.vci10wallet.condition;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.nimbusds.jose.JOSEObjectType;
@@ -50,9 +51,17 @@ public class VerifyKeyAttestationSignatureUsingConfigJwks_UnitTest {
 	}
 
 	private void putKeyAttestationJwt(String rawJwt) {
+		putKeyAttestationJwt(rawJwt, null);
+	}
+
+	private void putKeyAttestationJwt(String rawJwt, JsonArray x5c) {
+		JsonObject header = new JsonObject();
+		if (x5c != null) {
+			header.add("x5c", x5c);
+		}
 		JsonObject keyAttestationJwt = new JsonObject();
 		keyAttestationJwt.addProperty("value", rawJwt);
-		keyAttestationJwt.add("header", new JsonObject());
+		keyAttestationJwt.add("header", header);
 		env.putObject("vci", "key_attestation_jwt", keyAttestationJwt);
 	}
 
@@ -67,9 +76,10 @@ public class VerifyKeyAttestationSignatureUsingConfigJwks_UnitTest {
 	}
 
 	@Test
-	public void skipsWhenSignatureAlreadyVerified() {
-		putKeyAttestationJwt("ignored");
-		env.putBoolean("key_attestation_signature_verified", true);
+	public void skipsWhenJwtHasX5cHeader() {
+		JsonArray x5c = new JsonArray();
+		x5c.add("ignored-cert");
+		putKeyAttestationJwt("ignored", x5c);
 
 		assertDoesNotThrow(() -> cond.execute(env));
 	}
@@ -85,7 +95,6 @@ public class VerifyKeyAttestationSignatureUsingConfigJwks_UnitTest {
 		putConfiguredJwks(signingKey.toPublicJWK());
 
 		assertDoesNotThrow(() -> cond.execute(env));
-		assertTrue(env.getBoolean("key_attestation_signature_verified"));
 	}
 
 	@Test

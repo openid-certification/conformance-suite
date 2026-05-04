@@ -25,9 +25,9 @@ import java.text.ParseException;
  * Non-HAIP fallback signature verification for key attestation JWTs that arrive without
  * an x5c JOSE header. Uses the configured {@code vci.key_attestation_jwks} JWKS.
  *
- * Skips silently when the signature has already been verified by
- * {@link ValidateKeyAttestationX5cCertificateChain} (which sets
- * {@code key_attestation_signature_verified=true} in env).
+ * Skips silently when the JWT carries an x5c header — that case is handled by
+ * {@link ValidateKeyAttestationX5cCertificateChain}, which verifies the signature against
+ * the leaf certificate's public key.
  */
 public class VerifyKeyAttestationSignatureUsingConfigJwks extends AbstractCondition {
 
@@ -35,13 +35,14 @@ public class VerifyKeyAttestationSignatureUsingConfigJwks extends AbstractCondit
 	@PreEnvironment(required = "vci")
 	public Environment evaluate(Environment env) {
 
-		Boolean alreadyVerified = env.getBoolean("key_attestation_signature_verified");
-		if (Boolean.TRUE.equals(alreadyVerified)) {
-			log("Key attestation signature already verified using x5c leaf certificate, skipping JWKS fallback");
+		JsonObject keyAttestationJwt = env.getElementFromObject("vci", "key_attestation_jwt").getAsJsonObject();
+		JsonObject header = keyAttestationJwt.getAsJsonObject("header");
+		JsonElement x5cEl = header != null ? header.get("x5c") : null;
+		if (x5cEl != null && x5cEl.isJsonArray() && !x5cEl.getAsJsonArray().isEmpty()) {
+			log("Key attestation has x5c header — signature was verified against leaf certificate, skipping JWKS fallback");
 			return env;
 		}
 
-		JsonObject keyAttestationJwt = env.getElementFromObject("vci", "key_attestation_jwt").getAsJsonObject();
 		String rawJwt = OIDFJSON.getString(keyAttestationJwt.get("value"));
 
 		JsonElement keyAttestationJwksEl = env.getElementFromObject("config", "vci.key_attestation_jwks");
@@ -78,7 +79,6 @@ public class VerifyKeyAttestationSignatureUsingConfigJwks extends AbstractCondit
 			throw error(errorDescription, e);
 		}
 
-		env.putBoolean("key_attestation_signature_verified", true);
 		logSuccess("Verified key attestation JWT signature using the configured JWKS");
 		return env;
 	}
