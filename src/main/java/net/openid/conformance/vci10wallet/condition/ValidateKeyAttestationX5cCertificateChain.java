@@ -2,7 +2,6 @@ package net.openid.conformance.vci10wallet.condition;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.nimbusds.jose.util.X509CertUtils;
 import net.openid.conformance.condition.AbstractValidateX5cCertificateChain;
 import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.condition.PreEnvironment;
@@ -47,7 +46,7 @@ public class ValidateKeyAttestationX5cCertificateChain extends AbstractValidateX
 			List<X509Certificate> certs = parseX5cCertificatesFromStrings(x5c);
 
 			String trustAnchorPem = env.getString("vci", "key_attestation_trust_anchor_pem");
-			X509Certificate trustAnchorCert = trustAnchorPem != null ? X509CertUtils.parse(trustAnchorPem) : null;
+			X509Certificate trustAnchorCert = parseTrustAnchorPem(trustAnchorPem);
 
 			validateX5cCertificateChain(certs, trustAnchorCert);
 			verifyJwtSignatureWithX5cLeafCert(rawJwt, certs);
@@ -60,7 +59,7 @@ public class ValidateKeyAttestationX5cCertificateChain extends AbstractValidateX
 			return env;
 		} catch (ConditionError e) {
 			VCICredentialErrorResponseUtil.updateCredentialErrorResponseInEnv(env, VciErrorCode.INVALID_PROOF,
-				"Key attestation x5c certificate chain validation failed");
+				"Key attestation x5c validation failed: " + e.getMessage());
 			throw e;
 		}
 	}

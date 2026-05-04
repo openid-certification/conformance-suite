@@ -128,6 +128,40 @@ public class ValidateKeyAttestationX5cCertificateChain_UnitTest {
 		assertEquals("invalid_proof", env.getString("vci", "credential_error_response.body.error"));
 	}
 
+	@Test
+	public void pkixMode_passesWhenLeafIsSignedByConfiguredTrustAnchor() throws Exception {
+		KeyPair leafKeyPair = generateEcKeyPair();
+		KeyPair rootKeyPair = generateEcKeyPair();
+		X509Certificate rootCert = signCert("CN=Root", rootKeyPair, "CN=Root", rootKeyPair);
+		X509Certificate leafCert = signCert("CN=Leaf", leafKeyPair, "CN=Root", rootKeyPair);
+		String jwt = signJwtWithEcPrivateKey(leafKeyPair);
+
+		JsonArray x5c = new JsonArray();
+		x5c.add(toBase64(leafCert));
+		putKeyAttestationJwt(jwt, x5c);
+		env.putString("vci", "key_attestation_trust_anchor_pem", toPem(rootCert));
+
+		assertDoesNotThrow(() -> cond.execute(env));
+	}
+
+	@Test
+	public void pkixMode_failsWhenChainDoesNotTraceToConfiguredTrustAnchor() throws Exception {
+		KeyPair leafKeyPair = generateEcKeyPair();
+		KeyPair signingRootKeyPair = generateEcKeyPair();
+		KeyPair otherRootKeyPair = generateEcKeyPair();
+		X509Certificate otherRootCert = signCert("CN=OtherRoot", otherRootKeyPair, "CN=OtherRoot", otherRootKeyPair);
+		X509Certificate leafCert = signCert("CN=Leaf", leafKeyPair, "CN=Root", signingRootKeyPair);
+		String jwt = signJwtWithEcPrivateKey(leafKeyPair);
+
+		JsonArray x5c = new JsonArray();
+		x5c.add(toBase64(leafCert));
+		putKeyAttestationJwt(jwt, x5c);
+		env.putString("vci", "key_attestation_trust_anchor_pem", toPem(otherRootCert));
+
+		assertThrows(ConditionError.class, () -> cond.execute(env));
+		assertEquals("invalid_proof", env.getString("vci", "credential_error_response.body.error"));
+	}
+
 	private static KeyPair generateEcKeyPair() throws Exception {
 		KeyPairGenerator kpg = KeyPairGenerator.getInstance("EC", "BC");
 		kpg.initialize(256);
@@ -150,6 +184,11 @@ public class ValidateKeyAttestationX5cCertificateChain_UnitTest {
 
 	private static String toBase64(X509Certificate cert) throws Exception {
 		return java.util.Base64.getEncoder().encodeToString(cert.getEncoded());
+	}
+
+	private static String toPem(X509Certificate cert) throws Exception {
+		String base64 = java.util.Base64.getMimeEncoder(64, "\n".getBytes()).encodeToString(cert.getEncoded());
+		return "-----BEGIN CERTIFICATE-----\n" + base64 + "\n-----END CERTIFICATE-----\n";
 	}
 
 	private static String signJwtWithEcPrivateKey(KeyPair keyPair) throws Exception {
