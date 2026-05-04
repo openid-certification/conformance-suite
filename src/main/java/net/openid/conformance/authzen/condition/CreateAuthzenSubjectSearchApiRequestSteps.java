@@ -28,8 +28,6 @@ public class CreateAuthzenSubjectSearchApiRequestSteps extends AbstractCondition
 		if(null != context) {
 			callAndStopOnFailure(new CreateAuthzenApiEndpointRequestContext(context), "AUTHZEN-5.4", "AUTHZEN-8.4.1");
 		}
-		if(null != page) {
-			callAndStopOnFailure(new CreateAuthzenApiEndpointRequestSearchPage(page), "AUTHZEN-8.2.1", "AUTHZEN-8.4.1");
-		}
+		callAndStopOnFailure(new CreateAuthzenApiEndpointRequestSearchPage(page), "AUTHZEN-8.2.1", "AUTHZEN-8.4.1");
 	}
 }
