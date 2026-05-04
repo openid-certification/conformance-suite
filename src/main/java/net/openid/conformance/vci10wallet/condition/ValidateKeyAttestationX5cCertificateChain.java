@@ -23,14 +23,7 @@ import java.util.List;
  * in one condition prevents the "split key" gap where the JWT was signed by one key but
  * the x5c chain happened to validate independently.
  *
- * Skips silently when x5c is absent. The HAIP-mandatory case is enforced by
- * {@link EnsureKeyAttestationHasX5cClaim} which is wired before this condition under HAIP.
- * The non-HAIP-x5c-absent case is handled by
- * {@link VerifyKeyAttestationSignatureUsingConfigJwks} which is wired after this condition
- * for non-HAIP plans.
- *
- * On success, sets {@code key_attestation_signature_verified = true} in env so the
- * JWKS fallback knows it can skip.
+ * Skips silently when x5c is absent.
  */
 public class ValidateKeyAttestationX5cCertificateChain extends AbstractValidateX5cCertificateChain {
 
@@ -58,8 +51,6 @@ public class ValidateKeyAttestationX5cCertificateChain extends AbstractValidateX
 
 			validateX5cCertificateChain(certs, trustAnchorCert);
 			verifyJwtSignatureWithX5cLeafCert(rawJwt, certs);
-
-			env.putBoolean("key_attestation_signature_verified", true);
 
 			logSuccess("Validated key attestation x5c certificate chain and signature",
 				args("x5c", x5c,

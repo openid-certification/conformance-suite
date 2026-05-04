@@ -1323,11 +1323,15 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 
 		call(exec().mapKey("incoming_request", requestId));
 
-		// Clear any credential error response from previous requests to ensure clean state
+		// Clear per-request state from any previous credential request, so a stale
+		// key attestation or has_nested_key_attestation flag from a prior request
+		// can't leak into the current one's validation.
 		JsonObject vci = env.getObject("vci");
 		if (vci != null) {
 			vci.remove("credential_error_response");
+			vci.remove("key_attestation_jwt");
 		}
+		env.removeNativeValue("has_nested_key_attestation");
 
 		ResponseEntity<?> errorResponse = checkResourceEndpointRequest(false);
 		if (errorResponse != null) {
@@ -1380,6 +1384,12 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 				if (errorResponse != null) {
 					return errorResponse;
 				}
+				if (Boolean.TRUE.equals(env.getBoolean("has_nested_key_attestation"))) {
+					errorResponse = validateKeyAttestationJwt();
+					if (errorResponse != null) {
+						return errorResponse;
+					}
+				}
 				errorResponse = callAndContinueOnFailureOrReturnErrorResponse(VCIValidateAttestedKeysInKeyAttestationFromJwtProof.class, ConditionResult.FAILURE, "OID4VCI-1FINALA-F.1", "OID4VCI-1FINALA-F.4");
 			} else if ("attestation".equals(proofType)) {
 				// Parse JWT and store in env at vci.key_attestation_jwt (value, header, claims)
@@ -1387,39 +1397,7 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 				if (errorResponse != null) {
 					return errorResponse;
 				}
-				// Structural JWT header checks
-				errorResponse = callAndContinueOnFailureOrReturnErrorResponse(EnsureKeyAttestationTypIsKeyAttestationJwt.class, ConditionResult.FAILURE, "OID4VCI-1FINALA-D.1");
-				if (errorResponse != null) {
-					return errorResponse;
-				}
-				// HAIP §4.5.1 mandates ES256 for key attestations; OID4VCI Appendix D.1 does not
-				// constrain the algorithm, so this check is wired only for HAIP.
-				if (fapi2Profile == FAPI2FinalOPProfile.VCI_HAIP) {
-					errorResponse = callAndContinueOnFailureOrReturnErrorResponse(EnsureKeyAttestationAlgIsES256.class, ConditionResult.FAILURE, "HAIP-4.5.1");
-					if (errorResponse != null) {
-						return errorResponse;
-					}
-					errorResponse = callAndContinueOnFailureOrReturnErrorResponse(EnsureKeyAttestationHasX5cClaim.class, ConditionResult.FAILURE, "HAIP-4.5.1");
-					if (errorResponse != null) {
-						return errorResponse;
-					}
-				}
-				// When x5c is present: validate chain AND verify JWT signature against the leaf cert.
-				// When x5c is absent (non-HAIP): silently skips; signature verification is handled
-				// by VerifyKeyAttestationSignatureUsingConfigJwks below.
-				errorResponse = callAndContinueOnFailureOrReturnErrorResponse(ValidateKeyAttestationX5cCertificateChain.class, ConditionResult.FAILURE, "HAIP-4.5.1");
-				if (errorResponse != null) {
-					return errorResponse;
-				}
-				// Non-HAIP fallback: when x5c is absent, verify signature using configured JWKS.
-				if (fapi2Profile != FAPI2FinalOPProfile.VCI_HAIP) {
-					errorResponse = callAndContinueOnFailureOrReturnErrorResponse(VerifyKeyAttestationSignatureUsingConfigJwks.class, ConditionResult.FAILURE, "OID4VCI-1FINALA-F.3");
-					if (errorResponse != null) {
-						return errorResponse;
-					}
-				}
-				// Validate claims (nonce) — runs last, after signature verification
-				errorResponse = callAndContinueOnFailureOrReturnErrorResponse(ValidateKeyAttestationNonce.class, ConditionResult.FAILURE, "OID4VCI-1FINALA-F.3");
+				errorResponse = validateKeyAttestationJwt();
 				if (errorResponse != null) {
 					return errorResponse;
 				}
@@ -1508,6 +1486,43 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 			return createCredentialEndpointErrorResponse(credentialEndpointResponseBody);
 		}
 		return null;
+	}
+
+	/**
+	 * Runs the structural / signature / claim checks against a key attestation JWT that is
+	 * already parsed and stored at env path {@code vci.key_attestation_jwt}. Used both for
+	 * the standalone {@code proof_type=attestation} flow and for nested key attestations
+	 * carried in a {@code proof_type=jwt} proof's JOSE header.
+	 */
+	protected ResponseEntity<?> validateKeyAttestationJwt() {
+		ResponseEntity<?> errorResponse = callAndContinueOnFailureOrReturnErrorResponse(EnsureKeyAttestationTypIsKeyAttestationJwt.class, ConditionResult.FAILURE, "OID4VCI-1FINALA-D.1");
+		if (errorResponse != null) {
+			return errorResponse;
+		}
+		// HAIP §4.5.1 mandates ES256 for key attestations; OID4VCI Appendix D.1 does not
+		// constrain the algorithm, so this check is wired only for HAIP.
+		if (fapi2Profile == FAPI2FinalOPProfile.VCI_HAIP) {
+			errorResponse = callAndContinueOnFailureOrReturnErrorResponse(EnsureKeyAttestationAlgIsES256.class, ConditionResult.FAILURE, "HAIP-4.5.1");
+			if (errorResponse != null) {
+				return errorResponse;
+			}
+			errorResponse = callAndContinueOnFailureOrReturnErrorResponse(EnsureKeyAttestationHasX5cClaim.class, ConditionResult.FAILURE, "HAIP-4.5.1");
+			if (errorResponse != null) {
+				return errorResponse;
+			}
+		}
+		errorResponse = callAndContinueOnFailureOrReturnErrorResponse(ValidateKeyAttestationX5cCertificateChain.class, ConditionResult.FAILURE, "HAIP-4.5.1");
+		if (errorResponse != null) {
+			return errorResponse;
+		}
+		// Non-HAIP fallback: when x5c is absent, verify signature using configured JWKS.
+		if (fapi2Profile != FAPI2FinalOPProfile.VCI_HAIP) {
+			errorResponse = callAndContinueOnFailureOrReturnErrorResponse(VerifyKeyAttestationSignatureUsingConfigJwks.class, ConditionResult.FAILURE, "OID4VCI-1FINALA-F.3");
+			if (errorResponse != null) {
+				return errorResponse;
+			}
+		}
+		return callAndContinueOnFailureOrReturnErrorResponse(ValidateKeyAttestationNonce.class, ConditionResult.FAILURE, "OID4VCI-1FINALA-F.3");
 	}
 
 	/**

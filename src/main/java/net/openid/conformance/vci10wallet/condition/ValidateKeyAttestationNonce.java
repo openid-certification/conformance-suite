@@ -11,8 +11,7 @@ import net.openid.conformance.vci10issuer.util.VCICredentialErrorResponseUtil;
 
 /**
  * Validates the nonce claim in a key attestation JWT against any c_nonce that was issued
- * via the credential nonce endpoint. Replays the previous inline behaviour from
- * VCIValidateCredentialRequestAttestationProof.checkNonceIfNecessary.
+ * via the credential nonce endpoint.
  *
  * Removes {@code credential_nonce_response} from env on success so a single c_nonce can
  * only be used once.

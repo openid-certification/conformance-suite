@@ -41,9 +41,7 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @ExtendWith(MockitoExtension.class)
 public class ValidateKeyAttestationX5cCertificateChain_UnitTest {
@@ -80,7 +78,6 @@ public class ValidateKeyAttestationX5cCertificateChain_UnitTest {
 		putKeyAttestationJwt("ignored.jwt.value", null);
 
 		assertDoesNotThrow(() -> cond.execute(env));
-		assertNull(env.getBoolean("key_attestation_signature_verified"), "x5c-absent skip should not set the signature_verified flag");
 	}
 
 	@Test
@@ -88,7 +85,6 @@ public class ValidateKeyAttestationX5cCertificateChain_UnitTest {
 		putKeyAttestationJwt("ignored.jwt.value", new JsonArray());
 
 		assertDoesNotThrow(() -> cond.execute(env));
-		assertNull(env.getBoolean("key_attestation_signature_verified"), "x5c-absent skip should not set the signature_verified flag");
 	}
 
 	@Test
@@ -113,7 +109,6 @@ public class ValidateKeyAttestationX5cCertificateChain_UnitTest {
 		putKeyAttestationJwt(jwt, x5c);
 
 		assertDoesNotThrow(() -> cond.execute(env));
-		assertTrue(env.getBoolean("key_attestation_signature_verified"));
 	}
 
 	@Test
