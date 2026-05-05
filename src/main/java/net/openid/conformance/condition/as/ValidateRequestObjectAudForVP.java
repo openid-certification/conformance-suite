@@ -25,28 +25,29 @@ public class ValidateRequestObjectAudForVP extends AbstractCondition {
 	@PreEnvironment(required = { "authorization_request_object", "server" })
 	public Environment evaluate(Environment env) {
 		JsonElement aud = env.getElementFromObject("authorization_request_object", "claims.aud");
-		if (aud == null) {
-			throw error("Missing aud claim in request object");
-		}
-
 		String walletIssuer = env.getString("server", "issuer");
+		if (aud == null) {
+			throw error("Missing aud claim in request object",
+				args("expected_self_issued", SELF_ISSUED_V2, "expected_wallet_issuer", walletIssuer));
+		}
 
 		if (aud.isJsonArray()) {
 			boolean hasSelfIssued = aud.getAsJsonArray().contains(new JsonPrimitive(SELF_ISSUED_V2));
 			boolean hasWalletIssuer = walletIssuer != null && aud.getAsJsonArray().contains(new JsonPrimitive(walletIssuer));
 			if (!hasSelfIssued && !hasWalletIssuer) {
 				throw error("aud claim array does not contain either 'https://self-issued.me/v2' or the wallet's issuer URL",
-					args("aud", aud, "wallet_issuer", walletIssuer));
+					args("aud", aud, "expected_self_issued", SELF_ISSUED_V2, "expected_wallet_issuer", walletIssuer));
 			}
 		} else {
 			String audStr = OIDFJSON.getString(aud);
 			if (!SELF_ISSUED_V2.equals(audStr) && !audStr.equals(walletIssuer)) {
 				throw error("aud claim does not match 'https://self-issued.me/v2' or the wallet's issuer URL",
-					args("aud", aud, "wallet_issuer", walletIssuer));
+					args("aud", aud, "expected_self_issued", SELF_ISSUED_V2, "expected_wallet_issuer", walletIssuer));
 			}
 		}
 
-		logSuccess("Request object aud claim is valid", args("aud", aud));
+		logSuccess("Request object aud claim is valid",
+			args("aud", aud, "expected_self_issued", SELF_ISSUED_V2, "expected_wallet_issuer", walletIssuer));
 		return env;
 	}
 }
