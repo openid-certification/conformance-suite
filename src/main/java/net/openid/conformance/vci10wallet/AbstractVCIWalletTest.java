@@ -1706,9 +1706,20 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 			return errorResponse;
 		}
 
-		// Decrypt the deferred credential request JWE if encryption is enabled
+		// Decrypt the deferred credential request JWE if encryption is enabled. § 9.1 carries
+		// the same encryption preconditions as § 8.2 (encryption_required at the issuer level,
+		// and credential_response_encryption in the request body forcing the request to be
+		// encrypted), so the same dedicated checks run before VCIDecryptCredentialRequest.
 		if (vciCredentialEncryption == VCICredentialEncryption.ENCRYPTED) {
-			errorResponse = callAndContinueOnFailureOrReturnErrorResponse(VCIDecryptCredentialRequest.class, ConditionResult.FAILURE, "OID4VCI-1FINAL-10", "OID4VCI-1FINAL-9.1");
+			errorResponse = callAndContinueOnFailureOrReturnErrorResponse(VCIEnsureCredentialRequestUsesApplicationJwtIfIssuerRequiresEncryption.class, ConditionResult.FAILURE, "OID4VCI-1FINAL-9.1", "OID4VCI-1FINAL-10-2");
+			if (errorResponse != null) {
+				return errorResponse;
+			}
+			errorResponse = callAndContinueOnFailureOrReturnErrorResponse(VCIEnsureCredentialRequestEncryptedIfResponseEncryptionRequested.class, ConditionResult.FAILURE, "OID4VCI-1FINAL-9.1", "OID4VCI-1FINAL-10-2");
+			if (errorResponse != null) {
+				return errorResponse;
+			}
+			errorResponse = callAndContinueOnFailureOrReturnErrorResponse(VCIDecryptCredentialRequest.class, ConditionResult.FAILURE, "OID4VCI-1FINAL-10-2", "OID4VCI-1FINAL-9.1");
 			if (errorResponse != null) {
 				return errorResponse;
 			}
