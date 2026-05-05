@@ -32,11 +32,10 @@ public class OpenBankingBrazilCibaServerProfileBehavior extends FAPICIBAServerPr
 		return () -> {
 			boolean isSecondClient = module.isSecondClient();
 			boolean isDpop = false;
-			boolean isBrazilOpenInsurance = false;
 			boolean stopAfterConsentEndpoint = false;
 			boolean payments = false;
 			return new OpenBankingBrazilPreAuthorizationSteps(
-				isSecondClient, isDpop, module.addTokenEndpointClientAuthentication, payments, isBrazilOpenInsurance, stopAfterConsentEndpoint, false
+				isSecondClient, isDpop, module.addTokenEndpointClientAuthentication, payments, false, stopAfterConsentEndpoint, false
 			);
 		};
 	}
