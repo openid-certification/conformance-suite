@@ -39,7 +39,10 @@ import net.openid.conformance.variant.VariantSetup;
 	testName = "fapi-ciba-id1",
 	displayName = "FAPI-CIBA-ID1: Two client test",
 	summary = "This test requires two different clients registered under the FAPI-CIBA profile. The test authenticates the user twice (using different variations on the authorization request etc), tests that certificate bound access tokens are implemented correctly. Do not respond to the request until the test enters the 'WAITING' state.",
-	profile = "FAPI-CIBA-ID1"
+	profile = "FAPI-CIBA-ID1",
+	configurationFields = {
+		"client2.acr_value"
+	}
 )
 
 public class FAPICIBAID1 extends AbstractFAPICIBAID1MultipleClient {
