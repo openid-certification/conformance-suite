@@ -117,6 +117,7 @@ import net.openid.conformance.condition.as.par.EnsureAuthorizationRequestContain
 import net.openid.conformance.condition.as.par.EnsureAuthorizationRequestDoesNotContainRequestWhenUsingPAR;
 import net.openid.conformance.condition.as.par.EnsureRequestObjectContainsCodeChallengeWhenUsingPAR;
 import net.openid.conformance.condition.as.par.ExtractRequestObjectFromPAREndpointRequest;
+import net.openid.conformance.condition.client.AbstractCheckEndpointContentTypeReturned;
 import net.openid.conformance.condition.client.EnsureIncomingRequestBodyIsEmpty;
 import net.openid.conformance.condition.client.EnsureIncomingUrlQueryIsEmpty;
 import net.openid.conformance.condition.client.AugmentRealJwksWithDecoys;
@@ -221,6 +222,8 @@ import net.openid.conformance.vci10wallet.condition.VCIEnsureBearerAccessTokenNo
 import net.openid.conformance.vci10wallet.condition.VCIEnsureCredentialSigningCertificateIsNotSelfSigned;
 import net.openid.conformance.vci10wallet.condition.VCIExtractCredentialRequestProof;
 import net.openid.conformance.vci10wallet.condition.VCIDecryptCredentialRequest;
+import net.openid.conformance.vci10wallet.condition.VCIEnsureCredentialRequestUsesApplicationJwtIfIssuerRequiresEncryption;
+import net.openid.conformance.vci10wallet.condition.VCIEnsureCredentialRequestEncryptedIfResponseEncryptionRequested;
 import net.openid.conformance.vci10wallet.condition.VCIGenerateCredentialRequestEncryptionJwks;
 import net.openid.conformance.vci10wallet.condition.VCIGenerateIssuerState;
 import net.openid.conformance.vci10wallet.condition.VCIGenerateSignedCredentialIssuerMetadata;
@@ -1353,7 +1356,30 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 
 		// Decrypt the credential request JWE if encryption is enabled
 		if (vciCredentialEncryption == VCICredentialEncryption.ENCRYPTED) {
-			errorResponse = callAndContinueOnFailureOrReturnErrorResponse(VCIDecryptCredentialRequest.class, ConditionResult.FAILURE, "OID4VCI-1FINAL-10", "OID4VCI-1FINAL-8.2");
+			// Per OID4VCI 1.0 Section 8.2, the wallet MAY send the credential request as plaintext
+			// when the issuer advertises credential_request_encryption.encryption_required=false
+			// (Section 8.2-9), and MUST encrypt only when the request body includes
+			// credential_response_encryption (Section 8.2-18). If neither condition applies there
+			// is nothing encryption-specific to validate against this wallet, so skip the test
+			// rather than failing with a misleading Section 8.2 violation.
+			if (shouldSkipDueToWalletNotUsingEncryption()) {
+				call(exec().unmapKey("incoming_request").endBlock());
+				fireTestSkipped("The wallet did not use credential request/response encryption. "
+					+ "The issuer advertised encryption with encryption_required=false, so per "
+					+ "OID4VCI 1.0 Section 8.2 the wallet was permitted to send a plaintext "
+					+ "credential request, but the encrypted variant of this test cannot be "
+					+ "evaluated against this wallet. Re-run with vci_credential_encryption=plain, "
+					+ "or use a wallet that supports credential request/response encryption.");
+			}
+			errorResponse = callAndContinueOnFailureOrReturnErrorResponse(VCIEnsureCredentialRequestUsesApplicationJwtIfIssuerRequiresEncryption.class, ConditionResult.FAILURE, "OID4VCI-1FINAL-8.2", "OID4VCI-1FINAL-10-2");
+			if (errorResponse != null) {
+				return errorResponse;
+			}
+			errorResponse = callAndContinueOnFailureOrReturnErrorResponse(VCIEnsureCredentialRequestEncryptedIfResponseEncryptionRequested.class, ConditionResult.FAILURE, "OID4VCI-1FINAL-8.2", "OID4VCI-1FINAL-10-2");
+			if (errorResponse != null) {
+				return errorResponse;
+			}
+			errorResponse = callAndContinueOnFailureOrReturnErrorResponse(VCIDecryptCredentialRequest.class, ConditionResult.FAILURE, "OID4VCI-1FINAL-10-2");
 			if (errorResponse != null) {
 				return errorResponse;
 			}
@@ -1479,6 +1505,46 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 			logPendingCredentialDelivery(responseStatus);
 		}
 		return new ResponseEntity<>(encryptedResponse, headers, responseStatus);
+	}
+
+	/**
+	 * Returns true if the encrypted variant of the test cannot be evaluated against the wallet
+	 * because the wallet sent a spec-compliant plaintext credential request and is not required
+	 * to encrypt. Concretely, the incoming credential request used Content-Type
+	 * application/json (the only Content-Type permitted for a plaintext request per Section
+	 * 8.2-11), the issuer's metadata does not set
+	 * credential_request_encryption.encryption_required=true, and the request body does not
+	 * include credential_response_encryption (which would trigger Section 8.2's MUST-encrypt
+	 * rule). A missing or unrecognized Content-Type does NOT trigger a skip — that is itself a
+	 * spec violation and is handled by the downstream decrypt condition.
+	 */
+	protected boolean shouldSkipDueToWalletNotUsingEncryption() {
+		return isCredentialRequestApplicationJson()
+			&& !isCredentialRequestEncryptionRequiredByIssuer()
+			&& !walletRequestedCredentialResponseEncryption();
+	}
+
+	protected boolean isCredentialRequestApplicationJson() {
+		String contentType = env.getString("incoming_request", "headers.content-type");
+		if (Strings.isNullOrEmpty(contentType)) {
+			return false;
+		}
+		String mimeType = AbstractCheckEndpointContentTypeReturned.getMimeTypeFromContentType(contentType);
+		return "application/json".equalsIgnoreCase(mimeType);
+	}
+
+	protected boolean isCredentialRequestEncryptionRequiredByIssuer() {
+		JsonElement el = env.getElementFromObject("credential_issuer_metadata",
+			"credential_request_encryption.encryption_required");
+		return el != null && el.isJsonPrimitive() && el.getAsJsonPrimitive().isBoolean()
+			&& OIDFJSON.getBoolean(el);
+	}
+
+	protected boolean walletRequestedCredentialResponseEncryption() {
+		JsonElement bodyJsonEl = env.getElementFromObject("incoming_request", "body_json");
+		return bodyJsonEl != null
+			&& bodyJsonEl.isJsonObject()
+			&& bodyJsonEl.getAsJsonObject().has("credential_response_encryption");
 	}
 
 	protected ResponseEntity<?> callAndContinueOnFailureOrReturnErrorResponse(Class<? extends AbstractCondition> conditionClass, ConditionResult conditionResult, String ... requirements) {

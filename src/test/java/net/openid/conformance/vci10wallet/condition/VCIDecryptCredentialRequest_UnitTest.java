@@ -1,7 +1,6 @@
 package net.openid.conformance.vci10wallet.condition;
 
 import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 import com.nimbusds.jose.EncryptionMethod;
 import com.nimbusds.jose.JWEAlgorithm;
 import com.nimbusds.jose.JWEHeader;
@@ -78,16 +77,6 @@ public class VCIDecryptCredentialRequest_UnitTest {
 	}
 
 	@Test
-	public void testEvaluate_decryptsValidJweWithCharsetParameter() throws Exception {
-		String plaintext = "{\"credential_configuration_id\":\"UniversityDegreeCredential\"}";
-		String jwe = encrypt(plaintext);
-
-		putIncomingRequest("application/jwt; charset=utf-8", jwe);
-
-		assertDoesNotThrow(() -> cond.execute(env));
-	}
-
-	@Test
 	public void testEvaluate_selectsMatchingKidFromMultiKeyJwks() throws Exception {
 		ECKey otherKey = new ECKeyGenerator(Curve.P_256)
 			.algorithm(JWEAlgorithm.ECDH_ES)
@@ -107,29 +96,7 @@ public class VCIDecryptCredentialRequest_UnitTest {
 	}
 
 	@Test
-	public void testEvaluate_failsWhenContentTypeMissing() {
-		putIncomingRequest(null, "irrelevant");
-		assertThrows(ConditionError.class, () -> cond.execute(env));
-	}
-
-	@Test
-	public void testEvaluate_failsWhenContentTypeIsApplicationJson() {
-		// An issuer test that forgets to encrypt would send application/json — we must reject,
-		// otherwise the test would silently appear to succeed.
-		putIncomingRequest("application/json", "{\"credential_configuration_id\":\"X\"}");
-		assertThrows(ConditionError.class, () -> cond.execute(env));
-	}
-
-	@Test
-	public void testEvaluate_failsWhenContentTypeIsApplicationJwtPlusJson() {
-		// application/jwt is the only permitted Content-Type; application/jwt+json (or any other
-		// suffixed variant) MUST be rejected.
-		putIncomingRequest("application/jwt+json", "irrelevant");
-		assertThrows(ConditionError.class, () -> cond.execute(env));
-	}
-
-	@Test
-	public void testEvaluate_failsOnEmptyBodyWithJwtContentType() {
+	public void testEvaluate_failsOnEmptyBody() {
 		putIncomingRequest("application/jwt", "");
 		assertThrows(ConditionError.class, () -> cond.execute(env));
 	}

@@ -12,7 +12,6 @@ import com.nimbusds.jose.jwk.JWKSet;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
-import net.openid.conformance.condition.client.AbstractCheckEndpointContentTypeReturned;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.util.JWEUtil;
 import net.openid.conformance.util.JWKUtil;
@@ -24,17 +23,17 @@ import java.text.ParseException;
 /**
  * Decrypts an encrypted credential request received at the (emulated) credential endpoint.
  *
- * Per OID4VCI 1.0 Final Section 10, when credential request encryption is in use, the wallet
- * POSTs the credential request as a JWE with Content-Type: application/jwt. This condition
- * decrypts the JWE with the private key from vci.credential_request_encryption_jwks and
- * replaces incoming_request.body / body_json with the decrypted JSON so that the rest of the
- * request validation can proceed unchanged.
+ * Per OID4VCI 1.0 Final Section 10, when credential request encryption is in use the wallet
+ * POSTs the credential request as a JWE with Content-Type {@code application/jwt}. This
+ * condition parses and decrypts the JWE with the private key from
+ * {@code vci.credential_request_encryption_jwks}, and replaces {@code incoming_request.body}
+ * / {@code body_json} with the decrypted JSON so subsequent request validation can proceed
+ * unchanged.
  *
- * The condition is only invoked when the test variant requires encryption (the credential
- * request also carries credential_response_encryption, so per Section 8.2 the request MUST
- * have been encrypted). It therefore fails the test if the incoming Content-Type is anything
- * other than application/jwt or if the body is not a valid JWE — silently letting an
- * unencrypted body through would let an issuer test pass without actually encrypting.
+ * <p>Content-Type and encryption-required preconditions are checked by dedicated conditions
+ * ({@link VCIEnsureCredentialRequestUsesApplicationJwtIfIssuerRequiresEncryption} for § 8.2-9
+ * and {@link VCIEnsureCredentialRequestEncryptedIfResponseEncryptionRequested} for § 8.2-18).
+ * The caller is expected to invoke those before this one.
  *
  * @see <a href="https://openid.net/specs/openid-4-verifiable-credential-issuance-1_0.html#section-10">OID4VCI Section 10 - Encrypted Credential Requests and Responses</a>
  */
@@ -44,23 +43,6 @@ public class VCIDecryptCredentialRequest extends AbstractCondition {
 	@PreEnvironment(required = {"incoming_request", "vci"})
 	@PostEnvironment(required = "incoming_request")
 	public Environment evaluate(Environment env) {
-
-		String contentType = env.getString("incoming_request", "headers.content-type");
-		if (contentType == null || contentType.isBlank()) {
-			String errorDescription = "Credential request is missing a Content-Type header; "
-				+ "an encrypted credential request MUST use Content-Type: application/jwt per OID4VCI 1.0 Section 10";
-			VCICredentialErrorResponseUtil.updateCredentialErrorResponseInEnv(env, VciErrorCode.INVALID_CREDENTIAL_REQUEST, errorDescription);
-			throw error(errorDescription);
-		}
-
-		String mimeType = AbstractCheckEndpointContentTypeReturned.getMimeTypeFromContentType(contentType);
-		if (!"application/jwt".equalsIgnoreCase(mimeType)) {
-			String errorDescription = "Credential request Content-Type is not application/jwt; "
-				+ "credential_response_encryption was requested so per OID4VCI 1.0 Section 8.2 "
-				+ "the credential request MUST be encrypted as a JWE with Content-Type: application/jwt";
-			VCICredentialErrorResponseUtil.updateCredentialErrorResponseInEnv(env, VciErrorCode.INVALID_CREDENTIAL_REQUEST, errorDescription);
-			throw error(errorDescription, args("content_type", contentType));
-		}
 
 		String body = env.getString("incoming_request", "body");
 		if (body == null || body.isBlank()) {
