@@ -18,4 +18,8 @@ public class FAPICIBAClientBackchannelResponseInvalidMissingExpiresInTest extend
 		return HttpStatus.OK;
 	}
 
+	@Override
+	protected void backchannelEndpointCallComplete() {
+		fireTestFinished();
+	}
 }
