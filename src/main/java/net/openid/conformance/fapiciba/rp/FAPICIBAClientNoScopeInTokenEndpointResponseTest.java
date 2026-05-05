@@ -3,6 +3,7 @@ package net.openid.conformance.fapiciba.rp;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.as.CreateTokenEndpointResponse;
 import net.openid.conformance.condition.as.RemoveAccessTokenExpiration;
+import net.openid.conformance.condition.as.RemoveScopeFromTokenEndpointResponse;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 /**
@@ -29,10 +30,8 @@ public class FAPICIBAClientNoScopeInTokenEndpointResponseTest extends AbstractFA
 
 	@Override
 	protected void createFinalTokenResponse() {
-		String scope = env.getString("scope");
-		env.removeNativeValue("scope");
 		callAndStopOnFailure(CreateTokenEndpointResponse.class);
-		env.putString("scope", scope);
+		callAndStopOnFailure(RemoveScopeFromTokenEndpointResponse.class);
 	}
 
 }
