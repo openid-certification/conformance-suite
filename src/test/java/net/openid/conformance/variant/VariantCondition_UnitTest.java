@@ -68,19 +68,29 @@ class VariantCondition_UnitTest {
 
 		List<Plan.Module> modules = haipPlan.getTestModulesForVariant(variant);
 
-		// dc_api.jwt has two entries: unsigned (web-origin) and signed (x509_san_dns)
-		// unsigned entry excludes InvalidRequestObjectSignature
-		Map<String, List<Plan.Module>> byPrefix = modules.stream()
-			.collect(Collectors.groupingBy(m -> m.getVariant().get("client_id_prefix")));
+		// dc_api.jwt has three entries — distinguished by request_method:
+		//   unsigned     (request_uri_unsigned,     web-origin)
+		//   signed       (request_uri_signed,       x509_hash)
+		//   multi-signed (request_uri_multisigned,  x509_hash)
+		Map<String, List<Plan.Module>> byRequestMethod = modules.stream()
+			.collect(Collectors.groupingBy(m -> m.getVariant().get("request_method")));
 
-		assertTrue(byPrefix.containsKey("web-origin"), "should have web-origin modules");
-		assertTrue(byPrefix.containsKey("x509_san_dns"), "should have x509_san_dns modules");
+		assertTrue(byRequestMethod.containsKey("request_uri_unsigned"), "should have unsigned modules");
+		assertTrue(byRequestMethod.containsKey("request_uri_signed"), "should have signed modules");
 
-		// web-origin entry uses request_uri_unsigned and therefore excludes
+		// All unsigned modules use web-origin; all signed modules use x509_hash (HAIP §5).
+		for (Plan.Module module : byRequestMethod.get("request_uri_unsigned")) {
+			assertEquals("web-origin", module.getVariant().get("client_id_prefix"));
+		}
+		for (Plan.Module module : byRequestMethod.get("request_uri_signed")) {
+			assertEquals("x509_hash", module.getVariant().get("client_id_prefix"));
+		}
+
+		// unsigned entry uses request_uri_unsigned and therefore excludes
 		// InvalidRequestObjectSignature and WrongExpectedOrigins (both @VariantNotApplicable
 		// for request_uri_unsigned). MismatchedClientIdInRequestObject is also excluded
 		// via @VariantNotApplicable for dc_api.jwt.
-		Set<String> webOriginModules = byPrefix.get("web-origin").stream()
+		Set<String> unsignedModules = byRequestMethod.get("request_uri_unsigned").stream()
 			.map(Plan.Module::getTestModule)
 			.collect(Collectors.toSet());
 		assertEquals(Set.of(
@@ -92,11 +102,11 @@ class VariantCondition_UnitTest {
 			"oid4vp-1final-wallet-negative-test-missing-nonce",
 			"oid4vp-1final-wallet-negative-test-invalid-client-id-prefix",
 			"oid4vp-1final-wallet-negative-test-unknown-transaction-data-type"
-		), webOriginModules);
+		), unsignedModules);
 
-		// x509_san_dns entry uses request_uri_signed and includes InvalidRequestObjectSignature.
+		// signed entry uses request_uri_signed and includes InvalidRequestObjectSignature.
 		// MismatchedClientIdInRequestObject is excluded via @VariantNotApplicable for dc_api.jwt.
-		Set<String> sanDnsModules = byPrefix.get("x509_san_dns").stream()
+		Set<String> signedModules = byRequestMethod.get("request_uri_signed").stream()
 			.map(Plan.Module::getTestModule)
 			.collect(Collectors.toSet());
 		assertEquals(Set.of(
@@ -110,7 +120,7 @@ class VariantCondition_UnitTest {
 			"oid4vp-1final-wallet-negative-test-invalid-client-id-prefix",
 			"oid4vp-1final-wallet-negative-test-wrong-expected-origins",
 			"oid4vp-1final-wallet-negative-test-unknown-transaction-data-type"
-		), sanDnsModules);
+		), signedModules);
 	}
 
 	@Test
