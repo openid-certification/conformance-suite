@@ -1,6 +1,8 @@
 package net.openid.conformance.fapiciba.rp;
 
 import net.openid.conformance.testmodule.PublishTestModule;
+import net.openid.conformance.variant.FAPICIBAProfile;
+import net.openid.conformance.variant.VariantNotApplicable;
 import org.springframework.http.HttpStatus;
 
 @PublishTestModule(
@@ -11,6 +13,7 @@ import org.springframework.http.HttpStatus;
 		"with error invalid_id_token_hint and not make further requests after that.",
 	profile = "FAPI-CIBA-ID1"
 )
+@VariantNotApplicable(parameter = FAPICIBAProfile.class, values = {"plain_fapi", "openbanking_uk", "connectid_au"})
 public class FAPICIBAClientBackchannelInvalidIdTokenHintTest extends AbstractFAPICIBAClientTest {
 
 	@Override

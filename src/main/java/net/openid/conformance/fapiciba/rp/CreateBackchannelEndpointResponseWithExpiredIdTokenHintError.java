@@ -3,7 +3,7 @@ package net.openid.conformance.fapiciba.rp;
 
 import com.google.gson.JsonObject;
 
-public class CreateBackchannelEndpointResponseWithExpiredIdTokenError extends AbstractCreateBackchannelEndpointResponseWithError {
+public class CreateBackchannelEndpointResponseWithExpiredIdTokenHintError extends AbstractCreateBackchannelEndpointResponseWithError {
 
 	@Override
 	protected void addError(JsonObject backchannelResponse) {
