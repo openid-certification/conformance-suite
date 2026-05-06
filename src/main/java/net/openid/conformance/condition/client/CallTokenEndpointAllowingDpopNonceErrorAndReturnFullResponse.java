@@ -12,6 +12,15 @@ import org.springframework.http.ResponseEntity;
 import java.util.List;
 
 
+/**
+ * Wrapper around {@link CallTokenEndpointAndReturnFullResponse} that:
+ * <ul>
+ *   <li>Recognises a {@code use_dpop_nonce} 400 response and exposes the supplied DPoP-Nonce so the caller can retry.</li>
+ *   <li>Harvests {@code OAuth-Client-Attestation-Challenge} from any response (success or error) into
+ *       {@code vci.attestation_challenge}, per draft-ietf-oauth-attestation-based-client-auth-07 §8.1, so the next
+ *       client attestation PoP picks up the freshest server-provided challenge.</li>
+ * </ul>
+ */
 public class CallTokenEndpointAllowingDpopNonceErrorAndReturnFullResponse extends CallTokenEndpointAndReturnFullResponse {
 
 	// WARNING optional token_endpoint_dpop_nonce_error returned with required nonce value
@@ -44,5 +53,20 @@ public class CallTokenEndpointAllowingDpopNonceErrorAndReturnFullResponse extend
 				throw error("Unexpected DPoP-Nonce header response", args("headers", jsonResponseHeaders));
 			}
 		}
+
+		harvestClientAttestationChallenge(env, response);
+	}
+
+	private void harvestClientAttestationChallenge(Environment env, ResponseEntity<String> response) {
+		List<String> challengeList = response.getHeaders().get("OAuth-Client-Attestation-Challenge");
+		if (challengeList == null || challengeList.isEmpty()) {
+			return;
+		}
+		String challenge = challengeList.get(0);
+		if (Strings.isNullOrEmpty(challenge)) {
+			return;
+		}
+		env.putString("vci", "attestation_challenge", challenge);
+		log("Got OAuth-Client-Attestation-Challenge header", args("OAuth-Client-Attestation-Challenge", challenge));
 	}
 }
