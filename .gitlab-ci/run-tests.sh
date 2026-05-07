@@ -416,8 +416,10 @@ makeVcTests() {
     TESTS="${TESTS} oid4vp-1final-verifier-test-plan[$VPPROFILE][$SDJWT][$SANDNS][$SIGNEDREQ][$DIRECTPOST]:oid4vp-1final-verifier-kb-jwt-iat-in-future{oid4vp-1final-wallet-test-plan[$VPPROFILE][$SDJWT][$SANDNS][$SIGNEDREQ][$DIRECTPOST]:oid4vp-1final-wallet-happy-flow}${CONFIGS}/vp-wallet-test-config-dcql-sdjwt-negative-iat-future.json ${CONFIGS}/vp-verifier-test-config.json"
     TESTS="${TESTS} oid4vp-1final-verifier-test-plan[$VPPROFILE][$MDL][$SANDNS][$SIGNEDREQ][$DIRECTPOST.jwt]:oid4vp-1final-verifier-happy-flow{oid4vp-1final-wallet-test-plan[$VPPROFILE][$MDL][$SANDNS][$SIGNEDREQ][$DIRECTPOST.jwt]:oid4vp-1final-wallet-alternate-happy-flow}${CONFIGS}/vp-wallet-test-config-dcql-mdoc.json ${CONFIGS}/vp-verifier-test-config-with-redirect-alt.json"
     # VP 1.0 Final - DC API (mock wallet response, no paired verifier needed)
+    # Module name listed 3 times so the runner picks up all three dc_api.jwt HAIP
+    # entries: unsigned (web-origin), signed (x509_hash), and multi-signed (x509_hash).
     DCAPIJWT="response_mode=dc_api.jwt"
-    TESTS="${TESTS} oid4vp-1final-wallet-haip-test-plan[$SDJWT][$DCAPIJWT]:oid4vp-1final-wallet-alternate-happy-flow ${CONFIGS}/vp-wallet-test-config-dcql-sdjwt-dcapi-mock.json"
+    TESTS="${TESTS} oid4vp-1final-wallet-haip-test-plan[$SDJWT][$DCAPIJWT]:oid4vp-1final-wallet-alternate-happy-flow,oid4vp-1final-wallet-alternate-happy-flow,oid4vp-1final-wallet-alternate-happy-flow ${CONFIGS}/vp-wallet-test-config-dcql-sdjwt-dcapi-mock.json"
 
     # VP 1.0 Final - request_uri_method=post
     TESTS="${TESTS} oid4vp-1final-verifier-test-plan[$VPPROFILE][$SDJWT][$SANDNS][$SIGNEDREQ][$DIRECTPOST]:oid4vp-1final-verifier-request-uri-method-post{oid4vp-1final-wallet-test-plan[$VPPROFILE][$SDJWT][$SANDNS][$SIGNEDREQ][$DIRECTPOST]:oid4vp-1final-wallet-request-uri-method-post}${CONFIGS}/vp-wallet-test-config-dcql-sdjwt.json ${CONFIGS}/vp-verifier-test-config.json"
