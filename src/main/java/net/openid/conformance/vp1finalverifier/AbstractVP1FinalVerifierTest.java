@@ -104,6 +104,24 @@ import org.springframework.web.servlet.view.RedirectView;
 	whenParameter = VPProfile.class,
 	hasValues = "haip"
 )
+// Per OID4VP 1.0 Final § 5.9.3-3.1.1, requests using the redirect_uri Client Identifier Prefix
+// cannot be signed — there is no method for the Wallet to obtain a trusted key for verification.
+@VariantNotApplicableWhen(
+	parameter = VP1FinalVerifierRequestMethod.class,
+	values = {"request_uri_signed"},
+	whenParameter = VP1FinalVerifierClientIdPrefix.class,
+	hasValues = "redirect_uri"
+)
+// Per OID4VP 1.0 Final § 5.9.3-3.5.1 (x509_san_dns) and § 5.9.3-3.6.1 (x509_hash), the request
+// MUST be signed and the prefix references the certificate in the x5c JOSE header of the signed
+// request object — there is no signed request object in the url_query method, so neither prefix
+// is applicable to it.
+@VariantNotApplicableWhen(
+	parameter = VP1FinalVerifierRequestMethod.class,
+	values = {"url_query"},
+	whenParameter = VP1FinalVerifierClientIdPrefix.class,
+	hasValues = {"x509_hash", "x509_san_dns"}
+)
 public abstract class AbstractVP1FinalVerifierTest extends AbstractTestModule {
 	protected VP1FinalVerifierClientIdPrefix clientIdPrefix;
 	protected VP1FinalVerifierResponseMode responseMode;
