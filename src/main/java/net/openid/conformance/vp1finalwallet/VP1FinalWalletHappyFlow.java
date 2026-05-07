@@ -12,7 +12,8 @@ import net.openid.conformance.testmodule.PublishTestModule;
 	profile = "OID4VP-1FINAL",
 	configurationFields = {
 		"client.jwks",
-		"client.dcql"
+		"client.dcql",
+		"client.verifier_info"
 	}
 )
 public class VP1FinalWalletHappyFlow extends AbstractVP1FinalWalletTest {
