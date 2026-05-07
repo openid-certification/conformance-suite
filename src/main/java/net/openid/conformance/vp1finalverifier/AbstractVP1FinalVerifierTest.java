@@ -11,14 +11,12 @@ import net.openid.conformance.condition.as.AddVP1FinalDCQLVPTokenToAuthorization
 import net.openid.conformance.condition.as.CheckDCQLQueryCredentialFormatMatchesTestConfiguration;
 import net.openid.conformance.condition.as.CheckForUnexpectedParametersInVpAuthorizationEndpointHttpRequest;
 import net.openid.conformance.condition.as.CheckForUnexpectedParametersInVpAuthorizationRequest;
-import net.openid.conformance.condition.as.CheckForUnexpectedPropertiesInVerifierInfo;
 import net.openid.conformance.condition.as.CheckNoClientIdSchemeParameter;
 import net.openid.conformance.condition.as.CheckNoPresentationDefinitionInVpAuthorizationRequest;
 import net.openid.conformance.condition.as.CheckNoRedirectUriInVpAuthorizationRequest;
 import net.openid.conformance.condition.as.CheckNoScopeParameter;
 import net.openid.conformance.condition.as.CheckNoTransactionDataInVpAuthorizationRequest;
 import net.openid.conformance.condition.as.CheckRequestUriMethodParameter;
-import net.openid.conformance.condition.as.CheckVerifierInfoInVpAuthorizationRequest;
 import net.openid.conformance.condition.as.CreateAuthorizationEndpointResponseParams;
 import net.openid.conformance.condition.as.CreateEffectiveAuthorizationRequestParameters;
 import net.openid.conformance.condition.as.CreateMDocGeneratedNonce;
@@ -40,6 +38,7 @@ import net.openid.conformance.condition.as.EnsureValidResponseUriForAuthorizatio
 import net.openid.conformance.condition.as.ExtractAndValidateX509HashClientId;
 import net.openid.conformance.condition.as.ExtractDCQLQueryFromAuthorizationRequest;
 import net.openid.conformance.condition.as.ExtractNonceFromAuthorizationRequest;
+import net.openid.conformance.condition.as.ExtractVerifierInfoFromAuthorizationRequest;
 import net.openid.conformance.condition.as.FetchRequestUriAndExtractRequestObject;
 import net.openid.conformance.condition.as.OID4VPSetClientIdToIncludeClientIdScheme;
 import net.openid.conformance.condition.as.OIDCCGenerateServerConfiguration;
@@ -67,6 +66,7 @@ import net.openid.conformance.condition.as.WarnIfRequestUriMethodInRequestObject
 import net.openid.conformance.condition.client.BuildUnsignedRequestToDirectPostEndpoint;
 import net.openid.conformance.condition.client.CallDirectPostEndpoint;
 import net.openid.conformance.condition.client.CheckForUnexpectedParametersInDcqlQuery;
+import net.openid.conformance.condition.client.CheckForUnexpectedParametersInVerifierInfo;
 import net.openid.conformance.condition.client.ConfigurationRequestsTestIsSkipped;
 import net.openid.conformance.condition.client.CreateVP1FinalVerifierIsoMdocRedirectSessionTranscriptEncrypted;
 import net.openid.conformance.condition.client.CreateVP1FinalVerifierIsoMdocRedirectSessionTranscriptUnencrypted;
@@ -76,6 +76,7 @@ import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs200;
 import net.openid.conformance.condition.client.RegisterClientRequestObjectTrustAnchor;
 import net.openid.conformance.condition.client.ValidateDCQLQuery;
 import net.openid.conformance.condition.client.ValidateServerJWKs;
+import net.openid.conformance.condition.client.ValidateVerifierInfo;
 import net.openid.conformance.condition.common.CheckDistinctKeyIdValueInServerJWKs;
 import net.openid.conformance.testmodule.AbstractTestModule;
 import net.openid.conformance.testmodule.OIDFJSON;
@@ -385,8 +386,12 @@ public abstract class AbstractVP1FinalVerifierTest extends AbstractTestModule {
 		}
 		callAndContinueOnFailure(CheckForUnexpectedParametersInVpAuthorizationRequest.class, ConditionResult.WARNING);
 		callAndContinueOnFailure(CheckNoTransactionDataInVpAuthorizationRequest.class, ConditionResult.FAILURE, "OID4VP-1FINAL-5", "OID4VP-1FINAL-5.1", "OID4VP-1FINAL-8.4");
-		callAndContinueOnFailure(CheckVerifierInfoInVpAuthorizationRequest.class, ConditionResult.FAILURE, "OID4VP-1FINAL-5.1");
-		callAndContinueOnFailure(CheckForUnexpectedPropertiesInVerifierInfo.class, ConditionResult.WARNING, "OID4VP-1FINAL-5.1");
+		skipIfElementMissing(CreateEffectiveAuthorizationRequestParameters.ENV_KEY, "verifier_info", ConditionResult.INFO,
+			ExtractVerifierInfoFromAuthorizationRequest.class, ConditionResult.FAILURE, "OID4VP-1FINAL-5.1");
+		skipIfElementMissing(CreateEffectiveAuthorizationRequestParameters.ENV_KEY, "verifier_info", ConditionResult.INFO,
+			ValidateVerifierInfo.class, ConditionResult.FAILURE, "OID4VP-1FINAL-5.1");
+		skipIfElementMissing(CreateEffectiveAuthorizationRequestParameters.ENV_KEY, "verifier_info", ConditionResult.INFO,
+			CheckForUnexpectedParametersInVerifierInfo.class, ConditionResult.WARNING, "OID4VP-1FINAL-5.1");
 
 		switch (clientIdPrefix) {
 			case X509_SAN_DNS -> {
