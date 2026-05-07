@@ -107,27 +107,54 @@ class Conformance(object):
         return response.json()
 
     async def exporthtml(self, plan_id, path):
-        for i in range(5):
-            api_url = '{0}api/plan/exporthtml/{1}'.format(self.api_url_base, plan_id)
+        attempts = 5
+        last_exception = None
+        api_url = '{0}api/plan/exporthtml/{1}'.format(self.api_url_base, plan_id)
+        for attempt in range(attempts):
+            full_path = None
+            content_type = '<unknown>'
             try:
                 async with self.httpclient.stream("GET", api_url) as response:
+                    content_type = response.headers.get('content-type', '<missing>')
                     if response.status_code != 200:
-                        raise Exception("exporthtml failed - HTTP {:d} {}".format(response.status_code, response.content))
-                    d = response.headers['content-disposition']
-                    local_filename = re.findall("filename=\"(.+)\"", d)[0]
+                        body = await response.aread()
+                        raise Exception("exporthtml HTTP {} content-type={} body[:500]={!r}".format(
+                            response.status_code, content_type, body[:500]))
+                    disposition = response.headers.get('content-disposition', '')
+                    match = re.findall("filename=\"(.+)\"", disposition)
+                    if not match:
+                        body = await response.aread()
+                        raise Exception("exporthtml missing filename in content-disposition={!r} content-type={} body[:200]={!r}".format(
+                            disposition, content_type, body[:200]))
+                    local_filename = match[0]
                     full_path = os.path.join(path, local_filename)
                     with open(full_path, 'wb') as f:
                         async for chunk in response.aiter_bytes():
                             f.write(chunk)
-                zip_file = zipfile.ZipFile(full_path)
-                ret = zip_file.testzip()
-                if ret is not None:
-                    raise Exception("exporthtml for {} downloaded corrupt zip file {} - {}".format(plan_id, full_path, str(ret)))
+                file_size = os.path.getsize(full_path)
+                try:
+                    zip_file = zipfile.ZipFile(full_path)
+                    bad_entry = zip_file.testzip()
+                except zipfile.BadZipFile as e:
+                    with open(full_path, 'rb') as f:
+                        head = f.read(500)
+                    raise Exception("exporthtml for {} got non-zip response (content-type={}, size={} bytes, first bytes={!r}): {}".format(
+                        plan_id, content_type, file_size, head, e)) from e
+                if bad_entry is not None:
+                    raise Exception("exporthtml for {} downloaded corrupt zip {} (content-type={}, size={} bytes) - testzip reports {}".format(
+                        plan_id, full_path, content_type, file_size, bad_entry))
                 return full_path
             except Exception as e:
-                print("httpx {} exception {} caught - retrying".format(api_url, e))
-                await asyncio.sleep(1)
-        raise Exception("exporthtml for {} failed even after retries".format(plan_id))
+                last_exception = e
+                if attempt < attempts - 1:
+                    backoff = 1 << attempt  # 1, 2, 4, 8s between attempts
+                    print("exporthtml {} attempt {}/{} failed: {} - retrying in {}s".format(
+                        api_url, attempt + 1, attempts, e, backoff))
+                    await asyncio.sleep(backoff)
+                else:
+                    print("exporthtml {} attempt {}/{} failed: {} - giving up".format(
+                        api_url, attempt + 1, attempts, e))
+        raise Exception("exporthtml for {} failed after {} attempts".format(plan_id, attempts)) from last_exception
 
     async def create_certification_package(self, plan_id, conformance_pdf_path, rp_logs_zip_path = None, output_zip_directory = "./"):
         """
