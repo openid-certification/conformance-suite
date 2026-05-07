@@ -398,6 +398,13 @@ class CtsLogViewer extends LitElement {
    * across the chronological stream — gaps in user-visible chips are
    * intentional, since startBlock rows render as `<summary>` and not as
    * `<cts-log-entry>`). Skips entries without an `_id` defensively.
+   *
+   * Sibling consumer: `src/main/resources/static/plan-detail.html`
+   * mirrors this iteration rule inline (sort-by-time entries, ordinal =
+   * index + 1, pad to 4 digits) when it derives the deep-link target
+   * for the FAILED-row lozenge. Plan-detail is a classic
+   * `<script type="text/javascript">` and cannot ES-import this
+   * helper; if the rule changes here, update the shim there too.
    * @returns {Object.<string, string>}
    */
   _buildReferences() {

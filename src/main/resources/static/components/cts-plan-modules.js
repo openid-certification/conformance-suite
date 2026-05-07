@@ -232,7 +232,14 @@ function ensureStylesInjected() {
  * design archive's `.module-row` 4-column grid (`28px 1fr auto auto`).
  *
  * @property {Array<object>} modules - Modules rendered from the plan-detail
- *   API response; see cts-plan-detail.stories.js for shape.
+ *   API response; see cts-plan-detail.stories.js for shape. Each module
+ *   may carry an optional `firstFailureRef` string (e.g. `"LOG-0042"`)
+ *   resolved by the page-level shim from `/api/log/{lastInstance}`. When
+ *   `mod.result === "FAILED"` AND `firstFailureRef` is a non-empty
+ *   string, the lozenge href is appended with `#{firstFailureRef}` so a
+ *   click lands on the failure entry rather than the top of the log.
+ *   The result-gate is intentional: a fixture that sets the field on a
+ *   non-FAILED row produces no fragment.
  * @property {string} planId - Parent plan ID. Reflects the `plan-id`
  *   attribute.
  * @property {boolean} isReadonly - Hides the Run Test button. Reflects the
@@ -332,8 +339,17 @@ class CtsPlanModules extends LitElement {
     const variant = statusBadgeVariant(mod.status, mod.result);
     const label = statusLabel(mod.status, mod.result);
     const variantStr = this._formatVariant(mod.variant);
+    // R28 deep-link: when the row is FAILED and the page-level shim has
+    // resolved the first failure's `LOG-NNNN` reference, append the
+    // fragment so the click lands on the failure entry rather than the
+    // top of the log. Result-gated so a fixture that carries the field
+    // on a non-FAILED row produces no misleading fragment.
+    const isFailedWithRef =
+      mod.result === "FAILED" && typeof mod.firstFailureRef === "string" && mod.firstFailureRef;
     const logHref = lastInstance
-      ? `log-detail.html?log=${encodeURIComponent(lastInstance)}${this.isPublic ? "&public=true" : ""}`
+      ? `log-detail.html?log=${encodeURIComponent(lastInstance)}` +
+        `${this.isPublic ? "&public=true" : ""}` +
+        `${isFailedWithRef ? `#${mod.firstFailureRef}` : ""}`
       : null;
 
     // The anchor wrapper (.moduleStatusLink) intentionally strips the
@@ -349,12 +365,19 @@ class CtsPlanModules extends LitElement {
       label="${label}"
       ?interactive="${interactiveBadge}"
     ></cts-badge>`;
+    // Two-state aria-label per R7: when the click lands mid-log on the
+    // failure entry, announce "Jump to first failure"; otherwise keep
+    // the R28-current "View logs (label)" form so the announcement
+    // matches the actual destination.
+    const linkAriaLabel = isFailedWithRef
+      ? `Jump to first failure in logs for ${mod.testModule}`
+      : `View logs for ${mod.testModule} (${label})`;
     const linkedBadge = lastInstance
       ? html`<a
           class="moduleStatusLink"
           data-testid="module-status-link"
           href="${logHref}"
-          aria-label="View logs for ${mod.testModule} (${label})"
+          aria-label="${linkAriaLabel}"
           >${badge}</a
         >`
       : badge;

@@ -408,6 +408,81 @@
                             return m.result === 'FAILED';
                         });
                         actionsEl.canCertify = finished.length > 0 && !hasFailed;
+
+                        // R28 deep-link follow-on: for each FAILED row,
+                        // fetch the test log once and resolve the first
+                        // failed entry's LOG-NNNN reference, so the
+                        // status lozenge href deep-links to that entry
+                        // instead of the top of the log.
+                        //
+                        // Iteration mirrors the canonical site at
+                        // src/main/resources/static/components/cts-log-viewer.js
+                        // (formatter at lines 18-20, _buildReferences()
+                        // around line 403). The rule: every entry in the
+                        // chronological stream consumes an ordinal,
+                        // including `startBlock` rows. The shim is
+                        // duplicated here because plan-detail.html opens
+                        // a classic <script type="text/javascript"> and
+                        // cannot ES-import the helper. If the rule
+                        // changes there, update the iteration here too.
+                        //
+                        // Fail-soft: any fetch / parse error or a missing
+                        // FAILURE entry leaves firstFailureRef undefined
+                        // and the lozenge keeps the R28 top-of-log
+                        // fallback href. A single console.warn surfaces
+                        // the swallowed failure to dev tools so a real
+                        // contract drift on /api/log is detectable.
+                        Promise.all(modulesData.map(function (mod, idx) {
+                            if (mod.result !== 'FAILED') return Promise.resolve();
+                            var lastInstance = mod.instances[mod.instances.length - 1];
+                            if (!lastInstance) return Promise.resolve();
+                            return fetch('/api/log/' + encodeURIComponent(lastInstance)
+                                + (isPublic ? '?public=true' : ''))
+                                .then((response) => {
+                                    if (!response.ok) {
+                                        return Promise.reject(
+                                            new Error('HTTP ' + response.status));
+                                    }
+                                    return response.json();
+                                })
+                                .then((entries) => {
+                                    if (!Array.isArray(entries)) {
+                                        return Promise.reject(
+                                            new Error('expected array, got ' + typeof entries));
+                                    }
+                                    for (var i = 0; i < entries.length; i++) {
+                                        if (entries[i] && entries[i].result === 'FAILURE') {
+                                            var ordinal = i + 1;
+                                            var ref = 'LOG-'
+                                                + String(ordinal).padStart(4, '0');
+                                            modulesData[idx] = Object.assign(
+                                                {}, modulesData[idx], { firstFailureRef: ref });
+                                            return;
+                                        }
+                                    }
+                                    return Promise.reject(
+                                        new Error('no FAILURE entry found'));
+                                })
+                                .catch((error) => {
+                                    // Swallow by design (R1 fail-soft).
+                                    // Log once for observability so a real
+                                    // /api/log contract drift surfaces in
+                                    // dev tools and bug reports.
+                                    console.warn(
+                                        '[plan-detail] R28 deep-link resolution failed for '
+                                            + lastInstance + ':',
+                                        error);
+                                });
+                        })).then(() => {
+                            // Reassign with a fresh slice so Lit's default
+                            // hasChanged (reference equality) detects the
+                            // change and re-renders any FAILED rows whose
+                            // firstFailureRef just resolved. modulesData
+                            // here is the same array reference as the
+                            // first reassign above, so the slice is what
+                            // makes the property update fire.
+                            modulesEl.modules = modulesData.slice();
+                        });
                     });
                 })
                 .catch((error) => {

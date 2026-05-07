@@ -69,12 +69,63 @@ export const MOCK_PLAN_PUBLISHED = {
 /**
  * MOCK_PLAN_DETAIL.modules augmented with realistic status/result values.
  * Module 1: PASSED, Module 2: WARNING, Module 3: FAILED, Module 4: PENDING (no instance).
+ *
+ * Module 3 carries `firstFailureRef` to exercise the R28 deep-link
+ * contract: when a row is FAILED and the page-level shim has resolved
+ * the first failure entry's `LOG-NNNN` ordinal, the lozenge href is
+ * appended with that fragment. The non-FAILED rows intentionally do
+ * NOT carry `firstFailureRef`, so the result-gate in cts-plan-modules
+ * is exercised by the absence as well as by fixtures that set it on
+ * the wrong row (see MOCK_MODULES_WRONG_REF_PLACEMENT).
  */
 export const MOCK_MODULES_WITH_STATUS = [
   { ...MOCK_PLAN_DETAIL.modules[0], status: "FINISHED", result: "PASSED" },
   { ...MOCK_PLAN_DETAIL.modules[1], status: "FINISHED", result: "WARNING" },
-  { ...MOCK_PLAN_DETAIL.modules[2], status: "FINISHED", result: "FAILED" },
+  {
+    ...MOCK_PLAN_DETAIL.modules[2],
+    status: "FINISHED",
+    result: "FAILED",
+    firstFailureRef: "LOG-0042",
+  },
   { ...MOCK_PLAN_DETAIL.modules[3], status: null, result: null },
+];
+
+/**
+ * Variant where the FAILED row has no `firstFailureRef` (loading window
+ * before the per-FAILED log fetch resolves, or the fetch failed).
+ * Used to assert R1 fail-soft: the lozenge falls back to the R28
+ * top-of-log href and the original aria-label, never a stray `#`.
+ */
+export const MOCK_MODULES_FAILED_WITHOUT_REF = [
+  { ...MOCK_PLAN_DETAIL.modules[0], status: "FINISHED", result: "PASSED" },
+  { ...MOCK_PLAN_DETAIL.modules[2], status: "FINISHED", result: "FAILED" },
+];
+
+/**
+ * Defensive variant: a PASSED, a WARNING, and a REVIEW row each carry
+ * `firstFailureRef`. This pins the result-gate in cts-plan-modules —
+ * the fragment is appended only when `result === "FAILED"`, never on
+ * the field's mere presence.
+ */
+export const MOCK_MODULES_WRONG_REF_PLACEMENT = [
+  {
+    ...MOCK_PLAN_DETAIL.modules[0],
+    status: "FINISHED",
+    result: "PASSED",
+    firstFailureRef: "LOG-0007",
+  },
+  {
+    ...MOCK_PLAN_DETAIL.modules[1],
+    status: "FINISHED",
+    result: "WARNING",
+    firstFailureRef: "LOG-0011",
+  },
+  {
+    ...MOCK_PLAN_DETAIL.modules[2],
+    status: "FINISHED",
+    result: "REVIEW",
+    firstFailureRef: "LOG-0017",
+  },
 ];
 
 /** GET /api/info/:testId response shape */
