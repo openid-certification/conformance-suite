@@ -10,8 +10,13 @@ import org.springframework.http.ResponseEntity;
 import java.util.List;
 
 /**
- * This class makes a http post to PAR endpoint and examines the response for DPoP nonce errors and stores
- * the required nonce for retry
+ * This class makes a http post to PAR endpoint and:
+ * <ul>
+ *   <li>Examines the response for DPoP nonce errors and stores the required nonce for retry.</li>
+ *   <li>Harvests {@code OAuth-Client-Attestation-Challenge} from any response (success or error) into
+ *       {@code vci.attestation_challenge}, per draft-ietf-oauth-attestation-based-client-auth-07 §8.1, so the next
+ *       client attestation PoP picks up the freshest server-provided challenge.</li>
+ * </ul>
  */
 public class CallPAREndpointAllowingDpopNonceError extends CallPAREndpoint {
 	@Override
@@ -42,6 +47,21 @@ public class CallPAREndpointAllowingDpopNonceError extends CallPAREndpoint {
 				throw error("Unexpected DPoP-Nonce header response", args("headers", jsonResponseHeaders));
 			}
 		}
+
+		harvestClientAttestationChallenge(env, response);
+	}
+
+	private void harvestClientAttestationChallenge(Environment env, ResponseEntity<String> response) {
+		List<String> challengeList = response.getHeaders().get("OAuth-Client-Attestation-Challenge");
+		if (challengeList == null || challengeList.isEmpty()) {
+			return;
+		}
+		String challenge = challengeList.get(0);
+		if (Strings.isNullOrEmpty(challenge)) {
+			return;
+		}
+		env.putString("vci", "attestation_challenge", challenge);
+		log("Got OAuth-Client-Attestation-Challenge header", args("OAuth-Client-Attestation-Challenge", challenge));
 	}
 
 }
