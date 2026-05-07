@@ -131,6 +131,7 @@ import net.openid.conformance.sequence.client.ValidateSdJwtVcCredentialClaims;
 import net.openid.conformance.testmodule.AbstractRedirectServerTestModule;
 import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.testmodule.TestFailureException;
+import net.openid.conformance.variant.ConfigurationFields;
 import net.openid.conformance.variant.VPProfile;
 import net.openid.conformance.variant.VariantConfigurationFields;
 import net.openid.conformance.variant.VariantHidesConfigurationFields;
@@ -151,6 +152,11 @@ import java.util.concurrent.TimeUnit;
 	VP1FinalWalletClientIdPrefix.class,
 	VP1FinalWalletResponseMode.class,
 	VP1FinalWalletRequestMethod.class
+})
+@ConfigurationFields({
+	"client.jwks",
+	"client.dcql",
+	"client.verifier_info"
 })
 @VariantConfigurationFields(parameter = VP1FinalWalletClientIdPrefix.class, value = "decentralized_identifier", configurationFields = {
 	"client.client_id"
