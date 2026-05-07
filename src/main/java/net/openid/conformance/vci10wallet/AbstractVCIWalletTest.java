@@ -232,8 +232,16 @@ import net.openid.conformance.vci10wallet.condition.VCILogGeneratedCredentialIss
 import net.openid.conformance.vci10wallet.condition.VCIPreparePreAuthorizationCode;
 import net.openid.conformance.vci10wallet.condition.VCIResolveRequestedCredentialConfigurationFromRequest;
 import net.openid.conformance.vci10wallet.condition.VCIValidateAttestedKeysInKeyAttestationFromJwtProof;
+import net.openid.conformance.vci10wallet.condition.EnsureKeyAttestationAlgIsES256;
+import net.openid.conformance.vci10wallet.condition.EnsureKeyAttestationExpIsPresentForJwtProof;
+import net.openid.conformance.vci10wallet.condition.EnsureKeyAttestationHasX5cClaim;
+import net.openid.conformance.vci10wallet.condition.EnsureKeyAttestationTypIsKeyAttestationJwt;
+import net.openid.conformance.vci10wallet.condition.ValidateKeyAttestationExp;
+import net.openid.conformance.vci10wallet.condition.ValidateKeyAttestationIat;
+import net.openid.conformance.vci10wallet.condition.ValidateKeyAttestationNonce;
 import net.openid.conformance.vci10wallet.condition.ValidateKeyAttestationX5cCertificateChain;
 import net.openid.conformance.vci10wallet.condition.VCIValidateCredentialRequestAttestationProof;
+import net.openid.conformance.vci10wallet.condition.VerifyKeyAttestationSignatureUsingConfigJwks;
 import net.openid.conformance.vci10wallet.condition.VCIValidateCredentialRequestDiVpProof;
 import net.openid.conformance.vci10wallet.condition.VCIValidateCredentialRequestJwtProof;
 import net.openid.conformance.vci10wallet.condition.CheckForUnexpectedParametersInCredentialRequest;
@@ -245,6 +253,7 @@ import net.openid.conformance.vci10wallet.condition.VCIValidateTxCode;
 import net.openid.conformance.vci10wallet.condition.VCIVerifyIssuerStateInAuthorizationRequest;
 import net.openid.conformance.vci10wallet.condition.clientattestation.AddClientAttestationSigningAlgValuesSupportedToServerConfiguration;
 import net.openid.conformance.vci10wallet.condition.clientattestation.VCIRegisterClientAttestationTrustAnchor;
+import net.openid.conformance.condition.client.EnsureKeyAttestationTrustAnchorConfigured;
 import net.openid.conformance.vci10wallet.condition.clientattestation.VCIRegisterKeyAttestationTrustAnchor;
 import net.openid.conformance.vci10wallet.condition.clientattestation.VCIValidateClientAuthenticationWithClientAttestationJWT;
 import net.openid.conformance.vci10wallet.condition.statuslist.VCIGenerateJwtStatusListToken;
@@ -306,6 +315,9 @@ import java.util.concurrent.TimeUnit;
 })
 @VariantConfigurationFields(parameter = ClientAuthType.class, value = "private_key_jwt", configurationFields = {
 	"client.jwks"
+})
+@VariantHidesConfigurationFields(parameter = FAPI2FinalOPProfile.class, value = "vci_haip", configurationFields = {
+	"vci.key_attestation_jwks"
 })
 @VariantNotApplicableWhen(
 	parameter = VCICredentialOfferParameterVariant.class,
@@ -526,6 +538,9 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 		}
 
 		callAndStopOnFailure(VCIRegisterKeyAttestationTrustAnchor.class);
+		if (fapi2Profile == FAPI2FinalOPProfile.VCI_HAIP) {
+			callAndContinueOnFailure(EnsureKeyAttestationTrustAnchorConfigured.class, ConditionResult.FAILURE, "HAIP-4.5.1");
+		}
 
 		configureCredentialIssuerMetadata();
 		configureOauthAuthorizationServerMetadata();
@@ -1311,11 +1326,15 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 
 		call(exec().mapKey("incoming_request", requestId));
 
-		// Clear any credential error response from previous requests to ensure clean state
+		// Clear per-request state from any previous credential request, so a stale
+		// key attestation or has_nested_key_attestation flag from a prior request
+		// can't leak into the current one's validation.
 		JsonObject vci = env.getObject("vci");
 		if (vci != null) {
 			vci.remove("credential_error_response");
+			vci.remove("key_attestation_jwt");
 		}
+		env.removeNativeValue("has_nested_key_attestation");
 
 		ResponseEntity<?> errorResponse = checkResourceEndpointRequest(false);
 		if (errorResponse != null) {
@@ -1364,17 +1383,27 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 
 			String proofType = env.getString("proof_type");
 			if ("jwt".equals(proofType)) {
-				errorResponse = callAndContinueOnFailureOrReturnErrorResponse(VCIValidateCredentialRequestJwtProof.class, ConditionResult.FAILURE, "OID4VCI-1FINALA-F.1", "OID4VCI-1FINALA-F.4");
+				errorResponse = callAndContinueOnFailureOrReturnErrorResponse(VCIValidateCredentialRequestJwtProof.class, ConditionResult.FAILURE, "OID4VCI-1FINALA-F.1", "OID4VCI-1FINALA-F.4", "HAIP-4.5.1");
 				if (errorResponse != null) {
 					return errorResponse;
+				}
+				if (Boolean.TRUE.equals(env.getBoolean("has_nested_key_attestation"))) {
+					errorResponse = validateKeyAttestationJwt();
+					if (errorResponse != null) {
+						return errorResponse;
+					}
 				}
 				errorResponse = callAndContinueOnFailureOrReturnErrorResponse(VCIValidateAttestedKeysInKeyAttestationFromJwtProof.class, ConditionResult.FAILURE, "OID4VCI-1FINALA-F.1", "OID4VCI-1FINALA-F.4");
 			} else if ("attestation".equals(proofType)) {
-				errorResponse = callAndContinueOnFailureOrReturnErrorResponse(VCIValidateCredentialRequestAttestationProof.class, ConditionResult.FAILURE, "OID4VCI-1FINALA-F.3", "OID4VCI-1FINALA-F.4", "HAIP-4.5.1");
+				// Parse JWT and store in env at vci.key_attestation_jwt (value, header, claims)
+				errorResponse = callAndContinueOnFailureOrReturnErrorResponse(VCIValidateCredentialRequestAttestationProof.class, ConditionResult.FAILURE, "OID4VCI-1FINALA-F.3", "OID4VCI-1FINALA-F.4");
 				if (errorResponse != null) {
 					return errorResponse;
 				}
-				errorResponse = callAndContinueOnFailureOrReturnErrorResponse(ValidateKeyAttestationX5cCertificateChain.class, ConditionResult.FAILURE, "HAIP-4.5.1");
+				errorResponse = validateKeyAttestationJwt();
+				if (errorResponse != null) {
+					return errorResponse;
+				}
 			} else if ("di_vp".equals(proofType)) {
 				errorResponse = callAndContinueOnFailureOrReturnErrorResponse(VCIValidateCredentialRequestDiVpProof.class, ConditionResult.FAILURE, "OID4VCI-1FINALA-F.2", "OID4VCI-1FINALA-F.4");
 			}
@@ -1460,6 +1489,59 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 			return createCredentialEndpointErrorResponse(credentialEndpointResponseBody);
 		}
 		return null;
+	}
+
+	/**
+	 * Runs the structural / signature / claim checks against a key attestation JWT that is
+	 * already parsed and stored at env path {@code vci.key_attestation_jwt}. Used both for
+	 * the standalone {@code proof_type=attestation} flow and for nested key attestations
+	 * carried in a {@code proof_type=jwt} proof's JOSE header.
+	 */
+	protected ResponseEntity<?> validateKeyAttestationJwt() {
+		ResponseEntity<?> errorResponse = callAndContinueOnFailureOrReturnErrorResponse(EnsureKeyAttestationTypIsKeyAttestationJwt.class, ConditionResult.FAILURE, "OID4VCI-1FINALA-D.1");
+		if (errorResponse != null) {
+			return errorResponse;
+		}
+		// HAIP §4.5.1 mandates ES256 for key attestations; OID4VCI Appendix D.1 does not
+		// constrain the algorithm, so this check is wired only for HAIP.
+		if (fapi2Profile == FAPI2FinalOPProfile.VCI_HAIP) {
+			errorResponse = callAndContinueOnFailureOrReturnErrorResponse(EnsureKeyAttestationAlgIsES256.class, ConditionResult.FAILURE, "HAIP-4.5.1");
+			if (errorResponse != null) {
+				return errorResponse;
+			}
+			errorResponse = callAndContinueOnFailureOrReturnErrorResponse(EnsureKeyAttestationHasX5cClaim.class, ConditionResult.FAILURE, "HAIP-4.5.1");
+			if (errorResponse != null) {
+				return errorResponse;
+			}
+		}
+		errorResponse = callAndContinueOnFailureOrReturnErrorResponse(ValidateKeyAttestationX5cCertificateChain.class, ConditionResult.FAILURE, "HAIP-4.5.1");
+		if (errorResponse != null) {
+			return errorResponse;
+		}
+		// Non-HAIP fallback: when x5c is absent, verify signature using configured JWKS.
+		if (fapi2Profile != FAPI2FinalOPProfile.VCI_HAIP) {
+			errorResponse = callAndContinueOnFailureOrReturnErrorResponse(VerifyKeyAttestationSignatureUsingConfigJwks.class, ConditionResult.FAILURE, "OID4VCI-1FINALA-F.3");
+			if (errorResponse != null) {
+				return errorResponse;
+			}
+		}
+		errorResponse = callAndContinueOnFailureOrReturnErrorResponse(ValidateKeyAttestationIat.class, ConditionResult.FAILURE, "OID4VCI-1FINALA-D.1");
+		if (errorResponse != null) {
+			return errorResponse;
+		}
+		// OID4VCI Appendix D.1: 'exp' MUST be present when the attestation is used with the
+		// JWT proof type (i.e., the nested case).
+		if (Boolean.TRUE.equals(env.getBoolean("has_nested_key_attestation"))) {
+			errorResponse = callAndContinueOnFailureOrReturnErrorResponse(EnsureKeyAttestationExpIsPresentForJwtProof.class, ConditionResult.FAILURE, "OID4VCI-1FINALA-D.1");
+			if (errorResponse != null) {
+				return errorResponse;
+			}
+		}
+		errorResponse = callAndContinueOnFailureOrReturnErrorResponse(ValidateKeyAttestationExp.class, ConditionResult.FAILURE, "OID4VCI-1FINALA-D.1");
+		if (errorResponse != null) {
+			return errorResponse;
+		}
+		return callAndContinueOnFailureOrReturnErrorResponse(ValidateKeyAttestationNonce.class, ConditionResult.FAILURE, "OID4VCI-1FINALA-F.3");
 	}
 
 	/**

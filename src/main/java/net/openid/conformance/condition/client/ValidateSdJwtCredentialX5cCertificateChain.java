@@ -1,7 +1,6 @@
 package net.openid.conformance.condition.client;
 
 import com.google.gson.JsonObject;
-import com.nimbusds.jose.util.X509CertUtils;
 import net.openid.conformance.condition.AbstractValidateX5cCertificateChain;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
@@ -39,7 +38,7 @@ public class ValidateSdJwtCredentialX5cCertificateChain extends AbstractValidate
 		List<X509Certificate> certs = parseX5cCertificatesFromStrings(x5c);
 
 		String trustAnchorPem = env.getString("credential_trust_anchor_pem");
-		X509Certificate trustAnchor = trustAnchorPem != null ? X509CertUtils.parse(trustAnchorPem) : null;
+		X509Certificate trustAnchor = parseTrustAnchorPem(trustAnchorPem);
 		validateX5cCertificateChain(certs, trustAnchor);
 
 		String credentialJwt = env.getString("sdjwt", "credential.value");

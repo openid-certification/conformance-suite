@@ -13,6 +13,7 @@ import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
+import net.openid.conformance.util.JWTUtil;
 import net.openid.conformance.vci10issuer.condition.VciErrorCode;
 import net.openid.conformance.vci10issuer.util.VCICredentialErrorResponseUtil;
 
@@ -27,6 +28,8 @@ public class VCIValidateCredentialRequestJwtProof extends VCIValidateCredentialR
 
 	@Override
 	protected void validateProof(Environment env, String proofType, String expectedAudience, String credentialConfigurationId, JsonObject credentialConfiguration, JsonObject keyAttestationRequired) {
+
+		env.putBoolean("has_nested_key_attestation", false);
 
 		String jwt = env.getString("proof_jwt", "value");
 		try {
@@ -165,9 +168,6 @@ public class VCIValidateCredentialRequestJwtProof extends VCIValidateCredentialR
 			return;
 		}
 
-		log("Performing nested key attestation validation");
-
-		// key attestation is required for proof
 		if (keyAttestationFromHeader == null) {
 			String errorDescription = "key attestation is not present in 'jwt' proof header but required by credential_configuration_id: " + credentialConfigurationId;
 			VCICredentialErrorResponseUtil.updateCredentialErrorResponseInEnv(env, VciErrorCode.INVALID_PROOF, errorDescription);
@@ -181,9 +181,16 @@ public class VCIValidateCredentialRequestJwtProof extends VCIValidateCredentialR
 				args("key_attestation", keyAttestationFromHeader, "credential_configuration", credentialConfiguration));
 		}
 
-		validateKeyAttestation(env, "jwt", keyAttestationJwt);
-
-		log("Completed nested key attestation validation");
+		try {
+			env.putObject("vci", "key_attestation_jwt", JWTUtil.jwtStringToJsonObjectForEnvironment(keyAttestationJwt));
+		} catch (ParseException e) {
+			String errorDescription = "Key attestation validation of proof failed: could not parse JWT";
+			VCICredentialErrorResponseUtil.updateCredentialErrorResponseInEnv(env, VciErrorCode.INVALID_PROOF, errorDescription);
+			throw error(errorDescription, e, args("attestation", keyAttestationJwt));
+		}
+		env.putBoolean("has_nested_key_attestation", true);
+		log("Extracted nested key attestation JWT for validation",
+			args("credential_configuration_id", credentialConfigurationId));
 	}
 
 }
