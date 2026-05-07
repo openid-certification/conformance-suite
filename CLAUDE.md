@@ -196,6 +196,23 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 
 Use `@VariantNotApplicable` to exclude invalid combinations.
 
+### Configuration Fields
+
+Test config fields the user fills in on `schedule-test.html` (e.g., `client.dcql`, `client.verifier_info`) are only shown in the form if they appear in the aggregated `configurationFields` for the selected plan and modules. The aggregator unions, in this order:
+
+- `@PublishTestPlan(configurationFields = {...})` on the plan class
+- `@PublishTestModule(configurationFields = {...})` on each test module
+- `@ConfigurationFields({...})` on the module class **and any of its superclasses** (walked via reflection)
+- `@VariantConfigurationFields(parameter = X.class, value = "y", configurationFields = {...})` matched against the selected variants
+
+Place each field declaration where the field is actually consumed:
+
+- **`@ConfigurationFields` on the abstract base class** for fields that every module in the family consumes (e.g., `client.jwks`, `client.dcql` on `AbstractVP1FinalWalletTest` because the wallet auth-request sequence reads them on every concrete subclass). Don't repeat them on every leaf module.
+- **`@PublishTestModule(configurationFields = ...)` on a single concrete module** only when the field is module-specific.
+- **`@VariantConfigurationFields`** for fields that only apply under specific variant values (e.g., `client.client_id` only when `client_id_prefix=x509_san_dns`).
+
+When you add a new condition that reads a config field via `env.getElementFromObject("client", "new_field")`, locate the corresponding `@ConfigurationFields` (typically on the abstract base for that test family) and add `"client.new_field"` there — otherwise the field stays hidden in the UI even though the code reads it.
+
 ### Test Plans
 
 Test plans group related tests for certification via `@PublishTestPlan`:
