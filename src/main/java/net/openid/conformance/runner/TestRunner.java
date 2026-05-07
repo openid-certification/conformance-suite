@@ -276,7 +276,7 @@ public class TestRunner implements DataUtils {
 				testPlan.getPlanName().equals("oid4vp-1final-verifier-haip-test-plan") ||
 				testPlan.getPlanName().equals("oid4vp-1final-wallet-haip-test-plan"))
 			{
-				if (planVersion.isLowerThan("5.1.43")) {
+				if (planVersion.isLowerThan("5.1.44")) {
 					recreate=true;
 				}
 			}
