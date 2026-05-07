@@ -4,6 +4,8 @@ import {
   MOCK_PLAN_DETAIL,
   MOCK_PLAN_PUBLISHED,
   MOCK_MODULES_WITH_STATUS,
+  MOCK_MODULES_FAILED_WITHOUT_REF,
+  MOCK_MODULES_WRONG_REF_PLACEMENT,
 } from "@fixtures/mock-test-data.js";
 import "./cts-plan-header.js";
 import "./cts-plan-modules.js";
@@ -255,6 +257,22 @@ export const ModulesDefault = {
     expect(statusLinks[0].getAttribute("href")).toContain("log-detail.html?log=test-inst-001");
     expect(statusLinks[2].getAttribute("href")).toContain("log-detail.html?log=test-inst-003");
 
+    // R28 deep-link: the FAILED row carries `firstFailureRef: "LOG-0042"`,
+    // so its href ends with the fragment and its aria-label switches to
+    // the "Jump to first failure" form. Non-FAILED rows do NOT carry the
+    // field, so their hrefs have no fragment and the original aria-label
+    // shape is preserved (R7 two-state contract).
+    expect(statusLinks[2].getAttribute("href")).toBe("log-detail.html?log=test-inst-003#LOG-0042");
+    expect(statusLinks[2].getAttribute("aria-label")).toBe(
+      "Jump to first failure in logs for oidcc-ensure-redirect-uri-in-authorization-request",
+    );
+    expect(statusLinks[0].getAttribute("href")).toBe("log-detail.html?log=test-inst-001");
+    expect(statusLinks[0].getAttribute("aria-label")).toBe("View logs for oidcc-server (PASSED)");
+    expect(statusLinks[1].getAttribute("href")).toBe("log-detail.html?log=test-inst-002");
+    expect(statusLinks[1].getAttribute("aria-label")).toBe(
+      "View logs for oidcc-server-rotate-keys (WARNING)",
+    );
+
     // The link wraps the badge; the badge itself is unchanged in shape.
     expect(statusLinks[0].querySelector("cts-badge")).toBe(badges[0]);
 
@@ -399,6 +417,75 @@ export const ModulesReadonlyAndImmutable = {
   async play({ canvasElement }) {
     const runBtns = canvasElement.querySelectorAll('[data-testid="run-test-btn"]');
     expect(runBtns.length).toBe(0);
+  },
+};
+
+/**
+ * R28 deep-link follow-on, fail-soft branch (R1, AE3): a FAILED row whose
+ * `firstFailureRef` has not resolved (the per-FAILED log fetch is still
+ * pending, errored, or returned no FAILURE entry). The lozenge must
+ * fall back to the R28 top-of-log href — never a stray `#` with no
+ * fragment — and the aria-label must keep the original "View logs"
+ * shape so the screen-reader announcement matches the actual landing
+ * (top of log, not mid-page).
+ */
+export const ModulesFailedWithoutRef = {
+  render: () => html`
+    <cts-plan-modules
+      .modules=${MOCK_MODULES_FAILED_WITHOUT_REF}
+      plan-id="plan-abc-123"
+    ></cts-plan-modules>
+  `,
+  async play({ canvasElement }) {
+    const statusLinks = canvasElement.querySelectorAll('[data-testid="module-status-link"]');
+    expect(statusLinks.length).toBe(2);
+
+    // PASSED row is unchanged from R28-current behaviour.
+    expect(statusLinks[0].getAttribute("href")).toBe("log-detail.html?log=test-inst-001");
+    expect(statusLinks[0].getAttribute("aria-label")).toBe("View logs for oidcc-server (PASSED)");
+
+    // FAILED row falls back to the R28 top-of-log href — no fragment,
+    // no broken `#`, no jump aria-label. This is the "data still
+    // loading" / "fetch failed" state on the live page.
+    const failedHref = statusLinks[1].getAttribute("href");
+    expect(failedHref).toBe("log-detail.html?log=test-inst-003");
+    expect(failedHref?.includes("#")).toBe(false);
+    expect(statusLinks[1].getAttribute("aria-label")).toBe(
+      "View logs for oidcc-ensure-redirect-uri-in-authorization-request (FAILED)",
+    );
+  },
+};
+
+/**
+ * R28 deep-link follow-on, defensive result-gate (R2): a fixture that
+ * mistakenly carries `firstFailureRef` on a non-FAILED row must NOT
+ * produce a deep-link. The component's gate is on
+ * `mod.result === "FAILED"`, not on the field's mere presence; this
+ * story pins that gate so a future refactor can't accidentally relax
+ * it (e.g. by checking only `firstFailureRef && ...`).
+ */
+export const ModulesWrongRefPlacement = {
+  render: () => html`
+    <cts-plan-modules
+      .modules=${MOCK_MODULES_WRONG_REF_PLACEMENT}
+      plan-id="plan-abc-123"
+    ></cts-plan-modules>
+  `,
+  async play({ canvasElement }) {
+    const statusLinks = canvasElement.querySelectorAll('[data-testid="module-status-link"]');
+    expect(statusLinks.length).toBe(3);
+
+    // None of the three rows produce a fragment, despite each carrying
+    // a non-empty firstFailureRef. The result-gate keeps the deep-link
+    // contract honest: only FAILED rows ever deep-link. Loop also
+    // verifies the aria-label keeps the original "View logs ..." shape.
+    for (const link of Array.from(statusLinks)) {
+      const href = link.getAttribute("href") || "";
+      expect(href.includes("#")).toBe(false);
+      const ariaLabel = link.getAttribute("aria-label") || "";
+      expect(ariaLabel.startsWith("View logs for ")).toBe(true);
+      expect(ariaLabel.startsWith("Jump to first failure")).toBe(false);
+    }
   },
 };
 
