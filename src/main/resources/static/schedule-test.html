@@ -759,6 +759,17 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
                                     </div>
                                 </div>
                                 <div class="row config-form-element-container">
+                                    <div class="col-md-2 key">verifier_<wbr>info</div>
+                                    <div class="col-md-10">
+                                        <div class="input-group">
+                                            <div class="input-group-text">
+                                                <span class="bi bi-info-circle-fill" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Optional. JSON array of verifier_info attestations to include in the authorization request (OID4VP 1.0 section 5.1). Leave this empty unless you know the wallet being tested requires it."></span>
+                                            </div>
+                                            <textarea class="form-control config-form-element" data-json-target="client.verifier_info" data-json-type="jsonobject"></textarea>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row config-form-element-container">
                                     <div class="col-md-2 key">redirect_uri</div>
                                     <div class="col-md-10">
                                         <div class="input-group">
