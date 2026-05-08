@@ -13,12 +13,11 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @ExtendWith(MockitoExtension.class)
-public class VCIEnsureCredentialRequestUsesApplicationJwtIfIssuerRequiresEncryption_UnitTest {
+public class VCIEnsureCredentialRequestUsesApplicationJwt_UnitTest {
 
-	private VCIEnsureCredentialRequestUsesApplicationJwtIfIssuerRequiresEncryption cond;
+	private VCIEnsureCredentialRequestUsesApplicationJwt cond;
 
 	private final TestInstanceEventLog eventLog = BsonEncoding.testInstanceEventLog();
 
@@ -26,37 +25,39 @@ public class VCIEnsureCredentialRequestUsesApplicationJwtIfIssuerRequiresEncrypt
 
 	@BeforeEach
 	public void setUp() {
-		cond = new VCIEnsureCredentialRequestUsesApplicationJwtIfIssuerRequiresEncryption();
+		cond = new VCIEnsureCredentialRequestUsesApplicationJwt();
 		cond.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.FAILURE);
 		env = new Environment();
 	}
 
 	@Test
-	public void passesWhenIssuerDoesNotRequireEncryption() {
-		setIssuerRequestEncryptionRequired(false);
-		setIncomingContentType("application/json");
-		assertDoesNotThrow(() -> cond.execute(env));
-	}
-
-	@Test
-	public void passesWhenIssuerRequiresEncryptionAndRequestIsEncrypted() {
-		setIssuerRequestEncryptionRequired(true);
+	public void passesForApplicationJwt() {
 		setIncomingContentType("application/jwt");
 		assertDoesNotThrow(() -> cond.execute(env));
 	}
 
 	@Test
-	public void failsWhenIssuerRequiresEncryptionAndRequestIsPlaintext() {
-		setIssuerRequestEncryptionRequired(true);
-		setIncomingContentType("application/json");
-		ConditionError err = assertThrows(ConditionError.class, () -> cond.execute(env));
-		assertTrue(err.getMessage().contains("Issuer requires credential request encryption"),
-			"expected message to mention that the issuer requires encryption but was: " + err.getMessage());
+	public void passesForApplicationJwtWithCharsetParameter() {
+		setIncomingContentType("application/jwt; charset=utf-8");
+		assertDoesNotThrow(() -> cond.execute(env));
 	}
 
 	@Test
-	public void failsWhenIssuerRequiresEncryptionAndContentTypeMissing() {
-		setIssuerRequestEncryptionRequired(true);
+	public void failsForApplicationJson() {
+		setIncomingContentType("application/json");
+		assertThrows(ConditionError.class, () -> cond.execute(env));
+	}
+
+	@Test
+	public void failsForApplicationOctetStream() {
+		// Regression: a valid JWE wrapped with the wrong Content-Type must be rejected so that
+		// the encrypted-flow validation cannot silently pass on a non-spec-compliant request.
+		setIncomingContentType("application/octet-stream");
+		assertThrows(ConditionError.class, () -> cond.execute(env));
+	}
+
+	@Test
+	public void failsForMissingContentType() {
 		setIncomingContentType(null);
 		assertThrows(ConditionError.class, () -> cond.execute(env));
 	}
@@ -69,13 +70,5 @@ public class VCIEnsureCredentialRequestUsesApplicationJwtIfIssuerRequiresEncrypt
 		JsonObject incomingRequest = new JsonObject();
 		incomingRequest.add("headers", headers);
 		env.putObject("incoming_request", incomingRequest);
-	}
-
-	private void setIssuerRequestEncryptionRequired(boolean required) {
-		JsonObject requestEnc = new JsonObject();
-		requestEnc.addProperty("encryption_required", required);
-		JsonObject metadata = new JsonObject();
-		metadata.add("credential_request_encryption", requestEnc);
-		env.putObject("credential_issuer_metadata", metadata);
 	}
 }

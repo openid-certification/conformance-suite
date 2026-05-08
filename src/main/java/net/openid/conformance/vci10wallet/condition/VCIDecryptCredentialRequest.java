@@ -30,10 +30,11 @@ import java.text.ParseException;
  * / {@code body_json} with the decrypted JSON so subsequent request validation can proceed
  * unchanged.
  *
- * <p>Content-Type and encryption-required preconditions are checked by dedicated conditions
- * ({@link VCIEnsureCredentialRequestUsesApplicationJwtIfIssuerRequiresEncryption} for § 8.2-9
- * and {@link VCIEnsureCredentialRequestEncryptedIfResponseEncryptionRequested} for § 8.2-18).
- * The caller is expected to invoke those before this one.
+ * <p>The Content-Type precondition (§ 10-2) is checked by
+ * {@link VCIEnsureCredentialRequestUsesApplicationJwt}; the § 8.2-18 rule that any request
+ * carrying {@code credential_response_encryption} must have been encrypted is checked by
+ * {@link VCIEnsureCredentialRequestEncryptedIfResponseEncryptionRequested}. Callers are
+ * expected to invoke {@code VCIEnsureCredentialRequestUsesApplicationJwt} before this one.
  *
  * @see <a href="https://openid.net/specs/openid-4-verifiable-credential-issuance-1_0.html#section-10">OID4VCI Section 10 - Encrypted Credential Requests and Responses</a>
  */
