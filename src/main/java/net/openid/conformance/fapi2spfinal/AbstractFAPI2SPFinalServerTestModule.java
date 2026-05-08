@@ -30,6 +30,8 @@ import net.openid.conformance.condition.client.CallProtectedResource;
 import net.openid.conformance.condition.client.CallProtectedResourceAllowingDpopNonceError;
 import net.openid.conformance.condition.client.CallTokenEndpointAllowingDpopNonceErrorAndReturnFullResponse;
 import net.openid.conformance.condition.client.CallTokenEndpointAndReturnFullResponse;
+import net.openid.conformance.condition.client.ExtractClientAttestationChallengeFromResponseHeader;
+import net.openid.conformance.condition.client.ValidateClientAttestationChallengeResponseHeader;
 import net.openid.conformance.condition.client.CheckForAccessTokenValue;
 import net.openid.conformance.condition.client.CheckForDateHeaderInResourceResponse;
 import net.openid.conformance.condition.client.CheckForPARResponseExpiresIn;
@@ -791,6 +793,7 @@ public abstract class AbstractFAPI2SPFinalServerTestModule extends AbstractRedir
 			while(i < MAX_RETRY){
 				createDpopForTokenEndpoint();
 				callAndStopOnFailure(CallTokenEndpointAllowingDpopNonceErrorAndReturnFullResponse.class, requirements);
+				extractAndValidateClientAttestationChallengeResponseHeader("token_endpoint_response_full");
 				if(Strings.isNullOrEmpty(env.getString("token_endpoint_dpop_nonce_error"))) {
 					break;
 				}
@@ -798,7 +801,28 @@ public abstract class AbstractFAPI2SPFinalServerTestModule extends AbstractRedir
 			}
 		} else {
 			callAndStopOnFailure(CallTokenEndpointAndReturnFullResponse.class, requirements);
+			extractAndValidateClientAttestationChallengeResponseHeader("token_endpoint_response_full");
 		}
+	}
+
+	/**
+	 * Extract and validate the {@code OAuth-Client-Attestation-Challenge} response header from the most recent
+	 * endpoint response, when client attestation client auth is in use, so the next request picks up the freshest
+	 * server-supplied challenge (draft-ietf-oauth-attestation-based-client-auth-07 §8.1). No-op for other client
+	 * auth types.
+	 *
+	 * @param fullResponseEnvKey env key holding the full endpoint response object (with {@code headers}), e.g.
+	 *                           {@code token_endpoint_response_full} or
+	 *                           {@link CallPAREndpoint#RESPONSE_KEY pushed_authorization_endpoint_response}.
+	 */
+	protected void extractAndValidateClientAttestationChallengeResponseHeader(String fullResponseEnvKey) {
+		if (getVariant(ClientAuthType.class) != ClientAuthType.CLIENT_ATTESTATION) {
+			return;
+		}
+		env.mapKey("endpoint_response", fullResponseEnvKey);
+		callAndContinueOnFailure(ExtractClientAttestationChallengeFromResponseHeader.class, ConditionResult.FAILURE, "OAuth2-ATCA07-8.1");
+		callAndContinueOnFailure(ValidateClientAttestationChallengeResponseHeader.class, ConditionResult.WARNING, "OAuth2-ATCA07-8.1");
+		env.unmapKey("endpoint_response");
 	}
 
 	protected void exchangeAuthorizationCode() {
@@ -1194,6 +1218,7 @@ public abstract class AbstractFAPI2SPFinalServerTestModule extends AbstractRedir
 			while(i < MAX_RETRY){
 				createDpopForParEndpoint();
 				callAndStopOnFailure(CallPAREndpointAllowingDpopNonceError.class, requirements);
+				extractAndValidateClientAttestationChallengeResponseHeader(CallPAREndpoint.RESPONSE_KEY);
 				if(Strings.isNullOrEmpty(env.getString("par_endpoint_dpop_nonce_error"))) {
 					break;
 				}
@@ -1201,6 +1226,7 @@ public abstract class AbstractFAPI2SPFinalServerTestModule extends AbstractRedir
 			}
 		} else {
 			callAndStopOnFailure(CallPAREndpoint.class, requirements);
+			extractAndValidateClientAttestationChallengeResponseHeader(CallPAREndpoint.RESPONSE_KEY);
 		}
 	}
 

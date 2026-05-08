@@ -529,6 +529,7 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractFAPI2SPFinalSe
 				addClientAuthenticationToTokenEndpointRequest();
 				createDpopForTokenEndpoint();
 				callAndStopOnFailure(CallTokenEndpointAllowingDpopNonceErrorAndReturnFullResponse.class, requirements);
+				extractAndValidateClientAttestationChallengeResponseHeader("token_endpoint_response_full");
 				if (Strings.isNullOrEmpty(env.getString("token_endpoint_dpop_nonce_error"))) {
 					break;
 				}
@@ -537,6 +538,7 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractFAPI2SPFinalSe
 		} else {
 			addClientAuthenticationToTokenEndpointRequest();
 			callAndStopOnFailure(CallTokenEndpointAndReturnFullResponse.class, requirements);
+			extractAndValidateClientAttestationChallengeResponseHeader("token_endpoint_response_full");
 		}
 	}
 
