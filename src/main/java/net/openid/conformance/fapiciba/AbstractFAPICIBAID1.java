@@ -45,6 +45,8 @@ import net.openid.conformance.condition.client.CallAutomatedCibaApprovalEndpoint
 import net.openid.conformance.condition.client.CallBackchannelAuthenticationEndpoint;
 import net.openid.conformance.condition.client.CallProtectedResource;
 import net.openid.conformance.condition.client.CallTokenEndpointAndReturnFullResponse;
+import net.openid.conformance.condition.client.ExtractClientAttestationChallengeFromResponseHeader;
+import net.openid.conformance.condition.client.ValidateClientAttestationChallengeResponseHeader;
 import net.openid.conformance.condition.client.CheckBackchannelAuthenticationEndpointContentType;
 import net.openid.conformance.condition.client.CheckBackchannelAuthenticationEndpointHttpStatus200;
 import net.openid.conformance.condition.client.CheckBackchannelAuthenticationEndpointHttpStatus400;
@@ -823,7 +825,24 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 		addClientAuthenticationToTokenEndpointRequest();
 
 		callAndStopOnFailure(CallTokenEndpointAndReturnFullResponse.class);
+		extractAndValidateClientAttestationChallengeResponseHeader("token_endpoint_response_full");
 		callAndContinueOnFailure(CheckTokenEndpointReturnedJsonContentType.class, Condition.ConditionResult.FAILURE, "OIDCC-3.1.3.4");
+	}
+
+	/**
+	 * Extract and validate the {@code OAuth-Client-Attestation-Challenge} response header from the most recent
+	 * endpoint response, when client attestation client auth is in use, so the next request picks up the freshest
+	 * server-supplied challenge (draft-ietf-oauth-attestation-based-client-auth-07 §8.1). No-op for other client
+	 * auth types.
+	 */
+	protected void extractAndValidateClientAttestationChallengeResponseHeader(String fullResponseEnvKey) {
+		if (getVariant(ClientAuthType.class) != ClientAuthType.CLIENT_ATTESTATION) {
+			return;
+		}
+		env.mapKey("endpoint_response", fullResponseEnvKey);
+		callAndContinueOnFailure(ExtractClientAttestationChallengeFromResponseHeader.class, Condition.ConditionResult.FAILURE, "OAuth2-ATCA07-8.1");
+		callAndContinueOnFailure(ValidateClientAttestationChallengeResponseHeader.class, Condition.ConditionResult.WARNING, "OAuth2-ATCA07-8.1");
+		env.unmapKey("endpoint_response");
 	}
 
 	protected void verifyTokenEndpointResponseIsPendingOrSlowDown() {
