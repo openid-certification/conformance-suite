@@ -128,7 +128,12 @@ async def run_test_plan(test_plan_obj, config_file, output_dir, client_certs):
     print("Running plan '{}' with configuration file '{}'".format(test_plan, config_file))
     with open(config_file) as f:
         json_config = f.read()
+    # Use this for URLs whose host must match externally published metadata, such as issuer.
+    external_base_url = os.environ.get('EXTERNAL_URL') or os.environ['CONFORMANCE_SERVER']
+    if not external_base_url.endswith('/'):
+        external_base_url += '/'
     json_config = json_config.replace('{BASEURL}', os.environ['CONFORMANCE_SERVER'])
+    json_config = json_config.replace('{EXTERNALBASEURL}', external_base_url)
     json_config = json_config.replace('{LOCALBASEURL}', os.environ.get('CONFORMANCE_SERVER_LOCAL', os.environ['CONFORMANCE_SERVER']))
     json_config = json_config.replace('{HOSTNAME}', urllib.parse.urlsplit(os.environ['CONFORMANCE_SERVER']).hostname)
     json_config = json_config.replace('{BASEURLMTLS}', os.environ['CONFORMANCE_SERVER_MTLS'])

@@ -18,24 +18,7 @@ import net.openid.conformance.variant.VariantSetup;
 	testName = "fapi-ciba-id1-refresh-token",
 	displayName = "FAPI-CIBA-ID1: test refresh token behaviours",
 	summary = "This test obtains refresh tokens and performs various checks, including checking that the refresh token is correctly bound to the client.",
-	profile = "FAPI-CIBA-ID1",
-	configurationFields = {
-		"server.discoveryUrl",
-		"client.scope",
-		"client.jwks",
-		"client.hint_type",
-		"client.hint_value",
-		"mtls.key",
-		"mtls.cert",
-		"mtls.ca",
-		"client2.scope",
-		"client2.jwks",
-		"client2.acr_value",
-		"mtls2.key",
-		"mtls2.cert",
-		"mtls2.ca",
-		"resource.resourceUrl"
-	}
+	profile = "FAPI-CIBA-ID1"
 )
 public class FAPICIBAID1RefreshToken extends AbstractFAPICIBAID1MultipleClient {
 
