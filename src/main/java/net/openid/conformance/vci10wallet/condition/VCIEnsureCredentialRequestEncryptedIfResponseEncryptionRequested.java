@@ -9,10 +9,14 @@ import net.openid.conformance.vci10issuer.condition.VciErrorCode;
 import net.openid.conformance.vci10issuer.util.VCICredentialErrorResponseUtil;
 
 /**
- * Enforces OID4VCI 1.0 Final § 8.2-18: if the credential request body includes
- * {@code credential_response_encryption}, the request MUST be encrypted (Content-Type
- * {@code application/jwt}). For encrypted requests the body is opaque here; that the body
- * really is a valid JWE is verified by {@link VCIDecryptCredentialRequest}.
+ * Enforces OID4VCI 1.0 Final § 8.2-18 (and § 9.1-11 for the deferred endpoint) on the
+ * plaintext path: a credential request body that includes {@code credential_response_encryption}
+ * must have been sent encrypted, so a plaintext request body MUST NOT include it.
+ *
+ * <p>Encrypted requests satisfy the rule by construction (the request was already encrypted),
+ * so this condition is only invoked from the plaintext branch of the test flow. The
+ * Content-Type short-circuit in the body is defensive — current callers guarantee
+ * {@code application/json} before invoking this condition.
  *
  * @see <a href="https://openid.net/specs/openid-4-verifiable-credential-issuance-1_0.html#section-8.2">OID4VCI § 8.2</a>
  */
@@ -28,7 +32,7 @@ public class VCIEnsureCredentialRequestEncryptedIfResponseEncryptionRequested ex
 			: AbstractCheckEndpointContentTypeReturned.getMimeTypeFromContentType(contentType);
 
 		if ("application/jwt".equalsIgnoreCase(mimeType)) {
-			logSuccess("Credential request Content-Type is application/jwt, assuming the request is encrypted",
+			logSuccess("Credential request was encrypted (Content-Type: application/jwt)",
 				args("content_type", contentType));
 			return env;
 		}
