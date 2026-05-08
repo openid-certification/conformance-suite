@@ -3,11 +3,13 @@ package net.openid.conformance.fapi2spfinal;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.AddCdrXCdsClientHeadersToResourceEndpointRequest;
+import net.openid.conformance.condition.client.AddDpopJktToAuthorizationEndpointRequest;
 import net.openid.conformance.condition.client.BuildRequestObjectByReferenceRedirectToAuthorizationEndpointReorderedParams;
 import net.openid.conformance.condition.client.AddIpV6FapiCustomerIpAddressToResourceEndpointRequest;
 import net.openid.conformance.condition.client.CallProtectedResource;
 import net.openid.conformance.condition.client.ClearAcceptHeaderForResourceEndpointRequest;
 import net.openid.conformance.condition.client.CreateRandomNonceValue;
+import net.openid.conformance.condition.client.GenerateDpopKey;
 import net.openid.conformance.condition.client.DisallowAccessTokenInQuery;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs200or201;
 import net.openid.conformance.condition.client.EnsureIdTokenDoesNotContainNonRequestedClaims;
@@ -52,6 +54,8 @@ public class FAPI2SPFinalHappyFlow extends AbstractFAPI2SPFinalMultipleClient {
 
 	@Override
 	protected ConditionSequence makeCreateAuthorizationRequestSteps() {
+		ConditionSequence sequence;
+
 		if (isOpenId) {
 			Command cmd = new Command();
 
@@ -62,13 +66,21 @@ public class FAPI2SPFinalHappyFlow extends AbstractFAPI2SPFinalMultipleClient {
 				cmd.removeNativeValue("requested_nonce_length");
 			}
 
-			ConditionSequence conditionSequence = super.makeCreateAuthorizationRequestSteps()
+			sequence = super.makeCreateAuthorizationRequestSteps()
 				.insertBefore(CreateRandomNonceValue.class, cmd);
-
-			return conditionSequence;
+		} else {
+			sequence = super.makeCreateAuthorizationRequestSteps();
 		}
 
-		return super.makeCreateAuthorizationRequestSteps();
+		// On the second client, exercise RFC 9449 §10.1's dpop_jkt-only PAR shape
+		// (no DPoP header, just the form param) — not otherwise covered in the happy flow.
+		if (isSecondClient() && isDpop()) {
+			sequence = sequence
+				.then(condition(GenerateDpopKey.class))
+				.then(condition(AddDpopJktToAuthorizationEndpointRequest.class));
+		}
+
+		return sequence;
 	}
 
 	protected void checkResourceEndpointTLS() {
