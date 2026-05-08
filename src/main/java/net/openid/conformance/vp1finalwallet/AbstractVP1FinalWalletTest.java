@@ -28,6 +28,7 @@ import net.openid.conformance.condition.client.AddStateToAuthorizationEndpointRe
 import net.openid.conformance.condition.client.AddVP1FinalEncryptionParametersToClientMetadata;
 import net.openid.conformance.condition.client.AddVP1FinalIsoMdocClientMetadataToAuthorizationRequest;
 import net.openid.conformance.condition.client.AddVP1FinalSdJwtClientMetadataToAuthorizationRequest;
+import net.openid.conformance.condition.client.AddVerifierInfoToAuthorizationEndpointRequest;
 import net.openid.conformance.condition.client.BuildPlainRedirectToAuthorizationEndpoint;
 import net.openid.conformance.condition.client.BuildRequestObjectByReferenceRedirectToAuthorizationEndpointWithoutDuplicates;
 import net.openid.conformance.condition.client.BuildVP1FinalBrowserDCAPIRequestMultiSigned;
@@ -38,6 +39,7 @@ import net.openid.conformance.condition.client.CheckAudInBindingJwtDcApi;
 import net.openid.conformance.condition.client.CheckCallbackHttpMethodIsGet;
 import net.openid.conformance.condition.client.CheckDiscEndpointRequestUriParameterSupported;
 import net.openid.conformance.condition.client.CheckForUnexpectedParametersInDcqlQuery;
+import net.openid.conformance.condition.client.CheckForUnexpectedParametersInVerifierInfo;
 import net.openid.conformance.condition.client.CheckForUnexpectedParametersInVpAuthorizationResponse;
 import net.openid.conformance.condition.client.CheckIatInBindingJwt;
 import net.openid.conformance.condition.client.CheckIfAuthorizationEndpointError;
@@ -77,6 +79,7 @@ import net.openid.conformance.condition.client.ExtractJWKsFromStaticClientConfig
 import net.openid.conformance.condition.client.ExtractSecondJWKsFromClientConfiguration;
 import net.openid.conformance.condition.client.ExtractVP1FinalBrowserApiResponse;
 import net.openid.conformance.condition.client.ExtractVP1FinalVpTokenDCQL;
+import net.openid.conformance.condition.client.ExtractVerifierInfoFromClientConfiguration;
 import net.openid.conformance.condition.client.GetStaticClientConfiguration;
 import net.openid.conformance.condition.client.GetStaticServerConfiguration;
 import net.openid.conformance.condition.client.ParseCredentialAsMdoc;
@@ -112,6 +115,7 @@ import net.openid.conformance.condition.client.ValidateJWEHeaderKidIsInClientMet
 import net.openid.conformance.condition.client.ValidateMdocDocTypeMatchesDcqlQuery;
 import net.openid.conformance.condition.client.ValidateSdJwtKbSdHash;
 import net.openid.conformance.condition.client.ValidateSdJwtKeyBindingSignature;
+import net.openid.conformance.condition.client.ValidateVerifierInfo;
 import net.openid.conformance.condition.client.ValidateVpTokenCredentialIdMatchesDcqlQuery;
 import net.openid.conformance.condition.client.WarnMockWalletResponse;
 import net.openid.conformance.condition.common.CheckAuthorizationEndpointIsValidUri;
@@ -127,6 +131,7 @@ import net.openid.conformance.sequence.client.ValidateSdJwtVcCredentialClaims;
 import net.openid.conformance.testmodule.AbstractRedirectServerTestModule;
 import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.testmodule.TestFailureException;
+import net.openid.conformance.variant.ConfigurationFields;
 import net.openid.conformance.variant.VPProfile;
 import net.openid.conformance.variant.VariantConfigurationFields;
 import net.openid.conformance.variant.VariantHidesConfigurationFields;
@@ -147,6 +152,11 @@ import java.util.concurrent.TimeUnit;
 	VP1FinalWalletClientIdPrefix.class,
 	VP1FinalWalletResponseMode.class,
 	VP1FinalWalletRequestMethod.class
+})
+@ConfigurationFields({
+	"client.jwks",
+	"client.dcql",
+	"client.verifier_info"
 })
 @VariantConfigurationFields(parameter = VP1FinalWalletClientIdPrefix.class, value = "decentralized_identifier", configurationFields = {
 	"client.client_id"
@@ -509,6 +519,20 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 			callAndContinueOnFailure(ValidateDCQLQuery.class, ConditionResult.FAILURE, "OID4VP-1FINAL-6", "OID4VP-1FINAL-6.1");
 			callAndContinueOnFailure(CheckForUnexpectedParametersInDcqlQuery.class, ConditionResult.WARNING, "OID4VP-1FINAL-6");
 			callAndStopOnFailure(AddDcqlToAuthorizationEndpointRequest.class);
+
+			call(condition(ExtractVerifierInfoFromClientConfiguration.class)
+				.skipIfElementMissing("client", "verifier_info"));
+			call(condition(ValidateVerifierInfo.class)
+				.skipIfElementMissing("client", "verifier_info")
+				.requirements("OID4VP-1FINAL-5.1")
+				.dontStopOnFailure());
+			call(condition(CheckForUnexpectedParametersInVerifierInfo.class)
+				.skipIfElementMissing("client", "verifier_info")
+				.requirements("OID4VP-1FINAL-5.1")
+				.onFail(ConditionResult.WARNING)
+				.dontStopOnFailure());
+			call(condition(AddVerifierInfoToAuthorizationEndpointRequest.class)
+				.skipIfElementMissing("client", "verifier_info"));
 
 			callAndStopOnFailure(CreateRandomNonceValue.class);
 			call(exec().exposeEnvironmentString("nonce"));

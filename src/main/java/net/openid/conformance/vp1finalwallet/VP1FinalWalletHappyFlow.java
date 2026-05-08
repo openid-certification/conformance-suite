@@ -9,11 +9,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 	testName = "oid4vp-1final-wallet-happy-flow",
 	displayName = "OID4VP-1.0-FINAL: Happy flow",
 	summary = "Baseline happy flow test. The optional 'state' authorization request parameter is omitted (note: 'state' is not used by DC API response modes regardless).",
-	profile = "OID4VP-1FINAL",
-	configurationFields = {
-		"client.jwks",
-		"client.dcql"
-	}
+	profile = "OID4VP-1FINAL"
 )
 public class VP1FinalWalletHappyFlow extends AbstractVP1FinalWalletTest {
 
