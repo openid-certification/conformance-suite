@@ -14,13 +14,9 @@ import net.openid.conformance.testmodule.PublishTestModule;
 	summary = "Perform the DCR flow, but using a software statement where the signature has been invalidated - the server must reject the registration attempt.",
 	profile = "FAPI2-Security-Profile-Final",
 	configurationFields = {
-		"server.discoveryUrl",
-		"client.scope",
-		"client.jwks",
 		"directory.discoveryUrl",
 		"directory.client_id",
-		"directory.apibase",
-		"resource.resourceUrl"
+		"directory.apibase"
 	}
 )
 public class FAPI2SPFinalBrazilDCRInvalidSoftwareStatementSignature extends AbstractFAPI2SPFinalBrazilDCR {

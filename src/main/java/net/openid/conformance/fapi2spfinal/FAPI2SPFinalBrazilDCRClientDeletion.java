@@ -22,13 +22,9 @@ import net.openid.conformance.testmodule.PublishTestModule;
 	summary = "Obtain a software statement from the Brazil directory (using the client MTLS certificate and directory client id provided in the test configuration), register a new client on the target authorization server then check behaviour of GET/DELETE operations after client deletion.",
 	profile = "FAPI2-Security-Profile-Final",
 	configurationFields = {
-		"server.discoveryUrl",
-		"client.scope",
-		"client.jwks",
 		"directory.discoveryUrl",
 		"directory.client_id",
-		"directory.apibase",
-		"resource.resourceUrl"
+		"directory.apibase"
 	}
 )
 public class FAPI2SPFinalBrazilDCRClientDeletion extends AbstractFAPI2SPFinalBrazilDCR {

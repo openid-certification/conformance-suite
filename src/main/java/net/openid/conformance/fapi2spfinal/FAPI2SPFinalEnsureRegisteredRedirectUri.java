@@ -18,17 +18,7 @@ import jakarta.servlet.http.HttpSession;
 	testName = "fapi2-security-profile-final-ensure-registered-redirect-uri",
 	displayName = "FAPI2-Security-Profile-Final: ensure registered redirect URI",
 	summary = "This test uses an unregistered redirect uri. The authorization server should display an error saying the redirect uri is invalid, a screenshot of which should be uploaded.",
-	profile = "FAPI2-Security-Profile-Final",
-	configurationFields = {
-		"server.discoveryUrl",
-		"client.client_id",
-		"client.scope",
-		"client.jwks",
-		"client2.client_id",
-		"client2.scope",
-		"client2.jwks",
-		"resource.resourceUrl"
-	}
+	profile = "FAPI2-Security-Profile-Final"
 )
 // The 'redirect_uri' is required to be pre-registered. This is not the case for 'plain_fapi'.
 @VariantNotApplicable(parameter = FAPI2FinalOPProfile.class, values = { "plain_fapi", "fapi_client_credentials_grant" })

@@ -42,17 +42,7 @@ import net.openid.conformance.variant.VariantSetup;
 	testName = "fapi2-security-profile-final-refresh-token",
 	displayName = "FAPI2-Security-Profile-Final: test refresh token behaviours",
 	summary = "This test obtains refresh tokens and performs various checks, including checking that the refresh token is correctly bound to the client.",
-	profile = "FAPI2-Security-Profile-Final",
-	configurationFields = {
-		"server.discoveryUrl",
-		"client.client_id",
-		"client.scope",
-		"client.jwks",
-		"client2.client_id",
-		"client2.scope",
-		"client2.jwks",
-		"resource.resourceUrl"
-	}
+	profile = "FAPI2-Security-Profile-Final"
 )
 
 @VariantNotApplicable(parameter = FAPI2FinalOPProfile.class, values = { "fapi_client_credentials_grant" })

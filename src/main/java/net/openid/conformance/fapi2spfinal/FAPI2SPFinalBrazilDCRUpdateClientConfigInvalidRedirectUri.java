@@ -18,13 +18,9 @@ import net.openid.conformance.testmodule.PublishTestModule;
 	summary = "Obtain a software statement from the Brazil directory (using the client MTLS certificate and directory client id provided in the test configuration), register a new client on the target authorization server and then use a PUT to try and add a redirect uri not in the software statement, the server must return an 'invalid_client_metadata' error.",
 	profile = "FAPI2-Security-Profile-Final",
 	configurationFields = {
-		"server.discoveryUrl",
-		"client.scope",
-		"client.jwks",
 		"directory.discoveryUrl",
 		"directory.client_id",
-		"directory.apibase",
-		"resource.resourceUrl"
+		"directory.apibase"
 	}
 )
 public class FAPI2SPFinalBrazilDCRUpdateClientConfigInvalidRedirectUri extends AbstractFAPI2SPFinalBrazilDCR {

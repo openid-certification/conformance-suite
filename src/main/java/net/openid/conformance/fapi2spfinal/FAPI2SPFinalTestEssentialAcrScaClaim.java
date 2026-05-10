@@ -20,17 +20,7 @@ import net.openid.conformance.variant.VariantSetup;
 	testName = "fapi2-security-profile-final-test-essential-acr-sca-claim",
 	displayName = "FAPI2-Security-Profile-Final: check behaviour of openbankinguk server when an essential acr claim for SCA is made",
 	summary = "This test requests an acr claim for SCA with essential=true, The server can choose to reject this by showing an access_denied error (a screenshot of which should be uploaded), or by the user being redirected back to the conformance suite with a correct error response. Alternatively the server can accept the request, in which case it must perform SCA and must return an acr in the id_token as SCA.",
-	profile = "FAPI2-Security-Profile-Final",
-	configurationFields = {
-		"server.discoveryUrl",
-		"client.client_id",
-		"client.scope",
-		"client.jwks",
-		"client2.client_id",
-		"client2.scope",
-		"client2.jwks",
-		"resource.resourceUrl"
-	}
+	profile = "FAPI2-Security-Profile-Final"
 )
 // only applicable to UK OpenBanking as the SCA acr value we use is specific to that ecosystem
 @VariantNotApplicable(parameter = FAPI2FinalOPProfile.class, values = { "plain_fapi", "consumerdataright_au", "openbanking_brazil", "connectid_au",  "cbuae", "fapi_client_credentials_grant" })

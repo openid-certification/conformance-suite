@@ -18,17 +18,7 @@ import jakarta.servlet.http.HttpSession;
 	testName = "fapi2-security-profile-final-plain-fapi-ensure-registered-redirect-uri",
 	displayName = "FAPI2-Security-Profile-Final: ensure registered redirect URI",
 	summary = "This test uses an unregistered redirect uri. The authorization server may allow this as per RFC 9126 Section 2.4 or may display an error saying the redirect uri is invalid, a screenshot of which should be uploaded.",
-	profile = "FAPI2-Security-Profile-Final",
-	configurationFields = {
-		"server.discoveryUrl",
-		"client.client_id",
-		"client.scope",
-		"client.jwks",
-		"client2.client_id",
-		"client2.scope",
-		"client2.jwks",
-		"resource.resourceUrl"
-	}
+	profile = "FAPI2-Security-Profile-Final"
 )
 // Allowing the OP to accept a 'redirect_uri' that has not been previously registered is for 'plain_fapi' only.
 @VariantNotApplicable(parameter = FAPI2FinalOPProfile.class, values = { "openbanking_uk", "consumerdataright_au", "openbanking_brazil", "connectid_au", "cbuae", "fapi_client_credentials_grant" })
