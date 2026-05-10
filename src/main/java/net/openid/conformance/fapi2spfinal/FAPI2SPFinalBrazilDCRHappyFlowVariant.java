@@ -12,13 +12,9 @@ import net.openid.conformance.testmodule.PublishTestModule;
 	summary = "Obtain a software statement from the Brazil directory (using the client MTLS certificate and directory client id provided in the test configuration), register a new client on the target authorization server and perform an authorization flow. The registration request has the members of the 'grant_types' in a different order to the normal happy flow test, and includes the optional 'scope' parameter.",
 	profile = "FAPI2-Security-Profile-Final",
 	configurationFields = {
-		"server.discoveryUrl",
-		"client.scope",
-		"client.jwks",
 		"directory.discoveryUrl",
 		"directory.client_id",
-		"directory.apibase",
-		"resource.resourceUrl"
+		"directory.apibase"
 	}
 )
 public class FAPI2SPFinalBrazilDCRHappyFlowVariant extends AbstractFAPI2SPFinalBrazilDCR {

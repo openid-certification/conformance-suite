@@ -20,17 +20,7 @@ import org.apache.hc.core5.http.HttpStatus;
 	testName = "fapi2-security-profile-final-ensure-token-endpoint-fails-with-expired-auth-code",
 	displayName = "FAPI2-Security-Profile-Final: try to use authorization code after its lifetime has expired",
 	summary = "This test tries using an authorization code, for the first time, after its lifetime of 60 seconds has expired, This must fail with the AS returning an invalid_grant error.",
-	profile = "FAPI2-Security-Profile-Final",
-	configurationFields = {
-		"server.discoveryUrl",
-		"client.client_id",
-		"client.scope",
-		"client.jwks",
-		"client2.client_id",
-		"client2.scope",
-		"client2.jwks",
-		"resource.resourceUrl"
-	}
+	profile = "FAPI2-Security-Profile-Final"
 )
 
 @VariantNotApplicable(parameter = FAPI2FinalOPProfile.class, values = { "fapi_client_credentials_grant" })

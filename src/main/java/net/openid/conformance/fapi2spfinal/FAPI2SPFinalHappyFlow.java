@@ -31,17 +31,7 @@ import net.openid.conformance.variant.FAPI2FinalOPProfile;
 		testName = "fapi2-security-profile-final-happy-flow",
 		displayName = "FAPI2-Security-Profile-Final: Happy flow",
 		summary = "Tests primarily 'happy' flows, using two different OAuth2 clients (and hence authenticating the user twice), and uses different variations on request objects, registered redirect uri (both redirect uris must be pre-registered as shown in the instructions). It also tests that sender constrained access tokens (required by the FAPI spec) are correctly implemented.",
-		profile = "FAPI2-Security-Profile-Final",
-		configurationFields = {
-			"server.discoveryUrl",
-			"client.client_id",
-			"client.scope",
-			"client.jwks",
-			"client2.client_id",
-			"client2.scope",
-			"client2.jwks",
-			"resource.resourceUrl"
-		}
+		profile = "FAPI2-Security-Profile-Final"
 	)
 public class FAPI2SPFinalHappyFlow extends AbstractFAPI2SPFinalMultipleClient {
 

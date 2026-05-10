@@ -13,17 +13,7 @@ import net.openid.conformance.variant.VariantSetup;
 		testName = "fapi2-security-profile-final-check-dpop-proof-nbf-exp",
 		displayName = "FAPI2-Security-Profile-Final: checks DPoP Proof nbf and exp claim validation",
 		summary = "Tests whether the AS can handle the nbf and exp claim in the DPoP Proof",
-		profile = "FAPI2-Security-Profile-Final",
-		configurationFields = {
-			"server.discoveryUrl",
-			"client.client_id",
-			"client.scope",
-			"client.jwks",
-			"client2.client_id",
-			"client2.scope",
-			"client2.jwks",
-			"resource.resourceUrl"
-		}
+		profile = "FAPI2-Security-Profile-Final"
 	)
 
 @VariantNotApplicable(parameter = FAPI2SenderConstrainMethod.class, values={"mtls"})

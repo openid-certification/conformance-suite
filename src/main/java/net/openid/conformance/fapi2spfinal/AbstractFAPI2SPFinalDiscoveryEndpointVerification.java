@@ -24,6 +24,7 @@ import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.sequence.client.SupportMTLSEndpointAliases;
 import net.openid.conformance.testmodule.AbstractTestModule;
 import net.openid.conformance.variant.ClientAuthType;
+import net.openid.conformance.variant.ConfigurationFields;
 import net.openid.conformance.variant.FAPI2SenderConstrainMethod;
 import net.openid.conformance.variant.FAPIOpenIDConnect;
 import net.openid.conformance.variant.FAPIResponseMode;
@@ -36,6 +37,9 @@ import net.openid.conformance.variant.VariantSetup;
 })
 @VariantNotApplicable(parameter = ClientAuthType.class, values = {
 	"none", "client_secret_basic", "client_secret_post", "client_secret_jwt"
+})
+@ConfigurationFields({
+	"server.discoveryUrl"
 })
 public abstract class AbstractFAPI2SPFinalDiscoveryEndpointVerification extends AbstractTestModule {
 	protected Boolean jarm;

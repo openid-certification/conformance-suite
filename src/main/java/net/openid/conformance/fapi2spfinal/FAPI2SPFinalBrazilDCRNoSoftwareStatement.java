@@ -14,13 +14,9 @@ import net.openid.conformance.testmodule.PublishTestModule;
 	summary = "Perform the DCR flow, but without including a software statement (the values in the software statement are added to the body of the request) - the server must reject the registration attempt.",
 	profile = "FAPI2-Security-Profile-Final",
 	configurationFields = {
-		"server.discoveryUrl",
-		"client.scope",
-		"client.jwks",
 		"directory.discoveryUrl",
 		"directory.client_id",
-		"directory.apibase",
-		"resource.resourceUrl"
+		"directory.apibase"
 	}
 )
 public class FAPI2SPFinalBrazilDCRNoSoftwareStatement extends AbstractFAPI2SPFinalBrazilDCR {

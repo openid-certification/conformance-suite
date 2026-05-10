@@ -16,17 +16,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 		testName = "fapi2-security-profile-final-par-test-par-endpoint-url-as-audience-fails",
 		displayName = "FAPI2-Security-Profile-Final: ensure jwt client assertions with par endpoint as audience fails at the par endpoint",
 		summary = "This test checks if PAR endpoint does not accept a client assertion with par endpoint as audience. We expect the request to fail and a server response with status code 400 or 401 with error codes invalid_request or invalid_client.",
-		profile = "FAPI2-Security-Profile-Final",
-	configurationFields = {
-		"server.discoveryUrl",
-		"client.client_id",
-		"client.scope",
-		"client.jwks",
-		"client2.client_id",
-		"client2.scope",
-		"client2.jwks",
-		"resource.resourceUrl"
-	}
+		profile = "FAPI2-Security-Profile-Final"
 )
 @VariantNotApplicable(parameter = ClientAuthType.class, values = {
 	"mtls", "client_attestation"

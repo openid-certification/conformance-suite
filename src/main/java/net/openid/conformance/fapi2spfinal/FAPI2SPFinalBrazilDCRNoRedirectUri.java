@@ -14,13 +14,9 @@ import net.openid.conformance.testmodule.PublishTestModule;
 	summary = "Perform the DCR flow, but without including a redirect uri in the request body - the server must reject the registration attempt.",
 	profile = "FAPI2-Security-Profile-Final",
 	configurationFields = {
-		"server.discoveryUrl",
-		"client.scope",
-		"client.jwks",
 		"directory.discoveryUrl",
 		"directory.client_id",
-		"directory.apibase",
-		"resource.resourceUrl"
+		"directory.apibase"
 	}
 )
 public class FAPI2SPFinalBrazilDCRNoRedirectUri extends AbstractFAPI2SPFinalBrazilDCR {

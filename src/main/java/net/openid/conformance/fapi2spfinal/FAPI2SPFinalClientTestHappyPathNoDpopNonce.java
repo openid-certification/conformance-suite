@@ -11,11 +11,8 @@ import net.openid.conformance.variant.VariantNotApplicable;
 	profile = "FAPI2-Security-Profile-Final",
 	configurationFields = {
 		"server.jwks",
-		"client.client_id",
-		"client.scope",
 		"client.redirect_uri",
 		"client.certificate",
-		"client.jwks",
 		"waitTimeoutSeconds"
 	}
 )
