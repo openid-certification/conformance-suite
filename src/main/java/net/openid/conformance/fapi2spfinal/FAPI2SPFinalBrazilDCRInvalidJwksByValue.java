@@ -13,12 +13,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 	testName = "fapi2-security-profile-final-brazil-dcr-invalid-jwks-by-value",
 	displayName = "FAPI2-Security-Profile-Final: Brazil DCR Invalid JWKS by value",
 	summary = "Perform the DCR flow, but passing a jwks by value - the server must reject the registration attempt.",
-	profile = "FAPI2-Security-Profile-Final",
-	configurationFields = {
-		"directory.discoveryUrl",
-		"directory.client_id",
-		"directory.apibase"
-	}
+	profile = "FAPI2-Security-Profile-Final"
 )
 public class FAPI2SPFinalBrazilDCRInvalidJwksByValue extends AbstractFAPI2SPFinalBrazilDCR {
 
