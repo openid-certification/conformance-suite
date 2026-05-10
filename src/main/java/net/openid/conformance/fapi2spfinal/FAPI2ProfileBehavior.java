@@ -196,6 +196,16 @@ public class FAPI2ProfileBehavior {
 	}
 
 	/**
+	 * Hook called after a successful token-endpoint response has been processed,
+	 * including after each successful refresh-token call. Profiles that need to
+	 * preserve data from the response across subsequent token-endpoint calls
+	 * (which overwrite token_endpoint_response) can return a sequence here.
+	 */
+	public ConditionSequence afterTokenEndpointResponseProcessed() {
+		return null;
+	}
+
+	/**
 	 * Add profile-specific headers to resource endpoint request.
 	 * Default adds auth date, customer IP address, and interaction ID for first client only.
 	 */

@@ -915,6 +915,8 @@ public abstract class AbstractFAPI2SPFinalServerTestModule extends AbstractRedir
 		}
 
 		call(profileBehavior.validateTokenEndpointResponseInteractionId());
+
+		call(profileBehavior.afterTokenEndpointResponseProcessed());
 	}
 
 	protected void createDpopForTokenEndpoint() {

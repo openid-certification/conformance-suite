@@ -32,6 +32,7 @@ import net.openid.conformance.vci10issuer.condition.VCICheckKeyAttestationJwksIf
 import net.openid.conformance.vci10issuer.condition.VCIDetermineCredentialConfigurationTransferMethod;
 import net.openid.conformance.vci10issuer.condition.VCIEnsureResolvedCredentialConfigurationMatchesSelection;
 
+import net.openid.conformance.vci10issuer.condition.VCIExtractCredentialIdentifiersFromTokenEndpointResponse;
 import net.openid.conformance.vci10issuer.condition.VCIExtractCredentialResponse;
 import net.openid.conformance.vci10issuer.condition.VCIExtractTlsInfoFromCredentialIssuer;
 import net.openid.conformance.vci10issuer.condition.VCIFetchOAuthorizationServerMetadata;
@@ -170,6 +171,16 @@ public class VCIProfileBehavior extends FAPI2ProfileBehavior {
 					"OAuth2-ATCA07-1");
 				callAndStopOnFailure(CreateClientAttestationJwt.class, ConditionResult.FAILURE,
 					"OAuth2-ATCA07-1", "HAIP-4.3.1-2");
+			}
+		};
+	}
+
+	@Override
+	public ConditionSequence afterTokenEndpointResponseProcessed() {
+		return new AbstractConditionSequence() {
+			@Override
+			public void evaluate() {
+				callAndStopOnFailure(VCIExtractCredentialIdentifiersFromTokenEndpointResponse.class, "OID4VCI-1FINAL-8.2");
 			}
 		};
 	}
