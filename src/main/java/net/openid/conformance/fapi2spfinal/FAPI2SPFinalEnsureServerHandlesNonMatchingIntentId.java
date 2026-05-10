@@ -25,6 +25,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 		"client.scope",
 		"client.jwks",
 		"client2.client_id",
+		"client2.scope",
 		"client2.jwks",
 		"resource.resourceUrl"
 	}
