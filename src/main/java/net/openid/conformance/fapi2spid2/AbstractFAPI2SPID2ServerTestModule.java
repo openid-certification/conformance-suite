@@ -472,7 +472,6 @@ public abstract class AbstractFAPI2SPID2ServerTestModule extends AbstractRedirec
 				callAndStopOnFailure(BuildUnsignedPAREndpointRequest.class);
 			}
 
-			addClientAuthenticationToPAREndpointRequest();
 			performParAuthorizationRequestFlow();
 		} else {
 			eventLog.startBlock(currentClientString() + "Make request to authorization endpoint");
@@ -659,8 +658,6 @@ public abstract class AbstractFAPI2SPID2ServerTestModule extends AbstractRedirec
 	protected void createAuthorizationCodeRequest() {
 		callAndStopOnFailure(CreateTokenEndpointRequestForAuthorizationCodeGrant.class);
 
-		addClientAuthenticationToTokenEndpointRequest();
-
 		addPkceCodeVerifier();
 	}
 
@@ -684,6 +681,9 @@ public abstract class AbstractFAPI2SPID2ServerTestModule extends AbstractRedirec
 
 	/**
 	 * Call sender constrained token endpoint. For DPOP nonce errors, it will retry with new server nonce value.
+	 * Client authentication is added inside the loop so private_key_jwt's client_assertion and
+	 * client_attestation's PoP JWT are regenerated per attempt — the AS may reject reuse of either jti, and
+	 * for client_attestation §8.1 mandates picking up the freshly returned challenge.
 	 * @param requirements requirements are the same as original call to callAndStopOnFailure(CallTokenEndpointAndReturnFullResponse)
 	 */
 	protected void callSenderConstrainedTokenEndpoint(String... requirements) {
@@ -692,6 +692,7 @@ public abstract class AbstractFAPI2SPID2ServerTestModule extends AbstractRedirec
 		if (isDpop()) {
 			int i = 0;
 			while(i < MAX_RETRY){
+				addClientAuthenticationToTokenEndpointRequest();
 				createDpopForTokenEndpoint();
 				callAndStopOnFailure(CallTokenEndpointAllowingDpopNonceErrorAndReturnFullResponse.class, requirements);
 				extractAndValidateClientAttestationChallengeResponseHeader("token_endpoint_response_full");
@@ -701,6 +702,7 @@ public abstract class AbstractFAPI2SPID2ServerTestModule extends AbstractRedirec
 				++i;
 			}
 		} else {
+			addClientAuthenticationToTokenEndpointRequest();
 			callAndStopOnFailure(CallTokenEndpointAndReturnFullResponse.class, requirements);
 			extractAndValidateClientAttestationChallengeResponseHeader("token_endpoint_response_full");
 		}
@@ -1195,7 +1197,8 @@ public abstract class AbstractFAPI2SPID2ServerTestModule extends AbstractRedirec
 
 
 	/**
-	 * Call Par endpoint with retry for DPoP nonce error
+	 * Call Par endpoint with retry for DPoP nonce error. Client authentication is added inside the loop;
+	 * see {@link #callSenderConstrainedTokenEndpoint} for the rationale.
 	 * @param requirements requirements are the same as original call to callAndStopOnFailure(CallParEndpoint)
 	 */
 	protected void callParEndpointAndStopOnFailure(String... requirements) {
@@ -1203,6 +1206,7 @@ public abstract class AbstractFAPI2SPID2ServerTestModule extends AbstractRedirec
 			final int MAX_RETRY = 2;
 			int i = 0;
 			while(i < MAX_RETRY){
+				addClientAuthenticationToPAREndpointRequest();
 				createDpopForParEndpoint();
 				callAndStopOnFailure(CallPAREndpointAllowingDpopNonceError.class, requirements);
 				extractAndValidateClientAttestationChallengeResponseHeader(CallPAREndpoint.RESPONSE_KEY);
@@ -1212,6 +1216,7 @@ public abstract class AbstractFAPI2SPID2ServerTestModule extends AbstractRedirec
 				++i;
 			}
 		} else {
+			addClientAuthenticationToPAREndpointRequest();
 			callAndStopOnFailure(CallPAREndpoint.class, requirements);
 			extractAndValidateClientAttestationChallengeResponseHeader(CallPAREndpoint.RESPONSE_KEY);
 		}
