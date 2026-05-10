@@ -49,9 +49,15 @@ import net.openid.conformance.condition.client.ValidateMTLSCertificatesHeader;
 import net.openid.conformance.condition.common.CheckDistinctKeyIdValueInClientJWKs;
 import net.openid.conformance.sequence.client.CallDynamicRegistrationEndpointAndVerifySuccessfulResponse;
 import net.openid.conformance.variant.ClientAuthType;
+import net.openid.conformance.variant.ConfigurationFields;
 import net.openid.conformance.variant.FAPI2FinalOPProfile;
 import net.openid.conformance.variant.VariantHidesConfigurationFields;
 
+@ConfigurationFields({
+	"directory.discoveryUrl",
+	"directory.client_id",
+	"directory.apibase"
+})
 // Brazil DCR overrides configureClient() to call ExtractDirectoryConfiguration instead of
 // GetStaticClientConfiguration, and does not use a second client. Hide the inherited
 // AbstractFAPI2SPFinalServerTestModule fields that this flow never consumes so they

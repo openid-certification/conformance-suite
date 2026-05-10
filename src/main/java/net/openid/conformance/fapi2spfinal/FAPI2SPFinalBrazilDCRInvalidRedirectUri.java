@@ -12,12 +12,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 	testName = "fapi2-security-profile-final-brazil-dcr-invalid-redirect-uri",
 	displayName = "FAPI2-Security-Profile-Final: Brazil DCR Invalid Redirect URI",
 	summary = "Perform the DCR flow, but requesting a redirect uri not present in the software statement - the server must reject the registration attempt.",
-	profile = "FAPI2-Security-Profile-Final",
-	configurationFields = {
-		"directory.discoveryUrl",
-		"directory.client_id",
-		"directory.apibase"
-	}
+	profile = "FAPI2-Security-Profile-Final"
 )
 public class FAPI2SPFinalBrazilDCRInvalidRedirectUri extends AbstractFAPI2SPFinalBrazilDCR {
 
