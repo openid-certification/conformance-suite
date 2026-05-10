@@ -55,10 +55,8 @@ public class VP1FinalWalletRequestUriMethodPost extends AbstractVP1FinalWalletTe
 
 			if (env.getString("received_wallet_nonce") != null) {
 				// Per OID4VP §5.10, a verifier that receives wallet_nonce in the POST body MUST include it
-				// as a top-level claim in the returned Request Object. The request object was signed earlier
-				// during createAuthorizationRedirect(); add the claim and re-sign now that we have the value.
+				// as a top-level claim in the returned Request Object.
 				callAndStopOnFailure(AddReceivedWalletNonceToRequestObjectClaims.class, "OID4VP-1FINAL-5.10");
-				callAndStopOnFailure(getActiveSigningCondition());
 			}
 		} else {
 			walletUsedGetInsteadOfPost = true;

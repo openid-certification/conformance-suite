@@ -86,6 +86,7 @@ import net.openid.conformance.condition.client.ParseCredentialAsMdoc;
 import net.openid.conformance.condition.client.ParseCredentialAsSdJwtKb;
 import net.openid.conformance.condition.client.RegisterCredentialTrustAnchor;
 import net.openid.conformance.condition.client.RegisterStatusListTrustAnchor;
+import net.openid.conformance.condition.client.RequestUriFetchedMoreThanOnce;
 import net.openid.conformance.condition.client.SerializeRequestObjectWithNullAlgorithm;
 import net.openid.conformance.condition.client.SetAuthorizationEndpointRequestResponseMode;
 import net.openid.conformance.condition.client.SetAuthorizationEndpointRequestResponseTypeToVpToken;
@@ -742,7 +743,6 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 		@Override
 		public void evaluate() {
 			callAndStopOnFailure(ConvertAuthorizationEndpointRequestToRequestObject.class);
-			callAndStopOnFailure(SerializeRequestObjectWithNullAlgorithm.class);
 			callAndStopOnFailure(requestUriRedirectCondition);
 		}
 	}
@@ -758,23 +758,6 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 		public void evaluate() {
 			callAndStopOnFailure(ConvertAuthorizationEndpointRequestToRequestObject.class);
 			callAndStopOnFailure(AddSelfIssuedMeV2AudToRequestObject.class);
-			callAndStopOnFailure(SignRequestObjectIncludeX5cHeaderIfAvailable.class);
-			callAndStopOnFailure(requestUriRedirectCondition);
-		}
-	}
-
-	public static class CreateAuthorizationRedirectStepsMultiSignedRequestUri extends AbstractConditionSequence {
-		private final Class<? extends Condition> requestUriRedirectCondition;
-
-		public CreateAuthorizationRedirectStepsMultiSignedRequestUri(Class<? extends Condition> requestUriRedirectCondition) {
-			this.requestUriRedirectCondition = requestUriRedirectCondition;
-		}
-
-		@Override
-		public void evaluate() {
-			callAndStopOnFailure(ConvertAuthorizationEndpointRequestToRequestObject.class);
-			callAndStopOnFailure(AddSelfIssuedMeV2AudToRequestObject.class);
-			callAndStopOnFailure(CreateMultiSignedRequestObject.class, "OID4VP-1FINALA-A.3.2");
 			callAndStopOnFailure(requestUriRedirectCondition);
 		}
 	}
@@ -871,14 +854,12 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 				break;
 			case REQUEST_URI_SIGNED:
 				seq = createAuthorizationRedirectStepsSignedRequestUri();
-				Class<? extends Condition> signer = getActiveSigningCondition();
-				if (signer != SignRequestObjectIncludeX5cHeaderIfAvailable.class) {
-					seq.replace(SignRequestObjectIncludeX5cHeaderIfAvailable.class, condition(signer));
-				}
 				break;
 			case REQUEST_URI_MULTISIGNED:
-				// multi-signed is DC API only; the JWS JSON Serialization is passed directly via Browser API
-				seq = createAuthorizationRedirectStepsMultiSignedRequestUri();
+				// multi-signed is DC API only; the JWS JSON Serialization is passed directly via Browser API.
+				// Same eager sequence as single-signed; the multi-signed JWS JSON Serialization is produced by
+				// signRequestObject() (CreateMultiSignedRequestObject).
+				seq = createAuthorizationRedirectStepsSignedRequestUri();
 				break;
 		}
 		if (isBrowserApi()) {
@@ -886,6 +867,11 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 		}
 
 		call(seq);
+
+		if (isBrowserApi()) {
+			// Browser API has no request_uri fetch step where signing could be deferred to.
+			signRequestObject();
+		}
 	}
 
 	protected Class<? extends Condition> getRequestUriRedirectCondition() {
@@ -893,9 +879,8 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 	}
 
 	/**
-	 * The condition class used to (re)create {@code request_object} from {@code request_object_claims}
-	 * for the active variant. Single source of truth for the variant -> signer mapping; consumed by
-	 * both {@link #createAuthorizationRedirect()} and the POST-mode re-sign path.
+	 * The condition class used to create {@code request_object} from {@code request_object_claims}
+	 * for the active variant. Consumed by {@link #signRequestObject()}.
 	 */
 	protected Class<? extends Condition> getActiveSigningCondition() {
 		return switch (requestMethod) {
@@ -913,6 +898,21 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 		};
 	}
 
+	/**
+	 * Sign (or, for unsigned mode, alg:none-serialize) the request object. Eager for Browser API,
+	 * lazy for non-Browser-API request_uri modes (called from {@link #handleRequestUriRequest(String)}
+	 * after subclasses have had a chance to mutate {@code request_object_claims}). Negative tests
+	 * that need to corrupt the produced JWS override this method.
+	 */
+	protected void signRequestObject() {
+		Class<? extends Condition> signer = getActiveSigningCondition();
+		if (requestMethod == VP1FinalWalletRequestMethod.REQUEST_URI_MULTISIGNED) {
+			callAndStopOnFailure(signer, "OID4VP-1FINALA-A.3.2");
+		} else {
+			callAndStopOnFailure(signer);
+		}
+	}
+
 	protected void validateRequestUriFetchMethod() {
 	}
 
@@ -924,11 +924,6 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 	@NotNull
 	protected ConditionSequence createAuthorizationRedirectStepsSignedRequestUri() {
 		return new CreateAuthorizationRedirectStepsSignedRequestUri(getRequestUriRedirectCondition());
-	}
-
-	@NotNull
-	protected ConditionSequence createAuthorizationRedirectStepsMultiSignedRequestUri() {
-		return new CreateAuthorizationRedirectStepsMultiSignedRequestUri(getRequestUriRedirectCondition());
 	}
 
 	@Override
@@ -1112,23 +1107,21 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 		validateRequestUriFetchMethod();
 		call(exec().unmapKey("incoming_request"));
 
-		// Read the request object after validateRequestUriFetchMethod() in case the subclass
-		// re-signed it after extracting parameters from the wallet's POST body.
-		String requestObject = env.getString("request_object");
-
 		switch (testState) {
 			case INITIAL:
+				signRequestObject();
 				markAuthorizationEndpointVisited();
 				continueAfterRequestUriCalled();
 				testState = TestState.REQUEST_SENT;
 				break;
 			case REQUEST_SENT:
-				// nothing seems to prevent request_uri being retrieved more than once
-				eventLog.log(getName(), "Wallet has retrieved request_uri another time");
+				callAndContinueOnFailure(RequestUriFetchedMoreThanOnce.class, ConditionResult.FAILURE);
 				break;
 			case RESPONSE_RECEIVED:
 				throw new TestFailureException(getId(), "Wallet called request_uri after already sending a response");
 		}
+
+		String requestObject = env.getString("request_object");
 
 		eventLog.log(getName(), "Returned request object to wallet - waiting for it to call the response_uri");
 		setStatus(Status.WAITING);
