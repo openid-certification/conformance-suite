@@ -117,6 +117,7 @@ import net.openid.conformance.condition.as.par.EnsureAuthorizationRequestContain
 import net.openid.conformance.condition.as.par.EnsureAuthorizationRequestDoesNotContainRequestWhenUsingPAR;
 import net.openid.conformance.condition.as.par.EnsureRequestObjectContainsCodeChallengeWhenUsingPAR;
 import net.openid.conformance.condition.as.par.ExtractRequestObjectFromPAREndpointRequest;
+import net.openid.conformance.condition.client.AbstractCheckEndpointContentTypeReturned;
 import net.openid.conformance.condition.client.EnsureIncomingRequestBodyIsEmpty;
 import net.openid.conformance.condition.client.EnsureIncomingUrlQueryIsEmpty;
 import net.openid.conformance.condition.client.AugmentRealJwksWithDecoys;
@@ -221,6 +222,9 @@ import net.openid.conformance.vci10wallet.condition.VCIEnsureBearerAccessTokenNo
 import net.openid.conformance.vci10wallet.condition.VCIEnsureCredentialSigningCertificateIsNotSelfSigned;
 import net.openid.conformance.vci10wallet.condition.VCIExtractCredentialRequestProof;
 import net.openid.conformance.vci10wallet.condition.VCIDecryptCredentialRequest;
+import net.openid.conformance.vci10wallet.condition.VCIEnsureCredentialRequestEncryptedIfResponseEncryptionRequested;
+import net.openid.conformance.vci10wallet.condition.VCIEnsureCredentialRequestUsesApplicationJson;
+import net.openid.conformance.vci10wallet.condition.VCIEnsureCredentialRequestUsesApplicationJwt;
 import net.openid.conformance.vci10wallet.condition.VCIGenerateCredentialRequestEncryptionJwks;
 import net.openid.conformance.vci10wallet.condition.VCIGenerateIssuerState;
 import net.openid.conformance.vci10wallet.condition.VCIGenerateSignedCredentialIssuerMetadata;
@@ -1351,9 +1355,38 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 			return new ResponseEntity<>(env.getObject("resource_endpoint_response"), headersFromJson(env.getObject("resource_endpoint_response_headers")), HttpStatus.valueOf(env.getInteger("resource_endpoint_response_http_status").intValue()));
 		}
 
-		// Decrypt the credential request JWE if encryption is enabled
+		// Validate Content-Type and (where applicable) decrypt the credential request.
 		if (vciCredentialEncryption == VCICredentialEncryption.ENCRYPTED) {
-			errorResponse = callAndContinueOnFailureOrReturnErrorResponse(VCIDecryptCredentialRequest.class, ConditionResult.FAILURE, "OID4VCI-1FINAL-10", "OID4VCI-1FINAL-8.2");
+			// Per OID4VCI 1.0 Section 8.2, the issuer advertises encryption with
+			// encryption_required=false, so a wallet may legitimately send a plaintext credential
+			// request. The encrypted variant of the test cannot be evaluated against such a wallet
+			// — skip rather than fail.
+			if (isCredentialRequestApplicationJson()) {
+				call(exec().unmapKey("incoming_request").endBlock());
+				fireTestSkipped("The wallet did not use credential request encryption. "
+					+ "The issuer advertised encryption with encryption_required=false, so per "
+					+ "OID4VCI 1.0 Section 8.2 the wallet was permitted to send a plaintext "
+					+ "credential request, but the encrypted variant of this test cannot be "
+					+ "evaluated against this wallet. Re-run with vci_credential_encryption=plain, "
+					+ "or use a wallet that supports credential request encryption.");
+			}
+			errorResponse = callAndContinueOnFailureOrReturnErrorResponse(VCIEnsureCredentialRequestUsesApplicationJwt.class, ConditionResult.FAILURE, "OID4VCI-1FINAL-10-2");
+			if (errorResponse != null) {
+				return errorResponse;
+			}
+			errorResponse = callAndContinueOnFailureOrReturnErrorResponse(VCIDecryptCredentialRequest.class, ConditionResult.FAILURE, "OID4VCI-1FINAL-10-2");
+			if (errorResponse != null) {
+				return errorResponse;
+			}
+		} else {
+			errorResponse = callAndContinueOnFailureOrReturnErrorResponse(VCIEnsureCredentialRequestUsesApplicationJson.class, ConditionResult.FAILURE, "OID4VCI-1FINAL-8.2");
+			if (errorResponse != null) {
+				return errorResponse;
+			}
+			// § 8.2-18 is satisfied by construction when the request was encrypted, so this
+			// check is only meaningful on the plaintext path: a plaintext body MUST NOT include
+			// credential_response_encryption (the rule would force the request to be encrypted).
+			errorResponse = callAndContinueOnFailureOrReturnErrorResponse(VCIEnsureCredentialRequestEncryptedIfResponseEncryptionRequested.class, ConditionResult.FAILURE, "OID4VCI-1FINAL-8.2");
 			if (errorResponse != null) {
 				return errorResponse;
 			}
@@ -1479,6 +1512,15 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 			logPendingCredentialDelivery(responseStatus);
 		}
 		return new ResponseEntity<>(encryptedResponse, headers, responseStatus);
+	}
+
+	protected boolean isCredentialRequestApplicationJson() {
+		String contentType = env.getString("incoming_request", "headers.content-type");
+		if (Strings.isNullOrEmpty(contentType)) {
+			return false;
+		}
+		String mimeType = AbstractCheckEndpointContentTypeReturned.getMimeTypeFromContentType(contentType);
+		return "application/json".equalsIgnoreCase(mimeType);
 	}
 
 	protected ResponseEntity<?> callAndContinueOnFailureOrReturnErrorResponse(Class<? extends AbstractCondition> conditionClass, ConditionResult conditionResult, String ... requirements) {
@@ -1640,9 +1682,28 @@ public abstract class AbstractVCIWalletTest extends AbstractTestModule {
 			return errorResponse;
 		}
 
-		// Decrypt the deferred credential request JWE if encryption is enabled
+		// Validate Content-Type and (where applicable) decrypt the deferred credential request.
+		// § 9.1 carries the same encryption preconditions as § 8.2 — same flow as the credential
+		// endpoint (no skip here: by deferred time, the credential endpoint has already accepted
+		// an encrypted request, so a plaintext deferred request is a real spec violation).
 		if (vciCredentialEncryption == VCICredentialEncryption.ENCRYPTED) {
-			errorResponse = callAndContinueOnFailureOrReturnErrorResponse(VCIDecryptCredentialRequest.class, ConditionResult.FAILURE, "OID4VCI-1FINAL-10", "OID4VCI-1FINAL-9.1");
+			errorResponse = callAndContinueOnFailureOrReturnErrorResponse(VCIEnsureCredentialRequestUsesApplicationJwt.class, ConditionResult.FAILURE, "OID4VCI-1FINAL-9.1", "OID4VCI-1FINAL-10-2");
+			if (errorResponse != null) {
+				return errorResponse;
+			}
+			errorResponse = callAndContinueOnFailureOrReturnErrorResponse(VCIDecryptCredentialRequest.class, ConditionResult.FAILURE, "OID4VCI-1FINAL-10-2", "OID4VCI-1FINAL-9.1");
+			if (errorResponse != null) {
+				return errorResponse;
+			}
+		} else {
+			errorResponse = callAndContinueOnFailureOrReturnErrorResponse(VCIEnsureCredentialRequestUsesApplicationJson.class, ConditionResult.FAILURE, "OID4VCI-1FINAL-9.1");
+			if (errorResponse != null) {
+				return errorResponse;
+			}
+			// § 9.1-11 is satisfied by construction when the deferred request was encrypted, so
+			// this check is only meaningful on the plaintext path: a plaintext body MUST NOT
+			// include credential_response_encryption.
+			errorResponse = callAndContinueOnFailureOrReturnErrorResponse(VCIEnsureCredentialRequestEncryptedIfResponseEncryptionRequested.class, ConditionResult.FAILURE, "OID4VCI-1FINAL-9.1");
 			if (errorResponse != null) {
 				return errorResponse;
 			}
