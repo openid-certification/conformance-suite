@@ -87,6 +87,7 @@ public class LogEntryHelper {
 		specLinks.put("OID4VP-1FINALA-", "https://openid.net/specs/openid-4-verifiable-presentations-1_0.html#appendix-");
 		specLinks.put("OID4VCI-1FINAL-", "https://openid.net/specs/openid-4-verifiable-credential-issuance-1_0.html#section-");
 		specLinks.put("OID4VCI-1FINALA-", "https://openid.net/specs/openid-4-verifiable-credential-issuance-1_0.html#appendix-");
+		specLinks.put("OpenID4VCI-", "https://github.com/openid/OpenID4VCI/issues/");
 		specLinks.put("HAIP-", "https://openid.net/specs/openid4vc-high-assurance-interoperability-profile-1_0.html#section-");
 		specLinks.put("HAIPA-", "https://openid.net/specs/openid4vc-high-assurance-interoperability-profile-1_0.html#appendix-");
 		specLinks.put("OIDCD-", "https://openid.net/specs/openid-connect-discovery-1_0.html#rfc.section.");
