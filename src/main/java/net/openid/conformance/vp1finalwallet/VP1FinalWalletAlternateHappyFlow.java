@@ -19,7 +19,7 @@ import org.jetbrains.annotations.NotNull;
 	summary = """
 		Performs the normal flow with the following differences:
 		- Includes the optional 'state' parameter, using a longer-than-default value (64 chars)
-		- Uses a longer 'nonce' than the default (32 chars)
+		- Uses a longer 'nonce' than the default (43 chars)
 		- Includes a random authorization endpoint parameter (which must be ignored)
 		- Includes an 'iss' claim in the request object that does not match 'client_id' (which must be ignored as per VP spec section 5)
 		- Encryption key without 'use: enc' (for encrypted response modes)
@@ -34,8 +34,9 @@ public class VP1FinalWalletAlternateHappyFlow extends AbstractVP1FinalWalletTest
 	protected void onConfigure(JsonObject config, String baseUrl) {
 		super.onConfigure(config, baseUrl);
 		callAndStopOnFailure(CreateRedirectUri.class);
-		// try a longer nonce
-		env.putInteger("requested_nonce_length", 32);
+		// Use the canonical "256-bit" nonce length: base64url(32 random bytes) = 43 characters.
+		// This matches the upper bound enforced by CheckNonceMaximumLength on the verifier side.
+		env.putInteger("requested_nonce_length", 43);
 
 		// also use a longer state value than is used by default
 		env.putInteger("requested_state_length", 64);
