@@ -92,10 +92,13 @@ class Conformance(object):
         self.api_url_base = api_url_base
         transport = RetryTransport(verify=verify_ssl)
         self.httpclient = httpx.AsyncClient(verify=verify_ssl, transport=transport, timeout=20)
+        # Sync client used only for exporthtml — see _sync_exporthtml.
+        self.sync_httpclient = httpx.Client(verify=verify_ssl, timeout=20)
         headers = {'Content-Type': 'application/json'}
         if api_token is not None:
             headers['Authorization'] = 'Bearer {0}'.format(api_token)
         self.httpclient.headers = headers
+        self.sync_httpclient.headers = headers
 
     async def get_all_test_modules(self):
         """ Returns an array containing a dictionary per test module """
@@ -107,6 +110,10 @@ class Conformance(object):
         return response.json()
 
     async def exporthtml(self, plan_id, path):
+        # Run in a thread; async per-chunk reads tipped exports past the 120s ingress timeout under cluster load.
+        return await asyncio.to_thread(self._sync_exporthtml, plan_id, path)
+
+    def _sync_exporthtml(self, plan_id, path):
         attempts = 5
         last_exception = None
         api_url = '{0}api/plan/exporthtml/{1}'.format(self.api_url_base, plan_id)
@@ -114,22 +121,22 @@ class Conformance(object):
             full_path = None
             content_type = '<unknown>'
             try:
-                async with self.httpclient.stream("GET", api_url) as response:
+                with self.sync_httpclient.stream("GET", api_url) as response:
                     content_type = response.headers.get('content-type', '<missing>')
                     if response.status_code != 200:
-                        body = await response.aread()
+                        body = response.read()
                         raise Exception("exporthtml HTTP {} content-type={} body[:500]={!r}".format(
                             response.status_code, content_type, body[:500]))
                     disposition = response.headers.get('content-disposition', '')
                     match = re.findall("filename=\"(.+)\"", disposition)
                     if not match:
-                        body = await response.aread()
+                        body = response.read()
                         raise Exception("exporthtml missing filename in content-disposition={!r} content-type={} body[:200]={!r}".format(
                             disposition, content_type, body[:200]))
                     local_filename = match[0]
                     full_path = os.path.join(path, local_filename)
                     with open(full_path, 'wb') as f:
-                        async for chunk in response.aiter_bytes():
+                        for chunk in response.iter_bytes():
                             f.write(chunk)
                 file_size = os.path.getsize(full_path)
                 try:
@@ -150,7 +157,7 @@ class Conformance(object):
                     backoff = 1 << attempt  # 1, 2, 4, 8s between attempts
                     print("exporthtml {} attempt {}/{} failed: {} - retrying in {}s".format(
                         api_url, attempt + 1, attempts, e, backoff))
-                    await asyncio.sleep(backoff)
+                    time.sleep(backoff)
                 else:
                     print("exporthtml {} attempt {}/{} failed: {} - giving up".format(
                         api_url, attempt + 1, attempts, e))
@@ -337,3 +344,4 @@ class Conformance(object):
 
     async def close_client(self):
         await self.httpclient.aclose()
+        self.sync_httpclient.close()
