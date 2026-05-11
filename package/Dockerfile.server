@@ -1,4 +1,4 @@
-FROM eclipse-temurin:17
+FROM eclipse-temurin:21
 COPY fapi-test-suite.jar /server/
 ENV BASE_URL https://localhost:8443
 ENV MONGODB_HOST mongodb

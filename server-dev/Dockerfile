@@ -7,6 +7,6 @@
 #
 # We install redir, and then the --fintechlabs.startredir=true option
 # to java is used to launch it
-FROM eclipse-temurin:17
+FROM eclipse-temurin:21
 
 RUN apt-get update && apt-get install redir
