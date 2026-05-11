@@ -39,6 +39,8 @@ import net.openid.conformance.condition.client.CallProtectedResource;
 import net.openid.conformance.condition.client.CallProtectedResourceAllowingDpopNonceError;
 import net.openid.conformance.condition.client.CallTokenEndpointAllowingDpopNonceErrorAndReturnFullResponse;
 import net.openid.conformance.condition.client.CallTokenEndpointAndReturnFullResponse;
+import net.openid.conformance.condition.client.ExtractClientAttestationChallengeFromResponseHeader;
+import net.openid.conformance.condition.client.ValidateClientAttestationChallengeResponseHeader;
 import net.openid.conformance.condition.client.CheckTokenEndpointHttpStatus200;
 import net.openid.conformance.condition.client.CheckForAccessTokenValue;
 import net.openid.conformance.condition.client.CheckForDateHeaderInResourceResponse;
@@ -470,7 +472,6 @@ public abstract class AbstractFAPI2SPID2ServerTestModule extends AbstractRedirec
 				callAndStopOnFailure(BuildUnsignedPAREndpointRequest.class);
 			}
 
-			addClientAuthenticationToPAREndpointRequest();
 			performParAuthorizationRequestFlow();
 		} else {
 			eventLog.startBlock(currentClientString() + "Make request to authorization endpoint");
@@ -657,8 +658,6 @@ public abstract class AbstractFAPI2SPID2ServerTestModule extends AbstractRedirec
 	protected void createAuthorizationCodeRequest() {
 		callAndStopOnFailure(CreateTokenEndpointRequestForAuthorizationCodeGrant.class);
 
-		addClientAuthenticationToTokenEndpointRequest();
-
 		addPkceCodeVerifier();
 	}
 
@@ -682,6 +681,9 @@ public abstract class AbstractFAPI2SPID2ServerTestModule extends AbstractRedirec
 
 	/**
 	 * Call sender constrained token endpoint. For DPOP nonce errors, it will retry with new server nonce value.
+	 * Client authentication is added inside the loop so private_key_jwt's client_assertion and
+	 * client_attestation's PoP JWT are regenerated per attempt — the AS may reject reuse of either jti, and
+	 * for client_attestation §8.1 mandates picking up the freshly returned challenge.
 	 * @param requirements requirements are the same as original call to callAndStopOnFailure(CallTokenEndpointAndReturnFullResponse)
 	 */
 	protected void callSenderConstrainedTokenEndpoint(String... requirements) {
@@ -690,16 +692,40 @@ public abstract class AbstractFAPI2SPID2ServerTestModule extends AbstractRedirec
 		if (isDpop()) {
 			int i = 0;
 			while(i < MAX_RETRY){
+				addClientAuthenticationToTokenEndpointRequest();
 				createDpopForTokenEndpoint();
 				callAndStopOnFailure(CallTokenEndpointAllowingDpopNonceErrorAndReturnFullResponse.class, requirements);
+				extractAndValidateClientAttestationChallengeResponseHeader("token_endpoint_response_full");
 				if(Strings.isNullOrEmpty(env.getString("token_endpoint_dpop_nonce_error"))) {
 					break;
 				}
 				++i;
 			}
 		} else {
+			addClientAuthenticationToTokenEndpointRequest();
 			callAndStopOnFailure(CallTokenEndpointAndReturnFullResponse.class, requirements);
+			extractAndValidateClientAttestationChallengeResponseHeader("token_endpoint_response_full");
 		}
+	}
+
+	/**
+	 * Extract and validate the {@code OAuth-Client-Attestation-Challenge} response header from the most recent
+	 * endpoint response, when client attestation client auth is in use, so the next request picks up the freshest
+	 * server-supplied challenge (draft-ietf-oauth-attestation-based-client-auth-07 §8.1). No-op for other client
+	 * auth types.
+	 *
+	 * @param fullResponseEnvKey env key holding the full endpoint response object (with {@code headers}), e.g.
+	 *                           {@code token_endpoint_response_full} or
+	 *                           {@link CallPAREndpoint#RESPONSE_KEY pushed_authorization_endpoint_response}.
+	 */
+	protected void extractAndValidateClientAttestationChallengeResponseHeader(String fullResponseEnvKey) {
+		if (getVariant(ClientAuthType.class) != ClientAuthType.CLIENT_ATTESTATION) {
+			return;
+		}
+		env.mapKey("endpoint_response", fullResponseEnvKey);
+		callAndContinueOnFailure(ExtractClientAttestationChallengeFromResponseHeader.class, ConditionResult.FAILURE, "OAuth2-ATCA07-8.1");
+		callAndContinueOnFailure(ValidateClientAttestationChallengeResponseHeader.class, ConditionResult.WARNING, "OAuth2-ATCA07-8.1");
+		env.unmapKey("endpoint_response");
 	}
 
 	protected void exchangeAuthorizationCode() {
@@ -1171,7 +1197,8 @@ public abstract class AbstractFAPI2SPID2ServerTestModule extends AbstractRedirec
 
 
 	/**
-	 * Call Par endpoint with retry for DPoP nonce error
+	 * Call Par endpoint with retry for DPoP nonce error. Client authentication is added inside the loop;
+	 * see {@link #callSenderConstrainedTokenEndpoint} for the rationale.
 	 * @param requirements requirements are the same as original call to callAndStopOnFailure(CallParEndpoint)
 	 */
 	protected void callParEndpointAndStopOnFailure(String... requirements) {
@@ -1179,15 +1206,19 @@ public abstract class AbstractFAPI2SPID2ServerTestModule extends AbstractRedirec
 			final int MAX_RETRY = 2;
 			int i = 0;
 			while(i < MAX_RETRY){
+				addClientAuthenticationToPAREndpointRequest();
 				createDpopForParEndpoint();
 				callAndStopOnFailure(CallPAREndpointAllowingDpopNonceError.class, requirements);
+				extractAndValidateClientAttestationChallengeResponseHeader(CallPAREndpoint.RESPONSE_KEY);
 				if(Strings.isNullOrEmpty(env.getString("par_endpoint_dpop_nonce_error"))) {
 					break;
 				}
 				++i;
 			}
 		} else {
+			addClientAuthenticationToPAREndpointRequest();
 			callAndStopOnFailure(CallPAREndpoint.class, requirements);
+			extractAndValidateClientAttestationChallengeResponseHeader(CallPAREndpoint.RESPONSE_KEY);
 		}
 	}
 

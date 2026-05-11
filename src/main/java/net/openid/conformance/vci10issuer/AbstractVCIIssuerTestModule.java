@@ -19,8 +19,6 @@ import net.openid.conformance.condition.client.AddFAPIAuthDateToResourceEndpoint
 import net.openid.conformance.condition.client.AddIpV4FapiCustomerIpAddressToResourceEndpointRequest;
 import net.openid.conformance.condition.client.CallProtectedResource;
 import net.openid.conformance.condition.client.CallProtectedResourceAllowingDpopNonceError;
-import net.openid.conformance.condition.client.CallTokenEndpointAllowingDpopNonceErrorAndReturnFullResponse;
-import net.openid.conformance.condition.client.CallTokenEndpointAndReturnFullResponse;
 import net.openid.conformance.condition.client.CheckForDateHeaderInResourceResponse;
 import net.openid.conformance.condition.client.CheckForFAPIInteractionIdInResourceResponse;
 import net.openid.conformance.condition.client.CreateAuthorizationEndpointRequestFromClientInformation;
@@ -28,7 +26,6 @@ import net.openid.conformance.condition.client.CreateEmptyResourceEndpointReques
 import net.openid.conformance.condition.client.CreateRandomFAPIInteractionId;
 import net.openid.conformance.condition.client.CreateRandomNonceValue;
 import net.openid.conformance.condition.client.CreateRandomStateValue;
-import net.openid.conformance.condition.client.CreateTokenEndpointRequestForAuthorizationCodeGrant;
 import net.openid.conformance.condition.client.EnsureContentTypeApplicationJwt;
 import net.openid.conformance.condition.client.EnsureCredentialTrustAnchorConfigured;
 import net.openid.conformance.condition.client.EnsureStatusListTrustAnchorConfigured;
@@ -503,41 +500,6 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractFAPI2SPFinalSe
 
 	protected void createPreAuthorizationCodeRequest() {
 		callAndStopOnFailure(VCICreateTokenEndpointRequestForPreAuthorizedCodeGrant.class);
-	}
-
-	@Override
-	protected void createAuthorizationCodeRequest() {
-		callAndStopOnFailure(CreateTokenEndpointRequestForAuthorizationCodeGrant.class);
-
-		if (env.getObject("token_endpoint_request_headers") == null) {
-			env.putObject("token_endpoint_request_headers", new JsonObject());
-		}
-
-		addPkceCodeVerifier();
-	}
-
-	/**
-	 * VCI adds client authentication inside the DPoP retry loop (unlike FAPI2 base which adds it before).
-	 */
-	@Override
-	protected void callSenderConstrainedTokenEndpoint(String... requirements) {
-		final int MAX_RETRY = 2;
-
-		if (isDpop()) {
-			int i = 0;
-			while (i < MAX_RETRY) {
-				addClientAuthenticationToTokenEndpointRequest();
-				createDpopForTokenEndpoint();
-				callAndStopOnFailure(CallTokenEndpointAllowingDpopNonceErrorAndReturnFullResponse.class, requirements);
-				if (Strings.isNullOrEmpty(env.getString("token_endpoint_dpop_nonce_error"))) {
-					break;
-				}
-				++i;
-			}
-		} else {
-			addClientAuthenticationToTokenEndpointRequest();
-			callAndStopOnFailure(CallTokenEndpointAndReturnFullResponse.class, requirements);
-		}
 	}
 
 	// --- PAR overrides ---
