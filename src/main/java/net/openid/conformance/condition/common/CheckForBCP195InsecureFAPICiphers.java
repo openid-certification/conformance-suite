@@ -27,9 +27,9 @@ public class CheckForBCP195InsecureFAPICiphers extends AbstractCheckInsecureCiph
 	}
 
 	@Override
-	ProtocolVersion getProtocolVersion() {
-		return ProtocolVersion.TLSv12;
+	ProtocolVersion[] getProtocolVersion() {
+		return new ProtocolVersion[]{ProtocolVersion.TLSv12, ProtocolVersion.TLSv13};
 	}
 
 
-}
+	}
