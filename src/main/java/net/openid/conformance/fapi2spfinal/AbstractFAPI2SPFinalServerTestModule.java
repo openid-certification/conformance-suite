@@ -802,11 +802,11 @@ public abstract class AbstractFAPI2SPFinalServerTestModule extends AbstractRedir
 			while(i < MAX_RETRY){
 				addClientAuthenticationToTokenEndpointRequest();
 				createDpopForTokenEndpoint();
-				if (i > 0) {
-					// Regenerate client authentication on retry — required for client_attestation
-					// (OAuth2-ATCA07-10.2: each PoP must have a fresh jti, ASs SHOULD detect
-					// reuse). For mtls / private_key_jwt this is harmless; the assertion
-					// timestamps just refresh.
+				if (i > 0 && getVariant(ClientAuthType.class) == ClientAuthType.CLIENT_ATTESTATION) {
+					// Regenerate client attestation PoP on retry — OAuth2-ATCA07-10.2
+					// requires each PoP to carry a unique jti, and ASs SHOULD detect
+					// reuse. mtls and private_key_jwt don't have this requirement, so
+					// leave them alone to avoid spurious extra log entries.
 					addClientAuthenticationToTokenEndpointRequest();
 				}
 				callAndStopOnFailure(CallTokenEndpointAllowingDpopNonceErrorAndReturnFullResponse.class, requirements);
@@ -1237,11 +1237,11 @@ public abstract class AbstractFAPI2SPFinalServerTestModule extends AbstractRedir
 			while(i < MAX_RETRY){
 				addClientAuthenticationToPAREndpointRequest();
 				createDpopForParEndpoint();
-				if (i > 0) {
-					// Regenerate client authentication on retry — required for client_attestation
-					// (OAuth2-ATCA07-10.2: each PoP must have a fresh jti, ASs SHOULD detect
-					// reuse). For mtls / private_key_jwt this is harmless; the assertion
-					// timestamps just refresh.
+				if (i > 0 && getVariant(ClientAuthType.class) == ClientAuthType.CLIENT_ATTESTATION) {
+					// Regenerate client attestation PoP on retry — OAuth2-ATCA07-10.2
+					// requires each PoP to carry a unique jti, and ASs SHOULD detect
+					// reuse. mtls and private_key_jwt don't have this requirement, so
+					// leave them alone to avoid spurious extra log entries.
 					addClientAuthenticationToPAREndpointRequest();
 				}
 				callAndStopOnFailure(CallPAREndpointAllowingDpopNonceError.class, requirements);
