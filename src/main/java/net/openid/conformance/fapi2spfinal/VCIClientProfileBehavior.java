@@ -5,6 +5,7 @@ import com.google.gson.JsonObject;
 import net.openid.conformance.sequence.AbstractConditionSequence;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.TestFailureException;
+import net.openid.conformance.testmodule.TestModule.Status;
 import net.openid.conformance.variant.ClientAuthType;
 import net.openid.conformance.vci10wallet.VCICredentialConfigurations;
 import net.openid.conformance.vci10wallet.condition.clientattestation.AddClientAttestationSigningAlgValuesSupportedToServerConfiguration;
@@ -13,15 +14,18 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 
+import java.security.SecureRandom;
+import java.util.Base64;
+
 /**
  * Profile behavior for VCI (Verifiable Credentials Issuance) client tests.
  *
  * <p>The conformance suite acts as the AS that the wallet under test interacts with.
  * For the FAPI2SP client tests pulled into the VCI wallet plan, the AS-emulator
  * defaults from {@link FAPI2ClientProfileBehavior} are appropriate — the wallet's
- * VCI-specific behavior (credential offer, credential / nonce / deferred / notification
- * endpoints) is exercised by the existing {@code VCIWalletTest*} modules, not by the
- * FAPI2SP client tests.
+ * VCI-specific behavior (credential offer, full credential issuance flow including
+ * proof / key attestation) is exercised by the existing {@code VCIWalletTest*}
+ * modules, not by the FAPI2SP client tests.
  *
  * <p>What this behavior <em>does</em> add over the defaults:
  * <ul>
@@ -29,14 +33,20 @@ import org.springframework.http.ResponseEntity;
  *       with the credential issuer URL (the same as the test base URL).</li>
  *   <li>Serves {@code /.well-known/openid-credential-issuer} metadata pointing back to our
  *       base URL as the authorization server, with the same default credential
- *       configurations as {@link net.openid.conformance.vci10wallet.AbstractVCIWalletTest}
- *       (so wallets configured for any of the standard SD-JWT or mdoc credential types
- *       can resolve their requested credential_configuration_id).</li>
+ *       configurations as {@link net.openid.conformance.vci10wallet.AbstractVCIWalletTest}.</li>
+ *   <li>Implements minimal {@code /nonce} and {@code /credential} endpoint stubs so a
+ *       HAIP wallet that follows through after a successful OAuth flow can complete its
+ *       discovery and credential request without aborting the test before our
+ *       OAuth-level checks finish. The credential endpoint marks the test complete on
+ *       first call.</li>
  * </ul>
  *
- * <p>The credential / nonce / deferred / notification endpoints are advertised but not
- * implemented here — the FAPI2SP client tests don't exercise them. End-to-end credential
- * issuance for HAIP wallets uses {@code AbstractVCIWalletTest}'s own modules.
+ * <p>Optional VCI metadata endpoints ({@code nonce_endpoint},
+ * {@code deferred_credential_endpoint}, {@code notification_endpoint}) are intentionally
+ * not advertised — wallets that respect "advertise only what you implement" skip them,
+ * and wallets that probe anyway are handled by the in-place stubs above. End-to-end
+ * credential issuance for HAIP wallets is the responsibility of the {@code VCIWalletTest*}
+ * modules.
  */
 public class VCIClientProfileBehavior extends FAPI2ClientProfileBehavior {
 
@@ -99,11 +109,34 @@ public class VCIClientProfileBehavior extends FAPI2ClientProfileBehavior {
 		return null;
 	}
 
+	@Override
+	public boolean claimsHttpPath(String path) {
+		return CREDENTIAL_PATH.equals(path)
+			|| NONCE_PATH.equals(path)
+			|| DEFERRED_CREDENTIAL_PATH.equals(path)
+			|| NOTIFICATION_PATH.equals(path);
+	}
+
+	@Override
+	public Object handleProfileSpecificPath(String requestId, String path) {
+		if (NONCE_PATH.equals(path)) {
+			return handleNonceEndpoint();
+		}
+		if (NOTIFICATION_PATH.equals(path)) {
+			return handleNotificationEndpoint();
+		}
+		// CREDENTIAL_PATH or DEFERRED_CREDENTIAL_PATH
+		return handleCredentialEndpoint();
+	}
+
 	/**
 	 * Build credential issuer metadata for the FAPI2SP-client-test side of the VCI HAIP
 	 * wallet plan. Uses the same default {@code credential_configurations_supported} as
 	 * {@link AbstractVCIWalletTest} so wallets configured for any of the standard
-	 * SD-JWT VC or mdoc credential types resolve correctly.
+	 * SD-JWT VC or mdoc credential types resolve correctly. Advertises all the standard
+	 * VCI endpoints (credential, nonce, deferred_credential, notification) so that issuer
+	 * tests paired against this wallet can exercise the full VCI surface — minimal
+	 * handlers below let those calls succeed.
 	 */
 	protected JsonObject buildCredentialIssuerMetadata() {
 		String baseUrl = baseUrlWithTrailingSlash();
@@ -123,6 +156,54 @@ public class VCIClientProfileBehavior extends FAPI2ClientProfileBehavior {
 			VCICredentialConfigurations.getDefault(module.getId()));
 
 		return metadata;
+	}
+
+	/**
+	 * Minimal nonce endpoint — returns a fresh c_nonce. The FAPI2SP client tests do not
+	 * advertise nonce_endpoint, but a wallet that calls it anyway gets a sensible
+	 * response so the OAuth-level test continues without aborting.
+	 */
+	protected ResponseEntity<JsonObject> handleNonceEndpoint() {
+		module.doSetStatus(Status.RUNNING);
+		JsonObject body = new JsonObject();
+		body.addProperty("c_nonce", randomNonce());
+		module.doSetStatus(Status.WAITING);
+		return ResponseEntity.status(HttpStatus.OK)
+			.contentType(MediaType.APPLICATION_JSON)
+			.body(body);
+	}
+
+	/**
+	 * Minimal credential endpoint (also used for deferred_credential) — marks the test
+	 * complete on first call and returns a placeholder credential response. The FAPI2SP
+	 * client tests have already validated the OAuth-level behavior by the time the wallet
+	 * reaches this endpoint; we don't implement actual credential issuance here (that's
+	 * {@code VCIWalletTest*}'s job).
+	 */
+	protected ResponseEntity<JsonObject> handleCredentialEndpoint() {
+		module.doSetStatus(Status.RUNNING);
+		JsonObject body = new JsonObject();
+		body.addProperty("credential", "fapi2sp-client-test-placeholder-credential");
+		module.resourceEndpointCallComplete();
+		return ResponseEntity.status(HttpStatus.OK)
+			.contentType(MediaType.APPLICATION_JSON)
+			.body(body);
+	}
+
+	/**
+	 * Minimal notification endpoint — accepts the notification and returns 204 No Content
+	 * per OID4VCI 1.0 Final § 10.2.
+	 */
+	protected ResponseEntity<Void> handleNotificationEndpoint() {
+		module.doSetStatus(Status.RUNNING);
+		module.doSetStatus(Status.WAITING);
+		return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+	}
+
+	private static String randomNonce() {
+		byte[] bytes = new byte[24];
+		new SecureRandom().nextBytes(bytes);
+		return Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
 	}
 
 	private String baseUrlWithTrailingSlash() {
