@@ -8,6 +8,7 @@ import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 
 import java.net.MalformedURLException;
+import java.net.URI;
 import java.net.URL;
 
 public class ValidateClientInitiateLoginUri extends AbstractCondition
@@ -24,8 +25,8 @@ public class ValidateClientInitiateLoginUri extends AbstractCondition
 		JsonElement initiateLoginUri = client.get("initiate_login_uri");
 		URL url;
 		try {
-			url = new URL(OIDFJSON.getString(initiateLoginUri));
-		} catch (MalformedURLException invalidURL) {
+			url = URI.create(OIDFJSON.getString(initiateLoginUri)).toURL();
+		} catch (MalformedURLException | IllegalArgumentException invalidURL) {
 			throw error("initiate_login_uri does not contain a valid URL",
 				args("initiate_login_uri", initiateLoginUri));
 		}

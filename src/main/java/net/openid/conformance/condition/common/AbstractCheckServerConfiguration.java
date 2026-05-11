@@ -6,6 +6,7 @@ import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 
 import java.net.MalformedURLException;
+import java.net.URI;
 import java.net.URL;
 import java.util.List;
 
@@ -37,8 +38,8 @@ public abstract class AbstractCheckServerConfiguration extends AbstractCondition
 		String string = env.getString("server", path);
 		try {
 			@SuppressWarnings("unused")
-			URL url = new URL(string);
-		} catch (MalformedURLException e) {
+			URL url = URI.create(string).toURL();
+		} catch (MalformedURLException | IllegalArgumentException e) {
 			throw error("Couldn't parse key as URL", e, args("key", path, "url", string));
 		}
 	}

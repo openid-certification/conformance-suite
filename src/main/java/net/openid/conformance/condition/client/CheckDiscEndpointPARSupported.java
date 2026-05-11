@@ -6,6 +6,7 @@ import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 
+import java.net.URI;
 import java.net.URL;
 
 //PAR-5.0 : If the authorization server has a pushed authorization request endpoint,
@@ -37,7 +38,7 @@ public class CheckDiscEndpointPARSupported extends AbstractCondition {
 	private void verifyValidHttpsUrl(String parEndpointUrl) {
 		URL url = null;
 		try {
-			url = new URL(parEndpointUrl);
+			url = URI.create(parEndpointUrl).toURL();
 			if (!"https".equalsIgnoreCase(url.getProtocol())) {
 				throw error("pushed_authorization_request_endpoint URL does not use https protocol",
 					args ("pushed_authorization_request_endpoint", parEndpointUrl));

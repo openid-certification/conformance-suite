@@ -6,6 +6,7 @@ import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 
 import java.net.MalformedURLException;
+import java.net.URI;
 import java.net.URL;
 
 public abstract class ValidateUrlRequirements extends AbstractCondition {
@@ -17,7 +18,7 @@ public abstract class ValidateUrlRequirements extends AbstractCondition {
 
 		String urlString = OIDFJSON.getString(urlStringElement);
 		try {
-			URL url = new URL(urlString);
+			URL url = URI.create(urlString).toURL();
 			if (!"https".equals(url.getProtocol())) {
 				throw error("%s must use the https scheme".formatted(label), args(fieldName, urlString));
 			}
@@ -36,7 +37,7 @@ public abstract class ValidateUrlRequirements extends AbstractCondition {
 
 			logSuccess("%s is a valid URL with the required components".formatted(label), args(fieldName, urlString));
 			return env;
-		} catch (MalformedURLException e) {
+		} catch (MalformedURLException | IllegalArgumentException e) {
 			throw error("%s is not a valid URL".formatted(label), args(fieldName, urlString));
 		}
 	}

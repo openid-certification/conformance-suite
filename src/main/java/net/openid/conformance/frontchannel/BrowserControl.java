@@ -43,6 +43,8 @@ import org.springframework.util.PatternMatchUtils;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.time.Duration;
 import java.util.ArrayList;
@@ -271,8 +273,15 @@ public class BrowserControl implements DataUtils {
 
 				if (Objects.equals(method, "POST")) {
 
-					URL urlWithQueryString = new URL(url);
-					URL urlWithoutQuery = new URL(urlWithQueryString.getProtocol(), urlWithQueryString.getHost(), urlWithQueryString.getPort(), urlWithQueryString.getPath());
+					URL urlWithQueryString = URI.create(url).toURL();
+					URL urlWithoutQuery;
+					try {
+						urlWithoutQuery = new URI(urlWithQueryString.getProtocol(), null,
+							urlWithQueryString.getHost(), urlWithQueryString.getPort(),
+							urlWithQueryString.getPath(), null, null).toURL();
+					} catch (URISyntaxException e) {
+						throw new MalformedURLException(e.getMessage());
+					}
 					String params = urlWithQueryString.getQuery();
 					WebClient client = driver.getWebClient();
 					WebRequest request = new WebRequest(urlWithoutQuery, HttpMethod.POST);

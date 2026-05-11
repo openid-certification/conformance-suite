@@ -7,6 +7,7 @@ import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 
 import java.net.MalformedURLException;
+import java.net.URI;
 import java.net.URL;
 
 public class VerifyClientManagementCredentials extends AbstractJsonUriIsValidAndHttps {
@@ -40,8 +41,8 @@ public class VerifyClientManagementCredentials extends AbstractJsonUriIsValidAnd
 
 		URL url;
 		try {
-			url = new URL(registrationClientUri);
-		} catch (MalformedURLException invalidURL) {
+			url = URI.create(registrationClientUri).toURL();
+		} catch (MalformedURLException | IllegalArgumentException invalidURL) {
 			throw error(errorMessageInvalidURL);
 		}
 		if (!url.getProtocol().equals(requiredProtocol)) {
