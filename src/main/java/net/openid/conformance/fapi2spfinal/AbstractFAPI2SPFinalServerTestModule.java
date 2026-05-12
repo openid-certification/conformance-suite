@@ -911,7 +911,7 @@ public abstract class AbstractFAPI2SPFinalServerTestModule extends AbstractRedir
 		}
 
 		if (isRarRequest){
-			callAndStopOnFailure(RARSupport.CheckForAuthorizationDetailsInTokenResponse.class, "RAR-7");
+			callAndStopOnFailure(RARSupport.CheckForAuthorizationDetailsInTokenResponse.class, "RFC9396-7");
 		}
 
 		call(profileBehavior.validateTokenEndpointResponseInteractionId());
