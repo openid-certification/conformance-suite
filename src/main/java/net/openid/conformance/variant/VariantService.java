@@ -875,9 +875,10 @@ public class VariantService {
 						// Get effective allowed values considering conditional exclusions
 						Set<?> effectiveAllowedValues = p.getAllowedValuesForVariant(variant);
 
-						// If all values are excluded, this parameter is not applicable - skip validation
 						if (effectiveAllowedValues.isEmpty()) {
-							return true;
+							// Only skip validation when there are no VariantNotApplicable restrictions
+							return p.allowedValues.size() == p.parameter.values().size();
+
 						}
 
 						Object v = variant.get(p.parameter);
