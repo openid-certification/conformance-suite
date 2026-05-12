@@ -348,6 +348,16 @@ public class LogApi {
 			testInfo = testInfos.findById(testId);
 		} else {
 			ImmutableMap<String, String> owner = authenticationFacade.getPrincipal();
+			if (authenticationFacade.isPrivateLinkUser()) {
+				// Restrict private-link users to tests in their shared plan; otherwise
+				// the owner filter (== shared-asset owner) would match every test owned
+				// by the share creator. Mirrors TestInfoApi.getTestInfo.
+				PrivateLinkOneTimeToken privateToken = authenticationFacade.getPrivateOneTimeToken();
+				SharedAsset sharedAsset = privateToken.getSharedAsset();
+				if (sharedAsset == null || !planService.getTestPlanTestIds(sharedAsset.getPlanId()).contains(testId)) {
+					owner = null;
+				}
+			}
 			if (owner != null) {
 				testInfo = testInfos.findByIdAndOwner(testId, owner);
 			}
@@ -390,8 +400,22 @@ public class LogApi {
 			}
 		} else {
 			ImmutableMap<String, String> owner = authenticationFacade.getPrincipal();
+			List<String> effectiveIds = testIds;
+			if (authenticationFacade.isPrivateLinkUser()) {
+				// Restrict to ids in the shared plan — see getTestInfo for rationale.
+				PrivateLinkOneTimeToken privateToken = authenticationFacade.getPrivateOneTimeToken();
+				SharedAsset sharedAsset = privateToken.getSharedAsset();
+				if (sharedAsset == null) {
+					return Collections.emptyMap();
+				}
+				List<String> sharedPlanTestIds = planService.getTestPlanTestIds(sharedAsset.getPlanId());
+				effectiveIds = testIds.stream().filter(sharedPlanTestIds::contains).toList();
+				if (effectiveIds.isEmpty()) {
+					return Collections.emptyMap();
+				}
+			}
 			if (owner != null) {
-				for (TestInfo info : testInfos.findAllByIdInAndOwner(testIds, owner)) {
+				for (TestInfo info : testInfos.findAllByIdInAndOwner(effectiveIds, owner)) {
 					result.put(info.getId(), info);
 				}
 			}
@@ -449,6 +473,7 @@ public class LogApi {
 		return result;
 	}
 
+	@SuppressWarnings("MixedMutabilityReturnType")
 	private Map<String, List<Document>> queryTestResultsByIds(List<String> testIds, boolean isPublic, boolean summaryOnly) {
 		Criteria criteria = new Criteria();
 		criteria.and("testId").in(testIds);
@@ -457,24 +482,18 @@ public class LogApi {
 			ImmutableMap<String, String> currentUser = authenticationFacade.getPrincipal();
 
 			if (authenticationFacade.isPrivateLinkUser()) {
+				// Restrict to ids in the shared plan — see getTestResults for rationale.
 				PrivateLinkOneTimeToken privateToken = authenticationFacade.getPrivateOneTimeToken();
 				SharedAsset sharedAsset = privateToken.getSharedAsset();
-				if (sharedAsset != null) {
-					List<String> sharedPlanTestIds = planService.getTestPlanTestIds(sharedAsset.getPlanId());
-					List<String> idsInShared = testIds.stream().filter(sharedPlanTestIds::contains).toList();
-					List<String> idsNotInShared = testIds.stream().filter(id -> !sharedPlanTestIds.contains(id)).toList();
-					if (idsInShared.isEmpty()) {
-						criteria.and("testOwner").is(currentUser);
-					} else if (idsNotInShared.isEmpty()) {
-						criteria.and("testOwner").is(sharedAsset.getOwner());
-					} else {
-						criteria = new Criteria().orOperator(
-							Criteria.where("testId").in(idsInShared).and("testOwner").is(sharedAsset.getOwner()),
-							Criteria.where("testId").in(idsNotInShared).and("testOwner").is(currentUser));
-					}
-				} else {
-					criteria.and("testOwner").is(currentUser);
+				if (sharedAsset == null) {
+					return Collections.emptyMap();
 				}
+				List<String> sharedPlanTestIds = planService.getTestPlanTestIds(sharedAsset.getPlanId());
+				List<String> idsInShared = testIds.stream().filter(sharedPlanTestIds::contains).toList();
+				if (idsInShared.isEmpty()) {
+					return Collections.emptyMap();
+				}
+				criteria = Criteria.where("testId").in(idsInShared).and("testOwner").is(sharedAsset.getOwner());
 			} else {
 				criteria.and("testOwner").is(currentUser);
 			}
@@ -529,12 +548,16 @@ public class LogApi {
 			ImmutableMap<String, String> currentUser = authenticationFacade.getPrincipal();
 
 			if (authenticationFacade.isPrivateLinkUser()) {
+				// Private-link users may only read tests in their shared plan. The
+				// previous "else" branch filtered by currentUser, which for private-link
+				// equals the shared-asset owner — a backdoor for any test owned by the
+				// same owner outside the shared plan.
 				PrivateLinkOneTimeToken privateToken = authenticationFacade.getPrivateOneTimeToken();
 				SharedAsset sharedAsset = privateToken.getSharedAsset();
 				if (sharedAsset != null && planService.getTestPlanTestIds(sharedAsset.getPlanId()).contains(id)) {
 					criteria.and("testOwner").is(sharedAsset.getOwner());
 				} else {
-					criteria.and("testOwner").is(currentUser);
+					return Collections.emptyList();
 				}
 			} else {
 				criteria.and("testOwner").is(currentUser);

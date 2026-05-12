@@ -375,6 +375,16 @@ def run_tests():
     resp = pl_client.get(f"{base_url}api/plan/{other_plan_id}")
     runner.check_status("Plan share: cannot view other plan", resp, 404)
 
+    # /api/log/{id} is in the private-link allowlist, so the security layer doesn't
+    # reject the request; the controller must enforce that the test is in the
+    # shared plan. A previous bug filtered by "currentUser" in the deny branch,
+    # which for private-link users equals the shared-asset owner and so leaked
+    # logs of any other test owned by that owner.
+    resp = pl_client.get(f"{base_url}api/log/{other_test_id}")
+    runner.check("Plan share: log of test in other plan returns no entries",
+                 resp.status_code == 200 and resp.json() == [],
+                 f"HTTP {resp.status_code} body={resp.text[:200]}")
+
     resp = pl_client.get(f"{base_url}api/plan/exporthtml/{other_plan_id}")
     runner.check_status("Plan share: cannot export other plan", resp, 403)
 
@@ -471,6 +481,11 @@ def run_tests():
     resp = tl_client.get(f"{base_url}api/info/{other_test_id}")
     runner.check_status("Test share: cannot view other test", resp, 404)
 
+    resp = tl_client.get(f"{base_url}api/log/{other_test_id}")
+    runner.check("Test share: log of test in other plan returns no entries",
+                 resp.status_code == 200 and resp.json() == [],
+                 f"HTTP {resp.status_code} body={resp.text[:200]}")
+
     # Same allowlist applies to test-level shares: export endpoints not allowed.
     resp = tl_client.get(f"{base_url}api/log/exporthtml/{test_id}")
     runner.check_status("Test share: cannot export shared test html (not in allowlist)", resp, 403)
@@ -524,6 +539,11 @@ def run_tests():
     print("\n--- 2b. Plan JWT as Bearer: denied access ---")
     resp = plan_bearer.get(f"{base_url}api/plan/{other_plan_id}")
     runner.check_status("Plan JWT Bearer: cannot view other plan", resp, 404)
+
+    resp = plan_bearer.get(f"{base_url}api/log/{other_test_id}")
+    runner.check("Plan JWT Bearer: log of test in other plan returns no entries",
+                 resp.status_code == 200 and resp.json() == [],
+                 f"HTTP {resp.status_code} body={resp.text[:200]}")
 
     resp = plan_bearer.post(f"{base_url}api/plan/{plan_id}/share", params={"exp": "1"})
     runner.check_status("Plan JWT Bearer: cannot create share link", resp, 403)
@@ -600,6 +620,11 @@ def run_tests():
 
     resp = test_bearer.get(f"{base_url}api/plan/{other_plan_id}")
     runner.check_status("Test JWT Bearer: cannot view other plan", resp, 404)
+
+    resp = test_bearer.get(f"{base_url}api/log/{other_test_id}")
+    runner.check("Test JWT Bearer: log of test in other plan returns no entries",
+                 resp.status_code == 200 and resp.json() == [],
+                 f"HTTP {resp.status_code} body={resp.text[:200]}")
 
     test_bearer.close()
 
