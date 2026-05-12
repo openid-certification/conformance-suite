@@ -159,6 +159,7 @@ import net.openid.conformance.vci10wallet.condition.VCIDecryptCredentialRequest;
 import net.openid.conformance.vci10wallet.condition.VCIEncryptCredentialResponse;
 import net.openid.conformance.vci10wallet.condition.VCIEnsureBearerAccessTokenNotInParams;
 import net.openid.conformance.vci10wallet.condition.VCIEnsureCredentialRequestEncryptedIfResponseEncryptionRequested;
+import net.openid.conformance.vci10wallet.condition.VCIEnsureLocationsMatchesCredentialIssuerWhenAuthorizationServersAdvertised;
 import net.openid.conformance.vci10wallet.condition.VCIEnsureCredentialRequestUsesApplicationJson;
 import net.openid.conformance.vci10wallet.condition.VCIEnsureCredentialRequestUsesApplicationJwt;
 import net.openid.conformance.vci10wallet.condition.VCIEnsureCredentialSigningCertificateIsNotSelfSigned;
@@ -174,6 +175,12 @@ import net.openid.conformance.vci10wallet.condition.VCILogGeneratedCredentialIss
 import net.openid.conformance.vci10wallet.condition.VCIPreparePreAuthorizationCode;
 import net.openid.conformance.vci10wallet.condition.VCIResolveRequestedCredentialConfigurationFromRequest;
 import net.openid.conformance.vci10wallet.condition.VCIValidateAttestedKeysInKeyAttestationFromJwtProof;
+import net.openid.conformance.vci10wallet.condition.VCIValidateOpenidCredentialAuthorizationDetailsInIncomingRequest;
+import net.openid.conformance.vci10wallet.condition.VCIWarnOnAuthorizationDetailsConventionsInIncomingRequest;
+import net.openid.conformance.vci10wallet.condition.ValidateKeyAttestationExp;
+import net.openid.conformance.vci10wallet.condition.ValidateKeyAttestationIat;
+import net.openid.conformance.vci10wallet.condition.ValidateKeyAttestationNonce;
+import net.openid.conformance.vci10wallet.condition.ValidateKeyAttestationX5cCertificateChain;
 import net.openid.conformance.vci10wallet.condition.VCIValidateCredentialRequestAttestationProof;
 import net.openid.conformance.vci10wallet.condition.VCIValidateCredentialRequestDiVpProof;
 import net.openid.conformance.vci10wallet.condition.VCIValidateCredentialRequestJwtProof;
@@ -183,10 +190,6 @@ import net.openid.conformance.vci10wallet.condition.VCIValidateNotificationReque
 import net.openid.conformance.vci10wallet.condition.VCIValidatePreAuthorizationCode;
 import net.openid.conformance.vci10wallet.condition.VCIValidateTxCode;
 import net.openid.conformance.vci10wallet.condition.VCIVerifyIssuerStateInAuthorizationRequest;
-import net.openid.conformance.vci10wallet.condition.ValidateKeyAttestationExp;
-import net.openid.conformance.vci10wallet.condition.ValidateKeyAttestationIat;
-import net.openid.conformance.vci10wallet.condition.ValidateKeyAttestationNonce;
-import net.openid.conformance.vci10wallet.condition.ValidateKeyAttestationX5cCertificateChain;
 import net.openid.conformance.vci10wallet.condition.VerifyKeyAttestationSignatureUsingConfigJwks;
 import net.openid.conformance.vci10wallet.condition.clientattestation.AddClientAttestationSigningAlgValuesSupportedToServerConfiguration;
 import net.openid.conformance.vci10wallet.condition.clientattestation.VCIRegisterClientAttestationTrustAnchor;
@@ -2219,6 +2222,12 @@ public abstract class AbstractVCIWalletTest extends net.openid.conformance.fapi2
 		callAndStopOnFailure(CreateEffectiveAuthorizationPARRequestParameters.class);
 		if (authorizationRequestType == AuthorizationRequestType.RAR) {
 			callAndStopOnFailure(EnsureEffectiveAuthorizationEndpointRequestContainsValidRAR.class, ConditionResult.FAILURE, "RFC9396-2");
+			callAndContinueOnFailure(VCIValidateOpenidCredentialAuthorizationDetailsInIncomingRequest.class,
+				ConditionResult.FAILURE, "OID4VCI-1FINAL-5.1.1", "OID4VCI-1FINAL-6.2");
+			callAndContinueOnFailure(VCIEnsureLocationsMatchesCredentialIssuerWhenAuthorizationServersAdvertised.class,
+				ConditionResult.FAILURE, "OID4VCI-1FINAL-5.1.1");
+			callAndContinueOnFailure(VCIWarnOnAuthorizationDetailsConventionsInIncomingRequest.class,
+				ConditionResult.WARNING, "OID4VCI-1FINAL-5.1.1", "RFC9396-2");
 		}
 
 		endTestIfRequiredParametersAreMissing();
