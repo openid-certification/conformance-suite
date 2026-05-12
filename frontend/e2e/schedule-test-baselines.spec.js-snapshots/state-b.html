@@ -2,6 +2,41 @@
 
             <p class="schedule-test-instructions">Please see <a href="https://openid.net/certification/instructions/">OpenID Foundation Certification Instructions</a>.</p>
 
+            <div class="schedule-test-toolbar">
+                <cts-button id="loadLastConfigBtn" data-testid="load-last-config" size="sm" variant="secondary" icon="clock" label="Load last configuration"><!----><button type="button" class="oidf-btn oidf-btn-sm oidf-btn-secondary"><!--?lit$NNNN$--><cts-icon aria-hidden="true" name="clock" size="16"><!----><style>
+        cts-icon {
+          /* inline-flex with center alignment guarantees the SVG sits at the
+             optical centre of the host box regardless of the parent's
+             line-height, font metrics, or whether the parent is a flex
+             container. Without this, the SVG (display: inline-block) inherits
+             the parent's line-box descender space and floats low. */
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          line-height: 0;
+        }
+        svg[data-cts-icon-size] {
+          display: block;
+          flex-shrink: 0;
+        }
+        svg[data-cts-icon-size="16"] {
+          width: var(--space-4);
+          height: var(--space-4);
+        }
+        svg[data-cts-icon-size="20"] {
+          width: var(--space-5);
+          height: var(--space-5);
+        }
+        svg[data-cts-icon-size="24"] {
+          width: var(--space-6);
+          height: var(--space-6);
+        }
+      </style>
+      <svg viewBox="0 0 24 24" aria-hidden="true" data-cts-icon-size="16">
+        <use href="/vendor/coolicons/icons/clock.svg#i"></use>
+      </svg></cts-icon><!--?lit$NNNN$--> <!--?lit$NNNN$-->Load last configuration</button></cts-button>
+            </div>
+
             <div class="cascade-row">
                 <label for="specFamilySelect">Specification</label>
                 <div class="input-group">
