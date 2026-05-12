@@ -409,7 +409,7 @@ class CtsBadge extends HTMLElement {
   /**
    * Returns true when the configured variant is the spinner-bearing
    * `running` variant.
-   * @returns {boolean}
+   * @returns {boolean} Whether this badge should render the spinner glyph.
    */
   _isRunning() {
     return (this.getAttribute("variant") || "running") === "running";

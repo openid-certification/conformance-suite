@@ -670,7 +670,7 @@ class CtsNavbar extends LitElement {
     super.disconnectedCallback();
   }
 
-  /** @param {PointerEvent} e */
+  /** @param {PointerEvent} e - Document-level pointerdown used to close open menus on outside click. */
   _onDocPointerDown(e) {
     const target = /** @type {Node | null} */ (e.target);
     if (this._menuOpen) {
@@ -690,7 +690,7 @@ class CtsNavbar extends LitElement {
     }
   }
 
-  /** @param {KeyboardEvent} e */
+  /** @param {KeyboardEvent} e - Document-level keydown; Escape closes open menus and restores focus to the trigger. */
   _onDocKeydown(e) {
     if (e.key !== "Escape") return;
     if (this._menuOpen) {

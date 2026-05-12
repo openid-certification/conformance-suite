@@ -117,8 +117,8 @@ function loadMonaco() {
  * re-registers the theme on each call. The colour values resolve from the
  * design-system tokens already on `:root` so the editor visually matches
  * the surrounding form fields without a separate palette to maintain.
- * @param {any} monaco - Live Monaco namespace returned
- *   by `loadMonaco()`; the function calls `monaco.editor.defineTheme`.
+ * @param {{editor: {defineTheme: (name: string, theme: object) => void}}} monaco - Live Monaco namespace returned
+ *   by `loadMonaco()`; only `monaco.editor.defineTheme` is read.
  */
 function defineOidfTheme(monaco) {
   const cs = window.getComputedStyle(document.documentElement);

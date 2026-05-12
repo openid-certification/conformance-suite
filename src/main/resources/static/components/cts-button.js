@@ -57,11 +57,15 @@ const SIZE_CLASSES = {
 };
 
 /**
+ * @typedef {object} ButtonClassOptions
+ * @property {string} [variant="secondary"] - Variant key. Unknown values fall back to `secondary`.
+ * @property {string} [size="sm"] - Size key. Unknown values fall back to `sm`.
+ */
+
+/**
  * Build the full OIDF button class string.
  *
- * @param {Object} options
- * @param {string} [options.variant="secondary"] - Variant key. Unknown values fall back to `secondary`.
- * @param {string} [options.size="sm"] - Size key. Unknown values fall back to `sm`.
+ * @param {ButtonClassOptions} [options] - Variant/size selection for the button surface.
  * @returns {string} Full class string, e.g. `"oidf-btn oidf-btn-sm oidf-btn-primary"`
  */
 function buildButtonClasses({ variant = "secondary", size = "sm" } = {}) {

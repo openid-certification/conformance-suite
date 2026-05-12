@@ -115,7 +115,7 @@ class CtsCrumb extends LitElement {
    * method reference (not an inline arrow) so eslint-plugin-lit's
    * no-template-arrow rule is satisfied.
    *
-   * @param {Event} e
+   * @param {Event} e - Click event whose `currentTarget` is the crumb button.
    */
   _onCrumbClick = (e) => {
     const btn = /** @type {HTMLElement | null} */ (e.currentTarget);
