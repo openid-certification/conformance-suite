@@ -405,24 +405,36 @@ test.describe("schedule-test.html — Test Plan Scheduling", () => {
     await expect(page.locator("#createPlanBtn button")).toBeDisabled();
   });
 
-  // --- R13 placeholder tests (deferred until R13 implementation MR) -----
+  // --- R13: opt-in load-last-config (the page no longer auto-prefills) ---
   //
-  // The R13 MR will change the page so that selecting a new plan type
-  // clears the config form, and a new "Load last config" control restores
-  // the previous config on demand. The MR is required to expose
-  // `data-testid="load-last-config"` on the new control so the second
-  // placeholder below resolves cleanly when `.fixme` is removed.
-  //
-  // The third behavioral assertion the brainstorm originally proposed —
-  // "switching plan types after edits does not silently lose a saved
-  // config" — was dropped as tautological: today no save flow exists,
-  // so there is nothing to lose. If R13 introduces a save flow, that MR
-  // is responsible for adding the corresponding test.
+  // #config is a cts-json-editor custom element, so Playwright's
+  // toHaveValue() (input/textarea/select-only) does not apply — read
+  // the host's .value property via page.evaluate() instead. Same for
+  // setting test config: assign to host.value rather than locator.fill().
 
-  test.fixme("R13: selecting a new plan type clears the config form", async ({ page }) => {
-    // Asserts: after selecting plan A, populating its config, then
-    //          switching to plan B, all rendered config inputs have empty
-    //          values. Deferred until R13 implementation MR.
+  /**
+   * @param {import('@playwright/test').Page} page
+   */
+  async function readConfigValue(page) {
+    return page.evaluate(() => {
+      const host = /** @type {any} */ (document.getElementById("config"));
+      return host ? host.value : null;
+    });
+  }
+
+  /**
+   * @param {import('@playwright/test').Page} page
+   * @param {string} value
+   */
+  async function setConfigValue(page, value) {
+    await page.evaluate((next) => {
+      const host = /** @type {any} */ (document.getElementById("config"));
+      if (!host) throw new Error("cts-json-editor#config not found");
+      host.value = next;
+    }, value);
+  }
+
+  test("R13: selecting a new plan type clears the config form", async ({ page }) => {
     await setupFailFast(page);
 
     await page.route("**/api/plan/available", (route) =>
@@ -433,6 +445,9 @@ test.describe("schedule-test.html — Test Plan Scheduling", () => {
       }),
     );
 
+    // Even though we never click "Load last configuration", mock the
+    // endpoint so an accidental fetch (regression to auto-prefill) shows
+    // up as content in the editor, not an unmocked-call assertion failure.
     await page.route("**/api/lastconfig", (route) =>
       route.fulfill({
         status: 200,
@@ -444,25 +459,17 @@ test.describe("schedule-test.html — Test Plan Scheduling", () => {
     await setupCommonRoutes(page);
     await page.goto("/schedule-test.html");
 
-    // Pick OIDCC basic, populate the config textarea, then switch to FAPI.
+    // Pick OIDCC basic, populate the config editor, then switch to FAPI.
     await page.locator("#specFamilySelect").selectOption("OIDCC");
     await page.locator("#entitySelect").selectOption("basic");
-    await page
-      .locator("#config")
-      .fill('{"alias":"about-to-be-cleared","server.issuer":"https://x.test"}');
+    await setConfigValue(page, '{"alias":"about-to-be-cleared","server.issuer":"https://x.test"}');
 
     await page.locator("#specFamilySelect").selectOption("FAPI");
 
-    // After R13, the config textarea should be empty after the switch.
-    await expect(page.locator("#config")).toHaveValue("");
+    expect(await readConfigValue(page)).toBe("");
   });
 
-  test.fixme("R13: clicking 'Load last config' restores the previous config", async ({ page }) => {
-    // Asserts: a control exposed at `data-testid="load-last-config"`
-    //          (contract bound on R13's MR — see plan
-    //          docs/plans/2026-04-25-003-...) repopulates the config
-    //          form with the most recent saved config when clicked.
-    //          Deferred until R13 implementation MR.
+  test("R13: clicking 'Load last configuration' restores the previous config", async ({ page }) => {
     await setupFailFast(page);
 
     await page.route("**/api/plan/available", (route) =>
@@ -473,13 +480,19 @@ test.describe("schedule-test.html — Test Plan Scheduling", () => {
       }),
     );
 
+    // The endpoint shape is { config, planName, variant } — only `config`
+    // is required for this assertion. No planName means selectPlanByName
+    // is a no-op (returns false on `!plan`), which keeps the test focused
+    // on "click → editor populated" without coupling to the cascade.
     await page.route("**/api/lastconfig", (route) =>
       route.fulfill({
         status: 200,
         contentType: "application/json",
         body: JSON.stringify({
-          alias: "from-last-config",
-          "server.issuer": "https://restored.example.com",
+          config: {
+            alias: "from-last-config",
+            "server.issuer": "https://restored.example.com",
+          },
         }),
       }),
     );
@@ -487,18 +500,54 @@ test.describe("schedule-test.html — Test Plan Scheduling", () => {
     await setupCommonRoutes(page);
     await page.goto("/schedule-test.html");
 
-    // Land on a plan with a config form; ensure form starts empty (per R13's
-    // new behavior — no auto-load on init).
+    // Land on a plan with a config form; the editor must start empty
+    // (per R13's new behavior — no auto-load on init).
     await page.locator("#specFamilySelect").selectOption("OIDCC");
     await page.locator("#entitySelect").selectOption("basic");
-    await expect(page.locator("#config")).toHaveValue("");
+    expect(await readConfigValue(page)).toBe("");
 
-    // Click the new "Load last config" control.
     await page.getByTestId("load-last-config").click();
 
-    // The config textarea should now contain the /api/lastconfig payload.
-    await expect(page.locator("#config")).not.toHaveValue("");
-    await expect(page.locator("#config")).toContainText("from-last-config");
+    // The editor should now contain the /api/lastconfig payload.
+    await expect.poll(() => readConfigValue(page)).toContain("from-last-config");
+  });
+
+  test("R13: page load does not auto-fetch /api/lastconfig", async ({ page }) => {
+    await setupFailFast(page);
+
+    let lastconfigCalled = false;
+
+    await page.route("**/api/plan/available", (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(ALL_PLANS),
+      }),
+    );
+
+    // Track whether anything fetches /api/lastconfig. Before R13 the page
+    // hit it on every load; after R13 the call is gated behind the
+    // explicit "Load last configuration" button.
+    await page.route("**/api/lastconfig", (route) => {
+      lastconfigCalled = true;
+      return route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({ config: { alias: "should-not-load" } }),
+      });
+    });
+
+    await setupCommonRoutes(page);
+    await page.goto("/schedule-test.html");
+
+    // Wait for the cascade to be ready — that's a stronger "page is fully
+    // initialised" signal than DOMContentLoaded, and matches what other
+    // assertions on this page wait for.
+    await page.locator("#specFamilySelect").selectOption("OIDCC");
+    await page.locator("#entitySelect").selectOption("basic");
+    expect(await readConfigValue(page)).toBe("");
+
+    expect(lastconfigCalled).toBe(false);
   });
 
   test("R42: static config-form fields are programmatically labelled", async ({ page }) => {

@@ -63,6 +63,10 @@
 
             <p class="schedule-test-instructions">Please see <a href="https://openid.net/certification/instructions/">OpenID Foundation Certification Instructions</a>.</p>
 
+            <div class="schedule-test-toolbar">
+                <cts-button id="loadLastConfigBtn" data-testid="load-last-config" size="sm" variant="secondary" icon="clock" label="Load last configuration"></cts-button>
+            </div>
+
             <div class="cascade-row">
                 <label for="specFamilySelect">Specification</label>
                 <div class="input-group">
@@ -1983,6 +1987,12 @@
             if (!silent) planSelect.dispatchEvent(new Event('change'));
         }
 
+        // R13: tracks reentrancy of system-driven plan selection so the
+        // planSelect 'change' handler can distinguish "the user picked a new
+        // plan" (clear the config) from "we just programmatically applied a
+        // saved/edited config" (keep the config we just put there).
+        let isSystemSelectingPlan = 0;
+
         function selectPlanByName(planName) {
             var plan = FAPI_UI.availablePlans[planName];
             if (!plan) return false;
@@ -1992,17 +2002,22 @@
             var specVersionSelect = document.getElementById('specVersionSelect');
             var planSelect = document.getElementById('planSelect');
 
-            familySelect.value = plan.specFamily || '';
-            onSpecFamilyChange(true);
+            isSystemSelectingPlan++;
+            try {
+                familySelect.value = plan.specFamily || '';
+                onSpecFamilyChange(true);
 
-            entitySelect.value = plan.profile || '';
-            onEntityChange(true);
+                entitySelect.value = plan.profile || '';
+                onEntityChange(true);
 
-            specVersionSelect.value = plan.specVersion || '';
-            onSpecVersionChange(true);
+                specVersionSelect.value = plan.specVersion || '';
+                onSpecVersionChange(true);
 
-            planSelect.value = planName;
-            planSelect.dispatchEvent(new Event('change'));
+                planSelect.value = planName;
+                planSelect.dispatchEvent(new Event('change'));
+            } finally {
+                isSystemSelectingPlan--;
+            }
 
             return true;
         }
@@ -2076,6 +2091,11 @@
                 })
         }
 
+        // R13: page load no longer auto-fetches /api/lastconfig. We still
+        // restore an in-flight savedConfig from sessionStorage (a "you just
+        // hit submit and the server failed" recovery), but cross-session
+        // prefill from the last persisted config is now opt-in via the
+        // "Load last configuration" button (loadLastConfigFromServer).
         function loadLastConfig() {
             var localStorage = tryGetStorage('sessionStorage');
             var localSavedConfig;
@@ -2087,8 +2107,6 @@
                 localSavedConfig = null;
             }
 
-            // If we left the page with an unsaved config, restore it now.
-
             if (localSavedConfig) {
                 const el = document.getElementById('config');
                 el.value = localSavedConfig.config;
@@ -2099,25 +2117,42 @@
                 return true;
             }
 
-            // Otherwise, try to get a config from the server
+            // R13: default to a blank configuration. The user picks a plan,
+            // the form opens up empty, and they can either type fresh or
+            // click "Load last configuration" to fetch /api/lastconfig.
+            document.getElementById('config').value = "";
+            return false;
+        }
+
+        // R13: explicit "Load last configuration" action. Mirrors the prior
+        // auto-fetch behavior but is now triggered only by the user clicking
+        // the toolbar button. updateSelectedTestSelector flips the cascade
+        // through selectPlanByName (which trips isSystemSelectingPlan), so
+        // the planSelect change handler skips clearing the config we are
+        // about to apply.
+        function loadLastConfigFromServer() {
             return fetch('/api/lastconfig')
                 .then((response) => response.json())
                 .then((data) => {
                     if (data.config) {
-                        // we found a configuration file, load it up
                         const el = document.getElementById('config');
                         el.value = JSON.stringify(data.config, null, 4);
                         updateSelectedTestSelector(data.planName);
                         if (data.variant) {
                             FAPI_UI.selectedVariant = data.variant;
                         }
+                        updateFormElementsFromJSON();
                     } else {
-
-                        // otherwise set the defaults
-                        const el = document.getElementById('config');
-                        el.value = JSON.stringify(FAPI_UI.testJSON, null, 4);
+                        FAPI_UI.showError({
+                            error: "No previously saved configuration is available."
+                        });
                     }
                 })
+                .catch((error) => {
+                    FAPI_UI.showError({
+                        error: "Could not load the previous configuration: " + error
+                    });
+                });
         }
 
         function updateSelectedTestSelector(planName) {
@@ -2314,8 +2349,22 @@
 
             // update field visibility when the selectors change
             document.getElementById('planSelect').addEventListener("change", function(){
+                // R13: clear the carried-over config when the user picks a
+                // new plan type. selectPlanByName bumps isSystemSelectingPlan
+                // around its own dispatchEvent, so programmatic flows
+                // (edit-plan, edit-test, "Load last configuration") preserve
+                // the config they just applied.
+                if (isSystemSelectingPlan === 0) {
+                    clearConfigForNewPlan();
+                }
                 updateVariants();
                 updateConfigFieldVisibility();
+            });
+
+            // R13: opt-in last-config load. Replaces the old auto-fetch on
+            // page load — see loadLastConfig() above.
+            document.getElementById('loadLastConfigBtn').addEventListener('click', function() {
+                loadLastConfigFromServer();
             });
             document.getElementById('variantSelectors').addEventListener("change", function(){
                 updateVariantOptionsVisibility();
@@ -2713,13 +2762,22 @@
          *
          */
          function updateFormElementsFromJSON() {
-            try {
-                FAPI_UI.testJSON = JSON.parse(document.getElementById('config').value);
-            } catch (e) {
-                FAPI_UI.showError({
-                    error: e
-                });
-                return false;
+            // R13: an empty textarea is a real "no config yet" state — the
+            // page loads blank and stays blank until the user picks a plan
+            // and types or clicks "Load last configuration". Treat it as an
+            // empty object instead of raising a parse-error toast.
+            const raw = document.getElementById('config').value;
+            if (raw.trim() === "") {
+                FAPI_UI.testJSON = {};
+            } else {
+                try {
+                    FAPI_UI.testJSON = JSON.parse(raw);
+                } catch (e) {
+                    FAPI_UI.showError({
+                        error: e
+                    });
+                    return false;
+                }
             }
 
             // valid JSON, but we also want to verify that it is an object at the root node
@@ -2736,6 +2794,20 @@
             });
 
             walkJSON(FAPI_UI.testJSON);
+        }
+
+        // R13: reset both the JSON view and the rendered form fields when
+        // the user switches plan type. The placeholder e2e test asserts the
+        // textarea is exactly "" after a family change, so we don't fall
+        // back to "{}" — empty string is the canonical "no config" state.
+        function clearConfigForNewPlan() {
+            FAPI_UI.testJSON = {};
+            FAPI_UI.selectedVariant = undefined;
+            const el = document.getElementById('config');
+            el.value = "";
+            document.querySelectorAll('.config-form-element')?.forEach(function(element) {
+                element.value = "";
+            });
         }
 
         /**

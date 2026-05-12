@@ -183,16 +183,20 @@ test.describe("schedule-test.html — baselines", () => {
       }),
     );
 
-    // Non-empty /api/lastconfig payload — populates the #config textarea
-    // (loadLastConfig fires at init, before cascade selection).
+    // Non-empty /api/lastconfig payload — surfaced into the #config
+    // textarea by the explicit "Load last configuration" click below.
+    // Before R13 this test relied on auto-prefill at init; the load step
+    // is now user-driven.
     await page.route("**/api/lastconfig", (route) =>
       route.fulfill({
         status: 200,
         contentType: "application/json",
         body: JSON.stringify({
-          alias: "baseline-state-c",
-          description: "Snapshot baseline — plan with config loaded",
-          server: { issuer: "https://baseline.example.com" },
+          config: {
+            alias: "baseline-state-c",
+            description: "Snapshot baseline — plan with config loaded",
+            server: { issuer: "https://baseline.example.com" },
+          },
         }),
       }),
     );
@@ -209,9 +213,10 @@ test.describe("schedule-test.html — baselines", () => {
     await expect(entitySelect).toBeVisible();
     await entitySelect.selectOption("client-basic");
 
-    // Wait for the config textarea to have content from /api/lastconfig.
-    // (loadLastConfig fires at init from DOMContentLoaded; the textarea is
-    // populated once the fetch resolves, regardless of cascade selection.)
+    // R13: explicitly load the saved config to populate the textarea.
+    await page.getByTestId("load-last-config").click();
+
+    // Wait for the config textarea to have content.
     await page.waitForFunction(() => {
       const el = /** @type {HTMLTextAreaElement | null} */ (document.getElementById("config"));
       return !!el && typeof el.value === "string" && el.value.length > 0;

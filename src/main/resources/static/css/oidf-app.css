@@ -148,6 +148,11 @@ cts-link-button > a:focus,
   font-size: var(--fs-14);
   color: var(--fg-soft, var(--ink-600));
 }
+.schedule-test-toolbar {
+  display: flex;
+  justify-content: flex-end;
+  margin: 0 0 var(--space-4);
+}
 
 /* ---- schedule-test cascade + config form (U39 of bootstrap-removal plan)
    Token-based replacements for Bootstrap's `.row .col-md-* .input-group
