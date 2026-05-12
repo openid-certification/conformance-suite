@@ -94,9 +94,6 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 
 		JsonObject transmitterMetadata = generateTransmitterMetadata(issuer);
 		env.putObject("ssf", "transmitter_metadata", transmitterMetadata);
-
-		JsonObject resourceServerMetadata = generateResourceServerMetadata(issuer);
-		env.putObject("resource_server_metadata", resourceServerMetadata);
 	}
 
 	protected String resolveEffectiveIssuer() {
@@ -110,15 +107,6 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 
 	protected OIDSSFInMemoryEventStore createEventStore() {
 		return new OIDSSFInMemoryEventStore();
-	}
-
-	protected JsonObject generateResourceServerMetadata(String issuer) {
-
-		JsonObject resourceServerMetadata = new JsonObject();
-		resourceServerMetadata.addProperty("resource", issuer);
-		resourceServerMetadata.add("scopes_supported", OIDFJSON.convertListToJsonArray(List.of("ssf.read", "ssf.manage")));
-
-		return resourceServerMetadata;
 	}
 
 	protected String getTransmitterAccessToken() {
@@ -296,9 +284,7 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 
 		Object response;
 		try {
-			if (path.startsWith("/.well-known/oauth-protected-resource")) {
-				response = oauthProtectedResourceServerMetadata();
-			} else if (path.startsWith("/.well-known/ssf-configuration")) {
+			if (path.startsWith("/.well-known/ssf-configuration")) {
 				response = handleSsfConfigurationEndpoint(requestId);
 			} else {
 				response = super.handleWellKnown(path, req, res, session, requestParts);
@@ -656,12 +642,6 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 		}
 
 		return ResponseEntity.status(statusCode).contentType(MediaType.APPLICATION_JSON).body(result);
-	}
-
-	protected ResponseEntity<?> oauthProtectedResourceServerMetadata() {
-		callAndContinueOnFailure(CheckIncomingRequestMethodIsGet.class, Condition.ConditionResult.FAILURE, "RFC9728-3.1");
-		JsonObject resourceServerMetadata = env.getObject("resource_server_metadata");
-		return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(resourceServerMetadata);
 	}
 
 	@Override

@@ -3,8 +3,6 @@ package net.openid.conformance.openid.ssf;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.CheckJwksUri;
-import net.openid.conformance.condition.client.DeriveOauthProtectedResourceMetadataUri;
-import net.openid.conformance.condition.client.FetchOauthProtectedResourceMetadata;
 import net.openid.conformance.condition.client.FetchServerKeys;
 import net.openid.conformance.condition.client.ValidateServerJWKs;
 import net.openid.conformance.openid.ssf.conditions.metadata.OIDSSFAuthorizationSchemesTransmitterMetadataCheck;
@@ -13,7 +11,6 @@ import net.openid.conformance.openid.ssf.conditions.metadata.OIDSSFCheckRequired
 import net.openid.conformance.openid.ssf.conditions.metadata.OIDSSFCheckRequiredFieldJwksUri;
 import net.openid.conformance.openid.ssf.conditions.metadata.OIDSSFCheckRequiredFieldStatusEndpoint;
 import net.openid.conformance.openid.ssf.conditions.metadata.OIDSSFCheckRequiredFieldVerificationEndpoint;
-import net.openid.conformance.openid.ssf.conditions.metadata.OIDSSFCheckScopesWithOauthProtectedResourceMetadata;
 import net.openid.conformance.openid.ssf.conditions.metadata.OIDSSFCheckSupportedDeliveryMethods;
 import net.openid.conformance.openid.ssf.conditions.metadata.OIDSSFCheckTransmitterMetadataIssuer;
 import net.openid.conformance.openid.ssf.conditions.metadata.OIDSSFDefaultSubjectsTransmitterMetadataCheck;
@@ -68,16 +65,6 @@ public class OIDSSFTransmitterMetadataTest extends AbstractOIDSSFTransmitterTest
 
 		eventLog.runBlock("Validate Transmitter Metadata", () -> {
 			validateTransmitterMetadata();
-		});
-
-		eventLog.runBlock("Fetch OAuth Protected Resource Metadata", () -> {
-			// https://ssf.caep.dev/.well-known/oauth-protected-resource
-			callAndContinueOnFailure(DeriveOauthProtectedResourceMetadataUri.class, Condition.ConditionResult.INFO, "CAEPIOP-2.7.3");
-			callAndContinueOnFailure(FetchOauthProtectedResourceMetadata.class, Condition.ConditionResult.INFO, "CAEPIOP-2.7.3");
-		});
-
-		eventLog.runBlock("Validate OAuth Protected Resource Metadata", () -> {
-			callAndContinueOnFailure(OIDSSFCheckScopesWithOauthProtectedResourceMetadata.class, Condition.ConditionResult.WARNING, "CAEPIOP-2.7.2");
 		});
 
 		fireTestFinished();
