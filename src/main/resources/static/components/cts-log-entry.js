@@ -519,7 +519,7 @@ class CtsLogEntry extends LitElement {
    * the property name (`referenceId`) free of attribute-name semantics
    * — the host id is the *value* of referenceId, not the literal string
    * `referenceId`.
-   * @param {Map<string, unknown>} changed
+   * @param {Map<string, unknown>} changed - Lit's changed-properties map for this update cycle.
    */
   willUpdate(changed) {
     if (changed.has("referenceId")) {

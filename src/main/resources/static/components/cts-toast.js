@@ -183,20 +183,23 @@ class CtsToastHost extends HTMLElement {
   }
 
   /**
+   * @typedef {object} ToastOptions
+   * @property {string} [title] - Bold heading line (defaults to "").
+   * @property {string} [message] - Optional secondary copy.
+   * @property {"ok"|"error"} [kind="ok"] - Visual variant.
+   * @property {number} [duration=5000] - Auto-dismiss delay in milliseconds. Pass `0` to disable auto-dismiss.
+   */
+
+  /**
    * Convenience entry point. Creates a `<cts-toast>` from the given
    * options and appends it to the singleton host (auto-creating the
    * host if not yet in the document). Returns the toast element so
    * callers can listen for `cts-toast-dismiss` or remove it early.
    *
-   * @param {Object} options
-   * @param {string} options.title - Bold heading line.
-   * @param {string} [options.message] - Optional secondary copy.
-   * @param {"ok"|"error"} [options.kind="ok"] - Visual variant.
-   * @param {number} [options.duration=5000] - Auto-dismiss delay in
-   *   milliseconds. Pass `0` to disable auto-dismiss.
+   * @param {ToastOptions} [options] - Toast configuration.
    * @returns {CtsToast} The created toast element
    */
-  static show(options = /** @type {any} */ ({})) {
+  static show(options = {}) {
     const { title = "", message = "", kind = "ok", duration = 5000 } = options;
     injectStyles();
     const host = CtsToastHost.getOrCreate();

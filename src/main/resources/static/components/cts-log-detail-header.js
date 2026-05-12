@@ -642,6 +642,8 @@ class CtsLogDetailHeader extends LitElement {
    * row 2 — the long form returned by `_formatDate()` does not fit
    * alongside the truncated test name. Falls back to the empty string
    * for missing input so the caller can short-circuit rendering.
+   * @param {string} dateStr - ISO date string to format.
+   * @returns {string} The compact-formatted date, or "" when input is missing or invalid.
    */
   _formatDateCompact(dateStr) {
     if (!dateStr) return "";
@@ -700,6 +702,8 @@ class CtsLogDetailHeader extends LitElement {
    * Severity buckets for the failure-hero count headline (e.g.
    * "3 failures, 1 warning"). Lower-cased keys mirror the backend
    * `entry.result` values used everywhere else in the component.
+   * @param {Array<{result?: string}>} failures - Failure log entries to bucket.
+   * @returns {{failure: number, warning: number, review: number, skipped: number, interrupted: number}} Counts keyed by severity.
    */
   _countFailureSeverities(failures) {
     const counts = { failure: 0, warning: 0, review: 0, skipped: 0, interrupted: 0 };
@@ -875,6 +879,8 @@ class CtsLogDetailHeader extends LitElement {
    * this run?" anchor operators glance at constantly; hiding it
    * behind a click would force a disclosure for a fact that should
    * read at a glance.
+   * @param {TestInfo} test - Test info used to source the name and created timestamp.
+   * @returns {import('lit').TemplateResult|typeof nothing} The row 2 template, or `nothing` when neither field is set.
    */
   _renderStatusBarTestName(test) {
     const name = test.testName || "";
@@ -1129,6 +1135,8 @@ class CtsLogDetailHeader extends LitElement {
    * top of the page; the warning count surfaces in the sticky bar's
    * pill cluster and in the log entries below. The hero is the
    * verdict; the warning is annotation.
+   * @param {TestInfo} test - Test info that drives status/result routing.
+   * @returns {import('lit').TemplateResult} The hero template for the current lifecycle state.
    */
   _renderHero(test) {
     const status = (test.status || "").toUpperCase();
@@ -1168,6 +1176,7 @@ class CtsLogDetailHeader extends LitElement {
    * If no conditions ran before the interruption (failures array empty),
    * the headline reads "Test was interrupted before any check ran".
    * Reads testInfo via `this._getFailures()`, so no test arg is needed.
+   * @returns {import('lit').TemplateResult} The INTERRUPTED hero template.
    */
   _renderInterruptedHero() {
     const failures = this._getFailures();
@@ -1199,6 +1208,8 @@ class CtsLogDetailHeader extends LitElement {
    * `summary` is empty falls back to `testInfo.description`; when that
    * is also empty renders a quiet "No description available"
    * placeholder so the hero zone never appears empty.
+   * @param {TestInfo} test - Test info sourcing `summary` and `description`.
+   * @returns {import('lit').TemplateResult} The summary hero template.
    */
   _renderSummaryHero(test) {
     const summarySplit = splitTestSummary(test.summary || "");
@@ -1226,6 +1237,8 @@ class CtsLogDetailHeader extends LitElement {
    * (its primary action for WAITING tests), so the hero does not
    * duplicate it. The slot remains so page-level JS can inject
    * browser-URL prompts during the WAITING window.
+   * @param {TestInfo} test - Test info sourcing `summary` and `exposed` values.
+   * @returns {import('lit').TemplateResult} The WAITING hero template.
    */
   _renderWaitingHero(test) {
     const summarySplit = splitTestSummary(test.summary || "");
@@ -1242,6 +1255,8 @@ class CtsLogDetailHeader extends LitElement {
 
   /**
    * RUNNING hero — info alert + exposed values + browser slot.
+   * @param {TestInfo} test - Test info sourcing `exposed` values for the running card.
+   * @returns {import('lit').TemplateResult} The RUNNING hero template.
    */
   _renderRunningHero(test) {
     return html`

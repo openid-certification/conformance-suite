@@ -400,9 +400,9 @@ const FORMAT_CELL_CLASSES = {
 /**
  * Resolve a (possibly dotted) key against a row.
  *
- * @param {object} row
- * @param {string} key
- * @returns {*}
+ * @param {object} row - Row object to read from.
+ * @param {string} key - Property name, optionally dotted to walk nested objects.
+ * @returns {unknown} The resolved value, or `undefined` if any segment is missing. Callers must narrow before use.
  */
 function readKey(row, key) {
   if (!row || !key) return undefined;
@@ -565,7 +565,7 @@ class CtsDataTable extends LitElement {
   /**
    * Programmatic search trigger; mirrors `api.search(q).draw()`.
    *
-   * @param {string} query
+   * @param {string} query - Search text to apply; `null` / `undefined` clear the filter.
    */
   search(query) {
     this._search = query == null ? "" : String(query);
@@ -816,7 +816,7 @@ class CtsDataTable extends LitElement {
    * Uses mousedown + preventDefault rather than click so focus never visibly
    * lands on the non-focusable leading <cts-icon> in between.
    *
-   * @param {MouseEvent} e
+   * @param {MouseEvent} e - The `mousedown` event on the search wrap; default is prevented to redirect focus to the inner input.
    */
   _onSearchWrapMouseDown(e) {
     const target = /** @type {Element} */ (e.target);
@@ -1182,8 +1182,8 @@ class CtsDataTable extends LitElement {
  * the existing per-cell templates. For richer per-cell rendering,
  * consumers should use the `cellRenderer` callback instead.
  *
- * @param {DocumentFragment | Element} root
- * @param {object} row
+ * @param {DocumentFragment | Element} root - Template subtree to walk; mutated in place.
+ * @param {object} row - Row object whose values back the `${row.key}` placeholders.
  */
 function substituteRowPlaceholders(root, row) {
   const PLACEHOLDER = /\$\{(?:row\.)?([^}]+)\}/g;

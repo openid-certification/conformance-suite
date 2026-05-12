@@ -221,6 +221,7 @@ class CtsLogToc extends LitElement {
    * "Hide log structure rail" / "Show log structure rail" item, this
    * setter is also reachable from the DevTools console:
    *   document.getElementById("ctsLogToc").setEnabled(false)
+   * @param {boolean} enabled - Whether the rail should be visible. Persisted to localStorage.
    */
   setEnabled(enabled) {
     writePreference(enabled);

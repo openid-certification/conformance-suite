@@ -339,7 +339,7 @@ class CtsLogViewer extends LitElement {
    * Re-running on every `_entries` update keeps the badge totals in sync
    * with streaming additions without a separate subscription.
    *
-   * @param {Map<string, unknown>} changedProps
+   * @param {Map<string, unknown>} changedProps - Lit's changed-property map for this update cycle.
    */
   willUpdate(changedProps) {
     if (changedProps.has("_entries")) {
@@ -357,7 +357,7 @@ class CtsLogViewer extends LitElement {
    * missing), and the aggregated `counts` from `_blockCounts`. U8's
    * cts-log-toc consumes this list verbatim — keeping the walk inside
    * the viewer means the rail does not need access to `_entries`.
-   * @returns {Array<{ blockId: string, label: string, counts: { success: number, failure: number, warning: number, review: number, info: number, total: number } }>}
+   * @returns {Array<{ blockId: string, label: string, counts: { success: number, failure: number, warning: number, review: number, info: number, total: number } }>} One summary per startBlock entry, in arrival order.
    */
   _collectBlockSummaries() {
     const summaries = [];
@@ -386,7 +386,7 @@ class CtsLogViewer extends LitElement {
    * `cts-blocks-updated`. Returns a defensive copy so downstream
    * consumers cannot mutate the cached list and trigger phantom
    * recomputes.
-   * @returns {Array<{ blockId: string, label: string, counts: { success: number, failure: number, warning: number, review: number, info: number, total: number } }>}
+   * @returns {Array<{ blockId: string, label: string, counts: { success: number, failure: number, warning: number, review: number, info: number, total: number } }>} A defensive shallow copy of the cached block summaries.
    */
   getBlockSummaries() {
     return Array.isArray(this._blockSummaries) ? this._blockSummaries.slice() : [];
@@ -405,7 +405,7 @@ class CtsLogViewer extends LitElement {
    * for the FAILED-row lozenge. Plan-detail is a classic
    * `<script type="text/javascript">` and cannot ES-import this
    * helper; if the rule changes here, update the shim there too.
-   * @returns {Object.<string, string>}
+   * @returns {Object.<string, string>} A map of entry `_id` to its `LOG-NNNN` reference label.
    */
   _buildReferences() {
     /** @type {Object.<string, string>} */
@@ -422,7 +422,7 @@ class CtsLogViewer extends LitElement {
    * page-level cts-failure-summary instances consume this so the
    * failure-row chip and the entry-row chip resolve to the same label
    * without re-walking the entries on each render.
-   * @returns {Object.<string, string>}
+   * @returns {Object.<string, string>} The cached `_id` to `LOG-NNNN` reference map.
    */
   get references() {
     return this._references;
@@ -438,7 +438,7 @@ class CtsLogViewer extends LitElement {
    * aggregation; the next poll catches up. The user-visible impact is a
    * brief under-count in the badges; the UI never crashes.
    *
-   * @returns {Map<string, { success: number, failure: number, warning: number, review: number, info: number, total: number }>}
+   * @returns {Map<string, { success: number, failure: number, warning: number, review: number, info: number, total: number }>} A map from `blockId` to its per-result counts bucket.
    */
   _aggregateBlockCounts() {
     /** @type {Map<string, { success: number, failure: number, warning: number, review: number, info: number, total: number }>} */
@@ -475,7 +475,7 @@ class CtsLogViewer extends LitElement {
    * Public read-only view of the per-block aggregation map. U8's TOC
    * rail consumes this via the host element so the rail and the inline
    * block badges stay in lockstep without duplicating the walk.
-   * @returns {Map<string, { success: number, failure: number, warning: number, review: number, info: number, total: number }>}
+   * @returns {Map<string, { success: number, failure: number, warning: number, review: number, info: number, total: number }>} The cached per-block aggregation map.
    */
   get blockCounts() {
     return this._blockCounts;
@@ -647,7 +647,7 @@ class CtsLogViewer extends LitElement {
    * re-render. Reading `event.currentTarget.open` (the post-toggle
    * value) is the source of truth — Lit's `?open=` binding restores
    * this on the next render.
-   * @param {Event} event
+   * @param {Event} event - The `toggle` event dispatched by the `<details>` block.
    */
   _handleBlockToggle(event) {
     const target = /** @type {HTMLDetailsElement & { dataset: DOMStringMap }} */ (
@@ -687,7 +687,8 @@ class CtsLogViewer extends LitElement {
    * problems should read clean. Empty buckets are skipped so a passing
    * block reads as a single `✓N` chip rather than four chips with three
    * zero-counts.
-   * @param {{ success: number, failure: number, warning: number, review: number, info: number, total: number } | undefined} counts
+   * @param {{ success: number, failure: number, warning: number, review: number, info: number, total: number } | undefined} counts - The per-block result counts bucket, or undefined when no entries have arrived yet.
+   * @returns {unknown} The Lit template for the badge cluster, or `nothing` when the block is empty.
    */
   _renderBlockBadges(counts) {
     if (!counts || counts.total === 0) return nothing;
@@ -709,6 +710,7 @@ class CtsLogViewer extends LitElement {
    * document-level `cts-scroll-to-entry` listener (in
    * `js/log-detail.js`) can locate the target by the same `_id` the
    * failure-summary dispatches in its event detail.
+   * @returns {Array<unknown>} The Lit template fragments for each block and any pre-block flat entries.
    */
   _renderEntries() {
     /** @type {Array<unknown>} */

@@ -263,6 +263,7 @@ class CtsFailureSummary extends LitElement {
    * deep-link target) and dispatches `cts-scroll-to-entry` so the
    * page-level handler in `js/log-detail.js` can open any closed
    * `<details>` ancestor and smooth-scroll to the matching log entry.
+   * @param {Event & { currentTarget: HTMLElement }} event - Click event from a `.failureText` anchor.
    */
   _handleRowClick(event) {
     event.preventDefault();
@@ -315,7 +316,8 @@ class CtsFailureSummary extends LitElement {
    * order. `Object.groupBy` is intentionally avoided so this works on the
    * older runtime targets the conformance suite supports — same reason
    * other components hand-roll their grouping (`cts-log-viewer.js`).
-   * @param {Array<FailureEntry>} failures
+   * @param {Array<FailureEntry>} failures - Flat list of failure entries to bucket.
+   * @returns {Array<{ blockId: string, headerText: string, items: Array<FailureEntry> }>} Groups in first-seen order, each with the block's header text and its member items.
    */
   _groupFailuresByBlock(failures) {
     /** @type {Array<{ blockId: string, headerText: string, items: Array<FailureEntry> }>} */

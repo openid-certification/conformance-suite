@@ -9,8 +9,8 @@ import { flashCopyConfirmed } from "../js/cts-copy-flash.js";
  * `document.execCommand('copy')` shim widely used pre-Clipboard-API. Returns
  * `true` on apparent success, `false` otherwise — the caller decides how to
  * surface the result.
- * @param {string} value
- * @returns {boolean}
+ * @param {string} value - Text to write to the clipboard.
+ * @returns {boolean} `true` if the legacy copy command reported success.
  */
 function fallbackCopy(value) {
   if (typeof document === "undefined") return false;
@@ -37,8 +37,8 @@ function fallbackCopy(value) {
 }
 
 /**
- * @param {string} value
- * @returns {Promise<boolean>}
+ * @param {string} value - Text to write to the clipboard.
+ * @returns {Promise<boolean>} Resolves `true` when the copy succeeded via either the Clipboard API or the legacy fallback.
  */
 async function copyText(value) {
   if (
@@ -101,7 +101,7 @@ class CtsLogEntryId extends LitElement {
    * `log-detail.html` (not `-v2.html`) because the page swap during the
    * flag-flip MR is invisible to the URL: shared links cite the canonical
    * filename, and the redirect script handles routing for opt-outs.
-   * @returns {string}
+   * @returns {string} Absolute deep-link URL for this reference, or the bare `referenceId` when `window` is unavailable.
    */
   _buildDeepUrl() {
     if (typeof window === "undefined") return this.referenceId;
@@ -112,8 +112,8 @@ class CtsLogEntryId extends LitElement {
   }
 
   /**
-   * @param {"url" | "plain"} mode
-   * @param {string} value
+   * @param {"url" | "plain"} mode - Which copy variant succeeded: deep URL or plain reference.
+   * @param {string} value - The text that was actually placed on the clipboard.
    */
   _emitCopied(mode, value) {
     this.dispatchEvent(
@@ -129,7 +129,7 @@ class CtsLogEntryId extends LitElement {
    * Resolve the cts-badge host so the icon-flash can act on it. Lit's
    * render is already complete by the time event handlers fire, so a
    * straight querySelector is enough; no ref needed.
-   * @returns {Element | null}
+   * @returns {Element | null} The rendered `<cts-badge>` host, or `null` before first render.
    */
   _badge() {
     return this.querySelector("cts-badge");
@@ -144,7 +144,7 @@ class CtsLogEntryId extends LitElement {
     this._emitCopied("url", url);
   }
 
-  /** @param {Event} event */
+  /** @param {Event} event - The `contextmenu` event (right-click / long-press); default is prevented so the plain reference can be copied instead of the browser menu opening. */
   async _handleContextMenu(event) {
     if (!this.referenceId) return;
     event.preventDefault();

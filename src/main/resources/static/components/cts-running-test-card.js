@@ -249,8 +249,8 @@ class CtsRunningTestCard extends LitElement {
    * `client_auth_type: client_secret_basic, response_type: code`). Mirrors
    * cts-plan-header._formatVariant so the running-test card and plan
    * header surface variant data in identical form.
-   * @param {Record<string, string> | undefined} variant
-   * @returns {string}
+   * @param {Record<string, string> | undefined} variant - Map of variant keys to selected values from the runner payload.
+   * @returns {string} The formatted `"key: value, key: value"` string, or `""` when no variant is provided.
    */
   _formatVariant(variant) {
     if (!variant || typeof variant !== "object") return "";
@@ -268,7 +268,7 @@ class CtsRunningTestCard extends LitElement {
    * question — siblings render absolute dates because they describe
    * historical work.
    * @param {string | undefined} dateStr - ISO 8601 date string from the runner payload.
-   * @returns {string}
+   * @returns {string} A short relative-time label, or a locale date for timestamps older than 7 days; `""` when input is missing/unparseable.
    */
   _formatRelativeDate(dateStr) {
     if (!dateStr) return "";
@@ -289,7 +289,7 @@ class CtsRunningTestCard extends LitElement {
 
   /**
    * @param {string | undefined} dateStr - ISO 8601 date string from the runner payload.
-   * @returns {string}
+   * @returns {string} The locale-formatted absolute date/time, or `""` when input is missing/unparseable.
    */
   _formatAbsoluteDate(dateStr) {
     if (!dateStr) return "";
@@ -335,8 +335,8 @@ class CtsRunningTestCard extends LitElement {
    * context (a relative time or a sub/iss pair); the variant string and
    * version are self-describing technical identifiers, so they appear
    * unlabelled.
-   * @param {{ created?: string; variant?: Record<string, string>; version?: string; owner?: { sub?: string; iss?: string } }} test
-   * @returns {ReturnType<typeof html> | typeof nothing}
+   * @param {{ created?: string; variant?: Record<string, string>; version?: string; owner?: { sub?: string; iss?: string } }} test - Runner test payload whose metadata populates the strip.
+   * @returns {ReturnType<typeof html> | typeof nothing} The metadata strip template, or `nothing` when no fields are present.
    */
   _renderMeta(test) {
     const items = [];
