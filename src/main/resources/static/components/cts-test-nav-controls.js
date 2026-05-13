@@ -108,13 +108,14 @@ function ensureStylesInjected() {
  *   No-op in `slim` mode.
  * @property {boolean} slim - When true, the widget renders only the
  *   progress indicator and (when applicable) the Continue Plan CTA.
- *   Used by the v2 log-detail page where the page-level breadcrumb
+ *   Used by the log-detail page where the page-level breadcrumb
  *   already carries the back affordance and the sticky status bar's
  *   primary action already carries Repeat — emitting them here too
  *   would duplicate two prominent affordances inside one viewport.
- *   The legacy log-detail.html keeps `slim=false` so it retains the
- *   full Return / Repeat / Continue cluster (no breadcrumb-driven back
- *   nav, no status-bar-primary Repeat to inherit from).
+ *   The default (non-slim) form renders the full Return / Repeat /
+ *   Continue cluster and is reserved for surfaces with no breadcrumb
+ *   and no status-bar Repeat to inherit from; Storybook stories use it
+ *   to document the widget's complete contract.
  * @fires cts-repeat - When Repeat Test is clicked. Detail:
  *   `{ testId, planId }`. Bubbles. Not fired in `slim` mode (no button).
  * @fires cts-continue - When Continue Plan is clicked. Detail:
@@ -184,9 +185,9 @@ class CtsTestNavControls extends LitElement {
 
     return html`
       <div class="cts-tnc-progress" data-testid="progress">
-        <div class="cts-tnc-progress-label" data-testid="progress-label"
-          >Module ${displayPosition} of ${total}</div
-        >
+        <div class="cts-tnc-progress-label" data-testid="progress-label">
+          Module ${displayPosition} of ${total}
+        </div>
         <div
           class="cts-tnc-progress-track"
           role="progressbar"
@@ -269,7 +270,7 @@ class CtsTestNavControls extends LitElement {
         <div class="cts-tnc-group" role="group" aria-label="Test plan navigation">
           ${this._renderProgress()}
           ${showContinue
-            ? html`<div class="cts-tnc-buttons">${this._renderContinueButton()}</div>`
+            ? html`<div class="cts-tnc-buttons"> ${this._renderContinueButton()} </div>`
             : nothing}
         </div>
       `;
