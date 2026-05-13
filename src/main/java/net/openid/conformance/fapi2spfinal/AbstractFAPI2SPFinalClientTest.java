@@ -5,8 +5,6 @@ import com.google.gson.JsonObject;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.condition.as.AddAtHashToIdTokenClaims;
@@ -131,6 +129,7 @@ import net.openid.conformance.condition.rs.RequireDpopAccessToken;
 import net.openid.conformance.condition.rs.RequireDpopClientCredentialAccessToken;
 import net.openid.conformance.condition.rs.RequireMtlsAccessToken;
 import net.openid.conformance.condition.rs.RequireMtlsClientCredentialsAccessToken;
+import net.openid.conformance.sequence.AbstractConditionSequence;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.sequence.as.AddJARMToServerConfiguration;
 import net.openid.conformance.sequence.as.AddPARToServerConfiguration;
@@ -163,6 +162,9 @@ import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.servlet.view.RedirectView;
+
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 @VariantParameters({
 	ClientAuthType.class,
@@ -286,6 +288,15 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 		exposeEnvString(name);
 	}
 
+	/**
+	 * Package-visible wrapper around {@link AbstractTestModule#exposeEnvString} so
+	 * profile behaviors in this package can expose an env string they wrote without
+	 * going through a {@code do*} delegator.
+	 */
+	void exposeEnvStringForBehavior(String key) {
+		exposeEnvString(key);
+	}
+
 	// --- Package-visible accessors for profile behavior classes ---
 
 	Environment getEnv() {
@@ -320,7 +331,7 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 		callAndContinueOnFailure(conditionClass, onFail, requirements);
 	}
 
-	void doCall(net.openid.conformance.sequence.ConditionSequence sequence) {
+	void doCall(ConditionSequence sequence) {
 		call(sequence);
 	}
 
@@ -658,7 +669,17 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 			if (startingShutdown) {
 				throw new TestFailureException(getId(), "Client has incorrectly called '" + path + "' after receiving a response that must cause it to stop interacting with the server");
 			}
-			return profileBehavior.handleProfileSpecificPath(requestId, path);
+			setStatus(Status.RUNNING);
+			try {
+				FAPI2ClientProfileBehavior.PathDispatch dispatch = profileBehavior.getProfileSpecificPathDispatch(requestId, path);
+				if (dispatch != null) {
+					call(dispatch.sequence());
+					return dispatch.responseBuilder().apply(this);
+				}
+				return profileBehavior.handleProfileSpecificPath(requestId, path);
+			} finally {
+				setStatus(Status.WAITING);
+			}
 		}
 		throw new TestFailureException(getId(), "Got unexpected HTTP call to " + path);
 	}
@@ -779,6 +800,13 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 		public abstract void checkParRequest();
 		public abstract void checkTokenRequest();
 		public abstract void checkResourceRequest();
+
+		/**
+		 * Sequence form of {@link #checkResourceRequest()} for callers (typically profile
+		 * behaviors) that want to embed sender-constrain checks inside their own
+		 * ConditionSequence rather than invoke them imperatively.
+		 */
+		public abstract ConditionSequence resourceRequestChecksSequence();
 	}
 
 	private class DPopTokenRequestHelper extends SenderContrainTokenRequestHelper {
@@ -799,10 +827,20 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 
 		@Override
 		public void checkResourceRequest() {
-			callAndStopOnFailure(ExtractDpopProofFromHeader.class, "DPOP-5");
-			// Need to also extract the DPoP Access token for resource requests
-			callAndStopOnFailure(ExtractDpopAccessTokenFromHeader.class, "DPOP-7");
-			call(sequence(PerformDpopProofResourceRequestChecks.class));
+			call(resourceRequestChecksSequence());
+		}
+
+		@Override
+		public ConditionSequence resourceRequestChecksSequence() {
+			return new AbstractConditionSequence() {
+				@Override
+				public void evaluate() {
+					callAndStopOnFailure(ExtractDpopProofFromHeader.class, "DPOP-5");
+					// Need to also extract the DPoP Access token for resource requests
+					callAndStopOnFailure(ExtractDpopAccessTokenFromHeader.class, "DPOP-7");
+					call(new PerformDpopProofResourceRequestChecks());
+				}
+			};
 		}
 	}
 
@@ -818,8 +856,18 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 
 		@Override
 		public void checkResourceRequest() {
-			callAndStopOnFailure(EnsureBearerAccessTokenNotInParams.class, "FAPI2-SP-FINAL-5.3.4-2");
-			callAndStopOnFailure(ExtractBearerAccessTokenFromHeader.class, "FAPI2-SP-FINAL-5.3.4-2");
+			call(resourceRequestChecksSequence());
+		}
+
+		@Override
+		public ConditionSequence resourceRequestChecksSequence() {
+			return new AbstractConditionSequence() {
+				@Override
+				public void evaluate() {
+					callAndStopOnFailure(EnsureBearerAccessTokenNotInParams.class, "FAPI2-SP-FINAL-5.3.4-2");
+					callAndStopOnFailure(ExtractBearerAccessTokenFromHeader.class, "FAPI2-SP-FINAL-5.3.4-2");
+				}
+			};
 		}
 	}
 
