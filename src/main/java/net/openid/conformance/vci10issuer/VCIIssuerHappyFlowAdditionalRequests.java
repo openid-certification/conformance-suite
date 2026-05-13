@@ -9,10 +9,10 @@ import net.openid.conformance.condition.client.ExtractTLSTestValuesFromResourceC
 import net.openid.conformance.condition.client.SetPermissiveAcceptHeaderForResourceEndpointRequest;
 import net.openid.conformance.condition.client.SetUtf8JsonAcceptHeadersForResourceEndpointRequest;
 import net.openid.conformance.condition.common.CheckForBCP195InsecureFAPICiphers;
-import net.openid.conformance.condition.common.DisallowInsecureCipher;
 import net.openid.conformance.condition.common.DisallowTLS10;
 import net.openid.conformance.condition.common.DisallowTLS11;
-import net.openid.conformance.condition.common.EnsureTLS12WithFAPICiphers;
+import net.openid.conformance.condition.common.EnsureTLS12RequireBCP195Ciphers;
+import net.openid.conformance.condition.common.RequireOnlyBCP195RecommendedCiphersForTLS12;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
@@ -42,10 +42,10 @@ public class VCIIssuerHappyFlowAdditionalRequests extends AbstractVCIIssuerTestM
 	}
 
 	protected void checkEndpointTLS() {
-		callAndContinueOnFailure(EnsureTLS12WithFAPICiphers.class, Condition.ConditionResult.FAILURE, "FAPI2-SP-FINAL-5.2.3-1");
-		callAndContinueOnFailure(DisallowTLS10.class, Condition.ConditionResult.FAILURE, "FAPI2-SP-FINAL-5.2.1-1");
-		callAndContinueOnFailure(DisallowTLS11.class, Condition.ConditionResult.FAILURE, "FAPI2-SP-FINAL-5.2.1-1");
-		callAndContinueOnFailure(DisallowInsecureCipher.class, Condition.ConditionResult.FAILURE, "FAPI2-SP-FINAL-5.2.2-1");
+		callAndContinueOnFailure(EnsureTLS12RequireBCP195Ciphers.class, Condition.ConditionResult.FAILURE, "FAPI2-SP-FINAL-5.2.3-2", "FAPI-ISSUES-847");
+		callAndContinueOnFailure(DisallowTLS10.class, Condition.ConditionResult.FAILURE, "FAPI2-SP-FINAL-5.2.1-1,FAPI2-SP-FINAL-5.2.1-3");
+		callAndContinueOnFailure(DisallowTLS11.class, Condition.ConditionResult.FAILURE, "FAPI2-SP-FINAL-5.2.1-1,FAPI2-SP-FINAL-5.2.1-3");
+		callAndContinueOnFailure(RequireOnlyBCP195RecommendedCiphersForTLS12.class, Condition.ConditionResult.FAILURE, "FAPI2-SP-FINAL-5.2.2", "FAPI-ISSUES-847");
 		callAndContinueOnFailure(CheckForBCP195InsecureFAPICiphers.class, Condition.ConditionResult.WARNING, "FAPI2-SP-FINAL-5.2.2", "RFC9325A-A", "RFC9325-4.2");
 	}
 
