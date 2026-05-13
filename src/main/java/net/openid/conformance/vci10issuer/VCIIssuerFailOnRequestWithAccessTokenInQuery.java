@@ -18,11 +18,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 
 	As FAPI SP 2.0 Final prohibits the use of access tokens in query parameter the request should fail.
 	""",
-	profile = "OID4VCI-1_0",
-	configurationFields = {
-		"client2.client_id",
-		"client2.jwks",
-	}
+	profile = "OID4VCI-1_0"
 )
 public class VCIIssuerFailOnRequestWithAccessTokenInQuery extends AbstractVCIIssuerTestModule {
 

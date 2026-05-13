@@ -132,6 +132,7 @@ import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.TestFailureException;
 import net.openid.conformance.variant.AuthorizationRequestType;
 import net.openid.conformance.variant.ClientAuthType;
+import net.openid.conformance.variant.ConfigurationFields;
 import net.openid.conformance.variant.FAPI2AuthRequestMethod;
 import net.openid.conformance.variant.FAPI2FinalOPProfile;
 import net.openid.conformance.variant.FAPI2SenderConstrainMethod;
@@ -314,6 +315,16 @@ import java.util.function.Supplier;
 @VariantConfigurationFields(parameter = ClientAuthType.class, value = "client_attestation", configurationFields = {
 	"vci.client_attester_keys_jwks",
 	"vci.client_attestation_issuer"
+})
+@ConfigurationFields({
+	"server.discoveryUrl",
+	"client.client_id",
+	"client.scope",
+	"client.jwks",
+	"client2.client_id",
+	"client2.scope",
+	"client2.jwks",
+	"resource.resourceUrl"
 })
 public abstract class AbstractFAPI2SPFinalServerTestModule extends AbstractRedirectServerTestModule {
 

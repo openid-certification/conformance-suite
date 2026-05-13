@@ -49,7 +49,30 @@ import net.openid.conformance.condition.client.ValidateMTLSCertificatesHeader;
 import net.openid.conformance.condition.common.CheckDistinctKeyIdValueInClientJWKs;
 import net.openid.conformance.sequence.client.CallDynamicRegistrationEndpointAndVerifySuccessfulResponse;
 import net.openid.conformance.variant.ClientAuthType;
+import net.openid.conformance.variant.ConfigurationFields;
+import net.openid.conformance.variant.FAPI2FinalOPProfile;
+import net.openid.conformance.variant.VariantHidesConfigurationFields;
 
+@ConfigurationFields({
+	"directory.discoveryUrl",
+	"directory.client_id",
+	"directory.apibase"
+})
+// Brazil DCR overrides configureClient() to call ExtractDirectoryConfiguration instead of
+// GetStaticClientConfiguration, and does not use a second client. Hide the inherited
+// AbstractFAPI2SPFinalServerTestModule fields that this flow never consumes so they
+// don't appear in the form for the Brazil DCR test plan.
+@VariantHidesConfigurationFields(parameter = FAPI2FinalOPProfile.class, value = "openbanking_brazil", configurationFields = {
+	"client.client_id",
+	"client2.client_id",
+	"client2.scope",
+	"client2.jwks",
+	"client2.org_jwks",
+	"client2.dpop_signing_alg",
+	"mtls2.key",
+	"mtls2.cert",
+	"mtls2.ca"
+})
 public abstract class AbstractFAPI2SPFinalBrazilDCR extends AbstractFAPI2SPFinalServerTestModule {
 	protected void getSsa() {
 

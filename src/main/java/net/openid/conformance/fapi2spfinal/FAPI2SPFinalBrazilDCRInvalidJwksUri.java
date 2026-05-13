@@ -12,16 +12,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 	testName = "fapi2-security-profile-final-brazil-dcr-invalid-jwks-uri",
 	displayName = "FAPI2-Security-Profile-Final: Brazil DCR Invalid JWKS URI",
 	summary = "Perform the DCR flow, but requesting a jwks uri not hosted on the OB Brazil directory - the server must reject the registration attempt.",
-	profile = "FAPI2-Security-Profile-Final",
-	configurationFields = {
-		"server.discoveryUrl",
-		"client.scope",
-		"client.jwks",
-		"directory.discoveryUrl",
-		"directory.client_id",
-		"directory.apibase",
-		"resource.resourceUrl"
-	}
+	profile = "FAPI2-Security-Profile-Final"
 )
 public class FAPI2SPFinalBrazilDCRInvalidJwksUri extends AbstractFAPI2SPFinalBrazilDCR {
 

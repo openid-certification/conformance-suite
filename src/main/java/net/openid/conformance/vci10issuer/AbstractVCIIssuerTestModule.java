@@ -112,12 +112,28 @@ import java.util.List;
 })
 @ConfigurationFields({
 	"vci.credential_issuer_url",
-	"client.client_id",
-	"client.jwks",
 	"vci.credential_configuration_id",
 	"vci.credential_proof_type_hint",
 	"vci.key_attestation_jwks",
 	"vci.authorization_server",
+})
+// VCI uses vci.credential_issuer_url + vci.authorization_server instead of
+// server.discoveryUrl, does not call a resource endpoint, and does not consume
+// scope fields. Hide the FAPI2 base's hoisted fields that the VCI flow never
+// consumes. (client2.client_id and client2.jwks are NOT hidden because the
+// VCI multi-client test, VCIIssuerHappyFlowMultipleClients via
+// AbstractVCIIssuerMultipleClient, still uses them.)
+@VariantHidesConfigurationFields(parameter = FAPI2FinalOPProfile.class, value = "vci", configurationFields = {
+	"server.discoveryUrl",
+	"client.scope",
+	"client2.scope",
+	"resource.resourceUrl"
+})
+@VariantHidesConfigurationFields(parameter = FAPI2FinalOPProfile.class, value = "vci_haip", configurationFields = {
+	"server.discoveryUrl",
+	"client.scope",
+	"client2.scope",
+	"resource.resourceUrl"
 })
 // VCI grant type configuration
 @VariantConfigurationFields(parameter = VCIGrantType.class, value = "pre_authorization_code",
