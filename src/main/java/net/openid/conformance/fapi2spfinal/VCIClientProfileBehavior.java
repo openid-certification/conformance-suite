@@ -45,8 +45,6 @@ import org.springframework.http.ResponseEntity;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Profile behavior for VCI (Verifiable Credentials Issuance) client tests.
@@ -76,14 +74,6 @@ public class VCIClientProfileBehavior extends FAPI2ClientProfileBehavior {
 	private static final String NONCE_PATH = "nonce";
 	private static final String DEFERRED_CREDENTIAL_PATH = "deferred_credential";
 	private static final String NOTIFICATION_PATH = "notification";
-
-	/** Seconds to wait for additional issuer-test requests after the credential endpoint
-	 * has been called before firing test finished. */
-	private static final long DELAYED_FINISH_SECONDS = 10;
-
-	/** Tracks whether the delayed finish has already been scheduled, so repeat calls to
-	 * the credential endpoint don't pile up tasks. */
-	private final AtomicBoolean finishScheduled = new AtomicBoolean(false);
 
 	@Override
 	public ConditionSequence validateAuthorizationRequestScope() {
@@ -319,7 +309,7 @@ public class VCIClientProfileBehavior extends FAPI2ClientProfileBehavior {
 
 		// Schedule delayed test finish so paired issuer tests can hit notification etc.
 		// before the wallet test marks itself FINISHED.
-		scheduleDelayedTestFinish();
+		module.scheduleDelayedFinishForAdditionalRequests();
 		return finishCredentialEndpoint(response);
 	}
 
@@ -395,23 +385,6 @@ public class VCIClientProfileBehavior extends FAPI2ClientProfileBehavior {
 		module.doCall(module.doExec().unmapKey("incoming_request").endBlock());
 		module.doSetStatus(Status.WAITING);
 		return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
-	}
-
-	/**
-	 * Schedule a one-shot background task that fires test finished after a short delay.
-	 * Lets paired issuer tests continue to probe other endpoints (notification, etc.)
-	 * after the credential endpoint without {@code resourceEndpointCallComplete}'s
-	 * immediate FINISHED state breaking subsequent {@code setStatus(RUNNING)} calls.
-	 */
-	private void scheduleDelayedTestFinish() {
-		if (!finishScheduled.compareAndSet(false, true)) {
-			return;
-		}
-		module.getTestExecutionManager().scheduleInBackground(() -> {
-			module.doSetStatus(Status.RUNNING);
-			module.fireTestFinished();
-			return null;
-		}, DELAYED_FINISH_SECONDS, TimeUnit.SECONDS);
 	}
 
 	private String baseUrlWithTrailingSlash() {
