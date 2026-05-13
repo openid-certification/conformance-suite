@@ -11,7 +11,6 @@ import net.openid.conformance.testmodule.Environment;
 import org.bouncycastle.tls.CipherSuite;
 import org.bouncycastle.tls.ProtocolVersion;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -114,11 +113,6 @@ public class CheckForBCP195InsecureFAPICiphers_UnitTest {
 		}
 	}
 
-	@Disabled("Tracks GitLab #1787 — currently throws ConditionError "
-		+ "'Failed to make TLS connection, but in a different way than expected' "
-		+ "because the catch ladder in AbstractCheckInsecureCiphers does not recognise the "
-		+ "protocol_version alert sent by a TLS 1.3-only server when the client offers only "
-		+ "TLS 1.2. Enable when the probe-and-skip fix lands.")
 	@Test
 	public void tls13Only_shouldSkipCleanly() throws Exception {
 		try (TestTlsServer server = new TestTlsServer(

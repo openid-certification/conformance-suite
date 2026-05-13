@@ -49,6 +49,12 @@ public abstract class AbstractCheckInsecureCiphers extends AbstractCondition {
 			throw error("Couldn't find port to connect for TLS");
 		}
 
+		if (!probeTls12Supported(tlsTestHost, tlsTestPort)) {
+			logSuccess("Server does not support TLS 1.2; insecure-cipher check is not applicable.",
+					args("host", tlsTestHost, "port", tlsTestPort));
+			return env;
+		}
+
 		try {
 			Socket socket = setupSocket(tlsTestHost, tlsTestPort);
 
@@ -122,6 +128,62 @@ public abstract class AbstractCheckInsecureCiphers extends AbstractCondition {
 				return env;
 			} else {
 				throw error("Failed to make TLS connection, but in a different way than expected", e, args("host", tlsTestHost, "port", tlsTestPort));
+			}
+		}
+	}
+
+	/**
+	 * Connect with TLS 1.2 + BC's default cipher list to determine whether the server
+	 * supports TLS 1.2 at all. Returns true on a completed handshake; false when the
+	 * server rejects the handshake at the TLS layer (protocol_version, handshake_failure,
+	 * or TCP reset). Any other IOException is treated as an unexpected probe failure and
+	 * surfaced via {@code throw error(...)} so it remains attributable.
+	 */
+	private boolean probeTls12Supported(String host, int port) {
+		Socket socket = null;
+		try {
+			socket = setupSocket(host, port);
+			TlsClientProtocol protocol = new TlsClientProtocol(socket.getInputStream(), socket.getOutputStream());
+			TlsClient client = new DefaultTlsClient(new BcTlsCrypto(new SecureRandom())) {
+				@Override
+				public TlsAuthentication getAuthentication() {
+					return new NoopTlsAuthentication();
+				}
+
+				@Override
+				protected ProtocolVersion[] getSupportedVersions() {
+					return new ProtocolVersion[]{ProtocolVersion.TLSv12};
+				}
+
+				@Override
+				protected Vector<ServerName> getSNIServerNames() {
+					return new Vector<ServerName>(List.of(new ServerName(NameType.host_name, host.getBytes(StandardCharsets.UTF_8))));
+				}
+			};
+			protocol.connect(client);
+			return true;
+		} catch (IOException e) {
+			if ((e instanceof TlsFatalAlertReceived received)
+					&& (received.getAlertDescription() == AlertDescription.protocol_version
+						|| received.getAlertDescription() == AlertDescription.handshake_failure)) {
+				return false;
+			}
+			if ((e instanceof TlsFatalAlert alert)
+					&& alert.getAlertDescription() == AlertDescription.handshake_failure) {
+				return false;
+			}
+			if ((e instanceof SocketException ex)
+					&& "Connection reset".equals(ex.getMessage())) {
+				return false;
+			}
+			throw error("Failed to probe TLS 1.2 support", e, args("host", host, "port", port));
+		} finally {
+			if (socket != null) {
+				try {
+					socket.close();
+				} catch (IOException e) {
+					// Don't care
+				}
 			}
 		}
 	}

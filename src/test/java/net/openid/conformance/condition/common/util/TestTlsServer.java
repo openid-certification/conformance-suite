@@ -89,48 +89,52 @@ public final class TestTlsServer implements AutoCloseable {
 	}
 
 	private void acceptLoop() {
-		try (Socket client = serverSocket.accept()) {
-			BcTlsCrypto crypto = new BcTlsCrypto(new SecureRandom());
+		while (!serverSocket.isClosed()) {
+			try (Socket client = serverSocket.accept()) {
+				BcTlsCrypto crypto = new BcTlsCrypto(new SecureRandom());
 
-			TlsCertificate tlsCert = crypto.createCertificate(certificate.getEncoded());
-			Certificate certChain = new Certificate(new TlsCertificate[]{tlsCert});
-			AsymmetricKeyParameter privateKeyParam = PrivateKeyFactory.createKey(keyPair.getPrivate().getEncoded());
+				TlsCertificate tlsCert = crypto.createCertificate(certificate.getEncoded());
+				Certificate certChain = new Certificate(new TlsCertificate[]{tlsCert});
+				AsymmetricKeyParameter privateKeyParam = PrivateKeyFactory.createKey(keyPair.getPrivate().getEncoded());
 
-			DefaultTlsServer server = new DefaultTlsServer(crypto) {
-				@Override
-				public ProtocolVersion[] getProtocolVersions() {
-					return supportedVersions.clone();
-				}
+				DefaultTlsServer server = new DefaultTlsServer(crypto) {
+					@Override
+					public ProtocolVersion[] getProtocolVersions() {
+						return supportedVersions.clone();
+					}
 
-				@Override
-				public int[] getCipherSuites() {
-					return supportedCipherSuites.clone();
-				}
+					@Override
+					public int[] getCipherSuites() {
+						return supportedCipherSuites.clone();
+					}
 
-				@Override
-				protected int[] getSupportedCipherSuites() {
-					return supportedCipherSuites.clone();
-				}
+					@Override
+					protected int[] getSupportedCipherSuites() {
+						return supportedCipherSuites.clone();
+					}
 
-				@Override
-				public TlsCredentials getCredentials() throws IOException {
-					return new BcDefaultTlsCredentialedSigner(
-						new TlsCryptoParameters(context),
-						crypto,
-						privateKeyParam,
-						certChain,
-						SignatureAndHashAlgorithm.rsa_pss_rsae_sha256);
-				}
-			};
+					@Override
+					public TlsCredentials getCredentials() throws IOException {
+						return new BcDefaultTlsCredentialedSigner(
+							new TlsCryptoParameters(context),
+							crypto,
+							privateKeyParam,
+							certChain,
+							SignatureAndHashAlgorithm.rsa_pss_rsae_sha256);
+					}
+				};
 
-			TlsServerProtocol protocol = new TlsServerProtocol(client.getInputStream(), client.getOutputStream());
-			protocol.accept(server);
-		} catch (IOException e) {
-			// Either the socket was closed during shutdown, or the handshake failed on the
-			// server side. Either way, the test asserts on the client-side outcome.
-		} catch (Exception e) {
-			// Unexpected — swallow so the test doesn't deadlock; the client-side assertion
-			// will surface the symptom.
+				TlsServerProtocol protocol = new TlsServerProtocol(client.getInputStream(), client.getOutputStream());
+				protocol.accept(server);
+			} catch (IOException e) {
+				// Either the socket was closed during shutdown, or the handshake failed on the
+				// server side. Either way, the test asserts on the client-side outcome; loop
+				// again to handle subsequent connections (the condition under test makes a
+				// probe connection followed by a cipher-check connection).
+			} catch (Exception e) {
+				// Unexpected — swallow so the test doesn't deadlock; the client-side assertion
+				// will surface the symptom.
+			}
 		}
 	}
 
