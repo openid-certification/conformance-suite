@@ -18,7 +18,6 @@ import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.testmodule.TestFailureException;
 import net.openid.conformance.testmodule.TestModule.Status;
 import net.openid.conformance.variant.ClientAuthType;
-import net.openid.conformance.variant.FAPI2FinalOPProfile;
 import net.openid.conformance.vci10wallet.VCICredentialConfigurations;
 import net.openid.conformance.vci10wallet.VCICredentialIssuerMetadataBuilder;
 import net.openid.conformance.vci10wallet.condition.CheckForUnexpectedParametersInCredentialRequest;
@@ -43,7 +42,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 
-import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -283,14 +281,11 @@ public class VCIClientProfileBehavior extends FAPI2ClientProfileBehavior {
 		if ("mso_mdoc".equals(requestedFormat)) {
 			module.doCallAndStopOnFailure(CreateMdocCredentialForVCI.class, "OID4VCI-1FINALA-G.1");
 		} else {
-			// SD-JWT VC (dc+sd-jwt or default). For HAIP, include the status list claim.
-			if (module.profile == FAPI2FinalOPProfile.VCI_HAIP) {
-				module.doCallAndStopOnFailure(new CreateSdJwtCredential(buildHaipAdditionalSdJwtClaims()),
-					"OID4VCI-1FINALA-F.1", "OID4VCI-1FINALA-F.3");
-			} else {
-				module.doCallAndStopOnFailure(CreateSdJwtCredential.class,
-					"OID4VCI-1FINALA-F.1", "OID4VCI-1FINALA-F.3");
-			}
+			// SD-JWT VC (dc+sd-jwt or default). Subclasses (e.g. VCIHaipClientProfileBehavior)
+			// can inject additional claims like the HAIP status_list entry via additionalSdJwtClaims().
+			Map<String, Object> additionalClaims = additionalSdJwtClaims();
+			module.doCallAndStopOnFailure(new CreateSdJwtCredential(additionalClaims),
+				"OID4VCI-1FINALA-F.1", "OID4VCI-1FINALA-F.3");
 		}
 
 		// Immediate response only — deferred / encrypted are AbstractVCIWalletTest's job.
@@ -340,24 +335,13 @@ public class VCIClientProfileBehavior extends FAPI2ClientProfileBehavior {
 	}
 
 	/**
-	 * Build the HAIP-required SD-JWT additional claims (status list reference). Mirrors
-	 * {@code AbstractVCIWalletTest.additionalSdJwtClaimsForHaip} so paired tests get the
-	 * same SD-JWT shape regardless of which test serves the issuer side.
+	 * Additional SD-JWT claims to inject into the issued credential. Default is none
+	 * ({@code null}). Subclasses for profiles that require specific SD-JWT claims (e.g.
+	 * the HAIP status_list reference, see {@link VCIHaipClientProfileBehavior}) override
+	 * this to return a populated map.
 	 */
-	private Map<String, Object> buildHaipAdditionalSdJwtClaims() {
-		String issuer = module.getEnv().getString("server", "issuer");
-		String statusListUri = (issuer == null ? "" : issuer) + "statuslists/1";
-
-		Map<Object, Object> statusListEntry = new HashMap<>();
-		statusListEntry.put("idx", 0);
-		statusListEntry.put("uri", statusListUri);
-
-		Map<Object, Object> status = new HashMap<>();
-		status.put("status_list", statusListEntry);
-
-		Map<String, Object> additionalClaims = new HashMap<>();
-		additionalClaims.put("status", status);
-		return additionalClaims;
+	protected Map<String, Object> additionalSdJwtClaims() {
+		return null;
 	}
 
 	/**
