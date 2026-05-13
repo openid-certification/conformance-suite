@@ -201,7 +201,6 @@ import org.springframework.web.util.UriComponentsBuilder;
 import java.text.ParseException;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 @ConfigurationFields({
 	"server.jwks",
@@ -301,8 +300,6 @@ public abstract class AbstractVCIWalletTest extends net.openid.conformance.fapi2
 	protected FAPI2FinalOPProfile fapi2Profile;
 
 	protected boolean notificationsSupportEnabled;
-
-	protected long maxWaitForAdditionalRequestSeconds = 20;
 
 	protected long maxWaitForNotificationSeconds = 20;
 
@@ -1679,21 +1676,8 @@ public abstract class AbstractVCIWalletTest extends net.openid.conformance.fapi2
 	@Override
 	protected void resourceEndpointCallComplete() {
 		// at this point we can assume the test is fully done
-
 		setStatus(Status.WAITING);
-
-		eventLog.log(getName(), """
-			Detected completed credential endpoint call. Waiting %d seconds for additional wallet requests before completing the test. \
-			The wait can be adjusted by setting maxWaitForAdditionalRequestSeconds in the configuration.
-			"""
-			.formatted(maxWaitForAdditionalRequestSeconds));
-
-		getTestExecutionManager().scheduleInBackground(() -> {
-			setStatus(Status.RUNNING);
-			fireTestFinished();
-			return null;
-		}, maxWaitForAdditionalRequestSeconds, TimeUnit.SECONDS);
-
+		scheduleDelayedFinishForAdditionalRequests();
 	}
 
 	@Override
