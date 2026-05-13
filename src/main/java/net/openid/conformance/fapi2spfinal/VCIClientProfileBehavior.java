@@ -70,7 +70,6 @@ public class VCIClientProfileBehavior extends FAPI2ClientProfileBehavior {
 
 	private static final String CREDENTIAL_PATH = "credential";
 	private static final String NONCE_PATH = "nonce";
-	private static final String DEFERRED_CREDENTIAL_PATH = "deferred_credential";
 	private static final String NOTIFICATION_PATH = "notification";
 
 	@Override
@@ -118,10 +117,11 @@ public class VCIClientProfileBehavior extends FAPI2ClientProfileBehavior {
 				new VCICredentialIssuerMetadataBuilder.Config(
 					CREDENTIAL_PATH,
 					NONCE_PATH,
-					DEFERRED_CREDENTIAL_PATH,
+					/* deferredCredentialPath */ null,
 					NOTIFICATION_PATH,
 					/* useMtlsForResources */ module.isMTLSConstrain(),
 					/* notificationsEnabled */ true,
+					/* deferredEnabled */ false,
 					/* encryptionEnabled */ false));
 		} catch (IllegalStateException e) {
 			throw new TestFailureException(module.getId(), e.getMessage());
@@ -164,7 +164,6 @@ public class VCIClientProfileBehavior extends FAPI2ClientProfileBehavior {
 	public boolean claimsHttpPath(String path) {
 		return CREDENTIAL_PATH.equals(path)
 			|| NONCE_PATH.equals(path)
-			|| DEFERRED_CREDENTIAL_PATH.equals(path)
 			|| NOTIFICATION_PATH.equals(path);
 	}
 
@@ -176,7 +175,7 @@ public class VCIClientProfileBehavior extends FAPI2ClientProfileBehavior {
 		if (NOTIFICATION_PATH.equals(path)) {
 			return buildNotificationDispatch(requestId);
 		}
-		// CREDENTIAL_PATH or DEFERRED_CREDENTIAL_PATH
+		// CREDENTIAL_PATH
 		return buildCredentialDispatch(requestId);
 	}
 

@@ -23,7 +23,8 @@ import java.util.Map;
  *   <li>{@code credential_issuer_metadata_url} — well-known URL (path-suffix style)</li>
  *   <li>{@code credential_issuer_credential_endpoint_url}</li>
  *   <li>{@code credential_issuer_nonce_endpoint_url}</li>
- *   <li>{@code credential_issuer_deferred_credential_endpoint_url}</li>
+ *   <li>{@code credential_issuer_deferred_credential_endpoint_url} (only when deferred
+ *       issuance is enabled — otherwise removed)</li>
  *   <li>{@code credential_issuer_notification_endpoint_url} (only when notifications
  *       are enabled — otherwise removed)</li>
  * </ul>
@@ -45,6 +46,7 @@ public final class VCICredentialIssuerMetadataBuilder {
 		public final String notificationPath;
 		public final boolean useMtlsForResources;
 		public final boolean notificationsEnabled;
+		public final boolean deferredEnabled;
 		public final boolean encryptionEnabled;
 
 		public Config(
@@ -54,6 +56,7 @@ public final class VCICredentialIssuerMetadataBuilder {
 			String notificationPath,
 			boolean useMtlsForResources,
 			boolean notificationsEnabled,
+			boolean deferredEnabled,
 			boolean encryptionEnabled) {
 			this.credentialPath = credentialPath;
 			this.noncePath = noncePath;
@@ -61,6 +64,7 @@ public final class VCICredentialIssuerMetadataBuilder {
 			this.notificationPath = notificationPath;
 			this.useMtlsForResources = useMtlsForResources;
 			this.notificationsEnabled = notificationsEnabled;
+			this.deferredEnabled = deferredEnabled;
 			this.encryptionEnabled = encryptionEnabled;
 		}
 	}
@@ -95,7 +99,11 @@ public final class VCICredentialIssuerMetadataBuilder {
 		String resourcesBase = config.useMtlsForResources ? mtlsBaseUrl : baseUrl;
 		String credentialEndpointUrl = resourcesBase + config.credentialPath;
 		String nonceEndpointUrl = resourcesBase + config.noncePath;
-		String deferredCredentialEndpointUrl = resourcesBase + config.deferredCredentialPath;
+		// Deferred URL is only kept when deferred issuance is enabled; the path may be null
+		// for behaviors that don't expose a deferred endpoint at all.
+		String deferredCredentialEndpointUrl = config.deferredCredentialPath != null
+			? resourcesBase + config.deferredCredentialPath
+			: "";
 		String notificationEndpointUrl = resourcesBase + config.notificationPath;
 
 		String metadata = TemplateProcessor.process("""
@@ -129,6 +137,11 @@ public final class VCICredentialIssuerMetadataBuilder {
 		if (!config.notificationsEnabled) {
 			metadataJson.remove("notification_endpoint");
 			env.removeNativeValue("credential_issuer_notification_endpoint_url");
+		}
+
+		if (!config.deferredEnabled) {
+			metadataJson.remove("deferred_credential_endpoint");
+			env.removeNativeValue("credential_issuer_deferred_credential_endpoint_url");
 		}
 
 		// Add credential response encryption metadata if encryption is enabled
