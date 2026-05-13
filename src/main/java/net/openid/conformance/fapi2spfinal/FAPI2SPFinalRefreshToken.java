@@ -6,6 +6,8 @@ import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.condition.client.AddPromptConsentToAuthorizationEndpointRequestIfScopeContainsOfflineAccess;
 import net.openid.conformance.condition.client.AddScopeToTokenEndpointRequest;
 import net.openid.conformance.condition.client.CDRRefreshTokenRequiredWhenSharingDurationRequested;
+import net.openid.conformance.condition.client.CallTokenEndpointAllowingDpopNonceErrorAndReturnFullResponse;
+import net.openid.conformance.condition.client.CallTokenEndpointAllowingDpopNonceErrorOrTLSFailureAndReturnFullResponse;
 import net.openid.conformance.condition.client.CallTokenEndpointAllowingTLSFailure;
 import net.openid.conformance.condition.client.CallTokenEndpointAndReturnFullResponse;
 import net.openid.conformance.condition.client.CheckErrorDescriptionFromTokenEndpointResponseErrorContainsCRLFTAB;
@@ -14,6 +16,7 @@ import net.openid.conformance.condition.client.CheckTokenEndpointHttpStatus400;
 import net.openid.conformance.condition.client.CheckTokenEndpointHttpStatus400or401;
 import net.openid.conformance.condition.client.CheckTokenEndpointHttpStatusIs400Allowing401ForInvalidClientError;
 import net.openid.conformance.condition.client.CheckTokenEndpointReturnedInvalidClientGrantOrRequestError;
+import net.openid.conformance.condition.client.CheckTokenEndpointReturnedInvalidClientGrantRequestOrAttestationError;
 import net.openid.conformance.condition.client.CheckTokenEndpointReturnedJsonContentType;
 import net.openid.conformance.condition.client.CreateRefreshTokenRequest;
 import net.openid.conformance.condition.client.EnsureRefreshTokenContainsAllowedCharactersOnly;
@@ -37,11 +40,19 @@ import net.openid.conformance.variant.ClientAuthType;
 import net.openid.conformance.variant.FAPI2FinalOPProfile;
 import net.openid.conformance.variant.VariantNotApplicable;
 import net.openid.conformance.variant.VariantSetup;
+import net.openid.conformance.vci10issuer.condition.clientattestation.CreateClientAttestationJwt;
+import net.openid.conformance.vci10issuer.condition.clientattestation.GenerateClientAttestationClientInstanceKey;
 
 @PublishTestModule(
 	testName = "fapi2-security-profile-final-refresh-token",
 	displayName = "FAPI2-Security-Profile-Final: test refresh token behaviours",
-	summary = "This test obtains refresh tokens and performs various checks, including checking that the refresh token is correctly bound to the client.",
+	summary = """
+		This test obtains refresh tokens and performs various checks, including checking that the refresh token is correctly bound to the client.
+
+		For every (client_auth_type, sender_constrain) combination except client_auth_type=mtls + sender_constrain=mtls (where the missing-proof-of-possession block already exercises this), it verifies that the authorization server rejects a refresh token request that omits client authentication (RFC 6749 §6).
+
+		When client_auth_type=client_attestation, it additionally verifies the OAuth2-ATCA §10.3 binding requirement: the authorization server must reject a refresh token request that uses a different client instance key than the one bound at issuance.
+		""",
 	profile = "FAPI2-Security-Profile-Final"
 )
 
@@ -129,6 +140,128 @@ public class FAPI2SPFinalRefreshToken extends AbstractFAPI2SPFinalMultipleClient
 		env.removeNativeValue("refresh_token_prev");
 
 		if (! isSecondClient()) {
+
+			if (getVariant(ClientAuthType.class) == ClientAuthType.CLIENT_ATTESTATION) {
+				// OAuth2-ATCA §10.3: the refresh_token is bound to the client instance and its
+				// associated public key, not just the client. The client MUST use the same key
+				// that was present in the "cnf" claim of the client attestation when the
+				// refresh_token was issued.
+
+				// Snapshot the original instance key + attestation so the test can be restored
+				// to a working state for any subsequent flow (e.g. second-client phase).
+				String origInstanceKey = env.getString("client", "client_instance_key");
+				String origInstanceKeyPublic = env.getString("client", "client_instance_key_public");
+				String origAttestation = env.getString("client", "client_attestation");
+
+				eventLog.startBlock("Attempting to use the refresh_token with a different client instance key");
+
+				// Generate a fresh instance key and re-mint the client attestation JWT with the
+				// new public key in cnf. The resulting refresh request is internally consistent
+				// (PoP signed with K2, attestation cnf=K2) but uses K2 ≠ K1, so the AS must
+				// reject it. The sender-constraint proof is kept in place so a rejection isolates
+				// the §10.3 binding failure mode rather than mixing in missing-PoP.
+				callAndStopOnFailure(GenerateClientAttestationClientInstanceKey.class, "OAuth2-ATCA07-10.3");
+				callAndStopOnFailure(CreateClientAttestationJwt.class, "OAuth2-ATCA07-10.3");
+
+				callAndStopOnFailure(CreateRefreshTokenRequest.class);
+				callAndStopOnFailure(AddScopeToTokenEndpointRequest.class, "RFC6749-6");
+
+				callSenderConstrainedTokenEndpoint("OAuth2-ATCA07-10.3");
+
+				callAndContinueOnFailure(CheckTokenEndpointHttpStatus400or401.class, ConditionResult.FAILURE, "OAuth2-ATCA07-10.3");
+				callAndContinueOnFailure(CheckTokenEndpointReturnedJsonContentType.class, ConditionResult.FAILURE, "OIDCC-3.1.3.4");
+				callAndContinueOnFailure(CheckTokenEndpointReturnedInvalidClientGrantRequestOrAttestationError.class, ConditionResult.FAILURE, "OAuth2-ATCA07-10.3", "OAuth2-ATCA07-6.2");
+
+				env.putString("client", "client_instance_key", origInstanceKey);
+				env.putString("client", "client_instance_key_public", origInstanceKeyPublic);
+				env.putString("client", "client_attestation", origAttestation);
+
+				eventLog.endBlock();
+			}
+
+			// RFC 6749 §6 requires confidential clients to authenticate when refreshing an
+			// access token. OAuth2-ATCA §10.3 layers on the stronger requirement that the
+			// CLIENT_ATTESTATION variant must use the attestation mechanism specifically.
+			// Skipped when client_auth_type=mtls AND sender_constrain=mtls: the credentials
+			// share the TLS cert, and the no-PoP block below already exercises that combo by
+			// unmapping the cert.
+			boolean clientAuthMtls = getVariant(ClientAuthType.class) == ClientAuthType.MTLS;
+			if (!clientAuthMtls || !isMTLS()) {
+				eventLog.startBlock("Attempting to use the refresh_token without client authentication");
+
+				if (clientAuthMtls) {
+					// client_auth_type=mtls + sender_constrain=dpop: unmap the bound cert so the
+					// AS sees an unauthenticated TLS connection. setupMTLS() switches the token
+					// endpoint to the mTLS alias, so the call may fail at TLS handshake — use
+					// the TLS-tolerant call mechanism so the dropped connection counts as an
+					// acceptable rejection.
+					env.mapKey("mutual_tls_authentication", "none_existent_key");
+				}
+
+				callAndStopOnFailure(CreateRefreshTokenRequest.class);
+				callAndStopOnFailure(AddScopeToTokenEndpointRequest.class, "RFC6749-6");
+				// For non-mtls auth, intentionally skip addClientAuthentication — no
+				// client_assertion / client_secret / OAuth-Client-Attestation* present.
+				if (clientAuthMtls) {
+					// mtls auth still adds client_id to the form; the cert is what's broken.
+					addClientAuthenticationToTokenEndpointRequest();
+				}
+
+				if (clientAuthMtls && isDpop()) {
+					// mtls auth + dpop sender: the call may fail at TLS handshake OR the AS may
+					// issue a DPoP nonce challenge before checking the cert; tolerate both.
+					for (int i = 0; i < 2; i++) {
+						createDpopForTokenEndpoint();
+						callAndStopOnFailure(CallTokenEndpointAllowingDpopNonceErrorOrTLSFailureAndReturnFullResponse.class, ConditionResult.FAILURE, "FAPI2-SP-FINAL-5.3.2.1-6");
+						if (env.getBoolean("token_endpoint_response_ssl_error")) {
+							break;
+						}
+						extractAndValidateClientAttestationChallengeResponseHeader("token_endpoint_response_full");
+						if (Strings.isNullOrEmpty(env.getString("token_endpoint_dpop_nonce_error"))) {
+							break;
+						}
+					}
+				} else if (isDpop()) {
+					// non-mtls auth + dpop sender: retry once if the AS asks for a nonce
+					// (mirrors callSenderConstrainedTokenEndpoint).
+					for (int i = 0; i < 2; i++) {
+						createDpopForTokenEndpoint();
+						callAndStopOnFailure(CallTokenEndpointAllowingDpopNonceErrorAndReturnFullResponse.class);
+						extractAndValidateClientAttestationChallengeResponseHeader("token_endpoint_response_full");
+						if (Strings.isNullOrEmpty(env.getString("token_endpoint_dpop_nonce_error"))) {
+							break;
+						}
+					}
+				} else {
+					// non-mtls auth + mtls sender. Cert is intact (only mtls auth unmaps it),
+					// so the TLS handshake succeeds; the AS sees the request with a valid cert
+					// but no client authentication parameter.
+					callAndStopOnFailure(CallTokenEndpointAndReturnFullResponse.class);
+					extractAndValidateClientAttestationChallengeResponseHeader("token_endpoint_response_full");
+				}
+
+				Boolean sslError = env.getBoolean("token_endpoint_response_ssl_error");
+				if (sslError == null || !sslError) {
+					callAndContinueOnFailure(CheckTokenEndpointHttpStatus400or401.class, ConditionResult.FAILURE, "RFC6749-6");
+					callAndContinueOnFailure(CheckTokenEndpointReturnedJsonContentType.class, ConditionResult.FAILURE, "OIDCC-3.1.3.4");
+					if (getVariant(ClientAuthType.class) == ClientAuthType.CLIENT_ATTESTATION) {
+						// OAuth2-ATCA §6.2 lets the AS use `invalid_client_attestation` /
+						// `use_fresh_attestation` for an attestation-validation failure.
+						callAndContinueOnFailure(CheckTokenEndpointReturnedInvalidClientGrantRequestOrAttestationError.class, ConditionResult.FAILURE, "RFC6749-6", "OAuth2-ATCA07-6.2");
+					} else {
+						callAndContinueOnFailure(CheckTokenEndpointReturnedInvalidClientGrantOrRequestError.class, ConditionResult.FAILURE, "RFC6749-6");
+					}
+				}
+				// else: TLS handshake was dropped by the server, which is an acceptable way
+				// for an mTLS-enforcing AS to indicate the cert is required.
+
+				if (clientAuthMtls) {
+					env.unmapKey("mutual_tls_authentication");
+				}
+
+				eventLog.endBlock();
+			}
+
 			// Ensure a sender constrained refresh_token grant attempt, sent without proof of possession, fails.
 
 			if (isMTLS()) {

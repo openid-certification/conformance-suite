@@ -216,6 +216,24 @@
         "comment": "Authlete VCI doesn't enforce DPoP on refresh token requests"
     },
     {
+        "test-name": "fapi2-security-profile-final-refresh-token",
+        "variant": "*",
+        "configuration-filename": "authlete-vci-haip.json",
+        "current-block": "Attempting to use the refresh_token with a different client instance key",
+        "condition": "CheckTokenEndpointHttpStatus400or401",
+        "expected-result": "failure",
+        "comment": "Authlete VCI doesn't bind the refresh_token to the client instance key (OAuth2-ATCA §10.3): a refresh request signed with a fresh instance key + re-minted attestation is accepted instead of rejected"
+    },
+    {
+        "test-name": "fapi2-security-profile-final-refresh-token",
+        "variant": "*",
+        "configuration-filename": "authlete-vci-haip.json",
+        "current-block": "Attempting to use the refresh_token with a different client instance key",
+        "condition": "CheckTokenEndpointReturnedInvalidClientGrantRequestOrAttestationError",
+        "expected-result": "failure",
+        "comment": "Authlete VCI doesn't bind the refresh_token to the client instance key (OAuth2-ATCA §10.3): the token endpoint returns a success response rather than an OAuth error"
+    },
+    {
         "test-name": "fapi2-security-profile-final-dpop-negative-tests",
         "variant": "*",
         "configuration-filename": "authlete-vci-haip.json",
