@@ -5,6 +5,8 @@ import com.google.gson.JsonObject;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.condition.as.AddAtHashToIdTokenClaims;
@@ -257,6 +259,17 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 	protected long waitTimeoutSeconds = 5;
 
 	/**
+	 * Seconds to wait after the resource / credential endpoint has been hit before firing
+	 * test finished, giving paired tests (notification, etc.) a chance to complete first.
+	 * Overridable via {@code maxWaitForAdditionalRequestSeconds} in the test config.
+	 */
+	protected long maxWaitForAdditionalRequestSeconds = 20;
+
+	/** Idempotency guard so repeated calls to
+	 * {@link #scheduleDelayedFinishForAdditionalRequests()} don't stack background tasks. */
+	private final AtomicBoolean delayedFinishScheduled = new AtomicBoolean(false);
+
+	/**
 	 * Exposes, in the web frontend, a path that the user needs to know
 	 *
 	 * @param name Name to use in the frontend
@@ -311,6 +324,28 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 		call(sequence);
 	}
 
+	/**
+	 * Schedule {@link #fireTestFinished()} after {@link #maxWaitForAdditionalRequestSeconds},
+	 * logging the same message {@code AbstractVCIWalletTest.resourceEndpointCallComplete}
+	 * has emitted historically. Idempotent: subsequent calls are no-ops, so paired tests
+	 * hitting the credential endpoint multiple times don't pile up background tasks.
+	 */
+	protected void scheduleDelayedFinishForAdditionalRequests() {
+		if (!delayedFinishScheduled.compareAndSet(false, true)) {
+			return;
+		}
+		eventLog.log(getName(), """
+			Detected completed resource endpoint call. Waiting %d seconds for additional requests before completing the test. \
+			The wait can be adjusted by setting maxWaitForAdditionalRequestSeconds in the configuration.
+			"""
+			.formatted(maxWaitForAdditionalRequestSeconds));
+		getTestExecutionManager().scheduleInBackground(() -> {
+			setStatus(Status.RUNNING);
+			fireTestFinished();
+			return null;
+		}, maxWaitForAdditionalRequestSeconds, TimeUnit.SECONDS);
+	}
+
 	protected abstract void addCustomValuesToIdToken();
 
 	protected void addCustomSignatureOfIdToken(){}
@@ -335,6 +370,10 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 
 		if (config.has("waitTimeoutSeconds")) {
 			waitTimeoutSeconds = OIDFJSON.getLong(config.get("waitTimeoutSeconds"));
+		}
+
+		if (config.has("maxWaitForAdditionalRequestSeconds")) {
+			maxWaitForAdditionalRequestSeconds = OIDFJSON.getLong(config.get("maxWaitForAdditionalRequestSeconds"));
 		}
 
 		profile = getVariant(FAPI2FinalOPProfile.class);
