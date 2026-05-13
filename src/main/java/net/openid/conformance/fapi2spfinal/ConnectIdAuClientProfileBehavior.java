@@ -46,6 +46,12 @@ public class ConnectIdAuClientProfileBehavior extends FAPI2ClientProfileBehavior
 	}
 
 	@Override
+	public void exposeProfileEndpoints() {
+		// Nothing to expose; the endpoints all come from discovery and the userinfo
+		// endpoint is used as the resource endpoint (see userInfoIsResourceEndpoint()).
+	}
+
+	@Override
 	public boolean tokenEndpointRequiresIncomingRequest() {
 		return true;
 	}
