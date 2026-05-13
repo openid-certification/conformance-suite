@@ -1,4 +1,4 @@
-package net.openid.conformance.vci10wallet.condition.clientattestation;
+package net.openid.conformance.condition.as.clientattestation;
 
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition.ConditionResult;
@@ -17,63 +17,55 @@ import java.time.Instant;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @ExtendWith(MockitoExtension.class)
-public class ValidateClientAttestationExpiration_UnitTest {
+public class ValidateClientAttestationIssuedAt_UnitTest {
 
 	@Spy
 	private Environment env = new Environment();
 
 	private final TestInstanceEventLog eventLog = BsonEncoding.testInstanceEventLog();
 
-	private ValidateClientAttestationExpiration cond;
+	private ValidateClientAttestationIssuedAt cond;
 
 	@BeforeEach
 	public void setUp() {
-		cond = new ValidateClientAttestationExpiration();
+		cond = new ValidateClientAttestationIssuedAt();
 		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 	}
 
-	private void putAttestationWithExp(long exp) {
+	private void putAttestationWithIat(Long iat) {
 		JsonObject claims = new JsonObject();
-		claims.addProperty("exp", exp);
+		if (iat != null) {
+			claims.addProperty("iat", iat);
+		}
 		JsonObject attestation = new JsonObject();
 		attestation.add("claims", claims);
 		env.putObject("client_attestation_object", attestation);
 	}
 
 	@Test
-	public void testEvaluate_expInFuturePasses() {
-		putAttestationWithExp(Instant.now().plusSeconds(5 * 60).getEpochSecond());
+	public void testEvaluate_recentIatPasses() {
+		putAttestationWithIat(Instant.now().getEpochSecond());
 		cond.execute(env);
 	}
 
 	@Test
-	public void testEvaluate_expJustWithinClockSkewPasses() {
-		// 30s in the past — well within the JWTUtil 5-minute skew tolerance
-		putAttestationWithExp(Instant.now().minusSeconds(30).getEpochSecond());
+	public void testEvaluate_missingIatIsAllowed() {
+		// 'iat' is OPTIONAL per §5.1 — condition should skip without failing
+		putAttestationWithIat(null);
 		cond.execute(env);
 	}
 
 	@Test
-	public void testEvaluate_expBeyondClockSkewFails() {
-		// 10 minutes in the past — beyond the 5-minute skew tolerance
-		putAttestationWithExp(Instant.now().minusSeconds(10 * 60).getEpochSecond());
+	public void testEvaluate_iatInFutureFails() {
+		// 10 minutes in the future — beyond the 5-minute skew tolerance
+		putAttestationWithIat(Instant.now().plusSeconds(10 * 60).getEpochSecond());
 		assertThrows(ConditionError.class, () -> cond.execute(env));
 	}
 
 	@Test
-	public void testEvaluate_expUnreasonablyFarInFutureFails() {
-		// Millisecond timestamp mistakenly used as seconds — ~54,000 years in the future
-		putAttestationWithExp(Instant.now().toEpochMilli());
-		assertThrows(ConditionError.class, () -> cond.execute(env));
-	}
-
-	@Test
-	public void testEvaluate_missingExpFails() {
-		JsonObject claims = new JsonObject();
-		JsonObject attestation = new JsonObject();
-		attestation.add("claims", claims);
-		env.putObject("client_attestation_object", attestation);
-
+	public void testEvaluate_iatUnreasonablyInPastFails() {
+		// Predates JWTUtil's min-reasonable floor (2024) — catches epoch-default bugs
+		putAttestationWithIat(1L);
 		assertThrows(ConditionError.class, () -> cond.execute(env));
 	}
 
