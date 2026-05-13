@@ -404,6 +404,24 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 					return;
 				}
 			}
+			for (Pair<String, String> idx : builder.getSkipIfElementsPresent()) {
+				String key = idx.getLeft();
+				String path = idx.getRight();
+				JsonElement el = env.getElementFromObject(key, path);
+				if (el != null) {
+					logger.info(getId() + ": [skip] Test condition " + builder.getConditionClass().getSimpleName() + " skipped, element present in environment: " + key + " " + path);
+					eventLog.log(condition.getMessage(), args(
+						"msg", "Skipped evaluation because element is present: " + key + " " + path,
+						"object", key,
+						"path", path,
+						"mapped", env.isKeyShadowed(key) ? env.getEffectiveKey(key) : null,
+						"result", builder.getOnSkip(),
+						"requirements", builder.getRequirements()
+					));
+					updateResultFromConditionFailure(builder.getOnSkip());
+					return;
+				}
+			}
 
 			condition.execute(env);
 

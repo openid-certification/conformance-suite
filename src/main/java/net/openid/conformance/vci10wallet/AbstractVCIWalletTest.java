@@ -40,9 +40,9 @@ import net.openid.conformance.condition.as.CreateFapiInteractionIdIfNeeded;
 import net.openid.conformance.condition.as.CreateMdocCredentialForVCI;
 import net.openid.conformance.condition.as.CreatePAREndpointDpopErrorResponse;
 import net.openid.conformance.condition.as.CreatePAREndpointInvalidClientErrorResponse;
-import net.openid.conformance.condition.as.CreateTokenEndpointInvalidClientErrorResponse;
 import net.openid.conformance.condition.as.CreateSdJwtCredential;
 import net.openid.conformance.condition.as.CreateTokenEndpointDpopErrorResponse;
+import net.openid.conformance.condition.as.CreateTokenEndpointInvalidClientErrorResponse;
 import net.openid.conformance.condition.as.CreateTokenEndpointResponse;
 import net.openid.conformance.condition.as.EnsureAuthorizationRequestContainsPkceCodeChallenge;
 import net.openid.conformance.condition.as.EnsureAuthorizationRequestContainsStateParameter;
@@ -83,10 +83,11 @@ import net.openid.conformance.condition.as.par.EnsureAuthorizationRequestDoesNot
 import net.openid.conformance.condition.as.par.EnsureRequestObjectContainsCodeChallengeWhenUsingPAR;
 import net.openid.conformance.condition.as.par.ExtractRequestObjectFromPAREndpointRequest;
 import net.openid.conformance.condition.client.AbstractCheckEndpointContentTypeReturned;
-import net.openid.conformance.condition.client.EnsureIncomingRequestBodyIsEmpty;
-import net.openid.conformance.condition.client.EnsureIncomingUrlQueryIsEmpty;
 import net.openid.conformance.condition.client.AugmentRealJwksWithDecoys;
 import net.openid.conformance.condition.client.BuildVCIDCAPIRequest;
+import net.openid.conformance.condition.client.EnsureIncomingRequestBodyIsEmpty;
+import net.openid.conformance.condition.client.EnsureIncomingUrlQueryIsEmpty;
+import net.openid.conformance.condition.client.EnsureKeyAttestationTrustAnchorConfigured;
 import net.openid.conformance.condition.client.ExtractJWKsFromStaticClientConfiguration;
 import net.openid.conformance.condition.client.GetStaticClient2Configuration;
 import net.openid.conformance.condition.client.GetStaticClientConfiguration;
@@ -112,6 +113,8 @@ import net.openid.conformance.condition.rs.FAPIBrazilRsPathConstants;
 import net.openid.conformance.condition.rs.LoadUserInfo;
 import net.openid.conformance.condition.rs.RequireMtlsAccessToken;
 import net.openid.conformance.condition.rs.RequireMtlsClientCredentialsAccessToken;
+import net.openid.conformance.sequence.AbstractConditionSequence;
+import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.sequence.as.AddPARToServerConfiguration;
 import net.openid.conformance.sequence.as.ValidateClientAuthenticationWithPrivateKeyJWT;
 import net.openid.conformance.testmodule.Environment;
@@ -119,15 +122,16 @@ import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.testmodule.TestFailureException;
 import net.openid.conformance.testmodule.UserFacing;
 import net.openid.conformance.variant.AuthorizationRequestType;
+import net.openid.conformance.variant.ClientAuthType;
 import net.openid.conformance.variant.ConfigurationFields;
 import net.openid.conformance.variant.FAPI2AuthRequestMethod;
+import net.openid.conformance.variant.FAPI2FinalOPProfile;
 import net.openid.conformance.variant.FAPI2SenderConstrainMethod;
-import net.openid.conformance.variant.ClientAuthType;
+import net.openid.conformance.variant.VCI1FinalCredentialFormat;
 import net.openid.conformance.variant.VCICredentialEncryption;
 import net.openid.conformance.variant.VCICredentialIssuanceMode;
 import net.openid.conformance.variant.VCICredentialOfferParameterVariant;
 import net.openid.conformance.variant.VCIGrantType;
-import net.openid.conformance.variant.FAPI2FinalOPProfile;
 import net.openid.conformance.variant.VCIWalletAuthorizationCodeFlowVariant;
 import net.openid.conformance.variant.VariantConfigurationFields;
 import net.openid.conformance.variant.VariantHidesConfigurationFields;
@@ -135,7 +139,11 @@ import net.openid.conformance.variant.VariantNotApplicable;
 import net.openid.conformance.variant.VariantNotApplicableWhen;
 import net.openid.conformance.variant.VariantParameters;
 import net.openid.conformance.variant.VariantSetup;
-import net.openid.conformance.variant.VCI1FinalCredentialFormat;
+import net.openid.conformance.vci10wallet.condition.CheckForUnexpectedParametersInCredentialRequest;
+import net.openid.conformance.vci10wallet.condition.EnsureKeyAttestationAlgIsES256;
+import net.openid.conformance.vci10wallet.condition.EnsureKeyAttestationExpIsPresentForJwtProof;
+import net.openid.conformance.vci10wallet.condition.EnsureKeyAttestationHasX5cClaim;
+import net.openid.conformance.vci10wallet.condition.EnsureKeyAttestationTypIsKeyAttestationJwt;
 import net.openid.conformance.vci10wallet.condition.VCIAddCredentialDataToAuthorizationDetailsForTokenEndpointResponse;
 import net.openid.conformance.vci10wallet.condition.VCIAddNotificationIdToCredentialEndpointResponse;
 import net.openid.conformance.vci10wallet.condition.VCIAddOpenIdCredentialToAuthorizationDetailsSupportedIfScopeIsMissing;
@@ -147,14 +155,14 @@ import net.openid.conformance.vci10wallet.condition.VCICreateCredentialOffer;
 import net.openid.conformance.vci10wallet.condition.VCICreateCredentialOfferRedirectUrl;
 import net.openid.conformance.vci10wallet.condition.VCICreateCredentialOfferUri;
 import net.openid.conformance.vci10wallet.condition.VCICreateDeferredCredentialResponse;
+import net.openid.conformance.vci10wallet.condition.VCIDecryptCredentialRequest;
 import net.openid.conformance.vci10wallet.condition.VCIEncryptCredentialResponse;
 import net.openid.conformance.vci10wallet.condition.VCIEnsureBearerAccessTokenNotInParams;
-import net.openid.conformance.vci10wallet.condition.VCIEnsureCredentialSigningCertificateIsNotSelfSigned;
-import net.openid.conformance.vci10wallet.condition.VCIExtractCredentialRequestProof;
-import net.openid.conformance.vci10wallet.condition.VCIDecryptCredentialRequest;
 import net.openid.conformance.vci10wallet.condition.VCIEnsureCredentialRequestEncryptedIfResponseEncryptionRequested;
 import net.openid.conformance.vci10wallet.condition.VCIEnsureCredentialRequestUsesApplicationJson;
 import net.openid.conformance.vci10wallet.condition.VCIEnsureCredentialRequestUsesApplicationJwt;
+import net.openid.conformance.vci10wallet.condition.VCIEnsureCredentialSigningCertificateIsNotSelfSigned;
+import net.openid.conformance.vci10wallet.condition.VCIExtractCredentialRequestProof;
 import net.openid.conformance.vci10wallet.condition.VCIGenerateCredentialRequestEncryptionJwks;
 import net.openid.conformance.vci10wallet.condition.VCIGenerateIssuerState;
 import net.openid.conformance.vci10wallet.condition.VCIGenerateSignedCredentialIssuerMetadata;
@@ -166,28 +174,22 @@ import net.openid.conformance.vci10wallet.condition.VCILogGeneratedCredentialIss
 import net.openid.conformance.vci10wallet.condition.VCIPreparePreAuthorizationCode;
 import net.openid.conformance.vci10wallet.condition.VCIResolveRequestedCredentialConfigurationFromRequest;
 import net.openid.conformance.vci10wallet.condition.VCIValidateAttestedKeysInKeyAttestationFromJwtProof;
-import net.openid.conformance.vci10wallet.condition.EnsureKeyAttestationAlgIsES256;
-import net.openid.conformance.vci10wallet.condition.EnsureKeyAttestationExpIsPresentForJwtProof;
-import net.openid.conformance.vci10wallet.condition.EnsureKeyAttestationHasX5cClaim;
-import net.openid.conformance.vci10wallet.condition.EnsureKeyAttestationTypIsKeyAttestationJwt;
-import net.openid.conformance.vci10wallet.condition.ValidateKeyAttestationExp;
-import net.openid.conformance.vci10wallet.condition.ValidateKeyAttestationIat;
-import net.openid.conformance.vci10wallet.condition.ValidateKeyAttestationNonce;
-import net.openid.conformance.vci10wallet.condition.ValidateKeyAttestationX5cCertificateChain;
 import net.openid.conformance.vci10wallet.condition.VCIValidateCredentialRequestAttestationProof;
-import net.openid.conformance.vci10wallet.condition.VerifyKeyAttestationSignatureUsingConfigJwks;
 import net.openid.conformance.vci10wallet.condition.VCIValidateCredentialRequestDiVpProof;
 import net.openid.conformance.vci10wallet.condition.VCIValidateCredentialRequestJwtProof;
-import net.openid.conformance.vci10wallet.condition.CheckForUnexpectedParametersInCredentialRequest;
 import net.openid.conformance.vci10wallet.condition.VCIValidateCredentialRequestStructure;
 import net.openid.conformance.vci10wallet.condition.VCIValidateDeferredCredentialRequest;
 import net.openid.conformance.vci10wallet.condition.VCIValidateNotificationRequest;
 import net.openid.conformance.vci10wallet.condition.VCIValidatePreAuthorizationCode;
 import net.openid.conformance.vci10wallet.condition.VCIValidateTxCode;
 import net.openid.conformance.vci10wallet.condition.VCIVerifyIssuerStateInAuthorizationRequest;
+import net.openid.conformance.vci10wallet.condition.ValidateKeyAttestationExp;
+import net.openid.conformance.vci10wallet.condition.ValidateKeyAttestationIat;
+import net.openid.conformance.vci10wallet.condition.ValidateKeyAttestationNonce;
+import net.openid.conformance.vci10wallet.condition.ValidateKeyAttestationX5cCertificateChain;
+import net.openid.conformance.vci10wallet.condition.VerifyKeyAttestationSignatureUsingConfigJwks;
 import net.openid.conformance.vci10wallet.condition.clientattestation.AddClientAttestationSigningAlgValuesSupportedToServerConfiguration;
 import net.openid.conformance.vci10wallet.condition.clientattestation.VCIRegisterClientAttestationTrustAnchor;
-import net.openid.conformance.condition.client.EnsureKeyAttestationTrustAnchorConfigured;
 import net.openid.conformance.vci10wallet.condition.clientattestation.VCIRegisterKeyAttestationTrustAnchor;
 import net.openid.conformance.vci10wallet.condition.statuslist.VCIGenerateJwtStatusListToken;
 import org.apache.commons.lang3.RandomStringUtils;
@@ -1742,7 +1744,17 @@ public abstract class AbstractVCIWalletTest extends net.openid.conformance.fapi2
 
 		@Override
 		public void checkResourceRequest() {
-			callAndStopOnFailure(ExtractBearerAccessTokenFromHeader.class, "FAPI2-SP-FINAL-5.3.4-2");
+			call(resourceRequestChecksSequence());
+		}
+
+		@Override
+		public ConditionSequence resourceRequestChecksSequence() {
+			return new AbstractConditionSequence() {
+				@Override
+				public void evaluate() {
+					callAndStopOnFailure(ExtractBearerAccessTokenFromHeader.class, "FAPI2-SP-FINAL-5.3.4-2");
+				}
+			};
 		}
 	}
 

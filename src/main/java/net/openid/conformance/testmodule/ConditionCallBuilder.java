@@ -25,6 +25,7 @@ public class ConditionCallBuilder implements TestExecutionUnit {
 	private List<String> skipIfStringsMissing = new ArrayList<>();
 	private List<String> skipIfLongsMissing = new ArrayList<>();
 	private List<Pair<String, String>> skipIfElementsMissing = new ArrayList<>();
+	private List<Pair<String, String>> skipIfElementsPresent = new ArrayList<>();
 
 	/**
 	 * Create a new condition call based on the given condition class.
@@ -222,6 +223,25 @@ public class ConditionCallBuilder implements TestExecutionUnit {
 		return this;
 	}
 
+	/**
+	 * Add an element reference to search the Environment for prior to execution. If the
+	 * element IS present in the Environment at runtime, the condition is not evaluated and
+	 * the result stored in onSkip is logged. The mirror of {@link #skipIfElementMissing}
+	 * — useful for self-gating a downstream condition on a prior validation error
+	 * sentinel (e.g. skip the credential-creation step if an earlier validation populated
+	 * {@code vci.credential_error_response}).
+	 *
+	 * @param objId The object in the environment to search
+	 * @param path The path within the object to retrieve, in dot-separated format such as "foo.bar"
+	 * @return this builder
+	 */
+	public ConditionCallBuilder skipIfElementPresent(String objId, String path) {
+		if (objId != null && path != null) {
+			this.skipIfElementsPresent.add(new ImmutablePair<>(objId, path));
+		}
+		return this;
+	}
+
 
 	// getters
 
@@ -313,6 +333,15 @@ public class ConditionCallBuilder implements TestExecutionUnit {
 	 */
 	public List<Pair<String,String>> getSkipIfElementsMissing() {
 		return skipIfElementsMissing;
+	}
+
+	/**
+	 * If any of these elements are present in the Environment, the condition call is skipped. Defaults to an empty list.
+	 *
+	 * @return the list of elements to search for
+	 */
+	public List<Pair<String,String>> getSkipIfElementsPresent() {
+		return skipIfElementsPresent;
 	}
 
 }

@@ -11,6 +11,8 @@ import net.openid.conformance.condition.rs.ExtractFapiInteractionIdHeader;
 import net.openid.conformance.sequence.AbstractConditionSequence;
 import net.openid.conformance.sequence.ConditionSequence;
 
+import java.util.function.Function;
+
 /**
  * Base class for FAPI2 client-test profile-specific behavior. Provides default (plain FAPI)
  * behavior. Subclasses override methods to customize behavior for specific profiles
@@ -185,9 +187,45 @@ public class FAPI2ClientProfileBehavior {
 	/**
 	 * Handle a profile-specific path on the plain (non-mtls) endpoint. Only invoked when
 	 * {@link #claimsHttpPath(String)} returned {@code true}.
+	 *
+	 * <p>Two contracts exist for path handlers:
+	 * <ul>
+	 *   <li>The traditional imperative form here ({@link #handleProfileSpecificPath}),
+	 *       returning the HTTP response object directly. OB-UK uses this.</li>
+	 *   <li>The newer declarative form ({@link #getProfileSpecificPathDispatch}) returning
+	 *       a {@link PathDispatch} (a {@code ConditionSequence} + a response-builder
+	 *       function), letting the test module drive execution. VCI uses this so its
+	 *       behavior never calls {@code module.do*}.</li>
+	 * </ul>
+	 * {@code AbstractFAPI2SPFinalClientTest.handleHttp} consults the declarative form
+	 * first; if it returns {@code null}, it falls back to this imperative form.
 	 */
 	public Object handleProfileSpecificPath(String requestId, String path) {
 		throw new IllegalStateException("Profile did not claim path: " + path);
+	}
+
+	/**
+	 * Declarative profile-specific path handler. Return a {@link PathDispatch} bundling
+	 * the {@code ConditionSequence} that does the work and a {@code responseBuilder}
+	 * function that produces the HTTP response from environment state after the sequence
+	 * has run. Returning {@code null} (the default) lets the test module fall back to
+	 * {@link #handleProfileSpecificPath}. Only invoked when {@link #claimsHttpPath} returned true.
+	 */
+	public PathDispatch getProfileSpecificPathDispatch(String requestId, String path) {
+		return null;
+	}
+
+	/**
+	 * Bundle of "what condition sequence to run for this path" and "how to build the
+	 * HTTP response from env state once it's done". The {@code responseBuilder}'s
+	 * argument is the {@code AbstractFAPI2SPFinalClientTest} so the builder has access
+	 * to the env, the test module's helpers (e.g. {@code scheduleDelayedFinishForAdditionalRequests}),
+	 * and any side effects it needs to perform after the sequence finishes.
+	 */
+	public record PathDispatch(
+		ConditionSequence sequence,
+		Function<AbstractFAPI2SPFinalClientTest, Object> responseBuilder
+	) {
 	}
 
 	/**

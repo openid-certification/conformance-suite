@@ -2,7 +2,6 @@ package net.openid.conformance.fapi2spfinal;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.condition.as.CreateFapiInteractionIdIfNeeded;
 import net.openid.conformance.condition.as.CreateMdocCredentialForVCI;
@@ -16,7 +15,6 @@ import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.testmodule.TestFailureException;
-import net.openid.conformance.testmodule.TestModule.Status;
 import net.openid.conformance.variant.ClientAuthType;
 import net.openid.conformance.vci10wallet.VCICredentialConfigurations;
 import net.openid.conformance.vci10wallet.VCICredentialIssuerMetadataBuilder;
@@ -28,6 +26,8 @@ import net.openid.conformance.vci10wallet.condition.VCIEnsureBearerAccessTokenNo
 import net.openid.conformance.vci10wallet.condition.VCIEnsureCredentialSigningCertificateIsNotSelfSigned;
 import net.openid.conformance.vci10wallet.condition.VCIExtractCredentialRequestProof;
 import net.openid.conformance.vci10wallet.condition.VCIResolveRequestedCredentialConfigurationFromRequest;
+import net.openid.conformance.vci10wallet.condition.VCISetCredentialFormatFlag;
+import net.openid.conformance.vci10wallet.condition.VCISetProofTypeFlag;
 import net.openid.conformance.vci10wallet.condition.VCIValidateAttestedKeysInKeyAttestationFromJwtProof;
 import net.openid.conformance.vci10wallet.condition.VCIValidateCredentialRequestAttestationProof;
 import net.openid.conformance.vci10wallet.condition.VCIValidateCredentialRequestDiVpProof;
@@ -146,7 +146,7 @@ public class VCIClientProfileBehavior extends FAPI2ClientProfileBehavior {
 		super.exposeProfileEndpoints();
 		String credentialIssuer = baseUrlWithTrailingSlash();
 		module.getEnv().putString("credential_issuer", credentialIssuer);
-		module.doExposeEnvString("credential_issuer");
+		module.exposeEnvStringForBehavior("credential_issuer");
 	}
 
 	@Override
@@ -169,169 +169,15 @@ public class VCIClientProfileBehavior extends FAPI2ClientProfileBehavior {
 	}
 
 	@Override
-	public Object handleProfileSpecificPath(String requestId, String path) {
+	public PathDispatch getProfileSpecificPathDispatch(String requestId, String path) {
 		if (NONCE_PATH.equals(path)) {
-			return handleNonceEndpoint(requestId);
+			return buildNonceDispatch(requestId);
 		}
 		if (NOTIFICATION_PATH.equals(path)) {
-			return handleNotificationEndpoint(requestId);
+			return buildNotificationDispatch(requestId);
 		}
 		// CREDENTIAL_PATH or DEFERRED_CREDENTIAL_PATH
-		return handleCredentialEndpoint(requestId);
-	}
-
-	/**
-	 * OID4VCI 1.0 Final § 7.2 nonce endpoint — generates a fresh c_nonce that the wallet
-	 * binds into the credential request proof JWT. Mirrors {@code AbstractVCIWalletTest.nonceEndpoint}.
-	 */
-	protected ResponseEntity<JsonObject> handleNonceEndpoint(String requestId) {
-		Environment env = module.getEnv();
-		module.doSetStatus(Status.RUNNING);
-
-		module.doCall(module.doExec().startBlock("Nonce endpoint"));
-		module.doCall(module.doExec().mapKey("incoming_request", requestId));
-
-		module.doCallAndStopOnFailure(CreateFapiInteractionIdIfNeeded.class, "FAPI2-IMP-2.1.1");
-		module.doCallAndContinueOnFailure(EnsureIncomingRequestMethodIsPost.class, ConditionResult.FAILURE, "OID4VCI-1FINAL-7.2");
-		module.doCallAndStopOnFailure(GenerateCredentialNonce.class, "OID4VCI-1FINAL-ID-7");
-		module.doCallAndStopOnFailure(GenerateCredentialNonceResponse.class, "OID4VCI-1FINAL-7.2");
-
-		module.doCall(module.doExec().unmapKey("incoming_request").endBlock());
-
-		JsonObject body = env.getObject("credential_nonce_response");
-		JsonObject headers = env.getObject("credential_nonce_response_headers");
-
-		module.doSetStatus(Status.WAITING);
-		return ResponseEntity.status(HttpStatus.OK)
-			.contentType(MediaType.APPLICATION_JSON)
-			.headers(headersFromJson(headers))
-			.body(body);
-	}
-
-	/**
-	 * OID4VCI 1.0 Final § 8 credential endpoint — full validation chain:
-	 * access token presence in headers (not URL params per FAPI2-SP-FINAL-5.3.4-2),
-	 * sender-constrain check, request structure, credential configuration resolution,
-	 * cryptographic-binding proof validation (jwt / attestation / di_vp), credential
-	 * creation, response shaping. Mirrors {@code AbstractVCIWalletTest.credentialEndpoint}
-	 * minus deferred / encrypted branches (those use {@code AbstractVCIWalletTest}).
-	 */
-	protected Object handleCredentialEndpoint(String requestId) {
-		Environment env = module.getEnv();
-		module.doSetStatus(Status.RUNNING);
-
-		module.doCall(module.doExec().startBlock("Credential endpoint"));
-		module.doCall(module.doExec().mapKey("incoming_request", requestId));
-
-		// Access token must be in Authorization header, not URL params (FAPI2-SP-FINAL-5.3.4-2).
-		ResponseEntity<?> errorResponse = callAndContinueOrReturnVciError(VCIEnsureBearerAccessTokenNotInParams.class, "FAPI2-SP-FINAL-5.3.4-2");
-		if (errorResponse != null) {
-			return finishCredentialEndpoint(errorResponse);
-		}
-
-		// Sender-constrain validation (DPoP proof binding etc.) — uses the inherited helper
-		// configured by the FAPI2SenderConstrainMethod @VariantSetup on AFCT.
-		module.senderConstrainTokenRequestHelper.checkResourceRequest();
-
-		errorResponse = callAndContinueOrReturnVciError(VCIValidateCredentialRequestStructure.class, "OID4VCI-1FINAL-8.2");
-		if (errorResponse != null) {
-			return finishCredentialEndpoint(errorResponse);
-		}
-
-		module.doCallAndContinueOnFailure(CheckForUnexpectedParametersInCredentialRequest.class, ConditionResult.WARNING, "OID4VCI-1FINAL-8.2");
-
-		errorResponse = callAndContinueOrReturnVciError(VCIResolveRequestedCredentialConfigurationFromRequest.class, "OID4VCI-1FINAL-8.2");
-		if (errorResponse != null) {
-			return finishCredentialEndpoint(errorResponse);
-		}
-
-		JsonObject credentialConfiguration = env.getObject("credential_configuration");
-		boolean requiresCryptographicBinding = credentialConfiguration != null
-			&& credentialConfiguration.has("cryptographic_binding_methods_supported");
-
-		if (requiresCryptographicBinding) {
-			errorResponse = callAndContinueOrReturnVciError(VCIExtractCredentialRequestProof.class, "OID4VCI-1FINALA-F.4");
-			if (errorResponse != null) {
-				return finishCredentialEndpoint(errorResponse);
-			}
-
-			String proofType = env.getString("proof_type");
-			if ("jwt".equals(proofType)) {
-				errorResponse = callAndContinueOrReturnVciError(VCIValidateCredentialRequestJwtProof.class, "OID4VCI-1FINALA-F.1", "OID4VCI-1FINALA-F.4");
-				if (errorResponse == null) {
-					errorResponse = callAndContinueOrReturnVciError(VCIValidateAttestedKeysInKeyAttestationFromJwtProof.class, "OID4VCI-1FINALA-F.1", "OID4VCI-1FINALA-F.4");
-				}
-			} else if ("attestation".equals(proofType)) {
-				errorResponse = callAndContinueOrReturnVciError(VCIValidateCredentialRequestAttestationProof.class, "OID4VCI-1FINALA-F.3", "OID4VCI-1FINALA-F.4", "HAIP-4.5.1");
-				if (errorResponse == null) {
-					errorResponse = callAndContinueOrReturnVciError(ValidateKeyAttestationX5cCertificateChain.class, "HAIP-4.5.1");
-				}
-			} else if ("di_vp".equals(proofType)) {
-				errorResponse = callAndContinueOrReturnVciError(VCIValidateCredentialRequestDiVpProof.class, "OID4VCI-1FINALA-F.2", "OID4VCI-1FINALA-F.4");
-			}
-			if (errorResponse != null) {
-				return finishCredentialEndpoint(errorResponse);
-			}
-		}
-
-		module.doCallAndStopOnFailure(CreateFapiInteractionIdIfNeeded.class, "FAPI2-IMP-2.2.1");
-
-		// Create the credential — format derived from the resolved credential_configuration.
-		String requestedFormat = OIDFJSON.getString(credentialConfiguration.get("format"));
-		if ("mso_mdoc".equals(requestedFormat)) {
-			module.doCallAndStopOnFailure(CreateMdocCredentialForVCI.class, "OID4VCI-1FINALA-G.1");
-		} else {
-			// SD-JWT VC (dc+sd-jwt or default). Subclasses (e.g. VCIHaipClientProfileBehavior)
-			// can inject additional claims like the HAIP status_list entry via additionalSdJwtClaims().
-			Map<String, Object> additionalClaims = additionalSdJwtClaims();
-			module.doCallAndStopOnFailure(new CreateSdJwtCredential(additionalClaims),
-				"OID4VCI-1FINALA-F.1", "OID4VCI-1FINALA-F.3");
-		}
-
-		// Immediate response only — deferred / encrypted are AbstractVCIWalletTest's job.
-		module.doCallAndStopOnFailure(VCICreateCredentialEndpointResponse.class,
-			"OID4VCI-1FINALA-A.3.4", "OID4VCI-1FINALA-A.2.4");
-		module.doCallAndStopOnFailure(VCIAddNotificationIdToCredentialEndpointResponse.class, "OID4VCI-1FINAL-8.3");
-
-		module.doCallAndStopOnFailure(ClearAccessTokenFromRequest.class);
-
-		JsonObject body = env.getObject("credential_endpoint_response");
-		JsonObject headers = env.getObject("credential_endpoint_response_headers");
-		ResponseEntity<JsonObject> response = ResponseEntity.status(HttpStatus.OK)
-			.contentType(MediaType.APPLICATION_JSON)
-			.headers(headersFromJson(headers))
-			.body(body);
-
-		// Schedule delayed test finish so paired issuer tests can hit notification etc.
-		// before the wallet test marks itself FINISHED.
-		module.scheduleDelayedFinishForAdditionalRequests();
-		return finishCredentialEndpoint(response);
-	}
-
-	private Object finishCredentialEndpoint(ResponseEntity<?> response) {
-		module.doCall(module.doExec().unmapKey("incoming_request").endBlock());
-		module.doSetStatus(Status.WAITING);
-		return response;
-	}
-
-	/**
-	 * Wraps {@code callAndContinueOnFailure} with the wallet's
-	 * {@code callAndContinueOnFailureOrReturnErrorResponse} pattern: if the condition
-	 * populated {@code vci.credential_error_response}, return a 400 ResponseEntity
-	 * carrying the error body; otherwise return null and let the caller continue.
-	 */
-	private ResponseEntity<JsonObject> callAndContinueOrReturnVciError(Class<? extends AbstractCondition> conditionClass, String... requirements) {
-		module.doCallAndContinueOnFailure(conditionClass, ConditionResult.FAILURE, requirements);
-		JsonElement errEl = module.getEnv().getElementFromObject("vci", "credential_error_response");
-		if (errEl == null) {
-			return null;
-		}
-		JsonObject errBody = errEl.getAsJsonObject().getAsJsonObject("body");
-		// Clear so subsequent calls aren't mis-attributed to this condition.
-		module.getEnv().getObject("vci").remove("credential_error_response");
-		return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-			.contentType(MediaType.APPLICATION_JSON)
-			.body(errBody);
+		return buildCredentialDispatch(requestId);
 	}
 
 	/**
@@ -345,30 +191,227 @@ public class VCIClientProfileBehavior extends FAPI2ClientProfileBehavior {
 	}
 
 	/**
-	 * OID4VCI 1.0 Final § 10.2 notification endpoint — validates the notification body
-	 * and returns 204 No Content.
+	 * OID4VCI 1.0 Final 7.2 nonce endpoint — generates a fresh c_nonce that the wallet
+	 * binds into the credential request proof JWT. Single-sequence dispatch: condition
+	 * sequence does the validation + generation; response builder reads the prepared
+	 * response from env. Mirrors AbstractVCIWalletTest.nonceEndpoint.
 	 */
-	protected ResponseEntity<Void> handleNotificationEndpoint(String requestId) {
-		Environment env = module.getEnv();
-		module.doSetStatus(Status.RUNNING);
+	private PathDispatch buildNonceDispatch(String requestId) {
+		ConditionSequence sequence = new AbstractConditionSequence() {
+			@Override
+			public void evaluate() {
+				call(exec().startBlock("Nonce endpoint"));
+				call(exec().mapKey("incoming_request", requestId));
+				callAndStopOnFailure(CreateFapiInteractionIdIfNeeded.class, "FAPI2-IMP-2.1.1");
+				callAndContinueOnFailure(EnsureIncomingRequestMethodIsPost.class, ConditionResult.FAILURE, "OID4VCI-1FINAL-7.2");
+				callAndStopOnFailure(GenerateCredentialNonce.class, "OID4VCI-1FINAL-ID-7");
+				callAndStopOnFailure(GenerateCredentialNonceResponse.class, "OID4VCI-1FINAL-7.2");
+				call(exec().unmapKey("incoming_request").endBlock());
+			}
+		};
+		return new PathDispatch(sequence, m -> {
+			JsonObject body = m.getEnv().getObject("credential_nonce_response");
+			JsonObject headers = m.getEnv().getObject("credential_nonce_response_headers");
+			return ResponseEntity.status(HttpStatus.OK)
+				.contentType(MediaType.APPLICATION_JSON)
+				.headers(headersFromJson(headers))
+				.body(body);
+		});
+	}
 
-		module.doCall(module.doExec().startBlock("Notification endpoint"));
-		module.doCall(module.doExec().mapKey("incoming_request", requestId));
+	/**
+	 * OID4VCI 1.0 Final 8 credential endpoint — full validation chain in a single
+	 * ConditionSequence. Self-gating via {@code skipIfElementPresent("vci",
+	 * "credential_error_response")} on every step after the first validation failure
+	 * preserves the short-circuit semantics; proof-type and credential-format branching
+	 * are expressed via flag conditions ({@link VCISetProofTypeFlag},
+	 * {@link VCISetCredentialFormatFlag}) plus {@code skipIfElementMissing} on the per-type
+	 * flag keys. The response builder reads {@code vci.credential_error_response} at the
+	 * end to decide between a 400 error response and the happy-path 200.
+	 *
+	 * <p><strong>Order note:</strong> sender-constrain validation now runs <em>before</em>
+	 * the bearer-token-in-URL check (it was second in the prior imperative flow). Both
+	 * are first-line request-shape checks that must pass; with sender-constrain conditions
+	 * using {@code callAndStopOnFailure} semantics (test halts on failure), running them
+	 * inside the same sequence requires this order. The only user-visible diff is when a
+	 * request has both a malformed DPoP / mtls token AND the access token in URL params
+	 * — original returned 400 (bearer-token error); the new path halts the test on the
+	 * sender-constrain failure. Both indicate a broken client.
+	 */
+	private PathDispatch buildCredentialDispatch(String requestId) {
+		final Map<String, Object> additionalClaims = additionalSdJwtClaims();
+		ConditionSequence sequence = new AbstractConditionSequence() {
+			@Override
+			public void evaluate() {
+				call(exec().startBlock("Credential endpoint"));
+				call(exec().mapKey("incoming_request", requestId));
 
-		// Clear any previous notification error response so subsequent calls aren't poisoned.
-		JsonObject vci = env.getObject("vci");
-		if (vci != null) {
-			vci.remove("notification_error_response");
+				// Sender-constrain (DPoP proof binding etc.) — halts on failure.
+				call(module.senderConstrainTokenRequestHelper.resourceRequestChecksSequence());
+
+				// Validation phase: bearer token in URL, structure, unexpected params,
+				// credential-config resolution. Each step after the first self-skips when
+				// a prior step populated vci.credential_error_response, giving the
+				// short-circuit-on-error semantics without imperative bridges.
+				callAndContinueOnFailure(VCIEnsureBearerAccessTokenNotInParams.class, ConditionResult.FAILURE, "FAPI2-SP-FINAL-5.3.4-2");
+				call(condition(VCIValidateCredentialRequestStructure.class)
+					.skipIfElementPresent("vci", "credential_error_response")
+					.onFail(ConditionResult.FAILURE)
+					.requirements("OID4VCI-1FINAL-8.2")
+					.dontStopOnFailure());
+				call(condition(CheckForUnexpectedParametersInCredentialRequest.class)
+					.skipIfElementPresent("vci", "credential_error_response")
+					.onFail(ConditionResult.WARNING)
+					.requirements("OID4VCI-1FINAL-8.2")
+					.dontStopOnFailure());
+				call(condition(VCIResolveRequestedCredentialConfigurationFromRequest.class)
+					.skipIfElementPresent("vci", "credential_error_response")
+					.onFail(ConditionResult.FAILURE)
+					.requirements("OID4VCI-1FINAL-8.2")
+					.dontStopOnFailure());
+
+				// Proof-binding phase: only fires when the resolved credential configuration
+				// requires cryptographic binding (skipIfElementMissing on
+				// credential_configuration.cryptographic_binding_methods_supported gates the
+				// whole phase). Extract proof, then a proof-type flag condition translates
+				// env.proof_type into per-type flag keys (vci.proof_type_<type>); the
+				// proof-type-specific conditions then self-gate on their flag.
+				call(condition(VCIExtractCredentialRequestProof.class)
+					.skipIfElementPresent("vci", "credential_error_response")
+					.skipIfElementMissing("credential_configuration", "cryptographic_binding_methods_supported")
+					.onFail(ConditionResult.FAILURE)
+					.requirements("OID4VCI-1FINALA-F.4")
+					.dontStopOnFailure());
+				call(condition(VCISetProofTypeFlag.class)
+					.skipIfElementPresent("vci", "credential_error_response")
+					.skipIfElementMissing("credential_configuration", "cryptographic_binding_methods_supported")
+					.onFail(ConditionResult.FAILURE)
+					.dontStopOnFailure());
+				// proof_type=jwt
+				call(condition(VCIValidateCredentialRequestJwtProof.class)
+					.skipIfElementPresent("vci", "credential_error_response")
+					.skipIfElementMissing("vci", "proof_type_jwt")
+					.onFail(ConditionResult.FAILURE)
+					.requirements("OID4VCI-1FINALA-F.1", "OID4VCI-1FINALA-F.4")
+					.dontStopOnFailure());
+				call(condition(VCIValidateAttestedKeysInKeyAttestationFromJwtProof.class)
+					.skipIfElementPresent("vci", "credential_error_response")
+					.skipIfElementMissing("vci", "proof_type_jwt")
+					.onFail(ConditionResult.FAILURE)
+					.requirements("OID4VCI-1FINALA-F.1", "OID4VCI-1FINALA-F.4")
+					.dontStopOnFailure());
+				// proof_type=attestation
+				call(condition(VCIValidateCredentialRequestAttestationProof.class)
+					.skipIfElementPresent("vci", "credential_error_response")
+					.skipIfElementMissing("vci", "proof_type_attestation")
+					.onFail(ConditionResult.FAILURE)
+					.requirements("OID4VCI-1FINALA-F.3", "OID4VCI-1FINALA-F.4", "HAIP-4.5.1")
+					.dontStopOnFailure());
+				call(condition(ValidateKeyAttestationX5cCertificateChain.class)
+					.skipIfElementPresent("vci", "credential_error_response")
+					.skipIfElementMissing("vci", "proof_type_attestation")
+					.onFail(ConditionResult.FAILURE)
+					.requirements("HAIP-4.5.1")
+					.dontStopOnFailure());
+				// proof_type=di_vp
+				call(condition(VCIValidateCredentialRequestDiVpProof.class)
+					.skipIfElementPresent("vci", "credential_error_response")
+					.skipIfElementMissing("vci", "proof_type_di_vp")
+					.onFail(ConditionResult.FAILURE)
+					.requirements("OID4VCI-1FINALA-F.2", "OID4VCI-1FINALA-F.4")
+					.dontStopOnFailure());
+
+				// Creation phase: skip if any prior validation set the error sentinel.
+				// VCISetCredentialFormatFlag writes a per-format flag so the creation
+				// conditions self-gate on it; only the active format actually fires.
+				call(condition(CreateFapiInteractionIdIfNeeded.class)
+					.skipIfElementPresent("vci", "credential_error_response")
+					.onFail(ConditionResult.FAILURE)
+					.requirements("FAPI2-IMP-2.2.1"));
+				call(condition(VCISetCredentialFormatFlag.class)
+					.skipIfElementPresent("vci", "credential_error_response")
+					.onFail(ConditionResult.FAILURE));
+				call(condition(CreateMdocCredentialForVCI.class)
+					.skipIfElementPresent("vci", "credential_error_response")
+					.skipIfElementMissing("vci", "format_mso_mdoc")
+					.onFail(ConditionResult.FAILURE)
+					.requirements("OID4VCI-1FINALA-G.1"));
+				// SD-JWT — the condition instance differs based on whether the profile
+				// supplies additional claims, but the additionalClaims map is resolved at
+				// dispatch-build time, so we pick the right constructor here.
+				call(condition(new CreateSdJwtCredential(additionalClaims))
+					.skipIfElementPresent("vci", "credential_error_response")
+					.skipIfElementMissing("vci", "format_sd_jwt")
+					.onFail(ConditionResult.FAILURE)
+					.requirements("OID4VCI-1FINALA-F.1", "OID4VCI-1FINALA-F.3"));
+
+				call(condition(VCICreateCredentialEndpointResponse.class)
+					.skipIfElementPresent("vci", "credential_error_response")
+					.onFail(ConditionResult.FAILURE)
+					.requirements("OID4VCI-1FINALA-A.3.4", "OID4VCI-1FINALA-A.2.4"));
+				call(condition(VCIAddNotificationIdToCredentialEndpointResponse.class)
+					.skipIfElementPresent("vci", "credential_error_response")
+					.onFail(ConditionResult.FAILURE)
+					.requirements("OID4VCI-1FINAL-8.3"));
+				call(condition(ClearAccessTokenFromRequest.class)
+					.skipIfElementPresent("vci", "credential_error_response")
+					.onFail(ConditionResult.FAILURE));
+
+				call(exec().unmapKey("incoming_request").endBlock());
+			}
+		};
+		return new PathDispatch(sequence, m -> {
+			// Error path: validation surfaced a vci.credential_error_response; turn it
+			// into a 400 with the prepared body, clear the sentinel so subsequent calls
+			// (deferred endpoint etc.) aren't poisoned.
+			JsonElement errEl = m.getEnv().getElementFromObject("vci", "credential_error_response");
+			if (errEl != null) {
+				JsonObject errBody = errEl.getAsJsonObject().getAsJsonObject("body");
+				m.getEnv().getObject("vci").remove("credential_error_response");
+				return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+					.contentType(MediaType.APPLICATION_JSON)
+					.body(errBody);
+			}
+			// Happy path: build the 200 response from the prepared env body / headers,
+			// schedule the delayed test finish so paired issuer tests can keep talking
+			// to us (notification, deferred etc.) before the wallet test marks itself
+			// FINISHED.
+			JsonObject body = m.getEnv().getObject("credential_endpoint_response");
+			JsonObject headers = m.getEnv().getObject("credential_endpoint_response_headers");
+			ResponseEntity<JsonObject> response = ResponseEntity.status(HttpStatus.OK)
+				.contentType(MediaType.APPLICATION_JSON)
+				.headers(headersFromJson(headers))
+				.body(body);
+			m.scheduleDelayedFinishForAdditionalRequests();
+			return response;
+		});
+	}
+
+	/**
+	 * OID4VCI 1.0 Final 10.2 notification endpoint — single-sequence flow: clear stale
+	 * error state, run sender-constrain checks (via the helper sequence accessor) +
+	 * notification-specific validation, return 204.
+	 */
+	private PathDispatch buildNotificationDispatch(String requestId) {
+		// Clear any previous notification error response so subsequent calls aren't
+		// poisoned. The sequence runs after this build call, so the clear happens before
+		// any condition observes the env.
+		JsonObject vciAtBuild = module.getEnv().getObject("vci");
+		if (vciAtBuild != null) {
+			vciAtBuild.remove("notification_error_response");
 		}
-
-		module.senderConstrainTokenRequestHelper.checkResourceRequest();
-
-		module.doCallAndContinueOnFailure(VCIValidateNotificationRequest.class, ConditionResult.FAILURE, "OID4VCI-1FINAL-10.2");
-		module.doCallAndContinueOnFailure(VCICheckForUnknownFieldsInNotificationRequest.class, ConditionResult.WARNING, "OID4VCI-1FINAL-10.2");
-
-		module.doCall(module.doExec().unmapKey("incoming_request").endBlock());
-		module.doSetStatus(Status.WAITING);
-		return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+		ConditionSequence sequence = new AbstractConditionSequence() {
+			@Override
+			public void evaluate() {
+				call(exec().startBlock("Notification endpoint"));
+				call(exec().mapKey("incoming_request", requestId));
+				call(module.senderConstrainTokenRequestHelper.resourceRequestChecksSequence());
+				callAndContinueOnFailure(VCIValidateNotificationRequest.class, ConditionResult.FAILURE, "OID4VCI-1FINAL-10.2");
+				callAndContinueOnFailure(VCICheckForUnknownFieldsInNotificationRequest.class, ConditionResult.WARNING, "OID4VCI-1FINAL-10.2");
+				call(exec().unmapKey("incoming_request").endBlock());
+			}
+		};
+		return new PathDispatch(sequence, m -> ResponseEntity.status(HttpStatus.NO_CONTENT).build());
 	}
 
 	private String baseUrlWithTrailingSlash() {
