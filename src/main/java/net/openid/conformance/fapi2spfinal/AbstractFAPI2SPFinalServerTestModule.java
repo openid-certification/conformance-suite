@@ -313,8 +313,8 @@ import java.util.function.Supplier;
 	configurationFields = {"client.dpop_signing_alg", "client2.dpop_signing_alg"})
 // Client attestation configuration
 @VariantConfigurationFields(parameter = ClientAuthType.class, value = "client_attestation", configurationFields = {
-	"vci.client_attester_keys_jwks",
-	"vci.client_attestation_issuer"
+	"client_attestation.attester_jwks",
+	"client_attestation.issuer"
 })
 @ConfigurationFields({
 	"server.discoveryUrl",

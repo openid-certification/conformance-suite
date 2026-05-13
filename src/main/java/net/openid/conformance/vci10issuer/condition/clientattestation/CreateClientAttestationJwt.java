@@ -19,7 +19,12 @@ public class CreateClientAttestationJwt extends AbstractSignJWT {
 	@PreEnvironment(required = {"vci", "config", "client"})
 	public Environment evaluate(Environment env) {
 
-		String issuer = env.getString("config", "vci.client_attestation_issuer");
+		// Read the new key first; fall back to the legacy vci.* key so existing stored
+		// test configs keep working through a transition window.
+		String issuer = env.getString("config", "client_attestation.issuer");
+		if (issuer == null) {
+			issuer = env.getString("config", "vci.client_attestation_issuer");
+		}
 		if (issuer == null || issuer.isBlank()) {
 			throw error("Client attestation issuer must not be null or empty");
 		}
@@ -29,9 +34,14 @@ public class CreateClientAttestationJwt extends AbstractSignJWT {
 			throw error("Client ID must not be null or empty");
 		}
 
-		JsonElement clientAttesterKeysJwksEl = env.getElementFromObject("config", "vci.client_attester_keys_jwks");
+		// Read the new key first; fall back to the legacy vci.* key so existing stored
+		// test configs keep working through a transition window.
+		JsonElement clientAttesterKeysJwksEl = env.getElementFromObject("config", "client_attestation.attester_jwks");
 		if (clientAttesterKeysJwksEl == null) {
-			throw error("client_attester_keys_jwks could not be found");
+			clientAttesterKeysJwksEl = env.getElementFromObject("config", "vci.client_attester_keys_jwks");
+		}
+		if (clientAttesterKeysJwksEl == null) {
+			throw error("'Client Attester Keys JWKS' field is missing from the 'Client Attestation' section in the test configuration");
 		}
 
 		String clientInstanceKeyPublicString = env.getString("client", "client_instance_key_public");

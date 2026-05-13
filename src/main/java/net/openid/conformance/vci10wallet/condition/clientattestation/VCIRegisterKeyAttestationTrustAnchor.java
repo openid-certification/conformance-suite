@@ -8,7 +8,12 @@ public class VCIRegisterKeyAttestationTrustAnchor extends AbstractCondition {
 	@Override
 	public Environment evaluate(Environment env) {
 
-		String keyAttestationTrustAnchorPem = env.getString("config", "vci.key_attestation_trust_anchor_pem");
+		// Read the new key first; fall back to the legacy vci.* key so existing stored
+		// test configs keep working through a transition window.
+		String keyAttestationTrustAnchorPem = env.getString("config", "client_attestation.key_attestation_trust_anchor_pem");
+		if (keyAttestationTrustAnchorPem == null) {
+			keyAttestationTrustAnchorPem = env.getString("config", "vci.key_attestation_trust_anchor_pem");
+		}
 
 		if (keyAttestationTrustAnchorPem == null) {
 			log("Skipping registration of empty trust anchor certificate for key attestation");

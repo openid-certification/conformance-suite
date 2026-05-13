@@ -20,7 +20,12 @@ public class ValidateClientAttestationIssuer extends AbstractCondition {
 
 		String actualIssuer = OIDFJSON.getString(issEl);
 
-		String expectedIssuer = env.getString("config", "vci.client_attestation_issuer");
+		// Read the new key first; fall back to the legacy vci.* key so existing stored
+		// test configs keep working through a transition window.
+		String expectedIssuer = env.getString("config", "client_attestation.issuer");
+		if (expectedIssuer == null) {
+			expectedIssuer = env.getString("config", "vci.client_attestation_issuer");
+		}
 		if (!expectedIssuer.equals(actualIssuer)) {
 			throw error("Found issuer mismatch in client attestation", args("expected_issuer", expectedIssuer, "actual_issuer", actualIssuer));
 		}

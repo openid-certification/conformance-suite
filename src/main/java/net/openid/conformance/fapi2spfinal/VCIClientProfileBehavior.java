@@ -89,16 +89,20 @@ public class VCIClientProfileBehavior extends FAPI2ClientProfileBehavior {
 
 		Environment env = module.getEnv();
 
-		// Validate the wallet test config has the VCI client-attestation fields populated.
+		// Validate the wallet test config has the client_attestation fields populated.
 		// The fields are declared via @VariantConfigurationFields on AbstractFAPI2SPFinalClientTest
 		// so the schedule-test UI prompts for them; this catches the case where they're left blank.
-		if (env.getString("config", "vci.client_attestation_issuer") == null) {
+		// Each check accepts either the new client_attestation.* key or the legacy vci.* key
+		// during the transition window.
+		if (env.getString("config", "client_attestation.issuer") == null
+			&& env.getString("config", "vci.client_attestation_issuer") == null) {
 			throw new TestFailureException(module.getId(),
-				"'Client attestation issuer' field is missing from the 'VCI' section in the test configuration");
+				"'Client Attestation Issuer' field is missing from the 'Client Attestation' section in the test configuration");
 		}
-		if (env.getString("config", "vci.client_attestation_trust_anchor") == null) {
+		if (env.getString("config", "client_attestation.trust_anchor") == null
+			&& env.getString("config", "vci.client_attestation_trust_anchor") == null) {
 			throw new TestFailureException(module.getId(),
-				"'Client attestation trust anchor' field is missing from the 'VCI' section in the test configuration");
+				"'Client Attestation Trust Anchor' field is missing from the 'Client Attestation' section in the test configuration");
 		}
 
 		// The credential signing JWK is required so we can issue real mdoc / SD-JWT credentials.

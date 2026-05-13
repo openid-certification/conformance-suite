@@ -220,9 +220,9 @@ import java.util.concurrent.atomic.AtomicBoolean;
 	hasValues = {"fapi_client_credentials_grant"}
 )
 @VariantConfigurationFields(parameter = ClientAuthType.class, value = "client_attestation", configurationFields = {
-	"vci.client_attestation_issuer",
-	"vci.client_attestation_trust_anchor",
-	"vci.key_attestation_trust_anchor_pem",
+	"client_attestation.issuer",
+	"client_attestation.trust_anchor",
+	"client_attestation.key_attestation_trust_anchor_pem",
 	"credential.signing_jwk"
 })
 public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule {
