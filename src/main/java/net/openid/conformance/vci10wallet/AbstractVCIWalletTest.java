@@ -215,7 +215,7 @@ import java.util.Map;
 	"waitTimeoutSeconds",
 	"vci.credential_offer_endpoint",
 	"vci.key_attestation_jwks",
-	"vci.key_attestation_trust_anchor_pem",
+	"client_attestation.key_attestation_trust_anchor_pem",
 	"vci.credential_configuration_id",
 })
 @VariantParameters({
@@ -238,13 +238,13 @@ import java.util.Map;
 	"vci.credential_offer_endpoint"
 })
 @VariantHidesConfigurationFields(parameter = ClientAuthType.class, value = "private_key_jwt", configurationFields = {
-	"vci.client_attestation_issuer"
+	"client_attestation.issuer"
 })
 @VariantHidesConfigurationFields(parameter = ClientAuthType.class, value = "mtls", configurationFields = {
-	"vci.client_attestation_issuer"
+	"client_attestation.issuer"
 })
 @VariantConfigurationFields(parameter = ClientAuthType.class, value = "client_attestation", configurationFields = {
-	"vci.client_attestation_issuer", "vci.client_attestation_trust_anchor"
+	"client_attestation.issuer", "client_attestation.trust_anchor"
 })
 @VariantConfigurationFields(parameter = ClientAuthType.class, value = "mtls", configurationFields = {
 	"client.certificate"
@@ -420,13 +420,15 @@ public abstract class AbstractVCIWalletTest extends net.openid.conformance.fapi2
 		callAndStopOnFailure(FAPI2AddTokenEndpointAuthSigningAlgValuesSupportedToServer.class);
 
 		if (clientAuthType == ClientAuthType.CLIENT_ATTESTATION) {
-			if (env.getString("config", "vci.client_attestation_issuer") == null) {
-				throw new TestFailureException(getId(), "vci.client_attestation_issuer must be configured if client_attestation is used as client authentication method.");
+			if (env.getString("config", "client_attestation.issuer") == null
+				&& env.getString("config", "vci.client_attestation_issuer") == null) {
+				throw new TestFailureException(getId(), "client_attestation.issuer must be configured if client_attestation is used as client authentication method.");
 			}
 			callAndStopOnFailure(AddClientAttestationSigningAlgValuesSupportedToServerConfiguration.class, "OAuth2-ATCA07-10.1");
 
-			if (env.getString("config", "vci.client_attestation_trust_anchor") == null) {
-				throw new TestFailureException(getId(), "vci.client_attestation_trust_anchor must be configured if client_attestation is used as client authentication method.");
+			if (env.getString("config", "client_attestation.trust_anchor") == null
+				&& env.getString("config", "vci.client_attestation_trust_anchor") == null) {
+				throw new TestFailureException(getId(), "client_attestation.trust_anchor must be configured if client_attestation is used as client authentication method.");
 			}
 			callAndStopOnFailure(VCIRegisterClientAttestationTrustAnchor.class, ConditionResult.FAILURE);
 		}

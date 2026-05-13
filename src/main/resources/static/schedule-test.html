@@ -1943,7 +1943,7 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
                                             <div class="input-group-text">
                                                 <span class="bi bi-info-circle-fill" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Pre-configured keys of the client attester in JWKS format. Note the Client Attester Certificate must be provided in the x5c JWK claim as a JSON array with the encoded certificate"></span>
                                             </div>
-                                            <textarea placeholder="REQUIRED" class="form-control config-form-element" data-json-target="vci.client_attester_keys_jwks"></textarea>
+                                            <textarea placeholder="REQUIRED" class="form-control config-form-element" data-json-target="client_attestation.attester_jwks"></textarea>
                                         </div>
                                     </div>
                                 </div>
@@ -1955,7 +1955,7 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
                                             <div class="input-group-text">
                                                 <span class="bi bi-info-circle-fill" data-bs-toggle="tooltip" data-bs-placement="bottom" title="URI used as the client attestation issuer"></span>
                                             </div>
-                                            <input placeholder="REQUIRED" type="text" class="form-control config-form-element" data-json-target="vci.client_attestation_issuer"/>
+                                            <input placeholder="REQUIRED" type="text" class="form-control config-form-element" data-json-target="client_attestation.issuer"/>
                                         </div>
                                     </div>
                                 </div>
@@ -1967,7 +1967,7 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
                                             <div class="input-group-text">
                                                 <span class="bi bi-info-circle-fill" data-bs-toggle="tooltip" data-bs-placement="bottom" title="The trust anchor of the Client Attestation as PEM certificate"></span>
                                             </div>
-                                            <textarea placeholder="REQUIRED" type="text" class="form-control config-form-element" data-json-target="vci.client_attestation_trust_anchor"></textarea>
+                                            <textarea placeholder="REQUIRED" type="text" class="form-control config-form-element" data-json-target="client_attestation.trust_anchor"></textarea>
                                         </div>
                                     </div>
                                 </div>
@@ -1995,7 +1995,7 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
                                             <div class="input-group-text">
                                                 <span class="bi bi-info-circle-fill" data-bs-toggle="tooltip" data-bs-placement="bottom" title="The trust anchor of the Key Attestation as PEM certificate. Leave empty if Key attestation is not used."></span>
                                             </div>
-                                            <textarea placeholder="REQUIRED if Key Attestation is used" type="text" class="form-control config-form-element" data-json-target="vci.key_attestation_trust_anchor_pem"></textarea>
+                                            <textarea placeholder="REQUIRED if Key Attestation is used" type="text" class="form-control config-form-element" data-json-target="client_attestation.key_attestation_trust_anchor_pem"></textarea>
                                         </div>
                                     </div>
                                 </div>

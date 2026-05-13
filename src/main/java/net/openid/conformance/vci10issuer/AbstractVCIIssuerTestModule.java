@@ -151,9 +151,9 @@ import java.util.List;
 @VariantHidesConfigurationFields(parameter = ClientAuthType.class, value = "client_attestation",
 	configurationFields = {"client.jwks"})
 @VariantHidesConfigurationFields(parameter = ClientAuthType.class, value = "private_key_jwt",
-	configurationFields = {"vci.client_attestation_issuer", "vci.client_attestation_trust_anchor"})
+	configurationFields = {"client_attestation.issuer", "client_attestation.trust_anchor"})
 @VariantHidesConfigurationFields(parameter = ClientAuthType.class, value = "mtls",
-	configurationFields = {"vci.client_attestation_issuer", "vci.client_attestation_trust_anchor"})
+	configurationFields = {"client_attestation.issuer", "client_attestation.trust_anchor"})
 public abstract class AbstractVCIIssuerTestModule extends AbstractFAPI2SPFinalServerTestModule {
 
 	protected ClientAuthType clientAuthType;
@@ -275,9 +275,10 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractFAPI2SPFinalSe
 		// which runs before onConfigure(). Validate configuration and call the hook so subclasses
 		// can modify the attestation (e.g. negative tests that invalidate the signature).
 		if (clientAuthType == ClientAuthType.CLIENT_ATTESTATION) {
-			if (env.getString("config", "vci.client_attestation_issuer") == null) {
+			if (env.getString("config", "client_attestation.issuer") == null
+				&& env.getString("config", "vci.client_attestation_issuer") == null) {
 				throw new TestFailureException(getId(),
-					"'Client Attestation Issuer' must be configured in the 'VCI' section "
+					"'Client Attestation Issuer' must be configured in the 'Client Attestation' section "
 						+ "in the test configuration when client_attestation is the client authentication method.");
 			}
 			afterClientAttestationGenerated();
