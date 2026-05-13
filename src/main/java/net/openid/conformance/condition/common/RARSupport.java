@@ -90,7 +90,7 @@ public class RARSupport {
 
 			for (JsonElement element : permissions) {
 				if (!element.isJsonObject() || !element.getAsJsonObject().has("type")) {
-					throw error("The authorization_details claims has entries missing `type` attribute", element.getAsJsonObject());
+					throw error("The authorization_details claims has entries missing `type` attribute", args("entry", element));
 				}
 			}
 

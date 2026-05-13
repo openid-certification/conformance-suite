@@ -110,6 +110,7 @@ public class FAPI2SPFinalRefreshToken extends AbstractFAPI2SPFinalMultipleClient
 		// Save the refresh token prior to, possibly, obtaining a new one.
 		env.putString("refresh_token_prev", env.getString("refresh_token"));
 		call(sequence);
+		call(profileBehavior.afterTokenEndpointResponseProcessed());
 
 		if (getVariant(FAPI2FinalOPProfile.class) != FAPI2FinalOPProfile.OPENBANKING_BRAZIL) {
 			if (env.getString("refresh_token_prev").equals(env.getString("refresh_token"))) {
@@ -121,6 +122,7 @@ public class FAPI2SPFinalRefreshToken extends AbstractFAPI2SPFinalMultipleClient
 
 				ConditionSequence sequence1 = new RefreshTokenRequestSteps(isSecondClient(), addClientAuthentication, isDpop(), "Refresh Token Request With Previous Token, FAPI 2.0 Security Profile 5.3.2.1-9").butFirst(condition(WaitFor30Seconds.class));
 				call(sequence1);
+				call(profileBehavior.afterTokenEndpointResponseProcessed());
 			}
 		}
 

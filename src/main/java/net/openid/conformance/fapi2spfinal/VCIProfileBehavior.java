@@ -32,7 +32,12 @@ import net.openid.conformance.vci10issuer.condition.VCICheckKeyAttestationJwksIf
 import net.openid.conformance.vci10issuer.condition.VCIDetermineCredentialConfigurationTransferMethod;
 import net.openid.conformance.vci10issuer.condition.VCIEnsureResolvedCredentialConfigurationMatchesSelection;
 
+import net.openid.conformance.condition.common.RARSupport;
+import net.openid.conformance.vci10issuer.condition.VCIEnsureCredentialIdentifiersUnchangedAcrossTokenResponses;
+import net.openid.conformance.vci10issuer.condition.VCIExtractCredentialIdentifiersFromTokenEndpointResponse;
 import net.openid.conformance.vci10issuer.condition.VCIExtractCredentialResponse;
+import net.openid.conformance.vci10issuer.condition.VCIValidateOpenidCredentialAuthorizationDetailsInTokenEndpointResponse;
+import net.openid.conformance.vci10issuer.condition.VCIWarnOnAuthorizationDetailsInTokenEndpointResponseConventions;
 import net.openid.conformance.vci10issuer.condition.VCIExtractTlsInfoFromCredentialIssuer;
 import net.openid.conformance.vci10issuer.condition.VCIFetchOAuthorizationServerMetadata;
 import net.openid.conformance.vci10issuer.condition.VCIGenerateClientJwksIfMissing;
@@ -170,6 +175,52 @@ public class VCIProfileBehavior extends FAPI2ProfileBehavior {
 					"OAuth2-ATCA07-1");
 				callAndStopOnFailure(CreateClientAttestationJwt.class, ConditionResult.FAILURE,
 					"OAuth2-ATCA07-1", "HAIP-4.3.1-2");
+			}
+		};
+	}
+
+	@Override
+	public ConditionSequence afterTokenEndpointResponseProcessed() {
+		return new AbstractConditionSequence() {
+			@Override
+			public void evaluate() {
+				// Generic RAR-level checks (presence, array shape, per-entry type).
+				// Gated on authorization_endpoint_request.authorization_details actually
+				// being populated by RARSupport.AddRARToAuthorizationEndpointRequest —
+				// merely populating env.rar during client setup is not enough, since
+				// e.g. the no-scope + AuthorizationRequestType=SIMPLE case populates
+				// rar but never adds authorization_details to the outbound request.
+				call(condition(RARSupport.CheckForAuthorizationDetailsInTokenResponse.class)
+					.skipIfElementMissing("authorization_endpoint_request", "authorization_details")
+					.onSkip(ConditionResult.INFO)
+					.requirements("OID4VCI-1FINAL-6.2", "RFC9396-7")
+					.dontStopOnFailure());
+
+				// openid_credential-specific structural FAILURE checks.
+				call(condition(VCIValidateOpenidCredentialAuthorizationDetailsInTokenEndpointResponse.class)
+					.skipIfElementMissing("token_endpoint_response", "authorization_details")
+					.onSkip(ConditionResult.INFO)
+					.requirements("OID4VCI-1FINAL-6.2", "OID4VCI-1FINAL-5.1.1")
+					.dontStopOnFailure());
+
+				// Cross-response consistency check; must run BEFORE the extractor
+				// overwrites the prior set under client.credential_identifiers_by_config_id.
+				call(condition(VCIEnsureCredentialIdentifiersUnchangedAcrossTokenResponses.class)
+					.skipIfElementMissing("token_endpoint_response", "authorization_details")
+					.onSkip(ConditionResult.INFO)
+					.requirement("OpenID4VCI-739")
+					.dontStopOnFailure());
+
+				// WARNING-grade convention checks.
+				call(condition(VCIWarnOnAuthorizationDetailsInTokenEndpointResponseConventions.class)
+					.skipIfElementMissing("token_endpoint_response", "authorization_details")
+					.onSkip(ConditionResult.INFO)
+					.requirements("OID4VCI-1FINAL-5.1.1", "OID4VCI-1FINAL-6.2")
+					.onFail(ConditionResult.WARNING)
+					.dontStopOnFailure());
+
+				// Finally, record/refresh client.credential_identifiers_by_config_id.
+				callAndStopOnFailure(VCIExtractCredentialIdentifiersFromTokenEndpointResponse.class, "OID4VCI-1FINAL-6.2");
 			}
 		};
 	}
