@@ -1,10 +1,21 @@
 ---
 title: "feat: Group test navigation controls into single widget (R21)"
 type: feat
-status: active
+status: shipped
 date: 2026-04-25
 origin: docs/brainstorms/2026-04-13-cts-ux-improvement-plan-requirements.md
 ---
+
+> **Shipped 2026-05-12.** `cts-test-nav-controls` is in production via
+> `cts-log-detail-header._renderTestNavControlsRow` (slim mode); 14 Storybook
+> stories cover its full contract; page wiring lives in
+> `js/log-detail.js → fetchPlanModules`. The Repeat button was de-duplicated
+> against the sticky status bar's primary action and is no longer emitted by
+> the slim consumption — captured as a design decision in
+> `cts-test-nav-controls.js` and the brainstorm R21 row. The originally-planned
+> U3 ("wire into legacy `templates/logHeader.html`") was superseded by the
+> U1–U8 log-viewer flag-flip (2026-04-27) which deleted that template; live
+> wiring now lives directly in the Lit triad page.
 
 # feat: Group test navigation controls into single widget (R21)
 

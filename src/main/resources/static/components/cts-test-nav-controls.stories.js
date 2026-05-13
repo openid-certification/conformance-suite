@@ -52,8 +52,9 @@ export const MidPlan = {
     expect(progressBar.getAttribute("aria-valuemin")).toBe("1");
     expect(progressBar.getAttribute("aria-valuemax")).toBe("30");
 
-    // All three controls present (default / non-slim mode used by the
-    // legacy log-detail.html page).
+    // All three controls present (default / non-slim mode — the
+    // widget's full contract; the live log-detail page consumes the
+    // slim variant via cts-log-detail-header).
     expect(canvas.getByText(/Return to Plan/)).toBeInTheDocument();
     expect(canvas.getByText(/Repeat Test/)).toBeInTheDocument();
     expect(canvas.getByText(/Continue Plan/)).toBeInTheDocument();
@@ -278,7 +279,7 @@ export const ProgressClampsOutOfRangeIndex = {
 };
 
 export const SlimMidPlan = {
-  // Slim mode is what the v2 log-detail page uses: the page-level
+  // Slim mode is what the log-detail page uses: the page-level
   // breadcrumb owns "Return to Plan" and the sticky status bar primary
   // owns "Repeat", so this widget contributes only progress + Continue.
   render: () =>

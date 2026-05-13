@@ -706,7 +706,13 @@ class CtsLogDetailHeader extends LitElement {
    * @returns {{failure: number, warning: number, review: number, skipped: number, interrupted: number}} Counts keyed by severity.
    */
   _countFailureSeverities(failures) {
-    const counts = { failure: 0, warning: 0, review: 0, skipped: 0, interrupted: 0 };
+    const counts = {
+      failure: 0,
+      warning: 0,
+      review: 0,
+      skipped: 0,
+      interrupted: 0,
+    };
     for (const entry of failures || []) {
       const key = (entry.result || "").toLowerCase();
       if (key in counts) counts[key]++;
@@ -1106,10 +1112,7 @@ class CtsLogDetailHeader extends LitElement {
     // log-detail.html) already links back to the plan, and the
     // sticky status bar's primary action already carries Repeat — so
     // emitting them again here would duplicate two prominent
-    // affordances inside one viewport. The legacy log-detail.html mounts
-    // cts-test-nav-controls without `slim`, so that page keeps the full
-    // cluster (it has no breadcrumb-driven back nav and no
-    // status-bar-primary Repeat to inherit from).
+    // affordances inside one viewport.
     return html`
       <div class="ctsNavRow" data-testid="nav-row">
         <cts-test-nav-controls
@@ -1219,13 +1222,13 @@ class CtsLogDetailHeader extends LitElement {
       return html`
         <div class="ctsHero ctsHero--summary" data-testid="hero-summary">
           <div class="ctsHeroEyebrow">About this test</div>
-          <div class="ctsHeroPlaceholder">No description available for this test.</div>
+          <div class="ctsHeroPlaceholder"> No description available for this test. </div>
         </div>
       `;
     }
     return html`
       <div class="ctsHero ctsHero--summary" data-testid="hero-summary">
-        <div class="ctsHeroEyebrow" data-testid="about-test-zone">About this test</div>
+        <div class="ctsHeroEyebrow" data-testid="about-test-zone"> About this test </div>
         <div class="ctsHeroBody">${description}</div>
       </div>
     `;
@@ -1245,7 +1248,7 @@ class CtsLogDetailHeader extends LitElement {
     const instructions = summarySplit.instructions || "Click Start when you're ready.";
     return html`
       <div class="ctsHero ctsHero--waiting" data-testid="hero-waiting">
-        <div class="ctsHeroEyebrow" data-testid="user-instructions-zone">Action required</div>
+        <div class="ctsHeroEyebrow" data-testid="user-instructions-zone"> Action required </div>
         <div class="ctsHeroBody">${instructions}</div>
         ${this._renderExposedValues(test)}
         <div id="runningTestBrowser" data-slot="browser" data-testid="running-browser-slot"></div>
@@ -1297,7 +1300,7 @@ class CtsLogDetailHeader extends LitElement {
             <cts-icon name="chevron-right" size="16"></cts-icon>
             Test details
           </summary>
-          <div class="ctsDrawerBody">${this._renderMetadataTable(test)}</div>
+          <div class="ctsDrawerBody"> ${this._renderMetadataTable(test)} </div>
         </details>
         <details data-testid="drawer-config">
           <summary>
@@ -1327,13 +1330,17 @@ class CtsLogDetailHeader extends LitElement {
         ${variantStr
           ? html`
               <div class="logMetaLabel">Variant:</div>
-              <div class="logMetaValue"><span class="mono">${variantStr}</span></div>
+              <div class="logMetaValue">
+                <span class="mono">${variantStr}</span>
+              </div>
             `
           : nothing}
         <div class="logMetaLabel">Test ID:</div>
-        <div class="logMetaValue"><span class="mono">${test.testId}</span></div>
+        <div class="logMetaValue">
+          <span class="mono">${test.testId}</span>
+        </div>
         <div class="logMetaLabel">Created:</div>
-        <div class="logMetaValue tabular-nums">${this._formatDate(test.created)}</div>
+        <div class="logMetaValue tabular-nums"> ${this._formatDate(test.created)} </div>
         ${test.description
           ? html`
               <div class="logMetaLabel">Description:</div>
@@ -1343,12 +1350,14 @@ class CtsLogDetailHeader extends LitElement {
         ${test.version
           ? html`
               <div class="logMetaLabel">Test Version:</div>
-              <div class="logMetaValue"><span class="mono">${test.version}</span></div>
+              <div class="logMetaValue">
+                <span class="mono">${test.version}</span>
+              </div>
             `
           : nothing}
         ${this.isAdmin && test.owner
           ? html`
-              <div class="logMetaLabel" data-testid="owner-row">Test Owner:</div>
+              <div class="logMetaLabel" data-testid="owner-row"> Test Owner: </div>
               <div class="logMetaValue">
                 ${test.owner.sub}${test.owner.iss ? ` (${test.owner.iss})` : ""}
               </div>
@@ -1357,7 +1366,9 @@ class CtsLogDetailHeader extends LitElement {
         ${test.planId
           ? html`
               <div class="logMetaLabel">Plan ID:</div>
-              <div class="logMetaValue"><span class="mono">${test.planId}</span></div>
+              <div class="logMetaValue">
+                <span class="mono">${test.planId}</span>
+              </div>
             `
           : nothing}
       </div>
