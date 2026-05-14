@@ -559,6 +559,7 @@ public abstract class AbstractVCIWalletTest extends net.openid.conformance.fapi2
 					NOTIFICATION_PATH,
 					isMTLSConstrain(),
 					notificationsSupportEnabled,
+					/* deferredEnabled */ true,
 					vciCredentialEncryption == VCICredentialEncryption.ENCRYPTED));
 		} catch (IllegalStateException e) {
 			throw new TestFailureException(getId(), e.getMessage());
