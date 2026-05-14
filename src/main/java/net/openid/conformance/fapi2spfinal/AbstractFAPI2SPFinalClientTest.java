@@ -724,26 +724,92 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 	}
 
 	protected void validateResourceEndpointHeaders() {
-		// FIXME: No obvious FAPI2 equivalent
-		skipIfElementMissing("incoming_request", "headers.x-fapi-auth-date", ConditionResult.INFO,
-			ExtractFapiDateHeader.class, ConditionResult.FAILURE, "FAPI1-BASE-6.2.2-3");
-
-		// FIXME: No obvious FAPI2 equivalent
-		skipIfElementMissing("incoming_request", "headers.x-fapi-customer-ip-address", ConditionResult.INFO,
-			ExtractFapiIpAddressHeader.class, ConditionResult.FAILURE, "FAPI1-BASE-6.2.2-4");
-
-		call(profileBehavior.extractFapiInteractionIdHeader());
-		callAndContinueOnFailure(ValidateFAPIInteractionIdInResourceRequest.class, ConditionResult.FAILURE, "CID-SP-4.3-9", "FAPI2-IMP-2.1.1");
-
+		call(validateResourceEndpointHeadersSequence());
 	}
+
+	/**
+	 * Sequence form of {@link #validateResourceEndpointHeaders()} for callers that need
+	 * to embed the FAPI resource header checks inside a ConditionSequence (e.g. a
+	 * profile behavior's PathDispatch). The imperative override is preserved for
+	 * subclasses that have their own header check shape (e.g. AbstractVCIWalletTest).
+	 */
+	public ConditionSequence validateResourceEndpointHeadersSequence() {
+		final FAPI2ClientProfileBehavior pb = this.profileBehavior;
+		return new AbstractConditionSequence() {
+			@Override
+			public void evaluate() {
+				// FIXME: No obvious FAPI2 equivalent
+				call(condition(ExtractFapiDateHeader.class)
+					.skipIfElementMissing("incoming_request", "headers.x-fapi-auth-date")
+					.onSkip(ConditionResult.INFO)
+					.onFail(ConditionResult.FAILURE)
+					.requirements("FAPI1-BASE-6.2.2-3")
+					.dontStopOnFailure());
+
+				// FIXME: No obvious FAPI2 equivalent
+				call(condition(ExtractFapiIpAddressHeader.class)
+					.skipIfElementMissing("incoming_request", "headers.x-fapi-customer-ip-address")
+					.onSkip(ConditionResult.INFO)
+					.onFail(ConditionResult.FAILURE)
+					.requirements("FAPI1-BASE-6.2.2-4")
+					.dontStopOnFailure());
+
+				call(pb.extractFapiInteractionIdHeader());
+				callAndContinueOnFailure(ValidateFAPIInteractionIdInResourceRequest.class, ConditionResult.FAILURE, "CID-SP-4.3-9", "FAPI2-IMP-2.1.1");
+			}
+		};
+	}
+
 	protected void checkResourceEndpointRequest(boolean useClientCredentialsAccessToken) {
-		senderConstrainTokenRequestHelper.checkResourceRequest();
-		if(useClientCredentialsAccessToken) {
-			call(sequence(validateSenderConstrainedClientCredentialAccessTokenSteps));
-		} else {
-			call(sequence(validateSenderConstrainedTokenSteps));
+		call(checkResourceEndpointRequestSequence(useClientCredentialsAccessToken));
+	}
+
+	/**
+	 * Sequence form of {@link #checkResourceEndpointRequest(boolean)} covering the full
+	 * resource-endpoint request validation: sender-constrain proof, access-token
+	 * validation, and FAPI resource headers. Suitable for embedding inside a
+	 * profile-behavior PathDispatch sequence. The DPoP-nonce-error short-circuit
+	 * is NOT included here — callers must handle a populated
+	 * {@code resource_endpoint_dpop_nonce_error} themselves (run
+	 * {@link CreateResourceEndpointDpopErrorResponse} and return its response without
+	 * consuming the c_nonce).
+	 */
+	public ConditionSequence checkResourceEndpointRequestSequence(boolean useClientCredentialsAccessToken) {
+		final AbstractFAPI2SPFinalClientTest self = this;
+		final Class<? extends ConditionSequence> tokenSteps = useClientCredentialsAccessToken
+			? validateSenderConstrainedClientCredentialAccessTokenSteps
+			: validateSenderConstrainedTokenSteps;
+		return new AbstractConditionSequence() {
+			@Override
+			public void evaluate() {
+				call(self.senderConstrainTokenRequestHelper.resourceRequestChecksSequence());
+				call(sequence(tokenSteps));
+				call(self.validateResourceEndpointHeadersSequence());
+			}
+		};
+	}
+
+	/**
+	 * DPoP-nonce-error short-circuit: when sender-constrain populated
+	 * {@code resource_endpoint_dpop_nonce_error} (e.g. wallet sent no DPoP nonce or a
+	 * stale one), build the prepared 401 DPoP error response without running any
+	 * downstream c_nonce-consuming validation. Returns the prepared ResponseEntity, or
+	 * {@code null} when no DPoP-nonce error is pending. Callers should invoke this
+	 * AFTER {@link #checkResourceEndpointRequest(boolean)} but BEFORE proof JWT
+	 * validation, so a wallet retrying with the correct DPoP nonce still has a usable
+	 * c_nonce.
+	 */
+	public ResponseEntity<?> handlePendingDpopNonceErrorResponse() {
+		if (!isDpopConstrain()) {
+			return null;
 		}
-		validateResourceEndpointHeaders();
+		if (Strings.isNullOrEmpty(env.getString("resource_endpoint_dpop_nonce_error"))) {
+			return null;
+		}
+		callAndContinueOnFailure(CreateResourceEndpointDpopErrorResponse.class, ConditionResult.FAILURE);
+		return new ResponseEntity<>(env.getObject("resource_endpoint_response"),
+			headersFromJson(env.getObject("resource_endpoint_response_headers")),
+			HttpStatus.valueOf(env.getInteger("resource_endpoint_response_http_status").intValue()));
 	}
 
 	/**

@@ -101,7 +101,6 @@ import net.openid.conformance.condition.common.RARSupport;
 import net.openid.conformance.condition.common.RARSupport.EnsureEffectiveAuthorizationEndpointRequestContainsValidRAR;
 import net.openid.conformance.condition.rs.ClearAccessTokenFromRequest;
 import net.openid.conformance.condition.rs.CreateFAPIAccountEndpointResponse;
-import net.openid.conformance.condition.rs.CreateResourceEndpointDpopErrorResponse;
 import net.openid.conformance.condition.rs.CreateResourceServerDpopNonce;
 import net.openid.conformance.condition.rs.EnsureIncomingRequestMethodIsGet;
 import net.openid.conformance.condition.rs.EnsureIncomingRequestMethodIsPost;
@@ -1129,11 +1128,11 @@ public abstract class AbstractVCIWalletTest extends net.openid.conformance.fapi2
 
 		// If there's a DPoP nonce error, return it immediately before validating the credential proof.
 		// This ensures the c_nonce isn't consumed, allowing the client to retry with the correct DPoP nonce.
-		if (isDpopConstrain() && !Strings.isNullOrEmpty(env.getString("resource_endpoint_dpop_nonce_error"))) {
-			callAndContinueOnFailure(CreateResourceEndpointDpopErrorResponse.class, ConditionResult.FAILURE);
+		ResponseEntity<?> dpopNonceErrorResponse = handlePendingDpopNonceErrorResponse();
+		if (dpopNonceErrorResponse != null) {
 			call(exec().unmapKey("incoming_request").endBlock());
 			setStatus(Status.WAITING);
-			return new ResponseEntity<>(env.getObject("resource_endpoint_response"), headersFromJson(env.getObject("resource_endpoint_response_headers")), HttpStatus.valueOf(env.getInteger("resource_endpoint_response_http_status").intValue()));
+			return dpopNonceErrorResponse;
 		}
 
 		// Validate Content-Type and (where applicable) decrypt the credential request.
@@ -1380,10 +1379,12 @@ public abstract class AbstractVCIWalletTest extends net.openid.conformance.fapi2
 		call(exec().unmapKey("incoming_request").endBlock());
 
 		ResponseEntity<Object> responseEntity;
-		if (isDpopConstrain() && !Strings.isNullOrEmpty(env.getString("resource_endpoint_dpop_nonce_error"))) {
-			callAndContinueOnFailure(CreateResourceEndpointDpopErrorResponse.class, ConditionResult.FAILURE);
+		ResponseEntity<?> dpopNonceErrorResponse = handlePendingDpopNonceErrorResponse();
+		if (dpopNonceErrorResponse != null) {
 			setStatus(Status.WAITING);
-			responseEntity = new ResponseEntity<>(env.getObject("resource_endpoint_response"), headersFromJson(env.getObject("resource_endpoint_response_headers")), HttpStatus.valueOf(env.getInteger("resource_endpoint_response_http_status").intValue()));
+			@SuppressWarnings("unchecked")
+			ResponseEntity<Object> typed = (ResponseEntity<Object>) dpopNonceErrorResponse;
+			responseEntity = typed;
 		} else {
 			JsonObject headerJson = env.getObject("credential_endpoint_response_headers");
 
@@ -1651,34 +1652,56 @@ public abstract class AbstractVCIWalletTest extends net.openid.conformance.fapi2
 	}
 
 	@Override
-	protected void validateResourceEndpointHeaders() {
-		// FIXME: No obvious FAPI2 equivalent
-		skipIfElementMissing("incoming_request", "headers.x-fapi-auth-date", ConditionResult.INFO,
-			ExtractFapiDateHeader.class, ConditionResult.FAILURE, "FAPI1-BASE-6.2.2-3");
+	public ConditionSequence validateResourceEndpointHeadersSequence() {
+		return new AbstractConditionSequence() {
+			@Override
+			public void evaluate() {
+				// FIXME: No obvious FAPI2 equivalent
+				call(condition(ExtractFapiDateHeader.class)
+					.skipIfElementMissing("incoming_request", "headers.x-fapi-auth-date")
+					.onSkip(ConditionResult.INFO)
+					.onFail(ConditionResult.FAILURE)
+					.requirements("FAPI1-BASE-6.2.2-3")
+					.dontStopOnFailure());
 
-		// FIXME: No obvious FAPI2 equivalent
-		skipIfElementMissing("incoming_request", "headers.x-fapi-customer-ip-address", ConditionResult.INFO,
-			ExtractFapiIpAddressHeader.class, ConditionResult.FAILURE, "FAPI1-BASE-6.2.2-4");
+				// FIXME: No obvious FAPI2 equivalent
+				call(condition(ExtractFapiIpAddressHeader.class)
+					.skipIfElementMissing("incoming_request", "headers.x-fapi-customer-ip-address")
+					.onSkip(ConditionResult.INFO)
+					.onFail(ConditionResult.FAILURE)
+					.requirements("FAPI1-BASE-6.2.2-4")
+					.dontStopOnFailure());
 
-		skipIfElementMissing("incoming_request", "headers.x-fapi-interaction-id", ConditionResult.INFO,
-			ExtractFapiInteractionIdHeader.class, ConditionResult.FAILURE, "FAPI2-IMP-2.1.1");
-		callAndContinueOnFailure(ValidateFAPIInteractionIdInResourceRequest.class, ConditionResult.FAILURE, "FAPI2-IMP-2.1.1");
-
+				call(condition(ExtractFapiInteractionIdHeader.class)
+					.skipIfElementMissing("incoming_request", "headers.x-fapi-interaction-id")
+					.onSkip(ConditionResult.INFO)
+					.onFail(ConditionResult.FAILURE)
+					.requirements("FAPI2-IMP-2.1.1")
+					.dontStopOnFailure());
+				callAndContinueOnFailure(ValidateFAPIInteractionIdInResourceRequest.class, ConditionResult.FAILURE, "FAPI2-IMP-2.1.1");
+			}
+		};
 	}
 
+	/**
+	 * VCI-specific resource endpoint request validation. Runs the {@code application/json}
+	 * bearer-in-params check first (returns a 400 error response immediately when it
+	 * fires, since later steps depend on a valid request shape), then delegates to the
+	 * inherited {@link #checkResourceEndpointRequest(boolean)} for sender-constrain,
+	 * access-token validation, and FAPI resource headers. Polymorphism picks the
+	 * wallet-specific {@link #validateResourceEndpointHeadersSequence()} override.
+	 *
+	 * <p>Returns the prepared 400 ResponseEntity if the bearer-in-params check failed,
+	 * else {@code null} for "proceed". Does NOT handle the DPoP-nonce-error short-circuit
+	 * — call {@link #handlePendingDpopNonceErrorResponse()} afterwards for that.
+	 */
 	protected ResponseEntity<?> checkResourceEndpointRequestForVci(boolean useClientCredentialsAccessToken) {
 		ResponseEntity<?> responseEntity = callAndContinueOnFailureOrReturnErrorResponse(VCIEnsureBearerAccessTokenNotInParams.class, ConditionResult.FAILURE, "FAPI2-SP-FINAL-5.3.4-2");
 		if (responseEntity != null) {
 			return responseEntity;
 		}
-		senderConstrainTokenRequestHelper.checkResourceRequest();
-		if (useClientCredentialsAccessToken) {
-			call(sequence(validateSenderConstrainedClientCredentialAccessTokenSteps));
-		} else {
-			call(sequence(validateSenderConstrainedTokenSteps));
-		}
-		validateResourceEndpointHeaders();
-		return responseEntity;
+		checkResourceEndpointRequest(useClientCredentialsAccessToken);
+		return null;
 	}
 
 	@Override
@@ -1894,11 +1917,13 @@ public abstract class AbstractVCIWalletTest extends net.openid.conformance.fapi2
 
 		call(exec().unmapKey("incoming_request").endBlock());
 
-		ResponseEntity<Object> responseEntity = null;
-		if (isDpopConstrain() && !Strings.isNullOrEmpty(env.getString("resource_endpoint_dpop_nonce_error"))) {
-			callAndContinueOnFailure(CreateResourceEndpointDpopErrorResponse.class, ConditionResult.FAILURE);
+		ResponseEntity<Object> responseEntity;
+		ResponseEntity<?> dpopNonceErrorResponse = handlePendingDpopNonceErrorResponse();
+		if (dpopNonceErrorResponse != null) {
 			setStatus(Status.WAITING);
-			responseEntity = new ResponseEntity<>(env.getObject("resource_endpoint_response"), headersFromJson(env.getObject("resource_endpoint_response_headers")), HttpStatus.valueOf(env.getInteger("resource_endpoint_response_http_status").intValue()));
+			@SuppressWarnings("unchecked")
+			ResponseEntity<Object> typed = (ResponseEntity<Object>) dpopNonceErrorResponse;
+			responseEntity = typed;
 		} else {
 			if (requireResourceServerEndpointDpopNonce()) {
 				callAndContinueOnFailure(CreateResourceServerDpopNonce.class, ConditionResult.INFO);
@@ -2491,11 +2516,13 @@ public abstract class AbstractVCIWalletTest extends net.openid.conformance.fapi2
 
 		call(exec().unmapKey("incoming_request").endBlock());
 
-		ResponseEntity<Object> responseEntity = null;
-		if (isDpopConstrain() && !Strings.isNullOrEmpty(env.getString("resource_endpoint_dpop_nonce_error"))) {
-			callAndContinueOnFailure(CreateResourceEndpointDpopErrorResponse.class, ConditionResult.FAILURE);
+		ResponseEntity<Object> responseEntity;
+		ResponseEntity<?> dpopNonceErrorResponse = handlePendingDpopNonceErrorResponse();
+		if (dpopNonceErrorResponse != null) {
 			setStatus(Status.WAITING);
-			responseEntity = new ResponseEntity<>(env.getObject("resource_endpoint_response"), headersFromJson(env.getObject("resource_endpoint_response_headers")), HttpStatus.valueOf(env.getInteger("resource_endpoint_response_http_status").intValue()));
+			@SuppressWarnings("unchecked")
+			ResponseEntity<Object> typed = (ResponseEntity<Object>) dpopNonceErrorResponse;
+			responseEntity = typed;
 		} else {
 			JsonObject accountsEndpointResponse = env.getObject("accounts_endpoint_response");
 			JsonObject headerJson = env.getObject("accounts_endpoint_response_headers");

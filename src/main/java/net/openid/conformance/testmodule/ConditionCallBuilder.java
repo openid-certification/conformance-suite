@@ -23,6 +23,7 @@ public class ConditionCallBuilder implements TestExecutionUnit {
 	private boolean stopOnFailure = true;
 	private List<String> skipIfObjectsMissing = new ArrayList<>();
 	private List<String> skipIfStringsMissing = new ArrayList<>();
+	private List<String> skipIfStringsPresent = new ArrayList<>();
 	private List<String> skipIfLongsMissing = new ArrayList<>();
 	private List<Pair<String, String>> skipIfElementsMissing = new ArrayList<>();
 	private List<Pair<String, String>> skipIfElementsPresent = new ArrayList<>();
@@ -189,6 +190,41 @@ public class ConditionCallBuilder implements TestExecutionUnit {
 	}
 
 	/**
+	 * Add a string reference to search the Environment for prior to execution. If the string
+	 * IS present in the Environment at runtime, the condition is not evaluated and the
+	 * result stored in onSkip is logged. The mirror of {@link #skipIfStringMissing} —
+	 * useful for self-gating a downstream condition on a prior signal (e.g. skip the
+	 * c_nonce-consuming proof validation when {@code resource_endpoint_dpop_nonce_error}
+	 * was populated, so the client's c_nonce isn't burned on a DPoP-nonce-only retry).
+	 *
+	 * See Environment.getString(String)
+	 *
+	 * @param skipIfStringPresent the string reference to search for
+	 * @return this builder
+	 */
+	public ConditionCallBuilder skipIfStringPresent(String skipIfStringPresent) {
+		this.skipIfStringsPresent.add(skipIfStringPresent);
+		return this;
+	}
+
+	/**
+	 * Add several string references to search the Environment for prior to execution. If any
+	 * of these strings ARE present in the Environment at runtime, the condition is not
+	 * evaluated and the result stored in onSkip is logged.
+	 *
+	 * See Environment.getString(String)
+	 *
+	 * @param skipIfStringsPresent the string references to search for
+	 * @return this builder
+	 */
+	public ConditionCallBuilder skipIfStringsPresent(String... skipIfStringsPresent) {
+		if (skipIfStringsPresent != null) {
+			Collections.addAll(this.skipIfStringsPresent, skipIfStringsPresent);
+		}
+		return this;
+	}
+
+	/**
 	 * Add several long references to search the Environment for prior to execution. If any
 	 * of these longs are not found in the Environment at runtime, the condition is not evaluated
 	 * and the result stored in onSkip is logged.
@@ -315,6 +351,15 @@ public class ConditionCallBuilder implements TestExecutionUnit {
 	 */
 	public List<String> getSkipIfStringsMissing() {
 		return skipIfStringsMissing;
+	}
+
+	/**
+	 * If any of these strings are present in the Environment, the condition call is skipped. Defaults to an empty list.
+	 *
+	 * @return the list of strings to search for
+	 */
+	public List<String> getSkipIfStringsPresent() {
+		return skipIfStringsPresent;
 	}
 
 	/**

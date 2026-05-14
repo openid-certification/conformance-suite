@@ -9,6 +9,7 @@ import net.openid.conformance.condition.as.CreateSdJwtCredential;
 import net.openid.conformance.condition.as.GenerateCredentialNonce;
 import net.openid.conformance.condition.as.GenerateCredentialNonceResponse;
 import net.openid.conformance.condition.rs.ClearAccessTokenFromRequest;
+import net.openid.conformance.condition.rs.CreateResourceEndpointDpopErrorResponse;
 import net.openid.conformance.condition.rs.EnsureIncomingRequestMethodIsPost;
 import net.openid.conformance.sequence.AbstractConditionSequence;
 import net.openid.conformance.sequence.ConditionSequence;
@@ -245,27 +246,46 @@ public class VCIClientProfileBehavior extends FAPI2ClientProfileBehavior {
 				call(exec().startBlock("Credential endpoint"));
 				call(exec().mapKey("incoming_request", requestId));
 
-				// Sender-constrain (DPoP proof binding etc.) — halts on failure.
-				call(module.senderConstrainTokenRequestHelper.resourceRequestChecksSequence());
+				// Resource-endpoint request validation: sender-constrain proof, access-token
+				// validation (DPoP jkt + proof ath / mTLS), and FAPI resource headers.
+				// Halts on hard failures inside the embedded sequence.
+				call(module.checkResourceEndpointRequestSequence(false));
+
+				// DPoP-nonce-error short-circuit: when sender-constrain populated
+				// resource_endpoint_dpop_nonce_error (stale or missing DPoP nonce), build the
+				// prepared 401 DPoP error response. Subsequent c_nonce-consuming validation
+				// is gated below via skipIfStringPresent so the wallet's c_nonce isn't burned
+				// on this attempt — the response lambda short-circuits to this response.
+				call(condition(CreateResourceEndpointDpopErrorResponse.class)
+					.skipIfStringMissing("resource_endpoint_dpop_nonce_error")
+					.onFail(ConditionResult.FAILURE)
+					.dontStopOnFailure());
 
 				// Validation phase: bearer token in URL, structure, unexpected params,
 				// credential-config resolution. Each step after the first self-skips when
 				// a prior step populated vci.credential_error_response, giving the
 				// short-circuit-on-error semantics without imperative bridges.
+				// POST method + bearer-in-params are pre-checks that don't consume the
+				// c_nonce, so they run unconditionally — even on the DPoP-nonce-error path
+				// they log a useful failure without disturbing the wallet's retry. Matches
+				// the wallet's credential endpoint at AbstractVCIWalletTest.credentialEndpoint.
 				callAndContinueOnFailure(EnsureIncomingRequestMethodIsPost.class, ConditionResult.FAILURE, "OID4VCI-1FINAL-8.2");
 				callAndContinueOnFailure(VCIEnsureBearerAccessTokenNotInParams.class, ConditionResult.FAILURE, "FAPI2-SP-FINAL-5.3.4-2");
 				call(condition(VCIValidateCredentialRequestStructure.class)
 					.skipIfElementPresent("vci", "credential_error_response")
+					.skipIfStringPresent("resource_endpoint_dpop_nonce_error")
 					.onFail(ConditionResult.FAILURE)
 					.requirements("OID4VCI-1FINAL-8.2")
 					.dontStopOnFailure());
 				call(condition(CheckForUnexpectedParametersInCredentialRequest.class)
 					.skipIfElementPresent("vci", "credential_error_response")
+					.skipIfStringPresent("resource_endpoint_dpop_nonce_error")
 					.onFail(ConditionResult.WARNING)
 					.requirements("OID4VCI-1FINAL-8.2")
 					.dontStopOnFailure());
 				call(condition(VCIResolveRequestedCredentialConfigurationFromRequest.class)
 					.skipIfElementPresent("vci", "credential_error_response")
+					.skipIfStringPresent("resource_endpoint_dpop_nonce_error")
 					.onFail(ConditionResult.FAILURE)
 					.requirements("OID4VCI-1FINAL-8.2")
 					.dontStopOnFailure());
@@ -278,24 +298,28 @@ public class VCIClientProfileBehavior extends FAPI2ClientProfileBehavior {
 				// proof-type-specific conditions then self-gate on their flag.
 				call(condition(VCIExtractCredentialRequestProof.class)
 					.skipIfElementPresent("vci", "credential_error_response")
+					.skipIfStringPresent("resource_endpoint_dpop_nonce_error")
 					.skipIfElementMissing("credential_configuration", "cryptographic_binding_methods_supported")
 					.onFail(ConditionResult.FAILURE)
 					.requirements("OID4VCI-1FINALA-F.4")
 					.dontStopOnFailure());
 				call(condition(VCISetProofTypeFlag.class)
 					.skipIfElementPresent("vci", "credential_error_response")
+					.skipIfStringPresent("resource_endpoint_dpop_nonce_error")
 					.skipIfElementMissing("credential_configuration", "cryptographic_binding_methods_supported")
 					.onFail(ConditionResult.FAILURE)
 					.dontStopOnFailure());
 				// proof_type=jwt
 				call(condition(VCIValidateCredentialRequestJwtProof.class)
 					.skipIfElementPresent("vci", "credential_error_response")
+					.skipIfStringPresent("resource_endpoint_dpop_nonce_error")
 					.skipIfElementMissing("vci", "proof_type_jwt")
 					.onFail(ConditionResult.FAILURE)
 					.requirements("OID4VCI-1FINALA-F.1", "OID4VCI-1FINALA-F.4")
 					.dontStopOnFailure());
 				call(condition(VCIValidateAttestedKeysInKeyAttestationFromJwtProof.class)
 					.skipIfElementPresent("vci", "credential_error_response")
+					.skipIfStringPresent("resource_endpoint_dpop_nonce_error")
 					.skipIfElementMissing("vci", "proof_type_jwt")
 					.onFail(ConditionResult.FAILURE)
 					.requirements("OID4VCI-1FINALA-F.1", "OID4VCI-1FINALA-F.4")
@@ -303,12 +327,14 @@ public class VCIClientProfileBehavior extends FAPI2ClientProfileBehavior {
 				// proof_type=attestation
 				call(condition(VCIValidateCredentialRequestAttestationProof.class)
 					.skipIfElementPresent("vci", "credential_error_response")
+					.skipIfStringPresent("resource_endpoint_dpop_nonce_error")
 					.skipIfElementMissing("vci", "proof_type_attestation")
 					.onFail(ConditionResult.FAILURE)
 					.requirements("OID4VCI-1FINALA-F.3", "OID4VCI-1FINALA-F.4", "HAIP-4.5.1")
 					.dontStopOnFailure());
 				call(condition(ValidateKeyAttestationX5cCertificateChain.class)
 					.skipIfElementPresent("vci", "credential_error_response")
+					.skipIfStringPresent("resource_endpoint_dpop_nonce_error")
 					.skipIfElementMissing("vci", "proof_type_attestation")
 					.onFail(ConditionResult.FAILURE)
 					.requirements("HAIP-4.5.1")
@@ -316,6 +342,7 @@ public class VCIClientProfileBehavior extends FAPI2ClientProfileBehavior {
 				// proof_type=di_vp
 				call(condition(VCIValidateCredentialRequestDiVpProof.class)
 					.skipIfElementPresent("vci", "credential_error_response")
+					.skipIfStringPresent("resource_endpoint_dpop_nonce_error")
 					.skipIfElementMissing("vci", "proof_type_di_vp")
 					.onFail(ConditionResult.FAILURE)
 					.requirements("OID4VCI-1FINALA-F.2", "OID4VCI-1FINALA-F.4")
@@ -326,13 +353,16 @@ public class VCIClientProfileBehavior extends FAPI2ClientProfileBehavior {
 				// conditions self-gate on it; only the active format actually fires.
 				call(condition(CreateFapiInteractionIdIfNeeded.class)
 					.skipIfElementPresent("vci", "credential_error_response")
+					.skipIfStringPresent("resource_endpoint_dpop_nonce_error")
 					.onFail(ConditionResult.FAILURE)
 					.requirements("FAPI2-IMP-2.2.1"));
 				call(condition(VCISetCredentialFormatFlag.class)
 					.skipIfElementPresent("vci", "credential_error_response")
+					.skipIfStringPresent("resource_endpoint_dpop_nonce_error")
 					.onFail(ConditionResult.FAILURE));
 				call(condition(CreateMdocCredentialForVCI.class)
 					.skipIfElementPresent("vci", "credential_error_response")
+					.skipIfStringPresent("resource_endpoint_dpop_nonce_error")
 					.skipIfElementMissing("vci", "format_mso_mdoc")
 					.onFail(ConditionResult.FAILURE)
 					.requirements("OID4VCI-1FINALA-G.1"));
@@ -341,26 +371,43 @@ public class VCIClientProfileBehavior extends FAPI2ClientProfileBehavior {
 				// dispatch-build time, so we pick the right constructor here.
 				call(condition(new CreateSdJwtCredential(additionalClaims))
 					.skipIfElementPresent("vci", "credential_error_response")
+					.skipIfStringPresent("resource_endpoint_dpop_nonce_error")
 					.skipIfElementMissing("vci", "format_sd_jwt")
 					.onFail(ConditionResult.FAILURE)
 					.requirements("OID4VCI-1FINALA-F.1", "OID4VCI-1FINALA-F.3"));
 
 				call(condition(VCICreateCredentialEndpointResponse.class)
 					.skipIfElementPresent("vci", "credential_error_response")
+					.skipIfStringPresent("resource_endpoint_dpop_nonce_error")
 					.onFail(ConditionResult.FAILURE)
 					.requirements("OID4VCI-1FINAL-8.3"));
 				call(condition(VCIAddNotificationIdToCredentialEndpointResponse.class)
 					.skipIfElementPresent("vci", "credential_error_response")
+					.skipIfStringPresent("resource_endpoint_dpop_nonce_error")
 					.onFail(ConditionResult.FAILURE)
 					.requirements("OID4VCI-1FINAL-8.3"));
 				call(condition(ClearAccessTokenFromRequest.class)
 					.skipIfElementPresent("vci", "credential_error_response")
+					.skipIfStringPresent("resource_endpoint_dpop_nonce_error")
 					.onFail(ConditionResult.FAILURE));
 
 				call(exec().unmapKey("incoming_request").endBlock());
 			}
 		};
 		return new PathDispatch(sequence, m -> {
+			// DPoP-nonce-error path: sender-constrain populated
+			// resource_endpoint_dpop_nonce_error and the sequence ran
+			// CreateResourceEndpointDpopErrorResponse. Return the prepared 401 response
+			// (so the wallet retries with the correct nonce) without consuming the
+			// c_nonce — c_nonce-consuming validation was skipped via skipIfStringPresent.
+			if (m.getEnv().getString("resource_endpoint_dpop_nonce_error") != null) {
+				JsonObject body = m.getEnv().getObject("resource_endpoint_response");
+				JsonObject headers = m.getEnv().getObject("resource_endpoint_response_headers");
+				Integer status = m.getEnv().getInteger("resource_endpoint_response_http_status");
+				return ResponseEntity.status(status)
+					.headers(headersFromJson(headers))
+					.body(body);
+			}
 			// Error path: validation surfaced a vci.credential_error_response; turn it
 			// into a 400 with the prepared body, clear the sentinel so subsequent calls
 			// (deferred endpoint etc.) aren't poisoned.
@@ -406,13 +453,44 @@ public class VCIClientProfileBehavior extends FAPI2ClientProfileBehavior {
 			public void evaluate() {
 				call(exec().startBlock("Notification endpoint"));
 				call(exec().mapKey("incoming_request", requestId));
-				call(module.senderConstrainTokenRequestHelper.resourceRequestChecksSequence());
-				callAndContinueOnFailure(VCIValidateNotificationRequest.class, ConditionResult.FAILURE, "OID4VCI-1FINAL-11.1");
-				callAndContinueOnFailure(VCICheckForUnknownFieldsInNotificationRequest.class, ConditionResult.WARNING, "OID4VCI-1FINAL-11.1");
+				// Full resource-endpoint request validation: sender-constrain proof,
+				// access-token validation, FAPI resource headers. Matches the wallet's
+				// notification endpoint at AbstractVCIWalletTest.notificationEndpoint.
+				call(module.checkResourceEndpointRequestSequence(false));
+				// DPoP-nonce-error short-circuit: build the prepared 401 response when
+				// sender-constrain populated resource_endpoint_dpop_nonce_error. Skip the
+				// notification validation below in that case so the wallet can retry.
+				call(condition(CreateResourceEndpointDpopErrorResponse.class)
+					.skipIfStringMissing("resource_endpoint_dpop_nonce_error")
+					.onFail(ConditionResult.FAILURE)
+					.dontStopOnFailure());
+				call(condition(VCIValidateNotificationRequest.class)
+					.skipIfStringPresent("resource_endpoint_dpop_nonce_error")
+					.onFail(ConditionResult.FAILURE)
+					.requirements("OID4VCI-1FINAL-11.1")
+					.dontStopOnFailure());
+				call(condition(VCICheckForUnknownFieldsInNotificationRequest.class)
+					.skipIfStringPresent("resource_endpoint_dpop_nonce_error")
+					.onFail(ConditionResult.WARNING)
+					.requirements("OID4VCI-1FINAL-11.1")
+					.dontStopOnFailure());
 				call(exec().unmapKey("incoming_request").endBlock());
 			}
 		};
 		return new PathDispatch(sequence, m -> {
+			// DPoP-nonce-error path: sender-constrain populated
+			// resource_endpoint_dpop_nonce_error and the sequence ran
+			// CreateResourceEndpointDpopErrorResponse. Return the prepared 401 response
+			// (so the wallet retries with the correct nonce) without consuming the
+			// c_nonce — c_nonce-consuming validation was skipped via skipIfStringPresent.
+			if (m.getEnv().getString("resource_endpoint_dpop_nonce_error") != null) {
+				JsonObject body = m.getEnv().getObject("resource_endpoint_response");
+				JsonObject headers = m.getEnv().getObject("resource_endpoint_response_headers");
+				Integer status = m.getEnv().getInteger("resource_endpoint_response_http_status");
+				return ResponseEntity.status(status)
+					.headers(headersFromJson(headers))
+					.body(body);
+			}
 			// Error path: validation surfaced vci.notification_error_response; turn it
 			// into a 400 with the prepared body per § 11.3. Clear the sentinel so a
 			// subsequent notification request isn't poisoned.
