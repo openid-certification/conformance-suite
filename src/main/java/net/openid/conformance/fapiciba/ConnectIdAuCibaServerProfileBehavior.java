@@ -1,6 +1,8 @@
 package net.openid.conformance.fapiciba;
 
 import net.openid.conformance.condition.Condition;
+import net.openid.conformance.condition.client.AddEssentialTxnClaimRequestToAuthorizationEndpointRequest;
+import net.openid.conformance.condition.client.AustraliaConnectIdAddClaimsToAuthorizationEndpointRequestIdTokenClaims;
 import net.openid.conformance.condition.client.AustraliaConnectIdCheckClaimsSupported;
 import net.openid.conformance.condition.client.AustraliaConnectIdCheckTrustFrameworkSupported;
 import net.openid.conformance.condition.client.AustraliaConnectIdCheckVerifiedClaimsSupported;
@@ -21,6 +23,21 @@ public class ConnectIdAuCibaServerProfileBehavior extends FAPICIBAServerProfileB
 	@Override
 	public Supplier<? extends ConditionSequence> getProfileSpecificDiscoveryChecks() {
 		return DiscoveryEndpointChecks::new;
+	}
+
+	@Override
+	public Class<? extends ConditionSequence> getProfileAuthorizationEndpointSetupSteps() {
+		return AuthorizationEndpointSetupSteps.class;
+	}
+
+	public static class AuthorizationEndpointSetupSteps extends AbstractConditionSequence {
+		@Override
+		public void evaluate() {
+			callAndStopOnFailure(AustraliaConnectIdAddClaimsToAuthorizationEndpointRequestIdTokenClaims.class,
+				"CID-CIBA-4.3-3", "CID-IDA-5.2-4", "CID-IDA-5.2-6");
+			callAndStopOnFailure(AddEssentialTxnClaimRequestToAuthorizationEndpointRequest.class,
+				"CID-IDA-5.2-7");
+		}
 	}
 
 	public static class DiscoveryEndpointChecks extends AbstractConditionSequence {
