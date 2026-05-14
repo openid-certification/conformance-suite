@@ -76,6 +76,14 @@ public class FAPICIBARPProfileBehavior {
 		return false;
 	}
 
+	public boolean claimsProfileSpecificMtlsPath(String path) {
+		return false;
+	}
+
+	public Object handleProfileSpecificMtlsPath(String requestId, String path) {
+		throw new UnsupportedOperationException("No profile-specific mTLS path handler is configured");
+	}
+
 	public ConditionSequence prepareNonResourceEndpointFapiInteractionId() {
 		return null;
 	}

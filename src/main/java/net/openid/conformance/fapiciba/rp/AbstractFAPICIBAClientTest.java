@@ -84,7 +84,6 @@ import net.openid.conformance.condition.rs.FAPIBrazilGenerateGetPaymentConsentRe
 import net.openid.conformance.condition.rs.FAPIBrazilGenerateNewConsentResponse;
 import net.openid.conformance.condition.rs.FAPIBrazilGenerateNewPaymentInitiationResponse;
 import net.openid.conformance.condition.rs.FAPIBrazilGenerateNewPaymentsConsentResponse;
-import net.openid.conformance.condition.rs.FAPIBrazilRsPathConstants;
 import net.openid.conformance.condition.rs.FAPIBrazilValidateConsentRequestIat;
 import net.openid.conformance.condition.rs.FAPIBrazilValidateJwtSignatureUsingOrganizationJwks;
 import net.openid.conformance.condition.rs.FAPIBrazilValidatePaymentConsentRequestAud;
@@ -368,22 +367,10 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 			case "userinfo":
 				return userinfoEndpoint(requestId);
 			case ACCOUNTS_PATH:
-			case FAPIBrazilRsPathConstants.BRAZIL_ACCOUNTS_PATH:
 				return accountsEndpoint(requestId);
-			case FAPIBrazilRsPathConstants.BRAZIL_CONSENTS_PATH:
-				return brazilHandleNewConsentRequest(requestId, false);
-			case FAPIBrazilRsPathConstants.BRAZIL_PAYMENTS_CONSENTS_PATH:
-				return brazilHandleNewConsentRequest(requestId, true);
-			case FAPIBrazilRsPathConstants.BRAZIL_PAYMENT_INITIATION_PATH:
-				return brazilHandleNewPaymentInitiationRequest(requestId);
-			case FAPIBrazilRsPathConstants.BRAZIL_RESOURCE_PATH:
-				return resourcesEndpoint(requestId);
 			default:
-				if(path.startsWith(FAPIBrazilRsPathConstants.BRAZIL_CONSENTS_PATH + "/")) {
-					return brazilHandleGetConsentRequest(requestId, path, false);
-				}
-				if(path.startsWith(FAPIBrazilRsPathConstants.BRAZIL_PAYMENTS_CONSENTS_PATH + "/")) {
-					return brazilHandleGetConsentRequest(requestId, path, true);
+				if (profileBehavior.claimsProfileSpecificMtlsPath(path)) {
+					return profileBehavior.handleProfileSpecificMtlsPath(requestId, path);
 				}
 				throw new TestFailureException(getId(), "Got unexpected HTTP (using mtls) call to " + path);
 		}
