@@ -203,8 +203,8 @@ public class VCIClientProfileBehavior extends FAPI2ClientProfileBehavior {
 				call(exec().startBlock("Nonce endpoint"));
 				call(exec().mapKey("incoming_request", requestId));
 				callAndStopOnFailure(CreateFapiInteractionIdIfNeeded.class, "FAPI2-IMP-2.1.1");
-				callAndContinueOnFailure(EnsureIncomingRequestMethodIsPost.class, ConditionResult.FAILURE, "OID4VCI-1FINAL-7.2");
-				callAndStopOnFailure(GenerateCredentialNonce.class, "OID4VCI-1FINAL-ID-7");
+				callAndContinueOnFailure(EnsureIncomingRequestMethodIsPost.class, ConditionResult.FAILURE, "OID4VCI-1FINAL-7.1");
+				callAndStopOnFailure(GenerateCredentialNonce.class, "OID4VCI-1FINAL-7");
 				callAndStopOnFailure(GenerateCredentialNonceResponse.class, "OID4VCI-1FINAL-7.2");
 				call(exec().unmapKey("incoming_request").endBlock());
 			}
@@ -348,7 +348,7 @@ public class VCIClientProfileBehavior extends FAPI2ClientProfileBehavior {
 				call(condition(VCICreateCredentialEndpointResponse.class)
 					.skipIfElementPresent("vci", "credential_error_response")
 					.onFail(ConditionResult.FAILURE)
-					.requirements("OID4VCI-1FINALA-A.3.4", "OID4VCI-1FINALA-A.2.4"));
+					.requirements("OID4VCI-1FINAL-8.3"));
 				call(condition(VCIAddNotificationIdToCredentialEndpointResponse.class)
 					.skipIfElementPresent("vci", "credential_error_response")
 					.onFail(ConditionResult.FAILURE)
@@ -388,7 +388,7 @@ public class VCIClientProfileBehavior extends FAPI2ClientProfileBehavior {
 	}
 
 	/**
-	 * OID4VCI 1.0 Final 10.2 notification endpoint — single-sequence flow: clear stale
+	 * OID4VCI 1.0 Final 11.1 notification endpoint — single-sequence flow: clear stale
 	 * error state, run sender-constrain checks (via the helper sequence accessor) +
 	 * notification-specific validation, return 204.
 	 */
@@ -406,8 +406,8 @@ public class VCIClientProfileBehavior extends FAPI2ClientProfileBehavior {
 				call(exec().startBlock("Notification endpoint"));
 				call(exec().mapKey("incoming_request", requestId));
 				call(module.senderConstrainTokenRequestHelper.resourceRequestChecksSequence());
-				callAndContinueOnFailure(VCIValidateNotificationRequest.class, ConditionResult.FAILURE, "OID4VCI-1FINAL-10.2");
-				callAndContinueOnFailure(VCICheckForUnknownFieldsInNotificationRequest.class, ConditionResult.WARNING, "OID4VCI-1FINAL-10.2");
+				callAndContinueOnFailure(VCIValidateNotificationRequest.class, ConditionResult.FAILURE, "OID4VCI-1FINAL-11.1");
+				callAndContinueOnFailure(VCICheckForUnknownFieldsInNotificationRequest.class, ConditionResult.WARNING, "OID4VCI-1FINAL-11.1");
 				call(exec().unmapKey("incoming_request").endBlock());
 			}
 		};

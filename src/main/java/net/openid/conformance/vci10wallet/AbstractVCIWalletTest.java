@@ -977,8 +977,8 @@ public abstract class AbstractVCIWalletTest extends net.openid.conformance.fapi2
 
 		call(exec().mapKey("incoming_request", requestId));
 		callAndStopOnFailure(CreateFapiInteractionIdIfNeeded.class, "FAPI2-IMP-2.1.1");
-		callAndContinueOnFailure(EnsureIncomingRequestMethodIsPost.class, ConditionResult.FAILURE, "OID4VCI-1FINAL-7.2");
-		callAndStopOnFailure(GenerateCredentialNonce.class, "OID4VCI-1FINAL-ID-7");
+		callAndContinueOnFailure(EnsureIncomingRequestMethodIsPost.class, ConditionResult.FAILURE, "OID4VCI-1FINAL-7.1");
+		callAndStopOnFailure(GenerateCredentialNonce.class, "OID4VCI-1FINAL-7");
 		callAndStopOnFailure(GenerateCredentialNonceResponse.class, "OID4VCI-1FINAL-7.2");
 		call(exec().unmapKey("incoming_request").endBlock());
 
@@ -1145,11 +1145,11 @@ public abstract class AbstractVCIWalletTest extends net.openid.conformance.fapi2
 					+ "evaluated against this wallet. Re-run with vci_credential_encryption=plain, "
 					+ "or use a wallet that supports credential request encryption.");
 			}
-			errorResponse = callAndContinueOnFailureOrReturnErrorResponse(VCIEnsureCredentialRequestUsesApplicationJwt.class, ConditionResult.FAILURE, "OID4VCI-1FINAL-10-2");
+			errorResponse = callAndContinueOnFailureOrReturnErrorResponse(VCIEnsureCredentialRequestUsesApplicationJwt.class, ConditionResult.FAILURE, "OID4VCI-1FINAL-10.2");
 			if (errorResponse != null) {
 				return errorResponse;
 			}
-			errorResponse = callAndContinueOnFailureOrReturnErrorResponse(VCIDecryptCredentialRequest.class, ConditionResult.FAILURE, "OID4VCI-1FINAL-10-2");
+			errorResponse = callAndContinueOnFailureOrReturnErrorResponse(VCIDecryptCredentialRequest.class, ConditionResult.FAILURE, "OID4VCI-1FINAL-10.2");
 			if (errorResponse != null) {
 				return errorResponse;
 			}
@@ -1462,11 +1462,11 @@ public abstract class AbstractVCIWalletTest extends net.openid.conformance.fapi2
 		// endpoint (no skip here: by deferred time, the credential endpoint has already accepted
 		// an encrypted request, so a plaintext deferred request is a real spec violation).
 		if (vciCredentialEncryption == VCICredentialEncryption.ENCRYPTED) {
-			errorResponse = callAndContinueOnFailureOrReturnErrorResponse(VCIEnsureCredentialRequestUsesApplicationJwt.class, ConditionResult.FAILURE, "OID4VCI-1FINAL-9.1", "OID4VCI-1FINAL-10-2");
+			errorResponse = callAndContinueOnFailureOrReturnErrorResponse(VCIEnsureCredentialRequestUsesApplicationJwt.class, ConditionResult.FAILURE, "OID4VCI-1FINAL-9.1", "OID4VCI-1FINAL-10.2");
 			if (errorResponse != null) {
 				return errorResponse;
 			}
-			errorResponse = callAndContinueOnFailureOrReturnErrorResponse(VCIDecryptCredentialRequest.class, ConditionResult.FAILURE, "OID4VCI-1FINAL-10-2", "OID4VCI-1FINAL-9.1");
+			errorResponse = callAndContinueOnFailureOrReturnErrorResponse(VCIDecryptCredentialRequest.class, ConditionResult.FAILURE, "OID4VCI-1FINAL-10.2", "OID4VCI-1FINAL-9.1");
 			if (errorResponse != null) {
 				return errorResponse;
 			}
