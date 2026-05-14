@@ -78,7 +78,6 @@ import net.openid.conformance.condition.client.CreateRandomClientNotificationTok
 import net.openid.conformance.condition.client.CreateTokenEndpointRequestForCIBAGrant;
 import net.openid.conformance.condition.client.EnsureErrorTokenEndpointInvalidRequest;
 import net.openid.conformance.condition.client.EnsureErrorTokenEndpointSlowdownOrAuthorizationPending;
-import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs200or201;
 import net.openid.conformance.condition.client.EnsureIdTokenContainsKid;
 import net.openid.conformance.condition.client.EnsureMinimumAccessTokenEntropy;
 import net.openid.conformance.condition.client.EnsureMinimumAccessTokenLength;
@@ -175,7 +174,6 @@ import org.springframework.http.ResponseEntity;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
 import java.util.function.Supplier;
 
 @VariantParameters({
@@ -1035,10 +1033,7 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 
 		updateResourceRequestAndCallProtectedResource(isSecondClient(), addTokenEndpointClientAuthentication);
 
-		Optional<ConditionSequence> statusCheckingSequence = getBrazilPaymentsStatusCodeCheck();
-		call(statusCheckingSequence.orElse(
-			sequenceOf(condition(EnsureHttpStatusCodeIs200or201.class).onFail(Condition.ConditionResult.FAILURE))
-		));
+		call(profileBehavior.validateResourceEndpointResponseStatus());
 		call(exec().unmapKey("endpoint_response"));
 
 		callAndContinueOnFailure(CheckForDateHeaderInResourceResponse.class, Condition.ConditionResult.FAILURE, "FAPI-R-6.2.1-10");
@@ -1254,11 +1249,4 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 		profileBehavior.setModule(this);
 	}
 
-	/**
-	 * Subclasses may have more complex needs for this, so let them provide it as a sequence
-	 * @return
-	 */
-	protected Optional<ConditionSequence> getBrazilPaymentsStatusCodeCheck() {
-		return Optional.empty();
-	}
 }
