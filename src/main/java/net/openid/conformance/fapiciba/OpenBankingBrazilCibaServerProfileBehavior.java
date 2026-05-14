@@ -22,10 +22,16 @@ import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.sequence.client.OpenBankingBrazilPreAuthorizationSteps;
 import net.openid.conformance.sequence.client.RefreshTokenRequestSteps;
 import net.openid.conformance.sequence.client.ValidateBrazilSignedResponse;
+import net.openid.conformance.variant.ClientAuthType;
 
 import java.util.function.Supplier;
 
 public class OpenBankingBrazilCibaServerProfileBehavior extends FAPICIBAServerProfileBehavior {
+
+	@Override
+	public boolean shouldKeepBackchannelAuthenticationEndpointAlias(ClientAuthType authType) {
+		return true;
+	}
 
 	@Override
 	public Supplier<? extends ConditionSequence> getPreAuthorizationSteps() {

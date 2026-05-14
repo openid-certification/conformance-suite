@@ -374,9 +374,8 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 
 		if (supportMTLSEndpointAliases != null) {
 			call(sequence(supportMTLSEndpointAliases));
-			FAPICIBAProfile profile = getVariant(FAPICIBAProfile.class);
 			ClientAuthType authType = getVariant(ClientAuthType.class);
-			if (authType != ClientAuthType.MTLS && profile != FAPICIBAProfile.OPENBANKING_BRAZIL) {
+			if (!profileBehavior.shouldKeepBackchannelAuthenticationEndpointAlias(authType)) {
 				// we only need to call the mtls aliased backchannel authentication endpoint when using mtls client auth
 				// (but need to use the mtls alias for the token endpoint whenever we're using certificate bound
 				// access tokens)
