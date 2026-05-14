@@ -3,9 +3,12 @@ package net.openid.conformance.fapiciba;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.AddEssentialTxnClaimRequestToAuthorizationEndpointRequest;
 import net.openid.conformance.condition.client.AustraliaConnectIdAddClaimsToAuthorizationEndpointRequestIdTokenClaims;
+import net.openid.conformance.condition.client.AustraliaConnectIdAddVerifiedClaimsToAuthorizationEndpointRequestIdTokenClaims;
 import net.openid.conformance.condition.client.AustraliaConnectIdCheckClaimsSupported;
 import net.openid.conformance.condition.client.AustraliaConnectIdCheckTrustFrameworkSupported;
 import net.openid.conformance.condition.client.AustraliaConnectIdCheckVerifiedClaimsSupported;
+import net.openid.conformance.condition.client.AustraliaConnectIdEnsureIdTokenContainsTrustFramework;
+import net.openid.conformance.condition.client.AustraliaConnectIdEnsureIdTokenContainsVerifiedClaims;
 import net.openid.conformance.condition.client.AustraliaConnectIdEnsureMtlsAliasesContainsRequiredEndpoints;
 import net.openid.conformance.condition.client.CheckDiscEndpointClaimsParameterSupported;
 import net.openid.conformance.condition.client.CheckDiscEndpointIdTokenSigningAlgValuesSupportedContainsPS256;
@@ -13,6 +16,7 @@ import net.openid.conformance.condition.client.CheckDiscEndpointSubjectTypesSupp
 import net.openid.conformance.condition.client.CheckDiscEndpointUserinfoEndpoint;
 import net.openid.conformance.condition.client.ConnectIdCibaCheckBackchannelAuthenticationRequestSigningAlgValuesSupportedContainsOnlyPS256;
 import net.openid.conformance.condition.client.ConnectIdCibaCheckBackchannelTokenDeliveryModesSupportedOnlyPoll;
+import net.openid.conformance.condition.client.FAPIValidateIdTokenSigningAlg;
 import net.openid.conformance.sequence.AbstractConditionSequence;
 import net.openid.conformance.sequence.ConditionSequence;
 
@@ -30,13 +34,32 @@ public class ConnectIdAuCibaServerProfileBehavior extends FAPICIBAServerProfileB
 		return AuthorizationEndpointSetupSteps.class;
 	}
 
+	@Override
+	public Class<? extends ConditionSequence> getProfileIdTokenValidationSteps() {
+		return IdTokenValidationSteps.class;
+	}
+
 	public static class AuthorizationEndpointSetupSteps extends AbstractConditionSequence {
 		@Override
 		public void evaluate() {
 			callAndStopOnFailure(AustraliaConnectIdAddClaimsToAuthorizationEndpointRequestIdTokenClaims.class,
 				"CID-CIBA-4.3-3", "CID-IDA-5.2-4", "CID-IDA-5.2-6");
+			callAndStopOnFailure(AustraliaConnectIdAddVerifiedClaimsToAuthorizationEndpointRequestIdTokenClaims.class,
+				"CID-CIBA-4.3-3", "CID-IDA-5.2-11");
 			callAndStopOnFailure(AddEssentialTxnClaimRequestToAuthorizationEndpointRequest.class,
 				"CID-IDA-5.2-7");
+		}
+	}
+
+	public static class IdTokenValidationSteps extends AbstractConditionSequence {
+		@Override
+		public void evaluate() {
+			callAndContinueOnFailure(FAPIValidateIdTokenSigningAlg.class,
+				Condition.ConditionResult.FAILURE, "FAPI-RW-8.6", "FAPI1-ADV-8.6");
+			callAndContinueOnFailure(AustraliaConnectIdEnsureIdTokenContainsTrustFramework.class,
+				Condition.ConditionResult.FAILURE, "CID-IDA-5.1-11", "CID-IDA-5.2-12");
+			callAndContinueOnFailure(AustraliaConnectIdEnsureIdTokenContainsVerifiedClaims.class,
+				Condition.ConditionResult.FAILURE, "CID-IDA-5.2-12");
 		}
 	}
 
