@@ -9,6 +9,7 @@ import net.openid.conformance.condition.Condition;
 import net.openid.conformance.sequence.AbstractConditionSequence;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.Environment;
+import net.openid.conformance.variant.ClientAuthType;
 
 import java.util.function.Supplier;
 
@@ -52,6 +53,10 @@ public class FAPICIBAServerProfileBehavior {
 
 	public Class<? extends ConditionSequence> getProfileIdTokenValidationSteps() {
 		return AbstractFAPICIBAID1.PlainFapiProfileIdTokenValidationSteps.class;
+	}
+
+	public boolean shouldKeepBackchannelAuthenticationEndpointAlias(ClientAuthType authType) {
+		return authType == ClientAuthType.MTLS;
 	}
 
 	// --- Action methods returning ConditionSequence (null = no-op) ---
