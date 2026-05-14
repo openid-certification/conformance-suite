@@ -391,7 +391,8 @@ public class VCIClientProfileBehavior extends FAPI2ClientProfileBehavior {
 	/**
 	 * OID4VCI 1.0 Final 11.1 notification endpoint — single-sequence flow: clear stale
 	 * error state, run sender-constrain checks (via the helper sequence accessor) +
-	 * notification-specific validation, return 204.
+	 * notification-specific validation, return 204 on success or 400 with the error
+	 * body when validation populated {@code vci.notification_error_response} per § 11.3.
 	 */
 	private PathDispatch buildNotificationDispatch(String requestId) {
 		// Clear any previous notification error response so subsequent calls aren't
@@ -412,7 +413,20 @@ public class VCIClientProfileBehavior extends FAPI2ClientProfileBehavior {
 				call(exec().unmapKey("incoming_request").endBlock());
 			}
 		};
-		return new PathDispatch(sequence, m -> ResponseEntity.status(HttpStatus.NO_CONTENT).build());
+		return new PathDispatch(sequence, m -> {
+			// Error path: validation surfaced vci.notification_error_response; turn it
+			// into a 400 with the prepared body per § 11.3. Clear the sentinel so a
+			// subsequent notification request isn't poisoned.
+			JsonElement errEl = m.getEnv().getElementFromObject("vci", "notification_error_response");
+			if (errEl != null) {
+				JsonObject errBody = errEl.getAsJsonObject().getAsJsonObject("body");
+				m.getEnv().getObject("vci").remove("notification_error_response");
+				return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+					.contentType(MediaType.APPLICATION_JSON)
+					.body(errBody);
+			}
+			return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+		});
 	}
 
 	private String baseUrlWithTrailingSlash() {
