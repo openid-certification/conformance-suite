@@ -1121,6 +1121,8 @@ public abstract class AbstractVCIWalletTest extends net.openid.conformance.fapi2
 			return errorResponse;
 		}
 
+		callAndContinueOnFailure(EnsureIncomingRequestMethodIsPost.class, ConditionResult.FAILURE, "OID4VCI-1FINAL-8.2");
+
 		// If there's a DPoP nonce error, return it immediately before validating the credential proof.
 		// This ensures the c_nonce isn't consumed, allowing the client to retry with the correct DPoP nonce.
 		if (isDpopConstrain() && !Strings.isNullOrEmpty(env.getString("resource_endpoint_dpop_nonce_error"))) {
