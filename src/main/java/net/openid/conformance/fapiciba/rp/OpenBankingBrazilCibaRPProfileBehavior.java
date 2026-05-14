@@ -25,6 +25,7 @@ import net.openid.conformance.condition.rs.FAPIBrazilEnsureAuthorizationRequestS
 import net.openid.conformance.condition.rs.FAPIBrazilRsPathConstants;
 import net.openid.conformance.sequence.AbstractConditionSequence;
 import net.openid.conformance.sequence.ConditionSequence;
+import net.openid.conformance.sequence.as.GenerateOpenBankingBrazilAccountsEndpointResponse;
 import net.openid.conformance.testmodule.TestFailureException;
 
 public class OpenBankingBrazilCibaRPProfileBehavior extends FAPICIBARPProfileBehavior {
@@ -81,6 +82,11 @@ public class OpenBankingBrazilCibaRPProfileBehavior extends FAPICIBARPProfileBeh
 				}
 			}
 		};
+	}
+
+	@Override
+	public Class<? extends ConditionSequence> getAccountsEndpointResponseSteps() {
+		return GenerateOpenBankingBrazilAccountsEndpointResponse.class;
 	}
 
 	@Override

@@ -51,6 +51,10 @@ public class FAPICIBARPProfileBehavior {
 		return null;
 	}
 
+	public Class<? extends ConditionSequence> getAccountsEndpointResponseSteps() {
+		return null;
+	}
+
 	public ConditionSequence applyProfileSpecificBackchannelScopeChecks() {
 		return new AbstractConditionSequence() {
 			@Override
