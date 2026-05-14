@@ -34,6 +34,17 @@ public class FAPICIBAServerProfileBehavior {
 		return module.getEnv();
 	}
 
+	public Supplier<? extends ConditionSequence> getProfileSpecificDiscoveryChecks() {
+		return NoOpDiscoveryEndpointChecks::new;
+	}
+
+	public static class NoOpDiscoveryEndpointChecks extends AbstractConditionSequence {
+		@Override
+		public void evaluate() {
+			// No profile-specific discovery checks by default.
+		}
+	}
+
 	// --- Data methods ---
 
 	public Class<? extends ConditionSequence> getResourceConfiguration() {
