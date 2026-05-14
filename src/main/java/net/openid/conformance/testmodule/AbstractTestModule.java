@@ -373,6 +373,19 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 					return;
 				}
 			}
+			for (String s : builder.getSkipIfStringsPresent()) {
+				if (env.getString(s) != null) {
+					logger.info(getId() + ": [skip] Test condition " + builder.getConditionClass().getSimpleName() + " skipped, string present in environment: " + s);
+					eventLog.log(condition.getMessage(), args(
+						"msg", "Skipped evaluation because string is present: " + s,
+						"expected", s,
+						"result", builder.getOnSkip(),
+						"requirements", builder.getRequirements()
+					));
+					updateResultFromConditionFailure(builder.getOnSkip());
+					return;
+				}
+			}
 			for (String s : builder.getSkipIfLongsMissing()) {
 				if (env.getLong(s) == null) {
 					logger.info(getId() + ": [skip] Test condition " + builder.getConditionClass().getSimpleName() + " skipped, couldn't find long integer in environment: " + s);
