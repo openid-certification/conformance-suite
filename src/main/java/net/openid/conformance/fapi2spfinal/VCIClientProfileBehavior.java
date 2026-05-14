@@ -253,6 +253,7 @@ public class VCIClientProfileBehavior extends FAPI2ClientProfileBehavior {
 				// credential-config resolution. Each step after the first self-skips when
 				// a prior step populated vci.credential_error_response, giving the
 				// short-circuit-on-error semantics without imperative bridges.
+				callAndContinueOnFailure(EnsureIncomingRequestMethodIsPost.class, ConditionResult.FAILURE, "OID4VCI-1FINAL-8.2");
 				callAndContinueOnFailure(VCIEnsureBearerAccessTokenNotInParams.class, ConditionResult.FAILURE, "FAPI2-SP-FINAL-5.3.4-2");
 				call(condition(VCIValidateCredentialRequestStructure.class)
 					.skipIfElementPresent("vci", "credential_error_response")
