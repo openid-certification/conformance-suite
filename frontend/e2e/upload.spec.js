@@ -215,6 +215,112 @@ test.describe("upload.html — Image Uploader", () => {
     await expect(errorModal).toContainText("Description required");
   });
 
+  test("thumbnail is a real drag-and-drop target and toggles is-dragover", async ({ page }) => {
+    await setupFailFast(page);
+    await setupUploadRoutes(page, {
+      testId: "test-upload-001",
+      images: MOCK_IMAGES_EMPTY,
+    });
+    await setupCommonRoutes(page);
+
+    await page.goto("/upload.html?log=test-upload-001");
+
+    const additionalEl = page.locator("#additionalUploader");
+    const thumb = additionalEl.locator("img.imagePreview");
+
+    // The thumb is exposed as a button so keyboard users can activate it.
+    await expect(thumb).toHaveAttribute("role", "button");
+    await expect(thumb).toHaveAttribute("tabindex", "0");
+
+    // Dispatch a synthesized dragenter on the container — the page-level
+    // wireDropTarget helper should add the is-dragover marker class.
+    await additionalEl.evaluate((el) => {
+      const dt = new DataTransfer();
+      el.dispatchEvent(new DragEvent("dragenter", { bubbles: true, dataTransfer: dt }));
+    });
+    await expect(additionalEl).toHaveClass(/is-dragover/);
+
+    await additionalEl.evaluate((el) => {
+      const dt = new DataTransfer();
+      el.dispatchEvent(new DragEvent("dragleave", { bubbles: true, dataTransfer: dt }));
+    });
+    await expect(additionalEl).not.toHaveClass(/is-dragover/);
+  });
+
+  test("dropping a valid PNG on the thumb enables Upload via the shared file pipeline", async ({
+    page,
+  }) => {
+    await setupFailFast(page);
+    await setupUploadRoutes(page, {
+      testId: "test-upload-001",
+      images: MOCK_IMAGES_EMPTY,
+    });
+    await setupCommonRoutes(page);
+
+    await page.goto("/upload.html?log=test-upload-001");
+
+    const additionalEl = page.locator("#additionalUploader");
+    const upload = additionalEl.locator("cts-button.uploadBtn").locator("button");
+    await expect(upload).toBeDisabled();
+
+    // Synthesize a drop with a small valid PNG. We construct the DataTransfer
+    // inside page context so the browser owns the File / DataTransfer pair.
+    await additionalEl.evaluate((el) => {
+      const file = new File([new Uint8Array(8 * 1024)], "test.png", { type: "image/png" });
+      const dt = new DataTransfer();
+      dt.items.add(file);
+      el.dispatchEvent(new DragEvent("drop", { bubbles: true, dataTransfer: dt }));
+    });
+
+    // FileReader is async — wait for the Upload button to flip.
+    await expect(upload).toBeEnabled();
+  });
+
+  test("Enter on the focused thumbnail triggers the hidden file input click", async ({ page }) => {
+    await setupFailFast(page);
+    await setupUploadRoutes(page, {
+      testId: "test-upload-001",
+      images: MOCK_IMAGES_EMPTY,
+    });
+    await setupCommonRoutes(page);
+
+    await page.goto("/upload.html?log=test-upload-001");
+
+    // Wait for the page-level wireDropTarget helper to attach — it runs after
+    // the images list fetch resolves, which is async.
+    await expect(page.locator("#additionalUploader img.imagePreview")).toHaveAttribute(
+      "role",
+      "button",
+    );
+
+    // Listen for the click that the page-level helper fires on the hidden input.
+    const sawClick = await page.evaluate(() => {
+      const input = /** @type {HTMLInputElement | null} */ (
+        document.querySelector('#additionalUploader [type="file"]')
+      );
+      const thumb = /** @type {HTMLElement | null} */ (
+        document.querySelector("#additionalUploader img.imagePreview")
+      );
+      if (!input || !thumb) return Promise.resolve(false);
+      return new Promise((resolve) => {
+        const timer = setTimeout(() => resolve(false), 2000);
+        input.addEventListener(
+          "click",
+          (e) => {
+            // Prevent the OS dialog from blocking the test runner.
+            e.preventDefault();
+            clearTimeout(timer);
+            resolve(true);
+          },
+          { once: true },
+        );
+        thumb.focus();
+        thumb.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true }));
+      });
+    });
+    expect(sawClick).toBe(true);
+  });
+
   test("server error on initial load surfaces through the errorModal (cts-modal)", async ({
     page,
   }) => {
