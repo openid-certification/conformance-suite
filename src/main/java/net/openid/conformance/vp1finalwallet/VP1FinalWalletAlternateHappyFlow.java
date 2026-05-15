@@ -4,6 +4,7 @@ import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.AddMismatchedIssToRequestObject;
 import net.openid.conformance.condition.client.AddRandomParameterToAuthorizationEndpointRequest;
+import net.openid.conformance.condition.client.AddResponseUriToAuthorizationEndpointRequest;
 import net.openid.conformance.condition.client.AddVP1FinalEncryptionParametersToClientMetadata;
 import net.openid.conformance.condition.client.AddVP1FinalEncryptionParametersToClientMetadataWithoutUseEnc;
 import net.openid.conformance.condition.client.BuildRequestObjectByReferenceRedirectToAuthorizationEndpointWithoutDuplicatesReorderedParams;
@@ -24,7 +25,8 @@ import org.jetbrains.annotations.NotNull;
 		- Includes an 'iss' claim in the request object that does not match 'client_id' (which must be ignored as per VP spec section 5)
 		- Encryption key without 'use: enc' (for encrypted response modes)
 		- Reordered query parameters in the redirect URL (no-op for DC API response modes, which don't use a redirect URL)
-		- response_uri response returns a redirect_uri which the wallet must open (no-op for DC API response modes; for ISO mdoc the default flow already returns a redirect_uri)""",
+		- response_uri response returns a redirect_uri which the wallet must open (no-op for DC API response modes; for ISO mdoc the default flow already returns a redirect_uri)
+		- response_uri request parameter is omitted when client_id_prefix=redirect_uri and response_mode is direct_post or direct_post.jwt (per OID4VP §5.9.3, the wallet must derive it from client_id)""",
 	profile = "OID4VP-1FINAL"
 )
 
@@ -40,8 +42,6 @@ public class VP1FinalWalletAlternateHappyFlow extends AbstractVP1FinalWalletTest
 
 		// also use a longer state value than is used by default
 		env.putInteger("requested_state_length", 64);
-
-		// FIXME: is response_uri is optional when using the redirect_uri scheme; if so we should omit it in this test: https://github.com/openid/OpenID4VP/issues/93
 	}
 
 	@Override
@@ -53,6 +53,17 @@ public class VP1FinalWalletAlternateHappyFlow extends AbstractVP1FinalWalletTest
 
 		createAuthorizationRequestSteps.replace(AddVP1FinalEncryptionParametersToClientMetadata.class,
 			condition(AddVP1FinalEncryptionParametersToClientMetadataWithoutUseEnc.class));
+
+		if (clientIdPrefix == VP1FinalWalletClientIdPrefix.REDIRECT_URI
+			&& (responseMode == VP1FinalWalletResponseMode.DIRECT_POST
+				|| responseMode == VP1FinalWalletResponseMode.DIRECT_POST_JWT)) {
+			// OID4VP §5.9.3: under the redirect_uri Client Identifier Prefix, the Verifier MAY omit
+			// response_uri when Response Mode `direct_post` is used. direct_post.jwt builds on
+			// direct_post and the same carve-out applies. Exercise it here; the wallet must derive
+			// the value from the client_id itself.
+			createAuthorizationRequestSteps.skip(AddResponseUriToAuthorizationEndpointRequest.class,
+				"response_uri is optional under client_id_prefix=redirect_uri + direct_post (OID4VP §5.9.3)");
+		}
 
 		return createAuthorizationRequestSteps;
 	}
