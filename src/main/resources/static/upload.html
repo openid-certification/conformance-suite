@@ -82,6 +82,29 @@
         border-radius: var(--radius-2);
         background: var(--bg-muted);
         padding: var(--space-1);
+        cursor: pointer;
+        transition: border-color var(--dur-1) var(--ease-standard),
+            background var(--dur-1) var(--ease-standard);
+    }
+    .upload-item__thumb:hover,
+    .upload-item__thumb:focus-visible {
+        border-color: var(--orange-300);
+        background: var(--orange-50);
+    }
+    .upload-item__thumb:focus-visible {
+        outline: none;
+        box-shadow: var(--focus-ring);
+    }
+    /* Drag-over highlight on the thumb slot. JS toggles `.is-dragover`
+       on the parent `.upload-item` (or `#additionalUploader`) when the
+       browser fires dragenter inside the slot, so the visual transition
+       follows real drop-target state. */
+    .upload-item.is-dragover .upload-item__thumb,
+    #additionalUploader.is-dragover .upload-item__thumb {
+        border-style: solid;
+        border-width: 2px;
+        border-color: var(--orange-400);
+        background: var(--orange-50);
     }
     .upload-item__body {
         display: flex;
@@ -194,6 +217,70 @@
         return document.querySelectorAll('#imageBlocks .logItem').length;
     }
 
+    /**
+     * Wire a `.upload-item`-style container as a real drag-and-drop target.
+     * Drops, paste-from-keyboard, clicks on the thumbnail, and Enter/Space
+     * on the focused thumbnail all converge on `processFile(file)`. The
+     * hidden `<input type="file">` stays present as the WCAG 2.5.7
+     * single-pointer fallback for users who cannot drag.
+     *
+     * @param {HTMLElement} containerEl - the `.upload-item` (or
+     *   `#additionalUploader`) wrapping the slot. Receives an `is-dragover`
+     *   class while a drag is hovering, so CSS can highlight the thumb.
+     * @param {HTMLElement} thumbEl - the `<img class="imagePreview">` that
+     *   doubles as the drop affordance. Made keyboard-focusable.
+     * @param {HTMLInputElement} fileInput - the hidden file input. Click
+     *   triggers the OS file picker.
+     * @param {(file: File) => void} processFile - shared file pipeline.
+     */
+    function wireDropTarget(containerEl, thumbEl, fileInput, processFile) {
+        if (!containerEl || !thumbEl || !fileInput) return;
+
+        // Guard against double-wiring. Today loadImagesForLog runs once on
+        // DOMContentLoaded, but if the page is ever embedded in an SPA shell
+        // or re-renders the slots, stacked listeners would double-count
+        // dragenter depth and double-call processFile on drop.
+        if (containerEl.dataset.dropWired === '1') return;
+        containerEl.dataset.dropWired = '1';
+
+        var depth = 0;
+
+        thumbEl.setAttribute('role', 'button');
+        thumbEl.setAttribute('tabindex', '0');
+        thumbEl.setAttribute('aria-label', 'Drop a screenshot here or activate to browse');
+
+        thumbEl.addEventListener('click', function() {
+            fileInput.click();
+        });
+        thumbEl.addEventListener('keydown', function(evt) {
+            if (evt.key === 'Enter' || evt.key === ' ') {
+                evt.preventDefault();
+                fileInput.click();
+            }
+        });
+
+        containerEl.addEventListener('dragenter', function(evt) {
+            evt.preventDefault();
+            depth += 1;
+            if (depth === 1) containerEl.classList.add('is-dragover');
+        });
+        containerEl.addEventListener('dragover', function(evt) {
+            evt.preventDefault();
+            if (evt.dataTransfer) evt.dataTransfer.dropEffect = 'copy';
+        });
+        containerEl.addEventListener('dragleave', function(evt) {
+            depth = Math.max(0, depth - 1);
+            if (depth === 0) containerEl.classList.remove('is-dragover');
+        });
+        containerEl.addEventListener('drop', function(evt) {
+            evt.preventDefault();
+            depth = 0;
+            containerEl.classList.remove('is-dragover');
+            var file = evt.dataTransfer && evt.dataTransfer.files && evt.dataTransfer.files[0];
+            if (file) processFile(file);
+        });
+    }
+
     function validateSelectedImageFile(file) {
         // Impose as 550KB file size limit.
         const UPLOAD_SIZE_LIMIT = 500 * 1024;
@@ -266,25 +353,44 @@
 
             // wire up the buttons on all the image uploaders
             document.querySelectorAll('[data-upload-id]')?.forEach(function(el) {
-                el.querySelector('[type="file"]').addEventListener("change", function(evt){
+                var fileInput = el.querySelector('[type="file"]');
+
+                function processFile(file) {
                     // Validate the selected file before upload.
-                    if (validateSelectedImageFile(this.files[0])) {
-                        var reader = new FileReader();
-
-                        reader.onload = function(evt) {
-                            // once it's loaded from the file, preview it and enable the upload button
-
-                            var content = evt.target.result;
-                            el.querySelector('.imagePreview').src = content;
-
-                            el.querySelector('.uploadBtn').disabled = false;
-                            el.querySelector('.uploadBtn').variant = 'success';
-                        };
-
-                        // this reads the file data and triggers the 'onload' function above
-                        reader.readAsDataURL(this.files[0]);
+                    if (!validateSelectedImageFile(file)) {
+                        return;
                     }
+                    // A successful upload swaps the slot's innerHTML to the
+                    // EXISTING template, which has no .imagePreview or .uploadBtn.
+                    // The drop listeners attached to the outer container survive
+                    // that swap; bail out cleanly so a drop on an already-uploaded
+                    // slot doesn't throw on null.disabled.
+                    var preview = el.querySelector('.imagePreview');
+                    var uploadBtn = el.querySelector('.uploadBtn');
+                    if (!preview || !uploadBtn) return;
+                    var reader = new FileReader();
+
+                    reader.onload = function(evt) {
+                        // once it's loaded from the file, preview it and enable the upload button
+                        var content = evt.target.result;
+                        preview.src = content;
+                        uploadBtn.disabled = false;
+                        uploadBtn.variant = 'success';
+                    };
+
+                    // this reads the file data and triggers the 'onload' function above
+                    reader.readAsDataURL(file);
+                }
+
+                fileInput.addEventListener("change", function(evt){
+                    processFile(this.files[0]);
                 });
+
+                // Make the thumbnail a real drop target. Click and Enter/Space
+                // open the file picker; drag-and-drop hands the file straight
+                // to processFile(). This is the static-template counterpart of
+                // cts-image-upload's hero drop zone.
+                wireDropTarget(el, el.querySelector('.imagePreview'), fileInput, processFile);
 
                 el.querySelector('.uploadBtn').onclick = function(evt) {
                     evt.preventDefault();
@@ -362,30 +468,30 @@
             });
 
             // wire up the buttons on the "add a new image" panel
-            document.querySelector('#additionalUploader [type="file"]').addEventListener("change", function(evt){
-                // Validate the selected file before upload.
-                if (! validateSelectedImageFile(this.files[0])) {
-                    // reset the form
-                    formReset();
+            var additionalEl = document.getElementById('additionalUploader');
+            var additionalInput = additionalEl.querySelector('[type="file"]');
 
+            function processAdditionalFile(file) {
+                if (! validateSelectedImageFile(file)) {
+                    formReset();
                     return;
                 }
-
                 var reader = new FileReader();
-
                 reader.onload = function(evt) {
-                    // once it's loaded from the file, preview it and enable the upload button
-
                     var content = evt.target.result;
-                    document.querySelector('#additionalUploader .imagePreview').src = content;
-
-                    document.querySelector('#additionalUploader .uploadBtn').disabled = false;
-                    document.querySelector('#additionalUploader .uploadBtn').variant = 'success';
+                    additionalEl.querySelector('.imagePreview').src = content;
+                    additionalEl.querySelector('.uploadBtn').disabled = false;
+                    additionalEl.querySelector('.uploadBtn').variant = 'success';
                 };
+                reader.readAsDataURL(file);
+            }
 
-                // this reads the file data and triggers the 'onload' function above
-                reader.readAsDataURL(this.files[0]);
+            additionalInput.addEventListener("change", function(evt){
+                processAdditionalFile(this.files[0]);
             });
+
+            // Same drag-drop + keyboard wiring as the per-item slots.
+            wireDropTarget(additionalEl, additionalEl.querySelector('.imagePreview'), additionalInput, processAdditionalFile);
 
             document.querySelector('#additionalUploader .uploadBtn').onclick = function(evt) {
                 evt.preventDefault();
