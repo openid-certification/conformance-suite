@@ -9,9 +9,9 @@ export default {
   argTypes: {
     layout: {
       control: { type: "inline-radio" },
-      options: ["hero", "inline", "card"],
+      options: ["hero", "inline"],
       description:
-        "Visual treatment for each pending image. `hero` (default) shows a large drop zone above the upload action; `inline` puts the zone in the thumbnail slot for compact lists; `card` uses a tall preview-first card.",
+        "Visual treatment for each pending image. `hero` (default) shows a large drop zone above the upload action; `inline` puts the zone in the thumbnail slot for compact lists.",
     },
   },
   args: {
@@ -59,8 +59,8 @@ function makeDataTransfer(files) {
 
 /**
  * Walk the DOM tree for an element whose tag and content match the expected
- * Replace affordance. Used because hero/card layouts only render Replace
- * after a file is selected.
+ * Replace affordance. Used because the hero layout only renders Replace after
+ * a file is selected.
  */
 async function waitForReplace(root) {
   return waitFor(() => {
@@ -199,41 +199,110 @@ export const LayoutInline = {
   },
 };
 
-export const LayoutCard = {
-  args: { layout: "card" },
+/**
+ * Additional-uploader use case: the user must type their own description
+ * before the upload can fire. Rendered with the `hero` layout so you can see
+ * how the typed input sits beside the large drop zone.
+ */
+export const EditableDescriptionHero = {
+  args: { layout: "hero" },
   render: (args) => html`
     <cts-image-upload
-      test-id="test-card"
+      test-id="test-editable-hero"
       layout="${args.layout}"
-      .pendingImages=${[MOCK_PENDING_IMAGES[0]]}
+      .pendingImages=${[
+        {
+          name: "additional-screenshot",
+          editableDescription: true,
+        },
+      ]}
     ></cts-image-upload>
   `,
   async play({ canvasElement }) {
-    const zone = /** @type {HTMLElement} */ (
-      canvasElement.querySelector('[data-testid="card-dropzone"]')
-    );
-    expect(zone).toBeTruthy();
-    expect(zone.getAttribute("role")).toBe("button");
+    const canvas = within(canvasElement);
 
-    // Dropping a file flips the zone into the preview state and exposes a Replace button.
-    const file = makeMockPng("card-drop.png");
+    // Description input is rendered as a required text field
+    const desc = /** @type {HTMLInputElement} */ (
+      canvasElement.querySelector(".oidf-image-upload__description-input")
+    );
+    expect(desc).toBeTruthy();
+    expect(desc.required).toBe(true);
+
+    // With a file but no description, Upload stays disabled
+    const dropzone = /** @type {HTMLElement} */ (
+      canvasElement.querySelector('[data-testid="hero-dropzone"]')
+    );
+    const file = makeMockPng("hero-edit.png");
+    dropzone.dispatchEvent(
+      new DragEvent("drop", { bubbles: true, dataTransfer: makeDataTransfer([file]) }),
+    );
+    await waitForReplace(canvasElement);
+    const upload = canvas.getByRole("button", { name: /^upload$/i });
+    expect(/** @type {HTMLButtonElement} */ (upload).disabled).toBe(true);
+
+    // Typing a description enables Upload
+    desc.value = "Screenshot of an additional step";
+    desc.dispatchEvent(new Event("input", { bubbles: true }));
+    await waitFor(() => {
+      expect(/** @type {HTMLButtonElement} */ (upload).disabled).toBe(false);
+    });
+  },
+};
+
+/**
+ * Same additional-uploader use case in the `inline` layout, so the upload
+ * form sits visually next to a list of already-uploaded thumbnails.
+ */
+export const EditableDescriptionInline = {
+  args: { layout: "inline" },
+  render: (args) => html`
+    <cts-image-upload
+      test-id="test-editable-inline"
+      layout="${args.layout}"
+      .pendingImages=${[
+        {
+          name: "additional-screenshot",
+          editableDescription: true,
+        },
+      ]}
+      .existingImages=${MOCK_EXISTING_IMAGES}
+    ></cts-image-upload>
+  `,
+  async play({ canvasElement }) {
+    const canvas = within(canvasElement);
+
+    const desc = /** @type {HTMLInputElement} */ (
+      canvasElement.querySelector(".oidf-image-upload__description-input")
+    );
+    expect(desc).toBeTruthy();
+
+    // Both pending and existing rows render at once
+    expect(canvasElement.querySelectorAll('[data-testid="pending-image"]').length).toBe(1);
+    expect(canvasElement.querySelectorAll('[data-testid="existing-image"]').length).toBe(2);
+
+    // Drop a file via the inline zone
+    const zone = /** @type {HTMLLabelElement} */ (
+      canvasElement.querySelector('label[data-testid="inline-dropzone"]')
+    );
+    const file = makeMockPng("inline-edit.png");
     zone.dispatchEvent(
       new DragEvent("drop", { bubbles: true, dataTransfer: makeDataTransfer([file]) }),
     );
 
-    const replace = await waitForReplace(canvasElement);
-    expect(replace.textContent).toContain("Replace");
-
-    // After file selection, the filled zone no longer carries role=button
-    // (the Replace button is the only interactive child).
-    const filledZone = canvasElement.querySelector('[data-testid="card-dropzone"]');
-    expect(filledZone).toBeTruthy();
-    expect(filledZone.getAttribute("role")).toBeNull();
-
-    // Upload becomes enabled.
-    const canvas = within(canvasElement);
+    // Without a typed description, Upload remains disabled
+    await waitFor(() => {
+      const thumb = zone.querySelector("img.oidf-image-upload__thumb");
+      expect(thumb).toBeTruthy();
+    });
     const upload = canvas.getByRole("button", { name: /^upload$/i });
-    expect(/** @type {HTMLButtonElement} */ (upload).disabled).toBe(false);
+    expect(/** @type {HTMLButtonElement} */ (upload).disabled).toBe(true);
+
+    // Typing a description enables Upload
+    desc.value = "Additional screenshot for this run";
+    desc.dispatchEvent(new Event("input", { bubbles: true }));
+    await waitFor(() => {
+      expect(/** @type {HTMLButtonElement} */ (upload).disabled).toBe(false);
+    });
   },
 };
 

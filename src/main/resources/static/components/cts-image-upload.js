@@ -2,7 +2,7 @@ import { LitElement, html, nothing } from "lit";
 
 const UPLOAD_SIZE_LIMIT = 500 * 1024;
 const ACCEPTED_TYPES = ["image/jpeg", "image/png"];
-const VALID_LAYOUTS = new Set(["hero", "inline", "card"]);
+const VALID_LAYOUTS = new Set(["hero", "inline"]);
 
 const STYLE_ID = "cts-image-upload-styles";
 
@@ -322,155 +322,40 @@ const STYLE_TEXT = `
   margin-top: var(--space-1);
 }
 
-/* ---------- Card layout ---------- */
+/* ---------- Description field (shared) ---------- */
 
-.oidf-image-upload__card {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-3);
-}
-.oidf-image-upload__card-header {
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
-}
-.oidf-image-upload__card-description {
-  margin: 0;
-  font-family: var(--font-sans);
-  font-weight: var(--fw-bold);
-  font-size: var(--fs-14);
-  line-height: var(--lh-snug);
-  color: var(--fg);
-}
-.oidf-image-upload__card-zone {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  gap: var(--space-3);
-  width: 100%;
-  aspect-ratio: 4 / 3;
-  padding: var(--space-4);
-  border: 2px dashed var(--border-strong);
-  border-radius: var(--radius-2);
-  background: var(--bg-muted);
-  color: var(--fg);
-  cursor: pointer;
-  overflow: hidden;
-  transition: border-color var(--dur-1) var(--ease-standard),
-    background var(--dur-1) var(--ease-standard);
-}
-.oidf-image-upload__card-zone:hover {
-  border-color: var(--orange-300);
-  background: var(--orange-50);
-}
-.oidf-image-upload__card-zone:focus-visible {
-  outline: none;
-  border-color: var(--orange-400);
-  box-shadow: var(--focus-ring);
-}
-.oidf-image-upload__card-zone--dragover {
-  border-style: solid;
-  border-color: var(--orange-400);
-  background: var(--orange-50);
-}
-.oidf-image-upload__card-zone--filled {
-  padding: 0;
-  background: var(--bg-elev);
-  aspect-ratio: auto;
-  min-height: 240px;
-}
-.oidf-image-upload__card-icon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 56px;
-  height: 56px;
-  border-radius: var(--radius-pill);
-  background: var(--bg-elev);
-  color: var(--orange-500);
-  border: 1px solid var(--border);
-}
-.oidf-image-upload__card-zone--dragover .oidf-image-upload__card-icon {
-  background: var(--orange-400);
-  color: var(--fg-on-ink);
-  border-color: var(--orange-400);
-}
-.oidf-image-upload__card-title {
-  margin: 0;
-  font-family: var(--font-sans);
-  font-weight: var(--fw-medium);
-  font-size: var(--fs-14);
-  line-height: var(--lh-snug);
-  color: var(--fg);
-}
-.oidf-image-upload__card-title strong {
-  color: var(--orange-500);
-  font-weight: var(--fw-bold);
-}
-.oidf-image-upload__card-hint {
-  margin: 0;
-  font-family: var(--font-sans);
-  font-size: var(--fs-12);
-  line-height: var(--lh-snug);
-  color: var(--fg-soft);
-}
-.oidf-image-upload__card-preview {
-  width: 100%;
-  height: 100%;
-  max-height: 360px;
-  object-fit: contain;
-  background: var(--bg-muted);
-  border-radius: var(--radius-2);
-  display: block;
-}
-.oidf-image-upload__card-replace {
-  position: absolute;
-  right: var(--space-3);
-  bottom: var(--space-3);
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-1);
-  padding: var(--space-2) var(--space-3);
-  border-radius: var(--radius-2);
-  background: rgba(26, 22, 17, 0.78);
-  color: var(--fg-on-ink);
-  font-family: var(--font-sans);
-  font-size: var(--fs-12);
-  font-weight: var(--fw-medium);
-  border: 0;
-  cursor: pointer;
-}
-.oidf-image-upload__card-replace:hover {
-  background: var(--ink-900);
-}
-.oidf-image-upload__card-replace:focus-visible {
-  outline: none;
-  box-shadow: var(--focus-ring);
-}
-.oidf-image-upload__card-actions {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-between;
-  gap: var(--space-2);
-  align-items: center;
-}
-.oidf-image-upload__card-meta {
+.oidf-image-upload__description-field {
   display: flex;
   flex-direction: column;
   gap: var(--space-1);
   min-width: 0;
 }
-.oidf-image-upload__card-filename {
-  margin: 0;
+.oidf-image-upload__description-label {
   font-family: var(--font-sans);
   font-weight: var(--fw-medium);
   font-size: var(--fs-13);
   line-height: var(--lh-snug);
+  color: var(--fg-soft);
+}
+.oidf-image-upload__description-input {
+  font-family: var(--font-sans);
+  font-size: var(--fs-14);
+  line-height: var(--lh-snug);
   color: var(--fg);
-  word-break: break-all;
+  background: var(--bg-elev);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-2);
+  padding: var(--space-2) var(--space-3);
+  width: 100%;
+  box-sizing: border-box;
+}
+.oidf-image-upload__description-input:focus-visible {
+  outline: none;
+  border-color: var(--orange-400);
+  box-shadow: var(--focus-ring);
+}
+.oidf-image-upload__description-field--hero .oidf-image-upload__description-input {
+  font-size: var(--fs-15);
 }
 
 /* ---------- Action buttons (shared) ---------- */
@@ -631,19 +516,22 @@ function _slugify(value) {
  * announcement through a single `role="status" aria-live="polite"` region.
  * The visible file-picker button stays present in the `inline` layout as the
  * single-pointer alternative required by WCAG 2.1 SC 2.5.7 (Dragging
- * Movements); the `hero` and `card` layouts make the drop zone itself
- * keyboard-activatable so the same affordance covers both pointer and
- * keyboard users.
+ * Movements); the `hero` layout makes the drop zone itself keyboard-activatable
+ * so the same affordance covers both pointer and keyboard users.
  *
  * @property {string} testId - Test log ID used in the upload URL. Reflects the
  *   `test-id` attribute.
  * @property {Array} pendingImages - Images awaiting upload; each item has
- *   `{ name, description }`.
+ *   `{ name, description, editableDescription? }`. `description` is rendered as
+ *   a static label by default. When `editableDescription` is `true`, the
+ *   description is rendered as a required text input whose value is captured
+ *   into component state and posted to the API as `?description=…`; in that
+ *   mode `description` (when provided) seeds the input's initial value.
  * @property {Array} existingImages - Already-uploaded images; each item has
  *   `{ name, url }`.
  * @property {string} layout - Visual treatment for each pending item. One of
- *   `"hero"` (default), `"inline"`, or `"card"`. Reflects the `layout`
- *   attribute. Unknown values fall back to `"hero"`.
+ *   `"hero"` (default) or `"inline"`. Reflects the `layout` attribute. Unknown
+ *   values fall back to `"hero"`.
  * @fires cts-image-uploaded - After a successful POST, with
  *   `{ detail: { testId, imageName } }`; bubbles.
  */
@@ -655,6 +543,7 @@ class CtsImageUpload extends LitElement {
     layout: { type: String, reflect: true },
     _selectedFiles: { type: Object, state: true },
     _previews: { type: Object, state: true },
+    _descriptions: { type: Object, state: true },
     _uploading: { type: Boolean, state: true },
     _error: { type: String, state: true },
     _uploadedIds: { type: Object, state: true },
@@ -670,6 +559,7 @@ class CtsImageUpload extends LitElement {
     this.layout = "hero";
     this._selectedFiles = {};
     this._previews = {};
+    this._descriptions = {};
     this._uploading = false;
     this._error = "";
     this._uploadedIds = new Set();
@@ -891,6 +781,14 @@ class CtsImageUpload extends LitElement {
     const body = this._previews[imageName];
     if (!body) return;
 
+    // When the slot uses editableDescription, the user-typed description is
+    // required by the spec and posted as a `?description=` query param. Block
+    // upload if the field is empty so the API never receives an empty value.
+    const image = (this.pendingImages || []).find((p) => p && p.name === imageName);
+    const editable = !!(image && image.editableDescription);
+    const description = editable ? this._describedValue(image).trim() : "";
+    if (editable && !description) return;
+
     this._uploading = true;
     this._error = "";
     this._announce = `Uploading ${file.name}.`;
@@ -898,7 +796,10 @@ class CtsImageUpload extends LitElement {
     try {
       // The endpoint accepts the dataURL body directly (see ImageAPI#uploadImageToExistingLogEntry,
       // `@RequestBody String encoded`); it is not a multipart upload.
-      const url = `/api/log/${encodeURIComponent(this.testId)}/images/${encodeURIComponent(imageName)}`;
+      let url = `/api/log/${encodeURIComponent(this.testId)}/images/${encodeURIComponent(imageName)}`;
+      if (editable) {
+        url += `?description=${encodeURIComponent(description)}`;
+      }
       const response = await fetch(url, {
         method: "POST",
         body,
@@ -957,18 +858,63 @@ class CtsImageUpload extends LitElement {
     `;
   }
 
-  _renderUploadButton(imageName, hasFile) {
+  _renderUploadButton(imageName, hasFile, hasDescription = true) {
     const classes = ["oidf-image-upload__upload-btn", "uploadBtn"];
-    if (hasFile) classes.push("oidf-image-upload__upload-btn--ready");
+    if (hasFile && hasDescription) classes.push("oidf-image-upload__upload-btn--ready");
     return html`
       <button
         type="button"
         class="${classes.join(" ")}"
-        ?disabled="${!hasFile || this._uploading}"
+        ?disabled="${!hasFile || !hasDescription || this._uploading}"
         data-image-name="${imageName}"
         @click="${this._handleUpload}"
         >${this._uploading ? "Uploading…" : "Upload"}</button
       >
+    `;
+  }
+
+  _handleDescriptionInput = (e) => {
+    const target = /** @type {HTMLInputElement} */ (e.currentTarget);
+    const imageName = target.dataset.imageName;
+    if (!imageName) return;
+    this._descriptions = { ...this._descriptions, [imageName]: target.value };
+  };
+
+  _describedValue(image) {
+    const imageName = image.name;
+    if (Object.prototype.hasOwnProperty.call(this._descriptions, imageName)) {
+      return this._descriptions[imageName];
+    }
+    return image.description ?? "";
+  }
+
+  _renderDescription(image, variant) {
+    if (!image.editableDescription) {
+      return image.description
+        ? html`<p class="oidf-image-upload__${variant}-description">${image.description}</p>`
+        : nothing;
+    }
+    const imageName = image.name;
+    const inputId = `${this._instanceId}-desc-${_slugify(imageName)}`;
+    const value = this._describedValue(image);
+    return html`
+      <label
+        class="oidf-image-upload__description-field oidf-image-upload__description-field--${variant}"
+        for="${inputId}"
+      >
+        <span class="oidf-image-upload__description-label">Description</span>
+        <input
+          id="${inputId}"
+          type="text"
+          class="oidf-image-upload__description-input"
+          data-image-name="${imageName}"
+          .value="${value}"
+          placeholder="Describe this screenshot"
+          required
+          aria-required="true"
+          @input="${this._handleDescriptionInput}"
+        />
+      </label>
     `;
   }
 
@@ -981,6 +927,9 @@ class CtsImageUpload extends LitElement {
     // prevents the Upload button from being clickable before the data is
     // available to POST.
     const hasFile = !!(file && preview);
+    const hasDescription = !image.editableDescription
+      ? true
+      : this._describedValue(image).trim().length > 0;
     const isDragOver = this._dragOver.has(imageName);
     const hintId = this._hintIdFor(imageName);
 
@@ -1000,11 +949,7 @@ class CtsImageUpload extends LitElement {
           >
             <cts-icon name="cloud-upload" size="16"></cts-icon>
           </span>
-          <div class="oidf-image-upload__hero-meta">
-            ${image.description
-              ? html`<p class="oidf-image-upload__hero-description">${image.description}</p>`
-              : nothing}
-          </div>
+          <div class="oidf-image-upload__hero-meta">${this._renderDescription(image, "hero")}</div>
           ${hasFile && preview
             ? html`
                 <div class="oidf-image-upload__hero-preview">
@@ -1057,7 +1002,7 @@ class CtsImageUpload extends LitElement {
                 </div>
               `}
           <div class="oidf-image-upload__hero-actions">
-            ${this._renderUploadButton(imageName, hasFile)}
+            ${this._renderUploadButton(imageName, hasFile, hasDescription)}
           </div>
         </div>
         ${this._renderHiddenInput(imageName)}
@@ -1074,6 +1019,9 @@ class CtsImageUpload extends LitElement {
     // prevents the Upload button from being clickable before the data is
     // available to POST.
     const hasFile = !!(file && preview);
+    const hasDescription = !image.editableDescription
+      ? true
+      : this._describedValue(image).trim().length > 0;
     const isDragOver = this._dragOver.has(imageName);
     const hintId = this._hintIdFor(imageName);
 
@@ -1122,9 +1070,7 @@ class CtsImageUpload extends LitElement {
             ${this._renderHiddenInput(imageName)}
           </label>
           <div class="oidf-image-upload__inline-body">
-            ${image.description
-              ? html`<p class="oidf-image-upload__inline-description">${image.description}</p>`
-              : nothing}
+            ${this._renderDescription(image, "inline")}
             <p class="oidf-image-upload__inline-hint" id="${hintId}">
               Please upload a screenshot showing just your web browser. JPEG or PNG, up to
               500&nbsp;KB.
@@ -1142,118 +1088,10 @@ class CtsImageUpload extends LitElement {
                   @change="${this._handleFileSelect}"
                 />
               </label>
-              ${this._renderUploadButton(imageName, hasFile)}
+              ${this._renderUploadButton(imageName, hasFile, hasDescription)}
             </div>
           </div>
         </div>
-      </div>
-    `;
-  }
-
-  _renderPendingCard(image) {
-    const imageName = image.name;
-    const preview = this._previews[imageName];
-    const file = this._selectedFiles[imageName];
-    // "Ready to upload" is gated on the preview data URL being populated
-    // (FileReader resolved), not just on the file being accepted. This
-    // prevents the Upload button from being clickable before the data is
-    // available to POST.
-    const hasFile = !!(file && preview);
-    const isDragOver = this._dragOver.has(imageName);
-    const hintId = this._hintIdFor(imageName);
-
-    const zoneClasses = ["oidf-image-upload__card-zone"];
-    if (isDragOver) zoneClasses.push("oidf-image-upload__card-zone--dragover");
-    if (hasFile) zoneClasses.push("oidf-image-upload__card-zone--filled");
-
-    return html`
-      <div
-        class="oidf-image-upload__item"
-        data-testid="pending-image"
-        data-image-name="${imageName}"
-      >
-        <div class="oidf-image-upload__card">
-          <div class="oidf-image-upload__card-header">
-            <span
-              class="oidf-image-upload__status oidf-image-upload__status--pending"
-              aria-hidden="true"
-            >
-              <cts-icon name="cloud-upload" size="16"></cts-icon>
-            </span>
-            <div class="oidf-image-upload__card-meta">
-              ${image.description
-                ? html`<p class="oidf-image-upload__card-description">${image.description}</p>`
-                : nothing}
-            </div>
-          </div>
-          ${hasFile && preview
-            ? html`
-                <div
-                  class="${zoneClasses.join(" ")}"
-                  data-image-name="${imageName}"
-                  data-testid="card-dropzone"
-                  @dragenter="${this._handleDragEnter}"
-                  @dragover="${this._handleDragOver}"
-                  @dragleave="${this._handleDragLeave}"
-                  @drop="${this._handleDrop}"
-                >
-                  <img
-                    src="${preview}"
-                    alt="Preview of ${imageName}"
-                    class="oidf-image-upload__card-preview imagePreview"
-                  />
-                  <button
-                    type="button"
-                    class="oidf-image-upload__card-replace oidf-image-upload__replace-btn"
-                    data-image-name="${imageName}"
-                    @click="${this._handleReplace}"
-                    >Replace</button
-                  >
-                </div>
-              `
-            : html`
-                <div
-                  class="${zoneClasses.join(" ")}"
-                  role="button"
-                  tabindex="0"
-                  aria-label="Drop a screenshot here or click to browse"
-                  aria-describedby="${hintId}"
-                  data-image-name="${imageName}"
-                  data-testid="card-dropzone"
-                  @click="${this._handleZoneClick}"
-                  @keydown="${this._handleZoneKeyDown}"
-                  @dragenter="${this._handleDragEnter}"
-                  @dragover="${this._handleDragOver}"
-                  @dragleave="${this._handleDragLeave}"
-                  @drop="${this._handleDrop}"
-                >
-                  <span class="oidf-image-upload__card-icon" aria-hidden="true">
-                    <cts-icon
-                      name="${isDragOver ? "cloud-add" : "cloud-upload"}"
-                      size="24"
-                    ></cts-icon>
-                  </span>
-                  <p class="oidf-image-upload__card-title" aria-hidden="true">
-                    <strong>Drop a screenshot</strong> or click to browse
-                  </p>
-                  <p class="oidf-image-upload__card-hint" id="${hintId}"
-                    >JPEG or PNG, up to 500&nbsp;KB</p
-                  >
-                </div>
-              `}
-          <div class="oidf-image-upload__card-actions">
-            ${hasFile
-              ? html`<p class="oidf-image-upload__card-filename"
-                  >${file.name}
-                  <span class="oidf-image-upload__card-hint"
-                    >&nbsp;·&nbsp;${formatBytes(file.size)}</span
-                  ></p
-                >`
-              : html`<span></span>`}
-            ${this._renderUploadButton(imageName, hasFile)}
-          </div>
-        </div>
-        ${this._renderHiddenInput(imageName)}
       </div>
     `;
   }
@@ -1281,8 +1119,6 @@ class CtsImageUpload extends LitElement {
     switch (this._resolvedLayout()) {
       case "inline":
         return this._renderPendingInline(image);
-      case "card":
-        return this._renderPendingCard(image);
       case "hero":
       default:
         return this._renderPendingHero(image);
