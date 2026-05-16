@@ -31,17 +31,35 @@ const MOCK_EXISTING_IMAGES = [
   { name: "screenshot-token", url: "images/placeholder.jpg" },
 ];
 
+// A valid 1x1 transparent PNG. Stories prepend these bytes so previews
+// decode as a real image (otherwise the FileReader data-URL shows the
+// browser's broken-image glyph). PNG decoders stop at IEND, so trailing
+// padding bytes from the `bytes` knob below are visually ignored — only
+// `.size` is affected, which is what the validation tests care about.
+const TINY_PNG_BASE64 =
+  "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=";
+
+function tinyPngBytes() {
+  const bin = atob(TINY_PNG_BASE64);
+  const out = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
+  return out;
+}
+
 /**
- * Build a synthetic PNG `File`. The conformance suite enforces JPEG/PNG via
- * MIME type, so we lie about the body bytes — only `type` and `size` are
- * checked client-side.
+ * Build a synthetic PNG `File` with a real decodable header so the live
+ * Storybook preview shows an actual image. The `bytes` knob controls total
+ * file size for validating the 500 KB cap.
  *
  * @param {string} name
  * @param {number} bytes - target file size, default 8 KB
  * @returns {File}
  */
 function makeMockPng(name, bytes = 8 * 1024) {
-  const buf = new Uint8Array(bytes);
+  const png = tinyPngBytes();
+  const total = Math.max(png.length, bytes);
+  const buf = new Uint8Array(total);
+  buf.set(png, 0);
   return new File([buf], name, { type: "image/png" });
 }
 
@@ -463,7 +481,7 @@ export const UploadSuccess = {
     );
     expect(fileInput).toBeTruthy();
 
-    const file = new File(["fake image data"], "test-screenshot.png", { type: "image/png" });
+    const file = makeMockPng("test-screenshot.png");
     const dataTransfer = new DataTransfer();
     dataTransfer.items.add(file);
     fileInput.files = dataTransfer.files;
@@ -527,7 +545,7 @@ export const UploadError = {
     );
     expect(fileInput).toBeTruthy();
 
-    const file = new File(["fake image data"], "test-screenshot.png", { type: "image/png" });
+    const file = makeMockPng("test-screenshot.png");
     const dataTransfer = new DataTransfer();
     dataTransfer.items.add(file);
     fileInput.files = dataTransfer.files;

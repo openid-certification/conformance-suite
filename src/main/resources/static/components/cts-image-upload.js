@@ -10,7 +10,7 @@ const STYLE_TEXT = `
 .oidf-image-upload {
   display: flex;
   flex-direction: column;
-  gap: var(--space-4);
+  gap: var(--space-3);
 }
 .oidf-image-upload__heading {
   margin: 0;
