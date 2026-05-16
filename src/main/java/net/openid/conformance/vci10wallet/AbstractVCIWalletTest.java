@@ -214,7 +214,7 @@ import java.util.Map;
 	"credential.signing_jwk",
 	"waitTimeoutSeconds",
 	"vci.credential_offer_endpoint",
-	"vci.key_attestation_jwks",
+	"client_attestation.key_attestation_jwks",
 	"client_attestation.key_attestation_trust_anchor_pem",
 	"vci.credential_configuration_id",
 })
@@ -253,7 +253,7 @@ import java.util.Map;
 	"client.jwks"
 })
 @VariantHidesConfigurationFields(parameter = FAPI2FinalOPProfile.class, value = "vci_haip", configurationFields = {
-	"vci.key_attestation_jwks"
+	"client_attestation.key_attestation_jwks"
 })
 @VariantNotApplicableWhen(
 	parameter = VCICredentialOfferParameterVariant.class,

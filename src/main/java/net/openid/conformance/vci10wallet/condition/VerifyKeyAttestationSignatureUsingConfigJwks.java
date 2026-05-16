@@ -23,7 +23,7 @@ import java.text.ParseException;
 
 /**
  * Non-HAIP fallback signature verification for key attestation JWTs that arrive without
- * an x5c JOSE header. Uses the configured {@code vci.key_attestation_jwks} JWKS.
+ * an x5c JOSE header. Uses the configured {@code client_attestation.key_attestation_jwks} JWKS.
  *
  * Skips silently when the JWT carries an x5c header — that case is handled by
  * {@link ValidateKeyAttestationX5cCertificateChain}, which verifies the signature against
@@ -45,7 +45,12 @@ public class VerifyKeyAttestationSignatureUsingConfigJwks extends AbstractCondit
 
 		String rawJwt = OIDFJSON.getString(keyAttestationJwt.get("value"));
 
-		JsonElement keyAttestationJwksEl = env.getElementFromObject("config", "vci.key_attestation_jwks");
+		// Read the new key first; fall back to the legacy vci.* key so existing stored
+		// test configs keep working through a transition window.
+		JsonElement keyAttestationJwksEl = env.getElementFromObject("config", "client_attestation.key_attestation_jwks");
+		if (keyAttestationJwksEl == null) {
+			keyAttestationJwksEl = env.getElementFromObject("config", "vci.key_attestation_jwks");
+		}
 		if (keyAttestationJwksEl == null) {
 			String errorDescription = "'Key Attestation JWKS' field is missing from the 'Key Attestation' section in the test configuration";
 			VCICredentialErrorResponseUtil.updateCredentialErrorResponseInEnv(env, VciErrorCode.INVALID_PROOF, errorDescription);

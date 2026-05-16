@@ -17,7 +17,7 @@ public class EnsureKeyAttestationTrustAnchorConfigured extends AbstractCondition
 			trustAnchorPem = env.getString("config", "vci.key_attestation_trust_anchor_pem");
 		}
 		if (trustAnchorPem == null || trustAnchorPem.isBlank()) {
-			throw error("'Key Attestation Trust Anchor' field is missing from the 'Client Attestation' section in the test configuration. It is required for HAIP.");
+			throw error("'Key Attestation Trust Anchor' field is missing from the 'Key Attestation' section in the test configuration. It is required for HAIP.");
 		}
 
 		logSuccess("Key Attestation Trust Anchor is configured");
