@@ -26,11 +26,17 @@ public class VCICheckKeyAttestationJwksIfKeyAttestationIsRequired extends Abstra
 		}
 
 		log("Key attestation required for selected proof type " + proofTypeKey, args("proof_type", proofType));
-		if (env.getElementFromObject("config", "vci.key_attestation_jwks") == null) {
+		// Read the new key first; fall back to the legacy vci.* key so existing stored
+		// test configs keep working through a transition window.
+		JsonObject keyAttestationJwksObj = env.getElementFromObject("config", "client_attestation.key_attestation_jwks") != null
+			? env.getElementFromObject("config", "client_attestation.key_attestation_jwks").getAsJsonObject()
+			: (env.getElementFromObject("config", "vci.key_attestation_jwks") != null
+				? env.getElementFromObject("config", "vci.key_attestation_jwks").getAsJsonObject()
+				: null);
+		if (keyAttestationJwksObj == null) {
 			throw error("Required key_attestation_jwks is missing", args("proof_type", proofType));
 		}
 
-		JsonObject keyAttestationJwksObj = env.getElementFromObject("config", "vci.key_attestation_jwks").getAsJsonObject();
 		env.putObject("vci_key_attestation_jwks", keyAttestationJwksObj);
 		log("Successfully parsed key attestation jwks", args("key_attestation_jwks", keyAttestationJwksObj));
 
