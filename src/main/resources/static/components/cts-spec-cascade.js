@@ -3,7 +3,7 @@ import { classMap } from "lit/directives/class-map.js";
 
 /**
  * Four-level cascading selector (Specification -> Entity -> Version -> Plan)
- * backed by `/api/runner/available`. Auto-selects single-option tiers.
+ * backed by `/api/plan/available`. Auto-selects single-option tiers.
  *
  * Light DOM. Scoped CSS lives in a single `<style>` element injected into
  * `<head>` on first connect (gated by a module-level flag). The component
@@ -11,10 +11,16 @@ import { classMap } from "lit/directives/class-map.js";
  * `cts-form-field`'s `.oidf-select` styling so the dropdowns visually align
  * with other OIDF form controls.
  *
+ * The level-2 ("Entity Under Test") field is keyed by `plan.entityUnderTest`
+ * when present (storybook fixtures), falling back to `plan.profile` (real
+ * `/api/plan/available` payload). The label stays "Entity Under Test" to
+ * match the prior inline cascade in `schedule-test.html`.
+ *
  * @property {Array} plans - Available plans. If not provided the component
- *   fetches from `/api/runner/available` on connect.
- * @fires cts-plan-selected - When a plan is chosen (manually or via
- *   auto-select), with `{ detail: { plan } }`; bubbles.
+ *   fetches from `/api/plan/available` on connect.
+ * @fires cts-plan-selected - When a plan is chosen (manually, via
+ *   auto-select, or via the `selectPlanByName` method), with
+ *   `{ detail: { plan } }`; bubbles.
  */
 
 const STYLE_ID = "cts-spec-cascade-styles";
@@ -140,6 +146,9 @@ class CtsSpecCascade extends LitElement {
     this._selectedPlan = "";
     this._loading = false;
     this._error = "";
+    // Holds a planName requested via `selectPlanByName` before plans arrived.
+    // Drained from `updated()` once `plans` becomes non-null.
+    this._pendingSelection = "";
   }
 
   connectedCallback() {
@@ -154,7 +163,7 @@ class CtsSpecCascade extends LitElement {
     this._loading = true;
     this._error = "";
     try {
-      const response = await fetch("/api/runner/available");
+      const response = await fetch("/api/plan/available");
       // The previous implementation called `response.json()` unconditionally,
       // which let a 5xx with a JSON error body silently become "plans = [error
       // payload]" and then fall through to an empty dropdown. Check ok first so
@@ -162,11 +171,16 @@ class CtsSpecCascade extends LitElement {
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
-      this.plans = await response.json();
+      const payload = await response.json();
+      // Defensive: the API contract is an array. Anything else (e.g., a
+      // permissive test mock returning `{}`) would otherwise crash
+      // `_planIndex`'s `for…of` later. Coerce to empty array on shape
+      // mismatch so the empty-state UI fires instead of a hard error.
+      this.plans = Array.isArray(payload) ? payload : [];
     } catch (err) {
       this.plans = [];
       this._error = "Unable to load plans — please reload the page.";
-      console.warn("[cts-spec-cascade] /api/runner/available fetch failed:", err);
+      console.warn("[cts-spec-cascade] /api/plan/available fetch failed:", err);
     } finally {
       this._loading = false;
     }
@@ -179,10 +193,12 @@ class CtsSpecCascade extends LitElement {
    */
   get _planIndex() {
     const index = {};
-    if (!this.plans) return index;
+    if (!Array.isArray(this.plans)) return index;
     for (const plan of this.plans) {
       const family = plan.specFamily || "";
-      const entity = plan.entityUnderTest || "";
+      // `entityUnderTest` is preferred when present (storybook fixtures supply
+      // it directly); real `/api/plan/available` payloads only carry `profile`.
+      const entity = plan.entityUnderTest || plan.profile || "";
       const version = plan.specVersion || "";
       if (!family) continue;
       if (!index[family]) index[family] = {};
@@ -279,12 +295,59 @@ class CtsSpecCascade extends LitElement {
   }
 
   _emitPlanSelected(plan) {
-    this.dispatchEvent(
-      new CustomEvent("cts-plan-selected", {
-        bubbles: true,
-        detail: { plan },
-      }),
-    );
+    // Defer until after Lit propagates the state change to the rendered
+    // `<select>` elements. Listeners that read from light-DOM by id (e.g.
+    // `document.getElementById('planSelect').value`) need the DOM to be in
+    // sync with our internal state before the event fires.
+    this.updateComplete.then(() => {
+      this.dispatchEvent(
+        new CustomEvent("cts-plan-selected", {
+          bubbles: true,
+          detail: { plan },
+        }),
+      );
+    });
+  }
+
+  /**
+   * Drive the cascade to a named plan and dispatch `cts-plan-selected`. Sets
+   * the four tier-state fields directly so each tier's options re-derive
+   * without running the auto-select side effects in `_handleFamilyChange` and
+   * friends — those exist for user-driven cascade walks, not for "I already
+   * know which plan I want."
+   *
+   * If `plans` hasn't loaded yet, the request is queued and re-fires once
+   * plans arrive (see `updated()`).
+   *
+   * @param {string} planName Plan to select.
+   * @returns {boolean} `true` if accepted (selection took effect, or queued
+   *   pending plan load); `false` if `plans` are loaded and the name is
+   *   unknown.
+   */
+  selectPlanByName(planName) {
+    if (!planName) return false;
+    if (!this.plans) {
+      this._pendingSelection = planName;
+      return true;
+    }
+    const plan = this.plans.find((p) => p.planName === planName);
+    if (!plan) return false;
+
+    this._selectedFamily = plan.specFamily || "";
+    this._selectedEntity = plan.entityUnderTest || plan.profile || "";
+    this._selectedVersion = plan.specVersion || "";
+    this._selectedPlan = planName;
+    this._emitPlanSelected(plan);
+    return true;
+  }
+
+  updated(changedProperties) {
+    // Drain a queued programmatic selection once plans finish loading.
+    if (changedProperties.has("plans") && this.plans && this._pendingSelection) {
+      const pending = this._pendingSelection;
+      this._pendingSelection = "";
+      this.selectPlanByName(pending);
+    }
   }
 
   _renderField(label, selectId, options, value, placeholder, changeHandler, visible) {

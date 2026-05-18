@@ -1,4 +1,14 @@
-/** Mock /api/plan/available response shape (spec cascade data). */
+/**
+ * Mock /api/plan/available response shape (spec cascade data).
+ *
+ * The fields below mirror what `TestPlanApi.getAvailableTestPlans()` returns:
+ * planName, displayName, profile, specFamily, specVersion, modules,
+ * configurationFields, hidesConfigurationFields, summary, variants.
+ *
+ * The cts-spec-cascade component keys its level-2 ("Entity Under Test")
+ * dropdown by `profile`, so e2e tests select profile values
+ * ("basic" / "fapi2-security-profile" / "client-basic"), not entity nouns.
+ */
 
 export const MOCK_PLANS = [
   {
@@ -7,7 +17,6 @@ export const MOCK_PLANS = [
     profile: "basic",
     specFamily: "OIDCC",
     specVersion: "Final",
-    entityUnderTest: "OP",
     summary: "Basic OP certification test plan for OpenID Connect Core 1.0",
     modules: [
       { testModule: "oidcc-server" },
@@ -53,7 +62,6 @@ export const MOCK_PLANS = [
     profile: "fapi2-security-profile",
     specFamily: "FAPI",
     specVersion: "Final",
-    entityUnderTest: "OP",
     summary: "FAPI 2.0 Security Profile conformance test plan",
     modules: [
       { testModule: "fapi2-security-profile-happy-flow" },
@@ -90,7 +98,6 @@ export const MOCK_PLAN_NO_VARIANTS = {
   profile: "client-basic",
   specFamily: "OIDCC",
   specVersion: "Final",
-  entityUnderTest: "RP",
   summary: "Client-side certification test plan for OpenID Connect",
   modules: [{ testModule: "oidcc-client-test" }],
   configurationFields: ["server.issuer"],
