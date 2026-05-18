@@ -2,8 +2,6 @@ import { LitElement, html, nothing } from "lit";
 
 const UPLOAD_SIZE_LIMIT = 500 * 1024;
 const ACCEPTED_TYPES = ["image/jpeg", "image/png"];
-const VALID_LAYOUTS = new Set(["hero", "inline"]);
-
 const STYLE_ID = "cts-image-upload-styles";
 
 const STYLE_TEXT = `
@@ -98,147 +96,6 @@ const STYLE_TEXT = `
   background: var(--status-info-bg);
   border-color: var(--status-info-border);
   color: var(--status-info);
-}
-
-/* ---------- Hero layout (default) ---------- */
-
-.oidf-image-upload__hero {
-  display: grid;
-  grid-template-columns: var(--space-6) 1fr;
-  grid-template-rows: auto auto;
-  column-gap: var(--space-4);
-  row-gap: var(--space-3);
-  align-items: start;
-}
-.oidf-image-upload__hero-meta {
-  grid-column: 2;
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-1);
-  min-width: 0;
-}
-.oidf-image-upload__hero-description {
-  margin: 0;
-  font-family: var(--font-sans);
-  font-weight: var(--fw-bold);
-  font-size: var(--fs-14);
-  line-height: var(--lh-snug);
-  color: var(--fg);
-}
-.oidf-image-upload__hero-zone {
-  grid-column: 2;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  gap: var(--space-2);
-  padding: var(--space-6) var(--space-4);
-  border: 2px dashed var(--border-strong);
-  border-radius: var(--radius-2);
-  background: var(--bg-muted);
-  color: var(--fg);
-  cursor: pointer;
-  transition: border-color var(--dur-1) var(--ease-standard),
-    background var(--dur-1) var(--ease-standard);
-}
-.oidf-image-upload__hero-zone:hover {
-  border-color: var(--orange-300);
-  background: var(--orange-50);
-}
-.oidf-image-upload__hero-zone:focus-visible {
-  outline: none;
-  border-color: var(--orange-400);
-  box-shadow: var(--focus-ring);
-}
-.oidf-image-upload__hero-zone--dragover {
-  border-style: solid;
-  border-color: var(--orange-400);
-  background: var(--orange-50);
-}
-.oidf-image-upload__hero-icon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 48px;
-  height: 48px;
-  border-radius: var(--radius-pill);
-  background: var(--bg-elev);
-  color: var(--orange-500);
-  border: 1px solid var(--border);
-}
-.oidf-image-upload__hero-zone--dragover .oidf-image-upload__hero-icon {
-  background: var(--orange-400);
-  color: var(--fg-on-ink);
-  border-color: var(--orange-400);
-}
-.oidf-image-upload__hero-title {
-  margin: 0;
-  font-family: var(--font-sans);
-  font-weight: var(--fw-medium);
-  font-size: var(--fs-14);
-  line-height: var(--lh-snug);
-  color: var(--fg);
-}
-.oidf-image-upload__hero-title strong {
-  color: var(--orange-500);
-  font-weight: var(--fw-bold);
-}
-.oidf-image-upload__hero-hint {
-  margin: 0;
-  font-family: var(--font-sans);
-  font-size: var(--fs-12);
-  line-height: var(--lh-snug);
-  color: var(--fg-soft);
-}
-.oidf-image-upload__hero-preview {
-  grid-column: 2;
-  display: grid;
-  grid-template-columns: 96px 1fr auto;
-  align-items: center;
-  gap: var(--space-4);
-  padding: var(--space-3);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-2);
-  background: var(--bg-elev);
-}
-.oidf-image-upload__hero-preview-thumb {
-  width: 96px;
-  height: 96px;
-  object-fit: cover;
-  border-radius: var(--radius-2);
-  background: var(--bg-muted);
-  border: 1px solid var(--border);
-}
-.oidf-image-upload__hero-preview-meta {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-1);
-  min-width: 0;
-}
-.oidf-image-upload__hero-preview-name {
-  margin: 0;
-  font-family: var(--font-sans);
-  font-weight: var(--fw-medium);
-  font-size: var(--fs-13);
-  line-height: var(--lh-snug);
-  color: var(--fg);
-  word-break: break-all;
-}
-.oidf-image-upload__hero-preview-size {
-  margin: 0;
-  font-family: var(--font-sans);
-  font-size: var(--fs-12);
-  line-height: var(--lh-snug);
-  color: var(--fg-soft);
-}
-.oidf-image-upload__hero-actions {
-  grid-column: 2;
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: flex-end;
-  gap: var(--space-2);
-  align-items: center;
 }
 
 /* ---------- Inline layout ---------- */
@@ -437,30 +294,6 @@ const STYLE_TEXT = `
   background: var(--orange-500);
   border-color: var(--orange-500);
 }
-.oidf-image-upload__replace-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-1);
-  height: 28px;
-  padding: 0 var(--space-3);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-2);
-  background: transparent;
-  color: var(--fg-link);
-  font-family: var(--font-sans);
-  font-size: var(--fs-12);
-  font-weight: var(--fw-medium);
-  cursor: pointer;
-}
-.oidf-image-upload__replace-btn:hover {
-  border-color: var(--orange-400);
-  background: var(--orange-50);
-}
-.oidf-image-upload__replace-btn:focus-visible {
-  outline: none;
-  box-shadow: var(--focus-ring);
-  border-color: var(--orange-400);
-}
 `;
 
 /** Inject the component stylesheet once per page; reused across instances. */
@@ -470,17 +303,6 @@ function injectStyles() {
   style.id = STYLE_ID;
   style.textContent = STYLE_TEXT;
   document.head.appendChild(style);
-}
-
-/**
- * Human-readable byte size for the preview row.
- * @param {number} bytes
- * @returns {string}
- */
-function formatBytes(bytes) {
-  if (bytes < 1024) return `${bytes} B`;
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-  return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
 }
 
 let _instanceSeq = 0;
@@ -514,10 +336,8 @@ function _slugify(value) {
  * All four paths converge on `_acceptFile(imageName, file)`, which validates,
  * stores the file, generates the data-URL preview, and emits an accessible
  * announcement through a single `role="status" aria-live="polite"` region.
- * The visible file-picker button stays present in the `inline` layout as the
- * single-pointer alternative required by WCAG 2.1 SC 2.5.7 (Dragging
- * Movements); the `hero` layout makes the drop zone itself keyboard-activatable
- * so the same affordance covers both pointer and keyboard users.
+ * The visible file-picker button stays present as the single-pointer
+ * alternative required by WCAG 2.1 SC 2.5.7 (Dragging Movements).
  *
  * @property {string} testId - Test log ID used in the upload URL. Reflects the
  *   `test-id` attribute.
@@ -529,9 +349,6 @@ function _slugify(value) {
  *   mode `description` (when provided) seeds the input's initial value.
  * @property {Array} existingImages - Already-uploaded images; each item has
  *   `{ name, url }`.
- * @property {string} layout - Visual treatment for each pending item. One of
- *   `"hero"` (default) or `"inline"`. Reflects the `layout` attribute. Unknown
- *   values fall back to `"hero"`.
  * @fires cts-image-uploaded - After a successful POST, with
  *   `{ detail: { testId, imageName } }`; bubbles.
  */
@@ -540,7 +357,6 @@ class CtsImageUpload extends LitElement {
     testId: { type: String, attribute: "test-id" },
     pendingImages: { type: Array, attribute: false },
     existingImages: { type: Array, attribute: false },
-    layout: { type: String, reflect: true },
     _selectedFiles: { type: Object, state: true },
     _previews: { type: Object, state: true },
     _descriptions: { type: Object, state: true },
@@ -556,7 +372,6 @@ class CtsImageUpload extends LitElement {
     this.testId = "";
     this.pendingImages = [];
     this.existingImages = [];
-    this.layout = "hero";
     this._selectedFiles = {};
     this._previews = {};
     this._descriptions = {};
@@ -597,10 +412,6 @@ class CtsImageUpload extends LitElement {
     this._dragDepth = {};
     this._dragOver = new Set();
   };
-
-  _resolvedLayout() {
-    return VALID_LAYOUTS.has(this.layout) ? this.layout : "hero";
-  }
 
   _hintIdFor(imageName) {
     return `${this._instanceId}-hint-${_slugify(imageName)}`;
@@ -662,42 +473,6 @@ class CtsImageUpload extends LitElement {
     const el = /** @type {HTMLElement} */ (e.currentTarget);
     return el.dataset.imageName || "";
   }
-
-  _handleZoneClick = (e) => {
-    if (/** @type {HTMLElement} */ (e.target).closest(".oidf-image-upload__replace-btn")) return;
-    const imageName = this._slotFromEvent(e);
-    this._openPicker(imageName);
-  };
-
-  _handleZoneKeyDown = (e) => {
-    if (e.key !== "Enter" && e.key !== " ") return;
-    e.preventDefault();
-    const imageName = this._slotFromEvent(e);
-    this._openPicker(imageName);
-  };
-
-  _openPicker(imageName) {
-    if (!imageName) return;
-    const input = /** @type {HTMLInputElement|null} */ (
-      this.querySelector(`input[type="file"][data-image-name="${CSS.escape(imageName)}"]`)
-    );
-    if (input) input.click();
-  }
-
-  _handleReplace = (e) => {
-    e.stopPropagation();
-    const button = /** @type {HTMLElement} */ (e.currentTarget);
-    const imageName = button.dataset.imageName;
-    if (!imageName) return;
-    const nextSelected = { ...this._selectedFiles };
-    delete nextSelected[imageName];
-    const nextPreviews = { ...this._previews };
-    delete nextPreviews[imageName];
-    this._selectedFiles = nextSelected;
-    this._previews = nextPreviews;
-    this._announce = `Selection cleared. Choose another file.`;
-    this._openPicker(imageName);
-  };
 
   _handleDragEnter = (e) => {
     e.preventDefault();
@@ -918,98 +693,6 @@ class CtsImageUpload extends LitElement {
     `;
   }
 
-  _renderPendingHero(image) {
-    const imageName = image.name;
-    const preview = this._previews[imageName];
-    const file = this._selectedFiles[imageName];
-    // "Ready to upload" is gated on the preview data URL being populated
-    // (FileReader resolved), not just on the file being accepted. This
-    // prevents the Upload button from being clickable before the data is
-    // available to POST.
-    const hasFile = !!(file && preview);
-    const hasDescription = !image.editableDescription
-      ? true
-      : this._describedValue(image).trim().length > 0;
-    const isDragOver = this._dragOver.has(imageName);
-    const hintId = this._hintIdFor(imageName);
-
-    const zoneClasses = ["oidf-image-upload__hero-zone"];
-    if (isDragOver) zoneClasses.push("oidf-image-upload__hero-zone--dragover");
-
-    return html`
-      <div
-        class="oidf-image-upload__item"
-        data-testid="pending-image"
-        data-image-name="${imageName}"
-      >
-        <div class="oidf-image-upload__hero">
-          <span
-            class="oidf-image-upload__status oidf-image-upload__status--pending"
-            aria-hidden="true"
-          >
-            <cts-icon name="cloud-upload" size="16"></cts-icon>
-          </span>
-          <div class="oidf-image-upload__hero-meta">${this._renderDescription(image, "hero")}</div>
-          ${hasFile && preview
-            ? html`
-                <div class="oidf-image-upload__hero-preview">
-                  <img
-                    src="${preview}"
-                    alt="Preview of ${imageName}"
-                    class="oidf-image-upload__hero-preview-thumb imagePreview"
-                  />
-                  <div class="oidf-image-upload__hero-preview-meta">
-                    <p class="oidf-image-upload__hero-preview-name">${file.name}</p>
-                    <p class="oidf-image-upload__hero-preview-size"> ${formatBytes(file.size)} </p>
-                  </div>
-                  <button
-                    type="button"
-                    class="oidf-image-upload__replace-btn"
-                    data-image-name="${imageName}"
-                    @click="${this._handleReplace}"
-                    >Replace</button
-                  >
-                </div>
-              `
-            : html`
-                <div
-                  class="${zoneClasses.join(" ")}"
-                  role="button"
-                  tabindex="0"
-                  aria-label="Drag a screenshot here or click to browse"
-                  aria-describedby="${hintId}"
-                  data-image-name="${imageName}"
-                  data-testid="hero-dropzone"
-                  @click="${this._handleZoneClick}"
-                  @keydown="${this._handleZoneKeyDown}"
-                  @dragenter="${this._handleDragEnter}"
-                  @dragover="${this._handleDragOver}"
-                  @dragleave="${this._handleDragLeave}"
-                  @drop="${this._handleDrop}"
-                >
-                  <span class="oidf-image-upload__hero-icon" aria-hidden="true">
-                    <cts-icon
-                      name="${isDragOver ? "cloud-add" : "cloud-upload"}"
-                      size="24"
-                    ></cts-icon>
-                  </span>
-                  <p class="oidf-image-upload__hero-title" aria-hidden="true">
-                    <strong>Drag a screenshot here</strong> or click to browse
-                  </p>
-                  <p class="oidf-image-upload__hero-hint" id="${hintId}"
-                    >JPEG or PNG, up to 500&nbsp;KB</p
-                  >
-                </div>
-              `}
-          <div class="oidf-image-upload__hero-actions">
-            ${this._renderUploadButton(imageName, hasFile, hasDescription)}
-          </div>
-        </div>
-        ${this._renderHiddenInput(imageName)}
-      </div>
-    `;
-  }
-
   _renderPendingInline(image) {
     const imageName = image.name;
     const preview = this._previews[imageName];
@@ -1116,13 +799,7 @@ class CtsImageUpload extends LitElement {
       `;
     }
 
-    switch (this._resolvedLayout()) {
-      case "inline":
-        return this._renderPendingInline(image);
-      case "hero":
-      default:
-        return this._renderPendingHero(image);
-    }
+    return this._renderPendingInline(image);
   }
 
   _renderExistingImage(image) {
