@@ -138,7 +138,7 @@ public abstract class AbstractAuthzenPDPTest extends AbstractRedirectServerTestM
 
 		// make sure the server configuration passes some basic sanity checks
 		env.mapKey("server", "pdp");
-		callAndStopOnFailure(CheckPDPServerConfiguration.class);
+		callAndContinueOnFailure(CheckPDPServerConfiguration.class, ConditionResult.FAILURE, "AUTHZEN-9.1.1");
 		env.unmapKey("server");
 
 		// Set up the client configuration
