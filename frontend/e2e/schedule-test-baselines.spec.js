@@ -183,10 +183,10 @@ test.describe("schedule-test.html — baselines", () => {
       }),
     );
 
-    // Non-empty /api/lastconfig payload — surfaced into the #config
-    // textarea by the explicit "Load last configuration" click below.
-    // Before R13 this test relied on auto-prefill at init; the load step
-    // is now user-driven.
+    // Non-empty /api/lastconfig payload — surfaced into cts-config-form via
+    // applyConfigToForm() by the explicit "Load last configuration" click
+    // below. Before R13 this test relied on auto-prefill at init; the load
+    // step is now user-driven.
     await page.route("**/api/lastconfig", (route) =>
       route.fulfill({
         status: 200,
@@ -213,13 +213,13 @@ test.describe("schedule-test.html — baselines", () => {
     await expect(entitySelect).toBeVisible();
     await entitySelect.selectOption("client-basic");
 
-    // R13: explicitly load the saved config to populate the textarea.
+    // R13: explicitly load the saved config to populate cts-config-form.
     await page.getByTestId("load-last-config").click();
 
-    // Wait for the config textarea to have content.
+    // Wait for cts-config-form's .config object to carry the loaded values.
     await page.waitForFunction(() => {
-      const el = /** @type {HTMLTextAreaElement | null} */ (document.getElementById("config"));
-      return !!el && typeof el.value === "string" && el.value.length > 0;
+      const form = /** @type {any} */ (document.getElementById("ctsConfigForm"));
+      return !!form && form.config && Object.keys(form.config).length > 0;
     });
 
     await assertNoIdCollisions(page);

@@ -326,25 +326,6 @@ textarea {
 	margin-bottom: 10px;
 }
 
-#config {
-	border: none;
-}
-
-/* The JSON tab's editor is now <cts-json-editor>; preserve the legacy
-   240px height target so the JSON tab does not jump when the user
-   switches between Form and JSON. The internal Monaco/textarea fills
-   the host height via min-height: inherit. */
-cts-json-editor#config {
-	display: block;
-	width: 100%;
-	min-height: 240px;
-}
-
-.config-form-element-array {
-	height: auto !important;
-	min-height: auto !important;
-}
-
 /** index.html end **/
 
 /** logs listing **/
