@@ -21,7 +21,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @ExtendWith(MockitoExtension.class)
 @ExtendWith(HoverflyExtension.class)
-public class CallTokenEndpointAllowingDpopNonceErrorAndReturnFullResponse_UnitTest {
+public class CallTokenEndpointAllowingUseAttestationChallengeErrorAndReturnFullResponse_UnitTest {
 
 	@Spy
 	private Environment env = new Environment();
@@ -32,23 +32,14 @@ public class CallTokenEndpointAllowingDpopNonceErrorAndReturnFullResponse_UnitTe
 		+ "\"grant_type\":\"client_credentials\""
 		+ "}").getAsJsonObject();
 
-	private static final String useDpopNonceErrorBody = "{\"error\":\"use_dpop_nonce\"}";
 	private static final String useAttestationChallengeErrorBody = "{\"error\":\"use_attestation_challenge\"}";
 	private static final String happyBody = "{\"access_token\":\"abc\",\"token_type\":\"Bearer\"}";
 
-	private CallTokenEndpointAllowingDpopNonceErrorAndReturnFullResponse cond;
+	private CallTokenEndpointAllowingUseAttestationChallengeErrorAndReturnFullResponse cond;
 
 	@BeforeEach
 	public void setUp(Hoverfly hoverfly) {
 		hoverfly.simulate(dsl(
-			service("dpop-nonce.example.com")
-				.post("/token")
-				.anyBody()
-				.willReturn(HoverflyDsl.response()
-					.status(400)
-					.body(useDpopNonceErrorBody)
-					.header("Content-Type", "application/json")
-					.header("DPoP-Nonce", "the-nonce")),
 			service("attestation-challenge.example.com")
 				.post("/token")
 				.anyBody()
@@ -73,25 +64,12 @@ public class CallTokenEndpointAllowingDpopNonceErrorAndReturnFullResponse_UnitTe
 					.header("Content-Type", "application/json"))));
 		hoverfly.resetJournal();
 
-		cond = new CallTokenEndpointAllowingDpopNonceErrorAndReturnFullResponse();
+		cond = new CallTokenEndpointAllowingUseAttestationChallengeErrorAndReturnFullResponse();
 		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 	}
 
 	@Test
-	public void testStoresDpopNonceFromError() {
-		env.putString("server", "token_endpoint", "https://dpop-nonce.example.com/token");
-		env.putObject("token_endpoint_request_form_parameters", requestParameters);
-		env.putObject("token_endpoint_request_headers", new JsonObject());
-
-		cond.execute(env);
-
-		assertThat(env.getString("token_endpoint_dpop_nonce_error")).isEqualTo("the-nonce");
-		assertThat(env.getString("authorization_server_dpop_nonce")).isEqualTo("the-nonce");
-		assertThat(env.getString("token_endpoint_use_attestation_challenge_error")).isNull();
-	}
-
-	@Test
-	public void testFlagsUseAttestationChallengeFromError() {
+	public void flagsUseAttestationChallenge() {
 		env.putString("server", "token_endpoint", "https://attestation-challenge.example.com/token");
 		env.putObject("token_endpoint_request_form_parameters", requestParameters);
 		env.putObject("token_endpoint_request_headers", new JsonObject());
@@ -99,11 +77,21 @@ public class CallTokenEndpointAllowingDpopNonceErrorAndReturnFullResponse_UnitTe
 		cond.execute(env);
 
 		assertThat(env.getString("token_endpoint_use_attestation_challenge_error")).isEqualTo("use_attestation_challenge");
-		assertThat(env.getString("token_endpoint_dpop_nonce_error")).isNull();
 	}
 
 	@Test
-	public void testFailsWhenUseAttestationChallengeErrorMissesChallengeHeader() {
+	public void doesNotFlagOnHappyResponse() {
+		env.putString("server", "token_endpoint", "https://happy.example.com/token");
+		env.putObject("token_endpoint_request_form_parameters", requestParameters);
+		env.putObject("token_endpoint_request_headers", new JsonObject());
+
+		cond.execute(env);
+
+		assertThat(env.getString("token_endpoint_use_attestation_challenge_error")).isNull();
+	}
+
+	@Test
+	public void failsWhenChallengeHeaderIsMissing() {
 		env.putString("server", "token_endpoint", "https://attestation-challenge-no-header.example.com/token");
 		env.putObject("token_endpoint_request_form_parameters", requestParameters);
 		env.putObject("token_endpoint_request_headers", new JsonObject());
@@ -115,15 +103,12 @@ public class CallTokenEndpointAllowingDpopNonceErrorAndReturnFullResponse_UnitTe
 	}
 
 	/**
-	 * Simulates the retry loop in {@link
-	 * net.openid.conformance.fapi2spfinal.AbstractFAPI2SPFinalServerTestModule#callSenderConstrainedTokenEndpoint}:
-	 * the first call returns 400 use_attestation_challenge (flag set), and a follow-up call to a
-	 * different (success) endpoint clears the flag via evaluate()'s removeNativeValue. Catches
-	 * regressions where evaluate() forgets to clear stale flags or the use_attestation_challenge
-	 * branch leaves residual state behind.
+	 * Simulates the retry loop in the non-DPoP client_attestation branch of
+	 * {@link net.openid.conformance.fapi2spfinal.AbstractFAPI2SPFinalServerTestModule#callSenderConstrainedTokenEndpoint}:
+	 * first call sets the flag, second (success) call clears it via evaluate().
 	 */
 	@Test
-	public void testRetryClearsUseAttestationChallengeFlagOnSuccess() {
+	public void retryClearsFlagOnSuccess() {
 		env.putString("server", "token_endpoint", "https://attestation-challenge.example.com/token");
 		env.putObject("token_endpoint_request_form_parameters", requestParameters);
 		env.putObject("token_endpoint_request_headers", new JsonObject());
@@ -131,8 +116,6 @@ public class CallTokenEndpointAllowingDpopNonceErrorAndReturnFullResponse_UnitTe
 		assertThat(env.getString("token_endpoint_use_attestation_challenge_error"))
 			.isEqualTo("use_attestation_challenge");
 
-		// Simulate the retry: caller harvests the new challenge, regenerates the PoP, points at a
-		// (now-happy) endpoint, and calls the wrapper again. evaluate() must clear the stale flag.
 		env.putString("server", "token_endpoint", "https://happy.example.com/token");
 		cond.execute(env);
 		assertThat(env.getString("token_endpoint_use_attestation_challenge_error")).isNull();

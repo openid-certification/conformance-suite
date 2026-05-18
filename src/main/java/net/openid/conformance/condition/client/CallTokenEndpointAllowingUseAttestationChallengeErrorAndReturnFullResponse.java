@@ -11,22 +11,22 @@ import org.springframework.http.ResponseEntity;
 
 import java.util.List;
 
-
 /**
- * Wrapper around {@link CallTokenEndpointAndReturnFullResponse} that recognises a {@code use_dpop_nonce} 400
- * response and exposes the supplied DPoP-Nonce so the caller can retry, and likewise recognises an
+ * Wrapper around {@link CallTokenEndpointAndReturnFullResponse} that recognises a
  * {@code use_attestation_challenge} 400 response (draft-ietf-oauth-attestation-based-client-auth-07 §6.2)
- * so the caller can retry with a freshly harvested {@code OAuth-Client-Attestation-Challenge}.
+ * and exposes {@code token_endpoint_use_attestation_challenge_error} so the caller can retry. Pair with
+ * {@link ExtractClientAttestationChallengeFromResponseHeader} so the next attempt picks up the freshly
+ * returned {@code OAuth-Client-Attestation-Challenge}.
+ *
+ * <p>Use this on non-DPoP code paths; the DPoP-nonce wrapper
+ * {@link CallTokenEndpointAllowingDpopNonceErrorAndReturnFullResponse} already detects both errors.
  */
-public class CallTokenEndpointAllowingDpopNonceErrorAndReturnFullResponse extends CallTokenEndpointAndReturnFullResponse {
+public class CallTokenEndpointAllowingUseAttestationChallengeErrorAndReturnFullResponse extends CallTokenEndpointAndReturnFullResponse {
 
-	// WARNING optional token_endpoint_dpop_nonce_error / token_endpoint_use_attestation_challenge_error
-	// returned with the respective nonce / challenge value.
 	@Override
 	@PreEnvironment(required = { "server", "token_endpoint_request_form_parameters" })
 	@PostEnvironment(required = "token_endpoint_response")
 	public Environment evaluate(Environment env) {
-		env.removeNativeValue("token_endpoint_dpop_nonce_error");
 		env.removeNativeValue("token_endpoint_use_attestation_challenge_error");
 		return super.evaluate(env);
 	}
@@ -35,39 +35,21 @@ public class CallTokenEndpointAllowingDpopNonceErrorAndReturnFullResponse extend
 	protected void addFullResponse(Environment env, ResponseEntity<String> response) {
 		super.addFullResponse(env, response);
 		JsonElement jsonError = env.getElementFromObject("token_endpoint_response_full", "body_json.error");
-		JsonObject jsonResponseHeaders = env.getObject("token_endpoint_response_headers");
 		int status = env.getInteger("token_endpoint_response_http_status");
 		if (status != 400 || jsonError == null) {
 			return;
 		}
 		String errorCode = OIDFJSON.getString(jsonError);
-		if ("use_dpop_nonce".equals(errorCode)) {
-			List<String> nonceList = response.getHeaders().get("DPoP-Nonce");
-			if(nonceList.size() != 1) {
-				throw error("Unexpected DPoP-Nonce header response", args("headers", jsonResponseHeaders));
-			}
-			String dpopNonce = nonceList.get(0);
-			if(!Strings.isNullOrEmpty(dpopNonce)) {
-				env.putString("authorization_server_dpop_nonce", dpopNonce);
-				env.putString("token_endpoint_dpop_nonce_error", dpopNonce);
-				env.putObject("token_endpoint_response", env.getElementFromObject("token_endpoint_response_full", "body_json").getAsJsonObject());
-				log("Got DPoP-Nonce header", args("DPoP-Nonce", dpopNonce));
-			} else {
-				throw error("Unexpected DPoP-Nonce header response", args("headers", jsonResponseHeaders));
-			}
-		} else if ("use_attestation_challenge".equals(errorCode)) {
+		if ("use_attestation_challenge".equals(errorCode)) {
 			// Per draft-ietf-oauth-attestation-based-client-auth-07 §6.2, the use_attestation_challenge
-			// error MUST be accompanied by the OAuth-Client-Attestation-Challenge response header so the
-			// client has a fresh challenge to retry with. If it isn't (missing, repeated, or empty), the
-			// test cannot proceed.
+			// error MUST be accompanied by exactly one non-empty OAuth-Client-Attestation-Challenge
+			// response header.
 			List<String> challengeList = response.getHeaders().get("OAuth-Client-Attestation-Challenge");
 			if (challengeList == null || challengeList.size() != 1 || Strings.isNullOrEmpty(challengeList.get(0))) {
+				JsonObject jsonResponseHeaders = env.getObject("token_endpoint_response_headers");
 				throw error("use_attestation_challenge error response did not include exactly one non-empty OAuth-Client-Attestation-Challenge header",
 					args("headers", jsonResponseHeaders));
 			}
-			// Flag the retry-able error. The caller's retry loop is responsible for harvesting the
-			// freshly returned OAuth-Client-Attestation-Challenge header (via
-			// ExtractClientAttestationChallengeFromResponseHeader) and regenerating the client_attestation PoP.
 			// token_endpoint_response is already populated from body_json by the superclass.
 			env.putString("token_endpoint_use_attestation_challenge_error", errorCode);
 			log("Got use_attestation_challenge error response — caller may retry with the freshly returned challenge",

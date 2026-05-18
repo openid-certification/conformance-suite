@@ -25,9 +25,11 @@ import net.openid.conformance.condition.client.BuildRequestObjectPostToPAREndpoi
 import net.openid.conformance.condition.client.BuildUnsignedPAREndpointRequest;
 import net.openid.conformance.condition.client.CallPAREndpoint;
 import net.openid.conformance.condition.client.CallPAREndpointAllowingDpopNonceError;
+import net.openid.conformance.condition.client.CallPAREndpointAllowingUseAttestationChallengeError;
 import net.openid.conformance.condition.client.CallProtectedResource;
 import net.openid.conformance.condition.client.CallProtectedResourceAllowingDpopNonceError;
 import net.openid.conformance.condition.client.CallTokenEndpointAllowingDpopNonceErrorAndReturnFullResponse;
+import net.openid.conformance.condition.client.CallTokenEndpointAllowingUseAttestationChallengeErrorAndReturnFullResponse;
 import net.openid.conformance.condition.client.CallTokenEndpointAndReturnFullResponse;
 import net.openid.conformance.condition.client.ExtractClientAttestationChallengeFromResponseHeader;
 import net.openid.conformance.condition.client.ValidateClientAttestationChallengeResponseHeader;
@@ -794,7 +796,8 @@ public abstract class AbstractFAPI2SPFinalServerTestModule extends AbstractRedir
 
 
 	/**
-	 * Call sender constrained token endpoint. For DPOP nonce errors, it will retry with new server nonce value.
+	 * Call sender constrained token endpoint. For DPoP-nonce or {@code use_attestation_challenge} errors,
+	 * it will retry with the freshly supplied DPoP-Nonce / OAuth-Client-Attestation-Challenge.
 	 * Client authentication is added inside the loop so private_key_jwt's client_assertion and
 	 * client_attestation's PoP JWT are regenerated per attempt — the AS may reject reuse of either jti, and
 	 * for client_attestation §8.1 mandates picking up the freshly returned challenge.
@@ -810,7 +813,19 @@ public abstract class AbstractFAPI2SPFinalServerTestModule extends AbstractRedir
 				createDpopForTokenEndpoint();
 				callAndStopOnFailure(CallTokenEndpointAllowingDpopNonceErrorAndReturnFullResponse.class, requirements);
 				extractAndValidateClientAttestationChallengeResponseHeader("token_endpoint_response_full");
-				if(Strings.isNullOrEmpty(env.getString("token_endpoint_dpop_nonce_error"))) {
+				if(Strings.isNullOrEmpty(env.getString("token_endpoint_dpop_nonce_error"))
+					&& Strings.isNullOrEmpty(env.getString("token_endpoint_use_attestation_challenge_error"))) {
+					break;
+				}
+				++i;
+			}
+		} else if (getVariant(ClientAuthType.class) == ClientAuthType.CLIENT_ATTESTATION) {
+			int i = 0;
+			while(i < MAX_RETRY){
+				addClientAuthenticationToTokenEndpointRequest();
+				callAndStopOnFailure(CallTokenEndpointAllowingUseAttestationChallengeErrorAndReturnFullResponse.class, requirements);
+				extractAndValidateClientAttestationChallengeResponseHeader("token_endpoint_response_full");
+				if(Strings.isNullOrEmpty(env.getString("token_endpoint_use_attestation_challenge_error"))) {
 					break;
 				}
 				++i;
@@ -1232,20 +1247,33 @@ public abstract class AbstractFAPI2SPFinalServerTestModule extends AbstractRedir
 
 
 	/**
-	 * Call Par endpoint with retry for DPoP nonce error. Client authentication is added inside the loop;
-	 * see {@link #callSenderConstrainedTokenEndpoint} for the rationale.
+	 * Call Par endpoint with retry for DPoP nonce error and {@code use_attestation_challenge} error.
+	 * Client authentication is added inside the loop; see {@link #callSenderConstrainedTokenEndpoint} for
+	 * the rationale.
 	 * @param requirements requirements are the same as original call to callAndStopOnFailure(CallParEndpoint)
 	 */
 	protected void callParEndpointAndStopOnFailure(String... requirements) {
+		final int MAX_RETRY = 2;
 		if (isDpop() && useDpopAuthCodeBinding) {
-			final int MAX_RETRY = 2;
 			int i = 0;
 			while(i < MAX_RETRY){
 				addClientAuthenticationToPAREndpointRequest();
 				createDpopForParEndpoint();
 				callAndStopOnFailure(CallPAREndpointAllowingDpopNonceError.class, requirements);
 				extractAndValidateClientAttestationChallengeResponseHeader(CallPAREndpoint.RESPONSE_KEY);
-				if(Strings.isNullOrEmpty(env.getString("par_endpoint_dpop_nonce_error"))) {
+				if(Strings.isNullOrEmpty(env.getString("par_endpoint_dpop_nonce_error"))
+					&& Strings.isNullOrEmpty(env.getString("par_endpoint_use_attestation_challenge_error"))) {
+					break;
+				}
+				++i;
+			}
+		} else if (getVariant(ClientAuthType.class) == ClientAuthType.CLIENT_ATTESTATION) {
+			int i = 0;
+			while(i < MAX_RETRY){
+				addClientAuthenticationToPAREndpointRequest();
+				callAndStopOnFailure(CallPAREndpointAllowingUseAttestationChallengeError.class, requirements);
+				extractAndValidateClientAttestationChallengeResponseHeader(CallPAREndpoint.RESPONSE_KEY);
+				if(Strings.isNullOrEmpty(env.getString("par_endpoint_use_attestation_challenge_error"))) {
 					break;
 				}
 				++i;

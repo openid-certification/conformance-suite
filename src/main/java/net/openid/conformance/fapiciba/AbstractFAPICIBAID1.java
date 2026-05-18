@@ -43,6 +43,7 @@ import net.openid.conformance.condition.client.CIBANotificationEndpointCalledUne
 import net.openid.conformance.condition.client.CallAutomatedCibaApprovalEndpoint;
 import net.openid.conformance.condition.client.CallBackchannelAuthenticationEndpoint;
 import net.openid.conformance.condition.client.CallProtectedResource;
+import net.openid.conformance.condition.client.CallTokenEndpointAllowingUseAttestationChallengeErrorAndReturnFullResponse;
 import net.openid.conformance.condition.client.CallTokenEndpointAndReturnFullResponse;
 import net.openid.conformance.condition.client.ExtractClientAttestationChallengeFromResponseHeader;
 import net.openid.conformance.condition.client.ValidateClientAttestationChallengeResponseHeader;
@@ -818,10 +819,27 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 		callAndStopOnFailure(CreateTokenEndpointRequestForCIBAGrant.class);
 		callAndStopOnFailure(AddAuthReqIdToTokenEndpointRequest.class);
 
-		addClientAuthenticationToTokenEndpointRequest();
-
-		callAndStopOnFailure(CallTokenEndpointAndReturnFullResponse.class);
-		extractAndValidateClientAttestationChallengeResponseHeader("token_endpoint_response_full");
+		// For client_attestation, retry once on a use_attestation_challenge error
+		// (draft-ietf-oauth-attestation-based-client-auth-07 §6.2). Client authentication is
+		// added inside the loop so the PoP JWT is regenerated and picks up the freshly returned
+		// OAuth-Client-Attestation-Challenge before the retry.
+		if (getVariant(ClientAuthType.class) == ClientAuthType.CLIENT_ATTESTATION) {
+			final int MAX_RETRY = 2;
+			int i = 0;
+			while (i < MAX_RETRY) {
+				addClientAuthenticationToTokenEndpointRequest();
+				callAndStopOnFailure(CallTokenEndpointAllowingUseAttestationChallengeErrorAndReturnFullResponse.class);
+				extractAndValidateClientAttestationChallengeResponseHeader("token_endpoint_response_full");
+				if (Strings.isNullOrEmpty(env.getString("token_endpoint_use_attestation_challenge_error"))) {
+					break;
+				}
+				++i;
+			}
+		} else {
+			addClientAuthenticationToTokenEndpointRequest();
+			callAndStopOnFailure(CallTokenEndpointAndReturnFullResponse.class);
+			extractAndValidateClientAttestationChallengeResponseHeader("token_endpoint_response_full");
+		}
 		callAndContinueOnFailure(CheckTokenEndpointReturnedJsonContentType.class, Condition.ConditionResult.FAILURE, "OIDCC-3.1.3.4");
 	}
 

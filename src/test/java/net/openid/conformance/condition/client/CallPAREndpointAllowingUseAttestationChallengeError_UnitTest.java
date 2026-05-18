@@ -21,7 +21,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @ExtendWith(MockitoExtension.class)
 @ExtendWith(HoverflyExtension.class)
-public class CallPAREndpointAllowingDpopNonceError_UnitTest {
+public class CallPAREndpointAllowingUseAttestationChallengeError_UnitTest {
 
 	@Spy
 	private Environment env = new Environment();
@@ -33,23 +33,14 @@ public class CallPAREndpointAllowingDpopNonceError_UnitTest {
 		+ "\"client_id\":\"test-client\""
 		+ "}").getAsJsonObject();
 
-	private static final String useDpopNonceErrorBody = "{\"error\":\"use_dpop_nonce\"}";
 	private static final String useAttestationChallengeErrorBody = "{\"error\":\"use_attestation_challenge\"}";
 	private static final String happyBody = "{\"request_uri\":\"urn:ietf:params:oauth:request_uri:abc\",\"expires_in\":60}";
 
-	private CallPAREndpointAllowingDpopNonceError cond;
+	private CallPAREndpointAllowingUseAttestationChallengeError cond;
 
 	@BeforeEach
 	public void setUp(Hoverfly hoverfly) {
 		hoverfly.simulate(dsl(
-			service("dpop-nonce.example.com")
-				.post("/par")
-				.anyBody()
-				.willReturn(HoverflyDsl.response()
-					.status(400)
-					.body(useDpopNonceErrorBody)
-					.header("Content-Type", "application/json")
-					.header("DPoP-Nonce", "the-nonce")),
 			service("attestation-challenge.example.com")
 				.post("/par")
 				.anyBody()
@@ -74,25 +65,12 @@ public class CallPAREndpointAllowingDpopNonceError_UnitTest {
 					.header("Content-Type", "application/json"))));
 		hoverfly.resetJournal();
 
-		cond = new CallPAREndpointAllowingDpopNonceError();
+		cond = new CallPAREndpointAllowingUseAttestationChallengeError();
 		cond.setProperties("UNIT-TEST", eventLog, ConditionResult.INFO);
 	}
 
 	@Test
-	public void testStoresDpopNonceFromError() {
-		env.putString("server", "pushed_authorization_request_endpoint", "https://dpop-nonce.example.com/par");
-		env.putObject("pushed_authorization_request_form_parameters", requestParameters);
-		env.putObject("pushed_authorization_request_endpoint_request_headers", new JsonObject());
-
-		cond.execute(env);
-
-		assertThat(env.getString("par_endpoint_dpop_nonce_error")).isEqualTo("the-nonce");
-		assertThat(env.getString("authorization_server_dpop_nonce")).isEqualTo("the-nonce");
-		assertThat(env.getString("par_endpoint_use_attestation_challenge_error")).isNull();
-	}
-
-	@Test
-	public void testFlagsUseAttestationChallengeFromError() {
+	public void flagsUseAttestationChallenge() {
 		env.putString("server", "pushed_authorization_request_endpoint", "https://attestation-challenge.example.com/par");
 		env.putObject("pushed_authorization_request_form_parameters", requestParameters);
 		env.putObject("pushed_authorization_request_endpoint_request_headers", new JsonObject());
@@ -100,11 +78,10 @@ public class CallPAREndpointAllowingDpopNonceError_UnitTest {
 		cond.execute(env);
 
 		assertThat(env.getString("par_endpoint_use_attestation_challenge_error")).isEqualTo("use_attestation_challenge");
-		assertThat(env.getString("par_endpoint_dpop_nonce_error")).isNull();
 	}
 
 	@Test
-	public void testFailsWhenUseAttestationChallengeErrorMissesChallengeHeader() {
+	public void failsWhenChallengeHeaderIsMissing() {
 		env.putString("server", "pushed_authorization_request_endpoint", "https://attestation-challenge-no-header.example.com/par");
 		env.putObject("pushed_authorization_request_form_parameters", requestParameters);
 		env.putObject("pushed_authorization_request_endpoint_request_headers", new JsonObject());
@@ -116,13 +93,12 @@ public class CallPAREndpointAllowingDpopNonceError_UnitTest {
 	}
 
 	/**
-	 * Simulates the retry loop in
+	 * Simulates the retry loop in the non-DPoP client_attestation branch of
 	 * {@link net.openid.conformance.fapi2spfinal.AbstractFAPI2SPFinalServerTestModule#callParEndpointAndStopOnFailure}:
-	 * the first call returns 400 use_attestation_challenge (flag set), and a follow-up call to a
-	 * success endpoint clears the flag via evaluate()'s removeNativeValue.
+	 * first call sets the flag, second (success) call clears it via evaluate().
 	 */
 	@Test
-	public void testRetryClearsUseAttestationChallengeFlagOnSuccess() {
+	public void retryClearsFlagOnSuccess() {
 		env.putString("server", "pushed_authorization_request_endpoint", "https://attestation-challenge.example.com/par");
 		env.putObject("pushed_authorization_request_form_parameters", requestParameters);
 		env.putObject("pushed_authorization_request_endpoint_request_headers", new JsonObject());

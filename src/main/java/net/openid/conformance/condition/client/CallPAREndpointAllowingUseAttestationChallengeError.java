@@ -10,14 +10,18 @@ import org.springframework.http.ResponseEntity;
 import java.util.List;
 
 /**
- * This class makes a http post to PAR endpoint and examines the response for DPoP nonce errors and
- * {@code use_attestation_challenge} errors
- * (draft-ietf-oauth-attestation-based-client-auth-07 §6.2), exposing flags so the caller can retry.
+ * Wrapper around {@link CallPAREndpoint} that recognises a {@code use_attestation_challenge} 400 response
+ * (draft-ietf-oauth-attestation-based-client-auth-07 §6.2) and exposes
+ * {@code par_endpoint_use_attestation_challenge_error} so the caller can retry. Pair with
+ * {@link ExtractClientAttestationChallengeFromResponseHeader} so the next attempt picks up the freshly
+ * returned {@code OAuth-Client-Attestation-Challenge}.
+ *
+ * <p>Use this on non-DPoP code paths; {@link CallPAREndpointAllowingDpopNonceError} already detects both errors.
  */
-public class CallPAREndpointAllowingDpopNonceError extends CallPAREndpoint {
+public class CallPAREndpointAllowingUseAttestationChallengeError extends CallPAREndpoint {
+
 	@Override
 	public Environment evaluate(Environment env) {
-		env.removeNativeValue("par_endpoint_dpop_nonce_error");
 		env.removeNativeValue("par_endpoint_use_attestation_challenge_error");
 		return super.evaluate(env);
 	}
@@ -26,32 +30,18 @@ public class CallPAREndpointAllowingDpopNonceError extends CallPAREndpoint {
 	protected void addFullResponse(Environment env, ResponseEntity<String> response) {
 		super.addFullResponse(env, response);
 		JsonElement jsonError = env.getElementFromObject(RESPONSE_KEY, "body_json.error");
-		JsonObject jsonResponseHeaders = env.getElementFromObject(RESPONSE_KEY, "headers").getAsJsonObject();
 		int status = OIDFJSON.getInt(env.getElementFromObject(RESPONSE_KEY, "status"));
 		if (status != 400 || jsonError == null) {
 			return;
 		}
 		String errorCode = OIDFJSON.getString(jsonError);
-		if ("use_dpop_nonce".equals(errorCode)) {
-			List<String> nonceList = response.getHeaders().get("DPoP-Nonce");
-			if(nonceList.size() != 1) {
-				throw error("Unexpected DPoP-Nonce header response", args("headers", jsonResponseHeaders));
-			}
-			String dpopNonce = nonceList.get(0);
-			if(!Strings.isNullOrEmpty(dpopNonce)) {
-					env.putString("authorization_server_dpop_nonce", dpopNonce);
-					env.putString("par_endpoint_dpop_nonce_error", dpopNonce);
-					env.putObject("par_endpoint_response", env.getElementFromObject(RESPONSE_KEY, "body_json").getAsJsonObject());
-					log("Got DPoP-Nonce header", args("DPoP-Nonce", dpopNonce));
-			} else {
-				throw error("Unexpected DPoP-Nonce header response", args("headers", jsonResponseHeaders));
-			}
-		} else if ("use_attestation_challenge".equals(errorCode)) {
+		if ("use_attestation_challenge".equals(errorCode)) {
 			// Per draft-ietf-oauth-attestation-based-client-auth-07 §6.2, the use_attestation_challenge
 			// error MUST be accompanied by exactly one non-empty OAuth-Client-Attestation-Challenge
 			// response header.
 			List<String> challengeList = response.getHeaders().get("OAuth-Client-Attestation-Challenge");
 			if (challengeList == null || challengeList.size() != 1 || Strings.isNullOrEmpty(challengeList.get(0))) {
+				JsonObject jsonResponseHeaders = env.getElementFromObject(RESPONSE_KEY, "headers").getAsJsonObject();
 				throw error("use_attestation_challenge error response did not include exactly one non-empty OAuth-Client-Attestation-Challenge header",
 					args("headers", jsonResponseHeaders));
 			}
@@ -61,5 +51,4 @@ public class CallPAREndpointAllowingDpopNonceError extends CallPAREndpoint {
 				args("error", errorCode));
 		}
 	}
-
 }
