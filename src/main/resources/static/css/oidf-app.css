@@ -187,12 +187,15 @@ cts-link-button > a:focus,
   border-color: var(--orange-400);
   box-shadow: var(--focus-ring);
 }
-.cascade-row .input-group-text {
+.cascade-row .input-group-text,
+.config-form-element-container .input-group-text {
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 0 var(--space-3);
   background: var(--bg-muted);
+  border-radius: calc(var(--bs-border-radius) - 2px);
+  border: 0;
   border-right: 1px solid var(--ink-200);
   color: var(--ink-500);
 }
@@ -210,6 +213,15 @@ cts-link-button > a:focus,
   font-size: var(--fs-13);
   color: var(--fg);
   appearance: auto;
+}
+.cascade-row select,
+.cascade-row .form-select {
+  appearance: none;
+  -webkit-appearance: none;
+  padding-right: 36px;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 16 16'><path fill='none' stroke='%2371695E' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M4 6l4 4 4-4'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
 }
 .cascade-row select:focus,
 .cascade-row .form-select:focus,
@@ -283,14 +295,6 @@ cts-link-button > a:focus,
   border-color: var(--orange-400);
   box-shadow: var(--focus-ring);
 }
-.config-form-element-container .input-group-text {
-  display: flex;
-  align-items: flex-start;
-  padding: var(--space-2) var(--space-3) 0;
-  background: var(--bg-muted);
-  border-right: 1px solid var(--ink-200);
-  color: var(--ink-500);
-}
 .config-form-element-container .config-form-element {
   flex: 1;
   width: auto;
@@ -308,6 +312,14 @@ cts-link-button > a:focus,
   height: 34px;
   padding-top: 0;
   padding-bottom: 0;
+}
+.config-form-element-container select.config-form-element {
+  appearance: none;
+  -webkit-appearance: none;
+  padding-right: 36px;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 16 16'><path fill='none' stroke='%2371695E' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M4 6l4 4 4-4'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
 }
 .config-form-element-container textarea.config-form-element {
   min-height: calc(var(--space-6) * 4);

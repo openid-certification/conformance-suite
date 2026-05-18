@@ -2469,9 +2469,11 @@
                     }
 
                     if (hasAtLeastOneDisplayElement) {
+                        element.style.display = '';
                         element.querySelector('.config-form-container-header').style.display = '';
                     } else {
-                        // there are no visible elements anymore, hide the header
+                        // there are no visible elements anymore, hide the whole section
+                        element.style.display = 'none';
                         element.querySelector('.config-form-container-header').style.display = 'none';
                     }
                 });
