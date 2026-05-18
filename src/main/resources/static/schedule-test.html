@@ -36,6 +36,7 @@
     <script type="module" src="/components/cts-alert.js"></script>
     <script type="module" src="/components/cts-tooltip.js"></script>
     <script type="module" src="/components/cts-json-editor.js"></script>
+    <script type="module" src="/components/cts-spec-cascade.js"></script>
     <script type="module" src="/js/cts-copy-flash.js"></script>
 
 </head>
@@ -67,50 +68,7 @@
                 <cts-button id="loadLastConfigBtn" data-testid="load-last-config" size="sm" variant="secondary" icon="clock" label="Load last configuration"></cts-button>
             </div>
 
-            <div class="cascade-row">
-                <label for="specFamilySelect">Specification</label>
-                <div class="input-group">
-                    <div class="input-group-text">
-                        <cts-tooltip content="Select the specification family you want to run tests for." placement="bottom"><cts-icon name="info"></cts-icon></cts-tooltip>
-                    </div>
-                    <select id="specFamilySelect">
-                        <option value="">--- Select a Specification ---</option>
-                    </select>
-                </div>
-            </div>
-            <div class="cascade-row" id="entityRow" style="display:none">
-                <label for="entitySelect">Entity Under Test</label>
-                <div class="input-group">
-                    <div class="input-group-text">
-                        <cts-tooltip content="Select the type of implementation you are testing, such as a client, authorization server, wallet, verifier, or issuer." placement="bottom"><cts-icon name="info"></cts-icon></cts-tooltip>
-                    </div>
-                    <select id="entitySelect">
-                        <option value="">--- Select Entity ---</option>
-                    </select>
-                </div>
-            </div>
-            <div class="cascade-row" id="specVersionRow" style="display:none">
-                <label for="specVersionSelect">Version</label>
-                <div class="input-group">
-                    <div class="input-group-text">
-                        <cts-tooltip content="Select the specification version you'd like to test with." placement="bottom"><cts-icon name="info"></cts-icon></cts-tooltip>
-                    </div>
-                    <select id="specVersionSelect">
-                        <option value="">--- Select Version ---</option>
-                    </select>
-                </div>
-            </div>
-            <div class="cascade-row" id="planRow" style="display:none">
-                <label for="planSelect">Test Type</label>
-                <div class="input-group">
-                    <div class="input-group-text">
-                        <cts-tooltip content="Select the exact test plan you want to run." placement="bottom"><cts-icon name="info"></cts-icon></cts-tooltip>
-                    </div>
-                    <select id="planSelect">
-                        <option value="select">--- Select A Test Type ----</option>
-                    </select>
-                </div>
-            </div>
+            <cts-spec-cascade id="specCascade"></cts-spec-cascade>
             <form id="variantSelectors">
                 <!-- render variant selectors here -->
             </form>
@@ -1709,19 +1667,19 @@
             }
         }
 
-        function applyConfigPreset() {
+        async function applyConfigPreset() {
             let searchParams = new URLSearchParams(window.location.search);
             let testPlanName = searchParams.get("test_plan");
             if (testPlanName && testPlanName in FAPI_UI.availablePlans) {
-                selectPlanByName(testPlanName);
+                await selectPlanByName(testPlanName);
             }
         }
 
-        function restoreEditPlanVariants() {
+        async function restoreEditPlanVariants() {
             const urlParams = new URLSearchParams(window.location.search);
             const editParams = urlParams.get("edit-plan");
             if (editParams && FAPI_UI.loadedPlanName) {
-                selectPlanByName(FAPI_UI.loadedPlanName);
+                await selectPlanByName(FAPI_UI.loadedPlanName);
                 // restore any previously selected variant values and config field visibility
                 if (FAPI_UI.selectedVariant) {
                     Object.entries(FAPI_UI.selectedVariant).forEach(([key, value]) => {
@@ -1825,201 +1783,51 @@
             return fetch('/api/plan/available')
                 .then((response) => response.json())
                 .then((data) => {
-                    FAPI_UI.availablePlans = _.keyBy(data, 'planName');
-
-                    // Build planIndex: planIndex[specFamily][profile][specVersion] = [plan, ...]
-                    FAPI_UI.planIndex = {};
-                    _.each(data, function(plan) {
-                        var family = plan.specFamily || '';
-                        var profile = plan.profile || '';
-                        var version = plan.specVersion || '';
-                        if (!FAPI_UI.planIndex[family]) {
-                            FAPI_UI.planIndex[family] = {};
-                        }
-                        if (!FAPI_UI.planIndex[family][profile]) {
-                            FAPI_UI.planIndex[family][profile] = {};
-                        }
-                        if (!FAPI_UI.planIndex[family][profile][version]) {
-                            FAPI_UI.planIndex[family][profile][version] = [];
-                        }
-                        FAPI_UI.planIndex[family][profile][version].push(plan);
-                    });
-
-                    // Populate specFamilySelect
-                    var families = _.keys(FAPI_UI.planIndex).sort();
-                    var familySelect = document.getElementById('specFamilySelect');
-                    _.each(families, function(family) {
-                        if (!family) return; // skip empty
-                        var opt = document.createElement('option');
-                        opt.value = family;
-                        opt.textContent = family;
-                        familySelect.appendChild(opt);
-                    });
-                })
-        }
-
-        // Remember downstream selections so they can be restored when
-        // a parent selector changes and the same value still exists.
-        var savedCascadeSelections = {};
-
-        function trySavedSelection(selectElement, savedValue) {
-            if (!savedValue) return;
-            var option = selectElement.querySelector('option[value="' + CSS.escape(savedValue) + '"]');
-            if (option) {
-                selectElement.value = savedValue;
-            }
-        }
-
-        function onSpecFamilyChange(silent) {
-            var family = document.getElementById('specFamilySelect').value;
-            var entitySelect = document.getElementById('entitySelect');
-            var entityRow = document.getElementById('entityRow');
-            var specVersionSelect = document.getElementById('specVersionSelect');
-            var specVersionRow = document.getElementById('specVersionRow');
-            var planSelect = document.getElementById('planSelect');
-            var planRow = document.getElementById('planRow');
-
-            // Save current downstream selections before resetting
-            if (entitySelect.value) savedCascadeSelections.entity = entitySelect.value;
-            if (specVersionSelect.value) savedCascadeSelections.specVersion = specVersionSelect.value;
-            if (planSelect.value && planSelect.value !== 'select') savedCascadeSelections.plan = planSelect.value;
-
-            // Reset downstream
-            entitySelect.replaceChildren(new Option('--- Select Entity ---', ''));
-            specVersionSelect.replaceChildren(new Option('--- Select Version ---', ''));
-            planSelect.replaceChildren(new Option('--- Select A Test Type ----', 'select'));
-            entityRow.style.display = 'none';
-            specVersionRow.style.display = 'none';
-            planRow.style.display = 'none';
-
-            if (!family || !FAPI_UI.planIndex[family]) {
-                if (!silent) planSelect.dispatchEvent(new Event('change'));
-                return;
-            }
-
-            var entities = _.keys(FAPI_UI.planIndex[family]).sort();
-            if (entities.length === 1) {
-                entitySelect.replaceChildren(new Option(entities[0], entities[0]));
-                entitySelect.value = entities[0];
-                entityRow.style.display = 'none';
-            } else {
-                _.each(entities, function(entity) {
-                    entitySelect.appendChild(new Option(entity, entity));
+                    // Keep `FAPI_UI.availablePlans` populated for downstream
+                    // consumers: `applyConfigPreset`, `updateVariants`,
+                    // `updateConfigFieldVisibility`, the create-plan submit
+                    // path, and the variant-options renderer all key into it
+                    // by planName. The cts-spec-cascade component owns the
+                    // cascade rendering and its own internal plan index;
+                    // hand it the same dataset so it doesn't refetch.
+                    // Defensive: coerce non-array payloads (e.g., 500 error
+                    // bodies) to an empty array so neither map fills with
+                    // garbage and the cascade routes to its empty/error UI.
+                    var planList = Array.isArray(data) ? data : [];
+                    FAPI_UI.availablePlans = _.keyBy(planList, 'planName');
+                    var cascade = document.getElementById('specCascade');
+                    if (cascade) {
+                        cascade.plans = planList;
+                    }
                 });
-                trySavedSelection(entitySelect, savedCascadeSelections.entity);
-                entityRow.style.display = '';
-            }
-
-            if (!silent) onEntityChange();
-        }
-
-        function onEntityChange(silent) {
-            var family = document.getElementById('specFamilySelect').value;
-            var entity = document.getElementById('entitySelect').value;
-            var specVersionSelect = document.getElementById('specVersionSelect');
-            var specVersionRow = document.getElementById('specVersionRow');
-            var planSelect = document.getElementById('planSelect');
-            var planRow = document.getElementById('planRow');
-
-            // Save current downstream selections before resetting
-            if (specVersionSelect.value) savedCascadeSelections.specVersion = specVersionSelect.value;
-            if (planSelect.value && planSelect.value !== 'select') savedCascadeSelections.plan = planSelect.value;
-
-            specVersionSelect.replaceChildren(new Option('--- Select Version ---', ''));
-            planSelect.replaceChildren(new Option('--- Select A Test Type ----', 'select'));
-            specVersionRow.style.display = 'none';
-            planRow.style.display = 'none';
-
-            if (!family || !entity || !FAPI_UI.planIndex[family] || !FAPI_UI.planIndex[family][entity]) {
-                if (!silent) planSelect.dispatchEvent(new Event('change'));
-                return;
-            }
-
-            var versions = _.keys(FAPI_UI.planIndex[family][entity]).sort();
-            if (versions.length === 1) {
-                specVersionSelect.replaceChildren(new Option(versions[0] || '(default)', versions[0]));
-                specVersionSelect.value = versions[0];
-                specVersionRow.style.display = 'none';
-            } else {
-                _.each(versions, function(version) {
-                    specVersionSelect.appendChild(new Option(version || '(default)', version));
-                });
-                trySavedSelection(specVersionSelect, savedCascadeSelections.specVersion);
-                specVersionRow.style.display = '';
-            }
-
-            if (!silent) onSpecVersionChange();
-        }
-
-        function onSpecVersionChange(silent) {
-            var family = document.getElementById('specFamilySelect').value;
-            var entity = document.getElementById('entitySelect').value;
-            var version = document.getElementById('specVersionSelect').value;
-            var planSelect = document.getElementById('planSelect');
-            var planRow = document.getElementById('planRow');
-
-            // Save current downstream selection before resetting
-            if (planSelect.value && planSelect.value !== 'select') savedCascadeSelections.plan = planSelect.value;
-
-            planSelect.replaceChildren(new Option('--- Select A Test Type ----', 'select'));
-            planRow.style.display = 'none';
-
-            if (!family || !entity || !FAPI_UI.planIndex[family] ||
-                !FAPI_UI.planIndex[family][entity] ||
-                !FAPI_UI.planIndex[family][entity].hasOwnProperty(version)) {
-                if (!silent) planSelect.dispatchEvent(new Event('change'));
-                return;
-            }
-
-            var plans = _.sortBy(FAPI_UI.planIndex[family][entity][version], 'displayName');
-            _.each(plans, function(plan) {
-                planSelect.appendChild(new Option(plan.displayName, plan.planName));
-            });
-
-            planRow.style.display = '';
-
-            if (plans.length === 1) {
-                planSelect.value = plans[0].planName;
-            } else {
-                trySavedSelection(planSelect, savedCascadeSelections.plan);
-            }
-
-            if (!silent) planSelect.dispatchEvent(new Event('change'));
         }
 
         // R13: tracks reentrancy of system-driven plan selection so the
-        // planSelect 'change' handler can distinguish "the user picked a new
+        // cts-plan-selected listener can distinguish "the user picked a new
         // plan" (clear the config) from "we just programmatically applied a
         // saved/edited config" (keep the config we just put there).
         let isSystemSelectingPlan = 0;
 
-        function selectPlanByName(planName) {
-            var plan = FAPI_UI.availablePlans[planName];
-            if (!plan) return false;
-
-            var familySelect = document.getElementById('specFamilySelect');
-            var entitySelect = document.getElementById('entitySelect');
-            var specVersionSelect = document.getElementById('specVersionSelect');
-            var planSelect = document.getElementById('planSelect');
+        async function selectPlanByName(planName) {
+            var cascade = document.getElementById('specCascade');
+            if (!cascade) return false;
+            if (!FAPI_UI.availablePlans || !FAPI_UI.availablePlans[planName]) {
+                return false;
+            }
 
             isSystemSelectingPlan++;
             try {
-                familySelect.value = plan.specFamily || '';
-                onSpecFamilyChange(true);
-
-                entitySelect.value = plan.profile || '';
-                onEntityChange(true);
-
-                specVersionSelect.value = plan.specVersion || '';
-                onSpecVersionChange(true);
-
-                planSelect.value = planName;
-                planSelect.dispatchEvent(new Event('change'));
+                var result = cascade.selectPlanByName(planName);
+                // cts-spec-cascade defers `cts-plan-selected` until after
+                // Lit propagates state to the DOM (so #planSelect.value is
+                // in sync when listeners read it). Wait for that here so
+                // the cts-plan-selected listener still sees
+                // isSystemSelectingPlan > 0 and skips clearConfigForNewPlan.
+                await cascade.updateComplete;
+                return result;
             } finally {
                 isSystemSelectingPlan--;
             }
-
-            return true;
         }
 
         function saveConfig(config) {
@@ -2128,7 +1936,7 @@
         // auto-fetch behavior but is now triggered only by the user clicking
         // the toolbar button. updateSelectedTestSelector flips the cascade
         // through selectPlanByName (which trips isSystemSelectingPlan), so
-        // the planSelect change handler skips clearing the config we are
+        // the cts-plan-selected listener skips clearing the config we are
         // about to apply.
         function loadLastConfigFromServer() {
             return fetch('/api/lastconfig')
@@ -2156,7 +1964,9 @@
         }
 
         function updateSelectedTestSelector(planName) {
-            selectPlanByName(planName);
+            // Returns the promise from the cascade's deferred selection so
+            // callers in async chains can await DOM-sync before continuing.
+            return selectPlanByName(planName);
         }
 
         function collectFormParametersToParameterObject(dataAttribute, skipValue) {
@@ -2336,24 +2146,14 @@
                 document.getElementById('copyTestPlanUrlModal').show();
             }
 
-            // cascading selector change handlers
-            document.getElementById('specFamilySelect').addEventListener("change", function(){
-                onSpecFamilyChange();
-            });
-            document.getElementById('entitySelect').addEventListener("change", function(){
-                onEntityChange();
-            });
-            document.getElementById('specVersionSelect').addEventListener("change", function(){
-                onSpecVersionChange();
-            });
-
-            // update field visibility when the selectors change
-            document.getElementById('planSelect').addEventListener("change", function(){
-                // R13: clear the carried-over config when the user picks a
-                // new plan type. selectPlanByName bumps isSystemSelectingPlan
-                // around its own dispatchEvent, so programmatic flows
-                // (edit-plan, edit-test, "Load last configuration") preserve
-                // the config they just applied.
+            // cts-spec-cascade dispatches `cts-plan-selected` whenever a
+            // plan is chosen (user click OR programmatic `selectPlanByName`).
+            // R13: clear the carried-over config when the user picks a new
+            // plan. The inline selectPlanByName wrapper bumps
+            // isSystemSelectingPlan around its delegated cascade call, so
+            // programmatic flows (edit-plan, edit-test, "Load last
+            // configuration") preserve the config they just applied.
+            document.addEventListener('cts-plan-selected', function() {
                 if (isSystemSelectingPlan === 0) {
                     clearConfigForNewPlan();
                 }
@@ -2436,7 +2236,10 @@
          * may need to be hidden based on the current selection of other variant parameters.
          */
         function updateVariantOptionsVisibility() {
-            var planName = document.getElementById('planSelect').value;
+            // `#planSelect` may not be rendered yet (cascade still loading or
+            // in error state) — treat missing element as "no plan picked".
+            var planSelectEl = document.getElementById('planSelect');
+            var planName = planSelectEl ? planSelectEl.value : '';
             if (!planName || planName === 'select' || !FAPI_UI.availablePlans[planName]) {
                 return;
             }
@@ -2558,8 +2361,11 @@
 
             var fieldsNotToShow = [];
 
-            // multi test plan selected
-            var planName = document.getElementById('planSelect').value;
+            // multi test plan selected — but `#planSelect` lives inside
+            // cts-spec-cascade's light DOM and is absent in loading/error
+            // states. Treat missing element as "no plan picked".
+            var planSelectEl = document.getElementById('planSelect');
+            var planName = planSelectEl ? planSelectEl.value : '';
 
             // if the user hasn't picked anything, disable the create button
             if (!planName || planName == 'select' || !FAPI_UI.availablePlans[planName]) {
@@ -2644,7 +2450,11 @@
 
         function updateVariants() {
             var map = FAPI_UI.availablePlans;
-            var itemSelected = document.getElementById('planSelect').value;
+            // The cascade renders `#planSelect` in its light DOM only when a
+            // plan tier is reachable; in loading/error/empty states the
+            // element doesn't exist. Treat absent select as "no plan picked".
+            var planSelectEl = document.getElementById('planSelect');
+            var itemSelected = planSelectEl ? planSelectEl.value : '';
 
             // Merge current selections into persistent store so they survive
             // intermediate states where no plan is selected (e.g. changing

@@ -37,168 +37,70 @@
       </svg></cts-icon><!--?lit$NNNN$--> <!--?lit$NNNN$-->Load last configuration</button></cts-button>
             </div>
 
-            <div class="cascade-row">
-                <label for="specFamilySelect">Specification</label>
-                <div class="input-group">
-                    <div class="input-group-text">
-                        <cts-tooltip content="Select the specification family you want to run tests for." placement="bottom"><cts-icon name="info"><!----><style>
-        cts-icon {
-          /* inline-flex with center alignment guarantees the SVG sits at the
-             optical centre of the host box regardless of the parent's
-             line-height, font metrics, or whether the parent is a flex
-             container. Without this, the SVG (display: inline-block) inherits
-             the parent's line-box descender space and floats low. */
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-          line-height: 0;
-        }
-        svg[data-cts-icon-size] {
-          display: block;
-          flex-shrink: 0;
-        }
-        svg[data-cts-icon-size="16"] {
-          width: var(--space-4);
-          height: var(--space-4);
-        }
-        svg[data-cts-icon-size="20"] {
-          width: var(--space-5);
-          height: var(--space-5);
-        }
-        svg[data-cts-icon-size="24"] {
-          width: var(--space-6);
-          height: var(--space-6);
-        }
-      </style>
-      <svg viewBox="0 0 24 24" aria-hidden="true" data-cts-icon-size="20">
-        <use href="/vendor/coolicons/icons/info.svg#i"></use>
-      </svg></cts-icon></cts-tooltip>
-                    </div>
-                    <select id="specFamilySelect">
-                        <option value="">--- Select a Specification ---</option>
-                    <option value="FAPI">FAPI</option><option value="OIDCC">OIDCC</option></select>
-                </div>
-            </div>
-            <div class="cascade-row" id="entityRow" style="">
-                <label for="entitySelect">Entity Under Test</label>
-                <div class="input-group">
-                    <div class="input-group-text">
-                        <cts-tooltip content="Select the type of implementation you are testing, such as a client, authorization server, wallet, verifier, or issuer." placement="bottom"><cts-icon name="info"><!----><style>
-        cts-icon {
-          /* inline-flex with center alignment guarantees the SVG sits at the
-             optical centre of the host box regardless of the parent's
-             line-height, font metrics, or whether the parent is a flex
-             container. Without this, the SVG (display: inline-block) inherits
-             the parent's line-box descender space and floats low. */
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-          line-height: 0;
-        }
-        svg[data-cts-icon-size] {
-          display: block;
-          flex-shrink: 0;
-        }
-        svg[data-cts-icon-size="16"] {
-          width: var(--space-4);
-          height: var(--space-4);
-        }
-        svg[data-cts-icon-size="20"] {
-          width: var(--space-5);
-          height: var(--space-5);
-        }
-        svg[data-cts-icon-size="24"] {
-          width: var(--space-6);
-          height: var(--space-6);
-        }
-      </style>
-      <svg viewBox="0 0 24 24" aria-hidden="true" data-cts-icon-size="20">
-        <use href="/vendor/coolicons/icons/info.svg#i"></use>
-      </svg></cts-icon></cts-tooltip>
-                    </div>
-                    <select id="entitySelect"><option value="">--- Select Entity ---</option><option value="basic">basic</option><option value="client-basic">client-basic</option></select>
-                </div>
-            </div>
-            <div class="cascade-row" id="specVersionRow" style="display:none">
-                <label for="specVersionSelect">Version</label>
-                <div class="input-group">
-                    <div class="input-group-text">
-                        <cts-tooltip content="Select the specification version you'd like to test with." placement="bottom"><cts-icon name="info"><!----><style>
-        cts-icon {
-          /* inline-flex with center alignment guarantees the SVG sits at the
-             optical centre of the host box regardless of the parent's
-             line-height, font metrics, or whether the parent is a flex
-             container. Without this, the SVG (display: inline-block) inherits
-             the parent's line-box descender space and floats low. */
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-          line-height: 0;
-        }
-        svg[data-cts-icon-size] {
-          display: block;
-          flex-shrink: 0;
-        }
-        svg[data-cts-icon-size="16"] {
-          width: var(--space-4);
-          height: var(--space-4);
-        }
-        svg[data-cts-icon-size="20"] {
-          width: var(--space-5);
-          height: var(--space-5);
-        }
-        svg[data-cts-icon-size="24"] {
-          width: var(--space-6);
-          height: var(--space-6);
-        }
-      </style>
-      <svg viewBox="0 0 24 24" aria-hidden="true" data-cts-icon-size="20">
-        <use href="/vendor/coolicons/icons/info.svg#i"></use>
-      </svg></cts-icon></cts-tooltip>
-                    </div>
-                    <select id="specVersionSelect"><option value="Final">Final</option></select>
-                </div>
-            </div>
-            <div class="cascade-row" id="planRow" style="">
-                <label for="planSelect">Test Type</label>
-                <div class="input-group">
-                    <div class="input-group-text">
-                        <cts-tooltip content="Select the exact test plan you want to run." placement="bottom"><cts-icon name="info"><!----><style>
-        cts-icon {
-          /* inline-flex with center alignment guarantees the SVG sits at the
-             optical centre of the host box regardless of the parent's
-             line-height, font metrics, or whether the parent is a flex
-             container. Without this, the SVG (display: inline-block) inherits
-             the parent's line-box descender space and floats low. */
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-          line-height: 0;
-        }
-        svg[data-cts-icon-size] {
-          display: block;
-          flex-shrink: 0;
-        }
-        svg[data-cts-icon-size="16"] {
-          width: var(--space-4);
-          height: var(--space-4);
-        }
-        svg[data-cts-icon-size="20"] {
-          width: var(--space-5);
-          height: var(--space-5);
-        }
-        svg[data-cts-icon-size="24"] {
-          width: var(--space-6);
-          height: var(--space-6);
-        }
-      </style>
-      <svg viewBox="0 0 24 24" aria-hidden="true" data-cts-icon-size="20">
-        <use href="/vendor/coolicons/icons/info.svg#i"></use>
-      </svg></cts-icon></cts-tooltip>
-                    </div>
-                    <select id="planSelect"><option value="select">--- Select A Test Type ----</option><option value="oidcc-basic-certification-test-plan">OpenID Connect Core: Basic Certification Profile</option></select>
-                </div>
-            </div>
+            <cts-spec-cascade id="specCascade"><!---->
+      <div class="oidf-spec-cascade">
+        <!--?lit$NNNN$-->
+      <div class="oidf-spec-cascade__field" data-testid="specFamilySelect-field" style="">
+        <label class="oidf-spec-cascade__label" for="specFamilySelect"><!--?lit$NNNN$-->Specification</label>
+        <select class="oidf-spec-cascade__select" id="specFamilySelect">
+          <option value=""><!--?lit$NNNN$-->--- Select a Specification ---</option>
+          <!--?lit$NNNN$--><!---->
+        <option value="FAPI">
+          <!--?lit$NNNN$-->FAPI
+        </option>
+      <!----><!---->
+        <option value="OIDCC" selected="">
+          <!--?lit$NNNN$-->OIDCC
+        </option>
+      <!---->
+        </select>
+      </div>
+    
+        <!--?lit$NNNN$-->
+      <div class="oidf-spec-cascade__field" data-testid="entitySelect-field" style="">
+        <label class="oidf-spec-cascade__label" for="entitySelect"><!--?lit$NNNN$-->Entity Under Test</label>
+        <select class="oidf-spec-cascade__select" id="entitySelect">
+          <option value=""><!--?lit$NNNN$-->--- Select Entity ---</option>
+          <!--?lit$NNNN$--><!---->
+        <option value="basic" selected="">
+          <!--?lit$NNNN$-->basic
+        </option>
+      <!----><!---->
+        <option value="client-basic">
+          <!--?lit$NNNN$-->client-basic
+        </option>
+      <!---->
+        </select>
+      </div>
+    
+        <!--?lit$NNNN$-->
+      <div class="oidf-spec-cascade__field" data-testid="specVersionSelect-field" style="display:none">
+        <label class="oidf-spec-cascade__label" for="specVersionSelect"><!--?lit$NNNN$-->Version</label>
+        <select class="oidf-spec-cascade__select" id="specVersionSelect">
+          <option value=""><!--?lit$NNNN$-->--- Select Version ---</option>
+          <!--?lit$NNNN$--><!---->
+        <option value="Final" selected="">
+          <!--?lit$NNNN$-->Final
+        </option>
+      <!---->
+        </select>
+      </div>
+    
+        <!--?lit$NNNN$-->
+      <div class="oidf-spec-cascade__field" data-testid="planSelect-field" style="">
+        <label class="oidf-spec-cascade__label" for="planSelect"><!--?lit$NNNN$-->Test Type</label>
+        <select class="oidf-spec-cascade__select" id="planSelect">
+          <option value=""><!--?lit$NNNN$-->--- Select A Test Type ----</option>
+          <!--?lit$NNNN$--><!---->
+        <option value="oidcc-basic-certification-test-plan" selected="">
+          <!--?lit$NNNN$-->OpenID Connect Core: Basic Certification Profile
+        </option>
+      <!---->
+        </select>
+      </div>
+    
+      </div>
+    </cts-spec-cascade>
             <form id="variantSelectors" style=""><div class="cascade-row"><label for="vp_server_metadata">Server Metadata</label><div class="input-group">
 <div class="input-group-text"><cts-tooltip content="How server metadata is obtained" placement="bottom"><cts-icon name="info"><!----><style>
         cts-icon {
