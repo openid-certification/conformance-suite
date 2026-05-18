@@ -44,7 +44,7 @@ export const FullFlow = {
   parameters: {
     msw: {
       handlers: [
-        http.get("/api/runner/available", () => HttpResponse.json(MOCK_PLANS)),
+        http.get("/api/plan/available", () => HttpResponse.json(MOCK_PLANS)),
         http.post("/api/runner", async ({ request }) => {
           const body = /** @type {{ planName?: string } | null} */ (await request.json());
           return HttpResponse.json({
@@ -155,7 +155,7 @@ export const FullFlow = {
 export const ChangePlanMidFlow = {
   parameters: {
     msw: {
-      handlers: [http.get("/api/runner/available", () => HttpResponse.json(MOCK_PLANS))],
+      handlers: [http.get("/api/plan/available", () => HttpResponse.json(MOCK_PLANS))],
     },
   },
   render: () => {

@@ -23,7 +23,18 @@ function fieldFor(canvasElement, selectId) {
 export const InitialState = {
   parameters: {
     msw: {
-      handlers: [http.get("/api/runner/available", () => HttpResponse.json(MOCK_PLANS))],
+      handlers: [
+        http.get("/api/plan/available", ({ request }) => {
+          // Locks the contract: the cascade must fetch from /api/plan/available.
+          // If a future change reverts this to /api/runner/available, the MSW
+          // handler will not match and the story will fall through to the
+          // empty-state branch instead of populating the cascade.
+          if (!request.url.endsWith("/api/plan/available")) {
+            return HttpResponse.json({ error: "wrong endpoint" }, { status: 404 });
+          }
+          return HttpResponse.json(MOCK_PLANS);
+        }),
+      ],
     },
   },
   render: () => html`<cts-spec-cascade></cts-spec-cascade>`,
@@ -39,6 +50,10 @@ export const InitialState = {
     // The Specification select should carry the OIDF class
     const familySelect = canvasElement.querySelector("#specFamilySelect");
     expect(familySelect?.classList.contains("oidf-spec-cascade__select")).toBe(true);
+    // Endpoint contract: the family dropdown only populates when the
+    // MSW handler keyed to /api/plan/available matched. If we accidentally
+    // ship a URL drift, this option count drops to 1 (placeholder only).
+    expect(familySelect.querySelectorAll("option").length).toBeGreaterThan(1);
   },
 };
 
@@ -46,7 +61,7 @@ export const InitialState = {
 export const SelectFamily = {
   parameters: {
     msw: {
-      handlers: [http.get("/api/runner/available", () => HttpResponse.json(MOCK_PLANS))],
+      handlers: [http.get("/api/plan/available", () => HttpResponse.json(MOCK_PLANS))],
     },
   },
   render: () => html`<cts-spec-cascade></cts-spec-cascade>`,
@@ -74,7 +89,7 @@ export const SelectFamily = {
 export const FullCascade = {
   parameters: {
     msw: {
-      handlers: [http.get("/api/runner/available", () => HttpResponse.json(MOCK_PLANS))],
+      handlers: [http.get("/api/plan/available", () => HttpResponse.json(MOCK_PLANS))],
     },
   },
   render: () => html`<cts-spec-cascade></cts-spec-cascade>`,
@@ -117,7 +132,7 @@ export const FullCascade = {
 export const PlanSelectedEvent = {
   parameters: {
     msw: {
-      handlers: [http.get("/api/runner/available", () => HttpResponse.json(MOCK_PLANS))],
+      handlers: [http.get("/api/plan/available", () => HttpResponse.json(MOCK_PLANS))],
     },
   },
   render: () => html`<cts-spec-cascade></cts-spec-cascade>`,
@@ -162,7 +177,7 @@ export const PlanSelectedEvent = {
 export const ResetOnFamilyChange = {
   parameters: {
     msw: {
-      handlers: [http.get("/api/runner/available", () => HttpResponse.json(MOCK_PLANS))],
+      handlers: [http.get("/api/plan/available", () => HttpResponse.json(MOCK_PLANS))],
     },
   },
   render: () => html`<cts-spec-cascade></cts-spec-cascade>`,
@@ -205,7 +220,7 @@ export const ResetOnFamilyChange = {
 export const SingleEntity = {
   parameters: {
     msw: {
-      handlers: [http.get("/api/runner/available", () => HttpResponse.json(MOCK_PLANS))],
+      handlers: [http.get("/api/plan/available", () => HttpResponse.json(MOCK_PLANS))],
     },
   },
   render: () => html`<cts-spec-cascade></cts-spec-cascade>`,
@@ -260,7 +275,7 @@ export const LoadingState = {
   parameters: {
     msw: {
       handlers: [
-        http.get("/api/runner/available", async () => {
+        http.get("/api/plan/available", async () => {
           await new Promise((resolve) => setTimeout(resolve, 60000));
           return HttpResponse.json(MOCK_PLANS);
         }),
@@ -279,7 +294,7 @@ export const LoadingState = {
 };
 
 /**
- * A 5xx from /api/runner/available used to return a JSON error payload that
+ * A 5xx from /api/plan/available used to return a JSON error payload that
  * the component then treated as "plans = [error object]", leaving the user
  * staring at an empty dropdown with no idea what happened. The component now
  * distinguishes load-failure from truly-empty.
@@ -288,7 +303,7 @@ export const LoadErrorShowsBanner = {
   parameters: {
     msw: {
       handlers: [
-        http.get("/api/runner/available", () =>
+        http.get("/api/plan/available", () =>
           HttpResponse.json({ error: "backend down" }, { status: 500 }),
         ),
       ],
@@ -331,7 +346,7 @@ export const LoadErrorShowsBanner = {
 export const LoadsEmptyShowsInfoBanner = {
   parameters: {
     msw: {
-      handlers: [http.get("/api/runner/available", () => HttpResponse.json([]))],
+      handlers: [http.get("/api/plan/available", () => HttpResponse.json([]))],
     },
   },
   render: () => html`<cts-spec-cascade></cts-spec-cascade>`,
@@ -344,5 +359,99 @@ export const LoadsEmptyShowsInfoBanner = {
     });
     // Error banner should NOT be showing — this is the healthy-but-empty case.
     expect(canvasElement.querySelector('[data-testid="spec-cascade-error"]')).toBeNull();
+  },
+};
+
+/**
+ * Programmatic `selectPlanByName` drives the cascade to a named plan and
+ * dispatches `cts-plan-selected`. Exercised by `schedule-test.html` to apply
+ * a `?test_plan=...` URL param, the "Load last configuration" toolbar
+ * button, and the edit-plan flow.
+ */
+export const ProgrammaticSelection = {
+  parameters: {
+    msw: {
+      handlers: [http.get("/api/plan/available", () => HttpResponse.json(MOCK_PLANS))],
+    },
+  },
+  render: () => html`<cts-spec-cascade></cts-spec-cascade>`,
+  async play({ canvasElement }) {
+    const canvas = within(canvasElement);
+    const element = canvasElement.querySelector("cts-spec-cascade");
+    const spy = fn();
+    element.addEventListener("cts-plan-selected", spy);
+
+    await waitFor(() => {
+      expect(canvas.getByLabelText("Specification")).toBeInTheDocument();
+    });
+
+    // Successful selection: known plan name
+    const accepted = element.selectPlanByName("fapi2-security-profile-final-test-plan");
+    expect(accepted).toBe(true);
+
+    await waitFor(() => {
+      expect(spy).toHaveBeenCalledTimes(1);
+    });
+    const eventDetail = spy.mock.calls[0][0].detail;
+    expect(eventDetail.plan.planName).toBe("fapi2-security-profile-final-test-plan");
+
+    // Internal tier state propagated through to rendered selects
+    await waitFor(() => {
+      const familySelect = canvasElement.querySelector("#specFamilySelect");
+      expect(familySelect.value).toBe("FAPI");
+    });
+    const planSelect = canvasElement.querySelector("#planSelect");
+    expect(planSelect.value).toBe("fapi2-security-profile-final-test-plan");
+
+    // Unknown plan: rejected, no extra event
+    const rejected = element.selectPlanByName("does-not-exist-test-plan");
+    expect(rejected).toBe(false);
+    expect(spy).toHaveBeenCalledTimes(1);
+  },
+};
+
+/**
+ * Calling `selectPlanByName` while plans are still loading should queue the
+ * request and replay it exactly once when plans arrive. This is the page-load
+ * race in `schedule-test.html`: `applyConfigPreset` can fire before
+ * `loadAvailablePlans()` resolves.
+ */
+export const ProgrammaticSelectionBeforeLoad = {
+  parameters: {
+    msw: {
+      handlers: [
+        http.get("/api/plan/available", async () => {
+          // Delay so the cascade is still loading when play() starts.
+          await new Promise((resolve) => setTimeout(resolve, 100));
+          return HttpResponse.json(MOCK_PLANS);
+        }),
+      ],
+    },
+  },
+  render: () => html`<cts-spec-cascade></cts-spec-cascade>`,
+  async play({ canvasElement }) {
+    const element = canvasElement.querySelector("cts-spec-cascade");
+    const spy = fn();
+    element.addEventListener("cts-plan-selected", spy);
+
+    // Plans haven't loaded yet — the call should queue, not fire the event.
+    const accepted = element.selectPlanByName("oidcc-basic-certification-test-plan");
+    expect(accepted).toBe(true);
+    expect(spy).not.toHaveBeenCalled();
+
+    // Once MSW resolves and the component receives plans, the queued
+    // selection should drain and dispatch exactly one event.
+    await waitFor(
+      () => {
+        expect(spy).toHaveBeenCalledTimes(1);
+      },
+      { timeout: 2000 },
+    );
+
+    const eventDetail = spy.mock.calls[0][0].detail;
+    expect(eventDetail.plan.planName).toBe("oidcc-basic-certification-test-plan");
+
+    const planSelect = canvasElement.querySelector("#planSelect");
+    expect(planSelect.value).toBe("oidcc-basic-certification-test-plan");
   },
 };
