@@ -350,7 +350,9 @@ function _slugify(value) {
  * @property {Array} existingImages - Already-uploaded images; each item has
  *   `{ name, url }`.
  * @fires cts-image-uploaded - After a successful POST, with
- *   `{ detail: { testId, imageName } }`; bubbles.
+ *   `{ detail: { testId, imageName, entry } }`. `entry` is the server's
+ *   JSON response (the new log entry for editable slots) or `null` when
+ *   the response is empty or non-JSON. Bubbles.
  */
 class CtsImageUpload extends LitElement {
   static properties = {
@@ -569,12 +571,15 @@ class CtsImageUpload extends LitElement {
     this._announce = `Uploading ${file.name}.`;
 
     try {
-      // The endpoint accepts the dataURL body directly (see ImageAPI#uploadImageToExistingLogEntry,
-      // `@RequestBody String encoded`); it is not a multipart upload.
-      let url = `/api/log/${encodeURIComponent(this.testId)}/images/${encodeURIComponent(imageName)}`;
-      if (editable) {
-        url += `?description=${encodeURIComponent(description)}`;
-      }
+      // The endpoint accepts the dataURL body directly (see ImageAPI:
+      // both `uploadImageToNewLogEntry` and `uploadImageToExistingLogEntry`
+      // take `@RequestBody String encoded`). Editable slots POST to the
+      // "new entry" path (no placeholder in URL) so the server generates an
+      // id; fixed slots POST to the "existing placeholder" path.
+      const base = `/api/log/${encodeURIComponent(this.testId)}/images`;
+      const url = editable
+        ? `${base}?description=${encodeURIComponent(description)}`
+        : `${base}/${encodeURIComponent(imageName)}`;
       const response = await fetch(url, {
         method: "POST",
         body,
@@ -593,6 +598,16 @@ class CtsImageUpload extends LitElement {
         throw new Error(message);
       }
 
+      // For editable slots the server returns the new log entry — surface
+      // it on the event so callers can update existingImages without a
+      // separate fetch.
+      let serverEntry = null;
+      try {
+        serverEntry = await response.json();
+      } catch {
+        // Some responses may not be JSON; the event still fires.
+      }
+
       this._uploadedIds = new Set([...this._uploadedIds, imageName]);
 
       const newSelected = { ...this._selectedFiles };
@@ -603,7 +618,7 @@ class CtsImageUpload extends LitElement {
       this.dispatchEvent(
         new CustomEvent("cts-image-uploaded", {
           bubbles: true,
-          detail: { testId: this.testId, imageName },
+          detail: { testId: this.testId, imageName, entry: serverEntry },
         }),
       );
     } catch (err) {
