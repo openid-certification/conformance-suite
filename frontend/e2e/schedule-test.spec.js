@@ -391,14 +391,17 @@ test.describe("schedule-test.html — Test Plan Scheduling", () => {
 
     await page.goto("/schedule-test.html");
 
-    // When /api/plan/available returns a 500, the page does not show an error
-    // message — response.json() parses the body and _.keyBy produces an empty
-    // plan index, so the family select stays unpopulated. This test verifies
-    // the page degrades gracefully (no JS errors, no crash) rather than
-    // explicit error handling.
-    const familySelect = page.locator("#specFamilySelect");
-    const optionCount = familySelect.locator("option");
-    await expect(optionCount).toHaveCount(1); // Only the "--- Select ---" default
+    // When /api/plan/available returns 5xx, cts-spec-cascade renders an
+    // explicit error banner instead of an empty cascade. The cascade selects
+    // are not rendered in this state — the user sees a clear message rather
+    // than a silently broken UI.
+    const errorBanner = page.locator('[data-testid="spec-cascade-error"]');
+    await expect(errorBanner).toBeVisible();
+    await expect(errorBanner).toContainText("Unable to load plans");
+
+    // The cascade selects are absent in the error state — there is no plan
+    // the user could pick, by design.
+    await expect(page.locator("#specFamilySelect")).toHaveCount(0);
 
     // Create button should remain disabled (no plan can be selected).
     // Targets the inner native button — see note in the R10 test.
