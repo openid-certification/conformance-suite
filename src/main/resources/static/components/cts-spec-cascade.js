@@ -172,14 +172,24 @@ class CtsSpecCascade extends LitElement {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
       const payload = await response.json();
-      // Defensive: the API contract is an array. Anything else (e.g., a
-      // permissive test mock returning `{}`) would otherwise crash
-      // `_planIndex`'s `for…of` later. Coerce to empty array on shape
-      // mismatch so the empty-state UI fires instead of a hard error.
-      this.plans = Array.isArray(payload) ? payload : [];
+      // The host page (e.g. schedule-test.html) may have set `plans`
+      // directly while this fetch was in flight. Don't overwrite an
+      // externally-supplied dataset with our own — the parent is
+      // authoritative when it provides one.
+      if (this.plans === null) {
+        // Defensive: the API contract is an array. Anything else (e.g. a
+        // permissive test mock returning `{}`) would otherwise crash
+        // `_planIndex`'s `for…of` later. Coerce to empty array on shape
+        // mismatch so the empty-state UI fires instead of a hard error.
+        this.plans = Array.isArray(payload) ? payload : [];
+      }
     } catch (err) {
-      this.plans = [];
-      this._error = "Unable to load plans — please reload the page.";
+      // Same external-assignment guard for the error path: if the host
+      // already populated `plans`, don't downgrade to the error banner.
+      if (this.plans === null) {
+        this.plans = [];
+        this._error = "Unable to load plans — please reload the page.";
+      }
       console.warn("[cts-spec-cascade] /api/plan/available fetch failed:", err);
     } finally {
       this._loading = false;
@@ -317,12 +327,26 @@ class CtsSpecCascade extends LitElement {
    * know which plan I want."
    *
    * If `plans` hasn't loaded yet, the request is queued and re-fires once
-   * plans arrive (see `updated()`).
+   * plans arrive (see `updated()`). A subsequent `selectPlanByName` call
+   * before the queue drains overwrites the queued name; only the most
+   * recent request survives.
+   *
+   * The dispatched `cts-plan-selected` event is deferred via
+   * `updateComplete` so light-DOM listeners that read `#planSelect.value`
+   * see the synced DOM rather than stale state. Callers that need to
+   * synchronize with downstream listeners should `await
+   * cascade.updateComplete` after calling this method.
    *
    * @param {string} planName Plan to select.
-   * @returns {boolean} `true` if accepted (selection took effect, or queued
-   *   pending plan load); `false` if `plans` are loaded and the name is
-   *   unknown.
+   * @returns {boolean} `true` if the call was accepted — either the
+   *   selection took effect synchronously OR the request was queued
+   *   pending plan load. **Queued requests can still fail later** if the
+   *   loaded plan set does not contain `planName`; in that case the queue
+   *   drains silently with no `cts-plan-selected` dispatch. Callers that
+   *   need a definitive "selection succeeded" signal should listen for the
+   *   event rather than rely on this return value. Returns `false` only
+   *   when `plans` is already loaded and the name is unknown, or when
+   *   `planName` is falsy.
    */
   selectPlanByName(planName) {
     if (!planName) return false;

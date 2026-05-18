@@ -363,6 +363,36 @@ export const LoadsEmptyShowsInfoBanner = {
 };
 
 /**
+ * A 200 OK response with a non-array body is coerced to `[]` and routes to
+ * the empty-state info banner. The `Array.isArray` guard in `_planIndex`
+ * exists to prevent `for…of` from crashing on a malformed payload.
+ */
+export const NonArrayResponseShowsEmptyBanner = {
+  parameters: {
+    msw: {
+      handlers: [
+        http.get("/api/plan/available", () =>
+          HttpResponse.json({ error: "shape drift" }, { status: 200 }),
+        ),
+      ],
+    },
+  },
+  render: () => html`<cts-spec-cascade></cts-spec-cascade>`,
+  async play({ canvasElement }) {
+    await waitFor(() => {
+      const empty = canvasElement.querySelector('[data-testid="spec-cascade-empty"]');
+      expect(empty).toBeTruthy();
+      expect(empty.classList.contains("oidf-spec-cascade__alert--info")).toBe(true);
+    });
+    // Not an error — the backend was healthy, the body just wasn't shaped
+    // as expected, so the empty-state info banner is the correct route.
+    expect(canvasElement.querySelector('[data-testid="spec-cascade-error"]')).toBeNull();
+    // The cascade selects are absent in this state.
+    expect(canvasElement.querySelector("#specFamilySelect")).toBeNull();
+  },
+};
+
+/**
  * Programmatic `selectPlanByName` drives the cascade to a named plan and
  * dispatches `cts-plan-selected`. Exercised by `schedule-test.html` to apply
  * a `?test_plan=...` URL param, the "Load last configuration" toolbar

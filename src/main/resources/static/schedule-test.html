@@ -1781,7 +1781,18 @@
 
         function loadAvailablePlans() {
             return fetch('/api/plan/available')
-                .then((response) => response.json())
+                .then((response) => {
+                    // Mirror the response.ok guard in cts-spec-cascade.js
+                    // _fetchPlans. On 5xx, calling .json() on a JSON error
+                    // body would coerce to [] later and silently route the
+                    // cascade to the empty-state banner instead of the
+                    // error banner. Reject here so the component's own
+                    // failed fetch can set _error.
+                    if (!response.ok) {
+                        throw new Error('HTTP ' + response.status + ': ' + response.statusText);
+                    }
+                    return response.json();
+                })
                 .then((data) => {
                     // Keep `FAPI_UI.availablePlans` populated for downstream
                     // consumers: `applyConfigPreset`, `updateVariants`,
@@ -1790,15 +1801,25 @@
                     // by planName. The cts-spec-cascade component owns the
                     // cascade rendering and its own internal plan index;
                     // hand it the same dataset so it doesn't refetch.
-                    // Defensive: coerce non-array payloads (e.g., 500 error
-                    // bodies) to an empty array so neither map fills with
-                    // garbage and the cascade routes to its empty/error UI.
+                    // Defensive: coerce non-array payloads to an empty
+                    // array so the keyBy doesn't choke on a malformed 200
+                    // body and the cascade routes to its empty-state UI.
                     var planList = Array.isArray(data) ? data : [];
                     FAPI_UI.availablePlans = _.keyBy(planList, 'planName');
                     var cascade = document.getElementById('specCascade');
                     if (cascade) {
                         cascade.plans = planList;
                     }
+                })
+                .catch((err) => {
+                    // Swallow fetch / response.ok failures here so the init
+                    // chain proceeds. The component's own _fetchPlans (run
+                    // from connectedCallback) sees the same error and
+                    // renders the error banner. Downstream readers index
+                    // `FAPI_UI.availablePlans[planName]` and guard on
+                    // truthiness, so an empty object is a safe fallback.
+                    FAPI_UI.availablePlans = {};
+                    console.warn('[schedule-test] /api/plan/available fetch failed:', err);
                 });
         }
 
@@ -1861,13 +1882,18 @@
             // Load config of plan from database
             return fetch('/api/plan/' + encodeURIComponent(planId))
                 .then((response) => response.json())
-                .then((data) => {
+                .then(async (data) => {
                     FAPI_UI.loadedPlanName = data.planName;
                     if (data.config) {
                         // we found a configuration file, load it up
                         const el = document.getElementById('config');
                         el.value = JSON.stringify(data.config, null, 4);
-                        updateSelectedTestSelector(data.planName);
+                        // Await so isSystemSelectingPlan stays raised across
+                        // cts-spec-cascade's deferred dispatch (the listener
+                        // checks the counter to decide whether to clear the
+                        // config we just applied). Matches the awaited
+                        // pattern in applyConfigPreset / restoreEditPlanVariants.
+                        await updateSelectedTestSelector(data.planName);
                         if (data.variant) {
                             FAPI_UI.selectedVariant = data.variant;
                         }
@@ -1882,12 +1908,13 @@
         function loadTestConfig(testId) {
             return fetch('/api/info/' + encodeURIComponent(testId))
                 .then((response) => response.json())
-                .then((data) => {
+                .then(async (data) => {
                     if (data.config) {
                         // we found a configuration file, load it up
                         const el = document.getElementById('config');
                         el.value = JSON.stringify(data.config, null, 4);
-                        updateSelectedTestSelector(data.planName);
+                        // See loadPlanConfig for the await rationale.
+                        await updateSelectedTestSelector(data.planName);
                         if (data.variant) {
                             FAPI_UI.selectedVariant = data.variant;
                         }
@@ -1904,7 +1931,7 @@
         // hit submit and the server failed" recovery), but cross-session
         // prefill from the last persisted config is now opt-in via the
         // "Load last configuration" button (loadLastConfigFromServer).
-        function loadLastConfig() {
+        async function loadLastConfig() {
             var localStorage = tryGetStorage('sessionStorage');
             var localSavedConfig;
 
@@ -1918,7 +1945,9 @@
             if (localSavedConfig) {
                 const el = document.getElementById('config');
                 el.value = localSavedConfig.config;
-                updateSelectedTestSelector(localSavedConfig.planName);
+                // See loadPlanConfig for the await rationale (keep
+                // isSystemSelectingPlan raised across the deferred dispatch).
+                await updateSelectedTestSelector(localSavedConfig.planName);
                 if (localSavedConfig.variant) {
                     FAPI_UI.selectedVariant = localSavedConfig.variant;
                 }
@@ -1941,11 +1970,17 @@
         function loadLastConfigFromServer() {
             return fetch('/api/lastconfig')
                 .then((response) => response.json())
-                .then((data) => {
+                .then(async (data) => {
                     if (data.config) {
                         const el = document.getElementById('config');
                         el.value = JSON.stringify(data.config, null, 4);
-                        updateSelectedTestSelector(data.planName);
+                        // See loadPlanConfig for the await rationale. After
+                        // it resolves, the cascade has dispatched
+                        // cts-plan-selected, the listener has run
+                        // updateVariants(), and the variant <select>
+                        // elements exist so updateFormElementsFromJSON can
+                        // populate them correctly.
+                        await updateSelectedTestSelector(data.planName);
                         if (data.variant) {
                             FAPI_UI.selectedVariant = data.variant;
                         }
