@@ -449,8 +449,15 @@ class CtsSpecCascade extends LitElement {
 
     const showEntity = this._selectedFamily && this._entities.length > 1;
     const showVersion = this._selectedEntity && this._versions.length > 1;
-    const showPlan =
-      this._selectedEntity && this._selectedVersion && this._filteredPlans.length > 0;
+    // Real `/api/plan/available` data returns `specVersion: ""` for many
+    // plans (every OIDCC plan, for instance). `_autoSelectVersion` sets
+    // `_selectedVersion = ""` in that case, so guarding on truthiness
+    // would hide the plan dropdown even though `_filteredPlans` has
+    // matching rows. `_filteredPlans.length > 0` is the right gate —
+    // it only returns rows when the family/entity/version tuple resolves
+    // to a real entry in `_planIndex`, regardless of whether the version
+    // value is the empty string or a non-empty label like `"Final"`.
+    const showPlan = this._filteredPlans.length > 0;
 
     const planOptions = this._filteredPlans.map((p) => ({
       value: p.planName,
