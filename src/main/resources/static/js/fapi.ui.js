@@ -173,48 +173,6 @@ var FAPI_UI = {
 			return Promise.allSettled(promises);
 		},
 
-		loadImageUploadTemplates: function() {
-			const p1 = fetch('templates/userinfo.html')
-				.then((response) => response.text())
-				.then((data) => {
-					FAPI_UI.logTemplates.USER_INFO = _.template(data);
-				});
-
-			const p2 = fetch('templates/pendingImageUploader.html')
-				.then((response) => response.text())
-				.then((data) => {
-					FAPI_UI.logTemplates.PENDING = _.template(data);
-				});
-
-			const p3 = fetch('templates/existingImage.html')
-				.then((response) => response.text())
-				.then((data) => {
-					FAPI_UI.logTemplates.EXISTING = _.template(data);
-				});
-
-			const p4 = fetch('templates/source.html')
-				.then((response) => response.text())
-				.then((data) => {
-					FAPI_UI.logTemplates.SOURCE = _.template(data);
-				});
-
-			const p5 = fetch('templates/message.html')
-				.then((response) => response.text())
-				.then((data) => {
-					FAPI_UI.logTemplates.MESSAGE = _.template(data);
-				});
-
-			const p6 = fetch('templates/uploadHeader.html')
-				.then((response) => response.text())
-				.then((data) => {
-					FAPI_UI.logTemplates.UPLOAD_HEADER = _.template(data);
-				});
-
-			const promises = [p1, p2, p3, p4, p5, p6];
-
-			return Promise.allSettled(promises);
-		},
-
 		//when you add a new value to this list also update net.openid.conformance.export.LogEntryHelper
 		visibleFields : ["msg", "src", "time", "result", "requirements", "upload", "testOwner", "testId", "http", "blockId", "startBlock"],
 
