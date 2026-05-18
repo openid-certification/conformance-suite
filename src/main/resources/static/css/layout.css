@@ -340,11 +340,6 @@ cts-json-editor#config {
 	min-height: 240px;
 }
 
-.config-form-container-header {
-	border-bottom: 1px #dcdcdc solid;
-	background: linear-gradient(#ffffff, #efefef);
-}
-
 .config-form-element-array {
 	height: auto !important;
 	min-height: auto !important;

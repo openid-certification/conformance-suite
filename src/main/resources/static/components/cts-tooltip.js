@@ -40,6 +40,9 @@ function injectStylesOnce() {
   const style = document.createElement("style");
   style.setAttribute("data-cts-tooltip-styles", "");
   style.textContent = `
+    cts-tooltip {
+      display: contents;
+    }
     .oidf-tooltip {
       position: absolute;
       top: 0;
