@@ -3,6 +3,7 @@
   - link "OpenID Foundation Certification Instructions":
     - /url: https://openid.net/certification/instructions/
   - text: .
+- button "Load last configuration"
 - text: Specification
 - combobox "Specification":
   - option "--- Select a Specification ---"
@@ -18,22 +19,32 @@
   - option "--- Select A Test Type ----"
   - 'option "OpenID Connect Client: Basic Certification" [selected]'
 - heading "Configure Test" [level=3]
-- tablist:
+- tablist "Configure test input mode":
   - tab "Form" [selected]
   - tab "JSON"
 - tabpanel "Form":
-  - heading "Test Information" [level=3]
-  - text: alias
-  - textbox
-  - text: description
-  - textbox
-  - text: publish
-  - combobox:
-    - option "No" [selected]
-    - option "Summary"
-    - option "Everything"
-  - heading "Server" [level=3]
-  - text: issuer
-  - textbox
+  - group "Test Information":
+    - text: Test Information alias
+    - textbox "alias":
+      - /placeholder: Used to make any URLs used in the test unique to the user (for example, it affects the redirect url), set to something unique to avoid clashes with other testers, e.g. set to your company name. Do not include any spaces or non-URL safe characters. If using dynamic client registration, this can be left blank and a random one will be generated. For some ecosystems (e.g. KSA) regulated entities should use the alias value assigned to them.
+      - text: baseline-state-c
+    - text: Used to make any URLs used in the test unique to the user (for example, it affects the redirect url), set to something unique to avoid clashes with other testers, e.g. set to your company name. Do not include any spaces or non-URL safe characters. If using dynamic client registration, this can be left blank and a random one will be generated. For some ecosystems (e.g. KSA) regulated entities should use the alias value assigned to them. description
+    - textbox "description":
+      - /placeholder: Freeform text to help you identify this test run (optional). This will be publicly visible when your certification is published.
+      - text: Snapshot baseline — plan with config loaded
+    - text: Freeform text to help you identify this test run (optional). This will be publicly visible when your certification is published. publish
+    - combobox "publish":
+      - option "Select..."
+      - option [selected]
+      - option "summary"
+      - option "everything"
+    - text: Whether test results should be made visible to other users. &quot;Everything&quot; will reveal configuration information, including secret keys. Use &quot;summary&quot; if these details should remain private while the overall results are public. If in doubt choose &quot;No&quot; - test results can be made public later.
+  - group "Server":
+    - text: Server issuer
+    - textbox "issuer":
+      - /placeholder: Full URL that server will use as the 'iss' value in id_token.
+      - text: https://baseline.example.com
+    - text: Full URL that server will use as the 'iss' value in id_token.
+  - button "Validate Configuration"
 - button "Create Test Plan"
 - button "Share Test Plan Configuration"

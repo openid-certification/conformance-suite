@@ -170,6 +170,13 @@ test.describe("schedule-test.html — Test Plan Scheduling", () => {
     const createBtn = page.locator("#createPlanBtn button");
     await expect(createBtn).toBeDisabled();
 
+    // Wait until the inline init chain has installed createPlanBtn.onclick.
+    // Post-Phase-2 the chain awaits a config-field-catalog fetch before
+    // loadScheduleTestPage() runs, so the assertion above (which only
+    // checks the cts-button render output) can resolve before the click
+    // handler is wired. Same pattern as schedule-test-baselines.spec.js.
+    await page.waitForFunction(() => document.getElementById("createPlanBtn")?.onclick !== null);
+
     // The button is hidden (display:none on parent) when no plan is selected.
     // Use evaluate to invoke the onclick handler directly — it checks
     // planSelect.value and shows an error modal.
@@ -410,30 +417,33 @@ test.describe("schedule-test.html — Test Plan Scheduling", () => {
 
   // --- R13: opt-in load-last-config (the page no longer auto-prefills) ---
   //
-  // #config is a cts-json-editor custom element, so Playwright's
-  // toHaveValue() (input/textarea/select-only) does not apply — read
-  // the host's .value property via page.evaluate() instead. Same for
-  // setting test config: assign to host.value rather than locator.fill().
+  // Phase 2 swapped <cts-json-editor id="config"> for <cts-config-form
+  // id="ctsConfigForm">. The component owns its own JSON tab and exposes
+  // the working config object via the `.config` property. These helpers
+  // read/write the underlying config object directly so the assertions
+  // stay independent of which tab is currently active.
 
   /**
    * @param {import('@playwright/test').Page} page
+   * @returns {Promise<string>} JSON.stringify of the current config object.
    */
   async function readConfigValue(page) {
     return page.evaluate(() => {
-      const host = /** @type {any} */ (document.getElementById("config"));
-      return host ? host.value : null;
+      const host = /** @type {any} */ (document.getElementById("ctsConfigForm"));
+      if (!host) return "";
+      return JSON.stringify(host.config || {});
     });
   }
 
   /**
    * @param {import('@playwright/test').Page} page
-   * @param {string} value
+   * @param {string} value JSON string parsed and assigned to .config.
    */
   async function setConfigValue(page, value) {
     await page.evaluate((next) => {
-      const host = /** @type {any} */ (document.getElementById("config"));
-      if (!host) throw new Error("cts-json-editor#config not found");
-      host.value = next;
+      const host = /** @type {any} */ (document.getElementById("ctsConfigForm"));
+      if (!host) throw new Error("cts-config-form#ctsConfigForm not found");
+      host.config = JSON.parse(next);
     }, value);
   }
 
@@ -469,7 +479,8 @@ test.describe("schedule-test.html — Test Plan Scheduling", () => {
 
     await page.locator("#specFamilySelect").selectOption("FAPI");
 
-    expect(await readConfigValue(page)).toBe("");
+    // After clear, currentConfig is an empty object — stringified shape is "{}".
+    expect(await readConfigValue(page)).toBe("{}");
   });
 
   test("R13: clicking 'Load last configuration' restores the previous config", async ({ page }) => {
@@ -507,7 +518,8 @@ test.describe("schedule-test.html — Test Plan Scheduling", () => {
     // (per R13's new behavior — no auto-load on init).
     await page.locator("#specFamilySelect").selectOption("OIDCC");
     await page.locator("#entitySelect").selectOption("basic");
-    expect(await readConfigValue(page)).toBe("");
+    // After clear, currentConfig is an empty object — stringified shape is "{}".
+    expect(await readConfigValue(page)).toBe("{}");
 
     await page.getByTestId("load-last-config").click();
 
@@ -548,20 +560,20 @@ test.describe("schedule-test.html — Test Plan Scheduling", () => {
     // assertions on this page wait for.
     await page.locator("#specFamilySelect").selectOption("OIDCC");
     await page.locator("#entitySelect").selectOption("basic");
-    expect(await readConfigValue(page)).toBe("");
+    // After clear, currentConfig is an empty object — stringified shape is "{}".
+    expect(await readConfigValue(page)).toBe("{}");
 
     expect(lastconfigCalled).toBe(false);
   });
 
-  test("R42: static config-form fields are programmatically labelled", async ({ page }) => {
-    // wireConfigFormLabels() runs on DOMContentLoaded and replaces every
-    // .config-form-element-container's <div class="key"> with a <label
-    // class="key" for="…">, plus an `id` on the matching control. Without
-    // this, screen readers announce nothing on focus and an agent walking
-    // the DOM cannot map a field's text to its input. The form host stays
-    // `display: none` until a plan is selected, so we verify the wiring on
-    // DOM state directly instead of relying on Playwright's visibility
-    // heuristics.
+  test("R42: cts-form-field renders a label[for] / id pair for every visible field", async ({
+    page,
+  }) => {
+    // After Phase 2, every rendered field is a <cts-form-field>, which owns
+    // its own <label for="cts-ff-N"> + matching id on the inner control. The
+    // legacy wireConfigFormLabels DOM-walk is gone. This test guards that
+    // contract end-to-end on the live page (cts-form-field's own Storybook
+    // play tests cover it at the unit level).
     await setupFailFast(page);
 
     await page.route("**/api/plan/available", (route) =>
@@ -583,60 +595,47 @@ test.describe("schedule-test.html — Test Plan Scheduling", () => {
     await setupCommonRoutes(page);
     await page.goto("/schedule-test.html");
 
-    // Wait until DOMContentLoaded ran wireConfigFormLabels — the alias
-    // input always exists in the static markup, and after wiring it carries
-    // a non-empty `id`. Polling on the id lets us proceed without coupling
-    // to plan-selection state.
-    await expect
-      .poll(async () =>
-        page.evaluate(() => document.querySelector('input[data-json-target="alias"]')?.id || ""),
-      )
-      .not.toBe("");
+    // cts-form-field elements only render after the cascade reaches a plan
+    // AND every variant is selected (updateConfigFieldVisibility gates the
+    // schema bind on allVariantsSelected). Pick the no-variants OIDCC plan
+    // so the form renders immediately after the cascade resolves.
+    await page.locator("#specFamilySelect").selectOption("OIDCC");
+    await page.locator("#entitySelect").selectOption("client-basic");
+    await expect(page.locator('cts-form-field[name="alias"]').first()).toBeAttached({
+      timeout: 5000,
+    });
 
-    // Sample three always-shown fields and one nested-section field.
-    // Pair-wise verification ensures the id-to-label mapping survives
-    // duplicate data-json-target values across spec-family sections.
+    // For every rendered field, the inner control must have an id AND a
+    // matching label[for=…]. cts-form-field renders the label inside its
+    // light DOM with the same uid that's pinned on the control.
     const samples = await page.evaluate(() => {
-      const targets = ["alias", "description", "publish", "ssf.transmitter.issuer"];
-      return targets.map((target) => {
-        const control = document.querySelector(`[data-json-target="${target}"]`);
-        if (!control) return { target, found: false };
-        const id = control.id;
-        const label = id ? document.querySelector(`label[for="${id}"]`) : null;
+      const fields = Array.from(document.querySelectorAll("cts-form-field"));
+      return fields.map((field) => {
+        const control = field.querySelector("input, select, textarea");
+        const id = control?.id || "";
+        const labelEl = id ? field.querySelector(`label[for="${id}"]`) : null;
         return {
-          target,
-          found: true,
+          name: field.getAttribute("name"),
           id,
-          labelTag: label?.tagName || null,
-          labelText: label?.textContent?.trim() || null,
+          labelText: labelEl?.textContent?.trim() || "",
         };
       });
     });
+    expect(samples.length).toBeGreaterThan(0);
     for (const s of samples) {
-      expect(s.found, `expected control for data-json-target=${s.target}`).toBe(true);
-      expect(s.id, `expected id on data-json-target=${s.target}`).toBeTruthy();
-      expect(s.labelTag, `expected matching label[for] for ${s.target}`).toBe("LABEL");
+      expect(s.id, `expected id on cts-form-field[name=${s.name}]`).toBeTruthy();
     }
-    // The first three labels match the visible field name verbatim. The
-    // SSF field has multi-word copy ("Transmitter Issuer"), so a substring
-    // check is safer than verbatim equality.
-    expect(samples[0].labelText).toBe("alias");
-    expect(samples[1].labelText).toBe("description");
-    expect(samples[2].labelText).toBe("publish");
-    expect(samples[3].labelText).toContain("Transmitter Issuer");
-
-    // Ids are unique. The full-page DOM has ~137 .config-form-element-container
-    // wrappers; each control id must appear exactly once even when the same
-    // data-json-target repeats across spec-family sections.
-    const ids = await page.evaluate(() =>
-      Array.from(
-        document.querySelectorAll(
-          ".config-form-element-container input[id], .config-form-element-container select[id], .config-form-element-container textarea[id]",
-        ),
-      ).map((el) => /** @type {HTMLElement} */ (el).id),
-    );
-    expect(ids.length).toBeGreaterThan(100);
+    // boolean fields render the description as the inline checkbox label
+    // instead of a header label, so an empty labelText is permissible on
+    // boolean controls but not on string/select/textarea ones. Sanity-check
+    // that the schedule-test catalog (no boolean fields today) lands every
+    // sample with non-empty label text.
+    const blankLabels = samples.filter((s) => !s.labelText).map((s) => s.name);
+    expect(blankLabels, `expected non-empty labels for ${blankLabels.join(", ")}`).toEqual([]);
+    // Ids are unique even when the same dotted-path appears in multiple
+    // sections (cts-form-field's uidCounter pins a monotonic counter).
+    const ids = samples.map((s) => s.id).filter(Boolean);
     const dupes = ids.filter((id, i) => ids.indexOf(id) !== i);
-    expect(dupes, "expected every wired control id to be unique").toEqual([]);
+    expect(dupes, "expected every cts-form-field control id to be unique").toEqual([]);
   });
 });

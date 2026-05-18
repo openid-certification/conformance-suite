@@ -5,21 +5,19 @@ import { MOCK_PLANS, MOCK_PLAN_NO_VARIANTS } from "./fixtures/mock-plans.js";
 /**
  * R12 — Monaco JSON editor on the schedule-test.html JSON tab.
  *
- * The cts-json-editor primitive is a drop-in replacement for the legacy
- * <textarea id="config">. These tests cover both the happy path (Monaco
- * mounts inside the JSON tab) and the explicit fallback path the wrapper
- * is designed to handle (loader.js blocked => textarea renders, .value
- * still round-trips).
+ * After Phase 2 the JSON editor is owned by <cts-config-form>: the page
+ * mounts <cts-config-form id="ctsConfigForm"> which renders Form/JSON tabs
+ * internally, with a <cts-json-editor> living inside the JSON tab. There is
+ * no longer a top-level `#config` element. These tests cover both the happy
+ * path (Monaco mounts inside the component's JSON tab) and the explicit
+ * fallback path (Monaco loader blocked → textarea renders, .value still
+ * round-trips).
  */
 
 const ALL_PLANS = [...MOCK_PLANS, MOCK_PLAN_NO_VARIANTS];
 
 /**
- * Wire up the routes every schedule-test.html page needs to render
- * without unhandled fetches. Mirror of the boilerplate in
- * frontend/e2e/schedule-test.spec.js — kept local so this spec stays
- * self-contained and the existing schedule-test specs are not coupled
- * to a Monaco-specific helper.
+ * @param {import('@playwright/test').Page} page
  */
 async function setupSchedulePageRoutes(page) {
   await setupFailFast(page);
@@ -40,31 +38,46 @@ async function setupSchedulePageRoutes(page) {
   await setupCommonRoutes(page);
 }
 
-test.describe("schedule-test.html — R12 Monaco JSON editor", () => {
+/**
+ * cts-config-form lazy-mounts its inner <cts-json-editor> only after the
+ * JSON tab is activated at least once. The cascade also needs to reach a
+ * plan + all variants so updateConfigFieldVisibility binds the schema and
+ * shows the form. Use the no-variants plan so the form renders immediately
+ * after the cascade resolves, then click the JSON tab to trigger the mount.
+ *
+ * @param {import('@playwright/test').Page} page
+ */
+async function showJsonTab(page) {
+  await page.locator("#specFamilySelect").selectOption("OIDCC");
+  await page.locator("#entitySelect").selectOption("client-basic");
+  // Wait for cts-config-form to actually render fields (schema bound).
+  await expect(page.locator('cts-form-field[name="alias"]').first()).toBeAttached({
+    timeout: 5000,
+  });
+  // Click the JSON tab inside the host (it's an oidf-tab in cts-tabs light DOM).
+  await page.getByRole("tab", { name: "JSON" }).click();
+}
+
+test.describe("schedule-test.html — R12 Monaco JSON editor inside <cts-config-form>", () => {
   test.afterEach(async ({ page }) => {
     expectNoUnmockedCalls(page);
   });
 
-  test("cts-json-editor mounts on the JSON tab and exposes .value as a string", async ({
+  test("cts-json-editor mounts inside the JSON tab and exposes .value as a string", async ({
     page,
   }) => {
     await setupSchedulePageRoutes(page);
     await page.goto("/schedule-test.html");
+    await showJsonTab(page);
 
-    // The JSON tab's editor is now <cts-json-editor id="config">.
-    const editor = page.locator("cts-json-editor#config");
-    await expect(editor).toBeAttached();
-
-    // Switch to the JSON tab so Monaco actually has a visible host to
-    // mount into. Tab switching is exercised by the existing tabs spec;
-    // here we only need the JSONInput panel to be the active one.
-    await page.locator("#JSONInput-tab").click();
+    const editor = page.locator("#ctsConfigForm cts-json-editor");
+    await expect(editor).toBeAttached({ timeout: 10000 });
 
     // Wait until either Monaco's editor chrome appears or the wrapper
     // falls back to a textarea — both are valid mounted states.
     await page.waitForFunction(
       () => {
-        const host = document.getElementById("config");
+        const host = document.querySelector("#ctsConfigForm cts-json-editor");
         if (!host) return false;
         return Boolean(
           host.querySelector(".monaco-editor") || host.querySelector(".oidf-json-editor-fallback"),
@@ -74,28 +87,25 @@ test.describe("schedule-test.html — R12 Monaco JSON editor", () => {
       { timeout: 10000 },
     );
 
-    // The legacy contract: document.getElementById('config').value is a
-    // string getter/setter. The whole inline JS in schedule-test.html
-    // depends on this — round-trip a small JSON value through it.
+    // cts-json-editor's .value getter/setter is the contract the host page
+    // (and the surrounding cts-config-form merge logic) depends on.
     const echoedValue = await page.evaluate(() => {
-      const host = /** @type {any} */ (document.getElementById("config"));
-      if (!host) throw new Error("cts-json-editor#config not found");
+      const host = /** @type {any} */ (document.querySelector("#ctsConfigForm cts-json-editor"));
+      if (!host) throw new Error("cts-json-editor inside #ctsConfigForm not found");
       host.value = '{"alias":"e2e-mounted"}';
       return host.value;
     });
     expect(echoedValue).toBe('{"alias":"e2e-mounted"}');
   });
 
-  test("typing into the editor updates id='config'.value (round-trip via input event)", async ({
-    page,
-  }) => {
+  test("input event on the editor updates cts-config-form's .config", async ({ page }) => {
     await setupSchedulePageRoutes(page);
     await page.goto("/schedule-test.html");
-    await page.locator("#JSONInput-tab").click();
+    await showJsonTab(page);
 
     await page.waitForFunction(
       () => {
-        const host = document.getElementById("config");
+        const host = document.querySelector("#ctsConfigForm cts-json-editor");
         return (
           host?.querySelector(".monaco-editor") || host?.querySelector(".oidf-json-editor-fallback")
         );
@@ -104,48 +114,28 @@ test.describe("schedule-test.html — R12 Monaco JSON editor", () => {
       { timeout: 10000 },
     );
 
-    // Synthesize an edit by writing the value through the wrapper's
-    // public setter — equivalent to what the legacy inline script does
-    // on tab switch — and verify the public events fire so any listener
-    // bound on the editor host (e.g. blur-validation in the future) can
-    // hook into them. This avoids depending on Monaco's internal
-    // keyboard input plumbing, which is its own moving target.
     const result = await page.evaluate(() => {
-      const host = /** @type {any} */ (document.getElementById("config"));
-      if (!host) throw new Error("cts-json-editor#config not found");
-      let inputs = 0;
-      let changes = 0;
-      host.addEventListener("input", () => {
-        inputs += 1;
-      });
-      host.addEventListener("change", () => {
-        changes += 1;
-      });
-      // Drive a synthetic edit by mutating the underlying surface so the
-      // wrapper's onDidChangeModelContent path (Monaco) or the textarea
-      // input event path (fallback) both end up dispatching.
+      const editor = /** @type {any} */ (document.querySelector("#ctsConfigForm cts-json-editor"));
+      if (!editor) throw new Error("cts-json-editor not found");
+      const form = /** @type {any} */ (document.getElementById("ctsConfigForm"));
+      // Drive a synthetic edit through the fallback when present, otherwise
+      // through the editor's public .value setter — the host then dispatches
+      // input which cts-config-form's _handleJsonInput catches and merges.
       const fallback = /** @type {HTMLTextAreaElement | null} */ (
-        host.querySelector(".oidf-json-editor-fallback")
+        editor.querySelector(".oidf-json-editor-fallback")
       );
       if (fallback) {
-        fallback.value = '{"edited":"typed"}';
+        fallback.value = '{"alias":"edited"}';
         fallback.dispatchEvent(new Event("input", { bubbles: true }));
       } else {
-        // Monaco branch — flip the value via the public setter, which
-        // also triggers a re-render. Then directly fire a synthetic
-        // input event to mirror what the user-typing path produces.
-        host.value = '{"edited":"typed"}';
-        host.dispatchEvent(new Event("input", { bubbles: true }));
+        editor.value = '{"alias":"edited"}';
+        editor.dispatchEvent(new Event("input", { bubbles: true }));
       }
-      return { inputs, changes, value: host.value };
+      return { editorValue: editor.value, formConfig: form.config };
     });
 
-    expect(result.value).toBe('{"edited":"typed"}');
-    expect(result.inputs).toBeGreaterThanOrEqual(1);
-    // Fallback path emits both events together; Monaco path only emits
-    // `input` from this synthetic dispatch. Tolerate either by asserting
-    // at least one of them landed.
-    expect(result.inputs + result.changes).toBeGreaterThanOrEqual(1);
+    expect(result.editorValue).toBe('{"alias":"edited"}');
+    expect(result.formConfig).toEqual({ alias: "edited" });
   });
 
   test("fallback path: loader.js blocked → textarea renders and .value round-trips", async ({
@@ -162,19 +152,15 @@ test.describe("schedule-test.html — R12 Monaco JSON editor", () => {
     );
 
     await page.goto("/schedule-test.html");
-    await page.locator("#JSONInput-tab").click();
+    await showJsonTab(page);
 
-    // Wait for the fallback textarea specifically — Monaco MUST NOT
-    // mount under this test.
-    const fallback = page.locator("cts-json-editor#config .oidf-json-editor-fallback");
+    const fallback = page.locator("#ctsConfigForm cts-json-editor .oidf-json-editor-fallback");
     await expect(fallback).toBeVisible({ timeout: 10000 });
-    await expect(page.locator("cts-json-editor#config .monaco-editor")).toHaveCount(0);
+    await expect(page.locator("#ctsConfigForm cts-json-editor .monaco-editor")).toHaveCount(0);
 
-    // Round-trip a value through the textarea and confirm the host
-    // reflects it on the public .value getter.
     const result = await page.evaluate(() => {
-      const host = /** @type {any} */ (document.getElementById("config"));
-      if (!host) throw new Error("cts-json-editor#config not found");
+      const host = /** @type {any} */ (document.querySelector("#ctsConfigForm cts-json-editor"));
+      if (!host) throw new Error("cts-json-editor not found");
       const ta = /** @type {HTMLTextAreaElement | null} */ (
         host.querySelector(".oidf-json-editor-fallback")
       );
