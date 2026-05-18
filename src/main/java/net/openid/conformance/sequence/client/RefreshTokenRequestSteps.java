@@ -4,8 +4,10 @@ import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.condition.client.AddScopeToTokenEndpointRequest;
 import net.openid.conformance.condition.client.CallTokenEndpointAllowingDpopNonceErrorAndReturnFullResponse;
-import net.openid.conformance.condition.client.CallTokenEndpointAndReturnFullResponse;
+import net.openid.conformance.condition.client.CallTokenEndpointAllowingUseAttestationChallengeErrorAndReturnFullResponse;
 import net.openid.conformance.condition.client.CheckIfTokenEndpointResponseError;
+import net.openid.conformance.condition.client.ExtractClientAttestationChallengeFromResponseHeader;
+import net.openid.conformance.condition.client.ValidateClientAttestationChallengeResponseHeader;
 import net.openid.conformance.condition.client.CheckTokenEndpointCacheHeaders;
 import net.openid.conformance.condition.client.CheckTokenEndpointHttpStatus200;
 import net.openid.conformance.condition.client.CheckTokenEndpointReturnedJsonContentType;
@@ -91,6 +93,7 @@ public class RefreshTokenRequestSteps extends AbstractConditionSequence {
 			callAndStopOnFailure(GenerateDpopKey.class);
 			call(CreateDpopProofSteps.createTokenEndpointDpopSteps());
 			callAndStopOnFailure(CallTokenEndpointAllowingDpopNonceErrorAndReturnFullResponse.class);
+			harvestClientAttestationChallengeResponseHeader();
 
 			// retry request if token_endpoint_dpop_nonce_error is found
 			call(exec().startBlock("Token endpoint DPoP nonce retry"));
@@ -110,8 +113,15 @@ public class RefreshTokenRequestSteps extends AbstractConditionSequence {
 				.onSkip(ConditionResult.INFO));
 			call(exec().endBlock());
 
+			// retry request if token_endpoint_use_attestation_challenge_error is found
+			// (draft-ietf-oauth-attestation-based-client-auth-07 §6.2). Re-running the auth sequence
+			// regenerates the client_attestation PoP using the just-harvested OAuth-Client-Attestation-Challenge.
+			retryOnUseAttestationChallengeError(CallTokenEndpointAllowingDpopNonceErrorAndReturnFullResponse.class);
+
 		} else {
-			callAndStopOnFailure(CallTokenEndpointAndReturnFullResponse.class);
+			callAndStopOnFailure(CallTokenEndpointAllowingUseAttestationChallengeErrorAndReturnFullResponse.class);
+			harvestClientAttestationChallengeResponseHeader();
+			retryOnUseAttestationChallengeError(CallTokenEndpointAllowingUseAttestationChallengeErrorAndReturnFullResponse.class);
 		}
 
 		callAndContinueOnFailure(CheckTokenEndpointHttpStatus200.class, ConditionResult.FAILURE, "RFC6749-5.1");
@@ -166,5 +176,68 @@ public class RefreshTokenRequestSteps extends AbstractConditionSequence {
 				.dontStopOnFailure());
 
 		call(exec().endBlock());
+	}
+
+	/**
+	 * Harvest the {@code OAuth-Client-Attestation-Challenge} response header (if any) from the most recent
+	 * token endpoint response into {@code vci.attestation_challenge} so the next client-attestation PoP
+	 * uses the freshest server-supplied challenge (draft-ietf-oauth-attestation-based-client-auth-07 §8.1).
+	 * Safe no-op when the header is absent or another client auth type is in use.
+	 */
+	private void harvestClientAttestationChallengeResponseHeader() {
+		call(exec().mapKey("endpoint_response", "token_endpoint_response_full"));
+		callAndContinueOnFailure(ExtractClientAttestationChallengeFromResponseHeader.class, ConditionResult.FAILURE, "OAuth2-ATCA07-8.1");
+		callAndContinueOnFailure(ValidateClientAttestationChallengeResponseHeader.class, ConditionResult.WARNING, "OAuth2-ATCA07-8.1");
+		call(exec().unmapKey("endpoint_response"));
+	}
+
+	/**
+	 * Retry the token endpoint request if the AS returned 400 {@code use_attestation_challenge}
+	 * (draft-ietf-oauth-attestation-based-client-auth-07 §6.2). All steps are gated on
+	 * {@code token_endpoint_use_attestation_challenge_error} being set, so this is a no-op when the
+	 * previous response didn't ask for a retry.
+	 *
+	 * <p>The auth sequence is re-run inside the block so {@link
+	 * net.openid.conformance.condition.client.CreateClientAttestationProofJwt} regenerates the PoP
+	 * with the just-harvested challenge.
+	 */
+	private void retryOnUseAttestationChallengeError(Class<? extends Condition> callTokenEndpointClass) {
+		call(exec().startBlock("Token endpoint use_attestation_challenge retry"));
+
+		if (addClientAuthenticationToTokenEndpointRequest != null) {
+			ConditionSequence authSeq;
+			try {
+				authSeq = addClientAuthenticationToTokenEndpointRequest.getDeclaredConstructor().newInstance();
+			} catch (ReflectiveOperationException e) {
+				throw new RuntimeException("Couldn't instantiate client authentication sequence "
+					+ addClientAuthenticationToTokenEndpointRequest.getSimpleName(), e);
+			}
+			authSeq.evaluate();
+			List<Class<? extends Condition>> authConds = authSeq.getTestExecutionUnits().stream()
+				.map(actionToConditionClass)
+				.filter(java.util.Objects::nonNull)
+				.collect(Collectors.toList());
+
+			call(exec().mapKey("request_form_parameters", "token_endpoint_request_form_parameters")
+				.mapKey("request_headers", "token_endpoint_request_headers"));
+			authConds.forEach(cond -> call(condition(cond)
+				.skipIfStringsMissing("token_endpoint_use_attestation_challenge_error")
+				.onSkip(ConditionResult.INFO)));
+			call(exec().unmapKey("request_form_parameters").unmapKey("request_headers"));
+		}
+
+		call(condition(callTokenEndpointClass)
+			.skipIfStringsMissing("token_endpoint_use_attestation_challenge_error")
+			.onSkip(ConditionResult.INFO));
+
+		call(exec().endBlock());
+
+		// Harvest the latest response's OAuth-Client-Attestation-Challenge header. Run
+		// unconditionally because the retry call clears
+		// token_endpoint_use_attestation_challenge_error at the start of its evaluate(),
+		// so a gated harvest would miss a fresh challenge returned in a successful retry
+		// response. If the retry block didn't run, this is an idempotent re-harvest of
+		// the original response.
+		harvestClientAttestationChallengeResponseHeader();
 	}
 }
