@@ -1,5 +1,6 @@
 package net.openid.conformance.condition.client;
 
+import com.google.common.base.Strings;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.openid.conformance.testmodule.Environment;
@@ -7,9 +8,12 @@ import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.util.http.DpopNonceResponseHeader;
 import org.springframework.http.ResponseEntity;
 
+import java.util.List;
+
 /**
- * This class makes a http post to PAR endpoint and examines the response for DPoP nonce errors and stores the
- * required nonce for retry.
+ * This class makes a http post to PAR endpoint and examines the response for DPoP nonce errors and
+ * {@code use_attestation_challenge} errors
+ * (draft-ietf-oauth-attestation-based-client-auth-07 §6.2), exposing flags so the caller can retry.
  */
 public class CallPAREndpointAllowingDpopNonceError extends CallPAREndpoint {
 
@@ -19,6 +23,7 @@ public class CallPAREndpointAllowingDpopNonceError extends CallPAREndpoint {
 	@Override
 	public Environment evaluate(Environment env) {
 		env.removeNativeValue("par_endpoint_dpop_nonce_error");
+		env.removeNativeValue("par_endpoint_use_attestation_challenge_error");
 		return super.evaluate(env);
 	}
 
@@ -37,7 +42,9 @@ public class CallPAREndpointAllowingDpopNonceError extends CallPAREndpoint {
 		String dpopNonce = nonceHeader.nonce();
 		suppliedDpopNonce = dpopNonce;
 
-		if((status == 400) && (null != jsonError) && OIDFJSON.getString(jsonError).equals("use_dpop_nonce")) {
+		String errorCode = (status == 400 && jsonError != null) ? OIDFJSON.getString(jsonError) : null;
+
+		if ("use_dpop_nonce".equals(errorCode)) {
 			if (dpopNonce == null) {
 				throw error("The PAR endpoint returned a 'use_dpop_nonce' error but supplied no DPoP-Nonce"
 					+ " header, leaving no nonce to retry the request with.",
@@ -46,6 +53,19 @@ public class CallPAREndpointAllowingDpopNonceError extends CallPAREndpoint {
 			env.putString("authorization_server_dpop_nonce", dpopNonce);
 			env.putString("par_endpoint_dpop_nonce_error", dpopNonce);
 			env.putObject("par_endpoint_response", env.getElementFromObject(RESPONSE_KEY, "body_json").getAsJsonObject());
+		} else if ("use_attestation_challenge".equals(errorCode)) {
+			// Per draft-ietf-oauth-attestation-based-client-auth-07 §6.2, the use_attestation_challenge
+			// error MUST be accompanied by exactly one non-empty OAuth-Client-Attestation-Challenge
+			// response header.
+			List<String> challengeList = response.getHeaders().get("OAuth-Client-Attestation-Challenge");
+			if (challengeList == null || challengeList.size() != 1 || Strings.isNullOrEmpty(challengeList.get(0))) {
+				throw error("use_attestation_challenge error response did not include exactly one non-empty OAuth-Client-Attestation-Challenge header",
+					args("headers", jsonResponseHeaders));
+			}
+			env.putString("par_endpoint_use_attestation_challenge_error", errorCode);
+			env.putObject("par_endpoint_response", env.getElementFromObject(RESPONSE_KEY, "body_json").getAsJsonObject());
+			log("Got use_attestation_challenge error response — caller may retry with the freshly returned challenge",
+				args("error", errorCode));
 		} else if (status >= 200 && status < 300 && dpopNonce != null) {
 			// RFC 9449 §8.2: the server may rotate the DPoP nonce on every response and the
 			// client MUST use the newly supplied value on subsequent requests. Some ASes treat
