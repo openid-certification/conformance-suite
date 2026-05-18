@@ -27,21 +27,60 @@ import "./cts-tabs.js";
  * duplicating CSS. This container only owns the section fieldsets, divider
  * lines, and the JSON editor host.
  *
- * NOTE: The legacy `schedule-test.html` page renders its own static HTML
- * form using `.config-form-element*` / `[data-json-target]` / `[data-json-type]`
- * selectors that an inline jQuery script scrapes. That page does NOT use
- * `cts-config-form`, so this component intentionally does not emit those
- * class names — keeping them would imply a contract that does not exist.
+ * ## Two schema-shape modes
  *
- * @property {object} schema - JSON schema for the config; `properties` is
- *   iterated to build fields.
+ * The render path supports two `uiSchema.sections[*]` conventions:
+ *
+ * - **Nested mode** (legacy): `uiSchema.sections[*]` has `{ key, title }`.
+ *   For each section, `schema.properties[section.key].properties` lists the
+ *   fields, and field paths compose as `${section.key}.${fieldKey}`. Used by
+ *   the original Storybook stories and the mock-schema fixture.
+ *
+ * - **Explicit-fields mode** (Phase 2): `uiSchema.sections[*]` has
+ *   `{ key, title, fields: ["full.dotted.path", ...] }`. `schema.properties`
+ *   is flat-keyed by full path, and each `fields[]` entry names which paths
+ *   render under that section. Required because `schedule-test.html`'s real
+ *   field catalog has UI sections that mix data prefixes (e.g. the
+ *   "Credential Issuer" UI section contains both `vci.*` and `credential.*`
+ *   data paths) and sections that share a data prefix (the four federation
+ *   sections all use `federation.*`). The explicit list disambiguates.
+ *
+ * The two modes coexist: a `section` with `fields` triggers explicit mode,
+ * without it falls back to nested mode. Adopters do not need to migrate.
+ *
+ * ## hiddenFields
+ *
+ * When `hiddenFields` is a non-empty Set, the listed full-path keys are
+ * filtered out of both tabs:
+ * - Form tab: matching `cts-form-field` elements are not rendered.
+ *   Sections that become entirely empty disappear from the layout.
+ * - JSON tab: the pretty-printed text omits the hidden keys. When the user
+ *   edits the JSON tab, the resulting `this.config` is the parsed-visible
+ *   shape MERGED with the current hidden values, so the hidden portion
+ *   round-trips losslessly even though the user can't see it.
+ *
+ * The component never mutates `this.config` based on `hiddenFields` —
+ * toggling visibility is a render concern, not a data one. `cts-config-change`
+ * always emits the full config (visible + hidden), so consumers POST the
+ * full object regardless of which fields are currently shown.
+ *
+ * @property {object} schema - JSON schema for the config. In nested mode,
+ *   `properties` is nested by section key. In explicit-fields mode, `properties`
+ *   is flat-keyed by full dotted path.
  * @property {object} uiSchema - UI hints; `sections[]` groups properties into
- *   fieldsets. Reflects the `ui-schema` attribute.
+ *   fieldsets. Each section is `{ key, title, fields? }` — when `fields` is
+ *   provided (Array of full-path strings), explicit-fields mode is used.
+ *   Reflects the `ui-schema` attribute.
  * @property {object} config - Current configuration object.
  * @property {object} errors - Map of dotted-path field name to error message
  *   string.
+ * @property {Set<string>} hiddenFields - Set of full-path keys to filter out
+ *   of both Form and JSON tabs. Hidden values stay in `this.config` and are
+ *   included in `cts-config-change` emissions. Default: empty Set.
  * @fires cts-config-change - On every field edit or valid JSON edit, with
- *   `{ detail: { config } }`; bubbles.
+ *   `{ detail: { config } }`; bubbles. `config` is always the full object,
+ *   including any hidden-field values that were preserved through the
+ *   JSON-tab merge.
  * @fires cts-validate - When the Validate Configuration button is clicked;
  *   bubbles.
  */
@@ -115,6 +154,7 @@ class CtsConfigForm extends LitElement {
     uiSchema: { type: Object, attribute: "ui-schema" },
     config: { type: Object },
     errors: { type: Object },
+    hiddenFields: { attribute: false },
     _jsonText: { state: true },
     _jsonError: { state: true },
     _jsonTabActivated: { state: true },
@@ -130,6 +170,7 @@ class CtsConfigForm extends LitElement {
     this.uiSchema = {};
     this.config = {};
     this.errors = {};
+    this.hiddenFields = new Set();
     this._jsonText = "";
     this._jsonError = "";
     // Lazy-mount guard for `<cts-json-editor>`. Monaco's `editor.create()`
@@ -158,18 +199,72 @@ class CtsConfigForm extends LitElement {
     return obj != null ? String(obj) : "";
   }
 
+  _setAtPath(obj, fieldPath, value) {
+    const parts = fieldPath.split(".");
+    let cur = obj;
+    for (let i = 0; i < parts.length - 1; i++) {
+      cur[parts[i]] = cur[parts[i]] || {};
+      cur = cur[parts[i]];
+    }
+    cur[parts[parts.length - 1]] = value;
+  }
+
+  _deleteAtPath(obj, fieldPath) {
+    const parts = fieldPath.split(".");
+    let cur = obj;
+    for (let i = 0; i < parts.length - 1; i++) {
+      if (cur == null || typeof cur !== "object") return;
+      cur = cur[parts[i]];
+    }
+    if (cur != null && typeof cur === "object") {
+      delete cur[parts[parts.length - 1]];
+    }
+  }
+
+  _hasHidden() {
+    return this.hiddenFields instanceof Set && this.hiddenFields.size > 0;
+  }
+
+  _filterHidden(obj) {
+    if (!this._hasHidden()) return obj;
+    const out = structuredClone(obj || {});
+    for (const path of this.hiddenFields) this._deleteAtPath(out, path);
+    return out;
+  }
+
+  // Merge an incoming visible-only config with any hidden-field values from
+  // the current `this.config`, so hidden data round-trips losslessly even
+  // when the user edits the (filtered) JSON tab.
+  _mergeHiddenFromCurrent(visible) {
+    if (!this._hasHidden()) return visible;
+    const out = structuredClone(visible || {});
+    for (const path of this.hiddenFields) {
+      const current = this._getValueAtPathRaw(this.config, path);
+      if (current !== undefined) this._setAtPath(out, path, current);
+    }
+    return out;
+  }
+
+  _getValueAtPathRaw(obj, fieldPath) {
+    const parts = fieldPath.split(".");
+    let cur = obj;
+    for (const part of parts) {
+      if (cur == null || typeof cur !== "object") return undefined;
+      cur = cur[part];
+    }
+    return cur;
+  }
+
+  _filteredJsonText() {
+    return JSON.stringify(this._filterHidden(this.config), null, 2);
+  }
+
   _handleFieldChange(e) {
     const { field, value } = e.detail;
     const newConfig = structuredClone(this.config);
-    const parts = field.split(".");
-    let obj = newConfig;
-    for (let i = 0; i < parts.length - 1; i++) {
-      obj[parts[i]] = obj[parts[i]] || {};
-      obj = obj[parts[i]];
-    }
-    obj[parts[parts.length - 1]] = value;
+    this._setAtPath(newConfig, field, value);
     this.config = newConfig;
-    this._jsonText = JSON.stringify(newConfig, null, 2);
+    this._jsonText = JSON.stringify(this._filterHidden(newConfig), null, 2);
     this.dispatchEvent(
       new CustomEvent("cts-config-change", { bubbles: true, detail: { config: newConfig } }),
     );
@@ -178,7 +273,8 @@ class CtsConfigForm extends LitElement {
   _handleJsonInput(e) {
     this._jsonText = e.target.value;
     try {
-      this.config = JSON.parse(this._jsonText);
+      const parsed = JSON.parse(this._jsonText);
+      this.config = this._mergeHiddenFromCurrent(parsed);
       this._jsonError = "";
       this.dispatchEvent(
         new CustomEvent("cts-config-change", { bubbles: true, detail: { config: this.config } }),
@@ -196,7 +292,7 @@ class CtsConfigForm extends LitElement {
     // as both the form→JSON serialization trigger and the lazy-mount cue
     // for the editor (see `_jsonTabActivated` in the constructor).
     if (e.detail?.id === "cts-config-form-json-panel") {
-      this._jsonText = JSON.stringify(this.config, null, 2);
+      this._jsonText = this._filteredJsonText();
       this._jsonError = "";
       this._jsonTabActivated = true;
     }
@@ -212,41 +308,57 @@ class CtsConfigForm extends LitElement {
     const properties = this.schema?.properties || {};
 
     if (sections.length === 0) {
-      return Object.entries(properties).map(
-        ([key, fieldSchema]) => html`
-          <cts-form-field
-            name="${key}"
-            .schema=${fieldSchema}
-            value="${this._getFieldValue(key)}"
-            error="${this.errors?.[key] || ""}"
-          ></cts-form-field>
-        `,
+      return Object.entries(properties).map(([key, fieldSchema]) =>
+        this._renderField(key, fieldSchema),
       );
     }
 
     return sections.map((section) => {
+      if (Array.isArray(section.fields)) {
+        // Explicit-fields mode: section.fields lists full-path keys that
+        // exist directly on the (flat) schema.properties map.
+        const visible = section.fields.filter((path) => !this.hiddenFields?.has(path));
+        if (visible.length === 0) return nothing;
+        return html`
+          <fieldset class="oidf-config-form-section">
+            <legend class="oidf-config-form-section-title">${section.title}</legend>
+            ${visible.map((path) => this._renderField(path, properties[path]))}
+          </fieldset>
+        `;
+      }
+
+      // Nested mode: walk schema.properties[section.key].properties.
       const sectionSchema = properties[section.key];
       if (!sectionSchema?.properties) return nothing;
+      const renderedFields = this._renderSectionFields(section.key, sectionSchema.properties);
+      if (renderedFields.every((f) => f === nothing)) return nothing;
       return html`
         <fieldset class="oidf-config-form-section">
           <legend class="oidf-config-form-section-title">${section.title}</legend>
-          ${this._renderSectionFields(section.key, sectionSchema.properties)}
+          ${renderedFields}
         </fieldset>
       `;
     });
   }
 
   _renderSectionFields(sectionKey, sectionProperties) {
-    return Object.entries(sectionProperties).map(
-      ([key, fieldSchema]) => html`
-        <cts-form-field
-          name="${sectionKey}.${key}"
-          .schema=${fieldSchema}
-          value="${this._getFieldValue(`${sectionKey}.${key}`)}"
-          error="${this.errors?.[`${sectionKey}.${key}`] || ""}"
-        ></cts-form-field>
-      `,
-    );
+    return Object.entries(sectionProperties).map(([key, fieldSchema]) => {
+      const fullPath = `${sectionKey}.${key}`;
+      return this._renderField(fullPath, fieldSchema);
+    });
+  }
+
+  _renderField(fullPath, fieldSchema) {
+    if (!fieldSchema) return nothing;
+    if (this.hiddenFields?.has(fullPath)) return nothing;
+    return html`
+      <cts-form-field
+        name="${fullPath}"
+        .schema=${fieldSchema}
+        value="${this._getFieldValue(fullPath)}"
+        error="${this.errors?.[fullPath] || ""}"
+      ></cts-form-field>
+    `;
   }
 
   render() {

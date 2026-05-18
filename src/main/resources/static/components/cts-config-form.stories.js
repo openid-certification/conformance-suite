@@ -273,3 +273,180 @@ export const ValidateEvent = {
     expect(validateFired).toBe(true);
   },
 };
+
+/**
+ * Validates hiddenFields in nested-schema mode (the legacy mock-schema shape).
+ * Hidden fields disappear from the Form tab, are stripped from the JSON tab's
+ * pretty-print, and round-trip losslessly through a JSON-tab edit because the
+ * component merges hidden values back from the prior config.
+ */
+export const WithHiddenFields = {
+  render: () => html`
+    <cts-config-form
+      .schema=${MOCK_SCHEMA.schema}
+      .uiSchema=${MOCK_SCHEMA.uiSchema}
+      .config=${{
+        server: { issuer: "https://example.com" },
+        client: { client_id: "visible-id", client_secret: "hidden-secret" },
+      }}
+      .errors=${{}}
+      .hiddenFields=${new Set(["client.client_secret"])}
+    ></cts-config-form>
+  `,
+  async play({ canvasElement }) {
+    const canvas = within(canvasElement);
+
+    // Form tab: client_id renders, client_secret does not.
+    const clientIdField = canvasElement.querySelector('cts-form-field[name="client.client_id"]');
+    const clientSecretField = canvasElement.querySelector(
+      'cts-form-field[name="client.client_secret"]',
+    );
+    expect(clientIdField).toBeTruthy();
+    expect(clientSecretField).toBeNull();
+
+    // Sections that still have visible fields render normally.
+    const legends = canvasElement.querySelectorAll("legend.oidf-config-form-section-title");
+    expect(legends.length).toBe(2);
+
+    // Switch to JSON tab; pretty-print omits the hidden key but full submit
+    // shape preserves it via the cts-config-change merge.
+    await userEvent.click(canvas.getByRole("tab", { name: "JSON" }));
+    const editor = await waitForJsonEditor(canvasElement);
+    const json = JSON.parse(/** @type {any} */ (editor).value);
+    expect(json.client.client_id).toBe("visible-id");
+    expect(json.client.client_secret).toBeUndefined();
+
+    // Edit JSON: change visible value. cts-config-change should emit the full
+    // config with the hidden client_secret still present (merged back).
+    /** @type {any} */
+    let receivedConfig = null;
+    canvasElement.addEventListener("cts-config-change", (e) => {
+      receivedConfig = /** @type {CustomEvent} */ (e).detail.config;
+    });
+
+    const editedJson = JSON.stringify(
+      { server: { issuer: "https://example.com" }, client: { client_id: "edited-id" } },
+      null,
+      2,
+    );
+    /** @type {any} */ (editor).value = editedJson;
+    editor.dispatchEvent(new Event("input", { bubbles: true }));
+
+    await waitFor(() => {
+      expect(receivedConfig).not.toBeNull();
+    });
+    expect(receivedConfig.client.client_id).toBe("edited-id");
+    expect(receivedConfig.client.client_secret).toBe("hidden-secret");
+  },
+};
+
+/**
+ * Validates the new explicit-fields uiSchema shape used by the Phase 2
+ * field-catalog adapter: a flat schema.properties keyed by full dotted paths,
+ * with uiSchema.sections[*].fields[] naming which paths render under each
+ * section. The two existing nested-mode stories above remain the contract for
+ * the legacy mock-schema fixture; this story locks in the new contract.
+ */
+export const ExplicitFieldsMode = {
+  render: () => html`
+    <cts-config-form
+      .schema=${{
+        type: "object",
+        properties: {
+          alias: { type: "string", title: "alias" },
+          "client.client_id": { type: "string", title: "client_id" },
+          "client.tls_client_auth_subject_dn": {
+            type: "string",
+            title: "tls_client_auth_subject_dn",
+          },
+          "federation.entity_identifier": {
+            type: "string",
+            title: "entity_identifier",
+          },
+        },
+      }}
+      .uiSchema=${{
+        sections: [
+          { key: "_root", title: "Test Information", fields: ["alias"] },
+          {
+            key: "client",
+            title: "Client",
+            fields: ["client.client_id"],
+          },
+          {
+            key: "client_tls_auth",
+            title: "tls_client_auth configuration",
+            fields: ["client.tls_client_auth_subject_dn"],
+          },
+          {
+            key: "federation_entity",
+            title: "Federation entity",
+            fields: ["federation.entity_identifier"],
+          },
+        ],
+      }}
+      .config=${{}}
+      .errors=${{}}
+    ></cts-config-form>
+  `,
+  async play({ canvasElement }) {
+    // Four sections render, one field each.
+    const legends = canvasElement.querySelectorAll("legend.oidf-config-form-section-title");
+    expect(legends.length).toBe(4);
+    expect(legends[0].textContent).toContain("Test Information");
+    expect(legends[1].textContent).toContain("Client");
+    expect(legends[2].textContent).toContain("tls_client_auth configuration");
+    expect(legends[3].textContent).toContain("Federation entity");
+
+    // The cross-prefix case: a section keyed "client_tls_auth" rendering a
+    // field whose data path lives under client.* — the composed field name
+    // must be the full path, not "client_tls_auth.client.tls_client_auth_…".
+    const tlsField = canvasElement.querySelector(
+      'cts-form-field[name="client.tls_client_auth_subject_dn"]',
+    );
+    expect(tlsField).toBeTruthy();
+    const wrongComposition = canvasElement.querySelector(
+      'cts-form-field[name="client_tls_auth.client.tls_client_auth_subject_dn"]',
+    );
+    expect(wrongComposition).toBeNull();
+  },
+};
+
+/**
+ * In explicit-fields mode, hiding every field in a section makes the section
+ * disappear from the layout entirely (no empty fieldset).
+ */
+export const ExplicitFieldsHiddenSectionDisappears = {
+  render: () => html`
+    <cts-config-form
+      .schema=${{
+        type: "object",
+        properties: {
+          alias: { type: "string", title: "alias" },
+          "client.client_id": { type: "string", title: "client_id" },
+          "client.client_secret": { type: "string", title: "client_secret" },
+        },
+      }}
+      .uiSchema=${{
+        sections: [
+          { key: "_root", title: "Test Information", fields: ["alias"] },
+          {
+            key: "client",
+            title: "Client",
+            fields: ["client.client_id", "client.client_secret"],
+          },
+        ],
+      }}
+      .config=${{}}
+      .errors=${{}}
+      .hiddenFields=${new Set(["client.client_id", "client.client_secret"])}
+    ></cts-config-form>
+  `,
+  async play({ canvasElement }) {
+    // Only the "Test Information" section renders; the Client section is gone
+    // because every field is hidden.
+    const legends = canvasElement.querySelectorAll("legend.oidf-config-form-section-title");
+    expect(legends.length).toBe(1);
+    expect(legends[0].textContent).toContain("Test Information");
+  },
+};
