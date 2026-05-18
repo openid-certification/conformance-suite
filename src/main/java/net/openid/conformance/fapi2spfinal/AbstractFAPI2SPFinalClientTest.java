@@ -157,7 +157,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 import net.openid.conformance.variant.VariantNotApplicableWhen;
 import net.openid.conformance.variant.VariantParameters;
 import net.openid.conformance.variant.VariantSetup;
-import net.openid.conformance.vci10wallet.condition.clientattestation.VCIValidateClientAuthenticationWithClientAttestationJWT;
+import net.openid.conformance.condition.as.clientattestation.ValidateClientAuthenticationWithClientAttestationJWT;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -220,9 +220,9 @@ import java.util.concurrent.atomic.AtomicBoolean;
 	hasValues = {"fapi_client_credentials_grant"}
 )
 @VariantConfigurationFields(parameter = ClientAuthType.class, value = "client_attestation", configurationFields = {
-	"vci.client_attestation_issuer",
-	"vci.client_attestation_trust_anchor",
-	"vci.key_attestation_trust_anchor_pem",
+	"client_attestation.issuer",
+	"client_attestation.trust_anchor",
+	"client_attestation.key_attestation_trust_anchor_pem",
 	"credential.signing_jwk"
 })
 public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule {
@@ -1551,7 +1551,7 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 	@VariantSetup(parameter = ClientAuthType.class, value = "client_attestation")
 	public void setupClientAttestation() {
 		addTokenEndpointAuthMethodSupported = SetTokenEndpointAuthMethodsSupportedToAttestJwtClientAuthOnly.class;
-		validateClientAuthenticationSteps = VCIValidateClientAuthenticationWithClientAttestationJWT.class;
+		validateClientAuthenticationSteps = ValidateClientAuthenticationWithClientAttestationJWT.class;
 	}
 
 	protected void initProfileBehavior(FAPI2ClientProfileBehavior behavior) {

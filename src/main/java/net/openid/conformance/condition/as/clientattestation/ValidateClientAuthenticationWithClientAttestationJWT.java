@@ -1,9 +1,9 @@
-package net.openid.conformance.vci10wallet.condition.clientattestation;
+package net.openid.conformance.condition.as.clientattestation;
 
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.sequence.AbstractConditionSequence;
 
-public class VCIValidateClientAuthenticationWithClientAttestationJWT extends AbstractConditionSequence {
+public class ValidateClientAuthenticationWithClientAttestationJWT extends AbstractConditionSequence {
 	@Override
 	public void evaluate() {
 
