@@ -1,0 +1,1001 @@
+{
+  "sections": [
+    {
+      "key": "_root",
+      "title": "Test Information",
+      "fields": [
+        {
+          "key": "alias",
+          "label": "alias",
+          "type": "string",
+          "tooltip": "Used to make any URLs used in the test unique to the user (for example, it affects the redirect url), set to something unique to avoid clashes with other testers, e.g. set to your company name. Do not include any spaces or non-URL safe characters. If using dynamic client registration, this can be left blank and a random one will be generated. For some ecosystems (e.g. KSA) regulated entities should use the alias value assigned to them."
+        },
+        {
+          "key": "description",
+          "label": "description",
+          "type": "string",
+          "tooltip": "Freeform text to help you identify this test run (optional). This will be publicly visible when your certification is published."
+        },
+        {
+          "key": "publish",
+          "label": "publish",
+          "type": "string",
+          "enum": [
+            "",
+            "summary",
+            "everything"
+          ],
+          "tooltip": "Whether test results should be made visible to other users. &quot;Everything&quot; will reveal configuration information, including secret keys. Use &quot;summary&quot; if these details should remain private while the overall results are public. If in doubt choose &quot;No&quot; - test results can be made public later."
+        }
+      ]
+    },
+    {
+      "key": "ssf",
+      "title": "SSF Transmitter",
+      "fields": [
+        {
+          "key": "ssf.transmitter.issuer",
+          "label": "Transmitter Issuer",
+          "type": "string",
+          "tooltip": "Transmitter's issuer URL."
+        },
+        {
+          "key": "ssf.transmitter.configuration_metadata_endpoint",
+          "label": "Transmitter Configuration URL",
+          "type": "string",
+          "tooltip": "Transmitter's Configuration URL."
+        },
+        {
+          "key": "ssf.transmitter.metadata_suffix",
+          "label": "Transmitter Metadata Suffix",
+          "type": "string",
+          "tooltip": "Suffix to append to the ssf-configuration URL."
+        },
+        {
+          "key": "ssf.transmitter.access_token",
+          "label": "Transmitter access_token",
+          "type": "string",
+          "tooltip": "Access token to use in SSF request. This may be left empty, in which case the request will not contain an access token."
+        },
+        {
+          "key": "ssf.transmitter.push_endpoint",
+          "label": "Push Endpoint URL",
+          "type": "string",
+          "tooltip": "Receiver endpoint URL to push events to on PUSH delivery mode."
+        },
+        {
+          "key": "ssf.stream.audience",
+          "label": "SSF Stream Audience",
+          "type": "string",
+          "tooltip": "Audience to use for the SSF Stream."
+        },
+        {
+          "key": "ssf.subjects.valid",
+          "label": "SSF valid SubjectId",
+          "type": "object",
+          "tooltip": "Existing RFC 9493 SubjectId to generate SSF events for. The SubjectId must be valid according to RFC 9493 Subject Identifiers for Security Event Tokens. For example, {&quot;format&quot;:&quot;email&quot;, &quot;email&quot;:&quot;foo@example.com&quot;}"
+        },
+        {
+          "key": "ssf.subjects.invalid",
+          "label": "SSF invalid SubjectId",
+          "type": "object",
+          "tooltip": "Non existing RFC 9493 SubjectId to generate events. The SubjectId must be valid according to RFC 9493 Subject Identifiers for Security Event Tokens."
+        }
+      ]
+    },
+    {
+      "key": "credential_issuer",
+      "title": "Credential Issuer",
+      "fields": [
+        {
+          "key": "vci.credential_issuer_url",
+          "label": "Credential Issuer URL",
+          "type": "string",
+          "tooltip": "Credential Issuer URL."
+        },
+        {
+          "key": "credential.signing_jwk",
+          "label": "Signing JWK",
+          "type": "object",
+          "tooltip": "Signing key to be used for issuing credentials, in JWK format. Note that the JWK must also contain the signing certificate chain in the x5c claim."
+        },
+        {
+          "key": "credential.trust_anchor_pem",
+          "label": "Credential Trust Anchor",
+          "type": "string",
+          "tooltip": "The trust anchor certificate for verifying the SD-JWT credential x5c chain, as a PEM certificate."
+        },
+        {
+          "key": "credential.status_list_trust_anchor_pem",
+          "label": "Status List Trust Anchor",
+          "type": "string",
+          "tooltip": "The trust anchor certificate for verifying the status list token x5c chain, as a PEM certificate."
+        },
+        {
+          "key": "vci.credential_configuration_id",
+          "label": "Credential Configuration ID",
+          "type": "string",
+          "tooltip": "The credential_configuration_id to use. Defaults to eu.europa.ec.eudi.pid.1."
+        },
+        {
+          "key": "vci.credential_proof_type_hint",
+          "label": "Credential Proof Type Hint",
+          "type": "string",
+          "tooltip": "The credential proof type hint to use. If empty we'll use the first proof type that's listed in the referenced credential configuration."
+        },
+        {
+          "key": "vci.credential_issuer_metadata_url",
+          "label": "Credential Issuer Metadata URL",
+          "type": "string",
+          "tooltip": "Full URL that server will use for OID4VCI credential issuer metadata."
+        },
+        {
+          "key": "vci.credential_offer_endpoint",
+          "label": "Credential Offer Endpoint URL",
+          "type": "string",
+          "tooltip": "Full URL for the OID4VCI credential offer endpoint. If you are using HAIP, use 'haip-vci://'"
+        },
+        {
+          "key": "vci.authorization_server",
+          "label": "Authorization Server URL Override",
+          "type": "string",
+          "format": "uri",
+          "tooltip": "Full issuer URL for the OAuth2 Authorization Server. When this is not set, the testsuite will use the discoveryIssuer as authorizationServer, otherwise when this is set the testsuite will use this authorization server to obtain an access_token for the tests."
+        },
+        {
+          "key": "vci.static_tx_code",
+          "label": "Static tx_code",
+          "type": "string",
+          "tooltip": "Static tx_code value for pre-authorized code flow. Useful for CI integrations. Leave empty if the tx_value is supplied during test execution. The test will expose a /tx_code endpoint that can be used to supply the tx_code via GET $BASE_URL/tx_code?code=your_tx_code."
+        }
+      ]
+    },
+    {
+      "key": "server",
+      "title": "Server",
+      "fields": [
+        {
+          "key": "server.issuer",
+          "label": "issuer",
+          "type": "string",
+          "tooltip": "Full URL that server will use as the 'iss' value in id_token."
+        },
+        {
+          "key": "server.jwks_uri",
+          "label": "jwks_uri",
+          "type": "string",
+          "tooltip": "Full URL to server's JWKS endpoint."
+        },
+        {
+          "key": "server.authorization_endpoint",
+          "label": "authorization_endpoint",
+          "type": "string",
+          "tooltip": "Full URL to server's authorization endpoint. When testing a wallet use 'openid4vp://' or similar."
+        },
+        {
+          "key": "server.token_endpoint",
+          "label": "token_endpoint",
+          "type": "string",
+          "tooltip": "Full URL to server's token endpoint."
+        },
+        {
+          "key": "server.userinfo_endpoint",
+          "label": "userinfo_endpoint",
+          "type": "string",
+          "tooltip": "Full URL to server's userinfo endpoint."
+        },
+        {
+          "key": "server.acr_values",
+          "label": "acr_values",
+          "type": "string",
+          "tooltip": "Space separated list of server's supported acr values that will be sent in the acr_values field; if left blank '1 2' is the default."
+        },
+        {
+          "key": "server.discoveryUrl",
+          "label": "discoveryUrl",
+          "type": "string",
+          "tooltip": "Full URL to server's .well-known/openid-configuration."
+        },
+        {
+          "key": "server.jwks",
+          "label": "jwks",
+          "type": "object",
+          "tooltip": "Private key to be used by the server to sign id_tokens, this should be one key in JSON Web Key Set format."
+        },
+        {
+          "key": "server.login_hint",
+          "label": "login_hint",
+          "type": "string",
+          "tooltip": "A value that the server accepts in the login_hint parameter. If not specified a default value ('buffy@<your issuer></cts-icon>') will be used."
+        },
+        {
+          "key": "server.ui_locales",
+          "label": "ui_locales",
+          "type": "string",
+          "tooltip": "A value that the server accepts in the ui_locales parameter. If not specified a default value ('se') will be used."
+        }
+      ]
+    },
+    {
+      "key": "pdp",
+      "title": "AuthZen",
+      "fields": [
+        {
+          "key": "pdp.policy_decision_point",
+          "label": "PDP Identifier",
+          "type": "string",
+          "tooltip": "Polic Decision Point Identifier"
+        },
+        {
+          "key": "pdp.access_evaluation_endpoint",
+          "label": "Access Evaluation API Endpoint",
+          "type": "string",
+          "tooltip": "Access Evaluation API Endpoint"
+        },
+        {
+          "key": "pdp.access_evaluations_endpoint",
+          "label": "Access Evaluations API Endpoint",
+          "type": "string",
+          "tooltip": "Access Evaluations API Endpoint"
+        },
+        {
+          "key": "pdp.search_subject_endpoint",
+          "label": "Subject Entity Search API Endpoint",
+          "type": "string",
+          "tooltip": "Subject Entity Search API Endpoint"
+        },
+        {
+          "key": "pdp.search_action_endpoint",
+          "label": "Action Entity Search API Endpoint",
+          "type": "string",
+          "tooltip": "Action Entity Search API Endpoint"
+        },
+        {
+          "key": "pdp.search_resource_endpoint",
+          "label": "Resource Entity Search API Endpoint",
+          "type": "string",
+          "tooltip": "Resource Entity Search API Endpoint"
+        },
+        {
+          "key": "pdp.api_key",
+          "label": "PDP API Key",
+          "type": "string",
+          "tooltip": "API Endpoint Key"
+        }
+      ]
+    },
+    {
+      "key": "client",
+      "title": "Client",
+      "fields": [
+        {
+          "key": "client.client_id",
+          "label": "client_id",
+          "type": "string",
+          "tooltip": "OAuth client id used with the authorization server. For OID4VP tests this can be left blank if using x509_san_dns or redirect_uri client id schemes."
+        },
+        {
+          "key": "client.client_secret",
+          "label": "client_secret",
+          "type": "string",
+          "tooltip": "Client secret."
+        },
+        {
+          "key": "client.client_name",
+          "label": "client_name",
+          "type": "string",
+          "tooltip": "Client name to use in dynamic registration request. This may be left empty, in which case a random name is used."
+        },
+        {
+          "key": "client.initial_access_token",
+          "label": "initial_access_token",
+          "type": "string",
+          "tooltip": "Access token to use in dynamic registration request. This may be left empty, in which case the request will not contain an access token."
+        },
+        {
+          "key": "client.scope",
+          "label": "scope",
+          "type": "string",
+          "tooltip": "Scopes to use in authorization request, e.g. 'openid accounts'. For Brazil, you may use the 'accounts' or the 'payments' scope depending which API endpoint you want to use for testing."
+        },
+        {
+          "key": "client.authorization_encrypted_response_alg",
+          "label": "authorization_encrypted_response_alg",
+          "type": "string",
+          "tooltip": "JWE alg algorithm for encrypting the JARM response issued to this Client, e.g RSA-OAEP or ECDH-ESP. For VP tests this can be left empty and the suite will use a default."
+        },
+        {
+          "key": "client.authorization_encrypted_response_enc",
+          "label": "authorization_encrypted_response_enc",
+          "type": "string",
+          "tooltip": "JWE enc algorithm for encrypting the JARM response issued to this Client, e.g. A128CBC-HS256 or A256GCM. For VP tests this can be left empty and the suite will use a default."
+        },
+        {
+          "key": "client.presentation_definition",
+          "label": "presentation_definition",
+          "type": "object",
+          "tooltip": "presentation_definition to use in authorization request"
+        },
+        {
+          "key": "client.dcql",
+          "label": "dcql",
+          "type": "object",
+          "tooltip": "The DCQL (Digital Credentials Query Language) to use in dcql_query parameter in authorization request"
+        },
+        {
+          "key": "client.redirect_uri",
+          "label": "redirect_uri",
+          "type": "string",
+          "tooltip": "URI the conformance suite should redirect back to with the result of the authorization endpoint call appended."
+        },
+        {
+          "key": "client.backchannel_client_notification_endpoint",
+          "label": "backchannel_client_notification_endpoint",
+          "type": "string",
+          "tooltip": "This is the endpoint to which the conformance suite will post a notification after a successful or failed end-user authentication."
+        },
+        {
+          "key": "client.jwks",
+          "label": "jwks",
+          "type": "object",
+          "tooltip": "Client's private signing key in JSON Web Key Set format, must begin with { &quot;keys&quot;: [ { PEM/DER format private keys MUST be correctly converted to a JWKS, e.g. using 'pem-jwk'. The JWKS should normally contain exactly one JWK, which will be used for client assertions / signing requests, and must contain an 'alg' field indicating what algorithm to use. If the OP issues encrypted id tokens a key with 'use': 'enc' must be provided, which must be the second entry in the JWKS."
+        },
+        {
+          "key": "client.org_jwks",
+          "label": "organization jwks",
+          "type": "object",
+          "tooltip": "Organizations's BRSEAL private signing key in JSON Web Key Set format, to be used to sign API requests to the payment consent creation/payment initiation endpoints. This key must be for the organization listed in the client's TLS certificate subjectdn. Only required if 'scope' contains 'payments'."
+        },
+        {
+          "key": "client.client_secret_jwt_alg",
+          "label": "client_secret_jwt_alg",
+          "type": "string",
+          "tooltip": "Algorithm for client_secret_jwt authentication, defaults to HS256."
+        },
+        {
+          "key": "client.id_token_encrypted_response_alg",
+          "label": "id_token_encrypted_response_alg",
+          "type": "string",
+          "tooltip": "JWE alg algorithm for encrypting the ID Token issued to this Client, e.g RSA-OAEP."
+        },
+        {
+          "key": "client.id_token_encrypted_response_enc",
+          "label": "id_token_encrypted_response_enc",
+          "type": "string",
+          "tooltip": "JWE enc algorithm for encrypting the ID Token issued to this Client, defaults to A128CBC-HS256."
+        },
+        {
+          "key": "client.certificate",
+          "label": "certificate",
+          "type": "string",
+          "tooltip": "TLS client certificate in base64-encoded DER (in JSON string, no headers) or OpenSSL/PEM format - often has .pem file extension."
+        },
+        {
+          "key": "client.hint_type",
+          "label": "hint_type",
+          "type": "string",
+          "enum": [
+            "",
+            "login_hint_token",
+            "id_token_hint",
+            "login_hint"
+          ],
+          "tooltip": "Type of hint to identify user. For Open Finance Brazil, only login_hint and id_token_hint are allowed."
+        },
+        {
+          "key": "client.hint_value",
+          "label": "hint_value",
+          "type": "string",
+          "tooltip": "Hint value to identify user, e.g. a login_hint, login_hint_token or id_token_hint."
+        },
+        {
+          "key": "client.post_logout_redirect_uri",
+          "label": "post_logout_redirect_uri",
+          "type": "string",
+          "tooltip": "URI the conformance suite should redirect back to after the end_session_endpoint call."
+        },
+        {
+          "key": "client.frontchannel_logout_uri",
+          "label": "frontchannel_logout_uri",
+          "type": "string",
+          "tooltip": "Front channel logout URI."
+        },
+        {
+          "key": "client.backchannel_logout_uri",
+          "label": "backchannel_logout_uri",
+          "type": "string",
+          "tooltip": "Back channel logout URI."
+        },
+        {
+          "key": "client.dpop_signing_alg",
+          "label": "DPoP Signing Alg",
+          "type": "string",
+          "enum": [
+            "PS256",
+            "ES256",
+            "EdDSA"
+          ],
+          "tooltip": "JWS algorithm for signing DPoP proofs"
+        }
+      ]
+    },
+    {
+      "key": "client_tls_auth",
+      "title": "tls_client_auth configuration (Enter only one of the following)",
+      "fields": [
+        {
+          "key": "client.tls_client_auth_subject_dn",
+          "label": "tls_client_auth_subject_dn",
+          "type": "string",
+          "tooltip": "Certificate subject DN, e.g cn=certification.example.com,o=oidf,st=ca,c=us."
+        },
+        {
+          "key": "client.tls_client_auth_san_dns",
+          "label": "tls_client_auth_san_dns",
+          "type": "string",
+          "tooltip": "DNSname subject alternative name, e.g client.example.com."
+        },
+        {
+          "key": "client.tls_client_auth_san_uri",
+          "label": "tls_client_auth_san_uri",
+          "type": "string",
+          "tooltip": "URI subject alternative name, e.g https://example.com."
+        },
+        {
+          "key": "client.tls_client_auth_san_ip",
+          "label": "tls_client_auth_san_ip",
+          "type": "string",
+          "tooltip": "IP address subject alternative name, e.g 10.0.0.1 or 2001:0db8:85a3:0000:0000:8a2e:0370:7334."
+        },
+        {
+          "key": "client.tls_client_auth_san_email",
+          "label": "tls_client_auth_san_email",
+          "type": "string",
+          "tooltip": "Email address subject alternative name, e.g john@example.com."
+        }
+      ]
+    },
+    {
+      "key": "mtls",
+      "title": "TLS certificates for client (used to make MTLS connections)",
+      "fields": [
+        {
+          "key": "mtls.cert",
+          "label": "mtls.cert",
+          "type": "string",
+          "tooltip": "TLS client certificate in base64-encoded DER (in JSON string, no headers) or OpenSSL/PEM format - often has .pem file extension."
+        },
+        {
+          "key": "mtls.key",
+          "label": "mtls.key",
+          "type": "string",
+          "tooltip": "Unencrypted TLS client key in base64-encoded DER or PEM format (in JSON string no headers) or OpenSSL/PEM format."
+        },
+        {
+          "key": "mtls.ca",
+          "label": "mtls.ca",
+          "type": "string",
+          "tooltip": "TLS client CA in base64-encoded DER (in JSON string, no headers) or OpenSSL/PEM format. Optional, can be omitted if using self-signed certificates or if the server does not require any certificate authority elements to be supplied."
+        }
+      ]
+    },
+    {
+      "key": "client_secret_post",
+      "title": "Client for client_secret_post",
+      "fields": [
+        {
+          "key": "client_secret_post.client_id",
+          "label": "client_id",
+          "type": "string",
+          "tooltip": "OAuth client id used with the authorization server for a client that supports client_secret_post. If the server allows a single client to use both client_secret_basic and client_secret_post then this can be the same client as above."
+        },
+        {
+          "key": "client_secret_post.client_secret",
+          "label": "client_secret",
+          "type": "string",
+          "tooltip": "Client secret for a client that supports client_secret_post. If the server allows a single client to use both client_secret_basic and client_secret_post then this can be the same client as above."
+        }
+      ]
+    },
+    {
+      "key": "client2",
+      "title": "Second client",
+      "fields": [
+        {
+          "key": "client2.client_id",
+          "label": "client_id",
+          "type": "string",
+          "tooltip": "OAuth client id used with the authorization server."
+        },
+        {
+          "key": "client2.client_secret",
+          "label": "client_secret",
+          "type": "string",
+          "tooltip": "Client secret"
+        },
+        {
+          "key": "client2.client_name",
+          "label": "client_name",
+          "type": "string",
+          "tooltip": "Second client name to use in dynamic registration request. This may be left empty, in which case a random name is used."
+        },
+        {
+          "key": "client2.initial_access_token",
+          "label": "initial_access_token",
+          "type": "string",
+          "tooltip": "Access token to use in dynamic registration request. This may be left empty, in which case the request will not contain an access token."
+        },
+        {
+          "key": "client2.scope",
+          "label": "scope",
+          "type": "string",
+          "tooltip": "Scopes to use in authorization request, e.g. 'openid accounts'."
+        },
+        {
+          "key": "client2.redirect_uri",
+          "label": "redirect_uri",
+          "type": "string",
+          "tooltip": "URI the conformance suite should redirect back to with the result of the authorization endpoint call appended."
+        },
+        {
+          "key": "client2.jwks",
+          "label": "jwks",
+          "type": "object",
+          "tooltip": "Second client's private signing key in JSON Web Key Set format, must begin with { &quot;keys&quot;: [ { PEM/DER format private keys MUST be correctly converted to a JWKS, e.g. using 'pem-jwk'. The JWKS should normally contain exactly one JWK, which will be used for client assertions / signing requests, and must contain an 'alg' field indicating what algorithm to use. If the OP issues encrypted id tokens a key with 'use': 'enc' must be provided, which must be the second entry in the JWKS. The key must be different to that for the first client."
+        },
+        {
+          "key": "client2.org_jwks",
+          "label": "organization jwks",
+          "type": "object",
+          "tooltip": "Second client's organization's BRSEAL private signing key in JSON Web Key Set format, to be used to sign API requests to the payment consent creation/payment initiation endpoints. This key must be for the organization listed in the client's TLS certificate subjectdn. Both clients can be from the same organization, in which case the same organization private key should be provided for both clients. Only required if 'scope' contains 'payments'."
+        },
+        {
+          "key": "client2.certificate",
+          "label": "certificate",
+          "type": "string",
+          "tooltip": "TLS client certificate in base64-encoded DER (in JSON string, no headers) or OpenSSL/PEM format - often has .pem file extension."
+        },
+        {
+          "key": "client2.client_secret_jwt_alg",
+          "label": "client_secret_jwt_alg",
+          "type": "string",
+          "tooltip": "Algorithm for client_secret_jwt authentication, defaults to HS256."
+        },
+        {
+          "key": "client2.id_token_encrypted_response_alg",
+          "label": "id_token_encrypted_response_alg",
+          "type": "string",
+          "tooltip": "JWE alg algorithm for encrypting the ID Token issued to this Client, e.g RSA-OAEP."
+        },
+        {
+          "key": "client2.id_token_encrypted_response_enc",
+          "label": "id_token_encrypted_response_enc",
+          "type": "string",
+          "tooltip": "JWE enc algorithm for encrypting the ID Token issued to this Client, defaults to A128CBC-HS256."
+        },
+        {
+          "key": "client2.acr_value",
+          "label": "acr_value",
+          "type": "string",
+          "tooltip": "If this server supports acr, this should contain a valid acr value that can be requested in an authentication request, e.g. 'urn:openbanking:psd2:sca'."
+        },
+        {
+          "key": "client2.dpop_signing_alg",
+          "label": "DPoP Signing Alg",
+          "type": "string",
+          "enum": [
+            "PS256",
+            "ES256",
+            "EdDSA"
+          ],
+          "tooltip": "JWS algorithm for signing DPoP proofs"
+        }
+      ]
+    },
+    {
+      "key": "mtls2",
+      "title": "Second client TLS certificates",
+      "fields": [
+        {
+          "key": "mtls2.cert",
+          "label": "mtls2.cert",
+          "type": "string",
+          "tooltip": "TLS client certificate in base64-encoded DER (in JSON string, no headers) or OpenSSL/PEM format."
+        },
+        {
+          "key": "mtls2.key",
+          "label": "mtls2.key",
+          "type": "string",
+          "tooltip": "Unencrypted TLS client key in base64-encoded DER or PEM format (in JSON string no headers) or OpenSSL/PEM format."
+        },
+        {
+          "key": "mtls2.ca",
+          "label": "mtls2.ca",
+          "type": "string",
+          "tooltip": "TLS client CA in base64-encoded DER (in JSON string, no headers) or OpenSSL/PEM format."
+        }
+      ]
+    },
+    {
+      "key": "tls",
+      "title": "TLS",
+      "fields": [
+        {
+          "key": "tls.testHost",
+          "label": "testHost",
+          "type": "string",
+          "tooltip": "Hostname for TLS connection tests (only used in sample-test-test)."
+        },
+        {
+          "key": "tls.testPort",
+          "label": "testPort",
+          "type": "string",
+          "tooltip": "Port number for TLS connection tests (only used in sample-test-test)."
+        }
+      ]
+    },
+    {
+      "key": "resource",
+      "title": "Resource",
+      "fields": [
+        {
+          "key": "resource.resourceUrl",
+          "label": "resourceUrl",
+          "type": "string",
+          "tooltip": "URL to use in resource server tests, must return a JSON response. For UK OpenBanking tests, this should be the base url for UK AISP APIs and hence must end '/open-banking/vX.Y/aisp/' (this form of URL is required by the UK OpenBanking specs). For Brazil OpenBanking you should use the accounts endpoint url, or the payments endpoint if you specify payments in the scope. For Brazil OpenInsurance, use the resources endpoint url. For KSA OpenBanking, use the accounts endpoint url."
+        },
+        {
+          "key": "resource.resourceMethod",
+          "label": "resourceMethod",
+          "type": "string",
+          "enum": [
+            "",
+            "POST"
+          ],
+          "tooltip": "The HTTP method to be used at the resource endpoint."
+        },
+        {
+          "key": "resource.resourceMediaType",
+          "label": "resourceMediaType",
+          "type": "string",
+          "tooltip": "The ContentType of the data being sent to the resource endpoint in a POST request. eg. 'application/json'"
+        },
+        {
+          "key": "resource.resourceRequestBody",
+          "label": "resourceRequestBody",
+          "type": "object",
+          "tooltip": "The data. in JSON format, to be send in a POST request to the resource endpoint"
+        },
+        {
+          "key": "resource.consentUrl",
+          "label": "consentUrl",
+          "type": "string",
+          "tooltip": "URL for the consent endpoint. This should be the data read consent endpoint. If you are testing OpenBanking payments, it should be the payment initiation consent endpoint and you should include 'payments' in the scope field."
+        },
+        {
+          "key": "resource.resourceUrlAccountRequests",
+          "label": "resourceUrlAccountRequests",
+          "type": "string",
+          "tooltip": "Base URL to use in resource account request server tests. For UK OpenBanking: optional, use if endpoints split across servers. For SAMA/KSA OpenBanking: the full url for the account-access-consents endpoint."
+        },
+        {
+          "key": "resource.resourceUrlAccountsResource",
+          "label": "resourceUrlAccountsResource",
+          "type": "string",
+          "tooltip": "Base URL to use in resource accounts server tests (optional, use if endpoints split across servers)."
+        },
+        {
+          "key": "resource.cdrVersion",
+          "label": "cdrVersion",
+          "type": "string",
+          "tooltip": "The version number to send in the x-v HTTP header to the resource endpoint."
+        },
+        {
+          "key": "resource.brazilCpf",
+          "label": "brazilCpf",
+          "type": "string",
+          "tooltip": "The 'CPF' value to be used in the consent creation request. At least one of CPF or CNPJ must be supplied."
+        },
+        {
+          "key": "resource.brazilCnpj",
+          "label": "brazilCnpj",
+          "type": "string",
+          "tooltip": "The 'CNPJ' value to be used in the consent creation request. At least one of CPF or CNPJ must be supplied."
+        },
+        {
+          "key": "consent.productType",
+          "label": "Business or Personal Products",
+          "type": "string",
+          "enum": [
+            "business",
+            "personal"
+          ],
+          "tooltip": "For accounts/resources tests, whether test should be run for Business or Personal Products."
+        },
+        {
+          "key": "resource.brazilOrganizationId",
+          "label": "Resource server organization id",
+          "type": "string",
+          "tooltip": "The organization id for the resource server, as recorded in the directory. Only required if 'scope' contains 'payments'."
+        },
+        {
+          "key": "resource.brazilPaymentConsent",
+          "label": "Payment consent request JSON",
+          "type": "object",
+          "tooltip": "JSON representation of a payment consent request. This will be used as the body of the request sent to the payment consent endpoint. Only required if 'scope' contains 'payments'."
+        },
+        {
+          "key": "resource.brazilPixPayment",
+          "label": "Payment initiation request JSON",
+          "type": "object",
+          "tooltip": "JSON representation of a PIX payment request. This will be used as the body of the request sent to the payment initiation endpoint. Only required if 'scope' contains 'payments'."
+        },
+        {
+          "key": "resource.institution_id",
+          "label": "institution_id",
+          "type": "string",
+          "tooltip": "Financial institution ID to send to FAPI resources, i.e. Institution ID assigned by UK OpenBanking. This can be left empty if the resource server does not require this header."
+        },
+        {
+          "key": "resource.richAuthorizationRequest",
+          "label": "Authorization Request JSON",
+          "type": "object",
+          "tooltip": "JSON representation of the authorization. This will be used as the authorization_request parameter of the authorization."
+        },
+        {
+          "key": "resource.authorization_details_types_supported",
+          "label": "Supported Authorization Request Types",
+          "type": "object",
+          "tooltip": "JSON representation of the list of authorization types. This will be used to validate RAR payloads submitted by RPs."
+        }
+      ]
+    },
+    {
+      "key": "directory",
+      "title": "Directory",
+      "fields": [
+        {
+          "key": "directory.discoveryUrl",
+          "label": "Discovery Endpoint",
+          "type": "string",
+          "tooltip": "URL to the OpenBanking Directory. e.g. for Brazil directory sandbox use https://auth.sandbox.directory.openbankingbrasil.org.br/.well-known/openid-configuration"
+        },
+        {
+          "key": "directory.client_id",
+          "label": "Directory ClientID",
+          "type": "string",
+          "tooltip": "client_id for this client on the OpenBanking Directory. This is used to obtain an access token, which is used to retrieve the software statement. The MTLS certificate provided for the client MUST be one that can be used to access the OpenBanking directory. An example client/configuration is linked to from the instructions (see link at top of this page)."
+        },
+        {
+          "key": "directory.apibase",
+          "label": "Directory API base",
+          "type": "string",
+          "tooltip": "Base URL for the OpenBanking Directory. e.g. for Brazil Directory sandbox use https://matls-api.sandbox.directory.openbankingbrasil.org.br/"
+        },
+        {
+          "key": "directory.keystore",
+          "label": "Directory keystore base",
+          "type": "string",
+          "tooltip": "Keystore URL for the OpenBanking Directory. e.g. for Brazil Directory sandbox use https://keystore.sandbox.directory.openbankingbrasil.org.br/"
+        }
+      ]
+    },
+    {
+      "key": "ekyc",
+      "title": "eKYC",
+      "fields": [
+        {
+          "key": "ekyc.unverified_claims_names",
+          "label": "eKYC Request Unverified Claims",
+          "type": "string",
+          "placeholder": "Ex: nickname or [\"nickname\", \"picture\"]",
+          "tooltip": "List of unverified claims to request in each test. Must be a single claim name or a JSON array of claim names."
+        },
+        {
+          "key": "ekyc.verified_claims_names",
+          "label": "eKYC Request Verified Claims",
+          "type": "string",
+          "placeholder": "Ex: email or [\"name\", \"email\"]",
+          "tooltip": "List of verified claims to request in each test. Must be a single claim name or a JSON array of claim names."
+        },
+        {
+          "key": "ekyc.verified_claims_request_list",
+          "label": "eKYC Verified Claims Request",
+          "type": "object",
+          "placeholder": "Ex:\n{\n    \"id_token\": {\n        \"verified_claims\": {\n            \"verification\": {\n                \"trust_framework\": {\n                    \"value\": \"nist_800_63A\"\n                }\n            },\n            \"claims\": {\n                \"given_name\": null\n            }\n        }\n    },\n    \"userinfo\": {\n        \"verified_claims\": {\n            \"verification\": {\n                \"trust_framework\": {\n                    \"value\": \"nist_800_63A\"\n                }\n            },\n            \"claims\": {\n                \"given_name\": null,\n                \"address\": null\n            }\n        }\n    }\n}",
+          "tooltip": "Custom claims request. Must be a valid json object that can be added directly to the request as the top level 'claims' element. Must be a single JSON object or a JSON array of objects."
+        },
+        {
+          "key": "ekyc.userinfo",
+          "label": "eKYC UserInfo",
+          "type": "object",
+          "placeholder": "Ex:\n{\n    \"claims\": {\n        \"birthdate\": \"1990-01-01\",\n        \"given_name\": \"John\",\n        \"family_name\": \"Joe\",\n        \"work_phone\": \"12345968845\"\n    },\n    \"verification\": {\n        \"trust_framework\": \"nist_800_63A\",\n        \"evidence\": [\n            {\n                \"type\": \"document\",\n                \"check_details\": [\n                    {\n                        \"check_method\": \"vpiruv\"\n                    }\n                ]\n            }\n        ]\n    }\n}",
+          "tooltip": "A complete set of end-user data as held by the OpenID Provider in the form it would be returned via the userinfo endpoint. Enter the entire userinfo json. Must be a single JSON object or a JSON array of objects."
+        },
+        {
+          "key": "ekyc.expected_verified_claims",
+          "label": "eKYC Expected Response",
+          "type": "object",
+          "placeholder": "\n{\n    \"sub_id1\": {\n        \"verification\": {\n            \"trust_framework\": \"trust_framework_example1\"\n        },\n        \"claims\": {\n            \"given_name\": \"John\",\n            \"family_name\": \"Joe\"\n        }\n    },\n    \"sub_id2\": {\n        \"verification\": {\n            \"trust_framework\": \"trust_framework_example2\"\n        },\n        \"claims\": {\n            \"given_name\": \"Jane\",\n            \"family_name\": \"Doe\"\n        }\n    }\n}\n",
+          "tooltip": "JSON obect containing expected verified_claims values for end-user data keyed by the sub identifier in the ID Token or UserInfo responses. Response claim values will be compared to this list when no explicit value is requested."
+        },
+        {
+          "key": "ekyc.request_schemas",
+          "label": "eKYC Additional Request Validation Schemas",
+          "type": "object",
+          "placeholder": "See https://bitbucket.org/openid/ekyc-ida/raw/master/schema/verified_claims_request.json",
+          "tooltip": "Additional schemas to validate eKYC requests. Must be a single JSON object or a JSON array of object, each of which is a valid JSON schema object."
+        },
+        {
+          "key": "ekyc.response_schemas",
+          "label": "eKYC Additional Response Validation Schemas",
+          "type": "object",
+          "placeholder": "See https://bitbucket.org/openid/ekyc-ida/raw/master/schema/claims_schema.json",
+          "tooltip": "Additional schemas to validate eKYC responses. Must be a single JSON object or a JSON array of object, each of which is a valid JSON schema object"
+        }
+      ]
+    },
+    {
+      "key": "federation_entity_under_test",
+      "title": "Federation entity under test",
+      "intro": "This section relates to the entity under test, i.e. your federation entity, the entity that will be the primary subject of the test suite. See also the detailed instructions.",
+      "fields": [
+        {
+          "key": "federation.entity_identifier",
+          "label": "entity_identifier",
+          "type": "string",
+          "placeholder": "REQUIRED",
+          "required": true,
+          "tooltip": "The entity identifier of the federation entity that the test will interface with. This URL MUST use the https scheme, have a host component, and MAY contain port and path components. It MUST NOT contain query parameter or fragment components."
+        },
+        {
+          "key": "federation.de_trust_anchor",
+          "label": "trust_anchor",
+          "type": "string",
+          "tooltip": "The trust anchor of the federation entity under test"
+        },
+        {
+          "key": "federation.de_trust_anchor_jwks",
+          "label": "trust_anchor_jwks",
+          "type": "string",
+          "placeholder": "OPTIONAL",
+          "tooltip": "Pre-configured keys for the entity's trust anchor."
+        }
+      ]
+    },
+    {
+      "key": "federation_op",
+      "title": "Test suite OP",
+      "intro": "This section relates to the test suite and how it behaves as an OpenID provider federation entity. See also the detailed instructions.",
+      "fields": [
+        {
+          "key": "federation.op_ec_jwks",
+          "label": "op_ec_jwks",
+          "type": "object",
+          "placeholder": "REQUIRED",
+          "required": true,
+          "jwksGenerator": "op-ec-jwks",
+          "tooltip": "JWKSet containing the private key for signing the entity configuration published by the test suite entity"
+        },
+        {
+          "key": "federation.op_server_jwks",
+          "label": "op_server_jwks",
+          "type": "object",
+          "placeholder": "REQUIRED",
+          "required": true,
+          "jwksGenerator": "op-server-jwks",
+          "tooltip": "JWKSet containing the private keys for signing and encryption, used by the tests suite to sign id_tokens and decrypt request objects (if applicable) when acting as an OP."
+        },
+        {
+          "key": "federation.op_entity_identifier_host_override",
+          "label": "op_entity_identifier_override",
+          "type": "string",
+          "placeholder": "OPTIONAL",
+          "tooltip": "When set, overrides the default entity identifier for the test OP otherwise created by the test suite. The test suite must be reachable using the specified host, i.e. if the override is 'https://proxy.example.com' then that host must proxy the requests to the actual hostname of the test."
+        }
+      ]
+    },
+    {
+      "key": "federation_rp",
+      "title": "Test suite RP",
+      "intro": "This section relates to the test suite and how it behaves as an OpenID relying party federation entity. See also the detailed instructions.",
+      "fields": [
+        {
+          "key": "federation.rp_ec_jwks",
+          "label": "rp_ec_jwks",
+          "type": "object",
+          "placeholder": "REQUIRED",
+          "required": true,
+          "jwksGenerator": "rp-ec-jwks",
+          "tooltip": "JWKSet containing the private key for signing the entity configuration published by the test suite entity"
+        },
+        {
+          "key": "federation.rp_client_jwks",
+          "label": "rp_client_jwks",
+          "type": "object",
+          "placeholder": "REQUIRED",
+          "required": true,
+          "jwksGenerator": "rp-client-jwks",
+          "tooltip": "JWKSet containing the private key for signing, used by the tests suite to sign request objects."
+        },
+        {
+          "key": "federation.rp_entity_identifier_host_override",
+          "label": "rp_entity_identifier_override",
+          "type": "string",
+          "placeholder": "OPTIONAL",
+          "tooltip": "When set, overrides the default entity identifier for the test OP otherwise created by the test suite. The test suite must be reachable using the specified host, i.e. if the override is 'https://proxy.example.com' then that host must proxy the requests to the actual hostname of the test."
+        }
+      ]
+    },
+    {
+      "key": "federation_trust_anchor",
+      "title": "Test suite trust anchor",
+      "intro": "This section relates to the test suite and how it behaves as a trust anchor. See also the detailed instructions.",
+      "fields": [
+        {
+          "key": "federation_trust_anchor.immediate_subordinates",
+          "label": "immediate_subordinates",
+          "type": "array",
+          "format": "newline-array",
+          "tooltip": "The trust anchor's immediate subordinates, i.e. the federation entities that will appear in the list response. Each row in the text area corresponds to an element in the list response array. Each row needs to contain a valid entity identifier. The test suite's entity identifier is added automatically."
+        },
+        {
+          "key": "federation_trust_anchor.trust_anchor_jwks",
+          "label": "trust_anchor_jwks",
+          "type": "string",
+          "placeholder": "REQUIRED",
+          "required": true,
+          "jwksGenerator": "trust-anchor-jwks",
+          "tooltip": "The JWKSet containing the private signing key that the test suite trust anchor will use to sign entity statements."
+        }
+      ]
+    },
+    {
+      "key": "client_attestation",
+      "title": "Client Attestation",
+      "fields": [
+        {
+          "key": "vci.client_attester_keys_jwks",
+          "label": "Client Attester Keys JWKS",
+          "type": "string",
+          "placeholder": "REQUIRED",
+          "tooltip": "Pre-configured keys of the client attester in JWKS format. Note the Client Attester Certificate must be provided in the x5c JWK claim as a JSON array with the encoded certificate"
+        },
+        {
+          "key": "vci.client_attestation_issuer",
+          "label": "Client Attestation Issuer",
+          "type": "string",
+          "placeholder": "REQUIRED",
+          "tooltip": "URI used as the client attestation issuer"
+        },
+        {
+          "key": "vci.client_attestation_trust_anchor",
+          "label": "Client Attestation Trust Anchor",
+          "type": "string",
+          "placeholder": "REQUIRED",
+          "tooltip": "The trust anchor of the Client Attestation as PEM certificate"
+        }
+      ]
+    },
+    {
+      "key": "key_attestation",
+      "title": "Key Attestation",
+      "fields": [
+        {
+          "key": "vci.key_attestation_jwks",
+          "label": "Key Attestation JWKS",
+          "type": "string",
+          "placeholder": "REQUIRED if Key Attestation is used",
+          "tooltip": "Pre-configured keys of the key attestation JWKS format. Leave empty if Key attestation is not used. Note the Client Attester Certificate must be provided in the x5c JWK claim as a JSON array with the encoded certificate."
+        },
+        {
+          "key": "vci.key_attestation_trust_anchor_pem",
+          "label": "Key Attestation Trust Anchor",
+          "type": "string",
+          "placeholder": "REQUIRED if Key Attestation is used",
+          "tooltip": "The trust anchor of the Key Attestation as PEM certificate. Leave empty if Key attestation is not used."
+        }
+      ]
+    }
+  ]
+}
