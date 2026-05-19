@@ -78,42 +78,16 @@ test.describe("ClipboardJS copy buttons render text from cts-button hosts", () =
     expectNoUnmockedCalls(page);
   });
 
-  test("plans.html: config modal copy button copies #config text", async ({ page }) => {
-    await installClipboardSpy(page);
-    await setupFailFast(page);
-
-    await page.route("**/api/plan?*", (route) => {
-      const envelope = wrapDataTablesResponse([], route.request().url());
-      return route.fulfill({
-        status: 200,
-        contentType: "application/json",
-        body: JSON.stringify(envelope),
-      });
-    });
-
-    await setupCommonRoutes(page);
-
-    await page.goto("/plans.html");
-
-    await page.evaluate(() => {
-      // #config is now <cts-json-editor>; populate via .value (string),
-      // not .textContent — Monaco virtualises text content, and the
-      // ClipboardJS handler now reads .value when the target exposes it.
-      const config = /** @type {any} */ (document.getElementById("config"));
-      if (!config) throw new Error("#config missing");
-      config.value = '{"server.issuer":"https://op.example.com"}';
-      const modalEl = document.getElementById("configModal");
-      /** @type {any} */ (modalEl).show();
-    });
-
-    const copyBtn = page.locator("cts-button.btn-clipboard > button");
-    await expect(copyBtn).toBeVisible();
-    await copyBtn.click();
-
-    await expect
-      .poll(() => readCopiedText(page))
-      .toBe('{"server.issuer":"https://op.example.com"}');
-  });
+  // The legacy "plans.html: config modal copy button" test was deleted
+  // when plans.html migrated to <cts-plan-list>: the page no longer renders
+  // a global #configModal or a ClipboardJS-wired .btn-clipboard. cts-plan-list
+  // owns its own #planConfigModal and copies via navigator.clipboard.writeText
+  // reading from internal _selectedConfig state — not from a DOM target.
+  // Equivalent end-to-end coverage lives in cts-plan-list.stories.js (ViewConfig
+  // play function asserts navigator.clipboard.writeText is called with the
+  // config JSON). plans.spec.js verifies the modal opens and the copy button
+  // is reachable. The Monaco-fallback variant is moot for cts-plan-list
+  // because the copy path bypasses Monaco entirely.
 
   test("logs.html: config modal copy button copies #config text", async ({ page }) => {
     await installClipboardSpy(page);
@@ -197,49 +171,11 @@ test.describe("ClipboardJS copy buttons render text from cts-button hosts", () =
   // schedule-test-monaco.spec.js exercises the loader-blocked path — and
   // it doesn't touch the configModal copy button on plans.html / logs.html.
 
-  test("plans.html (Monaco fallback): copy button still copies #config.value", async ({ page }) => {
-    await installClipboardSpy(page);
-    await setupFailFast(page);
-
-    // Block Monaco BEFORE goto so the wrapper falls back on first render.
-    await page.route("**/vendor/monaco-editor/**", (route) =>
-      route.fulfill({ status: 503, body: "" }),
-    );
-
-    await page.route("**/api/plan?*", (route) => {
-      const envelope = wrapDataTablesResponse([], route.request().url());
-      return route.fulfill({
-        status: 200,
-        contentType: "application/json",
-        body: JSON.stringify(envelope),
-      });
-    });
-
-    await setupCommonRoutes(page);
-
-    await page.goto("/plans.html");
-
-    // Wait for the fallback textarea — Monaco MUST NOT mount.
-    const fallback = page.locator("cts-json-editor#config .oidf-json-editor-fallback");
-    await expect(fallback).toBeAttached({ timeout: 10000 });
-    await expect(page.locator("cts-json-editor#config .monaco-editor")).toHaveCount(0);
-
-    await page.evaluate(() => {
-      const config = /** @type {any} */ (document.getElementById("config"));
-      if (!config) throw new Error("#config missing");
-      config.value = '{"server.issuer":"https://op.example.com"}';
-      const modalEl = document.getElementById("configModal");
-      /** @type {any} */ (modalEl).show();
-    });
-
-    const copyBtn = page.locator("cts-button.btn-clipboard > button");
-    await expect(copyBtn).toBeVisible();
-    await copyBtn.click();
-
-    await expect
-      .poll(() => readCopiedText(page))
-      .toBe('{"server.issuer":"https://op.example.com"}');
-  });
+  // The legacy "plans.html (Monaco fallback)" test was deleted alongside the
+  // primary plans.html clipboard test above — the fallback path is irrelevant
+  // for cts-plan-list because its copy reads from internal state, not from
+  // the cts-json-editor's .value. See the comment above for the equivalent
+  // coverage map.
 
   test("logs.html (Monaco fallback): copy button still copies #config.value", async ({ page }) => {
     await installClipboardSpy(page);
