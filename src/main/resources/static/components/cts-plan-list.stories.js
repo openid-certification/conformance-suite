@@ -169,6 +169,14 @@ export const ViewConfig = {
     expect(editor.value).toContain("server.issuer");
     expect(editor.value).toContain("https://op.example.com");
 
+    // Exactly one Monaco editor must be mounted. cts-modal relocates its
+    // slotted children via appendChild, which fires disconnect → reconnect
+    // on cts-json-editor; without the reentrancy guard in _bootMonaco, the
+    // second connect stacks a duplicate Monaco editor on the same host
+    // (cursor on an empty editor above the one with the JSON).
+    const monacoInstances = editor.querySelectorAll(".monaco-editor");
+    expect(monacoInstances.length).toBe(1);
+
     // Plan ID shown in the modal
     const canvas = within(canvasElement);
     await waitFor(() => {
