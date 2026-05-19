@@ -37,22 +37,29 @@
 set -euo pipefail
 
 OFFLINE=0
+CHECK=0
 for arg in "$@"; do
     case "$arg" in
         --offline) OFFLINE=1 ;;
+        --check)   OFFLINE=1; CHECK=1 ;;  # --check implies --offline; writes to a tempfile and compares
         -h|--help)
             sed -n '3,33p' "$0"
             exit 0
             ;;
         *)
             echo "Unknown argument: $arg" >&2
-            echo "Usage: $0 [--offline]" >&2
+            echo "Usage: $0 [--offline|--check]" >&2
             exit 2
             ;;
     esac
 done
 
-REPO_ROOT="$(git rev-parse --show-toplevel)"
+# Resolve repo paths from this script's location (frontend/scripts/codegen.sh)
+# so the script has zero dependency on the surrounding VCS — keeps CI images lean
+# (no `apk add git` needed for the offline check).
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+FRONTEND_DIR="$(dirname "${SCRIPT_DIR}")"
+REPO_ROOT="$(dirname "${FRONTEND_DIR}")"
 API_DIR="${REPO_ROOT}/frontend/src/api"
 FIXTURES_DIR="${API_DIR}/fixtures"
 SAMPLES_DIR="${API_DIR}/samples"
@@ -144,7 +151,16 @@ if [ -d "${SAMPLES_DIR}" ]; then
     done
 fi
 
-echo "  [5/5] Merging → ${TYPES_FILE#"${REPO_ROOT}/"}"
+# In --check mode, write to a sibling tempfile so we can compare without
+# touching the committed cache (working tree stays clean either way).
+if [ "${CHECK}" -eq 1 ]; then
+    OUTPUT_FILE="${TMPDIR}/api-types.d.ts"
+    echo "  [5/5] Merging → (check mode, comparing against committed cache)"
+else
+    OUTPUT_FILE="${TYPES_FILE}"
+    echo "  [5/5] Merging → ${TYPES_FILE#"${REPO_ROOT}/"}"
+fi
+
 {
     cat <<'HEADER'
 /**
@@ -168,9 +184,23 @@ HEADER
         echo "// ─── sample-derived: ${key} ────────────────────────────────────────"
         cat "${TMPDIR}/${key}.d.ts"
     done
-} >"${TYPES_FILE}.tmp"
+} >"${OUTPUT_FILE}.tmp"
 
-$NPX prettier --parser typescript "${TYPES_FILE}.tmp" >"${TYPES_FILE}"
-rm -f "${TYPES_FILE}.tmp"
+$NPX prettier --parser typescript "${OUTPUT_FILE}.tmp" >"${OUTPUT_FILE}"
+rm -f "${OUTPUT_FILE}.tmp"
 
-echo "✓ Done. Review \`git diff frontend/src/api/\` and commit."
+if [ "${CHECK}" -eq 1 ]; then
+    if cmp -s "${TYPES_FILE}" "${OUTPUT_FILE}"; then
+        echo "✓ Cache is coherent."
+    else
+        echo "ERROR: regenerated api-types.d.ts does not match committed cache." >&2
+        echo "  Either someone hand-edited frontend/src/api/api-types.d.ts," >&2
+        echo "  or samples/openapi.json drifted without re-merging." >&2
+        echo "  Fix locally with: cd frontend && npm run codegen:offline && commit." >&2
+        echo "  --- diff (committed vs. regenerated) ---" >&2
+        diff -u "${TYPES_FILE}" "${OUTPUT_FILE}" >&2 || true
+        exit 1
+    fi
+else
+    echo "✓ Done. Review changes under frontend/src/api/ and commit."
+fi

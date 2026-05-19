@@ -18,7 +18,7 @@
     "type-check": "tsc --noEmit --pretty false -p tsconfig.json && tsc --noEmit --pretty false -p e2e/tsconfig.json",
     "codegen": "bash scripts/codegen.sh",
     "codegen:offline": "bash scripts/codegen.sh --offline",
-    "codegen:check": "bash scripts/codegen.sh --offline && git diff --exit-code -- src/api/api-types.d.ts src/api/openapi.json src/api/samples",
+    "codegen:check": "bash scripts/codegen.sh --check",
     "test:ci": "npm run format:check && npm run lint && npm run type-check && npm run lint:jsdoc && npm run lint:lit-analyzer && npm run codegen:check",
     "test": "npm run test:ci && npm run test-storybook"
   },
