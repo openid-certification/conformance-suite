@@ -337,6 +337,103 @@ export const WithHiddenFields = {
     });
     expect(receivedConfig.client.client_id).toBe("edited-id");
     expect(receivedConfig.client.client_secret).toBe("hidden-secret");
+
+    // Form-tab edit path: typing into a visible field also preserves the
+    // hidden value. _handleFieldChange runs structuredClone(this.config),
+    // _setAtPath the new value, and emits — no merge step is needed
+    // because the clone carries the hidden key forward. This is a
+    // distinct code path from the JSON-tab merge above; a future
+    // refactor that constructs the config from scratch in
+    // _handleFieldChange would break it.
+    receivedConfig = null;
+    await userEvent.click(canvas.getByRole("tab", { name: "Form" }));
+    const visibleInput = canvasElement.querySelector(
+      'cts-form-field[name="client.client_id"] input',
+    );
+    expect(visibleInput).toBeTruthy();
+    /** @type {any} */ (visibleInput).value = "from-form-tab";
+    visibleInput.dispatchEvent(new Event("input", { bubbles: true }));
+    await waitFor(() => {
+      expect(receivedConfig).not.toBeNull();
+    });
+    expect(receivedConfig.client.client_id).toBe("from-form-tab");
+    expect(receivedConfig.client.client_secret).toBe("hidden-secret");
+  },
+};
+
+/**
+ * Validates the type:object round-trip: a JWKS object passed in via
+ * `.config` renders as pretty-printed JSON in the textarea, and an edit to
+ * that JSON dispatches `cts-config-change` with a PARSED object (not a
+ * string). This is the contract the schedule-test page depends on — every
+ * federation JWKS field, every `server.jwks`/`client.jwks`/etc., the
+ * `*.presentation_definition`, the brazil payment-consent textareas. A
+ * regression here would cause `JSON.stringify(currentConfig)` on submit to
+ * emit `"jwks":"{...}"` (string) instead of `"jwks":{...}` (object), which
+ * the backend rejects.
+ */
+export const ObjectFieldRoundTrip = {
+  render: () => html`
+    <cts-config-form
+      .schema=${{
+        type: "object",
+        properties: {
+          alias: { type: "string", title: "alias" },
+          "server.jwks": {
+            type: "object",
+            title: "server_jwks",
+            description: "JWKS for the server",
+          },
+        },
+      }}
+      .uiSchema=${{
+        sections: [{ key: "_root", title: "Test", fields: ["alias", "server.jwks"] }],
+      }}
+      .config=${{ server: { jwks: { keys: [{ kty: "RSA", alg: "RS256" }] } } }}
+      .errors=${{}}
+    ></cts-config-form>
+  `,
+  async play({ canvasElement }) {
+    // Display: the textarea text is the pretty-printed JSON of the config
+    // value, not "[object Object]". Verifies cts-form-field._displayValue
+    // formats type:object values.
+    const jwksField = canvasElement.querySelector('cts-form-field[name="server.jwks"]');
+    expect(jwksField).toBeTruthy();
+    const textarea = /** @type {HTMLTextAreaElement} */ (jwksField.querySelector("textarea"));
+    expect(textarea).toBeTruthy();
+    expect(textarea.value).toContain('"keys"');
+    expect(textarea.value).toContain('"RSA"');
+    expect(textarea.value).not.toBe("[object Object]");
+
+    // Emit: editing the textarea to valid JSON dispatches an OBJECT, not a
+    // string. The page's currentConfig listener (and the eventual
+    // JSON.stringify on submit) sees the parsed shape.
+    /** @type {any} */
+    let receivedConfig = null;
+    canvasElement.addEventListener("cts-config-change", (e) => {
+      receivedConfig = /** @type {CustomEvent} */ (e).detail.config;
+    });
+    textarea.value = JSON.stringify({ keys: [{ kty: "EC", crv: "P-256" }] });
+    textarea.dispatchEvent(new Event("input", { bubbles: true }));
+    await waitFor(() => {
+      expect(receivedConfig).not.toBeNull();
+    });
+    expect(typeof receivedConfig.server.jwks).toBe("object");
+    expect(receivedConfig.server.jwks.keys[0].kty).toBe("EC");
+    expect(receivedConfig.server.jwks.keys[0].crv).toBe("P-256");
+
+    // Invalid JSON: dispatches the raw string AND surfaces setCustomValidity
+    // so submit is blocked at the browser layer. Mirrors legacy
+    // validateJSONFromFormElement semantics.
+    receivedConfig = null;
+    textarea.value = "{broken json";
+    textarea.dispatchEvent(new Event("input", { bubbles: true }));
+    await waitFor(() => {
+      expect(receivedConfig).not.toBeNull();
+    });
+    expect(receivedConfig.server.jwks).toBe("{broken json");
+    expect(textarea.validationMessage).not.toBe("");
+    expect(textarea.classList.contains("is-invalid")).toBe(true);
   },
 };
 

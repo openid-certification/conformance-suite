@@ -80,6 +80,27 @@
 export const ALWAYS_ON_FIELDS = Object.freeze(["alias", "description", "publish"]);
 
 /**
+ * Set a value at a dotted path inside a nested object, creating
+ * intermediate objects as needed. Mirrors the same logic in
+ * cts-config-form's private `_setAtPath` so page-level code (JWKS
+ * generators, etc.) can write into a config object without depending
+ * on the component's private API.
+ *
+ * @param {Record<string, any>} obj - Destination object (mutated in place).
+ * @param {string} dottedPath - Path such as "federation.op_ec_jwks".
+ * @param {any} value - Value to assign at the leaf.
+ */
+export function setAtPath(obj, dottedPath, value) {
+  const parts = dottedPath.split(".");
+  let cur = obj;
+  for (let i = 0; i < parts.length - 1; i++) {
+    cur[parts[i]] = cur[parts[i]] || {};
+    cur = cur[parts[i]];
+  }
+  cur[parts[parts.length - 1]] = value;
+}
+
+/**
  * Compute the union of dotted-path strings that should be applicable for this
  * plan, taking the plan-level fields, module-level fields, and (optionally) the
  * currently-selected variant's per-value fields. Always-on fields are added at
@@ -173,12 +194,18 @@ function fieldToSchemaFragment(field) {
  * `console.warn` is logged once per unknown path so a future PR can extend
  * the catalog.
  *
+ * `selectedVariant` is passed through to `computeApplicableFields` so
+ * variant-contributed fields appear in the schema once the user picks a
+ * variant value. Callers should rebuild the schema on every variant change
+ * (the schedule-test page does this from `updateConfigFieldVisibility`).
+ *
  * @param {PlanInfo} planInfo
  * @param {FieldCatalog} fieldCatalog
+ * @param {Record<string, string>} [selectedVariant] - Map of variant param → selected value.
  * @returns {{ schema: object, uiSchema: object }}
  */
-export function buildConfigFormSchema(planInfo, fieldCatalog) {
-  const applicable = computeApplicableFields(planInfo, undefined);
+export function buildConfigFormSchema(planInfo, fieldCatalog, selectedVariant) {
+  const applicable = computeApplicableFields(planInfo, selectedVariant);
   /** @type {Record<string, any>} */
   const properties = {};
   /** @type {Array<{ key: string, title: string, fields: string[] }>} */

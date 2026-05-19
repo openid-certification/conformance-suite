@@ -379,8 +379,6 @@ var FAPI_UI = {
 			}
 		},
 
-		testJSON : {},
-
 		selectedVariant: undefined
 
 };
