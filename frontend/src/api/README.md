@@ -68,10 +68,12 @@ npm run codegen:offline
 ```
 
 Skips network steps (1, 2) and re-runs the merge from the already-committed
-`openapi.json` and `samples/`. CI invokes this in `frontend_lint` and asserts
-`git diff --exit-code frontend/src/api/api-types.d.ts` so a hand-edited or
-partially-regenerated cache fails CI. CI does **not** boot Spring; Java drift
-surfaces only when a contributor next runs `npm run codegen`.
+`openapi.json` and `samples/`. CI invokes the sister `npm run codegen:check`
+in `frontend_lint`: it runs the same offline merge into a tempfile and
+`cmp`s it against the committed `api-types.d.ts`, so a hand-edited or
+partially-regenerated cache fails CI without polluting the working tree
+and without needing `git` on the runner image. CI does **not** boot Spring;
+Java drift surfaces only when a contributor next runs `npm run codegen`.
 
 ## Authoring fixtures
 
