@@ -87,10 +87,13 @@ const STYLE_TEXT = `
   /* '.planConfigJson' (and the '.config-json' sibling on the same element)
      are pre-existing class names from when this slot rendered a <pre>;
      the slot is now a <cts-json-editor> inside the cts-modal. Do not
-     rename without updating all three call sites at once: this CSS rule,
-     the '.config-json' selector that cts-plan-list.stories.js + the
-     ClipboardJS handlers in plans.html / logs.html / log-detail.html
-     match on, and the data-clipboard-target=".config-json" attribute. */
+     rename without updating the cts-plan-list.stories.js ViewConfig play
+     function, which queries 'cts-json-editor.config-json' to read the
+     value off the editor. plans.html no longer matches this selector
+     (the page now mounts cts-plan-list and the component owns its own
+     copy path via navigator.clipboard); logs.html and log-detail.html
+     still operate the legacy ClipboardJS + #config path against their
+     own cts-modal config viewer. */
   cts-plan-list .planConfigJson {
     display: block;
     margin: 0;
@@ -175,7 +178,17 @@ class CtsPlanList extends LitElement {
       if (!response.ok) {
         throw new Error(`Failed to load test plans (HTTP ${response.status})`);
       }
-      this._plans = await response.json();
+      // Real backend (TestPlanApi.getTestPlansForCurrentUser) returns a
+      // PaginationResponse envelope: { draw, recordsTotal, recordsFiltered,
+      // data: [...] }. Some test mocks and the storybook MSW handlers
+      // return a plain array. Accept both so the component is robust to
+      // the wire shape on either side.
+      const payload = await response.json();
+      this._plans = Array.isArray(payload)
+        ? payload
+        : Array.isArray(payload?.data)
+          ? payload.data
+          : [];
     } catch (err) {
       this._error = err instanceof Error ? err.message : String(err);
       this._plans = [];
@@ -269,15 +282,20 @@ class CtsPlanList extends LitElement {
   }
 
   _columns() {
+    // Legacy plans.html gated both Config and Owner columns on the
+    // public-listing flag (`visible: !public ...`). PublicPlan omits the
+    // config field server-side, so a Config button in the public view
+    // opens an empty modal; Owner reveals an internal sub the public
+    // listing is not meant to expose. Mirror the legacy behavior here.
     const cols = [
       { key: "planName", label: "Plan Name" },
       { key: "variant", label: "Variant" },
       { key: "description", label: "Description" },
       { key: "started", label: "Started" },
       { key: "modules", label: "Modules" },
-      { key: "_config", label: "Config" },
     ];
-    if (this.isAdmin) cols.push({ key: "owner.sub", label: "Owner" });
+    if (!this.isPublic) cols.push({ key: "_config", label: "Config" });
+    if (!this.isPublic && this.isAdmin) cols.push({ key: "owner.sub", label: "Owner" });
     return cols;
   }
 

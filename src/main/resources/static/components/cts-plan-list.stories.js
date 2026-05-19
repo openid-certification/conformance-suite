@@ -186,8 +186,14 @@ export const ViewConfig = {
     expect(copyBtnHost).toBeTruthy();
     await userEvent.click(innerButton(copyBtnHost));
 
+    // Assert the clipboard payload, not just that writeText fired. The
+    // component formats the selected plan's config as 4-space-indented
+    // JSON; if a future refactor swaps the source (e.g., reads from the
+    // editor instead of internal state), the contents would silently
+    // diverge from the plan being viewed.
+    const expectedPayload = JSON.stringify(MOCK_PLAN_LIST[0].config, null, 4);
     await waitFor(() => {
-      expect(clipboardSpy).toHaveBeenCalled();
+      expect(clipboardSpy).toHaveBeenCalledWith(expectedPayload);
     });
   },
 };
