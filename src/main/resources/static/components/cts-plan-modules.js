@@ -100,14 +100,14 @@ const STYLE_TEXT = `
     color: var(--fg-soft);
   }
   cts-plan-modules .module-row .name {
-    font-weight: var(--fw-bold);
+    font-weight: var(--fw-regular);
     font-size: var(--fs-13);
     color: var(--fg);
     word-break: break-word;
   }
   /* Inline-flex row keeps the help-icon optically centred on the test
      module name without relying on vertical-align hacks. align-items:
-     center sits the 16px icon on the same axis as the bold 13px text;
+     center sits the 16px icon on the same axis as the 13px text;
      the gap replaces a margin so icon-only rows behave the same as
      icon+text rows. flex-wrap lets long module names break across
      multiple visual lines while keeping the icon hugged to the end. */
