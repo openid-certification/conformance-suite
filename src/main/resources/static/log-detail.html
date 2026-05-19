@@ -61,6 +61,7 @@
 <script type="module" src="/components/cts-log-detail-header.js"></script>
 <script type="module" src="/components/cts-log-viewer.js"></script>
 <script type="module" src="/components/cts-log-toc.js"></script>
+<script type="module" src="/js/cts-toast-api.js"></script>
 
 <!-- New-page bootstrap. Loads after components — module ordering is
      stable because each script type="module" defers until the document
@@ -243,6 +244,8 @@
          flip the grid layout when the rail is enabled. -->
     <cts-log-toc id="ctsLogToc"></cts-log-toc>
   </main>
+
+  <cts-toast-host></cts-toast-host>
 </body>
 
 </html>

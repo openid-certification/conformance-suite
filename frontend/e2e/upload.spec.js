@@ -195,6 +195,44 @@ test.describe("upload.html — Image Uploader", () => {
     await expect(upload).toBeEnabled();
   });
 
+  test("successful upload surfaces a non-blocking 'Image uploaded' toast", async ({ page }) => {
+    await setupFailFast(page);
+    await setupUploadRoutes(page, {
+      testId: "test-upload-001",
+      images: MOCK_IMAGES_EMPTY,
+    });
+    await setupCommonRoutes(page);
+
+    await page.goto("/upload.html?log=test-upload-001");
+
+    // The host mount must be on the page before the upload event fires —
+    // the cross-page wiring promises an always-mounted region per page.
+    await expect(page.locator("cts-toast-host")).toHaveCount(1);
+
+    const uploader = page.locator("cts-image-upload");
+    await expect(uploader).toBeVisible();
+
+    // The page's `cts-image-uploaded` listener calls window.ctsToast +
+    // refreshImages. Dispatching the event here exercises the exact
+    // seam the plan's R7 smoke-test migration touches, without depending
+    // on cts-image-upload's internal POST plumbing.
+    await uploader.evaluate((el) => {
+      el.dispatchEvent(new CustomEvent("cts-image-uploaded", { bubbles: true }));
+    });
+
+    const toast = page.locator("cts-toast-host cts-toast");
+    await expect(toast).toBeVisible();
+    await expect(toast).toContainText("Image uploaded");
+    // `kind: "ok"` resolves to the status-pass left rule (green) — the
+    // inline style on `.oidf-toast` carries the CSS custom-property name.
+    await expect(toast.locator(".oidf-toast")).toHaveAttribute("style", /--status-pass/);
+
+    // Default duration is 5000ms. Allow a small buffer to absorb the
+    // fade-out transition (200ms) and any scheduler jitter so the
+    // assertion is robust without inflating per-test cost.
+    await expect(toast).toHaveCount(0, { timeout: 6000 });
+  });
+
   test("server error on initial load surfaces through the errorModal", async ({ page }) => {
     await setupFailFast(page);
 

@@ -83,6 +83,7 @@
     <script type="module" src="/components/cts-page-head.js"></script>
     <script type="module" src="/components/cts-card.js"></script>
     <script type="module" src="/components/cts-image-upload.js"></script>
+    <script type="module" src="/js/cts-toast-api.js"></script>
 
 <script type="text/javascript">
     // Cap on ad-hoc additional uploads. The synthetic editable-description
@@ -102,8 +103,14 @@
         // The component fires cts-image-uploaded after every successful POST
         // (per-slot or ad-hoc). Re-fetch the server's image list so the
         // component renders the new uploaded image and re-evaluates whether
-        // to keep offering the additional uploader slot.
+        // to keep offering the additional uploader slot. The toast is the
+        // visible success confirmation — the legacy page surfaced nothing
+        // beyond the table refresh, which left the user wondering whether
+        // the request had actually landed.
         uploader.addEventListener('cts-image-uploaded', function() {
+            if (typeof window.ctsToast === 'function') {
+                window.ctsToast({ title: 'Image uploaded', kind: 'ok' });
+            }
             refreshImages();
         });
 
@@ -276,6 +283,7 @@
         <span class="muted">OpenID Foundation conformance suite</span>
     </footer>
 
+    <cts-toast-host></cts-toast-host>
 </body>
 
 </html>

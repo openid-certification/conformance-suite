@@ -1,6 +1,12 @@
 import { html } from "lit";
 import { expect, userEvent, waitFor } from "storybook/test";
 import { CtsToastHost } from "./cts-toast.js";
+// Side-effect import: installs `window.ctsToast`, the global page-level
+// API the static HTML pages use. The stories below exercise that wrapper
+// directly (not just `CtsToastHost.show`) so the surface that real pages
+// call from non-module <script> blocks is covered by the play-function
+// suite.
+import "../js/cts-toast-api.js";
 
 export default {
   title: "Patterns/cts-toast",
@@ -194,6 +200,81 @@ export const ErrorKind = {
 
     const icon = toast.querySelector("cts-icon");
     expect(icon.getAttribute("name")).toBe("close-circle");
+  },
+};
+
+/**
+ * Happy path for the global `window.ctsToast` API. Calling the global
+ * with title/message/kind produces a `<cts-toast>` inside the
+ * auto-created host. The auto-dismiss timer fires, the toast leaves the
+ * DOM, and `cts-toast-dismiss` bubbles to the host. Uses a short 50ms
+ * `duration` so the play function settles quickly.
+ */
+export const ViaWindowApi = {
+  render: () => html`<div data-testid="trigger-zone"></div>`,
+  async play() {
+    resetHost();
+
+    expect(typeof (/** @type {any} */ (window).ctsToast)).toBe("function");
+    const toast = /** @type {any} */ (window).ctsToast({
+      title: "Saved",
+      message: "All good.",
+      kind: "ok",
+      duration: 50,
+    });
+    expect(toast).toBeTruthy();
+    expect(toast.tagName.toLowerCase()).toBe("cts-toast");
+
+    const host = /** @type {HTMLElement} */ (document.querySelector("cts-toast-host"));
+    expect(host).toBeTruthy();
+    expect(host.contains(toast)).toBe(true);
+
+    let dismissed = false;
+    host.addEventListener("cts-toast-dismiss", () => {
+      dismissed = true;
+    });
+
+    await waitFor(
+      () => {
+        expect(dismissed).toBe(true);
+      },
+      { timeout: 1000 },
+    );
+    expect(document.querySelector("cts-toast")).toBeNull();
+
+    resetHost();
+  },
+};
+
+/**
+ * Edge case: `duration: 0` keeps the toast on screen until the caller
+ * dismisses it. The play function waits a short interval (long enough
+ * to fire the default 5000ms timer if it were running), asserts the
+ * toast is still in the DOM, then calls `.dismiss()` on the returned
+ * element and asserts it leaves.
+ */
+export const Persistent = {
+  render: () => html`<div data-testid="trigger-zone"></div>`,
+  async play() {
+    resetHost();
+
+    const toast = /** @type {any} */ (window).ctsToast({
+      title: "Stays put",
+      kind: "ok",
+      duration: 0,
+    });
+    expect(toast).toBeTruthy();
+
+    // 100ms is enough to prove the toast does NOT auto-dismiss — the
+    // default duration is 5000ms, and the only other documented value
+    // (50ms in `ViaWindowApi` above) would already have fired.
+    await new Promise((resolve) => setTimeout(resolve, 100));
+    expect(document.querySelector("cts-toast")).toBe(toast);
+
+    toast.dismiss();
+    expect(document.querySelector("cts-toast")).toBeNull();
+
+    resetHost();
   },
 };
 
