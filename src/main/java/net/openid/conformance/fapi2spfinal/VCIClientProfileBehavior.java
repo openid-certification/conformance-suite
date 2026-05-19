@@ -1,5 +1,6 @@
 package net.openid.conformance.fapi2spfinal;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition.ConditionResult;
@@ -38,6 +39,8 @@ import net.openid.conformance.vci10wallet.condition.ValidateKeyAttestationX5cCer
 import net.openid.conformance.condition.as.clientattestation.AddClientAttestationSigningAlgValuesSupportedToServerConfiguration;
 import net.openid.conformance.vci10wallet.condition.clientattestation.VCIRegisterClientAttestationTrustAnchor;
 import net.openid.conformance.vci10wallet.condition.clientattestation.VCIRegisterKeyAttestationTrustAnchor;
+import net.openid.conformance.vci10wallet.condition.statuslist.VCIGenerateJwtStatusListToken;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -71,6 +74,7 @@ public class VCIClientProfileBehavior extends FAPI2ClientProfileBehavior {
 	private static final String CREDENTIAL_PATH = "credential";
 	private static final String NONCE_PATH = "nonce";
 	private static final String NOTIFICATION_PATH = "notification";
+	private static final String STATUSLISTS_PATH = "statuslists";
 
 	@Override
 	public ConditionSequence validateAuthorizationRequestScope() {
@@ -168,7 +172,8 @@ public class VCIClientProfileBehavior extends FAPI2ClientProfileBehavior {
 	public boolean claimsHttpPath(String path) {
 		return CREDENTIAL_PATH.equals(path)
 			|| NONCE_PATH.equals(path)
-			|| NOTIFICATION_PATH.equals(path);
+			|| NOTIFICATION_PATH.equals(path)
+			|| isStatusListsPath(path);
 	}
 
 	@Override
@@ -179,17 +184,96 @@ public class VCIClientProfileBehavior extends FAPI2ClientProfileBehavior {
 		if (NOTIFICATION_PATH.equals(path)) {
 			return buildNotificationDispatch(requestId);
 		}
+		if (isStatusListsPath(path)) {
+			// statuslists is served imperatively below — the response shape branches on
+			// path (aggregation vs single list) and the JWT-token generation runs
+			// conditionally on env state, neither of which fits the PathDispatch model.
+			return null;
+		}
 		// CREDENTIAL_PATH
 		return buildCredentialDispatch(requestId);
+	}
+
+	@Override
+	public Object handleProfileSpecificPath(String requestId, String path) {
+		if (isStatusListsPath(path)) {
+			return serveStatusListsRequest(module, requestId, path);
+		}
+		return super.handleProfileSpecificPath(requestId, path);
+	}
+
+	public static boolean isStatusListsPath(String path) {
+		return path.equals(STATUSLISTS_PATH) || path.startsWith(STATUSLISTS_PATH + "/");
+	}
+
+	/**
+	 * Status list endpoint per draft-ietf-oauth-status-list-15. Two shapes:
+	 * <ul>
+	 *   <li>{@code GET statuslists} (aggregation, §9.3) — JSON listing the individual status
+	 *       list URLs the issuer publishes.</li>
+	 *   <li>{@code GET statuslists/{id}} (individual list, §8.1) — signed status list JWT
+	 *       (mediatype {@code application/statuslist+jwt}); 404 when no list with that id.</li>
+	 * </ul>
+	 *
+	 * <p>Static + module-arg so the wallet (which overwrites {@code profileBehavior} to
+	 * {@code PlainFAPIClientProfileBehavior} in its {@code configure}) can route directly to
+	 * this method without going through the (non-VCI) profile-behavior dispatcher.
+	 *
+	 * <p>Does not manage test status — the caller is responsible (the FAPI2SP outer's
+	 * {@code handleClientRequestForPath} wraps profile dispatch in a {@code RUNNING/WAITING}
+	 * try/finally; the wallet wraps the call site itself).
+	 */
+	public static Object serveStatusListsRequest(AbstractFAPI2SPFinalClientTest module,
+			String requestId, String path) {
+		module.doCall(module.doExec().startBlock("Status list endpoint")
+			.mapKey("status_list_endpoint_request", requestId));
+
+		Environment env = module.getEnv();
+		ResponseEntity<Object> response;
+		if (path.equals(STATUSLISTS_PATH) || path.equals(STATUSLISTS_PATH + "/")) {
+			JsonObject aggregatedStatusList = new JsonObject();
+			JsonArray statusLists = new JsonArray();
+			// we only support one list for now
+			statusLists.add(getStatusListUrl(env, "1"));
+			aggregatedStatusList.add("statuslists", statusLists);
+			response = ResponseEntity.ok()
+				.header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+				.body(aggregatedStatusList);
+		} else {
+			String statusListId = path.substring(path.lastIndexOf("/") + 1);
+			JsonElement statusListEl = env.getElementFromObject("vci",
+				"status_lists.status_list_" + statusListId);
+			if (statusListEl == null) {
+				response = ResponseEntity.notFound().build();
+			} else {
+				env.putString("current_status_list_id", statusListId);
+				module.doCallAndContinueOnFailure(VCIGenerateJwtStatusListToken.class,
+					ConditionResult.INFO, "OTSL-5.1");
+				String currentStatusListJwt = env.getString("current_status_list_jwt");
+				// TODO add cors headers
+				// TODO handle time query parameter, see https://datatracker.ietf.org/doc/html/draft-ietf-oauth-status-list-15#section-8.4
+				response = ResponseEntity.ok()
+					.header(HttpHeaders.CONTENT_TYPE, "application/statuslist+jwt")
+					.body(currentStatusListJwt);
+			}
+		}
+
+		module.doCall(module.doExec().unmapKey("status_list_endpoint_request").endBlock());
+		return response;
+	}
+
+	static String getStatusListUrl(Environment env, String statusListId) {
+		return env.getString("server", "issuer") + STATUSLISTS_PATH + "/" + statusListId;
 	}
 
 	/**
 	 * Additional SD-JWT claims to inject into the issued credential. Default is none
 	 * ({@code null}). Subclasses for profiles that require specific SD-JWT claims (e.g.
 	 * the HAIP status_list reference, see {@link VCIHaipClientProfileBehavior}) override
-	 * this to return a populated map.
+	 * this to return a populated map. Public so the wallet's imperative credential-issuance
+	 * path can read it without duplicating the claim-construction logic.
 	 */
-	protected Map<String, Object> additionalSdJwtClaims() {
+	public Map<String, Object> additionalSdJwtClaims() {
 		return null;
 	}
 
