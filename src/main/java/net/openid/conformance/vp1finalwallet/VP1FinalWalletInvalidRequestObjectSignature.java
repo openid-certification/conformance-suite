@@ -1,15 +1,11 @@
 package net.openid.conformance.vp1finalwallet;
 
-import net.openid.conformance.condition.client.BuildRequestObjectByReferenceRedirectToAuthorizationEndpointWithoutDuplicates;
-import net.openid.conformance.condition.client.CreateMultiSignedRequestObject;
 import net.openid.conformance.condition.client.InvalidateMultiSignedRequestObjectSignatures;
 import net.openid.conformance.condition.client.InvalidateRequestObjectSignature;
 import net.openid.conformance.condition.common.ExpectInvalidRequestObjectSignatureErrorPage;
-import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
 import net.openid.conformance.testmodule.TestFailureException;
 import net.openid.conformance.variant.VariantNotApplicable;
-import org.jetbrains.annotations.NotNull;
 
 @PublishTestModule(
 	testName = "oid4vp-1final-wallet-negative-test-invalid-request-object-signature",
@@ -22,26 +18,20 @@ import org.jetbrains.annotations.NotNull;
 @VariantNotApplicable(parameter = VP1FinalWalletRequestMethod.class, values={"request_uri_unsigned", "url_query"})
 public class VP1FinalWalletInvalidRequestObjectSignature extends AbstractVP1FinalWalletTest {
 
-	@NotNull
 	@Override
-	protected ConditionSequence createAuthorizationRedirectStepsSignedRequestUri() {
-		ConditionSequence seq = super.createAuthorizationRedirectStepsSignedRequestUri();
-
-		seq = seq.insertBefore(BuildRequestObjectByReferenceRedirectToAuthorizationEndpointWithoutDuplicates.class,
-			condition(InvalidateRequestObjectSignature.class));
-
-		return seq;
-	}
-
-	@NotNull
-	@Override
-	protected ConditionSequence createAuthorizationRedirectStepsMultiSignedRequestUri() {
-		ConditionSequence seq = super.createAuthorizationRedirectStepsMultiSignedRequestUri();
-
-		seq = seq.insertAfter(CreateMultiSignedRequestObject.class,
-			condition(InvalidateMultiSignedRequestObjectSignatures.class));
-
-		return seq;
+	protected void signRequestObject() {
+		super.signRequestObject();
+		switch (requestMethod) {
+			case REQUEST_URI_SIGNED:
+				callAndStopOnFailure(InvalidateRequestObjectSignature.class);
+				break;
+			case REQUEST_URI_MULTISIGNED:
+				callAndStopOnFailure(InvalidateMultiSignedRequestObjectSignatures.class);
+				break;
+			default:
+				// excluded by @VariantNotApplicable
+				throw new RuntimeException("VP1FinalWalletInvalidRequestObjectSignature: unexpected requestMethod " + requestMethod);
+		}
 	}
 
 	@Override

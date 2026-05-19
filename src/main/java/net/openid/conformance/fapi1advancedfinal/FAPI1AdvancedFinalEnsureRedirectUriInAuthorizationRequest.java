@@ -8,7 +8,13 @@ import net.openid.conformance.testmodule.PublishTestModule;
 @PublishTestModule(
 	testName = "fapi1-advanced-final-ensure-redirect-uri-in-authorization-request",
 	displayName = "FAPI1-Advanced-Final: ensure redirect URI in authorization request",
-	summary = "This test should result an the authorization server showing an error page saying the redirect url is missing from the request (a screenshot of which should be uploaded)",
+	summary = """
+		This test sends an authorization request that does not include a `redirect_uri` parameter. The following outcomes are permitted:
+
+		- the PAR endpoint rejects the request with an `invalid_request` error;
+		- the authorization endpoint shows an error page saying the redirect uri is missing from the request (a screenshot of which should be uploaded);
+		- the authorization server accepts the request and uses the registered redirect URI as a default (which is permitted, but not required, by RFC6749 section 3.1.2.3 when only one redirect URI is registered).
+		""",
 	profile = "FAPI1-Advanced-Final",
 	configurationFields = {
 		"server.discoveryUrl",

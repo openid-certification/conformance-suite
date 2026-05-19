@@ -20,17 +20,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 	testName = "fapi2-security-profile-final-ensure-authorization-code-is-bound-to-client",
 	displayName = "FAPI2-Security-Profile-Final: ensure authorization code is bound to client",
 	summary = "This test ensures the token endpoint returns an error if a valid authorization code is used with another client's credentials.",
-	profile = "FAPI2-Security-Profile-Final",
-	configurationFields = {
-		"server.discoveryUrl",
-		"client.client_id",
-		"client.scope",
-		"client.jwks",
-		"client2.client_id",
-		"client2.scope",
-		"client2.jwks",
-		"resource.resourceUrl"
-	}
+	profile = "FAPI2-Security-Profile-Final"
 )
 
 @VariantNotApplicable(parameter = FAPI2FinalOPProfile.class, values = { "fapi_client_credentials_grant" })

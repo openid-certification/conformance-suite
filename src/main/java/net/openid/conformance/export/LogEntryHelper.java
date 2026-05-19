@@ -87,6 +87,7 @@ public class LogEntryHelper {
 		specLinks.put("OID4VP-1FINALA-", "https://openid.net/specs/openid-4-verifiable-presentations-1_0.html#appendix-");
 		specLinks.put("OID4VCI-1FINAL-", "https://openid.net/specs/openid-4-verifiable-credential-issuance-1_0.html#section-");
 		specLinks.put("OID4VCI-1FINALA-", "https://openid.net/specs/openid-4-verifiable-credential-issuance-1_0.html#appendix-");
+		specLinks.put("OpenID4VCI-", "https://github.com/openid/OpenID4VCI/issues/");
 		specLinks.put("HAIP-", "https://openid.net/specs/openid4vc-high-assurance-interoperability-profile-1_0.html#section-");
 		specLinks.put("HAIPA-", "https://openid.net/specs/openid4vc-high-assurance-interoperability-profile-1_0.html#appendix-");
 		specLinks.put("OIDCD-", "https://openid.net/specs/openid-connect-discovery-1_0.html#rfc.section.");
@@ -115,7 +116,7 @@ public class LogEntryHelper {
 		specLinks.put("CID-PURPOSE-", "https://cdn.connectid.com.au/specifications/oauth2-purpose-01.html#section-");
 		specLinks.put("OIDFED-", "https://openid.net/specs/openid-federation-1_0-45.html#section-");
 		specLinks.put("CBUAE", "https://openfinanceuae.atlassian.net/wiki/spaces/standardsv1final/pages/151846988/Security+Profile+-+FAPI");
-		specLinks.put("AUTHZEN-", "https://openid.net/specs/authorization-api-1_0.html#section");
+		specLinks.put("AUTHZEN-", "https://openid.net/specs/authorization-api-1_0.html#section-");
 		specLinks.put("FAPI-ISSUES-", "https://bitbucket.org/openid/fapi/issues/");
 	}
 

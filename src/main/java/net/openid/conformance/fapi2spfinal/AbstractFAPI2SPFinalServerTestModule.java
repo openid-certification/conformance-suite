@@ -30,6 +30,8 @@ import net.openid.conformance.condition.client.CallProtectedResource;
 import net.openid.conformance.condition.client.CallProtectedResourceAllowingDpopNonceError;
 import net.openid.conformance.condition.client.CallTokenEndpointAllowingDpopNonceErrorAndReturnFullResponse;
 import net.openid.conformance.condition.client.CallTokenEndpointAndReturnFullResponse;
+import net.openid.conformance.condition.client.ExtractClientAttestationChallengeFromResponseHeader;
+import net.openid.conformance.condition.client.ValidateClientAttestationChallengeResponseHeader;
 import net.openid.conformance.condition.client.CheckForAccessTokenValue;
 import net.openid.conformance.condition.client.CheckForDateHeaderInResourceResponse;
 import net.openid.conformance.condition.client.CheckForPARResponseExpiresIn;
@@ -51,10 +53,8 @@ import net.openid.conformance.condition.client.CreateRandomStateValue;
 import net.openid.conformance.condition.client.CreateRedirectUri;
 import net.openid.conformance.condition.client.CreateTokenEndpointRequestForAuthorizationCodeGrant;
 import net.openid.conformance.condition.client.CreateTokenEndpointRequestForClientCredentialsGrant;
-import net.openid.conformance.condition.client.EnsureContentTypeApplicationJwt;
 import net.openid.conformance.condition.client.EnsureContentTypeJson;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs200or201;
-import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs201;
 import net.openid.conformance.condition.client.EnsureIdTokenContainsKid;
 import net.openid.conformance.condition.client.EnsureMinimumAccessTokenEntropy;
 import net.openid.conformance.condition.client.EnsureMinimumAccessTokenLength;
@@ -78,10 +78,7 @@ import net.openid.conformance.condition.client.ExtractMTLSCertificates2FromConfi
 import net.openid.conformance.condition.client.ExtractMTLSCertificatesFromConfiguration;
 import net.openid.conformance.condition.client.ExtractRequestUriFromPARResponse;
 import net.openid.conformance.condition.client.ExtractSHash;
-import net.openid.conformance.condition.client.ExtractSignedJwtFromResourceResponse;
 import net.openid.conformance.condition.client.FAPI2ValidateJarmSigningAlg;
-import net.openid.conformance.condition.client.FAPIBrazilValidateResourceResponseSigningAlg;
-import net.openid.conformance.condition.client.FAPIBrazilValidateResourceResponseTyp;
 import net.openid.conformance.condition.client.FetchServerKeys;
 import net.openid.conformance.condition.client.GenerateDpopKey;
 import net.openid.conformance.condition.client.GetStaticClient2Configuration;
@@ -112,8 +109,6 @@ import net.openid.conformance.condition.client.ValidateJARMSigningAlg;
 import net.openid.conformance.condition.client.ValidateMTLSCertificates2Header;
 import net.openid.conformance.condition.client.ValidateMTLSCertificatesAsX509;
 import net.openid.conformance.condition.client.ValidateMTLSCertificatesHeader;
-import net.openid.conformance.condition.client.ValidateResourceResponseJwtClaims;
-import net.openid.conformance.condition.client.ValidateResourceResponseSignature;
 import net.openid.conformance.condition.client.ValidateSHash;
 import net.openid.conformance.condition.client.ValidateServerJWKs;
 import net.openid.conformance.condition.client.ValidateSuccessfulAuthCodeFlowResponseFromAuthorizationEndpoint;
@@ -137,6 +132,7 @@ import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.TestFailureException;
 import net.openid.conformance.variant.AuthorizationRequestType;
 import net.openid.conformance.variant.ClientAuthType;
+import net.openid.conformance.variant.ConfigurationFields;
 import net.openid.conformance.variant.FAPI2AuthRequestMethod;
 import net.openid.conformance.variant.FAPI2FinalOPProfile;
 import net.openid.conformance.variant.FAPI2SenderConstrainMethod;
@@ -301,14 +297,14 @@ import java.util.function.Supplier;
 	"vci.credential_issuer_url",
 	"vci.credential_configuration_id",
 	"vci.credential_proof_type_hint",
-	"vci.key_attestation_jwks",
+	"client_attestation.key_attestation_jwks",
 	"vci.authorization_server",
 })
 @VariantConfigurationFields(parameter = FAPI2FinalOPProfile.class, value = "vci_haip", configurationFields = {
 	"vci.credential_issuer_url",
 	"vci.credential_configuration_id",
 	"vci.credential_proof_type_hint",
-	"vci.key_attestation_jwks",
+	"client_attestation.key_attestation_jwks",
 	"vci.authorization_server",
 	"credential.trust_anchor_pem",
 	"credential.status_list_trust_anchor_pem",
@@ -317,8 +313,18 @@ import java.util.function.Supplier;
 	configurationFields = {"client.dpop_signing_alg", "client2.dpop_signing_alg"})
 // Client attestation configuration
 @VariantConfigurationFields(parameter = ClientAuthType.class, value = "client_attestation", configurationFields = {
-	"vci.client_attester_keys_jwks",
-	"vci.client_attestation_issuer"
+	"client_attestation.attester_jwks",
+	"client_attestation.issuer"
+})
+@ConfigurationFields({
+	"server.discoveryUrl",
+	"client.client_id",
+	"client.scope",
+	"client.jwks",
+	"client2.client_id",
+	"client2.scope",
+	"client2.jwks",
+	"resource.resourceUrl"
 })
 public abstract class AbstractFAPI2SPFinalServerTestModule extends AbstractRedirectServerTestModule {
 
@@ -417,8 +423,6 @@ public abstract class AbstractFAPI2SPFinalServerTestModule extends AbstractRedir
 		if (isRarRequest && profileBehavior.shouldExtractRARFromConfig()) {
 			callAndContinueOnFailure(RARSupport.ExtractRARFromConfig.class, Condition.ConditionResult.FAILURE);
 		}
-
-		call(profileBehavior.afterServerConfigurationFetched());
 
 		whichClient = 1;
 
@@ -559,8 +563,6 @@ public abstract class AbstractFAPI2SPFinalServerTestModule extends AbstractRedir
 			} else {
 				callAndStopOnFailure(BuildUnsignedPAREndpointRequest.class);
 			}
-
-			addClientAuthenticationToPAREndpointRequest();
 
 			if (env.getObject("pushed_authorization_request_endpoint_request_headers") == null) {
 				env.putObject("pushed_authorization_request_endpoint_request_headers", new JsonObject());
@@ -735,7 +737,6 @@ public abstract class AbstractFAPI2SPFinalServerTestModule extends AbstractRedir
 
 	protected void createClientCredentialsGrantRequest() {
 		callAndStopOnFailure(CreateTokenEndpointRequestForClientCredentialsGrant.class);
-		addClientAuthenticationToTokenEndpointRequest();
 	}
 
 	protected void performPostAuthorizationFlow() {
@@ -763,8 +764,6 @@ public abstract class AbstractFAPI2SPFinalServerTestModule extends AbstractRedir
 	protected void createAuthorizationCodeRequest() {
 		callAndStopOnFailure(CreateTokenEndpointRequestForAuthorizationCodeGrant.class);
 
-		addClientAuthenticationToTokenEndpointRequest();
-
 		addPkceCodeVerifier();
 
 		call(profileBehavior.addTokenEndpointProfileHeaders());
@@ -790,6 +789,9 @@ public abstract class AbstractFAPI2SPFinalServerTestModule extends AbstractRedir
 
 	/**
 	 * Call sender constrained token endpoint. For DPOP nonce errors, it will retry with new server nonce value.
+	 * Client authentication is added inside the loop so private_key_jwt's client_assertion and
+	 * client_attestation's PoP JWT are regenerated per attempt — the AS may reject reuse of either jti, and
+	 * for client_attestation §8.1 mandates picking up the freshly returned challenge.
 	 * @param requirements requirements are the same as original call to callAndStopOnFailure(CallTokenEndpointAndReturnFullResponse)
 	 */
 	protected void callSenderConstrainedTokenEndpoint(String... requirements) {
@@ -798,16 +800,40 @@ public abstract class AbstractFAPI2SPFinalServerTestModule extends AbstractRedir
 		if (isDpop()) {
 			int i = 0;
 			while(i < MAX_RETRY){
+				addClientAuthenticationToTokenEndpointRequest();
 				createDpopForTokenEndpoint();
 				callAndStopOnFailure(CallTokenEndpointAllowingDpopNonceErrorAndReturnFullResponse.class, requirements);
+				extractAndValidateClientAttestationChallengeResponseHeader("token_endpoint_response_full");
 				if(Strings.isNullOrEmpty(env.getString("token_endpoint_dpop_nonce_error"))) {
 					break;
 				}
 				++i;
 			}
 		} else {
+			addClientAuthenticationToTokenEndpointRequest();
 			callAndStopOnFailure(CallTokenEndpointAndReturnFullResponse.class, requirements);
+			extractAndValidateClientAttestationChallengeResponseHeader("token_endpoint_response_full");
 		}
+	}
+
+	/**
+	 * Extract and validate the {@code OAuth-Client-Attestation-Challenge} response header from the most recent
+	 * endpoint response, when client attestation client auth is in use, so the next request picks up the freshest
+	 * server-supplied challenge (draft-ietf-oauth-attestation-based-client-auth-07 §8.1). No-op for other client
+	 * auth types.
+	 *
+	 * @param fullResponseEnvKey env key holding the full endpoint response object (with {@code headers}), e.g.
+	 *                           {@code token_endpoint_response_full} or
+	 *                           {@link CallPAREndpoint#RESPONSE_KEY pushed_authorization_endpoint_response}.
+	 */
+	protected void extractAndValidateClientAttestationChallengeResponseHeader(String fullResponseEnvKey) {
+		if (getVariant(ClientAuthType.class) != ClientAuthType.CLIENT_ATTESTATION) {
+			return;
+		}
+		env.mapKey("endpoint_response", fullResponseEnvKey);
+		callAndContinueOnFailure(ExtractClientAttestationChallengeFromResponseHeader.class, ConditionResult.FAILURE, "OAuth2-ATCA07-8.1");
+		callAndContinueOnFailure(ValidateClientAttestationChallengeResponseHeader.class, ConditionResult.WARNING, "OAuth2-ATCA07-8.1");
+		env.unmapKey("endpoint_response");
 	}
 
 	protected void exchangeAuthorizationCode() {
@@ -834,8 +860,7 @@ public abstract class AbstractFAPI2SPFinalServerTestModule extends AbstractRedir
 		// https://gitlab.com/openid/conformance-suite/issues/617
 
 		if (clientCredentialsGrant) {
-			// FIXME: Treating as a warning until there is a resolution in:
-			// https://bitbucket.org/openid/fapi/issues/756/certification-team-query-refresh-tokens-in
+			// As per: https://bitbucket.org/openid/fapi/issues/756/certification-team-query-refresh-tokens-in
 			callAndContinueOnFailure(EnsureNoRefreshTokenInTokenResponse.class, ConditionResult.WARNING, "RFC6749-4.4.3");
 		}
 		else {
@@ -886,10 +911,12 @@ public abstract class AbstractFAPI2SPFinalServerTestModule extends AbstractRedir
 		}
 
 		if (isRarRequest){
-			callAndStopOnFailure(RARSupport.CheckForAuthorizationDetailsInTokenResponse.class, "RAR-7");
+			callAndStopOnFailure(RARSupport.CheckForAuthorizationDetailsInTokenResponse.class, "RFC9396-7");
 		}
 
 		call(profileBehavior.validateTokenEndpointResponseInteractionId());
+
+		call(profileBehavior.afterTokenEndpointResponseProcessed());
 	}
 
 	protected void createDpopForTokenEndpoint() {
@@ -1055,37 +1082,9 @@ public abstract class AbstractFAPI2SPFinalServerTestModule extends AbstractRedir
 
 		call(profileBehavior.validateResourceEndpointResponseHeaders(isSecondClient()));
 
-		profileBehavior.validateResourceEndpointResponse();
+		call(profileBehavior.validateResourceEndpointResponse());
 
 		eventLog.endBlock();
-	}
-
-	protected void validateBrazilPaymentInitiationSignedResponse() {
-		call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
-		call(exec().mapKey("endpoint_response_jwt", "consent_endpoint_response_jwt"));
-		callAndContinueOnFailure(EnsureContentTypeApplicationJwt.class, ConditionResult.FAILURE, "BrazilOB-6.1");
-		callAndContinueOnFailure(EnsureHttpStatusCodeIs201.class, ConditionResult.FAILURE);
-
-		callAndStopOnFailure(ExtractSignedJwtFromResourceResponse.class, "BrazilOB-6.1");
-
-		callAndContinueOnFailure(FAPIBrazilValidateResourceResponseSigningAlg.class, ConditionResult.FAILURE, "BrazilOB-6.1");
-
-		callAndContinueOnFailure(FAPIBrazilValidateResourceResponseTyp.class, ConditionResult.FAILURE, "BrazilOB-6.1");
-
-		// signature needs to be validated against the organisation jwks (already fetched during pre-auth steps)
-
-		call(exec().mapKey("server", "org_server"));
-		call(exec().mapKey("server_jwks", "org_server_jwks"));
-		callAndStopOnFailure(FetchServerKeys.class);
-		call(exec().unmapKey("server"));
-		call(exec().unmapKey("server_jwks"));
-
-		callAndContinueOnFailure(ValidateResourceResponseSignature.class, ConditionResult.FAILURE, "BrazilOB-6.1");
-
-		callAndContinueOnFailure(ValidateResourceResponseJwtClaims.class, ConditionResult.FAILURE, "BrazilOB-6.1");
-
-		call(exec().unmapKey("endpoint_response"));
-		call(exec().unmapKey("endpoint_response_jwt"));
 	}
 
 	protected boolean isSecondClient() {
@@ -1106,14 +1105,6 @@ public abstract class AbstractFAPI2SPFinalServerTestModule extends AbstractRedir
 
 	Environment getEnv() {
 		return env;
-	}
-
-	void doCallAndStopOnFailure(Class<? extends Condition> conditionClass, String... requirements) {
-		callAndStopOnFailure(conditionClass, requirements);
-	}
-
-	void doCallAndContinueOnFailure(Class<? extends Condition> conditionClass, Condition.ConditionResult onFail, String... requirements) {
-		callAndContinueOnFailure(conditionClass, onFail, requirements);
 	}
 
 	protected void switchToSecondClient() {
@@ -1230,7 +1221,8 @@ public abstract class AbstractFAPI2SPFinalServerTestModule extends AbstractRedir
 
 
 	/**
-	 * Call Par endpoint with retry for DPoP nonce error
+	 * Call Par endpoint with retry for DPoP nonce error. Client authentication is added inside the loop;
+	 * see {@link #callSenderConstrainedTokenEndpoint} for the rationale.
 	 * @param requirements requirements are the same as original call to callAndStopOnFailure(CallParEndpoint)
 	 */
 	protected void callParEndpointAndStopOnFailure(String... requirements) {
@@ -1238,15 +1230,19 @@ public abstract class AbstractFAPI2SPFinalServerTestModule extends AbstractRedir
 			final int MAX_RETRY = 2;
 			int i = 0;
 			while(i < MAX_RETRY){
+				addClientAuthenticationToPAREndpointRequest();
 				createDpopForParEndpoint();
 				callAndStopOnFailure(CallPAREndpointAllowingDpopNonceError.class, requirements);
+				extractAndValidateClientAttestationChallengeResponseHeader(CallPAREndpoint.RESPONSE_KEY);
 				if(Strings.isNullOrEmpty(env.getString("par_endpoint_dpop_nonce_error"))) {
 					break;
 				}
 				++i;
 			}
 		} else {
+			addClientAuthenticationToPAREndpointRequest();
 			callAndStopOnFailure(CallPAREndpoint.class, requirements);
+			extractAndValidateClientAttestationChallengeResponseHeader(CallPAREndpoint.RESPONSE_KEY);
 		}
 	}
 

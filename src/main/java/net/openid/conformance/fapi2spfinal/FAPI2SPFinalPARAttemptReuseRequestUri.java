@@ -16,17 +16,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 	testName = "fapi2-security-profile-final-par-attempt-reuse-request_uri",
 	displayName = "PAR : try to reuse a request_uri ",
 	summary = "This test tries to use a request_uri twice and expects the authorization server either show an error or redirect back with an invalid_request_uri error, PAR section 7.3 states 'the AS SHOULD make the request URIs one-time use'. If the authentication succeeds a warning will be issued.",
-	profile = "FAPI2-Security-Profile-Final",
-	configurationFields = {
-		"server.discoveryUrl",
-		"client.client_id",
-		"client.scope",
-		"client.jwks",
-		"client2.client_id",
-		"client2.scope",
-		"client2.jwks",
-		"resource.resourceUrl"
-	}
+	profile = "FAPI2-Security-Profile-Final"
 )
 
 @VariantNotApplicable(parameter = FAPI2FinalOPProfile.class, values = { "fapi_client_credentials_grant" })

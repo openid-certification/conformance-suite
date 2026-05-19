@@ -9,7 +9,7 @@ public class CreateAuthzenApiEndpointRequestResource extends CreateAuthzenApiEnd
 	public CreateAuthzenApiEndpointRequestResource(JsonObject requestParameter) {
 		super("resource", requestParameter);
 		this.requiredProperties = new String[]{"type", "id"};
-		this.optionalObjects = new String[] {"properties"};
+		this.optionalProperties = new String[] {"properties"};
 	}
 
 	@Override

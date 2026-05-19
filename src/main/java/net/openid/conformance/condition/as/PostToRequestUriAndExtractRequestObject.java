@@ -16,6 +16,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
@@ -32,7 +33,7 @@ public class PostToRequestUriAndExtractRequestObject extends AbstractCondition {
 
 	@Override
 	@PreEnvironment(required = {"authorization_endpoint_http_request_params", "server_encryption_keys"})
-	@PostEnvironment(required = "authorization_request_object")
+	@PostEnvironment(required = {"authorization_request_object", "request_uri_post_response"})
 	public Environment evaluate(Environment env) {
 		String requestUri = env.getString("authorization_endpoint_http_request_params", "request_uri");
 		if (!Strings.isNullOrEmpty(requestUri)) {
@@ -61,6 +62,9 @@ public class PostToRequestUriAndExtractRequestObject extends AbstractCondition {
 				ResponseEntity<String> response = restTemplate.exchange(requestUri, HttpMethod.POST, requestEntity, String.class);
 				requestObjectString = response.getBody();
 
+				env.putObject("request_uri_post_response",
+					convertResponseForEnvironment("request_uri", response));
+
 				log("Downloaded request object via POST", args("request_object", requestObjectString));
 
 				// request object will be decrypted if it's encrypted
@@ -74,6 +78,14 @@ public class PostToRequestUriAndExtractRequestObject extends AbstractCondition {
 
 			} catch (UnrecoverableKeyException | KeyManagementException | CertificateException | InvalidKeySpecException | NoSuchAlgorithmException | KeyStoreException | IOException e) {
 				throw error("Error creating HTTP client", e);
+			} catch (HttpStatusCodeException e) {
+				ResponseEntity<String> errorResponse = ResponseEntity.status(e.getStatusCode())
+					.headers(e.getResponseHeaders())
+					.body(e.getResponseBodyAsString());
+				env.putObject("request_uri_post_response",
+					convertResponseForEnvironment("request_uri", errorResponse));
+				throw error("Verifier responded with an HTTP error response when fetching request_uri. Per OID4VP §5.10.2 the wallet must terminate processing.",
+					args("status", e.getStatusCode().value(), "request_uri", requestUri));
 			} catch (RestClientException e) {
 				String msg = "Unable to POST to request_uri at " + requestUri;
 				if (e.getCause() != null) {

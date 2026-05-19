@@ -20,17 +20,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 	testName = "fapi2-security-profile-final-ensure-client-assertion-with-no-sub-fails",
 	displayName = "FAPI2-Security-Profile-Final: ensure client_assertion with no sub fails",
 	summary = "This test passes a client assertion where 'sub' is missing to the token endpoint. The server must reject this, returning an 'invalid_client' error. It is vital that the server requires the 'sub' claim, as this is the primary reason a signed request object cannot be used as a client authentication assertion.",
-	profile = "FAPI2-Security-Profile-Final",
-	configurationFields = {
-		"server.discoveryUrl",
-		"client.client_id",
-		"client.scope",
-		"client.jwks",
-		"client2.client_id",
-		"client2.scope",
-		"client2.jwks",
-		"resource.resourceUrl"
-	}
+	profile = "FAPI2-Security-Profile-Final"
 )
 @VariantNotApplicable(parameter = ClientAuthType.class, values = { "mtls", "client_attestation" })
 public class FAPI2SPFinalEnsureClientAssertionWithNoSubFails extends AbstractFAPI2SPFinalPerformTokenEndpoint {

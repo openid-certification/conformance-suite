@@ -6,6 +6,7 @@ import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.testmodule.OIDFJSON;
 
 import java.net.MalformedURLException;
+import java.net.URI;
 import java.net.URL;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -14,7 +15,7 @@ public abstract class AbstractValidateMetadata extends AbstractCondition {
 
 	public boolean validateUrl(String urlString) {
 		try {
-			URL url = new URL(urlString);
+			URL url = URI.create(urlString).toURL();
 
 			if (!"https".equals(url.getProtocol())) {
 				return false;
@@ -34,7 +35,7 @@ public abstract class AbstractValidateMetadata extends AbstractCondition {
 
 			return pathMatcher.matches() && queryMatcher.matches();
 
-		} catch (MalformedURLException e) {
+		} catch (MalformedURLException | IllegalArgumentException e) {
 			return false;
 		}
 	}

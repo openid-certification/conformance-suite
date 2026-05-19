@@ -3,6 +3,7 @@ package net.openid.conformance.condition.client;
 import net.openid.conformance.testmodule.Environment;
 
 import java.net.MalformedURLException;
+import java.net.URI;
 import java.net.URL;
 
 public class CheckOauthDiscEndpointIssuer extends CheckDiscEndpointIssuer {
@@ -18,7 +19,7 @@ public class CheckOauthDiscEndpointIssuer extends CheckDiscEndpointIssuer {
 		String discoveryUrl = getConfigurationUrl(env);
 		try{
 			if(discoveryUrl.contains(getConfigurationEndpoint())) {  // OAuth discovery URL
-				URL url = new URL(discoveryUrl);
+				URL url = URI.create(discoveryUrl).toURL();
 				if(url.getPath().startsWith(getConfigurationEndpoint())) {
 					final String removingPartInUrl = getConfigurationEndpoint();
 					int foundIndex = discoveryUrl.indexOf(removingPartInUrl);
@@ -36,7 +37,7 @@ public class CheckOauthDiscEndpointIssuer extends CheckDiscEndpointIssuer {
 				}
 				return discoveryUrl;
 			}
-		} catch (MalformedURLException e) {
+		} catch (MalformedURLException | IllegalArgumentException e) {
 			throw error("Malformed discovery URL", e, args("url", discoveryUrl));
 		}
 	}

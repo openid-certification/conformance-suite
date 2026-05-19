@@ -4,6 +4,7 @@ import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWSVerifier;
 import com.nimbusds.jose.crypto.factories.DefaultJWSVerifierFactory;
 import com.nimbusds.jose.proc.JWSVerifierFactory;
+import com.nimbusds.jose.util.X509CertUtils;
 import com.nimbusds.jwt.SignedJWT;
 import net.openid.conformance.util.X509CertificateUtil;
 
@@ -53,22 +54,40 @@ public abstract class AbstractValidateX5cCertificateChain extends AbstractCondit
 	}
 
 	/**
+	 * Parse a PEM-encoded trust anchor certificate. Returns {@code null} when the input
+	 * is {@code null}; throws if the input is non-null but not a parseable X.509 certificate
+	 * (so a misconfigured trust anchor surfaces as a test failure rather than silently
+	 * downgrading to legacy chain validation).
+	 */
+	protected X509Certificate parseTrustAnchorPem(String trustAnchorPem) {
+		if (trustAnchorPem == null) {
+			return null;
+		}
+		X509Certificate cert = X509CertUtils.parse(trustAnchorPem);
+		if (cert == null) {
+			throw error("Configured trust anchor PEM could not be parsed as an X.509 certificate");
+		}
+		return cert;
+	}
+
+	/**
 	 * Validate an x5c certificate chain.
 	 *
-	 * Performs the following checks:
-	 * <ol>
-	 *   <li>Chain must not be empty</li>
-	 *   <li>Leaf certificate validity dates (checkValidity())</li>
-	 *   <li>Leaf certificate must NOT be self-signed</li>
-	 *   <li>Chain signature walking: each cert[i] is verified by cert[i+1]'s public key</li>
-	 *   <li>If trustAnchor is provided: trust anchor must not appear in the chain,
-	 *       and the last cert must be signed by the trust anchor</li>
-	 *   <li>If trustAnchor is null and chain has more than one cert: last cert must not
-	 *       be self-signed (trust anchor exclusion)</li>
-	 * </ol>
+	 * When a trust anchor is supplied, performs full RFC 5280 PKIX path validation
+	 * (intermediate validity, BasicConstraints CA:true on intermediates, KeyUsage keyCertSign
+	 * on intermediates, name chaining, critical extensions; CRL/OCSP revocation checking is
+	 * disabled). When no trust anchor is supplied, performs only the legacy chain walk
+	 * (parent-signature walk + trust-anchor-exclusion check on the last cert).
+	 *
+	 * In both modes: chain must be non-empty, leaf must be within validity dates and not
+	 * self-signed, and the trust anchor (when supplied) must not appear in the chain.
+	 *
+	 * The fail-fast "configure a trust anchor" UX for HAIP plans lives in the
+	 * {@code Ensure*TrustAnchorConfigured} preconditions wired into the relevant test-module
+	 * HAIP branch at setup time, not in this helper.
 	 *
 	 * @param certs the parsed certificate chain, leaf first
-	 * @param trustAnchor optional trust anchor certificate; null if not available
+	 * @param trustAnchor trust anchor certificate; non-null triggers strict PKIX validation
 	 */
 	protected void validateX5cCertificateChain(List<X509Certificate> certs, X509Certificate trustAnchor) {
 		try {

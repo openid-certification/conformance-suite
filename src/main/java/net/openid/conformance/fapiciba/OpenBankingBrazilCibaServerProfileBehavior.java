@@ -21,6 +21,7 @@ import net.openid.conformance.sequence.AbstractConditionSequence;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.sequence.client.OpenBankingBrazilPreAuthorizationSteps;
 import net.openid.conformance.sequence.client.RefreshTokenRequestSteps;
+import net.openid.conformance.sequence.client.ValidateBrazilSignedResponse;
 
 import java.util.function.Supplier;
 
@@ -31,11 +32,10 @@ public class OpenBankingBrazilCibaServerProfileBehavior extends FAPICIBAServerPr
 		return () -> {
 			boolean isSecondClient = module.isSecondClient();
 			boolean isDpop = false;
-			boolean isBrazilOpenInsurance = false;
 			boolean stopAfterConsentEndpoint = false;
 			boolean payments = false;
 			return new OpenBankingBrazilPreAuthorizationSteps(
-				isSecondClient, isDpop, module.addTokenEndpointClientAuthentication, payments, isBrazilOpenInsurance, stopAfterConsentEndpoint, false
+				isSecondClient, isDpop, module.addTokenEndpointClientAuthentication, payments, false, stopAfterConsentEndpoint, false
 			);
 		};
 	}
@@ -116,9 +116,10 @@ public class OpenBankingBrazilCibaServerProfileBehavior extends FAPICIBAServerPr
 	}
 
 	@Override
-	public void validateResourceEndpointResponse() {
+	public ConditionSequence validateResourceEndpointResponse() {
 		if (module.scopeContains("payments")) {
-			module.validateBrazilPaymentInitiationSignedResponse();
+			return ValidateBrazilSignedResponse.forResourceResponse();
 		}
+		return null;
 	}
 }

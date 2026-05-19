@@ -17,17 +17,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 	testName = "fapi2-security-profile-final-ensure-client-assertion-in-token-endpoint",
 	displayName = "FAPI2-Security-Profile-Final: ensure client_assertion in token endpoint",
 	summary = "This test performs a normal authentication but when it calls the token endpoint to exchange the authorization code for tokens, it does not include a client authentication assertion. The token endpoint must return the error 'invalid_client' or 'invalid_request' as client authentication is mandatory at the token endpoint when using private_key_jwt client authentication.",
-	profile = "FAPI2-Security-Profile-Final",
-	configurationFields = {
-		"server.discoveryUrl",
-		"client.client_id",
-		"client.scope",
-		"client.jwks",
-		"client2.client_id",
-		"client2.scope",
-		"client2.jwks",
-		"resource.resourceUrl"
-	}
+	profile = "FAPI2-Security-Profile-Final"
 )
 @VariantNotApplicable(parameter = ClientAuthType.class, values = { "mtls", "client_attestation" })
 public class FAPI2SPFinalEnsureClientAssertionInTokenEndpoint extends AbstractFAPI2SPFinalPerformTokenEndpoint {

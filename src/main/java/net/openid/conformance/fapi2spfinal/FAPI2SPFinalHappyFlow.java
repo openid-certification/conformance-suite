@@ -3,11 +3,13 @@ package net.openid.conformance.fapi2spfinal;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.AddCdrXCdsClientHeadersToResourceEndpointRequest;
+import net.openid.conformance.condition.client.AddDpopJktToAuthorizationEndpointRequest;
 import net.openid.conformance.condition.client.BuildRequestObjectByReferenceRedirectToAuthorizationEndpointReorderedParams;
 import net.openid.conformance.condition.client.AddIpV6FapiCustomerIpAddressToResourceEndpointRequest;
 import net.openid.conformance.condition.client.CallProtectedResource;
 import net.openid.conformance.condition.client.ClearAcceptHeaderForResourceEndpointRequest;
 import net.openid.conformance.condition.client.CreateRandomNonceValue;
+import net.openid.conformance.condition.client.GenerateDpopKey;
 import net.openid.conformance.condition.client.DisallowAccessTokenInQuery;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs200or201;
 import net.openid.conformance.condition.client.EnsureIdTokenDoesNotContainNonRequestedClaims;
@@ -29,17 +31,7 @@ import net.openid.conformance.variant.FAPI2FinalOPProfile;
 		testName = "fapi2-security-profile-final-happy-flow",
 		displayName = "FAPI2-Security-Profile-Final: Happy flow",
 		summary = "Tests primarily 'happy' flows, using two different OAuth2 clients (and hence authenticating the user twice), and uses different variations on request objects, registered redirect uri (both redirect uris must be pre-registered as shown in the instructions). It also tests that sender constrained access tokens (required by the FAPI spec) are correctly implemented.",
-		profile = "FAPI2-Security-Profile-Final",
-		configurationFields = {
-			"server.discoveryUrl",
-			"client.client_id",
-			"client.scope",
-			"client.jwks",
-			"client2.client_id",
-			"client2.scope",
-			"client2.jwks",
-			"resource.resourceUrl"
-		}
+		profile = "FAPI2-Security-Profile-Final"
 	)
 public class FAPI2SPFinalHappyFlow extends AbstractFAPI2SPFinalMultipleClient {
 
@@ -52,6 +44,8 @@ public class FAPI2SPFinalHappyFlow extends AbstractFAPI2SPFinalMultipleClient {
 
 	@Override
 	protected ConditionSequence makeCreateAuthorizationRequestSteps() {
+		ConditionSequence sequence;
+
 		if (isOpenId) {
 			Command cmd = new Command();
 
@@ -62,13 +56,21 @@ public class FAPI2SPFinalHappyFlow extends AbstractFAPI2SPFinalMultipleClient {
 				cmd.removeNativeValue("requested_nonce_length");
 			}
 
-			ConditionSequence conditionSequence = super.makeCreateAuthorizationRequestSteps()
+			sequence = super.makeCreateAuthorizationRequestSteps()
 				.insertBefore(CreateRandomNonceValue.class, cmd);
-
-			return conditionSequence;
+		} else {
+			sequence = super.makeCreateAuthorizationRequestSteps();
 		}
 
-		return super.makeCreateAuthorizationRequestSteps();
+		// On the second client, exercise RFC 9449 §10.1's dpop_jkt-only PAR shape
+		// (no DPoP header, just the form param) — not otherwise covered in the happy flow.
+		if (isSecondClient() && isDpop()) {
+			sequence = sequence
+				.then(condition(GenerateDpopKey.class))
+				.then(condition(AddDpopJktToAuthorizationEndpointRequest.class));
+		}
+
+		return sequence;
 	}
 
 	protected void checkResourceEndpointTLS() {
@@ -130,7 +132,7 @@ public class FAPI2SPFinalHappyFlow extends AbstractFAPI2SPFinalMultipleClient {
 		call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
 		callAndContinueOnFailure(EnsureHttpStatusCodeIs200or201.class, Condition.ConditionResult.FAILURE);
 		call(exec().unmapKey("endpoint_response"));
-		profileBehavior.validateResourceEndpointResponse();
+		call(profileBehavior.validateResourceEndpointResponse());
 
 		updateResourceRequest();
 		callAndStopOnFailure(SetPermissiveAcceptHeaderForResourceEndpointRequest.class);
@@ -142,7 +144,7 @@ public class FAPI2SPFinalHappyFlow extends AbstractFAPI2SPFinalMultipleClient {
 		call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
 		callAndContinueOnFailure(EnsureHttpStatusCodeIs200or201.class, Condition.ConditionResult.FAILURE);
 		call(exec().unmapKey("endpoint_response"));
-		profileBehavior.validateResourceEndpointResponse();
+		call(profileBehavior.validateResourceEndpointResponse());
 
 		callAndStopOnFailure(ClearAcceptHeaderForResourceEndpointRequest.class);
 	}

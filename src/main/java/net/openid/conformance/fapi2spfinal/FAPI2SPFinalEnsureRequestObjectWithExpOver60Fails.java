@@ -20,17 +20,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 	testName = "fapi2-security-profile-final-ensure-request-object-with-exp-over-60-fails",
 	displayName = "FAPI2-Security-Profile-Final: ensure request object with exp value of more then than 60 minutes after the nbf value fails",
 	summary = "This test should end with the authorization server showing an error message that the request object is invalid (a screenshot of which should be uploaded) or with the user being redirected back to the conformance suite with a correct error response.",
-	profile = "FAPI2-Security-Profile-Final",
-	configurationFields = {
-		"server.discoveryUrl",
-		"client.client_id",
-		"client.scope",
-		"client.jwks",
-		"client2.client_id",
-		"client2.scope",
-		"client2.jwks",
-		"resource.resourceUrl"
-	}
+	profile = "FAPI2-Security-Profile-Final"
 )
 @VariantNotApplicable(parameter = FAPI2AuthRequestMethod.class, values = { "unsigned" })
 @VariantNotApplicable(parameter = FAPI2FinalOPProfile.class, values = { "connectid_au" })

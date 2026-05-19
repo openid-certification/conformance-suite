@@ -42,17 +42,7 @@ import net.openid.conformance.variant.VariantSetup;
 	testName = "fapi2-security-profile-final-refresh-token",
 	displayName = "FAPI2-Security-Profile-Final: test refresh token behaviours",
 	summary = "This test obtains refresh tokens and performs various checks, including checking that the refresh token is correctly bound to the client.",
-	profile = "FAPI2-Security-Profile-Final",
-	configurationFields = {
-		"server.discoveryUrl",
-		"client.client_id",
-		"client.scope",
-		"client.jwks",
-		"client2.client_id",
-		"client2.scope",
-		"client2.jwks",
-		"resource.resourceUrl"
-	}
+	profile = "FAPI2-Security-Profile-Final"
 )
 
 @VariantNotApplicable(parameter = FAPI2FinalOPProfile.class, values = { "fapi_client_credentials_grant" })
@@ -120,6 +110,7 @@ public class FAPI2SPFinalRefreshToken extends AbstractFAPI2SPFinalMultipleClient
 		// Save the refresh token prior to, possibly, obtaining a new one.
 		env.putString("refresh_token_prev", env.getString("refresh_token"));
 		call(sequence);
+		call(profileBehavior.afterTokenEndpointResponseProcessed());
 
 		if (getVariant(FAPI2FinalOPProfile.class) != FAPI2FinalOPProfile.OPENBANKING_BRAZIL) {
 			if (env.getString("refresh_token_prev").equals(env.getString("refresh_token"))) {
@@ -131,6 +122,7 @@ public class FAPI2SPFinalRefreshToken extends AbstractFAPI2SPFinalMultipleClient
 
 				ConditionSequence sequence1 = new RefreshTokenRequestSteps(isSecondClient(), addClientAuthentication, isDpop(), "Refresh Token Request With Previous Token, FAPI 2.0 Security Profile 5.3.2.1-9").butFirst(condition(WaitFor30Seconds.class));
 				call(sequence1);
+				call(profileBehavior.afterTokenEndpointResponseProcessed());
 			}
 		}
 

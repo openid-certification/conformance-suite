@@ -16,17 +16,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 	testName = "fapi2-security-profile-final-ensure-unsigned-request-at-par-endpoint-fails",
 	displayName = "FAPI2-Security-Profile-Final: ensure unsigned request at PAR endpoint fails",
 	summary = "This test passes the request parameters to the PAR endpoint without them being wrapped in a signed request object, which should be rejected as signed request objects are required.\n\nThe test should end with the authorization server showing an error message that the request is invalid (a screenshot of which should be uploaded), or in an error from the PAR endpoint, or with the user being redirected back to the client's registered redirect_uri with a correct error response.",
-	profile = "FAPI2-Security-Profile-Final",
-	configurationFields = {
-		"server.discoveryUrl",
-		"client.client_id",
-		"client.scope",
-		"client.jwks",
-		"client2.client_id",
-		"client2.scope",
-		"client2.jwks",
-		"resource.resourceUrl"
-	}
+	profile = "FAPI2-Security-Profile-Final"
 )
 @VariantNotApplicable(parameter = FAPI2AuthRequestMethod.class, values = { "unsigned" })
 public class FAPI2SPFinalEnsureUnsignedRequestAtParEndpointFails extends AbstractFAPI2SPFinalPARExpectingAuthorizationEndpointPlaceholderOrCallback {

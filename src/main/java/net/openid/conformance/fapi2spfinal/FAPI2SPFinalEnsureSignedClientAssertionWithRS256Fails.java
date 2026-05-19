@@ -22,17 +22,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 	testName = "fapi2-security-profile-final-ensure-signed-client-assertion-with-RS256-fails",
 	displayName = "FAPI2-Security-Profile-Final: ensure signed client assertion with RS256 fails",
 	summary = "This test authenticates as normal except that the client assertion passed to the token endpoint when exchanging the authorization code for tokens is signed using RS256. RS256 is not permitted by the FAPI specification. The test must end with the token endpoint returning an 'invalid_client' error, due to the client authentication being invalid.",
-	profile = "FAPI2-Security-Profile-Final",
-	configurationFields = {
-		"server.discoveryUrl",
-		"client.client_id",
-		"client.scope",
-		"client.jwks",
-		"client2.client_id",
-		"client2.scope",
-		"client2.jwks",
-		"resource.resourceUrl"
-	}
+	profile = "FAPI2-Security-Profile-Final"
 )
 @VariantNotApplicable(parameter = ClientAuthType.class, values = { "mtls", "client_attestation" })
 public class FAPI2SPFinalEnsureSignedClientAssertionWithRS256Fails extends AbstractFAPI2SPFinalPerformTokenEndpoint {

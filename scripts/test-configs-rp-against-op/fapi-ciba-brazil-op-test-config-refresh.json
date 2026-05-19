@@ -2,7 +2,7 @@
     "alias": "oidf-fapi-ciba-brazil-op-login-hint-test",
     "description": "FAPI-CIBA BR-OB OP test config (with login_hint) for running against RP tests (refresh)",
     "server": {
-        "discoveryUrl": "{BASEURL}test/a/oidf-fapi-ciba-brazil-rp-test/.well-known/openid-configuration",
+        "discoveryUrl": "{EXTERNALBASEURL}test/a/oidf-fapi-ciba-brazil-rp-test/.well-known/openid-configuration",
         "jwks": {
             "keys": [
                 {

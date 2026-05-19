@@ -6,6 +6,7 @@ import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 
 import java.net.MalformedURLException;
+import java.net.URI;
 import java.net.URL;
 
 public abstract class AbstractJsonUriIsValidAndHttps extends AbstractCondition {
@@ -49,9 +50,9 @@ public abstract class AbstractJsonUriIsValidAndHttps extends AbstractCondition {
 				throw error(errorMessageNotJsonPrimitive);
 			} else {
 				try {
-					extractedUrl = new URL(OIDFJSON.getString(serverValue));
+					extractedUrl = URI.create(OIDFJSON.getString(serverValue)).toURL();
 					return extractedUrl;
-				} catch (MalformedURLException invalidURL) {
+				} catch (MalformedURLException | IllegalArgumentException invalidURL) {
 					throw error(errorMessageInvalidURL);
 				}
 			}

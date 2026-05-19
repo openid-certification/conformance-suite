@@ -12,10 +12,10 @@ public class EnsureCredentialTrustAnchorConfigured extends AbstractCondition {
 
 		String trustAnchorPem = env.getString("config", "credential.trust_anchor_pem");
 		if (trustAnchorPem == null || trustAnchorPem.isBlank()) {
-			throw error("'Credential Trust Anchor PEM' must be configured in the test configuration for HAIP tests");
+			throw error("'Credential Trust Anchor' field is missing from the 'Credential' section in the test configuration. It is required for HAIP.");
 		}
 
-		logSuccess("Credential trust anchor PEM is configured");
+		logSuccess("Credential Trust Anchor is configured");
 		return env;
 	}
 }

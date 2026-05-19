@@ -18,17 +18,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 	testName = "fapi2-security-profile-final-ensure-signed-request-object-with-RS256-fails",
 	displayName = "FAPI2-Security-Profile-Final: ensure signed request object with RS256 fails",
 	summary = "This test authenticates as normal except that the request object is signed using RS256. RS256 is not permitted by the FAPI specification. The test must end with the authorization server showing an an error message that the request object is invalid (a screenshot of which should be uploaded) or with the user being redirected back to the conformance suite with a correct error response.",
-	profile = "FAPI2-Security-Profile-Final",
-	configurationFields = {
-		"server.discoveryUrl",
-		"client.client_id",
-		"client.scope",
-		"client.jwks",
-		"client2.client_id",
-		"client2.scope",
-		"client2.jwks",
-		"resource.resourceUrl"
-	}
+	profile = "FAPI2-Security-Profile-Final"
 )
 @VariantNotApplicable(parameter = FAPI2AuthRequestMethod.class, values = { "unsigned" })
 public class FAPI2SPFinalEnsureSignedRequestObjectWithRS256Fails extends AbstractFAPI2SPFinalPARExpectingAuthorizationEndpointPlaceholderOrCallback {

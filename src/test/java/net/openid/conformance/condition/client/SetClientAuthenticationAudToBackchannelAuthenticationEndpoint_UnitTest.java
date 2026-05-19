@@ -3,12 +3,12 @@ package net.openid.conformance.condition.client;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import net.openid.conformance.condition.Condition.ConditionResult;
+import net.openid.conformance.logging.BsonEncoding;
 import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.Environment;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -22,8 +22,7 @@ public class SetClientAuthenticationAudToBackchannelAuthenticationEndpoint_UnitT
 	@Spy
 	private Environment env = new Environment();
 
-	@Mock
-	private TestInstanceEventLog eventLog;
+	private final TestInstanceEventLog eventLog = BsonEncoding.testInstanceEventLog();
 
 	private SetClientAuthenticationAudToBackchannelAuthenticationEndpoint cond;
 

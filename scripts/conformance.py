@@ -28,8 +28,8 @@ class UnrecoverableHTTPError(Exception):
     pass
 
 
-class RetryTransport(httpx.HTTPTransport):
-    def handle_request(
+class RetryTransport(httpx.AsyncHTTPTransport):
+    async def handle_async_request(
         self,
         request: httpx.Request,
     ) -> httpx.Response:
@@ -46,11 +46,11 @@ class RetryTransport(httpx.HTTPTransport):
                 remaining = deadline - time.time()
                 if remaining <= 0:
                     break
-                time.sleep(min(delay, remaining))
+                await asyncio.sleep(min(delay, remaining))
             try:
                 if resp is not None:
-                    resp.close()
-                resp = super().handle_request(request)
+                    await resp.aclose()
+                resp = await super().handle_async_request(request)
                 last_exception = None
             except Exception as e:
                 elapsed = time.time() - start_time
@@ -72,7 +72,7 @@ class RetryTransport(httpx.HTTPTransport):
                 mime_type, _, _ = content_type.partition(";")
                 if mime_type == 'application/json':
                     try:
-                        resp.read()
+                        await resp.aread()
                         resp.json()
                     except Exception as e:
                         traceback.print_exc()
@@ -91,7 +91,7 @@ class Conformance(object):
             api_url_base += "/"
         self.api_url_base = api_url_base
         transport = RetryTransport(verify=verify_ssl)
-        self.httpclient = httpx.Client(verify=verify_ssl, transport=transport, timeout=20)
+        self.httpclient = httpx.AsyncClient(verify=verify_ssl, transport=transport, timeout=20)
         headers = {'Content-Type': 'application/json'}
         if api_token is not None:
             headers['Authorization'] = 'Bearer {0}'.format(api_token)
@@ -100,34 +100,61 @@ class Conformance(object):
     async def get_all_test_modules(self):
         """ Returns an array containing a dictionary per test module """
         api_url = '{0}api/runner/available'.format(self.api_url_base)
-        response = self.httpclient.get(api_url)
+        response = await self.httpclient.get(api_url)
 
         if response.status_code != 200:
             raise Exception("get_all_test_modules failed - HTTP {:d} {}".format(response.status_code, response.content))
         return response.json()
 
     async def exporthtml(self, plan_id, path):
-        for i in range(5):
-            api_url = '{0}api/plan/exporthtml/{1}'.format(self.api_url_base, plan_id)
+        attempts = 5
+        last_exception = None
+        api_url = '{0}api/plan/exporthtml/{1}'.format(self.api_url_base, plan_id)
+        for attempt in range(attempts):
+            full_path = None
+            content_type = '<unknown>'
             try:
-                with self.httpclient.stream("GET", api_url) as response:
+                async with self.httpclient.stream("GET", api_url) as response:
+                    content_type = response.headers.get('content-type', '<missing>')
                     if response.status_code != 200:
-                        raise Exception("exporthtml failed - HTTP {:d} {}".format(response.status_code, response.content))
-                    d = response.headers['content-disposition']
-                    local_filename = re.findall("filename=\"(.+)\"", d)[0]
+                        body = await response.aread()
+                        raise Exception("exporthtml HTTP {} content-type={} body[:500]={!r}".format(
+                            response.status_code, content_type, body[:500]))
+                    disposition = response.headers.get('content-disposition', '')
+                    match = re.findall("filename=\"(.+)\"", disposition)
+                    if not match:
+                        body = await response.aread()
+                        raise Exception("exporthtml missing filename in content-disposition={!r} content-type={} body[:200]={!r}".format(
+                            disposition, content_type, body[:200]))
+                    local_filename = match[0]
                     full_path = os.path.join(path, local_filename)
                     with open(full_path, 'wb') as f:
-                        for chunk in response.iter_bytes():
+                        async for chunk in response.aiter_bytes():
                             f.write(chunk)
-                zip_file = zipfile.ZipFile(full_path)
-                ret = zip_file.testzip()
-                if ret is not None:
-                    raise Exception("exporthtml for {} downloaded corrupt zip file {} - {}".format(plan_id, full_path, str(ret)))
+                file_size = os.path.getsize(full_path)
+                try:
+                    zip_file = zipfile.ZipFile(full_path)
+                    bad_entry = zip_file.testzip()
+                except zipfile.BadZipFile as e:
+                    with open(full_path, 'rb') as f:
+                        head = f.read(500)
+                    raise Exception("exporthtml for {} got non-zip response (content-type={}, size={} bytes, first bytes={!r}): {}".format(
+                        plan_id, content_type, file_size, head, e)) from e
+                if bad_entry is not None:
+                    raise Exception("exporthtml for {} downloaded corrupt zip {} (content-type={}, size={} bytes) - testzip reports {}".format(
+                        plan_id, full_path, content_type, file_size, bad_entry))
                 return full_path
             except Exception as e:
-                print("httpx {} exception {} caught - retrying".format(api_url, e))
-                await asyncio.sleep(1)
-        raise Exception("exporthtml for {} failed even after retries".format(plan_id))
+                last_exception = e
+                if attempt < attempts - 1:
+                    backoff = 1 << attempt  # 1, 2, 4, 8s between attempts
+                    print("exporthtml {} attempt {}/{} failed: {} - retrying in {}s".format(
+                        api_url, attempt + 1, attempts, e, backoff))
+                    await asyncio.sleep(backoff)
+                else:
+                    print("exporthtml {} attempt {}/{} failed: {} - giving up".format(
+                        api_url, attempt + 1, attempts, e))
+        raise Exception("exporthtml for {} failed after {} attempts".format(plan_id, attempts)) from last_exception
 
     async def create_certification_package(self, plan_id, conformance_pdf_path, rp_logs_zip_path = None, output_zip_directory = "./"):
         """
@@ -144,12 +171,12 @@ class Conformance(object):
         clientSideData = open(rp_logs_zip_path, 'rb') if rp_logs_zip_path is not None else open(os.devnull, 'rb')
         files = { 'certificationOfConformancePdf': certificationOfConformancePdf, 'clientSideData': clientSideData}
         try:
-            with httpx.Client() as multipartClient:
+            async with httpx.AsyncClient() as multipartClient:
                 multipartClient.headers = self.httpclient.headers.copy()
                 multipartClient.headers.pop('content-type')
                 api_url = '{0}api/plan/{1}/certificationpackage'.format(self.api_url_base, plan_id)
 
-                response = multipartClient.post(api_url, files = files)
+                response = await multipartClient.post(api_url, files = files)
                 if response.status_code != 200:
                     raise Exception("certificationpackage failed - HTTP {:d} {}".format(response.status_code, response.content))
 
@@ -169,7 +196,7 @@ class Conformance(object):
         payload = {'planName': name}
         if variant != None:
             payload['variant'] = json.dumps(variant)
-        response = self.httpclient.post(api_url, params=payload, data=configuration)
+        response = await self.httpclient.post(api_url, params=payload, data=configuration)
 
         if response.status_code != 201:
             error_msg = self._extract_error_message(response)
@@ -192,7 +219,7 @@ class Conformance(object):
     async def create_test(self, test_name, configuration):
         api_url = '{0}api/runner'.format(self.api_url_base)
         payload = {'test': test_name}
-        response = self.httpclient.post(api_url, params=payload, data=configuration)
+        response = await self.httpclient.post(api_url, params=payload, data=configuration)
 
         if response.status_code != 201:
             raise Exception("create_test failed - HTTP {:d} {}".format(response.status_code, response.content))
@@ -201,16 +228,16 @@ class Conformance(object):
     async def create_test_from_plan(self, plan_id, test_name):
         api_url = '{0}api/runner'.format(self.api_url_base)
         payload = {'test': test_name, 'plan': plan_id}
-        response = self.httpclient.post(api_url, params=payload)
+        response = await self.httpclient.post(api_url, params=payload)
 
         if response.status_code != 201:
             raise Exception("create_test_from_plan failed - HTTP {:d} {}".format(response.status_code, response.content))
         return response.json()
 
-    def _request(self, method, label, expected_status, **kwargs):
+    async def _request(self, method, label, expected_status, **kwargs):
         """Make an HTTP request, raising ServerUnavailableError on connection failures or 502."""
         try:
-            response = method(**kwargs)
+            response = await method(**kwargs)
         except Exception as e:
             raise ServerUnavailableError("{} failed - {}".format(label, e)) from e
         if response.status_code == 502:
@@ -226,17 +253,19 @@ class Conformance(object):
         payload = {'test': test_name, 'plan': plan_id}
         if variant != None:
             payload['variant'] = json.dumps(variant)
-        return self._request(self.httpclient.post, "create_test_from_plan", 201,
-                             url=api_url, params=payload).json()
+        response = await self._request(self.httpclient.post, "create_test_from_plan", 201,
+                                       url=api_url, params=payload)
+        return response.json()
 
     async def get_module_info(self, module_id):
         api_url = '{0}api/info/{1}'.format(self.api_url_base, module_id)
-        return self._request(self.httpclient.get, "get_module_info", 200,
-                             url=api_url).json()
+        response = await self._request(self.httpclient.get, "get_module_info", 200,
+                                       url=api_url)
+        return response.json()
 
     async def get_test_log(self, module_id):
         api_url = '{0}api/log/{1}'.format(self.api_url_base, module_id)
-        response = self.httpclient.get(api_url)
+        response = await self.httpclient.get(api_url)
 
         if response.status_code != 200:
             raise Exception("get_test_log failed - HTTP {:d} {}".format(response.status_code, response.content))
@@ -244,8 +273,9 @@ class Conformance(object):
 
     async def start_test(self, module_id):
         api_url = '{0}api/runner/{1}'.format(self.api_url_base, module_id)
-        return self._request(self.httpclient.post, "start_test", 200,
-                             url=api_url).json()
+        response = await self._request(self.httpclient.post, "start_test", 200,
+                                       url=api_url)
+        return response.json()
 
     async def wait_for_state(self, module_id, required_states, timeout=240):
         timeout_at = time.time() + timeout
@@ -291,7 +321,7 @@ class Conformance(object):
             attempt += 1
             elapsed = time.time() - start
             try:
-                response = self.httpclient.get(api_url, timeout=10)
+                response = await self.httpclient.get(api_url, timeout=10)
                 if response.status_code == 200:
                     print('Server is ready after {:.0f}s ({} attempts)'.format(elapsed, attempt))
                     return
@@ -306,4 +336,4 @@ class Conformance(object):
             await asyncio.sleep(10)
 
     async def close_client(self):
-        self.httpclient.close()
+        await self.httpclient.aclose()

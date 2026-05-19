@@ -1,9 +1,12 @@
 package net.openid.conformance.vci10issuer;
 
-import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
+import net.openid.conformance.sequence.AbstractConditionSequence;
+import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
+import net.openid.conformance.vci10issuer.condition.SerializeVCICredentialRequestObject;
 import net.openid.conformance.vci10issuer.condition.VCIInjectUnknownCredentialIdentifier;
+import net.openid.conformance.vci10issuer.condition.VCIUseCredentialIdentifierInCredentialRequest;
 import net.openid.conformance.vci10issuer.condition.VCIValidateCredentialErrorResponse;
 import net.openid.conformance.vci10issuer.condition.VciErrorCode;
 
@@ -16,14 +19,17 @@ import net.openid.conformance.vci10issuer.condition.VciErrorCode;
 public class VCIIssuerFailOnUnknownCredentialIdentifier extends AbstractVCIIssuerTestModule {
 
 	@Override
-	protected String serializeCredentialRequestObject(JsonObject credentialRequestObject) {
-		callAndContinueOnFailure(VCIInjectUnknownCredentialIdentifier.class, Condition.ConditionResult.FAILURE, "OID4VCI-1FINAL-7.2");
-		credentialRequestObject.remove("credential_configuration_id");
-		credentialRequestObject.remove("credential_identifier");
-		credentialRequestObject.remove("credential_identifiers");
-
-		credentialRequestObject.addProperty("credential_identifier", env.getString("vci_credential_identifier"));
-		return super.serializeCredentialRequestObject(credentialRequestObject);
+	protected ConditionSequence makeCreateCredentialRequestSteps() {
+		return super.makeCreateCredentialRequestSteps()
+			.replace(SerializeVCICredentialRequestObject.class, new AbstractConditionSequence() {
+				@Override
+				public void evaluate() {
+					callAndContinueOnFailure(VCIInjectUnknownCredentialIdentifier.class,
+						Condition.ConditionResult.FAILURE, "OID4VCI-1FINAL-7.2");
+					callAndStopOnFailure(VCIUseCredentialIdentifierInCredentialRequest.class, "OID4VCI-1FINAL-8.2");
+					callAndStopOnFailure(SerializeVCICredentialRequestObject.class, "OID4VCI-1FINAL-8.2");
+				}
+			});
 	}
 
 	@Override

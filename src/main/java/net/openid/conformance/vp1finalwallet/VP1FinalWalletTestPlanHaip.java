@@ -57,12 +57,12 @@ public class VP1FinalWalletTestPlanHaip implements TestPlan {
 				List.of(new VariantCondition(VP1FinalWalletResponseMode.class,
 					"dc_api.jwt"))
 			),
-			// dc_api.jwt + signed: x509_san_dns
+			// dc_api.jwt + signed: x509_hash
 			new ModuleListEntry(
 				signedTestModules,
 				List.of(
 					new Variant(VPProfile.class, "haip"),
-					new Variant(VP1FinalWalletClientIdPrefix.class, "x509_san_dns"),
+					new Variant(VP1FinalWalletClientIdPrefix.class, "x509_hash"),
 					new Variant(VP1FinalWalletRequestMethod.class, "request_uri_signed")
 				),
 				List.of(new VariantCondition(VP1FinalWalletResponseMode.class,

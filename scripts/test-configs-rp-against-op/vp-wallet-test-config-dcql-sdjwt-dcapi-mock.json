@@ -35,9 +35,17 @@
             ]
         }
     },
+    "client2": {
+        "jwks": {
+            "keys": [
+                {vp-signing-jwk-2.json}
+            ]
+        }
+    },
     "credential": {
         "signing_jwk": {vp-signing-jwk.json},
-        "trust_anchor_pem": "{vp-signing-ca.crt}"
+        "trust_anchor_pem": "{vp-signing-ca.crt}",
+        "status_list_trust_anchor_pem": "{vp-signing-ca.crt}"
     },
     "mock_wallet_response": true
 }

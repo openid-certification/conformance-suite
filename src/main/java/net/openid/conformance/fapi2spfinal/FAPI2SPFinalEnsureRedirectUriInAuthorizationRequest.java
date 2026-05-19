@@ -10,18 +10,14 @@ import net.openid.conformance.variant.VariantNotApplicable;
 @PublishTestModule(
 	testName = "fapi2-security-profile-final-ensure-redirect-uri-in-authorization-request",
 	displayName = "FAPI2-Security-Profile-Final: ensure redirect URI in authorization request",
-	summary = "This test should result an the authorization server showing an error page saying the redirect url is missing from the request (a screenshot of which should be uploaded)",
-	profile = "FAPI2-Security-Profile-Final",
-	configurationFields = {
-		"server.discoveryUrl",
-		"client.client_id",
-		"client.scope",
-		"client.jwks",
-		"client2.client_id",
-		"client2.scope",
-		"client2.jwks",
-		"resource.resourceUrl"
-	}
+	summary = """
+		This test sends an authorization request that does not include a `redirect_uri` parameter. The following outcomes are permitted:
+
+		- the PAR endpoint rejects the request with an `invalid_request` error;
+		- the authorization endpoint shows an error page saying the redirect uri is missing from the request (a screenshot of which should be uploaded);
+		- the authorization server accepts the request and uses the registered redirect URI as a default (which is permitted, but not required, by RFC6749 section 3.1.2.3 when only one redirect URI is registered).
+		""",
+	profile = "FAPI2-Security-Profile-Final"
 )
 
 @VariantNotApplicable(parameter = FAPI2FinalOPProfile.class, values = { "fapi_client_credentials_grant" })

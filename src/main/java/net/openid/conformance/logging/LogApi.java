@@ -62,7 +62,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -94,6 +96,8 @@ public class LogApi {
 	private HtmlExportRenderer htmlExportRenderer;
 
 	private Gson gson = CollapsingGsonHttpMessageConverter.getDbObjectCollapsingGson();
+
+	private static final MediaType APPLICATION_ZIP = MediaType.parseMediaType("application/zip");
 
 	@Autowired
 	private TestPlanService planService;
@@ -172,7 +176,7 @@ public class LogApi {
 		}
 
 		HttpHeaders headers = new HttpHeaders();
-
+		headers.setContentType(APPLICATION_ZIP);
 		headers.add("Content-Disposition", "attachment; filename=\"test-log-" + (Strings.isNullOrEmpty(testModuleName) ? "" : (testModuleName + "-")) + variantSuffix(variant) + id + ".zip\"");
 
 		final TestExportInfo export = putTestResultToExport(results, testInfo);
@@ -201,6 +205,10 @@ public class LogApi {
 		return ResponseEntity.ok().headers(headers).body(responseBody);
 	}
 
+	// This endpoint is allowed for unauthenticated callers via the public matcher
+	// (/api/plan/export/?* with ?public=true), but no rendered UI page links to it
+	// — the only plan-wide download button (plan-detail "Download all Logs") targets
+	// the HTML-zip variant /api/plan/exporthtml/{id}. Kept for direct API callers.
 	@GetMapping(value = "/plan/export/{id}", produces = "application/zip")
 	@Operation(summary = "Export all test logs of plan by plan id")
 	@ApiResponses(value = {
@@ -263,7 +271,7 @@ public class LogApi {
 		}
 
 		HttpHeaders headers = new HttpHeaders();
-
+		headers.setContentType(APPLICATION_ZIP);
 		headers.add("Content-Disposition", "attachment; filename=\"" + (Strings.isNullOrEmpty(planName) ? "" : (planName + "-")) + variantSuffix(variant) + id + ".zip\"");
 
 		StreamingResponseBody responseBody = new StreamingResponseBody() {
@@ -340,6 +348,16 @@ public class LogApi {
 			testInfo = testInfos.findById(testId);
 		} else {
 			ImmutableMap<String, String> owner = authenticationFacade.getPrincipal();
+			if (authenticationFacade.isPrivateLinkUser()) {
+				// Restrict private-link users to tests in their shared plan; otherwise
+				// the owner filter (== shared-asset owner) would match every test owned
+				// by the share creator. Mirrors TestInfoApi.getTestInfo.
+				PrivateLinkOneTimeToken privateToken = authenticationFacade.getPrivateOneTimeToken();
+				SharedAsset sharedAsset = privateToken.getSharedAsset();
+				if (sharedAsset == null || !planService.getTestPlanTestIds(sharedAsset.getPlanId()).contains(testId)) {
+					owner = null;
+				}
+			}
 			if (owner != null) {
 				testInfo = testInfos.findByIdAndOwner(testId, owner);
 			}
@@ -351,6 +369,160 @@ public class LogApi {
 		TestExportInfo export = new TestExportInfo(baseUrl, authenticationFacade.getPrincipal(), version, testInfo.get(), results);
 
 		return export;
+	}
+
+	/**
+	 * Bulk equivalent of {@link #getTestInfo(boolean, String)} that fetches all
+	 * matching TestInfo documents in a single query and returns them keyed by
+	 * id. Returned values are {@link PublicTestInfo} when {@code publicOnly} is
+	 * true and {@link TestInfo} otherwise.
+	 *
+	 * <p>The {@code publicOnly=true} branch is only reached when a non-private-link
+	 * authenticated caller supplies {@code ?public=true} on
+	 * {@code /api/plan/exporthtml/{id}}; unauthenticated callers and private-link
+	 * share users are rejected at the security layer. In rendered UI flows this
+	 * happens when an admin previews the public-link view of their own plan and
+	 * clicks "Download all Logs".
+	 */
+	@SuppressWarnings("MixedMutabilityReturnType")
+	protected Map<String, Object> getTestInfosByIds(boolean publicOnly, List<String> testIds) {
+		if (testIds.isEmpty()) {
+			return Collections.emptyMap();
+		}
+		Map<String, Object> result = new HashMap<>();
+		if (publicOnly) {
+			for (PublicTestInfo info : testInfos.findAllByIdInPublic(testIds)) {
+				result.put(info.getId(), info);
+			}
+		} else if (authenticationFacade.isAdmin()) {
+			for (TestInfo info : testInfos.findAllByIdIn(testIds)) {
+				result.put(info.getId(), info);
+			}
+		} else {
+			ImmutableMap<String, String> owner = authenticationFacade.getPrincipal();
+			List<String> effectiveIds = testIds;
+			if (authenticationFacade.isPrivateLinkUser()) {
+				// Restrict to ids in the shared plan — see getTestInfo for rationale.
+				PrivateLinkOneTimeToken privateToken = authenticationFacade.getPrivateOneTimeToken();
+				SharedAsset sharedAsset = privateToken.getSharedAsset();
+				if (sharedAsset == null) {
+					return Collections.emptyMap();
+				}
+				List<String> sharedPlanTestIds = planService.getTestPlanTestIds(sharedAsset.getPlanId());
+				effectiveIds = testIds.stream().filter(sharedPlanTestIds::contains).toList();
+				if (effectiveIds.isEmpty()) {
+					return Collections.emptyMap();
+				}
+			}
+			if (owner != null) {
+				for (TestInfo info : testInfos.findAllByIdInAndOwner(effectiveIds, owner)) {
+					result.put(info.getId(), info);
+				}
+			}
+		}
+		return result;
+	}
+
+	/**
+	 * Bulk equivalent of {@link #getTestResults(String, Long, boolean)} that
+	 * fetches all matching event-log entries in a single query and groups them
+	 * by testId, with each group sorted by time ascending. The {@code testInfosById}
+	 * map (from {@link #getTestInfosByIds}) is used to determine per-test publish
+	 * status when {@code isPublic} is true.
+	 *
+	 * <p>The {@code isPublic=true} branch is reached via the admin-previewing-
+	 * public-link flow described in {@link #getTestInfosByIds}.
+	 */
+	@SuppressWarnings("MixedMutabilityReturnType")
+	protected Map<String, List<Document>> getTestResultsByIds(List<String> testIds, boolean isPublic,
+															  Map<String, Object> testInfosById) {
+		if (testIds.isEmpty()) {
+			return Collections.emptyMap();
+		}
+
+		List<String> authorizedIds = testIds.stream()
+			.filter(testInfosById::containsKey)
+			.toList();
+		if (authorizedIds.isEmpty()) {
+			return Collections.emptyMap();
+		}
+
+		if (!isPublic) {
+			return queryTestResultsByIds(authorizedIds, false, false);
+		}
+
+		// For public access, summaryOnly is per-test based on the publish field;
+		// split into two groups so each can use the appropriate projection.
+		List<String> summaryIds = new ArrayList<>();
+		List<String> everythingIds = new ArrayList<>();
+		for (String id : authorizedIds) {
+			PublicTestInfo info = (PublicTestInfo) testInfosById.get(id);
+			if ("everything".equals(info.getPublish())) {
+				everythingIds.add(id);
+			} else {
+				summaryIds.add(id);
+			}
+		}
+		Map<String, List<Document>> result = new HashMap<>();
+		if (!summaryIds.isEmpty()) {
+			result.putAll(queryTestResultsByIds(summaryIds, true, true));
+		}
+		if (!everythingIds.isEmpty()) {
+			result.putAll(queryTestResultsByIds(everythingIds, true, false));
+		}
+		return result;
+	}
+
+	@SuppressWarnings("MixedMutabilityReturnType")
+	private Map<String, List<Document>> queryTestResultsByIds(List<String> testIds, boolean isPublic, boolean summaryOnly) {
+		Criteria criteria = new Criteria();
+		criteria.and("testId").in(testIds);
+
+		if (!isPublic && !authenticationFacade.isAdmin()) {
+			ImmutableMap<String, String> currentUser = authenticationFacade.getPrincipal();
+
+			if (authenticationFacade.isPrivateLinkUser()) {
+				// Restrict to ids in the shared plan — see getTestResults for rationale.
+				PrivateLinkOneTimeToken privateToken = authenticationFacade.getPrivateOneTimeToken();
+				SharedAsset sharedAsset = privateToken.getSharedAsset();
+				if (sharedAsset == null) {
+					return Collections.emptyMap();
+				}
+				List<String> sharedPlanTestIds = planService.getTestPlanTestIds(sharedAsset.getPlanId());
+				List<String> idsInShared = testIds.stream().filter(sharedPlanTestIds::contains).toList();
+				if (idsInShared.isEmpty()) {
+					return Collections.emptyMap();
+				}
+				criteria = Criteria.where("testId").in(idsInShared).and("testOwner").is(sharedAsset.getOwner());
+			} else {
+				criteria.and("testOwner").is(currentUser);
+			}
+		}
+
+		Query query = new Query(criteria);
+		if (summaryOnly) {
+			query.fields()
+				.include("result")
+				.include("testName")
+				.include("testId")
+				.include("src")
+				.include("time");
+		}
+
+		// Group in Java rather than asking MongoDB to .sort() the union: the
+		// per-test sort blocks were small but a plan-wide sort can exceed
+		// MongoDB's 32MB in-memory sort limit (no compound index covers
+		// {testId, time}). We sort each per-test group below instead.
+		Map<String, List<Document>> grouped = new HashMap<>();
+		for (Document doc : mongoTemplate.getCollection(DBEventLog.COLLECTION)
+				.find(query.getQueryObject())
+				.projection(query.getFieldsObject())) {
+			grouped.computeIfAbsent(doc.getString("testId"), k -> new ArrayList<>()).add(doc);
+		}
+		for (List<Document> group : grouped.values()) {
+			group.sort(Comparator.comparingLong(d -> d.getLong("time")));
+		}
+		return grouped;
 	}
 
 	@SuppressWarnings("MixedMutabilityReturnType")
@@ -376,12 +548,16 @@ public class LogApi {
 			ImmutableMap<String, String> currentUser = authenticationFacade.getPrincipal();
 
 			if (authenticationFacade.isPrivateLinkUser()) {
+				// Private-link users may only read tests in their shared plan. The
+				// previous "else" branch filtered by currentUser, which for private-link
+				// equals the shared-asset owner — a backdoor for any test owned by the
+				// same owner outside the shared plan.
 				PrivateLinkOneTimeToken privateToken = authenticationFacade.getPrivateOneTimeToken();
 				SharedAsset sharedAsset = privateToken.getSharedAsset();
 				if (sharedAsset != null && planService.getTestPlanTestIds(sharedAsset.getPlanId()).contains(id)) {
 					criteria.and("testOwner").is(sharedAsset.getOwner());
 				} else {
-					criteria.and("testOwner").is(currentUser);
+					return Collections.emptyList();
 				}
 			} else {
 				criteria.and("testOwner").is(currentUser);
@@ -546,6 +722,14 @@ public class LogApi {
 		return failedPlanInfo;
 	}
 
+	// This URL is not in WebSecurityResourceServerConfig's public matcher (only
+	// /api/{plan,log}/export/?* are), so unauthenticated callers get 401 and
+	// private-link share users get 403 before reaching the controller. The
+	// publicOnly=true branch is therefore only reachable for non-private-link
+	// authenticated callers (API token or OIDC session cookie). In rendered UI
+	// flows that happens when an admin views plan-detail with public=true on the
+	// URL (the "Public link" preview of an everything-published plan) and clicks
+	// "Download all Logs" — the JS appends ?public=true in that mode.
 	@GetMapping(value = "/plan/exporthtml/{id}", produces = "application/zip")
 	@Operation(summary = "Export the full results for this plan as both html and json in a zip")
 	@ApiResponses(value = {
@@ -586,24 +770,36 @@ public class LogApi {
 		//plan summary page
 		PlanExportInfo planExportInfo = new PlanExportInfo(baseUrl, authenticationFacade.getPrincipal(), version, testPlan);
 
+		// Bulk-load TestInfo and event-log entries to avoid 2N queries for an N-module plan.
+		List<String> testInstanceIds = new ArrayList<>();
+		Map<Plan.Module, String> moduleToTestId = new LinkedHashMap<>();
 		for (Plan.Module module : modules) {
-
-			String testModuleName = module.getTestModule();
 			List<String> instances = module.getInstances();
-
 			if (instances != null && !instances.isEmpty()) {
-
 				String testId = instances.get(instances.size() - 1);
-
-				List<Document> results = getTestResults(testId, null, publicOnly);
-
-				Optional<?> testInfo = getTestInfo(publicOnly, testId);
-
-				final TestExportInfo export = putTestResultToExport(results, testInfo);
-				PlanExportInfo.TestExportInfoHolder testExportInfoHolder = new PlanExportInfo.TestExportInfoHolder(testId, testModuleName, export);
-				planExportInfo.addTestExportInfoHolder(testExportInfoHolder);
-
+				testInstanceIds.add(testId);
+				moduleToTestId.put(module, testId);
 			}
+		}
+
+		Map<String, Object> testInfosById = getTestInfosByIds(publicOnly, testInstanceIds);
+		Map<String, List<Document>> testResultsById = getTestResultsByIds(testInstanceIds, publicOnly, testInfosById);
+
+		for (Map.Entry<Plan.Module, String> entry : moduleToTestId.entrySet()) {
+			Plan.Module module = entry.getKey();
+			String testId = entry.getValue();
+			Object testInfo = testInfosById.get(testId);
+			if (testInfo == null) {
+				// Missing TestInfo for an authorised plan's test means data inconsistency
+				// (deleted log, ACL drift, etc). Fail loudly rather than silently emitting
+				// a partial zip the user would mistake for a complete export.
+				throw new IllegalStateException("TestInfo not found for testId=" + testId
+					+ " in plan " + planId + " — refusing to emit a partial export");
+			}
+			List<Document> results = testResultsById.getOrDefault(testId, Collections.emptyList());
+			final TestExportInfo export = putTestResultToExport(results, Optional.of(testInfo));
+			PlanExportInfo.TestExportInfoHolder testExportInfoHolder = new PlanExportInfo.TestExportInfoHolder(testId, module.getTestModule(), export);
+			planExportInfo.addTestExportInfoHolder(testExportInfoHolder);
 		}
 
 		if (planExportInfo.getTestExportCount()<1) {
@@ -613,7 +809,7 @@ public class LogApi {
 		String fileDate = DateTimeFormatter.ofPattern("dd-MMM-yyyy").format(LocalDate.now());
 
 		HttpHeaders headers = new HttpHeaders();
-
+		headers.setContentType(APPLICATION_ZIP);
 		headers.add("Content-Disposition", "attachment; filename=\"" + (Strings.isNullOrEmpty(planName) ? "" : (planName + "-")) + variantSuffix(variant) + planId + "-" + fileDate + ".zip\"");
 
 		StreamingResponseBody responseBody = new StreamingResponseBody() {
@@ -783,6 +979,14 @@ public class LogApi {
 		archiveOutputStream.closeArchiveEntry();
 	}
 
+	// This URL is not in the public matcher (only /api/log/export/?* is), so
+	// unauthenticated callers get 401 and private-link share users get 403 before
+	// reaching the controller. The publicOnly=true branch is therefore only
+	// reachable for non-private-link authenticated callers (API token or OIDC
+	// session cookie). In rendered UI flows that happens when an owner views
+	// log-detail with public=true on the URL (the "Public link" preview of an
+	// everything-published test) and clicks "Download Logs" — the JS appends
+	// ?public=true in that mode.
 	@GetMapping(value = "/log/exporthtml/{id}", produces = "application/zip")
 	@Operation(summary = "Export test logs as html by test id")
 	@ApiResponses(value = {
@@ -810,7 +1014,7 @@ public class LogApi {
 		}
 
 		HttpHeaders headers = new HttpHeaders();
-
+		headers.setContentType(APPLICATION_ZIP);
 		headers.add("Content-Disposition", "attachment; filename=\"test-log-" + (Strings.isNullOrEmpty(testModuleName) ? "" : (testModuleName + "-")) + variantSuffix(variant) + id + ".zip\"");
 
 		final TestExportInfo export = putTestResultToExport(results, testInfo);

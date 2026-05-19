@@ -1,7 +1,9 @@
 package net.openid.conformance.vci10issuer;
 
 import net.openid.conformance.condition.Condition;
+import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
+import net.openid.conformance.vci10issuer.condition.VCIGenerateJwtProof;
 import net.openid.conformance.vci10issuer.condition.VCIInvalidateJwtProofSignature;
 import net.openid.conformance.vci10issuer.condition.VCIValidateCredentialErrorResponse;
 import net.openid.conformance.vci10issuer.condition.VciErrorCode;
@@ -54,11 +56,13 @@ public class VCIIssuerFailOnInvalidJwtProofSignature extends AbstractVCIIssuerTe
 	}
 
 	@Override
-	protected void afterProofGeneration() {
-		super.afterProofGeneration();
-
-		// Invalidate the JWT proof signature
-		callAndContinueOnFailure(VCIInvalidateJwtProofSignature.class, Condition.ConditionResult.INFO, "OID4VCI-1FINAL-7.2.1");
+	protected ConditionSequence makeGenerateKeyAttestationAndProofSteps() {
+		return super.makeGenerateKeyAttestationAndProofSteps()
+			.insertAfter(VCIGenerateJwtProof.class,
+				condition(VCIInvalidateJwtProofSignature.class)
+					.onFail(Condition.ConditionResult.INFO)
+					.requirements("OID4VCI-1FINAL-7.2.1")
+					.dontStopOnFailure());
 	}
 
 	@Override

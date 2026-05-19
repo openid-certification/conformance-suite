@@ -19,12 +19,14 @@ Environment variables:
     CONFORMANCE_TOKEN   API token for admin access (required)
 """
 
+import io
 import json
 import os
 import sys
 import time
 import traceback
 import urllib.parse
+import zipfile
 
 import httpx
 
@@ -128,6 +130,33 @@ def bearer_client(base_url, jwt_token, verify_ssl):
         verify=verify_ssl,
         timeout=20,
         headers={"Authorization": f"Bearer {jwt_token}"})
+
+
+def assert_valid_export_zip(runner, name, response, expected_test_ids):
+    """Validate an export response: HTTP 200, application/zip Content-Type,
+    body is a valid zip with intact CRCs, and contains a test-log-*.json for
+    each expected test id."""
+    runner.check_status(f"{name}: HTTP 200", response, 200)
+    if response.status_code != 200:
+        return
+    content_type = response.headers.get("Content-Type", "")
+    runner.check(f"{name}: Content-Type is application/zip",
+                 content_type.startswith("application/zip"),
+                 f"got Content-Type={content_type!r}")
+    try:
+        zf = zipfile.ZipFile(io.BytesIO(response.content))
+    except zipfile.BadZipFile as e:
+        runner.check(f"{name}: response body is a valid zip", False, str(e))
+        return
+    runner.check(f"{name}: response body is a valid zip", True)
+    bad_entry = zf.testzip()
+    runner.check(f"{name}: zip CRCs valid", bad_entry is None,
+                 f"first bad entry: {bad_entry}")
+    names = zf.namelist()
+    for test_id in expected_test_ids:
+        matches = [n for n in names if n.endswith(f"-{test_id}.json")]
+        runner.check(f"{name}: zip contains test-log JSON for {test_id}",
+                     len(matches) > 0, f"namelist sample: {names[:10]}")
 
 
 def authenticate_private_link(base_url, jwt_token, verify_ssl):
@@ -327,10 +356,48 @@ def run_tests():
     resp = pl_client.get(f"{base_url}log-detail.html?log={test_id}")
     runner.check_status("Plan share: can view log-detail page", resp, 200)
 
+    # The export endpoints are NOT in the private-link allowlist
+    # (WebSecurityResourceServerConfig.java:75-83 only allows /api/plan/{id},
+    # /api/info/{id}, /api/log/{id} as single-segment URIs). Private-link
+    # users therefore get 403 from the security layer regardless of which plan
+    # they target — even the one their share covers.
+    resp = pl_client.get(f"{base_url}api/plan/exporthtml/{plan_id}")
+    runner.check_status("Plan share: cannot export shared plan (not in allowlist)", resp, 403)
+
+    resp = pl_client.get(f"{base_url}api/log/exporthtml/{test_id}")
+    runner.check_status("Plan share: cannot export shared test html (not in allowlist)", resp, 403)
+
+    resp = pl_client.get(f"{base_url}api/log/export/{test_id}")
+    runner.check_status("Plan share: cannot export shared test zip (not in allowlist)", resp, 403)
+
     # Denied access
     print("\n--- 1. Plan sharing: denied access ---")
     resp = pl_client.get(f"{base_url}api/plan/{other_plan_id}")
     runner.check_status("Plan share: cannot view other plan", resp, 404)
+
+    # /api/log/{id} is in the private-link allowlist, so the security layer doesn't
+    # reject the request; the controller must enforce that the test is in the
+    # shared plan. A previous bug filtered by "currentUser" in the deny branch,
+    # which for private-link users equals the shared-asset owner and so leaked
+    # logs of any other test owned by that owner.
+    resp = pl_client.get(f"{base_url}api/log/{other_test_id}")
+    runner.check("Plan share: log of test in other plan returns no entries",
+                 resp.status_code == 200 and resp.json() == [],
+                 f"HTTP {resp.status_code} body={resp.text[:200]}")
+
+    resp = pl_client.get(f"{base_url}api/plan/exporthtml/{other_plan_id}")
+    runner.check_status("Plan share: cannot export other plan", resp, 403)
+
+    resp = pl_client.get(f"{base_url}api/log/exporthtml/{other_test_id}")
+    runner.check_status("Plan share: cannot export other test html", resp, 403)
+
+    resp = pl_client.get(f"{base_url}api/log/export/{other_test_id}")
+    runner.check_status("Plan share: cannot export other test zip", resp, 403)
+
+    resp = pl_client.post(f"{base_url}api/info/{test_id}/publish",
+                          content=json.dumps({"publish": "summary"}),
+                          headers={"Content-Type": "application/json"})
+    runner.check_status("Plan share: cannot publish test", resp, 403)
 
     resp = pl_client.post(f"{base_url}api/plan/{plan_id}/share", params={"exp": "1"})
     runner.check_status("Plan share: cannot create share link", resp, 403)
@@ -414,6 +481,29 @@ def run_tests():
     resp = tl_client.get(f"{base_url}api/info/{other_test_id}")
     runner.check_status("Test share: cannot view other test", resp, 404)
 
+    resp = tl_client.get(f"{base_url}api/log/{other_test_id}")
+    runner.check("Test share: log of test in other plan returns no entries",
+                 resp.status_code == 200 and resp.json() == [],
+                 f"HTTP {resp.status_code} body={resp.text[:200]}")
+
+    # Same allowlist applies to test-level shares: export endpoints not allowed.
+    resp = tl_client.get(f"{base_url}api/log/exporthtml/{test_id}")
+    runner.check_status("Test share: cannot export shared test html (not in allowlist)", resp, 403)
+
+    resp = tl_client.get(f"{base_url}api/log/export/{test_id}")
+    runner.check_status("Test share: cannot export shared test zip (not in allowlist)", resp, 403)
+
+    resp = tl_client.get(f"{base_url}api/log/exporthtml/{other_test_id}")
+    runner.check_status("Test share: cannot export other test html", resp, 403)
+
+    resp = tl_client.get(f"{base_url}api/log/export/{other_test_id}")
+    runner.check_status("Test share: cannot export other test zip", resp, 403)
+
+    resp = tl_client.post(f"{base_url}api/info/{test_id}/publish",
+                          content=json.dumps({"publish": "summary"}),
+                          headers={"Content-Type": "application/json"})
+    runner.check_status("Test share: cannot publish test", resp, 403)
+
     tl_client.close()
 
     # ===================================================================
@@ -449,6 +539,11 @@ def run_tests():
     print("\n--- 2b. Plan JWT as Bearer: denied access ---")
     resp = plan_bearer.get(f"{base_url}api/plan/{other_plan_id}")
     runner.check_status("Plan JWT Bearer: cannot view other plan", resp, 404)
+
+    resp = plan_bearer.get(f"{base_url}api/log/{other_test_id}")
+    runner.check("Plan JWT Bearer: log of test in other plan returns no entries",
+                 resp.status_code == 200 and resp.json() == [],
+                 f"HTTP {resp.status_code} body={resp.text[:200]}")
 
     resp = plan_bearer.post(f"{base_url}api/plan/{plan_id}/share", params={"exp": "1"})
     runner.check_status("Plan JWT Bearer: cannot create share link", resp, 403)
@@ -525,6 +620,11 @@ def run_tests():
 
     resp = test_bearer.get(f"{base_url}api/plan/{other_plan_id}")
     runner.check_status("Test JWT Bearer: cannot view other plan", resp, 404)
+
+    resp = test_bearer.get(f"{base_url}api/log/{other_test_id}")
+    runner.check("Test JWT Bearer: log of test in other plan returns no entries",
+                 resp.status_code == 200 and resp.json() == [],
+                 f"HTTP {resp.status_code} body={resp.text[:200]}")
 
     test_bearer.close()
 
@@ -607,11 +707,101 @@ def run_tests():
     resp = pub_client.get(f"{base_url}plan-detail.html?plan={plan_id}&public=true")
     runner.check_status("Public: published plan-detail page accessible", resp, 200)
 
+    # Only the JSON-only export endpoints (/api/log/export/?* and
+    # /api/plan/export/?*) are in the public matcher. The html-zip variants
+    # /api/{plan,log}/exporthtml/?* require auth regardless of ?public=true,
+    # by design — the UI hides their download buttons in public-mode views so
+    # this 401 should never be reached from the rendered pages.
+    resp = pub_client.get(f"{base_url}api/plan/exporthtml/{plan_id}?public=true")
+    runner.check_status("Public: plan/exporthtml needs auth even with ?public", resp, 401)
+
+    resp = pub_client.get(f"{base_url}api/log/exporthtml/{test_id}?public=true")
+    runner.check_status("Public: log/exporthtml needs auth even with ?public", resp, 401)
+
+    resp = pub_client.get(f"{base_url}api/log/export/{test_id}?public=true")
+    assert_valid_export_zip(runner, "Public: can export published test zip", resp, [test_id])
+
+    resp = pub_client.get(f"{base_url}api/log/export/{other_test_id}?public=true")
+    runner.check_status("Public: cannot export unpublished test zip", resp, 404)
+
     # Without ?public=true, published plan still requires auth
     resp = pub_client.get(f"{base_url}api/plan/{plan_id}")
     runner.check_status("Public: plan without ?public requires auth", resp, 401)
 
+    resp = pub_client.get(f"{base_url}api/plan/exporthtml/{plan_id}")
+    runner.check_status("Public: export without ?public requires auth", resp, 401)
+
+    resp = pub_client.get(f"{base_url}api/log/exporthtml/{test_id}")
+    runner.check_status("Public: log/exporthtml without ?public requires auth", resp, 401)
+
+    resp = pub_client.get(f"{base_url}api/log/export/{test_id}")
+    runner.check_status("Public: log/export without ?public requires auth", resp, 401)
+
+    resp = pub_client.post(f"{base_url}api/info/{test_id}/publish",
+                           content=json.dumps({"publish": "summary"}),
+                           headers={"Content-Type": "application/json"})
+    runner.check_status("Public: unauth cannot publish test", resp, 401)
+
     pub_client.close()
+
+    # ===================================================================
+    # 4b. PLAN EXPORT — owner path
+    # ===================================================================
+    # Smoke test for the bulk-load path in LogApi.exportPlanAsZip when the
+    # caller owns the plan (the path every CI test job exercises). Asserts
+    # the response is a well-formed zip containing the expected test logs.
+    print("\n--- 4b. Plan export (owner) ---")
+    resp = admin_client.get(f"{base_url}api/plan/exporthtml/{plan_id}")
+    assert_valid_export_zip(runner, "Export: owner can export own plan", resp, [test_id])
+
+    resp = admin_client.get(f"{base_url}api/plan/exporthtml/does-not-exist")
+    runner.check_status("Export: missing plan id returns 404", resp, 404)
+
+    resp = admin_client.get(f"{base_url}api/log/exporthtml/{test_id}")
+    assert_valid_export_zip(runner, "Export: owner can export own test html", resp, [test_id])
+
+    resp = admin_client.get(f"{base_url}api/log/export/{test_id}")
+    assert_valid_export_zip(runner, "Export: owner can export own test zip", resp, [test_id])
+
+    resp = admin_client.get(f"{base_url}api/log/exporthtml/does-not-exist")
+    runner.check_status("Export: missing test id html returns 404", resp, 404)
+
+    resp = admin_client.get(f"{base_url}api/log/export/does-not-exist")
+    runner.check_status("Export: missing test id zip returns 404", resp, 404)
+
+    # ===================================================================
+    # 4c. PER-TEST PUBLISH (/api/info/{id}/publish)
+    # ===================================================================
+    # other_test_id was created against an unpublished plan, so it starts
+    # with publish=null. Admin can change its publish level via this
+    # endpoint without going through /plan/{id}/publish.
+    print("\n--- 4c. Per-test publish ---")
+    resp = admin_client.post(f"{base_url}api/info/{other_test_id}/publish",
+                             content=json.dumps({"publish": "summary"}),
+                             headers={"Content-Type": "application/json"})
+    runner.check_status("Publish: admin can publish test as summary", resp, 200)
+
+    if resp.status_code == 200:
+        # Confirm the change is observable to public callers.
+        check_client = httpx.Client(verify=verify_ssl, timeout=20)
+        resp = check_client.get(f"{base_url}api/info/{other_test_id}?public=true")
+        runner.check_status("Publish: published test now visible publicly", resp, 200)
+        check_client.close()
+
+    resp = admin_client.post(f"{base_url}api/info/{other_test_id}/publish",
+                             content=json.dumps({"publish": "everything"}),
+                             headers={"Content-Type": "application/json"})
+    runner.check_status("Publish: admin can raise level to everything", resp, 200)
+
+    resp = admin_client.post(f"{base_url}api/info/{other_test_id}/publish",
+                             content=json.dumps({"publish": "garbage-value"}),
+                             headers={"Content-Type": "application/json"})
+    runner.check_status_in("Publish: invalid publish value rejected", resp, {400, 403})
+
+    resp = admin_client.post(f"{base_url}api/info/{other_test_id}/publish",
+                             content=json.dumps({}),
+                             headers={"Content-Type": "application/json"})
+    runner.check_status("Publish: missing publish field rejected", resp, 400)
 
     # ===================================================================
     # 5. API TOKEN LIFECYCLE

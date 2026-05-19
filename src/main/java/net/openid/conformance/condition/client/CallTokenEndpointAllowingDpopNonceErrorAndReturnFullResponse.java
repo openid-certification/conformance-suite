@@ -12,6 +12,10 @@ import org.springframework.http.ResponseEntity;
 import java.util.List;
 
 
+/**
+ * Wrapper around {@link CallTokenEndpointAndReturnFullResponse} that recognises a {@code use_dpop_nonce} 400
+ * response and exposes the supplied DPoP-Nonce so the caller can retry.
+ */
 public class CallTokenEndpointAllowingDpopNonceErrorAndReturnFullResponse extends CallTokenEndpointAndReturnFullResponse {
 
 	// WARNING optional token_endpoint_dpop_nonce_error returned with required nonce value

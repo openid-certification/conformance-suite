@@ -3,6 +3,7 @@ package net.openid.conformance.condition.util;
 import com.google.gson.JsonObject;
 
 import java.net.MalformedURLException;
+import java.net.URI;
 import java.net.URL;
 
 /**
@@ -12,7 +13,7 @@ import java.net.URL;
 public class TLSTestValueExtractor {
 
 	public static JsonObject extractTlsFromUrl(String urlString) throws MalformedURLException {
-		URL url = new URL(urlString);
+		URL url = URI.create(urlString).toURL();
 		JsonObject tls = new JsonObject();
 		tls.addProperty("testHost", url.getHost());
 		tls.addProperty("testPort", url.getPort() > 0 ? url.getPort() : url.getDefaultPort());

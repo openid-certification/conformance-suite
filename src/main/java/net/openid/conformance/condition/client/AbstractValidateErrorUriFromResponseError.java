@@ -4,7 +4,7 @@ import com.google.common.base.Strings;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.testmodule.Environment;
 
-import java.net.URL;
+import java.net.URI;
 import java.util.regex.Pattern;
 
 public abstract class AbstractValidateErrorUriFromResponseError extends AbstractCondition {
@@ -39,7 +39,7 @@ public abstract class AbstractValidateErrorUriFromResponseError extends Abstract
 
 	private boolean isValidUriSyntax(String errorUri) {
 		try {
-			new URL(errorUri).toURI();
+			URI.create(errorUri).toURL();
 			return true;
 		} catch (Exception e) {
 			return false;

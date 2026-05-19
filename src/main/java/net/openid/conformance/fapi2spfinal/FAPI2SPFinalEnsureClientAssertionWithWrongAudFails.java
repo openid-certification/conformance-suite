@@ -20,17 +20,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 	testName = "fapi2-security-profile-final-ensure-client-assertion-with-wrong-aud-fails",
 	displayName = "FAPI2-Security-Profile-Final: ensure client_assertion with wrong aud fails",
 	summary = "This test passes client assertion where 'aud' is wrong (is for a different server). The server must be rejected at the token endpoint and returning an error message that the 'aud' claim of the client assertion is invalid.",
-	profile = "FAPI2-Security-Profile-Final",
-	configurationFields = {
-		"server.discoveryUrl",
-		"client.client_id",
-		"client.scope",
-		"client.jwks",
-		"client2.client_id",
-		"client2.scope",
-		"client2.jwks",
-		"resource.resourceUrl"
-	}
+	profile = "FAPI2-Security-Profile-Final"
 )
 @VariantNotApplicable(parameter = ClientAuthType.class, values = { "mtls", "client_attestation" })
 public class FAPI2SPFinalEnsureClientAssertionWithWrongAudFails extends AbstractFAPI2SPFinalPerformTokenEndpoint {

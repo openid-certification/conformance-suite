@@ -30,10 +30,7 @@ import net.openid.conformance.variant.VariantSetup;
 	testName = "fapi2-security-profile-final-discovery-end-point-verification",
 	displayName = "FAPI2-Security-Profile-Final: Discovery Endpoint Verification",
 	summary = "This test ensures that the server's configuration (including scopes, response_types, grant_types etc) contains values required by the specification",
-	profile = "FAPI2-Security-Profile-Final",
-	configurationFields = {
-		"server.discoveryUrl",
-	}
+	profile = "FAPI2-Security-Profile-Final"
 )
 @VariantParameters({
 	AuthorizationRequestType.class,

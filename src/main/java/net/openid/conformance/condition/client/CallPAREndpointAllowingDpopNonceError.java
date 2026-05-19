@@ -10,8 +10,8 @@ import org.springframework.http.ResponseEntity;
 import java.util.List;
 
 /**
- * This class makes a http post to PAR endpoint and examines the response for DPoP nonce errors and stores
- * the required nonce for retry
+ * This class makes a http post to PAR endpoint and examines the response for DPoP nonce errors and stores the
+ * required nonce for retry.
  */
 public class CallPAREndpointAllowingDpopNonceError extends CallPAREndpoint {
 	@Override

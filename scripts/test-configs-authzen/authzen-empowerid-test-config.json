@@ -1,0 +1,9 @@
+{
+    "alias": "oidf-authzen-empowerid-test",
+    "description": "Authzen EmpowerID Server",
+    "publish": "everything",
+    "pdp":  {
+        "policy_decision_point": "https://pdp-authz.int1.eidlabs.net",
+        "access_evaluation_endpoint": "https://pdp-authz.int1.eidlabs.net/access/v1/evaluation"
+    }
+}

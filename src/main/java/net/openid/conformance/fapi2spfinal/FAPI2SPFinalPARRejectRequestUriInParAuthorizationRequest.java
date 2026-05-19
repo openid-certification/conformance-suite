@@ -13,17 +13,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 	testName = "fapi2-security-profile-final-par-authorization-request-containing-request_uri",
 	displayName = "PAR : authorization request must not contain request_uri parameter",
 	summary = "This test sends a random request_uri parameter in authorization request object and expects authorization server to return an error",
-	profile = "FAPI2-Security-Profile-Final",
-	configurationFields = {
-		"server.discoveryUrl",
-		"client.client_id",
-		"client.scope",
-		"client.jwks",
-		"client2.client_id",
-		"client2.scope",
-		"client2.jwks",
-		"resource.resourceUrl"
-	}
+	profile = "FAPI2-Security-Profile-Final"
 )
 // there's a separate test that supplies request_uri outside the request object; this test is specific to when
 // a request object is in use and includes request_uri in the request object.

@@ -7,6 +7,7 @@ import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 
 import java.net.MalformedURLException;
+import java.net.URI;
 import java.net.URL;
 
 public class CheckDiscEndpointDiscoveryUrl extends AbstractCondition {
@@ -38,7 +39,7 @@ public class CheckDiscEndpointDiscoveryUrl extends AbstractCondition {
 			try {
 				String discoveryUrl = OIDFJSON.getString(configUrl);
 
-				URL extractedUrl = new URL(discoveryUrl);
+				URL extractedUrl = URI.create(discoveryUrl).toURL();
 				if(!isValidDiscoveryUrl(extractedUrl)) {
 					throw error("discoveryUrl is missing '" + getConfigurationEndpoint() + "'", args("actual", discoveryUrl));
 				}
@@ -49,7 +50,7 @@ public class CheckDiscEndpointDiscoveryUrl extends AbstractCondition {
 
 				logSuccess("discoveryUrl", args("actual", configUrl));
 
-			} catch (MalformedURLException invalidURL) {
+			} catch (MalformedURLException | IllegalArgumentException invalidURL) {
 				throw error(errorMessageInvalidURL, args("Failure", configUrl));
 			}
 		}

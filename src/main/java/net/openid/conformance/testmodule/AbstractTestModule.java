@@ -3,6 +3,7 @@ package net.openid.conformance.testmodule;
 import com.google.common.base.Strings;
 import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableMap;
+import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.nimbusds.jose.crypto.bc.BouncyCastleProviderSingleton;
@@ -403,6 +404,24 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 					return;
 				}
 			}
+			for (Pair<String, String> idx : builder.getSkipIfElementsPresent()) {
+				String key = idx.getLeft();
+				String path = idx.getRight();
+				JsonElement el = env.getElementFromObject(key, path);
+				if (el != null) {
+					logger.info(getId() + ": [skip] Test condition " + builder.getConditionClass().getSimpleName() + " skipped, element present in environment: " + key + " " + path);
+					eventLog.log(condition.getMessage(), args(
+						"msg", "Skipped evaluation because element is present: " + key + " " + path,
+						"object", key,
+						"path", path,
+						"mapped", env.isKeyShadowed(key) ? env.getEffectiveKey(key) : null,
+						"result", builder.getOnSkip(),
+						"requirements", builder.getRequirements()
+					));
+					updateResultFromConditionFailure(builder.getOnSkip());
+					return;
+				}
+			}
 
 			condition.execute(env);
 
@@ -487,6 +506,41 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 		}
 	}
 
+	protected void call(IterateEnvironmentArray builder) {
+		JsonElement sourceElement = env.getElementFromObject(builder.getSourceObject(), builder.getSourcePath());
+		if (sourceElement == null) {
+			throw new TestFailureException(getId(), "Missing environment array for iteration at "
+				+ builder.getSourceObject() + "." + builder.getSourcePath());
+		}
+		if (!sourceElement.isJsonArray()) {
+			throw new TestFailureException(getId(), "Expected environment array for iteration at "
+				+ builder.getSourceObject() + "." + builder.getSourcePath());
+		}
+
+		JsonArray sourceArray = sourceElement.getAsJsonArray();
+		try {
+			for (int i = 0; i < sourceArray.size(); i++) {
+				JsonElement element = sourceArray.get(i);
+				builder.prepareIteration(env, element, i, sourceArray.size());
+
+				String blockLabel = builder.getLogBlockLabel(element, i, sourceArray.size());
+				if (!Strings.isNullOrEmpty(blockLabel)) {
+					eventLog.startBlock(blockLabel);
+				}
+
+				try {
+					call(builder.getSequenceCallBuilder());
+				} finally {
+					if (!Strings.isNullOrEmpty(blockLabel)) {
+						eventLog.endBlock();
+					}
+				}
+			}
+		} finally {
+			builder.cleanupAfterIteration(env, sourceArray.size());
+		}
+	}
+
 	/**
 	 * Dispatch function to call a more specific subclass as needed.
 	 */
@@ -495,6 +549,8 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 			call(callBuilder);
 		} else if (builder instanceof Command command) {
 			call(command);
+		} else if (builder instanceof IterateEnvironmentArray iterateEnvironmentArray) {
+			call(iterateEnvironmentArray);
 		} else if (builder instanceof ConditionSequence sequence) {
 			call(sequence);
 		} else if (builder instanceof ConditionSequenceCallBuilder callBuilder) {

@@ -28,17 +28,7 @@ import java.util.function.Supplier;
 	testName = "fapi2-security-profile-final-dpop-negative-tests",
 	displayName = "FAPI2-Security-Profile-Final: DPoP negative tests",
 	summary = "Obtain an access token as normal, check it works, then various negative tests to check the server is implementing the checks required by the DPoP specification.",
-	profile = "FAPI2-Security-Profile-Final",
-	configurationFields = {
-		"server.discoveryUrl",
-		"client.client_id",
-		"client.scope",
-		"client.jwks",
-		"client2.client_id",
-		"client2.scope",
-		"client2.jwks",
-		"resource.resourceUrl"
-	}
+	profile = "FAPI2-Security-Profile-Final"
 )
 @VariantNotApplicable(parameter = FAPI2SenderConstrainMethod.class, values={"mtls"})
 public class FAPI2SPFinalDpopNegativeTests extends AbstractFAPI2SPFinalServerTestModule {
@@ -303,7 +293,7 @@ public class FAPI2SPFinalDpopNegativeTests extends AbstractFAPI2SPFinalServerTes
 		// and not because the access token had stopped working for some reason etc.
 		eventLog.startBlock("Check a correct DPoP proof still works");
 		callResourceEndpointSteps(() -> makeUpdateResourceRequestSteps(), true, true, "DPOP-7.1");
-		profileBehavior.validateResourceEndpointResponse();
+		call(profileBehavior.validateResourceEndpointResponse());
 
 
 	}

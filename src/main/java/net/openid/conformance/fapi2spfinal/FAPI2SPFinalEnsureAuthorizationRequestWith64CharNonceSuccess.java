@@ -12,17 +12,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 	testName = "fapi2-security-profile-final-ensure-authorization-request-with-64-char-nonce-success",
 	displayName = "FAPI2-Security-Profile-Final: ensure authorization request with 64 char nonce",
 	summary = "This test passes a 64 character nonce in the authorization request. As per https://openid.net/specs/fapi-security-profile-2_0-final.html#section-5.3.2.2 item 14, the authorization server must successfully authenticate and return the nonce correctly.",
-	profile = "FAPI2-Security-Profile-Final",
-	configurationFields = {
-		"server.discoveryUrl",
-		"client.client_id",
-		"client.scope",
-		"client.jwks",
-		"client2.client_id",
-		"client2.scope",
-		"client2.jwks",
-		"resource.resourceUrl"
-	}
+	profile = "FAPI2-Security-Profile-Final"
 )
 @VariantNotApplicable(parameter = FAPIOpenIDConnect.class, values = { "plain_oauth" })
 @VariantNotApplicable(parameter = FAPI2FinalOPProfile.class, values = { "fapi_client_credentials_grant" })

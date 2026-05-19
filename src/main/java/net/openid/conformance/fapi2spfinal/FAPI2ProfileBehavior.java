@@ -196,6 +196,16 @@ public class FAPI2ProfileBehavior {
 	}
 
 	/**
+	 * Hook called after a successful token-endpoint response has been processed,
+	 * including after each successful refresh-token call. Profiles that need to
+	 * preserve data from the response across subsequent token-endpoint calls
+	 * (which overwrite token_endpoint_response) can return a sequence here.
+	 */
+	public ConditionSequence afterTokenEndpointResponseProcessed() {
+		return null;
+	}
+
+	/**
 	 * Add profile-specific headers to resource endpoint request.
 	 * Default adds auth date, customer IP address, and interaction ID for first client only.
 	 */
@@ -235,8 +245,9 @@ public class FAPI2ProfileBehavior {
 	 * Validate profile-specific signed response from the resource endpoint.
 	 * Default does nothing.
 	 */
-	public void validateResourceEndpointResponse() {
+	public ConditionSequence validateResourceEndpointResponse() {
 		// plain FAPI: no signed response validation
+		return null;
 	}
 
 	/**
@@ -376,15 +387,6 @@ public class FAPI2ProfileBehavior {
 				}
 			}
 		};
-	}
-
-	/**
-	 * Called after server configuration is fetched and before client configuration.
-	 * VCI overrides to resolve credential configuration, check encryption support, etc.
-	 */
-	public ConditionSequence afterServerConfigurationFetched() {
-		// plain FAPI: nothing extra
-		return null;
 	}
 
 	/**

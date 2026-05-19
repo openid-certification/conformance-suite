@@ -4,20 +4,20 @@ import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.condition.client.CheckDiscEndpointTokenEndpointAuthMethodsSupportedContainsAttestation;
 import net.openid.conformance.sequence.ConditionSequence;
+import net.openid.conformance.testmodule.Command;
 import net.openid.conformance.testmodule.ConditionCallBuilder;
 import net.openid.conformance.variant.VCI1FinalCredentialFormat;
 import net.openid.conformance.vci10issuer.condition.VCIDetermineCredentialConfigurationTransferMethod;
 import net.openid.conformance.vci10issuer.condition.VCIEnsureScopePresentInCredentialConfigurationForHaip;
+import net.openid.conformance.vci10issuer.condition.VCIValidateNonceEndpointInIssuerMetadata;
 
 /**
  * Profile behavior for VCI HAIP (High Assurance Interoperability Profile) tests.
  *
- * <p>Extends {@link VCIProfileBehavior} with HAIP-specific constraints.
- * HAIP requires attestation-based client authentication only.
- * Additional HAIP-specific constraints (DPoP ES256, nonce endpoint, credential validity,
- * x5c headers) are currently handled via {@code fapi2Profile == VCI_HAIP} checks in
- * {@link net.openid.conformance.vci10issuer.AbstractVCIIssuerTestModule}. Override methods
- * here if future HAIP behavior belongs in the profile behavior layer.
+ * <p>Extends {@link VCIProfileBehavior} with HAIP-specific constraints for:
+ * attestation-based client authentication discovery checks, scope-based credential
+ * configuration resolution, required nonce endpoint metadata, and HAIP-specific
+ * credential validation rules.
  */
 public class VCIHaipProfileBehavior extends VCIProfileBehavior {
 
@@ -36,5 +36,27 @@ public class VCIHaipProfileBehavior extends VCIProfileBehavior {
 				.requirements("HAIP-4.1", "HAIP-4.3")
 				.dontStopOnFailure());
 		return seq;
+	}
+
+	@Override
+	public ConditionSequence fetchServerConfiguration(boolean isOpenId) {
+		return super.fetchServerConfiguration(isOpenId)
+			.then(new ConditionCallBuilder(VCIValidateNonceEndpointInIssuerMetadata.class)
+				.onFail(ConditionResult.FAILURE)
+				.requirements("HAIP-4.1-5"));
+	}
+
+	@Override
+	public ConditionSequence configureClientExtra() {
+		// HAIP requires ES256 as the DPoP signing algorithm for both clients
+		Command setDpopSigningAlgs = new Command()
+			.putString("client", "dpop_signing_alg", "ES256")
+			.putString("client2", "dpop_signing_alg", "ES256");
+		return super.configureClientExtra().butFirst(setDpopSigningAlgs);
+	}
+
+	@Override
+	protected boolean isHaip() {
+		return true;
 	}
 }

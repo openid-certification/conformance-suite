@@ -3,6 +3,7 @@ package net.openid.conformance.condition.as;
 import com.google.common.base.Strings;
 
 import java.net.MalformedURLException;
+import java.net.URI;
 import java.net.URL;
 
 public class GenerateOauthServerConfigurationMTLS extends GenerateServerConfigurationMTLS {
@@ -10,7 +11,7 @@ public class GenerateOauthServerConfigurationMTLS extends GenerateServerConfigur
 	@Override
 	protected String getDiscoveryUrl(String baseUrl) {
 		try {
-			URL url = new URL(baseUrl);
+			URL url = URI.create(baseUrl).toURL();
 			if(!Strings.isNullOrEmpty(url.getPath())) {
 				int foundIndex = baseUrl.indexOf(url.getPath());
 				if(foundIndex != -1) {
@@ -18,7 +19,7 @@ public class GenerateOauthServerConfigurationMTLS extends GenerateServerConfigur
 				}
 			}
 			return baseUrl + "./well-known/oauth-authorization-server";
-		} catch (MalformedURLException e) {
+		} catch (MalformedURLException | IllegalArgumentException e) {
 			throw error("Invalid URL", e, args("baseUrl", baseUrl));
 		}
 	}

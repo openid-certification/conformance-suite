@@ -16,12 +16,12 @@ import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.condition.ConditionError;
+import net.openid.conformance.logging.BsonEncoding;
 import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.Environment;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -45,8 +45,7 @@ public class CompareTrustChains_UnitTest {
 	@Spy
 	private Environment env = new Environment();
 
-	@Mock
-	private TestInstanceEventLog eventLog;
+	private final TestInstanceEventLog eventLog = BsonEncoding.testInstanceEventLog();
 
 	private CompareTrustChains cond;
 
@@ -70,7 +69,7 @@ public class CompareTrustChains_UnitTest {
 			if (diffs != null) {
 				diffs.forEach(diff -> System.out.println(diff));
 			}
-			return null;
+			return i.callRealMethod();
 		}).when(eventLog).log(anyString(), anyMap());
 	}
 

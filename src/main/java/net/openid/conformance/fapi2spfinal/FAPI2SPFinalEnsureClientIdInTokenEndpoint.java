@@ -16,17 +16,7 @@ import net.openid.conformance.variant.ClientAuthType;
 	testName = "fapi2-security-profile-final-ensure-client-id-in-token-endpoint",
 	displayName = "FAPI2-Security-Profile-Final: ensure client_id in token endpoint",
 	summary = "Send client_id for the second client to the token endpoint, which should result in the token endpoint returning an error message that the client is invalid. Note that you must configure the second client to use client credentials that are not equivalent to those for the first client - e.g. if using tls_client_auth_subject_dn, the certificates must have different subject distinguished names.",
-	profile = "FAPI2-Security-Profile-Final",
-	configurationFields = {
-		"server.discoveryUrl",
-		"client.client_id",
-		"client.scope",
-		"client.jwks",
-		"client2.client_id",
-		"client2.scope",
-		"client2.jwks",
-		"resource.resourceUrl"
-	}
+	profile = "FAPI2-Security-Profile-Final"
 )
 public class FAPI2SPFinalEnsureClientIdInTokenEndpoint extends AbstractFAPI2SPFinalPerformTokenEndpoint {
 

@@ -10,8 +10,9 @@ import net.openid.conformance.testmodule.Environment;
  * object in the credential request.
  *
  * This is used to test compression support separately from basic encryption.
- * When called from afterCredentialResponseEncryptionAdded(), the request has not yet
- * been serialized, so no re-serialization is needed.
+ * When inserted after VCIAddCredentialResponseEncryptionToRequest and before
+ * SerializeVCICredentialRequestObject, the request has not yet been serialized,
+ * so no re-serialization is needed.
  *
  * @see <a href="https://openid.net/specs/openid-4-verifiable-credential-issuance-1_0.html#section-8.2">OID4VCI Section 8.2 - Credential Request</a>
  */

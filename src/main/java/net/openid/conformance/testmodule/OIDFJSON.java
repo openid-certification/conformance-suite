@@ -96,6 +96,11 @@ public final class OIDFJSON {
 		return getString(json);
 	}
 
+	/** True when the element is a non-null JSON string primitive — the precondition for {@link #getString}. */
+	public static boolean isString(JsonElement json) {
+		return json != null && json.isJsonPrimitive() && json.getAsJsonPrimitive().isString();
+	}
+
 	public static boolean getBoolean(JsonElement json) {
 		if (!json.isJsonPrimitive() || !json.getAsJsonPrimitive().isBoolean()) {
 			throw new UnexpectedJsonTypeException("getBoolean called on something that is not a boolean: " + json);

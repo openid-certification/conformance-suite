@@ -4,12 +4,12 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.condition.ConditionError;
+import net.openid.conformance.logging.BsonEncoding;
 import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.Environment;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -21,8 +21,7 @@ public class CheckForUnexpectedParametersInErrorResponseFromAuthorizationEndpoin
 	@Spy
 	private Environment env = new Environment();
 
-	@Mock
-	private TestInstanceEventLog eventLog;
+	private final TestInstanceEventLog eventLog = BsonEncoding.testInstanceEventLog();
 	private CheckForUnexpectedParametersInErrorResponseFromAuthorizationEndpoint cond;
 
 	private String errorNoneNoOptionalFields = "{\"error\":\"access_denied\",\"state\":\"oObb8SUBuC\",\"session_state\":\"4912fd505631d79b1d39f1e537679d1931558c5347707e04ae6483dda4d8fc85.cE2Jqk7V6cv_jLcoWXa3yQ\"}";

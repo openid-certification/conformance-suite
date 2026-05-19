@@ -31,7 +31,10 @@ public class ValidateRequestObjectSignatureAgainstX5cHeader extends AbstractVali
 			}
 
 			List<X509Certificate> certs = parseX5cCertificatesFromNimbusBase64(x5c);
-			validateX5cCertificateChain(certs, null);
+
+			String trustAnchorPem = env.getString("client_request_object_trust_anchor_pem");
+			X509Certificate trustAnchor = parseTrustAnchorPem(trustAnchorPem);
+			validateX5cCertificateChain(certs, trustAnchor);
 
 			// Check request_object_signing_alg if configured
 			var client = env.getObject("client");

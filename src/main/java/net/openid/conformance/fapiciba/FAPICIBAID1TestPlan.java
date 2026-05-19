@@ -117,7 +117,7 @@ public class FAPICIBAID1TestPlan implements TestPlan {
 				}
 				break;
 			default:
-				return List.of("");	//Not a profile
+				throw new RuntimeException("Unknown FAPI CIBA profile [%s]".formatted(profile));
 		}
 
 		certProfile += " OP ";

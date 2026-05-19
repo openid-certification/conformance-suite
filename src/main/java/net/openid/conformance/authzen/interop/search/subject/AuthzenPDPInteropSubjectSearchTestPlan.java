@@ -1,0 +1,77 @@
+package net.openid.conformance.authzen.interop.search.subject;
+
+import net.openid.conformance.plan.PublishTestPlan;
+import net.openid.conformance.plan.TestPlan;
+
+@PublishTestPlan(
+	testPlanName = "authzen-pdp-interop-subject-search-test-plan",
+	displayName = "Authzen 1.0: PDP Interop server test for Subject Search - alpha tests (not currently part of certification program)",
+	profile = TestPlan.ProfileNames.authzenTest,
+	specFamily = TestPlan.SpecFamilyNames.authzen,
+	testModules = {
+		// Search Demo test cases
+		// https://github.com/openid/authzen/blob/main/interop/authzen-search-demo/test/subject/results.json
+		AuthzenPDPInteropSubjectSearch01Test.class,
+		AuthzenPDPInteropSubjectSearch02Test.class,
+		AuthzenPDPInteropSubjectSearch03Test.class,
+		AuthzenPDPInteropSubjectSearch04Test.class,
+		AuthzenPDPInteropSubjectSearch05Test.class,
+		AuthzenPDPInteropSubjectSearch06Test.class,
+		AuthzenPDPInteropSubjectSearch07Test.class,
+		AuthzenPDPInteropSubjectSearch08Test.class,
+		AuthzenPDPInteropSubjectSearch09Test.class,
+		AuthzenPDPInteropSubjectSearch10Test.class,
+		AuthzenPDPInteropSubjectSearch11Test.class,
+		AuthzenPDPInteropSubjectSearch12Test.class,
+		AuthzenPDPInteropSubjectSearch13Test.class,
+		AuthzenPDPInteropSubjectSearch14Test.class,
+		AuthzenPDPInteropSubjectSearch15Test.class,
+		AuthzenPDPInteropSubjectSearch16Test.class,
+		AuthzenPDPInteropSubjectSearch17Test.class,
+		AuthzenPDPInteropSubjectSearch18Test.class,
+		AuthzenPDPInteropSubjectSearch19Test.class,
+		AuthzenPDPInteropSubjectSearch20Test.class,
+		AuthzenPDPInteropSubjectSearch21Test.class,
+		AuthzenPDPInteropSubjectSearch22Test.class,
+		AuthzenPDPInteropSubjectSearch23Test.class,
+		AuthzenPDPInteropSubjectSearch24Test.class,
+		AuthzenPDPInteropSubjectSearch25Test.class,
+		AuthzenPDPInteropSubjectSearch26Test.class,
+		AuthzenPDPInteropSubjectSearch27Test.class,
+		AuthzenPDPInteropSubjectSearch28Test.class,
+		AuthzenPDPInteropSubjectSearch29Test.class,
+		AuthzenPDPInteropSubjectSearch30Test.class,
+		AuthzenPDPInteropSubjectSearch31Test.class,
+		AuthzenPDPInteropSubjectSearch32Test.class,
+		AuthzenPDPInteropSubjectSearch33Test.class,
+		AuthzenPDPInteropSubjectSearch34Test.class,
+		AuthzenPDPInteropSubjectSearch35Test.class,
+		AuthzenPDPInteropSubjectSearch36Test.class,
+		AuthzenPDPInteropSubjectSearch37Test.class,
+		AuthzenPDPInteropSubjectSearch38Test.class,
+		AuthzenPDPInteropSubjectSearch39Test.class,
+		AuthzenPDPInteropSubjectSearch40Test.class,
+		AuthzenPDPInteropSubjectSearch41Test.class,
+		AuthzenPDPInteropSubjectSearch42Test.class,
+		AuthzenPDPInteropSubjectSearch43Test.class,
+		AuthzenPDPInteropSubjectSearch44Test.class,
+		AuthzenPDPInteropSubjectSearch45Test.class,
+		AuthzenPDPInteropSubjectSearch46Test.class,
+		AuthzenPDPInteropSubjectSearch47Test.class,
+		AuthzenPDPInteropSubjectSearch48Test.class,
+		AuthzenPDPInteropSubjectSearch49Test.class,
+		AuthzenPDPInteropSubjectSearch50Test.class,
+		AuthzenPDPInteropSubjectSearch51Test.class,
+		AuthzenPDPInteropSubjectSearch52Test.class,
+		AuthzenPDPInteropSubjectSearch53Test.class,
+		AuthzenPDPInteropSubjectSearch54Test.class,
+		AuthzenPDPInteropSubjectSearch55Test.class,
+		AuthzenPDPInteropSubjectSearch56Test.class,
+		AuthzenPDPInteropSubjectSearch57Test.class,
+		AuthzenPDPInteropSubjectSearch58Test.class,
+		AuthzenPDPInteropSubjectSearch59Test.class,
+		AuthzenPDPInteropSubjectSearch60Test.class
+	}
+)
+public class AuthzenPDPInteropSubjectSearchTestPlan implements TestPlan {
+}

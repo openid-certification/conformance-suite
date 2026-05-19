@@ -15,17 +15,7 @@ import org.springframework.http.HttpStatus;
 	testName = "fapi2-security-profile-final-ensure-request-object-with-nbf-8-seconds-in-the-future-is-accepted",
 	displayName = "FAPI2-Security-Profile-Final: ensure request object with nbf 8 seconds in the future is accepted",
 	summary = "This test ensures the Authorization Server accepts request objects with a nbf claim slightly in the future (e.g., 8 seconds) to account for clock skew. It verifies robustness against minor time discrepancies, avoiding unnecessary request rejections.",
-	profile = "FAPI2-Security-Profile-Final",
-	configurationFields = {
-		"server.discoveryUrl",
-		"client.client_id",
-		"client.scope",
-		"client.jwks",
-		"client2.client_id",
-		"client2.scope",
-		"client2.jwks",
-		"resource.resourceUrl"
-	}
+	profile = "FAPI2-Security-Profile-Final"
 )
 @VariantNotApplicable(parameter = FAPI2AuthRequestMethod.class, values = { "unsigned" })
 public class FAPI2SPFinalEnsureRequestObjectWithNbf8SecondsInTheFutureIsAccepted extends AbstractFAPI2SPFinalServerTestModule {

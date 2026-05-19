@@ -16,17 +16,7 @@ import net.openid.conformance.variant.VariantSetup;
 	testName = "fapi2-security-profile-final-brazil-ensure-bad-payment-signature-fails",
 	displayName = "FAPI2-Security-Profile-Final: ensure bad payment signature fails",
 	summary = "This test makes a request to the payment consent endpoint request with a bad signature, which must fail.",
-	profile = "FAPI2-Security-Profile-Final",
-	configurationFields = {
-		"server.discoveryUrl",
-		"client.client_id",
-		"client.scope",
-		"client.jwks",
-		"client2.client_id",
-		"client2.scope",
-		"client2.jwks",
-		"resource.resourceUrl"
-	}
+	profile = "FAPI2-Security-Profile-Final"
 )
 @VariantNotApplicable(parameter = FAPI2FinalOPProfile.class, values = {
 	"plain_fapi",

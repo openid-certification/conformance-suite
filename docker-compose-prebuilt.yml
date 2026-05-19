@@ -24,7 +24,11 @@ services:
     environment:
       BASE_URL: ${BASE_URL:-https://localhost.emobix.co.uk:8443}
       MONGODB_HOST: mongodb
-      JAVA_EXTRA_ARGS: "${JAVA_EXTRA_ARGS:---fintechlabs.devmode=true}"
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-dev}
+      OIDC_GOOGLE_CLIENTID: ${OIDC_GOOGLE_CLIENTID:-google-client}
+      OIDC_GOOGLE_SECRET: ${OIDC_GOOGLE_SECRET:-google-secret}
+      OIDC_GITLAB_CLIENTID: ${OIDC_GITLAB_CLIENTID:-gitlab-client}
+      OIDC_GITLAB_SECRET: ${OIDC_GITLAB_SECRET:-gitlab-secret}
     depends_on:
      - mongodb
     logging:

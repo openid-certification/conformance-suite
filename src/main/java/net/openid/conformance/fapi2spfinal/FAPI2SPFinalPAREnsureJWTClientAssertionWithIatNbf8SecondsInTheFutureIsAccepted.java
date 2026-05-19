@@ -18,17 +18,7 @@ import org.springframework.http.HttpStatus;
 	testName = "fapi2-security-profile-final-par-ensure-jwt-client-assertions-nbf-8-seconds-in-the-future-is-accepted",
 	displayName = "FAPI2-Security-Profile-Final: ensure jwt client assertions with nbf 8 seconds in the future is accepted at the par endpoint",
 	summary = "This test makes a PAR request with a client assertion 'nbf' of 8 seconds in the future. This must be accepted by the authentication server.'",
-	profile = "FAPI2-Security-Profile-Final",
-	configurationFields = {
-		"server.discoveryUrl",
-		"client.client_id",
-		"client.scope",
-		"client.jwks",
-		"client2.client_id",
-		"client2.scope",
-		"client2.jwks",
-		"resource.resourceUrl"
-	}
+	profile = "FAPI2-Security-Profile-Final"
 )
 @VariantNotApplicable(parameter = ClientAuthType.class, values = {
 	"mtls", "client_attestation"

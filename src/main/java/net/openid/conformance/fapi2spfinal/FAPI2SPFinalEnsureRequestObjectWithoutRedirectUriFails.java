@@ -18,17 +18,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 	testName = "fapi2-security-profile-final-ensure-request-object-without-redirect-uri-fails",
 	displayName = "FAPI2-Security-Profile-Final: ensure request object without redirect_uri fails",
 	summary = "This test should end with the authorization server showing an error message that the request object is invalid due to the missing redirect uri (a screenshot of which should be uploaded), or in an error from the PAR endpoint, or (in the case where the client only has one redirect_uri registered) with the user being redirected back to the client's registered redirect_uri with a correct error response.",
-	profile = "FAPI2-Security-Profile-Final",
-	configurationFields = {
-		"server.discoveryUrl",
-		"client.client_id",
-		"client.scope",
-		"client.jwks",
-		"client2.client_id",
-		"client2.scope",
-		"client2.jwks",
-		"resource.resourceUrl"
-	}
+	profile = "FAPI2-Security-Profile-Final"
 )
 
 @VariantNotApplicable(parameter = FAPI2FinalOPProfile.class, values = { "fapi_client_credentials_grant" })

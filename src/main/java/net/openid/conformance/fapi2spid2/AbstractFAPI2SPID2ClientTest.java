@@ -1308,7 +1308,7 @@ public abstract class AbstractFAPI2SPID2ClientTest extends AbstractTestModule {
 		//CreateEffectiveAuthorizationRequestParameters call must be before endTestIfRequiredParametersAreMissing
 		callAndStopOnFailure(CreateEffectiveAuthorizationPARRequestParameters.class);
 		if (authorizationRequestType == AuthorizationRequestType.RAR) {
-			callAndStopOnFailure(EnsureEffectiveAuthorizationEndpointRequestContainsValidRAR.class, ConditionResult.FAILURE, "RAR-2.0");
+			callAndStopOnFailure(EnsureEffectiveAuthorizationEndpointRequestContainsValidRAR.class, ConditionResult.FAILURE, "RFC9396-2");
 		}
 
 		endTestIfRequiredParametersAreMissing();

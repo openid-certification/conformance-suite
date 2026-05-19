@@ -12,17 +12,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 	testName = "fapi2-security-profile-final-ensure-authorization-request-without-nonce-success",
 	displayName = "FAPI2-Security-Profile-Final: ensure authorization endpoint request without noce success",
 	summary = "This test makes an authentication request that does not include 'nonce'. nonce is an optional parameter for response_type=code, so the authorization server must successfully authenticate and must not return a nonce.",
-	profile = "FAPI2-Security-Profile-Final",
-	configurationFields = {
-		"server.discoveryUrl",
-		"client.client_id",
-		"client.scope",
-		"client.jwks",
-		"client2.client_id",
-		"client2.scope",
-		"client2.jwks",
-		"resource.resourceUrl"
-	}
+	profile = "FAPI2-Security-Profile-Final"
 )
 @VariantNotApplicable(parameter = FAPIOpenIDConnect.class, values = { "plain_oauth" })
 @VariantNotApplicable(parameter = FAPI2FinalOPProfile.class, values = { "fapi_client_credentials_grant" })

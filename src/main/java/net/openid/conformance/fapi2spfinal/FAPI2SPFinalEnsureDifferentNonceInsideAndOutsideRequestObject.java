@@ -17,17 +17,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 	testName = "fapi2-security-profile-final-ensure-different-nonce-inside-and-outside-request-object",
 	displayName = "FAPI2-Security-Profile-Final: ensure different nonce inside and outside request object",
 	summary = "This test passes a different nonce in the authorization_endpoint parameters to the one inside the signed request object. There are 3 valid ways the authorization server may handle this: it must either return an invalid_request error back to the client, or must show an error page (saying the request is invalid as the 'nonce' value in the request object and outside it are different - upload a screenshot of the error page), or must successfully authenticate and return the nonce from inside the request object in the id_token.",
-	profile = "FAPI2-Security-Profile-Final",
-	configurationFields = {
-		"server.discoveryUrl",
-		"client.client_id",
-		"client.scope",
-		"client.jwks",
-		"client2.client_id",
-		"client2.scope",
-		"client2.jwks",
-		"resource.resourceUrl"
-	}
+	profile = "FAPI2-Security-Profile-Final"
 )
 @VariantNotApplicable(parameter = FAPIOpenIDConnect.class, values = { "plain_oauth" })
 @VariantNotApplicable(parameter = FAPI2FinalOPProfile.class, values = { "fapi_client_credentials_grant" })

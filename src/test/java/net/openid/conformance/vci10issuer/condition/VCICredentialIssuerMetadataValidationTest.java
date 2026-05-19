@@ -2,13 +2,13 @@ package net.openid.conformance.vci10issuer.condition;
 
 import com.google.gson.JsonParser;
 import net.openid.conformance.condition.Condition;
+import net.openid.conformance.logging.BsonEncoding;
 import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.Environment;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Map;
@@ -18,8 +18,7 @@ class VCICredentialIssuerMetadataValidationTest extends AbstractVciUnitTest {
 
 	VCICredentialIssuerMetadataValidation validation;
 
-	@Mock
-	TestInstanceEventLog eventLog;
+	private final TestInstanceEventLog eventLog = BsonEncoding.testInstanceEventLog();
 
 	Environment env;
 

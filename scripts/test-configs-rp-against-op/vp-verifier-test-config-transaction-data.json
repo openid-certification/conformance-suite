@@ -1,0 +1,10 @@
+{
+    "alias": "oidf-vp-test-wallet",
+    "description": "OID4VP RP against OP (verifier test)",
+    "client": {
+        "client_id": "{HOSTNAME}"
+    },
+    "credential": {
+        "signing_jwk": {vp-signing-jwk.json}
+    }
+}

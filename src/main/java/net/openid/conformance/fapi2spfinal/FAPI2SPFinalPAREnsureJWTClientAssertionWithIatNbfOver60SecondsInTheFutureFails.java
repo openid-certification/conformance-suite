@@ -18,17 +18,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 	testName = "fapi2-security-profile-final-par-ensure-jwt-client-assertions-nbf-over-60-seconds-in-the-future-fails",
 	displayName = "FAPI2-Security-Profile-Final: ensure jwt client assertions with nbf over 60 seconds in the future fails at the par endopint",
 	summary = "This test checks the clock skew handling of the PAR endpoint The test makes a PAR request with a client assertion with iat, nbf and exp set > 60s into the future. We expect the request to fail and a server response with status code 400 or 401 with error codes invalid_request or invalid_client.",
-	profile = "FAPI2-Security-Profile-Final",
-	configurationFields = {
-		"server.discoveryUrl",
-		"client.client_id",
-		"client.scope",
-		"client.jwks",
-		"client2.client_id",
-		"client2.scope",
-		"client2.jwks",
-		"resource.resourceUrl"
-	}
+	profile = "FAPI2-Security-Profile-Final"
 )
 @VariantNotApplicable(parameter = ClientAuthType.class, values = {
 	"mtls", "client_attestation"
