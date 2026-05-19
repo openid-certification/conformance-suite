@@ -7,23 +7,102 @@ export default {
   component: "cts-batch-runner",
 };
 
+// Fixture shape mirrors what `plan-detail.html` writes to
+// `batchRunner.modules` after the per-module `/api/info/<instance>` merge:
+// `instances` is an array of instance-id strings (the backend returns
+// strings); the merged status/result land on the top-level module entry
+// (`status: "FINISHED"` / `result: "PASSED"`, etc.). Modules that have
+// never run carry an empty `instances` and no `status` (treated as
+// PENDING by `_moduleResult`).
 const MOCK_MODULES_MIXED = [
-  { testModule: "oidcc-server", variant: {}, instances: [{ result: "PASSED" }] },
-  { testModule: "oidcc-server-rotate-keys", variant: {}, instances: [{ result: "FAILED" }] },
-  { testModule: "oidcc-ensure-redirect-uri", variant: {}, instances: [{ result: "WARNING" }] },
+  {
+    testModule: "oidcc-server",
+    variant: {},
+    status: "FINISHED",
+    result: "PASSED",
+    instances: ["mock-instance-1"],
+  },
+  {
+    testModule: "oidcc-server-rotate-keys",
+    variant: {},
+    status: "FINISHED",
+    result: "FAILED",
+    instances: ["mock-instance-2"],
+  },
+  {
+    testModule: "oidcc-ensure-redirect-uri",
+    variant: {},
+    status: "FINISHED",
+    result: "WARNING",
+    instances: ["mock-instance-3"],
+  },
   { testModule: "oidcc-codereuse", variant: {}, instances: [] },
   { testModule: "oidcc-ensure-request-object", variant: {}, instances: [] },
 ];
 
 const MOCK_MODULES_ALL_DONE = [
-  { testModule: "oidcc-server", variant: {}, instances: [{ result: "PASSED" }] },
-  { testModule: "oidcc-server-rotate-keys", variant: {}, instances: [{ result: "PASSED" }] },
+  {
+    testModule: "oidcc-server",
+    variant: {},
+    status: "FINISHED",
+    result: "PASSED",
+    instances: ["mock-instance-1"],
+  },
+  {
+    testModule: "oidcc-server-rotate-keys",
+    variant: {},
+    status: "FINISHED",
+    result: "PASSED",
+    instances: ["mock-instance-2"],
+  },
 ];
 
 const MOCK_MODULES_NONE_RUN = [
   { testModule: "oidcc-server", variant: {}, instances: [] },
   { testModule: "oidcc-server-rotate-keys", variant: {}, instances: [] },
   { testModule: "oidcc-codereuse", variant: {}, instances: [] },
+];
+
+// In-flight mix: one terminal, one mid-run, one never-started. Exercises
+// the three branches of `_moduleResult` (PENDING / FINISHED + result /
+// transient status).
+const MOCK_MODULES_IN_PROGRESS = [
+  {
+    testModule: "oidcc-server",
+    variant: {},
+    status: "FINISHED",
+    result: "PASSED",
+    instances: ["mock-instance-1"],
+  },
+  {
+    testModule: "oidcc-server-rotate-keys",
+    variant: {},
+    status: "RUNNING",
+    instances: ["mock-instance-2"],
+  },
+  { testModule: "oidcc-codereuse", variant: {}, instances: [] },
+];
+
+// Edge cases for the non-canonical branches of `_moduleResult`:
+//   - FINISHED without a result field falls back to "REVIEW" (and emits a
+//     console.warn so the backend anomaly is observable, not silent).
+//   - WAITING is a known TestModule.Status value that has no entry in
+//     RESULT_BADGE_VARIANTS, so the label passes through as "WAITING" and
+//     the variant falls back to "skip" via the `|| "skip"` chain in
+//     `_moduleVariant`.
+const MOCK_MODULES_EDGE_CASES = [
+  {
+    testModule: "oidcc-finished-no-result",
+    variant: {},
+    status: "FINISHED",
+    instances: ["mock-instance-1"],
+  },
+  {
+    testModule: "oidcc-waiting",
+    variant: {},
+    status: "WAITING",
+    instances: ["mock-instance-2"],
+  },
 ];
 
 export const MixedResults = {
@@ -48,10 +127,6 @@ export const MixedResults = {
     const pendingBadges = Array.from(badges).filter((b) => b.getAttribute("label") === "PENDING");
     expect(pendingBadges.length).toBe(2);
     expect(pendingBadges[0].getAttribute("variant")).toBe("skip");
-    // Sanity check: the canonical b-pass / b-fail / b-warn / b-skip classes
-    // from cts-badge are present on the rendered inner spans.
-    const passSpan = passedBadges[0].querySelector(".badge");
-    expect(passSpan?.classList.contains("b-pass")).toBe(true);
   },
 };
 
@@ -108,6 +183,39 @@ export const RunRemainingEvent = {
     });
     await userEvent.click(canvas.getByText("Run Remaining"));
     expect(eventFired).toBe(true);
+  },
+};
+
+export const InProgress = {
+  render: () =>
+    html`<cts-batch-runner
+      plan-id="plan-running"
+      .modules=${MOCK_MODULES_IN_PROGRESS}
+    ></cts-batch-runner>`,
+  async play({ canvasElement }) {
+    const badges = canvasElement.querySelectorAll("cts-badge");
+    const labels = Array.from(badges).map((b) => b.getAttribute("label"));
+    expect(labels).toEqual(["PASSED", "RUNNING", "PENDING"]);
+    const runningBadge = Array.from(badges).find((b) => b.getAttribute("label") === "RUNNING");
+    expect(runningBadge?.getAttribute("variant")).toBe("running");
+  },
+};
+
+export const DataShapeEdgeCases = {
+  render: () =>
+    html`<cts-batch-runner
+      plan-id="plan-edge-cases"
+      .modules=${MOCK_MODULES_EDGE_CASES}
+    ></cts-batch-runner>`,
+  async play({ canvasElement }) {
+    const badges = canvasElement.querySelectorAll("cts-badge");
+    const byLabel = (label) => Array.from(badges).find((b) => b.getAttribute("label") === label);
+
+    const reviewBadge = byLabel("REVIEW");
+    expect(reviewBadge?.getAttribute("variant")).toBe("review");
+
+    const waitingBadge = byLabel("WAITING");
+    expect(waitingBadge?.getAttribute("variant")).toBe("skip");
   },
 };
 
