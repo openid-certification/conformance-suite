@@ -213,11 +213,10 @@ class CtsToastHost extends HTMLElement {
       if (document.body) {
         document.body.appendChild(host);
       } else {
-        const pendingHost = host;
         document.addEventListener(
           "DOMContentLoaded",
           () => {
-            document.body.appendChild(pendingHost);
+            document.body.appendChild(host);
           },
           { once: true },
         );
