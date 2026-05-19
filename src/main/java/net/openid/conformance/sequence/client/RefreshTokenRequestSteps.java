@@ -18,6 +18,7 @@ import net.openid.conformance.condition.client.CreateRefreshTokenRequest;
 import net.openid.conformance.condition.client.EnsureAccessTokenContainsAllowedCharactersOnly;
 import net.openid.conformance.condition.client.EnsureAccessTokenValuesAreDifferent;
 import net.openid.conformance.condition.client.EnsureMinimumAccessTokenEntropy;
+import net.openid.conformance.condition.client.EnsureNoUseAttestationChallengeErrorAfterServerIssuedChallenge;
 import net.openid.conformance.condition.client.EnsureMinimumRefreshTokenEntropy;
 import net.openid.conformance.condition.client.EnsureMinimumRefreshTokenLength;
 import net.openid.conformance.condition.client.ExtractAccessTokenFromTokenResponse;
@@ -93,6 +94,7 @@ public class RefreshTokenRequestSteps extends AbstractConditionSequence {
 			callAndStopOnFailure(GenerateDpopKey.class);
 			call(CreateDpopProofSteps.createTokenEndpointDpopSteps());
 			callAndStopOnFailure(CallTokenEndpointAllowingDpopNonceErrorAndReturnFullResponse.class);
+			callAndStopOnFailure(EnsureNoUseAttestationChallengeErrorAfterServerIssuedChallenge.class, "OAuth2-ATCA07-6.2", "OAuth2-ATCA07-8.1");
 			harvestClientAttestationChallengeResponseHeader();
 
 			// retry request if token_endpoint_dpop_nonce_error is found
@@ -120,6 +122,7 @@ public class RefreshTokenRequestSteps extends AbstractConditionSequence {
 
 		} else {
 			callAndStopOnFailure(CallTokenEndpointAllowingUseAttestationChallengeErrorAndReturnFullResponse.class);
+			callAndStopOnFailure(EnsureNoUseAttestationChallengeErrorAfterServerIssuedChallenge.class, "OAuth2-ATCA07-6.2", "OAuth2-ATCA07-8.1");
 			harvestClientAttestationChallengeResponseHeader();
 			retryOnUseAttestationChallengeError(CallTokenEndpointAllowingUseAttestationChallengeErrorAndReturnFullResponse.class);
 		}
@@ -227,6 +230,13 @@ public class RefreshTokenRequestSteps extends AbstractConditionSequence {
 		}
 
 		call(condition(callTokenEndpointClass)
+			.skipIfStringsMissing("token_endpoint_use_attestation_challenge_error")
+			.onSkip(ConditionResult.INFO));
+
+		// If the retry call still produced use_attestation_challenge, that's an AS bug — the prior
+		// harvest set the server-issued flag, so the retry was using a freshly supplied challenge.
+		call(condition(EnsureNoUseAttestationChallengeErrorAfterServerIssuedChallenge.class)
+			.requirements("OAuth2-ATCA07-6.2", "OAuth2-ATCA07-8.1")
 			.skipIfStringsMissing("token_endpoint_use_attestation_challenge_error")
 			.onSkip(ConditionResult.INFO));
 
