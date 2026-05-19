@@ -97,3 +97,22 @@ Why this was not autofixed: design call — option A keeps the production path c
 ## Pre-existing (not part of this commit's scope)
 
 - `cts-toast.js:238` — `CtsToast` Lit property `title` shadows `HTMLElement.prototype.title`. Pre-existing in the component; unchanged by this commit.
+
+## CI Status
+
+GitLab pipeline 2538053478 on commit 91eda7045 (https://gitlab.com/openid/conformance-suite/-/pipelines/2538053478):
+
+- ✅ `build/check-trailing-whitespace`
+- ✅ `build/frontend_lint`
+- ✅ `build/build`
+- ❌ `test/frontend_e2e_test` — 105 passed, 19 failed, 1 flaky
+
+The 19 failures match the pre-existing baseline (verified locally by stashing this branch's changes and running `playwright test` against HEAD~3 — same 19 specs fail with the same assertions). Catalogued in the project memory as `feedback_e2e_pre_existing_failures_2026_05_18.md`. Specs affected (all pre-existing):
+
+- `cts-data-table.spec.js` (1), `error-paths.spec.js` (1), `journeys.spec.js` (2), `log-detail.spec.js` (6), `login.spec.js` (4), `logs.spec.js` (1), `plan-detail.spec.js` (1), `schedule-test-baselines.spec.js` (3)
+
+The 1 flaky test (`schedule-test.spec.js:633` cascade selection highlights matching row) is from the cts-test-selector wiring (row 3 of the orphan-components board, shipped 2026-05-19), not this PR.
+
+This commit's new upload-toast e2e test passed (`successful upload surfaces a non-blocking 'Image uploaded' toast` — 5.5 s). Live smoke test on `https://localhost.emobix.co.uk:8443/` confirmed `cts-toast-host` mounted and `window.ctsToast` callable on `index.html`, `upload.html`, and `plans.html`.
+
+**Zero regressions from this PR.** No fix path within scope — pre-existing baseline flakes are tracked separately and a fix sweep is its own work item.
