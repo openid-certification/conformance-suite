@@ -32,6 +32,7 @@
     <script type="module" src="/components/cts-data-table.js"></script>
     <script type="module" src="/components/cts-empty-state.js"></script>
     <script type="module" src="/components/cts-json-editor.js"></script>
+    <script type="module" src="/components/cts-tooltip.js"></script>
     <script type="module" src="/js/cts-toast-api.js"></script>
 </head>
 
@@ -63,13 +64,31 @@
     </cts-modal>
 
     <cts-modal id="configModal" heading="Configuration">
-        <div>
-            <cts-button class="btn-clipboard" icon="log-out" data-clipboard-target="#config" title="Copy config to clipboard"></cts-button>
-            Configuration for <code id="configTestId" class="text-muted"></code>
+        <style>
+            /* Toolbar above the read-only Monaco editor: test-id on the left,
+               copy affordance on the right. Sits inside the modal body so it
+               picks up the modal's 20px padding; the bottom margin gives the
+               editor breathing room without painting another divider. */
+            #configModal .config-modal-toolbar {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: var(--space-3);
+                margin-bottom: var(--space-4);
+            }
+            #configModal .config-modal-toolbar code {
+                font-family: var(--font-mono);
+                font-size: var(--fs-13);
+                word-break: break-all;
+            }
+        </style>
+        <div class="config-modal-toolbar">
+            <span><span class="text-muted">Test ID:</span> <code id="configTestId"></code></span>
+            <cts-tooltip content="Copy configuration JSON to clipboard" placement="top">
+                <cts-button class="btn-clipboard" variant="secondary" size="sm" icon="copy" label="Copy configuration" data-clipboard-target="#config"></cts-button>
+            </cts-tooltip>
         </div>
-        <div class="wrapLongStrings">
-            <cts-json-editor id="config" readonly aria-label="Test configuration JSON" style="min-height: calc(var(--space-6) * 20);"></cts-json-editor>
-        </div>
+        <cts-json-editor id="config" readonly aria-label="Test configuration JSON" style="min-height: calc(var(--space-5) * 4); max-height: calc(var(--space-5) * 12);"></cts-json-editor>
     </cts-modal>
 
 

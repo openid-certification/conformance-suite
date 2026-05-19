@@ -126,6 +126,22 @@ test.describe("logs.html — Logs List", () => {
     await expect(configModal).toBeVisible();
     await expect(page.locator("#config")).toContainText("server.issuer");
 
+    // Toolbar shows the test id rather than a redundant "Configuration for"
+    // line. The cts-modal heading already says "Configuration".
+    await expect(configModal.locator("#configTestId")).toHaveText("test-log-001");
+
+    // Copy button uses the canonical `copy` icon (was `log-out` before the
+    // 2026-05-19 modal redesign). The cts-button host reflects the attribute,
+    // and the inner cts-icon renders the matching glyph. The visible label
+    // names the payload ("Copy configuration") so users don't conflate it
+    // with the test-id label next to it. Hover/focus surfaces a cts-tooltip
+    // with the same intent stated as a full sentence.
+    const copyBtn = configModal.locator(".btn-clipboard").first();
+    await expect(copyBtn).toHaveAttribute("icon", "copy");
+    await expect(copyBtn.locator('cts-icon[name="copy"]')).toBeVisible();
+    await expect(copyBtn).toContainText("Copy configuration");
+    await expect(configModal.locator('cts-tooltip[content="Copy configuration JSON to clipboard"]')).toBeAttached();
+
     // Close modal
     await configModal.locator(".oidf-modal-close").first().click();
     await expect(configModal).toBeHidden();
