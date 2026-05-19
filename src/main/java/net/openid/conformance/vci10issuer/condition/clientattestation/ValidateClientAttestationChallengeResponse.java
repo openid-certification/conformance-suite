@@ -5,6 +5,7 @@ import com.google.gson.JsonParser;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
+import net.openid.conformance.condition.client.ExtractClientAttestationChallengeFromResponseHeader;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 
@@ -25,6 +26,7 @@ public class ValidateClientAttestationChallengeResponse extends AbstractConditio
 		String challenge = OIDFJSON.getString(responseObject.get("attestation_challenge"));
 
 		env.putString("vci", "attestation_challenge", challenge);
+		env.putString(ExtractClientAttestationChallengeFromResponseHeader.CHALLENGE_ISSUED_BY_SERVER_FLAG, "true");
 
 		logSuccess("Found valid attestation challenge response",
 			args("attestation_challenge", challenge, "challenge_response", responseObject));
