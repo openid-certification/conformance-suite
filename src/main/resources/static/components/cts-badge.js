@@ -335,8 +335,10 @@ function buildSpinner() {
  *   danger, info-subtle.
  * @property {string} label - Visible text
  * @property {number} count - Numeric content; overrides `label` when set
- * @property {string} icon - Bootstrap Icons name (without the `bi-`
- *   prefix). Ignored when `variant="running"` (the spinner replaces it).
+ * @property {string} icon - coolicons name (matches a file under
+ *   `/vendor/coolicons/icons/`). Always rendered at 16px to align with
+ *   the badge's 16px line-height rhythm. Ignored when `variant="running"`
+ *   (the spinner replaces it).
  * @property {boolean} pill - Reserved for backwards compatibility. The
  *   default badge radius is now the pill radius, so this attribute is a
  *   no-op for status variants. It is still read so existing markup that
@@ -465,8 +467,14 @@ class CtsBadge extends HTMLElement {
         span.appendChild(document.createTextNode(" "));
       }
     } else if (icon) {
+      // Scale the glyph to the badge's 16px line-height rhythm. cts-icon
+      // defaults to 20, which overpowers the 20px pill (2 + 16 + 2) and
+      // crowds the label. 16px sits flush with the cap-height of the
+      // 11px uppercase text and the 12px mono used by the secondary
+      // chip — mixed rows of icon-led and text-only badges align cleanly.
       const iconEl = document.createElement("cts-icon");
       iconEl.setAttribute("name", icon);
+      iconEl.setAttribute("size", "16");
       iconEl.setAttribute("aria-hidden", "true");
       span.appendChild(iconEl);
       if (hasCount || hasLabel || useSlot) {

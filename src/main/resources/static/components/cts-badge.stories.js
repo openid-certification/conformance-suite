@@ -180,6 +180,10 @@ export const WithIcon = {
     expect(iconEl).toBeTruthy();
     expect(iconEl.getAttribute("name")).toBe("info");
     expect(iconEl.getAttribute("aria-hidden")).toBe("true");
+    // Badges always render icons at 16px to align with the 16px
+    // line-height pill. The cts-icon default is 20px, which overpowers
+    // the chip — cts-badge sets size="16" explicitly. Regression guard.
+    expect(iconEl.getAttribute("size")).toBe("16");
 
     expect(badge.textContent.trim()).toContain("This section relates to the entity under test");
   },
