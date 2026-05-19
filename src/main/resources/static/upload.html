@@ -110,6 +110,14 @@
         uploader.addEventListener('cts-image-uploaded', function() {
             if (typeof window.ctsToast === 'function') {
                 window.ctsToast({ title: 'Image uploaded', kind: 'ok' });
+            } else {
+                // The fallback should be unreachable under normal page load
+                // — cts-toast-api.js is a deferred module imported in <head>
+                // and DOMContentLoaded runs after deferred modules evaluate.
+                // Log so a regression (module fetch failure, import path
+                // broken on a future page restructure) is observable
+                // instead of silently swallowing the upload feedback.
+                console.warn('[upload.html] window.ctsToast not available — toast skipped');
             }
             refreshImages();
         });

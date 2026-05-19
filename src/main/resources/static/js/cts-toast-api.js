@@ -20,20 +20,16 @@
 import { CtsToastHost } from "../components/cts-toast.js";
 
 /**
- * @typedef {object} ToastOptions
- * @property {string} [title] - Bold heading line.
- * @property {string} [message] - Optional secondary copy under the title.
- * @property {"ok"|"error"} [kind="ok"] - Visual variant. `error` swaps the
- *   green left rule and check glyph for rust + close-circle.
- * @property {number} [duration=5000] - Auto-dismiss delay in milliseconds.
- *   Pass `0` to keep the toast on screen until the user dismisses it or
- *   the caller invokes `.dismiss()` on the returned element.
- */
-
-/**
- * Show a transient bottom-right toast notification.
+ * Show a transient bottom-right toast notification. The option shape is
+ * defined once on the component side -- see the `ToastOptions` typedef
+ * inside `CtsToastHost.show`'s JSDoc in
+ * `src/main/resources/static/components/cts-toast.js`. Keeping a single
+ * canonical definition prevents the api wrapper and the component from
+ * drifting when a property is added or its default changes.
  *
- * @param {ToastOptions} [options] - Toast configuration.
+ * @param {import("../components/cts-toast.js").ToastOptions} [options]
+ *   Toast configuration. See the component-side typedef for the full
+ *   field list and defaults.
  * @returns {import("../components/cts-toast.js").CtsToast} The created toast
  *   element. Call `.dismiss()` on the returned element to remove the toast
  *   programmatically; the element also fires `cts-toast-dismiss` on both

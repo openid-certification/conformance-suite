@@ -212,6 +212,14 @@ test.describe("upload.html — Image Uploader", () => {
     const uploader = page.locator("cts-image-upload");
     await expect(uploader).toBeVisible();
 
+    // The cts-toast-api module is a deferred `<script type="module">`;
+    // wait until window.ctsToast has been installed before firing the
+    // event so the test never races module evaluation. Without this, a
+    // fast page-load on CI could let `cts-image-uploaded` fire while the
+    // module is still parsing — the listener's `typeof === 'function'`
+    // guard would silently no-op the toast and the test would flake.
+    await page.waitForFunction(() => typeof (/** @type {any} */ (window).ctsToast) === "function");
+
     // The page's `cts-image-uploaded` listener calls window.ctsToast +
     // refreshImages. Dispatching the event here exercises the exact
     // seam the plan's R7 smoke-test migration touches, without depending
@@ -227,9 +235,10 @@ test.describe("upload.html — Image Uploader", () => {
     // inline style on `.oidf-toast` carries the CSS custom-property name.
     await expect(toast.locator(".oidf-toast")).toHaveAttribute("style", /--status-pass/);
 
-    // Default duration is 5000ms. Allow a small buffer to absorb the
-    // fade-out transition (200ms) and any scheduler jitter so the
-    // assertion is robust without inflating per-test cost.
+    // Default duration is 5000ms; allow ~1s of slack for scheduler
+    // jitter on busy CI runners. `dismiss()` removes the element
+    // synchronously (the CSS transition is cosmetic), so the slack
+    // exists for timer-firing latency, not the fade-out.
     await expect(toast).toHaveCount(0, { timeout: 6000 });
   });
 

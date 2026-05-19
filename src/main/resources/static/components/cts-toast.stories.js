@@ -271,7 +271,18 @@ export const Persistent = {
     await new Promise((resolve) => setTimeout(resolve, 100));
     expect(document.querySelector("cts-toast")).toBe(toast);
 
+    // Attach the dismiss listener BEFORE calling dismiss() so a refactor
+    // that breaks the cts-toast-dismiss event without breaking DOM
+    // removal is still caught. Mirrors the Dismissible story pattern.
+    const host = /** @type {HTMLElement} */ (document.querySelector("cts-toast-host"));
+    expect(host).toBeTruthy();
+    let dismissed = false;
+    host.addEventListener("cts-toast-dismiss", () => {
+      dismissed = true;
+    });
+
     toast.dismiss();
+    expect(dismissed).toBe(true);
     expect(document.querySelector("cts-toast")).toBeNull();
 
     resetHost();
