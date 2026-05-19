@@ -37,6 +37,7 @@
     <script type="module" src="/components/cts-tooltip.js"></script>
     <script type="module" src="/components/cts-json-editor.js"></script>
     <script type="module" src="/components/cts-spec-cascade.js"></script>
+    <script type="module" src="/components/cts-test-selector.js"></script>
     <script type="module" src="/components/cts-form-field.js"></script>
     <script type="module" src="/components/cts-config-form.js"></script>
     <script type="module" src="/components/cts-action-bar.js"></script>
@@ -96,6 +97,7 @@
                 <cts-button id="loadLastConfigBtn" data-testid="load-last-config" size="sm" variant="secondary" icon="clock" label="Load last configuration"></cts-button>
             </div>
 
+            <cts-test-selector id="planSearch"></cts-test-selector>
             <cts-spec-cascade id="specCascade"></cts-spec-cascade>
             <form id="variantSelectors">
                 <!-- render variant selectors here -->
@@ -369,6 +371,17 @@
                     var cascade = document.getElementById('specCascade');
                     if (cascade) {
                         cascade.plans = planList;
+                    }
+                    // Same dataset feeds the search-mode entry point. The
+                    // selector is a peer to the cascade: typing filters the
+                    // list; clicking a result routes through
+                    // cascade.selectPlanByName so downstream listeners
+                    // (clearConfigForNewPlan, updateVariants,
+                    // updateConfigFieldVisibility) fire exactly as if the
+                    // user had used the cascade dropdown.
+                    var planSearch = document.getElementById('planSearch');
+                    if (planSearch) {
+                        planSearch.plans = planList;
                     }
                 })
                 .catch((err) => {
@@ -792,13 +805,35 @@
             // isSystemSelectingPlan around its delegated cascade call, so
             // programmatic flows (edit-plan, edit-test, "Load last
             // configuration") preserve the config they just applied.
-            document.addEventListener('cts-plan-selected', function() {
+            document.addEventListener('cts-plan-selected', function(e) {
                 if (isSystemSelectingPlan === 0) {
                     clearConfigForNewPlan();
+                }
+                // Keep the search selector in sync with whatever the cascade
+                // settled on, regardless of the trigger source (user click,
+                // deep-link, edit-plan, load-last-config, or the test
+                // selector itself routing back through the cascade).
+                var planSearch = document.getElementById('planSearch');
+                if (planSearch && e.detail && e.detail.plan) {
+                    planSearch.selected = e.detail.plan.planName;
                 }
                 updateVariants();
                 updateConfigFieldVisibility();
             });
+
+            // cts-test-selector fires `cts-plan-select` when the user clicks
+            // a search result. Route through the cascade so its dispatched
+            // `cts-plan-selected` runs the same downstream listeners — no
+            // separate config-load codepath.
+            var planSearch = document.getElementById('planSearch');
+            if (planSearch) {
+                planSearch.addEventListener('cts-plan-select', function(evt) {
+                    var cascade = document.getElementById('specCascade');
+                    if (!cascade) return;
+                    var planName = evt.detail && evt.detail.plan && evt.detail.plan.planName;
+                    if (planName) cascade.selectPlanByName(planName);
+                });
+            }
 
             // R13: opt-in last-config load. Replaces the old auto-fetch on
             // page load — see loadLastConfig() above.
