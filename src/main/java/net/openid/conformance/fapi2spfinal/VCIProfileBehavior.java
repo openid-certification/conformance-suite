@@ -3,6 +3,7 @@ package net.openid.conformance.fapi2spfinal;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.condition.client.CheckDiscEndpointGrantTypesSupportedContainsAuthorizationCode;
+import net.openid.conformance.condition.client.ClearClientAttestationChallengeState;
 import net.openid.conformance.condition.client.CheckDiscEndpointTokenEndpointAuthMethodsSupportedContainsPrivateKeyOrTlsClientOrAttestation;
 import net.openid.conformance.condition.client.EnsureContentTypeApplicationJwt;
 import net.openid.conformance.condition.client.EnsureContentTypeJson;
@@ -153,6 +154,11 @@ public class VCIProfileBehavior extends FAPI2ProfileBehavior {
 		return new AbstractConditionSequence() {
 			@Override
 			public void evaluate() {
+
+				// Reset any prior client's attestation challenge state so this client's first
+				// request starts from a clean slate — handles the multi-client switch case where
+				// configureClientAttestation runs again for client2.
+				callAndStopOnFailure(ClearClientAttestationChallengeState.class);
 
 				// Only call challenge endpoint if server metadata advertises one
 				call(condition(CallClientAttestationChallengeEndpoint.class)

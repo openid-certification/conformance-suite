@@ -78,6 +78,7 @@ import net.openid.conformance.condition.client.CreateRandomClientNotificationTok
 import net.openid.conformance.condition.client.CreateTokenEndpointRequestForCIBAGrant;
 import net.openid.conformance.condition.client.EnsureErrorTokenEndpointInvalidRequest;
 import net.openid.conformance.condition.client.EnsureErrorTokenEndpointSlowdownOrAuthorizationPending;
+import net.openid.conformance.condition.client.EnsureNoUseAttestationChallengeErrorAfterServerIssuedChallenge;
 import net.openid.conformance.condition.client.EnsureIdTokenContainsKid;
 import net.openid.conformance.condition.client.EnsureMinimumAccessTokenEntropy;
 import net.openid.conformance.condition.client.EnsureMinimumAccessTokenLength;
@@ -829,6 +830,7 @@ public abstract class AbstractFAPICIBAID1 extends AbstractTestModule {
 			while (i < MAX_RETRY) {
 				addClientAuthenticationToTokenEndpointRequest();
 				callAndStopOnFailure(CallTokenEndpointAllowingUseAttestationChallengeErrorAndReturnFullResponse.class);
+				callAndStopOnFailure(EnsureNoUseAttestationChallengeErrorAfterServerIssuedChallenge.class, "OAuth2-ATCA07-6.2", "OAuth2-ATCA07-8.1");
 				extractAndValidateClientAttestationChallengeResponseHeader("token_endpoint_response_full");
 				if (Strings.isNullOrEmpty(env.getString("token_endpoint_use_attestation_challenge_error"))) {
 					break;

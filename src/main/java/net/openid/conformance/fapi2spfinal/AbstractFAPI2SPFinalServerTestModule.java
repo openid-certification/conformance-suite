@@ -55,6 +55,7 @@ import net.openid.conformance.condition.client.CreateRedirectUri;
 import net.openid.conformance.condition.client.CreateTokenEndpointRequestForAuthorizationCodeGrant;
 import net.openid.conformance.condition.client.CreateTokenEndpointRequestForClientCredentialsGrant;
 import net.openid.conformance.condition.client.EnsureContentTypeJson;
+import net.openid.conformance.condition.client.EnsureNoUseAttestationChallengeErrorAfterServerIssuedChallenge;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs200or201;
 import net.openid.conformance.condition.client.EnsureIdTokenContainsKid;
 import net.openid.conformance.condition.client.EnsureMinimumAccessTokenEntropy;
@@ -812,6 +813,7 @@ public abstract class AbstractFAPI2SPFinalServerTestModule extends AbstractRedir
 				addClientAuthenticationToTokenEndpointRequest();
 				createDpopForTokenEndpoint();
 				callAndStopOnFailure(CallTokenEndpointAllowingDpopNonceErrorAndReturnFullResponse.class, requirements);
+				callAndStopOnFailure(EnsureNoUseAttestationChallengeErrorAfterServerIssuedChallenge.class, "OAuth2-ATCA07-6.2", "OAuth2-ATCA07-8.1");
 				extractAndValidateClientAttestationChallengeResponseHeader("token_endpoint_response_full");
 				if(Strings.isNullOrEmpty(env.getString("token_endpoint_dpop_nonce_error"))
 					&& Strings.isNullOrEmpty(env.getString("token_endpoint_use_attestation_challenge_error"))) {
@@ -824,6 +826,7 @@ public abstract class AbstractFAPI2SPFinalServerTestModule extends AbstractRedir
 			while(i < MAX_RETRY){
 				addClientAuthenticationToTokenEndpointRequest();
 				callAndStopOnFailure(CallTokenEndpointAllowingUseAttestationChallengeErrorAndReturnFullResponse.class, requirements);
+				callAndStopOnFailure(EnsureNoUseAttestationChallengeErrorAfterServerIssuedChallenge.class, "OAuth2-ATCA07-6.2", "OAuth2-ATCA07-8.1");
 				extractAndValidateClientAttestationChallengeResponseHeader("token_endpoint_response_full");
 				if(Strings.isNullOrEmpty(env.getString("token_endpoint_use_attestation_challenge_error"))) {
 					break;
@@ -1260,6 +1263,7 @@ public abstract class AbstractFAPI2SPFinalServerTestModule extends AbstractRedir
 				addClientAuthenticationToPAREndpointRequest();
 				createDpopForParEndpoint();
 				callAndStopOnFailure(CallPAREndpointAllowingDpopNonceError.class, requirements);
+				callAndStopOnFailure(EnsureNoUseAttestationChallengeErrorAfterServerIssuedChallenge.class, "OAuth2-ATCA07-6.2", "OAuth2-ATCA07-8.1");
 				extractAndValidateClientAttestationChallengeResponseHeader(CallPAREndpoint.RESPONSE_KEY);
 				if(Strings.isNullOrEmpty(env.getString("par_endpoint_dpop_nonce_error"))
 					&& Strings.isNullOrEmpty(env.getString("par_endpoint_use_attestation_challenge_error"))) {
@@ -1272,6 +1276,7 @@ public abstract class AbstractFAPI2SPFinalServerTestModule extends AbstractRedir
 			while(i < MAX_RETRY){
 				addClientAuthenticationToPAREndpointRequest();
 				callAndStopOnFailure(CallPAREndpointAllowingUseAttestationChallengeError.class, requirements);
+				callAndStopOnFailure(EnsureNoUseAttestationChallengeErrorAfterServerIssuedChallenge.class, "OAuth2-ATCA07-6.2", "OAuth2-ATCA07-8.1");
 				extractAndValidateClientAttestationChallengeResponseHeader(CallPAREndpoint.RESPONSE_KEY);
 				if(Strings.isNullOrEmpty(env.getString("par_endpoint_use_attestation_challenge_error"))) {
 					break;
