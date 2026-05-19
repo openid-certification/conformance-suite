@@ -42,6 +42,12 @@ test.describe("tokens.html — API Tokens", () => {
 
     await page.goto("/tokens.html");
 
+    // The page wraps cts-token-manager in a <cts-card header="API Tokens">.
+    // Assert the card chrome is rendered so a future revert of the wrapper
+    // surfaces as a test failure rather than passing silently.
+    await expect(page.locator('cts-card[header="API Tokens"]')).toBeVisible();
+    await expect(page.locator("cts-card .oidf-card-header")).toHaveText("API Tokens");
+
     // Wait for cts-token-manager to fetch and render the table. The host
     // keeps `id="tokensListing"` for backward-compatible selectors.
     const rows = page.locator("#tokensListing tbody tr");

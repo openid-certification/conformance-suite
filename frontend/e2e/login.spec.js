@@ -19,6 +19,13 @@ test.describe("login.html — Login page", () => {
 
     await page.goto("/login.html");
 
+    // The page wraps cts-login-page in a headerless <cts-card>. Assert the
+    // card chrome is present so a future revert of the wrapper surfaces as
+    // a test failure rather than passing silently. toBeVisible() is strictly
+    // stronger than toHaveCount(1) — it also catches a card that exists in
+    // the DOM but is hidden (display:none, zero dimensions, etc.).
+    await expect(page.locator("cts-card")).toBeVisible();
+
     const loginPage = page.locator("cts-login-page");
     await expect(loginPage).toBeVisible();
 
