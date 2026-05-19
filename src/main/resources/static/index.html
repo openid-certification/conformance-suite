@@ -35,18 +35,20 @@
     <script type="text/javascript">
         // Wire the dashboard's auth-gated tiles to /api/currentuser. cts-navbar
         // performs its own auth probe; mirroring it here keeps the dashboard
-        // independent of navbar internals (and matches the cts-dashboard
-        // contract: the host sets `is-authenticated`).
+        // independent of navbar internals.
+        //
+        // We assign the property directly rather than mutating the attribute.
+        // The dashboard defaults `isAuthenticated = true` in its constructor;
+        // since the markup below does not carry `is-authenticated`,
+        // `removeAttribute('is-authenticated')` would be a DOM no-op (MutationObserver
+        // never fires) and Lit's property stays at the stale `true`. Direct
+        // property assignment is observed reliably regardless of attribute state.
         document.addEventListener('DOMContentLoaded', () => {
             fetch('/api/currentuser')
                 .then((response) => {
                     const dashboard = document.querySelector('cts-dashboard');
                     if (!dashboard) return;
-                    if (response.ok) {
-                        dashboard.setAttribute('is-authenticated', '');
-                    } else {
-                        dashboard.removeAttribute('is-authenticated');
-                    }
+                    dashboard.isAuthenticated = response.ok;
                 })
                 .catch(() => {
                     // Network failure: leave the default (authenticated) state
