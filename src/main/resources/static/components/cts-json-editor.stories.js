@@ -17,6 +17,32 @@ const SAMPLE_JSON = JSON.stringify(
   2,
 );
 
+const LONG_JSON = JSON.stringify(
+  {
+    alias: "fapi2-sp-final-bank",
+    description: "A configuration with many lines so the editor exceeds its max-height bound",
+    server: {
+      discoveryUrl: "https://server.example.com/.well-known/openid-configuration",
+      tokenEndpoint: "https://server.example.com/token",
+      authorizationEndpoint: "https://server.example.com/authorize",
+      jwksUri: "https://server.example.com/jwks",
+      userinfoEndpoint: "https://server.example.com/userinfo",
+    },
+    client: {
+      client_id: "client-1234",
+      client_secret: "redacted-very-long-secret-value-for-illustration-only",
+      scope: "openid profile email address phone",
+      redirect_uris: ["https://app.example.com/callback"],
+      token_endpoint_auth_method: "private_key_jwt",
+    },
+    resource: {
+      resourceUrl: "https://resource.example.com/v1/payments",
+    },
+  },
+  null,
+  2,
+);
+
 export default {
   title: "Primitives/cts-json-editor",
   component: "cts-json-editor",
@@ -188,6 +214,44 @@ export const SetterDoesNotEcho = {
     });
     host.value = SAMPLE_JSON;
     expect(dispatched).toBe(0);
+  },
+};
+
+export const BoundedClampsLongContent = {
+  render: () =>
+    html`<cts-json-editor
+      aria-label="Bounded editor — long content"
+      readonly
+      style="min-height: 80px; max-height: 240px;"
+      .value=${LONG_JSON}
+    ></cts-json-editor>`,
+  async play({ canvasElement }) {
+    const ready = await waitForReady(canvasElement);
+    if (ready.kind !== "monaco") return;
+    const innerHost = /** @type {HTMLElement} */ (
+      canvasElement.querySelector(".oidf-json-editor-host")
+    );
+    expect(innerHost).toBeTruthy();
+    expect(innerHost.style.height).toBe("240px");
+  },
+};
+
+export const BoundedFloorsShortContent = {
+  render: () =>
+    html`<cts-json-editor
+      aria-label="Bounded editor — short content"
+      readonly
+      style="min-height: 80px; max-height: 240px;"
+      .value=${'{"alias":"short"}'}
+    ></cts-json-editor>`,
+  async play({ canvasElement }) {
+    const ready = await waitForReady(canvasElement);
+    if (ready.kind !== "monaco") return;
+    const innerHost = /** @type {HTMLElement} */ (
+      canvasElement.querySelector(".oidf-json-editor-host")
+    );
+    expect(innerHost).toBeTruthy();
+    expect(innerHost.style.height).toBe("80px");
   },
 };
 

@@ -18,10 +18,42 @@ const MONACO_VS_PATH = "/vendor/monaco-editor/vs";
  */
 const MONACO_LOAD_TIMEOUT_MS = 8000;
 
-/** Minimum editor height in pixels (≈ 4 lines). */
+/**
+ * Fallback minimum editor height in pixels (≈ 4 lines) when the host does
+ * not declare its own `min-height`.
+ */
 const EDITOR_MIN_HEIGHT_PX = 80;
-/** Maximum editor height before the editor scrolls internally. */
+/**
+ * Fallback maximum editor height in pixels when the host does not declare
+ * its own `max-height`. Beyond this Monaco scrolls internally.
+ */
 const EDITOR_MAX_HEIGHT_PX = 350;
+
+/**
+ * Resolve the auto-grow bounds for a `<cts-json-editor>` host. Reads the
+ * host's computed `min-height` and `max-height` so authors can size the
+ * editor with ordinary CSS (`style="min-height: …; max-height: …"`) and
+ * have the inner Monaco surface clamp to those values — the same contract
+ * a `<textarea>` or any other block element honors. Returns the constants
+ * defined above when a bound is not set, set to `auto`/`none`, or resolves
+ * to `0px` (percentage min-heights against an unsized parent collapse to
+ * zero, which is "not really set" from an authoring perspective).
+ * @param {HTMLElement} host - The outer `<cts-json-editor>` element.
+ * @returns {{min: number, max: number}} Pixel bounds for the inner host.
+ */
+function resolveBounds(host) {
+  const cs = window.getComputedStyle(host);
+  const parsePx = (raw, fallback) => {
+    if (!raw || raw === "auto" || raw === "none") return fallback;
+    const n = parseFloat(raw);
+    if (!Number.isFinite(n) || n <= 0) return fallback;
+    return n;
+  };
+  return {
+    min: parsePx(cs.minHeight, EDITOR_MIN_HEIGHT_PX),
+    max: parsePx(cs.maxHeight, EDITOR_MAX_HEIGHT_PX),
+  };
+}
 
 /**
  * Singleton Promise resolving to `window.monaco` once Monaco's AMD bundle
@@ -270,6 +302,13 @@ function injectStyles() {
  * `.oidf-json-editor-fallback`. The Promise resolves with the same
  * `{kind, el}` shape regardless of which surface mounted, so call sites
  * stay agnostic to whether Monaco booted or the fallback path took over.
+ *
+ * Sizing contract: the editor auto-grows to fit content. Set `min-height`
+ * and/or `max-height` on the host (inline style, utility class, anything
+ * that resolves in computed style) to bound that growth — the inner
+ * Monaco surface clamps to those values. When a bound is not set, set to
+ * `auto`/`none`, or resolves to `0px`, the wrapper falls back to 80px
+ * (≈ 4 lines) and 350px respectively.
  */
 class CtsJsonEditor extends LitElement {
   static properties = {
@@ -425,10 +464,8 @@ class CtsJsonEditor extends LitElement {
     });
 
     const updateHeight = () => {
-      const contentHeight = Math.max(
-        EDITOR_MIN_HEIGHT_PX,
-        Math.min(EDITOR_MAX_HEIGHT_PX, this._editor.getContentHeight()),
-      );
+      const { min, max } = resolveBounds(this);
+      const contentHeight = Math.max(min, Math.min(max, this._editor.getContentHeight()));
       host.style.height = `${contentHeight}px`;
     };
     this._editor.onDidContentSizeChange(updateHeight);
