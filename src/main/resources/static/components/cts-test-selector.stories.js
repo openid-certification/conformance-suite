@@ -145,6 +145,44 @@ export const SelectPlan = {
 };
 
 /**
+ * The `selected` attribute is the externally-driven counterpart of the click
+ * path: callers (e.g. schedule-test.html bridging cts-spec-cascade's
+ * `cts-plan-selected` back to the search list) set `planSearch.selected = name`
+ * to highlight the matching row without triggering a `cts-plan-select` event.
+ * This story exercises that path independently of the click handler so the
+ * highlight contract is locked even when the user picks via the cascade
+ * dropdown.
+ */
+export const WithSelection = {
+  render: () => html`
+    <cts-test-selector
+      .plans=${MOCK_PLANS}
+      selected="fapi2-security-profile-final-test-plan"
+    ></cts-test-selector>
+  `,
+  async play({ canvasElement }) {
+    // The externally-driven path must not fabricate a synthetic
+    // `cts-plan-select` — that event signals "user picked this plan."
+    // schedule-test.html routes click events through cascade.selectPlanByName,
+    // which clears the in-flight config. If WithSelection re-fired the event
+    // every time a caller set `selected`, the bridge would wipe the config
+    // any time the cascade pushed a highlight back to the selector.
+    let dispatched = 0;
+    canvasElement.addEventListener("cts-plan-select", () => {
+      dispatched += 1;
+    });
+
+    const rows = canvasElement.querySelectorAll(".oidf-test-selector__row");
+    const activeRows = Array.from(rows).filter((r) => r.classList.contains("is-active"));
+    expect(activeRows.length).toBe(1);
+    expect(activeRows[0].getAttribute("data-plan-name")).toBe(
+      "fapi2-security-profile-final-test-plan",
+    );
+    expect(dispatched).toBe(0);
+  },
+};
+
+/**
  * Hover swaps the row background to `--ink-50`. We can't observe the actual
  * pseudo-class style from JSDOM, but we can verify the rule is registered in
  * the injected stylesheet so a regression in the head-injection pipeline is

@@ -566,6 +566,150 @@ test.describe("schedule-test.html — Test Plan Scheduling", () => {
     expect(lastconfigCalled).toBe(false);
   });
 
+  // --- cts-test-selector search flow (search-mode shortcut over the cascade) ---
+  //
+  // The search selector mounts above cts-spec-cascade and shares the same
+  // /api/plan/available payload. Clicking a search result routes through
+  // cascade.selectPlanByName so the existing downstream listeners
+  // (clearConfigForNewPlan, updateVariants, updateConfigFieldVisibility) fire
+  // exactly as if the user used the cascade dropdown. Cascade selections
+  // bridge back to the search selector via the `selected` attribute, keeping
+  // both entry points in sync regardless of which one the user touched.
+
+  test("search-then-click drives the cascade and reveals the config form", async ({ page }) => {
+    await setupFailFast(page);
+
+    await page.route("**/api/plan/available", (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(ALL_PLANS),
+      }),
+    );
+
+    await page.route("**/api/lastconfig", (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({}),
+      }),
+    );
+
+    await setupCommonRoutes(page);
+    await page.goto("/schedule-test.html");
+
+    // The selector renders one row per plan once `planSearch.plans` is set
+    // by loadAvailablePlans(). Wait for at least one row before driving the
+    // search — otherwise the type+click can race the init chain.
+    const searchRows = page.locator("#planSearch .oidf-test-selector__row");
+    await expect(searchRows.first()).toBeVisible();
+
+    // Narrow the list with the search box, then click the no-variants plan
+    // (its config form renders immediately — plans with variants are gated
+    // on every variant being picked first).
+    await page.locator("#planSearch .oidf-test-selector__search").fill("Client: Basic");
+    const targetRow = page.locator(
+      '#planSearch [data-plan-name="oidcc-client-basic-certification-test-plan"]',
+    );
+    await expect(targetRow).toBeVisible();
+    await targetRow.click();
+
+    // The cascade should reflect the selection across all four tiers.
+    await expect(page.locator("#specFamilySelect")).toHaveValue("OIDCC");
+    await expect(page.locator("#entitySelect")).toHaveValue("client-basic");
+    await expect(page.locator("#planSelect")).toHaveValue(
+      "oidcc-client-basic-certification-test-plan",
+    );
+
+    // The selector row stays highlighted via the cascade -> search bridge.
+    await expect(targetRow).toHaveClass(/is-active/);
+
+    // No variants, so the create button becomes enabled and the config form
+    // is shown. The button is a cts-button — target the inner native button
+    // for :disabled, matching the existing test patterns above.
+    await expect(page.locator("#createPlanBtn button")).toBeEnabled({ timeout: 5000 });
+  });
+
+  test("cascade selection highlights the matching row in the search selector", async ({ page }) => {
+    await setupFailFast(page);
+
+    await page.route("**/api/plan/available", (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(ALL_PLANS),
+      }),
+    );
+
+    await page.route("**/api/lastconfig", (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({}),
+      }),
+    );
+
+    await setupCommonRoutes(page);
+    await page.goto("/schedule-test.html");
+
+    // Drive the cascade — no variants means the plan auto-selects when the
+    // entity tier picks "client-basic".
+    await page.locator("#specFamilySelect").selectOption("OIDCC");
+    await page.locator("#entitySelect").selectOption("client-basic");
+
+    // The corresponding search-row carries the is-active class via the
+    // document-level `cts-plan-selected` listener that writes
+    // `planSearch.selected = e.detail.plan.planName`.
+    const targetRow = page.locator(
+      '#planSearch [data-plan-name="oidcc-client-basic-certification-test-plan"]',
+    );
+    await expect(targetRow).toHaveClass(/is-active/, { timeout: 5000 });
+
+    // The bridge sets one `selected` planName at a time. A regression that
+    // marked every family-matching row active (e.g. by reading the spec
+    // family instead of the plan name) would still pass the assertion
+    // above; pin the count to exactly one to catch that shape.
+    await expect(page.locator("#planSearch .oidf-test-selector__row.is-active")).toHaveCount(1);
+  });
+
+  test("?test_plan= deep-link resolves AND highlights the search row (regression)", async ({
+    page,
+  }) => {
+    await setupFailFast(page);
+
+    await page.route("**/api/plan/available", (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(ALL_PLANS),
+      }),
+    );
+
+    await page.route("**/api/lastconfig", (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({}),
+      }),
+    );
+
+    await setupCommonRoutes(page);
+    await page.goto("/schedule-test.html?test_plan=oidcc-client-basic-certification-test-plan");
+
+    // The cascade resolves the deep-link via selectPlanByName (the inline
+    // wrapper that bumps isSystemSelectingPlan around the cascade call).
+    await expect(page.locator("#planSelect")).toHaveValue(
+      "oidcc-client-basic-certification-test-plan",
+      { timeout: 5000 },
+    );
+
+    // Both entry points reflect the same selection.
+    const targetRow = page.locator(
+      '#planSearch [data-plan-name="oidcc-client-basic-certification-test-plan"]',
+    );
+    await expect(targetRow).toHaveClass(/is-active/);
+  });
+
   test("R42: cts-form-field renders a label[for] / id pair for every visible field", async ({
     page,
   }) => {
