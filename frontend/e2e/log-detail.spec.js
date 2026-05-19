@@ -168,6 +168,11 @@ test.describe("log-detail.html — new Lit-triad page", () => {
 
     await page.goto(`/log-detail.html?log=${encodeURIComponent(MOCK_TEST_STATUS.testId)}`);
 
+    // Cross-page contract: every wired page mounts a single <cts-toast-host>
+    // for window.ctsToast(...). A silent removal of the mount from log-detail.html
+    // would otherwise pass all tests in this file. (Mirrors upload.spec.js:210.)
+    await expect(page.locator("cts-toast-host")).toHaveCount(1);
+
     // Test name + ID land in the header.
     const header = page.locator("cts-log-detail-header");
     await expect(header).toContainText(MOCK_TEST_STATUS.testName);

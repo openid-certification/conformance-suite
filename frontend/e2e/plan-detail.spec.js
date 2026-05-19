@@ -81,6 +81,11 @@ test.describe("plan-detail.html — Plan Detail", () => {
 
     await page.goto("/plan-detail.html?plan=plan-abc-123");
 
+    // Cross-page contract: every wired page mounts a single <cts-toast-host>
+    // for window.ctsToast(...). A silent removal of the mount from plan-detail.html
+    // would otherwise pass all tests in this file. (Mirrors upload.spec.js:210.)
+    await expect(page.locator("cts-toast-host")).toHaveCount(1);
+
     // Wait for the View configuration button to render
     const configBtn = page.locator('[data-testid="view-config-btn"]');
     await expect(configBtn).toBeVisible();

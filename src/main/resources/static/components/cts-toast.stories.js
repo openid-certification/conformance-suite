@@ -290,6 +290,98 @@ export const Persistent = {
 };
 
 /**
+ * Happy path for the `window.ctsToast({ kind: "error" })` global path.
+ * The static `ErrorKind` story above proves the visual treatment when
+ * `<cts-toast kind="error">` is rendered directly into the canvas; this
+ * story proves the same treatment survives the `window.ctsToast` →
+ * `CtsToastHost.show` → `<cts-toast>` chain. If a future refactor silently
+ * dropped `kind` from `CtsToastHost.show`'s option propagation, the
+ * static `ErrorKind` story would still pass while this one would fail.
+ *
+ * Uses `duration: 0` + manual `.dismiss()` so the assertion does not race
+ * an auto-dismiss timer. `ViaWindowApi` already covers the auto-dismiss
+ * path for `kind: "ok"`.
+ */
+export const ViaWindowApiError = {
+  render: () => html`<div data-testid="trigger-zone"></div>`,
+  async play() {
+    resetHost();
+
+    expect(typeof (/** @type {any} */ (window).ctsToast)).toBe("function");
+    const toast = /** @type {any} */ (window).ctsToast({
+      title: "Save failed",
+      message: "The request returned 500. Try again.",
+      kind: "error",
+      duration: 0,
+    });
+    expect(toast).toBeTruthy();
+    expect(toast.tagName.toLowerCase()).toBe("cts-toast");
+
+    const host = /** @type {HTMLElement} */ (document.querySelector("cts-toast-host"));
+    expect(host).toBeTruthy();
+    expect(host.contains(toast)).toBe(true);
+
+    // The static `ErrorKind` story queries `.oidf-toast` synchronously because
+    // Lit has already rendered the lit-html template into light DOM by the
+    // time `play()` runs. Here the `<cts-toast>` is created dynamically via
+    // `window.ctsToast`, so the first render is queued for the next
+    // microtask — await `updateComplete` (Lit's lifecycle promise) so the
+    // assertions below see the rendered children, not an empty host.
+    await /** @type {any} */ (toast).updateComplete;
+
+    const card = toast.querySelector(".oidf-toast");
+    // The inline style on the card sets border-left-color to var(--rust-400)
+    // — same assertion shape as the static `ErrorKind` story so a refactor
+    // that breaks one without the other surfaces a clean diff.
+    expect(card.getAttribute("style")).toContain("--rust-400");
+
+    const icon = toast.querySelector("cts-icon");
+    expect(icon.getAttribute("name")).toBe("close-circle");
+
+    let dismissed = false;
+    host.addEventListener("cts-toast-dismiss", () => {
+      dismissed = true;
+    });
+
+    toast.dismiss();
+    expect(dismissed).toBe(true);
+    expect(document.querySelector("cts-toast")).toBeNull();
+
+    resetHost();
+  },
+};
+
+/**
+ * Idempotency claim: `CtsToastHost.getOrCreate()` always returns the same
+ * singleton host on repeat calls within a document. This is the visible
+ * half of the JSDoc contract; the other half (graceful handling when
+ * `<body>` has not yet parsed) is a defensive code path exercised only
+ * from `<head>` inline scripts, where reliably mocking `document.body =
+ * null` mid-play-function would corrupt Storybook's iframe state. The
+ * null-body fallback is covered by reviewer-eyes on the small branch in
+ * `cts-toast.js`.
+ */
+export const GetOrCreateIdempotent = {
+  render: () => html`<div data-testid="trigger-zone"></div>`,
+  async play() {
+    resetHost();
+
+    const first = CtsToastHost.getOrCreate();
+    const second = CtsToastHost.getOrCreate();
+    expect(first).toBe(second);
+    expect(first.tagName.toLowerCase()).toBe("cts-toast-host");
+
+    // A subsequent `CtsToastHost.show()` reuses the same host rather than
+    // creating a sibling — the singleton invariant the page mounts rely on.
+    const toast = CtsToastHost.show({ title: "x", duration: 0 });
+    expect(first.contains(toast)).toBe(true);
+    expect(document.querySelectorAll("cts-toast-host").length).toBe(1);
+
+    resetHost();
+  },
+};
+
+/**
  * Edge case: an unknown `kind` value falls back to `ok` (matches the
  * defensive fallback used by `cts-button` and `cts-alert`).
  */

@@ -33,6 +33,11 @@ test.describe("schedule-test.html — Test Plan Scheduling", () => {
 
     await page.goto("/schedule-test.html");
 
+    // Cross-page contract: every wired page mounts a single <cts-toast-host>
+    // for window.ctsToast(...). A silent removal of the mount from schedule-test.html
+    // would otherwise pass all tests in this file. (Mirrors upload.spec.js:210.)
+    await expect(page.locator("cts-toast-host")).toHaveCount(1);
+
     // Spec family dropdown populates with families from the mock data
     const familySelect = page.locator("#specFamilySelect");
     await expect(familySelect).toBeVisible();

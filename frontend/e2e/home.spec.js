@@ -117,6 +117,11 @@ test.describe("index.html — Home page", () => {
 
     await page.goto("/index.html");
 
+    // Cross-page contract: every wired page mounts a single <cts-toast-host>
+    // for window.ctsToast(...). A silent removal of the mount from index.html
+    // would otherwise pass all tests in this file. (Mirrors upload.spec.js:210.)
+    await expect(page.locator("cts-toast-host")).toHaveCount(1);
+
     // Server info still renders
     await expect(page.locator(".serverInfo")).toContainText("5.1.24-SNAPSHOT");
 
