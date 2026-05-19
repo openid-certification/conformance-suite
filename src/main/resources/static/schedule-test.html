@@ -41,14 +41,29 @@
     <script type="module" src="/components/cts-config-form.js"></script>
     <script type="module" src="/js/cts-copy-flash.js"></script>
 
+    <script>
+        // Pre-declare the adapter-ready Promise before the module script
+        // below evaluates, so the inline init chain (also below) can await
+        // it as a single source of truth for "the adapter is loaded and
+        // installed on window.__configFormAdapter". Module scripts execute
+        // asynchronously relative to inline scripts; without this Promise
+        // the inline DOMContentLoaded chain may run before the module's IIFE
+        // and the first updateConfigFieldVisibility call would no-op.
+        window.__configFormAdapterReady = new Promise(function (resolve, reject) {
+            window.__resolveConfigFormAdapterReady = resolve;
+            window.__rejectConfigFormAdapterReady = reject;
+        });
+    </script>
     <script type="module">
         import {
             buildConfigFormSchema,
             computeHiddenFields,
+            setAtPath,
         } from "/components/config-form-adapter.js";
         // Re-expose on window so the inline <script> below (which cannot use
         // ES module imports) can drive cts-config-form via the adapter.
-        window.__configFormAdapter = { buildConfigFormSchema, computeHiddenFields };
+        window.__configFormAdapter = { buildConfigFormSchema, computeHiddenFields, setAtPath };
+        window.__resolveConfigFormAdapterReady();
     </script>
 
 </head>
@@ -142,6 +157,12 @@
             }).then(function() {
                 return loadFieldCatalog();
             }).then(function() {
+                // Block on the adapter module being installed on window
+                // before any page code that calls into it. Without this
+                // the inline DOMContentLoaded chain can outrun the
+                // <script type="module"> at the top of <head>.
+                return window.__configFormAdapterReady;
+            }).then(function() {
                 return loadConfig();
             }).then(function() {
                 return loadScheduleTestPage();
@@ -151,10 +172,48 @@
                 return applyConfigPreset();
             }).then(function() {
                 return restoreEditPlanVariants();
+            }).then(function() {
+                return applyConfigJsonParam();
             }).finally(function() {
                 FAPI_UI.activeTooltip();
             });
         });
+
+        // Handle the ?configJson= URL param. Runs AFTER applyConfigPreset
+        // so any ?test_plan= has already selected the plan and bound the
+        // schema; configJson can apply directly. If no plan is selected
+        // yet (standalone ?configJson= URL), defer the apply until the
+        // user picks a plan — a one-shot cts-plan-selected listener
+        // bumps isSystemSelectingPlan around the apply so the regular
+        // listener does not wipe the just-applied config.
+        function applyConfigJsonParam() {
+            const searchParams = new URLSearchParams(window.location.search);
+            const configJsonParam = searchParams.get("configJson");
+            if (!configJsonParam) return;
+            let parsed;
+            try {
+                parsed = JSON.parse(configJsonParam);
+            } catch (e) {
+                console.warn('[schedule-test] invalid configJson URL param', e);
+                return;
+            }
+            const planSelectEl = document.getElementById('planSelect');
+            if (planSelectEl && planSelectEl.value && planSelectEl.value !== 'select') {
+                applyConfigToForm(parsed);
+                return;
+            }
+            // No plan selected — defer to the first user-driven plan pick.
+            const oneShot = function() {
+                document.removeEventListener('cts-plan-selected', oneShot);
+                // Bumping the counter would suppress clearConfigForNewPlan
+                // but the listener has already fired (we're inside it).
+                // The listener runs clearConfigForNewPlan synchronously
+                // before this oneShot fires, so currentConfig was already
+                // wiped. Apply after the listener body so we win the race.
+                queueMicrotask(() => applyConfigToForm(parsed));
+            };
+            document.addEventListener('cts-plan-selected', oneShot);
+        }
 
         // R42 label wiring is no longer needed: <cts-form-field> renders a
         // proper <label for="..."> for every input it owns, with unique ids
@@ -387,17 +446,20 @@
                 .then(async (data) => {
                     FAPI_UI.loadedPlanName = data.planName;
                     if (data.config) {
-                        // we found a configuration file, load it up
-                        applyConfigToForm(data.config);
-                        // Await so isSystemSelectingPlan stays raised across
-                        // cts-spec-cascade's deferred dispatch (the listener
-                        // checks the counter to decide whether to clear the
-                        // config we just applied). Matches the awaited
-                        // pattern in applyConfigPreset / restoreEditPlanVariants.
+                        // Order matters: await the cascade so the listener
+                        // fires updateConfigFieldVisibility (which binds
+                        // ctsConfigForm.schema/uiSchema/hiddenFields) BEFORE
+                        // we hand the config to the component. Otherwise the
+                        // component receives `.config` against an empty
+                        // schema, then re-renders later when the schema lands
+                        // — a brief window where the form has populated data
+                        // but no fields to render. Same ordering as
+                        // loadLastConfigFromServer.
                         await updateSelectedTestSelector(data.planName);
                         if (data.variant) {
                             FAPI_UI.selectedVariant = data.variant;
                         }
+                        applyConfigToForm(data.config);
                     } else {
                         // otherwise leave the form blank
                         applyConfigToForm({});
@@ -410,13 +472,13 @@
                 .then((response) => response.json())
                 .then(async (data) => {
                     if (data.config) {
-                        // we found a configuration file, load it up
-                        applyConfigToForm(data.config);
-                        // See loadPlanConfig for the await rationale.
+                        // See loadPlanConfig for the cascade-before-config
+                        // ordering rationale.
                         await updateSelectedTestSelector(data.planName);
                         if (data.variant) {
                             FAPI_UI.selectedVariant = data.variant;
                         }
+                        applyConfigToForm(data.config);
                     } else {
                         applyConfigToForm({});
                     }
@@ -444,20 +506,30 @@
                 // handler stashed before the create attempt failed. Parse
                 // it back into an object before handing to the component.
                 let parsed = {};
+                let parseFailed = false;
                 try {
                     parsed = typeof localSavedConfig.config === "string"
                         ? JSON.parse(localSavedConfig.config || "{}")
                         : (localSavedConfig.config || {});
                 } catch (e) {
                     parsed = {};
+                    parseFailed = true;
                 }
-                applyConfigToForm(parsed);
-                // See loadPlanConfig for the await rationale (keep
-                // isSystemSelectingPlan raised across the deferred dispatch).
+                if (parseFailed) {
+                    // Old sessionStorage entries from pre-Phase-2 may carry
+                    // invalid JSON; surface a non-blocking warning instead
+                    // of silently dropping the user's saved attempt.
+                    FAPI_UI.showError({
+                        error: "Could not restore your last submitted configuration — the stored data was invalid and has been cleared.",
+                    });
+                }
+                // Same cascade-before-config ordering as loadPlanConfig:
+                // bind the schema first, then hand the data to the component.
                 await updateSelectedTestSelector(localSavedConfig.planName);
                 if (localSavedConfig.variant) {
                     FAPI_UI.selectedVariant = localSavedConfig.variant;
                 }
+                applyConfigToForm(parsed);
                 return true;
             }
 
@@ -723,19 +795,12 @@
             updateVariantOptionsVisibility();
             updateConfigFieldVisibility();
 
-            // ?configJson= URL hydration: the legacy "Share Test Plan
-            // Configuration" link round-trips the config through a query
-            // param. Parse and feed into cts-config-form via the same
-            // applyConfigToForm helper the other hydration paths use.
-            let searchParams = new URLSearchParams(window.location.search);
-            let configJsonParam = searchParams.get("configJson");
-            if (configJsonParam) {
-                try {
-                    applyConfigToForm(JSON.parse(configJsonParam));
-                } catch (e) {
-                    console.warn('[schedule-test] invalid configJson URL param', e);
-                }
-            }
+            // ?configJson= URL hydration moved to applyConfigJsonParam()
+            // which runs AFTER applyConfigPreset (see DOMContentLoaded
+            // chain). Reasoning: applying configJson here would write to
+            // ctsConfigForm.config while schema is still empty (no plan
+            // selected) AND would be wiped by the cts-plan-selected listener
+            // on the user's first manual plan pick.
 
             FAPI_UI.hideBusy();
 
@@ -896,15 +961,26 @@
             if (!allVariantsSelected) return;
 
             // Adapter is loaded as an ES module and re-exposed on window in
-            // the module shim at the top of <head>. Fail loud if the shim
-            // hasn't run yet — that would mean a broken init order.
+            // the module shim at the top of <head>; the init chain awaits
+            // window.__configFormAdapterReady, so reaching here without
+            // both pieces means the module failed to load (404/parse error)
+            // or the catalog fetch failed silently. Surface a visible
+            // error so the user is not staring at an empty form with no
+            // signal of what went wrong.
             const adapter = window.__configFormAdapter;
             if (!adapter || !fieldCatalog) {
                 console.error('[schedule-test] config-form adapter or catalog not ready');
+                FAPI_UI.showError({
+                    error: "Configuration form failed to load. Refresh the page; if the problem persists, the /js/config-form-adapter.js or /js/config-field-catalog.json asset is unreachable.",
+                });
                 return;
             }
 
-            const { schema, uiSchema } = adapter.buildConfigFormSchema(planInfo, fieldCatalog);
+            const { schema, uiSchema } = adapter.buildConfigFormSchema(
+                planInfo,
+                fieldCatalog,
+                selectedVariant,
+            );
             const hiddenFields = adapter.computeHiddenFields(planInfo, selectedVariant, fieldCatalog);
 
             if (ctsConfigForm) {
@@ -1100,14 +1176,10 @@
             addGenerateJwks("#generate-op-server-jwks", "federation.op_server_jwks", true);
         }
 
+        // Use the adapter's setAtPath (re-exposed on window via the module
+        // shim) instead of a local duplicate of the same algorithm.
         function setConfigAtPath(obj, dottedPath, value) {
-            const parts = dottedPath.split(".");
-            let cur = obj;
-            for (let i = 0; i < parts.length - 1; i++) {
-                cur[parts[i]] = cur[parts[i]] || {};
-                cur = cur[parts[i]];
-            }
-            cur[parts[parts.length - 1]] = value;
+            window.__configFormAdapter.setAtPath(obj, dottedPath, value);
         }
 
         // Base64url encoder
@@ -1191,13 +1263,23 @@
         function addGenerateJwks(generateSelector, targetPath, includeEncKey) {
             const link = document.querySelector(generateSelector);
             if (!link) return; // The generator link is only rendered when its target field is visible.
+            // No { once: true } guard — the user can regenerate JWKS as many
+            // times as they want per session. renderJwksGeneratorRow always
+            // calls replaceChildren before re-registering, so the same DOM
+            // node is never bound twice; handlers cannot accumulate across
+            // plan/variant cycles.
             link.addEventListener("click", async (e) => {
                 e.preventDefault();
                 const ctsConfigForm = document.getElementById('ctsConfigForm');
                 try {
                     const jwks = await generateJwkSet(includeEncKey);
+                    // Write the parsed JWKS OBJECT — cts-form-field's
+                    // type-aware display formats it as pretty-printed JSON in
+                    // the textarea. Writing JSON.stringify(jwks) here would
+                    // store a string in a catalog-declared type:object field
+                    // and submit the wrong shape to /api/plan.
                     const next = structuredClone(currentConfig || {});
-                    setConfigAtPath(next, targetPath, JSON.stringify(jwks, null, 4));
+                    setConfigAtPath(next, targetPath, jwks);
                     currentConfig = next;
                     if (ctsConfigForm) ctsConfigForm.config = next;
                 } catch (err) {

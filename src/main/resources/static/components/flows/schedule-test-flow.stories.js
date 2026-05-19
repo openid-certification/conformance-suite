@@ -136,10 +136,16 @@ export const FullFlow = {
     });
 
     await step("Fill the config form", async () => {
-      const issuerInput = canvasElement.querySelector('input[name="server.issuer"]');
-      if (issuerInput) {
-        await userEvent.type(issuerInput, "https://op.example.com");
-      }
+      // cts-form-field carries `name` on the HOST element, not the inner
+      // <input>. The inner input has only `id="${this._uid}"`. Query the
+      // host first, then the descendant input. Asserting the inner input
+      // is found ensures the fill step does not silently no-op if the
+      // host structure changes.
+      const fieldHost = canvasElement.querySelector('cts-form-field[name="server.issuer"]');
+      expect(fieldHost).toBeTruthy();
+      const issuerInput = fieldHost.querySelector("input");
+      expect(issuerInput).toBeTruthy();
+      await userEvent.type(issuerInput, "https://op.example.com");
     });
 
     await step("Verify submit button is present", async () => {

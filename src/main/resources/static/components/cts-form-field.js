@@ -11,15 +11,50 @@ import { classMap } from "lit/directives/class-map.js";
  * page. Class names are namespaced under `.oidf-form-field` so they do not
  * bleed onto unrelated inputs in the consumer's DOM.
  *
+ * ## Type-aware emit / display contract
+ *
+ * For `schema.type === "object"` and `schema.type === "array"`, this
+ * component renders a `<textarea>` whose ON-DISK value the consumer stores
+ * is the PARSED object/array — not the raw text. The textarea's displayed
+ * text is the pretty-printed JSON of that value. On every input event the
+ * component tries to JSON.parse the text; on success it dispatches the
+ * parsed object/array via `cts-field-change`. On failure it dispatches the
+ * raw string AND sets `setCustomValidity("Invalid JSON")` on the textarea
+ * (with `.is-invalid` class) so submit is blocked at the browser layer.
+ * This matches the legacy schedule-test scraper's `populateJSON` semantics
+ * (parse-then-typecheck) without the host page needing to scrape.
+ *
+ * For `schema.type === "array", schema.format === "newline-array"`, the
+ * textarea splits on `\n` and dispatches an array of non-empty trimmed
+ * lines (mirrors the legacy `data-json-type="jsonarray"` convention used
+ * by `federation_trust_anchor.immediate_subordinates`).
+ *
+ * For displayed value:
+ *   - object/array values arrive as JS objects; the textarea shows
+ *     `JSON.stringify(value, null, 4)` (or `value.join("\n")` for
+ *     newline-array).
+ *   - string values render verbatim.
+ *
+ * For `placeholder`: prefers `schema["x-cts-placeholder"]` over
+ * `schema.description`. The adapter routes catalog-declared `tooltip` to
+ * `description` (rendered as help-text below the input) and catalog-declared
+ * `placeholder` to `x-cts-placeholder` (rendered inside the control). When
+ * both are present they show in different visual slots.
+ *
  * @property {object} schema - JSON-schema fragment for this field. May include
- *   `type`, `format`, `enum`, `title`, `description`.
+ *   `type`, `format`, `enum`, `title`, `description`, `x-cts-placeholder`,
+ *   `x-cts-required`.
  * @property {string} name - Field name used as the `field` key in
  *   `cts-field-change` events.
- * @property {string} value - Current field value (always stringified).
+ * @property {string|object|Array} value - Current field value. Strings render
+ *   verbatim; objects/arrays render as pretty-printed JSON in object/array
+ *   textareas. Setting via attribute is always a string.
  * @property {string} error - Validation error message shown below the input.
  * @property {boolean} disabled - Disables the input.
  * @fires cts-field-change - On every input/change with
- *   `{ detail: { field, value } }`; bubbles.
+ *   `{ detail: { field, value } }`; bubbles. For type:object/array the
+ *   emitted `value` is the parsed object/array on valid JSON, or the raw
+ *   string on parse failure (with setCustomValidity raised on the input).
  */
 
 const STYLE_ID = "cts-form-field-styles";
@@ -195,10 +230,44 @@ class CtsFormField extends LitElement {
   }
 
   _handleInput(e) {
+    const raw = e.target.value;
+    const { type, format } = this.schema || {};
+    let value = raw;
+    let parseError = "";
+
+    if (type === "array" && format === "newline-array") {
+      // Newline-delimited array: split on `\n`, trim, drop empties.
+      value = raw
+        .split("\n")
+        .map((line) => line.trim())
+        .filter((line) => line !== "");
+    } else if (type === "object" || type === "array") {
+      // JSON textarea: empty string is the no-value sentinel; otherwise
+      // try to parse. On failure, emit the raw string so the user can keep
+      // editing, and surface the parse error via setCustomValidity so
+      // submit is blocked at the browser layer (mirrors legacy
+      // validateJSONFromFormElement behavior).
+      if (raw.trim() === "") {
+        value = type === "array" ? [] : {};
+      } else {
+        try {
+          value = JSON.parse(raw);
+        } catch (err) {
+          value = raw;
+          parseError = err instanceof Error ? err.message : "Invalid JSON";
+        }
+      }
+    }
+
+    if (typeof e.target.setCustomValidity === "function") {
+      e.target.setCustomValidity(parseError);
+      e.target.classList.toggle("is-invalid", Boolean(parseError));
+    }
+
     this.dispatchEvent(
       new CustomEvent("cts-field-change", {
         bubbles: true,
-        detail: { field: this.name, value: e.target.value },
+        detail: { field: this.name, value },
       }),
     );
   }
@@ -212,20 +281,52 @@ class CtsFormField extends LitElement {
     );
   }
 
+  /**
+   * Format the current `this.value` for display in a textarea/input. Strings
+   * pass through; objects/arrays are pretty-printed (or newline-joined for
+   * `format: newline-array`). The companion to `_handleInput`'s type-aware
+   * parse.
+   *
+   * @returns {string}
+   */
+  _displayValue() {
+    // The static-properties declaration types `value` as String for Lit's
+    // attribute-vs-property bridge, but in practice consumers set objects
+    // and arrays via property binding. Cast to any so the narrowing below
+    // can branch on the actual runtime shape.
+    const v = /** @type {any} */ (this.value);
+    if (v == null) return "";
+    if (typeof v === "string") return v;
+    const { type, format } = this.schema || {};
+    if (type === "array" && format === "newline-array" && Array.isArray(v)) {
+      return v.join("\n");
+    }
+    if (type === "object" || type === "array") {
+      try {
+        return JSON.stringify(v, null, 4);
+      } catch {
+        return String(v);
+      }
+    }
+    return String(v);
+  }
+
   _renderInput() {
     const { type, format, description } = this.schema;
     const fieldEnum = this.schema.enum;
+    const placeholder = this.schema["x-cts-placeholder"] || description || "";
     const isInvalid = Boolean(this.error);
     const describedBy = this._describedByIds();
     const ariaInvalid = isInvalid ? "true" : nothing;
     const ariaDescribedBy = describedBy || nothing;
+    const displayValue = this._displayValue();
 
     if (fieldEnum) {
       return html`
         <select
           id="${this._uid}"
           class=${classMap({ "oidf-select": true, "is-error": isInvalid })}
-          .value=${this.value || ""}
+          .value=${displayValue}
           ?disabled=${this.disabled}
           aria-invalid=${ariaInvalid}
           aria-describedby=${ariaDescribedBy}
@@ -247,12 +348,12 @@ class CtsFormField extends LitElement {
             "is-error": isInvalid,
           })}
           rows="6"
-          .value=${this.value || ""}
+          .value=${displayValue}
           ?disabled=${this.disabled}
           aria-invalid=${ariaInvalid}
           aria-describedby=${ariaDescribedBy}
           @input=${this._handleInput}
-          placeholder=${description || ""}
+          placeholder=${placeholder}
         ></textarea>
       `;
     }
@@ -262,7 +363,7 @@ class CtsFormField extends LitElement {
         type="password"
         id="${this._uid}"
         class=${classMap({ "oidf-input": true, "is-error": isInvalid })}
-        .value=${this.value || ""}
+        .value=${displayValue}
         ?disabled=${this.disabled}
         aria-invalid=${ariaInvalid}
         aria-describedby=${ariaDescribedBy}
@@ -295,12 +396,12 @@ class CtsFormField extends LitElement {
       type="${inputType}"
       id="${this._uid}"
       class=${classMap({ "oidf-input": true, "is-error": isInvalid })}
-      .value=${this.value || ""}
+      .value=${displayValue}
       ?disabled=${this.disabled}
       aria-invalid=${ariaInvalid}
       aria-describedby=${ariaDescribedBy}
       @input=${this._handleInput}
-      placeholder=${description || ""}
+      placeholder=${placeholder}
     />`;
   }
 

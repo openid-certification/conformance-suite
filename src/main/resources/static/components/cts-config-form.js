@@ -196,7 +196,11 @@ class CtsConfigForm extends LitElement {
       if (obj == null) return "";
       obj = obj[part];
     }
-    return obj != null ? String(obj) : "";
+    // Return the raw value (string | object | array | boolean | number).
+    // cts-form-field's _displayValue formats objects/arrays for display
+    // based on its own schema; stringifying here would lose the type and
+    // produce "[object Object]" in textareas bound to type:object fields.
+    return obj == null ? "" : obj;
   }
 
   _setAtPath(obj, fieldPath, value) {
@@ -355,7 +359,7 @@ class CtsConfigForm extends LitElement {
       <cts-form-field
         name="${fullPath}"
         .schema=${fieldSchema}
-        value="${this._getFieldValue(fullPath)}"
+        .value=${this._getFieldValue(fullPath)}
         error="${this.errors?.[fullPath] || ""}"
       ></cts-form-field>
     `;

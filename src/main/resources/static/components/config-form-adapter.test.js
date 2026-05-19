@@ -5,6 +5,7 @@ import {
   computeApplicableFields,
   computeExplicitHides,
   computeHiddenFields,
+  setAtPath,
 } from "./config-form-adapter.js";
 
 /**
@@ -142,6 +143,76 @@ describe("computeExplicitHides", () => {
     const result = computeExplicitHides(plan, {});
     expect(result.has("alias")).toBe(false);
     expect(result.has("publish")).toBe(false);
+  });
+});
+
+describe("buildConfigFormSchema — variant pass-through (regression)", () => {
+  // Plan-level configurationFields are empty; the catalog field is contributed
+  // ONLY by the selected variant value. The schema MUST include it once the
+  // variant is selected, otherwise the form renders an empty Client section
+  // for any plan whose required fields come from variants (federation, FAPI2,
+  // CIBA).
+  const variantPlan = {
+    configurationFields: ["alias"],
+    variants: {
+      client_auth: {
+        variantValues: {
+          mtls: { configurationFields: ["client.client_id"] },
+          client_secret_basic: { configurationFields: ["client.client_secret"] },
+        },
+      },
+    },
+  };
+
+  it("includes variant-contributed fields in the schema when selectedVariant is passed", () => {
+    const { schema, uiSchema } = buildConfigFormSchema(variantPlan, CATALOG, {
+      client_auth: "mtls",
+    });
+    expect(schema.properties["client.client_id"]).toBeTruthy();
+    const clientSection = uiSchema.sections.find((s) => s.key === "client");
+    expect(clientSection).toBeTruthy();
+    expect(clientSection.fields).toContain("client.client_id");
+  });
+
+  it("omits variant-contributed fields when no variant is selected", () => {
+    const { schema, uiSchema } = buildConfigFormSchema(variantPlan, CATALOG);
+    expect(schema.properties["client.client_id"]).toBeUndefined();
+    expect(uiSchema.sections.find((s) => s.key === "client")).toBeUndefined();
+  });
+
+  it("includes only the selected variant's contributions, not all values", () => {
+    const { schema } = buildConfigFormSchema(variantPlan, CATALOG, { client_auth: "mtls" });
+    expect(schema.properties["client.client_id"]).toBeTruthy();
+    expect(schema.properties["client.client_secret"]).toBeUndefined();
+  });
+});
+
+describe("setAtPath", () => {
+  it("creates nested intermediate objects and writes the leaf", () => {
+    const obj = {};
+    // Use require-style runtime import via dynamic import is overkill; the
+    // function is exported at the top of the test file.
+    setAtPath(obj, "federation.op_ec_jwks", { keys: [{ kty: "RSA" }] });
+    expect(obj).toEqual({ federation: { op_ec_jwks: { keys: [{ kty: "RSA" }] } } });
+  });
+
+  it("preserves sibling keys at each level", () => {
+    const obj = { federation: { rp_ec_jwks: { existing: true } } };
+    setAtPath(obj, "federation.op_ec_jwks", { added: true });
+    expect(obj.federation.rp_ec_jwks).toEqual({ existing: true });
+    expect(obj.federation.op_ec_jwks).toEqual({ added: true });
+  });
+
+  it("overwrites a scalar leaf with an object", () => {
+    const obj = { client: { jwks: "stringified" } };
+    setAtPath(obj, "client.jwks", { keys: [] });
+    expect(obj.client.jwks).toEqual({ keys: [] });
+  });
+
+  it("handles a single-segment path", () => {
+    const obj = {};
+    setAtPath(obj, "alias", "my-alias");
+    expect(obj).toEqual({ alias: "my-alias" });
   });
 });
 
