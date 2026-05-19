@@ -227,7 +227,7 @@
     </cts-config-form>
             </div>
 
-            <div class="launch-panel" id="launchButtons" style="display: none;">
+            <cts-action-bar id="launchButtons" align-to="schedule-test-page" aria-label="Test plan actions" style="display: none;"><div class="oidf-action-bar" data-position="bottom" role="region" aria-label="Test plan actions"><div class="oidf-action-bar__inner" style="max-width: 1100px; padding-inline: var(--space-5);">
                 <cts-button id="createPlanBtn" size="lg" variant="primary" icon="flag" label="Create Test Plan" disabled=""><!----><button type="button" class="oidf-btn oidf-btn-lg oidf-btn-primary" disabled=""><!--?lit$NNNN$--><cts-icon aria-hidden="true" name="flag" size="24"><!----><style>
         cts-icon {
           /* inline-flex with center alignment guarantees the SVG sits at the
@@ -292,9 +292,9 @@
       <svg viewBox="0 0 24 24" aria-hidden="true" data-cts-icon-size="24">
         <use href="/vendor/coolicons/icons/copy.svg#i"></use>
       </svg></cts-icon><!--?lit$NNNN$--> <!--?lit$NNNN$-->Share Test Plan Configuration</button></cts-button>
-            </div>
+            </div></div></cts-action-bar>
 
-            <cts-modal id="copyTestPlanUrlModal" heading="OpenID Conformance Suite"><dialog class="oidf-modal" aria-labelledby="copyTestPlanUrlModal-title"><div class="oidf-modal-header"><h4 class="oidf-modal-title" id="copyTestPlanUrlModal-title">OpenID Conformance Suite</h4><button type="button" class="oidf-modal-close" aria-label="Close"><cts-icon name="close-md" aria-hidden="true"><!----><style>
+            <cts-modal id="copyTestPlanUrlModal" heading="Link copied to clipboard" footer-buttons="[{&quot;label&quot;:&quot;Copy link again&quot;,&quot;class&quot;:&quot;btn-outline-secondary&quot;,&quot;icon&quot;:&quot;copy&quot;,&quot;dismiss&quot;:false,&quot;id&quot;:&quot;copyPlanUrlAgainBtn&quot;},{&quot;label&quot;:&quot;Got it&quot;,&quot;class&quot;:&quot;btn-primary&quot;,&quot;dismiss&quot;:true,&quot;id&quot;:&quot;shareModalDismissBtn&quot;}]"><dialog class="oidf-modal" aria-labelledby="copyTestPlanUrlModal-title"><div class="oidf-modal-header"><h4 class="oidf-modal-title" id="copyTestPlanUrlModal-title">Link copied to clipboard</h4><button type="button" class="oidf-modal-close" aria-label="Close"><cts-icon name="close-md" aria-hidden="true"><!----><style>
         cts-icon {
           /* inline-flex with center alignment guarantees the SVG sits at the
              optical centre of the host box regardless of the parent's
@@ -326,9 +326,75 @@
       <svg viewBox="0 0 24 24" aria-hidden="true" data-cts-icon-size="20">
         <use href="/vendor/coolicons/icons/close-md.svg#i"></use>
       </svg></cts-icon></button></div><div class="oidf-modal-body">
-                <p>The Test Plan Configuration URL was copied to the clipboard.</p>
-                <cts-alert variant="danger"><div class="oidf-alert oidf-alert-danger" role="alert"><div class="oidf-alert-body">
-                    Please note, that the URL might contain <strong>private keys</strong>, <strong>secrets</strong>, and other <strong>sensitive information</strong> extracted from the Test Plan configuration, and sharing it will reveal these things to the recipient.
+                <div class="share-modal-success">
+                    <cts-icon name="check-big" size="20" aria-hidden="true"><!----><style>
+        cts-icon {
+          /* inline-flex with center alignment guarantees the SVG sits at the
+             optical centre of the host box regardless of the parent's
+             line-height, font metrics, or whether the parent is a flex
+             container. Without this, the SVG (display: inline-block) inherits
+             the parent's line-box descender space and floats low. */
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          line-height: 0;
+        }
+        svg[data-cts-icon-size] {
+          display: block;
+          flex-shrink: 0;
+        }
+        svg[data-cts-icon-size="16"] {
+          width: var(--space-4);
+          height: var(--space-4);
+        }
+        svg[data-cts-icon-size="20"] {
+          width: var(--space-5);
+          height: var(--space-5);
+        }
+        svg[data-cts-icon-size="24"] {
+          width: var(--space-6);
+          height: var(--space-6);
+        }
+      </style>
+      <svg viewBox="0 0 24 24" aria-hidden="true" data-cts-icon-size="20">
+        <use href="/vendor/coolicons/icons/check-big.svg#i"></use>
+      </svg></cts-icon>
+                    <span class="share-modal-success__eyebrow">Copied</span>
+                </div>
+                <p>Anyone with this link can recreate your test plan configuration.</p>
+                <cts-alert variant="warning"><div class="oidf-alert oidf-alert-warning" role="alert"><div class="oidf-alert-body">
+                    Heads up — the link may contain <strong>private keys</strong>, <strong>secrets</strong>, and other <strong>sensitive information</strong> from your configuration. Anyone you share it with will see those values.
                 </div></div></cts-alert>
-            </div><div class="oidf-modal-footer"><button type="button" class="oidf-btn oidf-btn-sm oidf-btn-secondary">Close</button></div></dialog></cts-modal>
+            </div><div class="oidf-modal-footer"><button type="button" class="oidf-btn oidf-btn-sm oidf-btn-secondary" id="copyPlanUrlAgainBtn"><cts-icon name="copy" aria-hidden="true"><!----><style>
+        cts-icon {
+          /* inline-flex with center alignment guarantees the SVG sits at the
+             optical centre of the host box regardless of the parent's
+             line-height, font metrics, or whether the parent is a flex
+             container. Without this, the SVG (display: inline-block) inherits
+             the parent's line-box descender space and floats low. */
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          line-height: 0;
+        }
+        svg[data-cts-icon-size] {
+          display: block;
+          flex-shrink: 0;
+        }
+        svg[data-cts-icon-size="16"] {
+          width: var(--space-4);
+          height: var(--space-4);
+        }
+        svg[data-cts-icon-size="20"] {
+          width: var(--space-5);
+          height: var(--space-5);
+        }
+        svg[data-cts-icon-size="24"] {
+          width: var(--space-6);
+          height: var(--space-6);
+        }
+      </style>
+      <svg viewBox="0 0 24 24" aria-hidden="true" data-cts-icon-size="20">
+        <use href="/vendor/coolicons/icons/copy.svg#i"></use>
+      </svg></cts-icon> Copy link again</button><button type="button" class="oidf-btn oidf-btn-sm oidf-btn-primary" id="shareModalDismissBtn">Got it</button></div></dialog></cts-modal>
         

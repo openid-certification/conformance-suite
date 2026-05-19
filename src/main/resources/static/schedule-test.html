@@ -39,6 +39,7 @@
     <script type="module" src="/components/cts-spec-cascade.js"></script>
     <script type="module" src="/components/cts-form-field.js"></script>
     <script type="module" src="/components/cts-config-form.js"></script>
+    <script type="module" src="/components/cts-action-bar.js"></script>
     <script type="module" src="/js/cts-copy-flash.js"></script>
 
     <script>
@@ -106,15 +107,22 @@
                 <cts-config-form id="ctsConfigForm"></cts-config-form>
             </div>
 
-            <div class="launch-panel" id="launchButtons">
+            <cts-action-bar id="launchButtons" align-to="schedule-test-page" aria-label="Test plan actions">
                 <cts-button id="createPlanBtn" size="lg" variant="primary" icon="flag" label="Create Test Plan" disabled></cts-button>
                 <cts-button id="copyPlanUrlBtn" size="lg" variant="secondary" icon="copy" label="Share Test Plan Configuration" disabled></cts-button>
-            </div>
+            </cts-action-bar>
 
-            <cts-modal id="copyTestPlanUrlModal" heading="OpenID Conformance Suite">
-                <p>The Test Plan Configuration URL was copied to the clipboard.</p>
-                <cts-alert variant="danger">
-                    Please note, that the URL might contain <strong>private keys</strong>, <strong>secrets</strong>, and other <strong>sensitive information</strong> extracted from the Test Plan configuration, and sharing it will reveal these things to the recipient.
+            <cts-modal
+                id="copyTestPlanUrlModal"
+                heading="Link copied to clipboard"
+                footer-buttons='[{"label":"Copy link again","class":"btn-outline-secondary","icon":"copy","dismiss":false,"id":"copyPlanUrlAgainBtn"},{"label":"Got it","class":"btn-primary","dismiss":true,"id":"shareModalDismissBtn"}]'>
+                <div class="share-modal-success">
+                    <cts-icon name="check-big" size="20" aria-hidden="true"></cts-icon>
+                    <span class="share-modal-success__eyebrow">Copied</span>
+                </div>
+                <p>Anyone with this link can recreate your test plan configuration.</p>
+                <cts-alert variant="warning">
+                    Heads up — the link may contain <strong>private keys</strong>, <strong>secrets</strong>, and other <strong>sensitive information</strong> from your configuration. Anyone you share it with will see those values.
                 </cts-alert>
             </cts-modal>
         </div>
@@ -753,6 +761,28 @@
                     window.ctsCopyFlash(copyPlanUrlBtn);
                 }
                 document.getElementById('copyTestPlanUrlModal').show();
+            }
+
+            // "Copy link again" in the share-success modal. The footer-buttons
+            // descriptor on cts-modal renders this button as a dismiss:false
+            // secondary action so the user can re-copy the URL without losing
+            // the privacy-warning context. The button is part of the modal's
+            // captured DOM, so it exists from connectedCallback onward — we
+            // can bind the click handler once at page init.
+            let copyAgainBtn = document.getElementById('copyPlanUrlAgainBtn');
+            if (copyAgainBtn) {
+                copyAgainBtn.addEventListener('click', async function() {
+                    let url = createTestPlanParameterUrl();
+                    try {
+                        await navigator.clipboard.writeText(url);
+                    } catch (err) {
+                        console.warn('[schedule-test] clipboard.writeText failed on re-copy:', err);
+                        return;
+                    }
+                    if (typeof window.ctsCopyFlash === 'function') {
+                        window.ctsCopyFlash(copyAgainBtn);
+                    }
+                });
             }
 
             // cts-spec-cascade dispatches `cts-plan-selected` whenever a

@@ -46,5 +46,6 @@
       - text: https://baseline.example.com
     - text: Full URL that server will use as the 'iss' value in id_token.
   - button "Validate Configuration"
-- button "Create Test Plan"
-- button "Share Test Plan Configuration"
+- region "Test plan actions":
+  - button "Create Test Plan"
+  - button "Share Test Plan Configuration"

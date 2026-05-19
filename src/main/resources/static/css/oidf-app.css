@@ -131,6 +131,12 @@ cts-link-button > a:focus,
   max-width: 1100px;
   margin: 0 auto;
   padding: var(--space-6) var(--space-5);
+  /* Reserve room below the page content so the sticky cts-action-bar
+     never overlaps the form. The fallback `80px` covers the first paint
+     before cts-action-bar publishes --cts-action-bar-height, plus any
+     environment where the JS measurement hasn't run yet (Storybook
+     iframes, SSR snapshots). */
+  padding-bottom: calc(var(--cts-action-bar-height, 80px) + var(--space-5));
 }
 .schedule-test-page > h2 {
   margin: 0 0 var(--space-6);
@@ -263,11 +269,31 @@ cts-link-button > a:focus,
   text-decoration: underline;
 }
 
-/* Launch panel — replaces the Bootstrap card around the Create / Share buttons */
-.launch-panel {
+/* Launch actions now live in a sticky <cts-action-bar> at the viewport
+   bottom — see the markup in schedule-test.html and the spacing reservation
+   on .schedule-test-page above. The component owns its own layout. */
+
+/* Share-success modal eyebrow — the small pass-toned row that sits above
+   the modal's lead paragraph so the success state lands before the privacy
+   warning. The colour is driven by the OIDF status palette tokens defined
+   in oidf-tokens.css. */
+.share-modal-success {
   display: flex;
-  flex-direction: column;
-  gap: var(--space-3);
-  width: min(28rem, 100%);
-  margin: var(--space-6) auto 0;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--status-pass);
+  font-size: var(--fs-13);
+  font-weight: var(--fw-medium, 600);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: var(--space-3);
+}
+.share-modal-success__eyebrow {
+  line-height: 1;
+}
+/* Breathing room between the modal's lead paragraph and the warning alert.
+   cts-modal's body has zero default child spacing, so without this the
+   "Anyone with this link..." line sits flush against the amber alert. */
+#copyTestPlanUrlModal .oidf-modal-body p {
+  margin-block: 0 var(--space-4);
 }

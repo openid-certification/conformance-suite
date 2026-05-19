@@ -5,6 +5,7 @@ import { MOCK_PLANS } from "@fixtures/mock-plans.js";
 import "../cts-spec-cascade.js";
 import "../cts-config-form.js";
 import "../cts-button.js";
+import "../cts-action-bar.js";
 
 export default {
   title: "Flows/Schedule Test",
@@ -78,7 +79,7 @@ export const FullFlow = {
         <div id="config-section" style="display:none">
           <h3>Configuration</h3>
           <cts-config-form id="flow-config-form"></cts-config-form>
-          <div class="launch-panel">
+          <cts-action-bar position="static" align-to="schedule-test-page">
             <cts-button
               id="submit-plan"
               size="lg"
@@ -86,7 +87,7 @@ export const FullFlow = {
               icon="flag"
               label="Create Test Plan"
             ></cts-button>
-          </div>
+          </cts-action-bar>
         </div>
       </div>
     `;
