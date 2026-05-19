@@ -26,11 +26,11 @@
   - group "Test Information":
     - text: Test Information alias
     - textbox "alias":
-      - /placeholder: Used to make any URLs used in the test unique to the user (for example, it affects the redirect url), set to something unique to avoid clashes with other testers, e.g. set to your company name. Do not include any spaces or non-URL safe characters. If using dynamic client registration, this can be left blank and a random one will be generated. For some ecosystems (e.g. KSA) regulated entities should use the alias value assigned to them.
+      - /placeholder: ""
       - text: baseline-state-c
     - text: Used to make any URLs used in the test unique to the user (for example, it affects the redirect url), set to something unique to avoid clashes with other testers, e.g. set to your company name. Do not include any spaces or non-URL safe characters. If using dynamic client registration, this can be left blank and a random one will be generated. For some ecosystems (e.g. KSA) regulated entities should use the alias value assigned to them. description
     - textbox "description":
-      - /placeholder: Freeform text to help you identify this test run (optional). This will be publicly visible when your certification is published.
+      - /placeholder: ""
       - text: Snapshot baseline — plan with config loaded
     - text: Freeform text to help you identify this test run (optional). This will be publicly visible when your certification is published. publish
     - combobox "publish":
@@ -38,11 +38,11 @@
       - option [selected]
       - option "summary"
       - option "everything"
-    - text: Whether test results should be made visible to other users. &quot;Everything&quot; will reveal configuration information, including secret keys. Use &quot;summary&quot; if these details should remain private while the overall results are public. If in doubt choose &quot;No&quot; - test results can be made public later.
+    - text: Whether test results should be made visible to other users. "Everything" will reveal configuration information, including secret keys. Use "summary" if these details should remain private while the overall results are public. If in doubt choose "No" - test results can be made public later.
   - group "Server":
     - text: Server issuer
     - textbox "issuer":
-      - /placeholder: Full URL that server will use as the 'iss' value in id_token.
+      - /placeholder: ""
       - text: https://baseline.example.com
     - text: Full URL that server will use as the 'iss' value in id_token.
   - button "Validate Configuration"

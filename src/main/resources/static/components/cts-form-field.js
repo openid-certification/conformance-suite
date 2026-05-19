@@ -35,11 +35,12 @@ import { classMap } from "lit/directives/class-map.js";
  *     newline-array).
  *   - string values render verbatim.
  *
- * For `placeholder`: prefers `schema["x-cts-placeholder"]` over
- * `schema.description`. The adapter routes catalog-declared `tooltip` to
- * `description` (rendered as help-text below the input) and catalog-declared
- * `placeholder` to `x-cts-placeholder` (rendered inside the control). When
- * both are present they show in different visual slots.
+ * For `placeholder`: reads only `schema["x-cts-placeholder"]`. `description`
+ * is rendered as help-text below the input and is never used as a fallback
+ * placeholder — falling back would duplicate the same text inside the input
+ * and below it. The adapter routes catalog-declared `tooltip` to
+ * `description` and catalog-declared `placeholder` to `x-cts-placeholder`, so
+ * the two slots stay independent.
  *
  * @property {object} schema - JSON-schema fragment for this field. May include
  *   `type`, `format`, `enum`, `title`, `description`, `x-cts-placeholder`,
@@ -314,7 +315,7 @@ class CtsFormField extends LitElement {
   _renderInput() {
     const { type, format, description } = this.schema;
     const fieldEnum = this.schema.enum;
-    const placeholder = this.schema["x-cts-placeholder"] || description || "";
+    const placeholder = this.schema["x-cts-placeholder"] || "";
     const isInvalid = Boolean(this.error);
     const describedBy = this._describedByIds();
     const ariaInvalid = isInvalid ? "true" : nothing;
