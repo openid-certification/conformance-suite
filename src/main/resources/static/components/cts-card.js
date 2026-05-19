@@ -65,6 +65,13 @@ function injectStyles() {
 
 class CtsCard extends HTMLElement {
   connectedCallback() {
+    // Idempotent — a Turbo navigation, LiveReload swap, or any DOM move
+    // re-fires connectedCallback. Without this guard the second pass would
+    // see `[div.oidf-card]` in this.childNodes and nest a fresh wrapper
+    // around the existing one, producing card-inside-card chrome. Mirrors
+    // the pattern documented in docs/solutions/web-components/cts-modal-bootstrap-interop-2026-04-17.md.
+    if (this._initialized) return;
+    this._initialized = true;
     injectStyles();
 
     const header = this.getAttribute("header");
