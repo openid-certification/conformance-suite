@@ -69,6 +69,13 @@ test.describe("upload.html — Image Uploader", () => {
 
     await page.goto("/upload.html?log=test-upload-001");
 
+    // The page wraps cts-image-upload in a headerless <cts-card>. Assert
+    // the card chrome is present so a future revert of the wrapper surfaces
+    // as a test failure rather than passing silently. toBeVisible() is
+    // strictly stronger than toHaveCount(1) — it also catches a card that
+    // exists in the DOM but is hidden (display:none, zero dimensions, etc.).
+    await expect(page.locator("cts-card")).toBeVisible();
+
     const uploader = page.locator("cts-image-upload");
     await expect(uploader).toHaveCount(1);
 
