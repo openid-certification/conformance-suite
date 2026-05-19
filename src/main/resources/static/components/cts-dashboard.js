@@ -2,6 +2,7 @@ import { LitElement, html, nothing } from "lit";
 import { repeat } from "lit/directives/repeat.js";
 import { ifDefined } from "lit/directives/if-defined.js";
 import "./cts-icon.js";
+import "./cts-stat.js";
 
 const SERVER_INFO_LABELS = {
   external_ip: "External IP",
@@ -10,6 +11,27 @@ const SERVER_INFO_LABELS = {
   tag: "Tag",
   build_time: "Build Time",
 };
+
+// Backend caps PaginationRequest.length at 1000 (see PaginationRequest.java).
+// We fetch the max page so the count derived from the response array is
+// accurate up to 1000; if recordsTotal exceeds data.length the tile renders
+// "<count>+" to signal truncation.
+const STATS_PAGE_SIZE = 1000;
+
+// Placeholder shown while a stats fetch is in flight or when it fails.
+// Em-dash matches the convention used elsewhere in the design system for
+// "data unavailable" rather than "data is zero".
+const STATS_PLACEHOLDER = "—";
+
+/**
+ * Tile descriptor for a single <cts-stat> entry in the dashboard stats row.
+ * @typedef {object} StatTile
+ * @property {string} key - Stable identifier for the `repeat` directive.
+ * @property {string} label - Overline label shown above the value.
+ * @property {string} value - Display value (number string or placeholder).
+ * @property {string} [delta] - Optional secondary line beneath the value.
+ * @property {string} [tone] - "pass" / "fail" / unset (default).
+ */
 
 /**
  * Tile descriptor used to drive the dashboard grid.
@@ -79,6 +101,19 @@ const STYLE_TEXT = `
   padding: var(--space-8) var(--space-6);
   max-width: var(--maxw-page);
   margin: 0 auto;
+}
+.oidf-dashboard-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--space-4);
+  margin-bottom: var(--space-6);
+}
+.oidf-dashboard-stat-tile {
+  background: var(--bg-elev);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-3);
+  padding: var(--space-5);
+  box-shadow: var(--shadow-1);
 }
 .oidf-dashboard-grid {
   display: grid;
@@ -174,9 +209,15 @@ const STYLE_TEXT = `
   .oidf-dashboard-grid {
     grid-template-columns: repeat(2, 1fr);
   }
+  .oidf-dashboard-stats {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
 @media (max-width: 600px) {
   .oidf-dashboard-grid {
+    grid-template-columns: 1fr;
+  }
+  .oidf-dashboard-stats {
     grid-template-columns: 1fr;
   }
 }
@@ -209,6 +250,7 @@ class CtsDashboard extends LitElement {
     isAuthenticated: { type: Boolean, attribute: "is-authenticated" },
     _serverInfo: { state: true },
     _loading: { state: true },
+    _stats: { state: true },
   };
 
   constructor() {
@@ -216,6 +258,8 @@ class CtsDashboard extends LitElement {
     this.isAuthenticated = true;
     this._serverInfo = null;
     this._loading = true;
+    /** @type {StatTile[] | null} */
+    this._stats = null;
   }
 
   createRenderRoot() {
@@ -226,6 +270,10 @@ class CtsDashboard extends LitElement {
     super.connectedCallback();
     injectStyles();
     this._fetchServerInfo();
+    if (this.isAuthenticated) {
+      this._stats = this._placeholderStats();
+      this._fetchStats();
+    }
   }
 
   async _fetchServerInfo() {
@@ -246,6 +294,130 @@ class CtsDashboard extends LitElement {
     } finally {
       this._loading = false;
     }
+  }
+
+  /** @returns {StatTile[]} Initial em-dash tiles that reserve grid space while the fetch is in flight, preventing layout shift. */
+  _placeholderStats() {
+    return [
+      { key: "plans", label: "Your test plans", value: STATS_PLACEHOLDER },
+      { key: "logs", label: "Your test logs", value: STATS_PLACEHOLDER },
+      { key: "in-progress", label: "Logs in progress", value: STATS_PLACEHOLDER },
+      { key: "failed", label: "Logs with failures", value: STATS_PLACEHOLDER },
+    ];
+  }
+
+  async _fetchStats() {
+    const [plansResult, logsResult] = await Promise.all([
+      this._fetchListEndpoint(`/api/plan?start=0&length=${STATS_PAGE_SIZE}`),
+      this._fetchListEndpoint(`/api/log?start=0&length=${STATS_PAGE_SIZE}`),
+    ]);
+    this._stats = this._buildStats(plansResult, logsResult);
+  }
+
+  /**
+   * Fetch a paginated list endpoint and normalize the wire shape. The real
+   * backend returns a PaginationResponse envelope (`{ data, recordsTotal }`);
+   * MSW stories and some mocks return a plain array. Accept both — this is
+   * the same dual-shape handling that cts-plan-list uses.
+   * @param {string} url - Endpoint URL with start/length query params.
+   * @returns {Promise<{failed: boolean, data?: object[], total?: number}>} Normalized result; `failed: true` means the tile shows the em-dash placeholder.
+   */
+  async _fetchListEndpoint(url) {
+    try {
+      const response = await fetch(url);
+      if (!response.ok) {
+        console.warn(`[cts-dashboard] ${url} responded ${response.status}`);
+        return { failed: true };
+      }
+      const payload = await response.json();
+      const data = Array.isArray(payload)
+        ? payload
+        : Array.isArray(payload?.data)
+          ? payload.data
+          : [];
+      const total = typeof payload?.recordsTotal === "number" ? payload.recordsTotal : data.length;
+      return { failed: false, data, total };
+    } catch (err) {
+      console.warn(`[cts-dashboard] ${url} fetch failed:`, err);
+      return { failed: true };
+    }
+  }
+
+  /**
+   * Derive the four dashboard tile descriptors from the parallel-fetched
+   * plan and log results. Each tile degrades to "—" independently when its
+   * underlying fetch failed, so a transient `/api/log` outage does not
+   * blank the plans count.
+   * @param {{failed: boolean, data?: object[], total?: number}} plansResult - Normalized /api/plan response.
+   * @param {{failed: boolean, data?: object[], total?: number}} logsResult - Normalized /api/log response.
+   * @returns {StatTile[]} Four tile descriptors in display order: plans, logs, in-progress, failed.
+   */
+  _buildStats(plansResult, logsResult) {
+    const plansTile = {
+      key: "plans",
+      label: "Your test plans",
+      value: this._formatCount(plansResult),
+    };
+    const logsTile = {
+      key: "logs",
+      label: "Your test logs",
+      value: this._formatCount(logsResult),
+    };
+
+    let inProgressTile;
+    let failedTile;
+    if (logsResult.failed) {
+      inProgressTile = { key: "in-progress", label: "Logs in progress", value: STATS_PLACEHOLDER };
+      failedTile = { key: "failed", label: "Logs with failures", value: STATS_PLACEHOLDER };
+    } else {
+      const logs = logsResult.data || [];
+      // Whitelist the actively-executing statuses. The negation-against-FINISHED
+      // shape would also count INTERRUPTED (terminal: stopped before completion)
+      // and the pre-execution NOT_YET_CREATED/CREATED/CONFIGURED states from
+      // TestModule.Status, inflating the "in progress" tile. See
+      // src/main/java/net/openid/conformance/testmodule/TestModule.java for the
+      // 7-value enum.
+      const inProgressCount = logs.filter(
+        (log) => log.status === "RUNNING" || log.status === "WAITING",
+      ).length;
+      // Match LogApi.java's existing "failed" convention (LogApi.java:691-695):
+      // both FAILED and UNKNOWN results count as failures in the certification
+      // package builder, so the dashboard tile must do the same to avoid
+      // hiding UNKNOWN failures from the user.
+      const failedCount = logs.filter(
+        (log) => log.result === "FAILED" || log.result === "UNKNOWN",
+      ).length;
+      inProgressTile = {
+        key: "in-progress",
+        label: "Logs in progress",
+        value: String(inProgressCount),
+      };
+      failedTile = {
+        key: "failed",
+        label: "Logs with failures",
+        value: String(failedCount),
+        tone: failedCount > 0 ? "fail" : "pass",
+      };
+    }
+
+    return [plansTile, logsTile, inProgressTile, failedTile];
+  }
+
+  /**
+   * Format the count value for a tile. Returns "—" when the fetch failed,
+   * the raw count when the dataset fits in one page, and "<count>+" when
+   * the backend reports more rows than this page contained OR the response
+   * filled the page exactly (which is a truncation signal in pagination
+   * semantics — we cannot tell whether row N+1 exists without another fetch).
+   * @param {{failed: boolean, data?: object[], total?: number}} result - Normalized list-endpoint result.
+   * @returns {string} Display string: numeric count, "<count>+" overflow indicator, or em-dash placeholder.
+   */
+  _formatCount(result) {
+    if (result.failed || !result.data) return STATS_PLACEHOLDER;
+    const count = result.data.length;
+    const total = result.total ?? count;
+    const truncated = total > count || count >= STATS_PAGE_SIZE;
+    return truncated ? `${count}+` : String(count);
   }
 
   _renderServerInfo() {
@@ -291,9 +463,32 @@ class CtsDashboard extends LitElement {
     `;
   }
 
+  _renderStats() {
+    if (!this.isAuthenticated || !this._stats) return nothing;
+    return html`
+      <div class="oidf-dashboard-stats" id="dashboardStats">
+        ${repeat(
+          this._stats,
+          (tile) => tile.key,
+          (tile) => html`
+            <div class="oidf-dashboard-stat-tile" data-stat-key="${tile.key}">
+              <cts-stat
+                label="${tile.label}"
+                value="${tile.value}"
+                delta="${ifDefined(tile.delta)}"
+                tone="${ifDefined(tile.tone)}"
+              ></cts-stat>
+            </div>
+          `,
+        )}
+      </div>
+    `;
+  }
+
   render() {
     return html`
       <section class="oidf-dashboard" id="homePage">
+        ${this._renderStats()}
         <div class="oidf-dashboard-grid">
           ${repeat(
             this._visibleTiles(),
