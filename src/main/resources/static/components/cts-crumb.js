@@ -4,7 +4,7 @@ import "./cts-icon.js";
 const STYLE_ID = "cts-crumb-styles";
 
 // Scoped CSS for the breadcrumb. Inline flex row of ghost-link buttons and a
-// terminal `<b>` label, separated by a chevron icon. The link colour comes
+// terminal `<span>` label, separated by a chevron icon. The link colour comes
 // from --fg-link, sized at --fs-13 so the breadcrumb sits comfortably above
 // the page title (matches the design archive's plan-detail / log-detail
 // header treatment).
@@ -48,7 +48,6 @@ const STYLE_TEXT = `
     border-radius: var(--radius-1);
   }
   cts-crumb .crumbCurrent {
-    font-weight: var(--fw-bold);
     color: var(--fg);
   }
   cts-crumb .crumbSeparator {
@@ -70,15 +69,15 @@ function ensureStylesInjected() {
 /**
  * Breadcrumb trail for plan-detail and log-detail pages. Renders a row of
  * ghost-link buttons separated by chevron icons, with the final entry shown
- * as bold non-interactive text. Click a non-terminal crumb to dispatch
+ * as non-interactive text. Click a non-terminal crumb to dispatch
  * `cts-crumb-navigate`; the host page handles routing.
  *
  * Light DOM. Scoped CSS is injected once on first connect.
  *
  * @property {Array<{label: string, target: string}>} items - Ordered crumb
  *   trail. Each entry needs a `label` (rendered text) and a `target` (echoed
- *   in the navigate event detail). The last entry is rendered as a bold
- *   `<b>` label and is not clickable. An empty array renders nothing.
+ *   in the navigate event detail). The last entry is rendered as a `<span>`
+ *   label and is not clickable. An empty array renders nothing.
  * @fires cts-crumb-navigate - When a non-terminal crumb is clicked, with
  *   `{ detail: { target } }` matching the clicked item's `target`; bubbles
  *   and is composed.
@@ -139,7 +138,7 @@ class CtsCrumb extends LitElement {
               <cts-icon name="chevron-right" size="16"></cts-icon>
             </span>`;
         const content = isLast
-          ? html`<b class="crumbCurrent" aria-current="page">${item.label}</b>`
+          ? html`<span class="crumbCurrent" aria-current="page">${item.label}</span>`
           : html`<button
               type="button"
               class="crumbLink"

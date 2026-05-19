@@ -35,7 +35,7 @@ export const Default = {
     expect(buttons[0].textContent.trim()).toBe("Plans");
     expect(buttons[1].textContent.trim()).toBe("oidcc-basic");
 
-    const current = host.querySelector("b.crumbCurrent");
+    const current = host.querySelector("span.crumbCurrent");
     expect(current).toBeTruthy();
     expect(current.textContent.trim()).toBe("Log");
     expect(current.getAttribute("aria-current")).toBe("page");
@@ -54,7 +54,7 @@ export const Default = {
 
 /**
  * Clicking a non-terminal crumb dispatches `cts-crumb-navigate` with the
- * clicked item's `target` as detail. The terminal entry is a `<b>` and
+ * clicked item's `target` as detail. The terminal entry is a `<span>` and
  * cannot fire the event.
  */
 export const ClickDispatchesNavigate = {
@@ -101,13 +101,13 @@ export const EmptyRendersNothing = {
     expect(host.querySelector("nav")).toBeNull();
     expect(host.querySelector("button")).toBeNull();
     expect(host.querySelector("cts-icon")).toBeNull();
-    expect(host.querySelector("b")).toBeNull();
+    expect(host.querySelector("span.crumbCurrent")).toBeNull();
   },
 };
 
 /**
- * Edge case: a single-item trail renders just the bold label — no buttons,
- * no chevrons.
+ * Edge case: a single-item trail renders just the terminal label — no
+ * buttons, no chevrons.
  */
 export const SingleItem = {
   render: () => {
@@ -124,7 +124,7 @@ export const SingleItem = {
     expect(host.querySelectorAll(".crumbSeparator").length).toBe(0);
     expect(host.querySelectorAll("cts-icon").length).toBe(0);
 
-    const current = host.querySelector("b.crumbCurrent");
+    const current = host.querySelector("span.crumbCurrent");
     expect(current).toBeTruthy();
     expect(current.textContent.trim()).toBe("Plans");
     expect(current.getAttribute("aria-current")).toBe("page");
