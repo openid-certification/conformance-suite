@@ -73,6 +73,11 @@ test.describe("running-test.html — Running Tests", () => {
 
     await page.goto("/running-test.html");
 
+    // Cross-page contract: every wired page mounts a single <cts-toast-host>
+    // for window.ctsToast(...). A silent removal of the mount from running-test.html
+    // would otherwise pass all tests in this file. (Mirrors upload.spec.js:210.)
+    await expect(page.locator("cts-toast-host")).toHaveCount(1);
+
     // Two cards rendered. After U32 each row is a <cts-running-test-card>
     // (light-DOM), driven by the `runningTest.html` template stub +
     // inline JS that sets `.test`/`.isAdmin` on the host.

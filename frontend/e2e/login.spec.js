@@ -92,6 +92,11 @@ test.describe("login.html — Login page", () => {
 
     await page.goto("/login.html");
 
+    // Cross-page contract: every wired page mounts a single <cts-toast-host>
+    // for window.ctsToast(...). A silent removal of the mount from login.html
+    // would otherwise pass all tests in this file. (Mirrors upload.spec.js:210.)
+    await expect(page.locator("cts-toast-host")).toHaveCount(1);
+
     const bootstrapAssetRequests = requestedUrls.filter(
       (url) => /\/vendor\/bootstrap\//.test(url) || /\/vendor\/popper\//.test(url),
     );

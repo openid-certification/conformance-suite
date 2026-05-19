@@ -235,10 +235,26 @@ test.describe("upload.html — Image Uploader", () => {
     // inline style on `.oidf-toast` carries the CSS custom-property name.
     await expect(toast.locator(".oidf-toast")).toHaveAttribute("style", /--status-pass/);
 
-    // Default duration is 5000ms; allow ~1s of slack for scheduler
-    // jitter on busy CI runners. `dismiss()` removes the element
-    // synchronously (the CSS transition is cosmetic), so the slack
-    // exists for timer-firing latency, not the fade-out.
+    // Time-coupling note (residual finding #10 from
+    // docs/residual-review-findings/2026-05-19-cts-toast-cross-page-379767a39.md):
+    // this assertion is hard-coupled to the 5000ms default `duration` on
+    // `cts-toast`. Wall-clock cost: ~5.5s per CI run. If the component
+    // default duration were raised above ~5800ms the timeout below would
+    // flake; lowered, the test would be silently slow.
+    //
+    // **Decision: accept the cost (option A).** The single-test ~5.5s
+    // budget is acceptable today, and the production `cts-image-uploaded`
+    // event listener stays free of test-only knobs. The 1s slack covers
+    // scheduler jitter on busy CI runners — `dismiss()` removes the
+    // element synchronously (the CSS transition is cosmetic), so the
+    // slack exists for timer-firing latency, not the fade-out.
+    //
+    // **Revisit option B if** multiple future toast-driven e2es
+    // accumulate similar 5s waits. Option B = plumb a
+    // `duration: 500` override into the dispatched `cts-image-uploaded`
+    // event handler (e.g. read `event.detail?.toastDurationOverride` in
+    // `upload.html` for test-only injection) and drop the timeout to
+    // ~1500ms here.
     await expect(toast).toHaveCount(0, { timeout: 6000 });
   });
 

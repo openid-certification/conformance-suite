@@ -42,6 +42,11 @@ test.describe("tokens.html — API Tokens", () => {
 
     await page.goto("/tokens.html");
 
+    // Cross-page contract: every wired page mounts a single <cts-toast-host>
+    // for window.ctsToast(...). A silent removal of the mount from tokens.html
+    // would otherwise pass all tests in this file. (Mirrors upload.spec.js:210.)
+    await expect(page.locator("cts-toast-host")).toHaveCount(1);
+
     // The page wraps cts-token-manager in a <cts-card header="API Tokens">.
     // Assert the card chrome is rendered so a future revert of the wrapper
     // surfaces as a test failure rather than passing silently.

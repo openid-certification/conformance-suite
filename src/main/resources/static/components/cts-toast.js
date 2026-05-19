@@ -195,13 +195,33 @@ class CtsToastHost extends HTMLElement {
    * `window.ctsToast` wrapper) never throws when a page omits the mount.
    * Removing the explicit per-page tag and relying on this fallback is
    * a regression — it hides the host from initial-render snapshots.
+   *
+   * **`<body>`-not-yet-parsed safety.** When called before `<body>` exists
+   * (e.g. from a `<head>` inline script or a synchronous module-evaluation
+   * path), `document.body` is `null` and a direct `appendChild` would
+   * `TypeError`. The element is created synchronously and returned; the
+   * actual DOM insertion is deferred to a one-shot `DOMContentLoaded`
+   * listener. Callers that immediately append toast children to the
+   * returned host are safe — the host is a Light-DOM element, so its
+   * children stay attached when it is later inserted.
    * @returns {CtsToastHost} The singleton host element
    */
   static getOrCreate() {
     let host = /** @type {CtsToastHost | null} */ (document.querySelector("cts-toast-host"));
     if (!host) {
       host = /** @type {CtsToastHost} */ (document.createElement("cts-toast-host"));
-      document.body.appendChild(host);
+      if (document.body) {
+        document.body.appendChild(host);
+      } else {
+        const pendingHost = host;
+        document.addEventListener(
+          "DOMContentLoaded",
+          () => {
+            document.body.appendChild(pendingHost);
+          },
+          { once: true },
+        );
+      }
     }
     return host;
   }

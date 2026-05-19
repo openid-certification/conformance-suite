@@ -45,6 +45,11 @@ test.describe("plans.html — Plans List", () => {
 
     await page.goto("/plans.html");
 
+    // Cross-page contract: every wired page mounts a single <cts-toast-host>
+    // for window.ctsToast(...). A silent removal of the mount from plans.html
+    // would otherwise pass all tests in this file. (Mirrors upload.spec.js:210.)
+    await expect(page.locator("cts-toast-host")).toHaveCount(1);
+
     // cts-plan-list owns its own loading state; wait for the table to
     // mount inside the host (rows carry data-row-index from cts-data-table).
     const rows = page.locator("#plansListing tbody tr[data-row-index]");

@@ -29,6 +29,11 @@ test.describe("logs.html — Logs List", () => {
 
     await page.goto("/logs.html");
 
+    // Cross-page contract: every wired page mounts a single <cts-toast-host>
+    // for window.ctsToast(...). A silent removal of the mount from logs.html
+    // would otherwise pass all tests in this file. (Mirrors upload.spec.js:210.)
+    await expect(page.locator("cts-toast-host")).toHaveCount(1);
+
     // Wait for cts-data-table to render rows. The host element keeps the
     // legacy `#logsListing` id; the inner table lives in light DOM so the
     // descendant selector still matches.
