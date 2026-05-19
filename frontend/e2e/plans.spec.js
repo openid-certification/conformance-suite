@@ -122,6 +122,31 @@ test.describe("plans.html — Plans List", () => {
 
     // Owner column stays hidden in the public view regardless of session.
     await expect(page.locator("#plansListing thead")).not.toContainText("Owner");
+
+    // Config column is also hidden in public view. PublicPlan omits the
+    // config field server-side, so a Config button would open an empty
+    // modal. Legacy plans.html had `visible: !public` on the Config
+    // column; cts-plan-list mirrors that.
+    await expect(page.locator("#plansListing thead")).not.toContainText("Config");
+    await expect(page.locator("#plansListing .showConfigBtn")).toHaveCount(0);
+  });
+
+  test("admin viewing ?public=true still hides Owner and Config", async ({ page }) => {
+    await setupFailFast(page);
+    await mockPlanRoute(page);
+    await setupCommonRoutes(page, { user: MOCK_ADMIN_USER });
+
+    await page.goto("/plans.html?public=true");
+
+    const rows = page.locator("#plansListing tbody tr[data-row-index]");
+    await expect(rows.first()).toBeVisible();
+
+    // Legacy parity: the public listing never reveals owner or config
+    // affordances, even to an admin. Without this guard the admin's
+    // session would gain visibility into owner.sub on the published
+    // page, which the legacy code explicitly suppressed.
+    await expect(page.locator("#plansListing thead")).not.toContainText("Owner");
+    await expect(page.locator("#plansListing thead")).not.toContainText("Config");
   });
 
   test("clicking a plan name navigates to plan-detail.html", async ({ page }) => {
@@ -178,6 +203,14 @@ test.describe("plans.html — Plans List", () => {
     // The JSON editor renders inside the modal with the config JSON.
     const editor = page.locator("cts-json-editor.config-json");
     await expect(editor).toBeAttached();
+
+    // Assert the editor is populated with the row's config — not just
+    // attached. The component reads `.value` synchronously off the
+    // editor host, so the page wiring is verified end-to-end without
+    // depending on Monaco's render lifecycle.
+    const editorValue = await editor.evaluate((el) => /** @type {any} */ (el).value);
+    expect(editorValue).toContain("server.issuer");
+    expect(editorValue).toContain("op.example.com");
 
     // Copy button is present and clickable; we don't assert clipboard
     // writes here because headless Chromium denies real clipboard ops —
