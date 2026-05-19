@@ -384,6 +384,17 @@ class CtsJsonEditor extends LitElement {
     const host = /** @type {HTMLElement | null} */ (this.querySelector(".oidf-json-editor-host"));
     if (!host) return;
 
+    // Reentrancy guard: parents such as cts-modal relocate slotted children
+    // via appendChild into a freshly-built <dialog>, which disconnects then
+    // reconnects this element and so fires connectedCallback twice. The
+    // `!this.isConnected` check above does NOT cover this — by the time
+    // loadMonaco() resolves, both calls see a connected host. Microtask
+    // ordering means the first resumed call runs synchronously up to the
+    // `_editor` assignment below before the second resumed call gets a
+    // turn, so a simple non-null check here is sufficient to keep the
+    // second call from stacking a duplicate Monaco editor on the same host.
+    if (this._editor) return;
+
     this._model = monaco.editor.createModel(this._value || "", this.language);
     this._editor = monaco.editor.create(host, {
       model: this._model,
