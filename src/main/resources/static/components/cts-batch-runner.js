@@ -96,8 +96,13 @@ function injectStyles() {
  *
  * @property {string} planId - Plan id the batch applies to. Reflects the
  *   `plan-id` attribute.
- * @property {Array} modules - Plan modules; each has `testModule` and an
- *   optional `instances` array used to derive pass/fail status.
+ * @property {Array} modules - Plan modules. Shape mirrors what
+ *   `plan-detail.html` writes after merging `/api/info/<instance>`: each
+ *   entry has `testModule` (string), `instances` (array of instance-id
+ *   strings or empty), and — once the merge resolves — top-level
+ *   `status` (`"FINISHED" | "RUNNING" | "WAITING" | …`) and `result`
+ *   (`"PASSED" | "FAILED" | "WARNING" | "REVIEW" | "SKIPPED"`). Missing
+ *   `status` is treated as never-run (PENDING).
  * @fires cts-run-all - When the Run All button is clicked; bubbles.
  * @fires cts-run-remaining - When the Run Remaining button is clicked;
  *   bubbles.
@@ -126,7 +131,12 @@ class CtsBatchRunner extends LitElement {
   }
 
   get _completedCount() {
-    return this.modules.filter((m) => m.instances?.length > 0).length;
+    // FINISHED is the terminal TestModule.Status sentinel; when present,
+    // module.result is populated (PASSED/FAILED/WARNING/REVIEW/SKIPPED).
+    // Counting "any module with run history" overcounts modules still in
+    // RUNNING/WAITING, so the progress display read "N of M" before
+    // modules had actually terminated.
+    return this.modules.filter((m) => m.status === "FINISHED").length;
   }
   get _hasRemaining() {
     return this.modules.some((m) => !m.instances?.length);
@@ -139,10 +149,30 @@ class CtsBatchRunner extends LitElement {
     this.dispatchEvent(new CustomEvent("cts-run-remaining", { bubbles: true }));
   }
 
+  // Reads top-level module.status / module.result, matching the contract
+  // plan-detail.html writes via the /api/info merge (status + result on
+  // the module object; instances stays as the array of instance IDs the
+  // backend returns from /api/plan). The previous reader walked
+  // instances[last].result, which on real data is undefined (instances
+  // contains strings), so the || "RUNNING" fallback was hit for every
+  // module that had run at least once.
   _moduleResult(module) {
-    if (!module.instances?.length) return "PENDING";
-    const lastInstance = module.instances[module.instances.length - 1];
-    return lastInstance.result || "RUNNING";
+    if (!module.status) return "PENDING";
+    if (module.status === "FINISHED") {
+      if (!module.result) {
+        // FINISHED without a result indicates a partial /api/info response
+        // — surface the backend anomaly rather than silently rendering a
+        // genuine-looking REVIEW badge.
+        console.warn(
+          "cts-batch-runner: module",
+          module.testModule,
+          "is FINISHED but has no result; defaulting badge to REVIEW",
+        );
+        return "REVIEW";
+      }
+      return module.result;
+    }
+    return module.status;
   }
 
   _moduleVariant(module) {
