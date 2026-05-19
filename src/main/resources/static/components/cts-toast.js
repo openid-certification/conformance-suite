@@ -152,6 +152,20 @@ function injectStyles() {
 }
 
 /**
+ * Toast configuration passed to `CtsToastHost.show(...)` and to the
+ * `window.ctsToast` wrapper exported from `js/cts-toast-api.js`. Defined
+ * at file scope so JSDoc imports (`import("./cts-toast.js").ToastOptions`)
+ * can resolve it — TypeScript cannot reach a typedef nested inside a
+ * method docblock.
+ *
+ * @typedef {object} ToastOptions
+ * @property {string} [title] - Bold heading line (defaults to "").
+ * @property {string} [message] - Optional secondary copy.
+ * @property {"ok"|"error"} [kind="ok"] - Visual variant.
+ * @property {number} [duration=5000] - Auto-dismiss delay in milliseconds. Pass `0` to disable auto-dismiss.
+ */
+
+/**
  * Singleton container fixed to the bottom-right of the viewport. Stacks
  * its `<cts-toast>` children vertically with an 8px gap. Pages should
  * not instantiate this element directly — `CtsToastHost.show(...)`
@@ -171,6 +185,16 @@ class CtsToastHost extends HTMLElement {
    * Returns the singleton `<cts-toast-host>` for the current document,
    * creating and appending it to `<body>` on first access. Idempotent —
    * subsequent calls return the same node.
+   *
+   * **Auto-creation is a degraded fallback, not the nominal path.** Pages
+   * are expected to mount `<cts-toast-host></cts-toast-host>` explicitly
+   * at the end of `<body>` (and import `/js/cts-toast-api.js`) so the
+   * bottom-right region is part of the document's static layout where
+   * snapshots, stylers, and snapshot-based tests can see it. The implicit
+   * append here exists only so `CtsToastHost.show()` (and the
+   * `window.ctsToast` wrapper) never throws when a page omits the mount.
+   * Removing the explicit per-page tag and relying on this fallback is
+   * a regression — it hides the host from initial-render snapshots.
    * @returns {CtsToastHost} The singleton host element
    */
   static getOrCreate() {
@@ -181,14 +205,6 @@ class CtsToastHost extends HTMLElement {
     }
     return host;
   }
-
-  /**
-   * @typedef {object} ToastOptions
-   * @property {string} [title] - Bold heading line (defaults to "").
-   * @property {string} [message] - Optional secondary copy.
-   * @property {"ok"|"error"} [kind="ok"] - Visual variant.
-   * @property {number} [duration=5000] - Auto-dismiss delay in milliseconds. Pass `0` to disable auto-dismiss.
-   */
 
   /**
    * Convenience entry point. Creates a `<cts-toast>` from the given
