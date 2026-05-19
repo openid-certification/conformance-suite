@@ -31,6 +31,7 @@ const STYLE_ID = "cts-batch-runner-styles";
 const STYLE_TEXT = `
 cts-batch-runner .oidf-batch-runner {
   display: block;
+  margin-bottom: var(--space-5);
 }
 cts-batch-runner .oidf-batch-runner-bar {
   display: flex;
@@ -45,7 +46,7 @@ cts-batch-runner .oidf-batch-runner-progress {
 }
 cts-batch-runner .oidf-batch-runner-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   gap: var(--space-2);
 }
 cts-batch-runner .oidf-batch-runner-tile {
@@ -63,6 +64,7 @@ cts-batch-runner .oidf-batch-runner-tile {
 cts-batch-runner .oidf-batch-runner-name {
   font-family: var(--font-sans);
   font-size: var(--fs-13);
+  font-weight: var(--fw-regular, 400);
   color: var(--ink-900);
   overflow: hidden;
   text-overflow: ellipsis;
