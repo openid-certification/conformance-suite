@@ -30,6 +30,7 @@
     <script type="importmap">{"imports":{"lit":"/vendor/lit/lit.js","lit/":"/vendor/lit/","lit/directives/async-append.js":"/vendor/lit/lit.js","lit/directives/async-replace.js":"/vendor/lit/lit.js","lit/directives/cache.js":"/vendor/lit/lit.js","lit/directives/choose.js":"/vendor/lit/lit.js","lit/directives/class-map.js":"/vendor/lit/lit.js","lit/directives/guard.js":"/vendor/lit/lit.js","lit/directives/if-defined.js":"/vendor/lit/lit.js","lit/directives/join.js":"/vendor/lit/lit.js","lit/directives/keyed.js":"/vendor/lit/lit.js","lit/directives/live.js":"/vendor/lit/lit.js","lit/directives/map.js":"/vendor/lit/lit.js","lit/directives/range.js":"/vendor/lit/lit.js","lit/directives/ref.js":"/vendor/lit/lit.js","lit/directives/repeat.js":"/vendor/lit/lit.js","lit/directives/style-map.js":"/vendor/lit/lit.js","lit/directives/template-content.js":"/vendor/lit/lit.js","lit/directives/unsafe-html.js":"/vendor/lit/lit.js","lit/directives/unsafe-svg.js":"/vendor/lit/lit.js","lit/directives/until.js":"/vendor/lit/lit.js","lit/directives/when.js":"/vendor/lit/lit.js","@lit/reactive-element":"/vendor/lit/lit.js","@lit/reactive-element/":"/vendor/lit/","lit-html":"/vendor/lit/lit.js","lit-html/":"/vendor/lit/","lit-element/":"/vendor/lit/"}}</script>
     <script type="module" src="/components/cts-navbar.js"></script>
     <script type="module" src="/components/cts-modal.js"></script>
+    <script type="module" src="/components/cts-spinner.js"></script>
     <script type="module" src="/components/cts-tabs.js"></script>
     <script type="module" src="/components/cts-badge.js"></script>
     <script type="module" src="/components/cts-button.js"></script>
@@ -82,9 +83,9 @@
 
     <cts-modal id="loadingModal" heading="Loading..." static-backdrop no-keyboard>
         <div class="text-center">
-            <img src="/images/spinner.gif" width="100px" height="30px" alt="Loading" />
+            <cts-spinner size="lg" label="Loading"></cts-spinner>
         </div>
-        <div>
+        <div aria-live="polite">
             <span id="loadingMessage"></span>
         </div>
     </cts-modal>
@@ -846,17 +847,44 @@
                 updateConfigFieldVisibility();
             });
 
-            // cts-test-selector fires `cts-plan-select` when the user clicks
-            // a search result. Route through the cascade so its dispatched
-            // `cts-plan-selected` runs the same downstream listeners — no
-            // separate config-load codepath.
+            // cts-test-selector fires `cts-plan-select` when the user picks
+            // a search result (mouse click or keyboard Enter). Route through
+            // the cascade so its dispatched `cts-plan-selected` runs the
+            // same downstream listeners — no separate config-load codepath.
+            //
+            // After routing, smooth-scroll #specCascade into view so the
+            // user sees what just got auto-filled and what comes next.
+            // Without this, the page silently mutates below the fold and
+            // the click feels dead. On keyboard-driven selections, also
+            // move focus into the first cascade <select> so the user can
+            // keep keyboarding without reaching for the mouse.
             var planSearch = document.getElementById('planSearch');
             if (planSearch) {
                 planSearch.addEventListener('cts-plan-select', function(evt) {
                     var cascade = document.getElementById('specCascade');
                     if (!cascade) return;
                     var planName = evt.detail && evt.detail.plan && evt.detail.plan.planName;
-                    if (planName) cascade.selectPlanByName(planName);
+                    if (!planName) return;
+                    cascade.selectPlanByName(planName);
+                    // selectPlanByName triggers Lit re-renders (cascade,
+                    // variants form, config form). Defer the scroll/focus
+                    // to the next animation frame so layout is settled
+                    // before we measure or focus anything.
+                    var via = evt.detail && evt.detail.via;
+                    requestAnimationFrame(function() {
+                        var cascadeEl = document.getElementById('specCascade');
+                        if (!cascadeEl) return;
+                        // Browsers honor prefers-reduced-motion: reduce
+                        // automatically — no extra wiring needed.
+                        cascadeEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        if (via === 'keyboard') {
+                            var firstField = cascadeEl.querySelector('select');
+                            // preventScroll keeps the just-issued smooth
+                            // scroll authoritative; without it, focus()
+                            // would snap-scroll and clobber the animation.
+                            if (firstField) firstField.focus({ preventScroll: true });
+                        }
+                    });
                 });
             }
 

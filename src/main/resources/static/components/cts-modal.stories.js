@@ -1,6 +1,7 @@
 import { html } from "lit";
 import { expect, userEvent, waitFor } from "storybook/test";
 import "./cts-modal.js";
+import "./cts-spinner.js";
 
 export default {
   title: "Primitives/cts-modal",
@@ -523,7 +524,10 @@ export const FooterButtonsGetElementById = {
 export const StaticBackdrop = {
   render: () =>
     html`<cts-modal id="testStatic" heading="Loading..." static-backdrop no-keyboard>
-      <div><span>Loading…</span></div>
+      <div class="text-center">
+        <cts-spinner size="lg" label="Loading"></cts-spinner>
+      </div>
+      <div aria-live="polite"><span>Working…</span></div>
     </cts-modal>`,
 
   async play() {
@@ -540,6 +544,15 @@ export const StaticBackdrop = {
     expect(closeBtn).toBeNull();
     const footer = host.querySelector(".oidf-modal-footer");
     expect(footer).toBeNull();
+
+    // Loading content is the cts-spinner component, not an animated GIF.
+    // This is the durable regression for the cts-spinner cutover —
+    // any reintroduction of the legacy <img> would fail here.
+    const spinner = host.querySelector("cts-spinner");
+    expect(spinner).toBeTruthy();
+    expect(spinner.getAttribute("size")).toBe("lg");
+    const legacyGif = host.querySelector('img[src*="spinner.gif"]');
+    expect(legacyGif).toBeNull();
   },
 };
 

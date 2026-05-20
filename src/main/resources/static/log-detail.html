@@ -56,6 +56,7 @@
      own cts-failure-summary import for the rail's compact instance. -->
 <script type="module" src="/components/cts-navbar.js"></script>
 <script type="module" src="/components/cts-modal.js"></script>
+<script type="module" src="/components/cts-spinner.js"></script>
 <script type="module" src="/components/cts-crumb.js"></script>
 <script type="module" src="/components/cts-tooltip.js"></script>
 <script type="module" src="/components/cts-log-detail-header.js"></script>
@@ -105,12 +106,6 @@
     #ctsLogToc {
       display: none;
     }
-  }
-
-  /* Spinner tokens for the loadingModal. Matches the legacy page so
-     visual continuity is preserved during the rollout window. */
-  .v2-spinner-host {
-    text-align: center;
   }
 
   /* U4 — failure-summary breakpoint swap. Two `<cts-failure-summary>`
@@ -174,10 +169,10 @@
   </cts-modal>
 
   <cts-modal id="loadingModal" heading="Loading..." static-backdrop no-keyboard>
-    <div class="v2-spinner-host">
-      <img src="/images/spinner.gif" width="100px" height="30px" alt="Loading" />
+    <div class="text-center">
+      <cts-spinner size="lg" label="Loading"></cts-spinner>
     </div>
-    <div><span id="loadingMessage"></span></div>
+    <div aria-live="polite"><span id="loadingMessage"></span></div>
   </cts-modal>
 
   <!-- Private-link flow modals. The bootstrap wires their show/hide
