@@ -151,6 +151,13 @@ function injectStyles() {
   document.head.appendChild(style);
 }
 
+// Cache for the host created when `<body>` has not yet parsed. `querySelector`
+// cannot find the host in that window because the deferred-append listener
+// has not fired, so a second `getOrCreate()` call would otherwise create a
+// second sibling. Cleared by the listener once the append succeeds.
+/** @type {CtsToastHost | null} */
+let _pendingHost = null;
+
 /**
  * Toast configuration passed to `CtsToastHost.show(...)` and to the
  * `window.ctsToast` wrapper exported from `js/cts-toast-api.js`. Defined
@@ -208,15 +215,21 @@ class CtsToastHost extends HTMLElement {
    */
   static getOrCreate() {
     let host = /** @type {CtsToastHost | null} */ (document.querySelector("cts-toast-host"));
+    if (!host && _pendingHost) {
+      host = _pendingHost;
+    }
     if (!host) {
-      host = /** @type {CtsToastHost} */ (document.createElement("cts-toast-host"));
+      const fresh = /** @type {CtsToastHost} */ (document.createElement("cts-toast-host"));
+      host = fresh;
       if (document.body) {
-        document.body.appendChild(host);
+        document.body.appendChild(fresh);
       } else {
+        _pendingHost = fresh;
         document.addEventListener(
           "DOMContentLoaded",
           () => {
-            document.body.appendChild(host);
+            document.body.appendChild(fresh);
+            _pendingHost = null;
           },
           { once: true },
         );
