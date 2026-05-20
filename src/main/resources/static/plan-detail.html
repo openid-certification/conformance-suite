@@ -34,7 +34,6 @@
     <script type="module" src="/components/cts-plan-header.js"></script>
     <script type="module" src="/components/cts-plan-actions.js"></script>
     <script type="module" src="/components/cts-plan-modules.js"></script>
-    <script type="module" src="/components/cts-batch-runner.js"></script>
     <script type="module" src="/js/cts-toast-api.js"></script>
 
     <style>
@@ -178,7 +177,6 @@
         <div class="oidf-plan-detail-grid">
             <div>
                 <cts-plan-header id="planDetailHeader"></cts-plan-header>
-                <cts-batch-runner id="planDetailBatchRunner"></cts-batch-runner>
                 <cts-plan-modules id="planDetailModules"></cts-plan-modules>
             </div>
             <cts-plan-actions id="planDetailActions"></cts-plan-actions>
@@ -364,40 +362,6 @@
                             + (isPublic ? '?public=true' : ''));
                     });
 
-                    // Batch runner — peer to plan-modules, mounted above
-                    // the list. Reads from the same prepared module array
-                    // (each entry already has the `instances` slice the
-                    // tile grid uses to derive PENDING vs run state) and
-                    // dispatches Run All / Run Remaining through the
-                    // page's existing per-module /api/runner endpoint via
-                    // dispatchBatch(). Hidden when the plan is readonly
-                    // (public or non-owner) OR immutable: batch dispatch
-                    // creates new runs, which neither a readonly viewer
-                    // nor an immutable plan can accept — matches the
-                    // gate cts-plan-modules._canRunTest() applies to the
-                    // per-module Run button.
-                    var batchRunner = document.getElementById('planDetailBatchRunner');
-                    batchRunner.hidden = readonly || !!data.immutable;
-                    batchRunner.planId = planId;
-                    // .slice() so a future in-place mutation of
-                    // modulesEl.modules doesn't accidentally leak into
-                    // batchRunner.modules through a shared array
-                    // reference (the two later mirror reassigns at the
-                    // status-merge and R28 chains use .slice() for the
-                    // Lit-reference-equality reason; this initial
-                    // assignment is defensive on the same principle).
-                    batchRunner.modules = modulesEl.modules.slice();
-
-                    batchRunner.addEventListener('cts-run-all', function () {
-                        dispatchBatch(batchRunner.modules, planId, batchRunner);
-                    });
-                    batchRunner.addEventListener('cts-run-remaining', function () {
-                        var pending = batchRunner.modules.filter(function (m) {
-                            return !m.instances || m.instances.length === 0;
-                        });
-                        dispatchBatch(pending, planId, batchRunner);
-                    });
-
                     // Fetch per-module status. Each module row carries the
                     // last instance ID via data-instance-id on .module-row;
                     // for each non-empty ID, fetch /api/info and merge the
@@ -432,11 +396,6 @@
                     })).then(() => {
                         // Reassign so cts-plan-modules observes the change.
                         modulesEl.modules = modulesData;
-                        // Mirror onto the batch runner so its tile badges
-                        // reflect live statuses. .slice() defeats Lit's
-                        // reference-equality hasChanged on the modulesData
-                        // array, which is reused across reassigns.
-                        batchRunner.modules = modulesData.slice();
 
                         // R26: show "Publish for certification" only when at
                         // least one test has FINISHED and none of the
@@ -525,10 +484,6 @@
                             // first reassign above, so the slice is what
                             // makes the property update fire.
                             modulesEl.modules = modulesData.slice();
-                            // Mirror onto the batch runner so any FAILED
-                            // tiles pick up the resolved firstFailureRef
-                            // alongside the per-module list.
-                            batchRunner.modules = modulesData.slice();
                         });
                     });
                 })
@@ -586,11 +541,9 @@
         // Single source of truth for the /api/runner URL shape. The
         // variant arg is serialised the same way the legacy single-module
         // path expected: pass-through when it's already a string, JSON
-        // when it's an object, omitted when null/undefined. Both
-        // runTest() (navigates after create) and runTestNoNavigate()
-        // (batch caller; returns the Promise instead) share this builder
-        // so any future query-param change (encoding rule, new param)
-        // happens in one place.
+        // when it's an object, omitted when null/undefined. Kept as a
+        // helper (instead of inlining at the single call site) so any
+        // future query-param change happens in one place.
         function buildRunnerUrl(testName, testVariant, planId) {
             var url = '/api/runner?test=' + encodeURIComponent(testName)
                 + '&plan=' + encodeURIComponent(planId);
@@ -618,78 +571,6 @@
                     window.location.assign('/log-detail.html?log=' + encodeURIComponent(data.id));
                 })
                 .catch(handleApiError);
-        }
-
-        // Batch-run dispatch path. Same URL shape as runTest() (see
-        // buildRunnerUrl) but returns the parsed response instead of
-        // navigating away — batch dispatch must stay on plan-detail.html
-        // so the user sees the module list update for the full set, not
-        // just the first run.
-        function runTestNoNavigate(testName, testVariant, planId) {
-            return fetch(buildRunnerUrl(testName, testVariant, planId), {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-            }).then((response) => {
-                if (!response.ok) {
-                    return Promise.reject(response);
-                }
-                return response.json();
-            });
-        }
-
-        /**
-         * Fire a run for each module in `modulesToRun` against planId via
-         * the existing per-module /api/runner endpoint. Disables the batch
-         * buttons while dispatches are in flight; reloads the page once
-         * Promise.all settles so the fresh /api/plan response surfaces the
-         * new instance ids without re-implementing the inline /api/info
-         * status merge from getPlan().
-         *
-         * Failures are surfaced per-module via handleApiError but do not
-         * abort the batch — other modules still dispatch. This matches the
-         * single-module Run button's user-visible failure shape.
-         */
-        function dispatchBatch(modulesToRun, planId, batchRunner) {
-            if (!modulesToRun.length) return;
-            // Synchronous re-entry guard: _running flips below to disable
-            // both buttons, but Lit's re-render is asynchronous (microtask
-            // checkpoint). Without this guard, two rapid clicks within
-            // the same event-loop tick would each pass the empty-array
-            // check and enter dispatchBatch concurrently, doubling the
-            // POST traffic. The check IS synchronous on the same field
-            // we set below, so this is the right shape to prevent the
-            // double-dispatch.
-            if (batchRunner._running) return;
-            // batchRunner._running is a Lit reactive state field declared
-            // with { state: true } and has no public setter. Direct
-            // assignment triggers a re-render that disables both buttons
-            // for the duration of the batch. If maintainers prefer a
-            // public toggle (e.g., a `running` attribute), the component
-            // can expose one and this line becomes batchRunner.running = true.
-            batchRunner._running = true;
-            var attempts = modulesToRun.map(function (mod) {
-                return runTestNoNavigate(mod.testModule, mod.variant, planId)
-                    .catch(function (err) { handleApiError(err); return null; });
-            });
-            Promise.all(attempts).then(function () {
-                // Reload to surface the new instance ids and statuses via
-                // the page's existing /api/plan + /api/info path. A
-                // maintainer note in the MR: should we instead refetch
-                // inline (no flash) or add polling for live RUNNING
-                // badges? Out of scope for this draft.
-                window.location.reload();
-            }).catch(function (err) {
-                // Defensive recovery: each `attempts` entry catches its
-                // own rejection and returns null, so Promise.all should
-                // always resolve. This .catch handles the residual case
-                // — a synchronous throw inside the .then() handler, or
-                // a future change that re-throws out of the per-attempt
-                // catch. Without it, the page never reloads and _running
-                // stays true forever, leaving both buttons permanently
-                // disabled with no recovery path.
-                batchRunner._running = false;
-                handleApiError(err);
-            });
         }
 
         /**
@@ -826,7 +707,6 @@
                 customElements.whenDefined('cts-plan-header'),
                 customElements.whenDefined('cts-plan-actions'),
                 customElements.whenDefined('cts-plan-modules'),
-                customElements.whenDefined('cts-batch-runner'),
                 customElements.whenDefined('cts-crumb'),
             ]);
         }
