@@ -22,13 +22,8 @@
 // stray observer holding a reference forever.
 const DYNAMIC_INIT_TIMEOUT_MS = 2000;
 
-// Distance between the trigger edge and the tooltip body. Matches the
-// chevron arrow size below.
-const OFFSET_PX = 8;
-
-// Half the chevron arrow width — used to position the arrow centred under
-// the tooltip on top/bottom placements (or vertically on left/right).
-const ARROW_HALF_PX = 6;
+// Distance between the trigger edge and the tooltip body.
+const OFFSET_PX = 4;
 
 const VALID_PLACEMENTS = new Set(["top", "bottom", "left", "right", "auto"]);
 
@@ -59,32 +54,6 @@ function injectStylesOnce() {
       box-shadow: var(--shadow-2);
       pointer-events: none;
       word-wrap: break-word;
-    }
-    .oidf-tooltip__arrow {
-      position: absolute;
-      width: 0;
-      height: 0;
-      border: ${ARROW_HALF_PX}px solid transparent;
-    }
-    .oidf-tooltip[data-placement="top"] .oidf-tooltip__arrow {
-      bottom: -${ARROW_HALF_PX}px;
-      border-top-color: var(--ink-900);
-      border-bottom-width: 0;
-    }
-    .oidf-tooltip[data-placement="bottom"] .oidf-tooltip__arrow {
-      top: -${ARROW_HALF_PX}px;
-      border-bottom-color: var(--ink-900);
-      border-top-width: 0;
-    }
-    .oidf-tooltip[data-placement="left"] .oidf-tooltip__arrow {
-      right: -${ARROW_HALF_PX}px;
-      border-left-color: var(--ink-900);
-      border-right-width: 0;
-    }
-    .oidf-tooltip[data-placement="right"] .oidf-tooltip__arrow {
-      left: -${ARROW_HALF_PX}px;
-      border-right-color: var(--ink-900);
-      border-left-width: 0;
     }
   `;
   document.head.appendChild(style);
@@ -163,16 +132,12 @@ class CtsTooltip extends HTMLElement {
       const el = document.createElement("div");
       el.className = "oidf-tooltip";
       el.setAttribute("role", "tooltip");
-      const arrow = document.createElement("span");
-      arrow.className = "oidf-tooltip__arrow";
       const body = document.createElement("span");
       body.className = "oidf-tooltip__inner";
       body.textContent = content;
       el.appendChild(body);
-      el.appendChild(arrow);
       document.body.appendChild(el);
       this._tooltipEl = el;
-      this._arrowEl = arrow;
     } else {
       const inner = this._tooltipEl.querySelector(".oidf-tooltip__inner");
       if (inner) inner.textContent = content;
@@ -190,7 +155,6 @@ class CtsTooltip extends HTMLElement {
       this._tooltipEl.parentNode.removeChild(this._tooltipEl);
     }
     this._tooltipEl = null;
-    this._arrowEl = null;
   }
 
   _resolvePlacement() {
@@ -250,30 +214,24 @@ class CtsTooltip extends HTMLElement {
 
     let top;
     let left;
-    let arrowLeft = "";
-    let arrowTop = "";
 
     switch (placement) {
       case "bottom":
         top = triggerRect.bottom + scrollY + OFFSET_PX;
         left = triggerRect.left + scrollX + (triggerRect.width - tipRect.width) / 2;
-        arrowLeft = `${tipRect.width / 2 - ARROW_HALF_PX}px`;
         break;
       case "left":
         top = triggerRect.top + scrollY + (triggerRect.height - tipRect.height) / 2;
         left = triggerRect.left + scrollX - tipRect.width - OFFSET_PX;
-        arrowTop = `${tipRect.height / 2 - ARROW_HALF_PX}px`;
         break;
       case "right":
         top = triggerRect.top + scrollY + (triggerRect.height - tipRect.height) / 2;
         left = triggerRect.right + scrollX + OFFSET_PX;
-        arrowTop = `${tipRect.height / 2 - ARROW_HALF_PX}px`;
         break;
       case "top":
       default:
         top = triggerRect.top + scrollY - tipRect.height - OFFSET_PX;
         left = triggerRect.left + scrollX + (triggerRect.width - tipRect.width) / 2;
-        arrowLeft = `${tipRect.width / 2 - ARROW_HALF_PX}px`;
         break;
     }
 
@@ -287,11 +245,6 @@ class CtsTooltip extends HTMLElement {
 
     this._tooltipEl.style.top = `${top}px`;
     this._tooltipEl.style.left = `${left}px`;
-
-    if (this._arrowEl) {
-      this._arrowEl.style.left = arrowLeft || "";
-      this._arrowEl.style.top = arrowTop || "";
-    }
   }
 
   _stopObserving() {
