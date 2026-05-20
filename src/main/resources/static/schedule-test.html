@@ -40,6 +40,7 @@
     <script type="module" src="/components/cts-test-selector.js"></script>
     <script type="module" src="/components/cts-form-field.js"></script>
     <script type="module" src="/components/cts-config-form.js"></script>
+    <script type="module" src="/components/cts-unsaved-changes-guard.js"></script>
     <script type="module" src="/components/cts-action-bar.js"></script>
     <script type="module" src="/js/cts-copy-flash.js"></script>
     <script type="module" src="/js/cts-toast-api.js"></script>
@@ -114,6 +115,12 @@
                 <cts-button id="createPlanBtn" size="lg" variant="primary" icon="flag" label="Create Test Plan" disabled></cts-button>
                 <cts-button id="copyPlanUrlBtn" size="lg" variant="secondary" icon="copy" label="Share Test Plan Configuration" disabled></cts-button>
             </cts-action-bar>
+
+            <cts-unsaved-changes-guard
+                id="exitGuard"
+                config-form-id="ctsConfigForm"
+                for="variantSelectors"
+            ></cts-unsaved-changes-guard>
 
             <cts-modal
                 id="copyTestPlanUrlModal"
@@ -455,10 +462,16 @@
         // Apply a fetched config object to cts-config-form AND to the page's
         // currentConfig mirror so the submit handler sees the same shape the
         // user sees. The component re-renders both tabs from the new .config.
+        // Programmatic hydration must NOT arm the unsaved-changes guard, so
+        // we clear the dirty flag after writing the new config.
         function applyConfigToForm(configObj) {
             currentConfig = configObj || {};
             const ctsConfigForm = document.getElementById('ctsConfigForm');
             if (ctsConfigForm) ctsConfigForm.config = currentConfig;
+            const exitGuard = document.getElementById('exitGuard');
+            if (exitGuard && typeof exitGuard.markClean === 'function') {
+                exitGuard.markClean();
+            }
         }
 
         function loadPlanConfig(planId) {
@@ -677,6 +690,15 @@
 
                 // Stash the config in case we are unable to create the test
                 saveConfig({ config: JSON.stringify(currentConfig), planName: planName, variant: selectedVariant });
+
+                // The submit is the user's explicit "I'm done editing"
+                // signal — disarm the guard before the redirect on success.
+                // If the POST fails and the user resumes editing, the next
+                // cts-config-change re-arms the guard naturally.
+                const exitGuardOnSubmit = document.getElementById('exitGuard');
+                if (exitGuardOnSubmit && typeof exitGuardOnSubmit.markClean === 'function') {
+                    exitGuardOnSubmit.markClean();
+                }
 
                 var createUrl = '/api/plan?planName=' + encodeURIComponent(planName);
                 for (var [key, value] of Object.entries(selectedVariant)) {
@@ -1209,11 +1231,18 @@
 
         // R13: reset the in-flight config when the user picks a new plan.
         // cts-config-form re-renders both tabs from the new (empty) .config.
+        // Swapping plans resets the editing surface, so the unsaved-changes
+        // guard should disarm too — the previous plan's edits are gone and
+        // the new (empty) form is by definition pristine.
         function clearConfigForNewPlan() {
             FAPI_UI.selectedVariant = undefined;
             currentConfig = {};
             const ctsConfigForm = document.getElementById('ctsConfigForm');
             if (ctsConfigForm) ctsConfigForm.config = currentConfig;
+            const exitGuard = document.getElementById('exitGuard');
+            if (exitGuard && typeof exitGuard.markClean === 'function') {
+                exitGuard.markClean();
+            }
         }
 
         function tryGetStorage(type) {
