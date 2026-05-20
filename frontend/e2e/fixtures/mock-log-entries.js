@@ -270,6 +270,41 @@ export const MOCK_BLOCKS_POLL_SECOND = [
   },
 ];
 
+/**
+ * /api/log entries for a test that was INTERRUPTED before any block
+ * started — none of the rows carry `startBlock: true`, so the
+ * cts-log-viewer's block-summary list stays empty and the cts-log-toc
+ * rail must hide itself (and the page grid must collapse to single
+ * column). Mirrors the production shape that surfaced the empty
+ * "TEST STRUCTURE" card bug.
+ */
+export const MOCK_INTERRUPTED_NO_BLOCKS_ENTRIES = [
+  {
+    _id: "ib-1",
+    testId: "test-interrupted-noblock-001",
+    src: "TEST-RUNNER",
+    time: NOW - 9000,
+    msg: "Test instance test-interrupted-noblock-001 created",
+    result: "INFO",
+  },
+  {
+    _id: "ib-2",
+    testId: "test-interrupted-noblock-001",
+    src: "GetStaticServerConfiguration",
+    time: NOW - 8000,
+    msg: "Test set to use static server configuration but configuration is missing required fields",
+    result: "FAILURE",
+  },
+  {
+    _id: "ib-3",
+    testId: "test-interrupted-noblock-001",
+    src: "test-interrupted-noblock-001",
+    time: NOW - 7000,
+    msg: "Test was interrupted before it could complete.",
+    result: "INTERRUPTED",
+  },
+];
+
 /** A block-start row with no children yet — WAITING / RUNNING state. */
 export const MOCK_EMPTY_BLOCK = [
   {

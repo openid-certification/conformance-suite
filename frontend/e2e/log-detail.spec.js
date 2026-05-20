@@ -11,6 +11,7 @@ import {
   MOCK_BLOCKS_WITH_STATUS,
   MOCK_BLOCKS_POLL_FIRST,
   MOCK_BLOCKS_POLL_SECOND,
+  MOCK_INTERRUPTED_NO_BLOCKS_ENTRIES,
 } from "./fixtures/mock-log-entries.js";
 
 /**
@@ -555,6 +556,87 @@ test.describe("log-detail.html — new Lit-triad page", () => {
     const cBadges = page.locator('details[data-block-id="block-c"] .startBlockCounts cts-badge');
     await expect(cBadges).toHaveCount(1);
     await expect(cBadges.first()).toHaveAttribute("label", "⚠1");
+  });
+
+  test("cts-log-toc rail hides and grid collapses for an interrupted test with no blocks", async ({
+    page,
+  }) => {
+    // Reproduces the production bug: an INTERRUPTED test that never
+    // started any block returns log entries with no `startBlock` row.
+    // The rail's `_applyVisibility()` toggles `hidden=true`, which must
+    // pull `getComputedStyle(rail).display` to "none" AND let the page
+    // grid collapse to single column so the main content reclaims the
+    // full page width. The component's scoped `cts-log-toc[hidden]`
+    // override and log-detail.html's `:has(#ctsLogToc:not([hidden]))`
+    // grid guard are the two pieces of CSS under test.
+    await setupFailFast(page);
+    // Wide viewport — the two-column grid only activates at ≥ 1440px,
+    // so this assertion is meaningful only above that breakpoint.
+    await page.setViewportSize({ width: 1500, height: 900 });
+    // Mirror the production /api/info shape for an interrupted-before-
+    // results test: no `results` array at all (selectFailures() in
+    // log-detail.js then returns []). MOCK_TEST_STATUS already omits
+    // `results`, so the spread copy inherits the right shape.
+    const interruptedInfo = {
+      ...MOCK_TEST_STATUS,
+      testId: "test-interrupted-noblock-001",
+      status: "INTERRUPTED",
+      result: "FAILED",
+    };
+    await setupV2Routes(page, {
+      testInfo: interruptedInfo,
+      logEntries: MOCK_INTERRUPTED_NO_BLOCKS_ENTRIES,
+    });
+    await setupCommonRoutes(page);
+
+    await page.goto(`/log-detail.html?log=${encodeURIComponent("test-interrupted-noblock-001")}`);
+
+    // Wait for the bootstrap to settle — the viewer must have fetched
+    // and rendered at least the leaf rows so we know the rail had a
+    // chance to update its blocks array.
+    await expect(page.locator(".logItem").first()).toBeVisible();
+
+    const rail = page.locator("#ctsLogToc");
+    await expect(rail).toHaveAttribute("hidden", "");
+
+    const railDisplay = await rail.evaluate((el) => getComputedStyle(el).display);
+    expect(railDisplay).toBe("none");
+
+    // Page grid must collapse: the `:has()` guard means
+    // `.log-page--with-toc` no longer applies its grid declaration, so
+    // `grid-template-columns` falls back to the default `none`.
+    const mainGridCols = await page
+      .locator("#main-content")
+      .evaluate((el) => getComputedStyle(el).gridTemplateColumns);
+    expect(mainGridCols).toBe("none");
+  });
+
+  test("cts-log-toc rail renders and grid expands when blocks arrive", async ({ page }) => {
+    await setupFailFast(page);
+    await page.setViewportSize({ width: 1500, height: 900 });
+    await setupV2Routes(page, {
+      testInfo: { ...MOCK_TEST_STATUS, testId: "test-blocks-001" },
+      logEntries: MOCK_BLOCKS_WITH_STATUS,
+    });
+    await setupCommonRoutes(page);
+
+    await page.goto(`/log-detail.html?log=${encodeURIComponent("test-blocks-001")}`);
+
+    // Block list inside the rail confirms the cts-blocks-updated event
+    // landed and the rail re-rendered with non-empty blocks.
+    await expect(page.locator('#ctsLogToc [data-testid="toc-list"]')).toBeVisible();
+
+    const rail = page.locator("#ctsLogToc");
+    await expect(rail).not.toHaveAttribute("hidden", /.*/);
+
+    const railDisplay = await rail.evaluate((el) => getComputedStyle(el).display);
+    expect(railDisplay).toBe("block");
+
+    // Two-column grid is active: `1fr 320px` resolves to "<mainpx> 320px".
+    const mainGridCols = await page
+      .locator("#main-content")
+      .evaluate((el) => getComputedStyle(el).gridTemplateColumns);
+    expect(mainGridCols).toMatch(/\s320px$/);
   });
 
   test("clicking a block summary collapses the children via <details>", async ({ page }) => {
