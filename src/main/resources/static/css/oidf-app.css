@@ -126,6 +126,20 @@ cts-link-button > a:focus,
   white-space: pre-line;
 }
 
+/* ---- plans page wrapper ----------------------------------------
+   plans.html used to wrap its content in Bootstrap's `.container-fluid
+   .row .col-md-12`, which renders edge-to-edge with no horizontal
+   constraint and no token-based padding. The wrapper below gives the
+   listing the same centred, token-spaced shell as the rest of the
+   suite. Width sits a touch wider than `.schedule-test-page` to give
+   the plan-list table room to breathe.
+   ---------------------------------------------------------------- */
+.plans-page {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: var(--space-6) var(--space-5);
+}
+
 /* ---- schedule-test page wrapper -------------------------------- */
 .schedule-test-page {
   max-width: 1100px;
