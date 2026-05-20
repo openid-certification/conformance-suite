@@ -382,6 +382,64 @@ export const GetOrCreateIdempotent = {
 };
 
 /**
+ * Race regression guard for the null-body deferred-append path. Two
+ * synchronous `getOrCreate()` calls before `<body>` is parsed must still
+ * return the same singleton host — otherwise two `<cts-toast-host>` siblings
+ * land in `<body>` once `DOMContentLoaded` fires and stay there for the
+ * page lifetime. Documented in
+ * `docs/residual-review-findings/2026-05-19-cts-toast-residuals-fix-fe34323f6.md`
+ * as R-1 (a race introduced while fixing the parent doc's finding #7).
+ *
+ * The play function stubs `document.body` to `null`, calls `getOrCreate()`
+ * twice, restores `document.body`, and dispatches a synthetic
+ * `DOMContentLoaded` to flush the queued append listener. Both the
+ * in-memory singleton invariant and the visible DOM-count invariant are
+ * asserted so a future refactor that breaks one without the other surfaces
+ * a clean diff.
+ */
+export const GetOrCreateNullBodyRace = {
+  render: () => html`<div data-testid="trigger-zone"></div>`,
+  async play() {
+    resetHost();
+
+    // Shadow the prototype `document.body` getter with an own-property
+    // accessor returning null. `delete document.body` below removes the
+    // shadow and restores the inherited getter.
+    Object.defineProperty(document, "body", { get: () => null, configurable: true });
+
+    let first;
+    let second;
+    try {
+      first = CtsToastHost.getOrCreate();
+      second = CtsToastHost.getOrCreate();
+    } finally {
+      // `delete document.body` would trip TS strict-mode (the property is
+      // non-optional); `Reflect.deleteProperty` is the type-clean way to
+      // remove the own-property shadow and restore the prototype getter.
+      Reflect.deleteProperty(document, "body");
+    }
+
+    try {
+      // Singleton invariant in memory: both calls return the same node,
+      // even before either has been inserted into the DOM.
+      expect(first).toBe(second);
+
+      // Flush the deferred append. A buggy implementation queues two
+      // listeners (one per call), each appending its own host — two
+      // sibling `<cts-toast-host>` nodes end up under `<body>`.
+      document.dispatchEvent(new Event("DOMContentLoaded"));
+      expect(document.querySelectorAll("cts-toast-host").length).toBe(1);
+    } finally {
+      // If an earlier assertion threw, the queued listener may still be
+      // pending; dispatch once more to drain it before the next story.
+      // `{ once: true }` makes a second dispatch a no-op when already drained.
+      document.dispatchEvent(new Event("DOMContentLoaded"));
+      resetHost();
+    }
+  },
+};
+
+/**
  * Edge case: an unknown `kind` value falls back to `ok` (matches the
  * defensive fallback used by `cts-button` and `cts-alert`).
  */
