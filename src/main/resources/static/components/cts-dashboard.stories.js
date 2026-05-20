@@ -425,6 +425,34 @@ export const AuthenticatedWithStatsEnvelopeShape = {
     expect(
       canvasElement.querySelector('[data-stat-key="failed"] .oidf-stat-value').textContent.trim(),
     ).toBe("3");
+
+    // Each stat tile is a clickable anchor wrapping the cts-stat. The "in
+    // progress" and "with failures" tiles route through ?status= / ?result=
+    // URL params on logs.html so users can drill from the summary count into
+    // the matching rows.
+    const tileExpectations = [
+      { key: "plans", href: "plans.html", labelStart: "Your test plans" },
+      { key: "logs", href: "logs.html", labelStart: "Your test logs" },
+      {
+        key: "in-progress",
+        href: "logs.html?status=running,waiting",
+        labelStart: "Logs in progress",
+      },
+      { key: "failed", href: "logs.html?result=failed,unknown", labelStart: "Logs with failures" },
+    ];
+    for (const { key, href, labelStart } of tileExpectations) {
+      const tile = canvasElement.querySelector(
+        `a.oidf-dashboard-stat-tile[data-stat-key="${key}"]`,
+      );
+      expect(tile).toBeTruthy();
+      expect(tile.tagName).toBe("A");
+      expect(tile.getAttribute("href")).toBe(href);
+      const aria = tile.getAttribute("aria-label") || "";
+      expect(aria.startsWith(labelStart)).toBe(true);
+      // aria-label must carry the numeric value, not just "loading", once
+      // the fetches have resolved. The waitFor() above guarantees that.
+      expect(/[0-9]+/.test(aria)).toBe(true);
+    }
   },
 };
 

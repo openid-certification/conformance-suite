@@ -25,10 +25,15 @@ const STATS_PLACEHOLDER = "—";
 
 /**
  * Tile descriptor for a single <cts-stat> entry in the dashboard stats row.
+ * Each tile renders as an anchor wrapping a <cts-stat>; clicking navigates
+ * to the filtered list view encoded in `href`.
  * @typedef {object} StatTile
  * @property {string} key - Stable identifier for the `repeat` directive.
  * @property {string} label - Overline label shown above the value.
  * @property {string} value - Display value (number string or placeholder).
+ * @property {string} href - Navigation target for the wrapping anchor. The
+ *   "in-progress" and "failures" tiles route through `?status=` / `?result=`
+ *   query params consumed by logs.html.
  * @property {string} [delta] - Optional secondary line beneath the value.
  * @property {string} [tone] - "pass" / "fail" / unset (default).
  */
@@ -109,11 +114,28 @@ const STYLE_TEXT = `
   margin-bottom: var(--space-6);
 }
 .oidf-dashboard-stat-tile {
+  display: block;
   background: var(--bg-elev);
   border: 1px solid var(--border);
   border-radius: var(--radius-3);
   padding: var(--space-5);
   box-shadow: var(--shadow-1);
+  color: var(--fg);
+  text-decoration: none;
+  transition: border-color var(--dur-1) var(--ease-standard),
+              box-shadow var(--dur-1) var(--ease-standard),
+              transform var(--dur-1) var(--ease-standard);
+}
+.oidf-dashboard-stat-tile:hover {
+  border-color: var(--border-strong);
+  box-shadow: var(--shadow-2);
+  color: var(--fg);
+  text-decoration: none;
+  transform: translateY(-1px);
+}
+.oidf-dashboard-stat-tile:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
 }
 .oidf-dashboard-grid {
   display: grid;
@@ -299,10 +321,20 @@ class CtsDashboard extends LitElement {
   /** @returns {StatTile[]} Initial em-dash tiles that reserve grid space while the fetch is in flight, preventing layout shift. */
   _placeholderStats() {
     return [
-      { key: "plans", label: "Your test plans", value: STATS_PLACEHOLDER },
-      { key: "logs", label: "Your test logs", value: STATS_PLACEHOLDER },
-      { key: "in-progress", label: "Logs in progress", value: STATS_PLACEHOLDER },
-      { key: "failed", label: "Logs with failures", value: STATS_PLACEHOLDER },
+      { key: "plans", label: "Your test plans", value: STATS_PLACEHOLDER, href: "plans.html" },
+      { key: "logs", label: "Your test logs", value: STATS_PLACEHOLDER, href: "logs.html" },
+      {
+        key: "in-progress",
+        label: "Logs in progress",
+        value: STATS_PLACEHOLDER,
+        href: "logs.html?status=running,waiting",
+      },
+      {
+        key: "failed",
+        label: "Logs with failures",
+        value: STATS_PLACEHOLDER,
+        href: "logs.html?result=failed,unknown",
+      },
     ];
   }
 
@@ -357,18 +389,30 @@ class CtsDashboard extends LitElement {
       key: "plans",
       label: "Your test plans",
       value: this._formatCount(plansResult),
+      href: "plans.html",
     };
     const logsTile = {
       key: "logs",
       label: "Your test logs",
       value: this._formatCount(logsResult),
+      href: "logs.html",
     };
 
     let inProgressTile;
     let failedTile;
     if (logsResult.failed) {
-      inProgressTile = { key: "in-progress", label: "Logs in progress", value: STATS_PLACEHOLDER };
-      failedTile = { key: "failed", label: "Logs with failures", value: STATS_PLACEHOLDER };
+      inProgressTile = {
+        key: "in-progress",
+        label: "Logs in progress",
+        value: STATS_PLACEHOLDER,
+        href: "logs.html?status=running,waiting",
+      };
+      failedTile = {
+        key: "failed",
+        label: "Logs with failures",
+        value: STATS_PLACEHOLDER,
+        href: "logs.html?result=failed,unknown",
+      };
     } else {
       const logs = logsResult.data || [];
       // Whitelist the actively-executing statuses. The negation-against-FINISHED
@@ -391,12 +435,14 @@ class CtsDashboard extends LitElement {
         key: "in-progress",
         label: "Logs in progress",
         value: String(inProgressCount),
+        href: "logs.html?status=running,waiting",
       };
       failedTile = {
         key: "failed",
         label: "Logs with failures",
         value: String(failedCount),
         tone: failedCount > 0 ? "fail" : "pass",
+        href: "logs.html?result=failed,unknown",
       };
     }
 
@@ -471,14 +517,21 @@ class CtsDashboard extends LitElement {
           this._stats,
           (tile) => tile.key,
           (tile) => html`
-            <div class="oidf-dashboard-stat-tile" data-stat-key="${tile.key}">
+            <a
+              class="oidf-dashboard-stat-tile"
+              data-stat-key="${tile.key}"
+              href="${tile.href}"
+              aria-label="${tile.label}: ${tile.value === STATS_PLACEHOLDER
+                ? "loading"
+                : tile.value}"
+            >
               <cts-stat
                 label="${tile.label}"
                 value="${tile.value}"
                 delta="${ifDefined(tile.delta)}"
                 tone="${ifDefined(tile.tone)}"
               ></cts-stat>
-            </div>
+            </a>
           `,
         )}
       </div>

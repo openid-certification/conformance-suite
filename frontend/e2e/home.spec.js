@@ -232,4 +232,47 @@ test.describe("index.html — Home page", () => {
     const navTiles = page.locator("#homePage a.oidf-dashboard-tile");
     await expect(navTiles).toHaveCount(6);
   });
+
+  test("stat tiles are clickable anchors with filter-driven hrefs", async ({ page }) => {
+    // Each stat tile becomes an <a> wrapping the cts-stat. The "in progress"
+    // and "with failures" tiles route through ?status= / ?result= URL params
+    // on logs.html so users can drill from a summary count into the matching
+    // rows. The aria-label combines label + value for assistive tech.
+    await setupFailFast(page);
+    await setupStatsRoutes(page, { plans: STATS_PLANS, logs: STATS_LOGS });
+    await setupCommonRoutes(page);
+
+    await page.goto("/index.html");
+
+    // Wait for the real counts to land so the aria-label includes the value.
+    await expect(
+      page.locator('#dashboardStats [data-stat-key="plans"] .oidf-stat-value'),
+    ).toHaveText("3");
+
+    const expectations = [
+      { key: "plans", href: "plans.html", labelStart: "Your test plans" },
+      { key: "logs", href: "logs.html", labelStart: "Your test logs" },
+      {
+        key: "in-progress",
+        href: "logs.html?status=running,waiting",
+        labelStart: "Logs in progress",
+      },
+      { key: "failed", href: "logs.html?result=failed,unknown", labelStart: "Logs with failures" },
+    ];
+    for (const { key, href, labelStart } of expectations) {
+      const tile = page.locator(
+        `#dashboardStats a.oidf-dashboard-stat-tile[data-stat-key="${key}"]`,
+      );
+      await expect(tile).toHaveCount(1);
+      await expect(tile).toHaveAttribute("href", href);
+      const ariaLabel = await tile.getAttribute("aria-label");
+      expect(ariaLabel).not.toBeNull();
+      // Non-null asserted by the line above — narrow for the remaining checks.
+      const label = /** @type {string} */ (ariaLabel);
+      expect(label.startsWith(labelStart)).toBe(true);
+      // aria-label should include the numeric value (or "loading" during
+      // the placeholder phase). After the await above, real values are in.
+      expect(/[0-9]+/.test(label) || label.includes("loading")).toBe(true);
+    }
+  });
 });
