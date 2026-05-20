@@ -34,6 +34,8 @@ public class CallTokenEndpointAllowingDpopNonceErrorAndReturnFullResponse_UnitTe
 
 	private static final String useDpopNonceErrorBody = "{\"error\":\"use_dpop_nonce\"}";
 
+	private static final String successBody = "{\"access_token\":\"at\",\"token_type\":\"DPoP\"}";
+
 	private CallTokenEndpointAllowingDpopNonceErrorAndReturnFullResponse cond;
 
 	@BeforeEach
@@ -46,7 +48,22 @@ public class CallTokenEndpointAllowingDpopNonceErrorAndReturnFullResponse_UnitTe
 					.status(400)
 					.body(useDpopNonceErrorBody)
 					.header("Content-Type", "application/json")
-					.header("DPoP-Nonce", "the-nonce"))));
+					.header("DPoP-Nonce", "the-nonce")),
+			service("dpop-success.example.com")
+				.post("/token")
+				.anyBody()
+				.willReturn(HoverflyDsl.response()
+					.status(200)
+					.body(successBody)
+					.header("Content-Type", "application/json")
+					.header("DPoP-Nonce", "rotated-success-nonce")),
+			service("dpop-success-no-nonce.example.com")
+				.post("/token")
+				.anyBody()
+				.willReturn(HoverflyDsl.response()
+					.status(200)
+					.body(successBody)
+					.header("Content-Type", "application/json"))));
 		hoverfly.resetJournal();
 
 		cond = new CallTokenEndpointAllowingDpopNonceErrorAndReturnFullResponse();
@@ -63,5 +80,39 @@ public class CallTokenEndpointAllowingDpopNonceErrorAndReturnFullResponse_UnitTe
 
 		assertThat(env.getString("token_endpoint_dpop_nonce_error")).isEqualTo("the-nonce");
 		assertThat(env.getString("authorization_server_dpop_nonce")).isEqualTo("the-nonce");
+	}
+
+	@Test
+	public void testHarvestsDpopNonceFromSuccessResponse() {
+		// RFC 9449 §8.2: the AS may rotate the DPoP nonce on every response. Some ASes treat
+		// each nonce as single-use — reusing one returns invalid_dpop_proof with no recovery.
+		// Previously, this wrapper only harvested the nonce on use_dpop_nonce 400 errors,
+		// so a fresh nonce supplied with a successful 2xx response was dropped on the floor
+		// and the next request reused the stale nonce — observed cross-client in the VCI
+		// issuer-happy-flow-multiple-clients test on a single-use-nonce AS.
+		env.putString("server", "token_endpoint", "https://dpop-success.example.com/token");
+		env.putString("authorization_server_dpop_nonce", "old-nonce");
+		env.putObject("token_endpoint_request_form_parameters", requestParameters);
+		env.putObject("token_endpoint_request_headers", new JsonObject());
+
+		cond.execute(env);
+
+		assertThat(env.getString("authorization_server_dpop_nonce")).isEqualTo("rotated-success-nonce");
+		// The use_dpop_nonce error flag must not be set on a 2xx — the retry loop would
+		// otherwise re-call the endpoint unnecessarily.
+		assertThat(env.getString("token_endpoint_dpop_nonce_error")).isNull();
+	}
+
+	@Test
+	public void testLeavesDpopNonceUnchangedOnSuccessResponseWithoutHeader() {
+		env.putString("server", "token_endpoint", "https://dpop-success-no-nonce.example.com/token");
+		env.putString("authorization_server_dpop_nonce", "previous-nonce");
+		env.putObject("token_endpoint_request_form_parameters", requestParameters);
+		env.putObject("token_endpoint_request_headers", new JsonObject());
+
+		cond.execute(env);
+
+		assertThat(env.getString("authorization_server_dpop_nonce")).isEqualTo("previous-nonce");
+		assertThat(env.getString("token_endpoint_dpop_nonce_error")).isNull();
 	}
 }

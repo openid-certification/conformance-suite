@@ -7,6 +7,11 @@ public abstract class AbstractFAPICIBAID1MultipleClient extends AbstractFAPICIBA
 		env.mapKey("client_jwks", "client_jwks2");
 		env.mapKey("client_public_jwks", "client_public_jwks2");
 		env.mapKey("mutual_tls_authentication", "mutual_tls_authentication2");
+		// See AbstractFAPI2SPFinalServerTestModule#switchToSecondClient — clear any cached
+		// single-use DPoP nonces issued to the first client so the second client bootstraps
+		// fresh ones via the use_dpop_nonce retry flow (RFC 9449 §8.2).
+		env.removeNativeValue("authorization_server_dpop_nonce");
+		env.removeNativeValue("resource_server_dpop_nonce");
 	}
 
 	protected void unmapClient() {
