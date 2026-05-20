@@ -792,7 +792,12 @@ test.describe("schedule-test.html — Test Plan Scheduling", () => {
     /**
      * Bring the page up to a state where the config form is rendered and at
      * least one field is editable, but do not yet edit anything.
-     * @param {import("@playwright/test").Page} page
+     *
+     * The helper also pre-registers the `plans.html` mock route used by
+     * link-click tests in this describe block. Per project convention all
+     * `page.route()` calls must run before `page.goto()`; registering the
+     * route per-test after `bootScheduleTestPage()` would fail that gate.
+     * @param {import("@playwright/test").Page} page - Playwright page fixture
      */
     async function bootScheduleTestPage(page) {
       await setupFailFast(page);
@@ -808,6 +813,13 @@ test.describe("schedule-test.html — Test Plan Scheduling", () => {
           status: 200,
           contentType: "application/json",
           body: JSON.stringify({}),
+        }),
+      );
+      await page.route("**/plans.html*", (route) =>
+        route.fulfill({
+          status: 200,
+          contentType: "text/html",
+          body: "<!doctype html><html><body>ok</body></html>",
         }),
       );
       await setupCommonRoutes(page);
@@ -841,14 +853,6 @@ test.describe("schedule-test.html — Test Plan Scheduling", () => {
       await bootScheduleTestPage(page);
       await expect(page.locator("cts-unsaved-changes-guard")).not.toHaveAttribute("dirty", "");
 
-      await page.route("**/plans.html*", (route) =>
-        route.fulfill({
-          status: 200,
-          contentType: "text/html",
-          body: "<!doctype html><html><body>ok</body></html>",
-        }),
-      );
-
       await page.locator('cts-navbar a[href="plans.html"]').first().click();
       await page.waitForURL(/plans\.html$/);
       await expect(
@@ -860,14 +864,6 @@ test.describe("schedule-test.html — Test Plan Scheduling", () => {
       await bootScheduleTestPage(page);
       await armGuardDirty(page);
 
-      await page.route("**/plans.html*", (route) =>
-        route.fulfill({
-          status: 200,
-          contentType: "text/html",
-          body: "<!doctype html><html><body>ok</body></html>",
-        }),
-      );
-
       await page.locator('cts-navbar a[href="plans.html"]').first().click();
 
       const dialog = page.locator("cts-unsaved-changes-guard cts-modal dialog.oidf-modal[open]");
@@ -878,14 +874,6 @@ test.describe("schedule-test.html — Test Plan Scheduling", () => {
     test("Stay on page keeps the user and leaves the form dirty", async ({ page }) => {
       await bootScheduleTestPage(page);
       await armGuardDirty(page);
-
-      await page.route("**/plans.html*", (route) =>
-        route.fulfill({
-          status: 200,
-          contentType: "text/html",
-          body: "<!doctype html><html><body>ok</body></html>",
-        }),
-      );
 
       const beforeUrl = page.url();
       await page.locator('cts-navbar a[href="plans.html"]').first().click();
@@ -904,14 +892,6 @@ test.describe("schedule-test.html — Test Plan Scheduling", () => {
     test("Leave page navigates to the link target", async ({ page }) => {
       await bootScheduleTestPage(page);
       await armGuardDirty(page);
-
-      await page.route("**/plans.html*", (route) =>
-        route.fulfill({
-          status: 200,
-          contentType: "text/html",
-          body: "<!doctype html><html><body>ok</body></html>",
-        }),
-      );
 
       await page.locator('cts-navbar a[href="plans.html"]').first().click();
       await expect(

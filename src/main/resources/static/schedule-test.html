@@ -691,15 +691,6 @@
                 // Stash the config in case we are unable to create the test
                 saveConfig({ config: JSON.stringify(currentConfig), planName: planName, variant: selectedVariant });
 
-                // The submit is the user's explicit "I'm done editing"
-                // signal — disarm the guard before the redirect on success.
-                // If the POST fails and the user resumes editing, the next
-                // cts-config-change re-arms the guard naturally.
-                const exitGuardOnSubmit = document.getElementById('exitGuard');
-                if (exitGuardOnSubmit && typeof exitGuardOnSubmit.markClean === 'function') {
-                    exitGuardOnSubmit.markClean();
-                }
-
                 var createUrl = '/api/plan?planName=' + encodeURIComponent(planName);
                 for (var [key, value] of Object.entries(selectedVariant)) {
                     // if the user hasn't picked a value for some variant
@@ -710,6 +701,17 @@
                         return;
                     }
                     createUrl += '&variant=' + encodeURIComponent(JSON.stringify(selectedVariant));
+                }
+
+                // Submit is the user's explicit "I'm done editing" signal —
+                // disarm the guard *after* all pre-flight validations pass
+                // so an early return from the variant loop does not leave the
+                // guard clean with unsaved edits still in the form. If the
+                // POST below fails and the user resumes editing, the next
+                // cts-config-change re-arms the guard naturally.
+                const exitGuardOnSubmit = document.getElementById('exitGuard');
+                if (exitGuardOnSubmit && typeof exitGuardOnSubmit.markClean === 'function') {
+                    exitGuardOnSubmit.markClean();
                 }
 
                 fetch(createUrl, {
