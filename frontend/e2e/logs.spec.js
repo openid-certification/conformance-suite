@@ -386,18 +386,31 @@ test.describe("logs.html — URL filtering", () => {
 
     // The April 2026 bi-* → cts-icon migration corrupted this template so the
     // cts-icons appeared OUTSIDE the .ownerSub/.ownerIss pills. Pin the
-    // correct hierarchy: each pill wraps exactly one cts-icon, and the title
-    // / aria-label expose the actual sub/iss values.
+    // correct hierarchy: each pill wraps exactly one cts-icon, and the
+    // wrapping cts-tooltip + the chip's aria-label expose the sub/iss
+    // values (replacing the native `title` attribute that used to live on
+    // the chip itself).
     const subPill = firstOwner.locator(".ownerSub");
     const issPill = firstOwner.locator(".ownerIss");
     await expect(subPill).toHaveCount(1);
     await expect(issPill).toHaveCount(1);
     await expect(subPill.locator('cts-icon[name="user-01"]')).toHaveCount(1);
     await expect(issPill.locator('cts-icon[name="globe"]')).toHaveCount(1);
-    await expect(subPill).toHaveAttribute("title", "12345");
+    // cts-tooltip wraps each chip and carries the value in `content`. The
+    // chip itself keeps `aria-label` (screen readers don't reliably read
+    // visual tooltip content) and gets `tabindex="0"` so the tooltip is
+    // keyboard-reachable.
+    await expect(firstOwner.locator('cts-tooltip[content="12345"] > .ownerSub')).toHaveCount(1);
+    await expect(
+      firstOwner.locator('cts-tooltip[content="https://accounts.google.com"] > .ownerIss'),
+    ).toHaveCount(1);
     await expect(subPill).toHaveAttribute("aria-label", "Subject: 12345");
-    await expect(issPill).toHaveAttribute("title", "https://accounts.google.com");
     await expect(issPill).toHaveAttribute("aria-label", "Issuer: https://accounts.google.com");
+    await expect(subPill).toHaveAttribute("tabindex", "0");
+    await expect(issPill).toHaveAttribute("tabindex", "0");
+    // The native `title` attribute is gone — replaced by cts-tooltip.
+    expect(await subPill.getAttribute("title")).toBeNull();
+    expect(await issPill.getAttribute("title")).toBeNull();
 
     // Failing-shape negative assertion: the pre-fix bug rendered cts-icon
     // as the OUTER wrapper with .ownerSub nested inside it. If this shape
