@@ -308,6 +308,15 @@ Tests compile with `-Werror` so all warnings must be resolved.
 
 When asked to review a commit or branch, structure the review by file and call out: correctness issues (especially dead code or unreachable paths), API misuse, and behavioral changes. Don't just summarize — actively look for bugs.
 
+## Scratch artifacts
+
+Save screenshots, traces, and any other unversioned dev artifacts under `tmp/` at the repo root. `tmp/` and the legacy `screenshots/` directory are gitignored, so artifacts written there stay out of commits without per-file ignore rules.
+
+- **Screenshots:** `tmp/screenshots/<descriptive-name>.png`. Use this for agent-browser screenshots, chrome-devtools MCP captures, Playwright `page.screenshot({ path })` calls in ad-hoc debugging sessions, and any other one-off visual evidence.
+- **Other scratch output:** drop it directly under `tmp/` (traces, profiling files, throwaway logs). The directory exists to absorb anything you don't want to think about ignoring individually.
+- **Do NOT** write screenshots to the repo root or to `screenshots/` — both will be left behind by `git status` as untracked files cluttering the working tree. The root-level `tmp/` rule was added specifically to absorb this.
+- Tracked image assets (e.g., `src/main/resources/static/images/openid.png`) are unaffected — the ignore rule is scoped to the `/tmp/` and `/screenshots/` directories.
+
 ## Git Workflow Preference
 
 - To fix up a non-HEAD commit, use `git commit -m "fixup! <target commit message>"` then `git -c sequence.editor=true rebase -i --autosquash <base>` (`--autosquash` requires `-i`; `sequence.editor=true` suppresses the editor). This is safer than manual `reset --soft` + re-staging workflows.

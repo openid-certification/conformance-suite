@@ -18,6 +18,15 @@ data
 mongo
 .DS_Store
 
+# Scratch directory for unversioned dev artifacts: screenshots, traces, logs,
+# anything an agent or contributor wants to drop without polluting the repo.
+# Convention: save screenshots to tmp/screenshots/. See CLAUDE.md "Scratch
+# artifacts" for the full convention.
+/tmp/
+# Legacy location — keep ignored so stray writes do not accidentally land in
+# a tracked path before the writer is updated to use tmp/screenshots/.
+/screenshots/
+
 # Covers JetBrains IDEs: IntelliJ, RubyMine, PhpStorm, AppCode, PyCharm, CLion, Android Studio and WebStorm
 # Copied from https://github.com/github/gitignore/blob/master/Global/JetBrains.gitignore
 # Reference: https://intellij-support.jetbrains.com/hc/en-us/articles/206544839
