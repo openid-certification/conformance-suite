@@ -122,6 +122,13 @@ export const EmptyDuringWaiting = {
     // `.blocks` later un-hides without a re-mount) but `display: none`
     // means it takes zero layout space.
     expect(rail.hasAttribute("hidden")).toBe(true);
+    // Computed-style guard: the base `cts-log-toc { display: block }`
+    // rule beats the UA `[hidden]` rule on specificity, so without the
+    // scoped `cts-log-toc[hidden] { display: none }` override the
+    // attribute is visually inert and the empty "TEST STRUCTURE" card
+    // paints on log-detail. Pin the computed value here so any future
+    // CSS change that re-breaks the override fails this story.
+    expect(getComputedStyle(rail).display).toBe("none");
   },
 };
 

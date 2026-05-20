@@ -39,6 +39,14 @@ const STYLE_TEXT = `
     border-radius: var(--radius-3);
     box-shadow: var(--shadow-1);
   }
+  /* The base type selector above beats the user-agent
+     [hidden] { display: none } rule on specificity. Restore the hidden
+     contract explicitly so _applyVisibility()'s toggleAttribute("hidden")
+     actually removes the rail from layout — without this, an empty /
+     interrupted-test rail paints an empty "TEST STRUCTURE" card. */
+  cts-log-toc[hidden] {
+    display: none;
+  }
 
   cts-log-toc .ctsLogTocTitle {
     margin: 0 0 var(--space-3) 0;
