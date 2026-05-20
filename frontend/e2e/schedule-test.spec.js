@@ -787,4 +787,208 @@ test.describe("schedule-test.html — Test Plan Scheduling", () => {
     const dupes = ids.filter((id, i) => ids.indexOf(id) !== i);
     expect(dupes, "expected every cts-form-field control id to be unique").toEqual([]);
   });
+
+  test.describe("unsaved changes guard", () => {
+    /**
+     * Bring the page up to a state where the config form is rendered and at
+     * least one field is editable, but do not yet edit anything.
+     * @param {import("@playwright/test").Page} page
+     */
+    async function bootScheduleTestPage(page) {
+      await setupFailFast(page);
+      await page.route("**/api/plan/available", (route) =>
+        route.fulfill({
+          status: 200,
+          contentType: "application/json",
+          body: JSON.stringify(ALL_PLANS),
+        }),
+      );
+      await page.route("**/api/lastconfig", (route) =>
+        route.fulfill({
+          status: 200,
+          contentType: "application/json",
+          body: JSON.stringify({}),
+        }),
+      );
+      await setupCommonRoutes(page);
+      await page.goto("/schedule-test.html");
+      await page.locator("#specFamilySelect").selectOption("OIDCC");
+      const entitySelect = page.locator("#entitySelect");
+      await expect(entitySelect).toBeVisible();
+      await entitySelect.selectOption("client-basic");
+      await expect(page.locator("#createPlanBtn button")).toBeEnabled({ timeout: 5000 });
+    }
+
+    /**
+     * Synthesize the cts-config-change event that cts-config-form would
+     * dispatch on any field edit. Decouples the test from the field catalog
+     * layout while exercising the exact code path the guard listens for.
+     * @param {import("@playwright/test").Page} page
+     */
+    async function armGuardDirty(page) {
+      await page.evaluate(() => {
+        document.getElementById("ctsConfigForm")?.dispatchEvent(
+          new CustomEvent("cts-config-change", {
+            bubbles: true,
+            detail: { config: { alias: "edited" } },
+          }),
+        );
+      });
+      await expect(page.locator("cts-unsaved-changes-guard")).toHaveAttribute("dirty", "");
+    }
+
+    test("pristine form: internal link click navigates without prompt", async ({ page }) => {
+      await bootScheduleTestPage(page);
+      await expect(page.locator("cts-unsaved-changes-guard")).not.toHaveAttribute("dirty", "");
+
+      await page.route("**/plans.html*", (route) =>
+        route.fulfill({
+          status: 200,
+          contentType: "text/html",
+          body: "<!doctype html><html><body>ok</body></html>",
+        }),
+      );
+
+      await page.locator('cts-navbar a[href="plans.html"]').first().click();
+      await page.waitForURL(/plans\.html$/);
+      await expect(
+        page.locator("cts-unsaved-changes-guard cts-modal dialog.oidf-modal[open]"),
+      ).toHaveCount(0);
+    });
+
+    test("dirty form: internal link click opens the unsaved-changes modal", async ({ page }) => {
+      await bootScheduleTestPage(page);
+      await armGuardDirty(page);
+
+      await page.route("**/plans.html*", (route) =>
+        route.fulfill({
+          status: 200,
+          contentType: "text/html",
+          body: "<!doctype html><html><body>ok</body></html>",
+        }),
+      );
+
+      await page.locator('cts-navbar a[href="plans.html"]').first().click();
+
+      const dialog = page.locator("cts-unsaved-changes-guard cts-modal dialog.oidf-modal[open]");
+      await expect(dialog).toBeVisible();
+      await expect(dialog.locator(".oidf-modal-title")).toHaveText("You have unsaved changes");
+    });
+
+    test("Stay on page keeps the user and leaves the form dirty", async ({ page }) => {
+      await bootScheduleTestPage(page);
+      await armGuardDirty(page);
+
+      await page.route("**/plans.html*", (route) =>
+        route.fulfill({
+          status: 200,
+          contentType: "text/html",
+          body: "<!doctype html><html><body>ok</body></html>",
+        }),
+      );
+
+      const beforeUrl = page.url();
+      await page.locator('cts-navbar a[href="plans.html"]').first().click();
+      await expect(
+        page.locator("cts-unsaved-changes-guard cts-modal dialog.oidf-modal[open]"),
+      ).toBeVisible();
+
+      await page.locator("#exitGuard-modal-stay").click();
+      await expect(
+        page.locator("cts-unsaved-changes-guard cts-modal dialog.oidf-modal[open]"),
+      ).toHaveCount(0);
+      expect(page.url()).toBe(beforeUrl);
+      await expect(page.locator("cts-unsaved-changes-guard")).toHaveAttribute("dirty", "");
+    });
+
+    test("Leave page navigates to the link target", async ({ page }) => {
+      await bootScheduleTestPage(page);
+      await armGuardDirty(page);
+
+      await page.route("**/plans.html*", (route) =>
+        route.fulfill({
+          status: 200,
+          contentType: "text/html",
+          body: "<!doctype html><html><body>ok</body></html>",
+        }),
+      );
+
+      await page.locator('cts-navbar a[href="plans.html"]').first().click();
+      await expect(
+        page.locator("cts-unsaved-changes-guard cts-modal dialog.oidf-modal[open]"),
+      ).toBeVisible();
+
+      await page.locator("#exitGuard-modal-leave").click();
+      await page.waitForURL(/plans\.html$/);
+    });
+
+    test("Create Test Plan does not trigger the unsaved-changes modal", async ({ page }) => {
+      let postCalled = false;
+
+      await setupFailFast(page);
+      await page.route("**/api/plan/available", (route) =>
+        route.fulfill({
+          status: 200,
+          contentType: "application/json",
+          body: JSON.stringify(ALL_PLANS),
+        }),
+      );
+      await page.route("**/api/lastconfig", (route) =>
+        route.fulfill({
+          status: 200,
+          contentType: "application/json",
+          body: JSON.stringify({}),
+        }),
+      );
+      await page.route("**/api/plan?*", (route) => {
+        if (route.request().method() === "POST") {
+          postCalled = true;
+          return route.fulfill({
+            status: 200,
+            contentType: "application/json",
+            body: JSON.stringify({
+              id: "plan-guard-001",
+              name: "oidcc-client-basic-certification-test-plan",
+            }),
+          });
+        }
+        return route.fallback();
+      });
+      await page.route("**/plan-detail.html*", (route) =>
+        route.fulfill({
+          status: 200,
+          contentType: "text/html",
+          body: "<!doctype html><html><body>ok</body></html>",
+        }),
+      );
+      await setupCommonRoutes(page);
+
+      await page.goto("/schedule-test.html");
+      await page.locator("#specFamilySelect").selectOption("OIDCC");
+      await page.locator("#entitySelect").selectOption("client-basic");
+      await expect(page.locator("#createPlanBtn button")).toBeEnabled({ timeout: 5000 });
+
+      await armGuardDirty(page);
+
+      await page.locator("#createPlanBtn").click();
+      await page.waitForURL(/plan-detail\.html\?plan=plan-guard-001$/);
+      expect(postCalled).toBe(true);
+      await expect(
+        page.locator("cts-unsaved-changes-guard cts-modal dialog.oidf-modal[open]"),
+      ).toHaveCount(0);
+    });
+
+    test("modifier-key click on internal link is not intercepted", async ({ page }) => {
+      await bootScheduleTestPage(page);
+      await armGuardDirty(page);
+
+      await page
+        .locator('cts-navbar a[href="plans.html"]')
+        .first()
+        .click({ modifiers: ["Meta"] });
+      await expect(
+        page.locator("cts-unsaved-changes-guard cts-modal dialog.oidf-modal[open]"),
+      ).toHaveCount(0);
+    });
+  });
 });
