@@ -23,6 +23,7 @@ public class EnsureValidSearchResponse extends AbstractCondition {
 			if(!elem.isJsonObject()) {
 				throw error("An element in the results array is not an object", args("Element", elem));
 			}
+			ensureValidResponseResultsObject(elem.getAsJsonObject());
 		}
 
 		if(searchResponse.has("context")) {
@@ -35,6 +36,11 @@ public class EnsureValidSearchResponse extends AbstractCondition {
 		logSuccess("Search response is valid");
 		return env;
 
+	}
+
+	// Check individual results element if needed
+	protected void ensureValidResponseResultsObject(JsonObject resultsObj) {
+		// Nothing to do here
 	}
 
 }
