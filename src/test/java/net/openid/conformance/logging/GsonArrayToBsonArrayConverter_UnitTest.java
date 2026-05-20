@@ -15,6 +15,7 @@ import com.nimbusds.jose.jwk.gen.ECKeyGenerator;
 import com.nimbusds.jwt.JWTClaimsSet;
 import net.openid.conformance.testmodule.OIDFJSON;
 import org.bson.BsonArray;
+import org.bson.BsonDocument;
 import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
@@ -25,7 +26,6 @@ import java.util.Map;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class GsonArrayToBsonArrayConverter_UnitTest {
@@ -152,9 +152,10 @@ public class GsonArrayToBsonArrayConverter_UnitTest {
 	}
 
 	@Test
-	public void convertUnloggableValuesInMap_nonArrayJsonElement_isLeftAsIs() {
-		// convertValue only recurses on JsonArray elements — other JsonElement shapes pass
-		// through unchanged (they ultimately become strings via Document.toString later).
+	public void convertUnloggableValuesInMap_jsonObject_isConvertedToBsonDocument() {
+		// JsonObject values must be pre-wrapped via GsonObjectToBsonDocumentConverter before
+		// Spring's MappingMongoConverter walks them — otherwise it would try to escape any
+		// dotted keys reflectively and fail (see the dotted-key regression test below).
 		JsonObject obj = new JsonObject();
 		obj.addProperty("x", "y");
 
@@ -164,7 +165,41 @@ public class GsonArrayToBsonArrayConverter_UnitTest {
 		Map<String, Object> out = GsonArrayToBsonArrayConverter.convertUnloggableValuesInMap(in);
 		BsonEncoding.assertEncodable(in);
 
-		assertSame(obj, out.get("obj"));
+		assertInstanceOf(BsonDocument.class, out.get("obj"));
+		BsonDocument converted = (BsonDocument) out.get("obj");
+		assertEquals("y", converted.getString("x").getValue());
+	}
+
+	@Test
+	public void convertUnloggableValuesInMap_jsonObjectWithDottedKey_wrapsKeyAndEncodesCleanly() {
+		// Regression: a payload like {"credential_configurations_supported":{"eu.europa.ec.eudi.pid.1":{...}}}
+		// previously slipped past convertUnloggableValuesInMap as a bare JsonObject and tripped
+		// MappingMongoConverter#potentiallyEscapeMapKey ("Map key contains dots but no replacement
+		// was configured"). The fix routes JsonObject values through GsonObjectToBsonDocumentConverter
+		// so the dotted key is wrapped via __wrapped_key_element_*.
+		JsonObject payload = new JsonObject();
+		JsonObject configs = new JsonObject();
+		JsonObject pidCredential = new JsonObject();
+		pidCredential.addProperty("format", "vc+sd-jwt");
+		configs.add("eu.europa.ec.eudi.pid.1", pidCredential);
+		payload.add("credential_configurations_supported", configs);
+
+		Map<String, Object> in = new HashMap<>();
+		in.put("payload", payload);
+
+		Map<String, Object> out = GsonArrayToBsonArrayConverter.convertUnloggableValuesInMap(in);
+		// This is the production code path — encoding via the real MappingMongoConverter +
+		// DocumentCodec catches the dotted-key failure end-to-end.
+		BsonEncoding.assertEncodable(in);
+
+		assertInstanceOf(BsonDocument.class, out.get("payload"));
+		BsonDocument convertedPayload = (BsonDocument) out.get("payload");
+		BsonDocument convertedConfigs = convertedPayload.getDocument("credential_configurations_supported");
+		// The dotted key has been wrapped — no surviving key contains a dot.
+		assertTrue(convertedConfigs.keySet().stream().noneMatch(k -> k.contains(".")),
+			"All dotted keys should be wrapped, got: " + convertedConfigs.keySet());
+		assertTrue(convertedConfigs.keySet().stream().allMatch(k -> k.startsWith("__wrapped_key_element_")),
+			"All keys should be wrapped, got: " + convertedConfigs.keySet());
 	}
 
 	@Test

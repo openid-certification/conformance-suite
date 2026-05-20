@@ -38,6 +38,11 @@ public class GsonArrayToBsonArrayConverter implements Converter<JsonArray, BsonA
 	private static Object convertValue(Object value) {
 		if (value instanceof JsonElement element && element.isJsonArray()) {
 			return new GsonArrayToBsonArrayConverter().convert(element.getAsJsonArray());
+		} else if (value instanceof JsonElement element && element.isJsonObject()) {
+			// Wrap dotted ("a.b.c") and dollar ("$foo") keys via __wrapped_key_element_* so the
+			// MongoDB MappingMongoConverter doesn't trip on them when it walks the JsonObject as a
+			// nested map. CollapsingGsonHttpMessageConverter unwraps the wrapper on response read.
+			return new GsonObjectToBsonDocumentConverter().convert(element.getAsJsonObject());
 		} else if (value instanceof JWK jwk) {
 			return JsonParser.parseString(jwk.toJSONString());
 		} else if (value instanceof JWKSet set) {
