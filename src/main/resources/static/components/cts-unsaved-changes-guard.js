@@ -94,6 +94,12 @@ class CtsUnsavedChangesGuard extends LitElement {
 
   connectedCallback() {
     super.connectedCallback();
+    // Abort any controller left over from a prior connection. A DOM move
+    // (remove + re-insert, or a server-driven partial swap) fires
+    // disconnectedCallback then connectedCallback; without this guard the
+    // listeners from the previous mount keep a reference to the orphaned
+    // signal and never get cleaned up.
+    if (this._ac) this._ac.abort();
     this._ac = new AbortController();
     const { signal } = this._ac;
 
