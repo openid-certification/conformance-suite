@@ -255,6 +255,30 @@ export const BoundedFloorsShortContent = {
   },
 };
 
+export const BoundedFallsBackWhenUnset = {
+  // When the host declares no `min-height` / `max-height`, the wrapper
+  // falls back to the EDITOR_MIN_HEIGHT_FALLBACK_PX / EDITOR_MAX_HEIGHT_FALLBACK_PX
+  // constants (80 / 350). This story exercises that branch so a future
+  // refactor of resolveBounds cannot silently neutralise the fallback path.
+  render: () =>
+    html`<cts-json-editor
+      aria-label="Bounded editor — fallback bounds"
+      readonly
+      .value=${SAMPLE_JSON}
+    ></cts-json-editor>`,
+  async play({ canvasElement }) {
+    const ready = await waitForReady(canvasElement);
+    if (ready.kind !== "monaco") return;
+    const innerHost = /** @type {HTMLElement} */ (
+      canvasElement.querySelector(".oidf-json-editor-host")
+    );
+    expect(innerHost).toBeTruthy();
+    const px = parseFloat(innerHost.style.height);
+    expect(px).toBeGreaterThanOrEqual(80);
+    expect(px).toBeLessThanOrEqual(350);
+  },
+};
+
 export const Fallback = {
   decorators: [
     (Story) => {
