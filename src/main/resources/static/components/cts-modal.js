@@ -128,6 +128,15 @@ dialog.oidf-modal::backdrop {
     backdrop-filter: blur(0);
   }
 }
+/* Exit-side ::backdrop state. \`@starting-style\` only supplies the "from"
+   value on entry; for the exit fade the engine needs an explicit "to" value
+   that differs from the steady-state ::backdrop rule. Without this rule
+   the backdrop would stay at full opacity / blur until the dialog snaps
+   out of the top layer at the end of the transition window. */
+dialog.oidf-modal:not([open])::backdrop {
+  background: rgba(26, 22, 17, 0);
+  backdrop-filter: blur(0);
+}
 
 @media (prefers-reduced-motion: reduce) {
   dialog.oidf-modal,

@@ -547,13 +547,18 @@ export const StaticBackdrop = {
 
     // Loading content is the cts-spinner component, not an animated GIF.
     // This is the durable regression for the cts-spinner cutover —
-    // any reintroduction of the legacy <img> would fail here.
+    // any reintroduction of the legacy <img> would fail here. Assertion
+    // reads data-size (the value cts-spinner actually parsed and mirrored
+    // onto the host), not size (the markup attribute the test itself wrote
+    // — that would only verify our own input). The negative check covers
+    // any <img>, not just spinner.gif, so a swap to a different image
+    // filename still fails.
     const spinner = host.querySelector("cts-spinner");
     expect(spinner).toBeTruthy();
     if (!spinner) throw new Error("cts-spinner not found inside StaticBackdrop loading modal");
-    expect(spinner.getAttribute("size")).toBe("lg");
-    const legacyGif = host.querySelector('img[src*="spinner.gif"]');
-    expect(legacyGif).toBeNull();
+    expect(spinner.getAttribute("data-size")).toBe("lg");
+    const legacyImg = host.querySelector("img");
+    expect(legacyImg).toBeNull();
   },
 };
 
