@@ -1,6 +1,8 @@
 # Residual Review Findings — cts-batch-runner U1 wiring
 
-**Commit:** `645ee04d3` (`feat(plan-detail): wire cts-batch-runner with Run All / Run Remaining`)
+> **STATUS — DESCOPED 2026-05-19.** The U1 page wiring was reverted from `plan-detail.html` because `master` has no batch-running functionality and the team has not yet validated batch dispatch as a desirable workflow. All findings below are moot until / unless wiring is restored. The component (`cts-batch-runner.js`) and its Storybook stories remain intact. See the board note at `docs/plans/2026-05-18-006-orphan-components-wire-up-board.md` (row 6) and the decision analysis at `tmp/row-6-decision.html`.
+
+**Commit:** `645ee04d3` (`feat(plan-detail): wire cts-batch-runner with Run All / Run Remaining`) — reverted
 **Plan:** [`docs/plans/2026-05-18-012-feat-wire-cts-batch-runner-into-plan-detail-plan.md`](../plans/2026-05-18-012-feat-wire-cts-batch-runner-into-plan-detail-plan.md)
 **Board:** [`docs/plans/2026-05-18-006-orphan-components-wire-up-board.md`](../plans/2026-05-18-006-orphan-components-wire-up-board.md) (row 6)
 **Review run:** `/tmp/compound-engineering/ce-code-review/20260519-131631-b6fe6a58/`
