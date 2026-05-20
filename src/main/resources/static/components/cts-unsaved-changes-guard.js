@@ -18,10 +18,11 @@ import "./cts-modal.js";
  *
  * Two warning paths are installed at `connectedCallback`:
  *
- * 1. **Browser-level navigation** — `window.beforeunload`. Uses the modern
- *    `event.preventDefault()` + `event.returnValue = ""` pair so Chrome 119+,
- *    Safari, and Firefox all surface the OS-supplied prompt. No-op when
- *    `dirty` is `false`.
+ * 1. **Browser-level navigation** — `window.beforeunload`. Uses
+ *    `event.preventDefault()`, which is the canonical trigger in the
+ *    current HTML spec; latest Chrome/Safari/Firefox/Edge all honour it.
+ *    No-op when `dirty` is `false`. (The CTS frontend targets only the
+ *    latest browser versions — no legacy `returnValue` fallback needed.)
  * 2. **In-app link clicks** — capture-phase `document.click`. Same-origin
  *    `<a href>` clicks that would navigate away (no modifiers, no
  *    `target="_blank"`, no `download`, not a pure hash on the current page)
@@ -155,20 +156,15 @@ class CtsUnsavedChangesGuard extends LitElement {
   };
 
   /**
-   * Modern `beforeunload` handler. Calling `event.preventDefault()` is the
-   * canonical trigger per the current HTML spec (Chrome 119+ requires it);
-   * `returnValue = ""` keeps Safari and older Chromium/Firefox happy. The
-   * string content is ignored by every modern browser — the OS supplies
-   * the message.
+   * `beforeunload` handler. `event.preventDefault()` is the canonical
+   * trigger per the current HTML spec, honoured by every latest browser
+   * we target. The OS supplies the prompt copy — we do not return a
+   * string.
    * @param {BeforeUnloadEvent} event - the browser unload event
    */
   _onBeforeUnload = (event) => {
     if (!this.dirty) return;
     event.preventDefault();
-    // Spec-deprecated but Safari and older Chromium still trigger the prompt
-    // from this property, not from preventDefault() alone. The cast hides
-    // the editor strikethrough — the assignment itself is intentional.
-    /** @type {{ returnValue: string }} */ (event).returnValue = "";
   };
 
   /**
@@ -188,12 +184,12 @@ class CtsUnsavedChangesGuard extends LitElement {
     }
     if (!this.dirty) return;
 
-    // event.composedPath() crosses shadow boundaries; closest() does not.
-    // Walk the path looking for an <a href>.
-    const path = typeof event.composedPath === "function" ? event.composedPath() : [];
+    // event.composedPath() crosses open shadow boundaries; closest() does
+    // not. Walk the path looking for an <a href>. composedPath has been
+    // in every browser we target since Safari 10; no defensive guard.
     /** @type {HTMLAnchorElement | null} */
     let anchor = null;
-    for (const node of path) {
+    for (const node of event.composedPath()) {
       if (node instanceof HTMLAnchorElement && node.hasAttribute("href")) {
         anchor = node;
         break;
