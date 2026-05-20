@@ -16,8 +16,9 @@ LFG pipeline run on `feat/redesign` resolved the 4 prior residual findings (#7-#
 
 ## Residual Review Findings
 
-### R-1 — `CtsToastHost.getOrCreate()` singleton broken on double call before `DOMContentLoaded`
+### R-1 — `CtsToastHost.getOrCreate()` singleton broken on double call before `DOMContentLoaded` — **RESOLVED**
 
+**Status:** Resolved on `feat/redesign` (2026-05-19) — see the **Resolution** section below.
 **Severity:** P1 — **autofix_class:** gated_auto — **owner:** downstream-resolver — **anchor:** 100
 **File:** `src/main/resources/static/components/cts-toast.js:200` (the `static getOrCreate()` method, specifically the `else { document.addEventListener("DOMContentLoaded", ...) }` branch)
 **Reviewers:** correctness, julik-frontend-races (cross-reviewer; confidence promoted to 100)
@@ -59,6 +60,15 @@ static getOrCreate() {
 **Verification:** Add a Storybook play function that stubs the `document.body` getter (e.g. via a `Object.defineProperty(document, "body", { get: () => null, configurable: true })` wrapper, restored at end of play()), calls `getOrCreate()` twice, fires a synthetic `DOMContentLoaded`, and asserts `document.querySelectorAll("cts-toast-host").length === 1`. The plan's own U1 open question (the null-body Storybook test fallback) explicitly accepted this gap; a follow-up PR should close it now that the race is named.
 
 **Why this was not autofixed:** Introduces a module-scoped `_pendingHost` variable — a behavioral change beyond the original 1-line alias removal that ce-code-review's autofix gate handles. Worth a small focused PR.
+
+#### Resolution (2026-05-19)
+
+Fix landed as a TDD-driven change on `feat/redesign`:
+
+- **Test first:** `GetOrCreateNullBodyRace` Storybook play function in `src/main/resources/static/components/cts-toast.stories.js`. Stubs `document.body` to `null` via `Object.defineProperty(document, "body", { get: () => null, configurable: true })`, calls `CtsToastHost.getOrCreate()` twice, asserts `first === second` (in-memory singleton), restores `document.body` via `Reflect.deleteProperty`, dispatches a synthetic `DOMContentLoaded`, and asserts `document.querySelectorAll("cts-toast-host").length === 1` (visible DOM-count singleton). Verified RED before the fix — failed at the `expect(first).toBe(second)` line with `expected <cts-toast-host> to be <cts-toast-host> // Object.is equality`.
+- **Fix:** module-level `let _pendingHost = null;` cache consulted before `querySelector` when the cached host is set but not yet in the DOM. The deferred-append `DOMContentLoaded` listener clears `_pendingHost = null` after `appendChild`. Shape matches the suggested fix above verbatim; the only addition is a `/** @type {CtsToastHost | null} */` JSDoc annotation so TypeScript narrows the cache cleanly.
+- **Bonus:** the closure-narrowing TS2345 at the legacy `cts-toast.js:219` (catalogued in memory as `feedback_cts_toast_typecheck_pre_existing.md`) is also resolved by holding the freshly-created host in a typed `const fresh` local — the deferred listener now captures a value TS knows is non-null. `npm run test:ci` now runs end-to-end on this branch (0 errors).
+- **Verification:** `npm run test:ci` clean (0 errors, pre-existing warnings only). All 11 cts-toast stories pass. `upload.spec.js` e2e (7 tests, including the 5.5 s success-toast wire-up) passes.
 
 ---
 
@@ -104,7 +114,7 @@ Then each spec becomes a single `await expectToastHostMounted(page);` call after
 
 ## Testing gaps (acknowledged)
 
-- **The `document.body === null` branch in `CtsToastHost.getOrCreate()` has no automated test.** Flagged by 4 reviewers (correctness, testing, maintainability, julik-frontend-races). `GetOrCreateIdempotent` only covers the idempotency claim, not the deferred-append path. The R-1 fix above should add a Storybook play function that stubs body presence, or a Vitest browser unit test using a fresh iframe document.
+- ~~**The `document.body === null` branch in `CtsToastHost.getOrCreate()` has no automated test.**~~ **Closed (2026-05-19).** The R-1 resolution above adds `GetOrCreateNullBodyRace` to `cts-toast.stories.js`, exercising both the in-memory singleton invariant and the visible DOM-count invariant after a synthetic `DOMContentLoaded`. The 4-reviewer flag (correctness, testing, maintainability, julik-frontend-races) is now satisfied.
 
 ## CI Status
 
