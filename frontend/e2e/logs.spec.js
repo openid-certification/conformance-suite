@@ -134,13 +134,18 @@ test.describe("logs.html — Logs List", () => {
     // 2026-05-19 modal redesign). The cts-button host reflects the attribute,
     // and the inner cts-icon renders the matching glyph. The visible label
     // names the payload ("Copy configuration") so users don't conflate it
-    // with the test-id label next to it. Hover/focus surfaces a cts-tooltip
-    // with the same intent stated as a full sentence.
+    // with the test-id label next to it.
     const copyBtn = configModal.locator(".btn-clipboard").first();
     await expect(copyBtn).toHaveAttribute("icon", "copy");
     await expect(copyBtn.locator('cts-icon[name="copy"]')).toBeVisible();
     await expect(copyBtn).toContainText("Copy configuration");
-    await expect(configModal.locator('cts-tooltip[content="Copy configuration JSON to clipboard"]')).toBeAttached();
+    // Structural smoke test: the cts-tooltip wrapper is present with the
+    // expected content. The popover body is mounted on hover/focus by
+    // cts-tooltip itself; covering the hover-reveal behavior is the
+    // cts-tooltip primitive's own play-test, not this page-level spec.
+    await expect(
+      configModal.locator('cts-tooltip[content="Copy configuration JSON to clipboard"]'),
+    ).toBeAttached();
 
     // Close modal
     await configModal.locator(".oidf-modal-close").first().click();
