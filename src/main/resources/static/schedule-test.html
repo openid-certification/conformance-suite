@@ -847,44 +847,17 @@
                 updateConfigFieldVisibility();
             });
 
-            // cts-test-selector fires `cts-plan-select` when the user picks
-            // a search result (mouse click or keyboard Enter). Route through
-            // the cascade so its dispatched `cts-plan-selected` runs the
-            // same downstream listeners — no separate config-load codepath.
-            //
-            // After routing, smooth-scroll #specCascade into view so the
-            // user sees what just got auto-filled and what comes next.
-            // Without this, the page silently mutates below the fold and
-            // the click feels dead. On keyboard-driven selections, also
-            // move focus into the first cascade <select> so the user can
-            // keep keyboarding without reaching for the mouse.
+            // cts-test-selector fires `cts-plan-select` when the user clicks
+            // a search result. Route through the cascade so its dispatched
+            // `cts-plan-selected` runs the same downstream listeners — no
+            // separate config-load codepath.
             var planSearch = document.getElementById('planSearch');
             if (planSearch) {
                 planSearch.addEventListener('cts-plan-select', function(evt) {
                     var cascade = document.getElementById('specCascade');
                     if (!cascade) return;
                     var planName = evt.detail && evt.detail.plan && evt.detail.plan.planName;
-                    if (!planName) return;
-                    cascade.selectPlanByName(planName);
-                    // selectPlanByName triggers Lit re-renders (cascade,
-                    // variants form, config form). Defer the scroll/focus
-                    // to the next animation frame so layout is settled
-                    // before we measure or focus anything.
-                    var via = evt.detail && evt.detail.via;
-                    requestAnimationFrame(function() {
-                        var cascadeEl = document.getElementById('specCascade');
-                        if (!cascadeEl) return;
-                        // Browsers honor prefers-reduced-motion: reduce
-                        // automatically — no extra wiring needed.
-                        cascadeEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                        if (via === 'keyboard') {
-                            var firstField = cascadeEl.querySelector('select');
-                            // preventScroll keeps the just-issued smooth
-                            // scroll authoritative; without it, focus()
-                            // would snap-scroll and clobber the animation.
-                            if (firstField) firstField.focus({ preventScroll: true });
-                        }
-                    });
+                    if (planName) cascade.selectPlanByName(planName);
                 });
             }
 
