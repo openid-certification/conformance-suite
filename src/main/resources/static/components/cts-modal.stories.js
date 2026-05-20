@@ -550,6 +550,7 @@ export const StaticBackdrop = {
     // any reintroduction of the legacy <img> would fail here.
     const spinner = host.querySelector("cts-spinner");
     expect(spinner).toBeTruthy();
+    if (!spinner) throw new Error("cts-spinner not found inside StaticBackdrop loading modal");
     expect(spinner.getAttribute("size")).toBe("lg");
     const legacyGif = host.querySelector('img[src*="spinner.gif"]');
     expect(legacyGif).toBeNull();
