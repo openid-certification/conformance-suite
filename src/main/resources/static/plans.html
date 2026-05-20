@@ -26,31 +26,27 @@
 
     <cts-navbar current-page="plans"></cts-navbar>
 
-    <main id="main-content" class="container-fluid">
-        <div class="row">
-            <div class="col-md-12">
-                <cts-plan-list id="plansListing"></cts-plan-list>
-                <script>
-                    // Set is-public SYNCHRONOUSLY before the deferred
-                    // /components/cts-plan-list.js module runs. The component
-                    // fires its initial /api/plan fetch from connectedCallback,
-                    // which executes the moment customElements.define is
-                    // called — i.e., when the module evaluates, which happens
-                    // BEFORE DOMContentLoaded. Setting is-public from a
-                    // DOMContentLoaded handler would land too late: the fetch
-                    // would already have hit /api/plan (no query) instead of
-                    // /api/plan?public=true. is-admin only toggles column
-                    // visibility (Lit re-renders on attribute change), so it
-                    // is safe to set later from the async auth probe below.
-                    (function () {
-                        var params = new URLSearchParams(window.location.search);
-                        if (params.get('public') === 'true') {
-                            document.getElementById('plansListing').setAttribute('is-public', '');
-                        }
-                    })();
-                </script>
-            </div>
-        </div>
+    <main id="main-content" class="plans-page">
+        <cts-plan-list id="plansListing"></cts-plan-list>
+        <script>
+            // Set is-public SYNCHRONOUSLY before the deferred
+            // /components/cts-plan-list.js module runs. The component
+            // fires its initial /api/plan fetch from connectedCallback,
+            // which executes the moment customElements.define is
+            // called — i.e., when the module evaluates, which happens
+            // BEFORE DOMContentLoaded. Setting is-public from a
+            // DOMContentLoaded handler would land too late: the fetch
+            // would already have hit /api/plan (no query) instead of
+            // /api/plan?public=true. is-admin only toggles column
+            // visibility (Lit re-renders on attribute change), so it
+            // is safe to set later from the async auth probe below.
+            (function () {
+                var params = new URLSearchParams(window.location.search);
+                if (params.get('public') === 'true') {
+                    document.getElementById('plansListing').setAttribute('is-public', '');
+                }
+            })();
+        </script>
     </main>
 
     <script type="text/javascript">
