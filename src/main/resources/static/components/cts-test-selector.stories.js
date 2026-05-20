@@ -129,18 +129,159 @@ export const FamilyFilter = {
 export const SelectPlan = {
   render: () => html`<cts-test-selector .plans=${MOCK_PLANS}></cts-test-selector>`,
   async play({ canvasElement }) {
-    /** @type {any} */
-    let selectedPlan = null;
+    /** @type {any[]} */
+    const dispatched = [];
     canvasElement.addEventListener("cts-plan-select", (e) => {
-      selectedPlan = /** @type {CustomEvent} */ (e).detail.plan;
+      dispatched.push(/** @type {CustomEvent} */ (e).detail);
     });
     const items = canvasElement.querySelectorAll(".oidf-test-selector__row");
     await userEvent.click(items[1]);
-    expect(selectedPlan).toBeTruthy();
-    expect(selectedPlan.planName).toBe("oidcc-implicit-certification-test-plan");
+    expect(dispatched.length).toBe(1);
+    expect(dispatched[0].plan.planName).toBe("oidcc-implicit-certification-test-plan");
+    // The page-level listener in schedule-test.html branches on `via` to
+    // decide whether to steal focus into #specCascade. Mouse clicks must
+    // stay polite (no focus shift), so the channel carries 'click'.
+    expect(dispatched[0].via).toBe("click");
     await waitFor(() => {
       expect(items[1].classList.contains("is-active")).toBe(true);
     });
+  },
+};
+
+/**
+ * ArrowDown in the search input moves real DOM focus into the first
+ * visible row. This is the entry point of the keyboard-only flow that
+ * lets a user search → arrow → Enter without touching the mouse.
+ */
+export const ArrowDownFromSearchFocusesFirstRow = {
+  render: () => html`<cts-test-selector .plans=${MOCK_PLANS}></cts-test-selector>`,
+  async play({ canvasElement }) {
+    const searchInput = /** @type {HTMLInputElement} */ (
+      canvasElement.querySelector(".oidf-test-selector__search")
+    );
+    searchInput.focus();
+    await userEvent.keyboard("{ArrowDown}");
+
+    await waitFor(() => {
+      const firstRow = canvasElement.querySelector(".oidf-test-selector__row");
+      expect(document.activeElement).toBe(firstRow);
+      // Roving tabindex: the focused row carries tabindex=0; the rest
+      // are -1 so Tab escapes the list cleanly.
+      expect(firstRow?.getAttribute("tabindex")).toBe("0");
+    });
+  },
+};
+
+/**
+ * Once focus is on a row, ArrowDown/ArrowUp rove across rows in
+ * document order. ArrowDown on the last row is a no-op (no wrap).
+ */
+export const ArrowNavRovesAcrossRows = {
+  render: () => html`<cts-test-selector .plans=${MOCK_PLANS}></cts-test-selector>`,
+  async play({ canvasElement }) {
+    const searchInput = /** @type {HTMLInputElement} */ (
+      canvasElement.querySelector(".oidf-test-selector__search")
+    );
+    searchInput.focus();
+    await userEvent.keyboard("{ArrowDown}");
+
+    const rows = canvasElement.querySelectorAll(".oidf-test-selector__row");
+    await waitFor(() => expect(document.activeElement).toBe(rows[0]));
+
+    await userEvent.keyboard("{ArrowDown}");
+    await waitFor(() => expect(document.activeElement).toBe(rows[1]));
+
+    await userEvent.keyboard("{ArrowUp}");
+    await waitFor(() => expect(document.activeElement).toBe(rows[0]));
+  },
+};
+
+/**
+ * ArrowUp on the first row returns focus to the search input — closing
+ * the loop so the user can refine the query without reaching for the
+ * mouse or hammering Shift+Tab through all the rows above.
+ */
+export const ArrowUpFromFirstRowReturnsToSearch = {
+  render: () => html`<cts-test-selector .plans=${MOCK_PLANS}></cts-test-selector>`,
+  async play({ canvasElement }) {
+    const searchInput = /** @type {HTMLInputElement} */ (
+      canvasElement.querySelector(".oidf-test-selector__search")
+    );
+    searchInput.focus();
+    await userEvent.keyboard("{ArrowDown}");
+
+    const firstRow = canvasElement.querySelector(".oidf-test-selector__row");
+    await waitFor(() => expect(document.activeElement).toBe(firstRow));
+
+    await userEvent.keyboard("{ArrowUp}");
+    await waitFor(() => expect(document.activeElement).toBe(searchInput));
+  },
+};
+
+/**
+ * Pressing Enter on a focused row commits the selection and tags the
+ * dispatched event with via:'keyboard'. The page-level listener uses
+ * that channel to decide whether to advance focus into #specCascade.
+ *
+ * Asserts exactly one dispatch — guards against the keyup→synthetic-click
+ * double-fire that <button> elements produce on keyboard activation.
+ */
+export const EnterOnFocusedRowSelects = {
+  render: () => html`<cts-test-selector .plans=${MOCK_PLANS}></cts-test-selector>`,
+  async play({ canvasElement }) {
+    /** @type {any[]} */
+    const dispatched = [];
+    canvasElement.addEventListener("cts-plan-select", (e) => {
+      dispatched.push(/** @type {CustomEvent} */ (e).detail);
+    });
+
+    const searchInput = /** @type {HTMLInputElement} */ (
+      canvasElement.querySelector(".oidf-test-selector__search")
+    );
+    searchInput.focus();
+    await userEvent.keyboard("{ArrowDown}");
+
+    const firstRow = canvasElement.querySelector(".oidf-test-selector__row");
+    await waitFor(() => expect(document.activeElement).toBe(firstRow));
+
+    await userEvent.keyboard("{Enter}");
+
+    await waitFor(() => {
+      expect(dispatched.length).toBe(1);
+      expect(dispatched[0].plan.planName).toBe(MOCK_PLANS[0].planName);
+      expect(dispatched[0].via).toBe("keyboard");
+    });
+  },
+};
+
+/**
+ * When the filter clears the result list, ArrowDown in the search has
+ * nothing to focus and must be a no-op — no event, no focus change,
+ * no thrown error from indexing into an empty list.
+ */
+export const ArrowDownOnEmptyListIsNoOp = {
+  render: () => html`<cts-test-selector .plans=${MOCK_PLANS}></cts-test-selector>`,
+  async play({ canvasElement }) {
+    /** @type {any[]} */
+    const dispatched = [];
+    canvasElement.addEventListener("cts-plan-select", (e) => {
+      dispatched.push(/** @type {CustomEvent} */ (e).detail);
+    });
+
+    const searchInput = /** @type {HTMLInputElement} */ (
+      canvasElement.querySelector(".oidf-test-selector__search")
+    );
+    await userEvent.type(searchInput, "nonexistent-plan-xyz");
+    await waitFor(() => {
+      const items = canvasElement.querySelectorAll(".oidf-test-selector__row");
+      expect(items.length).toBe(0);
+    });
+
+    searchInput.focus();
+    await userEvent.keyboard("{ArrowDown}");
+
+    expect(document.activeElement).toBe(searchInput);
+    expect(dispatched.length).toBe(0);
   },
 };
 
