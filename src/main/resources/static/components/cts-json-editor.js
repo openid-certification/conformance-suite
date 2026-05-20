@@ -19,15 +19,16 @@ const MONACO_VS_PATH = "/vendor/monaco-editor/vs";
 const MONACO_LOAD_TIMEOUT_MS = 8000;
 
 /**
- * Fallback minimum editor height in pixels (≈ 4 lines) when the host does
- * not declare its own `min-height`.
+ * Fallback minimum editor height in pixels (≈ 4 lines), applied only when
+ * the host element does not declare its own `min-height`.
  */
-const EDITOR_MIN_HEIGHT_PX = 80;
+const EDITOR_MIN_HEIGHT_FALLBACK_PX = 80;
 /**
- * Fallback maximum editor height in pixels when the host does not declare
- * its own `max-height`. Beyond this Monaco scrolls internally.
+ * Fallback maximum editor height in pixels, applied only when the host
+ * element does not declare its own `max-height`. Beyond this Monaco
+ * scrolls internally.
  */
-const EDITOR_MAX_HEIGHT_PX = 350;
+const EDITOR_MAX_HEIGHT_FALLBACK_PX = 350;
 
 /**
  * Resolve the auto-grow bounds for a `<cts-json-editor>` host. Reads the
@@ -50,8 +51,8 @@ function resolveBounds(host) {
     return n;
   };
   return {
-    min: parsePx(cs.minHeight, EDITOR_MIN_HEIGHT_PX),
-    max: parsePx(cs.maxHeight, EDITOR_MAX_HEIGHT_PX),
+    min: parsePx(cs.minHeight, EDITOR_MIN_HEIGHT_FALLBACK_PX),
+    max: parsePx(cs.maxHeight, EDITOR_MAX_HEIGHT_FALLBACK_PX),
   };
 }
 
@@ -342,6 +343,10 @@ class CtsJsonEditor extends LitElement {
     this._editor = null;
     /** @type {object|null} Monaco model. */
     this._model = null;
+    /** @type {{dispose: () => void}|null} IDisposable for onDidContentSizeChange. */
+    this._contentSizeListener = null;
+    /** @type {{dispose: () => void}|null} IDisposable for onDidChangeModelContent. */
+    this._modelContentListener = null;
     /** @type {boolean} Internal guard against echo dispatch when our setter writes back to Monaco. */
     this._suppressDispatch = false;
 
@@ -370,6 +375,27 @@ class CtsJsonEditor extends LitElement {
 
   disconnectedCallback() {
     super.disconnectedCallback();
+    // Detach listeners before tearing down the editor so any in-flight
+    // ResizeObserver / content-change notification queued by Monaco does
+    // not invoke a callback against a disposed instance. Both closures
+    // also null-guard `this._editor` defensively in case the listener
+    // fires between our dispose() and the registration's own teardown.
+    if (this._contentSizeListener) {
+      try {
+        this._contentSizeListener.dispose();
+      } catch {
+        // Swallow per the editor.dispose() rationale below.
+      }
+      this._contentSizeListener = null;
+    }
+    if (this._modelContentListener) {
+      try {
+        this._modelContentListener.dispose();
+      } catch {
+        // Swallow per the editor.dispose() rationale below.
+      }
+      this._modelContentListener = null;
+    }
     if (this._editor) {
       try {
         this._editor.dispose();
@@ -464,14 +490,21 @@ class CtsJsonEditor extends LitElement {
     });
 
     const updateHeight = () => {
+      if (!this._editor) return;
       const { min, max } = resolveBounds(this);
       const contentHeight = Math.max(min, Math.min(max, this._editor.getContentHeight()));
       host.style.height = `${contentHeight}px`;
     };
-    this._editor.onDidContentSizeChange(updateHeight);
+    // Capture both IDisposables so disconnectedCallback can detach them
+    // before the underlying editor is disposed. Without this, a queued
+    // ResizeObserver or content-change notification draining after
+    // editor.dispose() runs would call this._editor.getContentHeight() on
+    // a torn-down instance.
+    this._contentSizeListener = this._editor.onDidContentSizeChange(updateHeight);
     updateHeight();
 
-    this._editor.onDidChangeModelContent(() => {
+    this._modelContentListener = this._editor.onDidChangeModelContent(() => {
+      if (!this._editor) return;
       if (this._suppressDispatch) return;
       const next = this._editor.getValue();
       if (next === this._value) return;
