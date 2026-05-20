@@ -248,8 +248,7 @@ export const NoArrowRendered = {
     await waitFor(() => {
       const tip = getTooltipEl();
       expect(tip).toBeTruthy();
-      // The chevron arrow was removed in favour of a flat tooltip body.
-      // Pin its absence so accidentally re-adding it shows up in CI.
+      // cts-tooltip renders a flat body only — no arrow element.
       expect(tip?.querySelector(".oidf-tooltip__arrow")).toBeNull();
     });
 
