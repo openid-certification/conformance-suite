@@ -330,7 +330,8 @@
                 { key: "testName", label: "Name" },
                 { key: "variant", label: "Variant" },
                 { key: "description", label: "Description" },
-                { key: "started", label: "Started", sortable: true },
+                // Not `sortable` — only sortable candidate AND the seeded default; the arrow would advertise a column-picker that doesn't exist. `initialSort` below still drives the server-side `order[0]` params.
+                { key: "started", label: "Started" },
                 { key: "planId", label: "Plan ID" },
                 { key: "status", label: "Status" },
                 { key: "result", label: "Result" },

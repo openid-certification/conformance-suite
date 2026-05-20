@@ -151,6 +151,45 @@ test.describe("logs.html — Logs List", () => {
     await configModal.locator(".oidf-modal-close").first().click();
     await expect(configModal).toBeHidden();
   });
+
+  test("Started header is not sortable when it is the only sortable default", async ({ page }) => {
+    await setupFailFast(page);
+
+    await page.route("**/api/log?*", (route) => {
+      const envelope = wrapDataTablesResponse(MOCK_LOG_LIST, route.request().url());
+      return route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(envelope),
+      });
+    });
+    await setupCommonRoutes(page);
+
+    // Capture the first /api/log request so we can confirm the default sort
+    // order is still seeded by `initialSort` (server-side `order[0]` params).
+    const initialLogRequestPromise = page.waitForRequest((req) => req.url().includes("/api/log?"));
+    await page.goto("/logs.html");
+    const initialLogRequest = await initialLogRequestPromise;
+
+    await expect(
+      page.locator("#logsListing .oidf-dt-table tbody tr[data-row-index]").first(),
+    ).toBeVisible();
+
+    const startedHeader = page.locator('#logsListing .oidf-dt-table th[data-column-key="started"]');
+    await expect(startedHeader).toHaveCount(1);
+
+    // Affordance gone: no sortable class, no arrow icon, no aria-sort attribute.
+    await expect(startedHeader).not.toHaveClass(/(^|\s)is-sortable(\s|$)/);
+    await expect(startedHeader.locator('cts-icon[name^="arrow-"]')).toHaveCount(0);
+    expect(await startedHeader.getAttribute("aria-sort")).toBeNull();
+
+    // Default sort still applied: initial fetch URL carries the order param
+    // seeded by `initialSort = { column: "started", direction: "desc" }`.
+    // logs.html uses `request-shape="datatables-comma-order"`, which
+    // serializes the order as `order=COL,DIR`.
+    const initialUrl = new URL(initialLogRequest.url());
+    expect(initialUrl.searchParams.get("order")).toBe("started,desc");
+  });
 });
 
 test.describe("logs.html — URL filtering", () => {
