@@ -635,6 +635,171 @@ test.describe("schedule-test.html — Test Plan Scheduling", () => {
     await expect(page.locator("#createPlanBtn button")).toBeEnabled({ timeout: 5000 });
   });
 
+  test("click on a plan row smooth-scrolls #specCascade into view without stealing focus", async ({
+    page,
+  }) => {
+    // The dead-click fix: with a long plan list, the cascade auto-fills
+    // below the fold. Selecting a plan must scroll the cascade into view
+    // so the user can see what just happened and continue. Mouse clicks
+    // do NOT move focus into the cascade — that would surprise users who
+    // clicked the plan but want to scroll down to adjust variants.
+    await setupFailFast(page);
+
+    await page.route("**/api/plan/available", (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(ALL_PLANS),
+      }),
+    );
+
+    await page.route("**/api/lastconfig", (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({}),
+      }),
+    );
+
+    await setupCommonRoutes(page);
+    // Shrink the viewport so #specCascade is reliably off-screen at the
+    // moment of the click — otherwise the page is short enough that the
+    // cascade is already visible and scrolling is a no-op (the test
+    // would tautologically pass).
+    await page.setViewportSize({ width: 1024, height: 360 });
+    await page.goto("/schedule-test.html");
+
+    const searchRows = page.locator("#planSearch .oidf-test-selector__row");
+    await expect(searchRows.first()).toBeVisible();
+
+    await page.locator("#planSearch .oidf-test-selector__search").fill("Client: Basic");
+    const targetRow = page.locator(
+      '#planSearch [data-plan-name="oidcc-client-basic-certification-test-plan"]',
+    );
+    await expect(targetRow).toBeVisible();
+
+    // Precondition: capture the cascade's top BEFORE the click so we can
+    // assert below that the click actually moved the page (vs the
+    // cascade happening to already be near viewport-top, which would
+    // make the post-click assertion tautological).
+    const cascadeTopBeforeClick = await page.locator("#specCascade").evaluate((el) => {
+      return Math.round(el.getBoundingClientRect().top);
+    });
+    expect(cascadeTopBeforeClick).toBeGreaterThan(200);
+
+    await targetRow.click();
+
+    // After the rAF-deferred scroll, #specCascade's top edge should sit
+    // near the viewport top. Give it a generous threshold — the scroll
+    // is smooth and Playwright may sample mid-animation.
+    await expect
+      .poll(
+        async () => {
+          const top = await page.locator("#specCascade").evaluate((el) => {
+            return Math.round(el.getBoundingClientRect().top);
+          });
+          return top;
+        },
+        { timeout: 3000 },
+      )
+      .toBeLessThan(100);
+
+    // Mouse-path: focus stays put. activeElement should not be a cascade
+    // <select> (which would be the keyboard-path landing zone).
+    const activeIsCascadeSelect = await page.evaluate(() => {
+      const active = document.activeElement;
+      const firstCascadeSelect = document.getElementById("specCascade")?.querySelector("select");
+      return active === firstCascadeSelect;
+    });
+    expect(activeIsCascadeSelect).toBe(false);
+  });
+
+  test("keyboard selection (search → ArrowDown → Enter) scrolls AND focuses the first cascade select", async ({
+    page,
+  }) => {
+    // Mirror of the click path, but on the keyboard side: Enter on a
+    // focused row should both scroll the cascade into view AND land
+    // focus on the first <select> in the cascade so the user can keep
+    // keyboarding into the variants/config form without reaching for
+    // the mouse.
+    await setupFailFast(page);
+
+    await page.route("**/api/plan/available", (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(ALL_PLANS),
+      }),
+    );
+
+    await page.route("**/api/lastconfig", (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({}),
+      }),
+    );
+
+    await setupCommonRoutes(page);
+    await page.setViewportSize({ width: 1024, height: 360 });
+    await page.goto("/schedule-test.html");
+
+    const searchRows = page.locator("#planSearch .oidf-test-selector__row");
+    await expect(searchRows.first()).toBeVisible();
+
+    // Narrow the list, focus the search input, then ArrowDown into the
+    // first result and Enter to commit.
+    const searchInput = page.locator("#planSearch .oidf-test-selector__search");
+    await searchInput.fill("Client: Basic");
+    const targetRow = page.locator(
+      '#planSearch [data-plan-name="oidcc-client-basic-certification-test-plan"]',
+    );
+    await expect(targetRow).toBeVisible();
+
+    // Precondition: cascade starts well below viewport-top so the
+    // post-selection scroll assertion is meaningful.
+    const cascadeTopBeforeEnter = await page.locator("#specCascade").evaluate((el) => {
+      return Math.round(el.getBoundingClientRect().top);
+    });
+    expect(cascadeTopBeforeEnter).toBeGreaterThan(200);
+
+    await searchInput.focus();
+    await page.keyboard.press("ArrowDown");
+    // The focused row receives the keyboard event; pressing Enter on it
+    // dispatches cts-plan-select with via:'keyboard'.
+    await page.keyboard.press("Enter");
+
+    // Cascade scrolls into view (same assertion as the click test).
+    await expect
+      .poll(
+        async () => {
+          const top = await page.locator("#specCascade").evaluate((el) => {
+            return Math.round(el.getBoundingClientRect().top);
+          });
+          return top;
+        },
+        { timeout: 3000 },
+      )
+      .toBeLessThan(100);
+
+    // And focus lands on the first <select> inside #specCascade — the
+    // spec-family select — so Tab continues forward into variants/config.
+    await expect
+      .poll(
+        async () => {
+          return page.evaluate(() => {
+            const active = document.activeElement;
+            const firstCascadeSelect = document
+              .getElementById("specCascade")
+              ?.querySelector("select");
+            return active === firstCascadeSelect;
+          });
+        },
+        { timeout: 3000 },
+      )
+      .toBe(true);
+  });
+
   test("cascade selection highlights the matching row in the search selector", async ({ page }) => {
     await setupFailFast(page);
 

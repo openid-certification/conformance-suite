@@ -14,12 +14,19 @@ import "./cts-icon.js";
  * the user types, so there is no submit/return affordance. Pressing Escape
  * also clears the field.
  *
+ * Keyboard navigation: from the search input, ArrowDown moves focus into
+ * the first visible row. From a row, ArrowDown/ArrowUp roves across rows;
+ * ArrowUp on the first row returns focus to the search input. Enter (or
+ * Space) on a focused row commits the selection. Rows use roving
+ * tabindex so Tab escapes the list cleanly rather than cycling every row.
+ *
  * @property {Array} plans - Test plans to list; each has `planName`,
  *   `displayName`, `specFamily`, `modules`, `summary`.
  * @property {string} selected - Currently selected `planName`; the matching
  *   row is highlighted.
- * @fires cts-plan-select - When a list item is clicked, with
- *   `{ detail: { plan } }`; bubbles.
+ * @fires cts-plan-select - When a list item is selected, with
+ *   `{ detail: { plan, via } }` where `via` is `'click'` or `'keyboard'`;
+ *   bubbles.
  */
 
 const STYLE_ID = "cts-test-selector-styles";
@@ -248,6 +255,7 @@ class CtsTestSelector extends LitElement {
     selected: { type: String },
     _searchTerm: { state: true },
     _selectedFamily: { state: true },
+    _focusedRowIndex: { state: true },
   };
 
   createRenderRoot() {
@@ -260,6 +268,18 @@ class CtsTestSelector extends LitElement {
     this.selected = "";
     this._searchTerm = "";
     this._selectedFamily = "";
+    // -1 means "no row focused — search input owns focus (or focus is
+    // elsewhere on the page)". A non-negative value names the row that
+    // should receive focus on the next render-completion tick.
+    this._focusedRowIndex = -1;
+    // Set on row keydown(Enter|Space) so the click handler that follows
+    // can report `via: 'keyboard'`. Native <button> elements fire a
+    // synthetic click event on Enter/Space activation; consolidating the
+    // dispatch on that single click avoids the double-fire that any
+    // keyup-based dispatch would risk (testing libraries fire click
+    // BEFORE keyup, so a keyup-driven dispatch would land after the
+    // click handler already ran). Cleared after each click dispatch.
+    this._activationVia = null;
   }
 
   connectedCallback() {
@@ -290,15 +310,26 @@ class CtsTestSelector extends LitElement {
 
   _handleSearch(e) {
     this._searchTerm = e.target.value;
+    // Typing rebuilds the filtered list; any prior row-focus pointer
+    // would be stale (could exceed the new list bounds, or land on a
+    // different plan). Reset so updated() doesn't re-focus a row the
+    // user moved away from by typing.
+    this._focusedRowIndex = -1;
   }
   _handleSearchKeydown(e) {
     if (e.key === "Escape" && this._searchTerm !== "") {
       e.preventDefault();
       this._searchTerm = "";
+      return;
+    }
+    if (e.key === "ArrowDown" && this._filteredPlans.length > 0) {
+      e.preventDefault();
+      this._focusedRowIndex = 0;
     }
   }
   _handleSearchClear() {
     this._searchTerm = "";
+    this._focusedRowIndex = -1;
     // Restore focus to the input so the user can keep typing.
     const input = /** @type {HTMLInputElement | null} */ (
       this.querySelector(".oidf-test-selector__search")
@@ -307,17 +338,83 @@ class CtsTestSelector extends LitElement {
   }
   _handleFamilyFilter(e) {
     this._selectedFamily = e.target.value;
+    this._focusedRowIndex = -1;
   }
 
-  _handleSelectPlan(plan) {
+  // Read the row's position from data-index. Closing over `index` in the
+  // template would trigger lit/no-template-arrow; dataset lookup keeps
+  // the template handler a bare method reference.
+  _rowIndexFromEvent(event) {
+    const raw = /** @type {HTMLElement} */ (event.currentTarget).dataset.index;
+    const parsed = raw === undefined ? NaN : Number(raw);
+    return Number.isFinite(parsed) ? parsed : -1;
+  }
+
+  _handleRowKeydown(e) {
+    const index = this._rowIndexFromEvent(e);
+    if (index < 0) return;
+    const key = e.key;
+    if (key === "ArrowDown") {
+      e.preventDefault();
+      const last = this._filteredPlans.length - 1;
+      if (index < last) this._focusedRowIndex = index + 1;
+      return;
+    }
+    if (key === "ArrowUp") {
+      e.preventDefault();
+      if (index > 0) {
+        this._focusedRowIndex = index - 1;
+      } else {
+        // ArrowUp on the first row returns to the search input. Move
+        // focus synchronously since the input is already in the DOM —
+        // no need to wait for the next render cycle.
+        this._focusedRowIndex = -1;
+        const input = /** @type {HTMLInputElement | null} */ (
+          this.querySelector(".oidf-test-selector__search")
+        );
+        if (input) input.focus();
+      }
+      return;
+    }
+    if (key === "Enter" || key === " ") {
+      // Tag the activation modality so the click event that follows
+      // (native <button> Enter/Space activation fires a click) reports
+      // via:'keyboard'. Do not preventDefault — we want the native
+      // click to fire so dispatch happens exactly once per activation.
+      this._activationVia = "keyboard";
+    }
+  }
+
+  _handleRowClick(e) {
+    const index = this._rowIndexFromEvent(e);
+    if (index < 0) return;
+    const plan = this._filteredPlans[index];
+    if (!plan) return;
+    // Read and clear the intent flag in one step. If keydown(Enter|Space)
+    // marked the activation as keyboard-driven, honor that; otherwise the
+    // click came from a real pointer and reports as 'click'.
+    const via = this._activationVia ?? "click";
+    this._activationVia = null;
+    this._handleSelectPlan(plan, via);
+  }
+
+  _handleSelectPlan(plan, via) {
     this.selected = plan.planName;
-    this.dispatchEvent(new CustomEvent("cts-plan-select", { bubbles: true, detail: { plan } }));
+    this.dispatchEvent(
+      new CustomEvent("cts-plan-select", { bubbles: true, detail: { plan, via } }),
+    );
   }
 
-  _handleSelectPlanFromEvent(event) {
-    const planName = event.currentTarget.dataset.planName;
-    const plan = this.plans.find((p) => p.planName === planName);
-    if (plan) this._handleSelectPlan(plan);
+  updated(changed) {
+    // After the post-render commit, move real DOM focus to the row that
+    // the index now points at. Running here (not inside the keydown
+    // handler) ensures the new tabindex="0" / -1 mapping is already in
+    // the DOM before .focus() is called.
+    if (changed.has("_focusedRowIndex") && this._focusedRowIndex >= 0) {
+      const rows = this.querySelectorAll(".oidf-test-selector__row");
+      const target = /** @type {HTMLElement | undefined} */ (rows[this._focusedRowIndex]);
+      if (target) target.focus();
+    }
   }
 
   render() {
@@ -365,7 +462,7 @@ class CtsTestSelector extends LitElement {
         <div class="oidf-test-selector__list" role="list">
           ${this._filteredPlans.length > 0
             ? this._filteredPlans.map(
-                (plan) => html`
+                (plan, index) => html`
                   <button
                     type="button"
                     role="listitem"
@@ -374,7 +471,10 @@ class CtsTestSelector extends LitElement {
                       "is-active": this.selected === plan.planName,
                     })}
                     data-plan-name="${plan.planName}"
-                    @click=${this._handleSelectPlanFromEvent}
+                    data-index="${index}"
+                    tabindex="${this._focusedRowIndex === index ? 0 : -1}"
+                    @click=${this._handleRowClick}
+                    @keydown=${this._handleRowKeydown}
                   >
                     <span class="oidf-test-selector__row-head">
                       <span class="oidf-test-selector__row-title">
