@@ -87,6 +87,69 @@ dialog.oidf-modal::backdrop {
   backdrop-filter: blur(4px);
 }
 
+/* Entry / exit animation. The dialog fades and gently translates when it
+   enters and leaves the browser's top layer. CSS \`@starting-style\` defines
+   the pre-transition state for elements that have just become rendered
+   (Baseline 2024: Chrome 117+, Firefox 129+, Safari 17.4+). The companion
+   \`transition-behavior: allow-discrete\` lets the discrete \`display\` and
+   \`overlay\` property changes that <dialog>.showModal() drives participate
+   in the transition — without it the entering / leaving frames would still
+   snap in place. \`prefers-reduced-motion: reduce\` collapses everything to
+   zero duration and removes the translate, matching the precedent set in
+   cts-navbar.js / cts-log-detail-header.js where reduced motion dampens
+   rather than removes signal. */
+dialog.oidf-modal {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  transition: opacity var(--dur-2) var(--ease-standard),
+              transform var(--dur-2) var(--ease-standard),
+              overlay var(--dur-2) var(--ease-standard) allow-discrete,
+              display var(--dur-2) var(--ease-standard) allow-discrete;
+}
+@starting-style {
+  dialog.oidf-modal[open] {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.98);
+  }
+}
+dialog.oidf-modal:not([open]) {
+  opacity: 0;
+  transform: translateY(-8px) scale(0.98);
+}
+dialog.oidf-modal::backdrop {
+  transition: background-color var(--dur-2) var(--ease-standard),
+              backdrop-filter var(--dur-2) var(--ease-standard),
+              overlay var(--dur-2) var(--ease-standard) allow-discrete,
+              display var(--dur-2) var(--ease-standard) allow-discrete;
+}
+@starting-style {
+  dialog.oidf-modal[open]::backdrop {
+    background: rgba(26, 22, 17, 0);
+    backdrop-filter: blur(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  dialog.oidf-modal,
+  dialog.oidf-modal::backdrop {
+    transition-duration: 0ms;
+  }
+  dialog.oidf-modal,
+  dialog.oidf-modal:not([open]) {
+    transform: none;
+  }
+  @starting-style {
+    dialog.oidf-modal[open] {
+      opacity: 1;
+      transform: none;
+    }
+    dialog.oidf-modal[open]::backdrop {
+      background: rgba(26, 22, 17, 0.55);
+      backdrop-filter: blur(4px);
+    }
+  }
+}
+
 .oidf-modal-header {
   display: flex;
   justify-content: space-between;
