@@ -41,8 +41,56 @@
 
     <cts-navbar current-page="logs"></cts-navbar>
 
+    <style>
+        /* Active-filter chip rendered above the data table when the page is
+           loaded with `?status=` or `?result=` URL params. Visual silhouette
+           mirrors cts-data-table's search-filter-reset pill (a tokenised
+           pill with leading filter icon, label, and dismiss x) but with a
+           page-scoped class prefix so the rules don't accidentally inherit
+           that component's selector scope. The wrapper is hidden via the
+           `hidden` attribute in the unfiltered case so layout is unchanged. */
+        .oidf-page-filter {
+            margin-bottom: var(--space-4);
+        }
+        .oidf-page-filter-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: var(--space-2);
+            padding: var(--space-2) var(--space-3);
+            background: var(--bg-elev);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-pill);
+            color: var(--fg);
+            font-family: var(--font-sans);
+            font-size: var(--fs-14);
+            line-height: var(--lh-snug);
+            cursor: pointer;
+            transition: border-color var(--dur-1) var(--ease-standard),
+                        background var(--dur-1) var(--ease-standard);
+        }
+        .oidf-page-filter-chip:hover {
+            border-color: var(--border-strong);
+            background: var(--bg);
+        }
+        .oidf-page-filter-chip:focus-visible {
+            outline: none;
+            box-shadow: var(--focus-ring);
+        }
+        .oidf-page-filter-truncation {
+            margin: var(--space-2) 0 0;
+            color: var(--fg-soft);
+            font-size: var(--fs-13);
+            line-height: var(--lh-snug);
+        }
+    </style>
+
     <!-- resident DOM -->
     <main id="main-content" class="listing-page">
+        <!-- Active-filter chip rendered above the table when ?status= or
+             ?result= URL params are present. JS populates the inner HTML;
+             the wrapper stays in the DOM so the unfiltered case has zero
+             layout impact. -->
+        <div id="activeFilterChip" hidden></div>
         <!-- Mount point. cts-data-table is created imperatively in JS so the
              cellRenderer / columns / initialSort can be wired up *before*
              connectedCallback() runs (it reads initialSort once on connect). -->
@@ -101,14 +149,112 @@
         import { html } from "lit";
         import { unsafeHTML } from "lit/directives/unsafe-html.js";
 
+        // Whitelists mirror TestModule.Status and TestModule.Result enums
+        // (src/main/java/net/openid/conformance/testmodule/TestModule.java).
+        // Tokens outside these sets are silently dropped from the URL filter.
+        const VALID_STATUSES = new Set([
+            "NOT_YET_CREATED", "CREATED", "CONFIGURED", "RUNNING", "WAITING", "FINISHED", "INTERRUPTED",
+        ]);
+        const VALID_RESULTS = new Set([
+            "PASSED", "FAILED", "WARNING", "REVIEW", "SKIPPED", "UNKNOWN",
+        ]);
+        // Matches cts-dashboard's STATS_PAGE_SIZE convention — the backend
+        // PaginationRequest caps `length` at 1000, so this is the largest
+        // single-call dataset we can filter client-side without paging.
+        const MAX_FILTERED_LOGS = 1000;
+
+        /**
+         * Parse a comma-separated query-param value into a Set of valid
+         * uppercase enum tokens. Unknown tokens are silently dropped. If
+         * no valid token survives, returns null (filter inactive).
+         */
+        function parseFilterSet(raw, validUppercaseValues) {
+            if (!raw) return null;
+            const valid = raw
+                .split(",")
+                .map((t) => t.trim().toUpperCase())
+                .filter((t) => validUppercaseValues.has(t));
+            return valid.length > 0 ? new Set(valid) : null;
+        }
+
+        /**
+         * Build a human-readable summary of the active filter for the
+         * clear-filter chip. Joins status and result facets with " · ".
+         */
+        function describeActiveFilter(statusFilter, resultFilter) {
+            const parts = [];
+            if (statusFilter) {
+                const tokens = Array.from(statusFilter).map((s) => s.toLowerCase()).sort();
+                parts.push(`Status: ${tokens.join(" or ")}`);
+            }
+            if (resultFilter) {
+                const tokens = Array.from(resultFilter).map((s) => s.toLowerCase()).sort();
+                parts.push(`Result: ${tokens.join(" or ")}`);
+            }
+            return parts.join(" · ");
+        }
+
+        /**
+         * Render the clear-filter chip into #activeFilterChip. The chip is a
+         * button — activating it state-changes the URL (drops filter params,
+         * preserves `?public=true`) and reloads. `truncated` shows a muted
+         * line beneath the chip when the dataset hit the 1000-row cap.
+         */
+        function renderActiveFilterChip({ statusFilter, resultFilter, isPublic, matchCount, truncated }) {
+            const host = document.getElementById("activeFilterChip");
+            if (!host) return;
+            host.hidden = false;
+            const summary = describeActiveFilter(statusFilter, resultFilter);
+            const countLabel = typeof matchCount === "number"
+                ? ` (${matchCount}${truncated ? "+" : ""} ${matchCount === 1 ? "match" : "matches"})`
+                : "";
+            // Markup mirrors the cts-data-table search-filter-reset pill at
+            // components/cts-data-table.js:254-277 but with page-scoped class
+            // names so the rules don't accidentally inherit cts-data-table's
+            // selector scope. Styles live in this file's <style> block.
+            host.replaceChildren();
+            const wrapper = document.createElement("div");
+            wrapper.className = "oidf-page-filter";
+            const btn = document.createElement("button");
+            btn.type = "button";
+            btn.className = "oidf-page-filter-chip";
+            btn.setAttribute("aria-label", "Clear active filters");
+            const clearHref = "logs.html" + (isPublic ? "?public=true" : "");
+            btn.addEventListener("click", () => {
+                window.location.href = clearHref;
+            });
+            const leadIcon = document.createElement("cts-icon");
+            leadIcon.setAttribute("name", "filter");
+            leadIcon.setAttribute("size", "16");
+            leadIcon.setAttribute("aria-hidden", "true");
+            const label = document.createElement("span");
+            label.className = "oidf-page-filter-chip-label";
+            label.textContent = summary + countLabel;
+            const trailIcon = document.createElement("cts-icon");
+            trailIcon.setAttribute("name", "x");
+            trailIcon.setAttribute("size", "16");
+            trailIcon.setAttribute("aria-hidden", "true");
+            btn.append(leadIcon, label, trailIcon);
+            wrapper.appendChild(btn);
+            if (truncated) {
+                const note = document.createElement("p");
+                note.className = "oidf-page-filter-truncation";
+                note.textContent = "Showing the first " + MAX_FILTERED_LOGS + " matches. Refine the filter to narrow further.";
+                wrapper.appendChild(note);
+            }
+            host.appendChild(wrapper);
+        }
+
         document.addEventListener("DOMContentLoaded", () => {
             const urlParams = new URLSearchParams(window.location.search);
             const isPublic = Boolean(urlParams.get("public"));
+            const statusFilter = parseFilterSet(urlParams.get("status"), VALID_STATUSES);
+            const resultFilter = parseFilterSet(urlParams.get("result"), VALID_RESULTS);
 
             FAPI_UI.showBusy();
             FAPI_UI.loadLogListTemplates()
                 .then(() => FAPI_UI.getUserInfo())
-                .then(() => loadAvailableLogs(isPublic))
+                .then(() => loadAvailableLogs(isPublic, statusFilter, resultFilter))
                 .finally(() => FAPI_UI.hideBusy());
             // The table's `cts-data-loaded` listener (see loadAvailableLogs)
             // also calls hideBusy() to cover the search / sort / page round-trips.
@@ -136,7 +282,7 @@
             });
         });
 
-        async function loadAvailableLogs(isPublic) {
+        async function loadAvailableLogs(isPublic, statusFilter, resultFilter) {
             // Wait for the custom-element registration so we can set imperative
             // properties (cellRenderer, columns, initialSort) BEFORE the element
             // mounts and runs connectedCallback() — the component reads
@@ -144,19 +290,35 @@
             await customElements.whenDefined("cts-data-table");
 
             const mount = document.getElementById("logsListingMount");
+            const hasFilter = statusFilter !== null || resultFilter !== null;
 
             const table = document.createElement("cts-data-table");
             table.id = "logsListing";
-            table.setAttribute(
-                "ajax-url",
-                "/api/log" + (isPublic ? "?public=true" : ""),
-            );
             table.setAttribute("page-size", "25");
-            table.setAttribute("server-side", "");
             table.setAttribute("request-shape", "datatables-comma-order");
             table.setAttribute("search-mode", "explicit");
             table.setAttribute("search-placeholder", "Search logs");
-            table.setAttribute("empty-state", "No logs to show");
+            // Empty-state copy mirrors the active context: filtered views say
+            // "no matches" so the user knows the empty state is filter-driven.
+            table.setAttribute(
+                "empty-state",
+                hasFilter ? "No logs match the active filter" : "No logs to show",
+            );
+
+            if (hasFilter) {
+                // Client-side mode: the table consumes the filtered `rows`
+                // array directly. We fetch up to MAX_FILTERED_LOGS once and
+                // hand the cts-data-table a populated array — see below.
+                table.serverSide = false;
+            } else {
+                // Default: server-side pagination, identical to the
+                // pre-feature behaviour for the unfiltered path.
+                table.setAttribute(
+                    "ajax-url",
+                    "/api/log" + (isPublic ? "?public=true" : ""),
+                );
+                table.setAttribute("server-side", "");
+            }
 
             // Build the column descriptors. Visibility for "Config" and "Owner"
             // depends on the public flag and the current user's admin status,
@@ -274,9 +436,75 @@
                 );
             });
 
+            if (hasFilter) {
+                // Fetch up to MAX_FILTERED_LOGS once, filter client-side, and
+                // populate the table's `rows` BEFORE insertion so the table
+                // renders with data on the first paint (no flash of empty
+                // state). The chip is rendered after we know the match count
+                // so the "(N matches)" suffix is accurate.
+                const result = await fetchLogsForFiltering(isPublic);
+                if (result.failed) {
+                    FAPI_UI.showError({
+                        code: result.status,
+                        error: "Failed to load logs for filtering",
+                    });
+                    table.rows = [];
+                    renderActiveFilterChip({
+                        statusFilter, resultFilter, isPublic,
+                        matchCount: 0, truncated: false,
+                    });
+                } else {
+                    const filtered = result.data.filter((row) =>
+                        (statusFilter === null || statusFilter.has(row.status))
+                        && (resultFilter === null || resultFilter.has(row.result)),
+                    );
+                    table.rows = filtered;
+                    renderActiveFilterChip({
+                        statusFilter, resultFilter, isPublic,
+                        matchCount: filtered.length,
+                        truncated: result.truncated,
+                    });
+                }
+            }
+
             // Now insert. connectedCallback runs synchronously, reads
-            // initialSort, then queueMicrotask schedules the first fetch.
+            // initialSort, then queueMicrotask schedules the first fetch
+            // (server-side) or renders the populated `rows` (client-side).
             mount.replaceChildren(table);
+        }
+
+        /**
+         * Fetch the largest single page of logs the backend will return and
+         * normalize the envelope. Mirrors the dual-shape handling in
+         * cts-dashboard's _fetchListEndpoint (PaginationResponse envelope OR
+         * raw array). Returns `{ failed: true, status }` on HTTP error.
+         */
+        async function fetchLogsForFiltering(isPublic) {
+            const url = "/api/log?length=" + MAX_FILTERED_LOGS
+                + (isPublic ? "&public=true" : "");
+            try {
+                const response = await fetch(url);
+                if (!response.ok) {
+                    return { failed: true, status: response.status };
+                }
+                const payload = await response.json();
+                const data = Array.isArray(payload)
+                    ? payload
+                    : Array.isArray(payload?.data)
+                        ? payload.data
+                        : [];
+                const total = typeof payload?.recordsTotal === "number"
+                    ? payload.recordsTotal
+                    : data.length;
+                // Either the backend reports more rows than this page held,
+                // or this page filled the cap exactly — both signal the
+                // displayed dataset is truncated.
+                const truncated = total > data.length || data.length >= MAX_FILTERED_LOGS;
+                return { failed: false, data, truncated };
+            } catch (err) {
+                console.warn("[logs.html] filter-mode fetch failed:", err);
+                return { failed: true, status: 0 };
+            }
         }
     </script>
 

@@ -152,3 +152,170 @@ test.describe("logs.html — Logs List", () => {
     await expect(configModal).toBeHidden();
   });
 });
+
+test.describe("logs.html — URL filtering", () => {
+  test.afterEach(async ({ page }) => {
+    expectNoUnmockedCalls(page);
+  });
+
+  // When ?status= or ?result= is present the page switches cts-data-table to
+  // client-side mode and fetches /api/log?length=1000 in a single request.
+  // The route below returns the full fixture as a PaginationResponse envelope
+  // regardless of pagination params, which matches the backend behaviour for
+  // a dataset that fits in one page.
+  /** @param {import('@playwright/test').Page} page */
+  function setupFilterModeRoute(page) {
+    return page.route("**/api/log?*", (/** @type {import('@playwright/test').Route} */ route) => {
+      return route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({
+          draw: 1,
+          recordsTotal: MOCK_LOG_LIST.length,
+          recordsFiltered: MOCK_LOG_LIST.length,
+          data: MOCK_LOG_LIST,
+        }),
+      });
+    });
+  }
+
+  test("?status=running,waiting filters to in-progress rows and shows chip", async ({ page }) => {
+    await setupFailFast(page);
+    await setupFilterModeRoute(page);
+    await setupCommonRoutes(page);
+
+    await page.goto("/logs.html?status=running,waiting");
+
+    // Chip is visible and labelled with the active facet
+    const chip = page.locator("#activeFilterChip .oidf-page-filter-chip");
+    await expect(chip).toBeVisible();
+    await expect(chip).toContainText("Status: running or waiting");
+    await expect(chip).toContainText("(2 matches)");
+
+    // Only RUNNING + WAITING rows are rendered
+    await expect(page.locator("#logsListing .oidf-dt-table tbody tr[data-row-index]")).toHaveCount(
+      2,
+    );
+    await expect(page.locator("#logsListing")).toContainText("fapi2-running");
+    await expect(page.locator("#logsListing")).toContainText("fapi2-waiting");
+    await expect(page.locator("#logsListing")).not.toContainText("oidcc-server-rotate-keys");
+  });
+
+  test("?result=failed,unknown filters to failure rows", async ({ page }) => {
+    await setupFailFast(page);
+    await setupFilterModeRoute(page);
+    await setupCommonRoutes(page);
+
+    await page.goto("/logs.html?result=failed,unknown");
+
+    const chip = page.locator("#activeFilterChip .oidf-page-filter-chip");
+    await expect(chip).toBeVisible();
+    await expect(chip).toContainText("Result: failed or unknown");
+    // 3 rows match: 2 UNKNOWN (running, waiting) + 1 FAILED (vci-failed)
+    await expect(chip).toContainText("(3 matches)");
+    await expect(page.locator("#logsListing .oidf-dt-table tbody tr[data-row-index]")).toHaveCount(
+      3,
+    );
+    await expect(page.locator("#logsListing")).not.toContainText("oidcc-server-rotate-keys");
+  });
+
+  test("combined ?status and ?result apply both filters", async ({ page }) => {
+    await setupFailFast(page);
+    await setupFilterModeRoute(page);
+    await setupCommonRoutes(page);
+
+    await page.goto("/logs.html?status=finished&result=failed");
+
+    const chip = page.locator("#activeFilterChip .oidf-page-filter-chip");
+    await expect(chip).toContainText("Status: finished");
+    await expect(chip).toContainText("Result: failed");
+    // Only vci-failed matches FINISHED + FAILED
+    await expect(page.locator("#logsListing .oidf-dt-table tbody tr[data-row-index]")).toHaveCount(
+      1,
+    );
+    await expect(page.locator("#logsListing")).toContainText("vci-failed");
+  });
+
+  test("clicking the clear-filter chip navigates to the unfiltered URL", async ({ page }) => {
+    await setupFailFast(page);
+    await setupFilterModeRoute(page);
+    await setupCommonRoutes(page);
+
+    await page.goto("/logs.html?status=running,waiting");
+
+    const chip = page.locator("#activeFilterChip .oidf-page-filter-chip");
+    await expect(chip).toBeVisible();
+    await chip.click();
+    await page.waitForURL("**/logs.html");
+    // Chip is gone (the hidden wrapper has nothing inside)
+    await expect(page.locator("#activeFilterChip .oidf-page-filter-chip")).toHaveCount(0);
+  });
+
+  test("?public=true&result=failed,unknown filters the published-logs view", async ({ page }) => {
+    await setupFailFast(page);
+    await setupFilterModeRoute(page);
+    await setupCommonRoutes(page);
+
+    // Capture the request so we can assert public=true was forwarded
+    const requestPromise = page.waitForRequest(
+      (req) => req.url().includes("/api/log") && req.url().includes("length=1000"),
+    );
+    await page.goto("/logs.html?public=true&result=failed,unknown");
+    const req = await requestPromise;
+    expect(req.url()).toContain("public=true");
+
+    // Clicking the chip preserves ?public=true
+    const chip = page.locator("#activeFilterChip .oidf-page-filter-chip");
+    await chip.click();
+    await page.waitForURL((url) => {
+      const u = new URL(url);
+      return (
+        u.pathname.endsWith("/logs.html") &&
+        u.searchParams.get("public") === "true" &&
+        !u.searchParams.has("status") &&
+        !u.searchParams.has("result")
+      );
+    });
+  });
+
+  test("unknown filter tokens are silently dropped", async ({ page }) => {
+    await setupFailFast(page);
+    await setupFilterModeRoute(page);
+    await setupCommonRoutes(page);
+
+    await page.goto("/logs.html?status=running,bogus");
+
+    const chip = page.locator("#activeFilterChip .oidf-page-filter-chip");
+    await expect(chip).toContainText("Status: running");
+    // "bogus" was dropped — only RUNNING rows match (1)
+    await expect(page.locator("#logsListing .oidf-dt-table tbody tr[data-row-index]")).toHaveCount(
+      1,
+    );
+  });
+
+  test("?status=bogus with no valid tokens treats the param as inactive", async ({ page }) => {
+    await setupFailFast(page);
+
+    // No filter is active — page falls through to server-side mode, which
+    // hits the standard /api/log?draw=...&start=...&length=... endpoint.
+    await page.route("**/api/log?*", (route) => {
+      const envelope = wrapDataTablesResponse(MOCK_LOG_LIST, route.request().url());
+      return route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(envelope),
+      });
+    });
+
+    await setupCommonRoutes(page);
+
+    await page.goto("/logs.html?status=bogus");
+
+    // No chip rendered
+    await expect(page.locator("#activeFilterChip .oidf-page-filter-chip")).toHaveCount(0);
+    // All rows visible (server-side mode with default page size = 25 shows all 5)
+    await expect(page.locator("#logsListing .oidf-dt-table tbody tr[data-row-index]")).toHaveCount(
+      MOCK_LOG_LIST.length,
+    );
+  });
+});
