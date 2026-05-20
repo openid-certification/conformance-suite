@@ -555,6 +555,11 @@ textarea {
 	white-space: nowrap;
 }
 
+/* The two halves below split their border-radius along the chip's vertical
+ * midline: .ownerSub rounds the left corners, .ownerIss rounds the right.
+ * This assumes .ownerSub precedes .ownerIss in DOM order (see
+ * templates/owner.html). Reordering the halves would round the wrong sides
+ * and break the seam. */
 .ownerSub {
 	display: inline-flex;
 	align-items: center;
