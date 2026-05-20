@@ -232,6 +232,32 @@ export const AutoPlacementFlipsBelow = {
   },
 };
 
+export const NoArrowRendered = {
+  render: () => html`
+    <div style="padding: 80px;">
+      <cts-tooltip content="No chevron arrow" placement="top">
+        <button>Hover me</button>
+      </cts-tooltip>
+    </div>
+  `,
+
+  async play({ canvasElement }) {
+    const button = /** @type {HTMLButtonElement} */ (canvasElement.querySelector("button"));
+
+    await userEvent.hover(button);
+    await waitFor(() => {
+      const tip = getTooltipEl();
+      expect(tip).toBeTruthy();
+      // The chevron arrow was removed in favour of a flat tooltip body.
+      // Pin its absence so accidentally re-adding it shows up in CI.
+      expect(tip?.querySelector(".oidf-tooltip__arrow")).toBeNull();
+    });
+
+    await userEvent.unhover(button);
+    await waitFor(() => expect(getTooltipEl()).toBeNull());
+  },
+};
+
 export const RepositionsOnReshow = {
   render: () => html`
     <div style="padding: 80px;">
