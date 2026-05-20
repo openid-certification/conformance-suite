@@ -214,6 +214,26 @@ dialog.oidf-modal:not([open])::backdrop {
   max-height: calc(100vh - 200px);
 }
 
+/* Loading-modal layout. The static-backdrop + no-keyboard combo
+   discriminates the loading modal from every other cts-modal consumer
+   (publishModal, certificationPackageModal, privateLink modals, …) so
+   the centering only applies where it should. Body becomes a centered
+   column: the spinner sits above the message text with proper vertical
+   rhythm, both horizontally centered, no per-page wrapper class
+   required. The pre-existing \`<div class="text-center">\` wrapper on
+   each loading-modal page is now redundant — kept in HTML for now so
+   this is a CSS-only change. */
+cts-modal[static-backdrop][no-keyboard] .oidf-modal-body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+  padding-top: var(--space-6);
+  padding-bottom: var(--space-6);
+  text-align: center;
+}
+
 .oidf-modal-footer {
   padding: 14px 20px;
   border-top: 1px solid var(--border);
