@@ -36,12 +36,9 @@ The plan's Open Questions section explicitly named this risk:
 
 `tokens.html` (U1) is unaffected — its `cts-token-manager` has no outer chrome, so the card wrap is genuinely additive. `upload.html` (U3) is also unaffected — `cts-image-upload`'s bg/border styling is on interior elements (the drop zone), not on the outer host.
 
-**Recommended action.** If maintainer review confirms the double-chrome reads as noise: descope U2 with a 3-line revert across two files.
+**Action taken (historical).** The descope path matched the "noise" branch of the Open Questions framing: the `<cts-card>` wrapper and the `cts-card.js` import were removed from `login.html`, and the corresponding `expect(page.locator("cts-card")).toBeVisible()` assertion was removed from `frontend/e2e/login.spec.js`. See the **Resolution** line at the top of this section for the commit SHA.
 
-1. `src/main/resources/static/login.html`: remove the `<cts-card>` wrapper and the `<script type="module" src="/components/cts-card.js"></script>` import.
-2. `frontend/e2e/login.spec.js:24-27`: remove the `await expect(page.locator("cts-card")).toBeVisible();` assertion and its comment.
-
-If maintainer review accepts the wrap as-is: no action needed; the card chrome will inset slightly relative to the inner login-card border. Consider a JSDoc note on `cts-card.connectedCallback` documenting when the wrapper is appropriate (composite has no outer chrome) vs redundant (composite already paints panel chrome).
+A follow-up consideration the original review surfaced — adding a JSDoc note on `cts-card.connectedCallback` documenting when the wrapper is appropriate (composite has no outer chrome) vs redundant (composite already paints panel chrome) — is not blocking. Out of scope for the descope itself; track separately if pursued.
 
 ---
 

@@ -126,5 +126,5 @@ This plan adopts `<cts-card>` as the surrounding container for content panels on
 - `mvn -B -Dmaven.test.skip -Dpmd.skip clean package` succeeds.
 - `cd frontend && npm run test:ci` is green.
 - `cd frontend && npm run test:e2e` is green.
-- Manual click-through of `/tokens.html`, `/login.html`, `/upload.html` against `mvn spring-boot:run -Dspring-boot.run.profiles=dev` confirms the visual addition reads as polish, not regression.
+- Manual click-through of `/tokens.html` and `/upload.html` against `mvn spring-boot:run -Dspring-boot.run.profiles=dev` confirms the visual addition reads as polish, not regression. (Note: `/login.html` was originally part of this verification list as U2, but U2 was descoped after MR review — see Open Questions resolution. login.html is back to its pre-wire state and should not be re-verified against this plan.)
 - The board file row 4 is checked with the MR number.
