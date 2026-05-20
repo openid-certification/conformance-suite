@@ -94,11 +94,14 @@ test.describe("logs.html — DataTables server error", () => {
     expectNoUnmockedCalls(page);
   });
 
-  test("GET /api/log 500 surfaces #errorModal and table stays empty", async ({ page }) => {
+  test("GET /api/log 500 surfaces an inline error and no cards render", async ({ page }) => {
     await setupFailFast(page);
 
-    // DataTables ajax receives 500 — fapi.ui.js logs.html has a dedicated
-    // ajax.error handler that calls FAPI_UI.showError with the responseJSON.
+    // The cts-log-list component fetches /api/log?length=1000 once at mount.
+    // A 500 sets the component's _error state and renders a danger cts-alert
+    // inline above the empty list region — there is no #errorModal hop here.
+    // The legacy modal contract was specific to the cts-data-table path that
+    // the redesign retired in May 2026.
     await page.route("**/api/log?*", (route) =>
       route.fulfill({
         status: 500,
@@ -111,28 +114,17 @@ test.describe("logs.html — DataTables server error", () => {
 
     await page.goto("/logs.html");
 
-    // The error modal appears with the error message from the response.
-    const errorModal = page.locator("#errorModal");
-    await expect(errorModal).toBeVisible();
-    const errorText = errorModal.locator("#errorMessage");
-    // After U38 migrated to cts-data-table, the error message format
-    // changed from the responseJSON.error passthrough to "HTTP <status>"
-    // (cts-data-table's _fetchPage throws Error("HTTP " + status) on
-    // non-OK responses). The actionable response body is no longer
-    // surfaced through this path; "HTTP 500" is the new contract.
-    await expect(errorText).toContainText("HTTP 500");
+    const alert = page.locator("#logsListing cts-alert[variant='danger']");
+    await expect(alert).toBeVisible();
+    await expect(alert).toContainText("HTTP 500");
 
-    // The table body has no data rows (the 500 meant nothing was rendered).
-    // cts-data-table renders one error-state row inside tbody on fetch
-    // failure; data rows carry data-row-index, error rows do not.
-    const dataRows = page.locator("#logsListing tbody tr[data-row-index]");
-    await expect(dataRows).toHaveCount(0);
+    // No cards render.
+    await expect(page.locator('#logsListing [data-testid="log-list-item"]')).toHaveCount(0);
 
-    // T-8 "realistic next action": dismissing the modal doesn't navigate the
-    // user away — the page is still usable (e.g. reload to retry).
-    await errorModal.locator(".oidf-modal-close").first().click();
-    await expect(errorModal).toBeHidden();
+    // T-8 "realistic next action": no full-page hijack — the user can still
+    // navigate via the navbar after seeing the error.
     await expect(page).toHaveURL(/\/logs\.html/);
+    await expect(page.locator("cts-navbar")).toBeVisible();
   });
 });
 

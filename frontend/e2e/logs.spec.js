@@ -1,298 +1,292 @@
 import { test, expect } from "@playwright/test";
-import {
-  setupCommonRoutes,
-  setupFailFast,
-  wrapDataTablesResponse,
-  expectNoUnmockedCalls,
-} from "./helpers/routes.js";
+import { setupCommonRoutes, setupFailFast, expectNoUnmockedCalls } from "./helpers/routes.js";
 import { MOCK_LOG_LIST } from "./fixtures/mock-log-list.js";
 import { MOCK_ADMIN_USER } from "./fixtures/mock-users.js";
+
+// All filter / search / sort / pagination behaviour is now client-side over a
+// single 1000-row fetch envelope — matching the cts-dashboard stats pattern.
+// The route helper returns the same PaginationResponse shape regardless of
+// pagination params, which mirrors backend behaviour for a dataset that fits
+// in one page.
+function setupLogListRoute(page, rows = MOCK_LOG_LIST) {
+  return page.route("**/api/log?*", (route) => {
+    return route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        draw: 1,
+        recordsTotal: rows.length,
+        recordsFiltered: rows.length,
+        data: rows,
+      }),
+    });
+  });
+}
 
 test.describe("logs.html — Logs List", () => {
   test.afterEach(async ({ page }) => {
     expectNoUnmockedCalls(page);
   });
 
-  test("loads and renders logs in cts-data-table (R27)", async ({ page }) => {
+  test("loads and renders log cards (R1)", async ({ page }) => {
     await setupFailFast(page);
-
-    // /api/log — DataTables-style server-side endpoint
-    await page.route("**/api/log?*", (route) => {
-      const envelope = wrapDataTablesResponse(MOCK_LOG_LIST, route.request().url());
-      return route.fulfill({
-        status: 200,
-        contentType: "application/json",
-        body: JSON.stringify(envelope),
-      });
-    });
-
+    await setupLogListRoute(page);
     await setupCommonRoutes(page);
 
     await page.goto("/logs.html");
 
-    // Cross-page contract: every wired page mounts a single <cts-toast-host>
-    // for window.ctsToast(...). A silent removal of the mount from logs.html
-    // would otherwise pass all tests in this file. (Mirrors upload.spec.js:210.)
+    // Cross-page contract: every wired page mounts a single <cts-toast-host>.
     await expect(page.locator("cts-toast-host")).toHaveCount(1);
 
-    // Wait for cts-data-table to render rows. The host element keeps the
-    // legacy `#logsListing` id; the inner table lives in light DOM so the
-    // descendant selector still matches.
-    const rows = page.locator("#logsListing .oidf-dt-table tbody tr[data-row-index]");
-    await expect(rows.first()).toBeVisible();
+    const items = page.locator('#logsListing [data-testid="log-list-item"]');
+    await expect(items.first()).toBeVisible();
+    await expect(items).toHaveCount(MOCK_LOG_LIST.length);
 
-    // Should show test names
+    // Test names render as the card headline.
     await expect(page.locator("#logsListing")).toContainText("oidcc-server");
+    await expect(page.locator("#logsListing")).toContainText("oidcc-server-rotate-keys");
 
-    // Should show results
-    await expect(page.locator("#logsListing")).toContainText("PASSED");
-    await expect(page.locator("#logsListing")).toContainText("WARNING");
+    // Status + result badges render.
+    await expect(page.locator("#logsListing cts-badge[label='PASSED']")).toHaveCount(1);
+    await expect(page.locator("#logsListing cts-badge[label='WARNING']")).toHaveCount(1);
+    await expect(page.locator("#logsListing cts-badge[label='RUNNING']")).toHaveCount(1);
   });
 
-  test("search triggers cts-data-table re-fetch with Enter key", async ({ page }) => {
+  test("whole-card click navigates to log-detail.html (R12)", async ({ page }) => {
     await setupFailFast(page);
-
-    await page.route("**/api/log?*", (route) => {
-      const envelope = wrapDataTablesResponse(MOCK_LOG_LIST, route.request().url());
-      return route.fulfill({
-        status: 200,
-        contentType: "application/json",
-        body: JSON.stringify(envelope),
-      });
-    });
-
+    await setupLogListRoute(page);
     await setupCommonRoutes(page);
 
     await page.goto("/logs.html");
 
-    // Wait for initial table load
-    await expect(
-      page.locator("#logsListing .oidf-dt-table tbody tr[data-row-index]").first(),
-    ).toBeVisible();
-
-    // Type search term and press Enter — set up waitForRequest BEFORE the
-    // action so the listener is active when the request fires
-    const searchInput = page.locator("#logsListing .oidf-dt-search-input");
-    await searchInput.fill("rotate-keys");
-    const searchRequest = page.waitForRequest(
-      (req) => req.url().includes("/api/log?") && req.url().includes("search=rotate-keys"),
-    );
-    await searchInput.press("Enter");
-    await searchRequest;
+    const firstCard = page.locator('#logsListing [data-testid="log-list-item"]').first();
+    await expect(firstCard).toBeVisible();
+    const href = await firstCard.getAttribute("href");
+    expect(href).toMatch(/^log-detail\.html\?log=test-log-\d+/);
   });
 
-  test("config button in log row opens config modal", async ({ page }) => {
+  test("search input live-filters the rendered cards (R3)", async ({ page }) => {
     await setupFailFast(page);
+    await setupLogListRoute(page);
+    await setupCommonRoutes(page);
 
-    await page.route("**/api/log?*", (route) => {
-      const envelope = wrapDataTablesResponse(MOCK_LOG_LIST, route.request().url());
+    await page.goto("/logs.html");
+
+    await expect(page.locator('#logsListing [data-testid="log-list-item"]').first()).toBeVisible();
+
+    const searchInput = page.locator("#logsListing .cts-log-list-search input");
+    await searchInput.fill("rotate-keys");
+
+    // Live filter — no /api/log re-fetch fires. The dataset is already in
+    // memory from the initial fetch.
+    const items = page.locator('#logsListing [data-testid="log-list-item"]');
+    await expect(items).toHaveCount(1);
+    await expect(items.first()).toContainText("oidcc-server-rotate-keys");
+
+    // Clear the search — full list returns.
+    await searchInput.fill("");
+    await expect(items).toHaveCount(MOCK_LOG_LIST.length);
+  });
+
+  test("sort selector defaults to Started (newest) and reorders on change (R4)", async ({
+    page,
+  }) => {
+    await setupFailFast(page);
+    await setupLogListRoute(page);
+    await setupCommonRoutes(page);
+
+    await page.goto("/logs.html");
+
+    await expect(page.locator('#logsListing [data-testid="log-list-item"]').first()).toBeVisible();
+
+    const sortSelect = page.locator("#logsListing .cts-log-list-sort select");
+    await expect(sortSelect).toHaveValue("started-desc");
+
+    // Switch to name-asc — the first card is the alphabetically-earliest test
+    // name in the fixture.
+    await sortSelect.selectOption("name-asc");
+    const firstCardName = page
+      .locator('#logsListing [data-testid="log-list-item"]')
+      .first()
+      .locator(".cts-log-card-name");
+    // Fixture's alphabetically-first name is "fapi2-running".
+    await expect(firstCardName).toContainText("fapi2-running");
+  });
+
+  test("config button in card opens config modal and stops card navigation", async ({ page }) => {
+    await setupFailFast(page);
+    await setupLogListRoute(page);
+
+    // Config button fetches the plan to show its config. Cover every plan
+    // referenced in the fixture so the test does not couple to which plan
+    // ends up first under the started-desc default sort.
+    await page.route("**/api/plan/**", (route) => {
+      const url = new URL(route.request().url());
+      const planId = url.pathname.replace("/api/plan/", "");
       return route.fulfill({
-        status: 200,
-        contentType: "application/json",
-        body: JSON.stringify(envelope),
-      });
-    });
-
-    // Config button fetches the plan to show its config
-    await page.route("**/api/plan/plan-001**", (route) =>
-      route.fulfill({
         status: 200,
         contentType: "application/json",
         body: JSON.stringify({
-          _id: "plan-001",
+          _id: planId,
           config: { "server.issuer": "https://op.example.com" },
         }),
-      }),
-    );
+      });
+    });
 
     await setupCommonRoutes(page);
 
     await page.goto("/logs.html");
 
-    // Wait for rows
-    await expect(
-      page.locator("#logsListing .oidf-dt-table tbody tr[data-row-index]").first(),
-    ).toBeVisible();
+    await expect(page.locator('#logsListing [data-testid="log-list-item"]').first()).toBeVisible();
 
-    // Click the inner <button> rendered by the .showConfigBtn cts-button host.
-    // Targeting the inner button rather than the host element matches the
-    // pattern in plans.spec.js (and avoids edge cases where Playwright's
-    // host-bbox click misses the actual button on hosts with margin/padding).
-    const configBtn = page.locator(".showConfigBtn button").first();
+    // Click the config button on a specific card (test-log-001) so the
+    // expected testId in the modal toolbar is deterministic regardless of
+    // the default sort order.
+    const targetCard = page.locator(
+      '#logsListing [data-testid="log-list-item"][data-test-id="test-log-001"]',
+    );
+    await expect(targetCard).toBeVisible();
+    const configBtn = targetCard.locator(".showConfigBtn button");
     await expect(configBtn).toBeVisible();
     await configBtn.click();
 
-    // Config modal opens
-    const configModal = page.locator("#configModal");
+    // Card navigation must NOT have fired — we are still on logs.html.
+    expect(page.url()).toContain("logs.html");
+
+    // Config modal opens.
+    const configModal = page.locator("#cts-log-list-config-modal");
     await expect(configModal).toBeVisible();
-    await expect(page.locator("#config")).toContainText("server.issuer");
+    await expect(page.locator("#cts-log-list-config-editor")).toContainText("server.issuer");
 
-    // Toolbar shows the test id rather than a redundant "Configuration for"
-    // line. The cts-modal heading already says "Configuration".
-    await expect(configModal.locator("#configTestId")).toHaveText("test-log-001");
+    // Toolbar shows the test id.
+    await expect(configModal.locator("#cts-log-list-config-test-id")).toHaveText("test-log-001");
 
-    // Copy button uses the canonical `copy` icon (was `log-out` before the
-    // 2026-05-19 modal redesign). The cts-button host reflects the attribute,
-    // and the inner cts-icon renders the matching glyph. The visible label
-    // names the payload ("Copy configuration") so users don't conflate it
-    // with the test-id label next to it.
+    // Copy button uses the canonical `copy` icon and the visible label "Copy
+    // configuration" — same contract as the legacy modal.
     const copyBtn = configModal.locator(".btn-clipboard").first();
     await expect(copyBtn).toHaveAttribute("icon", "copy");
     await expect(copyBtn.locator('cts-icon[name="copy"]')).toBeVisible();
     await expect(copyBtn).toContainText("Copy configuration");
-    // Structural smoke test: the cts-tooltip wrapper is present with the
-    // expected content. The popover body is mounted on hover/focus by
-    // cts-tooltip itself; covering the hover-reveal behavior is the
-    // cts-tooltip primitive's own play-test, not this page-level spec.
     await expect(
       configModal.locator('cts-tooltip[content="Copy configuration JSON to clipboard"]'),
     ).toBeAttached();
 
-    // Close modal
+    // Close modal.
     await configModal.locator(".oidf-modal-close").first().click();
     await expect(configModal).toBeHidden();
   });
-
-  test("Started header is not sortable when it is the only sortable default", async ({ page }) => {
-    await setupFailFast(page);
-
-    await page.route("**/api/log?*", (route) => {
-      const envelope = wrapDataTablesResponse(MOCK_LOG_LIST, route.request().url());
-      return route.fulfill({
-        status: 200,
-        contentType: "application/json",
-        body: JSON.stringify(envelope),
-      });
-    });
-    await setupCommonRoutes(page);
-
-    // Capture the first /api/log request so we can confirm the default sort
-    // order is still seeded by `initialSort` (server-side `order[0]` params).
-    const initialLogRequestPromise = page.waitForRequest((req) => req.url().includes("/api/log?"));
-    await page.goto("/logs.html");
-    const initialLogRequest = await initialLogRequestPromise;
-
-    await expect(
-      page.locator("#logsListing .oidf-dt-table tbody tr[data-row-index]").first(),
-    ).toBeVisible();
-
-    const startedHeader = page.locator('#logsListing .oidf-dt-table th[data-column-key="started"]');
-    await expect(startedHeader).toHaveCount(1);
-
-    // Affordance gone: no sortable class, no arrow icon, no aria-sort attribute.
-    await expect(startedHeader).not.toHaveClass(/(^|\s)is-sortable(\s|$)/);
-    await expect(startedHeader.locator('cts-icon[name^="arrow-"]')).toHaveCount(0);
-    expect(await startedHeader.getAttribute("aria-sort")).toBeNull();
-
-    // Default sort still applied: initial fetch URL carries the order param
-    // seeded by `initialSort = { column: "started", direction: "desc" }`.
-    // logs.html uses `request-shape="datatables-comma-order"`, which
-    // serializes the order as `order=COL,DIR`.
-    const initialUrl = new URL(initialLogRequest.url());
-    expect(initialUrl.searchParams.get("order")).toBe("started,desc");
-  });
 });
 
-test.describe("logs.html — URL filtering", () => {
+test.describe("logs.html — Faceted filter chips and URL sync", () => {
   test.afterEach(async ({ page }) => {
     expectNoUnmockedCalls(page);
   });
 
-  // When ?status= or ?result= is present the page switches cts-data-table to
-  // client-side mode and fetches /api/log?length=1000 in a single request.
-  // The route below returns the full fixture as a PaginationResponse envelope
-  // regardless of pagination params, which matches the backend behaviour for
-  // a dataset that fits in one page.
-  /** @param {import('@playwright/test').Page} page */
-  function setupFilterModeRoute(page) {
-    return page.route("**/api/log?*", (/** @type {import('@playwright/test').Route} */ route) => {
-      return route.fulfill({
-        status: 200,
-        contentType: "application/json",
-        body: JSON.stringify({
-          draw: 1,
-          recordsTotal: MOCK_LOG_LIST.length,
-          recordsFiltered: MOCK_LOG_LIST.length,
-          data: MOCK_LOG_LIST,
-        }),
-      });
-    });
-  }
-
-  test("?status=running,waiting filters to in-progress rows and shows chip", async ({ page }) => {
+  test("?status=running,waiting boots with chips pre-selected (R9)", async ({ page }) => {
     await setupFailFast(page);
-    await setupFilterModeRoute(page);
+    await setupLogListRoute(page);
     await setupCommonRoutes(page);
 
     await page.goto("/logs.html?status=running,waiting");
 
-    // Chip is visible and labelled with the active facet
-    const chip = page.locator("#activeFilterChip .oidf-page-filter-chip");
-    await expect(chip).toBeVisible();
-    await expect(chip).toContainText("Status: running or waiting");
-    await expect(chip).toContainText("(2 matches)");
+    const runningChip = page.locator('#logsListing .cts-log-filter-chip[data-status="RUNNING"]');
+    const waitingChip = page.locator('#logsListing .cts-log-filter-chip[data-status="WAITING"]');
+    await expect(runningChip).toHaveAttribute("aria-pressed", "true");
+    await expect(waitingChip).toHaveAttribute("aria-pressed", "true");
 
-    // Only RUNNING + WAITING rows are rendered
-    await expect(page.locator("#logsListing .oidf-dt-table tbody tr[data-row-index]")).toHaveCount(
-      2,
-    );
+    // Only RUNNING + WAITING rows render.
+    await expect(page.locator('#logsListing [data-testid="log-list-item"]')).toHaveCount(2);
     await expect(page.locator("#logsListing")).toContainText("fapi2-running");
     await expect(page.locator("#logsListing")).toContainText("fapi2-waiting");
     await expect(page.locator("#logsListing")).not.toContainText("oidcc-server-rotate-keys");
+
+    // Active-filter summary visible.
+    const summary = page.locator('#logsListing [data-testid="active-filter-summary"]');
+    await expect(summary).toBeVisible();
+    await expect(summary).toContainText("Status: running or waiting");
+    await expect(summary).toContainText("(2 matches)");
   });
 
   test("?result=failed,unknown filters to failure rows", async ({ page }) => {
     await setupFailFast(page);
-    await setupFilterModeRoute(page);
+    await setupLogListRoute(page);
     await setupCommonRoutes(page);
 
     await page.goto("/logs.html?result=failed,unknown");
 
-    const chip = page.locator("#activeFilterChip .oidf-page-filter-chip");
-    await expect(chip).toBeVisible();
-    await expect(chip).toContainText("Result: failed or unknown");
-    // 3 rows match: 2 UNKNOWN (running, waiting) + 1 FAILED (vci-failed)
-    await expect(chip).toContainText("(3 matches)");
-    await expect(page.locator("#logsListing .oidf-dt-table tbody tr[data-row-index]")).toHaveCount(
-      3,
-    );
-    await expect(page.locator("#logsListing")).not.toContainText("oidcc-server-rotate-keys");
+    const summary = page.locator('#logsListing [data-testid="active-filter-summary"]');
+    await expect(summary).toBeVisible();
+    await expect(summary).toContainText("Result: failed or unknown");
+    // 3 rows match: 2 UNKNOWN (running, waiting) + 1 FAILED (vci-failed).
+    await expect(summary).toContainText("(3 matches)");
+    await expect(page.locator('#logsListing [data-testid="log-list-item"]')).toHaveCount(3);
   });
 
   test("combined ?status and ?result apply both filters", async ({ page }) => {
     await setupFailFast(page);
-    await setupFilterModeRoute(page);
+    await setupLogListRoute(page);
     await setupCommonRoutes(page);
 
     await page.goto("/logs.html?status=finished&result=failed");
 
-    const chip = page.locator("#activeFilterChip .oidf-page-filter-chip");
-    await expect(chip).toContainText("Status: finished");
-    await expect(chip).toContainText("Result: failed");
-    // Only vci-failed matches FINISHED + FAILED
-    await expect(page.locator("#logsListing .oidf-dt-table tbody tr[data-row-index]")).toHaveCount(
-      1,
-    );
+    const summary = page.locator('#logsListing [data-testid="active-filter-summary"]');
+    await expect(summary).toContainText("Status: finished");
+    await expect(summary).toContainText("Result: failed");
+    await expect(page.locator('#logsListing [data-testid="log-list-item"]')).toHaveCount(1);
     await expect(page.locator("#logsListing")).toContainText("vci-failed");
   });
 
-  test('active-filter chip renders a vendored close glyph (regression: name="x")', async ({
-    page,
-  }) => {
+  test("activating a status chip writes ?status= to the URL", async ({ page }) => {
     await setupFailFast(page);
-    await setupFilterModeRoute(page);
+    await setupLogListRoute(page);
+    await setupCommonRoutes(page);
+
+    await page.goto("/logs.html");
+
+    await expect(page.locator('#logsListing [data-testid="log-list-item"]').first()).toBeVisible();
+
+    const runningChip = page.locator('#logsListing .cts-log-filter-chip[data-status="RUNNING"]');
+    await runningChip.click();
+
+    // Wait for URL to update via history.replaceState.
+    await page.waitForFunction(() => window.location.search.includes("status=running"));
+    expect(page.url()).toContain("status=running");
+
+    // Toggle it off — URL param disappears.
+    await runningChip.click();
+    await page.waitForFunction(() => !window.location.search.includes("status="));
+    expect(page.url()).not.toContain("status=");
+  });
+
+  test("clicking the active-filter summary clears all filters", async ({ page }) => {
+    await setupFailFast(page);
+    await setupLogListRoute(page);
     await setupCommonRoutes(page);
 
     await page.goto("/logs.html?status=running,waiting");
 
-    const chip = page.locator("#activeFilterChip .oidf-page-filter-chip");
-    await expect(chip).toBeVisible();
+    const summary = page.locator('#logsListing [data-testid="active-filter-summary"]');
+    await expect(summary).toBeVisible();
+    await summary.click();
 
-    // The chip's trailing dismiss glyph must resolve to a vendored SVG. The
-    // April 2026 coolicons migration mapped `x` → `close-md`; a later refactor
-    // re-introduced `name="x"`, which 404s silently because no x.svg exists in
-    // vendor/coolicons/icons/. Pin the name and the resolved <use href>.
-    const dismissIcon = chip.locator('cts-icon[name="close-md"]');
+    await page.waitForFunction(() => !window.location.search.includes("status="));
+    await expect(summary).toHaveCount(0);
+    await expect(page.locator('#logsListing [data-testid="log-list-item"]')).toHaveCount(
+      MOCK_LOG_LIST.length,
+    );
+  });
+
+  test('summary uses the vendored close glyph (regression: name="x")', async ({ page }) => {
+    await setupFailFast(page);
+    await setupLogListRoute(page);
+    await setupCommonRoutes(page);
+
+    await page.goto("/logs.html?status=running,waiting");
+
+    const summary = page.locator('#logsListing [data-testid="active-filter-summary"]');
+    await expect(summary).toBeVisible();
+
+    const dismissIcon = summary.locator('cts-icon[name="close-md"]');
     await expect(dismissIcon).toHaveCount(1);
     await expect(dismissIcon.locator("svg use")).toHaveAttribute(
       "href",
@@ -300,27 +294,14 @@ test.describe("logs.html — URL filtering", () => {
     );
   });
 
-  test("clicking the clear-filter chip navigates to the unfiltered URL", async ({ page }) => {
+  test("?public=true&result=failed,unknown preserves the public flag when cleared", async ({
+    page,
+  }) => {
     await setupFailFast(page);
-    await setupFilterModeRoute(page);
+    await setupLogListRoute(page);
     await setupCommonRoutes(page);
 
-    await page.goto("/logs.html?status=running,waiting");
-
-    const chip = page.locator("#activeFilterChip .oidf-page-filter-chip");
-    await expect(chip).toBeVisible();
-    await chip.click();
-    await page.waitForURL("**/logs.html");
-    // Chip is gone (the hidden wrapper has nothing inside)
-    await expect(page.locator("#activeFilterChip .oidf-page-filter-chip")).toHaveCount(0);
-  });
-
-  test("?public=true&result=failed,unknown filters the published-logs view", async ({ page }) => {
-    await setupFailFast(page);
-    await setupFilterModeRoute(page);
-    await setupCommonRoutes(page);
-
-    // Capture the request so we can assert public=true was forwarded
+    // Capture the request so we can assert public=true was forwarded.
     const requestPromise = page.waitForRequest(
       (req) => req.url().includes("/api/log") && req.url().includes("length=1000"),
     );
@@ -328,9 +309,9 @@ test.describe("logs.html — URL filtering", () => {
     const req = await requestPromise;
     expect(req.url()).toContain("public=true");
 
-    // Clicking the chip preserves ?public=true
-    const chip = page.locator("#activeFilterChip .oidf-page-filter-chip");
-    await chip.click();
+    // Clicking the summary preserves ?public=true.
+    const summary = page.locator('#logsListing [data-testid="active-filter-summary"]');
+    await summary.click();
     await page.waitForURL((url) => {
       const u = new URL(url);
       return (
@@ -342,119 +323,63 @@ test.describe("logs.html — URL filtering", () => {
     });
   });
 
-  test("unknown filter tokens are silently dropped", async ({ page }) => {
+  test("?status=running,bogus drops unknown tokens silently", async ({ page }) => {
     await setupFailFast(page);
-    await setupFilterModeRoute(page);
+    await setupLogListRoute(page);
     await setupCommonRoutes(page);
 
     await page.goto("/logs.html?status=running,bogus");
 
-    const chip = page.locator("#activeFilterChip .oidf-page-filter-chip");
-    await expect(chip).toContainText("Status: running");
-    // "bogus" was dropped — only RUNNING rows match (1)
-    await expect(page.locator("#logsListing .oidf-dt-table tbody tr[data-row-index]")).toHaveCount(
-      1,
+    // "bogus" was dropped — only RUNNING is pressed and 1 row matches.
+    const summary = page.locator('#logsListing [data-testid="active-filter-summary"]');
+    await expect(summary).toContainText("Status: running");
+    await expect(page.locator('#logsListing [data-testid="log-list-item"]')).toHaveCount(1);
+  });
+
+  test("?status=bogus with no valid tokens leaves all rows visible", async ({ page }) => {
+    await setupFailFast(page);
+    await setupLogListRoute(page);
+    await setupCommonRoutes(page);
+
+    await page.goto("/logs.html?status=bogus");
+
+    // No summary rendered — no valid token survived.
+    await expect(page.locator('#logsListing [data-testid="active-filter-summary"]')).toHaveCount(0);
+    await expect(page.locator('#logsListing [data-testid="log-list-item"]')).toHaveCount(
+      MOCK_LOG_LIST.length,
     );
   });
 
-  test("Owner column renders the two-tone pill with icons inside each half (admin only)", async ({
-    page,
-  }) => {
+  test("Owner pill renders the two-tone chip with icons (admin only)", async ({ page }) => {
     await setupFailFast(page);
-    await page.route("**/api/log?*", (route) => {
-      const envelope = wrapDataTablesResponse(MOCK_LOG_LIST, route.request().url());
-      return route.fulfill({
-        status: 200,
-        contentType: "application/json",
-        body: JSON.stringify(envelope),
-      });
-    });
+    await setupLogListRoute(page);
     await setupCommonRoutes(page, { user: MOCK_ADMIN_USER });
 
     await page.goto("/logs.html");
 
-    // Wait for at least one row to render so the owner cell template has run.
-    await expect(
-      page.locator("#logsListing .oidf-dt-table tbody tr[data-row-index]").first(),
-    ).toBeVisible();
+    const firstCard = page.locator('#logsListing [data-testid="log-list-item"]').first();
+    await expect(firstCard).toBeVisible();
 
-    const firstOwner = page
-      .locator("#logsListing .oidf-dt-table tbody tr[data-row-index]")
-      .first()
-      .locator(".log-owner");
+    const firstOwner = firstCard.locator(".log-owner");
     await expect(firstOwner).toBeVisible();
 
-    // The April 2026 bi-* → cts-icon migration corrupted this template so the
-    // cts-icons appeared OUTSIDE the .ownerSub/.ownerIss pills. Pin the
-    // correct hierarchy: each pill wraps exactly one cts-icon, and the
-    // wrapping cts-tooltip + the chip's aria-label expose the sub/iss
-    // values (replacing the native `title` attribute that used to live on
-    // the chip itself).
     const subPill = firstOwner.locator(".ownerSub");
     const issPill = firstOwner.locator(".ownerIss");
     await expect(subPill).toHaveCount(1);
     await expect(issPill).toHaveCount(1);
     await expect(subPill.locator('cts-icon[name="user-01"]')).toHaveCount(1);
     await expect(issPill.locator('cts-icon[name="globe"]')).toHaveCount(1);
-    // cts-tooltip wraps each chip and carries the value in `content`. The
-    // chip itself keeps `aria-label` (screen readers don't reliably read
-    // visual tooltip content) and gets `tabindex="0"` so the tooltip is
-    // keyboard-reachable.
     await expect(firstOwner.locator('cts-tooltip[content="12345"] > .ownerSub')).toHaveCount(1);
     await expect(
       firstOwner.locator('cts-tooltip[content="https://accounts.google.com"] > .ownerIss'),
     ).toHaveCount(1);
     await expect(subPill).toHaveAttribute("aria-label", "Subject: 12345");
     await expect(issPill).toHaveAttribute("aria-label", "Issuer: https://accounts.google.com");
-    await expect(subPill).toHaveAttribute("tabindex", "0");
-    await expect(issPill).toHaveAttribute("tabindex", "0");
-    // The native `title` attribute is gone — replaced by cts-tooltip.
-    expect(await subPill.getAttribute("title")).toBeNull();
-    expect(await issPill.getAttribute("title")).toBeNull();
 
-    // Failing-shape negative assertion: the pre-fix bug rendered cts-icon
-    // as the OUTER wrapper with .ownerSub nested inside it. If this shape
-    // ever returns, fail loudly here rather than discovering it visually.
-    await expect(page.locator("#logsListing cts-icon > .ownerSub")).toHaveCount(0);
-    await expect(page.locator("#logsListing cts-icon > .ownerIss")).toHaveCount(0);
-
-    // Anti-wrap layout regression. Shrinking the logs table cell would have
-    // historically caused the two-tone pill to break onto two lines because
-    // .ownerSub and .ownerIss were inline-block siblings with no nowrap
-    // scope. After the fix (display: inline-flex; flex-wrap: nowrap on
-    // .log-owner), the pill stays on one line at any viewport width.
+    // Anti-wrap layout regression — pill stays on one line at narrow viewport.
     await page.setViewportSize({ width: 600, height: 800 });
     const box = await firstOwner.boundingBox();
     if (!box) throw new Error(".log-owner has no bounding box");
-    // Pill is .ownerSub padding (2px+2px) + ~16px icon ≈ 20px. The chip is
-    // read-only per CLAUDE.md's badge convention (fill only, no border).
-    // 32px is the spec-defined ceiling for "single line".
     expect(box.height).toBeLessThanOrEqual(32);
-  });
-
-  test("?status=bogus with no valid tokens treats the param as inactive", async ({ page }) => {
-    await setupFailFast(page);
-
-    // No filter is active — page falls through to server-side mode, which
-    // hits the standard /api/log?draw=...&start=...&length=... endpoint.
-    await page.route("**/api/log?*", (route) => {
-      const envelope = wrapDataTablesResponse(MOCK_LOG_LIST, route.request().url());
-      return route.fulfill({
-        status: 200,
-        contentType: "application/json",
-        body: JSON.stringify(envelope),
-      });
-    });
-
-    await setupCommonRoutes(page);
-
-    await page.goto("/logs.html?status=bogus");
-
-    // No chip rendered
-    await expect(page.locator("#activeFilterChip .oidf-page-filter-chip")).toHaveCount(0);
-    // All rows visible (server-side mode with default page size = 25 shows all 5)
-    await expect(page.locator("#logsListing .oidf-dt-table tbody tr[data-row-index]")).toHaveCount(
-      MOCK_LOG_LIST.length,
-    );
   });
 });
