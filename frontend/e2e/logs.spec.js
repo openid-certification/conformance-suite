@@ -6,6 +6,7 @@ import {
   expectNoUnmockedCalls,
 } from "./helpers/routes.js";
 import { MOCK_LOG_LIST } from "./fixtures/mock-log-list.js";
+import { MOCK_ADMIN_USER } from "./fixtures/mock-users.js";
 
 test.describe("logs.html — Logs List", () => {
   test.afterEach(async ({ page }) => {
@@ -275,6 +276,30 @@ test.describe("logs.html — URL filtering", () => {
     await expect(page.locator("#logsListing")).toContainText("vci-failed");
   });
 
+  test('active-filter chip renders a vendored close glyph (regression: name="x")', async ({
+    page,
+  }) => {
+    await setupFailFast(page);
+    await setupFilterModeRoute(page);
+    await setupCommonRoutes(page);
+
+    await page.goto("/logs.html?status=running,waiting");
+
+    const chip = page.locator("#activeFilterChip .oidf-page-filter-chip");
+    await expect(chip).toBeVisible();
+
+    // The chip's trailing dismiss glyph must resolve to a vendored SVG. The
+    // April 2026 coolicons migration mapped `x` → `close-md`; a later refactor
+    // re-introduced `name="x"`, which 404s silently because no x.svg exists in
+    // vendor/coolicons/icons/. Pin the name and the resolved <use href>.
+    const dismissIcon = chip.locator('cts-icon[name="close-md"]');
+    await expect(dismissIcon).toHaveCount(1);
+    await expect(dismissIcon.locator("svg use")).toHaveAttribute(
+      "href",
+      "/vendor/coolicons/icons/close-md.svg#i",
+    );
+  });
+
   test("clicking the clear-filter chip navigates to the unfiltered URL", async ({ page }) => {
     await setupFailFast(page);
     await setupFilterModeRoute(page);
@@ -330,6 +355,67 @@ test.describe("logs.html — URL filtering", () => {
     await expect(page.locator("#logsListing .oidf-dt-table tbody tr[data-row-index]")).toHaveCount(
       1,
     );
+  });
+
+  test("Owner column renders the two-tone pill with icons inside each half (admin only)", async ({
+    page,
+  }) => {
+    await setupFailFast(page);
+    await page.route("**/api/log?*", (route) => {
+      const envelope = wrapDataTablesResponse(MOCK_LOG_LIST, route.request().url());
+      return route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(envelope),
+      });
+    });
+    await setupCommonRoutes(page, { user: MOCK_ADMIN_USER });
+
+    await page.goto("/logs.html");
+
+    // Wait for at least one row to render so the owner cell template has run.
+    await expect(
+      page.locator("#logsListing .oidf-dt-table tbody tr[data-row-index]").first(),
+    ).toBeVisible();
+
+    const firstOwner = page
+      .locator("#logsListing .oidf-dt-table tbody tr[data-row-index]")
+      .first()
+      .locator(".log-owner");
+    await expect(firstOwner).toBeVisible();
+
+    // The April 2026 bi-* → cts-icon migration corrupted this template so the
+    // cts-icons appeared OUTSIDE the .ownerSub/.ownerIss pills. Pin the
+    // correct hierarchy: each pill wraps exactly one cts-icon, and the title
+    // / aria-label expose the actual sub/iss values.
+    const subPill = firstOwner.locator(".ownerSub");
+    const issPill = firstOwner.locator(".ownerIss");
+    await expect(subPill).toHaveCount(1);
+    await expect(issPill).toHaveCount(1);
+    await expect(subPill.locator('cts-icon[name="user-01"]')).toHaveCount(1);
+    await expect(issPill.locator('cts-icon[name="globe"]')).toHaveCount(1);
+    await expect(subPill).toHaveAttribute("title", "12345");
+    await expect(subPill).toHaveAttribute("aria-label", "Subject: 12345");
+    await expect(issPill).toHaveAttribute("title", "https://accounts.google.com");
+    await expect(issPill).toHaveAttribute("aria-label", "Issuer: https://accounts.google.com");
+
+    // Failing-shape negative assertion: the pre-fix bug rendered cts-icon
+    // as the OUTER wrapper with .ownerSub nested inside it. If this shape
+    // ever returns, fail loudly here rather than discovering it visually.
+    await expect(page.locator("#logsListing cts-icon > .ownerSub")).toHaveCount(0);
+    await expect(page.locator("#logsListing cts-icon > .ownerIss")).toHaveCount(0);
+
+    // Anti-wrap layout regression. Shrinking the logs table cell would have
+    // historically caused the two-tone pill to break onto two lines because
+    // .ownerSub and .ownerIss were inline-block siblings with no nowrap
+    // scope. After the fix (display: inline-flex; flex-wrap: nowrap on
+    // .log-owner), the pill stays on one line at any viewport width.
+    await page.setViewportSize({ width: 600, height: 800 });
+    const box = await firstOwner.boundingBox();
+    if (!box) throw new Error(".log-owner has no bounding box");
+    // Pill is .ownerSub padding (2px+2px) + ~16px icon + borders ≈ 20-24px.
+    // 32px is the spec-defined ceiling for "single line".
+    expect(box.height).toBeLessThanOrEqual(32);
   });
 
   test("?status=bogus with no valid tokens treats the param as inactive", async ({ page }) => {

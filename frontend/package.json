@@ -10,6 +10,7 @@
     "build-storybook": "storybook build",
     "test-storybook": "vitest --project=storybook --run",
     "lint:jsdoc": "bash scripts/lint-jsdoc-properties.sh",
+    "lint:icons": "bash scripts/lint-icon-names.sh",
     "format": "prettier --config ./.prettierrc.json --write . ../src/main/resources/static/components",
     "format:check": "prettier --config ./.prettierrc.json --check . ../src/main/resources/static/components",
     "lint": "eslint ../frontend ../src/main/resources/static/components",
@@ -19,7 +20,7 @@
     "codegen": "bash scripts/codegen.sh",
     "codegen:offline": "bash scripts/codegen.sh --offline",
     "codegen:check": "bash scripts/codegen.sh --check",
-    "test:ci": "npm run format:check && npm run lint && npm run type-check && npm run lint:jsdoc && npm run lint:lit-analyzer && npm run codegen:check",
+    "test:ci": "npm run format:check && npm run lint && npm run type-check && npm run lint:jsdoc && npm run lint:icons && npm run lint:lit-analyzer && npm run codegen:check",
     "test": "npm run test:ci && npm run test-storybook"
   },
   "engines": {

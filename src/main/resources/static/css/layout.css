@@ -548,7 +548,16 @@ textarea {
 }
 
 
+.log-owner {
+	display: inline-flex;
+	align-items: stretch;
+	flex-wrap: nowrap;
+	white-space: nowrap;
+}
+
 .ownerSub {
+	display: inline-flex;
+	align-items: center;
 	background: #d9c9fe;
 	color: black;
 	padding: 2px 10px;
@@ -560,6 +569,8 @@ textarea {
 }
 
 .ownerIss {
+	display: inline-flex;
+	align-items: center;
 	background: #d3dcf5;
 	color: black;
 	padding: 2px 10px;
