@@ -126,16 +126,18 @@ cts-link-button > a:focus,
   white-space: pre-line;
 }
 
-/* ---- plans page wrapper ----------------------------------------
-   plans.html used to wrap its content in Bootstrap's `.container-fluid
-   .row .col-md-12`, which renders edge-to-edge with no horizontal
-   constraint and no token-based padding. The wrapper below gives the
-   listing the same centred, token-spaced shell as the rest of the
-   suite. Width sits a touch wider than `.schedule-test-page` to give
-   the plan-list table room to breathe.
+/* ---- listing page wrapper --------------------------------------
+   Shared shell for table / listing pages — plans.html, logs.html.
+   These pages render wide tabular data and benefit from more
+   horizontal room than the form-shaped pages (which use
+   `.schedule-test-page` at 1100px). Centred so very wide monitors do
+   not stretch the table edge-to-edge, but generous enough that a
+   ten-column data-table at default font size still breathes on a
+   1440-1920 display. Token padding keeps the rhythm consistent with
+   the rest of the suite.
    ---------------------------------------------------------------- */
-.plans-page {
-  max-width: 1200px;
+.listing-page {
+  max-width: 1600px;
   margin: 0 auto;
   padding: var(--space-6) var(--space-5);
 }
