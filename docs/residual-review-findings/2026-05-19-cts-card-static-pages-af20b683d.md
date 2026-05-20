@@ -18,13 +18,15 @@ ce-code-review autofix surfaced 3 `safe_auto` fixes (applied inline) and 1 resid
 
 ---
 
-## Residual actionable (1)
+## Resolved (1)
 
 ### [P1] `src/main/resources/static/login.html:25` — Double-chrome from cts-card wrap of cts-login-page
 
 **Corroborated by:** correctness (P1, conf 100) and maintainability (P1, conf 90). Two independent reviewers converged on this finding.
 
-**Status:** Shipped as written. Plan's Open Questions section pre-authorized the descope contingency; the decision belongs to maintainers (Joseph or Thomas per board) at MR review.
+**Resolution:** Descoped U2 in `c5964b1b2` on `feat/redesign` (2026-05-19) per [`docs/plans/2026-05-19-004-fix-descope-cts-card-from-login-plan.md`](../plans/2026-05-19-004-fix-descope-cts-card-from-login-plan.md). The `<cts-card>` wrapper and the `cts-card.js` script import were removed from `login.html`; the `expect(page.locator("cts-card")).toBeVisible()` assertion was removed from `login.spec.js`. U1 (tokens.html) and U3 (upload.html) remain shipped — they wrap composites with no outer chrome, so the card is genuinely additive.
+
+**Status:** Shipped as written, then descoped (above). Plan's Open Questions section pre-authorized the descope contingency; the decision belonged to maintainers (Joseph or Thomas per board) at MR review.
 
 **The concern.** `cts-login-page` already paints full panel chrome on its inner `.oidf-login-card` section: `background: var(--bg-elev)`, `border: 1px solid var(--border)`, `border-radius: var(--radius-4)`, `box-shadow: var(--shadow-3)` (see `src/main/resources/static/components/cts-login-page.js` lines 67-102). Wrapping it in `<cts-card>` (which paints `bg-elev`, `border`, `radius-3`, `shadow-1` plus `--space-5` body padding) creates a visible card-inside-card outline on a public-facing unauthenticated page.
 
