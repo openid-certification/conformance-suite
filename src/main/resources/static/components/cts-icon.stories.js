@@ -1,5 +1,5 @@
 import { html } from "lit";
-import { expect } from "storybook/test";
+import { expect, fn, waitFor } from "storybook/test";
 import "./cts-icon.js";
 
 export default {
@@ -228,13 +228,150 @@ export const AllIcons = {
     const figures = canvasElement.querySelectorAll("figure");
     expect(figures.length).toBe(VENDORED_ICON_NAMES.length);
 
-    // Every figure has a cts-icon whose rendered <use> points at a real
-    // file in /vendor/coolicons/icons/.
-    const allHaveUseHref = Array.from(figures).every((fig) => {
+    // Every figure's cts-icon must resolve to a real vendored SVG file. We
+    // fetch each URL with a HEAD request and assert 200 OK so the smoke
+    // test catches the case where the curated list drifts past a renamed
+    // or deleted upstream icon. URL shape alone (the original check) would
+    // pass even for a literal `x.svg` that doesn't exist.
+    const hrefs = Array.from(figures).map((fig) => {
       const use = fig.querySelector("cts-icon svg use");
-      const href = use?.getAttribute("href") ?? "";
-      return href.startsWith("/vendor/coolicons/icons/") && href.endsWith(".svg#i");
+      return use?.getAttribute("href") ?? "";
     });
-    expect(allHaveUseHref).toBe(true);
+    expect(
+      hrefs.every((h) => h.startsWith("/vendor/coolicons/icons/") && h.endsWith(".svg#i")),
+    ).toBe(true);
+    const results = await Promise.all(
+      hrefs.map(async (href) => {
+        const url = href.replace(/#i$/, "");
+        const res = await fetch(url, { method: "HEAD" });
+        return { url, ok: res.ok, status: res.status };
+      }),
+    );
+    const failed = results.filter((r) => !r.ok);
+    expect(failed).toEqual([]);
+  },
+};
+
+/**
+ * Runtime warning: when a cts-icon's name doesn't resolve to a vendored
+ * SVG, the component emits a console.warn the first time that name is
+ * loaded. Catches dynamic / templated names (e.g. `name="${tile.icon}"`)
+ * at dev time — the static CI lint (`npm run lint:icons`) catches literal
+ * names earlier in the chain, but anything computed at runtime can only
+ * surface here.
+ */
+export const MissingIconWarns = {
+  render: () => html`<div id="mount" style="padding: 1rem;"></div>`,
+
+  async play({ canvasElement }) {
+    const warnSpy = fn();
+    const origWarn = console.warn;
+    console.warn = warnSpy;
+    try {
+      const mount = canvasElement.querySelector("#mount");
+      // Per-story unique name so the module-level dedupe Set never short-
+      // circuits this assertion across repeat runs of the suite.
+      const badName = `definitely-missing-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+      const icon = document.createElement("cts-icon");
+      icon.setAttribute("name", badName);
+      icon.setAttribute("size", "16");
+      mount.appendChild(icon);
+
+      await waitFor(
+        () => {
+          expect(warnSpy).toHaveBeenCalled();
+          const joined = warnSpy.mock.calls.flat().join(" ");
+          expect(joined).toContain(badName);
+          expect(joined).toContain("cts-icon");
+        },
+        { timeout: 3000 },
+      );
+    } finally {
+      console.warn = origWarn;
+    }
+  },
+};
+
+/**
+ * Inverse of MissingIconWarns: a name that resolves to a real vendored
+ * SVG must NOT emit a console warning. Guards against a future
+ * refactor that accidentally fires the warning on success too.
+ */
+export const ValidIconNoWarning = {
+  render: () => html`<div id="mount" style="padding: 1rem;"></div>`,
+
+  async play({ canvasElement }) {
+    const warnSpy = fn();
+    const origWarn = console.warn;
+    console.warn = warnSpy;
+    try {
+      const mount = canvasElement.querySelector("#mount");
+      const icon = document.createElement("cts-icon");
+      icon.setAttribute("name", "close-md");
+      icon.setAttribute("size", "16");
+      mount.appendChild(icon);
+
+      // Wait for the actual <use> element to mount and its `load` event to
+      // fire — the definitive signal that the SVG fetch resolved without
+      // error. A fixed setTimeout would either burn budget needlessly or
+      // race past a slow CI fetch and produce a false-negative "no warning
+      // fired" (because the fetch hadn't completed yet).
+      await waitFor(
+        () => {
+          const useEl = icon.querySelector("svg use");
+          expect(useEl).toBeTruthy();
+        },
+        { timeout: 3000 },
+      );
+      // Give one more microtask tick so any same-tick error event would have
+      // dispatched onto our listener.
+      await new Promise((r) => setTimeout(r, 50));
+
+      // Filter out any unrelated warnings (e.g. Lit dev-mode chatter) that
+      // are not from our component.
+      const ourCalls = warnSpy.mock.calls.filter((args) =>
+        String(args[0] ?? "").includes("[cts-icon]"),
+      );
+      expect(ourCalls.length).toBe(0);
+    } finally {
+      console.warn = origWarn;
+    }
+  },
+};
+
+/**
+ * Dedupe: the same invalid name appearing N times on a page produces
+ * exactly one warning. A long list view re-rendering the same broken
+ * icon name would otherwise flood DevTools.
+ */
+export const WarnsOncePerName = {
+  render: () => html`<div id="mount" style="padding: 1rem;"></div>`,
+
+  async play({ canvasElement }) {
+    const warnSpy = fn();
+    const origWarn = console.warn;
+    console.warn = warnSpy;
+    try {
+      const mount = canvasElement.querySelector("#mount");
+      const badName = `dup-missing-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+      for (let i = 0; i < 3; i++) {
+        const icon = document.createElement("cts-icon");
+        icon.setAttribute("name", badName);
+        icon.setAttribute("size", "16");
+        mount.appendChild(icon);
+      }
+
+      await waitFor(
+        () => {
+          const ourCalls = warnSpy.mock.calls.filter((args) =>
+            String(args[0] ?? "").includes(badName),
+          );
+          expect(ourCalls.length).toBe(1);
+        },
+        { timeout: 3000 },
+      );
+    } finally {
+      console.warn = origWarn;
+    }
   },
 };

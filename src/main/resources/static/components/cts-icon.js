@@ -1,6 +1,18 @@
 import { LitElement, html, nothing } from "lit";
 
 /**
+ * Module-level dedupe set so we warn at most once per unique invalid icon
+ * name across the module's lifetime (effectively per tab-load in the
+ * current MPA architecture). Without dedupe, a list view that renders the
+ * same bad name 200 times would flood DevTools with identical warnings.
+ * If the app ever moves to client-side routing the Set will persist
+ * across virtual-page transitions — that's the right behavior for the
+ * dedupe contract (warn once per name, ever) and not a leak.
+ * @type {Set<string>}
+ */
+const warnedNames = new Set();
+
+/**
  * Public size keys for cts-icon. The three documented sizes (16, 20, 24)
  * align 1:1 with the OIDF spacing tokens --space-4/5/6 (16px/20px/24px),
  * so every cts-icon scales automatically with future token revisions.
@@ -80,6 +92,39 @@ class CtsIcon extends LitElement {
   _resolvedSize() {
     const aliased = LEGACY_SIZE_ALIASES[this.size] ?? this.size;
     return VALID_SIZES.includes(aliased) ? aliased : "20";
+  }
+
+  /**
+   * Wire an `error` listener to the inner `<use>` element. Modern
+   * Chromium/WebKit/Gecko fire `error` on `<use>` when the referenced
+   * fragment fails to resolve (the SVG file 404s, or `#i` is missing). The
+   * listener warns once per unique name across the module lifetime so a
+   * repeated bad name in a long list doesn't flood the console.
+   *
+   * Uses `updated()` (not `firstUpdated()`) because the empty-name → real-
+   * name lifecycle pattern (`<cts-icon name="">` mounted first, then
+   * `icon.name = "something"` later) renders `nothing` on first update —
+   * `firstUpdated` would attach to a null `useEl` and bail out, leaving the
+   * eventual real `<use>` element unwatched. Lit's light-DOM diffing reuses
+   * the same `<use>` element across subsequent name changes, so the
+   * `_watchedUseEl` ref check prevents double-wiring while still attaching
+   * exactly once per element instance.
+   */
+  updated() {
+    const useEl = this.querySelector("svg use");
+    if (!useEl || useEl === this._watchedUseEl) return;
+    this._watchedUseEl = useEl;
+    useEl.addEventListener("error", () => {
+      const name = this.name;
+      if (!name || warnedNames.has(name)) return;
+      warnedNames.add(name);
+      // eslint-disable-next-line no-console -- intentional dev-time signal
+      console.warn(
+        `[cts-icon] No vendored SVG found for name="${name}". ` +
+          "Find valid names: ls src/main/resources/static/vendor/coolicons/icons/ " +
+          "or browse Storybook → Primitives/cts-icon → AllIcons.",
+      );
+    });
   }
 
   render() {

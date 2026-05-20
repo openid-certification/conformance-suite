@@ -114,6 +114,7 @@ CSS — page and component layouts own their own styles.
 - **`lint` fails** — ESLint reports errors (or warnings that the job promoted to errors). Fix auto-fixable findings with `npm run lint:fix`; read the remaining output and edit the offending lines.
 - **`type-check` fails** — `tsc` reports a type error. Fix: correct the JSDoc `@type` or the call site; narrow a constructor initializer when the inferred literal type is too loose.
 - **`lint:jsdoc` fails** — A `cts-*` class is missing its class-level JSDoc block with `@property` tags. Fix: add the JSDoc block above the class (see "JSDoc dual-convention" below).
+- **`lint:icons` fails** — A literal `cts-icon name="<value>"` references an SVG that is not under `src/main/resources/static/vendor/coolicons/icons/`. Fix: run `ls src/main/resources/static/vendor/coolicons/icons/` (or browse Storybook → Primitives/cts-icon → AllIcons) to find a valid name, or vendor a new icon per `src/main/resources/static/vendor/coolicons/README.md` if your case is genuinely new. The script suggests `close-md` / `close-sm` / `close-lg` for the common `x` / `cross` / `close` typos.
 - **`lint:lit-analyzer` fails** — A Lit template diagnostic errored. Common causes: unknown HTML tag name (typo), wrong binding sigil (`class=` vs `.class=` vs `?class=`), unclosed tag, property name mismatch on a `cts-*` child. Fix: the CLI output points at the offending line; read the rule name in the message and the Lit error docs (https://lit.dev/msg/) for context.
 
 ## `schedule-test.html` snapshot baselines
