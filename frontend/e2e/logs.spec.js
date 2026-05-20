@@ -413,7 +413,8 @@ test.describe("logs.html — URL filtering", () => {
     await page.setViewportSize({ width: 600, height: 800 });
     const box = await firstOwner.boundingBox();
     if (!box) throw new Error(".log-owner has no bounding box");
-    // Pill is .ownerSub padding (2px+2px) + ~16px icon + borders ≈ 20-24px.
+    // Pill is .ownerSub padding (2px+2px) + ~16px icon ≈ 20px. The chip is
+    // read-only per CLAUDE.md's badge convention (fill only, no border).
     // 32px is the spec-defined ceiling for "single line".
     expect(box.height).toBeLessThanOrEqual(32);
   });
