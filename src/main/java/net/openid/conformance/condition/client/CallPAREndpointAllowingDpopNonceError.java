@@ -41,6 +41,21 @@ public class CallPAREndpointAllowingDpopNonceError extends CallPAREndpoint {
 			} else {
 				throw error("Unexpected DPoP-Nonce header response", args("headers", jsonResponseHeaders));
 			}
+		} else if (status >= 200 && status < 300) {
+			// RFC 9449 §8.2: the server may rotate the DPoP nonce on every response and the
+			// client SHOULD include the latest value on subsequent requests. Some ASes treat
+			// each nonce as single-use (reusing one returns invalid_dpop_proof with no recovery
+			// path), so harvesting the freshly issued nonce from a successful response is
+			// required to avoid stale-nonce reuse on the next call.
+			List<String> nonceList = response.getHeaders().get("DPoP-Nonce");
+			if (nonceList != null && nonceList.size() == 1) {
+				String dpopNonce = nonceList.get(0);
+				if (!Strings.isNullOrEmpty(dpopNonce)) {
+					env.putString("authorization_server_dpop_nonce", dpopNonce);
+					log("Harvested DPoP-Nonce response header for use in the next request",
+						args("DPoP-Nonce", dpopNonce));
+				}
+			}
 		}
 	}
 

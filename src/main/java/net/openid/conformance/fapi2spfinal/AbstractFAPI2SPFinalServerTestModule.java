@@ -1111,6 +1111,14 @@ public abstract class AbstractFAPI2SPFinalServerTestModule extends AbstractRedir
 		env.mapKey("client", "client2");
 		env.mapKey("client_jwks", "client_jwks2");
 		env.mapKey("mutual_tls_authentication", "mutual_tls_authentication2");
+		// Clear any cached DPoP-Nonce values carried over from the first client. RFC 9449 §8.2
+		// permits the AS to rotate the nonce per response and to treat each value as
+		// single-use; reusing a consumed nonce returns invalid_dpop_proof with no retry path
+		// (the AS won't issue a fresh nonce alongside that error). The second client's first
+		// request must therefore send no nonce so the AS bootstraps a fresh one via the
+		// use_dpop_nonce retry flow.
+		env.removeNativeValue("authorization_server_dpop_nonce");
+		env.removeNativeValue("resource_server_dpop_nonce");
 	}
 
 	protected void unmapClient() {
