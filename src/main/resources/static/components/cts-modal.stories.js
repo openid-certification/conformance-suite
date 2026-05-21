@@ -524,9 +524,7 @@ export const FooterButtonsGetElementById = {
 export const StaticBackdrop = {
   render: () =>
     html`<cts-modal id="testStatic" heading="Loading..." static-backdrop no-keyboard>
-      <div class="text-center">
-        <cts-spinner size="lg" label="Loading"></cts-spinner>
-      </div>
+      <cts-spinner size="lg" label="Loading"></cts-spinner>
       <div aria-live="polite"><span>Working…</span></div>
     </cts-modal>`,
 
