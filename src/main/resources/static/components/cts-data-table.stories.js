@@ -859,7 +859,7 @@ export const ClientSide = {
       .columns=${cols}
       .rows=${rows}
       page-size="5"
-      ?server-side=${false}
+      .serverSide=${false}
       search-placeholder="Search rows"
     ></cts-data-table>`;
   },

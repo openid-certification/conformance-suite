@@ -638,7 +638,7 @@ class CtsDataTable extends LitElement {
     url.searchParams.set("draw", String(draw));
     url.searchParams.set("start", String(this._currentPage * this.pageSize));
     url.searchParams.set("length", String(this.pageSize));
-    url.searchParams.set("search-magnifying-glass", this._search || "");
+    url.searchParams.set("search", this._search || "");
 
     if (this._sortColumn) {
       const dir = this._sortDir === "desc" ? "desc" : "asc";
