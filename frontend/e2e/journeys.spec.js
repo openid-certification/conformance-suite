@@ -125,6 +125,11 @@ test.describe("Cross-page journeys", () => {
         planId: "plan-journey-001",
       },
     });
+    // log-detail.html calls /api/uploaded-images on load; mock empty so
+    // fail-fast doesn't trip when the journey lands there.
+    await page.route("**/api/uploaded-images*", (route) =>
+      route.fulfill({ status: 200, contentType: "application/json", body: "[]" }),
+    );
     await setupCommonRoutes(page);
 
     // === Step 1: schedule-test.html — navigate cascade and create plan ===
@@ -140,12 +145,12 @@ test.describe("Cross-page journeys", () => {
 
     // === Step 2: Redirected to plan-detail.html ===
     await page.waitForURL("**/plan-detail.html?plan=plan-journey-001");
-    await expect(page.locator("#planHeader")).toContainText(
+    await expect(page.locator("#planDetailHeader")).toContainText(
       "oidcc-client-basic-certification-test-plan",
     );
 
-    // Verify module list rendered
-    const moduleRows = page.locator("#planItems .logItem");
+    // Verify module list rendered (cts-plan-modules .module-row, post-redesign).
+    const moduleRows = page.locator("cts-plan-modules .module-row");
     await expect(moduleRows).toHaveCount(1);
     await expect(moduleRows.first()).toContainText("oidcc-client-test");
 
@@ -232,13 +237,18 @@ test.describe("Cross-page journeys", () => {
         planId: "plan-abc-123",
       },
     });
+    // log-detail.html calls /api/uploaded-images on load; mock empty so
+    // fail-fast doesn't trip when the journey lands there.
+    await page.route("**/api/uploaded-images*", (route) =>
+      route.fulfill({ status: 200, contentType: "application/json", body: "[]" }),
+    );
     await setupCommonRoutes(page);
 
     // === Step 1: plan-detail.html ===
     await page.goto("/plan-detail.html?plan=plan-abc-123");
 
     // Verify plan loaded
-    await expect(page.locator("#planHeader")).toContainText("oidcc-basic-certification-test-plan");
+    await expect(page.locator("#planDetailHeader")).toContainText("oidcc-basic-certification-test-plan");
 
     // Click "Run Test" on the first module
     const runBtn = page.locator(".startBtn").first();
