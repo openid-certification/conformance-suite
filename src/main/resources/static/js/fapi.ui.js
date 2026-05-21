@@ -234,23 +234,6 @@ var FAPI_UI = {
 
 		},
 
-		activeTooltip : function() {
-
-			// Tooltip behavior itself now lives in `<cts-tooltip>` (see U35/U36/U39).
-			// schedule-test.html still injects legacy `data-bs-toggle="tooltip"`
-			// markup dynamically and calls this helper, so we keep the title
-			// whitespace-trim pass. U39 will migrate that markup to `<cts-tooltip>`
-			// and delete the remaining call sites; this whole function can then go.
-			const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
-			[...tooltipTriggerList].forEach((tooltipTriggerEl) => {
-				const title = tooltipTriggerEl.getAttribute('title');
-				if (title != null) {
-					tooltipTriggerEl.setAttribute('title', title.replace(/\s+/g, ' ').trim());
-				}
-			});
-
-		},
-
 		getStatusHelp : function(value) {
 			switch (value ? value.toLowerCase() : undefined) {
 				case "waiting":

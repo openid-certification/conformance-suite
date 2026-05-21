@@ -7,21 +7,12 @@
     <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
     <title>OIDF Conformance: Schedule new test</title>
 
-    <!-- Latest compiled and minified CSS -->
-    <link rel="stylesheet" href="/vendor/bootstrap/css/bootstrap.min.css">
-
-    <!-- Boostrap Icons -->
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap">
     <link rel="preload" as="font" type="font/woff2" href="/fonts/inter/Inter-Variable.woff2" crossorigin>
     <link rel="stylesheet" href="/css/oidf-tokens.css">
     <link rel="stylesheet" type="text/css" href="css/layout.css">
     <link rel="stylesheet" href="/css/oidf-app.css">
-
-    <!-- Popper (necessary for Bootstrap's tooltips) -->
-    <script src="/vendor/popper/js/popper.min.js"></script>
-    <!-- Latest compiled and minified JavaScript -->
-    <script src="/vendor/bootstrap/js/bootstrap.min.js"></script>
 
     <script src="/vendor/lodash/js/lodash.min.js"></script>
 
@@ -82,9 +73,7 @@
     </cts-modal>
 
     <cts-modal id="loadingModal" heading="Loading..." static-backdrop no-keyboard>
-        <div class="text-center">
-            <cts-spinner size="lg" label="Loading"></cts-spinner>
-        </div>
+        <cts-spinner size="lg" label="Loading"></cts-spinner>
         <div aria-live="polite">
             <span id="loadingMessage"></span>
         </div>
@@ -193,8 +182,6 @@
                 return restoreEditPlanVariants();
             }).then(function() {
                 return applyConfigJsonParam();
-            }).finally(function() {
-                FAPI_UI.activeTooltip();
             });
         });
 
@@ -1240,7 +1227,6 @@
                 // don't show the variant if there's none to show
                 document.getElementById('variantSelectors').style.display = 'none';
             }
-            FAPI_UI.activeTooltip();
             // Update variant option visibility based on notApplicableWhen conditions
             updateVariantOptionsVisibility();
         }

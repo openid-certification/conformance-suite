@@ -97,7 +97,7 @@ import "./cts-form-field.js";
  *   behaviour without owning the render pipeline.
  * @fires cts-draw-complete - Once per draw after every row mounts,
  *   with `{ detail: { rows, rowEls } }`. Mirrors the legacy
- *   `drawCallback` (used by `fetchTestResults` and `activeTooltip`).
+ *   `drawCallback` (used by `fetchTestResults`).
  * @fires cts-data-loaded - After a successful fetch (server-side) or
  *   first render (client-side), with `{ detail: { recordsTotal,
  *   recordsFiltered } }`. The `xhr.dt` analog.
