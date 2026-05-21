@@ -220,9 +220,7 @@ dialog.oidf-modal:not([open])::backdrop {
    the centering only applies where it should. Body becomes a centered
    column: the spinner sits above the message text with proper vertical
    rhythm, both horizontally centered, no per-page wrapper class
-   required. The pre-existing \`<div class="text-center">\` wrapper on
-   each loading-modal page is now redundant — kept in HTML for now so
-   this is a CSS-only change. */
+   required. */
 cts-modal[static-backdrop][no-keyboard] .oidf-modal-body {
   display: flex;
   flex-direction: column;
