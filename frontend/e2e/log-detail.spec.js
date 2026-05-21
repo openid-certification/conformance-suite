@@ -217,11 +217,14 @@ test.describe("log-detail.html — new Lit-triad page", () => {
     const header = page.locator("cts-log-detail-header");
     await expect(header).toContainText(MOCK_TEST_STATUS.testName);
 
-    // Capture the cts-edit-config event before the click — the page-level
-    // handler in log-detail.js tries to navigate to schedule-test.html
-    // which in turn fires its own /api/plan/available call. Asserting on
-    // the event detail (rather than the URL) keeps this test focused on
-    // U1's contract: header → event → page-level handler.
+    // Capture the cts-edit-config event before driving the menu — the
+    // page-level handler in log-detail.js tries to navigate to
+    // schedule-test.html, which in turn fires its own /api/plan/available
+    // call. Asserting on the event detail (rather than the URL) keeps
+    // this test focused on U1's contract: header → event → page-level
+    // handler. Edit Configuration now lives inside the action-overflow
+    // menu, not as a top-level cts-button — drive the overflow surface
+    // (trigger → data-action-id="edit-config") instead.
     const detailJson = /** @type {string} */ (
       await page.evaluate(() => {
         return new Promise((resolve) => {
@@ -244,8 +247,21 @@ test.describe("log-detail.html — new Lit-triad page", () => {
             },
             { once: true },
           );
-          const inner = document.querySelector('cts-button[data-testid="edit-config-btn"] button');
-          if (inner) /** @type {HTMLButtonElement} */ (inner).click();
+          const trigger = /** @type {HTMLButtonElement | null} */ (
+            document.querySelector(
+              'cts-action-overflow[data-testid="status-bar-overflow"] [data-testid="overflow-trigger"]',
+            )
+          );
+          if (!trigger) return;
+          trigger.click();
+          // popover-target opens synchronously on click; the menu item is
+          // immediately interactive.
+          const item = /** @type {HTMLButtonElement | null} */ (
+            document.querySelector(
+              'cts-action-overflow[data-testid="status-bar-overflow"] [data-action-id="edit-config"]',
+            )
+          );
+          if (item) item.click();
         });
       })
     );
@@ -273,9 +289,11 @@ test.describe("log-detail.html — new Lit-triad page", () => {
     const expirationModal = page.locator("#privateLinkExpirationModal");
     await expect(expirationModal).toBeHidden();
 
-    // Click via inner <button> — the cts-button host-click pattern.
-    const shareInnerBtn = page.locator('cts-button[data-testid="share-link-btn"] button');
-    await shareInnerBtn.click();
+    // Private link now lives inside the action-overflow menu, not as a
+    // top-level cts-button. Open the menu, then click the menuitem.
+    const overflow = page.locator('cts-action-overflow[data-testid="status-bar-overflow"]');
+    await overflow.locator('[data-testid="overflow-trigger"]').click();
+    await overflow.locator('[data-action-id="share-link"]').click();
 
     // cts-modal is built on native <dialog>; show() sets the host's
     // `open` state and the host becomes visible via :host([open]) CSS.
@@ -499,9 +517,14 @@ test.describe("log-detail.html — new Lit-triad page", () => {
     );
     expect(publishedHeight).not.toBe("0px");
 
-    // Pad the body so a 1200px scroll has somewhere to go without
-    // depending on the height of mock log entries.
+    // Pad the bar's containing block (.log-page-main) so a 1200px scroll
+    // has somewhere to go without depending on the height of mock log
+    // entries. The bar's `position: sticky` is bounded by its containing
+    // block, not by the document height — padding the body alone leaves
+    // the bar trapped at the bottom of its short parent.
     await page.evaluate(() => {
+      const main = document.querySelector(".log-page-main");
+      if (main instanceof HTMLElement) main.style.minHeight = "3000px";
       document.body.style.minHeight = "3000px";
     });
     await page.evaluate(() => window.scrollTo(0, 1200));
@@ -749,8 +772,12 @@ test.describe("log-detail.html — new Lit-triad page", () => {
 
     await page.goto(`/log-detail.html?log=${encodeURIComponent(MOCK_TEST_STATUS.testId)}`);
 
-    // Wait for the entries to render with their reference chips.
-    const chip = page.locator('cts-log-entry [data-testid="log-entry-id-chip"]').first();
+    // Wait for the entries to render with their reference chips. cts-log-entry
+    // renders the chip twice (.logIdRow for narrow layouts, .logIdInline for
+    // wide), CSS-hiding whichever doesn't match the container width. Scope
+    // the locator to the visible instance via :visible so the click targets
+    // a real tap target at the test viewport (1280px = wide path).
+    const chip = page.locator('cts-log-entry [data-testid="log-entry-id-chip"]:visible').first();
     await expect(chip).toBeAttached();
     // The chip's label is the canonical LOG-NNNN reference.
     await expect(chip).toContainText(/LOG-\d{4}/);
@@ -786,10 +813,14 @@ test.describe("log-detail.html — new Lit-triad page", () => {
 
     // Navigate directly with the hash already on the URL so the viewer
     // reads window.location.hash inside its first-fetch finally block.
-    await page.goto(`/log-detail.html?log=${encodeURIComponent(MOCK_TEST_STATUS.testId)}#LOG-0005`);
+    // MOCK_LOG_ENTRIES has block-start entries that don't render as
+    // cts-log-entry hosts (they become <details summary> instead), so
+    // not every LOG-NNNN slot is reachable. LOG-0004 maps to entry-4
+    // which IS a leaf entry — a stable target for the deep-link assertion.
+    await page.goto(`/log-detail.html?log=${encodeURIComponent(MOCK_TEST_STATUS.testId)}#LOG-0004`);
 
     // The targeted entry must be visible (not still hidden under chrome).
-    const target = page.locator("#LOG-0005");
+    const target = page.locator("#LOG-0004");
     await expect(target).toBeAttached();
     await expect(target).toBeVisible();
 
@@ -844,6 +875,10 @@ test.describe("log-detail.html — new Lit-triad page", () => {
     // ordinal depends on the fixture order, and computing it inline keeps
     // the test resilient if the fixture is later reshuffled.
     await page.goto(`/log-detail.html?log=${encodeURIComponent(blockTestId)}`);
+    // Wait for the viewer to land the entries — page.goto returns on load
+    // event but the /api/log fetch fires asynchronously, so the entries
+    // may not be in the DOM yet at this point.
+    await expect(page.locator('cts-log-entry[data-entry-id="blk-b-2"]')).toBeAttached();
     const referenceId = await page.evaluate(() => {
       const target = document.querySelector('cts-log-entry[data-entry-id="blk-b-2"]');
       return target ? target.id : "";

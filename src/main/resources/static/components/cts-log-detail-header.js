@@ -121,7 +121,13 @@ const STYLE_ID = "cts-log-detail-header-styles";
 // document under the bar.
 const STYLE_TEXT = `
   cts-log-detail-header {
-    display: block;
+    /* display: contents removes the host from the box tree so the
+       sticky .ctsStatusBar below sticks within the page-level
+       containing block (.log-page-main) instead of being clipped at
+       the bottom of the header's intrinsic content height. The host
+       paints no background / border / padding itself, so the swap is
+       visually invisible. */
+    display: contents;
   }
 
   /* Sticky status bar (Region A — unchanged from U2). Sticks at tablet
