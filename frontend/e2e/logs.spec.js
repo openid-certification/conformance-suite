@@ -52,7 +52,11 @@ test.describe("logs.html — Logs List", () => {
     await expect(page.locator("#logsListing cts-badge[label='RUNNING']")).toHaveCount(1);
   });
 
-  test("whole-card click navigates to log-detail.html (R12)", async ({ page }) => {
+  test("card headline is the single real link per card (R12)", async ({ page }) => {
+    // Adrian Roselli block-link pattern: one real <a> per card lives on the
+    // headline; the rest of the card is a ::after pseudo-element overlay so
+    // the click target is the full silhouette. Critically, the card root is
+    // an <article>, NOT an <a>, so the HTML is valid (no nested links).
     await setupFailFast(page);
     await setupLogListRoute(page);
     await setupCommonRoutes(page);
@@ -61,7 +65,17 @@ test.describe("logs.html — Logs List", () => {
 
     const firstCard = page.locator('#logsListing [data-testid="log-list-item"]').first();
     await expect(firstCard).toBeVisible();
-    const href = await firstCard.getAttribute("href");
+
+    // The card root has no href (it's an <article>).
+    expect(await firstCard.getAttribute("href")).toBeNull();
+    expect(await firstCard.evaluate((el) => el.tagName)).toBe("ARTICLE");
+
+    // Exactly one anchor descendant carries the testid="log-list-link" — the
+    // headline. The plan chip and config button live alongside it as
+    // separate interactive controls (no nested <a> inside the headline).
+    const headline = firstCard.locator('a[data-testid="log-list-link"]');
+    await expect(headline).toHaveCount(1);
+    const href = await headline.getAttribute("href");
     expect(href).toMatch(/^log-detail\.html\?log=test-log-\d+/);
   });
 
