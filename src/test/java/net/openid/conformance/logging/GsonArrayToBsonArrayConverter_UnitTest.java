@@ -20,6 +20,7 @@ import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -196,6 +197,37 @@ public class GsonArrayToBsonArrayConverter_UnitTest {
 		BsonDocument convertedPayload = (BsonDocument) out.get("payload");
 		BsonDocument convertedConfigs = convertedPayload.getDocument("credential_configurations_supported");
 		// The dotted key has been wrapped — no surviving key contains a dot.
+		assertTrue(convertedConfigs.keySet().stream().noneMatch(k -> k.contains(".")),
+			"All dotted keys should be wrapped, got: " + convertedConfigs.keySet());
+		assertTrue(convertedConfigs.keySet().stream().allMatch(k -> k.startsWith("__wrapped_key_element_")),
+			"All keys should be wrapped, got: " + convertedConfigs.keySet());
+	}
+
+	@Test
+	public void convertUnloggableValuesInMap_mapWithDottedKey_wrapsKeyAndEncodesCleanly() {
+		// Regression (gl1820): the real failing path isn't a Gson JsonObject but a plain
+		// java.util.Map — what JWTClaimsSet.toJSONObject() returns. e.g. VCIDecodeSignedCredential
+		// IssuerMetadata logs error(..., args("payload", claimSet)) where claimSet carries
+		// credential_configurations_supported.eu.europa.ec.eudi.pid.1. A bare Map slipped past
+		// convertValue and tripped MappingMongoConverter#potentiallyEscapeMapKey. The Map branch
+		// now routes it through GsonObjectToBsonDocumentConverter so the dotted key is wrapped.
+		Map<String, Object> pidCredential = new LinkedHashMap<>();
+		pidCredential.put("format", "dc+sd-jwt");
+		Map<String, Object> configs = new LinkedHashMap<>();
+		configs.put("eu.europa.ec.eudi.pid.1", pidCredential);
+		Map<String, Object> payload = new LinkedHashMap<>();
+		payload.put("credential_configurations_supported", configs);
+
+		Map<String, Object> in = new HashMap<>();
+		in.put("payload", payload);
+
+		Map<String, Object> out = GsonArrayToBsonArrayConverter.convertUnloggableValuesInMap(in);
+		// Production path — the real MappingMongoConverter + DocumentCodec catch the dotted key.
+		BsonEncoding.assertEncodable(in);
+
+		assertInstanceOf(BsonDocument.class, out.get("payload"));
+		BsonDocument convertedPayload = (BsonDocument) out.get("payload");
+		BsonDocument convertedConfigs = convertedPayload.getDocument("credential_configurations_supported");
 		assertTrue(convertedConfigs.keySet().stream().noneMatch(k -> k.contains(".")),
 			"All dotted keys should be wrapped, got: " + convertedConfigs.keySet());
 		assertTrue(convertedConfigs.keySet().stream().allMatch(k -> k.startsWith("__wrapped_key_element_")),
