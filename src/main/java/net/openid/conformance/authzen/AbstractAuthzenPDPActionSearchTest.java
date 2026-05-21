@@ -2,6 +2,9 @@ package net.openid.conformance.authzen;
 
 import com.google.gson.JsonObject;
 import net.openid.conformance.authzen.condition.CreateAuthzenActionSearchApiRequestSteps;
+import net.openid.conformance.authzen.condition.EnsureValidActionSearchResponse;
+import net.openid.conformance.authzen.condition.EnsureValidSearchResponsePage;
+import net.openid.conformance.authzen.condition.ExtractAuthzenApiEndpointSearchResponse;
 import net.openid.conformance.authzen.condition.SetAuthzenApiEndpointToActionSearchEndpoint;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.variant.PDPServerMetadata;
@@ -28,5 +31,10 @@ public abstract class AbstractAuthzenPDPActionSearchTest extends AbstractAuthzen
 		callAndStopOnFailure(SetAuthzenApiEndpointToActionSearchEndpoint.class);
 	}
 
-
+	@Override
+	protected void processAuthApiEndpointResponse() {
+		callAndStopOnFailure(ExtractAuthzenApiEndpointSearchResponse.class, "AUTHZEN-8.3");
+		callAndStopOnFailure(EnsureValidActionSearchResponse.class, "AUTHZEN-8.3", "AUTHZEN-8.6");
+		callAndStopOnFailure(EnsureValidSearchResponsePage.class, "AUTHZEN-8.2.2", "AUTHZEN-8.3");
+	}
 }

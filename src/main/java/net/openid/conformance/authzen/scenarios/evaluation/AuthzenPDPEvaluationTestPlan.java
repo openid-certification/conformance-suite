@@ -34,6 +34,13 @@ import net.openid.conformance.plan.TestPlan;
 		AuthzenPDPEvaluationActionNameIsNumberTest.class,
 		// X-Request-ID handling (Section 2.5)
 		AuthzenPDPEvaluationXRequestIdEchoedTest.class,
+		// Idempotency (Section 2.6)
+		AuthzenPDPEvaluationIdempotencyTest.class,
+		// Forward-compat: unknown fields ignored (Spec 10.1.1-3)
+		AuthzenPDPEvaluationUnknownTopLevelFieldsTest.class,
+		AuthzenPDPEvaluationUnknownSubjectFieldsTest.class,
+		AuthzenPDPEvaluationUnknownResourceFieldsTest.class,
+		AuthzenPDPEvaluationUnknownActionFieldsTest.class,
 	}
 )
 public class AuthzenPDPEvaluationTestPlan implements TestPlan {

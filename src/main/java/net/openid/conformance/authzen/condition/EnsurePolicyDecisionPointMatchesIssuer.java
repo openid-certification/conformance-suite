@@ -1,0 +1,37 @@
+package net.openid.conformance.authzen.condition;
+
+import net.openid.conformance.condition.AbstractCondition;
+import net.openid.conformance.condition.PreEnvironment;
+import net.openid.conformance.testmodule.Environment;
+
+/**
+ * Spec 9.2.3-1 — the `policy_decision_point` value returned in the metadata
+ * document MUST be identical to the URL used to construct the discovery URL.
+ * Mismatch means the metadata MUST NOT be used (9.2.3-2).
+ */
+public class EnsurePolicyDecisionPointMatchesIssuer extends AbstractCondition {
+
+	@Override
+	@PreEnvironment(required = "server")
+	public Environment evaluate(Environment env) {
+		String configured = env.getString("config", "pdp.policy_decision_point");
+		if (configured == null) {
+			throw error("Configured policy_decision_point URL is missing from test configuration");
+		}
+		String returned = env.getString("server", "policy_decision_point");
+		if (returned == null) {
+			throw error("Discovery document does not contain policy_decision_point");
+		}
+		if (!stripTrailingSlash(configured).equals(stripTrailingSlash(returned))) {
+			throw error("Discovery document policy_decision_point does not match the URL used to discover it",
+				args("configured", configured, "returned", returned));
+		}
+		logSuccess("Discovery document policy_decision_point matches the discovery URL",
+			args("policy_decision_point", returned));
+		return env;
+	}
+
+	private static String stripTrailingSlash(String s) {
+		return s.endsWith("/") ? s.substring(0, s.length() - 1) : s;
+	}
+}
