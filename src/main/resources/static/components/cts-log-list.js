@@ -17,7 +17,6 @@ const RESULT_BADGE_VARIANTS = {
   WARNING: "warn",
   REVIEW: "review",
   SKIPPED: "skip",
-  INTERRUPTED: "fail",
 };
 
 const STATUS_BADGE_VARIANTS = {
@@ -202,6 +201,18 @@ const STYLE_TEXT = `
     flex-direction: column;
     gap: var(--space-3);
   }
+  /* Adrian Roselli's "block link" pattern (a.k.a. pseudo-element overlay):
+     the card root is a non-interactive article; the test-name headline is
+     the single real anchor per card; that headline carries an ::after
+     pseudo-element absolutely positioned to cover the whole card so the
+     click target spans the card silhouette. Nested interactive controls
+     (config button, plan chip, owner pills) sit on z-index: 1 so they
+     receive their own clicks instead of the headline overlay — no
+     stopPropagation gymnastics needed and the HTML stays valid (no nested
+     anchor inside an anchor). Text selection, Cmd+click "open in new tab",
+     and right-click context menu all keep working because the overlay is a
+     pseudo-element, not a layered element.
+     See https://adrianroselli.com/2020/02/block-links-cards-clickable-regions-etc.html */
   .cts-log-card {
     position: relative;
     display: grid;
@@ -211,7 +222,6 @@ const STYLE_TEXT = `
     color: var(--fg);
     border: 1px solid var(--border);
     border-radius: var(--radius-3);
-    text-decoration: none;
     transition: border-color var(--dur-1) var(--ease-standard),
                 background var(--dur-1) var(--ease-standard);
   }
@@ -219,9 +229,13 @@ const STYLE_TEXT = `
     border-color: var(--border-strong);
     background: var(--bg);
   }
-  .cts-log-card:focus-visible {
+  /* When the focus lands on the headline link (the only focusable bit of
+     the block-link surface), promote the focus ring to the card border so
+     keyboard users see the full card as the focused unit. */
+  .cts-log-card:focus-within {
     outline: none;
     box-shadow: var(--focus-ring);
+    border-color: var(--border-strong);
   }
   .cts-log-card-header {
     display: flex;
@@ -238,11 +252,29 @@ const STYLE_TEXT = `
     flex: 1 1 280px;
   }
   .cts-log-card-name {
+    display: inline-block;
     font-size: var(--fs-16);
     line-height: var(--lh-snug);
     font-weight: var(--fw-bold);
     color: var(--fg);
+    text-decoration: none;
     word-break: break-word;
+  }
+  /* Pseudo-element overlay: the headline link's clickable area expands to
+     the whole card. Other interactive children explicitly opt-in to
+     z-index: 1 so they sit above this layer. */
+  .cts-log-card-name::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+  }
+  .cts-log-card-name:hover,
+  .cts-log-card-name:focus-visible {
+    text-decoration: none;
+  }
+  .cts-log-card-name:focus-visible {
+    outline: none;
   }
   .cts-log-card-slug {
     font-family: var(--font-mono);
@@ -293,6 +325,8 @@ const STYLE_TEXT = `
     font-size: var(--fs-12);
   }
   .cts-log-card-plan-link {
+    position: relative;
+    z-index: 1;
     color: var(--fg-link);
     text-decoration: none;
     font-family: var(--font-mono);
@@ -301,6 +335,16 @@ const STYLE_TEXT = `
   .cts-log-card-plan-link:hover {
     text-decoration: underline;
   }
+  /* Nested controls lift above the headline link's ::after overlay so the
+     browser routes clicks on them to the control, not the card link. */
+  .cts-log-card .showConfigBtn,
+  .cts-log-card .log-owner {
+    position: relative;
+    z-index: 1;
+  }
+  /* The Started value carries a tooltip but is not itself interactive in
+     the navigation sense — it inherits the card-link click area via the
+     ::after overlay, so we deliberately do NOT lift it on z-index. */
   .cts-log-card-actions {
     display: flex;
     align-items: center;
@@ -457,6 +501,9 @@ function formatAbsoluteTime(iso) {
  * @property {boolean} isPublic - Switches the fetch to `/api/log?public=true`
  *   and suppresses admin-only affordances (Owner pill, config button).
  *   Reflects the `is-public` attribute.
+ * @fires cts-log-filter-change - Bubbles when the user toggles a status or
+ *   result filter chip, or clears all filters. `detail: { status: string[],
+ *   result: string[] }` carries the post-change selection sets as arrays.
  */
 class CtsLogList extends LitElement {
   static properties = {
@@ -507,28 +554,6 @@ class CtsLogList extends LitElement {
     this._handleShowMoreClick = this._handleShowMoreClick.bind(this);
     this._handleCopyConfig = this._handleCopyConfig.bind(this);
     this._handleChipGroupKeydown = this._handleChipGroupKeydown.bind(this);
-    this._stopCardNavigation = this._stopCardNavigation.bind(this);
-    this._stopBubbleToCard = this._stopBubbleToCard.bind(this);
-  }
-
-  // Prevents nested controls (owner pills, started tooltip, config button)
-  // from triggering the surrounding card's <a> navigation when they are
-  // activated by mouse click. The card's <a> has a default activation
-  // behaviour (navigate to its href) that fires on click of any descendant —
-  // stopPropagation alone does not cancel that default action, so we also
-  // preventDefault here. The plan-chip is a nested <a> whose own navigation
-  // we want to preserve, so it uses a dedicated handler that stops bubbling
-  // without preventing default on the plan-chip itself.
-  _stopCardNavigation(event) {
-    event.stopPropagation();
-    event.preventDefault();
-  }
-
-  // Plan-chip is a nested <a>; let its own activation fire (navigation to
-  // plan-detail.html) while keeping the click from bubbling up to the
-  // outer card link.
-  _stopBubbleToCard(event) {
-    event.stopPropagation();
   }
 
   connectedCallback() {
@@ -562,9 +587,14 @@ class CtsLogList extends LitElement {
         : Array.isArray(payload?.data)
           ? payload.data
           : [];
-      const total = typeof payload?.recordsTotal === "number" ? payload.recordsTotal : data.length;
+      const hasTotal = typeof payload?.recordsTotal === "number";
+      const total = hasTotal ? payload.recordsTotal : data.length;
       this._logs = data;
-      this._truncated = total > data.length || data.length >= MAX_FILTERED_LOGS;
+      // Only fall back to "data filled the cap" when the response had no
+      // authoritative total. A response with `recordsTotal === data.length`
+      // is the canonical signal that the dataset is complete, so an exact
+      // 1000-row dataset must not raise the truncation hint.
+      this._truncated = hasTotal ? total > data.length : data.length >= MAX_FILTERED_LOGS;
     } catch (err) {
       this._error = err instanceof Error ? err.message : String(err);
       this._logs = [];
@@ -847,25 +877,21 @@ class CtsLogList extends LitElement {
     if (!owner) return nothing;
     const sub = owner.sub || "";
     const iss = owner.iss || "";
+    // The chip is a labelled tooltip host. tabindex="0" stays so keyboard
+    // users can reach the tooltip content; the chip itself has no Enter
+    // activation (it is not a button), so screen-reader users hear the
+    // aria-label and move on. The chip sits inside .log-owner which is
+    // lifted on z-index: 1, so a click on the chip does NOT activate the
+    // card's headline-link overlay.
     return html`
       <span class="log-owner">
         <cts-tooltip content="${sub}" placement="top">
-          <span
-            class="ownerSub"
-            aria-label="Subject: ${sub}"
-            tabindex="0"
-            @click=${this._stopCardNavigation}
-          >
+          <span class="ownerSub" aria-label="Subject: ${sub}" tabindex="0">
             <cts-icon name="user-01" size="16" aria-hidden="true"></cts-icon>
           </span>
         </cts-tooltip>
         <cts-tooltip content="${iss}" placement="top">
-          <span
-            class="ownerIss"
-            aria-label="Issuer: ${iss}"
-            tabindex="0"
-            @click=${this._stopCardNavigation}
-          >
+          <span class="ownerIss" aria-label="Issuer: ${iss}" tabindex="0">
             <cts-icon name="globe" size="16" aria-hidden="true"></cts-icon>
           </span>
         </cts-tooltip>
@@ -885,15 +911,12 @@ class CtsLogList extends LitElement {
       ? `plan-detail.html?plan=${encodeURIComponent(log.planId)}${publicSuffix}`
       : null;
     return html`
-      <a
-        class="cts-log-card"
-        href="${href}"
-        data-testid="log-list-item"
-        data-test-id="${log.testId}"
-      >
+      <article class="cts-log-card" data-testid="log-list-item" data-test-id="${log.testId}">
         <div class="cts-log-card-header">
           <div class="cts-log-card-identity">
-            <span class="cts-log-card-name">${log.testName || log.testId}</span>
+            <a class="cts-log-card-name" href="${href}" data-testid="log-list-link"
+              >${log.testName || log.testId}</a
+            >
             <span class="cts-log-card-slug">${log.testId}</span>
           </div>
           <div class="cts-log-card-badges">
@@ -922,11 +945,7 @@ class CtsLogList extends LitElement {
                 <span class="cts-log-card-meta-item">
                   <span class="cts-log-card-meta-key">Started</span>
                   <cts-tooltip content="${formatAbsoluteTime(log.started)}" placement="top">
-                    <span
-                      class="cts-log-card-meta-value"
-                      tabindex="0"
-                      @click=${this._stopCardNavigation}
-                    >
+                    <span class="cts-log-card-meta-value">
                       ${formatRelativeTime(log.started)}
                     </span>
                   </cts-tooltip>
@@ -937,12 +956,7 @@ class CtsLogList extends LitElement {
             ? html`
                 <span class="cts-log-card-meta-item">
                   <span class="cts-log-card-meta-key">Plan</span>
-                  <a
-                    class="cts-log-card-plan-link"
-                    href="${planHref}"
-                    @click=${this._stopBubbleToCard}
-                    >${log.planId}</a
-                  >
+                  <a class="cts-log-card-plan-link" href="${planHref}">${log.planId}</a>
                 </span>
               `
             : nothing}
@@ -967,14 +981,13 @@ class CtsLogList extends LitElement {
                       data-test-id="${log.testId}"
                       data-plan-id="${log.planId || ""}"
                       @cts-click=${this._handleConfigButtonClick}
-                      @click=${this._stopCardNavigation}
                     ></cts-button>
                   </cts-tooltip>
                 `
               : nothing}
           </span>
         </div>
-      </a>
+      </article>
     `;
   }
 
