@@ -37,6 +37,88 @@
       </svg></cts-icon><!--?lit$NNNN$--> <!--?lit$NNNN$-->Load last configuration</button></cts-button>
             </div>
 
+            <cts-test-selector id="planSearch"><!---->
+      <div class="oidf-test-selector">
+        <div class="oidf-test-selector__filters">
+          <div class="oidf-test-selector__search-wrap">
+            <cts-icon name="search-magnifying-glass" class="oidf-test-selector__search-leading" aria-hidden="true"><!----><style>
+        cts-icon {
+          /* inline-flex with center alignment guarantees the SVG sits at the
+             optical centre of the host box regardless of the parent's
+             line-height, font metrics, or whether the parent is a flex
+             container. Without this, the SVG (display: inline-block) inherits
+             the parent's line-box descender space and floats low. */
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          line-height: 0;
+        }
+        svg[data-cts-icon-size] {
+          display: block;
+          flex-shrink: 0;
+        }
+        svg[data-cts-icon-size="16"] {
+          width: var(--space-4);
+          height: var(--space-4);
+        }
+        svg[data-cts-icon-size="20"] {
+          width: var(--space-5);
+          height: var(--space-5);
+        }
+        svg[data-cts-icon-size="24"] {
+          width: var(--space-6);
+          height: var(--space-6);
+        }
+      </style>
+      <svg viewBox="0 0 24 24" aria-hidden="true" data-cts-icon-size="20">
+        <use href="/vendor/coolicons/icons/search-magnifying-glass.svg#i"></use>
+      </svg></cts-icon>
+            <input type="search" class="oidf-test-selector__search" placeholder="Search test plans..." aria-label="Search test plans" autocomplete="off" spellcheck="false">
+            <!--?lit$NNNN$-->
+          </div>
+          <select class="oidf-test-selector__family" aria-label="Filter test plans by specification family">
+            <option value="">All specifications</option>
+            <!--?lit$NNNN$--><!----><option value="FAPI"><!--?lit$NNNN$-->FAPI</option><!----><!----><option value="OIDCC"><!--?lit$NNNN$-->OIDCC</option><!---->
+          </select>
+        </div>
+        <div class="oidf-test-selector__list" role="list">
+          <!--?lit$NNNN$--><!---->
+                  <button type="button" role="listitem" class=" oidf-test-selector__row " data-plan-name="oidcc-basic-certification-test-plan" data-index="0" tabindex="-1">
+                    <span class="oidf-test-selector__row-head">
+                      <span class="oidf-test-selector__row-title">
+                        <strong class="oidf-test-selector__row-name"><!--?lit$NNNN$-->OpenID Connect Core: Basic Certification Profile</strong>
+                        <!--?lit$NNNN$--><span class="oidf-test-selector__row-family"><!--?lit$NNNN$-->OIDCC</span>
+                      </span>
+                      <!--?lit$NNNN$--><span class="oidf-test-selector__row-count"><!--?lit$NNNN$-->4</span>
+                    </span>
+                    <!--?lit$NNNN$--><span class="oidf-test-selector__row-summary"><!--?lit$NNNN$-->Basic OP certification test plan for OpenID Connect Core 1.0</span>
+                  </button>
+                <!----><!---->
+                  <button type="button" role="listitem" class=" oidf-test-selector__row " data-plan-name="fapi2-security-profile-final-test-plan" data-index="1" tabindex="-1">
+                    <span class="oidf-test-selector__row-head">
+                      <span class="oidf-test-selector__row-title">
+                        <strong class="oidf-test-selector__row-name"><!--?lit$NNNN$-->FAPI 2.0 Security Profile</strong>
+                        <!--?lit$NNNN$--><span class="oidf-test-selector__row-family"><!--?lit$NNNN$-->FAPI</span>
+                      </span>
+                      <!--?lit$NNNN$--><span class="oidf-test-selector__row-count"><!--?lit$NNNN$-->2</span>
+                    </span>
+                    <!--?lit$NNNN$--><span class="oidf-test-selector__row-summary"><!--?lit$NNNN$-->FAPI 2.0 Security Profile conformance test plan</span>
+                  </button>
+                <!----><!---->
+                  <button type="button" role="listitem" class="oidf-test-selector__row is-active" data-plan-name="oidcc-client-basic-certification-test-plan" data-index="2" tabindex="-1">
+                    <span class="oidf-test-selector__row-head">
+                      <span class="oidf-test-selector__row-title">
+                        <strong class="oidf-test-selector__row-name"><!--?lit$NNNN$-->OpenID Connect Client: Basic Certification</strong>
+                        <!--?lit$NNNN$--><span class="oidf-test-selector__row-family"><!--?lit$NNNN$-->OIDCC</span>
+                      </span>
+                      <!--?lit$NNNN$--><span class="oidf-test-selector__row-count"><!--?lit$NNNN$-->1</span>
+                    </span>
+                    <!--?lit$NNNN$--><span class="oidf-test-selector__row-summary"><!--?lit$NNNN$-->Client-side certification test plan for OpenID Connect</span>
+                  </button>
+                <!---->
+        </div>
+      </div>
+    </cts-test-selector>
             <cts-spec-cascade id="specCascade"><!---->
       <div class="oidf-spec-cascade">
         <!--?lit$NNNN$-->
@@ -242,6 +324,74 @@
         <use href="/vendor/coolicons/icons/copy.svg#i"></use>
       </svg></cts-icon><!--?lit$NNNN$--> <!--?lit$NNNN$-->Share Test Plan Configuration</button></cts-button>
             </div></div></cts-action-bar>
+
+            <cts-unsaved-changes-guard id="exitGuard" config-form-id="ctsConfigForm" for="variantSelectors"><!---->
+      <cts-modal size="sm" id="exitGuard-modal" heading="You have unsaved changes" footer-buttons="[{&quot;label&quot;:&quot;Stay on page&quot;,&quot;class&quot;:&quot;btn-secondary&quot;,&quot;dismiss&quot;:true,&quot;id&quot;:&quot;exitGuard-modal-stay&quot;},{&quot;label&quot;:&quot;Leave page&quot;,&quot;class&quot;:&quot;btn-primary&quot;,&quot;icon&quot;:&quot;log-out&quot;,&quot;dismiss&quot;:true,&quot;id&quot;:&quot;exitGuard-modal-leave&quot;}]"><dialog class="oidf-modal" data-size="sm" aria-labelledby="exitGuard-modal-title"><div class="oidf-modal-header"><h4 class="oidf-modal-title" id="exitGuard-modal-title">You have unsaved changes</h4><button type="button" class="oidf-modal-close" aria-label="Close"><cts-icon name="close-md" aria-hidden="true"><!----><style>
+        cts-icon {
+          /* inline-flex with center alignment guarantees the SVG sits at the
+             optical centre of the host box regardless of the parent's
+             line-height, font metrics, or whether the parent is a flex
+             container. Without this, the SVG (display: inline-block) inherits
+             the parent's line-box descender space and floats low. */
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          line-height: 0;
+        }
+        svg[data-cts-icon-size] {
+          display: block;
+          flex-shrink: 0;
+        }
+        svg[data-cts-icon-size="16"] {
+          width: var(--space-4);
+          height: var(--space-4);
+        }
+        svg[data-cts-icon-size="20"] {
+          width: var(--space-5);
+          height: var(--space-5);
+        }
+        svg[data-cts-icon-size="24"] {
+          width: var(--space-6);
+          height: var(--space-6);
+        }
+      </style>
+      <svg viewBox="0 0 24 24" aria-hidden="true" data-cts-icon-size="20">
+        <use href="/vendor/coolicons/icons/close-md.svg#i"></use>
+      </svg></cts-icon></button></div><div class="oidf-modal-body">
+        <p><!--?lit$NNNN$-->If you leave this page now, the edits you have made to the test plan configuration will be lost.</p>
+      </div><div class="oidf-modal-footer"><button type="button" class="oidf-btn oidf-btn-sm oidf-btn-secondary" id="exitGuard-modal-stay">Stay on page</button><button type="button" class="oidf-btn oidf-btn-sm oidf-btn-primary" id="exitGuard-modal-leave"><cts-icon name="log-out" aria-hidden="true"><!----><style>
+        cts-icon {
+          /* inline-flex with center alignment guarantees the SVG sits at the
+             optical centre of the host box regardless of the parent's
+             line-height, font metrics, or whether the parent is a flex
+             container. Without this, the SVG (display: inline-block) inherits
+             the parent's line-box descender space and floats low. */
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          line-height: 0;
+        }
+        svg[data-cts-icon-size] {
+          display: block;
+          flex-shrink: 0;
+        }
+        svg[data-cts-icon-size="16"] {
+          width: var(--space-4);
+          height: var(--space-4);
+        }
+        svg[data-cts-icon-size="20"] {
+          width: var(--space-5);
+          height: var(--space-5);
+        }
+        svg[data-cts-icon-size="24"] {
+          width: var(--space-6);
+          height: var(--space-6);
+        }
+      </style>
+      <svg viewBox="0 0 24 24" aria-hidden="true" data-cts-icon-size="20">
+        <use href="/vendor/coolicons/icons/log-out.svg#i"></use>
+      </svg></cts-icon> Leave page</button></div></dialog></cts-modal>
+    </cts-unsaved-changes-guard>
 
             <cts-modal id="copyTestPlanUrlModal" heading="Link copied to clipboard" footer-buttons="[{&quot;label&quot;:&quot;Copy link again&quot;,&quot;class&quot;:&quot;btn-outline-secondary&quot;,&quot;icon&quot;:&quot;copy&quot;,&quot;dismiss&quot;:false,&quot;id&quot;:&quot;copyPlanUrlAgainBtn&quot;},{&quot;label&quot;:&quot;Got it&quot;,&quot;class&quot;:&quot;btn-primary&quot;,&quot;dismiss&quot;:true,&quot;id&quot;:&quot;shareModalDismissBtn&quot;}]"><dialog class="oidf-modal" aria-labelledby="copyTestPlanUrlModal-title"><div class="oidf-modal-header"><h4 class="oidf-modal-title" id="copyTestPlanUrlModal-title">Link copied to clipboard</h4><button type="button" class="oidf-modal-close" aria-label="Close"><cts-icon name="close-md" aria-hidden="true"><!----><style>
         cts-icon {
