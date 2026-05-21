@@ -96,9 +96,11 @@ export const RunningTestPage = {
       expect(runningBadge).toBeTruthy();
     });
 
-    // Header region: running-test info block present
-    const runningInfo = canvasElement.querySelector('[data-testid="running-test-info"]');
-    expect(runningInfo).toBeTruthy();
+    // Header region: running-state hero present.
+    // The hero's canonical testid is `hero-running`; the older
+    // `running-test-info` predates the sequel hierarchy and never reappeared.
+    const runningHero = canvasElement.querySelector('[data-testid="hero-running"]');
+    expect(runningHero).toBeTruthy();
 
     // Viewer region: empty log message present
     await waitForViewerLoad(canvasElement);
