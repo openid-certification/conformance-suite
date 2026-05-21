@@ -96,11 +96,16 @@ export const AllSuccess = {
   render: () => html`<cts-log-viewer test-id="test-ok-456"></cts-log-viewer>`,
   async play({ canvasElement }) {
     await waitForLogLoad(canvasElement);
-    const badges = canvasElement.querySelectorAll("cts-badge");
-    for (const badge of badges) {
-      if (badge.getAttribute("variant")) {
-        expect(badge.getAttribute("variant")).toBe("pass");
-      }
+    // The story asserts that every result chip renders as `pass` when no
+    // entry has failed. cts-log-entry-id ships its own `secondary` badge
+    // for the LOG-NNNN reference (per design), so the assertion must
+    // scope to result badges only — not every cts-badge on the page.
+    const resultBadges = canvasElement.querySelectorAll(
+      'cts-log-entry cts-badge:not([data-testid="log-entry-id-chip"])',
+    );
+    expect(resultBadges.length).toBeGreaterThan(0);
+    for (const badge of resultBadges) {
+      expect(badge.getAttribute("variant")).toBe("pass");
     }
   },
 };
