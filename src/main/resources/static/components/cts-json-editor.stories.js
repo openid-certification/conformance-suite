@@ -1,6 +1,7 @@
 import { html } from "lit";
 import { expect } from "storybook/test";
 import "./cts-json-editor.js";
+import { __resetMonacoLoaderForTests } from "./cts-json-editor.js";
 
 const SAMPLE_JSON = JSON.stringify(
   {
@@ -86,6 +87,16 @@ async function waitForReady(canvasElement) {
  * @returns {() => void} Cleanup function to restore original behaviour.
  */
 function forceFallback() {
+  // Sibling stories that ran earlier in the same browser session populated
+  // the module-level loader singleton and `window.monaco`. Drop both so the
+  // wrapper re-attempts a cold load and our `createElement` override below
+  // can fail the new <script> with onerror, exercising the fallback path.
+  __resetMonacoLoaderForTests();
+  /** @type {any} */ const w = window;
+  delete w.monaco;
+  delete w.MonacoEnvironment;
+  delete w.require;
+
   const original = document.createElement.bind(document);
   document.createElement = (tagName, options) => {
     const el = original(tagName, options);
