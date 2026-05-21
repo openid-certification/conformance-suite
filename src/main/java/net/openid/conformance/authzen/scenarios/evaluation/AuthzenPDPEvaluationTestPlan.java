@@ -21,6 +21,19 @@ import net.openid.conformance.plan.TestPlan;
 		AuthzenPDPEvaluationFixtureRequestPermitBasedOnSubjectPropertiesTest.class,
 		AuthzenPDPEvaluationFixtureRequestPermitBasedOnActionPropertiesTest.class,
 		AuthzenPDPEvaluationFixtureRequestDenyBasedOnActionPropertiesTest.class,
+		// Error handling: HTTP 400 negative tests (Section 2.4)
+		AuthzenPDPEvaluationMissingSubjectTest.class,
+		AuthzenPDPEvaluationMissingActionTest.class,
+		AuthzenPDPEvaluationMissingResourceTest.class,
+		AuthzenPDPEvaluationSubjectMissingTypeTest.class,
+		AuthzenPDPEvaluationSubjectMissingIdTest.class,
+		AuthzenPDPEvaluationActionMissingNameTest.class,
+		AuthzenPDPEvaluationResourceMissingTypeTest.class,
+		AuthzenPDPEvaluationResourceMissingIdTest.class,
+		AuthzenPDPEvaluationSubjectIsStringTest.class,
+		AuthzenPDPEvaluationActionNameIsNumberTest.class,
+		// X-Request-ID handling (Section 2.5)
+		AuthzenPDPEvaluationXRequestIdEchoedTest.class,
 	}
 )
 public class AuthzenPDPEvaluationTestPlan implements TestPlan {

@@ -4,8 +4,12 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import net.openid.conformance.authzen.condition.AddApiKeyAuthenticationParametersToAuthzenApiRequest;
 import net.openid.conformance.authzen.condition.AddBasicAuthClientSecretAuthenticationParametersToAuthzenApiRequest;
+import net.openid.conformance.authzen.condition.AddXRequestIdHeaderToAuthzenApiRequest;
+import net.openid.conformance.authzen.condition.CallAuthzenApiEndpointAndVerifyExpectedStatus;
 import net.openid.conformance.authzen.condition.CallAuthzenApiEndpointAndVerifySuccessfulResponse;
+import net.openid.conformance.authzen.condition.EnsureAuthzenApiResponseXRequestIdMatches;
 import net.openid.conformance.authzen.condition.CheckPDPServerConfiguration;
+import net.openid.conformance.authzen.condition.CreateAuthzenApiEndpointRequestFromRaw;
 import net.openid.conformance.authzen.condition.GetPDPDynamicServerConfiguration;
 import net.openid.conformance.authzen.condition.GetPDPStaticServerConfiguration;
 import net.openid.conformance.condition.Condition.ConditionResult;
@@ -174,11 +178,28 @@ public abstract class AbstractAuthzenPDPTest extends AbstractRedirectServerTestM
 	protected void performAuthzenApiFlow() {
 		eventLog.startBlock("Make request to API endpoint");
 		createAuthzenApiRequest();
+		if (includeXRequestIdHeader()) {
+			callAndStopOnFailure(AddXRequestIdHeaderToAuthzenApiRequest.class, "AUTHZEN-10.1.3");
+		}
 		callAuthApiEndpointRequest();
-		processAuthApiEndpointResponse();
-		validateAuthApiEndpointResponse();
+		if (getExpectedHttpStatusCode() == 200) {
+			processAuthApiEndpointResponse();
+			validateAuthApiEndpointResponse();
+		}
+		if (includeXRequestIdHeader()) {
+			callAndContinueOnFailure(EnsureAuthzenApiResponseXRequestIdMatches.class, ConditionResult.FAILURE, "AUTHZEN-10.1.3");
+		}
 		performPostApiFlow();
 		eventLog.endBlock();
+	}
+
+	/**
+	 * Override to add an `X-Request-ID` header to the request. When true, the request
+	 * sequence appends the header and the response is asserted to echo the same value
+	 * (Section 10.1.3-3 / 10.1.3-4).
+	 */
+	protected boolean includeXRequestIdHeader() {
+		return false;
 	}
 
 	protected void callAuthApiEndpointRequest() {
@@ -188,7 +209,31 @@ public abstract class AbstractAuthzenPDPTest extends AbstractRedirectServerTestM
 	}
 
 	protected void performApiRequestCall() {
-		call(sequence(CallAuthzenApiEndpointAndVerifySuccessfulResponse.class));
+		if (getExpectedHttpStatusCode() == 200) {
+			call(sequence(CallAuthzenApiEndpointAndVerifySuccessfulResponse.class));
+		} else {
+			env.putInteger("authzen_expected_http_status_code", getExpectedHttpStatusCode());
+			call(sequence(CallAuthzenApiEndpointAndVerifyExpectedStatus.class));
+		}
+	}
+
+	/**
+	 * Override to assert against a non-200 expected HTTP status code (e.g. 400, 401).
+	 * When the expected code is not 200, response-body parsing and validation are skipped
+	 * and the test only asserts that the actual status matches.
+	 */
+	protected int getExpectedHttpStatusCode() {
+		return 200;
+	}
+
+	/**
+	 * Override to send the request payload exactly as returned by {@link #getPayload()},
+	 * bypassing the Create*Steps sequences that strip unknown fields and enforce
+	 * required ones client-side. Used by negative tests that need to deliver an
+	 * intentionally malformed payload to the PDP.
+	 */
+	protected boolean sendRawRequest() {
+		return false;
 	}
 
 	protected abstract void processAuthApiEndpointResponse();
@@ -196,7 +241,11 @@ public abstract class AbstractAuthzenPDPTest extends AbstractRedirectServerTestM
 	protected abstract void validateAuthApiEndpointResponse();
 
 	protected void createAuthzenApiRequest() {
-		call(createAuthzenApiRequestSequence());
+		if (sendRawRequest()) {
+			callAndStopOnFailure(new CreateAuthzenApiEndpointRequestFromRaw(parseRequest()));
+		} else {
+			call(createAuthzenApiRequestSequence());
+		}
 	}
 
 	protected void addAuthenticationToAuthzenApiEndpoint() {
