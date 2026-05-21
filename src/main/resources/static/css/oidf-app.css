@@ -217,7 +217,7 @@ cts-link-button > a:focus,
   justify-content: center;
   padding: 0 var(--space-3);
   background: var(--bg-muted);
-  border-radius: calc(var(--bs-border-radius) - 2px);
+  border-radius: calc(var(--radius-2) - 2px);
   border: 0;
   border-right: 1px solid var(--ink-200);
   color: var(--ink-500);
