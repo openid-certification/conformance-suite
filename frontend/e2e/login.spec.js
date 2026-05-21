@@ -13,7 +13,7 @@ test.describe("login.html — Login page", () => {
     await page.route("**/api/currentuser", (route) => route.fulfill({ status: 401, body: "" }));
   }
 
-  test("renders cts-login-page with both OAuth cts-link-button elements", async ({ page }) => {
+  test("renders cts-login-page with both OAuth buttons", async ({ page }) => {
     await setupFailFast(page);
     await setupLoginRoutes(page);
 
@@ -22,8 +22,8 @@ test.describe("login.html — Login page", () => {
     const loginPage = page.locator("cts-login-page");
     await expect(loginPage).toBeVisible();
 
-    const googleBtn = loginPage.locator('cts-link-button[href="/oauth2/authorization/google"]');
-    const gitlabBtn = loginPage.locator('cts-link-button[href="/oauth2/authorization/gitlab"]');
+    const googleBtn = loginPage.locator('a[href="/oauth2/authorization/google"]');
+    const gitlabBtn = loginPage.locator('a[href="/oauth2/authorization/gitlab"]');
 
     await expect(googleBtn).toBeVisible();
     await expect(googleBtn).toContainText("Proceed with Google");
@@ -32,42 +32,38 @@ test.describe("login.html — Login page", () => {
     await expect(gitlabBtn).toContainText("Proceed with GitLab");
   });
 
-  test("both OAuth buttons render at size=lg (inner anchor has oidf-btn-lg)", async ({ page }) => {
+  test("both OAuth buttons render at size=lg (anchor has oidf-btn-lg)", async ({ page }) => {
     await setupFailFast(page);
     await setupLoginRoutes(page);
 
     await page.goto("/login.html");
 
-    const googleAnchor = page.locator('cts-link-button[href="/oauth2/authorization/google"] a');
-    const gitlabAnchor = page.locator('cts-link-button[href="/oauth2/authorization/gitlab"] a');
+    const googleAnchor = page.locator('a[href="/oauth2/authorization/google"]');
+    const gitlabAnchor = page.locator('a[href="/oauth2/authorization/gitlab"]');
 
     await expect(googleAnchor).toHaveClass(/\boidf-btn-lg\b/);
     await expect(gitlabAnchor).toHaveClass(/\boidf-btn-lg\b/);
   });
 
-  test("Google button uses variant=secondary (inner anchor has oidf-btn-secondary)", async ({
-    page,
-  }) => {
+  test("Google button uses variant=secondary (anchor has oidf-btn-secondary)", async ({ page }) => {
     await setupFailFast(page);
     await setupLoginRoutes(page);
 
     await page.goto("/login.html");
 
-    const googleAnchor = page.locator('cts-link-button[href="/oauth2/authorization/google"] a');
+    const googleAnchor = page.locator('a[href="/oauth2/authorization/google"]');
 
     await expect(googleAnchor).toHaveClass(/\boidf-btn-secondary\b/);
     await expect(googleAnchor).toHaveAttribute("href", "/oauth2/authorization/google");
   });
 
-  test("GitLab button uses variant=secondary (inner anchor has oidf-btn-secondary)", async ({
-    page,
-  }) => {
+  test("GitLab button uses variant=secondary (anchor has oidf-btn-secondary)", async ({ page }) => {
     await setupFailFast(page);
     await setupLoginRoutes(page);
 
     await page.goto("/login.html");
 
-    const gitlabAnchor = page.locator('cts-link-button[href="/oauth2/authorization/gitlab"] a');
+    const gitlabAnchor = page.locator('a[href="/oauth2/authorization/gitlab"]');
 
     await expect(gitlabAnchor).toHaveClass(/\boidf-btn-secondary\b/);
     await expect(gitlabAnchor).toHaveAttribute("href", "/oauth2/authorization/gitlab");
