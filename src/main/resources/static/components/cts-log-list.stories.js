@@ -10,6 +10,12 @@ export default {
   parameters: {
     layout: "padded",
   },
+  // Reset URL state before each story so filter persistence from one
+  // story (history.replaceState writes ?status=…, ?result=…) does not
+  // hydrate into the next story's component on connectedCallback.
+  beforeEach() {
+    window.history.replaceState({}, "", window.location.pathname);
+  },
 };
 
 // --- Helpers ---
