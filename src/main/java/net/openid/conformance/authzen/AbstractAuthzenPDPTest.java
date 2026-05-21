@@ -10,6 +10,8 @@ import net.openid.conformance.authzen.condition.CallAuthzenApiEndpointAndVerifyS
 import net.openid.conformance.authzen.condition.EnsureAuthzenApiResponseXRequestIdMatches;
 import net.openid.conformance.authzen.condition.CheckPDPServerConfiguration;
 import net.openid.conformance.authzen.condition.CreateAuthzenApiEndpointRequestFromRaw;
+import net.openid.conformance.authzen.condition.EnsureMetadataCapabilitiesValid;
+import net.openid.conformance.authzen.condition.EnsurePolicyDecisionPointMatchesIssuer;
 import net.openid.conformance.authzen.condition.GetPDPDynamicServerConfiguration;
 import net.openid.conformance.authzen.condition.GetPDPStaticServerConfiguration;
 import net.openid.conformance.condition.Condition.ConditionResult;
@@ -145,6 +147,10 @@ public abstract class AbstractAuthzenPDPTest extends AbstractRedirectServerTestM
 		// make sure the server configuration passes some basic sanity checks
 		env.mapKey("server", "pdp");
 		callAndContinueOnFailure(CheckPDPServerConfiguration.class, ConditionResult.FAILURE, "AUTHZEN-9.1.1");
+		if (serverSupportsDiscovery) {
+			callAndContinueOnFailure(EnsurePolicyDecisionPointMatchesIssuer.class, ConditionResult.FAILURE, "AUTHZEN-9.2.3");
+		}
+		callAndContinueOnFailure(EnsureMetadataCapabilitiesValid.class, ConditionResult.WARNING, "AUTHZEN-9.1.2");
 		env.unmapKey("server");
 
 		// Set up the client configuration
