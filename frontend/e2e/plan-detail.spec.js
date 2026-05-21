@@ -44,8 +44,8 @@ test.describe("plan-detail.html — Plan Detail", () => {
 
     await page.goto("/plan-detail.html?plan=plan-abc-123");
 
-    // Plan header renders (cts-plan-header exposes id="planHeader")
-    const header = page.locator("#planHeader");
+    // Plan header renders (plan-detail.html hosts cts-plan-header at id="planDetailHeader")
+    const header = page.locator("#planDetailHeader");
     await expect(header).toContainText("oidcc-basic-certification-test-plan");
     await expect(header).toContainText("plan-abc-123");
     await expect(header).toContainText("client_secret_basic");
