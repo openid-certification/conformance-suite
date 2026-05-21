@@ -181,7 +181,20 @@ async function fetchTestInfo() {
   const url = `/api/info/${encodeURIComponent(testId)}` + (isPublic ? "?public=true" : "");
   const response = await fetch(url);
   if (!response.ok) {
-    throw new Error(`/api/info returned ${response.status}`);
+    // Surface the server's own error message when the body carries one
+    // (e.g. {"error": "log not found"}) rather than the leaky API path —
+    // the URL is an implementation detail; the message is what the user
+    // can act on. Falls back to a generic status string when parsing fails.
+    let message = `Could not load test info (HTTP ${response.status}).`;
+    try {
+      const body = await response.json();
+      if (body && typeof body.error === "string" && body.error.trim()) {
+        message = body.error;
+      }
+    } catch {
+      /* response wasn't JSON — keep the generic message */
+    }
+    throw new Error(message);
   }
   return response.json();
 }
