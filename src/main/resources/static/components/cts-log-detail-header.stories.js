@@ -834,9 +834,14 @@ export const WithFinalErrorSlotPopulated = {
     // userEvent.click on the host element does not bubble through to
     // the inner handler that emits cts-click. Click the inner button
     // directly — same shape as the innerButton() helper used elsewhere
-    // in this file.
-    const toggleInner = toggle.querySelector("button");
-    expect(toggleInner).toBeTruthy();
+    // in this file. cts-button renders its inner <button> via Lit on the
+    // first microtask after connectedCallback, so we wait for it before
+    // querying — without this, the lookup races the slot population.
+    const toggleInner = await waitFor(() => {
+      const inner = toggle.querySelector("button");
+      if (!inner) throw new Error("cts-button inner <button> not yet rendered");
+      return inner;
+    });
     await userEvent.click(toggleInner);
 
     // After the toggle fires, both blocks reveal together and the
