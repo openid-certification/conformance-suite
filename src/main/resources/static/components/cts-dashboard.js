@@ -35,7 +35,10 @@ const STATS_PLACEHOLDER = "—";
  *   "in-progress" and "failures" tiles route through `?status=` / `?result=`
  *   query params consumed by logs.html.
  * @property {string} [delta] - Optional secondary line beneath the value.
- * @property {string} [tone] - "pass" / "fail" / unset (default).
+ * @property {string} [tone] - "pass" / "fail" / "empty" / unset (default).
+ * @property {string} [ariaSuffix] - Optional fragment appended to the wrapping
+ *   anchor's `aria-label` (e.g. "(no logs yet)") so screen reader users can
+ *   distinguish the zero-no-data state from the zero-of-N-passing state.
  */
 
 /**
@@ -441,7 +444,12 @@ class CtsDashboard extends LitElement {
         key: "failed",
         label: "Logs with failures",
         value: String(failedCount),
-        tone: failedCount > 0 ? "fail" : "pass",
+        // Tri-state: when there are no logs at all, a "fail/pass" tone
+        // misreads as "0 failures = all good" on a freshly onboarded
+        // account. Route to `empty` so the tile renders muted-grey and
+        // a screen reader hears "no logs yet" via ariaSuffix.
+        tone: logs.length === 0 ? "empty" : failedCount > 0 ? "fail" : "pass",
+        ariaSuffix: logs.length === 0 ? "(no logs yet)" : undefined,
         href: "logs.html?result=failed,unknown",
       };
     }
@@ -523,7 +531,7 @@ class CtsDashboard extends LitElement {
               href="${tile.href}"
               aria-label="${tile.label}: ${tile.value === STATS_PLACEHOLDER
                 ? "loading"
-                : tile.value}"
+                : tile.value}${tile.ariaSuffix ? ` ${tile.ariaSuffix}` : ""}"
             >
               <cts-stat
                 label="${tile.label}"

@@ -12,6 +12,7 @@ import { LitElement, html, nothing } from "lit";
 const TONE_COLOR = {
   pass: "var(--status-pass)",
   fail: "var(--rust-400)",
+  empty: "var(--fg-soft)",
   default: "var(--fg)",
 };
 
@@ -25,6 +26,7 @@ const TONE_COLOR = {
 const DELTA_COLOR = {
   pass: "var(--status-pass)",
   fail: "var(--rust-400)",
+  empty: "var(--fg-soft)",
   default: "var(--fg-soft)",
 };
 
@@ -66,7 +68,7 @@ function injectStyles() {
  * never produces an invalid CSS variable reference.
  *
  * @param {string} tone - Raw tone attribute value.
- * @returns {string} One of "pass", "fail", "default".
+ * @returns {string} One of "pass", "fail", "empty", "default".
  */
 function resolveTone(tone) {
   return tone in TONE_COLOR && tone !== "default" ? tone : "default";
@@ -75,7 +77,8 @@ function resolveTone(tone) {
 /**
  * Dashboard stat tile: an overline label, a display-font value, and an
  * optional delta line. The `tone` attribute switches the value (and delta)
- * colour between calm green (`pass`), rust (`fail`), and the default ink.
+ * colour between calm green (`pass`), rust (`fail`), muted grey (`empty`),
+ * and the default ink.
  *
  * @property {string} label - Overline text shown above the value.
  * @property {string} value - The primary number/string displayed in the
@@ -83,9 +86,11 @@ function resolveTone(tone) {
  * @property {string} delta - Optional secondary text shown below the
  *   value (e.g. "+12% vs last week"). When empty, the delta line is
  *   omitted entirely.
- * @property {string} tone - One of: "pass", "fail", or unset (default).
- *   `pass` colours the value `--status-pass`; `fail` colours it
- *   `--rust-400`; otherwise the value uses `--fg`.
+ * @property {string} tone - One of: "pass", "fail", "empty", or unset
+ *   (default). `pass` colours the value `--status-pass`; `fail` colours
+ *   it `--rust-400`; `empty` colours it `--fg-soft` (used when a count
+ *   is zero because there is no source data, not because the data is
+ *   passing — see cts-dashboard.js failures tile); default uses `--fg`.
  */
 class CtsStat extends LitElement {
   static properties = {

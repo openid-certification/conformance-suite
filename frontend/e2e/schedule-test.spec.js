@@ -1135,5 +1135,54 @@ test.describe("schedule-test.html — Test Plan Scheduling", () => {
         page.locator("cts-unsaved-changes-guard cts-modal dialog.oidf-modal[open]"),
       ).toHaveCount(0);
     });
+
+    test("dirty form: window beforeunload event has its default prevented", async ({ page }) => {
+      // Closes the P1 testing gap from
+      // docs/residual-review-findings/2026-05-18-dirty-form-exit-guard.md —
+      // the _onBeforeUnload branch of cts-unsaved-changes-guard had no
+      // integration coverage before this test.
+      //
+      // The residual file's fix recipe (page.reload() + page.on('dialog',
+      // dismiss)) does not surface in headless Chromium — neither
+      // page.reload() nor page.close({runBeforeUnload:true}) reliably emits
+      // a 'dialog' event for beforeunload in CI. The residual explicitly
+      // permitted test.skip in that case, but a real integration assertion
+      // is more valuable: dispatch a real beforeunload event on window and
+      // verify the guard's handler called preventDefault. This exercises:
+      //  - the connectedCallback's window.addEventListener wiring
+      //  - the live `dirty` state on the component
+      //  - the _onBeforeUnload branch that runs preventDefault + returnValue
+      // The browser-prompt UI side is a Chromium implementation detail that
+      // headless mode does not expose; the handler contract is what matters.
+      await bootScheduleTestPage(page);
+      await armGuardDirty(page);
+
+      const defaultPrevented = await page.evaluate(() => {
+        const event = new Event("beforeunload", { cancelable: true });
+        window.dispatchEvent(event);
+        return event.defaultPrevented;
+      });
+
+      // `defaultPrevented === true` proves the handler ran inside the
+      // dirty-state branch and called `event.preventDefault()` — the
+      // signal modern browsers honour to fire the unsaved-changes prompt.
+      expect(defaultPrevented).toBe(true);
+    });
+
+    test("pristine form: window beforeunload event is not prevented", async ({ page }) => {
+      // Companion to the dirty-form beforeunload test — confirms the guard
+      // does not preventDefault on the unload event when the form has not
+      // been edited, so the browser would proceed with the unload normally.
+      await bootScheduleTestPage(page);
+      await expect(page.locator("cts-unsaved-changes-guard")).not.toHaveAttribute("dirty", "");
+
+      const result = await page.evaluate(() => {
+        const event = new Event("beforeunload", { cancelable: true });
+        window.dispatchEvent(event);
+        return { defaultPrevented: event.defaultPrevented };
+      });
+
+      expect(result.defaultPrevented).toBe(false);
+    });
   });
 });
