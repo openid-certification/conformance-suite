@@ -850,7 +850,11 @@
             // cts-test-selector fires `cts-plan-select` when the user clicks
             // a search result. Route through the cascade so its dispatched
             // `cts-plan-selected` runs the same downstream listeners — no
-            // separate config-load codepath.
+            // separate config-load codepath. With a long plan list the
+            // cascade auto-fills below the fold; scroll it into view so the
+            // selection is visible. Keyboard users (Enter on a focused row)
+            // also get focus dropped into the first cascade <select> so they
+            // can keep tabbing through variants/config.
             var planSearch = document.getElementById('planSearch');
             if (planSearch) {
                 planSearch.addEventListener('cts-plan-select', function(evt) {
@@ -858,6 +862,24 @@
                     if (!cascade) return;
                     var planName = evt.detail && evt.detail.plan && evt.detail.plan.planName;
                     if (planName) cascade.selectPlanByName(planName);
+                    var via = evt.detail && evt.detail.via;
+                    // rAF defers until the cascade's post-selection render
+                    // (and the cts-plan-selected listener's downstream
+                    // variants/config-form mutations) have laid out, so the
+                    // scroll target reflects the final layout.
+                    requestAnimationFrame(function() {
+                        var cascadeEl = document.getElementById('specCascade');
+                        if (!cascadeEl) return;
+                        cascadeEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        if (via === 'keyboard') {
+                            var firstField = cascadeEl.querySelector('select');
+                            // preventScroll keeps the smooth scroll above
+                            // authoritative; .focus() would otherwise
+                            // snap-scroll the select into view and clobber
+                            // the animation.
+                            if (firstField) firstField.focus({ preventScroll: true });
+                        }
+                    });
                 });
             }
 
