@@ -248,7 +248,9 @@ test.describe("Cross-page journeys", () => {
     await page.goto("/plan-detail.html?plan=plan-abc-123");
 
     // Verify plan loaded
-    await expect(page.locator("#planDetailHeader")).toContainText("oidcc-basic-certification-test-plan");
+    await expect(page.locator("#planDetailHeader")).toContainText(
+      "oidcc-basic-certification-test-plan",
+    );
 
     // Click "Run Test" on the first module
     const runBtn = page.locator(".startBtn").first();
