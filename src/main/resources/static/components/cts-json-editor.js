@@ -595,6 +595,11 @@ class CtsJsonEditor extends LitElement {
   }
 
   _onFallbackInput(e) {
+    // The native textarea `input` event already bubbles to the host. Stop
+    // it here so consumers don't see two `input` events back-to-back when
+    // `_dispatchChange()` re-emits the canonical event-set from the host —
+    // the Monaco path only emits once, and the fallback should match.
+    e.stopPropagation();
     const next = e.target.value;
     if (next === this._value) return;
     this._value = next;
@@ -628,5 +633,18 @@ class CtsJsonEditor extends LitElement {
 }
 
 customElements.define("cts-json-editor", CtsJsonEditor);
+
+/**
+ * TEST-ONLY: discard the memoised Monaco-loader promise so the next
+ * `<cts-json-editor>` instance attempts the full load again. Production
+ * callers MUST NOT use this — it exists so the Storybook `Fallback`
+ * story can simulate a cold-cache loader failure even after sibling
+ * stories already booted Monaco in the same window. Pair the call with
+ * `delete window.monaco; delete window.MonacoEnvironment; delete window.require;`
+ * to drop the AMD globals the singleton would otherwise short-circuit on.
+ */
+export function __resetMonacoLoaderForTests() {
+  monacoLoader = null;
+}
 
 export {};
