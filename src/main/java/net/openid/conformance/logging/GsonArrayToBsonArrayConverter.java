@@ -19,14 +19,14 @@ import java.util.Map;
 
 public class GsonArrayToBsonArrayConverter implements Converter<JsonArray, BsonArray> {
 
-	private Gson gson = new GsonBuilder().serializeNulls().create();
+	private static final Gson GSON = new GsonBuilder().serializeNulls().create();
 
 	@Override
 	public BsonArray convert(JsonArray source) {
 		if (source == null) {
 			return null;
 		} else {
-			String json = gson.toJson(GsonObjectToBsonDocumentConverter.convertFieldsToStructure(source));
+			String json = GSON.toJson(GsonObjectToBsonDocumentConverter.convertFieldsToStructure(source));
 			return BsonArray.parse(json);
 		}
 	}
@@ -43,6 +43,18 @@ public class GsonArrayToBsonArrayConverter implements Converter<JsonArray, BsonA
 			// MongoDB MappingMongoConverter doesn't trip on them when it walks the JsonObject as a
 			// nested map. CollapsingGsonHttpMessageConverter unwraps the wrapper on response read.
 			return new GsonObjectToBsonDocumentConverter().convert(element.getAsJsonObject());
+		} else if (value instanceof Map<?, ?> mapValue) {
+			// Nimbus claim sets (JWTClaimsSet.toJSONObject()) and other parsed JSON objects arrive
+			// as a plain java.util.Map (e.g. net.minidev JSONObject), not a Gson JsonObject, so the
+			// branch above doesn't catch them. Mirror it: serialize to a Gson tree and route through
+			// GsonObjectToBsonDocumentConverter so dotted/dollar keys are wrapped before
+			// MappingMongoConverter walks the map. Without this an args("payload", claimSet) log of
+			// e.g. credential_configurations_supported.eu.europa.ec.eudi.pid.1 crashes the log write.
+			JsonElement tree = GSON.toJsonTree(mapValue);
+			if (tree.isJsonObject()) {
+				return new GsonObjectToBsonDocumentConverter().convert(tree.getAsJsonObject());
+			}
+			return convertValue(tree);
 		} else if (value instanceof JWK jwk) {
 			return JsonParser.parseString(jwk.toJSONString());
 		} else if (value instanceof JWKSet set) {
