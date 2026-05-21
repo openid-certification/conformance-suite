@@ -16,6 +16,8 @@ import net.openid.conformance.plan.TestPlan;
 		AuthzenPDPEvaluationsBatchWithFullySpecifiedEvaluationsTest.class,
 		AuthzenPDPEvaluationsBatchWithContextInheritanceTest.class,
 		AuthzenPDPEvaluationsEvaluationLevelErrorsTest.class,
+		// X-Request-ID handling (Spec 10.1.3-4)
+		AuthzenPDPEvaluationsXRequestIdEchoedTest.class,
 		// Batch Properties (Properties variant only)
 		AuthzenPDPEvaluationsBatchWithPropertiesValidatedTest.class,
 		AuthzenPDPEvaluationsBatchWithSubjectPropertiesValidatedTest.class,

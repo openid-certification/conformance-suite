@@ -17,6 +17,11 @@ import net.openid.conformance.plan.TestPlan;
 		AuthzenPDPSubjectSearchRequestWithPageLimitTest.class,
 		AuthzenPDPSubjectSearchPaginatedSubjectSearchTest.class,
 		AuthzenPDPSubjectSearchUnknownEntityTypeTest.class,
+		// X-Request-ID handling (Spec 10.1.3-4)
+		AuthzenPDPSubjectSearchXRequestIdEchoedTest.class,
+		// Error handling: HTTP 400 negative tests (Section 4.7)
+		AuthzenPDPSubjectSearchMissingActionTest.class,
+		AuthzenPDPSubjectSearchResourceMissingIdTest.class,
 		// Search Properties (Properties variant only)
 		AuthzenPDPSubjectSearchSubjectSearchWithResourcePropertiesTest.class,
 	}
