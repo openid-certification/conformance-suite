@@ -435,7 +435,6 @@ const STYLE_TEXT = `
     cts-log-entry .logIdInline {
       display: inline-flex;
       margin-right: var(--space-2);
-      vertical-align: middle;
     }
   }
 `;
