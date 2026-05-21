@@ -35,8 +35,11 @@ const STATS_LOGS_SAMPLE_ENVELOPE = {
 
 // Default MSW handler set used by stories that don't focus on the stats row.
 // Returns empty data for the list endpoints so the stats row renders with
-// zero counts (and `pass` tone on the failures tile) without pulling in the
-// larger sample fixtures.
+// zero counts (and `empty` tone on the failures tile — the truthful zero-
+// no-data state, distinct from "0 of N passing") without pulling in the
+// larger sample fixtures. The dedicated `ZeroLogsEmptyTone` story below
+// exercises the empty-tone contract directly; this helper is just the
+// quiet-background baseline for unrelated stories.
 function defaultStatsHandlers() {
   return [
     http.get("/api/server", () => HttpResponse.json(MOCK_SERVER_INFO)),
@@ -529,6 +532,41 @@ export const AuthenticatedWithStatsAllPassing = {
     // dashboard behaviour.
     const failedTile = canvasElement.querySelector('[data-stat-key="failed"]');
     expect(failedTile.querySelector("cts-stat").getAttribute("tone")).toBe("pass");
+  },
+};
+
+// Zero-logs empty-tone contract. When /api/log returns an empty array,
+// the failures tile must read "0" with tone="empty" — not "0" with the
+// passing-green tone, which falsely reads "all good" on a freshly
+// onboarded account. The wrapping anchor's aria-label gains a "(no logs
+// yet)" suffix so screen reader users hear the no-data semantic that the
+// muted-grey tone communicates visually.
+export const ZeroLogsEmptyTone = {
+  parameters: {
+    msw: {
+      handlers: [
+        http.get("/api/server", () => HttpResponse.json(MOCK_SERVER_INFO)),
+        http.get("/api/plan", () => HttpResponse.json([])),
+        http.get("/api/log", () => HttpResponse.json([])),
+      ],
+    },
+  },
+  render: () => html`<cts-dashboard></cts-dashboard>`,
+
+  async play({ canvasElement }) {
+    await waitFor(() => {
+      const tile = canvasElement.querySelector('[data-stat-key="failed"] .oidf-stat-value');
+      expect(tile?.textContent.trim()).toBe("0");
+    });
+
+    const failedTile = canvasElement.querySelector('[data-stat-key="failed"]');
+    expect(failedTile.querySelector("cts-stat").getAttribute("tone")).toBe("empty");
+    expect(failedTile.getAttribute("aria-label")).toBe("Logs with failures: 0 (no logs yet)");
+
+    // Regression guard: when logs exist with zero failures, the failed
+    // tile must still carry "pass" — exercised by AuthenticatedWithStatsAllPassing
+    // above. This story complements it by pinning the empty-of-empty
+    // branch that the misleading-tone bug fix targets.
   },
 };
 

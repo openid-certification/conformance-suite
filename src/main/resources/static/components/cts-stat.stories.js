@@ -11,7 +11,7 @@ export default {
     delta: { control: "text" },
     tone: {
       control: "select",
-      options: ["", "pass", "fail"],
+      options: ["", "pass", "fail", "empty"],
     },
   },
 };
@@ -100,6 +100,41 @@ export const ToneFail = {
 
     expect(delta).toBeTruthy();
     expect(window.getComputedStyle(delta).color).toBe("rgb(164, 54, 4)");
+  },
+};
+
+// tone="empty" expresses "zero because no source data", not "zero because
+// the data is passing." Dashboard consumers route to this tone when
+// their underlying recordset is empty so a green pass colour does not
+// falsely communicate "all good" on a freshly-onboarded account.
+export const ToneEmpty = {
+  args: {
+    label: "Logs with failures",
+    value: "0",
+    delta: "no change",
+    tone: "empty",
+  },
+  render: ({ label, value, delta, tone }) =>
+    html`<cts-stat label="${label}" value="${value}" delta="${delta}" tone="${tone}"></cts-stat>`,
+
+  async play({ canvasElement }) {
+    const host = canvasElement.querySelector("cts-stat");
+    const value = host.querySelector(".oidf-stat-value");
+    const delta = host.querySelector(".oidf-stat-delta");
+
+    expect(value).toBeTruthy();
+    // tone="empty" must paint the value with --fg-soft (--ink-500 = #71695E).
+    expect(window.getComputedStyle(value).color).toBe("rgb(113, 105, 94)");
+    // Regression guard: must NOT collide with --status-pass (rgb(47, 125, 60))
+    // — the bug this tone exists to fix.
+    expect(window.getComputedStyle(value).color).not.toBe("rgb(47, 125, 60)");
+
+    // DELTA_COLOR['empty'] also routes to --fg-soft so the delta line
+    // stays in the same muted ramp as the value rather than dropping
+    // back to the default --fg-soft (visually identical here, but the
+    // path is exercised so a future divergence is caught).
+    expect(delta).toBeTruthy();
+    expect(window.getComputedStyle(delta).color).toBe("rgb(113, 105, 94)");
   },
 };
 
