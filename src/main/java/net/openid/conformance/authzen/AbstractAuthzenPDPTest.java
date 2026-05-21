@@ -18,6 +18,7 @@ import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.sequence.client.AddMTLSClientAuthenticationToRequest;
 import net.openid.conformance.sequence.client.SupportMTLSEndpointAliases;
 import net.openid.conformance.testmodule.AbstractRedirectServerTestModule;
+import net.openid.conformance.variant.AuthzenSupport;
 import net.openid.conformance.variant.PDPAuthType;
 import net.openid.conformance.variant.PDPServerMetadata;
 import net.openid.conformance.variant.VariantConfigurationFields;
@@ -26,7 +27,8 @@ import net.openid.conformance.variant.VariantSetup;
 
 @VariantParameters({
 	PDPServerMetadata.class,
-	PDPAuthType.class
+	PDPAuthType.class,
+	AuthzenSupport.class
 })
 @VariantConfigurationFields(parameter = PDPServerMetadata.class, value = "static", configurationFields = {
 	"pdp.policy_decision_point",
