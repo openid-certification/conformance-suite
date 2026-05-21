@@ -310,7 +310,7 @@ const STYLE_TEXT = `
   }
   .cts-log-card-meta-item {
     display: inline-flex;
-    align-items: baseline;
+    align-items: center;
     gap: var(--space-1);
   }
   .cts-log-card-meta-key {
