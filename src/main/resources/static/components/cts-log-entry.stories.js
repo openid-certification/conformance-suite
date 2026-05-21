@@ -661,6 +661,18 @@ export const LongUrlMessage = {
 // storybook canvas width. The dashed border + `resize: horizontal` is a
 // manual-QA convenience: drag the wrapper edge in storybook to watch the
 // layout flip at 640px without re-running the story.
+//
+// Wrappers at >= 640 px also declare `container-type: inline-size` +
+// `container-name: ctsLogViewer` to stand in for cts-log-viewer, which in
+// production publishes that same named container on its host (see
+// cts-log-viewer.js). Without the name, the wide-layout rule in
+// cts-log-entry.js (`@container ctsLogViewer (min-width: 640px) { ... }`)
+// finds no matching ancestor and is silently skipped — named container
+// queries do not warn when no container matches — leaving the entry stuck
+// in its 2-track small-layout default and these stories asserting a 5-track
+// grid that never materializes. Sub-640 px stories (SmallContainerLayout,
+// EntryIdAtSmallLayout) omit the declaration because the small layout is
+// the rule-less default that applies whenever the wide rule does not match.
 
 /**
  * Below the 640px container-query threshold the row collapses to:
@@ -712,7 +724,15 @@ export const SmallContainerLayout = {
  * effect — verifies the boundary inclusively (`min-width: 640px`).
  */
 export const BoundaryContainerLayout = {
-  decorators: [(Story) => html` <div style="width: 640px; max-width: 100%;">${Story()}</div> `],
+  decorators: [
+    (Story) => html`
+      <div
+        style="width: 640px; max-width: 100%; container-type: inline-size; container-name: ctsLogViewer;"
+      >
+        ${Story()}
+      </div>
+    `,
+  ],
   render: () => html`<cts-log-entry .entry=${HTTP_REQUEST_ENTRY}></cts-log-entry>`,
   async play({ canvasElement }) {
     const canvas = within(canvasElement);
@@ -738,7 +758,15 @@ export const BoundaryContainerLayout = {
 
 /** Tablet width — well past the 640px threshold. */
 export const TabletContainerLayout = {
-  decorators: [(Story) => html` <div style="width: 720px; max-width: 100%;">${Story()}</div> `],
+  decorators: [
+    (Story) => html`
+      <div
+        style="width: 720px; max-width: 100%; container-type: inline-size; container-name: ctsLogViewer;"
+      >
+        ${Story()}
+      </div>
+    `,
+  ],
   render: () => html`<cts-log-entry .entry=${HTTP_REQUEST_ENTRY}></cts-log-entry>`,
   async play({ canvasElement }) {
     const canvas = within(canvasElement);
@@ -760,7 +788,15 @@ export const TabletContainerLayout = {
  * canvas width can no longer be assumed wide).
  */
 export const DesktopContainerLayout = {
-  decorators: [(Story) => html` <div style="width: 1280px; max-width: 100%;">${Story()}</div> `],
+  decorators: [
+    (Story) => html`
+      <div
+        style="width: 1280px; max-width: 100%; container-type: inline-size; container-name: ctsLogViewer;"
+      >
+        ${Story()}
+      </div>
+    `,
+  ],
   render: () => html`<cts-log-entry .entry=${HTTP_REQUEST_ENTRY}></cts-log-entry>`,
   async play({ canvasElement }) {
     const canvas = within(canvasElement);
@@ -828,7 +864,15 @@ export const EntryIdAtSmallLayout = {
  * text. This is the compact, "in-flow" placement.
  */
 export const EntryIdAtDesktopLayout = {
-  decorators: [(Story) => html` <div style="width: 1280px; max-width: 100%;">${Story()}</div> `],
+  decorators: [
+    (Story) => html`
+      <div
+        style="width: 1280px; max-width: 100%; container-type: inline-size; container-name: ctsLogViewer;"
+      >
+        ${Story()}
+      </div>
+    `,
+  ],
   render: () =>
     html`<cts-log-entry
       .entry=${SUCCESS_ENTRY}
