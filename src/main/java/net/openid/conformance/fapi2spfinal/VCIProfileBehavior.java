@@ -4,6 +4,7 @@ import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.condition.client.CheckDiscEndpointGrantTypesSupportedContainsAuthorizationCode;
 import net.openid.conformance.condition.client.CheckDiscEndpointTokenEndpointAuthMethodsSupportedContainsPrivateKeyOrTlsClientOrAttestation;
+import net.openid.conformance.condition.client.EnsureContentTypeApplicationJwt;
 import net.openid.conformance.condition.client.EnsureContentTypeJson;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs200;
 import net.openid.conformance.condition.client.ParseCredentialAsSdJwt;
@@ -29,7 +30,9 @@ import net.openid.conformance.vci10issuer.condition.CheckCacheControlHeaderConta
 import net.openid.conformance.vci10issuer.condition.VCIAddCredentialConfigurationIdToEnv;
 import net.openid.conformance.vci10issuer.condition.VCICheckForDeferredCredentialResponse;
 import net.openid.conformance.vci10issuer.condition.VCICheckKeyAttestationJwksIfKeyAttestationIsRequired;
+import net.openid.conformance.vci10issuer.condition.VCIDecryptCredentialResponse;
 import net.openid.conformance.vci10issuer.condition.VCIDetermineCredentialConfigurationTransferMethod;
+import net.openid.conformance.vci10issuer.condition.VCIEnsureCredentialResponseIsEncryptedJwe;
 import net.openid.conformance.vci10issuer.condition.VCIEnsureResolvedCredentialConfigurationMatchesSelection;
 
 import net.openid.conformance.condition.common.RARSupport;
@@ -334,7 +337,14 @@ public class VCIProfileBehavior extends FAPI2ProfileBehavior {
 			@Override
 			public void evaluate() {
 				call(exec().mapKey("endpoint_response", "resource_endpoint_response_full"));
-				callAndContinueOnFailure(EnsureContentTypeJson.class, ConditionResult.FAILURE, "OID4VCI-1FINAL-8.3");
+				boolean encrypted = module.getVariant(VCICredentialEncryption.class) == VCICredentialEncryption.ENCRYPTED;
+				if (encrypted) {
+					callAndContinueOnFailure(EnsureContentTypeApplicationJwt.class, ConditionResult.FAILURE, "OID4VCI-1FINAL-8.3");
+					callAndStopOnFailure(VCIEnsureCredentialResponseIsEncryptedJwe.class, "OID4VCI-1FINAL-8.3.1.2");
+					callAndStopOnFailure(VCIDecryptCredentialResponse.class, "OID4VCI-1FINAL-10");
+				} else {
+					callAndContinueOnFailure(EnsureContentTypeJson.class, ConditionResult.FAILURE, "OID4VCI-1FINAL-8.3");
+				}
 				callAndContinueOnFailure(VCIValidateNoUnknownKeysInCredentialResponse.class, ConditionResult.WARNING, "OID4VCI-1FINAL-8.3");
 
 				callAndStopOnFailure(VCICheckForDeferredCredentialResponse.class, "OID4VCI-1FINAL-9");
