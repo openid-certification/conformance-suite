@@ -159,7 +159,10 @@ export const FocusAndEscapeDismiss = {
     await waitFor(() => expect(getTooltipEl()).toBeNull());
     expect(document.activeElement).toBe(button);
 
-    // Re-focus → blur to another element dismisses.
+    // Move focus elsewhere first — `.focus()` on the already-focused button
+    // is a no-op (no `focusin` fires), so the only honest way to re-test
+    // the focus path is to Tab away and back.
+    other.focus();
     button.focus();
     await waitFor(() => expect(getTooltipEl()).toBeTruthy());
     other.focus();
@@ -214,8 +217,8 @@ export const AutoPlacementFlipsBelow = {
     </div>
   `,
 
-  async play() {
-    const button = /** @type {HTMLButtonElement} */ (document.querySelector("button"));
+  async play({ canvasElement }) {
+    const button = /** @type {HTMLButtonElement} */ (canvasElement.querySelector("button"));
     expect(button).toBeTruthy();
 
     await userEvent.hover(button);
