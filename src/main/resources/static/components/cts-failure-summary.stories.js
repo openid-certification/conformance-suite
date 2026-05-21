@@ -269,9 +269,13 @@ export const WithReferences = {
     expect(chips[2].textContent).toContain("LOG-0024");
 
     // The chip click copies the deep URL — same contract as the entry chip.
+    // cts-badge[clickable] mounts the click listener on the inner
+    // <span role="button">, not on the host. Synthesize the click there
+    // so cts-badge-click actually fires.
     const writeSpy = spyOn(navigator.clipboard, "writeText").mockResolvedValue();
     try {
-      await /** @type {HTMLButtonElement} */ (chips[0]).click();
+      const chipButton = /** @type {HTMLElement} */ (chips[0].querySelector('[role="button"]'));
+      chipButton.click();
       await waitFor(() => expect(writeSpy).toHaveBeenCalledOnce());
       const copied = writeSpy.mock.calls[0][0];
       expect(copied).toContain("log=abc123");
