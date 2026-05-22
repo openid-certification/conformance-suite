@@ -306,38 +306,26 @@ function startRunnerPolling(testInfo) {
   async function pollOnce() {
     try {
       const response = await fetch("/api/runner/" + encodeURIComponent(testId));
-      if (response.status === 404) {
-        // Runner no longer holds state for this test — mirror the legacy
-        // page's archived-banner trigger (`log-detail.html:1662–1664`).
-        setArchivedBanner(true);
-        return;
-      }
+      // 404 means the runner no longer holds state for this test. Stop
+      // polling and let the page surface the verdict via the terminal
+      // banner that cts-log-detail-header already renders for any
+      // finished / interrupted result.
+      if (response.status === 404) return;
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
       const data = await response.json();
       renderBrowserSlot(data.browser);
       renderErrorSlot(data.error);
-      // Continue polling while the runner is still active.
+      // Continue polling while the runner is still active; stop once
+      // the runner has reported a terminal state.
       const runnerStatus = (data.status || "").toUpperCase();
       if (runnerStatus === "RUNNING" || runnerStatus === "WAITING") {
-        setArchivedBanner(false);
         runnerPollState.active = window.setTimeout(pollOnce, POLL_INTERVAL_MS);
-      } else {
-        // Runner has reported a terminal state (FINISHED / INTERRUPTED) —
-        // legacy hid the archived banner here too because the runner still
-        // owned the record. Keep parity.
-        setArchivedBanner(false);
       }
     } catch (err) {
       console.warn("[log-detail] /api/runner failed:", err);
       // Back off and retry once.
       runnerPollState.active = window.setTimeout(pollOnce, POLL_INTERVAL_MS * 2);
     }
-  }
-
-  function setArchivedBanner(archived) {
-    /** @type {any} */
-    const header = document.getElementById("logDetailHeader");
-    if (header) header.archived = !!archived;
   }
 
   runnerPollState.active = window.setTimeout(pollOnce, 0);

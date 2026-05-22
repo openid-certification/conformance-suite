@@ -65,13 +65,15 @@ import {
  *     Active/Archived" → obsolete: the legacy three-banner Active /
  *     Inactive / Archived semantics collapsed in v2 into the hero's
  *     lifecycle-driven dispatch. FINISHED is the absence of the
- *     RUNNING / WAITING / archived states.
+ *     RUNNING / WAITING states; the verdict is the terminal banner.
  * "banner transitions: RUNNING runner shows Active" → obsolete: the
  *     RUNNING hero (data-testid="hero-running") replaces the legacy
  *     #runningTestActive banner; verified by the
  *     cts-log-detail-header RunningTest story.
- * "banner transitions: runner 404 shows Archived banner" → covered
- *     by "archived banner appears when /api/runner returns 404".
+ * "banner transitions: runner 404 shows Archived banner" → obsolete:
+ *     the archived note was dropped once the terminal banner replaced
+ *     the "did this test pass?" signal — the kebab menu still allows
+ *     download of the archived log.
  * "runner error response injects cts-alert + stacktrace reveals on
  *     click" → covered by "INTERRUPTED runner error renders danger
  *     alert with stacktrace toggle" (this file).
@@ -1127,10 +1129,9 @@ test.describe("log-detail.html — new Lit-triad page", () => {
     await expect(badges.nth(1)).toHaveAttribute("label", "✗1");
   });
 
-  // ──────────── U1: DC API handler + archived banner parity ────────────
-  // Mirrors the legacy DC handler at log-detail.html:1491–1538 and the
-  // archived banner trigger at log-detail.html:1662–1664. Wire format is
-  // frozen — Java parses it structurally in
+  // ──────────── U1: DC API handler parity ────────────
+  // Mirrors the legacy DC handler at log-detail.html:1491–1538. Wire
+  // format is frozen — Java parses it structurally in
   // src/main/java/.../ExtractBrowserApiResponse.java and
   // ExtractVP1FinalBrowserApiResponse.java. Schema lives in
   // js/log-detail.js handleVisitBrowserApi.
@@ -1410,45 +1411,5 @@ test.describe("log-detail.html — new Lit-triad page", () => {
     await expect(causeStacktrace).toHaveClass(/show/);
     await expect(stacktrace).toContainText("ExampleCondition.evaluate");
     await expect(causeStacktrace).toContainText("Inner.cause");
-  });
-
-  test("archived banner appears when /api/runner returns 404 for a once-running test", async ({
-    page,
-  }) => {
-    await setupFailFast(page);
-    const testIdLocal = MOCK_TEST_RUNNING.testId;
-
-    await page.route(`**/api/info/${testIdLocal}*`, (route) =>
-      route.fulfill({
-        status: 200,
-        contentType: "application/json",
-        body: JSON.stringify({ ...MOCK_TEST_RUNNING, planId: undefined }),
-      }),
-    );
-    await page.route(`**/api/log/${testIdLocal}**`, (route) =>
-      route.fulfill({
-        status: 200,
-        contentType: "application/json",
-        body: JSON.stringify(MOCK_LOG_ENTRIES),
-      }),
-    );
-    // Runner reports the test is gone — mirrors the legacy `.catch` path.
-    await page.route(`**/api/runner/${testIdLocal}`, (route) =>
-      route.fulfill({ status: 404, body: "" }),
-    );
-    await page.route("**/api/uploaded-images*", (route) =>
-      route.fulfill({ status: 200, contentType: "application/json", body: "[]" }),
-    );
-    await setupCommonRoutes(page);
-
-    await page.goto(`/log-detail.html?log=${encodeURIComponent(testIdLocal)}`);
-
-    const banner = page.locator('[data-testid="archived-banner"]');
-    await expect(banner).toBeVisible({ timeout: 8000 });
-    // The banner carries archival logistics only — the verdict (passed
-    // / failed / interrupted) is the terminal-banner's job above the
-    // hero, so this note doesn't re-state it.
-    await expect(banner).toContainText("This log has been archived");
-    await expect(banner).toContainText("view or download");
   });
 });

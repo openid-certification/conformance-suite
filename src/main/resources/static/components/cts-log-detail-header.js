@@ -139,6 +139,9 @@ const STYLE_ID = "cts-log-detail-header-styles";
 //   ┌───────────────────────────────────────────────────────────┐
 //   │ Sticky status bar (Region A — U2; unchanged)              │  shadow-1
 //   ├───────────────────────────────────────────────────────────┤
+//   │ Terminal-state banner (PASSED/FAILED/WARN/REVIEW/SKIP/    │  status palette
+//   │ INTERRUPTED only; absent during RUNNING / WAITING)        │
+//   ├───────────────────────────────────────────────────────────┤
 //   │ Test-nav-controls row (Previous / Test N/M / Next)        │
 //   ├───────────────────────────────────────────────────────────┤
 //   │ Hero (lifecycle-driven dominant zone)                     │  no chrome
@@ -154,9 +157,10 @@ const STYLE_ID = "cts-log-detail-header-styles";
 //   │   ▸ Configuration (JSON viewer; closed by default)        │
 //   └───────────────────────────────────────────────────────────┘
 //
-// Each section is divided by a 1px border (no card-within-card chrome).
-// The sticky bar carries the only shadow; the rest reads as a flat
-// document under the bar.
+// The terminal banner precedes the nav row so the verdict is the first
+// thing the eye lands on after the sticky bar. Each section is divided
+// by a 1px border (no card-within-card chrome). The sticky bar carries
+// the only shadow; the rest reads as a flat document under the bar.
 const STYLE_TEXT = `
   cts-log-detail-header {
     /* display: contents removes the host from the box tree so the
@@ -388,19 +392,6 @@ const STYLE_TEXT = `
     background: var(--status-skipped-bg);
     color: var(--status-skipped);
     border-bottom-color: var(--status-skipped-border);
-  }
-
-  /* Archived banner — rendered as a sibling alert between the nav
-     row and the hero when the test is no longer live on the runner.
-     Without explicit margins it sits flush against the nav row's
-     border-bottom above and the hero's first child below, breaking
-     the section rhythm. The block margin matches the hero's
-     padding-block-start so the banner reads as belonging to the
-     hero zone (a status note about it) rather than as a third,
-     orphaned section between nav and hero. */
-  cts-log-detail-header > cts-alert[data-testid="archived-banner"] {
-    display: block;
-    margin-block: var(--space-5) 0;
   }
 
   /* Hero — the lifecycle-driven dominant zone. Flat section on the
@@ -676,10 +667,6 @@ function ensureStylesInjected() {
  *   Reflects the `is-admin` attribute.
  * @property {boolean} isPublic - Public (read-only) view hides repeat /
  *   upload / publish actions. Reflects the `is-public` attribute.
- * @property {boolean} archived - When `true`, renders the archived-test
- *   info banner above the hero. Set by the page when the runner no longer
- *   holds state for this test (e.g. `/api/runner/{testId}` returns 404).
- *   Reflects the `archived` attribute.
  * @fires cts-scroll-to-entry - Bubbled up from the embedded
  *   `cts-failure-summary` child when a failure row is activated, with
  *   `{ detail: { entryId } }`. Bubbles AND is composed.
@@ -710,7 +697,6 @@ class CtsLogDetailHeader extends LitElement {
     testInfo: { type: Object, attribute: "test-info" },
     isAdmin: { type: Boolean, attribute: "is-admin" },
     isPublic: { type: Boolean, attribute: "is-public" },
-    archived: { type: Boolean, attribute: "archived" },
   };
 
   constructor() {
@@ -718,7 +704,6 @@ class CtsLogDetailHeader extends LitElement {
     this.testInfo = null;
     this.isAdmin = false;
     this.isPublic = false;
-    this.archived = false;
   }
 
   createRenderRoot() {
@@ -1587,23 +1572,16 @@ class CtsLogDetailHeader extends LitElement {
 
   render() {
     if (!this.testInfo) return nothing;
+    // Order: sticky status bar → verdict banner (above the fold,
+    // directly under the bar so the answer to "did my test pass?"
+    // reads first) → nav row (plan progress / Continue Plan) → hero
+    // → drawer. The verdict precedes the nav row because the question
+    // it answers — "did this run succeed?" — has higher operational
+    // weight than "where am I in the plan?".
     return html`
-      ${this._renderStatusBar(this.testInfo)} ${this._renderTestNavControlsRow(this.testInfo)}
-      ${this._renderTerminalBanner(this.testInfo)} ${this._renderArchivedBanner()}
-      ${this._renderHero(this.testInfo)} ${this._renderDrawer(this.testInfo)}
-    `;
-  }
-
-  _renderArchivedBanner() {
-    if (!this.archived) return nothing;
-    // The verdict for the run (passed / failed / interrupted) is already
-    // surfaced by the terminal banner above the hero, so this note only
-    // carries the archival logistics — what the user can still do with
-    // the log now that the runner has dropped its in-memory state.
-    return html`
-      <cts-alert variant="info" dismissible id="runningTestArchived" data-testid="archived-banner">
-        This log has been archived. You can view or download it below.
-      </cts-alert>
+      ${this._renderStatusBar(this.testInfo)} ${this._renderTerminalBanner(this.testInfo)}
+      ${this._renderTestNavControlsRow(this.testInfo)} ${this._renderHero(this.testInfo)}
+      ${this._renderDrawer(this.testInfo)}
     `;
   }
 
