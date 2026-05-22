@@ -41,6 +41,28 @@ let isAdmin = false;
 /** @type {{ active: number | null }} */
 const runnerPollState = { active: null };
 
+/**
+ * Latest /api/info payload (testName, planId, variant). Read by
+ * handleRepeat/handleContinue to build the correct /api/runner URL —
+ * the components emit `{ testId }` as their action-event detail because
+ * the runtime test instance is all they own, but the runner endpoint's
+ * `test=` query param wants the *module name* (e.g. `oidcc-server`),
+ * not the runtime ID. Cache it module-scope so the action handlers can
+ * resolve testName + variant without re-fetching.
+ *
+ * @type {any}
+ */
+let latestTestInfo = null;
+
+/**
+ * Modules list from /api/plan/{planId}, cached at fetch time so
+ * handleContinue can find the *next* module without a second roundtrip.
+ * Each entry has { testModule: string, variant: object }.
+ *
+ * @type {Array<any>}
+ */
+let cachedPlanModules = [];
+
 /** Resolve query string params we care about exactly once. */
 function readUrlParams() {
   const params = new URLSearchParams(window.location.search);
@@ -114,6 +136,7 @@ function selectFailures(testInfo) {
  * @param {any} testInfo
  */
 function applyTestInfo(testInfo) {
+  latestTestInfo = testInfo;
   /** @type {any} */
   const header = document.getElementById("logDetailHeader");
   if (header) header.testInfo = testInfo;
@@ -233,21 +256,20 @@ async function fetchAndApplyPlanState(testInfo) {
     if (!response.ok) return;
     const planData = await response.json();
     const modules = Array.isArray(planData.modules) ? planData.modules : [];
+    cachedPlanModules = modules;
 
-    // Locate the current module in the plan. The legacy page matches by
-    // testName + variant equality; we mirror that. `_.findIndex` from
-    // lodash isn't available here so we use Array.findIndex with a
-    // shallow-equal helper.
-    const variant = testInfo.variant || {};
-    const thisModuleIndex = modules.findIndex((m) => {
-      if (m.testModule !== testInfo.testName) return false;
-      const mv = m.variant || {};
-      const keys = new Set([...Object.keys(variant), ...Object.keys(mv)]);
-      for (const key of keys) {
-        if (variant[key] !== mv[key]) return false;
-      }
-      return true;
-    });
+    // Locate the current module in the plan. The /api/plan modules list
+    // carries only the *constraint* keys per module (e.g. client_auth_type,
+    // response_type), while /api/info's testInfo.variant carries the full
+    // resolved variant including plan-level defaults (server_metadata,
+    // client_registration). Match by subset — every key the module
+    // constrains must equal the test's value; the test may carry extra
+    // keys. This both gives Continue Plan a correct `next module` lookup
+    // AND removes the silent currentIndex=0 fallback the legacy
+    // equality check relied on.
+    const thisModuleIndex = modules.findIndex(
+      (m) => m.testModule === testInfo.testName && variantsMatch(m.variant, testInfo.variant),
+    );
 
     const navControls = document.querySelector("cts-test-nav-controls");
     if (!navControls) return;
@@ -678,17 +700,78 @@ async function handleStopTest(evt) {
   }
 }
 
-async function handleRepeat(evt) {
-  const detail = evt.detail || {};
-  const eventTestId = detail.testId || testId;
-  const planId = detail.planId;
+/**
+ * Build the /api/runner POST URL the same way plan-detail.html does
+ * (its `buildRunnerUrl` is the single source of truth for query-param
+ * shape). `test` is the module name (NOT the runtime test ID); `plan`
+ * is optional; `variant` is pass-through when string, JSON when object,
+ * omitted when nullish.
+ *
+ * @param {string} testName
+ * @param {string | null | undefined} planId
+ * @param {object | string | null | undefined} variant
+ * @returns {string}
+ */
+function buildRunnerUrl(testName, planId, variant) {
+  let url = `/api/runner?test=${encodeURIComponent(testName)}`;
+  if (planId) {
+    url += `&plan=${encodeURIComponent(planId)}`;
+  }
+  if (variant !== null && variant !== undefined) {
+    const encoded = typeof variant === "string" ? variant : JSON.stringify(variant);
+    if (encoded && encoded !== "{}") {
+      url += `&variant=${encodeURIComponent(encoded)}`;
+    }
+  }
+  return url;
+}
+
+/**
+ * Surface a runner-API failure with the server's own error message
+ * when the body carries one ({error: "..."}), mirroring plan-detail.html's
+ * handleApiError. Falls back to the generic statusText. Returns the
+ * resolved message for the caller's showError().
+ *
+ * @param {Response} response
+ * @returns {Promise<string>}
+ */
+async function readRunnerError(response) {
+  try {
+    const body = await response.json();
+    if (body && typeof body.error === "string" && body.error.trim()) {
+      return body.error;
+    }
+    if (body && typeof body.message === "string" && body.message.trim()) {
+      return body.message;
+    }
+  } catch {
+    /* not JSON — fall through */
+  }
+  return `HTTP ${response.status} ${response.statusText || ""}`.trim();
+}
+
+async function handleRepeat() {
+  // Resolve testName + variant from the latest /api/info payload — the
+  // event detail only carries the runtime test ID, but the runner
+  // endpoint wants the module name (e.g. `oidcc-server`) in `test=`.
+  // Passing the runtime ID is what caused the 404/400 modal Thomas
+  // reported (A3).
+  const info = latestTestInfo;
+  if (!info || !info.testName) {
+    showError("Test info hasn't loaded yet — wait a moment and try again.");
+    return;
+  }
   showBusy("Repeating test…");
   try {
-    const url = planId
-      ? `/api/runner?test=${encodeURIComponent(eventTestId)}&plan=${encodeURIComponent(planId)}`
-      : `/api/runner?test=${encodeURIComponent(eventTestId)}`;
-    const response = await fetch(url, { method: "POST" });
-    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    const url = buildRunnerUrl(info.testName, info.planId || null, info.variant || null);
+    const response = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+    });
+    if (!response.ok) {
+      const message = await readRunnerError(response);
+      throw new Error(message);
+    }
     const data = await response.json();
     if (data && data.id) {
       window.location.assign(`/log-detail.html?log=${encodeURIComponent(data.id)}`);
@@ -701,19 +784,54 @@ async function handleRepeat(evt) {
   }
 }
 
-async function handleContinue(evt) {
-  // cts-test-nav-controls' Continue Plan button: launches the next
-  // module in the plan. Same /api/runner POST shape as Repeat with the
-  // plan progression delta handled server-side.
-  const detail = evt.detail || {};
-  const planId = detail.planId;
-  if (!planId) return;
+/**
+ * True when every key the module's variant constrains is present and
+ * equal in the test's full resolved variant. The plan's per-module
+ * variant carries only constraint keys; the test's variant carries
+ * those plus plan-level defaults — so the relationship is subset, not
+ * equality. Used by both the in-plan currentIndex lookup and the
+ * Continue Plan next-module lookup, so the two stay consistent.
+ *
+ * @param {object | undefined | null} moduleVariant - the plan-module variant (subset)
+ * @param {object | undefined | null} testVariant - the test's full resolved variant
+ */
+function variantsMatch(moduleVariant, testVariant) {
+  const mv = moduleVariant || {};
+  const tv = testVariant || {};
+  for (const key of Object.keys(mv)) {
+    if (mv[key] !== tv[key]) return false;
+  }
+  return true;
+}
+
+async function handleContinue() {
+  const info = latestTestInfo;
+  if (!info || !info.planId || !info.testName) return;
+  // Find the *next* module in the plan. The runner endpoint's `test=`
+  // param wants a module name, so Continue Plan can't just POST
+  // `?plan=...` — that produces the "Required parameter 'test' is not
+  // present" 400 Thomas reported. Reuse the plan modules already
+  // fetched by fetchAndApplyPlanState (cached at module scope) to find
+  // the next entry without a second roundtrip.
+  const currentIndex = cachedPlanModules.findIndex(
+    (m) => m.testModule === info.testName && variantsMatch(m.variant, info.variant),
+  );
+  const next = currentIndex >= 0 ? cachedPlanModules[currentIndex + 1] : null;
+  if (!next || !next.testModule) {
+    showError("No next module found in this plan.");
+    return;
+  }
   showBusy("Continuing to next module…");
   try {
-    const response = await fetch(`/api/runner?plan=${encodeURIComponent(planId)}`, {
+    const url = buildRunnerUrl(next.testModule, info.planId, next.variant || null);
+    const response = await fetch(url, {
       method: "POST",
+      headers: { "Content-Type": "application/json" },
     });
-    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    if (!response.ok) {
+      const message = await readRunnerError(response);
+      throw new Error(message);
+    }
     const data = await response.json();
     if (data && data.id) {
       window.location.assign(`/log-detail.html?log=${encodeURIComponent(data.id)}`);
