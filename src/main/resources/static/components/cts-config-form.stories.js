@@ -252,7 +252,15 @@ export const ConfigChangeEvent = {
   },
 };
 
-export const ValidateEvent = {
+/**
+ * The Validate Configuration button is a UI placeholder for the SUS UX
+ * review's HIGH-severity "pre-run config validation" recommendation. The
+ * backend `POST /api/plan/validate` endpoint is not yet implemented, so
+ * the button opens a construction-notice modal that explains the
+ * unwired state to OIDF maintainers. A tooltip surfaces the same status
+ * on hover/focus.
+ */
+export const ValidateButtonShowsSusNotice = {
   render: () => html`
     <cts-config-form
       .schema=${MOCK_SCHEMA.schema}
@@ -263,14 +271,27 @@ export const ValidateEvent = {
   `,
   async play({ canvasElement }) {
     const canvas = within(canvasElement);
-    let validateFired = false;
-    canvasElement.addEventListener("cts-validate", () => {
-      validateFired = true;
+    const button = canvas.getByText("Validate Configuration");
+
+    // Hovering the button surfaces the SUS construction-notice tooltip
+    // (appended to document.body by cts-tooltip).
+    await userEvent.hover(button);
+    await waitFor(() => {
+      const tip = document.querySelector(".oidf-tooltip");
+      expect(tip?.textContent || "").toContain("SUS recommendation");
     });
+    await userEvent.unhover(button);
+
     // cts-button renders the inner <button type="submit"> that submits the form;
-    // the form's @submit handler dispatches cts-validate.
-    await userEvent.click(canvas.getByText("Validate Configuration"));
-    expect(validateFired).toBe(true);
+    // the form's @submit handler opens the construction-notice modal.
+    await userEvent.click(button);
+    const modal = /** @type {HTMLElement} */ (
+      canvasElement.querySelector("#cts-config-form-sus-notice-modal")
+    );
+    expect(modal).toBeTruthy();
+    // cts-modal mirrors `open` to the host once the dialog opens.
+    await waitFor(() => expect(modal.hasAttribute("open")).toBe(true));
+    expect(modal.getAttribute("heading")).toContain("not yet implemented");
   },
 };
 
