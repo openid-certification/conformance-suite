@@ -22,6 +22,7 @@ const STATUS_VARIANT_CLASSES = {
   running: "b-run",
   skip: "b-skip",
   review: "b-rev",
+  info: "b-info",
 };
 
 /**
@@ -157,6 +158,17 @@ const STYLE_TEXT = `
     background: var(--bg-muted, #F8F7F5);
     color: var(--ink-700, #322E28);
   }
+  /* Static informational pill — paints from the same --status-info-*
+     palette as b-info-subtle, but inherits the canonical status-pill
+     chrome (uppercase, tracked, pill radius) instead of b-info-subtle's
+     prose-friendly overrides. Used for log-entry severity rows whose
+     result is "info", and for HTTP request/response/incoming/outgoing
+     markers — labels that were previously routed through "running" and
+     accidentally inherited the spinner glyph. */
+  cts-badge .b-info {
+    background: var(--status-info-bg);
+    color: var(--status-info);
+  }
   cts-badge .b-info-subtle {
     background: var(--status-info-bg);
     color: var(--ink-900);
@@ -212,6 +224,9 @@ const STYLE_TEXT = `
     box-shadow: inset 0 0 0 1px var(--status-skipped);
   }
   cts-badge .b-info-subtle.is-interactive {
+    box-shadow: inset 0 0 0 1px var(--status-info-border);
+  }
+  cts-badge .b-info.is-interactive {
     box-shadow: inset 0 0 0 1px var(--status-info-border);
   }
   cts-badge .b-rev.is-interactive {
@@ -331,8 +346,8 @@ function buildSpinner() {
  * canonical status names for any badge that conveys test outcome.
  *
  * @property {string} variant - Canonical status: pass, fail, warn,
- *   running, skip, review. Utility (non-status): primary, secondary,
- *   danger, info-subtle.
+ *   running, skip, review, info. Utility (non-status): primary,
+ *   secondary, danger, info-subtle.
  * @property {string} label - Visible text
  * @property {number} count - Numeric content; overrides `label` when set
  * @property {string} icon - coolicons name (matches a file under
