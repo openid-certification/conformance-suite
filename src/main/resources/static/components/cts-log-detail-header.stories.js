@@ -359,6 +359,16 @@ export const ViewConfigViaKebab = {
     expect(configJson.getAttribute("readonly")).not.toBeNull();
     expect(configJson.value).toContain("server.issuer");
     expect(configJson.value).toContain("https://op.example.com");
+
+    // U2 floor assertion: a small config (3 keys here) must still
+    // render the editor at exactly 336px — the `min-height` half of
+    // the min/max-height pair on `.ctsConfigJson`. Pairs with the
+    // ceiling assertion in ConfigDrawerHeightLockedAtFixedValue so a
+    // future change that drops `min-height` and keeps only
+    // `max-height` is caught here. See
+    // docs/plans/2026-05-21-002-fix-log-detail-layout-reflows-plan.md U2.
+    const smallConfigRect = configJson.getBoundingClientRect();
+    expect(Math.abs(smallConfigRect.height - 336)).toBeLessThanOrEqual(1);
   },
 };
 
@@ -445,11 +455,13 @@ export const ConfigDrawerHeightLockedAtFixedValue = {
     // A Monaco scroll surface lives inside the host so the bounded
     // height does not silently clip the configuration JSON. Monaco
     // renders `.monaco-scrollable-element` as its scroll container;
-    // a present element with non-zero scrollHeight proves the user
-    // can reach the rest of the payload.
+    // its scrollHeight must exceed the bounded host height — `> 0`
+    // would pass even for an empty editor (Monaco's scroll container
+    // reports a non-zero baseline). Comparing against the host
+    // height proves the oversized payload actually requires scroll.
     const scrollable = configJson.querySelector(".monaco-scrollable-element");
     expect(scrollable).toBeTruthy();
-    expect(scrollable.scrollHeight).toBeGreaterThan(0);
+    expect(scrollable.scrollHeight).toBeGreaterThan(hostRect.height);
   },
 };
 

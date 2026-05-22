@@ -635,11 +635,13 @@ test.describe("log-detail.html — new Lit-triad page", () => {
 
     // Page grid stays two-column: `.log-page--with-toc` activates the
     // grid unconditionally at ≥ 1440px, so the 320px track is reserved
-    // even when the rail itself paints nothing into it.
+    // even when the rail itself paints nothing into it. Pattern pins
+    // exactly two tracks (`<mainpx> 320px`) so a future regression that
+    // adds a stray third track is also caught.
     const mainGridCols = await page
       .locator("#main-content")
       .evaluate((el) => getComputedStyle(el).gridTemplateColumns);
-    expect(mainGridCols).toMatch(/\s320px$/);
+    expect(mainGridCols).toMatch(/^\d+(\.\d+)?px 320px$/);
   });
 
   test("page grid does not reflow when cts-blocks-updated lands new blocks", async ({ page }) => {
@@ -653,28 +655,76 @@ test.describe("log-detail.html — new Lit-triad page", () => {
     //
     // After U1 the column is always reserved at ≥ 1440px, so the
     // grid-template-columns value must be stable across the
-    // empty-rail → populated-rail transition. We snapshot the value
-    // before and after the event and assert equality.
+    // empty-rail → populated-rail transition. We stall the initial
+    // `/api/log` response so the snapshot is provably captured BEFORE
+    // any `cts-blocks-updated` event can fire, then release the
+    // response and snapshot again after the rail populates. Without
+    // the stall, the bootstrap fetch resolves so fast that the
+    // pre-event snapshot races against the event and the equality
+    // assertion would pass trivially (both snapshots would reflect
+    // post-event state).
     await setupFailFast(page);
     await page.setViewportSize({ width: 1500, height: 900 });
+    const testId = "test-reflow-guard-001";
+
     await setupV2Routes(page, {
-      testInfo: { ...MOCK_TEST_STATUS, testId: "test-reflow-guard-001" },
+      testInfo: { ...MOCK_TEST_STATUS, testId },
       logEntries: MOCK_BLOCKS_WITH_STATUS,
     });
     await setupCommonRoutes(page);
 
-    await page.goto(`/log-detail.html?log=${encodeURIComponent("test-reflow-guard-001")}`);
+    // Gate the initial /api/log fetch behind a manually-resolved
+    // promise. Polling /api/log?since=... is left to setupV2Routes;
+    // only the seed fetch (no `since` param) is stalled. Registered
+    // AFTER setupV2Routes so Playwright's LIFO route-matching picks
+    // this handler ahead of the helper's instantaneous one.
+    /** @type {(value?: void) => void} */
+    let releaseInitialLog = () => {};
+    const initialLogReleased = new Promise((resolve) => {
+      releaseInitialLog = resolve;
+    });
+    await page.route(`**/api/log/${testId}**`, async (route) => {
+      const url = new URL(route.request().url());
+      const since = url.searchParams.get("since");
+      if (since && Number(since) > 0) {
+        return route.fulfill({
+          status: 200,
+          contentType: "application/json",
+          body: JSON.stringify([]),
+        });
+      }
+      await initialLogReleased;
+      return route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(MOCK_BLOCKS_WITH_STATUS),
+      });
+    });
+
+    await page.goto(`/log-detail.html?log=${encodeURIComponent(testId)}`);
 
     const main = page.locator("#main-content");
+    const rail = page.locator("#ctsLogToc");
 
     // Snapshot grid-template-columns before the rail receives any
     // blocks. `.log-page--with-toc` is set by setupLogToc() in
     // log-detail.js synchronously on bootstrap, so the two-column
     // grid is already active even though the rail itself is still
-    // `[hidden]` at this moment.
+    // `[hidden]` because /api/log has not yet responded.
     await expect(main).toHaveClass(/log-page--with-toc/);
+    // Pin the pre-event state explicitly: the rail must still be
+    // `[hidden]` when colsBefore is captured. The stall above
+    // guarantees this; without the stall the bootstrap fetch resolved
+    // so fast that this assertion would race. This assertion is
+    // load-bearing — it's what makes the equality check below
+    // meaningful rather than vacuous.
+    await expect(rail).toHaveAttribute("hidden", "");
     const colsBefore = await main.evaluate((el) => getComputedStyle(el).gridTemplateColumns);
-    expect(colsBefore).toMatch(/\s320px$/);
+    expect(colsBefore).toMatch(/^\d+(\.\d+)?px 320px$/);
+
+    // Release the stalled /api/log response. The viewer ingests the
+    // entries, emits `cts-blocks-updated`, and the rail un-hides.
+    releaseInitialLog();
 
     // Wait for the rail to populate — the toc-list rendering is the
     // observable proxy for cts-blocks-updated having fired.
