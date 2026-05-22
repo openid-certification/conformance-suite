@@ -184,6 +184,7 @@ public abstract class AbstractAuthzenPDPTest extends AbstractRedirectServerTestM
 	protected void performAuthzenApiFlow() {
 		eventLog.startBlock("Make request to API endpoint");
 		createAuthzenApiRequest();
+		applyRequestOverrides();
 		if (includeXRequestIdHeader()) {
 			callAndStopOnFailure(AddXRequestIdHeaderToAuthzenApiRequest.class, "AUTHZEN-10.1.3");
 		}
@@ -206,6 +207,57 @@ public abstract class AbstractAuthzenPDPTest extends AbstractRedirectServerTestM
 	 */
 	protected boolean includeXRequestIdHeader() {
 		return false;
+	}
+
+	/**
+	 * Override to send a different HTTP method (e.g. "GET", "PUT"). Default is POST.
+	 */
+	protected String getRequestHttpMethod() {
+		return "POST";
+	}
+
+	/**
+	 * Override the `Content-Type` request header. Return null to use the default
+	 * `application/json`. Return the empty string to omit the header entirely.
+	 */
+	protected String getRequestContentTypeOverride() {
+		return null;
+	}
+
+	/**
+	 * Override to send a raw body string (e.g. malformed JSON, an empty body, or a
+	 * top-level JSON array). When non-null, this body is transmitted verbatim and the
+	 * JSON object stored in `authzen_api_endpoint_request` is not serialized.
+	 */
+	protected String getRawRequestBody() {
+		return null;
+	}
+
+	/**
+	 * Override to skip adding client authentication credentials to the request. Used
+	 * by negative tests that verify the PDP returns 401 when called without auth.
+	 */
+	protected boolean skipAuthentication() {
+		return false;
+	}
+
+	/**
+	 * Translate the test-level hooks above into the env keys that CallAuthzenApiEndpoint
+	 * reads. Runs after the request body is built and before the API call is made.
+	 */
+	protected void applyRequestOverrides() {
+		String method = getRequestHttpMethod();
+		if (!"POST".equals(method)) {
+			env.putString("authzen_api_endpoint_request_method", method);
+		}
+		String contentType = getRequestContentTypeOverride();
+		if (contentType != null) {
+			env.putString("authzen_api_endpoint_request_content_type", contentType);
+		}
+		String rawBody = getRawRequestBody();
+		if (rawBody != null) {
+			env.putString("authzen_api_endpoint_request_raw_body", rawBody);
+		}
 	}
 
 	protected void callAuthApiEndpointRequest() {
@@ -255,6 +307,9 @@ public abstract class AbstractAuthzenPDPTest extends AbstractRedirectServerTestM
 	}
 
 	protected void addAuthenticationToAuthzenApiEndpoint() {
+		if (skipAuthentication()) {
+			return;
+		}
 		if (addPDPEndpointClientAuthentication != null) {
 			mapClientAuthKeys("token_endpoint_request_form_parameters", "token_endpoint_request_headers");
 			call(sequence(addPDPEndpointClientAuthentication));

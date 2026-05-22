@@ -41,6 +41,16 @@ import net.openid.conformance.plan.TestPlan;
 		AuthzenPDPEvaluationUnknownSubjectFieldsTest.class,
 		AuthzenPDPEvaluationUnknownResourceFieldsTest.class,
 		AuthzenPDPEvaluationUnknownActionFieldsTest.class,
+		// Transport binding negative tests (Spec 10.1.1 / 10.1.2 / 2.4.4 / 2.4.5)
+		AuthzenPDPEvaluationRejectGetMethodTest.class,
+		AuthzenPDPEvaluationRejectPutMethodTest.class,
+		AuthzenPDPEvaluationRejectTopLevelArrayTest.class,
+		AuthzenPDPEvaluationRejectNonJsonContentTypeTest.class,
+		AuthzenPDPEvaluationAcceptContentTypeWithCharsetTest.class,
+		AuthzenPDPEvaluationRejectMalformedJsonTest.class,
+		AuthzenPDPEvaluationRejectEmptyBodyTest.class,
+		// Authentication (Section 11.3)
+		AuthzenPDPEvaluationMissingCredentialsReturns401Test.class,
 	}
 )
 public class AuthzenPDPEvaluationTestPlan implements TestPlan {
