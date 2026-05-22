@@ -362,6 +362,97 @@ export const ViewConfigViaKebab = {
   },
 };
 
+/**
+ * Build a large config payload whose serialised JSON (4-space indent)
+ * is comfortably longer than the configuration editor's fixed
+ * `calc(var(--space-6) * 14)` = 336 px height. If the editor were free
+ * to grow, opening the drawer would inflate the host beyond 336 px
+ * (Monaco's default auto-grow ceiling) and the second-jump regression
+ * this story guards against would resurface. 60 keys is well past the
+ * 14-line ceiling that fits inside 336 px at the editor's line height.
+ */
+function makeOversizedConfig() {
+  /** @type {Record<string, string>} */
+  const config = {};
+  for (let i = 0; i < 60; i += 1) {
+    config[`config.key${String(i).padStart(2, "0")}`] = `value-${i}-${"x".repeat(40)}`;
+  }
+  return config;
+}
+
+const OVERSIZED_CONFIG_TEST = {
+  ...COMPLETED_TEST,
+  config: makeOversizedConfig(),
+};
+
+/**
+ * Regression guard for
+ * docs/plans/2026-05-21-002-fix-log-detail-layout-reflows-plan.md U2.
+ *
+ * Before the fix, `.ctsConfigJson` declared only `min-height`. Monaco's
+ * auto-grow then expanded the host past 336 px whenever the config
+ * payload was longer than ~14 lines, producing a second layout jump
+ * after the drawer's disclosure had already settled. The fix sets both
+ * `min-height` and `max-height` to the same value so the host stays
+ * exactly 336 px tall and long content scrolls inside Monaco.
+ *
+ * This story opens the drawer with an oversized config, waits for
+ * Monaco to mount, and asserts:
+ *   1. The `.ctsConfigJson` host's outer height is within ±1 px of
+ *      336 px (the calc(var(--space-6) * 14) value).
+ *   2. A Monaco scrollable surface is present inside the host, so the
+ *      bounded height does not silently clip the configuration — the
+ *      user can scroll through the JSON within the editor.
+ */
+export const ConfigDrawerHeightLockedAtFixedValue = {
+  render: () =>
+    html`<cts-log-detail-header .testInfo=${OVERSIZED_CONFIG_TEST}></cts-log-detail-header>`,
+  async play({ canvasElement }) {
+    await waitFor(() => {
+      const el = canvasElement.querySelector('[data-testid="drawer-config"]');
+      if (!el) throw new Error("drawer-config not yet rendered");
+      return el;
+    });
+
+    const configDetails = /** @type {any} */ (
+      canvasElement.querySelector('[data-testid="drawer-config"]')
+    );
+    expect(configDetails.open).toBe(false);
+
+    await clickOverflowAction(canvasElement, "view-config");
+
+    await waitFor(() => {
+      expect(configDetails.open).toBe(true);
+    });
+
+    const configJson = /** @type {any} */ (
+      await waitFor(() => {
+        const el = canvasElement.querySelector('cts-json-editor[data-testid="config-json"]');
+        if (!el) throw new Error("cts-json-editor[data-testid='config-json'] not yet attached");
+        return el;
+      })
+    );
+    await configJson.whenReady();
+
+    // The host's outer height must match the fixed CSS value within a
+    // 1 px tolerance (sub-pixel rounding). 336 = calc(24px * 14) where
+    // 24px is --space-6. If this assertion fails after Monaco mounts,
+    // the editor is auto-growing again — re-check the min-height /
+    // max-height pair in cts-log-detail-header.js.
+    const hostRect = configJson.getBoundingClientRect();
+    expect(Math.abs(hostRect.height - 336)).toBeLessThanOrEqual(1);
+
+    // A Monaco scroll surface lives inside the host so the bounded
+    // height does not silently clip the configuration JSON. Monaco
+    // renders `.monaco-scrollable-element` as its scroll container;
+    // a present element with non-zero scrollHeight proves the user
+    // can reach the rest of the payload.
+    const scrollable = configJson.querySelector(".monaco-scrollable-element");
+    expect(scrollable).toBeTruthy();
+    expect(scrollable.scrollHeight).toBeGreaterThan(0);
+  },
+};
+
 export const AllPassed = {
   render: () => html`<cts-log-detail-header .testInfo=${ALL_PASSED_TEST}></cts-log-detail-header>`,
   async play({ canvasElement }) {

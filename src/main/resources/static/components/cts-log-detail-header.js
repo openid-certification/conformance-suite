@@ -502,12 +502,23 @@ const STYLE_TEXT = `
     border-radius: var(--radius-1);
   }
 
-  /* Configuration JSON inside the Configuration disclosure. Same
-     min-height as the legacy stand-alone config panel so Monaco
-     virtualisation has room to render. */
+  /* Configuration JSON inside the Configuration disclosure. Fixed
+     min-height AND max-height so Monaco bounds its inner editor at
+     the same size and cannot auto-grow after async mount — opening
+     the drawer is therefore a single predictable layout shift
+     instead of a disclosure + Monaco-grow combo. cts-json-editor's
+     resolveBounds() reads computed min-height and max-height (not
+     height) to clamp the inner Monaco surface, so both bounds must
+     be set; long configuration JSON then scrolls inside the editor.
+     The disclosure was already scrolled into view by
+     _openConfigDisclosure() so the scroll surface is immediately
+     reachable. See
+     docs/plans/2026-05-21-002-fix-log-detail-layout-reflows-plan.md
+     U2. */
   cts-log-detail-header .ctsConfigJson {
     display: block;
     min-height: calc(var(--space-6) * 14);
+    max-height: calc(var(--space-6) * 14);
   }
 `;
 
