@@ -1412,4 +1412,179 @@ test.describe("log-detail.html — new Lit-triad page", () => {
     await expect(stacktrace).toContainText("ExampleCondition.evaluate");
     await expect(causeStacktrace).toContainText("Inner.cause");
   });
+
+  // ────────────────────────────────────────────────────────────────────
+  // U4 — Repeat Test / Continue Plan POST shape (A3)
+  // ────────────────────────────────────────────────────────────────────
+  // Thomas's screenshot 09 from MR 1998 showed "Error: Failed to repeat
+  // test: HTTP 400" because the v2 page-level handler was sending the
+  // runtime testId where the runner endpoint wants the module name.
+  // These tests assert the URL shape (test=<testName>, &plan=, &variant=,
+  // Content-Type: application/json) the backend's @RequestParam contract
+  // requires — see TestRunner.java:215.
+
+  test("U4 — Repeat Test POSTs /api/runner with testName + plan + variant", async ({ page }) => {
+    await setupFailFast(page);
+    await setupV2Routes(page, {
+      testInfo: MOCK_TEST_STATUS,
+      logEntries: MOCK_LOG_ENTRIES,
+      planModules: [
+        { testModule: "oidcc-server", variant: { response_type: "code" } },
+        { testModule: "oidcc-server-rotate-keys", variant: { response_type: "code" } },
+      ],
+    });
+    await setupCommonRoutes(page);
+
+    /** @type {{ url: string, method: string, contentType: string | null }[]} */
+    const captured = [];
+    await page.route("**/api/runner?**", (route) => {
+      const req = route.request();
+      captured.push({
+        url: req.url(),
+        method: req.method(),
+        contentType: req.headers()["content-type"] || null,
+      });
+      // No `id` in the response so the handler reloads — fine for the
+      // capture; the route stays mocked across reloads. Sending an `id`
+      // here would race the success-branch navigation against the test.
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({}),
+      });
+    });
+
+    await page.goto(`/log-detail.html?log=${encodeURIComponent(MOCK_TEST_STATUS.testId)}`);
+    await expect(page.locator("cts-log-detail-header")).toContainText(MOCK_TEST_STATUS.testName);
+
+    // Trigger the status-bar primary, which is the Repeat Test affordance
+    // for terminal-phase tests. The status-bar-primary inner <button>
+    // dispatches the cts-repeat-test event the page bootstraps onto
+    // handleRepeat.
+    await page
+      .locator('cts-log-detail-header [data-testid="status-bar-primary"] button')
+      .first()
+      .click();
+
+    await expect.poll(() => captured.length, { timeout: 5000 }).toBeGreaterThan(0);
+    const repeat = captured[0];
+    expect(repeat.method).toBe("POST");
+    expect(repeat.contentType).toBe("application/json");
+    const repeatUrl = new URL(repeat.url);
+    expect(repeatUrl.searchParams.get("test")).toBe("oidcc-server");
+    expect(repeatUrl.searchParams.get("plan")).toBe("plan-abc-123");
+    const repeatVariant = JSON.parse(repeatUrl.searchParams.get("variant") || "{}");
+    expect(repeatVariant).toMatchObject({
+      client_auth_type: "client_secret_basic",
+      response_type: "code",
+    });
+  });
+
+  test("U4 — Continue Plan POSTs /api/runner with next module's testName + variant", async ({
+    page,
+  }) => {
+    await setupFailFast(page);
+    // Use a multi-module plan where the test's variant is a superset of
+    // the per-module variant (mirrors how the real /api/plan response
+    // carries only constraint keys per module, while /api/info carries
+    // the full resolved variant). The bootstrap's subset match is what
+    // makes Continue Plan find the *next* module.
+    await setupV2Routes(page, {
+      testInfo: MOCK_TEST_STATUS,
+      logEntries: MOCK_LOG_ENTRIES,
+      planModules: [
+        {
+          testModule: "oidcc-server",
+          variant: { client_auth_type: "client_secret_basic", response_type: "code" },
+        },
+        {
+          testModule: "oidcc-server-rotate-keys",
+          variant: { client_auth_type: "client_secret_basic", response_type: "code" },
+        },
+        {
+          testModule: "oidcc-codereuse",
+          variant: { client_auth_type: "client_secret_basic", response_type: "code" },
+        },
+      ],
+    });
+    await setupCommonRoutes(page);
+
+    /** @type {{ url: string, method: string, contentType: string | null }[]} */
+    const captured = [];
+    await page.route("**/api/runner?**", (route) => {
+      const req = route.request();
+      captured.push({
+        url: req.url(),
+        method: req.method(),
+        contentType: req.headers()["content-type"] || null,
+      });
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({}),
+      });
+    });
+
+    await page.goto(`/log-detail.html?log=${encodeURIComponent(MOCK_TEST_STATUS.testId)}`);
+    await expect(page.locator("cts-log-detail-header")).toContainText(MOCK_TEST_STATUS.testName);
+
+    // Wait for the nav-controls to ingest the plan modules and enable
+    // Continue Plan (nextEnabled flips true once the page locates the
+    // current module and confirms a next exists).
+    await expect(page.locator('cts-test-nav-controls [data-testid="continue-btn"]')).toBeVisible();
+
+    await page.locator('cts-test-nav-controls [data-testid="continue-btn"] button').first().click();
+
+    await expect.poll(() => captured.length, { timeout: 5000 }).toBeGreaterThan(0);
+    const cont = captured[0];
+    expect(cont.method).toBe("POST");
+    expect(cont.contentType).toBe("application/json");
+    const contUrl = new URL(cont.url);
+    expect(contUrl.searchParams.get("test")).toBe("oidcc-server-rotate-keys");
+    expect(contUrl.searchParams.get("plan")).toBe("plan-abc-123");
+    const contVariant = JSON.parse(contUrl.searchParams.get("variant") || "{}");
+    expect(contVariant).toMatchObject({
+      client_auth_type: "client_secret_basic",
+      response_type: "code",
+    });
+  });
+
+  test("U4 — Repeat error path surfaces the server's error message, not 'HTTP 400'", async ({
+    page,
+  }) => {
+    await setupFailFast(page);
+    await setupV2Routes(page, {
+      testInfo: MOCK_TEST_STATUS,
+      logEntries: MOCK_LOG_ENTRIES,
+    });
+    await setupCommonRoutes(page);
+
+    // Backend rejects with a JSON {error: "..."} body, the same shape
+    // TestRunner returns on real failures. The fix in handleRepeat
+    // parses this and surfaces it via showError — the legacy code
+    // showed only `HTTP 400` which gave the user no useful detail.
+    await page.route("**/api/runner?**", (route) =>
+      route.fulfill({
+        status: 400,
+        contentType: "application/json",
+        body: JSON.stringify({ error: "test plan was created on an old version of the suite" }),
+      }),
+    );
+
+    await page.goto(`/log-detail.html?log=${encodeURIComponent(MOCK_TEST_STATUS.testId)}`);
+    await expect(page.locator("cts-log-detail-header")).toContainText(MOCK_TEST_STATUS.testName);
+
+    await page
+      .locator('cts-log-detail-header [data-testid="status-bar-primary"] button')
+      .first()
+      .click();
+
+    const errorMessage = page.locator("#errorMessage");
+    await expect(errorMessage).toContainText(
+      "test plan was created on an old version of the suite",
+    );
+    // Pre-fix the modal would have shown the literal "HTTP 400" — assert
+    // the new message replaces it entirely.
+    await expect(errorMessage).not.toContainText("HTTP 400");
+  });
 });
