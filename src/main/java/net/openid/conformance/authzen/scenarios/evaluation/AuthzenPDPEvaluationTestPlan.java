@@ -51,6 +51,7 @@ import net.openid.conformance.plan.TestPlan;
 		AuthzenPDPEvaluationRejectEmptyBodyTest.class,
 		// Authentication (Section 11.3)
 		AuthzenPDPEvaluationMissingCredentialsReturns401Test.class,
+		AuthzenPDPEvaluationInvalidCredentialsReturns401Test.class,
 	}
 )
 public class AuthzenPDPEvaluationTestPlan implements TestPlan {

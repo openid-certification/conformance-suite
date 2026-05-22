@@ -1,0 +1,47 @@
+package net.openid.conformance.authzen.scenarios.evaluation;
+
+import net.openid.conformance.authzen.AbstractAuthzenPDPEvaluationTest;
+import net.openid.conformance.authzen.condition.EnsureAuthzenApiResponseHasWwwAuthenticate;
+import net.openid.conformance.condition.Condition.ConditionResult;
+import net.openid.conformance.testmodule.PublishTestModule;
+import net.openid.conformance.variant.PDPAuthType;
+import net.openid.conformance.variant.VariantNotApplicable;
+
+@PublishTestModule(
+	testName = "authzen-pdp-evaluation-invalid-credentials-returns-401",
+	displayName = "Authzen Evaluation API - Section 11.3: Invalid credentials returns 401",
+	summary = "Per spec 11.3-1, when client authentication is required and the supplied credentials are invalid, the PDP MUST return HTTP 401. The response SHOULD include a WWW-Authenticate header (11.3-2, surfaced as a warning).",
+	profile = "Authzen"
+)
+@VariantNotApplicable(parameter = PDPAuthType.class, values = {"none", "mtls"})
+public class AuthzenPDPEvaluationInvalidCredentialsReturns401Test extends AbstractAuthzenPDPEvaluationTest {
+
+	public static final String payload = """
+		{
+			"subject": { "type": "user", "id": "alice" },
+			"action": { "name": "read" },
+			"resource": { "type": "record", "id": "record-1" }
+		}
+		""";
+
+	@Override
+	protected String getPayload() {
+		return payload;
+	}
+
+	@Override
+	protected boolean corruptAuthCredentials() {
+		return true;
+	}
+
+	@Override
+	protected int getExpectedHttpStatusCode() {
+		return 401;
+	}
+
+	@Override
+	protected void onPostAuthorizationFlowComplete() {
+		callAndContinueOnFailure(EnsureAuthzenApiResponseHasWwwAuthenticate.class, ConditionResult.WARNING, "AUTHZEN-11.3");
+		super.onPostAuthorizationFlowComplete();
+	}
+}
