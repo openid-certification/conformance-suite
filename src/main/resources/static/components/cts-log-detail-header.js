@@ -92,6 +92,44 @@ const HERO_MODES = {
   RUNNING: "running",
 };
 
+/**
+ * Terminal `test.result` values that pin the lifecycle into a finished
+ * phase regardless of what `test.status` reports. The runner sets
+ * `result` as soon as a verdict is assigned, but the WAITING→FINISHED
+ * status flip can lag (the front-end polling cadence isn't synchronized
+ * with the verdict write). When `result` is one of these values, the
+ * UI must surface the verdict immediately — leaving Start visible on a
+ * test that already passed/failed is what MR 1998 finding A1 reported.
+ * @type {ReadonlySet<string>}
+ */
+const TERMINAL_RESULTS = new Set([
+  "PASSED",
+  "FAILED",
+  "WARNING",
+  "REVIEW",
+  "SKIPPED",
+  "INTERRUPTED",
+]);
+
+/**
+ * Phase → terminal-banner palette + headline. Palette keys map 1:1 to
+ * the `.ctsTerminalBanner--*` modifier classes defined in STYLE_TEXT;
+ * headline strings are the "did my test pass?" answer in plain English
+ * (MR 1998 findings A2 + A7).
+ *
+ * REVIEW result uses the warn palette: a reviewer needs to act, so the
+ * banner reads as "needs attention", not as a verdict failure.
+ * @type {Object.<string, { palette: string, headline: string, icon: string }>}
+ */
+const TERMINAL_BANNER_BY_PHASE = {
+  "finished-pass": { palette: "pass", headline: "Test passed", icon: "circle-check" },
+  "finished-fail": { palette: "fail", headline: "Test failed", icon: "close-circle" },
+  "finished-warn": { palette: "warn", headline: "Test passed with warnings", icon: "warning" },
+  "finished-review": { palette: "warn", headline: "Test needs review", icon: "warning" },
+  "finished-skip": { palette: "skip", headline: "Test skipped", icon: "info" },
+  interrupted: { palette: "fail", headline: "Test interrupted", icon: "close-circle" },
+};
+
 const STYLE_ID = "cts-log-detail-header-styles";
 
 // Scoped CSS for the log-detail header. All values flow from oidf-tokens.css.
@@ -306,6 +344,50 @@ const STYLE_TEXT = `
   cts-log-detail-header .ctsNavRow cts-test-nav-controls .cts-tnc-buttons cts-button,
   cts-log-detail-header .ctsNavRow cts-test-nav-controls .cts-tnc-buttons cts-link-button {
     width: auto;
+  }
+
+  /* Terminal-state banner — the verdict, shown as a full-width band
+     between the nav row and the hero whenever a test has reached a
+     terminal phase (PASSED / FAILED / WARNING / REVIEW / SKIPPED /
+     INTERRUPTED). Closes MR 1998 findings A2 + A7: without this,
+     the only "did my test pass?" signal was a small chip among the
+     log filters, which both reviewers flagged as too subtle.
+     The bleed-out margins match the sticky bar's so the banner
+     reads as the same horizontal section as the page chrome above. */
+  cts-log-detail-header .ctsTerminalBanner {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    padding: var(--space-4) 20px;
+    margin-inline: -20px;
+    font-family: var(--font-sans);
+    font-weight: var(--fw-bold);
+    font-size: var(--fs-20);
+    line-height: var(--lh-tight);
+    border-bottom: 1px solid var(--border);
+  }
+  cts-log-detail-header .ctsTerminalBanner cts-icon {
+    flex: 0 0 auto;
+  }
+  cts-log-detail-header .ctsTerminalBanner--pass {
+    background: var(--status-pass-bg);
+    color: var(--status-pass);
+    border-bottom-color: var(--status-pass-border);
+  }
+  cts-log-detail-header .ctsTerminalBanner--fail {
+    background: var(--status-fail-bg);
+    color: var(--status-fail);
+    border-bottom-color: var(--status-fail-border);
+  }
+  cts-log-detail-header .ctsTerminalBanner--warn {
+    background: var(--status-warning-bg);
+    color: var(--status-warning);
+    border-bottom-color: var(--status-warning-border);
+  }
+  cts-log-detail-header .ctsTerminalBanner--skip {
+    background: var(--status-skipped-bg);
+    color: var(--status-skipped);
+    border-bottom-color: var(--status-skipped-border);
   }
 
   /* Archived banner — rendered as a sibling alert between the nav
@@ -868,12 +950,60 @@ class CtsLogDetailHeader extends LitElement {
     details.scrollIntoView({ behavior: "smooth", block: "center" });
   }
 
+  /**
+   * Derive a lifecycle phase from `(status, result)`. Used by the
+   * status bar, hero, and terminal banner so all three agree on
+   * "what kind of state is this?" even when the polling cadence in
+   * log-detail.js has not yet flipped `status` from WAITING/RUNNING
+   * to FINISHED. The runner sets `result` as soon as a verdict is
+   * assigned, so `result` is authoritative for "is this terminal?";
+   * `status` only owns the non-terminal branches.
+   *
+   * Closes MR 1998 finding A1: previously the bar branched on
+   * `status` alone, so a test whose `result` had landed but whose
+   * `status` still read WAITING kept showing the Start button.
+   * @param {TestInfo} test - Test info with `status` and `result`.
+   * @returns {string} One of: `waiting`, `running`, `interrupted`,
+   *   `finished-pass`, `finished-fail`, `finished-warn`,
+   *   `finished-review`, `finished-skip`, `unknown`.
+   */
+  _derivePhase(test) {
+    const status = (test.status || "").toUpperCase();
+    const result = (test.result || "").toUpperCase();
+    if (status === "INTERRUPTED" || result === "INTERRUPTED") return "interrupted";
+    if (TERMINAL_RESULTS.has(result)) {
+      if (result === "PASSED") return "finished-pass";
+      if (result === "FAILED") return "finished-fail";
+      if (result === "WARNING") return "finished-warn";
+      if (result === "REVIEW") return "finished-review";
+      if (result === "SKIPPED") return "finished-skip";
+    }
+    if (status === "WAITING") return "waiting";
+    if (status === "RUNNING") return "running";
+    return "unknown";
+  }
+
+  /**
+   * "Has this test already executed at least one condition?" Used to
+   * choose WAITING-state copy (MR 1998 finding A6): a fresh test with
+   * no entries genuinely needs the user to click Start; a test that
+   * already has results is waiting on an external callback, so the
+   * "Click Start" copy is misleading. The runner writes condition
+   * results as it goes, so a non-empty `results` array is the simplest
+   * signal that the test has started.
+   * @param {TestInfo} test - Test info to probe.
+   * @returns {boolean} True when the test has at least one result entry.
+   */
+  _hasStartedRunning(test) {
+    return Boolean(test && Array.isArray(test.results) && test.results.length > 0);
+  }
+
   // ──────────────────────────── status bar (Region A) ────────────────────────────
 
   _renderStatusBar(test) {
-    const status = (test.status || "").toUpperCase();
-    if (status === "WAITING") return this._renderWaitingBar(test);
-    if (status === "RUNNING") return this._renderRunningBar(test);
+    const phase = this._derivePhase(test);
+    if (phase === "waiting") return this._renderWaitingBar(test);
+    if (phase === "running") return this._renderRunningBar(test);
     return this._renderFinishedBar(test);
   }
 
@@ -1038,22 +1168,37 @@ class CtsLogDetailHeader extends LitElement {
   }
 
   _renderWaitingBar(test) {
+    // Support-text + primary-button copy switches on whether the test
+    // has already executed any conditions. A fresh WAITING test needs
+    // a user click on Start; a test that already has results is
+    // waiting on an external party (HTTP callback, browser-driven
+    // flow), so a "Start" prompt is misleading. The backend status
+    // enum (RUNNING / WAITING / INTERRUPTED / FINISHED — see
+    // src/main/java/net/openid/conformance/testmodule/TestModule.java)
+    // is too coarse to distinguish those two cases on its own.
+    // MR 1998 finding A6.
+    const started = this._hasStartedRunning(test);
+    const supportText = started
+      ? "Waiting for external input — no action required"
+      : "Waiting for user input";
     return html`
       <div class="ctsStatusBar" id="ctsLogStatusBar" data-testid="status-bar">
         <div class="ctsStatusBarLeft">
           ${this._renderStatusPill("WAITING")}
-          <span class="ctsStatusBarSupport">Waiting for user input</span>
+          <span class="ctsStatusBarSupport" data-testid="status-bar-support">${supportText}</span>
         </div>
         <div class="ctsStatusBarMiddle"></div>
         <div class="ctsStatusBarPrimary">
-          <cts-button
-            variant="primary"
-            size="sm"
-            icon="play"
-            label="Start"
-            data-testid="status-bar-primary"
-            @cts-click=${this._handleStartTest}
-          ></cts-button>
+          ${started
+            ? nothing
+            : html`<cts-button
+                variant="primary"
+                size="sm"
+                icon="play"
+                label="Start Test"
+                data-testid="status-bar-primary"
+                @cts-click=${this._handleStartTest}
+              ></cts-button>`}
           ${this._renderStatusBarOverflowSlot()}
         </div>
         ${this._renderStatusBarTestName(test)}
@@ -1109,7 +1254,7 @@ class CtsLogDetailHeader extends LitElement {
                 variant="primary"
                 size="sm"
                 icon="arrows-reload-01"
-                label="Repeat"
+                label="Repeat Test"
                 data-testid="status-bar-primary"
                 @cts-click=${this._handleRepeatTest}
               ></cts-button>`
@@ -1148,29 +1293,62 @@ class CtsLogDetailHeader extends LitElement {
   // ──────────────────────────── hero (lifecycle-driven) ────────────────────────────
 
   /**
-   * Lifecycle dispatcher for the hero zone. Routes purely by
-   * `status` then by `result` — NOT by whether the results array
-   * contains any non-SUCCESS entries. A PASSED test that produced
-   * informational WARNING entries still reads as "passed" at the
-   * top of the page; the warning count surfaces in the sticky bar's
-   * pill cluster and in the log entries below. The hero is the
-   * verdict; the warning is annotation.
-   * @param {TestInfo} test - Test info that drives status/result routing.
+   * Lifecycle dispatcher for the hero zone. Routes by the derived
+   * phase (see `_derivePhase`), which prefers `test.result` over
+   * `test.status` whenever a verdict is set — so a polling-lagged
+   * test whose `status` still reads WAITING but whose `result` has
+   * already landed renders the appropriate finished hero, not the
+   * WAITING one. A PASSED test that produced informational WARNING
+   * entries still reads as "passed" at the top of the page; the
+   * warning count surfaces in the sticky bar's pill cluster and in
+   * the log entries below. The hero is the verdict; the warning is
+   * annotation.
+   * @param {TestInfo} test - Test info that drives phase routing.
    * @returns {import('lit').TemplateResult} The hero template for the current lifecycle state.
    */
   _renderHero(test) {
-    const status = (test.status || "").toUpperCase();
+    const phase = this._derivePhase(test);
+
+    if (phase === "waiting") return this._renderWaitingHero(test);
+    if (phase === "running") return this._renderRunningHero(test);
+    if (phase === "interrupted") return this._renderInterruptedHero();
+
     const result = (test.result || "").toUpperCase();
-
-    if (status === "WAITING") return this._renderWaitingHero(test);
-    if (status === "RUNNING") return this._renderRunningHero(test);
-    if (status === "INTERRUPTED") return this._renderInterruptedHero();
-
     const mode = HERO_MODES[result] || "summary";
     if (mode === "failures") {
       return this._renderFailureHero(this._getFailures());
     }
     return this._renderSummaryHero(test);
+  }
+
+  /**
+   * Terminal-state banner shown immediately above the hero whenever the
+   * test has reached a terminal phase. Closes MR 1998 findings A2 + A7
+   * (Thomas, Almgren): the previous design surfaced the verdict only
+   * via a small chip among the log filters, which neither reviewer
+   * spotted at a glance. The banner is a sibling of the hero — not
+   * nested inside it — so the hero's own content (description for
+   * PASSED, failure list for FAILED, etc.) keeps its full vertical
+   * weight as the page's primary detail surface.
+   * @param {TestInfo} test - Test info used to derive the phase.
+   * @returns {import('lit').TemplateResult|typeof nothing} The banner template,
+   *   or `nothing` for non-terminal phases (waiting / running / unknown).
+   */
+  _renderTerminalBanner(test) {
+    const phase = this._derivePhase(test);
+    const config = TERMINAL_BANNER_BY_PHASE[phase];
+    if (!config) return nothing;
+    return html`
+      <div
+        class="ctsTerminalBanner ctsTerminalBanner--${config.palette}"
+        role="status"
+        data-testid="terminal-banner"
+        data-phase="${phase}"
+      >
+        <cts-icon name="${config.icon}" size="24"></cts-icon>
+        <span>${config.headline}</span>
+      </div>
+    `;
   }
 
   _renderFailureHero(failures) {
@@ -1261,11 +1439,25 @@ class CtsLogDetailHeader extends LitElement {
    * @returns {import('lit').TemplateResult} The WAITING hero template.
    */
   _renderWaitingHero(test) {
+    // Mirror the bar's branch on _hasStartedRunning: a test that has
+    // already executed conditions is waiting on an external party,
+    // not on a user click. The "Click Start" prompt and the "Action
+    // required" eyebrow would both be wrong in that case
+    // (MR 1998 finding A6).
+    const started = this._hasStartedRunning(test);
     const summarySplit = splitTestSummary(test.summary || "");
-    const instructions = summarySplit.instructions || "Click Start when you're ready.";
+    const eyebrow = started ? "Test running" : "Action required";
+    const fallbackInstructions = started
+      ? "Waiting for an external request — no action required from you."
+      : "Click Start Test when you're ready.";
+    const instructions = summarySplit.instructions || fallbackInstructions;
     return html`
-      <div class="ctsHero ctsHero--waiting" data-testid="hero-waiting">
-        <div class="ctsHeroEyebrow" data-testid="user-instructions-zone"> Action required </div>
+      <div
+        class="ctsHero ctsHero--waiting"
+        data-testid="hero-waiting"
+        data-waiting-mode="${started ? "external" : "user-action"}"
+      >
+        <div class="ctsHeroEyebrow" data-testid="user-instructions-zone">${eyebrow}</div>
         <div class="ctsHeroBody">${instructions}</div>
         ${this._renderExposedValues(test)}
         <div id="runningTestBrowser" data-slot="browser" data-testid="running-browser-slot"></div>
@@ -1398,8 +1590,8 @@ class CtsLogDetailHeader extends LitElement {
     if (!this.testInfo) return nothing;
     return html`
       ${this._renderStatusBar(this.testInfo)} ${this._renderTestNavControlsRow(this.testInfo)}
-      ${this._renderArchivedBanner()} ${this._renderHero(this.testInfo)}
-      ${this._renderDrawer(this.testInfo)}
+      ${this._renderTerminalBanner(this.testInfo)} ${this._renderArchivedBanner()}
+      ${this._renderHero(this.testInfo)} ${this._renderDrawer(this.testInfo)}
     `;
   }
 

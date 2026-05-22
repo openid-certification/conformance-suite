@@ -681,9 +681,14 @@ export const WaitingHeroFallbackInstructions = {
       return el;
     });
 
-    // No summary marker — fall back to the generic "Click Start" copy.
+    // No summary marker, no results yet — fall back to the generic
+    // "Click Start Test when you're ready." copy. C1 (MR 1998): the
+    // button label and the fallback prompt both name the action the
+    // same way ("Start Test") for consistency with Repeat Test /
+    // Continue Plan.
     const waitingHero = canvasElement.querySelector('[data-testid="hero-waiting"]');
-    expect(waitingHero.textContent).toContain("Click Start when you're ready.");
+    expect(waitingHero.textContent).toContain("Click Start Test when you're ready.");
+    expect(waitingHero.getAttribute("data-waiting-mode")).toBe("user-action");
   },
 };
 
@@ -1307,5 +1312,282 @@ export const DrawerCollapsedByDefault = {
     const configDetails = canvasElement.querySelector('[data-testid="drawer-config"]');
     expect(testDetails.open).toBe(false);
     expect(configDetails.open).toBe(false);
+  },
+};
+
+// --- U3 (MR 1998 findings A1, A2, A6, A7, C1) — terminal-state
+// banner, action-bar visibility, WAITING copy, label consistency.
+// Plan: docs/plans/2026-05-22-002-fix-mr1998-maintainer-feedback-plan.md
+
+const WAITING_TEST_WITH_RESULTS = {
+  ...WAITING_TEST,
+  results: MOCK_RESULTS,
+};
+
+const STALE_STATUS_WAITING_RESULT_PASSED = {
+  ...COMPLETED_TEST,
+  status: "WAITING",
+};
+
+const STALE_STATUS_WAITING_RESULT_FAILED = {
+  ...FAILED_TEST,
+  status: "WAITING",
+};
+
+const WARNING_RESULT_TEST = {
+  ...COMPLETED_TEST,
+  result: "WARNING",
+  results: MOCK_RESULTS_WARNING_ONLY,
+};
+
+const REVIEW_RESULT_TEST = {
+  ...COMPLETED_TEST,
+  result: "REVIEW",
+};
+
+const SKIPPED_RESULT_TEST = {
+  ...COMPLETED_TEST,
+  result: "SKIPPED",
+};
+
+export const TerminalBannerPassed = {
+  render: () => html`<cts-log-detail-header .testInfo=${COMPLETED_TEST}></cts-log-detail-header>`,
+  async play({ canvasElement }) {
+    const banner = await waitFor(() => {
+      const el = canvasElement.querySelector('[data-testid="terminal-banner"]');
+      if (!el) throw new Error("terminal-banner not yet rendered");
+      return el;
+    });
+    expect(banner.getAttribute("data-phase")).toBe("finished-pass");
+    expect(banner.classList.contains("ctsTerminalBanner--pass")).toBe(true);
+    expect(banner.textContent).toContain("Test passed");
+    expect(banner.querySelector('cts-icon[name="circle-check"]')).toBeTruthy();
+  },
+};
+
+export const TerminalBannerFailed = {
+  render: () => html`<cts-log-detail-header .testInfo=${FAILED_TEST}></cts-log-detail-header>`,
+  async play({ canvasElement }) {
+    const banner = await waitFor(() => {
+      const el = canvasElement.querySelector('[data-testid="terminal-banner"]');
+      if (!el) throw new Error("terminal-banner not yet rendered");
+      return el;
+    });
+    expect(banner.getAttribute("data-phase")).toBe("finished-fail");
+    expect(banner.classList.contains("ctsTerminalBanner--fail")).toBe(true);
+    expect(banner.textContent).toContain("Test failed");
+    expect(banner.querySelector('cts-icon[name="close-circle"]')).toBeTruthy();
+  },
+};
+
+export const TerminalBannerWarning = {
+  render: () =>
+    html`<cts-log-detail-header .testInfo=${WARNING_RESULT_TEST}></cts-log-detail-header>`,
+  async play({ canvasElement }) {
+    const banner = await waitFor(() => {
+      const el = canvasElement.querySelector('[data-testid="terminal-banner"]');
+      if (!el) throw new Error("terminal-banner not yet rendered");
+      return el;
+    });
+    expect(banner.getAttribute("data-phase")).toBe("finished-warn");
+    expect(banner.classList.contains("ctsTerminalBanner--warn")).toBe(true);
+    expect(banner.textContent).toContain("Test passed with warnings");
+    expect(banner.querySelector('cts-icon[name="warning"]')).toBeTruthy();
+  },
+};
+
+export const TerminalBannerReview = {
+  render: () =>
+    html`<cts-log-detail-header .testInfo=${REVIEW_RESULT_TEST}></cts-log-detail-header>`,
+  async play({ canvasElement }) {
+    const banner = await waitFor(() => {
+      const el = canvasElement.querySelector('[data-testid="terminal-banner"]');
+      if (!el) throw new Error("terminal-banner not yet rendered");
+      return el;
+    });
+    expect(banner.getAttribute("data-phase")).toBe("finished-review");
+    // Review shares the warn palette: a reviewer needs to act, but it
+    // isn't a failure — same urgency as a warning.
+    expect(banner.classList.contains("ctsTerminalBanner--warn")).toBe(true);
+    expect(banner.textContent).toContain("Test needs review");
+  },
+};
+
+export const TerminalBannerSkipped = {
+  render: () =>
+    html`<cts-log-detail-header .testInfo=${SKIPPED_RESULT_TEST}></cts-log-detail-header>`,
+  async play({ canvasElement }) {
+    const banner = await waitFor(() => {
+      const el = canvasElement.querySelector('[data-testid="terminal-banner"]');
+      if (!el) throw new Error("terminal-banner not yet rendered");
+      return el;
+    });
+    expect(banner.getAttribute("data-phase")).toBe("finished-skip");
+    expect(banner.classList.contains("ctsTerminalBanner--skip")).toBe(true);
+    expect(banner.textContent).toContain("Test skipped");
+  },
+};
+
+export const TerminalBannerInterrupted = {
+  render: () => html`<cts-log-detail-header .testInfo=${INTERRUPTED_TEST}></cts-log-detail-header>`,
+  async play({ canvasElement }) {
+    const banner = await waitFor(() => {
+      const el = canvasElement.querySelector('[data-testid="terminal-banner"]');
+      if (!el) throw new Error("terminal-banner not yet rendered");
+      return el;
+    });
+    expect(banner.getAttribute("data-phase")).toBe("interrupted");
+    expect(banner.classList.contains("ctsTerminalBanner--fail")).toBe(true);
+    expect(banner.textContent).toContain("Test interrupted");
+  },
+};
+
+export const NoTerminalBannerWhileRunning = {
+  render: () =>
+    html`<cts-log-detail-header .testInfo=${RUNNING_TEST_WITH_RESULTS}></cts-log-detail-header>`,
+  async play({ canvasElement }) {
+    await waitFor(() => {
+      const el = canvasElement.querySelector('[data-testid="status-bar"]');
+      if (!el) throw new Error("status bar not yet rendered");
+      return el;
+    });
+    // RUNNING is a non-terminal phase — no verdict to announce.
+    expect(canvasElement.querySelector('[data-testid="terminal-banner"]')).toBeNull();
+  },
+};
+
+export const NoTerminalBannerWhileWaiting = {
+  render: () => html`<cts-log-detail-header .testInfo=${WAITING_TEST}></cts-log-detail-header>`,
+  async play({ canvasElement }) {
+    await waitFor(() => {
+      const el = canvasElement.querySelector('[data-testid="status-bar"]');
+      if (!el) throw new Error("status bar not yet rendered");
+      return el;
+    });
+    // WAITING (with no result yet) is non-terminal.
+    expect(canvasElement.querySelector('[data-testid="terminal-banner"]')).toBeNull();
+  },
+};
+
+export const StaleStatusBarReadsTerminalWhenResultIsSet = {
+  render: () =>
+    html`<cts-log-detail-header
+      .testInfo=${STALE_STATUS_WAITING_RESULT_PASSED}
+    ></cts-log-detail-header>`,
+  async play({ canvasElement }) {
+    // A1 (MR 1998): the previous behaviour branched on `status` alone,
+    // so polling lag (status=WAITING, result=PASSED) kept Start visible
+    // on a test that had already passed. The new phase derivation
+    // routes (status=WAITING, result=PASSED) through the FINISHED bar
+    // and renders the Repeat Test primary instead.
+    const bar = await waitFor(() => {
+      const el = canvasElement.querySelector('[data-testid="status-bar"]');
+      if (!el) throw new Error("status bar not yet rendered");
+      return el;
+    });
+
+    expect(bar.querySelector('cts-badge[variant="pass"][label="PASSED"]')).toBeTruthy();
+    expect(within(bar).getByText(/Repeat Test/)).toBeInTheDocument();
+    // The Start button must not leak through: querying by label leaves
+    // no room for the regression to come back.
+    expect(within(bar).queryByText(/Start Test/)).toBeNull();
+
+    // The terminal banner also picks up the verdict.
+    const banner = canvasElement.querySelector('[data-testid="terminal-banner"]');
+    expect(banner).toBeTruthy();
+    expect(banner.getAttribute("data-phase")).toBe("finished-pass");
+  },
+};
+
+export const StaleStatusRoutesHeroToFailureWhenResultFailed = {
+  render: () =>
+    html`<cts-log-detail-header
+      .testInfo=${STALE_STATUS_WAITING_RESULT_FAILED}
+    ></cts-log-detail-header>`,
+  async play({ canvasElement }) {
+    // Hero side of A1: the failure list, not the WAITING hero, must
+    // render when result=FAILED — even if status is still WAITING.
+    await waitFor(() => {
+      const el = canvasElement.querySelector('[data-testid="terminal-banner"]');
+      if (!el) throw new Error("terminal-banner not yet rendered");
+      return el;
+    });
+    expect(canvasElement.querySelector('[data-testid="hero-failures"]')).toBeTruthy();
+    expect(canvasElement.querySelector('[data-testid="hero-waiting"]')).toBeNull();
+  },
+};
+
+export const WaitingHeroDistinguishesExternalVsUserAction = {
+  render: () =>
+    html`<cts-log-detail-header .testInfo=${WAITING_TEST_WITH_RESULTS}></cts-log-detail-header>`,
+  async play({ canvasElement }) {
+    // A6 (MR 1998): a WAITING test that has already executed
+    // conditions is waiting on an external party (HTTP callback,
+    // browser-driven step), not on a user click. The previous copy
+    // ("ACTION REQUIRED — Click Start when you're ready") was wrong
+    // for that case. Switch to the "external request" branch and
+    // hide the Start CTA the user does not need to act on.
+    const waitingHero = await waitFor(() => {
+      const el = canvasElement.querySelector('[data-testid="hero-waiting"]');
+      if (!el) throw new Error("hero-waiting not yet rendered");
+      return el;
+    });
+
+    expect(waitingHero.getAttribute("data-waiting-mode")).toBe("external");
+    expect(waitingHero.textContent).toContain("Test running");
+    expect(waitingHero.textContent).toContain(
+      "Waiting for an external request — no action required from you.",
+    );
+    expect(waitingHero.textContent).not.toContain("Click Start");
+
+    const bar = canvasElement.querySelector('[data-testid="status-bar"]');
+    expect(bar.textContent).toContain("Waiting for external input — no action required");
+    // Start button is suppressed in the external-wait branch — the
+    // user does not need it.
+    expect(bar.querySelector('[data-testid="status-bar-primary"]')).toBeNull();
+  },
+};
+
+export const WaitingHeroKeepsStartWhenFreshTest = {
+  render: () => html`<cts-log-detail-header .testInfo=${WAITING_TEST}></cts-log-detail-header>`,
+  async play({ canvasElement }) {
+    // A6 inverse: a fresh WAITING test (no conditions yet) genuinely
+    // needs the user to click Start to kick off the run. Eyebrow,
+    // copy, and the primary button all stay in their "needs user
+    // action" form.
+    const waitingHero = await waitFor(() => {
+      const el = canvasElement.querySelector('[data-testid="hero-waiting"]');
+      if (!el) throw new Error("hero-waiting not yet rendered");
+      return el;
+    });
+
+    expect(waitingHero.getAttribute("data-waiting-mode")).toBe("user-action");
+    expect(waitingHero.textContent).toContain("Action required");
+
+    const bar = canvasElement.querySelector('[data-testid="status-bar"]');
+    expect(bar.textContent).toContain("Waiting for user input");
+
+    // Start Test (C1 label) is present and dispatches cts-start-test.
+    const startHandler = fn();
+    canvasElement.addEventListener("cts-start-test", startHandler);
+    await userEvent.click(innerButton(canvasElement, "status-bar-primary"));
+    expect(startHandler).toHaveBeenCalledOnce();
+  },
+};
+
+export const ConsistentActionLabels = {
+  render: () => html`<cts-log-detail-header .testInfo=${COMPLETED_TEST}></cts-log-detail-header>`,
+  async play({ canvasElement }) {
+    // C1 (MR 1998): the bar's primary on a finished test reads
+    // "Repeat Test" (not "Repeat"), matching cts-test-nav-controls'
+    // "Repeat Test" / "Continue Plan" labels so all three actions
+    // name themselves consistently as `<Verb> <Object>`.
+    const bar = await waitFor(() => {
+      const el = canvasElement.querySelector('[data-testid="status-bar"]');
+      if (!el) throw new Error("status bar not yet rendered");
+      return el;
+    });
+    expect(within(bar).getByText("Repeat Test")).toBeInTheDocument();
+    expect(within(bar).queryByText(/^Repeat$/)).toBeNull();
   },
 };
