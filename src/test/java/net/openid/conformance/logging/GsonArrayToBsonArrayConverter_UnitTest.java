@@ -27,6 +27,7 @@ import java.util.Map;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class GsonArrayToBsonArrayConverter_UnitTest {
@@ -134,7 +135,7 @@ public class GsonArrayToBsonArrayConverter_UnitTest {
 	}
 
 	@Test
-	public void convertUnloggableValuesInMap_jsonArrayJsonElement_isConvertedToBsonArray() {
+	public void convertUnloggableValuesInMap_jsonArrayJsonElement_isLeftForMongoConverterAndEncodesCleanly() {
 		JsonArray arr = new JsonArray();
 		arr.add("a");
 		arr.add(1);
@@ -145,18 +146,13 @@ public class GsonArrayToBsonArrayConverter_UnitTest {
 		Map<String, Object> out = GsonArrayToBsonArrayConverter.convertUnloggableValuesInMap(in);
 		BsonEncoding.assertEncodable(in);
 
-		assertInstanceOf(BsonArray.class, out.get("arr"));
-		BsonArray converted = (BsonArray) out.get("arr");
-		assertEquals(2, converted.size());
-		assertEquals("a", converted.get(0).asString().getValue());
-		assertEquals(1, converted.get(1).asNumber().intValue());
+		assertSame(arr, out.get("arr"));
 	}
 
 	@Test
-	public void convertUnloggableValuesInMap_jsonObject_isConvertedToBsonDocument() {
-		// JsonObject values must be pre-wrapped via GsonObjectToBsonDocumentConverter before
-		// Spring's MappingMongoConverter walks them — otherwise it would try to escape any
-		// dotted keys reflectively and fail (see the dotted-key regression test below).
+	public void convertUnloggableValuesInMap_jsonObject_isLeftForMongoConverterAndEncodesCleanly() {
+		// Gson JsonObject values are already handled by the registered Mongo custom converter.
+		// The pre-pass only needs to deal with values that Mongo would otherwise walk directly.
 		JsonObject obj = new JsonObject();
 		obj.addProperty("x", "y");
 
@@ -166,18 +162,14 @@ public class GsonArrayToBsonArrayConverter_UnitTest {
 		Map<String, Object> out = GsonArrayToBsonArrayConverter.convertUnloggableValuesInMap(in);
 		BsonEncoding.assertEncodable(in);
 
-		assertInstanceOf(BsonDocument.class, out.get("obj"));
-		BsonDocument converted = (BsonDocument) out.get("obj");
-		assertEquals("y", converted.getString("x").getValue());
+		assertSame(obj, out.get("obj"));
 	}
 
 	@Test
-	public void convertUnloggableValuesInMap_jsonObjectWithDottedKey_wrapsKeyAndEncodesCleanly() {
+	public void convertUnloggableValuesInMap_jsonObjectWithDottedKey_isLeftForMongoConverterAndEncodesCleanly() {
 		// Regression: a payload like {"credential_configurations_supported":{"eu.europa.ec.eudi.pid.1":{...}}}
-		// previously slipped past convertUnloggableValuesInMap as a bare JsonObject and tripped
-		// MappingMongoConverter#potentiallyEscapeMapKey ("Map key contains dots but no replacement
-		// was configured"). The fix routes JsonObject values through GsonObjectToBsonDocumentConverter
-		// so the dotted key is wrapped via __wrapped_key_element_*.
+		// should still encode cleanly even when the pre-pass leaves Gson values alone; Mongo's
+		// registered JsonObject converter wraps dotted keys later in the actual write path.
 		JsonObject payload = new JsonObject();
 		JsonObject configs = new JsonObject();
 		JsonObject pidCredential = new JsonObject();
@@ -193,14 +185,23 @@ public class GsonArrayToBsonArrayConverter_UnitTest {
 		// DocumentCodec catches the dotted-key failure end-to-end.
 		BsonEncoding.assertEncodable(in);
 
-		assertInstanceOf(BsonDocument.class, out.get("payload"));
-		BsonDocument convertedPayload = (BsonDocument) out.get("payload");
-		BsonDocument convertedConfigs = convertedPayload.getDocument("credential_configurations_supported");
-		// The dotted key has been wrapped — no surviving key contains a dot.
-		assertTrue(convertedConfigs.keySet().stream().noneMatch(k -> k.contains(".")),
-			"All dotted keys should be wrapped, got: " + convertedConfigs.keySet());
-		assertTrue(convertedConfigs.keySet().stream().allMatch(k -> k.startsWith("__wrapped_key_element_")),
-			"All keys should be wrapped, got: " + convertedConfigs.keySet());
+		assertSame(payload, out.get("payload"));
+	}
+
+	@Test
+	public void convertUnloggableValuesInMap_jsonArrayWithDottedObject_isLeftForMongoConverterAndEncodesCleanly() {
+		JsonObject nested = new JsonObject();
+		nested.addProperty("eu.europa.ec.eudi.pid.1", "dc+sd-jwt");
+		JsonArray arr = new JsonArray();
+		arr.add(nested);
+
+		Map<String, Object> in = new HashMap<>();
+		in.put("arr", arr);
+
+		Map<String, Object> out = GsonArrayToBsonArrayConverter.convertUnloggableValuesInMap(in);
+		BsonEncoding.assertEncodable(in);
+
+		assertSame(arr, out.get("arr"));
 	}
 
 	@Test
@@ -400,6 +401,59 @@ public class GsonArrayToBsonArrayConverter_UnitTest {
 		assertEquals(2, arr.size());
 		assertEquals("a", OIDFJSON.getString(arr.get(0)));
 		assertEquals(1, OIDFJSON.getInt(arr.get(1)));
+	}
+
+	@Test
+	public void convertUnloggableValuesInMap_listOfJsonObjects_remainsStructured() {
+		JsonObject item = new JsonObject();
+		item.addProperty("property", "foo");
+		item.addProperty("path", "$.foo");
+
+		Map<String, Object> in = new HashMap<>();
+		in.put("list", List.of(item));
+
+		Map<String, Object> out = GsonArrayToBsonArrayConverter.convertUnloggableValuesInMap(in);
+		BsonEncoding.assertEncodable(in);
+
+		JsonArray arr = (JsonArray) out.get("list");
+		assertEquals(1, arr.size());
+		assertTrue(arr.get(0).isJsonObject(), "List<JsonObject> entries must not be stringified");
+		assertEquals("foo", OIDFJSON.getString(arr.get(0).getAsJsonObject().get("property")));
+	}
+
+	@Test
+	public void convertUnloggableValuesInMap_listOfJsonArrays_remainsStructured() {
+		JsonArray item = new JsonArray();
+		item.add("a");
+		item.add(1);
+
+		Map<String, Object> in = new HashMap<>();
+		in.put("list", List.of(item));
+
+		Map<String, Object> out = GsonArrayToBsonArrayConverter.convertUnloggableValuesInMap(in);
+		BsonEncoding.assertEncodable(in);
+
+		JsonArray arr = (JsonArray) out.get("list");
+		assertEquals(1, arr.size());
+		assertTrue(arr.get(0).isJsonArray(), "List<JsonArray> entries must not be stringified");
+		assertEquals("a", OIDFJSON.getString(arr.get(0).getAsJsonArray().get(0)));
+	}
+
+	@Test
+	public void convertUnloggableValuesInMap_listOfMapsWithDottedKeys_remainsStructuredAndEncodesCleanly() {
+		Map<String, Object> item = new LinkedHashMap<>();
+		item.put("eu.europa.ec.eudi.pid.1", "dc+sd-jwt");
+
+		Map<String, Object> in = new HashMap<>();
+		in.put("list", List.of(item));
+
+		Map<String, Object> out = GsonArrayToBsonArrayConverter.convertUnloggableValuesInMap(in);
+		BsonEncoding.assertEncodable(in);
+
+		JsonArray arr = (JsonArray) out.get("list");
+		assertEquals(1, arr.size());
+		assertTrue(arr.get(0).isJsonObject(), "List<Map> entries must not be stringified");
+		assertEquals("dc+sd-jwt", OIDFJSON.getString(arr.get(0).getAsJsonObject().get("eu.europa.ec.eudi.pid.1")));
 	}
 
 	@Test

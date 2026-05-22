@@ -36,20 +36,13 @@ public class GsonArrayToBsonArrayConverter implements Converter<JsonArray, BsonA
 	 * can serialize them without reflective access to java.security internals.
 	 */
 	private static Object convertValue(Object value) {
-		if (value instanceof JsonElement element && element.isJsonArray()) {
-			return new GsonArrayToBsonArrayConverter().convert(element.getAsJsonArray());
-		} else if (value instanceof JsonElement element && element.isJsonObject()) {
-			// Wrap dotted ("a.b.c") and dollar ("$foo") keys via __wrapped_key_element_* so the
-			// MongoDB MappingMongoConverter doesn't trip on them when it walks the JsonObject as a
-			// nested map. CollapsingGsonHttpMessageConverter unwraps the wrapper on response read.
-			return new GsonObjectToBsonDocumentConverter().convert(element.getAsJsonObject());
-		} else if (value instanceof Map<?, ?> mapValue) {
+		if (value instanceof Map<?, ?> mapValue) {
 			// Nimbus claim sets (JWTClaimsSet.toJSONObject()) and other parsed JSON objects arrive
-			// as a plain java.util.Map (e.g. net.minidev JSONObject), not a Gson JsonObject, so the
-			// branch above doesn't catch them. Mirror it: serialize to a Gson tree and route through
-			// GsonObjectToBsonDocumentConverter so dotted/dollar keys are wrapped before
-			// MappingMongoConverter walks the map. Without this an args("payload", claimSet) log of
-			// e.g. credential_configurations_supported.eu.europa.ec.eudi.pid.1 crashes the log write.
+			// as a plain java.util.Map (e.g. net.minidev JSONObject), not a Gson JsonObject. Gson
+			// JsonObject/JsonArray values are handled by Mongo custom converters, but plain maps are
+			// walked directly by MappingMongoConverter. Route maps through GsonObjectToBsonDocumentConverter
+			// so dotted/dollar keys are wrapped first. Without this an args("payload", claimSet) log
+			// of e.g. credential_configurations_supported.eu.europa.ec.eudi.pid.1 crashes the log write.
 			JsonElement tree = GSON.toJsonTree(mapValue);
 			if (tree.isJsonObject()) {
 				return new GsonObjectToBsonDocumentConverter().convert(tree.getAsJsonObject());
@@ -74,7 +67,9 @@ public class GsonArrayToBsonArrayConverter implements Converter<JsonArray, BsonA
 		else if (value instanceof List<?> list) {
 			JsonArray arr = new JsonArray();
 			for (Object item : list) {
-				Object converted = convertValue(item);
+				Object converted = item instanceof Map<?, ?> mapItem
+					? GSON.toJsonTree(mapItem)
+					: convertValue(item);
 				if (converted instanceof JsonElement el) {
 					arr.add(el);
 				} else if (converted != null) {
