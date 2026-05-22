@@ -1,6 +1,7 @@
 package net.openid.conformance.authzen;
 
 import net.openid.conformance.authzen.condition.EnsureAuthzenSearchResponseValsMatchExpectedVals;
+import net.openid.conformance.authzen.condition.EnsureSearchResponsePageIsFirstKey;
 import net.openid.conformance.authzen.condition.EnsureValidSearchResponse;
 import net.openid.conformance.authzen.condition.EnsureValidSearchResponsePage;
 import net.openid.conformance.authzen.condition.ExtractAuthzenApiEndpointSearchResponse;
@@ -21,5 +22,6 @@ public abstract class AbstractAuthzenPDPSearchTest extends AbstractAuthzenPDPTes
 		callAndStopOnFailure(ExtractAuthzenApiEndpointSearchResponse.class, "AUTHZEN-8.3");
 		callAndStopOnFailure(EnsureValidSearchResponse.class, "AUTHZEN-8.3");
 		callAndStopOnFailure(EnsureValidSearchResponsePage.class, "AUTHZEN-8.2.2", "AUTHZEN-8.3");
+		callAndContinueOnFailure(EnsureSearchResponsePageIsFirstKey.class, ConditionResult.WARNING, "AUTHZEN-8.3");
 	}
 }

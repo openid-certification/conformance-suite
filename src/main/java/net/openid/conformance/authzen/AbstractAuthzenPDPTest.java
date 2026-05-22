@@ -9,6 +9,7 @@ import net.openid.conformance.authzen.condition.CallAuthzenApiEndpointAndVerifyE
 import net.openid.conformance.authzen.condition.CallAuthzenApiEndpointAndVerifySuccessfulResponse;
 import net.openid.conformance.authzen.condition.EnsureAuthzenApiResponseXRequestIdMatches;
 import net.openid.conformance.authzen.condition.CheckPDPServerConfiguration;
+import net.openid.conformance.authzen.condition.CorruptAuthzenClientCredentials;
 import net.openid.conformance.authzen.condition.CreateAuthzenApiEndpointRequestFromRaw;
 import net.openid.conformance.authzen.condition.EnsureMetadataCapabilitiesValid;
 import net.openid.conformance.authzen.condition.EnsurePolicyDecisionPointMatchesIssuer;
@@ -242,6 +243,15 @@ public abstract class AbstractAuthzenPDPTest extends AbstractRedirectServerTestM
 	}
 
 	/**
+	 * Override to overwrite client_secret / api_key with a deliberately invalid value
+	 * before the auth condition runs. Used by 401 negative tests where the request
+	 * must arrive at the PDP carrying syntactically-valid-but-wrong credentials.
+	 */
+	protected boolean corruptAuthCredentials() {
+		return false;
+	}
+
+	/**
 	 * Translate the test-level hooks above into the env keys that CallAuthzenApiEndpoint
 	 * reads. Runs after the request body is built and before the API call is made.
 	 */
@@ -309,6 +319,9 @@ public abstract class AbstractAuthzenPDPTest extends AbstractRedirectServerTestM
 	protected void addAuthenticationToAuthzenApiEndpoint() {
 		if (skipAuthentication()) {
 			return;
+		}
+		if (corruptAuthCredentials()) {
+			callAndStopOnFailure(CorruptAuthzenClientCredentials.class);
 		}
 		if (addPDPEndpointClientAuthentication != null) {
 			mapClientAuthKeys("token_endpoint_request_form_parameters", "token_endpoint_request_headers");
