@@ -84,7 +84,6 @@ import net.openid.conformance.condition.rs.FAPIBrazilGenerateGetPaymentConsentRe
 import net.openid.conformance.condition.rs.FAPIBrazilGenerateNewConsentResponse;
 import net.openid.conformance.condition.rs.FAPIBrazilGenerateNewPaymentInitiationResponse;
 import net.openid.conformance.condition.rs.FAPIBrazilGenerateNewPaymentsConsentResponse;
-import net.openid.conformance.condition.rs.FAPIBrazilRsPathConstants;
 import net.openid.conformance.condition.rs.FAPIBrazilValidateConsentRequestIat;
 import net.openid.conformance.condition.rs.FAPIBrazilValidateJwtSignatureUsingOrganizationJwks;
 import net.openid.conformance.condition.rs.FAPIBrazilValidatePaymentConsentRequestAud;
@@ -94,7 +93,6 @@ import net.openid.conformance.condition.rs.LoadUserInfo;
 import net.openid.conformance.condition.rs.RequireBearerAccessToken;
 import net.openid.conformance.condition.rs.RequireBearerClientCredentialsAccessToken;
 import net.openid.conformance.sequence.ConditionSequence;
-import net.openid.conformance.sequence.as.GenerateOpenBankingBrazilAccountsEndpointResponse;
 import net.openid.conformance.sequence.as.ValidateClientAuthenticationWithMTLS;
 import net.openid.conformance.sequence.as.ValidateClientAuthenticationWithPrivateKeyJWT;
 import net.openid.conformance.testmodule.AbstractTestModule;
@@ -155,7 +153,6 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 	private Class<? extends Condition> addTokenEndpointAuthMethodSupported;
 	private Class<? extends ConditionSequence> validateTokenEndpointClientAuthenticationSteps;
 	private Class<? extends ConditionSequence> validateBackchannelClientAuthenticationSteps;
-	private Class<? extends ConditionSequence> accountsEndpointProfileSteps;
 
 	@VariantSetup(parameter = ClientAuthType.class, value = "mtls")
 	public void setupMTLS() {
@@ -191,7 +188,6 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 
 	@VariantSetup(parameter = FAPICIBAProfile.class, value = "openbanking_brazil")
 	public void setupOpenBankingBrazil() {
-		accountsEndpointProfileSteps = GenerateOpenBankingBrazilAccountsEndpointResponse.class;
 		profileBehavior = new OpenBankingBrazilCibaRPProfileBehavior();
 		profileBehavior.setModule(this);
 	}
@@ -371,22 +367,10 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 			case "userinfo":
 				return userinfoEndpoint(requestId);
 			case ACCOUNTS_PATH:
-			case FAPIBrazilRsPathConstants.BRAZIL_ACCOUNTS_PATH:
 				return accountsEndpoint(requestId);
-			case FAPIBrazilRsPathConstants.BRAZIL_CONSENTS_PATH:
-				return brazilHandleNewConsentRequest(requestId, false);
-			case FAPIBrazilRsPathConstants.BRAZIL_PAYMENTS_CONSENTS_PATH:
-				return brazilHandleNewConsentRequest(requestId, true);
-			case FAPIBrazilRsPathConstants.BRAZIL_PAYMENT_INITIATION_PATH:
-				return brazilHandleNewPaymentInitiationRequest(requestId);
-			case FAPIBrazilRsPathConstants.BRAZIL_RESOURCE_PATH:
-				return resourcesEndpoint(requestId);
 			default:
-				if(path.startsWith(FAPIBrazilRsPathConstants.BRAZIL_CONSENTS_PATH + "/")) {
-					return brazilHandleGetConsentRequest(requestId, path, false);
-				}
-				if(path.startsWith(FAPIBrazilRsPathConstants.BRAZIL_PAYMENTS_CONSENTS_PATH + "/")) {
-					return brazilHandleGetConsentRequest(requestId, path, true);
+				if (profileBehavior.claimsProfileSpecificMtlsPath(path)) {
+					return profileBehavior.handleProfileSpecificMtlsPath(requestId, path);
 				}
 				throw new TestFailureException(getId(), "Got unexpected HTTP (using mtls) call to " + path);
 		}
@@ -816,8 +800,9 @@ public abstract class AbstractFAPICIBAClientTest extends AbstractTestModule {
 		callAndStopOnFailure(CreateFapiInteractionIdIfNeeded.class, "FAPI1-BASE-6.2.1-11");
 		callAndStopOnFailure(CreateFAPIAccountEndpointResponse.class);
 
-		if (accountsEndpointProfileSteps != null) {
-			call(sequence(accountsEndpointProfileSteps));
+		Class<? extends ConditionSequence> profileAccountsResponseSteps = profileBehavior.getAccountsEndpointResponseSteps();
+		if (profileAccountsResponseSteps != null) {
+			call(sequence(profileAccountsResponseSteps));
 		}
 
 		callAndStopOnFailure(ClearAccessTokenFromRequest.class);

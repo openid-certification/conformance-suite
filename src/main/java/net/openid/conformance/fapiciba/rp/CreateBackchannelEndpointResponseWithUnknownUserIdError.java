@@ -10,7 +10,7 @@ public class CreateBackchannelEndpointResponseWithUnknownUserIdError extends Abs
 		backchannelResponse.addProperty("error", "unknown_user_id");
 		backchannelResponse.addProperty(
 			"error_description",
-			"This test simulates that the user represented by the id_token_hint is unknown, " +
+			"This test simulates that the user represented by the hint provided in the request is unknown, " +
 				"resulting in an unknown_user_id error response from the backchannel endpoint.."
 		);
 		log("Backchannel responds with unknown_user_id");
