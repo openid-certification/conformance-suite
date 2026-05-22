@@ -87,15 +87,22 @@
      and the rail host hides via `display: none` so it doesn't reserve
      vertical space.
 
-     The `:has(#ctsLogToc:not([hidden]))` guard means the grid only
-     activates when the rail is actually visible. The rail itself drops
-     a `hidden` attribute when (a) the user disabled the preference or
-     (b) it has zero blocks AND zero failures (e.g. an INTERRUPTED test
-     that never ran a condition). In either case the page collapses to
-     single-column and the main content reclaims the full page width
-     instead of leaving a 320px column reserved for an empty heading. */
+     The column is reserved unconditionally when `.log-page--with-toc`
+     is set on <main> — independent of whether the rail has data yet.
+     This eliminates the page-load reflow that previously happened when
+     the first `cts-blocks-updated` event flipped the grid from a
+     single column to `1fr 320px` (see
+     docs/plans/2026-05-21-002-fix-log-detail-layout-reflows-plan.md
+     U1). The rail itself still hides via its scoped
+     `cts-log-toc[hidden] { display: none }` rule when empty (no blocks
+     AND no failures) or when the user preference is off; the hidden
+     rail simply leaves its 320px grid track as whitespace, which is
+     the explicit trade-off — a stable always-reserved column is
+     preferred to the page-wide horizontal shift on every normal log
+     load. Reverses U2 of
+     docs/plans/2026-05-20-002-fix-cts-log-toc-empty-rail-visible-plan.md. */
   @media (min-width: 1440px) {
-    .log-page--with-toc:has(#ctsLogToc:not([hidden])) {
+    .log-page--with-toc {
       display: grid;
       grid-template-columns: 1fr 320px;
       gap: var(--space-10);

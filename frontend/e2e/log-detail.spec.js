@@ -581,17 +581,25 @@ test.describe("log-detail.html — new Lit-triad page", () => {
     await expect(cBadges.first()).toHaveAttribute("label", "⚠1");
   });
 
-  test("cts-log-toc rail hides and grid collapses for an interrupted test with no blocks", async ({
+  test("cts-log-toc rail hides itself but the grid column stays reserved for an interrupted test with no blocks", async ({
     page,
   }) => {
-    // Reproduces the production bug: an INTERRUPTED test that never
-    // started any block returns log entries with no `startBlock` row.
-    // The rail's `_applyVisibility()` toggles `hidden=true`, which must
-    // pull `getComputedStyle(rail).display` to "none" AND let the page
-    // grid collapse to single column so the main content reclaims the
-    // full page width. The component's scoped `cts-log-toc[hidden]`
-    // override and log-detail.html's `:has(#ctsLogToc:not([hidden]))`
-    // grid guard are the two pieces of CSS under test.
+    // The rail's `_applyVisibility()` still toggles `hidden=true` when
+    // an INTERRUPTED test has no blocks and no failures, and the
+    // component's scoped `cts-log-toc[hidden] { display: none }`
+    // override still pulls computed display to "none" — so the rail
+    // itself does not paint an empty card.
+    //
+    // The page grid, however, reserves the 320px track unconditionally
+    // when `.log-page--with-toc` is set on <main> (see
+    // docs/plans/2026-05-21-002-fix-log-detail-layout-reflows-plan.md
+    // U1). This eliminates the page-wide horizontal reflow that
+    // previously fired when the first `cts-blocks-updated` event
+    // flipped the grid from single-column to 1fr 320px. The empty
+    // 320px track is the explicit trade-off — an interrupted-test
+    // whitespace gap is preferred to the reflow on every normal log
+    // load. Reverses U2 of
+    // docs/plans/2026-05-20-002-fix-cts-log-toc-empty-rail-visible-plan.md.
     await setupFailFast(page);
     // Wide viewport — the two-column grid only activates at ≥ 1440px,
     // so this assertion is meaningful only above that breakpoint.
@@ -625,13 +633,55 @@ test.describe("log-detail.html — new Lit-triad page", () => {
     const railDisplay = await rail.evaluate((el) => getComputedStyle(el).display);
     expect(railDisplay).toBe("none");
 
-    // Page grid must collapse: the `:has()` guard means
-    // `.log-page--with-toc` no longer applies its grid declaration, so
-    // `grid-template-columns` falls back to the default `none`.
+    // Page grid stays two-column: `.log-page--with-toc` activates the
+    // grid unconditionally at ≥ 1440px, so the 320px track is reserved
+    // even when the rail itself paints nothing into it.
     const mainGridCols = await page
       .locator("#main-content")
       .evaluate((el) => getComputedStyle(el).gridTemplateColumns);
-    expect(mainGridCols).toBe("none");
+    expect(mainGridCols).toMatch(/\s320px$/);
+  });
+
+  test("page grid does not reflow when cts-blocks-updated lands new blocks", async ({ page }) => {
+    // Regression guard for
+    // docs/plans/2026-05-21-002-fix-log-detail-layout-reflows-plan.md
+    // U1. The user-visible bug was a hard horizontal shrink of the
+    // entries stream a second or two into page load: the rail starts
+    // empty (no blocks yet), so the previous `:has()` guard kept the
+    // page in single-column mode; the first `cts-blocks-updated`
+    // event then unhid the rail and flipped the grid to 1fr 320px.
+    //
+    // After U1 the column is always reserved at ≥ 1440px, so the
+    // grid-template-columns value must be stable across the
+    // empty-rail → populated-rail transition. We snapshot the value
+    // before and after the event and assert equality.
+    await setupFailFast(page);
+    await page.setViewportSize({ width: 1500, height: 900 });
+    await setupV2Routes(page, {
+      testInfo: { ...MOCK_TEST_STATUS, testId: "test-reflow-guard-001" },
+      logEntries: MOCK_BLOCKS_WITH_STATUS,
+    });
+    await setupCommonRoutes(page);
+
+    await page.goto(`/log-detail.html?log=${encodeURIComponent("test-reflow-guard-001")}`);
+
+    const main = page.locator("#main-content");
+
+    // Snapshot grid-template-columns before the rail receives any
+    // blocks. `.log-page--with-toc` is set by setupLogToc() in
+    // log-detail.js synchronously on bootstrap, so the two-column
+    // grid is already active even though the rail itself is still
+    // `[hidden]` at this moment.
+    await expect(main).toHaveClass(/log-page--with-toc/);
+    const colsBefore = await main.evaluate((el) => getComputedStyle(el).gridTemplateColumns);
+    expect(colsBefore).toMatch(/\s320px$/);
+
+    // Wait for the rail to populate — the toc-list rendering is the
+    // observable proxy for cts-blocks-updated having fired.
+    await expect(page.locator('#ctsLogToc [data-testid="toc-list"]')).toBeVisible();
+
+    const colsAfter = await main.evaluate((el) => getComputedStyle(el).gridTemplateColumns);
+    expect(colsAfter).toBe(colsBefore);
   });
 
   test("cts-log-toc rail renders and grid expands when blocks arrive", async ({ page }) => {
