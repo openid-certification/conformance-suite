@@ -128,18 +128,27 @@ R4. Existing log-detail coverage continues to pass — Storybook plays
   empty synchronous event would not change the outcome and still
   causes the reflow when real data arrives.
 
-- **Switch `.ctsConfigJson` from `min-height` to a fixed `height`.**
-  This pins the editor's outer dimensions before Monaco mounts, so
-  the only layout shift on drawer toggle is the disclosure itself.
-  Long config JSON scrolls inside the editor (Monaco's native
-  behaviour when its host has a bounded height).
+- **Set both `min-height` and `max-height` on `.ctsConfigJson` to the
+  same `calc(var(--space-6) * 14)` value.** This pins the editor's
+  outer dimensions before Monaco mounts, so the only layout shift on
+  drawer toggle is the disclosure itself. Long config JSON scrolls
+  inside the editor (Monaco's native behaviour when its host has a
+  bounded height).
 
-  Alternative considered: keep `min-height` and add an explicit
-  `max-height` cap at the same value. Equivalent in effect but
-  noisier — `height: …` reads as "exactly this tall", which matches
-  the intent. The bare `min-height` was inherited from the legacy
-  stand-alone config panel where unbounded growth made sense; inside
-  a `<details>` disclosure, unbounded growth is the bug.
+  Implementation note (refinement during U2 execution): the original
+  decision was "switch `min-height` to a fixed `height`", but
+  `cts-json-editor.resolveBounds()` (see
+  `src/main/resources/static/components/cts-json-editor.js:45-57`)
+  reads computed `min-height` and `max-height` to clamp Monaco's
+  auto-grow — it does **not** consult the `height` shorthand. A bare
+  `height: 336px` would leave Monaco's inner editor free to grow up
+  to its 350px fallback ceiling inside an `overflow: hidden` host,
+  visibly clipping content instead of engaging Monaco's internal
+  scroll. The `min-height + max-height` pair is the only shape that
+  routes through Monaco's bounds contract, so it is what the code
+  ships. Both the CSS comment in
+  `src/main/resources/static/components/cts-log-detail-header.js`
+  and this section now record the actual approach.
 
   Alternative considered: pre-mount Monaco off-screen during page
   bootstrap so first-disclosure paint is already final. Rejected —
@@ -262,16 +271,19 @@ After:   closed → open  →  main column grows by exactly the fixed editor
   - Replace
     `cts-log-detail-header .ctsConfigJson { display: block; min-height: calc(var(--space-6) * 14); }`
     with
-    `cts-log-detail-header .ctsConfigJson { display: block; height: calc(var(--space-6) * 14); }`.
-    The fixed height pins Monaco's outer dimensions; long JSON
-    scrolls within the editor (Monaco's default behaviour when its
-    host has a bounded height — see the host sizing logic referenced
-    around lines 22-40 of `cts-json-editor.js`).
+    `cts-log-detail-header .ctsConfigJson { display: block; min-height: calc(var(--space-6) * 14); max-height: calc(var(--space-6) * 14); }`.
+    Setting both bounds routes through `cts-json-editor.resolveBounds()`
+    (`src/main/resources/static/components/cts-json-editor.js:45-57`),
+    which reads computed `min-height` and `max-height` to clamp Monaco's
+    auto-grow ceiling — the bare `height` shorthand is not consulted.
+    Long JSON then scrolls within the editor (Monaco's default behaviour
+    when its host has a bounded height).
   - Add a brief comment above the rule pointing at this plan's
-    rationale ("Fixed height — see plan
+    rationale ("Fixed min-height + max-height — see plan
     `docs/plans/2026-05-21-002-fix-log-detail-layout-reflows-plan.md`
     U2: Monaco growth after mount caused a second jump on drawer
-    toggle.").
+    toggle, and `resolveBounds()` only reads min/max-height not
+    `height`.").
 - **Patterns to follow:**
   - Other components in the codebase that bound a JSON editor inside
     a disclosure or modal — search for `cts-json-editor` references

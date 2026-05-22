@@ -115,12 +115,15 @@ export const EmptyDuringWaiting = {
       })
     );
     await rail.updateComplete;
-    // Empty rail self-hides via the `hidden` attribute so the page-level
-    // grid (`.log-page--with-toc:has(#ctsLogToc:not([hidden]))`)
-    // collapses to single column and the main content reclaims the
-    // 320px slot. The aside is still in the DOM (so populating
-    // `.blocks` later un-hides without a re-mount) but `display: none`
-    // means it takes zero layout space.
+    // Empty rail self-hides via the `hidden` attribute. The page-level
+    // grid (.log-page--with-toc at ≥1440px) now keeps the 320px right
+    // column reserved unconditionally — see
+    // docs/plans/2026-05-21-002-fix-log-detail-layout-reflows-plan.md U1.
+    // The hidden rail only zeroes out its own paint; the grid track
+    // stays so blocks arriving later don't trigger a layout reflow.
+    // The aside is still in the DOM (so populating `.blocks` later
+    // un-hides without a re-mount) but `display: none` means it takes
+    // zero space within its grid cell.
     expect(rail.hasAttribute("hidden")).toBe(true);
     // Computed-style guard: the base `cts-log-toc { display: block }`
     // rule beats the UA `[hidden]` rule on specificity, so without the
