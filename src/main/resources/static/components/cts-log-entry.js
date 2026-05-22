@@ -16,7 +16,7 @@ const RESULT_BADGE_VARIANTS = {
   success: "pass",
   failure: "fail",
   warning: "warn",
-  info: "running",
+  info: "info",
   review: "review",
   skipped: "skip",
 };
@@ -586,7 +586,7 @@ class CtsLogEntry extends LitElement {
     const badge = HTTP_BADGES[httpType];
     if (!badge) return nothing;
     return html`
-      <cts-badge variant="running" label="${badge.label}"></cts-badge>
+      <cts-badge variant="info" label="${badge.label}"></cts-badge>
       ${httpType === "request"
         ? html`<cts-tooltip content="Copy as cURL" placement="top"
             ><cts-button

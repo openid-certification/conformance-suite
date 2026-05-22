@@ -38,6 +38,19 @@ const WARNING_ENTRY = {
   requirements: ["OIDCC-3.1.3.3"],
 };
 
+// Fixture for the new static `info` variant routing. INFO-level log rows
+// previously rendered through the spinner-bearing `running` variant (and
+// looked like they were perpetually loading); they now route through the
+// static `info` variant added in U1 of the MR 1998 maintainer-feedback plan.
+const INFO_ENTRY = {
+  _id: "entry-info",
+  testId: "test-abc",
+  src: "BuildRequestObject",
+  time: NOW - 4500,
+  msg: "Built request object with kid=test-key-1",
+  result: "INFO",
+};
+
 const HTTP_REQUEST_ENTRY = {
   _id: "entry-http-req",
   testId: "test-abc",
@@ -253,6 +266,15 @@ export const HttpRequestEntry = {
     // by its class hook instead of by visible label.
     const moreBtn = canvasElement.querySelector(".moreBtn button");
     expect(moreBtn).toBeTruthy();
+
+    // U2: the REQUEST pill must route through the static `info` variant
+    // (added in U1), not `running`. Before the fix, this pill carried
+    // the perpetual spinner from `running` even though the request was
+    // a finished log row, not a live operation.
+    const httpBadge = canvasElement.querySelector('.logHttp cts-badge[variant="info"]');
+    expect(httpBadge).toBeTruthy();
+    expect(canvasElement.querySelector('.logHttp cts-badge[variant="running"]')).toBeNull();
+    expect(httpBadge.querySelector(".cts-badge-spin")).toBeNull();
   },
 };
 
@@ -265,6 +287,40 @@ export const HttpResponseEntry = {
     });
 
     expect(canvas.queryByText("cURL")).toBeNull();
+
+    // U2: same static-info routing for RESPONSE rows. No spinner DOM.
+    const httpBadge = canvasElement.querySelector('.logHttp cts-badge[variant="info"]');
+    expect(httpBadge).toBeTruthy();
+    expect(canvasElement.querySelector('.logHttp cts-badge[variant="running"]')).toBeNull();
+    expect(httpBadge.querySelector(".cts-badge-spin")).toBeNull();
+  },
+};
+
+/**
+ * U2 regression guard: INFO-level result rows render through the static
+ * `info` cts-badge variant — no spinner. Before U1+U2 landed, an
+ * `result: "INFO"` row mapped to `variant="running"` and inherited the
+ * perpetual spinner glyph, which read as "this row is still loading"
+ * forever. The fix is one-line in cts-log-entry's RESULT_BADGE_VARIANTS
+ * map; this story exists so a regression on that line fails loudly.
+ */
+export const InfoSeverityEntry = {
+  render: () => html`<cts-log-entry .entry=${INFO_ENTRY}></cts-log-entry>`,
+  async play({ canvasElement }) {
+    const canvas = within(canvasElement);
+    await waitFor(() => {
+      expect(canvas.getByText("INFO")).toBeInTheDocument();
+    });
+
+    // Routed to the static `info` variant, not the spinner-bearing
+    // `running` variant.
+    const badge = canvasElement.querySelector('.logSeverity cts-badge[variant="info"]');
+    expect(badge).toBeTruthy();
+    expect(canvasElement.querySelector('.logSeverity cts-badge[variant="running"]')).toBeNull();
+
+    // No spinner DOM inside the badge — the bug we are guarding against.
+    expect(badge.querySelector(".cts-badge-spin")).toBeNull();
+    expect(badge.querySelector("svg")).toBeNull();
   },
 };
 

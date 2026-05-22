@@ -108,6 +108,46 @@ export const Review = {
   },
 };
 
+/**
+ * Static informational pill. Same `--status-info-*` palette as
+ * `info-subtle` but inherits the canonical status-pill chrome
+ * (uppercase, tracked, pill radius). Crucially, `info` is a *static*
+ * variant — it must NOT render the spinner glyph. This is the variant
+ * that `cts-log-entry` routes INFO-level rows and HTTP request /
+ * response / incoming / outgoing markers through; before this variant
+ * existed, those mappings reused `running` and inherited its perpetual
+ * spinner (the cause of the "blue pills all spin forever" bug).
+ */
+export const Info = {
+  args: { variant: "info", label: "Info" },
+  render: ({ variant, label }) =>
+    html`<cts-badge variant="${variant}" label="${label}"></cts-badge>`,
+
+  async play({ canvasElement }) {
+    const badge = canvasElement.querySelector(".badge");
+    expect(badge).toBeTruthy();
+    expect(badge.classList.contains("b-info")).toBe(true);
+    expect(badge.textContent.trim()).toBe("Info");
+
+    // The whole point of this variant: a static blue pill with no
+    // spinner. Asserting on both the wrapper class and the inline SVG
+    // catches a regression where someone re-points `info` back to the
+    // spinner-bearing render branch or the variant's CSS class is
+    // accidentally mapped to `b-run`.
+    expect(badge.querySelector(".cts-badge-spin")).toBeNull();
+    expect(badge.querySelector("svg")).toBeNull();
+
+    // Read-only default carries no affordance ring, matching the other
+    // status variants.
+    expect(badge.classList.contains("is-interactive")).toBe(false);
+    const computed = window.getComputedStyle(badge);
+    expect(computed.boxShadow).toBe("none");
+    // No real border — like every other variant, the affordance ring
+    // is delivered exclusively via an inset box-shadow when interactive.
+    expect(parseFloat(computed.borderTopWidth)).toBe(0);
+  },
+};
+
 // --- Running variant: spinner replaces any icon attribute ---
 
 /**
@@ -303,7 +343,7 @@ export const NotClickable = {
 export const AllStatusVariants = {
   render: () => html`
     <div style="display: flex; flex-wrap: wrap; gap: 0.5rem; padding: 1rem;">
-      ${["pass", "fail", "warn", "running", "skip", "review"].map(
+      ${["pass", "fail", "warn", "running", "skip", "review", "info"].map(
         (variant) =>
           html`<cts-badge variant="${variant}" label="${variant.toUpperCase()}"></cts-badge>`,
       )}
@@ -312,8 +352,8 @@ export const AllStatusVariants = {
 
   async play({ canvasElement }) {
     const badges = canvasElement.querySelectorAll("cts-badge .badge");
-    expect(badges.length).toBe(6);
-    const expectedClasses = ["b-pass", "b-fail", "b-warn", "b-run", "b-skip", "b-rev"];
+    expect(badges.length).toBe(7);
+    const expectedClasses = ["b-pass", "b-fail", "b-warn", "b-run", "b-skip", "b-rev", "b-info"];
     badges.forEach((badge, i) => {
       expect(badge.classList.contains(expectedClasses[i])).toBe(true);
     });
@@ -579,6 +619,26 @@ export const SecondaryInteractive = {
   },
 };
 
+export const InfoInteractive = {
+  args: { variant: "info", label: "Info", interactive: true },
+  render: ({ variant, label, interactive }) =>
+    html`<cts-badge
+      variant="${variant}"
+      label="${label}"
+      ?interactive="${interactive}"
+    ></cts-badge>`,
+
+  async play({ canvasElement }) {
+    const badge = canvasElement.querySelector(".badge");
+    expect(badge.classList.contains("b-info")).toBe(true);
+    expect(badge.classList.contains("is-interactive")).toBe(true);
+    expect(window.getComputedStyle(badge).boxShadow).not.toBe("none");
+    // Spinner must not render even when interactive (the static info
+    // variant deliberately doesn't carry the spinner glyph).
+    expect(badge.querySelector(".cts-badge-spin")).toBeNull();
+  },
+};
+
 export const InfoSubtleInteractive = {
   args: {
     variant: "info-subtle",
@@ -672,19 +732,27 @@ export const AllVariantsBothStates = {
     >
       <strong>Read-only</strong>
       <strong>Interactive</strong>
-      ${["pass", "fail", "warn", "running", "skip", "review", "secondary", "info-subtle"].flatMap(
-        (variant) => [
-          html`<cts-badge variant="${variant}" label="${variant}"></cts-badge>`,
-          html`<cts-badge variant="${variant}" label="${variant}" interactive></cts-badge>`,
-        ],
-      )}
+      ${[
+        "pass",
+        "fail",
+        "warn",
+        "running",
+        "skip",
+        "review",
+        "info",
+        "secondary",
+        "info-subtle",
+      ].flatMap((variant) => [
+        html`<cts-badge variant="${variant}" label="${variant}"></cts-badge>`,
+        html`<cts-badge variant="${variant}" label="${variant}" interactive></cts-badge>`,
+      ])}
     </div>
   `,
 
   async play({ canvasElement }) {
     const badges = canvasElement.querySelectorAll(".badge");
-    // 8 variants × 2 states = 16 badges.
-    expect(badges.length).toBe(16);
+    // 9 variants × 2 states = 18 badges.
+    expect(badges.length).toBe(18);
 
     badges.forEach((badge, i) => {
       const computed = window.getComputedStyle(badge);
