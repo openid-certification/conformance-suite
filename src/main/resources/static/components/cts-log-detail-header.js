@@ -1372,7 +1372,9 @@ class CtsLogDetailHeader extends LitElement {
    * INTERRUPTED hero — failure-list pattern with the FINAL_ERROR alert
    * pinned at the top via the existing `[data-slot="error"]` placeholder.
    * If no conditions ran before the interruption (failures array empty),
-   * the headline reads "Test was interrupted before any check ran".
+   * the headline reads "No checks completed before the test stopped" —
+   * scoped to the absence of findings, not to the interruption verdict
+   * (which is already established by the terminal banner above the hero).
    * Reads testInfo via `this._getFailures()`, so no test arg is needed.
    * @returns {import('lit').TemplateResult} The INTERRUPTED hero template.
    */
@@ -1382,13 +1384,10 @@ class CtsLogDetailHeader extends LitElement {
     const headline =
       failures.length > 0
         ? this._formatFailureCountHeadline(counts)
-        : "Test was interrupted before any check ran";
+        : "No checks completed before the test stopped";
     return html`
       <div class="ctsHero ctsHero--failures" data-testid="hero-interrupted">
         <div id="runningTestError" data-slot="error" data-testid="running-error-slot"></div>
-        <cts-alert variant="danger">
-          <b>This test was interrupted.</b> See the error details above.
-        </cts-alert>
         <div class="ctsHeroEyebrow">Findings</div>
         <h2 class="ctsHeroHeadline">${headline}</h2>
         ${failures.length > 0
@@ -1597,20 +1596,13 @@ class CtsLogDetailHeader extends LitElement {
 
   _renderArchivedBanner() {
     if (!this.archived) return nothing;
-    // R22: the archived banner fires on a /api/runner 404 regardless of
-    // terminal status (log-detail.js polls RUNNING/WAITING/INTERRUPTED),
-    // so a status-blind "completed" lead would be wrong for INTERRUPTED
-    // tests. Branch the bold sentence on the recorded terminal state.
-    const status = (this.testInfo?.status || "").toUpperCase();
-    const lead =
-      status === "FINISHED"
-        ? "This test has completed."
-        : status === "INTERRUPTED"
-          ? "This test was interrupted."
-          : "This test is no longer active.";
+    // The verdict for the run (passed / failed / interrupted) is already
+    // surfaced by the terminal banner above the hero, so this note only
+    // carries the archival logistics — what the user can still do with
+    // the log now that the runner has dropped its in-memory state.
     return html`
       <cts-alert variant="info" dismissible id="runningTestArchived" data-testid="archived-banner">
-        <b>${lead}</b> This log has been archived and can be viewed or downloaded.
+        This log has been archived. You can view or download it below.
       </cts-alert>
     `;
   }
