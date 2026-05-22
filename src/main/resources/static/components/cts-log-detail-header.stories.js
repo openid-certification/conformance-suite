@@ -279,10 +279,13 @@ export const ArchivedTest = {
     const banner = canvasElement.querySelector('[data-testid="archived-banner"]');
     expect(banner).toBeTruthy();
     expect(banner.getAttribute("variant")).toBe("info");
-    // COMPLETED_TEST inherits status: "FINISHED" from MOCK_TEST_STATUS, so
-    // R22's status-conditional banner emits the FINISHED lead.
-    expect(banner.textContent).toContain("This test has completed.");
+    // The banner carries archival logistics only — the verdict ("test
+    // passed / failed / interrupted") is established by the terminal
+    // banner above the hero, so this note does not re-state it.
     expect(banner.textContent).toContain("This log has been archived");
+    expect(banner.textContent).toContain("view or download");
+    expect(banner.textContent).not.toContain("This test has completed");
+    expect(banner.textContent).not.toContain("This test was interrupted");
   },
 };
 
@@ -854,19 +857,19 @@ export const WithFinalErrorSlot = {
     });
 
     // INTERRUPTED renders the failure-hero pattern with the FINAL_ERROR
-    // alert pinned at the top via the existing `[data-slot="error"]`.
+    // slot pinned at the top via the existing `[data-slot="error"]` —
+    // population is driven by log-detail.js calling renderErrorIntoSlot.
     const slotById = canvasElement.querySelector("#runningTestError");
     const slotByAttr = canvasElement.querySelector('[data-slot="error"]');
     expect(slotById).toBeTruthy();
     expect(slotByAttr).toBeTruthy();
     expect(slotById).toBe(slotByAttr);
-
-    // The interrupted-state alert variant is danger.
-    const interruptedAlert = Array.from(canvasElement.querySelectorAll("cts-alert")).find((a) =>
-      (a.textContent || "").includes("interrupted"),
-    );
-    expect(interruptedAlert).toBeTruthy();
-    expect(interruptedAlert.getAttribute("variant")).toBe("danger");
+    // With no FINAL_ERROR injected, the slot is empty — the redundant
+    // "This test was interrupted. See the error details above." cts-alert
+    // that used to sit here was removed once the U3 terminal banner
+    // took over the verdict (it duplicated the banner and pointed at an
+    // empty slot in this exact case).
+    expect(slotById.children.length).toBe(0);
   },
 };
 
