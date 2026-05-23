@@ -1,4 +1,5 @@
 import { LitElement, html, nothing } from "lit";
+import "./cts-time.js";
 
 const STYLE_ID = "cts-plan-header-styles";
 
@@ -136,11 +137,6 @@ class CtsPlanHeader extends LitElement {
       .join(", ");
   }
 
-  _formatDate(dateStr) {
-    if (!dateStr) return "";
-    return new Date(dateStr).toLocaleString();
-  }
-
   _formatCertificationProfile(name) {
     if (!name) return "";
     return Array.isArray(name) ? name.join(", ") : name;
@@ -151,7 +147,6 @@ class CtsPlanHeader extends LitElement {
     if (!plan || !plan._id) return nothing;
 
     const variantText = this._formatVariant(plan.variant);
-    const startedText = this._formatDate(plan.started);
     const showOwner = !this.isPublic && this.isAdmin && plan.owner;
     const ownerText = showOwner
       ? `${plan.owner.sub}${plan.owner.iss ? ` (${plan.owner.iss})` : ""}`
@@ -173,7 +168,9 @@ class CtsPlanHeader extends LitElement {
         <dd><span class="mono">${plan.version}</span></dd>
 
         <dt>Started:</dt>
-        <dd class="tabular-nums">${startedText}</dd>
+        <dd class="tabular-nums">
+          <cts-time mode="absolute" value=${plan.started}></cts-time>
+        </dd>
 
         ${showOwner
           ? html`
