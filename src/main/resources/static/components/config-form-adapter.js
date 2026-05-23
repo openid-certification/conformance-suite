@@ -28,6 +28,9 @@
  * @property {string} type - "string" | "object" | "array" | "boolean".
  * @property {string} [format] - "password" | "uri" | "newline-array" | etc.
  * @property {string[]} [enum] - Allowed values for select fields.
+ * @property {string[]} [enumLabels] - Parallel array of human-readable labels
+ *   for `enum` values. Same length and order as `enum`. Used by the publish
+ *   dropdown to render the wire value `""` as "No".
  * @property {string} [placeholder] - Placeholder text.
  * @property {boolean} [required] - HTML required flag.
  * @property {string} [jwksGenerator] - Slug for the inline JWKS generator button.
@@ -172,6 +175,7 @@ function fieldToSchemaFragment(field) {
   };
   if (field.format) out.format = field.format;
   if (field.enum) out.enum = field.enum.slice();
+  if (field.enumLabels) out.enumLabels = field.enumLabels.slice();
   if (field.tooltip) out.description = field.tooltip;
   if (field.placeholder) out["x-cts-placeholder"] = field.placeholder;
   if (field.required) out["x-cts-required"] = true;
