@@ -5,6 +5,7 @@ import "./cts-empty-state.js";
 import "./cts-button.js";
 import "./cts-badge.js";
 import "./cts-form-field.js";
+import { formatAbsolute } from "../lib/time-format.js";
 
 /**
  * Native Lit replacement for jQuery DataTables. Drives plans.html,
@@ -411,6 +412,9 @@ function readKey(row, key) {
   return key.split(".").reduce((acc, part) => (acc == null ? acc : acc[part]), row);
 }
 
+// Compact YYYY-MM-DD HH:MM grid format for `format: "date"` columns. Kept
+// locale-neutral and sortable-looking on purpose; the full absolute form is
+// surfaced on hover via the <time title> wrapper in _renderCellContent.
 function formatDate(value) {
   if (value == null || value === "") return "";
   const date = value instanceof Date ? value : new Date(value);
@@ -917,7 +921,15 @@ class CtsDataTable extends LitElement {
 
     // 1. Built-in formats.
     if (column.format === "date") {
-      return formatDate(value);
+      if (value == null || value === "") return "";
+      const d = value instanceof Date ? value : new Date(/** @type {string | number} */ (value));
+      if (Number.isNaN(d.getTime())) return String(value);
+      // Keep the compact, sortable-looking YYYY-MM-DD HH:MM grid format as the
+      // visible text, but wrap it in a native <time> so hovering reveals the
+      // full absolute date/time — same affordance cts-time provides elsewhere.
+      return html`<time datetime=${d.toISOString()} title=${formatAbsolute(d)}
+        >${formatDate(d)}</time
+      >`;
     }
     if (column.format === "badge") {
       const label = value == null ? "" : String(value);
