@@ -30,11 +30,18 @@ const STYLE_TEXT = `
     gap: var(--space-2);
   }
   cts-test-nav-controls .cts-tnc-progress-label {
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: var(--space-1);
     font-family: var(--font-sans);
     font-size: var(--fs-13);
     line-height: var(--lh-snug);
     color: var(--fg-soft);
     font-weight: var(--fw-bold);
+  }
+  cts-test-nav-controls .cts-tnc-progress-count {
+    color: var(--fg);
   }
   cts-test-nav-controls .cts-tnc-progress-track {
     height: 8px;
@@ -70,8 +77,8 @@ function ensureStylesInjected() {
 
 /**
  * Test-plan navigation cluster — groups Return-to-Plan, Repeat Test,
- * Continue Plan, and a "Module X of N" progress indicator into a single
- * semantically-labelled widget. Lands recommendation R21 (and the
+ * Continue Plan, and a "Plan progress: Module X of N" indicator into a
+ * single semantically-labelled widget. Lands recommendation R21 (and the
  * associated R20 progress count) from the CTS UX brainstorm.
  *
  * Light DOM. Scoped CSS is injected once on first render. Render returns
@@ -80,8 +87,10 @@ function ensureStylesInjected() {
  *
  * The Continue button is rendered only when `nextEnabled` is true
  * (mirrors the legacy hide-when-no-next-module behaviour). The progress
- * block keeps rendering and reads "Module N of N" so the user has clear
- * end-of-plan feedback.
+ * block keeps rendering and reads "Plan progress: Module N of N" so the
+ * user has clear end-of-plan feedback. The "Plan progress:" eyebrow
+ * disambiguates scope so the count is not misread as the current test's
+ * own progress (MR 1998 finding A4, thomasdarimont).
  *
  * Return-to-Plan is a real `<a href>` (via cts-link-button) so middle-
  * click and Cmd-click open the plan in a new tab. The widget does not
@@ -178,7 +187,7 @@ class CtsTestNavControls extends LitElement {
 
     // 1-based for the user-facing label; clamp the displayed position so
     // an out-of-range currentIndex (e.g. results haven't loaded yet)
-    // still produces a sensible "Module N of N" string.
+    // still produces a sensible "Plan progress: Module N of N" string.
     const rawCurrent = Math.max(0, Number(this.currentIndex) || 0);
     const displayPosition = Math.min(rawCurrent + 1, total);
     const fillPercent = (displayPosition / total) * 100;
@@ -186,7 +195,8 @@ class CtsTestNavControls extends LitElement {
     return html`
       <div class="cts-tnc-progress" data-testid="progress">
         <div class="cts-tnc-progress-label" data-testid="progress-label">
-          Module ${displayPosition} of ${total}
+          <span class="cts-tnc-progress-scope">Plan progress:</span>
+          <span class="cts-tnc-progress-count">Module ${displayPosition} of ${total}</span>
         </div>
         <div
           class="cts-tnc-progress-track"
