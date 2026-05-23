@@ -40,6 +40,11 @@ export const MidPlan = {
       expect(canvas.getByText("Module 6 of 30")).toBeInTheDocument();
     });
 
+    // Scope eyebrow disambiguates the count — closes MR 1998 A4
+    // (thomasdarimont): "the progress bar... doesn't show the current
+    // test progress but rather the progress from the overall testplan."
+    expect(canvas.getByText("Plan progress:")).toBeInTheDocument();
+
     // Group is semantically labelled
     const group = canvasElement.querySelector('[role="group"]');
     expect(group).toBeTruthy();
@@ -296,6 +301,11 @@ export const SlimMidPlan = {
     await waitFor(() => {
       expect(canvas.getByText("Module 6 of 30")).toBeInTheDocument();
     });
+
+    // Scope eyebrow accompanies the count in slim mode too — the
+    // log-detail page is the live consumer of slim, so this is the
+    // shape Thomas saw in MR 1998's A4 screenshot.
+    expect(canvas.getByText("Plan progress:")).toBeInTheDocument();
 
     expect(canvasElement.querySelector('[data-testid="back-btn"]')).toBeNull();
     expect(canvasElement.querySelector('[data-testid="repeat-btn"]')).toBeNull();
