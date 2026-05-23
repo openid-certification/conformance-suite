@@ -312,79 +312,94 @@ async function fetchUploadedImageCount(testInfo) {
 /** ──────────── /api/runner — running-test card slot rendering ──────────── */
 
 /**
- * Polls `/api/runner/:testId` for live state on running / waiting tests.
- * Renders `data.browser` into the header's [data-slot="browser"] and
- * `data.error` into [data-slot="error"]. Stops once the runner reports
- * a non-active state and the slots are flushed accordingly.
- *
- * On terminal transitions (runner reports a non-RUNNING/non-WAITING
- * status, OR returns 404 after the runner has dropped this test from
- * memory), re-fetches `/api/info` once and pushes the fresh payload
- * through `applyTestInfo` so the header's terminal banner + result pill
- * render without a manual page reload. Without this re-fetch the
- * header stays frozen at the `{status, result}` it had at bootstrap —
- * the legacy page had the same gap, but the new lifecycle-driven hero +
- * terminal banner make it much more visible (a test that finishes
- * mid-page-session would otherwise keep showing the RUNNING state).
- *
- * The polling lives on the page (not inside the Lit header) because the
- * QR-code generator and clipboard.js wiring are page-specific external
- * libraries; the header just exposes the slot positions.
+ * "Has this test reached a verdict?" — true only when /api/info reports
+ * a terminal status AND a result has been assigned. Used to gate the
+ * polling loop's exit: a test in `{status: "FINISHED", result: null}`
+ * is the transient state where the runner has flagged terminal but the
+ * verdict hasn't been persisted yet, and polling should continue until
+ * the verdict lands. Mirrors cts-log-detail-header's TERMINAL_RESULTS
+ * set — REVIEW, WARNING, and SKIPPED all qualify as verdicts.
+ * @param {{status?: string, result?: string} | null | undefined} testInfo
+ * @returns {boolean}
  */
-function startRunnerPolling(testInfo) {
+function isFullyTerminal(testInfo) {
+  if (!testInfo) return false;
   const status = (testInfo.status || "").toUpperCase();
-  if (status !== "RUNNING" && status !== "WAITING" && status !== "INTERRUPTED") return;
-
-  async function pollOnce() {
-    try {
-      const response = await fetch("/api/runner/" + encodeURIComponent(testId));
-      // 404 means the runner no longer holds state for this test, which
-      // happens once the runner has flushed a terminal test from memory.
-      // Re-fetch /api/info so the header picks up the terminal verdict.
-      if (response.status === 404) {
-        await refreshInfoAfterTerminal();
-        return;
-      }
-      if (!response.ok) throw new Error(`HTTP ${response.status}`);
-      const data = await response.json();
-      renderBrowserSlot(data.browser);
-      renderErrorSlot(data.error);
-      // Continue polling while the runner is still active; on a terminal
-      // transition stop the loop and refresh testInfo so the terminal
-      // banner + result pill render immediately.
-      const runnerStatus = (data.status || "").toUpperCase();
-      if (runnerStatus === "RUNNING" || runnerStatus === "WAITING") {
-        runnerPollState.active = window.setTimeout(pollOnce, POLL_INTERVAL_MS);
-      } else {
-        await refreshInfoAfterTerminal();
-      }
-    } catch (err) {
-      console.warn("[log-detail] /api/runner failed:", err);
-      // Back off and retry once.
-      runnerPollState.active = window.setTimeout(pollOnce, POLL_INTERVAL_MS * 2);
-    }
-  }
-
-  runnerPollState.active = window.setTimeout(pollOnce, 0);
+  const result = (testInfo.result || "").toUpperCase();
+  return (status === "FINISHED" || status === "INTERRUPTED") && result !== "";
 }
 
 /**
- * Re-fetch `/api/info` after the runner has reported a terminal status,
- * and push the fresh payload through `applyTestInfo` so the header
- * re-renders with the verdict (result pill + terminal banner + hero
- * branch). Idempotent — multiple terminal signals (404 then FINISHED
- * status, or vice versa, or a duplicated poll) just refetch again with
- * no side effect because applyTestInfo overwrites by replacement, not
- * by merge. Failures degrade silently: a console.warn and the header
- * stays at its prior state. The user can reload to recover.
+ * Polls /api/info AND /api/runner on a 3s cadence until the test
+ * reaches a fully terminal verdict (status terminal + result set).
+ *
+ * - /api/info is the source of truth for status / result. Pushing the
+ *   fresh payload through `applyTestInfo` re-runs the Lit reactive
+ *   render path on cts-log-detail-header, which surfaces the result
+ *   pill, the terminal banner, and the lifecycle-driven hero in
+ *   lockstep. The header reads test.status / test.result via
+ *   `_derivePhase`, so the banner appears for PASSED, FAILED, WARNING,
+ *   REVIEW, SKIPPED, and INTERRUPTED — every TERMINAL_BANNER_BY_PHASE
+ *   key, not just PASSED.
+ * - /api/runner is best-effort and only feeds the in-card slots
+ *   ([data-slot="browser"] for the visit-URL prompt and
+ *   [data-slot="error"] for the FINAL_ERROR alert). A 404 means the
+ *   runner has flushed the test from memory — that's expected on
+ *   long-finished tests, not an error condition.
+ *
+ * The two endpoints are independently fault-tolerant within each
+ * cycle: an /api/info hiccup doesn't stop the slot refresh, and an
+ * /api/runner outage doesn't stop the verdict refresh. The loop ends
+ * only when /api/info confirms a verdict has landed.
+ *
+ * The polling lives on the page (not inside the Lit header) because
+ * the QR-code generator and clipboard.js wiring are page-specific
+ * external libraries; the header just exposes the slot positions.
  */
-async function refreshInfoAfterTerminal() {
-  try {
-    const fresh = await fetchTestInfo();
-    applyTestInfo(fresh);
-  } catch (err) {
-    console.warn("[log-detail] post-terminal /api/info refresh failed:", err);
+function startRunnerPolling(testInfo) {
+  if (isFullyTerminal(testInfo)) return;
+
+  async function pollOnce() {
+    /** @type {any} */
+    let fresh = null;
+
+    // /api/info — verdict refresh. Fault-isolated so a transient
+    // outage doesn't stall the /api/runner slot rendering below.
+    try {
+      fresh = await fetchTestInfo();
+      applyTestInfo(fresh);
+    } catch (err) {
+      console.warn("[log-detail] /api/info refresh failed:", err);
+    }
+
+    // /api/runner — slot rendering. Fault-isolated; 404 is benign
+    // (the runner has flushed a long-finished test from memory), so
+    // only non-404 non-2xx responses trigger a back-off.
+    let runnerFailed = false;
+    try {
+      const response = await fetch("/api/runner/" + encodeURIComponent(testId));
+      if (response.status !== 404) {
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const data = await response.json();
+        renderBrowserSlot(data.browser);
+        renderErrorSlot(data.error);
+      }
+    } catch (err) {
+      console.warn("[log-detail] /api/runner failed:", err);
+      runnerFailed = true;
+    }
+
+    // Stop only when /api/info confirms a verdict. Until then keep
+    // polling — this catches every non-terminal lifecycle state
+    // (CREATED, RUNNING, WAITING, the transient FINISHED-but-no-result
+    // race, INTERRUPTED-but-no-result race) without enumerating them.
+    if (isFullyTerminal(fresh)) return;
+
+    const delay = runnerFailed ? POLL_INTERVAL_MS * 2 : POLL_INTERVAL_MS;
+    runnerPollState.active = window.setTimeout(pollOnce, delay);
   }
+
+  runnerPollState.active = window.setTimeout(pollOnce, 0);
 }
 
 function findSlot(name) {
