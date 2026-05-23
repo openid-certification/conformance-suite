@@ -504,14 +504,6 @@ function formatAbsoluteTime(iso) {
  * @fires cts-log-filter-change - Bubbles when the user toggles a status or
  *   result filter chip, or clears all filters. `detail: { status: string[],
  *   result: string[] }` carries the post-change selection sets as arrays.
- *
- * @state {Map<string, string|null>} _planNames - Resolved `planName` per
- *   `planId` referenced in `_logs`. `/api/log` only returns opaque plan ids,
- *   so each unique id is fetched via `/api/plan/<id>` and the kebab-case
- *   `planName` cached here for the meta-row link text and the search haystack.
- *   `null` marks "tried, no name available" so failed lookups (404, deleted
- *   plan, permission denied) don't retry on every re-render — the link falls
- *   back to `planId` in both the unresolved and the null case.
  */
 class CtsLogList extends LitElement {
   static properties = {
@@ -551,6 +543,13 @@ class CtsLogList extends LitElement {
     this._visibleCount = PAGE_SIZE;
     this._selectedConfig = null;
     this._selectedTestId = "";
+    // Resolved `planName` per `planId` referenced in `_logs`. `/api/log` only
+    // returns opaque plan ids, so each unique id is fetched via
+    // `/api/plan/<id>` and the kebab-case `planName` cached here for the
+    // meta-row link text and the search haystack. `null` marks "tried, no
+    // name available" so failed lookups (404, deleted plan, permission
+    // denied) don't retry on every re-render — the link falls back to
+    // `planId` in both the unresolved and the null case.
     this._planNames = new Map();
     // In-flight planId set so concurrent `_logs` reassignments (e.g. an
     // initial fetch plus a follow-up refresh) don't fan out duplicate
@@ -665,6 +664,12 @@ class CtsLogList extends LitElement {
     Promise.allSettled(fetches).then((results) => {
       // Re-assign the Map to a new instance so Lit treats the state as
       // changed (Maps mutated in-place don't trigger reactive updates).
+      // The `status === "fulfilled"` check is for TypeScript narrowing —
+      // every fetch chain ends in `.catch(() => [id, null])`, so each
+      // settled result is in practice always fulfilled. If that catch
+      // ever moves or is removed, a rejected result would leave its id
+      // permanently in `_planNameFetchesInFlight`; the check guards that
+      // shape implicitly by simply not consuming rejected entries.
       const next = new Map(this._planNames);
       for (const result of results) {
         if (result.status !== "fulfilled") continue;
@@ -1031,7 +1036,7 @@ class CtsLogList extends LitElement {
                 <span class="cts-log-card-meta-item">
                   <span class="cts-log-card-meta-key">Plan</span>
                   <a class="cts-log-card-plan-link" href="${planHref}"
-                    >${this._planNames.get(log.planId) || log.planId}</a
+                    >${this._planNames.get(log.planId) ?? log.planId}</a
                   >
                 </span>
               `
