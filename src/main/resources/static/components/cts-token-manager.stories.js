@@ -61,6 +61,13 @@ export const Default = {
     // Permanent token shows "Never" for expiry
     expect(canvas.getByText("Never")).toBeInTheDocument();
 
+    // Expiring tokens render their expiry through cts-time: a native <time>
+    // whose title carries the full absolute date on hover.
+    const expiryTime = canvasElement.querySelector("cts-data-table#tokensListing time");
+    expect(expiryTime).toBeTruthy();
+    expect(expiryTime?.getAttribute("title")).toBeTruthy();
+    expect(expiryTime?.getAttribute("datetime")).toBeTruthy();
+
     // The token list is delegated to cts-data-table; the host carries the
     // id="tokensListing" so existing descendant selectors keep working.
     const tokensListing = canvasElement.querySelector("cts-data-table#tokensListing");

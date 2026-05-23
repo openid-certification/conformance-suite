@@ -4,8 +4,14 @@ import {
   formatAbsolute,
   formatTimeOfDay,
   formatCompact,
-  toIso,
+  toMillis,
 } from "../lib/time-format.js";
+
+/**
+ * Visible-text strategy for {@link CtsTime}. The `title` attribute always
+ * carries the full absolute form regardless of which mode is selected.
+ * @typedef {"auto" | "relative" | "absolute" | "compact" | "time-of-day"} CtsTimeMode
+ */
 
 const STYLE_ID = "cts-time-styles";
 
@@ -47,12 +53,15 @@ function ensureStylesInjected() {
  *   <cts-time value="2026-05-22T09:42:13Z"></cts-time>
  *   <cts-time value=${iso} mode="time-of-day"></cts-time>
  *
- * @property {string} value - The timestamp to render. ISO 8601 string
- *   (also accepts anything `lib/time-format` can parse). When missing or
- *   unparseable, the component renders nothing.
- * @property {string} mode - Visible-text strategy. One of:
+ * @property {string | number} value - The timestamp to render. ISO 8601
+ *   string, epoch-ms number, or epoch-ms string (log-entry payloads carry
+ *   numeric timestamps that Lit stringifies through the attribute). Anything
+ *   `lib/time-format` can parse is accepted. When missing or unparseable, the
+ *   component renders nothing.
+ * @property {CtsTimeMode} mode - Visible-text strategy. One of:
  *   `auto` (default — relative for ≤30 days, absolute beyond),
- *   `relative` (always relative, e.g. "5 minutes ago"),
+ *   `relative` (relative label; like `auto`, falls back to the absolute
+ *   string beyond 30 days),
  *   `absolute` (full locale date/time),
  *   `compact` (medium date + short time, e.g. "May 22, 2026, 9:42 AM"),
  *   `time-of-day` (clock time only, e.g. "9:42:13 AM"). The `title`
@@ -79,29 +88,35 @@ class CtsTime extends LitElement {
 
   /**
    * Resolve the visible label for the current `mode`.
+   * @param {Date} date - The already-parsed timestamp.
    * @returns {string} The text to render inside the `<time>` element.
    */
-  _displayText() {
+  _displayText(date) {
     switch (this.mode) {
       case "relative":
-        return formatRelative(this.value);
+        return formatRelative(date);
       case "absolute":
-        return formatAbsolute(this.value);
+        return formatAbsolute(date);
       case "compact":
-        return formatCompact(this.value);
+        return formatCompact(date);
       case "time-of-day":
-        return formatTimeOfDay(this.value);
+        return formatTimeOfDay(date);
       case "auto":
       default:
-        return formatRelative(this.value);
+        return formatRelative(date);
     }
   }
 
   render() {
-    const iso = toIso(this.value);
-    if (!iso) return nothing;
-    const absolute = formatAbsolute(this.value);
-    const display = this._displayText();
+    // Parse the value once, then derive the ISO datetime, the absolute-form
+    // title, and the visible text from the same Date — avoids re-parsing the
+    // string on every formatter call (matters at hundreds of rows per page).
+    const ms = toMillis(this.value);
+    if (ms === null) return nothing;
+    const date = new Date(ms);
+    const iso = date.toISOString();
+    const absolute = formatAbsolute(date);
+    const display = this._displayText(date);
     return html`<time datetime=${iso} title=${absolute}>${display}</time>`;
   }
 }

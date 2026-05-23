@@ -372,5 +372,6 @@ sigil fails the lint step.
 | `cts-spec-cascade`      | LitElement  | Yes       | Family → entity → version → plan dropdowns; dispatches `cts-plan-selected`                                                     |
 | `cts-tabs`              | HTMLElement | No        | Restructures `<cts-tab-panel>` children into WCAG tablist; dispatches `cts-tab-change`                                         |
 | `cts-test-selector`     | LitElement  | Yes       | Plan-selector UI; dispatches `cts-plan-select`                                                                                 |
+| `cts-time`              | LitElement  | Yes       | Layout-neutral timestamp primitive (`display:contents`); native `<time>` with hover-absolute `title`                           |
 | `cts-token-manager`     | LitElement  | Yes       | Token CRUD; fetches `/api/token`                                                                                               |
 | `cts-tooltip`           | HTMLElement | No        | Wraps Bootstrap 5 Tooltip on first child                                                                                       |

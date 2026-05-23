@@ -9,6 +9,15 @@
  * returns `""` on falsy / unparseable input, and never throws — callers can
  * feed raw payload fields straight in without guarding.
  *
+ * Formatting uses the modern `Intl` APIs — `Intl.RelativeTimeFormat` for the
+ * relative form and `Intl.DateTimeFormat` (via `toLocaleString` with
+ * `dateStyle`/`timeStyle`) for the absolute and compact forms — both Baseline
+ * widely available. `Temporal` is deliberately NOT used: as of 2026 it is
+ * unsupported in Safari, and the project's no-polyfill policy rules out the
+ * reference shim. Revisit once Temporal reaches Baseline across Chrome,
+ * Safari, Firefox, and Edge. `Date` remains only as the parse/representation
+ * primitive Temporal would otherwise replace.
+ *
  * @module lib/time-format
  */
 
@@ -16,35 +25,46 @@
 // absolute locale string, matching the long-standing cts-log-list heuristic.
 const RELATIVE_MAX_DAYS = 30;
 
+// ECMAScript's maximum representable time value (±100,000,000 days from the
+// epoch). Constructing a Date beyond this yields an Invalid Date whose
+// toISOString() throws a RangeError — so any candidate past this bound is
+// treated as unparseable to preserve the module's "never throws" contract.
+const MAX_TIME_MS = 8.64e15;
+
+// One RelativeTimeFormat instance, reused across every formatRelative call.
+// The Intl constructor negotiates locale data and is far more expensive than
+// .format(); a per-call construction would cost one constructor per row in a
+// large log list.
+const RELATIVE_TIME_FORMAT = new Intl.RelativeTimeFormat(undefined, { numeric: "auto" });
+
 /**
  * Coerce an ISO string / Date / epoch-ms number to a millisecond timestamp.
  * Also accepts a bare epoch-ms *string* (e.g. `"1764500000000"`), because
  * `<cts-time value>` is a string attribute and several payloads (notably log
  * entries) carry epoch-ms timestamps that Lit stringifies on the way in.
+ * Out-of-range and unparseable inputs return `null` — never a value that
+ * would make a downstream `new Date(...).toISOString()` throw.
  *
  * @param {string | number | Date | null | undefined} value Input timestamp.
- * @returns {number | null} Epoch milliseconds, or `null` when missing/unparseable.
+ * @returns {number | null} Epoch milliseconds within the valid Date range, or `null` when missing/unparseable/out-of-range.
  */
-function toMillis(value) {
+export function toMillis(value) {
   if (value === null || value === undefined || value === "") return null;
+  let ms;
   if (value instanceof Date) {
-    const t = value.getTime();
-    return Number.isNaN(t) ? null : t;
+    ms = value.getTime();
+  } else if (typeof value === "number") {
+    ms = value;
+  } else {
+    const trimmed = value.trim();
+    // A 12+ digit all-digit string is an epoch-ms value (1e12 ms ≈ Sep 2001),
+    // which Date.parse would otherwise reject. The 12-digit floor keeps short
+    // numeric strings like "2026" flowing to Date.parse, where they correctly
+    // read as a calendar year rather than 2 seconds past the epoch.
+    ms = /^\d{12,}$/.test(trimmed) ? Number(trimmed) : Date.parse(value);
   }
-  if (typeof value === "number") {
-    return Number.isFinite(value) ? value : null;
-  }
-  const trimmed = value.trim();
-  // A 12+ digit all-digit string is an epoch-ms value (1e12 ms ≈ Sep 2001),
-  // which Date.parse would otherwise reject. The 12-digit floor keeps short
-  // numeric strings like "2026" flowing to Date.parse, where they correctly
-  // read as a calendar year rather than 2 seconds past the epoch.
-  if (/^\d{12,}$/.test(trimmed)) {
-    const ms = Number(trimmed);
-    return Number.isFinite(ms) ? ms : null;
-  }
-  const t = Date.parse(value);
-  return Number.isNaN(t) ? null : t;
+  if (!Number.isFinite(ms) || Math.abs(ms) > MAX_TIME_MS) return null;
+  return ms;
 }
 
 /**
@@ -61,7 +81,7 @@ export function formatRelative(value) {
   const then = toMillis(value);
   if (then === null) return "";
   const deltaSec = Math.max(0, Math.round((Date.now() - then) / 1000));
-  const rtf = new Intl.RelativeTimeFormat(undefined, { numeric: "auto" });
+  const rtf = RELATIVE_TIME_FORMAT;
   if (deltaSec < 60) return rtf.format(-deltaSec, "second");
   const deltaMin = Math.round(deltaSec / 60);
   if (deltaMin < 60) return rtf.format(-deltaMin, "minute");
@@ -115,19 +135,6 @@ export function formatCompact(value) {
     dateStyle: "medium",
     timeStyle: "short",
   });
-}
-
-/**
- * Convenience pairing for the common "show relative, hover absolute" case:
- * a single call powers both the visible text and the `title` attribute
- * without re-parsing.
- *
- * @param {string | number | Date | null | undefined} value Input timestamp.
- * @returns {{ display: string, absolute: string }} `display` is the relative
- *   label, `absolute` is the full locale string. Both are `""` on bad input.
- */
-export function formatAuto(value) {
-  return { display: formatRelative(value), absolute: formatAbsolute(value) };
 }
 
 /**
