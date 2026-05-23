@@ -3,6 +3,7 @@ import "./cts-modal.js";
 import "./cts-button.js";
 import "./cts-link-button.js";
 import "./cts-data-table.js";
+import "./cts-time.js";
 import { flashCopyConfirmed } from "../js/cts-copy-flash.js";
 
 // Screen-reader announcement + visible feedback should stay long enough for
@@ -344,20 +345,6 @@ class CtsTokenManager extends LitElement {
     }, COPY_FEEDBACK_DURATION_MS);
   }
 
-  _formatDate(timestamp) {
-    if (!timestamp) {
-      return "Never";
-    }
-    const date = new Date(timestamp);
-    return date.toLocaleDateString(undefined, {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-  }
-
   _renderAdminView() {
     return html`
       <div class="cts-token-manager">
@@ -399,7 +386,13 @@ class CtsTokenManager extends LitElement {
 
   _cellRenderer(row, key) {
     if (key === "expires") {
-      return html`<span class="tabular-nums">${this._formatDate(row.expires)}</span>`;
+      // A null/absent expiry means the token never expires; cts-time renders
+      // nothing for empty input, so keep the explicit "Never" label here.
+      return html`<span class="tabular-nums"
+        >${row.expires
+          ? html`<cts-time mode="compact" value=${row.expires}></cts-time>`
+          : "Never"}</span
+      >`;
     }
     if (key === "_actions") {
       return html`<cts-button
