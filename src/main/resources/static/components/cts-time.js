@@ -10,7 +10,7 @@ import {
 /**
  * Visible-text strategy for {@link CtsTime}. The `title` attribute always
  * carries the full absolute form regardless of which mode is selected.
- * @typedef {"auto" | "relative" | "absolute" | "compact" | "time-of-day"} CtsTimeMode
+ * @typedef {"auto" | "absolute" | "compact" | "time-of-day"} CtsTimeMode
  */
 
 const STYLE_ID = "cts-time-styles";
@@ -60,8 +60,6 @@ function ensureStylesInjected() {
  *   component renders nothing.
  * @property {CtsTimeMode} mode - Visible-text strategy. One of:
  *   `auto` (default — relative for ≤30 days, absolute beyond),
- *   `relative` (relative label; like `auto`, falls back to the absolute
- *   string beyond 30 days),
  *   `absolute` (full locale date/time),
  *   `compact` (medium date + short time, e.g. "May 22, 2026, 9:42 AM"),
  *   `time-of-day` (clock time only, e.g. "9:42:13 AM"). The `title`
@@ -93,8 +91,6 @@ class CtsTime extends LitElement {
    */
   _displayText(date) {
     switch (this.mode) {
-      case "relative":
-        return formatRelative(date);
       case "absolute":
         return formatAbsolute(date);
       case "compact":
