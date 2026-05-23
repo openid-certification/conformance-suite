@@ -504,6 +504,14 @@ function formatAbsoluteTime(iso) {
  * @fires cts-log-filter-change - Bubbles when the user toggles a status or
  *   result filter chip, or clears all filters. `detail: { status: string[],
  *   result: string[] }` carries the post-change selection sets as arrays.
+ *
+ * @state {Map<string, string|null>} _planNames - Resolved `planName` per
+ *   `planId` referenced in `_logs`. `/api/log` only returns opaque plan ids,
+ *   so each unique id is fetched via `/api/plan/<id>` and the kebab-case
+ *   `planName` cached here for the meta-row link text and the search haystack.
+ *   `null` marks "tried, no name available" so failed lookups (404, deleted
+ *   plan, permission denied) don't retry on every re-render — the link falls
+ *   back to `planId` in both the unresolved and the null case.
  */
 class CtsLogList extends LitElement {
   static properties = {
@@ -520,6 +528,7 @@ class CtsLogList extends LitElement {
     _visibleCount: { state: true },
     _selectedConfig: { state: true },
     _selectedTestId: { state: true },
+    _planNames: { state: true },
   };
 
   createRenderRoot() {
@@ -542,6 +551,12 @@ class CtsLogList extends LitElement {
     this._visibleCount = PAGE_SIZE;
     this._selectedConfig = null;
     this._selectedTestId = "";
+    this._planNames = new Map();
+    // In-flight planId set so concurrent `_logs` reassignments (e.g. an
+    // initial fetch plus a follow-up refresh) don't fan out duplicate
+    // `/api/plan/<id>` requests for the same id. Non-reactive — never read
+    // from render.
+    this._planNameFetchesInFlight = new Set();
     // Pre-bind handlers used by Lit EventParts on rendered cards. Lit
     // dispatches with `this` set to the host element of the listener; the
     // handlers need to retain this component as `this`.
@@ -595,12 +610,70 @@ class CtsLogList extends LitElement {
       // is the canonical signal that the dataset is complete, so an exact
       // 1000-row dataset must not raise the truncation hint.
       this._truncated = hasTotal ? total > data.length : data.length >= MAX_FILTERED_LOGS;
+      this._resolvePlanNames(data);
     } catch (err) {
       this._error = err instanceof Error ? err.message : String(err);
       this._logs = [];
     } finally {
       this._loading = false;
     }
+  }
+
+  /**
+   * Resolve a kebab-case `planName` for every unique `planId` referenced by
+   * the freshly loaded logs. `/api/log` only carries the opaque plan id, so
+   * each unique id is fetched via `/api/plan/<id>` once. Results are cached
+   * on `_planNames` (planId → planName, or planId → null when the lookup
+   * fails). The render path consults the map and falls back to `planId`
+   * when an entry is missing or null, so unresolved plans still get a
+   * usable link label.
+   *
+   * Idempotent: ids already in `_planNames` or in
+   * `_planNameFetchesInFlight` are skipped. Honors `isPublic` so the
+   * public-mode listing uses the same `?public=true` route the rest of the
+   * component uses.
+   *
+   * @param {Array<{planId?: string}>} logs - Log rows whose planIds should
+   *   be resolved. Rows without a planId are ignored.
+   */
+  _resolvePlanNames(logs) {
+    const publicSuffix = this.isPublic ? "?public=true" : "";
+    const toFetch = new Set();
+    for (const log of logs) {
+      const id = log && log.planId;
+      if (!id) continue;
+      if (this._planNames.has(id)) continue;
+      if (this._planNameFetchesInFlight.has(id)) continue;
+      toFetch.add(id);
+    }
+    if (toFetch.size === 0) return;
+    for (const id of toFetch) {
+      this._planNameFetchesInFlight.add(id);
+    }
+    const fetches = Array.from(toFetch).map((id) =>
+      fetch(`/api/plan/${encodeURIComponent(id)}${publicSuffix}`)
+        .then((response) => {
+          if (!response.ok) return null;
+          return response.json().catch(() => null);
+        })
+        .then((body) => {
+          const name = body && typeof body.planName === "string" ? body.planName : null;
+          return [id, name];
+        })
+        .catch(() => [id, null]),
+    );
+    Promise.allSettled(fetches).then((results) => {
+      // Re-assign the Map to a new instance so Lit treats the state as
+      // changed (Maps mutated in-place don't trigger reactive updates).
+      const next = new Map(this._planNames);
+      for (const result of results) {
+        if (result.status !== "fulfilled") continue;
+        const [id, name] = result.value;
+        next.set(id, name);
+        this._planNameFetchesInFlight.delete(id);
+      }
+      this._planNames = next;
+    });
   }
 
   _writeUrl() {
@@ -730,6 +803,7 @@ class CtsLogList extends LitElement {
         row.testId,
         row.description,
         row.planId,
+        this._planNames.get(row.planId),
         formatVariant(row.variant),
       ]
         .filter(Boolean)
@@ -956,7 +1030,9 @@ class CtsLogList extends LitElement {
             ? html`
                 <span class="cts-log-card-meta-item">
                   <span class="cts-log-card-meta-key">Plan</span>
-                  <a class="cts-log-card-plan-link" href="${planHref}">${log.planId}</a>
+                  <a class="cts-log-card-plan-link" href="${planHref}"
+                    >${this._planNames.get(log.planId) || log.planId}</a
+                  >
                 </span>
               `
             : nothing}
