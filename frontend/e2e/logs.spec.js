@@ -8,8 +8,21 @@ import { MOCK_ADMIN_USER } from "./fixtures/mock-users.js";
 // The route helper returns the same PaginationResponse shape regardless of
 // pagination params, which mirrors backend behaviour for a dataset that fits
 // in one page.
-function setupLogListRoute(page, rows = MOCK_LOG_LIST) {
-  return page.route("**/api/log?*", (route) => {
+//
+// `cts-log-list` also resolves a kebab-case `planName` per unique `planId`
+// via `/api/plan/<id>` so the meta-row "Plan" chip shows the spec identifier
+// instead of the opaque MongoDB id. The default plan-name stub is bundled
+// here so every test in this file picks it up — individual tests can still
+// register a more specific `**/api/plan/**` route AFTER calling this helper
+// to override the default (Playwright matches routes in reverse registration
+// order).
+/**
+ * @param {import('@playwright/test').Page} page
+ * @param {ReadonlyArray<{planId?: string}>} [rows]
+ * @param {Record<string, string>} [planNamesById]
+ */
+async function setupLogListRoute(page, rows = MOCK_LOG_LIST, planNamesById = {}) {
+  await page.route("**/api/log?*", (route) => {
     return route.fulfill({
       status: 200,
       contentType: "application/json",
@@ -18,6 +31,18 @@ function setupLogListRoute(page, rows = MOCK_LOG_LIST) {
         recordsTotal: rows.length,
         recordsFiltered: rows.length,
         data: rows,
+      }),
+    });
+  });
+  await page.route("**/api/plan/*", (route) => {
+    const url = new URL(route.request().url());
+    const planId = url.pathname.replace("/api/plan/", "");
+    return route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        _id: planId,
+        planName: planNamesById[planId] || `mock-plan-name-${planId}`,
       }),
     });
   });
@@ -188,6 +213,90 @@ test.describe("logs.html — Logs List", () => {
     // Close modal.
     await configModal.locator(".oidf-modal-close").first().click();
     await expect(configModal).toBeHidden();
+  });
+
+  test("Plan chip text resolves to planName, not planId", async ({ page }) => {
+    // /api/log only carries `planId`. The cts-log-card-plan-link must show
+    // the human-meaningful kebab-case `planName` from /api/plan/<id> instead
+    // of the opaque MongoDB id, while keeping the link target pointed at
+    // plan-detail by planId.
+    await setupFailFast(page);
+    await setupLogListRoute(page, MOCK_LOG_LIST, {
+      "plan-001": "oidcc-basic-certification-test-plan",
+      "plan-002": "fapi2-security-profile-final-test-plan",
+      "plan-003": "vci-id-1-wallet-test-plan",
+    });
+    await setupCommonRoutes(page);
+
+    await page.goto("/logs.html");
+
+    const card001 = page.locator(
+      '#logsListing [data-testid="log-list-item"][data-test-id="test-log-001"]',
+    );
+    await expect(card001).toBeVisible();
+
+    const planLink001 = card001.locator(".cts-log-card-plan-link");
+    // Resolution is async — wait for the chip text to settle on the
+    // resolved planName rather than the optimistic planId fallback.
+    await expect(planLink001).toHaveText("oidcc-basic-certification-test-plan");
+
+    // Same id (plan-001) shared with another row — second card also shows
+    // the resolved name, proving the cache hits across rows.
+    const card002 = page.locator(
+      '#logsListing [data-testid="log-list-item"][data-test-id="test-log-002"]',
+    );
+    await expect(card002.locator(".cts-log-card-plan-link")).toHaveText(
+      "oidcc-basic-certification-test-plan",
+    );
+
+    // Distinct planId resolves to its own planName.
+    const card003 = page.locator(
+      '#logsListing [data-testid="log-list-item"][data-test-id="test-log-003"]',
+    );
+    await expect(card003.locator(".cts-log-card-plan-link")).toHaveText(
+      "fapi2-security-profile-final-test-plan",
+    );
+
+    // Link target still uses planId (the routable identifier) — only the
+    // visible text changed.
+    await expect(planLink001).toHaveAttribute("href", /plan=plan-001/);
+  });
+
+  test("Plan chip falls back to planId when /api/plan/<id> returns 404", async ({ page }) => {
+    // When the plan lookup fails (deleted plan, permission denied), the
+    // chip must stay readable rather than going blank. Falling back to the
+    // raw planId preserves both a usable label and the link target.
+    await setupFailFast(page);
+    await page.route("**/api/log?*", (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({
+          draw: 1,
+          recordsTotal: MOCK_LOG_LIST.length,
+          recordsFiltered: MOCK_LOG_LIST.length,
+          data: MOCK_LOG_LIST,
+        }),
+      }),
+    );
+    await page.route("**/api/plan/*", (route) =>
+      route.fulfill({ status: 404, contentType: "application/json", body: "{}" }),
+    );
+    await setupCommonRoutes(page);
+
+    await page.goto("/logs.html");
+
+    const card001 = page.locator(
+      '#logsListing [data-testid="log-list-item"][data-test-id="test-log-001"]',
+    );
+    await expect(card001).toBeVisible();
+    // Chip text equals the raw planId (no blank chip, no error surface).
+    await expect(card001.locator(".cts-log-card-plan-link")).toHaveText("plan-001");
+    // Link target unchanged regardless of resolution outcome.
+    await expect(card001.locator(".cts-log-card-plan-link")).toHaveAttribute(
+      "href",
+      /plan=plan-001/,
+    );
   });
 });
 

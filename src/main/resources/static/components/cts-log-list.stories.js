@@ -43,12 +43,30 @@ function paginationEnvelope(rows) {
   };
 }
 
+// `cts-log-list` resolves a kebab-case `planName` per unique `planId` via
+// `/api/plan/<id>` so the meta-row "Plan" chip shows the spec identifier
+// instead of the opaque MongoDB id. Every story that mounts the component
+// needs this handler — otherwise the resolver's fetches hit MSW's
+// onUnhandledRequest and pollute the story console with warnings.
+function planResolveHandler(planNamesById = {}) {
+  return http.get("/api/plan/:planId", ({ params }) => {
+    const planId = /** @type {string} */ (params.planId);
+    return HttpResponse.json({
+      _id: planId,
+      planName: planNamesById[planId] || `mock-plan-name-${planId}`,
+    });
+  });
+}
+
 // --- Stories ---
 
 export const Default = {
   parameters: {
     msw: {
-      handlers: [http.get("/api/log", () => HttpResponse.json(paginationEnvelope(MOCK_LOG_LIST)))],
+      handlers: [
+        http.get("/api/log", () => HttpResponse.json(paginationEnvelope(MOCK_LOG_LIST))),
+        planResolveHandler(),
+      ],
     },
   },
   render: () => html`<cts-log-list></cts-log-list>`,
@@ -78,10 +96,60 @@ export const Default = {
   },
 };
 
+export const WithResolvedPlanNames = {
+  parameters: {
+    msw: {
+      handlers: [
+        http.get("/api/log", () => HttpResponse.json(paginationEnvelope(MOCK_LOG_LIST))),
+        planResolveHandler({
+          "plan-001": "oidcc-basic-certification-test-plan",
+          "plan-002": "fapi2-security-profile-final-test-plan",
+          "plan-003": "vci-id-1-wallet-test-plan",
+        }),
+      ],
+    },
+  },
+  render: () => html`<cts-log-list></cts-log-list>`,
+  async play({ canvasElement }) {
+    await waitForLogsToLoad(canvasElement);
+
+    // Wait for the async /api/plan/<id> resolutions to land — the chip
+    // text flips from optimistic planId to resolved planName.
+    await waitFor(() => {
+      const link = canvasElement.querySelector(
+        '[data-test-id="test-log-001"] .cts-log-card-plan-link',
+      );
+      expect(link).not.toBeNull();
+      expect(link.textContent.trim()).toBe("oidcc-basic-certification-test-plan");
+    });
+
+    // Rows that share a planId pick the same resolved name.
+    const card002 = canvasElement.querySelector(
+      '[data-test-id="test-log-002"] .cts-log-card-plan-link',
+    );
+    expect(card002.textContent.trim()).toBe("oidcc-basic-certification-test-plan");
+
+    // Distinct planId resolves independently.
+    const card003 = canvasElement.querySelector(
+      '[data-test-id="test-log-003"] .cts-log-card-plan-link',
+    );
+    expect(card003.textContent.trim()).toBe("fapi2-security-profile-final-test-plan");
+
+    // Link target is still keyed by planId — only the visible text changes.
+    const card001Link = canvasElement.querySelector(
+      '[data-test-id="test-log-001"] .cts-log-card-plan-link',
+    );
+    expect(card001Link.getAttribute("href")).toContain("plan=plan-001");
+  },
+};
+
 export const AdminListing = {
   parameters: {
     msw: {
-      handlers: [http.get("/api/log", () => HttpResponse.json(paginationEnvelope(MOCK_LOG_LIST)))],
+      handlers: [
+        http.get("/api/log", () => HttpResponse.json(paginationEnvelope(MOCK_LOG_LIST))),
+        planResolveHandler(),
+      ],
     },
   },
   render: () => html`<cts-log-list is-admin></cts-log-list>`,
@@ -112,6 +180,15 @@ export const PublicListing = {
           }
           return HttpResponse.json(paginationEnvelope(MOCK_LOG_LIST));
         }),
+        http.get("/api/plan/:planId", ({ request, params }) => {
+          const url = new URL(request.url);
+          // Verify the public flag is forwarded on plan-name resolution too.
+          if (url.searchParams.get("public") !== "true") {
+            return HttpResponse.json({ error: "expected ?public=true" }, { status: 400 });
+          }
+          const planId = /** @type {string} */ (params.planId);
+          return HttpResponse.json({ _id: planId, planName: `mock-plan-name-${planId}` });
+        }),
       ],
     },
   },
@@ -135,6 +212,7 @@ export const Loading = {
           await delay(10000);
           return HttpResponse.json(paginationEnvelope(MOCK_LOG_LIST));
         }),
+        planResolveHandler(),
       ],
     },
   },
@@ -151,7 +229,10 @@ export const Loading = {
 export const EmptyDataset = {
   parameters: {
     msw: {
-      handlers: [http.get("/api/log", () => HttpResponse.json(paginationEnvelope([])))],
+      handlers: [
+        http.get("/api/log", () => HttpResponse.json(paginationEnvelope([]))),
+        planResolveHandler(),
+      ],
     },
   },
   render: () => html`<cts-log-list></cts-log-list>`,
@@ -166,7 +247,10 @@ export const EmptyDataset = {
 export const FilterByStatus = {
   parameters: {
     msw: {
-      handlers: [http.get("/api/log", () => HttpResponse.json(paginationEnvelope(MOCK_LOG_LIST)))],
+      handlers: [
+        http.get("/api/log", () => HttpResponse.json(paginationEnvelope(MOCK_LOG_LIST))),
+        planResolveHandler(),
+      ],
     },
   },
   render: () => html`<cts-log-list></cts-log-list>`,
@@ -202,7 +286,10 @@ export const FilterByStatus = {
 export const FilterActiveZeroMatches = {
   parameters: {
     msw: {
-      handlers: [http.get("/api/log", () => HttpResponse.json(paginationEnvelope(MOCK_LOG_LIST)))],
+      handlers: [
+        http.get("/api/log", () => HttpResponse.json(paginationEnvelope(MOCK_LOG_LIST))),
+        planResolveHandler(),
+      ],
     },
   },
   render: () => html`<cts-log-list></cts-log-list>`,
@@ -224,7 +311,10 @@ export const FilterActiveZeroMatches = {
 export const SearchActive = {
   parameters: {
     msw: {
-      handlers: [http.get("/api/log", () => HttpResponse.json(paginationEnvelope(MOCK_LOG_LIST)))],
+      handlers: [
+        http.get("/api/log", () => HttpResponse.json(paginationEnvelope(MOCK_LOG_LIST))),
+        planResolveHandler(),
+      ],
     },
   },
   render: () => html`<cts-log-list></cts-log-list>`,
@@ -245,7 +335,10 @@ export const SearchActive = {
 export const SortByName = {
   parameters: {
     msw: {
-      handlers: [http.get("/api/log", () => HttpResponse.json(paginationEnvelope(MOCK_LOG_LIST)))],
+      handlers: [
+        http.get("/api/log", () => HttpResponse.json(paginationEnvelope(MOCK_LOG_LIST))),
+        planResolveHandler(),
+      ],
     },
   },
   render: () => html`<cts-log-list></cts-log-list>`,
@@ -270,6 +363,7 @@ export const Paginated60Items = {
     msw: {
       handlers: [
         http.get("/api/log", () => HttpResponse.json(paginationEnvelope(MOCK_LOG_LIST_LARGE))),
+        planResolveHandler(),
       ],
     },
   },
@@ -307,6 +401,7 @@ export const Truncated = {
             data: MOCK_LOG_LIST,
           }),
         ),
+        planResolveHandler(),
       ],
     },
   },
