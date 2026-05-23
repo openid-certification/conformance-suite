@@ -277,6 +277,17 @@ export const SuccessEntry = {
 
     const time = canvasElement.querySelector(".logTime");
     expect(getComputedStyle(time).fontVariantNumeric).toContain("tabular-nums");
+
+    // The time cell renders a native <time> via cts-time. Visible text is the
+    // clock time only (no date), but hovering reveals the full absolute form
+    // via the title attribute — the disambiguation affordance this surface
+    // previously lacked.
+    const timeEl = /** @type {HTMLTimeElement} */ (time.querySelector("time"));
+    expect(timeEl).toBeTruthy();
+    const titleAttr = timeEl.getAttribute("title") || "";
+    expect(titleAttr).toMatch(/\d{4}/); // absolute form carries a 4-digit year
+    expect(timeEl.textContent || "").not.toMatch(/\d{4}/); // visible text is time-only
+    expect(timeEl.getAttribute("datetime")).toBeTruthy();
   },
 };
 

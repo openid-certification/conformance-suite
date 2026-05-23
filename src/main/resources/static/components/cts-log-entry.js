@@ -3,6 +3,7 @@ import "./cts-icon.js";
 import "./cts-badge.js";
 import "./cts-button.js";
 import "./cts-tooltip.js";
+import "./cts-time.js";
 import "./cts-log-entry-id.js";
 import { flashCopyConfirmed } from "../js/cts-copy-flash.js";
 import { loadSpecLinks, resolveSpecLink } from "../lib/spec-links.js";
@@ -807,9 +808,9 @@ class CtsLogEntry extends LitElement {
       <div class="${itemClasses.join(" ")}">
         <div class="logMetaRow">
           <div class="logTime">
-            ${entry.time ? new Date(entry.time).toLocaleTimeString() : nothing}
+            <cts-time mode="time-of-day" value=${entry.time || ""}></cts-time>
           </div>
-          <div class="logSeverity">${this._renderSeverityBadges()}</div>
+          <div class="logSeverity"> ${this._renderSeverityBadges()} </div>
           <div class="logHttp">${this._renderHttpBadge()}</div>
         </div>
         ${this.referenceId ? html`<div class="logIdRow">${idChip}</div>` : nothing}
