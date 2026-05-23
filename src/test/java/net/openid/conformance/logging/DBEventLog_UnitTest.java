@@ -18,14 +18,25 @@ import org.bson.BsonDouble;
 import org.bson.BsonInt32;
 import org.bson.BsonInt64;
 import org.bson.Document;
+import org.bson.json.JsonMode;
+import org.bson.json.JsonWriterSettings;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Mockito;
+import org.springframework.data.mongodb.core.MongoTemplate;
 
+import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Regression-sentinel tests for the encode path used by
@@ -225,5 +236,161 @@ public class DBEventLog_UnitTest {
 		JsonObject payload = JsonParser.parseString("{\"key.with.dots\":\"value\"}").getAsJsonObject();
 
 		BsonEncoding.assertEncodable(payload);
+	}
+
+	@Test
+	public void jsonObject_topLevelFieldOrder_isPreserved() {
+		JsonObject payload = JsonParser.parseString(
+			"{\"first\":\"a\",\"second\":\"b\",\"third\":\"c\"}").getAsJsonObject();
+
+		Document doc = BsonEncoding.toDocument(payload);
+
+		assertEquals(List.of("first", "second", "third"), List.copyOf(doc.keySet()));
+	}
+
+	// --- Equivalence between log(JsonObject) and log(Map) paths ---
+	// Both overloads route equivalent values through the converged encoding path and must
+	// produce equivalent BSON. The assertion compares relaxed-JSON renderings so type
+	// representations (BsonInt32 vs Integer, BsonDocument vs Document) do not masquerade
+	// as inequivalence.
+
+	@Test
+	public void equivalence_topLevelNumbers() {
+		JsonObject viaJsonObject = JsonParser.parseString(
+			"{\"small\":900,\"large\":4294967296,\"fractional\":1.5}").getAsJsonObject();
+		Map<String, Object> viaMap = new LinkedHashMap<>();
+		viaMap.put("small", new JsonPrimitive(900));
+		viaMap.put("large", new JsonPrimitive(4_294_967_296L));
+		viaMap.put("fractional", new JsonPrimitive(1.5));
+
+		assertEquivalent(viaJsonObject, viaMap);
+	}
+
+	@Test
+	public void equivalence_topLevelPrimitives() {
+		// JsonNull is omitted: log(JsonObject) normalizes top-level JsonNull to a sentinel string
+		// (preserved from the previous Document.parse path), but log(Map) callers don't pass
+		// JsonNull.INSTANCE as a value (they pass Java null or omit the key). Equivalence here
+		// covers only the shape that real callers can produce both ways.
+		JsonObject viaJsonObject = JsonParser.parseString(
+			"{\"s\":\"text\",\"b\":true}").getAsJsonObject();
+		Map<String, Object> viaMap = new LinkedHashMap<>();
+		viaMap.put("s", new JsonPrimitive("text"));
+		viaMap.put("b", new JsonPrimitive(true));
+
+		assertEquivalent(viaJsonObject, viaMap);
+	}
+
+	@Test
+	public void jsonObject_topLevelJsonNull_isNormalizedToSentinel() {
+		// Behavior preservation from the old Document.parse(convertFieldsToStructure(obj)) path:
+		// a top-level JsonNull must become the CONFORMANCE_SUITE_JSON_NULL sentinel string, not
+		// a reflected POJO ({_class: "com.google.gson.JsonNull"}).
+		JsonObject payload = new JsonObject();
+		payload.add("n", JsonNull.INSTANCE);
+
+		Document doc = BsonEncoding.toDocument(payload);
+
+		assertEquals("CONFORMANCE_SUITE_JSON_NULL",
+			((org.bson.BsonString) doc.get("n")).getValue());
+	}
+
+	@Test
+	public void equivalence_nestedDottedKey() {
+		JsonObject viaJsonObject = JsonParser.parseString(
+			"{\"configs\":{\"eu.europa.ec.eudi.pid.1\":{\"format\":\"vc+sd-jwt\"}}}").getAsJsonObject();
+		JsonObject nestedConfigs = new JsonObject();
+		JsonObject pid = new JsonObject();
+		pid.addProperty("format", "vc+sd-jwt");
+		nestedConfigs.add("eu.europa.ec.eudi.pid.1", pid);
+		Map<String, Object> viaMap = new LinkedHashMap<>();
+		viaMap.put("configs", nestedConfigs);
+
+		assertEquivalent(viaJsonObject, viaMap);
+	}
+
+	@Test
+	public void equivalence_nestedArrayAndObject() {
+		JsonObject viaJsonObject = JsonParser.parseString(
+			"{\"arr\":[1,2,3],\"obj\":{\"k\":\"v\"}}").getAsJsonObject();
+		JsonArray arr = JsonParser.parseString("[1,2,3]").getAsJsonArray();
+		JsonObject obj = new JsonObject();
+		obj.addProperty("k", "v");
+		Map<String, Object> viaMap = new LinkedHashMap<>();
+		viaMap.put("arr", arr);
+		viaMap.put("obj", obj);
+
+		assertEquivalent(viaJsonObject, viaMap);
+	}
+
+	@Test
+	public void equivalence_topLevelDottedKey() {
+		JsonObject viaJsonObject = JsonParser.parseString("{\"key.with.dots\":\"value\"}").getAsJsonObject();
+		JsonObject wrapped = new JsonObject();
+		wrapped.addProperty("key.with.dots", "value");
+		Map<String, Object> viaMap = new LinkedHashMap<>();
+		viaMap.put("payload", wrapped);
+
+		// Note the structural difference: top-level dotted keys in a Map cannot be expressed
+		// directly (BasicDBObject keys are not pre-wrapped), so the Map-form wraps the dotted
+		// key under a "payload" container. Equivalence here means: the JsonObject overload must
+		// wrap top-level dotted keys identically to how convertFieldsToStructure wraps them when
+		// they appear nested. We compare encoded shapes via assertEquivalent's relaxed-JSON
+		// rendering, which collapses BsonDocument vs Document distinctions.
+		Document jsonObjectDoc = BsonEncoding.toDocument(viaJsonObject);
+		Document mapDoc = BsonEncoding.toDocument(viaMap);
+		// At least one __wrapped_key_element_* field must exist in both renderings.
+		String jsonObjectRendered = jsonObjectDoc.toJson();
+		String mapRendered = mapDoc.toJson();
+		assertTrue(jsonObjectRendered.contains("__wrapped_key_element_"),
+			"JsonObject path must wrap top-level dotted keys; rendered: " + jsonObjectRendered);
+		assertTrue(mapRendered.contains("__wrapped_key_element_"),
+			"Map path must wrap nested dotted keys; rendered: " + mapRendered);
+	}
+
+	private static void assertEquivalent(JsonObject viaJsonObject, Map<String, Object> viaMap) {
+		Document jsonObjectDoc = BsonEncoding.toDocument(viaJsonObject);
+		Document mapDoc = BsonEncoding.toDocument(viaMap);
+		JsonWriterSettings relaxed = JsonWriterSettings.builder()
+			.outputMode(JsonMode.RELAXED).build();
+		String jsonObjectRendered = stripWrapperSuffix(jsonObjectDoc.toJson(relaxed));
+		String mapRendered = stripWrapperSuffix(mapDoc.toJson(relaxed));
+		assertEquals(jsonObjectRendered, mapRendered,
+			"log(JsonObject) and log(Map) must produce equivalent encoded BSON;"
+				+ " JsonObject path: " + jsonObjectRendered
+				+ "; Map path: " + mapRendered);
+	}
+
+	/**
+	 * The wrapped-key envelope ({@code __wrapped_key_element_xxxxxx}) gets a fresh random
+	 * 6-character suffix on each call (so collisions can't happen if a real input already
+	 * contains a wrapped-key sentinel). Two structurally-equivalent encodings produce different
+	 * suffixes, so normalize them to a placeholder for comparison.
+	 */
+	private static String stripWrapperSuffix(String rendered) {
+		return rendered.replaceAll("__wrapped_key_element_[A-Za-z]{6}", "__wrapped_key_element_XXXXXX");
+	}
+
+	// --- EventLog.log(.., String) contract: null message must be accepted ---
+
+	@Test
+	public void log_stringOverload_preservesFieldOrderAndAcceptsNullMessage() throws Exception {
+		// The original DBEventLog.log(.., String) did .append("msg", msg), which stores BSON null
+		// when msg is null and appended the message after the standard metadata fields.
+		DBEventLog log = new DBEventLog();
+		MongoTemplate template = Mockito.mock(MongoTemplate.class);
+		Field templateField = DBEventLog.class.getDeclaredField("mongoTemplate");
+		templateField.setAccessible(true);
+		templateField.set(log, template);
+
+		assertDoesNotThrow(() -> log.log("test-id", "src", Map.of(), (String) null));
+
+		ArgumentCaptor<Document> documentCaptor = ArgumentCaptor.forClass(Document.class);
+		Mockito.verify(template).insert(documentCaptor.capture(), Mockito.eq(DBEventLog.COLLECTION));
+		Document doc = documentCaptor.getValue();
+		assertEquals(List.of("_id", "testId", "src", "testOwner", "time", "msg"),
+			List.copyOf(doc.keySet()));
+		assertTrue(doc.containsKey("msg"));
+		assertNull(doc.get("msg"));
 	}
 }

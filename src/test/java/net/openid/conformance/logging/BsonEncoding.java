@@ -98,12 +98,7 @@ public final class BsonEncoding {
 	 * has no registered BSON codec.
 	 */
 	public static void assertEncodable(Map<String, Object> input) {
-		Map<String, Object> post = GsonArrayToBsonArrayConverter.convertUnloggableValuesInMap(input);
-		Document doc = new Document();
-		if (post != null) {
-			MAPPING_MONGO_CONVERTER.write(post, doc);
-		}
-		encodeAsBson(doc, input);
+		toDocument(input);
 	}
 
 	/**
@@ -112,27 +107,30 @@ public final class BsonEncoding {
 	 * BSON int32 rather than a double). Encoding is still verified end-to-end.
 	 */
 	public static Document toDocument(Map<String, Object> input) {
-		Map<String, Object> post = GsonArrayToBsonArrayConverter.convertUnloggableValuesInMap(input);
-		Document doc = new Document();
-		if (post != null) {
-			MAPPING_MONGO_CONVERTER.write(post, doc);
-		}
-		encodeAsBson(doc, input);
-		return doc;
+		Document raw = input == null ? new Document() : DBEventLog.fieldsToDocument(input);
+		Document encoded = new Document();
+		MAPPING_MONGO_CONVERTER.write(raw, encoded);
+		encodeAsBson(encoded, input);
+		return encoded;
 	}
 
 	/**
 	 * Mirror of {@code DBEventLog.log(String, String, Map, JsonObject)} minus the
-	 * {@code mongoTemplate.insert(...)}. {@code DBEventLog} converts the JsonObject to a
-	 * pure-BSON Document via {@link GsonObjectToBsonDocumentConverter#convertFieldsToStructure}
-	 * + {@link Document#parse(String)} before insertion, so the resulting Document is
-	 * already free of Gson types; we encode it directly.
+	 * {@code mongoTemplate.insert(...)}. Routes through the same {@code jsonObjectToFieldMap} +
+	 * {@code fieldsToDocument} helpers production uses, so this test path stays faithful as
+	 * those helpers evolve.
 	 */
 	public static void assertEncodable(JsonObject input) {
-		Document doc = input == null
-			? new Document()
-			: Document.parse(GsonObjectToBsonDocumentConverter.convertFieldsToStructure(input).toString());
-		encodeAsBson(doc, input);
+		toDocument(input);
+	}
+
+	/**
+	 * Like {@link #assertEncodable(JsonObject)} but returns the encoded {@link Document} so tests
+	 * can inspect the resulting field types.
+	 */
+	public static Document toDocument(JsonObject input) {
+		Map<String, Object> fields = input == null ? Map.of() : DBEventLog.jsonObjectToFieldMap(input);
+		return toDocument(fields);
 	}
 
 	private static void encodeAsBson(Document doc, Object originalInput) {

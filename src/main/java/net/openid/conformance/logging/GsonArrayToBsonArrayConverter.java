@@ -13,7 +13,7 @@ import com.nimbusds.jwt.JWTClaimsSet;
 import org.bson.BsonArray;
 import org.springframework.core.convert.converter.Converter;
 
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -85,7 +85,7 @@ public class GsonArrayToBsonArrayConverter implements Converter<JsonArray, BsonA
 		if (map == null) {
 			return null;
 		}
-		Map<String, Object> convertedMap = new HashMap<>();
+		Map<String, Object> convertedMap = new LinkedHashMap<>();
 		map.forEach((key, value) -> convertedMap.put(key, convertValue(value)));
 		return convertedMap;
 	}

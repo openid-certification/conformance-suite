@@ -135,6 +135,18 @@ public class GsonArrayToBsonArrayConverter_UnitTest {
 	}
 
 	@Test
+	public void convertUnloggableValuesInMap_preservesIterationOrder() {
+		Map<String, Object> in = new LinkedHashMap<>();
+		in.put("first", 1);
+		in.put("second", 2);
+		in.put("third", 3);
+
+		Map<String, Object> out = GsonArrayToBsonArrayConverter.convertUnloggableValuesInMap(in);
+
+		assertEquals(List.of("first", "second", "third"), List.copyOf(out.keySet()));
+	}
+
+	@Test
 	public void convertUnloggableValuesInMap_jsonArrayJsonElement_isLeftForMongoConverterAndEncodesCleanly() {
 		JsonArray arr = new JsonArray();
 		arr.add("a");
