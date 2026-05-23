@@ -107,6 +107,21 @@ public final class BsonEncoding {
 	}
 
 	/**
+	 * Like {@link #assertEncodable(Map)} but returns the encoded {@link Document} so tests can
+	 * inspect the resulting field types (e.g. assert an integer JsonPrimitive round-trips as a
+	 * BSON int32 rather than a double). Encoding is still verified end-to-end.
+	 */
+	public static Document toDocument(Map<String, Object> input) {
+		Map<String, Object> post = GsonArrayToBsonArrayConverter.convertUnloggableValuesInMap(input);
+		Document doc = new Document();
+		if (post != null) {
+			MAPPING_MONGO_CONVERTER.write(post, doc);
+		}
+		encodeAsBson(doc, input);
+		return doc;
+	}
+
+	/**
 	 * Mirror of {@code DBEventLog.log(String, String, Map, JsonObject)} minus the
 	 * {@code mongoTemplate.insert(...)}. {@code DBEventLog} converts the JsonObject to a
 	 * pure-BSON Document via {@link GsonObjectToBsonDocumentConverter#convertFieldsToStructure}

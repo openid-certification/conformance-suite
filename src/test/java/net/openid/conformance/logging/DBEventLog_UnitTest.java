@@ -14,11 +14,18 @@ import com.nimbusds.jose.jwk.JWKSet;
 import com.nimbusds.jose.jwk.gen.ECKeyGenerator;
 import com.nimbusds.jwt.JWTClaimsSet;
 import net.openid.conformance.testmodule.OIDFJSON;
+import org.bson.BsonDouble;
+import org.bson.BsonInt32;
+import org.bson.BsonInt64;
+import org.bson.Document;
 import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 
 /**
  * Regression-sentinel tests for the encode path used by
@@ -179,6 +186,29 @@ public class DBEventLog_UnitTest {
 		JsonObject payload = JsonParser.parseString("{\"n1\":900, \"n2\":4294967296, \"n3\":1.5}").getAsJsonObject();
 
 		BsonEncoding.assertEncodable(payload);
+	}
+
+	@Test
+	public void map_topLevelJsonPrimitiveNumbers_preserveIntegerType() {
+		// args("n", new JsonPrimitive(900)) is the pattern where the registered
+		// GsonPrimitiveToBsonValueConverter actually fires. An integer JsonPrimitive must encode
+		// as BsonInt32/BsonInt64, not BsonDouble.
+		Map<String, Object> payload = new HashMap<>();
+		payload.put("small", new JsonPrimitive(900));
+		payload.put("large", new JsonPrimitive(4_294_967_296L));
+		payload.put("fractional", new JsonPrimitive(1.5));
+
+		BsonEncoding.assertEncodable(payload);
+
+		Document doc = BsonEncoding.toDocument(payload);
+		assertInstanceOf(BsonInt32.class, doc.get("small"),
+			"integer JsonPrimitives must encode as BsonInt32 (currently BsonDouble due to GsonPrimitiveToBsonValueConverter)");
+		assertEquals(900, ((BsonInt32) doc.get("small")).getValue());
+		assertInstanceOf(BsonInt64.class, doc.get("large"),
+			"integer JsonPrimitives above Integer.MAX_VALUE must encode as BsonInt64");
+		assertEquals(4_294_967_296L, ((BsonInt64) doc.get("large")).getValue());
+		assertInstanceOf(BsonDouble.class, doc.get("fractional"));
+		assertEquals(1.5d, ((BsonDouble) doc.get("fractional")).getValue());
 	}
 
 	@Test
