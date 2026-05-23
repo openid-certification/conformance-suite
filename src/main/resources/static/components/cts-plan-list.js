@@ -5,6 +5,7 @@ import "./cts-button.js";
 import "./cts-alert.js";
 import "./cts-data-table.js";
 import "./cts-json-editor.js";
+import "./cts-time.js";
 import { flashCopyConfirmed } from "../js/cts-copy-flash.js";
 
 const RESULT_BADGE_VARIANTS = {
@@ -252,12 +253,6 @@ class CtsPlanList extends LitElement {
       .join(", ");
   }
 
-  _formatDate(dateString) {
-    if (!dateString) return "";
-    const date = new Date(dateString);
-    return date.toLocaleString();
-  }
-
   _renderModuleBadges(modules) {
     if (!modules || modules.length === 0) return nothing;
     return html`<div class="moduleBadgeStack">${this._moduleBadgeList(modules)}</div>`;
@@ -315,7 +310,9 @@ class CtsPlanList extends LitElement {
     }
     if (key === "variant") return this._formatVariant(row.variant);
     if (key === "started")
-      return html`<span class="tabular-nums">${this._formatDate(row.started)}</span>`;
+      return html`<span class="tabular-nums"
+        ><cts-time mode="absolute" value=${row.started}></cts-time
+      ></span>`;
     if (key === "modules") return this._renderModuleBadges(row.modules);
     if (key === "_config") {
       return html`<cts-button
