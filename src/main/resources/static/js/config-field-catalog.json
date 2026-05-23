@@ -20,11 +20,8 @@
           "key": "publish",
           "label": "publish",
           "type": "string",
-          "enum": [
-            "",
-            "summary",
-            "everything"
-          ],
+          "enum": ["", "summary", "everything"],
+          "enumLabels": ["No", "Summary", "Everything"],
           "tooltip": "Whether test results should be made visible to other users. \"Everything\" will reveal configuration information, including secret keys. Use \"summary\" if these details should remain private while the overall results are public. If in doubt choose \"No\" - test results can be made public later."
         }
       ]
@@ -374,12 +371,7 @@
           "key": "client.hint_type",
           "label": "hint_type",
           "type": "string",
-          "enum": [
-            "",
-            "login_hint_token",
-            "id_token_hint",
-            "login_hint"
-          ],
+          "enum": ["", "login_hint_token", "id_token_hint", "login_hint"],
           "tooltip": "Type of hint to identify user. For Open Finance Brazil, only login_hint and id_token_hint are allowed."
         },
         {
@@ -410,11 +402,7 @@
           "key": "client.dpop_signing_alg",
           "label": "DPoP Signing Alg",
           "type": "string",
-          "enum": [
-            "PS256",
-            "ES256",
-            "EdDSA"
-          ],
+          "enum": ["PS256", "ES256", "EdDSA"],
           "tooltip": "JWS algorithm for signing DPoP proofs"
         }
       ]
@@ -583,11 +571,7 @@
           "key": "client2.dpop_signing_alg",
           "label": "DPoP Signing Alg",
           "type": "string",
-          "enum": [
-            "PS256",
-            "ES256",
-            "EdDSA"
-          ],
+          "enum": ["PS256", "ES256", "EdDSA"],
           "tooltip": "JWS algorithm for signing DPoP proofs"
         }
       ]
@@ -648,10 +632,7 @@
           "key": "resource.resourceMethod",
           "label": "resourceMethod",
           "type": "string",
-          "enum": [
-            "",
-            "POST"
-          ],
+          "enum": ["", "POST"],
           "tooltip": "The HTTP method to be used at the resource endpoint."
         },
         {
@@ -706,10 +687,7 @@
           "key": "consent.productType",
           "label": "Business or Personal Products",
           "type": "string",
-          "enum": [
-            "business",
-            "personal"
-          ],
+          "enum": ["business", "personal"],
           "tooltip": "For accounts/resources tests, whether test should be run for Business or Personal Products."
         },
         {

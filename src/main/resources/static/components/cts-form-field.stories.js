@@ -397,6 +397,84 @@ export const JwksUriStaysSingleLineUrlInput = {
 };
 
 /**
+ * Publish dropdown affordance (U10 of MR 1998). The wire format keeps the
+ * historical `["", "summary", "everything"]` so the backend
+ * (`Strings.emptyToNull` in `TestRunner.java`) collapses `""` to null =
+ * unpublished. The catalog adds an `enumLabels` parallel array that maps the
+ * empty value to "No", so the dropdown reads like the pre-redesign UI rather
+ * than rendering an unlabelled blank entry next to "Select...".
+ */
+
+export const PublishDropdownLabelsAndDefault = {
+  render: () => html`
+    <cts-form-field
+      name="publish"
+      .schema=${{
+        type: "string",
+        title: "publish",
+        enum: ["", "summary", "everything"],
+        enumLabels: ["No", "Summary", "Everything"],
+      }}
+      value=""
+    ></cts-form-field>
+  `,
+  async play({ canvasElement }) {
+    const select = /** @type {HTMLSelectElement} */ (
+      canvasElement.querySelector("select.oidf-select")
+    );
+    expect(select).toBeTruthy();
+    const options = select.querySelectorAll("option");
+    // Three options exactly: No / Summary / Everything. The leading
+    // <option value="">Select...</option> placeholder must be suppressed
+    // because "" is already in the enum — rendering both would leave the
+    // dropdown with two value="" entries.
+    expect(options.length).toBe(3);
+    expect(options[0].value).toBe("");
+    expect(options[0].textContent).toBe("No");
+    expect(options[1].value).toBe("summary");
+    expect(options[1].textContent).toBe("Summary");
+    expect(options[2].value).toBe("everything");
+    expect(options[2].textContent).toBe("Everything");
+    // "No" is the default selection so a fresh form submits an empty publish
+    // value, which the backend treats as unpublished.
+    expect(select.value).toBe("");
+    expect(options[0].selected).toBe(true);
+  },
+};
+
+export const PublishDropdownChangeEmitsWireValue = {
+  render: () => html`
+    <cts-form-field
+      name="publish"
+      .schema=${{
+        type: "string",
+        title: "publish",
+        enum: ["", "summary", "everything"],
+        enumLabels: ["No", "Summary", "Everything"],
+      }}
+      value=""
+    ></cts-form-field>
+  `,
+  async play({ canvasElement }) {
+    /** @type {any} */
+    let received = null;
+    canvasElement.addEventListener("cts-field-change", (e) => {
+      received = /** @type {CustomEvent} */ (e).detail;
+    });
+    const select = /** @type {HTMLSelectElement} */ (
+      canvasElement.querySelector("select.oidf-select")
+    );
+    // Picking "Everything" must emit the WIRE value ("everything"), not the
+    // human label, otherwise the backend would receive a string it does not
+    // recognise as a publish level.
+    await userEvent.selectOptions(select, "everything");
+    expect(received).toBeTruthy();
+    expect(received.field).toBe("publish");
+    expect(received.value).toBe("everything");
+  },
+};
+
+/**
  * Focus state must be keyboard-visible: the input picks up the OIDF orange
  * border + focus ring (`--focus-ring`) the moment it gains focus. We assert
  * via the computed style after focusing the rendered control.

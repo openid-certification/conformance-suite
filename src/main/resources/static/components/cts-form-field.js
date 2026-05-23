@@ -50,8 +50,13 @@ import { isMultiLineConfigField } from "../lib/config-field-types.js";
  * Firefox falls back to the floor `min-height` plus manual `resize:vertical`.
  *
  * @property {object} schema - JSON-schema fragment for this field. May include
- *   `type`, `format`, `enum`, `title`, `description`, `x-cts-placeholder`,
- *   `x-cts-required`.
+ *   `type`, `format`, `enum`, `enumLabels`, `title`, `description`,
+ *   `x-cts-placeholder`, `x-cts-required`. `enumLabels` is a parallel array
+ *   to `enum` (same length, same order) that overrides the option labels —
+ *   used by the publish dropdown to render `""` as "No". When `enum` already
+ *   contains `""`, the leading `<option value="">Select...</option>`
+ *   placeholder is suppressed so the dropdown does not show two empty-value
+ *   options.
  * @property {string} name - Field name used as the `field` key in
  *   `cts-field-change` events.
  * @property {string|object|Array} value - Current field value. Strings render
@@ -339,6 +344,8 @@ class CtsFormField extends LitElement {
     const displayValue = this._displayValue();
 
     if (fieldEnum) {
+      const enumLabels = Array.isArray(this.schema.enumLabels) ? this.schema.enumLabels : null;
+      const hasEmptyOption = fieldEnum.includes("");
       return html`
         <select
           id="${this._uid}"
@@ -349,8 +356,8 @@ class CtsFormField extends LitElement {
           aria-describedby=${ariaDescribedBy}
           @change=${this._handleInput}
         >
-          <option value="">Select...</option>
-          ${this._renderEnumOptions(fieldEnum)}
+          ${hasEmptyOption ? nothing : html`<option value="">Select...</option>`}
+          ${this._renderEnumOptions(fieldEnum, enumLabels)}
         </select>
       `;
     }
@@ -446,10 +453,11 @@ class CtsFormField extends LitElement {
     />`;
   }
 
-  _renderEnumOptions(fieldEnum) {
-    return fieldEnum.map(
-      (opt) => html`<option value="${opt}" ?selected=${this.value === opt}>${opt}</option>`,
-    );
+  _renderEnumOptions(fieldEnum, enumLabels) {
+    return fieldEnum.map((opt, i) => {
+      const label = enumLabels && enumLabels[i] != null ? enumLabels[i] : opt;
+      return html`<option value="${opt}" ?selected=${this.value === opt}>${label}</option>`;
+    });
   }
 
   render() {
