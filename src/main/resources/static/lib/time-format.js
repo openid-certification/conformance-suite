@@ -136,16 +136,3 @@ export function formatCompact(value) {
     timeStyle: "short",
   });
 }
-
-/**
- * ISO 8601 string for the native `<time datetime>` attribute. Returns the
- * canonical machine-readable form regardless of how the input was supplied.
- *
- * @param {string | number | Date | null | undefined} value Input timestamp.
- * @returns {string} ISO 8601 string, or `""` when input is missing/unparseable.
- */
-export function toIso(value) {
-  const t = toMillis(value);
-  if (t === null) return "";
-  return new Date(t).toISOString();
-}

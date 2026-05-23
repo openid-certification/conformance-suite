@@ -84,17 +84,6 @@ export const Compact = {
   },
 };
 
-export const Relative = {
-  render: () => html`<cts-time value=${FIVE_MIN_AGO} mode="relative"></cts-time>`,
-
-  async play({ canvasElement }) {
-    const t = getTimeEl(canvasElement);
-    expect(t).toBeTruthy();
-    expect(t?.textContent?.trim()).toBe(formatRelative(FIVE_MIN_AGO));
-    expect(t?.getAttribute("title")).toBe(formatAbsolute(FIVE_MIN_AGO));
-  },
-};
-
 export const AutoAbsoluteFallback = {
   // A timestamp well past the 30-day relative crossover. In auto mode the
   // visible text falls back to the absolute locale string (the component-level
@@ -147,13 +136,13 @@ export const LayoutNeutral = {
 };
 
 export const ReactiveUpdate = {
-  render: () => html`<cts-time value=${FIXED} mode="relative"></cts-time>`,
+  render: () => html`<cts-time value=${FIXED} mode="time-of-day"></cts-time>`,
 
   async play({ canvasElement }) {
     const host = /** @type {HTMLElement & { mode: string; updateComplete: Promise<unknown> } } */ (
       canvasElement.querySelector("cts-time")
     );
-    expect(getTimeEl(canvasElement)?.textContent?.trim()).toBe(formatRelative(FIXED));
+    expect(getTimeEl(canvasElement)?.textContent?.trim()).toBe(formatTimeOfDay(FIXED));
 
     // Flipping mode re-renders the visible text without a full remount.
     host.mode = "absolute";

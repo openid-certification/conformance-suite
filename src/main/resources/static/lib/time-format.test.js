@@ -4,7 +4,6 @@ import {
   formatAbsolute,
   formatTimeOfDay,
   formatCompact,
-  toIso,
   toMillis,
 } from "./time-format.js";
 
@@ -32,7 +31,6 @@ describe("time-format", () => {
       expect(formatAbsolute(/** @type {any} */ (value))).toBe("");
       expect(formatTimeOfDay(/** @type {any} */ (value))).toBe("");
       expect(formatCompact(/** @type {any} */ (value))).toBe("");
-      expect(toIso(/** @type {any} */ (value))).toBe("");
       expect(toMillis(/** @type {any} */ (value))).toBeNull();
     });
 
@@ -119,31 +117,23 @@ describe("time-format", () => {
     });
   });
 
-  describe("toIso", () => {
-    it("returns the canonical ISO 8601 string", () => {
-      expect(toIso(FIXED_ISO)).toBe(new Date(FIXED_ISO).toISOString());
-    });
-  });
-
   describe("toMillis", () => {
     it("returns the epoch-ms for an ISO string", () => {
       expect(toMillis(FIXED_ISO)).toBe(new Date(FIXED_ISO).getTime());
     });
 
-    it("returns null and never throws for an out-of-range epoch-ms string", () => {
+    it("returns null for an out-of-range epoch-ms string", () => {
       // A 16-digit value exceeds the max valid Date (8.64e15). Returning null
-      // keeps the module's never-throws contract: a downstream toISOString()
-      // would RangeError on such a value.
+      // keeps the never-throws contract: callers guard on null before calling
+      // `new Date(ms).toISOString()`, which would otherwise RangeError.
       const huge = "9".repeat(16);
       expect(toMillis(huge)).toBeNull();
-      expect(toIso(huge)).toBe("");
-      expect(() => toIso(huge)).not.toThrow();
       expect(formatAbsolute(huge)).toBe("");
     });
 
     it("returns null for an out-of-range epoch-ms number", () => {
       expect(toMillis(8.64e15 + 1)).toBeNull();
-      expect(() => toIso(8.64e15 + 1)).not.toThrow();
+      expect(formatAbsolute(8.64e15 + 1)).toBe("");
     });
   });
 
@@ -154,7 +144,7 @@ describe("time-format", () => {
       expect(formatAbsolute(d)).toBe(formatAbsolute(FIXED_ISO));
       expect(formatAbsolute(ms)).toBe(formatAbsolute(FIXED_ISO));
       expect(formatTimeOfDay(d)).toBe(formatTimeOfDay(FIXED_ISO));
-      expect(toIso(ms)).toBe(toIso(FIXED_ISO));
+      expect(toMillis(ms)).toBe(toMillis(FIXED_ISO));
     });
 
     it("accepts a bare epoch-ms STRING (cts-time value attribute is a string)", () => {
@@ -162,14 +152,14 @@ describe("time-format", () => {
       // timestamps arrive as digit strings. They must parse as ms, not get
       // rejected by Date.parse.
       const msString = String(new Date(FIXED_ISO).getTime());
-      expect(toIso(msString)).toBe(toIso(FIXED_ISO));
+      expect(toMillis(msString)).toBe(toMillis(FIXED_ISO));
       expect(formatAbsolute(msString)).toBe(formatAbsolute(FIXED_ISO));
     });
 
     it("treats a short numeric string like '2026' as a calendar year, not epoch ms", () => {
       // 4-digit strings stay on the Date.parse path (year 2026), so the
       // epoch-ms shortcut does not hijack year-only inputs.
-      expect(toIso("2026")).toBe(new Date("2026").toISOString());
+      expect(toMillis("2026")).toBe(new Date("2026").getTime());
     });
   });
 });
