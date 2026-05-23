@@ -53,3 +53,13 @@
 - Prettier ✓ — TypeScript ✓ — JSDoc lint ✓ — lit-analyzer 0 errors ✓
 - Playwright `frontend/e2e/logs.spec.js`: **17/17 pass** (including the 2 new tests)
 - Storybook `cts-log-list.stories.js`: **12/12 pass** (including the new `WithResolvedPlanNames` story)
+
+## CI Failures Unresolved (pipeline `2547834125`, all pre-existing baseline)
+
+The post-push CI run on `f475e198b` had 3 failing jobs; all three pre-date this fix and are not attributable to its commits.
+
+- **`frontend_lint`** — pre-existing Prettier finding in `src/main/resources/static/components/cts-config-form.js`. Verified pre-existing at the start of this session via `git stash && prettier --check` on a clean tree. The job is `allow_failure: true` per `.gitlab-ci.yml` until the 2026-06-12 promotion date noted in CLAUDE.md and not introduced by this fix. https://gitlab.com/openid/conformance-suite/-/jobs/14514210652
+- **`frontend_e2e_test`** — 3 HTML-snapshot failures in `frontend/e2e/schedule-test-baselines.spec.js` (State A / State B / State C). Diff shows new `cts-form-field` SUS-notice markup introduced by commit `d3eb66198` ("fix(cts-form-field): route PEM/JWKS/key config fields to `<textarea>`") landed by an unrelated session during this run; snapshots in `schedule-test-baselines.spec.js-snapshots/` were not updated alongside that commit. `158 passed`, `3 failed` — `frontend/e2e/logs.spec.js` (the file touched by this fix) contributed `17/17 pass` to the green set. The snapshot update belongs in a follow-up commit owned by the cts-form-field change. https://gitlab.com/openid/conformance-suite/-/jobs/14514210658
+- **`deploy-review`** — review-app deployment failure (infrastructure, not source). https://gitlab.com/openid/conformance-suite/-/jobs/14514210655
+
+No autofix loop entered: all failures originate from earlier commits on this long-lived branch; LFG step 8's repair loop only applies to failures attributable to the current change.
