@@ -84,6 +84,80 @@ function humanizeKey(key) {
 }
 
 /**
+ * Envelope fields the More panel must hide. Mirror of
+ * `LogEntryHelper.visibleFields` in `src/main/java/.../export/LogEntryHelper.java`
+ * (the legacy Thymeleaf export's strip list), plus the per-test metadata fields
+ * that `/api/log/{testId}` adds to every entry on the wire (the export helper
+ * never saw these because Thymeleaf rendered from the raw DB document).
+ *
+ * Anything in this set is either rendered elsewhere in the row (timestamp,
+ * severity badge, source label, message, HTTP marker, requirements chips,
+ * upload pill) or is per-test metadata identical across every entry of the
+ * test and therefore noise inside the per-entry disclosure. Anything NOT in
+ * the set is application payload — request bodies, response headers, the
+ * `expected` / `actual` R30 keys, JWT claims, etc. — that belongs in the
+ * disclosure.
+ * @type {Set<string>}
+ */
+const ENVELOPE_FIELDS = new Set([
+  "_id",
+  "_class",
+  "msg",
+  "src",
+  "time",
+  "result",
+  "requirements",
+  "upload",
+  "testOwner",
+  "testId",
+  "http",
+  "blockId",
+  "startBlock",
+  "baseUrl",
+  "baseMtlsUrl",
+  "variant",
+  "alias",
+  "description",
+  "planId",
+  "config",
+  "testName",
+]);
+
+/**
+ * Resolve the disclosure payload for an entry. Two shapes are accepted:
+ *
+ * 1. **Fixture shape** — `entry.more` is a non-empty object. Returned as-is
+ *    so existing stories (and the `_formatCurl` flow that reads
+ *    `more.method` / `more.url` / `more.headers` / `more.body`) keep
+ *    working without churn.
+ * 2. **API shape** — the live `/api/log/{testId}` endpoint serializes
+ *    application payload at the entry's *top level* (`request_uri`,
+ *    `response_body`, `expected`, `actual`, …). When `entry.more` is absent
+ *    or empty we synthesise the view by stripping `ENVELOPE_FIELDS` and
+ *    returning what's left.
+ *
+ * Without this fallback the More button would never render against real
+ * backend responses because `entry.more` is undefined on every wire entry
+ * — the regression Almgren flagged in MR 1998 review pass (D1).
+ * @param {Object.<string, unknown>} entry The full log entry.
+ * @returns {Object.<string, unknown>} A flat key/value map for the disclosure panel; empty object when the entry has nothing to disclose.
+ */
+function extractMoreFields(entry) {
+  if (!entry || typeof entry !== "object") return {};
+  if (entry.more && typeof entry.more === "object" && Object.keys(entry.more).length > 0) {
+    return /** @type {Object.<string, unknown>} */ (entry.more);
+  }
+  /** @type {Object.<string, unknown>} */
+  const extras = {};
+  for (const [key, value] of Object.entries(entry)) {
+    if (key === "more") continue;
+    if (ENVELOPE_FIELDS.has(key)) continue;
+    extras[key] = value;
+  }
+  return extras;
+}
+
+/**
  * Classify each entry in `more` as `"expected"`, `"actual"`, or `"other"`,
  * and reorder so expected rows render first, actual second, other third.
  * Insertion order is preserved within each bucket. Classification is by
@@ -613,8 +687,8 @@ class CtsLogEntry extends LitElement {
   }
 
   _renderMoreButton() {
-    const { more } = this.entry;
-    if (!more || Object.keys(more).length === 0) return nothing;
+    const more = extractMoreFields(this.entry);
+    if (Object.keys(more).length === 0) return nothing;
     const chevron = this._expanded ? "chevron-up" : "chevron-down";
     // Subtle disclosure: chevron + "Details" in a ghost button.
     // No border, no count number — "Details" tells the user *what* will
@@ -637,8 +711,9 @@ class CtsLogEntry extends LitElement {
   }
 
   _renderMorePanel() {
-    const { more } = this.entry;
-    if (!this._expanded || !more) return nothing;
+    if (!this._expanded) return nothing;
+    const more = extractMoreFields(this.entry);
+    if (Object.keys(more).length === 0) return nothing;
     const rows = classifyMoreEntries(more);
     return html`
       <div class="moreInfo">
@@ -659,9 +734,9 @@ class CtsLogEntry extends LitElement {
   }
 
   _hasFooter() {
-    const { more, requirements } = this.entry;
+    const { requirements } = this.entry;
     const hasReqs = Array.isArray(requirements) && requirements.length > 0;
-    const hasMore = this._expanded && more && Object.keys(more).length > 0;
+    const hasMore = this._expanded && Object.keys(extractMoreFields(this.entry)).length > 0;
     return hasReqs || hasMore;
   }
 

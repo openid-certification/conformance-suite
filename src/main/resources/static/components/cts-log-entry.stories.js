@@ -130,6 +130,73 @@ const UPLOAD_ENTRY = {
   upload: "screenshot_consent",
 };
 
+// U7 fixtures. These match the shape `/api/log/{testId}` actually serializes:
+// application payload sits at the entry's *top level* (request_uri,
+// response_body, …) rather than under a `more: {}` envelope. The legacy
+// Thymeleaf export computed the disclosure view on the server side via
+// LogEntryHelper.visibleFields — the new Lit component has to do the same
+// strip itself because the browser API returns raw entries. Before U7 these
+// real-shape entries rendered with no Details button at all (D1).
+const REAL_HTTP_REQUEST_ENTRY = {
+  _id: "entry-real-http-req",
+  testId: "test-real",
+  testName: "oidcc-server",
+  src: "GetDynamicServerConfiguration",
+  time: NOW - 6000,
+  msg: "HTTP request",
+  http: "request",
+  // Payload at the entry top level — what real entries actually carry.
+  request_uri: "https://oidcc-provider:3000/.well-known/openid-configuration",
+  request_method: "GET",
+  request_headers: {
+    Accept: "text/plain, application/json, application/yaml, application/*+json, */*",
+    "Content-Length": "0",
+  },
+  request_body: "",
+};
+
+const REAL_HTTP_RESPONSE_ENTRY = {
+  _id: "entry-real-http-resp",
+  testId: "test-real",
+  testName: "oidcc-server",
+  src: "GetDynamicServerConfiguration",
+  time: NOW - 5800,
+  msg: "HTTP response",
+  http: "response",
+  // Realistic top-level fields from a discovery-document response.
+  response_status_code: 200,
+  response_body: {
+    issuer: "https://oidcc-provider:3000",
+    authorization_endpoint: "https://oidcc-provider:3000/auth",
+    token_endpoint: "https://oidcc-provider:3000/token",
+  },
+  response_headers: {
+    "Content-Type": "application/json; charset=utf-8",
+  },
+};
+
+// Envelope-only entry: every field on it is in the strip set, so the More
+// panel must remain hidden — no empty disclosure for an entry with nothing
+// to disclose.
+const ENVELOPE_ONLY_ENTRY = {
+  _id: "entry-envelope-only",
+  testId: "test-real",
+  testName: "oidcc-server",
+  src: "CheckTestOutcome",
+  time: NOW - 5500,
+  msg: "Test passed",
+  result: "SUCCESS",
+  // Per-test metadata `/api/log` adds to every entry: this row carries
+  // these but nothing else, so the disclosure must stay empty.
+  baseUrl: "https://localhost.emobix.co.uk:8443/test/a/oidcc-server",
+  baseMtlsUrl: "https://localhost.emobix.co.uk:8444/test/a/oidcc-server",
+  variant: { server_metadata: "discovery" },
+  alias: "",
+  description: null,
+  planId: "M1vPYjQWZWxKr",
+  config: {},
+};
+
 // R30 fixtures. Modeled on real conditions in the Java backend so the labeling
 // matches what users see in production. The Brazil scope-validation pattern
 // (`args("expected", "payments", "actual", scope)`) is one of the most common
@@ -518,6 +585,109 @@ export const ClickMoreHttpResponse = {
     await waitFor(() => {
       expect(canvasElement.querySelector(".moreInfo")).toBeNull();
     });
+  },
+};
+
+/**
+ * U7: real-shape HTTP request entry — payload lives at the entry top level
+ * (`request_uri`, `request_method`, `request_headers`, `request_body`),
+ * not under a `more: {}` envelope. Before U7 the Details button never
+ * rendered against this shape because `entry.more` was undefined and the
+ * component short-circuited; the new `extractMoreFields` helper synthesises
+ * the disclosure view by stripping the envelope keys (mirror of
+ * LogEntryHelper.visibleFields). This story is the regression guard.
+ */
+export const ClickMoreRealHttpRequest = {
+  render: () => html`<cts-log-entry .entry=${REAL_HTTP_REQUEST_ENTRY}></cts-log-entry>`,
+  async play({ canvasElement }) {
+    const canvas = within(canvasElement);
+    await waitFor(() => {
+      expect(canvas.getByText("REQUEST")).toBeInTheDocument();
+    });
+
+    const moreBtn = canvasElement.querySelector(".moreBtn button");
+    if (!moreBtn) throw new Error(".moreBtn button did not render against real-shape entry");
+    await moreBtn.click();
+
+    /** @type {Element | null | undefined} */
+    let moreInfo;
+    await waitFor(() => {
+      moreInfo = canvasElement.querySelector(".moreInfo");
+      expect(moreInfo).toBeTruthy();
+    });
+    if (!moreInfo) throw new Error(".moreInfo did not appear");
+
+    // Top-level payload fields surface in the panel — sentence-cased via
+    // humanizeKey ("request_uri" → "Request uri"). The data-key attribute
+    // preserves the raw key for tooling.
+    expect(canvasElement.querySelector('[data-key="request_uri"]')).toBeTruthy();
+    expect(canvasElement.querySelector('[data-key="request_method"]')).toBeTruthy();
+    expect(canvasElement.querySelector('[data-key="request_headers"]')).toBeTruthy();
+    expect(canvasElement.querySelector('[data-key="request_body"]')).toBeTruthy();
+    expect(moreInfo.textContent).toContain("oidcc-provider");
+    expect(moreInfo.textContent).toContain("GET");
+
+    // Envelope keys (src, testId, time, http, testName) must NOT leak into
+    // the disclosure — they are rendered elsewhere in the row or are
+    // per-test metadata identical across every entry of the test.
+    expect(canvasElement.querySelector('[data-key="src"]')).toBeNull();
+    expect(canvasElement.querySelector('[data-key="testId"]')).toBeNull();
+    expect(canvasElement.querySelector('[data-key="time"]')).toBeNull();
+    expect(canvasElement.querySelector('[data-key="http"]')).toBeNull();
+    expect(canvasElement.querySelector('[data-key="testName"]')).toBeNull();
+  },
+};
+
+/**
+ * U7: real-shape HTTP response entry — same shape contract as
+ * REAL_HTTP_REQUEST_ENTRY, validating the response side renders top-level
+ * payload (`response_status_code`, `response_body`, `response_headers`)
+ * without ever invoking the legacy `more: {}` fast path.
+ */
+export const ClickMoreRealHttpResponse = {
+  render: () => html`<cts-log-entry .entry=${REAL_HTTP_RESPONSE_ENTRY}></cts-log-entry>`,
+  async play({ canvasElement }) {
+    const canvas = within(canvasElement);
+    await waitFor(() => {
+      expect(canvas.getByText("RESPONSE")).toBeInTheDocument();
+    });
+
+    const moreBtn = canvasElement.querySelector(".moreBtn button");
+    if (!moreBtn) throw new Error(".moreBtn button did not render against real-shape entry");
+    await moreBtn.click();
+
+    /** @type {Element | null | undefined} */
+    let moreInfo;
+    await waitFor(() => {
+      moreInfo = canvasElement.querySelector(".moreInfo");
+      expect(moreInfo).toBeTruthy();
+    });
+    if (!moreInfo) throw new Error(".moreInfo did not appear");
+
+    expect(canvasElement.querySelector('[data-key="response_status_code"]')).toBeTruthy();
+    expect(canvasElement.querySelector('[data-key="response_body"]')).toBeTruthy();
+    expect(canvasElement.querySelector('[data-key="response_headers"]')).toBeTruthy();
+    expect(moreInfo.textContent).toContain("authorization_endpoint");
+    expect(moreInfo.textContent).toContain("200");
+  },
+};
+
+/**
+ * U7 boundary: an entry whose only fields are envelope keys (`_id`, `src`,
+ * `time`, `result`, plus per-test metadata like `baseUrl`/`variant`/`planId`)
+ * has nothing to disclose. The Details button must NOT render — surfacing
+ * an empty disclosure for every plain success row would re-introduce the
+ * noise the strip set was designed to remove.
+ */
+export const EnvelopeOnlyEntryHasNoMoreButton = {
+  render: () => html`<cts-log-entry .entry=${ENVELOPE_ONLY_ENTRY}></cts-log-entry>`,
+  async play({ canvasElement }) {
+    const canvas = within(canvasElement);
+    await waitFor(() => {
+      expect(canvas.getByText("Test passed")).toBeInTheDocument();
+    });
+    expect(canvasElement.querySelector(".moreBtn")).toBeNull();
+    expect(canvasElement.querySelector(".moreInfo")).toBeNull();
   },
 };
 
