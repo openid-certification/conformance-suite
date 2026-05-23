@@ -1,6 +1,7 @@
 import { html } from "lit";
 import { expect, within, waitFor, spyOn } from "storybook/test";
 import "./cts-log-entry.js";
+import { __seedSpecLinks, __resetSpecLinks } from "../lib/spec-links.js";
 
 export default {
   title: "Components/cts-log-entry",
@@ -315,6 +316,140 @@ export const WarningEntry = {
     // Warning rows get the left-edge orange gradient marker class.
     const item = canvasElement.querySelector(".logItem");
     expect(item.classList.contains("is-warn")).toBe(true);
+  },
+};
+
+// U8: spec-link chips resolve to anchors via the memoised loader at
+// `lib/spec-links.js`. The legacy UI does this through
+// `api/ui/spec_links` + a longest-prefix match; the new component does
+// the same but caches the in-flight Promise once per page.
+
+// Decorator that seeds the spec-link cache before the component mounts.
+// The component reads from the cache inside its connectedCallback (which
+// fires synchronously during storyFn render), so seeding has to happen
+// *before* storyFn() — a play function would be too late.
+function withSeededSpecLinks(map) {
+  return (storyFn) => {
+    __resetSpecLinks();
+    __seedSpecLinks(map);
+    return storyFn();
+  };
+}
+
+// Fixture entry whose requirements all match the seeded spec-link map
+// (and one that intentionally doesn't, so we can assert the fallback to
+// a static <span>).
+const SPEC_LINK_ENTRY = {
+  _id: "entry-spec-link",
+  testId: "test-abc",
+  src: "ValidateIdToken",
+  time: NOW - 1000,
+  msg: "ID token validation failed",
+  result: "FAILURE",
+  requirements: [
+    "OIDCC-3.1.3.7-6", // matches the seeded `OIDCC-` prefix
+    "RFC7517-1.1", // matches the seeded `RFC7517-` prefix
+    "TYPO9999-1.2.3", // intentionally unmatched: stays a static chip
+  ],
+};
+
+const SEEDED_SPEC_LINKS = {
+  "OIDCC-": "https://openid.net/specs/openid-connect-core-1_0.html#rfc.section.",
+  "RFC7517-": "https://tools.ietf.org/html/rfc7517#section-",
+};
+
+export const SpecLinkResolvesMappedRefsToAnchors = {
+  decorators: [withSeededSpecLinks(SEEDED_SPEC_LINKS)],
+  render: () => html`<cts-log-entry .entry=${SPEC_LINK_ENTRY}></cts-log-entry>`,
+  async play({ canvasElement }) {
+    await waitFor(() => {
+      const oidcc = canvasElement.querySelector('a.logRequirement[href*="openid-connect-core"]');
+      expect(oidcc).toBeTruthy();
+    });
+
+    const oidcc = canvasElement.querySelector('a.logRequirement[href*="openid-connect-core"]');
+    // Anchor preserves the original requirement text verbatim — no rewrite.
+    expect(oidcc.textContent.trim()).toBe("OIDCC-3.1.3.7-6");
+    // URL is longest-prefix-match: prefix URL + suffix.
+    expect(oidcc.getAttribute("href")).toBe(
+      "https://openid.net/specs/openid-connect-core-1_0.html#rfc.section.3.1.3.7-6",
+    );
+    // Always open in a new tab; the suite stays focused on the failing log.
+    expect(oidcc.getAttribute("target")).toBe("_blank");
+    // noopener prevents the spec page from holding a reference back to
+    // the conformance-suite window (window.opener); noreferrer hides
+    // the origin from the spec host.
+    expect(oidcc.getAttribute("rel")).toContain("noopener");
+
+    const rfc = canvasElement.querySelector('a.logRequirement[href*="rfc7517"]');
+    expect(rfc).toBeTruthy();
+    expect(rfc.getAttribute("href")).toBe("https://tools.ietf.org/html/rfc7517#section-1.1");
+  },
+};
+
+export const SpecLinkUnknownRefStaysStatic = {
+  decorators: [withSeededSpecLinks(SEEDED_SPEC_LINKS)],
+  render: () => html`<cts-log-entry .entry=${SPEC_LINK_ENTRY}></cts-log-entry>`,
+  async play({ canvasElement }) {
+    // Wait for the requirements row to render (any chip present).
+    await waitFor(() => {
+      expect(canvasElement.querySelector(".logRequirement")).toBeTruthy();
+    });
+
+    // The unmapped chip must NOT be an anchor — otherwise the link target
+    // would be undefined and the user would land on `#typo9999-1.2.3`.
+    const chips = canvasElement.querySelectorAll(".logRequirement");
+    const typo = Array.from(chips).find((el) => el.textContent.trim() === "TYPO9999-1.2.3");
+    expect(typo).toBeTruthy();
+    expect(typo.tagName).toBe("SPAN");
+    expect(typo.getAttribute("href")).toBeNull();
+  },
+};
+
+export const SpecLinkEmptyMapKeepsAllChipsStatic = {
+  // Simulates the loader returning {} — either /api/ui/spec_links 404'd
+  // or the response was empty. Every chip must degrade to <span>; no
+  // broken anchors with empty hrefs.
+  decorators: [withSeededSpecLinks({})],
+  render: () => html`<cts-log-entry .entry=${SPEC_LINK_ENTRY}></cts-log-entry>`,
+  async play({ canvasElement }) {
+    await waitFor(() => {
+      expect(canvasElement.querySelectorAll(".logRequirement").length).toBe(3);
+    });
+    const chips = canvasElement.querySelectorAll(".logRequirement");
+    chips.forEach((chip) => {
+      expect(chip.tagName).toBe("SPAN");
+    });
+    expect(canvasElement.querySelector("a.logRequirement")).toBeNull();
+  },
+};
+
+export const SpecLinkLongestPrefixWins = {
+  // Both prefixes legitimately match the chip — `FOO-` is 4 chars,
+  // `FOO-BAR-` is 8 chars and is also a startsWith match. The longer
+  // one must win regardless of insertion order, otherwise links would
+  // silently break whenever the map happened to iterate `FOO-` first.
+  decorators: [
+    withSeededSpecLinks({
+      "FOO-": "https://example.com/foo#",
+      "FOO-BAR-": "https://example.com/foo-bar#",
+    }),
+  ],
+  render: () => html`
+    <cts-log-entry
+      .entry=${{
+        ...SPEC_LINK_ENTRY,
+        _id: "entry-spec-link-longest",
+        requirements: ["FOO-BAR-3.1"],
+      }}
+    ></cts-log-entry>
+  `,
+  async play({ canvasElement }) {
+    await waitFor(() => {
+      expect(canvasElement.querySelector("a.logRequirement")).toBeTruthy();
+    });
+    const anchor = canvasElement.querySelector("a.logRequirement");
+    expect(anchor.getAttribute("href")).toBe("https://example.com/foo-bar#3.1");
   },
 };
 
