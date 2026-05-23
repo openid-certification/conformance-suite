@@ -137,30 +137,33 @@ const STYLE_ID = "cts-log-detail-header-styles";
 // Visual structure (top-to-bottom inside the host element):
 //
 //   ┌───────────────────────────────────────────────────────────┐
+//   │ Nav row (.ctsNavRow — plan progress + Continue Plan)      │
+//   ├───────────────────────────────────────────────────────────┤
 //   │ Sticky status bar (Region A — U2; unchanged)              │  shadow-1
 //   ├───────────────────────────────────────────────────────────┤
 //   │ Terminal-state banner (PASSED/FAILED/WARN/REVIEW/SKIP/    │  status palette
 //   │ INTERRUPTED only; absent during RUNNING / WAITING)        │
 //   ├───────────────────────────────────────────────────────────┤
-//   │ Test-nav-controls row (Previous / Test N/M / Next)        │
-//   ├───────────────────────────────────────────────────────────┤
 //   │ Hero (lifecycle-driven dominant zone)                     │  no chrome
-//   │   FAILED/WARNING/REVIEW       → count headline + failure   │  fs-20 head
-//   │   INTERRUPTED                 → error slot + failure list  │
-//   │   PASSED/SKIPPED              → R24 description prose      │  fs-15 body
-//   │   WAITING                     → R24 instructions (Start in │
-//   │                                 sticky bar, not duplicated) │
-//   │   RUNNING                     → exposed values             │
+//   │   FAILED/WARNING/REVIEW       → count headline + failure  │  fs-20 head
+//   │   INTERRUPTED                 → error slot + failure list │
+//   │   PASSED/SKIPPED              → R24 description prose     │  fs-15 body
+//   │   WAITING                     → R24 instructions (Start in│
+//   │                                 sticky bar, not duplicated)│
+//   │   RUNNING                     → exposed values            │
 //   ├───────────────────────────────────────────────────────────┤
 //   │ Drawer (Region C — two <details> disclosures)             │
 //   │   ▸ Test details (metadata table; closed by default)      │
 //   │   ▸ Configuration (JSON viewer; closed by default)        │
 //   └───────────────────────────────────────────────────────────┘
 //
-// The terminal banner precedes the nav row so the verdict is the first
-// thing the eye lands on after the sticky bar. Each section is divided
-// by a 1px border (no card-within-card chrome). The sticky bar carries
-// the only shadow; the rest reads as a flat document under the bar.
+// The nav row leads so plan-level orientation sits immediately under
+// the page-level breadcrumb (cts-crumb in log-detail.html). The
+// terminal banner follows the sticky bar so the verdict is the first
+// thing the eye lands on after the bar's pill cluster, with the bar
+// still pinning at top: 0 on scroll. Each section is divided by a 1px
+// border (no card-within-card chrome). The sticky bar carries the
+// only shadow; the rest reads as a flat document under the bar.
 const STYLE_TEXT = `
   cts-log-detail-header {
     /* display: contents removes the host from the box tree so the
@@ -629,11 +632,20 @@ function ensureStylesInjected() {
  */
 
 /**
- * Header for the log-detail page. Three vertical zones inside the host:
+ * Header for the log-detail page. Five vertical zones inside the host:
  *
- *   1. Sticky status bar (Region A; unchanged from U2). Verdict + status
+ *   1. Nav row — plan navigation cluster (Plan progress label +
+ *      Continue Plan button). Sits immediately below the page-level
+ *      breadcrumb (cts-crumb in log-detail.html) so the IA reads
+ *      breadcrumb → plan progress → this test's verdict top-to-bottom.
+ *   2. Sticky status bar (Region A; unchanged from U2). Verdict + status
  *      pills, count pills, primary action, kebab popover.
- *   2. Hero — the lifecycle-driven dominant zone. Per
+ *   3. Terminal-state banner — full-width band immediately below the
+ *      sticky bar carrying the verdict ("Test passed" / "Test failed" /
+ *      "Test interrupted") on the matching status palette. Rendered
+ *      only when the test has reached a terminal phase (PASSED /
+ *      FAILED / WARNING / REVIEW / SKIPPED / INTERRUPTED).
+ *   4. Hero — the lifecycle-driven dominant zone. Per
  *      `docs/brainstorms/2026-04-26-cts-log-detail-header-hierarchy-requirements.md`:
  *      FAILED / WARNING / REVIEW render the failure list as the hero;
  *      PASSED / SKIPPED render the R24 "About this test" description;
@@ -642,7 +654,7 @@ function ensureStylesInjected() {
  *      running-test card content (info alert + exposed values +
  *      browser slot); INTERRUPTED renders the failure list with
  *      the FINAL_ERROR alert pinned at the top of the hero.
- *   3. Region C drawer — two `<details>` disclosures stacked
+ *   5. Region C drawer — two `<details>` disclosures stacked
  *      (Test details, Configuration), both closed by default.
  *
  * Light DOM. Scoped CSS is injected once on first render. All visual

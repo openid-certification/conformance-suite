@@ -223,9 +223,11 @@ test.describe("log-detail.html — new Lit-triad page", () => {
       const navRow = document.querySelector('[data-testid="nav-row"]');
       const statusBar = document.querySelector('[data-testid="status-bar"]');
       if (!navRow || !statusBar) return { ok: false, reason: "zones not mounted" };
-      // Node.DOCUMENT_POSITION_FOLLOWING (4) — true when statusBar
-      // follows navRow in document order.
-      const followsNav = !!(navRow.compareDocumentPosition(statusBar) & 4);
+      // Node.DOCUMENT_POSITION_FOLLOWING — true when statusBar follows
+      // navRow in document order.
+      const followsNav = !!(
+        navRow.compareDocumentPosition(statusBar) & Node.DOCUMENT_POSITION_FOLLOWING
+      );
       return { ok: true, navBeforeBar: followsNav };
     });
     expect(orderCheck.ok).toBe(true);
