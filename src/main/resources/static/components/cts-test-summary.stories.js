@@ -78,3 +78,63 @@ export const WithoutSummary = {
     expect(canvasElement.querySelector('[data-testid="user-instructions-zone"]')).toBeNull();
   },
 };
+
+// U6 (MR 1998 finding C2): a description with `\n\n` paragraph breaks
+// renders as multiple <p> blocks instead of one wall of prose.
+const MULTI_PARAGRAPH_DESCRIPTION =
+  "First paragraph explains what the test exercises.\n\nSecond paragraph explains the dependency on an external IdP.";
+
+export const WithParagraphBreaks = {
+  render: () => html`<cts-test-summary .summary=${MULTI_PARAGRAPH_DESCRIPTION}></cts-test-summary>`,
+  async play({ canvasElement }) {
+    const body = await waitFor(() => {
+      const el = canvasElement.querySelector('[data-testid="about-test-zone"] .summaryBody');
+      if (!el) throw new Error("summaryBody not yet rendered");
+      return el;
+    });
+    const paragraphs = body.querySelectorAll("p");
+    expect(paragraphs.length).toBe(2);
+    expect(paragraphs[0].textContent).toContain("First paragraph");
+    expect(paragraphs[1].textContent).toContain("Second paragraph");
+  },
+};
+
+// U6 (MR 1998 finding C2): backtick spans render as <code>. The same
+// helper handles plain prose between the code spans without rewriting it.
+const DESCRIPTION_WITH_INLINE_CODE =
+  "The client posts to the `/token` endpoint with `grant_type=authorization_code`.";
+
+export const WithInlineCode = {
+  render: () =>
+    html`<cts-test-summary .summary=${DESCRIPTION_WITH_INLINE_CODE}></cts-test-summary>`,
+  async play({ canvasElement }) {
+    const body = await waitFor(() => {
+      const el = canvasElement.querySelector('[data-testid="about-test-zone"] .summaryBody');
+      if (!el) throw new Error("summaryBody not yet rendered");
+      return el;
+    });
+    const codeNodes = body.querySelectorAll("code");
+    expect(codeNodes.length).toBe(2);
+    expect(codeNodes[0].textContent).toBe("/token");
+    expect(codeNodes[1].textContent).toBe("grant_type=authorization_code");
+    // The raw backtick character does not leak into the rendered text.
+    expect(body.textContent).not.toContain("`");
+  },
+};
+
+// Unbalanced backticks render literally so a typo never produces a
+// dangling <code> span.
+const UNBALANCED_BACKTICKS = "The token has a single backtick ` in this sentence.";
+
+export const WithUnbalancedBackticks = {
+  render: () => html`<cts-test-summary .summary=${UNBALANCED_BACKTICKS}></cts-test-summary>`,
+  async play({ canvasElement }) {
+    const body = await waitFor(() => {
+      const el = canvasElement.querySelector('[data-testid="about-test-zone"] .summaryBody');
+      if (!el) throw new Error("summaryBody not yet rendered");
+      return el;
+    });
+    expect(body.querySelectorAll("code").length).toBe(0);
+    expect(body.textContent).toContain("`");
+  },
+};
