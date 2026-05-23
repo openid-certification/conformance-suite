@@ -186,6 +186,52 @@ test.describe("log-detail.html — new Lit-triad page", () => {
     await expect(page.locator('cts-badge[label="FINISHED"]')).toBeVisible();
   });
 
+  test("nav row renders above the sticky status bar (IA hierarchy)", async ({ page }) => {
+    // The nav row carries plan-level orientation ("Plan progress:
+    // Module N of M" + Continue Plan). It sits one level UP the IA
+    // hierarchy from the sticky bar's per-test verdict + actions, so
+    // reading the page top-to-bottom must be:
+    //   breadcrumb (plan link) → nav row (plan progress) → sticky bar
+    //   (this test's verdict) → terminal banner → hero → drawer
+    // This regression locks in the order so a future render-template
+    // refactor of cts-log-detail-header can't silently invert it.
+    await setupFailFast(page);
+    await setupV2Routes(page, {
+      testInfo: MOCK_TEST_STATUS,
+      logEntries: MOCK_LOG_ENTRIES,
+      planModules: [
+        {
+          testModule: "oidcc-server",
+          variant: { client_auth_type: "client_secret_basic", response_type: "code" },
+        },
+        {
+          testModule: "oidcc-server-rotate-keys",
+          variant: { client_auth_type: "client_secret_basic", response_type: "code" },
+        },
+      ],
+    });
+    await setupCommonRoutes(page);
+
+    await page.goto(`/log-detail.html?log=${encodeURIComponent(MOCK_TEST_STATUS.testId)}`);
+
+    // Wait for both zones to be present.
+    await expect(page.locator('[data-testid="nav-row"]')).toBeVisible();
+    await expect(page.locator('[data-testid="status-bar"]')).toBeVisible();
+
+    // Walk the DOM: the nav row must precede the sticky bar.
+    const orderCheck = await page.evaluate(() => {
+      const navRow = document.querySelector('[data-testid="nav-row"]');
+      const statusBar = document.querySelector('[data-testid="status-bar"]');
+      if (!navRow || !statusBar) return { ok: false, reason: "zones not mounted" };
+      // Node.DOCUMENT_POSITION_FOLLOWING (4) — true when statusBar
+      // follows navRow in document order.
+      const followsNav = !!(navRow.compareDocumentPosition(statusBar) & 4);
+      return { ok: true, navBeforeBar: followsNav };
+    });
+    expect(orderCheck.ok).toBe(true);
+    expect(orderCheck.navBeforeBar).toBe(true);
+  });
+
   test("renders cts-log-viewer with mocked log entries", async ({ page }) => {
     await setupFailFast(page);
     await setupV2Routes(page, {

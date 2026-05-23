@@ -297,9 +297,12 @@ const STYLE_TEXT = `
     }
   }
 
-  /* Nav row — sits directly under the bar with the plan navigation
-     cluster (#testNavControls). Always visible at every viewport so
-     the user can step Previous / Next without opening a drawer.
+  /* Nav row — the first zone inside the header, carrying the plan
+     navigation cluster (#testNavControls). Sits between the page-level
+     breadcrumb (cts-crumb in log-detail.html) and the sticky status
+     bar so the page reads "plan link → plan progress → this test"
+     top-to-bottom. Always visible at every viewport so the user can
+     step Previous / Next without opening a drawer.
      The cts-test-nav-controls component was originally designed for
      the legacy vertical action stack (column layout, card chrome,
      full-width buttons). Overriding its inner layout here makes it
@@ -314,8 +317,8 @@ const STYLE_TEXT = `
      nothing — for example, an ad-hoc test (no planId) or the brief
      window before /api/plan resolves (totalCount=0, slim mode, no
      Continue). Without this, the row's padding + border-bottom would
-     paint as an empty divider directly under the sticky status bar,
-     reading as a broken section break. */
+     paint as an empty divider between the breadcrumb and the sticky
+     status bar, reading as a broken section break. */
   cts-log-detail-header .ctsNavRow:has(cts-test-nav-controls:empty) {
     display: none;
   }
@@ -351,9 +354,9 @@ const STYLE_TEXT = `
   }
 
   /* Terminal-state banner — the verdict, shown as a full-width band
-     between the nav row and the hero whenever a test has reached a
-     terminal phase (PASSED / FAILED / WARNING / REVIEW / SKIPPED /
-     INTERRUPTED). Closes MR 1998 findings A2 + A7: without this,
+     between the sticky status bar and the hero whenever a test has
+     reached a terminal phase (PASSED / FAILED / WARNING / REVIEW /
+     SKIPPED / INTERRUPTED). Closes MR 1998 findings A2 + A7: without this,
      the only "did my test pass?" signal was a small chip among the
      log filters, which both reviewers flagged as too subtle.
      The bleed-out margins match the sticky bar's so the banner
@@ -648,9 +651,11 @@ function ensureStylesInjected() {
  *
  * Page-integration contracts preserved verbatim from U1–U8:
  *   - `<cts-test-nav-controls id="testNavControls">` lives in the nav
- *     row directly under the sticky bar (was inside the legacy
+ *     row directly above the sticky bar (was inside the legacy
  *     vertical action stack; promoted so it stays visible at every
- *     viewport width).
+ *     viewport width). The nav row is the first zone rendered by
+ *     this component so the page reads "breadcrumb → plan progress
+ *     → this test's verdict + actions" top-to-bottom.
  *   - `[data-slot="browser"]` and `[data-slot="error"]` placeholders
  *     remain inside the WAITING / RUNNING / INTERRUPTED hero so
  *     `js/log-detail.js` can inject the browser-URL prompt and the
@@ -1256,10 +1261,11 @@ class CtsLogDetailHeader extends LitElement {
   _renderTestNavControlsRow(test) {
     // `slim` removes the cluster's Return-to-Plan and Repeat-Test
     // buttons. The page-level breadcrumb (cts-crumb in
-    // log-detail.html) already links back to the plan, and the
-    // sticky status bar's primary action already carries Repeat — so
-    // emitting them again here would duplicate two prominent
-    // affordances inside one viewport.
+    // log-detail.html) — which sits immediately above this nav row
+    // — already links back to the plan, and the sticky status
+    // bar's primary action (rendered directly below this row) already
+    // carries Repeat — so emitting them again here would duplicate
+    // two prominent affordances inside one viewport.
     return html`
       <div class="ctsNavRow" data-testid="nav-row">
         <cts-test-nav-controls
@@ -1572,15 +1578,17 @@ class CtsLogDetailHeader extends LitElement {
 
   render() {
     if (!this.testInfo) return nothing;
-    // Order: sticky status bar → verdict banner (above the fold,
-    // directly under the bar so the answer to "did my test pass?"
-    // reads first) → nav row (plan progress / Continue Plan) → hero
-    // → drawer. The verdict precedes the nav row because the question
-    // it answers — "did this run succeed?" — has higher operational
-    // weight than "where am I in the plan?".
+    // Order: nav row (plan progress / Continue Plan) → sticky status
+    // bar → verdict banner → hero → drawer. The nav row carries
+    // plan-level orientation ("Plan progress: Module N of M"), which
+    // sits one level UP the IA hierarchy from the sticky bar's
+    // per-test verdict + actions; reading the page top-to-bottom
+    // matches the page-level breadcrumb's own scope (plan link →
+    // this test) and tightens the visual proximity between
+    // breadcrumb and plan-progress orientation.
     return html`
-      ${this._renderStatusBar(this.testInfo)} ${this._renderTerminalBanner(this.testInfo)}
-      ${this._renderTestNavControlsRow(this.testInfo)} ${this._renderHero(this.testInfo)}
+      ${this._renderTestNavControlsRow(this.testInfo)} ${this._renderStatusBar(this.testInfo)}
+      ${this._renderTerminalBanner(this.testInfo)} ${this._renderHero(this.testInfo)}
       ${this._renderDrawer(this.testInfo)}
     `;
   }

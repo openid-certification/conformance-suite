@@ -930,9 +930,12 @@ export const WithTestNavControls = {
     });
 
     // The nav cluster was promoted out of the legacy vertical action
-    // stack and now sits in the .ctsNavRow directly under the sticky
+    // stack and now sits in the .ctsNavRow directly above the sticky
     // bar — always visible at every viewport (the legacy stack hid at
-    // <1024px, taking the cluster with it).
+    // <1024px, taking the cluster with it). Lifting it above the bar
+    // (rather than below, as the initial four-zone redesign did)
+    // tightens the IA proximity between the page-level breadcrumb
+    // and the plan-progress orientation it carries.
     const navRow = canvasElement.querySelector('[data-testid="nav-row"]');
     expect(navRow).toBeTruthy();
 
@@ -952,6 +955,17 @@ export const WithTestNavControls = {
     // tests; the slim cluster must NOT render its own Repeat copy.
     expect(navRow.querySelector('[data-testid="repeat-btn"]')).toBeNull();
     expect(navRow.querySelector('[data-testid="back-btn"]')).toBeNull();
+
+    // IA regression: nav row must precede the sticky status bar in
+    // DOM order. Reading top-to-bottom, the page chrome is
+    // breadcrumb → plan progress → this test's verdict — matching
+    // the page-level breadcrumb's own scope (plan → this test).
+    const statusBar = canvasElement.querySelector('[data-testid="status-bar"]');
+    expect(statusBar).toBeTruthy();
+    // Node.DOCUMENT_POSITION_FOLLOWING (4) means statusBar follows navRow.
+    expect(
+      navRow.compareDocumentPosition(statusBar) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
   },
 };
 
