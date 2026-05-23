@@ -5,6 +5,7 @@ import "./cts-button.js";
 import "./cts-tooltip.js";
 import "./cts-log-entry-id.js";
 import { flashCopyConfirmed } from "../js/cts-copy-flash.js";
+import { loadSpecLinks, resolveSpecLink } from "../lib/spec-links.js";
 
 /**
  * Maps a log entry's `result` value (case-insensitive) to a `cts-badge`
@@ -384,6 +385,17 @@ const STYLE_TEXT = `
     font-family: var(--font-mono);
     font-size: var(--fs-12);
     padding: 1px var(--space-2);
+    text-decoration: none;
+  }
+  cts-log-entry a.logRequirement {
+    color: var(--fg-link, var(--fg-muted));
+    cursor: pointer;
+  }
+  cts-log-entry a.logRequirement:hover,
+  cts-log-entry a.logRequirement:focus-visible {
+    background: var(--bg-muted);
+    color: var(--fg);
+    text-decoration: underline;
   }
   cts-log-entry .moreInfo {
     background: var(--ink-50);
@@ -570,6 +582,7 @@ class CtsLogEntry extends LitElement {
     referenceId: { type: String, attribute: "reference-id" },
     testId: { type: String, attribute: "test-id" },
     _expanded: { state: true },
+    _specLinks: { state: true },
   };
 
   createRenderRoot() {
@@ -583,6 +596,20 @@ class CtsLogEntry extends LitElement {
     this.referenceId = "";
     this.testId = "";
     this._expanded = false;
+    this._specLinks = null;
+  }
+
+  connectedCallback() {
+    super.connectedCallback();
+    // Spec-link map is fetched once per page (KTD4) and cached at module
+    // scope inside lib/spec-links.js; subsequent mounts reuse the in-flight
+    // Promise rather than hitting the network again. The first render shows
+    // requirements as static chips; once the map resolves, the state update
+    // re-renders them as anchors when a prefix matches.
+    loadSpecLinks().then((map) => {
+      if (!this.isConnected) return;
+      this._specLinks = map;
+    });
   }
 
   /**
@@ -679,9 +706,22 @@ class CtsLogEntry extends LitElement {
   _renderRequirements() {
     const { requirements } = this.entry;
     if (!requirements || requirements.length === 0) return nothing;
+    const map = this._specLinks;
     return html`
       <div class="logRequirements">
-        ${requirements.map((req) => html`<span class="logRequirement">${req}</span>`)}
+        ${requirements.map((req) => {
+          const url = map ? resolveSpecLink(req, map) : null;
+          if (url) {
+            return html`<a
+              class="logRequirement"
+              href="${url}"
+              target="_blank"
+              rel="noopener noreferrer"
+              >${req}</a
+            >`;
+          }
+          return html`<span class="logRequirement">${req}</span>`;
+        })}
       </div>
     `;
   }
