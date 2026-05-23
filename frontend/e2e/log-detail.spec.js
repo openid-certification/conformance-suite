@@ -234,91 +234,143 @@ test.describe("log-detail.html — new Lit-triad page", () => {
     expect(orderCheck.navBeforeBar).toBe(true);
   });
 
-  test("terminal-state refresh: /api/info refetches when runner reports FINISHED, so the banner renders without a reload", async ({
-    page,
-  }) => {
-    // The page bootstrap fetches /api/info once and the runner-poll loop
-    // (startRunnerPolling) only fetches /api/runner. Without the
-    // refreshInfoAfterTerminal hook a test that transitions from RUNNING
-    // to FINISHED mid-page-session would leave the header frozen at the
-    // RUNNING state — no terminal banner, no result pill, even though
-    // the runner reported a verdict. This regression locks in the
-    // post-terminal refresh so the verdict surfaces without a reload.
-    await setupFailFast(page);
+  /**
+   * Run the post-terminal verdict refresh against a parametrized verdict
+   * (PASSED / FAILED / REVIEW / WARNING / SKIPPED / INTERRUPTED). The
+   * scenario is the same for every result: the page lands on a RUNNING
+   * test, the runner-poll loop catches the verdict, /api/info refresh
+   * surfaces it, and the terminal banner appears without a reload.
+   *
+   * @param {{ result: string, finalStatus: string, bannerText: RegExp, statusBadgeLabel: string }} cfg
+   */
+  function terminalRefreshTest(cfg) {
+    return async ({ page }) => {
+      await setupFailFast(page);
 
-    const runningInfo = {
-      ...MOCK_TEST_RUNNING,
-      planId: "plan-terminal-refresh-001",
+      const runningInfo = {
+        ...MOCK_TEST_RUNNING,
+        testId: `test-running-${cfg.result.toLowerCase()}-001`,
+        _id: `test-running-${cfg.result.toLowerCase()}-001`,
+        planId: `plan-terminal-refresh-${cfg.result.toLowerCase()}`,
+      };
+      const finishedInfo = {
+        ...runningInfo,
+        status: cfg.finalStatus,
+        result: cfg.result,
+      };
+
+      await setupV2Routes(page, {
+        testInfo: runningInfo,
+        logEntries: MOCK_LOG_ENTRIES,
+      });
+      await setupCommonRoutes(page);
+
+      // Override /api/info: first two calls (bootstrap + first poll)
+      // return the RUNNING state — simulating /api/info lagging behind
+      // the runner. Subsequent calls return the verdict. This exercises
+      // the "verdict not persisted yet" race that the old single-shot
+      // refresh-after-terminal hook missed.
+      let infoCallCount = 0;
+      await page.route(
+        `**/api/info/${runningInfo.testId}*`,
+        /** @param {import('@playwright/test').Route} route */ (route) => {
+          infoCallCount += 1;
+          route.fulfill({
+            status: 200,
+            contentType: "application/json",
+            body: JSON.stringify(infoCallCount <= 2 ? runningInfo : finishedInfo),
+          });
+        },
+      );
+
+      // Override /api/runner: first poll returns RUNNING (page renders
+      // the running state), subsequent polls return 404 (runner has
+      // flushed the test) — but the poll loop continues until /api/info
+      // confirms the verdict, NOT just because the runner went terminal.
+      let runnerCallCount = 0;
+      await page.route(
+        `**/api/runner/${runningInfo.testId}`,
+        /** @param {import('@playwright/test').Route} route */ (route) => {
+          runnerCallCount += 1;
+          if (runnerCallCount === 1) {
+            return route.fulfill({
+              status: 200,
+              contentType: "application/json",
+              body: JSON.stringify({ status: "RUNNING" }),
+            });
+          }
+          return route.fulfill({ status: 404, body: "" });
+        },
+      );
+
+      await page.goto(`/log-detail.html?log=${encodeURIComponent(runningInfo.testId)}`);
+
+      // Initial render: running test, no terminal banner yet.
+      await expect(page.locator("cts-log-detail-header")).toContainText(runningInfo.testName);
+      await expect(page.locator('[data-testid="terminal-banner"]')).toHaveCount(0);
+
+      // After several poll cycles (~3s each), /api/info finally serves
+      // the verdict and the banner appears.
+      await expect(page.locator('[data-testid="terminal-banner"]')).toBeVisible({
+        timeout: 20000,
+      });
+      await expect(page.locator('[data-testid="terminal-banner"]')).toContainText(cfg.bannerText);
+
+      // Sticky bar picks up the result pill alongside the status badge.
+      await expect(
+        page.locator(`[data-testid="status-bar"] cts-badge[label="${cfg.result}"]`),
+      ).toBeVisible();
+      await expect(
+        page.locator(`[data-testid="status-bar"] cts-badge[label="${cfg.statusBadgeLabel}"]`),
+      ).toBeVisible();
+
+      // Sanity: the loop stopped once the verdict landed. /api/info was
+      // called at least 3 times (bootstrap + lag-poll + verdict-poll)
+      // but not unbounded.
+      expect(infoCallCount).toBeGreaterThanOrEqual(3);
+      expect(infoCallCount).toBeLessThanOrEqual(8);
     };
-    const finishedInfo = {
-      ...runningInfo,
-      status: "FINISHED",
+  }
+
+  test(
+    "terminal-state refresh — PASSED: banner renders without reload",
+    terminalRefreshTest({
       result: "PASSED",
-    };
+      finalStatus: "FINISHED",
+      bannerText: /Test passed/i,
+      statusBadgeLabel: "FINISHED",
+    }),
+  );
 
-    await setupV2Routes(page, {
-      testInfo: runningInfo,
-      logEntries: MOCK_LOG_ENTRIES,
-    });
-    await setupCommonRoutes(page);
+  test(
+    "terminal-state refresh — REVIEW: banner renders without reload",
+    terminalRefreshTest({
+      result: "REVIEW",
+      finalStatus: "FINISHED",
+      bannerText: /Test needs review/i,
+      statusBadgeLabel: "FINISHED",
+    }),
+  );
 
-    // Override /api/info: first call returns RUNNING (bootstrap), every
-    // subsequent call returns FINISHED + PASSED (the post-terminal refresh).
-    let infoCallCount = 0;
-    await page.route(`**/api/info/${runningInfo.testId}*`, (route) => {
-      infoCallCount += 1;
-      route.fulfill({
-        status: 200,
-        contentType: "application/json",
-        body: JSON.stringify(infoCallCount === 1 ? runningInfo : finishedInfo),
-      });
-    });
+  test(
+    "terminal-state refresh — FAILED: banner renders without reload",
+    terminalRefreshTest({
+      result: "FAILED",
+      finalStatus: "FINISHED",
+      bannerText: /Test failed/i,
+      statusBadgeLabel: "FINISHED",
+    }),
+  );
 
-    // Override /api/runner: first poll returns RUNNING (page renders the
-    // running state), subsequent polls return FINISHED — which triggers
-    // refreshInfoAfterTerminal and the testInfo update.
-    let runnerCallCount = 0;
-    await page.route(`**/api/runner/${runningInfo.testId}`, (route) => {
-      runnerCallCount += 1;
-      route.fulfill({
-        status: 200,
-        contentType: "application/json",
-        body: JSON.stringify({
-          status: runnerCallCount === 1 ? "RUNNING" : "FINISHED",
-        }),
-      });
-    });
-
-    await page.goto(`/log-detail.html?log=${encodeURIComponent(runningInfo.testId)}`);
-
-    // Before the second poll fires, there's no terminal banner — the
-    // running test has no verdict yet.
-    await expect(page.locator("cts-log-detail-header")).toContainText(runningInfo.testName);
-    await expect(page.locator('[data-testid="terminal-banner"]')).toHaveCount(0);
-
-    // After the runner-poll loop reaches its second cycle (~3s) AND
-    // refreshInfoAfterTerminal awaits a fresh /api/info, the testInfo
-    // update propagates through Lit and the banner renders.
-    await expect(page.locator('[data-testid="terminal-banner"]')).toBeVisible({
-      timeout: 15000,
-    });
-    await expect(page.locator('[data-testid="terminal-banner"]')).toContainText(/Test passed/i);
-
-    // Sticky bar also picks up the result pill — both PASSED and FINISHED
-    // are now in the bar's left cluster.
-    await expect(
-      page.locator('[data-testid="status-bar"] cts-badge[label="PASSED"]'),
-    ).toBeVisible();
-    await expect(
-      page.locator('[data-testid="status-bar"] cts-badge[label="FINISHED"]'),
-    ).toBeVisible();
-
-    // Sanity: the post-terminal refresh fired exactly once (bootstrap +
-    // one refresh). A regression that loops the refresh would inflate
-    // this count.
-    expect(infoCallCount).toBeGreaterThanOrEqual(2);
-    expect(infoCallCount).toBeLessThanOrEqual(3); // bootstrap + refresh, plus tolerance for a polling-race extra call
-  });
+  test(
+    "terminal-state refresh — INTERRUPTED: banner renders without reload",
+    terminalRefreshTest({
+      result: "FAILED",
+      finalStatus: "INTERRUPTED",
+      bannerText: /Test interrupted/i,
+      statusBadgeLabel: "INTERRUPTED",
+    }),
+  );
 
   test("renders cts-log-viewer with mocked log entries", async ({ page }) => {
     await setupFailFast(page);
