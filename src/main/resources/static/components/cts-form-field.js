@@ -1,5 +1,6 @@
 import { LitElement, html, nothing } from "lit";
 import { classMap } from "lit/directives/class-map.js";
+import { isMultiLineConfigField } from "../lib/config-field-types.js";
 
 /**
  * Renders a single form input driven by a JSON-schema fragment. Supports
@@ -41,6 +42,12 @@ import { classMap } from "lit/directives/class-map.js";
  * and below it. The adapter routes catalog-declared `tooltip` to
  * `description` and catalog-declared `placeholder` to `x-cts-placeholder`, so
  * the two slots stay independent.
+ *
+ * String-typed fields whose `name` leaf ends with a PEM/JWKS/key suffix
+ * (see `lib/config-field-types.js`) render as `<textarea>` instead of
+ * `<input>` so multi-line credentials paste cleanly. The textarea uses
+ * `field-sizing: content` to auto-grow with content up to `max-height`;
+ * Firefox falls back to the floor `min-height` plus manual `resize:vertical`.
  *
  * @property {object} schema - JSON-schema fragment for this field. May include
  *   `type`, `format`, `enum`, `title`, `description`, `x-cts-placeholder`,
@@ -112,7 +119,16 @@ cts-form-field {
   padding-bottom: 0;
 }
 .oidf-form-field .oidf-textarea {
+  /* layout.css ships a global \`textarea { height: 200px }\` for legacy pages
+     (index.html etc). An explicit height overrides \`field-sizing: content\`,
+     so we reset to \`auto\` and let min-height / max-height carry the bounds. */
+  height: auto;
   min-height: calc(var(--space-6) * 4);
+  max-height: 50vh;
+  /* Auto-grow as the user types/pastes. Firefox lacks support today and
+     falls back to the fixed initial size + min-height floor + manual resize
+     handle. Width stays at 100% so horizontal jank is impossible. */
+  field-sizing: content;
   resize: vertical;
 }
 .oidf-form-field .oidf-input.is-mono,
@@ -389,6 +405,30 @@ class CtsFormField extends LitElement {
             ? html`<label class="oidf-checkbox-label" for="${this._uid}">${description}</label>`
             : nothing}
         </div>
+      `;
+    }
+
+    // Multi-line affordance for PEM / JWKS / key fields whose names match
+    // the suffix matcher in lib/config-field-types.js. URLs (format=uri) are
+    // always single-line and short-circuit the lookup so `server.jwks_uri`
+    // stays an `<input type=url>` even though its leaf ends in `_uri`.
+    if (format !== "uri" && isMultiLineConfigField(this.name)) {
+      return html`
+        <textarea
+          id="${this._uid}"
+          class=${classMap({
+            "oidf-textarea": true,
+            "is-mono": true,
+            "is-error": isInvalid,
+          })}
+          rows="6"
+          .value=${displayValue}
+          ?disabled=${this.disabled}
+          aria-invalid=${ariaInvalid}
+          aria-describedby=${ariaDescribedBy}
+          @input=${this._handleInput}
+          placeholder=${placeholder}
+        ></textarea>
       `;
     }
 

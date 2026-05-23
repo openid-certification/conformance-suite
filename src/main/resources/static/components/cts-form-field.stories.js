@@ -268,6 +268,135 @@ export const Disabled = {
 };
 
 /**
+ * String-typed fields whose name's leaf segment ends in a PEM/JWKS/key
+ * suffix (see `lib/config-field-types.js`) should render as `<textarea>`
+ * so pasting multi-line credentials lands cleanly. The following stories
+ * pin the per-suffix routing — including the regression edge case where
+ * `_uri` shares the `jwks` substring but must stay a single-line URL.
+ */
+
+export const CertificateMultilineTextarea = {
+  render: () => html`
+    <cts-form-field
+      name="client.certificate"
+      .schema=${{ type: "string", title: "Certificate" }}
+      value="-----BEGIN CERTIFICATE-----&#10;MIIB...&#10;-----END CERTIFICATE-----"
+    ></cts-form-field>
+  `,
+  async play({ canvasElement }) {
+    const textarea = canvasElement.querySelector("textarea");
+    expect(textarea).toBeTruthy();
+    expect(textarea.classList.contains("oidf-textarea")).toBe(true);
+    // Cert content is monospace-friendly; mirrors the JSON textarea convention.
+    expect(textarea.classList.contains("is-mono")).toBe(true);
+    // The catch-all single-line input branch must NOT also render.
+    expect(canvasElement.querySelector("input")).toBeNull();
+  },
+};
+
+export const PrivateKeyMultilineTextarea = {
+  render: () => html`
+    <cts-form-field
+      name="client.private_key"
+      .schema=${{ type: "string", title: "Private key" }}
+      value=""
+    ></cts-form-field>
+  `,
+  async play({ canvasElement }) {
+    const textarea = canvasElement.querySelector("textarea");
+    expect(textarea).toBeTruthy();
+    expect(canvasElement.querySelector("input")).toBeNull();
+  },
+};
+
+export const MtlsCertMultilineTextarea = {
+  render: () => html`
+    <cts-form-field
+      name="mtls.cert"
+      .schema=${{ type: "string", title: "mtls.cert" }}
+      value=""
+    ></cts-form-field>
+  `,
+  async play({ canvasElement }) {
+    // The real catalog key is `mtls.cert` (4-letter suffix), not
+    // `mtls.certificate` — the suffix list must include `cert` for the mtls
+    // namespace to route through the textarea branch.
+    const textarea = canvasElement.querySelector("textarea");
+    expect(textarea).toBeTruthy();
+    expect(canvasElement.querySelector("input")).toBeNull();
+  },
+};
+
+export const MtlsKeyMultilineTextarea = {
+  render: () => html`
+    <cts-form-field
+      name="mtls.key"
+      .schema=${{ type: "string", title: "mtls.key" }}
+      value=""
+    ></cts-form-field>
+  `,
+  async play({ canvasElement }) {
+    const textarea = canvasElement.querySelector("textarea");
+    expect(textarea).toBeTruthy();
+    expect(canvasElement.querySelector("input")).toBeNull();
+  },
+};
+
+export const TrustAnchorPemMultilineTextarea = {
+  render: () => html`
+    <cts-form-field
+      name="vci.client_attestation_trust_anchor_pem"
+      .schema=${{ type: "string", title: "Trust anchor PEM" }}
+      value=""
+    ></cts-form-field>
+  `,
+  async play({ canvasElement }) {
+    // Suffix containment via the `_pem` tail. Confirms the matcher fires on
+    // arbitrarily deep leaves, not just the simple `certificate` case.
+    const textarea = canvasElement.querySelector("textarea");
+    expect(textarea).toBeTruthy();
+    expect(canvasElement.querySelector("input")).toBeNull();
+  },
+};
+
+export const CertificateChainMatchesViaSuffix = {
+  render: () => html`
+    <cts-form-field
+      name="client.certificate_chain"
+      .schema=${{ type: "string", title: "Certificate chain" }}
+      value=""
+    ></cts-form-field>
+  `,
+  async play({ canvasElement }) {
+    // Edge case: the leaf contains `certificate` but ends with `_chain`. The
+    // matcher's optional `_chain` tail is what carries this case — without it
+    // the leaf would slip through to `<input>` and the field would be unusable.
+    const textarea = canvasElement.querySelector("textarea");
+    expect(textarea).toBeTruthy();
+    expect(canvasElement.querySelector("input")).toBeNull();
+  },
+};
+
+export const JwksUriStaysSingleLineUrlInput = {
+  render: () => html`
+    <cts-form-field
+      name="server.jwks_uri"
+      .schema=${{ type: "string", format: "uri", title: "JWKS URI" }}
+      value="https://example.com/.well-known/jwks.json"
+    ></cts-form-field>
+  `,
+  async play({ canvasElement }) {
+    // Regression assertion: even though the leaf contains the `jwks` token,
+    // its trailing `_uri` prevents the suffix anchor from matching, and the
+    // `format: "uri"` check guards against a future regex slip. Either fence
+    // alone is enough — together they make this surface bulletproof.
+    const input = canvasElement.querySelector('input[type="url"]');
+    expect(input).toBeTruthy();
+    expect(canvasElement.querySelector("textarea")).toBeNull();
+  },
+};
+
+/**
  * Focus state must be keyboard-visible: the input picks up the OIDF orange
  * border + focus ring (`--focus-ring`) the moment it gains focus. We assert
  * via the computed style after focusing the rendered control.
