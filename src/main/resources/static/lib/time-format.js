@@ -100,6 +100,24 @@ export function formatTimeOfDay(value) {
 }
 
 /**
+ * Compact date + time (e.g. `May 22, 2026, 9:42 AM`) via medium date / short
+ * time styles. Used in dense headers and sticky bars where the full locale
+ * string is too long but the date still matters; hover still reveals the full
+ * absolute form.
+ *
+ * @param {string | number | Date | null | undefined} value Input timestamp.
+ * @returns {string} Compact locale date/time string, or `""` when input is missing/unparseable.
+ */
+export function formatCompact(value) {
+  const t = toMillis(value);
+  if (t === null) return "";
+  return new Date(t).toLocaleString(undefined, {
+    dateStyle: "medium",
+    timeStyle: "short",
+  });
+}
+
+/**
  * Convenience pairing for the common "show relative, hover absolute" case:
  * a single call powers both the visible text and the `title` attribute
  * without re-parsing.

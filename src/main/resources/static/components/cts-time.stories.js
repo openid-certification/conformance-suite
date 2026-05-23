@@ -1,7 +1,12 @@
 import { html } from "lit";
 import { expect } from "storybook/test";
 import "./cts-time.js";
-import { formatRelative, formatAbsolute, formatTimeOfDay } from "../lib/time-format.js";
+import {
+  formatRelative,
+  formatAbsolute,
+  formatTimeOfDay,
+  formatCompact,
+} from "../lib/time-format.js";
 
 export default {
   title: "Primitives/cts-time",
@@ -63,6 +68,18 @@ export const TimeOfDay = {
     expect(t).toBeTruthy();
     // Clock time only on screen, full form on hover.
     expect(t?.textContent?.trim()).toBe(formatTimeOfDay(FIXED));
+    expect(t?.getAttribute("title")).toBe(formatAbsolute(FIXED));
+  },
+};
+
+export const Compact = {
+  render: () => html`<cts-time value=${FIXED} mode="compact"></cts-time>`,
+
+  async play({ canvasElement }) {
+    const t = getTimeEl(canvasElement);
+    expect(t).toBeTruthy();
+    // Compact visible form (medium date + short time), full form on hover.
+    expect(t?.textContent?.trim()).toBe(formatCompact(FIXED));
     expect(t?.getAttribute("title")).toBe(formatAbsolute(FIXED));
   },
 };
