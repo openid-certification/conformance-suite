@@ -7,6 +7,7 @@ import "./cts-modal.js";
 import "./cts-alert.js";
 import "./cts-spinner.js";
 import "./cts-tooltip.js";
+import "./cts-time.js";
 import "./cts-empty-state.js";
 import "./cts-json-editor.js";
 import { flashCopyConfirmed } from "../js/cts-copy-flash.js";
@@ -448,32 +449,6 @@ function formatVariant(variant) {
   return Object.entries(variant)
     .map(([key, value]) => `${key}=${value}`)
     .join(", ");
-}
-
-// Pretty-prints `started` as a relative time (e.g. "5 minutes ago"). Falls
-// back to the absolute locale string for anything older than ~30 days so the
-// tooltip remains the canonical source for absolute timestamps anyway.
-function formatRelativeTime(iso) {
-  if (!iso) return "";
-  const then = new Date(iso).getTime();
-  if (Number.isNaN(then)) return iso;
-  const deltaSec = Math.max(0, Math.round((Date.now() - then) / 1000));
-  const rtf = new Intl.RelativeTimeFormat(undefined, { numeric: "auto" });
-  if (deltaSec < 60) return rtf.format(-deltaSec, "second");
-  const deltaMin = Math.round(deltaSec / 60);
-  if (deltaMin < 60) return rtf.format(-deltaMin, "minute");
-  const deltaHour = Math.round(deltaMin / 60);
-  if (deltaHour < 24) return rtf.format(-deltaHour, "hour");
-  const deltaDay = Math.round(deltaHour / 24);
-  if (deltaDay < 30) return rtf.format(-deltaDay, "day");
-  return new Date(iso).toLocaleString();
-}
-
-function formatAbsoluteTime(iso) {
-  if (!iso) return "";
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return iso;
-  return d.toLocaleString();
 }
 
 /**
@@ -1023,11 +998,9 @@ class CtsLogList extends LitElement {
             ? html`
                 <span class="cts-log-card-meta-item">
                   <span class="cts-log-card-meta-key">Started</span>
-                  <cts-tooltip content="${formatAbsoluteTime(log.started)}" placement="top">
-                    <span class="cts-log-card-meta-value">
-                      ${formatRelativeTime(log.started)}
-                    </span>
-                  </cts-tooltip>
+                  <span class="cts-log-card-meta-value">
+                    <cts-time mode="auto" value=${log.started}></cts-time>
+                  </span>
                 </span>
               `
             : nothing}
