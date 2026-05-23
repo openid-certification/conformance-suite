@@ -1,5 +1,6 @@
 import { LitElement, html, nothing } from "lit";
 import "./cts-alert.js";
+import { formatDescription } from "./format-description.js";
 import { splitTestSummary } from "./test-summary-split.js";
 
 const STYLE_ID = "cts-test-summary-styles";
@@ -29,6 +30,20 @@ const STYLE_TEXT = `
   }
   cts-test-summary .summaryBody {
     color: var(--fg);
+  }
+  cts-test-summary .summaryBody > p {
+    margin: 0;
+  }
+  cts-test-summary .summaryBody > p + p {
+    margin-top: var(--space-2);
+  }
+  cts-test-summary .summaryBody code {
+    font-family: var(--font-mono);
+    font-size: 0.92em;
+    background: var(--bg-muted);
+    color: var(--fg);
+    padding: 0 var(--space-1);
+    border-radius: var(--radius-1);
   }
 `;
 
@@ -81,7 +96,7 @@ class CtsTestSummary extends LitElement {
         ? html`<cts-alert variant="info">
             <div class="summaryZone summaryZone--about" data-testid="about-test-zone">
               <span class="summaryEyebrow">About this test</span>
-              <div class="summaryBody">${description}</div>
+              <div class="summaryBody">${formatDescription(description)}</div>
             </div>
           </cts-alert>`
         : nothing}
@@ -89,7 +104,7 @@ class CtsTestSummary extends LitElement {
         ? html`<cts-alert variant="warning">
             <div class="summaryZone summaryZone--instructions" data-testid="user-instructions-zone">
               <span class="summaryEyebrow">What you need to do</span>
-              <div class="summaryBody">${instructions}</div>
+              <div class="summaryBody">${formatDescription(instructions)}</div>
             </div>
           </cts-alert>`
         : nothing}

@@ -1569,3 +1569,44 @@ export const ConsistentActionLabels = {
     expect(within(bar).queryByText(/^Repeat$/)).toBeNull();
   },
 };
+
+export const VariantRendersAsDefinitionList = {
+  // U6 (MR 1998 finding C2): the Variant row inside the Test details
+  // drawer renders each key/value pair on its own <dt>/<dd> line
+  // instead of the legacy "k: v, k: v" comma-soup. The drawer is
+  // collapsed by default, so the play test opens it before asserting.
+  render: () => html`<cts-log-detail-header .testInfo=${COMPLETED_TEST}></cts-log-detail-header>`,
+  async play({ canvasElement }) {
+    const drawer = await waitFor(() => {
+      const el = canvasElement.querySelector('[data-testid="drawer-test-details"]');
+      if (!el) throw new Error("drawer not yet rendered");
+      return el;
+    });
+    drawer.open = true;
+    await waitFor(() => {
+      if (!canvasElement.querySelector('[data-testid="variant-list"]')) {
+        throw new Error("variant list not yet rendered");
+      }
+    });
+
+    const list = canvasElement.querySelector('[data-testid="variant-list"]');
+    expect(list).toBeTruthy();
+    expect(list.tagName).toBe("DL");
+
+    const keys = Array.from(list.querySelectorAll("dt"));
+    const values = Array.from(list.querySelectorAll("dd"));
+    // COMPLETED_TEST inherits MOCK_TEST_STATUS.variant which has two
+    // keys: client_auth_type + response_type.
+    expect(keys.length).toBe(2);
+    expect(values.length).toBe(2);
+    expect(keys[0].textContent.trim()).toBe("client_auth_type");
+    expect(values[0].textContent.trim()).toBe("client_secret_basic");
+    expect(keys[1].textContent.trim()).toBe("response_type");
+    expect(values[1].textContent.trim()).toBe("code");
+
+    // Regression: the legacy comma-joined string must not appear inside
+    // the variant cell.
+    const cell = list.parentElement;
+    expect(cell.textContent).not.toContain("client_auth_type: client_secret_basic, ");
+  },
+};

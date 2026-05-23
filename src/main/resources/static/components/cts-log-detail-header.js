@@ -8,6 +8,7 @@ import "./cts-json-editor.js";
 import "./cts-test-nav-controls.js";
 import "./cts-failure-summary.js";
 import "./cts-action-overflow.js";
+import { formatDescription } from "./format-description.js";
 import { splitTestSummary } from "./test-summary-split.js";
 
 /**
@@ -457,6 +458,14 @@ const STYLE_TEXT = `
   cts-log-detail-header .ctsHeroBody p:last-child {
     margin-bottom: 0;
   }
+  cts-log-detail-header .ctsHeroBody code {
+    font-family: var(--font-mono);
+    font-size: 0.92em;
+    background: var(--bg-muted);
+    color: var(--fg);
+    padding: 0 var(--space-1);
+    border-radius: var(--radius-1);
+  }
   cts-log-detail-header .ctsHeroPlaceholder {
     color: var(--fg-faint);
     font-style: italic;
@@ -575,6 +584,23 @@ const STYLE_TEXT = `
     background: var(--ink-50);
     padding: 1px 6px;
     border-radius: var(--radius-1);
+  }
+  /* Variant key/value pairs render as a nested definition list inside
+     the value cell so each entry sits on its own row instead of the
+     legacy comma-joined string the maintainers flagged as a
+     "comma-soup" (MR 1998 review pass, finding C2). Row gap is tighter
+     than the outer metadata gap so the inner list reads as one block. */
+  cts-log-detail-header .logMetaValue .variantList {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: var(--space-1) var(--space-3);
+    margin: 0;
+  }
+  cts-log-detail-header .logMetaValue .variantList dt {
+    margin: 0;
+  }
+  cts-log-detail-header .logMetaValue .variantList dd {
+    margin: 0;
   }
 
   /* Configuration JSON inside the Configuration disclosure. Fixed
@@ -752,11 +778,30 @@ class CtsLogDetailHeader extends LitElement {
     });
   }
 
-  _formatVariant(variant) {
-    if (!variant || typeof variant !== "object") return "";
-    return Object.entries(variant)
-      .map(([key, value]) => `${key}: ${value}`)
-      .join(", ");
+  /**
+   * Render the variant map as a nested definition list so each key/value
+   * pair sits on its own row, replacing the legacy comma-joined string
+   * the MR 1998 review pass flagged as a "comma-soup" (finding C2).
+   * @param {Record<string, string> | null | undefined} variant - Variant
+   *   selections from the runner payload, keyed by parameter name.
+   * @returns {ReturnType<typeof html> | typeof nothing} A `<dl>` template
+   *   with one `<dt>`/`<dd>` per variant entry, or `nothing` when the
+   *   map is empty / not an object.
+   */
+  _renderVariantList(variant) {
+    if (!variant || typeof variant !== "object") return nothing;
+    const entries = Object.entries(variant);
+    if (entries.length === 0) return nothing;
+    return html`
+      <dl class="variantList" data-testid="variant-list">
+        ${entries.map(
+          ([key, value]) => html`
+            <dt><span class="mono">${key}</span></dt>
+            <dd>${value}</dd>
+          `,
+        )}
+      </dl>
+    `;
   }
 
   _getResultCounts() {
@@ -1425,7 +1470,7 @@ class CtsLogDetailHeader extends LitElement {
     return html`
       <div class="ctsHero ctsHero--summary" data-testid="hero-summary">
         <div class="ctsHeroEyebrow" data-testid="about-test-zone"> About this test </div>
-        <div class="ctsHeroBody">${description}</div>
+        <div class="ctsHeroBody">${formatDescription(description)}</div>
       </div>
     `;
   }
@@ -1459,7 +1504,7 @@ class CtsLogDetailHeader extends LitElement {
         data-waiting-mode="${started ? "external" : "user-action"}"
       >
         <div class="ctsHeroEyebrow" data-testid="user-instructions-zone">${eyebrow}</div>
-        <div class="ctsHeroBody">${instructions}</div>
+        <div class="ctsHeroBody">${formatDescription(instructions)}</div>
         ${this._renderExposedValues(test)}
         <div id="runningTestBrowser" data-slot="browser" data-testid="running-browser-slot"></div>
       </div>
@@ -1532,17 +1577,15 @@ class CtsLogDetailHeader extends LitElement {
   }
 
   _renderMetadataTable(test) {
-    const variantStr = this._formatVariant(test.variant);
+    const variantList = this._renderVariantList(test.variant);
     return html`
       <div class="logMetaTable" data-instance-id="${test.testId}" id="logHeader">
         <div class="logMetaLabel">Test Name:</div>
         <div class="logMetaValue">${test.testName}</div>
-        ${variantStr
+        ${variantList !== nothing
           ? html`
               <div class="logMetaLabel">Variant:</div>
-              <div class="logMetaValue">
-                <span class="mono">${variantStr}</span>
-              </div>
+              <div class="logMetaValue">${variantList}</div>
             `
           : nothing}
         <div class="logMetaLabel">Test ID:</div>
