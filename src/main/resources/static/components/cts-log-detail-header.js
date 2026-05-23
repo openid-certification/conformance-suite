@@ -195,7 +195,6 @@ const STYLE_TEXT = `
       "left    middle  primary"
       "created created created";
     column-gap: var(--space-3);
-    row-gap: var(--space-2);
     align-items: center;
     padding: 20px;
     margin-inline: -20px;

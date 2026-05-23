@@ -162,6 +162,19 @@ const STYLE_TEXT = `
   @keyframes cts-log-viewer-spin {
     to { transform: rotate(360deg); }
   }
+  /* Scroll offset for the cts-log-toc rail's "Test structure" jumps and
+     the document-level cts-scroll-to-entry handler in log-detail.js.
+     Without this offset, scrollIntoView lands the target underneath the
+     sticky cts-log-detail-header status bar (~70px tall when stuck).
+     Applied on .logBlock (the <details> the TOC scrolls to) and on
+     .logItem (the painted element inside cts-log-entry at the wide
+     layout, where the host is display:contents and has no box of its
+     own to anchor margin against). */
+  cts-log-viewer .logBlock,
+  cts-log-viewer cts-log-entry,
+  cts-log-viewer cts-log-entry .logItem {
+    scroll-margin-top: 70px;
+  }
   /* Block-start <summary> rows. Native <details>/<summary> gives us
      keyboard collapse semantics for free; we strip the default disclosure
      marker because the chevron icon already carries the affordance. */

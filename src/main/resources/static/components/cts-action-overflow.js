@@ -16,8 +16,8 @@ const STYLE_TEXT = `
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: var(--space-8);
-    height: var(--space-8);
+    width: 30px;
+    height: 30px;
     padding: 0;
     background: transparent;
     color: var(--fg);
