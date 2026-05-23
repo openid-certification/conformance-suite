@@ -14,6 +14,11 @@ import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+import static net.openid.conformance.logging.MongoKeyWrapper.JSON_NULL_SENTINEL;
+import static net.openid.conformance.logging.MongoKeyWrapper.buildEnvelope;
+import static net.openid.conformance.logging.MongoKeyWrapper.needsWrapping;
+import static net.openid.conformance.logging.MongoKeyWrapper.nextWrappedKey;
+
 @Component
 public class DBEventLog implements EventLog {
 
@@ -96,22 +101,15 @@ public class DBEventLog implements EventLog {
 			String key = entry.getKey();
 			JsonElement value = entry.getValue();
 			if (value.isJsonNull()) {
-				value = new JsonPrimitive(GsonObjectToBsonDocumentConverter.CONFORMANCE_SUITE_JSON_NULL_CONSTANT);
+				value = new JsonPrimitive(JSON_NULL_SENTINEL);
 			}
-			if (needsKeyWrapping(key)) {
-				JsonObject wrap = new JsonObject();
-				wrap.addProperty("key", key);
-				wrap.add("value", value);
-				fields.put("__wrapped_key_element_" + RandomStringUtils.secure().nextAlphabetic(6), wrap);
+			if (needsWrapping(key)) {
+				fields.put(nextWrappedKey(), buildEnvelope(key, value));
 			} else {
 				fields.put(key, value);
 			}
 		}
 		return fields;
-	}
-
-	private static boolean needsKeyWrapping(String key) {
-		return key.contains(".") || key.contains("$") || key.startsWith("__wrapped_key_element_");
 	}
 
 	@Override

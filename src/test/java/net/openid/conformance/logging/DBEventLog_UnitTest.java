@@ -232,7 +232,7 @@ public class DBEventLog_UnitTest {
 
 	@Test
 	public void jsonObject_dottedKey_isEncodable() {
-		// DBEventLog's JsonObject path wraps dotted keys via convertFieldsToStructure.
+		// DBEventLog's JsonObject path wraps dotted keys via MongoKeyWrapper.
 		JsonObject payload = JsonParser.parseString("{\"key.with.dots\":\"value\"}").getAsJsonObject();
 
 		BsonEncoding.assertEncodable(payload);
