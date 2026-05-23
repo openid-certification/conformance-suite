@@ -1012,6 +1012,14 @@ export const StatusBarWaiting = {
     await userEvent.click(innerButton(canvasElement, "status-bar-primary"));
     expect(startHandler).toHaveBeenCalledOnce();
     expect(startHandler.mock.calls[0][0].detail.testId).toBe(WAITING_TEST.testId);
+
+    // Test name leads .ctsStatusBarLeft on every bar variant — locks
+    // the row-1 hierarchy so a future template refactor can't silently
+    // demote the name behind the status pill on the WAITING path.
+    const left = bar.querySelector(".ctsStatusBarLeft");
+    const nameText = left.querySelector(".ctsStatusBarTestNameText");
+    expect(nameText).toBeTruthy();
+    expect(left.firstElementChild).toBe(nameText);
   },
 };
 
@@ -1040,6 +1048,15 @@ export const StatusBarRunning = {
     canvasElement.addEventListener("cts-stop-test", stopHandler);
     await userEvent.click(innerButton(canvasElement, "status-bar-primary"));
     expect(stopHandler).toHaveBeenCalledOnce();
+
+    // Test name leads .ctsStatusBarLeft on every bar variant — locks
+    // the row-1 hierarchy so a future template refactor can't silently
+    // demote the name behind the running status pill or the result-pill
+    // cluster.
+    const left = bar.querySelector(".ctsStatusBarLeft");
+    const nameText = left.querySelector(".ctsStatusBarTestNameText");
+    expect(nameText).toBeTruthy();
+    expect(left.firstElementChild).toBe(nameText);
   },
 };
 
@@ -1071,6 +1088,12 @@ export const StatusBarFinishedPassed = {
     expect(nameText).toBeTruthy();
     expect(nameText.textContent).toContain(COMPLETED_TEST.testName);
     expect(left.firstElementChild).toBe(nameText);
+
+    // Created timestamp owns row 2 by itself after the row-1 lift —
+    // make sure no future template tweak silently drops the field.
+    const created = bar.querySelector(".ctsStatusBarCreated");
+    expect(created).toBeTruthy();
+    expect(created.textContent.trim().length).toBeGreaterThan(0);
   },
 };
 

@@ -267,6 +267,49 @@ test.describe("log-detail.html — new Lit-triad page", () => {
     await expect(terminal).toHaveAttribute("aria-current", "page");
   });
 
+  test('breadcrumb keeps literal "Plan" label when /api/plan returns 404', async ({ page }) => {
+    // Optimistic-render path: updateBreadcrumb fires before /api/plan
+    // resolves with `planName || "Plan"`. If the plan fetch fails the
+    // page must still show the 3-level trail with the literal fallback,
+    // never an empty / undefined middle crumb.
+    await setupFailFast(page);
+    await page.route(`**/api/info/${MOCK_TEST_STATUS.testId}*`, (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(MOCK_TEST_STATUS),
+      }),
+    );
+    await page.route(`**/api/log/${MOCK_TEST_STATUS.testId}**`, (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(MOCK_LOG_ENTRIES),
+      }),
+    );
+    // /api/plan deliberately fails — the bootstrap's optimistic crumb
+    // render is the only thing that survives.
+    await page.route(`**/api/plan/${MOCK_TEST_STATUS.planId}`, (route) =>
+      route.fulfill({ status: 404, body: "" }),
+    );
+    await page.route(`**/api/runner/${MOCK_TEST_STATUS.testId}`, (route) =>
+      route.fulfill({ status: 404, body: "" }),
+    );
+    await page.route("**/api/uploaded-images*", (route) =>
+      route.fulfill({ status: 200, contentType: "application/json", body: "[]" }),
+    );
+    await setupCommonRoutes(page);
+
+    await page.goto(`/log-detail.html?log=${encodeURIComponent(MOCK_TEST_STATUS.testId)}`);
+
+    const crumb = page.locator("cts-crumb#logDetailCrumb");
+    const buttons = crumb.locator("button.crumbLink");
+    await expect(buttons).toHaveCount(2);
+    await expect(buttons.nth(0)).toHaveText("Plans");
+    await expect(buttons.nth(1)).toHaveText("Plan");
+    await expect(crumb.locator("span.crumbCurrent")).toHaveText(MOCK_TEST_STATUS.testName);
+  });
+
   test("breadcrumb renders Logs > <testName> for an ad-hoc test (no planId)", async ({ page }) => {
     // No planId on /api/info means the test wasn't started from a plan.
     // The trail collapses to two levels: `Logs > <test name>`.
