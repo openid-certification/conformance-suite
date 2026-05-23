@@ -8,6 +8,7 @@ import "./cts-json-editor.js";
 import "./cts-test-nav-controls.js";
 import "./cts-failure-summary.js";
 import "./cts-action-overflow.js";
+import "./cts-time.js";
 import { formatDescription } from "./format-description.js";
 import { splitTestSummary } from "./test-summary-split.js";
 
@@ -749,34 +750,6 @@ class CtsLogDetailHeader extends LitElement {
     return this;
   }
 
-  // ──────────────────────────── formatters ────────────────────────────
-
-  _formatDate(dateStr) {
-    if (!dateStr) return "";
-    // Match the locale-aware short form used by cts-plan-header so a
-    // user comparing the plan-detail header with the test-detail
-    // drawer sees the same date format in both surfaces.
-    return new Date(dateStr).toLocaleString();
-  }
-
-  /**
-   * Compact "{Mon DD, YYYY}, {h:mm AM}" formatter for the sticky bar
-   * row 2 — the long form returned by `_formatDate()` does not fit
-   * alongside the truncated test name. Falls back to the empty string
-   * for missing input so the caller can short-circuit rendering.
-   * @param {string} dateStr - ISO date string to format.
-   * @returns {string} The compact-formatted date, or "" when input is missing or invalid.
-   */
-  _formatDateCompact(dateStr) {
-    if (!dateStr) return "";
-    const d = new Date(dateStr);
-    if (Number.isNaN(d.getTime())) return "";
-    return d.toLocaleString(undefined, {
-      dateStyle: "medium",
-      timeStyle: "short",
-    });
-  }
-
   /**
    * Render the variant map as a nested definition list so each key/value
    * pair sits on its own row, replacing the legacy comma-joined string
@@ -1091,11 +1064,13 @@ class CtsLogDetailHeader extends LitElement {
    * @returns {import('lit').TemplateResult|typeof nothing} The row 2 template, or `nothing` when no created timestamp is set.
    */
   _renderStatusBarCreated(test) {
-    const created = this._formatDateCompact(test.created);
-    if (!created) return nothing;
-    return html`<span class="ctsStatusBarCreated tabular-nums" title="Created ${created}"
-      >${created}</span
-    >`;
+    if (!test.created) return nothing;
+    // The span is the grid item carrying `grid-area: created`; cts-time is
+    // display:contents, so it must sit *inside* a placed element rather than
+    // being the grid item itself.
+    return html`<span class="ctsStatusBarCreated tabular-nums">
+      <cts-time mode="compact" value=${test.created}></cts-time>
+    </span>`;
   }
 
   _renderStatusBarOverflowSlot() {
@@ -1592,7 +1567,9 @@ class CtsLogDetailHeader extends LitElement {
           <span class="mono">${test.testId}</span>
         </div>
         <div class="logMetaLabel">Created:</div>
-        <div class="logMetaValue tabular-nums"> ${this._formatDate(test.created)} </div>
+        <div class="logMetaValue tabular-nums">
+          <cts-time mode="absolute" value=${test.created}></cts-time>
+        </div>
         ${test.description
           ? html`
               <div class="logMetaLabel">Description:</div>

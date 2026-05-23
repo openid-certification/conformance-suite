@@ -1,5 +1,11 @@
 import { LitElement, html, nothing } from "lit";
-import { formatRelative, formatAbsolute, formatTimeOfDay, toIso } from "../lib/time-format.js";
+import {
+  formatRelative,
+  formatAbsolute,
+  formatTimeOfDay,
+  formatCompact,
+  toIso,
+} from "../lib/time-format.js";
 
 const STYLE_ID = "cts-time-styles";
 
@@ -48,6 +54,7 @@ function ensureStylesInjected() {
  *   `auto` (default — relative for ≤30 days, absolute beyond),
  *   `relative` (always relative, e.g. "5 minutes ago"),
  *   `absolute` (full locale date/time),
+ *   `compact` (medium date + short time, e.g. "May 22, 2026, 9:42 AM"),
  *   `time-of-day` (clock time only, e.g. "9:42:13 AM"). The `title`
  *   attribute is always the full absolute form regardless of mode.
  */
@@ -80,6 +87,8 @@ class CtsTime extends LitElement {
         return formatRelative(this.value);
       case "absolute":
         return formatAbsolute(this.value);
+      case "compact":
+        return formatCompact(this.value);
       case "time-of-day":
         return formatTimeOfDay(this.value);
       case "auto":

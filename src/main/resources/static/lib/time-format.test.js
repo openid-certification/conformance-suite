@@ -3,6 +3,7 @@ import {
   formatRelative,
   formatAbsolute,
   formatTimeOfDay,
+  formatCompact,
   formatAuto,
   toIso,
 } from "./time-format.js";
@@ -30,6 +31,7 @@ describe("time-format", () => {
       expect(formatRelative(/** @type {any} */ (value))).toBe("");
       expect(formatAbsolute(/** @type {any} */ (value))).toBe("");
       expect(formatTimeOfDay(/** @type {any} */ (value))).toBe("");
+      expect(formatCompact(/** @type {any} */ (value))).toBe("");
       expect(toIso(/** @type {any} */ (value))).toBe("");
       expect(formatAuto(/** @type {any} */ (value))).toEqual({
         display: "",
@@ -106,6 +108,17 @@ describe("time-format", () => {
   describe("formatTimeOfDay", () => {
     it("matches new Date(iso).toLocaleTimeString() byte-for-byte", () => {
       expect(formatTimeOfDay(FIXED_ISO)).toBe(new Date(FIXED_ISO).toLocaleTimeString());
+    });
+  });
+
+  describe("formatCompact", () => {
+    it("matches the medium-date / short-time locale form byte-for-byte", () => {
+      expect(formatCompact(FIXED_ISO)).toBe(
+        new Date(FIXED_ISO).toLocaleString(undefined, {
+          dateStyle: "medium",
+          timeStyle: "short",
+        }),
+      );
     });
   });
 
