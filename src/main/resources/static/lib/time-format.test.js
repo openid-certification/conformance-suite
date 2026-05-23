@@ -4,8 +4,8 @@ import {
   formatAbsolute,
   formatTimeOfDay,
   formatCompact,
-  formatAuto,
   toIso,
+  toMillis,
 } from "./time-format.js";
 
 // A fixed instant used for byte-for-byte locale comparisons. Tests assert
@@ -33,10 +33,7 @@ describe("time-format", () => {
       expect(formatTimeOfDay(/** @type {any} */ (value))).toBe("");
       expect(formatCompact(/** @type {any} */ (value))).toBe("");
       expect(toIso(/** @type {any} */ (value))).toBe("");
-      expect(formatAuto(/** @type {any} */ (value))).toEqual({
-        display: "",
-        absolute: "",
-      });
+      expect(toMillis(/** @type {any} */ (value))).toBeNull();
     });
 
     it("does NOT return the raw input on parse failure (tightens legacy behavior)", () => {
@@ -128,14 +125,25 @@ describe("time-format", () => {
     });
   });
 
-  describe("formatAuto", () => {
-    it("returns { display, absolute } matching the individual helpers", () => {
-      vi.useFakeTimers();
-      vi.setSystemTime(new Date("2026-05-22T09:47:13.482Z")); // +5 min
-      expect(formatAuto(FIXED_ISO)).toEqual({
-        display: formatRelative(FIXED_ISO),
-        absolute: formatAbsolute(FIXED_ISO),
-      });
+  describe("toMillis", () => {
+    it("returns the epoch-ms for an ISO string", () => {
+      expect(toMillis(FIXED_ISO)).toBe(new Date(FIXED_ISO).getTime());
+    });
+
+    it("returns null and never throws for an out-of-range epoch-ms string", () => {
+      // A 16-digit value exceeds the max valid Date (8.64e15). Returning null
+      // keeps the module's never-throws contract: a downstream toISOString()
+      // would RangeError on such a value.
+      const huge = "9".repeat(16);
+      expect(toMillis(huge)).toBeNull();
+      expect(toIso(huge)).toBe("");
+      expect(() => toIso(huge)).not.toThrow();
+      expect(formatAbsolute(huge)).toBe("");
+    });
+
+    it("returns null for an out-of-range epoch-ms number", () => {
+      expect(toMillis(8.64e15 + 1)).toBeNull();
+      expect(() => toIso(8.64e15 + 1)).not.toThrow();
     });
   });
 

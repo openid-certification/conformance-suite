@@ -73,6 +73,13 @@ export const Default = {
     // Table has correct number of data rows
     const rows = canvasElement.querySelectorAll("tbody tr");
     expect(rows.length).toBe(MOCK_PLAN_LIST.length);
+
+    // The Started column renders through cts-time: a native <time> whose title
+    // carries the full absolute date on hover.
+    const startedTime = canvasElement.querySelector("tbody tr .tabular-nums time");
+    expect(startedTime).toBeTruthy();
+    expect(startedTime?.getAttribute("title")).toBeTruthy();
+    expect(startedTime?.getAttribute("datetime")).toBeTruthy();
   },
 };
 

@@ -922,7 +922,12 @@ class CtsDataTable extends LitElement {
     // 1. Built-in formats.
     if (column.format === "date") {
       if (value == null || value === "") return "";
-      const d = value instanceof Date ? value : new Date(/** @type {string | number} */ (value));
+      // readKey returns unknown; narrow to the shapes Date accepts rather than
+      // casting, so a stray object value falls through to its String() form.
+      if (!(value instanceof Date) && typeof value !== "string" && typeof value !== "number") {
+        return String(value);
+      }
+      const d = value instanceof Date ? value : new Date(value);
       if (Number.isNaN(d.getTime())) return String(value);
       // Keep the compact, sortable-looking YYYY-MM-DD HH:MM grid format as the
       // visible text, but wrap it in a native <time> so hovering reveals the

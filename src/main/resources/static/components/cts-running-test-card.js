@@ -267,6 +267,15 @@ class CtsRunningTestCard extends LitElement {
    * everything else). For a *running* test, "5m ago" is the operational
    * question — siblings render absolute dates because they describe
    * historical work.
+   *
+   * This intentionally does NOT use `lib/time-format.js` / `<cts-time>`: the
+   * shared `formatRelative` emits the verbose `Intl.RelativeTimeFormat` form
+   * ("5 minutes ago") with a 30-day crossover, whereas a running-test card
+   * needs the ultra-compact mobile form with a 7-day crossover. The card
+   * already exposes the absolute date on hover via the native `title`
+   * attribute below, so it meets the hover-absolute contract without the
+   * primitive. Do not "consolidate" this onto cts-time without preserving the
+   * compact format.
    * @param {string | undefined} dateStr - ISO 8601 date string from the runner payload.
    * @returns {string} A short relative-time label, or a locale date for timestamps older than 7 days; `""` when input is missing/unparseable.
    */

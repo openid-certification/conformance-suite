@@ -95,6 +95,20 @@ export const Relative = {
   },
 };
 
+export const AutoAbsoluteFallback = {
+  // A timestamp well past the 30-day relative crossover. In auto mode the
+  // visible text falls back to the absolute locale string (the component-level
+  // counterpart to formatRelative's unit-tested fallback branch).
+  render: () => html`<cts-time value="2020-01-01T00:00:00.000Z" mode="auto"></cts-time>`,
+
+  async play({ canvasElement }) {
+    const t = getTimeEl(canvasElement);
+    expect(t).toBeTruthy();
+    expect(t?.textContent?.trim()).toBe(formatAbsolute("2020-01-01T00:00:00.000Z"));
+    expect(t?.getAttribute("title")).toBe(formatAbsolute("2020-01-01T00:00:00.000Z"));
+  },
+};
+
 export const EmptyValue = {
   render: () => html`<cts-time value=""></cts-time>`,
 

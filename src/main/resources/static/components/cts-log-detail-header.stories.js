@@ -1094,6 +1094,13 @@ export const StatusBarFinishedPassed = {
     const created = bar.querySelector(".ctsStatusBarCreated");
     expect(created).toBeTruthy();
     expect(created.textContent.trim().length).toBeGreaterThan(0);
+
+    // It renders through cts-time: a native <time> whose title carries the
+    // full absolute date on hover (the compact visible form elides parts).
+    const createdTime = created.querySelector("time");
+    expect(createdTime).toBeTruthy();
+    expect(createdTime.getAttribute("title")).toBeTruthy();
+    expect(createdTime.getAttribute("datetime")).toBeTruthy();
   },
 };
 

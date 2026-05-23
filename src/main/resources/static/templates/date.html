@@ -1,1 +1,1 @@
-<% var d = new Date(date); var iso = isNaN(d.getTime()) ? "" : d.toISOString(); var human = d.toLocaleString(); %><time class="tabular-nums" datetime="<%- iso %>" title="<%- human %>"><%- human %></time>
+<% var d = new Date(date); var valid = !isNaN(d.getTime()); var iso = valid ? d.toISOString() : ""; var human = valid ? d.toLocaleString() : ""; %><time class="tabular-nums" datetime="<%- iso %>" title="<%- human %>"><%- human %></time>

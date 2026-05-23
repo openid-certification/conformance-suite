@@ -93,6 +93,14 @@ export const Default = {
 
     // Owner pill is NOT rendered when is-admin is unset.
     expect(canvasElement.querySelectorAll(".log-owner").length).toBe(0);
+
+    // The Started timestamp renders through cts-time: a native <time> whose
+    // title carries the absolute form on hover (replacing the former
+    // cts-tooltip + formatRelativeTime/formatAbsoluteTime path).
+    const startedTime = canvasElement.querySelector(".cts-log-card-meta-value time");
+    expect(startedTime).toBeTruthy();
+    expect(startedTime?.getAttribute("title")).toBeTruthy();
+    expect(startedTime?.getAttribute("datetime")).toBeTruthy();
   },
 };
 
