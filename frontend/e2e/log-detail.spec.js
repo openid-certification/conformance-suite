@@ -234,6 +234,62 @@ test.describe("log-detail.html — new Lit-triad page", () => {
     expect(orderCheck.navBeforeBar).toBe(true);
   });
 
+  test("breadcrumb renders Plans > <planName> > <testName> for a planned test", async ({
+    page,
+  }) => {
+    // The breadcrumb must give a planned-test viewer three levels of
+    // orientation: the Plans index, this test's parent plan (named, not
+    // opaque ID), and finally the test module's own name (not the
+    // runtime testId). Mirrors plan-detail.html's `Plans > <planName>`
+    // convention extended with the test-name terminal.
+    await setupFailFast(page);
+    await setupV2Routes(page, {
+      testInfo: MOCK_TEST_STATUS,
+      logEntries: MOCK_LOG_ENTRIES,
+    });
+    await setupCommonRoutes(page);
+
+    await page.goto(`/log-detail.html?log=${encodeURIComponent(MOCK_TEST_STATUS.testId)}`);
+
+    const crumb = page.locator("cts-crumb#logDetailCrumb");
+    // Wait for the plan-name fetch to land (crumb re-renders with the
+    // real plan name once /api/plan resolves).
+    await expect(crumb.locator("button.crumbLink").nth(1)).toHaveText("test-plan");
+
+    // Three items: two clickable, last is terminal.
+    const buttons = crumb.locator("button.crumbLink");
+    await expect(buttons).toHaveCount(2);
+    await expect(buttons.nth(0)).toHaveText("Plans");
+    await expect(buttons.nth(1)).toHaveText("test-plan");
+
+    const terminal = crumb.locator("span.crumbCurrent");
+    await expect(terminal).toHaveText(MOCK_TEST_STATUS.testName);
+    await expect(terminal).toHaveAttribute("aria-current", "page");
+  });
+
+  test("breadcrumb renders Logs > <testName> for an ad-hoc test (no planId)", async ({ page }) => {
+    // No planId on /api/info means the test wasn't started from a plan.
+    // The trail collapses to two levels: `Logs > <test name>`.
+    const adhocInfo = { ...MOCK_TEST_STATUS, planId: undefined };
+    delete adhocInfo.planId;
+
+    await setupFailFast(page);
+    await setupV2Routes(page, {
+      testInfo: adhocInfo,
+      logEntries: MOCK_LOG_ENTRIES,
+    });
+    await setupCommonRoutes(page);
+
+    await page.goto(`/log-detail.html?log=${encodeURIComponent(adhocInfo.testId)}`);
+
+    const crumb = page.locator("cts-crumb#logDetailCrumb");
+    await expect(crumb.locator("span.crumbCurrent")).toHaveText(adhocInfo.testName);
+
+    const buttons = crumb.locator("button.crumbLink");
+    await expect(buttons).toHaveCount(1);
+    await expect(buttons.nth(0)).toHaveText("Logs");
+  });
+
   /**
    * Run the post-terminal verdict refresh against a parametrized verdict
    * (PASSED / FAILED / REVIEW / WARNING / SKIPPED / INTERRUPTED). The

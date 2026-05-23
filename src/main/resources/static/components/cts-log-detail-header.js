@@ -191,8 +191,8 @@ const STYLE_TEXT = `
     display: grid;
     grid-template-columns: auto 1fr auto;
     grid-template-areas:
-      "left   middle  primary"
-      "name   name    name";
+      "left    middle  primary"
+      "created created created";
     column-gap: var(--space-3);
     row-gap: var(--space-2);
     align-items: center;
@@ -255,36 +255,32 @@ const STYLE_TEXT = `
   cts-log-detail-header .ctsStatusBarOverflow {
     display: contents;
   }
-  /* Bar row 2 — test name + created datetime side-by-side. The name
-     truncates with ellipsis; the date sits to its right at fixed
-     width, separated by a middle-dot. The date is promoted out of
-     the drawer (where it used to be) because operators glance at
-     "when did this run?" constantly — hiding it behind a disclosure
-     was a hierarchy regression. */
-  cts-log-detail-header .ctsStatusBarTestName {
-    grid-area: name;
-    display: flex;
-    align-items: baseline;
-    gap: var(--space-2);
-    color: var(--fg-soft);
-    font-size: var(--fs-13);
-    min-width: 0;
-  }
+  /* Test name leads the bar's left cluster (Row 1, ahead of the status
+     pill and result-count badges) so the bar's title — "which test is
+     this?" — reads before the badges that describe it. Slightly larger
+     than the surrounding chrome (--fs-14 vs --fs-13) and weighted as
+     the bar's title, truncating with ellipsis when long names would
+     wrap the badges onto a new visual line. */
   cts-log-detail-header .ctsStatusBarTestNameText {
+    color: var(--fg);
+    font-size: var(--fs-14);
+    font-weight: var(--fw-medium);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
     min-width: 0;
+    max-width: 32ch;
     flex: 0 1 auto;
   }
-  cts-log-detail-header .ctsStatusBarSeparator {
-    color: var(--fg-faint);
-    flex: 0 0 auto;
-  }
+  /* Row 2 carries the created timestamp alone. Promoted out of the
+     drawer (where it used to be) because operators glance at "when
+     did this run?" constantly — hiding it behind a disclosure was a
+     hierarchy regression. */
   cts-log-detail-header .ctsStatusBarCreated {
+    grid-area: created;
     color: var(--fg-muted);
+    font-size: var(--fs-13);
     white-space: nowrap;
-    flex: 0 0 auto;
   }
   @media (min-width: 640px) {
     cts-log-detail-header .ctsStatusBar {
@@ -1029,31 +1025,33 @@ class CtsLogDetailHeader extends LitElement {
   }
 
   /**
-   * Bar row 2 — truncated test name + created datetime. The created
-   * timestamp is promoted out of the drawer because it's a "when did
-   * this run?" anchor operators glance at constantly; hiding it
-   * behind a click would force a disclosure for a fact that should
-   * read at a glance.
-   * @param {TestInfo} test - Test info used to source the name and created timestamp.
-   * @returns {import('lit').TemplateResult|typeof nothing} The row 2 template, or `nothing` when neither field is set.
+   * Test module name span — placed as the first child of the bar's
+   * left cluster (Row 1) so it leads the badges that describe it.
+   * Truncates with ellipsis when long names would push the badges
+   * onto a new visual line.
+   * @param {TestInfo} test - Test info used to source the name.
+   * @returns {import('lit').TemplateResult|typeof nothing} The test-name span, or `nothing` when no name is set.
    */
-  _renderStatusBarTestName(test) {
+  _renderStatusBarTestNameText(test) {
     const name = test.testName || "";
+    if (!name) return nothing;
+    return html`<span class="ctsStatusBarTestNameText" title="${name}">${name}</span>`;
+  }
+
+  /**
+   * Bar row 2 — created datetime, alone. Promoted out of the drawer
+   * because it's a "when did this run?" anchor operators glance at
+   * constantly; hiding it behind a click would force a disclosure
+   * for a fact that should read at a glance.
+   * @param {TestInfo} test - Test info used to source the created timestamp.
+   * @returns {import('lit').TemplateResult|typeof nothing} The row 2 template, or `nothing` when no created timestamp is set.
+   */
+  _renderStatusBarCreated(test) {
     const created = this._formatDateCompact(test.created);
-    if (!name && !created) return nothing;
-    return html`<div class="ctsStatusBarTestName">
-      ${name
-        ? html`<span class="ctsStatusBarTestNameText" title="${name}">${name}</span>`
-        : nothing}
-      ${name && created
-        ? html`<span class="ctsStatusBarSeparator" aria-hidden="true">·</span>`
-        : nothing}
-      ${created
-        ? html`<span class="ctsStatusBarCreated tabular-nums" title="Created ${created}"
-            >${created}</span
-          >`
-        : nothing}
-    </div>`;
+    if (!created) return nothing;
+    return html`<span class="ctsStatusBarCreated tabular-nums" title="Created ${created}"
+      >${created}</span
+    >`;
   }
 
   _renderStatusBarOverflowSlot() {
@@ -1186,7 +1184,7 @@ class CtsLogDetailHeader extends LitElement {
     return html`
       <div class="ctsStatusBar" id="ctsLogStatusBar" data-testid="status-bar">
         <div class="ctsStatusBarLeft">
-          ${this._renderStatusPill("WAITING")}
+          ${this._renderStatusBarTestNameText(test)} ${this._renderStatusPill("WAITING")}
           <span class="ctsStatusBarSupport" data-testid="status-bar-support">${supportText}</span>
         </div>
         <div class="ctsStatusBarMiddle"></div>
@@ -1203,7 +1201,7 @@ class CtsLogDetailHeader extends LitElement {
               ></cts-button>`}
           ${this._renderStatusBarOverflowSlot()}
         </div>
-        ${this._renderStatusBarTestName(test)}
+        ${this._renderStatusBarCreated(test)}
       </div>
     `;
   }
@@ -1213,7 +1211,7 @@ class CtsLogDetailHeader extends LitElement {
     return html`
       <div class="ctsStatusBar" id="ctsLogStatusBar" data-testid="status-bar">
         <div class="ctsStatusBarLeft">
-          ${this._renderStatusPill("RUNNING")}
+          ${this._renderStatusBarTestNameText(test)} ${this._renderStatusPill("RUNNING")}
           <span class="ctsStatusBarSupport">Test running</span>
         </div>
         <div class="ctsStatusBarMiddle" data-testid="status-bar-pills">
@@ -1230,7 +1228,7 @@ class CtsLogDetailHeader extends LitElement {
           ></cts-button>
           ${this._renderStatusBarOverflowSlot()}
         </div>
-        ${this._renderStatusBarTestName(test)}
+        ${this._renderStatusBarCreated(test)}
       </div>
     `;
   }
@@ -1242,6 +1240,7 @@ class CtsLogDetailHeader extends LitElement {
     return html`
       <div class="ctsStatusBar" id="ctsLogStatusBar" data-testid="status-bar">
         <div class="ctsStatusBarLeft">
+          ${this._renderStatusBarTestNameText(test)}
           ${test.result
             ? html`<cts-badge variant="${resultVariant}" label="${test.result}"></cts-badge>`
             : nothing}
@@ -1263,7 +1262,7 @@ class CtsLogDetailHeader extends LitElement {
             : nothing}
           ${this._renderStatusBarOverflowSlot()}
         </div>
-        ${this._renderStatusBarTestName(test)}
+        ${this._renderStatusBarCreated(test)}
       </div>
     `;
   }

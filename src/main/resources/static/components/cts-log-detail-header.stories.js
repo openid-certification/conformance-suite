@@ -1062,9 +1062,15 @@ export const StatusBarFinishedPassed = {
     expect(repeatHandler).toHaveBeenCalledOnce();
     expect(repeatHandler.mock.calls[0][0].detail.testId).toBe(COMPLETED_TEST.testId);
 
-    const testName = bar.querySelector(".ctsStatusBarTestName");
-    expect(testName).toBeTruthy();
-    expect(testName.textContent).toContain(COMPLETED_TEST.testName);
+    // Test module name leads the bar's left cluster, before the
+    // verdict badge — promotes "which test is this?" above the
+    // badges that describe it.
+    const left = bar.querySelector(".ctsStatusBarLeft");
+    expect(left).toBeTruthy();
+    const nameText = left.querySelector(".ctsStatusBarTestNameText");
+    expect(nameText).toBeTruthy();
+    expect(nameText.textContent).toContain(COMPLETED_TEST.testName);
+    expect(left.firstElementChild).toBe(nameText);
   },
 };
 

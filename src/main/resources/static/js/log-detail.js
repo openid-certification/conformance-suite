@@ -222,14 +222,29 @@ async function fetchTestInfo() {
   return response.json();
 }
 
-/** Update breadcrumb with plan / logs root + this test's ID. */
-function updateBreadcrumb(testInfo) {
+/**
+ * Update breadcrumb with the orientation trail.
+ * Planned test → `Plans > <planName | "Plan"> > <testName | testId>`.
+ * Ad-hoc test → `Logs > <testName | testId>`.
+ *
+ * `planName` is optional and resolved asynchronously from `/api/plan/<id>`
+ * (see fetchAndApplyPlanState). Call once before the fetch lands with
+ * planName=null for an optimistic render, then a second time once the
+ * plan-name is available.
+ *
+ * @param {any} testInfo - /api/info payload (testName, planId, testId).
+ * @param {string | null | undefined} [planName] - Resolved plan name, or
+ *   null/undefined to render the literal "Plan" label as a fallback.
+ */
+function updateBreadcrumb(testInfo, planName) {
   const crumb = document.getElementById("logDetailCrumb");
   if (!crumb) return;
+  const terminalLabel = testInfo.testName || testInfo.testId;
   const items = [];
   if (testInfo.planId) {
+    items.push({ label: "Plans", target: "/plans.html" });
     items.push({
-      label: "Plan",
+      label: planName || "Plan",
       target:
         "/plan-detail.html?plan=" +
         encodeURIComponent(testInfo.planId) +
@@ -238,23 +253,38 @@ function updateBreadcrumb(testInfo) {
   } else {
     items.push({ label: "Logs", target: "/logs.html" });
   }
-  items.push({ label: testInfo.testId, target: "" });
+  items.push({ label: terminalLabel, target: "" });
   crumb.items = items;
-  crumb.addEventListener("cts-crumb-navigate", (evt) => {
-    if (evt.detail && evt.detail.target) {
-      window.location.assign(evt.detail.target);
-    }
-  });
+  if (!crumb.dataset.navWired) {
+    crumb.addEventListener("cts-crumb-navigate", (evt) => {
+      if (evt.detail && evt.detail.target) {
+        window.location.assign(evt.detail.target);
+      }
+    });
+    crumb.dataset.navWired = "true";
+  }
 }
 
 /** ──────────── /api/plan ──────────── */
 
+/**
+ * Fetch the plan record and apply it to:
+ *   - the nav-controls progress wiring (currentIndex / totalCount / nextEnabled)
+ *   - the page-level breadcrumb's middle label (planName)
+ * Returns the parsed plan JSON on success, or null on any failure / missing planId.
+ *
+ * @param {any} testInfo - /api/info payload.
+ * @returns {Promise<any | null>} Parsed `/api/plan/<id>` response, or null.
+ */
 async function fetchAndApplyPlanState(testInfo) {
-  if (!testInfo.planId) return;
+  if (!testInfo.planId) return null;
   try {
     const response = await fetch("/api/plan/" + encodeURIComponent(testInfo.planId));
-    if (!response.ok) return;
+    if (!response.ok) return null;
     const planData = await response.json();
+    if (planData && planData.planName) {
+      updateBreadcrumb(testInfo, planData.planName);
+    }
     const modules = Array.isArray(planData.modules) ? planData.modules : [];
     cachedPlanModules = modules;
 
@@ -272,14 +302,16 @@ async function fetchAndApplyPlanState(testInfo) {
     );
 
     const navControls = document.querySelector("cts-test-nav-controls");
-    if (!navControls) return;
-
-    const safeIndex = thisModuleIndex >= 0 ? thisModuleIndex : 0;
-    navControls.currentIndex = safeIndex;
-    navControls.totalCount = modules.length;
-    navControls.nextEnabled = safeIndex >= 0 && safeIndex + 1 < modules.length;
+    if (navControls) {
+      const safeIndex = thisModuleIndex >= 0 ? thisModuleIndex : 0;
+      navControls.currentIndex = safeIndex;
+      navControls.totalCount = modules.length;
+      navControls.nextEnabled = safeIndex >= 0 && safeIndex + 1 < modules.length;
+    }
+    return planData;
   } catch (err) {
     console.warn("[log-detail] /api/plan failed:", err);
+    return null;
   }
 }
 
