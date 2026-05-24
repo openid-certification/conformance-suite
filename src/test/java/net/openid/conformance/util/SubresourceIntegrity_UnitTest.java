@@ -84,9 +84,20 @@ public class SubresourceIntegrity_UnitTest {
 
 	@Test
 	public void parse_unsupportedAlgorithm_throws() {
+		// Conformance-suite policy: unrecognized hash algorithms are issuer bugs
+		// worth surfacing rather than silently skipping per W3C SRI §3.3.2.
 		IllegalArgumentException e = assertThrows(IllegalArgumentException.class,
-			() -> SubresourceIntegrity.parse("md5-abc"));
+			() -> SubresourceIntegrity.parse("md5-abcdef"));
 		assertTrue(e.getMessage().contains("unsupported algorithm"));
+	}
+
+	@Test
+	public void parse_mixedKnownAndUnknown_throwsOnUnknown() {
+		// Any unrecognized algorithm in the input fails — the recognized token
+		// alongside it doesn't rescue the parse. Issuers should not include
+		// unsupported algorithms.
+		assertThrows(IllegalArgumentException.class,
+			() -> SubresourceIntegrity.parse("md5-abcdef sha256-" + SHA256_ABC_BASE64));
 	}
 
 	@Test
@@ -104,17 +115,38 @@ public class SubresourceIntegrity_UnitTest {
 	}
 
 	@Test
-	public void parse_acceptsBase64UrlCharacters() {
-		// The SD-JWT VC example for vct#integrity uses '-' and '_' (base64url),
-		// even though W3C SRI nominally specifies standard base64.
+	public void parse_rejectsBase64UrlCharacters() {
+		// W3C SRI §3.5 grammar mandates standard base64 (RFC 4648 §4 alphabet).
+		// base64url characters '-' and '_' are not standard base64.
 		String urlHash = SHA256_ABC_BASE64.replace('+', '-').replace('/', '_').replace("=", "");
-		assertTrue(SubresourceIntegrity.verify(ABC, "sha256-" + urlHash));
+		IllegalArgumentException e = assertThrows(IllegalArgumentException.class,
+			() -> SubresourceIntegrity.verify(ABC, "sha256-" + urlHash));
+		assertTrue(e.getMessage().contains("invalid base64"));
 	}
 
 	@Test
 	public void parse_acceptsUnpaddedBase64() {
 		String unpadded = SHA256_ABC_BASE64.replace("=", "");
 		assertTrue(SubresourceIntegrity.verify(ABC, "sha256-" + unpadded));
+	}
+
+	@Test
+	public void parse_rejectsTrailingGarbageAfterPadding() {
+		// SHA256_ABC_BASE64 ends in a '=' pad; appending garbage after it must be
+		// rejected, not silently truncated at the first '='.
+		IllegalArgumentException e = assertThrows(IllegalArgumentException.class,
+			() -> SubresourceIntegrity.verify(ABC, "sha256-" + SHA256_ABC_BASE64 + "junk"));
+		assertTrue(e.getMessage().contains("invalid base64"));
+	}
+
+	@Test
+	public void parse_rejectsEqualsInMiddle() {
+		String unpadded = SHA256_ABC_BASE64.replace("=", "");
+		// An '=' embedded before the end of the hash value is not valid padding.
+		String embedded = unpadded.substring(0, 4) + "=" + unpadded.substring(4);
+		IllegalArgumentException e = assertThrows(IllegalArgumentException.class,
+			() -> SubresourceIntegrity.verify(ABC, "sha256-" + embedded));
+		assertTrue(e.getMessage().contains("invalid base64"));
 	}
 
 	@Test

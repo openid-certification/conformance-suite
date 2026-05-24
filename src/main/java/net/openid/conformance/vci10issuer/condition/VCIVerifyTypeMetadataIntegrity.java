@@ -11,8 +11,9 @@ import java.nio.charset.StandardCharsets;
  * Per IETF SD-JWT VC §6.3.1: "If the claim {@code vct#integrity} is present
  * in the SD-JWT VC, its value {@code vct#integrity} MUST be an 'integrity
  * metadata' string as defined in Section 7." And §7 requires the Consumer to
- * verify the retrieved Type Metadata document against that integrity hash per
- * W3C SRI §3.3.5.
+ * verify the retrieved Type Metadata document against that integrity hash.
+ * (§7 cites W3C SRI §3.3.5; the matching algorithm is §3.3.4, "Do bytes match
+ * metadataList?", in the W3C SRI Recommendation.)
  *
  * No-op (logs success) when {@code vct#integrity} is absent; otherwise FAILURE
  * if the hash is malformed or does not match the fetched response body.
@@ -39,8 +40,8 @@ public class VCIVerifyTypeMetadataIntegrity extends AbstractCondition {
 		try {
 			matches = SubresourceIntegrity.verify(bodyBytes, integrity);
 		} catch (IllegalArgumentException e) {
-			throw error("'vct#integrity' value is malformed per W3C SRI §3.5", e,
-				args("vct#integrity", integrity));
+			throw error("'vct#integrity' is malformed or uses an unsupported algorithm; cannot satisfy SD-JWT VC §7's MUST-verify requirement",
+				e, args("vct#integrity", integrity));
 		}
 		if (!matches) {
 			throw error("Fetched Type Metadata document does not match the 'vct#integrity' hash, violating SD-JWT VC §7 (W3C SRI §3.3.4)",

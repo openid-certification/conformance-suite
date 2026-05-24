@@ -93,7 +93,16 @@ public class VCIVerifyTypeMetadataIntegrity_UnitTest {
 
 	@Test
 	public void integrityMalformed_fails() {
-		putSdjwt("not-a-valid-sri-string");
+		// "sha256-!!!" — algorithm understood but value has non-base64 chars.
+		putSdjwt("sha256-!!!notbase64!!!");
+		putVci(SAMPLE_BODY);
+		ConditionError e = assertThrows(ConditionError.class, () -> cond.execute(env));
+		assertTrue(e.getMessage().contains("malformed"));
+	}
+
+	@Test
+	public void integrityWithMissingSeparator_fails() {
+		putSdjwt("sha256NoDashHere");
 		putVci(SAMPLE_BODY);
 		ConditionError e = assertThrows(ConditionError.class, () -> cond.execute(env));
 		assertTrue(e.getMessage().contains("malformed"));
@@ -101,9 +110,21 @@ public class VCIVerifyTypeMetadataIntegrity_UnitTest {
 
 	@Test
 	public void unsupportedAlgorithm_fails() {
-		putSdjwt("md5-abc");
+		// Conformance-suite policy: an unrecognized algorithm is an issuer bug.
+		putSdjwt("md5-YWJj");
 		putVci(SAMPLE_BODY);
 		ConditionError e = assertThrows(ConditionError.class, () -> cond.execute(env));
-		assertTrue(e.getMessage().contains("malformed"));
+		assertTrue(e.getMessage().contains("unsupported algorithm")
+			|| e.getMessage().contains("malformed"));
+	}
+
+	@Test
+	public void mixedKnownAndUnknown_failsOnUnknown() throws NoSuchAlgorithmException {
+		// Any unrecognized algorithm in the integrity string fails the check —
+		// the recognized sha256 alongside it does not rescue the issuer.
+		String sha256 = sha256Base64(SAMPLE_BODY);
+		putSdjwt("md5-YWJj sha256-" + sha256);
+		putVci(SAMPLE_BODY);
+		assertThrows(ConditionError.class, () -> cond.execute(env));
 	}
 }
