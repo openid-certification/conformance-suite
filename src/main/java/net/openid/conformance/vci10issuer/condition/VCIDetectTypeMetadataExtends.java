@@ -6,16 +6,20 @@ import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 
 /**
- * Per IETF SD-JWT VC §6.4: "Consumers MUST retrieve and process Type Metadata
- * for the extended type before processing the Type Metadata for the extending
- * type." And §6.5.2 requires the schema of every type in the chain to be
- * validated, with rejection on any failure.
+ * Per IETF SD-JWT VC draft-13 §6.4: "Consumers MUST retrieve and process
+ * Type Metadata for the extended type before processing the Type Metadata
+ * for the extending type." And §9.5: "all claim metadata from the extended
+ * type MUST be respected and are inherited by the child type."
  *
- * This first cut does not implement chain processing. To avoid producing a
- * partial — and possibly wrong — verdict, if {@code extends} is present we
- * skip the downstream schema validation entirely. The caller gates the schema
- * fetch / validation on the {@code vci.sdjwt_vc_type_metadata_chain_ready}
- * env value that this condition sets only when {@code extends} is absent.
+ * This implementation does not yet fetch and merge the parent Type Metadata
+ * chain. Instead it surfaces a WARNING when {@code extends} is present so
+ * the test log makes the limitation explicit, while still allowing the
+ * downstream mandatory and sd checks to run against the child's directly-
+ * declared claims. Per §9.5.1 a child type can only make inherited
+ * constraints stricter (sd: allowed→always/never, mandatory: false→true)
+ * and MUST NOT relax them — so child-only checks may report false
+ * negatives for parent-inherited constraints, but cannot report false
+ * positives.
  */
 public class VCIDetectTypeMetadataExtends extends AbstractCondition {
 
@@ -24,12 +28,10 @@ public class VCIDetectTypeMetadataExtends extends AbstractCondition {
 	public Environment evaluate(Environment env) {
 		JsonObject typeMetadata = env.getElementFromObject("vci", "sdjwt_vc_type_metadata").getAsJsonObject();
 		if (typeMetadata.has("extends")) {
-			log("Type Metadata document contains 'extends'; chain-of-types schema validation is not yet implemented in the conformance suite, so downstream schema validation will be skipped to avoid a partial verdict per SD-JWT VC §6.5.2",
+			throw error("Type Metadata document contains 'extends'; the conformance suite does not yet process the parent chain, so inherited mandatory/sd constraints per §9.5 are not verified. The child's directly-declared claim constraints are still checked.",
 				args("extends", typeMetadata.get("extends")));
-			return env;
 		}
-		env.putString("vci", "sdjwt_vc_type_metadata_chain_ready", "true");
-		logSuccess("Type Metadata document has no 'extends'; downstream schema validation may proceed");
+		logSuccess("Type Metadata document has no 'extends'; all declared claim constraints will be checked");
 		return env;
 	}
 }

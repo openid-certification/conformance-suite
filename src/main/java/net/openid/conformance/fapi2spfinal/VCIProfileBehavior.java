@@ -444,24 +444,28 @@ public class VCIProfileBehavior extends FAPI2ProfileBehavior {
 					.requirements("SDJWTVC-6.2")
 					.dontStopOnFailure());
 
-				// extends-chain handling is not yet implemented; mandatory/sd checks below
-				// are gated on its absence to avoid producing a partial verdict.
+				// extends-chain processing is not yet implemented: surface a WARNING
+				// when extends is present so the limitation is visible, then let
+				// mandatory/sd checks run against the child's directly-declared
+				// claims. Per §9.5.1 child constraints can only be stricter than
+				// parent, so child-only checks may produce false negatives for
+				// inherited constraints but cannot produce false positives.
 				call(condition(VCIDetectTypeMetadataExtends.class)
 					.skipIfElementMissing("vci", "sdjwt_vc_type_metadata")
 					.onSkip(ConditionResult.INFO)
-					.onFail(ConditionResult.FAILURE)
-					.requirements("SDJWTVC-6.4")
+					.onFail(ConditionResult.WARNING)
+					.requirements("SDJWTVC-6.4", "SDJWTVC-9.5")
 					.dontStopOnFailure());
 
 				call(condition(VCIEnsureMandatoryClaimsArePresent.class)
-					.skipIfElementMissing("vci", "sdjwt_vc_type_metadata_chain_ready")
+					.skipIfElementMissing("vci", "sdjwt_vc_type_metadata")
 					.onSkip(ConditionResult.INFO)
 					.onFail(ConditionResult.FAILURE)
 					.requirements("SDJWTVC-9.3")
 					.dontStopOnFailure());
 
 				call(condition(VCIEnsureSelectiveDisclosureConformsToTypeMetadata.class)
-					.skipIfElementMissing("vci", "sdjwt_vc_type_metadata_chain_ready")
+					.skipIfElementMissing("vci", "sdjwt_vc_type_metadata")
 					.onSkip(ConditionResult.INFO)
 					.onFail(ConditionResult.FAILURE)
 					.requirements("SDJWTVC-9.4")

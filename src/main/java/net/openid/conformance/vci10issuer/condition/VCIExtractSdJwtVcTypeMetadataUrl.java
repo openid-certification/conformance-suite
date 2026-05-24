@@ -30,7 +30,6 @@ public class VCIExtractSdJwtVcTypeMetadataUrl extends AbstractCondition {
 		"sdjwt_vc_type_metadata_url",
 		"sdjwt_vc_type_metadata",
 		"sdjwt_vc_type_metadata_endpoint_response",
-		"sdjwt_vc_type_metadata_chain_ready",
 	};
 
 	@Override

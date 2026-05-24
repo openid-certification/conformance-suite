@@ -3,6 +3,7 @@ package net.openid.conformance.vci10issuer.condition;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import net.openid.conformance.condition.Condition.ConditionResult;
+import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.logging.BsonEncoding;
 import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.Environment;
@@ -12,8 +13,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @ExtendWith(MockitoExtension.class)
 public class VCIDetectTypeMetadataExtends_UnitTest {
@@ -38,16 +39,19 @@ public class VCIDetectTypeMetadataExtends_UnitTest {
 	}
 
 	@Test
-	public void noExtends_setsReadyFlag() {
-		putTypeMetadata("{\"name\":\"PID\",\"schema\":{\"type\":\"object\"}}");
+	public void noExtends_passes() {
+		putTypeMetadata("{\"vct\":\"https://example.com/pid\",\"name\":\"PID\"}");
 		cond.execute(env);
-		assertEquals("true", env.getString("vci", "sdjwt_vc_type_metadata_chain_ready"));
 	}
 
 	@Test
-	public void extendsPresent_doesNotSetReadyFlag() {
-		putTypeMetadata("{\"name\":\"PID\",\"extends\":\"https://example.com/base\"}");
-		cond.execute(env);
-		assertNull(env.getString("vci", "sdjwt_vc_type_metadata_chain_ready"));
+	public void extendsPresent_throwsSoCallerCanWarn() {
+		// Wiring at the caller binds onFail to WARNING — the thrown error is
+		// surfaced as a warning rather than a failure. mandatory/sd checks
+		// downstream still run and apply to the child's declared claims.
+		putTypeMetadata("{\"vct\":\"https://example.com/pid\",\"extends\":\"https://example.com/base\"}");
+		ConditionError e = assertThrows(ConditionError.class, () -> cond.execute(env));
+		assertTrue(e.getMessage().contains("extends"));
+		assertTrue(e.getMessage().contains("§9.5"));
 	}
 }

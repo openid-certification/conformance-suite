@@ -82,15 +82,14 @@ public class VCIExtractSdJwtVcTypeMetadataUrl_UnitTest {
 
 	@Test
 	public void staleStateFromPriorCredentialIsCleared() {
-		// Simulate a prior credential having fetched Type Metadata and set
-		// chain_ready. The current credential has a non-HTTPS vct, so the
-		// downstream chain MUST NOT see the prior credential's state.
+		// Simulate a prior credential having fetched Type Metadata. The current
+		// credential has a non-HTTPS vct, so the downstream chain MUST NOT see
+		// any of the prior credential's Type-Metadata state.
 		JsonObject vci = JsonParser.parseString("""
 			{
 				"sdjwt_vc_type_metadata_url": "https://prior.example.com/type",
 				"sdjwt_vc_type_metadata": { "vct": "https://prior.example.com/type" },
-				"sdjwt_vc_type_metadata_endpoint_response": { "body": "{}" },
-				"sdjwt_vc_type_metadata_chain_ready": "true"
+				"sdjwt_vc_type_metadata_endpoint_response": { "body": "{}" }
 			}
 			""").getAsJsonObject();
 		env.putObject("vci", vci);
@@ -100,19 +99,17 @@ public class VCIExtractSdJwtVcTypeMetadataUrl_UnitTest {
 		assertNull(env.getString("vci", "sdjwt_vc_type_metadata_url"));
 		assertNull(env.getElementFromObject("vci", "sdjwt_vc_type_metadata"));
 		assertNull(env.getElementFromObject("vci", "sdjwt_vc_type_metadata_endpoint_response"));
-		assertNull(env.getString("vci", "sdjwt_vc_type_metadata_chain_ready"));
 	}
 
 	@Test
 	public void staleStateIsClearedEvenWhenNewVctIsAlsoHttps() {
 		// New credential's HTTPS URL should overwrite the prior one and the
-		// fetched document / chain_ready flag from the prior iteration must
-		// be gone so downstream re-fetches and re-evaluates.
+		// fetched document from the prior iteration must be gone so the
+		// downstream re-fetches and re-evaluates.
 		JsonObject vci = JsonParser.parseString("""
 			{
 				"sdjwt_vc_type_metadata_url": "https://prior.example.com/type",
-				"sdjwt_vc_type_metadata": { "vct": "https://prior.example.com/type" },
-				"sdjwt_vc_type_metadata_chain_ready": "true"
+				"sdjwt_vc_type_metadata": { "vct": "https://prior.example.com/type" }
 			}
 			""").getAsJsonObject();
 		env.putObject("vci", vci);
@@ -122,6 +119,5 @@ public class VCIExtractSdJwtVcTypeMetadataUrl_UnitTest {
 		assertEquals("https://current.example.com/type",
 			env.getString("vci", "sdjwt_vc_type_metadata_url"));
 		assertNull(env.getElementFromObject("vci", "sdjwt_vc_type_metadata"));
-		assertNull(env.getString("vci", "sdjwt_vc_type_metadata_chain_ready"));
 	}
 }
