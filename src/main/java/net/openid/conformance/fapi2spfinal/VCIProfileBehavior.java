@@ -27,7 +27,16 @@ import net.openid.conformance.variant.FAPI2AuthRequestMethod;
 import net.openid.conformance.variant.VCI1FinalCredentialFormat;
 import net.openid.conformance.variant.VCICredentialEncryption;
 import net.openid.conformance.vci10issuer.condition.CheckCacheControlHeaderContainsNoStore;
+import net.openid.conformance.vci10issuer.condition.CheckForUnexpectedParametersInSdJwtVcTypeMetadata;
 import net.openid.conformance.vci10issuer.condition.VCIAddCredentialConfigurationIdToEnv;
+import net.openid.conformance.vci10issuer.condition.VCIDetectTypeMetadataExtends;
+import net.openid.conformance.vci10issuer.condition.VCIEnsureMandatoryClaimsArePresent;
+import net.openid.conformance.vci10issuer.condition.VCIEnsureSdJwtVcVctMatchesTypeMetadataVct;
+import net.openid.conformance.vci10issuer.condition.VCIEnsureSelectiveDisclosureConformsToTypeMetadata;
+import net.openid.conformance.vci10issuer.condition.VCIExtractSdJwtVcTypeMetadataUrl;
+import net.openid.conformance.vci10issuer.condition.VCIFetchSdJwtVcTypeMetadata;
+import net.openid.conformance.vci10issuer.condition.VCIValidateSdJwtVcTypeMetadataStructure;
+import net.openid.conformance.vci10issuer.condition.VCIVerifyTypeMetadataIntegrity;
 import net.openid.conformance.vci10issuer.condition.VCICheckForDeferredCredentialResponse;
 import net.openid.conformance.vci10issuer.condition.VCICheckKeyAttestationJwksIfKeyAttestationIsRequired;
 import net.openid.conformance.vci10issuer.condition.VCIDecryptCredentialResponse;
@@ -394,6 +403,69 @@ public class VCIProfileBehavior extends FAPI2ProfileBehavior {
 			public void evaluate() {
 				callAndContinueOnFailure(ParseCredentialAsSdJwt.class, ConditionResult.FAILURE, "SDJWT-4");
 				call(new ValidateSdJwtVcCredentialClaims(requiresCryptographicBinding, isHaip()));
+
+				// SD-JWT VC Type Metadata validation per draft-ietf-oauth-sd-jwt-vc-13 (HAIP 1.0 reference).
+				callAndContinueOnFailure(VCIExtractSdJwtVcTypeMetadataUrl.class, ConditionResult.FAILURE, "SDJWTVC-6.3.1");
+
+				// All downstream checks gate on the prior step's env value so the chain
+				// quietly no-ops when vct is not an HTTPS URL.
+				call(condition(VCIFetchSdJwtVcTypeMetadata.class)
+					.skipIfElementMissing("vci", "sdjwt_vc_type_metadata_url")
+					.onSkip(ConditionResult.INFO)
+					.onFail(ConditionResult.FAILURE)
+					.requirements("SDJWTVC-6.3.1")
+					.dontStopOnFailure());
+
+				call(condition(VCIVerifyTypeMetadataIntegrity.class)
+					.skipIfElementMissing("vci", "sdjwt_vc_type_metadata")
+					.onSkip(ConditionResult.INFO)
+					.onFail(ConditionResult.FAILURE)
+					.requirements("SDJWTVC-6.3.1", "SDJWTVC-7")
+					.dontStopOnFailure());
+
+				call(condition(VCIEnsureSdJwtVcVctMatchesTypeMetadataVct.class)
+					.skipIfElementMissing("vci", "sdjwt_vc_type_metadata")
+					.onSkip(ConditionResult.INFO)
+					.onFail(ConditionResult.FAILURE)
+					.requirements("SDJWTVC-6.3")
+					.dontStopOnFailure());
+
+				call(condition(VCIValidateSdJwtVcTypeMetadataStructure.class)
+					.skipIfElementMissing("vci", "sdjwt_vc_type_metadata")
+					.onSkip(ConditionResult.INFO)
+					.onFail(ConditionResult.FAILURE)
+					.requirements("SDJWTVC-6.2", "SDJWTVC-9")
+					.dontStopOnFailure());
+
+				call(condition(CheckForUnexpectedParametersInSdJwtVcTypeMetadata.class)
+					.skipIfElementMissing("vci", "sdjwt_vc_type_metadata")
+					.onSkip(ConditionResult.INFO)
+					.onFail(ConditionResult.WARNING)
+					.requirements("SDJWTVC-6.2")
+					.dontStopOnFailure());
+
+				// extends-chain handling is not yet implemented; mandatory/sd checks below
+				// are gated on its absence to avoid producing a partial verdict.
+				call(condition(VCIDetectTypeMetadataExtends.class)
+					.skipIfElementMissing("vci", "sdjwt_vc_type_metadata")
+					.onSkip(ConditionResult.INFO)
+					.onFail(ConditionResult.FAILURE)
+					.requirements("SDJWTVC-6.4")
+					.dontStopOnFailure());
+
+				call(condition(VCIEnsureMandatoryClaimsArePresent.class)
+					.skipIfElementMissing("vci", "sdjwt_vc_type_metadata_chain_ready")
+					.onSkip(ConditionResult.INFO)
+					.onFail(ConditionResult.FAILURE)
+					.requirements("SDJWTVC-9.3")
+					.dontStopOnFailure());
+
+				call(condition(VCIEnsureSelectiveDisclosureConformsToTypeMetadata.class)
+					.skipIfElementMissing("vci", "sdjwt_vc_type_metadata_chain_ready")
+					.onSkip(ConditionResult.INFO)
+					.onFail(ConditionResult.FAILURE)
+					.requirements("SDJWTVC-9.4")
+					.dontStopOnFailure());
 			}
 		};
 	}
