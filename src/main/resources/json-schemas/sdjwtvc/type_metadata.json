@@ -1,0 +1,119 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$comment": "https://datatracker.ietf.org/doc/html/draft-ietf-oauth-sd-jwt-vc-13#name-sd-jwt-vc-type-metadata",
+    "title": "SD-JWT VC Type Metadata Document",
+    "description": "Schema for an SD-JWT VC Type Metadata document per IETF draft-ietf-oauth-sd-jwt-vc-13. §6.2 says: 'A Type Metadata document MAY contain additional top level or subordinate properties. Consumers MUST ignore properties that are not understood.' Receivers must tolerate extensions — but as a sender-conformance test we still flag them so the caller can surface typos / misunderstandings as warnings. additionalProperties: false here lets a separate CheckForUnexpectedParameters condition collect those violations at WARNING severity.",
+    "type": "object",
+    "required": ["vct"],
+    "properties": {
+        "vct": {
+            "type": "string",
+            "description": "REQUIRED per §6.2. The verifiable credential type described by this Type Metadata document."
+        },
+        "name": {
+            "type": "string",
+            "description": "OPTIONAL per §6.2. A human-readable name for the type."
+        },
+        "description": {
+            "type": "string",
+            "description": "OPTIONAL per §6.2. A human-readable description for the type."
+        },
+        "extends": {
+            "type": "string",
+            "format": "uri",
+            "description": "OPTIONAL per §6.2. URI of another type that this type extends; processed per §6.4."
+        },
+        "extends#integrity": {
+            "type": "string",
+            "description": "OPTIONAL per §7. W3C SRI integrity-metadata string for the extends URI."
+        },
+        "display": {
+            "type": "array",
+            "description": "OPTIONAL per §6.2. Type-level display objects per §8.",
+            "items": {
+                "type": "object",
+                "required": ["locale", "name"],
+                "properties": {
+                    "locale": {
+                        "type": "string",
+                        "description": "REQUIRED per §8. BCP47 language tag (RFC 5646)."
+                    },
+                    "name": {
+                        "type": "string",
+                        "description": "REQUIRED per §8. Human-readable name for end users."
+                    },
+                    "description": {
+                        "type": "string",
+                        "description": "OPTIONAL per §8. Human-readable description for end users."
+                    },
+                    "rendering": {
+                        "type": "object",
+                        "description": "OPTIONAL per §8. Rendering metadata per §8.1; structure intentionally not constrained here."
+                    }
+                },
+                "additionalProperties": false
+            }
+        },
+        "claims": {
+            "type": "array",
+            "description": "OPTIONAL per §6.2. Per-claim metadata objects defined in §9.",
+            "items": {
+                "type": "object",
+                "required": ["path"],
+                "properties": {
+                    "path": {
+                        "type": "array",
+                        "minItems": 1,
+                        "description": "REQUIRED per §9.1. Non-empty array of strings, nulls, or non-negative integers selecting one or more claims.",
+                        "items": {
+                            "oneOf": [
+                                { "type": "string" },
+                                { "type": "null" },
+                                { "type": "integer", "minimum": 0 }
+                            ]
+                        }
+                    },
+                    "display": {
+                        "type": "array",
+                        "description": "OPTIONAL per §9. Per-claim display objects defined in §9.2.",
+                        "items": {
+                            "type": "object",
+                            "required": ["locale", "label"],
+                            "properties": {
+                                "locale": {
+                                    "type": "string",
+                                    "description": "REQUIRED per §9.2. BCP47 language tag (RFC 5646)."
+                                },
+                                "label": {
+                                    "type": "string",
+                                    "description": "REQUIRED per §9.2. Human-readable claim label."
+                                },
+                                "description": {
+                                    "type": "string",
+                                    "description": "OPTIONAL per §9.2. Human-readable claim description."
+                                }
+                            },
+                            "additionalProperties": false
+                        }
+                    },
+                    "mandatory": {
+                        "type": "boolean",
+                        "description": "OPTIONAL per §9.3. If true, the Issuer MUST include this claim in the issued credential."
+                    },
+                    "sd": {
+                        "type": "string",
+                        "enum": ["always", "allowed", "never"],
+                        "description": "OPTIONAL per §9.4. Selective-disclosure constraint: always (MUST be SD), allowed (MAY be SD), never (MUST NOT be SD). Defaults to allowed."
+                    },
+                    "svg_id": {
+                        "type": "string",
+                        "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+                        "description": "OPTIONAL per §9. SVG template reference id; alphanumeric+underscore, MUST NOT start with a digit."
+                    }
+                },
+                "additionalProperties": false
+            }
+        }
+    },
+    "additionalProperties": false
+}
