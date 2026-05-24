@@ -95,21 +95,69 @@ public class VCIEnsureMandatoryClaimsArePresent_UnitTest {
 	}
 
 	@Test
-	public void mandatoryPathWithNullElement_isSkippedNotFailed() {
-		// Path traversal across array wildcard not implemented; skip rather than misjudge.
+	public void wildcardOverArrayAllElementsHaveClaim_passes() {
+		// §9.1: null wildcard selects every element of the array; mandatory requires
+		// every selected position to be populated.
 		put(
-			"{\"degrees\": [{\"type\": \"BSc\"}]}",
+			"{\"degrees\": [{\"type\": \"BSc\"}, {\"type\": \"MSc\"}]}",
 			"{\"vct\":\"x\",\"claims\":[{\"path\":[\"degrees\",null,\"type\"],\"mandatory\":true}]}"
 		);
 		cond.execute(env);
 	}
 
 	@Test
-	public void mandatoryPathWithIntegerElement_isSkippedNotFailed() {
+	public void wildcardOverArrayOneElementMissing_fails() {
+		// One element of the array does not have "type" — mandatory violated.
 		put(
-			"{\"degrees\": [{\"type\": \"BSc\"}]}",
+			"{\"degrees\": [{\"type\": \"BSc\"}, {\"other\": \"value\"}]}",
+			"{\"vct\":\"x\",\"claims\":[{\"path\":[\"degrees\",null,\"type\"],\"mandatory\":true}]}"
+		);
+		assertThrows(ConditionError.class, () -> cond.execute(env));
+	}
+
+	@Test
+	public void wildcardOverEmptyArray_fails() {
+		// An empty array addresses zero claims; "no claim included" cannot satisfy mandatory.
+		put(
+			"{\"degrees\": []}",
+			"{\"vct\":\"x\",\"claims\":[{\"path\":[\"degrees\",null,\"type\"],\"mandatory\":true}]}"
+		);
+		assertThrows(ConditionError.class, () -> cond.execute(env));
+	}
+
+	@Test
+	public void integerIndexResolves_passes() {
+		put(
+			"{\"degrees\": [{\"type\": \"BSc\"}, {\"type\": \"MSc\"}]}",
 			"{\"vct\":\"x\",\"claims\":[{\"path\":[\"degrees\",0,\"type\"],\"mandatory\":true}]}"
 		);
 		cond.execute(env);
+	}
+
+	@Test
+	public void integerIndexOutOfBounds_fails() {
+		put(
+			"{\"degrees\": [{\"type\": \"BSc\"}]}",
+			"{\"vct\":\"x\",\"claims\":[{\"path\":[\"degrees\",5,\"type\"],\"mandatory\":true}]}"
+		);
+		assertThrows(ConditionError.class, () -> cond.execute(env));
+	}
+
+	@Test
+	public void terminalWildcardOnPresentNonEmptyArray_passes() {
+		put(
+			"{\"nationalities\": [\"GB\", \"DE\"]}",
+			"{\"vct\":\"x\",\"claims\":[{\"path\":[\"nationalities\",null],\"mandatory\":true}]}"
+		);
+		cond.execute(env);
+	}
+
+	@Test
+	public void terminalWildcardOnEmptyArray_fails() {
+		put(
+			"{\"nationalities\": []}",
+			"{\"vct\":\"x\",\"claims\":[{\"path\":[\"nationalities\",null],\"mandatory\":true}]}"
+		);
+		assertThrows(ConditionError.class, () -> cond.execute(env));
 	}
 }
