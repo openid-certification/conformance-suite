@@ -25,6 +25,7 @@ import net.openid.conformance.vci10issuer.condition.VCIParseCredentialIssuerMeta
 import net.openid.conformance.vci10issuer.condition.VCIValidateCredentialIssuerUri;
 import net.openid.conformance.vci10issuer.condition.VCIValidateCredentialSigningAlgValuesSupported;
 import net.openid.conformance.vci10issuer.condition.VCICheckForOldSdJwtFormatInCredentialConfigurations;
+import net.openid.conformance.vci10issuer.condition.VCIValidateDisplayLocales;
 import net.openid.conformance.vci10issuer.condition.VCIValidateFormatOfCredentialConfigurationsInMetadata;
 import net.openid.conformance.vci10issuer.condition.VCIValidateNonceEndpointInIssuerMetadata;
 
@@ -96,6 +97,7 @@ public class VCIIssuerMetadataTest extends AbstractVciTest {
 		callAndContinueOnFailure(VCICredentialIssuerMetadataValidation.class, Condition.ConditionResult.FAILURE, "OID4VCI-1FINAL-12.2.3");
 		callAndContinueOnFailure(CheckForUnexpectedParametersInCredentialIssuerMetadata.class, Condition.ConditionResult.WARNING, "OID4VCI-1FINAL-12.2.3");
 		callAndContinueOnFailure(VCIValidateCredentialSigningAlgValuesSupported.class, Condition.ConditionResult.FAILURE, "OID4VCI-1FINAL-12.2.4");
+		callAndContinueOnFailure(VCIValidateDisplayLocales.class, Condition.ConditionResult.FAILURE, "OID4VCI-1FINAL-12.2.4");
 
 		// credential_request_encryption and credential_response_encryption are both OPTIONAL, but
 		// if declared they MUST be well-formed per §12.2.4. §8.2 further requires the wallet to
