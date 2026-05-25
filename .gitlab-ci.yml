@@ -6,6 +6,9 @@ workflow:
 
 variables:
   LM_JAVA_VERSION: 17
+  # WIP DON'T MERGE — hardwires JFR profiling on every review-branch pipeline
+  # for testing the collect_jfr job. Revert this line before merging.
+  CONFORMANCE_PROFILE: "1"
 
 stages:
   - build
