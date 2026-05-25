@@ -19,6 +19,7 @@ import net.openid.conformance.vci10issuer.condition.VCICredentialIssuerMetadataV
 import net.openid.conformance.vci10issuer.condition.VCIEnsureCredentialRequestEncryptionWhenResponseEncryptionOptional;
 import net.openid.conformance.vci10issuer.condition.VCIEnsureCredentialRequestEncryptionWhenResponseEncryptionRequired;
 import net.openid.conformance.vci10issuer.condition.VCIEnsureHttpsUrlsMetadata;
+import net.openid.conformance.vci10issuer.condition.VCIValidateAuthorizationServersAreHttps;
 import net.openid.conformance.vci10issuer.condition.VCIValidateEncryptionAlgorithms;
 import net.openid.conformance.vci10issuer.condition.VCIValidateEncryptionZipValues;
 import net.openid.conformance.vci10issuer.condition.VCIExtractTlsInfoFromCredentialIssuer;
@@ -97,6 +98,7 @@ public class VCIIssuerMetadataTest extends AbstractVciTest {
 	protected void checkIssuerMetadata() {
 		callAndContinueOnFailure(VCICheckRequiredMetadataFields.class, Condition.ConditionResult.FAILURE, "OID4VCI-1FINAL-12.2.3");
 		callAndContinueOnFailure(VCIEnsureHttpsUrlsMetadata.class, Condition.ConditionResult.FAILURE, "OID4VCI-1FINAL-12.2.3");
+		callAndContinueOnFailure(VCIValidateAuthorizationServersAreHttps.class, Condition.ConditionResult.FAILURE, "OID4VCI-1FINAL-12.2.3");
 		callAndContinueOnFailure(VCIValidateCredentialIssuerUri.class, Condition.ConditionResult.FAILURE, "OID4VCI-1FINAL-12.2.1");
 		callAndContinueOnFailure(VCICredentialIssuerMetadataValidation.class, Condition.ConditionResult.FAILURE, "OID4VCI-1FINAL-12.2.3");
 		callAndContinueOnFailure(CheckForUnexpectedParametersInCredentialIssuerMetadata.class, Condition.ConditionResult.WARNING, "OID4VCI-1FINAL-12.2.3");
