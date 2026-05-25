@@ -232,6 +232,19 @@ public class CheckForUnexpectedParametersInCredentialIssuerMetadata_UnitTest ext
 	}
 
 	@Test
+	public void testEvaluate_warnsOnValueTypeInDresdenKommPassMetadata() throws Exception {
+		// value_type was defined on claims items in OID4VCI drafts but removed before the 1.0 final
+		// spec (see commit 37e0628cb5). The KommPass example still ships value_type on every claim,
+		// so the unknown-properties check should warn — this fixture documents that behavior.
+		String json = readFile("metadata/openid4vci-1_0/credential-issuer-metadata-dresden-komm-pass.json");
+		putCredentialIssuerMetadata(json);
+
+		Map<String, Object> data = assertValidationError(cond, env, eventLog);
+		assertUnknownPropertyAtPath(data,
+			"$.credential_configurations_supported.https://dresden.de/credentials/KommPass.credential_metadata.claims[0].value_type");
+	}
+
+	@Test
 	public void testEvaluate_structuralErrorsDoNotWarn() {
 		// Missing required credential_endpoint is structural, not unknown property
 		String json = """
