@@ -27,6 +27,7 @@ import net.openid.conformance.vci10issuer.condition.VCIParseCredentialIssuerMeta
 import net.openid.conformance.vci10issuer.condition.VCIValidateCredentialConfigurationScopeSyntax;
 import net.openid.conformance.vci10issuer.condition.VCIValidateCredentialIssuerUri;
 import net.openid.conformance.vci10issuer.condition.VCIValidateCredentialSigningAlgValuesSupported;
+import net.openid.conformance.vci10issuer.condition.VCIValidateProofSigningAlgValuesSupported;
 import net.openid.conformance.vci10issuer.condition.VCICheckForOldSdJwtFormatInCredentialConfigurations;
 import net.openid.conformance.vci10issuer.condition.VCIValidateDisplayLocales;
 import net.openid.conformance.vci10issuer.condition.VCIValidateFormatOfCredentialConfigurationsInMetadata;
@@ -100,6 +101,7 @@ public class VCIIssuerMetadataTest extends AbstractVciTest {
 		callAndContinueOnFailure(VCICredentialIssuerMetadataValidation.class, Condition.ConditionResult.FAILURE, "OID4VCI-1FINAL-12.2.3");
 		callAndContinueOnFailure(CheckForUnexpectedParametersInCredentialIssuerMetadata.class, Condition.ConditionResult.WARNING, "OID4VCI-1FINAL-12.2.3");
 		callAndContinueOnFailure(VCIValidateCredentialSigningAlgValuesSupported.class, Condition.ConditionResult.FAILURE, "OID4VCI-1FINAL-12.2.4");
+		callAndContinueOnFailure(VCIValidateProofSigningAlgValuesSupported.class, Condition.ConditionResult.FAILURE, "OID4VCI-1FINAL-12.2.4");
 		callAndContinueOnFailure(VCIValidateDisplayLocales.class, Condition.ConditionResult.FAILURE, "OID4VCI-1FINAL-12.2.4");
 		callAndContinueOnFailure(VCIValidateCredentialConfigurationScopeSyntax.class, Condition.ConditionResult.FAILURE, "RFC6749-3.3");
 
