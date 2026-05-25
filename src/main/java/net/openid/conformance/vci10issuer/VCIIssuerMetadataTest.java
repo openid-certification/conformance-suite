@@ -19,6 +19,8 @@ import net.openid.conformance.vci10issuer.condition.VCICredentialIssuerMetadataV
 import net.openid.conformance.vci10issuer.condition.VCIEnsureCredentialRequestEncryptionWhenResponseEncryptionOptional;
 import net.openid.conformance.vci10issuer.condition.VCIEnsureCredentialRequestEncryptionWhenResponseEncryptionRequired;
 import net.openid.conformance.vci10issuer.condition.VCIEnsureHttpsUrlsMetadata;
+import net.openid.conformance.vci10issuer.condition.VCIValidateEncryptionAlgorithms;
+import net.openid.conformance.vci10issuer.condition.VCIValidateEncryptionZipValues;
 import net.openid.conformance.vci10issuer.condition.VCIExtractTlsInfoFromCredentialIssuer;
 import net.openid.conformance.vci10issuer.condition.VCIFetchOAuthorizationServerMetadata;
 import net.openid.conformance.vci10issuer.condition.VCIParseCredentialIssuerMetadata;
@@ -112,6 +114,8 @@ public class VCIIssuerMetadataTest extends AbstractVciTest {
 		//          interoperates with wallets that don't → WARNING.
 		callAndContinueOnFailure(VCICheckCredentialResponseEncryptionSupported.class, Condition.ConditionResult.FAILURE, "OID4VCI-1FINAL-12.2.4");
 		callAndContinueOnFailure(VCICheckCredentialRequestEncryptionSupported.class, Condition.ConditionResult.FAILURE, "OID4VCI-1FINAL-12.2.4");
+		callAndContinueOnFailure(VCIValidateEncryptionAlgorithms.class, Condition.ConditionResult.FAILURE, "OID4VCI-1FINAL-12.2.4");
+		callAndContinueOnFailure(VCIValidateEncryptionZipValues.class, Condition.ConditionResult.WARNING, "OID4VCI-1FINAL-12.2.4");
 		callAndContinueOnFailure(VCIEnsureCredentialRequestEncryptionWhenResponseEncryptionRequired.class, Condition.ConditionResult.FAILURE, "OID4VCI-1FINAL-8.2");
 		callAndContinueOnFailure(VCIEnsureCredentialRequestEncryptionWhenResponseEncryptionOptional.class, Condition.ConditionResult.WARNING, "OID4VCI-1FINAL-8.2");
 
