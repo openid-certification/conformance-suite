@@ -39,8 +39,11 @@ import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.text.ParseException;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class JWEUtil {
 
@@ -298,6 +301,51 @@ public class JWEUtil {
 	public static boolean isSymmetricJWEAlgorithm(String algorithmName) {
 		JWEAlgorithm algorithm = JWEAlgorithm.parse(algorithmName);
 		return JWEAlgorithm.Family.SYMMETRIC.contains(algorithm);
+	}
+
+	/**
+	 * Checks if alg is a JWE algorithm registered in either the asymmetric or
+	 * symmetric Nimbus JWEAlgorithm families. Used to validate published
+	 * {@code alg_values_supported} metadata entries.
+	 */
+	public static boolean isValidJWEAlgorithm(String algorithmName) {
+		JWEAlgorithm algorithm = JWEAlgorithm.parse(algorithmName);
+		return JWEAlgorithm.Family.ASYMMETRIC.contains(algorithm)
+			|| JWEAlgorithm.Family.SYMMETRIC.contains(algorithm);
+	}
+
+	public static List<String> validJWEAlgorithms() {
+		return Stream.of(
+				JWEAlgorithm.Family.ASYMMETRIC,
+				JWEAlgorithm.Family.SYMMETRIC
+			)
+			.flatMap(family -> family.stream())
+			.map(JWEAlgorithm::getName)
+			.collect(Collectors.toList());
+	}
+
+	/**
+	 * Checks if {@code enc} names a JWA content encryption algorithm registered in
+	 * the IANA JOSE registry. Restricted to the RFC 7518 §5 set
+	 * ({@code A128CBC-HS256}, {@code A192CBC-HS384}, {@code A256CBC-HS512},
+	 * {@code A128GCM}, {@code A192GCM}, {@code A256GCM}); other Nimbus-defined
+	 * extras (e.g. deprecated aliases, {@code XC20P}) are intentionally excluded
+	 * because they are not in the JWA registry and would not interoperate.
+	 */
+	public static boolean isValidEncryptionMethod(String enc) {
+		EncryptionMethod method = EncryptionMethod.parse(enc);
+		return EncryptionMethod.Family.AES_CBC_HMAC_SHA.contains(method)
+			|| EncryptionMethod.Family.AES_GCM.contains(method);
+	}
+
+	public static List<String> validEncryptionMethods() {
+		return Stream.of(
+				EncryptionMethod.Family.AES_CBC_HMAC_SHA,
+				EncryptionMethod.Family.AES_GCM
+			)
+			.flatMap(family -> family.stream())
+			.map(EncryptionMethod::getName)
+			.collect(Collectors.toList());
 	}
 
 	/**

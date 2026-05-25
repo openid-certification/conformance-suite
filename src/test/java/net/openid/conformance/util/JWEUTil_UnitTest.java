@@ -14,9 +14,11 @@ import java.util.List;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class JWEUTil_UnitTest {
 
@@ -121,6 +123,61 @@ public class JWEUTil_UnitTest {
 			"missing-kid");
 
 		assertNull(jwk);
+	}
+
+	@Test
+	public void isValidJWEAlgorithm_acceptsRegisteredAsymmetricAndSymmetricAlgs() {
+		assertTrue(JWEUtil.isValidJWEAlgorithm("RSA-OAEP"));
+		assertTrue(JWEUtil.isValidJWEAlgorithm("RSA-OAEP-256"));
+		assertTrue(JWEUtil.isValidJWEAlgorithm("ECDH-ES"));
+		assertTrue(JWEUtil.isValidJWEAlgorithm("A128KW"));
+		assertTrue(JWEUtil.isValidJWEAlgorithm("dir"));
+	}
+
+	@Test
+	public void isValidJWEAlgorithm_rejectsUnknownNames() {
+		assertFalse(JWEUtil.isValidJWEAlgorithm("RSA-OAEPxx"));
+		assertFalse(JWEUtil.isValidJWEAlgorithm("ES256"));
+		assertFalse(JWEUtil.isValidJWEAlgorithm(""));
+	}
+
+	@Test
+	public void validJWEAlgorithms_listsKnownAlgorithms() {
+		List<String> algs = JWEUtil.validJWEAlgorithms();
+		assertTrue(algs.contains("RSA-OAEP-256"));
+		assertTrue(algs.contains("ECDH-ES"));
+		assertTrue(algs.contains("A128KW"));
+		assertTrue(algs.contains("dir"));
+	}
+
+	@Test
+	public void isValidEncryptionMethod_acceptsJWAEncMethods() {
+		assertTrue(JWEUtil.isValidEncryptionMethod("A128CBC-HS256"));
+		assertTrue(JWEUtil.isValidEncryptionMethod("A192CBC-HS384"));
+		assertTrue(JWEUtil.isValidEncryptionMethod("A256CBC-HS512"));
+		assertTrue(JWEUtil.isValidEncryptionMethod("A128GCM"));
+		assertTrue(JWEUtil.isValidEncryptionMethod("A192GCM"));
+		assertTrue(JWEUtil.isValidEncryptionMethod("A256GCM"));
+	}
+
+	@Test
+	public void isValidEncryptionMethod_rejectsUnknownAndExtras() {
+		assertFalse(JWEUtil.isValidEncryptionMethod("A128GCMxx"));
+		// XC20P is a Nimbus extra but is not in the IANA JWA registry
+		assertFalse(JWEUtil.isValidEncryptionMethod("XC20P"));
+		assertFalse(JWEUtil.isValidEncryptionMethod(""));
+	}
+
+	@Test
+	public void validEncryptionMethods_listsTheSixJwaMethods() {
+		List<String> methods = JWEUtil.validEncryptionMethods();
+		assertEquals(6, methods.size());
+		assertTrue(methods.contains("A128CBC-HS256"));
+		assertTrue(methods.contains("A192CBC-HS384"));
+		assertTrue(methods.contains("A256CBC-HS512"));
+		assertTrue(methods.contains("A128GCM"));
+		assertTrue(methods.contains("A192GCM"));
+		assertTrue(methods.contains("A256GCM"));
 	}
 
 }
