@@ -142,12 +142,12 @@ public class JWEUTil_UnitTest {
 	}
 
 	@Test
-	public void validJWEAlgorithms_listsKnownAlgorithms() {
-		List<String> algs = JWEUtil.validJWEAlgorithms();
+	public void validAsymmetricJWEAlgorithms_excludesSymmetricAndDir() {
+		var algs = JWEUtil.validAsymmetricJWEAlgorithms();
 		assertTrue(algs.contains("RSA-OAEP-256"));
 		assertTrue(algs.contains("ECDH-ES"));
-		assertTrue(algs.contains("A128KW"));
-		assertTrue(algs.contains("dir"));
+		assertFalse(algs.contains("A128KW"));
+		assertFalse(algs.contains("dir"));
 	}
 
 	@Test

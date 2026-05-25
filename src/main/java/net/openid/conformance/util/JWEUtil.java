@@ -314,12 +314,14 @@ public class JWEUtil {
 			|| JWEAlgorithm.Family.SYMMETRIC.contains(algorithm);
 	}
 
-	public static List<String> validJWEAlgorithms() {
-		return Stream.of(
-				JWEAlgorithm.Family.ASYMMETRIC,
-				JWEAlgorithm.Family.SYMMETRIC
-			)
-			.flatMap(family -> family.stream())
+	/**
+	 * Returns the names of asymmetric JWE algorithms only — the set of
+	 * {@code alg} values that can be used in flows where the recipient publishes
+	 * its public key (e.g. OID4VCI credential response encryption).
+	 */
+	public static List<String> validAsymmetricJWEAlgorithms() {
+		return JWEAlgorithm.Family.ASYMMETRIC
+			.stream()
 			.map(JWEAlgorithm::getName)
 			.collect(Collectors.toList());
 	}
