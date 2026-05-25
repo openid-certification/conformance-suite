@@ -82,7 +82,6 @@ public class CheckForUnexpectedParametersInCredentialIssuerMetadata_UnitTest ext
 			              "given_name"
 			            ],
 			            "mandatory": true,
-			            "value_type": "string",
 			            "display": [
 			              {
 			                "name": "Given Name",
