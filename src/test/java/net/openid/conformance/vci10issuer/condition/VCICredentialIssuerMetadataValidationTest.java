@@ -135,4 +135,14 @@ class VCICredentialIssuerMetadataValidationTest extends AbstractVciUnitTest {
 		assertContainsExpectedError(data, "$.credential_configurations_supported.eu.europa.ec.eudi.pid.1.claims", "object found, array expected");
 	}
 
+	@Test
+	void shouldReportNoStructuralErrorForDresdenKommPassMetadata() throws Exception {
+		// Real-world example with credential_metadata block, data: URI logos, scoped vct,
+		// typo'd signing algs ("ES265", "ES2665K") that pass schema (any string) and
+		// would only be caught by a dedicated alg-name check.
+		String metadataString = readFile("metadata/openid4vci-1_0/credential-issuer-metadata-dresden-komm-pass.json");
+		env.putObject("vci", "credential_issuer_metadata", JsonParser.parseString(metadataString).getAsJsonObject());
+		validation.evaluate(env);
+	}
+
 }
