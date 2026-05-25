@@ -22,6 +22,7 @@ import net.openid.conformance.vci10issuer.condition.VCIEnsureHttpsUrlsMetadata;
 import net.openid.conformance.vci10issuer.condition.VCIExtractTlsInfoFromCredentialIssuer;
 import net.openid.conformance.vci10issuer.condition.VCIFetchOAuthorizationServerMetadata;
 import net.openid.conformance.vci10issuer.condition.VCIParseCredentialIssuerMetadata;
+import net.openid.conformance.vci10issuer.condition.VCIValidateCredentialConfigurationScopeSyntax;
 import net.openid.conformance.vci10issuer.condition.VCIValidateCredentialIssuerUri;
 import net.openid.conformance.vci10issuer.condition.VCIValidateCredentialSigningAlgValuesSupported;
 import net.openid.conformance.vci10issuer.condition.VCICheckForOldSdJwtFormatInCredentialConfigurations;
@@ -98,6 +99,7 @@ public class VCIIssuerMetadataTest extends AbstractVciTest {
 		callAndContinueOnFailure(CheckForUnexpectedParametersInCredentialIssuerMetadata.class, Condition.ConditionResult.WARNING, "OID4VCI-1FINAL-12.2.3");
 		callAndContinueOnFailure(VCIValidateCredentialSigningAlgValuesSupported.class, Condition.ConditionResult.FAILURE, "OID4VCI-1FINAL-12.2.4");
 		callAndContinueOnFailure(VCIValidateDisplayLocales.class, Condition.ConditionResult.FAILURE, "OID4VCI-1FINAL-12.2.4");
+		callAndContinueOnFailure(VCIValidateCredentialConfigurationScopeSyntax.class, Condition.ConditionResult.FAILURE, "RFC6749-3.3");
 
 		// credential_request_encryption and credential_response_encryption are both OPTIONAL, but
 		// if declared they MUST be well-formed per §12.2.4. §8.2 further requires the wallet to

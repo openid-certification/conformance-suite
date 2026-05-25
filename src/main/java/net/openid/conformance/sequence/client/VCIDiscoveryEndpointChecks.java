@@ -6,6 +6,7 @@ import net.openid.conformance.vci10issuer.condition.CheckForUnexpectedParameters
 import net.openid.conformance.vci10issuer.condition.VCIAuthorizationServerMetadataValidation;
 import net.openid.conformance.vci10issuer.condition.VCIEnsureAuthorizationDetailsTypesSupportedContainOpenIdCredentialIfScopeIsMissing;
 import net.openid.conformance.vci10issuer.condition.VCIValidateAuthorizationServerLocalesSyntax;
+import net.openid.conformance.vci10issuer.condition.VCIValidateAuthorizationServerScopesSupportedSyntax;
 
 /**
  * Shared VCI authorization server metadata checks. Reads the authorization
@@ -23,6 +24,9 @@ public class VCIDiscoveryEndpointChecks extends AbstractConditionSequence {
 
 		callAndContinueOnFailure(VCIEnsureAuthorizationDetailsTypesSupportedContainOpenIdCredentialIfScopeIsMissing.class,
 			ConditionResult.FAILURE, "OID4VCI-1FINAL-12.2.4-2.11.2.2");
+
+		callAndContinueOnFailure(VCIValidateAuthorizationServerScopesSupportedSyntax.class,
+			ConditionResult.FAILURE, "RFC6749-3.3");
 
 		callAndContinueOnFailure(VCIValidateAuthorizationServerLocalesSyntax.class,
 			ConditionResult.FAILURE, "RFC8414-2");
