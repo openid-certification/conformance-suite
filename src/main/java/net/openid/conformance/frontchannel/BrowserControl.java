@@ -111,6 +111,7 @@ public class BrowserControl implements DataUtils {
 	private JsonArray browserCommands = null;
 	private boolean verboseLogging;
 	private boolean showQrCodes = false;
+	private boolean cssParsingEnabled = true;
 
 	private List<String> urls = new ArrayList<>();
 	private List<UrlWithMethod> urlsWithMethod = new ArrayList<>();
@@ -139,6 +140,16 @@ public class BrowserControl implements DataUtils {
 		JsonElement browserVerbose = config.get("browser_verbose");
 		if (browserVerbose != null) {
 			this.verboseLogging = OIDFJSON.getBoolean(browserVerbose);
+		}
+		// CSS parsing was profiled at ~20% of CI CPU during the test stage; the
+		// conformance suite tests OIDC protocols, not visual rendering, so a
+		// test config can opt out by setting options.browsercontrol_css_enable=false.
+		JsonObject options = config.getAsJsonObject("options");
+		if (options != null) {
+			JsonElement cssEnable = options.get("browsercontrol_css_enable");
+			if (cssEnable != null) {
+				this.cssParsingEnabled = OIDFJSON.getBoolean(cssEnable);
+			}
 		}
 	}
 
@@ -852,6 +863,12 @@ public class BrowserControl implements DataUtils {
 			// javascript. However asking it to ignore the errors and carry on seems
 			// to result in a surprising amount of eventual success.
 			client.getOptions().setThrowExceptionOnScriptError(false);
+
+			// CSS parsing is ~20% of CI CPU per JFR profile; tests don't depend on
+			// visuals. Default is enabled (HtmlUnit default) so behavior for
+			// existing configs is unchanged; a test config opts out by setting
+			// options.browsercontrol_css_enable=false.
+			client.getOptions().setCssEnabled(cssParsingEnabled);
 
 			client.setJavaScriptErrorListener(new JavaScriptErrorListener() {
 
