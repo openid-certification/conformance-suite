@@ -166,15 +166,28 @@ cts-link-button > a:focus,
 .schedule-test-page h3 {
   padding-inline: 0;
 }
-.schedule-test-instructions {
+/* Instructions text and the load-last-config toolbar share one row:
+   instructions hug the left, the toolbar hugs the right. The row's
+   spacing lives on the wrapper so the two flex items sit on a shared
+   centre line (unequal child margins would offset them vertically).
+   flex-wrap lets the toolbar drop below the text on narrow widths. */
+.schedule-test-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3) var(--space-4);
   margin: 0 0 var(--space-5);
+}
+.schedule-test-instructions {
+  margin: 0;
   font-size: var(--fs-14);
   color: var(--fg-soft, var(--ink-600));
 }
 .schedule-test-toolbar {
   display: flex;
   justify-content: flex-end;
-  margin: 0 0 var(--space-4);
+  margin: 0;
 }
 
 /* ---- schedule-test cascade
