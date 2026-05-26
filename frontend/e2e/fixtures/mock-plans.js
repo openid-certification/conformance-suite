@@ -166,4 +166,29 @@ export const MOCK_PLAN_LIST = [
     publish: "summary",
     immutable: false,
   },
+  {
+    // Created without saved configuration — DBTestPlanService persists
+    // `config` as an empty `org.bson.Document`, so the wire payload is
+    // `config: {}`. Used to exercise the "no Config button" branch in
+    // cts-plan-list and the corresponding plans.html e2e assertion (U16).
+    _id: "plan-003",
+    planName: "oidcc-implicit-certification-test-plan",
+    description: "OpenID Connect Core: Implicit Certification Profile",
+    variant: {
+      response_type: "id_token",
+    },
+    started: new Date(NOW - 5 * DAY_MS).toISOString(),
+    owner: { sub: "admin-001", iss: "https://accounts.google.com" },
+    modules: [
+      {
+        testModule: "oidcc-server-implicit",
+        instances: ["inst-005"],
+        status: "FINISHED",
+        result: "PASSED",
+      },
+    ],
+    config: {},
+    publish: "everything",
+    immutable: true,
+  },
 ];

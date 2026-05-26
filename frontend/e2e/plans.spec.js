@@ -73,6 +73,22 @@ test.describe("plans.html — Plans List", () => {
 
     // Non-admin users do not see the Owner column.
     await expect(page.locator("#plansListing thead")).not.toContainText("Owner");
+
+    // U16: rows whose backend payload includes a non-empty `config`
+    // object render the "View configuration" affordance; rows where
+    // `config` is `{}` (plan created without saved configuration) do
+    // not. Tying this to MOCK_PLAN_LIST keeps the test honest when
+    // future rows are added with or without saved config.
+    const expectedConfigBtns = MOCK_PLAN_LIST.filter(
+      (p) => p.config && Object.keys(p.config).length > 0,
+    ).length;
+    await expect(page.locator("#plansListing .showConfigBtn")).toHaveCount(expectedConfigBtns);
+    // The button carries a visible label (not just a tooltip), so the
+    // column reads as a real call-to-action — the empty-column read
+    // was MR 1998's E1 finding.
+    await expect(page.locator("#plansListing .showConfigBtn").first()).toContainText(
+      "View configuration",
+    );
   });
 
   test("admin users see the Owner column", async ({ page }) => {
