@@ -105,6 +105,24 @@ const STYLE_TEXT = `
     color: var(--fg);
     word-break: break-word;
   }
+  /* The module name links to the same log-detail URL as the "View Logs"
+     button when an instance exists. It reads as plain text at rest
+     (inherits the row name colour, no underline) and reveals its
+     clickability on hover (underline) and keyboard focus (the shared
+     --orange-400 ring used by .help-icon / .moduleStatusLink). */
+  cts-plan-modules .module-row .name .moduleNameLink {
+    color: inherit;
+    font-weight: var(--fw-medium);
+    text-decoration: none;
+  }
+  cts-plan-modules .module-row .name .moduleNameLink:hover {
+    text-decoration: underline;
+  }
+  cts-plan-modules .module-row .name .moduleNameLink:focus-visible {
+    outline: 2px solid var(--orange-400);
+    outline-offset: 2px;
+    border-radius: var(--radius-1);
+  }
   /* Inline-flex row keeps the help-icon optically centred on the test
      module name without relying on vertical-align hacks. align-items:
      center sits the 16px icon on the same axis as the 13px text;
@@ -248,10 +266,11 @@ function ensureStylesInjected() {
  *   plans. Reflects the `is-immutable` attribute.
  * @property {boolean} isPublic - Appends `&public=true` to log-detail links.
  *   Reflects the `is-public` attribute.
- * The status badge is rendered as a real `<a>` link to `log-detail.html`
- * when a test instance exists (R28), so clicking the lozenge takes the
- * user to that test's log page. Modules with no instance render the
- * badge unwrapped.
+ * The status badge and the module name are each rendered as a real `<a>`
+ * link to `log-detail.html` when a test instance exists (R28), so clicking
+ * the lozenge or the name takes the user to that test's log page — the same
+ * destination as the "View Logs" button. Modules with no instance render the
+ * badge and name unwrapped.
  *
  * @fires cts-run-test - When the Run Test button is clicked, with
  *   `{ detail: { testModule, variant } }`; bubbles.
@@ -382,12 +401,22 @@ class CtsPlanModules extends LitElement {
         >`
       : badge;
 
+    // The module name links to the same log-detail URL as the status
+    // badge and the "View Logs" button (logHref) when an instance
+    // exists; otherwise it stays plain text. The link's accessible name
+    // is the module name itself, so no aria-label is needed.
+    const moduleName = lastInstance
+      ? html`<a class="moduleNameLink" data-testid="module-name-link" href="${logHref}"
+          >${mod.testModule}</a
+        >`
+      : html`<span class="moduleName">${mod.testModule}</span>`;
+
     return html`
       <div class="module-row" data-instance-id="${lastInstance || ""}">
         <span class="num">${this._rowNumber(index + 1)}</span>
         <div class="name">
           <span class="nameLine">
-            <span class="moduleName">${mod.testModule}</span>
+            ${moduleName}
             ${mod.testSummary
               ? html`<cts-tooltip class="help" content="${mod.testSummary}" placement="top"
                   ><cts-icon

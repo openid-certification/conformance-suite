@@ -189,6 +189,12 @@ test.describe("plan-detail.html — Plan Detail", () => {
     const statusLink = firstRow.locator('[data-testid="module-status-link"]');
     await expect(statusLink).toHaveAttribute("href", "log-detail.html?log=test-inst-001");
 
+    // The module name links to the same log-detail URL as the status
+    // badge and the "View Logs" button.
+    const nameLink = firstRow.locator('[data-testid="module-name-link"]');
+    await expect(nameLink).toHaveAttribute("href", "log-detail.html?log=test-inst-001");
+    await expect(nameLink).toHaveText("oidcc-server");
+
     // R28 deep-link follow-on: the FAILED row's lozenge resolves the
     // first FAILURE entry's LOG-NNNN ordinal and appends it as a
     // fragment, so a click lands on the failure entry rather than the
