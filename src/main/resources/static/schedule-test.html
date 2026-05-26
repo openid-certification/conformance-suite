@@ -7,6 +7,18 @@
     <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
     <title>OIDF Conformance: Schedule new test</title>
 
+    <script>
+        // Legacy `?edit-plan=<id>` bookmarks deep-link to plan-detail; must
+        // fire before any other script so the page never paints the wrong
+        // surface during the redirect.
+        (function () {
+            var legacyPlanId = new URLSearchParams(window.location.search).get("edit-plan");
+            if (legacyPlanId) {
+                window.location.replace("plan-detail.html?plan=" + encodeURIComponent(legacyPlanId));
+            }
+        })();
+    </script>
+
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap">
     <link rel="preload" as="font" type="font/woff2" href="/fonts/inter/Inter-Variable.woff2" crossorigin>
