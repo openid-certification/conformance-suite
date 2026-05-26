@@ -245,6 +245,33 @@ public class CheckForUnexpectedParametersInCredentialIssuerMetadata_UnitTest ext
 	}
 
 	@Test
+	public void testEvaluate_unknownPropertyInMsoMdocCredentialConfiguration() {
+		// Locks in the behaviour that the outer unevaluatedProperties on
+		// credential_configurations_supported items flags unknowns even when
+		// the matched format-specific then-block (here mso_mdoc) does not
+		// itself set additionalProperties: false. Sibling format blocks
+		// (jwt_vc_json, dc+sd-jwt) rely on the same mechanism.
+		String json = """
+			{
+			  "credential_issuer": "https://credential-issuer.example.com",
+			  "credential_endpoint": "https://credential-issuer.example.com/credential",
+			  "credential_configurations_supported": {
+			    "MobileDrivingLicense": {
+			      "format": "mso_mdoc",
+			      "doctype": "org.iso.18013.5.1.mDL",
+			      "unexpected_mdoc_field": "boom"
+			    }
+			  }
+			}
+			""";
+		putCredentialIssuerMetadata(json);
+
+		Map<String, Object> data = assertValidationError(cond, env, eventLog);
+		assertUnknownPropertyAtPath(data,
+			"$.credential_configurations_supported.MobileDrivingLicense.unexpected_mdoc_field");
+	}
+
+	@Test
 	public void testEvaluate_structuralErrorsDoNotWarn() {
 		// Missing required credential_endpoint is structural, not unknown property
 		String json = """
