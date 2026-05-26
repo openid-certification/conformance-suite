@@ -19,6 +19,18 @@ const RESULT_BADGE_VARIANTS = {
 
 const STYLE_ID = "cts-plan-list-styles";
 
+/**
+ * Whether a plan row carries a saved configuration worth opening. The
+ * backend (DBTestPlanService) always writes a `config` field; plans
+ * created without configuration come over the wire as `config: {}`,
+ * which yields an empty modal if surfaced.
+ * @param {unknown} config - Row payload's `config` value (any wire shape).
+ * @returns {boolean} `true` when `config` is an object with at least one key.
+ */
+function hasNonEmptyConfig(config) {
+  return !!config && typeof config === "object" && Object.keys(config).length > 0;
+}
+
 // Scoped CSS for the plan-list-specific bits that cts-data-table doesn't
 // own: the module badge stack, the plan-name link inside the planName cell,
 // the loading spinner shown before the table mounts, and the config modal
@@ -122,6 +134,11 @@ function ensureStylesInjected() {
  * `<cts-data-table>` in client-side, live-debounced mode. cts-plan-list
  * supplies a `cellRenderer` for the bespoke cells (plan-link click,
  * variant formatter, formatted date, module badge stack, config button).
+ *
+ * The Config column renders a labelled "View configuration" button per row
+ * that has a non-empty saved `config` object. Rows whose backend payload is
+ * an empty `{}` (plans created without configuration) get no button —
+ * clicking would open an empty modal.
  *
  * @property {boolean} isAdmin - Adds the Owner column when true. Reflects the
  *   `is-admin` attribute.
@@ -315,11 +332,21 @@ class CtsPlanList extends LitElement {
       ></span>`;
     if (key === "modules") return this._renderModuleBadges(row.modules);
     if (key === "_config") {
+      // Skip the button for rows whose backend payload has no saved
+      // config. PlanService writes `config = org.bson.Document.parse("{}")`
+      // when a plan is created without configuration, so the wire shape
+      // is `{}` (not missing). The legacy plans.html showed a labelled
+      // "View configuration" affordance per row; reproduce that —
+      // `title` alone (tooltip-only) made the column read as empty,
+      // which is what MR 1998's E1 finding was about.
+      if (!hasNonEmptyConfig(row.config)) return nothing;
       return html`<cts-button
         class="showConfigBtn"
         variant="ghost"
         size="sm"
+        full-width
         icon="settings"
+        label="View configuration"
         title="View configuration"
         data-plan-id="${row._id}"
         @cts-click=${this._handleConfigButtonClick}

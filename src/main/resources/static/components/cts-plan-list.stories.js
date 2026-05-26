@@ -74,6 +74,20 @@ export const Default = {
     const rows = canvasElement.querySelectorAll("tbody tr");
     expect(rows.length).toBe(MOCK_PLAN_LIST.length);
 
+    // U16: the Config column renders one "View configuration" button per
+    // row that has a non-empty saved config; rows whose backend payload
+    // is `config: {}` (plans created without configuration) get no
+    // button. Tie the assertion to the fixture so adding rows with or
+    // without saved config keeps it honest.
+    const rowsWithConfig = MOCK_PLAN_LIST.filter(
+      (p) => p.config && Object.keys(p.config).length > 0,
+    ).length;
+    const configBtns = canvasElement.querySelectorAll("cts-button.showConfigBtn");
+    expect(configBtns.length).toBe(rowsWithConfig);
+    // Visible "View configuration" label restores the legacy affordance —
+    // a tooltip-only `title` made the column read as empty (MR 1998 E1).
+    expect(configBtns[0]?.getAttribute("label")).toBe("View configuration");
+
     // The Started column renders through cts-time: a native <time> whose title
     // carries the full absolute date on hover.
     const startedTime = canvasElement.querySelector("tbody tr .tabular-nums time");
@@ -210,6 +224,55 @@ export const ViewConfig = {
     await waitFor(() => {
       expect(clipboardSpy).toHaveBeenCalledWith(expectedPayload);
     });
+  },
+};
+
+/**
+ * U16: Plans created without saved configuration come over the wire as
+ * `config: {}` (DBTestPlanService persists an empty `org.bson.Document`).
+ * The Config cell for those rows must render nothing — a button that
+ * opens an empty modal is the bug MR 1998's E1 finding called out.
+ */
+export const ConfigButtonHiddenWhenConfigIsEmpty = {
+  parameters: {
+    msw: {
+      handlers: [
+        http.get("/api/plan", () =>
+          HttpResponse.json([
+            {
+              _id: "plan-empty",
+              planName: "oidcc-implicit-certification-test-plan",
+              description: "Plan created without saved configuration",
+              variant: { response_type: "id_token" },
+              started: new Date().toISOString(),
+              owner: { sub: "12345", iss: "https://accounts.google.com" },
+              modules: [
+                {
+                  testModule: "oidcc-server-implicit",
+                  instances: [],
+                  status: null,
+                  result: null,
+                },
+              ],
+              config: {},
+              publish: null,
+              immutable: false,
+            },
+          ]),
+        ),
+      ],
+    },
+  },
+  render: () => html`<cts-plan-list></cts-plan-list>`,
+  async play({ canvasElement }) {
+    await waitForPlansToLoad(canvasElement);
+
+    // The row mounts (verifies the rest of the renderer is fine), but
+    // the Config cell carries no button.
+    const rows = canvasElement.querySelectorAll("tbody tr");
+    expect(rows.length).toBe(1);
+    const configBtns = canvasElement.querySelectorAll("cts-button.showConfigBtn");
+    expect(configBtns.length).toBe(0);
   },
 };
 
