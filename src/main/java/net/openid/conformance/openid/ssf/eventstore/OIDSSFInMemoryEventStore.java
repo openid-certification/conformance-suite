@@ -5,6 +5,7 @@ import com.google.common.cache.CacheBuilder;
 import com.google.gson.JsonObject;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFSecurityEvent;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -21,21 +22,21 @@ public class OIDSSFInMemoryEventStore implements OIDSSFEventStore {
 	public static final int MAX_CAPACITY = 1000;
 
 	protected Cache<String, BlockingQueue<OIDSSFSecurityEvent>> streamEventQueueCache = CacheBuilder.newBuilder() //
-		.expireAfterWrite(30, TimeUnit.MINUTES) // auto-remove entries 30min after insertion/update
+		.expireAfterWrite(Duration.ofMinutes(30)) // auto-remove entries 30min after insertion/update
 		.build();
 
 	// streamId -> [jti]
 	protected Cache<String, Set<String>> streamAcksAckedCache = CacheBuilder.newBuilder() //
-		.expireAfterWrite(30, TimeUnit.MINUTES) // auto-remove entries 30min after insertion/update
+		.expireAfterWrite(Duration.ofMinutes(30)) // auto-remove entries 30min after insertion/update
 		.build();
 
 	// streamId -> {jti, Event}
 	protected Cache<String, ConcurrentMap<String, OIDSSFSecurityEvent>> streamEventsCache = CacheBuilder.newBuilder() //
-		.expireAfterWrite(30, TimeUnit.MINUTES) // auto-remove entries 30min after insertion/update
+		.expireAfterWrite(Duration.ofMinutes(30)) // auto-remove entries 30min after insertion/update
 		.build();
 
 	protected Cache<String, ConcurrentMap<String, JsonObject>> streamSetErrorsCache = CacheBuilder.newBuilder() //
-		.expireAfterWrite(30, TimeUnit.MINUTES) // auto-remove entries 30min after insertion/update
+		.expireAfterWrite(Duration.ofMinutes(30)) // auto-remove entries 30min after insertion/update
 		.build();
 
 	@Override

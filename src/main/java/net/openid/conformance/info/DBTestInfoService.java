@@ -25,12 +25,12 @@ import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Service;
 
+import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
 import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
 
 @Service
 public class DBTestInfoService implements TestInfoService {
@@ -58,7 +58,7 @@ public class DBTestInfoService implements TestInfoService {
 	//Private cache for holding test owners without having to hit the db
 	LoadingCache<String, ImmutableMap<String, String>> testOwnerCache = CacheBuilder.newBuilder()
 		.maximumSize(1000)
-		.expireAfterAccess(30, TimeUnit.MINUTES) // is 30 minutes a good time out? too much? too little?
+		.expireAfterAccess(Duration.ofMinutes(30)) // is 30 minutes a good time out? too much? too little?
 		.build(
 			new CacheLoader<String, ImmutableMap<String, String>>() {
 				@Override
