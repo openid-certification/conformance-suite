@@ -1,9 +1,10 @@
 
 
-            <p class="schedule-test-instructions">Please see <a href="https://openid.net/certification/instructions/">OpenID Foundation Certification Instructions</a>.</p>
+            <div class="schedule-test-header">
+                <p class="schedule-test-instructions">Please see <a href="https://openid.net/certification/instructions/">OpenID Foundation Certification Instructions</a>.</p>
 
-            <div class="schedule-test-toolbar">
-                <cts-button id="loadLastConfigBtn" data-testid="load-last-config" size="sm" variant="secondary" icon="clock" label="Load last configuration"><!----><button type="button" class="oidf-btn oidf-btn-sm oidf-btn-secondary"><!--?lit$NNNN$--><cts-icon aria-hidden="true" name="clock" size="16"><!----><style>
+                <div class="schedule-test-toolbar">
+                    <cts-button id="loadLastConfigBtn" data-testid="load-last-config" size="sm" variant="secondary" icon="clock" label="Load last configuration"><!----><button type="button" class="oidf-btn oidf-btn-sm oidf-btn-secondary"><!--?lit$NNNN$--><cts-icon aria-hidden="true" name="clock" size="16"><!----><style>
         cts-icon {
           /* inline-flex with center alignment guarantees the SVG sits at the
              optical centre of the host box regardless of the parent's
@@ -35,6 +36,7 @@
       <svg viewBox="0 0 24 24" aria-hidden="true" data-cts-icon-size="16">
         <use href="/vendor/coolicons/icons/clock.svg#i"></use>
       </svg></cts-icon><!--?lit$NNNN$--> <!--?lit$NNNN$-->Load last configuration</button></cts-button>
+                </div>
             </div>
 
             <cts-test-selector id="planSearch"><!---->
@@ -219,8 +221,8 @@
         <!--?lit$NNNN$--><label class="oidf-label" for="cts-ff-3"><!--?lit$NNNN$-->publish</label>
         <!--?lit$NNNN$-->
         <select id="cts-ff-3" class=" oidf-select " aria-describedby="cts-ff-3-help">
-          <option value="">Select...</option>
-          <!--?lit$NNNN$--><!----><option value="" selected=""><!--?lit$NNNN$--></option><!----><!----><option value="summary"><!--?lit$NNNN$-->summary</option><!----><!----><option value="everything"><!--?lit$NNNN$-->everything</option><!---->
+          <!--?lit$NNNN$-->
+          <!--?lit$NNNN$--><!----><option value="" selected=""><!--?lit$NNNN$-->No</option><!----><!----><option value="summary"><!--?lit$NNNN$-->Summary</option><!----><!----><option value="everything"><!--?lit$NNNN$-->Everything</option><!---->
         </select>
       
         <!--?lit$NNNN$-->
@@ -259,7 +261,7 @@
             </div>
 
             <cts-action-bar id="launchButtons" align-to="schedule-test-page" aria-label="Test plan actions" style=""><div class="oidf-action-bar" data-position="bottom" role="region" aria-label="Test plan actions"><div class="oidf-action-bar__inner" style="max-width: 1100px; padding-inline: var(--space-5);">
-                <cts-button id="createPlanBtn" size="lg" variant="primary" icon="flag" label="Create Test Plan" disabled=""><!----><button type="button" class="oidf-btn oidf-btn-lg oidf-btn-primary"><!--?lit$NNNN$--><cts-icon aria-hidden="true" name="flag" size="24"><!----><style>
+                <cts-button id="createPlanBtn" size="lg" variant="primary" icon="flag" label="Create Test Plan"><!----><button type="button" class="oidf-btn oidf-btn-lg oidf-btn-primary"><!--?lit$NNNN$--><cts-icon aria-hidden="true" name="flag" size="24"><!----><style>
         cts-icon {
           /* inline-flex with center alignment guarantees the SVG sits at the
              optical centre of the host box regardless of the parent's
@@ -291,7 +293,7 @@
       <svg viewBox="0 0 24 24" aria-hidden="true" data-cts-icon-size="24">
         <use href="/vendor/coolicons/icons/flag.svg#i"></use>
       </svg></cts-icon><!--?lit$NNNN$--> <!--?lit$NNNN$-->Create Test Plan</button></cts-button>
-                <cts-button id="copyPlanUrlBtn" size="lg" variant="secondary" icon="copy" label="Share Test Plan Configuration" disabled=""><!----><button type="button" class="oidf-btn oidf-btn-lg oidf-btn-secondary"><!--?lit$NNNN$--><cts-icon aria-hidden="true" name="copy" size="24"><!----><style>
+                <cts-button id="copyPlanUrlBtn" size="lg" variant="secondary" icon="copy" label="Share Test Plan Configuration"><!----><button type="button" class="oidf-btn oidf-btn-lg oidf-btn-secondary"><!--?lit$NNNN$--><cts-icon aria-hidden="true" name="copy" size="24"><!----><style>
         cts-icon {
           /* inline-flex with center alignment guarantees the SVG sits at the
              optical centre of the host box regardless of the parent's

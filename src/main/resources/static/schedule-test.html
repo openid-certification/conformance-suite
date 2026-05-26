@@ -95,10 +95,12 @@
     <main class="schedule-test-page" id="main-content">
         <div id="scheduleTestPage">
 
-            <p class="schedule-test-instructions">Please see <a href="https://openid.net/certification/instructions/">OpenID Foundation Certification Instructions</a>.</p>
+            <div class="schedule-test-header">
+                <p class="schedule-test-instructions">Please see <a href="https://openid.net/certification/instructions/">OpenID Foundation Certification Instructions</a>.</p>
 
-            <div class="schedule-test-toolbar">
-                <cts-button id="loadLastConfigBtn" data-testid="load-last-config" size="sm" variant="secondary" icon="clock" label="Load last configuration" loading disabled></cts-button>
+                <div class="schedule-test-toolbar">
+                    <cts-button id="loadLastConfigBtn" data-testid="load-last-config" size="sm" variant="secondary" icon="clock" label="Load last configuration" loading disabled></cts-button>
+                </div>
             </div>
 
             <cts-test-selector id="planSearch"></cts-test-selector>
