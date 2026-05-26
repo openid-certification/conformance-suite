@@ -1,5 +1,6 @@
 package net.openid.conformance.vci10issuer.condition;
 
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PreEnvironment;
@@ -44,7 +45,15 @@ public class VCIEnsureHttpsUrlsMetadata extends AbstractCondition {
 	}
 
 	private boolean ensureHttpsUrl(JsonObject credentialIssuerMetadata, String uriField) {
-		String uri = OIDFJSON.getString(credentialIssuerMetadata.get(uriField));
-		return uri.startsWith("https://");
+		// A present-but-non-string endpoint value is certainly not an https URL; report it as such
+		// rather than letting OIDFJSON.getString throw an unexpected exception (the value's type is
+		// also flagged by the schema validation).
+		JsonElement value = credentialIssuerMetadata.get(uriField);
+		if (!OIDFJSON.isString(value)) {
+			return false;
+		}
+		// RFC 3986 §3.1 makes URI scheme names case-insensitive, so HTTPS:// is valid too.
+		String uri = OIDFJSON.getString(value);
+		return uri.regionMatches(true, 0, "https://", 0, "https://".length());
 	}
 }
