@@ -65,16 +65,16 @@ Record maintainer decisions on G1 / G2 / G3 here as they land. Empty until the u
 
 ### G4 — phrasing to send to Thomas
 
-> Heads-up on a follow-up from B1 (the `?edit-plan=` redirect, now landed in `c2358951e`):
+Posted as a follow-up reply on the same MR thread that surfaced the bookmark issue, written as a natural continuation rather than a tracker reference. Internal jargon (`U14`, `B1`, `G4`) deliberately stripped.
+
+> One follow-up while we're on this: the **"Edit configuration"** button on the plan-detail page (and the matching action on log-detail) also links to `schedule-test.html?edit-plan=<id>` — same URL shape we just redirected. With the fix in place, those buttons now bounce you straight back to the page you were on.
 >
-> The plan-detail page has an **"Edit configuration"** button (tooltip: *"Create a new test plan based on the configuration used in this one"*) that today links to `schedule-test.html?edit-plan=<id>`. The log-detail page header has the same action. After the U14 redirect, both now bounce the user straight back to the plan-detail page they're already on — effectively dead.
+> Two ways I can clean it up — which would you prefer?
 >
-> Two ways to clean this up. Which do you prefer?
+> 1. **Drop the buttons.** The tooltip today reads *"Create a new test plan based on the configuration used in this one."* If that's not a flow people lean on during certification, just deleting it is the cleanest fix.
+> 2. **Re-target them** to a new URL — something like `schedule-test.html?from-plan=<id>` — that loads the saved config into the create-test form. Preserves the workflow under a param that won't collide with the redirect.
 >
-> 1. **Delete the buttons.** Is the "schedule a new test starting from this plan's saved config" flow actually used during certification, or was it cruft from an earlier UI? If nobody uses it, dropping the buttons is the cleanest fix.
-> 2. **Re-target the buttons** to a fresh URL like `schedule-test.html?from-plan=<id>` that loads the saved config into the create-test form (preserves the flow under a new param that won't collide with the U14 compat shim).
->
-> Either one is a small follow-up MR; just want to make sure I'm not silently removing a workflow you rely on.
+> Either one is a small follow-up. Wanted to check before silently removing the affordance.
 
 ---
 
