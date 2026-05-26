@@ -532,7 +532,7 @@ test.describe("schedule-test.html — Test Plan Scheduling", () => {
     await expect.poll(() => readConfigValue(page)).toContain("from-last-config");
   });
 
-  test("R13: page load does not auto-fetch /api/lastconfig", async ({ page }) => {
+  test("R13/U11: page load probes /api/lastconfig but does not apply it", async ({ page }) => {
     await setupFailFast(page);
 
     let lastconfigCalled = false;
@@ -545,9 +545,11 @@ test.describe("schedule-test.html — Test Plan Scheduling", () => {
       }),
     );
 
-    // Track whether anything fetches /api/lastconfig. Before R13 the page
-    // hit it on every load; after R13 the call is gated behind the
-    // explicit "Load last configuration" button.
+    // U11 (B3): bootstrap probes /api/lastconfig once to gate the
+    // "Load last configuration" button's disabled state. R13's no-auto-
+    // apply contract still holds — the probe MUST NOT write the payload
+    // to the editor. The mock returns a populated config so an accidental
+    // regression to auto-apply would land "should-not-load" in the form.
     await page.route("**/api/lastconfig", (route) => {
       lastconfigCalled = true;
       return route.fulfill({
@@ -560,15 +562,171 @@ test.describe("schedule-test.html — Test Plan Scheduling", () => {
     await setupCommonRoutes(page);
     await page.goto("/schedule-test.html");
 
-    // Wait for the cascade to be ready — that's a stronger "page is fully
-    // initialised" signal than DOMContentLoaded, and matches what other
-    // assertions on this page wait for.
     await page.locator("#specFamilySelect").selectOption("OIDCC");
     await page.locator("#entitySelect").selectOption("basic");
-    // After clear, currentConfig is an empty object — stringified shape is "{}".
+    // Form starts empty — the probe must not apply the persisted config.
     expect(await readConfigValue(page)).toBe("{}");
 
-    expect(lastconfigCalled).toBe(false);
+    // The probe runs as part of init; wait for the button to settle out
+    // of its initial loading state so the assertion isn't racy.
+    await expect(page.locator("#loadLastConfigBtn")).not.toHaveAttribute("loading", /.*/);
+    expect(lastconfigCalled).toBe(true);
+  });
+
+  test("U11: Load button starts disabled when no saved config exists", async ({ page }) => {
+    await setupFailFast(page);
+
+    await page.route("**/api/plan/available", (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(ALL_PLANS),
+      }),
+    );
+
+    // Empty payload — backend always returns 200 with {} when nothing
+    // is saved for the current user (SavedConfigurationApi.java:32).
+    await page.route("**/api/lastconfig", (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({}),
+      }),
+    );
+
+    await setupCommonRoutes(page);
+    await page.goto("/schedule-test.html");
+
+    // cts-button forwards the host's `disabled` to the inner native
+    // <button>; that's what :disabled tracks.
+    const innerBtn = page.locator("#loadLastConfigBtn button");
+    await expect(innerBtn).toBeDisabled();
+    // The probe completes — loading attribute should be cleared.
+    await expect(page.locator("#loadLastConfigBtn")).not.toHaveAttribute("loading", /.*/);
+  });
+
+  test("U11: Load button enables once probe reports a saved config", async ({ page }) => {
+    await setupFailFast(page);
+
+    await page.route("**/api/plan/available", (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(ALL_PLANS),
+      }),
+    );
+
+    await page.route("**/api/lastconfig", (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({ config: { alias: "saved" } }),
+      }),
+    );
+
+    await setupCommonRoutes(page);
+    await page.goto("/schedule-test.html");
+
+    const innerBtn = page.locator("#loadLastConfigBtn button");
+    await expect(innerBtn).toBeEnabled();
+    await expect(page.locator("#loadLastConfigBtn")).not.toHaveAttribute("loading", /.*/);
+  });
+
+  test("U11: clicking shows pending state and re-enables after success", async ({ page }) => {
+    await setupFailFast(page);
+
+    await page.route("**/api/plan/available", (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(ALL_PLANS),
+      }),
+    );
+
+    let lastconfigCalls = 0;
+    /** @type {(value?: void) => void} */
+    let releaseClickFetch = () => {};
+    const clickFetchInFlight = new Promise((resolve) => {
+      releaseClickFetch = resolve;
+    });
+
+    // First call (bootstrap probe) resolves immediately. Second call
+    // (click) is held open until the test asserts the pending state.
+    await page.route("**/api/lastconfig", async (route) => {
+      lastconfigCalls += 1;
+      if (lastconfigCalls === 1) {
+        return route.fulfill({
+          status: 200,
+          contentType: "application/json",
+          body: JSON.stringify({ config: { alias: "saved" } }),
+        });
+      }
+      await clickFetchInFlight;
+      return route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({ config: { alias: "from-last-config" } }),
+      });
+    });
+
+    await setupCommonRoutes(page);
+    await page.goto("/schedule-test.html");
+
+    const innerBtn = page.locator("#loadLastConfigBtn button");
+    await expect(innerBtn).toBeEnabled();
+
+    await page.getByTestId("load-last-config").click();
+
+    // While the click fetch is in flight, the button shows the spinner
+    // and is disabled (cts-button's loading state).
+    await expect(page.locator("#loadLastConfigBtn")).toHaveAttribute("loading", /.*/);
+    await expect(innerBtn).toBeDisabled();
+
+    // Release the fetch and verify the button settles back to enabled.
+    releaseClickFetch();
+    await expect(page.locator("#loadLastConfigBtn")).not.toHaveAttribute("loading", /.*/);
+    await expect(innerBtn).toBeEnabled();
+  });
+
+  test("U11: click error shows toast and re-enables the button", async ({ page }) => {
+    await setupFailFast(page);
+
+    await page.route("**/api/plan/available", (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(ALL_PLANS),
+      }),
+    );
+
+    let lastconfigCalls = 0;
+    await page.route("**/api/lastconfig", (route) => {
+      lastconfigCalls += 1;
+      if (lastconfigCalls === 1) {
+        return route.fulfill({
+          status: 200,
+          contentType: "application/json",
+          body: JSON.stringify({ config: { alias: "saved" } }),
+        });
+      }
+      return route.fulfill({ status: 500, body: "Server error" });
+    });
+
+    await setupCommonRoutes(page);
+    await page.goto("/schedule-test.html");
+
+    const innerBtn = page.locator("#loadLastConfigBtn button");
+    await expect(innerBtn).toBeEnabled();
+
+    await page.getByTestId("load-last-config").click();
+
+    // FAPI_UI.showError opens the legacy #errorModal.
+    const errorModal = page.locator("#errorModal");
+    await expect(errorModal).toBeVisible();
+
+    // After the failed click, the button re-enables so the user can retry.
+    await expect(page.locator("#loadLastConfigBtn")).not.toHaveAttribute("loading", /.*/);
+    await expect(innerBtn).toBeEnabled();
   });
 
   // --- cts-test-selector search flow (search-mode shortcut over the cascade) ---

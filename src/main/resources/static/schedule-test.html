@@ -86,7 +86,7 @@
             <p class="schedule-test-instructions">Please see <a href="https://openid.net/certification/instructions/">OpenID Foundation Certification Instructions</a>.</p>
 
             <div class="schedule-test-toolbar">
-                <cts-button id="loadLastConfigBtn" data-testid="load-last-config" size="sm" variant="secondary" icon="clock" label="Load last configuration"></cts-button>
+                <cts-button id="loadLastConfigBtn" data-testid="load-last-config" size="sm" variant="secondary" icon="clock" label="Load last configuration" loading disabled></cts-button>
             </div>
 
             <cts-test-selector id="planSearch"></cts-test-selector>
@@ -563,13 +563,47 @@
             return false;
         }
 
+        // U11 (B3): probe /api/lastconfig once during bootstrap so the
+        // "Load last configuration" button can render disabled when there
+        // is nothing to load. The probe ONLY informs button state — it
+        // does NOT apply the config to the form. R13 (don't auto-prefill)
+        // is preserved: the user still has to click before any persisted
+        // config touches the editor.
+        function probeLastConfig() {
+            var btn = document.getElementById('loadLastConfigBtn');
+            return fetch('/api/lastconfig')
+                .then((response) => response.json())
+                .then((data) => {
+                    if (btn) btn.loading = false;
+                    if (data && data.config) {
+                        if (btn) btn.disabled = false;
+                    }
+                })
+                .catch((error) => {
+                    // Silent failure: keep the button disabled and log
+                    // the error to the console. Toasting on bootstrap
+                    // would spam the page; clicking a disabled button
+                    // can't trigger the same error, so the user is not
+                    // misled.
+                    if (btn) btn.loading = false;
+                    console.warn('[schedule-test] probeLastConfig failed:', error);
+                });
+        }
+
         // R13: explicit "Load last configuration" action. Mirrors the prior
         // auto-fetch behavior but is now triggered only by the user clicking
         // the toolbar button. updateSelectedTestSelector flips the cascade
         // through selectPlanByName (which trips isSystemSelectingPlan), so
         // the cts-plan-selected listener skips clearing the config we are
         // about to apply.
+        //
+        // U11 (B3): the click handler toggles cts-button's `loading` for
+        // the duration of the fetch, so the spinner is visible on slow
+        // review-app environments. The button stays enabled after an
+        // error so the user can retry.
         function loadLastConfigFromServer() {
+            var btn = document.getElementById('loadLastConfigBtn');
+            if (btn) btn.loading = true;
             return fetch('/api/lastconfig')
                 .then((response) => response.json())
                 .then(async (data) => {
@@ -595,6 +629,9 @@
                     FAPI_UI.showError({
                         error: "Could not load the previous configuration: " + error
                     });
+                })
+                .finally(() => {
+                    if (btn) btn.loading = false;
                 });
         }
 
@@ -872,6 +909,14 @@
 
             // R13: opt-in last-config load. Replaces the old auto-fetch on
             // page load — see loadLastConfig() above.
+            //
+            // U11 (B3): kick off the existence probe before wiring the
+            // click. The button starts `loading disabled`; the probe
+            // toggles `loading=false` and, if a saved config exists,
+            // `disabled=false`. We do NOT await the probe — it runs
+            // alongside the rest of init so a slow review-app does not
+            // block page render.
+            probeLastConfig();
             document.getElementById('loadLastConfigBtn').addEventListener('click', function() {
                 loadLastConfigFromServer();
             });
