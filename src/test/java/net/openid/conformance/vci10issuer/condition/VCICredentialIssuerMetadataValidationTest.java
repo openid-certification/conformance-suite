@@ -145,4 +145,99 @@ class VCICredentialIssuerMetadataValidationTest extends AbstractVciUnitTest {
 		validation.evaluate(env);
 	}
 
+	@Test
+	void shouldRejectBatchSizeOne() throws Exception {
+		// OID4VCI 1.0 Final §12.2.4: batch_size MUST be 2 or greater.
+		String metadataString = """
+			{
+			  "credential_issuer": "https://issuer.example.com",
+			  "credential_endpoint": "https://issuer.example.com/credential",
+			  "credential_configurations_supported": {"TestCred": {"format": "dc+sd-jwt", "vct": "v"}},
+			  "batch_credential_issuance": {"batch_size": 1}
+			}
+			""";
+		env.putObject("vci", "credential_issuer_metadata", JsonParser.parseString(metadataString).getAsJsonObject());
+		Map<String, Object> data = assertValidationError(validation, env, eventLog);
+		assertContainsExpectedError(data, "$.batch_credential_issuance.batch_size", "must have a minimum value of 2");
+	}
+
+	@Test
+	void shouldRejectEmptyDisplayArray() throws Exception {
+		// OID4VCI 1.0 Final §12.2.4: top-level display MUST be a non-empty array.
+		String metadataString = """
+			{
+			  "credential_issuer": "https://issuer.example.com",
+			  "credential_endpoint": "https://issuer.example.com/credential",
+			  "credential_configurations_supported": {"TestCred": {"format": "dc+sd-jwt", "vct": "v"}},
+			  "display": []
+			}
+			""";
+		env.putObject("vci", "credential_issuer_metadata", JsonParser.parseString(metadataString).getAsJsonObject());
+		Map<String, Object> data = assertValidationError(validation, env, eventLog);
+		assertContainsExpectedError(data, "$.display", "must have at least 1 items but found 0");
+	}
+
+	@Test
+	void shouldRejectEmptyCryptographicBindingMethodsSupported() throws Exception {
+		// OID4VCI 1.0 Final §12.2.4: cryptographic_binding_methods_supported MUST be a non-empty array.
+		String metadataString = """
+			{
+			  "credential_issuer": "https://issuer.example.com",
+			  "credential_endpoint": "https://issuer.example.com/credential",
+			  "credential_configurations_supported": {
+			    "TestCred": {
+			      "format": "dc+sd-jwt",
+			      "vct": "v",
+			      "cryptographic_binding_methods_supported": []
+			    }
+			  }
+			}
+			""";
+		env.putObject("vci", "credential_issuer_metadata", JsonParser.parseString(metadataString).getAsJsonObject());
+		Map<String, Object> data = assertValidationError(validation, env, eventLog);
+		assertContainsExpectedError(data, "$.credential_configurations_supported.TestCred.cryptographic_binding_methods_supported", "must have at least 1 items but found 0");
+	}
+
+	@Test
+	void shouldRejectEmptyProofSigningAlgValuesSupported() throws Exception {
+		// OID4VCI 1.0 Final §12.2.4: proof_signing_alg_values_supported REQUIRED, non-empty array.
+		String metadataString = """
+			{
+			  "credential_issuer": "https://issuer.example.com",
+			  "credential_endpoint": "https://issuer.example.com/credential",
+			  "credential_configurations_supported": {
+			    "TestCred": {
+			      "format": "dc+sd-jwt",
+			      "vct": "v",
+			      "proof_types_supported": {"jwt": {"proof_signing_alg_values_supported": []}}
+			    }
+			  }
+			}
+			""";
+		env.putObject("vci", "credential_issuer_metadata", JsonParser.parseString(metadataString).getAsJsonObject());
+		Map<String, Object> data = assertValidationError(validation, env, eventLog);
+		assertContainsExpectedError(data, "$.credential_configurations_supported.TestCred.proof_types_supported.jwt.proof_signing_alg_values_supported", "must have at least 1 items but found 0");
+	}
+
+	@Test
+	void shouldRejectEmptyCredentialMetadataClaims() throws Exception {
+		// OID4VCI 1.0 Final §12.2.4: credential_metadata.claims MUST be a non-empty array.
+		String metadataString = """
+			{
+			  "credential_issuer": "https://issuer.example.com",
+			  "credential_endpoint": "https://issuer.example.com/credential",
+			  "credential_configurations_supported": {
+			    "TestCred": {
+			      "format": "dc+sd-jwt",
+			      "vct": "v",
+			      "credential_metadata": {"claims": []}
+			    }
+			  }
+			}
+			""";
+		env.putObject("vci", "credential_issuer_metadata", JsonParser.parseString(metadataString).getAsJsonObject());
+		Map<String, Object> data = assertValidationError(validation, env, eventLog);
+		assertContainsExpectedError(data, "$.credential_configurations_supported.TestCred.credential_metadata.claims", "must have at least 1 items but found 0");
+	}
+
 }
