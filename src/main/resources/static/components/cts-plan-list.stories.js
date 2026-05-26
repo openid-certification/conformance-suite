@@ -66,6 +66,15 @@ export const Default = {
     expect(canvas.getByText("fapi2-security-profile-final-test-plan")).toBeInTheDocument();
     expect(canvas.getByText("oidcc-implicit-certification-test-plan")).toBeInTheDocument();
 
+    // Plan-name anchors carry the real destination URL (not "#") so cmd-click,
+    // middle-click, right-click "Open in new tab", browser hover preview, and
+    // screen reader destination announcement all work. Regression guard for
+    // the a11y fix that replaced href="#" with the encoded plan-detail URL.
+    const firstPlanLink = /** @type {HTMLAnchorElement | null} */ (
+      canvasElement.querySelector("a.plan-name-link")
+    );
+    expect(firstPlanLink?.getAttribute("href")).toBe("plan-detail.html?plan=plan-001");
+
     // Module badges render
     const badges = canvasElement.querySelectorAll("cts-badge");
     expect(badges.length).toBeGreaterThan(0);

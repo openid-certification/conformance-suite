@@ -191,6 +191,13 @@ test.describe("plans.html — Plans List", () => {
     const planLink = page.locator("#plansListing .plan-name-link").first();
     await expect(planLink).toBeVisible();
 
+    // The anchor carries the real destination URL (not "#") so cmd-click,
+    // middle-click, right-click "Open in new tab", and screen-reader
+    // destination announcement all work. Assert the href before clicking so
+    // a regression to href="#" fails here rather than only manifesting as
+    // an a11y / UX regression in production.
+    await expect(planLink).toHaveAttribute("href", "plan-detail.html?plan=plan-001");
+
     await Promise.all([page.waitForURL(/plan-detail\.html\?plan=plan-001/), planLink.click()]);
 
     expect(page.url()).toContain("plan-detail.html?plan=plan-001");
