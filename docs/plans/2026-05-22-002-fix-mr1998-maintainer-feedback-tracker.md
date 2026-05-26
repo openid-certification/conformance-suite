@@ -61,6 +61,20 @@ Record maintainer decisions on G1 / G2 / G3 here as they land. Empty until the u
 | G1 | `plans.html` per-module status grid — restore / aggregate / list-only | — | — | — | Blocks U17 |
 | G2 | `schedule-test.html` "search test plans" header — remove / collapse / keep | — | — | — | Blocks U15 |
 | G3 | "About this test" labelling — rename to "Description" / "Title" or keep | — | — | — | Affects U6 follow-up (formatting ships regardless) |
+| G4 | "Edit configuration" buttons on plan-detail / log-detail — delete or re-target after U14 redirect | — | — | — | Surfaced post-U14 (not in the original plan); blocks any cleanup of `cts-plan-actions.js:487` and `log-detail.js:672` |
+
+### G4 — phrasing to send to Thomas
+
+> Heads-up on a follow-up from B1 (the `?edit-plan=` redirect, now landed in `c2358951e`):
+>
+> The plan-detail page has an **"Edit configuration"** button (tooltip: *"Create a new test plan based on the configuration used in this one"*) that today links to `schedule-test.html?edit-plan=<id>`. The log-detail page header has the same action. After the U14 redirect, both now bounce the user straight back to the plan-detail page they're already on — effectively dead.
+>
+> Two ways to clean this up. Which do you prefer?
+>
+> 1. **Delete the buttons.** Is the "schedule a new test starting from this plan's saved config" flow actually used during certification, or was it cruft from an earlier UI? If nobody uses it, dropping the buttons is the cleanest fix.
+> 2. **Re-target the buttons** to a fresh URL like `schedule-test.html?from-plan=<id>` that loads the saved config into the create-test form (preserves the flow under a new param that won't collide with the U14 compat shim).
+>
+> Either one is a small follow-up MR; just want to make sure I'm not silently removing a workflow you rely on.
 
 ---
 
