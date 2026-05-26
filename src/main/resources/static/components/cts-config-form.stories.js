@@ -14,6 +14,19 @@ import "./cts-config-form.js";
  * @param {Element} canvasElement
  * @returns {Promise<HTMLElement>}
  */
+/**
+ * Reset any lingering `cts-toast-host` left over from a prior story.
+ * Storybook reuses the same iframe across stories in a single run, and the
+ * U13 (B7) validate stories below fire toasts that would otherwise stack
+ * on the bottom-right region between play functions.
+ * @returns {void}
+ */
+function resetToastHost() {
+  for (const host of document.querySelectorAll("cts-toast-host")) {
+    host.remove();
+  }
+}
+
 async function waitForJsonEditor(canvasElement) {
   const editor = /** @type {any} */ (
     await waitFor(
@@ -253,45 +266,225 @@ export const ConfigChangeEvent = {
 };
 
 /**
- * The Validate Configuration button is a UI placeholder for the SUS UX
- * review's HIGH-severity "pre-run config validation" recommendation. The
- * backend `POST /api/plan/validate` endpoint is not yet implemented, so
- * the button opens a construction-notice modal that explains the
- * unwired state to OIDF maintainers. A tooltip surfaces the same status
- * on hover/focus.
+ * U13 (B7): the Validate Configuration button now runs a synchronous
+ * client-side pass over the schema's required fields. When every required
+ * field has a non-empty value, the verdict is announced via a `cts-toast`
+ * "ok" toast — the same surface used by Load Last Configuration and other
+ * page-level confirmations. A `cts-validate` event fires with the verdict
+ * so host pages can layer a backend check on top.
  */
-export const ValidateButtonShowsSusNotice = {
+export const ValidateButtonShowsSuccessToast = {
   render: () => html`
     <cts-config-form
-      .schema=${MOCK_SCHEMA.schema}
+      .schema=${{
+        ...MOCK_SCHEMA.schema,
+        properties: {
+          server: {
+            ...MOCK_SCHEMA.schema.properties.server,
+            required: ["issuer"],
+          },
+          client: {
+            ...MOCK_SCHEMA.schema.properties.client,
+            required: ["client_id"],
+          },
+        },
+      }}
       .uiSchema=${MOCK_SCHEMA.uiSchema}
-      .config=${{ server: { issuer: "https://example.com" } }}
+      .config=${{
+        server: { issuer: "https://op.example.com" },
+        client: { client_id: "filled-in" },
+      }}
       .errors=${{}}
     ></cts-config-form>
   `,
   async play({ canvasElement }) {
+    resetToastHost();
     const canvas = within(canvasElement);
     const button = canvas.getByText("Validate Configuration");
 
-    // Hovering the button surfaces the SUS construction-notice tooltip
-    // (appended to document.body by cts-tooltip).
-    await userEvent.hover(button);
-    await waitFor(() => {
-      const tip = document.querySelector(".oidf-tooltip");
-      expect(tip?.textContent || "").toContain("SUS recommendation");
+    /** @type {CustomEvent | null} */
+    let validateEvent = null;
+    canvasElement.addEventListener("cts-validate", (e) => {
+      validateEvent = /** @type {CustomEvent} */ (e);
     });
-    await userEvent.unhover(button);
 
-    // cts-button renders the inner <button type="submit"> that submits the form;
-    // the form's @submit handler opens the construction-notice modal.
     await userEvent.click(button);
-    const modal = /** @type {HTMLElement} */ (
-      canvasElement.querySelector("#cts-config-form-sus-notice-modal")
-    );
-    expect(modal).toBeTruthy();
-    // cts-modal mirrors `open` to the host once the dialog opens.
-    await waitFor(() => expect(modal.hasAttribute("open")).toBe(true));
-    expect(modal.getAttribute("heading")).toContain("not yet implemented");
+
+    // cts-validate dispatched with valid=true and an empty errors map.
+    await waitFor(() => {
+      expect(validateEvent).not.toBeNull();
+    });
+    expect(/** @type {any} */ (validateEvent).detail.valid).toBe(true);
+    expect(Object.keys(/** @type {any} */ (validateEvent).detail.errors).length).toBe(0);
+
+    // Toast lands in the singleton host and reads as a calm "ok" kind.
+    /** @type {any} */
+    const toast = await waitFor(() => {
+      const t = document.querySelector("cts-toast-host cts-toast");
+      if (!t) throw new Error("cts-toast not yet rendered");
+      return t;
+    });
+    expect(toast.kind).toBe("ok");
+    expect(toast.title).toContain("Configuration is valid");
+    // No inline errors appear when validation passes.
+    expect(canvasElement.querySelectorAll(".oidf-error").length).toBe(0);
+    resetToastHost();
+  },
+};
+
+/**
+ * U13 (B7): on a failed validate, the toast names the count and the
+ * `.errors` map is populated so each offending field renders the
+ * `.oidf-error` callout next to its input. The required-field detection
+ * honours BOTH conventions used across the codebase — per-field
+ * `x-cts-required: true` (set by the catalog adapter) and section-level
+ * `required: []` arrays (used in the mock fixture).
+ */
+export const ValidateButtonShowsErrorToast = {
+  render: () => html`
+    <cts-config-form
+      .schema=${{
+        type: "object",
+        properties: {
+          "client.client_id": {
+            type: "string",
+            title: "Client ID",
+            "x-cts-required": true,
+          },
+          "federation.entity_identifier": {
+            type: "string",
+            title: "Entity Identifier",
+            "x-cts-required": true,
+          },
+          "alias.optional": {
+            type: "string",
+            title: "Optional alias",
+          },
+        },
+      }}
+      .uiSchema=${{
+        sections: [
+          {
+            key: "_root",
+            title: "Test",
+            fields: ["client.client_id", "federation.entity_identifier", "alias.optional"],
+          },
+        ],
+      }}
+      .config=${{}}
+      .errors=${{}}
+    ></cts-config-form>
+  `,
+  async play({ canvasElement }) {
+    resetToastHost();
+    const canvas = within(canvasElement);
+    const button = canvas.getByText("Validate Configuration");
+
+    /** @type {CustomEvent | null} */
+    let validateEvent = null;
+    canvasElement.addEventListener("cts-validate", (e) => {
+      validateEvent = /** @type {CustomEvent} */ (e);
+    });
+
+    await userEvent.click(button);
+
+    // cts-validate fires with valid=false and an errors map covering both
+    // required paths. The non-required `alias.optional` is NOT flagged.
+    await waitFor(() => {
+      expect(validateEvent).not.toBeNull();
+    });
+    /** @type {any} */
+    const detail = /** @type {any} */ (validateEvent).detail;
+    expect(detail.valid).toBe(false);
+    expect(detail.errors["client.client_id"]).toBe("Required field");
+    expect(detail.errors["federation.entity_identifier"]).toBe("Required field");
+    expect(detail.errors["alias.optional"]).toBeUndefined();
+
+    // Error toast — count copy is plural for two missing fields.
+    /** @type {any} */
+    const toast = await waitFor(() => {
+      const t = document.querySelector("cts-toast-host cts-toast");
+      if (!t) throw new Error("cts-toast not yet rendered");
+      return t;
+    });
+    expect(toast.kind).toBe("error");
+    expect(toast.title).toContain("issues");
+    expect(toast.message).toContain("2 required fields");
+
+    // Inline `.oidf-error` callouts land next to the offending inputs.
+    await waitFor(() => {
+      const errors = canvasElement.querySelectorAll(".oidf-error");
+      expect(errors.length).toBe(2);
+    });
+    resetToastHost();
+  },
+};
+
+/**
+ * U13 (B7): hidden required fields are excluded from validation. A field
+ * the page chose to hide (e.g. via the variant-driven hiddenFields set on
+ * schedule-test.html) is not user-actionable, so flagging it would only
+ * produce noise. The success path runs even though the schema marks the
+ * hidden field as required.
+ */
+export const ValidateButtonIgnoresHiddenRequiredFields = {
+  render: () => html`
+    <cts-config-form
+      .schema=${{
+        type: "object",
+        properties: {
+          "client.client_id": {
+            type: "string",
+            title: "Client ID",
+            "x-cts-required": true,
+          },
+          "client.client_secret": {
+            type: "string",
+            title: "Client Secret",
+            "x-cts-required": true,
+          },
+        },
+      }}
+      .uiSchema=${{
+        sections: [
+          {
+            key: "client",
+            title: "Client",
+            fields: ["client.client_id", "client.client_secret"],
+          },
+        ],
+      }}
+      .config=${{ client: { client_id: "visible-and-filled" } }}
+      .errors=${{}}
+      .hiddenFields=${new Set(["client.client_secret"])}
+    ></cts-config-form>
+  `,
+  async play({ canvasElement }) {
+    resetToastHost();
+    const canvas = within(canvasElement);
+    const button = canvas.getByText("Validate Configuration");
+
+    /** @type {CustomEvent | null} */
+    let validateEvent = null;
+    canvasElement.addEventListener("cts-validate", (e) => {
+      validateEvent = /** @type {CustomEvent} */ (e);
+    });
+
+    await userEvent.click(button);
+
+    // Hidden client_secret is not flagged even though the schema marks it required.
+    await waitFor(() => {
+      expect(validateEvent).not.toBeNull();
+    });
+    expect(/** @type {any} */ (validateEvent).detail.valid).toBe(true);
+    /** @type {any} */
+    const toast = await waitFor(() => {
+      const t = document.querySelector("cts-toast-host cts-toast");
+      if (!t) throw new Error("cts-toast not yet rendered");
+      return t;
+    });
+    expect(toast.kind).toBe("ok");
+    resetToastHost();
   },
 };
 
