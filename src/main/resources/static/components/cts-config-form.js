@@ -4,8 +4,7 @@ import "./cts-form-field.js";
 import "./cts-button.js";
 import "./cts-json-editor.js";
 import "./cts-tabs.js";
-import "./cts-tooltip.js";
-import "./cts-modal.js";
+import { CtsToastHost } from "./cts-toast.js";
 
 /**
  * Dual-mode (Form / JSON) configuration editor. In Form mode, renders
@@ -84,15 +83,23 @@ import "./cts-modal.js";
  *   including any hidden-field values that were preserved through the
  *   JSON-tab merge.
  *
- * The Validate Configuration button is a UI placeholder for the SUS UX
- * review's HIGH-severity "pre-run config validation" recommendation
- * (`docs/SUS_OIDF_UX_UI_Review_2025.md` lines 1512–1564). The backend
- * `POST /api/plan/validate` endpoint (brainstorm Unit 1D) is not yet
- * implemented, so clicking the button opens an explanatory cts-modal
- * instead of dispatching a validation event. A construction-notice
- * cts-tooltip wraps the button to make the placeholder state visible
- * on hover/focus. Remove the tooltip + modal scaffold and re-introduce
- * `cts-validate` event dispatch once the endpoint lands.
+ * ## Validate Configuration
+ *
+ * Clicking the Validate Configuration button runs a synchronous client-side
+ * pass over the schema: it collects every visible required field
+ * (`x-cts-required: true` on the field schema, or membership in the
+ * section-level `required: []` array under nested-mode), reads the current
+ * value via `_getValueAtPathRaw`, and flags any path whose value is null,
+ * undefined, or an empty string. The resulting map replaces `this.errors`
+ * (so inline `.oidf-error` markers light up next to the offending fields),
+ * and a `cts-toast` summarises the verdict — `ok` toast on a clean pass,
+ * `error` toast naming the missing-field count on a failure.
+ *
+ * A `cts-validate` event fires with `{ valid, errors, config }` regardless
+ * of the verdict, so the host page can layer a backend check on top (e.g.
+ * the as-yet-unimplemented `POST /api/plan/validate` endpoint from
+ * brainstorm Unit 1D) by listening, calling the endpoint, and reassigning
+ * `errors` with the merged result.
  */
 
 const STYLE_ID = "cts-config-form-styles";
@@ -147,34 +154,6 @@ const STYLE_TEXT = `
   font-family: var(--font-sans);
   font-size: var(--fs-12);
   line-height: var(--lh-snug);
-}
-.oidf-config-form-sus-notice h4 {
-  font-family: var(--font-sans);
-  font-weight: var(--fw-medium);
-  font-size: var(--fs-14);
-  margin: var(--space-4) 0 var(--space-2) 0;
-  color: var(--fg);
-}
-.oidf-config-form-sus-notice p,
-.oidf-config-form-sus-notice blockquote {
-  font-family: var(--font-sans);
-  font-size: var(--fs-14);
-  line-height: var(--lh-snug);
-  margin: 0 0 var(--space-3) 0;
-  color: var(--fg);
-}
-.oidf-config-form-sus-notice blockquote {
-  border-left: 2px solid var(--ink-200);
-  padding: 0 var(--space-3);
-  color: var(--fg-soft);
-  font-style: italic;
-}
-.oidf-config-form-sus-notice code {
-  font-family: var(--font-mono);
-  font-size: 0.92em;
-  background: var(--bg-muted);
-  padding: 0 var(--space-1);
-  border-radius: var(--radius-1);
 }
 `;
 
@@ -355,12 +334,105 @@ class CtsConfigForm extends LitElement {
     }
   }
 
+  /**
+   * Returns the list of visible required field paths to check on validate.
+   * Honours both schema conventions used in the codebase:
+   * - Per-field `x-cts-required: true` (produced by `config-form-adapter`
+   *   from `field.required` in `config-field-catalog.json`).
+   * - Section-level `required: ["fieldName"]` arrays (JSON Schema standard,
+   *   used by the nested-mode mock fixture).
+   *
+   * Hidden fields are excluded — a required field the page has chosen to
+   * hide is not user-actionable, so flagging it would only confuse.
+   * @returns {string[]} Required field paths, in section/render order.
+   */
+  _collectRequiredPaths() {
+    const sections = this.uiSchema?.sections || [];
+    const properties = this.schema?.properties || {};
+    const paths = [];
+    const push = (path, fieldSchema) => {
+      if (!fieldSchema) return;
+      if (this.hiddenFields?.has(path)) return;
+      if (paths.includes(path)) return;
+      paths.push(path);
+    };
+
+    if (sections.length === 0) {
+      const topRequired = Array.isArray(this.schema?.required) ? this.schema.required : [];
+      for (const [key, fieldSchema] of Object.entries(properties)) {
+        if (fieldSchema?.["x-cts-required"] || topRequired.includes(key)) {
+          push(key, fieldSchema);
+        }
+      }
+      return paths;
+    }
+
+    for (const section of sections) {
+      if (Array.isArray(section.fields)) {
+        for (const path of section.fields) {
+          if (properties[path]?.["x-cts-required"]) push(path, properties[path]);
+        }
+        continue;
+      }
+      const sectionSchema = properties[section.key];
+      if (!sectionSchema?.properties) continue;
+      const sectionRequired = Array.isArray(sectionSchema.required) ? sectionSchema.required : [];
+      for (const [fieldKey, fieldSchema] of Object.entries(sectionSchema.properties)) {
+        const fullPath = `${section.key}.${fieldKey}`;
+        if (fieldSchema?.["x-cts-required"] || sectionRequired.includes(fieldKey)) {
+          push(fullPath, fieldSchema);
+        }
+      }
+    }
+    return paths;
+  }
+
+  /**
+   * Walks the required paths returned by `_collectRequiredPaths` and flags
+   * any whose current `config` value is null, undefined, or an empty
+   * string. Object/array `{}`/`[]` shapes are NOT flagged — a user can
+   * legitimately leave a JWKS placeholder open and the schema-driven
+   * adapter does not distinguish "empty container" from "missing".
+   * @returns {Record<string, string>} Map of full-path → error message.
+   */
+  _validateConfig() {
+    /** @type {Record<string, string>} */
+    const errors = {};
+    for (const path of this._collectRequiredPaths()) {
+      const value = this._getValueAtPathRaw(this.config, path);
+      if (value === null || value === undefined || value === "") {
+        errors[path] = "Required field";
+      }
+    }
+    return errors;
+  }
+
   _handleValidate(e) {
     e.preventDefault();
-    const modal = /** @type {(HTMLElement & { show?: () => void }) | null} */ (
-      this.querySelector("#cts-config-form-sus-notice-modal")
+    const errors = this._validateConfig();
+    const valid = Object.keys(errors).length === 0;
+    this.errors = errors;
+    this.dispatchEvent(
+      new CustomEvent("cts-validate", {
+        bubbles: true,
+        composed: true,
+        detail: { valid, errors, config: this.config },
+      }),
     );
-    if (modal && typeof modal.show === "function") modal.show();
+    if (valid) {
+      CtsToastHost.show({
+        title: "Configuration is valid",
+        message: "All required fields are filled in.",
+        kind: "ok",
+      });
+      return;
+    }
+    const count = Object.keys(errors).length;
+    CtsToastHost.show({
+      title: "Configuration has issues",
+      message: `${count} required ${count === 1 ? "field is" : "fields are"} missing. See inline errors.`,
+      kind: "error",
+    });
   }
 
   _renderSections() {
@@ -429,13 +501,11 @@ class CtsConfigForm extends LitElement {
             <form @cts-field-change=${this._handleFieldChange} @submit=${this._handleValidate}>
               ${this._renderSections()}
               <div class="oidf-config-form-actions">
-                <cts-tooltip content="SUS recommendation – requires wiring 🚧">
-                  <cts-button
-                    type="submit"
-                    variant="primary"
-                    label="Validate Configuration"
-                  ></cts-button>
-                </cts-tooltip>
+                <cts-button
+                  type="submit"
+                  variant="primary"
+                  label="Validate Configuration"
+                ></cts-button>
               </div>
             </form>
           </cts-tab-panel>
@@ -466,70 +536,7 @@ class CtsConfigForm extends LitElement {
               : nothing}
           </cts-tab-panel>
         </cts-tabs>
-        ${this._renderSusNoticeModal()}
       </div>
-    `;
-  }
-
-  /**
-   * Construction-notice modal explaining that the Validate Configuration
-   * button is a UI placeholder for an unwired SUS recommendation. Body
-   * content is static (no reactive bindings) because `cts-modal`
-   * physically moves its children into the inner `<dialog>` on first
-   * connect — see the lifecycle note in cts-token-manager.js. Remove
-   * this modal and the `_handleValidate` modal-show indirection once the
-   * `POST /api/plan/validate` endpoint lands and the page wires up
-   * `cts-validate`.
-   * @returns {ReturnType<typeof html>} Lit template for the notice modal.
-   */
-  _renderSusNoticeModal() {
-    return html`
-      <cts-modal
-        id="cts-config-form-sus-notice-modal"
-        heading="Validate Configuration — not yet implemented"
-        size="lg"
-      >
-        <div class="oidf-config-form-sus-notice">
-          <p>
-            This button is a UI placeholder for a feature recommended by Super User Studio's 2025 UX
-            review of the OpenID Conformance Suite. The backend validation endpoint has not been
-            implemented yet, so clicking the button currently does nothing actionable.
-          </p>
-          <h4>What it should do</h4>
-          <p>
-            Run pre-flight diagnostic checks against the current test configuration (e.g. ClientID
-            format, certificate validity, missing required fields) <em>before</em> the user creates
-            the test plan. Surface any errors inline against the offending fields so the user can
-            fix them in-place.
-          </p>
-          <h4>Why it matters (severity: HIGH)</h4>
-          <p>
-            Today, users cannot distinguish configuration errors from real conformance errors until
-            <em>after</em> they create and run a plan. This forces them into a trial-and-error setup
-            loop and inflates support load.
-          </p>
-          <blockquote>
-            "I was not knowing if it was an error until I created a test plan because the required
-            field was missing here... when I click the 'create test plan' I should already see a
-            pop-up error." — QA, Raidiam
-          </blockquote>
-          <h4>How to implement</h4>
-          <p>
-            The frontend already emits a <code>cts-validate</code>
-            request when the button is clicked (currently routed to this modal). The brainstorm at
-            <code>.superpowers/brainstorm/63162-1776122675</code>
-            proposes a <code>POST /api/plan/validate</code> endpoint (Unit 1D) that returns
-            structured errors keyed by field path; the page would set
-            <code>ctsConfigForm.errors</code> and gate <code>#createPlanBtn</code> on a clean
-            response.
-          </p>
-          <p>
-            <strong>References:</strong>
-            <code>docs/SUS_OIDF_UX_UI_Review_2025.md</code> lines 1512–1564 (findings +
-            recommendations); brainstorm traceability row R7.
-          </p>
-        </div>
-      </cts-modal>
     `;
   }
 }
