@@ -36,7 +36,8 @@ public class VCIValidateCredentialOfferRequestParams extends AbstractCondition {
 				throw error("Empty credential_offer_uri parameter value found in query parameters", args("query_string_params", requestParts));
 			}
 
-			if (!credentialOfferUri.startsWith("https://")) {
+			// RFC 3986 §3.1 makes URI scheme names case-insensitive, so HTTPS:// is valid too.
+			if (!credentialOfferUri.regionMatches(true, 0, "https://", 0, "https://".length())) {
 				throw error("credential_offer_uri parameter must use https://", args("credential_offer_uri", credentialOfferUri));
 			}
 
