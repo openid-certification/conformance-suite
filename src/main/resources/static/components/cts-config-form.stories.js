@@ -568,3 +568,112 @@ export const ExplicitFieldsHiddenSectionDisappears = {
     expect(legends[0].textContent).toContain("Test Information");
   },
 };
+
+/**
+ * U12 (B4): when `.config` is reassigned from outside (e.g. the
+ * schedule-test.html Load-last-configuration flow), the Form tab's
+ * inputs reflect the new values without a remount. Distinct from
+ * PrefilledForm, which only proves population at instantiation time.
+ */
+export const ExternalConfigUpdatesFormFields = {
+  render: () => html`
+    <cts-config-form
+      .schema=${MOCK_SCHEMA.schema}
+      .uiSchema=${MOCK_SCHEMA.uiSchema}
+      .config=${{}}
+      .errors=${{}}
+    ></cts-config-form>
+  `,
+  async play({ canvasElement }) {
+    const form = /** @type {any} */ (canvasElement.querySelector("cts-config-form"));
+    // Pre-condition: empty form, no values bound to inputs.
+    const issuerInputInitial = canvasElement.querySelector('input[type="url"]');
+    expect(issuerInputInitial.value).toBe("");
+
+    form.config = {
+      server: { issuer: "https://loaded.example.com" },
+      client: { client_id: "loaded-client" },
+    };
+    await form.updateComplete;
+
+    const issuerInput = canvasElement.querySelector('input[type="url"]');
+    const clientIdInput = canvasElement.querySelector('input[type="text"]');
+    expect(issuerInput.value).toBe("https://loaded.example.com");
+    expect(clientIdInput.value).toBe("loaded-client");
+  },
+};
+
+/**
+ * U12 (B4): when `.config` is reassigned from outside AFTER the JSON
+ * tab has been activated, the editor re-renders with the new body —
+ * proving the `willUpdate` sync path keeps `_jsonText` in step with
+ * external config changes. The legacy contract (first-activation
+ * seeding via `_handleTabChange`) is already covered by `JsonTab`;
+ * this story covers the reassignment-after-activation path.
+ */
+export const ExternalConfigUpdatesJsonEditor = {
+  render: () => html`
+    <cts-config-form
+      .schema=${MOCK_SCHEMA.schema}
+      .uiSchema=${MOCK_SCHEMA.uiSchema}
+      .config=${{ server: { issuer: "https://old.example.com" } }}
+      .errors=${{}}
+    ></cts-config-form>
+  `,
+  async play({ canvasElement }) {
+    const canvas = within(canvasElement);
+    const form = /** @type {any} */ (canvasElement.querySelector("cts-config-form"));
+
+    await userEvent.click(canvas.getByRole("tab", { name: "JSON" }));
+    const editor = /** @type {any} */ (await waitForJsonEditor(canvasElement));
+    const initial = JSON.parse(editor.value);
+    expect(initial.server.issuer).toBe("https://old.example.com");
+
+    form.config = {
+      server: { issuer: "https://loaded.example.com" },
+      client: { client_id: "loaded-client" },
+    };
+    await form.updateComplete;
+    await waitFor(() => {
+      const parsed = JSON.parse(editor.value);
+      expect(parsed.server.issuer).toBe("https://loaded.example.com");
+      expect(parsed.client.client_id).toBe("loaded-client");
+    });
+  },
+};
+
+/**
+ * U12 (B4): the willUpdate sync MUST NOT clobber in-progress JSON
+ * edits. Internal handlers (`_handleJsonInput`, `_handleFieldChange`)
+ * reassign both `this.config` and `this._jsonText` in the same
+ * microtask, so the `!changedProperties.has("_jsonText")` guard skips
+ * the refresh on internal paths. This story exercises that guard by
+ * typing in the JSON editor and verifying the user's text survives.
+ */
+export const InternalJsonEditPreservesUserText = {
+  render: () => html`
+    <cts-config-form
+      .schema=${MOCK_SCHEMA.schema}
+      .uiSchema=${MOCK_SCHEMA.uiSchema}
+      .config=${{ server: { issuer: "https://old.example.com" } }}
+      .errors=${{}}
+    ></cts-config-form>
+  `,
+  async play({ canvasElement }) {
+    const canvas = within(canvasElement);
+    await userEvent.click(canvas.getByRole("tab", { name: "JSON" }));
+    const editor = /** @type {any} */ (await waitForJsonEditor(canvasElement));
+
+    // Compact one-line form is the "user typed something custom" shape
+    // — if willUpdate clobbered it, the pretty-printed multi-line form
+    // would come back instead.
+    const userTyped = '{"server":{"issuer":"https://typed.example.com"}}';
+    editor.value = userTyped;
+    editor.dispatchEvent(new Event("input", { bubbles: true }));
+
+    await waitFor(() => {
+      expect(editor.value).toBe(userTyped);
+    });
+    expect(editor.classList.contains("is-error")).toBe(false);
+  },
+};

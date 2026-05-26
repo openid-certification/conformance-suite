@@ -608,15 +608,31 @@
                 .then((response) => response.json())
                 .then(async (data) => {
                     if (data.config) {
-                        // See loadPlanConfig for the await rationale. After
-                        // it resolves, the cascade has dispatched
-                        // cts-plan-selected, the listener has run
-                        // updateVariants(), and updateConfigFieldVisibility
-                        // has bound the schema; applyConfigToForm then sets
-                        // .config so the form re-renders with the values.
+                        // U12 (B4): after the cascade dispatches
+                        // cts-plan-selected, the listener calls
+                        // updateVariants() (which renders the variant
+                        // <select>s) and updateConfigFieldVisibility()
+                        // (which early-returns because the variants
+                        // are still on their "select" placeholder, so
+                        // ctsConfigForm.schema never binds and the
+                        // Form tab has no fields to render). The saved
+                        // variants in data.variant fix that — propagate
+                        // them to the rendered <select>s (mirroring
+                        // restoreEditPlanVariants), then re-run
+                        // updateConfigFieldVisibility so the schema
+                        // binds before applyConfigToForm hands the body
+                        // to the form.
                         await updateSelectedTestSelector(data.planName);
                         if (data.variant) {
                             FAPI_UI.selectedVariant = data.variant;
+                            Object.entries(data.variant).forEach(([key, value]) => {
+                                const el = document.querySelector(
+                                    `.variant-selector[data-variant-parameter="${key}"]`
+                                );
+                                if (el) el.value = value;
+                            });
+                            updateVariantOptionsVisibility();
+                            updateConfigFieldVisibility();
                         }
                         applyConfigToForm(data.config);
                     } else {

@@ -227,6 +227,21 @@ class CtsConfigForm extends LitElement {
     injectStyles();
   }
 
+  // U12 (B4): keep `_jsonText` in sync when `.config` is reassigned from
+  // outside (e.g. schedule-test.html's Load-last-configuration flow).
+  // Internal edit paths (`_handleFieldChange`, `_handleJsonInput`) always
+  // reassign both `this.config` and `this._jsonText` in the same microtask,
+  // so they appear together in `changedProperties` — external assignment
+  // touches only `config`, which is the case this refresh targets.
+  // `hasUpdated` guards the first-render cycle so the constructor's
+  // initial empty `_jsonText` survives until `_handleTabChange` seeds it
+  // on the JSON tab's first activation.
+  willUpdate(changedProperties) {
+    if (this.hasUpdated && changedProperties.has("config") && !changedProperties.has("_jsonText")) {
+      this._jsonText = this._filteredJsonText();
+    }
+  }
+
   _getFieldValue(fieldPath) {
     const parts = fieldPath.split(".");
     let obj = this.config;
@@ -476,49 +491,42 @@ class CtsConfigForm extends LitElement {
       >
         <div class="oidf-config-form-sus-notice">
           <p>
-            This button is a UI placeholder for a feature recommended by
-            Super User Studio's 2025 UX review of the OpenID Conformance
-            Suite. The backend validation endpoint has not been
-            implemented yet, so clicking the button currently does
-            nothing actionable.
+            This button is a UI placeholder for a feature recommended by Super User Studio's 2025 UX
+            review of the OpenID Conformance Suite. The backend validation endpoint has not been
+            implemented yet, so clicking the button currently does nothing actionable.
           </p>
           <h4>What it should do</h4>
           <p>
-            Run pre-flight diagnostic checks against the current test
-            configuration (e.g. ClientID format, certificate validity,
-            missing required fields) <em>before</em> the user creates
-            the test plan. Surface any errors inline against the
-            offending fields so the user can fix them in-place.
+            Run pre-flight diagnostic checks against the current test configuration (e.g. ClientID
+            format, certificate validity, missing required fields) <em>before</em> the user creates
+            the test plan. Surface any errors inline against the offending fields so the user can
+            fix them in-place.
           </p>
           <h4>Why it matters (severity: HIGH)</h4>
           <p>
-            Today, users cannot distinguish configuration errors from
-            real conformance errors until <em>after</em> they create
-            and run a plan. This forces them into a trial-and-error
-            setup loop and inflates support load.
+            Today, users cannot distinguish configuration errors from real conformance errors until
+            <em>after</em> they create and run a plan. This forces them into a trial-and-error setup
+            loop and inflates support load.
           </p>
           <blockquote>
-            "I was not knowing if it was an error until I created a test
-            plan because the required field was missing here... when I
-            click the 'create test plan' I should already see a pop-up
-            error." — QA, Raidiam
+            "I was not knowing if it was an error until I created a test plan because the required
+            field was missing here... when I click the 'create test plan' I should already see a
+            pop-up error." — QA, Raidiam
           </blockquote>
           <h4>How to implement</h4>
           <p>
             The frontend already emits a <code>cts-validate</code>
-            request when the button is clicked (currently routed to
-            this modal). The brainstorm at
+            request when the button is clicked (currently routed to this modal). The brainstorm at
             <code>.superpowers/brainstorm/63162-1776122675</code>
-            proposes a <code>POST /api/plan/validate</code> endpoint
-            (Unit 1D) that returns structured errors keyed by field
-            path; the page would set <code>ctsConfigForm.errors</code>
-            and gate <code>#createPlanBtn</code> on a clean response.
+            proposes a <code>POST /api/plan/validate</code> endpoint (Unit 1D) that returns
+            structured errors keyed by field path; the page would set
+            <code>ctsConfigForm.errors</code> and gate <code>#createPlanBtn</code> on a clean
+            response.
           </p>
           <p>
             <strong>References:</strong>
-            <code>docs/SUS_OIDF_UX_UI_Review_2025.md</code> lines
-            1512–1564 (findings + recommendations);
-            brainstorm traceability row R7.
+            <code>docs/SUS_OIDF_UX_UI_Review_2025.md</code> lines 1512–1564 (findings +
+            recommendations); brainstorm traceability row R7.
           </p>
         </div>
       </cts-modal>
