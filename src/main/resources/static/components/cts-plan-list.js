@@ -226,6 +226,13 @@ class CtsPlanList extends LitElement {
   }
 
   _handlePlanLinkClick(event) {
+    // Let the browser handle modifier-key clicks (cmd/ctrl/shift/alt) and
+    // non-primary mouse buttons natively so "open in new tab/window" works
+    // — preventing default here would still allow the new tab to open AND
+    // also navigate the current tab via the consumer's event handler.
+    if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || event.button !== 0) {
+      return;
+    }
     event.preventDefault();
     const planId = event.currentTarget.dataset.planId;
     this._handlePlanClick(planId);
@@ -317,8 +324,15 @@ class CtsPlanList extends LitElement {
     // set to the cts-data-table host, but the bound functions retain their
     // original `this` (CtsPlanList) regardless of how Lit invokes them.
     if (key === "planName") {
+      // Real href (not "#") so screen readers announce a destination, the
+      // browser status bar previews on hover, and cmd-click / middle-click /
+      // right-click → "Open in new tab" all work. The plain-click handler
+      // preventDefaults and dispatches `cts-plan-navigate` so the page-level
+      // consumer keeps the single navigation path; modifier-key clicks fall
+      // through to native browser behavior. See _handlePlanLinkClick.
+      const planHref = `plan-detail.html?plan=${encodeURIComponent(row._id)}`;
       return html`<a
-        href="#"
+        href="${planHref}"
         class="plan-name-link"
         data-plan-id="${row._id}"
         @click=${this._handlePlanLinkClick}
