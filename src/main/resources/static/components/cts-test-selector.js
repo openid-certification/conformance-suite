@@ -190,12 +190,6 @@ const STYLE_TEXT = `
   align-items: center;
   gap: var(--space-3);
 }
-.oidf-test-selector__row-title {
-  display: inline-flex;
-  align-items: baseline;
-  gap: var(--space-2);
-  min-width: 0;
-}
 .oidf-test-selector__row-name {
   font-weight: var(--fw-medium);
   color: var(--fg);
