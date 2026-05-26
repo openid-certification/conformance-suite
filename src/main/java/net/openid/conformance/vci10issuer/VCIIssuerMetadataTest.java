@@ -31,6 +31,7 @@ import net.openid.conformance.vci10issuer.condition.VCIValidateCredentialSigning
 import net.openid.conformance.vci10issuer.condition.VCIValidateProofSigningAlgValuesSupported;
 import net.openid.conformance.vci10issuer.condition.VCICheckForOldSdJwtFormatInCredentialConfigurations;
 import net.openid.conformance.vci10issuer.condition.VCIValidateDisplayLocales;
+import net.openid.conformance.vci10issuer.condition.VCIWarnOnNonCanonicalDisplayLocales;
 import net.openid.conformance.vci10issuer.condition.VCIValidateFormatOfCredentialConfigurationsInMetadata;
 import net.openid.conformance.vci10issuer.condition.VCIValidateNonceEndpointInIssuerMetadata;
 
@@ -105,6 +106,7 @@ public class VCIIssuerMetadataTest extends AbstractVciTest {
 		callAndContinueOnFailure(VCIValidateCredentialSigningAlgValuesSupported.class, Condition.ConditionResult.FAILURE, "OID4VCI-1FINAL-12.2.4");
 		callAndContinueOnFailure(VCIValidateProofSigningAlgValuesSupported.class, Condition.ConditionResult.FAILURE, "OID4VCI-1FINAL-12.2.4");
 		callAndContinueOnFailure(VCIValidateDisplayLocales.class, Condition.ConditionResult.FAILURE, "OID4VCI-1FINAL-12.2.4");
+		callAndContinueOnFailure(VCIWarnOnNonCanonicalDisplayLocales.class, Condition.ConditionResult.WARNING, "OID4VCI-1FINAL-12.2.4");
 		callAndContinueOnFailure(VCIValidateCredentialConfigurationScopeSyntax.class, Condition.ConditionResult.FAILURE, "RFC6749-3.3");
 
 		// credential_request_encryption and credential_response_encryption are both OPTIONAL, but

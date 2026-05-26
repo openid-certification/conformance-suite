@@ -7,6 +7,7 @@ import net.openid.conformance.vci10issuer.condition.VCIAuthorizationServerMetada
 import net.openid.conformance.vci10issuer.condition.VCIEnsureAuthorizationDetailsTypesSupportedContainOpenIdCredentialIfScopeIsMissing;
 import net.openid.conformance.vci10issuer.condition.VCIValidateAuthorizationServerLocalesSyntax;
 import net.openid.conformance.vci10issuer.condition.VCIValidateAuthorizationServerScopesSupportedSyntax;
+import net.openid.conformance.vci10issuer.condition.VCIWarnOnNonCanonicalAuthorizationServerLocales;
 
 /**
  * Shared VCI authorization server metadata checks. Reads the authorization
@@ -30,5 +31,8 @@ public class VCIDiscoveryEndpointChecks extends AbstractConditionSequence {
 
 		callAndContinueOnFailure(VCIValidateAuthorizationServerLocalesSyntax.class,
 			ConditionResult.FAILURE, "RFC8414-2");
+
+		callAndContinueOnFailure(VCIWarnOnNonCanonicalAuthorizationServerLocales.class,
+			ConditionResult.WARNING, "RFC8414-2");
 	}
 }
