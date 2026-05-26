@@ -72,13 +72,15 @@ class VCIValidateAuthorizationServerLocalesSyntax_UnitTest {
 	}
 
 	@Test
-	void rejectsNonCanonicalCase() {
+	void acceptsNonCanonicalCaseHere() {
+		// Per RFC 5646 §2.1.1 language tags are case-insensitive; canonical casing is a
+		// convention. VCIWarnOnNonCanonicalAuthorizationServerLocales surfaces the warning.
 		putServerMetadata("""
 			{
 			  "ui_locales_supported": ["EN-us"]
 			}
 			""");
-		assertThrows(ConditionError.class, () -> cond.execute(env));
+		assertDoesNotThrow(() -> cond.execute(env));
 	}
 
 	@Test
