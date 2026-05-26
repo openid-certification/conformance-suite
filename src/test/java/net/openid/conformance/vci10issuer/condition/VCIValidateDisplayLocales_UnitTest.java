@@ -200,6 +200,33 @@ class VCIValidateDisplayLocales_UnitTest extends AbstractVciUnitTest {
 	}
 
 	@Test
+	void detectsIssueInDcSdJwtTopLevelClaimDisplay() {
+		// The dc+sd-jwt branch of the schema allows claims at the credential-config level
+		// (parallel to credential_metadata.claims). Make sure locales nested there are checked.
+		putCredentialIssuerMetadata("""
+			{
+			  "credential_issuer": "https://issuer.example.com",
+			  "credential_endpoint": "https://issuer.example.com/credential",
+			  "credential_configurations_supported": {
+			    "TestCred": {
+			      "format": "dc+sd-jwt",
+			      "vct": "https://example.com/vct",
+			      "claims": [
+			        {
+			          "path": ["name"],
+			          "display": [
+			            {"name": "Name", "locale": "xx-YY"}
+			          ]
+			        }
+			      ]
+			    }
+			  }
+			}
+			""");
+		assertThrows(ConditionError.class, () -> cond.execute(env));
+	}
+
+	@Test
 	void acceptsSpecExampleFixtures() throws Exception {
 		for (String fixture : new String[]{
 			"metadata/openid4vci-1_0/valid-openid-credential-issuer-metadata-mock-full.json",

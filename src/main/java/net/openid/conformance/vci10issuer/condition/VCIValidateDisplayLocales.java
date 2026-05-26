@@ -18,7 +18,9 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * Validates {@code locale} fields in every display array within the credential issuer metadata.
+ * Validates {@code locale} fields in every display array within the credential issuer metadata
+ * across all five nesting levels (top-level display, per-credential display, top-level
+ * dc+sd-jwt claims display, credential_metadata.display, credential_metadata.claims display).
  * Each locale must be:
  * <ul>
  *   <li>a well-formed BCP47 language tag (parseable by {@link Locale.Builder#setLanguageTag});</li>
@@ -52,6 +54,18 @@ public class VCIValidateDisplayLocales extends AbstractCondition {
 				JsonObject config = entry.getValue().getAsJsonObject();
 				validateDisplayArray(config.getAsJsonArray("display"),
 					String.format("$.credential_configurations_supported.%s.display", configId), issues);
+
+				JsonArray topLevelClaims = config.getAsJsonArray("claims");
+				if (topLevelClaims != null) {
+					for (int i = 0; i < topLevelClaims.size(); i++) {
+						JsonElement claim = topLevelClaims.get(i);
+						if (!claim.isJsonObject()) {
+							continue;
+						}
+						validateDisplayArray(claim.getAsJsonObject().getAsJsonArray("display"),
+							String.format("$.credential_configurations_supported.%s.claims[%d].display", configId, i), issues);
+					}
+				}
 
 				JsonObject credentialMetadata = config.getAsJsonObject("credential_metadata");
 				if (credentialMetadata == null) {
