@@ -162,6 +162,59 @@ export const ClickPlanName = {
   },
 };
 
+/**
+ * Modifier-key clicks (cmd/ctrl/shift/alt) and non-primary mouse buttons must
+ * NOT trigger the custom `cts-plan-navigate` event — the browser handles those
+ * natively by following the anchor's real href (e.g., opening in a new tab).
+ * The component's `_handlePlanLinkClick` early-returns for those cases so the
+ * page consumer doesn't ALSO navigate the current tab, which would result in
+ * the user landing on two pages at once.
+ */
+export const ModifierKeyClickDoesNotDispatch = {
+  parameters: {
+    msw: {
+      handlers: [http.get("/api/plan", () => HttpResponse.json(MOCK_PLAN_LIST))],
+    },
+  },
+  render: () => html`<cts-plan-list></cts-plan-list>`,
+  async play({ canvasElement }) {
+    await waitForPlansToLoad(canvasElement);
+
+    // The cts-plan-navigate event must NOT fire for modifier-key clicks.
+    let receivedPlanId = null;
+    canvasElement.addEventListener("cts-plan-navigate", (e) => {
+      receivedPlanId = e.detail.planId;
+    });
+
+    const planLink = /** @type {HTMLAnchorElement} */ (
+      canvasElement.querySelector("a.plan-name-link")
+    );
+    expect(planLink).toBeTruthy();
+
+    // Suppress the browser's default link-follow during the test — we want to
+    // observe the component's behavior without the test iframe navigating away.
+    // In production the modifier-key path INTENTIONALLY does not preventDefault
+    // so the browser opens a new tab natively. In the headless test runner that
+    // would tear down the page, so we install a late preventDefault listener.
+    const stopNativeNav = (/** @type {Event} */ e) => e.preventDefault();
+    planLink.addEventListener("click", stopNativeNav);
+
+    try {
+      // userEvent.click doesn't reliably propagate modifier keys onto the
+      // resulting click event, so dispatch the MouseEvent directly. The click
+      // handler observes event.ctrlKey === true and early-returns before
+      // dispatching the custom event.
+      planLink.dispatchEvent(
+        new MouseEvent("click", { ctrlKey: true, bubbles: true, cancelable: true }),
+      );
+
+      expect(receivedPlanId).toBeNull();
+    } finally {
+      planLink.removeEventListener("click", stopNativeNav);
+    }
+  },
+};
+
 export const ViewConfig = {
   parameters: {
     msw: {
