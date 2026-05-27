@@ -1,77 +1,284 @@
 import { LitElement, html, nothing } from "lit";
+import { repeat } from "lit/directives/repeat.js";
 import "./cts-badge.js";
-import "./cts-modal.js";
 import "./cts-button.js";
+import "./cts-icon.js";
+import "./cts-modal.js";
 import "./cts-alert.js";
-import "./cts-data-table.js";
-import "./cts-json-editor.js";
+import "./cts-tooltip.js";
 import "./cts-time.js";
+import "./cts-empty-state.js";
+import "./cts-json-editor.js";
 import { flashCopyConfirmed } from "../js/cts-copy-flash.js";
 
-const RESULT_BADGE_VARIANTS = {
-  PASSED: "success",
-  FAILED: "failure",
-  WARNING: "warning",
-  REVIEW: "review",
-  SKIPPED: "skipped",
-  INTERRUPTED: "interrupted",
-};
+const PAGE_SIZE = 25;
 
 const STYLE_ID = "cts-plan-list-styles";
 
-/**
- * Whether a plan row carries a saved configuration worth opening. The
- * backend (DBTestPlanService) always writes a `config` field; plans
- * created without configuration come over the wire as `config: {}`,
- * which yields an empty modal if surfaced.
- * @param {unknown} config - Row payload's `config` value (any wire shape).
- * @returns {boolean} `true` when `config` is an object with at least one key.
- */
-function hasNonEmptyConfig(config) {
-  return !!config && typeof config === "object" && Object.keys(config).length > 0;
-}
+// Inline SVG chevron used as the custom select indicator. Copied from
+// cts-log-list (which copied cts-form-field's `.oidf-select`). Stroke
+// colour is `--ink-500` (`#71695E`), encoded as `%2371695E`.
+const SELECT_CHEVRON =
+  "url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 16 16'><path fill='none' stroke='%2371695E' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M4 6l4 4 4-4'/></svg>\")";
 
-// Scoped CSS for the plan-list-specific bits that cts-data-table doesn't
-// own: the module badge stack, the plan-name link inside the planName cell,
-// the loading spinner shown before the table mounts, and the config modal
-// chrome. The search input and table chrome (border, sticky header, hover,
-// dividers) all come from cts-data-table now (Adv F12). The legacy plan
-// listing is unpaged, so the pager strip is suppressed.
+// Scoped CSS. The toolbar + card chrome is mirrored from cts-log-list.js as
+// of this change so the plans listing reads as a sibling of the logs
+// listing (same search/sort affordances, same card silhouette and
+// hierarchy). The two components deliberately do NOT share a base class —
+// they diverge (logs carry status/result filter chips + URL sync; plans
+// carry the module badge stack + config modal). Visual drift between the
+// two card styles is an accepted cost until a third listing motivates a
+// shared `cts-listing-base`. If you restyle the cards here, mirror the
+// change in cts-log-list.js (and vice versa).
 const STYLE_TEXT = `
   cts-plan-list {
     display: block;
+    font-family: var(--font-sans);
+    color: var(--fg);
   }
-  cts-plan-list cts-data-table .oidf-dt-pager {
-    display: none;
+  .cts-plan-list-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+    align-items: center;
+    margin-bottom: var(--space-4);
   }
-  cts-plan-list .plan-name-link {
-    color: var(--fg-link);
+  .cts-plan-list-search {
+    position: relative;
+    flex: 1 1 280px;
+    min-width: 220px;
+  }
+  .cts-plan-list-search input {
+    width: 100%;
+    box-sizing: border-box;
+    padding: var(--space-2) var(--space-3) var(--space-2) calc(var(--space-3) + var(--space-5));
+    background: var(--bg);
+    color: var(--fg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-2);
+    font-family: var(--font-sans);
+    font-size: var(--fs-14);
+    line-height: var(--lh-snug);
+  }
+  .cts-plan-list-search input:focus {
+    outline: none;
+    border-color: var(--border-strong);
+    box-shadow: var(--focus-ring);
+  }
+  .cts-plan-list-search cts-icon {
+    position: absolute;
+    left: var(--space-3);
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--fg-soft);
+    pointer-events: none;
+  }
+  .cts-plan-list-sort {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    font-size: var(--fs-13);
+    color: var(--fg-soft);
+  }
+  .cts-plan-list-sort select {
+    box-sizing: border-box;
+    height: 34px;
+    padding: 0 36px 0 var(--space-3);
+    background: var(--bg-elev);
+    color: var(--fg);
+    border: 1px solid var(--ink-300);
+    border-radius: var(--radius-2);
+    font-family: var(--font-sans);
+    font-size: var(--fs-13);
+    line-height: 1;
+    appearance: none;
+    -webkit-appearance: none;
+    background-image: ${SELECT_CHEVRON};
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+  }
+  .cts-plan-list-sort select:focus {
+    outline: none;
+    border-color: var(--orange-400);
+    box-shadow: var(--focus-ring);
+  }
+  .cts-plan-list-items {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+  }
+  /* Adrian Roselli "block link" pattern (pseudo-element overlay): the card
+     root is a non-interactive article; the plan-name headline is the single
+     real anchor per card; its ::after overlay covers the whole card so the
+     click target spans the card silhouette. Nested interactive controls
+     (config button, owner pills) sit on z-index: 1 so they receive their own
+     clicks. The module badge stack is read-only in this release, so it stays
+     beneath the overlay — a click anywhere on the badge stack navigates to
+     plan-detail. See https://adrianroselli.com/2020/02/block-links-cards-clickable-regions-etc.html */
+  .cts-plan-card {
+    position: relative;
+    display: grid;
+    gap: var(--space-2);
+    padding: var(--space-4);
+    background: var(--bg-elev);
+    color: var(--fg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-3);
+    transition: border-color var(--dur-1) var(--ease-standard),
+                background var(--dur-1) var(--ease-standard);
+  }
+  .cts-plan-card:hover {
+    border-color: var(--border-strong);
+    background: var(--bg);
+  }
+  .cts-plan-card:focus-within {
+    outline: none;
+    box-shadow: var(--focus-ring);
+    border-color: var(--border-strong);
+  }
+  .cts-plan-card-header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: var(--space-3);
+  }
+  .cts-plan-card-identity {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+    min-width: 0;
+    flex: 1 1 280px;
+  }
+  .cts-plan-card-name {
+    display: inline-block;
+    font-size: var(--fs-16);
+    line-height: var(--lh-snug);
+    font-weight: var(--fw-bold);
+    color: var(--fg);
     text-decoration: none;
-    font-weight: var(--fw-medium);
+    word-break: break-word;
   }
-  cts-plan-list .plan-name-link:hover {
-    text-decoration: underline;
+  .cts-plan-card-name::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
   }
-  cts-plan-list .moduleBadgeStack {
+  .cts-plan-card-name:hover,
+  .cts-plan-card-name:focus-visible {
+    text-decoration: none;
+  }
+  .cts-plan-card-name:focus-visible {
+    outline: none;
+  }
+  .cts-plan-card-slug {
+    font-family: var(--font-mono);
+    font-size: var(--fs-12);
+    line-height: var(--lh-snug);
+    color: var(--fg-soft);
+    word-break: break-all;
+  }
+  .cts-plan-card-description {
+    margin: 0;
+    color: var(--fg-soft);
+    font-size: var(--fs-14);
+    line-height: var(--lh-snug);
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+  }
+  /* The per-plan module status chips. Flex-wrap so a plan with many modules
+     wraps cleanly. Each chip is a neutral name chip carrying a status dot;
+     read-only (no per-chip click target), so it inherits the card-link
+     overlay rather than lifting on z-index. */
+  .moduleBadgeStack {
     display: flex;
     flex-wrap: wrap;
     gap: var(--space-1);
   }
-  cts-plan-list .planEmpty {
-    padding: var(--space-5);
-    text-align: center;
+  .cts-plan-card-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-1) var(--space-4);
+    font-size: var(--fs-13);
+    line-height: var(--lh-snug);
     color: var(--fg-soft);
   }
-  cts-plan-list .planLoading {
+  .cts-plan-card-meta-item {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-1);
+  }
+  .cts-plan-card-meta-key {
+    color: var(--fg-soft);
+    font-weight: var(--fw-medium);
+  }
+  .cts-plan-card-meta-value {
+    color: var(--fg);
+  }
+  .cts-plan-card-meta-value.is-mono {
+    font-family: var(--font-mono);
+    font-size: var(--fs-12);
+  }
+  /* Nested controls lift above the headline link's ::after overlay so the
+     browser routes clicks on them to the control, not the card link. */
+  .cts-plan-card .showConfigBtn,
+  .cts-plan-card .plan-owner {
+    position: relative;
+    z-index: 1;
+  }
+  .cts-plan-card-actions {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    margin-left: auto;
+  }
+  /* Owner pill — markup mirrors cts-log-list / templates/owner.html so the
+     two-tone chip matches the rest of the suite. */
+  .cts-plan-card .plan-owner {
+    display: inline-flex;
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: 0;
+  }
+  .cts-plan-card .ownerSub,
+  .cts-plan-card .ownerIss {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    color: var(--fg-soft);
+  }
+  .cts-plan-card .ownerSub {
+    border-top-left-radius: var(--radius-pill);
+    border-bottom-left-radius: var(--radius-pill);
+    border-right: none;
+  }
+  .cts-plan-card .ownerIss {
+    border-top-right-radius: var(--radius-pill);
+    border-bottom-right-radius: var(--radius-pill);
+  }
+  .cts-plan-card .ownerSub:focus-visible,
+  .cts-plan-card .ownerIss:focus-visible {
+    outline: none;
+    box-shadow: var(--focus-ring);
+  }
+  .cts-plan-list-loading,
+  .cts-plan-list-empty {
     padding: var(--space-5);
     text-align: center;
     color: var(--fg-soft);
     display: flex;
+    flex-direction: column;
     align-items: center;
-    justify-content: center;
     gap: var(--space-2);
   }
-  cts-plan-list .planLoading .spinner-border {
+  .cts-plan-list-loading .spinner-border {
     display: inline-block;
     width: 16px;
     height: 16px;
@@ -83,13 +290,22 @@ const STYLE_TEXT = `
   @keyframes cts-plan-list-spin {
     to { transform: rotate(360deg); }
   }
-  cts-plan-list .planConfigToolbar {
+  .cts-plan-list-footer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-2);
+    margin-top: var(--space-4);
+    color: var(--fg-soft);
+    font-size: var(--fs-13);
+  }
+  .cts-plan-list-config-toolbar {
     display: flex;
     align-items: center;
     gap: var(--space-2);
     margin-bottom: var(--space-2);
   }
-  cts-plan-list .planConfigToolbar code {
+  .cts-plan-list-config-toolbar code {
     font-family: var(--font-mono);
     font-size: var(--fs-12);
     color: var(--fg-soft);
@@ -97,16 +313,9 @@ const STYLE_TEXT = `
     padding: 1px 6px;
     border-radius: var(--radius-1);
   }
-  /* '.planConfigJson' (and the '.config-json' sibling on the same element)
-     are pre-existing class names from when this slot rendered a <pre>;
-     the slot is now a <cts-json-editor> inside the cts-modal. Do not
-     rename without updating the cts-plan-list.stories.js ViewConfig play
-     function, which queries 'cts-json-editor.config-json' to read the
-     value off the editor. plans.html no longer matches this selector
-     (the page now mounts cts-plan-list and the component owns its own
-     copy path via navigator.clipboard); logs.html and log-detail.html
-     still operate the legacy ClipboardJS + #config path against their
-     own cts-modal config viewer. */
+  /* '.planConfigJson' / '.config-json' are pre-existing class names the
+     cts-plan-list.stories.js ViewConfig play function queries to read the
+     editor value. Do not rename without updating that story. */
   cts-plan-list .planConfigJson {
     display: block;
     margin: 0;
@@ -124,26 +333,44 @@ function ensureStylesInjected() {
 }
 
 /**
- * Searchable table of test plans. Fetches from `/api/plan` (or
- * `/api/plan?public=true`) and renders rows with name, variant, module
- * badges, and a config viewer modal.
+ * Whether a plan row carries a saved configuration worth opening. The
+ * backend (DBTestPlanService) always writes a `config` field; plans
+ * created without configuration come over the wire as `config: {}`,
+ * which yields an empty modal if surfaced.
+ * @param {unknown} config - Row payload's `config` value (any wire shape).
+ * @returns {boolean} `true` when `config` is an object with at least one key.
+ */
+function hasNonEmptyConfig(config) {
+  return !!config && typeof config === "object" && Object.keys(config).length > 0;
+}
+
+function formatVariant(variant) {
+  if (!variant) return "";
+  if (typeof variant === "string") return variant;
+  return Object.entries(variant)
+    .map(([key, value]) => `${key}=${value}`)
+    .join(", ");
+}
+
+/**
+ * Searchable, sortable list of test plans. Fetches from `/api/plan` (or
+ * `/api/plan?public=true`) and renders a single-column card layout mirroring
+ * `cts-log-list`: a top toolbar (free-text search + sort selector), block-link
+ * cards (plan name headline, plan id slug, description, module badge stack,
+ * metadata row), "Show more" pagination, and a config-viewer modal.
  *
- * Light DOM. Scoped CSS is injected once on first connect. The table
- * chrome and the advanced search affordances (clear button, active-filter
- * chip with "Show all" reset, Escape-to-clear) are delegated to
- * `<cts-data-table>` in client-side, live-debounced mode. cts-plan-list
- * supplies a `cellRenderer` for the bespoke cells (plan-link click,
- * variant formatter, formatted date, module badge stack, config button).
+ * Each module chip in the badge stack is a neutral name chip carrying a
+ * leading status dot. The dot starts gray (pulsing for modules that have run,
+ * static for never-run modules) and recolors once the per-module status
+ * resolves — see `_dotVariantFor` and the `/api/info` resolution path.
  *
- * The Config column renders a labelled "View configuration" button per row
- * that has a non-empty saved `config` object. Rows whose backend payload is
- * an empty `{}` (plans created without configuration) get no button —
- * clicking would open an empty modal.
+ * Light DOM. Scoped CSS is injected once on first connect.
  *
- * @property {boolean} isAdmin - Adds the Owner column when true. Reflects the
- *   `is-admin` attribute.
+ * @property {boolean} isAdmin - Reveals the Owner pill on each card when set.
+ *   Reflects the `is-admin` attribute. Ignored when `isPublic` is true.
  * @property {boolean} isPublic - Fetches the published plan listing and hides
- *   admin affordances. Reflects the `is-public` attribute.
+ *   admin affordances (Owner pill, Config button). Reflects the `is-public`
+ *   attribute.
  * @fires cts-plan-navigate - When a plan name is clicked, with
  *   `{ detail: { planId } }`; bubbles and is composed.
  */
@@ -154,6 +381,9 @@ class CtsPlanList extends LitElement {
     _plans: { state: true },
     _loading: { state: true },
     _error: { state: true },
+    _searchText: { state: true },
+    _sortKey: { state: true },
+    _visibleCount: { state: true },
     _selectedConfig: { state: true },
     _selectedPlanId: { state: true },
   };
@@ -170,13 +400,17 @@ class CtsPlanList extends LitElement {
     this._plans = [];
     this._loading = true;
     this._error = null;
+    this._searchText = "";
+    this._sortKey = "started-desc";
+    this._visibleCount = PAGE_SIZE;
     this._selectedConfig = null;
     this._selectedPlanId = "";
-    // The cellRenderer's TemplateResult is interpolated and rendered by
-    // cts-data-table. Lit's EventPart dispatches event listeners with `this`
-    // set to the rendering host (cts-data-table), not this component, so we
-    // pre-bind every handler that may be wired through cellRenderer.
-    this._cellRenderer = this._cellRenderer.bind(this);
+    // Pre-bind handlers wired through Lit EventParts on rendered cards. Lit
+    // dispatches with `this` set to the host element of the listener; these
+    // must retain this component as `this`.
+    this._handleSearchInput = this._handleSearchInput.bind(this);
+    this._handleSortChange = this._handleSortChange.bind(this);
+    this._handleShowMoreClick = this._handleShowMoreClick.bind(this);
     this._handlePlanLinkClick = this._handlePlanLinkClick.bind(this);
     this._handleConfigButtonClick = this._handleConfigButtonClick.bind(this);
     this._handleCopyConfig = this._handleCopyConfig.bind(this);
@@ -199,8 +433,7 @@ class CtsPlanList extends LitElement {
       // Real backend (TestPlanApi.getTestPlansForCurrentUser) returns a
       // PaginationResponse envelope: { draw, recordsTotal, recordsFiltered,
       // data: [...] }. Some test mocks and the storybook MSW handlers
-      // return a plain array. Accept both so the component is robust to
-      // the wire shape on either side.
+      // return a plain array. Accept both.
       const payload = await response.json();
       this._plans = Array.isArray(payload)
         ? payload
@@ -227,9 +460,7 @@ class CtsPlanList extends LitElement {
 
   _handlePlanLinkClick(event) {
     // Let the browser handle modifier-key clicks (cmd/ctrl/shift/alt) and
-    // non-primary mouse buttons natively so "open in new tab/window" works
-    // — preventing default here would still allow the new tab to open AND
-    // also navigate the current tab via the consumer's event handler.
+    // non-primary mouse buttons natively so "open in new tab/window" works.
     if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || event.button !== 0) {
       return;
     }
@@ -269,122 +500,206 @@ class CtsPlanList extends LitElement {
     flashCopyConfirmed(trigger);
   }
 
-  _formatVariant(variant) {
-    if (!variant) return "";
-    if (typeof variant === "string") return variant;
-    return Object.entries(variant)
-      .map(([key, value]) => `${key}=${value}`)
-      .join(", ");
+  _handleSearchInput(event) {
+    this._searchText = event.target.value;
+    this._visibleCount = PAGE_SIZE;
+  }
+
+  _handleSortChange(event) {
+    this._sortKey = event.target.value;
+    this._visibleCount = PAGE_SIZE;
+  }
+
+  _handleShowMoreClick() {
+    this._visibleCount += PAGE_SIZE;
+  }
+
+  _searchedPlans(rows) {
+    const query = this._searchText.trim().toLowerCase();
+    if (!query) return rows;
+    return rows.filter((row) => {
+      const haystack = [row.planName, row._id, row.description, formatVariant(row.variant)]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase();
+      return haystack.includes(query);
+    });
+  }
+
+  _sortedPlans(rows) {
+    const key = this._sortKey;
+    const copy = rows.slice();
+    if (key === "started-desc") {
+      copy.sort((a, b) => (b.started || "").localeCompare(a.started || ""));
+    } else if (key === "started-asc") {
+      copy.sort((a, b) => (a.started || "").localeCompare(b.started || ""));
+    } else if (key === "name-asc") {
+      copy.sort((a, b) => (a.planName || "").localeCompare(b.planName || ""));
+    }
+    return copy;
+  }
+
+  /**
+   * Resolve the leading status-dot variant for a module chip. In this unit
+   * the dot is driven purely by instance presence: a module that has run
+   * shows a pulsing `pending` dot, a never-run module shows a static `skip`
+   * dot. The per-module `/api/info` resolution (U3) extends this to return
+   * the concrete status color once the latest result is known.
+   * @param {{instances?: string[]}} mod - A plan module entry.
+   * @returns {string} A cts-badge dot-variant name.
+   */
+  _dotVariantFor(mod) {
+    const hasInstance = Array.isArray(mod.instances) && mod.instances.length > 0;
+    return hasInstance ? "pending" : "skip";
   }
 
   _renderModuleBadges(modules) {
     if (!modules || modules.length === 0) return nothing;
-    return html`<div class="moduleBadgeStack">${this._moduleBadgeList(modules)}</div>`;
-  }
-
-  _moduleBadgeList(modules) {
-    return modules.map((mod) => {
-      if (mod.result) {
-        const variant = RESULT_BADGE_VARIANTS[mod.result] || "info";
+    return html`<div class="moduleBadgeStack">
+      ${modules.map((mod) => {
+        const dotVariant = this._dotVariantFor(mod);
+        const title =
+          dotVariant === "skip" ? `${mod.testModule}: not started` : `${mod.testModule}`;
         return html`<cts-badge
-          variant="${variant}"
+          variant="secondary"
           label="${mod.testModule}"
-          title="${mod.testModule}: ${mod.result}"
+          dot
+          dot-variant="${dotVariant}"
+          title="${title}"
         ></cts-badge>`;
-      }
-      return html`<cts-badge
-        variant="secondary"
-        label="${mod.testModule}"
-        title="${mod.testModule}: not started"
-      ></cts-badge>`;
-    });
+      })}
+    </div>`;
   }
 
-  _columns() {
-    // Legacy plans.html gated both Config and Owner columns on the
-    // public-listing flag (`visible: !public ...`). PublicPlan omits the
-    // config field server-side, so a Config button in the public view
-    // opens an empty modal; Owner reveals an internal sub the public
-    // listing is not meant to expose. Mirror the legacy behavior here.
-    const cols = [
-      { key: "planName", label: "Plan Name" },
-      { key: "variant", label: "Variant" },
-      { key: "description", label: "Description" },
-      { key: "started", label: "Started" },
-      { key: "modules", label: "Modules" },
-    ];
-    if (!this.isPublic) cols.push({ key: "_config", label: "Config" });
-    if (!this.isPublic && this.isAdmin) cols.push({ key: "owner.sub", label: "Owner" });
-    return cols;
+  _renderOwner(owner) {
+    if (!owner) return nothing;
+    const sub = owner.sub || "";
+    const iss = owner.iss || "";
+    return html`
+      <span class="plan-owner">
+        <cts-tooltip content="${sub}" placement="top">
+          <span class="ownerSub" aria-label="Subject: ${sub}" tabindex="0">
+            <cts-icon name="user-01" size="16" aria-hidden="true"></cts-icon>
+          </span>
+        </cts-tooltip>
+        <cts-tooltip content="${iss}" placement="top">
+          <span class="ownerIss" aria-label="Issuer: ${iss}" tabindex="0">
+            <cts-icon name="globe" size="16" aria-hidden="true"></cts-icon>
+          </span>
+        </cts-tooltip>
+      </span>
+    `;
   }
 
-  _cellRenderer(row, key) {
-    // Event listeners reference handlers that are pre-bound in the
-    // constructor. Lit's EventPart in cts-data-table dispatches with `this`
-    // set to the cts-data-table host, but the bound functions retain their
-    // original `this` (CtsPlanList) regardless of how Lit invokes them.
-    if (key === "planName") {
-      // Real href (not "#") so screen readers announce a destination, the
-      // browser status bar previews on hover, and cmd-click / middle-click /
-      // right-click → "Open in new tab" all work. The plain-click handler
-      // preventDefaults and dispatches `cts-plan-navigate` so the page-level
-      // consumer keeps the single navigation path; modifier-key clicks fall
-      // through to native browser behavior. See _handlePlanLinkClick.
-      const planHref = `plan-detail.html?plan=${encodeURIComponent(row._id)}`;
-      return html`<a
-        href="${planHref}"
-        class="plan-name-link"
-        data-plan-id="${row._id}"
-        @click=${this._handlePlanLinkClick}
-        >${row.planName}</a
-      >`;
-    }
-    if (key === "variant") return this._formatVariant(row.variant);
-    if (key === "started")
-      return html`<span class="tabular-nums"
-        ><cts-time mode="absolute" value=${row.started}></cts-time
-      ></span>`;
-    if (key === "modules") return this._renderModuleBadges(row.modules);
-    if (key === "_config") {
-      // Skip the button for rows whose backend payload has no saved
-      // config. PlanService writes `config = org.bson.Document.parse("{}")`
-      // when a plan is created without configuration, so the wire shape
-      // is `{}` (not missing). The legacy plans.html showed a labelled
-      // "View configuration" affordance per row; reproduce that —
-      // `title` alone (tooltip-only) made the column read as empty,
-      // which is what MR 1998's E1 finding was about.
-      if (!hasNonEmptyConfig(row.config)) return nothing;
-      return html`<cts-button
-        class="showConfigBtn"
-        variant="ghost"
-        size="sm"
-        full-width
-        icon="settings"
-        label="View configuration"
-        title="View configuration"
-        data-plan-id="${row._id}"
-        @cts-click=${this._handleConfigButtonClick}
-      ></cts-button>`;
-    }
-    if (key === "owner.sub") {
-      const display = row.owner ? row.owner.sub || "unknown" : "";
-      return html`<span class="owner-cell">${display}</span>`;
-    }
-    return undefined;
+  _renderCard(plan) {
+    const planHref = `plan-detail.html?plan=${encodeURIComponent(plan._id)}`;
+    const variantString = formatVariant(plan.variant);
+    const showOwner = !this.isPublic && this.isAdmin && plan.owner;
+    // The public listing omits config server-side, so a Config button there
+    // would open an empty modal; legacy plans.html gated it on !public too.
+    const showConfig = !this.isPublic && hasNonEmptyConfig(plan.config);
+    return html`
+      <article class="cts-plan-card" data-testid="plan-list-item" data-plan-id="${plan._id}">
+        <div class="cts-plan-card-header">
+          <div class="cts-plan-card-identity">
+            <a
+              class="cts-plan-card-name plan-name-link"
+              href="${planHref}"
+              data-testid="plan-list-link"
+              data-plan-id="${plan._id}"
+              @click=${this._handlePlanLinkClick}
+              >${plan.planName}</a
+            >
+            <span class="cts-plan-card-slug">${plan._id}</span>
+          </div>
+        </div>
+        ${plan.description
+          ? html`<p class="cts-plan-card-description">${plan.description}</p>`
+          : nothing}
+        ${this._renderModuleBadges(plan.modules)}
+        <div class="cts-plan-card-meta">
+          ${variantString
+            ? html`
+                <span class="cts-plan-card-meta-item">
+                  <span class="cts-plan-card-meta-key">Variant</span>
+                  <span class="cts-plan-card-meta-value is-mono">${variantString}</span>
+                </span>
+              `
+            : nothing}
+          ${plan.started
+            ? html`
+                <span class="cts-plan-card-meta-item">
+                  <span class="cts-plan-card-meta-key">Started</span>
+                  <span class="cts-plan-card-meta-value">
+                    <cts-time mode="auto" value=${plan.started}></cts-time>
+                  </span>
+                </span>
+              `
+            : nothing}
+          ${showOwner
+            ? html`
+                <span class="cts-plan-card-meta-item">
+                  <span class="cts-plan-card-meta-key">Owner</span>
+                  ${this._renderOwner(plan.owner)}
+                </span>
+              `
+            : nothing}
+          <span class="cts-plan-card-actions">
+            ${showConfig
+              ? html`
+                  <cts-tooltip content="View configuration JSON" placement="top">
+                    <cts-button
+                      class="showConfigBtn"
+                      variant="ghost"
+                      size="sm"
+                      icon="settings"
+                      label="View configuration"
+                      data-plan-id="${plan._id}"
+                      @cts-click=${this._handleConfigButtonClick}
+                    ></cts-button>
+                  </cts-tooltip>
+                `
+              : nothing}
+          </span>
+        </div>
+      </article>
+    `;
   }
 
-  _rowClass() {
-    // Stable class name on each <tr> so consumers (and existing tests that
-    // filter on `tbody tr`) can target rendered rows without the data-row-index
-    // attribute alone.
-    return "planRow";
+  _renderSearchAndSort() {
+    return html`
+      <div class="cts-plan-list-toolbar">
+        <label class="cts-plan-list-search">
+          <cts-icon name="search-magnifying-glass" size="16" aria-hidden="true"></cts-icon>
+          <input
+            type="search"
+            aria-label="Search test plans"
+            placeholder="Search test plans..."
+            .value=${this._searchText}
+            @input=${this._handleSearchInput}
+          />
+        </label>
+        <label class="cts-plan-list-sort">
+          <span>Sort</span>
+          <select
+            aria-label="Sort test plans"
+            .value=${this._sortKey}
+            @change=${this._handleSortChange}
+          >
+            <option value="started-desc">Started (newest)</option>
+            <option value="started-asc">Started (oldest)</option>
+            <option value="name-asc">Plan name (A–Z)</option>
+          </select>
+        </label>
+      </div>
+    `;
   }
 
   _renderConfigModal() {
     const configJson = this._selectedConfig ? JSON.stringify(this._selectedConfig, null, 4) : "";
     return html`
       <cts-modal id="planConfigModal" heading="Configuration">
-        <div class="planConfigToolbar">
+        <div class="cts-plan-list-config-toolbar">
           <cts-button
             class="copy-config-btn"
             variant="secondary"
@@ -406,14 +721,33 @@ class CtsPlanList extends LitElement {
     `;
   }
 
+  _renderLoading() {
+    return html`
+      <div class="cts-plan-list-loading">
+        <span class="spinner-border" role="status"></span>
+        <span>Loading test plans...</span>
+      </div>
+    `;
+  }
+
+  _renderEmpty(hasSearch) {
+    const heading = hasSearch ? "No plans match your search" : "No test plans found";
+    const body = hasSearch
+      ? "Try a different search term to widen the results."
+      : "Test plans will appear here once they are created.";
+    return html`
+      <cts-empty-state
+        icon="folder"
+        heading="${heading}"
+        body="${body}"
+        data-testid="plan-list-empty"
+      ></cts-empty-state>
+    `;
+  }
+
   render() {
     if (this._loading) {
-      return html`
-        <div class="planLoading">
-          <span class="spinner-border" role="status"></span>
-          <span>Loading test plans...</span>
-        </div>
-      `;
+      return html`${this._renderSearchAndSort()} ${this._renderLoading()}`;
     }
 
     if (this._error) {
@@ -424,22 +758,38 @@ class CtsPlanList extends LitElement {
       `;
     }
 
-    if (this._plans.length === 0) {
-      return html`<div class="planEmpty">No test plans found</div>`;
-    }
+    const searched = this._searchedPlans(this._plans);
+    const sorted = this._sortedPlans(searched);
+    const visible = sorted.slice(0, this._visibleCount);
+    const hasMore = sorted.length > visible.length;
+    const hasSearch = this._searchText.trim().length > 0;
 
     return html`
-      <cts-data-table
-        .columns=${this._columns()}
-        .rows=${this._plans}
-        .serverSide=${false}
-        page-size="1000"
-        search-placeholder="Search test plans..."
-        search-mode="live-debounced"
-        empty-state="No test plans match your search"
-        .cellRenderer=${this._cellRenderer}
-        .rowClass=${this._rowClass}
-      ></cts-data-table>
+      ${this._renderSearchAndSort()}
+      ${sorted.length === 0
+        ? this._renderEmpty(hasSearch)
+        : html`
+            <div class="cts-plan-list-items" data-testid="plan-list-items">
+              ${repeat(
+                visible,
+                (plan) => plan._id,
+                (plan) => this._renderCard(plan),
+              )}
+            </div>
+          `}
+      <div class="cts-plan-list-footer">
+        ${hasMore
+          ? html`
+              <cts-button
+                variant="secondary"
+                size="md"
+                data-testid="plan-list-show-more"
+                label="Show more (${visible.length} of ${sorted.length})"
+                @cts-click=${this._handleShowMoreClick}
+              ></cts-button>
+            `
+          : nothing}
+      </div>
       ${this._renderConfigModal()}
     `;
   }

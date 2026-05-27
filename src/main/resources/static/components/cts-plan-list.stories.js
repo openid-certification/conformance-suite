@@ -37,12 +37,24 @@ function innerButton(host) {
   return /** @type {HTMLButtonElement} */ (btn);
 }
 
+// An /api/info handler that never resolves, so module status dots stay in
+// their initial `pending` state for deterministic assertions. Used by the
+// pending-dot story; the resolution stories (DotsResolveToStatus etc.) live
+// in the U3 follow-up with instance-keyed handlers.
+const neverResolvingInfo = http.get(
+  "/api/info/:testId",
+  () => new Promise(() => {}), // intentionally never settles
+);
+
 // --- Stories ---
 
 export const Default = {
   parameters: {
     msw: {
-      handlers: [http.get("/api/plan", () => HttpResponse.json(MOCK_PLAN_LIST))],
+      handlers: [
+        http.get("/api/plan", () => HttpResponse.json(MOCK_PLAN_LIST)),
+        neverResolvingInfo,
+      ],
     },
   },
   render: () => html`<cts-plan-list></cts-plan-list>`,
@@ -50,66 +62,58 @@ export const Default = {
     const canvas = within(canvasElement);
     await waitForPlansToLoad(canvasElement);
 
-    // Table renders with correct column headers
-    expect(canvas.getByText("Plan Name")).toBeInTheDocument();
-    expect(canvas.getByText("Variant")).toBeInTheDocument();
-    expect(canvas.getByText("Description")).toBeInTheDocument();
-    expect(canvas.getByText("Started")).toBeInTheDocument();
-    expect(canvas.getByText("Modules")).toBeInTheDocument();
-    expect(canvas.getByText("Config")).toBeInTheDocument();
+    // The search + sort toolbar mirrors cts-log-list.
+    expect(canvasElement.querySelector(".cts-plan-list-search input")).toBeTruthy();
+    expect(canvasElement.querySelector(".cts-plan-list-sort select")).toBeTruthy();
 
-    // Owner column should NOT be visible for non-admin
-    expect(canvas.queryByText("Owner")).toBeNull();
+    // One card per plan.
+    const cards = canvasElement.querySelectorAll('[data-testid="plan-list-item"]');
+    expect(cards.length).toBe(MOCK_PLAN_LIST.length);
 
-    // Plan names render
+    // Plan names render.
     expect(canvas.getByText("oidcc-basic-certification-test-plan")).toBeInTheDocument();
     expect(canvas.getByText("fapi2-security-profile-final-test-plan")).toBeInTheDocument();
-    expect(canvas.getByText("oidcc-implicit-certification-test-plan")).toBeInTheDocument();
 
     // Plan-name anchors carry the real destination URL (not "#") so cmd-click,
     // middle-click, right-click "Open in new tab", browser hover preview, and
-    // screen reader destination announcement all work. Regression guard for
-    // the a11y fix that replaced href="#" with the encoded plan-detail URL.
-    const firstPlanLink = /** @type {HTMLAnchorElement | null} */ (
-      canvasElement.querySelector("a.plan-name-link")
+    // screen-reader destination announcement all work. Target plan-001 by id
+    // rather than DOM position — the default sort is Started (newest), so the
+    // first card is not necessarily the first fixture entry.
+    const planCard = canvasElement.querySelector(
+      '[data-testid="plan-list-item"][data-plan-id="plan-001"]',
     );
-    expect(firstPlanLink?.getAttribute("href")).toBe("plan-detail.html?plan=plan-001");
+    expect(planCard).toBeTruthy();
+    const planLink = /** @type {HTMLAnchorElement | null} */ (
+      planCard.querySelector("a.plan-name-link")
+    );
+    expect(planLink?.getAttribute("href")).toBe("plan-detail.html?plan=plan-001");
 
-    // Module badges render
-    const badges = canvasElement.querySelectorAll("cts-badge");
-    expect(badges.length).toBeGreaterThan(0);
+    // The plan id renders as the card slug.
+    expect(planCard.querySelector(".cts-plan-card-slug")?.textContent).toBe("plan-001");
 
-    // Table has correct number of data rows
-    const rows = canvasElement.querySelectorAll("tbody tr");
-    expect(rows.length).toBe(MOCK_PLAN_LIST.length);
+    // Each module chip carries a status dot — one per module across all cards.
+    const totalModules = MOCK_PLAN_LIST.reduce((n, p) => n + (p.modules?.length || 0), 0);
+    const dots = canvasElement.querySelectorAll(".moduleBadgeStack .cts-badge-dot");
+    expect(dots.length).toBe(totalModules);
 
-    // U16: the Config column renders one "View configuration" button per
-    // row that has a non-empty saved config; rows whose backend payload
-    // is `config: {}` (plans created without configuration) get no
-    // button. Tie the assertion to the fixture so adding rows with or
-    // without saved config keeps it honest.
-    const rowsWithConfig = MOCK_PLAN_LIST.filter(
-      (p) => p.config && Object.keys(p.config).length > 0,
-    ).length;
-    const configBtns = canvasElement.querySelectorAll("cts-button.showConfigBtn");
-    expect(configBtns.length).toBe(rowsWithConfig);
-    // Visible "View configuration" label restores the legacy affordance —
-    // a tooltip-only `title` made the column read as empty (MR 1998 E1).
-    expect(configBtns[0]?.getAttribute("label")).toBe("View configuration");
-
-    // The Started column renders through cts-time: a native <time> whose title
+    // The Started value renders through cts-time: a native <time> whose title
     // carries the full absolute date on hover.
-    const startedTime = canvasElement.querySelector("tbody tr .tabular-nums time");
+    const startedTime = planCard.querySelector("cts-time time");
     expect(startedTime).toBeTruthy();
-    expect(startedTime?.getAttribute("title")).toBeTruthy();
     expect(startedTime?.getAttribute("datetime")).toBeTruthy();
+
+    // Non-admin users do not see the owner pill.
+    expect(canvasElement.querySelector(".plan-owner")).toBeNull();
   },
 };
 
-export const Search = {
+export const SearchAndSort = {
   parameters: {
     msw: {
-      handlers: [http.get("/api/plan", () => HttpResponse.json(MOCK_PLAN_LIST))],
+      handlers: [
+        http.get("/api/plan", () => HttpResponse.json(MOCK_PLAN_LIST)),
+        neverResolvingInfo,
+      ],
     },
   },
   render: () => html`<cts-plan-list></cts-plan-list>`,
@@ -117,29 +121,44 @@ export const Search = {
     const canvas = within(canvasElement);
     await waitForPlansToLoad(canvasElement);
 
-    // All plans visible initially
-    let rows = canvasElement.querySelectorAll("tbody tr");
-    expect(rows.length).toBe(MOCK_PLAN_LIST.length);
+    let cards = canvasElement.querySelectorAll('[data-testid="plan-list-item"]');
+    expect(cards.length).toBe(MOCK_PLAN_LIST.length);
 
-    // Type a search query
+    // Search narrows the rendered cards client-side.
     const searchInput = canvasElement.querySelector('input[placeholder="Search test plans..."]');
     expect(searchInput).toBeTruthy();
     await userEvent.type(searchInput, "fapi2");
-
-    // Table filters to matching plans
     await waitFor(() => {
-      rows = canvasElement.querySelectorAll("tbody tr");
-      expect(rows.length).toBe(1);
+      cards = canvasElement.querySelectorAll('[data-testid="plan-list-item"]');
+      expect(cards.length).toBe(1);
     });
     expect(canvas.getByText("fapi2-security-profile-final-test-plan")).toBeInTheDocument();
     expect(canvas.queryByText("oidcc-basic-certification-test-plan")).toBeNull();
+
+    // Clear the search, then sort by plan name (A–Z) and confirm the first
+    // card is the alphabetically-first plan.
+    await userEvent.clear(searchInput);
+    const sortSelect = /** @type {HTMLSelectElement} */ (
+      canvasElement.querySelector(".cts-plan-list-sort select")
+    );
+    await userEvent.selectOptions(sortSelect, "name-asc");
+    await waitFor(() => {
+      const names = Array.from(
+        canvasElement.querySelectorAll('[data-testid="plan-list-item"] .cts-plan-card-name'),
+      ).map((el) => el.textContent);
+      const sorted = [...names].sort((a, b) => a.localeCompare(b));
+      expect(names).toEqual(sorted);
+    });
   },
 };
 
 export const ClickPlanName = {
   parameters: {
     msw: {
-      handlers: [http.get("/api/plan", () => HttpResponse.json(MOCK_PLAN_LIST))],
+      handlers: [
+        http.get("/api/plan", () => HttpResponse.json(MOCK_PLAN_LIST)),
+        neverResolvingInfo,
+      ],
     },
   },
   render: () => html`<cts-plan-list></cts-plan-list>`,
@@ -147,17 +166,14 @@ export const ClickPlanName = {
     const canvas = within(canvasElement);
     await waitForPlansToLoad(canvasElement);
 
-    // Listen for the navigate event
     let receivedPlanId = null;
     canvasElement.addEventListener("cts-plan-navigate", (e) => {
       receivedPlanId = e.detail.planId;
     });
 
-    // Click the first plan name link
     const planLink = canvas.getByText("oidcc-basic-certification-test-plan");
     await userEvent.click(planLink);
 
-    // Event should fire with the correct plan ID
     expect(receivedPlanId).toBe("plan-001");
   },
 };
@@ -167,20 +183,21 @@ export const ClickPlanName = {
  * NOT trigger the custom `cts-plan-navigate` event — the browser handles those
  * natively by following the anchor's real href (e.g., opening in a new tab).
  * The component's `_handlePlanLinkClick` early-returns for those cases so the
- * page consumer doesn't ALSO navigate the current tab, which would result in
- * the user landing on two pages at once.
+ * page consumer doesn't ALSO navigate the current tab.
  */
 export const ModifierKeyClickDoesNotDispatch = {
   parameters: {
     msw: {
-      handlers: [http.get("/api/plan", () => HttpResponse.json(MOCK_PLAN_LIST))],
+      handlers: [
+        http.get("/api/plan", () => HttpResponse.json(MOCK_PLAN_LIST)),
+        neverResolvingInfo,
+      ],
     },
   },
   render: () => html`<cts-plan-list></cts-plan-list>`,
   async play({ canvasElement }) {
     await waitForPlansToLoad(canvasElement);
 
-    // The cts-plan-navigate event must NOT fire for modifier-key clicks.
     let receivedPlanId = null;
     canvasElement.addEventListener("cts-plan-navigate", (e) => {
       receivedPlanId = e.detail.planId;
@@ -191,23 +208,16 @@ export const ModifierKeyClickDoesNotDispatch = {
     );
     expect(planLink).toBeTruthy();
 
-    // Suppress the browser's default link-follow during the test — we want to
-    // observe the component's behavior without the test iframe navigating away.
-    // In production the modifier-key path INTENTIONALLY does not preventDefault
-    // so the browser opens a new tab natively. In the headless test runner that
-    // would tear down the page, so we install a late preventDefault listener.
+    // Suppress the browser's default link-follow during the test so the test
+    // iframe does not navigate away. In production the modifier-key path
+    // INTENTIONALLY does not preventDefault so the browser opens a new tab.
     const stopNativeNav = (/** @type {Event} */ e) => e.preventDefault();
     planLink.addEventListener("click", stopNativeNav);
 
     try {
-      // userEvent.click doesn't reliably propagate modifier keys onto the
-      // resulting click event, so dispatch the MouseEvent directly. The click
-      // handler observes event.ctrlKey === true and early-returns before
-      // dispatching the custom event.
       planLink.dispatchEvent(
         new MouseEvent("click", { ctrlKey: true, bubbles: true, cancelable: true }),
       );
-
       expect(receivedPlanId).toBeNull();
     } finally {
       planLink.removeEventListener("click", stopNativeNav);
@@ -218,26 +228,26 @@ export const ModifierKeyClickDoesNotDispatch = {
 export const ViewConfig = {
   parameters: {
     msw: {
-      handlers: [http.get("/api/plan", () => HttpResponse.json(MOCK_PLAN_LIST))],
+      handlers: [
+        http.get("/api/plan", () => HttpResponse.json(MOCK_PLAN_LIST)),
+        neverResolvingInfo,
+      ],
     },
   },
   render: () => html`<cts-plan-list></cts-plan-list>`,
   async play({ canvasElement }) {
     await waitForPlansToLoad(canvasElement);
 
-    // Click the first Config button (target the inner <button> rendered by
-    // cts-button — clicking the host bypasses Lit's @click handler).
-    const configBtnHost = canvasElement.querySelector(".showConfigBtn");
+    // Click plan-001's Config button (target the inner <button> rendered by
+    // cts-button — clicking the host bypasses Lit's @click handler). Target
+    // plan-001 by id: the default Started-newest sort means it is not the
+    // first card in the DOM.
+    const configBtnHost = canvasElement.querySelector('.showConfigBtn[data-plan-id="plan-001"]');
     expect(configBtnHost).toBeTruthy();
     await userEvent.click(innerButton(configBtnHost));
 
-    // Modal should open. The config JSON now renders inside a read-only
-    // <cts-json-editor> — Monaco virtualises rendered content, so we read
-    // the editor's `.value` property rather than asserting on textContent.
-    // The cts-modal moves its slotted children into an inner <dialog>, so
-    // search via document rather than canvasElement to be robust. Wait
-    // for host attachment first, then `whenReady()` instead of polling
-    // for inner DOM — keeps render-timing details inside the wrapper.
+    // Modal should open. The config JSON renders inside a read-only
+    // <cts-json-editor>; read the editor's `.value` rather than textContent.
     const editor = /** @type {any} */ (
       await waitFor(
         () => {
@@ -252,36 +262,27 @@ export const ViewConfig = {
     expect(editor.value).toContain("server.issuer");
     expect(editor.value).toContain("https://op.example.com");
 
-    // Exactly one Monaco editor must be mounted. cts-modal relocates its
-    // slotted children via appendChild, which fires disconnect → reconnect
-    // on cts-json-editor; without the reentrancy guard in _bootMonaco, the
-    // second connect stacks a duplicate Monaco editor on the same host
-    // (cursor on an empty editor above the one with the JSON).
+    // Exactly one Monaco editor must be mounted (cts-modal relocates slotted
+    // children; the reentrancy guard in _bootMonaco prevents a duplicate).
     const monacoInstances = editor.querySelectorAll(".monaco-editor");
     expect(monacoInstances.length).toBe(1);
 
-    // Plan ID shown in the modal
-    const canvas = within(canvasElement);
+    // Plan ID shown in the modal toolbar. Scope to the modal's <code> — the
+    // card slug also renders "plan-001", so a global getByText would match
+    // two nodes.
     await waitFor(() => {
-      expect(canvas.getByText("plan-001")).toBeInTheDocument();
+      const modalCode = document.querySelector(".cts-plan-list-config-toolbar code");
+      expect(modalCode?.textContent).toBe("plan-001");
     });
 
-    // Spy on navigator.clipboard.writeText. Headless Chromium denies real
-    // clipboard writes (NotAllowedError, plus a "document not focused"
-    // failure mode), so the spy both observes the call and replaces the
-    // implementation. restoreMocks: true in vitest.config.js auto-restores
-    // after the test — no explicit teardown needed.
+    // Spy on navigator.clipboard.writeText (headless Chromium denies real
+    // clipboard writes). restoreMocks: true auto-restores after the test.
     const clipboardSpy = spyOn(navigator.clipboard, "writeText").mockResolvedValue();
 
     const copyBtnHost = canvasElement.querySelector(".copy-config-btn");
     expect(copyBtnHost).toBeTruthy();
     await userEvent.click(innerButton(copyBtnHost));
 
-    // Assert the clipboard payload, not just that writeText fired. The
-    // component formats the selected plan's config as 4-space-indented
-    // JSON; if a future refactor swaps the source (e.g., reads from the
-    // editor instead of internal state), the contents would silently
-    // diverge from the plan being viewed.
     const expectedPayload = JSON.stringify(MOCK_PLAN_LIST[0].config, null, 4);
     await waitFor(() => {
       expect(clipboardSpy).toHaveBeenCalledWith(expectedPayload);
@@ -290,10 +291,10 @@ export const ViewConfig = {
 };
 
 /**
- * U16: Plans created without saved configuration come over the wire as
+ * Plans created without saved configuration come over the wire as
  * `config: {}` (DBTestPlanService persists an empty `org.bson.Document`).
- * The Config cell for those rows must render nothing — a button that
- * opens an empty modal is the bug MR 1998's E1 finding called out.
+ * Those cards must render no Config button — a button that opens an empty
+ * modal is the bug MR 1998's E1 finding called out.
  */
 export const ConfigButtonHiddenWhenConfigIsEmpty = {
   parameters: {
@@ -308,20 +309,14 @@ export const ConfigButtonHiddenWhenConfigIsEmpty = {
               variant: { response_type: "id_token" },
               started: new Date().toISOString(),
               owner: { sub: "12345", iss: "https://accounts.google.com" },
-              modules: [
-                {
-                  testModule: "oidcc-server-implicit",
-                  instances: [],
-                  status: null,
-                  result: null,
-                },
-              ],
+              modules: [{ testModule: "oidcc-server-implicit", instances: [] }],
               config: {},
               publish: null,
               immutable: false,
             },
           ]),
         ),
+        neverResolvingInfo,
       ],
     },
   },
@@ -329,12 +324,63 @@ export const ConfigButtonHiddenWhenConfigIsEmpty = {
   async play({ canvasElement }) {
     await waitForPlansToLoad(canvasElement);
 
-    // The row mounts (verifies the rest of the renderer is fine), but
-    // the Config cell carries no button.
-    const rows = canvasElement.querySelectorAll("tbody tr");
-    expect(rows.length).toBe(1);
+    const cards = canvasElement.querySelectorAll('[data-testid="plan-list-item"]');
+    expect(cards.length).toBe(1);
     const configBtns = canvasElement.querySelectorAll("cts-button.showConfigBtn");
     expect(configBtns.length).toBe(0);
+  },
+};
+
+/**
+ * Module status dots: a module that has run shows a pulsing `pending` dot
+ * (the /api/info fetch is mocked to never resolve here, pinning the initial
+ * state); a never-run module (empty `instances`) shows a static `skip` dot.
+ * The neutral `secondary` chip fill is unchanged — only the dot carries
+ * status color.
+ */
+export const ModuleStatusDots = {
+  parameters: {
+    msw: {
+      handlers: [
+        http.get("/api/plan", () =>
+          HttpResponse.json([
+            {
+              _id: "plan-dots",
+              planName: "oidcc-basic-certification-test-plan",
+              description: "Dot states",
+              variant: {},
+              started: new Date().toISOString(),
+              owner: { sub: "12345", iss: "https://accounts.google.com" },
+              modules: [
+                { testModule: "module-has-run", instances: ["inst-aaa"] },
+                { testModule: "module-never-run", instances: [] },
+              ],
+              config: {},
+              publish: null,
+              immutable: false,
+            },
+          ]),
+        ),
+        neverResolvingInfo,
+      ],
+    },
+  },
+  render: () => html`<cts-plan-list></cts-plan-list>`,
+  async play({ canvasElement }) {
+    await waitForPlansToLoad(canvasElement);
+
+    const chips = canvasElement.querySelectorAll(".moduleBadgeStack cts-badge");
+    expect(chips.length).toBe(2);
+
+    // Every chip is a neutral name chip with a dot.
+    chips.forEach((chip) => {
+      expect(chip.querySelector(".badge")?.classList.contains("b-secondary")).toBe(true);
+      expect(chip.querySelector(".cts-badge-dot")).toBeTruthy();
+    });
+
+    // Has-run module → pending (pulsing) dot; never-run → static skip dot.
+    expect(canvasElement.querySelector(".cts-badge-dot-pending")).toBeTruthy();
+    expect(canvasElement.querySelector(".cts-badge-dot-skip")).toBeTruthy();
   },
 };
 
@@ -349,12 +395,38 @@ export const EmptyList = {
     const canvas = within(canvasElement);
     await waitForPlansToLoad(canvasElement);
 
-    // Should show empty message
+    expect(canvasElement.querySelector('[data-testid="plan-list-empty"]')).toBeTruthy();
     expect(canvas.getByText("No test plans found")).toBeInTheDocument();
+    expect(canvasElement.querySelector('[data-testid="plan-list-item"]')).toBeNull();
+  },
+};
 
-    // No table rendered
-    const table = canvasElement.querySelector("table");
-    expect(table).toBeNull();
+/**
+ * Searching to zero results shows distinct copy from the nothing-loaded
+ * empty state, so the user understands the list is filtered rather than
+ * empty (mirrors cts-log-list's two-case empty state).
+ */
+export const EmptySearch = {
+  parameters: {
+    msw: {
+      handlers: [
+        http.get("/api/plan", () => HttpResponse.json(MOCK_PLAN_LIST)),
+        neverResolvingInfo,
+      ],
+    },
+  },
+  render: () => html`<cts-plan-list></cts-plan-list>`,
+  async play({ canvasElement }) {
+    const canvas = within(canvasElement);
+    await waitForPlansToLoad(canvasElement);
+
+    const searchInput = canvasElement.querySelector('input[placeholder="Search test plans..."]');
+    await userEvent.type(searchInput, "zzz-no-such-plan-zzz");
+
+    await waitFor(() => {
+      expect(canvas.getByText("No plans match your search")).toBeInTheDocument();
+    });
+    expect(canvasElement.querySelector('[data-testid="plan-list-item"]')).toBeNull();
   },
 };
 
@@ -373,16 +445,12 @@ export const LoadingState = {
   async play({ canvasElement }) {
     const canvas = within(canvasElement);
 
-    // Spinner should be visible
     await waitFor(() => {
       const spinner = canvasElement.querySelector(".spinner-border");
       expect(spinner).toBeTruthy();
     });
     expect(canvas.getByText("Loading test plans...")).toBeInTheDocument();
-
-    // No table rendered while loading
-    const table = canvasElement.querySelector("table");
-    expect(table).toBeNull();
+    expect(canvasElement.querySelector('[data-testid="plan-list-item"]')).toBeNull();
   },
 };
 
@@ -397,22 +465,20 @@ export const ApiError = {
     const canvas = within(canvasElement);
     await waitForPlansToLoad(canvasElement);
 
-    // Error alert should be displayed (cts-alert renders .oidf-alert-danger
-    // after U8 retokenization; Bootstrap's .alert-danger is no longer used).
     const alert = canvasElement.querySelector(".oidf-alert-danger");
     expect(alert).toBeTruthy();
     expect(canvas.getByText(/Failed to load test plans/)).toBeInTheDocument();
-
-    // No table rendered
-    const table = canvasElement.querySelector("table");
-    expect(table).toBeNull();
+    expect(canvasElement.querySelector('[data-testid="plan-list-item"]')).toBeNull();
   },
 };
 
 export const AdminView = {
   parameters: {
     msw: {
-      handlers: [http.get("/api/plan", () => HttpResponse.json(MOCK_PLAN_LIST))],
+      handlers: [
+        http.get("/api/plan", () => HttpResponse.json(MOCK_PLAN_LIST)),
+        neverResolvingInfo,
+      ],
     },
   },
   render: () => html`<cts-plan-list is-admin></cts-plan-list>`,
@@ -420,18 +486,15 @@ export const AdminView = {
     const canvas = within(canvasElement);
     await waitForPlansToLoad(canvasElement);
 
-    // Owner column header should be visible
-    expect(canvas.getByText("Owner")).toBeInTheDocument();
+    // One owner pill per card for admins.
+    const ownerPills = canvasElement.querySelectorAll(".plan-owner");
+    expect(ownerPills.length).toBe(MOCK_PLAN_LIST.length);
 
-    // Owner cells should be rendered
-    const ownerCells = canvasElement.querySelectorAll(".owner-cell");
-    expect(ownerCells.length).toBe(MOCK_PLAN_LIST.length);
+    // The owner subject is exposed via the pill's accessible label.
+    const firstSub = ownerPills[0].querySelector(".ownerSub");
+    expect(firstSub?.getAttribute("aria-label")).toBe("Subject: 12345");
 
-    // First plan's owner sub should be visible
-    expect(ownerCells[0].textContent).toBe("12345");
-
-    // All other columns still present
-    expect(canvas.getByText("Plan Name")).toBeInTheDocument();
+    // Cards still render normally.
     expect(canvas.getByText("oidcc-basic-certification-test-plan")).toBeInTheDocument();
   },
 };
@@ -446,6 +509,7 @@ export const PublicView = {
           const plans = isPublic ? MOCK_PLAN_LIST.filter((p) => p.publish) : MOCK_PLAN_LIST;
           return HttpResponse.json(plans);
         }),
+        neverResolvingInfo,
       ],
     },
   },
@@ -454,47 +518,64 @@ export const PublicView = {
     const canvas = within(canvasElement);
     await waitForPlansToLoad(canvasElement);
 
-    // Only published plans should be shown (plan-002 and plan-003 have publish set)
-    const rows = canvasElement.querySelectorAll("tbody tr");
-    expect(rows.length).toBe(2);
+    // Only published plans surface in the public view.
+    const publishedCount = MOCK_PLAN_LIST.filter((p) => p.publish).length;
+    const cards = canvasElement.querySelectorAll('[data-testid="plan-list-item"]');
+    expect(cards.length).toBe(publishedCount);
 
     expect(canvas.getByText("fapi2-security-profile-final-test-plan")).toBeInTheDocument();
-    expect(canvas.getByText("oidcc-implicit-certification-test-plan")).toBeInTheDocument();
     expect(canvas.queryByText("oidcc-basic-certification-test-plan")).toBeNull();
 
-    // Owner column should NOT be visible in public view
-    expect(canvas.queryByText("Owner")).toBeNull();
+    // Owner pill and config button stay hidden in the public view.
+    expect(canvasElement.querySelector(".plan-owner")).toBeNull();
+    expect(canvasElement.querySelector(".showConfigBtn")).toBeNull();
   },
 };
 
 /**
- * Adv F12 (U17): the rendered plan-list table must not carry any of
- * Bootstrap's table-* utility classes. After the cts-plan-list refactor
- * delegates table chrome to cts-data-table, the rendered <table> carries
- * the token-styled `.oidf-dt-table` class instead of the legacy
- * `.planTable` class.
+ * Past PAGE_SIZE (25) plans, the listing paginates client-side with a
+ * "Show more" button that reveals the next page.
  */
-export const TableHasNoBootstrapClasses = {
+export const ShowMorePagination = {
   parameters: {
     msw: {
-      handlers: [http.get("/api/plan", () => HttpResponse.json(MOCK_PLAN_LIST))],
+      handlers: [
+        http.get("/api/plan", () =>
+          HttpResponse.json(
+            Array.from({ length: 30 }, (_, i) => ({
+              _id: `plan-${String(i).padStart(3, "0")}`,
+              planName: `plan-${String(i).padStart(3, "0")}-name`,
+              description: "",
+              variant: {},
+              started: new Date(Date.now() - i * 1000).toISOString(),
+              owner: { sub: "12345", iss: "https://accounts.google.com" },
+              modules: [{ testModule: "m", instances: [] }],
+              config: {},
+              publish: null,
+              immutable: false,
+            })),
+          ),
+        ),
+        neverResolvingInfo,
+      ],
     },
   },
   render: () => html`<cts-plan-list></cts-plan-list>`,
   async play({ canvasElement }) {
     await waitForPlansToLoad(canvasElement);
 
-    const table = canvasElement.querySelector("table");
-    expect(table).toBeTruthy();
-    if (!table) return;
+    // First page caps at PAGE_SIZE (25).
+    let cards = canvasElement.querySelectorAll('[data-testid="plan-list-item"]');
+    expect(cards.length).toBe(25);
 
-    // No `table-*` utility classes should remain on the rendered <table>.
-    const classNames = Array.from(table.classList);
-    const bootstrapTableClasses = classNames.filter((c) => c.startsWith("table"));
-    expect(bootstrapTableClasses).toEqual([]);
+    const showMore = canvasElement.querySelector('[data-testid="plan-list-show-more"]');
+    expect(showMore).toBeTruthy();
+    await userEvent.click(innerButton(showMore));
 
-    // Token-styled cts-data-table class should be present instead.
-    expect(table.classList.contains("oidf-dt-table")).toBe(true);
+    await waitFor(() => {
+      cards = canvasElement.querySelectorAll('[data-testid="plan-list-item"]');
+      expect(cards.length).toBe(30);
+    });
   },
 };
 
