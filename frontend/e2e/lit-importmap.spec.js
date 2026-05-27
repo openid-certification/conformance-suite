@@ -185,4 +185,32 @@ test.describe("Lit importmap", () => {
       expect(warnings, `${pagePath} should not emit the Lit bundle warning`).toHaveLength(0);
     }
   });
+
+  // marked + DOMPurify are vendored the same way as Lit: a per-page importmap
+  // entry resolving the bare specifier to /vendor/. format-description.js
+  // imports them as bare specifiers, so a missing or typo'd entry on a page
+  // that renders test prose breaks rendering silently at import time. Probe
+  // that both resolve to their working exports on every page (the importmap is
+  // uniform across all pages, like the Lit entries).
+  for (const pagePath of PAGES) {
+    test(`${pagePath} resolves marked and dompurify to working exports`, async ({ page }) => {
+      await setupPermissiveApiMocks(page);
+
+      await page.goto(pagePath);
+
+      const resolved = await page.evaluate(async () => {
+        const markedMod = await import(/* @vite-ignore */ "marked");
+        const purifyMod = await import(/* @vite-ignore */ "dompurify");
+        return {
+          markedParse: typeof markedMod.marked?.parse,
+          purifySanitize: typeof purifyMod.default?.sanitize,
+        };
+      });
+
+      expect(resolved.markedParse, `marked.parse should resolve from ${pagePath}`).toBe("function");
+      expect(resolved.purifySanitize, `DOMPurify.sanitize should resolve from ${pagePath}`).toBe(
+        "function",
+      );
+    });
+  }
 });
