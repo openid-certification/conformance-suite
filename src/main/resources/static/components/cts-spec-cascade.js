@@ -21,16 +21,9 @@ import { classMap } from "lit/directives/class-map.js";
  * @fires cts-plan-selected - When a plan is chosen (manually, via
  *   auto-select, or via the `selectPlanByName` method), with
  *   `{ detail: { plan } }`; bubbles.
- * @method flashHighlight - Paint a one-shot scroll-in highlight wash over the
- *   cascade; call after scrolling it into view. Honors prefers-reduced-motion.
  */
 
 const STYLE_ID = "cts-spec-cascade-styles";
-
-// Single source of truth for the scroll-in flash duration. Interpolated into
-// the @keyframes animation below and reused by flashHighlight()'s cleanup
-// timer so the CSS and JS can never drift out of sync.
-const FLASH_DURATION_MS = 1600;
 
 // Inline SVG chevron used as the custom select indicator. Stroke colour is
 // `--ink-500` (`#71695E`) — encoded as `%2371695E` in the data: URL.
@@ -39,7 +32,6 @@ const SELECT_CHEVRON =
 
 const STYLE_TEXT = `
 .oidf-spec-cascade {
-  position: relative;
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: var(--space-4);
@@ -49,40 +41,6 @@ const STYLE_TEXT = `
   .oidf-spec-cascade {
     grid-template-columns: 1fr;
   }
-}
-/* Basecamp-style scroll-in highlight (driven by flashHighlight(); wired from
-   the cts-plan-select handler in schedule-test.html). A decorative ::after
-   wash overhangs the cascade box by --space-4 — the "padding around it" — and
-   sits behind the selects (z-index:-1 against the transparent parent) so they
-   stay legible and clickable during the flash. */
-.oidf-spec-cascade--highlight::after {
-  content: "";
-  position: absolute;
-  inset: calc(-1 * var(--space-4));
-  z-index: -1;
-  border-radius: var(--radius-4);
-  background: var(--orange-100);
-  pointer-events: none;
-  opacity: 0;
-}
-@media (prefers-reduced-motion: no-preference) {
-  /* Snap in (peak at 12%), then a slow dissolve over the long tail. */
-  .oidf-spec-cascade--highlight::after {
-    animation: oidf-cascade-flash ${FLASH_DURATION_MS}ms ease-out;
-  }
-}
-@media (prefers-reduced-motion: reduce) {
-  /* No motion: show a brief static wash so the arrival is still perceptible.
-     flashHighlight() clears the modifier class via setTimeout, since
-     animationend never fires when there is no animation. */
-  .oidf-spec-cascade--highlight::after {
-    opacity: 1;
-  }
-}
-@keyframes oidf-cascade-flash {
-  0% { opacity: 0; }
-  12% { opacity: 1; }
-  100% { opacity: 0; }
 }
 .oidf-spec-cascade__field {
   display: flex;
@@ -173,7 +131,6 @@ class CtsSpecCascade extends LitElement {
     _selectedPlan: { state: true },
     _loading: { state: true },
     _error: { state: true },
-    _highlight: { state: true },
   };
 
   createRenderRoot() {
@@ -192,10 +149,6 @@ class CtsSpecCascade extends LitElement {
     // Holds a planName requested via `selectPlanByName` before plans arrived.
     // Drained from `updated()` once `plans` becomes non-null.
     this._pendingSelection = "";
-    // Drives the one-shot scroll-in highlight (see `flashHighlight`).
-    this._highlight = false;
-    // Pending cleanup timer for the highlight; cleared/reset on re-trigger.
-    this._highlightTimer = null;
   }
 
   connectedCallback() {
@@ -203,15 +156,6 @@ class CtsSpecCascade extends LitElement {
     injectStyles();
     if (!this.plans) {
       this._fetchPlans();
-    }
-  }
-
-  disconnectedCallback() {
-    super.disconnectedCallback();
-    // Don't let an in-flight highlight timer fire against a detached element.
-    if (this._highlightTimer) {
-      clearTimeout(this._highlightTimer);
-      this._highlightTimer = null;
     }
   }
 
@@ -421,71 +365,6 @@ class CtsSpecCascade extends LitElement {
     return true;
   }
 
-  /**
-   * Flash a one-shot "your selection landed here" highlight over the cascade.
-   * The host page calls this right after it scrolls the cascade into view
-   * following a search-list plan selection (see the `cts-plan-select` handler
-   * in `schedule-test.html`). The wash is a decorative `::after` on
-   * `.oidf-spec-cascade` — see the `.oidf-spec-cascade--highlight` styles.
-   *
-   * Honors `prefers-reduced-motion`: motion-OK users get the animated flash,
-   * cleared on `animationend` with a timer safety net; reduced-motion users get
-   * a brief *static* wash cleared purely by the timer, because `animationend`
-   * never fires when the animation is suppressed — relying on it alone would
-   * strand the wash on screen.
-   *
-   * Re-calling while a flash is in flight restarts it from zero (a fresh
-   * re-flash, not a continuation), so rapid re-selection always reads as a new
-   * arrival.
-   */
-  flashHighlight() {
-    const reduce =
-      typeof window !== "undefined" &&
-      typeof window.matchMedia === "function" &&
-      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-
-    if (this._highlightTimer) {
-      clearTimeout(this._highlightTimer);
-      this._highlightTimer = null;
-    }
-
-    if (this._highlight) {
-      // Already flashing: restart from zero. Drop the modifier so Lit removes
-      // the ::after, then re-apply after the next frame so the keyframes
-      // replay from 0% rather than continuing mid-curve.
-      this._highlight = false;
-      this.updateComplete.then(() => {
-        requestAnimationFrame(() => this._startHighlight(reduce));
-      });
-    } else {
-      this._startHighlight(reduce);
-    }
-  }
-
-  _startHighlight(reduce) {
-    this._highlight = true;
-    // Motion path: safety net in case `animationend` is missed. Reduced-motion
-    // path: the sole cleanup, since no animation (and thus no `animationend`)
-    // runs. A touch longer than the animation so `animationend` wins when it
-    // does fire.
-    this._highlightTimer = setTimeout(
-      () => {
-        this._highlight = false;
-        this._highlightTimer = null;
-      },
-      reduce ? FLASH_DURATION_MS : FLASH_DURATION_MS + 200,
-    );
-  }
-
-  _onFlashEnd(e) {
-    if (e.animationName !== "oidf-cascade-flash") return;
-    if (this._highlightTimer) {
-      clearTimeout(this._highlightTimer);
-      this._highlightTimer = null;
-    }
-    this._highlight = false;
-  }
-
   updated(changedProperties) {
     // Drain a queued programmatic selection once plans finish loading.
     if (changedProperties.has("plans") && this.plans && this._pendingSelection) {
@@ -614,13 +493,7 @@ class CtsSpecCascade extends LitElement {
     }));
 
     return html`
-      <div
-        class=${classMap({
-          "oidf-spec-cascade": true,
-          "oidf-spec-cascade--highlight": this._highlight,
-        })}
-        @animationend=${this._onFlashEnd}
-      >
+      <div class="oidf-spec-cascade">
         ${this._renderField(
           "Specification",
           "specFamilySelect",

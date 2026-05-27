@@ -41,6 +41,7 @@
     <script type="module" src="/components/cts-tooltip.js"></script>
     <script type="module" src="/components/cts-json-editor.js"></script>
     <script type="module" src="/components/cts-spec-cascade.js"></script>
+    <script type="module" src="/components/cts-flash-highlight.js"></script>
     <script type="module" src="/components/cts-test-selector.js"></script>
     <script type="module" src="/components/cts-form-field.js"></script>
     <script type="module" src="/components/cts-config-form.js"></script>
@@ -104,10 +105,15 @@
             </div>
 
             <cts-test-selector id="planSearch"></cts-test-selector>
-            <cts-spec-cascade id="specCascade"></cts-spec-cascade>
-            <form id="variantSelectors">
-                <!-- render variant selectors here -->
-            </form>
+            <!-- Wrap the cascade + variant selectors so the scroll-in flash
+                 wash (fired after a search-list plan pick) covers both as one
+                 group. See cts-flash-highlight + the cts-plan-select handler. -->
+            <cts-flash-highlight id="selectionFlash">
+                <cts-spec-cascade id="specCascade"></cts-spec-cascade>
+                <form id="variantSelectors">
+                    <!-- render variant selectors here -->
+                </form>
+            </cts-flash-highlight>
 
             <div id="configForm" style="display:none">
                 <h3>Configure Test</h3>
@@ -153,6 +159,37 @@
         // adapter consumes alongside the per-plan info from
         // FAPI_UI.availablePlans. Fetched once at page init and never refetched.
         let fieldCatalog = null;
+
+        // Run `done` once the page's smooth scroll has settled. `scrollend`
+        // (Baseline 2025-12) fires when a scroll rests; we listen on `document`
+        // because scrollIntoView() scrolls the root viewport. Two guards make
+        // this reliable in every branch:
+        //   - If the target was already in view, scrollIntoView() scrolls
+        //     nothing, so `scrollend` never fires. A short probe watches for the
+        //     first `scroll` event; if none lands, we run `done` immediately.
+        //   - A hard cap runs `done` even if `scrollend` is somehow missed, so
+        //     the callback can never be stranded and listeners can't leak.
+        // Call AFTER scrollIntoView() so the in-flight scroll is the one tracked.
+        function whenScrollSettles(done) {
+            let finished = false;
+            let scrolled = false;
+            function onScroll() { scrolled = true; }
+            function finish() {
+                if (finished) return;
+                finished = true;
+                document.removeEventListener('scrollend', finish);
+                document.removeEventListener('scroll', onScroll);
+                clearTimeout(noScrollTimer);
+                clearTimeout(hardCap);
+                done();
+            }
+            document.addEventListener('scrollend', finish);
+            document.addEventListener('scroll', onScroll, { passive: true });
+            // No scroll started shortly after the request → nothing will scroll.
+            const noScrollTimer = setTimeout(function() { if (!scrolled) finish(); }, 120);
+            // Safety net: never strand the callback if scrollend is missed.
+            const hardCap = setTimeout(finish, 1000);
+        }
 
         function loadFieldCatalog() {
             return fetch('/js/config-field-catalog.json')
@@ -925,12 +962,20 @@
                         var cascadeEl = document.getElementById('specCascade');
                         if (!cascadeEl) return;
                         cascadeEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                        // Punctuate the arrival with a one-shot highlight. The
-                        // flash is motion-paired by design — it fires on this
+                        // Punctuate the arrival with a one-shot highlight over
+                        // the cascade + variant selectors group, fired once the
+                        // smooth scroll has *settled* so the wash reads as "you've
+                        // arrived" rather than playing mid-flight. The flash is
+                        // motion-paired by design — it fires on this
                         // scroll-coupled path, not on the non-scrolling
                         // deep-link / edit-plan / last-config restore paths.
                         // Reduced-motion handling lives inside flashHighlight().
-                        cascadeEl.flashHighlight();
+                        whenScrollSettles(function() {
+                            var flashEl = document.getElementById('selectionFlash');
+                            if (flashEl && typeof flashEl.flashHighlight === 'function') {
+                                flashEl.flashHighlight();
+                            }
+                        });
                         if (via === 'keyboard') {
                             var firstField = cascadeEl.querySelector('select');
                             // preventScroll keeps the smooth scroll above
@@ -1112,18 +1157,23 @@
         }
 
         function updateConfigFieldVisibility() {
-            // Hide the entire config form and launch button until a plan/test
-            // & all variants are selected. The outer #configForm wrapper
-            // (re-introduced in the Phase 2 markup) keeps its id so this toggle
-            // works without poking at cts-config-form's internals.
+            // Hide the config form until a plan/test & all variants are
+            // selected. The outer #configForm wrapper (re-introduced in the
+            // Phase 2 markup) keeps its id so this toggle works without poking
+            // at cts-config-form's internals.
+            //
+            // The action bar (#launchButtons) is NOT toggled — it stays visible
+            // at all times. Its Create/Share buttons carry the "not ready yet"
+            // signal through their disabled state, so the bar is a stable
+            // affordance rather than something that appears once everything is
+            // filled in. Every return path below must therefore leave the
+            // button disabled states correct.
             const configFormEl = document.getElementById('configForm');
-            const launchBtnsEl = document.getElementById('launchButtons');
             const createBtn = document.getElementById('createPlanBtn');
             const copyBtn = document.getElementById('copyPlanUrlBtn');
             const ctsConfigForm = document.getElementById('ctsConfigForm');
 
             configFormEl.style.display = 'none';
-            launchBtnsEl.style.display = 'none';
 
             const planSelectEl = document.getElementById('planSelect');
             const planName = planSelectEl ? planSelectEl.value : '';
@@ -1131,6 +1181,7 @@
 
             if (!planName || planName === 'select' || !planInfo) {
                 createBtn.disabled = true;
+                copyBtn.disabled = true;
                 return;
             }
 
@@ -1172,7 +1223,6 @@
             renderJwksGeneratorRow(uiSchema);
 
             configFormEl.style.display = '';
-            launchBtnsEl.style.display = '';
 
             if (planName === "ekyc-test-plan-oidccore") {
                 registerEkycSecurityProfileChangeEvent();

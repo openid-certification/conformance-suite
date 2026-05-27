@@ -91,7 +91,7 @@
                         <strong class="oidf-test-selector__row-name"><!--?lit$NNNN$-->OpenID Connect Core: Basic Certification Profile</strong>
                         <!--?lit$NNNN$--><span class="oidf-test-selector__row-family"><!--?lit$NNNN$-->OIDCC</span>
                       </span>
-                      <!--?lit$NNNN$--><span class="oidf-test-selector__row-count"><!--?lit$NNNN$-->4</span>
+                      <!--?lit$NNNN$--><cts-tooltip content="Number of test modules in this plan" placement="top"><span class="oidf-test-selector__row-count" aria-label="4 test modules"><!--?lit$NNNN$-->4</span></cts-tooltip>
                     </span>
                     <!--?lit$NNNN$--><span class="oidf-test-selector__row-summary"><!--?lit$NNNN$-->Basic OP certification test plan for OpenID Connect Core 1.0</span>
                   </button>
@@ -102,7 +102,7 @@
                         <strong class="oidf-test-selector__row-name"><!--?lit$NNNN$-->FAPI 2.0 Security Profile</strong>
                         <!--?lit$NNNN$--><span class="oidf-test-selector__row-family"><!--?lit$NNNN$-->FAPI</span>
                       </span>
-                      <!--?lit$NNNN$--><span class="oidf-test-selector__row-count"><!--?lit$NNNN$-->2</span>
+                      <!--?lit$NNNN$--><cts-tooltip content="Number of test modules in this plan" placement="top"><span class="oidf-test-selector__row-count" aria-label="2 test modules"><!--?lit$NNNN$-->2</span></cts-tooltip>
                     </span>
                     <!--?lit$NNNN$--><span class="oidf-test-selector__row-summary"><!--?lit$NNNN$-->FAPI 2.0 Security Profile conformance test plan</span>
                   </button>
@@ -113,7 +113,7 @@
                         <strong class="oidf-test-selector__row-name"><!--?lit$NNNN$-->OpenID Connect Client: Basic Certification</strong>
                         <!--?lit$NNNN$--><span class="oidf-test-selector__row-family"><!--?lit$NNNN$-->OIDCC</span>
                       </span>
-                      <!--?lit$NNNN$--><span class="oidf-test-selector__row-count"><!--?lit$NNNN$-->1</span>
+                      <!--?lit$NNNN$--><cts-tooltip content="Number of test modules in this plan" placement="top"><span class="oidf-test-selector__row-count" aria-label="1 test module"><!--?lit$NNNN$-->1</span></cts-tooltip>
                     </span>
                     <!--?lit$NNNN$--><span class="oidf-test-selector__row-summary"><!--?lit$NNNN$-->Client-side certification test plan for OpenID Connect</span>
                   </button>
@@ -121,8 +121,12 @@
         </div>
       </div>
     </cts-test-selector>
-            <cts-spec-cascade id="specCascade"><!---->
-      <div class=" oidf-spec-cascade ">
+            <!-- Wrap the cascade + variant selectors so the scroll-in flash
+                 wash (fired after a search-list plan pick) covers both as one
+                 group. See cts-flash-highlight + the cts-plan-select handler. -->
+            <cts-flash-highlight id="selectionFlash">
+                <cts-spec-cascade id="specCascade"><!---->
+      <div class="oidf-spec-cascade">
         <!--?lit$NNNN$-->
       <div class="oidf-spec-cascade__field" data-testid="specFamilySelect-field" style="">
         <label class="oidf-spec-cascade__label" for="specFamilySelect"><!--?lit$NNNN$-->Specification</label>
@@ -169,7 +173,8 @@
     
       </div>
     </cts-spec-cascade>
-            <form id="variantSelectors" style="display: none;"></form>
+                <form id="variantSelectors" style="display: none;"></form>
+            </cts-flash-highlight>
 
             <div id="configForm" style="display:none">
                 <h3>Configure Test</h3>
@@ -193,7 +198,7 @@
     </cts-config-form>
             </div>
 
-            <cts-action-bar id="launchButtons" align-to="schedule-test-page" aria-label="Test plan actions" style="display: none;"><div class="oidf-action-bar" data-position="bottom" role="region" aria-label="Test plan actions"><div class="oidf-action-bar__inner" style="max-width: 1100px; padding-inline: var(--space-5);">
+            <cts-action-bar id="launchButtons" align-to="schedule-test-page" aria-label="Test plan actions"><div class="oidf-action-bar" data-position="bottom" role="region" aria-label="Test plan actions"><div class="oidf-action-bar__inner" style="max-width: 1100px; padding-inline: var(--space-5);">
                 <cts-button id="createPlanBtn" size="lg" variant="primary" icon="flag" label="Create Test Plan" disabled=""><!----><button type="button" class="oidf-btn oidf-btn-lg oidf-btn-primary" disabled=""><!--?lit$NNNN$--><cts-icon aria-hidden="true" name="flag" size="24"><!----><style>
         cts-icon {
           /* inline-flex with center alignment guarantees the SVG sits at the

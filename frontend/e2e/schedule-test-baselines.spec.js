@@ -36,6 +36,11 @@ const CTS_CUSTOM_ELEMENTS = [
   "cts-badge",
   "cts-button",
   "cts-alert",
+  // Wraps the cascade + variant selectors; upgrades on connect. Its flash
+  // state lives in a transient `data-flashing` attribute (absent at rest), so
+  // the resting snapshot is unaffected — we wait for upgrade only for parity
+  // with the other wrappers and to keep the structure deterministic.
+  "cts-flash-highlight",
 ];
 
 /**
