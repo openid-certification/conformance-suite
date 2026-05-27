@@ -472,7 +472,7 @@ class CtsTestSelector extends LitElement {
             aria-label="Filter test plans by specification family"
             @change=${this._handleFamilyFilter}
           >
-            <option value="">All specifications</option>
+            <option value="" ?selected=${this._selectedFamily === ""}>All specifications</option>
             ${this._renderFamilyOptions()}
           </select>
         </div>
@@ -523,7 +523,9 @@ class CtsTestSelector extends LitElement {
   }
 
   _renderFamilyOptions() {
-    return this._families.map((f) => html`<option value="${f}">${f}</option>`);
+    return this._families.map(
+      (f) => html`<option value="${f}" ?selected=${this._selectedFamily === f}>${f}</option>`,
+    );
   }
 }
 customElements.define("cts-test-selector", CtsTestSelector);
