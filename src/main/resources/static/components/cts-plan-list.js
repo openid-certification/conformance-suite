@@ -13,6 +13,36 @@ import { statusBadgeVariant } from "../js/module-status.js";
 
 const PAGE_SIZE = 25;
 
+// Variant -> status-box class. Explicit lookup table per components/AGENTS.md
+// §7 (no dynamic class concatenation); the variant comes from
+// `statusBadgeVariant` plus the local `pending` in-flight state. Unknown
+// values fall back to the neutral `skip` box.
+const STATUS_BOX_CLASSES = {
+  pass: "moduleStatusBox moduleStatusBox--pass",
+  fail: "moduleStatusBox moduleStatusBox--fail",
+  warn: "moduleStatusBox moduleStatusBox--warn",
+  running: "moduleStatusBox moduleStatusBox--running",
+  skip: "moduleStatusBox moduleStatusBox--skip",
+  review: "moduleStatusBox moduleStatusBox--review",
+  pending: "moduleStatusBox moduleStatusBox--pending",
+};
+
+// Variant -> accessible status word for the box aria-label, so a non-visual
+// agent/AT gets the outcome the box color conveys (not just the module id).
+// Derived from the box variant rather than statusLabel(status,result) because
+// the variant distinguishes a never-run/settled box (`skip`) from an
+// in-flight fetch (`pending`) — both carry undefined status/result, which
+// statusLabel would collapse to "PENDING".
+const STATUS_BOX_LABELS = {
+  pass: "passed",
+  fail: "failed",
+  warn: "warning",
+  running: "running",
+  review: "review",
+  skip: "no result",
+  pending: "checking status",
+};
+
 const STYLE_ID = "cts-plan-list-styles";
 
 // Inline SVG chevron used as the custom select indicator. Copied from
@@ -112,9 +142,10 @@ const STYLE_TEXT = `
      real anchor per card; its ::after overlay covers the whole card so the
      click target spans the card silhouette. Nested interactive controls
      (config button, owner pills) sit on z-index: 1 so they receive their own
-     clicks. The module badge stack is read-only in this release, so it stays
-     beneath the overlay — a click anywhere on the badge stack navigates to
-     plan-detail. See https://adrianroselli.com/2020/02/block-links-cards-clickable-regions-etc.html */
+     clicks. The module status grid also sits at z-index: 1 (its boxes need
+     hover for tooltips) but is pointer-events: none except on the boxes, so
+     clicks in its band still fall through to the card link (see
+     .moduleStatusGrid below). See https://adrianroselli.com/2020/02/block-links-cards-clickable-regions-etc.html */
   .cts-plan-card {
     position: relative;
     display: grid;
@@ -204,6 +235,16 @@ const STYLE_TEXT = `
     display: flex;
     flex-wrap: wrap;
     gap: var(--space-1);
+    /* The grid spans the full card column at z-index 1, which would put its
+       gaps and trailing whitespace above the card-link ::after overlay and
+       swallow navigation clicks in that band. Make the grid transparent to
+       pointer events and re-enable them only on the tooltip-wrapped boxes:
+       hover/tooltip still works on a box, every other pixel of the band
+       falls through to the card link. */
+    pointer-events: none;
+  }
+  .cts-plan-card .moduleStatusGrid cts-tooltip {
+    pointer-events: auto;
   }
   .moduleStatusBox {
     /* Fixed 32x18 rounded rectangle (per design); flex-shrink off so the
@@ -451,6 +492,11 @@ class CtsPlanList extends LitElement {
     // out duplicate requests for the same instance. Non-reactive — never read
     // from render.
     this._infoFetchesInFlight = new Set();
+    // The {sorted, visible} view computed by the most recent render(), reused
+    // by the status-resolution pass (which runs in updated(), after render)
+    // so the search→sort→slice work happens once per render, not twice.
+    // Non-reactive — never read from render itself.
+    this._currentView = null;
     // Pre-bind handlers wired through Lit EventParts on rendered cards. Lit
     // dispatches with `this` set to the host element of the listener; these
     // must retain this component as `this`.
@@ -467,17 +513,22 @@ class CtsPlanList extends LitElement {
     this._fetchPlans();
   }
 
-  updated() {
-    // After every render, fetch the latest result for the modules of the
-    // currently-visible cards. Gating to visible cards (rather than every
-    // loaded plan) bounds the fan-out: a listing can hold up to 1000 plans
-    // and a single FAPI/OIDCC plan has dozens of modules, so fetching all of
-    // them on load would fire thousands of parallel requests. Search, sort,
-    // and "Show more" all re-render and re-enter here, so newly-visible
-    // modules get resolved lazily. Resolved/in-flight instances are skipped,
-    // so this is idempotent across the re-render the resolution itself
-    // triggers.
-    this._resolveVisibleModuleStatuses();
+  updated(changedProperties) {
+    // After a render that changed the visible set, fetch the latest result
+    // for the modules of the currently-visible cards. Gating to visible cards
+    // (rather than every loaded plan) bounds the fan-out: a listing can hold
+    // up to 1000 plans and a single FAPI/OIDCC plan has dozens of modules, so
+    // fetching all of them on load would fire thousands of parallel requests.
+    // Search, sort, and "Show more" all change one of these props and
+    // re-enter here, so newly-visible modules get resolved lazily;
+    // resolved/in-flight instances are skipped, so this is idempotent across
+    // the re-render the resolution itself triggers. Renders driven only by
+    // unrelated state (e.g. opening the config modal) do not re-run the
+    // resolver.
+    const viewKeys = ["_plans", "_loading", "_searchText", "_sortKey", "_visibleCount"];
+    if (viewKeys.some((k) => changedProperties.has(k))) {
+      this._resolveVisibleModuleStatuses();
+    }
   }
 
   async _fetchPlans() {
@@ -624,7 +675,10 @@ class CtsPlanList extends LitElement {
    */
   _resolveVisibleModuleStatuses() {
     if (this._loading || this._error) return;
-    const { visible } = this._computeView();
+    // Reuse the view computed by the render that just completed (updated()
+    // always runs after render). Fall back to computing only if a render has
+    // not populated it yet.
+    const { visible } = this._currentView || this._computeView();
     // Group unresolved, not-in-flight modules by their last instance id so
     // each instance is fetched exactly once.
     const byInstance = new Map();
@@ -699,14 +753,14 @@ class CtsPlanList extends LitElement {
     return html`<div class="moduleStatusGrid">
       ${modules.map((mod) => {
         const variant = this._statusVariantFor(mod);
+        const boxClass = STATUS_BOX_CLASSES[variant] || STATUS_BOX_CLASSES.skip;
+        const statusWord = STATUS_BOX_LABELS[variant] || STATUS_BOX_LABELS.skip;
         // The box is color-only; the tooltip reveals the full module id on
-        // hover and the aria-label carries it for assistive tech.
+        // hover. The aria-label carries the id AND the status word so
+        // assistive tech (and DOM-reading agents) get the outcome the color
+        // conveys, not just the module name.
         return html`<cts-tooltip content="${mod.testModule}" placement="top">
-          <span
-            class="moduleStatusBox moduleStatusBox--${variant}"
-            role="img"
-            aria-label="${mod.testModule}"
-          ></span>
+          <span class="${boxClass}" role="img" aria-label="${mod.testModule}: ${statusWord}"></span>
         </cts-tooltip>`;
       })}
     </div>`;
@@ -899,7 +953,9 @@ class CtsPlanList extends LitElement {
       `;
     }
 
-    const { sorted, visible } = this._computeView();
+    const view = this._computeView();
+    this._currentView = view;
+    const { sorted, visible } = view;
     const hasMore = sorted.length > visible.length;
     const hasSearch = this._searchText.trim().length > 0;
 
