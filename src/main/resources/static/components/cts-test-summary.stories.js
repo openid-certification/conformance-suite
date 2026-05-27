@@ -189,3 +189,47 @@ export const WithDangerousHtmlSanitized = {
     expect(globalThis.__xss).toBeUndefined();
   },
 };
+
+// Plan U1 / R1: bullet lists are a named markdown output. The real plan
+// summaries (e.g. the SSF CAEP plan) use loose `* item` lists; marked renders
+// them as <ul><li>. Guards against a GFM/list regression.
+const DESCRIPTION_WITH_LIST =
+  "This plan exercises:\n\n * metadata document validation\n * stream configuration management\n * end-to-end event delivery";
+
+export const WithBulletList = {
+  render: () => html`<cts-test-summary .summary=${DESCRIPTION_WITH_LIST}></cts-test-summary>`,
+  async play({ canvasElement }) {
+    const body = await waitFor(() => {
+      const el = canvasElement.querySelector('[data-testid="about-test-zone"] .summaryBody');
+      if (!el) throw new Error("summaryBody not yet rendered");
+      return el;
+    });
+    const items = body.querySelectorAll("ul li");
+    expect(items.length).toBe(3);
+    expect(items[0].textContent).toContain("metadata document validation");
+  },
+};
+
+// Plan U1 / R2: DOMPurify's protocol allowlist must neutralize dangerous link
+// schemes in markdown anchors — a path separate from element stripping. The
+// afterSanitizeAttributes hook adds target/rel but never sees a javascript:
+// anchor because DOMPurify drops the href first.
+const DESCRIPTION_WITH_DANGEROUS_LINK =
+  "Click [here](javascript:globalThis.__xss=1) or [data](data:text/html,<script>1</script>) — neither should be a live link.";
+
+export const WithDangerousLinkNeutralized = {
+  render: () =>
+    html`<cts-test-summary .summary=${DESCRIPTION_WITH_DANGEROUS_LINK}></cts-test-summary>`,
+  async play({ canvasElement }) {
+    const body = await waitFor(() => {
+      const el = canvasElement.querySelector('[data-testid="about-test-zone"] .summaryBody');
+      if (!el) throw new Error("summaryBody not yet rendered");
+      return el;
+    });
+    // No anchor carries a javascript: or data: href.
+    expect(body.querySelector('a[href^="javascript:"]')).toBeNull();
+    expect(body.querySelector('a[href^="data:"]')).toBeNull();
+    // The visible link text is preserved as readable prose.
+    expect(body.textContent).toContain("here");
+  },
+};

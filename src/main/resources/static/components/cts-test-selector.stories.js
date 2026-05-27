@@ -421,6 +421,9 @@ export const RowSummaryRendersInlineMarkdown = {
     // snake_case prose is preserved, and the literal backtick does not leak.
     expect(summary.textContent).toContain("request_uri");
     expect(summary.textContent).not.toContain("`");
+    // The autolinked URL degrades to readable text (the <a> is stripped, its
+    // text survives) rather than vanishing from the teaser.
+    expect(summary.textContent).toContain("https://openid.net/specs/x");
   },
 };
 

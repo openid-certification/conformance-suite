@@ -3,6 +3,23 @@ import { unsafeHTML } from "lit/directives/unsafe-html.js";
 import { marked } from "marked";
 import DOMPurify from "dompurify";
 
+// Module-load configuration (runs once, before any consumer's first render).
+// GFM gives bare-URL autolinking; single `\n` stays a soft break (not <br>),
+// matching how these summaries use `\n\n` for paragraph separation. These are
+// marked's v18 defaults — set explicitly so a future default change can't
+// silently alter rendering.
+marked.setOptions({ gfm: true, breaks: false });
+
+// Force every sanitized link to open in a new tab without leaking the opener.
+// Global to the DOMPurify singleton (this module is its only consumer); the
+// guard makes it a no-op on non-anchor nodes.
+DOMPurify.addHook("afterSanitizeAttributes", (/** @type {Element} */ node) => {
+  if (node.tagName === "A" && node.hasAttribute("href")) {
+    node.setAttribute("target", "_blank");
+    node.setAttribute("rel", "noopener noreferrer");
+  }
+});
+
 /**
  * Render a test-author description string (markdown) to sanitized HTML for a
  * Lit child binding.
@@ -45,9 +62,13 @@ export function formatDescription(text) {
  * block elements and anchors are invalid there).
  *
  * Uses `marked.parseInline` (no `<p>` / `<ul>` wrappers) over whitespace-
- * collapsed text, then strips `<a>` via DOMPurify (`FORBID_TAGS`) so autolinked
- * URLs degrade to plain text rather than nesting interactive content. Inline
- * `<code>`, `<em>`, `<strong>` survive — they are valid phrasing content.
+ * collapsed text, then sanitizes with a positive phrasing-only allowlist. Only
+ * inline `<code>`/`<em>`/`<strong>` can survive — never an `<a>`, `<img>`,
+ * `<button>`, or other interactive/embedded element that would be invalid
+ * nested inside the row `<button>`. A positive allowlist (rather than forbidding
+ * `<a>` alone) keeps the teaser button-safe for any future markdown construct.
+ * Disallowed tags are unwrapped to their text, so an autolinked URL degrades to
+ * plain text.
  *
  * @param {string | null | undefined} text - Raw markdown summary.
  * @returns {ReturnType<typeof unsafeHTML> | typeof nothing} A Lit-renderable
@@ -57,17 +78,10 @@ export function formatSummaryPreview(text) {
   if (typeof text !== "string" || text.trim().length === 0) return nothing;
   const collapsed = text.replace(/\s+/g, " ").trim();
   const dirty = /** @type {string} */ (marked.parseInline(collapsed));
-  return unsafeHTML(DOMPurify.sanitize(dirty, { FORBID_TAGS: ["a"] }));
+  return unsafeHTML(
+    DOMPurify.sanitize(dirty, {
+      ALLOWED_TAGS: ["code", "em", "strong", "b", "i", "del"],
+      ALLOWED_ATTR: [],
+    }),
+  );
 }
-
-// GFM gives bare-URL autolinking; single `\n` stays a soft break (not <br>),
-// matching how these summaries use `\n\n` for paragraph separation.
-marked.setOptions({ gfm: true, breaks: false });
-
-// Force every sanitized link to open in a new tab without leaking the opener.
-DOMPurify.addHook("afterSanitizeAttributes", (/** @type {Element} */ node) => {
-  if (node.tagName === "A" && node.hasAttribute("href")) {
-    node.setAttribute("target", "_blank");
-    node.setAttribute("rel", "noopener noreferrer");
-  }
-});
