@@ -512,7 +512,7 @@ class CtsTestSelector extends LitElement {
                       ${plan.modules
                         ? html`<cts-tooltip
                             content="Number of test modules in this plan"
-                            placement="top"
+                            placement="left"
                             ><span
                               class="oidf-test-selector__row-count"
                               aria-label="${plan.modules.length} test ${plan.modules.length === 1
