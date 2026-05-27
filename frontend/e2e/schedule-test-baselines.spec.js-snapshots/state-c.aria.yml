@@ -5,8 +5,8 @@
   - text: .
 - button "Load last configuration"
 - searchbox "Search test plans"
-- combobox "Filter test plans by specification family":
-  - option "All specifications" [selected]
+- listbox "Filter test plans by specification family":
+  - option "All specifications"
   - option "FAPI"
   - option "OIDCC"
 - list:

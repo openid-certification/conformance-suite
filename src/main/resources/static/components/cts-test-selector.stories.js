@@ -20,6 +20,9 @@ export const Default = {
     // The family filter has no visible label in the toolbar — assistive tech relies on
     // the explicit aria-label for an accessible name.
     expect(select.getAttribute("aria-label")).toBe("Filter test plans by specification family");
+    // Rendered as an always-open listbox (size attribute) rather than a
+    // dropdown, so every spec family is visible in the left rail at once.
+    expect(select.getAttribute("size")).toBe("15");
     const items = canvasElement.querySelectorAll(".oidf-test-selector__row");
     expect(items.length).toBe(MOCK_PLANS.length);
     expect(canvas.getByText("OpenID Connect Core: Basic Certification Profile")).toBeTruthy();
@@ -339,6 +342,24 @@ export const RowHoverStyleRegistered = {
     expect(css).toContain("var(--ink-50)");
     expect(css).toContain(".oidf-test-selector__row:focus-visible");
     expect(css).toContain("var(--focus-ring)");
+  },
+};
+
+/**
+ * The family filter renders as a listbox (size attribute), so long spec
+ * names must wrap instead of clipping to one row. We can't read the
+ * computed option layout from the test runner, but we can assert the
+ * wrapping rule is present in the injected stylesheet so a regression in
+ * the head-injection pipeline is caught.
+ */
+export const FamilyListboxStyleRegistered = {
+  render: () => html`<cts-test-selector .plans=${MOCK_PLANS}></cts-test-selector>`,
+  async play() {
+    const styleEl = document.getElementById("cts-test-selector-styles");
+    expect(styleEl).toBeTruthy();
+    const css = styleEl?.textContent || "";
+    expect(css).toContain(".oidf-test-selector__family option");
+    expect(css).toContain("white-space: normal");
   },
 };
 
