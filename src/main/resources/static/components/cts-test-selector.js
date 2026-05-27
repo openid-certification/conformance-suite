@@ -1,5 +1,6 @@
 import { LitElement, html, nothing } from "lit";
 import { classMap } from "lit/directives/class-map.js";
+import { formatSummaryPreview } from "./format-description.js";
 import "./cts-icon.js";
 import "./cts-tooltip.js";
 
@@ -523,7 +524,9 @@ class CtsTestSelector extends LitElement {
                         : nothing}
                     </span>
                     ${plan.summary
-                      ? html`<span class="oidf-test-selector__row-summary">${plan.summary}</span>`
+                      ? html`<span class="oidf-test-selector__row-summary"
+                          >${formatSummaryPreview(plan.summary)}</span
+                        >`
                       : nothing}
                   </button>
                 `,
