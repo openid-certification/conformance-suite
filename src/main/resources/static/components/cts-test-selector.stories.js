@@ -22,7 +22,11 @@ export const Default = {
     expect(select.getAttribute("aria-label")).toBe("Filter test plans by specification family");
     // Rendered as an always-open listbox (size attribute) rather than a
     // dropdown, so every spec family is visible in the left rail at once.
-    expect(select.getAttribute("size")).toBe("15");
+    expect(select.getAttribute("size")).toBe("14");
+    // A sized listbox does not auto-select its first option, so the "All
+    // specifications" option (value="") is selected explicitly by default.
+    expect(select.value).toBe("");
+    expect(select.selectedOptions[0]?.textContent?.trim()).toBe("All specifications");
     const items = canvasElement.querySelectorAll(".oidf-test-selector__row");
     expect(items.length).toBe(MOCK_PLANS.length);
     expect(canvas.getByText("OpenID Connect Core: Basic Certification Profile")).toBeTruthy();
