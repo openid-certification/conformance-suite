@@ -31,56 +31,77 @@ import "./cts-icon.js";
 
 const STYLE_ID = "cts-test-selector-styles";
 
-// Inline SVG chevron used as the custom select indicator. Stroke colour is
-// `--ink-500` (`#71695E`) — encoded as `%2371695E` in the data: URL.
-const SELECT_CHEVRON =
-  "url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 16 16'><path fill='none' stroke='%2371695E' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M4 6l4 4 4-4'/></svg>\")";
-
 const STYLE_TEXT = `
 .oidf-test-selector {
+  display: grid;
+  /* Left rail (search + family listbox) sits beside the plan list. The
+     1fr column gets minmax(0,…) so a long plan name can't blow the grid
+     wider than its container. */
+  grid-template-columns: minmax(200px, 280px) minmax(0, 1fr);
+  gap: var(--space-4);
+  align-items: start;
+  margin-bottom: var(--space-4);
+}
+@media (max-width: 768px) {
+  .oidf-test-selector {
+    grid-template-columns: 1fr;
+  }
+}
+.oidf-test-selector__rail {
   display: flex;
   flex-direction: column;
   gap: var(--space-3);
-  margin-bottom: var(--space-4);
-}
-.oidf-test-selector__filters {
-  display: grid;
-  grid-template-columns: 2fr 1fr;
-  gap: var(--space-3);
-}
-@media (max-width: 576px) {
-  .oidf-test-selector__filters {
-    grid-template-columns: 1fr;
-  }
+  min-width: 0;
 }
 .oidf-test-selector__search-wrap,
 .oidf-test-selector__family {
   width: 100%;
   box-sizing: border-box;
-  height: 34px;
   border: 1px solid var(--ink-300);
   border-radius: var(--radius-2);
   background: var(--bg-elev);
   color: var(--fg);
   font-family: var(--font-sans);
   font-size: var(--fs-13);
-  line-height: var(--lh-base);
 }
 .oidf-test-selector__family {
+  /* Rendered as a listbox (size attribute on the element), not a
+     dropdown — so the height is driven by the visible row count, there
+     is no chevron indicator, and the native single-line clipping is
+     replaced by wrapping option rows (see the option rules below). */
   appearance: none;
   -webkit-appearance: none;
-  padding: 0 36px 0 var(--space-3);
-  background-image: ${SELECT_CHEVRON};
-  background-repeat: no-repeat;
-  background-position: right 12px center;
-  /* See cts-form-field .oidf-select — pin to 1 for crisp closed-state baseline. */
-  line-height: 1;
+  padding: var(--space-1);
+  line-height: var(--lh-snug);
+  overflow-y: auto;
+  cursor: pointer;
+}
+.oidf-test-selector__family option {
+  /* Long spec-family names wrap onto multiple lines instead of being
+     clipped to one row (the native listbox default). */
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-1);
+  white-space: normal;
+  text-wrap: pretty;
+  line-height: var(--lh-snug);
+}
+.oidf-test-selector__family option:checked {
+  /* Under appearance:none the OS still paints the selected row via
+     background-color, which a plain background-color cannot override. A
+     background-image (a flat gradient) layers on top and wins, so the
+     active family reads in the design-system orange rather than the
+     browser's blue/grey system highlight — matching the .is-active row. */
+  background: var(--orange-50) linear-gradient(0deg, var(--orange-50), var(--orange-50));
+  color: var(--fg);
+  font-weight: var(--fw-medium);
 }
 .oidf-test-selector__search-wrap {
+  height: 34px;
   display: flex;
   align-items: center;
   gap: var(--space-2);
   padding: 0 var(--space-2);
+  line-height: var(--lh-base);
   transition: border-color var(--dur-1) var(--ease-standard),
     box-shadow var(--dur-1) var(--ease-standard);
 }
@@ -414,7 +435,7 @@ class CtsTestSelector extends LitElement {
   render() {
     return html`
       <div class="oidf-test-selector">
-        <div class="oidf-test-selector__filters">
+        <div class="oidf-test-selector__rail">
           <div class="oidf-test-selector__search-wrap">
             <cts-icon
               name="search-magnifying-glass"
@@ -446,6 +467,7 @@ class CtsTestSelector extends LitElement {
           </div>
           <select
             class="oidf-test-selector__family"
+            size="15"
             aria-label="Filter test plans by specification family"
             @change=${this._handleFamilyFilter}
           >
