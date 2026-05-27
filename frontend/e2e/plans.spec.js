@@ -12,13 +12,13 @@ import { MOCK_ADMIN_USER } from "./fixtures/mock-users.js";
  * plans.html mounts a single <cts-plan-list>. The component fetches /api/plan
  * (or /api/plan?public=true) and renders a single-column card layout mirroring
  * cts-log-list: a search + sort toolbar, block-link cards (plan name headline,
- * plan id slug, description, module badge stack, metadata row), Show-more
+ * plan id slug, description, module status grid, metadata row), Show-more
  * pagination, and a config-viewer modal.
  *
  * Module status is NOT in the /api/plan payload (Plan.Module carries only
  * testModule + instances). Each module's latest result is fetched from
- * /api/info/<lastInstance> and drives a per-chip status dot — so these tests
- * mock /api/info via setupTestInfoRoute(MOCK_PLAN_INFO).
+ * /api/info/<lastInstance> and drives a color-coded status box — so these
+ * tests mock /api/info via setupTestInfoRoute(MOCK_PLAN_INFO).
  *
  * The host keeps id="plansListing"; cts-plan-list is Light DOM so descendant
  * queries resolve through to the cards. Plan-name clicks emit
@@ -92,19 +92,20 @@ test.describe("plans.html — Plans List", () => {
       "View configuration",
     );
 
-    // Module status dots resolve from /api/info: a run module recolors to its
-    // status, a never-run module stays a static skip dot.
-    await expect(page.locator("#plansListing cts-badge[label='oidcc-server']")).toHaveAttribute(
-      "dot-variant",
-      "pass",
-    );
+    // Module status boxes resolve from /api/info: a run module recolors to its
+    // status, a never-run module stays a static skip box. Each box is keyed by
+    // its module id via the wrapping tooltip's content.
     await expect(
-      page.locator("#plansListing cts-badge[label='oidcc-server-rotate-keys']"),
-    ).toHaveAttribute("dot-variant", "warn");
-    await expect(page.locator("#plansListing cts-badge[label='oidcc-codereuse']")).toHaveAttribute(
-      "dot-variant",
-      "skip",
-    );
+      page.locator("#plansListing cts-tooltip[content='oidcc-server'] .moduleStatusBox"),
+    ).toHaveClass(/moduleStatusBox--pass/);
+    await expect(
+      page.locator(
+        "#plansListing cts-tooltip[content='oidcc-server-rotate-keys'] .moduleStatusBox",
+      ),
+    ).toHaveClass(/moduleStatusBox--warn/);
+    await expect(
+      page.locator("#plansListing cts-tooltip[content='oidcc-codereuse'] .moduleStatusBox"),
+    ).toHaveClass(/moduleStatusBox--skip/);
   });
 
   test("admin users see owner pills", async ({ page }) => {
