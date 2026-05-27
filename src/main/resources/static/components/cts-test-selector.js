@@ -40,7 +40,10 @@ const STYLE_TEXT = `
   grid-template-columns: minmax(200px, 280px) minmax(0, 1fr);
   gap: var(--space-4);
   align-items: start;
-  margin-bottom: var(--space-4);
+  /* 32px gap to the spec cascade below — gives the cascade's scroll-in
+     highlight (which overhangs its box by 16px) room to breathe without
+     colliding with the selector. See cts-spec-cascade --highlight. */
+  margin-bottom: var(--space-8);
 }
 @media (max-width: 768px) {
   .oidf-test-selector {
