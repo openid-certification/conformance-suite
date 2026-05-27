@@ -1,6 +1,7 @@
 import { LitElement, html, nothing } from "lit";
 import { classMap } from "lit/directives/class-map.js";
 import "./cts-icon.js";
+import "./cts-tooltip.js";
 
 /**
  * Searchable, family-filterable list of test plans. Caller supplies the
@@ -40,9 +41,9 @@ const STYLE_TEXT = `
   grid-template-columns: minmax(200px, 280px) minmax(0, 1fr);
   gap: var(--space-4);
   align-items: start;
-  /* 32px gap to the spec cascade below — gives the cascade's scroll-in
-     highlight (which overhangs its box by 16px) room to breathe without
-     colliding with the selector. See cts-spec-cascade --highlight. */
+  /* 32px gap to the spec cascade below — gives the scroll-in highlight
+     (which overhangs the cascade + variant group by 16px) room to breathe
+     without colliding with the selector. See cts-flash-highlight. */
   margin-bottom: var(--space-8);
 }
 @media (max-width: 768px) {
@@ -508,8 +509,16 @@ class CtsTestSelector extends LitElement {
                           : nothing}
                       </span>
                       ${plan.modules
-                        ? html`<span class="oidf-test-selector__row-count"
-                            >${plan.modules.length}</span
+                        ? html`<cts-tooltip
+                            content="Number of test modules in this plan"
+                            placement="top"
+                            ><span
+                              class="oidf-test-selector__row-count"
+                              aria-label="${plan.modules.length} test ${plan.modules.length === 1
+                                ? "module"
+                                : "modules"}"
+                              >${plan.modules.length}</span
+                            ></cts-tooltip
                           >`
                         : nothing}
                     </span>

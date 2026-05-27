@@ -182,16 +182,14 @@ test.describe("schedule-test.html — Test Plan Scheduling", () => {
     // handler is wired. Same pattern as schedule-test-baselines.spec.js.
     await page.waitForFunction(() => document.getElementById("createPlanBtn")?.onclick !== null);
 
-    // The button is hidden (display:none on parent) when no plan is selected.
-    // Use evaluate to invoke the onclick handler directly — it checks
-    // planSelect.value and shows an error modal.
+    // The action bar is always visible; the button is disabled (not hidden)
+    // when no plan is selected. Drop disabled so the synthetic click lands,
+    // then invoke the onclick handler directly — it checks planSelect.value
+    // and shows an error modal.
     await page.evaluate(() => {
       const btn = document.getElementById("createPlanBtn");
       if (!btn) throw new Error("createPlanBtn not found");
       btn.removeAttribute("disabled");
-      btn.style.display = "";
-      const launchButtons = /** @type {HTMLElement | null} */ (btn.closest("#launchButtons"));
-      if (launchButtons) launchButtons.style.display = "";
       btn.click();
     });
 
@@ -862,17 +860,16 @@ test.describe("schedule-test.html — Test Plan Scheduling", () => {
       )
       .toBeLessThan(100);
 
-    // The scroll-in arrival is punctuated by a one-shot highlight on the
-    // cascade. It's applied just after the scroll's rAF and clears itself
-    // ~1.6s later, so poll for the modifier in-window (no timing assertion on
-    // the animation itself, which would be flaky). The keyboard path runs the
-    // identical flashHighlight() call, so asserting it here covers both.
+    // The scroll-in arrival is punctuated by a one-shot highlight over the
+    // cascade + variant selectors group (#selectionFlash). It fires once the
+    // smooth scroll settles (scrollend) and clears itself ~1.6s later, so poll
+    // for the attribute in-window (no timing assertion on the animation itself,
+    // which would be flaky). The keyboard path runs the identical
+    // flashHighlight() call, so asserting it here covers both.
     await expect
       .poll(
         async () =>
-          page
-            .locator("#specCascade .oidf-spec-cascade")
-            .evaluate((el) => el.classList.contains("oidf-spec-cascade--highlight")),
+          page.locator("#selectionFlash").evaluate((el) => el.hasAttribute("data-flashing")),
         { timeout: 2000 },
       )
       .toBe(true);

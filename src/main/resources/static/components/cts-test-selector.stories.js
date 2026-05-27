@@ -393,5 +393,12 @@ export const ModuleCount = {
     const badges = canvasElement.querySelectorAll(".oidf-test-selector__row-count");
     expect(badges.length).toBeGreaterThan(0);
     expect(badges[0].textContent).toBe("4");
+    // The count carries an aria-label so screen readers announce its meaning
+    // ("4 test modules") rather than a bare "4".
+    expect(badges[0].getAttribute("aria-label")).toBe("4 test modules");
+    // ...and a cts-tooltip explains it on hover for sighted users.
+    const tooltip = badges[0].closest("cts-tooltip");
+    expect(tooltip).not.toBeNull();
+    expect(tooltip.getAttribute("content")).toBe("Number of test modules in this plan");
   },
 };
