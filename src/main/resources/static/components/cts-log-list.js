@@ -66,6 +66,13 @@ const PAGE_SIZE = 25;
 
 const STYLE_ID = "cts-log-list-styles";
 
+// Inline SVG chevron used as the custom select indicator, matching
+// cts-form-field's `.oidf-select` and cts-spec-cascade's
+// `.oidf-spec-cascade__select`. Stroke colour is `--ink-500` (`#71695E`),
+// encoded as `%2371695E` in the data: URL.
+const SELECT_CHEVRON =
+  "url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 16 16'><path fill='none' stroke='%2371695E' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M4 6l4 4 4-4'/></svg>\")";
+
 const STYLE_TEXT = `
   cts-log-list {
     display: block;
@@ -117,17 +124,26 @@ const STYLE_TEXT = `
     color: var(--fg-soft);
   }
   .cts-log-list-sort select {
-    padding: var(--space-2) var(--space-3);
-    background: var(--bg);
+    box-sizing: border-box;
+    height: 34px;
+    padding: 0 36px 0 var(--space-3);
+    background: var(--bg-elev);
     color: var(--fg);
-    border: 1px solid var(--border);
+    border: 1px solid var(--ink-300);
     border-radius: var(--radius-2);
     font-family: var(--font-sans);
-    font-size: var(--fs-14);
+    font-size: var(--fs-13);
+    /* See cts-form-field .oidf-select — pin to 1 for crisp closed-state baseline. */
+    line-height: 1;
+    appearance: none;
+    -webkit-appearance: none;
+    background-image: ${SELECT_CHEVRON};
+    background-repeat: no-repeat;
+    background-position: right 12px center;
   }
   .cts-log-list-sort select:focus {
     outline: none;
-    border-color: var(--border-strong);
+    border-color: var(--orange-400);
     box-shadow: var(--focus-ring);
   }
   .cts-log-filter-group {
