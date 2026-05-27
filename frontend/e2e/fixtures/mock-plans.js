@@ -109,6 +109,11 @@ export const MOCK_PLAN_NO_VARIANTS = {
 const NOW = Date.now();
 const DAY_MS = 86400000;
 
+// The real `/api/plan` listing serializes `Plan.Module`, which carries only
+// `testModule` and `instances` — never `status`/`result`. Those are fetched
+// per-module from `/api/info/<instance>` (see MOCK_PLAN_INFO below). Keeping
+// this fixture faithful to the backend shape is what makes the status-dot
+// e2e assertions test reality, not a shape the server never returns.
 export const MOCK_PLAN_LIST = [
   {
     _id: "plan-001",
@@ -121,24 +126,10 @@ export const MOCK_PLAN_LIST = [
     started: new Date(NOW - 2 * DAY_MS).toISOString(),
     owner: { sub: "12345", iss: "https://accounts.google.com" },
     modules: [
-      {
-        testModule: "oidcc-server",
-        instances: ["inst-001"],
-        status: "FINISHED",
-        result: "PASSED",
-      },
-      {
-        testModule: "oidcc-server-rotate-keys",
-        instances: ["inst-002"],
-        status: "FINISHED",
-        result: "WARNING",
-      },
-      {
-        testModule: "oidcc-codereuse",
-        instances: [],
-        status: null,
-        result: null,
-      },
+      { testModule: "oidcc-server", instances: ["inst-001"] },
+      { testModule: "oidcc-server-rotate-keys", instances: ["inst-002"] },
+      // Never run — empty instances. Static skip dot, no /api/info fetch.
+      { testModule: "oidcc-codereuse", instances: [] },
     ],
     config: { "server.issuer": "https://op.example.com" },
     publish: null,
@@ -154,14 +145,7 @@ export const MOCK_PLAN_LIST = [
     },
     started: new Date(NOW - DAY_MS).toISOString(),
     owner: { sub: "12345", iss: "https://accounts.google.com" },
-    modules: [
-      {
-        testModule: "fapi2-security-profile-happy-flow",
-        instances: ["inst-003"],
-        status: "FINISHED",
-        result: "PASSED",
-      },
-    ],
+    modules: [{ testModule: "fapi2-security-profile-happy-flow", instances: ["inst-003"] }],
     config: { "server.issuer": "https://fapi.example.com" },
     publish: "summary",
     immutable: false,
@@ -170,7 +154,7 @@ export const MOCK_PLAN_LIST = [
     // Created without saved configuration — DBTestPlanService persists
     // `config` as an empty `org.bson.Document`, so the wire payload is
     // `config: {}`. Used to exercise the "no Config button" branch in
-    // cts-plan-list and the corresponding plans.html e2e assertion (U16).
+    // cts-plan-list and the corresponding plans.html e2e assertion.
     _id: "plan-003",
     planName: "oidcc-implicit-certification-test-plan",
     description: "OpenID Connect Core: Implicit Certification Profile",
@@ -179,16 +163,21 @@ export const MOCK_PLAN_LIST = [
     },
     started: new Date(NOW - 5 * DAY_MS).toISOString(),
     owner: { sub: "admin-001", iss: "https://accounts.google.com" },
-    modules: [
-      {
-        testModule: "oidcc-server-implicit",
-        instances: ["inst-005"],
-        status: "FINISHED",
-        result: "PASSED",
-      },
-    ],
+    modules: [{ testModule: "oidcc-server-implicit", instances: ["inst-005"] }],
     config: {},
     publish: "everything",
     immutable: true,
   },
 ];
+
+// Per-instance `/api/info/<instance>` payloads for the listing's modules.
+// Mirrors what the backend returns when the plans listing resolves each
+// module's latest run. The plans spec registers an instance-keyed
+// `/api/info` route from this map so the module status dots resolve to
+// distinct colors (pass / warn) rather than staying gray.
+export const MOCK_PLAN_INFO = {
+  "inst-001": { status: "FINISHED", result: "PASSED" },
+  "inst-002": { status: "FINISHED", result: "WARNING" },
+  "inst-003": { status: "FINISHED", result: "PASSED" },
+  "inst-005": { status: "FINISHED", result: "PASSED" },
+};
