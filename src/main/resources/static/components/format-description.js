@@ -1,46 +1,73 @@
-import { html, nothing } from "lit";
+import { nothing } from "lit";
+import { unsafeHTML } from "lit/directives/unsafe-html.js";
+import { marked } from "marked";
+import DOMPurify from "dompurify";
 
 /**
- * Render a test-author description string as a Lit template, restoring two
- * affordances the legacy `fapi.ui.js` block had and the Lit redesign dropped:
+ * Render a test-author description string (markdown) to sanitized HTML for a
+ * Lit child binding.
  *
- *   - paragraph breaks on `\n\n` (split into `<p>` blocks)
- *   - inline-code spans wrapped in `` ` `` render as `<code>`
+ * Test descriptions are authored as markdown in `@PublishTestModule(summary=…)`
+ * and plan definitions: paragraphs, bullet lists, inline `` `code` ``, and bare
+ * `http`/`https` URLs that should be clickable. We render them with `marked`
+ * (GFM enabled so bare URLs autolink) and sanitize the result with `DOMPurify`
+ * before handing it to Lit's `unsafeHTML`.
  *
- * Origin: brief at docs/plans/2026-05-22-001-mr1998-maintainer-feedback-brief.md
- * (C2, Thomas + almgren follow-up, screenshots 07/08).
+ * Why a real markdown library rather than a bespoke formatter: the prose is
+ * dense with snake_case identifiers (`access_token`, `claims_supported`). A
+ * naive 1-KB parser mangles those into emphasis (`access<em>token</em>`);
+ * marked follows CommonMark's intraword-underscore rule and leaves them intact
+ * (verified empirically). marked is also one of the fastest parsers and ships a
+ * single self-contained ESM file, so it vendors cleanly with no build step.
  *
- * Intentionally NOT a Markdown subset — only the two transforms above are
- * supported. Unbalanced backticks render literally because the matcher
- * requires a closing backtick. CRLF inputs are normalised to LF.
+ * Safety: `marked` does not sanitize, so its output is always passed through
+ * `DOMPurify` before `unsafeHTML`. An `afterSanitizeAttributes` hook forces
+ * every surviving link to `target="_blank" rel="noopener noreferrer"`.
  *
- * @param {string | null | undefined} text - The raw description (already
- *   trimmed by `splitTestSummary` when piped through `cts-test-summary`).
- * @returns {ReturnType<typeof html> | typeof nothing | Array<ReturnType<typeof html>>}
- *   A Lit-renderable value. Empty / non-string inputs return `nothing`.
+ * Origin: docs/plans/2026-05-27-001-feat-autolink-and-format-test-prose-plan.md
+ * (supersedes the bespoke paragraph/code formatter from MR-1998 C2).
+ *
+ * @param {string | null | undefined} text - The raw markdown description
+ *   (already split from instructions by `splitTestSummary` when piped through
+ *   `cts-test-summary`, so the `\n\n---\n\n` marker never reaches marked).
+ * @returns {ReturnType<typeof unsafeHTML> | typeof nothing} A Lit-renderable
+ *   value. Empty / non-string inputs return `nothing`.
  */
 export function formatDescription(text) {
-  if (typeof text !== "string" || text.length === 0) return nothing;
-  const normalized = text.replace(/\r\n/g, "\n");
-  const paragraphs = normalized.split(/\n{2,}/).filter((p) => p.length > 0);
-  if (paragraphs.length === 0) return nothing;
-  return paragraphs.map((paragraph) => html`<p>${renderInlineCode(paragraph)}</p>`);
+  if (typeof text !== "string" || text.trim().length === 0) return nothing;
+  const dirty = /** @type {string} */ (marked.parse(text.replace(/\r\n/g, "\n")));
+  return unsafeHTML(DOMPurify.sanitize(dirty));
 }
 
-const INLINE_CODE_RE = /`([^`]+)`/g;
-
-function renderInlineCode(text) {
-  const parts = [];
-  let lastIndex = 0;
-  for (const match of text.matchAll(INLINE_CODE_RE)) {
-    if (match.index > lastIndex) {
-      parts.push(text.slice(lastIndex, match.index));
-    }
-    parts.push(html`<code>${match[1]}</code>`);
-    lastIndex = match.index + match[0].length;
-  }
-  if (lastIndex < text.length) {
-    parts.push(text.slice(lastIndex));
-  }
-  return parts;
+/**
+ * Render a markdown summary as a single inline run, safe to nest inside an
+ * interactive element (the `cts-test-selector` plan rows are `<button>`s, so
+ * block elements and anchors are invalid there).
+ *
+ * Uses `marked.parseInline` (no `<p>` / `<ul>` wrappers) over whitespace-
+ * collapsed text, then strips `<a>` via DOMPurify (`FORBID_TAGS`) so autolinked
+ * URLs degrade to plain text rather than nesting interactive content. Inline
+ * `<code>`, `<em>`, `<strong>` survive — they are valid phrasing content.
+ *
+ * @param {string | null | undefined} text - Raw markdown summary.
+ * @returns {ReturnType<typeof unsafeHTML> | typeof nothing} A Lit-renderable
+ *   value. Empty / non-string inputs return `nothing`.
+ */
+export function formatSummaryPreview(text) {
+  if (typeof text !== "string" || text.trim().length === 0) return nothing;
+  const collapsed = text.replace(/\s+/g, " ").trim();
+  const dirty = /** @type {string} */ (marked.parseInline(collapsed));
+  return unsafeHTML(DOMPurify.sanitize(dirty, { FORBID_TAGS: ["a"] }));
 }
+
+// GFM gives bare-URL autolinking; single `\n` stays a soft break (not <br>),
+// matching how these summaries use `\n\n` for paragraph separation.
+marked.setOptions({ gfm: true, breaks: false });
+
+// Force every sanitized link to open in a new tab without leaking the opener.
+DOMPurify.addHook("afterSanitizeAttributes", (/** @type {Element} */ node) => {
+  if (node.tagName === "A" && node.hasAttribute("href")) {
+    node.setAttribute("target", "_blank");
+    node.setAttribute("rel", "noopener noreferrer");
+  }
+});

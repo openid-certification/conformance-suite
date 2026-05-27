@@ -17,6 +17,8 @@
       "@cts-api/*": ["./src/api/*"],
       "lit": ["./node_modules/lit"],
       "lit/*": ["./node_modules/lit/*"],
+      "marked": ["./node_modules/marked"],
+      "dompurify": ["./node_modules/dompurify"],
       "storybook/test": ["./node_modules/storybook/dist/test/index.d.ts"],
       "msw": ["./node_modules/msw"],
       "msw/*": ["./node_modules/msw/*"],

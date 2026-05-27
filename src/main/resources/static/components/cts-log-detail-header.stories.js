@@ -582,6 +582,33 @@ export const PassedHeroFallbackPlaceholder = {
   },
 };
 
+// Plan: docs/plans/2026-05-27-001-feat-autolink-and-format-test-prose-plan.md
+// (U1). Bare URLs in the hero description render as clickable new-tab links.
+const SUMMARY_WITH_BARE_URL =
+  "This test follows https://datatracker.ietf.org/doc/html/rfc9126 to validate the request_uri parameter.";
+
+export const PassedHeroWithAutolinkedUrl = {
+  render: () =>
+    html`<cts-log-detail-header
+      .testInfo=${{ ...COMPLETED_TEST, summary: SUMMARY_WITH_BARE_URL }}
+    ></cts-log-detail-header>`,
+  async play({ canvasElement }) {
+    await waitFor(() => {
+      const el = canvasElement.querySelector('[data-testid="hero-summary"]');
+      if (!el) throw new Error("hero-summary not yet rendered");
+      return el;
+    });
+
+    const summaryHero = canvasElement.querySelector('[data-testid="hero-summary"]');
+    const link = summaryHero.querySelector(".ctsHeroBody a");
+    expect(link).toBeTruthy();
+    expect(link.getAttribute("href")).toBe("https://datatracker.ietf.org/doc/html/rfc9126");
+    expect(link.getAttribute("target")).toBe("_blank");
+    expect(link.getAttribute("rel")).toBe("noopener noreferrer");
+    expect(summaryHero.textContent).toContain("request_uri");
+  },
+};
+
 // --- WAITING hero ---
 
 const WAITING_TEST = {
