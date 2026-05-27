@@ -217,12 +217,13 @@ const STYLE_TEXT = `
   word-break: break-word;
 }
 .oidf-test-selector__row-family {
-  /* mirrors .t-meta */
+  /* mirrors .t-meta except it doesn't wrap */
   font-family: var(--font-sans);
   font-size: var(--fs-12);
   line-height: var(--lh-snug);
   color: var(--fg-soft);
   font-weight: var(--fw-regular);
+  white-space: nowrap;
 }
 .oidf-test-selector__row-count {
   display: inline-flex;
@@ -467,7 +468,7 @@ class CtsTestSelector extends LitElement {
           </div>
           <select
             class="oidf-test-selector__family"
-            size="15"
+            size="14"
             aria-label="Filter test plans by specification family"
             @change=${this._handleFamilyFilter}
           >
