@@ -387,6 +387,43 @@ export const EmptyPlans = {
   },
 };
 
+// Plan: docs/plans/2026-05-27-001-feat-autolink-and-format-test-prose-plan.md
+// (U2). The row summary is a markdown teaser nested inside the plan-row
+// <button>, so it renders inline-only: backtick spans become <code>, but no
+// <a> (interactive nesting is invalid) and no <p> (breaks the one-line teaser).
+const PLAN_WITH_MARKDOWN_SUMMARY = [
+  {
+    planName: "demo-markdown-summary-plan",
+    displayName: "Markdown summary demo",
+    specFamily: "OpenID Connect",
+    modules: [{ testModule: "m1" }],
+    summary:
+      "Checks the `purpose` parameter.\n\nSee https://openid.net/specs/x for the rules and the request_uri handling.",
+  },
+];
+
+export const RowSummaryRendersInlineMarkdown = {
+  render: () => html`<cts-test-selector .plans=${PLAN_WITH_MARKDOWN_SUMMARY}></cts-test-selector>`,
+  async play({ canvasElement }) {
+    const summary = await waitFor(() => {
+      const el = canvasElement.querySelector(".oidf-test-selector__row-summary");
+      if (!el) throw new Error("row-summary not yet rendered");
+      return el;
+    });
+    // Backtick span renders as inline <code>.
+    const code = summary.querySelector("code");
+    expect(code).toBeTruthy();
+    expect(code.textContent).toBe("purpose");
+    // No anchors (would be invalid interactive content inside the row <button>)
+    // and no block paragraphs (the teaser stays a single line).
+    expect(summary.querySelector("a")).toBeNull();
+    expect(summary.querySelector("p")).toBeNull();
+    // snake_case prose is preserved, and the literal backtick does not leak.
+    expect(summary.textContent).toContain("request_uri");
+    expect(summary.textContent).not.toContain("`");
+  },
+};
+
 export const ModuleCount = {
   render: () => html`<cts-test-selector .plans=${MOCK_PLANS}></cts-test-selector>`,
   async play({ canvasElement }) {
