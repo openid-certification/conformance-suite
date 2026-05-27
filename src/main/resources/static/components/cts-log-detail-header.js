@@ -270,7 +270,6 @@ const STYLE_TEXT = `
     overflow: hidden;
     text-overflow: ellipsis;
     min-width: 0;
-    max-width: 32ch;
     flex: 0 1 auto;
   }
   /* Row 2 carries the created timestamp alone. Promoted out of the
