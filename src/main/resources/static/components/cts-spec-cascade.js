@@ -372,6 +372,29 @@ class CtsSpecCascade extends LitElement {
       this._pendingSelection = "";
       this.selectPlanByName(pending);
     }
+    this._syncRenderedSelectValues();
+  }
+
+  // Re-assert each <select>'s value after its <option> children have
+  // rendered. lit-html commits an element's `.value` binding before its child
+  // parts, so when a selection swaps the option set (e.g. picking a plan from
+  // a different spec family) the new `.value` is applied while the previous
+  // family's options are still in the DOM — it matches nothing and the control
+  // falls back to the placeholder. Setting the value here, post-render, makes
+  // the rendered control faithfully reflect component state.
+  _syncRenderedSelectValues() {
+    const tiers = [
+      ["specFamilySelect", this._selectedFamily],
+      ["entitySelect", this._selectedEntity],
+      ["specVersionSelect", this._selectedVersion],
+      ["planSelect", this._selectedPlan],
+    ];
+    for (const [id, value] of tiers) {
+      const select = /** @type {HTMLSelectElement | null} */ (this.querySelector(`#${id}`));
+      if (select && select.value !== value) {
+        select.value = value;
+      }
+    }
   }
 
   _renderField(label, selectId, options, value, placeholder, changeHandler, visible) {

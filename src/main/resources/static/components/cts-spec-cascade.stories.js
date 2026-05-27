@@ -441,6 +441,96 @@ export const ProgrammaticSelection = {
 };
 
 /**
+ * Re-selecting a plan from a *different* spec family must drive the Test Type
+ * control to the new plan, not reset it to the placeholder.
+ *
+ * Regression test for the schedule-test.html report (FAPI2 -> AuthZen): when
+ * `selectPlanByName` swaps the option set, lit-html commits the `<select>`'s
+ * `.value` binding before its `<option>` children, so the new value is
+ * applied while the *previous* family's options are still in the DOM — it
+ * matches nothing and the control falls back to the placeholder. The fixture
+ * mirrors the failing shape: a small family (2 plans) followed by a larger one
+ * (5 plans) whose target plan sorts first.
+ */
+const TWO_FAMILY_PLANS = [
+  {
+    planName: "alpha-a-test-plan",
+    displayName: "Alpha A",
+    profile: "alpha-pdp",
+    specFamily: "Alpha",
+    specVersion: "v1",
+    modules: [],
+  },
+  {
+    planName: "alpha-b-test-plan",
+    displayName: "Alpha B",
+    profile: "alpha-pdp",
+    specFamily: "Alpha",
+    specVersion: "v1",
+    modules: [],
+  },
+  {
+    planName: "beta-a-test-plan",
+    displayName: "Beta A",
+    profile: "beta-pdp",
+    specFamily: "Beta",
+    specVersion: "v1",
+    modules: [],
+  },
+  {
+    planName: "beta-b-test-plan",
+    displayName: "Beta B",
+    profile: "beta-pdp",
+    specFamily: "Beta",
+    specVersion: "v1",
+    modules: [],
+  },
+  {
+    planName: "beta-c-test-plan",
+    displayName: "Beta C",
+    profile: "beta-pdp",
+    specFamily: "Beta",
+    specVersion: "v1",
+    modules: [],
+  },
+  {
+    planName: "beta-d-test-plan",
+    displayName: "Beta D",
+    profile: "beta-pdp",
+    specFamily: "Beta",
+    specVersion: "v1",
+    modules: [],
+  },
+  {
+    planName: "beta-e-test-plan",
+    displayName: "Beta E",
+    profile: "beta-pdp",
+    specFamily: "Beta",
+    specVersion: "v1",
+    modules: [],
+  },
+];
+
+export const ReselectAcrossFamiliesUpdatesTestType = {
+  render: () => html`<cts-spec-cascade .plans=${TWO_FAMILY_PLANS}></cts-spec-cascade>`,
+  async play({ canvasElement }) {
+    const element = canvasElement.querySelector("cts-spec-cascade");
+    await element.updateComplete;
+
+    // First selection: a plan in the small (2-plan) Alpha family.
+    element.selectPlanByName("alpha-a-test-plan");
+    await element.updateComplete;
+    expect(canvasElement.querySelector("#planSelect").value).toBe("alpha-a-test-plan");
+
+    // Re-select across to the larger (5-plan) Beta family. The Test Type
+    // control must follow the new selection rather than reset to placeholder.
+    element.selectPlanByName("beta-a-test-plan");
+    await element.updateComplete;
+    expect(canvasElement.querySelector("#planSelect").value).toBe("beta-a-test-plan");
+  },
+};
+
+/**
  * Calling `selectPlanByName` while plans are still loading should queue the
  * request and replay it exactly once when plans arrive. This is the page-load
  * race in `schedule-test.html`: `applyConfigPreset` can fire before
