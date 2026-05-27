@@ -55,3 +55,33 @@ export const MissingStarted = {
     expect(header.querySelector("dd time")).toBeNull();
   },
 };
+
+// Plan: docs/plans/2026-05-27-001-feat-autolink-and-format-test-prose-plan.md
+// (U3). The plan summary callout renders markdown (block parity with the
+// log-detail hero): paragraphs, autolinked bare URLs, and inline code.
+const PLAN_WITH_MARKDOWN_SUMMARY = {
+  ...PLAN,
+  summary:
+    "First paragraph of the plan summary.\n\nSee https://openid.net/specs/x and the `request_uri` handling.",
+};
+
+export const SummaryRendersMarkdown = {
+  render: () => html`<cts-plan-header .plan=${PLAN_WITH_MARKDOWN_SUMMARY}></cts-plan-header>`,
+
+  async play({ canvasElement }) {
+    const summary = /** @type {HTMLElement} */ (
+      canvasElement.querySelector("cts-plan-header .planSummary")
+    );
+    expect(summary).toBeTruthy();
+    // Paragraph break splits into <p> blocks.
+    expect(summary.querySelectorAll("p").length).toBe(2);
+    // Bare URL autolinks to a safe new-tab anchor.
+    const link = summary.querySelector("a");
+    expect(link).toBeTruthy();
+    expect(link?.getAttribute("href")).toBe("https://openid.net/specs/x");
+    expect(link?.getAttribute("target")).toBe("_blank");
+    expect(link?.getAttribute("rel")).toBe("noopener noreferrer");
+    // Inline code renders and snake_case prose survives.
+    expect(summary.querySelector("code")?.textContent).toBe("request_uri");
+  },
+};
