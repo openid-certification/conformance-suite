@@ -138,3 +138,54 @@ export const WithUnbalancedBackticks = {
     expect(body.textContent).toContain("`");
   },
 };
+
+// Plan: docs/plans/2026-05-27-001-feat-autolink-and-format-test-prose-plan.md
+// (U1). Bare http/https URLs — which pepper these summaries (RFC, spec, and
+// Bitbucket links) — render as new-tab anchors. snake_case identifiers in the
+// same prose are left untouched.
+const DESCRIPTION_WITH_BARE_URL =
+  "Checks the clock skew handling as per https://openid.net/specs/fapi-2_0-security-profile.html and verifies the access_token is rejected.";
+
+export const WithAutolinkedUrl = {
+  render: () => html`<cts-test-summary .summary=${DESCRIPTION_WITH_BARE_URL}></cts-test-summary>`,
+  async play({ canvasElement }) {
+    const body = await waitFor(() => {
+      const el = canvasElement.querySelector('[data-testid="about-test-zone"] .summaryBody');
+      if (!el) throw new Error("summaryBody not yet rendered");
+      return el;
+    });
+    const link = body.querySelector("a");
+    expect(link).toBeTruthy();
+    expect(link.getAttribute("href")).toBe(
+      "https://openid.net/specs/fapi-2_0-security-profile.html",
+    );
+    expect(link.getAttribute("target")).toBe("_blank");
+    expect(link.getAttribute("rel")).toBe("noopener noreferrer");
+    // snake_case prose survives — no spurious emphasis, identifier intact.
+    expect(body.textContent).toContain("access_token");
+    expect(body.querySelectorAll("em").length).toBe(0);
+  },
+};
+
+// Plan U1: markdown is rendered via unsafeHTML, so DOMPurify must strip any
+// dangerous markup that slips into a summary. Test prose is build-time authored,
+// but sanitization is the contract that makes unsafeHTML safe here.
+const DESCRIPTION_WITH_XSS =
+  'Run the test then check the result.\n\n<img src=x onerror="globalThis.__xss=1"><script>globalThis.__xss=1</script>';
+
+export const WithDangerousHtmlSanitized = {
+  render: () => html`<cts-test-summary .summary=${DESCRIPTION_WITH_XSS}></cts-test-summary>`,
+  async play({ canvasElement }) {
+    const body = await waitFor(() => {
+      const el = canvasElement.querySelector('[data-testid="about-test-zone"] .summaryBody');
+      if (!el) throw new Error("summaryBody not yet rendered");
+      return el;
+    });
+    // The benign prose still renders.
+    expect(body.textContent).toContain("Run the test then check the result.");
+    // No script element survives, and the onerror handler never fired.
+    expect(body.querySelector("script")).toBeNull();
+    expect(body.querySelector("[onerror]")).toBeNull();
+    expect(globalThis.__xss).toBeUndefined();
+  },
+};

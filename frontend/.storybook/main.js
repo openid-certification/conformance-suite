@@ -26,6 +26,12 @@ export default defineMain({
       ...(viteConfig.resolve.alias || {}),
       // Resolve bare "lit" imports from components outside the Vite root
       lit: join(here, "..", "node_modules", "lit"),
+      // Markdown renderer + sanitizer used by format-description.js. In the
+      // browser these resolve via each page's importmap to the vendored copies
+      // under src/main/resources/static/vendor/; here they resolve to
+      // node_modules so stories/tests run the same pinned version.
+      marked: join(here, "..", "node_modules", "marked"),
+      dompurify: join(here, "..", "node_modules", "dompurify"),
       // Fixture helpers/mocks used by stories that live in src/main/resources/static/components/
       "@fixtures": join(here, "..", "stories", "fixtures"),
       // Vite can't follow storybook/test subpath exports from outside the root
