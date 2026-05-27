@@ -1,20 +1,28 @@
 import { test, expect } from "@playwright/test";
-import { setupCommonRoutes, setupFailFast, expectNoUnmockedCalls } from "./helpers/routes.js";
-import { MOCK_PLAN_LIST } from "./fixtures/mock-plans.js";
+import {
+  setupCommonRoutes,
+  setupFailFast,
+  setupTestInfoRoute,
+  expectNoUnmockedCalls,
+} from "./helpers/routes.js";
+import { MOCK_PLAN_LIST, MOCK_PLAN_INFO } from "./fixtures/mock-plans.js";
 import { MOCK_ADMIN_USER } from "./fixtures/mock-users.js";
 
 /**
- * After the cts-plan-list wire-up, plans.html mounts a single
- * <cts-plan-list> element. The component fetches /api/plan directly
- * (or /api/plan?public=true for the published listing) and returns a
- * plain array — no DataTables server-side envelope. Search is
- * client-side filtered (live-debounced), so no fetch fires on search
- * input. Plan-name clicks emit `cts-plan-navigate`, which the page
- * routes to `plan-detail.html?plan=<id>`.
+ * plans.html mounts a single <cts-plan-list>. The component fetches /api/plan
+ * (or /api/plan?public=true) and renders a single-column card layout mirroring
+ * cts-log-list: a search + sort toolbar, block-link cards (plan name headline,
+ * plan id slug, description, module badge stack, metadata row), Show-more
+ * pagination, and a config-viewer modal.
  *
- * The host element keeps `id="plansListing"` so `#plansListing` selectors
- * still resolve; cts-plan-list is Light DOM so descendant queries work
- * through to the inner cts-data-table.
+ * Module status is NOT in the /api/plan payload (Plan.Module carries only
+ * testModule + instances). Each module's latest result is fetched from
+ * /api/info/<lastInstance> and drives a per-chip status dot — so these tests
+ * mock /api/info via setupTestInfoRoute(MOCK_PLAN_INFO).
+ *
+ * The host keeps id="plansListing"; cts-plan-list is Light DOM so descendant
+ * queries resolve through to the cards. Plan-name clicks emit
+ * `cts-plan-navigate`, routed by the page to `plan-detail.html?plan=<id>`.
  */
 
 /**
@@ -33,77 +41,90 @@ function mockPlanRoute(page) {
   });
 }
 
+const CARD = "#plansListing [data-testid='plan-list-item']";
+
 test.describe("plans.html — Plans List", () => {
   test.afterEach(async ({ page }) => {
     expectNoUnmockedCalls(page);
   });
 
-  test("loads and renders plans in cts-plan-list", async ({ page }) => {
+  test("loads and renders plans as cards", async ({ page }) => {
     await setupFailFast(page);
     await mockPlanRoute(page);
+    await setupTestInfoRoute(page, MOCK_PLAN_INFO);
     await setupCommonRoutes(page);
 
     await page.goto("/plans.html");
 
     // Cross-page contract: every wired page mounts a single <cts-toast-host>
-    // for window.ctsToast(...). A silent removal of the mount from plans.html
-    // would otherwise pass all tests in this file. (Mirrors upload.spec.js:210.)
+    // for window.ctsToast(...). (Mirrors upload.spec.js.)
     await expect(page.locator("cts-toast-host")).toHaveCount(1);
 
-    // cts-plan-list owns its own loading state; wait for the table to
-    // mount inside the host (rows carry data-row-index from cts-data-table).
-    const rows = page.locator("#plansListing tbody tr[data-row-index]");
-    await expect(rows.first()).toBeVisible();
-    await expect(rows).toHaveCount(MOCK_PLAN_LIST.length);
+    // One card per plan.
+    const cards = page.locator(CARD);
+    await expect(cards.first()).toBeVisible();
+    await expect(cards).toHaveCount(MOCK_PLAN_LIST.length);
 
-    // Plan names render as links inside the Plan Name column.
+    // The search + sort toolbar mirrors the logs listing.
+    await expect(page.locator("#plansListing .cts-plan-list-search input")).toBeVisible();
+    await expect(page.locator("#plansListing .cts-plan-list-sort select")).toBeVisible();
+
+    // Plan name renders as a link; variant pairs render in the meta row.
     await expect(page.locator("#plansListing")).toContainText(
       "oidcc-basic-certification-test-plan",
     );
-
-    // Variant key=value pairs render in the Variant column.
     await expect(page.locator("#plansListing")).toContainText("client_secret_basic");
 
-    // The started timestamp renders as a real <span class="tabular-nums">,
-    // not as escaped markup. Guard the wrap to catch a future regression
-    // where the cellRenderer drops the tabular-nums helper class.
-    const startedSpan = rows.first().locator("span.tabular-nums").first();
-    await expect(startedSpan).toBeVisible();
-    await expect(rows.first()).not.toContainText('<span class="tabular-nums">');
+    // Started renders through cts-time (a native <time>), not escaped markup.
+    const planCard = page.locator(`${CARD}[data-plan-id='plan-001']`);
+    await expect(planCard.locator("cts-time time")).toBeVisible();
 
-    // Non-admin users do not see the Owner column.
-    await expect(page.locator("#plansListing thead")).not.toContainText("Owner");
+    // Non-admin users do not see the owner pill.
+    await expect(page.locator("#plansListing .plan-owner")).toHaveCount(0);
 
-    // U16: rows whose backend payload includes a non-empty `config`
-    // object render the "View configuration" affordance; rows where
-    // `config` is `{}` (plan created without saved configuration) do
-    // not. Tying this to MOCK_PLAN_LIST keeps the test honest when
-    // future rows are added with or without saved config.
+    // Config button renders only for rows with a non-empty config object;
+    // plan-003 (config {}) gets none. Tie to the fixture to stay honest.
     const expectedConfigBtns = MOCK_PLAN_LIST.filter(
       (p) => p.config && Object.keys(p.config).length > 0,
     ).length;
     await expect(page.locator("#plansListing .showConfigBtn")).toHaveCount(expectedConfigBtns);
-    // The button carries a visible label (not just a tooltip), so the
-    // column reads as a real call-to-action — the empty-column read
-    // was MR 1998's E1 finding.
     await expect(page.locator("#plansListing .showConfigBtn").first()).toContainText(
       "View configuration",
     );
+
+    // Module status dots resolve from /api/info: a run module recolors to its
+    // status, a never-run module stays a static skip dot.
+    await expect(page.locator("#plansListing cts-badge[label='oidcc-server']")).toHaveAttribute(
+      "dot-variant",
+      "pass",
+    );
+    await expect(
+      page.locator("#plansListing cts-badge[label='oidcc-server-rotate-keys']"),
+    ).toHaveAttribute("dot-variant", "warn");
+    await expect(page.locator("#plansListing cts-badge[label='oidcc-codereuse']")).toHaveAttribute(
+      "dot-variant",
+      "skip",
+    );
   });
 
-  test("admin users see the Owner column", async ({ page }) => {
+  test("admin users see owner pills", async ({ page }) => {
     await setupFailFast(page);
     await mockPlanRoute(page);
+    await setupTestInfoRoute(page, MOCK_PLAN_INFO);
     await setupCommonRoutes(page, { user: MOCK_ADMIN_USER });
 
     await page.goto("/plans.html");
 
-    const rows = page.locator("#plansListing tbody tr[data-row-index]");
-    await expect(rows.first()).toBeVisible();
+    await expect(page.locator(CARD).first()).toBeVisible();
 
-    await expect(page.locator("#plansListing thead")).toContainText("Owner");
-    const ownerCells = page.locator("#plansListing tbody .owner-cell");
-    await expect(ownerCells.first()).toBeVisible();
+    // One owner pill per card, exposing the subject via its accessible label.
+    const ownerPills = page.locator("#plansListing .plan-owner");
+    await expect(ownerPills.first()).toBeVisible();
+    await expect(ownerPills).toHaveCount(MOCK_PLAN_LIST.length);
+    await expect(page.locator(`${CARD}[data-plan-id='plan-001'] .ownerSub`)).toHaveAttribute(
+      "aria-label",
+      "Subject: 12345",
+    );
   });
 
   test("?public=true requests the published listing and hides admin affordances", async ({
@@ -111,8 +132,6 @@ test.describe("plans.html — Plans List", () => {
   }) => {
     await setupFailFast(page);
 
-    // Capture the request URL so we can assert the ?public=true query
-    // was preserved on the fetch (R2 wiring contract).
     /** @type {string[]} */
     const planRequests = [];
     await page.route("**/api/plan*", (route) => {
@@ -127,55 +146,50 @@ test.describe("plans.html — Plans List", () => {
         body: JSON.stringify(body),
       });
     });
+    await setupTestInfoRoute(page, MOCK_PLAN_INFO);
     await setupCommonRoutes(page);
 
     await page.goto("/plans.html?public=true");
 
-    const rows = page.locator("#plansListing tbody tr[data-row-index]");
-    await expect(rows.first()).toBeVisible();
+    const cards = page.locator(CARD);
+    await expect(cards.first()).toBeVisible();
 
     // Only published plans surface in the public view.
     const publishedCount = MOCK_PLAN_LIST.filter((p) => p.publish).length;
-    await expect(rows).toHaveCount(publishedCount);
+    await expect(cards).toHaveCount(publishedCount);
 
     // The component fetched with ?public=true on the URL.
     expect(planRequests.some((url) => url.includes("public=true"))).toBe(true);
 
-    // Owner column stays hidden in the public view regardless of session.
-    await expect(page.locator("#plansListing thead")).not.toContainText("Owner");
-
-    // Config column is also hidden in public view. PublicPlan omits the
-    // config field server-side, so a Config button would open an empty
-    // modal. Legacy plans.html had `visible: !public` on the Config
-    // column; cts-plan-list mirrors that.
-    await expect(page.locator("#plansListing thead")).not.toContainText("Config");
+    // Owner pill and config button stay hidden in the public view: PublicPlan
+    // omits config server-side, and owner.sub must not leak publicly.
+    await expect(page.locator("#plansListing .plan-owner")).toHaveCount(0);
     await expect(page.locator("#plansListing .showConfigBtn")).toHaveCount(0);
   });
 
-  test("admin viewing ?public=true still hides Owner and Config", async ({ page }) => {
+  test("admin viewing ?public=true still hides owner and config", async ({ page }) => {
     await setupFailFast(page);
     await mockPlanRoute(page);
+    await setupTestInfoRoute(page, MOCK_PLAN_INFO);
     await setupCommonRoutes(page, { user: MOCK_ADMIN_USER });
 
     await page.goto("/plans.html?public=true");
 
-    const rows = page.locator("#plansListing tbody tr[data-row-index]");
-    await expect(rows.first()).toBeVisible();
+    await expect(page.locator(CARD).first()).toBeVisible();
 
     // Legacy parity: the public listing never reveals owner or config
-    // affordances, even to an admin. Without this guard the admin's
-    // session would gain visibility into owner.sub on the published
-    // page, which the legacy code explicitly suppressed.
-    await expect(page.locator("#plansListing thead")).not.toContainText("Owner");
-    await expect(page.locator("#plansListing thead")).not.toContainText("Config");
+    // affordances, even to an admin.
+    await expect(page.locator("#plansListing .plan-owner")).toHaveCount(0);
+    await expect(page.locator("#plansListing .showConfigBtn")).toHaveCount(0);
   });
 
   test("clicking a plan name navigates to plan-detail.html", async ({ page }) => {
     await setupFailFast(page);
     await mockPlanRoute(page);
+    await setupTestInfoRoute(page, MOCK_PLAN_INFO);
 
-    // Stub plan-detail.html so the assertion can verify the navigation
-    // target without depending on the real detail page loading.
+    // Stub plan-detail.html so the navigation target can be verified without
+    // the real detail page loading.
     await page.route("**/plan-detail.html*", (route) =>
       route.fulfill({
         status: 200,
@@ -188,14 +202,13 @@ test.describe("plans.html — Plans List", () => {
 
     await page.goto("/plans.html");
 
-    const planLink = page.locator("#plansListing .plan-name-link").first();
+    // Target plan-001 by id: the default sort is Started (newest), so the
+    // first card in the DOM is not necessarily the first fixture entry.
+    const planLink = page.locator(`${CARD}[data-plan-id='plan-001'] .plan-name-link`);
     await expect(planLink).toBeVisible();
 
-    // The anchor carries the real destination URL (not "#") so cmd-click,
-    // middle-click, right-click "Open in new tab", and screen-reader
-    // destination announcement all work. Assert the href before clicking so
-    // a regression to href="#" fails here rather than only manifesting as
-    // an a11y / UX regression in production.
+    // Real destination href (not "#") so cmd-click / middle-click / "Open in
+    // new tab" / screen-reader destination all work.
     await expect(planLink).toHaveAttribute("href", "plan-detail.html?plan=plan-001");
 
     await Promise.all([page.waitForURL(/plan-detail\.html\?plan=plan-001/), planLink.click()]);
@@ -206,17 +219,16 @@ test.describe("plans.html — Plans List", () => {
   test("config button opens modal and exposes copy affordance", async ({ page }) => {
     await setupFailFast(page);
     await mockPlanRoute(page);
+    await setupTestInfoRoute(page, MOCK_PLAN_INFO);
     await setupCommonRoutes(page);
 
     await page.goto("/plans.html");
 
-    await expect(page.locator("#plansListing tbody tr[data-row-index]").first()).toBeVisible();
+    await expect(page.locator(`${CARD}[data-plan-id='plan-001']`)).toBeVisible();
 
-    // Click the inner <button> rendered inside the cts-button host —
-    // cts-button binds @click on the inner button, so clicking the host
-    // bypasses Lit's handler (see cts-plan-list.stories.js for the same
-    // pattern documented).
-    const configBtn = page.locator(".showConfigBtn button").first();
+    // Click plan-001's config button (the inner <button> inside the cts-button
+    // host — cts-button binds @click on the inner button).
+    const configBtn = page.locator("#plansListing .showConfigBtn[data-plan-id='plan-001'] button");
     await expect(configBtn).toBeVisible();
     await configBtn.click();
 
@@ -224,25 +236,17 @@ test.describe("plans.html — Plans List", () => {
     const modal = page.locator("#planConfigModal");
     await expect(modal).toBeVisible();
 
-    // Plan ID surfaces in the modal toolbar so the user can correlate
-    // the config blob with the row they clicked.
-    await expect(modal).toContainText("plan-001");
+    // Plan ID surfaces in the modal toolbar.
+    await expect(modal.locator(".cts-plan-list-config-toolbar code")).toHaveText("plan-001");
 
-    // The JSON editor renders inside the modal with the config JSON.
+    // The JSON editor renders inside the modal, populated with the row config.
     const editor = page.locator("cts-json-editor.config-json");
     await expect(editor).toBeAttached();
-
-    // Assert the editor is populated with the row's config — not just
-    // attached. The component reads `.value` synchronously off the
-    // editor host, so the page wiring is verified end-to-end without
-    // depending on Monaco's render lifecycle.
     const editorValue = await editor.evaluate((el) => /** @type {any} */ (el).value);
     expect(editorValue).toContain("server.issuer");
     expect(editorValue).toContain("op.example.com");
 
-    // Copy button is present and clickable; we don't assert clipboard
-    // writes here because headless Chromium denies real clipboard ops —
-    // the storybook play function covers the clipboard.writeText call.
+    // Copy button is present (clipboard writes are covered by the story).
     const copyBtn = page.locator(".copy-config-btn button").first();
     await expect(copyBtn).toBeVisible();
   });
@@ -260,28 +264,27 @@ test.describe("plans.html — Plans List", () => {
         body: JSON.stringify(MOCK_PLAN_LIST),
       });
     });
+    await setupTestInfoRoute(page, MOCK_PLAN_INFO);
     await setupCommonRoutes(page);
 
     await page.goto("/plans.html");
 
-    const rows = page.locator("#plansListing tbody tr[data-row-index]");
-    await expect(rows).toHaveCount(MOCK_PLAN_LIST.length);
+    const cards = page.locator(CARD);
+    await expect(cards).toHaveCount(MOCK_PLAN_LIST.length);
 
     const fetchesBeforeSearch = planRequests.length;
 
-    // cts-data-table in live-debounced mode renders the search input
-    // with the placeholder cts-plan-list configures.
-    const searchInput = page.locator('input[placeholder="Search test plans..."]');
+    const searchInput = page.locator('#plansListing input[placeholder="Search test plans..."]');
     await expect(searchInput).toBeVisible();
     await searchInput.fill("fapi2");
 
-    // Live-debounced filter narrows the rendered rows to the match.
-    await expect(rows).toHaveCount(1);
+    // Live filter narrows the rendered cards to the match.
+    await expect(cards).toHaveCount(1);
     await expect(page.locator("#plansListing")).toContainText(
       "fapi2-security-profile-final-test-plan",
     );
 
     // No additional /api/plan fetch should fire — search is local.
-    expect(planRequests.length).toBe(fetchesBeforeSearch);
+    expect(planRequests).toHaveLength(fetchesBeforeSearch);
   });
 });
