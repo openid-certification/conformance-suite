@@ -49,6 +49,29 @@ const UTILITY_VARIANT_CLASSES = {
   "info-subtle": "b-info-subtle",
 };
 
+/**
+ * Leading status-dot variants. The dot's color is independent of the
+ * chip fill — a neutral `secondary` chip can carry a colored `pass` dot,
+ * which is how the plans listing keeps the module name legible while
+ * re-introducing per-module status color. Each maps to a scoped
+ * `cts-badge-dot-<name>` class in STYLE_TEXT. `pending` is the in-flight
+ * state: a neutral gray dot that pulses (capped at 10 iterations) until a
+ * concrete status resolves; it is visually distinct from the settled
+ * `skip` (not-run) dot only by its motion. Unknown values fall through to
+ * the base `.cts-badge-dot` neutral fill rather than rendering unstyled.
+ * @type {Object.<string, string>}
+ */
+const DOT_VARIANT_CLASSES = {
+  pass: "cts-badge-dot-pass",
+  fail: "cts-badge-dot-fail",
+  warn: "cts-badge-dot-warn",
+  running: "cts-badge-dot-running",
+  skip: "cts-badge-dot-skip",
+  review: "cts-badge-dot-review",
+  info: "cts-badge-dot-info",
+  pending: "cts-badge-dot-pending",
+};
+
 const STYLE_ID = "cts-badge-styles";
 
 /**
@@ -275,6 +298,45 @@ const STYLE_TEXT = `
   @keyframes cts-badge-spin {
     to { transform: rotate(360deg); }
   }
+  /* Leading status dot. Color is independent of the chip fill (see
+     DOT_VARIANT_CLASSES). The base class carries the neutral fallback so
+     an unknown dot-variant still renders a defined gray dot rather than
+     an unstyled element. Sits inside the .badge flex row, picking up its
+     5px gap before the icon/spinner/label. */
+  cts-badge .cts-badge-dot {
+    display: inline-block;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    background: var(--status-skipped);
+  }
+  cts-badge .cts-badge-dot-pass { background: var(--status-pass); }
+  cts-badge .cts-badge-dot-fail { background: var(--status-fail); }
+  cts-badge .cts-badge-dot-warn { background: var(--status-warning); }
+  cts-badge .cts-badge-dot-running { background: var(--status-running); }
+  cts-badge .cts-badge-dot-skip { background: var(--status-skipped); }
+  cts-badge .cts-badge-dot-info { background: var(--status-info); }
+  /* Review has no --status-review token yet (mirrors the b-rev fill
+     deviation noted in the JSDoc above). Use the legacy review teal so
+     the dot stays distinguishable from the gray skip/pending dots; switch
+     to a token if one lands in the archive. */
+  cts-badge .cts-badge-dot-review { background: #6AC4C2; }
+  /* Pending shares the neutral gray with skip — motion is the only
+     differentiator (a running fetch pulses; a settled not-run dot is
+     static). Capped at 10 iterations; the final keyframe rests on the
+     full-opacity gray so the dot stays visible after the pulse stops. */
+  cts-badge .cts-badge-dot-pending { background: var(--status-skipped); }
+  @media (prefers-reduced-motion: no-preference) {
+    cts-badge .cts-badge-dot-pending {
+      animation: cts-badge-dot-pulse 1.2s ease-in-out 10;
+      animation-fill-mode: forwards;
+    }
+  }
+  @keyframes cts-badge-dot-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.35; }
+  }
 `;
 
 function ensureStylesInjected() {
@@ -369,6 +431,16 @@ function buildSpinner() {
  *   keyboard support, and emits `cts-badge-click` on activation. Implies
  *   `interactive` visually — a clickable badge always carries the
  *   affordance ring even when `interactive` is not set.
+ * @property {boolean} dot - Renders a small leading status dot whose color
+ *   is independent of the chip fill. Decorative (`aria-hidden`); the chip
+ *   text/title carries the accessible meaning. Used to re-introduce
+ *   per-module status color on a neutral name chip.
+ * @property {string} dot-variant - The dot's status color when `dot` is
+ *   set: `pass`/`fail`/`warn`/`running`/`skip`/`review`/`info`/`pending`.
+ *   Defaults to `pending` (a neutral gray dot that pulses up to 10 times,
+ *   gated behind `prefers-reduced-motion`, until a concrete status
+ *   resolves). Concrete variants never animate. Unknown values fall back
+ *   to the base neutral dot fill.
  *
  * When neither `label` nor `count` is set, the badge wraps whatever child
  * nodes are inside the host element. This is the only way to embed inline
@@ -397,6 +469,8 @@ class CtsBadge extends HTMLElement {
     "clickable",
     "interactive",
     "aria-label",
+    "dot",
+    "dot-variant",
   ];
 
   connectedCallback() {
@@ -449,6 +523,10 @@ class CtsBadge extends HTMLElement {
     const interactive = clickable || this.hasAttribute("interactive");
     const icon = this.getAttribute("icon") || "";
     const label = this.getAttribute("label") || "";
+    const showDot = this.hasAttribute("dot");
+    // Default to the pulsing pending state when `dot` is set without an
+    // explicit variant, so a freshly-rendered dot reads as "resolving".
+    const dotVariant = this.getAttribute("dot-variant") || "pending";
     const countAttr = this.getAttribute("count");
     const hasCount = countAttr !== null && countAttr !== "";
     const hasLabel = label !== "";
@@ -473,6 +551,19 @@ class CtsBadge extends HTMLElement {
           this._dispatchClick();
         }
       });
+    }
+
+    if (showDot) {
+      // Leading, decorative status dot. The chip's text/title carries the
+      // accessible meaning, so the dot is aria-hidden (see the resolved-
+      // status a11y decision in the plans-listing plan). Prepended before
+      // the spinner/icon/label. Unknown dot-variant emits no modifier
+      // class, leaving the base .cts-badge-dot neutral fill.
+      const dotEl = document.createElement("span");
+      const modifier = DOT_VARIANT_CLASSES[dotVariant] || "";
+      dotEl.className = modifier ? `cts-badge-dot ${modifier}` : "cts-badge-dot";
+      dotEl.setAttribute("aria-hidden", "true");
+      span.appendChild(dotEl);
     }
 
     if (running) {
