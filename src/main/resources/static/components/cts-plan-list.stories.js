@@ -37,14 +37,28 @@ function innerButton(host) {
   return /** @type {HTMLButtonElement} */ (btn);
 }
 
-// An /api/info handler that never resolves, so module status dots stay in
+// An /api/info handler that never resolves, so module status boxes stay in
 // their initial `pending` state for deterministic assertions. Used by the
-// pending-dot story; the resolution stories (DotsResolveToStatus etc.) live
-// in the U3 follow-up with instance-keyed handlers.
+// pending-box story; the resolution stories use instance-keyed handlers.
 const neverResolvingInfo = http.get(
   "/api/info/:testId",
   () => new Promise(() => {}), // intentionally never settles
 );
+
+/**
+ * Read the status-box color variant for a module from its tooltip-wrapped box
+ * (the box is keyed by the module id in the tooltip's `content`). Returns the
+ * variant suffix (e.g. "pass") or null when no box/variant is present.
+ * @param {ParentNode} root
+ * @param {string} moduleId
+ * @returns {string|null}
+ */
+function boxVariant(root, moduleId) {
+  const box = root.querySelector(`cts-tooltip[content="${moduleId}"] .moduleStatusBox`);
+  if (!box) return null;
+  const cls = [...box.classList].find((c) => c.startsWith("moduleStatusBox--"));
+  return cls ? cls.replace("moduleStatusBox--", "") : null;
+}
 
 /**
  * Build an instance-keyed `/api/info/:testId` handler. Returns the per-instance
@@ -111,10 +125,11 @@ export const Default = {
     // The plan id renders as the card slug.
     expect(planCard.querySelector(".cts-plan-card-slug")?.textContent).toBe("plan-001");
 
-    // Each module chip carries a status dot — one per module across all cards.
+    // Each module renders one color-coded status box — one per module across
+    // all cards.
     const totalModules = MOCK_PLAN_LIST.reduce((n, p) => n + (p.modules?.length || 0), 0);
-    const dots = canvasElement.querySelectorAll(".moduleBadgeStack .cts-badge-dot");
-    expect(dots.length).toBe(totalModules);
+    const boxes = canvasElement.querySelectorAll(".moduleStatusGrid .moduleStatusBox");
+    expect(boxes.length).toBe(totalModules);
 
     // The Started value renders through cts-time: a native <time> whose title
     // carries the full absolute date on hover.
@@ -352,22 +367,21 @@ export const ConfigButtonHiddenWhenConfigIsEmpty = {
 };
 
 /**
- * Module status dots: a module that has run shows a pulsing `pending` dot
+ * Module status boxes: a module that has run shows a pulsing `pending` box
  * (the /api/info fetch is mocked to never resolve here, pinning the initial
- * state); a never-run module (empty `instances`) shows a static `skip` dot.
- * The neutral `secondary` chip fill is unchanged — only the dot carries
- * status color.
+ * state); a never-run module (empty `instances`) shows a static `skip` box.
+ * Each box is wrapped in a tooltip that reveals the full module id.
  */
-export const ModuleStatusDots = {
+export const ModuleStatusBoxes = {
   parameters: {
     msw: {
       handlers: [
         http.get("/api/plan", () =>
           HttpResponse.json([
             {
-              _id: "plan-dots",
+              _id: "plan-boxes",
               planName: "oidcc-basic-certification-test-plan",
-              description: "Dot states",
+              description: "Box states",
               variant: {},
               started: new Date().toISOString(),
               owner: { sub: "12345", iss: "https://accounts.google.com" },
@@ -389,29 +403,27 @@ export const ModuleStatusDots = {
   async play({ canvasElement }) {
     await waitForPlansToLoad(canvasElement);
 
-    const chips = canvasElement.querySelectorAll(".moduleBadgeStack cts-badge");
-    expect(chips.length).toBe(2);
+    // One box per module, each wrapped in a tooltip carrying the module id.
+    const boxes = canvasElement.querySelectorAll(".moduleStatusGrid .moduleStatusBox");
+    expect(boxes.length).toBe(2);
+    expect(
+      canvasElement.querySelector('cts-tooltip[content="module-has-run"] .moduleStatusBox'),
+    ).toBeTruthy();
 
-    // Every chip is a neutral name chip with a dot.
-    chips.forEach((chip) => {
-      expect(chip.querySelector(".badge")?.classList.contains("b-secondary")).toBe(true);
-      expect(chip.querySelector(".cts-badge-dot")).toBeTruthy();
-    });
-
-    // Has-run module → pending (pulsing) dot; never-run → static skip dot.
-    expect(canvasElement.querySelector(".cts-badge-dot-pending")).toBeTruthy();
-    expect(canvasElement.querySelector(".cts-badge-dot-skip")).toBeTruthy();
+    // Has-run module → pending (pulsing) box; never-run → static skip box.
+    expect(boxVariant(canvasElement, "module-has-run")).toBe("pending");
+    expect(boxVariant(canvasElement, "module-never-run")).toBe("skip");
   },
 };
 
 /**
- * Module status dots resolve to their concrete color once `/api/info`
+ * Module status boxes resolve to their concrete color once `/api/info`
  * returns, driven by the instance-keyed handler. Each module's last instance
  * maps to a distinct result in MOCK_PLAN_INFO (pass / warn / fail), so the
  * full mapping is exercised — not just the happy path. A never-run module
- * (empty instances) stays a static skip dot and is never fetched.
+ * (empty instances) stays a static skip box and is never fetched.
  */
-export const DotsResolveToStatus = {
+export const BoxesResolveToStatus = {
   parameters: {
     msw: {
       handlers: [http.get("/api/plan", () => HttpResponse.json(MOCK_PLAN_LIST)), infoHandler()],
@@ -421,23 +433,20 @@ export const DotsResolveToStatus = {
   async play({ canvasElement }) {
     await waitForPlansToLoad(canvasElement);
 
-    const dotVariant = (label) =>
-      canvasElement.querySelector(`cts-badge[label="${label}"]`)?.getAttribute("dot-variant");
-
-    // inst-001 PASSED → pass dot (wait for the async resolution).
+    // inst-001 PASSED → pass box (wait for the async resolution).
     await waitFor(() => {
-      expect(dotVariant("oidcc-server")).toBe("pass");
+      expect(boxVariant(canvasElement, "oidcc-server")).toBe("pass");
     });
     // inst-002 WARNING → warn; inst-004 FAILED → fail — the full mapping.
-    expect(dotVariant("oidcc-server-rotate-keys")).toBe("warn");
-    expect(dotVariant("fapi2-security-profile-ensure-signed-request")).toBe("fail");
-    // Never-run module (empty instances) stays a static skip dot.
-    expect(dotVariant("oidcc-codereuse")).toBe("skip");
+    expect(boxVariant(canvasElement, "oidcc-server-rotate-keys")).toBe("warn");
+    expect(boxVariant(canvasElement, "fapi2-security-profile-ensure-signed-request")).toBe("fail");
+    // Never-run module (empty instances) stays a static skip box.
+    expect(boxVariant(canvasElement, "oidcc-codereuse")).toBe("skip");
   },
 };
 
 /**
- * A no-instance module renders a static skip dot and triggers no `/api/info`
+ * A no-instance module renders a static skip box and triggers no `/api/info`
  * fetch — only modules that have actually run are resolved. The recording
  * handler proves the fetched ids are exactly the modules that have instances.
  */
@@ -462,22 +471,16 @@ export const NoInstanceModuleNotFetched = {
     NoInstanceModuleNotFetched._requested.length = 0;
     await waitForPlansToLoad(canvasElement);
 
-    // The never-run module (empty instances) renders a static skip dot.
+    // The never-run module (empty instances) renders a static skip box.
     await waitFor(() => {
-      expect(
-        canvasElement
-          .querySelector('cts-badge[label="oidcc-codereuse"]')
-          ?.getAttribute("dot-variant"),
-      ).toBe("skip");
+      expect(boxVariant(canvasElement, "oidcc-codereuse")).toBe("skip");
     });
 
     // Wait for the has-instance modules to resolve, then assert the fetched
     // ids are exactly the five real instances — the no-instance module added
     // none.
     await waitFor(() => {
-      expect(
-        canvasElement.querySelector('cts-badge[label="oidcc-server"]')?.getAttribute("dot-variant"),
-      ).toBe("pass");
+      expect(boxVariant(canvasElement, "oidcc-server")).toBe("pass");
     });
     const unique = [...new Set(NoInstanceModuleNotFetched._requested)].sort();
     expect(unique).toEqual(["inst-001", "inst-002", "inst-003", "inst-004", "inst-005"]);
@@ -485,7 +488,7 @@ export const NoInstanceModuleNotFetched = {
 };
 
 /**
- * A failed `/api/info` (404 / unpublished / deleted run) settles the dot at
+ * A failed `/api/info` (404 / unpublished / deleted run) settles the box at
  * the neutral skip color rather than leaving it pulsing — and does not throw
  * or blank the card.
  */
@@ -505,9 +508,7 @@ export const InfoErrorSettlesToSkip = {
 
     // A module that has run but whose /api/info 404s settles at skip.
     await waitFor(() => {
-      expect(
-        canvasElement.querySelector('cts-badge[label="oidcc-server"]')?.getAttribute("dot-variant"),
-      ).toBe("skip");
+      expect(boxVariant(canvasElement, "oidcc-server")).toBe("skip");
     });
     // The card is still intact (not blanked by the error).
     expect(canvasElement.querySelectorAll('[data-testid="plan-list-item"]').length).toBe(

@@ -1,6 +1,5 @@
 import { LitElement, html, nothing } from "lit";
 import { repeat } from "lit/directives/repeat.js";
-import "./cts-badge.js";
 import "./cts-button.js";
 import "./cts-icon.js";
 import "./cts-modal.js";
@@ -190,14 +189,53 @@ const STYLE_TEXT = `
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
   }
-  /* The per-plan module status chips. Flex-wrap so a plan with many modules
-     wraps cleanly. Each chip is a neutral name chip carrying a status dot;
-     read-only (no per-chip click target), so it inherits the card-link
-     overlay rather than lifting on z-index. */
-  .moduleBadgeStack {
+  /* The per-plan module status grid: small color-coded rounded rectangles
+     (one per module), each wrapped in a tooltip that reveals the full module
+     id on hover. This is the design-token successor to the legacy
+     .testStatusResultBox squares — names would not fit on a listing card, so
+     status reads as color and the id is on demand. The grid lifts above the
+     card-link ::after overlay (z-index: 1) so the per-box tooltips receive
+     hover/focus; the trade-off is that the grid area does not trigger card
+     navigation (clicking a status box does nothing, which matches the legacy
+     non-interactive squares). */
+  .cts-plan-card .moduleStatusGrid {
+    position: relative;
+    z-index: 1;
     display: flex;
     flex-wrap: wrap;
     gap: var(--space-1);
+  }
+  .moduleStatusBox {
+    /* Fixed 32x18 rounded rectangle (per design); flex-shrink off so the
+       grid wraps rather than squashing the boxes. */
+    width: 32px;
+    height: 18px;
+    border-radius: var(--radius-1);
+    flex-shrink: 0;
+    background: var(--status-skipped);
+  }
+  .moduleStatusBox--pass { background: var(--status-pass); }
+  .moduleStatusBox--fail { background: var(--status-fail); }
+  .moduleStatusBox--warn { background: var(--status-warning); }
+  .moduleStatusBox--running { background: var(--status-running); }
+  /* A settled not-run / unresolved box uses a lighter neutral than the
+     darker pulsing pending box, so "nothing to report" recedes visually. */
+  .moduleStatusBox--skip { background: var(--ink-300); }
+  /* Review has no --status-review token yet; use the legacy review teal so
+     it stays distinguishable from the gray skip/pending boxes. */
+  .moduleStatusBox--review { background: #6AC4C2; }
+  /* Pending shares the neutral gray with skip — motion is the only
+     differentiator (a running fetch pulses; a settled box is static).
+     Capped at 10 iterations, gated behind prefers-reduced-motion. */
+  .moduleStatusBox--pending { background: var(--status-skipped); }
+  @media (prefers-reduced-motion: no-preference) {
+    .moduleStatusBox--pending {
+      animation: cts-plan-list-status-pulse 1.2s ease-in-out 10;
+    }
+  }
+  @keyframes cts-plan-list-status-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.35; }
   }
   .cts-plan-card-meta {
     display: flex;
@@ -357,13 +395,15 @@ function formatVariant(variant) {
  * Searchable, sortable list of test plans. Fetches from `/api/plan` (or
  * `/api/plan?public=true`) and renders a single-column card layout mirroring
  * `cts-log-list`: a top toolbar (free-text search + sort selector), block-link
- * cards (plan name headline, plan id slug, description, module badge stack,
+ * cards (plan name headline, plan id slug, description, module status grid,
  * metadata row), "Show more" pagination, and a config-viewer modal.
  *
- * Each module chip in the badge stack is a neutral name chip carrying a
- * leading status dot. The dot starts gray (pulsing for modules that have run,
- * static for never-run modules) and recolors once the per-module status
- * resolves — see `_dotVariantFor` and the `/api/info` resolution path.
+ * The module status grid is a row of small color-coded rounded rectangles,
+ * one per module, each wrapped in a tooltip that reveals the full module id on
+ * hover (the design-token successor to the legacy .testStatusResultBox
+ * squares). A box starts gray (pulsing for modules that have run, static for
+ * never-run modules) and recolors once the per-module status resolves — see
+ * `_statusVariantFor` and the `/api/info` resolution path.
  *
  * Light DOM. Scoped CSS is injected once on first connect.
  *
@@ -635,39 +675,39 @@ class CtsPlanList extends LitElement {
   }
 
   /**
-   * Resolve the leading status-dot variant for a module chip:
+   * Resolve the status variant for a module's status box:
    * - never-run module (no instances) → static `skip` (neutral gray)
    * - has run, status not yet fetched → `pending` (gray, pulsing)
    * - status resolved → the concrete color from `statusBadgeVariant`
    *   (a fetch failure settles status/result undefined → `skip`)
    * The `_statusResolved` marker is set by `_resolveVisibleModuleStatuses`
-   * on both success and failure, so a failed fetch settles the dot rather
+   * on both success and failure, so a failed fetch settles the box rather
    * than leaving it pulsing forever.
    * @param {{instances?: string[], status?: string, result?: string,
    *   _statusResolved?: boolean}} mod - A plan module entry.
-   * @returns {string} A cts-badge dot-variant name.
+   * @returns {string} A status variant name used as the box color modifier.
    */
-  _dotVariantFor(mod) {
+  _statusVariantFor(mod) {
     const hasInstance = Array.isArray(mod.instances) && mod.instances.length > 0;
     if (!hasInstance) return "skip";
     if (mod._statusResolved) return statusBadgeVariant(mod.status, mod.result);
     return "pending";
   }
 
-  _renderModuleBadges(modules) {
+  _renderModuleStatusGrid(modules) {
     if (!modules || modules.length === 0) return nothing;
-    return html`<div class="moduleBadgeStack">
+    return html`<div class="moduleStatusGrid">
       ${modules.map((mod) => {
-        const dotVariant = this._dotVariantFor(mod);
-        const title =
-          dotVariant === "skip" ? `${mod.testModule}: not started` : `${mod.testModule}`;
-        return html`<cts-badge
-          variant="secondary"
-          label="${mod.testModule}"
-          dot
-          dot-variant="${dotVariant}"
-          title="${title}"
-        ></cts-badge>`;
+        const variant = this._statusVariantFor(mod);
+        // The box is color-only; the tooltip reveals the full module id on
+        // hover and the aria-label carries it for assistive tech.
+        return html`<cts-tooltip content="${mod.testModule}" placement="top">
+          <span
+            class="moduleStatusBox moduleStatusBox--${variant}"
+            role="img"
+            aria-label="${mod.testModule}"
+          ></span>
+        </cts-tooltip>`;
       })}
     </div>`;
   }
@@ -717,7 +757,7 @@ class CtsPlanList extends LitElement {
         ${plan.description
           ? html`<p class="cts-plan-card-description">${plan.description}</p>`
           : nothing}
-        ${this._renderModuleBadges(plan.modules)}
+        ${this._renderModuleStatusGrid(plan.modules)}
         <div class="cts-plan-card-meta">
           ${variantString
             ? html`
