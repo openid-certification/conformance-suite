@@ -862,6 +862,21 @@ test.describe("schedule-test.html — Test Plan Scheduling", () => {
       )
       .toBeLessThan(100);
 
+    // The scroll-in arrival is punctuated by a one-shot highlight on the
+    // cascade. It's applied just after the scroll's rAF and clears itself
+    // ~1.6s later, so poll for the modifier in-window (no timing assertion on
+    // the animation itself, which would be flaky). The keyboard path runs the
+    // identical flashHighlight() call, so asserting it here covers both.
+    await expect
+      .poll(
+        async () =>
+          page
+            .locator("#specCascade .oidf-spec-cascade")
+            .evaluate((el) => el.classList.contains("oidf-spec-cascade--highlight")),
+        { timeout: 2000 },
+      )
+      .toBe(true);
+
     // Mouse-path: focus stays put. activeElement should not be a cascade
     // <select> (which would be the keyboard-path landing zone).
     const activeIsCascadeSelect = await page.evaluate(() => {
