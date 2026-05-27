@@ -10,6 +10,7 @@ import "./cts-time.js";
 import "./cts-empty-state.js";
 import "./cts-json-editor.js";
 import { flashCopyConfirmed } from "../js/cts-copy-flash.js";
+import { statusBadgeVariant } from "../js/module-status.js";
 
 const PAGE_SIZE = 25;
 
@@ -405,6 +406,11 @@ class CtsPlanList extends LitElement {
     this._visibleCount = PAGE_SIZE;
     this._selectedConfig = null;
     this._selectedPlanId = "";
+    // In-flight `/api/info/<instance>` set so repeated renders (search, sort,
+    // show-more, and the re-render the resolution itself triggers) don't fan
+    // out duplicate requests for the same instance. Non-reactive — never read
+    // from render.
+    this._infoFetchesInFlight = new Set();
     // Pre-bind handlers wired through Lit EventParts on rendered cards. Lit
     // dispatches with `this` set to the host element of the listener; these
     // must retain this component as `this`.
@@ -419,6 +425,19 @@ class CtsPlanList extends LitElement {
   connectedCallback() {
     super.connectedCallback();
     this._fetchPlans();
+  }
+
+  updated() {
+    // After every render, fetch the latest result for the modules of the
+    // currently-visible cards. Gating to visible cards (rather than every
+    // loaded plan) bounds the fan-out: a listing can hold up to 1000 plans
+    // and a single FAPI/OIDCC plan has dozens of modules, so fetching all of
+    // them on load would fire thousands of parallel requests. Search, sort,
+    // and "Show more" all re-render and re-enter here, so newly-visible
+    // modules get resolved lazily. Resolved/in-flight instances are skipped,
+    // so this is idempotent across the re-render the resolution itself
+    // triggers.
+    this._resolveVisibleModuleStatuses();
   }
 
   async _fetchPlans() {
@@ -540,17 +559,99 @@ class CtsPlanList extends LitElement {
   }
 
   /**
-   * Resolve the leading status-dot variant for a module chip. In this unit
-   * the dot is driven purely by instance presence: a module that has run
-   * shows a pulsing `pending` dot, a never-run module shows a static `skip`
-   * dot. The per-module `/api/info` resolution (U3) extends this to return
-   * the concrete status color once the latest result is known.
-   * @param {{instances?: string[]}} mod - A plan module entry.
+   * Compute the search → sort → paginate view once so render() and the
+   * status-resolution pass operate on the same visible set.
+   * @returns {{sorted: object[], visible: object[]}} The fully sorted list
+   *   (for empty/pagination decisions) and the visible slice.
+   */
+  _computeView() {
+    const searched = this._searchedPlans(this._plans);
+    const sorted = this._sortedPlans(searched);
+    const visible = sorted.slice(0, this._visibleCount);
+    return { sorted, visible };
+  }
+
+  /**
+   * Fetch `/api/info/<lastInstance>` for the modules of the currently-visible
+   * cards and merge the resolved `{ status, result }` back into the module
+   * entries so their dots recolor. Mirrors the merge shape of
+   * plan-detail.html, but takes its error/batching shape from
+   * cts-log-list._resolvePlanNames: a terminal per-fetch catch settles the
+   * dot at the neutral `skip` color, `Promise.allSettled` never rejects the
+   * batch, and a single batched `_plans` reassign triggers one re-render for
+   * the whole batch. Unique by instance id, so a shared instance is fetched
+   * once and applied to every module that references it.
+   */
+  _resolveVisibleModuleStatuses() {
+    if (this._loading || this._error) return;
+    const { visible } = this._computeView();
+    // Group unresolved, not-in-flight modules by their last instance id so
+    // each instance is fetched exactly once.
+    const byInstance = new Map();
+    for (const plan of visible) {
+      for (const mod of plan.modules || []) {
+        if (!Array.isArray(mod.instances) || mod.instances.length === 0) continue;
+        if (mod._statusResolved) continue;
+        const lastInstance = mod.instances[mod.instances.length - 1];
+        if (this._infoFetchesInFlight.has(lastInstance)) continue;
+        if (!byInstance.has(lastInstance)) byInstance.set(lastInstance, []);
+        byInstance.get(lastInstance).push(mod);
+      }
+    }
+    if (byInstance.size === 0) return;
+
+    const publicSuffix = this.isPublic ? "?public=true" : "";
+    for (const inst of byInstance.keys()) this._infoFetchesInFlight.add(inst);
+
+    const fetches = Array.from(byInstance.entries()).map(([inst, mods]) =>
+      fetch(`/api/info/${encodeURIComponent(inst)}${publicSuffix}`)
+        .then((response) => {
+          if (!response.ok) throw new Error(`HTTP ${response.status}`);
+          return response.json();
+        })
+        .then((info) => {
+          for (const mod of mods) {
+            mod.status = info.status;
+            mod.result = info.result;
+            mod._statusResolved = true;
+          }
+        })
+        .catch((err) => {
+          // Fail-soft: the run may be inaccessible (404 unpublished/deleted)
+          // or the endpoint may error. Settle the dot at the neutral `skip`
+          // color rather than leaving it pulsing forever, and warn once per
+          // instance so a real /api/info contract drift is visible.
+          for (const mod of mods) mod._statusResolved = true;
+          console.warn(`[cts-plan-list] /api/info/${inst} failed:`, err);
+        })
+        .finally(() => this._infoFetchesInFlight.delete(inst)),
+    );
+
+    Promise.allSettled(fetches).then(() => {
+      // One batched reassign so the whole batch re-renders once (new array
+      // reference; the mutated module objects carry the resolved status).
+      this._plans = [...this._plans];
+    });
+  }
+
+  /**
+   * Resolve the leading status-dot variant for a module chip:
+   * - never-run module (no instances) → static `skip` (neutral gray)
+   * - has run, status not yet fetched → `pending` (gray, pulsing)
+   * - status resolved → the concrete color from `statusBadgeVariant`
+   *   (a fetch failure settles status/result undefined → `skip`)
+   * The `_statusResolved` marker is set by `_resolveVisibleModuleStatuses`
+   * on both success and failure, so a failed fetch settles the dot rather
+   * than leaving it pulsing forever.
+   * @param {{instances?: string[], status?: string, result?: string,
+   *   _statusResolved?: boolean}} mod - A plan module entry.
    * @returns {string} A cts-badge dot-variant name.
    */
   _dotVariantFor(mod) {
     const hasInstance = Array.isArray(mod.instances) && mod.instances.length > 0;
-    return hasInstance ? "pending" : "skip";
+    if (!hasInstance) return "skip";
+    if (mod._statusResolved) return statusBadgeVariant(mod.status, mod.result);
+    return "pending";
   }
 
   _renderModuleBadges(modules) {
@@ -758,9 +859,7 @@ class CtsPlanList extends LitElement {
       `;
     }
 
-    const searched = this._searchedPlans(this._plans);
-    const sorted = this._sortedPlans(searched);
-    const visible = sorted.slice(0, this._visibleCount);
+    const { sorted, visible } = this._computeView();
     const hasMore = sorted.length > visible.length;
     const hasSearch = this._searchText.trim().length > 0;
 

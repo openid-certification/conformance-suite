@@ -3,6 +3,7 @@ import "./cts-badge.js";
 import "./cts-button.js";
 import "./cts-link-button.js";
 import "./cts-tooltip.js";
+import { statusBadgeVariant, statusLabel } from "../js/module-status.js";
 
 /**
  * Stable identity key for a module entry. Used as the data-module-key
@@ -13,50 +14,6 @@ import "./cts-tooltip.js";
  */
 function _moduleKey(mod) {
   return `${mod.testModule}|${JSON.stringify(mod.variant ?? null)}`;
-}
-
-/**
- * Maps module status/result to a canonical cts-badge variant.
- *
- * - null status        -> "skip" (PENDING — neutral until run)
- * - RUNNING            -> "running"
- * - FINISHED + PASSED  -> "pass"
- * - FINISHED + FAILED  -> "fail"
- * - FINISHED + WARNING -> "warn"
- * - FINISHED + REVIEW  -> "review"
- * - FINISHED + SKIPPED -> "skip"
- * @param {string|null} status - Module status: null, "RUNNING", or "FINISHED".
- * @param {string|null} result - Module result when status is "FINISHED":
- *   "PASSED", "FAILED", "WARNING", "REVIEW", "SKIPPED", or null.
- * @returns {string} Canonical cts-badge variant.
- */
-function statusBadgeVariant(status, result) {
-  if (!status) return "skip";
-  if (status === "RUNNING") return "running";
-  if (status === "FINISHED") {
-    const map = {
-      PASSED: "pass",
-      FAILED: "fail",
-      WARNING: "warn",
-      REVIEW: "review",
-      SKIPPED: "skip",
-    };
-    return map[result] || "skip";
-  }
-  return "skip";
-}
-
-/**
- * Maps module status/result to a human-readable badge label.
- * @param {string|null} status - Module status: null, "RUNNING", or "FINISHED".
- * @param {string|null} result - Module result when status is "FINISHED".
- * @returns {string} Display label (e.g. "PENDING", "RUNNING", "PASSED").
- */
-function statusLabel(status, result) {
-  if (!status) return "PENDING";
-  if (status === "RUNNING") return "RUNNING";
-  if (status === "FINISHED" && result) return result;
-  return status;
 }
 
 const STYLE_ID = "cts-plan-modules-styles";

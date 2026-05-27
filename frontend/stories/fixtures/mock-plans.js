@@ -116,6 +116,12 @@ export const MOCK_PLANS = [
 const NOW = Date.now();
 const DAY_MS = 86400000;
 
+// The real `/api/plan` listing serializes `Plan.Module`, which carries only
+// `testModule` and `instances` — never `status`/`result`. Those are fetched
+// per-module from `/api/info/<instance>` (see MOCK_PLAN_INFO below and the
+// cts-plan-list status-dot resolution). Keeping this fixture faithful to the
+// backend shape is what makes the dot-resolution stories test reality rather
+// than a shape the server never returns.
 export const MOCK_PLAN_LIST = [
   {
     _id: "plan-001",
@@ -125,14 +131,11 @@ export const MOCK_PLAN_LIST = [
     started: new Date(NOW - 2 * DAY_MS).toISOString(),
     owner: { sub: "12345", iss: "https://accounts.google.com" },
     modules: [
-      { testModule: "oidcc-server", instances: ["inst-001"], status: "FINISHED", result: "PASSED" },
-      {
-        testModule: "oidcc-server-rotate-keys",
-        instances: ["inst-002"],
-        status: "FINISHED",
-        result: "WARNING",
-      },
-      { testModule: "oidcc-codereuse", instances: [], status: null, result: null },
+      { testModule: "oidcc-server", instances: ["inst-001"] },
+      { testModule: "oidcc-server-rotate-keys", instances: ["inst-002"] },
+      // Never run — empty instances. Renders a static (not pulsing) skip dot
+      // and triggers no /api/info fetch.
+      { testModule: "oidcc-codereuse", instances: [] },
     ],
     config: { "server.issuer": "https://op.example.com" },
     publish: null,
@@ -146,18 +149,8 @@ export const MOCK_PLAN_LIST = [
     started: new Date(NOW - DAY_MS).toISOString(),
     owner: { sub: "12345", iss: "https://accounts.google.com" },
     modules: [
-      {
-        testModule: "fapi2-security-profile-happy-flow",
-        instances: ["inst-003"],
-        status: "FINISHED",
-        result: "PASSED",
-      },
-      {
-        testModule: "fapi2-security-profile-ensure-signed-request",
-        instances: ["inst-004"],
-        status: "FINISHED",
-        result: "FAILED",
-      },
+      { testModule: "fapi2-security-profile-happy-flow", instances: ["inst-003"] },
+      { testModule: "fapi2-security-profile-ensure-signed-request", instances: ["inst-004"] },
     ],
     config: { "server.issuer": "https://fapi.example.com" },
     publish: "summary",
@@ -170,16 +163,22 @@ export const MOCK_PLAN_LIST = [
     variant: { response_type: "id_token" },
     started: new Date(NOW - 5 * DAY_MS).toISOString(),
     owner: { sub: "admin-001", iss: "https://accounts.google.com" },
-    modules: [
-      {
-        testModule: "oidcc-server-implicit",
-        instances: ["inst-005"],
-        status: "FINISHED",
-        result: "PASSED",
-      },
-    ],
+    modules: [{ testModule: "oidcc-server-implicit", instances: ["inst-005"] }],
     config: { "server.issuer": "https://implicit.example.com" },
     publish: "everything",
     immutable: true,
   },
 ];
+
+// Per-instance `/api/info/<instance>` payloads for the listing's modules.
+// Mirrors what the backend returns when the plans listing resolves each
+// module's latest run. Stories/specs register an instance-keyed `/api/info`
+// handler from this map so the status dots resolve to distinct colors
+// (pass / warn / fail) rather than a single shared status.
+export const MOCK_PLAN_INFO = {
+  "inst-001": { status: "FINISHED", result: "PASSED" },
+  "inst-002": { status: "FINISHED", result: "WARNING" },
+  "inst-003": { status: "FINISHED", result: "PASSED" },
+  "inst-004": { status: "FINISHED", result: "FAILED" },
+  "inst-005": { status: "FINISHED", result: "PASSED" },
+};

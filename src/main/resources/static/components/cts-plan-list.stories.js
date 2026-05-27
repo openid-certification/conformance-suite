@@ -1,7 +1,7 @@
 import { html } from "lit";
 import { expect, within, waitFor, userEvent, spyOn } from "storybook/test";
 import { http, HttpResponse } from "msw";
-import { MOCK_PLAN_LIST } from "@fixtures/mock-plans.js";
+import { MOCK_PLAN_LIST, MOCK_PLAN_INFO } from "@fixtures/mock-plans.js";
 import "./cts-plan-list.js";
 
 export default {
@@ -45,6 +45,26 @@ const neverResolvingInfo = http.get(
   "/api/info/:testId",
   () => new Promise(() => {}), // intentionally never settles
 );
+
+/**
+ * Build an instance-keyed `/api/info/:testId` handler. Returns the per-instance
+ * `{ status, result }` from `infoMap` so module dots resolve to distinct
+ * colors; an unknown id 404s (exercising the fail-soft → skip path). Pass a
+ * `requested` array to record which instance ids were fetched (used to assert
+ * the visible-card fetch gate and that no-instance modules trigger no fetch).
+ *
+ * @param {Record<string, {status: string, result: string}>} [infoMap]
+ * @param {string[]} [requested]
+ */
+function infoHandler(infoMap = MOCK_PLAN_INFO, requested) {
+  return http.get("/api/info/:testId", ({ params }) => {
+    const id = /** @type {string} */ (params.testId);
+    if (requested) requested.push(id);
+    const info = infoMap[id];
+    if (!info) return new HttpResponse(null, { status: 404 });
+    return HttpResponse.json(info);
+  });
+}
 
 // --- Stories ---
 
@@ -381,6 +401,178 @@ export const ModuleStatusDots = {
     // Has-run module → pending (pulsing) dot; never-run → static skip dot.
     expect(canvasElement.querySelector(".cts-badge-dot-pending")).toBeTruthy();
     expect(canvasElement.querySelector(".cts-badge-dot-skip")).toBeTruthy();
+  },
+};
+
+/**
+ * Module status dots resolve to their concrete color once `/api/info`
+ * returns, driven by the instance-keyed handler. Each module's last instance
+ * maps to a distinct result in MOCK_PLAN_INFO (pass / warn / fail), so the
+ * full mapping is exercised — not just the happy path. A never-run module
+ * (empty instances) stays a static skip dot and is never fetched.
+ */
+export const DotsResolveToStatus = {
+  parameters: {
+    msw: {
+      handlers: [http.get("/api/plan", () => HttpResponse.json(MOCK_PLAN_LIST)), infoHandler()],
+    },
+  },
+  render: () => html`<cts-plan-list></cts-plan-list>`,
+  async play({ canvasElement }) {
+    await waitForPlansToLoad(canvasElement);
+
+    const dotVariant = (label) =>
+      canvasElement.querySelector(`cts-badge[label="${label}"]`)?.getAttribute("dot-variant");
+
+    // inst-001 PASSED → pass dot (wait for the async resolution).
+    await waitFor(() => {
+      expect(dotVariant("oidcc-server")).toBe("pass");
+    });
+    // inst-002 WARNING → warn; inst-004 FAILED → fail — the full mapping.
+    expect(dotVariant("oidcc-server-rotate-keys")).toBe("warn");
+    expect(dotVariant("fapi2-security-profile-ensure-signed-request")).toBe("fail");
+    // Never-run module (empty instances) stays a static skip dot.
+    expect(dotVariant("oidcc-codereuse")).toBe("skip");
+  },
+};
+
+/**
+ * A no-instance module renders a static skip dot and triggers no `/api/info`
+ * fetch — only modules that have actually run are resolved. The recording
+ * handler proves the fetched ids are exactly the modules that have instances.
+ */
+export const NoInstanceModuleNotFetched = {
+  /** @type {string[]} */
+  _requested: [],
+  parameters: {
+    msw: {
+      handlers: [
+        http.get("/api/plan", () => HttpResponse.json(MOCK_PLAN_LIST)),
+        http.get("/api/info/:testId", ({ params }) => {
+          const id = /** @type {string} */ (params.testId);
+          NoInstanceModuleNotFetched._requested.push(id);
+          const info = MOCK_PLAN_INFO[id];
+          return info ? HttpResponse.json(info) : new HttpResponse(null, { status: 404 });
+        }),
+      ],
+    },
+  },
+  render: () => html`<cts-plan-list></cts-plan-list>`,
+  async play({ canvasElement }) {
+    NoInstanceModuleNotFetched._requested.length = 0;
+    await waitForPlansToLoad(canvasElement);
+
+    // The never-run module (empty instances) renders a static skip dot.
+    await waitFor(() => {
+      expect(
+        canvasElement
+          .querySelector('cts-badge[label="oidcc-codereuse"]')
+          ?.getAttribute("dot-variant"),
+      ).toBe("skip");
+    });
+
+    // Wait for the has-instance modules to resolve, then assert the fetched
+    // ids are exactly the five real instances — the no-instance module added
+    // none.
+    await waitFor(() => {
+      expect(
+        canvasElement.querySelector('cts-badge[label="oidcc-server"]')?.getAttribute("dot-variant"),
+      ).toBe("pass");
+    });
+    const unique = [...new Set(NoInstanceModuleNotFetched._requested)].sort();
+    expect(unique).toEqual(["inst-001", "inst-002", "inst-003", "inst-004", "inst-005"]);
+  },
+};
+
+/**
+ * A failed `/api/info` (404 / unpublished / deleted run) settles the dot at
+ * the neutral skip color rather than leaving it pulsing — and does not throw
+ * or blank the card.
+ */
+export const InfoErrorSettlesToSkip = {
+  parameters: {
+    msw: {
+      handlers: [
+        http.get("/api/plan", () => HttpResponse.json(MOCK_PLAN_LIST)),
+        // Empty map → every /api/info is a 404.
+        infoHandler({}),
+      ],
+    },
+  },
+  render: () => html`<cts-plan-list></cts-plan-list>`,
+  async play({ canvasElement }) {
+    await waitForPlansToLoad(canvasElement);
+
+    // A module that has run but whose /api/info 404s settles at skip.
+    await waitFor(() => {
+      expect(
+        canvasElement.querySelector('cts-badge[label="oidcc-server"]')?.getAttribute("dot-variant"),
+      ).toBe("skip");
+    });
+    // The card is still intact (not blanked by the error).
+    expect(canvasElement.querySelectorAll('[data-testid="plan-list-item"]').length).toBe(
+      MOCK_PLAN_LIST.length,
+    );
+  },
+};
+
+/**
+ * The `/api/info` fan-out is gated to visible cards: with more than PAGE_SIZE
+ * (25) plans loaded, only the first page's module instances are fetched on
+ * load. "Show more" reveals page two and lazily fetches its instances.
+ */
+export const OffScreenModulesNotFetched = {
+  parameters: {
+    msw: {
+      handlers: [
+        http.get("/api/plan", () =>
+          HttpResponse.json(
+            Array.from({ length: 30 }, (_, i) => {
+              const id = `plan-${String(i).padStart(3, "0")}`;
+              return {
+                _id: id,
+                planName: `${id}-name`,
+                description: "",
+                variant: {},
+                // Descending started so DOM order matches index order.
+                started: new Date(Date.now() - i * 1000).toISOString(),
+                owner: { sub: "12345", iss: "https://accounts.google.com" },
+                modules: [{ testModule: "m", instances: [`inst-${String(i).padStart(3, "0")}`] }],
+                config: {},
+                publish: null,
+                immutable: false,
+              };
+            }),
+          ),
+        ),
+        // Any instance resolves to PASSED; record which ids were fetched.
+        http.get("/api/info/:testId", ({ params }) => {
+          OffScreenModulesNotFetched._requested.push(/** @type {string} */ (params.testId));
+          return HttpResponse.json({ status: "FINISHED", result: "PASSED" });
+        }),
+      ],
+    },
+  },
+  /** @type {string[]} */
+  _requested: [],
+  render: () => html`<cts-plan-list></cts-plan-list>`,
+  async play({ canvasElement }) {
+    OffScreenModulesNotFetched._requested.length = 0;
+    await waitForPlansToLoad(canvasElement);
+
+    // First page (25) instances fetched; page-two instances (inst-025..029)
+    // are NOT fetched until revealed.
+    await waitFor(() => {
+      expect(OffScreenModulesNotFetched._requested.length).toBe(25);
+    });
+    expect(OffScreenModulesNotFetched._requested).not.toContain("inst-029");
+
+    // Reveal page two — its instances now get fetched.
+    const showMore = canvasElement.querySelector('[data-testid="plan-list-show-more"]');
+    await userEvent.click(innerButton(showMore));
+    await waitFor(() => {
+      expect(OffScreenModulesNotFetched._requested).toContain("inst-029");
+    });
   },
 };
 
