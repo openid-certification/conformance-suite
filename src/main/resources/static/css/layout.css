@@ -206,11 +206,14 @@ h3 {
 }
 
 a {
-	text-decoration: none;
+	text-decoration-line: underline;
+	text-underline-offset: 2px;
+	text-decoration-color: transparent;
 }
 
-a:hover {
-	text-decoration: underline;
+a:hover,
+a:focus-visible {
+	text-decoration-color: var(--link-decoration-color);
 }
 
 input[type=text], textarea {

@@ -67,13 +67,13 @@ const STYLE_TEXT = `
      (inherits the row name colour, no underline) and reveals its
      clickability on hover (underline) and keyboard focus (the shared
      --orange-400 ring used by .help-icon / .moduleStatusLink). */
+  /* Light-DOM anchor: underline fade + hover reveal are inherited from the
+     global \`a\` rule, so keep only layout/weight here (toggling
+     text-decoration-line would defeat the transition — line can't animate). */
   cts-plan-modules .module-row .name .moduleNameLink {
     color: inherit;
     font-weight: var(--fw-medium);
-    text-decoration: none;
-  }
-  cts-plan-modules .module-row .name .moduleNameLink:hover {
-    text-decoration: underline;
+    text-underline-offset: 2px;
   }
   cts-plan-modules .module-row .name .moduleNameLink:focus-visible {
     outline: 2px solid var(--orange-400);
@@ -160,7 +160,7 @@ const STYLE_TEXT = `
   cts-plan-modules .moduleStatusLink {
     display: inline-flex;
     align-items: center;
-    text-decoration: none;
+    text-decoration-line: none;
     color: inherit;
     border-radius: var(--radius-pill);
   }
@@ -329,7 +329,7 @@ class CtsPlanModules extends LitElement {
       : null;
 
     // The anchor wrapper (.moduleStatusLink) intentionally strips the
-    // link's own affordance (text-decoration: none, no hover) so the
+    // link's own affordance (text-decoration-line: none, no hover) so the
     // badge silhouette is the visible click target. Mark the badge
     // `interactive` so the affordance rule renders the 1px ring on it
     // — without this, the wrapped badge looks identical to a read-only

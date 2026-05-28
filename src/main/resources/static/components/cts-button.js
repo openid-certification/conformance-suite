@@ -107,14 +107,14 @@ const STYLE_TEXT = `
   background: transparent;
   color: var(--ink-900);
   cursor: pointer;
-  text-decoration: none;
+  text-decoration-line: none;
   box-sizing: border-box;
   transition: background var(--dur-1) var(--ease-standard),
               border-color var(--dur-1) var(--ease-standard),
               color var(--dur-1) var(--ease-standard);
 }
 .oidf-btn:hover {
-  text-decoration: none;
+  text-decoration-line: none;
 }
 .oidf-btn:focus {
   outline: none;
@@ -153,7 +153,7 @@ const STYLE_TEXT = `
 
 .oidf-btn-ghost {
   background: transparent;
-  color: var(--ink-900);
+  color: var(--ink-600);
   border-color: transparent;
 }
 .oidf-btn-ghost:hover {
@@ -220,6 +220,23 @@ const STYLE_TEXT = `
   to { transform: rotate(360deg); }
 }
 
+/* Disclosure-chevron convention: a chevron-bearing toggle button uses a
+   single static <cts-icon name="chevron-down"> and rotates it 180° (around
+   the screen-normal Z axis, pivoting at the glyph's center) when the host
+   carries aria-expanded="true". This replaces the older chevron-up ⇄
+   chevron-down icon-name swap, which produced a discontinuous DOM hop
+   instead of a smooth transition and decoupled the visual state from the
+   ARIA contract. The selector is scoped to chevron-down so non-directional
+   icons inside an expandable button (rare, but possible) are unaffected.
+   Same pattern as cts-log-viewer's [open]-keyed rotation. */
+cts-button cts-icon[name="chevron-down"] {
+  transition: transform var(--dur-1) var(--ease-standard);
+  transform-origin: center;
+}
+cts-button[aria-expanded="true"] cts-icon[name="chevron-down"] {
+  transform: rotate(180deg);
+}
+
 /* Collapse the host's inline line-box so no extra vertical space surrounds the button. */
 cts-button,
 cts-link-button {
@@ -262,7 +279,10 @@ injectStyles();
  *   is a 20px chip-scale used inline next to badges (e.g. the cURL copy
  *   affordance in cts-log-entry); for general use prefer `xs` or larger.
  * @property {string} label - Visible text
- * @property {string} icon - Bootstrap Icons name (without the `bi-` prefix)
+ * @property {string} icon - coolicons name (matches a vendored SVG under
+ *   `vendor/coolicons/icons/`). For disclosure toggles, pass `chevron-down`
+ *   and let the button's `aria-expanded` attribute drive a CSS rotation;
+ *   do NOT swap between `chevron-up`/`chevron-down` per state.
  * @property {boolean} loading - Shows a spinner and disables the button
  * @property {boolean} disabled - Disables the button
  * @property {string} type - Native button type: "button" (default) or "submit"

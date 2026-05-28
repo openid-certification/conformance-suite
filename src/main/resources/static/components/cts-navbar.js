@@ -105,7 +105,7 @@ const STYLE_TEXT = `
   display: flex;
   align-items: center;
   gap: var(--space-2);
-  text-decoration: none;
+  text-decoration-line: none;
   color: var(--ink-0);
   flex-shrink: 0;
 }
@@ -155,7 +155,7 @@ const STYLE_TEXT = `
   color: var(--ink-200);
   font-size: var(--fs-13);
   font-weight: var(--fw-medium);
-  text-decoration: none;
+  text-decoration-line: none;
   border-radius: var(--radius-2);
   background: transparent;
   border: 0;
@@ -167,7 +167,7 @@ const STYLE_TEXT = `
 .cts-nav .cts-navlink:hover:not(.active) {
   background: var(--ink-800);
   color: var(--ink-0);
-  text-decoration: none;
+  text-decoration-line: none;
 }
 .cts-nav .cts-navlink.active {
   background: var(--ink-700);
@@ -220,14 +220,14 @@ const STYLE_TEXT = `
   font-weight: var(--fw-medium);
   font-family: inherit;
   cursor: pointer;
-  text-decoration: none;
+  text-decoration-line: none;
   line-height: 1;
   white-space: nowrap;
 }
 .cts-nav .cts-nav-action:hover {
   background: var(--ink-800);
   color: var(--ink-0);
-  text-decoration: none;
+  text-decoration-line: none;
 }
 .cts-nav .cts-nav-action:focus-visible {
   outline: 2px solid var(--orange-400);
@@ -370,7 +370,7 @@ const STYLE_TEXT = `
   font-size: var(--fs-13);
   font-weight: var(--fw-medium);
   font-family: inherit;
-  text-decoration: none;
+  text-decoration-line: none;
   text-align: left;
   cursor: pointer;
   line-height: 1.4;
@@ -380,7 +380,7 @@ const STYLE_TEXT = `
   background: var(--ink-700);
   color: var(--ink-0);
   outline: none;
-  text-decoration: none;
+  text-decoration-line: none;
 }
 .cts-nav .cts-account-item--danger:hover,
 .cts-nav .cts-account-item--danger:focus-visible {
