@@ -472,7 +472,7 @@ export const HttpRequestEntry = {
       expect(canvas.getByText("REQUEST")).toBeInTheDocument();
     });
 
-    const curlBtn = canvas.getByText("cURL");
+    const curlBtn = canvas.getByRole("button", { name: "Copy as cURL" });
     expect(curlBtn).toBeInTheDocument();
 
     // The disclosure toggle is icon + count (no "More" text); query it
@@ -499,7 +499,7 @@ export const HttpResponseEntry = {
       expect(canvas.getByText("RESPONSE")).toBeInTheDocument();
     });
 
-    expect(canvas.queryByText("cURL")).toBeNull();
+    expect(canvas.queryByRole("button", { name: "Copy as cURL" })).toBeNull();
 
     // U2: same static-info routing for RESPONSE rows. No spinner DOM.
     const httpBadge = canvasElement.querySelector('.logHttp cts-badge[variant="info"]');
@@ -593,10 +593,10 @@ export const CopyAsCurl = {
 
     const canvas = within(canvasElement);
     await waitFor(() => {
-      expect(canvas.getByText("cURL")).toBeInTheDocument();
+      expect(canvas.getByRole("button", { name: "Copy as cURL" })).toBeInTheDocument();
     });
 
-    const curlBtn = canvas.getByText("cURL");
+    const curlBtn = canvas.getByRole("button", { name: "Copy as cURL" });
     await curlBtn.click();
 
     await waitFor(() => expect(writeSpy).toHaveBeenCalledOnce());
@@ -1193,12 +1193,13 @@ export const DesktopContainerLayout = {
 };
 
 /**
- * U6: at small container widths (< 640 px) the reference chip lives in
- * its own grid row above the body, between the meta row and the body
- * row, so it never crowds the message text in the narrow column.
+ * The entry timestamp doubles as this entry's citation handle: when the
+ * entry has a reference id, the time renders as a deep-link anchor
+ * (`#LOG-NNNN`). Left-click jumps to the entry; right-click → "Copy Link
+ * Address" yields the canonical deep link. The retired LOG-NNNN copy chip
+ * is gone entirely.
  */
-export const EntryIdAtSmallLayout = {
-  decorators: [(Story) => html` <div style="width: 360px; max-width: 100%;">${Story()}</div> `],
+export const TimestampDeepLink = {
   render: () =>
     html`<cts-log-entry
       .entry=${SUCCESS_ENTRY}
@@ -1215,61 +1216,104 @@ export const EntryIdAtSmallLayout = {
     // The host carries the referenceId as its `id` so URL fragments resolve.
     expect(host.id).toBe("LOG-0007");
 
-    // The small-layout slot is visible; the inline slot is collapsed.
-    const row = canvasElement.querySelector(".logIdRow");
-    const inline = canvasElement.querySelector(".logIdInline");
-    if (!row) throw new Error(".logIdRow did not render");
-    if (!inline) throw new Error(".logIdInline did not render");
-    expect(getComputedStyle(row).display).not.toBe("none");
-    expect(getComputedStyle(inline).display).toBe("none");
+    // The timestamp is wrapped in a deep-link anchor inside .logTime.
+    const link = /** @type {HTMLAnchorElement | null} */ (
+      canvasElement.querySelector(".logTime a.logTimeLink")
+    );
+    if (!link) throw new Error("timestamp deep-link anchor did not render");
+    expect(link.getAttribute("href")).toBe("#LOG-0007");
+    // aria-label disambiguates rows logged in the same second and restores
+    // the LOG reference for screen-reader users.
+    expect(link.getAttribute("aria-label")).toContain("LOG-0007");
+    // The anchor wraps the <cts-time> element.
+    expect(link.querySelector("cts-time")).toBeTruthy();
 
-    // The visible chip carries the right reference label.
-    const chip = row.querySelector('[data-testid="log-entry-id-chip"]');
-    if (!chip) throw new Error("chip did not render in row slot");
-    expect(chip.textContent).toContain("LOG-0007");
+    // The retired LOG-NNNN copy chip and its two layout slots are gone.
+    expect(canvasElement.querySelector("cts-log-entry-id")).toBeNull();
+    expect(canvasElement.querySelector(".logIdRow")).toBeNull();
+    expect(canvasElement.querySelector(".logIdInline")).toBeNull();
   },
 };
 
 /**
- * U6: at desktop container widths (≥ 640 px) the chip renders inline
- * inside the body cell, after the source label and before the message
- * text. This is the compact, "in-flow" placement.
+ * Entries without a reference id (e.g. block-only or envelope rows) render
+ * a plain, non-interactive timestamp — there is nothing to cite, so no
+ * anchor is emitted.
  */
-export const EntryIdAtDesktopLayout = {
-  decorators: [
-    (Story) => html`
-      <div
-        style="width: 1280px; max-width: 100%; container-type: inline-size; container-name: ctsLogViewer;"
-      >
-        ${Story()}
-      </div>
-    `,
-  ],
-  render: () =>
-    html`<cts-log-entry
-      .entry=${SUCCESS_ENTRY}
-      reference-id="LOG-0042"
-      test-id="storybook-test"
-    ></cts-log-entry>`,
+export const TimestampWithoutReference = {
+  render: () => html`<cts-log-entry .entry=${SUCCESS_ENTRY}></cts-log-entry>`,
   async play({ canvasElement }) {
     await waitFor(() => {
       const el = canvasElement.querySelector("cts-log-entry");
       if (!el) throw new Error("cts-log-entry did not render");
       return el;
     });
+    const time = canvasElement.querySelector(".logTime");
+    if (!time) throw new Error(".logTime did not render");
+    // No anchor when there's no reference id; the timestamp still renders.
+    expect(time.querySelector("a.logTimeLink")).toBeNull();
+    expect(time.querySelector("cts-time")).toBeTruthy();
+  },
+};
 
-    const row = canvasElement.querySelector(".logIdRow");
-    const inline = canvasElement.querySelector(".logIdInline");
-    if (!row) throw new Error(".logIdRow did not render");
-    if (!inline) throw new Error(".logIdInline did not render");
-    expect(getComputedStyle(row).display).toBe("none");
-    expect(getComputedStyle(inline).display).not.toBe("none");
+/**
+ * Deep-link landing highlight: the entry whose id matches the URL fragment
+ * (`:target`) gets a light background wash so the user can see where they
+ * landed. The highlight tracks the active fragment — it follows when the
+ * fragment moves to another entry and clears when it is removed. Pure CSS,
+ * no JS. Uses real fragment navigation (`location.hash =`) so `:target`
+ * actually re-evaluates, and compares each row against its own resting
+ * background so the assertion survives token-value changes.
+ */
+export const DeepLinkHighlight = {
+  render: () => html`
+    <cts-log-entry .entry=${SUCCESS_ENTRY} reference-id="LOG-HL01" test-id="hl"></cts-log-entry>
+    <cts-log-entry .entry=${SUCCESS_ENTRY} reference-id="LOG-HL02" test-id="hl"></cts-log-entry>
+  `,
+  async play({ canvasElement }) {
+    const prevHash = window.location.hash;
+    try {
+      const els = await waitFor(() => {
+        const found = canvasElement.querySelectorAll("cts-log-entry");
+        if (found.length < 2) throw new Error("two entries did not render");
+        return found;
+      });
+      const firstBg = () => getComputedStyle(els[0].querySelector(".logItem")).backgroundColor;
+      const secondBg = () => getComputedStyle(els[1].querySelector(".logItem")).backgroundColor;
 
-    // The inline chip lives inside .logBody (so it sits between the
-    // source label and the message text in the body's flow).
-    const body = canvasElement.querySelector(".logBody");
-    if (!body) throw new Error(".logBody did not render");
-    expect(body.contains(inline)).toBe(true);
+      // Resting (no matching fragment) backgrounds. waitFor lets the
+      // :target style recalc settle — fragment navigation updates the
+      // matched element, but the style application is not guaranteed
+      // synchronous in every engine.
+      window.location.hash = "";
+      let firstResting = "";
+      let secondResting = "";
+      await waitFor(() => {
+        expect(els[0].matches(":target")).toBe(false);
+        firstResting = firstBg();
+        secondResting = secondBg();
+      });
+
+      // Target the first row → it (and only it) matches :target and its
+      // background changes; the sibling stays at rest.
+      window.location.hash = "#LOG-HL01";
+      await waitFor(() => {
+        expect(els[0].matches(":target")).toBe(true);
+        expect(firstBg()).not.toBe(firstResting);
+        expect(secondBg()).toBe(secondResting);
+      });
+
+      // Move the fragment to the second row → highlight follows, first clears.
+      window.location.hash = "#LOG-HL02";
+      await waitFor(() => {
+        expect(els[1].matches(":target")).toBe(true);
+        expect(firstBg()).toBe(firstResting);
+        expect(secondBg()).not.toBe(secondResting);
+      });
+    } finally {
+      if (prevHash) window.location.hash = prevHash;
+      else history.replaceState(null, "", window.location.pathname + window.location.search);
+    }
   },
 };
 
