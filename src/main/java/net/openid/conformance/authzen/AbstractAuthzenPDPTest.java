@@ -12,6 +12,8 @@ import net.openid.conformance.authzen.condition.EnsureAuthzenApiResponseXRequest
 import net.openid.conformance.authzen.condition.CheckPDPServerConfiguration;
 import net.openid.conformance.authzen.condition.CorruptAuthzenClientCredentials;
 import net.openid.conformance.authzen.condition.CreateAuthzenApiEndpointRequestFromRaw;
+import net.openid.conformance.authzen.condition.EnsureDiscoveryMetadataParamsNotEmpty;
+import net.openid.conformance.authzen.condition.EnsureDiscoveryMetadataResponseValid;
 import net.openid.conformance.authzen.condition.EnsureMetadataCapabilitiesValid;
 import net.openid.conformance.authzen.condition.EnsurePolicyDecisionPointMatchesIssuer;
 import net.openid.conformance.authzen.condition.GetPDPDynamicServerConfiguration;
@@ -136,6 +138,7 @@ public abstract class AbstractAuthzenPDPTest extends AbstractRedirectServerTestM
 		switch (getVariant(PDPServerMetadata.class)) {
 			case DISCOVERY:
 				callAndStopOnFailure(GetPDPDynamicServerConfiguration.class);
+				callAndContinueOnFailure(EnsureDiscoveryMetadataResponseValid.class, ConditionResult.FAILURE, "AUTHZEN-9.2.2");
 				break;
 			case STATIC:
 				callAndStopOnFailure(GetPDPStaticServerConfiguration.class);
@@ -151,6 +154,7 @@ public abstract class AbstractAuthzenPDPTest extends AbstractRedirectServerTestM
 		callAndContinueOnFailure(CheckPDPServerConfiguration.class, ConditionResult.FAILURE, "AUTHZEN-9.1.1");
 		if (serverSupportsDiscovery) {
 			callAndContinueOnFailure(EnsurePolicyDecisionPointMatchesIssuer.class, ConditionResult.FAILURE, "AUTHZEN-9.2.3");
+			callAndContinueOnFailure(EnsureDiscoveryMetadataParamsNotEmpty.class, ConditionResult.WARNING, "AUTHZEN-9.2.2");
 		}
 		callAndContinueOnFailure(EnsureMetadataCapabilitiesValid.class, ConditionResult.WARNING, "AUTHZEN-9.1.2");
 		env.unmapKey("server");
