@@ -182,8 +182,8 @@ const STYLE_TEXT = `
     display: flex;
     align-items: center;
     gap: var(--space-2);
-    background: var(--ink-700);
-    color: var(--fg-on-ink);
+    background: var(--ink-100);
+    color: var(--ink-800);
     padding: var(--space-2) var(--space-3);
     cursor: pointer;
     font-size: var(--fs-13);
@@ -198,12 +198,13 @@ const STYLE_TEXT = `
     box-shadow: var(--focus-ring);
   }
   /* Override the page-wide .logItem:hover rule from css/layout.css (a
-     near-white #f6fefe that, applied to the dark startBlock summary,
-     would leave --fg-on-ink text on a near-white background — visually
-     unreadable). Lift to --ink-600 instead so the hover affordance reads
-     as elevation on a dark surface and the foreground stays legible. */
+     near-white #f6fefe). On the light --ink-100 startBlock surface the
+     global rule would wash the block into the page background
+     (--ink-50 = #F8F7F5), erasing the affordance cue. Step down one
+     ink stop instead so the row darkens slightly on hover and the
+     block stays distinct from the page chrome. */
   cts-log-viewer .startBlock:hover {
-    background: var(--ink-600);
+    background: var(--ink-200);
   }
   cts-log-viewer .startBlockMsg {
     flex: 1 1 auto;
