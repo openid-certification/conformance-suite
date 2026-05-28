@@ -16,6 +16,16 @@ import net.openid.conformance.plan.TestPlan;
 		AuthzenPDPEvaluationsBatchWithFullySpecifiedEvaluationsTest.class,
 		AuthzenPDPEvaluationsBatchWithContextInheritanceTest.class,
 		AuthzenPDPEvaluationsEvaluationLevelErrorsTest.class,
+		// evaluations_semantic option (Spec 7.1.2.1)
+		AuthzenPDPEvaluationsDefaultSemanticIsExecuteAllTest.class,
+		AuthzenPDPEvaluationsExecuteAllExplicitTest.class,
+		AuthzenPDPEvaluationsDenyOnFirstDenyTest.class,
+		AuthzenPDPEvaluationsPermitOnFirstPermitTest.class,
+		AuthzenPDPEvaluationsUnknownSemanticValueTest.class,
+		// Per-eval overrides top-level defaults (Spec 7.1.1.1)
+		AuthzenPDPEvaluationsPerEvalOverridesDefaultTest.class,
+		// Missing subject everywhere returns decision-false evaluation (Cert Profile 3.4.1)
+		AuthzenPDPEvaluationsMissingSubjectReturnsDecisionFalseTest.class,
 		// X-Request-ID handling (Spec 10.1.3-4)
 		AuthzenPDPEvaluationsXRequestIdEchoedTest.class,
 		// Idempotency
