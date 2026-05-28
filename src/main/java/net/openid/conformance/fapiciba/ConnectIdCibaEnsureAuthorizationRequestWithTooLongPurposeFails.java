@@ -17,6 +17,6 @@ public class ConnectIdCibaEnsureAuthorizationRequestWithTooLongPurposeFails exte
 	@Override
 	protected void createAuthorizationRequestObject() {
 		super.createAuthorizationRequestObject();
-		callAndStopOnFailure(SetRequestObjectBindingMessageToTooLongPurpose.class, "CID-IDA-5.2-10");
+		callAndStopOnFailure(SetRequestObjectBindingMessageToTooLongPurpose.class, "CID-IDA-5.2-10", "CID-PURPOSE-3");
 	}
 }

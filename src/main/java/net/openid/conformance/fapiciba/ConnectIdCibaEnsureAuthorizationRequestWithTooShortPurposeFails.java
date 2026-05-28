@@ -17,6 +17,6 @@ public class ConnectIdCibaEnsureAuthorizationRequestWithTooShortPurposeFails ext
 	@Override
 	protected void createAuthorizationRequestObject() {
 		super.createAuthorizationRequestObject();
-		callAndStopOnFailure(SetRequestObjectBindingMessageToTooShortPurpose.class, "CID-IDA-5.2-10");
+		callAndStopOnFailure(SetRequestObjectBindingMessageToTooShortPurpose.class, "CID-IDA-5.2-10", "CID-PURPOSE-3");
 	}
 }
