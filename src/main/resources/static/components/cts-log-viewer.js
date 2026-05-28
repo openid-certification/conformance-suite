@@ -242,9 +242,11 @@ const STYLE_TEXT = `
     color: var(--fg-soft);
     margin-right: var(--space-1);
   }
-  /* Clear-filters is a reset action, not a toggle — a native <button>
-     styled to sit in the badge row, deliberately NOT a cts-badge pill so
-     it does not read as another filter. */
+  /* Clear-filters is a reset action, not a toggle. It is a borderless,
+     underlined TEXT button — deliberately not a bordered pill, so it neither
+     reads as another filter chip nor fakes an affordance ring with a
+     hand-rolled border (per the Badges rule in CLAUDE.md). The underline is
+     the affordance; it sits inline in the badge row as a text action. */
   cts-log-viewer .logFilterClear {
     align-self: center;
     font: inherit;
@@ -252,13 +254,14 @@ const STYLE_TEXT = `
     line-height: 16px;
     color: var(--fg-muted);
     background: transparent;
-    border: 1px solid var(--border);
-    border-radius: var(--radius-pill, 999px);
-    padding: 2px 10px;
+    border: 0;
+    padding: 2px var(--space-1);
     cursor: pointer;
+    text-decoration: underline;
+    text-underline-offset: 2px;
   }
   cts-log-viewer .logFilterClear:hover {
-    background: var(--ink-50);
+    color: var(--fg);
   }
   cts-log-viewer .logFilterClear:focus-visible {
     outline: 2px solid var(--rust-400, #C75A3F);
@@ -849,15 +852,6 @@ class CtsLogViewer extends LitElement {
   }
 
   /**
-   * `@click` handler shared by both Clear-filters controls (the summary-row
-   * button and the empty-state button). A bound method — not an inline arrow
-   * — satisfies `lit/no-template-arrow`.
-   */
-  _onClearClick() {
-    this.clearFilters();
-  }
-
-  /**
    * Text for the polite live region. Returns content ONLY when a
    * user-initiated change is pending (`_announceFilterChange`), then
    * consumes the flag so a subsequent poll-driven re-render does not
@@ -917,7 +911,7 @@ class CtsLogViewer extends LitElement {
           : nothing}
         ${this._renderCountBadges(counts, filterable)}
         ${filtering
-          ? html`<button type="button" class="logFilterClear" @click=${this._onClearClick}>
+          ? html`<button type="button" class="logFilterClear" @click=${this.clearFilters}>
               Clear filters
             </button>`
           : nothing}
@@ -1077,7 +1071,7 @@ class CtsLogViewer extends LitElement {
     if (filtering && out.length === 0) {
       return html`<div class="logFilterEmpty">
         <span>No entries match the active filters.</span>
-        <button type="button" class="logFilterClear" @click=${this._onClearClick}>
+        <button type="button" class="logFilterClear" @click=${this.clearFilters}>
           Clear filters
         </button>
       </div>`;

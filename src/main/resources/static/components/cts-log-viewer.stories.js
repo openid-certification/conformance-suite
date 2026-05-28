@@ -806,8 +806,13 @@ export const ResultSummaryFilter = {
     const group = canvasElement.querySelector("cts-log-viewer .logResultSummary");
     expect(group.getAttribute("role")).toBe("group");
     expect(group.getAttribute("aria-label")).toBe("Filter log entries by result");
+    // Each badge is an activatable toggle button; until pressed it carries
+    // no aria-pressed (a plain command button), so it is never mis-announced
+    // as an inactive toggle.
     for (const r of ["SUCCESS", "FAILURE", "REVIEW", "WARNING"]) {
-      expect(summaryBadgeButton(canvasElement, r).getAttribute("aria-pressed")).toBe("false");
+      const btn = summaryBadgeButton(canvasElement, r);
+      expect(btn.getAttribute("role")).toBe("button");
+      expect(btn.getAttribute("aria-pressed")).toBeNull();
     }
     // Not filtering yet → host has no is-filtering marker.
     expect(viewer.classList.contains("is-filtering")).toBe(false);
@@ -840,6 +845,19 @@ export const ResultSummaryFilter = {
     expect(canvasElement.querySelectorAll("cts-log-viewer .logBlock").length).toBe(2);
     expect(announce.textContent).toBe("Filtering by FAILURE, REVIEW");
 
+    // Toggle FAILURE OFF (without clearing): the remove branch of the
+    // filter set. REVIEW stays active, so the stream narrows to just the
+    // review entry, Block A (failure-only) is elided again, FAILURE drops
+    // its pressed state, and filtering is still active.
+    await userEvent.click(summaryBadgeButton(canvasElement, "FAILURE"));
+    await viewer.updateComplete;
+    expect(summaryBadgeButton(canvasElement, "FAILURE").getAttribute("aria-pressed")).toBeNull();
+    expect(summaryBadgeButton(canvasElement, "REVIEW").getAttribute("aria-pressed")).toBe("true");
+    expect(visibleEntryIds(canvasElement)).toEqual(["flt-b-2"]);
+    expect(canvasElement.querySelectorAll("cts-log-viewer .logBlock").length).toBe(1);
+    expect(viewer.classList.contains("is-filtering")).toBe(true);
+    expect(announce.textContent).toBe("Filtering by REVIEW");
+
     // Clear restores the full stream and drops the filtering state.
     const clearBtn = canvasElement.querySelector("cts-log-viewer .logFilterClear");
     expect(clearBtn).toBeTruthy();
@@ -848,8 +866,13 @@ export const ResultSummaryFilter = {
     expect(visibleEntryIds(canvasElement).length).toBe(6);
     expect(canvasElement.querySelectorAll("cts-log-viewer .logBlock").length).toBe(2);
     expect(viewer.classList.contains("is-filtering")).toBe(false);
-    expect(summaryBadgeButton(canvasElement, "FAILURE").getAttribute("aria-pressed")).toBe("false");
+    expect(summaryBadgeButton(canvasElement, "REVIEW").getAttribute("aria-pressed")).toBeNull();
     expect(announce.textContent).toBe("Filters cleared");
+
+    // Focus management: clearing removes the Clear button from the DOM, so
+    // focus must not drop to <body> — it moves to the first toggle badge.
+    await viewer.updateComplete;
+    expect(document.activeElement).toBe(summaryBadgeButton(canvasElement, "SUCCESS"));
   },
 };
 

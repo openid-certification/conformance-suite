@@ -1892,11 +1892,12 @@ test.describe("log-detail.html — new Lit-triad page", () => {
       "SUCCESS (3)",
     );
 
-    // Clear restores the full stream.
+    // Clear restores the full stream; the badge drops back to a plain
+    // command button (no aria-pressed, never aria-pressed="false").
     await page.locator("cts-log-viewer .logFilterClear").click();
     await expect(entries).toHaveCount(6);
     await expect(blocks).toHaveCount(2);
-    await expect(failureBadge).toHaveAttribute("aria-pressed", "false");
+    await expect(failureBadge).not.toHaveAttribute("aria-pressed", /.*/);
   });
 
   test("single-result-type log keeps the lone summary badge read-only", async ({ page }) => {
