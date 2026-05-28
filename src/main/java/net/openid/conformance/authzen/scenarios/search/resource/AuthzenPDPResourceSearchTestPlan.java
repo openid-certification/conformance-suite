@@ -15,6 +15,16 @@ import net.openid.conformance.plan.TestPlan;
 		AuthzenPDPResourceSearchResourceSearchWithResourceIdOmittedTest.class,
 		// X-Request-ID handling (Spec 10.1.3-4)
 		AuthzenPDPResourceSearchXRequestIdEchoedTest.class,
+		// Idempotency
+		AuthzenPDPResourceSearchIdempotencyTest.class,
+		// Transport binding negative tests (Spec 10.1.1 / 10.1.2 / 2.4.4 / 2.4.5)
+		AuthzenPDPResourceSearchRejectGetMethodTest.class,
+		AuthzenPDPResourceSearchRejectPutMethodTest.class,
+		AuthzenPDPResourceSearchRejectTopLevelArrayTest.class,
+		AuthzenPDPResourceSearchRejectNonJsonContentTypeTest.class,
+		AuthzenPDPResourceSearchAcceptContentTypeWithCharsetTest.class,
+		AuthzenPDPResourceSearchRejectMalformedJsonTest.class,
+		AuthzenPDPResourceSearchRejectEmptyBodyTest.class,
 		// Error handling: HTTP 400 negative tests (Section 4.7)
 		AuthzenPDPResourceSearchMissingSubjectTest.class,
 		AuthzenPDPResourceSearchSubjectMissingIdTest.class,
