@@ -321,3 +321,66 @@ export const MOCK_SUCCESS_LOG = [
     result: "SUCCESS",
   },
 ];
+
+/**
+ * Alignment fixture for the wide-layout block subgrid relay. One leading
+ * top-level (non-block) row acts as the column reference, followed by a
+ * block whose rows deliberately carry DIFFERING badge widths:
+ *   - no HTTP marker + short SUCCESS severity
+ *   - wide REDIRECT-IN HTTP marker + WARNING severity
+ *   - REQUEST icon marker + FAILURE severity
+ * Under the old per-entry max-content grid each block row sized its own
+ * columns, so the body column started at a different x on every row and
+ * diverged from the top-level reference. With the subgrid relay all rows
+ * share the master tracks and the body column lines up everywhere — the
+ * regression the AlignedBlocks story asserts against.
+ */
+export const MOCK_BLOCKS_ALIGN = [
+  {
+    _id: "align-top-1",
+    testId: "test-blocks-align-001",
+    src: "TopLevelCheck",
+    time: NOW - 9500,
+    msg: "Top-level reference row",
+    result: "SUCCESS",
+    http: "response",
+  },
+  {
+    _id: "align-blk-start",
+    testId: "test-blocks-align-001",
+    src: "StartBlockX",
+    time: NOW - 9000,
+    msg: "Block X — mixed badge widths",
+    blockId: "block-x",
+    startBlock: true,
+  },
+  {
+    _id: "align-blk-1",
+    testId: "test-blocks-align-001",
+    src: "CheckNarrow",
+    time: NOW - 8800,
+    msg: "Row with no http marker and a short severity",
+    blockId: "block-x",
+    result: "SUCCESS",
+  },
+  {
+    _id: "align-blk-2",
+    testId: "test-blocks-align-001",
+    src: "CheckWide",
+    time: NOW - 8600,
+    msg: "Row with a wide redirect-in marker and a wider severity",
+    blockId: "block-x",
+    result: "WARNING",
+    http: "redirect-in",
+  },
+  {
+    _id: "align-blk-3",
+    testId: "test-blocks-align-001",
+    src: "CheckRequest",
+    time: NOW - 8400,
+    msg: "Row with a request marker and a failure severity",
+    blockId: "block-x",
+    result: "FAILURE",
+    http: "request",
+  },
+];
