@@ -635,11 +635,11 @@ export const BlockEntry = {
       // than a real border-left, so blocked rows and non-blocked rows
       // share the same content start position. Assert the pseudo's
       // width AND a non-transparent background so a regression that
-      // drops the orange-400 token is caught.
+      // drops the band-colour token is caught.
       const beforeStyle = getComputedStyle(item, "::before");
       expect(beforeStyle.content).toBe('""');
       expect(beforeStyle.position).toBe("absolute");
-      expect(beforeStyle.width).toBe("3px");
+      expect(beforeStyle.width).toBe("5px");
       expect(beforeStyle.backgroundColor).not.toBe("rgba(0, 0, 0, 0)");
       expect(beforeStyle.backgroundColor).not.toBe("transparent");
 

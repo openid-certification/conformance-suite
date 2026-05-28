@@ -249,6 +249,14 @@ const STYLE_TEXT = `
     scroll-margin-top: calc(var(--status-bar-height, 0px) + var(--banner-height, 0px) + var(--space-4));
   }
   cts-log-entry:last-child { border-bottom: 0; }
+  /* …but a block's final entry keeps its bottom border so the block has a
+     closing edge below its last row (it is the :last-child of .logBlock,
+     which the rule above would otherwise strip). Small layout: the border
+     lives on the host here; the wide-layout equivalent restores it on the
+     nested .logItem inside the @container block below. */
+  cts-log-viewer .logEntries > .logBlock cts-log-entry:last-child {
+    border-bottom: 1px solid var(--ink-100);
+  }
 
   /* Default = small layout (no @container required). Applies whenever the
      wide @container rule below does not match — including in browsers
@@ -289,16 +297,18 @@ const STYLE_TEXT = `
   /* Block-membership cue. Rendered as an absolutely-positioned ::before
      stripe (rather than a real border-left) so blocked rows and
      non-blocked rows share the same content start position — a real
-     border would push everything 3px to the right and break vertical
-     alignment between siblings. */
+     border would push everything 5px to the right and break vertical
+     alignment between siblings. The stripe matches the .startBlock band
+     colour (var(--ink-100)) so the block reads as one continuous surface
+     from its header down its left edge. */
   cts-log-entry .logItem.is-block::before {
     content: "";
     position: absolute;
     top: 0;
     bottom: 0;
     left: 0;
-    width: 3px;
-    background: var(--orange-400);
+    width: 5px;
+    background: var(--ink-100);
     pointer-events: none;
   }
   /* Deep-link landing highlight. When the URL fragment targets this entry
@@ -532,6 +542,12 @@ const STYLE_TEXT = `
     }
     cts-log-entry:last-child .logItem {
       border-bottom: 0;
+    }
+    /* …but a block's final entry keeps its bottom border (closing edge for
+       the block). Wide layout: the host is display:contents, so the border
+       lives on the nested .logItem. Mirrors the small-layout override above. */
+    cts-log-viewer .logEntries > .logBlock cts-log-entry:last-child .logItem {
+      border-bottom: 1px solid var(--ink-100);
     }
     /* Top-level entries (direct children of .logEntries) subgrid
        into the master grid in cts-log-viewer so timestamp /
