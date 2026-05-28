@@ -7,6 +7,7 @@ import net.openid.conformance.authzen.condition.AddBasicAuthClientSecretAuthenti
 import net.openid.conformance.authzen.condition.AddXRequestIdHeaderToAuthzenApiRequest;
 import net.openid.conformance.authzen.condition.CallAuthzenApiEndpointAndVerifyExpectedStatus;
 import net.openid.conformance.authzen.condition.CallAuthzenApiEndpointAndVerifySuccessfulResponse;
+import net.openid.conformance.authzen.condition.EnsureAuthzenApiEndpointPathContainsV1;
 import net.openid.conformance.authzen.condition.EnsureAuthzenApiResponseXRequestIdMatches;
 import net.openid.conformance.authzen.condition.CheckPDPServerConfiguration;
 import net.openid.conformance.authzen.condition.CorruptAuthzenClientCredentials;
@@ -272,6 +273,7 @@ public abstract class AbstractAuthzenPDPTest extends AbstractRedirectServerTestM
 
 	protected void callAuthApiEndpointRequest() {
 		setAuthzenApiEndpoint();
+		callAndContinueOnFailure(EnsureAuthzenApiEndpointPathContainsV1.class, ConditionResult.WARNING, "AUTHZEN-4");
 		addAuthenticationToAuthzenApiEndpoint();
 		performApiRequestCall();
 	}

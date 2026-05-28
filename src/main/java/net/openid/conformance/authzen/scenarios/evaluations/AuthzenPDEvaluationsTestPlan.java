@@ -26,6 +26,9 @@ import net.openid.conformance.plan.TestPlan;
 		AuthzenPDPEvaluationsPerEvalOverridesDefaultTest.class,
 		// Missing subject everywhere returns decision-false evaluation (Cert Profile 3.4.1)
 		AuthzenPDPEvaluationsMissingSubjectReturnsDecisionFalseTest.class,
+		// Backward compatibility (Spec 7.1-2)
+		AuthzenPDPEvaluationsMissingEvaluationsArrayBackwardCompatTest.class,
+		AuthzenPDPEvaluationsEmptyEvaluationsArrayBackwardCompatTest.class,
 		// X-Request-ID handling (Spec 10.1.3-4)
 		AuthzenPDPEvaluationsXRequestIdEchoedTest.class,
 		// Idempotency
