@@ -61,9 +61,11 @@ export const NonCollapsibleBlocks = {
     expect(header.tagName).toBe("DIV");
 
     // Presentational header: no chevron icon, not in the tab order, no
-    // button role.
+    // button role. Assert the absence of the tabindex attribute (rather
+    // than tabIndex === -1, which is the default for any <div> and would
+    // not catch an accidental explicit tabindex="-1").
     expect(header.querySelector("cts-icon")).toBeNull();
-    expect(header.tabIndex).toBe(-1);
+    expect(header.hasAttribute("tabindex")).toBe(false);
     expect(header.getAttribute("role")).toBeNull();
 
     // Block children are always rendered and visible (no collapse). The

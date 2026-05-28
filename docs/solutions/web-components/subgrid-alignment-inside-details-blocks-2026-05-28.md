@@ -25,6 +25,10 @@ tags:
 
 # Aligning CSS subgrid columns inside a `<details>` block via the `::details-content` relay
 
+> **Superseded 2026-05-28** (same day): the `cts-log-viewer` logBlock was de-collapsed from a `<details>` to a plain `<div class="logBlock">` (see `docs/plans/2026-05-28-002-refactor-log-block-decollapse-plan.md`). With no `<details>`, there is no UA `::details-content` wrapper, so the `[open]`-gated `::details-content { display: contents }` relay documented here **no longer exists in the codebase** — the `.logBlock` subgrids directly. The collapse-regression guard (toggle closed → assert rows hidden) was also removed.
+>
+> **The one durable insight survives and still applies** to any *future* `<details>`-based subgrid layout: `display: contents` disables `content-visibility`, so dissolving a UA `::details-content` wrapper *unconditionally* breaks the disclosure element's hide-when-closed behaviour — gate the dissolve on `[open]`. Everything below about the `.logBlock`-as-`<details>` shape is historical.
+
 ## Context
 
 The log viewer aligns every row's columns (timestamp / severity / HTTP / body / actions) by making `.logEntries` a master grid and having each row's `.logItem` **subgrid** into it. Top-level rows do this through a single `display: contents` host (`cts-log-entry`), so their columns line up by the widest content in each track.
