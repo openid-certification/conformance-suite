@@ -1,5 +1,4 @@
 import { LitElement, html, nothing } from "lit";
-import "./cts-icon.js";
 import "./cts-badge.js";
 import "./cts-alert.js";
 import "./cts-log-entry.js";
@@ -38,7 +37,7 @@ const COUNT_BADGE_VARIANTS = {
 
 /**
  * Symbol + variant + count for the per-block status badges rendered inside
- * each block's `<summary>`. Lookup table per components/AGENTS.md §7
+ * each block's `.startBlock` header. Lookup table per components/AGENTS.md §7
  * (no dynamic class concatenation). INFO is intentionally absent — a block
  * with 47 INFO entries and zero problems should read clean, not noisy.
  * Keys mirror lowercase `result` values produced by `_aggregateBlockCounts`.
@@ -54,9 +53,9 @@ const BLOCK_BADGE_SPECS = [
 const STYLE_ID = "cts-log-viewer-styles";
 
 // Scoped CSS for the log viewer chrome. Failure banner uses cts-alert.
-// Result-summary badges arrange in a wrap. The startBlock header (used to
-// collapse a related run of entries) keeps its dark band but is now token-
-// driven (orange-700 surface) instead of inline `#336`.
+// Result-summary badges arrange in a wrap. The startBlock header labels a
+// related run of entries; it is a presentational band (token-driven
+// --ink-100 surface), not an interactive control — blocks are not collapsible.
 const STYLE_TEXT = `
   cts-log-viewer {
     display: block;
@@ -123,8 +122,8 @@ const STYLE_TEXT = `
     cts-log-viewer .logEntries > cts-log-entry {
       display: contents;
     }
-    /* Entries inside <details class="logBlock"> align with top-level
-       rows on the SAME column tracks, via a two-level subgrid relay:
+    /* Entries inside <div class="logBlock"> align with top-level rows
+       on the SAME column tracks, via a two-level subgrid relay:
        .logBlock spans all five master columns (grid-column: 1 / -1)
        and is itself a subgrid, so its column lines ARE the master's;
        each nested cts-log-entry host is display: contents so the
@@ -135,12 +134,12 @@ const STYLE_TEXT = `
        AND block rows, so every row — block or not — shares one set
        of column positions: the message column lines up everywhere.
 
-       The relay only works once the ::details-content wrapper below
-       is neutralised. An earlier attempt (and the old code comment
-       that gave up on this) concluded "subgrid relay fails", but the
-       real blocker was that wrapper, not nested subgrid: with
-       display: contents on it the relay propagates cleanly on every
-       engine the suite targets. */
+       This block was previously a <details>, whose UA-generated
+       ::details-content wrapper sat between .logBlock and the rows and
+       broke the relay (the wrapper defaulted to display: block, so the
+       subgrid below it collapsed to a single column). De-collapsing the
+       block to a plain <div> removes that wrapper entirely, so the relay
+       now propagates with no neutralising hack. */
     cts-log-viewer .logEntries > .logBlock {
       grid-column: 1 / -1;
       display: grid;
@@ -151,30 +150,7 @@ const STYLE_TEXT = `
          or block rows drift out of alignment with top-level rows. */
       column-gap: var(--space-3);
     }
-    /* Chrome and Safari wrap a <details>'s non-summary content in a
-       UA-generated ::details-content pseudo that defaults to
-       display: block. That block box sits between .logBlock (grid)
-       and the entries, so any subgrid below it collapses to a single
-       column and the cells stack vertically — the messy layout this
-       fix targets, and the true reason the prior subgrid relay was
-       abandoned. display: contents removes the wrapper from the
-       layout tree so the entries become direct grid items of
-       .logBlock.
-
-       Scoped to [open] deliberately: the UA hides a closed <details>'s
-       content via content-visibility: hidden on ::details-content,
-       which has no effect on a box-less (display: contents) element.
-       Dissolving the wrapper unconditionally therefore leaves a
-       COLLAPSED block's rows visible. Gating on [open] keeps the
-       default wrapper (and its collapse behaviour) when the block is
-       closed, and only dissolves it — to let the subgrid relay
-       through — when the block is open and the rows are actually
-       shown. Firefox ships no ::details-content, so there is no
-       wrapper to neutralise and this rule is a harmless no-op there. */
-    cts-log-viewer .logEntries > .logBlock[open]::details-content {
-      display: contents;
-    }
-    cts-log-viewer .logEntries > .logBlock > summary.startBlock {
+    cts-log-viewer .logEntries > .logBlock > .startBlock {
       grid-column: 1 / -1;
     }
     cts-log-viewer .logEntries > .logBlock > cts-log-entry {
@@ -211,7 +187,7 @@ const STYLE_TEXT = `
      the document-level cts-scroll-to-entry handler in log-detail.js.
      Without this offset, scrollIntoView lands the target underneath the
      sticky cts-log-detail-header status bar (~70px tall when stuck).
-     Applied on .logBlock (the <details> the TOC scrolls to) and on
+     Applied on .logBlock (the block container the TOC scrolls to) and on
      .logItem (the painted element inside cts-log-entry at the wide
      layout, where the host is display:contents and has no box of its
      own to anchor margin against). */
@@ -220,9 +196,10 @@ const STYLE_TEXT = `
   cts-log-viewer cts-log-entry .logItem {
     scroll-margin-top: 70px;
   }
-  /* Block-start <summary> rows. Native <details>/<summary> gives us
-     keyboard collapse semantics for free; we strip the default disclosure
-     marker because the chevron icon already carries the affordance. */
+  /* Block-start header rows. Presentational only — a label band for the
+     run of entries that follows, not an interactive control. Blocks are
+     not collapsible, so there is no disclosure marker, chevron, pointer
+     cursor, or focus ring here. */
   cts-log-viewer .startBlock {
     display: flex;
     align-items: center;
@@ -230,26 +207,8 @@ const STYLE_TEXT = `
     background: var(--ink-100);
     color: var(--ink-800);
     padding: var(--space-2) var(--space-3);
-    cursor: pointer;
     font-size: var(--fs-13);
     font-weight: var(--fw-bold);
-    border: 0;
-    list-style: none;
-  }
-  cts-log-viewer .startBlock::-webkit-details-marker { display: none; }
-  cts-log-viewer .startBlock::marker { content: ""; }
-  cts-log-viewer .startBlock:focus-visible {
-    outline: none;
-    box-shadow: var(--focus-ring);
-  }
-  /* Override the page-wide .logItem:hover rule from css/layout.css (a
-     near-white #f6fefe). On the light --ink-100 startBlock surface the
-     global rule would wash the block into the page background
-     (--ink-50 = #F8F7F5), erasing the affordance cue. Step down one
-     ink stop instead so the row darkens slightly on hover and the
-     block stays distinct from the page chrome. */
-  cts-log-viewer .startBlock:hover {
-    background: var(--ink-200);
   }
   cts-log-viewer .startBlockMsg {
     flex: 1 1 auto;
@@ -266,19 +225,6 @@ const STYLE_TEXT = `
     flex: 0 0 auto;
     font-variant-numeric: tabular-nums;
   }
-  /* CSS-only chevron swap: a single <cts-icon name="chevron-down"> rotates
-     -90deg when the <details> is closed. This stays correct under any
-     toggle path (mouse, keyboard, programmatic open=true) because it reads
-     the [open] attribute directly — no Lit re-render race. */
-  cts-log-viewer .logBlock > .startBlock cts-icon {
-    transition: transform 120ms ease-in-out;
-  }
-  cts-log-viewer .logBlock:not([open]) > .startBlock cts-icon {
-    transform: rotate(-90deg);
-  }
-  /* The legacy implementation hid collapsed children with a CSS rule keyed
-     on _collapsedBlocks. With <details>, the browser does that for us via
-     the open/closed state; no extra rule needed. */
 `;
 
 function ensureStylesInjected() {
@@ -291,9 +237,10 @@ function ensureStylesInjected() {
 
 /**
  * Polls `/api/log/{testId}` for log entries and renders them via
- * `<cts-log-entry>` children. Supports collapsible blocks and shows a
- * connection-lost banner (a token-styled `cts-alert variant="warning"`)
- * after `FAILURE_THRESHOLD` consecutive fetch failures.
+ * `<cts-log-entry>` children. Groups related entries into non-collapsible
+ * blocks (a labelled `.startBlock` band + per-block `✓N ✗N ⚠N ◆N` counts)
+ * and shows a connection-lost banner (a token-styled `cts-alert
+ * variant="warning"`) after `FAILURE_THRESHOLD` consecutive fetch failures.
  *
  * Light DOM. Scoped CSS is injected once on first connect; all visual
  * styling routes through OIDF tokens. No Bootstrap `alert-*`, `text-muted`,
@@ -327,7 +274,6 @@ class CtsLogViewer extends LitElement {
     testInfo: { type: Object, attribute: false },
     _entries: { state: true },
     _loading: { state: true },
-    _collapsedBlocks: { state: true },
     _error: { state: true },
   };
 
@@ -343,7 +289,6 @@ class CtsLogViewer extends LitElement {
     this.testInfo = null;
     this._entries = [];
     this._loading = true;
-    this._collapsedBlocks = new Set();
     this._error = "";
     this._latestTimestamp = 0;
     this._pollTimer = null;
@@ -474,8 +419,8 @@ class CtsLogViewer extends LitElement {
    * Build the `entry._id` → `LOG-NNNN` lookup. Indexes every entry in
    * `_entries` (including `startBlock` rows so the ordinal stays stable
    * across the chronological stream — gaps in user-visible chips are
-   * intentional, since startBlock rows render as `<summary>` and not as
-   * `<cts-log-entry>`). Skips entries without an `_id` defensively.
+   * intentional, since startBlock rows render as a `.startBlock` header and
+   * not as `<cts-log-entry>`). Skips entries without an `_id` defensively.
    *
    * Sibling consumer: `src/main/resources/static/plan-detail.html`
    * mirrors this iteration rule inline (sort-by-time entries, ordinal =
@@ -712,13 +657,15 @@ class CtsLogViewer extends LitElement {
    * Scroll the entry named by `window.location.hash` into view. Used both
    * for initial-load navigation and for in-page fragment changes (the
    * `hashchange` listener fires when the user clicks an entry's timestamp
-   * deep-link). When the hash matches `^#LOG-\d+$`, opens any collapsed
-   * `<details>` ancestor of the matching entry (U5's per-block aggregation)
-   * before scrolling. Honours the entry's `scroll-margin-top` so the row
-   * lands below the sticky status bar (U2). No-ops gracefully when the hash
-   * is absent, malformed, or points at an out-of-range ordinal (e.g.
+   * deep-link). Honours the entry's `scroll-margin-top` so the row lands
+   * below the sticky status bar (U2). No-ops gracefully when the hash is
+   * absent, malformed, or points at an out-of-range ordinal (e.g.
    * `#LOG-9999` on a 50-entry test) — in which case it returns `false` so
    * the caller knows the target was not reached and can retry later.
+   *
+   * Blocks are not collapsible (every entry is always rendered visible), so
+   * there is no collapsed ancestor to reveal before scrolling — the target
+   * is in the layout the moment it exists in `_entries`.
    * @returns {boolean} `true` when the target was found and scrolled; `false` otherwise.
    */
   _scrollToHashIfPresent() {
@@ -727,53 +674,12 @@ class CtsLogViewer extends LitElement {
     if (!/^#LOG-\d+$/.test(hash)) return false;
     const target = document.getElementById(hash.slice(1));
     if (!target) return false;
-    // Open every collapsed <details> ancestor AND sync _collapsedBlocks so
-    // the next polling re-render (which restores `?open` from that set)
-    // does not re-collapse the block around the row we just revealed. The
-    // imperative `open = true` fires `toggle` asynchronously — too late to
-    // beat a poll landing first — so the set is updated here rather than
-    // relying on _handleBlockToggle to catch up.
-    let reopened = null;
-    let parent = target.parentElement;
-    while (parent) {
-      if (parent.tagName === "DETAILS") {
-        const details = /** @type {HTMLDetailsElement & { dataset: DOMStringMap }} */ (parent);
-        details.open = true;
-        const blockId = details.dataset.blockId;
-        if (blockId && this._collapsedBlocks.has(blockId)) {
-          reopened = reopened || new Set(this._collapsedBlocks);
-          reopened.delete(blockId);
-        }
-      }
-      parent = parent.parentElement;
-    }
-    if (reopened) this._collapsedBlocks = reopened;
     // Honour prefers-reduced-motion: an instant jump avoids both the
     // animation and the multi-frame window during which a concurrent
     // re-render could disturb the smooth scroll.
     const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     target.scrollIntoView({ behavior: reduceMotion ? "instant" : "smooth", block: "start" });
     return true;
-  }
-
-  /**
-   * `<details>` toggle handler. Mirrors the element's `open` state into
-   * `_collapsedBlocks` so collapse choices survive a polling-driven
-   * re-render. Reading `event.currentTarget.open` (the post-toggle
-   * value) is the source of truth — Lit's `?open=` binding restores
-   * this on the next render.
-   * @param {Event} event - The `toggle` event dispatched by the `<details>` block.
-   */
-  _handleBlockToggle(event) {
-    const target = /** @type {HTMLDetailsElement & { dataset: DOMStringMap }} */ (
-      event.currentTarget
-    );
-    const blockId = target.dataset.blockId;
-    if (!blockId) return;
-    const newSet = new Set(this._collapsedBlocks);
-    if (target.open) newSet.delete(blockId);
-    else newSet.add(blockId);
-    this._collapsedBlocks = newSet;
   }
 
   _renderResultSummary() {
@@ -816,10 +722,11 @@ class CtsLogViewer extends LitElement {
 
   /**
    * Group entries by the block they belong to and render each block as a
-   * `<details>` element with a `<summary>` carrying the block label and
-   * the per-block status badges. Entries that arrive before any block
-   * starts (or have no `blockId`) render as flat siblings — preserves
-   * the legacy behaviour for pre-block prefix entries.
+   * `<div class="logBlock">` whose header `<div class="startBlock">` carries
+   * the block label and the per-block status badges. Blocks are not
+   * collapsible — every entry is always rendered. Entries that arrive before
+   * any block starts (or have no `blockId`) render as flat siblings —
+   * preserves the legacy behaviour for pre-block prefix entries.
    *
    * Each `<cts-log-entry>` host is stamped with `data-entry-id` so the
    * document-level `cts-scroll-to-entry` listener (in
@@ -842,22 +749,15 @@ class CtsLogViewer extends LitElement {
         out.push(...blockChildren);
       } else {
         const counts = this._blockCounts.get(currentBlockId);
-        const isCollapsed = this._collapsedBlocks.has(currentBlockId);
         const headerText = (blockStart && blockStart.msg) || currentBlockId;
         out.push(html`
-          <details
-            class="logBlock"
-            data-block-id=${currentBlockId}
-            ?open=${!isCollapsed}
-            @toggle=${this._handleBlockToggle}
-          >
-            <summary class="logItem startBlock">
-              <cts-icon name="chevron-down" aria-hidden="true"></cts-icon>
+          <div class="logBlock" data-block-id=${currentBlockId}>
+            <div class="startBlock">
               <span class="startBlockMsg">${headerText}</span>
               <span class="startBlockCounts">${this._renderBlockBadges(counts)}</span>
-            </summary>
+            </div>
             ${blockChildren}
-          </details>
+          </div>
         `);
       }
       blockChildren = [];
