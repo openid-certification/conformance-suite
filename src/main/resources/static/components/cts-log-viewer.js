@@ -215,7 +215,7 @@ const STYLE_TEXT = `
     min-width: 0;
     overflow-wrap: anywhere;
   }
-  /* Compact ✓N ✗N ⚠N ◆N badge cluster on the right of the summary row.
+  /* Compact ✓N ✗N ⚠N ◆N badge cluster on the right of the block header row.
      tabular-nums keeps the integer portions baseline-aligned across stacked
      block headers so the visual rhythm holds even with mixed digit widths. */
   cts-log-viewer .startBlockCounts {
@@ -703,7 +703,7 @@ class CtsLogViewer extends LitElement {
   }
 
   /**
-   * Render the compact `✓N ✗N ⚠N ◆N` cluster inside a block's summary
+   * Render the compact `✓N ✗N ⚠N ◆N` cluster inside a block's header
    * row. INFO is intentionally omitted — a block with 47 INFO and zero
    * problems should read clean. Empty buckets are skipped so a passing
    * block reads as a single `✓N` chip rather than four chips with three

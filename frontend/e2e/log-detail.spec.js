@@ -90,6 +90,33 @@ import {
  */
 
 /**
+ * Install a `scrollIntoView` spy in the page before load. It records the
+ * `data-entry-id` (or `id`) of every element scrolled into view on
+ * `window.__scrolledEntryIds`. The scroll-to-entry tests assert against
+ * this so they verify the scroll HANDLER ran on the right element — not
+ * just that the target is visible, which is always true now that blocks
+ * are non-collapsible and would make a bare `toBeVisible()` pass even if
+ * the handler were removed.
+ *
+ * @param {import('@playwright/test').Page} page
+ */
+async function installScrollIntoViewSpy(page) {
+  await page.addInitScript(() => {
+    /** @type {string[]} */
+    const ids = [];
+    window.__scrolledEntryIds = ids;
+    const orig = Element.prototype.scrollIntoView;
+    Element.prototype.scrollIntoView = function (
+      /** @type {boolean | ScrollIntoViewOptions | undefined} */ arg,
+    ) {
+      const id = this.getAttribute("data-entry-id") || this.id || "";
+      if (id) ids.push(id);
+      return orig.call(this, arg);
+    };
+  });
+}
+
+/**
  * Register all routes the new bootstrap depends on. Mirror of
  * setupLogDetailRoutes from log-detail.spec.js but trimmed to the
  * surface the new bootstrap actually fires (no /api/runner poll for
@@ -1067,6 +1094,12 @@ test.describe("log-detail.html — new Lit-triad page", () => {
       ],
     };
 
+    // Spy on scrollIntoView so the assertion verifies the scroll HANDLER
+    // ran on the right element — not just that the entry is visible (it
+    // always is now that blocks don't collapse, which would make a plain
+    // toBeVisible() assertion pass even if the handler were deleted).
+    await installScrollIntoViewSpy(page);
+
     await setupFailFast(page);
     await setupV2Routes(page, {
       testInfo: failedTestInfo,
@@ -1088,7 +1121,11 @@ test.describe("log-detail.html — new Lit-triad page", () => {
     await expect(link).toBeAttached();
     await link.click();
 
-    // Target entry is visible and scrolled into view.
+    // The scroll handler ran on the target entry (discriminating signal),
+    // and the entry is in the layout.
+    await expect
+      .poll(() => page.evaluate(() => window.__scrolledEntryIds || []))
+      .toContain("blk-b-2");
     const entry = page.locator(`cts-log-entry[data-entry-id="blk-b-2"]`);
     await expect(entry).toBeVisible();
   });
@@ -1189,6 +1226,7 @@ test.describe("log-detail.html — new Lit-triad page", () => {
     // collapsible, so the viewer's hashchange handler scrolls the entry
     // into view directly — the entry is always in the layout.
     const blockTestId = "test-blocks-001";
+    await installScrollIntoViewSpy(page);
     await setupFailFast(page);
     await setupV2Routes(page, {
       testInfo: { ...MOCK_TEST_STATUS, testId: blockTestId, planId: undefined },
@@ -1219,6 +1257,12 @@ test.describe("log-detail.html — new Lit-triad page", () => {
       window.location.hash = `#${refId}`;
     }, referenceId);
 
+    // The hashchange scroll handler ran on the target entry (discriminating
+    // signal — the entry is always in the layout, so toBeVisible() alone
+    // would pass even if the handler never fired).
+    await expect
+      .poll(() => page.evaluate(() => window.__scrolledEntryIds || []))
+      .toContain("blk-b-2");
     const entry = page.locator(`cts-log-entry[data-entry-id="blk-b-2"]`);
     await expect(entry).toBeVisible();
   });

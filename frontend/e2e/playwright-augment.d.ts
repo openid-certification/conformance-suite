@@ -11,3 +11,11 @@ declare module "@playwright/test" {
     __unmockedApiCalls?: string[];
   }
 }
+
+declare global {
+  interface Window {
+    // Set by the scrollIntoView spy in the scroll-to-entry tests so the
+    // assertion can verify the scroll handler ran on the right element.
+    __scrolledEntryIds?: string[];
+  }
+}

@@ -541,14 +541,16 @@ const STYLE_TEXT = `
        width (see cts-log-viewer.js), so .logItem is a direct
        child of the parent grid and one level of subgrid is enough.
 
-       Block entries (nested inside <details class="logBlock">)
-       subgrid the same way, one level deeper: .logBlock is itself a
-       subgrid that relays the master tracks, and (once its
-       ::details-content wrapper is set to display: contents — see
-       cts-log-viewer.js) its nested cts-log-entry hosts are
-       display: contents too, so this .logItem is a direct grid item
-       of .logBlock and inherits the master columns through it. This
-       replaces the per-entry max-content grid that previously left
+       Block entries (nested inside <div class="logBlock">) subgrid
+       the same way, one level deeper: .logBlock is itself a subgrid
+       that relays the master tracks, and its nested cts-log-entry
+       hosts are display: contents too (see cts-log-viewer.js), so this
+       .logItem is a direct grid item of .logBlock and inherits the
+       master columns through it. (The block was once a <details>,
+       whose UA ::details-content wrapper had to be dissolved with
+       display: contents for the relay to propagate; de-collapsing it
+       to a <div> removed that wrapper, so no such hack is needed now.)
+       This replaces the per-entry max-content grid that previously left
        block rows ragged and misaligned with top-level rows. */
     .logEntries > cts-log-entry .logItem,
     .logBlock cts-log-entry .logItem {
