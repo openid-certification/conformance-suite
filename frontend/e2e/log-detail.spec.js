@@ -1127,29 +1127,9 @@ test.describe("log-detail.html — new Lit-triad page", () => {
     await expect(entry).toBeVisible();
   });
 
-  test("U6: chip click copies the deep URL; right-click copies plain LOG-NNNN", async ({
+  test("timestamp deep-link: anchor carries the canonical URL and click sets the hash", async ({
     page,
   }) => {
-    // Spy on navigator.clipboard.writeText so the test does not need
-    // real OS-level clipboard permissions inside Playwright's chromium.
-    await page.addInitScript(() => {
-      window.__copiedText = null;
-      const original = navigator.clipboard?.writeText?.bind(navigator.clipboard);
-      if (navigator.clipboard) {
-        navigator.clipboard.writeText = (text) => {
-          window.__copiedText = text;
-          if (original) {
-            try {
-              return original(text);
-            } catch {
-              return Promise.resolve();
-            }
-          }
-          return Promise.resolve();
-        };
-      }
-    });
-
     await setupFailFast(page);
     await setupV2Routes(page, {
       testInfo: MOCK_TEST_STATUS,
@@ -1159,33 +1139,27 @@ test.describe("log-detail.html — new Lit-triad page", () => {
 
     await page.goto(`/log-detail.html?log=${encodeURIComponent(MOCK_TEST_STATUS.testId)}`);
 
-    // Wait for the entries to render with their reference chips. cts-log-entry
-    // renders the chip twice (.logIdRow for narrow layouts, .logIdInline for
-    // wide), CSS-hiding whichever doesn't match the container width. Scope
-    // the locator to the visible instance via :visible so the click targets
-    // a real tap target at the test viewport (1280px = wide path).
-    const chip = page.locator('cts-log-entry [data-testid="log-entry-id-chip"]:visible').first();
-    await expect(chip).toBeAttached();
-    // The chip's label is the canonical LOG-NNNN reference.
-    await expect(chip).toContainText(/LOG-\d{4}/);
+    // The timestamp doubles as the entry's citation handle: a deep-link
+    // anchor (the LOG-NNNN copy chip was retired from the log stream).
+    const link = page.locator("cts-log-entry a.logTimeLink").first();
+    await expect(link).toBeVisible();
 
-    // Left-click → deep URL on the clipboard.
-    await chip.click();
-    await expect
-      .poll(async () => page.evaluate(() => window.__copiedText), { timeout: 2000 })
-      .toMatch(/log-detail\.html\?log=.+#LOG-\d{4}$/);
+    // The href is a relative fragment; the browser's "Copy Link Address"
+    // resolves it against the current ?log=<testId> URL, yielding the
+    // canonical deep link. Assert the resolved absolute href is that link.
+    const resolved = await link.evaluate((el) => /** @type {HTMLAnchorElement} */ (el).href);
+    expect(resolved).toMatch(/log-detail\.html\?log=.+#LOG-\d{4}$/);
+    expect(resolved).toContain(`log=${MOCK_TEST_STATUS.testId}`);
 
-    const urlCopied = await page.evaluate(() => window.__copiedText);
-    expect(urlCopied).toContain(`log=${MOCK_TEST_STATUS.testId}`);
+    // The accessible name disambiguates same-second rows and carries the
+    // LOG reference that sighted users lose with the chip gone.
+    await expect(link).toHaveAttribute("aria-label", /LOG-\d{4}/);
 
-    // Right-click → plain LOG-NNNN on the clipboard.
-    await page.evaluate(() => {
-      window.__copiedText = null;
-    });
-    await chip.click({ button: "right" });
-    await expect
-      .poll(async () => page.evaluate(() => window.__copiedText), { timeout: 2000 })
-      .toMatch(/^LOG-\d{4}$/);
+    // Left-click performs in-page fragment navigation (no reload): the URL
+    // hash updates to this entry's reference.
+    const fragment = (await link.getAttribute("href")) || "";
+    await link.click();
+    await expect.poll(async () => page.evaluate(() => window.location.hash)).toBe(fragment);
   });
 
   test("U6: deep-URL hash scrolls the targeted entry into view below the sticky bar", async ({

@@ -4,7 +4,6 @@ import "./cts-badge.js";
 import "./cts-button.js";
 import "./cts-tooltip.js";
 import "./cts-time.js";
-import "./cts-log-entry-id.js";
 import { flashCopyConfirmed } from "../js/cts-copy-flash.js";
 import { loadSpecLinks, resolveSpecLink } from "../lib/spec-links.js";
 
@@ -254,7 +253,6 @@ const STYLE_TEXT = `
     grid-template-columns: 1fr auto;
     grid-template-areas:
       "metaRow metaRow"
-      "logId   logId"
       "body    actions"
       "footer  footer";
     gap: var(--space-2) var(--space-3);
@@ -263,10 +261,6 @@ const STYLE_TEXT = `
     /* Anchor for the .is-block ::before stripe so it lays over the row's
        left edge without pushing content inward. */
     position: relative;
-  }
-  cts-log-entry .logIdRow {
-    grid-area: logId;
-    min-width: 0;
   }
   cts-log-entry .logMetaRow {
     grid-area: metaRow;
@@ -301,6 +295,18 @@ const STYLE_TEXT = `
     background: var(--orange-400);
     pointer-events: none;
   }
+  /* Deep-link landing highlight. When the URL fragment targets this entry
+     (#LOG-NNNN matches the host id mirrored in willUpdate), wash the row
+     with the lightest brand tint so the user sees where they landed.
+     Persists while the fragment matches and clears automatically when the
+     user navigates to another entry — no JS. The (0,2,1) specificity beats
+     the is-fail/is-warn gradients (0,2,0) and the global .logItem:hover
+     repaint (0,2,0), so the highlight wins on failed rows and under the
+     cursor. */
+  cts-log-entry:target .logItem {
+    background: var(--orange-50);
+    transition: background var(--dur-1) var(--ease-standard);
+  }
 
   cts-log-entry .logTime {
     font-family: var(--font-mono);
@@ -310,6 +316,26 @@ const STYLE_TEXT = `
     /* Inter and the mono fall-back stack render proportional digits otherwise,
        which makes the colon column drift row-to-row in stacked log entries. */
     font-variant-numeric: tabular-nums;
+  }
+  /* cts-tooltip is a behaviour-only wrapper; collapse its inline box so the
+     timestamp anchor sits directly in the .logTime cell. */
+  cts-log-entry .logTime cts-tooltip {
+    display: contents;
+  }
+  /* The timestamp is the entry's deep-link handle. Keep it visually quiet —
+     inherits the muted .logTime colour, no resting underline — so it reads
+     as a timestamp first and a link on hover/focus. */
+  cts-log-entry .logTimeLink {
+    color: inherit;
+    text-decoration: none;
+    border-radius: var(--radius-1);
+  }
+  cts-log-entry .logTimeLink:hover {
+    text-decoration: underline;
+  }
+  cts-log-entry .logTimeLink:focus-visible {
+    outline: none;
+    box-shadow: var(--focus-ring);
   }
   cts-log-entry .logSeverity,
   cts-log-entry .logHttp {
@@ -342,16 +368,6 @@ const STYLE_TEXT = `
     font-size: var(--fs-12);
     margin-right: var(--space-2);
   }
-  /* U6: chip placement.
-     Default (small layout) shows the chip in its own grid row — see the
-     "logId" area in grid-template-areas above — and hides the inline
-     instance that lives inside .logBody. The wide @container rule
-     below inverts both visibilities so the chip reads inline next to
-     the source label on desktop. Two render positions, one visible at
-     a time, so a tap target is always present in the right place
-     without requiring container-query observation in JS. */
-  cts-log-entry .logIdInline { display: none; }
-  cts-log-entry .logIdRow cts-log-entry-id { display: inline-flex; }
   cts-log-entry .logBody code {
     background: var(--ink-50);
     padding: 1px 5px;
@@ -386,17 +402,22 @@ const STYLE_TEXT = `
     font-family: var(--font-mono);
     font-size: var(--fs-12);
     padding: 1px var(--space-2);
-    text-decoration: none;
+    text-decoration-line: none;
   }
   cts-log-entry a.logRequirement {
     color: var(--fg-link, var(--fg-muted));
     cursor: pointer;
+    /* Anchor variant opts back into the underline the base pill suppresses,
+       kept transparent at rest so the global \`a\` transition fades it in. */
+    text-decoration-line: underline;
+    text-underline-offset: 2px;
+    text-decoration-color: transparent;
   }
   cts-log-entry a.logRequirement:hover,
   cts-log-entry a.logRequirement:focus-visible {
     background: var(--bg-muted);
     color: var(--fg);
-    text-decoration: underline;
+    text-decoration-color: var(--link-decoration-color);
   }
   cts-log-entry .moreInfo {
     background: var(--ink-50);
@@ -516,13 +537,6 @@ const STYLE_TEXT = `
       grid-area: auto;
       grid-column: 4 / -1;
     }
-    /* U6: hide the small-layout row chip and reveal the inline one inside
-       .logBody (rendered between the source label and the message text). */
-    cts-log-entry .logIdRow { display: none; }
-    cts-log-entry .logIdInline {
-      display: inline-flex;
-      margin-right: var(--space-2);
-    }
   }
 `;
 
@@ -561,8 +575,8 @@ function ensureStylesInjected() {
  * (per spec)" / "Actual (received)") and rendered in expected → actual →
  * other order so users don't have to translate raw JSON keys to compare
  * what the spec required vs what the implementation produced. HTTP request
- * entries also expose a "cURL" copy button that writes a curl command to
- * the clipboard.
+ * entries also expose an icon-only copy button (accessible name "Copy as
+ * cURL") that writes a curl command to the clipboard.
  *
  * @property {object} entry - Log entry object from `/api/log/{testId}`; shape
  *   includes `_id`, `time`, `result`, `http`, `src`, `msg`, `upload`,
@@ -693,10 +707,10 @@ class CtsLogEntry extends LitElement {
         ? html`<cts-tooltip content="Copy as cURL" placement="top"
             ><cts-button
               class="curlBtn"
-              variant="secondary"
+              variant="ghost"
               size="xxs"
               icon="copy"
-              label="cURL"
+              aria-label="Copy as cURL"
               @cts-click=${this._copyCurl}
             ></cts-button
           ></cts-tooltip>`
@@ -793,30 +807,35 @@ class CtsLogEntry extends LitElement {
     if (isWarn) itemClasses.push("is-warn");
     if (entry.blockId) itemClasses.push("is-block");
 
-    // U6: the chip is rendered in two positions; CSS hides whichever one
-    // does not match the current container width. Both bind to the same
-    // referenceId/testId so a deep-URL click yields identical clipboard
-    // contents regardless of the visible layout.
-    const idChip = this.referenceId
-      ? html`<cts-log-entry-id
-          reference-id=${this.referenceId}
-          test-id=${this.testId}
-        ></cts-log-entry-id>`
-      : nothing;
+    // The timestamp doubles as this entry's citation handle: when the
+    // entry has a reference id it renders as a deep-link anchor
+    // (`#LOG-NNNN`). Left-click jumps to the entry; "Copy Link Address"
+    // resolves the fragment against the current `?log=<testId>` URL,
+    // yielding the same canonical deep link the retired LOG-NNNN chip used
+    // to build. The relative fragment keeps left-click a pure in-page
+    // navigation (no reload). aria-label carries the reference id so the
+    // accessible name stays unique across rows logged in the same second.
+    const time = html`<cts-time mode="time-of-day" value=${entry.time || ""}></cts-time>`;
+    const timeContent = this.referenceId
+      ? html`<cts-tooltip content="Link to this entry — right-click to copy" placement="top"
+          ><a
+            class="logTimeLink"
+            href="#${this.referenceId}"
+            aria-label="Link to log entry ${this.referenceId}"
+            >${time}</a
+          ></cts-tooltip
+        >`
+      : time;
 
     return html`
       <div class="${itemClasses.join(" ")}">
         <div class="logMetaRow">
-          <div class="logTime">
-            <cts-time mode="time-of-day" value=${entry.time || ""}></cts-time>
-          </div>
+          <div class="logTime">${timeContent}</div>
           <div class="logSeverity"> ${this._renderSeverityBadges()} </div>
           <div class="logHttp">${this._renderHttpBadge()}</div>
         </div>
-        ${this.referenceId ? html`<div class="logIdRow">${idChip}</div>` : nothing}
         <div class="logBody">
           ${entry.src ? html`<span class="logSrc">${entry.src}</span>` : nothing}
-          ${this.referenceId ? html`<span class="logIdInline">${idChip}</span>` : nothing}
           ${entry.msg ? html`<span>${entry.msg}</span>` : nothing}
         </div>
         <div class="logActions">${this._renderMoreButton()}</div>
