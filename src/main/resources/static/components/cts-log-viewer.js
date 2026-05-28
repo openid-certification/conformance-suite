@@ -334,14 +334,25 @@ class CtsLogViewer extends LitElement {
      * @type {Object.<string, string>}
      */
     this._references = Object.create(null);
-    // U6: tracks whether the initial-load #LOG-NNNN scroll has already run.
-    // Single-shot, so subsequent polls don't re-scroll the user every
-    // POLL_INTERVAL_MS while they read.
+    // Tracks whether the initial-load #LOG-NNNN scroll has SUCCEEDED. It
+    // flips true only once the target row was found and scrolled — so a
+    // hash pointing at an entry that arrives in a later poll keeps being
+    // retried on each fetch, then stops re-scrolling the reader once it
+    // has landed. (Earlier this flipped true on the first fetch regardless,
+    // which is why late-arriving targets never scrolled.)
     this._initialHashScrolled = false;
+    // Bound hashchange handler: drives the same scroll routine when the
+    // fragment changes after load (e.g. the user clicks an entry's
+    // timestamp deep-link). Stored so connected/disconnected add and remove
+    // the exact same reference.
+    this._onHashChange = () => this._scrollToHashIfPresent();
   }
 
   connectedCallback() {
     super.connectedCallback();
+    if (typeof window !== "undefined") {
+      window.addEventListener("hashchange", this._onHashChange);
+    }
     if (this.testId) this._fetchEntries();
   }
 
@@ -515,6 +526,9 @@ class CtsLogViewer extends LitElement {
 
   disconnectedCallback() {
     super.disconnectedCallback();
+    if (typeof window !== "undefined") {
+      window.removeEventListener("hashchange", this._onHashChange);
+    }
     if (this._pollTimer) {
       clearTimeout(this._pollTimer);
       this._pollTimer = null;
@@ -611,13 +625,18 @@ class CtsLogViewer extends LitElement {
           );
         });
       }
-      // U6: initial-load hash navigation — fires once after the first
-      // successful resolution that left rows in the DOM. queueMicrotask
-      // defers the lookup past Lit's pending update so getElementById
-      // sees the freshly-rendered host elements.
+      // Initial-load hash navigation — retried after every successful
+      // resolution that left rows in the DOM, until the target is actually
+      // found and scrolled. `updateComplete` defers the lookup past Lit's
+      // pending render so getElementById sees the freshly-committed host
+      // elements (which now carry their `id` from the entry template).
+      // Marking _initialHashScrolled only on success means a hash pointing
+      // at an entry that arrives in a later poll keeps retrying instead of
+      // giving up after the first fetch.
       if (succeeded && !this._initialHashScrolled && this._entries.length > 0) {
-        this._initialHashScrolled = true;
-        this.updateComplete.then(() => this._scrollToHashIfPresent());
+        this.updateComplete.then(() => {
+          if (this._scrollToHashIfPresent()) this._initialHashScrolled = true;
+        });
       }
       // Guard after the in-flight fetch resolves: if the element was removed
       // while we were awaiting, do NOT schedule another poll. Placing the check
@@ -630,20 +649,24 @@ class CtsLogViewer extends LitElement {
   }
 
   /**
-   * Initial-load hash scroll. Reads `window.location.hash`; when it
-   * matches `^#LOG-\d+$`, opens any collapsed `<details>` ancestor of
-   * the matching entry (U5's per-block aggregation) before scrolling
-   * the entry into view. Honours the entry's `scroll-margin-top` so
-   * the row lands below the sticky status bar (U2). No-ops gracefully
-   * when the hash points at an out-of-range ordinal (e.g. `#LOG-9999`
-   * on a 50-entry test).
+   * Scroll the entry named by `window.location.hash` into view. Used both
+   * for initial-load navigation and for in-page fragment changes (the
+   * `hashchange` listener fires when the user clicks an entry's timestamp
+   * deep-link). When the hash matches `^#LOG-\d+$`, opens any collapsed
+   * `<details>` ancestor of the matching entry (U5's per-block aggregation)
+   * before scrolling. Honours the entry's `scroll-margin-top` so the row
+   * lands below the sticky status bar (U2). No-ops gracefully when the hash
+   * is absent, malformed, or points at an out-of-range ordinal (e.g.
+   * `#LOG-9999` on a 50-entry test) — in which case it returns `false` so
+   * the caller knows the target was not reached and can retry later.
+   * @returns {boolean} `true` when the target was found and scrolled; `false` otherwise.
    */
   _scrollToHashIfPresent() {
-    if (typeof window === "undefined") return;
+    if (typeof window === "undefined") return false;
     const hash = window.location.hash;
-    if (!/^#LOG-\d+$/.test(hash)) return;
+    if (!/^#LOG-\d+$/.test(hash)) return false;
     const target = document.getElementById(hash.slice(1));
-    if (!target) return;
+    if (!target) return false;
     let parent = target.parentElement;
     while (parent) {
       if (parent.tagName === "DETAILS") {
@@ -652,6 +675,7 @@ class CtsLogViewer extends LitElement {
       parent = parent.parentElement;
     }
     target.scrollIntoView({ behavior: "smooth", block: "start" });
+    return true;
   }
 
   /**
@@ -776,11 +800,18 @@ class CtsLogViewer extends LitElement {
       }
       const referenceId = (entry && entry._id && this._references[entry._id]) || "";
       blockChildren.push(
+        // Set the host `id` here (in addition to cts-log-entry's own
+        // willUpdate mirror, which covers standalone use) so the fragment
+        // target exists the moment the viewer's render commits — before the
+        // child entries flush their own update cycle. Without this, the
+        // post-fetch hash scroll could run while the child id is still
+        // unwritten and silently find nothing.
         html`<cts-log-entry
           .entry=${entry}
           .referenceId=${referenceId}
           .testId=${this.testId}
           data-entry-id=${entry._id}
+          id=${referenceId || nothing}
         ></cts-log-entry>`,
       );
     }
