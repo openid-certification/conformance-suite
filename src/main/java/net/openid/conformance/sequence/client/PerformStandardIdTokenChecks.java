@@ -38,7 +38,7 @@ public class PerformStandardIdTokenChecks extends AbstractConditionSequence {
 			.skipIfElementMissing("id_token", "jwe_header")
 			.onFail(Condition.ConditionResult.FAILURE)
 			.onSkip(Condition.ConditionResult.INFO)
-			.requirements("OIDCC-10.2", "OIDC-10.2.1")
+			.requirements("OIDCC-10.2", "OIDCC-10.2.1")
 			.dontStopOnFailure()
 		);
 	}
