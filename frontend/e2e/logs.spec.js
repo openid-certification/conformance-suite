@@ -300,22 +300,24 @@ test.describe("logs.html — Logs List", () => {
   });
 });
 
-test.describe("logs.html — Faceted filter chips and URL sync", () => {
+test.describe("logs.html — Faceted filter dropdown and URL sync", () => {
   test.afterEach(async ({ page }) => {
     expectNoUnmockedCalls(page);
   });
 
-  test("?status=running,waiting boots with chips pre-selected (R9)", async ({ page }) => {
+  test("?status=running,waiting boots with options pre-checked (R9)", async ({ page }) => {
     await setupFailFast(page);
     await setupLogListRoute(page);
     await setupCommonRoutes(page);
 
     await page.goto("/logs.html?status=running,waiting");
 
-    const runningChip = page.locator('#logsListing .cts-log-filter-chip[data-status="RUNNING"]');
-    const waitingChip = page.locator('#logsListing .cts-log-filter-chip[data-status="WAITING"]');
-    await expect(runningChip).toHaveAttribute("aria-pressed", "true");
-    await expect(waitingChip).toHaveAttribute("aria-pressed", "true");
+    // Open the filter dropdown; the two status options boot checked.
+    await page.locator('#logsListing [data-testid="log-filter-trigger"]').click();
+    const runningOption = page.locator('#logsListing input[data-status="RUNNING"]');
+    const waitingOption = page.locator('#logsListing input[data-status="WAITING"]');
+    await expect(runningOption).toBeChecked();
+    await expect(waitingOption).toBeChecked();
 
     // Only RUNNING + WAITING rows render.
     await expect(page.locator('#logsListing [data-testid="log-list-item"]')).toHaveCount(2);
@@ -359,7 +361,7 @@ test.describe("logs.html — Faceted filter chips and URL sync", () => {
     await expect(page.locator("#logsListing")).toContainText("vci-failed");
   });
 
-  test("activating a status chip writes ?status= to the URL", async ({ page }) => {
+  test("checking a status option writes ?status= to the URL", async ({ page }) => {
     await setupFailFast(page);
     await setupLogListRoute(page);
     await setupCommonRoutes(page);
@@ -368,15 +370,16 @@ test.describe("logs.html — Faceted filter chips and URL sync", () => {
 
     await expect(page.locator('#logsListing [data-testid="log-list-item"]').first()).toBeVisible();
 
-    const runningChip = page.locator('#logsListing .cts-log-filter-chip[data-status="RUNNING"]');
-    await runningChip.click();
+    await page.locator('#logsListing [data-testid="log-filter-trigger"]').click();
+    const runningOption = page.locator('#logsListing input[data-status="RUNNING"]');
+    await runningOption.check();
 
     // Wait for URL to update via history.replaceState.
     await page.waitForFunction(() => window.location.search.includes("status=running"));
     expect(page.url()).toContain("status=running");
 
     // Toggle it off — URL param disappears.
-    await runningChip.click();
+    await runningOption.uncheck();
     await page.waitForFunction(() => !window.location.search.includes("status="));
     expect(page.url()).not.toContain("status=");
   });
@@ -453,7 +456,7 @@ test.describe("logs.html — Faceted filter chips and URL sync", () => {
 
     await page.goto("/logs.html?status=running,bogus");
 
-    // "bogus" was dropped — only RUNNING is pressed and 1 row matches.
+    // "bogus" was dropped — only RUNNING is active and 1 row matches.
     const summary = page.locator('#logsListing [data-testid="active-filter-summary"]');
     await expect(summary).toContainText("Status: running");
     await expect(page.locator('#logsListing [data-testid="log-list-item"]')).toHaveCount(1);

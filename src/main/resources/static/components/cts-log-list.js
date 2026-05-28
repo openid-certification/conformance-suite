@@ -1,5 +1,6 @@
 import { LitElement, html, nothing } from "lit";
 import { repeat } from "lit/directives/repeat.js";
+import { ifDefined } from "lit/directives/if-defined.js";
 import "./cts-badge.js";
 import "./cts-button.js";
 import "./cts-icon.js";
@@ -86,27 +87,44 @@ const STYLE_TEXT = `
     align-items: center;
     margin-bottom: var(--space-4);
   }
+  /* Search input + filter trigger share a single bordered envelope so they
+     read as one segmented control. The envelope owns the border, radius, and
+     focus ring (via :focus-within); the children render borderless inside it. */
+  .cts-log-list-searchbar {
+    display: flex;
+    align-items: stretch;
+    flex: 1 1 320px;
+    min-width: 260px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-2);
+  }
+  .cts-log-list-searchbar:focus-within {
+    border-color: var(--border-strong);
+    box-shadow: var(--focus-ring);
+  }
   .cts-log-list-search {
     position: relative;
-    flex: 1 1 280px;
-    min-width: 220px;
+    display: flex;
+    align-items: center;
+    flex: 1 1 auto;
+    min-width: 0;
   }
   .cts-log-list-search input {
     width: 100%;
     box-sizing: border-box;
     padding: var(--space-2) var(--space-3) var(--space-2) calc(var(--space-3) + var(--space-5));
-    background: var(--bg);
+    background: transparent;
     color: var(--fg);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-2);
+    border: none;
+    border-radius: var(--radius-2) 0 0 var(--radius-2);
     font-family: var(--font-sans);
     font-size: var(--fs-14);
     line-height: var(--lh-snug);
   }
   .cts-log-list-search input:focus {
+    /* The envelope's :focus-within already paints the ring. */
     outline: none;
-    border-color: var(--border-strong);
-    box-shadow: var(--focus-ring);
   }
   .cts-log-list-search cts-icon {
     position: absolute;
@@ -115,6 +133,36 @@ const STYLE_TEXT = `
     transform: translateY(-50%);
     color: var(--fg-soft);
     pointer-events: none;
+  }
+  /* Filter trigger — the right-hand segment of the searchbar. A 1px left
+     divider is the seam between it and the search field. */
+  .cts-log-filter-trigger {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    flex: 0 0 auto;
+    padding: var(--space-2) var(--space-3);
+    background: transparent;
+    color: var(--fg);
+    border: none;
+    border-left: 1px solid var(--border);
+    border-radius: 0 calc(var(--radius-2) - 1px) calc(var(--radius-2) - 1px) 0;
+    font-family: var(--font-sans);
+    font-size: var(--fs-14);
+    line-height: var(--lh-snug);
+    white-space: nowrap;
+    cursor: pointer;
+    transition: background var(--dur-1) var(--ease-standard);
+  }
+  .cts-log-filter-trigger:hover {
+    background: var(--bg-elev);
+  }
+  .cts-log-filter-trigger:focus-visible {
+    outline: none;
+    box-shadow: var(--focus-ring);
+  }
+  .cts-log-filter-trigger[aria-expanded="true"] {
+    background: var(--bg-elev);
   }
   .cts-log-list-sort {
     display: inline-flex;
@@ -146,47 +194,82 @@ const STYLE_TEXT = `
     border-color: var(--orange-400);
     box-shadow: var(--focus-ring);
   }
-  .cts-log-filter-group {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: var(--space-2);
-    margin-bottom: var(--space-3);
-  }
-  .cts-log-filter-group-label {
-    font-size: var(--fs-13);
-    color: var(--fg-soft);
-    font-weight: var(--fw-medium);
-    margin-right: var(--space-1);
-  }
-  .cts-log-filter-chip {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--space-1);
-    padding: var(--space-1) var(--space-3);
-    background: transparent;
+  /* The dropdown panel. Rendered in the top layer via the HTML Popover API,
+     so it needs no z-index dance; position is set imperatively in
+     _positionFilterPanel() against the searchbar's bounding rect. The closed
+     state is the UA default display:none — the open state inherits these
+     rules. Mirrors the surface treatment of cts-action-overflow's popover. */
+  .cts-log-filter-panel {
+    margin: 0;
+    padding: var(--space-3);
+    background: var(--bg-elev);
     color: var(--fg);
     border: 1px solid var(--border);
-    border-radius: var(--radius-pill);
+    border-radius: var(--radius-3);
+    box-shadow: var(--shadow-3);
+    font-size: var(--fs-14);
+    min-width: 260px;
+    position: fixed;
+    inset: auto;
+  }
+  .cts-log-filter-panel fieldset {
+    margin: 0;
+    padding: 0;
+    border: none;
+  }
+  .cts-log-filter-panel fieldset + fieldset {
+    margin-top: var(--space-3);
+  }
+  .cts-log-filter-panel legend {
+    padding: 0;
+    margin-bottom: var(--space-2);
+    font-size: var(--fs-13);
+    font-weight: var(--fw-medium);
+    color: var(--fg-soft);
+  }
+  .cts-log-filter-options {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+  }
+  .cts-log-filter-option {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-1) var(--space-2);
+    border-radius: var(--radius-2);
+    cursor: pointer;
+  }
+  .cts-log-filter-option:hover {
+    background: var(--bg);
+  }
+  .cts-log-filter-option input {
+    accent-color: var(--orange-400);
+    cursor: pointer;
+  }
+  .cts-log-filter-panel-footer {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: var(--space-3);
+    padding-top: var(--space-2);
+    border-top: 1px solid var(--border);
+  }
+  .cts-log-filter-clear {
+    padding: var(--space-1) var(--space-2);
+    background: transparent;
+    color: var(--fg-link);
+    border: none;
+    border-radius: var(--radius-2);
     font-family: var(--font-sans);
     font-size: var(--fs-13);
-    line-height: var(--lh-snug);
     cursor: pointer;
-    transition: border-color var(--dur-1) var(--ease-standard),
-                background var(--dur-1) var(--ease-standard);
   }
-  .cts-log-filter-chip:hover {
-    border-color: var(--border-strong);
+  .cts-log-filter-clear:hover {
+    text-decoration: underline;
   }
-  .cts-log-filter-chip:focus-visible {
+  .cts-log-filter-clear:focus-visible {
     outline: none;
     box-shadow: var(--focus-ring);
-  }
-  .cts-log-filter-chip[aria-pressed="true"] {
-    background: var(--bg-elev);
-    border-color: var(--border-strong);
-    color: var(--fg);
-    font-weight: var(--fw-medium);
   }
   .cts-log-active-summary {
     display: inline-flex;
@@ -449,6 +532,28 @@ function ensureStylesInjected() {
   document.head.appendChild(style);
 }
 
+// Per-instance ids tie the filter trigger to its popover panel via
+// aria-controls + popovertarget. Counters keep them unique when multiple
+// cts-log-list instances coexist (e.g. a Storybook docs page).
+let filterPanelIdCounter = 0;
+function nextFilterPanelId() {
+  filterPanelIdCounter += 1;
+  return `cts-log-filter-panel-${filterPanelIdCounter}`;
+}
+
+let filterTriggerIdCounter = 0;
+function nextFilterTriggerId() {
+  filterTriggerIdCounter += 1;
+  return `cts-log-filter-trigger-${filterTriggerIdCounter}`;
+}
+
+function popoverApiSupported() {
+  return (
+    typeof HTMLElement !== "undefined" &&
+    Object.prototype.hasOwnProperty.call(HTMLElement.prototype, "popover")
+  );
+}
+
 function parseFilterSet(raw, valid) {
   if (!raw) return new Set();
   const validSet = new Set(valid);
@@ -475,11 +580,16 @@ function formatVariant(variant) {
  * result badges, a metadata footer (variant, started, plan id, owner when
  * admin), and a "View configuration" icon button.
  *
- * Faceted filter chip groups (status + result) sit above the list, plus a
- * free-text search input and a sort selector. Filter chips sync to the
+ * A free-text search input and a faceted filter dropdown share one bordered
+ * "searchbar" container so they read as a single control; a sort selector
+ * sits alongside. The filter dropdown is a native HTML Popover (top layer,
+ * light-dismiss on outside-click + Escape) holding two checkbox groups —
+ * Status and Result — for multiselect faceting. Selections sync to the
  * `?status=` and `?result=` URL params via `history.replaceState`, so the
  * existing dashboard deep-link contract is preserved. Search and sort live
- * in component state and reset on reload.
+ * in component state and reset on reload. On browsers without the Popover
+ * API the trigger silently does nothing — the production audience runs
+ * current browsers (mirrors the cts-action-overflow constraint).
  *
  * The component fetches up to `MAX_FILTERED_LOGS = 1000` rows once via
  * `/api/log?length=1000` (matching `cts-dashboard`'s stats fetch) and runs
@@ -494,8 +604,9 @@ function formatVariant(variant) {
  *   and suppresses admin-only affordances (Owner pill, config button).
  *   Reflects the `is-public` attribute.
  * @fires cts-log-filter-change - Bubbles when the user toggles a status or
- *   result filter chip, or clears all filters. `detail: { status: string[],
- *   result: string[] }` carries the post-change selection sets as arrays.
+ *   result filter checkbox, or clears all filters. `detail: { status:
+ *   string[], result: string[] }` carries the post-change selection sets as
+ *   arrays.
  */
 class CtsLogList extends LitElement {
   static properties = {
@@ -513,6 +624,7 @@ class CtsLogList extends LitElement {
     _selectedConfig: { state: true },
     _selectedTestId: { state: true },
     _planNames: { state: true },
+    _filterOpen: { state: true },
   };
 
   createRenderRoot() {
@@ -535,6 +647,14 @@ class CtsLogList extends LitElement {
     this._visibleCount = PAGE_SIZE;
     this._selectedConfig = null;
     this._selectedTestId = "";
+    // Filter dropdown (HTML Popover API). Ids tie the trigger to the panel;
+    // `_supported` gates the ARIA + popovertarget wiring so we don't claim a
+    // popover exists on browsers that lack the API. `_filterOpen` mirrors the
+    // panel's :popover-open state for the trigger's aria-expanded.
+    this._filterPanelId = nextFilterPanelId();
+    this._filterTriggerId = nextFilterTriggerId();
+    this._popoverSupported = popoverApiSupported();
+    this._filterOpen = false;
     // Resolved `planName` per `planId` referenced in `_logs`. `/api/log` only
     // returns opaque plan ids, so each unique id is fetched via
     // `/api/plan/<id>` and the kebab-case `planName` cached here for the
@@ -553,13 +673,13 @@ class CtsLogList extends LitElement {
     // handlers need to retain this component as `this`.
     this._handleSearchInput = this._handleSearchInput.bind(this);
     this._handleSortChange = this._handleSortChange.bind(this);
-    this._handleStatusChipClick = this._handleStatusChipClick.bind(this);
-    this._handleResultChipClick = this._handleResultChipClick.bind(this);
+    this._handleStatusToggle = this._handleStatusToggle.bind(this);
+    this._handleResultToggle = this._handleResultToggle.bind(this);
     this._handleClearAllClick = this._handleClearAllClick.bind(this);
     this._handleConfigButtonClick = this._handleConfigButtonClick.bind(this);
     this._handleShowMoreClick = this._handleShowMoreClick.bind(this);
     this._handleCopyConfig = this._handleCopyConfig.bind(this);
-    this._handleChipGroupKeydown = this._handleChipGroupKeydown.bind(this);
+    this._handleFilterBeforeToggle = this._handleFilterBeforeToggle.bind(this);
   }
 
   connectedCallback() {
@@ -732,7 +852,7 @@ class CtsLogList extends LitElement {
     return next;
   }
 
-  _handleStatusChipClick(event) {
+  _handleStatusToggle(event) {
     const value = event.currentTarget.dataset.status;
     if (!value) return;
     this._statusFilter = this._toggleSetMember(this._statusFilter, value);
@@ -740,7 +860,7 @@ class CtsLogList extends LitElement {
     this._writeUrl();
   }
 
-  _handleResultChipClick(event) {
+  _handleResultToggle(event) {
     const value = event.currentTarget.dataset.result;
     if (!value) return;
     this._resultFilter = this._toggleSetMember(this._resultFilter, value);
@@ -755,8 +875,11 @@ class CtsLogList extends LitElement {
     this._searchText = "";
     this._resetPagination();
     this._writeUrl();
+    // Clearing from inside the panel closes it; clearing from the summary
+    // button is a no-op here (the panel is already closed).
+    this._hideFilterPanel();
     // Restore focus to the search input so keyboard users have a natural
-    // landing point after dismissing the summary.
+    // landing point after dismissing the summary or panel.
     this.updateComplete.then(() => {
       const search = /** @type {HTMLInputElement | null} */ (
         this.querySelector(".cts-log-list-search input")
@@ -765,15 +888,42 @@ class CtsLogList extends LitElement {
     });
   }
 
-  _handleChipGroupKeydown(event) {
-    if (event.key !== "ArrowRight" && event.key !== "ArrowLeft") return;
-    const chips = Array.from(event.currentTarget.querySelectorAll(".cts-log-filter-chip"));
-    const current = chips.indexOf(document.activeElement);
-    if (current === -1) return;
-    event.preventDefault();
-    const dir = event.key === "ArrowRight" ? 1 : -1;
-    const nextIndex = (current + dir + chips.length) % chips.length;
-    chips[nextIndex].focus();
+  // beforetoggle fires before the visual state change. Use it to position the
+  // top-layer panel against the searchbar's current rect (pre-paint) and to
+  // mirror the open state into the trigger's aria-expanded synchronously.
+  _handleFilterBeforeToggle(event) {
+    if (event.newState === "open") {
+      this._positionFilterPanel();
+    }
+    this._filterOpen = event.newState === "open";
+  }
+
+  _positionFilterPanel() {
+    // Anchor the panel under the searchbar's left edge so it reads as an
+    // extension of the search field. The Popover API renders in the top
+    // layer, so position:fixed offsets are viewport-relative and flow above
+    // any sticky/transformed ancestor.
+    const anchor =
+      this.querySelector(".cts-log-list-searchbar") ||
+      this.querySelector(".cts-log-filter-trigger");
+    const panel = /** @type {HTMLElement | null} */ (this.querySelector(".cts-log-filter-panel"));
+    if (!anchor || !panel) return;
+    const rect = anchor.getBoundingClientRect();
+    panel.style.top = `${Math.round(rect.bottom + 4)}px`;
+    panel.style.left = `${Math.max(8, Math.round(rect.left))}px`;
+  }
+
+  _hideFilterPanel() {
+    const panel = /** @type {(HTMLElement & { hidePopover?: () => void }) | null} */ (
+      this.querySelector(".cts-log-filter-panel")
+    );
+    if (panel && typeof panel.hidePopover === "function") {
+      try {
+        panel.hidePopover();
+      } catch {
+        // Ignore — already hidden, or the API is unavailable.
+      }
+    }
   }
 
   _handleShowMoreClick() {
@@ -853,16 +1003,19 @@ class CtsLogList extends LitElement {
   _renderSearchAndSort() {
     return html`
       <div class="cts-log-list-toolbar">
-        <label class="cts-log-list-search">
-          <cts-icon name="search-magnifying-glass" size="16" aria-hidden="true"></cts-icon>
-          <input
-            type="search"
-            aria-label="Search logs"
-            placeholder="Search logs"
-            .value=${this._searchText}
-            @input=${this._handleSearchInput}
-          />
-        </label>
+        <div class="cts-log-list-searchbar">
+          <label class="cts-log-list-search">
+            <cts-icon name="search-magnifying-glass" size="16" aria-hidden="true"></cts-icon>
+            <input
+              type="search"
+              aria-label="Search logs"
+              placeholder="Search logs"
+              .value=${this._searchText}
+              @input=${this._handleSearchInput}
+            />
+          </label>
+          ${this._renderFilterDropdown()}
+        </div>
         <label class="cts-log-list-sort">
           <span>Sort</span>
           <select aria-label="Sort logs" .value=${this._sortKey} @change=${this._handleSortChange}>
@@ -876,47 +1029,73 @@ class CtsLogList extends LitElement {
     `;
   }
 
-  _renderFilterRow() {
-    const statusChip = (value) => html`
-      <button
-        type="button"
-        class="cts-log-filter-chip"
-        data-status="${value}"
-        aria-pressed="${this._statusFilter.has(value)}"
-        @click=${this._handleStatusChipClick}
-      >
-        ${value.toLowerCase()}
-      </button>
+  _renderFilterDropdown() {
+    const activeCount = this._statusFilter.size + this._resultFilter.size;
+    // Gate the ARIA + popovertarget wiring on Popover support so we don't
+    // advertise a panel the browser will never open.
+    const ariaControls = this._popoverSupported ? this._filterPanelId : undefined;
+    const ariaExpanded = this._popoverSupported ? (this._filterOpen ? "true" : "false") : undefined;
+    const popoverTarget = this._popoverSupported ? this._filterPanelId : undefined;
+    const statusOption = (value) => html`
+      <label class="cts-log-filter-option">
+        <input
+          type="checkbox"
+          data-status="${value}"
+          .checked=${this._statusFilter.has(value)}
+          @change=${this._handleStatusToggle}
+        />
+        <span>${value.toLowerCase()}</span>
+      </label>
     `;
-    const resultChip = (value) => html`
-      <button
-        type="button"
-        class="cts-log-filter-chip"
-        data-result="${value}"
-        aria-pressed="${this._resultFilter.has(value)}"
-        @click=${this._handleResultChipClick}
-      >
-        ${value.toLowerCase()}
-      </button>
+    const resultOption = (value) => html`
+      <label class="cts-log-filter-option">
+        <input
+          type="checkbox"
+          data-result="${value}"
+          .checked=${this._resultFilter.has(value)}
+          @change=${this._handleResultToggle}
+        />
+        <span>${value.toLowerCase()}</span>
+      </label>
     `;
     return html`
-      <div
-        class="cts-log-filter-group"
-        role="group"
-        aria-label="Filter by status"
-        @keydown=${this._handleChipGroupKeydown}
+      <button
+        id="${this._filterTriggerId}"
+        type="button"
+        class="cts-log-filter-trigger"
+        data-testid="log-filter-trigger"
+        aria-controls="${ifDefined(ariaControls)}"
+        aria-expanded="${ifDefined(ariaExpanded)}"
+        popovertarget="${ifDefined(popoverTarget)}"
       >
-        <span class="cts-log-filter-group-label">Status</span>
-        ${STATUS_FILTER_CHIPS.map(statusChip)}
-      </div>
+        <cts-icon name="filter" size="16" aria-hidden="true"></cts-icon>
+        <span>Filter</span>
+        ${activeCount > 0
+          ? html`<cts-badge variant="primary" count="${activeCount}"></cts-badge>`
+          : nothing}
+        <cts-icon name="chevron-down" size="16" aria-hidden="true"></cts-icon>
+      </button>
       <div
-        class="cts-log-filter-group"
-        role="group"
-        aria-label="Filter by result"
-        @keydown=${this._handleChipGroupKeydown}
+        id="${this._filterPanelId}"
+        class="cts-log-filter-panel"
+        popover="auto"
+        aria-label="Filter logs"
+        data-testid="log-filter-panel"
+        @beforetoggle=${this._handleFilterBeforeToggle}
       >
-        <span class="cts-log-filter-group-label">Result</span>
-        ${RESULT_FILTER_CHIPS.map(resultChip)}
+        <fieldset>
+          <legend>Status</legend>
+          <div class="cts-log-filter-options">${STATUS_FILTER_CHIPS.map(statusOption)}</div>
+        </fieldset>
+        <fieldset>
+          <legend>Result</legend>
+          <div class="cts-log-filter-options">${RESULT_FILTER_CHIPS.map(resultOption)}</div>
+        </fieldset>
+        <div class="cts-log-filter-panel-footer">
+          <button type="button" class="cts-log-filter-clear" @click=${this._handleClearAllClick}>
+            Clear all
+          </button>
+        </div>
       </div>
     `;
   }
@@ -1173,14 +1352,10 @@ class CtsLogList extends LitElement {
 
   render() {
     if (this._loading) {
-      return html`
-        ${this._renderSearchAndSort()} ${this._renderFilterRow()} ${this._renderLoading()}
-      `;
+      return html` ${this._renderSearchAndSort()} ${this._renderLoading()} `;
     }
     if (this._error) {
-      return html`
-        ${this._renderSearchAndSort()} ${this._renderFilterRow()} ${this._renderError()}
-      `;
+      return html` ${this._renderSearchAndSort()} ${this._renderError()} `;
     }
     const filtered = this._filteredLogs();
     const searched = this._searchedLogs(filtered);
@@ -1194,8 +1369,7 @@ class CtsLogList extends LitElement {
     const empty = sorted.length === 0;
 
     return html`
-      ${this._renderSearchAndSort()} ${this._renderFilterRow()}
-      ${this._renderActiveFilterSummary(sorted.length)}
+      ${this._renderSearchAndSort()} ${this._renderActiveFilterSummary(sorted.length)}
       ${empty
         ? this._renderEmpty(hasFilter)
         : html`
