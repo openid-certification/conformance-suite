@@ -117,7 +117,7 @@ const STYLE_TEXT = `
     background: transparent;
     color: var(--fg);
     border: none;
-    border-radius: var(--radius-2) 0 0 var(--radius-2);
+    border-radius: 0 var(--radius-2) var(--radius-2) 0;
     font-family: var(--font-sans);
     font-size: var(--fs-14);
     line-height: var(--lh-snug);
@@ -134,8 +134,9 @@ const STYLE_TEXT = `
     color: var(--fg-soft);
     pointer-events: none;
   }
-  /* Filter trigger — the right-hand segment of the searchbar. A 1px left
-     divider is the seam between it and the search field. */
+  /* Filter trigger — the left-hand segment of the searchbar. A 1px right
+     divider is the seam between it and the search field; the dropdown panel
+     anchors to this button. */
   .cts-log-filter-trigger {
     display: inline-flex;
     align-items: center;
@@ -145,8 +146,8 @@ const STYLE_TEXT = `
     background: transparent;
     color: var(--fg);
     border: none;
-    border-left: 1px solid var(--border);
-    border-radius: 0 calc(var(--radius-2) - 1px) calc(var(--radius-2) - 1px) 0;
+    border-right: 1px solid var(--border);
+    border-radius: calc(var(--radius-2) - 1px) 0 0 calc(var(--radius-2) - 1px);
     font-family: var(--font-sans);
     font-size: var(--fs-14);
     line-height: var(--lh-snug);
@@ -196,9 +197,10 @@ const STYLE_TEXT = `
   }
   /* The dropdown panel. Rendered in the top layer via the HTML Popover API,
      so it needs no z-index dance; position is set imperatively in
-     _positionFilterPanel() against the searchbar's bounding rect. The closed
-     state is the UA default display:none — the open state inherits these
-     rules. Mirrors the surface treatment of cts-action-overflow's popover. */
+     _positionFilterPanel() against the filter trigger's bounding rect. The
+     closed state is the UA default display:none — the open state inherits
+     these rules. Mirrors the surface treatment of cts-action-overflow's
+     popover. */
   .cts-log-filter-panel {
     margin: 0;
     padding: var(--space-3);
@@ -243,9 +245,25 @@ const STYLE_TEXT = `
   .cts-log-filter-option:hover {
     background: var(--bg);
   }
+  /* Checkbox treatment mirrors cts-form-field's .oidf-checkbox so form
+     controls look identical across the suite (size, accent, focus ring). */
   .cts-log-filter-option input {
-    accent-color: var(--orange-400);
+    width: var(--space-4);
+    height: var(--space-4);
+    margin: 0;
+    accent-color: var(--orange-500);
     cursor: pointer;
+  }
+  .cts-log-filter-option input:focus-visible {
+    outline: none;
+    box-shadow: var(--focus-ring);
+    border-radius: var(--radius-1);
+  }
+  .cts-log-filter-option span {
+    font-family: var(--font-sans);
+    font-size: var(--fs-13);
+    line-height: var(--lh-snug);
+    color: var(--fg);
   }
   .cts-log-filter-panel-footer {
     display: flex;
@@ -532,19 +550,13 @@ function ensureStylesInjected() {
   document.head.appendChild(style);
 }
 
-// Per-instance ids tie the filter trigger to its popover panel via
-// aria-controls + popovertarget. Counters keep them unique when multiple
+// Per-instance id ties the filter trigger to its popover panel via
+// aria-controls + popovertarget. The counter keeps it unique when multiple
 // cts-log-list instances coexist (e.g. a Storybook docs page).
 let filterPanelIdCounter = 0;
 function nextFilterPanelId() {
   filterPanelIdCounter += 1;
   return `cts-log-filter-panel-${filterPanelIdCounter}`;
-}
-
-let filterTriggerIdCounter = 0;
-function nextFilterTriggerId() {
-  filterTriggerIdCounter += 1;
-  return `cts-log-filter-trigger-${filterTriggerIdCounter}`;
 }
 
 function popoverApiSupported() {
@@ -652,7 +664,6 @@ class CtsLogList extends LitElement {
     // popover exists on browsers that lack the API. `_filterOpen` mirrors the
     // panel's :popover-open state for the trigger's aria-expanded.
     this._filterPanelId = nextFilterPanelId();
-    this._filterTriggerId = nextFilterTriggerId();
     this._popoverSupported = popoverApiSupported();
     this._filterOpen = false;
     // Resolved `planName` per `planId` referenced in `_logs`. `/api/log` only
@@ -686,6 +697,14 @@ class CtsLogList extends LitElement {
     super.connectedCallback();
     this._hydrateFromUrl();
     this._fetchLogs();
+  }
+
+  disconnectedCallback() {
+    super.disconnectedCallback();
+    // The browser evicts an open popover from the top layer without firing
+    // `beforetoggle` when the host is removed, so the mirror would otherwise
+    // stay stuck. Reset it so a re-attached host renders aria-expanded=false.
+    this._filterOpen = false;
   }
 
   _hydrateFromUrl() {
@@ -889,7 +908,7 @@ class CtsLogList extends LitElement {
   }
 
   // beforetoggle fires before the visual state change. Use it to position the
-  // top-layer panel against the searchbar's current rect (pre-paint) and to
+  // top-layer panel against the trigger's current rect (pre-paint) and to
   // mirror the open state into the trigger's aria-expanded synchronously.
   _handleFilterBeforeToggle(event) {
     if (event.newState === "open") {
@@ -899,16 +918,15 @@ class CtsLogList extends LitElement {
   }
 
   _positionFilterPanel() {
-    // Anchor the panel under the searchbar's left edge so it reads as an
-    // extension of the search field. The Popover API renders in the top
-    // layer, so position:fixed offsets are viewport-relative and flow above
-    // any sticky/transformed ancestor.
-    const anchor =
-      this.querySelector(".cts-log-list-searchbar") ||
-      this.querySelector(".cts-log-filter-trigger");
+    // Anchor the panel under the filter trigger's left edge so the menu hangs
+    // directly off the button. The trigger is the left-hand segment of the
+    // searchbar, so this also aligns with the searchbar's left edge. The
+    // Popover API renders in the top layer, so position:fixed offsets are
+    // viewport-relative and flow above any sticky/transformed ancestor.
+    const trigger = this.querySelector(".cts-log-filter-trigger");
     const panel = /** @type {HTMLElement | null} */ (this.querySelector(".cts-log-filter-panel"));
-    if (!anchor || !panel) return;
-    const rect = anchor.getBoundingClientRect();
+    if (!trigger || !panel) return;
+    const rect = trigger.getBoundingClientRect();
     panel.style.top = `${Math.round(rect.bottom + 4)}px`;
     panel.style.left = `${Math.max(8, Math.round(rect.left))}px`;
   }
@@ -1004,6 +1022,7 @@ class CtsLogList extends LitElement {
     return html`
       <div class="cts-log-list-toolbar">
         <div class="cts-log-list-searchbar">
+          ${this._renderFilterDropdown()}
           <label class="cts-log-list-search">
             <cts-icon name="search-magnifying-glass" size="16" aria-hidden="true"></cts-icon>
             <input
@@ -1014,7 +1033,6 @@ class CtsLogList extends LitElement {
               @input=${this._handleSearchInput}
             />
           </label>
-          ${this._renderFilterDropdown()}
         </div>
         <label class="cts-log-list-sort">
           <span>Sort</span>
@@ -1031,11 +1049,14 @@ class CtsLogList extends LitElement {
 
   _renderFilterDropdown() {
     const activeCount = this._statusFilter.size + this._resultFilter.size;
-    // Gate the ARIA + popovertarget wiring on Popover support so we don't
-    // advertise a panel the browser will never open.
-    const ariaControls = this._popoverSupported ? this._filterPanelId : undefined;
+    // The trigger advertises and opens the panel only when the Popover API is
+    // present; aria-controls and popovertarget both point at the same id.
+    const panelId = this._popoverSupported ? this._filterPanelId : undefined;
     const ariaExpanded = this._popoverSupported ? (this._filterOpen ? "true" : "false") : undefined;
-    const popoverTarget = this._popoverSupported ? this._filterPanelId : undefined;
+    // Two closures rather than one shared helper: the data-status / data-result
+    // attribute name is part of each <input>'s tested + agent-facing contract,
+    // and Lit cannot interpolate attribute *names* (only values), so a single
+    // parameterised row is not expressible without breaking that contract.
     const statusOption = (value) => html`
       <label class="cts-log-filter-option">
         <input
@@ -1060,13 +1081,12 @@ class CtsLogList extends LitElement {
     `;
     return html`
       <button
-        id="${this._filterTriggerId}"
         type="button"
         class="cts-log-filter-trigger"
         data-testid="log-filter-trigger"
-        aria-controls="${ifDefined(ariaControls)}"
+        aria-controls="${ifDefined(panelId)}"
         aria-expanded="${ifDefined(ariaExpanded)}"
-        popovertarget="${ifDefined(popoverTarget)}"
+        popovertarget="${ifDefined(panelId)}"
       >
         <cts-icon name="filter" size="16" aria-hidden="true"></cts-icon>
         <span>Filter</span>
@@ -1351,11 +1371,20 @@ class CtsLogList extends LitElement {
   }
 
   render() {
+    // The toolbar (search + filter dropdown) is rendered once, outside the
+    // loading/error/loaded branch, so its node identity is stable. This keeps
+    // the popover panel from being torn out of the top layer mid-open when the
+    // fetch resolves and the body swaps from loading to the list — a branch
+    // swap would otherwise orphan an open popover and leave aria-expanded stuck.
+    return html` ${this._renderSearchAndSort()} ${this._renderBody()} `;
+  }
+
+  _renderBody() {
     if (this._loading) {
-      return html` ${this._renderSearchAndSort()} ${this._renderLoading()} `;
+      return this._renderLoading();
     }
     if (this._error) {
-      return html` ${this._renderSearchAndSort()} ${this._renderError()} `;
+      return this._renderError();
     }
     const filtered = this._filteredLogs();
     const searched = this._searchedLogs(filtered);
@@ -1369,7 +1398,7 @@ class CtsLogList extends LitElement {
     const empty = sorted.length === 0;
 
     return html`
-      ${this._renderSearchAndSort()} ${this._renderActiveFilterSummary(sorted.length)}
+      ${this._renderActiveFilterSummary(sorted.length)}
       ${empty
         ? this._renderEmpty(hasFilter)
         : html`
