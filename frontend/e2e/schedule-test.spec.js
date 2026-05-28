@@ -791,14 +791,15 @@ test.describe("schedule-test.html — Test Plan Scheduling", () => {
     await expect(page.locator("#createPlanBtn button")).toBeEnabled({ timeout: 5000 });
   });
 
-  test("click on a plan row smooth-scrolls #specCascade into view without stealing focus", async ({
+  test("click on a plan row smooth-scrolls #specCascade into view AND focuses the first variant select", async ({
     page,
   }) => {
     // The dead-click fix: with a long plan list, the cascade auto-fills
     // below the fold. Selecting a plan must scroll the cascade into view
-    // so the user can see what just happened and continue. Mouse clicks
-    // do NOT move focus into the cascade — that would surprise users who
-    // clicked the plan but want to scroll down to adjust variants.
+    // so the user can see what just happened and continue. Once the scroll
+    // settles, focus moves to the first variant <select> — on every
+    // selection, including this mouse-click path — so the user can carry
+    // straight on to configuring the plan.
     await setupFailFast(page);
 
     await page.route("**/api/plan/available", (route) =>
@@ -828,9 +829,12 @@ test.describe("schedule-test.html — Test Plan Scheduling", () => {
     const searchRows = page.locator("#planSearch .oidf-test-selector__row");
     await expect(searchRows.first()).toBeVisible();
 
-    await page.locator("#planSearch .oidf-test-selector__search").fill("Client: Basic");
+    // Pick a plan WITH variants so the post-scroll focus has a variant
+    // <select> to land on (the no-variant fallback is covered by the
+    // keyboard test below).
+    await page.locator("#planSearch .oidf-test-selector__search").fill("Core: Basic");
     const targetRow = page.locator(
-      '#planSearch [data-plan-name="oidcc-client-basic-certification-test-plan"]',
+      '#planSearch [data-plan-name="oidcc-basic-certification-test-plan"]',
     );
     await expect(targetRow).toBeVisible();
 
@@ -874,24 +878,33 @@ test.describe("schedule-test.html — Test Plan Scheduling", () => {
       )
       .toBe(true);
 
-    // Mouse-path: focus stays put. activeElement should not be a cascade
-    // <select> (which would be the keyboard-path landing zone).
-    const activeIsCascadeSelect = await page.evaluate(() => {
-      const active = document.activeElement;
-      const firstCascadeSelect = document.getElementById("specCascade")?.querySelector("select");
-      return active === firstCascadeSelect;
-    });
-    expect(activeIsCascadeSelect).toBe(false);
+    // Once the scroll settles, focus lands on the first <select> inside
+    // #variantSelectors so the user can keep configuring. The variant
+    // selectors render during plan selection; focus then moves in the
+    // post-scroll-settle callback, so poll for it.
+    await expect
+      .poll(
+        async () =>
+          page.evaluate(() => {
+            const active = document.activeElement;
+            const firstVariantSelect = document.querySelector("#variantSelectors select");
+            return !!firstVariantSelect && active === firstVariantSelect;
+          }),
+        { timeout: 3000 },
+      )
+      .toBe(true);
   });
 
-  test("keyboard selection (search → ArrowDown → Enter) scrolls AND focuses the first cascade select", async ({
+  test("keyboard selection on a no-variant plan scrolls AND falls back to focusing the first cascade select", async ({
     page,
   }) => {
-    // Mirror of the click path, but on the keyboard side: Enter on a
-    // focused row should both scroll the cascade into view AND land
-    // focus on the first <select> in the cascade so the user can keep
-    // keyboarding into the variants/config form without reaching for
-    // the mouse.
+    // The keyboard path runs the identical post-scroll-settle focus as the
+    // click test above. This case uses a plan with NO variants, so
+    // #variantSelectors is empty and focus falls back to the first <select>
+    // in the cascade — focus is never stranded, and the user can keep
+    // keyboarding forward into the config form without reaching for the
+    // mouse. (Plans WITH variants focus the first variant select instead —
+    // see the click test above.)
     await setupFailFast(page);
 
     await page.route("**/api/plan/available", (route) =>
@@ -952,8 +965,9 @@ test.describe("schedule-test.html — Test Plan Scheduling", () => {
       )
       .toBeLessThan(100);
 
-    // And focus lands on the first <select> inside #specCascade — the
-    // spec-family select — so Tab continues forward into variants/config.
+    // And focus falls back to the first <select> inside #specCascade — the
+    // spec-family select — because this plan has no variants, so Tab
+    // continues forward into the config form.
     await expect
       .poll(
         async () => {
