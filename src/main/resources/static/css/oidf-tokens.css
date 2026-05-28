@@ -159,6 +159,23 @@
   --status-info-bg:     #E5EEF5;
   --status-info-border: #B6CCDF;
 
+  /* ---- Badge affordance ring (Radix-style alpha border) ----
+     One warm-tinted-grey overlay, drawn as an inset box-shadow on top of
+     a badge's fill. Because it is semi-transparent it composites with
+     whatever fill sits beneath — result = (1−α)·fill + α·ink — yielding a
+     1px border in that fill's OWN hue. So a single ring scales across
+     every status/utility variant instead of a per-variant border color
+     (a green badge gets a green-grey edge, a rust badge a rust-grey edge).
+     Base hue is --ink-900 (warm near-black, 26 22 17) — the same anchor
+     as the elevation shadows above — so the edge reads as a cohesive,
+     slightly desaturated warm tint rather than a hue that fights the fill.
+     Alpha escalates with interaction weight: a visual-only affordance hint
+     (a badge inside an undecorated link) is lightest; a true click target
+     is stronger; an active toggle is strongest. */
+  --badge-ring:           color-mix(in srgb, var(--ink-900) 16%, transparent);
+  --badge-ring-clickable: color-mix(in srgb, var(--ink-900) 24%, transparent);
+  --badge-ring-pressed:   color-mix(in srgb, var(--ink-900) 34%, transparent);
+
   /* ---- Focus ring ---- */
   --focus-ring: 0 0 0 3px rgba(235, 139, 53, 0.35);
 

@@ -12,7 +12,10 @@ import "./cts-icon.js";
  *     Set via `interactive` (visual only) or `clickable` (visual +
  *     `role="button"` + keyboard support + event). The ring is the
  *     affordance signal that distinguishes interactable badges from
- *     read-only labels at a glance.
+ *     read-only labels at a glance. It is one warm-tinted-grey alpha
+ *     overlay (the `--badge-ring*` tokens) that composites with any fill,
+ *     so every variant shares the same ring; its intensity escalates
+ *     interactive < clickable < pressed.
  * @type {Object.<string, string>}
  */
 const STATUS_VARIANT_CLASSES = {
@@ -152,7 +155,11 @@ const STYLE_TEXT = `
   }
   cts-badge .b-skip {
     background: var(--status-skipped-bg);
-    color: var(--status-skipped);
+    /* One ink step darker than --status-skipped (--ink-500) for legible
+       contrast on the light --status-skipped-bg fill. Scoped to the badge
+       so the shared --status-skipped token (consumed by cts-plan-list and
+       cts-log-detail-header) is unchanged. */
+    color: var(--ink-600, #4F4940);
   }
   cts-badge .b-rev {
     background: var(--bg-muted, #F8F7F5);
@@ -194,43 +201,31 @@ const STYLE_TEXT = `
     text-transform: none;
     padding: 2px var(--space-2);
   }
-  /* Affordance rule: interactive badges (set via the 'interactive' or
-     'clickable' host attribute, both reflected as 'is-interactive' on
-     the inner span by the render path) carry a 1px inset box-shadow
-     ring on top of the variant fill. Read-only badges have no ring.
-     The ring color is tonally matched to each variant's fill — pure
-     grey on a saturated fill reads as a misaligned border, so each
-     status variant uses its own foreground token (the dark sibling of
-     the variant fill) which keeps the ring inside the same hue family.
-     Neutral variants (skip, secondary, info-subtle, review) keep their
-     existing neutral ring tokens. */
+  /* Affordance ring (Radix-style alpha border). Interactive badges carry
+     a 1px inset box-shadow ring on top of the variant fill; read-only
+     badges have no ring. ONE warm-tinted-grey overlay (the --badge-ring*
+     tokens, anchored on --ink-900) serves every variant: because it is
+     semi-transparent it composites with whatever fill sits beneath to
+     produce an edge in that fill's own hue — no per-variant ring color is
+     needed. Ring intensity escalates with interaction weight, and because
+     all three selectors share specificity (0,2,0) source order decides:
+       - is-interactive (visual-only hint, e.g. a badge inside an
+         undecorated link) — lightest
+       - is-clickable    (the badge IS the click target) — stronger
+       - is-pressed       (active toggle) — strongest, darkens the
+         inverted saturated fill into a recessed inset edge
+     A clickable badge carries both is-interactive and is-clickable, so
+     the clickable ring wins; a pressed badge carries all three, so the
+     pressed ring wins. */
   cts-badge .badge.is-interactive {
-    box-shadow: inset 0 0 0 1px var(--border);
+    box-shadow: inset 0 0 0 1px var(--badge-ring);
     cursor: pointer;
   }
-  cts-badge .b-pass.is-interactive {
-    box-shadow: inset 0 0 0 1px var(--status-pass);
+  cts-badge .badge.is-clickable {
+    box-shadow: inset 0 0 0 1px var(--badge-ring-clickable);
   }
-  cts-badge .b-fail.is-interactive {
-    box-shadow: inset 0 0 0 1px var(--status-fail);
-  }
-  cts-badge .b-warn.is-interactive {
-    box-shadow: inset 0 0 0 1px var(--status-warning);
-  }
-  cts-badge .b-run.is-interactive {
-    box-shadow: inset 0 0 0 1px var(--status-running);
-  }
-  cts-badge .b-skip.is-interactive {
-    box-shadow: inset 0 0 0 1px var(--status-skipped);
-  }
-  cts-badge .b-info-subtle.is-interactive {
-    box-shadow: inset 0 0 0 1px var(--status-info-border);
-  }
-  cts-badge .b-info.is-interactive {
-    box-shadow: inset 0 0 0 1px var(--status-info-border);
-  }
-  cts-badge .b-rev.is-interactive {
-    box-shadow: inset 0 0 0 1px var(--border-strong, #C7C2B8);
+  cts-badge .badge.is-pressed {
+    box-shadow: inset 0 0 0 1px var(--badge-ring-pressed);
   }
   /* Toggle "pressed" state — the ON state of a clickable filter badge.
      Rendered only when the host carries BOTH 'clickable' and 'pressed'
@@ -402,17 +397,19 @@ function buildSpinner() {
  *   default badge radius is now the pill radius, so this attribute is a
  *   no-op for status variants. It is still read so existing markup that
  *   sets `pill` continues to render unchanged.
- * @property {boolean} interactive - Visual-only affordance. Adds a 1px
- *   inset ring (and hover state) on top of the variant's fill so the
- *   badge reads as "you can click this." Use when the badge sits inside
- *   an interactive wrapper (`<a>`, `<button>`, parent click handler) and
- *   the wrapper does not already provide its own visible affordance. Does
- *   NOT add `role="button"` or keyboard handling — for that, use
- *   `clickable`.
+ * @property {boolean} interactive - Visual-only affordance. Adds the
+ *   lightest 1px inset ring (`--badge-ring`) and a hover state on top of
+ *   the variant's fill so the badge reads as "you can click this." Use
+ *   when the badge sits inside an interactive wrapper (`<a>`, `<button>`,
+ *   parent click handler) and the wrapper does not already provide its
+ *   own visible affordance. Does NOT add `role="button"` or keyboard
+ *   handling — for that, use `clickable`.
  * @property {boolean} clickable - Gives the badge a `button` role,
  *   keyboard support, and emits `cts-badge-click` on activation. Implies
  *   `interactive` visually — a clickable badge always carries the
- *   affordance ring even when `interactive` is not set.
+ *   affordance ring even when `interactive` is not set, and renders it
+ *   one step stronger (`--badge-ring-clickable`) than a visual-only
+ *   `interactive` badge to signal that the badge itself is the target.
  * @property {boolean} pressed - Toggle (ON) state for a badge used as a
  *   toggle button — e.g. the result-summary filter pills in
  *   `cts-log-viewer`. Meaningful ONLY together with `clickable`. When a
@@ -519,7 +516,14 @@ class CtsBadge extends HTMLElement {
     const running = this._isRunning();
 
     const span = document.createElement("span");
-    let className = interactive ? `badge ${variantClass} is-interactive` : `badge ${variantClass}`;
+    // Ring affordance escalates interactive < clickable < pressed (see the
+    // --badge-ring* rules in STYLE_TEXT). `interactive` is true for both
+    // the visual-only `interactive` attribute and `clickable`, so a
+    // clickable badge carries both is-interactive and is-clickable and the
+    // stronger clickable ring wins on source order.
+    let className = `badge ${variantClass}`;
+    if (interactive) className += " is-interactive";
+    if (clickable) className += " is-clickable";
     if (clickable && pressed) className += " is-pressed";
     span.className = className;
     if (clickable) {

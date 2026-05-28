@@ -820,6 +820,9 @@ export const ClickableUnpressed = {
     // Clickable command button: focusable and activatable…
     expect(badge.getAttribute("role")).toBe("button");
     expect(badge.classList.contains("is-interactive")).toBe(true);
+    // …carries the stronger clickable ring (is-clickable on top of
+    // is-interactive)…
+    expect(badge.classList.contains("is-clickable")).toBe(true);
     // …but NOT a toggle — no aria-pressed, no pressed visual.
     expect(badge.getAttribute("aria-pressed")).toBeNull();
     expect(badge.classList.contains("is-pressed")).toBe(false);
@@ -964,5 +967,77 @@ export const CountVariantsPressed = {
         );
       }
     });
+  },
+};
+
+/**
+ * The affordance ring is ONE warm-tinted-grey alpha overlay (the
+ * `--badge-ring*` tokens, anchored on `--ink-900`) that composites with
+ * each variant's fill, so every variant shares the same ring with no
+ * per-variant ring color. Its intensity escalates with interaction
+ * weight: `interactive` (visual-only hint) < `clickable` (the badge IS
+ * the target) < `pressed` (active toggle, drawn over the inverted
+ * saturated fill as a recessed inset edge). This grid shows the four
+ * states across the toggle-capable variants; the play() asserts each
+ * column carries the expected ring classes and that the ring color
+ * strengthens monotonically interactive → clickable.
+ */
+export const RingIntensityScale = {
+  render: () => html`
+    <div
+      style="display: grid; grid-template-columns: repeat(4, auto); gap: 0.75rem 1.5rem; padding: 1rem; align-items: center;"
+    >
+      <strong>Read-only</strong>
+      <strong>Interactive</strong>
+      <strong>Clickable</strong>
+      <strong>Pressed</strong>
+      ${["pass", "fail", "warn", "skip", "info-subtle", "review"].flatMap((variant) => [
+        html`<cts-badge variant="${variant}" label="${variant}"></cts-badge>`,
+        html`<cts-badge variant="${variant}" label="${variant}" interactive></cts-badge>`,
+        html`<cts-badge variant="${variant}" label="${variant}" clickable></cts-badge>`,
+        html`<cts-badge variant="${variant}" label="${variant}" clickable pressed></cts-badge>`,
+      ])}
+    </div>
+  `,
+
+  async play({ canvasElement }) {
+    const badges = canvasElement.querySelectorAll(".badge");
+    // 6 variants × 4 states = 24 badges.
+    expect(badges.length).toBe(24);
+
+    // Parse the alpha out of a computed inset box-shadow color so we can
+    // assert the ring genuinely strengthens interactive → clickable. The
+    // tokens are color-mix(... var(--ink-900) N%, transparent), which the
+    // browser resolves to an rgba()/color() with a numeric alpha.
+    const ringAlpha = (badge) => {
+      const shadow = window.getComputedStyle(badge).boxShadow;
+      const m = shadow.match(/rgba?\([^)]*\)|color\([^)]*\)/);
+      if (!m) return 0;
+      const nums = m[0].match(/[\d.]+/g) || [];
+      // rgb/rgba: alpha is the 4th number when present, else opaque.
+      return nums.length >= 4 ? parseFloat(nums[3]) : 1;
+    };
+
+    badges.forEach((badge, i) => {
+      const col = i % 4; // 0 read-only, 1 interactive, 2 clickable, 3 pressed
+      const cs = window.getComputedStyle(badge);
+      if (col === 0) {
+        expect(cs.boxShadow).toBe("none");
+        expect(badge.classList.contains("is-interactive")).toBe(false);
+      } else {
+        expect(cs.boxShadow).not.toBe("none");
+        expect(badge.classList.contains("is-interactive")).toBe(true);
+      }
+      expect(badge.classList.contains("is-clickable")).toBe(col >= 2);
+      expect(badge.classList.contains("is-pressed")).toBe(col === 3);
+    });
+
+    // Within each row, the clickable ring is stronger than the
+    // interactive ring (same base hue, higher alpha).
+    for (let row = 0; row < 6; row += 1) {
+      const interactive = badges[row * 4 + 1];
+      const clickable = badges[row * 4 + 2];
+      expect(ringAlpha(clickable)).toBeGreaterThan(ringAlpha(interactive));
+    }
   },
 };
