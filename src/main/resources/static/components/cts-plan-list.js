@@ -893,7 +893,7 @@ class CtsPlanList extends LitElement {
   _renderConfigModal() {
     const configJson = this._selectedConfig ? JSON.stringify(this._selectedConfig, null, 4) : "";
     return html`
-      <cts-modal id="planConfigModal" heading="Configuration">
+      <cts-modal id="planConfigModal" heading="Configuration" size="xl">
         <div class="cts-plan-list-config-toolbar">
           <cts-button
             class="copy-config-btn"
