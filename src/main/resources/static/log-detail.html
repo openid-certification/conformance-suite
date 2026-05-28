@@ -160,6 +160,47 @@
   @media (min-width: 1024px) {
     #ctsTopTestSummary { margin-top: 0; }
   }
+
+  /* Footer. Unlike its sibling pages, log-detail.html intentionally does
+     NOT load the legacy layout.css (where the shared .pageFooter rule
+     lives), so the footer is styled page-locally with design tokens.
+     Mirrors layout.css's .pageFooter — 64px top margin + vertical
+     padding, muted surface, centered small text — but routes
+     colours/sizes through oidf-tokens.css. Styling .muted via --fg-muted
+     also dims the span, which the dead Bootstrap-era .muted class never
+     did on the layout.css pages. */
+  .pageFooter {
+    margin-top: var(--space-16);
+    padding: var(--space-16) 0;
+    font-size: var(--fs-13);
+    text-align: center;
+    background-color: var(--bg-muted);
+  }
+  .pageFooter .muted {
+    color: var(--fg-muted);
+  }
+
+  /* Scroll runway for the TOC scroll-spy (cts-log-toc). The rail marks a
+     block "active" only when its start-marker rises into the top band of
+     the IntersectionObserver's rootMargin ("-80px 0px -50% 0px") — i.e.
+     above the viewport midpoint. Without extra space below the last
+     block, the page bottom is reached before the final sections can
+     scroll high enough to enter that band, so they never light up. This
+     500px tail (sitting just above .pageFooter) gives those bottom
+     sections the runway to reach the active band.
+
+     Scoped to the same ≥1440px + .log-page--with-toc condition as the
+     rail's grid layout above, because the rail — the only visible
+     consumer of the scroll-spy's active highlight — exists only there.
+     Narrower / rail-off layouts gain nothing from the runway, and
+     keeping it off them avoids extending max-scroll on the single-column
+     layout, where it would let the deep-link hash-scroll over-scroll a
+     near-bottom entry under the still-settling sticky bar. */
+  @media (min-width: 1440px) {
+    .log-page--with-toc {
+      padding-bottom: 500px;
+    }
+  }
 </style>
 </head>
 
@@ -244,6 +285,10 @@
          flip the grid layout when the rail is enabled. -->
     <cts-log-toc id="ctsLogToc"></cts-log-toc>
   </main>
+
+  <footer class="pageFooter">
+    <span class="muted">OpenID Foundation conformance suite</span>
+  </footer>
 
   <cts-toast-host></cts-toast-host>
 </body>
