@@ -646,7 +646,16 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 
 		callAndStopOnFailure(CheckIfAuthorizationEndpointError.class);
 
-		callAndStopOnFailure(ExtractVP1FinalVpTokenDCQL.class, ConditionResult.FAILURE, "OID4VP-1FINAL-8.1");
+		// We use callAndContinueOnFailure so that when a wallet returns the credential as a bare
+		// string instead of wrapped in a JSON array, downstream conditions still see the extracted
+		// credential — ExtractVP1FinalVpTokenDCQL deliberately populates env.credential before
+		// throwing for that specific case. If env.credential is null the response was malformed
+		// beyond recovery (missing/non-object vp_token, empty array, or non-string value), so we
+		// abort the test.
+		callAndContinueOnFailure(ExtractVP1FinalVpTokenDCQL.class, ConditionResult.FAILURE, "OID4VP-1FINAL-8.1");
+		if (env.getString("credential") == null) {
+			throw new TestFailureException(getId(), "Could not extract a credential from the response");
+		}
 		callAndContinueOnFailure(ValidateVpTokenCredentialIdMatchesDcqlQuery.class, ConditionResult.FAILURE, "OID4VP-1FINAL-8.1");
 		callAndContinueOnFailure(CheckNoPresentationSubmissionParameter.class, ConditionResult.FAILURE);
 
