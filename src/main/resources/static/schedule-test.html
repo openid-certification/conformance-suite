@@ -943,9 +943,10 @@
             // `cts-plan-selected` runs the same downstream listeners — no
             // separate config-load codepath. With a long plan list the
             // cascade auto-fills below the fold; scroll it into view so the
-            // selection is visible. Keyboard users (Enter on a focused row)
-            // also get focus dropped into the first cascade <select> so they
-            // can keep tabbing through variants/config.
+            // selection is visible. Once the scroll settles, focus drops into
+            // the first variant <select> (falling back to the cascade's first
+            // <select> for plans with no variants) so the user can carry
+            // straight on to configuring — on every selection, mouse or keyboard.
             var planSearch = document.getElementById('planSearch');
             if (planSearch) {
                 planSearch.addEventListener('cts-plan-select', function(evt) {
@@ -953,7 +954,6 @@
                     if (!cascade) return;
                     var planName = evt.detail && evt.detail.plan && evt.detail.plan.planName;
                     if (planName) cascade.selectPlanByName(planName);
-                    var via = evt.detail && evt.detail.via;
                     // rAF defers until the cascade's post-selection render
                     // (and the cts-plan-selected listener's downstream
                     // variants/config-form mutations) have laid out, so the
@@ -962,28 +962,32 @@
                         var cascadeEl = document.getElementById('specCascade');
                         if (!cascadeEl) return;
                         cascadeEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                        // Punctuate the arrival with a one-shot highlight over
-                        // the cascade + variant selectors group, fired once the
-                        // smooth scroll has *settled* so the wash reads as "you've
-                        // arrived" rather than playing mid-flight. The flash is
-                        // motion-paired by design — it fires on this
-                        // scroll-coupled path, not on the non-scrolling
-                        // deep-link / edit-plan / last-config restore paths.
-                        // Reduced-motion handling lives inside flashHighlight().
+                        // Once the smooth scroll has *settled*, punctuate the
+                        // arrival and move focus. The flash is a one-shot
+                        // highlight over the cascade + variant selectors group,
+                        // fired post-settle so the wash reads as "you've arrived"
+                        // rather than playing mid-flight. Both are motion-paired
+                        // by design — they fire on this scroll-coupled path, not
+                        // on the non-scrolling deep-link / edit-plan / last-config
+                        // restore paths. Reduced-motion handling lives inside
+                        // flashHighlight().
                         whenScrollSettles(function() {
                             var flashEl = document.getElementById('selectionFlash');
                             if (flashEl && typeof flashEl.flashHighlight === 'function') {
                                 flashEl.flashHighlight();
                             }
+                            // Drop focus into the first variant <select> so the
+                            // user can carry straight on to configuring. Falls
+                            // back to the cascade's first <select> for plans with
+                            // no variants, so focus is never stranded. No
+                            // preventScroll: the scroll has already rested, so
+                            // letting .focus() nudge an off-screen control into
+                            // view is desirable here, not a conflict.
+                            var variantForm = document.getElementById('variantSelectors');
+                            var firstField = (variantForm && variantForm.querySelector('select'))
+                                || cascadeEl.querySelector('select');
+                            if (firstField) firstField.focus();
                         });
-                        if (via === 'keyboard') {
-                            var firstField = cascadeEl.querySelector('select');
-                            // preventScroll keeps the smooth scroll above
-                            // authoritative; .focus() would otherwise
-                            // snap-scroll the select into view and clobber
-                            // the animation.
-                            if (firstField) firstField.focus({ preventScroll: true });
-                        }
                     });
                 });
             }
