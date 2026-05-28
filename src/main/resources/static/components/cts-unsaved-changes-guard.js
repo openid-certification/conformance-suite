@@ -269,7 +269,6 @@ class CtsUnsavedChangesGuard extends LitElement {
       <cts-modal
         id="${modalId}"
         heading="${this.heading}"
-        size="sm"
         footer-buttons="${footerButtons}"
         @click=${this._onModalButtonClick}
       >
