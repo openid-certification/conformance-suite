@@ -771,9 +771,12 @@ export const AllVariantsBothStates = {
 
 // --- Toggle (`pressed`) state ---
 //
-// `pressed` turns a `clickable` badge into a toggle button: it exposes
-// `aria-pressed` and, when ON, a per-variant fill-inverted visual. It is
-// the foundation of the result-summary filter pills in cts-log-viewer.
+// `pressed` turns a `clickable` badge into a toggle button. When ON it
+// exposes `aria-pressed="true"` and a per-variant fill-inverted visual. A
+// clickable badge that is NOT pressed emits no aria-pressed and stays a
+// plain command button — so existing one-shot clickable badges (the
+// LOG-NNNN copy chip) are not mis-announced as on/off toggles. It is the
+// foundation of the result-summary filter pills in cts-log-viewer.
 // `pressed` is meaningful ONLY with `clickable` — on a plain badge it is
 // ignored. The variants that invert (pass/fail/warn/skip/info-subtle/
 // review) mirror COUNT_BADGE_VARIANTS in cts-log-viewer.
@@ -798,6 +801,15 @@ export const ClickablePressed = {
   },
 };
 
+/**
+ * Regression guard: a `clickable` badge WITHOUT `pressed` is a plain
+ * command button — `role="button"` but NO `aria-pressed` and no
+ * `is-pressed`. This is the shape of the pre-existing LOG-NNNN copy chip
+ * (`cts-log-entry-id`, `clickable` + `@cts-badge-click`, never a toggle).
+ * Emitting `aria-pressed="false"` here would mis-announce a one-shot
+ * command as an on/off toggle to screen readers — the toggle attribute
+ * must appear only on actively-pressed badges.
+ */
 export const ClickableUnpressed = {
   args: { variant: "fail", label: "FAILURE (3)", clickable: true },
   render: ({ variant, label, clickable }) =>
@@ -805,10 +817,12 @@ export const ClickableUnpressed = {
 
   async play({ canvasElement }) {
     const badge = canvasElement.querySelector(".badge");
-    // A clickable, unpressed toggle still announces its OFF state.
-    expect(badge.getAttribute("aria-pressed")).toBe("false");
-    expect(badge.classList.contains("is-pressed")).toBe(false);
+    // Clickable command button: focusable and activatable…
+    expect(badge.getAttribute("role")).toBe("button");
     expect(badge.classList.contains("is-interactive")).toBe(true);
+    // …but NOT a toggle — no aria-pressed, no pressed visual.
+    expect(badge.getAttribute("aria-pressed")).toBeNull();
+    expect(badge.classList.contains("is-pressed")).toBe(false);
   },
 };
 
@@ -862,7 +876,8 @@ export const PressedBooleanBinding = {
     expect(host.hasAttribute("pressed")).toBe(false);
 
     let badge = canvasElement.querySelector(".badge");
-    expect(badge.getAttribute("aria-pressed")).toBe("false");
+    // Not pressed → no aria-pressed (plain command button), no pressed visual.
+    expect(badge.getAttribute("aria-pressed")).toBeNull();
     expect(badge.classList.contains("is-pressed")).toBe(false);
 
     // Flip the toggle ON — mirrors a filter being activated.
@@ -871,10 +886,10 @@ export const PressedBooleanBinding = {
     expect(badge.getAttribute("aria-pressed")).toBe("true");
     expect(badge.classList.contains("is-pressed")).toBe(true);
 
-    // And OFF again.
+    // And OFF again → aria-pressed removed, back to a plain command button.
     host.toggleAttribute("pressed", false);
     badge = canvasElement.querySelector(".badge");
-    expect(badge.getAttribute("aria-pressed")).toBe("false");
+    expect(badge.getAttribute("aria-pressed")).toBeNull();
     expect(badge.classList.contains("is-pressed")).toBe(false);
   },
 };

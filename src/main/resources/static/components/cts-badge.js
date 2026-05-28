@@ -413,16 +413,20 @@ function buildSpinner() {
  *   keyboard support, and emits `cts-badge-click` on activation. Implies
  *   `interactive` visually — a clickable badge always carries the
  *   affordance ring even when `interactive` is not set.
- * @property {boolean} pressed - Toggle (ON/OFF) state for a badge used as
- *   a toggle button — e.g. the result-summary filter pills in
- *   `cts-log-viewer`. Meaningful ONLY together with `clickable`: a
- *   clickable badge exposes `aria-pressed="true"|"false"` and, when
- *   pressed, a per-variant fill-inverted visual (`is-pressed`). On a
- *   non-clickable badge `pressed` is ignored and the badge renders as a
- *   plain label (no `aria-pressed`, no pressed visual). Bind it with the
- *   boolean-attribute sigil (`?pressed=${expr}`): a plain `pressed=${false}`
- *   sets the string "false", which `hasAttribute` reads as truthy and would
- *   mount the badge pressed.
+ * @property {boolean} pressed - Toggle (ON) state for a badge used as a
+ *   toggle button — e.g. the result-summary filter pills in
+ *   `cts-log-viewer`. Meaningful ONLY together with `clickable`. When a
+ *   clickable badge IS pressed it gets `aria-pressed="true"` and a
+ *   per-variant fill-inverted visual (`is-pressed`). When NOT pressed it
+ *   emits no `aria-pressed` and renders as a plain command button — so a
+ *   clickable badge that never opts into `pressed` (e.g. the LOG-NNNN copy
+ *   chip) is unaffected and is not mis-announced as an on/off toggle. The
+ *   inactive state of a toggle is instead conveyed by an action-describing
+ *   `aria-label`. On a non-clickable badge `pressed` is ignored entirely
+ *   (plain label). Bind it with the boolean-attribute sigil
+ *   (`?pressed=${expr}`): a plain `pressed=${false}` sets the string
+ *   "false", which `hasAttribute` reads as truthy and would mount the badge
+ *   pressed.
  *
  * When neither `label` nor `count` is set, the badge wraps whatever child
  * nodes are inside the host element. This is the only way to embed inline
@@ -521,11 +525,16 @@ class CtsBadge extends HTMLElement {
     if (clickable) {
       span.setAttribute("role", "button");
       span.setAttribute("tabindex", "0");
-      // Expose the toggle state to assistive tech. Always present on a
-      // clickable badge (true/false) so a toggle button announces as
-      // pressed/not-pressed; absent on non-clickable badges, which are
-      // plain labels.
-      span.setAttribute("aria-pressed", pressed ? "true" : "false");
+      // Expose the toggle state to assistive tech ONLY when pressed (an
+      // active toggle). A clickable badge WITHOUT `pressed` is a plain
+      // command button (e.g. the LOG-NNNN copy chip in cts-log-entry-id):
+      // emitting aria-pressed="false" on it would mis-announce a one-shot
+      // command as an on/off toggle. So aria-pressed appears only on the
+      // active state — matching the toggle visual (is-pressed), which is
+      // likewise gated on `clickable && pressed`. The off state of a filter
+      // badge is conveyed by its action-describing aria-label flip
+      // ("Show only X" ↔ "Stop filtering by X").
+      if (pressed) span.setAttribute("aria-pressed", "true");
       // Forward aria-label from the host so the role="button" inner span
       // has an accessible name. Without this, screen readers announce the
       // visible text only, which for icon-led badges (e.g. the log-entry
