@@ -116,6 +116,11 @@ export const Default = {
     expect(startedTime).toBeTruthy();
     expect(startedTime?.getAttribute("title")).toBeTruthy();
     expect(startedTime?.getAttribute("datetime")).toBeTruthy();
+
+    // With no active filters, the trigger shows no count badge and reads closed.
+    const trigger = canvasElement.querySelector('[data-testid="log-filter-trigger"]');
+    expect(trigger.querySelector("cts-badge")).toBeNull();
+    expect(trigger.getAttribute("aria-expanded")).toBe("false");
   },
 };
 
@@ -313,6 +318,15 @@ export const FilterByStatus = {
 
     // URL reflects the filter via history.replaceState.
     expect(window.location.search).toContain("status=running");
+
+    // Re-activating the trigger toggles the popover shut; aria-expanded flips
+    // back to false via the beforetoggle handler.
+    await userEvent.click(trigger);
+    await waitFor(() => {
+      expect(trigger.getAttribute("aria-expanded")).toBe("false");
+    });
+    // The selection (and its count badge) survives the dismiss.
+    expect(trigger.querySelector("cts-badge").getAttribute("count")).toBe("1");
   },
 };
 
