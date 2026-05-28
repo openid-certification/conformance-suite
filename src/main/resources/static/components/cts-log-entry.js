@@ -23,18 +23,24 @@ const RESULT_BADGE_VARIANTS = {
 };
 
 /**
- * Maps a log entry's `http` value (case-insensitive) to the icon + label
- * pair shown alongside the timestamp/severity. Bootstrap Icons class names
- * remain in use because the icon font is loaded globally.
- * @type {Object.<string, {icon: string, label: string}>}
+ * Maps a log entry's `http` value (case-insensitive) to the badge shown
+ * alongside the timestamp/severity. Two shapes:
+ *   - `{ icon, ariaLabel }` renders an icon-only badge (visible glyph,
+ *     accessible name via aria-label). Used where the direction IS the
+ *     whole signal — REQUEST (↑ sent out by the suite) and RESPONSE
+ *     (↓ received) — to keep the long entry stream visually quiet.
+ *   - `{ label }` renders a text badge. Used where the direction alone
+ *     isn't self-explanatory enough (INCOMING/OUTGOING/REDIRECT/etc.).
+ * Icon names match files under `/vendor/coolicons/icons/`.
+ * @type {Object.<string, {icon?: string, ariaLabel?: string, label?: string}>}
  */
 const HTTP_BADGES = {
-  request: { icon: "arrow-right-md", label: "REQUEST" },
-  response: { icon: "arrow-left-md", label: "RESPONSE" },
-  incoming: { icon: "arrow-down-md", label: "INCOMING" },
-  outgoing: { icon: "arrow-up-md", label: "OUTGOING" },
-  redirect: { icon: "paper-plane", label: "REDIRECT" },
-  "redirect-in": { icon: "arrow-circle-down", label: "REDIRECT-IN" },
+  request: { icon: "arrow-up-md", ariaLabel: "Request" },
+  response: { icon: "arrow-down-md", ariaLabel: "Response" },
+  incoming: { label: "INCOMING" },
+  outgoing: { label: "OUTGOING" },
+  redirect: { label: "REDIRECT" },
+  "redirect-in": { label: "REDIRECT-IN" },
 };
 
 /**
@@ -382,8 +388,12 @@ const STYLE_TEXT = `
   cts-log-entry .logFooter {
     display: flex;
     flex-direction: column;
+    /* Inter-element gap inside the footer (requirements ↔ moreInfo panel).
+       No padding-top: the grid row-gap on .logItem already spaces the
+       footer below the body. Adding padding here would double-space along
+       the same edge and diverge between the small (8px) and wide (12px)
+       container-query layouts. */
     gap: var(--space-2);
-    padding-top: var(--space-2);
   }
   cts-log-entry .logRequirements {
     display: flex;
@@ -508,7 +518,12 @@ const STYLE_TEXT = `
     cts-log-entry .logItem {
       grid-template-columns: 92px max-content max-content 1fr auto;
       grid-template-areas: none;
-      gap: var(--space-3);
+      /* Split row/column gap: 8px between the body row and the footer row
+         keeps requirement chips visually grouped with the message above,
+         while 12px between the timestamp / severity / http / body /
+         actions columns preserves the horizontal rhythm badges rely on.
+         Same row-then-column pattern as the narrow layout above. */
+      gap: var(--space-2) var(--space-3);
       border-bottom: 1px solid var(--ink-100);
     }
     cts-log-entry:last-child .logItem {
@@ -701,8 +716,22 @@ class CtsLogEntry extends LitElement {
     const httpType = this.entry.http?.toLowerCase();
     const badge = HTTP_BADGES[httpType];
     if (!badge) return nothing;
+    // Icon-only badges (request/response) carry their meaning in the
+    // glyph alone, so wrap them in cts-tooltip to surface the textual
+    // label on hover/focus. Read-aloud users get the same name via the
+    // badge's forwarded aria-label. The .logHttp cts-tooltip rule is
+    // display:contents, so the wrapper doesn't disturb the flex row.
+    const badgeEl = badge.icon
+      ? html`<cts-tooltip content="${badge.ariaLabel}" placement="top"
+          ><cts-badge
+            variant="info"
+            icon="${badge.icon}"
+            aria-label="${badge.ariaLabel}"
+          ></cts-badge
+        ></cts-tooltip>`
+      : html`<cts-badge variant="info" label="${badge.label}"></cts-badge>`;
     return html`
-      <cts-badge variant="info" label="${badge.label}"></cts-badge>
+      ${badgeEl}
       ${httpType === "request"
         ? html`<cts-tooltip content="Copy as cURL" placement="top"
             ><cts-button
@@ -744,7 +773,6 @@ class CtsLogEntry extends LitElement {
   _renderMoreButton() {
     const more = extractMoreFields(this.entry);
     if (Object.keys(more).length === 0) return nothing;
-    const chevron = this._expanded ? "chevron-up" : "chevron-down";
     // Subtle disclosure: chevron + "Details" in a ghost button.
     // No border, no count number — "Details" tells the user *what* will
     // appear (request payload, expected/actual values, headers …) rather
@@ -752,12 +780,17 @@ class CtsLogEntry extends LitElement {
     // Visually this recedes behind the FAILURE/SUCCESS pills that need
     // attention. The .moreBtn class hook is preserved for log-detail.html
     // and the e2e specs that rely on it.
+    //
+    // The chevron icon is the static `chevron-down`; cts-button rotates it
+    // 180° via CSS keyed on the forwarded `aria-expanded` attribute (see
+    // cts-button.js styles). One transition, one DOM node — no per-render
+    // glyph swap.
     return html`
       <cts-button
         class="moreBtn"
         variant="ghost"
         size="xs"
-        icon="${chevron}"
+        icon="chevron-down"
         label="Details"
         aria-expanded="${this._expanded ? "true" : "false"}"
         @cts-click=${this._toggleMore}
