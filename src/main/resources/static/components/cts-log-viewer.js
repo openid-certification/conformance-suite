@@ -344,8 +344,16 @@ class CtsLogViewer extends LitElement {
     // Bound hashchange handler: drives the same scroll routine when the
     // fragment changes after load (e.g. the user clicks an entry's
     // timestamp deep-link). Stored so connected/disconnected add and remove
-    // the exact same reference.
-    this._onHashChange = () => this._scrollToHashIfPresent();
+    // the exact same reference. Defers past any in-flight Lit render (a
+    // concurrent poll may be re-rendering) so scrollIntoView measures
+    // settled geometry, and marks _initialHashScrolled on success so the
+    // post-fetch retry does not re-scroll the reader on the next poll.
+    this._onHashChange = () => {
+      this.updateComplete.then(() => {
+        if (!this.isConnected) return;
+        if (this._scrollToHashIfPresent()) this._initialHashScrolled = true;
+      });
+    };
   }
 
   connectedCallback() {
@@ -635,6 +643,12 @@ class CtsLogViewer extends LitElement {
       // giving up after the first fetch.
       if (succeeded && !this._initialHashScrolled && this._entries.length > 0) {
         this.updateComplete.then(() => {
+          // Re-check inside the callback: a second poll resolving (or a
+          // hashchange) before this microtask runs may have already
+          // scrolled. isConnected guards a disconnect mid-fetch — the
+          // continuation is already enqueued when disconnectedCallback
+          // fires (mirrors cts-log-entry's loadSpecLinks isConnected guard).
+          if (!this.isConnected || this._initialHashScrolled) return;
           if (this._scrollToHashIfPresent()) this._initialHashScrolled = true;
         });
       }
@@ -667,14 +681,32 @@ class CtsLogViewer extends LitElement {
     if (!/^#LOG-\d+$/.test(hash)) return false;
     const target = document.getElementById(hash.slice(1));
     if (!target) return false;
+    // Open every collapsed <details> ancestor AND sync _collapsedBlocks so
+    // the next polling re-render (which restores `?open` from that set)
+    // does not re-collapse the block around the row we just revealed. The
+    // imperative `open = true` fires `toggle` asynchronously — too late to
+    // beat a poll landing first — so the set is updated here rather than
+    // relying on _handleBlockToggle to catch up.
+    let reopened = null;
     let parent = target.parentElement;
     while (parent) {
       if (parent.tagName === "DETAILS") {
-        /** @type {HTMLDetailsElement} */ (parent).open = true;
+        const details = /** @type {HTMLDetailsElement & { dataset: DOMStringMap }} */ (parent);
+        details.open = true;
+        const blockId = details.dataset.blockId;
+        if (blockId && this._collapsedBlocks.has(blockId)) {
+          reopened = reopened || new Set(this._collapsedBlocks);
+          reopened.delete(blockId);
+        }
       }
       parent = parent.parentElement;
     }
-    target.scrollIntoView({ behavior: "smooth", block: "start" });
+    if (reopened) this._collapsedBlocks = reopened;
+    // Honour prefers-reduced-motion: an instant jump avoids both the
+    // animation and the multi-frame window during which a concurrent
+    // re-render could disturb the smooth scroll.
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    target.scrollIntoView({ behavior: reduceMotion ? "instant" : "smooth", block: "start" });
     return true;
   }
 

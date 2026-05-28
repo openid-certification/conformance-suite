@@ -1253,20 +1253,13 @@ test.describe("log-detail.html — new Lit-triad page", () => {
       .poll(async () => block.evaluate((el) => /** @type {HTMLDetailsElement} */ (el).open))
       .toBe(false);
 
-    // Same-page navigation: change only the hash. The viewer's scroll
-    // handler doesn't re-run on hash-only changes, so we drive the same
-    // logic through a simulated scroll-to-id call instead.
+    // Same-page navigation: change only the hash. The viewer listens for
+    // `hashchange` and runs its real open-ancestors-then-scroll routine,
+    // so driving the fragment exercises the component (not a hand-rolled
+    // copy of the algorithm). Setting location.hash fires a real
+    // hashchange in the page context.
     await page.evaluate((refId) => {
-      const target = document.getElementById(refId);
-      if (!target) return;
-      let parent = target.parentElement;
-      while (parent) {
-        if (parent.tagName === "DETAILS") {
-          /** @type {HTMLDetailsElement} */ (parent).open = true;
-        }
-        parent = parent.parentElement;
-      }
-      target.scrollIntoView({ behavior: "auto", block: "start" });
+      window.location.hash = `#${refId}`;
     }, referenceId);
 
     await expect

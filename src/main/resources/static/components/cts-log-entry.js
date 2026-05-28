@@ -299,10 +299,12 @@ const STYLE_TEXT = `
      (#LOG-NNNN matches the host id mirrored in willUpdate), wash the row
      with the lightest brand tint so the user sees where they landed.
      Persists while the fragment matches and clears automatically when the
-     user navigates to another entry — no JS. The (0,2,1) specificity beats
-     the is-fail/is-warn gradients (0,2,0) and the global .logItem:hover
-     repaint (0,2,0), so the highlight wins on failed rows and under the
-     cursor. */
+     user navigates to another entry — no JS. This rule's (0,2,1)
+     specificity beats the global .logItem:hover repaint (0,2,0), but TIES
+     the cts-log-entry .logItem.is-fail / .is-warn gradients (also (0,2,1)),
+     so on failed/warned rows the highlight wins by SOURCE ORDER — this rule
+     must stay defined after them. Reordering it above is-fail / is-warn
+     would let a failed row's gradient override the landing wash. */
   cts-log-entry:target .logItem {
     background: var(--orange-50);
     transition: background var(--dur-1) var(--ease-standard);
@@ -582,14 +584,17 @@ function ensureStylesInjected() {
  *   includes `_id`, `time`, `result`, `http`, `src`, `msg`, `upload`,
  *   `blockId`, `requirements`, and a nested `more` object.
  * @property {string} referenceId - Human-readable ordinal label such as
- *   `"LOG-0042"` (U6). When set, the entry renders a copyable chip and
- *   the host element receives `id="LOG-0042"` so URL fragments resolve.
- *   Empty string omits both. Reflects nothing — the host id is set
- *   imperatively in `willUpdate` so the attribute and the host id stay
- *   in sync without a string-template `class=` binding.
- * @property {string} testId - Test instance ID forwarded to the chip so
- *   the deep URL it copies always carries `?log={testId}#{referenceId}`,
- *   disambiguating the same `LOG-NNNN` across re-runs.
+ *   `"LOG-0042"`. When set, the timestamp renders as a deep-link anchor
+ *   (`href="#LOG-0042"`) and the host element receives `id="LOG-0042"` so
+ *   URL fragments resolve to this row. Empty string renders a plain,
+ *   non-interactive timestamp and omits the id. The host id is set both in
+ *   `willUpdate` (for standalone use) and by the viewer's entry template,
+ *   so the fragment target exists the moment the viewer's render commits.
+ * @property {string} testId - Test instance ID forwarded by the viewer. No
+ *   longer read by this component since the `LOG-NNNN` copy chip was
+ *   retired — the timestamp deep-link is a relative `#LOG-NNNN` fragment
+ *   that resolves against the page's existing `?log=` query, so no testId
+ *   is needed here. Retained pending the removal flagged in code review.
  */
 class CtsLogEntry extends LitElement {
   static properties = {
