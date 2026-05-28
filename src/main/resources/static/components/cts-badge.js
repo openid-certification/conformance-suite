@@ -232,6 +232,49 @@ const STYLE_TEXT = `
   cts-badge .b-rev.is-interactive {
     box-shadow: inset 0 0 0 1px var(--border-strong, #C7C2B8);
   }
+  /* Toggle "pressed" state — the ON state of a clickable filter badge.
+     Rendered only when the host carries BOTH 'clickable' and 'pressed'
+     (the render path adds 'is-pressed' on the inner span). The visual is
+     a per-variant FILL INVERSION: foreground and background swap so the
+     ON state reads unambiguously against the row's mixed saturated fills
+     (a heavier ring alone is too subtle to distinguish from the
+     read-only interactive ring). Each variant inverts its OWN read-only
+     token pair — there is no generic fallback, because the invertible
+     pair differs per variant. The is-interactive ring underneath stays
+     in place (same-hue on the inverted fill, so it simply blends), and
+     because only background/color change — never the box model — the
+     pressed state causes no reflow. Variants without an explicit rule
+     here (info, running, secondary, the bg-* utilities) keep the
+     interactive ring with no inversion; the result-summary filter only
+     toggles the six variants below (pass/fail/warn/skip/info-subtle/
+     review), which mirror COUNT_BADGE_VARIANTS in cts-log-viewer. The
+     review variant has no saturated --status-review pair, so it inverts
+     to a dark neutral pill (--ink-700 fill / --bg-muted text) — a clear
+     ON state that is neutral-hued by design. */
+  cts-badge .b-pass.is-pressed {
+    background: var(--status-pass);
+    color: var(--status-pass-bg);
+  }
+  cts-badge .b-fail.is-pressed {
+    background: var(--status-fail);
+    color: var(--status-fail-bg);
+  }
+  cts-badge .b-warn.is-pressed {
+    background: var(--status-warning);
+    color: var(--status-warning-bg);
+  }
+  cts-badge .b-skip.is-pressed {
+    background: var(--status-skipped);
+    color: var(--status-skipped-bg);
+  }
+  cts-badge .b-info-subtle.is-pressed {
+    background: var(--status-info);
+    color: var(--status-info-bg);
+  }
+  cts-badge .b-rev.is-pressed {
+    background: var(--ink-700, #322E28);
+    color: var(--bg-muted, #F8F7F5);
+  }
   /* Hover and focus affordance — only on interactive badges. Read-only
      badges deliberately render no hover state so they read as labels,
      not buttons. filter: brightness darkens any variant fill
@@ -370,6 +413,16 @@ function buildSpinner() {
  *   keyboard support, and emits `cts-badge-click` on activation. Implies
  *   `interactive` visually — a clickable badge always carries the
  *   affordance ring even when `interactive` is not set.
+ * @property {boolean} pressed - Toggle (ON/OFF) state for a badge used as
+ *   a toggle button — e.g. the result-summary filter pills in
+ *   `cts-log-viewer`. Meaningful ONLY together with `clickable`: a
+ *   clickable badge exposes `aria-pressed="true"|"false"` and, when
+ *   pressed, a per-variant fill-inverted visual (`is-pressed`). On a
+ *   non-clickable badge `pressed` is ignored and the badge renders as a
+ *   plain label (no `aria-pressed`, no pressed visual). Bind it with the
+ *   boolean-attribute sigil (`?pressed=${expr}`): a plain `pressed=${false}`
+ *   sets the string "false", which `hasAttribute` reads as truthy and would
+ *   mount the badge pressed.
  *
  * When neither `label` nor `count` is set, the badge wraps whatever child
  * nodes are inside the host element. This is the only way to embed inline
@@ -397,6 +450,7 @@ class CtsBadge extends HTMLElement {
     "pill",
     "clickable",
     "interactive",
+    "pressed",
     "aria-label",
   ];
 
@@ -448,6 +502,10 @@ class CtsBadge extends HTMLElement {
     // both attributes here (rather than reflecting one onto the other
     // via setAttribute) avoids any attributeChangedCallback re-entry.
     const interactive = clickable || this.hasAttribute("interactive");
+    // `pressed` is a toggle state and is meaningful ONLY on a clickable
+    // badge. A non-clickable badge with `pressed` set renders identically
+    // to a plain label (no is-pressed class, no aria-pressed).
+    const pressed = this.hasAttribute("pressed");
     const icon = this.getAttribute("icon") || "";
     const label = this.getAttribute("label") || "";
     const countAttr = this.getAttribute("count");
@@ -457,10 +515,17 @@ class CtsBadge extends HTMLElement {
     const running = this._isRunning();
 
     const span = document.createElement("span");
-    span.className = interactive ? `badge ${variantClass} is-interactive` : `badge ${variantClass}`;
+    let className = interactive ? `badge ${variantClass} is-interactive` : `badge ${variantClass}`;
+    if (clickable && pressed) className += " is-pressed";
+    span.className = className;
     if (clickable) {
       span.setAttribute("role", "button");
       span.setAttribute("tabindex", "0");
+      // Expose the toggle state to assistive tech. Always present on a
+      // clickable badge (true/false) so a toggle button announces as
+      // pressed/not-pressed; absent on non-clickable badges, which are
+      // plain labels.
+      span.setAttribute("aria-pressed", pressed ? "true" : "false");
       // Forward aria-label from the host so the role="button" inner span
       // has an accessible name. Without this, screen readers announce the
       // visible text only, which for icon-led badges (e.g. the log-entry

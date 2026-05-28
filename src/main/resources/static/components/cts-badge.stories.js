@@ -12,6 +12,7 @@ export default {
     icon: { control: "text" },
     clickable: { control: "boolean" },
     interactive: { control: "boolean" },
+    pressed: { control: "boolean" },
   },
 };
 
@@ -763,6 +764,189 @@ export const AllVariantsBothStates = {
         expect(computed.boxShadow).not.toBe("none");
       } else {
         expect(computed.boxShadow).toBe("none");
+      }
+    });
+  },
+};
+
+// --- Toggle (`pressed`) state ---
+//
+// `pressed` turns a `clickable` badge into a toggle button: it exposes
+// `aria-pressed` and, when ON, a per-variant fill-inverted visual. It is
+// the foundation of the result-summary filter pills in cts-log-viewer.
+// `pressed` is meaningful ONLY with `clickable` — on a plain badge it is
+// ignored. The variants that invert (pass/fail/warn/skip/info-subtle/
+// review) mirror COUNT_BADGE_VARIANTS in cts-log-viewer.
+
+export const ClickablePressed = {
+  args: { variant: "fail", label: "FAILURE (3)", clickable: true, pressed: true },
+  render: ({ variant, label, clickable, pressed }) =>
+    html`<cts-badge
+      variant="${variant}"
+      label="${label}"
+      ?clickable="${clickable}"
+      ?pressed="${pressed}"
+    ></cts-badge>`,
+
+  async play({ canvasElement }) {
+    const badge = canvasElement.querySelector(".badge");
+    expect(badge.getAttribute("role")).toBe("button");
+    // ON toggle: aria-pressed=true + the fill-inverted visual.
+    expect(badge.getAttribute("aria-pressed")).toBe("true");
+    expect(badge.classList.contains("is-pressed")).toBe(true);
+    expect(badge.classList.contains("is-interactive")).toBe(true);
+  },
+};
+
+export const ClickableUnpressed = {
+  args: { variant: "fail", label: "FAILURE (3)", clickable: true },
+  render: ({ variant, label, clickable }) =>
+    html`<cts-badge variant="${variant}" label="${label}" ?clickable="${clickable}"></cts-badge>`,
+
+  async play({ canvasElement }) {
+    const badge = canvasElement.querySelector(".badge");
+    // A clickable, unpressed toggle still announces its OFF state.
+    expect(badge.getAttribute("aria-pressed")).toBe("false");
+    expect(badge.classList.contains("is-pressed")).toBe(false);
+    expect(badge.classList.contains("is-interactive")).toBe(true);
+  },
+};
+
+/**
+ * `pressed` without `clickable` is a no-op: the badge renders as a plain
+ * read-only label. Without this, an accidental `pressed` on a label badge
+ * would emit an `aria-pressed` with no `role="button"` — an invalid ARIA
+ * combination that confuses assistive tech.
+ */
+export const PressedRequiresClickable = {
+  args: { variant: "fail", label: "FAILURE (3)", pressed: true },
+  render: ({ variant, label, pressed }) =>
+    html`<cts-badge variant="${variant}" label="${label}" ?pressed="${pressed}"></cts-badge>`,
+
+  async play({ canvasElement }) {
+    const badge = canvasElement.querySelector(".badge");
+    // Renders identically to a plain label.
+    expect(badge.getAttribute("role")).toBeNull();
+    expect(badge.getAttribute("aria-pressed")).toBeNull();
+    expect(badge.classList.contains("is-pressed")).toBe(false);
+    expect(badge.classList.contains("is-interactive")).toBe(false);
+  },
+};
+
+/**
+ * Boolean-attribute binding guard. This is the single most important
+ * test for the toggle feature. `cts-badge` reads `pressed` via
+ * `hasAttribute("pressed")`, which is truthy for ANY attribute value —
+ * including the string "false". A plain (unsigiled) Lit binding
+ * `pressed=${false}` sets the attribute to the literal string "false",
+ * which would mount EVERY badge pressed and make toggling off
+ * impossible. The boolean sigil `?pressed=${false}` instead REMOVES the
+ * attribute. This story drives both `?clickable` and `?pressed` through
+ * boolean bindings with a falsy value and asserts the badge is NOT
+ * pressed — a literal-attribute story would pass while the real wiring
+ * (cts-log-viewer's `?pressed=${this._activeFilters.has(result)}`) is
+ * broken. It then flips `pressed` on at runtime to confirm the ON state.
+ */
+export const PressedBooleanBinding = {
+  render: () =>
+    html`<cts-badge
+      variant="fail"
+      label="FAILURE (3)"
+      ?clickable="${true}"
+      ?pressed="${false}"
+    ></cts-badge>`,
+
+  async play({ canvasElement }) {
+    const host = canvasElement.querySelector("cts-badge");
+    // `?pressed=${false}` must NOT set the attribute at all.
+    expect(host.hasAttribute("pressed")).toBe(false);
+
+    let badge = canvasElement.querySelector(".badge");
+    expect(badge.getAttribute("aria-pressed")).toBe("false");
+    expect(badge.classList.contains("is-pressed")).toBe(false);
+
+    // Flip the toggle ON — mirrors a filter being activated.
+    host.toggleAttribute("pressed", true);
+    badge = canvasElement.querySelector(".badge");
+    expect(badge.getAttribute("aria-pressed")).toBe("true");
+    expect(badge.classList.contains("is-pressed")).toBe(true);
+
+    // And OFF again.
+    host.toggleAttribute("pressed", false);
+    badge = canvasElement.querySelector(".badge");
+    expect(badge.getAttribute("aria-pressed")).toBe("false");
+    expect(badge.classList.contains("is-pressed")).toBe(false);
+  },
+};
+
+/**
+ * A pressed toggle must still fire `cts-badge-click` on activation —
+ * otherwise a user could never toggle a filter back OFF. Drives the
+ * keyboard path (Enter) to confirm `pressed` does not suppress the event.
+ */
+export const PressedStillEmitsClick = {
+  args: { variant: "fail", label: "FAILURE (3)", clickable: true, pressed: true },
+  render: ({ variant, label, clickable, pressed }) =>
+    html`<cts-badge
+      variant="${variant}"
+      label="${label}"
+      ?clickable="${clickable}"
+      ?pressed="${pressed}"
+    ></cts-badge>`,
+
+  async play({ canvasElement }) {
+    const badge = canvasElement.querySelector(".badge");
+    let clicks = 0;
+    canvasElement.addEventListener("cts-badge-click", () => {
+      clicks += 1;
+    });
+
+    badge.focus();
+    await userEvent.keyboard("{Enter}");
+    expect(clicks).toBe(1);
+
+    await userEvent.keyboard(" ");
+    expect(clicks).toBe(2);
+  },
+};
+
+/**
+ * Visual grid: the six result-summary variants in read-only vs pressed.
+ * The pressed column inverts each variant's fill, so its computed
+ * background differs from the read-only sibling — the play() asserts the
+ * inversion took effect (a regression that drops a variant's `.is-pressed`
+ * rule would make the two columns paint the same background).
+ */
+export const CountVariantsPressed = {
+  render: () => html`
+    <div
+      style="display: grid; grid-template-columns: auto auto; gap: 0.75rem 1.5rem; padding: 1rem;"
+    >
+      <strong>Read-only</strong>
+      <strong>Pressed</strong>
+      ${["pass", "fail", "warn", "skip", "info-subtle", "review"].flatMap((variant) => [
+        html`<cts-badge variant="${variant}" label="${variant}"></cts-badge>`,
+        html`<cts-badge variant="${variant}" label="${variant}" clickable pressed></cts-badge>`,
+      ])}
+    </div>
+  `,
+
+  async play({ canvasElement }) {
+    const badges = canvasElement.querySelectorAll(".badge");
+    // 6 variants × 2 states = 12 badges.
+    expect(badges.length).toBe(12);
+
+    badges.forEach((badge, i) => {
+      const isPressedColumn = i % 2 === 1;
+      expect(badge.classList.contains("is-pressed")).toBe(isPressedColumn);
+      if (isPressedColumn) {
+        expect(badge.getAttribute("aria-pressed")).toBe("true");
+        // Fill inversion: the pressed badge's background differs from its
+        // read-only sibling (the cell immediately before it).
+        const readonly = badges[i - 1];
+        expect(window.getComputedStyle(badge).backgroundColor).not.toBe(
+          window.getComputedStyle(readonly).backgroundColor,
+        );
       }
     });
   },
