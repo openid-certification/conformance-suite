@@ -476,6 +476,201 @@ export const InitialLoadHashScroll = {
   },
 };
 
+/**
+ * Late-arriving target: the hash points at an entry that is NOT in the
+ * first poll's payload but arrives in a later poll. The fixed-once gate
+ * used to give up after the first fetch, so the row never scrolled. The
+ * retry-until-success gate keeps trying each poll and scrolls once the
+ * row finally lands. Poll 1 yields LOG-0001..0003; poll 2 appends
+ * LOG-0004..0005, so #LOG-0005 only resolves after the second poll.
+ */
+export const LateArrivalHashScroll = {
+  decorators: [
+    (storyFn) => {
+      const state = {
+        callCount: 0,
+        responder: function () {
+          this.callCount += 1;
+          const body = this.callCount === 1 ? MOCK_BLOCKS_POLL_FIRST : MOCK_BLOCKS_POLL_SECOND;
+          return new Response(JSON.stringify(body), {
+            status: 200,
+            headers: { "Content-Type": "application/json" },
+          });
+        },
+      };
+      return withProgrammableFetch("/api/log/", state)(storyFn);
+    },
+  ],
+  render: () =>
+    html`<cts-log-viewer test-id="test-late-001" ._pollIntervalMs=${20}></cts-log-viewer>`,
+  async play({ canvasElement }) {
+    const previousHash = window.location.hash;
+    history.replaceState(null, "", "#LOG-0005");
+
+    /** @type {Set<HTMLElement>} */
+    const scrolled = new Set();
+    const realScrollIntoView = Element.prototype.scrollIntoView;
+    Element.prototype.scrollIntoView = /** @type {Element["scrollIntoView"]} */ (
+      function () {
+        scrolled.add(/** @type {HTMLElement} */ (this));
+      }
+    );
+
+    try {
+      // LOG-0005 only exists after the SECOND poll appends it. The old
+      // one-shot gate gave up after poll 1, so the row would appear but
+      // never scroll; the retry gate keeps trying and scrolls it once it
+      // lands. Asserting the row is BOTH present AND scrolled is the
+      // discriminating check for retry-until-success.
+      await waitFor(
+        () => {
+          const target = /** @type {HTMLElement | null} */ (
+            canvasElement.querySelector("#LOG-0005")
+          );
+          expect(target).toBeTruthy();
+          if (target) expect(scrolled.has(target)).toBe(true);
+        },
+        { timeout: 2500 },
+      );
+    } finally {
+      Element.prototype.scrollIntoView = realScrollIntoView;
+      const patched = /** @type {typeof fetch & { __realFetch?: typeof fetch }} */ (window.fetch);
+      if (patched.__realFetch) window.fetch = patched.__realFetch;
+      history.replaceState(null, "", previousHash || " ");
+    }
+  },
+};
+
+/**
+ * In-page fragment change after load — the path a timestamp deep-link
+ * click takes. The viewer listens for `hashchange` and runs the same
+ * open-ancestors-then-scroll routine, so clicking an entry's timestamp
+ * (which sets `location.hash`) scrolls to that entry without a reload.
+ */
+export const HashChangeScroll = {
+  decorators: [withMockFetch("/api/log/", MOCK_LOG_ENTRIES)],
+  render: () => html`<cts-log-viewer test-id="test-hashchange-1"></cts-log-viewer>`,
+  async play({ canvasElement }) {
+    const previousHash = window.location.hash;
+
+    /** @type {Set<HTMLElement>} */
+    const scrolled = new Set();
+    const realScrollIntoView = Element.prototype.scrollIntoView;
+    Element.prototype.scrollIntoView = /** @type {Element["scrollIntoView"]} */ (
+      function () {
+        scrolled.add(/** @type {HTMLElement} */ (this));
+      }
+    );
+
+    try {
+      await waitForLogLoad(canvasElement);
+      // Page is loaded with no hash; nothing scrolled yet.
+      expect(scrolled.size).toBe(0);
+
+      // Simulate a timestamp deep-link click by navigating the fragment.
+      window.location.hash = "#LOG-0006";
+
+      await waitFor(() => {
+        const target = /** @type {HTMLElement | null} */ (canvasElement.querySelector("#LOG-0006"));
+        expect(target).toBeTruthy();
+        if (target) expect(scrolled.has(target)).toBe(true);
+      });
+    } finally {
+      Element.prototype.scrollIntoView = realScrollIntoView;
+      if (previousHash) window.location.hash = previousHash;
+      else history.replaceState(null, "", window.location.pathname + window.location.search);
+    }
+  },
+};
+
+/**
+ * A collapsed block containing the target is expanded before scrolling.
+ * The user collapses a block, then a fragment change targets a row inside
+ * it; the scroll routine walks the `<details>` ancestors open (and the
+ * toggle handler syncs `_collapsedBlocks` so it stays open) before
+ * scrolling the row into view.
+ */
+export const CollapsedBlockReopensOnScroll = {
+  decorators: [withMockFetch("/api/log/", MOCK_BLOCKS_WITH_STATUS)],
+  render: () => html`<cts-log-viewer test-id="test-collapsed-1"></cts-log-viewer>`,
+  async play({ canvasElement }) {
+    const previousHash = window.location.hash;
+
+    /** @type {Set<HTMLElement>} */
+    const scrolled = new Set();
+    const realScrollIntoView = Element.prototype.scrollIntoView;
+    Element.prototype.scrollIntoView = /** @type {Element["scrollIntoView"]} */ (
+      function () {
+        scrolled.add(/** @type {HTMLElement} */ (this));
+      }
+    );
+
+    try {
+      await waitForLogLoad(canvasElement);
+      const block = /** @type {HTMLDetailsElement | null} */ (
+        canvasElement.querySelector('details[data-block-id="block-a"]')
+      );
+      if (!block) throw new Error("block-a did not render");
+
+      // Collapse the block via its summary (default state is open).
+      const summary = /** @type {HTMLElement} */ (block.querySelector("summary.startBlock"));
+      await userEvent.click(summary);
+      await waitFor(() => expect(block.open).toBe(false));
+
+      // Target a row inside the collapsed block (blk-a-1 → LOG-0002).
+      window.location.hash = "#LOG-0002";
+
+      await waitFor(() => {
+        // The block re-opened and the row was scrolled into view.
+        expect(block.open).toBe(true);
+        const target = /** @type {HTMLElement | null} */ (canvasElement.querySelector("#LOG-0002"));
+        expect(target).toBeTruthy();
+        if (target) expect(scrolled.has(target)).toBe(true);
+      });
+    } finally {
+      Element.prototype.scrollIntoView = realScrollIntoView;
+      if (previousHash) window.location.hash = previousHash;
+      else history.replaceState(null, "", window.location.pathname + window.location.search);
+    }
+  },
+};
+
+/**
+ * An out-of-range or malformed fragment is a graceful no-op: the viewer
+ * does not throw and does not scroll. `#LOG-9999` on a 10-entry log has no
+ * matching host.
+ */
+export const OutOfRangeHashNoop = {
+  decorators: [withMockFetch("/api/log/", MOCK_LOG_ENTRIES)],
+  render: () => html`<cts-log-viewer test-id="test-oob-1"></cts-log-viewer>`,
+  async play({ canvasElement }) {
+    const previousHash = window.location.hash;
+
+    /** @type {Set<HTMLElement>} */
+    const scrolled = new Set();
+    const realScrollIntoView = Element.prototype.scrollIntoView;
+    Element.prototype.scrollIntoView = /** @type {Element["scrollIntoView"]} */ (
+      function () {
+        scrolled.add(/** @type {HTMLElement} */ (this));
+      }
+    );
+
+    try {
+      await waitForLogLoad(canvasElement);
+
+      // No matching host for an out-of-range ordinal.
+      window.location.hash = "#LOG-9999";
+      await waitFor(() => expect(canvasElement.querySelector("#LOG-0001")).toBeTruthy());
+      expect(canvasElement.querySelector("#LOG-9999")).toBeNull();
+      expect(scrolled.size).toBe(0);
+    } finally {
+      Element.prototype.scrollIntoView = realScrollIntoView;
+      if (previousHash) window.location.hash = previousHash;
+      else history.replaceState(null, "", window.location.pathname + window.location.search);
+    }
+  },
+};
+
 export const DisconnectStopsPolling = {
   decorators: [
     (storyFn) => {
