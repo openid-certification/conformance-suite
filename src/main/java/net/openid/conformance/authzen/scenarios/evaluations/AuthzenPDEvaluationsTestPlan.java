@@ -18,6 +18,16 @@ import net.openid.conformance.plan.TestPlan;
 		AuthzenPDPEvaluationsEvaluationLevelErrorsTest.class,
 		// X-Request-ID handling (Spec 10.1.3-4)
 		AuthzenPDPEvaluationsXRequestIdEchoedTest.class,
+		// Idempotency
+		AuthzenPDPEvaluationsIdempotencyTest.class,
+		// Transport binding negative tests (Spec 10.1.1 / 10.1.2 / 2.4.4 / 2.4.5)
+		AuthzenPDPEvaluationsRejectGetMethodTest.class,
+		AuthzenPDPEvaluationsRejectPutMethodTest.class,
+		AuthzenPDPEvaluationsRejectTopLevelArrayTest.class,
+		AuthzenPDPEvaluationsRejectNonJsonContentTypeTest.class,
+		AuthzenPDPEvaluationsAcceptContentTypeWithCharsetTest.class,
+		AuthzenPDPEvaluationsRejectMalformedJsonTest.class,
+		AuthzenPDPEvaluationsRejectEmptyBodyTest.class,
 		// Batch Properties (Properties variant only)
 		AuthzenPDPEvaluationsBatchWithPropertiesValidatedTest.class,
 		AuthzenPDPEvaluationsBatchWithSubjectPropertiesValidatedTest.class,
