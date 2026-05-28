@@ -279,7 +279,7 @@ const STYLE_TEXT = `
   border-radius: var(--radius-3);
   background: var(--bg-elev);
   color: var(--ink-900);
-  text-decoration: none;
+  text-decoration-line: none;
   transition: background var(--dur-1) var(--ease-standard),
               border-color var(--dur-1) var(--ease-standard);
 }
@@ -287,7 +287,7 @@ const STYLE_TEXT = `
   background: var(--ink-50);
   border-color: var(--border-strong);
   color: var(--ink-900);
-  text-decoration: none;
+  text-decoration-line: none;
 }
 .oidf-login-link:focus-visible {
   outline: none;

@@ -48,6 +48,19 @@ const STYLE_TEXT = `
     outline: none;
     box-shadow: var(--focus-ring);
   }
+  /* Disclosure chevron: a static chevron-down icon that flips 180° around
+     its center on the Z axis (i.e. in the plane of the screen) when the
+     title's aria-expanded flips to "true". Same convention as cts-button's
+     chevron rotation — see the long comment in cts-button.js. Keyed on the
+     ARIA attribute (not the Lit _expanded state) so the transition runs
+     regardless of which code path toggled the panel. */
+  cts-failure-summary .failureSummaryTitle cts-icon {
+    transition: transform var(--dur-1) var(--ease-standard);
+    transform-origin: center;
+  }
+  cts-failure-summary .failureSummaryTitle[aria-expanded="true"] cts-icon {
+    transform: rotate(180deg);
+  }
   cts-failure-summary .failureList {
     display: flex;
     flex-direction: column;
@@ -115,9 +128,10 @@ const STYLE_TEXT = `
        anchor reads as text-with-an-underline rather than a saturated
        link, which matches the look used before the role swap. */
     color: var(--fg);
-    text-decoration: underline;
+    text-decoration-line: underline;
     text-decoration-thickness: 1px;
     text-underline-offset: 2px;
+    text-decoration-color: var(--link-decoration-color);
     border-radius: var(--radius-2);
   }
   cts-failure-summary .failureText:hover { color: var(--fg-link); }
@@ -383,11 +397,12 @@ class CtsFailureSummary extends LitElement {
           class="failureSummaryTitle"
           role="button"
           tabindex="0"
+          aria-expanded="${this._expanded ? "true" : "false"}"
           @click=${this._toggle}
           @keydown=${this._handleTitleKeydown}
         >
           Failure summary:
-          <cts-icon name="${this._expanded ? "chevron-up" : "chevron-down"}"></cts-icon>
+          <cts-icon name="chevron-down"></cts-icon>
         </div>
         ${this._expanded ? list : nothing}
       </div>

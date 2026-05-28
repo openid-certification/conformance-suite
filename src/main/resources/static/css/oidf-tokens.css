@@ -123,6 +123,11 @@
   --fg-on-ink: var(--ink-0);
   --fg-on-orange: var(--ink-0);
   --fg-link:   var(--orange-500);
+  /* Default underline tint for links: currentColor faded to ~40% so the
+     rule sits a touch lighter than the text. Resolves against each link's
+     own `color` because color-mix(currentColor) is substituted at use
+     site, and inherits across shadow boundaries as a custom property. */
+  --link-decoration-color: color-mix(in srgb, currentColor, transparent 60%);
 
   --border:        var(--ink-200);
   --border-strong: var(--ink-300);
@@ -258,6 +263,11 @@ html {
   background: var(--bg);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  /* Reserve the scrollbar's track space always, so the page width stays
+     constant whether or not content overflows — no horizontal shift when
+     navigating between short and long pages. Mirrors layout.css (legacy);
+     anchored here so it survives that file's removal. */
+  scrollbar-gutter: stable;
 }
 
 body { margin: 0; }
@@ -287,11 +297,25 @@ code, kbd, samp, pre {
 
 a {
   color: var(--fg-link);
-  text-decoration: underline;
+  text-decoration-line: underline;
   text-decoration-thickness: 1px;
   text-underline-offset: 2px;
+  /* Underline hidden at rest, but the line stays in the box so revealing it
+     on hover/focus animates color only — text-decoration-line is a discrete
+     property and can't be transitioned, so fading the color is what gives a
+     smooth reveal with zero layout shift. */
+  text-decoration-color: transparent;
+  transition: text-decoration-color var(--dur-1) var(--ease-standard);
 }
-a:hover { color: var(--orange-600); }
+a:hover,
+a:focus-visible {
+  color: var(--orange-600);
+  text-decoration-color: var(--link-decoration-color);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  a { transition: none; }
+}
 
 ::selection { background: var(--orange-200); color: var(--ink-900); }
 

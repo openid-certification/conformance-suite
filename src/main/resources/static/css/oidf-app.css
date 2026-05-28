@@ -51,7 +51,7 @@ dialog:not([open]) {
 }
 
 /* ---- Anchors-as-buttons: never carry the body-link underline ----
-   oidf-tokens.css applies `a { text-decoration: underline }` to make
+   oidf-tokens.css applies `a { text-decoration-line: underline }` to make
    prose links visible. Buttons rendered as anchors (cts-link-button,
    Bootstrap `.btn` on `<a>`, the post-U5 `.oidf-btn` family) are not
    prose links and must not show an underline in any state. Targets
@@ -67,7 +67,7 @@ cts-link-button > a:focus,
 .oidf-btn,
 .oidf-btn:hover,
 .oidf-btn:focus {
-  text-decoration: none;
+  text-decoration-line: none;
 }
 
 /* ---- Skip-to-main-content link ----------------------------------
@@ -87,7 +87,7 @@ cts-link-button > a:focus,
   background: var(--bg-elev);
   color: var(--ink-900);
   font-weight: var(--fw-bold);
-  text-decoration: none;
+  text-decoration-line: none;
   border-radius: var(--radius-2);
   box-shadow: var(--shadow-2);
 }
@@ -295,7 +295,7 @@ cts-link-button > a:focus,
 }
 .oidf-jwks-generator-link:hover,
 .oidf-jwks-generator-link:focus {
-  text-decoration: underline;
+  text-decoration-line: underline;
 }
 
 /* Launch actions now live in a sticky <cts-action-bar> at the viewport

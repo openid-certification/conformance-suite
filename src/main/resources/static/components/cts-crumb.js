@@ -26,6 +26,10 @@ const STYLE_TEXT = `
     display: inline-flex;
     align-items: center;
   }
+  /* .crumbLink is a <button>, so the global \`a\` underline-fade model doesn't
+     reach it — replicate it locally: underline present but transparent at
+     rest, token color revealed on hover/focus, transitioning color only
+     (text-decoration-line is discrete and can't animate). */
   cts-crumb .crumbLink {
     background: transparent;
     border: 0;
@@ -34,10 +38,19 @@ const STYLE_TEXT = `
     font: inherit;
     color: var(--fg-link);
     cursor: pointer;
-    text-decoration: none;
+    text-decoration-line: underline;
+    text-underline-offset: 2px;
+    text-decoration-color: transparent;
+    transition: text-decoration-color var(--dur-1) var(--ease-standard);
   }
-  cts-crumb .crumbLink:hover {
-    text-decoration: underline;
+  cts-crumb .crumbLink:hover,
+  cts-crumb .crumbLink:focus-visible {
+    text-decoration-color: var(--link-decoration-color);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    cts-crumb .crumbLink {
+      transition: none;
+    }
   }
   cts-crumb .crumbLink:focus {
     outline: none;

@@ -247,9 +247,10 @@ const STYLE_TEXT = `
      "info-subtle" badge reads blueish, not the global orange link color. */
   cts-badge .badge a {
     color: currentColor;
-    text-decoration: underline;
+    text-decoration-line: underline;
     text-decoration-thickness: 1px;
     text-underline-offset: 2px;
+    text-decoration-color: var(--link-decoration-color);
   }
   cts-badge .badge a:hover {
     color: currentColor;

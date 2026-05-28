@@ -117,16 +117,19 @@ export const Collapsed = {
       return el;
     });
 
-    // Initial state: list visible, chevron points up.
+    // Initial state: list visible, title reports expanded via aria-expanded.
+    // We assert the ARIA contract rather than the chevron glyph name; the
+    // chevron is a single static cts-icon[name="chevron-down"] rotated 180°
+    // via CSS keyed on aria-expanded (see cts-failure-summary.js styles).
     expect(canvasElement.querySelector('[data-testid="failure-list"]')).toBeTruthy();
-    expect(canvasElement.querySelector('cts-icon[name="chevron-up"]')).toBeTruthy();
+    expect(title.getAttribute("aria-expanded")).toBe("true");
 
     // Click the title → collapse.
     await userEvent.click(title);
 
     await waitFor(() => {
       expect(canvasElement.querySelector('[data-testid="failure-list"]')).toBeNull();
-      expect(canvasElement.querySelector('cts-icon[name="chevron-down"]')).toBeTruthy();
+      expect(title.getAttribute("aria-expanded")).toBe("false");
     });
 
     // Click again → re-expand.
@@ -175,9 +178,11 @@ export const Compact = {
     expect(host.hasAttribute("compact")).toBe(true);
 
     // Title and chevron are not rendered in compact mode (they're
-    // omitted from the render output, not just hidden).
+    // omitted from the render output, not just hidden). The chevron lives
+    // inside .failureSummaryTitle, so the title's absence implies the
+    // chevron's absence — we also assert no stray chevron-down survived.
     expect(canvasElement.querySelector(".failureSummaryTitle")).toBeNull();
-    expect(canvasElement.querySelector('cts-icon[name="chevron-up"]')).toBeNull();
+    expect(canvasElement.querySelector('cts-icon[name="chevron-down"]')).toBeNull();
 
     // Rows still render; each row's failure text is present.
     const rows = canvasElement.querySelectorAll(".failureItem");

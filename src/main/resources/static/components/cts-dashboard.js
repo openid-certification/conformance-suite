@@ -124,7 +124,7 @@ const STYLE_TEXT = `
   padding: var(--space-5);
   box-shadow: var(--shadow-1);
   color: var(--fg);
-  text-decoration: none;
+  text-decoration-line: none;
   transition: border-color var(--dur-1) var(--ease-standard),
               box-shadow var(--dur-1) var(--ease-standard),
               transform var(--dur-1) var(--ease-standard);
@@ -133,7 +133,7 @@ const STYLE_TEXT = `
   border-color: var(--border-strong);
   box-shadow: var(--shadow-2);
   color: var(--fg);
-  text-decoration: none;
+  text-decoration-line: none;
   transform: translateY(-1px);
 }
 .oidf-dashboard-stat-tile:focus-visible {
@@ -155,7 +155,7 @@ const STYLE_TEXT = `
   border-radius: var(--radius-3);
   padding: var(--space-5) var(--space-5);
   color: var(--fg);
-  text-decoration: none;
+  text-decoration-line: none;
   box-shadow: var(--shadow-1);
   transition: border-color var(--dur-1) var(--ease-standard),
               box-shadow var(--dur-1) var(--ease-standard),
@@ -165,7 +165,7 @@ const STYLE_TEXT = `
   border-color: var(--border-strong);
   box-shadow: var(--shadow-2);
   color: var(--fg);
-  text-decoration: none;
+  text-decoration-line: none;
   transform: translateY(-1px);
 }
 .oidf-dashboard-tile:focus-visible {

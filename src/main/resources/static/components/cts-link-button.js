@@ -89,14 +89,14 @@ const STYLE_TEXT = `
   background: transparent;
   color: var(--ink-900);
   cursor: pointer;
-  text-decoration: none;
+  text-decoration-line: none;
   box-sizing: border-box;
   transition: background var(--dur-1) var(--ease-standard),
               border-color var(--dur-1) var(--ease-standard),
               color var(--dur-1) var(--ease-standard);
 }
 .oidf-btn:hover {
-  text-decoration: none;
+  text-decoration-line: none;
 }
 .oidf-btn:focus {
   outline: none;
@@ -135,7 +135,7 @@ const STYLE_TEXT = `
 
 .oidf-btn-ghost {
   background: transparent;
-  color: var(--ink-900);
+  color: var(--ink-600);
   border-color: transparent;
 }
 .oidf-btn-ghost:hover {

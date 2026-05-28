@@ -187,7 +187,7 @@ const STYLE_TEXT = `
     line-height: var(--lh-snug);
     font-weight: var(--fw-bold);
     color: var(--fg);
-    text-decoration: none;
+    text-decoration-line: none;
     word-break: break-word;
   }
   .cts-plan-card-name::after {
@@ -198,7 +198,7 @@ const STYLE_TEXT = `
   }
   .cts-plan-card-name:hover,
   .cts-plan-card-name:focus-visible {
-    text-decoration: none;
+    text-decoration-line: none;
   }
   .cts-plan-card-name:focus-visible {
     outline: none;

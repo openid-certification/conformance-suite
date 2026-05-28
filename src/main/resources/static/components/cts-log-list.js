@@ -274,7 +274,7 @@ const STYLE_TEXT = `
     line-height: var(--lh-snug);
     font-weight: var(--fw-bold);
     color: var(--fg);
-    text-decoration: none;
+    text-decoration-line: none;
     word-break: break-word;
   }
   /* Pseudo-element overlay: the headline link's clickable area expands to
@@ -288,7 +288,7 @@ const STYLE_TEXT = `
   }
   .cts-log-card-name:hover,
   .cts-log-card-name:focus-visible {
-    text-decoration: none;
+    text-decoration-line: none;
   }
   .cts-log-card-name:focus-visible {
     outline: none;
@@ -341,16 +341,17 @@ const STYLE_TEXT = `
     font-family: var(--font-mono);
     font-size: var(--fs-12);
   }
+  /* Light-DOM anchor: the underline fade (line underline + transparent at
+     rest, token color on hover, transition on text-decoration-color) comes
+     from the global \`a\` rule. Toggling text-decoration-line here would break
+     it — line is discrete and can't animate — so we keep only layout. */
   .cts-log-card-plan-link {
     position: relative;
     z-index: 1;
     color: var(--fg-link);
-    text-decoration: none;
+    text-underline-offset: 2px;
     font-family: var(--font-mono);
     font-size: var(--fs-12);
-  }
-  .cts-log-card-plan-link:hover {
-    text-decoration: underline;
   }
   /* Nested controls lift above the headline link's ::after overlay so the
      browser routes clicks on them to the control, not the card link. */
