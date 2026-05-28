@@ -27,10 +27,10 @@ public class CheckNonceMaximumLength extends AbstractCondition {
 		}
 
 		if (nonce.length() > MAX_LEN) {
-			throw error(buildOverlongMessage());
+			throw error(buildOverlongMessage(), args("nonce", nonce, "length", nonce.length()));
 		}
 
-		logSuccess(buildSuccessMessage());
+		logSuccess(buildSuccessMessage(), args("nonce", nonce, "length", nonce.length()));
 		return env;
 	}
 
