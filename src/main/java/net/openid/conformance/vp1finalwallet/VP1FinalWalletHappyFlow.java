@@ -17,9 +17,13 @@ public class VP1FinalWalletHappyFlow extends AbstractVP1FinalWalletTest {
 	protected ConditionSequence createAuthorizationRequestSequence() {
 		ConditionSequence createAuthorizationRequestSteps = super.createAuthorizationRequestSequence();
 
-		createAuthorizationRequestSteps = createAuthorizationRequestSteps.
-			skip(AddStateToAuthorizationEndpointRequest.class, "Not adding state, it's optional").
-			skip(CreateRandomStateValue.class, "Not adding state, it's optional");
+		if (responseMode != VP1FinalWalletResponseMode.DC_API
+			&& responseMode != VP1FinalWalletResponseMode.DC_API_JWT) {
+			// DC API response modes never add state to the sequence, so skip() would fail
+			createAuthorizationRequestSteps = createAuthorizationRequestSteps.
+				skip(AddStateToAuthorizationEndpointRequest.class, "Not adding state, it's optional").
+				skip(CreateRandomStateValue.class, "Not adding state, it's optional");
+		}
 
 		return createAuthorizationRequestSteps;
 	}
