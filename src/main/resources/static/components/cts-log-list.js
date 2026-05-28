@@ -1112,7 +1112,7 @@ class CtsLogList extends LitElement {
   _renderConfigModal() {
     const configJson = this._selectedConfig ? JSON.stringify(this._selectedConfig, null, 4) : "";
     return html`
-      <cts-modal id="cts-log-list-config-modal" heading="Configuration">
+      <cts-modal id="cts-log-list-config-modal" heading="Configuration" size="xl">
         <div class="cts-log-list-config-toolbar">
           <span>
             <span class="text-muted">Test ID:</span>
