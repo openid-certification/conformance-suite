@@ -474,6 +474,10 @@ export const HttpRequestEntry = {
 
     const curlBtn = canvas.getByRole("button", { name: "Copy as cURL" });
     expect(curlBtn).toBeInTheDocument();
+    // The cURL affordance is the tertiary (ghost) variant so it recedes
+    // into the row instead of reading as a bordered secondary button.
+    const curlHost = canvasElement.querySelector("cts-button.curlBtn");
+    expect(curlHost?.getAttribute("variant")).toBe("ghost");
 
     // The disclosure toggle is icon + count (no "More" text); query it
     // by its class hook instead of by visible label.
