@@ -319,11 +319,6 @@ const STYLE_TEXT = `
        which makes the colon column drift row-to-row in stacked log entries. */
     font-variant-numeric: tabular-nums;
   }
-  /* cts-tooltip is a behaviour-only wrapper; collapse its inline box so the
-     timestamp anchor sits directly in the .logTime cell. */
-  cts-log-entry .logTime cts-tooltip {
-    display: contents;
-  }
   /* The timestamp is the entry's deep-link handle. Keep it visually quiet —
      inherits the muted .logTime colour, no resting underline — so it reads
      as a timestamp first and a link on hover/focus. */
@@ -820,15 +815,15 @@ class CtsLogEntry extends LitElement {
     // to build. The relative fragment keeps left-click a pure in-page
     // navigation (no reload). aria-label carries the reference id so the
     // accessible name stays unique across rows logged in the same second.
+    // No tooltip — the audience is technical and the anchor affordance
+    // (hover underline + right-click → Copy Link Address) is self-evident.
     const time = html`<cts-time mode="time-of-day" value=${entry.time || ""}></cts-time>`;
     const timeContent = this.referenceId
-      ? html`<cts-tooltip content="Link to this entry — right-click to copy" placement="top"
-          ><a
-            class="logTimeLink"
-            href="#${this.referenceId}"
-            aria-label="Link to log entry ${this.referenceId}"
-            >${time}</a
-          ></cts-tooltip
+      ? html`<a
+          class="logTimeLink"
+          href="#${this.referenceId}"
+          aria-label="Link to log entry ${this.referenceId}"
+          >${time}</a
         >`
       : time;
 
