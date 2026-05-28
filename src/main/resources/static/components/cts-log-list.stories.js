@@ -34,6 +34,21 @@ async function waitForLogsToLoad(canvasElement) {
   );
 }
 
+/**
+ * Open the faceted filter dropdown (HTML Popover) by activating its trigger,
+ * then wait for the trigger's `aria-expanded` to flip to "true". Returns the
+ * panel element so callers can query its checkbox options.
+ */
+async function openFilterPanel(canvasElement) {
+  const trigger = canvasElement.querySelector('[data-testid="log-filter-trigger"]');
+  expect(trigger).not.toBeNull();
+  await userEvent.click(trigger);
+  await waitFor(() => {
+    expect(trigger.getAttribute("aria-expanded")).toBe("true");
+  });
+  return canvasElement.querySelector('[data-testid="log-filter-panel"]');
+}
+
 function paginationEnvelope(rows) {
   return {
     draw: 1,
@@ -269,16 +284,26 @@ export const FilterByStatus = {
     let items = canvasElement.querySelectorAll('[data-testid="log-list-item"]');
     expect(items.length).toBe(MOCK_LOG_LIST.length);
 
-    // Click the RUNNING status chip — only the running row should remain.
-    const runningChip = canvasElement.querySelector('.cts-log-filter-chip[data-status="RUNNING"]');
-    expect(runningChip).not.toBeNull();
-    await userEvent.click(runningChip);
+    // Open the filter dropdown and check the RUNNING status option — only the
+    // running row should remain.
+    await openFilterPanel(canvasElement);
+    const runningOption = canvasElement.querySelector('input[data-status="RUNNING"]');
+    expect(runningOption).not.toBeNull();
+    await userEvent.click(runningOption);
 
     await waitFor(() => {
       items = canvasElement.querySelectorAll('[data-testid="log-list-item"]');
       expect(items.length).toBe(1);
     });
     expect(canvasElement.textContent).toContain("fapi2-running");
+
+    // The trigger advertises the open panel and a count badge of the single
+    // active facet.
+    const trigger = canvasElement.querySelector('[data-testid="log-filter-trigger"]');
+    expect(trigger.getAttribute("aria-expanded")).toBe("true");
+    const countBadge = trigger.querySelector("cts-badge");
+    expect(countBadge).not.toBeNull();
+    expect(countBadge.getAttribute("count")).toBe("1");
 
     // Active-filter summary appears with match count.
     const summary = canvasElement.querySelector('[data-testid="active-filter-summary"]');
@@ -304,9 +329,11 @@ export const FilterActiveZeroMatches = {
   async play({ canvasElement }) {
     await waitForLogsToLoad(canvasElement);
 
-    // Activate SKIPPED — no fixture row has SKIPPED.
-    const skippedChip = canvasElement.querySelector('.cts-log-filter-chip[data-result="SKIPPED"]');
-    await userEvent.click(skippedChip);
+    // Open the dropdown and check SKIPPED — no fixture row has SKIPPED.
+    await openFilterPanel(canvasElement);
+    const skippedOption = canvasElement.querySelector('input[data-result="SKIPPED"]');
+    expect(skippedOption).not.toBeNull();
+    await userEvent.click(skippedOption);
 
     await waitFor(() => {
       const empty = canvasElement.querySelector('[data-testid="log-list-empty"]');
