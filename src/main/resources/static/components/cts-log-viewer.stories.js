@@ -9,6 +9,7 @@ import {
   MOCK_BLOCKS_POLL_FIRST,
   MOCK_BLOCKS_POLL_SECOND,
   MOCK_EMPTY_BLOCK,
+  MOCK_BLOCKS_ALIGN,
 } from "@fixtures/mock-log-entries.js";
 import { MOCK_TEST_STATUS } from "@fixtures/mock-test-data.js";
 import "./cts-log-viewer.js";
@@ -668,6 +669,110 @@ export const OutOfRangeHashNoop = {
       if (previousHash) window.location.hash = previousHash;
       else history.replaceState(null, "", window.location.pathname + window.location.search);
     }
+  },
+};
+
+/**
+ * Wide-layout column alignment between block (is-block) entries and
+ * top-level entries. Regression guard for the subgrid relay through
+ * <details>: each .logBlock is a subgrid that relays the master grid's
+ * tracks, its ::details-content wrapper is display: contents so the
+ * relay propagates, and each nested .logItem subgrids into it. The net
+ * effect is that every row — block or not — shares one set of column
+ * positions.
+ *
+ * The fixture deliberately gives block rows DIFFERING badge widths (no
+ * marker / wide REDIRECT-IN / REQUEST icon, plus SUCCESS/WARNING/FAILURE
+ * severities). Under the old per-entry max-content grid each row sized
+ * its own columns, so the message column drifted row-to-row; if the
+ * subgrid relay regresses (e.g. the ::details-content wrapper goes back
+ * to display: block) the cells collapse into the first column. Both
+ * failure modes are caught by asserting the message column starts at the
+ * same x on every block row AND matches the top-level reference row.
+ */
+export const AlignedBlocks = {
+  decorators: [withMockFetch("/api/log/", MOCK_BLOCKS_ALIGN)],
+  render: () => html`<cts-log-viewer test-id="test-blocks-align-001"></cts-log-viewer>`,
+  async play({ canvasElement }) {
+    await waitForLogLoad(canvasElement);
+
+    const left = (el) => Math.round(el.getBoundingClientRect().left);
+
+    // The leading non-block entry is a direct child of .logEntries.
+    const topItem = /** @type {HTMLElement} */ (
+      canvasElement.querySelector(".logEntries > cts-log-entry > .logItem")
+    );
+    expect(topItem).toBeTruthy();
+
+    // Block rows live one level deeper, inside the <details> block.
+    const block = /** @type {HTMLDetailsElement} */ (
+      canvasElement.querySelector("details.logBlock")
+    );
+    expect(block).toBeTruthy();
+    const blockItems = [...block.querySelectorAll(":scope > cts-log-entry > .logItem")];
+    expect(blockItems.length).toBe(3);
+
+    // Badges (cts-badge / cts-icon) render asynchronously after the rows
+    // mount, and the subgrid relay through <details> settles a frame
+    // after the top-level direct subgrid. Both feed the auto track
+    // widths, so poll the geometry until it stabilises rather than
+    // measuring a single (possibly mid-render) frame.
+    await waitFor(
+      () => {
+        const topBody = /** @type {HTMLElement} */ (topItem.querySelector(".logBody"));
+        const topTime = /** @type {HTMLElement} */ (topItem.querySelector(".logTime"));
+
+        // The container query must be active (canvas is wide in the
+        // runner): the message column sits past the 92px timestamp
+        // track, not crammed against the row's left edge. This is the
+        // discriminating check for the "cells collapsed into column 1"
+        // regression.
+        expect(left(topBody) - left(topTime)).toBeGreaterThan(90);
+
+        // Every block row's message column starts at the same x (exact
+        // within-block alignment) AND matches the top-level reference
+        // row (exact cross-boundary alignment via the subgrid relay).
+        // 1px of slack absorbs sub-pixel track rounding only.
+        for (const item of blockItems) {
+          const body = /** @type {HTMLElement} */ (item.querySelector(".logBody"));
+          const time = /** @type {HTMLElement} */ (item.querySelector(".logTime"));
+          expect(Math.abs(left(body) - left(topBody))).toBeLessThanOrEqual(1);
+          expect(Math.abs(left(time) - left(topTime))).toBeLessThanOrEqual(1);
+          // Not collapsed: the message still sits past the timestamp track.
+          expect(left(body) - left(time)).toBeGreaterThan(90);
+        }
+      },
+      { timeout: 3000 },
+    );
+
+    // Collapse must still hide block rows at the wide layout. The subgrid
+    // relay dissolves the UA ::details-content wrapper so the rows can
+    // subgrid into .logBlock — but that wrapper is also what the browser
+    // hides (via content-visibility) when the block is closed. Scoping the
+    // dissolve to [open] keeps collapse working; this is the guard. Without
+    // it, an unconditional dissolve leaves closed-block rows visible — a
+    // regression no `.open`-only assertion would catch.
+    const summary = /** @type {HTMLElement} */ (block.querySelector("summary.startBlock"));
+    await userEvent.click(summary);
+    await waitFor(() => {
+      expect(block.open).toBe(false);
+      // checkVisibility() accounts for the closed block's content-visibility.
+      for (const item of blockItems) {
+        expect(item.checkVisibility()).toBe(false);
+      }
+    });
+
+    // Re-expand: alignment must return (the relay re-establishes cleanly).
+    await userEvent.click(summary);
+    await waitFor(() => {
+      expect(block.open).toBe(true);
+      const topBody = /** @type {HTMLElement} */ (topItem.querySelector(".logBody"));
+      for (const item of blockItems) {
+        const body = /** @type {HTMLElement} */ (item.querySelector(".logBody"));
+        expect(item.checkVisibility()).toBe(true);
+        expect(Math.abs(left(body) - left(topBody))).toBeLessThanOrEqual(1);
+      }
+    });
   },
 };
 

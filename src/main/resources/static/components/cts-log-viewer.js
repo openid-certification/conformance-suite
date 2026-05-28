@@ -119,21 +119,66 @@ const STYLE_TEXT = `
        participates directly in .logEntries as a single-level
        subgrid descendant — that is what aligns the severity column
        across rows. The host's row separator (1px border-bottom)
-       is restored on .logItem in cts-log-entry.js.
-
-       Nested entries inside <details class="logBlock"> use the
-       per-entry grid (defined in cts-log-entry.js's default wide
-       block) instead of subgrid: Chrome's subgrid track
-       propagation does not work through two consecutive
-       contents-eliding ancestors, and switching .logBlock to a
-       subgrid relay also fails. The block container keeps its
-       default block flow; only its position in the parent grid is
-       set so it spans all tracks as a divider section. */
+       is restored on .logItem in cts-log-entry.js. */
     cts-log-viewer .logEntries > cts-log-entry {
       display: contents;
     }
+    /* Entries inside <details class="logBlock"> align with top-level
+       rows on the SAME column tracks, via a two-level subgrid relay:
+       .logBlock spans all five master columns (grid-column: 1 / -1)
+       and is itself a subgrid, so its column lines ARE the master's;
+       each nested cts-log-entry host is display: contents so the
+       child .logItem becomes a direct grid item of .logBlock and
+       subgrids one more level (see cts-log-entry.js's
+       .logBlock cts-log-entry .logItem rule). The master grid's auto
+       badge tracks then size to the widest content across top-level
+       AND block rows, so every row — block or not — shares one set
+       of column positions: the message column lines up everywhere.
+
+       The relay only works once the ::details-content wrapper below
+       is neutralised. An earlier attempt (and the old code comment
+       that gave up on this) concluded "subgrid relay fails", but the
+       real blocker was that wrapper, not nested subgrid: with
+       display: contents on it the relay propagates cleanly on every
+       engine the suite targets. */
     cts-log-viewer .logEntries > .logBlock {
       grid-column: 1 / -1;
+      display: grid;
+      grid-template-columns: subgrid;
+      /* Must match .logEntries' column-gap above: a subgrid inherits
+         the parent's column TRACKS but not its gap, so the gap is
+         restated here. If the master gap changes, change it here too
+         or block rows drift out of alignment with top-level rows. */
+      column-gap: var(--space-3);
+    }
+    /* Chrome and Safari wrap a <details>'s non-summary content in a
+       UA-generated ::details-content pseudo that defaults to
+       display: block. That block box sits between .logBlock (grid)
+       and the entries, so any subgrid below it collapses to a single
+       column and the cells stack vertically — the messy layout this
+       fix targets, and the true reason the prior subgrid relay was
+       abandoned. display: contents removes the wrapper from the
+       layout tree so the entries become direct grid items of
+       .logBlock.
+
+       Scoped to [open] deliberately: the UA hides a closed <details>'s
+       content via content-visibility: hidden on ::details-content,
+       which has no effect on a box-less (display: contents) element.
+       Dissolving the wrapper unconditionally therefore leaves a
+       COLLAPSED block's rows visible. Gating on [open] keeps the
+       default wrapper (and its collapse behaviour) when the block is
+       closed, and only dissolves it — to let the subgrid relay
+       through — when the block is open and the rows are actually
+       shown. Firefox ships no ::details-content, so there is no
+       wrapper to neutralise and this rule is a harmless no-op there. */
+    cts-log-viewer .logEntries > .logBlock[open]::details-content {
+      display: contents;
+    }
+    cts-log-viewer .logEntries > .logBlock > summary.startBlock {
+      grid-column: 1 / -1;
+    }
+    cts-log-viewer .logEntries > .logBlock > cts-log-entry {
+      display: contents;
     }
   }
   cts-log-viewer .logEmpty {

@@ -512,9 +512,13 @@ const STYLE_TEXT = `
      their natural widths. */
   @container ctsLogViewer (min-width: 640px) {
     /* Default wide layout: each .logItem owns its own 5-column
-       grid. Used by entries nested inside .logBlock, which keep
-       their own per-row badge sizing. The top-level override below
-       switches to subgrid so badges align across the whole log. */
+       grid. This is the fallback; both overrides below replace it
+       with subgrid so columns align across rows — the top-level
+       rule for direct .logEntries children, and the .logBlock rule
+       for entries nested inside a block. A .logItem only keeps this
+       standalone 5-column grid when used outside the viewer's
+       master grid entirely (e.g. the cts-log-entry story in
+       isolation). */
     cts-log-entry .logItem {
       grid-template-columns: 92px max-content max-content 1fr auto;
       grid-template-areas: none;
@@ -535,8 +539,19 @@ const STYLE_TEXT = `
        across ALL top-level rows by the widest content in each
        track. cts-log-entry hosts are display: contents at this
        width (see cts-log-viewer.js), so .logItem is a direct
-       child of the parent grid and one level of subgrid is enough. */
-    .logEntries > cts-log-entry .logItem {
+       child of the parent grid and one level of subgrid is enough.
+
+       Block entries (nested inside <details class="logBlock">)
+       subgrid the same way, one level deeper: .logBlock is itself a
+       subgrid that relays the master tracks, and (once its
+       ::details-content wrapper is set to display: contents — see
+       cts-log-viewer.js) its nested cts-log-entry hosts are
+       display: contents too, so this .logItem is a direct grid item
+       of .logBlock and inherits the master columns through it. This
+       replaces the per-entry max-content grid that previously left
+       block rows ragged and misaligned with top-level rows. */
+    .logEntries > cts-log-entry .logItem,
+    .logBlock cts-log-entry .logItem {
       grid-template-columns: subgrid;
       grid-column: 1 / -1;
     }
