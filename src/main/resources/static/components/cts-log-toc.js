@@ -184,7 +184,7 @@ function writePreference(enabled) {
  *   so deep-URL chips include the test id.
  * @fires cts-scroll-to-block - When a block row is clicked, with
  *   `{ detail: { blockId } }`. Bubbles + composed. Distinct from
- *   cts-scroll-to-entry because the target is a <details> block-start,
+ *   cts-scroll-to-entry because the target is a `.logBlock` block-start,
  *   not a leaf entry.
  */
 class CtsLogToc extends LitElement {
@@ -261,7 +261,7 @@ class CtsLogToc extends LitElement {
   updated(changed) {
     super.updated?.(changed);
     // Re-observe whenever blocks change — the page bootstrap pushes a new
-    // blocks array as the viewer polls; the corresponding <details> nodes
+    // blocks array as the viewer polls; the corresponding `.logBlock` nodes
     // arrive on the same Lit microtask, so a single re-attach picks them
     // all up. IntersectionObserver targets must be DOM-attached before
     // .observe() runs, hence the firstUpdated + per-update reattach.
@@ -290,7 +290,7 @@ class CtsLogToc extends LitElement {
       this._intersectionObserver = null;
     }
     if (typeof IntersectionObserver === "undefined") return;
-    const targets = Array.from(document.querySelectorAll("details.logBlock")).filter(
+    const targets = Array.from(document.querySelectorAll(".logBlock")).filter(
       (el) => /** @type {HTMLElement} */ (el).dataset.blockId,
     );
     if (targets.length === 0) return;

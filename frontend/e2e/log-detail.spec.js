@@ -38,9 +38,8 @@ import {
  *     covered by "renders cts-log-viewer with mocked log entries"
  *     and "per-block status badges render in each block summary".
  * R18 "clicking a log entry expands detailed content" → covered at
- *     component scope by cts-log-entry stories; v2 page-level
- *     expansion is exercised by "clicking a block summary collapses
- *     the children via <details>".
+ *     component scope by cts-log-entry stories. (v2 blocks are not
+ *     collapsible; the prior block-collapse example was retired.)
  * R19 "failed test shows failure summary section" → covered by
  *     "failure summary jump-link bubbles cts-scroll-to-entry to the
  *     page" and "failure summary swaps between header and page-level
@@ -79,7 +78,7 @@ import {
  *     alert with stacktrace toggle" (this file).
  * "failure summary items are clickable" → covered by "failure
  *     summary jump-link bubbles cts-scroll-to-entry" and
- *     "failure-summary jump-link opens a collapsed block".
+ *     "failure-summary jump-link scrolls the entry inside a block into view".
  * R24 split-marker variants → covered by cts-log-detail-header
  *     stories (PassedHeroDescriptionAndMarkerSplit /
  *     PassedHeroDescriptionOnly / WaitingHeroWithInstructions /
@@ -835,9 +834,9 @@ test.describe("log-detail.html — new Lit-triad page", () => {
     expect(primaryBox.y).toBeLessThan(viewportHeight);
   });
 
-  // U5 — Per-block status aggregation + <details> semantics.
+  // U5 — Per-block status aggregation (non-collapsible blocks).
   // Plan: docs/plans/2026-04-26-006-feat-r27-per-block-status-aggregation-plan.md
-  test("per-block status badges render in each block summary", async ({ page }) => {
+  test("per-block status badges render in each block header", async ({ page }) => {
     await setupFailFast(page);
     await setupV2Routes(page, {
       testInfo: { ...MOCK_TEST_STATUS, testId: "test-blocks-001" },
@@ -847,23 +846,23 @@ test.describe("log-detail.html — new Lit-triad page", () => {
 
     await page.goto(`/log-detail.html?log=${encodeURIComponent("test-blocks-001")}`);
 
-    await expect(page.locator('details[data-block-id="block-a"]')).toBeAttached();
-    await expect(page.locator('details[data-block-id="block-b"]')).toBeAttached();
-    await expect(page.locator('details[data-block-id="block-c"]')).toBeAttached();
+    await expect(page.locator('.logBlock[data-block-id="block-a"]')).toBeAttached();
+    await expect(page.locator('.logBlock[data-block-id="block-b"]')).toBeAttached();
+    await expect(page.locator('.logBlock[data-block-id="block-c"]')).toBeAttached();
 
     // Block A: ✓2 only.
-    const aBadges = page.locator('details[data-block-id="block-a"] .startBlockCounts cts-badge');
+    const aBadges = page.locator('.logBlock[data-block-id="block-a"] .startBlockCounts cts-badge');
     await expect(aBadges).toHaveCount(1);
     await expect(aBadges.first()).toHaveAttribute("label", "✓2");
 
     // Block B: ✓1 ✗1, in spec order.
-    const bBadges = page.locator('details[data-block-id="block-b"] .startBlockCounts cts-badge');
+    const bBadges = page.locator('.logBlock[data-block-id="block-b"] .startBlockCounts cts-badge');
     await expect(bBadges).toHaveCount(2);
     await expect(bBadges.nth(0)).toHaveAttribute("label", "✓1");
     await expect(bBadges.nth(1)).toHaveAttribute("label", "✗1");
 
     // Block C: ⚠1 only — INFO is excluded by design.
-    const cBadges = page.locator('details[data-block-id="block-c"] .startBlockCounts cts-badge');
+    const cBadges = page.locator('.logBlock[data-block-id="block-c"] .startBlockCounts cts-badge');
     await expect(cBadges).toHaveCount(1);
     await expect(cBadges.first()).toHaveAttribute("label", "⚠1");
   });
@@ -1049,34 +1048,12 @@ test.describe("log-detail.html — new Lit-triad page", () => {
     expect(mainGridCols).toMatch(/\s320px$/);
   });
 
-  test("clicking a block summary collapses the children via <details>", async ({ page }) => {
-    await setupFailFast(page);
-    await setupV2Routes(page, {
-      testInfo: { ...MOCK_TEST_STATUS, testId: "test-blocks-001" },
-      logEntries: MOCK_BLOCKS_WITH_STATUS,
-    });
-    await setupCommonRoutes(page);
-
-    await page.goto(`/log-detail.html?log=${encodeURIComponent("test-blocks-001")}`);
-
-    const block = page.locator('details[data-block-id="block-a"]');
-    await expect(block).toBeAttached();
-    expect(await block.evaluate((el) => /** @type {HTMLDetailsElement} */ (el).open)).toBe(true);
-
-    await block.locator("summary.startBlock").click();
-
-    await expect
-      .poll(async () => block.evaluate((el) => /** @type {HTMLDetailsElement} */ (el).open))
-      .toBe(false);
-  });
-
-  test("failure-summary jump-link opens a collapsed block and scrolls the entry into view", async ({
-    page,
-  }) => {
+  test("failure-summary jump-link scrolls the entry inside a block into view", async ({ page }) => {
     // Block-aware failed test info: the failure entry's _id (blk-b-2)
-    // matches a child of <details data-block-id="block-b">. The bootstrap's
-    // document-level cts-scroll-to-entry handler must walk up to the
-    // <details> ancestor and set open=true before scrolling.
+    // matches a child of the non-collapsible .logBlock[data-block-id="block-b"].
+    // The bootstrap's document-level cts-scroll-to-entry handler scrolls the
+    // entry into view; since blocks are not collapsible, the entry is always
+    // in the layout — no ancestor-reveal step is needed.
     const failedTestInfo = {
       ...MOCK_TEST_FAILED,
       testId: "test-blocks-001",
@@ -1099,14 +1076,8 @@ test.describe("log-detail.html — new Lit-triad page", () => {
 
     await page.goto(`/log-detail.html?log=${encodeURIComponent("test-blocks-001")}`);
 
-    const block = page.locator('details[data-block-id="block-b"]');
+    const block = page.locator('.logBlock[data-block-id="block-b"]');
     await expect(block).toBeAttached();
-
-    // Pre-condition: collapse block B so the jump-link has work to do.
-    await block.locator("summary.startBlock").click();
-    await expect
-      .poll(async () => block.evaluate((el) => /** @type {HTMLDetailsElement} */ (el).open))
-      .toBe(false);
 
     // Click the matching failure-summary item — the visible instance at the
     // current viewport (the page-level #ctsTopFailureSummary one for the
@@ -1117,12 +1088,7 @@ test.describe("log-detail.html — new Lit-triad page", () => {
     await expect(link).toBeAttached();
     await link.click();
 
-    // Block B re-opens.
-    await expect
-      .poll(async () => block.evaluate((el) => /** @type {HTMLDetailsElement} */ (el).open))
-      .toBe(true);
-
-    // Target entry is now visible (not display:none under collapsed parent).
+    // Target entry is visible and scrolled into view.
     const entry = page.locator(`cts-log-entry[data-entry-id="blk-b-2"]`);
     await expect(entry).toBeVisible();
   });
@@ -1175,7 +1141,7 @@ test.describe("log-detail.html — new Lit-triad page", () => {
     // Navigate directly with the hash already on the URL so the viewer
     // reads window.location.hash inside its first-fetch finally block.
     // MOCK_LOG_ENTRIES has block-start entries that don't render as
-    // cts-log-entry hosts (they become <details summary> instead), so
+    // cts-log-entry hosts (they become the .startBlock header instead), so
     // not every LOG-NNNN slot is reachable. LOG-0004 maps to entry-4
     // which IS a leaf entry — a stable target for the deep-link assertion.
     await page.goto(`/log-detail.html?log=${encodeURIComponent(MOCK_TEST_STATUS.testId)}#LOG-0004`);
@@ -1216,14 +1182,12 @@ test.describe("log-detail.html — new Lit-triad page", () => {
     expect(errors).toHaveLength(0);
   });
 
-  test("U6: hash navigation opens a collapsed <details> ancestor before scrolling", async ({
-    page,
-  }) => {
+  test("U6: hash navigation scrolls to an entry inside a block", async ({ page }) => {
     // MOCK_BLOCKS_WITH_STATUS has block-b children including blk-b-2.
     // We render that fixture, then navigate to the matching reference id
-    // (which the viewer assigns in chronological order). The viewer
-    // scroll handler walks up to <details data-block-id="block-b">,
-    // sets open=true, and scrolls the entry into view.
+    // (which the viewer assigns in chronological order). Blocks are not
+    // collapsible, so the viewer's hashchange handler scrolls the entry
+    // into view directly — the entry is always in the layout.
     const blockTestId = "test-blocks-001";
     await setupFailFast(page);
     await setupV2Routes(page, {
@@ -1246,25 +1210,14 @@ test.describe("log-detail.html — new Lit-triad page", () => {
     });
     expect(referenceId).toMatch(/^LOG-\d{4}$/);
 
-    // Now collapse block-b so the hash navigation has work to do.
-    const block = page.locator('details[data-block-id="block-b"]');
-    await block.locator("summary.startBlock").click();
-    await expect
-      .poll(async () => block.evaluate((el) => /** @type {HTMLDetailsElement} */ (el).open))
-      .toBe(false);
-
     // Same-page navigation: change only the hash. The viewer listens for
-    // `hashchange` and runs its real open-ancestors-then-scroll routine,
-    // so driving the fragment exercises the component (not a hand-rolled
-    // copy of the algorithm). Setting location.hash fires a real
-    // hashchange in the page context.
+    // `hashchange` and runs its real scroll routine, so driving the
+    // fragment exercises the component (not a hand-rolled copy of the
+    // algorithm). Setting location.hash fires a real hashchange in the
+    // page context.
     await page.evaluate((refId) => {
       window.location.hash = `#${refId}`;
     }, referenceId);
-
-    await expect
-      .poll(async () => block.evaluate((el) => /** @type {HTMLDetailsElement} */ (el).open))
-      .toBe(true);
 
     const entry = page.locator(`cts-log-entry[data-entry-id="blk-b-2"]`);
     await expect(entry).toBeVisible();
@@ -1366,7 +1319,7 @@ test.describe("log-detail.html — new Lit-triad page", () => {
 
     await page.goto(`/log-detail.html?log=${encodeURIComponent(testIdLocal)}`);
 
-    const block = page.locator('details[data-block-id="block-poll"]');
+    const block = page.locator('.logBlock[data-block-id="block-poll"]');
     const badges = block.locator(".startBlockCounts cts-badge");
 
     // Initial state: ✓2.

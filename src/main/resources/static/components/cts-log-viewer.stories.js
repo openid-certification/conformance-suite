@@ -1,5 +1,5 @@
 import { html } from "lit";
-import { expect, within, waitFor, userEvent } from "storybook/test";
+import { expect, within, waitFor } from "storybook/test";
 import { withMockFetch, withProgrammableFetch } from "@fixtures/helpers.js";
 import {
   MOCK_LOG_ENTRIES,
@@ -43,31 +43,37 @@ export const WithEntries = {
   },
 };
 
-export const CollapsibleBlocks = {
+export const NonCollapsibleBlocks = {
   decorators: [withMockFetch("/api/log/", MOCK_LOG_ENTRIES)],
   render: () => html`<cts-log-viewer test-id="test-abc-123"></cts-log-viewer>`,
   async play({ canvasElement }) {
     await waitForLogLoad(canvasElement);
-    // Each block renders as a <details> with a <summary class="startBlock">;
-    // the visual chevron rotation is keyed on the [open] attribute via
-    // scoped CSS, so the assertion is on the host element's open state
-    // rather than a chevron-name swap (the icon name is always
-    // chevron-down — rotation handles the directional cue).
-    const blocks = canvasElement.querySelectorAll("details.logBlock");
+    // Each block renders as a plain <div class="logBlock"> with a
+    // presentational <div class="startBlock"> header. Blocks are not
+    // collapsible, so the header carries no chevron, is not focusable, and
+    // there is no open/closed state.
+    const blocks = canvasElement.querySelectorAll("div.logBlock");
     expect(blocks.length).toBeGreaterThan(0);
+
     const firstBlock = blocks[0];
-    const firstSummary = firstBlock.querySelector("summary.startBlock");
-    expect(firstBlock.open).toBe(true);
+    const header = firstBlock.querySelector(".startBlock");
+    expect(header).toBeTruthy();
+    expect(header.tagName).toBe("DIV");
 
-    await userEvent.click(firstSummary);
-    await waitFor(() => {
-      expect(firstBlock.open).toBe(false);
-    });
+    // Presentational header: no chevron icon, not in the tab order, no
+    // button role.
+    expect(header.querySelector("cts-icon")).toBeNull();
+    expect(header.tabIndex).toBe(-1);
+    expect(header.getAttribute("role")).toBeNull();
 
-    await userEvent.click(firstSummary);
-    await waitFor(() => {
-      expect(firstBlock.open).toBe(true);
-    });
+    // Block children are always rendered and visible (no collapse). The
+    // cts-log-entry host is display:contents in the wide layout (subgrid
+    // relay), so it has no box — assert on the painted .logItem inside it.
+    const children = firstBlock.querySelectorAll("cts-log-entry");
+    expect(children.length).toBeGreaterThan(0);
+    const firstItem = firstBlock.querySelector("cts-log-entry .logItem");
+    expect(firstItem).toBeTruthy();
+    expect(firstItem.checkVisibility()).toBe(true);
   },
 };
 
@@ -272,7 +278,7 @@ export const MobileContainer = {
   },
 };
 
-// --- U5: per-block status aggregation + <details> semantics ---
+// --- U5: per-block status aggregation ---
 // Plan: docs/plans/2026-04-26-006-feat-r27-per-block-status-aggregation-plan.md
 
 export const BlocksWithStatus = {
@@ -281,13 +287,13 @@ export const BlocksWithStatus = {
   async play({ canvasElement }) {
     await waitForLogLoad(canvasElement);
 
-    // Three <details> blocks rendered, each with a startBlock summary.
-    const blocks = canvasElement.querySelectorAll("details.logBlock");
+    // Three .logBlock divs rendered, each with a .startBlock header.
+    const blocks = canvasElement.querySelectorAll(".logBlock");
     expect(blocks.length).toBe(3);
 
-    const blockA = canvasElement.querySelector('details[data-block-id="block-a"]');
-    const blockB = canvasElement.querySelector('details[data-block-id="block-b"]');
-    const blockC = canvasElement.querySelector('details[data-block-id="block-c"]');
+    const blockA = canvasElement.querySelector('[data-block-id="block-a"]');
+    const blockB = canvasElement.querySelector('[data-block-id="block-b"]');
+    const blockC = canvasElement.querySelector('[data-block-id="block-c"]');
     expect(blockA).toBeTruthy();
     expect(blockB).toBeTruthy();
     expect(blockC).toBeTruthy();
@@ -321,49 +327,16 @@ export const EmptyBlock = {
   async play({ canvasElement }) {
     await waitForLogLoad(canvasElement);
 
-    const block = canvasElement.querySelector('details[data-block-id="block-empty"]');
+    const block = canvasElement.querySelector('[data-block-id="block-empty"]');
     expect(block).toBeTruthy();
 
     // No children → no badges in the cluster (graceful empty state).
     const badges = block.querySelectorAll(".startBlockCounts cts-badge");
     expect(badges.length).toBe(0);
 
-    // Summary still renders the header text from msg.
-    const summary = block.querySelector("summary.startBlock");
-    expect(summary.textContent).toContain("Awaiting checks");
-  },
-};
-
-export const BlockExpandsAndCollapses = {
-  decorators: [withMockFetch("/api/log/", MOCK_BLOCKS_WITH_STATUS)],
-  render: () => html`<cts-log-viewer test-id="test-blocks-001"></cts-log-viewer>`,
-  async play({ canvasElement }) {
-    await waitForLogLoad(canvasElement);
-
-    const block = canvasElement.querySelector('details[data-block-id="block-a"]');
-    expect(block).toBeTruthy();
-
-    // Default: open. Children visible.
-    expect(block.open).toBe(true);
-    const childrenWhenOpen = block.querySelectorAll("cts-log-entry");
-    expect(childrenWhenOpen.length).toBeGreaterThan(0);
-    // The chevron icon's effective rotation is keyed on [open] in scoped
-    // CSS — when open, no rotation is applied.
-    const chevron = block.querySelector("summary.startBlock cts-icon");
-    expect(chevron.getAttribute("name")).toBe("chevron-down");
-
-    // Click the summary to collapse.
-    const summary = block.querySelector("summary.startBlock");
-    await userEvent.click(summary);
-    await waitFor(() => {
-      expect(block.open).toBe(false);
-    });
-
-    // Click again to expand.
-    await userEvent.click(summary);
-    await waitFor(() => {
-      expect(block.open).toBe(true);
-    });
+    // Header still renders the text from msg.
+    const header = block.querySelector(".startBlock");
+    expect(header.textContent).toContain("Awaiting checks");
   },
 };
 
@@ -399,7 +372,7 @@ export const BlockCountsUpdateOnPolling = {
       // First wait: badges land on ✓2 (single chip).
       await waitFor(
         () => {
-          const block = canvasElement.querySelector('details[data-block-id="block-poll"]');
+          const block = canvasElement.querySelector('[data-block-id="block-poll"]');
           expect(block).toBeTruthy();
           const badges = block.querySelectorAll(".startBlockCounts cts-badge");
           expect(badges.length).toBe(1);
@@ -411,7 +384,7 @@ export const BlockCountsUpdateOnPolling = {
       // After the second poll, the cluster transitions to ✓3 ✗1.
       await waitFor(
         () => {
-          const block = canvasElement.querySelector('details[data-block-id="block-poll"]');
+          const block = canvasElement.querySelector('[data-block-id="block-poll"]');
           const badges = block.querySelectorAll(".startBlockCounts cts-badge");
           expect(badges.length).toBe(2);
           expect(badges[0].getAttribute("label")).toBe("✓3");
@@ -544,9 +517,9 @@ export const LateArrivalHashScroll = {
 
 /**
  * In-page fragment change after load — the path a timestamp deep-link
- * click takes. The viewer listens for `hashchange` and runs the same
- * open-ancestors-then-scroll routine, so clicking an entry's timestamp
- * (which sets `location.hash`) scrolls to that entry without a reload.
+ * click takes. The viewer listens for `hashchange` and runs the scroll
+ * routine, so clicking an entry's timestamp (which sets `location.hash`)
+ * scrolls to that entry without a reload.
  */
 export const HashChangeScroll = {
   decorators: [withMockFetch("/api/log/", MOCK_LOG_ENTRIES)],
@@ -585,15 +558,13 @@ export const HashChangeScroll = {
 };
 
 /**
- * A collapsed block containing the target is expanded before scrolling.
- * The user collapses a block, then a fragment change targets a row inside
- * it; the scroll routine walks the `<details>` ancestors open (and the
- * toggle handler syncs `_collapsedBlocks` so it stays open) before
- * scrolling the row into view.
+ * A fragment change targeting a row inside a block scrolls that row into
+ * view. Blocks are not collapsible, so the row is always in the layout —
+ * the scroll routine finds it directly with no ancestor-reveal step.
  */
-export const CollapsedBlockReopensOnScroll = {
+export const ScrollToRowInsideBlock = {
   decorators: [withMockFetch("/api/log/", MOCK_BLOCKS_WITH_STATUS)],
-  render: () => html`<cts-log-viewer test-id="test-collapsed-1"></cts-log-viewer>`,
+  render: () => html`<cts-log-viewer test-id="test-block-scroll-1"></cts-log-viewer>`,
   async play({ canvasElement }) {
     const previousHash = window.location.hash;
 
@@ -608,22 +579,16 @@ export const CollapsedBlockReopensOnScroll = {
 
     try {
       await waitForLogLoad(canvasElement);
-      const block = /** @type {HTMLDetailsElement | null} */ (
-        canvasElement.querySelector('details[data-block-id="block-a"]')
+      const block = /** @type {HTMLElement | null} */ (
+        canvasElement.querySelector('[data-block-id="block-a"]')
       );
       if (!block) throw new Error("block-a did not render");
 
-      // Collapse the block via its summary (default state is open).
-      const summary = /** @type {HTMLElement} */ (block.querySelector("summary.startBlock"));
-      await userEvent.click(summary);
-      await waitFor(() => expect(block.open).toBe(false));
-
-      // Target a row inside the collapsed block (blk-a-1 → LOG-0002).
+      // Target a row inside the block (blk-a-1 → LOG-0002). It is already
+      // visible — no collapse to undo.
       window.location.hash = "#LOG-0002";
 
       await waitFor(() => {
-        // The block re-opened and the row was scrolled into view.
-        expect(block.open).toBe(true);
         const target = /** @type {HTMLElement | null} */ (canvasElement.querySelector("#LOG-0002"));
         expect(target).toBeTruthy();
         if (target) expect(scrolled.has(target)).toBe(true);
@@ -674,21 +639,23 @@ export const OutOfRangeHashNoop = {
 
 /**
  * Wide-layout column alignment between block (is-block) entries and
- * top-level entries. Regression guard for the subgrid relay through
- * <details>: each .logBlock is a subgrid that relays the master grid's
- * tracks, its ::details-content wrapper is display: contents so the
- * relay propagates, and each nested .logItem subgrids into it. The net
- * effect is that every row — block or not — shares one set of column
- * positions.
+ * top-level entries. Regression guard for the subgrid relay: each
+ * .logBlock is a subgrid that relays the master grid's tracks, and each
+ * nested .logItem subgrids into it. The net effect is that every row —
+ * block or not — shares one set of column positions.
+ *
+ * The block was previously a <details>, whose UA ::details-content wrapper
+ * broke this relay (it defaulted to display: block, collapsing the subgrid
+ * to one column). De-collapsing to a plain <div> removed that wrapper, so
+ * the relay now propagates with no neutralising hack — this story guards
+ * against the alignment regressing if the .logBlock subgrid rule is lost.
  *
  * The fixture deliberately gives block rows DIFFERING badge widths (no
  * marker / wide REDIRECT-IN / REQUEST icon, plus SUCCESS/WARNING/FAILURE
- * severities). Under the old per-entry max-content grid each row sized
- * its own columns, so the message column drifted row-to-row; if the
- * subgrid relay regresses (e.g. the ::details-content wrapper goes back
- * to display: block) the cells collapse into the first column. Both
- * failure modes are caught by asserting the message column starts at the
- * same x on every block row AND matches the top-level reference row.
+ * severities). Under a per-entry max-content grid each row would size its
+ * own columns, so the message column would drift row-to-row. The story
+ * asserts the message column starts at the same x on every block row AND
+ * matches the top-level reference row.
  */
 export const AlignedBlocks = {
   decorators: [withMockFetch("/api/log/", MOCK_BLOCKS_ALIGN)],
@@ -704,19 +671,16 @@ export const AlignedBlocks = {
     );
     expect(topItem).toBeTruthy();
 
-    // Block rows live one level deeper, inside the <details> block.
-    const block = /** @type {HTMLDetailsElement} */ (
-      canvasElement.querySelector("details.logBlock")
-    );
+    // Block rows live one level deeper, inside the .logBlock div.
+    const block = /** @type {HTMLElement} */ (canvasElement.querySelector(".logBlock"));
     expect(block).toBeTruthy();
     const blockItems = [...block.querySelectorAll(":scope > cts-log-entry > .logItem")];
     expect(blockItems.length).toBe(3);
 
-    // Badges (cts-badge / cts-icon) render asynchronously after the rows
-    // mount, and the subgrid relay through <details> settles a frame
-    // after the top-level direct subgrid. Both feed the auto track
-    // widths, so poll the geometry until it stabilises rather than
-    // measuring a single (possibly mid-render) frame.
+    // Badges (cts-badge) render asynchronously after the rows mount, and
+    // the subgrid relay settles a frame after the top-level direct subgrid.
+    // Both feed the auto track widths, so poll the geometry until it
+    // stabilises rather than measuring a single (possibly mid-render) frame.
     await waitFor(
       () => {
         const topBody = /** @type {HTMLElement} */ (topItem.querySelector(".logBody"));
@@ -745,34 +709,10 @@ export const AlignedBlocks = {
       { timeout: 3000 },
     );
 
-    // Collapse must still hide block rows at the wide layout. The subgrid
-    // relay dissolves the UA ::details-content wrapper so the rows can
-    // subgrid into .logBlock — but that wrapper is also what the browser
-    // hides (via content-visibility) when the block is closed. Scoping the
-    // dissolve to [open] keeps collapse working; this is the guard. Without
-    // it, an unconditional dissolve leaves closed-block rows visible — a
-    // regression no `.open`-only assertion would catch.
-    const summary = /** @type {HTMLElement} */ (block.querySelector("summary.startBlock"));
-    await userEvent.click(summary);
-    await waitFor(() => {
-      expect(block.open).toBe(false);
-      // checkVisibility() accounts for the closed block's content-visibility.
-      for (const item of blockItems) {
-        expect(item.checkVisibility()).toBe(false);
-      }
-    });
-
-    // Re-expand: alignment must return (the relay re-establishes cleanly).
-    await userEvent.click(summary);
-    await waitFor(() => {
-      expect(block.open).toBe(true);
-      const topBody = /** @type {HTMLElement} */ (topItem.querySelector(".logBody"));
-      for (const item of blockItems) {
-        const body = /** @type {HTMLElement} */ (item.querySelector(".logBody"));
-        expect(item.checkVisibility()).toBe(true);
-        expect(Math.abs(left(body) - left(topBody))).toBeLessThanOrEqual(1);
-      }
-    });
+    // Block rows are always rendered and visible — there is no collapse.
+    for (const item of blockItems) {
+      expect(item.checkVisibility()).toBe(true);
+    }
   },
 };
 

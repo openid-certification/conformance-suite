@@ -938,21 +938,18 @@ function handleScrollToEntry(evt) {
     `cts-log-entry[data-entry-id="${entryId.replace(/"/g, '\\"')}"]`,
   );
   if (!target) return;
-  // U5 will swap block headers from <button> to <details> with `open`
-  // toggling. Walking up to the nearest <details> ancestor lets the
-  // scroll target reveal itself when the block is collapsed.
-  let ancestor = target.parentElement;
-  while (ancestor && ancestor.tagName !== "DETAILS") ancestor = ancestor.parentElement;
-  if (ancestor) ancestor.open = true;
+  // Blocks are non-collapsible (always-rendered .logBlock divs), so the
+  // entry is already in the layout — scroll straight to it with no
+  // collapsed-ancestor reveal step.
   target.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
 /**
  * U8 — handle a click on a cts-log-toc rail row. The rail dispatches
- * `cts-scroll-to-block` with `{ blockId }`; the matching <details> in the
- * entries stream opens before scrolling so the row above the block is
- * the visible anchor instead of the block header. Mirrors the
- * scroll-to-entry handler's open-on-collapse contract.
+ * `cts-scroll-to-block` with `{ blockId }`; the matching `.logBlock` in the
+ * entries stream scrolls into view so the block header is the visible anchor.
+ * Blocks are non-collapsible, so there is no open step — the block is always
+ * in the layout.
  *
  * @param {Event} evt
  */
@@ -960,11 +957,10 @@ function handleScrollToBlock(evt) {
   const detail = /** @type {CustomEvent} */ (evt).detail || {};
   const blockId = detail.blockId;
   if (!blockId) return;
-  const target = /** @type {HTMLDetailsElement | null} */ (
-    document.querySelector(`details.logBlock[data-block-id="${blockId.replace(/"/g, '\\"')}"]`)
+  const target = /** @type {HTMLElement | null} */ (
+    document.querySelector(`.logBlock[data-block-id="${blockId.replace(/"/g, '\\"')}"]`)
   );
   if (!target) return;
-  target.open = true;
   target.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
