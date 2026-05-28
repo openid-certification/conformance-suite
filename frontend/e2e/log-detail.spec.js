@@ -9,9 +9,11 @@ import {
   MOCK_LOG_ENTRIES,
   MOCK_FAILED_LOG_ENTRIES,
   MOCK_BLOCKS_WITH_STATUS,
+  MOCK_BLOCKS_FILTERABLE,
   MOCK_BLOCKS_POLL_FIRST,
   MOCK_BLOCKS_POLL_SECOND,
   MOCK_INTERRUPTED_NO_BLOCKS_ENTRIES,
+  MOCK_SUCCESS_LOG,
 } from "./fixtures/mock-log-entries.js";
 
 /**
@@ -1835,5 +1837,92 @@ test.describe("log-detail.html — new Lit-triad page", () => {
     // Pre-fix the modal would have shown the literal "HTTP 400" — assert
     // the new message replaces it entirely.
     await expect(errorMessage).not.toContainText("HTTP 400");
+  });
+
+  // ──────────── Result-summary filter (U2/U3) ────────────
+  // Plan: docs/plans/2026-05-28-001-feat-log-result-summary-filter-plan.md
+  // The .logResultSummary count badges become multi-select toggle filters
+  // over the rendered entry stream. Page-level coverage: toggling narrows
+  // the stream, multi-select unions, clear restores, and a single-result
+  // log keeps its lone badge read-only.
+
+  test("result-summary filter narrows the stream, unions, and clears", async ({ page }) => {
+    await setupFailFast(page);
+    await setupV2Routes(page, {
+      testInfo: { ...MOCK_TEST_STATUS, testId: "test-filter-001", planId: undefined },
+      logEntries: MOCK_BLOCKS_FILTERABLE,
+    });
+    await setupCommonRoutes(page);
+
+    await page.goto(`/log-detail.html?log=${encodeURIComponent("test-filter-001")}`);
+
+    const entries = page.locator("cts-log-viewer cts-log-entry");
+    const blocks = page.locator("cts-log-viewer .logBlock");
+    await expect(entries).toHaveCount(6);
+    await expect(blocks).toHaveCount(2);
+
+    // Toggle FAILURE: only the lone failure entry survives; the failure-free
+    // Block B is elided entirely.
+    const failureBadge = page.locator(
+      'cts-log-viewer .logResultSummary cts-badge[data-result="FAILURE"] .badge',
+    );
+    await failureBadge.click();
+    await expect(entries).toHaveCount(1);
+    await expect(
+      page.locator('cts-log-viewer cts-log-entry[data-entry-id="flt-a-3"]'),
+    ).toBeVisible();
+    await expect(blocks).toHaveCount(1);
+    await expect(failureBadge).toHaveAttribute("aria-pressed", "true");
+
+    // Multi-select union: add REVIEW → the failure (Block A) and the review
+    // (Block B), both blocks present again.
+    const reviewBadge = page.locator(
+      'cts-log-viewer .logResultSummary cts-badge[data-result="REVIEW"] .badge',
+    );
+    await reviewBadge.click();
+    await expect(entries).toHaveCount(2);
+    await expect(
+      page.locator('cts-log-viewer cts-log-entry[data-entry-id="flt-b-2"]'),
+    ).toBeVisible();
+    await expect(blocks).toHaveCount(2);
+
+    // Count badge still shows the TRUE total, not the filtered subset.
+    await expect(page.locator('cts-log-viewer cts-badge[data-result="SUCCESS"]')).toHaveAttribute(
+      "label",
+      "SUCCESS (3)",
+    );
+
+    // Clear restores the full stream.
+    await page.locator("cts-log-viewer .logFilterClear").click();
+    await expect(entries).toHaveCount(6);
+    await expect(blocks).toHaveCount(2);
+    await expect(failureBadge).toHaveAttribute("aria-pressed", "false");
+  });
+
+  test("single-result-type log keeps the lone summary badge read-only", async ({ page }) => {
+    await setupFailFast(page);
+    await setupV2Routes(page, {
+      testInfo: { ...MOCK_TEST_STATUS, testId: "test-ok-456", planId: undefined },
+      logEntries: MOCK_SUCCESS_LOG,
+    });
+    await setupCommonRoutes(page);
+
+    await page.goto(`/log-detail.html?log=${encodeURIComponent("test-ok-456")}`);
+
+    await expect(page.locator("cts-log-viewer cts-log-entry")).toHaveCount(3);
+
+    const summary = page.locator("cts-log-viewer .logResultSummary");
+    await expect(summary).toBeVisible();
+    // Single result type → no group semantics, no discoverability hint, no
+    // clear control, and the lone badge is not a toggle.
+    await expect(summary).not.toHaveAttribute("role", "group");
+    await expect(summary.locator(".logResultSummaryHint")).toHaveCount(0);
+    await expect(summary.locator(".logFilterClear")).toHaveCount(0);
+
+    const badge = summary.locator("cts-badge");
+    await expect(badge).toHaveCount(1);
+    await expect(badge).toHaveAttribute("label", "SUCCESS (3)");
+    await expect(badge).not.toHaveAttribute("clickable", /.*/);
+    await expect(badge.locator(".badge")).not.toHaveAttribute("role", "button");
   });
 });
