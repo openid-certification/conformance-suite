@@ -1,11 +1,12 @@
 import { html } from "lit";
-import { expect, within, waitFor } from "storybook/test";
+import { expect, within, waitFor, userEvent } from "storybook/test";
 import { withMockFetch, withProgrammableFetch } from "@fixtures/helpers.js";
 import {
   MOCK_LOG_ENTRIES,
   MOCK_EMPTY_LOG,
   MOCK_SUCCESS_LOG,
   MOCK_BLOCKS_WITH_STATUS,
+  MOCK_BLOCKS_FILTERABLE,
   MOCK_BLOCKS_POLL_FIRST,
   MOCK_BLOCKS_POLL_SECOND,
   MOCK_EMPTY_BLOCK,
@@ -755,6 +756,275 @@ export const DisconnectStopsPolling = {
       // After remove(), isConnected is false so finally skips setTimeout.
       // At most one in-flight poll may finish after remove(); we allow +1.
       expect(state.callCount).toBeLessThanOrEqual(countAtDisconnect + 1);
+    } finally {
+      const patched = /** @type {typeof fetch & { __realFetch?: typeof fetch }} */ (window.fetch);
+      if (patched.__realFetch) window.fetch = patched.__realFetch;
+      delete window.__ctsLogViewerFetchState;
+    }
+  },
+};
+
+// ──────────────────────────────────────────────────────────────────────
+// Result-summary filter (U2/U3)
+// Plan: docs/plans/2026-05-28-001-feat-log-result-summary-filter-plan.md
+// The count badges in .logResultSummary become multi-select toggle filters
+// that narrow the rendered entry stream. The model stays unfiltered, so
+// LOG-NNNN ordinals, block counts, and the TOC are unaffected (R8).
+// ──────────────────────────────────────────────────────────────────────
+
+// Result-summary toggle badge for a given result type (e.g. "FAILURE").
+// canvasElement is left untyped (any) to match the surrounding stories'
+// play-function convention, so querySelector chains don't trip strict-null.
+function summaryBadge(canvasElement, result) {
+  return canvasElement.querySelector(
+    `cts-log-viewer .logResultSummary cts-badge[data-result="${result}"]`,
+  );
+}
+
+// Inner role="button" span of a result-summary toggle badge.
+function summaryBadgeButton(canvasElement, result) {
+  const badge = summaryBadge(canvasElement, result);
+  return badge ? badge.querySelector(".badge") : null;
+}
+
+const visibleEntryIds = (canvasElement) =>
+  [...canvasElement.querySelectorAll("cts-log-viewer cts-log-entry")].map((el) =>
+    el.getAttribute("data-entry-id"),
+  );
+
+export const ResultSummaryFilter = {
+  decorators: [withMockFetch("/api/log/", MOCK_BLOCKS_FILTERABLE)],
+  render: () => html`<cts-log-viewer test-id="test-filter-001"></cts-log-viewer>`,
+  async play({ canvasElement }) {
+    await waitForLogLoad(canvasElement);
+    const viewer = canvasElement.querySelector("cts-log-viewer");
+
+    // Unfiltered baseline: both blocks, all six leaf entries, four toggle
+    // badges in a labelled group.
+    expect(canvasElement.querySelectorAll("cts-log-viewer .logBlock").length).toBe(2);
+    expect(visibleEntryIds(canvasElement).length).toBe(6);
+    const group = canvasElement.querySelector("cts-log-viewer .logResultSummary");
+    expect(group.getAttribute("role")).toBe("group");
+    expect(group.getAttribute("aria-label")).toBe("Filter log entries by result");
+    for (const r of ["SUCCESS", "FAILURE", "REVIEW", "WARNING"]) {
+      expect(summaryBadgeButton(canvasElement, r).getAttribute("aria-pressed")).toBe("false");
+    }
+    // Not filtering yet → host has no is-filtering marker.
+    expect(viewer.classList.contains("is-filtering")).toBe(false);
+
+    // Toggle FAILURE: only the lone failure entry survives; Block B (no
+    // failure) is elided entirely; the badge reads pressed; the host flips
+    // into the filtering state (which mutes block-header counts via CSS).
+    await userEvent.click(summaryBadgeButton(canvasElement, "FAILURE"));
+    await viewer.updateComplete;
+    expect(summaryBadgeButton(canvasElement, "FAILURE").getAttribute("aria-pressed")).toBe("true");
+    expect(visibleEntryIds(canvasElement)).toEqual(["flt-a-3"]);
+    expect(canvasElement.querySelectorAll("cts-log-viewer .logBlock").length).toBe(1);
+    expect(viewer.classList.contains("is-filtering")).toBe(true);
+
+    // Count badges always show the TRUE total, never the filtered subset.
+    expect(summaryBadge(canvasElement, "SUCCESS").getAttribute("label")).toBe("SUCCESS (3)");
+    expect(summaryBadge(canvasElement, "FAILURE").getAttribute("label")).toBe("FAILURE (1)");
+
+    // The live region announced the user action (description only — no
+    // entry count, so polling can't perturb it).
+    const announce = canvasElement.querySelector("cts-log-viewer .logFilterAnnounce");
+    expect(announce.textContent).toBe("Filtering by FAILURE");
+
+    // Add REVIEW → union: the failure (Block A) and the review (Block B),
+    // one surviving child per block. Both badges pressed.
+    await userEvent.click(summaryBadgeButton(canvasElement, "REVIEW"));
+    await viewer.updateComplete;
+    expect(summaryBadgeButton(canvasElement, "REVIEW").getAttribute("aria-pressed")).toBe("true");
+    expect(new Set(visibleEntryIds(canvasElement))).toEqual(new Set(["flt-a-3", "flt-b-2"]));
+    expect(canvasElement.querySelectorAll("cts-log-viewer .logBlock").length).toBe(2);
+    expect(announce.textContent).toBe("Filtering by FAILURE, REVIEW");
+
+    // Clear restores the full stream and drops the filtering state.
+    const clearBtn = canvasElement.querySelector("cts-log-viewer .logFilterClear");
+    expect(clearBtn).toBeTruthy();
+    await userEvent.click(clearBtn);
+    await viewer.updateComplete;
+    expect(visibleEntryIds(canvasElement).length).toBe(6);
+    expect(canvasElement.querySelectorAll("cts-log-viewer .logBlock").length).toBe(2);
+    expect(viewer.classList.contains("is-filtering")).toBe(false);
+    expect(summaryBadgeButton(canvasElement, "FAILURE").getAttribute("aria-pressed")).toBe("false");
+    expect(announce.textContent).toBe("Filters cleared");
+  },
+};
+
+/**
+ * Empty state: when an active filter matches zero entries across the whole
+ * log, an accessible empty-state message with an inline Clear affordance
+ * renders inside .logEntries so the user isn't stranded when the top filter
+ * row has scrolled away.
+ *
+ * This state is NOT reachable by toggling the count badges — a badge only
+ * exists for a result type that has >=1 entry, so filtering by it always
+ * matches >=1. It is the defensive path for an externally-driven filter
+ * (the public clearFilters() / future reveal-on-navigate API). The test
+ * therefore drives the reactive filter state directly to a result value
+ * with no matching entries, mirroring that programmatic path.
+ */
+export const FilterEmptyState = {
+  decorators: [withMockFetch("/api/log/", MOCK_BLOCKS_FILTERABLE)],
+  render: () => html`<cts-log-viewer test-id="test-filter-001"></cts-log-viewer>`,
+  async play({ canvasElement }) {
+    await waitForLogLoad(canvasElement);
+    const viewer = /** @type {any} */ (canvasElement.querySelector("cts-log-viewer"));
+
+    // No SKIPPED entries exist in the fixture, so this filter matches nothing.
+    viewer._activeFilters = new Set(["SKIPPED"]);
+    await viewer.updateComplete;
+
+    const empty = canvasElement.querySelector("cts-log-viewer .logFilterEmpty");
+    expect(empty).toBeTruthy();
+    expect(empty?.textContent).toContain("No entries match the active filters");
+    // No entry rows and no blocks render in the empty state.
+    expect(canvasElement.querySelectorAll("cts-log-viewer cts-log-entry").length).toBe(0);
+    expect(canvasElement.querySelectorAll("cts-log-viewer .logBlock").length).toBe(0);
+
+    // The inline Clear affordance restores the full stream.
+    const inlineClear = empty?.querySelector(".logFilterClear");
+    expect(inlineClear).toBeTruthy();
+    await userEvent.click(/** @type {Element} */ (inlineClear));
+    await viewer.updateComplete;
+    expect(canvasElement.querySelectorAll("cts-log-viewer cts-log-entry").length).toBe(6);
+    expect(canvasElement.querySelector("cts-log-viewer .logFilterEmpty")).toBeNull();
+  },
+};
+
+/**
+ * Single result type → the lone summary badge stays a read-only label
+ * (nothing to filter against), never a no-op toggle into an empty view.
+ */
+export const SingleResultTypeReadOnly = {
+  decorators: [withMockFetch("/api/log/", MOCK_SUCCESS_LOG)],
+  render: () => html`<cts-log-viewer test-id="test-ok-456"></cts-log-viewer>`,
+  async play({ canvasElement }) {
+    await waitForLogLoad(canvasElement);
+    const summary = canvasElement.querySelector("cts-log-viewer .logResultSummary");
+    expect(summary).toBeTruthy();
+    // No group semantics, no discoverability hint, no clear control.
+    expect(summary.getAttribute("role")).toBeNull();
+    expect(summary.querySelector(".logResultSummaryHint")).toBeNull();
+    expect(summary.querySelector(".logFilterClear")).toBeNull();
+
+    // The lone SUCCESS badge is a plain label: no toggle affordance.
+    const badge = summary.querySelector("cts-badge");
+    expect(badge.getAttribute("label")).toBe("SUCCESS (3)");
+    expect(badge.hasAttribute("clickable")).toBe(false);
+    expect(badge.querySelector(".badge").getAttribute("role")).toBeNull();
+    expect(badge.querySelector(".badge").getAttribute("aria-pressed")).toBeNull();
+  },
+};
+
+/**
+ * Filter state is reactive component state, not derived from `_entries`, so
+ * it survives polling. With a filter active, a poll that appends a matching
+ * and a non-matching entry shows only the matching one and never resets the
+ * filter — and the poll does NOT re-announce (the one-shot announcement was
+ * already consumed, so the live region is empty afterwards).
+ */
+export const FilterSurvivesPolling = {
+  decorators: [
+    (storyFn) => {
+      // The delta is WITHHELD until the play function arms it (after the
+      // filter is active), so the "filter active BEFORE the appending poll"
+      // ordering is deterministic rather than racing the 20ms poll. After
+      // seeding the base set, polls return [] (no re-render) until armed,
+      // then deliver the delta exactly once.
+      const state = {
+        seeded: false,
+        deliverDelta: false,
+        deltaSent: false,
+        responder: function () {
+          if (!this.seeded) {
+            this.seeded = true;
+            return new Response(JSON.stringify(MOCK_BLOCKS_FILTERABLE), {
+              status: 200,
+              headers: { "Content-Type": "application/json" },
+            });
+          }
+          let delta = [];
+          if (this.deliverDelta && !this.deltaSent) {
+            this.deltaSent = true;
+            // A late FAILURE (matches the active filter) and a late SUCCESS
+            // (does not). Times are well past the base set's max so the
+            // append is in-order. Date.now() is fine in browser stories.
+            delta = [
+              {
+                _id: "flt-b-4",
+                testId: "test-filter-001",
+                src: "LateFailure",
+                time: Date.now(),
+                msg: "Late failure arrived",
+                blockId: "block-b",
+                result: "FAILURE",
+              },
+              {
+                _id: "flt-b-5",
+                testId: "test-filter-001",
+                src: "LateSuccess",
+                time: Date.now() + 1,
+                msg: "Late success arrived",
+                blockId: "block-b",
+                result: "SUCCESS",
+              },
+            ];
+          }
+          return new Response(JSON.stringify(delta), {
+            status: 200,
+            headers: { "Content-Type": "application/json" },
+          });
+        },
+      };
+      window.__ctsLogViewerFetchState = state;
+      return withProgrammableFetch("/api/log/", state)(storyFn);
+    },
+  ],
+  render: () =>
+    html`<cts-log-viewer test-id="test-filter-001" ._pollIntervalMs=${20}></cts-log-viewer>`,
+  async play({ canvasElement }) {
+    const state = window.__ctsLogViewerFetchState;
+    try {
+      await waitForLogLoad(canvasElement);
+      const viewer = canvasElement.querySelector("cts-log-viewer");
+
+      // Activate the FAILURE filter BEFORE any delta arrives → exactly one
+      // matching entry. (Empty polls don't re-render, so this is stable.)
+      await userEvent.click(summaryBadgeButton(canvasElement, "FAILURE"));
+      await viewer.updateComplete;
+      expect(visibleEntryIds(canvasElement)).toEqual(["flt-a-3"]);
+      expect(summaryBadgeButton(canvasElement, "FAILURE").getAttribute("aria-pressed")).toBe(
+        "true",
+      );
+
+      // Arm the delta: the next poll appends flt-b-4 (FAILURE, matches) and
+      // flt-b-5 (SUCCESS, does not). The filter must survive the re-render —
+      // the new failure appears, the new success stays hidden.
+      state.deliverDelta = true;
+      await waitFor(
+        () => {
+          expect(
+            canvasElement.querySelector('cts-log-entry[data-entry-id="flt-b-4"]'),
+          ).toBeTruthy();
+        },
+        { timeout: 2000 },
+      );
+      expect(canvasElement.querySelector('cts-log-entry[data-entry-id="flt-b-5"]')).toBeNull();
+      expect(new Set(visibleEntryIds(canvasElement))).toEqual(new Set(["flt-a-3", "flt-b-4"]));
+
+      // Filter still pressed after the poll-driven re-render.
+      expect(summaryBadgeButton(canvasElement, "FAILURE").getAttribute("aria-pressed")).toBe(
+        "true",
+      );
+
+      // The poll re-render did NOT re-announce: the one-shot announcement was
+      // consumed on the toggle render, so the live region is empty after the
+      // append (the append render reset it without producing a new phrase).
+      const announce = canvasElement.querySelector("cts-log-viewer .logFilterAnnounce");
+      expect(announce.textContent).toBe("");
     } finally {
       const patched = /** @type {typeof fetch & { __realFetch?: typeof fetch }} */ (window.fetch);
       if (patched.__realFetch) window.fetch = patched.__realFetch;

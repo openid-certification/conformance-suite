@@ -156,6 +156,12 @@ const STYLE_TEXT = `
     cts-log-viewer .logEntries > .logBlock > cts-log-entry {
       display: contents;
     }
+    /* The filtered-to-nothing empty state is a single child of the grid
+       container — span all five master tracks so it centres across the
+       full width instead of being squeezed into the 92px first track. */
+    cts-log-viewer .logEntries > .logFilterEmpty {
+      grid-column: 1 / -1;
+    }
   }
   cts-log-viewer .logEmpty {
     padding: var(--space-5);
@@ -225,6 +231,78 @@ const STYLE_TEXT = `
     flex: 0 0 auto;
     font-variant-numeric: tabular-nums;
   }
+  /* Result-summary filter chrome. The count badges (rendered by
+     cts-badge) carry their own interactive ring + pressed inversion; the
+     rules here style the surrounding affordances: a leading discoverability
+     hint, the Clear-filters reset button, the visually-hidden live region,
+     and the filtering-active de-emphasis. */
+  cts-log-viewer .logResultSummaryHint {
+    align-self: center;
+    font-size: var(--fs-12);
+    color: var(--fg-soft);
+    margin-right: var(--space-1);
+  }
+  /* Clear-filters is a reset action, not a toggle — a native <button>
+     styled to sit in the badge row, deliberately NOT a cts-badge pill so
+     it does not read as another filter. */
+  cts-log-viewer .logFilterClear {
+    align-self: center;
+    font: inherit;
+    font-size: var(--fs-12);
+    line-height: 16px;
+    color: var(--fg-muted);
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-pill, 999px);
+    padding: 2px 10px;
+    cursor: pointer;
+  }
+  cts-log-viewer .logFilterClear:hover {
+    background: var(--ink-50);
+  }
+  cts-log-viewer .logFilterClear:focus-visible {
+    outline: 2px solid var(--rust-400, #C75A3F);
+    outline-offset: 2px;
+  }
+  /* Visually-hidden polite live region — announces the active-filter
+     description to assistive tech on user-initiated changes only. */
+  cts-log-viewer .logFilterAnnounce {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+  /* While a filter is active, de-emphasize the inactive (unpressed) result
+     badges so the active ones stand out. Opacity stays at 0.6 (not lower)
+     so the count text inside the still-visible chips remains AA-legible
+     against the page. Pressed badges keep full opacity (their inverted
+     fill is the active signal). */
+  cts-log-viewer.is-filtering .logResultSummary cts-badge:not([pressed]) {
+    opacity: 0.6;
+  }
+  /* Per-block header counts are full-block totals, not the filtered subset.
+     Mute them while filtering to signal "this counts the whole block, not
+     what you're currently seeing" (R11). */
+  cts-log-viewer.is-filtering .startBlockCounts {
+    opacity: 0.55;
+  }
+  /* Empty state shown when an active filter matches zero entries across the
+     whole log — keeps the user from being stranded when the top filter row
+     has scrolled out of view. */
+  cts-log-viewer .logFilterEmpty {
+    padding: var(--space-5);
+    text-align: center;
+    color: var(--fg-soft);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-3);
+  }
 `;
 
 function ensureStylesInjected() {
@@ -275,6 +353,7 @@ class CtsLogViewer extends LitElement {
     _entries: { state: true },
     _loading: { state: true },
     _error: { state: true },
+    _activeFilters: { state: true },
   };
 
   createRenderRoot() {
@@ -290,6 +369,24 @@ class CtsLogViewer extends LitElement {
     this._entries = [];
     this._loading = true;
     this._error = "";
+    /**
+     * Active result-type filters as a Set of raw uppercase `result` values
+     * (e.g. "FAILURE", "REVIEW"). Empty = show everything (the default and
+     * current behavior). Treated immutably (clone-and-reassign so Lit
+     * detects the change), mirroring `_collapsedBlocks`. A pure view
+     * concern: consulted only in `_renderEntries` and when computing each
+     * summary badge's pressed state — the `willUpdate` model recomputations
+     * (`_buildReferences` / `_aggregateBlockCounts` / `_collectBlockSummaries`)
+     * never read it, so `LOG-NNNN` ordinals, block counts, and the TOC stay
+     * computed over the full stream (R8).
+     * @type {Set<string>}
+     */
+    this._activeFilters = new Set();
+    // Transient one-shot flag: set true ONLY by user-initiated filter
+    // changes (`_toggleFilter` / `clearFilters`) and consumed once by the
+    // aria-live announcement in the next render. Polling re-renders never
+    // set it, so the live region stays silent on the 3s poll cadence (R6).
+    this._announceFilterChange = false;
     this._latestTimestamp = 0;
     this._pollTimer = null;
     this._consecutiveFailures = 0;
@@ -521,6 +618,10 @@ class CtsLogViewer extends LitElement {
     ) {
       this._fetchEntries();
     }
+    // Reflect the filtering state onto the host so scoped CSS can reach
+    // BOTH the result-summary badges and the block-header counts (which
+    // live in a sibling subtree, .logEntries) from one ancestor selector.
+    this.classList.toggle("is-filtering", this._activeFilters.size > 0);
   }
 
   disconnectedCallback() {
@@ -682,24 +783,185 @@ class CtsLogViewer extends LitElement {
     return true;
   }
 
+  /**
+   * Toggle a result-type filter on/off. Clones `_activeFilters` (immutable
+   * update so Lit re-renders), adds or removes the raw uppercase `result`,
+   * and marks the change user-initiated so the next render announces it.
+   *
+   * Focus management: `cts-badge` rebuilds its inner `role="button"` span
+   * whenever `?pressed` flips, which detaches the element the user just
+   * activated and would drop keyboard focus to `<body>`. After the
+   * re-render lands, focus is restored to the same badge (located by its
+   * `data-result`) so keyboard toggling stays on the control.
+   * @param {string} result Raw uppercase result value, e.g. "FAILURE".
+   */
+  _toggleFilter(result) {
+    const next = new Set(this._activeFilters);
+    if (next.has(result)) next.delete(result);
+    else next.add(result);
+    this._activeFilters = next;
+    this._announceFilterChange = true;
+    this.updateComplete.then(() => {
+      if (!this.isConnected) return;
+      const badge = this.querySelector(
+        `.logResultSummary cts-badge[data-result="${CSS.escape(result)}"] .badge`,
+      );
+      if (badge instanceof HTMLElement) badge.focus();
+    });
+  }
+
+  /**
+   * Reset to the unfiltered view. Idempotent — a no-op when no filter is
+   * active (so it never spuriously steals focus or announces). Does NOT
+   * touch `_collapsedBlocks`: collapsed/open block state is preserved
+   * across filter cycles (R11). Public so a future reveal-on-navigate
+   * follow-up (and host pages) can clear filters before scrolling to a
+   * now-hidden target.
+   *
+   * Focus management: the Clear button only renders while a filter is
+   * active, so clearing removes it from the DOM and would drop focus to
+   * `<body>`. After the re-render, focus moves to the first toggle badge
+   * in the group.
+   */
+  clearFilters() {
+    if (this._activeFilters.size === 0) return;
+    this._activeFilters = new Set();
+    this._announceFilterChange = true;
+    this.updateComplete.then(() => {
+      if (!this.isConnected) return;
+      const firstBadge = this.querySelector(".logResultSummary cts-badge[data-result] .badge");
+      if (firstBadge instanceof HTMLElement) firstBadge.focus();
+    });
+  }
+
+  /**
+   * `@cts-badge-click` handler for the result-summary toggle badges. Lit
+   * binds `this` to the host; the clicked badge carries its result type in
+   * `data-result` (read off `currentTarget`), mirroring the cts-log-list
+   * filter-chip pattern. A bound method — not an inline arrow — satisfies
+   * `lit/no-template-arrow`.
+   * @param {Event} event The bubbled `cts-badge-click` event.
+   */
+  _onResultBadgeClick(event) {
+    const target = /** @type {HTMLElement | null} */ (event.currentTarget);
+    const result = target && target.dataset.result;
+    if (result) this._toggleFilter(result);
+  }
+
+  /**
+   * `@click` handler shared by both Clear-filters controls (the summary-row
+   * button and the empty-state button). A bound method — not an inline arrow
+   * — satisfies `lit/no-template-arrow`.
+   */
+  _onClearClick() {
+    this.clearFilters();
+  }
+
+  /**
+   * Text for the polite live region. Returns content ONLY when a
+   * user-initiated change is pending (`_announceFilterChange`), then
+   * consumes the flag so a subsequent poll-driven re-render does not
+   * re-announce. The phrase deliberately omits the live entry count — the
+   * count changes on every 3s poll, the filter description does not, so
+   * keying the announcement on the description avoids a screen-reader
+   * announcement storm (R6).
+   * @returns {string} Announcement text, or "" when nothing to announce.
+   */
+  _filterAnnouncement() {
+    if (!this._announceFilterChange) return "";
+    this._announceFilterChange = false;
+    if (this._activeFilters.size === 0) return "Filters cleared";
+    return `Filtering by ${[...this._activeFilters].join(", ")}`;
+  }
+
+  /**
+   * Render-time predicate: is this entry visible under the active filter?
+   * With no filter active, everything shows (current behavior). Otherwise
+   * an entry shows iff its raw `result` is in the active set; result-less
+   * structural/HTTP rows are excluded while filtering because
+   * `Set.has(undefined)` is `false`.
+   * @param {{ result?: string }} entry A log entry.
+   * @returns {boolean} Whether the entry should be rendered.
+   */
+  _entryMatchesFilter(entry) {
+    if (this._activeFilters.size === 0) return true;
+    // Result-less structural/HTTP rows are excluded while filtering (the
+    // `!= null` guard both encodes that and narrows the type for `has`).
+    return entry.result != null && this._activeFilters.has(entry.result);
+  }
+
   _renderResultSummary() {
     /** @type {Object.<string, number>} */
     const counts = {};
     for (const entry of this._entries) {
       if (entry.result) counts[entry.result] = (counts[entry.result] || 0) + 1;
     }
-    if (Object.keys(counts).length === 0) return nothing;
-    return html` <div class="logResultSummary">${this._renderCountBadges(counts)}</div> `;
+    const resultTypes = Object.keys(counts);
+    if (resultTypes.length === 0) return nothing;
+
+    // A badge becomes an interactive filter only when there are 2+ result
+    // types to choose between — a single-type log has nothing to narrow,
+    // so its lone badge stays a read-only label and never produces a no-op
+    // toggle into an empty view (R1/R11).
+    const filterable = resultTypes.length >= 2;
+    const filtering = this._activeFilters.size > 0;
+
+    return html`
+      <div
+        class="logResultSummary"
+        role=${filterable ? "group" : nothing}
+        aria-label=${filterable ? "Filter log entries by result" : nothing}
+      >
+        ${filterable
+          ? html`<span class="logResultSummaryHint" aria-hidden="true">Filter by result:</span>`
+          : nothing}
+        ${this._renderCountBadges(counts, filterable)}
+        ${filtering
+          ? html`<button type="button" class="logFilterClear" @click=${this._onClearClick}>
+              Clear filters
+            </button>`
+          : nothing}
+        ${filterable
+          ? html`<span class="logFilterAnnounce" aria-live="polite"
+              >${this._filterAnnouncement()}</span
+            >`
+          : nothing}
+      </div>
+    `;
   }
 
-  _renderCountBadges(counts) {
-    return Object.entries(counts).map(
-      ([result, count]) =>
-        html`<cts-badge
-          variant="${COUNT_BADGE_VARIANTS[result] || "skip"}"
-          label="${result} (${count})"
-        ></cts-badge>`,
-    );
+  /**
+   * Render the result-summary count badges. The count text is always the
+   * TRUE total per result type, never a filtered subset (R4). When
+   * `filterable`, each badge becomes a multi-select toggle: `clickable`,
+   * `?pressed` bound to membership in `_activeFilters` (boolean sigil
+   * required — an unsigiled `pressed=${false}` would mount every badge
+   * pressed), an action-describing `aria-label`, a `data-result` hook for
+   * focus restoration, and a per-badge `@cts-badge-click` listener (the
+   * event bubbles to the host where `@` sits, firing once). When not
+   * filterable (single result type) the badges render as read-only labels.
+   * @param {Object.<string, number>} counts Per-result totals.
+   * @param {boolean} filterable Whether the badges are interactive filters.
+   * @returns {Array<unknown>} Lit templates for the count badges.
+   */
+  _renderCountBadges(counts, filterable) {
+    return Object.entries(counts).map(([result, count]) => {
+      const variant = COUNT_BADGE_VARIANTS[result] || "skip";
+      if (!filterable) {
+        return html`<cts-badge variant="${variant}" label="${result} (${count})"></cts-badge>`;
+      }
+      const pressed = this._activeFilters.has(result);
+      const ariaLabel = pressed ? `Stop filtering by ${result}` : `Show only ${result} entries`;
+      return html`<cts-badge
+        variant="${variant}"
+        label="${result} (${count})"
+        aria-label="${ariaLabel}"
+        data-result="${result}"
+        clickable
+        ?pressed=${pressed}
+        @cts-badge-click=${this._onResultBadgeClick}
+      ></cts-badge>`;
+    });
   }
 
   /**
@@ -732,9 +994,12 @@ class CtsLogViewer extends LitElement {
    * document-level `cts-scroll-to-entry` listener (in
    * `js/log-detail.js`) can locate the target by the same `_id` the
    * failure-summary dispatches in its event detail.
-   * @returns {Array<unknown>} The Lit template fragments for each block and any pre-block flat entries.
+   * @returns {unknown} The Lit template fragments for each block and any
+   *   pre-block flat entries (an array), or a single empty-state template
+   *   when an active filter matches no entries across the whole log.
    */
   _renderEntries() {
+    const filtering = this._activeFilters.size > 0;
     /** @type {Array<unknown>} */
     const out = [];
     /** @type {string | null} */
@@ -746,8 +1011,14 @@ class CtsLogViewer extends LitElement {
 
     const flushBlock = () => {
       if (currentBlockId === null) {
+        // Pre-block flat entries: push whatever survived the filter (none
+        // when filtering hides them all — no empty wrapper).
         out.push(...blockChildren);
-      } else {
+      } else if (!(filtering && blockChildren.length === 0)) {
+        // Emit the block. The guard elides it only while filtering AND no
+        // child survived — an all-filtered-out block leaves no empty header.
+        // When NOT filtering, an empty block (a streamed startBlock awaiting
+        // its first child) still renders its header — see the EmptyBlock story.
         const counts = this._blockCounts.get(currentBlockId);
         const headerText = (blockStart && blockStart.msg) || currentBlockId;
         out.push(html`
@@ -776,6 +1047,12 @@ class CtsLogViewer extends LitElement {
         flushBlock();
         currentBlockId = entryBlockId;
       }
+      // Filter the rendered stream: while a filter is active, skip entries
+      // whose result is not in the active set. The block-grouping logic
+      // above runs for every entry (so filtering never merges two blocks);
+      // only the push into blockChildren is gated. Result-less structural /
+      // HTTP rows are excluded while filtering (Set.has(undefined) is false).
+      if (!this._entryMatchesFilter(entry)) continue;
       const referenceId = (entry && entry._id && this._references[entry._id]) || "";
       blockChildren.push(
         // Set the host `id` here (in addition to cts-log-entry's own
@@ -794,6 +1071,17 @@ class CtsLogViewer extends LitElement {
       );
     }
     flushBlock();
+    // A filter that matches nothing across the whole log: render an inline
+    // empty state (with its own Clear affordance) inside .logEntries so the
+    // user is not stranded when the top filter row has scrolled away.
+    if (filtering && out.length === 0) {
+      return html`<div class="logFilterEmpty">
+        <span>No entries match the active filters.</span>
+        <button type="button" class="logFilterClear" @click=${this._onClearClick}>
+          Clear filters
+        </button>
+      </div>`;
+    }
     return out;
   }
 

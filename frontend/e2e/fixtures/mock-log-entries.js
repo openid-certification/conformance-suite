@@ -346,3 +346,114 @@ export const MOCK_WARNING_LOG_ENTRIES = [
     result: "WARNING",
   },
 ];
+
+/**
+ * Two blocks spanning four result types — SUCCESS×3, FAILURE×1, REVIEW×1,
+ * WARNING×1 — for the result-summary FILTER tests. Block A holds the lone
+ * FAILURE; Block B holds the lone REVIEW, so filtering by FAILURE shows one
+ * entry and elides Block B, and FAILURE+REVIEW unions to one entry per block.
+ */
+export const MOCK_BLOCKS_FILTERABLE = [
+  {
+    _id: "flt-a-start",
+    testId: "test-filter-001",
+    src: "StartBlockA",
+    time: NOW - 9000,
+    msg: "Block A — authorization",
+    blockId: "block-a",
+    startBlock: true,
+  },
+  {
+    _id: "flt-a-1",
+    testId: "test-filter-001",
+    src: "CheckOne",
+    time: NOW - 8800,
+    msg: "First check passed",
+    blockId: "block-a",
+    result: "SUCCESS",
+  },
+  {
+    _id: "flt-a-2",
+    testId: "test-filter-001",
+    src: "CheckTwo",
+    time: NOW - 8600,
+    msg: "Second check passed",
+    blockId: "block-a",
+    result: "SUCCESS",
+  },
+  {
+    _id: "flt-a-3",
+    testId: "test-filter-001",
+    src: "ValidateIdToken",
+    time: NOW - 8400,
+    msg: "ID token signature validation failed",
+    blockId: "block-a",
+    result: "FAILURE",
+    requirements: ["OIDCC-3.1.3.7-6"],
+  },
+  {
+    _id: "flt-b-start",
+    testId: "test-filter-001",
+    src: "StartBlockB",
+    time: NOW - 8000,
+    msg: "Block B — token",
+    blockId: "block-b",
+    startBlock: true,
+  },
+  {
+    _id: "flt-b-1",
+    testId: "test-filter-001",
+    src: "ExtractToken",
+    time: NOW - 7800,
+    msg: "Access token extracted",
+    blockId: "block-b",
+    result: "SUCCESS",
+  },
+  {
+    _id: "flt-b-2",
+    testId: "test-filter-001",
+    src: "CheckScreenshot",
+    time: NOW - 7600,
+    msg: "Screenshot requires manual review",
+    blockId: "block-b",
+    result: "REVIEW",
+  },
+  {
+    _id: "flt-b-3",
+    testId: "test-filter-001",
+    src: "CheckForUnexpectedFields",
+    time: NOW - 7400,
+    msg: "Unexpected field 'extra_claim'",
+    blockId: "block-b",
+    result: "WARNING",
+  },
+];
+
+/** Single-result-type log (all SUCCESS) — the lone summary badge must stay
+ * a read-only label (nothing to filter against). */
+export const MOCK_SUCCESS_LOG = [
+  {
+    _id: "s-1",
+    testId: "test-ok-456",
+    src: "CheckServerConfiguration",
+    time: NOW - 5000,
+    msg: "Server configuration valid",
+    result: "SUCCESS",
+  },
+  {
+    _id: "s-2",
+    testId: "test-ok-456",
+    src: "ValidateIdToken",
+    time: NOW - 3000,
+    msg: "ID token is valid",
+    result: "SUCCESS",
+  },
+  {
+    _id: "s-3",
+    testId: "test-ok-456",
+    src: "CheckTestOutcome",
+    time: NOW - 1000,
+    msg: "Test passed",
+    result: "SUCCESS",
+  },
+];
