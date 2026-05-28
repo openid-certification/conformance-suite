@@ -27,6 +27,7 @@ import java.util.Map;
 		FAPICIBAID1AuthReqIdExpired.class,
 		FAPICIBAID1EnsureAuthorizationRequestWithBindingMessageSucceeds.class,
 		FAPICIBAID1ConnectIdEnsureAuthorizationRequestWithPurposeSucceeds.class,
+		FAPICIBAID1ConnectIdEnsureAuthorizationRequestWith3DSCardLoginHintSucceeds.class,
 		FAPICIBAID1EnsureOtherScopeOrderSucceeds.class,
 		FAPICIBAID1EnsureRequestedExpiryAsStringSucceeds.class,
 		FAPICIBAID1EnsureRequestedExpiryIgnoredForBrazil.class,
@@ -58,6 +59,9 @@ import java.util.Map;
 
 		// Negative tests for hints
 		FAPICIBAID1EnsureAuthorizationRequestWithMultipleHintsFails.class,
+		FAPICIBAID1ConnectIdEnsureAuthorizationRequestWithIdTokenHintFails.class,
+		FAPICIBAID1ConnectIdEnsureAuthorizationRequestWithLoginHintTokenFails.class,
+		FAPICIBAID1ConnectIdEnsureAuthorizationRequestWithMalformedCardLoginHintFails.class,
 
 		// Negative tests for token endpoint
 		FAPICIBAID1EnsureWrongAuthenticationRequestIdInTokenEndpointRequest.class,
