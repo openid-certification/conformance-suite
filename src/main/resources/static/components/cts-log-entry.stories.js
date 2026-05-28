@@ -469,7 +469,7 @@ export const HttpRequestEntry = {
   async play({ canvasElement }) {
     const canvas = within(canvasElement);
     await waitFor(() => {
-      expect(canvas.getByText("REQUEST")).toBeInTheDocument();
+      expect(canvasElement.querySelector('.logHttp cts-badge[aria-label="Request"]')).toBeTruthy();
     });
 
     const curlBtn = canvas.getByRole("button", { name: "Copy as cURL" });
@@ -500,7 +500,7 @@ export const HttpResponseEntry = {
   async play({ canvasElement }) {
     const canvas = within(canvasElement);
     await waitFor(() => {
-      expect(canvas.getByText("RESPONSE")).toBeInTheDocument();
+      expect(canvasElement.querySelector('.logHttp cts-badge[aria-label="Response"]')).toBeTruthy();
     });
 
     expect(canvas.queryByRole("button", { name: "Copy as cURL" })).toBeNull();
@@ -666,9 +666,8 @@ export const UploadRequired = {
 export const ClickMoreHttpRequest = {
   render: () => html`<cts-log-entry .entry=${HTTP_REQUEST_ENTRY}></cts-log-entry>`,
   async play({ canvasElement }) {
-    const canvas = within(canvasElement);
     await waitFor(() => {
-      expect(canvas.getByText("REQUEST")).toBeInTheDocument();
+      expect(canvasElement.querySelector('.logHttp cts-badge[aria-label="Request"]')).toBeTruthy();
     });
 
     // Block hidden initially
@@ -704,9 +703,8 @@ export const ClickMoreHttpRequest = {
 export const ClickMoreHttpResponse = {
   render: () => html`<cts-log-entry .entry=${HTTP_RESPONSE_ENTRY}></cts-log-entry>`,
   async play({ canvasElement }) {
-    const canvas = within(canvasElement);
     await waitFor(() => {
-      expect(canvas.getByText("RESPONSE")).toBeInTheDocument();
+      expect(canvasElement.querySelector('.logHttp cts-badge[aria-label="Response"]')).toBeTruthy();
     });
 
     // Block hidden initially
@@ -750,9 +748,8 @@ export const ClickMoreHttpResponse = {
 export const ClickMoreRealHttpRequest = {
   render: () => html`<cts-log-entry .entry=${REAL_HTTP_REQUEST_ENTRY}></cts-log-entry>`,
   async play({ canvasElement }) {
-    const canvas = within(canvasElement);
     await waitFor(() => {
-      expect(canvas.getByText("REQUEST")).toBeInTheDocument();
+      expect(canvasElement.querySelector('.logHttp cts-badge[aria-label="Request"]')).toBeTruthy();
     });
 
     const moreBtn = canvasElement.querySelector(".moreBtn button");
@@ -797,9 +794,8 @@ export const ClickMoreRealHttpRequest = {
 export const ClickMoreRealHttpResponse = {
   render: () => html`<cts-log-entry .entry=${REAL_HTTP_RESPONSE_ENTRY}></cts-log-entry>`,
   async play({ canvasElement }) {
-    const canvas = within(canvasElement);
     await waitFor(() => {
-      expect(canvas.getByText("RESPONSE")).toBeInTheDocument();
+      expect(canvasElement.querySelector('.logHttp cts-badge[aria-label="Response"]')).toBeTruthy();
     });
 
     const moreBtn = canvasElement.querySelector(".moreBtn button");
@@ -1070,9 +1066,8 @@ export const SmallContainerLayout = {
   ],
   render: () => html`<cts-log-entry .entry=${HTTP_REQUEST_ENTRY}></cts-log-entry>`,
   async play({ canvasElement }) {
-    const canvas = within(canvasElement);
     await waitFor(() => {
-      expect(canvas.getByText("REQUEST")).toBeInTheDocument();
+      expect(canvasElement.querySelector('.logHttp cts-badge[aria-label="Request"]')).toBeTruthy();
     });
 
     const item = canvasElement.querySelector(".logItem");
@@ -1111,9 +1106,8 @@ export const BoundaryContainerLayout = {
   ],
   render: () => html`<cts-log-entry .entry=${HTTP_REQUEST_ENTRY}></cts-log-entry>`,
   async play({ canvasElement }) {
-    const canvas = within(canvasElement);
     await waitFor(() => {
-      expect(canvas.getByText("REQUEST")).toBeInTheDocument();
+      expect(canvasElement.querySelector('.logHttp cts-badge[aria-label="Request"]')).toBeTruthy();
     });
 
     const item = canvasElement.querySelector(".logItem");
@@ -1145,9 +1139,8 @@ export const TabletContainerLayout = {
   ],
   render: () => html`<cts-log-entry .entry=${HTTP_REQUEST_ENTRY}></cts-log-entry>`,
   async play({ canvasElement }) {
-    const canvas = within(canvasElement);
     await waitFor(() => {
-      expect(canvas.getByText("REQUEST")).toBeInTheDocument();
+      expect(canvasElement.querySelector('.logHttp cts-badge[aria-label="Request"]')).toBeTruthy();
     });
 
     const item = canvasElement.querySelector(".logItem");
@@ -1175,9 +1168,8 @@ export const DesktopContainerLayout = {
   ],
   render: () => html`<cts-log-entry .entry=${HTTP_REQUEST_ENTRY}></cts-log-entry>`,
   async play({ canvasElement }) {
-    const canvas = within(canvasElement);
     await waitFor(() => {
-      expect(canvas.getByText("REQUEST")).toBeInTheDocument();
+      expect(canvasElement.querySelector('.logHttp cts-badge[aria-label="Request"]')).toBeTruthy();
     });
 
     const item = canvasElement.querySelector(".logItem");
