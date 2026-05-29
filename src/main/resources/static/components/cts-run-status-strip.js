@@ -156,6 +156,18 @@ class CtsRunStatusStrip extends LitElement {
     this._inProgressCount = 0;
     this._failingCount = 0;
     this._totalRuns = 0;
+    /**
+     * Monotonic fetch-generation token. Bumped at the top of every
+     * `fetchRuns()` and inside `hide()`; each `fetchRuns()` snapshots it and
+     * discards its own post-`await` writes if a newer call (another
+     * `fetchRuns()` or a `hide()`) has since bumped it. This makes call order —
+     * i.e. the latest user intent — authoritative over response order, so a
+     * slow `/api/log` resolving after the user switched to Published cannot
+     * resurrect the personal strip over the public browser (R9). Not a reactive
+     * property; it never drives a render on its own.
+     * @type {number}
+     */
+    this._fetchSeq = 0;
   }
 
   createRenderRoot() {
@@ -188,26 +200,43 @@ class CtsRunStatusStrip extends LitElement {
    * @returns {Promise<void>} Resolves once the fetch settles (success or failure).
    */
   async fetchRuns() {
+    // Snapshot this call's generation. A newer fetchRuns()/hide() bumps
+    // _fetchSeq, after which every guarded write below becomes a no-op, so a
+    // stale in-flight response cannot clobber a more recent intent.
+    const seq = ++this._fetchSeq;
     this._status = "loading";
     try {
       const response = await fetch("/api/log?start=0&length=1000");
+      if (seq !== this._fetchSeq) return;
       if (!response.ok) {
         console.warn(`[cts-run-status-strip] /api/log responded ${response.status}`);
         this._status = "error";
         return;
       }
       const payload = await response.json();
+      if (seq !== this._fetchSeq) return;
+      // Accept the PaginationResponse envelope or a plain array. A 200 whose
+      // body is neither (a contract violation: error envelope, renamed key,
+      // HTML-as-200) is a data failure, not "zero runs" — surface the degraded
+      // state (R20) rather than silently hiding the strip, which would read as
+      // "nothing to see here".
       const data = Array.isArray(payload)
         ? payload
         : Array.isArray(payload?.data)
           ? payload.data
-          : [];
+          : null;
+      if (data === null) {
+        console.warn("[cts-run-status-strip] /api/log returned an unexpected body shape");
+        this._status = "error";
+        return;
+      }
       const { inProgressCount, failingCount } = classifyRuns(data);
       this._inProgressCount = inProgressCount;
       this._failingCount = failingCount;
       this._totalRuns = data.length;
       this._status = "ready";
     } catch (err) {
+      if (seq !== this._fetchSeq) return;
       console.warn("[cts-run-status-strip] /api/log fetch failed:", err);
       this._status = "error";
     }
@@ -216,10 +245,13 @@ class CtsRunStatusStrip extends LitElement {
   /**
    * Collapse the strip to nothing. Called by the page for the anonymous path
    * and whenever the Published view is active — the strip is a personal-home
-   * signal, out of place on the public results browser.
+   * signal, out of place on the public results browser. Bumps the fetch
+   * generation so an in-flight `fetchRuns()` cannot resurrect the strip after
+   * the user has navigated away (R9).
    * @returns {void}
    */
   hide() {
+    this._fetchSeq++;
     this._status = "hidden";
   }
 

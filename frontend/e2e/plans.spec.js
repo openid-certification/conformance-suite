@@ -748,4 +748,27 @@ test.describe("plans.html — runs strip (U7)", () => {
     await expect(page.locator(CARD).first()).toBeVisible();
     await expect(page.locator(CARD)).toHaveCount(MOCK_PLAN_LIST.length);
   });
+
+  test("tab change: strip hides on Published and re-appears on return to My", async ({ page }) => {
+    await setupFailFast(page);
+    await mockPlanRoute(page);
+    await mockLogRoute(page, RUNS_2_RUNNING_3_FAILING);
+    await setupTestInfoRoute(page, MOCK_PLAN_INFO);
+    await setupCommonRoutes(page);
+
+    await page.goto("/plans.html");
+
+    // Authed My: the strip is actionable.
+    await expect(page.locator(`${STRIP} .runStrip--actionable`)).toBeVisible();
+
+    // Switch to Published: the personal-home strip collapses (hide()).
+    await page.locator("cts-view-tabs a[data-view='published']").click();
+    await page.waitForFunction(() => window.location.search.includes("public=true"));
+    await expect(page.locator(`${STRIP} .runStrip`)).toHaveCount(0);
+
+    // Switch back to My: the strip re-fetches and re-appears (fetchRuns()).
+    await page.locator("cts-view-tabs a[data-view='my']").click();
+    await page.waitForFunction(() => !window.location.search.includes("public="));
+    await expect(page.locator(`${STRIP} .runStrip--actionable`)).toBeVisible();
+  });
 });
