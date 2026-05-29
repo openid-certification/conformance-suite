@@ -9,7 +9,7 @@ export default {
   argTypes: {
     currentPage: {
       control: "select",
-      options: ["home", "create-test", "plans", "logs", "tokens", "api-docs"],
+      options: ["plans", "logs", "tokens", "api-docs"],
     },
   },
 };
@@ -110,7 +110,7 @@ async function waitForNavbar(canvasElement) {
 // --- Stories ---
 
 export const Authenticated = {
-  args: { currentPage: "home" },
+  args: { currentPage: "plans" },
   decorators: [withMockUser(MOCK_USER)],
   render: ({ currentPage }) => html`<cts-navbar current-page="${currentPage}"></cts-navbar>`,
 
@@ -118,9 +118,11 @@ export const Authenticated = {
     const canvas = within(canvasElement);
     await waitForNavbar(canvasElement);
 
-    // All authenticated nav links visible.
-    expect(canvas.getByText("Home")).toBeInTheDocument();
-    expect(canvas.getByText("Create Test")).toBeInTheDocument();
+    // Collapsed authenticated nav (U9): Home and Create Test were removed —
+    // the plans listing is the home (reached via the brand logo) and Create
+    // test is an in-page CTA (U8).
+    expect(canvas.queryByText("Home")).toBeNull();
+    expect(canvas.queryByText("Create Test")).toBeNull();
     expect(canvas.getByText("Test Plans")).toBeInTheDocument();
     expect(canvas.getByText("Test Logs")).toBeInTheDocument();
     expect(canvas.getByText("API Docs")).toBeInTheDocument();
@@ -151,18 +153,20 @@ export const Authenticated = {
     const avatar = canvasElement.querySelector(".cts-avatar");
     expect(avatar.classList.contains("is-admin")).toBe(false);
 
-    // Home link should be active.
-    const homeLink = canvas.getByText("Home");
-    expect(homeLink.classList.contains("active")).toBe(true);
+    // Test Plans link should be active (currentPage = "plans").
+    const plansLink = canvas.getByText("Test Plans");
+    expect(plansLink.classList.contains("active")).toBe(true);
 
-    // OpenID logo present.
+    // OpenID logo present, and the brand now points at the plans home (U9).
     const logo = canvasElement.querySelector('img[alt="OpenID Foundation"]');
     expect(logo).toBeTruthy();
+    const brand = /** @type {HTMLAnchorElement} */ (canvasElement.querySelector(".cts-brand"));
+    expect(brand.getAttribute("href")).toBe("plans.html");
   },
 };
 
 export const Admin = {
-  args: { currentPage: "home" },
+  args: { currentPage: "plans" },
   decorators: [withMockUser(MOCK_ADMIN)],
   render: ({ currentPage }) => html`<cts-navbar current-page="${currentPage}"></cts-navbar>`,
 
@@ -192,7 +196,7 @@ export const Admin = {
 };
 
 export const Guest = {
-  args: { currentPage: "home" },
+  args: { currentPage: "plans" },
   decorators: [withMockUser(MOCK_GUEST)],
   render: ({ currentPage }) => html`<cts-navbar current-page="${currentPage}"></cts-navbar>`,
 
@@ -226,10 +230,13 @@ export const Unauthenticated = {
     const canvas = within(canvasElement);
     await waitForNavbar(canvasElement);
 
-    // Public-only nav links.
-    expect(canvas.getByText("Published Logs")).toBeInTheDocument();
-    expect(canvas.getByText("Published Plans")).toBeInTheDocument();
+    // Collapsed public nav (U9): the duplicate Published Logs / Published
+    // Plans links were removed — API Docs is the only public nav link, and
+    // anonymous visitors reach the published view via the brand logo →
+    // plans.html (which defaults to Published for anon).
     expect(canvas.getByText("API Docs")).toBeInTheDocument();
+    expect(canvas.queryByText("Published Logs")).toBeNull();
+    expect(canvas.queryByText("Published Plans")).toBeNull();
 
     // Authenticated links absent.
     expect(canvas.queryByText("Home")).toBeNull();
@@ -246,14 +253,17 @@ export const Unauthenticated = {
     expect(signIn).toBeInTheDocument();
     expect(signIn.getAttribute("href")).toBe("login.html");
 
-    // Logo still present.
+    // Logo still present, and the brand points at the plans home (U9) — the
+    // anonymous path to the published view.
     const logo = canvasElement.querySelector('img[alt="OpenID Foundation"]');
     expect(logo).toBeTruthy();
+    const brand = /** @type {HTMLAnchorElement} */ (canvasElement.querySelector(".cts-brand"));
+    expect(brand.getAttribute("href")).toBe("plans.html");
   },
 };
 
 export const Loading = {
-  args: { currentPage: "home" },
+  args: { currentPage: "plans" },
   decorators: [withMockUser(MOCK_USER, { delay: 60000 })],
   render: ({ currentPage }) => html`<cts-navbar current-page="${currentPage}"></cts-navbar>`,
 
@@ -272,9 +282,10 @@ export const Loading = {
     const logo = canvasElement.querySelector('img[alt="OpenID Foundation"]');
     expect(logo).toBeTruthy();
 
-    // While loading, user is null so component shows public nav links.
+    // While loading, user is null so component shows the public nav links —
+    // collapsed to API Docs only after U9.
     expect(canvas.queryByText("Home")).toBeNull();
-    expect(canvas.getByText("Published Logs")).toBeInTheDocument();
+    expect(canvas.getByText("API Docs")).toBeInTheDocument();
 
     // No account trigger, no Sign in, no Sign out — only the skeleton.
     expect(canvasElement.querySelector(".cts-account-trigger")).toBeNull();
@@ -295,8 +306,8 @@ export const ActivePagePlans = {
     const plansLink = canvas.getByText("Test Plans");
     expect(plansLink.classList.contains("active")).toBe(true);
 
-    const homeLink = canvas.getByText("Home");
-    expect(homeLink.classList.contains("active")).toBe(false);
+    const logsLink = canvas.getByText("Test Logs");
+    expect(logsLink.classList.contains("active")).toBe(false);
   },
 };
 
@@ -312,13 +323,13 @@ export const ActivePageLogs = {
     const logsLink = canvas.getByText("Test Logs");
     expect(logsLink.classList.contains("active")).toBe(true);
 
-    const homeLink = canvas.getByText("Home");
-    expect(homeLink.classList.contains("active")).toBe(false);
+    const plansLink = canvas.getByText("Test Plans");
+    expect(plansLink.classList.contains("active")).toBe(false);
   },
 };
 
-export const ActivePageCreateTest = {
-  args: { currentPage: "create-test" },
+export const ActivePageTokens = {
+  args: { currentPage: "tokens" },
   decorators: [withMockUser(MOCK_USER)],
   render: ({ currentPage }) => html`<cts-navbar current-page="${currentPage}"></cts-navbar>`,
 
@@ -326,11 +337,17 @@ export const ActivePageCreateTest = {
     const canvas = within(canvasElement);
     await waitForNavbar(canvasElement);
 
-    const createLink = canvas.getByText("Create Test");
-    expect(createLink.classList.contains("active")).toBe(true);
+    // The Tokens nav link is the active one; a sibling (Test Plans) is not.
+    // (Replaces the retired ActivePageCreateTest story — Create Test was
+    // removed from the nav in U9.)
+    const tokensNavLink = /** @type {HTMLAnchorElement} */ (
+      canvasElement.querySelector('.cts-navlink[href="tokens.html"]')
+    );
+    expect(tokensNavLink).toBeTruthy();
+    expect(tokensNavLink.classList.contains("active")).toBe(true);
 
-    const homeLink = canvas.getByText("Home");
-    expect(homeLink.classList.contains("active")).toBe(false);
+    const plansLink = canvas.getByText("Test Plans");
+    expect(plansLink.classList.contains("active")).toBe(false);
   },
 };
 
@@ -374,7 +391,7 @@ export const ActivePageTransition = {
  * receives data-open="true", and menu items are reachable.
  */
 export const AccountMenuOpens = {
-  args: { currentPage: "home" },
+  args: { currentPage: "plans" },
   decorators: [withMockUser(MOCK_USER)],
   render: ({ currentPage }) => html`<cts-navbar current-page="${currentPage}"></cts-navbar>`,
 
@@ -416,7 +433,7 @@ export const AccountMenuOpens = {
  * the menu.
  */
 export const AccountMenuClosesOnEscape = {
-  args: { currentPage: "home" },
+  args: { currentPage: "plans" },
   decorators: [withMockUser(MOCK_USER)],
   render: ({ currentPage }) => html`<cts-navbar current-page="${currentPage}"></cts-navbar>`,
 
@@ -451,7 +468,7 @@ export const AccountMenuClosesOnEscape = {
  * link's href and tear down the Storybook iframe mid-test).
  */
 export const AccountMenuClosesOnOutsideClick = {
-  args: { currentPage: "home" },
+  args: { currentPage: "plans" },
   decorators: [withMockUser(MOCK_USER)],
   render: ({ currentPage }) => html`<cts-navbar current-page="${currentPage}"></cts-navbar>`,
 
@@ -481,7 +498,7 @@ export const AccountMenuClosesOnOutsideClick = {
  * external-link affordance icon.
  */
 export const ApiDocsIsExternalLink = {
-  args: { currentPage: "home" },
+  args: { currentPage: "plans" },
   decorators: [withMockUser(MOCK_USER)],
   render: ({ currentPage }) => html`<cts-navbar current-page="${currentPage}"></cts-navbar>`,
 
@@ -538,7 +555,7 @@ export const ApiDocsIsExternalLink = {
  * layout where the toggle is display:none.
  */
 export const MobileMenuTogglesNavlinks = {
-  args: { currentPage: "home" },
+  args: { currentPage: "plans" },
   decorators: [withMockUser(MOCK_USER)],
   parameters: {
     viewport: { defaultViewport: "mobile1" },
@@ -589,7 +606,7 @@ export const MobileMenuTogglesNavlinks = {
  * mobile chrome where the hamburger lives.
  */
 export const MobileMenuClosesOnEscape = {
-  args: { currentPage: "home" },
+  args: { currentPage: "plans" },
   decorators: [withMockUser(MOCK_USER)],
   parameters: {
     viewport: { defaultViewport: "mobile1" },
@@ -637,8 +654,9 @@ export const ServerErrorLogsWarning = {
     try {
       await waitForNavbar(canvasElement);
 
-      // Should fall back to the public nav — same as the unauthenticated case.
-      expect(canvas.getByText("Published Logs")).toBeInTheDocument();
+      // Should fall back to the public nav — same as the unauthenticated case
+      // (collapsed to API Docs after U9).
+      expect(canvas.getByText("API Docs")).toBeInTheDocument();
       expect(canvas.queryByText("Sign out")).toBeNull();
       expect(canvas.getByText("Sign in")).toBeInTheDocument();
 
@@ -691,11 +709,13 @@ export const DesignSystemStructure = {
     expect(brandLogo.getAttribute("height")).toBe("28");
     expect(canvas.getByText("CONFORMANCE SUITE")).toBeInTheDocument();
 
-    // Centered link block.
+    // Centered link block. The collapsed authenticated nav (U9) for a
+    // non-admin, non-guest user is exactly four links: Test Plans, Test Logs,
+    // Tokens, API Docs.
     const navlinks = canvasElement.querySelector(".cts-nav .cts-navlinks");
     expect(navlinks).toBeTruthy();
     const links = navlinks.querySelectorAll("a.cts-navlink");
-    expect(links.length).toBeGreaterThanOrEqual(5);
+    expect(links.length).toBe(4);
 
     // Right-hand block: account zone with trigger button + popover menu.
     const navright = canvasElement.querySelector(".cts-nav .cts-navright");
@@ -769,7 +789,7 @@ export const UnauthenticatedNoWarn = {
     try {
       await waitForNavbar(canvasElement);
 
-      expect(canvas.getByText("Published Logs")).toBeInTheDocument();
+      expect(canvas.getByText("API Docs")).toBeInTheDocument();
       const currentuserWarns = warnSpy.mock.calls
         .flat()
         .filter((arg) => typeof arg === "string" && arg.includes("/api/currentuser"));

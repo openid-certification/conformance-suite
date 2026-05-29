@@ -4,9 +4,13 @@ import { repeat } from "lit/directives/repeat.js";
 import { when } from "lit/directives/when.js";
 import "./cts-icon.js";
 
+// Navigation collapsed in U9 (plans-page-as-home): Home and Create Test were
+// removed because the plans listing is now the application home (reached via
+// the brand logo) and "Create test" lives in an in-page CTA on that home
+// (U8). The duplicate Published Plans / Published Logs public links were
+// removed too — anonymous visitors reach the published view via the brand
+// logo → plans.html, which defaults to Published for anon (R6/R12-R14).
 const NAV_LINKS = [
-  { page: "home", label: "Home", href: "index.html" },
-  { page: "create-test", label: "Create Test", href: "schedule-test.html" },
   { page: "plans", label: "Test Plans", href: "plans.html" },
   { page: "logs", label: "Test Logs", href: "logs.html" },
   { page: "tokens", label: "Tokens", href: "tokens.html" },
@@ -14,8 +18,6 @@ const NAV_LINKS = [
 ];
 
 const PUBLIC_NAV_LINKS = [
-  { page: "public-logs", label: "Published Logs", href: "logs.html?public=true" },
-  { page: "public-plans", label: "Published Plans", href: "plans.html?public=true" },
   { page: "api-docs", label: "API Docs", href: "api-document.html", external: true },
 ];
 
@@ -855,7 +857,7 @@ class CtsNavbar extends LitElement {
             />
           </svg>
         </button>
-        <a class="cts-brand navbar-brand" href="index.html">
+        <a class="cts-brand navbar-brand" href="plans.html">
           <img src="/images/openid-dark.svg" alt="OpenID Foundation" width="93" height="28" />
           <span class="cts-brand-name">CONFORMANCE SUITE</span>
         </a>
