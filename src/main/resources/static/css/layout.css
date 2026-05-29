@@ -177,6 +177,22 @@ cts-view-tabs:not(:defined) {
 	min-height: 40px;
 }
 
+/* cts-run-status-strip is the always-on in-progress/failing runs strip on the
+ * authenticated plans home. It is a block-level custom-element host that
+ * reserves zero height before upgrade (inline default), so the toolbar below
+ * it would jump down when the strip's skeleton paints. Reserve ~44px to match
+ * the post-upgrade footprint (the .runStrip min-height + its --space-4 bottom
+ * margin) so the authed-home first paint is stable. `display: block` is
+ * required because the inline-default custom element would otherwise ignore
+ * `min-height`. The anon / Published / zero-run paths collapse the strip to
+ * zero after upgrade (it renders nothing) — a minor one-time shift on those
+ * secondary paths is the accepted trade-off for a stable authed home (KTD6 of
+ * the plans-page-as-home plan). */
+cts-run-status-strip:not(:defined) {
+	display: block;
+	min-height: 44px;
+}
+
 cts-navbar:not(:defined) {
 	visibility: hidden;
 	display: block;
