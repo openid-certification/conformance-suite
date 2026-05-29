@@ -40,6 +40,17 @@ import { MOCK_PLAN_LIST, MOCK_PLAN_INFO } from "./fixtures/mock-plans.js";
  * @returns {Promise<string[]>} requested /api/plan URLs, in order
  */
 async function recordPlanRoute(page) {
+  // plans.html mounts cts-run-status-strip (U7), which fetches /api/log on the
+  // authed My view (including after a switch back to My). Serve an empty run
+  // window so the strip renders nothing and the fail-fast catch-all stays green
+  // for these URL-contract tests, which don't assert the strip.
+  await page.route("**/api/log*", (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({ draw: 1, recordsTotal: 0, recordsFiltered: 0, data: [] }),
+    }),
+  );
   /** @type {string[]} */
   const planRequests = [];
   await page.route("**/api/plan*", (route) => {
