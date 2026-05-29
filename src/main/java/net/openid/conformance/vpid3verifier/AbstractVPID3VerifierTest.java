@@ -220,7 +220,8 @@ public abstract class AbstractVPID3VerifierTest extends AbstractTestModule {
 	@Override
 	public void start() {
 		setStatus(Status.RUNNING);
-		// nothing to do here
+		getBrowser().requestUriInput(env.getString("authorization_endpoint"),
+			"Paste the openid4vp:// authorization request produced by the verifier under test; its query string will be delivered to this test's authorization endpoint.");
 		setStatus(Status.WAITING);
 	}
 

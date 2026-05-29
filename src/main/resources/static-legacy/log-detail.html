@@ -1175,6 +1175,76 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
                         }
 
 
+                        if (document.querySelector('#runningTestBrowser .submitUriBtn') !== null) {
+                            document.querySelector('#runningTestBrowser .submitUriBtn').onclick = function(evt) {
+                                evt.preventDefault();
+                                var submitUrl = this.dataset.submiturl;
+                                var raw = document.querySelector('#runningTestBrowser .uriInput').value.trim();
+                                var q = raw.indexOf('?');
+                                if (q < 0) {
+                                    FAPI_UI.showError({ error: "No '?' query string found in the pasted URI." });
+                                    return;
+                                }
+                                var target = submitUrl + raw.substring(q); // substring includes the leading '?'
+
+                                FAPI_UI.showBusy('Delivering authorization request', target);
+
+                                fetch(target, { method: 'GET' })
+                                .then((response) => {
+                                    if (!response.ok) {
+                                        return Promise.reject(response);
+                                    }
+
+                                    return reload(testId);
+                                })
+                                .catch((error) => {
+                                    if (error instanceof Response) {
+                                        // We have a 'Respose' object.
+                                        var message = error.statusText;
+                                        var responseClone = error.clone();
+
+                                        error.text()
+                                        .then(textError => {
+                                            // Text error thrown by the app
+                                            messageParsed = true;
+
+                                            const errorObj = JSON.parse(textError);
+
+                                            if (errorObj.error.length != 0) {
+                                                message = errorObj.error;
+                                            }
+
+                                            FAPI_UI.showError({code: error.status.toString(), error: message});
+                                        })
+                                        .catch(error1 => {
+                                            // JSON error thrown by the app
+                                            responseClone.json()
+                                            .then(jsonError => {
+                                                if (typeof (jsonError) === 'string' && jsonError.length != 0) {
+                                                    message = jsonError;
+                                                }
+
+                                                FAPI_UI.showError({code: error.status.toString(), error: message});
+                                            })
+                                            .catch(genericError => {
+                                                // Error thrown by the server
+                                                FAPI_UI.showError({code: error.status.toString(), error: error.statusText});
+                                            });
+                                        });
+                                    } else {
+                                        // Network error automatically detected by fetch.
+                                        FAPI_UI.showError({code: "", error: error});
+                                    }
+
+                                    // don't update anymore
+                                    stopReloader();
+                                })
+                                .finally(function() {
+                                    FAPI_UI.hideBusy();
+                                });
+                            };
+                        }
+
                         if (document.querySelector('#runningTestBrowser .visitBtn') !== null) {
                             document.querySelector('#runningTestBrowser .visitBtn').onclick = function(evt) {
                                 evt.preventDefault();
