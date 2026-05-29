@@ -17,14 +17,21 @@ import { MOCK_PLAN_LIST, MOCK_PLAN_INFO } from "./fixtures/mock-plans.js";
  * target assertions are committed as `test.fixme` so CI stays green and each
  * flips active when its owning unit lands.
  *
- * SERVER-LEVEL ASSERTIONS ARE DEFERRED TO U10. The `/` and `/index.html` 302
- * redirects and the OTT token-generation redirect target are server-observable
- * (Spring routing / security filter chain) and cannot be exercised by this
- * mocked-API Playwright harness. They are asserted by U10's server-level test
- * (HomeRoutingTest.java), which is intentionally NOT created here — there is no
- * MockMvc/@SpringBootTest infrastructure in the repo yet, and the redirect
- * mechanism is maintainer-flagged (KTD4). The Group-B `/` page-level fixme
- * below is a placeholder only; the real contract is the server test.
+ * SERVER-LEVEL ASSERTIONS ARE SERVER-OBSERVABLE ONLY. U10 landed the `/` and
+ * `/index.html` -> 302 `/plans.html` redirects (ApplicationConfig view
+ * controllers), the anonymous `permitAll` for `/`, `/index.html`, `/plans.html`,
+ * `/logs.html`, and the OTT token-generation redirect target (all in
+ * ApplicationConfig + WebSecurityOidcLoginConfig). None of these can be
+ * exercised by this mocked-API Playwright harness, which serves static files via
+ * http-server with NO Spring backend — `page.goto("/")` here hits http-server,
+ * not the Spring 302. An automated `HomeRoutingTest.java` is DEFERRED to a
+ * follow-up: there is no @SpringBootTest/MockMvc infrastructure in the repo, and
+ * booting a context requires a live MongoDB (Application fires an
+ * ApplicationReadyEvent listener that connects to Mongo at startup; there is no
+ * embedded-Mongo dependency), OAuth2 client-registration test config, and
+ * spring-security-test. For this slice the routing contract is verified by
+ * live-browser smoke against the real backend (KTD2). The Group-B `/` fixme
+ * below stays a placeholder and MUST NOT be flipped active in this harness.
  *
  * Route ordering: setupFailFast() FIRST (catch-all runs last); specific routes
  * after; all routes registered before page.goto() (the page fetches at
@@ -118,9 +125,12 @@ test.describe("plans.html URL compat — GROUP B: target (pending)", () => {
     expectNoUnmockedCalls(page);
   });
 
-  // OWNER: U10 (backend / index.html retirement). Page-level placeholder only —
-  // the real `/` and `/index.html` → 302 `/plans.html` redirect is
-  // server-side and is asserted by U10's HomeRoutingTest.java, not here.
+  // OWNER: U10 (LANDED — backend redirect + index.html retirement). Placeholder
+  // only: the real `/` and `/index.html` → 302 `/plans.html` redirect is
+  // server-side (ApplicationConfig view controllers + WebSecurity permitAll) and
+  // is NOT exercisable by this no-backend http-server harness. Stays fixme;
+  // verified by live-browser smoke. Automated HomeRoutingTest.java deferred
+  // (needs live Mongo + OAuth2 test config + spring-security-test — see header).
   test.fixme("/ and /index.html resolve to the plans home (owning unit U10)", async ({ page }) => {
     await setupFailFast(page);
     await recordPlanRoute(page);
