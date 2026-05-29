@@ -50,14 +50,16 @@ const STYLE_TEXT = `
   font-size: var(--fs-18);
   font-weight: var(--fw-bold);
   line-height: var(--lh-snug);
+  text-wrap: balance;
 }
 .oidf-empty-state-body {
   margin: 0;
   color: var(--fg-soft);
   font-family: var(--font-sans);
   font-size: var(--fs-14);
-  line-height: var(--lh-normal);
+  line-height: var(--lh-base);
   max-width: 48ch;
+  text-wrap: balance;
 }
 .oidf-empty-state-cta {
   display: inline-flex;
