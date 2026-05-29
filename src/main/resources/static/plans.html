@@ -18,7 +18,6 @@
     <script type="importmap">{"imports":{"lit":"/vendor/lit/lit.js","lit/":"/vendor/lit/","lit/directives/async-append.js":"/vendor/lit/lit.js","lit/directives/async-replace.js":"/vendor/lit/lit.js","lit/directives/cache.js":"/vendor/lit/lit.js","lit/directives/choose.js":"/vendor/lit/lit.js","lit/directives/class-map.js":"/vendor/lit/lit.js","lit/directives/guard.js":"/vendor/lit/lit.js","lit/directives/if-defined.js":"/vendor/lit/lit.js","lit/directives/join.js":"/vendor/lit/lit.js","lit/directives/keyed.js":"/vendor/lit/lit.js","lit/directives/live.js":"/vendor/lit/lit.js","lit/directives/map.js":"/vendor/lit/lit.js","lit/directives/range.js":"/vendor/lit/lit.js","lit/directives/ref.js":"/vendor/lit/lit.js","lit/directives/repeat.js":"/vendor/lit/lit.js","lit/directives/style-map.js":"/vendor/lit/lit.js","lit/directives/template-content.js":"/vendor/lit/lit.js","lit/directives/unsafe-html.js":"/vendor/lit/lit.js","lit/directives/unsafe-svg.js":"/vendor/lit/lit.js","lit/directives/until.js":"/vendor/lit/lit.js","lit/directives/when.js":"/vendor/lit/lit.js","@lit/reactive-element":"/vendor/lit/lit.js","@lit/reactive-element/":"/vendor/lit/","lit-html":"/vendor/lit/lit.js","lit-html/":"/vendor/lit/","lit-element/":"/vendor/lit/","marked":"/vendor/marked/marked.esm.js","dompurify":"/vendor/dompurify/purify.es.mjs"}}</script>
     <script type="module" src="/components/cts-navbar.js"></script>
     <script type="module" src="/components/cts-view-tabs.js"></script>
-    <script type="module" src="/components/cts-run-status-strip.js"></script>
     <script type="module" src="/components/cts-plan-list.js"></script>
     <script type="module" src="/js/cts-toast-api.js"></script>
     <script type="module" src="/components/cts-footer.js"></script>
@@ -34,7 +33,6 @@
              Published tab inside cts-view-tabs (published-help), not as a page
              heading or persistent paragraph. -->
         <cts-view-tabs id="viewTabs" create-test-href="schedule-test.html" published-help="Published test plans are conformance test configurations that implementers have chosen to make public. Browse them to see how others set up certification tests, or schedule your own."></cts-view-tabs>
-        <cts-run-status-strip id="runStatusStrip"></cts-run-status-strip>
         <cts-plan-list id="plansListing"></cts-plan-list>
         <script>
             // First-paint gating (KTD3). This runs SYNCHRONOUSLY, before the
@@ -44,9 +42,7 @@
             // - ?public=true present → Published is anonymous-permitted and
             //   unambiguous, so fetch it now at connect (no auth gate). This
             //   keeps the no-flash contract: exactly one /api/plan request and
-            //   it carries public=true (AE4). The runs strip is a personal-home
-            //   signal, out of place on the public browser, so start it hidden
-            //   on this path (no skeleton flash before auth resolves).
+            //   it carries public=true (AE4).
             // - No public param → the default (My for authed, Published for
             //   anon) depends on auth, which resolves async. Suppress the
             //   connect-time fetch (defer-initial-fetch) and show the list
@@ -56,7 +52,6 @@
                 var params = new URLSearchParams(window.location.search);
                 var listing = document.getElementById('plansListing');
                 var tabs = document.getElementById('viewTabs');
-                var strip = document.getElementById('runStatusStrip');
                 // Cache-first auth guess avoids a My-tab flash for returning
                 // authed users; the authoritative value is set by the async
                 // /api/currentuser probe below. Reuses cts-navbar's
@@ -72,7 +67,6 @@
                 }
                 if (params.get('public') === 'true') {
                     listing.setAttribute('is-public', '');
-                    if (strip) { strip.setAttribute('start-hidden', ''); }
                 } else {
                     listing.setAttribute('defer-initial-fetch', '');
                 }
@@ -90,7 +84,6 @@
         document.addEventListener('DOMContentLoaded', () => {
             const planList = document.querySelector('cts-plan-list');
             const viewTabs = document.getElementById('viewTabs');
-            const runStatusStrip = document.getElementById('runStatusStrip');
             if (!planList) return;
 
             // A single handler serves BOTH the tab click and the back/forward
@@ -104,17 +97,6 @@
                         planList.removeAttribute('is-public');
                     }
                     planList.fetchPlans();
-                    // The runs strip is a personal-home signal: refresh it on a
-                    // return to My, hide it on Published (the public browser).
-                    // Only authed users have a My tab to switch to, so a
-                    // fetchRuns() here is always on an authenticated view.
-                    if (runStatusStrip) {
-                        if (isPublic) {
-                            runStatusStrip.hide();
-                        } else {
-                            runStatusStrip.fetchRuns();
-                        }
-                    }
                 });
             }
 
@@ -146,20 +128,6 @@
                         planList.removeAttribute('defer-initial-fetch');
                         planList.fetchPlans();
                     }
-                    // Drive the runs strip off the same single auth probe (no
-                    // second /api/currentuser round-trip). It shows only on the
-                    // authenticated My view; anon (R9) and the Published view
-                    // hide it — the latter was already started hidden in the
-                    // synchronous block, so this hide() is a no-op there.
-                    if (runStatusStrip) {
-                        const isPublicView =
-                            new URLSearchParams(window.location.search).get('public') === 'true';
-                        if (authenticated && !isPublicView) {
-                            runStatusStrip.fetchRuns();
-                        } else {
-                            runStatusStrip.hide();
-                        }
-                    }
                 })
                 .catch(() => {
                     // Network failure: fall back to a fetch so the user still
@@ -169,11 +137,6 @@
                     if (planList.hasAttribute('defer-initial-fetch')) {
                         planList.removeAttribute('defer-initial-fetch');
                         planList.fetchPlans();
-                    }
-                    // Auth is unknown on a probe failure — hide the strip rather
-                    // than fetch /api/log for a possibly-anonymous visitor (R9).
-                    if (runStatusStrip) {
-                        runStatusStrip.hide();
                     }
                 });
 
