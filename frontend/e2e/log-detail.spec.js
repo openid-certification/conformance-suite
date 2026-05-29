@@ -274,6 +274,146 @@ test.describe("log-detail.html — Log Detail", () => {
     await expect(moreBtn.locator(".bi-chevron-down")).toBeVisible();
   });
 
+  test("verifier URI-input box renders and submits pasted query string to /authorize", async ({ page }) => {
+    const testId = "test-inst-001";
+    const submitUrl = "https://localhost.emobix.co.uk:8443/test/a/animo-verifier-test/authorize";
+
+    await setupFailFast(page);
+
+    await page.route(`**/api/info/${testId}`, (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(MOCK_TEST_STATUS),
+      }),
+    );
+
+    await page.route(`**/api/log/${testId}**`, (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify([]),
+      }),
+    );
+
+    // /api/runner/:testId — FINISHED (stops the reloader) but with a uriInputRequests box
+    await page.route(`**/api/runner/${testId}`, (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({
+          id: testId,
+          name: MOCK_TEST_STATUS.testName,
+          status: "FINISHED",
+          created: MOCK_TEST_STATUS.created,
+          updated: MOCK_TEST_STATUS.created,
+          owner: MOCK_TEST_STATUS.owner,
+          browser: {
+            show_qr_code: false,
+            urls: [],
+            urlsWithMethod: [],
+            browserApiRequests: [],
+            uriInputRequests: [
+              { submitUrl, description: "Paste the openid4vp:// authorization request." },
+            ],
+            visited: [],
+            visitedUrlsWithMethod: [],
+            runners: [],
+          },
+        }),
+      }),
+    );
+
+    await page.route(`**/api/plan/${MOCK_TEST_STATUS.planId}`, (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({ _id: MOCK_TEST_STATUS.planId, planName: "test-plan" }),
+      }),
+    );
+
+    // Capture the submission to the test's /authorize endpoint (not an /api/ route)
+    let submittedUrl = null;
+    await page.route("**/test/a/animo-verifier-test/authorize**", (route) => {
+      submittedUrl = route.request().url();
+      return route.fulfill({ status: 200, contentType: "text/html", body: "ok" });
+    });
+
+    await setupCommonRoutes(page);
+
+    await page.goto(`/log-detail.html?log=${testId}`);
+
+    // Box renders with description, textarea and submit button
+    const submitBtn = page.locator("#runningTestBrowser .submitUriBtn");
+    await expect(submitBtn).toBeVisible();
+    const uriInput = page.locator("#runningTestBrowser .uriInput");
+    await expect(uriInput).toBeVisible();
+    await expect(page.locator("#runningTestBrowser")).toContainText("Paste the openid4vp://");
+
+    // Paste an openid4vp:// URI and submit
+    await uriInput.fill("openid4vp://?client_id=animo.io&request_uri=https%3A%2F%2Fx%2Freq&nonce=abc123");
+    await submitBtn.click();
+
+    // The pasted query string is appended to the test-supplied submitUrl and sent
+    await expect.poll(() => submittedUrl).toBe(
+      `${submitUrl}?client_id=animo.io&request_uri=https%3A%2F%2Fx%2Freq&nonce=abc123`,
+    );
+  });
+
+  test("no URI-input box renders when uriInputRequests is empty", async ({ page }) => {
+    const testId = "test-inst-001";
+    await setupFailFast(page);
+
+    await page.route(`**/api/info/${testId}`, (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(MOCK_TEST_STATUS),
+      }),
+    );
+    await page.route(`**/api/log/${testId}**`, (route) =>
+      route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify([]) }),
+    );
+    await page.route(`**/api/runner/${testId}`, (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({
+          id: testId,
+          name: MOCK_TEST_STATUS.testName,
+          status: "FINISHED",
+          created: MOCK_TEST_STATUS.created,
+          updated: MOCK_TEST_STATUS.created,
+          owner: MOCK_TEST_STATUS.owner,
+          browser: {
+            show_qr_code: false,
+            urls: [],
+            urlsWithMethod: [],
+            browserApiRequests: [],
+            uriInputRequests: [],
+            visited: [],
+            visitedUrlsWithMethod: [],
+            runners: [],
+          },
+        }),
+      }),
+    );
+    await page.route(`**/api/plan/${MOCK_TEST_STATUS.planId}`, (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({ _id: MOCK_TEST_STATUS.planId, planName: "test-plan" }),
+      }),
+    );
+    await setupCommonRoutes(page);
+
+    await page.goto(`/log-detail.html?log=${testId}`);
+
+    // Wait for the running-test card to populate, then assert the box is absent
+    await expect(page.locator("#runningTestInformation")).toBeVisible();
+    await expect(page.locator("#runningTestBrowser .submitUriBtn")).toHaveCount(0);
+  });
+
   test("failure summary items are clickable", async ({ page }) => {
     await setupFailFast(page);
     await setupLogDetailRoutes(page, {

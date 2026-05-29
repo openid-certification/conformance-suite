@@ -118,6 +118,7 @@ public class BrowserControl implements DataUtils {
 	private List<String> visited = new ArrayList<>();
 	private List<UrlWithMethod> visitedUrlsWithMethod = new ArrayList<>();
 	private List<BrowserApiRequest> browserApiRequests = new ArrayList<>();
+	private List<UriInputRequest> uriInputRequests = new ArrayList<>();
 	private Queue<WebRunner> runners = new ConcurrentLinkedQueue<>();
 
 	private ImageService imageService;
@@ -225,6 +226,21 @@ public class BrowserControl implements DataUtils {
 	 */
 	public void requestCredential(JsonObject request, String submitUrl) {
 		browserApiRequests.add(new BrowserApiRequest(request, submitUrl));
+	}
+
+	/**
+	 * Ask the user to paste a URI (e.g. an openid4vp:// authorization request) whose query
+	 * string log-detail.html should submit to the given endpoint. Repeated calls with the
+	 * same submitUrl are ignored so the box is only shown once.
+	 *
+	 * @param submitUrl   endpoint the pasted URI's query string is appended to and submitted to
+	 * @param description text shown to the user explaining what to paste
+	 */
+	public void requestUriInput(String submitUrl, String description) {
+		if (uriInputRequests.stream().anyMatch(r -> Objects.equals(submitUrl, r.getSubmitUrl()))) {
+			return;
+		}
+		uriInputRequests.add(new UriInputRequest(submitUrl, description));
 	}
 
 	/**
@@ -930,6 +946,10 @@ public class BrowserControl implements DataUtils {
 
 	public List<BrowserApiRequest> getBrowserApiRequests() {
 		return browserApiRequests;
+	}
+
+	public List<UriInputRequest> getUriInputRequests() {
+		return uriInputRequests;
 	}
 
 	public List<UrlWithMethod> getVisitedUrlsWithMethod() {
