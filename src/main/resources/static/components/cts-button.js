@@ -79,7 +79,7 @@ const STYLE_ID = "cts-button-styles";
 
 // Scoped CSS for OIDF buttons. Mirrors
 // project/preview/components-buttons.html from the OIDF design archive: a
-// 36px-tall token-driven button surface with primary/secondary/ghost/danger
+// token-driven button surface (default md rung = --control-height) with primary/secondary/ghost/danger
 // variants and xs/sm/md/lg sizes. Used by both cts-button and cts-link-button.
 const STYLE_TEXT = `
 .oidf-btn {

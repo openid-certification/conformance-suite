@@ -212,6 +212,24 @@ export const DatasetNoun = {
   },
 };
 
+// Anonymous + dataset-noun: only the Published anchor renders (no My tab for
+// anon), and the noun still suffixes it — "Published Test Logs". Guards the
+// anon branch of the suffix interpolation, which the authenticated DatasetNoun
+// story does not exercise.
+export const DatasetNounAnonymous = {
+  render: () => html`<cts-view-tabs dataset-noun="Test Logs"></cts-view-tabs>`,
+
+  async play({ canvasElement }) {
+    const my = canvasElement.querySelector("a[data-view='my']");
+    const published = canvasElement.querySelector("a[data-view='published']");
+
+    // No My anchor for anonymous visitors; the noun suffixes Published.
+    expect(my).toBeNull();
+    expect(published.textContent?.trim()).toBe("Published Test Logs");
+    expect(published.getAttribute("aria-current")).toBe("page");
+  },
+};
+
 // The help affordance coexists with the Schedule-test CTA: help sits after
 // Published, the CTA stays last in the row.
 export const PublishedHelpWithCta = {
