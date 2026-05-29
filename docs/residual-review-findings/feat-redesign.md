@@ -81,3 +81,61 @@ comment/doc-rot fixes. Residuals not auto-fixed:
   (shadowed by the new unconditional permit). A clarifying comment was added; the
   matcher itself was left untouched per the plan's minimal-diff decision on
   maintainer-gated security code. A future cleanup may remove the two dead entries.
+
+### From U12 (terminology consistency + Published descriptor) — review run `20260529-124332-4772b17f`, 2026-05-29
+
+Atomic commit `dec0d6300` (feature) + `9112f7a04` (autofix). 7-reviewer panel
+(correctness, julik-frontend-races, testing, maintainability, project-standards,
+agent-native, learnings). Two `safe_auto` fixes applied in `9112f7a04`: FIX-1 —
+plans.html resolved the Published descriptor against a stale `authenticated`
+flag, so an authed user clicking Published *during* the `/api/currentuser` probe
+window got it wrongly hidden on Published; now derives from the live URL like the
+sibling run-strip (corroborated by correctness + testing + a documented
+docs/solutions/ pattern). FIX-2 — the AE4 "first paint" e2e tests asserted only
+eventual visibility; added a synchronous `page.evaluate` reveal-check. Residuals
+not auto-fixed:
+
+- **[P2] logs.html drops a back/forward popstate that arrives inside the
+  `customElements.whenDefined('cts-log-list')` window.** (julik-frontend-races,
+  confidence 75.) The `cts-view-tab-change` listener — which updates both
+  `publishedDesc.hidden` and the list's `is-public` — is registered only after
+  `await getUserInfo()` AND `await customElements.whenDefined(...)`. A popstate in
+  that gap is dropped, leaving the descriptor and dataset stale for the page
+  lifetime. **Pre-existing U6 async-wiring shape, not introduced by U12** — the
+  new descriptor toggle merely rides on it. Practical likelihood is near-zero:
+  `cts-log-list` is a `<head>` module script fetched during HTML parse, so
+  `whenDefined` almost always resolves before `getUserInfo` (a network
+  round-trip) settles. plans.html is immune (its listener is registered
+  synchronously before the fetch). Correct fix: register the listener right after
+  the `getUserInfo` await (guard list ops with `if (list)`) and re-read the live
+  URL for the mount-time `is-public` (mount currently uses `explicitPublic`
+  captured at DOMContentLoaded) — this restructures U6 lifecycle beyond U12's
+  add-a-descriptor scope. Bundle with the `_fetchSeq` guard follow-up below.
+  Owner: downstream-resolver. `requires_verification` (delayed-module +
+  synthetic-popstate e2e).
+
+#### Advisory (kept, not changed)
+
+- **Testing gaps** (testing reviewer): plans.html `.catch()` descriptor branch
+  (network failure of `/api/currentuser` → `hidden=true`) is code-covered but
+  e2e-untested; popstate descriptor toggling is covered implicitly via the shared
+  handler but not asserted; logs.html has no catch block so a `getUserInfo` throw
+  leaves the descriptor at the cache-guess. Low priority.
+- **[P2 advisory] Descriptor invariant scattered across 7 sites** (maintainability
+  M1): "descriptor ⟺ Published" is expressed at 4 sites in plans.html + 3 in
+  logs.html. Acceptable at 2 listing pages; becomes a P1 trap at 3+. If a third
+  listing page appears, extract a `setDescriptor(el, isPublic)` local helper per
+  page (NOT a Lit component — copy differs per page, KTD1).
+- **[P2 advisory] `.listing-page-header` markup duplicated across plans.html and
+  logs.html** (maintainability M2). Correct per KTD1 (copy differs; no shared
+  component). Consider a `<!-- keep in sync with logs.html -->` coupling comment.
+
+#### Known pattern (pre-existing debt surfaced by learnings researcher)
+
+- `cts-plan-list._fetchPlans` and `cts-log-list._fetchLogs` are still un-guarded
+  by the `_fetchSeq` fetch-generation counter
+  (`docs/solutions/web-components/fetch-generation-guard-for-page-driven-components.md`).
+  U12 does not introduce this but operates over the same `cts-view-tab-change` /
+  popstate surface — a stale fetch resolving after a tab swap could make the list
+  data disagree with the descriptor. Port the guard (and fix JFR-1's listener
+  timing) in one future pass.
