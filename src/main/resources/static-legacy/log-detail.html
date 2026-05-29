@@ -152,6 +152,26 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
         </div>
     </div>
 
+    <!-- Scan QR code modal -->
+    <div class="modal" id="scanQrModal" tabindex="-1" role="dialog" aria-labelledby="scanQrLabel">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title" id="scanQrLabel">Scan QR code</h4>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Point your camera at the QR code shown by the verifier under test.</p>
+                    <video id="scanQrVideo" style="width: 100%; background: #000;" muted playsinline></video>
+                    <div id="scanQrStatus" class="mt-2 text-muted"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-sm btn-light bg-gradient border border-secondary" data-bs-dismiss="modal">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- resident DOM -->
     <div class="container-fluid">
         <div id="logDetail">
@@ -1243,6 +1263,70 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
                                     FAPI_UI.hideBusy();
                                 });
                             };
+                        }
+
+                        if (document.querySelector('#runningTestBrowser .scanQrBtn') !== null) {
+                            var scanQrBtn = document.querySelector('#runningTestBrowser .scanQrBtn');
+                            if ('BarcodeDetector' in window && navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+                                // only offer scanning where the browser can decode QR codes natively
+                                scanQrBtn.style.display = '';
+                                scanQrBtn.onclick = function(evt) {
+                                    evt.preventDefault();
+                                    var video = document.getElementById('scanQrVideo');
+                                    var statusEl = document.getElementById('scanQrStatus');
+                                    var modalEl = document.getElementById('scanQrModal');
+                                    var modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+                                    var detector = new BarcodeDetector({ formats: ['qr_code'] });
+                                    var stream = null;
+                                    var rafId = null;
+
+                                    function stop() {
+                                        if (rafId !== null) { cancelAnimationFrame(rafId); rafId = null; }
+                                        if (stream) { stream.getTracks().forEach(function(t) { t.stop(); }); stream = null; }
+                                        video.srcObject = null;
+                                    }
+
+                                    // stop the camera whenever the modal is dismissed (Cancel, close, or success)
+                                    modalEl.addEventListener('hidden.bs.modal', stop, { once: true });
+
+                                    statusEl.textContent = 'Requesting camera…';
+                                    modal.show();
+
+                                    navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
+                                    .then(function(s) {
+                                        stream = s;
+                                        video.srcObject = stream;
+                                        return video.play();
+                                    })
+                                    .then(function() {
+                                        statusEl.textContent = 'Scanning…';
+                                        var scan = function() {
+                                            if (!stream) { return; }
+                                            detector.detect(video)
+                                            .then(function(codes) {
+                                                if (!stream) { return; }
+                                                if (codes.length > 0 && codes[0].rawValue) {
+                                                    document.querySelector('#runningTestBrowser .uriInput').value = codes[0].rawValue;
+                                                    statusEl.textContent = 'QR code captured.';
+                                                    modal.hide(); // triggers stop() via hidden.bs.modal
+                                                } else {
+                                                    rafId = requestAnimationFrame(scan);
+                                                }
+                                            })
+                                            .catch(function() {
+                                                // ignore per-frame decode errors and keep trying until the modal closes
+                                                if (stream) { rafId = requestAnimationFrame(scan); }
+                                            });
+                                        };
+                                        rafId = requestAnimationFrame(scan);
+                                    })
+                                    .catch(function(err) {
+                                        statusEl.textContent = 'Camera error: ' + (err && err.message ? err.message : err);
+                                    });
+                                };
+                            } else {
+                                scanQrBtn.style.display = 'none';
+                            }
                         }
 
                         if (document.querySelector('#runningTestBrowser .visitBtn') !== null) {
