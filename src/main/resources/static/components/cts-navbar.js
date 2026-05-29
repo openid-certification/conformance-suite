@@ -557,9 +557,9 @@ function computeInitials(name) {
  *   for non-admin/non-guest users, and a Sign out form button.
  * - Unauthenticated → "Sign in" button linking to /login.html.
  * - Loading → skeleton avatar circle (no horizontal text reservation).
- * @property {string} currentPage - Key of the active page (e.g. `home`,
- *   `plans`, `logs`, `tokens`, `api-docs`); used to highlight the matching
- *   link. Reflects the `current-page` attribute.
+ * @property {string} currentPage - Key of the active page (e.g. `plans`,
+ *   `logs`, `tokens`, `api-docs`); used to highlight the matching link.
+ *   Reflects the `current-page` attribute.
  */
 class CtsNavbar extends LitElement {
   static properties = {

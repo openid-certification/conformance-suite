@@ -852,6 +852,23 @@ test.describe("plans.html — Create-test CTA + empty state (U8)", () => {
     await expect(page.locator(CREATE_CTA)).toHaveCount(0);
   });
 
+  test("R11: authed user on the Published view → CTA hidden (gated on authenticated && !isPublic)", async ({
+    page,
+  }) => {
+    await setupFailFast(page);
+    await mockPlanRoute(page);
+    await setupTestInfoRoute(page, MOCK_PLAN_INFO);
+    await setupCommonRoutes(page);
+
+    await page.goto("/plans.html?public=true");
+
+    // Authed but on the public browser: the personal Create-test CTA stays
+    // hidden, matching the runs strip (U7) and the Published-empty state's
+    // lack of a Create action — they must not disagree on one screen.
+    await expect(page.locator(CARD).first()).toBeVisible();
+    await expect(page.locator(CREATE_CTA)).toHaveCount(0);
+  });
+
   test("R11: below the 640px breakpoint the CTA stacks above the toolbar full-width", async ({
     page,
   }) => {
