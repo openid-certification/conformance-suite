@@ -81,7 +81,10 @@ const STYLE_TEXT = `
   .cts-plan-list-search input {
     width: 100%;
     box-sizing: border-box;
-    padding: var(--space-2) var(--space-3) var(--space-2) calc(var(--space-3) + var(--space-5));
+    /* border-box + --control-height so the bordered input is 34px outer (was
+       content-sized ~36px), aligning with adjacent default-size controls. */
+    height: var(--control-height);
+    padding: var(--space-2) var(--space-3) var(--space-2) calc(var(--space-3) + var(--space-6));
     background: var(--bg);
     color: var(--fg);
     border: 1px solid var(--border);

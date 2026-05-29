@@ -95,6 +95,13 @@ const STYLE_TEXT = `
     align-items: stretch;
     flex: 1 1 320px;
     min-width: 260px;
+    /* The bordered envelope is itself a default-size control: pin it to
+       --control-height with border-box so its 1px border sits INSIDE the 34px
+       and it aligns with adjacent buttons/selects (content-box would render
+       34px content + 2px border = 36px). align-items:stretch fills the inner
+       input + filter trigger to the envelope height. */
+    height: var(--control-height);
+    box-sizing: border-box;
     background: var(--bg);
     border: 1px solid var(--border);
     border-radius: var(--radius-2);
@@ -113,7 +120,7 @@ const STYLE_TEXT = `
   .cts-log-list-search input {
     width: 100%;
     box-sizing: border-box;
-    padding: var(--space-2) var(--space-3) var(--space-2) calc(var(--space-3) + var(--space-5));
+    padding: var(--space-2) var(--space-3) var(--space-2) calc(var(--space-3) + var(--space-6));
     background: transparent;
     color: var(--fg);
     border: none;

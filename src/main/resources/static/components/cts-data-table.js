@@ -132,6 +132,9 @@ const STYLE_TEXT = `
     gap: var(--space-2);
     padding: 0 var(--space-2);
     height: var(--control-height);
+    /* border-box so the 1px border sits inside --control-height (34px outer),
+       aligning with adjacent buttons/selects rather than rendering 36px. */
+    box-sizing: border-box;
     cursor: text;
     border: 1px solid var(--ink-300);
     border-radius: var(--radius-2);
