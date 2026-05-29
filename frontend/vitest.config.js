@@ -48,6 +48,7 @@ export default defineConfig({
           include: [
             join(here, "../src/main/resources/static/components/**/*.test.js"),
             join(here, "../src/main/resources/static/lib/**/*.test.js"),
+            join(here, "../src/main/resources/static/js/**/*.test.js"),
           ],
         },
       },
