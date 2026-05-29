@@ -453,12 +453,6 @@ function formatVariant(variant) {
  * @property {boolean} isPublic - Fetches the published plan listing and hides
  *   admin affordances (Owner pill, Config button). Reflects the `is-public`
  *   attribute.
- * @property {boolean} authenticated - When set, marks the viewer as signed in.
- *   Gates the My-empty empty state's "Create test" action (R18): an empty My
- *   dataset offers a create action, while the Published-empty state and
- *   anonymous visitors never do. Reflects the `authenticated` attribute, set by
- *   the page from its single `/api/currentuser` probe (KTD3). (The persistent
- *   "Create test" CTA itself lives at the end of `cts-view-tabs`, not here.)
  * @property {boolean} deferInitialFetch - When set, suppresses the
  *   connect-time `/api/plan` fetch so the page can resolve the auth-dependent
  *   default (My for authed, Published for anon) before fetching, then trigger
@@ -470,7 +464,6 @@ class CtsPlanList extends LitElement {
   static properties = {
     isAdmin: { type: Boolean, attribute: "is-admin" },
     isPublic: { type: Boolean, attribute: "is-public" },
-    authenticated: { type: Boolean, attribute: "authenticated" },
     deferInitialFetch: { type: Boolean, attribute: "defer-initial-fetch" },
     _plans: { state: true },
     _loading: { state: true },
@@ -491,10 +484,6 @@ class CtsPlanList extends LitElement {
     super();
     this.isAdmin = false;
     this.isPublic = false;
-    // Anon-safe default: never flash the Create-test CTA to an anonymous
-    // visitor. The page sets this to true once /api/currentuser confirms a
-    // session (KTD3), mirroring cts-view-tabs.
-    this.authenticated = false;
     this.deferInitialFetch = false;
     this._plans = [];
     this._loading = true;
@@ -968,15 +957,20 @@ class CtsPlanList extends LitElement {
 
   /**
    * Render the empty state, branched by why the list is empty so the copy
-   * matches the user's situation (R18):
-   * - search returned nothing → "widen the search" (no Create action);
+   * matches the user's situation (R18). Every non-search empty state offers a
+   * "Schedule test" action — on the My view, on the Published view, and for
+   * anonymous visitors (an anonymous click lands on the server-auth-gated
+   * schedule page):
+   * - search returned nothing → "widen the search" (no action — the list is
+   *   filtered, not empty);
    * - Published view is empty → an orienting placeholder (copy finalized in
-   *   U12's Published descriptor) with no Create action — published results
-   *   are not something the viewer creates here;
-   * - the authenticated My view is empty → guide the user to create their
-   *   first test, with a Create-test action;
-   * - otherwise (unknown auth / anon reaching My via an auth-probe failure) →
-   *   a neutral message with no Create action.
+   *   U12's Published descriptor) plus the Schedule-test action. The body
+   *   describes how the Published list populates (results appear once shared);
+   *   the action is the universal entry point, not a fix for this specific
+   *   emptiness (scheduling a test starts a private run, not a published plan).
+   *   That copy/CTA seam is deliberate and reconciled in U12;
+   * - otherwise (the My view, or an anonymous / unknown-auth visitor) → guide
+   *   the user to schedule their first test, with the Schedule-test action.
    * @param {boolean} hasSearch - Whether a search query is currently active.
    * @returns {import('lit').TemplateResult} The empty-state template.
    */
@@ -991,33 +985,16 @@ class CtsPlanList extends LitElement {
         ></cts-empty-state>
       `;
     }
-    if (this.isPublic) {
-      return html`
-        <cts-empty-state
-          icon="folder"
-          heading="No published plans yet"
-          body="Published conformance results will appear here once they are shared."
-          data-testid="plan-list-empty"
-        ></cts-empty-state>
-      `;
-    }
-    if (this.authenticated) {
-      return html`
-        <cts-empty-state
-          icon="folder"
-          heading="No test plans yet"
-          body="Create your first test plan to get started."
-          cta-label="Create test"
-          cta-href="schedule-test.html"
-          data-testid="plan-list-empty"
-        ></cts-empty-state>
-      `;
-    }
+    const isPublishedView = this.isPublic;
     return html`
       <cts-empty-state
         icon="folder"
-        heading="No test plans found"
-        body="Test plans will appear here once they are created."
+        heading="${isPublishedView ? "No published plans yet" : "No test plans yet"}"
+        body="${isPublishedView
+          ? "Published conformance results will appear here once they are shared."
+          : "Schedule your first test to get started."}"
+        cta-label="Schedule test"
+        cta-href="schedule-test.html"
         data-testid="plan-list-empty"
       ></cts-empty-state>
     `;
