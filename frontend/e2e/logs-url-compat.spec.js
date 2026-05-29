@@ -126,16 +126,16 @@ test.describe("logs.html URL compat — GROUP A: legacy (active)", () => {
 });
 
 // ---------------------------------------------------------------------------
-// GROUP B — TARGET (not implemented yet; test.fixme so CI stays GREEN).
-// Each is owned by the unit that will flip it to active.
+// GROUP B — TARGET (now ACTIVE; flipped from test.fixme when U6 landed the
+// My/Published tabs on logs.html). Both assertions are owned by U6.
 // ---------------------------------------------------------------------------
-test.describe("logs.html URL compat — GROUP B: target (pending)", () => {
+test.describe("logs.html URL compat — GROUP B: target (active)", () => {
   test.afterEach(async ({ page }) => {
     expectNoUnmockedCalls(page);
   });
 
-  // OWNER: U6 (My/Published tabs + URL sync on logs.html).
-  test.fixme("clicking My <-> Published keeps the URL in sync (?public=true added/removed) (owning unit U6)", async ({
+  // OWNER: U6 (My/Published tabs + URL sync on logs.html). ACTIVE as of U6.
+  test("clicking My <-> Published keeps the URL in sync (?public=true added/removed) (owning unit U6)", async ({
     page,
   }) => {
     await setupFailFast(page);
@@ -154,10 +154,8 @@ test.describe("logs.html URL compat — GROUP B: target (pending)", () => {
     expect(page.url()).not.toContain("public=");
   });
 
-  // OWNER: U6 (back/forward popstate restores tab + dataset on logs.html).
-  test.fixme("back/forward restores the prior tab and dataset (owning unit U6)", async ({
-    page,
-  }) => {
+  // OWNER: U6 (back/forward popstate restores tab + dataset on logs.html). ACTIVE as of U6.
+  test("back/forward restores the prior tab and dataset (owning unit U6)", async ({ page }) => {
     await setupFailFast(page);
     await recordLogRoute(page);
     await setupCommonRoutes(page);
