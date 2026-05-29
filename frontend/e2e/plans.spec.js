@@ -289,3 +289,202 @@ test.describe("plans.html — Plans List", () => {
     expect(planRequests).toHaveLength(fetchesBeforeSearch);
   });
 });
+
+/**
+ * U5 — My/Published view tabs + auth-gated first paint (KTD3).
+ *
+ * cts-view-tabs is a URL-driven nav control (My = absence of ?public=true,
+ * Published = ?public=true). The page gates the initial /api/plan fetch on
+ * auth resolution: ?public=true fetches Published immediately at connect (no
+ * gate), while the no-param path defers the fetch until /api/currentuser
+ * resolves the auth-dependent default (My for authed, Published for anon). The
+ * page wires a single cts-view-tab-change handler that serves both tab clicks
+ * and back/forward popstate.
+ */
+const PUBLISHED_COUNT = MOCK_PLAN_LIST.filter((p) => p.publish).length;
+
+/**
+ * Record every /api/plan request URL and serve My / Published by the presence
+ * of ?public=true. Returns the recorded-URL array so a test can assert WHICH
+ * dataset was fetched, in what order, and how many times.
+ *
+ * @param {import('@playwright/test').Page} page
+ * @returns {Promise<string[]>} requested /api/plan URLs, in order
+ */
+async function recordPlanRoute(page) {
+  /** @type {string[]} */
+  const planRequests = [];
+  await page.route("**/api/plan*", (route) => {
+    const url = route.request().url();
+    planRequests.push(url);
+    const isPublic = new URL(url).searchParams.get("public") === "true";
+    const body = isPublic ? MOCK_PLAN_LIST.filter((p) => p.publish) : MOCK_PLAN_LIST;
+    return route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify(body),
+    });
+  });
+  return planRequests;
+}
+
+test.describe("plans.html — My/Published view tabs (U5)", () => {
+  test.afterEach(async ({ page }) => {
+    expectNoUnmockedCalls(page);
+  });
+
+  test("AE5: authed, no param → My active first paint, exactly one /api/plan and never the Published dataset before auth resolves", async ({
+    page,
+  }) => {
+    await setupFailFast(page);
+    const planRequests = await recordPlanRoute(page);
+    await setupTestInfoRoute(page, MOCK_PLAN_INFO);
+    await setupCommonRoutes(page);
+
+    await page.goto("/plans.html");
+
+    // My dataset (all plans) renders; My tab is the active one.
+    const cards = page.locator(CARD);
+    await expect(cards.first()).toBeVisible();
+    await expect(cards).toHaveCount(MOCK_PLAN_LIST.length);
+    await expect(
+      page.locator("cts-view-tabs a[data-view='my'][aria-current='page']"),
+    ).toBeVisible();
+
+    // No Published fetch ever fired (no flash / premature fetch), and the
+    // no-param authed path issues exactly ONE /api/plan total (no eager +
+    // post-auth double fetch).
+    expect(planRequests.every((u) => !u.includes("public=true"))).toBe(true);
+    expect(planRequests).toHaveLength(1);
+  });
+
+  test("AE4: ?public=true → Published active first paint, first /api/plan carries public=true, no My flash", async ({
+    page,
+  }) => {
+    await setupFailFast(page);
+    const planRequests = await recordPlanRoute(page);
+    await setupTestInfoRoute(page, MOCK_PLAN_INFO);
+    await setupCommonRoutes(page);
+
+    await page.goto("/plans.html?public=true");
+
+    const cards = page.locator(CARD);
+    await expect(cards.first()).toBeVisible();
+    await expect(cards).toHaveCount(PUBLISHED_COUNT);
+
+    // Published tab active; the VERY FIRST /api/plan request carried
+    // public=true (no My-dataset flash before an auth-gated fetch).
+    await expect(
+      page.locator("cts-view-tabs a[data-view='published'][aria-current='page']"),
+    ).toBeVisible();
+    expect(planRequests.length).toBeGreaterThan(0);
+    expect(planRequests[0]).toContain("public=true");
+    expect(planRequests.every((u) => u.includes("public=true"))).toBe(true);
+  });
+
+  test("AE6/R17: clicking the other tab shows the loading state with the target tab active", async ({
+    page,
+  }) => {
+    await setupFailFast(page);
+    const planRequests = await recordPlanRoute(page);
+    await setupTestInfoRoute(page, MOCK_PLAN_INFO);
+    await setupCommonRoutes(page);
+
+    await page.goto("/plans.html");
+    await expect(page.locator(CARD).first()).toBeVisible();
+
+    // Switching to Published re-enters the loading state (the list flips
+    // _loading true synchronously when fetchPlans runs) with Published marked
+    // active. The fetch then resolves to the Published dataset.
+    await page.locator("cts-view-tabs a[data-view='published']").click();
+    await expect(
+      page.locator("cts-view-tabs a[data-view='published'][aria-current='page']"),
+    ).toBeVisible();
+
+    // Published dataset rendered; the URL carries the param.
+    await expect(page.locator(CARD)).toHaveCount(PUBLISHED_COUNT);
+    expect(page.url()).toContain("public=true");
+
+    // Both datasets were fetched (My on load, Published on switch).
+    expect(planRequests.some((u) => !u.includes("public=true"))).toBe(true);
+    expect(planRequests.some((u) => u.includes("public=true"))).toBe(true);
+  });
+
+  test("R6/R23: anonymous → My tab not rendered, Published shown and active", async ({ page }) => {
+    await setupFailFast(page);
+    const planRequests = await recordPlanRoute(page);
+    await setupTestInfoRoute(page, MOCK_PLAN_INFO);
+    await setupCommonRoutes(page, { user: null });
+
+    await page.goto("/plans.html");
+
+    // Anon lands on Published (the auth-gated default), and the My anchor is
+    // never rendered.
+    const cards = page.locator(CARD);
+    await expect(cards.first()).toBeVisible();
+    await expect(cards).toHaveCount(PUBLISHED_COUNT);
+    await expect(page.locator("cts-view-tabs a[data-view='my']")).toHaveCount(0);
+    await expect(
+      page.locator("cts-view-tabs a[data-view='published'][aria-current='page']"),
+    ).toBeVisible();
+
+    // The anon fetch carried public=true (My path is not silently emptied).
+    expect(planRequests.length).toBeGreaterThan(0);
+    expect(planRequests.every((u) => u.includes("public=true"))).toBe(true);
+  });
+
+  test("R5: back/forward popstate updates the active tab AND loads the matching dataset", async ({
+    page,
+  }) => {
+    await setupFailFast(page);
+    const planRequests = await recordPlanRoute(page);
+    await setupTestInfoRoute(page, MOCK_PLAN_INFO);
+    await setupCommonRoutes(page);
+
+    await page.goto("/plans.html");
+    await expect(page.locator(CARD).first()).toBeVisible();
+    await expect(page.locator(CARD)).toHaveCount(MOCK_PLAN_LIST.length);
+
+    await page.locator("cts-view-tabs a[data-view='published']").click();
+    await page.waitForFunction(() => window.location.search.includes("public=true"));
+    await expect(page.locator(CARD)).toHaveCount(PUBLISHED_COUNT);
+
+    const requestsBeforeBack = planRequests.length;
+
+    // Back to My: the popstate listener re-derives the tab, re-emits, and the
+    // page re-fetches the My dataset (not just the URL).
+    await page.goBack();
+    await page.waitForFunction(() => !window.location.search.includes("public="));
+    await expect(
+      page.locator("cts-view-tabs a[data-view='my'][aria-current='page']"),
+    ).toBeVisible();
+    await expect(page.locator(CARD)).toHaveCount(MOCK_PLAN_LIST.length);
+
+    // A fresh /api/plan (the My dataset) fired on the back navigation.
+    const requestsAfterBack = planRequests.slice(requestsBeforeBack);
+    expect(requestsAfterBack.length).toBeGreaterThan(0);
+    expect(requestsAfterBack.some((u) => !u.includes("public=true"))).toBe(true);
+  });
+
+  test("R2: search and sort still function after the tab wiring", async ({ page }) => {
+    await setupFailFast(page);
+    await recordPlanRoute(page);
+    await setupTestInfoRoute(page, MOCK_PLAN_INFO);
+    await setupCommonRoutes(page);
+
+    await page.goto("/plans.html");
+    await expect(page.locator(CARD)).toHaveCount(MOCK_PLAN_LIST.length);
+
+    // Search narrows the rendered cards (client-side).
+    const searchInput = page.locator('#plansListing input[placeholder="Search test plans..."]');
+    await searchInput.fill("fapi2");
+    await expect(page.locator(CARD)).toHaveCount(1);
+
+    // Sort selector remains operable.
+    const sortSelect = page.locator("#plansListing .cts-plan-list-sort select");
+    await expect(sortSelect).toBeVisible();
+    await sortSelect.selectOption("name-asc");
+    await searchInput.fill("");
+    await expect(page.locator(CARD)).toHaveCount(MOCK_PLAN_LIST.length);
+  });
+});

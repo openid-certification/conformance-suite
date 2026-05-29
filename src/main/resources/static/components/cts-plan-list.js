@@ -453,6 +453,10 @@ function formatVariant(variant) {
  * @property {boolean} isPublic - Fetches the published plan listing and hides
  *   admin affordances (Owner pill, Config button). Reflects the `is-public`
  *   attribute.
+ * @property {boolean} deferInitialFetch - When set, suppresses the
+ *   connect-time `/api/plan` fetch so the page can resolve the auth-dependent
+ *   default (My for authed, Published for anon) before fetching, then trigger
+ *   it via `fetchPlans()`. Reflects the `defer-initial-fetch` attribute (KTD3).
  * @fires cts-plan-navigate - When a plan name is clicked, with
  *   `{ detail: { planId } }`; bubbles and is composed.
  */
@@ -460,6 +464,7 @@ class CtsPlanList extends LitElement {
   static properties = {
     isAdmin: { type: Boolean, attribute: "is-admin" },
     isPublic: { type: Boolean, attribute: "is-public" },
+    deferInitialFetch: { type: Boolean, attribute: "defer-initial-fetch" },
     _plans: { state: true },
     _loading: { state: true },
     _error: { state: true },
@@ -479,6 +484,7 @@ class CtsPlanList extends LitElement {
     super();
     this.isAdmin = false;
     this.isPublic = false;
+    this.deferInitialFetch = false;
     this._plans = [];
     this._loading = true;
     this._error = null;
@@ -510,7 +516,31 @@ class CtsPlanList extends LitElement {
 
   connectedCallback() {
     super.connectedCallback();
-    this._fetchPlans();
+    // The host is the stable wrapper that persists across loading→loaded
+    // renders, so announce dataset changes (e.g. a My⇄Published tab swap)
+    // here rather than on a fragment that re-creates itself each render
+    // (R17/R19). The list region is supplementary, so a polite live region is
+    // appropriate.
+    this.setAttribute("aria-live", "polite");
+    // KTD3: on the no-`public`-param path the page sets `defer-initial-fetch`
+    // synchronously so the auth-dependent default resolves before fetching.
+    // The list still renders its loading state (`_loading` defaults true) in
+    // the meantime; the page calls `fetchPlans()` once auth resolves.
+    if (!this.deferInitialFetch) {
+      this._fetchPlans();
+    }
+  }
+
+  /**
+   * Public entry point the page calls after `/api/currentuser` resolves on the
+   * deferred (no-`public`-param) first-paint path (KTD3), and on every
+   * `cts-view-tab-change` (My⇄Published switch / back-forward). Delegates to
+   * the internal fetch, which flips `_loading` true (re-rendering the loading
+   * state) and then fetches the dataset selected by the current `isPublic`.
+   * @returns {Promise<void>} Resolves once the fetch settles.
+   */
+  fetchPlans() {
+    return this._fetchPlans();
   }
 
   updated(changedProperties) {

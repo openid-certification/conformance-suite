@@ -812,7 +812,7 @@ class CtsNavbar extends LitElement {
   render() {
     const mobileOpen = this._mobileMenuOpen;
     return html`
-      <nav class="cts-nav" data-mobile-open=${mobileOpen ? "true" : "false"}>
+      <nav class="cts-nav" aria-label="Main" data-mobile-open=${mobileOpen ? "true" : "false"}>
         <button
           type="button"
           class="cts-menu-toggle"
