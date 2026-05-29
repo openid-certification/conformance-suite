@@ -22,6 +22,7 @@
     <script type="module" src="/components/cts-navbar.js"></script>
     <script type="module" src="/components/cts-modal.js"></script>
     <script type="module" src="/components/cts-spinner.js"></script>
+    <script type="module" src="/components/cts-view-tabs.js"></script>
     <script type="module" src="/components/cts-log-list.js"></script>
     <script type="module" src="/js/cts-toast-api.js"></script>
     <script type="module" src="/components/cts-footer.js"></script>
@@ -33,6 +34,20 @@
     <cts-navbar current-page="logs"></cts-navbar>
 
     <main id="main-content" class="listing-page">
+        <cts-view-tabs id="viewTabs"></cts-view-tabs>
+        <script>
+            // Cache-first auth guess: set `authenticated` on the tabs
+            // synchronously so a returning authed user does not see the My tab
+            // pop in after /api/currentuser resolves. The authoritative value
+            // is set by the async probe in the boot script below. Reuses
+            // cts-navbar's sessionStorage cache key (shared contract).
+            (function () {
+                var tabs = document.getElementById('viewTabs');
+                var cachedUser = null;
+                try { cachedUser = sessionStorage.getItem('cts-navbar:user'); } catch (e) {}
+                if (cachedUser) { tabs.setAttribute('authenticated', ''); }
+            })();
+        </script>
         <!-- The cts-log-list component owns its own search input, filter
              chip groups, sort selector, list-of-cards rendering, active-
              filter summary, pagination ("Show more"), and config-viewer
@@ -59,21 +74,57 @@
     <script type="module">
         document.addEventListener("DOMContentLoaded", async () => {
             const urlParams = new URLSearchParams(window.location.search);
-            const isPublic = Boolean(urlParams.get("public"));
+            // Canonical Published signal: ?public=true exactly, matching
+            // cts-view-tabs and plans.html. NOT Boolean(get("public")), which
+            // is truthy for any value (so ?public=false would wrongly render
+            // Published).
+            const explicitPublic = urlParams.get("public") === "true";
+            const viewTabs = document.getElementById("viewTabs");
 
             FAPI_UI.showBusy();
             try {
                 await FAPI_UI.getUserInfo();
+                // Authoritative auth state on the tabs (the synchronous
+                // cached-user guess above may have been stale/absent). A
+                // successful /api/currentuser means authenticated; a 401 is
+                // swallowed by getUserInfo, leaving currentUser unset (R23).
+                const authenticated = !!FAPI_UI.currentUser;
+                if (authenticated) {
+                    viewTabs.setAttribute("authenticated", "");
+                } else {
+                    viewTabs.removeAttribute("authenticated");
+                }
+                // Effective view: ?public=true → Published unconditionally
+                // (the dataset decision does not depend on auth); otherwise
+                // authed → My (is-public absent), anon → Published (R6/AE3).
+                const isPublic = explicitPublic || !authenticated;
+
                 // Wait for the registration so attributes set below take
                 // effect synchronously before connectedCallback runs.
                 await customElements.whenDefined("cts-log-list");
                 const list = document.createElement("cts-log-list");
                 list.id = "logsListing";
                 if (isPublic) list.setAttribute("is-public", "");
-                if (!isPublic && FAPI_UI.currentUser && FAPI_UI.currentUser.isAdmin) {
+                // Set is-admin whenever the user is admin; cts-log-list ignores
+                // it in public mode, so this stays correct across a Published→My
+                // switch without needing to re-set it on tab change.
+                if (FAPI_UI.currentUser && FAPI_UI.currentUser.isAdmin) {
                     list.setAttribute("is-admin", "");
                 }
                 document.getElementById("logsListingMount").replaceChildren(list);
+
+                // A single handler serves BOTH the tab click and the
+                // back/forward popstate — cts-view-tabs emits cts-view-tab-change
+                // for both. On a view change, switch the dataset and reset the
+                // status/result chip filters (R16) via reloadForViewChange().
+                viewTabs.addEventListener("cts-view-tab-change", (evt) => {
+                    if (evt.detail && evt.detail.isPublic) {
+                        list.setAttribute("is-public", "");
+                    } else {
+                        list.removeAttribute("is-public");
+                    }
+                    list.reloadForViewChange();
+                });
             } finally {
                 FAPI_UI.hideBusy();
             }
