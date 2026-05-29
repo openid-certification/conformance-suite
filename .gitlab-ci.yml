@@ -234,6 +234,78 @@ compare_ssf:
   script:
     - run_compare ssf_test
 
+# Opt-in JFR profiling on review branches. Triggered by CONFORMANCE_PROFILE=1 on
+# the pipeline. See profile-out/2026-05-24-ci-profiling-design.md for full design.
+collect_jfr:
+  stage: compare
+  extends: .auto-deploy
+  environment:
+    name: review/$CI_COMMIT_REF_NAME
+    action: access
+  rules:
+    - if: '$CONFORMANCE_PROFILE && $CI_COMMIT_BRANCH && $CI_COMMIT_BRANCH != "master" && $CI_COMMIT_BRANCH != "production" && $CI_COMMIT_BRANCH != "demo"'
+      when: always
+  script:
+    - auto-deploy use_kube_context || true
+    - POD=$(kubectl -n "$KUBE_NAMESPACE" get pods -l app="$CI_ENVIRONMENT_SLUG",track=stable -o jsonpath='{.items[0].metadata.name}')
+    - test -n "$POD" || { echo "no pod found"; exit 1; }
+    - RESTARTS=$(kubectl -n "$KUBE_NAMESPACE" get pod "$POD" -o jsonpath='{.status.containerStatuses[0].restartCount}')
+    - RESTARTS=${RESTARTS:-0}
+    - echo "container restart count $RESTARTS"
+    # Previous attempts:
+    #   - jcmd JFR.stop/dump: `jcmd -l` can't see the suite JVM at all
+    #     (hsperfdata not visible from a kubectl-exec'd jcmd process), so
+    #     no attach is ever possible (pipelines #2551080405/#2551151378/#2551363927)
+    #   - SIGTERM + dumponexit: the JVM exits within ~3s of SIGTERM but
+    #     /dump/cipipe-${id}.jfr is never written, even with 90s grace and
+    #     20s delay (pipelines #2552769014 partial, #2552948787/#2553340790/#2561013103 failed)
+    # Switching to a different mechanism that doesn't depend on JVM
+    # cooperation at all: SIGSTOP the JVM (freezes all threads, no JFR
+    # writes), then tar the JFR repository (chunks are already on disk via
+    # `disk=true`), then SIGCONT. The repo is a directory of self-contained
+    # JFR chunks loadable in JMC or jfrconv. No race with restart or
+    # truncation because the JVM never exits.
+    - REPO_NAME="jfr-repo-${CI_PIPELINE_ID}"
+    - echo "freezing JVM PID 8 with SIGSTOP so /dump/${REPO_NAME} stops growing..."
+    - kubectl -n "$KUBE_NAMESPACE" exec "$POD" -- kill -STOP 8 || true
+    # Give kernel page cache a moment to flush in-flight writes
+    - sleep 2
+    - echo "tarring /dump/${REPO_NAME}..."
+    - STOPPED=false
+    - |
+      if kubectl -n "$KUBE_NAMESPACE" exec "$POD" -- tar -C /dump -cf - "$REPO_NAME" 2>/dev/null | gzip > cipipe-repo.tar.gz; then
+        # Validate: gzip-of-tar is at least a few KB and contains files
+        RAW=$(gzip -dc cipipe-repo.tar.gz 2>/dev/null | wc -c)
+        if [ "${RAW:-0}" -gt 16384 ]; then
+          STOPPED=true
+          echo "harvested $(stat -c %s cipipe-repo.tar.gz) bytes gzipped ($RAW bytes raw)"
+        else
+          echo "tar produced ${RAW:-0} raw bytes, too small to be useful"
+          rm -f cipipe-repo.tar.gz
+        fi
+      else
+        echo "tar failed"
+        rm -f cipipe-repo.tar.gz
+      fi
+    - echo "resuming JVM..."
+    - kubectl -n "$KUBE_NAMESPACE" exec "$POD" -- kill -CONT 8 || true
+    - test -f cipipe-repo.tar.gz || { echo "no JFR data harvested"; exit 1; }
+    # Enforce upload budget so a too-large artifact doesn't fail to upload
+    # silently. GitLab.com per-job cap is 1 GB; we target 900 MB.
+    - SIZE=$(du -m cipipe-repo.tar.gz | awk '{print $1}')
+    - echo "harvested artifact total ${SIZE} MB (budget 900 MB)"
+    - |
+      if [ "${SIZE:-0}" -gt 900 ]; then
+        echo "WARNING tar.gz is ${SIZE} MB, exceeds 900 MB budget — upload may fail."
+        echo "Recovery: kubectl -n $KUBE_NAMESPACE exec $POD -- tar -C /dump -czf - $REPO_NAME"
+      fi
+  artifacts:
+    access: developer
+    when: always
+    paths:
+      - cipipe-repo.tar.gz
+    expire_in: 30 days
+
 check-trailing-whitespace:
   interruptible: true
   stage: build
@@ -755,6 +827,15 @@ security_test:
       --namespace="$KUBE_NAMESPACE" \
       --from-literal=jwk="$PRIVATE_LINK_SIGNING_KEY"
 
+    # Opt-in JFR profiling on review branches only. See profile-out/2026-05-24-ci-profiling-design.md
+    PROFILE_HELM=""
+    if [ -n "$CONFORMANCE_PROFILE" ] && [ -n "$CI_COMMIT_BRANCH" ] \
+       && [ "$CI_COMMIT_BRANCH" != "master" ] \
+       && [ "$CI_COMMIT_BRANCH" != "production" ] \
+       && [ "$CI_COMMIT_BRANCH" != "demo" ]; then
+      PROFILE_HELM="--set profile=true --set profilePipelineId=$CI_PIPELINE_ID"
+    fi
+
     helm upgrade --install \
       --wait \
       --set application.env_slug="$CI_ENVIRONMENT_SLUG" \
@@ -769,6 +850,7 @@ security_test:
       --set service.mtls="$CI_ENVIRONMENT_MTLS_URL" \
       --set replicaCount="$replicas" \
       $mongo_settings \
+      $PROFILE_HELM \
       --namespace="$KUBE_NAMESPACE" \
       --version="$CI_PIPELINE_ID-$CI_JOB_ID" \
       "$name" \

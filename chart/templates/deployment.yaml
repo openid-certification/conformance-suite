@@ -87,6 +87,15 @@ spec:
             secretKeyRef:
               name: oidc-gitlab-credentials
               key: secret
+        {{- if .Values.profile }}
+        # CI profiling (opt-in, review branches only). See profile-out/2026-05-24-ci-profiling-design.md
+        # delay=20s gives the harvest job time to mv the dumponexit file
+        # aside after a restart, before the replacement JVM's JFR initialises
+        # and truncates /dump/cipipe-${id}.jfr. Cost: ~20s of recording lost
+        # at each JVM start (Spring Boot init; not a window we need to profile).
+        - name: JAVA_TOOL_OPTIONS
+          value: "-XX:FlightRecorderOptions=repository=/dump/jfr-repo-{{ .Values.profilePipelineId }} -XX:StartFlightRecording=delay=20s,name=cipipe-{{ .Values.profilePipelineId }},settings=profile,filename=/dump/cipipe-{{ .Values.profilePipelineId }}.jfr,disk=true,dumponexit=true,maxsize=2g,jdk.InitialEnvironmentVariable#enabled=false,jdk.InitialSystemProperty#enabled=false,jdk.JVMInformation#enabled=false,jdk.SystemProcess#enabled=false,jdk.ProcessStart#enabled=false"
+        {{- end }}
         volumeMounts:
             - name: dump-volume
               mountPath:
@@ -135,7 +144,13 @@ spec:
       restartPolicy: Always
       schedulerName: default-scheduler
       securityContext: {}
+      {{- if .Values.profile }}
+      # Profiled runs need extra grace so JFR dumponexit can flush the on-disk
+      # repository to /dump/cipipe-${CI_PIPELINE_ID}.jfr before SIGKILL hits.
+      terminationGracePeriodSeconds: 90
+      {{- else }}
       terminationGracePeriodSeconds: 30
+      {{- end }}
       volumes:
           - name: dump-volume
             persistentVolumeClaim:
