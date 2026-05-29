@@ -14,8 +14,8 @@ land; remove an entry when it is resolved.
   `src/main/resources/static/schedule-test.html` sets `current-page="create-test"`.
   Both page keys were removed from `cts-navbar`'s `NAV_LINKS` in U9, so they now
   match no nav link and highlight nothing (benign dead config, not a bug). Out of
-  the U8/U9 changed-file scope. `index.html` is retired in U11 (maintainer-gated),
-  so only `schedule-test.html` needs a one-attribute cleanup (`current-page=""`).
+  the U8/U9 changed-file scope. **U11 has since deleted `index.html`**, so only
+  `schedule-test.html` needs a one-attribute cleanup (`current-page=""`).
   Owner: downstream-resolver.
 
 #### Pre-existing / advisory (not introduced by U8/U9 — recorded for context, no action required here)
@@ -33,3 +33,51 @@ land; remove an entry when it is resolved.
 - **[P3] `cts-link-button` `icon` JSDoc says "Bootstrap Icons"** but the component
   resolves coolicons. Misleading for future callers; `add-plus` resolves correctly.
   Out of this diff's scope.
+
+### From U10 + U11 (plans-home backend routing + dashboard retirement) — review run `20260529-115433-23592b07`, 2026-05-29
+
+Atomic commit `30a64c00e` (feature) + `fbc6d2a42` (autofix). 7-reviewer panel;
+security + adversarial + correctness confirmed the security boundary clean
+(private-link lockout preserved by placing the new `permitAll` after the
+`denyAll` matcher; `/api/*` data boundary untouched; OTT auth handler untouched;
+no open redirect; no matcher bypass). Autofix applied a CI-blocker fix
+(`lit-importmap.spec.js` still probed the deleted `/index.html`) plus four
+comment/doc-rot fixes. Residuals not auto-fixed:
+
+- **[P2] No automated server-level test for the routing/security change.** The
+  302 redirects (`/`, `/index.html` → `/plans.html`), the anonymous `permitAll`,
+  the private-link-denied-on-listing ordering invariant, and the OTT
+  token-generation redirect target have no JUnit/MockMvc coverage. **Intentional
+  per plan KTD2** — booting a Spring context needs a live MongoDB (`Application`
+  connects to Mongo on `ApplicationReadyEvent`; no embedded-Mongo dependency),
+  OAuth2 client-registration test config, and `spring-security-test`, none of
+  which exist in the repo. Follow-up: build Spring integration-test
+  infrastructure, then add `HomeRoutingTest.java` (assert the redirects + anon
+  resolves + a private-link session gets 401/403 on `/plans.html`//`logs.html`,
+  which locks the denyAll-before-permitAll ordering that is currently
+  test-unguarded). This slice is verified by live-browser smoke instead. Owner:
+  downstream-resolver. Also recorded in the plan's *Deferred to Follow-Up Work*.
+- **[P3] Anonymous `/logs.html` data visibility now leans on `cts-logs-view`
+  never auto-setting `is-public`.** Composition risk (adversarial, confidence
+  50): today it fails closed — anonymous `/api/log` without `?public=true` → 401,
+  so anonymous `/logs.html` renders an empty shell. But `PublicRequestMatcher`
+  checks only the `?public` query param, never auth state, so a *future* edit
+  that derives public-mode from anonymous auth state would expose the full
+  published-log listing with no server-side gate. Guard: assert (story/e2e) that
+  anonymous `cts-logs-view` never sets `is-public`, or move the
+  published-vs-private decision server-side. Not triggered by this diff. Owner: human.
+
+#### Resolved by this unit
+
+- The U8/U9 *stale `current-page="home"` on `index.html`* residual (above) is
+  resolved — U11 deleted `index.html`. Only the `schedule-test.html` half remains.
+
+#### Advisory (kept, not changed)
+
+- The new `permitAll` block comment in `WebSecurityOidcLoginConfig` is verbose
+  (~12 lines) for a 4-line rule (maintainability M-3). Kept deliberately —
+  explicit rationale on security-filter ordering is worth the length.
+- `publicRequestMatcher`'s `/plans.html`//`logs.html` entries are now redundant
+  (shadowed by the new unconditional permit). A clarifying comment was added; the
+  matcher itself was left untouched per the plan's minimal-diff decision on
+  maintainer-gated security code. A future cleanup may remove the two dead entries.
