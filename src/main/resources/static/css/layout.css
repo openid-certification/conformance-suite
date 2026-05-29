@@ -96,12 +96,14 @@ cts-icon:not(:defined) {
 /* Block-level full-width fallback: the inline-flow visibility:hidden rule
  * above does not reserve vertical height for a block-level host. When
  * `[full-width]` is set we know the post-upgrade host renders as a block
- * (the OIDF button rule injected by cts-button.js), so reserve the
- * default 36px size pre-upgrade to keep CLS at zero. */
+ * (the OIDF button rule injected by cts-button.js), so reserve the default
+ * control height pre-upgrade to keep CLS at zero. Routed through
+ * --control-height (loaded via <link> before component modules, so it is
+ * computable when :not(:defined) applies) to track the button's md rung. */
 cts-button[full-width]:not(:defined),
 cts-link-button[full-width]:not(:defined) {
 	display: block;
-	min-height: 36px;
+	min-height: var(--control-height);
 }
 
 /* cts-empty-state is "often used as a block-level fill" (Coherence F4) — a

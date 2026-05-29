@@ -120,8 +120,13 @@
                 const isPublic = explicitPublic || !authenticated;
 
                 // Wait for the registration so attributes set below take
-                // effect synchronously before connectedCallback runs.
+                // effect synchronously before connectedCallback runs. Await the
+                // strip's definition too (symmetry): the boot calls
+                // fetchRuns()/hide() on it below, so guard the call site against
+                // a future lazy-load/code-split rather than relying on the
+                // implicit module-script-before-DOMContentLoaded ordering.
                 await customElements.whenDefined("cts-log-list");
+                await customElements.whenDefined("cts-run-status-strip");
                 const list = document.createElement("cts-log-list");
                 list.id = "logsListing";
                 if (isPublic) list.setAttribute("is-public", "");

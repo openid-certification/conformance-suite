@@ -697,6 +697,13 @@ test.describe("plans.html — Published help tooltip + terminology (U12)", () =>
     // the descriptor now lives as a tooltip on the Published tab (below).
     await expect(page.locator(".listing-page-header")).toHaveCount(0);
     await expect(page.locator("#publishedDesc")).toHaveCount(0);
+
+    // The tabs name the dataset via dataset-noun (a typo'd/removed attribute
+    // silently falls back to bare "My"/"Published" — assert the page wires it).
+    await expect(page.locator("#viewTabs a[data-view='my']")).toHaveText("My Test Plans");
+    await expect(page.locator("#viewTabs a[data-view='published']")).toHaveText(
+      "Published Test Plans",
+    );
   });
 
   test("R22: a circled-help icon sits next to Published, carrying the descriptor as tooltip + accessible name", async ({
