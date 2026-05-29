@@ -1377,7 +1377,7 @@ class CtsLogList extends LitElement {
 
   _renderLoading() {
     return html`
-      <div class="cts-log-list-loading">
+      <div class="cts-log-list-loading" data-testid="log-list-loading">
         <cts-spinner size="lg" label="Loading logs"></cts-spinner>
         <span>Loading logs…</span>
       </div>

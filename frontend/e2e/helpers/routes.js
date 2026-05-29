@@ -11,6 +11,7 @@
 import { MOCK_USER } from "../fixtures/mock-users.js";
 import { MOCK_SERVER_INFO } from "../fixtures/mock-server.js";
 import { MOCK_TEST_STATUS } from "../fixtures/mock-test-data.js";
+import { MOCK_LOG_LIST } from "../fixtures/mock-log-list.js";
 
 /**
  * Register the three routes every page needs:
@@ -146,4 +147,42 @@ export function expectNoUnmockedCalls(page) {
   if (calls.length > 0) {
     throw new Error(`Unmocked API calls detected:\n  ${calls.join("\n  ")}`);
   }
+}
+
+/**
+ * Register an /api/log route that records every request URL, plus the per-id
+ * /api/plan/<id> name-resolution stub cts-log-list fires. Returns the recorded
+ * URL array so a test can assert WHICH dataset (My vs Published) was fetched
+ * across My/Published tab switches. Shared by logs.spec.js and
+ * logs-url-compat.spec.js (the route-helper convention — CLAUDE.md).
+ *
+ * @param {import('@playwright/test').Page} page
+ * @param {ReadonlyArray<{planId?: string}>} [rows] - log rows to serve (defaults to MOCK_LOG_LIST)
+ * @returns {Promise<string[]>} requested /api/log URLs, in order
+ */
+export async function recordLogRoute(page, rows = MOCK_LOG_LIST) {
+  /** @type {string[]} */
+  const logRequests = [];
+  await page.route("**/api/log?*", (route) => {
+    logRequests.push(route.request().url());
+    return route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        draw: 1,
+        recordsTotal: rows.length,
+        recordsFiltered: rows.length,
+        data: rows,
+      }),
+    });
+  });
+  await page.route("**/api/plan/*", (route) => {
+    const planId = new URL(route.request().url()).pathname.replace("/api/plan/", "");
+    return route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({ _id: planId, planName: `mock-plan-name-${planId}` }),
+    });
+  });
+  return logRequests;
 }
