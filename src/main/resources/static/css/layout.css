@@ -150,6 +150,20 @@ cts-stat:not(:defined) {
 	min-height: 80px;
 }
 
+/* cts-footer is the suite-wide page footer (static OIDF brand line + an
+ * optional server-info line fetched from /api/server). It is a block-level
+ * custom-element host that reserves zero height before upgrade (inline
+ * default), so the page body would jump when it defines and again when the
+ * async server-info fetch resolves. Reserve ~56px to match the post-upgrade
+ * footprint (border-top + brand line + server-info line + the --space-6
+ * vertical padding). `display: block` is required because the inline-default
+ * custom element would otherwise ignore `min-height`. (KTD6 of the
+ * plans-page-as-home plan.) */
+cts-footer:not(:defined) {
+	display: block;
+	min-height: 56px;
+}
+
 cts-navbar:not(:defined) {
 	visibility: hidden;
 	display: block;
