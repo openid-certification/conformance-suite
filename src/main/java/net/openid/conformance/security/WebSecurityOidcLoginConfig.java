@@ -224,6 +224,26 @@ class WebSecurityOidcLoginConfig {
 				}
 			}).denyAll();
 
+			// The plans listing is the public home of the suite. `/` and the legacy
+			// `/index.html` (both 302 -> /plans.html via ApplicationConfig view
+			// controllers) and the `/plans.html` / `/logs.html` listing pages must
+			// resolve for anonymous visitors rather than 401-redirecting to login,
+			// because this chain ends with anyRequest().authenticated(). These HTML
+			// shells carry no sensitive data; the authorization boundary stays the
+			// /api/* chain (WebSecurityResourceServerConfig), which independently
+			// restricts private-link users to their shared asset. This permit is
+			// placed AFTER the private-link denyAll matcher above (mirroring the
+			// publicRequestMatcher block below) so private-link sessions remain
+			// locked to their shared log-/plan-detail page and do not gain access to
+			// the listing pages.
+			httpRequests.requestMatchers( //
+					"/", //
+					"/index.html", //
+					"/plans.html", //
+					"/logs.html" //
+				) //
+				.permitAll();
+
 			httpRequests.requestMatchers( //
 					publicRequestMatcher( //
 						"/log-detail.html", //
@@ -251,7 +271,7 @@ class WebSecurityOidcLoginConfig {
 		Pattern redirectUriPattern = Pattern.compile(Pattern.quote(baseURL) + "/(log|plan)-detail\\.html\\?(log|plan)=[A-Za-z0-9]+$");
 		http.oneTimeTokenLogin(ott -> {
 			ott.authenticationProvider(new PrivateLinkOneTimeTokenAuthenticationProvider(oneTimeTokenService, privateLinkUserDetailsService));
-			ott.tokenGenerationSuccessHandler(new RedirectOneTimeTokenGenerationSuccessHandler("/index.html"));
+			ott.tokenGenerationSuccessHandler(new RedirectOneTimeTokenGenerationSuccessHandler("/plans.html"));
 			ott.failureHandler(loginFailureHandler);
 			ott.successHandler(new AuthenticationSuccessHandler() {
 				@Override

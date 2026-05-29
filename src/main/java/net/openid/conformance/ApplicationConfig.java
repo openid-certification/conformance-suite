@@ -8,9 +8,11 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.mongodb.core.convert.MongoCustomConversions;
 import org.springframework.http.CacheControl;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.json.GsonHttpMessageConverter;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
+import org.springframework.web.servlet.config.annotation.ViewControllerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import java.util.ArrayList;
@@ -19,6 +21,19 @@ import java.util.concurrent.TimeUnit;
 
 @Configuration
 public class ApplicationConfig implements WebMvcConfigurer {
+
+	@Override
+	public void addViewControllers(ViewControllerRegistry registry) {
+		// The plans listing is the home page. `/` and the legacy `/index.html`
+		// resolve to it via a server-side 302 (temporary) redirect, so existing
+		// bookmarks and the OIDC/OTT login flow keep working after the
+		// cts-dashboard launchpad was retired. The `/` redirect only takes effect
+		// once static/index.html is deleted, because Spring Boot's
+		// WelcomePageHandlerMapping outranks these view controllers while a
+		// welcome page exists.
+		registry.addRedirectViewController("/", "/plans.html").setStatusCode(HttpStatus.FOUND);
+		registry.addRedirectViewController("/index.html", "/plans.html").setStatusCode(HttpStatus.FOUND);
+	}
 
 	@Override
 	public void addResourceHandlers(ResourceHandlerRegistry registry) {

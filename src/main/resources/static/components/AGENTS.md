@@ -351,7 +351,6 @@ sigil fails the lint step.
 | `cts-button`            | LitElement  | Yes       | Variant, size, loading, disabled                                                                                               |
 | `cts-card`              | HTMLElement | No        | One-shot `connectedCallback` — wraps children in Bootstrap card markup                                                         |
 | `cts-config-form`       | LitElement  | Yes       | JSON-schema-driven form; schema/uiSchema/config/errors as Object props                                                         |
-| `cts-dashboard`         | LitElement  | Yes       | Home-page card grid; fetches `/api/server` for footer info                                                                     |
 | `cts-form-field`        | LitElement  | Yes       | Schema-driven input field                                                                                                      |
 | `cts-icon`              | LitElement  | Yes       | Renders a Bootstrap Icon `<span>` from a name and size                                                                         |
 | `cts-image-upload`      | LitElement  | Yes       | Multi-image upload widget; fires `cts-image-uploaded`                                                                          |
