@@ -1,6 +1,10 @@
 import { test, expect } from "@playwright/test";
-import { setupCommonRoutes, setupFailFast, expectNoUnmockedCalls } from "./helpers/routes.js";
-import { MOCK_LOG_LIST } from "./fixtures/mock-log-list.js";
+import {
+  setupCommonRoutes,
+  setupFailFast,
+  expectNoUnmockedCalls,
+  recordLogRoute,
+} from "./helpers/routes.js";
 
 /**
  * U1 — URL-compatibility gate for logs.html (page-level layer).
@@ -17,43 +21,10 @@ import { MOCK_LOG_LIST } from "./fixtures/mock-log-list.js";
  * Route ordering: setupFailFast() FIRST; specific routes after; all before
  * page.goto(). logs.html loads fapi.ui.js, which fires
  * api/ui/spec_links?public=true at parse time (covered by setupCommonRoutes).
- */
-
-/**
- * Record every /api/log request URL and serve MOCK_LOG_LIST in the 1000-row
- * envelope. Returns the recorded-URL array so tests can assert which dataset
- * (My vs Published) was fetched.
  *
- * @param {import('@playwright/test').Page} page
- * @returns {Promise<string[]>} requested /api/log URLs, in order
+ * recordLogRoute (the /api/log URL recorder + /api/plan stub) is shared from
+ * helpers/routes.js so it stays in sync with logs.spec.js.
  */
-async function recordLogRoute(page) {
-  /** @type {string[]} */
-  const logRequests = [];
-  await page.route("**/api/log?*", (route) => {
-    logRequests.push(route.request().url());
-    return route.fulfill({
-      status: 200,
-      contentType: "application/json",
-      body: JSON.stringify({
-        draw: 1,
-        recordsTotal: MOCK_LOG_LIST.length,
-        recordsFiltered: MOCK_LOG_LIST.length,
-        data: MOCK_LOG_LIST,
-      }),
-    });
-  });
-  // /api/plan/<id> name resolution fired per unique planId by cts-log-list.
-  await page.route("**/api/plan/*", (route) => {
-    const planId = new URL(route.request().url()).pathname.replace("/api/plan/", "");
-    return route.fulfill({
-      status: 200,
-      contentType: "application/json",
-      body: JSON.stringify({ _id: planId, planName: `mock-plan-name-${planId}` }),
-    });
-  });
-  return logRequests;
-}
 
 const ITEM = '#logsListing [data-testid="log-list-item"]';
 

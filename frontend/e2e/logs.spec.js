@@ -1,5 +1,10 @@
 import { test, expect } from "@playwright/test";
-import { setupCommonRoutes, setupFailFast, expectNoUnmockedCalls } from "./helpers/routes.js";
+import {
+  setupCommonRoutes,
+  setupFailFast,
+  expectNoUnmockedCalls,
+  recordLogRoute,
+} from "./helpers/routes.js";
 import { MOCK_LOG_LIST } from "./fixtures/mock-log-list.js";
 import { MOCK_ADMIN_USER } from "./fixtures/mock-users.js";
 
@@ -526,40 +531,6 @@ test.describe("logs.html — Faceted filter dropdown and URL sync", () => {
 const ITEM = '#logsListing [data-testid="log-list-item"]';
 const SUMMARY = '#logsListing [data-testid="active-filter-summary"]';
 
-/**
- * Like setupLogListRoute but records every /api/log request URL so a test can
- * assert WHICH dataset (My vs Published) was fetched across tab switches.
- * @param {import('@playwright/test').Page} page
- * @param {ReadonlyArray<{planId?: string}>} [rows]
- * @returns {Promise<string[]>} requested /api/log URLs, in order
- */
-async function recordLogRoute(page, rows = MOCK_LOG_LIST) {
-  /** @type {string[]} */
-  const logRequests = [];
-  await page.route("**/api/log?*", (route) => {
-    logRequests.push(route.request().url());
-    return route.fulfill({
-      status: 200,
-      contentType: "application/json",
-      body: JSON.stringify({
-        draw: 1,
-        recordsTotal: rows.length,
-        recordsFiltered: rows.length,
-        data: rows,
-      }),
-    });
-  });
-  await page.route("**/api/plan/*", (route) => {
-    const planId = new URL(route.request().url()).pathname.replace("/api/plan/", "");
-    return route.fulfill({
-      status: 200,
-      contentType: "application/json",
-      body: JSON.stringify({ _id: planId, planName: `mock-plan-name-${planId}` }),
-    });
-  });
-  return logRequests;
-}
-
 test.describe("logs.html — My/Published view tabs (U6)", () => {
   test.afterEach(async ({ page }) => {
     expectNoUnmockedCalls(page);
@@ -660,13 +631,21 @@ test.describe("logs.html — My/Published view tabs (U6)", () => {
     page,
   }) => {
     await setupFailFast(page);
-    // First fetch resolves immediately; the second (the tab switch) is held
-    // briefly so the in-place loading state is observable.
+    // First fetch resolves immediately; the second (the tab switch) is held on
+    // an explicit gate — not a wall-clock sleep — so the in-place loading state
+    // is observed deterministically rather than racing a fixed timeout on a
+    // slow CI runner.
+    let releaseSecondFetch = () => {};
+    const secondFetchGate = /** @type {Promise<void>} */ (
+      new Promise((resolve) => {
+        releaseSecondFetch = () => resolve();
+      })
+    );
     let callCount = 0;
     await page.route("**/api/log?*", async (route) => {
       callCount += 1;
       if (callCount >= 2) {
-        await new Promise((resolve) => setTimeout(resolve, 400));
+        await secondFetchGate;
       }
       return route.fulfill({
         status: 200,
@@ -693,10 +672,12 @@ test.describe("logs.html — My/Published view tabs (U6)", () => {
     await expect(page.locator(ITEM).first()).toBeVisible();
 
     await page.locator("cts-view-tabs a[data-view='published']").click();
-    // Loading state replaces the prior rows during the held fetch.
-    await expect(page.locator("#logsListing .cts-log-list-loading")).toBeVisible();
+    // Loading state replaces the prior rows while the second fetch is gated.
+    // Assert via the stable data-testid, not the internal CSS class name.
+    await expect(page.locator('#logsListing [data-testid="log-list-loading"]')).toBeVisible();
     await expect(page.locator(ITEM)).toHaveCount(0);
-    // Resolves once the held fetch completes.
+    // Release the held fetch; rows render once it resolves.
+    releaseSecondFetch();
     await expect(page.locator(ITEM).first()).toBeVisible();
   });
 
