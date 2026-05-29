@@ -194,3 +194,58 @@ export const Hidden = {
     });
   },
 };
+
+// R9 regression: a stale fetchRuns() must NOT resurrect the strip after hide().
+// `await fetch()` yields to the microtask queue, so calling hide() synchronously
+// after fetchRuns() returns — before the response resolves — reproduces the
+// "My → Published while /api/log in flight" race deterministically, no delay
+// needed. The fetch-generation guard must discard the stale resolution so the
+// strip stays collapsed (personal counts never leak onto the Published view).
+export const RaceHideAfterFetchWins = {
+  parameters: { msw: { handlers: logHandler(RUNS_WITH_BOTH) } },
+  render: () => html`<cts-run-status-strip></cts-run-status-strip>`,
+
+  async play({ canvasElement }) {
+    const el = strip(canvasElement);
+    const pending = el.fetchRuns(); // status → loading, fetch in flight
+    el.hide(); // user switched to Published: supersede + collapse
+    await pending; // the now-stale fetch resolves; the guard must discard it
+
+    // Give any (incorrect) re-render a tick, then assert it stayed hidden.
+    await waitFor(() => {
+      expect(el.querySelector(".runStrip")).toBeNull();
+    });
+    expect(el.querySelector(".runStrip--actionable")).toBeNull();
+  },
+};
+
+// R20 regression: a 200 with a non-array, non-{data:array} body is a contract
+// violation, not "zero runs" — it must surface the degraded error state, not
+// silently hide the strip.
+export const MalformedBody = {
+  parameters: {
+    msw: { handlers: [http.get("/api/log", () => HttpResponse.json({ unexpected: "shape" }))] },
+  },
+  render: () => html`<cts-run-status-strip></cts-run-status-strip>`,
+
+  async play({ canvasElement }) {
+    const canvas = within(canvasElement);
+    const warnSpy = fn();
+    const origWarn = console.warn;
+    console.warn = warnSpy;
+
+    try {
+      await strip(canvasElement).fetchRuns();
+
+      await waitFor(() => {
+        expect(canvasElement.querySelector(".runStrip--error")).toBeTruthy();
+      });
+      expect(canvas.getByText(/couldn't load run status/i)).toBeInTheDocument();
+      // Not silently hidden, and not implying all-clear.
+      expect(canvasElement.querySelector(".runStrip--clear")).toBeNull();
+      expect(warnSpy.mock.calls.flat().join(" ")).toContain("unexpected body shape");
+    } finally {
+      console.warn = origWarn;
+    }
+  },
+};
