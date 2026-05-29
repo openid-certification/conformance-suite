@@ -1,7 +1,6 @@
 import { LitElement, html, nothing } from "lit";
 import { repeat } from "lit/directives/repeat.js";
 import "./cts-button.js";
-import "./cts-link-button.js";
 import "./cts-icon.js";
 import "./cts-modal.js";
 import "./cts-alert.js";
@@ -132,29 +131,6 @@ const STYLE_TEXT = `
     outline: none;
     border-color: var(--orange-400);
     box-shadow: var(--focus-ring);
-  }
-  /* In-page "Create test" CTA (R11). Authed-only; rendered as the last child
-     of the toolbar flex row. On desktop the search field's flex-grow pushes
-     it to the right edge. Below the 640px mobile breakpoint (matching
-     layout.css / oidf-app.css) it reorders above the search/sort controls and
-     spans the full row, so the primary action is the first thing a
-     small-screen user reaches and the controls wrap beneath it. */
-  .cts-plan-list-cta {
-    flex: 0 0 auto;
-    /* Reserve the button's height as a flex item so the toolbar row does not
-       jump when the inner cts-link-button upgrades (it paints
-       visibility:hidden with zero content height pre-upgrade — KTD6). */
-    min-height: 36px;
-  }
-  @media (max-width: 640px) {
-    .cts-plan-list-cta {
-      order: -1;
-      flex: 1 1 100%;
-      display: block;
-    }
-    .cts-plan-list-cta .oidf-btn {
-      width: 100%;
-    }
   }
   .cts-plan-list-items {
     display: flex;
@@ -478,14 +454,11 @@ function formatVariant(variant) {
  *   admin affordances (Owner pill, Config button). Reflects the `is-public`
  *   attribute.
  * @property {boolean} authenticated - When set, marks the viewer as signed in.
- *   The in-page "Create test" toolbar CTA and the My-empty empty state's Create
- *   action are gated on `authenticated && !isPublic` (R11/R18), so they appear
- *   only on the personal My view — consistent with the runs strip (U7), which
- *   also hides on the Published view, and with the Published-empty state, which
- *   carries no Create action. Anonymous visitors (always on Published) never
- *   see the CTA. Reflects the `authenticated` attribute, set by the page from
- *   its single `/api/currentuser` probe (KTD3). Mirrors the `authenticated`
- *   gating on `cts-view-tabs`.
+ *   Gates the My-empty empty state's "Create test" action (R18): an empty My
+ *   dataset offers a create action, while the Published-empty state and
+ *   anonymous visitors never do. Reflects the `authenticated` attribute, set by
+ *   the page from its single `/api/currentuser` probe (KTD3). (The persistent
+ *   "Create test" CTA itself lives at the end of `cts-view-tabs`, not here.)
  * @property {boolean} deferInitialFetch - When set, suppresses the
  *   connect-time `/api/plan` fetch so the page can resolve the auth-dependent
  *   default (My for authed, Published for anon) before fetching, then trigger
@@ -954,17 +927,6 @@ class CtsPlanList extends LitElement {
             <option value="name-asc">Plan name (A–Z)</option>
           </select>
         </label>
-        ${this.authenticated && !this.isPublic
-          ? html`<cts-link-button
-              class="cts-plan-list-cta"
-              variant="primary"
-              size="md"
-              icon="add-plus"
-              href="schedule-test.html"
-              label="Create test"
-              data-testid="plan-list-create-cta"
-            ></cts-link-button>`
-          : nothing}
       </div>
     `;
   }

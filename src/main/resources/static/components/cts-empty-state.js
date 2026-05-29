@@ -1,4 +1,9 @@
 import { LitElement, html, nothing } from "lit";
+// Self-import the CTA dependency: _renderCta renders <cts-link-button> when
+// cta-label/cta-href are set, so the element must be defined whenever this
+// component is used. Importing it here (rather than relying on each consumer
+// to register it) makes any consumer safe.
+import "./cts-link-button.js";
 
 /**
  * Shared `<style>` block injected into `<head>` once per page (gated by

@@ -1,4 +1,5 @@
 import { LitElement, html, nothing } from "lit";
+import "./cts-link-button.js";
 
 const STYLE_ID = "cts-view-tabs-styles";
 
@@ -9,7 +10,13 @@ const STYLE_TEXT = `
   margin-bottom: var(--space-4);
   border-bottom: 1px solid var(--border);
 }
-.cts-view-tabs a {
+/* Direct-child combinator (> a), NOT a descendant selector: the My/Published
+   tabs are the nav's own anchors, while the opt-in "Create test" CTA renders a
+   nested <a class="oidf-btn"> (inside cts-link-button) that is a grandchild.
+   A bare ".cts-view-tabs a" would outspecify ".oidf-btn" (0,1,1 vs 0,1,0) and
+   leak the tab styling (grey text, 2px bottom border, -1px margin) onto the
+   button. Keep this scoped to > a. */
+.cts-view-tabs > a {
   display: inline-flex;
   align-items: center;
   padding: var(--space-2) var(--space-3);
@@ -24,17 +31,25 @@ const STYLE_TEXT = `
   transition: color var(--dur-1) var(--ease-standard),
               border-color var(--dur-1) var(--ease-standard);
 }
-.cts-view-tabs a:hover {
+.cts-view-tabs > a:hover {
   color: var(--fg);
 }
-.cts-view-tabs a:focus-visible {
+.cts-view-tabs > a:focus-visible {
   outline: none;
   box-shadow: var(--focus-ring);
   border-radius: var(--radius-1);
 }
-.cts-view-tabs a[aria-current="page"] {
+.cts-view-tabs > a[aria-current="page"] {
   color: var(--fg);
   border-bottom-color: var(--orange-400);
+}
+/* Opt-in "Create test" CTA (R11), rendered at the end of the tabs row when a
+   page sets create-test-href and the active view is My. Pushed to the right
+   edge (margin-left:auto) and vertically centered so it sits in the tab row
+   without inheriting the anchors' bottom-border overlap. */
+.cts-view-tabs .cts-view-tabs-cta {
+  margin-left: auto;
+  align-self: center;
 }
 `;
 
@@ -64,6 +79,12 @@ function ensureStylesInjected() {
  * switching (KTD1). The existing `cts-tabs` is a content-switching widget with
  * no URL state and is the wrong primitive here.
  *
+ * An optional "Create test" CTA (opt-in via `create-test-href`, see that
+ * property) renders at the end of the row on the My view (R11). It is hosted
+ * inside this `<nav>` by deliberate choice: a "Create test" link navigates to
+ * another page, so it is navigation, and the visual placement at the end of the
+ * tabs row is the product intent. The accessible name stays "Dataset view".
+ *
  * The canonical "Published" signal is `?public=true`; "My" is the absence of
  * the `public` param (KTD2). The control merely reads/writes that param:
  * clicking a tab `pushState`s the new URL (so each switch is a back/forward
@@ -90,6 +111,13 @@ function ensureStylesInjected() {
  *   My anchor is NOT rendered — anonymous visitors only see Published. Reflects
  *   the `authenticated` attribute. Set authoritatively by the page once
  *   `/api/currentuser` resolves.
+ * @property {string} createTestHref - Opt-in destination for a "Create test"
+ *   CTA rendered at the end of the tabs row (R11). When set, the CTA appears
+ *   only while the active view is My (`_activeView === "my"`, i.e. authenticated
+ *   and not on the Published view) — consistent with the runs strip, which also
+ *   hides on Published. Pages that should not offer test creation (e.g.
+ *   `logs.html`) simply leave it unset, so the shared control stays page-neutral.
+ *   Reflects the `create-test-href` attribute.
  * @fires cts-view-tab-change - When the active view changes (click or
  *   back/forward), with `{ detail: { view, isPublic } }` where `view` is
  *   `"my"` | `"published"`; bubbles and is composed.
@@ -97,6 +125,7 @@ function ensureStylesInjected() {
 class CtsViewTabs extends LitElement {
   static properties = {
     authenticated: { type: Boolean, attribute: "authenticated" },
+    createTestHref: { type: String, attribute: "create-test-href" },
   };
 
   constructor() {
@@ -104,6 +133,8 @@ class CtsViewTabs extends LitElement {
     // Anon-safe default: never flash the My tab to an anonymous visitor. The
     // page sets this to true once /api/currentuser confirms a session.
     this.authenticated = false;
+    // Empty by default: the CTA is opt-in per page (only plans.html sets it).
+    this.createTestHref = "";
     this._handlePopState = this._handlePopState.bind(this);
   }
 
@@ -228,6 +259,17 @@ class CtsViewTabs extends LitElement {
           @click=${this._handleTabClick}
           >Published</a
         >
+        ${this.createTestHref && active === "my"
+          ? html`<cts-link-button
+              class="cts-view-tabs-cta"
+              variant="primary"
+              size="sm"
+              icon="add-plus"
+              href="${this.createTestHref}"
+              label="Create test"
+              data-testid="create-test-cta"
+            ></cts-link-button>`
+          : nothing}
       </nav>
     `;
   }

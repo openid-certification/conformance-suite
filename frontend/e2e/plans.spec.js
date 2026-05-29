@@ -774,18 +774,17 @@ test.describe("plans.html — runs strip (U7)", () => {
 });
 
 /**
- * U8 — Create-test CTA + My-empty empty state on the plans home.
+ * U8 — Create-test CTA (in cts-view-tabs) + My-empty empty state on the plans home.
  *
- * An in-page "Create test" CTA renders in the plan-list toolbar for
- * authenticated users (R11), linking to schedule-test.html (the destination
- * the pruned nav link used). Below the 640px mobile breakpoint it stacks above
- * the search/sort controls full-width. The CTA is gated on the `authenticated`
- * attribute the page sets from its single /api/currentuser probe, so anonymous
- * visitors (always on Published) never see it (R6). When the authenticated My
- * dataset is empty, the empty state guides the user to create their first test
- * (R18); the Published-empty state shows orienting copy with no Create action.
+ * The persistent "Create test" CTA renders at the END of the cts-view-tabs row
+ * for authenticated users on the My view (R11), linking to schedule-test.html.
+ * It is gated on the My view (cts-view-tabs derives `_activeView === "my"` from
+ * auth + URL), so anonymous visitors and the Published view never show it (R6) —
+ * consistent with the runs strip. When the authenticated My dataset is empty,
+ * the empty state guides the user to create their first test (R18); the
+ * Published-empty state shows orienting copy with no Create action.
  */
-const CREATE_CTA = "#plansListing [data-testid='plan-list-create-cta']";
+const CREATE_CTA = "#viewTabs [data-testid='create-test-cta']";
 const PLAN_EMPTY = "#plansListing [data-testid='plan-list-empty']";
 
 /**
@@ -802,19 +801,6 @@ async function mockEmptyPlanRoute(page) {
       body: JSON.stringify([]),
     }),
   );
-}
-
-/**
- * Resolve a locator's bounding box, throwing if it is null (detached / not
- * visible). Lives outside the test body so the null guard does not trip
- * playwright/no-conditional-in-test, and it narrows the box type for callers.
- * @param {import('@playwright/test').Locator} locator
- * @returns {Promise<{x: number, y: number, width: number, height: number}>}
- */
-async function boundingBoxOrThrow(locator) {
-  const box = await locator.boundingBox();
-  if (!box) throw new Error("expected a bounding box but the element had none");
-  return box;
 }
 
 test.describe("plans.html — Create-test CTA + empty state (U8)", () => {
@@ -837,6 +823,12 @@ test.describe("plans.html — Create-test CTA + empty state (U8)", () => {
     const link = cta.locator("a");
     await expect(link).toHaveAttribute("href", "schedule-test.html");
     await expect(link).toContainText("Create test");
+
+    // It sits at the END of the cts-view-tabs row (after the My/Published tabs).
+    await expect(page.locator("#viewTabs nav.cts-view-tabs > :last-child")).toHaveAttribute(
+      "data-testid",
+      "create-test-cta",
+    );
   });
 
   test("R11/R6: anonymous → Create-test CTA not rendered", async ({ page }) => {
@@ -869,7 +861,7 @@ test.describe("plans.html — Create-test CTA + empty state (U8)", () => {
     await expect(page.locator(CREATE_CTA)).toHaveCount(0);
   });
 
-  test("R11: below the 640px breakpoint the CTA stacks above the toolbar full-width", async ({
+  test("R11: switching My⇄Published hides and re-shows the CTA (gated on the My view)", async ({
     page,
   }) => {
     await setupFailFast(page);
@@ -877,22 +869,20 @@ test.describe("plans.html — Create-test CTA + empty state (U8)", () => {
     await setupTestInfoRoute(page, MOCK_PLAN_INFO);
     await setupCommonRoutes(page);
 
-    await page.setViewportSize({ width: 600, height: 900 });
     await page.goto("/plans.html");
 
-    const cta = page.locator(CREATE_CTA);
-    await expect(cta).toBeVisible();
+    // My view: CTA shown.
+    await expect(page.locator(CREATE_CTA)).toBeVisible();
 
-    const ctaBox = await boundingBoxOrThrow(cta);
-    const searchBox = await boundingBoxOrThrow(page.locator("#plansListing .cts-plan-list-search"));
-    const toolbarBox = await boundingBoxOrThrow(
-      page.locator("#plansListing .cts-plan-list-toolbar"),
-    );
+    // Switch to Published: the CTA hides (consistent with the runs strip).
+    await page.locator("cts-view-tabs a[data-view='published']").click();
+    await page.waitForFunction(() => window.location.search.includes("public=true"));
+    await expect(page.locator(CREATE_CTA)).toHaveCount(0);
 
-    // Stacked above: the CTA sits higher than the search field.
-    expect(ctaBox.y).toBeLessThan(searchBox.y);
-    // Full-width: the CTA spans (near) the full toolbar width.
-    expect(ctaBox.width).toBeGreaterThan(toolbarBox.width * 0.9);
+    // Back to My: the CTA re-appears.
+    await page.locator("cts-view-tabs a[data-view='my']").click();
+    await page.waitForFunction(() => !window.location.search.includes("public="));
+    await expect(page.locator(CREATE_CTA)).toBeVisible();
   });
 
   test("R18: My empty → empty state offers a Create-test action", async ({ page }) => {
