@@ -644,7 +644,7 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 				break;
 			case DIRECT_POST_JWT:
 			case DC_API_JWT:
-				callAndStopOnFailure(ValidateAuthResponseContainsOnlyResponse.class, "OID4VP-1FINAL-8.3");
+				callAndContinueOnFailure(ValidateAuthResponseContainsOnlyResponse.class, ConditionResult.FAILURE, "OID4VP-1FINAL-8.3");
 				// currently only supports encrypted-not-signed as used by mdl
 				callAndStopOnFailure(DecryptResponse.class, "OID4VP-1FINAL-8.3");
 				callAndContinueOnFailure(ValidateJWEHeaderKidIsInClientMetadataJWKs.class, ConditionResult.FAILURE, "OID4VP-1FINAL-5.1");
