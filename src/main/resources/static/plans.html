@@ -60,7 +60,13 @@
                 // sessionStorage cache key (shared contract).
                 var cachedUser = null;
                 try { cachedUser = sessionStorage.getItem('cts-navbar:user'); } catch (e) {}
-                if (cachedUser) { tabs.setAttribute('authenticated', ''); }
+                // Seed the auth-gated affordances (My tab, Create-test CTA) from
+                // the cache so a returning authed user does not see them flash in
+                // after the async probe; the probe below is authoritative.
+                if (cachedUser) {
+                    tabs.setAttribute('authenticated', '');
+                    listing.setAttribute('authenticated', '');
+                }
                 if (params.get('public') === 'true') {
                     listing.setAttribute('is-public', '');
                     if (strip) { strip.setAttribute('start-hidden', ''); }
@@ -124,6 +130,14 @@
                         } else {
                             viewTabs.removeAttribute('authenticated');
                         }
+                    }
+                    // Gate the Create-test CTA + My-empty empty state on the
+                    // authoritative auth result (U8/R11/R18), correcting the
+                    // synchronous cache guess above.
+                    if (authenticated) {
+                        planList.setAttribute('authenticated', '');
+                    } else {
+                        planList.removeAttribute('authenticated');
                     }
                     if (user && user.isAdmin) {
                         planList.setAttribute('is-admin', '');
