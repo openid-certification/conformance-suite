@@ -755,6 +755,10 @@ test.describe("logs.html — page heading + Published descriptor (U12)", () => {
 
     await page.goto("/logs.html?public=true");
 
+    // No flash: on the ?public=true path the descriptor is revealed by the inline
+    // synchronous boot. A synchronous attribute read proves first-paint reveal —
+    // toBeVisible() alone would also pass on an eventual reveal.
+    expect(await page.evaluate(() => document.getElementById("publishedDesc")?.hidden)).toBe(false);
     await expect(page.locator(LOGS_PUBLISHED_DESC)).toBeVisible();
   });
 
