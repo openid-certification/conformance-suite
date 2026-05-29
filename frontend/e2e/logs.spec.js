@@ -509,3 +509,226 @@ test.describe("logs.html — Faceted filter dropdown and URL sync", () => {
     expect(box.height).toBeLessThanOrEqual(32);
   });
 });
+
+// ---------------------------------------------------------------------------
+// My/Published view tabs (U6). cts-view-tabs is a URL-driven nav control (My =
+// absence of ?public=true, Published = ?public=true). logs.html resolves the
+// auth-gated default after /api/currentuser and wires a single
+// cts-view-tab-change handler that serves both tab clicks and back/forward
+// popstate. On a view change the page calls cts-log-list.reloadForViewChange(),
+// which resets the status/result chip filters (R16) and refetches the dataset
+// for the new is-public view. URL-sync and back/forward tab restoration are
+// asserted in logs-url-compat.spec.js GROUP B; this block covers the
+// logs-specific behaviors (chip reset, dataset refetch, loading state,
+// aria-live, anon).
+// ---------------------------------------------------------------------------
+
+const ITEM = '#logsListing [data-testid="log-list-item"]';
+const SUMMARY = '#logsListing [data-testid="active-filter-summary"]';
+
+/**
+ * Like setupLogListRoute but records every /api/log request URL so a test can
+ * assert WHICH dataset (My vs Published) was fetched across tab switches.
+ * @param {import('@playwright/test').Page} page
+ * @param {ReadonlyArray<{planId?: string}>} [rows]
+ * @returns {Promise<string[]>} requested /api/log URLs, in order
+ */
+async function recordLogRoute(page, rows = MOCK_LOG_LIST) {
+  /** @type {string[]} */
+  const logRequests = [];
+  await page.route("**/api/log?*", (route) => {
+    logRequests.push(route.request().url());
+    return route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        draw: 1,
+        recordsTotal: rows.length,
+        recordsFiltered: rows.length,
+        data: rows,
+      }),
+    });
+  });
+  await page.route("**/api/plan/*", (route) => {
+    const planId = new URL(route.request().url()).pathname.replace("/api/plan/", "");
+    return route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({ _id: planId, planName: `mock-plan-name-${planId}` }),
+    });
+  });
+  return logRequests;
+}
+
+test.describe("logs.html — My/Published view tabs (U6)", () => {
+  test.afterEach(async ({ page }) => {
+    expectNoUnmockedCalls(page);
+  });
+
+  test("R16: switching My→Published resets the chip filters and drops ?status/?result", async ({
+    page,
+  }) => {
+    await setupFailFast(page);
+    const logRequests = await recordLogRoute(page);
+    await setupCommonRoutes(page);
+
+    // Deep-link with status chips applied; authed default is the My view.
+    await page.goto("/logs.html?status=running,waiting");
+    await expect(page.locator(SUMMARY)).toBeVisible();
+    await expect(page.locator(ITEM)).toHaveCount(2);
+
+    // Switch to Published → chips reset (R16): the URL drops ?status/?result
+    // but keeps ?public=true, the active-filter summary disappears, and the
+    // full unfiltered dataset renders.
+    await page.locator("cts-view-tabs a[data-view='published']").click();
+    await page.waitForFunction(
+      () =>
+        window.location.search.includes("public=true") &&
+        !window.location.search.includes("status="),
+    );
+    await expect(page.locator(SUMMARY)).toHaveCount(0);
+    expect(page.url()).not.toContain("status=");
+    expect(page.url()).not.toContain("result=");
+    await expect(page.locator(ITEM)).toHaveCount(MOCK_LOG_LIST.length);
+    // The refetch targeted the Published dataset.
+    expect(logRequests.some((u) => u.includes("public=true"))).toBe(true);
+
+    // Switching back to My starts unfiltered (chips do not reappear).
+    await page.locator("cts-view-tabs a[data-view='my']").click();
+    await page.waitForFunction(() => !window.location.search.includes("public="));
+    await expect(page.locator(SUMMARY)).toHaveCount(0);
+    await expect(page.locator(ITEM)).toHaveCount(MOCK_LOG_LIST.length);
+  });
+
+  test("R16/KTD4: a Back from Published does NOT restore the prior chip selection", async ({
+    page,
+  }) => {
+    await setupFailFast(page);
+    await recordLogRoute(page);
+    await setupCommonRoutes(page);
+
+    await page.goto("/logs.html?status=running,waiting");
+    await expect(page.locator(SUMMARY)).toBeVisible();
+    await expect(page.locator(ITEM)).toHaveCount(2);
+
+    await page.locator("cts-view-tabs a[data-view='published']").click();
+    await page.waitForFunction(
+      () =>
+        window.location.search.includes("public=true") &&
+        !window.location.search.includes("status="),
+    );
+
+    // Back to My: the popstate-driven view change re-runs reloadForViewChange(),
+    // so the chips stay reset by design (the URL-compat gate restores the tab +
+    // dataset, NOT the prior filter). This locks the intentional behavior so a
+    // future change cannot silently add chip-restoration.
+    await page.goBack();
+    await expect(
+      page.locator("cts-view-tabs a[data-view='my'][aria-current='page']"),
+    ).toBeVisible();
+    await expect(page.locator(SUMMARY)).toHaveCount(0);
+    expect(page.url()).not.toContain("status=");
+    await expect(page.locator(ITEM)).toHaveCount(MOCK_LOG_LIST.length);
+  });
+
+  test("R5/F3: tab click and back/forward refetch the matching dataset", async ({ page }) => {
+    await setupFailFast(page);
+    const logRequests = await recordLogRoute(page);
+    await setupCommonRoutes(page);
+
+    await page.goto("/logs.html");
+    await expect(page.locator(ITEM).first()).toBeVisible();
+    // Initial My fetch carries no public flag.
+    expect(logRequests).toHaveLength(1);
+    expect(logRequests[0]).not.toContain("public=true");
+
+    await page.locator("cts-view-tabs a[data-view='published']").click();
+    await page.waitForFunction(() => window.location.search.includes("public=true"));
+    expect(logRequests.some((u) => u.includes("public=true"))).toBe(true);
+
+    // Back → popstate re-emits cts-view-tab-change; the page refetches the My
+    // dataset (a fresh request without public=true), not just the address bar.
+    const beforeBack = logRequests.length;
+    await page.goBack();
+    await page.waitForFunction(() => !window.location.search.includes("public="));
+    const afterBack = logRequests.slice(beforeBack);
+    expect(afterBack.length).toBeGreaterThan(0);
+    expect(afterBack.some((u) => !u.includes("public=true"))).toBe(true);
+  });
+
+  test("R17: the dataset swap shows the loading state, prior rows not left visible", async ({
+    page,
+  }) => {
+    await setupFailFast(page);
+    // First fetch resolves immediately; the second (the tab switch) is held
+    // briefly so the in-place loading state is observable.
+    let callCount = 0;
+    await page.route("**/api/log?*", async (route) => {
+      callCount += 1;
+      if (callCount >= 2) {
+        await new Promise((resolve) => setTimeout(resolve, 400));
+      }
+      return route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({
+          draw: 1,
+          recordsTotal: MOCK_LOG_LIST.length,
+          recordsFiltered: MOCK_LOG_LIST.length,
+          data: MOCK_LOG_LIST,
+        }),
+      });
+    });
+    await page.route("**/api/plan/*", (route) => {
+      const planId = new URL(route.request().url()).pathname.replace("/api/plan/", "");
+      return route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({ _id: planId, planName: `mock-plan-name-${planId}` }),
+      });
+    });
+    await setupCommonRoutes(page);
+
+    await page.goto("/logs.html");
+    await expect(page.locator(ITEM).first()).toBeVisible();
+
+    await page.locator("cts-view-tabs a[data-view='published']").click();
+    // Loading state replaces the prior rows during the held fetch.
+    await expect(page.locator("#logsListing .cts-log-list-loading")).toBeVisible();
+    await expect(page.locator(ITEM)).toHaveCount(0);
+    // Resolves once the held fetch completes.
+    await expect(page.locator(ITEM).first()).toBeVisible();
+  });
+
+  test("R19: the log list host carries aria-live=polite for swap announcements", async ({
+    page,
+  }) => {
+    await setupFailFast(page);
+    await setupLogListRoute(page);
+    await setupCommonRoutes(page);
+
+    await page.goto("/logs.html");
+    await expect(page.locator(ITEM).first()).toBeVisible();
+    await expect(page.locator("#logsListing")).toHaveAttribute("aria-live", "polite");
+  });
+
+  test("R6: anonymous hides the My tab, shows Published, and fetches public=true", async ({
+    page,
+  }) => {
+    await setupFailFast(page);
+    const logRequests = await recordLogRoute(page);
+    await setupCommonRoutes(page, { user: null });
+
+    await page.goto("/logs.html");
+    await expect(page.locator(ITEM).first()).toBeVisible();
+
+    await expect(page.locator("cts-view-tabs a[data-view='my']")).toHaveCount(0);
+    await expect(
+      page.locator("cts-view-tabs a[data-view='published'][aria-current='page']"),
+    ).toBeVisible();
+
+    // The anon fetch carried public=true — the My path is not silently emptied (R23).
+    expect(logRequests.length).toBeGreaterThan(0);
+    expect(logRequests.every((u) => u.includes("public=true"))).toBe(true);
+  });
+});
