@@ -917,14 +917,14 @@ test.describe("plans.html — Schedule-test CTA + empty state (U8)", () => {
   });
 });
 
-const PUBLISHED_DESC = "#publishedDesc";
+const PUBLISHED_HELP = "#viewTabs [data-testid='published-help']";
 
-test.describe("plans.html — page heading + Published descriptor (U12)", () => {
+test.describe("plans.html — Published help tooltip + terminology (U12)", () => {
   test.afterEach(async ({ page }) => {
     expectNoUnmockedCalls(page);
   });
 
-  test("R21: one page <h1> reads 'Test Plans', matching the navbar label and the document title", async ({
+  test("R21: document title + navbar use the 'Test Plans' vocabulary; the page heading and persistent descriptor are gone", async ({
     page,
   }) => {
     await setupFailFast(page);
@@ -934,16 +934,43 @@ test.describe("plans.html — page heading + Published descriptor (U12)", () => 
 
     await page.goto("/plans.html");
 
-    const heading = page.locator("h1.listing-page-title");
-    await expect(heading).toHaveCount(1);
-    await expect(heading).toHaveText("Test Plans");
-    // One product vocabulary across surfaces (R21): navbar label and the
-    // browser tab title use the same words as the page heading.
-    await expect(page.locator("cts-navbar")).toContainText("Test Plans");
+    // One product vocabulary across surfaces (R21): the browser tab title and
+    // the navbar label match.
     await expect(page).toHaveTitle(/Test Plans/);
+    await expect(page.locator("cts-navbar")).toContainText("Test Plans");
+    // The page heading and the persistent paragraph descriptor were removed;
+    // the descriptor now lives as a tooltip on the Published tab (below).
+    await expect(page.locator(".listing-page-header")).toHaveCount(0);
+    await expect(page.locator("#publishedDesc")).toHaveCount(0);
   });
 
-  test("R22/AE3: anonymous → Published descriptor is shown at first paint", async ({ page }) => {
+  test("R22: a circled-help icon sits next to Published, carrying the descriptor as tooltip + accessible name", async ({
+    page,
+  }) => {
+    await setupFailFast(page);
+    await recordPlanRoute(page);
+    await setupTestInfoRoute(page, MOCK_PLAN_INFO);
+    await setupCommonRoutes(page);
+
+    await page.goto("/plans.html");
+
+    const help = page.locator(PUBLISHED_HELP);
+    await expect(help).toBeVisible();
+    await expect(help).toHaveAttribute("name", "circle-help");
+    // Keyboard-reachable trigger; the full descriptor is its accessible name
+    // (cts-tooltip has no aria-describedby, so aria-label is the SR channel).
+    await expect(help).toHaveAttribute("tabindex", "0");
+    await expect(help).toHaveAttribute("aria-label", /Published test plans are conformance/);
+    // It sits immediately after the Published anchor, wrapped in a cts-tooltip
+    // whose content carries the same descriptor.
+    const tooltip = page.locator("#viewTabs a[data-view='published'] + cts-tooltip");
+    await expect(tooltip).toHaveAttribute("content", /Published test plans are conformance/);
+    await expect(tooltip.locator("[data-testid='published-help']")).toHaveCount(1);
+  });
+
+  test("R22: the help affordance is present for anonymous visitors (Published is their only view)", async ({
+    page,
+  }) => {
     await setupFailFast(page);
     await recordPlanRoute(page);
     await setupTestInfoRoute(page, MOCK_PLAN_INFO);
@@ -951,27 +978,11 @@ test.describe("plans.html — page heading + Published descriptor (U12)", () => 
 
     await page.goto("/plans.html");
 
-    await expect(page.locator(PUBLISHED_DESC)).toBeVisible();
-    await expect(page.locator(PUBLISHED_DESC)).toContainText("Published test plans");
+    await expect(page.locator("#viewTabs a[data-view='my']")).toHaveCount(0);
+    await expect(page.locator(PUBLISHED_HELP)).toBeVisible();
   });
 
-  test("R22/AE4: ?public=true → Published descriptor is shown at first paint", async ({ page }) => {
-    await setupFailFast(page);
-    await recordPlanRoute(page);
-    await setupTestInfoRoute(page, MOCK_PLAN_INFO);
-    await setupCommonRoutes(page);
-
-    await page.goto("/plans.html?public=true");
-
-    // No flash: on the ?public=true path the descriptor is revealed only by the
-    // inline synchronous boot (the async /api/currentuser branch never runs here,
-    // since defer-initial-fetch is not set). A synchronous attribute read proves
-    // first-paint reveal — toBeVisible() alone would also pass on an eventual reveal.
-    expect(await page.evaluate(() => document.getElementById("publishedDesc")?.hidden)).toBe(false);
-    await expect(page.locator(PUBLISHED_DESC)).toBeVisible();
-  });
-
-  test("AE6: authed My view hides the descriptor; it toggles with the tab", async ({ page }) => {
+  test("R22: focusing the help icon reveals the descriptor tooltip", async ({ page }) => {
     await setupFailFast(page);
     await recordPlanRoute(page);
     await setupTestInfoRoute(page, MOCK_PLAN_INFO);
@@ -979,18 +990,13 @@ test.describe("plans.html — page heading + Published descriptor (U12)", () => 
 
     await page.goto("/plans.html");
 
-    // Authed default (My) → descriptor hidden once auth resolves.
-    await expect(
-      page.locator("cts-view-tabs a[data-view='my'][aria-current='page']"),
-    ).toBeVisible();
-    await expect(page.locator(PUBLISHED_DESC)).toBeHidden();
-
-    // Switch to Published → descriptor appears.
-    await page.locator("cts-view-tabs a[data-view='published']").click();
-    await expect(page.locator(PUBLISHED_DESC)).toBeVisible();
-
-    // Switch back to My → descriptor hides again.
-    await page.locator("cts-view-tabs a[data-view='my']").click();
-    await expect(page.locator(PUBLISHED_DESC)).toBeHidden();
+    const help = page.locator(PUBLISHED_HELP);
+    await expect(help).toBeVisible();
+    // Nothing shown until interaction; focus (keyboard path) reveals it.
+    await expect(page.locator("body > .oidf-tooltip[role='tooltip']")).toHaveCount(0);
+    await help.focus();
+    const tip = page.locator("body > .oidf-tooltip[role='tooltip']");
+    await expect(tip).toBeVisible();
+    await expect(tip).toContainText("Published test plans are conformance");
   });
 });

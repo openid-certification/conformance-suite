@@ -34,16 +34,10 @@
     <cts-navbar current-page="logs"></cts-navbar>
 
     <main id="main-content" class="listing-page">
-        <header class="listing-page-header">
-            <h1 class="listing-page-title">Test Logs</h1>
-            <!-- Persistent Published-view descriptor (R22). Ships `hidden`; the
-                 first-paint boot below reveals it only when the Published view is
-                 the active dataset, and the cts-view-tab-change handler toggles it
-                 thereafter. Orients first-time and anonymous visitors without
-                 intruding on the authenticated My view. -->
-            <p class="listing-page-desc" id="publishedDesc" hidden>Published test logs are conformance results that implementers have chosen to make public. Browse them to review how products performed against the OpenID specifications.</p>
-        </header>
-        <cts-view-tabs id="viewTabs"></cts-view-tabs>
+        <!-- The Published-view descriptor (R22) lives as a help tooltip on the
+             Published tab inside cts-view-tabs (published-help), not as a page
+             heading or persistent paragraph. -->
+        <cts-view-tabs id="viewTabs" published-help="Published test logs are conformance results that implementers have chosen to make public. Browse them to review how products performed against the OpenID specifications."></cts-view-tabs>
         <script>
             // Cache-first auth guess: set `authenticated` on the tabs
             // synchronously so a returning authed user does not see the My tab
@@ -51,19 +45,10 @@
             // is set by the async probe in the boot script below. Reuses
             // cts-navbar's sessionStorage cache key (shared contract).
             (function () {
-                var params = new URLSearchParams(window.location.search);
                 var tabs = document.getElementById('viewTabs');
-                var desc = document.getElementById('publishedDesc');
                 var cachedUser = null;
                 try { cachedUser = sessionStorage.getItem('cts-navbar:user'); } catch (e) {}
                 if (cachedUser) { tabs.setAttribute('authenticated', ''); }
-                // First-paint descriptor guess (descriptor ⟺ Published view).
-                // ?public=true → Published unconditionally; otherwise mirror the
-                // My-tab cache guess (authed → My/hidden, anon → Published/shown).
-                // The async probe below sets it authoritatively.
-                if (desc && (params.get('public') === 'true' || !cachedUser)) {
-                    desc.hidden = false;
-                }
             })();
         </script>
         <!-- The cts-log-list component owns its own search input, filter
@@ -98,7 +83,6 @@
             // Published).
             const explicitPublic = urlParams.get("public") === "true";
             const viewTabs = document.getElementById("viewTabs");
-            const publishedDesc = document.getElementById("publishedDesc");
 
             FAPI_UI.showBusy();
             try {
@@ -117,9 +101,6 @@
                 // (the dataset decision does not depend on auth); otherwise
                 // authed → My (is-public absent), anon → Published (R6/AE3).
                 const isPublic = explicitPublic || !authenticated;
-                // Authoritative descriptor visibility (descriptor ⟺ Published),
-                // correcting the synchronous cache-based guess.
-                if (publishedDesc) { publishedDesc.hidden = !isPublic; }
 
                 // Wait for the registration so attributes set below take
                 // effect synchronously before connectedCallback runs.
@@ -146,8 +127,6 @@
                     } else {
                         list.removeAttribute("is-public");
                     }
-                    // Descriptor follows the active view (descriptor ⟺ Published).
-                    if (publishedDesc) { publishedDesc.hidden = !isPublicView; }
                     list.reloadForViewChange();
                 });
             } finally {

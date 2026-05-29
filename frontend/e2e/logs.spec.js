@@ -714,14 +714,14 @@ test.describe("logs.html — My/Published view tabs (U6)", () => {
   });
 });
 
-const LOGS_PUBLISHED_DESC = "#publishedDesc";
+const LOGS_PUBLISHED_HELP = "#viewTabs [data-testid='published-help']";
 
-test.describe("logs.html — page heading + Published descriptor (U12)", () => {
+test.describe("logs.html — Published help tooltip + terminology (U12)", () => {
   test.afterEach(async ({ page }) => {
     expectNoUnmockedCalls(page);
   });
 
-  test("R21: one page <h1> reads 'Test Logs', matching the navbar label and the document title", async ({
+  test("R21: document title + navbar use the 'Test Logs' vocabulary; the page heading and persistent descriptor are gone", async ({
     page,
   }) => {
     await setupFailFast(page);
@@ -730,54 +730,57 @@ test.describe("logs.html — page heading + Published descriptor (U12)", () => {
 
     await page.goto("/logs.html");
 
-    const heading = page.locator("h1.listing-page-title");
-    await expect(heading).toHaveCount(1);
-    await expect(heading).toHaveText("Test Logs");
-    await expect(page.locator("cts-navbar")).toContainText("Test Logs");
     await expect(page).toHaveTitle(/Test Logs/);
+    await expect(page.locator("cts-navbar")).toContainText("Test Logs");
+    await expect(page.locator(".listing-page-header")).toHaveCount(0);
+    await expect(page.locator("#publishedDesc")).toHaveCount(0);
   });
 
-  test("R22/AE3: anonymous → Published descriptor is shown at first paint", async ({ page }) => {
+  test("R22: a circled-help icon sits next to Published, carrying the descriptor as tooltip + accessible name", async ({
+    page,
+  }) => {
+    await setupFailFast(page);
+    await recordLogRoute(page);
+    await setupCommonRoutes(page);
+
+    await page.goto("/logs.html");
+
+    const help = page.locator(LOGS_PUBLISHED_HELP);
+    await expect(help).toBeVisible();
+    await expect(help).toHaveAttribute("name", "circle-help");
+    await expect(help).toHaveAttribute("tabindex", "0");
+    await expect(help).toHaveAttribute("aria-label", /Published test logs are conformance/);
+    const tooltip = page.locator("#viewTabs a[data-view='published'] + cts-tooltip");
+    await expect(tooltip).toHaveAttribute("content", /Published test logs are conformance/);
+    await expect(tooltip.locator("[data-testid='published-help']")).toHaveCount(1);
+  });
+
+  test("R22: the help affordance is present for anonymous visitors (Published is their only view)", async ({
+    page,
+  }) => {
     await setupFailFast(page);
     await recordLogRoute(page);
     await setupCommonRoutes(page, { user: null });
 
     await page.goto("/logs.html");
 
-    await expect(page.locator(LOGS_PUBLISHED_DESC)).toBeVisible();
-    await expect(page.locator(LOGS_PUBLISHED_DESC)).toContainText("Published test logs");
+    await expect(page.locator("#viewTabs a[data-view='my']")).toHaveCount(0);
+    await expect(page.locator(LOGS_PUBLISHED_HELP)).toBeVisible();
   });
 
-  test("R22/AE4: ?public=true → Published descriptor is shown at first paint", async ({ page }) => {
-    await setupFailFast(page);
-    await recordLogRoute(page);
-    await setupCommonRoutes(page);
-
-    await page.goto("/logs.html?public=true");
-
-    // No flash: on the ?public=true path the descriptor is revealed by the inline
-    // synchronous boot. A synchronous attribute read proves first-paint reveal —
-    // toBeVisible() alone would also pass on an eventual reveal.
-    expect(await page.evaluate(() => document.getElementById("publishedDesc")?.hidden)).toBe(false);
-    await expect(page.locator(LOGS_PUBLISHED_DESC)).toBeVisible();
-  });
-
-  test("AE6: authed My view hides the descriptor; it toggles with the tab", async ({ page }) => {
+  test("R22: focusing the help icon reveals the descriptor tooltip", async ({ page }) => {
     await setupFailFast(page);
     await recordLogRoute(page);
     await setupCommonRoutes(page);
 
     await page.goto("/logs.html");
 
-    await expect(
-      page.locator("cts-view-tabs a[data-view='my'][aria-current='page']"),
-    ).toBeVisible();
-    await expect(page.locator(LOGS_PUBLISHED_DESC)).toBeHidden();
-
-    await page.locator("cts-view-tabs a[data-view='published']").click();
-    await expect(page.locator(LOGS_PUBLISHED_DESC)).toBeVisible();
-
-    await page.locator("cts-view-tabs a[data-view='my']").click();
-    await expect(page.locator(LOGS_PUBLISHED_DESC)).toBeHidden();
+    const help = page.locator(LOGS_PUBLISHED_HELP);
+    await expect(help).toBeVisible();
+    await expect(page.locator("body > .oidf-tooltip[role='tooltip']")).toHaveCount(0);
+    await help.focus();
+    const tip = page.locator("body > .oidf-tooltip[role='tooltip']");
+    await expect(tip).toBeVisible();
+    await expect(tip).toContainText("Published test logs are conformance");
   });
 });

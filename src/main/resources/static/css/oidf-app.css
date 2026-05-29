@@ -142,38 +142,6 @@ cts-link-button > a:focus,
   padding: var(--space-6) var(--space-5);
 }
 
-/* ---- listing page header (title + Published descriptor) --------
-   plans.html / logs.html page title (R21) and the persistent
-   Published-view descriptor (R22). The title is always present (one
-   <h1> per page, matching the navbar label). The descriptor paragraph
-   ships `hidden` and is revealed only when the Published view is the
-   active dataset — toggled by each page's first-paint boot and its
-   cts-view-tab-change handler — so it orients first-time and anonymous
-   visitors without intruding on the authenticated My view.
-   ---------------------------------------------------------------- */
-.listing-page-header {
-  margin-bottom: var(--space-4);
-}
-.listing-page-title {
-  margin: 0;
-  font-size: var(--fs-24);
-  font-weight: var(--fw-bold);
-  line-height: var(--lh-tight);
-  color: var(--fg);
-}
-.listing-page-desc {
-  max-width: 70ch;
-  margin: var(--space-2) 0 0;
-  font-size: var(--fs-14);
-  line-height: var(--lh-base);
-  color: var(--fg-soft);
-}
-/* Explicit so the [hidden] state wins regardless of any global <p> display
-   rule (the box collapses fully on the My view). */
-.listing-page-desc[hidden] {
-  display: none;
-}
-
 /* ---- schedule-test page wrapper -------------------------------- */
 .schedule-test-page {
   max-width: 1100px;
