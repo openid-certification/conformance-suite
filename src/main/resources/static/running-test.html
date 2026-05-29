@@ -29,6 +29,7 @@
     <script type="module" src="/components/cts-running-test-card.js"></script>
     <script type="module" src="/components/cts-empty-state.js"></script>
     <script type="module" src="/js/cts-toast-api.js"></script>
+    <script type="module" src="/components/cts-footer.js"></script>
 
     <style>
         .oidf-running-tests-page {
@@ -79,8 +80,6 @@
                 return FAPI_UI.getUserInfo();
             }).then(function() {
                 return loadRunningTest();
-            }).then(function() {
-                return FAPI_UI.loadServerInfo();
             });
         });
 
@@ -251,10 +250,7 @@
         }
     </script>
 
-    <footer class="pageFooter">
-        <span class="muted">OpenID Foundation conformance suite</span>
-        <div class="serverInfo"></div>
-    </footer>
+    <cts-footer></cts-footer>
 
     <cts-toast-host></cts-toast-host>
 </body>

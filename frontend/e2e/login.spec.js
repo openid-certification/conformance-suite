@@ -1,5 +1,6 @@
 import { test, expect } from "@playwright/test";
 import { setupFailFast, expectNoUnmockedCalls } from "./helpers/routes.js";
+import { MOCK_SERVER_INFO } from "./fixtures/mock-server.js";
 
 test.describe("login.html — Login page", () => {
   test.afterEach(async ({ page }) => {
@@ -8,9 +9,18 @@ test.describe("login.html — Login page", () => {
 
   // The login page is unauthenticated — the embedded cts-navbar still calls
   // /api/currentuser on load, so we stub it with a 401 to simulate the
-  // unauthenticated state. No other API calls are expected.
+  // unauthenticated state. The cts-footer (added suite-wide in U4) fetches
+  // /api/server for its server-info line, so we stub that too. No other API
+  // calls are expected.
   async function setupLoginRoutes(page) {
     await page.route("**/api/currentuser", (route) => route.fulfill({ status: 401, body: "" }));
+    await page.route("**/api/server", (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(MOCK_SERVER_INFO),
+      }),
+    );
   }
 
   test("renders cts-login-page with both OAuth buttons", async ({ page }) => {
