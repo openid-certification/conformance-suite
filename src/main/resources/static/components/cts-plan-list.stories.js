@@ -811,6 +811,43 @@ export const CreateTestCta = {
 };
 
 /**
+ * U8 — an authenticated viewer on the Published view must NOT see the toolbar
+ * Create-test CTA: it is gated on `authenticated && !isPublic`, so it shows
+ * only on the personal My view (consistent with the runs strip and the
+ * Published-empty state, which carries no Create action). Pins the guard
+ * against the authed-Published contradiction the multi-agent review caught.
+ */
+export const AuthedPublicView = {
+  parameters: {
+    msw: {
+      handlers: [
+        http.get("/api/plan", ({ request }) => {
+          const url = new URL(request.url);
+          const isPublic = url.searchParams.get("public") === "true";
+          const plans = isPublic ? MOCK_PLAN_LIST.filter((p) => p.publish) : MOCK_PLAN_LIST;
+          return HttpResponse.json(plans);
+        }),
+        neverResolvingInfo,
+      ],
+    },
+  },
+  render: () => html`<cts-plan-list is-public authenticated></cts-plan-list>`,
+  async play({ canvasElement }) {
+    await waitForPlansToLoad(canvasElement);
+
+    // Authenticated AND on the Published view → CTA suppressed despite
+    // `authenticated` being set.
+    expect(canvasElement.querySelector('[data-testid="plan-list-create-cta"]')).toBeNull();
+
+    // Published cards still render.
+    const publishedCount = MOCK_PLAN_LIST.filter((p) => p.publish).length;
+    expect(canvasElement.querySelectorAll('[data-testid="plan-list-item"]').length).toBe(
+      publishedCount,
+    );
+  },
+};
+
+/**
  * U8 — without the `authenticated` attribute (the anon-safe default) the
  * toolbar Create-test CTA is not rendered. PublicView already covers the
  * is-public path; this pins the bare-default path so a regression that drops

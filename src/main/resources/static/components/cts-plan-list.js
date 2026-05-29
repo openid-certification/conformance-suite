@@ -477,12 +477,15 @@ function formatVariant(variant) {
  * @property {boolean} isPublic - Fetches the published plan listing and hides
  *   admin affordances (Owner pill, Config button). Reflects the `is-public`
  *   attribute.
- * @property {boolean} authenticated - When set, reveals the in-page "Create
- *   test" toolbar CTA and the My-empty empty state's Create action (R11/R18).
- *   Reflects the `authenticated` attribute. Set by the page from the single
- *   `/api/currentuser` probe (KTD3) — the My view is only ever reached by
- *   authenticated users, so anonymous visitors (always on Published) never see
- *   the CTA. Mirrors the `authenticated` gating on `cts-view-tabs`.
+ * @property {boolean} authenticated - When set, marks the viewer as signed in.
+ *   The in-page "Create test" toolbar CTA and the My-empty empty state's Create
+ *   action are gated on `authenticated && !isPublic` (R11/R18), so they appear
+ *   only on the personal My view — consistent with the runs strip (U7), which
+ *   also hides on the Published view, and with the Published-empty state, which
+ *   carries no Create action. Anonymous visitors (always on Published) never
+ *   see the CTA. Reflects the `authenticated` attribute, set by the page from
+ *   its single `/api/currentuser` probe (KTD3). Mirrors the `authenticated`
+ *   gating on `cts-view-tabs`.
  * @property {boolean} deferInitialFetch - When set, suppresses the
  *   connect-time `/api/plan` fetch so the page can resolve the auth-dependent
  *   default (My for authed, Published for anon) before fetching, then trigger
@@ -951,10 +954,11 @@ class CtsPlanList extends LitElement {
             <option value="name-asc">Plan name (A–Z)</option>
           </select>
         </label>
-        ${this.authenticated
+        ${this.authenticated && !this.isPublic
           ? html`<cts-link-button
               class="cts-plan-list-cta"
               variant="primary"
+              size="md"
               icon="add-plus"
               href="schedule-test.html"
               label="Create test"
