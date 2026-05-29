@@ -447,7 +447,7 @@ const STYLE_TEXT = `
     font-variant-numeric: tabular-nums;
   }
   cts-log-detail-header .ctsHeroBody {
-    font-size: var(--fs-14);
+    font-size: var(--fs-13);
     line-height: 1.6;
     color: var(--fg);
   }
