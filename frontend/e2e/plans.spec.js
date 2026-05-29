@@ -772,3 +772,139 @@ test.describe("plans.html — runs strip (U7)", () => {
     await expect(page.locator(`${STRIP} .runStrip--actionable`)).toBeVisible();
   });
 });
+
+/**
+ * U8 — Create-test CTA + My-empty empty state on the plans home.
+ *
+ * An in-page "Create test" CTA renders in the plan-list toolbar for
+ * authenticated users (R11), linking to schedule-test.html (the destination
+ * the pruned nav link used). Below the 640px mobile breakpoint it stacks above
+ * the search/sort controls full-width. The CTA is gated on the `authenticated`
+ * attribute the page sets from its single /api/currentuser probe, so anonymous
+ * visitors (always on Published) never see it (R6). When the authenticated My
+ * dataset is empty, the empty state guides the user to create their first test
+ * (R18); the Published-empty state shows orienting copy with no Create action.
+ */
+const CREATE_CTA = "#plansListing [data-testid='plan-list-create-cta']";
+const PLAN_EMPTY = "#plansListing [data-testid='plan-list-empty']";
+
+/**
+ * Serve an empty /api/plan dataset (both My and Published) plus an empty run
+ * window so the strip stays silent (AE1b) and the empty-state copy is exercised.
+ * @param {import('@playwright/test').Page} page
+ */
+async function mockEmptyPlanRoute(page) {
+  await mockLogRoute(page);
+  await page.route("**/api/plan*", (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify([]),
+    }),
+  );
+}
+
+/**
+ * Resolve a locator's bounding box, throwing if it is null (detached / not
+ * visible). Lives outside the test body so the null guard does not trip
+ * playwright/no-conditional-in-test, and it narrows the box type for callers.
+ * @param {import('@playwright/test').Locator} locator
+ * @returns {Promise<{x: number, y: number, width: number, height: number}>}
+ */
+async function boundingBoxOrThrow(locator) {
+  const box = await locator.boundingBox();
+  if (!box) throw new Error("expected a bounding box but the element had none");
+  return box;
+}
+
+test.describe("plans.html — Create-test CTA + empty state (U8)", () => {
+  test.afterEach(async ({ page }) => {
+    expectNoUnmockedCalls(page);
+  });
+
+  test("R11: authed My view renders a Create-test CTA linking to schedule-test.html", async ({
+    page,
+  }) => {
+    await setupFailFast(page);
+    await mockPlanRoute(page);
+    await setupTestInfoRoute(page, MOCK_PLAN_INFO);
+    await setupCommonRoutes(page);
+
+    await page.goto("/plans.html");
+
+    const cta = page.locator(CREATE_CTA);
+    await expect(cta).toBeVisible();
+    const link = cta.locator("a");
+    await expect(link).toHaveAttribute("href", "schedule-test.html");
+    await expect(link).toContainText("Create test");
+  });
+
+  test("R11/R6: anonymous → Create-test CTA not rendered", async ({ page }) => {
+    await setupFailFast(page);
+    await mockPlanRoute(page);
+    await setupTestInfoRoute(page, MOCK_PLAN_INFO);
+    await setupCommonRoutes(page, { user: null });
+
+    await page.goto("/plans.html");
+
+    // Anon lands on Published; the authed-only CTA never renders.
+    await expect(page.locator(CARD).first()).toBeVisible();
+    await expect(page.locator(CREATE_CTA)).toHaveCount(0);
+  });
+
+  test("R11: below the 640px breakpoint the CTA stacks above the toolbar full-width", async ({
+    page,
+  }) => {
+    await setupFailFast(page);
+    await mockPlanRoute(page);
+    await setupTestInfoRoute(page, MOCK_PLAN_INFO);
+    await setupCommonRoutes(page);
+
+    await page.setViewportSize({ width: 600, height: 900 });
+    await page.goto("/plans.html");
+
+    const cta = page.locator(CREATE_CTA);
+    await expect(cta).toBeVisible();
+
+    const ctaBox = await boundingBoxOrThrow(cta);
+    const searchBox = await boundingBoxOrThrow(page.locator("#plansListing .cts-plan-list-search"));
+    const toolbarBox = await boundingBoxOrThrow(
+      page.locator("#plansListing .cts-plan-list-toolbar"),
+    );
+
+    // Stacked above: the CTA sits higher than the search field.
+    expect(ctaBox.y).toBeLessThan(searchBox.y);
+    // Full-width: the CTA spans (near) the full toolbar width.
+    expect(ctaBox.width).toBeGreaterThan(toolbarBox.width * 0.9);
+  });
+
+  test("R18: My empty → empty state offers a Create-test action", async ({ page }) => {
+    await setupFailFast(page);
+    await mockEmptyPlanRoute(page);
+    await setupTestInfoRoute(page, MOCK_PLAN_INFO);
+    await setupCommonRoutes(page);
+
+    await page.goto("/plans.html");
+
+    const empty = page.locator(PLAN_EMPTY);
+    await expect(empty).toBeVisible();
+    await expect(empty).toContainText("No test plans yet");
+    await expect(empty.locator("a[href='schedule-test.html']")).toBeVisible();
+  });
+
+  test("R18: Published empty → published-empty copy without a Create action", async ({ page }) => {
+    await setupFailFast(page);
+    await mockEmptyPlanRoute(page);
+    await setupTestInfoRoute(page, MOCK_PLAN_INFO);
+    await setupCommonRoutes(page, { user: null });
+
+    await page.goto("/plans.html");
+
+    const empty = page.locator(PLAN_EMPTY);
+    await expect(empty).toBeVisible();
+    await expect(empty).toContainText("No published plans yet");
+    // No Create action: neither inside the empty state nor as a toolbar CTA.
+    await expect(empty.locator("a[href='schedule-test.html']")).toHaveCount(0);
+    await expect(page.locator(CREATE_CTA)).toHaveCount(0);
+  });
+});

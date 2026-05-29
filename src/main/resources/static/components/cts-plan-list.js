@@ -1,6 +1,7 @@
 import { LitElement, html, nothing } from "lit";
 import { repeat } from "lit/directives/repeat.js";
 import "./cts-button.js";
+import "./cts-link-button.js";
 import "./cts-icon.js";
 import "./cts-modal.js";
 import "./cts-alert.js";
@@ -131,6 +132,29 @@ const STYLE_TEXT = `
     outline: none;
     border-color: var(--orange-400);
     box-shadow: var(--focus-ring);
+  }
+  /* In-page "Create test" CTA (R11). Authed-only; rendered as the last child
+     of the toolbar flex row. On desktop the search field's flex-grow pushes
+     it to the right edge. Below the 640px mobile breakpoint (matching
+     layout.css / oidf-app.css) it reorders above the search/sort controls and
+     spans the full row, so the primary action is the first thing a
+     small-screen user reaches and the controls wrap beneath it. */
+  .cts-plan-list-cta {
+    flex: 0 0 auto;
+    /* Reserve the button's height as a flex item so the toolbar row does not
+       jump when the inner cts-link-button upgrades (it paints
+       visibility:hidden with zero content height pre-upgrade — KTD6). */
+    min-height: 36px;
+  }
+  @media (max-width: 640px) {
+    .cts-plan-list-cta {
+      order: -1;
+      flex: 1 1 100%;
+      display: block;
+    }
+    .cts-plan-list-cta .oidf-btn {
+      width: 100%;
+    }
   }
   .cts-plan-list-items {
     display: flex;
@@ -453,6 +477,12 @@ function formatVariant(variant) {
  * @property {boolean} isPublic - Fetches the published plan listing and hides
  *   admin affordances (Owner pill, Config button). Reflects the `is-public`
  *   attribute.
+ * @property {boolean} authenticated - When set, reveals the in-page "Create
+ *   test" toolbar CTA and the My-empty empty state's Create action (R11/R18).
+ *   Reflects the `authenticated` attribute. Set by the page from the single
+ *   `/api/currentuser` probe (KTD3) — the My view is only ever reached by
+ *   authenticated users, so anonymous visitors (always on Published) never see
+ *   the CTA. Mirrors the `authenticated` gating on `cts-view-tabs`.
  * @property {boolean} deferInitialFetch - When set, suppresses the
  *   connect-time `/api/plan` fetch so the page can resolve the auth-dependent
  *   default (My for authed, Published for anon) before fetching, then trigger
@@ -464,6 +494,7 @@ class CtsPlanList extends LitElement {
   static properties = {
     isAdmin: { type: Boolean, attribute: "is-admin" },
     isPublic: { type: Boolean, attribute: "is-public" },
+    authenticated: { type: Boolean, attribute: "authenticated" },
     deferInitialFetch: { type: Boolean, attribute: "defer-initial-fetch" },
     _plans: { state: true },
     _loading: { state: true },
@@ -484,6 +515,10 @@ class CtsPlanList extends LitElement {
     super();
     this.isAdmin = false;
     this.isPublic = false;
+    // Anon-safe default: never flash the Create-test CTA to an anonymous
+    // visitor. The page sets this to true once /api/currentuser confirms a
+    // session (KTD3), mirroring cts-view-tabs.
+    this.authenticated = false;
     this.deferInitialFetch = false;
     this._plans = [];
     this._loading = true;
@@ -916,6 +951,16 @@ class CtsPlanList extends LitElement {
             <option value="name-asc">Plan name (A–Z)</option>
           </select>
         </label>
+        ${this.authenticated
+          ? html`<cts-link-button
+              class="cts-plan-list-cta"
+              variant="primary"
+              icon="add-plus"
+              href="schedule-test.html"
+              label="Create test"
+              data-testid="plan-list-create-cta"
+            ></cts-link-button>`
+          : nothing}
       </div>
     `;
   }
@@ -955,16 +1000,58 @@ class CtsPlanList extends LitElement {
     `;
   }
 
+  /**
+   * Render the empty state, branched by why the list is empty so the copy
+   * matches the user's situation (R18):
+   * - search returned nothing → "widen the search" (no Create action);
+   * - Published view is empty → an orienting placeholder (copy finalized in
+   *   U12's Published descriptor) with no Create action — published results
+   *   are not something the viewer creates here;
+   * - the authenticated My view is empty → guide the user to create their
+   *   first test, with a Create-test action;
+   * - otherwise (unknown auth / anon reaching My via an auth-probe failure) →
+   *   a neutral message with no Create action.
+   * @param {boolean} hasSearch - Whether a search query is currently active.
+   * @returns {import('lit').TemplateResult} The empty-state template.
+   */
   _renderEmpty(hasSearch) {
-    const heading = hasSearch ? "No plans match your search" : "No test plans found";
-    const body = hasSearch
-      ? "Try a different search term to widen the results."
-      : "Test plans will appear here once they are created.";
+    if (hasSearch) {
+      return html`
+        <cts-empty-state
+          icon="folder"
+          heading="No plans match your search"
+          body="Try a different search term to widen the results."
+          data-testid="plan-list-empty"
+        ></cts-empty-state>
+      `;
+    }
+    if (this.isPublic) {
+      return html`
+        <cts-empty-state
+          icon="folder"
+          heading="No published plans yet"
+          body="Published conformance results will appear here once they are shared."
+          data-testid="plan-list-empty"
+        ></cts-empty-state>
+      `;
+    }
+    if (this.authenticated) {
+      return html`
+        <cts-empty-state
+          icon="folder"
+          heading="No test plans yet"
+          body="Create your first test plan to get started."
+          cta-label="Create test"
+          cta-href="schedule-test.html"
+          data-testid="plan-list-empty"
+        ></cts-empty-state>
+      `;
+    }
     return html`
       <cts-empty-state
         icon="folder"
-        heading="${heading}"
-        body="${body}"
+        heading="No test plans found"
+        body="Test plans will appear here once they are created."
         data-testid="plan-list-empty"
       ></cts-empty-state>
     `;

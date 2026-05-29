@@ -772,4 +772,123 @@ export const ShowMorePagination = {
   },
 };
 
+/**
+ * U8 — the authenticated My view renders an in-page "Create test" CTA in the
+ * toolbar (R11). It is a primary anchor to schedule-test.html. The CTA is
+ * gated on the `authenticated` attribute the page sets from its single
+ * /api/currentuser probe, so anonymous visitors (always on Published) never
+ * see it — see CreateTestCtaHiddenForAnon (PublicView covers the is-public
+ * case, which has no `authenticated` attribute and therefore no CTA).
+ */
+export const CreateTestCta = {
+  parameters: {
+    msw: {
+      handlers: [
+        http.get("/api/plan", () => HttpResponse.json(MOCK_PLAN_LIST)),
+        neverResolvingInfo,
+      ],
+    },
+  },
+  render: () => html`<cts-plan-list authenticated></cts-plan-list>`,
+  async play({ canvasElement }) {
+    await waitForPlansToLoad(canvasElement);
+
+    const cta = canvasElement.querySelector('[data-testid="plan-list-create-cta"]');
+    expect(cta).toBeTruthy();
+
+    // The CTA is a real anchor to schedule-test.html (cts-link-button renders
+    // its <a> on its own update tick, so wait for it).
+    const link = /** @type {HTMLAnchorElement} */ (
+      await waitFor(() => {
+        const a = cta.querySelector("a");
+        expect(a).toBeTruthy();
+        return a;
+      })
+    );
+    expect(link.getAttribute("href")).toBe("schedule-test.html");
+    expect(link.textContent?.trim()).toContain("Create test");
+  },
+};
+
+/**
+ * U8 — without the `authenticated` attribute (the anon-safe default) the
+ * toolbar Create-test CTA is not rendered. PublicView already covers the
+ * is-public path; this pins the bare-default path so a regression that drops
+ * the gate is caught.
+ */
+export const CreateTestCtaHiddenForAnon = {
+  parameters: {
+    msw: {
+      handlers: [
+        http.get("/api/plan", () => HttpResponse.json(MOCK_PLAN_LIST)),
+        neverResolvingInfo,
+      ],
+    },
+  },
+  render: () => html`<cts-plan-list></cts-plan-list>`,
+  async play({ canvasElement }) {
+    await waitForPlansToLoad(canvasElement);
+    expect(canvasElement.querySelector('[data-testid="plan-list-create-cta"]')).toBeNull();
+  },
+};
+
+/**
+ * U8 — the authenticated My view, when empty, guides the user to create their
+ * first test rather than stranding them (R18): a distinct heading plus a
+ * Create-test action inside the empty state.
+ */
+export const EmptyMyView = {
+  parameters: {
+    msw: {
+      handlers: [http.get("/api/plan", () => HttpResponse.json([]))],
+    },
+  },
+  render: () => html`<cts-plan-list authenticated></cts-plan-list>`,
+  async play({ canvasElement }) {
+    const canvas = within(canvasElement);
+    await waitForPlansToLoad(canvasElement);
+
+    const empty = canvasElement.querySelector('[data-testid="plan-list-empty"]');
+    expect(empty).toBeTruthy();
+    expect(canvas.getByText("No test plans yet")).toBeInTheDocument();
+
+    // The My-empty state offers a Create-test action linking to schedule-test.
+    const createLink = /** @type {HTMLAnchorElement} */ (
+      await waitFor(() => {
+        const a = empty.querySelector('a[href="schedule-test.html"]');
+        expect(a).toBeTruthy();
+        return a;
+      })
+    );
+    expect(createLink.getAttribute("href")).toBe("schedule-test.html");
+  },
+};
+
+/**
+ * U8 — the Published view, when empty, shows orienting placeholder copy (copy
+ * finalized in U12's Published descriptor) and offers NO Create action:
+ * published results are not something the viewer creates here (R18).
+ */
+export const EmptyPublishedView = {
+  parameters: {
+    msw: {
+      handlers: [http.get("/api/plan", () => HttpResponse.json([]))],
+    },
+  },
+  render: () => html`<cts-plan-list is-public></cts-plan-list>`,
+  async play({ canvasElement }) {
+    const canvas = within(canvasElement);
+    await waitForPlansToLoad(canvasElement);
+
+    const empty = canvasElement.querySelector('[data-testid="plan-list-empty"]');
+    expect(empty).toBeTruthy();
+    expect(canvas.getByText("No published plans yet")).toBeInTheDocument();
+
+    // No Create action in the Published-empty state, and no toolbar CTA
+    // (is-public carries no `authenticated` attribute).
+    expect(empty.querySelector('a[href="schedule-test.html"]')).toBeNull();
+    expect(canvasElement.querySelector('[data-testid="plan-list-create-cta"]')).toBeNull();
+  },
+};
+
 export {};
