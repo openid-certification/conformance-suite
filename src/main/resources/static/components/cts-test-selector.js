@@ -101,7 +101,7 @@ const STYLE_TEXT = `
   font-weight: var(--fw-medium);
 }
 .oidf-test-selector__search-wrap {
-  height: 34px;
+  height: var(--control-height);
   display: flex;
   align-items: center;
   gap: var(--space-2);
