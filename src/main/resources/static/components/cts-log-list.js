@@ -174,7 +174,7 @@ const STYLE_TEXT = `
   }
   .cts-log-list-sort select {
     box-sizing: border-box;
-    height: 34px;
+    height: var(--control-height);
     padding: 0 36px 0 var(--space-3);
     background: var(--bg-elev);
     color: var(--fg);

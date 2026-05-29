@@ -119,7 +119,7 @@ cts-form-field {
 }
 .oidf-form-field .oidf-input,
 .oidf-form-field .oidf-select {
-  height: 34px;
+  height: var(--control-height);
   padding-top: 0;
   padding-bottom: 0;
 }

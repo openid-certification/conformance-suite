@@ -61,7 +61,7 @@ const STYLE_TEXT = `
 .oidf-spec-cascade__select {
   width: 100%;
   box-sizing: border-box;
-  height: 34px;
+  height: var(--control-height);
   padding: 0 36px 0 var(--space-3);
   border: 1px solid var(--ink-300);
   border-radius: var(--radius-2);

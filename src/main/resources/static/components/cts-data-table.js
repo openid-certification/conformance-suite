@@ -131,7 +131,7 @@ const STYLE_TEXT = `
     align-items: center;
     gap: var(--space-2);
     padding: 0 var(--space-2);
-    height: 34px;
+    height: var(--control-height);
     cursor: text;
     border: 1px solid var(--ink-300);
     border-radius: var(--radius-2);

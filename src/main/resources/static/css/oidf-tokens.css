@@ -237,6 +237,13 @@
   --space-16: 64px;
   --space-20: 80px;
 
+  /* ---- Control height ----
+     Canonical height for default-size interactive controls (buttons, selects,
+     text inputs) so adjacent controls align. The button md rung, the
+     design-system inputs/selects, and the cascade controls all route through
+     this. Small/large button rungs keep their own heights. */
+  --control-height: 34px;
+
   /* ---- Radii ---- */
   --radius-0: 0;
   --radius-1: 2px;     /* tight rectilinear feel — matches the technical, engineered tone */

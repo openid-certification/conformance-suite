@@ -87,7 +87,7 @@ const STYLE_TEXT = `
   align-items: center;
   justify-content: center;
   gap: var(--space-1);
-  height: 36px;
+  height: var(--control-height);
   padding: 0 var(--space-3);
   font-family: var(--font-sans);
   font-size: var(--fs-14);
