@@ -147,6 +147,12 @@ function ensureStylesInjected() {
  *   `aria-describedby`). The copy differs per page (published plans vs.
  *   published logs), so each page sets its own; pages that want no help affordance
  *   leave it unset. Reflects the `published-help` attribute.
+ * @property {string} datasetNoun - Opt-in noun appended to the tab labels so
+ *   they name the dataset the page shows: set `"Test Plans"` on plans.html and
+ *   `"Test Logs"` on logs.html, yielding "My Test Plans" / "Published Test
+ *   Plans" and "My Test Logs" / "Published Test Logs". When unset (the default),
+ *   the labels fall back to plain "My" / "Published". Reflects the
+ *   `dataset-noun` attribute.
  * @fires cts-view-tab-change - When the active view changes (click or
  *   back/forward), with `{ detail: { view, isPublic } }` where `view` is
  *   `"my"` | `"published"`; bubbles and is composed.
@@ -156,6 +162,7 @@ class CtsViewTabs extends LitElement {
     authenticated: { type: Boolean, attribute: "authenticated" },
     createTestHref: { type: String, attribute: "create-test-href" },
     publishedHelp: { type: String, attribute: "published-help" },
+    datasetNoun: { type: String, attribute: "dataset-noun" },
   };
 
   constructor() {
@@ -167,6 +174,9 @@ class CtsViewTabs extends LitElement {
     this.createTestHref = "";
     // Empty by default: the Published help affordance is opt-in per page.
     this.publishedHelp = "";
+    // Empty by default: labels fall back to plain "My" / "Published" until a
+    // page sets the noun (e.g. "Test Plans" / "Test Logs").
+    this.datasetNoun = "";
     this._handlePopState = this._handlePopState.bind(this);
   }
 
@@ -270,6 +280,8 @@ class CtsViewTabs extends LitElement {
 
   render() {
     const active = this._activeView;
+    // Append the dataset noun when set ("My Test Plans"); otherwise plain "My".
+    const suffix = this.datasetNoun ? ` ${this.datasetNoun}` : "";
     // Inactive anchors carry aria-current="false" (a valid token) rather than
     // omitting the attribute, mirroring cts-log-toc. Only the active anchor
     // matches the `[aria-current='page']` selector the URL-compat gate asserts.
@@ -281,7 +293,7 @@ class CtsViewTabs extends LitElement {
               href="${this._hrefFor("my")}"
               aria-current="${active === "my" ? "page" : "false"}"
               @click=${this._handleTabClick}
-              >My</a
+              >My${suffix}</a
             >`
           : nothing}
         <a
@@ -289,7 +301,7 @@ class CtsViewTabs extends LitElement {
           href="${this._hrefFor("published")}"
           aria-current="${active === "published" ? "page" : "false"}"
           @click=${this._handleTabClick}
-          >Published</a
+          >Published${suffix}</a
         >
         ${this.publishedHelp
           ? html`<cts-tooltip content="${this.publishedHelp}" placement="bottom"

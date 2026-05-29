@@ -28,6 +28,11 @@ export const Authenticated = {
     expect(my).toBeTruthy();
     expect(published).toBeTruthy();
 
+    // No dataset-noun set → labels fall back to the bare nouns (no trailing
+    // space). The DatasetNoun story covers the "My Test Plans" variant.
+    expect(my.textContent?.trim()).toBe("My");
+    expect(published.textContent?.trim()).toBe("Published");
+
     // My is active by default (no ?public=true in the URL). Inactive anchors
     // carry aria-current="false" (a valid token), not the active "page".
     expect(my.getAttribute("aria-current")).toBe("page");
@@ -182,6 +187,28 @@ export const PublishedHelpTooltip = {
     expect(tooltip).toBeTruthy();
     expect(published.nextElementSibling).toBe(tooltip);
     expect(tooltip.getAttribute("content")).toContain("Published test plans");
+  },
+};
+
+// Opt-in dataset noun: when dataset-noun is set, the labels name the dataset
+// the page shows ("My Test Plans" / "Published Test Plans") instead of the bare
+// "My" / "Published". The data-view hooks are unchanged, so navigation and
+// active-state wiring are unaffected.
+export const DatasetNoun = {
+  render: () => html`<cts-view-tabs authenticated dataset-noun="Test Plans"></cts-view-tabs>`,
+
+  async play({ canvasElement }) {
+    const my = canvasElement.querySelector("a[data-view='my']");
+    const published = canvasElement.querySelector("a[data-view='published']");
+
+    // The noun is appended after "My" / "Published" (single space, no trailing
+    // space when the noun is absent — see the Authenticated story).
+    expect(my.textContent?.trim()).toBe("My Test Plans");
+    expect(published.textContent?.trim()).toBe("Published Test Plans");
+
+    // The data-view hooks the URL-compat wiring depends on are unchanged.
+    expect(my.getAttribute("aria-current")).toBe("page");
+    expect(published.getAttribute("aria-current")).toBe("false");
   },
 };
 
