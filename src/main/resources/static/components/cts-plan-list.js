@@ -963,12 +963,14 @@ class CtsPlanList extends LitElement {
    * schedule page):
    * - search returned nothing → "widen the search" (no action — the list is
    *   filtered, not empty);
-   * - Published view is empty → an orienting placeholder (copy finalized in
-   *   U12's Published descriptor) plus the Schedule-test action. The body
-   *   describes how the Published list populates (results appear once shared);
-   *   the action is the universal entry point, not a fix for this specific
-   *   emptiness (scheduling a test starts a private run, not a published plan).
-   *   That copy/CTA seam is deliberate and reconciled in U12;
+   * - Published view is empty → an orienting placeholder plus the
+   *   Schedule-test action. The body ("Published test plans will appear here
+   *   once they are shared.") uses the same "Published test plans" vocabulary
+   *   as the page-level Published descriptor on plans.html (R21/R22, U12), so
+   *   the empty state and the descriptor read as one product. The action is the
+   *   universal entry point, not a fix for this specific emptiness (scheduling a
+   *   test starts a private run, not a published plan); that copy/CTA seam is
+   *   deliberate;
    * - otherwise (the My view, or an anonymous / unknown-auth visitor) → guide
    *   the user to schedule their first test, with the Schedule-test action.
    * @param {boolean} hasSearch - Whether a search query is currently active.
@@ -991,7 +993,7 @@ class CtsPlanList extends LitElement {
         icon="folder"
         heading="${isPublishedView ? "No published plans yet" : "No test plans yet"}"
         body="${isPublishedView
-          ? "Published conformance results will appear here once they are shared."
+          ? "Published test plans will appear here once they are shared."
           : "Schedule your first test to get started."}"
         cta-label="Schedule test"
         cta-href="schedule-test.html"

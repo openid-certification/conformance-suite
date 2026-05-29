@@ -786,9 +786,10 @@ export const ShowMorePagination = {
 };
 
 /**
- * U8 — the Published view, when empty, shows orienting placeholder copy (copy
- * finalized in U12's Published descriptor) AND offers a Schedule-test action,
- * so the persistent entry point to start a test is present here too (R11/R18).
+ * U8 — the Published view, when empty, shows orienting placeholder copy AND
+ * offers a Schedule-test action, so the persistent entry point to start a test
+ * is present here too (R11/R18). The body copy uses the same "Published test
+ * plans" vocabulary as the page-level Published descriptor (R21/R22, U12).
  * (The My-view empty state is covered by EmptyList, which renders the same
  * default empty.)
  */
@@ -806,6 +807,11 @@ export const EmptyPublishedView = {
     const empty = canvasElement.querySelector('[data-testid="plan-list-empty"]');
     expect(empty).toBeTruthy();
     expect(canvas.getByText("No published plans yet")).toBeInTheDocument();
+    // Finalized R18 body copy, sharing the "Published test plans" vocabulary
+    // with the page-level Published descriptor (R21/R22, U12).
+    expect(
+      canvas.getByText("Published test plans will appear here once they are shared."),
+    ).toBeInTheDocument();
 
     // The Published-empty state also offers the Schedule-test action.
     const createLink = /** @type {HTMLAnchorElement} */ (

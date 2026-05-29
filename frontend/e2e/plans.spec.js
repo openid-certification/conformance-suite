@@ -916,3 +916,76 @@ test.describe("plans.html — Schedule-test CTA + empty state (U8)", () => {
     await expect(empty.locator("a[href='schedule-test.html']")).toBeVisible();
   });
 });
+
+const PUBLISHED_DESC = "#publishedDesc";
+
+test.describe("plans.html — page heading + Published descriptor (U12)", () => {
+  test.afterEach(async ({ page }) => {
+    expectNoUnmockedCalls(page);
+  });
+
+  test("R21: one page <h1> reads 'Test Plans', matching the navbar label and the document title", async ({
+    page,
+  }) => {
+    await setupFailFast(page);
+    await recordPlanRoute(page);
+    await setupTestInfoRoute(page, MOCK_PLAN_INFO);
+    await setupCommonRoutes(page);
+
+    await page.goto("/plans.html");
+
+    const heading = page.locator("h1.listing-page-title");
+    await expect(heading).toHaveCount(1);
+    await expect(heading).toHaveText("Test Plans");
+    // One product vocabulary across surfaces (R21): navbar label and the
+    // browser tab title use the same words as the page heading.
+    await expect(page.locator("cts-navbar")).toContainText("Test Plans");
+    await expect(page).toHaveTitle(/Test Plans/);
+  });
+
+  test("R22/AE3: anonymous → Published descriptor is shown at first paint", async ({ page }) => {
+    await setupFailFast(page);
+    await recordPlanRoute(page);
+    await setupTestInfoRoute(page, MOCK_PLAN_INFO);
+    await setupCommonRoutes(page, { user: null });
+
+    await page.goto("/plans.html");
+
+    await expect(page.locator(PUBLISHED_DESC)).toBeVisible();
+    await expect(page.locator(PUBLISHED_DESC)).toContainText("Published test plans");
+  });
+
+  test("R22/AE4: ?public=true → Published descriptor is shown at first paint", async ({ page }) => {
+    await setupFailFast(page);
+    await recordPlanRoute(page);
+    await setupTestInfoRoute(page, MOCK_PLAN_INFO);
+    await setupCommonRoutes(page);
+
+    await page.goto("/plans.html?public=true");
+
+    await expect(page.locator(PUBLISHED_DESC)).toBeVisible();
+  });
+
+  test("AE6: authed My view hides the descriptor; it toggles with the tab", async ({ page }) => {
+    await setupFailFast(page);
+    await recordPlanRoute(page);
+    await setupTestInfoRoute(page, MOCK_PLAN_INFO);
+    await setupCommonRoutes(page);
+
+    await page.goto("/plans.html");
+
+    // Authed default (My) → descriptor hidden once auth resolves.
+    await expect(
+      page.locator("cts-view-tabs a[data-view='my'][aria-current='page']"),
+    ).toBeVisible();
+    await expect(page.locator(PUBLISHED_DESC)).toBeHidden();
+
+    // Switch to Published → descriptor appears.
+    await page.locator("cts-view-tabs a[data-view='published']").click();
+    await expect(page.locator(PUBLISHED_DESC)).toBeVisible();
+
+    // Switch back to My → descriptor hides again.
+    await page.locator("cts-view-tabs a[data-view='my']").click();
+    await expect(page.locator(PUBLISHED_DESC)).toBeHidden();
+  });
+});

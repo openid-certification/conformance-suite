@@ -713,3 +713,67 @@ test.describe("logs.html — My/Published view tabs (U6)", () => {
     expect(logRequests.every((u) => u.includes("public=true"))).toBe(true);
   });
 });
+
+const LOGS_PUBLISHED_DESC = "#publishedDesc";
+
+test.describe("logs.html — page heading + Published descriptor (U12)", () => {
+  test.afterEach(async ({ page }) => {
+    expectNoUnmockedCalls(page);
+  });
+
+  test("R21: one page <h1> reads 'Test Logs', matching the navbar label and the document title", async ({
+    page,
+  }) => {
+    await setupFailFast(page);
+    await recordLogRoute(page);
+    await setupCommonRoutes(page);
+
+    await page.goto("/logs.html");
+
+    const heading = page.locator("h1.listing-page-title");
+    await expect(heading).toHaveCount(1);
+    await expect(heading).toHaveText("Test Logs");
+    await expect(page.locator("cts-navbar")).toContainText("Test Logs");
+    await expect(page).toHaveTitle(/Test Logs/);
+  });
+
+  test("R22/AE3: anonymous → Published descriptor is shown at first paint", async ({ page }) => {
+    await setupFailFast(page);
+    await recordLogRoute(page);
+    await setupCommonRoutes(page, { user: null });
+
+    await page.goto("/logs.html");
+
+    await expect(page.locator(LOGS_PUBLISHED_DESC)).toBeVisible();
+    await expect(page.locator(LOGS_PUBLISHED_DESC)).toContainText("Published test logs");
+  });
+
+  test("R22/AE4: ?public=true → Published descriptor is shown at first paint", async ({ page }) => {
+    await setupFailFast(page);
+    await recordLogRoute(page);
+    await setupCommonRoutes(page);
+
+    await page.goto("/logs.html?public=true");
+
+    await expect(page.locator(LOGS_PUBLISHED_DESC)).toBeVisible();
+  });
+
+  test("AE6: authed My view hides the descriptor; it toggles with the tab", async ({ page }) => {
+    await setupFailFast(page);
+    await recordLogRoute(page);
+    await setupCommonRoutes(page);
+
+    await page.goto("/logs.html");
+
+    await expect(
+      page.locator("cts-view-tabs a[data-view='my'][aria-current='page']"),
+    ).toBeVisible();
+    await expect(page.locator(LOGS_PUBLISHED_DESC)).toBeHidden();
+
+    await page.locator("cts-view-tabs a[data-view='published']").click();
+    await expect(page.locator(LOGS_PUBLISHED_DESC)).toBeVisible();
+
+    await page.locator("cts-view-tabs a[data-view='my']").click();
+    await expect(page.locator(LOGS_PUBLISHED_DESC)).toBeHidden();
+  });
+});
