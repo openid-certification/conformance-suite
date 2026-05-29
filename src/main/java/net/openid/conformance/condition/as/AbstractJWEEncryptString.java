@@ -13,16 +13,15 @@ import com.nimbusds.jose.Payload;
 import com.nimbusds.jose.jwk.JWK;
 import com.nimbusds.jose.jwk.JWKSet;
 import com.nimbusds.jose.util.Base64URL;
-import net.openid.conformance.condition.AbstractCondition;
+import net.openid.conformance.condition.AbstractLenientJwksCondition;
 import net.openid.conformance.util.JWEUtil;
-import net.openid.conformance.util.JWKUtil;
 
 import java.text.ParseException;
 
 /**
  * Can be used to encrypt id tokens, userinfo responses, request objects
  */
-public abstract class AbstractJWEEncryptString extends AbstractCondition {
+public abstract class AbstractJWEEncryptString extends AbstractLenientJwksCondition {
 
 	public String encrypt(String destination, String stringToBeEncrypted, String clientSecret, JsonObject jwksJsonObject,
 						  String alg, String enc, String algMetadataName, String encMetadataName) {
@@ -73,7 +72,10 @@ public abstract class AbstractJWEEncryptString extends AbstractCondition {
 			}
 			JWKSet jwks = null;
 			try {
-				jwks = JWKUtil.parseJWKSet(jwksJsonObject.toString());
+				// parse leniently: ignore keys whose curve/type the JOSE library cannot handle (e.g.
+				// Brainpool, or future post-quantum keys), so a usable key elsewhere in the set can
+				// still be selected; skipped keys are logged
+				jwks = parseJwksLenientlyLoggingSkips(jwksJsonObject.toString(), destination);
 			} catch (ParseException e) {
 				throw error("Failed to parse " + destination + " jwks", e, args("jwks", jwksJsonObject));
 			}
