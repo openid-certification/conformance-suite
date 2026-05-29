@@ -17,12 +17,52 @@ import net.openid.conformance.testmodule.OIDFJSON;
 import org.openqa.selenium.InvalidArgumentException;
 
 import java.text.ParseException;
+import java.util.ArrayList;
 import java.util.List;
 
 public class JWKUtil {
+
+	/** A JWK that {@link #parseJWKSetLeniently(String, List)} skipped, with the reason the JOSE library rejected it. */
+	public record SkippedJwk(JsonElement keyJson, String reason) { }
+
 	public static JWKSet parseJWKSet(String jwksString) throws ParseException {
 		JWKSet jwkSet = JWKSet.parse(jwksString);
 		return jwkSet;
+	}
+
+	/**
+	 * Parse a JWK set, skipping any individual keys the JOSE library cannot handle (e.g. keys
+	 * using curves it does not support, such as Brainpool). This mirrors how a real recipient
+	 * would behave when offered a set of keys: ignore the ones it cannot use and keep the rest.
+	 *
+	 * Use this only when selecting a usable key from a counterparty's JWK set (e.g. picking an
+	 * encryption key), NOT when validating a JWK set where every key is expected to be valid.
+	 *
+	 * Each skipped key - together with the reason the JOSE library could not parse it - is recorded
+	 * in {@code skippedKeys}, so the calling condition can log it into the test log.
+	 *
+	 * @param jwksString the JWK set as a JSON string
+	 * @param skippedKeys populated with one entry per key that could not be parsed
+	 * @return a JWK set containing only the keys that parsed successfully (possibly empty)
+	 * @throws ParseException if the JSON is not a valid JWK set object (missing "keys" array)
+	 */
+	public static JWKSet parseJWKSetLeniently(String jwksString, List<SkippedJwk> skippedKeys) throws ParseException {
+		JsonObject jwks = JsonParser.parseString(jwksString).getAsJsonObject();
+		JsonElement keysElement = jwks.get("keys");
+		if (keysElement == null || !keysElement.isJsonArray()) {
+			throw new ParseException("JWK set does not contain a \"keys\" array", 0);
+		}
+		JsonArray keys = keysElement.getAsJsonArray();
+		List<JWK> parsed = new ArrayList<>();
+		for (JsonElement keyEl : keys) {
+			try {
+				parsed.add(JWK.parse(keyEl.toString()));
+			} catch (ParseException e) {
+				// skip keys the JOSE library cannot handle (e.g. unsupported curves or key types)
+				skippedKeys.add(new SkippedJwk(keyEl, e.getMessage()));
+			}
+		}
+		return new JWKSet(parsed);
 	}
 
 	public static JsonObject getPublicJwksAsJsonObject(JWKSet jwks) {
