@@ -162,10 +162,17 @@
                         }
                         planList.removeAttribute('defer-initial-fetch');
                         planList.fetchPlans();
-                        // Resolve the descriptor against the authoritative view:
-                        // anon → Published (show), authed → My (hide). Corrects
-                        // the cache-based guess from the synchronous boot.
-                        if (publishedDesc) { publishedDesc.hidden = authenticated; }
+                        // Resolve the descriptor against the LIVE view, not a bare
+                        // auth flag: if the user clicked Published during this probe
+                        // window the URL already carries ?public=true, so mirror the
+                        // run-strip below and read it back (descriptor ⟺ Published).
+                        // anon → Published (show); authed My → hide; authed Published
+                        // → show. Corrects the cache-based guess from the sync boot.
+                        if (publishedDesc) {
+                            var isPublicView =
+                                new URLSearchParams(window.location.search).get('public') === 'true';
+                            publishedDesc.hidden = authenticated && !isPublicView;
+                        }
                     }
                     // Drive the runs strip off the same single auth probe (no
                     // second /api/currentuser round-trip). It shows only on the
