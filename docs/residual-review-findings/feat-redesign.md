@@ -114,6 +114,24 @@ not auto-fixed:
   Owner: downstream-resolver. `requires_verification` (delayed-module +
   synthetic-popstate e2e).
 
+#### RESOLVED by the U12 tooltip revision (commit `7bd332f78`, 2026-05-29)
+
+The U12 design was revised on request: the page heading was removed and the
+Published descriptor moved into a **static tooltip** behind a circle-help icon
+on the Published tab (inside `cts-view-tabs`, opt-in `published-help` attribute).
+Because the descriptor is no longer a toggled element threaded across async
+boundaries, the following are **moot** (the code they described is deleted):
+- **JFR-1** (logs popstate-in-whenDefined-window descriptor staleness) — gone; no
+  descriptor toggle in the `cts-view-tab-change` handler anymore.
+- The prior-review **FIX-1** live-URL race — gone for the same reason.
+- The **testing gaps** above (catch-path / popstate / getUserInfo-throw descriptor
+  state) — moot; the descriptor has no state to test.
+- **M1** (invariant scattered across 7 sites) and **M2** (`.listing-page-header`
+  HTML duplicated) — gone; both the toggle sites and the header markup were deleted.
+
+The `_fetchSeq` known-pattern debt below still stands (it concerns the *list*
+fetch, independent of the descriptor).
+
 #### Advisory (kept, not changed)
 
 - **Testing gaps** (testing reviewer): plans.html `.catch()` descriptor branch
