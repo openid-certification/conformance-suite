@@ -26,11 +26,13 @@ public class ApplicationConfig implements WebMvcConfigurer {
 	public void addViewControllers(ViewControllerRegistry registry) {
 		// The plans listing is the home page. `/` and the legacy `/index.html`
 		// resolve to it via a server-side 302 (temporary) redirect, so existing
-		// bookmarks and the OIDC/OTT login flow keep working after the
-		// cts-dashboard launchpad was retired. The `/` redirect only takes effect
-		// once static/index.html is deleted, because Spring Boot's
-		// WelcomePageHandlerMapping outranks these view controllers while a
-		// welcome page exists.
+		// bookmarks and the OIDC/OTT login flow keep working after the cts-dashboard
+		// launchpad was retired. These view-controller mappings take precedence over
+		// Spring Boot's static welcome-page mapping, so they own `GET /` regardless
+		// of whether a static index.html exists (verified live: `/` 302s even with a
+		// stale index.html on the classpath). static/index.html is deleted in the
+		// same commit because it is the retired dashboard, not to un-shadow this
+		// redirect.
 		registry.addRedirectViewController("/", "/plans.html").setStatusCode(HttpStatus.FOUND);
 		registry.addRedirectViewController("/index.html", "/plans.html").setStatusCode(HttpStatus.FOUND);
 	}

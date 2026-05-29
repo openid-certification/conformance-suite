@@ -90,7 +90,7 @@ function resolveTone(tone) {
  *   (default). `pass` colours the value `--status-pass`; `fail` colours
  *   it `--rust-400`; `empty` colours it `--fg-soft` (used when a count
  *   is zero because there is no source data, not because the data is
- *   passing — see cts-dashboard.js failures tile); default uses `--fg`.
+ *   passing); default uses `--fg`.
  */
 class CtsStat extends LitElement {
   static properties = {
