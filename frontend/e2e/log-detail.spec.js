@@ -414,6 +414,98 @@ test.describe("log-detail.html — Log Detail", () => {
     await expect(page.locator("#runningTestBrowser .submitUriBtn")).toHaveCount(0);
   });
 
+  // Register the routes a verifier-test log-detail page needs, with a URI-input box present.
+  async function setupUriBoxRoutes(page) {
+    const testId = "test-inst-001";
+    const submitUrl = "https://localhost.emobix.co.uk:8443/test/a/animo-verifier-test/authorize";
+    await page.route(`**/api/info/${testId}`, (route) =>
+      route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(MOCK_TEST_STATUS) }),
+    );
+    await page.route(`**/api/log/${testId}**`, (route) =>
+      route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify([]) }),
+    );
+    await page.route(`**/api/runner/${testId}`, (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({
+          id: testId,
+          name: MOCK_TEST_STATUS.testName,
+          status: "FINISHED",
+          created: MOCK_TEST_STATUS.created,
+          updated: MOCK_TEST_STATUS.created,
+          owner: MOCK_TEST_STATUS.owner,
+          browser: {
+            show_qr_code: false,
+            urls: [],
+            urlsWithMethod: [],
+            browserApiRequests: [],
+            uriInputRequests: [{ submitUrl, description: "Paste the openid4vp:// authorization request." }],
+            visited: [],
+            visitedUrlsWithMethod: [],
+            runners: [],
+          },
+        }),
+      }),
+    );
+    await page.route(`**/api/plan/${MOCK_TEST_STATUS.planId}`, (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({ _id: MOCK_TEST_STATUS.planId, planName: "test-plan" }),
+      }),
+    );
+    await setupCommonRoutes(page);
+    return testId;
+  }
+
+  test("Scan QR button is hidden when BarcodeDetector is unsupported", async ({ page }) => {
+    await setupFailFast(page);
+    // Simulate a browser without the native QR decoder
+    await page.addInitScript(() => { delete window.BarcodeDetector; });
+    const testId = await setupUriBoxRoutes(page);
+
+    await page.goto(`/log-detail.html?log=${testId}`);
+
+    // The paste box renders, but the scan button stays hidden
+    await expect(page.locator("#runningTestBrowser .submitUriBtn")).toBeVisible();
+    await expect(page.locator("#runningTestBrowser .scanQrBtn")).toBeHidden();
+  });
+
+  test("Scan QR button reveals, opens camera modal, and populates textarea on decode", async ({ page }) => {
+    await setupFailFast(page);
+    // Stub the native QR decoder and the camera (a canvas captureStream is a real MediaStream)
+    await page.addInitScript(() => {
+      window.BarcodeDetector = class {
+        async detect() { return [{ rawValue: "openid4vp://?client_id=stub&nonce=z" }]; }
+      };
+      if (!navigator.mediaDevices) {
+        Object.defineProperty(navigator, "mediaDevices", { value: {}, configurable: true });
+      }
+      navigator.mediaDevices.getUserMedia = async () => {
+        const canvas = document.createElement("canvas");
+        canvas.width = 4;
+        canvas.height = 4;
+        canvas.getContext("2d").fillRect(0, 0, 4, 4);
+        return canvas.captureStream(5);
+      };
+    });
+    const testId = await setupUriBoxRoutes(page);
+
+    await page.goto(`/log-detail.html?log=${testId}`);
+
+    const scanBtn = page.locator("#runningTestBrowser .scanQrBtn");
+    await expect(scanBtn).toBeVisible();
+
+    await scanBtn.click();
+
+    // Decoded value lands in the textarea and the modal closes again
+    await expect(page.locator("#runningTestBrowser .uriInput")).toHaveValue(
+      "openid4vp://?client_id=stub&nonce=z",
+    );
+    await expect(page.locator("#scanQrModal")).toBeHidden();
+  });
+
   test("failure summary items are clickable", async ({ page }) => {
     await setupFailFast(page);
     await setupLogDetailRoutes(page, {
