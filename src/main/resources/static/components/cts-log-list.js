@@ -695,6 +695,12 @@ class CtsLogList extends LitElement {
 
   connectedCallback() {
     super.connectedCallback();
+    // The host is the stable wrapper that persists across loading→loaded
+    // renders, so announce dataset changes (e.g. a My⇄Published tab swap via
+    // reloadForViewChange()) here rather than on a fragment that re-creates
+    // itself each render (R17/R19). The list region is supplementary, so a
+    // polite live region is appropriate. Mirrors cts-plan-list.
+    this.setAttribute("aria-live", "polite");
     this._hydrateFromUrl();
     this._fetchLogs();
   }
@@ -711,6 +717,35 @@ class CtsLogList extends LitElement {
     const params = new URLSearchParams(window.location.search);
     this._statusFilter = parseFilterSet(params.get("status"), VALID_STATUSES);
     this._resultFilter = parseFilterSet(params.get("result"), VALID_RESULTS);
+  }
+
+  /**
+   * Public entry point the page calls on every My⇄Published view change
+   * (`cts-view-tab-change`, fired by `cts-view-tabs` on both click and
+   * back/forward). Resets the status/result chip filters and the free-text
+   * search to their defaults so a new dataset never inherits the prior view's
+   * filters (R16), drops `?status`/`?result` from the URL (via `_writeUrl`,
+   * which preserves `?public`), resets pagination, and reloads the dataset for
+   * the current `isPublic` view. The caller MUST set/remove the `is-public`
+   * attribute BEFORE invoking this — `_fetchLogs` reads `this.isPublic`, and
+   * Lit reflects the boolean attribute synchronously, so the refetch targets
+   * the correct dataset.
+   *
+   * State changes here are synchronous, so Lit batches them into a single
+   * render: the user sees the loading state directly (R17), never a flash of
+   * the prior dataset rendered unfiltered. Unlike `_handleClearAllClick`, this
+   * does NOT restore focus to the search input — the triggering tab anchor
+   * already holds focus, which is the correct landing point for a keyboard user
+   * who just switched views.
+   * @returns {void}
+   */
+  reloadForViewChange() {
+    this._statusFilter = new Set();
+    this._resultFilter = new Set();
+    this._searchText = "";
+    this._resetPagination();
+    this._writeUrl();
+    this._fetchLogs();
   }
 
   async _fetchLogs() {
