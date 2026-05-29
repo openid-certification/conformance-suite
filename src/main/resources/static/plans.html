@@ -17,6 +17,7 @@
     <script>window.litDisableBundleWarning = true;</script>
     <script type="importmap">{"imports":{"lit":"/vendor/lit/lit.js","lit/":"/vendor/lit/","lit/directives/async-append.js":"/vendor/lit/lit.js","lit/directives/async-replace.js":"/vendor/lit/lit.js","lit/directives/cache.js":"/vendor/lit/lit.js","lit/directives/choose.js":"/vendor/lit/lit.js","lit/directives/class-map.js":"/vendor/lit/lit.js","lit/directives/guard.js":"/vendor/lit/lit.js","lit/directives/if-defined.js":"/vendor/lit/lit.js","lit/directives/join.js":"/vendor/lit/lit.js","lit/directives/keyed.js":"/vendor/lit/lit.js","lit/directives/live.js":"/vendor/lit/lit.js","lit/directives/map.js":"/vendor/lit/lit.js","lit/directives/range.js":"/vendor/lit/lit.js","lit/directives/ref.js":"/vendor/lit/lit.js","lit/directives/repeat.js":"/vendor/lit/lit.js","lit/directives/style-map.js":"/vendor/lit/lit.js","lit/directives/template-content.js":"/vendor/lit/lit.js","lit/directives/unsafe-html.js":"/vendor/lit/lit.js","lit/directives/unsafe-svg.js":"/vendor/lit/lit.js","lit/directives/until.js":"/vendor/lit/lit.js","lit/directives/when.js":"/vendor/lit/lit.js","@lit/reactive-element":"/vendor/lit/lit.js","@lit/reactive-element/":"/vendor/lit/","lit-html":"/vendor/lit/lit.js","lit-html/":"/vendor/lit/","lit-element/":"/vendor/lit/","marked":"/vendor/marked/marked.esm.js","dompurify":"/vendor/dompurify/purify.es.mjs"}}</script>
     <script type="module" src="/components/cts-navbar.js"></script>
+    <script type="module" src="/components/cts-view-tabs.js"></script>
     <script type="module" src="/components/cts-plan-list.js"></script>
     <script type="module" src="/js/cts-toast-api.js"></script>
     <script type="module" src="/components/cts-footer.js"></script>
@@ -28,52 +29,105 @@
     <cts-navbar current-page="plans"></cts-navbar>
 
     <main id="main-content" class="listing-page">
+        <cts-view-tabs id="viewTabs"></cts-view-tabs>
         <cts-plan-list id="plansListing"></cts-plan-list>
         <script>
-            // Set is-public SYNCHRONOUSLY before the deferred
-            // /components/cts-plan-list.js module runs. The component
-            // fires its initial /api/plan fetch from connectedCallback,
-            // which executes the moment customElements.define is
-            // called — i.e., when the module evaluates, which happens
-            // BEFORE DOMContentLoaded. Setting is-public from a
-            // DOMContentLoaded handler would land too late: the fetch
-            // would already have hit /api/plan (no query) instead of
-            // /api/plan?public=true. is-admin only toggles column
-            // visibility (Lit re-renders on attribute change), so it
-            // is safe to set later from the async auth probe below.
+            // First-paint gating (KTD3). This runs SYNCHRONOUSLY, before the
+            // deferred component modules evaluate — i.e. before cts-plan-list's
+            // connectedCallback fires its initial /api/plan fetch.
+            //
+            // - ?public=true present → Published is anonymous-permitted and
+            //   unambiguous, so fetch it now at connect (no auth gate). This
+            //   keeps the no-flash contract: exactly one /api/plan request and
+            //   it carries public=true (AE4).
+            // - No public param → the default (My for authed, Published for
+            //   anon) depends on auth, which resolves async. Suppress the
+            //   connect-time fetch (defer-initial-fetch) and show the list
+            //   loading state; the auth probe below resolves the dataset and
+            //   triggers the fetch (AE5: no premature Published fetch; R17).
             (function () {
                 var params = new URLSearchParams(window.location.search);
+                var listing = document.getElementById('plansListing');
+                var tabs = document.getElementById('viewTabs');
+                // Cache-first auth guess avoids a My-tab flash for returning
+                // authed users; the authoritative value is set by the async
+                // /api/currentuser probe below. Reuses cts-navbar's
+                // sessionStorage cache key (shared contract).
+                var cachedUser = null;
+                try { cachedUser = sessionStorage.getItem('cts-navbar:user'); } catch (e) {}
+                if (cachedUser) { tabs.setAttribute('authenticated', ''); }
                 if (params.get('public') === 'true') {
-                    document.getElementById('plansListing').setAttribute('is-public', '');
+                    listing.setAttribute('is-public', '');
+                } else {
+                    listing.setAttribute('defer-initial-fetch', '');
                 }
             })();
         </script>
     </main>
 
     <script type="text/javascript">
-        // cts-plan-list owns fetch/render/modal/copy wiring. The page only
-        // resolves session-derived state (isAdmin via /api/currentuser) and
-        // routes the component's cts-plan-navigate event into a real page
-        // navigation. The ?public=true attribute is set synchronously above
-        // because it must land before the component's connectedCallback fires.
+        // cts-plan-list owns fetch/render/modal/copy wiring. The page resolves
+        // session-derived state (auth + isAdmin via /api/currentuser), drives
+        // the My/Published tabs, and routes the component's cts-plan-navigate
+        // event into a real page navigation. The is-public / defer-initial-fetch
+        // attributes are set synchronously in the inline block above because
+        // they must land before the component's connectedCallback fires (KTD3).
         document.addEventListener('DOMContentLoaded', () => {
             const planList = document.querySelector('cts-plan-list');
+            const viewTabs = document.getElementById('viewTabs');
             if (!planList) return;
+
+            // A single handler serves BOTH the tab click and the back/forward
+            // popstate — cts-view-tabs emits the same event for both.
+            if (viewTabs) {
+                viewTabs.addEventListener('cts-view-tab-change', (evt) => {
+                    if (evt.detail && evt.detail.isPublic) {
+                        planList.setAttribute('is-public', '');
+                    } else {
+                        planList.removeAttribute('is-public');
+                    }
+                    planList.fetchPlans();
+                });
+            }
 
             fetch('/api/currentuser')
                 .then((response) => {
+                    // A successful /api/currentuser means authenticated; a 401
+                    // means anonymous (R23). Resolve to the user object or null.
                     if (!response.ok) return null;
                     return response.json();
                 })
                 .then((user) => {
+                    const authenticated = !!user;
+                    if (viewTabs) {
+                        if (authenticated) {
+                            viewTabs.setAttribute('authenticated', '');
+                        } else {
+                            viewTabs.removeAttribute('authenticated');
+                        }
+                    }
                     if (user && user.isAdmin) {
                         planList.setAttribute('is-admin', '');
                     }
+                    // Resolve the deferred (no-public-param) first-paint fetch:
+                    // authed → My (is-public absent); anon → Published (AE3).
+                    if (planList.hasAttribute('defer-initial-fetch')) {
+                        if (!authenticated) {
+                            planList.setAttribute('is-public', '');
+                        }
+                        planList.removeAttribute('defer-initial-fetch');
+                        planList.fetchPlans();
+                    }
                 })
                 .catch(() => {
-                    // Network failure: leave the default (non-admin) view
-                    // so the user still sees the plan list. Mirrors the
-                    // tokens.html / index.html auth-probe fallback.
+                    // Network failure: fall back to a fetch so the user still
+                    // sees a plan list rather than a stuck loading state. Leave
+                    // the default (non-admin, My) view. Mirrors the
+                    // tokens.html auth-probe fallback.
+                    if (planList.hasAttribute('defer-initial-fetch')) {
+                        planList.removeAttribute('defer-initial-fetch');
+                        planList.fetchPlans();
+                    }
                 });
 
             planList.addEventListener('cts-plan-navigate', (evt) => {

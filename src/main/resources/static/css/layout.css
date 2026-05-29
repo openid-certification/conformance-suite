@@ -164,6 +164,19 @@ cts-footer:not(:defined) {
 	min-height: 56px;
 }
 
+/* cts-view-tabs is the URL-driven My/Published navigation control on the
+ * plans (and logs) listing. It is a block-level custom-element host that
+ * reserves zero height before upgrade (inline default), so the list below it
+ * would jump up when the tabs define. Reserve ~40px to match the post-upgrade
+ * footprint (the anchor row + its bottom border + the --space-4 bottom
+ * margin). `display: block` is required because the inline-default custom
+ * element would otherwise ignore `min-height`. (KTD6 of the plans-page-as-home
+ * plan.) */
+cts-view-tabs:not(:defined) {
+	display: block;
+	min-height: 40px;
+}
+
 cts-navbar:not(:defined) {
 	visibility: hidden;
 	display: block;

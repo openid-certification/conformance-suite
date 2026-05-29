@@ -126,7 +126,7 @@ test.describe("plans.html URL compat — GROUP B: target (pending)", () => {
   });
 
   // OWNER: U5 (My/Published tabs + URL sync on plans.html).
-  test.fixme("clicking My <-> Published keeps the URL in sync (?public=true added/removed) (owning unit U5)", async ({
+  test("clicking My <-> Published keeps the URL in sync (?public=true added/removed) (owning unit U5)", async ({
     page,
   }) => {
     await setupFailFast(page);
@@ -149,9 +149,7 @@ test.describe("plans.html URL compat — GROUP B: target (pending)", () => {
   });
 
   // OWNER: U5 (back/forward popstate restores tab + dataset on plans.html).
-  test.fixme("back/forward restores the prior tab and dataset (owning unit U5)", async ({
-    page,
-  }) => {
+  test("back/forward restores the prior tab and dataset (owning unit U5)", async ({ page }) => {
     await setupFailFast(page);
     await recordPlanRoute(page);
     await setupTestInfoRoute(page, MOCK_PLAN_INFO);
