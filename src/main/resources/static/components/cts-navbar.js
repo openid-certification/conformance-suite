@@ -6,8 +6,8 @@ import "./cts-icon.js";
 
 // Navigation collapsed in U9 (plans-page-as-home): Home and Create Test were
 // removed because the plans listing is now the application home (reached via
-// the brand logo) and "Create test" lives in an in-page CTA on that home
-// (U8). The duplicate Published Plans / Published Logs public links were
+// the brand logo) and the "Schedule test" CTA lives in an in-page control on
+// that home (U8). The duplicate Published Plans / Published Logs public links were
 // removed too — anonymous visitors reach the published view via the brand
 // logo → plans.html, which defaults to Published for anon (R6/R12-R14).
 const NAV_LINKS = [

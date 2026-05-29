@@ -577,6 +577,8 @@ export const OffScreenModulesNotFetched = {
   },
 };
 
+// The default empty state (My view, no search): a distinct heading plus a
+// Schedule-test action that guides the user to start their first test (R18).
 export const EmptyList = {
   parameters: {
     msw: {
@@ -588,9 +590,20 @@ export const EmptyList = {
     const canvas = within(canvasElement);
     await waitForPlansToLoad(canvasElement);
 
-    expect(canvasElement.querySelector('[data-testid="plan-list-empty"]')).toBeTruthy();
-    expect(canvas.getByText("No test plans found")).toBeInTheDocument();
+    const empty = canvasElement.querySelector('[data-testid="plan-list-empty"]');
+    expect(empty).toBeTruthy();
+    expect(canvas.getByText("No test plans yet")).toBeInTheDocument();
     expect(canvasElement.querySelector('[data-testid="plan-list-item"]')).toBeNull();
+
+    // The empty state offers a Schedule-test action.
+    const action = /** @type {HTMLAnchorElement} */ (
+      await waitFor(() => {
+        const a = empty.querySelector('a[href="schedule-test.html"]');
+        expect(a).toBeTruthy();
+        return a;
+      })
+    );
+    expect(action.textContent?.trim()).toContain("Schedule test");
   },
 };
 
@@ -773,41 +786,11 @@ export const ShowMorePagination = {
 };
 
 /**
- * U8 — the authenticated My view, when empty, guides the user to create their
- * first test rather than stranding them (R18): a distinct heading plus a
- * Create-test action inside the empty state.
- */
-export const EmptyMyView = {
-  parameters: {
-    msw: {
-      handlers: [http.get("/api/plan", () => HttpResponse.json([]))],
-    },
-  },
-  render: () => html`<cts-plan-list authenticated></cts-plan-list>`,
-  async play({ canvasElement }) {
-    const canvas = within(canvasElement);
-    await waitForPlansToLoad(canvasElement);
-
-    const empty = canvasElement.querySelector('[data-testid="plan-list-empty"]');
-    expect(empty).toBeTruthy();
-    expect(canvas.getByText("No test plans yet")).toBeInTheDocument();
-
-    // The My-empty state offers a Create-test action linking to schedule-test.
-    const createLink = /** @type {HTMLAnchorElement} */ (
-      await waitFor(() => {
-        const a = empty.querySelector('a[href="schedule-test.html"]');
-        expect(a).toBeTruthy();
-        return a;
-      })
-    );
-    expect(createLink.getAttribute("href")).toBe("schedule-test.html");
-  },
-};
-
-/**
  * U8 — the Published view, when empty, shows orienting placeholder copy (copy
- * finalized in U12's Published descriptor) and offers NO Create action:
- * published results are not something the viewer creates here (R18).
+ * finalized in U12's Published descriptor) AND offers a Schedule-test action,
+ * so the persistent entry point to start a test is present here too (R11/R18).
+ * (The My-view empty state is covered by EmptyList, which renders the same
+ * default empty.)
  */
 export const EmptyPublishedView = {
   parameters: {
@@ -824,8 +807,15 @@ export const EmptyPublishedView = {
     expect(empty).toBeTruthy();
     expect(canvas.getByText("No published plans yet")).toBeInTheDocument();
 
-    // The Published-empty state offers no Create action.
-    expect(empty.querySelector('a[href="schedule-test.html"]')).toBeNull();
+    // The Published-empty state also offers the Schedule-test action.
+    const createLink = /** @type {HTMLAnchorElement} */ (
+      await waitFor(() => {
+        const a = empty.querySelector('a[href="schedule-test.html"]');
+        expect(a).toBeTruthy();
+        return a;
+      })
+    );
+    expect(createLink.textContent?.trim()).toContain("Schedule test");
   },
 };
 

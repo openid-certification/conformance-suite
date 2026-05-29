@@ -774,17 +774,15 @@ test.describe("plans.html — runs strip (U7)", () => {
 });
 
 /**
- * U8 — Create-test CTA (in cts-view-tabs) + My-empty empty state on the plans home.
+ * U8 — Schedule-test CTA (in cts-view-tabs) + empty-state action on the plans home.
  *
- * The persistent "Create test" CTA renders at the END of the cts-view-tabs row
- * for authenticated users on the My view (R11), linking to schedule-test.html.
- * It is gated on the My view (cts-view-tabs derives `_activeView === "my"` from
- * auth + URL), so anonymous visitors and the Published view never show it (R6) —
- * consistent with the runs strip. When the authenticated My dataset is empty,
- * the empty state guides the user to create their first test (R18); the
- * Published-empty state shows orienting copy with no Create action.
+ * The persistent "Schedule test" CTA renders at the END of the cts-view-tabs
+ * row whenever plans.html opts in (R11), linking to schedule-test.html. It is a
+ * universal entry point — shown on the My and Published views and for anonymous
+ * visitors (an anonymous click lands on the server-auth-gated schedule page).
+ * Every non-search empty state likewise offers the Schedule-test action (R18).
  */
-const CREATE_CTA = "#viewTabs [data-testid='create-test-cta']";
+const SCHEDULE_CTA = "#viewTabs [data-testid='schedule-test-cta']";
 const PLAN_EMPTY = "#plansListing [data-testid='plan-list-empty']";
 
 /**
@@ -803,12 +801,12 @@ async function mockEmptyPlanRoute(page) {
   );
 }
 
-test.describe("plans.html — Create-test CTA + empty state (U8)", () => {
+test.describe("plans.html — Schedule-test CTA + empty state (U8)", () => {
   test.afterEach(async ({ page }) => {
     expectNoUnmockedCalls(page);
   });
 
-  test("R11: authed My view renders a Create-test CTA linking to schedule-test.html", async ({
+  test("R11: authed My view renders the Schedule-test CTA at the end of the tabs row", async ({
     page,
   }) => {
     await setupFailFast(page);
@@ -818,20 +816,20 @@ test.describe("plans.html — Create-test CTA + empty state (U8)", () => {
 
     await page.goto("/plans.html");
 
-    const cta = page.locator(CREATE_CTA);
+    const cta = page.locator(SCHEDULE_CTA);
     await expect(cta).toBeVisible();
     const link = cta.locator("a");
     await expect(link).toHaveAttribute("href", "schedule-test.html");
-    await expect(link).toContainText("Create test");
+    await expect(link).toContainText("Schedule test");
 
     // It sits at the END of the cts-view-tabs row (after the My/Published tabs).
     await expect(page.locator("#viewTabs nav.cts-view-tabs > :last-child")).toHaveAttribute(
       "data-testid",
-      "create-test-cta",
+      "schedule-test-cta",
     );
   });
 
-  test("R11/R6: anonymous → Create-test CTA not rendered", async ({ page }) => {
+  test("R11: anonymous visitor still sees the Schedule-test CTA", async ({ page }) => {
     await setupFailFast(page);
     await mockPlanRoute(page);
     await setupTestInfoRoute(page, MOCK_PLAN_INFO);
@@ -839,12 +837,18 @@ test.describe("plans.html — Create-test CTA + empty state (U8)", () => {
 
     await page.goto("/plans.html");
 
-    // Anon lands on Published; the authed-only CTA never renders.
+    // Anon lands on Published (no My tab), but the CTA is a universal entry
+    // point — it renders at the end of the row regardless of auth.
     await expect(page.locator(CARD).first()).toBeVisible();
-    await expect(page.locator(CREATE_CTA)).toHaveCount(0);
+    await expect(page.locator("cts-view-tabs a[data-view='my']")).toHaveCount(0);
+    await expect(page.locator(SCHEDULE_CTA)).toBeVisible();
+    await expect(page.locator(SCHEDULE_CTA).locator("a")).toHaveAttribute(
+      "href",
+      "schedule-test.html",
+    );
   });
 
-  test("R11: authed user on the Published view → CTA hidden (gated on authenticated && !isPublic)", async ({
+  test("R11: authed user on the Published view still sees the Schedule-test CTA", async ({
     page,
   }) => {
     await setupFailFast(page);
@@ -854,14 +858,11 @@ test.describe("plans.html — Create-test CTA + empty state (U8)", () => {
 
     await page.goto("/plans.html?public=true");
 
-    // Authed but on the public browser: the personal Create-test CTA stays
-    // hidden, matching the runs strip (U7) and the Published-empty state's
-    // lack of a Create action — they must not disagree on one screen.
     await expect(page.locator(CARD).first()).toBeVisible();
-    await expect(page.locator(CREATE_CTA)).toHaveCount(0);
+    await expect(page.locator(SCHEDULE_CTA)).toBeVisible();
   });
 
-  test("R11: switching My⇄Published hides and re-shows the CTA (gated on the My view)", async ({
+  test("R11: the Schedule-test CTA stays visible across a My⇄Published switch", async ({
     page,
   }) => {
     await setupFailFast(page);
@@ -870,22 +871,20 @@ test.describe("plans.html — Create-test CTA + empty state (U8)", () => {
     await setupCommonRoutes(page);
 
     await page.goto("/plans.html");
+    await expect(page.locator(SCHEDULE_CTA)).toBeVisible();
 
-    // My view: CTA shown.
-    await expect(page.locator(CREATE_CTA)).toBeVisible();
-
-    // Switch to Published: the CTA hides (consistent with the runs strip).
+    // Switch to Published: the CTA stays (universal entry point).
     await page.locator("cts-view-tabs a[data-view='published']").click();
     await page.waitForFunction(() => window.location.search.includes("public=true"));
-    await expect(page.locator(CREATE_CTA)).toHaveCount(0);
+    await expect(page.locator(SCHEDULE_CTA)).toBeVisible();
 
-    // Back to My: the CTA re-appears.
+    // Back to My: still there.
     await page.locator("cts-view-tabs a[data-view='my']").click();
     await page.waitForFunction(() => !window.location.search.includes("public="));
-    await expect(page.locator(CREATE_CTA)).toBeVisible();
+    await expect(page.locator(SCHEDULE_CTA)).toBeVisible();
   });
 
-  test("R18: My empty → empty state offers a Create-test action", async ({ page }) => {
+  test("R18: My empty → empty state offers a Schedule-test action", async ({ page }) => {
     await setupFailFast(page);
     await mockEmptyPlanRoute(page);
     await setupTestInfoRoute(page, MOCK_PLAN_INFO);
@@ -896,10 +895,14 @@ test.describe("plans.html — Create-test CTA + empty state (U8)", () => {
     const empty = page.locator(PLAN_EMPTY);
     await expect(empty).toBeVisible();
     await expect(empty).toContainText("No test plans yet");
-    await expect(empty.locator("a[href='schedule-test.html']")).toBeVisible();
+    const action = empty.locator("a[href='schedule-test.html']");
+    await expect(action).toBeVisible();
+    await expect(action).toContainText("Schedule test");
   });
 
-  test("R18: Published empty → published-empty copy without a Create action", async ({ page }) => {
+  test("R18: Published empty (anonymous) → empty state also offers a Schedule-test action", async ({
+    page,
+  }) => {
     await setupFailFast(page);
     await mockEmptyPlanRoute(page);
     await setupTestInfoRoute(page, MOCK_PLAN_INFO);
@@ -910,8 +913,6 @@ test.describe("plans.html — Create-test CTA + empty state (U8)", () => {
     const empty = page.locator(PLAN_EMPTY);
     await expect(empty).toBeVisible();
     await expect(empty).toContainText("No published plans yet");
-    // No Create action: neither inside the empty state nor as a toolbar CTA.
-    await expect(empty.locator("a[href='schedule-test.html']")).toHaveCount(0);
-    await expect(page.locator(CREATE_CTA)).toHaveCount(0);
+    await expect(empty.locator("a[href='schedule-test.html']")).toBeVisible();
   });
 });

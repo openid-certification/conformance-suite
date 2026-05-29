@@ -77,15 +77,15 @@ export const PublishedActive = {
   },
 };
 
-// Opt-in "Create test" CTA (R11): when create-test-href is set and the active
-// view is My, the CTA renders at the END of the tabs row as a real anchor to
-// the given destination.
-export const CreateTestCta = {
+// Opt-in "Schedule test" CTA (R11): when create-test-href is set, the CTA
+// renders at the END of the tabs row as a real anchor to the given destination
+// — in every state (here: authenticated, My view).
+export const ScheduleTestCta = {
   render: () =>
     html`<cts-view-tabs authenticated create-test-href="schedule-test.html"></cts-view-tabs>`,
 
   async play({ canvasElement }) {
-    const cta = canvasElement.querySelector('[data-testid="create-test-cta"]');
+    const cta = canvasElement.querySelector('[data-testid="schedule-test-cta"]');
     expect(cta).toBeTruthy();
 
     // It is the last child of the tabs nav — i.e. at the end, after Published.
@@ -102,7 +102,7 @@ export const CreateTestCta = {
       })
     );
     expect(link.getAttribute("href")).toBe("schedule-test.html");
-    expect(link.textContent?.trim()).toContain("Create test");
+    expect(link.textContent?.trim()).toContain("Schedule test");
 
     // The CTA keeps its oidf-btn styling — the tab-anchor rule must NOT leak
     // onto it. The tab rule sets a 2px bottom border; oidf-btn uses 1px. A
@@ -112,9 +112,9 @@ export const CreateTestCta = {
   },
 };
 
-// The CTA is gated on the My view: an authenticated user on the Published view
-// (?public=true) does not see it — consistent with the runs strip.
-export const CreateTestCtaHiddenOnPublished = {
+// The CTA is a persistent entry point: an authenticated user on the Published
+// view (?public=true) still sees it at the end of the row.
+export const ScheduleTestCtaOnPublished = {
   beforeEach() {
     history.replaceState(null, "", "/iframe.html?public=true");
   },
@@ -122,30 +122,35 @@ export const CreateTestCtaHiddenOnPublished = {
     html`<cts-view-tabs authenticated create-test-href="schedule-test.html"></cts-view-tabs>`,
 
   async play({ canvasElement }) {
-    expect(canvasElement.querySelector('[data-testid="create-test-cta"]')).toBeNull();
-    // The Published anchor is the last child when the CTA is suppressed.
+    const cta = canvasElement.querySelector('[data-testid="schedule-test-cta"]');
+    expect(cta).toBeTruthy();
+    // Still the last child, after the (active) Published anchor.
     const nav = canvasElement.querySelector("nav.cts-view-tabs");
-    expect(nav.lastElementChild.getAttribute("data-view")).toBe("published");
+    expect(nav.lastElementChild).toBe(cta);
   },
 };
 
-// Anonymous visitors never see the CTA (no My view to attach it to), even when
-// create-test-href is set.
-export const CreateTestCtaHiddenForAnon = {
+// Anonymous visitors also see the CTA (a click lands on the server-auth-gated
+// schedule page). The My anchor is absent, but the CTA still renders.
+export const ScheduleTestCtaForAnon = {
   render: () => html`<cts-view-tabs create-test-href="schedule-test.html"></cts-view-tabs>`,
 
   async play({ canvasElement }) {
-    expect(canvasElement.querySelector('[data-testid="create-test-cta"]')).toBeNull();
+    expect(canvasElement.querySelector("a[data-view='my']")).toBeNull();
+    const cta = canvasElement.querySelector('[data-testid="schedule-test-cta"]');
+    expect(cta).toBeTruthy();
+    const nav = canvasElement.querySelector("nav.cts-view-tabs");
+    expect(nav.lastElementChild).toBe(cta);
   },
 };
 
-// Without the opt-in (the logs.html usage), no CTA renders even for an
-// authenticated user on the My view — the shared control stays page-neutral.
-export const NoCreateTestWithoutOptIn = {
+// Without the opt-in (the logs.html usage), no CTA renders — the shared control
+// stays page-neutral.
+export const NoScheduleTestWithoutOptIn = {
   render: () => html`<cts-view-tabs authenticated></cts-view-tabs>`,
 
   async play({ canvasElement }) {
     expect(canvasElement.querySelector("a[data-view='my']")).toBeTruthy();
-    expect(canvasElement.querySelector('[data-testid="create-test-cta"]')).toBeNull();
+    expect(canvasElement.querySelector('[data-testid="schedule-test-cta"]')).toBeNull();
   },
 };

@@ -11,7 +11,7 @@ const STYLE_TEXT = `
   border-bottom: 1px solid var(--border);
 }
 /* Direct-child combinator (> a), NOT a descendant selector: the My/Published
-   tabs are the nav's own anchors, while the opt-in "Create test" CTA renders a
+   tabs are the nav's own anchors, while the opt-in "Schedule test" CTA renders a
    nested <a class="oidf-btn"> (inside cts-link-button) that is a grandchild.
    A bare ".cts-view-tabs a" would outspecify ".oidf-btn" (0,1,1 vs 0,1,0) and
    leak the tab styling (grey text, 2px bottom border, -1px margin) onto the
@@ -43,10 +43,10 @@ const STYLE_TEXT = `
   color: var(--fg);
   border-bottom-color: var(--orange-400);
 }
-/* Opt-in "Create test" CTA (R11), rendered at the end of the tabs row when a
-   page sets create-test-href and the active view is My. Pushed to the right
-   edge (margin-left:auto) and vertically centered so it sits in the tab row
-   without inheriting the anchors' bottom-border overlap. */
+/* Opt-in "Schedule test" CTA (R11), rendered at the end of the tabs row in
+   every state whenever a page sets create-test-href. Pushed to the right edge
+   (margin-left:auto) and vertically centered so it sits in the tab row without
+   inheriting the anchors' bottom-border overlap. */
 .cts-view-tabs .cts-view-tabs-cta {
   margin-left: auto;
   align-self: center;
@@ -79,9 +79,10 @@ function ensureStylesInjected() {
  * switching (KTD1). The existing `cts-tabs` is a content-switching widget with
  * no URL state and is the wrong primitive here.
  *
- * An optional "Create test" CTA (opt-in via `create-test-href`, see that
- * property) renders at the end of the row on the My view (R11). It is hosted
- * inside this `<nav>` by deliberate choice: a "Create test" link navigates to
+ * An optional "Schedule test" CTA (opt-in via `create-test-href`, see that
+ * property) renders at the end of the row in every state (My, Published, and
+ * anonymous) as a persistent entry point to start a test (R11). It is hosted
+ * inside this `<nav>` by deliberate choice: a "Schedule test" link navigates to
  * another page, so it is navigation, and the visual placement at the end of the
  * tabs row is the product intent. The accessible name stays "Dataset view".
  *
@@ -111,13 +112,13 @@ function ensureStylesInjected() {
  *   My anchor is NOT rendered — anonymous visitors only see Published. Reflects
  *   the `authenticated` attribute. Set authoritatively by the page once
  *   `/api/currentuser` resolves.
- * @property {string} createTestHref - Opt-in destination for a "Create test"
- *   CTA rendered at the end of the tabs row (R11). When set, the CTA appears
- *   only while the active view is My (`_activeView === "my"`, i.e. authenticated
- *   and not on the Published view) — consistent with the runs strip, which also
- *   hides on Published. Pages that should not offer test creation (e.g.
- *   `logs.html`) simply leave it unset, so the shared control stays page-neutral.
- *   Reflects the `create-test-href` attribute.
+ * @property {string} createTestHref - Opt-in destination for a "Schedule test"
+ *   CTA rendered at the end of the tabs row (R11). When set, the CTA appears in
+ *   every state — on the My and Published views, and for anonymous visitors —
+ *   so it is a persistent entry point to start a test (an anonymous click lands
+ *   on the server-auth-gated schedule page). Pages that should not offer test
+ *   scheduling (e.g. `logs.html`) simply leave it unset, so the shared control
+ *   stays page-neutral. Reflects the `create-test-href` attribute.
  * @fires cts-view-tab-change - When the active view changes (click or
  *   back/forward), with `{ detail: { view, isPublic } }` where `view` is
  *   `"my"` | `"published"`; bubbles and is composed.
@@ -259,15 +260,15 @@ class CtsViewTabs extends LitElement {
           @click=${this._handleTabClick}
           >Published</a
         >
-        ${this.createTestHref && active === "my"
+        ${this.createTestHref
           ? html`<cts-link-button
               class="cts-view-tabs-cta"
               variant="primary"
               size="sm"
               icon="add-plus"
               href="${this.createTestHref}"
-              label="Create test"
-              data-testid="create-test-cta"
+              label="Schedule test"
+              data-testid="schedule-test-cta"
             ></cts-link-button>`
           : nothing}
       </nav>
