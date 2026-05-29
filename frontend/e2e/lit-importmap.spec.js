@@ -27,7 +27,6 @@ import { setupCommonRoutes } from "./helpers/routes.js";
  */
 
 const PAGES = [
-  "/index.html",
   "/log-detail.html",
   "/login.html",
   "/logs.html",
@@ -147,7 +146,7 @@ test.describe("Lit importmap", () => {
     page,
   }) => {
     await setupPermissiveApiMocks(page);
-    await page.goto("/index.html");
+    await page.goto("/plans.html");
 
     const sameAsLitModule = await page.evaluate(async (probes) => {
       const litModule = await import("lit");

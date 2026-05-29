@@ -244,6 +244,11 @@ class WebSecurityOidcLoginConfig {
 				) //
 				.permitAll();
 
+			// `/plans.html` and `/logs.html` are already permitted unconditionally
+			// above, so their entries here are redundant (first match wins) and kept
+			// only to leave this pre-existing block untouched. `/log-detail.html` and
+			// `/plan-detail.html` remain load-bearing: they are public ONLY with
+			// `?public=true` (the PublicRequestMatcher gate), never unconditionally.
 			httpRequests.requestMatchers( //
 					publicRequestMatcher( //
 						"/log-detail.html", //

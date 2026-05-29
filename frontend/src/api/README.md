@@ -124,7 +124,7 @@ yet; create it on first need rather than speculatively.
 
 ## Reference consumer
 
-`src/main/resources/static/components/cts-dashboard.js` — `_fetchServerInfo()`
+`src/main/resources/static/components/cts-footer.js` — `_fetchServerInfo()`
 carries the canonical JSDoc-import pattern:
 
 ```js
@@ -144,7 +144,7 @@ into a future migration scope. Bringing that directory under `checkJs: true`
 surfaced a large pile of pre-existing strict-null and missing-global errors
 in `fapi.ui.js` (lodash `_` calls, untyped DOM lookups). Cleaning those up
 is well outside U4's "single annotation" scope. The Lit components directory
-(`components/**`) is already type-checked, so `cts-dashboard.js` proves the
+(`components/**`) is already type-checked, so `cts-footer.js` proves the
 JSDoc-import pattern with no broader cleanup. Migrating `js/**` into the
 include list is deferred — see the plan's `Open Questions`.
 
