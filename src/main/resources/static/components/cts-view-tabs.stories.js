@@ -154,3 +154,55 @@ export const NoScheduleTestWithoutOptIn = {
     expect(canvasElement.querySelector('[data-testid="schedule-test-cta"]')).toBeNull();
   },
 };
+
+// Opt-in Published help affordance (R22): when published-help is set, a
+// circled-question-mark icon renders immediately after the Published anchor,
+// wrapped in a cts-tooltip carrying the descriptor. The icon is the focusable
+// trigger (tabindex=0) and carries the full descriptor as its accessible name.
+export const PublishedHelpTooltip = {
+  render: () =>
+    html`<cts-view-tabs
+      authenticated
+      published-help="Published test plans are conformance test configurations that implementers have chosen to make public."
+    ></cts-view-tabs>`,
+
+  async play({ canvasElement }) {
+    const help = canvasElement.querySelector('[data-testid="published-help"]');
+    expect(help).toBeTruthy();
+
+    // The cts-icon itself is the focusable, screen-reader-labelled trigger.
+    expect(help.getAttribute("name")).toBe("circle-help");
+    expect(help.getAttribute("tabindex")).toBe("0");
+    expect(help.getAttribute("aria-label")).toContain("Published test plans");
+
+    // It sits immediately after the Published anchor, inside a cts-tooltip whose
+    // content carries the same descriptor.
+    const published = canvasElement.querySelector("a[data-view='published']");
+    const tooltip = help.closest("cts-tooltip");
+    expect(tooltip).toBeTruthy();
+    expect(published.nextElementSibling).toBe(tooltip);
+    expect(tooltip.getAttribute("content")).toContain("Published test plans");
+  },
+};
+
+// The help affordance coexists with the Schedule-test CTA: help sits after
+// Published, the CTA stays last in the row.
+export const PublishedHelpWithCta = {
+  render: () =>
+    html`<cts-view-tabs
+      authenticated
+      create-test-href="schedule-test.html"
+      published-help="Published test plans are conformance test configurations that implementers have chosen to make public."
+    ></cts-view-tabs>`,
+
+  async play({ canvasElement }) {
+    const help = canvasElement.querySelector('[data-testid="published-help"]');
+    const cta = canvasElement.querySelector('[data-testid="schedule-test-cta"]');
+    expect(help).toBeTruthy();
+    expect(cta).toBeTruthy();
+
+    // Help comes before the CTA; the CTA remains the last element in the row.
+    const nav = canvasElement.querySelector("nav.cts-view-tabs");
+    expect(nav.lastElementChild).toBe(cta);
+  },
+};

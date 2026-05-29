@@ -30,16 +30,10 @@
     <cts-navbar current-page="plans"></cts-navbar>
 
     <main id="main-content" class="listing-page">
-        <header class="listing-page-header">
-            <h1 class="listing-page-title">Test Plans</h1>
-            <!-- Persistent Published-view descriptor (R22). Ships `hidden`; the
-                 first-paint boot below reveals it only when the Published view is
-                 the active dataset, and the cts-view-tab-change handler toggles it
-                 thereafter. Orients first-time and anonymous visitors without
-                 intruding on the authenticated My view. -->
-            <p class="listing-page-desc" id="publishedDesc" hidden>Published test plans are conformance test configurations that implementers have chosen to make public. Browse them to see how others set up certification tests, or schedule your own.</p>
-        </header>
-        <cts-view-tabs id="viewTabs" create-test-href="schedule-test.html"></cts-view-tabs>
+        <!-- The Published-view descriptor (R22) lives as a help tooltip on the
+             Published tab inside cts-view-tabs (published-help), not as a page
+             heading or persistent paragraph. -->
+        <cts-view-tabs id="viewTabs" create-test-href="schedule-test.html" published-help="Published test plans are conformance test configurations that implementers have chosen to make public. Browse them to see how others set up certification tests, or schedule your own."></cts-view-tabs>
         <cts-run-status-strip id="runStatusStrip"></cts-run-status-strip>
         <cts-plan-list id="plansListing"></cts-plan-list>
         <script>
@@ -63,7 +57,6 @@
                 var listing = document.getElementById('plansListing');
                 var tabs = document.getElementById('viewTabs');
                 var strip = document.getElementById('runStatusStrip');
-                var desc = document.getElementById('publishedDesc');
                 // Cache-first auth guess avoids a My-tab flash for returning
                 // authed users; the authoritative value is set by the async
                 // /api/currentuser probe below. Reuses cts-navbar's
@@ -80,15 +73,8 @@
                 if (params.get('public') === 'true') {
                     listing.setAttribute('is-public', '');
                     if (strip) { strip.setAttribute('start-hidden', ''); }
-                    // Published is unambiguous on this path → show the descriptor now.
-                    if (desc) { desc.hidden = false; }
                 } else {
                     listing.setAttribute('defer-initial-fetch', '');
-                    // Mirror the My-tab cache guess for the descriptor: a returning
-                    // authed user defaults to My (descriptor stays hidden); an
-                    // anon/unknown visitor defaults to Published (descriptor shown).
-                    // The async probe below corrects this authoritatively.
-                    if (desc && !cachedUser) { desc.hidden = false; }
                 }
             })();
         </script>
@@ -105,7 +91,6 @@
             const planList = document.querySelector('cts-plan-list');
             const viewTabs = document.getElementById('viewTabs');
             const runStatusStrip = document.getElementById('runStatusStrip');
-            const publishedDesc = document.getElementById('publishedDesc');
             if (!planList) return;
 
             // A single handler serves BOTH the tab click and the back/forward
@@ -119,8 +104,6 @@
                         planList.removeAttribute('is-public');
                     }
                     planList.fetchPlans();
-                    // Descriptor follows the active view (descriptor ⟺ Published).
-                    if (publishedDesc) { publishedDesc.hidden = !isPublic; }
                     // The runs strip is a personal-home signal: refresh it on a
                     // return to My, hide it on Published (the public browser).
                     // Only authed users have a My tab to switch to, so a
@@ -162,17 +145,6 @@
                         }
                         planList.removeAttribute('defer-initial-fetch');
                         planList.fetchPlans();
-                        // Resolve the descriptor against the LIVE view, not a bare
-                        // auth flag: if the user clicked Published during this probe
-                        // window the URL already carries ?public=true, so mirror the
-                        // run-strip below and read it back (descriptor ⟺ Published).
-                        // anon → Published (show); authed My → hide; authed Published
-                        // → show. Corrects the cache-based guess from the sync boot.
-                        if (publishedDesc) {
-                            var isPublicView =
-                                new URLSearchParams(window.location.search).get('public') === 'true';
-                            publishedDesc.hidden = authenticated && !isPublicView;
-                        }
                     }
                     // Drive the runs strip off the same single auth probe (no
                     // second /api/currentuser round-trip). It shows only on the
@@ -197,9 +169,6 @@
                     if (planList.hasAttribute('defer-initial-fetch')) {
                         planList.removeAttribute('defer-initial-fetch');
                         planList.fetchPlans();
-                        // Fallback renders the default My view → keep the
-                        // descriptor⟺Published invariant by hiding it.
-                        if (publishedDesc) { publishedDesc.hidden = true; }
                     }
                     // Auth is unknown on a probe failure — hide the strip rather
                     // than fetch /api/log for a possibly-anonymous visitor (R9).

@@ -1,5 +1,7 @@
 import { LitElement, html, nothing } from "lit";
 import "./cts-link-button.js";
+import "./cts-tooltip.js";
+import "./cts-icon.js";
 
 const STYLE_ID = "cts-view-tabs-styles";
 
@@ -50,6 +52,24 @@ const STYLE_TEXT = `
 .cts-view-tabs .cts-view-tabs-cta {
   margin-left: auto;
   align-self: center;
+}
+/* Opt-in Published help affordance (R22): a circled-question-mark icon sitting
+   immediately after the Published anchor, revealing a descriptor tooltip on
+   hover/focus. The cts-icon itself is the focusable trigger (tabindex=0) so the
+   tooltip is keyboard-reachable; align-self centers it in the tab row. Mirrors
+   the established cts-plan-modules help-icon colour + focus-ring treatment. */
+.cts-view-tabs .cts-view-tabs-help-icon {
+  align-self: center;
+  color: var(--fg-faint);
+  cursor: help;
+}
+.cts-view-tabs .cts-view-tabs-help-icon:hover {
+  color: var(--fg);
+}
+.cts-view-tabs .cts-view-tabs-help-icon:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+  border-radius: var(--radius-1);
 }
 `;
 
@@ -119,6 +139,14 @@ function ensureStylesInjected() {
  *   on the server-auth-gated schedule page). Pages that should not offer test
  *   scheduling (e.g. `logs.html`) simply leave it unset, so the shared control
  *   stays page-neutral. Reflects the `create-test-href` attribute.
+ * @property {string} publishedHelp - Opt-in descriptor text for the Published
+ *   view (R22). When set, a circled-question-mark help icon renders immediately
+ *   after the Published anchor; hovering or keyboard-focusing it reveals a
+ *   tooltip carrying this text, and the same text is the icon's `aria-label`
+ *   (the only screen-reader channel, since `cts-tooltip` has no
+ *   `aria-describedby`). The copy differs per page (published plans vs.
+ *   published logs), so each page sets its own; pages that want no help affordance
+ *   leave it unset. Reflects the `published-help` attribute.
  * @fires cts-view-tab-change - When the active view changes (click or
  *   back/forward), with `{ detail: { view, isPublic } }` where `view` is
  *   `"my"` | `"published"`; bubbles and is composed.
@@ -127,6 +155,7 @@ class CtsViewTabs extends LitElement {
   static properties = {
     authenticated: { type: Boolean, attribute: "authenticated" },
     createTestHref: { type: String, attribute: "create-test-href" },
+    publishedHelp: { type: String, attribute: "published-help" },
   };
 
   constructor() {
@@ -136,6 +165,8 @@ class CtsViewTabs extends LitElement {
     this.authenticated = false;
     // Empty by default: the CTA is opt-in per page (only plans.html sets it).
     this.createTestHref = "";
+    // Empty by default: the Published help affordance is opt-in per page.
+    this.publishedHelp = "";
     this._handlePopState = this._handlePopState.bind(this);
   }
 
@@ -260,6 +291,18 @@ class CtsViewTabs extends LitElement {
           @click=${this._handleTabClick}
           >Published</a
         >
+        ${this.publishedHelp
+          ? html`<cts-tooltip content="${this.publishedHelp}" placement="bottom"
+              ><cts-icon
+                name="circle-help"
+                size="16"
+                class="cts-view-tabs-help-icon"
+                tabindex="0"
+                aria-label="${this.publishedHelp}"
+                data-testid="published-help"
+              ></cts-icon
+            ></cts-tooltip>`
+          : nothing}
         ${this.createTestHref
           ? html`<cts-link-button
               class="cts-view-tabs-cta"
