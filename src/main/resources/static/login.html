@@ -16,6 +16,7 @@
     <script type="module" src="/components/cts-navbar.js"></script>
     <script type="module" src="/components/cts-login-page.js"></script>
     <script type="module" src="/js/cts-toast-api.js"></script>
+    <script type="module" src="/components/cts-footer.js"></script>
 </head>
 <body>
     <a class="oidf-skip-link" href="#loginContent">Skip to main content</a>
@@ -24,9 +25,7 @@
 
     <cts-login-page id="loginPage"></cts-login-page>
 
-    <footer class="pageFooter">
-        <span class="muted">OpenID Foundation conformance suite</span>
-    </footer>
+    <cts-footer></cts-footer>
 
     <script type="text/javascript">
         document.addEventListener("DOMContentLoaded", () => {

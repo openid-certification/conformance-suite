@@ -63,6 +63,7 @@
 <script type="module" src="/components/cts-log-viewer.js"></script>
 <script type="module" src="/components/cts-log-toc.js"></script>
 <script type="module" src="/js/cts-toast-api.js"></script>
+<script type="module" src="/components/cts-footer.js"></script>
 
 <!-- New-page bootstrap. Loads after components — module ordering is
      stable because each script type="module" defers until the document
@@ -286,9 +287,7 @@
     <cts-log-toc id="ctsLogToc"></cts-log-toc>
   </main>
 
-  <footer class="pageFooter">
-    <span class="muted">OpenID Foundation conformance suite</span>
-  </footer>
+  <cts-footer></cts-footer>
 
   <cts-toast-host></cts-toast-host>
 </body>
