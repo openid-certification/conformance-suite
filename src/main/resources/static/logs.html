@@ -23,6 +23,7 @@
     <script type="module" src="/components/cts-modal.js"></script>
     <script type="module" src="/components/cts-spinner.js"></script>
     <script type="module" src="/components/cts-view-tabs.js"></script>
+    <script type="module" src="/components/cts-run-status-strip.js"></script>
     <script type="module" src="/components/cts-log-list.js"></script>
     <script type="module" src="/js/cts-toast-api.js"></script>
     <script type="module" src="/components/cts-footer.js"></script>
@@ -38,6 +39,13 @@
              Published tab inside cts-view-tabs (published-help), not as a page
              heading or persistent paragraph. -->
         <cts-view-tabs id="viewTabs" published-help="Published test logs are conformance results that implementers have chosen to make public. Browse them to review how products performed against the OpenID specifications."></cts-view-tabs>
+        <!-- The in-progress / failing runs strip is user-scoped run telemetry,
+             shown on the authenticated My tab only. It is page-driven (KTD5):
+             the boot script below calls fetchRuns() on the authed My view and
+             hide() for anon / Published; the component never self-fetches. The
+             host is resident so css/layout.css can reserve its height before the
+             module upgrades (no first-paint shift). -->
+        <cts-run-status-strip id="runStatusStrip"></cts-run-status-strip>
         <script>
             // Cache-first auth guess: set `authenticated` on the tabs
             // synchronously so a returning authed user does not see the My tab
@@ -46,9 +54,17 @@
             // cts-navbar's sessionStorage cache key (shared contract).
             (function () {
                 var tabs = document.getElementById('viewTabs');
+                var strip = document.getElementById('runStatusStrip');
                 var cachedUser = null;
                 try { cachedUser = sessionStorage.getItem('cts-navbar:user'); } catch (e) {}
                 if (cachedUser) { tabs.setAttribute('authenticated', ''); }
+                // ?public=true is the public results browser; the personal-home
+                // strip is out of place there, so start it hidden to skip the
+                // first-paint skeleton before auth resolves (mirrors plans.html).
+                var params = new URLSearchParams(window.location.search);
+                if (strip && params.get('public') === 'true') {
+                    strip.setAttribute('start-hidden', '');
+                }
             })();
         </script>
         <!-- The cts-log-list component owns its own search input, filter
@@ -83,6 +99,7 @@
             // Published).
             const explicitPublic = urlParams.get("public") === "true";
             const viewTabs = document.getElementById("viewTabs");
+            const runStatusStrip = document.getElementById("runStatusStrip");
 
             FAPI_UI.showBusy();
             try {
@@ -116,6 +133,19 @@
                 }
                 document.getElementById("logsListingMount").replaceChildren(list);
 
+                // Drive the runs strip off the same single auth probe (no second
+                // /api/currentuser round-trip). It shows only on the authenticated
+                // My view and fetches its OWN unfiltered /api/log window; anon and
+                // the Published view hide it. On the ?public=true path it was
+                // already started hidden synchronously, so this hide() is a no-op.
+                if (runStatusStrip) {
+                    if (authenticated && !isPublic) {
+                        runStatusStrip.fetchRuns();
+                    } else {
+                        runStatusStrip.hide();
+                    }
+                }
+
                 // A single handler serves BOTH the tab click and the
                 // back/forward popstate — cts-view-tabs emits cts-view-tab-change
                 // for both. On a view change, switch the dataset and reset the
@@ -128,6 +158,16 @@
                         list.removeAttribute("is-public");
                     }
                     list.reloadForViewChange();
+                    // The strip is a personal-home signal: refresh it on a return
+                    // to My, hide it on Published. Only authed users have a My tab
+                    // to switch to, so fetchRuns() here is always on an authed view.
+                    if (runStatusStrip) {
+                        if (isPublicView) {
+                            runStatusStrip.hide();
+                        } else {
+                            runStatusStrip.fetchRuns();
+                        }
+                    }
                 });
             } finally {
                 FAPI_UI.hideBusy();

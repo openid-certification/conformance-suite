@@ -26,35 +26,9 @@ import { MOCK_ADMIN_USER } from "./fixtures/mock-users.js";
  */
 
 /**
- * Register an /api/log route serving the given run rows in the DataTables
- * envelope. The plans home now mounts cts-run-status-strip (U7), which fetches
- * /api/log on the authenticated My view. Tests that don't care about the strip
- * register an EMPTY window (the default) so the strip renders nothing and the
- * fail-fast catch-all is not tripped; strip-focused tests pass explicit rows.
- *
- * @param {import('@playwright/test').Page} page
- * @param {ReadonlyArray<{status?: string, result?: string}>} [rows]
- */
-function mockLogRoute(page, rows = []) {
-  return page.route("**/api/log*", (route) =>
-    route.fulfill({
-      status: 200,
-      contentType: "application/json",
-      body: JSON.stringify({
-        draw: 1,
-        recordsTotal: rows.length,
-        recordsFiltered: rows.length,
-        data: rows,
-      }),
-    }),
-  );
-}
-
-/**
  * @param {import('@playwright/test').Page} page
  */
 async function mockPlanRoute(page) {
-  await mockLogRoute(page);
   await page.route("**/api/plan*", (route) => {
     const url = new URL(route.request().url());
     const isPublic = url.searchParams.get("public") === "true";
@@ -280,9 +254,6 @@ test.describe("plans.html — Plans List", () => {
 
   test("search input filters plans client-side without re-fetching", async ({ page }) => {
     await setupFailFast(page);
-    // My view → cts-run-status-strip (U7) fetches /api/log; serve an empty
-    // window so the strip stays silent and fail-fast is not tripped.
-    await mockLogRoute(page);
 
     /** @type {string[]} */
     const planRequests = [];
@@ -341,10 +312,6 @@ const PUBLISHED_COUNT = MOCK_PLAN_LIST.filter((p) => p.publish).length;
  * @returns {Promise<string[]>} requested /api/plan URLs, in order
  */
 async function recordPlanRoute(page) {
-  // The plans home mounts cts-run-status-strip (U7) → /api/log on the authed My
-  // view. Co-register an empty run window so the strip renders nothing and the
-  // fail-fast catch-all stays green for tab/auth tests that don't assert it.
-  await mockLogRoute(page);
   /** @type {string[]} */
   const planRequests = [];
   await page.route("**/api/plan*", (route) => {
@@ -523,148 +490,21 @@ test.describe("plans.html — My/Published view tabs (U5)", () => {
 });
 
 /**
- * U7 — In-progress / failing runs strip on the plans home.
- *
- * cts-run-status-strip is the one dashboard signal kept after the launchpad is
- * retired: an always-on (authed) strip naming in-progress and failing run
- * counts, each linking into the matching filtered logs. It is page-driven
- * (KTD3): the page resolves auth once and calls fetchRuns() on the authed My
- * view, hide() for anon / Published. It classifies the most-recent /api/log
- * window via js/run-classification.js.
+ * The in-progress / failing runs strip (formerly U7) was relocated to the
+ * logs.html "My" tab in the Fit & Finish batch — it is user-scoped run
+ * telemetry and belongs where runs are the subject. plans.html must no longer
+ * mount it, nor fetch /api/log (the strip was the page's only /api/log caller).
+ * The strip's behavioural coverage now lives in logs.spec.js.
  */
-const STRIP = "#runStatusStrip";
-
-// Minimal run rows — classifyRuns reads only status / result.
-const RUNS_2_RUNNING_3_FAILING = [
-  { status: "RUNNING" },
-  { status: "WAITING" },
-  { result: "FAILED" },
-  { result: "UNKNOWN" },
-  { result: "FAILED" },
-  { status: "FINISHED", result: "PASSED" },
-];
-const RUNS_2_RUNNING_0_FAILING = [
-  { status: "RUNNING" },
-  { status: "WAITING" },
-  { status: "FINISHED", result: "PASSED" },
-];
-const RUNS_ALL_CLEAR = [
-  { status: "FINISHED", result: "PASSED" },
-  { status: "FINISHED", result: "WARNING" },
-];
-
-test.describe("plans.html — runs strip (U7)", () => {
+test.describe("plans.html — runs strip relocated to logs.html", () => {
   test.afterEach(async ({ page }) => {
     expectNoUnmockedCalls(page);
   });
 
-  test("F1/R19: authed My with in-progress + failing → both counts link to the filtered logs", async ({
-    page,
-  }) => {
-    await setupFailFast(page);
-    await mockPlanRoute(page);
-    // Override the empty default with a window that has both kinds of runs.
-    await mockLogRoute(page, RUNS_2_RUNNING_3_FAILING);
-    await setupTestInfoRoute(page, MOCK_PLAN_INFO);
-    await setupCommonRoutes(page);
-
-    await page.goto("/plans.html");
-
-    // The strip resolves to its actionable state, alongside the plan cards
-    // (F1: counts and the plan list in one view).
-    await expect(page.locator(`${STRIP} .runStrip--actionable`)).toBeVisible();
-    await expect(page.locator(CARD).first()).toBeVisible();
-
-    // In-progress (RUNNING + WAITING = 2) → ?status=running,waiting.
-    const inProgress = page.locator(`${STRIP} a[href="logs.html?status=running,waiting"]`);
-    await expect(inProgress).toBeVisible();
-    await expect(inProgress).toContainText("in progress");
-    await expect(inProgress.locator("cts-badge")).toHaveAttribute("count", "2");
-
-    // Failing (FAILED + UNKNOWN + FAILED = 3) → ?result=failed,unknown.
-    const failing = page.locator(`${STRIP} a[href="logs.html?result=failed,unknown"]`);
-    await expect(failing).toBeVisible();
-    await expect(failing).toContainText("failing");
-    await expect(failing.locator("cts-badge")).toHaveAttribute("count", "3");
-
-    // R19: the strip host is a polite live region.
-    await expect(page.locator(STRIP)).toHaveAttribute("aria-live", "polite");
-  });
-
-  test("F1: clicking a count navigates to the matching filtered logs", async ({ page }) => {
-    await setupFailFast(page);
-    await mockPlanRoute(page);
-    await mockLogRoute(page, RUNS_2_RUNNING_3_FAILING);
-    await setupTestInfoRoute(page, MOCK_PLAN_INFO);
-    // Stub the navigation target so the click can be verified standalone.
-    await page.route("**/logs.html*", (route) =>
-      route.fulfill({
-        status: 200,
-        contentType: "text/html",
-        body: "<!DOCTYPE html><html><body>logs stub</body></html>",
-      }),
-    );
-    await setupCommonRoutes(page);
-
-    await page.goto("/plans.html");
-
-    const failing = page.locator(`${STRIP} a[href="logs.html?result=failed,unknown"]`);
-    await expect(failing).toBeVisible();
-
-    await Promise.all([page.waitForURL(/logs\.html\?result=failed,unknown/), failing.click()]);
-    expect(page.url()).toContain("logs.html?result=failed,unknown");
-  });
-
-  test("AE2: in-progress only → one count link, no fabricated '0 failing' element", async ({
-    page,
-  }) => {
-    await setupFailFast(page);
-    await mockPlanRoute(page);
-    await mockLogRoute(page, RUNS_2_RUNNING_0_FAILING);
-    await setupTestInfoRoute(page, MOCK_PLAN_INFO);
-    await setupCommonRoutes(page);
-
-    await page.goto("/plans.html");
-
-    await expect(page.locator(`${STRIP} a[href="logs.html?status=running,waiting"]`)).toBeVisible();
-    // AE2: the failing link is absent entirely (no "0 failing").
-    await expect(page.locator(`${STRIP} a[href="logs.html?result=failed,unknown"]`)).toHaveCount(0);
-  });
-
-  test("AE1/R8: has runs but none actionable → 'all caught up', not hidden", async ({ page }) => {
-    await setupFailFast(page);
-    await mockPlanRoute(page);
-    await mockLogRoute(page, RUNS_ALL_CLEAR);
-    await setupTestInfoRoute(page, MOCK_PLAN_INFO);
-    await setupCommonRoutes(page);
-
-    await page.goto("/plans.html");
-
-    const clear = page.locator(`${STRIP} .runStrip--clear`);
-    await expect(clear).toBeVisible();
-    await expect(clear).toContainText(/all caught up/i);
-    // No count links and no fabricated counts in the all-clear state.
-    await expect(page.locator(`${STRIP} a[href^="logs.html?"]`)).toHaveCount(0);
-    await expect(page.locator(`${STRIP} cts-badge`)).toHaveCount(0);
-  });
-
-  test("AE1b: a zero-runs account renders no strip (plan cards still render)", async ({ page }) => {
-    await setupFailFast(page);
-    await mockPlanRoute(page); // empty /api/log window by default
-    await setupTestInfoRoute(page, MOCK_PLAN_INFO);
-    await setupCommonRoutes(page);
-
-    await page.goto("/plans.html");
-
-    // Plan cards render, but the strip collapses to nothing.
-    await expect(page.locator(CARD).first()).toBeVisible();
-    await expect(page.locator(`${STRIP} .runStrip`)).toHaveCount(0);
-  });
-
-  test("R9: anonymous → strip never rendered and /api/log is never requested", async ({ page }) => {
+  test("the runs strip is gone and /api/log is never requested", async ({ page }) => {
     await setupFailFast(page);
 
-    // Record any /api/log request so a wrongful anon fetch is detectable.
+    // Record any /api/log request so a leftover strip fetch is detectable.
     /** @type {string[]} */
     const logRequests = [];
     await page.route("**/api/log*", (route) => {
@@ -675,101 +515,17 @@ test.describe("plans.html — runs strip (U7)", () => {
         body: JSON.stringify({ draw: 1, recordsTotal: 0, recordsFiltered: 0, data: [] }),
       });
     });
-    // Anonymous lands on Published, so serve the published plan list.
-    await page.route("**/api/plan*", (route) =>
-      route.fulfill({
-        status: 200,
-        contentType: "application/json",
-        body: JSON.stringify(MOCK_PLAN_LIST.filter((p) => p.publish)),
-      }),
-    );
-    await setupTestInfoRoute(page, MOCK_PLAN_INFO);
-    await setupCommonRoutes(page, { user: null });
-
-    await page.goto("/plans.html");
-
-    // Published cards render; the strip is absent (R9) and never fetched.
-    await expect(page.locator(CARD).first()).toBeVisible();
-    await expect(page.locator(`${STRIP} .runStrip`)).toHaveCount(0);
-    expect(logRequests).toHaveLength(0);
-  });
-
-  test("R9: Published view (authed) hides the strip and never requests /api/log", async ({
-    page,
-  }) => {
-    await setupFailFast(page);
-
-    /** @type {string[]} */
-    const logRequests = [];
-    await page.route("**/api/log*", (route) => {
-      logRequests.push(route.request().url());
-      return route.fulfill({
-        status: 200,
-        contentType: "application/json",
-        body: JSON.stringify({ draw: 1, recordsTotal: 0, recordsFiltered: 0, data: [] }),
-      });
-    });
-    await page.route("**/api/plan*", (route) =>
-      route.fulfill({
-        status: 200,
-        contentType: "application/json",
-        body: JSON.stringify(MOCK_PLAN_LIST.filter((p) => p.publish)),
-      }),
-    );
-    await setupTestInfoRoute(page, MOCK_PLAN_INFO);
-    await setupCommonRoutes(page);
-
-    await page.goto("/plans.html?public=true");
-
-    // Authed but on the public browser: the personal-home strip stays hidden
-    // and never fires its /api/log fetch.
-    await expect(page.locator(CARD).first()).toBeVisible();
-    await expect(page.locator(`${STRIP} .runStrip`)).toHaveCount(0);
-    expect(logRequests).toHaveLength(0);
-  });
-
-  test("R20: /api/log failure → degraded state, plan list still functional", async ({ page }) => {
-    await setupFailFast(page);
     await mockPlanRoute(page);
-    // Override /api/log with a 500 to drive the degraded state.
-    await page.route("**/api/log*", (route) => route.fulfill({ status: 500, body: "" }));
     await setupTestInfoRoute(page, MOCK_PLAN_INFO);
     await setupCommonRoutes(page);
 
     await page.goto("/plans.html");
 
-    // Degraded "couldn't load" state — not hidden, not implying all-clear.
-    const errorState = page.locator(`${STRIP} .runStrip--error`);
-    await expect(errorState).toBeVisible();
-    await expect(errorState).toContainText(/couldn't load run status/i);
-    await expect(page.locator(`${STRIP} .runStrip--clear`)).toHaveCount(0);
-
-    // The plan list is unaffected by the strip's fetch failure.
+    // Plan cards render as before, but the strip element is absent entirely...
     await expect(page.locator(CARD).first()).toBeVisible();
-    await expect(page.locator(CARD)).toHaveCount(MOCK_PLAN_LIST.length);
-  });
-
-  test("tab change: strip hides on Published and re-appears on return to My", async ({ page }) => {
-    await setupFailFast(page);
-    await mockPlanRoute(page);
-    await mockLogRoute(page, RUNS_2_RUNNING_3_FAILING);
-    await setupTestInfoRoute(page, MOCK_PLAN_INFO);
-    await setupCommonRoutes(page);
-
-    await page.goto("/plans.html");
-
-    // Authed My: the strip is actionable.
-    await expect(page.locator(`${STRIP} .runStrip--actionable`)).toBeVisible();
-
-    // Switch to Published: the personal-home strip collapses (hide()).
-    await page.locator("cts-view-tabs a[data-view='published']").click();
-    await page.waitForFunction(() => window.location.search.includes("public=true"));
-    await expect(page.locator(`${STRIP} .runStrip`)).toHaveCount(0);
-
-    // Switch back to My: the strip re-fetches and re-appears (fetchRuns()).
-    await page.locator("cts-view-tabs a[data-view='my']").click();
-    await page.waitForFunction(() => !window.location.search.includes("public="));
-    await expect(page.locator(`${STRIP} .runStrip--actionable`)).toBeVisible();
+    await expect(page.locator("cts-run-status-strip")).toHaveCount(0);
+    // ...and the page never calls /api/log now that the strip has left.
+    expect(logRequests).toHaveLength(0);
   });
 });
 
@@ -786,12 +542,11 @@ const SCHEDULE_CTA = "#viewTabs [data-testid='schedule-test-cta']";
 const PLAN_EMPTY = "#plansListing [data-testid='plan-list-empty']";
 
 /**
- * Serve an empty /api/plan dataset (both My and Published) plus an empty run
- * window so the strip stays silent (AE1b) and the empty-state copy is exercised.
+ * Serve an empty /api/plan dataset (both My and Published) so the empty-state
+ * copy is exercised.
  * @param {import('@playwright/test').Page} page
  */
 async function mockEmptyPlanRoute(page) {
-  await mockLogRoute(page);
   await page.route("**/api/plan*", (route) =>
     route.fulfill({
       status: 200,

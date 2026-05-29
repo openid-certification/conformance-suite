@@ -157,7 +157,7 @@ export function expectNoUnmockedCalls(page) {
  * logs-url-compat.spec.js (the route-helper convention — CLAUDE.md).
  *
  * @param {import('@playwright/test').Page} page
- * @param {ReadonlyArray<{planId?: string}>} [rows] - log rows to serve (defaults to MOCK_LOG_LIST)
+ * @param {ReadonlyArray<{planId?: string, testId?: string, status?: string, result?: string}>} [rows] - log rows to serve (defaults to MOCK_LOG_LIST)
  * @returns {Promise<string[]>} requested /api/log URLs, in order
  */
 export async function recordLogRoute(page, rows = MOCK_LOG_LIST) {
