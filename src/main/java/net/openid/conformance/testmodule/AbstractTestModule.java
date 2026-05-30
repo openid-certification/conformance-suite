@@ -738,7 +738,11 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 			Instant timeout = Instant.now().plusSeconds(60); // wait at most 60 seconds
 			while (browser.runnersActive()
 				&& Instant.now().isBefore(timeout)) {
-				Thread.sleep(100); // sleep before we check again
+				// 10ms granularity instead of 100ms — saves up to ~90ms per
+				// module of avoidable wait between the last browser runner
+				// completing and our check noticing. Non-browser tests don't
+				// enter this loop (runnersActive false on first check).
+				Thread.sleep(10);
 			}
 
 			// really at this point there should be no other threads running (though the placeholder watcher may be)
