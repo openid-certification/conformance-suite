@@ -1,4 +1,4 @@
-import { LitElement, html, nothing } from "lit";
+import { LitElement, html, nothing, css, unsafeCSS } from "lit";
 import { repeat } from "lit/directives/repeat.js";
 import "./cts-button.js";
 import "./cts-icon.js";
@@ -61,7 +61,7 @@ const SELECT_CHEVRON =
 // two card styles is an accepted cost until a third listing motivates a
 // shared `cts-listing-base`. If you restyle the cards here, mirror the
 // change in cts-log-list.js (and vice versa).
-const STYLE_TEXT = `
+const STYLE_TEXT = css`
   cts-plan-list {
     display: block;
     font-family: var(--font-sans);
@@ -127,7 +127,7 @@ const STYLE_TEXT = `
     line-height: 1;
     appearance: none;
     -webkit-appearance: none;
-    background-image: ${SELECT_CHEVRON};
+    background-image: ${unsafeCSS(SELECT_CHEVRON)};
     background-repeat: no-repeat;
     background-position: right 12px center;
   }
@@ -159,8 +159,9 @@ const STYLE_TEXT = `
     color: var(--fg);
     border: 1px solid var(--border);
     border-radius: var(--radius-3);
-    transition: border-color var(--dur-1) var(--ease-standard),
-                background var(--dur-1) var(--ease-standard);
+    transition:
+      border-color var(--dur-1) var(--ease-standard),
+      background var(--dur-1) var(--ease-standard);
   }
   .cts-plan-card:hover {
     border-color: var(--border-strong);
@@ -259,28 +260,47 @@ const STYLE_TEXT = `
     flex-shrink: 0;
     background: var(--status-skipped);
   }
-  .moduleStatusBox--pass { background: var(--status-pass); }
-  .moduleStatusBox--fail { background: var(--status-fail); }
-  .moduleStatusBox--warn { background: var(--status-warning); }
-  .moduleStatusBox--running { background: var(--status-running); }
+  .moduleStatusBox--pass {
+    background: var(--status-pass);
+  }
+  .moduleStatusBox--fail {
+    background: var(--status-fail);
+  }
+  .moduleStatusBox--warn {
+    background: var(--status-warning);
+  }
+  .moduleStatusBox--running {
+    background: var(--status-running);
+  }
   /* A settled not-run / unresolved box uses a lighter neutral than the
      darker pulsing pending box, so "nothing to report" recedes visually. */
-  .moduleStatusBox--skip { background: var(--ink-300); }
+  .moduleStatusBox--skip {
+    background: var(--ink-300);
+  }
   /* Review has no --status-review token yet; use the legacy review teal so
      it stays distinguishable from the gray skip/pending boxes. */
-  .moduleStatusBox--review { background: #6AC4C2; }
+  .moduleStatusBox--review {
+    background: #6ac4c2;
+  }
   /* Pending shares the neutral gray with skip — motion is the only
      differentiator (a running fetch pulses; a settled box is static).
      Capped at 10 iterations, gated behind prefers-reduced-motion. */
-  .moduleStatusBox--pending { background: var(--status-skipped); }
+  .moduleStatusBox--pending {
+    background: var(--status-skipped);
+  }
   @media (prefers-reduced-motion: no-preference) {
     .moduleStatusBox--pending {
       animation: cts-plan-list-status-pulse 1.2s ease-in-out 10;
     }
   }
   @keyframes cts-plan-list-status-pulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.35; }
+    0%,
+    100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.35;
+    }
   }
   .cts-plan-card-meta {
     display: flex;
@@ -399,7 +419,7 @@ function ensureStylesInjected() {
   if (document.getElementById(STYLE_ID)) return;
   const style = document.createElement("style");
   style.id = STYLE_ID;
-  style.textContent = STYLE_TEXT;
+  style.textContent = STYLE_TEXT.cssText;
   document.head.appendChild(style);
 }
 

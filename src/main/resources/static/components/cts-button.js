@@ -1,4 +1,4 @@
-import { LitElement, html, nothing } from "lit";
+import { LitElement, html, nothing, css } from "lit";
 import "./cts-icon.js";
 
 /**
@@ -81,146 +81,149 @@ const STYLE_ID = "cts-button-styles";
 // project/preview/components-buttons.html from the OIDF design archive: a
 // token-driven button surface (default md rung = --control-height) with primary/secondary/ghost/danger
 // variants and xs/sm/md/lg sizes. Used by both cts-button and cts-link-button.
-const STYLE_TEXT = `
-.oidf-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--space-1);
-  height: var(--control-height);
-  padding: 0 var(--space-3);
-  font-family: var(--font-sans);
-  font-size: var(--fs-14);
-  font-weight: var(--fw-medium);
-  /* Labels are single-line by contract — narrow stacks (e.g. the 240px
+const STYLE_TEXT = css`
+  .oidf-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-1);
+    height: var(--control-height);
+    padding: 0 var(--space-3);
+    font-family: var(--font-sans);
+    font-size: var(--fs-14);
+    font-weight: var(--fw-medium);
+    /* Labels are single-line by contract — narrow stacks (e.g. the 240px
      plan-detail action rail) must never wrap a label onto two lines. */
-  white-space: nowrap;
-  /* Even-pixel line-height so Inter's cap-height resolves to whole pixels.
+    white-space: nowrap;
+    /* Even-pixel line-height so Inter's cap-height resolves to whole pixels.
      A 16px line-box on 13px (sm), 14px (md), or 15px (lg, overridden below)
      text leaves consistent breathing room and aligns the text baseline with
      adjacent inline chrome (badges, link-buttons) sharing the same 16px
      line-box. line-height:1 produced odd 13/14/15px boxes whose cap-heights
      drifted by sub-pixel amounts when mixed inline. */
-  line-height: 16px;
-  border: 1px solid transparent;
-  border-radius: var(--radius-2);
-  background: transparent;
-  color: var(--ink-900);
-  cursor: pointer;
-  text-decoration-line: none;
-  box-sizing: border-box;
-  transition: background var(--dur-1) var(--ease-standard),
-              border-color var(--dur-1) var(--ease-standard),
-              color var(--dur-1) var(--ease-standard);
-}
-.oidf-btn:hover {
-  text-decoration-line: none;
-}
-.oidf-btn:focus {
-  outline: none;
-}
-.oidf-btn:focus-visible {
-  outline: none;
-  box-shadow: var(--focus-ring);
-}
-.oidf-btn[disabled],
-.oidf-btn[aria-disabled="true"] {
-  opacity: 0.55;
-  cursor: not-allowed;
-  pointer-events: none;
-}
+    line-height: 16px;
+    border: 1px solid transparent;
+    border-radius: var(--radius-2);
+    background: transparent;
+    color: var(--ink-900);
+    cursor: pointer;
+    text-decoration-line: none;
+    box-sizing: border-box;
+    transition:
+      background var(--dur-1) var(--ease-standard),
+      border-color var(--dur-1) var(--ease-standard),
+      color var(--dur-1) var(--ease-standard);
+  }
+  .oidf-btn:hover {
+    text-decoration-line: none;
+  }
+  .oidf-btn:focus {
+    outline: none;
+  }
+  .oidf-btn:focus-visible {
+    outline: none;
+    box-shadow: var(--focus-ring);
+  }
+  .oidf-btn[disabled],
+  .oidf-btn[aria-disabled="true"] {
+    opacity: 0.55;
+    cursor: not-allowed;
+    pointer-events: none;
+  }
 
-.oidf-btn-primary {
-  background: var(--orange-400);
-  color: var(--ink-0);
-  border-color: var(--orange-400);
-}
-.oidf-btn-primary:hover {
-  background: var(--orange-500);
-  border-color: var(--orange-500);
-  color: var(--ink-0);
-}
+  .oidf-btn-primary {
+    background: var(--orange-400);
+    color: var(--ink-0);
+    border-color: var(--orange-400);
+  }
+  .oidf-btn-primary:hover {
+    background: var(--orange-500);
+    border-color: var(--orange-500);
+    color: var(--ink-0);
+  }
 
-.oidf-btn-secondary {
-  background: var(--ink-0);
-  color: var(--ink-900);
-  border-color: var(--ink-300);
-}
-.oidf-btn-secondary:hover {
-  background: var(--ink-50);
-  color: var(--ink-900);
-}
+  .oidf-btn-secondary {
+    background: var(--ink-0);
+    color: var(--ink-900);
+    border-color: var(--ink-300);
+  }
+  .oidf-btn-secondary:hover {
+    background: var(--ink-50);
+    color: var(--ink-900);
+  }
 
-.oidf-btn-ghost {
-  background: transparent;
-  color: var(--ink-600);
-  border-color: transparent;
-}
-.oidf-btn-ghost:hover {
-  background: var(--ink-100);
-  color: var(--ink-900);
-}
+  .oidf-btn-ghost {
+    background: transparent;
+    color: var(--ink-600);
+    border-color: transparent;
+  }
+  .oidf-btn-ghost:hover {
+    background: var(--ink-100);
+    color: var(--ink-900);
+  }
 
-.oidf-btn-danger {
-  background: var(--rust-400);
-  color: var(--ink-0);
-  border-color: var(--rust-400);
-}
-.oidf-btn-danger:hover {
-  background: var(--rust-500);
-  border-color: var(--rust-500);
-  color: var(--ink-0);
-}
+  .oidf-btn-danger {
+    background: var(--rust-400);
+    color: var(--ink-0);
+    border-color: var(--rust-400);
+  }
+  .oidf-btn-danger:hover {
+    background: var(--rust-500);
+    border-color: var(--rust-500);
+    color: var(--ink-0);
+  }
 
-.oidf-btn-xxs {
-  /* Chip-scale button used inline beside HTTP/badge chips (e.g. the cURL
+  .oidf-btn-xxs {
+    /* Chip-scale button used inline beside HTTP/badge chips (e.g. the cURL
      copy affordance in cts-log-entry). 20px height continues the 4px-grid
      ladder one step below xs. The 11px text and 12px line-box sit on whole
      pixels so Inter's cap-height stays crisp; line-height is tightened
      from the base 16px because a 16px line-box would not fit a 20px box. */
-  height: 20px;
-  padding: 0 var(--space-1);
-  font-size: var(--fs-11);
-  line-height: 12px;
-}
-.oidf-btn-xs {
-  /* Compact size used to replace bespoke "More" / pill-style buttons that
+    height: 20px;
+    padding: 0 var(--space-1);
+    font-size: var(--fs-11);
+    line-height: 12px;
+  }
+  .oidf-btn-xs {
+    /* Compact size used to replace bespoke "More" / pill-style buttons that
      used to live in cts-log-entry. 24px = 16px line-box + 4px top + 4px
      bottom, on the 4px grid. fs-12 + space-1 horizontal padding keeps it
      visibly smaller than sm. */
-  height: 24px;
-  padding: 0 var(--space-1);
-  font-size: var(--fs-12);
-}
-.oidf-btn-sm {
-  height: 30px;
-  padding: 0 var(--space-2);
-  font-size: var(--fs-13);
-}
-.oidf-btn-lg {
-  height: 44px;
-  padding: 0 var(--space-4);
-  font-size: var(--fs-15);
-  /* 4px-grid line-height for the larger 15px text. */
-  line-height: 20px;
-}
+    height: 24px;
+    padding: 0 var(--space-1);
+    font-size: var(--fs-12);
+  }
+  .oidf-btn-sm {
+    height: 30px;
+    padding: 0 var(--space-2);
+    font-size: var(--fs-13);
+  }
+  .oidf-btn-lg {
+    height: 44px;
+    padding: 0 var(--space-4);
+    font-size: var(--fs-15);
+    /* 4px-grid line-height for the larger 15px text. */
+    line-height: 20px;
+  }
 
-.oidf-btn-spinner {
-  width: 12px;
-  height: 12px;
-  animation: oidf-btn-spin 0.9s linear infinite;
-}
-.oidf-btn-spinner-track {
-  stroke: var(--ink-300);
-}
-.oidf-btn-spinner-head {
-  stroke: var(--orange-400);
-}
-@keyframes oidf-btn-spin {
-  to { transform: rotate(360deg); }
-}
+  .oidf-btn-spinner {
+    width: 12px;
+    height: 12px;
+    animation: oidf-btn-spin 0.9s linear infinite;
+  }
+  .oidf-btn-spinner-track {
+    stroke: var(--ink-300);
+  }
+  .oidf-btn-spinner-head {
+    stroke: var(--orange-400);
+  }
+  @keyframes oidf-btn-spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
 
-/* Disclosure-chevron convention: a chevron-bearing toggle button uses a
+  /* Disclosure-chevron convention: a chevron-bearing toggle button uses a
    single static <cts-icon name="chevron-down"> and rotates it 180° (around
    the screen-normal Z axis, pivoting at the glyph's center) when the host
    carries aria-expanded="true". This replaces the older chevron-up ⇄
@@ -229,35 +232,35 @@ const STYLE_TEXT = `
    ARIA contract. The selector is scoped to chevron-down so non-directional
    icons inside an expandable button (rare, but possible) are unaffected.
    Same pattern as cts-log-viewer's [open]-keyed rotation. */
-cts-button cts-icon[name="chevron-down"] {
-  transition: transform var(--dur-1) var(--ease-standard);
-  transform-origin: center;
-}
-cts-button[aria-expanded="true"] cts-icon[name="chevron-down"] {
-  transform: rotate(180deg);
-}
+  cts-button cts-icon[name="chevron-down"] {
+    transition: transform var(--dur-1) var(--ease-standard);
+    transform-origin: center;
+  }
+  cts-button[aria-expanded="true"] cts-icon[name="chevron-down"] {
+    transform: rotate(180deg);
+  }
 
-/* Collapse the host's inline line-box so no extra vertical space surrounds the button. */
-cts-button,
-cts-link-button {
-  line-height: 1;
-}
+  /* Collapse the host's inline line-box so no extra vertical space surrounds the button. */
+  cts-button,
+  cts-link-button {
+    line-height: 1;
+  }
 
-cts-button[full-width],
-cts-link-button[full-width] {
-  display: block;
-}
-cts-button[full-width] .oidf-btn,
-cts-link-button[full-width] .oidf-btn {
-  width: 100%;
-}
+  cts-button[full-width],
+  cts-link-button[full-width] {
+    display: block;
+  }
+  cts-button[full-width] .oidf-btn,
+  cts-link-button[full-width] .oidf-btn {
+    width: 100%;
+  }
 `;
 
 function injectStyles() {
   if (document.getElementById(STYLE_ID)) return;
   const style = document.createElement("style");
   style.id = STYLE_ID;
-  style.textContent = STYLE_TEXT;
+  style.textContent = STYLE_TEXT.cssText;
   document.head.appendChild(style);
 }
 

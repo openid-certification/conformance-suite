@@ -1,4 +1,4 @@
-import { LitElement, html, nothing } from "lit";
+import { LitElement, html, nothing, css } from "lit";
 import "./cts-badge.js";
 import "./cts-icon.js";
 import {
@@ -9,71 +9,71 @@ import {
 
 const STYLE_ID = "cts-run-status-strip-styles";
 
-const STYLE_TEXT = `
-.runStrip {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: var(--space-2) var(--space-5);
-  min-height: 44px;
-  margin-bottom: var(--space-4);
-  font-family: var(--font-sans);
-  font-size: var(--fs-14);
-  line-height: var(--lh-snug);
-  color: var(--fg);
-}
-.runStrip--clear,
-.runStrip--error {
-  gap: var(--space-2);
-  color: var(--fg-soft);
-}
-.runStrip--clear cts-icon,
-.runStrip--error cts-icon {
-  color: var(--fg-soft);
-}
-.runStrip-link {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-2);
-  text-decoration: none;
-  color: var(--fg);
-  border-radius: var(--radius-2);
-}
-/* The cts-badge carries the affordance ring (interactive), so the link
+const STYLE_TEXT = css`
+  .runStrip {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--space-2) var(--space-5);
+    min-height: 20px;
+    margin-bottom: var(--space-4);
+    font-family: var(--font-sans);
+    font-size: var(--fs-14);
+    line-height: var(--lh-snug);
+    color: var(--fg);
+  }
+  .runStrip--clear,
+  .runStrip--error {
+    gap: var(--space-2);
+    color: var(--fg-soft);
+  }
+  .runStrip--clear cts-icon,
+  .runStrip--error cts-icon {
+    color: var(--fg-soft);
+  }
+  .runStrip-link {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    text-decoration: none;
+    color: var(--fg);
+    border-radius: var(--radius-2);
+  }
+  /* The cts-badge carries the affordance ring (interactive), so the link
  * itself stays underline-free — the pill silhouette is what reads as
  * clickable (CLAUDE.md Badges affordance rule). Keyboard focus still needs a
  * visible ring, so surface the standard focus token on focus-visible. */
-.runStrip-link:focus-visible {
-  outline: none;
-  box-shadow: var(--focus-ring);
-}
-.runStrip-skeleton {
-  display: inline-block;
-  width: 240px;
-  height: 24px;
-  border-radius: var(--radius-pill);
-  background: var(--bg-elev);
-  position: relative;
-  overflow: hidden;
-}
-.runStrip-skeleton::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  transform: translateX(-100%);
-  background: linear-gradient(90deg, transparent, var(--bg) 50%, transparent);
-  animation: runStripShimmer 1.2s ease-in-out infinite;
-}
-@media (prefers-reduced-motion: reduce) {
+  .runStrip-link:focus-visible {
+    outline: none;
+    box-shadow: var(--focus-ring);
+  }
+  .runStrip-skeleton {
+    display: inline-block;
+    width: 240px;
+    height: 24px;
+    border-radius: var(--radius-pill);
+    background: var(--bg-elev);
+    position: relative;
+    overflow: hidden;
+  }
   .runStrip-skeleton::after {
-    animation: none;
+    content: "";
+    position: absolute;
+    inset: 0;
+    transform: translateX(-100%);
+    background: linear-gradient(90deg, transparent, var(--bg) 50%, transparent);
+    animation: runStripShimmer 1.2s ease-in-out infinite;
   }
-}
-@keyframes runStripShimmer {
-  100% {
-    transform: translateX(100%);
+  @media (prefers-reduced-motion: reduce) {
+    .runStrip-skeleton::after {
+      animation: none;
+    }
   }
-}
+  @keyframes runStripShimmer {
+    100% {
+      transform: translateX(100%);
+    }
+  }
 `;
 
 /**
@@ -86,7 +86,7 @@ function injectStyles() {
   if (document.getElementById(STYLE_ID)) return;
   const style = document.createElement("style");
   style.id = STYLE_ID;
-  style.textContent = STYLE_TEXT;
+  style.textContent = STYLE_TEXT.cssText;
   document.head.appendChild(style);
 }
 

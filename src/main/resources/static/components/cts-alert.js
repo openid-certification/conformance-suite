@@ -1,3 +1,4 @@
+import { css } from "lit";
 import "./cts-icon.js";
 
 const VARIANT_CLASSES = {
@@ -13,7 +14,7 @@ const STYLE_ID = "cts-alert-styles";
 // status palette tokens vendored in oidf-tokens.css. The `info` variant has
 // no `--status-info-text` token; foreground falls back to --ink-900 via
 // inheritance from the page (set by oidf-tokens.css `html { color: var(--fg) }`).
-const STYLES = `
+const STYLES = css`
   .oidf-alert {
     display: flex;
     align-items: flex-start;
@@ -84,7 +85,7 @@ function ensureStylesInjected() {
   if (document.getElementById(STYLE_ID)) return;
   const style = document.createElement("style");
   style.id = STYLE_ID;
-  style.textContent = STYLES;
+  style.textContent = STYLES.cssText;
   document.head.appendChild(style);
 }
 

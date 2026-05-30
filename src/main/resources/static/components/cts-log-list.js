@@ -1,4 +1,4 @@
-import { LitElement, html, nothing } from "lit";
+import { LitElement, html, nothing, css, unsafeCSS } from "lit";
 import { repeat } from "lit/directives/repeat.js";
 import { ifDefined } from "lit/directives/if-defined.js";
 import "./cts-badge.js";
@@ -74,7 +74,7 @@ const STYLE_ID = "cts-log-list-styles";
 const SELECT_CHEVRON =
   "url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 16 16'><path fill='none' stroke='%2371695E' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M4 6l4 4 4-4'/></svg>\")";
 
-const STYLE_TEXT = `
+const STYLE_TEXT = css`
   cts-log-list {
     display: block;
     font-family: var(--font-sans);
@@ -193,7 +193,7 @@ const STYLE_TEXT = `
     line-height: 1;
     appearance: none;
     -webkit-appearance: none;
-    background-image: ${SELECT_CHEVRON};
+    background-image: ${unsafeCSS(SELECT_CHEVRON)};
     background-repeat: no-repeat;
     background-position: right 12px center;
   }
@@ -310,8 +310,9 @@ const STYLE_TEXT = `
     line-height: var(--lh-snug);
     cursor: pointer;
     margin-bottom: var(--space-4);
-    transition: border-color var(--dur-1) var(--ease-standard),
-                background var(--dur-1) var(--ease-standard);
+    transition:
+      border-color var(--dur-1) var(--ease-standard),
+      background var(--dur-1) var(--ease-standard);
   }
   .cts-log-active-summary:hover {
     border-color: var(--border-strong);
@@ -347,8 +348,9 @@ const STYLE_TEXT = `
     color: var(--fg);
     border: 1px solid var(--border);
     border-radius: var(--radius-3);
-    transition: border-color var(--dur-1) var(--ease-standard),
-                background var(--dur-1) var(--ease-standard);
+    transition:
+      border-color var(--dur-1) var(--ease-standard),
+      background var(--dur-1) var(--ease-standard);
   }
   .cts-log-card:hover {
     border-color: var(--border-strong);
@@ -552,7 +554,7 @@ function ensureStylesInjected() {
   if (document.getElementById(STYLE_ID)) return;
   const style = document.createElement("style");
   style.id = STYLE_ID;
-  style.textContent = STYLE_TEXT;
+  style.textContent = STYLE_TEXT.cssText;
   document.head.appendChild(style);
 }
 

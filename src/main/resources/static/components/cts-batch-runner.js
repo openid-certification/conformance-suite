@@ -1,4 +1,4 @@
-import { LitElement, html, nothing } from "lit";
+import { LitElement, html, nothing, css } from "lit";
 import "./cts-badge.js";
 import "./cts-button.js";
 
@@ -28,57 +28,57 @@ const STYLE_ID = "cts-batch-runner-styles";
 // (`row g-2`, `col-md-4 col-lg-3`, `card`/`card-body`, `d-flex gap-2 mb-3
 // align-items-center`, `text-muted`) with a self-contained grid + tile
 // surface that draws color, spacing, type, and radius from oidf-tokens.css.
-const STYLE_TEXT = `
-cts-batch-runner .oidf-batch-runner {
-  display: block;
-  margin-bottom: var(--space-5);
-}
-cts-batch-runner .oidf-batch-runner-bar {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  margin-bottom: var(--space-4);
-}
-cts-batch-runner .oidf-batch-runner-progress {
-  font-family: var(--font-sans);
-  font-size: var(--fs-13);
-  color: var(--ink-700);
-}
-cts-batch-runner .oidf-batch-runner-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: var(--space-2);
-}
-cts-batch-runner .oidf-batch-runner-tile {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-3);
-  padding: var(--space-2) var(--space-3);
-  background: var(--bg-elev);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-2);
-  box-shadow: var(--shadow-1);
-  min-width: 0;
-}
-cts-batch-runner .oidf-batch-runner-name {
-  font-family: var(--font-sans);
-  font-size: var(--fs-13);
-  font-weight: var(--fw-regular, 400);
-  color: var(--ink-900);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  min-width: 0;
-  flex: 1 1 auto;
-}
+const STYLE_TEXT = css`
+  cts-batch-runner .oidf-batch-runner {
+    display: block;
+    margin-bottom: var(--space-5);
+  }
+  cts-batch-runner .oidf-batch-runner-bar {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    margin-bottom: var(--space-4);
+  }
+  cts-batch-runner .oidf-batch-runner-progress {
+    font-family: var(--font-sans);
+    font-size: var(--fs-13);
+    color: var(--ink-700);
+  }
+  cts-batch-runner .oidf-batch-runner-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: var(--space-2);
+  }
+  cts-batch-runner .oidf-batch-runner-tile {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-3);
+    padding: var(--space-2) var(--space-3);
+    background: var(--bg-elev);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-2);
+    box-shadow: var(--shadow-1);
+    min-width: 0;
+  }
+  cts-batch-runner .oidf-batch-runner-name {
+    font-family: var(--font-sans);
+    font-size: var(--fs-13);
+    font-weight: var(--fw-regular, 400);
+    color: var(--ink-900);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    min-width: 0;
+    flex: 1 1 auto;
+  }
 `;
 
 function injectStyles() {
   if (document.getElementById(STYLE_ID)) return;
   const style = document.createElement("style");
   style.id = STYLE_ID;
-  style.textContent = STYLE_TEXT;
+  style.textContent = STYLE_TEXT.cssText;
   document.head.appendChild(style);
 }
 

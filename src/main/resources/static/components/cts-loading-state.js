@@ -1,4 +1,4 @@
-import { LitElement, html } from "lit";
+import { LitElement, html, css } from "lit";
 // Self-import the spinner dependency: render() emits <cts-spinner>, so the
 // element must be defined whenever this component is used. Importing it here
 // (rather than relying on each consumer to register it) makes any consumer
@@ -20,23 +20,23 @@ import "./cts-spinner.js";
  */
 const STYLE_ID = "cts-loading-state-styles";
 
-const STYLE_TEXT = `
-.cts-loading-state {
-  padding: var(--space-5);
-  text-align: center;
-  color: var(--fg-soft);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: var(--space-2);
-}
+const STYLE_TEXT = css`
+  .cts-loading-state {
+    padding: var(--space-5);
+    text-align: center;
+    color: var(--fg-soft);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-2);
+  }
 `;
 
 function injectStyles() {
   if (document.getElementById(STYLE_ID)) return;
   const style = document.createElement("style");
   style.id = STYLE_ID;
-  style.textContent = STYLE_TEXT;
+  style.textContent = STYLE_TEXT.cssText;
   document.head.appendChild(style);
 }
 

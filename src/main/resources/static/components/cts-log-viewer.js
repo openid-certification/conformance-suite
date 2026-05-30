@@ -1,4 +1,4 @@
-import { LitElement, html, nothing } from "lit";
+import { LitElement, html, nothing, css } from "lit";
 import "./cts-badge.js";
 import "./cts-alert.js";
 import "./cts-log-entry.js";
@@ -56,7 +56,7 @@ const STYLE_ID = "cts-log-viewer-styles";
 // Result-summary badges arrange in a wrap. The startBlock header labels a
 // related run of entries; it is a presentational band (token-driven
 // --ink-100 surface), not an interactive control — blocks are not collapsible.
-const STYLE_TEXT = `
+const STYLE_TEXT = css`
   cts-log-viewer {
     display: block;
   }
@@ -187,7 +187,9 @@ const STYLE_TEXT = `
     animation: cts-log-viewer-spin 0.9s linear infinite;
   }
   @keyframes cts-log-viewer-spin {
-    to { transform: rotate(360deg); }
+    to {
+      transform: rotate(360deg);
+    }
   }
   /* Scroll offset for the cts-log-toc rail's "Test structure" jumps and
      the document-level cts-scroll-to-entry handler in log-detail.js.
@@ -264,7 +266,7 @@ const STYLE_TEXT = `
     color: var(--fg);
   }
   cts-log-viewer .logFilterClear:focus-visible {
-    outline: 2px solid var(--rust-400, #C75A3F);
+    outline: 2px solid var(--rust-400, #c75a3f);
     outline-offset: 2px;
   }
   /* Visually-hidden polite live region — announces the active-filter
@@ -312,7 +314,7 @@ function ensureStylesInjected() {
   if (document.getElementById(STYLE_ID)) return;
   const style = document.createElement("style");
   style.id = STYLE_ID;
-  style.textContent = STYLE_TEXT;
+  style.textContent = STYLE_TEXT.cssText;
   document.head.appendChild(style);
 }
 

@@ -1,4 +1,4 @@
-import { LitElement, html, nothing } from "lit";
+import { LitElement, html, nothing, css } from "lit";
 
 /**
  * Maps tone name → CSS custom property used as the value's `color`.
@@ -36,29 +36,29 @@ const STYLE_ID = "cts-stat-styles";
 // from project/preview/spacing-shadows.html: an overline label above a
 // display-font value, with an optional meta-sized delta line beneath. All
 // dimensions and colours come from oidf-tokens.css.
-const STYLE_TEXT = `
-.oidf-stat {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-1);
-}
-.oidf-stat-value {
-  font-family: var(--font-display);
-  font-weight: var(--fw-bold);
-  font-size: var(--fs-32);
-  line-height: var(--lh-tight);
-  color: var(--fg);
-}
-.oidf-stat-delta {
-  color: var(--fg-soft);
-}
+const STYLE_TEXT = css`
+  .oidf-stat {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+  }
+  .oidf-stat-value {
+    font-family: var(--font-display);
+    font-weight: var(--fw-bold);
+    font-size: var(--fs-32);
+    line-height: var(--lh-tight);
+    color: var(--fg);
+  }
+  .oidf-stat-delta {
+    color: var(--fg-soft);
+  }
 `;
 
 function injectStyles() {
   if (document.getElementById(STYLE_ID)) return;
   const style = document.createElement("style");
   style.id = STYLE_ID;
-  style.textContent = STYLE_TEXT;
+  style.textContent = STYLE_TEXT.cssText;
   document.head.appendChild(style);
 }
 

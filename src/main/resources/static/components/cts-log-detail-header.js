@@ -1,4 +1,4 @@
-import { LitElement, html, nothing } from "lit";
+import { LitElement, html, nothing, css } from "lit";
 import "./cts-icon.js";
 import "./cts-badge.js";
 import "./cts-button.js";
@@ -166,7 +166,7 @@ const STYLE_ID = "cts-log-detail-header-styles";
 // still pinning at top: 0 on scroll. Each section is divided by a 1px
 // border (no card-within-card chrome). The sticky bar carries the
 // only shadow; the rest reads as a flat document under the bar.
-const STYLE_TEXT = `
+const STYLE_TEXT = css`
   cts-log-detail-header {
     /* display: contents removes the host from the box tree so the
        sticky .ctsStatusBar below sticks within the page-level
@@ -626,7 +626,7 @@ function ensureStylesInjected() {
   if (document.getElementById(STYLE_ID)) return;
   const style = document.createElement("style");
   style.id = STYLE_ID;
-  style.textContent = STYLE_TEXT;
+  style.textContent = STYLE_TEXT.cssText;
   document.head.appendChild(style);
 }
 

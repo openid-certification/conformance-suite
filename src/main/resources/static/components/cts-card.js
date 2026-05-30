@@ -1,3 +1,4 @@
+import { css } from "lit";
 /**
  * Token-styled card container. Wraps its children in an `.oidf-card` /
  * `.oidf-card-body` structure, with an optional `.oidf-card-header` driven
@@ -28,38 +29,38 @@ const TONE_VARS = {
 
 const STYLE_ID = "cts-card-styles";
 
-const STYLE_TEXT = `
-.oidf-card {
-  position: relative;
-  background: var(--bg-elev);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-3);
-  box-shadow: var(--shadow-1);
-  overflow: hidden;
-}
-.oidf-card-bar {
-  position: absolute;
-  left: 0;
-  top: 0;
-  right: 0;
-  height: 3px;
-}
-.oidf-card-header {
-  padding: var(--space-4) var(--space-5);
-  border-bottom: 1px solid var(--border);
-  font-weight: var(--fw-bold);
-  color: var(--fg);
-}
-.oidf-card-body {
-  padding: var(--space-5);
-}
+const STYLE_TEXT = css`
+  .oidf-card {
+    position: relative;
+    background: var(--bg-elev);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-3);
+    box-shadow: var(--shadow-1);
+    overflow: hidden;
+  }
+  .oidf-card-bar {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    height: 3px;
+  }
+  .oidf-card-header {
+    padding: var(--space-4) var(--space-5);
+    border-bottom: 1px solid var(--border);
+    font-weight: var(--fw-bold);
+    color: var(--fg);
+  }
+  .oidf-card-body {
+    padding: var(--space-5);
+  }
 `;
 
 function injectStyles() {
   if (document.getElementById(STYLE_ID)) return;
   const style = document.createElement("style");
   style.id = STYLE_ID;
-  style.textContent = STYLE_TEXT;
+  style.textContent = STYLE_TEXT.cssText;
   document.head.appendChild(style);
 }
 

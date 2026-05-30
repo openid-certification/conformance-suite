@@ -1,4 +1,4 @@
-import { LitElement, html, nothing } from "lit";
+import { LitElement, html, nothing, css } from "lit";
 import "./cts-icon.js";
 import "./cts-badge.js";
 import "./cts-log-entry-id.js";
@@ -25,7 +25,7 @@ const STYLE_ID = "cts-failure-summary-styles";
 // no requirement badges, single-line ellipsis truncation. The component
 // renders to its own light DOM, so selectors are scoped via the host
 // element name (mirrors every other cts-* component in this directory).
-const STYLE_TEXT = `
+const STYLE_TEXT = css`
   cts-failure-summary {
     display: block;
   }
@@ -134,7 +134,9 @@ const STYLE_TEXT = `
     text-decoration-color: var(--link-decoration-color);
     border-radius: var(--radius-2);
   }
-  cts-failure-summary .failureText:hover { color: var(--fg-link); }
+  cts-failure-summary .failureText:hover {
+    color: var(--fg-link);
+  }
   cts-failure-summary .failureText:focus-visible {
     outline: none;
     box-shadow: var(--focus-ring);
@@ -145,8 +147,12 @@ const STYLE_TEXT = `
      each row collapses to a single ellipsised line. Requirement chips
      render as cts-badge[variant="secondary"]; we hide them on the host
      element selector so the inner .badge wrapper inherits display:none. */
-  cts-failure-summary[compact] .failureSummaryTitle { display: none; }
-  cts-failure-summary[compact] .failureBlockHeader { display: none; }
+  cts-failure-summary[compact] .failureSummaryTitle {
+    display: none;
+  }
+  cts-failure-summary[compact] .failureBlockHeader {
+    display: none;
+  }
   cts-failure-summary[compact] .failureList {
     margin-top: 0;
     gap: var(--space-1);
@@ -162,15 +168,19 @@ const STYLE_TEXT = `
     text-overflow: ellipsis;
     min-width: 0;
   }
-  cts-failure-summary[compact] cts-badge[variant="secondary"] { display: none; }
-  cts-failure-summary[compact] cts-log-entry-id { display: none; }
+  cts-failure-summary[compact] cts-badge[variant="secondary"] {
+    display: none;
+  }
+  cts-failure-summary[compact] cts-log-entry-id {
+    display: none;
+  }
 `;
 
 function ensureStylesInjected() {
   if (document.getElementById(STYLE_ID)) return;
   const style = document.createElement("style");
   style.id = STYLE_ID;
-  style.textContent = STYLE_TEXT;
+  style.textContent = STYLE_TEXT.cssText;
   document.head.appendChild(style);
 }
 

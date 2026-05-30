@@ -1,4 +1,4 @@
-import { LitElement, html, nothing } from "lit";
+import { LitElement, html, nothing, css } from "lit";
 import "./cts-button.js";
 import "./cts-link-button.js";
 
@@ -11,7 +11,7 @@ const STYLE_ID = "cts-test-nav-controls-styles";
 // The cluster sits inside log-detail.html's existing flex column of
 // header controls, so it picks up the surrounding gap without owning
 // margins of its own.
-const STYLE_TEXT = `
+const STYLE_TEXT = css`
   cts-test-nav-controls {
     display: block;
   }
@@ -71,7 +71,7 @@ function ensureStylesInjected() {
   if (document.getElementById(STYLE_ID)) return;
   const style = document.createElement("style");
   style.id = STYLE_ID;
-  style.textContent = STYLE_TEXT;
+  style.textContent = STYLE_TEXT.cssText;
   document.head.appendChild(style);
 }
 

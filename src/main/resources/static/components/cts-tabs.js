@@ -1,3 +1,4 @@
+import { css } from "lit";
 // <cts-tab-panel> is a semantic container that holds tab content and metadata.
 // <cts-tabs> restructures its <cts-tab-panel> children into a WCAG tablist.
 
@@ -22,73 +23,74 @@ const STYLE_ID = "cts-tabs-styles";
 // from the OIDF design archive (underline tab style with an orange-400
 // active indicator, plus count-badge tokens). All values flow from
 // oidf-tokens.css; nothing here is hard-coded.
-const STYLE_TEXT = `
-.oidf-tabs {
-  display: flex;
-  gap: 0;
-  border-bottom: 1px solid var(--border);
-  margin: 0 0 var(--space-5) 0;
-  padding: 0;
-  list-style: none;
-  font-family: var(--font-sans);
-}
-.oidf-tabs > li {
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-.oidf-tab {
-  appearance: none;
-  background: transparent;
-  border: 0;
-  border-bottom: 2px solid transparent;
-  margin-bottom: -1px;
-  padding: var(--space-3) var(--space-4);
-  font-family: inherit;
-  font-size: var(--fs-13);
-  font-weight: var(--fw-medium);
-  color: var(--ink-500);
-  cursor: pointer;
-  transition: color var(--dur-1) var(--ease-standard),
-              border-color var(--dur-1) var(--ease-standard);
-}
-.oidf-tab:hover {
-  color: var(--ink-900);
-}
-.oidf-tab:focus {
-  outline: none;
-}
-.oidf-tab:focus-visible {
-  outline: none;
-  box-shadow: var(--focus-ring);
-  border-radius: var(--radius-2);
-}
-.oidf-tab-active {
-  color: var(--ink-900);
-  border-bottom-color: var(--orange-400);
-}
-.oidf-tab-count {
-  display: inline-block;
-  margin-left: var(--space-2);
-  padding: 1px var(--space-2);
-  border-radius: var(--radius-pill);
-  background: var(--ink-100);
-  color: var(--fg-muted);
-  font-size: var(--fs-12);
-  font-weight: var(--fw-medium);
-  line-height: 1.4;
-}
-.oidf-tab-active .oidf-tab-count {
-  background: var(--orange-50);
-  color: var(--orange-600);
-}
+const STYLE_TEXT = css`
+  .oidf-tabs {
+    display: flex;
+    gap: 0;
+    border-bottom: 1px solid var(--border);
+    margin: 0 0 var(--space-5) 0;
+    padding: 0;
+    list-style: none;
+    font-family: var(--font-sans);
+  }
+  .oidf-tabs > li {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .oidf-tab {
+    appearance: none;
+    background: transparent;
+    border: 0;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+    padding: var(--space-3) var(--space-4);
+    font-family: inherit;
+    font-size: var(--fs-13);
+    font-weight: var(--fw-medium);
+    color: var(--ink-500);
+    cursor: pointer;
+    transition:
+      color var(--dur-1) var(--ease-standard),
+      border-color var(--dur-1) var(--ease-standard);
+  }
+  .oidf-tab:hover {
+    color: var(--ink-900);
+  }
+  .oidf-tab:focus {
+    outline: none;
+  }
+  .oidf-tab:focus-visible {
+    outline: none;
+    box-shadow: var(--focus-ring);
+    border-radius: var(--radius-2);
+  }
+  .oidf-tab-active {
+    color: var(--ink-900);
+    border-bottom-color: var(--orange-400);
+  }
+  .oidf-tab-count {
+    display: inline-block;
+    margin-left: var(--space-2);
+    padding: 1px var(--space-2);
+    border-radius: var(--radius-pill);
+    background: var(--ink-100);
+    color: var(--fg-muted);
+    font-size: var(--fs-12);
+    font-weight: var(--fw-medium);
+    line-height: 1.4;
+  }
+  .oidf-tab-active .oidf-tab-count {
+    background: var(--orange-50);
+    color: var(--orange-600);
+  }
 `;
 
 function injectStyles() {
   if (document.getElementById(STYLE_ID)) return;
   const style = document.createElement("style");
   style.id = STYLE_ID;
-  style.textContent = STYLE_TEXT;
+  style.textContent = STYLE_TEXT.cssText;
   document.head.appendChild(style);
 }
 

@@ -1,4 +1,4 @@
-import { LitElement, html, nothing } from "lit";
+import { LitElement, html, nothing, css } from "lit";
 import { classMap } from "lit/directives/class-map.js";
 import "./cts-form-field.js";
 import "./cts-button.js";
@@ -104,64 +104,64 @@ import { CtsToastHost } from "./cts-toast.js";
 
 const STYLE_ID = "cts-config-form-styles";
 
-const STYLE_TEXT = `
-.oidf-config-form {
-  font-family: var(--font-sans);
-  color: var(--fg);
-}
-.oidf-config-form-section {
-  border: 0;
-  margin: 0 0 var(--space-5) 0;
-  padding: 0 0 var(--space-4) 0;
-  border-bottom: 1px solid var(--ink-100);
-}
-.oidf-config-form-section:last-of-type {
-  border-bottom: 0;
-  padding-bottom: 0;
-  margin-bottom: var(--space-4);
-}
-.oidf-config-form-section-title {
-  /* mirrors .t-overline from oidf-tokens.css */
-  font-family: var(--font-sans);
-  font-weight: var(--fw-medium);
-  font-size: var(--fs-12);
-  line-height: var(--lh-snug);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--fg-soft);
-  margin: 0 0 var(--space-3) 0;
-  padding: 0;
-}
-.oidf-config-form-actions {
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
-  margin-top: var(--space-4);
-}
-.oidf-config-form-json {
-  display: block;
-  width: 100%;
-  box-sizing: border-box;
-  min-height: calc(var(--space-6) * 16);
-}
-.oidf-config-form-json.is-error .oidf-json-editor {
-  border-color: var(--rust-400);
-}
-.oidf-config-form-json-error {
-  display: block;
-  margin-top: var(--space-2);
-  color: var(--rust-500);
-  font-family: var(--font-sans);
-  font-size: var(--fs-12);
-  line-height: var(--lh-snug);
-}
+const STYLE_TEXT = css`
+  .oidf-config-form {
+    font-family: var(--font-sans);
+    color: var(--fg);
+  }
+  .oidf-config-form-section {
+    border: 0;
+    margin: 0 0 var(--space-5) 0;
+    padding: 0 0 var(--space-4) 0;
+    border-bottom: 1px solid var(--ink-100);
+  }
+  .oidf-config-form-section:last-of-type {
+    border-bottom: 0;
+    padding-bottom: 0;
+    margin-bottom: var(--space-4);
+  }
+  .oidf-config-form-section-title {
+    /* mirrors .t-overline from oidf-tokens.css */
+    font-family: var(--font-sans);
+    font-weight: var(--fw-medium);
+    font-size: var(--fs-12);
+    line-height: var(--lh-snug);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--fg-soft);
+    margin: 0 0 var(--space-3) 0;
+    padding: 0;
+  }
+  .oidf-config-form-actions {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    margin-top: var(--space-4);
+  }
+  .oidf-config-form-json {
+    display: block;
+    width: 100%;
+    box-sizing: border-box;
+    min-height: calc(var(--space-6) * 16);
+  }
+  .oidf-config-form-json.is-error .oidf-json-editor {
+    border-color: var(--rust-400);
+  }
+  .oidf-config-form-json-error {
+    display: block;
+    margin-top: var(--space-2);
+    color: var(--rust-500);
+    font-family: var(--font-sans);
+    font-size: var(--fs-12);
+    line-height: var(--lh-snug);
+  }
 `;
 
 function injectStyles() {
   if (document.getElementById(STYLE_ID)) return;
   const style = document.createElement("style");
   style.id = STYLE_ID;
-  style.textContent = STYLE_TEXT;
+  style.textContent = STYLE_TEXT.cssText;
   document.head.appendChild(style);
 }
 

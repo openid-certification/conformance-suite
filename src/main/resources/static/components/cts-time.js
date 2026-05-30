@@ -1,4 +1,4 @@
-import { LitElement, html, nothing } from "lit";
+import { LitElement, html, nothing, css } from "lit";
 import {
   formatRelative,
   formatAbsolute,
@@ -21,7 +21,7 @@ const STYLE_ID = "cts-time-styles";
 // table cell never adds an inline-block gap or shifts baselines. Same trick
 // cts-tooltip uses. The inner <time> stays a real DOM node, so it keeps its
 // place in the accessibility tree.
-const STYLE_TEXT = `
+const STYLE_TEXT = css`
   cts-time {
     display: contents;
   }
@@ -31,7 +31,7 @@ function ensureStylesInjected() {
   if (document.getElementById(STYLE_ID)) return;
   const style = document.createElement("style");
   style.id = STYLE_ID;
-  style.textContent = STYLE_TEXT;
+  style.textContent = STYLE_TEXT.cssText;
   document.head.appendChild(style);
 }
 

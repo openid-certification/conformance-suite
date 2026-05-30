@@ -1,4 +1,4 @@
-import { LitElement, html, nothing } from "lit";
+import { LitElement, html, nothing, css } from "lit";
 import "./cts-alert.js";
 import { formatDescription } from "./format-description.js";
 import { splitTestSummary } from "./test-summary-split.js";
@@ -9,7 +9,7 @@ const STYLE_ID = "cts-test-summary-styles";
 // rules mirror the inline styles previously rendered inside
 // cts-log-detail-header._renderSummaryZones() so the visual treatment is
 // preserved when the alerts move out of the header card.
-const STYLE_TEXT = `
+const STYLE_TEXT = css`
   cts-test-summary {
     display: flex;
     flex-direction: column;
@@ -51,7 +51,7 @@ function ensureStylesInjected() {
   if (document.getElementById(STYLE_ID)) return;
   const style = document.createElement("style");
   style.id = STYLE_ID;
-  style.textContent = STYLE_TEXT;
+  style.textContent = STYLE_TEXT.cssText;
   document.head.appendChild(style);
 }
 

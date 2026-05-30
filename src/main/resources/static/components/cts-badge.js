@@ -1,3 +1,4 @@
+import { css } from "lit";
 import "./cts-icon.js";
 
 /**
@@ -90,7 +91,7 @@ const STYLE_ID = "cts-badge-styles";
  * the rendered footprint inside the border box, so a ringed chip
  * occupies the exact same pixels as a ringless one.
  */
-const STYLE_TEXT = `
+const STYLE_TEXT = css`
   cts-badge {
     /* Host defaults to inline, which means its height collapses to the
        inherited line-box (e.g. ~24px at line-height 1.5 × 16px) rather
@@ -159,11 +160,11 @@ const STYLE_TEXT = `
        contrast on the light --status-skipped-bg fill. Scoped to the badge
        so the shared --status-skipped token (consumed by cts-plan-list and
        cts-log-detail-header) is unchanged. */
-    color: var(--ink-600, #4F4940);
+    color: var(--ink-600, #4f4940);
   }
   cts-badge .b-rev {
-    background: var(--bg-muted, #F8F7F5);
-    color: var(--ink-700, #322E28);
+    background: var(--bg-muted, #f8f7f5);
+    color: var(--ink-700, #322e28);
   }
   /* Static informational pill — paints from the same --status-info-*
      palette as b-info-subtle, but inherits the canonical status-pill
@@ -267,8 +268,8 @@ const STYLE_TEXT = `
     color: var(--status-info-bg);
   }
   cts-badge .b-rev.is-pressed {
-    background: var(--ink-700, #322E28);
-    color: var(--bg-muted, #F8F7F5);
+    background: var(--ink-700, #322e28);
+    color: var(--bg-muted, #f8f7f5);
   }
   /* Hover and focus affordance — only on interactive badges. Read-only
      badges deliberately render no hover state so they read as labels,
@@ -278,7 +279,7 @@ const STYLE_TEXT = `
     filter: brightness(0.97);
   }
   cts-badge .badge.is-interactive:focus-visible {
-    outline: 2px solid var(--rust-400, #C75A3F);
+    outline: 2px solid var(--rust-400, #c75a3f);
     outline-offset: 2px;
   }
   /* Inline anchors carry the badge's own color so a link inside an
@@ -312,7 +313,9 @@ const STYLE_TEXT = `
     display: block;
   }
   @keyframes cts-badge-spin {
-    to { transform: rotate(360deg); }
+    to {
+      transform: rotate(360deg);
+    }
   }
 `;
 
@@ -320,7 +323,7 @@ function ensureStylesInjected() {
   if (document.getElementById(STYLE_ID)) return;
   const style = document.createElement("style");
   style.id = STYLE_ID;
-  style.textContent = STYLE_TEXT;
+  style.textContent = STYLE_TEXT.cssText;
   document.head.appendChild(style);
 }
 

@@ -1,4 +1,4 @@
-import { LitElement, html, nothing } from "lit";
+import { LitElement, html, nothing, css, unsafeCSS } from "lit";
 import { classMap } from "lit/directives/class-map.js";
 import { isMultiLineConfigField } from "../lib/config-field-types.js";
 
@@ -83,136 +83,136 @@ let uidCounter = 0;
 const SELECT_CHEVRON =
   "url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 16 16'><path fill='none' stroke='%2371695E' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M4 6l4 4 4-4'/></svg>\")";
 
-const STYLE_TEXT = `
-cts-form-field {
-  display: block;
-}
-.oidf-form-field {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-1);
-  margin-bottom: var(--space-4);
-}
-.oidf-form-field .oidf-label {
-  font-family: var(--font-sans);
-  font-weight: var(--fw-bold);
-  font-size: var(--fs-12);
-  line-height: var(--lh-snug);
-  color: var(--fg-soft);
-}
-.oidf-form-field .oidf-input,
-.oidf-form-field .oidf-select,
-.oidf-form-field .oidf-textarea {
-  width: 100%;
-  box-sizing: border-box;
-  padding: var(--space-3);
-  border: 1px solid var(--ink-300);
-  border-radius: var(--radius-2);
-  background: var(--bg-elev);
-  color: var(--fg);
-  font-family: var(--font-sans);
-  font-size: var(--fs-13);
-  line-height: var(--lh-base);
-  /* Reset legacy layout.css \`input[type=text], textarea { text-indent: 5px }\` so
+const STYLE_TEXT = css`
+  cts-form-field {
+    display: block;
+  }
+  .oidf-form-field {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+    margin-bottom: var(--space-4);
+  }
+  .oidf-form-field .oidf-label {
+    font-family: var(--font-sans);
+    font-weight: var(--fw-bold);
+    font-size: var(--fs-12);
+    line-height: var(--lh-snug);
+    color: var(--fg-soft);
+  }
+  .oidf-form-field .oidf-input,
+  .oidf-form-field .oidf-select,
+  .oidf-form-field .oidf-textarea {
+    width: 100%;
+    box-sizing: border-box;
+    padding: var(--space-3);
+    border: 1px solid var(--ink-300);
+    border-radius: var(--radius-2);
+    background: var(--bg-elev);
+    color: var(--fg);
+    font-family: var(--font-sans);
+    font-size: var(--fs-13);
+    line-height: var(--lh-base);
+    /* Reset legacy layout.css \`input[type=text], textarea { text-indent: 5px }\` so
      design-system inputs land at the same x-offset regardless of input type. */
-  text-indent: 0;
-}
-.oidf-form-field .oidf-input,
-.oidf-form-field .oidf-select {
-  height: var(--control-height);
-  padding-top: 0;
-  padding-bottom: 0;
-}
-.oidf-form-field .oidf-textarea {
-  /* layout.css ships a global \`textarea { height: 200px }\` for legacy pages
+    text-indent: 0;
+  }
+  .oidf-form-field .oidf-input,
+  .oidf-form-field .oidf-select {
+    height: var(--control-height);
+    padding-top: 0;
+    padding-bottom: 0;
+  }
+  .oidf-form-field .oidf-textarea {
+    /* layout.css ships a global \`textarea { height: 200px }\` for legacy pages
      (index.html etc). An explicit height overrides \`field-sizing: content\`,
      so we reset to \`auto\` and let min-height / max-height carry the bounds. */
-  height: auto;
-  min-height: calc(var(--space-6) * 4);
-  max-height: 50vh;
-  /* Auto-grow as the user types/pastes. Firefox lacks support today and
+    height: auto;
+    min-height: calc(var(--space-6) * 4);
+    max-height: 50vh;
+    /* Auto-grow as the user types/pastes. Firefox lacks support today and
      falls back to the fixed initial size + min-height floor + manual resize
      handle. Width stays at 100% so horizontal jank is impossible. */
-  field-sizing: content;
-  resize: vertical;
-}
-.oidf-form-field .oidf-input.is-mono,
-.oidf-form-field .oidf-textarea.is-mono {
-  font-family: var(--font-mono);
-  font-size: var(--fs-12);
-}
-.oidf-form-field .oidf-select {
-  appearance: none;
-  -webkit-appearance: none;
-  padding-right: 36px;
-  background-image: ${SELECT_CHEVRON};
-  background-repeat: no-repeat;
-  background-position: right 12px center;
-  /* Native <select> centers its closed-state text inconsistently across browsers
+    field-sizing: content;
+    resize: vertical;
+  }
+  .oidf-form-field .oidf-input.is-mono,
+  .oidf-form-field .oidf-textarea.is-mono {
+    font-family: var(--font-mono);
+    font-size: var(--fs-12);
+  }
+  .oidf-form-field .oidf-select {
+    appearance: none;
+    -webkit-appearance: none;
+    padding-right: 36px;
+    background-image: ${unsafeCSS(SELECT_CHEVRON)};
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    /* Native <select> centers its closed-state text inconsistently across browsers
      when line-height inflates the line box; pin to 1 inside the fixed 34px height. */
-  line-height: 1;
-}
-.oidf-form-field .oidf-input:focus,
-.oidf-form-field .oidf-select:focus,
-.oidf-form-field .oidf-textarea:focus {
-  outline: none;
-  border-color: var(--orange-400);
-  box-shadow: var(--focus-ring);
-}
-.oidf-form-field .oidf-input:disabled,
-.oidf-form-field .oidf-select:disabled,
-.oidf-form-field .oidf-textarea:disabled {
-  background: var(--bg-muted);
-  color: var(--fg-faint);
-  cursor: not-allowed;
-}
-.oidf-form-field .oidf-input.is-error,
-.oidf-form-field .oidf-select.is-error,
-.oidf-form-field .oidf-textarea.is-error {
-  border-color: var(--rust-400);
-}
-.oidf-form-field .oidf-error {
-  display: flex;
-  align-items: center;
-  gap: var(--space-1);
-  color: var(--rust-500);
-  font-family: var(--font-sans);
-  font-size: var(--fs-12);
-  line-height: var(--lh-snug);
-}
-.oidf-form-field .oidf-help {
-  /* mirrors .t-meta from oidf-tokens.css */
-  color: var(--fg-soft);
-}
-.oidf-form-field .oidf-checkbox-row {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-}
-.oidf-form-field .oidf-checkbox {
-  width: var(--space-4);
-  height: var(--space-4);
-  margin: 0;
-  accent-color: var(--orange-500);
-}
-.oidf-form-field .oidf-checkbox:focus-visible {
-  outline: none;
-  box-shadow: var(--focus-ring);
-  border-radius: var(--radius-1);
-}
-.oidf-form-field .oidf-checkbox-label {
-  font-family: var(--font-sans);
-  font-size: var(--fs-13);
-  line-height: var(--lh-snug);
-  color: var(--fg);
-}
+    line-height: 1;
+  }
+  .oidf-form-field .oidf-input:focus,
+  .oidf-form-field .oidf-select:focus,
+  .oidf-form-field .oidf-textarea:focus {
+    outline: none;
+    border-color: var(--orange-400);
+    box-shadow: var(--focus-ring);
+  }
+  .oidf-form-field .oidf-input:disabled,
+  .oidf-form-field .oidf-select:disabled,
+  .oidf-form-field .oidf-textarea:disabled {
+    background: var(--bg-muted);
+    color: var(--fg-faint);
+    cursor: not-allowed;
+  }
+  .oidf-form-field .oidf-input.is-error,
+  .oidf-form-field .oidf-select.is-error,
+  .oidf-form-field .oidf-textarea.is-error {
+    border-color: var(--rust-400);
+  }
+  .oidf-form-field .oidf-error {
+    display: flex;
+    align-items: center;
+    gap: var(--space-1);
+    color: var(--rust-500);
+    font-family: var(--font-sans);
+    font-size: var(--fs-12);
+    line-height: var(--lh-snug);
+  }
+  .oidf-form-field .oidf-help {
+    /* mirrors .t-meta from oidf-tokens.css */
+    color: var(--fg-soft);
+  }
+  .oidf-form-field .oidf-checkbox-row {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+  }
+  .oidf-form-field .oidf-checkbox {
+    width: var(--space-4);
+    height: var(--space-4);
+    margin: 0;
+    accent-color: var(--orange-500);
+  }
+  .oidf-form-field .oidf-checkbox:focus-visible {
+    outline: none;
+    box-shadow: var(--focus-ring);
+    border-radius: var(--radius-1);
+  }
+  .oidf-form-field .oidf-checkbox-label {
+    font-family: var(--font-sans);
+    font-size: var(--fs-13);
+    line-height: var(--lh-snug);
+    color: var(--fg);
+  }
 `;
 
 function injectStyles() {
   if (document.getElementById(STYLE_ID)) return;
   const style = document.createElement("style");
   style.id = STYLE_ID;
-  style.textContent = STYLE_TEXT;
+  style.textContent = STYLE_TEXT.cssText;
   document.head.appendChild(style);
 }
 

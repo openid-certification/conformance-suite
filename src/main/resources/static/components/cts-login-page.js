@@ -1,4 +1,4 @@
-import { LitElement, html, nothing } from "lit";
+import { LitElement, html, nothing, css } from "lit";
 import "./cts-link-button.js";
 import "./cts-alert.js";
 import "./cts-icon.js";
@@ -63,286 +63,294 @@ const STYLE_ID = "cts-login-page-styles";
 // glow accents pulled from the OIDF orange/sand ramps. Typography, spacing,
 // radii, shadows, motion and palette all come from `oidf-tokens.css` — no
 // Bootstrap leakage.
-const STYLE_TEXT = `
-.oidf-login-page {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: calc(100vh - 60px);
-  padding: var(--space-8) var(--space-4);
-  background:
-    radial-gradient(1200px 600px at 8% -10%, var(--sand-50), transparent 60%),
-    radial-gradient(900px 500px at 110% 110%, var(--orange-50), transparent 55%),
-    var(--bg-muted);
-}
+const STYLE_TEXT = css`
+  .oidf-login-page {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: calc(100vh - 60px);
+    padding: var(--space-8) var(--space-4);
+    background:
+      radial-gradient(1200px 600px at 8% -10%, var(--sand-50), transparent 60%),
+      radial-gradient(900px 500px at 110% 110%, var(--orange-50), transparent 55%), var(--bg-muted);
+  }
 
-.oidf-login-card {
-  width: 100%;
-  max-width: 960px;
-  display: grid;
-  grid-template-columns: 1fr;
-  background: var(--bg-elev);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-4);
-  box-shadow: var(--shadow-3);
-  overflow: hidden;
-  animation: oidf-login-rise var(--dur-3) var(--ease-standard) both;
-}
-@media (prefers-reduced-motion: reduce) {
-  .oidf-login-card { animation: none; }
-}
-@keyframes oidf-login-rise {
-  from { opacity: 0; transform: translateY(8px); }
-  to   { opacity: 1; transform: none; }
-}
-@media (min-width: 860px) {
   .oidf-login-card {
-    grid-template-columns: 5fr 7fr;
+    width: 100%;
+    max-width: 960px;
+    display: grid;
+    grid-template-columns: 1fr;
+    background: var(--bg-elev);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-4);
+    box-shadow: var(--shadow-3);
+    overflow: hidden;
+    animation: oidf-login-rise var(--dur-3) var(--ease-standard) both;
   }
-}
+  @media (prefers-reduced-motion: reduce) {
+    .oidf-login-card {
+      animation: none;
+    }
+  }
+  @keyframes oidf-login-rise {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+  @media (min-width: 860px) {
+    .oidf-login-card {
+      grid-template-columns: 5fr 7fr;
+    }
+  }
 
-/* ----- Brand panel ----- */
-.oidf-login-brand {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-6);
-  padding: var(--space-8) var(--space-6);
-  color: var(--ink-0);
-  background:
-    linear-gradient(180deg, rgba(235, 139, 53, 0.14) 0%, transparent 55%),
-    var(--bg-ink);
-}
-@media (min-width: 860px) {
+  /* ----- Brand panel ----- */
   .oidf-login-brand {
-    padding: var(--space-10) var(--space-8);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-6);
+    padding: var(--space-8) var(--space-6);
+    color: var(--ink-0);
+    background:
+      linear-gradient(180deg, rgba(235, 139, 53, 0.14) 0%, transparent 55%), var(--bg-ink);
   }
-}
-.oidf-login-brand__head {
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
-}
-.oidf-login-brand__logo {
-  display: block;
-  height: 28px;
-  width: auto;
-  position: relative;
-  top: -4px;
-}
-.oidf-login-brand__eyebrow {
-  display: inline-block;
-  font-size: var(--fs-12);
-  font-weight: var(--fw-bold);
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--orange-200);
-}
-.oidf-login-brand__headline {
-  margin: 0;
-  font-family: var(--font-display);
-  font-weight: var(--fw-bold);
-  font-size: var(--fs-20);
-  line-height: var(--lh-snug);
-  letter-spacing: -0.01em;
-  color: var(--ink-0);
-}
-@media (min-width: 860px) {
+  @media (min-width: 860px) {
+    .oidf-login-brand {
+      padding: var(--space-10) var(--space-8);
+    }
+  }
+  .oidf-login-brand__head {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+  }
+  .oidf-login-brand__logo {
+    display: block;
+    height: 28px;
+    width: auto;
+    position: relative;
+    top: -4px;
+  }
+  .oidf-login-brand__eyebrow {
+    display: inline-block;
+    font-size: var(--fs-12);
+    font-weight: var(--fw-bold);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--orange-200);
+  }
   .oidf-login-brand__headline {
-    font-size: var(--fs-24);
+    margin: 0;
+    font-family: var(--font-display);
+    font-weight: var(--fw-bold);
+    font-size: var(--fs-20);
+    line-height: var(--lh-snug);
+    letter-spacing: -0.01em;
+    color: var(--ink-0);
   }
-}
-.oidf-login-brand__pillars {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-3);
-  color: rgba(255, 255, 255, 0.82);
-  font-size: var(--fs-14);
-  line-height: var(--lh-snug);
-}
-.oidf-login-brand__pillars li {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-}
-.oidf-login-brand__pillars cts-icon {
-  color: var(--orange-300);
-  flex: 0 0 auto;
-}
-.oidf-login-brand__footer {
-  margin-top: auto;
-  padding-top: var(--space-4);
-  border-top: 1px solid rgba(255, 255, 255, 0.10);
-  color: rgba(255, 255, 255, 0.60);
-  font-size: var(--fs-12);
-}
+  @media (min-width: 860px) {
+    .oidf-login-brand__headline {
+      font-size: var(--fs-24);
+    }
+  }
+  .oidf-login-brand__pillars {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    color: rgba(255, 255, 255, 0.82);
+    font-size: var(--fs-14);
+    line-height: var(--lh-snug);
+  }
+  .oidf-login-brand__pillars li {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+  }
+  .oidf-login-brand__pillars cts-icon {
+    color: var(--orange-300);
+    flex: 0 0 auto;
+  }
+  .oidf-login-brand__footer {
+    margin-top: auto;
+    padding-top: var(--space-4);
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.6);
+    font-size: var(--fs-12);
+  }
 
-/* ----- Form panel ----- */
-.oidf-login-form {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-5);
-  padding: var(--space-8) var(--space-6);
-}
-@media (min-width: 860px) {
+  /* ----- Form panel ----- */
   .oidf-login-form {
-    padding: var(--space-10) var(--space-8);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-5);
+    padding: var(--space-8) var(--space-6);
   }
-}
-.oidf-login-form__head {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
-}
-.oidf-login-title {
-  margin: 0;
-  font-family: var(--font-display);
-  font-size: var(--fs-24);
-  font-weight: var(--fw-bold);
-  line-height: var(--lh-tight);
-  letter-spacing: -0.01em;
-  color: var(--ink-900);
-}
-.oidf-login-subtitle {
-  margin: 0;
-  font-size: var(--fs-14);
-  line-height: var(--lh-base);
-  color: var(--fg-muted);
-}
+  @media (min-width: 860px) {
+    .oidf-login-form {
+      padding: var(--space-10) var(--space-8);
+    }
+  }
+  .oidf-login-form__head {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+  }
+  .oidf-login-title {
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: var(--fs-24);
+    font-weight: var(--fw-bold);
+    line-height: var(--lh-tight);
+    letter-spacing: -0.01em;
+    color: var(--ink-900);
+  }
+  .oidf-login-subtitle {
+    margin: 0;
+    font-size: var(--fs-14);
+    line-height: var(--lh-base);
+    color: var(--fg-muted);
+  }
 
-.oidf-login-providers {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-3);
-}
-/* Brand-button anchors render as plain <a> rather than cts-link-button
+  .oidf-login-providers {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+  }
+  /* Brand-button anchors render as plain <a> rather than cts-link-button
    (so the inline brand SVG can replace the icon slot). They still need
    the design-system full-width treatment that [full-width] gives to
    cts-link-button, plus an inline-flex layout so the brand mark and
    label centre on the button. */
-.oidf-login-providers > a.oidf-btn {
-  width: 100%;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--space-2);
-}
+  .oidf-login-providers > a.oidf-btn {
+    width: 100%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-2);
+  }
 
-/* Brand-mark SVGs sit inside the social-login anchors. They share the
+  /* Brand-mark SVGs sit inside the social-login anchors. They share the
    button's text-color via currentColor for the GitLab tanuki silhouette,
    while the Google G keeps its official multicolor palette. Sized to
    1em so they track the surrounding label font-size, matching the
    button height the design system gives them. */
-.oidf-login-page .oidf-login-brand-mark {
-  display: inline-block;
-  width: 1em;
-  height: 1em;
-  vertical-align: -0.125em;
-  flex-shrink: 0;
-}
+  .oidf-login-page .oidf-login-brand-mark {
+    display: inline-block;
+    width: 1em;
+    height: 1em;
+    vertical-align: -0.125em;
+    flex-shrink: 0;
+  }
 
-/* Labelled divider between primary and secondary actions */
-.oidf-login-divider {
-  display: grid;
-  grid-template-columns: 1fr auto 1fr;
-  align-items: center;
-  gap: var(--space-3);
-  margin: var(--space-1) 0;
-  color: var(--fg-soft);
-  font-size: var(--fs-12);
-  font-weight: var(--fw-bold);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-.oidf-login-divider::before,
-.oidf-login-divider::after {
-  content: "";
-  height: 1px;
-  background: var(--border);
-}
+  /* Labelled divider between primary and secondary actions */
+  .oidf-login-divider {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    gap: var(--space-3);
+    margin: var(--space-1) 0;
+    color: var(--fg-soft);
+    font-size: var(--fs-12);
+    font-weight: var(--fw-bold);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .oidf-login-divider::before,
+  .oidf-login-divider::after {
+    content: "";
+    height: 1px;
+    background: var(--border);
+  }
 
-/* Public-resource rich list */
-.oidf-login-secondary {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
-}
-.oidf-login-link {
-  display: grid;
-  grid-template-columns: auto 1fr auto;
-  align-items: center;
-  gap: var(--space-3);
-  padding: var(--space-3) var(--space-4);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-3);
-  background: var(--bg-elev);
-  color: var(--ink-900);
-  text-decoration-line: none;
-  transition: background var(--dur-1) var(--ease-standard),
-              border-color var(--dur-1) var(--ease-standard);
-}
-.oidf-login-link:hover {
-  background: var(--ink-50);
-  border-color: var(--border-strong);
-  color: var(--ink-900);
-  text-decoration-line: none;
-}
-.oidf-login-link:focus-visible {
-  outline: none;
-  box-shadow: var(--focus-ring);
-}
-.oidf-login-link__icon {
-  width: 36px;
-  height: 36px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: var(--radius-2);
-  background: var(--sand-50);
-  border: 1px solid var(--sand-200);
-  color: var(--orange-600);
-  font-size: var(--fs-16);
-}
-.oidf-login-link__body {
-  display: flex;
-  flex-direction: column;
-  line-height: var(--lh-snug);
-  min-width: 0;
-}
-.oidf-login-link__title {
-  font-weight: var(--fw-bold);
-  font-size: var(--fs-14);
-  color: var(--ink-900);
-}
-.oidf-login-link__meta {
-  font-size: var(--fs-12);
-  color: var(--fg-muted);
-}
-.oidf-login-link__chevron {
-  display: contents;
-  color: var(--fg-soft);
-  font-size: var(--fs-14);
-  transition: transform var(--dur-1) var(--ease-standard),
-              color var(--dur-1) var(--ease-standard);
-}
-.oidf-login-link:hover .oidf-login-link__chevron {
-  transform: translateX(2px);
-  color: var(--ink-900);
-}
+  /* Public-resource rich list */
+  .oidf-login-secondary {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+  }
+  .oidf-login-link {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: var(--space-3);
+    padding: var(--space-3) var(--space-4);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-3);
+    background: var(--bg-elev);
+    color: var(--ink-900);
+    text-decoration-line: none;
+    transition:
+      background var(--dur-1) var(--ease-standard),
+      border-color var(--dur-1) var(--ease-standard);
+  }
+  .oidf-login-link:hover {
+    background: var(--ink-50);
+    border-color: var(--border-strong);
+    color: var(--ink-900);
+    text-decoration-line: none;
+  }
+  .oidf-login-link:focus-visible {
+    outline: none;
+    box-shadow: var(--focus-ring);
+  }
+  .oidf-login-link__icon {
+    width: 36px;
+    height: 36px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-2);
+    background: var(--sand-50);
+    border: 1px solid var(--sand-200);
+    color: var(--orange-600);
+    font-size: var(--fs-16);
+  }
+  .oidf-login-link__body {
+    display: flex;
+    flex-direction: column;
+    line-height: var(--lh-snug);
+    min-width: 0;
+  }
+  .oidf-login-link__title {
+    font-weight: var(--fw-bold);
+    font-size: var(--fs-14);
+    color: var(--ink-900);
+  }
+  .oidf-login-link__meta {
+    font-size: var(--fs-12);
+    color: var(--fg-muted);
+  }
+  .oidf-login-link__chevron {
+    display: contents;
+    color: var(--fg-soft);
+    font-size: var(--fs-14);
+    transition:
+      transform var(--dur-1) var(--ease-standard),
+      color var(--dur-1) var(--ease-standard);
+  }
+  .oidf-login-link:hover .oidf-login-link__chevron {
+    transform: translateX(2px);
+    color: var(--ink-900);
+  }
 
-.oidf-login-error-details {
-  font-family: var(--font-mono);
-  font-size: var(--fs-13);
-}
+  .oidf-login-error-details {
+    font-family: var(--font-mono);
+    font-size: var(--fs-13);
+  }
 `;
 
 function injectStyles() {
   if (document.getElementById(STYLE_ID)) return;
   const style = document.createElement("style");
   style.id = STYLE_ID;
-  style.textContent = STYLE_TEXT;
+  style.textContent = STYLE_TEXT.cssText;
   document.head.appendChild(style);
 }
 

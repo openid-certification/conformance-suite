@@ -1,3 +1,4 @@
+import { css } from "lit";
 /**
  * Sticky bottom action bar. Wraps its children in a viewport-pinned bar with
  * an inner content wrapper aligned to a caller-supplied content width preset,
@@ -48,39 +49,45 @@ const DEFAULT_PRESET = "schedule-test-page";
 
 const STYLE_ID = "cts-action-bar-styles";
 
-const STYLE_TEXT = `
-.oidf-action-bar {
-  background: var(--bg);
-  border-top: 1px solid var(--border);
-  box-shadow: var(--shadow-3, 0 -4px 16px rgba(26, 22, 17, 0.08));
-  z-index: 2;
-}
-.oidf-action-bar[data-position="bottom"] {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-}
-.oidf-action-bar[data-position="static"] {
-  position: static;
-}
-.oidf-action-bar__inner {
-  margin: 0 auto;
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-3);
-  align-items: center;
-  padding-block: var(--space-3);
-}
-@media (prefers-reduced-motion: no-preference) {
+const STYLE_TEXT = css`
+  .oidf-action-bar {
+    background: var(--bg);
+    border-top: 1px solid var(--border);
+    box-shadow: var(--shadow-3, 0 -4px 16px rgba(26, 22, 17, 0.08));
+    z-index: 2;
+  }
   .oidf-action-bar[data-position="bottom"] {
-    animation: cts-action-bar-slide-in 220ms cubic-bezier(0.2, 0, 0, 1);
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
   }
-  @keyframes cts-action-bar-slide-in {
-    from { transform: translateY(100%); opacity: 0; }
-    to   { transform: translateY(0);    opacity: 1; }
+  .oidf-action-bar[data-position="static"] {
+    position: static;
   }
-}
+  .oidf-action-bar__inner {
+    margin: 0 auto;
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+    align-items: center;
+    padding-block: var(--space-3);
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .oidf-action-bar[data-position="bottom"] {
+      animation: cts-action-bar-slide-in 220ms cubic-bezier(0.2, 0, 0, 1);
+    }
+    @keyframes cts-action-bar-slide-in {
+      from {
+        transform: translateY(100%);
+        opacity: 0;
+      }
+      to {
+        transform: translateY(0);
+        opacity: 1;
+      }
+    }
+  }
 `;
 
 const SUPPORTED_POSITIONS = new Set(["bottom", "static"]);
@@ -101,7 +108,7 @@ function injectStyles() {
   if (document.getElementById(STYLE_ID)) return;
   const style = document.createElement("style");
   style.id = STYLE_ID;
-  style.textContent = STYLE_TEXT;
+  style.textContent = STYLE_TEXT.cssText;
   document.head.appendChild(style);
 }
 

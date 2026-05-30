@@ -1,4 +1,4 @@
-import { LitElement, html, nothing } from "lit";
+import { LitElement, html, nothing, css } from "lit";
 import "./cts-button.js";
 import "./cts-link-button.js";
 import "./cts-json-editor.js";
@@ -15,7 +15,7 @@ const STYLE_ID = "cts-plan-actions-styles";
 // confirm) reuse the OIDF card surface tokens. The destructive confirm
 // panel switches to the rust palette for emphasis (matches the design
 // archive's failure tone).
-const STYLE_TEXT = `
+const STYLE_TEXT = css`
   cts-plan-actions {
     display: block;
   }
@@ -133,7 +133,7 @@ function ensureStylesInjected() {
   if (document.getElementById(STYLE_ID)) return;
   const style = document.createElement("style");
   style.id = STYLE_ID;
-  style.textContent = STYLE_TEXT;
+  style.textContent = STYLE_TEXT.cssText;
   document.head.appendChild(style);
 }
 
