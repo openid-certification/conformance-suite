@@ -20,6 +20,13 @@ public class InMemoryTestRunnerSupport implements TestRunnerSupport {
 	private Duration closedTestTimeout = Duration.ofMinutes(15);
 	private Duration waitingTestTimeout = Duration.ofHours(6);
 
+	// expireOldTests() walks the running-test map and allocates a HashSet
+	// every call; it used to fire on every lookup, showing up as ~7% of
+	// Spring-handler CPU in JFR profiles. Rate-limit it: tests time out
+	// on the order of 15 min / 6 h, so cleaning up a minute late is fine.
+	private static final Duration EXPIRE_INTERVAL = Duration.ofSeconds(60);
+	private Instant lastExpireRun = Instant.EPOCH;
+
 	@Autowired
 	private AuthenticationFacade authenticationFacade;
 
@@ -108,6 +115,11 @@ public class InMemoryTestRunnerSupport implements TestRunnerSupport {
 	}
 
 	private void expireOldTests() {
+		Instant now = Instant.now();
+		if (lastExpireRun.plus(EXPIRE_INTERVAL).isAfter(now)) {
+			return;
+		}
+		lastExpireRun = now;
 		for (Map.Entry<String, TestModule> entry : new HashSet<>(runningTests.entrySet())) {
 			TestModule testModule = entry.getValue();
 			String testId = entry.getKey();
