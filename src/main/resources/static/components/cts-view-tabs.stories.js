@@ -161,9 +161,10 @@ export const NoScheduleTestWithoutOptIn = {
 };
 
 // Opt-in Published help affordance (R22): when published-help is set, a
-// circled-question-mark icon renders immediately after the Published anchor,
-// wrapped in a cts-tooltip carrying the descriptor. The icon is the focusable
-// trigger (tabindex=0) and carries the full descriptor as its accessible name.
+// circled-question-mark icon renders inside the Published anchor, just after its
+// label, wrapped in a cts-tooltip carrying the descriptor. The icon is the
+// focusable trigger (tabindex=0) and carries the full descriptor as its
+// accessible name.
 export const PublishedHelpTooltip = {
   render: () =>
     html`<cts-view-tabs
@@ -180,12 +181,12 @@ export const PublishedHelpTooltip = {
     expect(help.getAttribute("tabindex")).toBe("0");
     expect(help.getAttribute("aria-label")).toContain("Published test plans");
 
-    // It sits immediately after the Published anchor, inside a cts-tooltip whose
-    // content carries the same descriptor.
+    // It sits inside the Published anchor (after its label), wrapped in a
+    // cts-tooltip whose content carries the same descriptor.
     const published = canvasElement.querySelector("a[data-view='published']");
     const tooltip = help.closest("cts-tooltip");
     expect(tooltip).toBeTruthy();
-    expect(published.nextElementSibling).toBe(tooltip);
+    expect(published.contains(tooltip)).toBe(true);
     expect(tooltip.getAttribute("content")).toContain("Published test plans");
   },
 };

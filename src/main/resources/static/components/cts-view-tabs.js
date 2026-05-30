@@ -63,7 +63,7 @@ const STYLE_TEXT = css`
    help-icon colour + focus-ring treatment. */
   .cts-view-tabs .cts-view-tabs-help-icon {
     align-self: center;
-    margin-left: var(--space-1);
+    margin-left: var(--space-2);
     color: var(--fg-faint);
     cursor: help;
   }
