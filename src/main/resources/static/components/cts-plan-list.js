@@ -85,14 +85,14 @@ const STYLE_TEXT = css`
     /* border-box + --control-height so the bordered input is 34px outer (was
        content-sized ~36px), aligning with adjacent default-size controls. */
     height: var(--control-height);
-    padding: var(--space-2) var(--space-3) var(--space-2) calc(var(--space-3) + var(--space-6));
+    padding: var(--space-1) var(--space-3) var(--space-1) calc(var(--space-3) + var(--space-6));
     background: var(--bg);
     color: var(--fg);
     border: 1px solid var(--border);
     border-radius: var(--radius-2);
     font-family: var(--font-sans);
     font-size: var(--fs-14);
-    line-height: var(--lh-snug);
+    line-height: var(--control-height);
   }
   .cts-plan-list-search input:focus {
     outline: none;
