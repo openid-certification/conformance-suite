@@ -745,7 +745,7 @@ test.describe("logs.html — Published help tooltip + terminology (U12)", () => 
     );
   });
 
-  test("R22: a circled-help icon sits next to Published, carrying the descriptor as tooltip + accessible name", async ({
+  test("R22: a circled-help icon sits inside the Published tab, carrying the descriptor as tooltip + accessible name", async ({
     page,
   }) => {
     await setupFailFast(page);
@@ -759,7 +759,7 @@ test.describe("logs.html — Published help tooltip + terminology (U12)", () => 
     await expect(help).toHaveAttribute("name", "circle-help");
     await expect(help).toHaveAttribute("tabindex", "0");
     await expect(help).toHaveAttribute("aria-label", /Published test logs are conformance/);
-    const tooltip = page.locator("#viewTabs a[data-view='published'] + cts-tooltip");
+    const tooltip = page.locator("#viewTabs a[data-view='published'] cts-tooltip");
     await expect(tooltip).toHaveAttribute("content", /Published test logs are conformance/);
     await expect(tooltip.locator("[data-testid='published-help']")).toHaveCount(1);
   });
