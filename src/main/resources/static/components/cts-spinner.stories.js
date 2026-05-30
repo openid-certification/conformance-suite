@@ -30,14 +30,18 @@ export const Default = {
     expect(srText).toBeTruthy();
     expect(srText.textContent).toBe("Loading");
 
-    // The arc is an inline SVG <circle> sized by the size attribute,
-    // not an <img>. This is the regression assertion for the GIF removal.
+    // The ring is inline SVG <circle>s sized by the size attribute, not an
+    // <img>. This is the regression assertion for the GIF removal. Two-tone:
+    // a full-circle track under a dash-clipped indicator arc, both coloured
+    // via CSS classes (so neither carries an inline stroke attribute).
     const svg = spinner.querySelector("svg");
     expect(svg).toBeTruthy();
     expect(svg.getAttribute("aria-hidden")).toBe("true");
-    const circle = svg.querySelector("circle");
-    expect(circle).toBeTruthy();
-    expect(circle.getAttribute("stroke")).toBeNull(); // stroke set via CSS (currentColor)
+    const circles = svg.querySelectorAll("circle");
+    expect(circles.length).toBe(2);
+    expect(svg.querySelector(".cts-spinner-track")).toBeTruthy();
+    expect(svg.querySelector(".cts-spinner-indicator")).toBeTruthy();
+    expect(circles[0].getAttribute("stroke")).toBeNull(); // stroke set via CSS
 
     // Default size is "md" — the host carries data-size="md" so the
     // scoped stylesheet keys off it. This is the contract between the
