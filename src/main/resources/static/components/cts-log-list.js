@@ -127,8 +127,7 @@ const STYLE_TEXT = css`
     background: var(--bg);
     color: var(--fg);
     border: 0;
-    /* preceeded by the filter dropdown, border and border-radius need to be removed on the left */
-    border-left: 0;
+    /* preceded by the filter dropdown, so border and border-radius are removed on the left */
     border-radius: 0 var(--radius-2) var(--radius-2) 0;
     font-family: var(--font-sans);
     font-size: var(--fs-14);
