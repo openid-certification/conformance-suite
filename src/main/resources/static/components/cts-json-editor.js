@@ -1,4 +1,4 @@
-import { LitElement, html, nothing } from "lit";
+import { LitElement, html, nothing, css } from "lit";
 
 /**
  * Same-origin path to the vendored Monaco AMD distribution. Must end at
@@ -181,71 +181,71 @@ function defineOidfTheme(monaco) {
 
 const STYLE_ID = "cts-json-editor-styles";
 
-const STYLE_TEXT = `
-/* Custom elements default to display: inline, which makes the host
+const STYLE_TEXT = css`
+  /* Custom elements default to display: inline, which makes the host
    collapse to its content's size and prevents min-height from working as
    page-level callers expect. Defaulting the host to display: block lets
    pages omit "display: block" from inline styles; per-page min-height
    (when needed) remains the only inline configuration. */
-cts-json-editor {
-  display: block;
-}
-.oidf-json-editor {
-  display: block;
-  width: 100%;
-  border: 1px solid var(--ink-300);
-  border-radius: var(--radius-2);
-  background: var(--bg-elev);
-  font-family: var(--font-mono);
-  font-size: var(--fs-13);
-  line-height: var(--lh-base);
-  overflow: hidden;
-  position: relative;
-  box-sizing: border-box;
-  padding: 6px;
-}
-/* Focus ring is meaningful only on editable editors. Clicking a
+  cts-json-editor {
+    display: block;
+  }
+  .oidf-json-editor {
+    display: block;
+    width: 100%;
+    border: 1px solid var(--ink-300);
+    border-radius: var(--radius-2);
+    background: var(--bg-elev);
+    font-family: var(--font-mono);
+    font-size: var(--fs-13);
+    line-height: var(--lh-base);
+    overflow: hidden;
+    position: relative;
+    box-sizing: border-box;
+    padding: 6px;
+  }
+  /* Focus ring is meaningful only on editable editors. Clicking a
    read-only surface does nothing, so painting the orange ring there
    would mislead users about the affordance. */
-cts-json-editor:not([readonly]) .oidf-json-editor:focus-within {
-  outline: none;
-  border-color: var(--orange-400);
-  box-shadow: var(--focus-ring);
-}
-/* Read-only host paints with the same muted canvas as the Monaco
+  cts-json-editor:not([readonly]) .oidf-json-editor:focus-within {
+    outline: none;
+    border-color: var(--orange-400);
+    box-shadow: var(--focus-ring);
+  }
+  /* Read-only host paints with the same muted canvas as the Monaco
    theme so the affordance survives the Monaco-pre-mount paint window
    and the fallback textarea path (Monaco failed to load). The left
    inset rail is a quiet visual anchor that signals "display surface"
    without competing with the aria-label or surrounding chrome. */
-cts-json-editor[readonly] .oidf-json-editor {
-  background: var(--bg-muted);
-  box-shadow: inset 2px 0 0 var(--ink-200);
-}
-.oidf-json-editor-host {
-  width: 100%;
-  min-height: 80px;
-}
-.oidf-json-editor-fallback {
-  display: block;
-  width: 100%;
-  min-height: inherit;
-  padding: var(--space-3);
-  border: 0;
-  background: transparent;
-  color: var(--fg);
-  font-family: inherit;
-  font-size: inherit;
-  line-height: inherit;
-  resize: vertical;
-  text-indent: 0;
-  box-sizing: border-box;
-}
-cts-json-editor[readonly] .oidf-json-editor-fallback {
-  background: var(--bg-muted);
-}
-.oidf-json-editor-fallback:focus {
-  outline: none;
-}
+  cts-json-editor[readonly] .oidf-json-editor {
+    background: var(--bg-muted);
+    box-shadow: inset 2px 0 0 var(--ink-200);
+  }
+  .oidf-json-editor-host {
+    width: 100%;
+    min-height: 80px;
+  }
+  .oidf-json-editor-fallback {
+    display: block;
+    width: 100%;
+    min-height: inherit;
+    padding: var(--space-3);
+    border: 0;
+    background: transparent;
+    color: var(--fg);
+    font-family: inherit;
+    font-size: inherit;
+    line-height: inherit;
+    resize: vertical;
+    text-indent: 0;
+    box-sizing: border-box;
+  }
+  cts-json-editor[readonly] .oidf-json-editor-fallback {
+    background: var(--bg-muted);
+  }
+  .oidf-json-editor-fallback:focus {
+    outline: none;
+  }
 `;
 
 /**
@@ -257,7 +257,7 @@ function injectStyles() {
   if (document.getElementById(STYLE_ID)) return;
   const style = document.createElement("style");
   style.id = STYLE_ID;
-  style.textContent = STYLE_TEXT;
+  style.textContent = STYLE_TEXT.cssText;
   document.head.appendChild(style);
 }
 

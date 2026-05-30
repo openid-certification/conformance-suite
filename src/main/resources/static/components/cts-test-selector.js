@@ -1,4 +1,4 @@
-import { LitElement, html, nothing } from "lit";
+import { LitElement, html, nothing, css } from "lit";
 import { classMap } from "lit/directives/class-map.js";
 import { formatSummaryPreview } from "./format-description.js";
 import "./cts-icon.js";
@@ -39,240 +39,242 @@ import "./cts-loading-state.js";
 
 const STYLE_ID = "cts-test-selector-styles";
 
-const STYLE_TEXT = `
-.oidf-test-selector {
-  display: grid;
-  /* Left rail (search + family listbox) sits beside the plan list. The
+const STYLE_TEXT = css`
+  .oidf-test-selector {
+    display: grid;
+    /* Left rail (search + family listbox) sits beside the plan list. The
      1fr column gets minmax(0,…) so a long plan name can't blow the grid
      wider than its container. */
-  grid-template-columns: minmax(200px, 280px) minmax(0, 1fr);
-  gap: var(--space-4);
-  align-items: start;
-  /* 32px gap to the spec cascade below — gives the scroll-in highlight
+    grid-template-columns: minmax(200px, 280px) minmax(0, 1fr);
+    gap: var(--space-4);
+    align-items: start;
+    /* 32px gap to the spec cascade below — gives the scroll-in highlight
      (which overhangs the cascade + variant group by 16px) room to breathe
      without colliding with the selector. See cts-flash-highlight. */
-  margin-bottom: var(--space-8);
-}
-@media (max-width: 768px) {
-  .oidf-test-selector {
-    grid-template-columns: 1fr;
+    margin-bottom: var(--space-8);
   }
-}
-.oidf-test-selector__rail {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-3);
-  min-width: 0;
-}
-.oidf-test-selector__search-wrap,
-.oidf-test-selector__family {
-  width: 100%;
-  box-sizing: border-box;
-  border: 1px solid var(--ink-300);
-  border-radius: var(--radius-2);
-  background: var(--bg-elev);
-  color: var(--fg);
-  font-family: var(--font-sans);
-  font-size: var(--fs-13);
-}
-.oidf-test-selector__family {
-  /* Rendered as a listbox (size attribute on the element), not a
+  @media (max-width: 768px) {
+    .oidf-test-selector {
+      grid-template-columns: 1fr;
+    }
+  }
+  .oidf-test-selector__rail {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    min-width: 0;
+  }
+  .oidf-test-selector__search-wrap,
+  .oidf-test-selector__family {
+    width: 100%;
+    box-sizing: border-box;
+    border: 1px solid var(--ink-300);
+    border-radius: var(--radius-2);
+    background: var(--bg-elev);
+    color: var(--fg);
+    font-family: var(--font-sans);
+    font-size: var(--fs-13);
+  }
+  .oidf-test-selector__family {
+    /* Rendered as a listbox (size attribute on the element), not a
      dropdown — so the height is driven by the visible row count, there
      is no chevron indicator, and the native single-line clipping is
      replaced by wrapping option rows (see the option rules below). */
-  appearance: none;
-  -webkit-appearance: none;
-  padding: var(--space-1);
-  line-height: var(--lh-snug);
-  overflow-y: auto;
-  cursor: pointer;
-}
-.oidf-test-selector__family option {
-  /* Long spec-family names wrap onto multiple lines instead of being
+    appearance: none;
+    -webkit-appearance: none;
+    padding: var(--space-1);
+    line-height: var(--lh-snug);
+    overflow-y: auto;
+    cursor: pointer;
+  }
+  .oidf-test-selector__family option {
+    /* Long spec-family names wrap onto multiple lines instead of being
      clipped to one row (the native listbox default). */
-  padding: var(--space-2) var(--space-3);
-  border-radius: var(--radius-1);
-  white-space: normal;
-  text-wrap: pretty;
-  line-height: var(--lh-snug);
-}
-.oidf-test-selector__family option:checked {
-  /* Under appearance:none the OS still paints the selected row via
+    padding: var(--space-2) var(--space-3);
+    border-radius: var(--radius-1);
+    white-space: normal;
+    text-wrap: pretty;
+    line-height: var(--lh-snug);
+  }
+  .oidf-test-selector__family option:checked {
+    /* Under appearance:none the OS still paints the selected row via
      background-color, which a plain background-color cannot override. A
      background-image (a flat gradient) layers on top and wins, so the
      active family reads in the design-system orange rather than the
      browser's blue/grey system highlight — matching the .is-active row. */
-  background: var(--orange-50) linear-gradient(0deg, var(--orange-50), var(--orange-50));
-  color: var(--fg);
-  font-weight: var(--fw-medium);
-}
-.oidf-test-selector__search-wrap {
-  height: var(--control-height);
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  padding: 0 var(--space-2);
-  line-height: var(--lh-base);
-  transition: border-color var(--dur-1) var(--ease-standard),
-    box-shadow var(--dur-1) var(--ease-standard);
-}
-.oidf-test-selector__search-wrap:hover {
-  border-color: var(--ink-400);
-}
-.oidf-test-selector__search-wrap:focus-within,
-.oidf-test-selector__family:focus {
-  outline: none;
-  border-color: var(--orange-400);
-  box-shadow: var(--focus-ring);
-}
-.oidf-test-selector__search-leading {
-  display: inline-flex;
-  align-items: center;
-  color: var(--ink-400);
-  flex-shrink: 0;
-}
-.oidf-test-selector__search {
-  flex: 1;
-  min-width: 0;
-  border: 0;
-  background: transparent;
-  font-family: var(--font-sans);
-  font-size: var(--fs-13);
-  line-height: 16px;
-  color: var(--fg);
-  outline: none;
-  padding: 0;
-  text-indent: 0;
-}
-.oidf-test-selector__search::-webkit-search-cancel-button,
-.oidf-test-selector__search::-webkit-search-decoration {
-  -webkit-appearance: none;
-  appearance: none;
-}
-.oidf-test-selector__search::placeholder {
-  color: var(--fg-faint);
-}
-.oidf-test-selector__search-clear {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  height: 24px;
-  width: 24px;
-  padding: 0;
-  border: 0;
-  background: transparent;
-  color: var(--fg-soft);
-  border-radius: var(--radius-2);
-  cursor: pointer;
-  transition: background var(--dur-1) var(--ease-standard),
-    color var(--dur-1) var(--ease-standard);
-}
-.oidf-test-selector__search-clear:hover {
-  background: var(--ink-100);
-  color: var(--fg);
-}
-.oidf-test-selector__search-clear:focus-visible {
-  outline: none;
-  box-shadow: var(--focus-ring);
-}
-.oidf-test-selector__list {
-  display: flex;
-  flex-direction: column;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-2);
-  background: var(--bg-elev);
-  overflow: hidden;
-}
-.oidf-test-selector__row {
-  display: block;
-  width: 100%;
-  text-align: left;
-  padding: var(--space-3) var(--space-4);
-  border: none;
-  border-top: 1px solid var(--divider);
-  background: var(--bg-elev);
-  color: var(--fg);
-  font-family: var(--font-sans);
-  font-size: var(--fs-13);
-  line-height: var(--lh-base);
-  cursor: pointer;
-  transition: background var(--dur-1) var(--ease-standard);
-}
-.oidf-test-selector__row:first-child {
-  border-top: none;
-}
-.oidf-test-selector__row:hover {
-  background: var(--ink-50);
-}
-.oidf-test-selector__row:focus-visible {
-  outline: none;
-  box-shadow: var(--focus-ring);
-  position: relative;
-  z-index: 1;
-}
-.oidf-test-selector__row.is-active {
-  background: var(--orange-50);
-  color: var(--fg);
-  font-weight: var(--fw-bold);
-}
-.oidf-test-selector__row-head {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: var(--space-3);
-}
-.oidf-test-selector__row-name {
-  font-weight: var(--fw-medium);
-  color: var(--fg);
-  word-break: break-word;
-}
-.oidf-test-selector__row-family {
-  /* mirrors .t-meta except it doesn't wrap */
-  font-family: var(--font-sans);
-  font-size: var(--fs-12);
-  line-height: var(--lh-snug);
-  color: var(--fg-soft);
-  font-weight: var(--fw-regular);
-  white-space: nowrap;
-}
-.oidf-test-selector__row-count {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 22px;
-  height: 22px;
-  padding: 0 var(--space-2);
-  border-radius: var(--radius-pill);
-  background: var(--ink-100);
-  color: var(--fg-soft);
-  font-size: var(--fs-12);
-  font-weight: var(--fw-medium);
-  font-family: var(--font-sans);
-}
-.oidf-test-selector__row-summary {
-  display: block;
-  margin-top: var(--space-1);
-  font-size: var(--fs-12);
-  line-height: var(--lh-snug);
-  color: var(--fg-soft);
-  font-weight: var(--fw-regular);
-}
-.oidf-test-selector__empty {
-  padding: var(--space-4);
-  text-align: center;
-  color: var(--fg-soft);
-  font-family: var(--font-sans);
-  font-size: var(--fs-13);
-  line-height: var(--lh-base);
-}
+    background: var(--orange-50) linear-gradient(0deg, var(--orange-50), var(--orange-50));
+    color: var(--fg);
+    font-weight: var(--fw-medium);
+  }
+  .oidf-test-selector__search-wrap {
+    height: var(--control-height);
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: 0 var(--space-2);
+    line-height: var(--lh-base);
+    transition:
+      border-color var(--dur-1) var(--ease-standard),
+      box-shadow var(--dur-1) var(--ease-standard);
+  }
+  .oidf-test-selector__search-wrap:hover {
+    border-color: var(--ink-400);
+  }
+  .oidf-test-selector__search-wrap:focus-within,
+  .oidf-test-selector__family:focus {
+    outline: none;
+    border-color: var(--orange-400);
+    box-shadow: var(--focus-ring);
+  }
+  .oidf-test-selector__search-leading {
+    display: inline-flex;
+    align-items: center;
+    color: var(--ink-400);
+    flex-shrink: 0;
+  }
+  .oidf-test-selector__search {
+    flex: 1;
+    min-width: 0;
+    border: 0;
+    background: transparent;
+    font-family: var(--font-sans);
+    font-size: var(--fs-13);
+    line-height: 16px;
+    color: var(--fg);
+    outline: none;
+    padding: 0;
+    text-indent: 0;
+  }
+  .oidf-test-selector__search::-webkit-search-cancel-button,
+  .oidf-test-selector__search::-webkit-search-decoration {
+    -webkit-appearance: none;
+    appearance: none;
+  }
+  .oidf-test-selector__search::placeholder {
+    color: var(--fg-faint);
+  }
+  .oidf-test-selector__search-clear {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    height: 24px;
+    width: 24px;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: var(--fg-soft);
+    border-radius: var(--radius-2);
+    cursor: pointer;
+    transition:
+      background var(--dur-1) var(--ease-standard),
+      color var(--dur-1) var(--ease-standard);
+  }
+  .oidf-test-selector__search-clear:hover {
+    background: var(--ink-100);
+    color: var(--fg);
+  }
+  .oidf-test-selector__search-clear:focus-visible {
+    outline: none;
+    box-shadow: var(--focus-ring);
+  }
+  .oidf-test-selector__list {
+    display: flex;
+    flex-direction: column;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-2);
+    background: var(--bg-elev);
+    overflow: hidden;
+  }
+  .oidf-test-selector__row {
+    display: block;
+    width: 100%;
+    text-align: left;
+    padding: var(--space-3) var(--space-4);
+    border: none;
+    border-top: 1px solid var(--divider);
+    background: var(--bg-elev);
+    color: var(--fg);
+    font-family: var(--font-sans);
+    font-size: var(--fs-13);
+    line-height: var(--lh-base);
+    cursor: pointer;
+    transition: background var(--dur-1) var(--ease-standard);
+  }
+  .oidf-test-selector__row:first-child {
+    border-top: none;
+  }
+  .oidf-test-selector__row:hover {
+    background: var(--ink-50);
+  }
+  .oidf-test-selector__row:focus-visible {
+    outline: none;
+    box-shadow: var(--focus-ring);
+    position: relative;
+    z-index: 1;
+  }
+  .oidf-test-selector__row.is-active {
+    background: var(--orange-50);
+    color: var(--fg);
+    font-weight: var(--fw-bold);
+  }
+  .oidf-test-selector__row-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: var(--space-3);
+  }
+  .oidf-test-selector__row-name {
+    font-weight: var(--fw-medium);
+    color: var(--fg);
+    word-break: break-word;
+  }
+  .oidf-test-selector__row-family {
+    /* mirrors .t-meta except it doesn't wrap */
+    font-family: var(--font-sans);
+    font-size: var(--fs-12);
+    line-height: var(--lh-snug);
+    color: var(--fg-soft);
+    font-weight: var(--fw-regular);
+    white-space: nowrap;
+  }
+  .oidf-test-selector__row-count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 22px;
+    height: 22px;
+    padding: 0 var(--space-2);
+    border-radius: var(--radius-pill);
+    background: var(--ink-100);
+    color: var(--fg-soft);
+    font-size: var(--fs-12);
+    font-weight: var(--fw-medium);
+    font-family: var(--font-sans);
+  }
+  .oidf-test-selector__row-summary {
+    display: block;
+    margin-top: var(--space-1);
+    font-size: var(--fs-12);
+    line-height: var(--lh-snug);
+    color: var(--fg-soft);
+    font-weight: var(--fw-regular);
+  }
+  .oidf-test-selector__empty {
+    padding: var(--space-4);
+    text-align: center;
+    color: var(--fg-soft);
+    font-family: var(--font-sans);
+    font-size: var(--fs-13);
+    line-height: var(--lh-base);
+  }
 `;
 
 function injectStyles() {
   if (document.getElementById(STYLE_ID)) return;
   const style = document.createElement("style");
   style.id = STYLE_ID;
-  style.textContent = STYLE_TEXT;
+  style.textContent = STYLE_TEXT.cssText;
   document.head.appendChild(style);
 }
 

@@ -1,4 +1,4 @@
-import { LitElement, html } from "lit";
+import { LitElement, html, css } from "lit";
 import "./cts-modal.js";
 import "./cts-button.js";
 import "./cts-link-button.js";
@@ -17,60 +17,60 @@ const STYLE_ID = "cts-token-manager-styles";
 // chrome, striping, hover, and empty-state); these rules cover only the
 // page-level scaffolding (padding, action bar, status messages) and the
 // modal body styling.
-const STYLE_TEXT = `
-.cts-token-manager {
-  display: block;
-  padding: var(--space-4) var(--space-5);
-  font-family: var(--font-sans);
-  color: var(--fg);
-}
-.cts-token-manager-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-2);
-  margin-bottom: var(--space-4);
-}
-.cts-token-manager-message {
-  font-size: var(--fs-13);
-  color: var(--fg-muted);
-  margin: 0 0 var(--space-3) 0;
-}
-.cts-token-manager [data-column-key="_actions"] {
-  width: 1%;
-  white-space: nowrap;
-}
-.cts-token-manager-created-modal-body p {
-  margin: 0 0 var(--space-3) 0;
-}
-.cts-token-manager-created-modal-body p:last-child {
-  margin-bottom: 0;
-}
-.cts-token-manager-copy-row {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-}
-.cts-token-manager-copy-feedback {
-  font-size: var(--fs-12);
-  color: var(--rust-500);
-}
-.cts-token-manager-token-value {
-  background: var(--ink-50);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-2);
-  padding: var(--space-3);
-  font-family: var(--font-mono);
-  font-size: var(--fs-13);
-  color: var(--fg);
-  white-space: pre-wrap;
-  word-break: break-all;
-  margin: 0;
-}
-.cts-token-manager-error-message {
-  margin: 0;
-  color: var(--rust-500);
-  font-size: var(--fs-13);
-}
+const STYLE_TEXT = css`
+  .cts-token-manager {
+    display: block;
+    padding: var(--space-4) var(--space-5);
+    font-family: var(--font-sans);
+    color: var(--fg);
+  }
+  .cts-token-manager-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    margin-bottom: var(--space-4);
+  }
+  .cts-token-manager-message {
+    font-size: var(--fs-13);
+    color: var(--fg-muted);
+    margin: 0 0 var(--space-3) 0;
+  }
+  .cts-token-manager [data-column-key="_actions"] {
+    width: 1%;
+    white-space: nowrap;
+  }
+  .cts-token-manager-created-modal-body p {
+    margin: 0 0 var(--space-3) 0;
+  }
+  .cts-token-manager-created-modal-body p:last-child {
+    margin-bottom: 0;
+  }
+  .cts-token-manager-copy-row {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+  }
+  .cts-token-manager-copy-feedback {
+    font-size: var(--fs-12);
+    color: var(--rust-500);
+  }
+  .cts-token-manager-token-value {
+    background: var(--ink-50);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-2);
+    padding: var(--space-3);
+    font-family: var(--font-mono);
+    font-size: var(--fs-13);
+    color: var(--fg);
+    white-space: pre-wrap;
+    word-break: break-all;
+    margin: 0;
+  }
+  .cts-token-manager-error-message {
+    margin: 0;
+    color: var(--rust-500);
+    font-size: var(--fs-13);
+  }
 `;
 
 /**
@@ -83,7 +83,7 @@ function injectStyles() {
   if (document.getElementById(STYLE_ID)) return;
   const style = document.createElement("style");
   style.id = STYLE_ID;
-  style.textContent = STYLE_TEXT;
+  style.textContent = STYLE_TEXT.cssText;
   document.head.appendChild(style);
 }
 

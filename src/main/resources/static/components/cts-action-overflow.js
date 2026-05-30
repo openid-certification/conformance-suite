@@ -1,4 +1,4 @@
-import { LitElement, html, nothing } from "lit";
+import { LitElement, html, nothing, css } from "lit";
 import { ifDefined } from "lit/directives/if-defined.js";
 import "./cts-icon.js";
 
@@ -7,7 +7,7 @@ const STYLE_ID = "cts-action-overflow-styles";
 // Scoped CSS for the kebab trigger and the popover surface. Tokens flow
 // from oidf-tokens.css. The popover is rendered in the top layer (via the
 // HTML Popover API), so it does not need a z-index dance.
-const STYLE_TEXT = `
+const STYLE_TEXT = css`
   cts-action-overflow {
     display: inline-flex;
   }
@@ -98,7 +98,7 @@ function ensureStylesInjected() {
   if (document.getElementById(STYLE_ID)) return;
   const style = document.createElement("style");
   style.id = STYLE_ID;
-  style.textContent = STYLE_TEXT;
+  style.textContent = STYLE_TEXT.cssText;
   document.head.appendChild(style);
 }
 

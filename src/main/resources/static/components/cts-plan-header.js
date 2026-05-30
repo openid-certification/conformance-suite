@@ -1,4 +1,4 @@
-import { LitElement, html, nothing } from "lit";
+import { LitElement, html, nothing, css } from "lit";
 import { formatDescription } from "./format-description.js";
 import "./cts-time.js";
 
@@ -9,7 +9,7 @@ const STYLE_ID = "cts-plan-header-styles";
 // title in `.t-h1`, sub-meta as a row of mono key/value pairs, optional
 // admin/certification rows, and a soft "summary" callout. The token-based
 // label/value grid replaces the prior Bootstrap col-md-1/col-md-11 layout.
-const STYLE_TEXT = `
+const STYLE_TEXT = css`
   cts-plan-header {
     display: flex;
     flex-direction: column;
@@ -88,7 +88,7 @@ function ensureStylesInjected() {
   if (document.getElementById(STYLE_ID)) return;
   const style = document.createElement("style");
   style.id = STYLE_ID;
-  style.textContent = STYLE_TEXT;
+  style.textContent = STYLE_TEXT.cssText;
   document.head.appendChild(style);
 }
 

@@ -1,4 +1,4 @@
-import { LitElement, html, nothing } from "lit";
+import { LitElement, html, nothing, css } from "lit";
 
 const STYLE_ID = "cts-page-head-styles";
 
@@ -8,7 +8,7 @@ const STYLE_ID = "cts-page-head-styles";
  * `.t-meta` subtitle on the left, an actions slot on the right, and a
  * 1px `--border` divider underneath. All values flow from oidf-tokens.css.
  */
-const STYLE_TEXT = `
+const STYLE_TEXT = css`
   cts-page-head {
     display: block;
   }
@@ -45,7 +45,7 @@ function injectStyles() {
   if (document.getElementById(STYLE_ID)) return;
   const style = document.createElement("style");
   style.id = STYLE_ID;
-  style.textContent = STYLE_TEXT;
+  style.textContent = STYLE_TEXT.cssText;
   document.head.appendChild(style);
 }
 

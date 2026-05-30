@@ -1,4 +1,4 @@
-import { LitElement, html, nothing } from "lit";
+import { LitElement, html, nothing, css } from "lit";
 import "./cts-icon.js";
 
 const STYLE_ID = "cts-crumb-styles";
@@ -8,7 +8,7 @@ const STYLE_ID = "cts-crumb-styles";
 // from --fg-link, sized at --fs-13 so the breadcrumb sits comfortably above
 // the page title (matches the design archive's plan-detail / log-detail
 // header treatment).
-const STYLE_TEXT = `
+const STYLE_TEXT = css`
   cts-crumb {
     display: inline-flex;
     align-items: center;
@@ -75,7 +75,7 @@ function ensureStylesInjected() {
   if (document.getElementById(STYLE_ID)) return;
   const style = document.createElement("style");
   style.id = STYLE_ID;
-  style.textContent = STYLE_TEXT;
+  style.textContent = STYLE_TEXT.cssText;
   document.head.appendChild(style);
 }
 

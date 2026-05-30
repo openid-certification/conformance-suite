@@ -1,4 +1,4 @@
-import { LitElement, html, nothing } from "lit";
+import { LitElement, html, nothing, css } from "lit";
 import { classMap } from "lit/directives/class-map.js";
 import "./cts-badge.js";
 import "./cts-failure-summary.js";
@@ -25,7 +25,7 @@ const STYLE_ID = "cts-log-toc-styles";
 // AND user-preference enabled) is owned by the page CSS in
 // log-detail.html — this stylesheet just describes the rail's own
 // internal layout.
-const STYLE_TEXT = `
+const STYLE_TEXT = css`
   cts-log-toc {
     display: block;
     position: sticky;
@@ -130,7 +130,7 @@ function ensureStylesInjected() {
   if (document.getElementById(STYLE_ID)) return;
   const style = document.createElement("style");
   style.id = STYLE_ID;
-  style.textContent = STYLE_TEXT;
+  style.textContent = STYLE_TEXT.cssText;
   document.head.appendChild(style);
 }
 

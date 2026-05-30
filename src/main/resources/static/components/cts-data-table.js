@@ -1,4 +1,4 @@
-import { LitElement, html, nothing } from "lit";
+import { LitElement, html, nothing, css } from "lit";
 import { repeat } from "lit/directives/repeat.js";
 import "./cts-icon.js";
 import "./cts-empty-state.js";
@@ -110,7 +110,7 @@ import { formatAbsolute } from "../lib/time-format.js";
 
 const STYLE_ID = "cts-data-table-styles";
 
-const STYLE_TEXT = `
+const STYLE_TEXT = css`
   cts-data-table {
     display: block;
     font-family: var(--font-sans);
@@ -141,7 +141,8 @@ const STYLE_TEXT = `
     background: var(--bg-elev);
     flex: 1;
     max-width: 480px;
-    transition: border-color var(--dur-1) var(--ease-standard),
+    transition:
+      border-color var(--dur-1) var(--ease-standard),
       box-shadow var(--dur-1) var(--ease-standard);
   }
   cts-data-table .oidf-dt-search-input-wrap:hover {
@@ -199,7 +200,8 @@ const STYLE_TEXT = `
     color: var(--fg-soft);
     border-radius: var(--radius-2);
     cursor: pointer;
-    transition: background var(--dur-1) var(--ease-standard),
+    transition:
+      background var(--dur-1) var(--ease-standard),
       color var(--dur-1) var(--ease-standard),
       opacity var(--dur-1) var(--ease-standard);
   }
@@ -267,7 +269,8 @@ const STYLE_TEXT = `
     font-size: var(--fs-12);
     font-weight: var(--fw-medium);
     cursor: pointer;
-    transition: background var(--dur-1) var(--ease-standard),
+    transition:
+      background var(--dur-1) var(--ease-standard),
       color var(--dur-1) var(--ease-standard);
   }
   cts-data-table .oidf-dt-search-filter-reset:hover {
@@ -322,8 +325,7 @@ const STYLE_TEXT = `
   cts-data-table .oidf-dt-table th.is-sortable:hover {
     color: var(--fg);
   }
-  cts-data-table .oidf-dt-table th.is-sortable:hover
-    .oidf-dt-sort-arrow:not(.is-active) {
+  cts-data-table .oidf-dt-table th.is-sortable:hover .oidf-dt-sort-arrow:not(.is-active) {
     color: var(--ink-500);
   }
   cts-data-table .oidf-dt-sort-arrow {
@@ -390,7 +392,7 @@ function injectStyles() {
   if (document.getElementById(STYLE_ID)) return;
   const style = document.createElement("style");
   style.id = STYLE_ID;
-  style.textContent = STYLE_TEXT;
+  style.textContent = STYLE_TEXT.cssText;
   document.head.appendChild(style);
 }
 

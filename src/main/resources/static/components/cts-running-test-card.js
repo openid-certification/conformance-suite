@@ -1,4 +1,4 @@
-import { LitElement, html, nothing } from "lit";
+import { LitElement, html, nothing, css } from "lit";
 import "./cts-badge.js";
 import "./cts-button.js";
 import "./cts-link-button.js";
@@ -37,7 +37,7 @@ const STYLE_ID = "cts-running-test-card-styles";
 // striped/pulsing animation) follows the design archive's
 // components-progress.html "steady continuous tick" rule. The badge spinner
 // is provided by cts-badge[variant="running"]; no extra motion is added.
-const STYLE_TEXT = `
+const STYLE_TEXT = css`
   cts-running-test-card {
     display: block;
     container-type: inline-size;
@@ -188,7 +188,7 @@ function injectStyles() {
   if (document.getElementById(STYLE_ID)) return;
   const style = document.createElement("style");
   style.id = STYLE_ID;
-  style.textContent = STYLE_TEXT;
+  style.textContent = STYLE_TEXT.cssText;
   document.head.appendChild(style);
 }
 

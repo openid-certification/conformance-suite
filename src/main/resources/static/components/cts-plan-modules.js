@@ -1,4 +1,4 @@
-import { LitElement, html, nothing } from "lit";
+import { LitElement, html, nothing, css } from "lit";
 import "./cts-badge.js";
 import "./cts-button.js";
 import "./cts-link-button.js";
@@ -23,7 +23,7 @@ const STYLE_ID = "cts-plan-modules-styles";
 // 4-column grid `28px 1fr auto auto` with a mono row number, name + meta
 // stack, status badge, and right-side action stack. Mono number/duration
 // styling uses `--font-mono` per the archive.
-const STYLE_TEXT = `
+const STYLE_TEXT = css`
   cts-plan-modules {
     display: block;
   }
@@ -194,7 +194,7 @@ function ensureStylesInjected() {
   if (document.getElementById(STYLE_ID)) return;
   const style = document.createElement("style");
   style.id = STYLE_ID;
-  style.textContent = STYLE_TEXT;
+  style.textContent = STYLE_TEXT.cssText;
   document.head.appendChild(style);
 }
 

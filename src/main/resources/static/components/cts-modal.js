@@ -1,3 +1,4 @@
+import { css } from "lit";
 import "./cts-icon.js";
 
 /**
@@ -37,57 +38,57 @@ const STYLE_ID = "cts-modal-styles";
 // flush 14px header padding for the close button affordance. Sizes (sm/lg/
 // xl) bend the width only — height is content-driven. The
 // `dialog:not([open]) { display: none }` rule lives in oidf-app.css (U3).
-const STYLE_TEXT = `
-/* Host signals open state via the [open] attribute mirrored from the inner
+const STYLE_TEXT = css`
+  /* Host signals open state via the [open] attribute mirrored from the inner
    <dialog>'s open property. When closed the host is removed from layout
    entirely; when open it covers the viewport as an invisible passthrough so
    external observers (Playwright toBeVisible(), CSS, integration scripts)
    can see "this modal is showing" without reaching into the inner dialog.
    The dialog renders in the browser's top layer above this passthrough box;
    pointer-events: none keeps clicks falling through to the dialog itself. */
-cts-modal:not([open]) {
-  display: none;
-}
-cts-modal[open] {
-  display: block;
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: 1;
-}
-cts-modal[open] dialog.oidf-modal {
-  pointer-events: auto;
-}
-dialog.oidf-modal {
-  border: 0;
-  padding: 0;
-  margin: auto;
-  border-radius: var(--radius-3);
-  background: var(--bg);
-  color: var(--fg);
-  box-shadow: var(--shadow-3);
-  font-family: var(--font-sans);
-  font-size: var(--fs-14);
-  width: 520px;
-  max-width: calc(100vw - 40px);
-  max-height: calc(100vh - 40px);
-  overflow: visible;
-}
-dialog.oidf-modal[data-size="sm"] {
-  width: 300px;
-}
-dialog.oidf-modal[data-size="lg"] {
-  width: 800px;
-}
-dialog.oidf-modal[data-size="xl"] {
-  width: 1140px;
-}
-dialog.oidf-modal::backdrop {
-  background: rgba(26, 22, 17, 0.55);
-  backdrop-filter: blur(4px);
-}
+  cts-modal:not([open]) {
+    display: none;
+  }
+  cts-modal[open] {
+    display: block;
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 1;
+  }
+  cts-modal[open] dialog.oidf-modal {
+    pointer-events: auto;
+  }
+  dialog.oidf-modal {
+    border: 0;
+    padding: 0;
+    margin: auto;
+    border-radius: var(--radius-3);
+    background: var(--bg);
+    color: var(--fg);
+    box-shadow: var(--shadow-3);
+    font-family: var(--font-sans);
+    font-size: var(--fs-14);
+    width: 520px;
+    max-width: calc(100vw - 40px);
+    max-height: calc(100vh - 40px);
+    overflow: visible;
+  }
+  dialog.oidf-modal[data-size="sm"] {
+    width: 300px;
+  }
+  dialog.oidf-modal[data-size="lg"] {
+    width: 800px;
+  }
+  dialog.oidf-modal[data-size="xl"] {
+    width: 1140px;
+  }
+  dialog.oidf-modal::backdrop {
+    background: rgba(26, 22, 17, 0.55);
+    backdrop-filter: blur(4px);
+  }
 
-/* Entry / exit animation. The dialog fades and gently translates when it
+  /* Entry / exit animation. The dialog fades and gently translates when it
    enters and leaves the browser's top layer. CSS \`@starting-style\` defines
    the pre-transition state for elements that have just become rendered
    (Baseline 2024: Chrome 117+, Firefox 129+, Safari 17.4+). The companion
@@ -98,150 +99,153 @@ dialog.oidf-modal::backdrop {
    zero duration and removes the translate, matching the precedent set in
    cts-navbar.js / cts-log-detail-header.js where reduced motion dampens
    rather than removes signal. */
-dialog.oidf-modal {
-  opacity: 1;
-  transform: translateY(0) scale(1);
-  transition: opacity var(--dur-2) var(--ease-standard),
-              transform var(--dur-2) var(--ease-standard),
-              overlay var(--dur-2) var(--ease-standard) allow-discrete,
-              display var(--dur-2) var(--ease-standard) allow-discrete;
-}
-@starting-style {
-  dialog.oidf-modal[open] {
+  dialog.oidf-modal {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    transition:
+      opacity var(--dur-2) var(--ease-standard),
+      transform var(--dur-2) var(--ease-standard),
+      overlay var(--dur-2) var(--ease-standard) allow-discrete,
+      display var(--dur-2) var(--ease-standard) allow-discrete;
+  }
+  @starting-style {
+    dialog.oidf-modal[open] {
+      opacity: 0;
+      transform: translateY(-8px) scale(0.98);
+    }
+  }
+  dialog.oidf-modal:not([open]) {
     opacity: 0;
     transform: translateY(-8px) scale(0.98);
   }
-}
-dialog.oidf-modal:not([open]) {
-  opacity: 0;
-  transform: translateY(-8px) scale(0.98);
-}
-dialog.oidf-modal::backdrop {
-  transition: background-color var(--dur-2) var(--ease-standard),
-              backdrop-filter var(--dur-2) var(--ease-standard),
-              overlay var(--dur-2) var(--ease-standard) allow-discrete,
-              display var(--dur-2) var(--ease-standard) allow-discrete;
-}
-@starting-style {
-  dialog.oidf-modal[open]::backdrop {
-    background: rgba(26, 22, 17, 0);
-    backdrop-filter: blur(0);
+  dialog.oidf-modal::backdrop {
+    transition:
+      background-color var(--dur-2) var(--ease-standard),
+      backdrop-filter var(--dur-2) var(--ease-standard),
+      overlay var(--dur-2) var(--ease-standard) allow-discrete,
+      display var(--dur-2) var(--ease-standard) allow-discrete;
   }
-}
-/* Exit-side ::backdrop state. \`@starting-style\` only supplies the "from"
+  @starting-style {
+    dialog.oidf-modal[open]::backdrop {
+      background: rgba(26, 22, 17, 0);
+      backdrop-filter: blur(0);
+    }
+  }
+  /* Exit-side ::backdrop state. \`@starting-style\` only supplies the "from"
    value on entry; for the exit fade the engine needs an explicit "to" value
    that differs from the steady-state ::backdrop rule. Without this rule
    the backdrop would stay at full opacity / blur until the dialog snaps
    out of the top layer at the end of the transition window. */
-dialog.oidf-modal:not([open])::backdrop {
-  background: rgba(26, 22, 17, 0);
-  backdrop-filter: blur(0);
-}
+  dialog.oidf-modal:not([open])::backdrop {
+    background: rgba(26, 22, 17, 0);
+    backdrop-filter: blur(0);
+  }
 
-@media (prefers-reduced-motion: reduce) {
-  dialog.oidf-modal,
-  dialog.oidf-modal::backdrop {
-    transition-duration: 0ms;
-  }
-  dialog.oidf-modal,
-  dialog.oidf-modal:not([open]) {
-    transform: none;
-  }
-  @starting-style {
-    dialog.oidf-modal[open] {
-      opacity: 1;
+  @media (prefers-reduced-motion: reduce) {
+    dialog.oidf-modal,
+    dialog.oidf-modal::backdrop {
+      transition-duration: 0ms;
+    }
+    dialog.oidf-modal,
+    dialog.oidf-modal:not([open]) {
       transform: none;
     }
-    dialog.oidf-modal[open]::backdrop {
-      background: rgba(26, 22, 17, 0.55);
-      backdrop-filter: blur(4px);
+    @starting-style {
+      dialog.oidf-modal[open] {
+        opacity: 1;
+        transform: none;
+      }
+      dialog.oidf-modal[open]::backdrop {
+        background: rgba(26, 22, 17, 0.55);
+        backdrop-filter: blur(4px);
+      }
     }
   }
-}
 
-.oidf-modal-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 14px 14px 14px 20px;
-  border-bottom: 1px solid var(--border);
-}
-.oidf-modal-title {
-  margin: 0;
-  font-family: var(--font-display);
-  font-weight: var(--fw-bold, 700);
-  font-size: var(--fs-18);
-  color: var(--fg);
-}
-.oidf-modal-close {
-  background: transparent;
-  border: 0;
-  color: var(--fg-muted);
-  cursor: pointer;
-  width: 32px;
-  height: 32px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: var(--radius-2);
-  padding: 0;
-  transition: background var(--dur-1) var(--ease-standard),
-              color var(--dur-1) var(--ease-standard);
-}
-.oidf-modal-close i {
-  font-size: 22px;
-  line-height: 1;
-  display: block;
-}
-.oidf-modal-close:hover {
-  background: var(--ink-100);
-  color: var(--ink-900);
-}
-.oidf-modal-close:active {
-  background: var(--ink-200);
-}
-.oidf-modal-close:focus-visible {
-  outline: none;
-  box-shadow: var(--focus-ring);
-}
+  .oidf-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 14px 14px 20px;
+    border-bottom: 1px solid var(--border);
+  }
+  .oidf-modal-title {
+    margin: 0;
+    font-family: var(--font-display);
+    font-weight: var(--fw-bold, 700);
+    font-size: var(--fs-18);
+    color: var(--fg);
+  }
+  .oidf-modal-close {
+    background: transparent;
+    border: 0;
+    color: var(--fg-muted);
+    cursor: pointer;
+    width: 32px;
+    height: 32px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-2);
+    padding: 0;
+    transition:
+      background var(--dur-1) var(--ease-standard),
+      color var(--dur-1) var(--ease-standard);
+  }
+  .oidf-modal-close i {
+    font-size: 22px;
+    line-height: 1;
+    display: block;
+  }
+  .oidf-modal-close:hover {
+    background: var(--ink-100);
+    color: var(--ink-900);
+  }
+  .oidf-modal-close:active {
+    background: var(--ink-200);
+  }
+  .oidf-modal-close:focus-visible {
+    outline: none;
+    box-shadow: var(--focus-ring);
+  }
 
-.oidf-modal-body {
-  padding: 20px;
-  font-size: var(--fs-13);
-  color: var(--fg);
-  line-height: 1.5;
-  overflow-y: auto;
-  max-height: calc(100vh - 200px);
-}
+  .oidf-modal-body {
+    padding: 20px;
+    font-size: var(--fs-13);
+    color: var(--fg);
+    line-height: 1.5;
+    overflow-y: auto;
+    max-height: calc(100vh - 200px);
+  }
 
-/* Loading-modal layout. The static-backdrop + no-keyboard combo
+  /* Loading-modal layout. The static-backdrop + no-keyboard combo
    discriminates the loading modal from every other cts-modal consumer
    (publishModal, certificationPackageModal, privateLink modals, …) so
    the centering only applies where it should. Body becomes a centered
    column: the spinner sits above the message text with proper vertical
    rhythm, both horizontally centered, no per-page wrapper class
    required. */
-cts-modal[static-backdrop][no-keyboard] .oidf-modal-body {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: var(--space-3);
-  padding-top: var(--space-6);
-  padding-bottom: var(--space-6);
-  text-align: center;
-}
+  cts-modal[static-backdrop][no-keyboard] .oidf-modal-body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-3);
+    padding-top: var(--space-6);
+    padding-bottom: var(--space-6);
+    text-align: center;
+  }
 
-.oidf-modal-footer {
-  padding: 14px 20px;
-  border-top: 1px solid var(--border);
-  display: flex;
-  justify-content: flex-end;
-  gap: var(--space-2);
-  background: var(--ink-50);
-  border-bottom-left-radius: var(--radius-3);
-  border-bottom-right-radius: var(--radius-3);
-}
+  .oidf-modal-footer {
+    padding: 14px 20px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--space-2);
+    background: var(--ink-50);
+    border-bottom-left-radius: var(--radius-3);
+    border-bottom-right-radius: var(--radius-3);
+  }
 `;
 
 /**
@@ -253,7 +257,7 @@ function injectStyles() {
   if (document.getElementById(STYLE_ID)) return;
   const style = document.createElement("style");
   style.id = STYLE_ID;
-  style.textContent = STYLE_TEXT;
+  style.textContent = STYLE_TEXT.cssText;
   document.head.appendChild(style);
 }
 

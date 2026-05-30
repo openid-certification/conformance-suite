@@ -1,4 +1,4 @@
-import { LitElement, html, nothing } from "lit";
+import { LitElement, html, nothing, css } from "lit";
 import "./cts-icon.js";
 import "./cts-badge.js";
 import "./cts-button.js";
@@ -234,7 +234,7 @@ const STYLE_ID = "cts-log-entry-styles";
 // static, the More button is static, the cURL button is static). The
 // constraint is forward-looking: any future tooltip or popover added inside
 // an entry will position relative to the entry host, not the viewport.
-const STYLE_TEXT = `
+const STYLE_TEXT = css`
   cts-log-entry {
     display: block;
     border-bottom: 1px solid var(--ink-100);
@@ -246,9 +246,13 @@ const STYLE_TEXT = `
        --banner-height is reserved for any future persistent banner
        (e.g. flag-flip rollback notice); it falls back to 0px when not
        present. */
-    scroll-margin-top: calc(var(--status-bar-height, 0px) + var(--banner-height, 0px) + var(--space-4));
+    scroll-margin-top: calc(
+      var(--status-bar-height, 0px) + var(--banner-height, 0px) + var(--space-4)
+    );
   }
-  cts-log-entry:last-child { border-bottom: 0; }
+  cts-log-entry:last-child {
+    border-bottom: 0;
+  }
   /* …but a block's final entry keeps its bottom border so the block has a
      closing edge below its last row (it is the :last-child of .logBlock,
      which the rule above would otherwise strip). Small layout: the border
@@ -285,14 +289,20 @@ const STYLE_TEXT = `
     font-size: var(--fs-12);
     min-width: 0;
   }
-  cts-log-entry .logBody { grid-area: body; }
-  cts-log-entry .logActions { grid-area: actions; }
-  cts-log-entry .logFooter { grid-area: footer; }
+  cts-log-entry .logBody {
+    grid-area: body;
+  }
+  cts-log-entry .logActions {
+    grid-area: actions;
+  }
+  cts-log-entry .logFooter {
+    grid-area: footer;
+  }
   cts-log-entry .logItem.is-fail {
-    background: linear-gradient(90deg, rgba(164,54,4,0.04), transparent 60%);
+    background: linear-gradient(90deg, rgba(164, 54, 4, 0.04), transparent 60%);
   }
   cts-log-entry .logItem.is-warn {
-    background: linear-gradient(90deg, rgba(235,139,53,0.06), transparent 60%);
+    background: linear-gradient(90deg, rgba(235, 139, 53, 0.06), transparent 60%);
   }
   /* Block-membership cue. Rendered as an absolutely-positioned ::before
      stripe (rather than a real border-left) so blocked rows and
@@ -576,8 +586,12 @@ const STYLE_TEXT = `
     cts-log-entry .logMetaRow {
       display: contents;
     }
-    cts-log-entry .logBody { grid-area: auto; }
-    cts-log-entry .logActions { grid-area: auto; }
+    cts-log-entry .logBody {
+      grid-area: auto;
+    }
+    cts-log-entry .logActions {
+      grid-area: auto;
+    }
     cts-log-entry .logFooter {
       grid-area: auto;
       grid-column: 4 / -1;
@@ -589,7 +603,7 @@ function ensureStylesInjected() {
   if (document.getElementById(STYLE_ID)) return;
   const style = document.createElement("style");
   style.id = STYLE_ID;
-  style.textContent = STYLE_TEXT;
+  style.textContent = STYLE_TEXT.cssText;
   document.head.appendChild(style);
 }
 

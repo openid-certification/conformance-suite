@@ -1,4 +1,4 @@
-import { LitElement, html } from "lit";
+import { LitElement, html, css } from "lit";
 import { classMap } from "lit/directives/class-map.js";
 import { repeat } from "lit/directives/repeat.js";
 import { when } from "lit/directives/when.js";
@@ -35,475 +35,475 @@ const USER_CACHE_KEY = "cts-navbar:user";
 // rules only apply post-upgrade.
 const STYLE_ID = "cts-navbar-styles";
 
-const STYLE_TEXT = `
-.cts-nav {
-  position: relative;
-  display: flex;
-  align-items: center;
-  height: 60px;
-  padding: 0 var(--space-5);
-  background: var(--ink-900);
-  color: var(--ink-0);
-  gap: var(--space-6);
-  font-family: var(--font-sans);
-}
-/* Hamburger button — hidden at wide widths, revealed inside the
+const STYLE_TEXT = css`
+  .cts-nav {
+    position: relative;
+    display: flex;
+    align-items: center;
+    height: 60px;
+    padding: 0 var(--space-5);
+    background: var(--ink-900);
+    color: var(--ink-0);
+    gap: var(--space-6);
+    font-family: var(--font-sans);
+  }
+  /* Hamburger button — hidden at wide widths, revealed inside the
  * narrow-viewport media query below. Lives in the right cluster so
  * the chrome reads "logo … hamburger / avatar" — both controls land
  * under the user's right-thumb reach on phones. */
-.cts-nav .cts-menu-toggle {
-  display: none;
-  width: 36px;
-  height: 36px;
-  padding: 0;
-  margin: 0;
-  background: transparent;
-  border: 1px solid transparent;
-  border-radius: var(--radius-2);
-  color: var(--ink-200);
-  cursor: pointer;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-.cts-nav .cts-menu-toggle:hover {
-  background: var(--ink-800);
-  color: var(--ink-0);
-}
-.cts-nav .cts-menu-toggle:focus-visible {
-  outline: none;
-  box-shadow:
-    0 0 0 2px var(--ink-900),
-    0 0 0 4px var(--orange-400);
-}
-.cts-nav .cts-menu-toggle svg {
-  display: block;
-}
-.cts-nav .cts-menu-toggle .cts-menu-toggle-bar {
-  transition:
-    transform 160ms ease,
-    opacity 160ms ease;
-  /* fill-box scopes transform-origin to each <line>'s own bbox so
+  .cts-nav .cts-menu-toggle {
+    display: none;
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    margin: 0;
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: var(--radius-2);
+    color: var(--ink-200);
+    cursor: pointer;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .cts-nav .cts-menu-toggle:hover {
+    background: var(--ink-800);
+    color: var(--ink-0);
+  }
+  .cts-nav .cts-menu-toggle:focus-visible {
+    outline: none;
+    box-shadow:
+      0 0 0 2px var(--ink-900),
+      0 0 0 4px var(--orange-400);
+  }
+  .cts-nav .cts-menu-toggle svg {
+    display: block;
+  }
+  .cts-nav .cts-menu-toggle .cts-menu-toggle-bar {
+    transition:
+      transform 160ms ease,
+      opacity 160ms ease;
+    /* fill-box scopes transform-origin to each <line>'s own bbox so
    * "center" means each bar's own midpoint, not the SVG's. Without
    * this, rotate(45deg) pivots around the viewBox center and the
    * bars don't converge into a tidy X. */
-  transform-box: fill-box;
-  transform-origin: center;
-}
-/* Hamburger → close glyph. The svg uses a 20×20 viewBox rendered at
+    transform-box: fill-box;
+    transform-origin: center;
+  }
+  /* Hamburger → close glyph. The svg uses a 20×20 viewBox rendered at
  * 20×20 CSS pixels so 1 user unit == 1 CSS pixel — that lets the
  * translateY(4px) values exactly bridge the gap between bars (which
  * sit at y=6, y=10, y=14). */
-.cts-nav[data-mobile-open="true"] .cts-menu-toggle .cts-menu-toggle-bar--top {
-  transform: translateY(4px) rotate(45deg);
-}
-.cts-nav[data-mobile-open="true"] .cts-menu-toggle .cts-menu-toggle-bar--mid {
-  opacity: 0;
-}
-.cts-nav[data-mobile-open="true"] .cts-menu-toggle .cts-menu-toggle-bar--bot {
-  transform: translateY(-4px) rotate(-45deg);
-}
-.cts-nav .cts-brand {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  text-decoration-line: none;
-  color: var(--ink-0);
-  flex-shrink: 0;
-}
-.cts-nav .cts-brand img {
-  height: 28px;
-  width: auto;
-  /* Optical lift — the OpenID mark's baseline sits a touch low against
+  .cts-nav[data-mobile-open="true"] .cts-menu-toggle .cts-menu-toggle-bar--top {
+    transform: translateY(4px) rotate(45deg);
+  }
+  .cts-nav[data-mobile-open="true"] .cts-menu-toggle .cts-menu-toggle-bar--mid {
+    opacity: 0;
+  }
+  .cts-nav[data-mobile-open="true"] .cts-menu-toggle .cts-menu-toggle-bar--bot {
+    transform: translateY(-4px) rotate(-45deg);
+  }
+  .cts-nav .cts-brand {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    text-decoration-line: none;
+    color: var(--ink-0);
+    flex-shrink: 0;
+  }
+  .cts-nav .cts-brand img {
+    height: 28px;
+    width: auto;
+    /* Optical lift — the OpenID mark's baseline sits a touch low against
    * the wordmark; -4px aligns the visual center of the logo with the
    * wordmark's cap-height row. Reset to 0 on mobile where the wordmark
    * is hidden and the lift would just look like a misalignment. */
-  position: relative;
-  top: -4px;
-}
-.cts-nav .cts-brand-name {
-  font-family: var(--font-display);
-  font-weight: var(--fw-bold);
-  font-size: var(--fs-13);
-  letter-spacing: 0.04em;
-  color: var(--ink-0);
-}
-.cts-nav .cts-brand-tag {
-  font-family: var(--font-mono);
-  font-size: 10px;
-  color: var(--ink-400);
-  padding-left: var(--space-2);
-  border-left: 1px solid var(--ink-600);
-  margin-left: var(--space-2);
-}
-.cts-nav .cts-navlinks {
-  display: flex;
-  /* Bootstrap's .navbar-nav rule sets flex-direction: column (mobile-first
+    position: relative;
+    top: -4px;
+  }
+  .cts-nav .cts-brand-name {
+    font-family: var(--font-display);
+    font-weight: var(--fw-bold);
+    font-size: var(--fs-13);
+    letter-spacing: 0.04em;
+    color: var(--ink-0);
+  }
+  .cts-nav .cts-brand-tag {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--ink-400);
+    padding-left: var(--space-2);
+    border-left: 1px solid var(--ink-600);
+    margin-left: var(--space-2);
+  }
+  .cts-nav .cts-navlinks {
+    display: flex;
+    /* Bootstrap's .navbar-nav rule sets flex-direction: column (mobile-first
    * default; only flipped to row by .navbar-expand-* on the parent, which
    * this nav does not use). Spelling row out explicitly keeps the link
    * row horizontal regardless of Bootstrap's cascade. */
-  flex-direction: row;
-  align-items: center;
-  gap: var(--space-1);
-  flex: 1;
-  min-width: 0;
-  list-style: none;
-  margin: 0;
-  padding: 0;
-}
-.cts-nav .cts-navlink {
-  display: inline-block;
-  padding: var(--space-2) var(--space-3);
-  color: var(--ink-200);
-  font-size: var(--fs-13);
-  font-weight: var(--fw-medium);
-  text-decoration-line: none;
-  border-radius: var(--radius-2);
-  background: transparent;
-  border: 0;
-  cursor: pointer;
-  font-family: inherit;
-  line-height: 1;
-  white-space: nowrap;
-}
-.cts-nav .cts-navlink:hover:not(.active) {
-  background: var(--ink-800);
-  color: var(--ink-0);
-  text-decoration-line: none;
-}
-.cts-nav .cts-navlink.active {
-  background: var(--ink-700);
-  color: var(--ink-0);
-}
-.cts-nav .cts-navlink-external {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-1);
-}
-/* Pull the icon a hair toward the baseline so it visually centers next
+    flex-direction: row;
+    align-items: center;
+    gap: var(--space-1);
+    flex: 1;
+    min-width: 0;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  .cts-nav .cts-navlink {
+    display: inline-block;
+    padding: var(--space-2) var(--space-3);
+    color: var(--ink-200);
+    font-size: var(--fs-13);
+    font-weight: var(--fw-medium);
+    text-decoration-line: none;
+    border-radius: var(--radius-2);
+    background: transparent;
+    border: 0;
+    cursor: pointer;
+    font-family: inherit;
+    line-height: 1;
+    white-space: nowrap;
+  }
+  .cts-nav .cts-navlink:hover:not(.active) {
+    background: var(--ink-800);
+    color: var(--ink-0);
+    text-decoration-line: none;
+  }
+  .cts-nav .cts-navlink.active {
+    background: var(--ink-700);
+    color: var(--ink-0);
+  }
+  .cts-nav .cts-navlink-external {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-1);
+  }
+  /* Pull the icon a hair toward the baseline so it visually centers next
  * to the cap-height of the label rather than the line-height midpoint. */
-.cts-nav .cts-navlink-external cts-icon {
-  display: block;
-  color: var(--ink-400);
-  transform: translateY(0.5px);
-}
-.cts-nav .cts-navlink-external:hover:not(.active) cts-icon,
-.cts-nav .cts-navlink-external.active cts-icon {
-  color: currentColor;
-}
-.cts-nav .cts-navright {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  flex-shrink: 0;
-}
-.cts-nav .cts-nav-admin-badge {
-  display: inline-flex;
-  align-items: center;
-  padding: 2px var(--space-2);
-  font-size: 10px;
-  font-weight: var(--fw-medium);
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  background: var(--rust-400);
-  color: var(--ink-0);
-  border-radius: var(--radius-pill);
-}
-.cts-nav .cts-nav-action {
-  display: inline-flex;
-  align-items: center;
-  height: 30px;
-  padding: 0 var(--space-3);
-  background: transparent;
-  color: var(--ink-200);
-  border: 1px solid var(--ink-600);
-  border-radius: var(--radius-2);
-  font-size: var(--fs-12);
-  font-weight: var(--fw-medium);
-  font-family: inherit;
-  cursor: pointer;
-  text-decoration-line: none;
-  line-height: 1;
-  white-space: nowrap;
-}
-.cts-nav .cts-nav-action:hover {
-  background: var(--ink-800);
-  color: var(--ink-0);
-  text-decoration-line: none;
-}
-.cts-nav .cts-nav-action:focus-visible {
-  outline: 2px solid var(--orange-400);
-  outline-offset: 2px;
-}
+  .cts-nav .cts-navlink-external cts-icon {
+    display: block;
+    color: var(--ink-400);
+    transform: translateY(0.5px);
+  }
+  .cts-nav .cts-navlink-external:hover:not(.active) cts-icon,
+  .cts-nav .cts-navlink-external.active cts-icon {
+    color: currentColor;
+  }
+  .cts-nav .cts-navright {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    flex-shrink: 0;
+  }
+  .cts-nav .cts-nav-admin-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px var(--space-2);
+    font-size: 10px;
+    font-weight: var(--fw-medium);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    background: var(--rust-400);
+    color: var(--ink-0);
+    border-radius: var(--radius-pill);
+  }
+  .cts-nav .cts-nav-action {
+    display: inline-flex;
+    align-items: center;
+    height: 30px;
+    padding: 0 var(--space-3);
+    background: transparent;
+    color: var(--ink-200);
+    border: 1px solid var(--ink-600);
+    border-radius: var(--radius-2);
+    font-size: var(--fs-12);
+    font-weight: var(--fw-medium);
+    font-family: inherit;
+    cursor: pointer;
+    text-decoration-line: none;
+    line-height: 1;
+    white-space: nowrap;
+  }
+  .cts-nav .cts-nav-action:hover {
+    background: var(--ink-800);
+    color: var(--ink-0);
+    text-decoration-line: none;
+  }
+  .cts-nav .cts-nav-action:focus-visible {
+    outline: 2px solid var(--orange-400);
+    outline-offset: 2px;
+  }
 
-/* Account zone — avatar trigger + popover menu. Replaces the previous
+  /* Account zone — avatar trigger + popover menu. Replaces the previous
  * inline "Logged in as X" + Tokens + Logout cluster. The trigger is
  * always 30x30 regardless of name length, so the navbar's right edge
  * never reflows when the user resolves. */
-.cts-nav .cts-account {
-  position: relative;
-  display: inline-flex;
-}
-.cts-nav .cts-account-trigger {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0;
-  margin: 0;
-  background: transparent;
-  border: 0;
-  border-radius: 50%;
-  cursor: pointer;
-  font-family: inherit;
-  /* Pad the focus ring slightly off the avatar so it reads against
-   * --ink-900 chrome. */
-  transition: box-shadow 120ms ease;
-}
-.cts-nav .cts-account-trigger:focus-visible {
-  outline: none;
-  box-shadow:
-    0 0 0 2px var(--ink-900),
-    0 0 0 4px var(--orange-400);
-}
-.cts-nav .cts-avatar {
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
-  background: var(--orange-400);
-  color: var(--ink-0);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: var(--fs-12);
-  font-weight: var(--fw-medium);
-  font-family: var(--font-sans);
-  flex-shrink: 0;
-  /* Subtle inner shadow on hover keeps the affordance discoverable
-   * without inventing a second hover state for an already-saturated chip. */
-  transition: filter 120ms ease;
-}
-.cts-nav .cts-account-trigger:hover .cts-avatar,
-.cts-nav .cts-account[data-open="true"] .cts-avatar {
-  filter: brightness(1.08);
-}
-/* Admin identity is also surfaced peripherally via a rust-toned ring on
- * the avatar so it's visible when the menu is closed. */
-.cts-nav .cts-avatar.is-admin {
-  box-shadow: inset 0 0 0 2px var(--rust-400);
-}
-.cts-nav .cts-skel-avatar {
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
-  background: var(--ink-700);
-  flex-shrink: 0;
-}
-.cts-nav .cts-account-menu {
-  position: absolute;
-  top: calc(100% + var(--space-2));
-  right: 0;
-  min-width: 240px;
-  background: var(--ink-800);
-  color: var(--ink-100);
-  border: 1px solid var(--ink-700);
-  border-radius: var(--radius-3);
-  box-shadow:
-    0 1px 0 rgba(255, 255, 255, 0.04) inset,
-    0 12px 32px rgba(0, 0, 0, 0.45);
-  padding: var(--space-2);
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-1);
-  font-family: var(--font-sans);
-  opacity: 0;
-  pointer-events: none;
-  transform: translateY(-4px);
-  transition:
-    opacity 120ms ease,
-    transform 120ms ease;
-  z-index: 1000;
-}
-.cts-nav .cts-account[data-open="true"] .cts-account-menu {
-  opacity: 1;
-  pointer-events: auto;
-  transform: translateY(0);
-}
-.cts-nav .cts-account-header {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-1);
-  padding: var(--space-3);
-}
-.cts-nav .cts-account-name {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-2);
-  flex-wrap: wrap;
-  font-weight: var(--fw-medium);
-  font-size: var(--fs-14);
-  color: var(--ink-0);
-  line-height: 1.25;
-}
-.cts-nav .cts-account-principal {
-  font-family: var(--font-mono);
-  font-size: var(--fs-12);
-  color: var(--ink-400);
-  word-break: break-all;
-  line-height: 1.4;
-}
-.cts-nav .cts-account-divider {
-  height: 1px;
-  margin: 0 var(--space-1);
-  background: var(--ink-700);
-}
-.cts-nav .cts-account-form {
-  margin: 0;
-  padding: 0;
-}
-.cts-nav .cts-account-item {
-  display: flex;
-  align-items: center;
-  width: 100%;
-  padding: var(--space-2) var(--space-3);
-  background: transparent;
-  border: 0;
-  border-radius: var(--radius-2);
-  color: var(--ink-100);
-  font-size: var(--fs-13);
-  font-weight: var(--fw-medium);
-  font-family: inherit;
-  text-decoration-line: none;
-  text-align: left;
-  cursor: pointer;
-  line-height: 1.4;
-}
-.cts-nav .cts-account-item:hover,
-.cts-nav .cts-account-item:focus-visible {
-  background: var(--ink-700);
-  color: var(--ink-0);
-  outline: none;
-  text-decoration-line: none;
-}
-.cts-nav .cts-account-item--danger:hover,
-.cts-nav .cts-account-item--danger:focus-visible {
-  background: var(--rust-500);
-  color: var(--ink-0);
-}
-
-/* Tablet landscape and below — tighten the brand block. The user zone
- * is now a single avatar so there's nothing on the right to compress. */
-@media (max-width: 1023px) {
-  .cts-nav {
-    gap: var(--space-4);
-    padding: 0 var(--space-4);
-  }
-}
-
-/* Below tablet portrait — collapse brand to logo only and migrate the
- * link row into a vertical panel that drops below the chrome when the
- * hamburger is toggled. The same <ul> serves both layouts; only its
- * positioning and flex direction swap. */
-@media (max-width: 820px) {
-  .cts-nav {
-    gap: var(--space-3);
-  }
-  /* Nudge the brand up a few pixels on small screens to optically align
-   * with the hamburger and avatar icons in the collapsed row. */
-  .cts-nav .cts-brand {
+  .cts-nav .cts-account {
     position: relative;
-    top: -3px;
-  }
-  .cts-nav .cts-brand-name {
-    display: none;
-  }
-  /* Shrink the logo a notch on phones — the wordmark is gone so the
-   * mark itself can come down without losing legibility, leaving more
-   * room for the hamburger and avatar at the row edges. The desktop
-   * optical lift is reset since there's no wordmark to align against. */
-  .cts-nav .cts-brand img {
-    height: 22px;
-    top: 0;
-  }
-  .cts-nav .cts-menu-toggle {
     display: inline-flex;
   }
-  /* With navlinks pulled out of flow (position: absolute), the in-flow
-   * row collapses to [hamburger][brand][navright] packed by gap. Shove
-   * the account zone to the far right edge so the chrome reads
-   * "navigation > brand > identity" on phones. */
-  .cts-nav .cts-navright {
-    margin-left: auto;
+  .cts-nav .cts-account-trigger {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    margin: 0;
+    background: transparent;
+    border: 0;
+    border-radius: 50%;
+    cursor: pointer;
+    font-family: inherit;
+    /* Pad the focus ring slightly off the avatar so it reads against
+   * --ink-900 chrome. */
+    transition: box-shadow 120ms ease;
   }
-  /* The link row pulls out of the in-flow row and becomes a popover
-   * pinned to the navbar's bottom edge. Hidden by default; revealed
-   * when [data-mobile-open="true"] flips on the parent. */
-  .cts-nav .cts-navlinks {
+  .cts-nav .cts-account-trigger:focus-visible {
+    outline: none;
+    box-shadow:
+      0 0 0 2px var(--ink-900),
+      0 0 0 4px var(--orange-400);
+  }
+  .cts-nav .cts-avatar {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: var(--orange-400);
+    color: var(--ink-0);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: var(--fs-12);
+    font-weight: var(--fw-medium);
+    font-family: var(--font-sans);
+    flex-shrink: 0;
+    /* Subtle inner shadow on hover keeps the affordance discoverable
+   * without inventing a second hover state for an already-saturated chip. */
+    transition: filter 120ms ease;
+  }
+  .cts-nav .cts-account-trigger:hover .cts-avatar,
+  .cts-nav .cts-account[data-open="true"] .cts-avatar {
+    filter: brightness(1.08);
+  }
+  /* Admin identity is also surfaced peripherally via a rust-toned ring on
+ * the avatar so it's visible when the menu is closed. */
+  .cts-nav .cts-avatar.is-admin {
+    box-shadow: inset 0 0 0 2px var(--rust-400);
+  }
+  .cts-nav .cts-skel-avatar {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: var(--ink-700);
+    flex-shrink: 0;
+  }
+  .cts-nav .cts-account-menu {
     position: absolute;
-    top: 100%;
-    left: 0;
+    top: calc(100% + var(--space-2));
     right: 0;
-    flex: 0 0 auto;
-    flex-direction: column;
-    align-items: stretch;
-    gap: 0;
+    min-width: 240px;
+    background: var(--ink-800);
+    color: var(--ink-100);
+    border: 1px solid var(--ink-700);
+    border-radius: var(--radius-3);
+    box-shadow:
+      0 1px 0 rgba(255, 255, 255, 0.04) inset,
+      0 12px 32px rgba(0, 0, 0, 0.45);
     padding: var(--space-2);
-    background: var(--ink-900);
-    border-top: 1px solid var(--ink-800);
-    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.45);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+    font-family: var(--font-sans);
     opacity: 0;
     pointer-events: none;
     transform: translateY(-4px);
     transition:
-      opacity 140ms ease,
-      transform 140ms ease;
-    z-index: 999;
+      opacity 120ms ease,
+      transform 120ms ease;
+    z-index: 1000;
   }
-  .cts-nav[data-mobile-open="true"] .cts-navlinks {
+  .cts-nav .cts-account[data-open="true"] .cts-account-menu {
     opacity: 1;
     pointer-events: auto;
     transform: translateY(0);
   }
-  .cts-nav .cts-navlink {
-    display: block;
+  .cts-nav .cts-account-header {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
     padding: var(--space-3);
-    font-size: var(--fs-14);
-    border-radius: var(--radius-2);
   }
-  /* External links keep their flex layout in the mobile panel so the
+  .cts-nav .cts-account-name {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    flex-wrap: wrap;
+    font-weight: var(--fw-medium);
+    font-size: var(--fs-14);
+    color: var(--ink-0);
+    line-height: 1.25;
+  }
+  .cts-nav .cts-account-principal {
+    font-family: var(--font-mono);
+    font-size: var(--fs-12);
+    color: var(--ink-400);
+    word-break: break-all;
+    line-height: 1.4;
+  }
+  .cts-nav .cts-account-divider {
+    height: 1px;
+    margin: 0 var(--space-1);
+    background: var(--ink-700);
+  }
+  .cts-nav .cts-account-form {
+    margin: 0;
+    padding: 0;
+  }
+  .cts-nav .cts-account-item {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    padding: var(--space-2) var(--space-3);
+    background: transparent;
+    border: 0;
+    border-radius: var(--radius-2);
+    color: var(--ink-100);
+    font-size: var(--fs-13);
+    font-weight: var(--fw-medium);
+    font-family: inherit;
+    text-decoration-line: none;
+    text-align: left;
+    cursor: pointer;
+    line-height: 1.4;
+  }
+  .cts-nav .cts-account-item:hover,
+  .cts-nav .cts-account-item:focus-visible {
+    background: var(--ink-700);
+    color: var(--ink-0);
+    outline: none;
+    text-decoration-line: none;
+  }
+  .cts-nav .cts-account-item--danger:hover,
+  .cts-nav .cts-account-item--danger:focus-visible {
+    background: var(--rust-500);
+    color: var(--ink-0);
+  }
+
+  /* Tablet landscape and below — tighten the brand block. The user zone
+ * is now a single avatar so there's nothing on the right to compress. */
+  @media (max-width: 1023px) {
+    .cts-nav {
+      gap: var(--space-4);
+      padding: 0 var(--space-4);
+    }
+  }
+
+  /* Below tablet portrait — collapse brand to logo only and migrate the
+ * link row into a vertical panel that drops below the chrome when the
+ * hamburger is toggled. The same <ul> serves both layouts; only its
+ * positioning and flex direction swap. */
+  @media (max-width: 820px) {
+    .cts-nav {
+      gap: var(--space-3);
+    }
+    /* Nudge the brand up a few pixels on small screens to optically align
+   * with the hamburger and avatar icons in the collapsed row. */
+    .cts-nav .cts-brand {
+      position: relative;
+      top: -3px;
+    }
+    .cts-nav .cts-brand-name {
+      display: none;
+    }
+    /* Shrink the logo a notch on phones — the wordmark is gone so the
+   * mark itself can come down without losing legibility, leaving more
+   * room for the hamburger and avatar at the row edges. The desktop
+   * optical lift is reset since there's no wordmark to align against. */
+    .cts-nav .cts-brand img {
+      height: 22px;
+      top: 0;
+    }
+    .cts-nav .cts-menu-toggle {
+      display: inline-flex;
+    }
+    /* With navlinks pulled out of flow (position: absolute), the in-flow
+   * row collapses to [hamburger][brand][navright] packed by gap. Shove
+   * the account zone to the far right edge so the chrome reads
+   * "navigation > brand > identity" on phones. */
+    .cts-nav .cts-navright {
+      margin-left: auto;
+    }
+    /* The link row pulls out of the in-flow row and becomes a popover
+   * pinned to the navbar's bottom edge. Hidden by default; revealed
+   * when [data-mobile-open="true"] flips on the parent. */
+    .cts-nav .cts-navlinks {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      flex: 0 0 auto;
+      flex-direction: column;
+      align-items: stretch;
+      gap: 0;
+      padding: var(--space-2);
+      background: var(--ink-900);
+      border-top: 1px solid var(--ink-800);
+      box-shadow: 0 12px 24px rgba(0, 0, 0, 0.45);
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(-4px);
+      transition:
+        opacity 140ms ease,
+        transform 140ms ease;
+      z-index: 999;
+    }
+    .cts-nav[data-mobile-open="true"] .cts-navlinks {
+      opacity: 1;
+      pointer-events: auto;
+      transform: translateY(0);
+    }
+    .cts-nav .cts-navlink {
+      display: block;
+      padding: var(--space-3);
+      font-size: var(--fs-14);
+      border-radius: var(--radius-2);
+    }
+    /* External links keep their flex layout in the mobile panel so the
    * icon stays inline with the label. Without this, the base
    * .cts-navlink { display: block } above would override the
    * .cts-navlink-external { display: inline-flex } from the
    * non-media-query rule (same specificity, later wins) and the
    * block-level icon would drop to its own line. */
-  .cts-nav .cts-navlink-external {
-    display: flex;
-    align-items: center;
+    .cts-nav .cts-navlink-external {
+      display: flex;
+      align-items: center;
+    }
   }
-}
 
-/* Phones — tighten edge padding; the menu pins to the right edge of
+  /* Phones — tighten edge padding; the menu pins to the right edge of
  * the trigger so it stays inside the viewport. */
-@media (max-width: 640px) {
-  .cts-nav {
-    padding: 0 var(--space-3);
-    gap: var(--space-2);
-  }
-  .cts-nav .cts-account-menu {
-    /* Anchor a few px in from the right edge so the popover never
+  @media (max-width: 640px) {
+    .cts-nav {
+      padding: 0 var(--space-3);
+      gap: var(--space-2);
+    }
+    .cts-nav .cts-account-menu {
+      /* Anchor a few px in from the right edge so the popover never
      * brushes the viewport border on small phones. */
-    right: calc(var(--space-3) * -1 + var(--space-2));
+      right: calc(var(--space-3) * -1 + var(--space-2));
+    }
   }
-}
 
-@media (prefers-reduced-motion: reduce) {
-  .cts-nav .cts-account-menu,
-  .cts-nav .cts-avatar,
-  .cts-nav .cts-account-trigger,
-  .cts-nav .cts-navlinks,
-  .cts-nav .cts-menu-toggle .cts-menu-toggle-bar {
-    transition: none;
+  @media (prefers-reduced-motion: reduce) {
+    .cts-nav .cts-account-menu,
+    .cts-nav .cts-avatar,
+    .cts-nav .cts-account-trigger,
+    .cts-nav .cts-navlinks,
+    .cts-nav .cts-menu-toggle .cts-menu-toggle-bar {
+      transition: none;
+    }
   }
-}
 `;
 
 /**
@@ -515,7 +515,7 @@ function injectStyles() {
   if (document.getElementById(STYLE_ID)) return;
   const style = document.createElement("style");
   style.id = STYLE_ID;
-  style.textContent = STYLE_TEXT;
+  style.textContent = STYLE_TEXT.cssText;
   document.head.appendChild(style);
 }
 

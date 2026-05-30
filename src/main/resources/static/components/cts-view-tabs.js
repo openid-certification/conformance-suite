@@ -1,76 +1,80 @@
-import { LitElement, html, nothing } from "lit";
+import { LitElement, html, nothing, css } from "lit";
 import "./cts-link-button.js";
 import "./cts-tooltip.js";
 import "./cts-icon.js";
 
 const STYLE_ID = "cts-view-tabs-styles";
 
-const STYLE_TEXT = `
-.cts-view-tabs {
-  display: flex;
-  gap: var(--space-1);
-  margin-bottom: var(--space-4);
-  border-bottom: 1px solid var(--border);
-}
-/* Direct-child combinator (> a), NOT a descendant selector: the My/Published
+const STYLE_TEXT = css`
+  .cts-view-tabs {
+    display: flex;
+    gap: var(--space-1);
+    margin-bottom: var(--space-4);
+    border-bottom: 1px solid var(--border);
+  }
+  /* Direct-child combinator (> a), NOT a descendant selector: the My/Published
    tabs are the nav's own anchors, while the opt-in "Schedule test" CTA renders a
    nested <a class="oidf-btn"> (inside cts-link-button) that is a grandchild.
    A bare ".cts-view-tabs a" would outspecify ".oidf-btn" (0,1,1 vs 0,1,0) and
    leak the tab styling (grey text, 2px bottom border, -1px margin) onto the
    button. Keep this scoped to > a. */
-.cts-view-tabs > a {
-  display: inline-flex;
-  align-items: center;
-  padding: var(--space-2) var(--space-3);
-  font-family: var(--font-sans);
-  font-size: var(--fs-14);
-  font-weight: var(--fw-medium);
-  line-height: var(--lh-snug);
-  color: var(--fg-soft);
-  text-decoration: none;
-  border-bottom: 2px solid transparent;
-  margin-bottom: -1px;
-  transition: color var(--dur-1) var(--ease-standard),
-              border-color var(--dur-1) var(--ease-standard);
-}
-.cts-view-tabs > a:hover {
-  color: var(--fg);
-}
-.cts-view-tabs > a:focus-visible {
-  outline: none;
-  box-shadow: var(--focus-ring);
-  border-radius: var(--radius-1);
-}
-.cts-view-tabs > a[aria-current="page"] {
-  color: var(--fg);
-  border-bottom-color: var(--orange-400);
-}
-/* Opt-in "Schedule test" CTA (R11), rendered at the end of the tabs row in
+  .cts-view-tabs > a {
+    display: inline-flex;
+    align-items: center;
+    padding: var(--space-3);
+    font-family: var(--font-sans);
+    font-size: var(--fs-14);
+    font-weight: var(--fw-medium);
+    line-height: var(--lh-snug);
+    color: var(--fg-soft);
+    text-decoration: none;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+    transition:
+      color var(--dur-1) var(--ease-standard),
+      border-color var(--dur-1) var(--ease-standard);
+  }
+  .cts-view-tabs > a:hover {
+    color: var(--fg);
+  }
+  .cts-view-tabs > a:focus-visible {
+    outline: none;
+    box-shadow: var(--focus-ring);
+    border-radius: var(--radius-1);
+  }
+  .cts-view-tabs > a[aria-current="page"] {
+    color: var(--fg);
+    border-bottom-color: var(--orange-400);
+  }
+  /* Opt-in "Schedule test" CTA (R11), rendered at the end of the tabs row in
    every state whenever a page sets create-test-href. Pushed to the right edge
    (margin-left:auto) and vertically centered so it sits in the tab row without
    inheriting the anchors' bottom-border overlap. */
-.cts-view-tabs .cts-view-tabs-cta {
-  margin-left: auto;
-  align-self: center;
-}
-/* Opt-in Published help affordance (R22): a circled-question-mark icon sitting
-   immediately after the Published anchor, revealing a descriptor tooltip on
-   hover/focus. The cts-icon itself is the focusable trigger (tabindex=0) so the
-   tooltip is keyboard-reachable; align-self centers it in the tab row. Mirrors
-   the established cts-plan-modules help-icon colour + focus-ring treatment. */
-.cts-view-tabs .cts-view-tabs-help-icon {
-  align-self: center;
-  color: var(--fg-faint);
-  cursor: help;
-}
-.cts-view-tabs .cts-view-tabs-help-icon:hover {
-  color: var(--fg);
-}
-.cts-view-tabs .cts-view-tabs-help-icon:focus-visible {
-  outline: none;
-  box-shadow: var(--focus-ring);
-  border-radius: var(--radius-1);
-}
+  .cts-view-tabs .cts-view-tabs-cta {
+    margin-left: auto;
+    align-self: center;
+  }
+  /* Opt-in Published help affordance (R22): a circled-question-mark icon sitting
+   inside the Published anchor, immediately after its label, revealing a
+   descriptor tooltip on hover/focus. The cts-icon itself is the focusable
+   trigger (tabindex=0) so the tooltip is keyboard-reachable; align-self centers
+   it within the anchor's inline-flex box, and margin-left keeps it from sitting
+   snug against the label text. Mirrors the established cts-plan-modules
+   help-icon colour + focus-ring treatment. */
+  .cts-view-tabs .cts-view-tabs-help-icon {
+    align-self: center;
+    margin-left: var(--space-1);
+    color: var(--fg-faint);
+    cursor: help;
+  }
+  .cts-view-tabs .cts-view-tabs-help-icon:hover {
+    color: var(--fg);
+  }
+  .cts-view-tabs .cts-view-tabs-help-icon:focus-visible {
+    outline: none;
+    box-shadow: var(--focus-ring);
+    border-radius: var(--radius-1);
+  }
 `;
 
 /**
@@ -83,7 +87,7 @@ function ensureStylesInjected() {
   if (document.getElementById(STYLE_ID)) return;
   const style = document.createElement("style");
   style.id = STYLE_ID;
-  style.textContent = STYLE_TEXT;
+  style.textContent = STYLE_TEXT.cssText;
   document.head.appendChild(style);
 }
 
@@ -140,8 +144,8 @@ function ensureStylesInjected() {
  *   scheduling (e.g. `logs.html`) simply leave it unset, so the shared control
  *   stays page-neutral. Reflects the `create-test-href` attribute.
  * @property {string} publishedHelp - Opt-in descriptor text for the Published
- *   view (R22). When set, a circled-question-mark help icon renders immediately
- *   after the Published anchor; hovering or keyboard-focusing it reveals a
+ *   view (R22). When set, a circled-question-mark help icon renders inside the
+ *   Published anchor, just after its label; hovering or keyboard-focusing it reveals a
  *   tooltip carrying this text, and the same text is the icon's `aria-label`
  *   (the only screen-reader channel, since `cts-tooltip` has no
  *   `aria-describedby`). The copy differs per page (published plans vs.
@@ -301,20 +305,19 @@ class CtsViewTabs extends LitElement {
           href="${this._hrefFor("published")}"
           aria-current="${active === "published" ? "page" : "false"}"
           @click=${this._handleTabClick}
-          >Published${suffix}</a
+          >Published${suffix}${this.publishedHelp
+            ? html`<cts-tooltip content="${this.publishedHelp}" placement="bottom"
+                ><cts-icon
+                  name="circle-help"
+                  size="16"
+                  class="cts-view-tabs-help-icon"
+                  tabindex="0"
+                  aria-label="${this.publishedHelp}"
+                  data-testid="published-help"
+                ></cts-icon
+              ></cts-tooltip>`
+            : nothing}</a
         >
-        ${this.publishedHelp
-          ? html`<cts-tooltip content="${this.publishedHelp}" placement="bottom"
-              ><cts-icon
-                name="circle-help"
-                size="16"
-                class="cts-view-tabs-help-icon"
-                tabindex="0"
-                aria-label="${this.publishedHelp}"
-                data-testid="published-help"
-              ></cts-icon
-            ></cts-tooltip>`
-          : nothing}
         ${this.createTestHref
           ? html`<cts-link-button
               class="cts-view-tabs-cta"

@@ -1,3 +1,4 @@
+import { css, unsafeCSS } from "lit";
 /**
  * Behavioral wrapper that paints a one-shot "your selection landed here"
  * highlight wash over all of its children. The host page calls
@@ -43,45 +44,51 @@ const FLASH_DURATION_MS = 1600;
 const FLASHING_ATTR = "data-flashing";
 const FLASH_KEYFRAME = "oidf-flash-highlight-flash";
 
-const STYLE_TEXT = `
-cts-flash-highlight {
-  position: relative;
-  display: block;
-}
-/* Basecamp-style scroll-in highlight (driven by flashHighlight(); wired from
+const STYLE_TEXT = css`
+  cts-flash-highlight {
+    position: relative;
+    display: block;
+  }
+  /* Basecamp-style scroll-in highlight (driven by flashHighlight(); wired from
    the cts-plan-select handler in schedule-test.html). A decorative ::after
    wash overhangs the host box by --space-4 — the "padding around it" — and
    sits behind the wrapped controls (z-index:-1 against the transparent host)
    so they stay legible and clickable during the flash. */
-cts-flash-highlight[${FLASHING_ATTR}]::after {
-  content: "";
-  position: absolute;
-  inset: calc(-1 * var(--space-4));
-  z-index: -1;
-  border-radius: var(--radius-4);
-  background: var(--orange-100);
-  pointer-events: none;
-  opacity: 0;
-}
-@media (prefers-reduced-motion: no-preference) {
-  /* Snap in (peak at 12%), then a slow dissolve over the long tail. */
-  cts-flash-highlight[${FLASHING_ATTR}]::after {
-    animation: ${FLASH_KEYFRAME} ${FLASH_DURATION_MS}ms ease-out;
+  cts-flash-highlight[${unsafeCSS(FLASHING_ATTR)}]::after {
+    content: "";
+    position: absolute;
+    inset: calc(-1 * var(--space-4));
+    z-index: -1;
+    border-radius: var(--radius-4);
+    background: var(--orange-100);
+    pointer-events: none;
+    opacity: 0;
   }
-}
-@media (prefers-reduced-motion: reduce) {
-  /* No motion: show a brief static wash so the arrival is still perceptible.
+  @media (prefers-reduced-motion: no-preference) {
+    /* Snap in (peak at 12%), then a slow dissolve over the long tail. */
+    cts-flash-highlight[${unsafeCSS(FLASHING_ATTR)}]::after {
+      animation: ${unsafeCSS(FLASH_KEYFRAME)} ${FLASH_DURATION_MS}ms ease-out;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    /* No motion: show a brief static wash so the arrival is still perceptible.
      flashHighlight() clears the attribute via setTimeout, since animationend
      never fires when there is no animation. */
-  cts-flash-highlight[${FLASHING_ATTR}]::after {
-    opacity: 1;
+    cts-flash-highlight[${unsafeCSS(FLASHING_ATTR)}]::after {
+      opacity: 1;
+    }
   }
-}
-@keyframes ${FLASH_KEYFRAME} {
-  0% { opacity: 0; }
-  12% { opacity: 1; }
-  100% { opacity: 0; }
-}
+  @keyframes ${unsafeCSS(FLASH_KEYFRAME)} {
+    0% {
+      opacity: 0;
+    }
+    12% {
+      opacity: 1;
+    }
+    100% {
+      opacity: 0;
+    }
+  }
 `;
 
 /**
@@ -93,7 +100,7 @@ function injectStyles() {
   if (document.getElementById(STYLE_ID)) return;
   const style = document.createElement("style");
   style.id = STYLE_ID;
-  style.textContent = STYLE_TEXT;
+  style.textContent = STYLE_TEXT.cssText;
   document.head.appendChild(style);
 }
 

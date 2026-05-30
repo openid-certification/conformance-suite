@@ -1,3 +1,4 @@
+import { css } from "lit";
 const STYLE_ID = "cts-spinner-styles";
 
 // Scoped CSS for the OIDF spinner. The host renders a tiny inline SVG sized
@@ -9,55 +10,71 @@ const STYLE_ID = "cts-spinner-styles";
 // pulse when the user has asked for reduced motion (mirroring the reduced
 // motion treatment already used in cts-navbar.js and cts-log-detail-header.js
 // where transitions stay present but motion is dampened rather than removed).
-const STYLE_TEXT = `
-cts-spinner {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  line-height: 0;
-}
-cts-spinner[data-size="sm"] svg { width: 24px; height: 24px; }
-cts-spinner[data-size="md"] svg { width: 40px; height: 40px; }
-cts-spinner[data-size="lg"] svg { width: 64px; height: 64px; }
-cts-spinner svg {
-  display: block;
-  animation: cts-spinner-rotate 1.1s linear infinite;
-}
-cts-spinner svg circle {
-  fill: none;
-  stroke-linecap: round;
-}
-cts-spinner svg .cts-spinner-track {
-  stroke: var(--ink-100);
-}
-cts-spinner svg .cts-spinner-indicator {
-  stroke: var(--orange-400);
-}
-.cts-spinner-sr-only {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border: 0;
-}
-
-@keyframes cts-spinner-rotate {
-  to { transform: rotate(360deg); }
-}
-
-@media (prefers-reduced-motion: reduce) {
+const STYLE_TEXT = css`
+  cts-spinner {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 0;
+  }
+  cts-spinner[data-size="sm"] svg {
+    width: 24px;
+    height: 24px;
+  }
+  cts-spinner[data-size="md"] svg {
+    width: 40px;
+    height: 40px;
+  }
+  cts-spinner[data-size="lg"] svg {
+    width: 64px;
+    height: 64px;
+  }
   cts-spinner svg {
-    animation: cts-spinner-pulse 1.4s ease-in-out infinite;
+    display: block;
+    animation: cts-spinner-rotate 1.1s linear infinite;
   }
-  @keyframes cts-spinner-pulse {
-    0%, 100% { opacity: 1; }
-    50%      { opacity: 0.55; }
+  cts-spinner svg circle {
+    fill: none;
+    stroke-linecap: round;
   }
-}
+  cts-spinner svg .cts-spinner-track {
+    stroke: var(--ink-100);
+  }
+  cts-spinner svg .cts-spinner-indicator {
+    stroke: var(--orange-400);
+  }
+  .cts-spinner-sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  @keyframes cts-spinner-rotate {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    cts-spinner svg {
+      animation: cts-spinner-pulse 1.4s ease-in-out infinite;
+    }
+    @keyframes cts-spinner-pulse {
+      0%,
+      100% {
+        opacity: 1;
+      }
+      50% {
+        opacity: 0.55;
+      }
+    }
+  }
 `;
 
 /**
@@ -71,7 +88,7 @@ function injectStyles() {
   if (document.getElementById(STYLE_ID)) return;
   const style = document.createElement("style");
   style.id = STYLE_ID;
-  style.textContent = STYLE_TEXT;
+  style.textContent = STYLE_TEXT.cssText;
   document.head.appendChild(style);
 }
 

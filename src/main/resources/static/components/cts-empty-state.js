@@ -1,4 +1,4 @@
-import { LitElement, html, nothing } from "lit";
+import { LitElement, html, nothing, css } from "lit";
 // Self-import the CTA dependency: _renderCta renders <cts-link-button> when
 // cta-label/cta-href are set, so the element must be defined whenever this
 // component is used. Importing it here (rather than relying on each consumer
@@ -27,50 +27,50 @@ import "./cts-link-button.js";
  */
 const STYLE_ID = "cts-empty-state-styles";
 
-const STYLE_TEXT = `
-.oidf-empty-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: var(--space-4);
-  padding: var(--space-6) var(--space-5);
-  text-align: center;
-}
-.oidf-empty-state-icon {
-  color: var(--ink-300);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-}
-.oidf-empty-state-heading {
-  margin: 0;
-  color: var(--fg);
-  font-family: var(--font-sans);
-  font-size: var(--fs-18);
-  font-weight: var(--fw-bold);
-  line-height: var(--lh-snug);
-  text-wrap: balance;
-}
-.oidf-empty-state-body {
-  margin: 0;
-  color: var(--fg-soft);
-  font-family: var(--font-sans);
-  font-size: var(--fs-14);
-  line-height: var(--lh-base);
-  max-width: 48ch;
-  text-wrap: balance;
-}
-.oidf-empty-state-cta {
-  display: inline-flex;
-}
+const STYLE_TEXT = css`
+  .oidf-empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-4);
+    padding: var(--space-6) var(--space-5);
+    text-align: center;
+  }
+  .oidf-empty-state-icon {
+    color: var(--ink-300);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .oidf-empty-state-heading {
+    margin: 0;
+    color: var(--fg);
+    font-family: var(--font-sans);
+    font-size: var(--fs-18);
+    font-weight: var(--fw-bold);
+    line-height: var(--lh-snug);
+    text-wrap: balance;
+  }
+  .oidf-empty-state-body {
+    margin: 0;
+    color: var(--fg-soft);
+    font-family: var(--font-sans);
+    font-size: var(--fs-14);
+    line-height: var(--lh-base);
+    max-width: 48ch;
+    text-wrap: balance;
+  }
+  .oidf-empty-state-cta {
+    display: inline-flex;
+  }
 `;
 
 function injectStyles() {
   if (document.getElementById(STYLE_ID)) return;
   const style = document.createElement("style");
   style.id = STYLE_ID;
-  style.textContent = STYLE_TEXT;
+  style.textContent = STYLE_TEXT.cssText;
   document.head.appendChild(style);
 }
 

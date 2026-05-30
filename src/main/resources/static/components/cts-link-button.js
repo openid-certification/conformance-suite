@@ -1,4 +1,4 @@
-import { LitElement, html, nothing } from "lit";
+import { LitElement, html, nothing, css } from "lit";
 import "./cts-icon.js";
 
 /**
@@ -72,144 +72,147 @@ function buildButtonClasses({ variant = "secondary", size = "sm" } = {}) {
 // button surface styles defined in cts-button.js.
 const STYLE_ID = "cts-button-styles";
 
-const STYLE_TEXT = `
-.oidf-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--space-2);
-  height: var(--control-height);
-  padding: 0 var(--space-4);
-  font-family: var(--font-sans);
-  font-size: var(--fs-14);
-  font-weight: var(--fw-medium);
-  line-height: 1;
-  border: 1px solid transparent;
-  border-radius: var(--radius-2);
-  background: transparent;
-  color: var(--ink-900);
-  cursor: pointer;
-  text-decoration-line: none;
-  box-sizing: border-box;
-  transition: background var(--dur-1) var(--ease-standard),
-              border-color var(--dur-1) var(--ease-standard),
-              color var(--dur-1) var(--ease-standard);
-}
-.oidf-btn:hover {
-  text-decoration-line: none;
-}
-.oidf-btn:focus {
-  outline: none;
-}
-.oidf-btn:focus-visible {
-  outline: none;
-  box-shadow: var(--focus-ring);
-}
-.oidf-btn[disabled],
-.oidf-btn[aria-disabled="true"] {
-  opacity: 0.55;
-  cursor: not-allowed;
-  pointer-events: none;
-}
+const STYLE_TEXT = css`
+  .oidf-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-2);
+    height: var(--control-height);
+    padding: 0 var(--space-4);
+    font-family: var(--font-sans);
+    font-size: var(--fs-14);
+    font-weight: var(--fw-medium);
+    line-height: 1;
+    border: 1px solid transparent;
+    border-radius: var(--radius-2);
+    background: transparent;
+    color: var(--ink-900);
+    cursor: pointer;
+    text-decoration-line: none;
+    box-sizing: border-box;
+    transition:
+      background var(--dur-1) var(--ease-standard),
+      border-color var(--dur-1) var(--ease-standard),
+      color var(--dur-1) var(--ease-standard);
+  }
+  .oidf-btn:hover {
+    text-decoration-line: none;
+  }
+  .oidf-btn:focus {
+    outline: none;
+  }
+  .oidf-btn:focus-visible {
+    outline: none;
+    box-shadow: var(--focus-ring);
+  }
+  .oidf-btn[disabled],
+  .oidf-btn[aria-disabled="true"] {
+    opacity: 0.55;
+    cursor: not-allowed;
+    pointer-events: none;
+  }
 
-.oidf-btn-primary {
-  background: var(--orange-400);
-  color: var(--ink-0);
-  border-color: var(--orange-400);
-}
-.oidf-btn-primary:hover {
-  background: var(--orange-500);
-  border-color: var(--orange-500);
-  color: var(--ink-0);
-}
+  .oidf-btn-primary {
+    background: var(--orange-400);
+    color: var(--ink-0);
+    border-color: var(--orange-400);
+  }
+  .oidf-btn-primary:hover {
+    background: var(--orange-500);
+    border-color: var(--orange-500);
+    color: var(--ink-0);
+  }
 
-.oidf-btn-secondary {
-  background: var(--ink-0);
-  color: var(--ink-900);
-  border-color: var(--ink-300);
-}
-.oidf-btn-secondary:hover {
-  background: var(--ink-50);
-  color: var(--ink-900);
-}
+  .oidf-btn-secondary {
+    background: var(--ink-0);
+    color: var(--ink-900);
+    border-color: var(--ink-300);
+  }
+  .oidf-btn-secondary:hover {
+    background: var(--ink-50);
+    color: var(--ink-900);
+  }
 
-.oidf-btn-ghost {
-  background: transparent;
-  color: var(--ink-600);
-  border-color: transparent;
-}
-.oidf-btn-ghost:hover {
-  background: var(--ink-100);
-  color: var(--ink-900);
-}
+  .oidf-btn-ghost {
+    background: transparent;
+    color: var(--ink-600);
+    border-color: transparent;
+  }
+  .oidf-btn-ghost:hover {
+    background: var(--ink-100);
+    color: var(--ink-900);
+  }
 
-.oidf-btn-danger {
-  background: var(--rust-400);
-  color: var(--ink-0);
-  border-color: var(--rust-400);
-}
-.oidf-btn-danger:hover {
-  background: var(--rust-500);
-  border-color: var(--rust-500);
-  color: var(--ink-0);
-}
+  .oidf-btn-danger {
+    background: var(--rust-400);
+    color: var(--ink-0);
+    border-color: var(--rust-400);
+  }
+  .oidf-btn-danger:hover {
+    background: var(--rust-500);
+    border-color: var(--rust-500);
+    color: var(--ink-0);
+  }
 
-.oidf-btn-xs {
-  /* Compact size used to replace bespoke "More" / pill-style buttons. 24px
+  .oidf-btn-xs {
+    /* Compact size used to replace bespoke "More" / pill-style buttons. 24px
      = 16px line-box + 4px top + 4px bottom on the 4px grid. fs-12 +
      space-1 horizontal padding keeps it visibly smaller than sm. Kept in
      sync with cts-button.js. */
-  height: 24px;
-  padding: 0 var(--space-1);
-  font-size: var(--fs-12);
-}
-.oidf-btn-sm {
-  height: 30px;
-  padding: 0 var(--space-3);
-  font-size: var(--fs-13);
-}
-.oidf-btn-lg {
-  height: 44px;
-  padding: 0 var(--space-5);
-  font-size: var(--fs-15);
-}
+    height: 24px;
+    padding: 0 var(--space-1);
+    font-size: var(--fs-12);
+  }
+  .oidf-btn-sm {
+    height: 30px;
+    padding: 0 var(--space-3);
+    font-size: var(--fs-13);
+  }
+  .oidf-btn-lg {
+    height: 44px;
+    padding: 0 var(--space-5);
+    font-size: var(--fs-15);
+  }
 
-.oidf-btn-spinner {
-  width: 12px;
-  height: 12px;
-  animation: oidf-btn-spin 0.9s linear infinite;
-}
-.oidf-btn-spinner-track {
-  stroke: var(--ink-300);
-}
-.oidf-btn-spinner-head {
-  stroke: var(--orange-400);
-}
-@keyframes oidf-btn-spin {
-  to { transform: rotate(360deg); }
-}
+  .oidf-btn-spinner {
+    width: 12px;
+    height: 12px;
+    animation: oidf-btn-spin 0.9s linear infinite;
+  }
+  .oidf-btn-spinner-track {
+    stroke: var(--ink-300);
+  }
+  .oidf-btn-spinner-head {
+    stroke: var(--orange-400);
+  }
+  @keyframes oidf-btn-spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
 
-/* Collapse the host's inline line-box so no extra vertical space surrounds the button. */
-cts-button,
-cts-link-button {
-  line-height: 1;
-}
+  /* Collapse the host's inline line-box so no extra vertical space surrounds the button. */
+  cts-button,
+  cts-link-button {
+    line-height: 1;
+  }
 
-cts-button[full-width],
-cts-link-button[full-width] {
-  display: block;
-}
-cts-button[full-width] .oidf-btn,
-cts-link-button[full-width] .oidf-btn {
-  width: 100%;
-}
+  cts-button[full-width],
+  cts-link-button[full-width] {
+    display: block;
+  }
+  cts-button[full-width] .oidf-btn,
+  cts-link-button[full-width] .oidf-btn {
+    width: 100%;
+  }
 `;
 
 function injectStyles() {
   if (document.getElementById(STYLE_ID)) return;
   const style = document.createElement("style");
   style.id = STYLE_ID;
-  style.textContent = STYLE_TEXT;
+  style.textContent = STYLE_TEXT.cssText;
   document.head.appendChild(style);
 }
 

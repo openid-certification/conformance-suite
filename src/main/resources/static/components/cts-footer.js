@@ -1,4 +1,4 @@
-import { LitElement, html, nothing } from "lit";
+import { LitElement, html, nothing, css } from "lit";
 
 /**
  * Ordered map of `/api/server` response keys to their display labels. The
@@ -17,20 +17,20 @@ const SERVER_INFO_LABELS = {
 
 const STYLE_ID = "cts-footer-styles";
 
-const STYLE_TEXT = `
-.oidf-footer {
-  margin-top: var(--space-12);
-  padding: var(--space-6) var(--space-6);
-  border-top: 1px solid var(--border);
-  text-align: center;
-}
-.oidf-footer-brand {
-  display: block;
-  margin-bottom: var(--space-2);
-}
-.oidf-footer .serverInfo {
-  display: block;
-}
+const STYLE_TEXT = css`
+  .oidf-footer {
+    margin-top: var(--space-12);
+    padding: var(--space-6) var(--space-6);
+    border-top: 1px solid var(--border);
+    text-align: center;
+  }
+  .oidf-footer-brand {
+    display: block;
+    margin-bottom: var(--space-2);
+  }
+  .oidf-footer .serverInfo {
+    display: block;
+  }
 `;
 
 /**
@@ -43,7 +43,7 @@ function injectStyles() {
   if (document.getElementById(STYLE_ID)) return;
   const style = document.createElement("style");
   style.id = STYLE_ID;
-  style.textContent = STYLE_TEXT;
+  style.textContent = STYLE_TEXT.cssText;
   document.head.appendChild(style);
 }
 

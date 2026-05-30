@@ -1,4 +1,4 @@
-import { LitElement, html } from "lit";
+import { LitElement, html, css } from "lit";
 import "./cts-icon.js";
 
 /**
@@ -36,118 +36,119 @@ const STYLE_ID = "cts-toast-styles";
 // stacked toasts. Unupgraded `<cts-toast>` instances are hidden so the
 // fixed-position card never flashes pre-upgrade (FOUC isn't an issue
 // because toasts are only created via the static helper below).
-const STYLE_TEXT = `
-cts-toast-host {
-  position: fixed;
-  bottom: var(--space-4);
-  right: var(--space-4);
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
-  z-index: 1000;
-  pointer-events: none;
-}
+const STYLE_TEXT = css`
+  cts-toast-host {
+    position: fixed;
+    bottom: var(--space-4);
+    right: var(--space-4);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    z-index: 1000;
+    pointer-events: none;
+  }
 
-cts-toast {
-  pointer-events: auto;
-}
+  cts-toast {
+    pointer-events: auto;
+  }
 
-cts-toast:not(:defined) {
-  display: none;
-}
+  cts-toast:not(:defined) {
+    display: none;
+  }
 
-.oidf-toast {
-  display: flex;
-  align-items: flex-start;
-  gap: var(--space-3);
-  min-width: 280px;
-  max-width: 420px;
-  padding: var(--space-3) var(--space-4);
-  background: var(--bg-elev);
-  color: var(--fg);
-  border: 1px solid var(--border);
-  border-left: 4px solid var(--ink-300);
-  border-radius: var(--radius-3);
-  box-shadow: var(--shadow-2);
-  font-family: var(--font-sans);
-  font-size: var(--fs-13);
-  line-height: var(--lh-base);
-  opacity: 0;
-  transform: translateY(8px);
-  transition: opacity var(--dur-2) var(--ease-standard),
-              transform var(--dur-2) var(--ease-standard);
-}
-.oidf-toast.is-visible {
-  opacity: 1;
-  transform: translateY(0);
-}
+  .oidf-toast {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-3);
+    min-width: 280px;
+    max-width: 420px;
+    padding: var(--space-3) var(--space-4);
+    background: var(--bg-elev);
+    color: var(--fg);
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--ink-300);
+    border-radius: var(--radius-3);
+    box-shadow: var(--shadow-2);
+    font-family: var(--font-sans);
+    font-size: var(--fs-13);
+    line-height: var(--lh-base);
+    opacity: 0;
+    transform: translateY(8px);
+    transition:
+      opacity var(--dur-2) var(--ease-standard),
+      transform var(--dur-2) var(--ease-standard);
+  }
+  .oidf-toast.is-visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
 
-.oidf-toast-icon {
-  flex-shrink: 0;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  margin-top: 2px;
-}
+  .oidf-toast-icon {
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 2px;
+  }
 
-.oidf-toast-body {
-  flex: 1;
-  min-width: 0;
-}
+  .oidf-toast-body {
+    flex: 1;
+    min-width: 0;
+  }
 
-.oidf-toast-title {
-  margin: 0 0 2px 0;
-  font-size: var(--fs-14);
-  font-weight: var(--fw-bold);
-  color: var(--fg);
-  line-height: var(--lh-snug);
-}
+  .oidf-toast-title {
+    margin: 0 0 2px 0;
+    font-size: var(--fs-14);
+    font-weight: var(--fw-bold);
+    color: var(--fg);
+    line-height: var(--lh-snug);
+  }
 
-.oidf-toast-message {
-  margin: 0;
-  color: var(--fg-muted);
-  font-size: var(--fs-13);
-  line-height: var(--lh-base);
-}
+  .oidf-toast-message {
+    margin: 0;
+    color: var(--fg-muted);
+    font-size: var(--fs-13);
+    line-height: var(--lh-base);
+  }
 
-.oidf-toast-close {
-  appearance: none;
-  background: transparent;
-  border: 0;
-  padding: 0;
-  margin: 0;
-  width: 20px;
-  height: 20px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--fg-muted);
-  opacity: 0.7;
-  cursor: pointer;
-  flex-shrink: 0;
-  border-radius: var(--radius-2);
-}
-.oidf-toast-close i {
-  font-size: 18px;
-  line-height: 1;
-  display: block;
-}
-.oidf-toast-close:hover,
-.oidf-toast-close:focus-visible {
-  opacity: 1;
-  color: var(--fg);
-}
-.oidf-toast-close:focus-visible {
-  outline: none;
-  box-shadow: var(--focus-ring);
-}
+  .oidf-toast-close {
+    appearance: none;
+    background: transparent;
+    border: 0;
+    padding: 0;
+    margin: 0;
+    width: 20px;
+    height: 20px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--fg-muted);
+    opacity: 0.7;
+    cursor: pointer;
+    flex-shrink: 0;
+    border-radius: var(--radius-2);
+  }
+  .oidf-toast-close i {
+    font-size: 18px;
+    line-height: 1;
+    display: block;
+  }
+  .oidf-toast-close:hover,
+  .oidf-toast-close:focus-visible {
+    opacity: 1;
+    color: var(--fg);
+  }
+  .oidf-toast-close:focus-visible {
+    outline: none;
+    box-shadow: var(--focus-ring);
+  }
 `;
 
 function injectStyles() {
   if (document.getElementById(STYLE_ID)) return;
   const style = document.createElement("style");
   style.id = STYLE_ID;
-  style.textContent = STYLE_TEXT;
+  style.textContent = STYLE_TEXT.cssText;
   document.head.appendChild(style);
 }
 
