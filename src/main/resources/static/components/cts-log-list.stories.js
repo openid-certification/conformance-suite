@@ -21,13 +21,14 @@ export default {
 // --- Helpers ---
 
 /**
- * Wait for the initial fetch spinner to clear. The component renders a
- * cts-spinner inside `.cts-log-list-loading` while `_loading === true`.
+ * Wait for the initial fetch spinner to clear. The component renders a shared
+ * `<cts-loading-state>` (carrying `data-testid="log-list-loading"`) while
+ * `_loading === true`.
  */
 async function waitForLogsToLoad(canvasElement) {
   await waitFor(
     () => {
-      const loading = canvasElement.querySelector(".cts-log-list-loading");
+      const loading = canvasElement.querySelector('[data-testid="log-list-loading"]');
       expect(loading).toBeNull();
     },
     { timeout: 3000 },
@@ -248,7 +249,7 @@ export const Loading = {
   async play({ canvasElement }) {
     // Spinner is visible while the fetch is in flight.
     await waitFor(() => {
-      const spinner = canvasElement.querySelector(".cts-log-list-loading cts-spinner");
+      const spinner = canvasElement.querySelector('[data-testid="log-list-loading"] cts-spinner');
       expect(spinner).not.toBeNull();
     });
   },

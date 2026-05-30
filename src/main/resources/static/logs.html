@@ -21,7 +21,6 @@
     <script type="importmap">{"imports":{"lit":"/vendor/lit/lit.js","lit/":"/vendor/lit/","lit/directives/async-append.js":"/vendor/lit/lit.js","lit/directives/async-replace.js":"/vendor/lit/lit.js","lit/directives/cache.js":"/vendor/lit/lit.js","lit/directives/choose.js":"/vendor/lit/lit.js","lit/directives/class-map.js":"/vendor/lit/lit.js","lit/directives/guard.js":"/vendor/lit/lit.js","lit/directives/if-defined.js":"/vendor/lit/lit.js","lit/directives/join.js":"/vendor/lit/lit.js","lit/directives/keyed.js":"/vendor/lit/lit.js","lit/directives/live.js":"/vendor/lit/lit.js","lit/directives/map.js":"/vendor/lit/lit.js","lit/directives/range.js":"/vendor/lit/lit.js","lit/directives/ref.js":"/vendor/lit/lit.js","lit/directives/repeat.js":"/vendor/lit/lit.js","lit/directives/style-map.js":"/vendor/lit/lit.js","lit/directives/template-content.js":"/vendor/lit/lit.js","lit/directives/unsafe-html.js":"/vendor/lit/lit.js","lit/directives/unsafe-svg.js":"/vendor/lit/lit.js","lit/directives/until.js":"/vendor/lit/lit.js","lit/directives/when.js":"/vendor/lit/lit.js","@lit/reactive-element":"/vendor/lit/lit.js","@lit/reactive-element/":"/vendor/lit/","lit-html":"/vendor/lit/lit.js","lit-html/":"/vendor/lit/","lit-element/":"/vendor/lit/","marked":"/vendor/marked/marked.esm.js","dompurify":"/vendor/dompurify/purify.es.mjs"}}</script>
     <script type="module" src="/components/cts-navbar.js"></script>
     <script type="module" src="/components/cts-modal.js"></script>
-    <script type="module" src="/components/cts-spinner.js"></script>
     <script type="module" src="/components/cts-view-tabs.js"></script>
     <script type="module" src="/components/cts-run-status-strip.js"></script>
     <script type="module" src="/components/cts-log-list.js"></script>
@@ -82,13 +81,6 @@
         Error: <span id="errorMessage"></span>
     </cts-modal>
 
-    <cts-modal id="loadingModal" heading="Loading..." static-backdrop no-keyboard>
-        <cts-spinner size="lg" label="Loading"></cts-spinner>
-        <div aria-live="polite">
-            <span id="loadingMessage"></span>
-        </div>
-    </cts-modal>
-
 
     <script type="module">
         document.addEventListener("DOMContentLoaded", async () => {
@@ -101,82 +93,83 @@
             const viewTabs = document.getElementById("viewTabs");
             const runStatusStrip = document.getElementById("runStatusStrip");
 
-            FAPI_UI.showBusy();
-            try {
-                await FAPI_UI.getUserInfo();
-                // Authoritative auth state on the tabs (the synchronous
-                // cached-user guess above may have been stale/absent). A
-                // successful /api/currentuser means authenticated; a 401 is
-                // swallowed by getUserInfo, leaving currentUser unset (R23).
-                const authenticated = !!FAPI_UI.currentUser;
-                if (authenticated) {
-                    viewTabs.setAttribute("authenticated", "");
-                } else {
-                    viewTabs.removeAttribute("authenticated");
-                }
-                // Effective view: ?public=true → Published unconditionally
-                // (the dataset decision does not depend on auth); otherwise
-                // authed → My (is-public absent), anon → Published (R6/AE3).
-                const isPublic = explicitPublic || !authenticated;
-
-                // Wait for the registration so attributes set below take
-                // effect synchronously before connectedCallback runs. Await the
-                // strip's definition too (symmetry): the boot calls
-                // fetchRuns()/hide() on it below, so guard the call site against
-                // a future lazy-load/code-split rather than relying on the
-                // implicit module-script-before-DOMContentLoaded ordering.
-                await customElements.whenDefined("cts-log-list");
-                await customElements.whenDefined("cts-run-status-strip");
-                const list = document.createElement("cts-log-list");
-                list.id = "logsListing";
-                if (isPublic) list.setAttribute("is-public", "");
-                // Set is-admin whenever the user is admin; cts-log-list ignores
-                // it in public mode, so this stays correct across a Published→My
-                // switch without needing to re-set it on tab change.
-                if (FAPI_UI.currentUser && FAPI_UI.currentUser.isAdmin) {
-                    list.setAttribute("is-admin", "");
-                }
-                document.getElementById("logsListingMount").replaceChildren(list);
-
-                // Drive the runs strip off the same single auth probe (no second
-                // /api/currentuser round-trip). It shows only on the authenticated
-                // My view and fetches its OWN unfiltered /api/log window; anon and
-                // the Published view hide it. On the ?public=true path it was
-                // already started hidden synchronously, so this hide() is a no-op.
-                if (runStatusStrip) {
-                    if (authenticated && !isPublic) {
-                        runStatusStrip.fetchRuns();
-                    } else {
-                        runStatusStrip.hide();
-                    }
-                }
-
-                // A single handler serves BOTH the tab click and the
-                // back/forward popstate — cts-view-tabs emits cts-view-tab-change
-                // for both. On a view change, switch the dataset and reset the
-                // status/result chip filters (R16) via reloadForViewChange().
-                viewTabs.addEventListener("cts-view-tab-change", (evt) => {
-                    const isPublicView = !!(evt.detail && evt.detail.isPublic);
-                    if (isPublicView) {
-                        list.setAttribute("is-public", "");
-                    } else {
-                        list.removeAttribute("is-public");
-                    }
-                    list.reloadForViewChange();
-                    // The strip is a personal-home signal: refresh it on a return
-                    // to My, hide it on Published. Only authed users have a My tab
-                    // to switch to, so fetchRuns() here is always on an authed view.
-                    if (runStatusStrip) {
-                        if (isPublicView) {
-                            runStatusStrip.hide();
-                        } else {
-                            runStatusStrip.fetchRuns();
-                        }
-                    }
-                });
-            } finally {
-                FAPI_UI.hideBusy();
+            // No page-level busy modal here: cts-log-list renders its own
+            // loading state (a shared <cts-loading-state>) the moment it mounts
+            // below, so a full-page spinner over the auth probe would just be a
+            // second, redundant loader. During the brief getUserInfo() probe the
+            // mount stays empty while the navbar, tabs, and runs strip are
+            // already painted; the list then mounts and shows its own spinner.
+            await FAPI_UI.getUserInfo();
+            // Authoritative auth state on the tabs (the synchronous
+            // cached-user guess above may have been stale/absent). A
+            // successful /api/currentuser means authenticated; a 401 is
+            // swallowed by getUserInfo, leaving currentUser unset (R23).
+            const authenticated = !!FAPI_UI.currentUser;
+            if (authenticated) {
+                viewTabs.setAttribute("authenticated", "");
+            } else {
+                viewTabs.removeAttribute("authenticated");
             }
+            // Effective view: ?public=true → Published unconditionally
+            // (the dataset decision does not depend on auth); otherwise
+            // authed → My (is-public absent), anon → Published (R6/AE3).
+            const isPublic = explicitPublic || !authenticated;
+
+            // Wait for the registration so attributes set below take
+            // effect synchronously before connectedCallback runs. Await the
+            // strip's definition too (symmetry): the boot calls
+            // fetchRuns()/hide() on it below, so guard the call site against
+            // a future lazy-load/code-split rather than relying on the
+            // implicit module-script-before-DOMContentLoaded ordering.
+            await customElements.whenDefined("cts-log-list");
+            await customElements.whenDefined("cts-run-status-strip");
+            const list = document.createElement("cts-log-list");
+            list.id = "logsListing";
+            if (isPublic) list.setAttribute("is-public", "");
+            // Set is-admin whenever the user is admin; cts-log-list ignores
+            // it in public mode, so this stays correct across a Published→My
+            // switch without needing to re-set it on tab change.
+            if (FAPI_UI.currentUser && FAPI_UI.currentUser.isAdmin) {
+                list.setAttribute("is-admin", "");
+            }
+            document.getElementById("logsListingMount").replaceChildren(list);
+
+            // Drive the runs strip off the same single auth probe (no second
+            // /api/currentuser round-trip). It shows only on the authenticated
+            // My view and fetches its OWN unfiltered /api/log window; anon and
+            // the Published view hide it. On the ?public=true path it was
+            // already started hidden synchronously, so this hide() is a no-op.
+            if (runStatusStrip) {
+                if (authenticated && !isPublic) {
+                    runStatusStrip.fetchRuns();
+                } else {
+                    runStatusStrip.hide();
+                }
+            }
+
+            // A single handler serves BOTH the tab click and the
+            // back/forward popstate — cts-view-tabs emits cts-view-tab-change
+            // for both. On a view change, switch the dataset and reset the
+            // status/result chip filters (R16) via reloadForViewChange().
+            viewTabs.addEventListener("cts-view-tab-change", (evt) => {
+                const isPublicView = !!(evt.detail && evt.detail.isPublic);
+                if (isPublicView) {
+                    list.setAttribute("is-public", "");
+                } else {
+                    list.removeAttribute("is-public");
+                }
+                list.reloadForViewChange();
+                // The strip is a personal-home signal: refresh it on a return
+                // to My, hide it on Published. Only authed users have a My tab
+                // to switch to, so fetchRuns() here is always on an authed view.
+                if (runStatusStrip) {
+                    if (isPublicView) {
+                        runStatusStrip.hide();
+                    } else {
+                        runStatusStrip.fetchRuns();
+                    }
+                }
+            });
         });
     </script>
 

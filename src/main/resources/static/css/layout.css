@@ -118,6 +118,16 @@ cts-empty-state:not(:defined) {
 	min-height: 120px;
 }
 
+/* cts-loading-state is the loading-branch sibling of cts-empty-state — both
+ * lists (cts-log-list, cts-plan-list) render it as a block-level fill while
+ * their fetch is in flight. Pre-upgrade the host has no children and would
+ * collapse to zero; reserve the same conservative 120px so the surrounding
+ * layout does not jump when the component upgrades. */
+cts-loading-state:not(:defined) {
+	display: block;
+	min-height: 120px;
+}
+
 /* cts-data-table replaces jQuery DataTables on plans.html / logs.html /
  * tokens.html. Pre-upgrade the host has no children and would collapse to
  * zero height, leaving the page chrome jumpy until the AJAX round-trip

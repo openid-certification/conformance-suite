@@ -14,8 +14,8 @@ export default {
 async function waitForPlansToLoad(canvasElement) {
   await waitFor(
     () => {
-      const spinner = canvasElement.querySelector(".spinner-border");
-      expect(spinner).toBeNull();
+      const loading = canvasElement.querySelector("cts-loading-state");
+      expect(loading).toBeNull();
     },
     { timeout: 3000 },
   );
@@ -652,10 +652,10 @@ export const LoadingState = {
     const canvas = within(canvasElement);
 
     await waitFor(() => {
-      const spinner = canvasElement.querySelector(".spinner-border");
+      const spinner = canvasElement.querySelector("cts-loading-state cts-spinner");
       expect(spinner).toBeTruthy();
     });
-    expect(canvas.getByText("Loading test plans...")).toBeInTheDocument();
+    expect(canvas.getByText("Loading test plans…")).toBeInTheDocument();
     expect(canvasElement.querySelector('[data-testid="plan-list-item"]')).toBeNull();
   },
 };

@@ -6,10 +6,10 @@ import "./cts-button.js";
 import "./cts-icon.js";
 import "./cts-modal.js";
 import "./cts-alert.js";
-import "./cts-spinner.js";
 import "./cts-tooltip.js";
 import "./cts-time.js";
 import "./cts-empty-state.js";
+import "./cts-loading-state.js";
 import "./cts-json-editor.js";
 import { flashCopyConfirmed } from "../js/cts-copy-flash.js";
 
@@ -510,7 +510,6 @@ const STYLE_TEXT = `
     outline: none;
     box-shadow: var(--focus-ring);
   }
-  .cts-log-list-loading,
   .cts-log-list-empty {
     padding: var(--space-5);
     text-align: center;
@@ -1384,10 +1383,7 @@ class CtsLogList extends LitElement {
 
   _renderLoading() {
     return html`
-      <div class="cts-log-list-loading" data-testid="log-list-loading">
-        <cts-spinner size="lg" label="Loading logs"></cts-spinner>
-        <span>Loading logs…</span>
-      </div>
+      <cts-loading-state label="Loading logs" data-testid="log-list-loading"></cts-loading-state>
     `;
   }
 
