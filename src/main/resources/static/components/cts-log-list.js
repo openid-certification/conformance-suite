@@ -120,14 +120,19 @@ const STYLE_TEXT = css`
   .cts-log-list-search input {
     width: 100%;
     box-sizing: border-box;
-    padding: var(--space-2) var(--space-3) var(--space-2) calc(var(--space-3) + var(--space-6));
-    background: transparent;
+    /* border-box + --control-height so the bordered input is 34px outer (was
+       content-sized ~36px), aligning with adjacent default-size controls. */
+    height: calc(var(--control-height) - 2px);
+    padding: var(--space-1) var(--space-3) var(--space-1) calc(var(--space-3) + var(--space-6));
+    background: var(--bg);
     color: var(--fg);
-    border: none;
+    border: 0;
+    /* preceeded by the filter dropdown, border and border-radius need to be removed on the left */
+    border-left: 0;
     border-radius: 0 var(--radius-2) var(--radius-2) 0;
     font-family: var(--font-sans);
     font-size: var(--fs-14);
-    line-height: var(--lh-snug);
+    line-height: var(--control-height);
   }
   .cts-log-list-search input:focus {
     /* The envelope's :focus-within already paints the ring. */
