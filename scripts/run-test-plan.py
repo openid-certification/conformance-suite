@@ -207,7 +207,7 @@ async def run_test_plan(test_plan_obj, config_file, output_dir, client_certs):
     overall_time = time.time() - overall_start_time
     if output_dir != None:
         start_time_for_save = time.time()
-        filename = await conformance.exporthtml(plan_id, output_dir)
+        filename = await conformance.exportjson(plan_id, output_dir)
         print('results saved to "{}" in {:.1f} seconds'.format(filename, time.time() - start_time_for_save))
     print('\n\n')
     plan_results.append({
