@@ -7,6 +7,7 @@ import "./cts-alert.js";
 import "./cts-tooltip.js";
 import "./cts-time.js";
 import "./cts-empty-state.js";
+import "./cts-loading-state.js";
 import "./cts-json-editor.js";
 import { flashCopyConfirmed } from "../js/cts-copy-flash.js";
 import { statusBadgeVariant } from "../js/module-status.js";
@@ -351,7 +352,6 @@ const STYLE_TEXT = `
     outline: none;
     box-shadow: var(--focus-ring);
   }
-  .cts-plan-list-loading,
   .cts-plan-list-empty {
     padding: var(--space-5);
     text-align: center;
@@ -360,18 +360,6 @@ const STYLE_TEXT = `
     flex-direction: column;
     align-items: center;
     gap: var(--space-2);
-  }
-  .cts-plan-list-loading .spinner-border {
-    display: inline-block;
-    width: 16px;
-    height: 16px;
-    border: 2px solid var(--border-strong);
-    border-top-color: var(--orange-400);
-    border-radius: 50%;
-    animation: cts-plan-list-spin 0.9s linear infinite;
-  }
-  @keyframes cts-plan-list-spin {
-    to { transform: rotate(360deg); }
   }
   .cts-plan-list-footer {
     display: flex;
@@ -950,12 +938,7 @@ class CtsPlanList extends LitElement {
   }
 
   _renderLoading() {
-    return html`
-      <div class="cts-plan-list-loading">
-        <span class="spinner-border" role="status"></span>
-        <span>Loading test plans...</span>
-      </div>
-    `;
+    return html` <cts-loading-state label="Loading test plans"></cts-loading-state> `;
   }
 
   /**
