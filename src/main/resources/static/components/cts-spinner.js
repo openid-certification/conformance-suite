@@ -1,9 +1,11 @@
 const STYLE_ID = "cts-spinner-styles";
 
 // Scoped CSS for the OIDF spinner. The host renders a tiny inline SVG sized
-// via a token-aware data-size attribute; stroke="currentColor" lets the
-// spinner take its colour from the surrounding text. Animation is gated by
-// prefers-reduced-motion: rotation when motion is allowed, a slow opacity
+// via a token-aware data-size attribute. The ring is two-tone: a full-circle
+// track stroked in --ink-100 (a faint warm grey) under a small indicator arc
+// stroked in the brand --orange-400, so the spinner reads as a coloured bead
+// travelling around a quiet track rather than a mono sweep. Animation is gated
+// by prefers-reduced-motion: rotation when motion is allowed, a slow opacity
 // pulse when the user has asked for reduced motion (mirroring the reduced
 // motion treatment already used in cts-navbar.js and cts-log-detail-header.js
 // where transitions stay present but motion is dampened rather than removed).
@@ -12,7 +14,6 @@ cts-spinner {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  color: var(--fg, currentColor);
   line-height: 0;
 }
 cts-spinner[data-size="sm"] svg { width: 24px; height: 24px; }
@@ -23,9 +24,14 @@ cts-spinner svg {
   animation: cts-spinner-rotate 1.1s linear infinite;
 }
 cts-spinner svg circle {
-  stroke: currentColor;
   fill: none;
   stroke-linecap: round;
+}
+cts-spinner svg .cts-spinner-track {
+  stroke: var(--ink-100);
+}
+cts-spinner svg .cts-spinner-indicator {
+  stroke: var(--orange-400);
 }
 .cts-spinner-sr-only {
   position: absolute;
@@ -79,9 +85,10 @@ function injectStyles() {
 const VALID_SIZES = new Set(["sm", "md", "lg"]);
 
 /**
- * Token-driven activity spinner built on an inline SVG `<circle>` with a
- * dashed stroke and CSS rotation. Replaces the legacy animated GIF used by
- * the page-level loading modal on logs.html, schedule-test.html, plan-
+ * Token-driven activity spinner built on two inline SVG `<circle>`s — a
+ * full-circle track (`--ink-100`) under a dash-clipped indicator arc
+ * (`--orange-400`) — spun by a CSS rotation. Replaces the legacy animated GIF
+ * used by the page-level loading modal on logs.html, schedule-test.html, plan-
  * detail.html, log-detail.html, running-test.html, and upload.html.
  *
  * The host carries `role="status"`, so AT consumers receive a live-region
@@ -108,23 +115,34 @@ class CtsSpinner extends HTMLElement {
     this.setAttribute("role", "status");
     this.setAttribute("aria-label", label);
 
-    // Inline SVG arc. viewBox 0 0 50 50, r=20 centred, dasharray 90/150 paints
-    // the familiar three-quarter sweep that pairs naturally with the rotate
-    // keyframe to read as an animated ring rather than a complete circle.
+    // Inline SVG ring on a viewBox 0 0 50 50, r=20 centred. Two concentric
+    // circles share the geometry: the track paints the full ring as a quiet
+    // --ink-100 backdrop, and the indicator exposes a small ~quarter arc via
+    // stroke-dasharray (circumference ≈ 125.7, so "31 95" shows ~25%). The
+    // parent <svg> rotates, sweeping the orange indicator around the static-
+    // looking (rotationally symmetric) track. Colours are set via CSS classes.
     const NS = "http://www.w3.org/2000/svg";
     const svg = document.createElementNS(NS, "svg");
     svg.setAttribute("viewBox", "0 0 50 50");
     svg.setAttribute("aria-hidden", "true");
     svg.setAttribute("focusable", "false");
 
-    const circle = document.createElementNS(NS, "circle");
-    circle.setAttribute("cx", "25");
-    circle.setAttribute("cy", "25");
-    circle.setAttribute("r", "20");
-    circle.setAttribute("stroke-width", "4");
-    circle.setAttribute("stroke-dasharray", "90 150");
-    circle.setAttribute("stroke-dashoffset", "0");
-    svg.appendChild(circle);
+    const track = document.createElementNS(NS, "circle");
+    track.setAttribute("class", "cts-spinner-track");
+    track.setAttribute("cx", "25");
+    track.setAttribute("cy", "25");
+    track.setAttribute("r", "20");
+    track.setAttribute("stroke-width", "4");
+
+    const indicator = document.createElementNS(NS, "circle");
+    indicator.setAttribute("class", "cts-spinner-indicator");
+    indicator.setAttribute("cx", "25");
+    indicator.setAttribute("cy", "25");
+    indicator.setAttribute("r", "20");
+    indicator.setAttribute("stroke-width", "4");
+    indicator.setAttribute("stroke-dasharray", "31 95");
+    indicator.setAttribute("stroke-dashoffset", "0");
+    svg.append(track, indicator);
 
     const srText = document.createElement("span");
     srText.className = "cts-spinner-sr-only";
