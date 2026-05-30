@@ -3,6 +3,7 @@ import { classMap } from "lit/directives/class-map.js";
 import { formatSummaryPreview } from "./format-description.js";
 import "./cts-icon.js";
 import "./cts-tooltip.js";
+import "./cts-loading-state.js";
 
 /**
  * Searchable, family-filterable list of test plans. Caller supplies the
@@ -26,6 +27,11 @@ import "./cts-tooltip.js";
  *   `displayName`, `specFamily`, `modules`, `summary`.
  * @property {string} selected - Currently selected `planName`; the matching
  *   row is highlighted.
+ * @property {boolean} loading - When set, the list area shows a shared
+ *   `<cts-loading-state>` spinner instead of rows or the empty message. The
+ *   caller (schedule-test.html) sets it while `/api/plan/available` is in
+ *   flight and clears it once `plans` is populated, so the page chrome stays
+ *   visible instead of being hidden behind a full-page modal.
  * @fires cts-plan-select - When a list item is selected, with
  *   `{ detail: { plan, via } }` where `via` is `'click'` or `'keyboard'`;
  *   bubbles.
@@ -274,6 +280,10 @@ class CtsTestSelector extends LitElement {
   static properties = {
     plans: { type: Array },
     selected: { type: String },
+    // Reflected so the boot attribute (`<cts-test-selector loading>`) is
+    // cleared from the DOM when the page sets `loading = false` after the
+    // plans fetch — otherwise the stale attribute lingers on the element.
+    loading: { type: Boolean, reflect: true },
     _searchTerm: { state: true },
     _selectedFamily: { state: true },
     _focusedRowIndex: { state: true },
@@ -287,6 +297,7 @@ class CtsTestSelector extends LitElement {
     super();
     this.plans = [];
     this.selected = "";
+    this.loading = false;
     this._searchTerm = "";
     this._selectedFamily = "";
     // -1 means "no row focused — search input owns focus (or focus is
@@ -531,7 +542,9 @@ class CtsTestSelector extends LitElement {
                   </button>
                 `,
               )
-            : html`<div class="oidf-test-selector__empty">No plans match your search</div>`}
+            : this.loading
+              ? html`<cts-loading-state label="Loading test plans"></cts-loading-state>`
+              : html`<div class="oidf-test-selector__empty">No plans match your search</div>`}
         </div>
       </div>
     `;

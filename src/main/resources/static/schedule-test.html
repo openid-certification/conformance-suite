@@ -105,7 +105,7 @@
                 </div>
             </div>
 
-            <cts-test-selector id="planSearch"></cts-test-selector>
+            <cts-test-selector id="planSearch" loading></cts-test-selector>
             <!-- Wrap the cascade + variant selectors so the scroll-in flash
                  wash (fired after a search-list plan pick) covers both as one
                  group. See cts-flash-highlight + the cts-plan-select handler. -->
@@ -207,8 +207,11 @@
          */
         document.addEventListener("DOMContentLoaded", () => {
 
-            FAPI_UI.showBusy('Loading available tests...');
-
+            // No full-page "Loading available tests..." modal: the test
+            // selector (#planSearch) boots with its own in-list loader and the
+            // cts-spec-cascade self-fetches with its own loading state, so the
+            // page chrome stays visible and only the list areas show spinners.
+            // The selector's loader is cleared in the chain's .finally below.
             FAPI_UI.loadScheduleTestPageTemplates()
             .then(function() {
                 return FAPI_UI.getUserInfo();
@@ -232,6 +235,17 @@
                 return restoreEditPlanVariants();
             }).then(function() {
                 return applyConfigJsonParam();
+            }).finally(function() {
+                // Clear the test selector's in-list loader once init settles —
+                // success or failure — so the plan rows reveal exactly when the
+                // page is wired and interactive (the cts-plan-select handler is
+                // installed by loadScheduleTestPage in the chain above). On a
+                // failed plans fetch the rows fall back to the empty message
+                // and cts-spec-cascade surfaces the error banner.
+                var planSearch = document.getElementById('planSearch');
+                if (planSearch) {
+                    planSearch.loading = false;
+                }
             });
         });
 
@@ -1030,9 +1044,6 @@
             // ctsConfigForm.config while schema is still empty (no plan
             // selected) AND would be wiped by the cts-plan-selected listener
             // on the user's first manual plan pick.
-
-            FAPI_UI.hideBusy();
-
         }
 
         /**

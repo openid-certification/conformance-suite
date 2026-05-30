@@ -37,6 +37,36 @@ export const Default = {
   },
 };
 
+/**
+ * Loading state: while the page fetches `/api/plan/available`, the host is
+ * mounted with `loading` set so the list area shows the shared
+ * `<cts-loading-state>` spinner instead of rows or the empty message. The rail
+ * (search + family filter) stays visible, matching cts-log-list /
+ * cts-plan-list, which keep their toolbar during load.
+ */
+export const Loading = {
+  render: () => html`<cts-test-selector loading></cts-test-selector>`,
+  async play({ canvasElement }) {
+    const host = canvasElement.querySelector("cts-test-selector");
+    await host.updateComplete;
+
+    // The list area shows the shared loader — not rows, not the empty message.
+    const loader = host.querySelector(".oidf-test-selector__list cts-loading-state");
+    expect(loader).toBeTruthy();
+    expect(host.querySelector(".oidf-test-selector__row")).toBeNull();
+    expect(host.querySelector(".oidf-test-selector__empty")).toBeNull();
+
+    // Caption + spinner render through the shared component.
+    expect(loader.querySelector("cts-spinner")).toBeTruthy();
+    expect(loader.querySelector(".cts-loading-state-caption").textContent.trim()).toBe(
+      "Loading test plans…",
+    );
+
+    // The search rail stays visible during load.
+    expect(host.querySelector(".oidf-test-selector__search")).toBeTruthy();
+  },
+};
+
 export const SearchFilter = {
   render: () => html`<cts-test-selector .plans=${MOCK_PLANS}></cts-test-selector>`,
   async play({ canvasElement }) {
