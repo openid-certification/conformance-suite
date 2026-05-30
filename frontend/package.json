@@ -57,6 +57,11 @@
     "vite": "8.0.13",
     "vitest": "4.1.6"
   },
+  "overrides": {
+    "lit-analyzer": {
+      "vscode-css-languageservice": "6.3.10"
+    }
+  },
   "msw": {
     "workerDirectory": [
       "public"
