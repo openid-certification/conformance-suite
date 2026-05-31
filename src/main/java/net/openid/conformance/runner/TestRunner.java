@@ -23,6 +23,7 @@ import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.testmodule.TestFailureException;
 import net.openid.conformance.testmodule.TestInterruptedException;
 import net.openid.conformance.testmodule.TestModule;
+import net.openid.conformance.testmodule.TestModule.Status;
 import net.openid.conformance.testmodule.TestSkippedException;
 import net.openid.conformance.variant.VariantSelection;
 import net.openid.conformance.variant.VariantService;
@@ -44,6 +45,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.context.request.async.DeferredResult;
 import org.springframework.web.util.UriUtils;
 
 import java.nio.charset.StandardCharsets;
@@ -60,6 +62,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 /**
@@ -558,6 +561,108 @@ public class TestRunner implements DataUtils {
 		} else {
 			return ResponseEntity.notFound().build();
 		}
+	}
+
+	/** Min/max bounds for {@code timeoutMs}. Clamped at the boundary to
+	 *  protect Tomcat's async store from accidental or hostile long suspends. */
+	static final long WAIT_STATE_MIN_TIMEOUT_MS = 1L;
+	static final long WAIT_STATE_MAX_TIMEOUT_MS = 30_000L;
+
+	/** Visible for testing. */
+	static long clampWaitStateTimeoutMs(long requested) {
+		return Math.max(WAIT_STATE_MIN_TIMEOUT_MS,
+						Math.min(WAIT_STATE_MAX_TIMEOUT_MS, requested));
+	}
+
+	/**
+	 * Long-poll wait until a test's status is one of {@code states}. Mirrors the auth
+	 * of {@link #getTestStatus}: {@code support.getRunningTestById} returns null for
+	 * both unknown-test and access-denied; we return 404 in either case without
+	 * distinguishing.
+	 *
+	 * <p>The 404 carries a JSON body {@code {"error":"test not found"}} rather than
+	 * Spring's generic HTML error page, so the python client gets a clear, machine-readable
+	 * error consistent with the JSON success responses.
+	 *
+	 * <p>Returns 200 with {@code {"state":"..."}} once the status is (or becomes) one of
+	 * {@code states}; returns 200 with {@code {"timeout":true}} if the timeout fires
+	 * first. The server has no notion of which states are terminal — the caller lists
+	 * every state it wants to stop on (the python client always adds INTERRUPTED), and we
+	 * simply resolve on set membership.
+	 *
+	 * @param id        test ID to wait on
+	 * @param states    comma-separated states to stop on; the call returns once the
+	 *                  test's status is one of them. Empty/absent never matches, so the
+	 *                  call then runs until it times out.
+	 * @param timeoutMs wall-clock budget in ms, clamped to [1, 30000].
+	 */
+	@Operation(summary = "Long-poll wait until the test's status is one of the requested states")
+	@ApiResponses(value = {
+		@ApiResponse(responseCode = "200", description = "Status reached one of the requested states, or timeout fired"),
+		@ApiResponse(responseCode = "404", description = "The test is unknown or you are not authorized")
+	})
+	@GetMapping(value = "/runner/{id}/wait-state", produces = MediaType.APPLICATION_JSON_VALUE)
+	public DeferredResult<ResponseEntity<Map<String, Object>>> waitForState(
+		@Parameter(description = "Id of test to wait on") @PathVariable("id") String id,
+		@Parameter(description = "Comma-separated states to stop on; the call returns once the test's status is one of them") @RequestParam(name = "states", required = false) String states,
+		@Parameter(description = "Wall-clock budget in ms, clamped to [1, 30000]") @RequestParam(name = "timeoutMs", defaultValue = "30000") long timeoutMs) {
+
+		long clampedTimeoutMs = clampWaitStateTimeoutMs(timeoutMs);
+		DeferredResult<ResponseEntity<Map<String, Object>>> deferred = new DeferredResult<>(clampedTimeoutMs);
+
+		Set<String> wantedStates = (states == null || states.isBlank())
+			? Set.of()
+			: Set.copyOf(List.of(states.split(",")));
+
+		// Authorization: getRunningTestById applies owner/admin checks AND
+		// existence check. Null means either "doesn't exist" or "no access" —
+		// we return 404 in both cases (does not leak existence). The body
+		// carries a JSON error rather than Spring's generic HTML 404, keeping
+		// the error machine-readable and consistent with the success responses.
+		TestModule test = support.getRunningTestById(id);
+		if (test == null) {
+			deferred.setResult(ResponseEntity.status(HttpStatus.NOT_FOUND)
+				.contentType(MediaType.APPLICATION_JSON)
+				.body(Map.of("error", "test not found")));
+			return deferred;
+		}
+
+		// Register the callback FIRST, then re-read the status. This closes the race
+		// where the status reaches a wanted value between the controller reading it and
+		// registering the waiter — the post-register re-read catches a change that fired
+		// during that window. The callback stays registered across non-matching
+		// transitions (the waiter service fires it on every change) and resolves only
+		// once a wanted state is seen; DeferredResult.setResult is idempotent so any
+		// later fire after resolution is a harmless no-op.
+		Consumer<Status> callback = newStatus -> {
+			if (wantedStates.contains(newStatus.toString())) {
+				deferred.setResult(ResponseEntity.ok(Map.of("state", newStatus.toString())));
+			}
+		};
+		testStatusWaiterService.register(id, callback);
+
+		deferred.onCompletion(() -> testStatusWaiterService.unregister(id, callback));
+		deferred.onTimeout(() ->
+			deferred.setResult(ResponseEntity.ok(Map.of("timeout", true))));
+		// Observability for the async-dispatch error path (e.g. client disconnect mid-write).
+		// onCompletion still fires after onError so the unregister above is not lost; this
+		// adds the diagnostic the error path would otherwise lack. unregister here is a
+		// harmless idempotent belt-and-suspenders.
+		deferred.onError(t -> {
+			testStatusWaiterService.unregister(id, callback);
+			logger.warn("{}: wait-state long-poll failed during async dispatch", id, t);
+		});
+
+		// Post-register re-read of the status — catches a transition into a wanted state
+		// that fired between getRunningTestById above and register() just now.
+		Status now = test.getStatus();
+		if (wantedStates.contains(now.toString())) {
+			// Already in a wanted state; resolve immediately.
+			// setResult is a no-op if a concurrent callback already set it.
+			deferred.setResult(ResponseEntity.ok(Map.of("state", now.toString())));
+		}
+
+		return deferred;
 	}
 
 	@Operation(summary = "Cancel test by Id")
