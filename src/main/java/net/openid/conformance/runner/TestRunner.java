@@ -131,6 +131,9 @@ public class TestRunner implements DataUtils {
 	@Autowired
 	private VariantService variantService;
 
+	@Autowired
+	private TestStatusWaiterService testStatusWaiterService;
+
 	private ExecutorService executorService = Executors.newCachedThreadPool();
 	private ExecutorCompletionService<Object> executorCompletionService = new ExecutorCompletionService<>(executorService);
 	private FutureWatcher futureWatcher = new FutureWatcher();
@@ -684,6 +687,11 @@ public class TestRunner implements DataUtils {
 		} else {
 			module = holder.newInstance(variant, planParametersByName);
 		}
+
+		// Wire the long-poll status-change publisher BEFORE setProperties, because setProperties
+		// calls setStatusInternal(CREATED) internally. The publish for CREATED is null-safe but
+		// every subsequent setStatusInternal call expects the field populated.
+		module.setTestStatusWaiterService(testStatusWaiterService);
 
 		// pass in all the components for this test module to execute
 		module.setProperties(id, owner, wrappedEventLog, browser, testInfo, executionManager, imageService);

@@ -17,6 +17,7 @@ import net.openid.conformance.info.ImageService;
 import net.openid.conformance.info.TestInfoService;
 import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.runner.TestExecutionManager;
+import net.openid.conformance.runner.TestStatusWaiterService;
 import net.openid.conformance.sequence.AbstractConditionSequence;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.sequence.SkippedCondition;
@@ -75,6 +76,13 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 	protected ImageService imageService;
 	private TestLockManager testLockManager;
 
+	// Plain field — NOT @Autowired. TestModule instances are reflectively constructed via
+	// Class.getDeclaredConstructor().newInstance() (VariantService) so they are not Spring beans;
+	// dependencies are wired via setters from TestRunner. Null-safe checks in setStatusInternal
+	// guard against the very first CREATED transition that fires inside setProperties (line 129),
+	// which happens before TestRunner.setTestStatusWaiterService() has had a chance to inject this.
+	private TestStatusWaiterService testStatusWaiterService;
+
 	private Supplier<String> testNameSupplier = Suppliers.memoize(() -> getClass().getDeclaredAnnotation(PublishTestModule.class).testName());
 
 	protected AbstractTestModule() {
@@ -128,6 +136,11 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 		};
 
 		setStatusInternal(Status.CREATED);
+	}
+
+	@Override
+	public void setTestStatusWaiterService(TestStatusWaiterService service) {
+		this.testStatusWaiterService = service;
 	}
 
 	@Override
@@ -954,6 +967,19 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 			testInfo.updateTestStatus(getId(), newStatus);
 
 			this.statusUpdated = Instant.now();
+
+			// Publish AFTER statusUpdated is set so any waiter released by this publish observes a
+			// fully-consistent snapshot (status + statusUpdated). This runs while the status lock is
+			// still held (and, for the RUNNING transition below, intentionally stays held), which is
+			// safe and deliberately not moved after clearLock(): the callback only hands newStatus to
+			// a DeferredResult.setResult, which is non-blocking (it schedules an async servlet
+			// re-dispatch rather than serializing the response inline), and the waiter receives
+			// newStatus directly rather than re-reading lock-protected state — so lock-release ordering
+			// is immaterial to what it observes. Null-safe because the first setStatusInternal(CREATED)
+			// call fires inside setProperties (line 129) before TestRunner has wired the service.
+			if (testStatusWaiterService != null) {
+				testStatusWaiterService.publishStatusChange(getId(), newStatus);
+			}
 
 			if (Status.RUNNING.equals(newStatus)) {
 				// exit with the lock still held, as we should always have the lock when TestConditions are being run
