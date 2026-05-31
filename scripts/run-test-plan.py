@@ -1487,6 +1487,15 @@ async def main():
             if not authzen_test:
                 untested_test_modules.remove(m)
                 continue
+            # empower has been down for a few days; the subject/resource/action
+            # search tests are disabled in run-tests.sh, so don't flag them as untested
+            if (
+                re.match(r'authzen-pdp-interop-subject-search-', m)
+                or re.match(r'authzen-pdp-interop-resource-search-', m)
+                or re.match(r'authzen-pdp-interop-action-search-', m)
+            ):
+                untested_test_modules.remove(m)
+                continue
         elif show_untested == 'federation':
             if(
                 not federation_test
