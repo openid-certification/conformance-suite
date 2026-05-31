@@ -294,39 +294,139 @@ class Conformance(object):
         return response.json()
 
     async def wait_for_state(self, module_id, required_states, timeout=240):
+        # The /api/runner/{id}/wait-state long-poll endpoint ships with the server in this
+        # repo and is deployed alongside it, so we always use it — there is no capability
+        # probe or per-second-polling fallback.
+        #
+        # The server resolves as soon as the test's status is one of these. We always
+        # add INTERRUPTED so an interrupted test releases the long-poll immediately
+        # rather than hanging until the overall timeout; we re-raise on it below to
+        # preserve the previous behavior. The server has no terminal-state knowledge
+        # of its own — it just matches the status against this set.
+        states = ','.join(list(required_states) + ['INTERRUPTED'])
         timeout_at = time.time() + timeout
-        last_status = None
-        poll_interval = float(os.getenv("CONFORMANCE_STATE_POLL_INTERVAL", 1))
 
         while True:
-            if time.time() > timeout_at:
+            remaining = timeout_at - time.time()
+            if remaining <= 0:
                 raise Exception(
-                    f"Timed out waiting for test module {module_id} to be in one of states: {required_states}"
-                )
-
-            poll_start = time.time()
-            info = await self.get_module_info(module_id)
-            poll_duration = time.time() - poll_start
-
-            # A normal poll takes <2s. If it took much longer, RetryTransport
-            # was retrying failed requests — the server was likely down and the
-            # module is probably stuck. Bail out so the caller can retry the module.
-            if poll_duration > 10:
+                    "Timed out waiting for test module {} to be in one of states: {}".format(
+                        module_id, required_states))
+            # Cap each long-poll at 30s so we recover from server restarts or dropped
+            # connections without exceeding the overall budget; the server clamps to the
+            # same bound. On a per-call timeout the server returns {"timeout": true} and
+            # we simply re-issue until a wanted state is reached or the budget runs out.
+            per_call_timeout_ms = min(int(remaining * 1000), 30000)
+            api_url = '{0}api/runner/{1}/wait-state'.format(self.api_url_base, module_id)
+            # Connection-level + status handling matches conformance._request
+            # so callers that catch ServerUnavailableError (e.g. for retry on
+            # server restart) keep working. The +10s on the httpx timeout is
+            # a safety margin over the server-side long-poll budget; if it
+            # fires that's a real network problem, not normal long-poll
+            # behavior, so it propagates as ServerUnavailableError too.
+            try:
+                resp = await self.httpclient.get(
+                    api_url, params={'states': states, 'timeoutMs': per_call_timeout_ms},
+                    timeout=per_call_timeout_ms / 1000.0 + 10)
+            except Exception as e:
                 raise ServerUnavailableError(
-                    f"Server was unavailable for {poll_duration:.0f}s during poll for {module_id}")
+                    "wait_for_state {} long-poll failed - {}".format(module_id, e)) from e
+            if resp.status_code == 502:
+                raise ServerUnavailableError(
+                    "wait_for_state {} long-poll failed - HTTP 502 {}".format(
+                        module_id, resp.content))
+            if resp.status_code == 401:
+                raise UnrecoverableHTTPError(
+                    "wait_for_state {} long-poll failed - HTTP 401 (auth token is invalid, "
+                    "server may have been redeployed)".format(module_id))
+            if resp.status_code == 404:
+                # The wait-state endpoint resolves the test from the in-memory runner
+                # map, which is lost on a server restart; /api/info/{id} reads persisted
+                # test info, which is not. So a 404 here means the in-memory entry is
+                # gone — but whether that's recoverable depends on the persisted status.
+                # The old per-second polling path read /api/info/{id} directly and was
+                # naturally restart-resilient; this restores that for the long-poll path.
+                persisted = await self._get_persisted_status(module_id)
+                if persisted is None:
+                    # No persisted info either: genuinely unknown/unauthorized test.
+                    raise Exception("Test module {} not found".format(module_id))
+                # Terminal states are resolvable from persisted info: the test finished
+                # its lifecycle before the in-memory entry vanished (e.g. the long-poll
+                # response was lost to a restart). Do NOT rerun an already-completed test.
+                if persisted == 'FINISHED':
+                    if 'FINISHED' in required_states:
+                        print("module id {} status changed to {}".format(module_id, persisted))
+                        return persisted
+                    raise Exception(
+                        "Test module {} finished without reaching one of states: {}".format(
+                            module_id, required_states))
+                if persisted == 'INTERRUPTED':
+                    # Same INTERRUPTED rule as the 200 path: return it if the caller asked
+                    # to stop on it, otherwise it's a permanent failure.
+                    if 'INTERRUPTED' in required_states:
+                        print("module id {} status changed to {}".format(module_id, persisted))
+                        return persisted
+                    raise Exception("Test module {} has moved to INTERRUPTED".format(module_id))
+                # Non-terminal persisted status (RUNNING/WAITING/CONFIGURED/...): the runner
+                # lost an in-progress test, almost certainly a restart. Even if this status
+                # is in required_states, we must NOT return it — the test no longer exists in
+                # the runner, so the caller couldn't drive it forward. Retry the module.
+                raise ServerUnavailableError(
+                    "wait_for_state {} long-poll returned 404 but persisted test info shows "
+                    "non-terminal state {} - server likely restarted, retrying".format(
+                        module_id, persisted))
+            if resp.status_code != 200:
+                raise Exception(
+                    "wait_for_state {} failed - HTTP {:d} {}".format(
+                        module_id, resp.status_code, resp.content[:200]))
+            body = resp.json()
+            if body.get('timeout'):
+                # Per-call budget elapsed before a wanted state was reached; re-issue.
+                continue
+            state = body.get('state')
+            if state is None:
+                # 200 with neither a state nor the timeout flag shouldn't happen with
+                # our endpoint; back off briefly and re-issue rather than return None.
+                await asyncio.sleep(1)
+                continue
+            # Status diagnostic for the CI log.
+            print("module id {} status changed to {}".format(module_id, state))
+            # INTERRUPTED is a permanent failure: raise immediately so the caller doesn't
+            # sit until timeout — UNLESS the caller explicitly asked to stop on INTERRUPTED
+            # (it's in required_states), in which case we return it as a normal wanted state.
+            if state == 'INTERRUPTED' and 'INTERRUPTED' not in required_states:
+                raise Exception("Test module {} has moved to INTERRUPTED".format(module_id))
+            return state
 
-            status = info["status"]
-
-            if status != last_status:
-                print(f"module id {module_id} status changed to {status}")
-                last_status = status
-
-            if status in required_states:
-                return status
-            if status == "INTERRUPTED":
-                raise Exception(f"Test module {module_id} has moved to INTERRUPTED")
-
-            await asyncio.sleep(poll_interval)
+    async def _get_persisted_status(self, module_id):
+        """Return the persisted status string for module_id from /api/info/{id}, or None
+        if the server reports it absent (404). /api/info reads persisted test info, which
+        survives a server restart (unlike the in-memory runner the wait-state endpoint
+        uses), so this disambiguates a wait-state 404: a terminal persisted status means
+        the test completed before its in-memory entry vanished, while a non-terminal one
+        means an in-progress test was lost. Raises ServerUnavailableError on connection
+        failure / 502 so a transient outage is treated as retryable, not misread as
+        'absent'; raises UnrecoverableHTTPError on 401 to match the long-poll path."""
+        api_url = '{0}api/info/{1}'.format(self.api_url_base, module_id)
+        try:
+            resp = await self.httpclient.get(api_url)
+        except Exception as e:
+            raise ServerUnavailableError(
+                "wait_for_state {} status check failed - {}".format(module_id, e)) from e
+        if resp.status_code == 502:
+            raise ServerUnavailableError(
+                "wait_for_state {} status check failed - HTTP 502".format(module_id))
+        if resp.status_code == 401:
+            raise UnrecoverableHTTPError(
+                "wait_for_state {} status check failed - HTTP 401 (auth token is invalid, "
+                "server may have been redeployed)".format(module_id))
+        if resp.status_code == 404:
+            return None
+        if resp.status_code != 200:
+            raise Exception(
+                "wait_for_state {} status check failed - HTTP {:d}".format(
+                    module_id, resp.status_code))
+        return resp.json().get('status')
 
     async def wait_for_server_ready(self, timeout=360):
         """Poll until the server responds successfully, or raise after timeout."""
