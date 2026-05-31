@@ -211,6 +211,12 @@ public interface TestModule {
 	void setProperties(String id, Map<String, String> owner, TestInstanceEventLog wrappedEventLog, BrowserControl browser, TestInfoService testInfo, TestExecutionManager executionManager, ImageService imageService);
 
 	/**
+	 * Provide the long-poll status-change publisher. Wired by TestRunner immediately before {@link #setProperties}.
+	 * Set as a separate setter (rather than a {@code setProperties} parameter) so the existing signature stays stable.
+	 */
+	void setTestStatusWaiterService(net.openid.conformance.runner.TestStatusWaiterService service);
+
+	/**
 	 * Pass along the current variant configuration
 	 */
 	void setVariant(Map<Class<? extends Enum<?>>, ? extends Enum<?>> variant);
