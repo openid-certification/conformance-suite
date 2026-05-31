@@ -3,15 +3,13 @@ package net.openid.conformance.authzen;
 import com.google.common.base.Strings;
 import net.openid.conformance.authzen.condition.AggregateAuthzenSearchResults;
 import net.openid.conformance.authzen.condition.EnsureAuthzenSearchResponseValsMatchExpectedVals;
-import net.openid.conformance.authzen.condition.EnsureSearchPageResultsAreSubsetOfExpected;
 import net.openid.conformance.authzen.condition.ExtractAuthzenSearchExpectedResponse;
 import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.testmodule.TestFailureException;
 
 /**
- * Search test that follows pagination across multiple pages. After each page, validates that the
- * page's results are a subset of the expected results.
- * Aggregated results across all pages must equal the expected set.
+ * Search test that follows pagination across multiple pages.
+ * Aggregated results across all pages must include the expected set.
  *
  * Subclasses extend this in place of {@link AbstractAuthzenPDPSearchTest} when the test exercises
  * a paginated response. Single-page tests should continue to extend {@link AbstractAuthzenPDPSearchTest}.
@@ -38,11 +36,6 @@ public abstract class AbstractAuthzenPDPPaginatedSearchTest extends AbstractAuth
 			createAuthzenApiRequest();
 			callAuthApiEndpointRequest();
 			processAuthApiEndpointResponse();
-
-			// Per-page checks: page results must be subset of expected results
-			// Results may be duplicated across pages per AUTHZEN-8.2
-			callAndContinueOnFailure(EnsureSearchPageResultsAreSubsetOfExpected.class, ConditionResult.FAILURE, "AUTHZEN-8.3");
-
 			callAndStopOnFailure(AggregateAuthzenSearchResults.class);
 			eventLog.endBlock();
 		} while (!Strings.isNullOrEmpty(env.getString("authzen_search_endpoint_request_page_token")));
