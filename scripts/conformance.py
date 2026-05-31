@@ -293,7 +293,118 @@ class Conformance(object):
                                        url=api_url)
         return response.json()
 
+    async def _probe_wait_state_supported(self):
+        """One-shot probe of /api/runner/{id}/wait-state to see if this deploy
+        has the long-poll endpoint. Result cached on the instance.
+
+        Detection: a request with a known-bad ID returns 404 either way, but
+        the NEW endpoint returns a JSON body with {"error":"test not found"};
+        the OLD deploy (no endpoint) returns Spring's generic 404 (typically
+        HTML or empty body, with no 'error' key). We check BOTH the
+        content-type AND the JSON body marker — content-type alone isn't
+        reliable across reverse-proxy configurations.
+
+        A connection-level failure means we can't determine support; we
+        conservatively return False so the caller falls back to polling. We
+        do NOT raise ServerUnavailableError here — that would punish the
+        first wait_for_state call after a deploy. The first real
+        wait_for_state request will raise the proper error if the server is
+        actually down."""
+        if hasattr(self, '_wait_state_supported'):
+            return self._wait_state_supported
+        api_url = '{0}api/runner/probe-no-such-id/wait-state?currentState=X&timeoutMs=100'.format(self.api_url_base)
+        try:
+            resp = await self.httpclient.get(api_url, timeout=5)
+        except Exception:
+            self._wait_state_supported = False
+            return False
+        if resp.status_code != 404:
+            # Unexpected — endpoint may exist with different semantics. Be
+            # safe and fall back to polling.
+            self._wait_state_supported = False
+            return False
+        ct = resp.headers.get('content-type', '')
+        if 'application/json' not in ct:
+            self._wait_state_supported = False
+            return False
+        try:
+            body = resp.json()
+        except Exception:
+            self._wait_state_supported = False
+            return False
+        self._wait_state_supported = (body.get('error') == 'test not found')
+        return self._wait_state_supported
+
     async def wait_for_state(self, module_id, required_states, timeout=240):
+        if not await self._probe_wait_state_supported():
+            return await self._wait_for_state_polling(module_id, required_states, timeout)
+
+        timeout_at = time.time() + timeout
+        last_status = None
+
+        while True:
+            remaining = timeout_at - time.time()
+            if remaining <= 0:
+                raise Exception(
+                    "Timed out waiting for test module {} to be in one of states: {}".format(
+                        module_id, required_states))
+            # Cap each long-poll at 30s so we recover from server restarts or
+            # dropped connections without exceeding the overall budget. The
+            # server clamps to the same bound regardless.
+            per_call_timeout_ms = min(int(remaining * 1000), 30000)
+            api_url = '{0}api/runner/{1}/wait-state?currentState={2}&timeoutMs={3}'.format(
+                self.api_url_base, module_id, last_status if last_status else '', per_call_timeout_ms
+            )
+            # Connection-level + status handling matches conformance._request
+            # so callers that catch ServerUnavailableError (e.g. for retry on
+            # server restart) keep working. The +10s on the httpx timeout is
+            # a safety margin over the server-side long-poll budget; if it
+            # fires that's a real network problem, not normal long-poll
+            # behaviour, so it propagates as ServerUnavailableError too.
+            try:
+                resp = await self.httpclient.get(api_url, timeout=per_call_timeout_ms / 1000.0 + 10)
+            except Exception as e:
+                raise ServerUnavailableError(
+                    "wait_for_state {} long-poll failed - {}".format(module_id, e)) from e
+            if resp.status_code == 502:
+                raise ServerUnavailableError(
+                    "wait_for_state {} long-poll failed - HTTP 502 {}".format(
+                        module_id, resp.content))
+            if resp.status_code == 401:
+                raise UnrecoverableHTTPError(
+                    "wait_for_state {} long-poll failed - HTTP 401 (auth token is invalid, "
+                    "server may have been redeployed)".format(module_id))
+            if resp.status_code == 404:
+                # JSON body — endpoint exists but test is missing/unauthorized.
+                # Permanent; no point retrying.
+                raise Exception("Test module {} not found".format(module_id))
+            if resp.status_code != 200:
+                raise Exception(
+                    "wait_for_state {} failed - HTTP {:d} {}".format(
+                        module_id, resp.status_code, resp.content[:200]))
+            body = resp.json()
+            state = body.get('state')
+            if state is None:
+                # Server returned 200 but no state — shouldn't happen with
+                # our endpoint; treat as a soft error and back off briefly.
+                await asyncio.sleep(1)
+                continue
+            # Preserve the polling path's status-transition diagnostic so CI
+            # logs read the same way before and after the long-poll switch.
+            # We print on every observed change of state (including timeouts
+            # that surface the unchanged current state, which we skip below).
+            if state != last_status and not body.get('timeout'):
+                print("module id {} status changed to {}".format(module_id, state))
+            last_status = state
+            # Preserve current behaviour: INTERRUPTED is a permanent failure,
+            # raise immediately so the caller doesn't sit until timeout.
+            if state == 'INTERRUPTED':
+                raise Exception("Test module {} has moved to INTERRUPTED".format(module_id))
+            if state in required_states:
+                return state
+            # Status changed but not to a required one and not INTERRUPTED — loop.
+
+    async def _wait_for_state_polling(self, module_id, required_states, timeout=240):
         timeout_at = time.time() + timeout
         last_status = None
         poll_interval = float(os.getenv("CONFORMANCE_STATE_POLL_INTERVAL", 1))
