@@ -23,6 +23,7 @@ import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.testmodule.TestFailureException;
 import net.openid.conformance.testmodule.TestInterruptedException;
 import net.openid.conformance.testmodule.TestModule;
+import net.openid.conformance.testmodule.TestModule.Status;
 import net.openid.conformance.testmodule.TestSkippedException;
 import net.openid.conformance.variant.VariantSelection;
 import net.openid.conformance.variant.VariantService;
@@ -44,6 +45,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.context.request.async.DeferredResult;
 import org.springframework.web.util.UriUtils;
 
 import java.time.Duration;
@@ -59,6 +61,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 /**
@@ -557,6 +560,92 @@ public class TestRunner implements DataUtils {
 		} else {
 			return ResponseEntity.notFound().build();
 		}
+	}
+
+	/** Min/max bounds for {@code timeoutMs}. Clamped at the boundary to
+	 *  protect Tomcat's async store from accidental or hostile long suspends. */
+	static final long WAIT_STATE_MIN_TIMEOUT_MS = 1L;
+	static final long WAIT_STATE_MAX_TIMEOUT_MS = 30_000L;
+
+	/** Visible for testing. */
+	static long clampWaitStateTimeoutMs(long requested) {
+		return Math.max(WAIT_STATE_MIN_TIMEOUT_MS,
+						Math.min(WAIT_STATE_MAX_TIMEOUT_MS, requested));
+	}
+
+	/**
+	 * Long-poll wait for a test's status to differ from the supplied
+	 * {@code currentState}. Mirrors the auth of {@link #getTestStatus}:
+	 * {@code support.getRunningTestById} returns null for both unknown-test
+	 * and access-denied; we return 404 in either case without distinguishing.
+	 *
+	 * <p>The 404 carries a JSON body {@code {"error":"test not found"}} so
+	 * the python client's capability probe can reliably distinguish
+	 * "endpoint exists, test missing" from "endpoint not deployed" (which
+	 * would surface as a generic Spring 404 / HTML error page).
+	 *
+	 * <p>Returns 200 with {@code {"state":"..."}} when status transitions (or
+	 * when current state already differs from {@code currentState}). Returns
+	 * 200 with {@code {"state":"...","timeout":true}} when the timeout fires.
+	 *
+	 * @param id              test ID to wait on
+	 * @param currentState    state the caller already observed; the call returns
+	 *                        once a different state is seen. {@code null} means
+	 *                        "return any state once available."
+	 * @param timeoutMs       wall-clock budget in ms, clamped to [1, 30000].
+	 */
+	@Operation(summary = "Long-poll wait for the test's status to differ from currentState")
+	@ApiResponses(value = {
+		@ApiResponse(responseCode = "200", description = "State changed, or timeout fired"),
+		@ApiResponse(responseCode = "404", description = "The test is unknown or you are not authorized")
+	})
+	@GetMapping(value = "/runner/{id}/wait-state", produces = MediaType.APPLICATION_JSON_VALUE)
+	public DeferredResult<ResponseEntity<Map<String, Object>>> waitForState(
+		@Parameter(description = "Id of test to wait on") @PathVariable("id") String id,
+		@Parameter(description = "State the caller already observed; the call returns once a different state is seen") @RequestParam(name = "currentState", required = false) String currentState,
+		@Parameter(description = "Wall-clock budget in ms, clamped to [1, 30000]") @RequestParam(name = "timeoutMs", defaultValue = "30000") long timeoutMs) {
+
+		long clampedTimeoutMs = clampWaitStateTimeoutMs(timeoutMs);
+		DeferredResult<ResponseEntity<Map<String, Object>>> deferred = new DeferredResult<>(clampedTimeoutMs);
+
+		// Authorization: getRunningTestById applies owner/admin checks AND
+		// existence check. Null means either "doesn't exist" or "no access" —
+		// we return 404 in both cases (does not leak existence). The body
+		// carries a stable JSON marker so the python capability probe can
+		// distinguish this from Spring's generic 404 on a deploy without
+		// the endpoint at all.
+		TestModule test = support.getRunningTestById(id);
+		if (test == null) {
+			deferred.setResult(ResponseEntity.status(HttpStatus.NOT_FOUND)
+				.contentType(MediaType.APPLICATION_JSON)
+				.body(Map.of("error", "test not found")));
+			return deferred;
+		}
+
+		// Register the callback FIRST, then re-read the status. This closes
+		// the race where the status changes between the controller reading it
+		// and registering the waiter — the post-register re-read catches any
+		// change that happened during the window. DeferredResult.setResult is
+		// idempotent (only the first call wins) so we never produce two responses.
+		Consumer<Status> callback = newStatus ->
+			deferred.setResult(ResponseEntity.ok(Map.of("state", newStatus.toString())));
+		testStatusWaiterService.register(id, callback);
+
+		deferred.onCompletion(() -> testStatusWaiterService.unregister(id, callback));
+		deferred.onTimeout(() ->
+			deferred.setResult(ResponseEntity.ok(
+				Map.of("state", currentState != null ? currentState : "", "timeout", true))));
+
+		// Post-register re-read of the status — catches any change that fired
+		// between getRunningTestById above and register() just now.
+		Status now = test.getStatus();
+		if (currentState == null || !currentState.equals(now.toString())) {
+			// Already in a state the caller is interested in; resolve immediately.
+			// setResult is a no-op if a concurrent callback already set it.
+			deferred.setResult(ResponseEntity.ok(Map.of("state", now.toString())));
+		}
+
+		return deferred;
 	}
 
 	@Operation(summary = "Cancel test by Id")
