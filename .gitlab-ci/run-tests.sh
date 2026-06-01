@@ -657,12 +657,20 @@ makeSsfTests() {
 }
 
 makeAuthzenTests() {
+   # Interop payloads test
    TESTS="${TESTS} authzen-pdp-interop-evaluation-test-plan[pdp_auth_type=none][pdp_server_metadata=static] ${SUITE_DIR}/scripts/test-configs-authzen/authzen-cerbos-test-config.json"
    TESTS="${TESTS} authzen-pdp-interop-evaluations-test-plan[pdp_auth_type=none][pdp_server_metadata=static] ${SUITE_DIR}/scripts/test-configs-authzen/authzen-cerbos-test-config.json"
 # empower has been down for a few days, disable for now
 #   TESTS="${TESTS} authzen-pdp-interop-subject-search-test-plan[pdp_auth_type=none][pdp_server_metadata=static] ${SUITE_DIR}/scripts/test-configs-authzen/authzen-empowerid-test-config.json"
 #   TESTS="${TESTS} authzen-pdp-interop-resource-search-test-plan[pdp_auth_type=none][pdp_server_metadata=static] ${SUITE_DIR}/scripts/test-configs-authzen/authzen-empowerid-test-config.json"
 #   TESTS="${TESTS} authzen-pdp-interop-action-search-test-plan[pdp_auth_type=none][pdp_server_metadata=static] ${SUITE_DIR}/scripts/test-configs-authzen/authzen-empowerid-test-config.json"
+
+   # Certification Profile payload tests
+   TESTS="${TESTS} authzen-pdp-evaluation-test-plan[pdp_auth_type=none][pdp_server_metadata=static][authzen_support=properties] ${SUITE_DIR}/scripts/test-configs-authzen/authzen-cerbos-test-config.json"
+   TESTS="${TESTS} authzen-pdp-evaluations-test-plan[pdp_auth_type=none][pdp_server_metadata=static][authzen_support=properties] ${SUITE_DIR}/scripts/test-configs-authzen/authzen-cerbos-test-config.json"
+   TESTS="${TESTS} authzen-pdp-subject-search-test-plan[pdp_auth_type=none][pdp_server_metadata=static][authzen_support=properties] ${SUITE_DIR}/scripts/test-configs-authzen/authzen-cerbos-test-config.json"
+   TESTS="${TESTS} authzen-pdp-resource-search-test-plan[pdp_auth_type=none][pdp_server_metadata=static][authzen_support=properties] ${SUITE_DIR}/scripts/test-configs-authzen/authzen-cerbos-test-config.json"
+   TESTS="${TESTS} authzen-pdp-action-search-test-plan[pdp_auth_type=none][pdp_server_metadata=static][authzen_support=properties] ${SUITE_DIR}/scripts/test-configs-authzen/authzen-cerbos-test-config.json"
 }
 
 makeLocalProviderTests() {

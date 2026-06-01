@@ -1,2 +1,137 @@
 [
+    {
+        "test-name": "authzen-pdp-evaluation-reject-get-method",
+        "variant": "*",
+        "configuration-filename": "*authzen-cerbos-test-config.json",
+        "current-block": "*",
+        "condition": "EnsureHttpStatusCodeMatchesExpected",
+        "expected-result": "failure",
+        "comment": "Exact codes TBD"
+    },
+    {
+        "test-name": "authzen-pdp-evaluation-reject-put-method",
+        "variant": "*",
+        "configuration-filename": "*authzen-cerbos-test-config.json",
+        "current-block": "*",
+        "condition": "EnsureHttpStatusCodeMatchesExpected",
+        "expected-result": "failure",
+        "comment": "Exact codes TBD"
+    },
+    {
+        "test-name": "authzen-pdp-evaluation-reject-non-json-content-type",
+        "variant": "*",
+        "configuration-filename": "*authzen-cerbos-test-config.json",
+        "current-block": "*",
+        "condition": "EnsureHttpStatusCodeMatchesExpected",
+        "expected-result": "failure",
+        "comment": "Exact codes TBD"
+    },
+    {
+        "test-name": "authzen-pdp-evaluations-reject-get-method",
+        "variant": "*",
+        "configuration-filename": "*authzen-cerbos-test-config.json",
+        "current-block": "*",
+        "condition": "EnsureHttpStatusCodeMatchesExpected",
+        "expected-result": "failure",
+        "comment": "Exact codes TBD"
+    },
+    {
+        "test-name": "authzen-pdp-evaluations-reject-put-method",
+        "variant": "*",
+        "configuration-filename": "*authzen-cerbos-test-config.json",
+        "current-block": "*",
+        "condition": "EnsureHttpStatusCodeMatchesExpected",
+        "expected-result": "failure",
+        "comment": "Exact codes TBD"
+    },
+    {
+        "test-name": "authzen-pdp-evaluations-reject-non-json-content-type",
+        "variant": "*",
+        "configuration-filename": "*authzen-cerbos-test-config.json",
+        "current-block": "*",
+        "condition": "EnsureHttpStatusCodeMatchesExpected",
+        "expected-result": "failure",
+        "comment": "Exact codes TBD"
+    },
+    {
+        "test-name": "authzen-pdp-subject-search-reject-get-method",
+        "variant": "*",
+        "configuration-filename": "*authzen-cerbos-test-config.json",
+        "current-block": "*",
+        "condition": "EnsureHttpStatusCodeMatchesExpected",
+        "expected-result": "failure",
+        "comment": "Exact codes TBD"
+    },
+    {
+        "test-name": "authzen-pdp-subject-search-reject-put-method",
+        "variant": "*",
+        "configuration-filename": "*authzen-cerbos-test-config.json",
+        "current-block": "*",
+        "condition": "EnsureHttpStatusCodeMatchesExpected",
+        "expected-result": "failure",
+        "comment": "Exact codes TBD"
+    },
+    {
+        "test-name": "authzen-pdp-subject-search-reject-non-json-content-type",
+        "variant": "*",
+        "configuration-filename": "*authzen-cerbos-test-config.json",
+        "current-block": "*",
+        "condition": "EnsureHttpStatusCodeMatchesExpected",
+        "expected-result": "failure",
+        "comment": "Exact codes TBD"
+    },
+    {
+        "test-name": "authzen-pdp-resource-search-reject-get-method",
+        "variant": "*",
+        "configuration-filename": "*authzen-cerbos-test-config.json",
+        "current-block": "*",
+        "condition": "EnsureHttpStatusCodeMatchesExpected",
+        "expected-result": "failure",
+        "comment": "Exact codes TBD"
+    },
+    {
+        "test-name": "authzen-pdp-resource-search-reject-put-method",
+        "variant": "*",
+        "configuration-filename": "*authzen-cerbos-test-config.json",
+        "current-block": "*",
+        "condition": "EnsureHttpStatusCodeMatchesExpected",
+        "expected-result": "failure",
+        "comment": "Exact codes TBD"
+    },
+    {
+        "test-name": "authzen-pdp-resource-search-reject-non-json-content-type",
+        "variant": "*",
+        "configuration-filename": "*authzen-cerbos-test-config.json",
+        "current-block": "*",
+        "condition": "EnsureHttpStatusCodeMatchesExpected",
+        "expected-result": "failure",
+        "comment": "Exact codes TBD"
+    },
+    {
+        "test-name": "authzen-pdp-action-search-reject-get-method",
+        "variant": "*",
+        "configuration-filename": "*authzen-cerbos-test-config.json",
+        "current-block": "*",
+        "condition": "EnsureHttpStatusCodeMatchesExpected",
+        "expected-result": "failure",
+        "comment": "Exact codes TBD"
+    },
+    {
+        "test-name": "authzen-pdp-action-search-reject-put-method",
+        "variant": "*",
+        "configuration-filename": "*authzen-cerbos-test-config.json",
+        "current-block": "*",
+        "condition": "EnsureHttpStatusCodeMatchesExpected",
+        "expected-result": "failure",
+        "comment": "Exact codes TBD"
+    },
+    {
+        "test-name": "authzen-pdp-action-search-reject-non-json-content-type",
+        "variant": "*",
+        "configuration-filename": "*authzen-cerbos-test-config.json",
+        "current-block": "*",
+        "condition": "EnsureHttpStatusCodeMatchesExpected",
+        "expected-result": "failure",
+        "comment": "Exact codes TBD"
+    }
 ]
