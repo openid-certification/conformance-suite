@@ -28,6 +28,10 @@ import net.openid.conformance.plan.TestPlan;
 		// Error handling: HTTP 400 negative tests (Section 4.7)
 		AuthzenPDPResourceSearchMissingSubjectTest.class,
 		AuthzenPDPResourceSearchSubjectMissingIdTest.class,
+		AuthzenPDPResourceSearchMissingResourceTest.class,
+		AuthzenPDPResourceSearchResourceMissingTypeTest.class,
+		AuthzenPDPResourceSearchMissingActionTest.class,
+		AuthzenPDPResourceSearchActionMissingNameTest.class,
 		// Extra resource.id ignored (Spec 8.5.1-3)
 		AuthzenPDPResourceSearchExtraResourceIdIgnoredTest.class,
 		// Search Properties (Properties variant only)
