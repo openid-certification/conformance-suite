@@ -10,13 +10,13 @@ import net.openid.conformance.variant.FAPICIBAProfile;
 import net.openid.conformance.variant.VariantNotApplicable;
 
 @PublishTestModule(
-	testName = "connectid-ciba-ensure-authorization-request-with-non-ascii-purpose",
+	testName = "fapi-ciba-id1-connectid-ensure-authorization-request-with-non-ascii-purpose",
 	displayName = "ConnectID CIBA: Test with a non-ASCII binding_message purpose",
 	summary = "This test sends a ConnectID CIBA backchannel authentication request with a non-ASCII binding_message purpose. The server may return invalid_binding_message; if it authenticates successfully, the test logs a warning because ConnectID purpose statements should be ASCII-only.",
 	profile = "FAPI-CIBA-ID1"
 )
 @VariantNotApplicable(parameter = FAPICIBAProfile.class, values = {"plain_fapi", "openbanking_uk", "openbanking_brazil"})
-public class ConnectIdCibaEnsureAuthorizationRequestWithNonAsciiPurpose extends AbstractFAPICIBAID1 {
+public class FAPICIBAID1ConnectIdEnsureAuthorizationRequestWithNonAsciiPurpose extends AbstractFAPICIBAID1 {
 
 	@Override
 	protected void createAuthorizationRequestObject() {
