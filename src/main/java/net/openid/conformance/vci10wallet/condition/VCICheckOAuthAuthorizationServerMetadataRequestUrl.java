@@ -2,6 +2,7 @@ package net.openid.conformance.vci10wallet.condition;
 
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.testmodule.Environment;
+import net.openid.conformance.util.OAuthUriUtil;
 
 import java.net.URI;
 
@@ -19,7 +20,10 @@ public class VCICheckOAuthAuthorizationServerMetadataRequestUrl extends Abstract
 		String expectedPath = "/.well-known/oauth-authorization-server" + serverIssuerPath;
 		URI requestUri = URI.create(requestUrl);
 
-		if (!expectedPath.equals(requestUri.getPath())) {
+		// RFC 8414 section 3.1 requires the terminating "/" of the issuer to be removed
+		// before inserting "/.well-known/...". Many wallets keep it; rather than failing
+		// either form, accept both by stripping a single trailing "/" before comparing.
+		if (!OAuthUriUtil.stripTrailingSlash(expectedPath).equals(OAuthUriUtil.stripTrailingSlash(requestUri.getPath()))) {
 			throw error("Auth Server metadata request does not match expected URL path", args("expected_path", expectedPath, "request_url", requestUrl));
 		}
 
