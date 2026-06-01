@@ -2,12 +2,8 @@ package net.openid.conformance.info;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
-import com.google.gson.Gson;
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 import io.swagger.v3.oas.annotations.Operation;
-import net.openid.conformance.CollapsingGsonHttpMessageConverter;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -108,13 +104,9 @@ public class TestInfoApi {
 			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
 		}
 
-		Gson gson = CollapsingGsonHttpMessageConverter.getDbObjectCollapsingGson();
-		JsonObject testInfoObj = JsonParser.parseString(gson.toJson(testInfo.get())).getAsJsonObject();
-		JsonElement configEl = testInfoObj.get("config");
-		if (configEl != null && configEl.isJsonObject()) {
-			ConfigMigration.migrateLegacyClientAttestationKeys(configEl.getAsJsonObject());
-		}
-		return new ResponseEntity<>(testInfoObj, HttpStatus.OK);
+		// Single-pass migration via the Gson serializer registered for ConfigMigratingResponse —
+		// avoids serializing once into a JsonObject, mutating, and re-serializing for the response.
+		return new ResponseEntity<>(new ConfigMigratingResponse(testInfo.get()), HttpStatus.OK);
 	}
 
 	@PostMapping("/info/{testId}/share")
