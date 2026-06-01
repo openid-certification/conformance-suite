@@ -4,18 +4,18 @@ import net.openid.conformance.authzen.AbstractAuthzenPDPActionSearchTest;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
-	testName = "authzen-pdp-interop-action-search-18",
-	displayName = "Authzen Action Search API Test 18",
-	summary = "Authzen Action Search API test 18 with payload\n" + AuthzenPDPInteropActionSearch18Test.payload,
+	testName = "authzen-pdp-interop-action-search-118",
+	displayName = "Authzen Action Search API Test 118",
+	summary = "Authzen Action Search API test 118 with payload\n" + AuthzenPDPInteropActionSearch118Test.payload,
 	profile = "Authzen"
 )
-public class AuthzenPDPInteropActionSearch18Test extends AbstractAuthzenPDPActionSearchTest {
+public class AuthzenPDPInteropActionSearch118Test extends AbstractAuthzenPDPActionSearchTest {
 
 	public static final String payload = """
 		{
 			"subject": {
 				"type": "user",
-				"id": "alice"
+				"id": "felix"
 			},
 			"resource": {
 				"type": "record",
@@ -29,6 +29,12 @@ public class AuthzenPDPInteropActionSearch18Test extends AbstractAuthzenPDPActio
 			"results": [
 				{
 					"name": "view"
+				},
+				{
+					"name": "edit"
+				},
+				{
+					"name": "delete"
 				}
 			]
 		}""";

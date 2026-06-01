@@ -4,33 +4,29 @@ import net.openid.conformance.authzen.AbstractAuthzenPDPActionSearchTest;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
-	testName = "authzen-pdp-interop-action-search-18",
-	displayName = "Authzen Action Search API Test 18",
-	summary = "Authzen Action Search API test 18 with payload\n" + AuthzenPDPInteropActionSearch18Test.payload,
+	testName = "authzen-pdp-interop-action-search-101",
+	displayName = "Authzen Action Search API Test 101",
+	summary = "Authzen Action Search API test 101 with payload\n" + AuthzenPDPInteropActionSearch101Test.payload,
 	profile = "Authzen"
 )
-public class AuthzenPDPInteropActionSearch18Test extends AbstractAuthzenPDPActionSearchTest {
+public class AuthzenPDPInteropActionSearch101Test extends AbstractAuthzenPDPActionSearchTest {
 
 	public static final String payload = """
 		{
 			"subject": {
 				"type": "user",
-				"id": "alice"
+				"id": "felix"
 			},
 			"resource": {
 				"type": "record",
-				"id": "118"
+				"id": "101"
 			}
 		}""";
 
 	@Override
 	protected String getExpectedSearchResponseJson() { return """
 		{
-			"results": [
-				{
-					"name": "view"
-				}
-			]
+			"results": []
 		}""";
 	}
 

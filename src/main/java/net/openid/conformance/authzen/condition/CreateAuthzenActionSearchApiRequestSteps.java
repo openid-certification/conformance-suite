@@ -24,8 +24,10 @@ public class CreateAuthzenActionSearchApiRequestSteps extends AbstractConditionS
 		if(null != context) {
 			callAndStopOnFailure(new CreateAuthzenApiEndpointRequestContext(context), "AUTHZEN-5.4", "AUTHZEN-8.6.1");
 		}
-		if(null != page) {
-			callAndStopOnFailure(new CreateAuthzenApiEndpointRequestSearchPage(page), "AUTHZEN-8.2.1", "AUTHZEN-8.6.1");
-		}
+		// Always call so that, on follow-up paginated requests, the next_token captured from
+		// the prior response is copied into request.page.token even when the test payload
+		// declared no page block. CreateAuthzenApiEndpointRequestSearchPage skips adding an
+		// empty page object to the request when neither the payload nor the env supplies a value.
+		callAndStopOnFailure(new CreateAuthzenApiEndpointRequestSearchPage(page), "AUTHZEN-8.2.1", "AUTHZEN-8.6.1");
 	}
 }
