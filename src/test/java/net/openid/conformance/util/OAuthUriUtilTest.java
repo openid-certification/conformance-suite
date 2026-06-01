@@ -33,4 +33,26 @@ class OAuthUriUtilTest {
 		String expected = "https://localhost.emobix.co.uk:8443/.well-known/oauth-authorization-server/test/a/ssf-tx-oidf";
 		assertEquals(expected, actual);
 	}
+
+	@Test
+	public void stripTrailingSlashRemovesSingleSlash() {
+		assertEquals("/path", OAuthUriUtil.stripTrailingSlash("/path/"));
+	}
+
+	@Test
+	public void stripTrailingSlashLeavesPathWithoutSlashUntouched() {
+		assertEquals("/path", OAuthUriUtil.stripTrailingSlash("/path"));
+	}
+
+	@Test
+	public void stripTrailingSlashHandlesEmptyAndRootAndNull() {
+		assertEquals("", OAuthUriUtil.stripTrailingSlash(""));
+		assertEquals("", OAuthUriUtil.stripTrailingSlash("/"));
+		assertEquals(null, OAuthUriUtil.stripTrailingSlash(null));
+	}
+
+	@Test
+	public void stripTrailingSlashOnlyRemovesOneSlash() {
+		assertEquals("/path/", OAuthUriUtil.stripTrailingSlash("/path//"));
+	}
 }
