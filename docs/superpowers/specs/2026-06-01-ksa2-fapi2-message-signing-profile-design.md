@@ -1,8 +1,8 @@
-# KSA2 Profile for FAPI2 Message Signing
+# KSA Profile for FAPI2 Message Signing
 
 ## Overview
 
-Add a `ksa2` sub-profile to the FAPI2 Message Signing Final test plans (OP and RP). The profile targets Saudi Arabia deployments and enforces a fixed, narrow set of constraints on top of plain FAPI2.
+Add a `ksa` sub-profile to the FAPI2 Message Signing Final test plans (OP and RP). The profile targets Saudi Arabia deployments and enforces a fixed, narrow set of constraints on top of plain FAPI2.
 
 ## Constraints
 
@@ -20,7 +20,7 @@ Any other combination is invalid and should raise a `RuntimeException` in `certi
 
 ## Architecture
 
-Follows the CBUAE precedent exactly — CBUAE is the closest existing profile (MTLS everywhere, private key JWT, JAR, MTLS sender constraining, OpenID required). KSA2 differs only in that RAR is **not** required (and not permitted), which removes the `RARSupport.ExtractRARFromConfig` discovery check.
+Follows the CBUAE precedent exactly — CBUAE is the closest existing profile (MTLS everywhere, private key JWT, JAR, MTLS sender constraining, OpenID required). KSA differs only in that RAR is **not** required (and not permitted), which removes the `RARSupport.ExtractRARFromConfig` discovery check.
 
 ## Files Changed
 
@@ -28,26 +28,26 @@ Follows the CBUAE precedent exactly — CBUAE is the closest existing profile (M
 
 | File | Purpose |
 |---|---|
-| `fapi2spfinal/Ksa2ProfileBehavior.java` | Server-side profile behavior: `requiresMtlsEverywhere()=true`; discovery checks for authorization_code and PS256 (no RAR) |
-| `fapi2spfinal/Ksa2ClientProfileBehavior.java` | Client-side profile behavior: `requiresMtlsEverywhere()=true`, `userInfoIsResourceEndpoint()=true` |
+| `fapi2spfinal/KsaProfileBehavior.java` | Server-side profile behavior: `requiresMtlsEverywhere()=true`; discovery checks for authorization_code and PS256 (no RAR) |
+| `fapi2spfinal/KsaClientProfileBehavior.java` | Client-side profile behavior: `requiresMtlsEverywhere()=true`, `userInfoIsResourceEndpoint()=true` |
 
 ### Modified files
 
 | File | Change |
 |---|---|
-| `variant/FAPI2FinalOPProfile.java` | Add `KSA2` enum value |
-| `fapi2spfinal/AbstractFAPI2SPFinalServerTestModule.java` | Add `@VariantSetup(parameter=FAPI2FinalOPProfile.class, value="ksa2")` wiring `Ksa2ProfileBehavior` |
-| `fapi2spfinal/AbstractFAPI2SPFinalClientTest.java` | Add `@VariantSetup` wiring `Ksa2ClientProfileBehavior` |
-| `fapi2spfinal/FAPI2SPFinalDiscoveryEndpointVerification.java` | Add `@VariantSetup("ksa2")` pointing to `Ksa2ProfileBehavior` |
-| `fapi2spfinal/FAPI2MessageSigningFinalTestPlan.java` | Add `ksa2` case → returns `List.of("FAPI2MS OP KSA2")`; validates constraints |
-| `fapi2spfinal/FAPI2MessageSigningFinalClientTestPlan.java` | Add `ksa2` case → returns `List.of("FAPI2MS RP KSA2")`; validates constraints |
-| `fapi2spfinal/FAPI2SPFinalTestPlan.java` | Add `ksa2` case → throws "KSA2 profile requires JAR, please use the message signing test plan" |
+| `variant/FAPI2FinalOPProfile.java` | Add `KSA` enum value |
+| `fapi2spfinal/AbstractFAPI2SPFinalServerTestModule.java` | Add `@VariantSetup(parameter=FAPI2FinalOPProfile.class, value="ksa")` wiring `KsaProfileBehavior` |
+| `fapi2spfinal/AbstractFAPI2SPFinalClientTest.java` | Add `@VariantSetup` wiring `KsaClientProfileBehavior` |
+| `fapi2spfinal/FAPI2SPFinalDiscoveryEndpointVerification.java` | Add `@VariantSetup("ksa")` pointing to `KsaProfileBehavior` |
+| `fapi2spfinal/FAPI2MessageSigningFinalTestPlan.java` | Add `ksa` case → returns `List.of("FAPI2MS OP KSA")`; validates constraints |
+| `fapi2spfinal/FAPI2MessageSigningFinalClientTestPlan.java` | Add `ksa` case → returns `List.of("FAPI2MS RP KSA")`; validates constraints |
+| `fapi2spfinal/FAPI2SPFinalTestPlan.java` | Add `ksa` case → throws "KSA profile requires JAR, please use the message signing test plan" |
 | `fapi2spfinal/FAPI2SPFinalClientTestPlan.java` | Same as above |
-| Profile-specific `@VariantNotApplicable` modules | Add `"ksa2"` alongside `"cbuae"` in Brazil-specific, UK-specific, ConnectID-specific tests, and `EnsureServerAcceptsRequestObjectWithMultipleAud` |
+| Profile-specific `@VariantNotApplicable` modules | Add `"ksa"` alongside `"cbuae"` in Brazil-specific, UK-specific, ConnectID-specific tests, and `EnsureServerAcceptsRequestObjectWithMultipleAud` |
 
 ### @VariantNotApplicable updates
 
-Add `"ksa2"` to the `values` array in the following modules (alongside `"cbuae"` already present):
+Add `"ksa"` to the `values` array in the following modules (alongside `"cbuae"` already present):
 
 - `FAPI2SPFinalBrazilEnsureBadPaymentSignatureFails`
 - `FAPI2SPFinalAustraliaConnectIdEnsureInvalidPurposeFails`
@@ -58,12 +58,12 @@ Add `"ksa2"` to the `values` array in the following modules (alongside `"cbuae"`
 
 ## Certification Profile Name
 
-- OP (server) test plan: `"FAPI2MS OP KSA2"`
-- RP (client) test plan: `"FAPI2MS RP KSA2"`
+- OP (server) test plan: `"FAPI2MS OP KSA"`
+- RP (client) test plan: `"FAPI2MS RP KSA"`
 
 ## Discovery Endpoint Checks
 
-`Ksa2ProfileBehavior.DiscoveryEndpointChecks` runs:
+`KsaProfileBehavior.DiscoveryEndpointChecks` runs:
 1. `CheckDiscEndpointGrantTypesSupportedContainsAuthorizationCode` (FAILURE)
 2. `CheckDiscEndpointRequestObjectSigningAlgValuesSupportedContainsPS256` (FAILURE)
 3. `CheckDiscEndpointAuthorizationRequestTypesSupportedContainsTestType` (WARNING)
@@ -73,4 +73,4 @@ No RAR extraction (unlike CBUAE).
 ## Out of Scope
 
 - FAPI2 SP ID2 (`fapi2spid2`) plans — not requested; can be added separately.
-- Any KSA2-specific test modules beyond the standard message signing suite.
+- Any KSA-specific test modules beyond the standard message signing suite.
