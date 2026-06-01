@@ -1487,12 +1487,15 @@ async def main():
             if not authzen_test:
                 untested_test_modules.remove(m)
                 continue
-            # empower has been down for a few days; the subject/resource/action
-            # search tests are disabled in run-tests.sh, so don't flag them as untested
             if (
+                # empower has been down for a few days; the subject/resource/action
+                # search tests are disabled in run-tests.sh, so don't flag them as untested
                 re.match(r'authzen-pdp-interop-subject-search-', m)
                 or re.match(r'authzen-pdp-interop-resource-search-', m)
                 or re.match(r'authzen-pdp-interop-action-search-', m)
+                # no implementations support authentication yet
+                or re.match(r'authzen-pdp-evaluation-invalid-credentials-returns-401', m)
+                or re.match(r'authzen-pdp-evaluation-missing-credentials-returns-401', m)
             ):
                 untested_test_modules.remove(m)
                 continue
