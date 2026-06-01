@@ -172,10 +172,6 @@ public class FAPI2MessageSigningFinalClientTestPlan implements TestPlan {
 
 					return List.of( "FAPI2MS RP CBUAE");
 			case "ksa":
-				if (!privateKey) {
-					throw new RuntimeException("Invalid configuration for %s: Only private_key_jwt is used for KSA".formatted(
-						MethodHandles.lookup().lookupClass().getSimpleName()));
-				}
 				if (!signedRequest) {
 					throw new RuntimeException("Invalid configuration for %s: Only signed requests are supported for KSA".formatted(
 						MethodHandles.lookup().lookupClass().getSimpleName()));
