@@ -26,14 +26,14 @@ import java.util.Map;
 		FAPICIBAID1MultipleCallToTokenEndpoint.class,
 		FAPICIBAID1AuthReqIdExpired.class,
 		FAPICIBAID1EnsureAuthorizationRequestWithBindingMessageSucceeds.class,
-		ConnectIdCibaEnsureAuthorizationRequestWithPurposeSucceeds.class,
+		FAPICIBAID1ConnectIdEnsureAuthorizationRequestWithPurposeSucceeds.class,
 		FAPICIBAID1EnsureOtherScopeOrderSucceeds.class,
 		FAPICIBAID1EnsureRequestedExpiryAsStringSucceeds.class,
 		FAPICIBAID1EnsureRequestedExpiryIgnoredForBrazil.class,
 
 		// Possible failure case
 		FAPICIBAID1EnsureAuthorizationRequestWithPotentiallyBadBindingMessage.class,
-		ConnectIdCibaEnsureAuthorizationRequestWithNonAsciiPurpose.class,
+		FAPICIBAID1ConnectIdEnsureAuthorizationRequestWithNonAsciiPurpose.class,
 
 		// Negative tests for request objects
 		FAPICIBAID1EnsureRequestObjectMissingAudFails.class,
@@ -52,9 +52,9 @@ import java.util.Map;
 		FAPICIBAID1EnsureRequestObjectSignatureAlgorithmIsBadFails.class,
 		FAPICIBAID1EnsureRequestObjectSignatureAlgorithmIsRS256Fails.class,
 		FAPICIBAID1EnsureRequestObjectSignedByOtherClientFails.class,
-		ConnectIdCibaEnsureAuthorizationRequestWithoutBindingMessageFails.class,
-		ConnectIdCibaEnsureAuthorizationRequestWithTooShortPurposeFails.class,
-		ConnectIdCibaEnsureAuthorizationRequestWithTooLongPurposeFails.class,
+		FAPICIBAID1ConnectIdEnsureAuthorizationRequestWithoutBindingMessageFails.class,
+		FAPICIBAID1ConnectIdEnsureAuthorizationRequestWithTooShortPurposeFails.class,
+		FAPICIBAID1ConnectIdEnsureAuthorizationRequestWithTooLongPurposeFails.class,
 
 		// Negative tests for hints
 		FAPICIBAID1EnsureAuthorizationRequestWithMultipleHintsFails.class,
