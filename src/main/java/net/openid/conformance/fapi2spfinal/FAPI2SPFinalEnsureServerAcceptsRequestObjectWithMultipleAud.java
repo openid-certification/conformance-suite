@@ -17,7 +17,7 @@ import net.openid.conformance.variant.VariantNotApplicable;
 )
 @VariantNotApplicable(
 		parameter = FAPI2FinalOPProfile.class,
-		values = { "cbuae", "fapi_client_credentials_grant" }
+		values = { "cbuae", "ksa", "fapi_client_credentials_grant" }
 )
 @VariantNotApplicable(
 		parameter = FAPI2AuthRequestMethod.class,
