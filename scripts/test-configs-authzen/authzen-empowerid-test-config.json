@@ -1,5 +1,4 @@
 {
-    "alias": "oidf-authzen-empowerid-test",
     "description": "Authzen EmpowerID Server",
     "publish": "everything",
     "pdp":  {
