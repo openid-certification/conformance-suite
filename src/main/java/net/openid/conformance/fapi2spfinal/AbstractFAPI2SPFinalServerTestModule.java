@@ -1175,6 +1175,11 @@ public abstract class AbstractFAPI2SPFinalServerTestModule extends AbstractRedir
 		initProfileBehavior(new CbuaeProfileBehavior());
 	}
 
+	@VariantSetup(parameter = FAPI2FinalOPProfile.class, value = "ksa")
+	public void setupKsa() {
+		initProfileBehavior(new KsaProfileBehavior());
+	}
+
 	@VariantSetup(parameter = FAPI2FinalOPProfile.class, value = "vci")
 	public void setupVci() {
 		initProfileBehavior(new VCIProfileBehavior());

@@ -85,6 +85,11 @@ public class FAPI2SPFinalDiscoveryEndpointVerification extends AbstractFAPI2SPFi
 		profileBehavior = new CbuaeProfileBehavior();
 	}
 
+	@VariantSetup(parameter = FAPI2FinalOPProfile.class, value = "ksa")
+	public void setupKsa() {
+		profileBehavior = new KsaProfileBehavior();
+	}
+
 	@VariantSetup(parameter = FAPI2FinalOPProfile.class, value = "vci")
 	public void setupVci() {
 		profileBehavior = new VCIProfileBehavior();
