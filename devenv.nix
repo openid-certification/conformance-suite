@@ -154,6 +154,7 @@ in
   # https://devenv.sh/languages/
   languages.java = {
     enable = true;
+    jdk.package = pkgs.jdk21;
     maven.enable = true;
   };
 
@@ -161,6 +162,11 @@ in
     enable = true;
     package = pkgs.python312;
     venv.enable = true;
+    venv.requirements = ''
+      httpx
+      pyparsing>=3
+      cryptography
+    '';
   };
 
   languages.javascript = {
