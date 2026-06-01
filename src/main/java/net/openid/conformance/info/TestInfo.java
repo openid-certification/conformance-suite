@@ -2,7 +2,7 @@ package net.openid.conformance.info;
 
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
-import net.openid.conformance.logging.GsonObjectToBsonDocumentConverter;
+import net.openid.conformance.logging.MongoKeyWrapper;
 import net.openid.conformance.testmodule.TestModule.Status;
 import net.openid.conformance.variant.VariantSelection;
 import org.springframework.data.annotation.Id;
@@ -59,7 +59,7 @@ public class TestInfo {
 		this.variant = variant;
 		this.started = started.toString();
 		this.config = org.bson.Document.parse(new GsonBuilder().serializeNulls().create().toJson(
-				GsonObjectToBsonDocumentConverter.convertFieldsToStructure(config)));
+				MongoKeyWrapper.wrap(config)));
 		this.description = description;
 		this.alias = alias;
 		this.owner = owner;

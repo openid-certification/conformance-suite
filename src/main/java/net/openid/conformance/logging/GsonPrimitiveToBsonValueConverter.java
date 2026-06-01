@@ -4,6 +4,8 @@ import com.google.gson.JsonPrimitive;
 import net.openid.conformance.testmodule.OIDFJSON;
 import org.bson.BsonBoolean;
 import org.bson.BsonDouble;
+import org.bson.BsonInt32;
+import org.bson.BsonInt64;
 import org.bson.BsonString;
 import org.bson.BsonValue;
 import org.springframework.core.convert.converter.Converter;
@@ -24,8 +26,18 @@ public class GsonPrimitiveToBsonValueConverter implements Converter<JsonPrimitiv
 		} else if (source.isBoolean()) {
 			return BsonBoolean.valueOf(OIDFJSON.getBoolean(source));
 		} else if (source.isNumber()) {
-			// TODO: should we have this optimize for integers, too?
-			return new BsonDouble(OIDFJSON.getDouble(source));
+			// Preserve integer-ness: JSON "5" must round-trip as BsonInt32/BsonInt64, not BsonDouble.
+			// Mirrors the LazilyParsedNumber branch in GsonArrayToBsonArrayConverter.convertValue.
+			String text = OIDFJSON.getNumber(source).toString();
+			try {
+				long l = Long.parseLong(text);
+				if (l >= Integer.MIN_VALUE && l <= Integer.MAX_VALUE) {
+					return new BsonInt32((int) l);
+				}
+				return new BsonInt64(l);
+			} catch (NumberFormatException ignored) {
+				return new BsonDouble(Double.parseDouble(text));
+			}
 		} else if (source.isString()) {
 			return new BsonString(OIDFJSON.getString(source));
 		} else {

@@ -11,9 +11,10 @@ import com.nimbusds.jose.jwk.JWK;
 import com.nimbusds.jose.jwk.JWKSet;
 import com.nimbusds.jwt.JWTClaimsSet;
 import org.bson.BsonArray;
+import org.bson.BsonDocument;
 import org.springframework.core.convert.converter.Converter;
 
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -26,7 +27,7 @@ public class GsonArrayToBsonArrayConverter implements Converter<JsonArray, BsonA
 		if (source == null) {
 			return null;
 		} else {
-			String json = GSON.toJson(GsonObjectToBsonDocumentConverter.convertFieldsToStructure(source));
+			String json = GSON.toJson(MongoKeyWrapper.wrap(source));
 			return BsonArray.parse(json);
 		}
 	}
@@ -40,14 +41,11 @@ public class GsonArrayToBsonArrayConverter implements Converter<JsonArray, BsonA
 			// Nimbus claim sets (JWTClaimsSet.toJSONObject()) and other parsed JSON objects arrive
 			// as a plain java.util.Map (e.g. net.minidev JSONObject), not a Gson JsonObject. Gson
 			// JsonObject/JsonArray values are handled by Mongo custom converters, but plain maps are
-			// walked directly by MappingMongoConverter. Route maps through GsonObjectToBsonDocumentConverter
-			// so dotted/dollar keys are wrapped first. Without this an args("payload", claimSet) log
+			// walked directly by MappingMongoConverter. Wrap and encode maps before that happens.
+			// Without this an args("payload", claimSet) log
 			// of e.g. credential_configurations_supported.eu.europa.ec.eudi.pid.1 crashes the log write.
-			JsonElement tree = GSON.toJsonTree(mapValue);
-			if (tree.isJsonObject()) {
-				return new GsonObjectToBsonDocumentConverter().convert(tree.getAsJsonObject());
-			}
-			return convertValue(tree);
+			JsonElement wrapped = MongoKeyWrapper.wrap(GSON.toJsonTree(mapValue));
+			return BsonDocument.parse(GSON.toJson(wrapped));
 		} else if (value instanceof JWK jwk) {
 			return JsonParser.parseString(jwk.toJSONString());
 		} else if (value instanceof JWKSet set) {
@@ -85,7 +83,7 @@ public class GsonArrayToBsonArrayConverter implements Converter<JsonArray, BsonA
 		if (map == null) {
 			return null;
 		}
-		Map<String, Object> convertedMap = new HashMap<>();
+		Map<String, Object> convertedMap = new LinkedHashMap<>();
 		map.forEach((key, value) -> convertedMap.put(key, convertValue(value)));
 		return convertedMap;
 	}
