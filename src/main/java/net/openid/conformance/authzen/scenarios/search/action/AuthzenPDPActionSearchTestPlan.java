@@ -29,6 +29,13 @@ import net.openid.conformance.plan.TestPlan;
 		// Error handling: HTTP 400 negative tests (Section 4.7)
 		AuthzenPDPActionSearchMissingResourceTest.class,
 		AuthzenPDPActionSearchResourceMissingIdTest.class,
+		AuthzenPDPActionSearchResourceMissingTypeTest.class,
+		AuthzenPDPActionSearchMissingSubjectTest.class,
+		AuthzenPDPActionSearchSubjectMissingIdTest.class,
+		AuthzenPDPActionSearchSubjectMissingTypeTest.class,
+		AuthzenPDPActionSearchSubjectIsStringTest.class,
+		// Extra action ignored (Section 10.1.1 forward compatibility)
+		AuthzenPDPActionSearchExtraActionIgnoredTest.class,
 		// Search Properties (Properties variant only)
 		AuthzenPDPActionSearchActionSearchWithPropertiesTest.class,
 	}
