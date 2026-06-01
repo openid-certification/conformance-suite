@@ -31,7 +31,12 @@ import net.openid.conformance.plan.TestPlan;
 		AuthzenPDPSubjectSearchRejectEmptyBodyTest.class,
 		// Error handling: HTTP 400 negative tests (Section 4.7)
 		AuthzenPDPSubjectSearchMissingActionTest.class,
+		AuthzenPDPSubjectSearchActionMissingNameTest.class,
+		AuthzenPDPSubjectSearchActionIsStringTest.class,
+		AuthzenPDPSubjectSearchMissingResourceTest.class,
 		AuthzenPDPSubjectSearchResourceMissingIdTest.class,
+		AuthzenPDPSubjectSearchResourceMissingTypeTest.class,
+		AuthzenPDPSubjectSearchSubjectMissingTypeTest.class,
 		// Forward-compat: unknown fields ignored (Spec 10.1.1-3)
 		AuthzenPDPSubjectSearchUnknownPageFieldsTest.class,
 		// Extra subject.id ignored (Spec 8.4.1-1)
