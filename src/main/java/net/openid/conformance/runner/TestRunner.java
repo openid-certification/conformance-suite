@@ -508,10 +508,23 @@ public class TestRunner implements DataUtils {
 
 			//logger.info("Status of " + test.getName() + ": " + test.getId() + ": " + test.getStatus());
 
-			test.getTestExecutionManager().runInBackground(() -> {
-				test.start();
-				return "started";
-			});
+			// Only start the test here if it wasn't already auto-started when it was created. Tests with
+			// autoStart()==true are started by the create path (see runTestModule), so a client that both
+			// creates the test and POSTs a start (e.g. the web UI "Start" button) would otherwise run the
+			// test's start() a second time, concurrently on another thread - two executions of one test
+			// racing its per-test lock. The only test with autoStart()==false is oidcc-server-rotate-keys,
+			// which is started manually here once it is CONFIGURED.
+			// See https://gitlab.com/openid/conformance-suite/-/work_items/1827
+			if (!test.autoStart()) {
+				test.getTestExecutionManager().runInBackground(() -> {
+					// check the status here, inside the background task, rather than before submitting it,
+					// to keep the window between the check and start() as small as possible
+					if (test.getStatus() == TestModule.Status.CONFIGURED) {
+						test.start();
+					}
+					return "started";
+				});
+			}
 
 			//logger.info("Status of " + test.getName() + ": " + test.getId() + ": " + test.getStatus());
 
