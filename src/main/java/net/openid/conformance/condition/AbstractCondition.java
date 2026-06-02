@@ -693,7 +693,16 @@ public abstract class AbstractCondition implements Condition, DataUtils {
 			.build();
 
 		HttpClientBuilder builder = HttpClientBuilder.create().useSystemProperties();
-		builder.setDefaultRequestConfig(RequestConfig.custom().build());
+		int timeout = getHttpClientTimeoutSeconds();
+		// Apache HttpClient's socket timeout is a per-read inactivity timeout, not an overall cap on the
+		// request: a remote that trickles bytes or stalls mid-response can otherwise block the calling
+		// thread indefinitely (the socket timeout never fires as long as some data arrives in time). Set
+		// an overall response timeout (and a connection-lease timeout) so that a single outbound request
+		// can never hang a worker thread forever. See https://gitlab.com/openid/conformance-suite/-/work_items/1827
+		builder.setDefaultRequestConfig(RequestConfig.custom()
+			.setResponseTimeout(Timeout.ofSeconds(timeout))
+			.setConnectionRequestTimeout(Timeout.ofSeconds(timeout))
+			.build());
 
 		Registry<ConnectionSocketFactory> registry = RegistryBuilder.<ConnectionSocketFactory>create()
 			.register("https", sslConnectionFactory)
@@ -701,7 +710,6 @@ public abstract class AbstractCondition implements Condition, DataUtils {
 			.build();
 
 		BasicHttpClientConnectionManager ccm = new BasicHttpClientConnectionManager(registry);
-		int timeout = 60; // seconds
 		ccm.setConnectionConfig(ConnectionConfig.custom()
 			.setConnectTimeout(Timeout.ofSeconds(timeout))
 			.setSocketTimeout(Timeout.ofSeconds(timeout))
@@ -717,6 +725,15 @@ public abstract class AbstractCondition implements Condition, DataUtils {
 
 		HttpClient httpClient = builder.build();
 		return httpClient;
+	}
+
+	/**
+	 * Timeout in seconds applied to outbound HTTP requests made by conditions: connect, socket
+	 * (per-read inactivity), connection-lease and overall response. Protected so tests can override it
+	 * with a short value. See https://gitlab.com/openid/conformance-suite/-/work_items/1827
+	 */
+	protected int getHttpClientTimeoutSeconds() {
+		return 60;
 	}
 
 	protected RestTemplate createRestTemplate(Environment env) throws UnrecoverableKeyException, KeyManagementException, CertificateException, InvalidKeySpecException, NoSuchAlgorithmException, KeyStoreException, IOException {
