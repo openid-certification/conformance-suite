@@ -18,7 +18,7 @@ import com.nimbusds.jose.proc.JWSVerifierFactory;
 import com.nimbusds.jose.proc.SecurityContext;
 import com.nimbusds.jose.proc.SimpleSecurityContext;
 import com.nimbusds.jwt.SignedJWT;
-import net.openid.conformance.condition.AbstractCondition;
+import net.openid.conformance.condition.AbstractLenientJwksCondition;
 import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.extensions.AlternateJWSVerificationKeySelector;
@@ -30,7 +30,7 @@ import java.security.KeyPair;
 import java.text.ParseException;
 import java.util.List;
 
-public class ValidateRequestObjectSignature extends AbstractCondition {
+public class ValidateRequestObjectSignature extends AbstractLenientJwksCondition {
 
 	@Override
 	@PreEnvironment(required = { "authorization_request_object", "client_public_jwks", "client" })
@@ -43,7 +43,10 @@ public class ValidateRequestObjectSignature extends AbstractCondition {
 		try {
 
 			SignedJWT jwt = SignedJWT.parse(requestObject);
-			JWKSet jwkSet = JWKSet.parse(clientJwks.toString());
+			// parse leniently: skip keys the JOSE library cannot handle (e.g. unsupported curves
+			// like Brainpool, or future PQ algorithms) so an unusable key elsewhere in the client's
+			// set does not abort verification when a usable signing key is present; skipped keys are logged
+			JWKSet jwkSet = parseJwksLenientlyLoggingSkips(clientJwks.toString(), "client");
 
 			JsonObject client = env.getObject("client");
 			if(client.has("request_object_signing_alg")) {

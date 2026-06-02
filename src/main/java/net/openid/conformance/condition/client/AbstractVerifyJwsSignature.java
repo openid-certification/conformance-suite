@@ -24,20 +24,23 @@ import com.nimbusds.jose.proc.SecurityContext;
 import com.nimbusds.jose.proc.SimpleSecurityContext;
 import com.nimbusds.jose.util.Base64URL;
 import com.nimbusds.jwt.SignedJWT;
-import net.openid.conformance.condition.AbstractCondition;
+import net.openid.conformance.condition.AbstractLenientJwksCondition;
 import net.openid.conformance.extensions.AlternateJWSVerificationKeySelector;
 
 import java.security.KeyPair;
 import java.text.ParseException;
 import java.util.List;
 
-public abstract class AbstractVerifyJwsSignature extends AbstractCondition {
+public abstract class AbstractVerifyJwsSignature extends AbstractLenientJwksCondition {
 
 	protected void verifyJwsSignature(String token, JsonObject publicJwks, String tokenName, boolean kidRequired, String jwksName) {
 		try {
 			// translate stored items into nimbus objects
 			SignedJWT jwt = SignedJWT.parse(token);
-			JWKSet jwkSet = JWKSet.parse(publicJwks.toString());
+			// parse leniently: skip keys the JOSE library cannot handle (e.g. unsupported curves
+			// like Brainpool, or future PQ algorithms) so an unusable key elsewhere in the set does
+			// not abort verification when a usable signing key is present; skipped keys are logged
+			JWKSet jwkSet = parseJwksLenientlyLoggingSkips(publicJwks.toString(), jwksName);
 			JWKSet jwkSetWithKeyValid = null;
 
 			JWSHeader header = jwt.getHeader();

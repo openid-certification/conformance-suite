@@ -43,7 +43,10 @@ public class ValidateVpClientMetadataJwksKeysArePublic extends AbstractCondition
 						args("key", keys.get(i)));
 				}
 			} catch (ParseException e) {
-				throw error("Failed to parse JWK at index " + i + " in client_metadata jwks",
+				// skip keys the JOSE library cannot parse (e.g. unsupported curves like Brainpool, or
+				// future post-quantum algorithms). We cannot inspect such a key for private material,
+				// and a real wallet would ignore it (RFC 7517 section 5) rather than reject the set.
+				log("Skipping unparseable JWK at index " + i + " in client_metadata jwks",
 					args("key", keys.get(i), "error", e.getMessage()));
 			}
 		}
