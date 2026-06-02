@@ -1528,6 +1528,10 @@ async def main():
             if not ciba_op_test:
                 untested_test_modules.remove(m)
                 continue
+            # We do not yet run ConnectID CIBA-specific OP modules in CI.
+            if re.match(r'fapi-ciba-id1-connectid-', m):
+                untested_test_modules.remove(m)
+                continue
 
     if show_untested and len(untested_test_modules) > 0 and not args.rerun:
         print(failure("** Exiting with failure - not all available modules were tested:"))
