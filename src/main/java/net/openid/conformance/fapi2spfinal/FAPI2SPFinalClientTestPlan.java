@@ -65,6 +65,8 @@ public class FAPI2SPFinalClientTestPlan implements TestPlan {
 					MethodHandles.lookup().lookupClass().getSimpleName()));
 			case "cbuae":
 				throw new RuntimeException("CBUAE profile requires the usage of JAR, please use the message signing test plan.");
+			case "ksa":
+				throw new RuntimeException("KSA profile requires the usage of JAR, please use the message signing test plan.");
 			default:
 				throw new RuntimeException("Unknown profile %s for %s".formatted(
 					profile, MethodHandles.lookup().lookupClass().getSimpleName()));
