@@ -65,4 +65,14 @@ public class AbstractConditionHttpTimeout_UnitTest {
 	public void endpointThatSendsHeadersThenStalls_failsWithinTimeout() throws Exception {
 		assertFailsFast(StalledHttpServer.Mode.HEADERS_THEN_HANG);
 	}
+
+	/**
+	 * A peer that drips body bytes slower than a response cycle but faster than the per-read timeout
+	 * defeats the socket/response timeout (which is per-read). Only the hard wall-clock deadline can
+	 * stop it - without HttpRequestDeadlineInterceptor this call would run for ~2 minutes.
+	 */
+	@Test
+	public void endpointThatDripsBytesUnderTheReadTimeout_failsWithinDeadline() throws Exception {
+		assertFailsFast(StalledHttpServer.Mode.SLOW_DRIP);
+	}
 }

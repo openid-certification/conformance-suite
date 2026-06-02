@@ -32,7 +32,12 @@ import java.util.concurrent.TimeUnit;
  */
 public final class StalledHttpServer implements AutoCloseable {
 
-	public enum Mode { ACCEPT_AND_HANG, HEADERS_THEN_HANG }
+	public enum Mode { ACCEPT_AND_HANG, HEADERS_THEN_HANG, SLOW_DRIP }
+
+	// SLOW_DRIP sends one body byte at a time, slower than a single response cycle but well under any
+	// reasonable per-read timeout, so only an overall wall-clock deadline can stop it.
+	private static final long DRIP_INTERVAL_MILLIS = 1000;
+	private static final int DRIP_BYTE_COUNT = 120;
 
 	private final ServerSocket serverSocket;
 	private final ExecutorService executor = Executors.newCachedThreadPool();
@@ -67,8 +72,27 @@ public final class StalledHttpServer implements AutoCloseable {
 						// connection closed by the client (e.g. on timeout) - expected, nothing to do
 					}
 				});
+			} else if (mode == Mode.SLOW_DRIP) {
+				executor.submit(() -> dripSlowly(socket));
 			}
 			// ACCEPT_AND_HANG: leave the socket open with no response at all.
+		}
+	}
+
+	private void dripSlowly(Socket socket) {
+		try {
+			OutputStream out = socket.getOutputStream();
+			out.write("HTTP/1.1 200 OK\r\nContent-Length: 1000000\r\n\r\n".getBytes(StandardCharsets.UTF_8));
+			out.flush();
+			for (int i = 0; i < DRIP_BYTE_COUNT && running; i++) {
+				Thread.sleep(DRIP_INTERVAL_MILLIS);
+				out.write('x');
+				out.flush();
+			}
+		} catch (IOException e) {
+			// connection closed by the client (deadline abort) - expected
+		} catch (InterruptedException e) {
+			Thread.currentThread().interrupt();
 		}
 	}
 
