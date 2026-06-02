@@ -17,6 +17,6 @@ public class FAPICIBAID1ConnectIdEnsureAuthorizationRequestWithIdTokenHintFails 
 	@Override
 	protected void createAuthorizationRequestObject() {
 		super.createAuthorizationRequestObject();
-		callAndStopOnFailure(SetRequestObjectHintToIdTokenHint.class, "CID-CIBA-4.3.1");
+		callAndStopOnFailure(SetRequestObjectHintToIdTokenHint.class, "CID-CIBA-4.3-1");
 	}
 }

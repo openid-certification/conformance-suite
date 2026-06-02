@@ -18,6 +18,6 @@ public class FAPICIBAID1ConnectIdEnsureAuthorizationRequestWithMalformedCardLogi
 	protected void createAuthorizationRequestObject() {
 		super.createAuthorizationRequestObject();
 		callAndStopOnFailure(SetRequestObjectLoginHintToMalformedCardPrimaryAccountNumber.class,
-			"CID-CIBA-4.1.2.1", "CID-CIBA-4.1.3.1", "CID-CIBA-4.3.1");
+			"CID-CIBA-4.1.2.1", "CID-CIBA-4.1.3.1", "CID-CIBA-4.3-1");
 	}
 }
