@@ -20,6 +20,8 @@ public class OIDCCClientTestKidAbsentSingleJwks extends AbstractOIDCCClientTest 
 
 	@Override
 	protected void configureServerJWKS() {
+		// deliberately does not add the unusable extra keys the base class publishes: this test's
+		// semantics depend on the published JWKS containing exactly one key
 		callAndStopOnFailure(OIDCCGenerateServerJWKsSingleSigningKeyWithNoKeyId.class, "OIDCC-10.1");
 	}
 
