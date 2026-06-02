@@ -85,4 +85,48 @@ public class JWKUtil_UnitTest {
 		assertThrows(ParseException.class, () -> JWKUtil.parseJWKSetLeniently("{}", new ArrayList<>()));
 	}
 
+	// Locks in the property the "ignore unusable key" conformance tests rely on: the synthetic
+	// unusable keys they advertise (a post-quantum-shaped AKP key with a non-existent parameter set,
+	// and a made-up key type) are not parseable by the JOSE library and are therefore skipped, while
+	// the real key is kept.
+	@Test
+	public void parseJWKSetLeniently_skipsPostQuantumAndUnknownKtyKeys() throws ParseException {
+		String mixed = """
+			{
+			  "keys": [
+			    {
+			      "kty": "AKP",
+			      "alg": "ML-KEM-9999",
+			      "kid": "unusable-pq-enc-key",
+			      "use": "enc",
+			      "pub": "Z0FOY29uZm9ybWFuY2UtdGVzdC1wbGFjZWhvbGRlci1wdWJsaWMta2V5"
+			    },
+			    {
+			      "kty": "OIDF-CONFORMANCE-UNSUPPORTED",
+			      "kid": "unusable-unknown-enc-key",
+			      "use": "enc"
+			    },
+			    {
+			      "crv": "P-256",
+			      "kid": "p256-key",
+			      "kty": "EC",
+			      "use": "enc",
+			      "x": "hydCmuqjOVEFWuItZQuuZ74KGChEKb9qg_D0uvJCsEM",
+			      "y": "g73kkv_85yvsOtTrkA5kg2as03d5HsxlqCkbPEpAYz4",
+			      "alg": "ECDH-ES"
+			    }
+			  ]
+			}""";
+
+		List<JWKUtil.SkippedJwk> skipped = new ArrayList<>();
+		JWKSet jwks = JWKUtil.parseJWKSetLeniently(mixed, skipped);
+
+		assertEquals(1, jwks.getKeys().size());
+		assertEquals("p256-key", jwks.getKeys().get(0).getKeyID());
+
+		assertEquals(2, skipped.size());
+		assertTrue(skipped.get(0).keyJson().toString().contains("unusable-pq-enc-key"));
+		assertNotNull(skipped.get(0).reason());
+	}
+
 }
