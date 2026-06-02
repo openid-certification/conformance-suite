@@ -32,6 +32,7 @@ public class ConnectIdCibaBindingMessageConditions_UnitTest {
 	@Test
 	public void testSetConnectIdCibaLoginHintToCardPrimaryAccountNumber() {
 		env.putObject("config", new JsonObject());
+		env.putString("config", "client.card_primary_account_number", "5123450000000008");
 
 		SetConnectIdCibaLoginHintToCardPrimaryAccountNumber cond =
 			new SetConnectIdCibaLoginHintToCardPrimaryAccountNumber();
@@ -41,7 +42,20 @@ public class ConnectIdCibaBindingMessageConditions_UnitTest {
 
 		assertThat(env.getString("config", "client.hint_type")).isEqualTo("login_hint");
 		assertThat(env.getString("config", "client.hint_value"))
-			.isEqualTo(SetConnectIdCibaLoginHintToCardPrimaryAccountNumber.CARD_PRIMARY_ACCOUNT_NUMBER);
+			.isEqualTo("5123450000000008");
+	}
+
+	@Test
+	public void testSetConnectIdCibaLoginHintToCardPrimaryAccountNumberFailsWhenMissing() {
+		env.putObject("config", new JsonObject());
+
+		SetConnectIdCibaLoginHintToCardPrimaryAccountNumber cond =
+			new SetConnectIdCibaLoginHintToCardPrimaryAccountNumber();
+		cond.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
+
+		assertThatThrownBy(() -> cond.execute(env))
+			.isInstanceOf(ConditionError.class)
+			.hasMessageContaining("'Card primary account number' field is missing from the 'Client' section in the test configuration");
 	}
 
 	@Test
