@@ -24,6 +24,8 @@ public class OIDCCClientTestKidAbsentMultipleMatchingKeysInJwks extends Abstract
 
 	@Override
 	protected void configureServerJWKS() {
+		// deliberately does not add the unusable extra keys the base class publishes: this test's
+		// semantics depend on exactly which keys are in the published JWKS
 		callAndStopOnFailure(OIDCCGenerateServerJWKsMultipleSigningsKeyWithNoKeyIds.class, "OIDCC-10.1");
 	}
 
