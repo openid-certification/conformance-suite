@@ -98,16 +98,24 @@ spec:
         livenessProbe:
           failureThreshold: 3
           successThreshold: 1
-          tcpSocket:
+          httpGet:
+            path: "/api/ui/spec_links?public=true"
             port: {{ .Values.service.internalPort }}
+            httpHeaders:
+            - name: X-Forwarded-Proto
+              value: https
           initialDelaySeconds: 30
           periodSeconds: 30
           timeoutSeconds: 15
         readinessProbe:
           failureThreshold: 3
           successThreshold: 1
-          tcpSocket:
+          httpGet:
+            path: "/api/ui/spec_links?public=true"
             port: {{ .Values.service.internalPort }}
+            httpHeaders:
+            - name: X-Forwarded-Proto
+              value: https
           initialDelaySeconds: 30
           periodSeconds: 10
           timeoutSeconds: 3
