@@ -57,6 +57,7 @@ import java.nio.charset.StandardCharsets;
 import java.security.Signature;
 import java.security.SignatureException;
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -270,9 +271,11 @@ public class LogApi {
 			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
 		}
 
+		String fileDate = DateTimeFormatter.ofPattern("dd-MMM-yyyy").format(LocalDate.now(ZoneId.systemDefault()));
+
 		HttpHeaders headers = new HttpHeaders();
 		headers.setContentType(APPLICATION_ZIP);
-		headers.add("Content-Disposition", "attachment; filename=\"" + (Strings.isNullOrEmpty(planName) ? "" : (planName + "-")) + variantSuffix(variant) + id + ".zip\"");
+		headers.add("Content-Disposition", "attachment; filename=\"" + (Strings.isNullOrEmpty(planName) ? "" : (planName + "-")) + variantSuffix(variant) + id + "-" + fileDate + ".zip\"");
 
 		StreamingResponseBody responseBody = new StreamingResponseBody() {
 
