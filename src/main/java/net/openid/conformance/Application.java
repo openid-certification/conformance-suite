@@ -8,6 +8,7 @@ import net.openid.conformance.info.TestPlanService;
 import net.openid.conformance.logging.EventLog;
 import net.openid.conformance.token.TokenService;
 import net.openid.conformance.ui.ServerInfoTemplate;
+import org.apache.catalina.valves.StuckThreadDetectionValve;
 import org.bson.Document;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -129,6 +130,15 @@ public class Application {
 	@Bean
 	public TomcatServletWebServerFactory servletContainer() {
 		TomcatServletWebServerFactory tomcat = new TomcatServletWebServerFactory();
+		// Log a full stack trace for any request thread that runs longer than the threshold. This makes a
+		// stuck/blocked worker (e.g. one parked on a held lock, or on a hung outbound call) visible in the
+		// logs long before enough of them accumulate to exhaust the thread pool and start returning 502s.
+		// Threshold is above the 60s outbound HTTP cap so it only flags genuinely-stuck threads. This is
+		// detection only - it does not interrupt the thread (interrupt cannot unblock a blocking socket
+		// read anyway). See https://gitlab.com/openid/conformance-suite/-/work_items/1827
+		StuckThreadDetectionValve stuckThreadDetectionValve = new StuckThreadDetectionValve();
+		stuckThreadDetectionValve.setThreshold(120); // seconds
+		tomcat.addContextValves(stuckThreadDetectionValve);
 		return tomcat;
 	}
 
