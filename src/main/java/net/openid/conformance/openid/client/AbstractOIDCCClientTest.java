@@ -12,6 +12,7 @@ import net.openid.conformance.condition.as.AddAuthTimeToIdTokenClaims;
 import net.openid.conformance.condition.as.AddCHashToIdTokenClaims;
 import net.openid.conformance.condition.as.AddCodeToAuthorizationEndpointResponseParams;
 import net.openid.conformance.condition.as.AddIdTokenToAuthorizationEndpointResponseParams;
+import net.openid.conformance.condition.as.AddUnusableKeysToServerPublicJwks;
 import net.openid.conformance.condition.as.AddIssAndAudToUserInfoResponse;
 import net.openid.conformance.condition.as.AddTokenToAuthorizationEndpointResponseParams;
 import net.openid.conformance.condition.as.CalculateAtHash;
@@ -388,6 +389,9 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 	 */
 	protected void configureServerJWKS() {
 		callAndStopOnFailure(OIDCCGenerateServerJWKs.class);
+		// published in all RP tests rather than a dedicated module so the check does not depend on when
+		// the client last fetched/cached the JWKS
+		callAndStopOnFailure(AddUnusableKeysToServerPublicJwks.class, "RFC7517-5");
 	}
 
 	protected void configureUserInfo() {
