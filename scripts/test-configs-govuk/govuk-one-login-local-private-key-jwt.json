@@ -1,0 +1,63 @@
+{
+    "alias": "local-test",
+    "server": {
+        "discoveryUrl": "http://host.docker.internal:4400/.well-known/openid-configuration",
+        "ui_locales": "cy"
+    },
+    "client": {
+        "client_id": "oidc-conformance-private-key-jwt-1",
+        "scope": "openid email phone offline_access",
+        "jwks": {
+            "keys": [
+                {
+                    "alg": "RS256",
+                    "d": "G0S35-iAMnLboBMqQRZ8mc7NFb7ftCvnPNq6QDrlsti5aMN-SO-WJGMC3UKA3_RUCM60HuPIjAHWTqf93A8KKooM-vMsCvTVYPJMqk8UgSN2cLK9SvGaIgI7aSsOvkgLeSZhgvj__IfiVIuTfWFOE-CW6RetlBJCA9oLU3QMMcYKYihvyrg5ixiwATAn5Ndwxkuc4ge3jE3gg5BjALR-6QTZZSoVtWtdwpKtf_XY-iIRll_zZKUsESoMh6Bfmb1sOTBsh0_xHjm9mckOfxj0SajshDWggHSZ3q3Yeb6ThbmmJhZDl68f89S42m6bXNVQWcsfzg28qr6TLZ4rVP0rQQ",
+                    "dp": "U9fgyCgQdYTvvWvyx3d8rKk74n4L2afzbSGYFbN1TyNLV5O2hg3TBTu1dr4SHhXI73Ev8w4SnOSNOmhB2Fb5yCuGZUq6aOs_Ghh5jU65871-x5CTTElqRFDRd-X1KhvzLLcaZ41a_wAeNlRDDZBIw259qIAdxg6kOk4DJS9qXoE",
+                    "dq": "gprkUlBQUwzx3Lfe5hIO7uWH_kiu0Khf-aL6wz9ziVyva3OLwvnsurZdlSeG3Tpja4h40v7Q6omWSZcD-I-Gw_uWE6q69EB1cQkE1MQim4kHcnqAgKIUEIWmOUU0X4cV-GZQjfqs9n_XBqzkiwWGu7STc0F9SCuqsd3pC_dzXWc",
+                    "e": "AQAB",
+                    "ext": true,
+                    "key_ops": [
+                        "sign"
+                    ],
+                    "kty": "RSA",
+                    "n": "rGKsgQdXQ4LRqwOZ40Qei7JI727u2_lRaA5dyYt7qoC8olQgOmxTrfYtjQh-djUmVTA0jjgqTdqHwX-P484XKTMEwO5KPfJA7pIBwHjfiWbHaLyDywMTiSoTqppPvM1RROOQh_qCN5EclfkxihrpVMdzBYRn7Fbkf1-ywsN-qggHcszMcVV5PE_owjpEN-n26IgajWYaJQQNjtA6DCvUCKPjObTAvs1BrrhlONAMw-XkXASFA_C2G6XMEsuXqclTCP_s9A6vFD-I-y8xsznp9f24m8f5G89ghxO4XvsnUSqbE85o-wWL1yNKmADJcj3-dVpIG2qp0dyd12xDo-NXfw",
+                    "p": "4pdY830aeMiMYwTArLtHAYTqJQ2kk2ljbzcOM65H2u5lgFahHSlJvTnbqylT-DqvVrFjbPIE-MqgaJyJlMt4nKINJCMLi5kivuclU4GmS0jYwumAkZA124GiTmi701X3Wbwh2gkbDM51q3Ih7WnIFrXMQvK-YaH8Ktd02q1ruEE",
+                    "q": "wsJNR9S5dlFPSvieGZmvYHgsbnfNTr4YNV-kVBoEyvccISBOaxVwmwIC5eSuYS3ILGKnNRqUIs0T0USw3aW-mz-Ia-HpeZGapKlyUCUi2UGZrSVWdFbFs6Ulo-eLe3fMaVEDTfBfEdusRoEoU1T3hS7eSkX737xC1SNJdR_1H78",
+                    "qi": "bgwDLdtJJL03xySzgF6hqGFkEtkqZCKh4BJ8LUM0bjRqpJ5UQphJqjmaWjn7fCZ5OOds9MyV9l29RnmuIz3G-mNyhgK2PpLFssqCJjne40Jsa_ppYky8Xv8sZrcZ8tkMMIkCgFW_vGsrMoDZzmxgDRb2Ns1o7owaJzUkJcdazDc",
+                    "kid": "JI7zrN9ELXTiAmFnmVMnNf/N50rBMuxLCQNRYvcInCk=",
+                    "use": "sig"
+                }
+            ]
+        }
+    },
+    "client2": {
+        "client_id": "oidc-conformance-private-key-jwt-2",
+        "scope": "openid email phone offline_access",
+        "jwks": {
+            "keys": [
+                {
+                    "alg": "RS256",
+                    "d": "Fqb3s_qLsbog7ltPYJKSe7F2T7t7DLT8rYtwodRTvNXkLYdPXzI9-2NUbeTKjmIPvntiv9pLtaRFMFc0SamrJzG00bCdEHUt-3Pt4yNKW2UQhAsZCGpeSYm0kq-IsnuxQjSq5dDjfesvEYB23Xv5pvxIB_7qvBKB-vPmzbqJG4n55gTKFOQvv9onwPuFjlEyroyWDEDiF7UJDcY3RHPF8GyrEEGWK8Mdy3MshnY-mYQULqDyvYd4nHpmlqntGrmZibuyUL_PMM47rltq-FL8-eQ2L-pevKorUszuJA41OnzCErl5kvAzeF61g7_l-WM2xFcX6yDpfktV0MqvAtvTaQ",
+                    "dp": "z6NoZSZgFmr3IIP042NKPee2PYr7iwZhgGPiyOKH-LIoub1N8efshuBvkpg0iGW9kSfzfkO4t6vULSC-TGhw1WypzB8AfJztW8nhGgGQrmJXVdyKK0QiEPFzj_lMtraScKRyHjZrXBUSVFOA13hvrglWdJmDOZBqgFerSBsTjIk",
+                    "dq": "vhOOQd12EDu2CQQ0PiX241daTF7nIC0wGY70O_sQ-QU3CD7aLOJWvu98yrhAydrMmyngS5Lmb_XV3CqjHXi7dnnAWOVYgwl6MaKMsPQhhI3CobVbGs7cm1DVD_cZqdY1jk0pY5hAWVE0JVXPliIUSOxbnV8p8vLEM5FPlMB1Uak",
+                    "e": "AQAB",
+                    "ext": true,
+                    "key_ops": [
+                        "sign"
+                    ],
+                    "kty": "RSA",
+                    "n": "tz09jy_SQSpewyRKOGKelWDbM8ZbsBbruRDjCns8GMr0gO-KyXkhDD8ITzky6v-2NDhQrXGGrVSve85Q5xtx7ji8HbdE6OrZ34e3fAUynj2pMAZah20neJH8nZVKGyOogGmSk0GZeU2EhTwGOSPgRjV69wQ_0-2kpgtaEQ7SfkJwpt-JiterIDoKo-drl6Patn8O4DBZn8u6OjnHJk7iJEH_s0D1iFXAinhpOnhgX8AvV5ux_FKl9RXx-T5FcbS7u5Ybq1A6lktvbmY1meseH7IHfW5iDswsfqmmnjuRccBl6ZAr0sigsXW7RdmM_vNYRvqaaLc4trTpavs3sswZbQ",
+                    "p": "6p_loAu_ERByz6-n94aySA1CiSl22i-gwsyLPAevFN-u-oOBY5tx9NZQIAarf8c_DlsvQF0uXXGrcX0yZfIsI1pV0WJdolXJr6NCfFCuAxyj7pdVhJJntEYGGzO6qsB1Z8vJi2oYIyLkuVrz8zSWZnfSMU2C3NwO4wzY3Hluzvk",
+                    "q": "x-7kfEOUmqkokqR0NIkOS60PKQCINalfRt9Ctqwcg9360AJgaB4wia9vN3Kj8qtk-gDRzIWwz7kn-E96DhnB6_RLHm-27na7Si63xjfGLzb_Fe62tW8n43VSqcY81HA_p6gSR2JOSVKurogNhpn06zAMyyXv_ArHIt-DQBJy1xU",
+                    "qi": "qL7ucWp_1L5f1RpKRXQGfHiVrQ00NxD_r2MKRgyn_8VUQzqrm7l5UMbTdAUwI7f7X073FPu9WQhuv9k1sYtubMnT4JNrcL1kD8OabPvvti5Vn3UnzKrnmIqBxI77IhDHOoZB-YxWKwkhXyZO110x8Tkikn54fn1mWsQaKMPzPKo",
+                    "kid": "JQbbcoQj/K+0yfbkOcrpUk10F66d5on3H9HRHXqjf8s=",
+                    "use": "sig"
+                }
+            ]
+        }
+    },
+    "resource": {
+        "resourceUrl": "http://host.docker.internal:4400/userinfo",
+        "resourceMediaType": "application/json"
+    }
+}

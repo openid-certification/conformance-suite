@@ -34,6 +34,7 @@ public interface TestPlan {
 		String fapi2MessageSigning = "FAPI2 Message Signing";
 		String fapiCiba = "FAPI-CIBA";
 		String federation = "OpenID Federation";
+		String govuk = "GOV.UK";
 		String oid4vci = "OID4VCI";
 		String oid4vp = "OID4VP";
 		String oidcc = "OpenID Connect Core";
