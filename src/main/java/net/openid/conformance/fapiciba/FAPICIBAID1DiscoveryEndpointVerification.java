@@ -62,6 +62,11 @@ public class FAPICIBAID1DiscoveryEndpointVerification extends AbstractFAPIDiscov
 		variantModeChecks = PollChecks.class;
 	}
 
+	@VariantSetup(parameter = FAPICIBAProfile.class, value = "connectid_au")
+	public void setupConnectIdAu() {
+		profileBehavior = new ConnectIdAuCibaServerProfileBehavior();
+	}
+
 	@Override
 	protected void performEndpointVerification() {
 		super.performEndpointVerification();
