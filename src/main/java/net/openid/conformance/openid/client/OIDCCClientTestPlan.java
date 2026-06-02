@@ -23,6 +23,7 @@ import net.openid.conformance.plan.TestPlan;
 		OIDCCClientTestScopeUserInfoClaims.class,
 		OIDCCClientTestKidAbsentSingleJwks.class,
 		OIDCCClientTestKidAbsentMultipleMatchingKeysInJwks.class,
+		OIDCCClientTestIgnoresUnparseableKeyInJwks.class,
 		OIDCCClientTestMissingIatInIdToken.class,
 		OIDCCClientTestMissingAudInIdToken.class,
 		OIDCCClientTestInvalidAudInIdToken.class,
