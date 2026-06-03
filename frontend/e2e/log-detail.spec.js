@@ -425,6 +425,30 @@ test.describe("log-detail.html — new Lit-triad page", () => {
     );
   });
 
+  test("public mode: ad-hoc test crumb targets /logs.html?public=true", async ({ page }) => {
+    // The Logs-branch of updateBreadcrumb threads publicSuffix too — an
+    // anonymous viewer of a published ad-hoc test (no planId) must stay
+    // in the public view when clicking the root crumb.
+    const adhocPublic = { ...MOCK_TEST_STATUS, planId: undefined };
+    delete adhocPublic.planId;
+
+    await setupFailFast(page);
+    await setupV2Routes(page, {
+      testInfo: adhocPublic,
+      logEntries: MOCK_LOG_ENTRIES,
+    });
+    await setupCommonRoutes(page, { user: null });
+
+    await page.goto(`/log-detail.html?log=${encodeURIComponent(adhocPublic.testId)}&public=true`);
+
+    const crumb = page.locator("cts-crumb#logDetailCrumb");
+    const buttons = crumb.locator("button.crumbLink");
+    await expect(buttons).toHaveCount(1);
+    await expect(buttons.nth(0)).toHaveText("Logs");
+    await expect(buttons.nth(0)).toHaveAttribute("data-target", "/logs.html?public=true");
+    await expect(crumb.locator("span.crumbCurrent")).toHaveText(adhocPublic.testName);
+  });
+
   test('public mode: breadcrumb keeps literal "Plan" when the plan is not published', async ({
     page,
   }) => {
