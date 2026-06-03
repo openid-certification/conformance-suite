@@ -230,19 +230,19 @@ export const Unauthenticated = {
     const canvas = within(canvasElement);
     await waitForNavbar(canvasElement);
 
-    // Collapsed public nav (U9): the duplicate Published Logs / Published
-    // Plans links were removed — API Docs is the only public nav link, and
-    // anonymous visitors reach the published view via the brand logo →
-    // plans.html (which defaults to Published for anon).
+    // Public nav always exposes the primary listings (Test Plans, Test Logs)
+    // alongside API Docs. The public links carry ?public=true so anonymous
+    // clicks land directly in the Published browser.
+    const plansLink = /** @type {HTMLAnchorElement} */ (canvas.getByText("Test Plans"));
+    const logsLink = /** @type {HTMLAnchorElement} */ (canvas.getByText("Test Logs"));
+    expect(plansLink.getAttribute("href")).toBe("plans.html?public=true");
+    expect(logsLink.getAttribute("href")).toBe("logs.html?public=true");
     expect(canvas.getByText("API Docs")).toBeInTheDocument();
-    expect(canvas.queryByText("Published Logs")).toBeNull();
-    expect(canvas.queryByText("Published Plans")).toBeNull();
 
-    // Authenticated links absent.
+    // Authenticated-only links absent for anonymous visitors.
     expect(canvas.queryByText("Home")).toBeNull();
     expect(canvas.queryByText("Create Test")).toBeNull();
-    expect(canvas.queryByText("Test Plans")).toBeNull();
-    expect(canvas.queryByText("Test Logs")).toBeNull();
+    expect(canvas.queryByText("Tokens")).toBeNull();
 
     // No account menu, no Sign out.
     expect(canvasElement.querySelector(".cts-account")).toBeNull();
@@ -282,8 +282,9 @@ export const Loading = {
     const logo = canvasElement.querySelector('img[alt="OpenID Foundation"]');
     expect(logo).toBeTruthy();
 
-    // While loading, user is null so component shows the public nav links —
-    // collapsed to API Docs only after U9.
+    // While loading, user is null so component shows the public nav links
+    // (Test Plans, Test Logs, API Docs); the collapsed-in-U9 Home link stays
+    // absent.
     expect(canvas.queryByText("Home")).toBeNull();
     expect(canvas.getByText("API Docs")).toBeInTheDocument();
 
@@ -655,7 +656,7 @@ export const ServerErrorLogsWarning = {
       await waitForNavbar(canvasElement);
 
       // Should fall back to the public nav — same as the unauthenticated case
-      // (collapsed to API Docs after U9).
+      // (Test Plans, Test Logs, API Docs).
       expect(canvas.getByText("API Docs")).toBeInTheDocument();
       expect(canvas.queryByText("Sign out")).toBeNull();
       expect(canvas.getByText("Sign in")).toBeInTheDocument();
