@@ -10,6 +10,8 @@ import {
 import "./cts-plan-header.js";
 import "./cts-plan-modules.js";
 import "./cts-plan-actions.js";
+import "./cts-modal.js";
+import "./cts-button.js";
 
 export default {
   title: "Components/cts-plan-detail",
@@ -957,6 +959,172 @@ export const ActionsCopyConfigClipboardFailure = {
       expect(feedback?.textContent).toContain("Copy failed");
       expect(feedback?.getAttribute("aria-live")).toBe("polite");
     });
+  },
+};
+
+/**
+ * Certification submission package modal (plan-detail's
+ * `#certificationPackageModal`), rendered here so the modal — page content
+ * slotted into `<cts-modal>`, not a component — is reviewable in Storybook.
+ * Styling comes from the shared `/css/cert-package.css` (linked in
+ * `.storybook/preview-head.html`), the same file `plan-detail.html` loads, so
+ * there is no duplicated CSS to keep in sync.
+ *
+ * The "Client data" upload field caps the native file control to the row width
+ * (`.oidf-cert-package-form input[type="file"] { width: 100% }`) so a long
+ * filename can't grow the control and give the dialog a horizontal scrollbar.
+ * That overflow only reproduces in browsers that render the full filename
+ * (e.g. Firefox) — open this story at `localhost:6006` in Firefox to verify
+ * visually. Storybook's automated runner is Chromium, which truncates the
+ * filename, so the overflow itself cannot be reproduced here.
+ *
+ * The play function therefore verifies what *is* deterministic in Chromium:
+ * the modal opens and renders its heading and upload field, the action buttons
+ * render their `cts-button` inner-button variant classes, and the shared
+ * `cert-package.css` is loaded and applied to the file control
+ * (`box-sizing: border-box` — only set by that stylesheet). It is a wiring +
+ * rendering guard, not a Firefox-overflow regression test; the overflow fix
+ * was verified cross-browser by hand (see the plan).
+ *
+ * The form markup mirrors `plan-detail.html` but intentionally omits the
+ * production-only `#certificationPackageFormErrors`, `#certificationPackageDownloaded`,
+ * and Close-button elements, which are runtime wiring the page's JS manages and
+ * are not relevant to the styling this story exercises.
+ */
+export const CertificationSubmissionModal = {
+  render: () => html`
+    <div>
+      <button
+        type="button"
+        class="oidf-btn oidf-btn-sm oidf-btn-primary"
+        onclick="this.closest('div').querySelector('cts-modal').show()"
+      >
+        Publish for certification
+      </button>
+      <cts-modal heading="Prepare Certification Submission Package" size="lg" static-backdrop>
+        <form class="oidf-cert-package-form">
+          <div>
+            <p>
+              <strong
+                >Clicking the "Create Certification Package" button will trigger the
+                following:</strong
+              >
+            </p>
+            <ol class="top15">
+              <li>
+                <strong>The test plan will be published.</strong>
+                <p class="form-text">
+                  This will make all keys, secrets, and all other test information publicly visible.
+                </p>
+              </li>
+              <li>
+                <strong>The test plan will be marked as immutable.</strong>
+                <p class="form-text">
+                  You will not be able to run tests under this plan, once you click the Create
+                  Certification Package button.
+                </p>
+              </li>
+              <li>
+                <strong
+                  >A zip file containing your certification submission package will be downloaded to
+                  your computer.</strong
+                >
+                <p class="form-text">
+                  Please follow
+                  <a href="https://openid.net/certification/instructions/" target="instructions"
+                    >the submission instructions</a
+                  >
+                  to complete the certification process.
+                </p>
+              </li>
+            </ol>
+            <p class="top30">
+              <strong>Please upload the required files to be included the package:</strong>
+            </p>
+            <fieldset>
+              <strong>1.</strong> <strong>Client data</strong> (For RP Tests Only)
+              <p class="top10">
+                <input
+                  type="file"
+                  id="storyClientSideData"
+                  name="clientSideData"
+                  accept="application/zip"
+                />
+              </p>
+              <p class="form-text">
+                Client side logs and similar additional data. Only needed for RP tests. Must be a
+                zip file.
+              </p>
+            </fieldset>
+          </div>
+          <div class="oidf-cert-package-actions">
+            <cts-button label="Cancel"></cts-button>
+            <cts-button
+              type="submit"
+              variant="primary"
+              label="Create Certification Package"
+            ></cts-button>
+          </div>
+        </form>
+      </cts-modal>
+    </div>
+  `,
+
+  async play({ canvasElement }) {
+    // Open the modal.
+    const openBtn = canvasElement.querySelector(".oidf-btn-primary");
+    await userEvent.click(openBtn);
+    const dialog = /** @type {HTMLDialogElement} */ (
+      canvasElement.querySelector("dialog.oidf-modal")
+    );
+    await waitFor(() => expect(dialog.open).toBe(true));
+
+    // Modal renders the certification heading and the Client data upload field.
+    expect(canvasElement.querySelector(".oidf-modal-title")?.textContent).toBe(
+      "Prepare Certification Submission Package",
+    );
+    const input = /** @type {HTMLInputElement} */ (
+      canvasElement.querySelector("#storyClientSideData")
+    );
+    expect(input).toBeTruthy();
+
+    // Action buttons render their cts-button inner-button variant classes
+    // (AGENTS.md §6: assert the inner <button>, not the cts-button host).
+    const actionButtons = canvasElement.querySelectorAll(".oidf-cert-package-actions cts-button");
+    expect(actionButtons.length).toBe(2);
+    const cancelInner = actionButtons[0].querySelector("button");
+    const createInner = actionButtons[1].querySelector("button");
+    expect(cancelInner?.textContent?.trim()).toBe("Cancel");
+    expect(cancelInner?.classList.contains("oidf-btn-secondary")).toBe(true);
+    expect(createInner?.textContent?.trim()).toBe("Create Certification Package");
+    expect(createInner?.classList.contains("oidf-btn-primary")).toBe(true);
+
+    // Simulate choosing a zip with a very long name in the upload field — the
+    // exact edge case that overflows in Firefox. (Chromium truncates the
+    // filename, so this documents the flow rather than reproducing overflow.)
+    const longName =
+      "test-log-fapi2-security-profile-final-ensure-authorization-request-without-state-success-private_key_jwt-mtls-additional-client-data.zip";
+    await userEvent.upload(input, new File(["dummy"], longName, { type: "application/zip" }));
+    await waitFor(() => expect(input.files?.length).toBe(1));
+    const files = input.files;
+    if (!files) throw new Error("file input has no FileList after upload");
+    expect(files[0].name).toBe(longName);
+
+    // The shared /css/cert-package.css is loaded and applied to the file
+    // control: box-sizing:border-box is set only by that stylesheet's fix rule
+    // (the UA default is content-box), so this is a non-vacuous guard that the
+    // no-drift wiring works and the rule is present — it fails if the rule is
+    // removed or cert-package.css stops loading. The control also fills its row
+    // (display:block + width:100%). This is a wiring/rendering guard, NOT a
+    // Firefox-overflow regression test: Chromium truncates the filename so the
+    // control never grows here, and the overflow fix was verified cross-browser
+    // by hand. offsetWidth (a layout metric) is used because the dialog's entry
+    // animation transiently scales the dialog, which would skew client rects.
+    const style = getComputedStyle(input);
+    expect(style.boxSizing).toBe("border-box");
+    expect(style.display).toBe("block");
+    const row = /** @type {HTMLElement} */ (input.closest(".top10") ?? input.parentElement);
+    expect(Math.abs(input.offsetWidth - row.clientWidth)).toBeLessThanOrEqual(1);
   },
 };
 
