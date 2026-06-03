@@ -3,10 +3,12 @@ package net.openid.conformance;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
-import com.google.gson.JsonNull;
+import com.google.gson.JsonObject;
 import com.google.gson.JsonSerializationContext;
 import com.google.gson.JsonSerializer;
-import net.openid.conformance.logging.GsonObjectToBsonDocumentConverter;
+import net.openid.conformance.info.ConfigMigratingResponse;
+import net.openid.conformance.info.ConfigMigration;
+import net.openid.conformance.logging.MongoKeyWrapper;
 import net.openid.conformance.variant.VariantSelection;
 import net.openid.conformance.variant.VariantSelectionJsonSerializer;
 import org.bson.Document;
@@ -14,10 +16,14 @@ import org.springframework.http.MediaType;
 import org.springframework.http.converter.json.GsonHttpMessageConverter;
 
 import java.lang.reflect.Type;
-import java.util.List;
-import java.util.stream.Collectors;
 
 public final class CollapsingGsonHttpMessageConverter extends GsonHttpMessageConverter {
+
+	/**
+	 * Reused across every {@link Document} serialization. Held as a static so a full-log fetch
+	 * (which serializes one entry per event) doesn't allocate a fresh Gson per entry.
+	 */
+	private static final Gson INTERNAL_GSON = new GsonBuilder().serializeNulls().create();
 
 	public CollapsingGsonHttpMessageConverter() {
 		super();
@@ -34,66 +40,45 @@ public final class CollapsingGsonHttpMessageConverter extends GsonHttpMessageCon
 			return false;
 		}
 	}
+
 	/**
-	 * Special GSON converter that looks for and collapses __wrapped_key_element fields
-	 *
-	 * @return
+	 * Special GSON converter that looks for and collapses {@code __wrapped_key_element_*}
+	 * envelopes via {@link MongoKeyWrapper#unwrap}.
 	 */
 	public static Gson getDbObjectCollapsingGson() {
 		return getDbObjectCollapsingGson(false);
 	}
-	/**
-	 * Special GSON converter that looks for and collapses __wrapped_key_element fields
-	 *
-	 * @return
-	 */
+
 	public static Gson getDbObjectCollapsingGson(boolean prettyPrint) {
 		GsonBuilder gsonBuilder = new GsonBuilder()
-			.registerTypeHierarchyAdapter(Document.class, new JsonSerializer<Document>() {
-
-				private Gson internalGson = new GsonBuilder().serializeNulls().create();
-
-				@Override
-				public JsonElement serialize(Document src, Type typeOfSrc, JsonSerializationContext context) {
-					// run the field conversion
-					Object converted = convertStructureToField(src);
-					// delegate to regular GSON for the real work
-					return internalGson.toJsonTree(converted);
-				}
-
-				private Object convertStructureToField(Object source) {
-					if (source instanceof List<?> list) {
-						List<Object> converted = list.stream()
-							.map(this::convertStructureToField)
-							.collect(Collectors.toList());
-						return converted;
-					} else if (source instanceof Document dbo) {
-						Document converted = new Document();
-						for (String key : dbo.keySet()) {
-							if (key.startsWith("__wrapped_key_element_")) {
-								Document wrapped = dbo.get(key, Document.class);
-								converted.put((String) wrapped.get("key"), convertStructureToField(wrapped.get("value")));
-							} else if (key.equals("_class")) {
-								// skip all class elements
-
-							} else {
-								converted.put(key, convertStructureToField(dbo.get(key)));
-							}
-						}
-						return converted;
-					} else {
-						if(GsonObjectToBsonDocumentConverter.CONFORMANCE_SUITE_JSON_NULL_CONSTANT.equals(source)){
-							return JsonNull.INSTANCE;
-						} else {
-							return source;
-						}
-					}
-				}
-			})
+			.registerTypeHierarchyAdapter(Document.class,
+				(JsonSerializer<Document>) (src, typeOfSrc, context) ->
+					INTERNAL_GSON.toJsonTree(MongoKeyWrapper.unwrap(src)))
 
 			// needed for variants
-			.registerTypeAdapter(VariantSelection.class, new VariantSelectionJsonSerializer());
-		if(prettyPrint) {
+			.registerTypeAdapter(VariantSelection.class, new VariantSelectionJsonSerializer())
+
+			// Single-pass legacy-key migration on responses whose top-level JSON has a
+			// "config" object that should receive ConfigMigration. The serializer delegates
+			// inner-object serialization to the normal Gson pipeline (Document collapsing
+			// included) and then mutates the resulting tree in place. Callers wrap the body
+			// via ConfigMigratingResponse so Spring picks up the wrapped type.
+			.registerTypeAdapter(ConfigMigratingResponse.class, new JsonSerializer<ConfigMigratingResponse>() {
+				@Override
+				public JsonElement serialize(ConfigMigratingResponse src, Type typeOfSrc, JsonSerializationContext context) {
+					JsonElement el = context.serialize(src.inner());
+					if (el != null && el.isJsonObject()) {
+						JsonObject obj = el.getAsJsonObject();
+						JsonElement configEl = obj.get("config");
+						if (configEl != null && configEl.isJsonObject()) {
+							ConfigMigration.migrateLegacyClientAttestationKeys(configEl.getAsJsonObject());
+						}
+					}
+					return el;
+				}
+			});
+
+		if (prettyPrint) {
 			gsonBuilder.setPrettyPrinting();
 		}
 		gsonBuilder.serializeNulls();

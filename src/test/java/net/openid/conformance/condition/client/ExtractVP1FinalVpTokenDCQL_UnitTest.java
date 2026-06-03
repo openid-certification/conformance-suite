@@ -11,6 +11,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @ExtendWith(MockitoExtension.class)
@@ -84,6 +85,54 @@ public class ExtractVP1FinalVpTokenDCQL_UnitTest {
 
 			cond.execute(env);
 		});
+	}
+
+	/**
+	 * A wallet that returns the credential as a bare string instead of wrapping it in a JSON
+	 * array is non-conformant, but the condition must still expose the extracted credential so
+	 * the caller can keep validating it against the DCQL query.
+	 */
+	@Test
+	public void testEvaluate_credentialIsBareString() {
+		String json = """
+			{
+			  "my_credential": "eyJhbGci...QMA"
+			}
+			""";
+		env.putObjectFromJsonString("authorization_endpoint_response", "vp_token", json);
+
+		assertThrows(ConditionError.class, () -> cond.execute(env));
+
+		assertEquals("my_credential", env.getString("credential_id"));
+		assertEquals("eyJhbGci...QMA", env.getString("credential"));
+	}
+
+	@Test
+	public void testEvaluate_credentialIsEmptyArray() {
+		String json = """
+			{
+			  "my_credential": []
+			}
+			""";
+		env.putObjectFromJsonString("authorization_endpoint_response", "vp_token", json);
+
+		assertThrows(ConditionError.class, () -> cond.execute(env));
+
+		assertNull(env.getString("credential"));
+	}
+
+	@Test
+	public void testEvaluate_credentialIsWrongType() {
+		String json = """
+			{
+			  "my_credential": 42
+			}
+			""";
+		env.putObjectFromJsonString("authorization_endpoint_response", "vp_token", json);
+
+		assertThrows(ConditionError.class, () -> cond.execute(env));
+
+		assertNull(env.getString("credential"));
 	}
 
 }

@@ -27,6 +27,7 @@ public class FetchRequestUriAndExtractRequestObject extends AbstractCondition {
 	@PreEnvironment(required = {"authorization_endpoint_http_request_params", "server_encryption_keys"})
 	@PostEnvironment(required = "authorization_request_object")
 	public Environment evaluate(Environment env) {
+		JsonObject requestParams = env.getObject("authorization_endpoint_http_request_params");
 		String requestUri = env.getString("authorization_endpoint_http_request_params", "request_uri");
 		if (!Strings.isNullOrEmpty(requestUri)) {
 			log("Fetching request object from request_uri", args("request_uri", requestUri));
@@ -67,7 +68,8 @@ public class FetchRequestUriAndExtractRequestObject extends AbstractCondition {
 			}
 
 		} else {
-			throw error("Authorization endpoint request does not contain a request_uri parameter");
+			throw error("Authorization endpoint request does not contain a request_uri parameter",
+				args("authorization_endpoint_http_request_params", requestParams));
 		}
 
 	}

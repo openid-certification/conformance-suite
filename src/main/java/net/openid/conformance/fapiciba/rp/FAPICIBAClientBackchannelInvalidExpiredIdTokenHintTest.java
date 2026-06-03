@@ -1,21 +1,24 @@
 package net.openid.conformance.fapiciba.rp;
 
 import net.openid.conformance.testmodule.PublishTestModule;
+import net.openid.conformance.variant.FAPICIBAProfile;
+import net.openid.conformance.variant.VariantNotApplicable;
 import org.springframework.http.HttpStatus;
 
 @PublishTestModule(
-	testName = "fapi-ciba-id1-client-expired-id-token-hint-test",
+	testName = "fapi-ciba-id1-client-invalid-expired-id-token-hint-test",
 	displayName = "FAPI-CIBA-ID1: Client test - expired_id_token_hint returned in backchannel response",
 	summary = "The client should perform OpenID discovery from the displayed discoveryUrl and then " +
 		"call the backchannel endpoint. The client must detect that the response is a HTTP 400 Bad Request " +
 		"with error expired_id_token_hint and not make further requests after that.",
 	profile = "FAPI-CIBA-ID1"
 )
-public class FAPICIBAClientBackchannelExpiredIdTokenHintTest extends AbstractFAPICIBAClientTest {
+@VariantNotApplicable(parameter = FAPICIBAProfile.class, values = {"plain_fapi", "openbanking_uk", "connectid_au"})
+public class FAPICIBAClientBackchannelInvalidExpiredIdTokenHintTest extends AbstractFAPICIBAClientTest {
 
 	@Override
 	protected HttpStatus createBackchannelResponse() {
-		callAndStopOnFailure(CreateBackchannelEndpointResponseWithExpiredIdTokenError.class, "BrazilCIBA-5.2.2");
+		callAndStopOnFailure(CreateBackchannelEndpointResponseWithExpiredIdTokenHintError.class, "BrazilCIBA-5.2.2");
 		return HttpStatus.BAD_REQUEST;
 	}
 

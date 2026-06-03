@@ -10,6 +10,10 @@ import net.openid.conformance.testmodule.TestSkippedException;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.test.util.ReflectionTestUtils;
+
+import java.time.Instant;
+import java.util.concurrent.Callable;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -146,6 +150,73 @@ public class TestRunner_UnitTest {
 		assertEquals("testId", OIDFJSON.getString(responseBody.get("testId")));
 		assertTrue(responseBody.get("cause").isJsonNull());
 		assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
+	}
+
+	private TestModule mockTestForStartTest(boolean autoStart, TestModule.Status status) {
+		TestModule test = mock(TestModule.class);
+		when(test.getName()).thenReturn("test");
+		when(test.getId()).thenReturn("TESTID");
+		when(test.getCreated()).thenReturn(Instant.now());
+		when(test.getStatusUpdated()).thenReturn(Instant.now());
+		when(test.autoStart()).thenReturn(autoStart);
+		when(test.getStatus()).thenReturn(status);
+		return test;
+	}
+
+	// make the mocked execution manager run a submitted background task inline, so we can assert on start()
+	private void runBackgroundTasksInline(TestExecutionManager executionManager) {
+		doAnswer(invocation -> {
+			((Callable<?>) invocation.getArgument(0)).call();
+			return null;
+		}).when(executionManager).runInBackground(any());
+	}
+
+	@Test
+	public void startTest_doesNotRestartAnAlreadyAutoStartedTest() {
+		// autoStart()==true tests are started by the create path; startTest must not start them again
+		// (a second concurrent start() runs the test twice, racing its per-test lock - see work item 1827).
+		TestRunnerSupport support = mock(TestRunnerSupport.class);
+		TestModule test = mockTestForStartTest(true, TestModule.Status.WAITING);
+		when(support.getRunningTestById("AUTOSTART")).thenReturn(test);
+
+		TestRunner runner = new TestRunner();
+		ReflectionTestUtils.setField(runner, "support", support);
+
+		assertEquals(HttpStatus.OK, runner.startTest("AUTOSTART").getStatusCode());
+		verify(test, never()).getTestExecutionManager(); // never reaches the start path
+		verify(test, never()).start();
+	}
+
+	@Test
+	public void startTest_startsAConfiguredNonAutoStartTest() {
+		TestRunnerSupport support = mock(TestRunnerSupport.class);
+		TestModule test = mockTestForStartTest(false, TestModule.Status.CONFIGURED);
+		TestExecutionManager executionManager = mock(TestExecutionManager.class);
+		when(test.getTestExecutionManager()).thenReturn(executionManager);
+		runBackgroundTasksInline(executionManager);
+		when(support.getRunningTestById("MANUAL")).thenReturn(test);
+
+		TestRunner runner = new TestRunner();
+		ReflectionTestUtils.setField(runner, "support", support);
+
+		assertEquals(HttpStatus.OK, runner.startTest("MANUAL").getStatusCode());
+		verify(test).start();
+	}
+
+	@Test
+	public void startTest_doesNotStartANonAutoStartTestThatIsNotConfigured() {
+		TestRunnerSupport support = mock(TestRunnerSupport.class);
+		TestModule test = mockTestForStartTest(false, TestModule.Status.RUNNING);
+		TestExecutionManager executionManager = mock(TestExecutionManager.class);
+		when(test.getTestExecutionManager()).thenReturn(executionManager);
+		runBackgroundTasksInline(executionManager);
+		when(support.getRunningTestById("MANUAL")).thenReturn(test);
+
+		TestRunner runner = new TestRunner();
+		ReflectionTestUtils.setField(runner, "support", support);
+
+		assertEquals(HttpStatus.OK, runner.startTest("MANUAL").getStatusCode());
+		verify(test, never()).start();
 	}
 
 }

@@ -251,6 +251,14 @@ import java.util.function.Supplier;
 	"mtls2.cert",
 	"mtls2.ca"
 })
+@VariantConfigurationFields(parameter = FAPI2FinalOPProfile.class, value = "ksa", configurationFields = {
+	"mtls.key",
+	"mtls.cert",
+	"mtls.ca",
+	"mtls2.key",
+	"mtls2.cert",
+	"mtls2.ca"
+})
 @VariantHidesConfigurationFields(parameter = FAPI2FinalOPProfile.class, value = "connectid_au", configurationFields = {
 	"resource.resourceUrl", // the userinfo endpoint is always used
 	"client.scope", // scope is always openid
@@ -290,7 +298,7 @@ import java.util.function.Supplier;
 	parameter = ClientAuthType.class,
 	values = {"client_attestation"},
 	whenParameter = FAPI2FinalOPProfile.class,
-	hasValues = {"plain_fapi", "openbanking_uk", "consumerdataright_au", "openbanking_brazil", "connectid_au", "cbuae", "fapi_client_credentials_grant"}
+	hasValues = {"plain_fapi", "openbanking_uk", "consumerdataright_au", "openbanking_brazil", "connectid_au", "cbuae", "ksa", "fapi_client_credentials_grant"}
 )
 // VCI profile configuration fields
 @VariantConfigurationFields(parameter = FAPI2FinalOPProfile.class, value = "vci", configurationFields = {
@@ -1173,6 +1181,11 @@ public abstract class AbstractFAPI2SPFinalServerTestModule extends AbstractRedir
 	@VariantSetup(parameter = FAPI2FinalOPProfile.class, value = "cbuae")
 	public void setupCbuaeFapi() {
 		initProfileBehavior(new CbuaeProfileBehavior());
+	}
+
+	@VariantSetup(parameter = FAPI2FinalOPProfile.class, value = "ksa")
+	public void setupKsa() {
+		initProfileBehavior(new KsaProfileBehavior());
 	}
 
 	@VariantSetup(parameter = FAPI2FinalOPProfile.class, value = "vci")

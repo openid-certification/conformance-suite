@@ -22,14 +22,14 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 		<java.version>21</java.version>
-		<pmdVersion>7.23.0</pmdVersion>
+		<pmdVersion>7.24.0</pmdVersion>
 		<jackson.version>2.15.1</jackson.version>
 		<kotlin.version>2.2.21</kotlin.version>
 
 		<!-- remove when upgrading to Spring Boot 4.x -->
 		<thymeleaf.version>3.1.4.RELEASE</thymeleaf.version>
 		<thymeleaf-spring6.version>3.1.4.RELEASE</thymeleaf-spring6.version>
-		<commons-lang3.version>3.18.0</commons-lang3.version>
+		<commons-lang3.version>3.20.0</commons-lang3.version>
 		<bouncycastle.version>1.84</bouncycastle.version>
 	</properties>
 
@@ -108,7 +108,7 @@
 		<dependency>
 			<groupId>com.tngtech.archunit</groupId>
 			<artifactId>archunit</artifactId>
-			<version>1.4.1</version>
+			<version>1.4.2</version>
 			<scope>test</scope>
 			<exclusions>
 				<exclusion>
@@ -128,7 +128,7 @@
 		<dependency>
 			<groupId>org.apache.commons</groupId>
 			<artifactId>commons-text</artifactId>
-			<version>1.13.1</version>
+			<version>1.15.0</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.httpcomponents.client5</groupId>
@@ -142,7 +142,7 @@
 		<dependency>
 			<groupId>com.authlete</groupId>
 			<artifactId>sd-jwt</artifactId>
-			<version>1.7</version>
+			<version>1.9</version>
 		</dependency>
 		<dependency>
 			<groupId>com.nimbusds</groupId>
@@ -204,19 +204,19 @@
 		<dependency>
 			<groupId>org.multipaz</groupId>
 			<artifactId>multipaz-jvm</artifactId>
-			<version>0.98.0</version>
+			<version>0.99.0</version>
 		</dependency>
 		<dependency>
 			<groupId>org.multipaz</groupId>
 			<artifactId>multipaz-doctypes-jvm</artifactId>
-			<version>0.98.0</version>
+			<version>0.99.0</version>
+		</dependency>
+		<dependency>
+			<groupId>org.multipaz</groupId>
+			<artifactId>multipaz-utopia-jvm</artifactId>
+			<version>0.99.0</version>
 		</dependency>
 
-		<dependency>
-			<groupId>org.apache.pdfbox</groupId>
-			<artifactId>pdfbox</artifactId>
-			<version>2.0.27</version>
-		</dependency>
 		<dependency>
 			<groupId>de.slub-dresden</groupId>
 			<artifactId>urnlib</artifactId>
@@ -557,7 +557,7 @@
 				<plugin>
 					<groupId>org.jacoco</groupId>
 					<artifactId>jacoco-maven-plugin</artifactId>
-					<version>0.8.13</version>
+					<version>0.8.14</version>
 				</plugin>
 			</plugins>
 		</pluginManagement>
@@ -568,12 +568,12 @@
 			<dependency>
 				<groupId>com.google.guava</groupId>
 				<artifactId>guava</artifactId>
-				<version>33.4.8-jre</version>
+				<version>33.6.0-jre</version>
 			</dependency>
 			<dependency>
 				<groupId>com.nimbusds</groupId>
 				<artifactId>nimbus-jose-jwt</artifactId>
-				<version>10.7</version>
+				<version>10.9</version>
 			</dependency>
 			<dependency>
 				<!-- should match version in https://bitbucket.org/connect2id/nimbus-jose-jwt/src/master/pom.xml -->
@@ -584,7 +584,7 @@
 			<dependency>
 				<groupId>io.specto</groupId>
 				<artifactId>hoverfly-java-junit5</artifactId>
-				<version>0.19.1</version>
+				<version>0.20.2</version>
 			</dependency>
 			<dependency>
 				<groupId>org.bouncycastle</groupId>
@@ -604,17 +604,7 @@
 			<dependency>
 				<groupId>org.apache.commons</groupId>
 				<artifactId>commons-compress</artifactId>
-				<version>1.27.1</version>
-			</dependency>
-			<dependency>
-				<groupId>org.htmlunit</groupId>
-				<artifactId>htmlunit</artifactId>
-				<version>4.11.1</version>
-			</dependency>
-			<dependency>
-				<groupId>org.seleniumhq.selenium</groupId>
-				<artifactId>htmlunit3-driver</artifactId>
-				<version>4.30.0</version>
+				<version>1.28.0</version>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>

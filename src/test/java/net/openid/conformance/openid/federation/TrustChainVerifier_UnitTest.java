@@ -26,7 +26,6 @@ import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.apache.pdfbox.pdmodel.documentinterchange.taggedpdf.StandardStructureTypes.RP;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -45,6 +44,7 @@ public class TrustChainVerifier_UnitTest {
 	void setUp() {
 	}
 
+	static String RP = "https://rp.com";
 	static String LEAF = "https://leaf.com";
 	static String INTERMEDIATE = "https://intermediate.com";
 	static String TRUST_ANCHOR = "https://trust-anchor.com";

@@ -474,6 +474,8 @@ makeVcTests() {
     TESTS="${TESTS} oid4vci-1_0-wallet-test-plan[$SIMPLE][$MTLSAUTH][$UNSIGNED][$DPOP][$HAIP][$SDJWTVC][$CRED_RESP_ENCR_PLAIN][$ISSUANCE_IMMEDIATE]:oid4vci-1_0-wallet-test-credential-issuance{oid4vci-1_0-issuer-test-plan[$SIMPLE][$MTLSAUTH][$UNSIGNED][$DPOP][$HAIP][$SDJWTVC][$CRED_RESP_ENCR_PLAIN][$FAPI_OPENID][$FAPI_RESPONSEMODE]:oid4vci-1_0-issuer-metadata-test,oid4vci-1_0-issuer-happy-flow}${SUITE_DIR}/scripts/test-configs-rp-against-op/vci-issuer-test-config.json ${SUITE_DIR}/scripts/test-configs-rp-against-op/vci-wallet-test-config-haip.json"
         # client_auth=client_attestation, sender_constrain=dpop (uses dedicated HAIP plans)
     TESTS="${TESTS} oid4vci-1_0-wallet-haip-test-plan[$WALLETINIT][$OFFERBYVALUE][$SDJWTVC]:oid4vci-1_0-wallet-test-credential-issuance{oid4vci-1_0-issuer-haip-test-plan[$WALLETINIT][$SDJWTVC]:oid4vci-1_0-issuer-metadata-test,oid4vci-1_0-issuer-happy-flow}${SUITE_DIR}/scripts/test-configs-rp-against-op/vci-issuer-test-config-client_attestation-client-auth-dpop.json ${SUITE_DIR}/scripts/test-configs-rp-against-op/vci-wallet-test-config-haip.json"
+        # FAPI2SP rp-against-op pattern under vci_haip
+    TESTS="${TESTS} oid4vci-1_0-wallet-haip-test-plan[$WALLETINIT][$OFFERBYVALUE][$SDJWTVC]:fapi2-security-profile-final-client-test-happy-path{oid4vci-1_0-issuer-haip-test-plan[$WALLETINIT][$SDJWTVC]:fapi2-security-profile-final-discovery-end-point-verification,fapi2-security-profile-final-par-without-duplicate-parameters}${SUITE_DIR}/scripts/test-configs-rp-against-op/vci-issuer-test-config-client_attestation-client-auth-dpop.json ${SUITE_DIR}/scripts/test-configs-rp-against-op/vci-wallet-test-config-haip.json"
         # client_auth=client_attestation, sender_constrain=dpop key-attestation
     TESTS="${TESTS} oid4vci-1_0-wallet-test-plan[$SIMPLE][$CLIATTAUTH][$UNSIGNED][$DPOP][$WALLETINIT][$AUTHCODE][$OFFERBYVALUE][$HAIP][$SDJWTVC][$CRED_RESP_ENCR_PLAIN][$ISSUANCE_IMMEDIATE]:oid4vci-1_0-wallet-test-credential-issuance{oid4vci-1_0-issuer-test-plan[$SIMPLE][$CLIATTAUTH][$UNSIGNED][$DPOP][$WALLETINIT][$AUTHCODE][$HAIP][$SDJWTVC][$CRED_RESP_ENCR_PLAIN][$FAPI_OPENID][$FAPI_RESPONSEMODE]:oid4vci-1_0-issuer-metadata-test,oid4vci-1_0-issuer-happy-flow}${SUITE_DIR}/scripts/test-configs-rp-against-op/vci-issuer-test-config-client_attestation-client-auth-dpop-key-attestation.json ${SUITE_DIR}/scripts/test-configs-rp-against-op/vci-wallet-test-config-haip.json"
         # client_auth=client_attestation, sender_constrain=dpop - issuer initiated (credential offer by value)
@@ -656,9 +658,10 @@ makeSsfTests() {
 makeAuthzenTests() {
    TESTS="${TESTS} authzen-pdp-interop-evaluation-test-plan[pdp_auth_type=none][pdp_server_metadata=static] ${SUITE_DIR}/scripts/test-configs-authzen/authzen-cerbos-test-config.json"
    TESTS="${TESTS} authzen-pdp-interop-evaluations-test-plan[pdp_auth_type=none][pdp_server_metadata=static] ${SUITE_DIR}/scripts/test-configs-authzen/authzen-cerbos-test-config.json"
-   TESTS="${TESTS} authzen-pdp-interop-subject-search-test-plan[pdp_auth_type=none][pdp_server_metadata=static] ${SUITE_DIR}/scripts/test-configs-authzen/authzen-empowerid-test-config.json"
-   TESTS="${TESTS} authzen-pdp-interop-resource-search-test-plan[pdp_auth_type=none][pdp_server_metadata=static] ${SUITE_DIR}/scripts/test-configs-authzen/authzen-empowerid-test-config.json"
-   TESTS="${TESTS} authzen-pdp-interop-action-search-test-plan[pdp_auth_type=none][pdp_server_metadata=static] ${SUITE_DIR}/scripts/test-configs-authzen/authzen-empowerid-test-config.json"
+# empower has been down for a few days, disable for now
+#   TESTS="${TESTS} authzen-pdp-interop-subject-search-test-plan[pdp_auth_type=none][pdp_server_metadata=static] ${SUITE_DIR}/scripts/test-configs-authzen/authzen-empowerid-test-config.json"
+#   TESTS="${TESTS} authzen-pdp-interop-resource-search-test-plan[pdp_auth_type=none][pdp_server_metadata=static] ${SUITE_DIR}/scripts/test-configs-authzen/authzen-empowerid-test-config.json"
+#   TESTS="${TESTS} authzen-pdp-interop-action-search-test-plan[pdp_auth_type=none][pdp_server_metadata=static] ${SUITE_DIR}/scripts/test-configs-authzen/authzen-empowerid-test-config.json"
 }
 
 makeLocalProviderTests() {

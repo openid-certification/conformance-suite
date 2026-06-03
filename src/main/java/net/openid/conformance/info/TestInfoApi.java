@@ -102,10 +102,11 @@ public class TestInfoApi {
 		}
 		if (testInfo.isEmpty()) {
 			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-		} else {
-			return new ResponseEntity<>(testInfo.get(), HttpStatus.OK);
 		}
 
+		// Single-pass migration via the Gson serializer registered for ConfigMigratingResponse —
+		// avoids serializing once into a JsonObject, mutating, and re-serializing for the response.
+		return new ResponseEntity<>(new ConfigMigratingResponse(testInfo.get()), HttpStatus.OK);
 	}
 
 	@PostMapping("/info/{testId}/share")

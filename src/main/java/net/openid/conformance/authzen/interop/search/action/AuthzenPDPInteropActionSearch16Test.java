@@ -19,7 +19,7 @@ public class AuthzenPDPInteropActionSearch16Test extends AbstractAuthzenPDPActio
 			},
 			"resource": {
 				"type": "record",
-				"id": "106"
+				"id": "116"
 			}
 		}""";
 

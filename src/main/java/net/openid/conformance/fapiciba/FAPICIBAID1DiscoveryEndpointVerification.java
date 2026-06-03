@@ -33,6 +33,7 @@ import net.openid.conformance.variant.VariantSetup;
 @VariantNotApplicable(parameter = FAPICIBAProfile.class, values = { "openbanking_brazil" })
 public class FAPICIBAID1DiscoveryEndpointVerification extends AbstractFAPIDiscoveryEndpointVerification {
 	private Class<? extends ConditionSequence> variantModeChecks;
+	private FAPICIBAServerProfileBehavior profileBehavior = new FAPICIBAServerProfileBehavior();
 
 	public static class PollChecks extends AbstractConditionSequence
 	{
@@ -61,6 +62,11 @@ public class FAPICIBAID1DiscoveryEndpointVerification extends AbstractFAPIDiscov
 		variantModeChecks = PollChecks.class;
 	}
 
+	@VariantSetup(parameter = FAPICIBAProfile.class, value = "connectid_au")
+	public void setupConnectIdAu() {
+		profileBehavior = new ConnectIdAuCibaServerProfileBehavior();
+	}
+
 	@Override
 	protected void performEndpointVerification() {
 		super.performEndpointVerification();
@@ -70,11 +76,8 @@ public class FAPICIBAID1DiscoveryEndpointVerification extends AbstractFAPIDiscov
 		callAndContinueOnFailure(CheckBackchannelUserCodeParameterSupported.class, Condition.ConditionResult.WARNING, "CIBA-4");
 		callAndContinueOnFailure(FAPICIBACheckDiscEndpointGrantTypesSupported.class, Condition.ConditionResult.FAILURE, "CIBA-4");
 
-		performProfileSpecificChecks();
+		call(sequence(profileBehavior.getProfileSpecificDiscoveryChecks()));
 
 		call(sequence(variantModeChecks));
-	}
-
-	public void performProfileSpecificChecks() {
 	}
 }

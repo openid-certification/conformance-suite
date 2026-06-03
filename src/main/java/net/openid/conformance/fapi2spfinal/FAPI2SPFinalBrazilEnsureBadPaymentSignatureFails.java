@@ -24,6 +24,7 @@ import net.openid.conformance.variant.VariantSetup;
 	"consumerdataright_au",
 	"connectid_au",
 	"cbuae",
+	"ksa",
 	"fapi_client_credentials_grant"
 })
 public class FAPI2SPFinalBrazilEnsureBadPaymentSignatureFails extends AbstractFAPI2SPFinalServerTestModule {

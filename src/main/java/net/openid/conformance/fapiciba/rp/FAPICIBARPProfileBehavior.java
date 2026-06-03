@@ -51,6 +51,10 @@ public class FAPICIBARPProfileBehavior {
 		return null;
 	}
 
+	public Class<? extends ConditionSequence> getAccountsEndpointResponseSteps() {
+		return null;
+	}
+
 	public ConditionSequence applyProfileSpecificBackchannelScopeChecks() {
 		return new AbstractConditionSequence() {
 			@Override
@@ -70,6 +74,14 @@ public class FAPICIBARPProfileBehavior {
 
 	public boolean userInfoEndpointRequiresMTLS() {
 		return false;
+	}
+
+	public boolean claimsProfileSpecificMtlsPath(String path) {
+		return false;
+	}
+
+	public Object handleProfileSpecificMtlsPath(String requestId, String path) {
+		throw new UnsupportedOperationException("No profile-specific mTLS path handler is configured");
 	}
 
 	public ConditionSequence prepareNonResourceEndpointFapiInteractionId() {

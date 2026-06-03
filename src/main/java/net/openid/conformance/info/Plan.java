@@ -2,7 +2,7 @@ package net.openid.conformance.info;
 
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
-import net.openid.conformance.logging.GsonObjectToBsonDocumentConverter;
+import net.openid.conformance.logging.MongoKeyWrapper;
 import net.openid.conformance.variant.VariantSelection;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.index.Indexed;
@@ -84,7 +84,7 @@ public class Plan {
 		this.planName = planName;
 		this.variant = variant;
 		this.config = org.bson.Document.parse(new GsonBuilder().serializeNulls().create().toJson(
-				GsonObjectToBsonDocumentConverter.convertFieldsToStructure(config)));
+				MongoKeyWrapper.wrap(config)));
 		this.started = started.toString();
 		this.owner = owner;
 		this.description = description;

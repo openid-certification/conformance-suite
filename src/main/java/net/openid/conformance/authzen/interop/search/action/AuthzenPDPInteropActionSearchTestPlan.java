@@ -118,7 +118,29 @@ import net.openid.conformance.plan.TestPlan;
 		AuthzenPDPInteropActionSearch97Test.class,
 		AuthzenPDPInteropActionSearch98Test.class,
 		AuthzenPDPInteropActionSearch99Test.class,
-		AuthzenPDPInteropActionSearch100Test.class
+		AuthzenPDPInteropActionSearch100Test.class,
+
+		AuthzenPDPInteropActionSearch101Test.class,
+		AuthzenPDPInteropActionSearch102Test.class,
+		AuthzenPDPInteropActionSearch103Test.class,
+		AuthzenPDPInteropActionSearch104Test.class,
+		AuthzenPDPInteropActionSearch105Test.class,
+		AuthzenPDPInteropActionSearch106Test.class,
+		AuthzenPDPInteropActionSearch107Test.class,
+		AuthzenPDPInteropActionSearch108Test.class,
+		AuthzenPDPInteropActionSearch109Test.class,
+		AuthzenPDPInteropActionSearch110Test.class,
+
+		AuthzenPDPInteropActionSearch111Test.class,
+		AuthzenPDPInteropActionSearch112Test.class,
+		AuthzenPDPInteropActionSearch113Test.class,
+		AuthzenPDPInteropActionSearch114Test.class,
+		AuthzenPDPInteropActionSearch115Test.class,
+		AuthzenPDPInteropActionSearch116Test.class,
+		AuthzenPDPInteropActionSearch117Test.class,
+		AuthzenPDPInteropActionSearch118Test.class,
+		AuthzenPDPInteropActionSearch119Test.class,
+		AuthzenPDPInteropActionSearch120Test.class
 	}
 )
 public class AuthzenPDPInteropActionSearchTestPlan implements TestPlan {

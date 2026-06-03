@@ -33,7 +33,12 @@ public class SavedConfigurationApi {
 			// always return a json object even if it's empty
 			return new ResponseEntity<>(new JsonObject(), HttpStatus.OK);
 		} else {
-			return new ResponseEntity<>(config, HttpStatus.OK);
+			// Wrap so the registered Gson serializer applies ConfigMigration to the nested
+			// "config" object during the single response-body serialization pass — a user
+			// whose last saved config used legacy vci.client_attestation_* keys will see
+			// them surfaced under the new client_attestation.* shape, matching the runtime
+			// fallbacks that the consumer-site conditions perform.
+			return new ResponseEntity<>(new ConfigMigratingResponse(config), HttpStatus.OK);
 		}
 
 	}

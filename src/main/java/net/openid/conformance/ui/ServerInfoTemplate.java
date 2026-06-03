@@ -1,11 +1,16 @@
 package net.openid.conformance.ui;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.info.GitProperties;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
+import java.time.Duration;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
@@ -15,6 +20,8 @@ import java.util.Map;
  */
 @Component
 public class ServerInfoTemplate {
+
+	private static final Logger logger = LoggerFactory.getLogger(ServerInfoTemplate.class);
 
 	@Value("${fintechlabs.version}")
 	private String version;
@@ -26,6 +33,9 @@ public class ServerInfoTemplate {
 	private GitProperties gitProperties;
 
 	private static final String URI = "https://api.ipify.org/";
+	// Timeout for the (best-effort) external-IP lookup, bounded so a slow or unresponsive endpoint
+	// cannot block application startup. See https://gitlab.com/openid/conformance-suite/-/work_items/1827
+	private static final int IP_LOOKUP_TIMEOUT_SECONDS = 10;
 	private static final Map<String, String> SERVER_INFO = new HashMap<>();
 
 	public Map<String, String> getServerInfo() {
@@ -48,10 +58,25 @@ public class ServerInfoTemplate {
 	 * @return
 	 */
 	private String callServiceToGetExternalIpAddress() {
-		if (showExternalIpAddress) {
-			RestTemplate restTemplate = new RestTemplate();
-			return restTemplate.getForObject(URI, String.class);
+		if (showExternalIpAddress != null && showExternalIpAddress) {
+			return fetchExternalIp(URI, IP_LOOKUP_TIMEOUT_SECONDS);
 		}
 		return null;
+	}
+
+	/**
+	 * Best-effort external-IP lookup with bounded connect/read timeouts. Returns null (and logs) on any
+	 * failure so a slow or unreachable endpoint can never block startup. Package-private for testing.
+	 */
+	static String fetchExternalIp(String url, int timeoutSeconds) {
+		SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
+		factory.setConnectTimeout(Duration.ofSeconds(timeoutSeconds));
+		factory.setReadTimeout(Duration.ofSeconds(timeoutSeconds));
+		try {
+			return new RestTemplate(factory).getForObject(url, String.class);
+		} catch (RestClientException e) {
+			logger.warn("Could not determine external IP address from {}", url, e);
+			return null;
+		}
 	}
 }

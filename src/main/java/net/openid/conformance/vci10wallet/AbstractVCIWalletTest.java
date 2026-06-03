@@ -1,7 +1,6 @@
 package net.openid.conformance.vci10wallet;
 
 import com.google.common.base.Strings;
-import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.nimbusds.jose.jwk.JWK;
@@ -101,7 +100,6 @@ import net.openid.conformance.condition.common.RARSupport;
 import net.openid.conformance.condition.common.RARSupport.EnsureEffectiveAuthorizationEndpointRequestContainsValidRAR;
 import net.openid.conformance.condition.rs.ClearAccessTokenFromRequest;
 import net.openid.conformance.condition.rs.CreateFAPIAccountEndpointResponse;
-import net.openid.conformance.condition.rs.CreateResourceEndpointDpopErrorResponse;
 import net.openid.conformance.condition.rs.CreateResourceServerDpopNonce;
 import net.openid.conformance.condition.rs.EnsureIncomingRequestMethodIsGet;
 import net.openid.conformance.condition.rs.EnsureIncomingRequestMethodIsPost;
@@ -124,6 +122,8 @@ import net.openid.conformance.testmodule.UserFacing;
 import net.openid.conformance.variant.AuthorizationRequestType;
 import net.openid.conformance.variant.ClientAuthType;
 import net.openid.conformance.variant.ConfigurationFields;
+import net.openid.conformance.fapi2spfinal.VCIClientProfileBehavior;
+import net.openid.conformance.fapi2spfinal.VCIHaipClientProfileBehavior;
 import net.openid.conformance.variant.FAPI2AuthRequestMethod;
 import net.openid.conformance.variant.FAPI2FinalOPProfile;
 import net.openid.conformance.variant.FAPI2SenderConstrainMethod;
@@ -194,7 +194,6 @@ import net.openid.conformance.vci10wallet.condition.VerifyKeyAttestationSignatur
 import net.openid.conformance.condition.as.clientattestation.AddClientAttestationSigningAlgValuesSupportedToServerConfiguration;
 import net.openid.conformance.vci10wallet.condition.clientattestation.VCIRegisterClientAttestationTrustAnchor;
 import net.openid.conformance.vci10wallet.condition.clientattestation.VCIRegisterKeyAttestationTrustAnchor;
-import net.openid.conformance.vci10wallet.condition.statuslist.VCIGenerateJwtStatusListToken;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -204,7 +203,6 @@ import org.springframework.web.servlet.view.RedirectView;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.text.ParseException;
-import java.util.HashMap;
 import java.util.Map;
 
 @ConfigurationFields({
@@ -461,7 +459,10 @@ public abstract class AbstractVCIWalletTest extends net.openid.conformance.fapi2
 
 		configureClients();
 
-		configureOauthTokenStatusLists();
+		// Status list state is initialised for every VCI wallet profile (matching master).
+		// VCIClientProfileBehavior's aggregation endpoint always advertises statuslists/1,
+		// so the placeholder must exist whether or not HAIP injects a status_list claim.
+		VCIHaipClientProfileBehavior.initializeStatusListState(env);
 
 		onConfigurationCompleted();
 		setStatus(Status.CONFIGURED);
@@ -473,15 +474,6 @@ public abstract class AbstractVCIWalletTest extends net.openid.conformance.fapi2
 			return "eu.europa.ec.eudi.pid.mdoc.1";
 		}
 		return "eu.europa.ec.eudi.pid.1";
-	}
-
-	protected void configureOauthTokenStatusLists() {
-		JsonObject statusLists = new JsonObject();
-
-		JsonObject statusList = new JsonObject();
-		statusLists.add("status_list_1", statusList);
-
-		env.putObject("vci", "status_lists", statusLists);
 	}
 
 	protected void configureOauthAuthorizationServerMetadata() {
@@ -811,8 +803,17 @@ public abstract class AbstractVCIWalletTest extends net.openid.conformance.fapi2
 				throw new TestFailureException(getId(), "The userinfo endpoint must be called over an mTLS secured connection.");
 			}
 			return userinfoEndpoint(requestId);
-		} else if (path.startsWith("statuslists")) {
-			return statusListsEndpoints(requestId, path);
+		} else if (VCIClientProfileBehavior.isStatusListsPath(path)) {
+			// Wallet's configure() calls setupPlainFapi() which overwrites profileBehavior
+			// to PlainFAPIClientProfileBehavior, so the parent's profile-dispatch route
+			// (used by the FAPI2SP-outer path) isn't available here; call the shared
+			// serving logic directly. Wallet manages status; the static helper doesn't.
+			setStatus(Status.RUNNING);
+			try {
+				return VCIClientProfileBehavior.serveStatusListsRequest(this, requestId, path);
+			} finally {
+				setStatus(Status.WAITING);
+			}
 		} else if (path.equals(".well-known/openid-configuration")) {
 			throw new TestFailureException(getId(), "The wallet has fetched .well-known/openid-configuration instead of .well-known/oauth-authorization-server as per RFC8414.");
 		} else if (path.equals(".well-known/oauth-authorization-server")) {
@@ -879,56 +880,6 @@ public abstract class AbstractVCIWalletTest extends net.openid.conformance.fapi2
 			return notificationEndpoint(requestId);
 		}
 		throw new TestFailureException(getId(), "Got unexpected HTTP call to " + path);
-	}
-
-	protected Object statusListsEndpoints(String requestId, String path) {
-		setStatus(Status.RUNNING);
-
-		call(exec().mapKey("status_list_endpoint_request", requestId));
-
-		ResponseEntity<Object> response;
-		if (path.equals("statuslists") || path.equals("statuslists/")) {
-			// status list aggregation endpoint
-			// curl -k -H "Accept:application/statuslist+jwt" https://localhost.emobix.co.uk:8443/test/a/oidf-fapi-rp-test/statuslists
-
-			// https://datatracker.ietf.org/doc/html/draft-ietf-oauth-status-list-12#section-9.3
-			JsonObject aggreatedStatusList = new JsonObject();
-			JsonArray statusLists = new JsonArray();
-			// we only support one list for now
-			String statusListUrl = getStatusListUrl("1");
-			statusLists.add(statusListUrl);
-			aggreatedStatusList.add("statuslists", statusLists);
-			response = ResponseEntity.ok().header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE).body(aggreatedStatusList);
-		} else {
-			// status list endpoint
-			// curl -k -H "Accept:application/statuslist+jwt" https://localhost.emobix.co.uk:8443/test/a/oidf-fapi-rp-test/statuslists/1
-
-			// see https://datatracker.ietf.org/doc/html/draft-ietf-oauth-status-list-12#section-8.1
-			String statusListId = path.substring(path.lastIndexOf("/") + 1);
-			String statusListReference = "status_lists.status_list_" + statusListId;
-			JsonElement statusListEl = env.getElementFromObject("vci", statusListReference);
-			if (statusListEl == null) {
-				response = ResponseEntity.notFound().build();
-			} else {
-				env.putString("current_status_list_id", statusListId);
-
-				callAndContinueOnFailure(VCIGenerateJwtStatusListToken.class, ConditionResult.INFO, "OTSL-5.1");
-
-				String currentStatusListJwt = env.getString("current_status_list_jwt");
-				// TODO add cors headers
-				// TODO handle time query parameter, see: https://datatracker.ietf.org/doc/html/draft-ietf-oauth-status-list-12#section-8.4
-				response = ResponseEntity.ok().header(HttpHeaders.CONTENT_TYPE, "application/statuslist+jwt").body(currentStatusListJwt);
-			}
-		}
-
-		call(exec().unmapKey("status_list_endpoint_request").endBlock());
-
-		setStatus(Status.WAITING);
-		return response;
-	}
-
-	protected String getStatusListUrl(String statusListId) {
-		return env.getString("server", "issuer") + "statuslists/" + statusListId;
 	}
 
 	protected Object credentialOfferEndpoint(String requestId, String path) {
@@ -1131,11 +1082,11 @@ public abstract class AbstractVCIWalletTest extends net.openid.conformance.fapi2
 
 		// If there's a DPoP nonce error, return it immediately before validating the credential proof.
 		// This ensures the c_nonce isn't consumed, allowing the client to retry with the correct DPoP nonce.
-		if (isDpopConstrain() && !Strings.isNullOrEmpty(env.getString("resource_endpoint_dpop_nonce_error"))) {
-			callAndContinueOnFailure(CreateResourceEndpointDpopErrorResponse.class, ConditionResult.FAILURE);
+		ResponseEntity<?> dpopNonceErrorResponse = handlePendingDpopNonceErrorResponse();
+		if (dpopNonceErrorResponse != null) {
 			call(exec().unmapKey("incoming_request").endBlock());
 			setStatus(Status.WAITING);
-			return new ResponseEntity<>(env.getObject("resource_endpoint_response"), headersFromJson(env.getObject("resource_endpoint_response_headers")), HttpStatus.valueOf(env.getInteger("resource_endpoint_response_http_status").intValue()));
+			return dpopNonceErrorResponse;
 		}
 
 		// Validate Content-Type and (where applicable) decrypt the credential request.
@@ -1382,10 +1333,12 @@ public abstract class AbstractVCIWalletTest extends net.openid.conformance.fapi2
 		call(exec().unmapKey("incoming_request").endBlock());
 
 		ResponseEntity<Object> responseEntity;
-		if (isDpopConstrain() && !Strings.isNullOrEmpty(env.getString("resource_endpoint_dpop_nonce_error"))) {
-			callAndContinueOnFailure(CreateResourceEndpointDpopErrorResponse.class, ConditionResult.FAILURE);
+		ResponseEntity<?> dpopNonceErrorResponse = handlePendingDpopNonceErrorResponse();
+		if (dpopNonceErrorResponse != null) {
 			setStatus(Status.WAITING);
-			responseEntity = new ResponseEntity<>(env.getObject("resource_endpoint_response"), headersFromJson(env.getObject("resource_endpoint_response_headers")), HttpStatus.valueOf(env.getInteger("resource_endpoint_response_http_status").intValue()));
+			@SuppressWarnings("unchecked")
+			ResponseEntity<Object> typed = (ResponseEntity<Object>) dpopNonceErrorResponse;
+			responseEntity = typed;
 		} else {
 			JsonObject headerJson = env.getObject("credential_endpoint_response_headers");
 
@@ -1543,33 +1496,18 @@ public abstract class AbstractVCIWalletTest extends net.openid.conformance.fapi2
 			// mdoc format - the doctype is in credential_configuration.doctype
 			callAndStopOnFailure(CreateMdocCredentialForVCI.class, "OID4VCI-1FINALA-G.1");
 		} else {
-			// SD-JWT VC format (dc+sd-jwt or default)
+			// SD-JWT VC format (dc+sd-jwt or default). The HAIP status_list reference is
+			// shared with the FAPI2SP-outer dispatch via the static builder so both paths
+			// produce identical credential shapes. We can't go through profileBehavior
+			// here: the wallet's configure() calls setupPlainFapi() which overwrites
+			// profileBehavior to PlainFAPIClientProfileBehavior, so a cast would CCE.
 			if (fapi2Profile == FAPI2FinalOPProfile.VCI_HAIP) {
-				Map<String, Object> additionalClaims = additionalSdJwtClaimsForHaip();
+				Map<String, Object> additionalClaims = VCIHaipClientProfileBehavior.buildSdJwtStatusListClaims(env);
 				callAndStopOnFailure(new CreateSdJwtCredential(additionalClaims), "OID4VCI-1FINALA-F.1", "OID4VCI-1FINALA-F.3");
 			} else {
 				callAndStopOnFailure(CreateSdJwtCredential.class, "OID4VCI-1FINALA-F.1", "OID4VCI-1FINALA-F.3");
 			}
 		}
-	}
-
-	protected Map<String, Object> additionalSdJwtClaimsForHaip() {
-
-		Map<Object, Object> statusList = generateStatusListEntryForSdJwtStatusClaim();
-
-		Map<Object, Object> status = new HashMap<>();
-		status.put("status_list", statusList);
-
-		Map<String, Object> additionalClaims = new HashMap<>();
-		additionalClaims.put("status", status);
-		return additionalClaims;
-	}
-
-	protected Map<Object, Object> generateStatusListEntryForSdJwtStatusClaim() {
-		Map<Object, Object> statusList = new HashMap<>();
-		statusList.put("idx", 0); // even indices indicate Status.VALID, odd indices indicate Status.INVALID, see: VCIGenerateJwtStatusListToken
-		statusList.put("uri", getStatusListUrl("1"));
-		return statusList;
 	}
 
 	@Override
@@ -1653,34 +1591,56 @@ public abstract class AbstractVCIWalletTest extends net.openid.conformance.fapi2
 	}
 
 	@Override
-	protected void validateResourceEndpointHeaders() {
-		// FIXME: No obvious FAPI2 equivalent
-		skipIfElementMissing("incoming_request", "headers.x-fapi-auth-date", ConditionResult.INFO,
-			ExtractFapiDateHeader.class, ConditionResult.FAILURE, "FAPI1-BASE-6.2.2-3");
+	public ConditionSequence validateResourceEndpointHeadersSequence() {
+		return new AbstractConditionSequence() {
+			@Override
+			public void evaluate() {
+				// FIXME: No obvious FAPI2 equivalent
+				call(condition(ExtractFapiDateHeader.class)
+					.skipIfElementMissing("incoming_request", "headers.x-fapi-auth-date")
+					.onSkip(ConditionResult.INFO)
+					.onFail(ConditionResult.FAILURE)
+					.requirements("FAPI1-BASE-6.2.2-3")
+					.dontStopOnFailure());
 
-		// FIXME: No obvious FAPI2 equivalent
-		skipIfElementMissing("incoming_request", "headers.x-fapi-customer-ip-address", ConditionResult.INFO,
-			ExtractFapiIpAddressHeader.class, ConditionResult.FAILURE, "FAPI1-BASE-6.2.2-4");
+				// FIXME: No obvious FAPI2 equivalent
+				call(condition(ExtractFapiIpAddressHeader.class)
+					.skipIfElementMissing("incoming_request", "headers.x-fapi-customer-ip-address")
+					.onSkip(ConditionResult.INFO)
+					.onFail(ConditionResult.FAILURE)
+					.requirements("FAPI1-BASE-6.2.2-4")
+					.dontStopOnFailure());
 
-		skipIfElementMissing("incoming_request", "headers.x-fapi-interaction-id", ConditionResult.INFO,
-			ExtractFapiInteractionIdHeader.class, ConditionResult.FAILURE, "FAPI2-IMP-2.1.1");
-		callAndContinueOnFailure(ValidateFAPIInteractionIdInResourceRequest.class, ConditionResult.FAILURE, "FAPI2-IMP-2.1.1");
-
+				call(condition(ExtractFapiInteractionIdHeader.class)
+					.skipIfElementMissing("incoming_request", "headers.x-fapi-interaction-id")
+					.onSkip(ConditionResult.INFO)
+					.onFail(ConditionResult.FAILURE)
+					.requirements("FAPI2-IMP-2.1.1")
+					.dontStopOnFailure());
+				callAndContinueOnFailure(ValidateFAPIInteractionIdInResourceRequest.class, ConditionResult.FAILURE, "FAPI2-IMP-2.1.1");
+			}
+		};
 	}
 
+	/**
+	 * VCI-specific resource endpoint request validation. Runs the {@code application/json}
+	 * bearer-in-params check first (returns a 400 error response immediately when it
+	 * fires, since later steps depend on a valid request shape), then delegates to the
+	 * inherited {@link #checkResourceEndpointRequest(boolean)} for sender-constrain,
+	 * access-token validation, and FAPI resource headers. Polymorphism picks the
+	 * wallet-specific {@link #validateResourceEndpointHeadersSequence()} override.
+	 *
+	 * <p>Returns the prepared 400 ResponseEntity if the bearer-in-params check failed,
+	 * else {@code null} for "proceed". Does NOT handle the DPoP-nonce-error short-circuit
+	 * — call {@link #handlePendingDpopNonceErrorResponse()} afterwards for that.
+	 */
 	protected ResponseEntity<?> checkResourceEndpointRequestForVci(boolean useClientCredentialsAccessToken) {
 		ResponseEntity<?> responseEntity = callAndContinueOnFailureOrReturnErrorResponse(VCIEnsureBearerAccessTokenNotInParams.class, ConditionResult.FAILURE, "FAPI2-SP-FINAL-5.3.4-2");
 		if (responseEntity != null) {
 			return responseEntity;
 		}
-		senderConstrainTokenRequestHelper.checkResourceRequest();
-		if (useClientCredentialsAccessToken) {
-			call(sequence(validateSenderConstrainedClientCredentialAccessTokenSteps));
-		} else {
-			call(sequence(validateSenderConstrainedTokenSteps));
-		}
-		validateResourceEndpointHeaders();
-		return responseEntity;
+		checkResourceEndpointRequest(useClientCredentialsAccessToken);
+		return null;
 	}
 
 	@Override
@@ -1896,11 +1856,13 @@ public abstract class AbstractVCIWalletTest extends net.openid.conformance.fapi2
 
 		call(exec().unmapKey("incoming_request").endBlock());
 
-		ResponseEntity<Object> responseEntity = null;
-		if (isDpopConstrain() && !Strings.isNullOrEmpty(env.getString("resource_endpoint_dpop_nonce_error"))) {
-			callAndContinueOnFailure(CreateResourceEndpointDpopErrorResponse.class, ConditionResult.FAILURE);
+		ResponseEntity<Object> responseEntity;
+		ResponseEntity<?> dpopNonceErrorResponse = handlePendingDpopNonceErrorResponse();
+		if (dpopNonceErrorResponse != null) {
 			setStatus(Status.WAITING);
-			responseEntity = new ResponseEntity<>(env.getObject("resource_endpoint_response"), headersFromJson(env.getObject("resource_endpoint_response_headers")), HttpStatus.valueOf(env.getInteger("resource_endpoint_response_http_status").intValue()));
+			@SuppressWarnings("unchecked")
+			ResponseEntity<Object> typed = (ResponseEntity<Object>) dpopNonceErrorResponse;
+			responseEntity = typed;
 		} else {
 			if (requireResourceServerEndpointDpopNonce()) {
 				callAndContinueOnFailure(CreateResourceServerDpopNonce.class, ConditionResult.INFO);
@@ -2493,11 +2455,13 @@ public abstract class AbstractVCIWalletTest extends net.openid.conformance.fapi2
 
 		call(exec().unmapKey("incoming_request").endBlock());
 
-		ResponseEntity<Object> responseEntity = null;
-		if (isDpopConstrain() && !Strings.isNullOrEmpty(env.getString("resource_endpoint_dpop_nonce_error"))) {
-			callAndContinueOnFailure(CreateResourceEndpointDpopErrorResponse.class, ConditionResult.FAILURE);
+		ResponseEntity<Object> responseEntity;
+		ResponseEntity<?> dpopNonceErrorResponse = handlePendingDpopNonceErrorResponse();
+		if (dpopNonceErrorResponse != null) {
 			setStatus(Status.WAITING);
-			responseEntity = new ResponseEntity<>(env.getObject("resource_endpoint_response"), headersFromJson(env.getObject("resource_endpoint_response_headers")), HttpStatus.valueOf(env.getInteger("resource_endpoint_response_http_status").intValue()));
+			@SuppressWarnings("unchecked")
+			ResponseEntity<Object> typed = (ResponseEntity<Object>) dpopNonceErrorResponse;
+			responseEntity = typed;
 		} else {
 			JsonObject accountsEndpointResponse = env.getObject("accounts_endpoint_response");
 			JsonObject headerJson = env.getObject("accounts_endpoint_response_headers");

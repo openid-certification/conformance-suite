@@ -25,6 +25,7 @@ import net.openid.conformance.condition.rs.FAPIBrazilEnsureAuthorizationRequestS
 import net.openid.conformance.condition.rs.FAPIBrazilRsPathConstants;
 import net.openid.conformance.sequence.AbstractConditionSequence;
 import net.openid.conformance.sequence.ConditionSequence;
+import net.openid.conformance.sequence.as.GenerateOpenBankingBrazilAccountsEndpointResponse;
 import net.openid.conformance.testmodule.TestFailureException;
 
 public class OpenBankingBrazilCibaRPProfileBehavior extends FAPICIBARPProfileBehavior {
@@ -84,6 +85,11 @@ public class OpenBankingBrazilCibaRPProfileBehavior extends FAPICIBARPProfileBeh
 	}
 
 	@Override
+	public Class<? extends ConditionSequence> getAccountsEndpointResponseSteps() {
+		return GenerateOpenBankingBrazilAccountsEndpointResponse.class;
+	}
+
+	@Override
 	public ConditionSequence getClientCredentialsGrantTypeSteps() {
 		return new AbstractConditionSequence() {
 			@Override
@@ -125,6 +131,43 @@ public class OpenBankingBrazilCibaRPProfileBehavior extends FAPICIBARPProfileBeh
 	@Override
 	public boolean requiresMtlsForBackchannelEndpoint() {
 		return true;
+	}
+
+	@Override
+	public boolean claimsProfileSpecificMtlsPath(String path) {
+		return FAPIBrazilRsPathConstants.BRAZIL_ACCOUNTS_PATH.equals(path)
+			|| FAPIBrazilRsPathConstants.BRAZIL_CONSENTS_PATH.equals(path)
+			|| FAPIBrazilRsPathConstants.BRAZIL_PAYMENTS_CONSENTS_PATH.equals(path)
+			|| FAPIBrazilRsPathConstants.BRAZIL_PAYMENT_INITIATION_PATH.equals(path)
+			|| FAPIBrazilRsPathConstants.BRAZIL_RESOURCE_PATH.equals(path)
+			|| path.startsWith(FAPIBrazilRsPathConstants.BRAZIL_CONSENTS_PATH + "/")
+			|| path.startsWith(FAPIBrazilRsPathConstants.BRAZIL_PAYMENTS_CONSENTS_PATH + "/");
+	}
+
+	@Override
+	public Object handleProfileSpecificMtlsPath(String requestId, String path) {
+		if (FAPIBrazilRsPathConstants.BRAZIL_ACCOUNTS_PATH.equals(path)) {
+			return module.accountsEndpoint(requestId);
+		}
+		if (FAPIBrazilRsPathConstants.BRAZIL_CONSENTS_PATH.equals(path)) {
+			return module.brazilHandleNewConsentRequest(requestId, false);
+		}
+		if (FAPIBrazilRsPathConstants.BRAZIL_PAYMENTS_CONSENTS_PATH.equals(path)) {
+			return module.brazilHandleNewConsentRequest(requestId, true);
+		}
+		if (FAPIBrazilRsPathConstants.BRAZIL_PAYMENT_INITIATION_PATH.equals(path)) {
+			return module.brazilHandleNewPaymentInitiationRequest(requestId);
+		}
+		if (FAPIBrazilRsPathConstants.BRAZIL_RESOURCE_PATH.equals(path)) {
+			return module.resourcesEndpoint(requestId);
+		}
+		if (path.startsWith(FAPIBrazilRsPathConstants.BRAZIL_CONSENTS_PATH + "/")) {
+			return module.brazilHandleGetConsentRequest(requestId, path, false);
+		}
+		if (path.startsWith(FAPIBrazilRsPathConstants.BRAZIL_PAYMENTS_CONSENTS_PATH + "/")) {
+			return module.brazilHandleGetConsentRequest(requestId, path, true);
+		}
+		throw new TestFailureException(module.getId(), "Got unexpected Open Banking Brazil mTLS call to " + path);
 	}
 
 	@Override

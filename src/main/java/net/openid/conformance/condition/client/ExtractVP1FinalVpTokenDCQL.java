@@ -1,5 +1,6 @@
 package net.openid.conformance.condition.client;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.AbstractCondition;
@@ -30,12 +31,32 @@ public class ExtractVP1FinalVpTokenDCQL extends AbstractCondition {
 
 		String credentialId = vpTokenObj.keySet().iterator().next();
 		JsonElement credentials = vpTokenObj.get(credentialId);
-		if (!credentials.isJsonArray()) {
-			throw error("vp_token credential must be inside an array", args("vp_token", vpToken));
+		String credential;
+		boolean nonArray = false;
+		if (credentials.isJsonArray()) {
+			JsonArray credentialArray = credentials.getAsJsonArray();
+			if (credentialArray.isEmpty()) {
+				throw error("vp_token credential array is empty", args("vp_token", vpToken));
+			}
+			credential = OIDFJSON.getString(credentialArray.get(0));
+		} else if (OIDFJSON.isString(credentials)) {
+			credential = OIDFJSON.getString(credentials);
+			nonArray = true;
+		} else {
+			throw error("vp_token credential value must be a string inside a JSON array", args("vp_token", vpToken));
 		}
-		String credential = OIDFJSON.getString(credentials.getAsJsonArray().get(0));
+
+		// For the bare-string-not-in-array case we deliberately populate env before throwing so
+		// that the caller (AbstractVP1FinalWalletTest, via callAndContinueOnFailure) can keep
+		// validating the extracted credential against the DCQL query — wallets returning a bare
+		// string instead of wrapping it in an array is a common implementation mistake worth
+		// surfacing in full.
 		env.putString("credential_id", credentialId);
 		env.putString("credential", credential);
+
+		if (nonArray) {
+			throw error("vp_token credential must be inside a JSON array", args("vp_token", vpToken));
+		}
 
 		logSuccess("vp_token parsed", args("credentialId", credentialId, "credential", credential));
 

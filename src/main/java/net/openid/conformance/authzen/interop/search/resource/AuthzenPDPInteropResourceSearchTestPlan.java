@@ -12,6 +12,7 @@ import net.openid.conformance.plan.TestPlan;
 		// Search Demo test cases
 		// https://github.com/openid/authzen/blob/main/interop/authzen-search-demo/test/resource/results.json
 		AuthzenPDPInteropResourceSearch01Test.class,
+		AuthzenPDPInteropResourceSearch01PaginationTest.class,
 		AuthzenPDPInteropResourceSearch02Test.class,
 		AuthzenPDPInteropResourceSearch03Test.class,
 		AuthzenPDPInteropResourceSearch04Test.class,

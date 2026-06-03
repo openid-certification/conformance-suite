@@ -106,10 +106,14 @@ class Conformance(object):
             raise Exception("get_all_test_modules failed - HTTP {:d} {}".format(response.status_code, response.content))
         return response.json()
 
-    async def exporthtml(self, plan_id, path):
+    async def _download_plan_export(self, kind, plan_id, path):
+        """Stream a plan-export zip from the given `kind` endpoint (one of
+        'exporthtml' or 'export') into `path`. Returns the saved file path.
+        Retries up to 5 times with exponential backoff on transient errors;
+        validates that the response is a parseable zip before returning."""
         attempts = 5
         last_exception = None
-        api_url = '{0}api/plan/exporthtml/{1}'.format(self.api_url_base, plan_id)
+        api_url = '{0}api/plan/{1}/{2}'.format(self.api_url_base, kind, plan_id)
         for attempt in range(attempts):
             full_path = None
             content_type = '<unknown>'
@@ -118,14 +122,14 @@ class Conformance(object):
                     content_type = response.headers.get('content-type', '<missing>')
                     if response.status_code != 200:
                         body = await response.aread()
-                        raise Exception("exporthtml HTTP {} content-type={} body[:500]={!r}".format(
-                            response.status_code, content_type, body[:500]))
+                        raise Exception("{} HTTP {} content-type={} body[:500]={!r}".format(
+                            kind, response.status_code, content_type, body[:500]))
                     disposition = response.headers.get('content-disposition', '')
                     match = re.findall("filename=\"(.+)\"", disposition)
                     if not match:
                         body = await response.aread()
-                        raise Exception("exporthtml missing filename in content-disposition={!r} content-type={} body[:200]={!r}".format(
-                            disposition, content_type, body[:200]))
+                        raise Exception("{} missing filename in content-disposition={!r} content-type={} body[:200]={!r}".format(
+                            kind, disposition, content_type, body[:200]))
                     local_filename = match[0]
                     full_path = os.path.join(path, local_filename)
                     with open(full_path, 'wb') as f:
@@ -138,23 +142,35 @@ class Conformance(object):
                 except zipfile.BadZipFile as e:
                     with open(full_path, 'rb') as f:
                         head = f.read(500)
-                    raise Exception("exporthtml for {} got non-zip response (content-type={}, size={} bytes, first bytes={!r}): {}".format(
-                        plan_id, content_type, file_size, head, e)) from e
+                    raise Exception("{} for {} got non-zip response (content-type={}, size={} bytes, first bytes={!r}): {}".format(
+                        kind, plan_id, content_type, file_size, head, e)) from e
                 if bad_entry is not None:
-                    raise Exception("exporthtml for {} downloaded corrupt zip {} (content-type={}, size={} bytes) - testzip reports {}".format(
-                        plan_id, full_path, content_type, file_size, bad_entry))
+                    raise Exception("{} for {} downloaded corrupt zip {} (content-type={}, size={} bytes) - testzip reports {}".format(
+                        kind, plan_id, full_path, content_type, file_size, bad_entry))
                 return full_path
             except Exception as e:
                 last_exception = e
                 if attempt < attempts - 1:
                     backoff = 1 << attempt  # 1, 2, 4, 8s between attempts
-                    print("exporthtml {} attempt {}/{} failed: {} - retrying in {}s".format(
-                        api_url, attempt + 1, attempts, e, backoff))
+                    print("{} {} attempt {}/{} failed: {} - retrying in {}s".format(
+                        kind, api_url, attempt + 1, attempts, e, backoff))
                     await asyncio.sleep(backoff)
                 else:
-                    print("exporthtml {} attempt {}/{} failed: {} - giving up".format(
-                        api_url, attempt + 1, attempts, e))
-        raise Exception("exporthtml for {} failed after {} attempts".format(plan_id, attempts)) from last_exception
+                    print("{} {} attempt {}/{} failed: {} - giving up".format(
+                        kind, api_url, attempt + 1, attempts, e))
+        raise Exception("{} for {} failed after {} attempts".format(kind, plan_id, attempts)) from last_exception
+
+    async def exporthtml(self, plan_id, path):
+        """Download a plan's results as a Thymeleaf-rendered HTML zip (for
+        human consumption / certification packages)."""
+        return await self._download_plan_export('exporthtml', plan_id, path)
+
+    async def exportjson(self, plan_id, path):
+        """Download a plan's results as a JSON-plus-RSA-signature zip
+        (much cheaper server-side than exporthtml — skips Thymeleaf).
+        Use this in CI where the human-readable HTML isn't needed; JFR
+        profiling showed exporthtml at ~4.4% of CI JVM wall."""
+        return await self._download_plan_export('export', plan_id, path)
 
     async def create_certification_package(self, plan_id, conformance_pdf_path, rp_logs_zip_path = None, output_zip_directory = "./"):
         """

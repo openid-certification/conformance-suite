@@ -34,6 +34,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 
 public abstract class AbstractTestModule implements TestModule, DataUtils {
@@ -368,6 +369,19 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 						"result", builder.getOnSkip(),
 						"requirements", builder.getRequirements()
 						// TODO: log the environment here?
+					));
+					updateResultFromConditionFailure(builder.getOnSkip());
+					return;
+				}
+			}
+			for (String s : builder.getSkipIfStringsPresent()) {
+				if (env.getString(s) != null) {
+					logger.info(getId() + ": [skip] Test condition " + builder.getConditionClass().getSimpleName() + " skipped, string present in environment: " + s);
+					eventLog.log(condition.getMessage(), args(
+						"msg", "Skipped evaluation because string is present: " + s,
+						"expected", s,
+						"result", builder.getOnSkip(),
+						"requirements", builder.getRequirements()
 					));
 					updateResultFromConditionFailure(builder.getOnSkip());
 					return;
@@ -1148,8 +1162,56 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 		this.finalError = finalError;
 	}
 
+	/**
+	 * Maximum time, in seconds, to wait when acquiring the test lock. The lock is released during
+	 * network I/O, so legitimate holds are very short; this is a safety net so a thread can never block
+	 * forever waiting for a lock held by another thread that is itself stuck. Kept >= the outbound HTTP
+	 * timeout (60s) so it never trips on a legitimately-bounded operation. Protected so tests can
+	 * override it with a short value. See https://gitlab.com/openid/conformance-suite/-/work_items/1827
+	 */
+	protected long getLockAcquireTimeoutSeconds() {
+		return 90;
+	}
+
 	protected void acquireLock() {
-		env.getLock().lock();
+		long timeoutSeconds = getLockAcquireTimeoutSeconds();
+		try {
+			if (!env.getLock().tryLock(timeoutSeconds, TimeUnit.SECONDS)) {
+				// We failed to get the lock within the timeout. Rather than block this thread (potentially
+				// an HTTP worker thread, e.g. when stopping a conflicting test) forever behind another
+				// thread that is stuck, fail loudly. Returning an error frees the thread instead of letting
+				// a single stuck test tie up workers and eventually hang the whole suite. See https://gitlab.com/openid/conformance-suite/-/work_items/1827
+				// Log a full thread dump before failing so the thread holding the lock (presumably the
+				// stuck one) can be identified - a plain ReentrantLock does not expose its owner. See https://gitlab.com/openid/conformance-suite/-/work_items/1827
+				logger.warn("{}: timed out after {}s waiting to acquire the test lock; dumping all thread "
+						+ "stacks to help identify the holder:\n{}",
+					getId(), timeoutSeconds, dumpAllThreadStacks());
+				throw new TestFailureException(getId(), "Timed out after " + timeoutSeconds
+					+ " seconds waiting to acquire the test lock; another thread is holding it and is "
+					+ "probably stuck. This may be a bug in the test suite. Aborting.");
+			}
+		} catch (InterruptedException e) {
+			Thread.currentThread().interrupt();
+			throw new TestFailureException(getId(), "Interrupted while waiting to acquire the test lock", e);
+		}
+	}
+
+	/**
+	 * Build a full thread dump (all threads and their stack traces) as a string, for diagnosing a
+	 * lock-acquire timeout: a plain ReentrantLock does not expose its owner, so we dump every thread to
+	 * make the holder identifiable in the logs.
+	 */
+	private static String dumpAllThreadStacks() {
+		StringBuilder sb = new StringBuilder();
+		for (Map.Entry<Thread, StackTraceElement[]> entry : Thread.getAllStackTraces().entrySet()) {
+			Thread t = entry.getKey();
+			sb.append('"').append(t.getName()).append("\" ").append(t.getState()).append('\n');
+			for (StackTraceElement element : entry.getValue()) {
+				sb.append("\tat ").append(element).append('\n');
+			}
+			sb.append('\n');
+		}
+		return sb.toString();
 	}
 
 	@Override

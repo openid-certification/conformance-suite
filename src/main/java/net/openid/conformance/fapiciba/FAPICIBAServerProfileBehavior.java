@@ -5,10 +5,12 @@ import net.openid.conformance.condition.client.AddFAPIInteractionIdToResourceEnd
 import net.openid.conformance.condition.client.CheckForFAPIInteractionIdInResourceResponse;
 import net.openid.conformance.condition.client.CreateRandomFAPIInteractionId;
 import net.openid.conformance.condition.client.EnsureMatchingFAPIInteractionId;
+import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs200or201;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.sequence.AbstractConditionSequence;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.Environment;
+import net.openid.conformance.variant.ClientAuthType;
 
 import java.util.function.Supplier;
 
@@ -32,6 +34,17 @@ public class FAPICIBAServerProfileBehavior {
 		return module.getEnv();
 	}
 
+	public Supplier<? extends ConditionSequence> getProfileSpecificDiscoveryChecks() {
+		return NoOpDiscoveryEndpointChecks::new;
+	}
+
+	public static class NoOpDiscoveryEndpointChecks extends AbstractConditionSequence {
+		@Override
+		public void evaluate() {
+			// No profile-specific discovery checks by default.
+		}
+	}
+
 	// --- Data methods ---
 
 	public Class<? extends ConditionSequence> getResourceConfiguration() {
@@ -52,6 +65,10 @@ public class FAPICIBAServerProfileBehavior {
 
 	public Class<? extends ConditionSequence> getProfileIdTokenValidationSteps() {
 		return AbstractFAPICIBAID1.PlainFapiProfileIdTokenValidationSteps.class;
+	}
+
+	public boolean shouldKeepBackchannelAuthenticationEndpointAlias(ClientAuthType authType) {
+		return authType == ClientAuthType.MTLS;
 	}
 
 	// --- Action methods returning ConditionSequence (null = no-op) ---
@@ -110,6 +127,15 @@ public class FAPICIBAServerProfileBehavior {
 				if (!isSecondClient) {
 					callAndContinueOnFailure(EnsureMatchingFAPIInteractionId.class, Condition.ConditionResult.FAILURE, "FAPI-R-6.2.1-11");
 				}
+			}
+		};
+	}
+
+	public ConditionSequence validateResourceEndpointResponseStatus() {
+		return new AbstractConditionSequence() {
+			@Override
+			public void evaluate() {
+				call(condition(EnsureHttpStatusCodeIs200or201.class).onFail(Condition.ConditionResult.FAILURE));
 			}
 		};
 	}
