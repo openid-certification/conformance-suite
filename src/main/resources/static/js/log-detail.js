@@ -240,9 +240,10 @@ function updateBreadcrumb(testInfo, planName) {
   const crumb = document.getElementById("logDetailCrumb");
   if (!crumb) return;
   const terminalLabel = testInfo.testName || testInfo.testId;
+  const publicSuffix = isPublic ? "?public=true" : "";
   const items = [];
   if (testInfo.planId) {
-    items.push({ label: "Plans", target: "/plans.html" });
+    items.push({ label: "Plans", target: "/plans.html" + publicSuffix });
     items.push({
       label: planName || "Plan",
       target:
@@ -251,7 +252,7 @@ function updateBreadcrumb(testInfo, planName) {
         (isPublic ? "&public=true" : ""),
     });
   } else {
-    items.push({ label: "Logs", target: "/logs.html" });
+    items.push({ label: "Logs", target: "/logs.html" + publicSuffix });
   }
   items.push({ label: terminalLabel, target: "" });
   crumb.items = items;
@@ -279,7 +280,12 @@ function updateBreadcrumb(testInfo, planName) {
 async function fetchAndApplyPlanState(testInfo) {
   if (!testInfo.planId) return null;
   try {
-    const response = await fetch("/api/plan/" + encodeURIComponent(testInfo.planId));
+    // Same public threading as fetchTestInfo: anonymous viewers only pass
+    // the security filter's public matcher with public=true, and the
+    // public branch returns the published PublicPlan (planName included).
+    const response = await fetch(
+      "/api/plan/" + encodeURIComponent(testInfo.planId) + (isPublic ? "?public=true" : ""),
+    );
     if (!response.ok) return null;
     const planData = await response.json();
     if (planData && planData.planName) {
@@ -407,18 +413,26 @@ function startRunnerPolling(testInfo) {
     // /api/runner — slot rendering. Fault-isolated; 404 is benign
     // (the runner has flushed a long-finished test from memory), so
     // only non-404 non-2xx responses trigger a back-off.
+    //
+    // Skipped entirely in public mode: /api/runner has no public matcher
+    // entry (anonymous GETs 401 on every cycle), and the slots it feeds
+    // (visit-URL prompt, FINAL_ERROR alert) are interaction affordances
+    // public viewers don't get. The /api/info refresh above keeps live
+    // status updates working for public viewers of a running test.
     let runnerFailed = false;
-    try {
-      const response = await fetch("/api/runner/" + encodeURIComponent(testId));
-      if (response.status !== 404) {
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
-        const data = await response.json();
-        renderBrowserSlot(data.browser);
-        renderErrorSlot(data.error);
+    if (!isPublic) {
+      try {
+        const response = await fetch("/api/runner/" + encodeURIComponent(testId));
+        if (response.status !== 404) {
+          if (!response.ok) throw new Error(`HTTP ${response.status}`);
+          const data = await response.json();
+          renderBrowserSlot(data.browser);
+          renderErrorSlot(data.error);
+        }
+      } catch (err) {
+        console.warn("[log-detail] /api/runner failed:", err);
+        runnerFailed = true;
       }
-    } catch (err) {
-      console.warn("[log-detail] /api/runner failed:", err);
-      runnerFailed = true;
     }
 
     // Stop only when /api/info confirms a verdict. Until then keep
@@ -1091,6 +1105,11 @@ async function bootstrap() {
   updateBreadcrumb(testInfo);
 
   if (viewer) {
+    // isPublic MUST be assigned in the same synchronous block as testId
+    // (conventionally first) — the testId assignment triggers the first
+    // /api/log fetch, which must already carry public=true for anonymous
+    // viewers. Never defer the isPublic assignment past an await.
+    viewer.isPublic = isPublic;
     viewer.testInfo = testInfo;
     viewer.testId = testId;
   }
