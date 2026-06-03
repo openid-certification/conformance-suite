@@ -79,6 +79,153 @@ test.describe("plan-detail.html — dynamic error alert injection", () => {
     await alertBody.locator("button.oidf-alert-close").click();
     await expect(errorContainer.locator("cts-alert")).toHaveCount(0);
   });
+
+  test("repeated submits of an oversized file do not stack banners", async ({ page }) => {
+    await setupFailFast(page);
+
+    await page.route("**/api/plan/plan-abc-123", (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(MOCK_PLAN_DETAIL),
+      }),
+    );
+
+    await setupTestInfoRoute(page);
+    // Admin, so the certification package button is visible.
+    await setupCommonRoutes(page, { user: MOCK_ADMIN_USER });
+
+    await page.goto("/plan-detail.html?plan=plan-abc-123");
+
+    const certBtn = page.locator('cts-plan-actions [data-testid="certify-btn"] button');
+    await expect(certBtn).toBeVisible();
+    await certBtn.click();
+
+    const modal = page.locator("#certificationPackageModal");
+    await expect(modal).toBeVisible();
+
+    const errorContainer = page.locator("#certificationPackageFormErrors");
+    await expect(errorContainer.locator("cts-alert")).toHaveCount(0);
+
+    // Upload a file one byte over the 1,024,000 limit. The input retains this
+    // selection across clicks, so every submit re-fails size validation.
+    await page.locator("#clientSideDataBtn").setInputFiles({
+      name: "oversized.zip",
+      mimeType: "application/zip",
+      buffer: Buffer.alloc(1024001, 0),
+    });
+
+    // Click Create several times. Before the fix each click appended a new
+    // banner (N clicks -> N banners); the regression is exactly this stacking.
+    const submitBtn = page.locator("#certificationPackageFormSubmitBtn > button");
+    for (let i = 0; i < 4; i++) {
+      await submitBtn.click();
+    }
+
+    // The decisive assertion: exactly one banner survives, not four.
+    const alert = errorContainer.locator("cts-alert");
+    await expect(alert).toHaveCount(1);
+    await expect(alert).toHaveAttribute("variant", "danger");
+    await expect(alert).toHaveAttribute("dismissible", "");
+
+    const alertBody = alert.locator(".oidf-alert.oidf-alert-danger");
+    await expect(alertBody).toBeVisible();
+    await expect(alertBody).toContainText("oversized.zip");
+    await expect(alertBody).toContainText("exceeded the maximum allowed size");
+
+    // Dismissing the single banner returns the container to empty.
+    await alertBody.locator("button.oidf-alert-close").click();
+    await expect(errorContainer.locator("cts-alert")).toHaveCount(0);
+  });
+
+  test("a stale banner does not survive closing and reopening the modal", async ({ page }) => {
+    await setupFailFast(page);
+
+    await page.route("**/api/plan/plan-abc-123", (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(MOCK_PLAN_DETAIL),
+      }),
+    );
+
+    await setupTestInfoRoute(page);
+    await setupCommonRoutes(page, { user: MOCK_ADMIN_USER });
+
+    await page.goto("/plan-detail.html?plan=plan-abc-123");
+
+    const certBtn = page.locator('cts-plan-actions [data-testid="certify-btn"] button');
+    await expect(certBtn).toBeVisible();
+    await certBtn.click();
+
+    const modal = page.locator("#certificationPackageModal");
+    await expect(modal).toBeVisible();
+
+    const errorContainer = page.locator("#certificationPackageFormErrors");
+
+    // Trigger an error, then close the modal WITHOUT dismissing the banner.
+    await page.locator("#clientSideDataBtn").setInputFiles({
+      name: "oversized.zip",
+      mimeType: "application/zip",
+      buffer: Buffer.alloc(1024001, 0),
+    });
+    await page.locator("#certificationPackageFormSubmitBtn > button").click();
+    await expect(errorContainer.locator("cts-alert")).toHaveCount(1);
+
+    await page.locator("#cancelCertificationPackageFormModal > button").click();
+    await expect(modal).toBeHidden();
+
+    // Reopening must present a clean form — the stale banner is gone.
+    await certBtn.click();
+    await expect(modal).toBeVisible();
+    await expect(errorContainer.locator("cts-alert")).toHaveCount(0);
+  });
+
+  test("a filename containing HTML is rendered as text, not injected as markup", async ({
+    page,
+  }) => {
+    await setupFailFast(page);
+
+    await page.route("**/api/plan/plan-abc-123", (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(MOCK_PLAN_DETAIL),
+      }),
+    );
+
+    await setupTestInfoRoute(page);
+    await setupCommonRoutes(page, { user: MOCK_ADMIN_USER });
+
+    await page.goto("/plan-detail.html?plan=plan-abc-123");
+
+    const certBtn = page.locator('cts-plan-actions [data-testid="certify-btn"] button');
+    await expect(certBtn).toBeVisible();
+    await certBtn.click();
+
+    const modal = page.locator("#certificationPackageModal");
+    await expect(modal).toBeVisible();
+
+    const errorContainer = page.locator("#certificationPackageFormErrors");
+
+    // A filename with an <img onerror> payload would execute if the message
+    // were interpolated into HTML. setInputFiles preserves the literal name.
+    await page.locator("#clientSideDataBtn").setInputFiles({
+      name: "<img src=x onerror=window.__xss=1>.zip",
+      mimeType: "application/zip",
+      buffer: Buffer.alloc(1024001, 0),
+    });
+    await page.locator("#certificationPackageFormSubmitBtn > button").click();
+
+    const alert = errorContainer.locator("cts-alert");
+    await expect(alert).toHaveCount(1);
+    // No element was injected from the filename, and the payload never ran.
+    await expect(alert.locator("img")).toHaveCount(0);
+    const xssRan = await page.evaluate(() => Object.prototype.hasOwnProperty.call(window, "__xss"));
+    expect(xssRan).toBe(false);
+    // The literal filename text is shown to the user.
+    await expect(alert).toContainText("exceeded the maximum allowed size");
+  });
 });
 
 /**

@@ -184,8 +184,20 @@
 
     <script type="text/javascript">
         function showDialogError(containerId, error) {
-            document.getElementById(containerId).insertAdjacentHTML('beforeend',
-                '<cts-alert variant="danger" dismissible>' + error + '</cts-alert>');
+            // Replace any existing error rather than appending, so repeated
+            // failed submits show a single current banner instead of stacking.
+            // Build the alert with textContent (not HTML interpolation) so a
+            // user-chosen filename in the message can't inject markup.
+            var alert = document.createElement('cts-alert');
+            alert.setAttribute('variant', 'danger');
+            alert.setAttribute('dismissible', '');
+            alert.textContent = error;
+            document.getElementById(containerId).replaceChildren(alert);
+        }
+
+        /** Clears any error banners from a dialog's error container. */
+        function clearDialogErrors(containerId) {
+            document.getElementById(containerId).replaceChildren();
         }
 
         /**
@@ -286,6 +298,9 @@
                     });
 
                     actionsEl.addEventListener('cts-certify', function () {
+                        // Clear any banner left over from a previous open so a
+                        // stale error doesn't show before the user resubmits.
+                        clearDialogErrors('certificationPackageFormErrors');
                         document.getElementById('certificationPackageModal').show();
                     });
 
