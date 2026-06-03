@@ -187,6 +187,11 @@ import java.util.function.Supplier;
 	"client.jwks",
 	"client.hint_type",
 	"client.hint_value",
+	"client.card_primary_account_number",
+	"client.payment_amount",
+	"client.payment_currency",
+	"client.payment_beneficiary_name",
+	"client.payment_desc",
 	"mtls.key",
 	"mtls.cert",
 	"mtls.ca",
@@ -223,7 +228,11 @@ import java.util.function.Supplier;
 @VariantHidesConfigurationFields(parameter = FAPICIBAProfile.class, value = "openbanking_brazil", configurationFields = {
 	"client.hint_type",
 	"client.hint_value",
-	"client.card_primary_account_number"
+	"client.card_primary_account_number",
+	"client.payment_amount",
+	"client.payment_currency",
+	"client.payment_beneficiary_name",
+	"client.payment_desc"
 })
 @VariantHidesConfigurationFields(parameter = ClientRegistration.class, value = "dynamic_client", configurationFields = {
 	"client.jwks",

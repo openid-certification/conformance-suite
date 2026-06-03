@@ -387,6 +387,41 @@
           "tooltip": "Hint value to identify user, e.g. a login_hint, login_hint_token or id_token_hint."
         },
         {
+          "key": "client.card_primary_account_number",
+          "label": "card_primary_account_number",
+          "type": "string",
+          "placeholder": "6372069742108725",
+          "tooltip": "Card primary account number to send as the login_hint value for ConnectID CIBA 3DS tests. This must identify a user on the server under test."
+        },
+        {
+          "key": "client.payment_amount",
+          "label": "payment_amount",
+          "type": "string",
+          "placeholder": "222.22",
+          "tooltip": "Payment amount to send in authorization_details for ConnectID CIBA 3DS payment authorization tests."
+        },
+        {
+          "key": "client.payment_currency",
+          "label": "payment_currency",
+          "type": "string",
+          "placeholder": "AUD",
+          "tooltip": "Payment currency code to send in authorization_details for ConnectID CIBA 3DS payment authorization tests."
+        },
+        {
+          "key": "client.payment_beneficiary_name",
+          "label": "payment_beneficiary_name",
+          "type": "string",
+          "placeholder": "Byron Bay Cookies",
+          "tooltip": "Beneficiary or merchant name to send in authorization_details for ConnectID CIBA 3DS payment authorization tests."
+        },
+        {
+          "key": "client.payment_desc",
+          "label": "payment_desc",
+          "type": "string",
+          "placeholder": "Online purchase of cookies with age verification",
+          "tooltip": "Payment description to send in authorization_details for ConnectID CIBA 3DS payment authorization tests."
+        },
+        {
           "key": "client.post_logout_redirect_uri",
           "label": "post_logout_redirect_uri",
           "type": "string",
