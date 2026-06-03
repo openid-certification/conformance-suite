@@ -715,6 +715,34 @@ test.describe("logs.html — My/Published view tabs (U6)", () => {
     expect(logRequests.length).toBeGreaterThan(0);
     expect(logRequests.every((u) => u.includes("public=true"))).toBe(true);
   });
+
+  test("U3: anonymous bare URL canonicalises to ?public=true", async ({ page }) => {
+    await setupFailFast(page);
+    await recordLogRoute(page);
+    await setupCommonRoutes(page, { user: null });
+
+    await page.goto("/logs.html");
+
+    // After the auth probe resolves to anonymous, the URL gains public=true
+    // (history.replaceState — no reload) so the Published results browser is
+    // shareable and its detail links carry the param.
+    await page.waitForFunction(() => window.location.search.includes("public=true"));
+    await expect(page.locator(ITEM).first()).toBeVisible();
+    expect(page.url()).toContain("public=true");
+  });
+
+  test("U3: authenticated bare URL is NOT canonicalised (stays My)", async ({ page }) => {
+    await setupFailFast(page);
+    await setupLogListRoute(page);
+    await setupCommonRoutes(page);
+
+    await page.goto("/logs.html");
+    await expect(page.locator(ITEM).first()).toBeVisible();
+    await expect(
+      page.locator("cts-view-tabs a[data-view='my'][aria-current='page']"),
+    ).toBeVisible();
+    expect(page.url()).not.toContain("public=true");
+  });
 });
 const LOGS_PUBLISHED_HELP = "#viewTabs [data-testid='published-help']";
 

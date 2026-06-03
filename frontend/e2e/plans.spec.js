@@ -490,6 +490,101 @@ test.describe("plans.html — My/Published view tabs (U5)", () => {
 });
 
 /**
+ * Logged-out public browse (U3/U4). Anonymous visitors only have the Published
+ * view, so plans.html canonicalises the bare URL to ?public=true (so the URL is
+ * shareable and detail links carry the param) and the plan-detail links thread
+ * public=true so anonymous click-through resolves (plan-detail.html is public
+ * ONLY with the param). Authenticated users on a bare URL keep their My view
+ * untouched.
+ */
+test.describe("plans.html — logged-out public browse (U3/U4)", () => {
+  test.afterEach(async ({ page }) => {
+    expectNoUnmockedCalls(page);
+  });
+
+  test("U3: anonymous bare URL canonicalises to ?public=true", async ({ page }) => {
+    await setupFailFast(page);
+    await mockPlanRoute(page);
+    await setupTestInfoRoute(page, MOCK_PLAN_INFO);
+    await setupCommonRoutes(page, { user: null });
+
+    await page.goto("/plans.html");
+
+    await page.waitForFunction(() => window.location.search.includes("public=true"));
+    await expect(page.locator(CARD).first()).toBeVisible();
+    expect(page.url()).toContain("public=true");
+  });
+
+  test("U3: anonymous explicit ?public=true is left unchanged (no duplicate param)", async ({
+    page,
+  }) => {
+    await setupFailFast(page);
+    await mockPlanRoute(page);
+    await setupTestInfoRoute(page, MOCK_PLAN_INFO);
+    await setupCommonRoutes(page, { user: null });
+
+    await page.goto("/plans.html?public=true");
+    await expect(page.locator(CARD).first()).toBeVisible();
+
+    expect(new URL(page.url()).searchParams.getAll("public")).toEqual(["true"]);
+  });
+
+  test("U3: authenticated bare URL is NOT canonicalised (stays My)", async ({ page }) => {
+    await setupFailFast(page);
+    await mockPlanRoute(page);
+    await setupTestInfoRoute(page, MOCK_PLAN_INFO);
+    await setupCommonRoutes(page);
+
+    await page.goto("/plans.html");
+    await expect(page.locator(CARD).first()).toBeVisible();
+    await expect(
+      page.locator("cts-view-tabs a[data-view='my'][aria-current='page']"),
+    ).toBeVisible();
+    expect(page.url()).not.toContain("public=true");
+  });
+
+  test("U4: anonymous plan-detail link carries public=true (href + click)", async ({ page }) => {
+    await setupFailFast(page);
+    await mockPlanRoute(page);
+    await setupTestInfoRoute(page, MOCK_PLAN_INFO);
+    await setupCommonRoutes(page, { user: null });
+    // Stub the destination so the navigation target can be verified.
+    await page.route("**/plan-detail.html*", (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "text/html",
+        body: "<!DOCTYPE html><html><body>plan-detail stub</body></html>",
+      }),
+    );
+
+    await page.goto("/plans.html");
+
+    // plan-002 is a published plan, so it appears in the anon Published dataset.
+    const planLink = page.locator(`${CARD}[data-plan-id='plan-002'] .plan-name-link`);
+    await expect(planLink).toBeVisible();
+    // Anchor href (cmd/middle-click "open in new tab" path) carries the param.
+    await expect(planLink).toHaveAttribute("href", "plan-detail.html?plan=plan-002&public=true");
+    // Primary click (the page's cts-plan-navigate handler) navigates with it too.
+    await Promise.all([
+      page.waitForURL(/plan-detail\.html\?plan=plan-002&public=true/),
+      planLink.click(),
+    ]);
+    expect(page.url()).toContain("plan-detail.html?plan=plan-002&public=true");
+  });
+
+  test("U4: authenticated plan-detail link has no public param", async ({ page }) => {
+    await setupFailFast(page);
+    await mockPlanRoute(page);
+    await setupTestInfoRoute(page, MOCK_PLAN_INFO);
+    await setupCommonRoutes(page);
+
+    await page.goto("/plans.html");
+    const planLink = page.locator(`${CARD}[data-plan-id='plan-001'] .plan-name-link`);
+    await expect(planLink).toHaveAttribute("href", "plan-detail.html?plan=plan-001");
+  });
+});
+
+/**
  * The in-progress / failing runs strip (formerly U7) was relocated to the
  * logs.html "My" tab in the Fit & Finish batch — it is user-scoped run
  * telemetry and belongs where runs are the subject. plans.html must no longer

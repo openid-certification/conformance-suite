@@ -828,7 +828,13 @@ class CtsPlanList extends LitElement {
   }
 
   _renderCard(plan) {
-    const planHref = `plan-detail.html?plan=${encodeURIComponent(plan._id)}`;
+    // In public mode the detail link must carry public=true so anonymous
+    // cmd/middle-click ("open in new tab") resolves — plan-detail.html is
+    // public ONLY with the param. Mirrors cts-log-list's detail-href handling.
+    // The primary-click path is handled by the page's cts-plan-navigate handler,
+    // which appends the same suffix.
+    const publicSuffix = this.isPublic ? "&public=true" : "";
+    const planHref = `plan-detail.html?plan=${encodeURIComponent(plan._id)}${publicSuffix}`;
     const variantString = formatVariant(plan.variant);
     const showOwner = !this.isPublic && this.isAdmin && plan.owner;
     // The public listing omits config server-side, so a Config button there

@@ -124,6 +124,17 @@
                     if (planList.hasAttribute('defer-initial-fetch')) {
                         if (!authenticated) {
                             planList.setAttribute('is-public', '');
+                            // Canonicalise the anonymous bare URL to
+                            // ?public=true: the URL then reflects public mode
+                            // (shareable) and the plan-detail link built below
+                            // carries the param so anon click-through does not
+                            // 401. This branch only runs when the URL had no
+                            // public param (defer-initial-fetch); replaceState
+                            // (no reload) keeps the single-fetch no-flash
+                            // contract (KTD3). Authed users never reach here.
+                            const url = new URL(window.location.href);
+                            url.searchParams.set('public', 'true');
+                            window.history.replaceState(window.history.state, '', url);
                         }
                         planList.removeAttribute('defer-initial-fetch');
                         planList.fetchPlans();
@@ -143,7 +154,13 @@
             planList.addEventListener('cts-plan-navigate', (evt) => {
                 const planId = evt.detail && evt.detail.planId;
                 if (!planId) return;
-                window.location.href = 'plan-detail.html?plan=' + encodeURIComponent(planId);
+                // In public mode (anonymous, or the Published tab), thread
+                // public=true so plan-detail.html resolves for anonymous
+                // visitors — it is public ONLY with the param, otherwise the
+                // navigation 401-redirects to login. Mirrors cts-log-list's
+                // detail-link handling for logs.
+                const publicSuffix = planList.hasAttribute('is-public') ? '&public=true' : '';
+                window.location.href = 'plan-detail.html?plan=' + encodeURIComponent(planId) + publicSuffix;
             });
         });
     </script>
