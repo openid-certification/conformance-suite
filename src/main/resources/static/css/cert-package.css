@@ -1,0 +1,63 @@
+/* ================================================================
+   Certification submission package modal styles
+
+   Shared between the live page (plan-detail.html, #certificationPackageModal)
+   and Storybook (Components/cts-plan-detail → CertificationSubmissionModal),
+   so the modal can be reviewed in Storybook without duplicating CSS. Both
+   surfaces link this file; it is the single source of truth for the
+   certification package form. Relies on the OIDF tokens in oidf-tokens.css.
+
+   The certification modal markup lives in plan-detail.html (it is page
+   content slotted into <cts-modal>, not a web component), so these rules
+   stay here as plain class selectors rather than in a component's scoped
+   stylesheet.
+   ================================================================ */
+
+.oidf-cert-package-form .form-text {
+  color: var(--fg-soft);
+  font-size: var(--fs-12);
+  margin-top: var(--space-1);
+}
+
+.oidf-cert-package-form ol {
+  padding-left: var(--space-5);
+}
+
+.oidf-cert-package-form fieldset {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-2);
+  padding: var(--space-3);
+  margin: 0;
+}
+
+/* A long filename grows the native file control (notably in Firefox, which
+   renders the full name instead of truncating it), pushing the control past
+   the dialog and giving the modal a horizontal scrollbar. Make the control a
+   block that fills the row so it can never widen the dialog; the browser then
+   truncates the filename within the row. width:100% (not max-width:100%) is
+   what contains it — the explicit width collapses the control's intrinsic
+   min-content so the enclosing fieldset stops growing to fit the filename. */
+.oidf-cert-package-form input[type="file"] {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.oidf-cert-package-form .top10 {
+  margin-top: var(--space-2);
+}
+
+.oidf-cert-package-form .top15 {
+  margin-top: var(--space-3);
+}
+
+.oidf-cert-package-form .top30 {
+  margin-top: var(--space-5);
+}
+
+.oidf-cert-package-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-2);
+  margin-top: var(--space-4);
+}

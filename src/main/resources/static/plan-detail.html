@@ -15,6 +15,7 @@
     <link rel="stylesheet" href="/css/oidf-tokens.css">
     <link rel="stylesheet" type="text/css" href="css/layout.css">
     <link rel="stylesheet" href="/css/oidf-app.css">
+    <link rel="stylesheet" href="/css/cert-package.css">
 
     <script src="/vendor/lodash/js/lodash.min.js"></script>
 
@@ -58,35 +59,9 @@
                 grid-template-columns: 1fr;
             }
         }
-        .oidf-cert-package-form .form-text {
-            color: var(--fg-soft);
-            font-size: var(--fs-12);
-            margin-top: var(--space-1);
-        }
-        .oidf-cert-package-form ol {
-            padding-left: var(--space-5);
-        }
-        .oidf-cert-package-form fieldset {
-            border: 1px solid var(--border);
-            border-radius: var(--radius-2);
-            padding: var(--space-3);
-            margin: 0;
-        }
-        .oidf-cert-package-form .top10 {
-            margin-top: var(--space-2);
-        }
-        .oidf-cert-package-form .top15 {
-            margin-top: var(--space-3);
-        }
-        .oidf-cert-package-form .top30 {
-            margin-top: var(--space-5);
-        }
-        .oidf-cert-package-actions {
-            display: flex;
-            justify-content: flex-end;
-            gap: var(--space-2);
-            margin-top: var(--space-4);
-        }
+        /* Certification submission package form styles live in
+           /css/cert-package.css (linked above) so the modal can be shown in
+           Storybook without duplicating CSS. */
         .oidf-private-link-result {
             margin-top: var(--space-3);
             padding: var(--space-3);
