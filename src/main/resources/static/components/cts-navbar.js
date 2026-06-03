@@ -7,9 +7,14 @@ import "./cts-icon.js";
 // Navigation collapsed in U9 (plans-page-as-home): Home and Create Test were
 // removed because the plans listing is now the application home (reached via
 // the brand logo) and the "Schedule test" CTA lives in an in-page control on
-// that home (U8). The duplicate Published Plans / Published Logs public links were
-// removed too — anonymous visitors reach the published view via the brand
-// logo → plans.html, which defaults to Published for anon (R6/R12-R14).
+// that home (U8).
+//
+// Test Plans and Test Logs are present in BOTH the authenticated and anonymous
+// link sets so the primary listings are always reachable from the nav. The
+// authenticated links point at the bare pages (My view); the public links carry
+// ?public=true so anonymous clicks land directly in the Published browser
+// (which is the only view available to anon — R6/R12-R14). Tokens stays
+// authenticated-only.
 const NAV_LINKS = [
   { page: "plans", label: "Test Plans", href: "plans.html" },
   { page: "logs", label: "Test Logs", href: "logs.html" },
@@ -18,6 +23,8 @@ const NAV_LINKS = [
 ];
 
 const PUBLIC_NAV_LINKS = [
+  { page: "plans", label: "Test Plans", href: "plans.html?public=true" },
+  { page: "logs", label: "Test Logs", href: "logs.html?public=true" },
   { page: "api-docs", label: "API Docs", href: "api-document.html", external: true },
 ];
 
