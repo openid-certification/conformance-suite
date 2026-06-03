@@ -8,8 +8,9 @@ import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
 
 /**
  * Asserts that the JSON body of the current Authzen API response equals the body
@@ -17,8 +18,9 @@ import java.util.Set;
  * iteration of an idempotency test loop.
  *
  * <p>Search responses (subject/resource/action) carry a {@code results} array whose
- * order is not guaranteed across calls, so {@code results} is compared as a set
- * while the rest of the body is compared strictly.
+ * order is not guaranteed across calls, so {@code results} is compared as a multiset
+ * (order-independent but multiplicity-preserving) while the rest of the body is
+ * compared strictly.
  */
 public class EnsureAuthzenResponseBodyMatchesIdempotencyCheck extends AbstractCondition {
 
@@ -33,7 +35,7 @@ public class EnsureAuthzenResponseBodyMatchesIdempotencyCheck extends AbstractCo
 
 		if (isSearchResponse(expected) && isSearchResponse(actual)) {
 			compareSearchResponses(expected, actual);
-			logSuccess("Search response matched first iteration (results compared as a set)", args("body", actual));
+			logSuccess("Search response matched first iteration (results compared as a multiset)", args("body", actual));
 			return env;
 		}
 
@@ -57,9 +59,12 @@ public class EnsureAuthzenResponseBodyMatchesIdempotencyCheck extends AbstractCo
 			throw error("Search results array size changed across consecutive identical requests — PDP is not idempotent",
 				args("first_iteration_results", expectedResults, "current_iteration_results", actualResults));
 		}
-		Set<JsonElement> expectedSet = new HashSet<>(expectedResults.asList());
-		Set<JsonElement> actualSet = new HashSet<>(actualResults.asList());
-		if (!expectedSet.equals(actualSet)) {
+		List<JsonElement> expectedSorted = new ArrayList<>(expectedResults.asList());
+		List<JsonElement> actualSorted = new ArrayList<>(actualResults.asList());
+		Comparator<JsonElement> byString = Comparator.comparing(JsonElement::toString);
+		expectedSorted.sort(byString);
+		actualSorted.sort(byString);
+		if (!expectedSorted.equals(actualSorted)) {
 			throw error("Search results changed across consecutive identical requests — PDP is not idempotent",
 				args("first_iteration_results", expectedResults, "current_iteration_results", actualResults));
 		}
