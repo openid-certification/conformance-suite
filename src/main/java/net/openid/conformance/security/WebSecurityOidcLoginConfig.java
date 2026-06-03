@@ -156,6 +156,7 @@ class WebSecurityOidcLoginConfig {
 					"/js/**",  //
 					"/vendor/**", // bundled third-party libs (bootstrap, lit, jquery, ...)
 					"/components/**", // Lit web components loaded by public pages
+					"/lib/**", // ES module support libs (e.g. lib/time-format.js) imported by public-page components
 					"/images/**", //
 					"/templates/**", //
 					"/favicon.ico",  //
