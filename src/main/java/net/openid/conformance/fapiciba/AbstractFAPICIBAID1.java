@@ -223,7 +223,8 @@ import java.util.function.Supplier;
 })
 @VariantHidesConfigurationFields(parameter = FAPICIBAProfile.class, value = "openbanking_brazil", configurationFields = {
 	"client.hint_type",
-	"client.hint_value"
+	"client.hint_value",
+	"client.card_primary_account_number"
 })
 @VariantHidesConfigurationFields(parameter = ClientRegistration.class, value = "dynamic_client", configurationFields = {
 	"client.jwks",
