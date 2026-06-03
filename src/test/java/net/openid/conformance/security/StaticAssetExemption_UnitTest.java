@@ -16,7 +16,7 @@ import java.util.Arrays;
  * {@code cts-time.js → cts-plan-list.js / cts-log-list.js} and left the public
  * plans/logs listings rendering nothing for logged-out visitors.
  */
-public class StaticAssetExemptionTest {
+public class StaticAssetExemption_UnitTest {
 
 	private final AntPathMatcher pathMatcher = new AntPathMatcher();
 

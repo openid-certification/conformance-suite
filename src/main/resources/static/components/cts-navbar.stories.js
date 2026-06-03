@@ -657,6 +657,8 @@ export const ServerErrorLogsWarning = {
 
       // Should fall back to the public nav — same as the unauthenticated case
       // (Test Plans, Test Logs, API Docs).
+      expect(canvas.getByText("Test Plans")).toBeInTheDocument();
+      expect(canvas.getByText("Test Logs")).toBeInTheDocument();
       expect(canvas.getByText("API Docs")).toBeInTheDocument();
       expect(canvas.queryByText("Sign out")).toBeNull();
       expect(canvas.getByText("Sign in")).toBeInTheDocument();
