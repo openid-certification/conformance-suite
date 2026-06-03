@@ -1017,14 +1017,14 @@ export const CertificationSubmissionModal = {
                   This will make all keys, secrets, and all other test information publicly visible.
                 </p>
               </li>
-              <li>
+              <li class="top10">
                 <strong>The test plan will be marked as immutable.</strong>
                 <p class="form-text">
                   You will not be able to run tests under this plan, once you click the Create
                   Certification Package button.
                 </p>
               </li>
-              <li>
+              <li class="top10">
                 <strong
                   >A zip file containing your certification submission package will be downloaded to
                   your computer.</strong
