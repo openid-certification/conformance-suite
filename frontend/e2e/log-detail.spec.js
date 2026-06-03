@@ -156,7 +156,10 @@ async function setupV2Routes(page, { testInfo, logEntries, planModules }) {
   });
 
   if (testInfo.planId) {
-    await page.route(`**/api/plan/${testInfo.planId}`, (route) =>
+    // Trailing wildcard tolerates ?public=true — Playwright globs match
+    // the full URL including the query string (same convention as the
+    // /api/info and /api/log routes above).
+    await page.route(`**/api/plan/${testInfo.planId}*`, (route) =>
       route.fulfill({
         status: 200,
         contentType: "application/json",
@@ -359,6 +362,129 @@ test.describe("log-detail.html — new Lit-triad page", () => {
     const buttons = crumb.locator("button.crumbLink");
     await expect(buttons).toHaveCount(1);
     await expect(buttons.nth(0)).toHaveText("Logs");
+  });
+
+  // ── Public mode (?public=true) ──────────────────────────────────────
+  // Anonymous viewers reach this page via published-log links. The
+  // security filter chain only permits unauthenticated GETs on
+  // /api/info, /api/plan, and /api/log when the request carries
+  // public=true, so the bootstrap and the viewer must thread the param
+  // through every fetch — and must NOT touch /api/runner, which has no
+  // public mode at all.
+  // Plan: docs/plans/2026-06-03-003-fix-log-detail-public-mode-plan.md
+
+  test("public mode: entries load and plan name resolves via public=true requests", async ({
+    page,
+  }) => {
+    /** @type {string[]} */
+    const apiRequests = [];
+    page.on("request", (req) => {
+      if (req.url().includes("/api/")) apiRequests.push(req.url());
+    });
+
+    await setupFailFast(page);
+    await setupV2Routes(page, {
+      testInfo: MOCK_TEST_STATUS,
+      logEntries: MOCK_LOG_ENTRIES,
+    });
+    await setupCommonRoutes(page, { user: null }); // anonymous viewer
+
+    await page.goto(
+      `/log-detail.html?log=${encodeURIComponent(MOCK_TEST_STATUS.testId)}&public=true`,
+    );
+
+    // Plan name resolves through the public plan endpoint — the crumb
+    // upgrades from the optimistic literal "Plan" to the real name.
+    const crumb = page.locator("cts-crumb#logDetailCrumb");
+    await expect(crumb.locator("button.crumbLink").nth(1)).toHaveText("test-plan");
+
+    // Log entries render for the anonymous viewer.
+    await expect(page.locator("cts-log-viewer .logItem").first()).toBeVisible();
+
+    // Every security-gated fetch carried public=true.
+    const gated = apiRequests.filter(
+      (u) =>
+        u.includes(`/api/info/${MOCK_TEST_STATUS.testId}`) ||
+        u.includes(`/api/log/${MOCK_TEST_STATUS.testId}`) ||
+        u.includes(`/api/plan/${MOCK_TEST_STATUS.planId}`),
+    );
+    // All three endpoints were actually hit (info + log + plan).
+    expect(gated.some((u) => u.includes("/api/info/"))).toBe(true);
+    expect(gated.some((u) => u.includes("/api/log/"))).toBe(true);
+    expect(gated.some((u) => u.includes("/api/plan/"))).toBe(true);
+    for (const url of gated) {
+      expect(new URL(url).searchParams.get("public")).toBe("true");
+    }
+
+    // Crumb links keep the anonymous viewer in the public view.
+    const buttons = crumb.locator("button.crumbLink");
+    await expect(buttons.nth(0)).toHaveAttribute("data-target", "/plans.html?public=true");
+    await expect(buttons.nth(1)).toHaveAttribute(
+      "data-target",
+      `/plan-detail.html?plan=${encodeURIComponent(MOCK_TEST_STATUS.planId)}&public=true`,
+    );
+  });
+
+  test('public mode: breadcrumb keeps literal "Plan" when the plan is not published', async ({
+    page,
+  }) => {
+    // A log can be published while its parent plan is not — the public
+    // plan fetch 404s and the optimistic "Plan" fallback must survive.
+    await setupFailFast(page);
+    await setupV2Routes(page, {
+      testInfo: MOCK_TEST_STATUS,
+      logEntries: MOCK_LOG_ENTRIES,
+    });
+    // Shadow the helper's plan stub (last registered = matched first).
+    await page.route(`**/api/plan/${MOCK_TEST_STATUS.planId}*`, (route) =>
+      route.fulfill({ status: 404, body: "" }),
+    );
+    await setupCommonRoutes(page, { user: null });
+
+    await page.goto(
+      `/log-detail.html?log=${encodeURIComponent(MOCK_TEST_STATUS.testId)}&public=true`,
+    );
+
+    const crumb = page.locator("cts-crumb#logDetailCrumb");
+    const buttons = crumb.locator("button.crumbLink");
+    await expect(buttons).toHaveCount(2);
+    await expect(buttons.nth(0)).toHaveText("Plans");
+    await expect(buttons.nth(1)).toHaveText("Plan");
+    await expect(crumb.locator("span.crumbCurrent")).toHaveText(MOCK_TEST_STATUS.testName);
+  });
+
+  test("public mode: running test never requests /api/runner", async ({ page }) => {
+    // /api/runner has no public matcher entry — anonymous GETs would 401
+    // on every poll cycle. The poll loop must keep refreshing /api/info
+    // (live status for the public viewer) while skipping the runner
+    // fetch entirely.
+    /** @type {string[]} */
+    const apiRequests = [];
+    page.on("request", (req) => {
+      if (req.url().includes("/api/")) apiRequests.push(req.url());
+    });
+
+    await setupFailFast(page);
+    await setupV2Routes(page, {
+      testInfo: MOCK_TEST_RUNNING,
+      logEntries: MOCK_LOG_ENTRIES,
+    });
+    await setupCommonRoutes(page, { user: null });
+
+    await page.goto(
+      `/log-detail.html?log=${encodeURIComponent(MOCK_TEST_RUNNING.testId)}&public=true`,
+    );
+
+    // Wait until the first poll cycle has run: the bootstrap /api/info
+    // fetch plus pollOnce's refresh land near t=0. In non-public mode
+    // pollOnce would fire /api/runner in that same first cycle.
+    await expect
+      .poll(
+        () => apiRequests.filter((u) => u.includes(`/api/info/${MOCK_TEST_RUNNING.testId}`)).length,
+      )
+      .toBeGreaterThan(1);
+
+    expect(apiRequests.filter((u) => u.includes("/api/runner/"))).toHaveLength(0);
   });
 
   /**
