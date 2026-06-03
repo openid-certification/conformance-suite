@@ -29,7 +29,7 @@ public abstract class AbstractFAPIBrazilFetchDirectorySSAJwks extends AbstractCo
 		log("Fetching directory jwks", args("jwks_uri", jwksUri));
 
 		try {
-			RestTemplate restTemplate = createRestTemplate(env);
+			RestTemplate restTemplate = createRestTemplateWithCache(env);
 
 			String jwkString = restTemplate.getForObject(jwksUri, String.class);
 

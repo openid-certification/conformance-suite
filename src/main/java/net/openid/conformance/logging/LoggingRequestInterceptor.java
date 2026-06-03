@@ -119,7 +119,12 @@ public class LoggingRequestInterceptor implements ClientHttpRequestInterceptor, 
 		if (response.body != null) {
 			o.addProperty("response_body", new String(response.body, StandardCharsets.UTF_8));
 		}
-		o.addProperty("msg", "HTTP response");
+		if (response.cacheAgeSeconds != null) {
+			o.addProperty("msg", "Using cached HTTP response");
+			o.addProperty("cache_age_seconds", response.cacheAgeSeconds);
+		} else {
+			o.addProperty("msg", "HTTP response");
+		}
 		o.addProperty("http", "response");
 		if (response.bodyException != null) {
 			o.addProperty("exception_reading_body", response.bodyException.getMessage());
@@ -132,6 +137,10 @@ public class LoggingRequestInterceptor implements ClientHttpRequestInterceptor, 
 		private final ClientHttpResponse response;
 		private byte[] body;
 		private IOException bodyException;
+		// null when the response came from the network; set to the cached
+		// entry's age when an inner interceptor returned a replayed response
+		// tagged with CachedHttpResponseMarker.
+		private final Long cacheAgeSeconds;
 
 		public WrappedClientHttpResponse(ClientHttpResponse response) {
 			this.response = response;
@@ -142,6 +151,8 @@ public class LoggingRequestInterceptor implements ClientHttpRequestInterceptor, 
 				this.body = null;
 				this.bodyException = e;
 			}
+			this.cacheAgeSeconds = (response instanceof CachedHttpResponseMarker marker)
+				? marker.getCacheAgeSeconds() : null;
 		}
 
 		@Override
