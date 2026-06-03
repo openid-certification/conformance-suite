@@ -7,8 +7,8 @@ import net.openid.conformance.variant.VariantNotApplicable;
 
 @PublishTestModule(
 	testName = "authzen-pdp-resource-search-resource-search-with-subject-properties",
-	displayName = "Authzen Resource Search API - Section 4.3.3: Resource search with subject properties -- fixture validated",
-	summary = "Section 4.3.3 resource search with subject properties (validates rule 6). Records bob (admin) can write to MUST include at least record-2.\n" + AuthzenPDPResourceSearchResourceSearchWithSubjectPropertiesTest.payload,
+	displayName = "Authzen Resource Search API - Section 8.5.1: Resource search with subject properties -- fixture validated",
+	summary = "Section 8.5.1 resource search with subject properties (validates rule 6). Records bob (admin) can write to MUST include at least record-2.\n" + AuthzenPDPResourceSearchResourceSearchWithSubjectPropertiesTest.payload,
 	profile = "Authzen"
 )
 @VariantNotApplicable(parameter = AuthzenSupport.class, values = {"core"})

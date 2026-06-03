@@ -5,8 +5,8 @@ import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
 	testName = "authzen-pdp-evaluation-subject-is-string",
-	displayName = "Authzen Evaluation API - Section 2.4.6: Subject is string -- expect HTTP 400",
-	summary = "Section 2.4.6 invalid field type. `subject` is a string instead of an object; PDP MUST return HTTP 400.\n" + AuthzenPDPEvaluationSubjectIsStringTest.payload,
+	displayName = "Authzen Evaluation API - Section 10.1: Subject is string -- expect HTTP 400",
+	summary = "Section 10.1 invalid field type. `subject` is a string instead of an object; PDP MUST return HTTP 400.\n" + AuthzenPDPEvaluationSubjectIsStringTest.payload,
 	profile = "Authzen"
 )
 public class AuthzenPDPEvaluationSubjectIsStringTest extends AbstractAuthzenPDPEvaluationTest {

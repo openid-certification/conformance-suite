@@ -7,8 +7,8 @@ import net.openid.conformance.variant.VariantNotApplicable;
 
 @PublishTestModule(
 	testName = "authzen-pdp-evaluation-fixture-request-deny-based-on-action-properties",
-	displayName = "Authzen Evaluation API - Section 2.2.7: Fixture request -- deny based on action properties",
-	summary = "Section 2.2.7 fixture request -- deny based on action properties (rule 8). Hard delete is denied; expects {\"decision\": false}.\n" + AuthzenPDPEvaluationFixtureRequestDenyBasedOnActionPropertiesTest.payload,
+	displayName = "Authzen Evaluation API - Section 6.1: Fixture request -- deny based on action properties",
+	summary = "Section 6.1 fixture request -- deny based on action properties (rule 8). Hard delete is denied; expects {\"decision\": false}.\n" + AuthzenPDPEvaluationFixtureRequestDenyBasedOnActionPropertiesTest.payload,
 	profile = "Authzen"
 )
 @VariantNotApplicable(parameter = AuthzenSupport.class, values = {"core"})

@@ -7,8 +7,8 @@ import net.openid.conformance.variant.VariantNotApplicable;
 
 @PublishTestModule(
 	testName = "authzen-pdp-evaluation-fixture-request-permit-based-on-subject-properties",
-	displayName = "Authzen Evaluation API - Section 2.2.5: Fixture request -- permit based on subject properties",
-	summary = "Section 2.2.5 fixture request -- permit based on subject properties (rule 6). An admin can write to an archived record; expects {\"decision\": true}.\n" + AuthzenPDPEvaluationFixtureRequestPermitBasedOnSubjectPropertiesTest.payload,
+	displayName = "Authzen Evaluation API - Section 6.1: Fixture request -- permit based on subject properties",
+	summary = "Section 6.1 fixture request -- permit based on subject properties (rule 6). An admin can write to an archived record; expects {\"decision\": true}.\n" + AuthzenPDPEvaluationFixtureRequestPermitBasedOnSubjectPropertiesTest.payload,
 	profile = "Authzen"
 )
 @VariantNotApplicable(parameter = AuthzenSupport.class, values = {"core"})

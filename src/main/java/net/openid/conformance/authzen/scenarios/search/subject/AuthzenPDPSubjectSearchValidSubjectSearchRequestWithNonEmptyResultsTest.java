@@ -5,8 +5,8 @@ import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
 	testName = "authzen-pdp-subject-search-valid-subject-search-request-with-non-empty-results",
-	displayName = "Authzen Subject Search API - Section 4.2.1: Valid subject search request with non-empty results",
-	summary = "Section 4.2.1 valid subject search. Search for users who can read record-1; the results MUST include at least alice and bob.\n" + AuthzenPDPSubjectSearchValidSubjectSearchRequestWithNonEmptyResultsTest.payload,
+	displayName = "Authzen Subject Search API - Section 8.4.1: Valid subject search request with non-empty results",
+	summary = "Section 8.4.1 valid subject search. Search for users who can read record-1; the results MUST include at least alice and bob.\n" + AuthzenPDPSubjectSearchValidSubjectSearchRequestWithNonEmptyResultsTest.payload,
 	profile = "Authzen"
 )
 public class AuthzenPDPSubjectSearchValidSubjectSearchRequestWithNonEmptyResultsTest extends AbstractAuthzenPDPSubjectSearchTest {

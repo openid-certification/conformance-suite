@@ -25,7 +25,7 @@ import net.openid.conformance.plan.TestPlan;
 		AuthzenPDPResourceSearchAcceptContentTypeWithCharsetTest.class,
 		AuthzenPDPResourceSearchRejectMalformedJsonTest.class,
 		AuthzenPDPResourceSearchRejectEmptyBodyTest.class,
-		// Error handling: HTTP 400 negative tests (Section 4.7)
+		// Error handling: HTTP 400 negative tests (Section 10.1)
 		AuthzenPDPResourceSearchMissingSubjectTest.class,
 		AuthzenPDPResourceSearchSubjectMissingIdTest.class,
 		AuthzenPDPResourceSearchMissingResourceTest.class,

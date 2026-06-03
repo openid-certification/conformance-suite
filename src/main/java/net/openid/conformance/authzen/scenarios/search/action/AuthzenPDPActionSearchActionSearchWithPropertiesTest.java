@@ -7,8 +7,8 @@ import net.openid.conformance.variant.VariantNotApplicable;
 
 @PublishTestModule(
 	testName = "authzen-pdp-action-search-action-search-with-properties",
-	displayName = "Authzen Action Search API - Section 4.4.3: Action search with properties -- fixture validated",
-	summary = "Section 4.4.3 action search with properties (validates rule 6). Actions an admin can perform on an archived record MUST include at least write.\n" + AuthzenPDPActionSearchActionSearchWithPropertiesTest.payload,
+	displayName = "Authzen Action Search API - Section 8.6.1: Action search with properties -- fixture validated",
+	summary = "Section 8.6.1 action search with properties (validates rule 6). Actions an admin can perform on an archived record MUST include at least write.\n" + AuthzenPDPActionSearchActionSearchWithPropertiesTest.payload,
 	profile = "Authzen"
 )
 @VariantNotApplicable(parameter = AuthzenSupport.class, values = {"core"})

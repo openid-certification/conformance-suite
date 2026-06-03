@@ -5,8 +5,8 @@ import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
 	testName = "authzen-pdp-evaluation-missing-action",
-	displayName = "Authzen Evaluation API - Section 2.4.1: Missing action -- expect HTTP 400",
-	summary = "Section 2.4.1 missing required field. Request omits `action`; PDP MUST return HTTP 400.\n" + AuthzenPDPEvaluationMissingActionTest.payload,
+	displayName = "Authzen Evaluation API - Section 10.1: Missing action -- expect HTTP 400",
+	summary = "Section 10.1 missing required field. Request omits `action`; PDP MUST return HTTP 400.\n" + AuthzenPDPEvaluationMissingActionTest.payload,
 	profile = "Authzen"
 )
 public class AuthzenPDPEvaluationMissingActionTest extends AbstractAuthzenPDPEvaluationTest {

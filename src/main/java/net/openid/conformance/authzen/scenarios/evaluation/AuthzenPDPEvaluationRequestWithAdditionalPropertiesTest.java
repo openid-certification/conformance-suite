@@ -5,8 +5,8 @@ import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
 	testName = "authzen-pdp-evaluation-request-with-additional-properties",
-	displayName = "Authzen Evaluation API - Section 2.2.8: Request with additional properties",
-	summary = "Section 2.2.8 request with additional properties beyond those required by the fixture; the PDP MUST accept and return {\"decision\": true}.\n" + AuthzenPDPEvaluationRequestWithAdditionalPropertiesTest.payload,
+	displayName = "Authzen Evaluation API - Section 6.1: Request with additional properties",
+	summary = "Section 6.1 request with additional properties beyond those required by the fixture; the PDP MUST accept and return {\"decision\": true}.\n" + AuthzenPDPEvaluationRequestWithAdditionalPropertiesTest.payload,
 	profile = "Authzen"
 )
 public class AuthzenPDPEvaluationRequestWithAdditionalPropertiesTest extends AbstractAuthzenPDPEvaluationTest {

@@ -7,8 +7,8 @@ import net.openid.conformance.variant.VariantNotApplicable;
 
 @PublishTestModule(
 	testName = "authzen-pdp-evaluation-fixture-request-deny-based-on-properties",
-	displayName = "Authzen Evaluation API - Section 2.2.4: Fixture request -- deny based on properties",
-	summary = "Section 2.2.4 fixture request -- deny based on resource properties (rule 5). Alice cannot write to a record with status=archived; expects {\"decision\": false}.\n" + AuthzenPDPEvaluationFixtureRequestDenyBasedOnPropertiesTest.payload,
+	displayName = "Authzen Evaluation API - Section 6.1: Fixture request -- deny based on properties",
+	summary = "Section 6.1 fixture request -- deny based on resource properties (rule 5). Alice cannot write to a record with status=archived; expects {\"decision\": false}.\n" + AuthzenPDPEvaluationFixtureRequestDenyBasedOnPropertiesTest.payload,
 	profile = "Authzen"
 )
 @VariantNotApplicable(parameter = AuthzenSupport.class, values = {"core"})
