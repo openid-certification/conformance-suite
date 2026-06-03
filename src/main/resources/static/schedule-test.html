@@ -902,7 +902,51 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
                                             <div class="input-group-text">
                                                 <span class="bi bi-info-circle-fill" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Card primary account number to send as the login_hint value for ConnectID CIBA 3DS tests. This must identify a user on the server under test."></span>
                                             </div>
-                                            <input type="text" class="form-control config-form-element" data-json-target="client.card_primary_account_number"></input>
+                                            <input type="text" class="form-control config-form-element" data-json-target="client.card_primary_account_number" placeholder="6372069742108725"></input>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row config-form-element-container">
+                                    <div class="col-md-2 key">payment_amount</div>
+                                    <div class="col-md-10">
+                                        <div class="input-group">
+                                            <div class="input-group-text">
+                                                <span class="bi bi-info-circle-fill" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Payment amount to send in authorization_details for ConnectID CIBA 3DS payment authorization tests."></span>
+                                            </div>
+                                            <input type="text" class="form-control config-form-element" data-json-target="client.payment_amount" placeholder="222.22"></input>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row config-form-element-container">
+                                    <div class="col-md-2 key">payment_currency</div>
+                                    <div class="col-md-10">
+                                        <div class="input-group">
+                                            <div class="input-group-text">
+                                                <span class="bi bi-info-circle-fill" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Payment currency code to send in authorization_details for ConnectID CIBA 3DS payment authorization tests."></span>
+                                            </div>
+                                            <input type="text" class="form-control config-form-element" data-json-target="client.payment_currency" placeholder="AUD"></input>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row config-form-element-container">
+                                    <div class="col-md-2 key">payment_beneficiary_name</div>
+                                    <div class="col-md-10">
+                                        <div class="input-group">
+                                            <div class="input-group-text">
+                                                <span class="bi bi-info-circle-fill" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Beneficiary or merchant name to send in authorization_details for ConnectID CIBA 3DS payment authorization tests."></span>
+                                            </div>
+                                            <input type="text" class="form-control config-form-element" data-json-target="client.payment_beneficiary_name" placeholder="Byron Bay Cookies"></input>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row config-form-element-container">
+                                    <div class="col-md-2 key">payment_desc</div>
+                                    <div class="col-md-10">
+                                        <div class="input-group">
+                                            <div class="input-group-text">
+                                                <span class="bi bi-info-circle-fill" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Payment description to send in authorization_details for ConnectID CIBA 3DS payment authorization tests."></span>
+                                            </div>
+                                            <input type="text" class="form-control config-form-element" data-json-target="client.payment_desc" placeholder="Online purchase of cookies with age verification"></input>
                                         </div>
                                     </div>
                                 </div>
