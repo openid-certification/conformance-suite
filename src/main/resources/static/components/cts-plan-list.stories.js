@@ -735,6 +735,16 @@ export const PublicView = {
     // Owner pill and config button stay hidden in the public view.
     expect(canvasElement.querySelector(".plan-owner")).toBeNull();
     expect(canvasElement.querySelector(".showConfigBtn")).toBeNull();
+
+    // The detail link threads public=true so anonymous click-through (and
+    // open-in-new-tab) resolves — plan-detail.html is public ONLY with the param.
+    const publishedCard = canvasElement.querySelector(
+      '[data-testid="plan-list-item"][data-plan-id="plan-002"]',
+    );
+    const publishedLink = /** @type {HTMLAnchorElement | null} */ (
+      publishedCard?.querySelector("a.plan-name-link")
+    );
+    expect(publishedLink?.getAttribute("href")).toBe("plan-detail.html?plan=plan-002&public=true");
   },
 };
 

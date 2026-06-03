@@ -115,6 +115,18 @@
             // authed → My (is-public absent), anon → Published (R6/AE3).
             const isPublic = explicitPublic || !authenticated;
 
+            // Canonicalise the anonymous bare URL to ?public=true so the URL
+            // reflects public mode (shareable) and downstream detail links
+            // carry the param. isPublic && !explicitPublic fires only for
+            // anonymous visitors who arrived without the param; authed users on
+            // a bare URL keep their My view untouched. replaceState (no reload)
+            // preserves the single-probe no-flash flow.
+            if (isPublic && !explicitPublic) {
+                const url = new URL(window.location.href);
+                url.searchParams.set("public", "true");
+                window.history.replaceState(window.history.state, "", url);
+            }
+
             // Wait for the registration so attributes set below take
             // effect synchronously before connectedCallback runs. Await the
             // strip's definition too (symmetry): the boot calls
