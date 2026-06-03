@@ -28,6 +28,7 @@
  */
 
 import { renderErrorIntoSlot } from "./log-detail-error-slot.js";
+import { scrollEntryIntoView } from "../components/cts-log-entry.js";
 
 const POLL_INTERVAL_MS = 3000;
 
@@ -957,8 +958,11 @@ function handleScrollToEntry(evt) {
   if (!target) return;
   // Blocks are non-collapsible (always-rendered .logBlock divs), so the
   // entry is already in the layout — scroll straight to it with no
-  // collapsed-ancestor reveal step.
-  target.scrollIntoView({ behavior: "smooth", block: "start" });
+  // collapsed-ancestor reveal step. scrollEntryIntoView handles the wide
+  // layout where the host is display:contents (boxless — a bare
+  // scrollIntoView would silently no-op) by scrolling the painted
+  // .logItem row instead.
+  scrollEntryIntoView(target, { behavior: "smooth", block: "start" });
 }
 
 /**

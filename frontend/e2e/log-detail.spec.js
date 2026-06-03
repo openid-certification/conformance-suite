@@ -111,7 +111,12 @@ async function installScrollIntoViewSpy(page) {
     Element.prototype.scrollIntoView = function (
       /** @type {boolean | ScrollIntoViewOptions | undefined} */ arg,
     ) {
-      const id = this.getAttribute("data-entry-id") || this.id || "";
+      // At the wide layout the cts-log-entry host is display:contents, so
+      // scrollEntryIntoView scrolls the painted .logItem INSIDE the host —
+      // attribute the scroll to the owning entry via closest() so callers
+      // keep asserting on entry ids regardless of which box was scrolled.
+      const host = this.closest("cts-log-entry") || this;
+      const id = host.getAttribute("data-entry-id") || host.id || "";
       if (id) ids.push(id);
       return orig.call(this, arg);
     };
@@ -1378,16 +1383,27 @@ test.describe("log-detail.html — new Lit-triad page", () => {
     await expect(target).toBeVisible();
 
     // The status bar publishes its measured height to documentElement;
-    // the entry's scroll-margin-top consumes it. After the scroll lands,
-    // the entry's top must sit below the status bar's bottom.
-    const targetTop = await target.evaluate((el) => el.getBoundingClientRect().top);
-    const barBottom = await page.evaluate(() => {
-      const bar = document.getElementById("ctsLogStatusBar");
-      if (!bar) return 0;
-      return bar.getBoundingClientRect().bottom;
-    });
-    // Allow a 1 px float-rounding fudge.
-    expect(targetTop).toBeGreaterThanOrEqual(Math.floor(barBottom) - 1);
+    // the row's scroll-margin-top consumes it. After the scroll lands,
+    // the row's top must sit below the status bar's bottom. Measure the
+    // painted .logItem (at the wide layout the host is display:contents
+    // and reports an empty rect), and poll so the smooth scroll has time
+    // to settle before the position is judged. The poll returns
+    // (top - barBottom), expected >= -1 (a 1 px float-rounding fudge).
+    await expect
+      .poll(
+        () =>
+          page.evaluate(() => {
+            const el = document.getElementById("LOG-0004");
+            if (!el) return Number.NEGATIVE_INFINITY;
+            const box = el.getClientRects().length > 0 ? el : el.querySelector(".logItem");
+            if (!box) return Number.NEGATIVE_INFINITY;
+            const bar = document.getElementById("ctsLogStatusBar");
+            const barBottom = bar ? bar.getBoundingClientRect().bottom : 0;
+            return box.getBoundingClientRect().top - Math.floor(barBottom);
+          }),
+        { message: "entry row should settle below the sticky status bar" },
+      )
+      .toBeGreaterThanOrEqual(-1);
   });
 
   test("U6: out-of-range hash loads the page without errors", async ({ page }) => {
