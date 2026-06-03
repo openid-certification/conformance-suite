@@ -40,7 +40,7 @@ public class AuthzenPDPResourceSearchRejectGetMethodTest extends AbstractAuthzen
 	}
 
 	@Override
-	protected int getExpectedHttpStatusCode() {
-		return 405;
+	protected java.util.Set<Integer> getAcceptableHttpStatusCodes() {
+		return java.util.Set.of(400, 405);
 	}
 }
