@@ -22,16 +22,12 @@ public class EnsurePolicyDecisionPointMatchesIssuer extends AbstractCondition {
 		if (returned == null) {
 			throw error("Discovery document does not contain policy_decision_point");
 		}
-		if (!stripTrailingSlash(configured).equals(stripTrailingSlash(returned))) {
+		if (!configured.equals(returned)) {
 			throw error("Discovery document policy_decision_point does not match the URL used to discover it",
 				args("configured", configured, "returned", returned));
 		}
 		logSuccess("Discovery document policy_decision_point matches the discovery URL",
 			args("policy_decision_point", returned));
 		return env;
-	}
-
-	private static String stripTrailingSlash(String s) {
-		return s.endsWith("/") ? s.substring(0, s.length() - 1) : s;
 	}
 }
