@@ -5,8 +5,8 @@ import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
 	testName = "authzen-pdp-subject-search-resource-missing-id",
-	displayName = "Authzen Subject Search API - Section 4.7.2: Resource missing id -- expect HTTP 400",
-	summary = "Section 4.7.2 missing required sub-field. Subject Search resource omits `id`; PDP MUST return HTTP 400.\n" + AuthzenPDPSubjectSearchResourceMissingIdTest.payload,
+	displayName = "Authzen Subject Search API - Section 10.1.1: Resource missing id -- expect HTTP 400",
+	summary = "Section 10.1.1 missing required sub-field. Subject Search resource omits `id`; PDP MUST return HTTP 400.\n" + AuthzenPDPSubjectSearchResourceMissingIdTest.payload,
 	profile = "Authzen"
 )
 public class AuthzenPDPSubjectSearchResourceMissingIdTest extends AbstractAuthzenPDPSubjectSearchTest {

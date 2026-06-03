@@ -5,8 +5,8 @@ import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
 	testName = "authzen-pdp-evaluation-request-with-unknown-fields",
-	displayName = "Authzen Evaluation API - Section 2.2.9: Request with unknown fields",
-	summary = "Section 2.2.9 request with unknown fields. Per forward-compatibility, the PDP MUST ignore unrecognised fields and return {\"decision\": true}.\n" + AuthzenPDPEvaluationRequestWithUnknownFieldsTest.payload,
+	displayName = "Authzen Evaluation API - Section 6.1: Request with unknown fields",
+	summary = "Section 6.1 request with unknown fields. Per forward-compatibility, the PDP MUST ignore unrecognised fields and return {\"decision\": true}.\n" + AuthzenPDPEvaluationRequestWithUnknownFieldsTest.payload,
 	profile = "Authzen"
 )
 public class AuthzenPDPEvaluationRequestWithUnknownFieldsTest extends AbstractAuthzenPDPEvaluationTest {

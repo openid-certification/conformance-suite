@@ -5,8 +5,8 @@ import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
 	testName = "authzen-pdp-subject-search-subject-search-with-subject-id-omitted",
-	displayName = "Authzen Subject Search API - Section 4.2.3: Subject search with subject.id omitted",
-	summary = "Section 4.2.3 the harness does not send subject.id in Subject Search requests. The PDP MUST accept the request and return at least alice and bob.\n" + AuthzenPDPSubjectSearchSubjectSearchWithSubjectIdOmittedTest.payload,
+	displayName = "Authzen Subject Search API - Section 8.4.1: Subject search with subject.id omitted",
+	summary = "Section 8.4.1 the harness does not send subject.id in Subject Search requests. The PDP MUST accept the request and return at least alice and bob.\n" + AuthzenPDPSubjectSearchSubjectSearchWithSubjectIdOmittedTest.payload,
 	profile = "Authzen"
 )
 public class AuthzenPDPSubjectSearchSubjectSearchWithSubjectIdOmittedTest extends AbstractAuthzenPDPSubjectSearchTest {

@@ -5,8 +5,8 @@ import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
 	testName = "authzen-pdp-action-search-resource-missing-type",
-	displayName = "Authzen Action Search API - Section 4.7.2: Resource missing type -- expect HTTP 400",
-	summary = "Section 4.7.2 missing required sub-field. Action Search resource omits `type`; PDP MUST return HTTP 400.\n" + AuthzenPDPActionSearchResourceMissingTypeTest.payload,
+	displayName = "Authzen Action Search API - Section 10.1.1: Resource missing type -- expect HTTP 400",
+	summary = "Section 10.1.1 missing required sub-field. Action Search resource omits `type`; PDP MUST return HTTP 400.\n" + AuthzenPDPActionSearchResourceMissingTypeTest.payload,
 	profile = "Authzen"
 )
 public class AuthzenPDPActionSearchResourceMissingTypeTest extends AbstractAuthzenPDPActionSearchTest {

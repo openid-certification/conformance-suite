@@ -21,7 +21,7 @@ import net.openid.conformance.plan.TestPlan;
 		AuthzenPDPEvaluationFixtureRequestPermitBasedOnSubjectPropertiesTest.class,
 		AuthzenPDPEvaluationFixtureRequestPermitBasedOnActionPropertiesTest.class,
 		AuthzenPDPEvaluationFixtureRequestDenyBasedOnActionPropertiesTest.class,
-		// Error handling: HTTP 400 negative tests (Section 2.4)
+		// Error handling: HTTP 400 negative tests (Section 10.1)
 		AuthzenPDPEvaluationMissingSubjectTest.class,
 		AuthzenPDPEvaluationMissingActionTest.class,
 		AuthzenPDPEvaluationMissingResourceTest.class,
@@ -32,9 +32,9 @@ import net.openid.conformance.plan.TestPlan;
 		AuthzenPDPEvaluationResourceMissingIdTest.class,
 		AuthzenPDPEvaluationSubjectIsStringTest.class,
 		AuthzenPDPEvaluationActionNameIsNumberTest.class,
-		// X-Request-ID handling (Section 2.5)
+		// X-Request-ID handling (Section 5.5)
 		AuthzenPDPEvaluationXRequestIdEchoedTest.class,
-		// Idempotency (Section 2.6)
+		// Idempotency (X-Request-ID idempotency (Section 10.1.3))
 		AuthzenPDPEvaluationIdempotencyTest.class,
 		// Forward-compat: unknown fields ignored (Spec 10.1.1-3)
 		AuthzenPDPEvaluationUnknownTopLevelFieldsTest.class,

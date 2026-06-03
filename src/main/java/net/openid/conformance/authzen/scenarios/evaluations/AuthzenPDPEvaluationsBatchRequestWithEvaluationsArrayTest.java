@@ -5,8 +5,8 @@ import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
 	testName = "authzen-pdp-evaluations-batch-request-with-evaluations-array",
-	displayName = "Authzen Evaluations API - Section 3.2.1: Batch request with evaluations array",
-	summary = "Section 3.2.1 batch request with evaluations array. Structural test only: a response array of two decision objects is expected (decision values are not validated).\n" + AuthzenPDPEvaluationsBatchRequestWithEvaluationsArrayTest.payload,
+	displayName = "Authzen Evaluations API - Section 6.1: Batch request with evaluations array",
+	summary = "Section 6.1 batch request with evaluations array. Structural test only: a response array of two decision objects is expected (decision values are not validated).\n" + AuthzenPDPEvaluationsBatchRequestWithEvaluationsArrayTest.payload,
 	profile = "Authzen"
 )
 public class AuthzenPDPEvaluationsBatchRequestWithEvaluationsArrayTest extends AbstractAuthzenPDPEvaluationsTest {
