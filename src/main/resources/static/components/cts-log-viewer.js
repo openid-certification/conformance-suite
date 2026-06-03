@@ -333,6 +333,12 @@ function ensureStylesInjected() {
  *
  * @property {string} testId - Test log ID to fetch. Reflects the `test-id`
  *   attribute.
+ * @property {boolean} isPublic - Switches the fetch to
+ *   `/api/log/{testId}?public=true` so anonymous viewers of published
+ *   logs pass the security filter's public matcher (unauthenticated GETs
+ *   are only permitted with `public=true`). The page MUST set this BEFORE
+ *   `testId` — the `testId` assignment triggers the first fetch. Reflects
+ *   the `is-public` attribute.
  * @property {boolean} autoScroll - Auto-scroll to the newest entry as rows
  *   arrive. Reflects the `auto-scroll` attribute.
  * @property {object} testInfo - Optional pre-fetched `/api/info` payload.
@@ -353,6 +359,7 @@ function ensureStylesInjected() {
 class CtsLogViewer extends LitElement {
   static properties = {
     testId: { type: String, attribute: "test-id" },
+    isPublic: { type: Boolean, attribute: "is-public" },
     autoScroll: { type: Boolean, attribute: "auto-scroll" },
     testInfo: { type: Object, attribute: false },
     _entries: { state: true },
@@ -369,6 +376,7 @@ class CtsLogViewer extends LitElement {
   constructor() {
     super();
     this.testId = "";
+    this.isPublic = false;
     this.autoScroll = true;
     this.testInfo = null;
     this._entries = [];
@@ -645,8 +653,14 @@ class CtsLogViewer extends LitElement {
     let entriesCount = 0;
     let appendedAny = false;
     try {
-      let url = "/api/log/" + encodeURIComponent(this.testId);
-      if (this._latestTimestamp > 0) url += "?since=" + this._latestTimestamp;
+      // `public=true` and `since=<ts>` must compose in every combination —
+      // the public matcher needs `public=true` on EVERY poll cycle (not
+      // just the first fetch), and `since` only joins once entries exist.
+      const params = new URLSearchParams();
+      if (this.isPublic) params.set("public", "true");
+      if (this._latestTimestamp > 0) params.set("since", String(this._latestTimestamp));
+      const query = params.toString();
+      const url = "/api/log/" + encodeURIComponent(this.testId) + (query ? `?${query}` : "");
       const response = await fetch(url);
       if (!response.ok) throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       const newEntries = await response.json();
