@@ -13,7 +13,7 @@ class WebSecurityConfig {
 	 * Exempt static asset paths from Spring Security's filter chain entirely.
 	 *
 	 * Without this, every request for /images/*, /css/*, /js/*, /vendor/*,
-	 * /components/*, /fonts/*, /templates/*, and /favicon.ico runs through
+	 * /components/*, /lib/*, /fonts/*, /templates/*, and /favicon.ico runs through
 	 * Spring Security's default HeadersConfigurer, which stamps
 	 * "Cache-Control: no-cache, no-store, max-age=0, must-revalidate",
 	 * "Pragma: no-cache", and "Expires: 0" on the response. Browsers then
@@ -34,18 +34,25 @@ class WebSecurityConfig {
 	 *  - /jwks**, /test/**, /.well-known/** — dynamic endpoints.
 	 *  - /json-schemas/** — served via a custom ResourceHandler; left in
 	 *    the chain for now because it's less obviously static-asset shaped.
+	 *
+	 * Exposed as a constant (rather than inlined into the bean lambda) so
+	 * StaticAssetExemptionTest can assert the configured list against concrete
+	 * asset paths — e.g. that /lib/*.js is exempt while /api/** is not.
 	 */
+	static final String[] STATIC_RESOURCE_PATTERNS = {
+		"/css/**",
+		"/js/**",
+		"/vendor/**",
+		"/components/**",
+		"/lib/**",
+		"/images/**",
+		"/fonts/**",
+		"/templates/**",
+		"/favicon.ico"
+	};
+
 	@Bean
 	public WebSecurityCustomizer staticResourcesIgnoreCustomizer() {
-		return web -> web.ignoring().requestMatchers(
-			"/css/**",
-			"/js/**",
-			"/vendor/**",
-			"/components/**",
-			"/images/**",
-			"/fonts/**",
-			"/templates/**",
-			"/favicon.ico"
-		);
+		return web -> web.ignoring().requestMatchers(STATIC_RESOURCE_PATTERNS);
 	}
 }
