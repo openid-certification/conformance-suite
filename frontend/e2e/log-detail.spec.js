@@ -487,6 +487,43 @@ test.describe("log-detail.html — new Lit-triad page", () => {
     expect(apiRequests.filter((u) => u.includes("/api/runner/"))).toHaveLength(0);
   });
 
+  test("public mode: Download Logs requests /api/log/export/<id> with public=true", async ({
+    page,
+  }) => {
+    // The export route is /api/log/export/{id} — the swapped
+    // /api/log/{id}/export form has no server-side route and 404s. The
+    // download item only shows in public (readonly) mode when the test
+    // is published with publish === "everything".
+    /** @type {string[]} */
+    const apiRequests = [];
+    page.on("request", (req) => {
+      if (req.url().includes("/api/")) apiRequests.push(req.url());
+    });
+
+    await setupFailFast(page);
+    const publishedInfo = { ...MOCK_TEST_STATUS, publish: "everything" };
+    await setupV2Routes(page, {
+      testInfo: publishedInfo,
+      logEntries: MOCK_LOG_ENTRIES,
+    });
+    await page.route("**/api/log/export/**", (route) =>
+      route.fulfill({ status: 200, contentType: "application/zip", body: "PK" }),
+    );
+    await setupCommonRoutes(page, { user: null });
+
+    await page.goto(`/log-detail.html?log=${encodeURIComponent(publishedInfo.testId)}&public=true`);
+
+    await page.locator('[data-testid="overflow-trigger"]').click();
+    await page.locator('button[data-action-id="download-log"]').click();
+
+    await expect
+      .poll(() => apiRequests.filter((u) => u.includes("/api/log/export/")).length)
+      .toBeGreaterThan(0);
+    const exportUrl = new URL(apiRequests.find((u) => u.includes("/api/log/export/")) || "");
+    expect(exportUrl.pathname).toBe(`/api/log/export/${publishedInfo.testId}`);
+    expect(exportUrl.searchParams.get("public")).toBe("true");
+  });
+
   /**
    * Run the post-terminal verdict refresh against a parametrized verdict
    * (PASSED / FAILED / REVIEW / WARNING / SKIPPED / INTERRUPTED). The
