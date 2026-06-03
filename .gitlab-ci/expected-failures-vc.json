@@ -200,7 +200,7 @@
     {
         "test-name": "fapi2-security-profile-final-attempt-reuse-authorization-code-after-one-second",
         "variant": "*",
-        "configuration-filename": "authlete-vci-haip.json",
+        "configuration-filename": "authlete-vci-haip*.json",
         "current-block": "Testing if access token was revoked after authorization code reuse (the AS 'should' have revoked the access token)",
         "condition": "EnsureHttpStatusCodeIs4xx",
         "expected-result": "warning",
@@ -209,7 +209,7 @@
     {
         "test-name": "fapi2-security-profile-final-dpop-negative-tests",
         "variant": "*",
-        "configuration-filename": "authlete-vci-haip.json",
+        "configuration-filename": "authlete-vci-haip*.json",
         "current-block": "DPoP reuse, Second use of the same jti, this 'should' fail",
         "condition": "EnsureHttpStatusCodeIs400or401",
         "expected-result": "warning",

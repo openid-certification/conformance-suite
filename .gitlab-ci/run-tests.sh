@@ -498,6 +498,7 @@ makeVcTests() {
 
     # Authlete Issuer tests
     TESTS="${TESTS} oid4vci-1_0-issuer-haip-test-plan[$WALLETINIT][$SDJWTVC] authlete-vci-haip.json"
+    TESTS="${TESTS} oid4vci-1_0-issuer-haip-test-plan[$WALLETINIT][$MDOC] authlete-vci-haip-mdoc.json"
 }
 
 makeCIBATest() {
