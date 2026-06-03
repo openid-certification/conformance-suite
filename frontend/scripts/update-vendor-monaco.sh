@@ -95,6 +95,16 @@ KEEP=(
   "vs/editor/editor.main.css"
   "vs/editor/editor.main.nls.js"
   "vs/base/worker/workerMain.js"
+  # Default (English) language strings AMD-loaded by the editor worker at
+  # boot. Without it the worker's request falls through to the Spring
+  # Security login redirect and the returned HTML fails to parse:
+  # "Failed trying to load default language strings SyntaxError:
+  # Unexpected token '<'".
+  "vs/base/common/worker/simpleWorker.nls.js"
+  # Icon font referenced by editor.main.css (find widget, folding
+  # chevrons, suggest widget). Missing it breaks those glyphs silently —
+  # @font-face fetch failures produce no console error.
+  "vs/base/browser/ui/codicons/codicon/codicon.ttf"
   "vs/language/json/jsonMode.js"
   "vs/language/json/jsonWorker.js"
 )

@@ -22,7 +22,12 @@ vs/
     editor.main.js             Core editor bundle (the bulk of the bytes)
     editor.main.css            Editor stylesheet
     editor.main.nls.js         English language strings
-  base/worker/workerMain.js    Bootstrap for Web Workers
+  base/
+    worker/workerMain.js       Bootstrap for Web Workers
+    common/worker/
+      simpleWorker.nls.js      English strings AMD-loaded by the worker at boot
+    browser/ui/codicons/codicon/
+      codicon.ttf              Icon font referenced by editor.main.css
   language/json/
     jsonMode.js                JSON tokenizer / language contribution
     jsonWorker.js              JSON parser running in the Web Worker
@@ -32,7 +37,7 @@ VERSION.txt
 
 We deliberately do NOT vendor:
 
-- Other locales (`editor.main.nls.de.js`, etc.) — the CTS UI is English only.
+- Other locales (`editor.main.nls.de.js`, `simpleWorker.nls.de.js`, etc.) — the CTS UI is English only.
 - Other Monaco languages (CSS, HTML, TypeScript, basic-languages) — `<cts-json-editor>` is JSON-only.
 - The `dev/` (unminified) tree — production-only repo.
 
