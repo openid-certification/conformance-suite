@@ -1,7 +1,7 @@
 import { LitElement, html, nothing, css } from "lit";
 import "./cts-badge.js";
 import "./cts-alert.js";
-import "./cts-log-entry.js";
+import { scrollEntryIntoView } from "./cts-log-entry.js";
 
 const FAILURE_THRESHOLD = 3;
 const POLL_INTERVAL_MS = 3000;
@@ -194,7 +194,12 @@ const STYLE_TEXT = css`
   /* Scroll offset for the cts-log-toc rail's "Test structure" jumps and
      the document-level cts-scroll-to-entry handler in log-detail.js.
      Without this offset, scrollIntoView lands the target underneath the
-     sticky cts-log-detail-header status bar (~70px tall when stuck).
+     sticky cts-log-detail-header status bar. The bar's real height varies
+     with content and wrapping, so consume the live measurement it
+     publishes on documentElement (--status-bar-height) rather than a
+     hardcoded approximation — a stale constant left rows partially
+     hidden when the bar grew. Mirrors the host-level rule in
+     cts-log-entry.js, which this selector outranks inside the viewer.
      Applied on .logBlock (the block container the TOC scrolls to) and on
      .logItem (the painted element inside cts-log-entry at the wide
      layout, where the host is display:contents and has no box of its
@@ -202,7 +207,9 @@ const STYLE_TEXT = css`
   cts-log-viewer .logBlock,
   cts-log-viewer cts-log-entry,
   cts-log-viewer cts-log-entry .logItem {
-    scroll-margin-top: 70px;
+    scroll-margin-top: calc(
+      var(--status-bar-height, 0px) + var(--banner-height, 0px) + var(--space-4)
+    );
   }
   /* Block-start header rows. Presentational only — a label band for the
      run of entries that follows, not an interactive control. Blocks are
@@ -798,7 +805,10 @@ class CtsLogViewer extends LitElement {
     // animation and the multi-frame window during which a concurrent
     // re-render could disturb the smooth scroll.
     const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    target.scrollIntoView({ behavior: reduceMotion ? "instant" : "smooth", block: "start" });
+    // scrollEntryIntoView (not a bare scrollIntoView): at the wide layout
+    // the host is display:contents, which has no box — scrollIntoView on
+    // it silently no-ops, so the helper scrolls the painted .logItem row.
+    scrollEntryIntoView(target, { behavior: reduceMotion ? "instant" : "smooth", block: "start" });
     return true;
   }
 

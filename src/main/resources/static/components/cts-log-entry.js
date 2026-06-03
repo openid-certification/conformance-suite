@@ -931,4 +931,18 @@ class CtsLogEntry extends LitElement {
 
 customElements.define("cts-log-entry", CtsLogEntry);
 
-export {};
+/**
+ * Scroll an entry host into view, accounting for the wide layout where the
+ * host is `display: contents` (see cts-log-viewer.js's subgrid rules): a
+ * boxless element makes `scrollIntoView` a silent no-op, so fall back to
+ * the painted `.logItem` row inside it. Both the host (small layout) and
+ * `.logItem` (wide layout) carry the `scroll-margin-top` offset that keeps
+ * the row clear of the sticky status bar, so either box lands correctly.
+ *
+ * @param {Element} host - The `cts-log-entry` element to reveal.
+ * @param {ScrollIntoViewOptions} [options] - Forwarded to `scrollIntoView`.
+ */
+export function scrollEntryIntoView(host, options) {
+  const box = host.getClientRects().length > 0 ? host : host.querySelector(".logItem");
+  (box || host).scrollIntoView(options);
+}

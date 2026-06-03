@@ -543,7 +543,11 @@ export const InitialLoadHashScroll = {
     const realScrollIntoView = Element.prototype.scrollIntoView;
     Element.prototype.scrollIntoView = /** @type {Element["scrollIntoView"]} */ (
       function () {
-        scrolled.add(/** @type {HTMLElement} */ (this));
+        // scrollEntryIntoView may scroll the painted .logItem INSIDE the
+        // host (the host is display:contents at the wide layout) —
+        // attribute the call to the owning entry so assertions can keep
+        // targeting hosts by id.
+        scrolled.add(/** @type {HTMLElement} */ (this.closest("cts-log-entry") ?? this));
         // Don't actually scroll — the canvas iframe's geometry trips up
         // other tests in the same suite if we yield real scroll motion.
       }
@@ -606,7 +610,11 @@ export const LateArrivalHashScroll = {
     const realScrollIntoView = Element.prototype.scrollIntoView;
     Element.prototype.scrollIntoView = /** @type {Element["scrollIntoView"]} */ (
       function () {
-        scrolled.add(/** @type {HTMLElement} */ (this));
+        // scrollEntryIntoView may scroll the painted .logItem INSIDE the
+        // host (the host is display:contents at the wide layout) —
+        // attribute the call to the owning entry so assertions can keep
+        // targeting hosts by id.
+        scrolled.add(/** @type {HTMLElement} */ (this.closest("cts-log-entry") ?? this));
       }
     );
 
@@ -652,7 +660,11 @@ export const HashChangeScroll = {
     const realScrollIntoView = Element.prototype.scrollIntoView;
     Element.prototype.scrollIntoView = /** @type {Element["scrollIntoView"]} */ (
       function () {
-        scrolled.add(/** @type {HTMLElement} */ (this));
+        // scrollEntryIntoView may scroll the painted .logItem INSIDE the
+        // host (the host is display:contents at the wide layout) —
+        // attribute the call to the owning entry so assertions can keep
+        // targeting hosts by id.
+        scrolled.add(/** @type {HTMLElement} */ (this.closest("cts-log-entry") ?? this));
       }
     );
 
@@ -693,7 +705,11 @@ export const ScrollToRowInsideBlock = {
     const realScrollIntoView = Element.prototype.scrollIntoView;
     Element.prototype.scrollIntoView = /** @type {Element["scrollIntoView"]} */ (
       function () {
-        scrolled.add(/** @type {HTMLElement} */ (this));
+        // scrollEntryIntoView may scroll the painted .logItem INSIDE the
+        // host (the host is display:contents at the wide layout) —
+        // attribute the call to the owning entry so assertions can keep
+        // targeting hosts by id.
+        scrolled.add(/** @type {HTMLElement} */ (this.closest("cts-log-entry") ?? this));
       }
     );
 
@@ -737,7 +753,11 @@ export const OutOfRangeHashNoop = {
     const realScrollIntoView = Element.prototype.scrollIntoView;
     Element.prototype.scrollIntoView = /** @type {Element["scrollIntoView"]} */ (
       function () {
-        scrolled.add(/** @type {HTMLElement} */ (this));
+        // scrollEntryIntoView may scroll the painted .logItem INSIDE the
+        // host (the host is display:contents at the wide layout) —
+        // attribute the call to the owning entry so assertions can keep
+        // targeting hosts by id.
+        scrolled.add(/** @type {HTMLElement} */ (this.closest("cts-log-entry") ?? this));
       }
     );
 
