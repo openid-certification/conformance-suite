@@ -72,22 +72,22 @@ public class VCICheckOAuthAuthorizationServerMetadataRequestUrl_UnitTest {
 	}
 
 	@Test
-	public void passesWhenIssuerHasNoTrailingSlashAndRequestAddsOne() {
+	public void failsWhenIssuerHasNoTrailingSlashAndRequestAddsOne() {
 		// Lenient mode: many wallets keep the trailing "/" of the issuer when constructing
 		// the well-known URL even though RFC 8414 section 3.1 says it MUST be removed.
 		// Accept that form too.
 		setServerIssuer("https://example.com/issuer1");
 		setIncomingRequestUrl("https://example.com/.well-known/oauth-authorization-server/issuer1/");
-		assertDoesNotThrow(() -> cond.execute(env));
+		assertThrows(ConditionError.class, () -> cond.execute(env));
 	}
 
 	@Test
-	public void passesWhenIssuerHasTrailingSlashAndRequestKeepsIt() {
+	public void failsWhenIssuerHasTrailingSlashAndRequestKeepsIt() {
 		// The CI panva-style wallet sends this form: it appended the well-known suffix to
 		// the issuer (verbatim, keeping the trailing slash). Accepted in lenient mode.
 		setServerIssuer("https://example.com/issuer1/");
 		setIncomingRequestUrl("https://example.com/.well-known/oauth-authorization-server/issuer1/");
-		assertDoesNotThrow(() -> cond.execute(env));
+		assertThrows(ConditionError.class, () -> cond.execute(env));
 	}
 
 	@Test

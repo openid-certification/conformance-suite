@@ -16,6 +16,7 @@ public class OAuthUriUtil {
 		String wellKnownBaseUrl = serverIssuerUri.getScheme() + "://" + serverIssuerUri.getHost() + portComponent + "/.well-known";
 
 		String newUrl = wellKnownBaseUrl + "/" + wellKnownTypePathComponent + serverIssuerUri.getPath();
+		newUrl = stripTrailingSlash(newUrl);
 		return newUrl;
 	}
 

@@ -16,6 +16,7 @@ public class VCICheckOAuthAuthorizationServerMetadataRequestUrl extends Abstract
 		String serverIssuer = env.getString("server", "issuer");
 		URI serverIssuerUri = URI.create(serverIssuer);
 		String serverIssuerPath = serverIssuerUri.getPath();
+		serverIssuerPath = OAuthUriUtil.stripTrailingSlash(serverIssuerPath);
 
 		String expectedPath = "/.well-known/oauth-authorization-server" + serverIssuerPath;
 		URI requestUri = URI.create(requestUrl);
@@ -23,7 +24,7 @@ public class VCICheckOAuthAuthorizationServerMetadataRequestUrl extends Abstract
 		// RFC 8414 section 3.1 requires the terminating "/" of the issuer to be removed
 		// before inserting "/.well-known/...". Many wallets keep it; rather than failing
 		// either form, accept both by stripping a single trailing "/" before comparing.
-		if (!OAuthUriUtil.stripTrailingSlash(expectedPath).equals(OAuthUriUtil.stripTrailingSlash(requestUri.getPath()))) {
+		if (!OAuthUriUtil.stripTrailingSlash(expectedPath).equals(requestUri.getPath())) {
 			throw error("Auth Server metadata request does not match expected URL path", args("expected_path", expectedPath, "request_url", requestUrl));
 		}
 
