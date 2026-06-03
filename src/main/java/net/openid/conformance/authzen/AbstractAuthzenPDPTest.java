@@ -154,7 +154,7 @@ public abstract class AbstractAuthzenPDPTest extends AbstractRedirectServerTestM
 		callAndContinueOnFailure(CheckPDPServerConfiguration.class, ConditionResult.FAILURE, "AUTHZEN-9.1.1");
 		if (serverSupportsDiscovery) {
 			callAndContinueOnFailure(EnsurePolicyDecisionPointMatchesIssuer.class, ConditionResult.FAILURE, "AUTHZEN-9.2.3");
-			callAndContinueOnFailure(EnsureDiscoveryMetadataParamsNotEmpty.class, ConditionResult.WARNING, "AUTHZEN-9.2.2");
+			callAndContinueOnFailure(EnsureDiscoveryMetadataParamsNotEmpty.class, ConditionResult.FAILURE, "AUTHZEN-9.2.2");
 		}
 		callAndContinueOnFailure(EnsureMetadataCapabilitiesValid.class, ConditionResult.WARNING, "AUTHZEN-9.1.2");
 		env.unmapKey("server");
