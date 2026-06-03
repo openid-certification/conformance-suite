@@ -731,6 +731,19 @@ test.describe("logs.html — My/Published view tabs (U6)", () => {
     expect(page.url()).toContain("public=true");
   });
 
+  test("U3: anonymous explicit ?public=true is left unchanged (no duplicate param)", async ({
+    page,
+  }) => {
+    await setupFailFast(page);
+    await recordLogRoute(page);
+    await setupCommonRoutes(page, { user: null });
+
+    await page.goto("/logs.html?public=true");
+    await expect(page.locator(ITEM).first()).toBeVisible();
+
+    expect(new URL(page.url()).searchParams.getAll("public")).toEqual(["true"]);
+  });
+
   test("U3: authenticated bare URL is NOT canonicalised (stays My)", async ({ page }) => {
     await setupFailFast(page);
     await setupLogListRoute(page);
