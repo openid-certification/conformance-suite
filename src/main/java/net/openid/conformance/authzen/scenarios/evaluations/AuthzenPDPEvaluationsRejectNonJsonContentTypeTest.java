@@ -42,7 +42,7 @@ public class AuthzenPDPEvaluationsRejectNonJsonContentTypeTest extends AbstractA
 	}
 
 	@Override
-	protected int getExpectedHttpStatusCode() {
-		return 415;
+	protected java.util.Set<Integer> getAcceptableHttpStatusCodes() {
+		return java.util.Set.of(400, 415);
 	}
 }

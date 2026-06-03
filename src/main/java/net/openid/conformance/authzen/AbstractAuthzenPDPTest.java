@@ -1,7 +1,9 @@
 package net.openid.conformance.authzen;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import java.util.Set;
 import net.openid.conformance.authzen.condition.AddApiKeyAuthenticationParametersToAuthzenApiRequest;
 import net.openid.conformance.authzen.condition.AddBasicAuthClientSecretAuthenticationParametersToAuthzenApiRequest;
 import net.openid.conformance.authzen.condition.AddXRequestIdHeaderToAuthzenApiRequest;
@@ -283,10 +285,17 @@ public abstract class AbstractAuthzenPDPTest extends AbstractRedirectServerTestM
 	}
 
 	protected void performApiRequestCall() {
-		if (getExpectedHttpStatusCode() == 200) {
+		Set<Integer> acceptable = getAcceptableHttpStatusCodes();
+		if (acceptable.size() == 1 && acceptable.iterator().next() == 200) {
 			call(sequence(CallAuthzenApiEndpointAndVerifySuccessfulResponse.class));
 		} else {
-			env.putInteger("authzen_expected_http_status_code", getExpectedHttpStatusCode());
+			JsonObject wrapper = new JsonObject();
+			JsonArray codes = new JsonArray();
+			for (Integer code : acceptable) {
+				codes.add(code);
+			}
+			wrapper.add("codes", codes);
+			env.putObject("authzen_expected_http_status_codes", wrapper);
 			call(sequence(CallAuthzenApiEndpointAndVerifyExpectedStatus.class));
 		}
 	}
@@ -294,10 +303,23 @@ public abstract class AbstractAuthzenPDPTest extends AbstractRedirectServerTestM
 	/**
 	 * Override to assert against a non-200 expected HTTP status code (e.g. 400, 401).
 	 * When the expected code is not 200, response-body parsing and validation are skipped
-	 * and the test only asserts that the actual status matches.
+	 * and the test only asserts that the actual status matches. Tests that accept a class
+	 * of 4xx responses (e.g. method-not-allowed could be 400 or 405) should override
+	 * {@link #getAcceptableHttpStatusCodes()} instead.
 	 */
 	protected int getExpectedHttpStatusCode() {
 		return 200;
+	}
+
+	/**
+	 * Override to assert the actual HTTP status is in a set of acceptable codes. Default
+	 * delegates to {@link #getExpectedHttpStatusCode()} as a singleton set, so existing
+	 * exact-code tests keep working. Negative transport tests where the spec only requires
+	 * "some 4xx" (§10.1.1/§10.1.2) should return e.g. {@code Set.of(400, 405)} for method
+	 * rejection or {@code Set.of(400, 415)} for content-type rejection.
+	 */
+	protected Set<Integer> getAcceptableHttpStatusCodes() {
+		return Set.of(getExpectedHttpStatusCode());
 	}
 
 	/**
