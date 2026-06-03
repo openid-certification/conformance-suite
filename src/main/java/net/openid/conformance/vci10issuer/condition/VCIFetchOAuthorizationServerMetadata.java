@@ -92,7 +92,7 @@ public class VCIFetchOAuthorizationServerMetadata extends AbstractCondition {
 
 	protected JsonObject fetchAuthorizationServerMetadata(Environment env, String metadataEndpointUrl) {
 		try {
-			RestTemplate restTemplate = createRestTemplate(env);
+			RestTemplate restTemplate = createRestTemplateWithCache(env);
 			ResponseEntity<String> response = restTemplate.exchange(metadataEndpointUrl, HttpMethod.GET, null, String.class);
 			JsonObject responseInfo = convertResponseForEnvironment("oauth-authorization-server", response);
 			return responseInfo;

@@ -60,7 +60,7 @@ public class VCIGetDynamicCredentialIssuerMetadata extends AbstractCondition {
 
 	protected void fetchCredentialIssuerMetadata(Environment env, String metadataEndpointUrl) {
 		try {
-			RestTemplate restTemplate = createRestTemplate(env);
+			RestTemplate restTemplate = createRestTemplateWithCache(env);
 			MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
 			headers.add(HttpHeaders.ACCEPT, "application/json");
 			headers.add(HttpHeaders.ACCEPT_LANGUAGE, "en, en-gb;q=0.9, de;q=0.8, fr;q=0.7, *;q=0.5");

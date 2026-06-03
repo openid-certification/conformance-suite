@@ -39,7 +39,7 @@ public class FAPIBrazilFetchClientOrganizationJwksFromDirectory extends Abstract
 		log("Fetching client organization keys", args("jwks_uri", orgJwksUri));
 
 		try {
-			RestTemplate restTemplate = createRestTemplate(env);
+			RestTemplate restTemplate = createRestTemplateWithCache(env);
 
 			String jwkString = restTemplate.getForObject(orgJwksUri, String.class);
 

@@ -34,7 +34,7 @@ public class FetchServerKeys extends AbstractCondition {
 			log("Fetching server key", args("jwks_uri", jwksUri));
 
 			try {
-				RestTemplate restTemplate = createRestTemplate(env);
+				RestTemplate restTemplate = createRestTemplateWithCache(env);
 
 				String jwkString = restTemplate.getForObject(jwksUri, String.class);
 
