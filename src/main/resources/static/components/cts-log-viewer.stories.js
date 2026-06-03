@@ -204,6 +204,123 @@ export const RecoveryClearsBanner = {
   },
 };
 
+// --- Public-mode fetch threading ---
+// Plan: docs/plans/2026-06-03-003-fix-log-detail-public-mode-plan.md
+// Anonymous viewers of published logs only pass the security filter's
+// public matcher when the request carries `public=true` — on EVERY poll
+// cycle, not just the first fetch. The programmable-fetch responder
+// records each requested URL so the play function can assert the exact
+// query-param composition (`public` alone first, `public` + `since` on
+// subsequent polls).
+
+export const PublicModePolling = {
+  decorators: [
+    (storyFn) => {
+      const state = {
+        /** @type {string[]} */
+        urls: [],
+        responder: (url) => {
+          // Scope recording to THIS story's viewer — a previous story's
+          // fast-polling viewer can still be mid-teardown when this
+          // story patches fetch, and its stray poll must not pollute the
+          // recorded URL sequence.
+          if (!url.includes("test-public-001")) {
+            return new Response("[]", {
+              status: 200,
+              headers: { "Content-Type": "application/json" },
+            });
+          }
+          state.urls.push(url);
+          // Entries on the first fetch (sets _latestTimestamp so the next
+          // poll adds `since`); empty array on subsequent polls.
+          const body = state.urls.length === 1 ? MOCK_SUCCESS_LOG : [];
+          return new Response(JSON.stringify(body), {
+            status: 200,
+            headers: { "Content-Type": "application/json" },
+          });
+        },
+      };
+      window.__ctsLogViewerFetchState = state;
+      return withProgrammableFetch("/api/log/", state)(storyFn);
+    },
+  ],
+  render: () => html`
+    <cts-log-viewer test-id="test-public-001" is-public ._pollIntervalMs=${20}></cts-log-viewer>
+  `,
+  async play({ canvasElement }) {
+    const state = window.__ctsLogViewerFetchState;
+    try {
+      await waitForLogLoad(canvasElement);
+      // First fetch: public=true, no since (nothing cached yet).
+      expect(state.urls[0]).toBe("/api/log/test-public-001?public=true");
+      // Entries render for the anonymous viewer.
+      expect(canvasElement.querySelectorAll(".logItem").length).toBeGreaterThan(0);
+      // Poll cycle: public=true persists alongside since=<ts>. Wait for
+      // the first poll that carries `since` (attribute-mounted viewers
+      // issue a duplicate initial fetch — connectedCallback and the first
+      // updated() cycle both fire before either resolves — so the
+      // since-bearing poll is not necessarily urls[1]).
+      await waitFor(
+        () => {
+          expect(state.urls.some((u) => u.includes("since="))).toBe(true);
+        },
+        { timeout: 3000 },
+      );
+      const pollUrl = new URL(
+        state.urls.find((u) => u.includes("since=")),
+        window.location.origin,
+      );
+      expect(pollUrl.pathname).toBe("/api/log/test-public-001");
+      expect(pollUrl.searchParams.get("public")).toBe("true");
+      expect(Number(pollUrl.searchParams.get("since"))).toBeGreaterThan(0);
+    } finally {
+      const patched = /** @type {typeof fetch & { __realFetch?: typeof fetch }} */ (window.fetch);
+      if (patched.__realFetch) window.fetch = patched.__realFetch;
+      delete window.__ctsLogViewerFetchState;
+    }
+  },
+};
+
+export const DefaultModeOmitsPublicParam = {
+  decorators: [
+    (storyFn) => {
+      const state = {
+        /** @type {string[]} */
+        urls: [],
+        responder: (url) => {
+          // Same stray-poll scoping as PublicModePolling above.
+          if (!url.includes("test-default-001")) {
+            return new Response("[]", {
+              status: 200,
+              headers: { "Content-Type": "application/json" },
+            });
+          }
+          state.urls.push(url);
+          return new Response(JSON.stringify(MOCK_SUCCESS_LOG), {
+            status: 200,
+            headers: { "Content-Type": "application/json" },
+          });
+        },
+      };
+      window.__ctsLogViewerFetchState = state;
+      return withProgrammableFetch("/api/log/", state)(storyFn);
+    },
+  ],
+  render: () => html`<cts-log-viewer test-id="test-default-001"></cts-log-viewer>`,
+  async play({ canvasElement }) {
+    const state = window.__ctsLogViewerFetchState;
+    try {
+      await waitForLogLoad(canvasElement);
+      // Authenticated view: bare URL, no query string (R4 regression guard).
+      expect(state.urls[0]).toBe("/api/log/test-default-001");
+    } finally {
+      const patched = /** @type {typeof fetch & { __realFetch?: typeof fetch }} */ (window.fetch);
+      if (patched.__realFetch) window.fetch = patched.__realFetch;
+      delete window.__ctsLogViewerFetchState;
+    }
+  },
+};
+
 // --- U1: log-detail page integration ---
 // Plan: docs/plans/2026-04-26-002-refactor-log-detail-page-to-lit-triad-plan.md
 // MountedFromExistingPage simulates how log-detail.js mounts the viewer:
