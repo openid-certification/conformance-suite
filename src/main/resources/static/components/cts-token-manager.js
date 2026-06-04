@@ -20,7 +20,6 @@ const STYLE_ID = "cts-token-manager-styles";
 const STYLE_TEXT = css`
   .cts-token-manager {
     display: block;
-    padding: var(--space-4) var(--space-5);
     font-family: var(--font-sans);
     color: var(--fg);
   }

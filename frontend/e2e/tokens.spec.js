@@ -47,11 +47,13 @@ test.describe("tokens.html — API Tokens", () => {
     // would otherwise pass all tests in this file. (Mirrors upload.spec.js:210.)
     await expect(page.locator("cts-toast-host")).toHaveCount(1);
 
-    // The page wraps cts-token-manager in a <cts-card header="API Tokens">.
-    // Assert the card chrome is rendered so a future revert of the wrapper
-    // surfaces as a test failure rather than passing silently.
-    await expect(page.locator('cts-card[header="API Tokens"]')).toBeVisible();
-    await expect(page.locator("cts-card .oidf-card-header")).toHaveText("API Tokens");
+    // The page renders cts-token-manager directly inside the narrow page
+    // wrapper with a cts-page-head title — no card chrome. Assert the new
+    // structure so a future re-introduction of the card wrapper surfaces
+    // as a test failure rather than passing silently.
+    await expect(page.locator("main#main-content.narrow-page")).toBeVisible();
+    await expect(page.locator("cts-page-head h1")).toHaveText("API Tokens");
+    await expect(page.locator("cts-card")).toHaveCount(0);
 
     // Wait for cts-token-manager to fetch and render the table. The host
     // keeps `id="tokensListing"` for backward-compatible selectors.
