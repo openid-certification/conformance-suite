@@ -219,7 +219,7 @@
         "test-name": "oid4vp-1final-wallet-alternate-happy-flow",
         "variant": "*",
         "configuration-filename": "*dcapi-mock*",
-        "current-block": "",
+        "current-block": "Make request to wallet",
         "condition": "WarnMockWalletResponse",
         "expected-result": "failure",
         "comment": "Mock wallet response used for DC API integration testing - not testing a real wallet"
