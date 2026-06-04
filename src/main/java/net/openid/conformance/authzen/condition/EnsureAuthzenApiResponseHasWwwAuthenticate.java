@@ -19,7 +19,7 @@ public class EnsureAuthzenApiResponseHasWwwAuthenticate extends AbstractConditio
 	public Environment evaluate(Environment env) {
 		Integer status = env.getInteger("authzen_api_endpoint_response", "status");
 		if (status == null) {
-			throw error("Authzen API response has no HTTP status; cannot evaluate the §11.3 WWW-Authenticate SHOULD check");
+			throw error("Authzen API response has no HTTP status; cannot evaluate the Section 11.3 WWW-Authenticate SHOULD check");
 		}
 		if (status != 401) {
 			log("Response status is not 401; the WWW-Authenticate SHOULD check applies only to 401 responses",
