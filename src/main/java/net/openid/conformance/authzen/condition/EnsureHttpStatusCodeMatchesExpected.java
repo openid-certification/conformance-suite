@@ -16,8 +16,13 @@ public class EnsureHttpStatusCodeMatchesExpected extends AbstractCondition {
 	@PreEnvironment(required = {"endpoint_response", "authzen_expected_http_status_codes"})
 	public Environment evaluate(Environment env) {
 		List<Integer> acceptable = readAcceptableStatusCodes(env);
-		int actual = env.getInteger("endpoint_response", "status");
+		Integer actualBoxed = env.getInteger("endpoint_response", "status");
 		String endpointName = env.getString("endpoint_response", "endpoint_name");
+		if (actualBoxed == null) {
+			throw error("Endpoint response is missing an HTTP status",
+				args("endpoint", endpointName, "acceptable_statuses", acceptable));
+		}
+		int actual = actualBoxed;
 
 		if (!acceptable.contains(actual)) {
 			throw error(endpointName + " endpoint returned an unexpected http status",
