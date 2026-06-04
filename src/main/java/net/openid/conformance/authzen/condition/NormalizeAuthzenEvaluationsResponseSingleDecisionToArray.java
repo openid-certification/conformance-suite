@@ -21,6 +21,14 @@ import net.openid.conformance.testmodule.Environment;
  * additional top-level fields the PDP returned (e.g. {@code context}) are
  * preserved on the normalized object; only the original top-level
  * {@code decision} is moved into the one-element evaluations array.
+ *
+ * <p><b>Ordering caveat:</b> the post-normalization response no longer carries
+ * the original top-level {@code decision} field. Section 7.2 RECOMMENDED-omit
+ * checks ({@link EnsureNoTopLevelDecisionWhenEvaluationsPresent}) that need to
+ * observe whether the PDP combined both forms MUST run on the
+ * {@code authzen_evaluations_endpoint_response} env value BEFORE this
+ * normalizer rewrites it. {@code AbstractAuthzenPDPEvaluationsBackwardCompatTest}
+ * is wired with the ordering already; new call sites must follow the same rule.
  */
 public class NormalizeAuthzenEvaluationsResponseSingleDecisionToArray extends AbstractCondition {
 
