@@ -13,7 +13,7 @@ import net.openid.conformance.testmodule.OIDFJSON;
 public class EnsureHttpStatusCodeMatchesExpected extends AbstractCondition {
 
 	@Override
-	@PreEnvironment(required = "endpoint_response")
+	@PreEnvironment(required = {"endpoint_response", "authzen_expected_http_status_codes"})
 	public Environment evaluate(Environment env) {
 		List<Integer> acceptable = readAcceptableStatusCodes(env);
 		int actual = env.getInteger("endpoint_response", "status");
