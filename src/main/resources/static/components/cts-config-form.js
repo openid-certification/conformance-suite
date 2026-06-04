@@ -2,9 +2,9 @@ import { LitElement, html, nothing, css } from "lit";
 import { classMap } from "lit/directives/class-map.js";
 import "./cts-form-field.js";
 import "./cts-button.js";
+import "./cts-icon.js";
 import "./cts-json-editor.js";
 import "./cts-tabs.js";
-import { CtsToastHost } from "./cts-toast.js";
 
 /**
  * Dual-mode (Form / JSON) configuration editor. In Form mode, renders
@@ -82,18 +82,43 @@ import { CtsToastHost } from "./cts-toast.js";
  *   `{ detail: { config } }`; bubbles. `config` is always the full object,
  *   including any hidden-field values that were preserved through the
  *   JSON-tab merge.
+ * @fires cts-validate - After the validate feedback window resolves, with
+ *   `{ detail: { valid, errors, config } }`; bubbles, composed. Fires on
+ *   every verdict regardless of outcome. Note the timing: the event lands
+ *   `VALIDATE_FEEDBACK_DELAY_MS` (~1s) after the click, together with the
+ *   inline verdict — a host that layers async checks on this seam should
+ *   account for the delay and refresh the verdict if it reassigns `errors`.
  *
  * ## Validate Configuration
  *
- * Clicking the Validate Configuration button runs a synchronous client-side
- * pass over the schema: it collects every visible required field
- * (`x-cts-required: true` on the field schema, or membership in the
- * section-level `required: []` array under nested-mode), reads the current
- * value via `_getValueAtPathRaw`, and flags any path whose value is null,
- * undefined, or an empty string. The resulting map replaces `this.errors`
- * (so inline `.oidf-error` markers light up next to the offending fields),
- * and a `cts-toast` summarises the verdict — `ok` toast on a clean pass,
- * `error` toast naming the missing-field count on a failure.
+ * Submitting the form (Validate Configuration button, or Enter in a field)
+ * opens a short feedback window: the button enters its `loading` state
+ * (spinner, disabled, accessible name "Validating configuration…") for
+ * `VALIDATE_FEEDBACK_DELAY_MS` so the click has a perceptible
+ * acknowledgment — the required-fields pass itself is synchronous and
+ * would otherwise complete imperceptibly. Re-entrant submits during the
+ * window are ignored, and any displayed verdict is cleared as the window
+ * opens so the verdict region is empty while the spinner runs.
+ *
+ * When the window resolves, the client-side pass collects every visible
+ * required field (`x-cts-required: true` on the field schema, or
+ * membership in the section-level `required: []` array under nested-mode),
+ * reads the current value via `_getValueAtPathRaw`, and flags any path
+ * whose value is null, undefined, or an empty string. The resulting map
+ * replaces `this.errors` (so inline `.oidf-error` markers light up next to
+ * the offending fields), and the verdict renders inline next to the button
+ * in a persistent `role="status"` live region (polite announcement; the
+ * node pre-exists the verdict so screen readers pick up the update):
+ * "Configuration is valid" on a clean pass, or the missing-field count on
+ * a failure. The verdict clears on any config change — a form field edit,
+ * a JSON-tab edit, or a programmatic `config` reassignment from the host
+ * page (e.g. Load Last Configuration) — so a stale verdict never sits next
+ * to a different config. Tab switches alone do not clear it: validation
+ * reads `this.config`, which both tabs keep in sync.
+ *
+ * Internal validate state (not part of the public API): `_validating`
+ * (boolean; the feedback window is open) and `_validateResult`
+ * (`null | { valid, count }`; the rendered verdict).
  *
  * A `cts-validate` event fires with `{ valid, errors, config }` regardless
  * of the verdict, so the host page can layer a backend check on top (e.g.
@@ -103,6 +128,15 @@ import { CtsToastHost } from "./cts-toast.js";
  */
 
 const STYLE_ID = "cts-config-form-styles";
+
+/**
+ * Length of the validate feedback window in milliseconds. The required-
+ * fields pass is synchronous; this delay exists purely so the click has a
+ * perceptible acknowledgment (spinner on the button) before the verdict
+ * lands. Exported so story tests can derive their `waitFor` timeouts from
+ * the same constant instead of hardcoding a wall-clock number.
+ */
+const VALIDATE_FEEDBACK_DELAY_MS = 1000;
 
 const STYLE_TEXT = css`
   .oidf-config-form {
@@ -135,8 +169,29 @@ const STYLE_TEXT = css`
   .oidf-config-form-actions {
     display: flex;
     align-items: center;
+    /* A long error verdict wraps below the button at full row width on
+       narrow viewports instead of overflowing the flex row. */
+    flex-wrap: wrap;
     gap: var(--space-3);
     margin-top: var(--space-4);
+  }
+  /* Inline validate verdict — mirrors .oidf-error (cts-form-field) for the
+     error tone and .share-modal-success (oidf-app.css) for the success
+     tone. The node persists empty so the role="status" live region exists
+     before its first update. */
+  .oidf-config-form-verdict {
+    display: flex;
+    align-items: center;
+    gap: var(--space-1);
+    font-family: var(--font-sans);
+    font-size: var(--fs-12);
+    line-height: var(--lh-snug);
+  }
+  .oidf-config-form-verdict.is-ok {
+    color: var(--status-pass);
+  }
+  .oidf-config-form-verdict.is-error {
+    color: var(--rust-500);
   }
   .oidf-config-form-json {
     display: block;
@@ -175,6 +230,8 @@ class CtsConfigForm extends LitElement {
     _jsonText: { state: true },
     _jsonError: { state: true },
     _jsonTabActivated: { state: true },
+    _validating: { state: true },
+    _validateResult: { state: true },
   };
 
   createRenderRoot() {
@@ -199,11 +256,27 @@ class CtsConfigForm extends LitElement {
     // sidesteps the issue and matches the pre-cts-tabs render contract
     // (the editor never existed while the Form tab was active).
     this._jsonTabActivated = false;
+    this._validating = false;
+    /** @type {null | { valid: boolean, count: number }} */
+    this._validateResult = null;
+    /** @type {ReturnType<typeof setTimeout> | 0} */
+    this._validateTimer = 0;
   }
 
   connectedCallback() {
     super.connectedCallback();
     injectStyles();
+  }
+
+  disconnectedCallback() {
+    super.disconnectedCallback();
+    // Drop a pending validate window so the timer callback can't fire
+    // against a disconnected element (e.g. the form is removed mid-window).
+    if (this._validateTimer) {
+      clearTimeout(this._validateTimer);
+      this._validateTimer = 0;
+      this._validating = false;
+    }
   }
 
   // U12 (B4): keep `_jsonText` in sync when `.config` is reassigned from
@@ -218,6 +291,9 @@ class CtsConfigForm extends LitElement {
   willUpdate(changedProperties) {
     if (this.hasUpdated && changedProperties.has("config") && !changedProperties.has("_jsonText")) {
       this._jsonText = this._filteredJsonText();
+      // External reassignment means the verdict no longer describes the
+      // current config — drop it (internal edit paths clear it themselves).
+      this._validateResult = null;
     }
   }
 
@@ -301,6 +377,7 @@ class CtsConfigForm extends LitElement {
     this._setAtPath(newConfig, field, value);
     this.config = newConfig;
     this._jsonText = JSON.stringify(this._filterHidden(newConfig), null, 2);
+    this._validateResult = null;
     this.dispatchEvent(
       new CustomEvent("cts-config-change", { bubbles: true, detail: { config: newConfig } }),
     );
@@ -308,6 +385,7 @@ class CtsConfigForm extends LitElement {
 
   _handleJsonInput(e) {
     this._jsonText = e.target.value;
+    this._validateResult = null;
     try {
       const parsed = JSON.parse(this._jsonText);
       this.config = this._mergeHiddenFromCurrent(parsed);
@@ -409,30 +487,47 @@ class CtsConfigForm extends LitElement {
 
   _handleValidate(e) {
     e.preventDefault();
-    const errors = this._validateConfig();
-    const valid = Object.keys(errors).length === 0;
-    this.errors = errors;
-    this.dispatchEvent(
-      new CustomEvent("cts-validate", {
-        bubbles: true,
-        composed: true,
-        detail: { valid, errors, config: this.config },
-      }),
-    );
-    if (valid) {
-      CtsToastHost.show({
-        title: "Configuration is valid",
-        message: "All required fields are filled in.",
-        kind: "ok",
-      });
-      return;
+    // Re-entrancy guard. The loading state already disables the submit
+    // button (blocking clicks AND Enter-key implicit submission), so the
+    // only way back in here mid-window is a programmatic requestSubmit().
+    if (this._validating) return;
+    this._validateResult = null;
+    this._validating = true;
+    this._validateTimer = setTimeout(() => {
+      this._validateTimer = 0;
+      const errors = this._validateConfig();
+      const count = Object.keys(errors).length;
+      const valid = count === 0;
+      this.errors = errors;
+      // Verdict, inline field markers, spinner-stop, and the event land
+      // together so the feedback reads as one coherent moment.
+      this._validateResult = { valid, count };
+      this._validating = false;
+      this.dispatchEvent(
+        new CustomEvent("cts-validate", {
+          bubbles: true,
+          composed: true,
+          detail: { valid, errors, config: this.config },
+        }),
+      );
+    }, VALIDATE_FEEDBACK_DELAY_MS);
+  }
+
+  _renderVerdict() {
+    const result = this._validateResult;
+    if (!result) return nothing;
+    // The message is composed as a single string interpolation so the
+    // rendered text node stays contiguous — Prettier reflows literal text
+    // inside html`` templates, which would split the phrase across lines
+    // and break textContent-based assertions.
+    if (result.valid) {
+      const message = "Configuration is valid";
+      return html`<cts-icon name="check-big" size="16" aria-hidden="true"></cts-icon> ${message}`;
     }
-    const count = Object.keys(errors).length;
-    CtsToastHost.show({
-      title: "Configuration has issues",
-      message: `${count} required ${count === 1 ? "field is" : "fields are"} missing. See inline errors.`,
-      kind: "error",
-    });
+    const noun = result.count === 1 ? "field is" : "fields are";
+    const message = `${result.count} required ${noun} missing. See inline errors.`;
+    return html`<cts-icon name="circle-warning" size="16" aria-hidden="true"></cts-icon>
+      ${message}`;
   }
 
   _renderSections() {
@@ -505,7 +600,20 @@ class CtsConfigForm extends LitElement {
                   type="submit"
                   variant="primary"
                   label="Validate Configuration"
+                  ?loading=${this._validating}
+                  aria-label=${this._validating ? "Validating configuration…" : nothing}
                 ></cts-button>
+                <div
+                  class=${classMap({
+                    "oidf-config-form-verdict": true,
+                    "is-ok": Boolean(this._validateResult?.valid),
+                    "is-error": Boolean(this._validateResult && !this._validateResult.valid),
+                  })}
+                  role="status"
+                  data-testid="validate-verdict"
+                >
+                  ${this._renderVerdict()}
+                </div>
               </div>
             </form>
           </cts-tab-panel>
@@ -542,4 +650,4 @@ class CtsConfigForm extends LitElement {
 }
 customElements.define("cts-config-form", CtsConfigForm);
 
-export {};
+export { VALIDATE_FEEDBACK_DELAY_MS };
