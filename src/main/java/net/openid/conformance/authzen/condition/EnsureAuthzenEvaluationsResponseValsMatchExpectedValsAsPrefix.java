@@ -12,20 +12,20 @@ import net.openid.conformance.testmodule.OIDFJSON;
  * (`deny_on_first_deny` / `permit_on_first_permit`, Section 7.1.2.1).
  *
  * The expected response lists the decisions in the same form the spec uses in
- * its 7.1.2.1.1 examples: every position the PDP would return if it ran the
- * full short-circuit sequence. The last entry's decision is the short-circuit
- * trigger value, and its first occurrence in the expected list marks the
- * position where the PDP must have applied the trigger.
+ * its 7.1.2.1.1 examples: every position the PDP would emit if it ran the full
+ * short-circuit sequence. The last entry's decision is the short-circuit
+ * trigger value; its first occurrence in the expected list marks the position
+ * where the PDP applies the trigger.
  *
- * The actual response is accepted when:
- *   - it covers at least up to and including the trigger position; and
- *   - every decision it does return matches the expected decision at the same
- *     index.
+ * This condition assumes a conforming PDP truncates the response at the
+ * trigger position (the spec's MAY for stopping further processing is treated
+ * as a MUST in this test profile). The actual response is accepted only when:
+ *   - its length is exactly trigger_position + 1; and
+ *   - every decision matches the expected decision at the same index.
  *
- * Truncated responses (PDP stops emitting decisions after the trigger) and
- * full-length responses (PDP emits the trigger value for every later index)
- * are both valid; a response that re-evaluates an entry past the trigger to
- * its natural decision fails.
+ * A full-length response (the PDP did not truncate) fails even if the trailing
+ * entries carry the trigger value; the test asserts the short-circuit behavior
+ * is observable on the wire.
  */
 public class EnsureAuthzenEvaluationsResponseValsMatchExpectedValsAsPrefix extends AbstractCondition {
 
@@ -60,13 +60,10 @@ public class EnsureAuthzenEvaluationsResponseValsMatchExpectedValsAsPrefix exten
 		}
 
 		JsonArray response = readEvaluationsArray(env, "authzen_evaluations_endpoint_response", "actual");
-		if (response.size() <= triggerPosition) {
-			throw error("Response stopped before the short-circuit trigger position",
-				args("response_size", response.size(), "trigger_position", triggerPosition, "trigger_decision", triggerDecision));
-		}
-		if (response.size() > expected.size()) {
-			throw error("Response has more evaluations than expected",
-				args("expected_size", expected.size(), "actual_size", response.size()));
+		int expectedTruncatedSize = triggerPosition + 1;
+		if (response.size() != expectedTruncatedSize) {
+			throw error("Response did not truncate at the short-circuit trigger position; expected the response array length to be trigger_position + 1",
+				args("response_size", response.size(), "expected_size", expectedTruncatedSize, "trigger_position", triggerPosition, "trigger_decision", triggerDecision));
 		}
 		for (int i = 0; i < response.size(); i++) {
 			JsonElement actualElem = response.get(i);
@@ -77,11 +74,11 @@ public class EnsureAuthzenEvaluationsResponseValsMatchExpectedValsAsPrefix exten
 			boolean expectedDecision = OIDFJSON.getBoolean(expected.get(i).getAsJsonObject().get("decision"));
 			boolean actualDecision = OIDFJSON.getBoolean(actualElem.getAsJsonObject().get("decision"));
 			if (expectedDecision != actualDecision) {
-				throw error("Response decision at position " + i + " does not match expected — short-circuit semantic not honoured",
+				throw error("Response decision at position " + i + " does not match expected",
 					args("position", i, "expected", expectedDecision, "actual", actualDecision, "trigger_decision", triggerDecision));
 			}
 		}
-		logSuccess("Response decisions match expected short-circuit pattern",
+		logSuccess("Response truncated at the short-circuit trigger and decisions match expected",
 			args("trigger_decision", triggerDecision, "trigger_position", triggerPosition, "response_size", response.size()));
 		return env;
 	}
