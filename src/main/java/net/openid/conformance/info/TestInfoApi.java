@@ -91,12 +91,10 @@ public class TestInfoApi {
 				PrivateLinkOneTimeToken privateToken = authenticationFacade.getPrivateOneTimeToken();
 				SharedAsset sharedAsset = privateToken.getSharedAsset();
 
-				if (sharedAsset != null && !planService.getTestPlanTestIds(sharedAsset.getPlanId()).contains(id)) {
-					owner = null;
+				if (sharedAsset != null && planService.getTestPlanTestIds(sharedAsset.getPlanId()).contains(id)) {
+					testInfo = testInfos.findById(id);
 				}
-			}
-
-			if (owner != null) {
+			} else if (owner != null) {
 				testInfo = testInfos.findByIdAndOwner(id, owner);
 			}
 		}
@@ -139,7 +137,12 @@ public class TestInfoApi {
 		}
 
 		TestInfo testInfo = maybeTestInfo.get();
-		return ResponseEntity.ok().body(assetSharing.generateShareLink(testInfo.getPlanId(), testId, testInfo.getOwner(), exp));
+
+		Plan plan = planService.getTestPlan(testInfo.getPlanId());
+		if (plan == null) {
+			return ResponseEntity.notFound().build();
+		}
+		return ResponseEntity.ok().body(assetSharing.generateShareLink(testInfo.getPlanId(), testId, plan.getOwner(), exp));
 	}
 
 	@PostMapping(value = "/info/{id}/publish", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)

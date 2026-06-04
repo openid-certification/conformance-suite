@@ -357,11 +357,10 @@ public class LogApi {
 				// by the share creator. Mirrors TestInfoApi.getTestInfo.
 				PrivateLinkOneTimeToken privateToken = authenticationFacade.getPrivateOneTimeToken();
 				SharedAsset sharedAsset = privateToken.getSharedAsset();
-				if (sharedAsset == null || !planService.getTestPlanTestIds(sharedAsset.getPlanId()).contains(testId)) {
-					owner = null;
+				if (sharedAsset != null && planService.getTestPlanTestIds(sharedAsset.getPlanId()).contains(testId)) {
+					testInfo = testInfos.findById(testId);
 				}
-			}
-			if (owner != null) {
+			} else if (owner != null) {
 				testInfo = testInfos.findByIdAndOwner(testId, owner);
 			}
 		}
