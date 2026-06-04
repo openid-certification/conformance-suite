@@ -6,7 +6,7 @@ import net.openid.conformance.condition.Condition.ConditionResult;
 
 /**
  * Sends the same Evaluations request multiple times consecutively and asserts the
- * PDP returns the same response body each time (cert profile section 3.6).
+ * PDP returns the same response body each time (cert profile section 2.6 (the cert profile defines idempotency only for the single Evaluation API; the same principle is exercised here for the batch API)).
  * Subclasses provide only the payload and expected response.
  */
 public abstract class AbstractAuthzenPDPEvaluationsIdempotencyTest extends AbstractAuthzenPDPEvaluationsTest {
@@ -26,9 +26,9 @@ public abstract class AbstractAuthzenPDPEvaluationsIdempotencyTest extends Abstr
 					validateAuthApiEndpointResponse();
 
 					if (i == 1) {
-						callAndStopOnFailure(CaptureAuthzenResponseBodyForIdempotencyCheck.class, "AUTHZEN-CERT-3.6");
+						callAndStopOnFailure(CaptureAuthzenResponseBodyForIdempotencyCheck.class, "AUTHZEN-CERT-2.6");
 					} else {
-						callAndContinueOnFailure(EnsureAuthzenResponseBodyMatchesIdempotencyCheck.class, ConditionResult.FAILURE, "AUTHZEN-CERT-3.6");
+						callAndContinueOnFailure(EnsureAuthzenResponseBodyMatchesIdempotencyCheck.class, ConditionResult.FAILURE, "AUTHZEN-CERT-2.6");
 					}
 				} finally {
 					eventLog.endBlock();

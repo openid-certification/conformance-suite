@@ -6,7 +6,9 @@ import net.openid.conformance.condition.Condition.ConditionResult;
 
 /**
  * Sends the same Resource Search request multiple times consecutively and asserts
- * the PDP returns the same response body each time.
+ * the PDP returns the same response body each time. The cert profile only
+ * defines idempotency for the single Evaluation API (section 2.6); the same
+ * principle is exercised here for Resource Search.
  */
 public abstract class AbstractAuthzenPDPResourceSearchIdempotencyTest extends AbstractAuthzenPDPResourceSearchTest {
 
@@ -25,9 +27,9 @@ public abstract class AbstractAuthzenPDPResourceSearchIdempotencyTest extends Ab
 					validateAuthApiEndpointResponse();
 
 					if (i == 1) {
-						callAndStopOnFailure(CaptureAuthzenResponseBodyForIdempotencyCheck.class, "AUTHZEN-CERT-4.6");
+						callAndStopOnFailure(CaptureAuthzenResponseBodyForIdempotencyCheck.class, "AUTHZEN-CERT-2.6");
 					} else {
-						callAndContinueOnFailure(EnsureAuthzenResponseBodyMatchesIdempotencyCheck.class, ConditionResult.FAILURE, "AUTHZEN-CERT-4.6");
+						callAndContinueOnFailure(EnsureAuthzenResponseBodyMatchesIdempotencyCheck.class, ConditionResult.FAILURE, "AUTHZEN-CERT-2.6");
 					}
 				} finally {
 					eventLog.endBlock();
