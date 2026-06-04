@@ -17,21 +17,24 @@ import { MOCK_PLAN_LIST, MOCK_PLAN_INFO } from "./fixtures/mock-plans.js";
  * target assertions are committed as `test.fixme` so CI stays green and each
  * flips active when its owning unit lands.
  *
- * SERVER-LEVEL ASSERTIONS ARE SERVER-OBSERVABLE ONLY. U10 landed the `/` and
- * `/index.html` -> 302 `/plans.html` redirects (ApplicationConfig view
- * controllers), the anonymous `permitAll` for `/`, `/index.html`, `/plans.html`,
- * `/logs.html`, and the OTT token-generation redirect target (all in
- * ApplicationConfig + WebSecurityOidcLoginConfig). None of these can be
- * exercised by this mocked-API Playwright harness, which serves static files via
- * http-server with NO Spring backend — `page.goto("/")` here hits http-server,
- * not the Spring 302. An automated `HomeRoutingTest.java` is DEFERRED to a
- * follow-up: there is no @SpringBootTest/MockMvc infrastructure in the repo, and
- * booting a context requires a live MongoDB (Application fires an
- * ApplicationReadyEvent listener that connects to Mongo at startup; there is no
- * embedded-Mongo dependency), OAuth2 client-registration test config, and
- * spring-security-test. For this slice the routing contract is verified by
- * live-browser smoke against the real backend (KTD2). The Group-B `/` fixme
- * below stays a placeholder and MUST NOT be flipped active in this harness.
+ * SERVER-LEVEL ASSERTIONS ARE SERVER-OBSERVABLE ONLY. The `/` and
+ * `/index.html` routes are owned by the AUTH-AWARE HomeController
+ * (net.openid.conformance.ui.HomeController): anonymous -> 302 `/login.html`,
+ * authenticated -> 302 `/plans.html` (the logged-out-landing fix; formerly
+ * unconditional 302s to /plans.html via ApplicationConfig view controllers).
+ * The anonymous `permitAll` for `/`, `/index.html`, `/plans.html`,
+ * `/logs.html` and the OTT token-generation redirect target live in
+ * WebSecurityOidcLoginConfig. None of these can be exercised by this
+ * mocked-API Playwright harness, which serves static files via http-server
+ * with NO Spring backend — `page.goto("/")` here hits http-server, not the
+ * Spring 302. The controller's branch logic is pinned by
+ * HomeController_UnitTest (pure unit, no Spring context); the full-stack
+ * redirect chain remains live-smoke-only because booting a context requires a
+ * live MongoDB (Application fires an ApplicationReadyEvent listener that
+ * connects to Mongo at startup; there is no embedded-Mongo dependency),
+ * OAuth2 client-registration test config, and spring-security-test. The
+ * Group-B `/` fixme below stays a placeholder and MUST NOT be flipped active
+ * in this harness.
  *
  * Route ordering: setupFailFast() FIRST (catch-all runs last); specific routes
  * after; all routes registered before page.goto() (the page fetches at
@@ -125,18 +128,24 @@ test.describe("plans.html URL compat — GROUP B: target (pending)", () => {
     expectNoUnmockedCalls(page);
   });
 
-  // OWNER: U10 (LANDED — backend redirect + index.html retirement). Placeholder
-  // only: the real `/` and `/index.html` → 302 `/plans.html` redirect is
-  // server-side (ApplicationConfig view controllers + WebSecurity permitAll) and
-  // is NOT exercisable by this no-backend http-server harness. Stays fixme;
-  // verified by live-browser smoke. Automated HomeRoutingTest.java deferred
-  // (needs live Mongo + OAuth2 test config + spring-security-test — see header).
-  test.fixme("/ and /index.html resolve to the plans home (owning unit U10)", async ({ page }) => {
+  // OWNER: U10 (LANDED), then the logged-out-landing fix (LANDED): `/` and
+  // `/index.html` are now AUTH-AWARE server 302s owned by HomeController —
+  // authenticated sessions land on /plans.html, anonymous visitors land on
+  // /login.html. Placeholder only: a Spring redirect is NOT exercisable by
+  // this no-backend http-server harness. Stays fixme; branch logic is pinned
+  // by HomeController_UnitTest and the full chain is verified by live-browser
+  // smoke (anonymous via --fintechlabs.devmode=false — the dev profile
+  // injects an admin on every request, so bare dev mode only shows the
+  // authenticated branch).
+  test.fixme("/ and /index.html resolve auth-aware: authed → plans home, anon → login", async ({
+    page,
+  }) => {
     await setupFailFast(page);
     await recordPlanRoute(page);
     await setupTestInfoRoute(page, MOCK_PLAN_INFO);
     await setupCommonRoutes(page);
 
+    // Authenticated (mocked user): / and /index.html land on the plans home.
     await page.goto("/");
     await page.waitForURL("**/plans.html");
     expect(new URL(page.url()).pathname).toBe("/plans.html");
@@ -144,6 +153,9 @@ test.describe("plans.html URL compat — GROUP B: target (pending)", () => {
     await page.goto("/index.html");
     await page.waitForURL("**/plans.html");
     expect(new URL(page.url()).pathname).toBe("/plans.html");
+
+    // Anonymous: / lands on the login page (requires a real backend session
+    // — not expressible via route mocks; documented for the live smoke).
   });
 
   // OWNER: U5 (My/Published tabs + URL sync on plans.html).
