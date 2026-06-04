@@ -2,6 +2,7 @@ package net.openid.conformance.authzen.condition;
 
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.AbstractCondition;
+import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 
@@ -15,6 +16,7 @@ public class CaptureAuthzenResponseBodyForIdempotencyCheck extends AbstractCondi
 
 	@Override
 	@PreEnvironment(required = "authzen_api_endpoint_response")
+	@PostEnvironment(strings = "authzen_idempotency_first_response_body")
 	public Environment evaluate(Environment env) {
 		if (env.getString("authzen_idempotency_first_response_body") != null) {
 			log("First-iteration response body already captured; skipping");

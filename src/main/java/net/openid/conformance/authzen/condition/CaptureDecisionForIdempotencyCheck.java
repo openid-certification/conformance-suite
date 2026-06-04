@@ -2,6 +2,7 @@ package net.openid.conformance.authzen.condition;
 
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.AbstractCondition;
+import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
@@ -16,6 +17,7 @@ public class CaptureDecisionForIdempotencyCheck extends AbstractCondition {
 
 	@Override
 	@PreEnvironment(required = "authzen_api_endpoint_decision")
+	@PostEnvironment(strings = "authzen_idempotency_first_decision")
 	public Environment evaluate(Environment env) {
 		if (env.getString("authzen_idempotency_first_decision") != null) {
 			// Already captured on a prior iteration; nothing to do.
