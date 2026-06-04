@@ -40,7 +40,7 @@ public class CreateAuthzenEvaluationsApiRequestSteps extends AbstractConditionSe
 			callAndStopOnFailure(new CreateAuthzenApiEndpointRequestContext(context), "AUTHZEN-5.4", "AUTHZEN-7.1.1");
 		}
 		if(null != evaluations) {
-			callAndStopOnFailure(new CreateAuthzenApiEndpointRequestEvaluations(evaluations), "AUTHZEN-5", "AUTHZEN-7.1");
+			callAndStopOnFailure(new CreateAuthzenApiEndpointRequestEvaluations(evaluations), "AUTHZEN-7.1");
 		}
 		if(null != options) {
 			callAndStopOnFailure(new CreateAuthzenApiEndpointRequestOptions(options), "AUTHZEN-7.1", "AUTHZEN-7.1.2");
