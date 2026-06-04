@@ -87,6 +87,9 @@ public class HomeController_UnitTest {
 		ResponseEntity<Void> response = controller.home();
 
 		Assertions.assertEquals(URI.create("/login.html"), response.getHeaders().getLocation());
+		// Executable pin of the comment above: the routing decision must not
+		// consult the private-link flag (guests fall through the role checks).
+		Mockito.verify(authenticationFacade, Mockito.never()).isPrivateLinkUser();
 	}
 
 	@Test
