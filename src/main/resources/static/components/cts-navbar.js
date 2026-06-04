@@ -5,9 +5,13 @@ import { when } from "lit/directives/when.js";
 import "./cts-icon.js";
 
 // Navigation collapsed in U9 (plans-page-as-home): Home and Create Test were
-// removed because the plans listing is now the application home (reached via
-// the brand logo) and the "Schedule test" CTA lives in an in-page control on
-// that home (U8).
+// removed because the plans listing is the authenticated application home and
+// the "Schedule test" CTA lives in an in-page control on that home (U8).
+// The brand logo is auth-conditional (logged-out-landing fix): authenticated
+// users go to the plans home, logged-out visitors go to login.html, and while
+// the auth probe is unresolved the brand points at "/" so the server-side
+// HomeController (anonymous -> login.html, authenticated -> plans.html)
+// decides instead of a stale client guess.
 //
 // Test Plans and Test Logs are present in BOTH the authenticated and anonymous
 // link sets so the primary listings are always reachable from the nav. The
@@ -564,6 +568,13 @@ function computeInitials(name) {
  *   for non-admin/non-guest users, and a Sign out form button.
  * - Unauthenticated → "Sign in" button linking to /login.html.
  * - Loading → skeleton avatar circle (no horizontal text reservation).
+ *
+ * Brand (logo) destination — auth-conditional:
+ * - Authenticated → plans.html (the application home).
+ * - Unauthenticated → login.html (logged-out visitors land on the login page).
+ * - Loading (auth probe unresolved, no cache seed) → "/" — the server-side
+ *   HomeController makes the same authenticated/anonymous call with fresh
+ *   session state, so a click in the loading window can never misroute.
  * @property {string} currentPage - Key of the active page (e.g. `plans`,
  *   `logs`, `tokens`, `api-docs`); used to highlight the matching link.
  *   Reflects the `current-page` attribute.
@@ -729,6 +740,19 @@ class CtsNavbar extends LitElement {
     this._mobileMenuOpen = !this._mobileMenuOpen;
   }
 
+  /**
+   * Brand (logo) destination per auth state: the plans home when
+   * authenticated, the login page when anonymous, and "/" while the auth
+   * probe is unresolved so the auth-aware server redirect (HomeController)
+   * decides instead of a stale client guess — an authenticated user clicking
+   * the logo mid-probe must not be misrouted to login.html.
+   * @returns {string} href for the brand anchor.
+   */
+  _brandHref() {
+    if (this._loading) return "/";
+    return this._user ? "plans.html" : "login.html";
+  }
+
   _renderNavLinks() {
     const links = this._user ? NAV_LINKS : PUBLIC_NAV_LINKS;
     const filteredLinks = this._user
@@ -864,7 +888,7 @@ class CtsNavbar extends LitElement {
             />
           </svg>
         </button>
-        <a class="cts-brand navbar-brand" href="plans.html">
+        <a class="cts-brand navbar-brand" href="${this._brandHref()}">
           <img src="/images/openid-dark.svg" alt="OpenID Foundation" width="93" height="28" />
           <span class="cts-brand-name">CONFORMANCE SUITE</span>
         </a>

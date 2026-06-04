@@ -157,7 +157,9 @@ export const Authenticated = {
     const plansLink = canvas.getByText("Test Plans");
     expect(plansLink.classList.contains("active")).toBe(true);
 
-    // OpenID logo present, and the brand now points at the plans home (U9).
+    // OpenID logo present, and the brand points at the plans home for
+    // authenticated users (logged-out visitors get login.html instead —
+    // see the Unauthenticated story).
     const logo = canvasElement.querySelector('img[alt="OpenID Foundation"]');
     expect(logo).toBeTruthy();
     const brand = /** @type {HTMLAnchorElement} */ (canvasElement.querySelector(".cts-brand"));
@@ -253,12 +255,14 @@ export const Unauthenticated = {
     expect(signIn).toBeInTheDocument();
     expect(signIn.getAttribute("href")).toBe("login.html");
 
-    // Logo still present, and the brand points at the plans home (U9) — the
-    // anonymous path to the published view.
+    // Logo still present, and the brand points at the login page —
+    // logged-out visitors land on login.html, not the plans listing
+    // (logged-out-landing fix; the published view stays reachable via the
+    // ?public=true nav links asserted above).
     const logo = canvasElement.querySelector('img[alt="OpenID Foundation"]');
     expect(logo).toBeTruthy();
     const brand = /** @type {HTMLAnchorElement} */ (canvasElement.querySelector(".cts-brand"));
-    expect(brand.getAttribute("href")).toBe("plans.html");
+    expect(brand.getAttribute("href")).toBe("login.html");
   },
 };
 
@@ -278,9 +282,13 @@ export const Loading = {
       expect(skel).toBeTruthy();
     });
 
-    // Logo visible while loading.
+    // Logo visible while loading, and the brand delegates to "/" so the
+    // auth-aware server redirect (HomeController) decides the destination —
+    // a stale client guess could misroute an authenticated user to login.html.
     const logo = canvasElement.querySelector('img[alt="OpenID Foundation"]');
     expect(logo).toBeTruthy();
+    const brand = /** @type {HTMLAnchorElement} */ (canvasElement.querySelector(".cts-brand"));
+    expect(brand.getAttribute("href")).toBe("/");
 
     // While loading, user is null so component shows the public nav links
     // (Test Plans, Test Logs, API Docs); the collapsed-in-U9 Home link stays
