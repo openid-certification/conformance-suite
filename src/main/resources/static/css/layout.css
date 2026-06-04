@@ -34,6 +34,16 @@ html {
  * transition window, and the effect is indistinguishable from an
  * instant swap — except the browser had time to paint the full nav
  * before swapping.
+ *
+ * Known benign console noise: when a traversal interrupts an in-flight
+ * transition (back then quickly forward), the browser skips it and its
+ * internal ViewTransition.ready promise rejects as "Uncaught (in
+ * promise) AbortError: Transition was skipped". No author code ever
+ * holds that promise, and the skip can land before pagereveal fires, so
+ * the line is not reliably suppressible from page code (a
+ * pagereveal-attached .catch() was tried and proven insufficient). It
+ * is accepted as-is: a skipped transition merely degrades the
+ * paint-held swap to a plain instant swap; nothing is broken.
  */
 @view-transition {
 	navigation: auto;
