@@ -114,14 +114,21 @@ async function waitForNavbar(canvasElement) {
  * while still spanning the menu's inner width (fill — guards against a
  * shrink-wrap over-correction). One measurement basis throughout:
  * getBoundingClientRect(), with a ±2px tolerance on the fill check for
- * sub-pixel rounding. Menu box model per side: 8px padding (--space-2)
- * plus 1px border.
+ * sub-pixel rounding. The menu's padding and border are read from computed
+ * style so the expected fill width tracks token retunes instead of
+ * false-failing on them.
  * @param {HTMLElement} canvasElement - The Storybook canvas root.
  */
 function expectAccountMenuItemsWithinMenu(canvasElement) {
   const menu = /** @type {HTMLElement} */ (canvasElement.querySelector(".cts-account-menu"));
   const menuRect = menu.getBoundingClientRect();
-  const innerWidth = menuRect.width - 2 * (8 + 1);
+  const menuStyle = getComputedStyle(menu);
+  const innerWidth =
+    menuRect.width -
+    parseFloat(menuStyle.borderLeftWidth) -
+    parseFloat(menuStyle.borderRightWidth) -
+    parseFloat(menuStyle.paddingLeft) -
+    parseFloat(menuStyle.paddingRight);
   const items = canvasElement.querySelectorAll(".cts-account-item");
   expect(items.length).toBeGreaterThan(0);
   for (const item of items) {
@@ -222,6 +229,15 @@ export const Admin = {
 
     // Sign out always available.
     expect(canvas.getByText("Sign out")).toBeInTheDocument();
+
+    // Geometry regression guard for the single-item menu shape: with
+    // Tokens hidden, the lone form-nested Sign out button must still be
+    // contained in and fill the open menu.
+    const trigger = /** @type {HTMLButtonElement} */ (
+      canvasElement.querySelector(".cts-account-trigger")
+    );
+    await userEvent.click(trigger);
+    expectAccountMenuItemsWithinMenu(canvasElement);
   },
 };
 
