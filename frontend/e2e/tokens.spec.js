@@ -91,7 +91,7 @@ test.describe("tokens.html — API Tokens", () => {
     await expect(firstDelete.locator("button.oidf-btn-danger")).toBeVisible();
   });
 
-  test("three header action buttons render as size=lg cts-button / cts-link-button", async ({
+  test("three header action buttons render as size=md cts-button / cts-link-button", async ({
     page,
   }) => {
     await setupFailFast(page);
@@ -113,18 +113,51 @@ test.describe("tokens.html — API Tokens", () => {
     await expect(newPermanent).toBeVisible();
     await expect(apiDocs).toBeVisible();
 
-    await expect(newTemporary).toHaveAttribute("size", "lg");
+    await expect(newTemporary).toHaveAttribute("size", "md");
     await expect(newTemporary).toHaveAttribute("variant", "primary");
-    await expect(newPermanent).toHaveAttribute("size", "lg");
+    await expect(newPermanent).toHaveAttribute("size", "md");
     await expect(newPermanent).toHaveAttribute("variant", "primary");
-    await expect(apiDocs).toHaveAttribute("size", "lg");
-    // cts-link-button defaults to secondary inside cts-token-manager
-    await expect(apiDocs).toHaveAttribute("variant", "secondary");
+    await expect(apiDocs).toHaveAttribute("size", "md");
+    // The API Documentation link is the tertiary action — ghost variant
+    await expect(apiDocs).toHaveAttribute("variant", "ghost");
 
-    // Inner elements should carry the .oidf-btn-lg class
-    await expect(newTemporary.locator("button.oidf-btn-lg")).toBeVisible();
-    await expect(newPermanent.locator("button.oidf-btn-lg")).toBeVisible();
-    await expect(apiDocs.locator("a.oidf-btn-lg")).toBeVisible();
+    // md is the unmodified base rung; the inner elements carry the base
+    // .oidf-btn surface, and the docs link renders the ghost variant class.
+    await expect(newTemporary.locator("button.oidf-btn")).toBeVisible();
+    await expect(newPermanent.locator("button.oidf-btn")).toBeVisible();
+    await expect(apiDocs.locator("a.oidf-btn.oidf-btn-ghost")).toBeVisible();
+  });
+
+  test("token ID cells render monospace and the copy row follows the token value", async ({
+    page,
+  }) => {
+    await setupFailFast(page);
+    await setupTokenListRoute(page, MOCK_TOKENS);
+    await setupCommonRoutes(page, { user: MOCK_TOKEN_USER });
+
+    await page.goto("/tokens.html");
+
+    // The Token ID column is declared mono: true; cts-data-table applies
+    // .oidf-dt-cell-mono to every body cell of that column.
+    const idCells = page.locator('#tokensListing tbody td[data-column-key="_id"]');
+    await expect(idCells.first()).toBeVisible();
+    expect(await idCells.count()).toBe(MOCK_TOKENS.length);
+    for (const cell of await idCells.all()) {
+      await expect(cell).toHaveClass(/oidf-dt-cell-mono/);
+    }
+
+    // cts-modal captures its children at connect, so the created-token
+    // modal body is present (hidden) at load — the DOM-order contract is
+    // checkable without driving the create flow: the token value <pre>
+    // precedes the Copy button.
+    const orderOk = await page.evaluate(() => {
+      const body = document.querySelector(".cts-token-manager-created-modal-body");
+      const pre = body?.querySelector("pre.created-token-value");
+      const copyButton = body?.querySelector('cts-button[title="Copy token to clipboard"]');
+      if (!pre || !copyButton) return false;
+      return Boolean(pre.compareDocumentPosition(copyButton) & Node.DOCUMENT_POSITION_FOLLOWING);
+    });
+    expect(orderOk).toBe(true);
   });
 
   test("clicking Delete then Confirm fires DELETE /api/token/:id and the row disappears", async ({

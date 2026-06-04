@@ -155,6 +155,12 @@ export const CreateTemporaryToken = {
     const copyHost = canvas.getByTitle("Copy token to clipboard");
     expect(copyHost).toBeTruthy();
 
+    // The Copy button displays after the token value: the <pre> precedes
+    // the copy-row in DOM order so the action follows the thing it copies.
+    expect(
+      Boolean(tokenPre.compareDocumentPosition(copyHost) & Node.DOCUMENT_POSITION_FOLLOWING),
+    ).toBe(true);
+
     // Click the inner button rendered by cts-button so the @cts-click
     // handler fires (host.click() does not propagate to the inner button).
     const copyInnerBtn = /** @type {HTMLButtonElement} */ (copyHost.querySelector("button"));

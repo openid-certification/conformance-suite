@@ -48,6 +48,10 @@ const STYLE_TEXT = css`
     display: flex;
     align-items: center;
     gap: var(--space-2);
+    /* The row sits below the full-width token block; keep the Copy
+       button and its aria-live feedback adjacent in their own row
+       rather than co-mingled with the wrapping <pre>. */
+    margin-top: var(--space-3);
   }
   .cts-token-manager-copy-feedback {
     font-size: var(--fs-12);
@@ -377,7 +381,7 @@ class CtsTokenManager extends LitElement {
 
   _columns() {
     return [
-      { key: "_id", label: "Token ID" },
+      { key: "_id", label: "Token ID", mono: true },
       { key: "expires", label: "Expires" },
       { key: "_actions", label: "Delete" },
     ];
@@ -415,19 +419,19 @@ class CtsTokenManager extends LitElement {
       <div class="cts-token-manager-actions">
         <cts-button
           variant="primary"
-          size="lg"
+          size="md"
           label="New temporary token"
           @cts-click=${this._createTemporaryToken}
         ></cts-button>
         <cts-button
           variant="primary"
-          size="lg"
+          size="md"
           label="New permanent token"
           @cts-click=${this._createPermanentToken}
         ></cts-button>
         <cts-link-button
-          variant="secondary"
-          size="lg"
+          variant="ghost"
+          size="md"
           href="/api-document.html"
           target="_blank"
           label="API Documentation"
@@ -452,6 +456,8 @@ class CtsTokenManager extends LitElement {
     return html`
       <cts-modal id="createdTokenModal" heading="Token created" size="lg">
         <div class="cts-token-manager-created-modal-body">
+          <p>Here is your new token. This value will only be displayed once.</p>
+          <pre class="cts-token-manager-token-value created-token-value">${this._createdToken}</pre>
           <div class="cts-token-manager-copy-row">
             <cts-button
               variant="secondary"
@@ -469,8 +475,6 @@ class CtsTokenManager extends LitElement {
               >${this._copyFeedback || ""}</span
             >
           </div>
-          <p>Here is your new token. This value will only be displayed once.</p>
-          <pre class="cts-token-manager-token-value created-token-value">${this._createdToken}</pre>
         </div>
       </cts-modal>
 
