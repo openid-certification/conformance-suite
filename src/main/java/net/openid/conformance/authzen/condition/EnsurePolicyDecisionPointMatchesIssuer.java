@@ -12,7 +12,7 @@ import net.openid.conformance.testmodule.Environment;
 public class EnsurePolicyDecisionPointMatchesIssuer extends AbstractCondition {
 
 	@Override
-	@PreEnvironment(required = "server")
+	@PreEnvironment(required = {"config", "server"})
 	public Environment evaluate(Environment env) {
 		String configured = env.getString("config", "pdp.policy_decision_point");
 		if (configured == null) {
