@@ -20,7 +20,7 @@ public class CaptureDecisionForIdempotencyCheck extends AbstractCondition {
 	@PostEnvironment(strings = "authzen_idempotency_first_decision")
 	public Environment evaluate(Environment env) {
 		if (env.getString("authzen_idempotency_first_decision") != null) {
-			// Already captured on a prior iteration; nothing to do.
+			log("First-iteration decision already captured; skipping");
 			return env;
 		}
 		JsonObject decision = env.getObject("authzen_api_endpoint_decision");
