@@ -203,7 +203,7 @@
           "key": "server.login_hint",
           "label": "login_hint",
           "type": "string",
-          "tooltip": "A value that the server accepts in the login_hint parameter. If not specified a default value ('buffy@<your issuer></cts-icon>') will be used."
+          "tooltip": "A value that the server accepts in the login_hint parameter. If not specified a default value ('buffy@<your issuer>') will be used."
         },
         {
           "key": "server.ui_locales",
