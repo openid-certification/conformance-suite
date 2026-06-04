@@ -34,7 +34,7 @@ public class AuthzenPDPSubjectSearchRejectMalformedJsonTest extends AbstractAuth
 	}
 
 	@Override
-	protected int getExpectedHttpStatusCode() {
-		return 400;
+	protected java.util.Set<Integer> getAcceptableHttpStatusCodes() {
+		return java.util.Set.of(400);
 	}
 }
