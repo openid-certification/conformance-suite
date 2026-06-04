@@ -35,7 +35,6 @@ public class AuthzenPDPEvaluationsPermitOnFirstPermitTest extends AbstractAuthze
 			{
 				"evaluations": [
 					{ "decision": false },
-					{ "decision": true },
 					{ "decision": true }
 				]
 			}

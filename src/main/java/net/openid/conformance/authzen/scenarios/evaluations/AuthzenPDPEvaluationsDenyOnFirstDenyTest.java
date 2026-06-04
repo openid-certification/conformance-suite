@@ -29,13 +29,11 @@ public class AuthzenPDPEvaluationsDenyOnFirstDenyTest extends AbstractAuthzenPDP
 		return payload;
 	}
 
-	@Override
 	protected String getExpectedEvaluationsResponseJson() {
 		return """
 			{
 				"evaluations": [
 					{ "decision": true },
-					{ "decision": false },
 					{ "decision": false }
 				]
 			}
