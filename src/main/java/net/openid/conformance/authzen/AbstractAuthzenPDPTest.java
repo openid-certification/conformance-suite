@@ -68,6 +68,7 @@ public abstract class AbstractAuthzenPDPTest extends AbstractRedirectServerTestM
 	protected Class<? extends ConditionSequence> profileCompleteClientConfiguration;
 	protected Class<? extends ConditionSequence> addPDPEndpointClientAuthentication;
 	protected Class<? extends ConditionSequence> supportMTLSEndpointAliases;
+	private boolean endpointPathV1Checked;
 
 	public static class ConfigureClientForMtls extends AbstractConditionSequence {
 		@Override
@@ -293,7 +294,14 @@ public abstract class AbstractAuthzenPDPTest extends AbstractRedirectServerTestM
 
 	protected void callAuthApiEndpointRequest() {
 		setAuthzenApiEndpoint();
-		callAndContinueOnFailure(EnsureAuthzenApiEndpointPathContainsV1.class, ConditionResult.WARNING, "AUTHZEN-4");
+		if (!endpointPathV1Checked) {
+			// The endpoint URL is fixed per test, so the §4 v1-path SHOULD check
+			// only needs to fire once. Without this gate, idempotency loops (×3)
+			// and paginated search loops (up to MAX_PAGES) would emit the same
+			// warning every iteration.
+			callAndContinueOnFailure(EnsureAuthzenApiEndpointPathContainsV1.class, ConditionResult.WARNING, "AUTHZEN-4");
+			endpointPathV1Checked = true;
+		}
 		addAuthenticationToAuthzenApiEndpoint();
 		performApiRequestCall();
 	}
