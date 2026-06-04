@@ -19,8 +19,10 @@ import java.util.List;
  *
  * <p>Search responses (subject/resource/action) carry a {@code results} array whose
  * order is not guaranteed across calls, so {@code results} is compared as a multiset
- * (order-independent but multiplicity-preserving) while the rest of the body is
- * compared strictly.
+ * (order-independent but multiplicity-preserving). The {@code page.next_token} is
+ * opaque to the PEP and may legitimately differ across identical requests (e.g. a
+ * server that derives the token from a timestamp), so it is excluded from the
+ * comparison. The rest of the response body is compared strictly.
  */
 public class EnsureAuthzenResponseBodyMatchesIdempotencyCheck extends AbstractCondition {
 
@@ -71,11 +73,19 @@ public class EnsureAuthzenResponseBodyMatchesIdempotencyCheck extends AbstractCo
 
 		JsonObject expectedRest = expected.deepCopy();
 		expectedRest.remove("results");
+		stripOpaquePageToken(expectedRest);
 		JsonObject actualRest = actual.deepCopy();
 		actualRest.remove("results");
+		stripOpaquePageToken(actualRest);
 		if (!expectedRest.equals(actualRest)) {
-			throw error("Response body (excluding results) changed across consecutive identical requests — PDP is not idempotent",
+			throw error("Response body (excluding results and page.next_token) changed across consecutive identical requests — PDP is not idempotent",
 				args("first_iteration_body", expected, "current_iteration_body", actual));
+		}
+	}
+
+	private static void stripOpaquePageToken(JsonObject body) {
+		if (body.has("page") && body.get("page").isJsonObject()) {
+			body.getAsJsonObject("page").remove("next_token");
 		}
 	}
 }
