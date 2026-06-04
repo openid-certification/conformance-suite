@@ -6,7 +6,7 @@ import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 
 /**
- * Spec section 7.2-3 says that when the response includes an `evaluations` array,
+ * Section 7.2 says that when the response includes an `evaluations` array,
  * the top-level `decision` field SHOULD be omitted. This condition throws on
  * violation so the caller can decide whether to surface it as a WARNING or FAILURE.
  */
@@ -19,7 +19,7 @@ public class EnsureNoTopLevelDecisionWhenEvaluationsPresent extends AbstractCond
 		boolean hasEvaluations = response.has("evaluations") && response.get("evaluations").isJsonArray();
 		boolean hasTopLevelDecision = response.has("decision");
 		if (hasEvaluations && hasTopLevelDecision) {
-			throw error("Response contains both `evaluations` and a top-level `decision`; spec 7.2-3 says the top-level decision SHOULD be omitted when evaluations is returned.",
+			throw error("Response contains both `evaluations` and a top-level `decision`; Section 7.2 says the top-level decision SHOULD be omitted when evaluations is returned.",
 				args("response", response));
 		}
 		logSuccess("Response does not carry a redundant top-level `decision` alongside `evaluations`");

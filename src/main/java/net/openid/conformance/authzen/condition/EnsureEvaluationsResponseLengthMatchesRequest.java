@@ -8,7 +8,7 @@ import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 
 /**
- * Spec section 7.2-1 requires the response `evaluations` array to have the same
+ * Section 7.2 requires the response `evaluations` array to have the same
  * length as the request `evaluations` array. When the request omits `evaluations`
  * or sends an empty array (backward-compat shape) this check is skipped.
  */

@@ -6,7 +6,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 @PublishTestModule(
 	testName = "authzen-pdp-action-search-reject-put-method",
 	displayName = "Authzen Action Search API - Section 10.1: Reject PUT method",
-	summary = "Per spec 10.1-1, action search requests are made via HTTPS POST. The PDP MUST reject a PUT request to the action search endpoint with an HTTP 4xx error (typically 405 Method Not Allowed).",
+	summary = "Per Section 10.1, action search requests are made via HTTPS POST. The PDP MUST reject a PUT request to the action search endpoint with an HTTP 4xx error (typically 405 Method Not Allowed).",
 	profile = "Authzen"
 )
 public class AuthzenPDPActionSearchRejectPutMethodTest extends AbstractAuthzenPDPActionSearchTest {

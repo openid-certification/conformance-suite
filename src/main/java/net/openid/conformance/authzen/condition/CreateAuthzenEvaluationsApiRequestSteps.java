@@ -24,7 +24,7 @@ public class CreateAuthzenEvaluationsApiRequestSteps extends AbstractConditionSe
 	@Override
 	public void evaluate() {
 		callAndStopOnFailure(CreateEmptyAuthzenApiEndpointRequest.class);
-		// Per spec 7.1, top-level subject/resource/action are DEFAULTS that each
+		// Per Section 7.1, top-level subject/resource/action are DEFAULTS that each
 		// per-evaluation entry merges with its own values, so the top-level
 		// objects MAY omit fields that would be required at the evaluation API.
 		if(null != subject) {

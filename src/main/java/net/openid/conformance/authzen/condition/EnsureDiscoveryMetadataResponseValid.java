@@ -8,7 +8,7 @@ import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 
 /**
- * Spec section 9.2.2-1 — the well-known discovery endpoint MUST return HTTP
+ * Section 9.2.2 — the well-known discovery endpoint MUST return HTTP
  * 200 with `Content-Type: application/json`. The existing
  * {@link GetPDPDynamicServerConfiguration} relies on Spring throwing on
  * non-2xx and on the body parsing as JSON; this condition asserts the two

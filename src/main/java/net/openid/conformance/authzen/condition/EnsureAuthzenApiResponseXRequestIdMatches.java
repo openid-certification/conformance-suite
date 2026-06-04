@@ -11,7 +11,7 @@ import java.util.Locale;
 
 /**
  * Asserts the PDP echoed the X-Request-ID supplied on the request back in the
- * response headers (Section 10.1.3-4 — exact-echo when PEP supplied an
+ * response headers (Section 10.1.3 — exact-echo when PEP supplied an
  * identifier).
  */
 public class EnsureAuthzenApiResponseXRequestIdMatches extends AbstractCondition {

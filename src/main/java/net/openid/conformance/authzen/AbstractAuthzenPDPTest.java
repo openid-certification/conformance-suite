@@ -225,7 +225,7 @@ public abstract class AbstractAuthzenPDPTest extends AbstractRedirectServerTestM
 	/**
 	 * Override to add an `X-Request-ID` header to the request. When true, the request
 	 * sequence appends the header and the response is asserted to echo the same value
-	 * (Section 10.1.3-3 / 10.1.3-4).
+	 * (Section 10.1.3).
 	 */
 	protected boolean includeXRequestIdHeader() {
 		return false;

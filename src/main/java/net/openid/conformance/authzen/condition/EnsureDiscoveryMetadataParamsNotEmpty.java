@@ -11,7 +11,7 @@ import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 
 /**
- * Spec section 9.2.2-5: parameters with no value MUST be omitted rather than
+ * Section 9.2.2: parameters with no value MUST be omitted rather than
  * sent as `null` or as an empty string. This condition walks the top-level
  * discovery metadata and throws on any param whose value is JSON null or an
  * empty string.
@@ -35,7 +35,7 @@ public class EnsureDiscoveryMetadataParamsNotEmpty extends AbstractCondition {
 			}
 		}
 		if (!offending.isEmpty()) {
-			throw error("Discovery metadata contains parameters with null or empty-string values; spec 9.2.2-5 requires absent parameters to be omitted",
+			throw error("Discovery metadata contains parameters with null or empty-string values; Section 9.2.2 requires absent parameters to be omitted",
 				args("offending_parameters", offending, "metadata", metadata));
 		}
 		logSuccess("All discovery metadata parameters have non-empty values");

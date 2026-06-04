@@ -10,7 +10,7 @@ import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 
 /**
- * Per spec section 7.1-2, when an Evaluations request omits the `evaluations`
+ * Section 7.1, when an Evaluations request omits the `evaluations`
  * member the PDP MAY return either the single-decision form
  * (`{"decision": <bool>}`) or the one-element evaluations array form
  * (`{"evaluations": [{"decision": <bool>}]}`).

@@ -4,7 +4,7 @@ import com.google.gson.JsonObject;
 
 /**
  * Adds the top-level `subject` defaults object to an Evaluations API request.
- * Per spec section 7.1, the top-level subject is a DEFAULT that each
+ * Per Section 7.1, the top-level subject is a DEFAULT that each
  * evaluation merges with its own subject; the top-level object MAY omit the
  * `type` and `id` fields that {@link CreateAuthzenApiEndpointRequestSubject}
  * normally enforces.

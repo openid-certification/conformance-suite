@@ -8,7 +8,7 @@ import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 
 /**
- * Spec 9.1.2-1 — the `capabilities` metadata field, when present, MUST be a
+ * Section 9.1.2 — the `capabilities` metadata field, when present, MUST be a
  * JSON array of (URN) strings. Absent entirely is fine; non-conforming shapes
  * are flagged so the caller can decide severity.
  */
