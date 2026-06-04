@@ -16,23 +16,28 @@ public abstract class AbstractAuthzenPDPEvaluationIdempotencyTest extends Abstra
 	@Override
 	protected void performAuthzenApiFlow() {
 		eventLog.startBlock("Idempotency test: send the same Evaluation request " + ITERATIONS + " times");
+		try {
+			for (int i = 1; i <= ITERATIONS; i++) {
+				eventLog.startBlock("Iteration " + i);
+				try {
+					createAuthzenApiRequest();
+					performSingleApiRequest();
+					processAuthApiEndpointResponse();
+					validateAuthApiEndpointResponse();
 
-		for (int i = 1; i <= ITERATIONS; i++) {
-			eventLog.startBlock("Iteration " + i);
-			createAuthzenApiRequest();
-			performSingleApiRequest();
-			processAuthApiEndpointResponse();
-			validateAuthApiEndpointResponse();
-
-			if (i == 1) {
-				callAndStopOnFailure(CaptureDecisionForIdempotencyCheck.class, "AUTHZEN-CERT-2.6");
-			} else {
-				callAndContinueOnFailure(EnsureDecisionMatchesIdempotencyCheck.class, ConditionResult.FAILURE, "AUTHZEN-CERT-2.6");
+					if (i == 1) {
+						callAndStopOnFailure(CaptureDecisionForIdempotencyCheck.class, "AUTHZEN-CERT-2.6");
+					} else {
+						callAndContinueOnFailure(EnsureDecisionMatchesIdempotencyCheck.class, ConditionResult.FAILURE, "AUTHZEN-CERT-2.6");
+					}
+				} finally {
+					eventLog.endBlock();
+				}
 			}
+
+			performPostApiFlow();
+		} finally {
 			eventLog.endBlock();
 		}
-
-		performPostApiFlow();
-		eventLog.endBlock();
 	}
 }
