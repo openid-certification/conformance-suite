@@ -197,7 +197,7 @@ public abstract class AbstractAuthzenPDPTest extends AbstractRedirectServerTestM
 			callAndStopOnFailure(AddXRequestIdHeaderToAuthzenApiRequest.class, "AUTHZEN-10.1.3");
 		}
 		callAuthApiEndpointRequest();
-		if (getExpectedHttpStatusCode() == 200) {
+		if (getAcceptableHttpStatusCodes().contains(200)) {
 			processAuthApiEndpointResponse();
 			validateAuthApiEndpointResponse();
 		}
