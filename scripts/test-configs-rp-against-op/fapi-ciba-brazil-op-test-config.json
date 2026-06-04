@@ -100,5 +100,8 @@
     },
     "directory": {
         "keystore": "https://keystore.sandbox.directory.openbankingbrasil.org.br/"
+    },
+    "options": {
+        "browsercontrol_css_enable": false
     }
 }

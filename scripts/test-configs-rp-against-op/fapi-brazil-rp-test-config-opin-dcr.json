@@ -76,5 +76,8 @@
     "directory": {
         "keystore": "https://keystore.sandbox.directory.opinbrasil.com.br/"
     },
-    "consent": {}
+    "consent": {},
+    "options": {
+        "browsercontrol_css_enable": false
+    }
 }

@@ -81,5 +81,8 @@
     ],
     "consent": {
         "productType": "personal"
+    },
+    "options": {
+        "browsercontrol_css_enable": false
     }
 }
