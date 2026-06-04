@@ -18,6 +18,7 @@ import org.springframework.mock.web.MockServletContext;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.web.FilterChainProxy;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.savedrequest.HttpSessionRequestCache;
 import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;
 
 /**
@@ -70,15 +71,15 @@ public class ResourceServerRequestCache_UnitTest {
 	}
 
 	/**
-	 * Sends an anonymous GET through the real API filter chain the way a
-	 * browser-native {@code fetch()} would: {@code Accept: *}{@code /*}, no
-	 * {@code X-Requested-With}, no Authorization header. The session is
-	 * pre-created so the red state is deterministic: without the
-	 * {@code NullRequestCache} the saved-request write lands on this session
-	 * (rather than on one the cache creates itself), and with the fix the
-	 * assertion proves suppression rather than mere absence of a session.
+	 * Builds an anonymous GET shaped the way a browser-native {@code fetch()}
+	 * sends it: {@code Accept: *}{@code /*}, no {@code X-Requested-With}, no
+	 * Authorization header. The session is pre-created so the red state is
+	 * deterministic: without the {@code NullRequestCache} the saved-request
+	 * write lands on this session (rather than on one the cache creates
+	 * itself), and with the fix the assertion proves suppression rather than
+	 * mere absence of a session.
 	 */
-	private MockHttpServletResponse anonymousFetchStyleGet(String uri, MockHttpSession session) throws Exception {
+	private MockHttpServletRequest buildAnonymousFetchStyleGet(String uri, MockHttpSession session) {
 		MockHttpServletRequest request = new MockHttpServletRequest(context.getServletContext());
 		request.setMethod("GET");
 		request.setRequestURI(uri);
@@ -87,16 +88,15 @@ public class ResourceServerRequestCache_UnitTest {
 		request.setSecure(true);
 		request.addHeader("Accept", "*/*");
 		request.setSession(session);
-
-		MockHttpServletResponse response = new MockHttpServletResponse();
-		filterChainProxy.doFilter(request, response, new MockFilterChain());
-		return response;
+		return request;
 	}
 
 	private void assertUnauthorizedWithoutSavedRequest(String uri) throws Exception {
 		MockHttpSession session = new MockHttpSession();
+		MockHttpServletRequest request = buildAnonymousFetchStyleGet(uri, session);
+		MockHttpServletResponse response = new MockHttpServletResponse();
 
-		MockHttpServletResponse response = anonymousFetchStyleGet(uri, session);
+		filterChainProxy.doFilter(request, response, new MockFilterChain());
 
 		// The authorization behavior is unchanged: a plain 401 from
 		// RestAuthenticationEntryPoint, not a redirect to a login flow.
@@ -110,6 +110,14 @@ public class ResourceServerRequestCache_UnitTest {
 		// URL as the post-login redirect target.
 		Assertions.assertNull(session.getAttribute(SAVED_REQUEST_ATTRIBUTE),
 			uri + " must not write " + SAVED_REQUEST_ATTRIBUTE + " into the session");
+
+		// Same invariant read through Spring's own public API — the exact
+		// path the OIDC chain's SavedRequestAwareAuthenticationSuccessHandler
+		// uses to find a replay target. Unlike the raw attribute key above
+		// (package-private in HttpSessionRequestCache, so duplicated here as
+		// a string), this assertion survives Spring renaming the session key.
+		Assertions.assertNull(new HttpSessionRequestCache().getRequest(request, response),
+			uri + " must leave nothing for the login success handler to replay");
 	}
 
 	@Test
