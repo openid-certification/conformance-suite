@@ -1,7 +1,9 @@
 package net.openid.conformance.authzen.condition;
 
 import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import java.util.Map;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
@@ -15,7 +17,10 @@ import net.openid.conformance.testmodule.Environment;
  *
  * This condition normalizes the single-decision form into the array form so
  * the downstream validators ({@code EnsureValidEvaluationsResponse} and the
- * val-match conditions) accept either shape without modification.
+ * val-match conditions) accept either shape without modification. Any
+ * additional top-level fields the PDP returned (e.g. {@code context}) are
+ * preserved on the normalized object; only the original top-level
+ * {@code decision} is moved into the one-element evaluations array.
  */
 public class NormalizeAuthzenEvaluationsResponseSingleDecisionToArray extends AbstractCondition {
 
@@ -38,8 +43,16 @@ public class NormalizeAuthzenEvaluationsResponseSingleDecisionToArray extends Ab
 		entry.add("decision", response.get("decision"));
 		evaluations.add(entry);
 		normalized.add("evaluations", evaluations);
+		// Preserve every other top-level field the PDP returned so downstream
+		// checks (e.g. EnsureNoTopLevelDecisionWhenEvaluationsPresent, context
+		// validation, unknown-field warnings) see what the PDP actually sent.
+		for (Map.Entry<String, JsonElement> field : response.entrySet()) {
+			if (!"decision".equals(field.getKey()) && !"evaluations".equals(field.getKey())) {
+				normalized.add(field.getKey(), field.getValue());
+			}
+		}
 		env.putObject("authzen_evaluations_endpoint_response", normalized);
-		logSuccess("Normalised single-decision response to one-element evaluations array",
+		logSuccess("Normalized single-decision response to one-element evaluations array",
 			args("normalized", normalized));
 		return env;
 	}
