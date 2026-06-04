@@ -195,6 +195,11 @@ public abstract class AbstractAuthzenPDPTest extends AbstractRedirectServerTestM
 		eventLog.startBlock("Make request to API endpoint");
 		createAuthzenApiRequest();
 		performSingleApiRequest();
+		// Body-extraction / response validation runs whenever 200 is in the
+		// acceptable set. For tests that allow a mix of 200 and non-200
+		// codes, this runs unconditionally — author must ensure
+		// processAuthApiEndpointResponse() / validateAuthApiEndpointResponse()
+		// tolerate a 4xx body shape if such a mixed set is ever used.
 		if (getAcceptableHttpStatusCodes().contains(200)) {
 			processAuthApiEndpointResponse();
 			validateAuthApiEndpointResponse();
@@ -308,7 +313,7 @@ public abstract class AbstractAuthzenPDPTest extends AbstractRedirectServerTestM
 
 	protected void performApiRequestCall() {
 		Set<Integer> acceptable = getAcceptableHttpStatusCodes();
-		if (acceptable.size() == 1 && acceptable.iterator().next() == 200) {
+		if (acceptable.size() == 1 && acceptable.iterator().next().intValue() == 200) {
 			call(sequence(CallAuthzenApiEndpointAndVerifySuccessfulResponse.class));
 		} else {
 			JsonObject wrapper = new JsonObject();
