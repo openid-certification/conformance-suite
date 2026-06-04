@@ -450,6 +450,17 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 					"http", "api"));
 
 				browser.requestCredential(request, submitUrl);
+
+				// Log the mock-wallet warning here, on the foreground thread, while the test is still
+				// RUNNING and the "Make request to wallet" block is active. The background task in
+				// submitMockWalletResponseIfConfigured() shares the event log's (non-thread-local) block
+				// id with this thread, which calls endBlock() as soon as performAuthorizationFlow() returns;
+				// logging the warning from the background thread would race that endBlock() and attach the
+				// failure to an unpredictable block, breaking the integration test's expected-failure matching.
+				if (isMockWalletResponseConfigured()) {
+					callAndContinueOnFailure(WarnMockWalletResponse.class, ConditionResult.FAILURE);
+				}
+
 				setStatus(Status.WAITING);
 
 				submitMockWalletResponseIfConfigured();
@@ -782,16 +793,19 @@ public abstract class AbstractVP1FinalWalletTest extends AbstractRedirectServerT
 	 * external wallet — the wallet test's request creation and response validation code paths
 	 * are completely unaffected.
 	 */
-	private void submitMockWalletResponseIfConfigured() {
+	private boolean isMockWalletResponseConfigured() {
 		JsonElement mockEl = env.getElementFromObject("config", "mock_wallet_response");
-		if (mockEl == null || !OIDFJSON.getBoolean(mockEl)) {
+		return mockEl != null && OIDFJSON.getBoolean(mockEl);
+	}
+
+	private void submitMockWalletResponseIfConfigured() {
+		if (!isMockWalletResponseConfigured()) {
 			return;
 		}
 		mockWalletResponseLatch = new CountDownLatch(1);
 		getTestExecutionManager().runInBackground(() -> {
 			try {
 				setStatus(Status.RUNNING);
-				callAndContinueOnFailure(WarnMockWalletResponse.class, ConditionResult.FAILURE);
 
 				// For DC API the KB JWT aud must be "origin:<origin>", not the full client_id
 				String origin = env.getString("origin");
