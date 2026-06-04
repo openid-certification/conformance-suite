@@ -592,11 +592,71 @@ export const ValidateReentrantSubmitIgnored = {
       expect(validateCount).toBe(1);
     }, VERDICT_WAIT);
 
-    // Wait out a full second window to prove no queued duplicate arrives.
+    // Deliberate wall-clock wait — do not "optimize" into a waitFor. A
+    // broken guard would arm a SECOND timer milliseconds after the first,
+    // and a waitFor(count === 1) can resolve in the gap between two
+    // near-simultaneous events. Only waiting out a full extra window
+    // proves no duplicate was queued; state-transition assertions cannot
+    // express this negative.
     await new Promise((resolve) => setTimeout(resolve, VALIDATE_FEEDBACK_DELAY_MS + 200));
     expect(validateCount).toBe(1);
     const verdict = canvasElement.querySelector('[data-testid="validate-verdict"]');
     expect(verdict.textContent).toContain("Configuration is valid");
+  },
+};
+
+/**
+ * A config change DURING the loading window aborts the in-flight
+ * validation: the spinner stops, the armed timer is cancelled, and neither
+ * a verdict nor a `cts-validate` event ever lands. Without the
+ * cancellation, the timer would resolve ~1s later against the post-edit
+ * config and render a verdict the user never asked for (review finding:
+ * worst case is a plan switch mid-window landing an unsolicited
+ * missing-fields verdict for the new plan).
+ */
+export const ValidateCancelledByMidWindowEdit = {
+  render: () => html`
+    <cts-config-form
+      .schema=${MOCK_SCHEMA.schema}
+      .uiSchema=${MOCK_SCHEMA.uiSchema}
+      .config=${{
+        server: { issuer: "https://op.example.com" },
+        client: { client_id: "filled-in" },
+      }}
+      .errors=${{}}
+    ></cts-config-form>
+  `,
+  async play({ canvasElement }) {
+    const canvas = within(canvasElement);
+    const button = canvas.getByText("Validate Configuration");
+    const host = canvasElement.querySelector("cts-button[type='submit']");
+    const verdict = canvasElement.querySelector('[data-testid="validate-verdict"]');
+
+    let validateCount = 0;
+    canvasElement.addEventListener("cts-validate", () => {
+      validateCount += 1;
+    });
+
+    await userEvent.click(button);
+    await waitFor(() => {
+      expect(host.hasAttribute("loading")).toBe(true);
+    });
+
+    // Edit a field while the window is open — the in-flight validation
+    // aborts and the button settles back out of its loading state.
+    const issuerInput = canvasElement.querySelector('input[type="url"]');
+    /** @type {any} */ (issuerInput).value = "https://edited-mid-window.example.com";
+    issuerInput.dispatchEvent(new Event("input", { bubbles: true }));
+    await waitFor(() => {
+      expect(host.hasAttribute("loading")).toBe(false);
+    });
+
+    // Deliberate wall-clock wait past the original window: proves the
+    // cancelled timer never fires (no verdict, no event). Same negative-
+    // proof rationale as ValidateReentrantSubmitIgnored above.
+    await new Promise((resolve) => setTimeout(resolve, VALIDATE_FEEDBACK_DELAY_MS + 200));
+    expect(validateCount).toBe(0);
+    expect(verdict.textContent.trim()).toBe("");
   },
 };
 
