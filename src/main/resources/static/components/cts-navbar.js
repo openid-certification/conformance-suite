@@ -374,6 +374,7 @@ const STYLE_TEXT = css`
   .cts-nav .cts-account-item {
     display: flex;
     align-items: center;
+    box-sizing: border-box;
     width: 100%;
     padding: var(--space-2) var(--space-3);
     background: transparent;
