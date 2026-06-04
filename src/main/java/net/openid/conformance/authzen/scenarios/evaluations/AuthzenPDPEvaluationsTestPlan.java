@@ -33,7 +33,7 @@ import net.openid.conformance.plan.TestPlan;
 		AuthzenPDPEvaluationsXRequestIdEchoedTest.class,
 		// Idempotency
 		AuthzenPDPEvaluationsIdempotencyTest.class,
-		// Transport binding negative tests (Spec 10.1.1 / 10.1.2 / 2.4.4 / 2.4.5)
+		// Transport binding negative tests (Spec 10.1.1 / 10.1.2)
 		AuthzenPDPEvaluationsRejectGetMethodTest.class,
 		AuthzenPDPEvaluationsRejectPutMethodTest.class,
 		AuthzenPDPEvaluationsRejectTopLevelArrayTest.class,
@@ -47,5 +47,5 @@ import net.openid.conformance.plan.TestPlan;
 		AuthzenPDPEvaluationsBatchWithDefaultValueMergingTest.class,
 	}
 )
-public class AuthzenPDEvaluationsTestPlan implements TestPlan {
+public class AuthzenPDPEvaluationsTestPlan implements TestPlan {
 }
