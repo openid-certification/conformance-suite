@@ -19,7 +19,7 @@ public abstract class AbstractAuthzenPDPSubjectSearchIdempotencyTest extends Abs
 		for (int i = 1; i <= ITERATIONS; i++) {
 			eventLog.startBlock("Iteration " + i);
 			createAuthzenApiRequest();
-			callAuthApiEndpointRequest();
+			performSingleApiRequest();
 			processAuthApiEndpointResponse();
 			validateAuthApiEndpointResponse();
 
