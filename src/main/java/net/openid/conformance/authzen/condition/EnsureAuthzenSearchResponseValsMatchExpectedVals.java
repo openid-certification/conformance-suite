@@ -14,8 +14,8 @@ public class EnsureAuthzenSearchResponseValsMatchExpectedVals extends AbstractCo
 	@Override
 	@PreEnvironment(required = {"authzen_search_endpoint_expected_response", "authzen_search_endpoint_response"})
 	public Environment evaluate(Environment env) {
-		JsonArray expected = env.getElementFromObject("authzen_search_endpoint_expected_response", "results").getAsJsonArray();
-		JsonArray results = env.getElementFromObject("authzen_search_endpoint_response", "results").getAsJsonArray();
+		JsonArray expected = readResultsArray(env, "authzen_search_endpoint_expected_response", "expected");
+		JsonArray results = readResultsArray(env, "authzen_search_endpoint_response", "actual");
 
 		// Per the certification spec, the harness validates that the expected entities appear in the
 		// results but does not reject additional results. Use a subset check: expected MUST be a
@@ -32,5 +32,17 @@ public class EnsureAuthzenSearchResponseValsMatchExpectedVals extends AbstractCo
 
 		logSuccess("The search response contains all expected values");
 		return env;
+	}
+
+	private JsonArray readResultsArray(Environment env, String objectKey, String role) {
+		JsonElement elem = env.getElementFromObject(objectKey, "results");
+		if (elem == null) {
+			throw error(role + " search response has no `results` array", args("env_key", objectKey));
+		}
+		if (!elem.isJsonArray()) {
+			throw error(role + " search response `results` is not an array",
+				args("env_key", objectKey, "value", elem));
+		}
+		return elem.getAsJsonArray();
 	}
 }
