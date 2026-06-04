@@ -7,6 +7,7 @@ import com.google.gson.JsonParser;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
+import net.openid.conformance.testmodule.OIDFJSON;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -97,9 +98,20 @@ public class EnsureAuthzenResponseBodyMatchesIdempotencyCheck extends AbstractCo
 	}
 
 	private static boolean hasPageNextToken(JsonObject body) {
-		return body.has("page")
-			&& body.get("page").isJsonObject()
-			&& body.getAsJsonObject("page").has("next_token");
+		// An empty-string next_token is semantically equivalent to absent
+		// (Section 8.3 — empty/absent both signal "no more pages"), so the
+		// presence-equality check treats them as the same observable.
+		if (!body.has("page") || !body.get("page").isJsonObject()) {
+			return false;
+		}
+		JsonObject page = body.getAsJsonObject("page");
+		if (!page.has("next_token")) {
+			return false;
+		}
+		JsonElement token = page.get("next_token");
+		return token.isJsonPrimitive()
+			&& token.getAsJsonPrimitive().isString()
+			&& !OIDFJSON.getString(token).isEmpty();
 	}
 
 	private static void stripOpaquePageToken(JsonObject body) {
