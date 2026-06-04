@@ -5,7 +5,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
 	testName = "authzen-pdp-evaluations-unknown-semantic-value",
-	displayName = "Authzen Evaluations API - Spec 7.1.2.1: Unknown evaluations_semantic value returns 400",
+	displayName = "Authzen Evaluations API - Section 7.1.2.1: Unknown evaluations_semantic value returns 400",
 	summary = "Per spec 7.1.2.1, `evaluations_semantic` only accepts `execute_all`, `deny_on_first_deny`, and `permit_on_first_permit`. A request with an unrecognized value MUST be rejected with HTTP 400.",
 	profile = "Authzen"
 )

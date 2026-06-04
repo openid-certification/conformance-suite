@@ -36,12 +36,12 @@ import net.openid.conformance.plan.TestPlan;
 		AuthzenPDPEvaluationXRequestIdEchoedTest.class,
 		// Idempotency (Section 10.1.3)
 		AuthzenPDPEvaluationIdempotencyTest.class,
-		// Forward-compat: unknown fields ignored (Spec 10.1.1-3)
+		// Forward-compat: unknown fields ignored (Section 10.1.1)
 		AuthzenPDPEvaluationUnknownTopLevelFieldsTest.class,
 		AuthzenPDPEvaluationUnknownSubjectFieldsTest.class,
 		AuthzenPDPEvaluationUnknownResourceFieldsTest.class,
 		AuthzenPDPEvaluationUnknownActionFieldsTest.class,
-		// Transport binding negative tests (Spec 10.1.1 / 10.1.2)
+		// Transport binding negative tests (Section 10.1.1 / 10.1.2)
 		AuthzenPDPEvaluationRejectGetMethodTest.class,
 		AuthzenPDPEvaluationRejectPutMethodTest.class,
 		AuthzenPDPEvaluationRejectTopLevelArrayTest.class,

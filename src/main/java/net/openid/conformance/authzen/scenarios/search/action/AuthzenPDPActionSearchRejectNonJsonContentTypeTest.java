@@ -5,7 +5,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
 	testName = "authzen-pdp-action-search-reject-non-json-content-type",
-	displayName = "Authzen Action Search API - Spec 10.1-2: Reject non-JSON Content-Type",
+	displayName = "Authzen Action Search API - Section 10.1: Reject non-JSON Content-Type",
 	summary = "Per spec 10.1-2, requests MUST include `Content-Type: application/json`. The PDP MUST reject a request with `Content-Type: text/plain` with HTTP 4xx (typically 415 Unsupported Media Type, sometimes 400).",
 	profile = "Authzen"
 )

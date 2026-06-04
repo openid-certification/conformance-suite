@@ -5,7 +5,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
 	testName = "authzen-pdp-evaluation-unknown-action-fields-ignored",
-	displayName = "Authzen Evaluation API - Spec 10.1.1-3: Unknown action fields ignored",
+	displayName = "Authzen Evaluation API - Section 10.1.1: Unknown action fields ignored",
 	summary = "Per spec 10.1.1-3, receivers MUST ignore unknown fields. `action` carries an unknown `customAttr`; PDP MUST return HTTP 200 with the correct decision.\n" + AuthzenPDPEvaluationUnknownActionFieldsTest.payload,
 	profile = "Authzen"
 )
