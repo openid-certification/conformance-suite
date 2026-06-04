@@ -33,11 +33,14 @@ public abstract class AbstractAuthzenPDPPaginatedSearchTest extends AbstractAuth
 					"Pagination cap of " + MAX_PAGES + " pages exceeded — server may be returning unbounded pages");
 			}
 			eventLog.startBlock("Page " + pageNum);
-			createAuthzenApiRequest();
-			performSingleApiRequest();
-			processAuthApiEndpointResponse();
-			callAndStopOnFailure(AggregateAuthzenSearchResults.class);
-			eventLog.endBlock();
+			try {
+				createAuthzenApiRequest();
+				performSingleApiRequest();
+				processAuthApiEndpointResponse();
+				callAndStopOnFailure(AggregateAuthzenSearchResults.class);
+			} finally {
+				eventLog.endBlock();
+			}
 		} while (!Strings.isNullOrEmpty(env.getString("authzen_search_endpoint_request_page_token")));
 
 		// Use accumulated results for matching
