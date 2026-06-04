@@ -98,7 +98,11 @@ import "./cts-tabs.js";
  * acknowledgment — the required-fields pass itself is synchronous and
  * would otherwise complete imperceptibly. Re-entrant submits during the
  * window are ignored, and any displayed verdict is cleared as the window
- * opens so the verdict region is empty while the spinner runs.
+ * opens so the verdict region is empty while the spinner runs. A config
+ * change during the window (field edit, JSON edit, or programmatic
+ * `config` reassignment) aborts the in-flight validation entirely — a
+ * verdict only ever describes a config the user explicitly asked to
+ * validate.
  *
  * When the window resolves, the client-side pass collects every visible
  * required field (`x-cts-required: true` on the field schema, or
@@ -272,6 +276,18 @@ class CtsConfigForm extends LitElement {
     super.disconnectedCallback();
     // Drop a pending validate window so the timer callback can't fire
     // against a disconnected element (e.g. the form is removed mid-window).
+    // Resetting _validating keeps a reconnected element out of a stuck
+    // loading state.
+    this._cancelPendingValidate();
+  }
+
+  // Abort an in-flight validate window: the armed timer would otherwise
+  // resolve ~1s later against whatever `this.config` holds THEN, landing a
+  // verdict the user never asked for (worst case: a plan switch mid-window
+  // gets an unsolicited "N required fields missing" for the new plan).
+  // Callers that clear the displayed verdict on config changes call this
+  // alongside `_validateResult = null`.
+  _cancelPendingValidate() {
     if (this._validateTimer) {
       clearTimeout(this._validateTimer);
       this._validateTimer = 0;
@@ -292,8 +308,10 @@ class CtsConfigForm extends LitElement {
     if (this.hasUpdated && changedProperties.has("config") && !changedProperties.has("_jsonText")) {
       this._jsonText = this._filteredJsonText();
       // External reassignment means the verdict no longer describes the
-      // current config — drop it (internal edit paths clear it themselves).
+      // current config — drop it and abort any in-flight validation
+      // (internal edit paths do the same themselves).
       this._validateResult = null;
+      this._cancelPendingValidate();
     }
   }
 
@@ -378,6 +396,7 @@ class CtsConfigForm extends LitElement {
     this.config = newConfig;
     this._jsonText = JSON.stringify(this._filterHidden(newConfig), null, 2);
     this._validateResult = null;
+    this._cancelPendingValidate();
     this.dispatchEvent(
       new CustomEvent("cts-config-change", { bubbles: true, detail: { config: newConfig } }),
     );
@@ -386,6 +405,7 @@ class CtsConfigForm extends LitElement {
   _handleJsonInput(e) {
     this._jsonText = e.target.value;
     this._validateResult = null;
+    this._cancelPendingValidate();
     try {
       const parsed = JSON.parse(this._jsonText);
       this.config = this._mergeHiddenFromCurrent(parsed);
@@ -487,9 +507,10 @@ class CtsConfigForm extends LitElement {
 
   _handleValidate(e) {
     e.preventDefault();
-    // Re-entrancy guard. The loading state already disables the submit
-    // button (blocking clicks AND Enter-key implicit submission), so the
-    // only way back in here mid-window is a programmatic requestSubmit().
+    // Re-entrancy guard. The loading state disables the submit button,
+    // blocking clicks and (in practice, though browser-dependent)
+    // Enter-key implicit submission — this early-return is the
+    // authoritative backstop for both and for programmatic requestSubmit().
     if (this._validating) return;
     this._validateResult = null;
     this._validating = true;
