@@ -145,13 +145,14 @@ cts-link-button > a:focus,
 /* ---- narrow page wrapper ----------------------------------------
    Shared shell for pages whose content does not need the listing
    width — tokens.html's three-column token table is the first
-   consumer. Routed through the --maxw-page token (1200px) rather
-   than a new pixel literal, matching upload.html's page-local
-   `.upload-page`. Same token padding as `.listing-page` so vertical
-   rhythm matches across pages; only the max-width differs.
+   consumer. Sized to the same 1100px column as `.schedule-test-page`
+   and upload.html's page-local `.upload-page`, so the form-shaped
+   pages share one width (the --maxw-page token stays at 1200px,
+   currently unconsumed). Same token padding as `.listing-page` so
+   vertical rhythm matches across pages; only the max-width differs.
    ---------------------------------------------------------------- */
 .narrow-page {
-  max-width: var(--maxw-page);
+  max-width: 1100px;
   margin: 0 auto;
   padding: var(--space-6) var(--space-5);
 }

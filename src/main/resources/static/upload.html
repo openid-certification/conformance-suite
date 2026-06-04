@@ -19,7 +19,9 @@
 
 <style>
     .upload-page {
-        max-width: var(--maxw-page);
+        /* Same 1100px column as `.schedule-test-page` / `.narrow-page`
+           (oidf-app.css) so the form-shaped pages share one width. */
+        max-width: 1100px;
         margin: 0 auto;
         padding: var(--space-5);
         display: flex;
