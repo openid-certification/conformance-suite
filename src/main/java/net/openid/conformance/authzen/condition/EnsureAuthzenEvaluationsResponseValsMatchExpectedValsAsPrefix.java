@@ -17,9 +17,12 @@ import net.openid.conformance.testmodule.OIDFJSON;
  * trigger value; its first occurrence in the expected list marks the position
  * where the PDP applies the trigger.
  *
- * This condition assumes a conforming PDP truncates the response at the
- * trigger position (the spec's MAY for stopping further processing is treated
- * as a MUST in this test profile). The actual response is accepted only when:
+ * This condition requires the PDP to truncate the response at the trigger
+ * position so that the short-circuit semantic is observable on the wire.
+ * Section 7.1.2.1 describes the operations semantically (analogous to
+ * boolean `&&` / `||`) without prescribing the wire shape; this test profile
+ * pins truncation as the conformant behavior. The actual response is accepted
+ * only when:
  *   - its length is exactly trigger_position + 1; and
  *   - every decision matches the expected decision at the same index.
  *
