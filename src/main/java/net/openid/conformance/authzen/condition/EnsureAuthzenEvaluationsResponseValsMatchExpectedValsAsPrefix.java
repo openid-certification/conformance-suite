@@ -9,7 +9,7 @@ import net.openid.conformance.testmodule.OIDFJSON;
 
 /**
  * Validates the PDP's evaluations response for short-circuit semantics
- * (`deny_on_first_deny` / `permit_on_first_permit`, spec section 7.1.2.1).
+ * (`deny_on_first_deny` / `permit_on_first_permit`, Section 7.1.2.1).
  *
  * The expected response lists the decisions in the same form the spec uses in
  * its 7.1.2.1.1 examples: every position the PDP would return if it ran the

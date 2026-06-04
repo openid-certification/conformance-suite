@@ -4,7 +4,7 @@ import com.google.gson.JsonObject;
 
 /**
  * Adds the top-level `action` defaults object to an Evaluations API request.
- * Per spec section 7.1, the top-level action is a DEFAULT that each
+ * Per Section 7.1, the top-level action is a DEFAULT that each
  * evaluation merges with its own action; the top-level object MAY omit the
  * `name` field that {@link CreateAuthzenApiEndpointRequestAction} normally
  * enforces.

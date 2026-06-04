@@ -8,7 +8,7 @@ import net.openid.conformance.testmodule.Environment;
 import java.util.Locale;
 
 /**
- * Spec 11.3-2 — a 401 response from the PDP SHOULD include a `WWW-Authenticate`
+ * Section 11.3 — a 401 response from the PDP SHOULD include a `WWW-Authenticate`
  * response header indicating the expected scheme and realm. Caller decides the
  * severity (typically WARNING since this is SHOULD).
  */
@@ -29,7 +29,7 @@ public class EnsureAuthzenApiResponseHasWwwAuthenticate extends AbstractConditio
 			}
 		}
 		if (!found) {
-			throw error("PDP returned 401 without a WWW-Authenticate response header (spec 11.3-2 SHOULD)",
+			throw error("PDP returned 401 without a WWW-Authenticate response header (Section 11.3 SHOULD)",
 				args("response_headers", headers));
 		}
 		logSuccess("PDP returned a WWW-Authenticate response header on 401");

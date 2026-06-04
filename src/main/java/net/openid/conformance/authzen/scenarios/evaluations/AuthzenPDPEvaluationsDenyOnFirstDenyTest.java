@@ -6,7 +6,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 @PublishTestModule(
 	testName = "authzen-pdp-evaluations-deny-on-first-deny",
 	displayName = "Authzen Evaluations API - Section 7.1.2.1: deny_on_first_deny semantic",
-	summary = "Per spec 7.1.2.1, with `evaluations_semantic: \"deny_on_first_deny\"` the PDP MAY stop further processing once a `false` decision is reached and either truncate the response after that point or return `false` for every subsequent evaluation (see the example in 7.1.2.1.1). Evaluation 1 permits naturally (bob/read), evaluation 2 denies (bob/write, the trigger), evaluation 3 would naturally permit but MUST be short-circuited to `false`.\n" + AuthzenPDPEvaluationsDenyOnFirstDenyTest.payload,
+	summary = "Per Section 7.1.2.1, with `evaluations_semantic: \"deny_on_first_deny\"` the PDP MAY stop further processing once a `false` decision is reached and either truncate the response after that point or return `false` for every subsequent evaluation (see the example in 7.1.2.1.1). Evaluation 1 permits naturally (bob/read), evaluation 2 denies (bob/write, the trigger), evaluation 3 would naturally permit but MUST be short-circuited to `false`.\n" + AuthzenPDPEvaluationsDenyOnFirstDenyTest.payload,
 	profile = "Authzen"
 )
 public class AuthzenPDPEvaluationsDenyOnFirstDenyTest extends AbstractAuthzenPDPEvaluationsTest {

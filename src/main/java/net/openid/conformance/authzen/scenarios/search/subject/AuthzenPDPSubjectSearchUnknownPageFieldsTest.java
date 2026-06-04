@@ -6,7 +6,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 @PublishTestModule(
 	testName = "authzen-pdp-subject-search-unknown-page-fields-ignored",
 	displayName = "Authzen Subject Search API - Section 10.1.1: Unknown page fields ignored",
-	summary = "Per spec 10.1.1-3, receivers MUST ignore unknown fields. `page` carries an unknown `customAttr`; PDP MUST return HTTP 200 with valid results.\n" + AuthzenPDPSubjectSearchUnknownPageFieldsTest.payload,
+	summary = "Per Section 10.1.1, receivers MUST ignore unknown fields. `page` carries an unknown `customAttr`; PDP MUST return HTTP 200 with valid results.\n" + AuthzenPDPSubjectSearchUnknownPageFieldsTest.payload,
 	profile = "Authzen"
 )
 public class AuthzenPDPSubjectSearchUnknownPageFieldsTest extends AbstractAuthzenPDPSubjectSearchTest {
