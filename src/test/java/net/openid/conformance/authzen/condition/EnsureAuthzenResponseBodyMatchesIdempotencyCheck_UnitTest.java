@@ -105,6 +105,27 @@ class EnsureAuthzenResponseBodyMatchesIdempotencyCheck_UnitTest {
 	}
 
 	@Test
+	public void searchPageNextTokenAddedAcrossIterations_fails() {
+		// Iteration 1 had no next_token (no more pages); iteration 2 has one (more pages).
+		// The pagination "more available?" signal flipped — PDP is not idempotent.
+		putFirstAndCurrent("""
+			{ "results": [ { "type": "user", "id": "alice" } ], "page": {} }""",
+			"""
+			{ "results": [ { "type": "user", "id": "alice" } ], "page": { "next_token": "tok-2" } }""");
+		assertThrows(ConditionError.class, () -> cond.execute(env));
+	}
+
+	@Test
+	public void searchPageNextTokenDroppedAcrossIterations_fails() {
+		// Inverse: iteration 1 had a next_token; iteration 2 lost it.
+		putFirstAndCurrent("""
+			{ "results": [ { "type": "user", "id": "alice" } ], "page": { "next_token": "tok-1" } }""",
+			"""
+			{ "results": [ { "type": "user", "id": "alice" } ], "page": {} }""");
+		assertThrows(ConditionError.class, () -> cond.execute(env));
+	}
+
+	@Test
 	public void searchPageOtherFieldDiffers_fails() {
 		// Non-token page fields are still compared strictly.
 		putFirstAndCurrent("""
