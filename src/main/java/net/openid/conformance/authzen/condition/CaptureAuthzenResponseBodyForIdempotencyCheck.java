@@ -17,6 +17,7 @@ public class CaptureAuthzenResponseBodyForIdempotencyCheck extends AbstractCondi
 	@PreEnvironment(required = "authzen_api_endpoint_response")
 	public Environment evaluate(Environment env) {
 		if (env.getString("authzen_idempotency_first_response_body") != null) {
+			log("First-iteration response body already captured; skipping");
 			return env;
 		}
 		JsonObject body = (JsonObject) env.getElementFromObject("authzen_api_endpoint_response", "body_json");
