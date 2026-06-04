@@ -32,7 +32,7 @@ public class GetPDPDynamicServerConfiguration extends AbstractCondition {
 		}
 		String pdpDecisionPoint = env.getString("config", "pdp.policy_decision_point");
 		if (Strings.isNullOrEmpty(pdpDecisionPoint)) {
-			throw error("Test set to use dynamic server configuration but test configuration does not contain policy_decision_point", args("config", env.getObject("config")));
+			throw error("'Policy Decision Point Identifier' field is missing from the 'PDP' section in the test configuration (required to derive the discovery URL when using dynamic server configuration)", args("config", env.getObject("config")));
 		}
 		String discoveryUrl = pdpDecisionPoint + "/.well-known/authzen-configuration";
 
