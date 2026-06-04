@@ -50,6 +50,7 @@ import net.openid.conformance.variant.VariantSetup;
 	"pdp.policy_decision_point"
 })
 @VariantConfigurationFields(parameter = PDPAuthType.class, value = "client_secret_basic", configurationFields = {
+	"client.client_id",
 	"client.client_secret"
 })
 @VariantConfigurationFields(parameter = PDPAuthType.class, value = "api_key", configurationFields = {
