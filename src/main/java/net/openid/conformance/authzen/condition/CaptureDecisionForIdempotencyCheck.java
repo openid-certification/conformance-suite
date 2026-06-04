@@ -1,5 +1,6 @@
 package net.openid.conformance.authzen.condition;
 
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PostEnvironment;
@@ -23,10 +24,25 @@ public class CaptureDecisionForIdempotencyCheck extends AbstractCondition {
 			log("First-iteration decision already captured; skipping");
 			return env;
 		}
-		JsonObject decision = env.getObject("authzen_api_endpoint_decision");
-		boolean value = OIDFJSON.getBoolean(decision.get("decision"));
+		boolean value = readBooleanDecision(env);
 		env.putString("authzen_idempotency_first_decision", Boolean.toString(value));
 		logSuccess("Captured initial decision for idempotency check", args("decision", value));
 		return env;
+	}
+
+	private boolean readBooleanDecision(Environment env) {
+		JsonObject decision = env.getObject("authzen_api_endpoint_decision");
+		if (decision == null) {
+			throw error("Decision response is missing from the environment");
+		}
+		if (!decision.has("decision")) {
+			throw error("Decision response does not contain a `decision` element", args("decision_response", decision));
+		}
+		JsonElement field = decision.get("decision");
+		if (!field.isJsonPrimitive() || !field.getAsJsonPrimitive().isBoolean()) {
+			throw error("Decision response `decision` is not a boolean",
+				args("decision_response", decision, "value", field));
+		}
+		return OIDFJSON.getBoolean(field);
 	}
 }
