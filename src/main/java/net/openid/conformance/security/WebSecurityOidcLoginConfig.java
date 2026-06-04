@@ -227,18 +227,22 @@ class WebSecurityOidcLoginConfig {
 				}
 			}).denyAll();
 
-			// The plans listing is the public home of the suite. `/` and the legacy
-			// `/index.html` (both 302 -> /plans.html via ApplicationConfig view
-			// controllers) and the `/plans.html` / `/logs.html` listing pages must
-			// resolve for anonymous visitors rather than 401-redirecting to login,
-			// because this chain ends with anyRequest().authenticated(). These HTML
-			// shells carry no sensitive data; the authorization boundary stays the
-			// /api/* chain (WebSecurityResourceServerConfig), which independently
-			// restricts private-link users to their shared asset. This permit is
-			// placed AFTER the private-link denyAll matcher above (mirroring the
+			// `/` and the legacy `/index.html` resolve via the auth-aware
+			// net.openid.conformance.ui.HomeController (anonymous -> 302
+			// /login.html, authenticated -> 302 /plans.html). Both must stay
+			// permitted here so anonymous requests reach that controller at all —
+			// this chain ends with anyRequest().authenticated(). The `/plans.html`
+			// / `/logs.html` listing pages must likewise resolve for anonymous
+			// visitors (public browsing via ?public=true and the login page's
+			// "browse without signing in" links). These HTML shells carry no
+			// sensitive data; the authorization boundary stays the /api/* chain
+			// (WebSecurityResourceServerConfig), which independently restricts
+			// private-link users to their shared asset. This permit is placed
+			// AFTER the private-link denyAll matcher above (mirroring the
 			// publicRequestMatcher block below) so private-link sessions remain
-			// locked to their shared log-/plan-detail page and do not gain access to
-			// the listing pages.
+			// locked to their shared log-/plan-detail page and do not gain access
+			// to the listing pages — nor to `/`, which the denyAll matcher stops
+			// before HomeController ever runs.
 			httpRequests.requestMatchers( //
 					"/", //
 					"/index.html", //
