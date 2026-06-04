@@ -20,6 +20,7 @@ import net.openid.conformance.authzen.condition.EnsureMetadataCapabilitiesValid;
 import net.openid.conformance.authzen.condition.EnsurePolicyDecisionPointMatchesIssuer;
 import net.openid.conformance.authzen.condition.GetPDPDynamicServerConfiguration;
 import net.openid.conformance.authzen.condition.GetPDPStaticServerConfiguration;
+import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.condition.client.ConfigurationRequestsTestIsSkipped;
 import net.openid.conformance.condition.client.ExtractMTLSCertificatesFromConfiguration;
@@ -225,6 +226,43 @@ public abstract class AbstractAuthzenPDPTest extends AbstractRedirectServerTestM
 		callAuthApiEndpointRequest();
 		if (includeXRequestIdHeader()) {
 			callAndContinueOnFailure(EnsureAuthzenApiResponseXRequestIdMatches.class, ConditionResult.FAILURE, "AUTHZEN-10.1.3");
+		}
+	}
+
+	/**
+	 * Standard 3-iteration idempotency loop used by every API family
+	 * (Evaluation / Evaluations / Subject Search / Resource Search / Action Search).
+	 * Each idempotency abstract base delegates to this method, passing its own
+	 * API-family label and the capture/match condition classes appropriate for
+	 * that family (decision vs response body). The loop opens nested eventLog
+	 * blocks (one outer + one per iteration), each wrapped in try/finally so
+	 * block scopes always close even when a condition throws.
+	 */
+	protected void runIdempotencyLoop(String apiFamilyLabel,
+			Class<? extends Condition> capture,
+			Class<? extends Condition> match) {
+		final int iterations = 3;
+		eventLog.startBlock("Idempotency test: send the same " + apiFamilyLabel + " request " + iterations + " times");
+		try {
+			for (int i = 1; i <= iterations; i++) {
+				eventLog.startBlock("Iteration " + i);
+				try {
+					createAuthzenApiRequest();
+					performSingleApiRequest();
+					processAuthApiEndpointResponse();
+					validateAuthApiEndpointResponse();
+					if (i == 1) {
+						callAndStopOnFailure(capture);
+					} else {
+						callAndContinueOnFailure(match, ConditionResult.FAILURE);
+					}
+				} finally {
+					eventLog.endBlock();
+				}
+			}
+			performPostApiFlow();
+		} finally {
+			eventLog.endBlock();
 		}
 	}
 
