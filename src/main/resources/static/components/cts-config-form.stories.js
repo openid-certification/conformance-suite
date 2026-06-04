@@ -1,7 +1,17 @@
 import { html } from "lit";
 import { expect, within, waitFor, userEvent } from "storybook/test";
 import { MOCK_SCHEMA } from "@fixtures/mock-schema.js";
-import "./cts-config-form.js";
+import { VALIDATE_FEEDBACK_DELAY_MS } from "./cts-config-form.js";
+
+/**
+ * `waitFor` options for assertions gated on the validate feedback window.
+ * storybook/test's default timeout is 1000 ms — the same wall-clock value
+ * as `VALIDATE_FEEDBACK_DELAY_MS` — so a default-timeout `waitFor` races
+ * the window at the boundary and flakes. Derive a comfortable margin from
+ * the component's own constant (same pattern as `waitForJsonEditor`'s
+ * explicit `{ timeout: 10000 }` below).
+ */
+const VERDICT_WAIT = { timeout: VALIDATE_FEEDBACK_DELAY_MS * 3 };
 
 /**
  * Resolve once the `<cts-json-editor>` inside the JSON tab is interactive
@@ -14,19 +24,6 @@ import "./cts-config-form.js";
  * @param {Element} canvasElement
  * @returns {Promise<HTMLElement>}
  */
-/**
- * Reset any lingering `cts-toast-host` left over from a prior story.
- * Storybook reuses the same iframe across stories in a single run, and the
- * U13 (B7) validate stories below fire toasts that would otherwise stack
- * on the bottom-right region between play functions.
- * @returns {void}
- */
-function resetToastHost() {
-  for (const host of document.querySelectorAll("cts-toast-host")) {
-    host.remove();
-  }
-}
-
 async function waitForJsonEditor(canvasElement) {
   const editor = /** @type {any} */ (
     await waitFor(
@@ -266,14 +263,15 @@ export const ConfigChangeEvent = {
 };
 
 /**
- * U13 (B7): the Validate Configuration button now runs a synchronous
- * client-side pass over the schema's required fields. When every required
- * field has a non-empty value, the verdict is announced via a `cts-toast`
- * "ok" toast — the same surface used by Load Last Configuration and other
- * page-level confirmations. A `cts-validate` event fires with the verdict
- * so host pages can layer a backend check on top.
+ * Validate Configuration runs a client-side pass over the schema's required
+ * fields behind a short feedback window: the button enters its `loading`
+ * state for `VALIDATE_FEEDBACK_DELAY_MS`, then the verdict renders inline
+ * next to the button in a `role="status"` live region — "Configuration is
+ * valid" when every required field has a non-empty value. A `cts-validate`
+ * event fires with the verdict (after the window) so host pages can layer
+ * a backend check on top.
  */
-export const ValidateButtonShowsSuccessToast = {
+export const ValidateButtonShowsSuccessMessage = {
   render: () => html`
     <cts-config-form
       .schema=${{
@@ -298,7 +296,6 @@ export const ValidateButtonShowsSuccessToast = {
     ></cts-config-form>
   `,
   async play({ canvasElement }) {
-    resetToastHost();
     const canvas = within(canvasElement);
     const button = canvas.getByText("Validate Configuration");
 
@@ -310,37 +307,48 @@ export const ValidateButtonShowsSuccessToast = {
 
     await userEvent.click(button);
 
-    // cts-validate dispatched with valid=true and an empty errors map.
+    // The feedback window opens immediately: the cts-button host reflects
+    // `loading`, the inner button disables, and its accessible name flips
+    // to the validating announcement. The verdict region pre-exists
+    // (role="status" live region) but is still empty.
+    const host = canvasElement.querySelector("cts-button[type='submit']");
+    const verdict = canvasElement.querySelector('[data-testid="validate-verdict"]');
+    await waitFor(() => {
+      expect(host.hasAttribute("loading")).toBe(true);
+      expect(host.querySelector("button").disabled).toBe(true);
+    });
+    expect(host.querySelector("button").getAttribute("aria-label")).toBe(
+      "Validating configuration…",
+    );
+    expect(verdict.textContent.trim()).toBe("");
+
+    // cts-validate dispatched with valid=true and an empty errors map once
+    // the window resolves.
     await waitFor(() => {
       expect(validateEvent).not.toBeNull();
-    });
+    }, VERDICT_WAIT);
     expect(/** @type {any} */ (validateEvent).detail.valid).toBe(true);
     expect(Object.keys(/** @type {any} */ (validateEvent).detail.errors).length).toBe(0);
 
-    // Toast lands in the singleton host and reads as a calm "ok" kind.
-    /** @type {any} */
-    const toast = await waitFor(() => {
-      const t = document.querySelector("cts-toast-host cts-toast");
-      if (!t) throw new Error("cts-toast not yet rendered");
-      return t;
-    });
-    expect(toast.kind).toBe("ok");
-    expect(toast.title).toContain("Configuration is valid");
+    // The inline verdict lands together with the spinner stopping.
+    expect(verdict.classList.contains("is-ok")).toBe(true);
+    expect(verdict.textContent).toContain("Configuration is valid");
+    expect(verdict.querySelector("cts-icon[name='check-big']")).toBeTruthy();
+    expect(host.hasAttribute("loading")).toBe(false);
     // No inline errors appear when validation passes.
     expect(canvasElement.querySelectorAll(".oidf-error").length).toBe(0);
-    resetToastHost();
   },
 };
 
 /**
- * U13 (B7): on a failed validate, the toast names the count and the
+ * On a failed validate, the inline verdict names the count and the
  * `.errors` map is populated so each offending field renders the
  * `.oidf-error` callout next to its input. The required-field detection
  * honours BOTH conventions used across the codebase — per-field
  * `x-cts-required: true` (set by the catalog adapter) and section-level
  * `required: []` arrays (used in the mock fixture).
  */
-export const ValidateButtonShowsErrorToast = {
+export const ValidateButtonShowsErrorMessage = {
   render: () => html`
     <cts-config-form
       .schema=${{
@@ -376,7 +384,6 @@ export const ValidateButtonShowsErrorToast = {
     ></cts-config-form>
   `,
   async play({ canvasElement }) {
-    resetToastHost();
     const canvas = within(canvasElement);
     const button = canvas.getByText("Validate Configuration");
 
@@ -392,7 +399,7 @@ export const ValidateButtonShowsErrorToast = {
     // required paths. The non-required `alias.optional` is NOT flagged.
     await waitFor(() => {
       expect(validateEvent).not.toBeNull();
-    });
+    }, VERDICT_WAIT);
     /** @type {any} */
     const detail = /** @type {any} */ (validateEvent).detail;
     expect(detail.valid).toBe(false);
@@ -400,29 +407,24 @@ export const ValidateButtonShowsErrorToast = {
     expect(detail.errors["federation.entity_identifier"]).toBe("Required field");
     expect(detail.errors["alias.optional"]).toBeUndefined();
 
-    // Error toast — count copy is plural for two missing fields.
-    /** @type {any} */
-    const toast = await waitFor(() => {
-      const t = document.querySelector("cts-toast-host cts-toast");
-      if (!t) throw new Error("cts-toast not yet rendered");
-      return t;
-    });
-    expect(toast.kind).toBe("error");
-    expect(toast.title).toContain("issues");
-    expect(toast.message).toContain("2 required fields");
+    // Inline error verdict — count copy is plural for two missing fields.
+    const verdict = canvasElement.querySelector('[data-testid="validate-verdict"]');
+    expect(verdict.classList.contains("is-error")).toBe(true);
+    expect(verdict.textContent).toContain("2 required fields are missing");
+    expect(verdict.textContent).toContain("See inline errors");
+    expect(verdict.querySelector("cts-icon[name='circle-warning']")).toBeTruthy();
 
     // Inline `.oidf-error` callouts land next to the offending inputs.
     await waitFor(() => {
       const errors = canvasElement.querySelectorAll(".oidf-error");
       expect(errors.length).toBe(2);
     });
-    resetToastHost();
   },
 };
 
 /**
- * U13 (B7): hidden required fields are excluded from validation. A field
- * the page chose to hide (e.g. via the variant-driven hiddenFields set on
+ * Hidden required fields are excluded from validation. A field the page
+ * chose to hide (e.g. via the variant-driven hiddenFields set on
  * schedule-test.html) is not user-actionable, so flagging it would only
  * produce noise. The success path runs even though the schema marks the
  * hidden field as required.
@@ -460,7 +462,6 @@ export const ValidateButtonIgnoresHiddenRequiredFields = {
     ></cts-config-form>
   `,
   async play({ canvasElement }) {
-    resetToastHost();
     const canvas = within(canvasElement);
     const button = canvas.getByText("Validate Configuration");
 
@@ -475,16 +476,127 @@ export const ValidateButtonIgnoresHiddenRequiredFields = {
     // Hidden client_secret is not flagged even though the schema marks it required.
     await waitFor(() => {
       expect(validateEvent).not.toBeNull();
-    });
+    }, VERDICT_WAIT);
     expect(/** @type {any} */ (validateEvent).detail.valid).toBe(true);
-    /** @type {any} */
-    const toast = await waitFor(() => {
-      const t = document.querySelector("cts-toast-host cts-toast");
-      if (!t) throw new Error("cts-toast not yet rendered");
-      return t;
+    const verdict = canvasElement.querySelector('[data-testid="validate-verdict"]');
+    expect(verdict.classList.contains("is-ok")).toBe(true);
+    expect(verdict.textContent).toContain("Configuration is valid");
+  },
+};
+
+/**
+ * A displayed verdict clears as soon as the configuration changes, through
+ * every mutation path: a Form-tab field edit, and a programmatic `.config`
+ * reassignment from the host page (the Load Last Configuration flow on
+ * schedule-test.html reassigns `.config` directly, bypassing the internal
+ * edit handlers — the `willUpdate` external-config branch covers it). A
+ * stale "Configuration is valid" must never sit next to a different config.
+ */
+export const ValidateVerdictClearsOnConfigChange = {
+  render: () => html`
+    <cts-config-form
+      .schema=${MOCK_SCHEMA.schema}
+      .uiSchema=${MOCK_SCHEMA.uiSchema}
+      .config=${{
+        server: { issuer: "https://op.example.com" },
+        client: { client_id: "filled-in" },
+      }}
+      .errors=${{}}
+    ></cts-config-form>
+  `,
+  async play({ canvasElement }) {
+    const canvas = within(canvasElement);
+    const form = /** @type {any} */ (canvasElement.querySelector("cts-config-form"));
+    const button = canvas.getByText("Validate Configuration");
+    const verdict = canvasElement.querySelector('[data-testid="validate-verdict"]');
+
+    // First verdict.
+    await userEvent.click(button);
+    await waitFor(() => {
+      expect(verdict.textContent).toContain("Configuration is valid");
+    }, VERDICT_WAIT);
+
+    // Form-tab field edit clears it.
+    const issuerInput = canvasElement.querySelector('input[type="url"]');
+    /** @type {any} */ (issuerInput).value = "https://edited.example.com";
+    issuerInput.dispatchEvent(new Event("input", { bubbles: true }));
+    await waitFor(() => {
+      expect(verdict.textContent.trim()).toBe("");
     });
-    expect(toast.kind).toBe("ok");
-    resetToastHost();
+
+    // Re-validate, then clear via a JSON-tab edit. A bare tab switch does
+    // NOT clear the verdict — validation reads `this.config`, which both
+    // tabs keep in sync — only the edit does.
+    await userEvent.click(button);
+    await waitFor(() => {
+      expect(verdict.textContent).toContain("Configuration is valid");
+    }, VERDICT_WAIT);
+    await userEvent.click(canvas.getByRole("tab", { name: "JSON" }));
+    const editor = /** @type {any} */ (await waitForJsonEditor(canvasElement));
+    expect(verdict.textContent).toContain("Configuration is valid");
+    editor.value = JSON.stringify({
+      server: { issuer: "https://json-edited.example.com" },
+      client: { client_id: "filled-in" },
+    });
+    editor.dispatchEvent(new Event("input", { bubbles: true }));
+    await waitFor(() => {
+      expect(verdict.textContent.trim()).toBe("");
+    });
+    await userEvent.click(canvas.getByRole("tab", { name: "Form" }));
+
+    // Re-validate, then clear via programmatic .config reassignment.
+    await userEvent.click(button);
+    await waitFor(() => {
+      expect(verdict.textContent).toContain("Configuration is valid");
+    }, VERDICT_WAIT);
+    form.config = { server: { issuer: "https://loaded.example.com" } };
+    await form.updateComplete;
+    expect(verdict.textContent.trim()).toBe("");
+  },
+};
+
+/**
+ * Re-entrant submits during the feedback window are ignored. The loading
+ * state already disables the submit button (blocking clicks and Enter-key
+ * implicit submission), so the guard's reachable path is a programmatic
+ * `requestSubmit()` — exactly one `cts-validate` fires and exactly one
+ * verdict renders for the pair of submits.
+ */
+export const ValidateReentrantSubmitIgnored = {
+  render: () => html`
+    <cts-config-form
+      .schema=${MOCK_SCHEMA.schema}
+      .uiSchema=${MOCK_SCHEMA.uiSchema}
+      .config=${{
+        server: { issuer: "https://op.example.com" },
+        client: { client_id: "filled-in" },
+      }}
+      .errors=${{}}
+    ></cts-config-form>
+  `,
+  async play({ canvasElement }) {
+    const canvas = within(canvasElement);
+    const button = canvas.getByText("Validate Configuration");
+
+    let validateCount = 0;
+    canvasElement.addEventListener("cts-validate", () => {
+      validateCount += 1;
+    });
+
+    await userEvent.click(button);
+    // Second submit mid-window: requestSubmit() bypasses the disabled
+    // button and reaches the handler, where the `_validating` guard drops it.
+    canvasElement.querySelector("form").requestSubmit();
+
+    await waitFor(() => {
+      expect(validateCount).toBe(1);
+    }, VERDICT_WAIT);
+
+    // Wait out a full second window to prove no queued duplicate arrives.
+    await new Promise((resolve) => setTimeout(resolve, VALIDATE_FEEDBACK_DELAY_MS + 200));
+    expect(validateCount).toBe(1);
+    const verdict = canvasElement.querySelector('[data-testid="validate-verdict"]');
+    expect(verdict.textContent).toContain("Configuration is valid");
   },
 };
 
