@@ -16,7 +16,7 @@ public class EnsurePolicyDecisionPointMatchesIssuer extends AbstractCondition {
 	public Environment evaluate(Environment env) {
 		String configured = env.getString("config", "pdp.policy_decision_point");
 		if (configured == null) {
-			throw error("Configured policy_decision_point URL is missing from test configuration");
+			throw error("'Policy Decision Point Identifier' field is missing from the 'PDP' section in the test configuration");
 		}
 		String returned = env.getString("server", "policy_decision_point");
 		if (returned == null) {
