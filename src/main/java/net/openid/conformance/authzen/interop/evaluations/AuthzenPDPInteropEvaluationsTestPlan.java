@@ -10,6 +10,7 @@ import net.openid.conformance.plan.TestPlan;
 	specFamily = TestPlan.SpecFamilyNames.authzen,
 	testModules = {
 		// Interop 1.1 cases
+		// https://github.com/openid/authzen/blob/main/interop/authzen-todo-backend/test/decisions-authorization-api-1_0-02.json
 		AuthzenPDPInteropEvaluations01Test.class,
 		AuthzenPDPInteropEvaluations02Test.class,
 		AuthzenPDPInteropEvaluations03Test.class
