@@ -138,5 +138,10 @@ test.describe("login.html — Login page", () => {
     await expect(navbar).not.toContainText("Logged in as");
     await expect(navbar.locator('a[href="logs.html?public=true"]')).toBeVisible();
     await expect(navbar.locator('a[href="plans.html?public=true"]')).toBeVisible();
+
+    // Logged-out visitors: the brand/logo points at the login page, not the
+    // plans listing (logged-out-landing fix). On login.html the navbar
+    // resolves the anonymous state synchronously, so this is a self-link.
+    await expect(navbar.locator("a.cts-brand")).toHaveAttribute("href", "login.html");
   });
 });

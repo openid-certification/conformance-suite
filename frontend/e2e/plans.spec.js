@@ -108,6 +108,22 @@ test.describe("plans.html — Plans List", () => {
     ).toHaveClass(/moduleStatusBox--skip/);
   });
 
+  test("navbar brand points at the plans home for authenticated users", async ({ page }) => {
+    await setupFailFast(page);
+    await mockPlanRoute(page);
+    await setupTestInfoRoute(page, MOCK_PLAN_INFO);
+    await setupCommonRoutes(page);
+
+    await page.goto("/plans.html");
+
+    // Wait for the auth probe to resolve (avatar replaces the skeleton) —
+    // during the loading window the brand intentionally points at "/" so the
+    // auth-aware server redirect decides (logged-out-landing fix).
+    const navbar = page.locator("cts-navbar");
+    await expect(navbar.locator(".cts-account-trigger")).toBeVisible();
+    await expect(navbar.locator("a.cts-brand")).toHaveAttribute("href", "plans.html");
+  });
+
   test("admin users see owner pills", async ({ page }) => {
     await setupFailFast(page);
     await mockPlanRoute(page);
@@ -431,6 +447,11 @@ test.describe("plans.html — My/Published view tabs (U5)", () => {
     // The anon fetch carried public=true (My path is not silently emptied).
     expect(planRequests.length).toBeGreaterThan(0);
     expect(planRequests.every((u) => u.includes("public=true"))).toBe(true);
+
+    // Once the 401 probe resolves, the brand points at the login page
+    // (logged-out-landing fix). toHaveAttribute auto-retries through the
+    // transient loading-window "/" value, so no explicit wait is needed.
+    await expect(page.locator("cts-navbar a.cts-brand")).toHaveAttribute("href", "login.html");
   });
 
   test("R5: back/forward popstate updates the active tab AND loads the matching dataset", async ({
