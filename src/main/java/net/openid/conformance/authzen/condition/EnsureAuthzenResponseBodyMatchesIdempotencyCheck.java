@@ -19,10 +19,14 @@ import java.util.List;
  *
  * <p>Search responses (subject/resource/action) carry a {@code results} array whose
  * order is not guaranteed across calls, so {@code results} is compared as a multiset
- * (order-independent but multiplicity-preserving). The {@code page.next_token} is
- * opaque to the PEP and may legitimately differ across identical requests (e.g. a
- * server that derives the token from a timestamp), so it is excluded from the
- * comparison. The rest of the response body is compared strictly.
+ * (order-independent but multiplicity-preserving). The {@code page.next_token}
+ * <em>value</em> is opaque to the PEP and may legitimately differ across identical
+ * requests (e.g. a server that derives the token from a timestamp), so it is
+ * stripped from both bodies before the strict-rest comparison. The
+ * <em>presence</em> of {@code page.next_token}, however, is an observable
+ * pagination signal ("are there more pages?") that MUST stay consistent across
+ * identical requests — so we assert presence-equality before stripping the
+ * value. The rest of the response body is compared strictly.
  */
 public class EnsureAuthzenResponseBodyMatchesIdempotencyCheck extends AbstractCondition {
 
@@ -71,6 +75,15 @@ public class EnsureAuthzenResponseBodyMatchesIdempotencyCheck extends AbstractCo
 				args("first_iteration_results", expectedResults, "current_iteration_results", actualResults));
 		}
 
+		boolean expectedHasNextToken = hasPageNextToken(expected);
+		boolean actualHasNextToken = hasPageNextToken(actual);
+		if (expectedHasNextToken != actualHasNextToken) {
+			throw error("Pagination signal changed across consecutive identical requests — `page.next_token` "
+					+ (expectedHasNextToken ? "was present in the first iteration but is missing in the current one" : "was missing in the first iteration but is present in the current one")
+					+ "; PDP is not idempotent",
+				args("first_iteration_body", expected, "current_iteration_body", actual));
+		}
+
 		JsonObject expectedRest = expected.deepCopy();
 		expectedRest.remove("results");
 		stripOpaquePageToken(expectedRest);
@@ -81,6 +94,12 @@ public class EnsureAuthzenResponseBodyMatchesIdempotencyCheck extends AbstractCo
 			throw error("Response body (excluding results and page.next_token) changed across consecutive identical requests — PDP is not idempotent",
 				args("first_iteration_body", expected, "current_iteration_body", actual));
 		}
+	}
+
+	private static boolean hasPageNextToken(JsonObject body) {
+		return body.has("page")
+			&& body.get("page").isJsonObject()
+			&& body.getAsJsonObject("page").has("next_token");
 	}
 
 	private static void stripOpaquePageToken(JsonObject body) {
