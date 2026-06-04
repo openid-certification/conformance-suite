@@ -63,16 +63,14 @@ public class CallAuthzenApiEndpoint extends AbstractCondition {
 			headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
 			headers.setAcceptCharset(Collections.singletonList(StandardCharsets.UTF_8));
 			String contentTypeOverride = env.getString("authzen_api_endpoint_request_content_type");
-			if (contentTypeOverride != null) {
-				if (contentTypeOverride.isEmpty()) {
-					// Empty override means "send no Content-Type header at all". HttpHeaders.setContentType
-					// won't accept null, so build the entity without ever setting it.
-				} else {
-					headers.setContentType(MediaType.parseMediaType(contentTypeOverride));
-				}
-			} else {
+			if (contentTypeOverride == null) {
 				headers.setContentType(MediaType.APPLICATION_JSON);
+			} else if (!contentTypeOverride.isEmpty()) {
+				headers.setContentType(MediaType.parseMediaType(contentTypeOverride));
 			}
+			// An empty override means "send no Content-Type header at all".
+			// HttpHeaders.setContentType won't accept null, so build the entity
+			// without ever setting it.
 
 			/*
 			 * Add/Override headers for request
