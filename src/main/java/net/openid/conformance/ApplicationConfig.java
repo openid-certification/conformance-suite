@@ -11,11 +11,9 @@ import org.springframework.core.env.Environment;
 import org.springframework.core.env.Profiles;
 import org.springframework.data.mongodb.core.convert.MongoCustomConversions;
 import org.springframework.http.CacheControl;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.json.GsonHttpMessageConverter;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
-import org.springframework.web.servlet.config.annotation.ViewControllerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import java.util.ArrayList;
@@ -77,20 +75,13 @@ public class ApplicationConfig implements WebMvcConfigurer {
 			: CacheControl.maxAge(5, TimeUnit.MINUTES).staleWhileRevalidate(1, TimeUnit.DAYS);
 	}
 
-	@Override
-	public void addViewControllers(ViewControllerRegistry registry) {
-		// The plans listing is the home page. `/` and the legacy `/index.html`
-		// resolve to it via a server-side 302 (temporary) redirect, so existing
-		// bookmarks and the OIDC/OTT login flow keep working after the cts-dashboard
-		// launchpad was retired. These view-controller mappings take precedence over
-		// Spring Boot's static welcome-page mapping, so they own `GET /` regardless
-		// of whether a static index.html exists (verified live: `/` 302s even with a
-		// stale index.html on the classpath). static/index.html is deleted in the
-		// same commit because it is the retired dashboard, not to un-shadow this
-		// redirect.
-		registry.addRedirectViewController("/", "/plans.html").setStatusCode(HttpStatus.FOUND);
-		registry.addRedirectViewController("/index.html", "/plans.html").setStatusCode(HttpStatus.FOUND);
-	}
+	// `/` and the legacy `/index.html` are owned by the auth-aware
+	// net.openid.conformance.ui.HomeController (anonymous -> /login.html,
+	// authenticated -> /plans.html). They used to be unconditional
+	// addViewControllers redirects to /plans.html here, but view-controller
+	// mappings cannot read the SecurityContext, so the redirect moved into a
+	// @Controller. Annotated controllers take precedence over Spring Boot's
+	// static welcome-page mapping, and static/index.html no longer exists.
 
 	@Override
 	public void addResourceHandlers(ResourceHandlerRegistry registry) {
