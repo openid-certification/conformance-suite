@@ -368,7 +368,7 @@ const STYLE_TEXT = css`
     margin-inline: -20px;
     font-family: var(--font-sans);
     font-weight: var(--fw-bold);
-    font-size: var(--fs-20);
+    font-size: var(--fs-16);
     line-height: var(--lh-tight);
     border-bottom: 1px solid var(--border);
   }
