@@ -9,7 +9,7 @@ import net.openid.conformance.sequence.AbstractConditionSequence;
 public class CallAuthzenApiEndpointAndVerifySuccessfulResponse extends AbstractConditionSequence {
 
 	@Override
-	@PreEnvironment(required = {"authzen_api_endpoint_response"})
+	@PreEnvironment(required = {"authzen_api_endpoint_request"}, strings = "authzen_api_endpoint")
 	public void evaluate() {
 		callAndStopOnFailure(CallAuthzenApiEndpoint.class, "AUTHZEN-10");
 
