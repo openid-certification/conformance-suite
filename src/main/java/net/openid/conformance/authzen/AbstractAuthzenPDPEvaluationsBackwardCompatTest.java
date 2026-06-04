@@ -20,9 +20,13 @@ public abstract class AbstractAuthzenPDPEvaluationsBackwardCompatTest extends Ab
 	@Override
 	protected void processAuthApiEndpointResponse() {
 		callAndStopOnFailure(ExtractAuthzenApiEndpointEvaluationsResponse.class, "AUTHZEN-7.2");
+		// §7.2-3 SHOULD-omit `decision` when `evaluations` is present — must run
+		// BEFORE NormalizeAuthzenEvaluationsResponseSingleDecisionToArray, which
+		// rebuilds the response with only `evaluations` and would erase the
+		// original top-level `decision` we are trying to detect.
+		callAndContinueOnFailure(EnsureNoTopLevelDecisionWhenEvaluationsPresent.class, ConditionResult.WARNING, "AUTHZEN-7.2");
 		callAndStopOnFailure(NormalizeAuthzenEvaluationsResponseSingleDecisionToArray.class, "AUTHZEN-7.1");
 		callAndStopOnFailure(EnsureValidEvaluationsResponse.class, "AUTHZEN-7.2");
 		callAndContinueOnFailure(EnsureEvaluationsResponseLengthMatchesRequest.class, ConditionResult.FAILURE, "AUTHZEN-7.2");
-		callAndContinueOnFailure(EnsureNoTopLevelDecisionWhenEvaluationsPresent.class, ConditionResult.WARNING, "AUTHZEN-7.2");
 	}
 }
