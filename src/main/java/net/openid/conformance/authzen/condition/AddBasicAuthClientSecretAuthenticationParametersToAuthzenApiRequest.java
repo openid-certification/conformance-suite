@@ -20,13 +20,13 @@ public class AddBasicAuthClientSecretAuthenticationParametersToAuthzenApiRequest
 		String id = env.getString("client", "client_id");
 
 		if (id == null) {
-			throw error("Client ID not found in configuration");
+			throw error("'client_id' field is missing from the 'Client' section in the test configuration");
 		}
 
 		String secret = env.getString("client", "client_secret");
 
 		if (secret == null) {
-			throw error("Client secret not found in configuration");
+			throw error("'client_secret' field is missing from the 'Client' section in the test configuration");
 		}
 
 		JsonObject headers = env.getObject("authzen_api_endpoint_request_headers");

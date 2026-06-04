@@ -15,7 +15,7 @@ public class AddApiKeyAuthenticationParametersToAuthzenApiRequest extends Abstra
 		String secret = env.getString("pdp", "api_key");
 
 		if (secret == null) {
-			throw error("API key not found in configuration");
+			throw error("'PDP API Key' field is missing from the 'PDP' section in the test configuration");
 		}
 
 		JsonObject headers = env.getObject("authzen_api_endpoint_request_headers");
