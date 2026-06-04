@@ -15,7 +15,7 @@ import net.openid.conformance.variant.PDPServerMetadata;
 import net.openid.conformance.variant.VariantConfigurationFields;
 
 @PublishTestModule(
-	testName = "authzen-pdp-subject-search-paginated-subject-search",
+	testName = "authzen-pdp-subject-search-paginated",
 	displayName = "Authzen Subject Search API - Section 8.3: Request with page token (paginated follow-up)",
 	summary = "Section 8.3 a paginated subject search. When the PDP returns a non-empty next_token, the harness follows up with that token until all pages are returned.\n" + AuthzenPDPSubjectSearchPaginatedSubjectSearchTest.payload,
 	profile = "Authzen"
