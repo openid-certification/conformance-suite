@@ -13,7 +13,7 @@ import net.openid.conformance.testmodule.Environment;
  * (`{"decision": <bool>}`) or the one-element evaluations array form
  * (`{"evaluations": [{"decision": <bool>}]}`).
  *
- * This condition normalises the single-decision form into the array form so
+ * This condition normalizes the single-decision form into the array form so
  * the downstream validators ({@code EnsureValidEvaluationsResponse} and the
  * val-match conditions) accept either shape without modification.
  */
@@ -25,7 +25,7 @@ public class NormalizeAuthzenEvaluationsResponseSingleDecisionToArray extends Ab
 	public Environment evaluate(Environment env) {
 		JsonObject response = env.getObject("authzen_evaluations_endpoint_response");
 		if (response.has("evaluations")) {
-			log("Response already has `evaluations`; no normalisation needed", args("response", response));
+			log("Response already has `evaluations`; no normalization needed", args("response", response));
 			return env;
 		}
 		if (!response.has("decision")) {

@@ -11,7 +11,7 @@ import net.openid.conformance.condition.Condition.ConditionResult;
  * Base class for Evaluations API backward-compatibility tests where the request
  * omits the `evaluations` member entirely or sends it as an empty array. Per
  * spec 7.1-2 the PDP MAY return either the single-decision form or the
- * one-element evaluations array form; this class inserts a normalisation step
+ * one-element evaluations array form; this class inserts a normalization step
  * after the response is extracted so downstream validators only have to handle
  * the array form.
  */
