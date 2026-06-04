@@ -21,35 +21,37 @@ public abstract class AbstractAuthzenPDPPaginatedSearchTest extends AbstractAuth
 	@Override
 	protected void performAuthzenApiFlow() {
 		eventLog.startBlock("Make paginated request to API endpoint");
+		try {
+			// Extract the expected response once up front so per-page conditions can use it.
+			callAndContinueOnFailure(new ExtractAuthzenSearchExpectedResponse(getExpectedSearchResponseJson()), ConditionResult.FAILURE);
 
-		// Extract the expected response once up front so per-page conditions can use it.
-		callAndContinueOnFailure(new ExtractAuthzenSearchExpectedResponse(getExpectedSearchResponseJson()), ConditionResult.FAILURE);
+			int pageNum = 0;
+			do {
+				pageNum++;
+				if (pageNum > MAX_PAGES) {
+					throw new TestFailureException(getId(),
+						"Pagination cap of " + MAX_PAGES + " pages exceeded — server may be returning unbounded pages");
+				}
+				eventLog.startBlock("Page " + pageNum);
+				try {
+					createAuthzenApiRequest();
+					performSingleApiRequest();
+					processAuthApiEndpointResponse();
+					callAndStopOnFailure(AggregateAuthzenSearchResults.class);
+				} finally {
+					eventLog.endBlock();
+				}
+			} while (!Strings.isNullOrEmpty(env.getString("authzen_search_endpoint_request_page_token")));
 
-		int pageNum = 0;
-		do {
-			pageNum++;
-			if (pageNum > MAX_PAGES) {
-				throw new TestFailureException(getId(),
-					"Pagination cap of " + MAX_PAGES + " pages exceeded — server may be returning unbounded pages");
-			}
-			eventLog.startBlock("Page " + pageNum);
-			try {
-				createAuthzenApiRequest();
-				performSingleApiRequest();
-				processAuthApiEndpointResponse();
-				callAndStopOnFailure(AggregateAuthzenSearchResults.class);
-			} finally {
-				eventLog.endBlock();
-			}
-		} while (!Strings.isNullOrEmpty(env.getString("authzen_search_endpoint_request_page_token")));
+			// Use accumulated results for matching
+			env.mapKey("authzen_search_endpoint_response", "authzen_search_endpoint_aggregated_results");
+			callAndContinueOnFailure(EnsureAuthzenSearchResponseValsMatchExpectedVals.class, ConditionResult.FAILURE, "AUTHZEN-8.3");
+			env.unmapKey("authzen_search_endpoint_response");
 
-		// Use accumulated results for matching
-		env.mapKey("authzen_search_endpoint_response", "authzen_search_endpoint_aggregated_results");
-		callAndContinueOnFailure(EnsureAuthzenSearchResponseValsMatchExpectedVals.class, ConditionResult.FAILURE, "AUTHZEN-8.3");
-		env.unmapKey("authzen_search_endpoint_response");
-
-		performPostApiFlow();
-		eventLog.endBlock();
+			performPostApiFlow();
+		} finally {
+			eventLog.endBlock();
+		}
 	}
 
 	@Override
