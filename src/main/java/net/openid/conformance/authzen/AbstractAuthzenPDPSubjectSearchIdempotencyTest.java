@@ -27,9 +27,9 @@ public abstract class AbstractAuthzenPDPSubjectSearchIdempotencyTest extends Abs
 					validateAuthApiEndpointResponse();
 
 					if (i == 1) {
-						callAndStopOnFailure(CaptureAuthzenResponseBodyForIdempotencyCheck.class, "AUTHZEN-CERT-2.6");
+						callAndStopOnFailure(CaptureAuthzenResponseBodyForIdempotencyCheck.class);
 					} else {
-						callAndContinueOnFailure(EnsureAuthzenResponseBodyMatchesIdempotencyCheck.class, ConditionResult.FAILURE, "AUTHZEN-CERT-2.6");
+						callAndContinueOnFailure(EnsureAuthzenResponseBodyMatchesIdempotencyCheck.class, ConditionResult.FAILURE);
 					}
 				} finally {
 					eventLog.endBlock();
