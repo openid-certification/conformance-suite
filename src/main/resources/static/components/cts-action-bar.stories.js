@@ -120,6 +120,58 @@ export const UnknownPresetFallsBack = {
 };
 
 /**
+ * FOUC: the `:not(:defined)` fallback in css/layout.css must pin a
+ * placeholder bar to the bottom of the viewport so the action bar exists
+ * from first paint, not only after /components/cts-action-bar.js executes.
+ * The post-upgrade bar is `position: fixed; bottom: 0`, so the fallback
+ * must mirror that geometry — an in-flow height reservation (the regime
+ * used by cts-navbar / cts-footer) would paint at the host's mid-page
+ * source position instead. Mirrors cts-navbar's FoucFallbackReservesHeight.
+ */
+export const FoucFallbackPinsToViewportBottom = {
+  render: () => html`
+    <p style="max-width: 60ch; font-size: var(--fs-14); color: var(--fg-soft);">
+      Nothing visual to inspect here: this story is a CSS regression guard. The play test
+      (Interactions panel) asserts that css/layout.css pins a
+      <code>cts-action-bar:not(:defined)</code> placeholder to the bottom of the viewport, so the
+      bar exists from first paint — before cts-action-bar.js executes. The fallback can't render in
+      Storybook because importing this story defines the element. To see it live, open
+      schedule-test.html with JavaScript disabled (DevTools ⌘⇧P → "Disable JavaScript") and look at
+      the bottom of the viewport.
+    </p>
+    <cts-action-bar position="static">
+      <cts-button variant="primary" size="lg" label="Action"></cts-button>
+    </cts-action-bar>
+  `,
+
+  async play() {
+    const sheet = Array.from(document.styleSheets).find((s) =>
+      (s.href || "").includes("/css/layout.css"),
+    );
+    expect(sheet).toBeTruthy();
+    const cssRules = /** @type {CSSStyleRule[]} */ (
+      Array.from(/** @type {CSSStyleSheet} */ (sheet).cssRules)
+    );
+    const fallback = cssRules.find(
+      (r) => r.selectorText && r.selectorText.includes("cts-action-bar:not([position="),
+    );
+    expect(fallback).toBeTruthy();
+    const fb = /** @type {CSSStyleRule} */ (fallback);
+    // The static (in-flow) variant must stay excluded so dev previews are
+    // not covered by a viewport-pinned placeholder.
+    expect(fb.selectorText).toBe('cts-action-bar:not([position="static"]):not(:defined)');
+    expect(fb.style.position).toBe("fixed");
+    expect(fb.style.bottom).toBe("0px");
+    expect(fb.style.left).toBe("0px");
+    expect(fb.style.right).toBe("0px");
+    expect(fb.style.display).toBe("block");
+    // Matches the `var(--cts-action-bar-height, 80px)` pre-measure fallback
+    // .schedule-test-page uses for its bottom-padding reservation.
+    expect(fb.style.minHeight).toBe("80px");
+  },
+};
+
+/**
  * The full-bleed preset stretches the inner wrapper to the viewport width
  * (with small inline padding), for pages that don't have a centered
  * content column.

@@ -87,6 +87,13 @@ html {
  *                          the document flow; post-upgrade the Bootstrap
  *                          .modal wrapper itself is display:none so the
  *                          effective layout does not change.
+ *  - position: fixed     — for viewport-pinned hosts (cts-action-bar)
+ *                          whose post-upgrade box is fixed to a viewport
+ *                          edge, not in flow. Reserving in-flow height
+ *                          would paint the placeholder at the host's
+ *                          source position (mid-page); the fallback must
+ *                          instead pin the same chrome at the same
+ *                          viewport edge the component will occupy.
  *
  * Components deliberately NOT listed here:
  *  - cts-alert, cts-tabs, cts-tab-panel: their post-upgrade layout can be
@@ -214,6 +221,31 @@ cts-view-tabs:not(:defined) {
 cts-run-status-strip:not(:defined) {
 	display: block;
 	min-height: 60px;
+}
+
+/* cts-action-bar is the viewport-pinned bottom bar on schedule-test.html
+ * (Create Test Plan / Share buttons). Post-upgrade the component renders its
+ * chrome as `position: fixed; bottom: 0`, so document height never positions
+ * it — but pre-upgrade the host is a zero-size inline element and the bottom
+ * of the viewport stays empty until /components/cts-action-bar.js executes.
+ * On a slow or cold load the bar pops in only when the page has finished
+ * loading. Pin a placeholder with the same chrome (background, top border,
+ * shadow — mirroring .oidf-action-bar in cts-action-bar.js) at the same
+ * viewport position so the bar exists from first paint. 80px matches the
+ * `var(--cts-action-bar-height, 80px)` pre-measure fallback the page already
+ * uses to reserve its bottom padding. The `position="static"` variant
+ * (Storybook / dev previews) renders in normal flow and is excluded. */
+cts-action-bar:not([position="static"]):not(:defined) {
+	display: block;
+	position: fixed;
+	bottom: 0;
+	left: 0;
+	right: 0;
+	min-height: 80px;
+	background: var(--bg);
+	border-top: 1px solid var(--border);
+	box-shadow: var(--shadow-3, 0 -4px 16px rgba(26, 22, 17, 0.08));
+	z-index: 2;
 }
 
 cts-navbar:not(:defined) {
