@@ -26,9 +26,9 @@ public abstract class AbstractAuthzenPDPEvaluationIdempotencyTest extends Abstra
 					validateAuthApiEndpointResponse();
 
 					if (i == 1) {
-						callAndStopOnFailure(CaptureDecisionForIdempotencyCheck.class, "AUTHZEN-CERT-2.6");
+						callAndStopOnFailure(CaptureDecisionForIdempotencyCheck.class);
 					} else {
-						callAndContinueOnFailure(EnsureDecisionMatchesIdempotencyCheck.class, ConditionResult.FAILURE, "AUTHZEN-CERT-2.6");
+						callAndContinueOnFailure(EnsureDecisionMatchesIdempotencyCheck.class, ConditionResult.FAILURE);
 					}
 				} finally {
 					eventLog.endBlock();
