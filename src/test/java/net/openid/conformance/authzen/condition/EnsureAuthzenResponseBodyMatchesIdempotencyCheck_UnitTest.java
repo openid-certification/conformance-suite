@@ -126,6 +126,18 @@ class EnsureAuthzenResponseBodyMatchesIdempotencyCheck_UnitTest {
 	}
 
 	@Test
+	public void searchPageEmptyStringTokenEqualsAbsent_succeeds() {
+		// Section 8.3: an empty-string next_token means "no more pages",
+		// semantically identical to the field being absent. Presence-equality
+		// must treat them as the same observable.
+		putFirstAndCurrent("""
+			{ "results": [ { "type": "user", "id": "alice" } ], "page": {} }""",
+			"""
+			{ "results": [ { "type": "user", "id": "alice" } ], "page": { "next_token": "" } }""");
+		cond.execute(env);
+	}
+
+	@Test
 	public void searchPageOtherFieldDiffers_fails() {
 		// Non-token page fields are still compared strictly.
 		putFirstAndCurrent("""
