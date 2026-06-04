@@ -17,6 +17,12 @@ public class EnsureAuthzenApiResponseHasWwwAuthenticate extends AbstractConditio
 	@Override
 	@PreEnvironment(required = "authzen_api_endpoint_response")
 	public Environment evaluate(Environment env) {
+		Integer status = env.getInteger("authzen_api_endpoint_response", "status");
+		if (status == null || status != 401) {
+			log("Response status is not 401; the WWW-Authenticate SHOULD check applies only to 401 responses",
+				args("status", status));
+			return env;
+		}
 		JsonObject headers = (JsonObject) env.getElementFromObject("authzen_api_endpoint_response", "headers");
 		if (headers == null) {
 			throw error("No response headers captured for Authzen API response");
