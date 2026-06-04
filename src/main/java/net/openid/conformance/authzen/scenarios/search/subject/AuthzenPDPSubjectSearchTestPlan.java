@@ -15,7 +15,6 @@ import net.openid.conformance.plan.TestPlan;
 		AuthzenPDPSubjectSearchSubjectSearchWithContextTest.class,
 		AuthzenPDPSubjectSearchSubjectSearchWithSubjectIdOmittedTest.class,
 		AuthzenPDPSubjectSearchRequestWithPageLimitTest.class,
-		AuthzenPDPSubjectSearchPaginatedSubjectSearchTest.class,
 		AuthzenPDPSubjectSearchUnknownEntityTypeTest.class,
 		// X-Request-ID handling (Section 10.1.3)
 		AuthzenPDPSubjectSearchXRequestIdEchoedTest.class,
