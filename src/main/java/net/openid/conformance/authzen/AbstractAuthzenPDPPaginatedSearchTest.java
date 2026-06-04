@@ -34,7 +34,7 @@ public abstract class AbstractAuthzenPDPPaginatedSearchTest extends AbstractAuth
 			}
 			eventLog.startBlock("Page " + pageNum);
 			createAuthzenApiRequest();
-			callAuthApiEndpointRequest();
+			performSingleApiRequest();
 			processAuthApiEndpointResponse();
 			callAndStopOnFailure(AggregateAuthzenSearchResults.class);
 			eventLog.endBlock();

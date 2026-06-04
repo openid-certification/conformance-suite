@@ -192,20 +192,33 @@ public abstract class AbstractAuthzenPDPTest extends AbstractRedirectServerTestM
 	protected void performAuthzenApiFlow() {
 		eventLog.startBlock("Make request to API endpoint");
 		createAuthzenApiRequest();
+		performSingleApiRequest();
+		if (getAcceptableHttpStatusCodes().contains(200)) {
+			processAuthApiEndpointResponse();
+			validateAuthApiEndpointResponse();
+		}
+		performPostApiFlow();
+		eventLog.endBlock();
+	}
+
+	/**
+	 * Apply request overrides, add the X-Request-ID header when enabled, dispatch
+	 * the API call, and assert the X-Request-ID echo. Override the per-iteration
+	 * loop in {@link AbstractAuthzenPDPEvaluationsIdempotencyTest} and friends to
+	 * pick up these per-request behaviours.
+	 *
+	 * <p>Does NOT call {@link #createAuthzenApiRequest()}; callers decide whether
+	 * to rebuild the request body each iteration or reuse the previous one.
+	 */
+	protected void performSingleApiRequest() {
 		applyRequestOverrides();
 		if (includeXRequestIdHeader()) {
 			callAndStopOnFailure(AddXRequestIdHeaderToAuthzenApiRequest.class, "AUTHZEN-10.1.3");
 		}
 		callAuthApiEndpointRequest();
-		if (getAcceptableHttpStatusCodes().contains(200)) {
-			processAuthApiEndpointResponse();
-			validateAuthApiEndpointResponse();
-		}
 		if (includeXRequestIdHeader()) {
 			callAndContinueOnFailure(EnsureAuthzenApiResponseXRequestIdMatches.class, ConditionResult.FAILURE, "AUTHZEN-10.1.3");
 		}
-		performPostApiFlow();
-		eventLog.endBlock();
 	}
 
 	/**
