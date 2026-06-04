@@ -21,7 +21,7 @@ import net.openid.conformance.plan.TestPlan;
 		AuthzenPDPSubjectSearchXRequestIdEchoedTest.class,
 		// Idempotency
 		AuthzenPDPSubjectSearchIdempotencyTest.class,
-		// Transport binding negative tests (Spec 10.1.1 / 10.1.2 / 2.4.4 / 2.4.5)
+		// Transport binding negative tests (Spec 10.1.1 / 10.1.2)
 		AuthzenPDPSubjectSearchRejectGetMethodTest.class,
 		AuthzenPDPSubjectSearchRejectPutMethodTest.class,
 		AuthzenPDPSubjectSearchRejectTopLevelArrayTest.class,

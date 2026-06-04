@@ -7,8 +7,8 @@ import net.openid.conformance.variant.VariantNotApplicable;
 
 @PublishTestModule(
 	testName = "authzen-pdp-evaluations-batch-with-default-value-merging",
-	displayName = "Authzen Evaluations API - Section 6.1: Batch with default value merging",
-	summary = "Section 6.1 batch with default value merging. The first item omits resource.type and inherits from the top-level default; expects [true, false].\n" + AuthzenPDPEvaluationsBatchWithDefaultValueMergingTest.payload,
+	displayName = "Authzen Evaluations API - Section 7.1: Batch with default value merging",
+	summary = "Section 7.1 batch with default value merging. The first item omits resource.type and inherits from the top-level default; expects [true, false].\n" + AuthzenPDPEvaluationsBatchWithDefaultValueMergingTest.payload,
 	profile = "Authzen"
 )
 @VariantNotApplicable(parameter = AuthzenSupport.class, values = {"core"})
