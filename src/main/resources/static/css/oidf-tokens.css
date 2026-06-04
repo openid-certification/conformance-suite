@@ -267,7 +267,7 @@
 
   /* ---- Layout ---- */
   --maxw-narrow: 720px;
-  --maxw-page:   1200px;
+  --maxw-page:   1100px;
   --maxw-wide:   1440px;
 
   /* Published at runtime by <cts-log-detail-header>'s sticky status bar.
