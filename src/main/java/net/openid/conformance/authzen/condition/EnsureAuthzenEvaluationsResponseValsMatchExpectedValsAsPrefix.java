@@ -32,7 +32,7 @@ public class EnsureAuthzenEvaluationsResponseValsMatchExpectedValsAsPrefix exten
 	@Override
 	@PreEnvironment(required = {"authzen_evaluations_endpoint_expected_response", "authzen_evaluations_endpoint_response"})
 	public Environment evaluate(Environment env) {
-		JsonArray expected = env.getElementFromObject("authzen_evaluations_endpoint_expected_response", "evaluations").getAsJsonArray();
+		JsonArray expected = readEvaluationsArray(env, "authzen_evaluations_endpoint_expected_response", "expected");
 		if (expected.isEmpty()) {
 			throw error("Expected evaluations list is empty; cannot determine the short-circuit trigger value");
 		}
@@ -59,7 +59,7 @@ public class EnsureAuthzenEvaluationsResponseValsMatchExpectedValsAsPrefix exten
 				args("trigger_decision", triggerDecision, "expected", expected));
 		}
 
-		JsonArray response = env.getElementFromObject("authzen_evaluations_endpoint_response", "evaluations").getAsJsonArray();
+		JsonArray response = readEvaluationsArray(env, "authzen_evaluations_endpoint_response", "actual");
 		if (response.size() <= triggerPosition) {
 			throw error("Response stopped before the short-circuit trigger position",
 				args("response_size", response.size(), "trigger_position", triggerPosition, "trigger_decision", triggerDecision));
@@ -84,5 +84,17 @@ public class EnsureAuthzenEvaluationsResponseValsMatchExpectedValsAsPrefix exten
 		logSuccess("Response decisions match expected short-circuit pattern",
 			args("trigger_decision", triggerDecision, "trigger_position", triggerPosition, "response_size", response.size()));
 		return env;
+	}
+
+	private JsonArray readEvaluationsArray(Environment env, String objectKey, String role) {
+		JsonElement elem = env.getElementFromObject(objectKey, "evaluations");
+		if (elem == null) {
+			throw error(role + " evaluations response has no `evaluations` array", args("env_key", objectKey));
+		}
+		if (!elem.isJsonArray()) {
+			throw error(role + " evaluations response `evaluations` is not an array",
+				args("env_key", objectKey, "value", elem));
+		}
+		return elem.getAsJsonArray();
 	}
 }
