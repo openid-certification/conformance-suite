@@ -20,7 +20,7 @@
     <script>window.litDisableBundleWarning = true;</script>
     <script type="importmap">{"imports":{"lit":"/vendor/lit/lit.js","lit/":"/vendor/lit/","lit/directives/async-append.js":"/vendor/lit/lit.js","lit/directives/async-replace.js":"/vendor/lit/lit.js","lit/directives/cache.js":"/vendor/lit/lit.js","lit/directives/choose.js":"/vendor/lit/lit.js","lit/directives/class-map.js":"/vendor/lit/lit.js","lit/directives/guard.js":"/vendor/lit/lit.js","lit/directives/if-defined.js":"/vendor/lit/lit.js","lit/directives/join.js":"/vendor/lit/lit.js","lit/directives/keyed.js":"/vendor/lit/lit.js","lit/directives/live.js":"/vendor/lit/lit.js","lit/directives/map.js":"/vendor/lit/lit.js","lit/directives/range.js":"/vendor/lit/lit.js","lit/directives/ref.js":"/vendor/lit/lit.js","lit/directives/repeat.js":"/vendor/lit/lit.js","lit/directives/style-map.js":"/vendor/lit/lit.js","lit/directives/template-content.js":"/vendor/lit/lit.js","lit/directives/unsafe-html.js":"/vendor/lit/lit.js","lit/directives/unsafe-svg.js":"/vendor/lit/lit.js","lit/directives/until.js":"/vendor/lit/lit.js","lit/directives/when.js":"/vendor/lit/lit.js","@lit/reactive-element":"/vendor/lit/lit.js","@lit/reactive-element/":"/vendor/lit/","lit-html":"/vendor/lit/lit.js","lit-html/":"/vendor/lit/","lit-element/":"/vendor/lit/","marked":"/vendor/marked/marked.esm.js","dompurify":"/vendor/dompurify/purify.es.mjs"}}</script>
     <script type="module" src="/components/cts-navbar.js"></script>
-    <script type="module" src="/components/cts-card.js"></script>
+    <script type="module" src="/components/cts-page-head.js"></script>
     <script type="module" src="/components/cts-token-manager.js"></script>
     <script type="module" src="/js/cts-toast-api.js"></script>
     <script type="module" src="/components/cts-footer.js"></script>
@@ -31,10 +31,9 @@
 
     <cts-navbar current-page="tokens"></cts-navbar>
 
-    <main id="main-content">
-        <cts-card header="API Tokens">
-            <cts-token-manager></cts-token-manager>
-        </cts-card>
+    <main id="main-content" class="narrow-page">
+        <cts-page-head title="API Tokens"></cts-page-head>
+        <cts-token-manager></cts-token-manager>
     </main>
 
     <script type="text/javascript">
