@@ -36,7 +36,7 @@ import { css } from "lit";
  */
 const ALIGN_PRESETS = {
   "schedule-test-page": {
-    maxWidth: "1100px",
+    maxWidth: "var(--maxw-page)",
     paddingInline: "var(--space-5)",
   },
   "full-bleed": {

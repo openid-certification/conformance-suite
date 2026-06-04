@@ -48,8 +48,9 @@ export const Static = {
 
     const inner = bar.querySelector(".oidf-action-bar__inner");
     expect(inner).toBeTruthy();
-    // schedule-test-page preset sets max-width to 1100px on the inner wrapper.
-    expect(inner.style.maxWidth).toBe("1100px");
+    // schedule-test-page preset routes max-width through --maxw-page so the
+    // inner wrapper tracks the page column token.
+    expect(inner.style.maxWidth).toBe("var(--maxw-page)");
 
     // Children are moved into the inner wrapper.
     const buttons = inner.querySelectorAll("cts-button");
@@ -115,7 +116,7 @@ export const UnknownPresetFallsBack = {
     expect(bar).toBeTruthy();
     const inner = bar.querySelector(".oidf-action-bar__inner");
     // Falls back to the schedule-test-page default preset.
-    expect(inner.style.maxWidth).toBe("1100px");
+    expect(inner.style.maxWidth).toBe("var(--maxw-page)");
   },
 };
 

@@ -130,7 +130,7 @@ cts-link-button > a:focus,
    Shared shell for table / listing pages — plans.html, logs.html.
    These pages render wide tabular data and benefit from more
    horizontal room than the form-shaped pages (which use
-   `.schedule-test-page` at 1100px). Centred so very wide monitors do
+   `.schedule-test-page` at --maxw-page). Centred so very wide monitors do
    not stretch the table edge-to-edge, but generous enough that a
    ten-column data-table at default font size still breathes on a
    1440-1920 display. Token padding keeps the rhythm consistent with
@@ -145,21 +145,21 @@ cts-link-button > a:focus,
 /* ---- narrow page wrapper ----------------------------------------
    Shared shell for pages whose content does not need the listing
    width — tokens.html's three-column token table is the first
-   consumer. Sized to the same 1100px column as `.schedule-test-page`
-   and upload.html's page-local `.upload-page`, so the form-shaped
-   pages share one width (the --maxw-page token stays at 1200px,
-   currently unconsumed). Same token padding as `.listing-page` so
-   vertical rhythm matches across pages; only the max-width differs.
+   consumer. Routed through --maxw-page (1100px) — the same column as
+   `.schedule-test-page` and upload.html's page-local `.upload-page`,
+   so the form-shaped pages share one width. Same token padding as
+   `.listing-page` so vertical rhythm matches across pages; only the
+   max-width differs.
    ---------------------------------------------------------------- */
 .narrow-page {
-  max-width: 1100px;
+  max-width: var(--maxw-page);
   margin: 0 auto;
   padding: var(--space-6) var(--space-5);
 }
 
 /* ---- schedule-test page wrapper -------------------------------- */
 .schedule-test-page {
-  max-width: 1100px;
+  max-width: var(--maxw-page);
   margin: 0 auto;
   padding: var(--space-6) var(--space-5);
   /* Reserve room below the page content so the sticky cts-action-bar
