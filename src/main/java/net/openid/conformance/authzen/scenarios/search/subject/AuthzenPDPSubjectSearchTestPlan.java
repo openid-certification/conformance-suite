@@ -17,11 +17,11 @@ import net.openid.conformance.plan.TestPlan;
 		AuthzenPDPSubjectSearchRequestWithPageLimitTest.class,
 		AuthzenPDPSubjectSearchPaginatedSubjectSearchTest.class,
 		AuthzenPDPSubjectSearchUnknownEntityTypeTest.class,
-		// X-Request-ID handling (Spec 10.1.3-4)
+		// X-Request-ID handling (Section 10.1.3)
 		AuthzenPDPSubjectSearchXRequestIdEchoedTest.class,
 		// Idempotency
 		AuthzenPDPSubjectSearchIdempotencyTest.class,
-		// Transport binding negative tests (Spec 10.1.1 / 10.1.2)
+		// Transport binding negative tests (Section 10.1.1 / 10.1.2)
 		AuthzenPDPSubjectSearchRejectGetMethodTest.class,
 		AuthzenPDPSubjectSearchRejectPutMethodTest.class,
 		AuthzenPDPSubjectSearchRejectTopLevelArrayTest.class,
@@ -37,9 +37,9 @@ import net.openid.conformance.plan.TestPlan;
 		AuthzenPDPSubjectSearchResourceMissingIdTest.class,
 		AuthzenPDPSubjectSearchResourceMissingTypeTest.class,
 		AuthzenPDPSubjectSearchSubjectMissingTypeTest.class,
-		// Forward-compat: unknown fields ignored (Spec 10.1.1-3)
+		// Forward-compat: unknown fields ignored (Section 10.1.1)
 		AuthzenPDPSubjectSearchUnknownPageFieldsTest.class,
-		// Extra subject.id ignored (Spec 8.4.1-1)
+		// Extra subject.id ignored (Section 8.4.1)
 		AuthzenPDPSubjectSearchExtraSubjectIdIgnoredTest.class,
 		// Search Properties (Properties variant only)
 		AuthzenPDPSubjectSearchSubjectSearchWithResourcePropertiesTest.class,

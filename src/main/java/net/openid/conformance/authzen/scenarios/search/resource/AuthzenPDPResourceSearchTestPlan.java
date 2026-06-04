@@ -13,11 +13,11 @@ import net.openid.conformance.plan.TestPlan;
 		// Search Core
 		AuthzenPDPResourceSearchValidResourceSearchRequestWithNonEmptyResultsTest.class,
 		AuthzenPDPResourceSearchResourceSearchWithResourceIdOmittedTest.class,
-		// X-Request-ID handling (Spec 10.1.3-4)
+		// X-Request-ID handling (Section 10.1.3)
 		AuthzenPDPResourceSearchXRequestIdEchoedTest.class,
 		// Idempotency
 		AuthzenPDPResourceSearchIdempotencyTest.class,
-		// Transport binding negative tests (Spec 10.1.1 / 10.1.2)
+		// Transport binding negative tests (Section 10.1.1 / 10.1.2)
 		AuthzenPDPResourceSearchRejectGetMethodTest.class,
 		AuthzenPDPResourceSearchRejectPutMethodTest.class,
 		AuthzenPDPResourceSearchRejectTopLevelArrayTest.class,
@@ -32,7 +32,7 @@ import net.openid.conformance.plan.TestPlan;
 		AuthzenPDPResourceSearchResourceMissingTypeTest.class,
 		AuthzenPDPResourceSearchMissingActionTest.class,
 		AuthzenPDPResourceSearchActionMissingNameTest.class,
-		// Extra resource.id ignored (Spec 8.5.1-3)
+		// Extra resource.id ignored (Section 8.5.1)
 		AuthzenPDPResourceSearchExtraResourceIdIgnoredTest.class,
 		// Search Properties (Properties variant only)
 		AuthzenPDPResourceSearchResourceSearchWithSubjectPropertiesTest.class,

@@ -14,11 +14,11 @@ import net.openid.conformance.plan.TestPlan;
 		AuthzenPDPActionSearchValidActionSearchRequestWithNonEmptyResultsTest.class,
 		AuthzenPDPActionSearchActionSearchWithContextTest.class,
 		AuthzenPDPActionSearchUnknownEntityIdentifierTest.class,
-		// X-Request-ID handling (Spec 10.1.3-4)
+		// X-Request-ID handling (Section 10.1.3)
 		AuthzenPDPActionSearchXRequestIdEchoedTest.class,
 		// Idempotency
 		AuthzenPDPActionSearchIdempotencyTest.class,
-		// Transport binding negative tests (Spec 10.1.1 / 10.1.2)
+		// Transport binding negative tests (Section 10.1.1 / 10.1.2)
 		AuthzenPDPActionSearchRejectGetMethodTest.class,
 		AuthzenPDPActionSearchRejectPutMethodTest.class,
 		AuthzenPDPActionSearchRejectTopLevelArrayTest.class,

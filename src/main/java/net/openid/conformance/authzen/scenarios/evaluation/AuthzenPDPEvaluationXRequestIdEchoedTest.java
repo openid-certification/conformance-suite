@@ -6,7 +6,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 @PublishTestModule(
 	testName = "authzen-pdp-evaluation-x-request-id-echoed",
 	displayName = "Authzen Evaluation API - Section 10.1.3: X-Request-ID echoed",
-	summary = "Section 10.1.3-4 — when the PEP supplies an X-Request-ID, the PDP MUST return the same value in the response.\n" + AuthzenPDPEvaluationXRequestIdEchoedTest.payload,
+	summary = "Section 10.1.3 — when the PEP supplies an X-Request-ID, the PDP MUST return the same value in the response.\n" + AuthzenPDPEvaluationXRequestIdEchoedTest.payload,
 	profile = "Authzen"
 )
 public class AuthzenPDPEvaluationXRequestIdEchoedTest extends AbstractAuthzenPDPEvaluationTest {

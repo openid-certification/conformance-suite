@@ -16,24 +16,24 @@ import net.openid.conformance.plan.TestPlan;
 		AuthzenPDPEvaluationsBatchWithFullySpecifiedEvaluationsTest.class,
 		AuthzenPDPEvaluationsBatchWithContextInheritanceTest.class,
 		AuthzenPDPEvaluationsEvaluationLevelErrorsTest.class,
-		// evaluations_semantic option (Spec 7.1.2.1)
+		// evaluations_semantic option (Section 7.1.2.1)
 		AuthzenPDPEvaluationsDefaultSemanticIsExecuteAllTest.class,
 		AuthzenPDPEvaluationsExecuteAllExplicitTest.class,
 		AuthzenPDPEvaluationsDenyOnFirstDenyTest.class,
 		AuthzenPDPEvaluationsPermitOnFirstPermitTest.class,
 		AuthzenPDPEvaluationsUnknownSemanticValueTest.class,
-		// Per-eval overrides top-level defaults (Spec 7.1.1.1)
+		// Per-eval overrides top-level defaults (Section 7.1.1.1)
 		AuthzenPDPEvaluationsPerEvalOverridesDefaultTest.class,
 		// Missing subject everywhere returns decision-false evaluation (Cert Profile 3.4.1)
 		AuthzenPDPEvaluationsMissingSubjectReturnsDecisionFalseTest.class,
-		// Backward compatibility (Spec 7.1-2)
+		// Backward compatibility (Section 7.1)
 		AuthzenPDPEvaluationsMissingEvaluationsArrayBackwardCompatTest.class,
 		AuthzenPDPEvaluationsEmptyEvaluationsArrayBackwardCompatTest.class,
-		// X-Request-ID handling (Spec 10.1.3-4)
+		// X-Request-ID handling (Section 10.1.3)
 		AuthzenPDPEvaluationsXRequestIdEchoedTest.class,
 		// Idempotency
 		AuthzenPDPEvaluationsIdempotencyTest.class,
-		// Transport binding negative tests (Spec 10.1.1 / 10.1.2)
+		// Transport binding negative tests (Section 10.1.1 / 10.1.2)
 		AuthzenPDPEvaluationsRejectGetMethodTest.class,
 		AuthzenPDPEvaluationsRejectPutMethodTest.class,
 		AuthzenPDPEvaluationsRejectTopLevelArrayTest.class,

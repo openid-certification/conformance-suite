@@ -5,7 +5,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
 	testName = "authzen-pdp-evaluation-reject-put-method",
-	displayName = "Authzen Evaluation API - Spec 10.1-1: Reject PUT method",
+	displayName = "Authzen Evaluation API - Section 10.1: Reject PUT method",
 	summary = "Per spec 10.1-1, evaluation requests are made via HTTPS POST. The PDP MUST reject a PUT request to the evaluation endpoint with an HTTP 4xx error (typically 405 Method Not Allowed).",
 	profile = "Authzen"
 )
