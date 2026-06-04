@@ -6,6 +6,8 @@ import net.openid.conformance.authzen.condition.CreateAuthzenResourceSearchApiRe
 import net.openid.conformance.authzen.condition.SetAuthzenApiEndpointToResourceSearchEndpoint;
 import net.openid.conformance.sequence.ConditionSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
+import net.openid.conformance.variant.PDPServerMetadata;
+import net.openid.conformance.variant.VariantConfigurationFields;
 
 @PublishTestModule(
 	testName = "authzen-pdp-interop-resource-search-01-pagination",
@@ -15,6 +17,13 @@ import net.openid.conformance.testmodule.PublishTestModule;
 	configurationFields = {
 	}
 )
+// Class extends AbstractAuthzenPDPPaginatedSearchTest directly, bypassing
+// AbstractAuthzenPDPResourceSearchTest where pdp.search_resource_endpoint is
+// declared. Without this local @VariantConfigurationFields, the field would not
+// render on schedule-test.html under PDPServerMetadata=static.
+@VariantConfigurationFields(parameter = PDPServerMetadata.class, value = "static", configurationFields = {
+	"pdp.search_resource_endpoint"
+})
 public class AuthzenPDPInteropResourceSearch01PaginationTest extends AbstractAuthzenPDPPaginatedSearchTest {
 
 	public static final String payload = """
