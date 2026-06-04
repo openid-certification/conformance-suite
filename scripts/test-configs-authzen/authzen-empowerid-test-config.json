@@ -1,5 +1,5 @@
 {
-    "description": "Authzen EmpowerID Server",
+    "description": "Authzen EmpowerID Server (single Evaluation only; no batch/search endpoints implemented yet, so only the authzen-pdp-evaluation-test-plan is wired in .gitlab-ci/run-tests.sh)",
     "publish": "everything",
     "pdp":  {
         "policy_decision_point": "https://pdp-authz.int1.eidlabs.net",
