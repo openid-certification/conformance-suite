@@ -23,6 +23,8 @@ import net.openid.conformance.variant.VariantConfigurationFields;
 
 public abstract class AbstractAuthzenPDPEvaluationsTest extends AbstractAuthzenPDPTest {
 
+	private String cachedEvaluationsSemantic;
+
 	@Override
 	protected ConditionSequence createAuthzenApiRequestSequence() {
 		JsonObject request = parseRequest();
@@ -47,16 +49,24 @@ public abstract class AbstractAuthzenPDPEvaluationsTest extends AbstractAuthzenP
 	 * `execute_all` when no value is set. Short-circuit semantics
 	 * (`deny_on_first_deny`, `permit_on_first_permit`) MAY cause the PDP to
 	 * truncate the response, which changes how the response is validated.
+	 *
+	 * <p>Cached after first call so idempotency loops do not re-parse the
+	 * payload on every iteration.
 	 */
 	protected String getEvaluationsSemantic() {
+		if (cachedEvaluationsSemantic != null) {
+			return cachedEvaluationsSemantic;
+		}
 		JsonObject options = parseRequest().getAsJsonObject("options");
+		String semantic = "execute_all";
 		if (options != null && options.has("evaluations_semantic")) {
 			JsonElement value = options.get("evaluations_semantic");
 			if (value.isJsonPrimitive() && value.getAsJsonPrimitive().isString()) {
-				return OIDFJSON.getString(value);
+				semantic = OIDFJSON.getString(value);
 			}
 		}
-		return "execute_all";
+		cachedEvaluationsSemantic = semantic;
+		return semantic;
 	}
 
 	private boolean isShortCircuitSemantic() {
