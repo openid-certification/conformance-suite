@@ -727,6 +727,78 @@ test.describe("schedule-test.html — Test Plan Scheduling", () => {
     await expect(innerBtn).toBeEnabled();
   });
 
+  // --- Validate Configuration flow (inline verdict + button loading state) ---
+  //
+  // The verdict content branches (success vs missing-count copy, icon
+  // choice, re-entrancy, every clearing path) are covered at component
+  // level by the cts-config-form stories; this test pins the page-level
+  // wiring: clicking the button on the real schedule-test page opens the
+  // loading window, lands the inline verdict next to the button (NOT a
+  // toast — the pre-redesign surface), and a form edit clears it.
+
+  test("validate flow: loading window, inline verdict, cleared by an edit", async ({ page }) => {
+    await setupFailFast(page);
+
+    await page.route("**/api/plan/available", (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(ALL_PLANS),
+      }),
+    );
+
+    await page.route("**/api/lastconfig", (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({}),
+      }),
+    );
+
+    await setupCommonRoutes(page);
+    await page.goto("/schedule-test.html");
+
+    // Reveal the config form by selecting the no-variants plan through the
+    // cascade — its config form renders immediately, while plans with
+    // variants keep it hidden until every variant is picked.
+    await page.locator("#specFamilySelect").selectOption("OIDCC");
+    const entitySelect = page.locator("#entitySelect");
+    await expect(entitySelect).toBeVisible();
+    await entitySelect.selectOption("client-basic");
+
+    const validateHost = page.locator('#ctsConfigForm cts-button[type="submit"]');
+    const validateBtn = validateHost.locator("button");
+    await expect(validateBtn).toBeVisible();
+    await expect(validateBtn).toBeEnabled();
+
+    const verdict = page.getByTestId("validate-verdict");
+    await expect(verdict).toBeEmpty();
+
+    // The feedback window opens on click: the cts-button host reflects
+    // `loading` (same attribute idiom as the #loadLastConfigBtn assertions
+    // above) and the inner native button disables. The expectation starts
+    // polling before the click resolves — the window is only ~1s, so a
+    // sequential await could miss it on a loaded machine.
+    await Promise.all([expect(validateHost).toHaveAttribute("loading", /.*/), validateBtn.click()]);
+    await expect(validateBtn).toBeDisabled();
+
+    // The verdict lands inline when the window resolves. The mock plans
+    // carry no catalog-required fields, so the empty form passes.
+    await expect(verdict).toContainText("Configuration is valid");
+    await expect(validateHost).not.toHaveAttribute("loading", /.*/);
+    await expect(validateBtn).toBeEnabled();
+
+    // The verdict is inline next to the button — no toast fires for
+    // validation anymore (the host mount stays, per the cross-page
+    // contract asserted at the top of this file).
+    await expect(page.locator("cts-toast-host cts-toast")).toHaveCount(0);
+
+    // Editing any form field invalidates the verdict immediately.
+    const aliasInput = page.locator("#ctsConfigForm cts-form-field input").first();
+    await aliasInput.fill("edited-after-validate");
+    await expect(verdict).toBeEmpty();
+  });
+
   // --- cts-test-selector search flow (search-mode shortcut over the cascade) ---
   //
   // The search selector mounts above cts-spec-cascade and shares the same
