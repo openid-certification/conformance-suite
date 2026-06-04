@@ -19,7 +19,7 @@ public class EnsureSearchResponsePageIsFirstKey extends AbstractCondition {
 	public Environment evaluate(Environment env) {
 		JsonObject response = env.getObject("authzen_search_endpoint_response");
 		if (!response.has("page")) {
-			log("Response has no `page` member — skipping ordering check");
+			logSuccess("Response has no `page` member — ordering check trivially satisfied");
 			return env;
 		}
 		Map.Entry<String, com.google.gson.JsonElement> first = response.entrySet().iterator().next();
