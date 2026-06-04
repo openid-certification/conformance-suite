@@ -107,6 +107,34 @@ async function waitForNavbar(canvasElement) {
   );
 }
 
+/**
+ * Regression guard for the account-menu hover-overshoot bug: each
+ * `.cts-account-item` paints its hover/focus background across its own
+ * padding box, so every item must sit inside the menu's bounds (containment)
+ * while still spanning the menu's inner width (fill — guards against a
+ * shrink-wrap over-correction). One measurement basis throughout:
+ * getBoundingClientRect(), with a ±2px tolerance on the fill check for
+ * sub-pixel rounding. Menu box model per side: 8px padding (--space-2)
+ * plus 1px border.
+ * @param {HTMLElement} canvasElement - The Storybook canvas root.
+ */
+function expectAccountMenuItemsWithinMenu(canvasElement) {
+  const menu = /** @type {HTMLElement} */ (canvasElement.querySelector(".cts-account-menu"));
+  const menuRect = menu.getBoundingClientRect();
+  const innerWidth = menuRect.width - 2 * (8 + 1);
+  const items = canvasElement.querySelectorAll(".cts-account-item");
+  expect(items.length).toBeGreaterThan(0);
+  for (const item of items) {
+    const rect = item.getBoundingClientRect();
+    // Containment: the hover background paints the item's padding box, so
+    // the rect must not overshoot the menu on either side.
+    expect(rect.right).toBeLessThanOrEqual(menuRect.right);
+    expect(rect.left).toBeGreaterThanOrEqual(menuRect.left);
+    // Fill: items still span the menu's inner width edge-to-edge.
+    expect(Math.abs(rect.width - innerWidth)).toBeLessThanOrEqual(2);
+  }
+}
+
 // --- Stories ---
 
 export const Authenticated = {
@@ -433,6 +461,12 @@ export const AccountMenuOpens = {
     );
     expect(signOutForm.getAttribute("action")).toBe("/logout");
     expect(signOutForm.getAttribute("method")).toBe("post");
+
+    // Geometry regression guard: both items (the Tokens link and the
+    // Sign out button) stay inside the menu and fill its inner width.
+    const signOutItem = canvasElement.querySelector(".cts-account-item--danger");
+    expect(signOutItem).toBeTruthy();
+    expectAccountMenuItemsWithinMenu(canvasElement);
   },
 };
 
@@ -497,6 +531,37 @@ export const AccountMenuClosesOnOutsideClick = {
     await navbar.updateComplete;
     expect(account.getAttribute("data-open")).toBe("false");
     expect(trigger.getAttribute("aria-expanded")).toBe("false");
+  },
+};
+
+/**
+ * Geometry regression guard with wrapped header content: a long principal
+ * exercises the menu's word-break wrapping (the popover itself stays at its
+ * 240px min-width because it shrink-wraps against the avatar-sized
+ * `.cts-account` containing block). Menu items must stay inside the menu's
+ * bounds and span its inner width — the hover fill must never overshoot
+ * the popover edge.
+ */
+export const AccountMenuLongPrincipal = {
+  args: { currentPage: "plans" },
+  decorators: [
+    withMockUser({
+      ...MOCK_USER,
+      principal:
+        "really.long.email.address.used.for.layout.testing@subdomain.example-organization.example.co.uk",
+    }),
+  ],
+  render: ({ currentPage }) => html`<cts-navbar current-page="${currentPage}"></cts-navbar>`,
+
+  async play({ canvasElement }) {
+    await waitForNavbar(canvasElement);
+
+    const trigger = /** @type {HTMLButtonElement} */ (
+      canvasElement.querySelector(".cts-account-trigger")
+    );
+    await userEvent.click(trigger);
+
+    expectAccountMenuItemsWithinMenu(canvasElement);
   },
 };
 
