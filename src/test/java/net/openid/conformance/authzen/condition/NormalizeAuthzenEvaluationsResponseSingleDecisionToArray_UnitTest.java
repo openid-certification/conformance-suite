@@ -76,4 +76,22 @@ class NormalizeAuthzenEvaluationsResponseSingleDecisionToArray_UnitTest {
 		putResponse("{}");
 		assertThrows(ConditionError.class, () -> cond.execute(env));
 	}
+
+	@Test
+	public void singleDecision_extraTopLevelFields_arePreserved() {
+		// The PDP MAY include other top-level fields alongside the single
+		// decision (e.g. context, vendor extensions). They must survive the
+		// wrap so downstream checks can see what the PDP actually returned.
+		putResponse("""
+			{ "decision": true, "context": { "v": 1 }, "vendor_id": "acme" }""");
+		cond.execute(env);
+		JsonObject normalized = env.getObject("authzen_evaluations_endpoint_response");
+		assertTrue(normalized.has("evaluations"));
+		assertTrue(normalized.has("context"));
+		assertTrue(normalized.has("vendor_id"));
+		assertEquals(1,
+			OIDFJSON.getInt(normalized.getAsJsonObject("context").get("v")));
+		assertEquals("acme",
+			OIDFJSON.getString(normalized.get("vendor_id")));
+	}
 }
