@@ -1,13 +1,7 @@
 package net.openid.conformance.authzen.interop.search.resource;
 
-import com.google.gson.JsonObject;
-import net.openid.conformance.authzen.AbstractAuthzenPDPPaginatedSearchTest;
-import net.openid.conformance.authzen.condition.CreateAuthzenResourceSearchApiRequestSteps;
-import net.openid.conformance.authzen.condition.SetAuthzenApiEndpointToResourceSearchEndpoint;
-import net.openid.conformance.sequence.ConditionSequence;
+import net.openid.conformance.authzen.AbstractAuthzenPDPPaginatedResourceSearchTest;
 import net.openid.conformance.testmodule.PublishTestModule;
-import net.openid.conformance.variant.PDPServerMetadata;
-import net.openid.conformance.variant.VariantConfigurationFields;
 
 @PublishTestModule(
 	testName = "authzen-pdp-interop-resource-search-01-pagination",
@@ -17,14 +11,7 @@ import net.openid.conformance.variant.VariantConfigurationFields;
 	configurationFields = {
 	}
 )
-// Class extends AbstractAuthzenPDPPaginatedSearchTest directly, bypassing
-// AbstractAuthzenPDPResourceSearchTest where pdp.search_resource_endpoint is
-// declared. Without this local @VariantConfigurationFields, the field would not
-// render on schedule-test.html under PDPServerMetadata=static.
-@VariantConfigurationFields(parameter = PDPServerMetadata.class, value = "static", configurationFields = {
-	"pdp.search_resource_endpoint"
-})
-public class AuthzenPDPInteropResourceSearch01PaginationTest extends AbstractAuthzenPDPPaginatedSearchTest {
+public class AuthzenPDPInteropResourceSearch01PaginationTest extends AbstractAuthzenPDPPaginatedResourceSearchTest {
 
 	public static final String payload = """
 	{
@@ -137,21 +124,5 @@ public class AuthzenPDPInteropResourceSearch01PaginationTest extends AbstractAut
 	@Override
 	protected String getPayload() {
 		return payload;
-	}
-
-	@Override
-	protected ConditionSequence createAuthzenApiRequestSequence() {
-		JsonObject request = parseRequest();
-		return new CreateAuthzenResourceSearchApiRequestSteps(
-			request.getAsJsonObject("subject"),
-			request.getAsJsonObject("resource"),
-			request.getAsJsonObject("action"),
-			request.getAsJsonObject("context"),
-			request.getAsJsonObject("page"));
-	}
-
-	@Override
-	protected void setAuthzenApiEndpoint() {
-		callAndStopOnFailure(SetAuthzenApiEndpointToResourceSearchEndpoint.class);
 	}
 }
