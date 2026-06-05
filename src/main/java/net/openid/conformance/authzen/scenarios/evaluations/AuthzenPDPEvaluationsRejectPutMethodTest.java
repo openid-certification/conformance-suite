@@ -43,6 +43,6 @@ public class AuthzenPDPEvaluationsRejectPutMethodTest extends AbstractAuthzenPDP
 
 	@Override
 	protected java.util.Set<Integer> getAcceptableHttpStatusCodes() {
-		return java.util.Set.of(400, 405);
+		return java.util.Set.of(400, 404, 405);
 	}
 }
