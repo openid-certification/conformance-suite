@@ -255,7 +255,7 @@ const SPACING = [
   "--space-20",
 ];
 
-const SIZING = ["--control-height"];
+const CONTROL_HEIGHT = "--control-height";
 
 const LAYOUT_WIDTHS = ["--maxw-narrow", "--maxw-page", "--maxw-wide"];
 
@@ -273,13 +273,13 @@ const RADII = [
 const SHADOWS = ["--shadow-1", "--shadow-2", "--shadow-3", "--shadow-inset"];
 
 // A complete box-shadow value, not a color.
-const EFFECTS = ["--focus-ring"];
+const FOCUS_RING = "--focus-ring";
 
 const MOTION = ["--ease-standard", "--ease-emphasized", "--dur-1", "--dur-2", "--dur-3"];
 
 // Published at runtime by <cts-log-detail-header>'s sticky status bar;
 // defaults to 0px on pages that do not mount the component.
-const RUNTIME_LAYOUT = ["--status-bar-height"];
+const STATUS_BAR_HEIGHT = "--status-bar-height";
 
 // ---- Completeness roster ----------------------------------------------------
 //
@@ -305,13 +305,13 @@ const ALL_DOCUMENTED_PROPS = [
   ...LINE_HEIGHTS,
   ...FONT_WEIGHTS,
   ...SPACING,
-  ...SIZING,
+  CONTROL_HEIGHT,
   ...LAYOUT_WIDTHS,
   ...RADII,
   ...SHADOWS,
-  ...EFFECTS,
+  FOCUS_RING,
   ...MOTION,
-  ...RUNTIME_LAYOUT,
+  STATUS_BAR_HEIGHT,
 ];
 
 const DOCUMENTED_T_CLASSES = TYPE_SPECIMENS.map((s) => `.${s.cls}`);
@@ -629,14 +629,14 @@ export const Spacing = {
         html`
           <div style="display: flex; align-items: center; gap: var(--space-3);">
             <div
-              data-token="${SIZING[0]}"
+              data-token="${CONTROL_HEIGHT}"
               style="height: var(--control-height); display: inline-flex; align-items: center; padding: 0 var(--space-3); border: 1px solid var(--border); border-radius: var(--radius-2); background: var(--bg-muted);"
             >
               <span class="t-body">Sample control</span>
             </div>
             <span class="t-meta">
-              --control-height (${readToken("--control-height")}) — the md rung for buttons,
-              selects, and inputs so adjacent controls align.
+              --control-height (${readToken(CONTROL_HEIGHT)}) — the md rung for buttons, selects,
+              and inputs so adjacent controls align.
             </span>
           </div>
         `,
@@ -741,7 +741,7 @@ export const RadiiElevationMotion = {
             style="display: flex; align-items: center; gap: var(--space-4); padding: var(--space-2);"
           >
             <div
-              data-token="--focus-ring"
+              data-token="${FOCUS_RING}"
               data-focus-sample
               style="height: var(--control-height); display: inline-flex; align-items: center; padding: 0 var(--space-3); border: 1px solid var(--border); border-radius: var(--radius-2); background: var(--bg); box-shadow: var(--focus-ring);"
             >
@@ -776,10 +776,10 @@ export const RadiiElevationMotion = {
       ${section(
         "Runtime layout",
         html`
-          <div data-token="--status-bar-height">
+          <div data-token="${STATUS_BAR_HEIGHT}">
             <code class="t-mono-sm">--status-bar-height</code>
             <span class="t-meta">
-              (currently ${readToken("--status-bar-height")}) — published at runtime by
+              (currently ${readToken(STATUS_BAR_HEIGHT)}) — published at runtime by
               &lt;cts-log-detail-header&gt;'s sticky status bar; defaults to 0px so
               <code>top: var(--status-bar-height)</code> resolves cleanly on pages that never mount
               it.
