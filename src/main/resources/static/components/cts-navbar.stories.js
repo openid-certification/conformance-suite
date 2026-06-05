@@ -551,6 +551,95 @@ export const AccountMenuClosesOnOutsideClick = {
 };
 
 /**
+ * Sign-out pending state: submitting the logout form disables the button,
+ * swaps the label to "Signing out…" with a ring spinner, and freezes every
+ * menu-dismissal path so the feedback stays visible through the logout
+ * navigation (whose Clear-Site-Data cache purge can stall for seconds on a
+ * real browser profile). The play function intercepts the real submit with
+ * preventDefault — the only divergence from production, where the native
+ * POST proceeds — so the Storybook iframe is not torn down mid-test.
+ */
+export const AccountMenuSignOutPending = {
+  args: { currentPage: "plans" },
+  decorators: [withMockUser(MOCK_USER)],
+  render: ({ currentPage }) => html`<cts-navbar current-page="${currentPage}"></cts-navbar>`,
+
+  async play({ canvasElement }) {
+    await waitForNavbar(canvasElement);
+
+    const navbar = canvasElement.querySelector("cts-navbar");
+    const account = canvasElement.querySelector(".cts-account");
+    const trigger = /** @type {HTMLButtonElement} */ (
+      canvasElement.querySelector(".cts-account-trigger")
+    );
+    await userEvent.click(trigger);
+    expect(account.getAttribute("data-open")).toBe("true");
+
+    const form = /** @type {HTMLFormElement} */ (canvasElement.querySelector(".cts-account-form"));
+    const signOutButton = /** @type {HTMLButtonElement} */ (
+      canvasElement.querySelector(".cts-account-item--danger")
+    );
+
+    // Iframe-safety listener: stop the real POST navigation. Track calls so
+    // the double-submit assertion below can prove no second submit fired.
+    let submitCount = 0;
+    const safetyListener = (e) => {
+      submitCount += 1;
+      e.preventDefault();
+    };
+    form.addEventListener("submit", safetyListener);
+
+    await userEvent.click(signOutButton);
+    await navbar.updateComplete;
+
+    // Pending state painted: disabled, busy, spinner + swapped label.
+    expect(signOutButton).toBeDisabled();
+    expect(signOutButton.getAttribute("aria-busy")).toBe("true");
+    expect(signOutButton.textContent).toContain("Signing out…");
+    expect(canvasElement.querySelector(".cts-account-spinner")).toBeTruthy();
+    expect(submitCount).toBe(1);
+
+    // Dropdown stays open — the pending feedback is the user's only signal.
+    expect(account.getAttribute("data-open")).toBe("true");
+
+    // Geometry guard still holds with the spinner inside the button.
+    expectAccountMenuItemsWithinMenu(canvasElement);
+
+    // A second click on the disabled button must not fire another submit.
+    await userEvent.click(signOutButton);
+    expect(submitCount).toBe(1);
+
+    // Escape must not dismiss the menu while the POST is in flight.
+    await userEvent.keyboard("{Escape}");
+    await navbar.updateComplete;
+    expect(account.getAttribute("data-open")).toBe("true");
+
+    // Outside-click must not dismiss it either.
+    document.body.dispatchEvent(new PointerEvent("pointerdown", { bubbles: true }));
+    await navbar.updateComplete;
+    expect(account.getAttribute("data-open")).toBe("true");
+
+    // The component's own double-submit guard (not the safety listener)
+    // cancels programmatic submits while pending: remove the safety
+    // listener, then dispatch a synthetic submit — dispatchEvent returns
+    // false only when a handler called preventDefault.
+    form.removeEventListener("submit", safetyListener);
+    const notPrevented = form.dispatchEvent(
+      new SubmitEvent("submit", { bubbles: true, cancelable: true }),
+    );
+    expect(notPrevented).toBe(false);
+
+    // bfcache Back-restore resets the pending state so a restored page
+    // never shows a frozen, disabled "Signing out…" button.
+    window.dispatchEvent(new PageTransitionEvent("pageshow", { persisted: true }));
+    await navbar.updateComplete;
+    expect(signOutButton.disabled).toBe(false);
+    expect(signOutButton.textContent).toContain("Sign out");
+    expect(canvasElement.querySelector(".cts-account-spinner")).toBeNull();
+  },
+};
+
+/**
  * Geometry regression guard with wrapped header content: a long principal
  * exercises the menu's word-break wrapping (the popover itself stays at its
  * 240px min-width because it shrink-wraps against the avatar-sized

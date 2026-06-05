@@ -401,6 +401,32 @@ const STYLE_TEXT = css`
     background: var(--rust-500);
     color: var(--ink-0);
   }
+  .cts-nav .cts-account-item:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
+  /* In-button ring spinner for the pending sign-out state. Strokes inherit
+ * currentColor (not cts-button's orange head) so the ring matches the
+ * danger item's text colour in every hover/disabled combination. */
+  .cts-nav .cts-account-spinner {
+    flex: none;
+    width: 12px;
+    height: 12px;
+    margin-right: var(--space-2);
+    animation: cts-account-spin 0.9s linear infinite;
+  }
+  .cts-nav .cts-account-spinner-track {
+    stroke: currentColor;
+    opacity: 0.35;
+  }
+  .cts-nav .cts-account-spinner-head {
+    stroke: currentColor;
+  }
+  @keyframes cts-account-spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
 
   /* Tablet landscape and below — tighten the brand block. The user zone
  * is now a single avatar so there's nothing on the right to compress. */
@@ -515,6 +541,11 @@ const STYLE_TEXT = css`
     .cts-nav .cts-menu-toggle .cts-menu-toggle-bar {
       transition: none;
     }
+    /* Static partial ring + the "Signing out…" label still communicate
+   * busy without spinning. */
+    .cts-nav .cts-account-spinner {
+      animation: none;
+    }
   }
 `;
 
@@ -567,6 +598,11 @@ function computeInitials(name) {
  * - Authenticated → 30×30 avatar button → popover with name, principal,
  *   ADMIN chip (also surfaced as a rust ring on the avatar), Tokens link
  *   for non-admin/non-guest users, and a Sign out form button.
+ *   Submitting sign-out paints a disabled spinner + "Signing out…" pending
+ *   state and freezes the popover's dismissal paths (outside-click, Escape)
+ *   until the logout navigation completes — the logout 302 carries
+ *   Clear-Site-Data, whose browser-side cache purge can stall the
+ *   navigation for seconds on a real profile.
  * - Unauthenticated → "Sign in" button linking to /login.html.
  * - Loading → skeleton avatar circle (no horizontal text reservation).
  *
@@ -587,6 +623,7 @@ class CtsNavbar extends LitElement {
     _loading: { state: true },
     _menuOpen: { state: true },
     _mobileMenuOpen: { state: true },
+    _signingOut: { state: true },
   };
 
   constructor() {
@@ -596,8 +633,10 @@ class CtsNavbar extends LitElement {
     this._loading = true;
     this._menuOpen = false;
     this._mobileMenuOpen = false;
+    this._signingOut = false;
     this._onDocPointerDown = this._onDocPointerDown.bind(this);
     this._onDocKeydown = this._onDocKeydown.bind(this);
+    this._onPageShow = this._onPageShow.bind(this);
   }
 
   // Light DOM so the global tokens (--ink-900 etc.) and existing page
@@ -614,6 +653,7 @@ class CtsNavbar extends LitElement {
     // clicked — the host wouldn't see clicks elsewhere on the page.
     document.addEventListener("pointerdown", this._onDocPointerDown);
     document.addEventListener("keydown", this._onDocKeydown);
+    window.addEventListener("pageshow", this._onPageShow);
     // Skip the auth probe on pages with statically-known anonymous state
     // (login.html is the only one today). Previously every login-page load
     // fired a /api/currentuser that inevitably 401'd, generating server
@@ -688,11 +728,26 @@ class CtsNavbar extends LitElement {
   disconnectedCallback() {
     document.removeEventListener("pointerdown", this._onDocPointerDown);
     document.removeEventListener("keydown", this._onDocKeydown);
+    window.removeEventListener("pageshow", this._onPageShow);
     super.disconnectedCallback();
+  }
+
+  /** @param {PageTransitionEvent} e - Window pageshow; clears pending sign-out state on bfcache restore. */
+  _onPageShow(e) {
+    // A bfcache Back-restore would otherwise resurrect a frozen, disabled
+    // "Signing out…" button on a page where no POST is in flight. The
+    // logout response's Clear-Site-Data header should evict this page from
+    // bfcache anyway (WebSecurityOidcLoginConfig); this is belt-and-braces.
+    if (e.persisted && this._signingOut) {
+      this._signingOut = false;
+    }
   }
 
   /** @param {PointerEvent} e - Document-level pointerdown used to close open menus on outside click. */
   _onDocPointerDown(e) {
+    // While the sign-out POST is in flight the dropdown is the user's only
+    // progress feedback — no dismissal path may close it (R2 in the plan).
+    if (this._signingOut) return;
     const target = /** @type {Node | null} */ (e.target);
     if (this._menuOpen) {
       const account = this.querySelector(".cts-account");
@@ -714,6 +769,9 @@ class CtsNavbar extends LitElement {
   /** @param {KeyboardEvent} e - Document-level keydown; Escape closes open menus and restores focus to the trigger. */
   _onDocKeydown(e) {
     if (e.key !== "Escape") return;
+    // Same freeze as _onDocPointerDown: Escape must not hide the pending
+    // sign-out feedback mid-flight.
+    if (this._signingOut) return;
     if (this._menuOpen) {
       this._menuOpen = false;
       // Return focus to the trigger so keyboard users land back where
@@ -735,6 +793,23 @@ class CtsNavbar extends LitElement {
 
   _toggleMenu() {
     this._menuOpen = !this._menuOpen;
+  }
+
+  /** @param {SubmitEvent} e - Sign-out form submit; paints the pending state and guards double-submit. */
+  _onSignOutSubmit(e) {
+    if (this._signingOut) {
+      // A second activation while the POST is in flight must not fire
+      // another /logout. The disabled button already blocks clicks; this
+      // guards the programmatic/keyboard submit paths.
+      e.preventDefault();
+      return;
+    }
+    // Deliberately no preventDefault: the native form POST proceeds while
+    // Lit re-renders the pending state. The browser keeps painting this
+    // page until the logout 302 (and its Clear-Site-Data cache purge,
+    // which can stall for seconds on a real profile) completes — exactly
+    // the window the spinner needs to fill.
+    this._signingOut = true;
   }
 
   _toggleMobileMenu() {
@@ -833,9 +908,41 @@ class CtsNavbar extends LitElement {
             showTokens,
             () => html`<a class="cts-account-item" href="tokens.html" role="menuitem">Tokens</a>`,
           )}
-          <form action="/logout" method="post" class="cts-account-form">
-            <button type="submit" class="cts-account-item cts-account-item--danger" role="menuitem">
-              Sign out
+          <form
+            action="/logout"
+            method="post"
+            class="cts-account-form"
+            @submit=${this._onSignOutSubmit}
+          >
+            <button
+              type="submit"
+              class="cts-account-item cts-account-item--danger"
+              role="menuitem"
+              ?disabled=${this._signingOut}
+              aria-busy=${this._signingOut ? "true" : "false"}
+            >
+              ${when(
+                this._signingOut,
+                () =>
+                  html`<svg class="cts-account-spinner" viewBox="0 0 16 16" aria-hidden="true">
+                      <circle
+                        class="cts-account-spinner-track"
+                        cx="8"
+                        cy="8"
+                        r="6"
+                        fill="none"
+                        stroke-width="2"
+                      ></circle>
+                      <path
+                        class="cts-account-spinner-head"
+                        d="M14 8a6 6 0 0 0-6-6"
+                        fill="none"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                      ></path></svg
+                    >Signing out…`,
+                () => html`Sign out`,
+              )}
             </button>
           </form>
         </div>
