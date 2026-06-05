@@ -33,6 +33,62 @@ public class ConnectIdCibaBindingMessageConditions_UnitTest {
 	}
 
 	@Test
+	public void testSetConnectIdCibaLoginHintFromConfiguration() {
+		env.putObject("config", new JsonObject());
+		env.putString("config", "client.login_hint", "user@example.com");
+
+		SetConnectIdCibaLoginHintFromConfiguration cond =
+			new SetConnectIdCibaLoginHintFromConfiguration();
+		cond.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
+
+		cond.execute(env);
+
+		assertThat(env.getString("config", "client.hint_type")).isEqualTo("login_hint");
+		assertThat(env.getString("config", "client.hint_value")).isEqualTo("user@example.com");
+	}
+
+	@Test
+	public void testSetConnectIdCibaLoginHintFromConfigurationAcceptsPhoneNumber() {
+		env.putObject("config", new JsonObject());
+		env.putString("config", "client.login_hint", "+61412345678");
+
+		SetConnectIdCibaLoginHintFromConfiguration cond =
+			new SetConnectIdCibaLoginHintFromConfiguration();
+		cond.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
+
+		cond.execute(env);
+
+		assertThat(env.getString("config", "client.hint_value")).isEqualTo("+61412345678");
+	}
+
+	@Test
+	public void testSetConnectIdCibaLoginHintFromConfigurationAcceptsCardNumber() {
+		env.putObject("config", new JsonObject());
+		env.putString("config", "client.login_hint", "5123450000000008");
+
+		SetConnectIdCibaLoginHintFromConfiguration cond =
+			new SetConnectIdCibaLoginHintFromConfiguration();
+		cond.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
+
+		cond.execute(env);
+
+		assertThat(env.getString("config", "client.hint_value")).isEqualTo("5123450000000008");
+	}
+
+	@Test
+	public void testSetConnectIdCibaLoginHintFromConfigurationFailsWhenMissing() {
+		env.putObject("config", new JsonObject());
+
+		SetConnectIdCibaLoginHintFromConfiguration cond =
+			new SetConnectIdCibaLoginHintFromConfiguration();
+		cond.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
+
+		assertThatThrownBy(() -> cond.execute(env))
+			.isInstanceOf(ConditionError.class)
+			.hasMessageContaining("'Login hint' field is missing from the 'Client' section in the test configuration");
+	}
+
+	@Test
 	public void testSetConnectIdCibaLoginHintToCardPrimaryAccountNumber() {
 		env.putObject("config", new JsonObject());
 		env.putString("config", "client.card_primary_account_number", "5123450000000008");

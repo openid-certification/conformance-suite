@@ -187,6 +187,7 @@ import java.util.function.Supplier;
 	"client.jwks",
 	"client.hint_type",
 	"client.hint_value",
+	"client.login_hint",
 	"client.card_primary_account_number",
 	"client.payment_amount",
 	"client.payment_currency",
@@ -228,11 +229,32 @@ import java.util.function.Supplier;
 @VariantHidesConfigurationFields(parameter = FAPICIBAProfile.class, value = "openbanking_brazil", configurationFields = {
 	"client.hint_type",
 	"client.hint_value",
+	"client.login_hint",
 	"client.card_primary_account_number",
 	"client.payment_amount",
 	"client.payment_currency",
 	"client.payment_beneficiary_name",
 	"client.payment_desc"
+})
+@VariantHidesConfigurationFields(parameter = FAPICIBAProfile.class, value = "plain_fapi", configurationFields = {
+	"client.login_hint",
+	"client.card_primary_account_number",
+	"client.payment_amount",
+	"client.payment_currency",
+	"client.payment_beneficiary_name",
+	"client.payment_desc"
+})
+@VariantHidesConfigurationFields(parameter = FAPICIBAProfile.class, value = "openbanking_uk", configurationFields = {
+	"client.login_hint",
+	"client.card_primary_account_number",
+	"client.payment_amount",
+	"client.payment_currency",
+	"client.payment_beneficiary_name",
+	"client.payment_desc"
+})
+@VariantHidesConfigurationFields(parameter = FAPICIBAProfile.class, value = "connectid_au", configurationFields = {
+	"client.hint_type",
+	"client.hint_value"
 })
 @VariantHidesConfigurationFields(parameter = ClientRegistration.class, value = "dynamic_client", configurationFields = {
 	"client.jwks",

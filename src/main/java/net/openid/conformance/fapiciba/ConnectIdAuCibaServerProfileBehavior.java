@@ -18,6 +18,7 @@ import net.openid.conformance.condition.client.ConnectIdCibaCheckBackchannelAuth
 import net.openid.conformance.condition.client.ConnectIdCibaCheckBackchannelTokenDeliveryModesSupportedOnlyPoll;
 import net.openid.conformance.condition.client.FAPIValidateIdTokenSigningAlg;
 import net.openid.conformance.condition.client.SetConnectIdBindingMessageToPurpose;
+import net.openid.conformance.condition.client.SetConnectIdCibaLoginHintFromConfiguration;
 import net.openid.conformance.sequence.AbstractConditionSequence;
 import net.openid.conformance.sequence.ConditionSequence;
 
@@ -69,6 +70,8 @@ public class ConnectIdAuCibaServerProfileBehavior extends FAPICIBAServerProfileB
 	public static class AuthorizationEndpointSetupSteps extends AbstractConditionSequence {
 		@Override
 		public void evaluate() {
+			callAndStopOnFailure(SetConnectIdCibaLoginHintFromConfiguration.class,
+				"CID-CIBA-4.1.1.1", "CID-CIBA-4.1.2.1", "CID-CIBA-4.1.3.1", "CID-CIBA-4.3-1");
 			callAndStopOnFailure(SetConnectIdBindingMessageToPurpose.class, "CID-IDA-5.2-10");
 			callAndStopOnFailure(AustraliaConnectIdAddClaimsToAuthorizationEndpointRequestIdTokenClaims.class,
 				"CID-CIBA-4.3-3", "CID-IDA-5.2-4", "CID-IDA-5.2-6");

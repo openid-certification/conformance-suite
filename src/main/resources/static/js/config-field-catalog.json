@@ -387,11 +387,18 @@
           "tooltip": "Hint value to identify user, e.g. a login_hint, login_hint_token or id_token_hint."
         },
         {
+          "key": "client.login_hint",
+          "label": "login_hint",
+          "type": "string",
+          "placeholder": "user@example.com",
+          "tooltip": "Login hint to identify a user for ConnectID CIBA identity verification tests. Enter a value recognized by the server under test, such as an email address, an E.164 phone number, or a supported card number."
+        },
+        {
           "key": "client.card_primary_account_number",
           "label": "card_primary_account_number",
           "type": "string",
           "placeholder": "6372069742108725",
-          "tooltip": "Card primary account number to send as the login_hint value for ConnectID CIBA 3DS tests. This must identify a user on the server under test."
+          "tooltip": "Card primary account number used as login_hint for the ConnectID CIBA 3DS card and payment tests, and as authorization_details source_account for payment tests. This must identify a user on the server under test."
         },
         {
           "key": "client.payment_amount",

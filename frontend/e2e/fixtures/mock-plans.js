@@ -89,6 +89,42 @@ export const MOCK_PLANS = [
       },
     },
   },
+  {
+    planName: "fapi-ciba-id1-test-plan",
+    displayName: "FAPI-CIBA-ID1: Authorization server test",
+    profile: "fapi-ciba",
+    specFamily: "FAPI-CIBA",
+    specVersion: "ID1",
+    entityUnderTest: "OP",
+    summary: "FAPI-CIBA authorization server test plan",
+    modules: [
+      { testModule: "fapi-ciba-id1" },
+      { testModule: "fapi-ciba-id1-connectid-ensure-authorization-request-with-purpose-succeeds" },
+    ],
+    configurationFields: [
+      "server.discoveryUrl",
+      "client.hint_type",
+      "client.hint_value",
+      "client.login_hint",
+      "client.card_primary_account_number",
+      "client.payment_amount",
+      "client.payment_currency",
+      "client.payment_beneficiary_name",
+      "client.payment_desc",
+    ],
+    hidesConfigurationFields: [],
+    variants: {
+      fapi_ciba_profile: {
+        variantInfo: { displayName: "FAPI-CIBA Profile", description: "Profile under test" },
+        variantValues: {
+          connectid_au: {
+            configurationFields: [],
+            hidesConfigurationFields: ["client.hint_type", "client.hint_value"],
+          },
+        },
+      },
+    },
+  },
 ];
 
 /**
