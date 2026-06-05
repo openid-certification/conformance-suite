@@ -353,7 +353,7 @@ public class Environment {
 		if (e.isJsonPrimitive() && e.getAsJsonPrimitive().isBoolean()) {
 			return OIDFJSON.getBoolean(e);
 		} else {
-			throw new UnexpectedTypeException("A number is required for %s %s but %s was found".formatted(
+			throw new UnexpectedTypeException("A boolean is required for %s %s but %s was found".formatted(
 				key, path, e.getClass().getSimpleName()));
 		}
 	}
