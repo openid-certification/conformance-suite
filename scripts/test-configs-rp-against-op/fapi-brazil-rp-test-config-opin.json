@@ -105,5 +105,8 @@
     "directory": {
         "keystore": "https://auth.sandbox.directory.opinbrasil.com.br/"
     },
-    "consent": {}
+    "consent": {},
+    "options": {
+        "browsercontrol_css_enable": false
+    }
 }
