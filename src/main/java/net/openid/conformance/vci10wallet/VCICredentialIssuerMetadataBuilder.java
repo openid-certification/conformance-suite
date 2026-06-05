@@ -123,7 +123,7 @@ public final class VCICredentialIssuerMetadataBuilder {
 			"notificationEndpoint", notificationEndpointUrl
 		));
 
-		String credentialIssuerMetadataUrl = generateWellKnownUrlForPath(credentialIssuer, "openid-credential-issuer");
+		String credentialIssuerMetadataUrl = generateCredentialIssuerMetadataUrl(credentialIssuer);
 		env.putString("credential_issuer_metadata_url", credentialIssuerMetadataUrl);
 
 		env.putString("credential_issuer", credentialIssuer);
@@ -160,20 +160,20 @@ public final class VCICredentialIssuerMetadataBuilder {
 	}
 
 	/**
-	 * Convert an issuer URL with an optional path suffix into the corresponding
-	 * {@code .well-known} URL per RFC 8615 path-suffix style:
+	 * Convert a Credential Issuer Identifier with an optional path suffix into the
+	 * corresponding credential issuer metadata URL:
 	 * {@code https://example.com/issuer-path} →
-	 * {@code https://example.com/.well-known/<type>/issuer-path}.
+	 * {@code https://example.com/.well-known/openid-credential-issuer/issuer-path}.
 	 * OID4VCI 1.0 Final section 12.2.2 currently preserves the Credential Issuer
 	 * Identifier path verbatim, unlike RFC 8414 / SSF / OAuth PRM which remove a
 	 * terminating "/" before insertion. See the WG query in
 	 * https://github.com/openid/OpenID4VCI/issues/744.
 	 */
-	public static String generateWellKnownUrlForPath(String issuer, String wellKnownTypePath) {
-		URI serverIssuerUri = URI.create(issuer);
+	public static String generateCredentialIssuerMetadataUrl(String credentialIssuer) {
+		URI serverIssuerUri = URI.create(credentialIssuer);
 		String serverIssuerPath = serverIssuerUri.getPath();
 		String wellKnownBaseUrl = serverIssuerUri.getScheme() + "://" + serverIssuerUri.getAuthority() + "/.well-known";
-		return wellKnownBaseUrl + "/" + wellKnownTypePath + serverIssuerPath;
+		return wellKnownBaseUrl + "/openid-credential-issuer" + serverIssuerPath;
 	}
 
 	/**
