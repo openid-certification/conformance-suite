@@ -35,10 +35,15 @@ public class EnsureAuthzenResponseBodyMatchesIdempotencyCheck extends AbstractCo
 	@PreEnvironment(required = "authzen_api_endpoint_response", strings = "authzen_idempotency_first_response_body")
 	public Environment evaluate(Environment env) {
 		JsonObject expected = JsonParser.parseString(env.getString("authzen_idempotency_first_response_body")).getAsJsonObject();
-		JsonObject actual = (JsonObject) env.getElementFromObject("authzen_api_endpoint_response", "body_json");
-		if (actual == null) {
+		JsonElement actualElem = env.getElementFromObject("authzen_api_endpoint_response", "body_json");
+		if (actualElem == null) {
 			throw error("Current iteration has no JSON response body");
 		}
+		if (!actualElem.isJsonObject()) {
+			throw error("Current iteration response body is not a JSON object",
+				args("body_json", actualElem));
+		}
+		JsonObject actual = actualElem.getAsJsonObject();
 
 		if (isSearchResponse(expected) && isSearchResponse(actual)) {
 			compareSearchResponses(expected, actual);
