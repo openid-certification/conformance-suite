@@ -331,4 +331,98 @@ test.describe("Cross-page journeys", () => {
     await expect(errorModal).toBeHidden();
     await expect(createBtn).toBeEnabled();
   });
+
+  test("sign out → pending state → login banner", async ({ page }) => {
+    await setupFailFast(page);
+
+    // plans.html list + status-box probes (plain JSON array, not DataTables).
+    await page.route("**/api/plan*", (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify([]),
+      }),
+    );
+
+    // Spring's logout endpoint: a 302 to the banner URL. /logout is not
+    // under /api/, so route it explicitly; fall back for non-POST methods
+    // rather than narrowing the glob (route-helper convention — a broad
+    // glob with fallback() is safe).
+    await page.route("**/logout", (route) => {
+      if (route.request().method() !== "POST") {
+        return route.fallback();
+      }
+      return route.fulfill({
+        status: 302,
+        headers: { location: "/login.html?logout=true" },
+      });
+    });
+
+    await setupCommonRoutes(page); // authenticated MOCK_USER + /api/server for the login.html footer
+
+    await page.goto("/plans.html");
+
+    // Scope to cts-navbar — nav links duplicate page-body links and trip
+    // strict mode otherwise.
+    const navbar = page.locator("cts-navbar");
+    await navbar.locator(".cts-account-trigger").click();
+    const account = navbar.locator(".cts-account");
+    await expect(account).toHaveAttribute("data-open", "true");
+
+    const signOut = navbar.locator(".cts-account-item--danger");
+    await expect(signOut).toHaveText(/Sign out/);
+
+    // Playwright locator polls cannot observe a frame once its navigation
+    // is pending ("waiting for navigation to finish"), so the pending state
+    // is captured from INSIDE the page instead: a probe listener runs at
+    // the microtask after the component's submit handler — i.e. right
+    // after Lit's re-render — and stashes the rendered state in
+    // sessionStorage, which survives the same-origin navigation.
+    await page.evaluate(() => {
+      const form = /** @type {HTMLFormElement} */ (
+        document.querySelector("cts-navbar .cts-account-form")
+      );
+      form.addEventListener("submit", () => {
+        queueMicrotask(() => {
+          const navbarEl = /** @type {HTMLElement} */ (document.querySelector("cts-navbar"));
+          const btn = /** @type {HTMLButtonElement} */ (
+            navbarEl.querySelector(".cts-account-item--danger")
+          );
+          const accountEl = /** @type {HTMLElement} */ (navbarEl.querySelector(".cts-account"));
+          sessionStorage.setItem(
+            "cts-e2e:sign-out-pending-probe",
+            JSON.stringify({
+              disabled: btn.disabled,
+              ariaBusy: btn.getAttribute("aria-busy"),
+              label: btn.textContent,
+              spinner: Boolean(navbarEl.querySelector(".cts-account-spinner")),
+              menuOpen: accountEl.getAttribute("data-open"),
+            }),
+          );
+        });
+      });
+    });
+
+    await signOut.click();
+
+    // The 302 lands on login.html with the banner trigger param, and the
+    // "You have been logged out." confirmation renders.
+    await page.waitForURL("**/login.html?logout=true");
+    const banner = page.locator("cts-login-page .oidf-alert-info");
+    await expect(banner).toBeVisible();
+    await expect(banner).toContainText("You have been logged out.");
+
+    // Pending state as the user saw it while the POST was in flight:
+    // disabled button, busy semantics, swapped label, spinner, and the
+    // dropdown still open.
+    const probe = JSON.parse(
+      await page.evaluate(() => sessionStorage.getItem("cts-e2e:sign-out-pending-probe") ?? "null"),
+    );
+    expect(probe).not.toBeNull();
+    expect(probe.disabled).toBe(true);
+    expect(probe.ariaBusy).toBe("true");
+    expect(probe.label).toContain("Signing out…");
+    expect(probe.spinner).toBe(true);
+    expect(probe.menuOpen).toBe("true");
+  });
 });
