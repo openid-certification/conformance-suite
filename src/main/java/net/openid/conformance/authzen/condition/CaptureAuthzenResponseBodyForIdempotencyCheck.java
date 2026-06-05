@@ -1,5 +1,6 @@
 package net.openid.conformance.authzen.condition;
 
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PostEnvironment;
@@ -22,10 +23,15 @@ public class CaptureAuthzenResponseBodyForIdempotencyCheck extends AbstractCondi
 			log("First-iteration response body already captured; skipping");
 			return env;
 		}
-		JsonObject body = (JsonObject) env.getElementFromObject("authzen_api_endpoint_response", "body_json");
-		if (body == null) {
+		JsonElement bodyElem = env.getElementFromObject("authzen_api_endpoint_response", "body_json");
+		if (bodyElem == null) {
 			throw error("No JSON response body available to capture for idempotency check");
 		}
+		if (!bodyElem.isJsonObject()) {
+			throw error("Response body is not a JSON object; cannot capture for idempotency check",
+				args("body_json", bodyElem));
+		}
+		JsonObject body = bodyElem.getAsJsonObject();
 		env.putString("authzen_idempotency_first_response_body", body.toString());
 		logSuccess("Captured initial response body for idempotency check", args("body", body));
 		return env;

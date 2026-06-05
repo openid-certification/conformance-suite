@@ -1,5 +1,6 @@
 package net.openid.conformance.authzen.condition;
 
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PostEnvironment;
@@ -12,10 +13,15 @@ public class ExtractAuthzenApiEndpointDecisionResponse extends AbstractCondition
 	@PreEnvironment(required = "authzen_api_endpoint_response")
 	@PostEnvironment(required = "authzen_api_endpoint_decision")
 	public Environment evaluate(Environment env) {
-		JsonObject decision = (JsonObject) env.getElementFromObject("authzen_api_endpoint_response", "body_json");
-		if (decision == null) {
+		JsonElement bodyElem = env.getElementFromObject("authzen_api_endpoint_response", "body_json");
+		if (bodyElem == null) {
 			throw error("No json response from Authzen API endpoint");
 		}
+		if (!bodyElem.isJsonObject()) {
+			throw error("Authzen API decision response is not a JSON object",
+				args("body_json", bodyElem));
+		}
+		JsonObject decision = bodyElem.getAsJsonObject();
 		env.putObject("authzen_api_endpoint_decision", decision);
 		logSuccess("Extracted decision from API endpoint response",
 			args("decision", decision));
