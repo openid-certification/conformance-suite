@@ -164,6 +164,10 @@ public final class VCICredentialIssuerMetadataBuilder {
 	 * {@code .well-known} URL per RFC 8615 path-suffix style:
 	 * {@code https://example.com/issuer-path} →
 	 * {@code https://example.com/.well-known/<type>/issuer-path}.
+	 * OID4VCI 1.0 Final section 12.2.2 currently preserves the Credential Issuer
+	 * Identifier path verbatim, unlike RFC 8414 / SSF / OAuth PRM which remove a
+	 * terminating "/" before insertion. See the WG query in
+	 * https://github.com/openid/OpenID4VCI/issues/744.
 	 */
 	public static String generateWellKnownUrlForPath(String issuer, String wellKnownTypePath) {
 		URI serverIssuerUri = URI.create(issuer);
