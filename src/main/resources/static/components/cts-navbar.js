@@ -634,6 +634,7 @@ class CtsNavbar extends LitElement {
     this._menuOpen = false;
     this._mobileMenuOpen = false;
     this._signingOut = false;
+    this._signOutWatchdog = undefined;
     this._onDocPointerDown = this._onDocPointerDown.bind(this);
     this._onDocKeydown = this._onDocKeydown.bind(this);
     this._onPageShow = this._onPageShow.bind(this);
@@ -729,6 +730,7 @@ class CtsNavbar extends LitElement {
     document.removeEventListener("pointerdown", this._onDocPointerDown);
     document.removeEventListener("keydown", this._onDocKeydown);
     window.removeEventListener("pageshow", this._onPageShow);
+    clearTimeout(this._signOutWatchdog);
     super.disconnectedCallback();
   }
 
@@ -739,17 +741,20 @@ class CtsNavbar extends LitElement {
     // logout response's Clear-Site-Data header should evict this page from
     // bfcache anyway (WebSecurityOidcLoginConfig); this is belt-and-braces.
     if (e.persisted && this._signingOut) {
+      clearTimeout(this._signOutWatchdog);
       this._signingOut = false;
     }
   }
 
   /** @param {PointerEvent} e - Document-level pointerdown used to close open menus on outside click. */
   _onDocPointerDown(e) {
-    // While the sign-out POST is in flight the dropdown is the user's only
-    // progress feedback — no dismissal path may close it (R2 in the plan).
-    if (this._signingOut) return;
     const target = /** @type {Node | null} */ (e.target);
-    if (this._menuOpen) {
+    // While the sign-out POST is in flight the account dropdown is the
+    // user's only progress feedback, so its dismissal is frozen (R2 in
+    // docs/plans/2026-06-04-005-feat-sign-out-feedback-plan.md). The
+    // mobile menu below stays dismissable — only the account menu carries
+    // the pending feedback.
+    if (this._menuOpen && !this._signingOut) {
       const account = this.querySelector(".cts-account");
       if (account && target && !account.contains(target)) {
         this._menuOpen = false;
@@ -770,9 +775,9 @@ class CtsNavbar extends LitElement {
   _onDocKeydown(e) {
     if (e.key !== "Escape") return;
     // Same freeze as _onDocPointerDown: Escape must not hide the pending
-    // sign-out feedback mid-flight.
-    if (this._signingOut) return;
-    if (this._menuOpen) {
+    // sign-out feedback, but it falls through to the mobile-menu branch,
+    // which stays dismissable.
+    if (this._menuOpen && !this._signingOut) {
       this._menuOpen = false;
       // Return focus to the trigger so keyboard users land back where
       // they invoked the menu, matching native <details>/popover behavior.
@@ -792,6 +797,9 @@ class CtsNavbar extends LitElement {
   }
 
   _toggleMenu() {
+    // The avatar trigger must not dismiss the pending sign-out feedback
+    // either (R2) — same freeze as the document-level dismissal paths.
+    if (this._signingOut) return;
     this._menuOpen = !this._menuOpen;
   }
 
@@ -810,6 +818,16 @@ class CtsNavbar extends LitElement {
     // which can stall for seconds on a real profile) completes — exactly
     // the window the spinner needs to fill.
     this._signingOut = true;
+    // Watchdog: if the pending navigation never commits — the user can hit
+    // Esc or the browser Stop button during the Clear-Site-Data stall,
+    // which cancels the navigation at the chrome level and leaves this
+    // page alive — the frozen state would otherwise be permanent. Reset
+    // after 10s: harmless when the navigation commits first (the page is
+    // gone), and it un-freezes the button and dropdown for a retry when
+    // it does not.
+    this._signOutWatchdog = setTimeout(() => {
+      this._signingOut = false;
+    }, 10000);
   }
 
   _toggleMobileMenu() {

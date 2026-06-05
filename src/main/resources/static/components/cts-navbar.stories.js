@@ -679,15 +679,23 @@ export const AccountMenuSignOutPending = {
       expect(account.getAttribute("data-open")).toBe("true");
     });
 
+    await step("the avatar trigger cannot dismiss it while pending", async () => {
+      await userEvent.click(trigger);
+      await navbar.updateComplete;
+      expect(account.getAttribute("data-open")).toBe("true");
+    });
+
     await step("component's own double-submit guard cancels programmatic submits", async () => {
-      // Remove the safety listener, then dispatch a synthetic submit —
-      // dispatchEvent returns false only when a handler called preventDefault,
-      // proving the component's own guard (not the safety listener) cancelled it.
+      // Remove the safety listener, then dispatch a synthetic submit.
+      // dispatchEvent returns false when a handler called preventDefault —
+      // with the safety listener gone, only the component's guard can have
+      // cancelled it. (The disabled-click assertion above proves `disabled`
+      // semantics; THIS is the canonical R3 guard assertion.)
       form.removeEventListener("submit", safetyListener);
-      const notPrevented = form.dispatchEvent(
+      const submitWasCancelled = !form.dispatchEvent(
         new SubmitEvent("submit", { bubbles: true, cancelable: true }),
       );
-      expect(notPrevented).toBe(false);
+      expect(submitWasCancelled).toBe(true);
     });
 
     await step("bfcache Back-restore resets the pending state", async () => {

@@ -17,16 +17,21 @@ import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.mock.web.MockHttpSession;
 import org.springframework.mock.web.MockServletContext;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.authentication.ott.OneTimeTokenService;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
 import org.springframework.security.oauth2.client.registration.InMemoryClientRegistrationRepository;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.web.FilterChainProxy;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;
 import org.springframework.web.servlet.handler.HandlerMappingIntrospector;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -48,6 +53,11 @@ import java.util.Map;
  * real {@code filterChainOidc} bean (built in a minimal context with mocked
  * collaborators) through a {@link FilterChainProxy} and assert on the
  * response through Spring's public servlet API.
+ *
+ * Unlike {@link ResourceServerRequestCache_UnitTest} there is deliberately no
+ * saved-request assertion here: logout invalidates the session (asserted
+ * below), so no {@code SPRING_SECURITY_SAVED_REQUEST} can survive to poison
+ * the login flow — do not add one by analogy.
  */
 public class OidcLogoutRedirect_UnitTest {
 
@@ -88,7 +98,14 @@ public class OidcLogoutRedirect_UnitTest {
 		// ClearSiteDataHeaderWriter only writes on secure requests.
 		request.setScheme("https");
 		request.setSecure(true);
-		request.setSession(new MockHttpSession());
+		// An authenticated session (the real-world shape of a sign-out click)
+		// so the test also proves the session-invalidation half of logout.
+		MockHttpSession session = new MockHttpSession();
+		SecurityContext securityContext = SecurityContextHolder.createEmptyContext();
+		securityContext.setAuthentication(
+			new UsernamePasswordAuthenticationToken("conformance-user", "N/A", List.of()));
+		session.setAttribute(HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY, securityContext);
+		request.setSession(session);
 		MockHttpServletResponse response = new MockHttpServletResponse();
 
 		filterChainProxy.doFilter(request, response, new MockFilterChain());
@@ -99,6 +116,8 @@ public class OidcLogoutRedirect_UnitTest {
 			"logout must land on login.html with the ?logout=true banner trigger");
 		Assertions.assertEquals("\"cache\"", response.getHeader("Clear-Site-Data"),
 			"logout must keep evicting the origin's cache so Back cannot restore an authenticated shell");
+		Assertions.assertTrue(session.isInvalid(),
+			"logout must invalidate the authenticated session");
 	}
 
 	@Configuration

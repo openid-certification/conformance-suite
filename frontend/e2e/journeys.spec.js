@@ -374,10 +374,19 @@ test.describe("Cross-page journeys", () => {
 
     // Playwright locator polls cannot observe a frame once its navigation
     // is pending ("waiting for navigation to finish"), so the pending state
-    // is captured from INSIDE the page instead: a probe listener runs at
-    // the microtask after the component's submit handler — i.e. right
-    // after Lit's re-render — and stashes the rendered state in
-    // sessionStorage, which survives the same-origin navigation.
+    // is captured from INSIDE the page instead: a probe listener stashes
+    // the rendered state in sessionStorage, which survives the same-origin
+    // navigation.
+    //
+    // Ordering invariant the probe depends on: the component's @submit
+    // listener (registered at render time) runs BEFORE this probe listener
+    // (registered later), and Lit queues its reactive-update microtask
+    // synchronously inside that first listener. Microtasks are FIFO, so
+    // Lit's re-render commits before the probe's queueMicrotask callback
+    // reads the DOM. Verified against the vendored Lit bundle (single
+    // microtask hop). If a Lit upgrade ever moves update scheduling off
+    // the microtask queue, replace the probe with a polling check of the
+    // button's disabled state instead.
     await page.evaluate(() => {
       const form = /** @type {HTMLFormElement} */ (
         document.querySelector("cts-navbar .cts-account-form")
