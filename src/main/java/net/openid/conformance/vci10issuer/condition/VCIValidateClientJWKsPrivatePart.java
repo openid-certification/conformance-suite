@@ -1,6 +1,5 @@
 package net.openid.conformance.vci10issuer.condition;
 
-import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.nimbusds.jose.Algorithm;
@@ -32,10 +31,12 @@ import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
+import net.openid.conformance.util.JWKUtil;
+import net.openid.conformance.util.JWKUtil.JwkIssue;
 
 import java.security.KeyPair;
 import java.text.ParseException;
-import java.util.regex.Pattern;
+import java.util.List;
 
 /**
  * VCI-specific validation for client JWKS that allows multiple signing keys.
@@ -60,33 +61,28 @@ public class VCIValidateClientJWKsPrivatePart extends AbstractCondition {
 	}
 
 	protected void checkJWKs(JsonElement jwks) {
-		checkValidStructureInJwks(jwks);
+		if (jwks == null) {
+			throw error("Couldn't find JWKS in configuration");
+		}
+		if (!(jwks instanceof JsonObject)) {
+			throw error("Invalid JWKS (Json Web Key Set) in configuration - it must be a JSON object that contains a 'keys' array.", args("jwks", jwks));
+		}
+		JsonObject jwksObject = jwks.getAsJsonObject();
+		if (!JWKUtil.hasKeysArray(jwksObject)) {
+			throw error("Keys array not found in JWKS", args("jwks", jwks));
+		}
 
-		JsonArray jwksKeyArray = jwks.getAsJsonObject().getAsJsonArray("keys");
-		jwksKeyArray.forEach(keyJsonElement -> {
+		List<JwkIssue> structuralIssues = JWKUtil.findStructurallyInvalidKeys(jwksObject);
+		if (!structuralIssues.isEmpty()) {
+			JwkIssue first = structuralIssues.get(0);
+			throw error("Invalid JWK in JWKS: the key at index " + first.index() + " " + first.detail(),
+				args("issues", JWKUtil.issuesToJson(structuralIssues)));
+		}
+
+		jwksObject.getAsJsonArray("keys").forEach(keyJsonElement -> {
 			JsonObject keyObject = keyJsonElement.getAsJsonObject();
-
-			checkMissingKey(keyObject, "kty");
-			String kty = OIDFJSON.getString(keyObject.getAsJsonPrimitive("kty"));
-
-			if ("RSA".equals(kty)) {
-				checkMissingKey(keyObject, "e", "n");
-				verifyKeysIsBase64UrlEncoded(keyObject, "e", "n");
-				verifyPrivatePart(keyObject);
-			} else if ("EC".equals(kty)) {
-				checkMissingKey(keyObject, "x", "y");
-				verifyKeysIsBase64UrlEncoded(keyObject, "x", "y");
-				verifyPrivatePart(keyObject);
-			} else if ("OKP".equals(kty)) {
-				checkMissingKey(keyObject, "x", "crv");
-				String crv = OIDFJSON.getString(keyObject.getAsJsonPrimitive("crv"));
-				if (!Curve.Ed25519.getName().equals(crv)) {
-					log("Jwks contains an unsupported curve", args("jwks", keyJsonElement));
-				}
-				verifyKeysIsBase64UrlEncoded(keyObject, "x");
-				verifyPrivatePart(keyObject);
-			}
 			parseJWKWithNimbus(keyObject);
+			verifyPrivatePart(keyObject);
 		});
 
 		// Validate each key individually (sign and verify)
@@ -210,38 +206,11 @@ public class VCIValidateClientJWKsPrivatePart extends AbstractCondition {
 		}
 	}
 
-	private void checkValidStructureInJwks(JsonElement jwks) {
-		if (jwks == null) {
-			throw error("Couldn't find JWKS in configuration");
-		} else if (!(jwks instanceof JsonObject)) {
-			throw error("Invalid JWKS (Json Web Key Set) in configuration - " +
-				"it must be a JSON object that contains a 'keys' array.", args("jwks", jwks));
-		}
-
-		if (!jwks.getAsJsonObject().has("keys") || !jwks.getAsJsonObject().get("keys").isJsonArray()) {
-			throw error("Keys array not found in JWKS", args("jwks", jwks));
-		}
-	}
-
 	private void verifyKeysIsBase64UrlEncoded(JsonObject keyObject, String... keys) {
 		for (String key : keys) {
 			String value = OIDFJSON.getString(keyObject.get(key));
-			String regex = "[a-zA-Z0-9_-]";
-			for (int i = 0; i < value.length(); i++) {
-				char character = value.charAt(i);
-				if (!Pattern.matches(regex, String.valueOf(character))) {
-					throw error(("Value of key %s is invalid because it contains the character %s " +
-						"that is not permitted in unpadded base64url").formatted(key, character),
-						args("jwk", keyObject));
-				}
-			}
-		}
-	}
-
-	private void checkMissingKey(JsonObject jsonObject, String... keys) {
-		for (String key : keys) {
-			if (!jsonObject.has(key)) {
-				throw error("Key missing required field", args("jwk", jsonObject, "missing", key));
+			if (!JWKUtil.isBase64Url(value)) {
+				throw error("Value of key " + key + " is not valid unpadded base64url", args("jwk", keyObject));
 			}
 		}
 	}
