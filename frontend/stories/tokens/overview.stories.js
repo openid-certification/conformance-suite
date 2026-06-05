@@ -259,6 +259,67 @@ const SIZING = ["--control-height"];
 
 const LAYOUT_WIDTHS = ["--maxw-narrow", "--maxw-page", "--maxw-wide"];
 
+// ---- Curated radii / elevation / motion rosters -----------------------------
+
+const RADII = [
+  "--radius-0",
+  "--radius-1",
+  "--radius-2",
+  "--radius-3",
+  "--radius-4",
+  "--radius-pill",
+];
+
+const SHADOWS = ["--shadow-1", "--shadow-2", "--shadow-3", "--shadow-inset"];
+
+// A complete box-shadow value, not a color.
+const EFFECTS = ["--focus-ring"];
+
+const MOTION = ["--ease-standard", "--ease-emphasized", "--dur-1", "--dur-2", "--dur-3"];
+
+// Published at runtime by <cts-log-detail-header>'s sticky status bar;
+// defaults to 0px on pages that do not mount the component.
+const RUNTIME_LAYOUT = ["--status-bar-height"];
+
+// ---- Completeness roster ----------------------------------------------------
+//
+// The union of every curated group above. The Overview play set-equals this
+// against the :root custom properties actually declared in oidf-tokens.css,
+// so an undocumented (or stale) token fails the suite by name — the same
+// philosophy as lint:icons.
+
+const ALL_DOCUMENTED_PROPS = [
+  ...BRAND,
+  ...INK_RAMP,
+  ...SAND_RAMP,
+  ...ORANGE_RAMP,
+  ...RUST_RAMP,
+  ...SEMANTIC_BG,
+  ...SEMANTIC_FG,
+  ...SEMANTIC_BORDER,
+  ...SEMANTIC_MISC,
+  ...STATUS,
+  ...BADGE_RINGS,
+  ...FONT_FAMILIES,
+  ...FONT_SIZES,
+  ...LINE_HEIGHTS,
+  ...FONT_WEIGHTS,
+  ...SPACING,
+  ...SIZING,
+  ...LAYOUT_WIDTHS,
+  ...RADII,
+  ...SHADOWS,
+  ...EFFECTS,
+  ...MOTION,
+  ...RUNTIME_LAYOUT,
+];
+
+const DOCUMENTED_T_CLASSES = TYPE_SPECIMENS.map((s) => `.${s.cls}`);
+
+/** Locate the token sheet's CSSStyleSheet object in the canvas document. */
+const findTokenSheet = () =>
+  Array.from(document.styleSheets).find((s) => (s.href || "").includes("/css/oidf-tokens.css"));
+
 // ---- Stories ---------------------------------------------------------------
 
 export const Overview = {
@@ -291,7 +352,7 @@ export const Overview = {
     </div>
   `,
 
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const canvas = within(canvasElement);
     await waitFor(() => {
       expect(canvas.getByText("Design Tokens")).toBeInTheDocument();
@@ -299,6 +360,45 @@ export const Overview = {
     // Smoke check: the token sheet is actually loaded in this canvas. Assert
     // the exact value (not merely truthy) so a missing sheet fails loudly.
     expect(readToken("--space-4")).toBe("16px");
+
+    const sheet = findTokenSheet();
+    expect(sheet).toBeTruthy();
+    const rules = Array.from(/** @type {CSSStyleSheet} */ (sheet).cssRules);
+
+    await step("every :root custom property is documented, and nothing stale", async () => {
+      const rootRule = /** @type {CSSStyleRule | undefined} */ (
+        rules.find((r) => /** @type {CSSStyleRule} */ (r).selectorText === ":root")
+      );
+      expect(rootRule).toBeTruthy();
+      const declared = Array.from(/** @type {CSSStyleRule} */ (rootRule).style).filter((p) =>
+        p.startsWith("--"),
+      );
+      const documented = new Set(ALL_DOCUMENTED_PROPS);
+      const declaredSet = new Set(declared);
+      const undocumented = declared.filter((n) => !documented.has(n));
+      const stale = ALL_DOCUMENTED_PROPS.filter((n) => !declaredSet.has(n));
+      expect(undocumented, `tokens missing from this catalog: ${undocumented.join(", ")}`).toEqual(
+        [],
+      );
+      expect(stale, `catalog names no longer in the sheet: ${stale.join(", ")}`).toEqual([]);
+    });
+
+    await step("every .t-* utility class has a specimen, and nothing stale", async () => {
+      const declaredTClasses = rules
+        .map((r) => /** @type {CSSStyleRule} */ (r).selectorText)
+        .filter((s) => s && s.startsWith(".t-"));
+      const documented = new Set(DOCUMENTED_T_CLASSES);
+      const declaredSet = new Set(declaredTClasses);
+      const undocumented = declaredTClasses.filter((s) => !documented.has(s));
+      const stale = DOCUMENTED_T_CLASSES.filter((s) => !declaredSet.has(s));
+      expect(
+        undocumented,
+        `type utilities missing from this catalog: ${undocumented.join(", ")}`,
+      ).toEqual([]);
+      expect(stale, `catalog type utilities no longer in the sheet: ${stale.join(", ")}`).toEqual(
+        [],
+      );
+    });
   },
 };
 
@@ -575,6 +675,141 @@ export const Spacing = {
     await step("the --space-8 bar measures its real 32px width", async () => {
       const bar = canvasElement.querySelector('[data-token="--space-8"] [data-space-bar]');
       expect(/** @type {Element} */ (bar).getBoundingClientRect().width).toBe(32);
+    });
+  },
+};
+
+export const RadiiElevationMotion = {
+  name: "Radii, Elevation & Motion",
+
+  render: () => html`
+    <div style="padding: var(--space-6);">
+      <h2 style="margin-bottom: var(--space-2);">Radii, elevation &amp; motion</h2>
+      <p class="t-meta" style="margin-bottom: var(--space-6); max-width: var(--maxw-narrow);">
+        Radii stay tight and rectilinear to match the technical tone; elevation shadows are
+        warm-tinted from <code>--ink-900</code> so they read as the same material as the text.
+        Motion tokens are value rows — the easings and durations are consumed by transitions, not
+        demos.
+      </p>
+
+      ${section(
+        "Radii",
+        grid(
+          RADII.map(
+            (name) => html`
+              <figure data-token="${name}" style="margin: 0;">
+                <div
+                  data-radius-chip
+                  style="height: var(--space-12); border-radius: var(${name}); background: var(--bg-muted); box-shadow: inset 0 0 0 1px var(--border-strong);"
+                ></div>
+                <figcaption class="t-mono-sm" style="padding-top: var(--space-1);">
+                  ${name}
+                  <span class="t-meta" style="display: block;">${readToken(name)}</span>
+                </figcaption>
+              </figure>
+            `,
+          ),
+          "120px",
+        ),
+      )}
+      ${section(
+        "Elevation",
+        html`
+          <div
+            style="background: var(--bg-sunken); padding: var(--space-6); border-radius: var(--radius-3); display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: var(--space-6);"
+          >
+            ${SHADOWS.map(
+              (name) => html`
+                <figure data-token="${name}" style="margin: 0;">
+                  <div
+                    data-shadow-card
+                    style="height: var(--space-16); border-radius: var(--radius-2); background: var(--bg); box-shadow: var(${name});"
+                  ></div>
+                  <figcaption class="t-mono-sm" style="padding-top: var(--space-2);">
+                    ${name}
+                  </figcaption>
+                </figure>
+              `,
+            )}
+          </div>
+        `,
+      )}
+      ${section(
+        "Focus ring",
+        html`
+          <div
+            style="display: flex; align-items: center; gap: var(--space-4); padding: var(--space-2);"
+          >
+            <div
+              data-token="--focus-ring"
+              data-focus-sample
+              style="height: var(--control-height); display: inline-flex; align-items: center; padding: 0 var(--space-3); border: 1px solid var(--border); border-radius: var(--radius-2); background: var(--bg); box-shadow: var(--focus-ring);"
+            >
+              <span class="t-body">Focused control</span>
+            </div>
+            <span class="t-meta">
+              --focus-ring — a complete box-shadow value (not a color), shown here permanently
+              applied; real controls paint it on :focus-visible.
+            </span>
+          </div>
+        `,
+      )}
+      ${section(
+        "Motion",
+        html`
+          <div style="display: grid; gap: var(--space-2);">
+            ${MOTION.map(
+              (name) => html`
+                <div
+                  data-token="${name}"
+                  data-motion-row
+                  style="display: flex; gap: var(--space-3);"
+                >
+                  <code class="t-mono-sm" style="min-width: 18ch;">${name}</code>
+                  <span class="t-meta">${readToken(name)}</span>
+                </div>
+              `,
+            )}
+          </div>
+        `,
+      )}
+      ${section(
+        "Runtime layout",
+        html`
+          <div data-token="--status-bar-height">
+            <code class="t-mono-sm">--status-bar-height</code>
+            <span class="t-meta">
+              (currently ${readToken("--status-bar-height")}) — published at runtime by
+              &lt;cts-log-detail-header&gt;'s sticky status bar; defaults to 0px so
+              <code>top: var(--status-bar-height)</code> resolves cleanly on pages that never mount
+              it.
+            </span>
+          </div>
+        `,
+      )}
+    </div>
+  `,
+
+  async play({ canvasElement, step }) {
+    await step("renders one chip per radius and one card per shadow", async () => {
+      expect(canvasElement.querySelectorAll("[data-radius-chip]").length).toBe(RADII.length);
+      expect(canvasElement.querySelectorAll("[data-shadow-card]").length).toBe(SHADOWS.length);
+    });
+
+    await step("--radius-pill paints the pill radius on its chip", async () => {
+      const chip = canvasElement.querySelector('[data-token="--radius-pill"] [data-radius-chip]');
+      expect(getComputedStyle(/** @type {Element} */ (chip)).borderRadius).toBe("999px");
+    });
+
+    await step("the focus-ring sample paints a real shadow", async () => {
+      const sample = canvasElement.querySelector("[data-focus-sample]");
+      const boxShadow = getComputedStyle(/** @type {Element} */ (sample)).boxShadow;
+      expect(boxShadow).not.toBe("none");
+      expect(boxShadow).toContain("3px");
+    });
+
+    await step("renders one value row per motion token", async () => {
+      expect(canvasElement.querySelectorAll("[data-motion-row]").length).toBe(MOTION.length);
     });
   },
 };
