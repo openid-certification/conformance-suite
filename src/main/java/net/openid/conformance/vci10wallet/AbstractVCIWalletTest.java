@@ -478,12 +478,10 @@ public abstract class AbstractVCIWalletTest extends net.openid.conformance.fapi2
 	}
 
 	protected void configureOauthAuthorizationServerMetadata() {
-		String oauthAuthorizationServerMetadataUrl = generateWellKnownUrlForPath(env.getString("credential_issuer"), "oauth-authorization-server");
 		// RFC 8414 section 3.1 requires the issuer's trailing "/" to be removed when forming
-		// the OAuth-AS well-known URL, which is the form VCICheckOAuthAuthorizationServerMetadataRequestUrl
-		// expects. Strip it here so the advertised URL matches the check. (The credential-issuer
-		// metadata URL keeps its trailing slash and is unaffected.)
-		oauthAuthorizationServerMetadataUrl = OAuthUriUtil.stripTrailingSlash(oauthAuthorizationServerMetadataUrl);
+		// the OAuth-AS well-known URL. Use the shared helper here; the credential-issuer
+		// metadata URL deliberately uses the VCI-specific builder and keeps its slash.
+		String oauthAuthorizationServerMetadataUrl = OAuthUriUtil.generateWellKnownUrlForPath(env.getString("credential_issuer"), "oauth-authorization-server");
 		env.putString("oauth_authorization_server_metadata_url", oauthAuthorizationServerMetadataUrl);
 
 		addTokenStatusListAggregationEndpointToOauthServerMetadata();
@@ -504,10 +502,6 @@ public abstract class AbstractVCIWalletTest extends net.openid.conformance.fapi2
 		String issuer = env.getString("server", "issuer");
 		String listAggregationEndpoint = issuer + "statuslists";
 		env.putString("server", "status_list_aggregation_endpoint", listAggregationEndpoint);
-	}
-
-	protected String generateWellKnownUrlForPath(String issuer, String wellKnownTypePath) {
-		return VCICredentialIssuerMetadataBuilder.generateWellKnownUrlForPath(issuer, wellKnownTypePath);
 	}
 
 	protected void checkCredentialSigningKey(Environment env) {
