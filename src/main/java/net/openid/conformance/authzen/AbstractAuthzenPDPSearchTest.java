@@ -3,9 +3,6 @@ package net.openid.conformance.authzen;
 import com.google.common.base.Strings;
 import net.openid.conformance.authzen.condition.AggregateAuthzenSearchResults;
 import net.openid.conformance.authzen.condition.EnsureAuthzenSearchResponseValsMatchExpectedVals;
-import net.openid.conformance.authzen.condition.EnsureValidSearchResponse;
-import net.openid.conformance.authzen.condition.EnsureValidSearchResponsePage;
-import net.openid.conformance.authzen.condition.ExtractAuthzenApiEndpointSearchResponse;
 import net.openid.conformance.authzen.condition.ExtractAuthzenSearchExpectedResponse;
 import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.testmodule.TestFailureException;
@@ -22,12 +19,9 @@ public abstract class AbstractAuthzenPDPSearchTest extends AbstractAuthzenPDPTes
 		callAndContinueOnFailure(EnsureAuthzenSearchResponseValsMatchExpectedVals.class, ConditionResult.FAILURE, "AUTHZEN-8.3");
 	}
 
-	@Override
-	protected void processAuthApiEndpointResponse() {
-		callAndStopOnFailure(ExtractAuthzenApiEndpointSearchResponse.class, "AUTHZEN-8.3");
-		callAndStopOnFailure(EnsureValidSearchResponse.class, "AUTHZEN-8.3");
-		callAndStopOnFailure(EnsureValidSearchResponsePage.class, "AUTHZEN-8.2.2", "AUTHZEN-8.3");
-	}
+	// processAuthApiEndpointResponse() stays abstract from AbstractAuthzenPDPTest;
+	// the three per-axis subclasses (Subject/Resource/Action) each provide their
+	// own implementation citing the family-specific AUTHZEN-8.{4,5,6} tag.
 
 	/**
 	 * Paginated search loop shared by every per-axis paginated base
