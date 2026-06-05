@@ -254,11 +254,22 @@ public class JWKUtil {
 	private static String firstNonBase64UrlMember(JsonObject key, String... members) {
 		for (String member : members) {
 			String value = stringMember(key, member);
-			if (value == null || !BASE64URL.matcher(value).matches()) {
+			if (value == null || !isBase64Url(value)) {
 				return member;
 			}
 		}
 		return null;
+	}
+
+	/** True if {@code value} is non-null and contains only unpadded base64url characters. */
+	public static boolean isBase64Url(String value) {
+		return value != null && BASE64URL.matcher(value).matches();
+	}
+
+	/** True if {@code jwks} is a JSON object containing a "keys" array. */
+	public static boolean hasKeysArray(JsonObject jwks) {
+		JsonElement keys = (jwks == null) ? null : jwks.get("keys");
+		return keys != null && keys.isJsonArray();
 	}
 
 	/** Render a list of {@link JwkIssue}s as a JSON array suitable for logging in condition args. */
