@@ -1,5 +1,4 @@
 {
-    "alias": "oidf-authzen-cerbos-test",
     "description": "Authzen Cerbos Server",
     "publish": "everything",
     "pdp": {

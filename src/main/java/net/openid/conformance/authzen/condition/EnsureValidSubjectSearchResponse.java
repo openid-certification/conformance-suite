@@ -36,7 +36,7 @@ public class EnsureValidSubjectSearchResponse extends EnsureValidSearchResponse 
 			throw error("A subject object in the results array does not contain an id");
 		}
 		if(!resultsObj.has("type")) {
-			throw error("A subject object int the results array does not contain a type");
+			throw error("A subject object in the results array does not contain a type");
 		}
 		if(!OIDFJSON.getString(resultsObj.get("type")).equals(getRequestSubjectType())) {
 			throw error("A subject object in the results array does not contain the requested subject type", args("expected", getRequestSubjectType(), "actual", OIDFJSON.getString(resultsObj.get("type"))));
