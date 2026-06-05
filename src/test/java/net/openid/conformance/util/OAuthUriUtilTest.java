@@ -35,6 +35,26 @@ class OAuthUriUtilTest {
 	}
 
 	@Test
+	public void wellKnownSsfConfigurationStripsTrailingSlashPerSpec() {
+		// OpenID SSF 1.0 sections 7.2 and 7.2.1 require removing any terminating
+		// "/" before inserting "/.well-known/ssf-configuration".
+		// https://openid.github.io/sharedsignals/openid-sharedsignals-framework-1_0.html#section-7.2.1
+		String actual = OAuthUriUtil.generateWellKnownUrlForPath("https://tr.example.com/issuer1/", "ssf-configuration");
+		String expected = "https://tr.example.com/.well-known/ssf-configuration/issuer1";
+		assertEquals(expected, actual);
+	}
+
+	@Test
+	public void wellKnownOauthProtectedResourceStripsTrailingSlashPerSpec() {
+		// RFC 9728 sections 3 and 3.1 require removing any terminating "/" before
+		// inserting "/.well-known/oauth-protected-resource".
+		// https://www.rfc-editor.org/rfc/rfc9728.html#section-3.1
+		String actual = OAuthUriUtil.generateWellKnownUrlForPath("https://resource.example.com/resource1/", "oauth-protected-resource");
+		String expected = "https://resource.example.com/.well-known/oauth-protected-resource/resource1";
+		assertEquals(expected, actual);
+	}
+
+	@Test
 	public void stripTrailingSlashRemovesSingleSlash() {
 		assertEquals("/path", OAuthUriUtil.stripTrailingSlash("/path/"));
 	}
