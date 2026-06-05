@@ -183,6 +183,60 @@ const COLOR_GROUPS = [
   ["Badge affordance rings", BADGE_RINGS],
 ];
 
+// ---- Curated typography rosters ------------------------------------------
+
+const FONT_FAMILIES = ["--font-sans", "--font-display", "--font-mono"];
+
+const FONT_SIZES = [
+  "--fs-11",
+  "--fs-12",
+  "--fs-13",
+  "--fs-14",
+  "--fs-15",
+  "--fs-16",
+  "--fs-18",
+  "--fs-20",
+  "--fs-24",
+  "--fs-28",
+  "--fs-32",
+  "--fs-40",
+  "--fs-56",
+  "--fs-72",
+];
+
+const LINE_HEIGHTS = ["--lh-tight", "--lh-snug", "--lh-base", "--lh-loose"];
+
+const FONT_WEIGHTS = ["--fw-regular", "--fw-medium", "--fw-bold"];
+
+/**
+ * The .t-* utility classes are the type scale the app actually consumes —
+ * each composes family + weight + size + line-height. The `composes` strings
+ * are curated token names (editorial metadata), never values.
+ *
+ * @type {{ cls: string, composes: string, note?: string }[]}
+ */
+const TYPE_SPECIMENS = [
+  { cls: "t-display", composes: "--font-display · --fw-bold · --fs-56 · --lh-tight" },
+  { cls: "t-title", composes: "--font-display · --fw-bold · --fs-32 · --lh-tight" },
+  { cls: "t-h1", composes: "--font-display · --fw-bold · --fs-28 · --lh-tight" },
+  { cls: "t-h2", composes: "--font-sans · --fw-bold · --fs-20 · --lh-snug" },
+  { cls: "t-h3", composes: "--font-sans · --fw-bold · --fs-16 · --lh-snug" },
+  { cls: "t-body", composes: "--font-sans · --fw-regular · --fs-14 · --lh-base" },
+  { cls: "t-body-lg", composes: "--font-sans · --fw-regular · --fs-16 · --lh-base" },
+  {
+    cls: "t-meta",
+    composes: "--font-sans · --fw-regular · --fs-13 · --lh-snug",
+    note: "color baked in: --fg-soft",
+  },
+  {
+    cls: "t-overline",
+    composes: "--font-sans · --fw-bold · --fs-12 · --lh-snug · uppercase",
+    note: "color baked in: --fg-soft",
+  },
+  { cls: "t-mono", composes: "--font-mono · --fs-13 · --lh-snug" },
+  { cls: "t-mono-sm", composes: "--font-mono · --fs-12 · --lh-snug" },
+];
+
 // ---- Stories ---------------------------------------------------------------
 
 export const Overview = {
@@ -267,6 +321,149 @@ export const Colors = {
       expect(failColor).toBe(rustColor);
       // Guard against vacuous equality (both transparent/empty).
       expect(failColor).toBe("rgb(164, 54, 4)");
+    });
+  },
+};
+
+export const Typography = {
+  render: () => html`
+    <div style="padding: var(--space-6);">
+      <h2 style="margin-bottom: var(--space-2);">Typography</h2>
+      <p class="t-meta" style="margin-bottom: var(--space-6); max-width: var(--maxw-narrow);">
+        The <code>.t-*</code> utility classes are the type scale the app consumes — each composes
+        family, weight, size, and line-height. The raw ramps below them exist for the rare case a
+        composition does not fit. <code>.t-meta</code> and <code>.t-overline</code> bake their own
+        foreground color (<code>--fg-soft</code>) into the class, so they are not surface-neutral.
+      </p>
+
+      ${section(
+        "Type styles",
+        html`
+          <div style="display: grid; gap: var(--space-4);">
+            ${TYPE_SPECIMENS.map(
+              ({ cls, composes, note }) => html`
+                <div data-type-specimen="${cls}">
+                  <div class="${cls}">The quick brown fox jumps over the lazy dog</div>
+                  <div
+                    class="t-mono-sm"
+                    style="color: var(--fg-soft); padding-top: var(--space-1);"
+                  >
+                    .${cls} — ${composes}${note ? html` · ${note}` : ""}
+                  </div>
+                </div>
+              `,
+            )}
+            <div data-type-specimen="tabular-nums">
+              <div class="t-mono tabular-nums">1111.11<br />9009.09</div>
+              <div class="t-mono-sm" style="color: var(--fg-soft); padding-top: var(--space-1);">
+                .tabular-nums — digit columns stay aligned as widths change row-to-row
+              </div>
+            </div>
+          </div>
+        `,
+      )}
+      ${section(
+        "Font sizes",
+        html`
+          <div style="display: grid; gap: var(--space-2);">
+            ${FONT_SIZES.map(
+              (name) => html`
+                <div
+                  data-token="${name}"
+                  style="display: flex; align-items: baseline; gap: var(--space-3);"
+                >
+                  <code class="t-mono-sm" style="min-width: 8ch;">${name}</code>
+                  <span class="t-meta" style="min-width: 5ch;">${readToken(name)}</span>
+                  <span style="font-size: var(${name}); line-height: var(--lh-tight);">Aa</span>
+                </div>
+              `,
+            )}
+          </div>
+        `,
+      )}
+      ${section(
+        "Weights",
+        html`
+          <div style="display: grid; gap: var(--space-2);">
+            ${FONT_WEIGHTS.map(
+              (name) => html`
+                <div
+                  data-token="${name}"
+                  style="display: flex; align-items: baseline; gap: var(--space-3);"
+                >
+                  <code class="t-mono-sm" style="min-width: 12ch;">${name}</code>
+                  <span class="t-meta" style="min-width: 4ch;">${readToken(name)}</span>
+                  <span style="font-weight: var(${name}); font-size: var(--fs-18);">
+                    Interactive UI sits at medium, headings at bold
+                  </span>
+                </div>
+              `,
+            )}
+          </div>
+        `,
+      )}
+      ${section(
+        "Line heights",
+        html`
+          <div
+            style="display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: var(--space-4);"
+          >
+            ${LINE_HEIGHTS.map(
+              (name) => html`
+                <div data-token="${name}">
+                  <code class="t-mono-sm">${name}</code>
+                  <span class="t-meta">(${readToken(name)})</span>
+                  <p class="t-body" style="line-height: var(${name}); margin-top: var(--space-1);">
+                    Multiple lines of body copy show how the leading changes the texture of a
+                    paragraph at each step of the ramp.
+                  </p>
+                </div>
+              `,
+            )}
+          </div>
+        `,
+      )}
+      ${section(
+        "Families",
+        html`
+          <div style="display: grid; gap: var(--space-3);">
+            ${FONT_FAMILIES.map(
+              (name) => html`
+                <div data-token="${name}">
+                  <span style="font-family: var(${name}); font-size: var(--fs-18);">
+                    The quick brown fox jumps over the lazy dog
+                  </span>
+                  <div class="t-mono-sm" style="color: var(--fg-soft);"
+                    >${name} — ${readToken(name)}</div
+                  >
+                </div>
+              `,
+            )}
+          </div>
+        `,
+      )}
+    </div>
+  `,
+
+  async play({ canvasElement, step }) {
+    await step("renders one specimen per utility class plus the tabular-nums demo", async () => {
+      const specimens = canvasElement.querySelectorAll("[data-type-specimen]");
+      expect(specimens.length).toBe(TYPE_SPECIMENS.length + 1);
+    });
+
+    await step(".t-body composes the body rung (14px)", async () => {
+      const body = canvasElement.querySelector('[data-type-specimen="t-body"] .t-body');
+      expect(getComputedStyle(/** @type {Element} */ (body)).fontSize).toBe("14px");
+    });
+
+    await step("the sans stack declares self-hosted Inter", async () => {
+      // Assert the declared stack, never the painted font — paint races the
+      // webfont load and would flake.
+      expect(readToken("--font-sans")).toContain("Inter");
+    });
+
+    await step("--fw-medium carries the interactive-controls weight contract", async () => {
+      expect(readToken("--fw-medium")).toBe("500");
     });
   },
 };
