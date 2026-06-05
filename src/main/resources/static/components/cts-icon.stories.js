@@ -25,21 +25,27 @@ export const Default = {
   args: { name: "play", size: "20" },
   render: ({ name, size }) => html`<cts-icon name="${name}" size="${size}"></cts-icon>`,
 
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const svg = findIconSvg(canvasElement);
-    expect(svg).toBeTruthy();
-    expect(svg.getAttribute("aria-hidden")).toBe("true");
-    expect(svg.getAttribute("data-cts-icon-size")).toBe("20");
-    expect(svg.getAttribute("viewBox")).toBe("0 0 24 24");
 
-    const use = svg.querySelector("use");
-    expect(use).toBeTruthy();
-    expect(use.getAttribute("href")).toBe("/vendor/coolicons/icons/play.svg#i");
+    await step("svg renders with the expected attributes", async () => {
+      expect(svg).toBeTruthy();
+      expect(svg.getAttribute("aria-hidden")).toBe("true");
+      expect(svg.getAttribute("data-cts-icon-size")).toBe("20");
+      expect(svg.getAttribute("viewBox")).toBe("0 0 24 24");
+    });
 
-    // Default size resolves to 20px from --space-5.
-    const computed = getComputedStyle(svg);
-    expect(computed.width).toBe("20px");
-    expect(computed.height).toBe("20px");
+    await step("use element points at the vendored svg", async () => {
+      const use = svg.querySelector("use");
+      expect(use).toBeTruthy();
+      expect(use.getAttribute("href")).toBe("/vendor/coolicons/icons/play.svg#i");
+    });
+
+    await step("default size resolves to 20px from --space-5", async () => {
+      const computed = getComputedStyle(svg);
+      expect(computed.width).toBe("20px");
+      expect(computed.height).toBe("20px");
+    });
   },
 };
 
@@ -47,17 +53,22 @@ export const Size16 = {
   args: { name: "search-magnifying-glass", size: "16" },
   render: ({ name, size }) => html`<cts-icon name="${name}" size="${size}"></cts-icon>`,
 
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const svg = findIconSvg(canvasElement);
-    expect(svg).toBeTruthy();
-    expect(svg.getAttribute("data-cts-icon-size")).toBe("16");
-    expect(svg.querySelector("use").getAttribute("href")).toBe(
-      "/vendor/coolicons/icons/search-magnifying-glass.svg#i",
-    );
 
-    const computed = getComputedStyle(svg);
-    expect(computed.width).toBe("16px");
-    expect(computed.height).toBe("16px");
+    await step("svg renders with the 16px size attribute and vendored href", async () => {
+      expect(svg).toBeTruthy();
+      expect(svg.getAttribute("data-cts-icon-size")).toBe("16");
+      expect(svg.querySelector("use").getAttribute("href")).toBe(
+        "/vendor/coolicons/icons/search-magnifying-glass.svg#i",
+      );
+    });
+
+    await step("computed dimensions resolve to 16px", async () => {
+      const computed = getComputedStyle(svg);
+      expect(computed.width).toBe("16px");
+      expect(computed.height).toBe("16px");
+    });
   },
 };
 
@@ -65,17 +76,22 @@ export const Size20 = {
   args: { name: "edit-pencil-01", size: "20" },
   render: ({ name, size }) => html`<cts-icon name="${name}" size="${size}"></cts-icon>`,
 
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const svg = findIconSvg(canvasElement);
-    expect(svg).toBeTruthy();
-    expect(svg.getAttribute("data-cts-icon-size")).toBe("20");
-    expect(svg.querySelector("use").getAttribute("href")).toBe(
-      "/vendor/coolicons/icons/edit-pencil-01.svg#i",
-    );
 
-    const computed = getComputedStyle(svg);
-    expect(computed.width).toBe("20px");
-    expect(computed.height).toBe("20px");
+    await step("svg renders with the 20px size attribute and vendored href", async () => {
+      expect(svg).toBeTruthy();
+      expect(svg.getAttribute("data-cts-icon-size")).toBe("20");
+      expect(svg.querySelector("use").getAttribute("href")).toBe(
+        "/vendor/coolicons/icons/edit-pencil-01.svg#i",
+      );
+    });
+
+    await step("computed dimensions resolve to 20px", async () => {
+      const computed = getComputedStyle(svg);
+      expect(computed.width).toBe("20px");
+      expect(computed.height).toBe("20px");
+    });
   },
 };
 
@@ -83,18 +99,23 @@ export const Size24 = {
   args: { name: "trash-empty", size: "24" },
   render: ({ name, size }) => html`<cts-icon name="${name}" size="${size}"></cts-icon>`,
 
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const svg = findIconSvg(canvasElement);
-    expect(svg).toBeTruthy();
-    expect(svg.getAttribute("aria-hidden")).toBe("true");
-    expect(svg.getAttribute("data-cts-icon-size")).toBe("24");
-    expect(svg.querySelector("use").getAttribute("href")).toBe(
-      "/vendor/coolicons/icons/trash-empty.svg#i",
-    );
 
-    const computed = getComputedStyle(svg);
-    expect(computed.width).toBe("24px");
-    expect(computed.height).toBe("24px");
+    await step("svg renders with the 24px size attribute and vendored href", async () => {
+      expect(svg).toBeTruthy();
+      expect(svg.getAttribute("aria-hidden")).toBe("true");
+      expect(svg.getAttribute("data-cts-icon-size")).toBe("24");
+      expect(svg.querySelector("use").getAttribute("href")).toBe(
+        "/vendor/coolicons/icons/trash-empty.svg#i",
+      );
+    });
+
+    await step("computed dimensions resolve to 24px", async () => {
+      const computed = getComputedStyle(svg);
+      expect(computed.width).toBe("24px");
+      expect(computed.height).toBe("24px");
+    });
   },
 };
 
@@ -224,31 +245,38 @@ export const AllIcons = {
     </div>
   `,
 
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const figures = canvasElement.querySelectorAll("figure");
-    expect(figures.length).toBe(VENDORED_ICON_NAMES.length);
-
-    // Every figure's cts-icon must resolve to a real vendored SVG file. We
-    // fetch each URL with a HEAD request and assert 200 OK so the smoke
-    // test catches the case where the curated list drifts past a renamed
-    // or deleted upstream icon. URL shape alone (the original check) would
-    // pass even for a literal `x.svg` that doesn't exist.
     const hrefs = Array.from(figures).map((fig) => {
       const use = fig.querySelector("cts-icon svg use");
       return use?.getAttribute("href") ?? "";
     });
-    expect(
-      hrefs.every((h) => h.startsWith("/vendor/coolicons/icons/") && h.endsWith(".svg#i")),
-    ).toBe(true);
-    const results = await Promise.all(
-      hrefs.map(async (href) => {
-        const url = href.replace(/#i$/, "");
-        const res = await fetch(url, { method: "HEAD" });
-        return { url, ok: res.ok, status: res.status };
-      }),
-    );
-    const failed = results.filter((r) => !r.ok);
-    expect(failed).toEqual([]);
+
+    await step("renders one figure per curated icon", async () => {
+      expect(figures.length).toBe(VENDORED_ICON_NAMES.length);
+    });
+
+    await step("every href has the vendored coolicons URL shape", async () => {
+      expect(
+        hrefs.every((h) => h.startsWith("/vendor/coolicons/icons/") && h.endsWith(".svg#i")),
+      ).toBe(true);
+    });
+
+    await step("every icon resolves to a real vendored SVG file", async () => {
+      // Fetch each URL with a HEAD request and assert 200 OK so the smoke
+      // test catches the case where the curated list drifts past a renamed
+      // or deleted upstream icon. URL shape alone (the previous step) would
+      // pass even for a literal `x.svg` that doesn't exist.
+      const results = await Promise.all(
+        hrefs.map(async (href) => {
+          const url = href.replace(/#i$/, "");
+          const res = await fetch(url, { method: "HEAD" });
+          return { url, ok: res.ok, status: res.status };
+        }),
+      );
+      const failed = results.filter((r) => !r.ok);
+      expect(failed).toEqual([]);
+    });
   },
 };
 

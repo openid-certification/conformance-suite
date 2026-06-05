@@ -92,7 +92,7 @@ export const Default = {
       search-placeholder="Search rows"
       empty-state="No rows"
     ></cts-data-table>`,
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const host = canvasElement.querySelector("cts-data-table");
     await host.updateComplete;
     await waitFor(() => {
@@ -100,38 +100,50 @@ export const Default = {
       expect(rows.length).toBe(10);
     });
 
-    // Headers render with column labels.
-    const headers = canvasElement.querySelectorAll(".oidf-dt-table thead th");
-    expect(headers.length).toBe(4);
-    expect(headers[0].textContent).toContain("ID");
-    expect(headers[1].textContent).toContain("Name");
+    await step("headers render with column labels", async () => {
+      const headers = canvasElement.querySelectorAll(".oidf-dt-table thead th");
+      expect(headers.length).toBe(4);
+      expect(headers[0].textContent).toContain("ID");
+      expect(headers[1].textContent).toContain("Name");
+    });
 
-    // Sticky header CSS is applied.
-    const headerStyle = getComputedStyle(headers[0]);
-    expect(headerStyle.position).toBe("sticky");
+    await step("sticky header CSS is applied", async () => {
+      const headers = canvasElement.querySelectorAll(".oidf-dt-table thead th");
+      const headerStyle = getComputedStyle(headers[0]);
+      expect(headerStyle.position).toBe("sticky");
+    });
 
-    // First row data rendered.
-    const firstRow = canvasElement.querySelector(".oidf-dt-table tbody tr[data-row-index='0']");
-    expect(firstRow).toBeTruthy();
-    expect(firstRow.textContent).toContain("Test plan 1");
+    await step("first row data rendered", async () => {
+      const firstRow = canvasElement.querySelector(".oidf-dt-table tbody tr[data-row-index='0']");
+      expect(firstRow).toBeTruthy();
+      expect(firstRow.textContent).toContain("Test plan 1");
+    });
 
-    // mono column has the mono class.
-    const monoCell = firstRow.querySelector(".oidf-dt-cell-mono");
-    expect(monoCell).toBeTruthy();
-    expect(monoCell.textContent.trim()).toBe("row-001");
+    await step("mono column has the mono class", async () => {
+      const firstRow = canvasElement.querySelector(".oidf-dt-table tbody tr[data-row-index='0']");
+      const monoCell = firstRow.querySelector(".oidf-dt-cell-mono");
+      expect(monoCell).toBeTruthy();
+      expect(monoCell.textContent.trim()).toBe("row-001");
+    });
 
-    // Date column uses the YYYY-MM-DD HH:MM format.
-    const dateCell = firstRow.querySelectorAll("td")[3];
-    expect(/\d{4}-\d{2}-\d{2} \d{2}:\d{2}/.test(dateCell.textContent.trim())).toBe(true);
-    expect(dateCell.classList.contains("oidf-dt-cell-date")).toBe(true);
-    expect(getComputedStyle(dateCell).fontVariantNumeric).toContain("tabular-nums");
+    await step("date column uses the YYYY-MM-DD HH:MM format", async () => {
+      const firstRow = canvasElement.querySelector(".oidf-dt-table tbody tr[data-row-index='0']");
+      const dateCell = firstRow.querySelectorAll("td")[3];
+      expect(/\d{4}-\d{2}-\d{2} \d{2}:\d{2}/.test(dateCell.textContent.trim())).toBe(true);
+      expect(dateCell.classList.contains("oidf-dt-cell-date")).toBe(true);
+      expect(getComputedStyle(dateCell).fontVariantNumeric).toContain("tabular-nums");
+    });
 
-    // The cell wraps the value in a native <time> whose title carries the
-    // full absolute form for hover disambiguation.
-    const timeEl = /** @type {HTMLTimeElement} */ (dateCell.querySelector("time"));
-    expect(timeEl).toBeTruthy();
-    expect(timeEl.getAttribute("title")).toBeTruthy();
-    expect(timeEl.getAttribute("datetime")).toBeTruthy();
+    await step("date cell wraps the value in a native <time> with a hover title", async () => {
+      const firstRow = canvasElement.querySelector(".oidf-dt-table tbody tr[data-row-index='0']");
+      const dateCell = firstRow.querySelectorAll("td")[3];
+      // The cell wraps the value in a native <time> whose title carries the
+      // full absolute form for hover disambiguation.
+      const timeEl = /** @type {HTMLTimeElement} */ (dateCell.querySelector("time"));
+      expect(timeEl).toBeTruthy();
+      expect(timeEl.getAttribute("title")).toBeTruthy();
+      expect(timeEl.getAttribute("datetime")).toBeTruthy();
+    });
   },
 };
 
@@ -156,7 +168,7 @@ export const SortToggle = {
       ajax-url="/api/sample"
       search-placeholder="Search rows"
     ></cts-data-table>`,
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const host = canvasElement.querySelector("cts-data-table");
     await host.updateComplete;
     await waitFor(() => {
@@ -166,35 +178,38 @@ export const SortToggle = {
 
     const sortEvents = [];
     host.addEventListener("cts-sort-change", (e) => sortEvents.push(e.detail));
-
-    // Click "Name" header — first click sorts asc.
     const nameHeader = canvasElement.querySelector(".oidf-dt-table th[data-column-key='name']");
-    expect(nameHeader.classList.contains("is-sortable")).toBe(true);
-    await userEvent.click(nameHeader);
 
-    await waitFor(() => {
-      expect(sortEvents.length).toBeGreaterThanOrEqual(1);
-      expect(sortEvents[0]).toEqual({ columnKey: "name", direction: "asc" });
+    await step("first click sorts the Name column asc", async () => {
+      expect(nameHeader.classList.contains("is-sortable")).toBe(true);
+      await userEvent.click(nameHeader);
+
+      await waitFor(() => {
+        expect(sortEvents.length).toBeGreaterThanOrEqual(1);
+        expect(sortEvents[0]).toEqual({ columnKey: "name", direction: "asc" });
+      });
     });
 
-    // Wait for the debounced fetch to complete (250ms + a bit).
-    await waitFor(
-      () => {
-        const rows = canvasElement.querySelectorAll(".oidf-dt-table tbody tr[data-row-index]");
-        expect(rows.length).toBeGreaterThan(0);
-      },
-      { timeout: 2000 },
-    );
+    await step("debounced fetch repaints rows and the active sort arrow appears", async () => {
+      // Wait for the debounced fetch to complete (250ms + a bit).
+      await waitFor(
+        () => {
+          const rows = canvasElement.querySelectorAll(".oidf-dt-table tbody tr[data-row-index]");
+          expect(rows.length).toBeGreaterThan(0);
+        },
+        { timeout: 2000 },
+      );
 
-    // Active sort arrow appears.
-    const arrow = nameHeader.querySelector(".oidf-dt-sort-arrow.is-active");
-    expect(arrow).toBeTruthy();
+      const arrow = nameHeader.querySelector(".oidf-dt-sort-arrow.is-active");
+      expect(arrow).toBeTruthy();
+    });
 
-    // Click again — toggles to desc.
-    await userEvent.click(nameHeader);
-    await waitFor(() => {
-      const last = sortEvents[sortEvents.length - 1];
-      expect(last).toEqual({ columnKey: "name", direction: "desc" });
+    await step("second click toggles to desc", async () => {
+      await userEvent.click(nameHeader);
+      await waitFor(() => {
+        const last = sortEvents[sortEvents.length - 1];
+        expect(last).toEqual({ columnKey: "name", direction: "desc" });
+      });
     });
   },
 };
@@ -222,7 +237,7 @@ export const SearchExplicit = {
       search-mode="explicit"
       search-placeholder="Search rows"
     ></cts-data-table>`,
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const host = canvasElement.querySelector("cts-data-table");
     await host.updateComplete;
     await waitFor(() => {
@@ -230,52 +245,64 @@ export const SearchExplicit = {
       expect(rows.length).toBe(10);
     });
 
-    // No need to spy on the fetch URL here — we infer "no fetch" by
-    // observing the row count remains unchanged after the debounce window.
     const searchInput = canvasElement.querySelector(".oidf-dt-search-input");
-    expect(searchInput).toBeTruthy();
 
-    // Before typing, the inline submit button should not be visible
-    // (draft equals committed = empty).
-    expect(canvasElement.querySelector(".oidf-dt-search-submit")).toBeNull();
-
-    // Type without pressing Enter — should NOT fetch (rows unchanged).
-    await userEvent.type(searchInput, "Test plan 5");
-
-    // Wait a tick longer than the debounce. In explicit mode no fetch should fire.
-    await new Promise((r) => setTimeout(r, 350));
-    const stillTen = canvasElement.querySelectorAll(
-      ".oidf-dt-table tbody tr[data-row-index]",
-    ).length;
-    expect(stillTen).toBe(10);
-
-    // Now that draft differs from the committed search, the inline submit
-    // button is rendered inside the search pill.
-    const searchBtn = canvasElement.querySelector(".oidf-dt-search-submit");
-    expect(searchBtn).toBeTruthy();
-    expect(searchBtn.getAttribute("aria-label")).toBe("Apply search");
-
-    // Click the inline submit button — fetch fires, rows narrow.
-    await userEvent.click(searchBtn);
-
-    await waitFor(
-      () => {
-        const rows = canvasElement.querySelectorAll(".oidf-dt-table tbody tr[data-row-index]");
-        // Match "Test plan 5" → row-005 (single match given our fixture).
-        expect(rows.length).toBe(1);
-      },
-      { timeout: 2000 },
-    );
-
-    // After committing, the submit button is no longer visible (draft
-    // matches committed) and the active-filter chip appears below.
-    await waitFor(() => {
+    await step("submit button is hidden before typing (draft equals committed)", async () => {
+      expect(searchInput).toBeTruthy();
+      // Before typing, the inline submit button should not be visible
+      // (draft equals committed = empty).
       expect(canvasElement.querySelector(".oidf-dt-search-submit")).toBeNull();
-      const chip = canvasElement.querySelector(".oidf-dt-search-filter");
-      expect(chip).toBeTruthy();
-      expect(chip.textContent).toContain("Filtered to");
-      expect(chip.querySelector(".oidf-dt-search-filter-query").textContent).toBe("Test plan 5");
     });
+
+    await step("typing without Enter does NOT fetch and reveals the submit button", async () => {
+      // No need to spy on the fetch URL here — we infer "no fetch" by
+      // observing the row count remains unchanged after the debounce window.
+      await userEvent.type(searchInput, "Test plan 5");
+
+      // Wait a tick longer than the debounce. In explicit mode no fetch should fire.
+      await new Promise((r) => setTimeout(r, 350));
+      const stillTen = canvasElement.querySelectorAll(
+        ".oidf-dt-table tbody tr[data-row-index]",
+      ).length;
+      expect(stillTen).toBe(10);
+
+      // Now that draft differs from the committed search, the inline submit
+      // button is rendered inside the search pill.
+      const searchBtn = canvasElement.querySelector(".oidf-dt-search-submit");
+      expect(searchBtn).toBeTruthy();
+      expect(searchBtn.getAttribute("aria-label")).toBe("Apply search");
+    });
+
+    await step("clicking submit fires the fetch and narrows the rows", async () => {
+      const searchBtn = canvasElement.querySelector(".oidf-dt-search-submit");
+      await userEvent.click(searchBtn);
+
+      await waitFor(
+        () => {
+          const rows = canvasElement.querySelectorAll(".oidf-dt-table tbody tr[data-row-index]");
+          // Match "Test plan 5" → row-005 (single match given our fixture).
+          expect(rows.length).toBe(1);
+        },
+        { timeout: 2000 },
+      );
+    });
+
+    await step(
+      "after committing, the submit button hides and the filter chip appears",
+      async () => {
+        // After committing, the submit button is no longer visible (draft
+        // matches committed) and the active-filter chip appears below.
+        await waitFor(() => {
+          expect(canvasElement.querySelector(".oidf-dt-search-submit")).toBeNull();
+          const chip = canvasElement.querySelector(".oidf-dt-search-filter");
+          expect(chip).toBeTruthy();
+          expect(chip.textContent).toContain("Filtered to");
+          expect(chip.querySelector(".oidf-dt-search-filter-query").textContent).toBe(
+            "Test plan 5",
+          );
+        });
+      },
+    );
   },
 };
 
@@ -303,7 +330,7 @@ export const SearchActiveFilterChip = {
       search-mode="explicit"
       search-placeholder="Search rows"
     ></cts-data-table>`,
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const host = canvasElement.querySelector("cts-data-table");
     await host.updateComplete;
     await waitFor(() => {
@@ -311,38 +338,42 @@ export const SearchActiveFilterChip = {
       expect(rows.length).toBe(10);
     });
 
-    // Drive a committed search via the public API so the chip rendering
-    // path is exercised regardless of input/keyboard noise.
-    host.search("Test plan 5");
-    await waitFor(
-      () => {
-        const rows = canvasElement.querySelectorAll(".oidf-dt-table tbody tr[data-row-index]");
-        expect(rows.length).toBe(1);
-      },
-      { timeout: 2000 },
-    );
+    await step("a committed search narrows to one row and surfaces the chip", async () => {
+      // Drive a committed search via the public API so the chip rendering
+      // path is exercised regardless of input/keyboard noise.
+      host.search("Test plan 5");
+      await waitFor(
+        () => {
+          const rows = canvasElement.querySelectorAll(".oidf-dt-table tbody tr[data-row-index]");
+          expect(rows.length).toBe(1);
+        },
+        { timeout: 2000 },
+      );
 
-    // Chip surfaces the committed query + filtered count.
-    const chip = canvasElement.querySelector(".oidf-dt-search-filter");
-    expect(chip).toBeTruthy();
-    expect(chip.getAttribute("role")).toBe("status");
-    expect(chip.querySelector(".oidf-dt-search-filter-query").textContent).toBe("Test plan 5");
-    expect(chip.querySelector(".oidf-dt-search-filter-count").textContent).toContain("1 of 27");
+      // Chip surfaces the committed query + filtered count.
+      const chip = canvasElement.querySelector(".oidf-dt-search-filter");
+      expect(chip).toBeTruthy();
+      expect(chip.getAttribute("role")).toBe("status");
+      expect(chip.querySelector(".oidf-dt-search-filter-query").textContent).toBe("Test plan 5");
+      expect(chip.querySelector(".oidf-dt-search-filter-count").textContent).toContain("1 of 27");
+    });
 
-    // Click "Show all" — the chip vanishes, all rows return, the input clears.
-    const reset = chip.querySelector(".oidf-dt-search-filter-reset");
-    expect(reset).toBeTruthy();
-    await userEvent.click(reset);
+    await step("clicking 'Show all' clears the filter and restores all rows", async () => {
+      const chip = canvasElement.querySelector(".oidf-dt-search-filter");
+      const reset = chip.querySelector(".oidf-dt-search-filter-reset");
+      expect(reset).toBeTruthy();
+      await userEvent.click(reset);
 
-    await waitFor(
-      () => {
-        const rows = canvasElement.querySelectorAll(".oidf-dt-table tbody tr[data-row-index]");
-        expect(rows.length).toBe(10);
-        expect(canvasElement.querySelector(".oidf-dt-search-filter")).toBeNull();
-        expect(canvasElement.querySelector(".oidf-dt-search-input").value).toBe("");
-      },
-      { timeout: 2000 },
-    );
+      await waitFor(
+        () => {
+          const rows = canvasElement.querySelectorAll(".oidf-dt-table tbody tr[data-row-index]");
+          expect(rows.length).toBe(10);
+          expect(canvasElement.querySelector(".oidf-dt-search-filter")).toBeNull();
+          expect(canvasElement.querySelector(".oidf-dt-search-input").value).toBe("");
+        },
+        { timeout: 2000 },
+      );
+    });
   },
 };
 
@@ -370,7 +401,7 @@ export const SearchEscapeClears = {
       search-mode="explicit"
       search-placeholder="Search rows"
     ></cts-data-table>`,
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const host = canvasElement.querySelector("cts-data-table");
     await host.updateComplete;
     await waitFor(() => {
@@ -378,29 +409,32 @@ export const SearchEscapeClears = {
       expect(rows.length).toBe(10);
     });
 
-    // Apply a filter through the public API so we have something to clear.
-    host.search("Test plan 7");
-    await waitFor(
-      () => {
-        const rows = canvasElement.querySelectorAll(".oidf-dt-table tbody tr[data-row-index]");
-        expect(rows.length).toBe(1);
-      },
-      { timeout: 2000 },
-    );
+    await step("apply a filter through the public API", async () => {
+      host.search("Test plan 7");
+      await waitFor(
+        () => {
+          const rows = canvasElement.querySelectorAll(".oidf-dt-table tbody tr[data-row-index]");
+          expect(rows.length).toBe(1);
+        },
+        { timeout: 2000 },
+      );
+    });
 
-    const input = canvasElement.querySelector(".oidf-dt-search-input");
-    input.focus();
-    await userEvent.keyboard("{Escape}");
+    await step("pressing Escape clears the input and restores all rows", async () => {
+      const input = canvasElement.querySelector(".oidf-dt-search-input");
+      input.focus();
+      await userEvent.keyboard("{Escape}");
 
-    await waitFor(
-      () => {
-        expect(input.value).toBe("");
-        expect(canvasElement.querySelector(".oidf-dt-search-filter")).toBeNull();
-        const rows = canvasElement.querySelectorAll(".oidf-dt-table tbody tr[data-row-index]");
-        expect(rows.length).toBe(10);
-      },
-      { timeout: 2000 },
-    );
+      await waitFor(
+        () => {
+          expect(input.value).toBe("");
+          expect(canvasElement.querySelector(".oidf-dt-search-filter")).toBeNull();
+          const rows = canvasElement.querySelectorAll(".oidf-dt-table tbody tr[data-row-index]");
+          expect(rows.length).toBe(10);
+        },
+        { timeout: 2000 },
+      );
+    });
   },
 };
 
@@ -469,7 +503,7 @@ export const Pagination = {
       ajax-url="/api/sample"
       search-placeholder="Search rows"
     ></cts-data-table>`,
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const host = canvasElement.querySelector("cts-data-table");
     await host.updateComplete;
     await waitFor(() => {
@@ -477,31 +511,33 @@ export const Pagination = {
       expect(first?.textContent).toContain("Test plan 1");
     });
 
-    // Pager info shows totals.
-    const info = canvasElement.querySelector(".oidf-dt-pager-info");
-    expect(info.textContent).toContain("Showing 1 to 10 of 27");
+    await step("pager info shows totals", async () => {
+      const info = canvasElement.querySelector(".oidf-dt-pager-info");
+      expect(info.textContent).toContain("Showing 1 to 10 of 27");
+    });
 
-    // Page-change events fire on next.
     const pageEvents = [];
     host.addEventListener("cts-page-change", (e) => pageEvents.push(e.detail));
 
-    const nextBtnHost = canvasElement.querySelector(".oidf-dt-pager-next");
-    const nextBtn = nextBtnHost.querySelector("button");
-    await userEvent.click(nextBtn);
+    await step("clicking Next fires a page-change event and advances the page", async () => {
+      const nextBtnHost = canvasElement.querySelector(".oidf-dt-pager-next");
+      const nextBtn = nextBtnHost.querySelector("button");
+      await userEvent.click(nextBtn);
 
-    await waitFor(() => {
-      expect(pageEvents.length).toBeGreaterThanOrEqual(1);
-      expect(pageEvents[0].start).toBe(10);
-      expect(pageEvents[0].length).toBe(10);
+      await waitFor(() => {
+        expect(pageEvents.length).toBeGreaterThanOrEqual(1);
+        expect(pageEvents[0].start).toBe(10);
+        expect(pageEvents[0].length).toBe(10);
+      });
+
+      await waitFor(
+        () => {
+          const first = canvasElement.querySelector(".oidf-dt-table tbody tr[data-row-index='0']");
+          expect(first?.textContent).toContain("Test plan 11");
+        },
+        { timeout: 2000 },
+      );
     });
-
-    await waitFor(
-      () => {
-        const first = canvasElement.querySelector(".oidf-dt-table tbody tr[data-row-index='0']");
-        expect(first?.textContent).toContain("Test plan 11");
-      },
-      { timeout: 2000 },
-    );
   },
 };
 
@@ -768,24 +804,28 @@ export const OutOfOrderDraw = {
       ajax-url="/api/sample"
       search-placeholder="Search rows"
     ></cts-data-table>`,
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const host = canvasElement.querySelector("cts-data-table");
     await host.updateComplete;
-    // Trigger a second fetch quickly — supersedes draw=1.
-    host.search("Test plan");
 
-    // Wait long enough for the slow first response to have settled.
-    await waitFor(
-      () => {
-        const rows = canvasElement.querySelectorAll(".oidf-dt-table tbody tr[data-row-index]");
-        expect(rows.length).toBe(3);
-      },
-      { timeout: 3000 },
-    );
+    await step("a fast second fetch supersedes the slow draw=1 and paints its rows", async () => {
+      // Trigger a second fetch quickly — supersedes draw=1.
+      host.search("Test plan");
 
-    // Crucially, no STALE rows leaked through.
-    const stale = canvasElement.querySelector("td.oidf-dt-cell-mono");
-    expect(stale.textContent.trim().startsWith("STALE")).toBe(false);
+      // Wait long enough for the slow first response to have settled.
+      await waitFor(
+        () => {
+          const rows = canvasElement.querySelectorAll(".oidf-dt-table tbody tr[data-row-index]");
+          expect(rows.length).toBe(3);
+        },
+        { timeout: 3000 },
+      );
+    });
+
+    await step("no stale rows from the late first response leaked through", async () => {
+      const stale = canvasElement.querySelector("td.oidf-dt-cell-mono");
+      expect(stale.textContent.trim().startsWith("STALE")).toBe(false);
+    });
   },
 };
 
@@ -870,25 +910,27 @@ export const ClientSide = {
       search-placeholder="Search rows"
     ></cts-data-table>`;
   },
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const host = canvasElement.querySelector("cts-data-table");
     await host.updateComplete;
 
-    // Five rows on the first page.
-    await waitFor(() => {
-      const rows = canvasElement.querySelectorAll(".oidf-dt-table tbody tr[data-row-index]");
-      expect(rows.length).toBe(5);
+    await step("five rows render on the first page", async () => {
+      await waitFor(() => {
+        const rows = canvasElement.querySelectorAll(".oidf-dt-table tbody tr[data-row-index]");
+        expect(rows.length).toBe(5);
+      });
     });
 
-    // Sort by name desc.
-    const nameHeader = canvasElement.querySelector(".oidf-dt-table th[data-column-key='name']");
-    await userEvent.click(nameHeader); // asc
-    await userEvent.click(nameHeader); // desc
-    await host.updateComplete;
+    await step("sorting by name desc reorders entirely in-browser", async () => {
+      const nameHeader = canvasElement.querySelector(".oidf-dt-table th[data-column-key='name']");
+      await userEvent.click(nameHeader); // asc
+      await userEvent.click(nameHeader); // desc
+      await host.updateComplete;
 
-    const firstRow = canvasElement.querySelector(".oidf-dt-table tbody tr[data-row-index='0']");
-    // Names sort alphabetically by string; "Test plan 7" sorts last under
-    // a string-desc comparator (... 5, 6, 7).
-    expect(firstRow.textContent).toContain("Test plan 7");
+      const firstRow = canvasElement.querySelector(".oidf-dt-table tbody tr[data-row-index='0']");
+      // Names sort alphabetically by string; "Test plan 7" sorts last under
+      // a string-desc comparator (... 5, 6, 7).
+      expect(firstRow.textContent).toContain("Test plan 7");
+    });
   },
 };

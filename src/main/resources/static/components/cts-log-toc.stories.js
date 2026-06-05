@@ -141,7 +141,7 @@ export const ReappearsWhenBlocksArrive = {
   // The rail must drop the hidden attribute so the page grid re-expands.
   render: () =>
     WIDE_HOST(html`<cts-log-toc id="reappearRail" .blocks=${[]} .failures=${[]}></cts-log-toc>`),
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const rail = /** @type {any} */ (
       await waitFor(() => {
         const el = canvasElement.querySelector("cts-log-toc");
@@ -150,12 +150,17 @@ export const ReappearsWhenBlocksArrive = {
       })
     );
     await rail.updateComplete;
-    expect(rail.hasAttribute("hidden")).toBe(true);
 
-    rail.blocks = BLOCKS;
-    await rail.updateComplete;
-    expect(rail.hasAttribute("hidden")).toBe(false);
-    expect(canvasElement.querySelector('[data-testid="toc-list"]')).toBeTruthy();
+    await step("empty rail starts hidden", async () => {
+      expect(rail.hasAttribute("hidden")).toBe(true);
+    });
+
+    await step("delivering blocks un-hides the rail and renders the list", async () => {
+      rail.blocks = BLOCKS;
+      await rail.updateComplete;
+      expect(rail.hasAttribute("hidden")).toBe(false);
+      expect(canvasElement.querySelector('[data-testid="toc-list"]')).toBeTruthy();
+    });
   },
 };
 
@@ -190,7 +195,7 @@ export const ActiveBlockHighlight = {
   // _activeBlockId after the rail mounts. This avoids depending on
   // IntersectionObserver behaviour inside the storybook canvas.
   render: () => WIDE_HOST(html`<cts-log-toc id="activeRail" .blocks=${BLOCKS}></cts-log-toc>`),
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const rail = /** @type {any} */ (
       await waitFor(() => {
         const el = canvasElement.querySelector("cts-log-toc");
@@ -202,15 +207,18 @@ export const ActiveBlockHighlight = {
     rail.requestUpdate();
     await rail.updateComplete;
 
-    const activeRow = canvasElement.querySelector('[data-testid="toc-row-block-3"]');
-    expect(activeRow.classList.contains("is-active")).toBe(true);
-    const button = activeRow.querySelector("button");
-    expect(button.getAttribute("aria-current")).toBe("location");
+    await step("the promoted block renders as active", async () => {
+      const activeRow = canvasElement.querySelector('[data-testid="toc-row-block-3"]');
+      expect(activeRow.classList.contains("is-active")).toBe(true);
+      const button = activeRow.querySelector("button");
+      expect(button.getAttribute("aria-current")).toBe("location");
+    });
 
-    // Other rows are not active.
-    const inactiveRow = canvasElement.querySelector('[data-testid="toc-row-block-1"]');
-    expect(inactiveRow.classList.contains("is-active")).toBe(false);
-    expect(inactiveRow.querySelector("button").getAttribute("aria-current")).toBe("false");
+    await step("other rows are not active", async () => {
+      const inactiveRow = canvasElement.querySelector('[data-testid="toc-row-block-1"]');
+      expect(inactiveRow.classList.contains("is-active")).toBe(false);
+      expect(inactiveRow.querySelector("button").getAttribute("aria-current")).toBe("false");
+    });
   },
 };
 
@@ -219,7 +227,7 @@ export const PreferenceTogglesVisibility = {
   // future U7 overflow toggle will call into. Run last so the persisted
   // pref is left in the default-on state for the next story run.
   render: () => WIDE_HOST(html`<cts-log-toc id="prefRail" .blocks=${BLOCKS}></cts-log-toc>`),
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const rail = /** @type {any} */ (
       await waitFor(() => {
         const el = canvasElement.querySelector("cts-log-toc");
@@ -228,17 +236,24 @@ export const PreferenceTogglesVisibility = {
       })
     );
     await rail.updateComplete;
-    // Visibility is now expressed via the `hidden` attribute (rather
-    // than inline style.display) so the same signal also lets the
-    // page-level grid collapse via `:has(#ctsLogToc:not([hidden]))`.
-    expect(rail.hasAttribute("hidden")).toBe(false);
 
-    rail.setEnabled(false);
-    expect(rail.hasAttribute("hidden")).toBe(true);
-    expect(localStorage.getItem("cts-log-toc-rail-enabled")).toBe("false");
+    await step("rail starts visible", async () => {
+      // Visibility is now expressed via the `hidden` attribute (rather
+      // than inline style.display) so the same signal also lets the
+      // page-level grid collapse via `:has(#ctsLogToc:not([hidden]))`.
+      expect(rail.hasAttribute("hidden")).toBe(false);
+    });
 
-    rail.setEnabled(true);
-    expect(rail.hasAttribute("hidden")).toBe(false);
-    expect(localStorage.getItem("cts-log-toc-rail-enabled")).toBe("true");
+    await step("setEnabled(false) hides the rail and persists the pref", async () => {
+      rail.setEnabled(false);
+      expect(rail.hasAttribute("hidden")).toBe(true);
+      expect(localStorage.getItem("cts-log-toc-rail-enabled")).toBe("false");
+    });
+
+    await step("setEnabled(true) re-shows the rail and persists the pref", async () => {
+      rail.setEnabled(true);
+      expect(rail.hasAttribute("hidden")).toBe(false);
+      expect(localStorage.getItem("cts-log-toc-rail-enabled")).toBe("true");
+    });
   },
 };

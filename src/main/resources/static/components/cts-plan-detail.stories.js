@@ -327,23 +327,26 @@ export const ModulesRunTest = {
   render: () => html`
     <cts-plan-modules .modules=${MODULES_WITH_STATUS} plan-id="plan-abc-123"></cts-plan-modules>
   `,
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const spy = fn();
     canvasElement.addEventListener("cts-run-test", spy);
 
-    // Click the inner native button — userEvent.click on the cts-button host
-    // doesn't reach the inner @click handler.
-    const runBtn = canvasElement.querySelector('[data-testid="run-test-btn"] button');
-    expect(runBtn).toBeTruthy();
-    await userEvent.click(runBtn);
+    await step("clicking Run Test fires cts-run-test", async () => {
+      // Click the inner native button — userEvent.click on the cts-button host
+      // doesn't reach the inner @click handler.
+      const runBtn = canvasElement.querySelector('[data-testid="run-test-btn"] button');
+      expect(runBtn).toBeTruthy();
+      await userEvent.click(runBtn);
+    });
 
-    // Event should fire with correct detail
-    expect(spy).toHaveBeenCalledTimes(1);
-    const detail = spy.mock.calls[0][0].detail;
-    expect(detail.testModule).toBe("oidcc-server");
-    expect(detail.variant).toEqual({
-      client_auth_type: "client_secret_basic",
-      response_type: "code",
+    await step("event fires with correct detail", async () => {
+      expect(spy).toHaveBeenCalledTimes(1);
+      const detail = spy.mock.calls[0][0].detail;
+      expect(detail.testModule).toBe("oidcc-server");
+      expect(detail.variant).toEqual({
+        client_auth_type: "client_secret_basic",
+        response_type: "code",
+      });
     });
   },
 };
@@ -503,25 +506,28 @@ export const ModulesWrongRefPlacement = {
  */
 export const ActionsDeleteVariant = {
   render: () => html` <cts-plan-actions .plan=${MOCK_PLAN_DETAIL}></cts-plan-actions> `,
-  async play({ canvasElement }) {
-    const deleteHost = canvasElement.querySelector('[data-testid="delete-plan-btn"]');
-    expect(deleteHost).toBeTruthy();
+  async play({ canvasElement, step }) {
+    await step("trigger uses the ghost variant, not destructive", async () => {
+      const deleteHost = canvasElement.querySelector('[data-testid="delete-plan-btn"]');
+      expect(deleteHost).toBeTruthy();
 
-    // Trigger is no longer the destructive variant; the inner button keeps
-    // the ghost styling so it sits visually with the secondary actions.
-    expect(deleteHost?.getAttribute("variant")).toBe("ghost");
-
-    // Open the confirm panel.
-    await userEvent.click(innerButton(canvasElement, "delete-plan-btn"));
-    await waitFor(() => {
-      expect(canvasElement.querySelector('[data-testid="delete-confirm-panel"]')).toBeTruthy();
+      // Trigger is no longer the destructive variant; the inner button keeps
+      // the ghost styling so it sits visually with the secondary actions.
+      expect(deleteHost?.getAttribute("variant")).toBe("ghost");
     });
 
-    // The confirmation step keeps the destructive variant so the
-    // irreversible action is still visually distinct at the moment the
-    // user makes the final commitment.
-    const confirmHost = canvasElement.querySelector(".confirm-delete-btn");
-    expect(confirmHost?.getAttribute("variant")).toBe("danger");
+    await step("opening the confirm panel exposes a destructive confirm button", async () => {
+      await userEvent.click(innerButton(canvasElement, "delete-plan-btn"));
+      await waitFor(() => {
+        expect(canvasElement.querySelector('[data-testid="delete-confirm-panel"]')).toBeTruthy();
+      });
+
+      // The confirmation step keeps the destructive variant so the
+      // irreversible action is still visually distinct at the moment the
+      // user makes the final commitment.
+      const confirmHost = canvasElement.querySelector(".confirm-delete-btn");
+      expect(confirmHost?.getAttribute("variant")).toBe("danger");
+    });
   },
 };
 
@@ -544,178 +550,191 @@ export const ActionsCertifyHiddenByDefault = {
 
 export const ActionsCertifyVisibleWhenCanCertify = {
   render: () => html` <cts-plan-actions .plan=${MOCK_PLAN_DETAIL} can-certify></cts-plan-actions> `,
-  async play({ canvasElement }) {
-    const certifyBtn = canvasElement.querySelector('[data-testid="certify-btn"]');
-    expect(certifyBtn).toBeTruthy();
-    expect(certifyBtn?.textContent).toContain("Publish for certification");
+  async play({ canvasElement, step }) {
+    await step("certify button is visible", async () => {
+      const certifyBtn = canvasElement.querySelector('[data-testid="certify-btn"]');
+      expect(certifyBtn).toBeTruthy();
+      expect(certifyBtn?.textContent).toContain("Publish for certification");
+    });
 
-    // The certify event fires when the inner button is clicked.
-    const spy = fn();
-    canvasElement.addEventListener("cts-certify", spy);
-    await userEvent.click(innerButton(canvasElement, "certify-btn"));
-    expect(spy).toHaveBeenCalledTimes(1);
-    expect(spy.mock.calls[0][0].detail.planId).toBe("plan-abc-123");
+    await step("clicking it fires cts-certify with the plan id", async () => {
+      const spy = fn();
+      canvasElement.addEventListener("cts-certify", spy);
+      await userEvent.click(innerButton(canvasElement, "certify-btn"));
+      expect(spy).toHaveBeenCalledTimes(1);
+      expect(spy.mock.calls[0][0].detail.planId).toBe("plan-abc-123");
+    });
   },
 };
 
 export const ActionsViewConfig = {
   render: () => html` <cts-plan-actions .plan=${PLAN_WITH_CONFIG}></cts-plan-actions> `,
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const canvas = within(canvasElement);
 
-    // Config panel not visible initially
-    let configPanel = canvasElement.querySelector('[data-testid="config-panel"]');
-    expect(configPanel).toBeNull();
-
-    // Click View configuration button (target the inner <button>)
-    await userEvent.click(innerButton(canvasElement, "view-config-btn"));
-
-    // Config panel should now be visible
-    await waitFor(() => {
-      configPanel = canvasElement.querySelector('[data-testid="config-panel"]');
-      expect(configPanel).toBeTruthy();
+    await step("config panel is hidden until requested", async () => {
+      const configPanel = canvasElement.querySelector('[data-testid="config-panel"]');
+      expect(configPanel).toBeNull();
     });
 
-    // JSON content displayed in the Monaco-backed read-only editor.
-    // The editor is the only way the plan reaches the user — assert via
-    // its `.value` property; Monaco's text content is virtualised so
-    // `textContent` may not contain the full JSON until the user scrolls.
-    // `whenReady()` resolves regardless of whether Monaco mounted or the
-    // fallback textarea took over; both expose `.value` identically.
-    const configJson = /** @type {any} */ (
+    await step("clicking View configuration opens the panel", async () => {
+      // Target the inner <button>.
+      await userEvent.click(innerButton(canvasElement, "view-config-btn"));
       await waitFor(() => {
-        const el = canvasElement.querySelector("cts-json-editor.config-json");
-        if (!el) throw new Error("cts-json-editor.config-json not yet attached");
-        return el;
-      })
-    );
-    await configJson.whenReady();
-    expect(configJson.getAttribute("readonly")).not.toBeNull();
-    expect(configJson.value).toContain("server.issuer");
-    expect(configJson.value).toContain("https://op.example.com");
-    expect(configJson.value).toContain("client.client_id");
+        expect(canvasElement.querySelector('[data-testid="config-panel"]')).toBeTruthy();
+      });
+    });
 
-    // Plan ID displayed
-    expect(canvas.getByText("plan-abc-123")).toBeInTheDocument();
+    await step("editor renders the plan config as read-only JSON", async () => {
+      // JSON content displayed in the Monaco-backed read-only editor.
+      // The editor is the only way the plan reaches the user — assert via
+      // its `.value` property; Monaco's text content is virtualised so
+      // `textContent` may not contain the full JSON until the user scrolls.
+      // `whenReady()` resolves regardless of whether Monaco mounted or the
+      // fallback textarea took over; both expose `.value` identically.
+      const configJson = /** @type {any} */ (
+        await waitFor(() => {
+          const el = canvasElement.querySelector("cts-json-editor.config-json");
+          if (!el) throw new Error("cts-json-editor.config-json not yet attached");
+          return el;
+        })
+      );
+      await configJson.whenReady();
+      expect(configJson.getAttribute("readonly")).not.toBeNull();
+      expect(configJson.value).toContain("server.issuer");
+      expect(configJson.value).toContain("https://op.example.com");
+      expect(configJson.value).toContain("client.client_id");
+    });
+
+    await step("plan ID is displayed", async () => {
+      expect(canvas.getByText("plan-abc-123")).toBeInTheDocument();
+    });
   },
 };
 
 export const ActionsPrivateLink = {
   render: () => html` <cts-plan-actions .plan=${MOCK_PLAN_DETAIL}></cts-plan-actions> `,
-  async play({ canvasElement }) {
-    // Private link panel not visible initially
-    let panel = canvasElement.querySelector('[data-testid="private-link-panel"]');
-    expect(panel).toBeNull();
-
-    // Click Private link button
-    await userEvent.click(innerButton(canvasElement, "private-link-btn"));
-
-    // Panel should now be visible
-    await waitFor(() => {
-      panel = canvasElement.querySelector('[data-testid="private-link-panel"]');
-      expect(panel).toBeTruthy();
+  async play({ canvasElement, step }) {
+    await step("private link panel is hidden initially", async () => {
+      const panel = canvasElement.querySelector('[data-testid="private-link-panel"]');
+      expect(panel).toBeNull();
     });
 
-    // Days input present with default value of 30
-    const daysInput = canvasElement.querySelector("#privateLinkDays");
-    expect(daysInput).toBeTruthy();
-    expect(daysInput.value).toBe("30");
+    await step("clicking Private link opens the panel", async () => {
+      await userEvent.click(innerButton(canvasElement, "private-link-btn"));
+      await waitFor(() => {
+        expect(canvasElement.querySelector('[data-testid="private-link-panel"]')).toBeTruthy();
+      });
+    });
 
-    // Generate button should be enabled (30 is valid). The disabled state
-    // is reflected onto the inner <button> rendered by cts-button.
-    const generateHost = canvasElement.querySelector(".generate-link-btn");
-    expect(generateHost).toBeTruthy();
-    const generateBtnInner = generateHost?.querySelector("button");
-    expect(generateBtnInner).toBeTruthy();
-    expect(generateBtnInner?.disabled).toBe(false);
+    await step("days input defaults to 30 and Generate is enabled", async () => {
+      // Days input present with default value of 30.
+      const daysInput = canvasElement.querySelector("#privateLinkDays");
+      expect(daysInput).toBeTruthy();
+      expect(daysInput.value).toBe("30");
+
+      // Generate button should be enabled (30 is valid). The disabled state
+      // is reflected onto the inner <button> rendered by cts-button.
+      const generateHost = canvasElement.querySelector(".generate-link-btn");
+      expect(generateHost).toBeTruthy();
+      const generateBtnInner = generateHost?.querySelector("button");
+      expect(generateBtnInner).toBeTruthy();
+      expect(generateBtnInner?.disabled).toBe(false);
+    });
   },
 };
 
 export const ActionsPrivateLinkValidation = {
   render: () => html` <cts-plan-actions .plan=${MOCK_PLAN_DETAIL}></cts-plan-actions> `,
-  async play({ canvasElement }) {
-    // Open private link panel (target the inner <button>)
-    await userEvent.click(innerButton(canvasElement, "private-link-btn"));
-
-    await waitFor(() => {
-      const panel = canvasElement.querySelector('[data-testid="private-link-panel"]');
-      expect(panel).toBeTruthy();
+  async play({ canvasElement, step }) {
+    await step("open the private link panel", async () => {
+      // Target the inner <button>.
+      await userEvent.click(innerButton(canvasElement, "private-link-btn"));
+      await waitFor(() => {
+        const panel = canvasElement.querySelector('[data-testid="private-link-panel"]');
+        expect(panel).toBeTruthy();
+      });
     });
 
     const daysInput = canvasElement.querySelector("#privateLinkDays");
 
-    // Clear and type 0 (invalid). The disabled state is reflected onto the
-    // inner <button> rendered by cts-button — the host doesn't carry it.
-    await userEvent.clear(daysInput);
-    await userEvent.type(daysInput, "0");
-
-    await waitFor(() => {
-      const inner = canvasElement.querySelector(".generate-link-btn button");
-      expect(inner?.disabled).toBe(true);
+    await step("0 days is invalid → Generate disabled", async () => {
+      // The disabled state is reflected onto the inner <button> rendered by
+      // cts-button — the host doesn't carry it.
+      await userEvent.clear(daysInput);
+      await userEvent.type(daysInput, "0");
+      await waitFor(() => {
+        const inner = canvasElement.querySelector(".generate-link-btn button");
+        expect(inner?.disabled).toBe(true);
+      });
     });
 
-    // Clear and type 1001 (invalid)
-    await userEvent.clear(daysInput);
-    await userEvent.type(daysInput, "1001");
-
-    await waitFor(() => {
-      const inner = canvasElement.querySelector(".generate-link-btn button");
-      expect(inner?.disabled).toBe(true);
+    await step("1001 days is invalid → Generate disabled", async () => {
+      await userEvent.clear(daysInput);
+      await userEvent.type(daysInput, "1001");
+      await waitFor(() => {
+        const inner = canvasElement.querySelector(".generate-link-btn button");
+        expect(inner?.disabled).toBe(true);
+      });
     });
 
-    // Clear and type 500 (valid)
-    await userEvent.clear(daysInput);
-    await userEvent.type(daysInput, "500");
-
-    await waitFor(() => {
-      const inner = canvasElement.querySelector(".generate-link-btn button");
-      expect(inner?.disabled).toBe(false);
+    await step("500 days is valid → Generate enabled", async () => {
+      await userEvent.clear(daysInput);
+      await userEvent.type(daysInput, "500");
+      await waitFor(() => {
+        const inner = canvasElement.querySelector(".generate-link-btn button");
+        expect(inner?.disabled).toBe(false);
+      });
     });
   },
 };
 
 export const ActionsDeletePlan = {
   render: () => html` <cts-plan-actions .plan=${MOCK_PLAN_DETAIL}></cts-plan-actions> `,
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const canvas = within(canvasElement);
 
-    // Delete confirm not visible initially
-    let confirmPanel = canvasElement.querySelector('[data-testid="delete-confirm-panel"]');
-    expect(confirmPanel).toBeNull();
-
-    // Click Delete plan button (target the inner <button>)
-    await userEvent.click(innerButton(canvasElement, "delete-plan-btn"));
-
-    // Confirm panel should appear
-    await waitFor(() => {
-      confirmPanel = canvasElement.querySelector('[data-testid="delete-confirm-panel"]');
-      expect(confirmPanel).toBeTruthy();
+    await step("delete confirm panel is hidden initially", async () => {
+      const confirmPanel = canvasElement.querySelector('[data-testid="delete-confirm-panel"]');
+      expect(confirmPanel).toBeNull();
     });
 
-    // Warning text present
-    expect(canvas.getByText(/permanently and irrevocably/)).toBeInTheDocument();
-    expect(canvas.getByText(/cannot be undone/)).toBeInTheDocument();
+    await step("clicking Delete plan opens the confirm panel", async () => {
+      // Target the inner <button>.
+      await userEvent.click(innerButton(canvasElement, "delete-plan-btn"));
+      await waitFor(() => {
+        expect(canvasElement.querySelector('[data-testid="delete-confirm-panel"]')).toBeTruthy();
+      });
+    });
 
-    // Confirm delete button present (cts-button host carries the class).
-    const confirmBtnHost = canvasElement.querySelector(".confirm-delete-btn");
-    expect(confirmBtnHost).toBeTruthy();
-    expect(confirmBtnHost?.textContent?.trim()).toBe("Delete plan");
-    const confirmBtn = confirmBtnHost?.querySelector("button");
-    expect(confirmBtn).toBeTruthy();
+    await step("confirm panel shows warning text and Delete/Cancel buttons", async () => {
+      // Warning text present.
+      expect(canvas.getByText(/permanently and irrevocably/)).toBeInTheDocument();
+      expect(canvas.getByText(/cannot be undone/)).toBeInTheDocument();
 
-    // Cancel button present (no testid — find by inner button text).
-    const innerButtons = confirmPanel ? Array.from(confirmPanel.querySelectorAll("button")) : [];
-    const cancelBtn = innerButtons.find((b) => (b.textContent || "").trim() === "Cancel");
-    expect(cancelBtn).toBeTruthy();
+      // Confirm delete button present (cts-button host carries the class).
+      const confirmBtnHost = canvasElement.querySelector(".confirm-delete-btn");
+      expect(confirmBtnHost).toBeTruthy();
+      expect(confirmBtnHost?.textContent?.trim()).toBe("Delete plan");
+      expect(confirmBtnHost?.querySelector("button")).toBeTruthy();
 
-    // Verify cts-delete-plan event fires on confirm
-    const spy = fn();
-    canvasElement.addEventListener("cts-delete-plan", spy);
-    if (!confirmBtn) throw new Error("confirm-delete-btn inner button missing");
-    await userEvent.click(confirmBtn);
+      // Cancel button present (no testid — find by inner button text).
+      const confirmPanel = canvasElement.querySelector('[data-testid="delete-confirm-panel"]');
+      const innerButtons = confirmPanel ? Array.from(confirmPanel.querySelectorAll("button")) : [];
+      const cancelBtn = innerButtons.find((b) => (b.textContent || "").trim() === "Cancel");
+      expect(cancelBtn).toBeTruthy();
+    });
 
-    expect(spy).toHaveBeenCalledTimes(1);
-    expect(spy.mock.calls[0][0].detail.planId).toBe("plan-abc-123");
+    await step("confirming fires cts-delete-plan with the plan id", async () => {
+      const spy = fn();
+      canvasElement.addEventListener("cts-delete-plan", spy);
+      const confirmBtn = canvasElement.querySelector(".confirm-delete-btn button");
+      if (!confirmBtn) throw new Error("confirm-delete-btn inner button missing");
+      await userEvent.click(confirmBtn);
+
+      expect(spy).toHaveBeenCalledTimes(1);
+      expect(spy.mock.calls[0][0].detail.planId).toBe("plan-abc-123");
+    });
   },
 };
 
@@ -723,31 +742,37 @@ export const ActionsImmutablePlan = {
   render: () => html`
     <cts-plan-actions .plan=${PLAN_IMMUTABLE} is-admin is-readonly></cts-plan-actions>
   `,
-  async play({ canvasElement }) {
-    // Edit configuration should NOT be visible (readonly)
-    const editBtn = canvasElement.querySelector('[data-testid="edit-config-btn"]');
-    expect(editBtn).toBeNull();
+  async play({ canvasElement, step }) {
+    await step("readonly hides Edit configuration and Delete plan", async () => {
+      // Edit configuration should NOT be visible (readonly).
+      const editBtn = canvasElement.querySelector('[data-testid="edit-config-btn"]');
+      expect(editBtn).toBeNull();
 
-    // Delete plan should NOT be visible (immutable makes it hidden since readonly)
-    const deleteBtn = canvasElement.querySelector('[data-testid="delete-plan-btn"]');
-    expect(deleteBtn).toBeNull();
+      // Delete plan should NOT be visible (immutable makes it hidden since readonly).
+      const deleteBtn = canvasElement.querySelector('[data-testid="delete-plan-btn"]');
+      expect(deleteBtn).toBeNull();
+    });
 
-    // Make Mutable should be visible (admin + immutable)
-    const mutableBtnHost = canvasElement.querySelector('[data-testid="make-mutable-btn"]');
-    expect(mutableBtnHost).toBeTruthy();
-    expect(mutableBtnHost?.textContent).toContain("Make plan Mutable");
+    await step("Make Mutable is visible for admin + immutable", async () => {
+      const mutableBtnHost = canvasElement.querySelector('[data-testid="make-mutable-btn"]');
+      expect(mutableBtnHost).toBeTruthy();
+      expect(mutableBtnHost?.textContent).toContain("Make plan Mutable");
+    });
 
-    // Verify event fires on click (target the inner <button>)
-    const spy = fn();
-    canvasElement.addEventListener("cts-make-mutable", spy);
-    await userEvent.click(innerButton(canvasElement, "make-mutable-btn"));
+    await step("clicking Make Mutable fires cts-make-mutable", async () => {
+      // Target the inner <button>.
+      const spy = fn();
+      canvasElement.addEventListener("cts-make-mutable", spy);
+      await userEvent.click(innerButton(canvasElement, "make-mutable-btn"));
 
-    expect(spy).toHaveBeenCalledTimes(1);
-    expect(spy.mock.calls[0][0].detail.planId).toBe("plan-immutable-001");
+      expect(spy).toHaveBeenCalledTimes(1);
+      expect(spy.mock.calls[0][0].detail.planId).toBe("plan-immutable-001");
+    });
 
-    // View configuration should still be available
-    const viewConfigBtn = canvasElement.querySelector('[data-testid="view-config-btn"]');
-    expect(viewConfigBtn).toBeTruthy();
+    await step("View configuration remains available", async () => {
+      const viewConfigBtn = canvasElement.querySelector('[data-testid="view-config-btn"]');
+      expect(viewConfigBtn).toBeTruthy();
+    });
   },
 };
 
@@ -758,173 +783,185 @@ export const ActionsPublishedPlan = {
       is-admin
     ></cts-plan-actions>
   `,
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const canvas = within(canvasElement);
 
-    // Unpublish button visible (admin + published + not readonly)
-    const unpublishBtnHost = canvasElement.querySelector('[data-testid="unpublish-btn"]');
-    expect(unpublishBtnHost).toBeTruthy();
-    expect(unpublishBtnHost?.textContent).toContain("Unpublish");
+    await step("Unpublish is visible for an already-published plan", async () => {
+      // Admin + published + not readonly.
+      const unpublishBtnHost = canvasElement.querySelector('[data-testid="unpublish-btn"]');
+      expect(unpublishBtnHost).toBeTruthy();
+      expect(unpublishBtnHost?.textContent).toContain("Unpublish");
+    });
 
-    // Publish summary/everything should NOT be visible (already published)
-    const publishSummaryBtn = canvasElement.querySelector('[data-testid="publish-summary-btn"]');
-    expect(publishSummaryBtn).toBeNull();
-    const publishEverythingBtn = canvasElement.querySelector(
-      '[data-testid="publish-everything-btn"]',
-    );
-    expect(publishEverythingBtn).toBeNull();
+    await step("Publish summary/everything are hidden once published", async () => {
+      const publishSummaryBtn = canvasElement.querySelector('[data-testid="publish-summary-btn"]');
+      expect(publishSummaryBtn).toBeNull();
+      const publishEverythingBtn = canvasElement.querySelector(
+        '[data-testid="publish-everything-btn"]',
+      );
+      expect(publishEverythingBtn).toBeNull();
 
-    // Public link should be visible (rendered as a cts-link-button → <a>)
-    expect(canvas.getByText("Public link")).toBeInTheDocument();
+      // Public link should be visible (rendered as a cts-link-button → <a>).
+      expect(canvas.getByText("Public link")).toBeInTheDocument();
+    });
 
-    // Verify unpublish event (target the inner <button>)
-    const spy = fn();
-    canvasElement.addEventListener("cts-unpublish", spy);
-    await userEvent.click(innerButton(canvasElement, "unpublish-btn"));
+    await step("clicking Unpublish fires cts-unpublish", async () => {
+      // Target the inner <button>.
+      const spy = fn();
+      canvasElement.addEventListener("cts-unpublish", spy);
+      await userEvent.click(innerButton(canvasElement, "unpublish-btn"));
 
-    expect(spy).toHaveBeenCalledTimes(1);
-    expect(spy.mock.calls[0][0].detail.planId).toBe("plan-abc-123");
+      expect(spy).toHaveBeenCalledTimes(1);
+      expect(spy.mock.calls[0][0].detail.planId).toBe("plan-abc-123");
+    });
 
-    // Download all should be visible (admin)
-    const downloadAllBtn = canvasElement.querySelector('[data-testid="download-all-btn"]');
-    expect(downloadAllBtn).toBeTruthy();
+    await step("Download all is visible for admin", async () => {
+      const downloadAllBtn = canvasElement.querySelector('[data-testid="download-all-btn"]');
+      expect(downloadAllBtn).toBeTruthy();
+    });
   },
 };
 
 export const ActionsGenerateLinkResult = {
   render: () => html` <cts-plan-actions .plan=${MOCK_PLAN_DETAIL}></cts-plan-actions> `,
-  async play({ canvasElement }) {
-    // Open private link panel
-    await userEvent.click(innerButton(canvasElement, "private-link-btn"));
+  async play({ canvasElement, step }) {
+    await step("open the panel and set days to 7", async () => {
+      await userEvent.click(innerButton(canvasElement, "private-link-btn"));
+      await waitFor(() => {
+        const panel = canvasElement.querySelector('[data-testid="private-link-panel"]');
+        expect(panel).toBeTruthy();
+      });
 
-    await waitFor(() => {
-      const panel = canvasElement.querySelector('[data-testid="private-link-panel"]');
-      expect(panel).toBeTruthy();
+      const daysInput = canvasElement.querySelector("#privateLinkDays");
+      await userEvent.clear(daysInput);
+      await userEvent.type(daysInput, "7");
     });
 
-    // Set days to 7 (valid)
-    const daysInput = canvasElement.querySelector("#privateLinkDays");
-    await userEvent.clear(daysInput);
-    await userEvent.type(daysInput, "7");
+    await step("clicking Generate fires cts-generate-private-link", async () => {
+      // Listen for the generate event before clicking.
+      const spy = fn();
+      canvasElement.addEventListener("cts-generate-private-link", spy);
 
-    // Listen for the generate event before clicking
-    const spy = fn();
-    canvasElement.addEventListener("cts-generate-private-link", spy);
+      // Click Generate (target the inner <button>; cts-button host carries
+      // the .generate-link-btn class).
+      const generateInner = canvasElement.querySelector(".generate-link-btn button");
+      await waitFor(() => expect(generateInner?.disabled).toBe(false));
+      if (!generateInner) throw new Error("generate-link-btn inner <button> missing");
+      await userEvent.click(generateInner);
 
-    // Click Generate (target the inner <button>; cts-button host carries
-    // the .generate-link-btn class).
-    const generateInner = canvasElement.querySelector(".generate-link-btn button");
-    await waitFor(() => expect(generateInner?.disabled).toBe(false));
-    if (!generateInner) throw new Error("generate-link-btn inner <button> missing");
-    await userEvent.click(generateInner);
+      expect(spy).toHaveBeenCalledTimes(1);
+      const detail = spy.mock.calls[0][0].detail;
+      expect(detail.planId).toBe("plan-abc-123");
+      expect(detail.days).toBe(7);
+    });
 
-    expect(spy).toHaveBeenCalledTimes(1);
-    const detail = spy.mock.calls[0][0].detail;
-    expect(detail.planId).toBe("plan-abc-123");
-    expect(detail.days).toBe(7);
+    await step("parent wires the generated URL back into the component", async () => {
+      // The component never sets _privateLinkResult itself; the parent receives
+      // the cts-generate-private-link event, calls the server, and sets the URL
+      // on the element. This story exercises the full display path.
+      const el = canvasElement.querySelector("cts-plan-actions");
+      const generatedUrl =
+        "https://localhost.emobix.co.uk:8443/plan-detail.html?plan=plan-abc-123&token=mock-token-7d";
+      el._privateLinkResult = generatedUrl;
+      await el.requestUpdate();
 
-    // Simulate the parent wiring the result back into the component.
-    // The component never sets _privateLinkResult itself; the parent receives
-    // the cts-generate-private-link event, calls the server, and sets the URL
-    // on the element. This story exercises the full display path.
-    const el = canvasElement.querySelector("cts-plan-actions");
-    const generatedUrl =
-      "https://localhost.emobix.co.uk:8443/plan-detail.html?plan=plan-abc-123&token=mock-token-7d";
-    el._privateLinkResult = generatedUrl;
-    await el.requestUpdate();
-
-    await waitFor(() => {
-      const result = canvasElement.querySelector('[data-testid="private-link-result"]');
-      expect(result).toBeTruthy();
-      expect(result.textContent).toContain(generatedUrl);
+      await waitFor(() => {
+        const result = canvasElement.querySelector('[data-testid="private-link-result"]');
+        expect(result).toBeTruthy();
+        expect(result.textContent).toContain(generatedUrl);
+      });
     });
   },
 };
 
 export const ActionsDeletePlanCancel = {
   render: () => html` <cts-plan-actions .plan=${MOCK_PLAN_DETAIL}></cts-plan-actions> `,
-  async play({ canvasElement }) {
-    // Listen for delete event before any clicks — must NOT fire on cancel
+  async play({ canvasElement, step }) {
+    // Listen for delete event before any clicks — must NOT fire on cancel.
     const deleteSpy = fn();
     canvasElement.addEventListener("cts-delete-plan", deleteSpy);
 
-    // Open delete confirm panel (target the inner <button>)
-    await userEvent.click(innerButton(canvasElement, "delete-plan-btn"));
-
-    /** @type {Element | null | undefined} */
-    let confirmPanel;
-    await waitFor(() => {
-      confirmPanel = canvasElement.querySelector('[data-testid="delete-confirm-panel"]');
-      expect(confirmPanel).toBeTruthy();
-    });
-    if (!confirmPanel) throw new Error("delete-confirm-panel did not appear");
-
-    // Click Cancel — find the inner <button> whose visible text is "Cancel".
-    const cancelBtn = Array.from(confirmPanel.querySelectorAll("button")).find(
-      (b) => (b.textContent || "").trim() === "Cancel",
-    );
-    expect(cancelBtn).toBeTruthy();
-    if (!cancelBtn) throw new Error("Cancel button not found");
-    await userEvent.click(cancelBtn);
-
-    // Panel should close
-    await waitFor(() => {
-      expect(canvasElement.querySelector('[data-testid="delete-confirm-panel"]')).toBeNull();
+    await step("open the delete confirm panel", async () => {
+      // Target the inner <button>.
+      await userEvent.click(innerButton(canvasElement, "delete-plan-btn"));
+      await waitFor(() => {
+        expect(canvasElement.querySelector('[data-testid="delete-confirm-panel"]')).toBeTruthy();
+      });
     });
 
-    // No delete event fired
-    expect(deleteSpy).not.toHaveBeenCalled();
+    await step("Cancel closes the panel without firing cts-delete-plan", async () => {
+      const confirmPanel = canvasElement.querySelector('[data-testid="delete-confirm-panel"]');
+      if (!confirmPanel) throw new Error("delete-confirm-panel did not appear");
 
-    // Clicking the delete-plan trigger again re-opens the panel cleanly
-    // (regression guard against state leaking across cancel + reopen).
-    await userEvent.click(innerButton(canvasElement, "delete-plan-btn"));
-    await waitFor(() => {
-      expect(canvasElement.querySelector('[data-testid="delete-confirm-panel"]')).toBeTruthy();
+      // Find the inner <button> whose visible text is "Cancel".
+      const cancelBtn = Array.from(confirmPanel.querySelectorAll("button")).find(
+        (b) => (b.textContent || "").trim() === "Cancel",
+      );
+      expect(cancelBtn).toBeTruthy();
+      if (!cancelBtn) throw new Error("Cancel button not found");
+      await userEvent.click(cancelBtn);
+
+      await waitFor(() => {
+        expect(canvasElement.querySelector('[data-testid="delete-confirm-panel"]')).toBeNull();
+      });
+      expect(deleteSpy).not.toHaveBeenCalled();
     });
-    expect(deleteSpy).not.toHaveBeenCalled();
+
+    await step("re-clicking the trigger re-opens the panel cleanly", async () => {
+      // Regression guard against state leaking across cancel + reopen.
+      await userEvent.click(innerButton(canvasElement, "delete-plan-btn"));
+      await waitFor(() => {
+        expect(canvasElement.querySelector('[data-testid="delete-confirm-panel"]')).toBeTruthy();
+      });
+      expect(deleteSpy).not.toHaveBeenCalled();
+    });
   },
 };
 
 export const ActionsCopyConfig = {
   render: () => html` <cts-plan-actions .plan=${PLAN_WITH_CONFIG}></cts-plan-actions> `,
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     // Spy on navigator.clipboard.writeText. Headless Chromium denies real
     // clipboard writes (NotAllowedError + "document not focused"), so the
     // spy both observes the call and replaces the implementation.
     // restoreMocks: true in vitest.config.js handles teardown.
     const mockWriteText = spyOn(navigator.clipboard, "writeText").mockResolvedValue();
 
-    // Open the config panel (target the inner <button>)
-    await userEvent.click(innerButton(canvasElement, "view-config-btn"));
-
-    await waitFor(() => {
-      const panel = canvasElement.querySelector('[data-testid="config-panel"]');
-      expect(panel).toBeTruthy();
+    await step("open the config panel", async () => {
+      // Target the inner <button>.
+      await userEvent.click(innerButton(canvasElement, "view-config-btn"));
+      await waitFor(() => {
+        const panel = canvasElement.querySelector('[data-testid="config-panel"]');
+        expect(panel).toBeTruthy();
+      });
     });
 
-    // Click the Copy button inside the panel (cts-button host carries
-    // the .copy-config-btn class; click the inner <button>).
-    const copyHost = canvasElement.querySelector(".copy-config-btn");
-    expect(copyHost).toBeTruthy();
-    const copyInner = copyHost?.querySelector("button");
-    expect(copyInner).toBeTruthy();
-    if (!copyInner) throw new Error("copy-config-btn inner <button> missing");
-    await userEvent.click(copyInner);
-
-    // Clipboard should have been called once with pretty-printed JSON.
-    // _handleCopyConfig is async and awaits writeText, so wait for the
-    // spy rather than asserting synchronously after the click.
-    await waitFor(() => {
-      expect(mockWriteText).toHaveBeenCalledOnce();
+    await step("click the Copy button", async () => {
+      // cts-button host carries the .copy-config-btn class; click the inner
+      // <button>.
+      const copyHost = canvasElement.querySelector(".copy-config-btn");
+      expect(copyHost).toBeTruthy();
+      const copyInner = copyHost?.querySelector("button");
+      expect(copyInner).toBeTruthy();
+      if (!copyInner) throw new Error("copy-config-btn inner <button> missing");
+      await userEvent.click(copyInner);
     });
-    const written = mockWriteText.mock.calls[0][0];
-    expect(written).toBe(JSON.stringify(PLAN_WITH_CONFIG.config, null, 4));
+
+    await step("clipboard receives pretty-printed config JSON", async () => {
+      // _handleCopyConfig is async and awaits writeText, so wait for the
+      // spy rather than asserting synchronously after the click.
+      await waitFor(() => {
+        expect(mockWriteText).toHaveBeenCalledOnce();
+      });
+      const written = mockWriteText.mock.calls[0][0];
+      expect(written).toBe(JSON.stringify(PLAN_WITH_CONFIG.config, null, 4));
+    });
   },
 };
 
 export const ActionsCopyConfigClipboardFailure = {
   render: () => html` <cts-plan-actions .plan=${PLAN_WITH_CONFIG}></cts-plan-actions> `,
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     // Spy with a rejecting implementation — simulates permissions-denied /
     // insecure-context. restoreMocks: true in vitest.config.js auto-restores
     // the original method after the test.
@@ -932,32 +969,37 @@ export const ActionsCopyConfigClipboardFailure = {
       new Error("permission denied"),
     );
 
-    // Open the config panel (target the inner <button>)
-    await userEvent.click(innerButton(canvasElement, "view-config-btn"));
+    await step("open the config panel and click Copy", async () => {
+      // Target the inner <button>.
+      await userEvent.click(innerButton(canvasElement, "view-config-btn"));
+      await waitFor(() => {
+        expect(canvasElement.querySelector('[data-testid="config-panel"]')).toBeTruthy();
+      });
 
-    await waitFor(() => {
-      expect(canvasElement.querySelector('[data-testid="config-panel"]')).toBeTruthy();
+      const copyInner = canvasElement.querySelector(".copy-config-btn button");
+      if (!copyInner) throw new Error("copy-config-btn inner <button> missing");
+      await userEvent.click(copyInner);
     });
 
-    const copyInner = canvasElement.querySelector(".copy-config-btn button");
-    if (!copyInner) throw new Error("copy-config-btn inner <button> missing");
-    await userEvent.click(copyInner);
-
-    // Anchor the failure-path assertion on the spy first (testing-reviewer
-    // T6): a regression that silently no-ops the click could still render
-    // unrelated feedback, so we want writeText itself as the ground truth
-    // before checking the user-visible copy-failed message.
-    await waitFor(() => {
-      expect(writeTextSpy).toHaveBeenCalledOnce();
+    await step("writeText was actually attempted", async () => {
+      // Anchor the failure-path assertion on the spy first (testing-reviewer
+      // T6): a regression that silently no-ops the click could still render
+      // unrelated feedback, so we want writeText itself as the ground truth
+      // before checking the user-visible copy-failed message.
+      await waitFor(() => {
+        expect(writeTextSpy).toHaveBeenCalledOnce();
+      });
     });
 
-    // Failure feedback should render in the same flex container as Copy,
-    // announced politely so SRs read it without interrupting.
-    await waitFor(() => {
-      const feedback = canvasElement.querySelector('[data-testid="copy-feedback"]');
-      expect(feedback).toBeTruthy();
-      expect(feedback?.textContent).toContain("Copy failed");
-      expect(feedback?.getAttribute("aria-live")).toBe("polite");
+    await step("copy-failed feedback renders and is announced politely", async () => {
+      // Failure feedback should render in the same flex container as Copy,
+      // announced politely so SRs read it without interrupting.
+      await waitFor(() => {
+        const feedback = canvasElement.querySelector('[data-testid="copy-feedback"]');
+        expect(feedback).toBeTruthy();
+        expect(feedback?.textContent).toContain("Copy failed");
+        expect(feedback?.getAttribute("aria-live")).toBe("polite");
+      });
     });
   },
 };
@@ -1070,61 +1112,70 @@ export const CertificationSubmissionModal = {
     </div>
   `,
 
-  async play({ canvasElement }) {
-    // Open the modal.
-    const openBtn = canvasElement.querySelector(".oidf-btn-primary");
-    await userEvent.click(openBtn);
-    const dialog = /** @type {HTMLDialogElement} */ (
-      canvasElement.querySelector("dialog.oidf-modal")
-    );
-    await waitFor(() => expect(dialog.open).toBe(true));
+  async play({ canvasElement, step }) {
+    await step("clicking the trigger opens the modal", async () => {
+      const openBtn = canvasElement.querySelector(".oidf-btn-primary");
+      await userEvent.click(openBtn);
+      const dialog = /** @type {HTMLDialogElement} */ (
+        canvasElement.querySelector("dialog.oidf-modal")
+      );
+      await waitFor(() => expect(dialog.open).toBe(true));
+    });
 
-    // Modal renders the certification heading and the Client data upload field.
-    expect(canvasElement.querySelector(".oidf-modal-title")?.textContent).toBe(
-      "Prepare Certification Submission Package",
-    );
-    const input = /** @type {HTMLInputElement} */ (
-      canvasElement.querySelector("#storyClientSideData")
-    );
-    expect(input).toBeTruthy();
+    await step("modal renders the heading and Client data upload field", async () => {
+      expect(canvasElement.querySelector(".oidf-modal-title")?.textContent).toBe(
+        "Prepare Certification Submission Package",
+      );
+      const input = canvasElement.querySelector("#storyClientSideData");
+      expect(input).toBeTruthy();
+    });
 
-    // Action buttons render their cts-button inner-button variant classes
-    // (AGENTS.md §6: assert the inner <button>, not the cts-button host).
-    const actionButtons = canvasElement.querySelectorAll(".oidf-cert-package-actions cts-button");
-    expect(actionButtons.length).toBe(2);
-    const cancelInner = actionButtons[0].querySelector("button");
-    const createInner = actionButtons[1].querySelector("button");
-    expect(cancelInner?.textContent?.trim()).toBe("Cancel");
-    expect(cancelInner?.classList.contains("oidf-btn-secondary")).toBe(true);
-    expect(createInner?.textContent?.trim()).toBe("Create Certification Package");
-    expect(createInner?.classList.contains("oidf-btn-primary")).toBe(true);
+    await step("action buttons render their cts-button variant classes", async () => {
+      // AGENTS.md §6: assert the inner <button>, not the cts-button host.
+      const actionButtons = canvasElement.querySelectorAll(".oidf-cert-package-actions cts-button");
+      expect(actionButtons.length).toBe(2);
+      const cancelInner = actionButtons[0].querySelector("button");
+      const createInner = actionButtons[1].querySelector("button");
+      expect(cancelInner?.textContent?.trim()).toBe("Cancel");
+      expect(cancelInner?.classList.contains("oidf-btn-secondary")).toBe(true);
+      expect(createInner?.textContent?.trim()).toBe("Create Certification Package");
+      expect(createInner?.classList.contains("oidf-btn-primary")).toBe(true);
+    });
 
-    // Simulate choosing a zip with a very long name in the upload field — the
-    // exact edge case that overflows in Firefox. (Chromium truncates the
-    // filename, so this documents the flow rather than reproducing overflow.)
-    const longName =
-      "test-log-fapi2-security-profile-final-ensure-authorization-request-without-state-success-private_key_jwt-mtls-additional-client-data.zip";
-    await userEvent.upload(input, new File(["dummy"], longName, { type: "application/zip" }));
-    await waitFor(() => expect(input.files?.length).toBe(1));
-    const files = input.files;
-    if (!files) throw new Error("file input has no FileList after upload");
-    expect(files[0].name).toBe(longName);
+    await step("uploading a very long filename is accepted", async () => {
+      // The exact edge case that overflows in Firefox. (Chromium truncates the
+      // filename, so this documents the flow rather than reproducing overflow.)
+      const input = /** @type {HTMLInputElement} */ (
+        canvasElement.querySelector("#storyClientSideData")
+      );
+      const longName =
+        "test-log-fapi2-security-profile-final-ensure-authorization-request-without-state-success-private_key_jwt-mtls-additional-client-data.zip";
+      await userEvent.upload(input, new File(["dummy"], longName, { type: "application/zip" }));
+      await waitFor(() => expect(input.files?.length).toBe(1));
+      const files = input.files;
+      if (!files) throw new Error("file input has no FileList after upload");
+      expect(files[0].name).toBe(longName);
+    });
 
-    // The shared /css/cert-package.css is loaded and applied to the file
-    // control: box-sizing:border-box is set only by that stylesheet's fix rule
-    // (the UA default is content-box), so this is a non-vacuous guard that the
-    // no-drift wiring works and the rule is present — it fails if the rule is
-    // removed or cert-package.css stops loading. The control also fills its row
-    // (display:block + width:100%). This is a wiring/rendering guard, NOT a
-    // Firefox-overflow regression test: Chromium truncates the filename so the
-    // control never grows here, and the overflow fix was verified cross-browser
-    // by hand. offsetWidth (a layout metric) is used because the dialog's entry
-    // animation transiently scales the dialog, which would skew client rects.
-    const style = getComputedStyle(input);
-    expect(style.boxSizing).toBe("border-box");
-    expect(style.display).toBe("block");
-    const row = /** @type {HTMLElement} */ (input.closest(".top10") ?? input.parentElement);
-    expect(Math.abs(input.offsetWidth - row.clientWidth)).toBeLessThanOrEqual(1);
+    await step("shared cert-package.css is applied to the file control", async () => {
+      // box-sizing:border-box is set only by that stylesheet's fix rule
+      // (the UA default is content-box), so this is a non-vacuous guard that the
+      // no-drift wiring works and the rule is present — it fails if the rule is
+      // removed or cert-package.css stops loading. The control also fills its row
+      // (display:block + width:100%). This is a wiring/rendering guard, NOT a
+      // Firefox-overflow regression test: Chromium truncates the filename so the
+      // control never grows here, and the overflow fix was verified cross-browser
+      // by hand. offsetWidth (a layout metric) is used because the dialog's entry
+      // animation transiently scales the dialog, which would skew client rects.
+      const input = /** @type {HTMLInputElement} */ (
+        canvasElement.querySelector("#storyClientSideData")
+      );
+      const style = getComputedStyle(input);
+      expect(style.boxSizing).toBe("border-box");
+      expect(style.display).toBe("block");
+      const row = /** @type {HTMLElement} */ (input.closest(".top10") ?? input.parentElement);
+      expect(Math.abs(input.offsetWidth - row.clientWidth)).toBeLessThanOrEqual(1);
+    });
   },
 };
 

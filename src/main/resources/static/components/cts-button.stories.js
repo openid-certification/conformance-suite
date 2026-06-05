@@ -38,17 +38,22 @@ export const Default = {
       ?disabled="${disabled}"
     ></cts-button>`,
 
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const btn = canvasElement.querySelector("button");
     expect(btn).toBeTruthy();
-    expect(btn.classList.contains("oidf-btn")).toBe(true);
-    expect(btn.classList.contains("oidf-btn-sm")).toBe(true);
-    expect(btn.classList.contains("oidf-btn-secondary")).toBe(true);
-    expect(btn.disabled).toBe(false);
-    expect(btn.textContent.trim()).toBe("Cancel");
-    // Ensure the legacy Bootstrap btn classes are no longer rendered.
-    expect(btn.classList.contains("btn")).toBe(false);
-    expect(btn.classList.contains("btn-light")).toBe(false);
+
+    await step("renders the new OIDF button classes and content", async () => {
+      expect(btn.classList.contains("oidf-btn")).toBe(true);
+      expect(btn.classList.contains("oidf-btn-sm")).toBe(true);
+      expect(btn.classList.contains("oidf-btn-secondary")).toBe(true);
+      expect(btn.disabled).toBe(false);
+      expect(btn.textContent.trim()).toBe("Cancel");
+    });
+
+    await step("legacy Bootstrap btn classes are no longer rendered", async () => {
+      expect(btn.classList.contains("btn")).toBe(false);
+      expect(btn.classList.contains("btn-light")).toBe(false);
+    });
   },
 };
 
@@ -63,16 +68,21 @@ export const SecondaryWithIcon = {
       ?disabled="${disabled}"
     ></cts-button>`,
 
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const btn = canvasElement.querySelector("button");
     expect(btn).toBeTruthy();
-    expect(btn.classList.contains("oidf-btn")).toBe(true);
-    expect(btn.classList.contains("oidf-btn-secondary")).toBe(true);
 
-    const iconEl = btn.querySelector("cts-icon");
-    expect(iconEl).toBeTruthy();
-    expect(iconEl.getAttribute("name")).toBe("settings");
-    expect(iconEl.getAttribute("aria-hidden")).toBe("true");
+    await step("renders the secondary button classes", async () => {
+      expect(btn.classList.contains("oidf-btn")).toBe(true);
+      expect(btn.classList.contains("oidf-btn-secondary")).toBe(true);
+    });
+
+    await step("renders the icon glyph", async () => {
+      const iconEl = btn.querySelector("cts-icon");
+      expect(iconEl).toBeTruthy();
+      expect(iconEl.getAttribute("name")).toBe("settings");
+      expect(iconEl.getAttribute("aria-hidden")).toBe("true");
+    });
   },
 };
 
@@ -87,15 +97,20 @@ export const Primary = {
       ?disabled="${disabled}"
     ></cts-button>`,
 
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const btn = canvasElement.querySelector("button");
     expect(btn).toBeTruthy();
-    expect(btn.classList.contains("oidf-btn")).toBe(true);
-    expect(btn.classList.contains("oidf-btn-primary")).toBe(true);
 
-    const iconEl = btn.querySelector("cts-icon");
-    expect(iconEl).toBeTruthy();
-    expect(iconEl.getAttribute("name")).toBe("search-magnifying-glass");
+    await step("renders the primary button classes", async () => {
+      expect(btn.classList.contains("oidf-btn")).toBe(true);
+      expect(btn.classList.contains("oidf-btn-primary")).toBe(true);
+    });
+
+    await step("renders the icon glyph", async () => {
+      const iconEl = btn.querySelector("cts-icon");
+      expect(iconEl).toBeTruthy();
+      expect(iconEl.getAttribute("name")).toBe("search-magnifying-glass");
+    });
   },
 };
 
@@ -129,15 +144,20 @@ export const Danger = {
       ?disabled="${disabled}"
     ></cts-button>`,
 
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const btn = canvasElement.querySelector("button");
     expect(btn).toBeTruthy();
-    expect(btn.classList.contains("oidf-btn")).toBe(true);
-    expect(btn.classList.contains("oidf-btn-danger")).toBe(true);
 
-    const iconEl = btn.querySelector("cts-icon");
-    expect(iconEl).toBeTruthy();
-    expect(iconEl.getAttribute("name")).toBe("trash-empty");
+    await step("renders the danger button classes", async () => {
+      expect(btn.classList.contains("oidf-btn")).toBe(true);
+      expect(btn.classList.contains("oidf-btn-danger")).toBe(true);
+    });
+
+    await step("renders the icon glyph", async () => {
+      const iconEl = btn.querySelector("cts-icon");
+      expect(iconEl).toBeTruthy();
+      expect(iconEl.getAttribute("name")).toBe("trash-empty");
+    });
   },
 };
 
@@ -151,21 +171,27 @@ export const Loading = {
       ?disabled="${disabled}"
     ></cts-button>`,
 
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const btn = canvasElement.querySelector("button");
     expect(btn).toBeTruthy();
-    expect(btn.disabled).toBe(true);
 
-    // Loading indicator is now an inline SVG spinner — no more Bootstrap
-    // spinner-border markup.
-    const spinner = btn.querySelector("svg.oidf-btn-spinner");
-    expect(spinner).toBeTruthy();
-    expect(spinner.getAttribute("role")).toBe("status");
-    expect(spinner.getAttribute("aria-hidden")).toBe("true");
-    expect(btn.querySelector("span.spinner-border")).toBeNull();
+    await step("loading disables the button", async () => {
+      expect(btn.disabled).toBe(true);
+    });
 
-    // No glyph icon renders while the spinner is showing.
-    expect(btn.querySelector("cts-icon")).toBeNull();
+    await step("renders an inline SVG spinner, not Bootstrap markup", async () => {
+      // Loading indicator is now an inline SVG spinner — no more Bootstrap
+      // spinner-border markup.
+      const spinner = btn.querySelector("svg.oidf-btn-spinner");
+      expect(spinner).toBeTruthy();
+      expect(spinner.getAttribute("role")).toBe("status");
+      expect(spinner.getAttribute("aria-hidden")).toBe("true");
+      expect(btn.querySelector("span.spinner-border")).toBeNull();
+    });
+
+    await step("no glyph icon renders while the spinner is showing", async () => {
+      expect(btn.querySelector("cts-icon")).toBeNull();
+    });
   },
 };
 
@@ -196,17 +222,19 @@ export const ClickEvent = {
       ?disabled="${disabled}"
     ></cts-button>`,
 
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const btn = canvasElement.querySelector("button");
     expect(btn).toBeTruthy();
 
-    let eventFired = false;
-    canvasElement.addEventListener("cts-click", () => {
-      eventFired = true;
-    });
+    await step("clicking the button dispatches cts-click", async () => {
+      let eventFired = false;
+      canvasElement.addEventListener("cts-click", () => {
+        eventFired = true;
+      });
 
-    await userEvent.click(btn);
-    expect(eventFired).toBe(true);
+      await userEvent.click(btn);
+      expect(eventFired).toBe(true);
+    });
   },
 };
 
@@ -224,7 +252,7 @@ export const HostClickDoesNotDispatch = {
   render: ({ variant, label }) =>
     html`<cts-button variant="${variant}" label="${label}"></cts-button>`,
 
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const host = canvasElement.querySelector("cts-button");
     await host.updateComplete;
     const btn = host.querySelector("button");
@@ -237,13 +265,17 @@ export const HostClickDoesNotDispatch = {
       ctsClickCount += 1;
     });
 
-    // Synthetic click on the host bypasses Lit's @click on the inner button.
-    host.click();
-    expect(ctsClickCount).toBe(0);
+    await step("synthetic host.click() is a no-op", async () => {
+      // Synthetic click on the host bypasses Lit's @click on the inner button.
+      host.click();
+      expect(ctsClickCount).toBe(0);
+    });
 
-    // Clicking the inner button (what a real user hits) dispatches cts-click.
-    btn.click();
-    expect(ctsClickCount).toBe(1);
+    await step("clicking the inner button dispatches cts-click", async () => {
+      // Clicking the inner button (what a real user hits) dispatches cts-click.
+      btn.click();
+      expect(ctsClickCount).toBe(1);
+    });
   },
 };
 
@@ -257,19 +289,23 @@ export const DisabledNoEvent = {
       ?disabled="${disabled}"
     ></cts-button>`,
 
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const btn = canvasElement.querySelector("button");
     expect(btn).toBeTruthy();
-    expect(btn.disabled).toBe(true);
 
-    let eventFired = false;
-    canvasElement.addEventListener("cts-click", () => {
-      eventFired = true;
+    await step("the button is disabled", async () => {
+      expect(btn.disabled).toBe(true);
     });
 
-    // Click a disabled button — userEvent should not trigger the click handler
-    await userEvent.click(btn, { pointerEventsCheck: 0 });
-    expect(eventFired).toBe(false);
+    await step("clicking a disabled button does not dispatch cts-click", async () => {
+      let eventFired = false;
+      canvasElement.addEventListener("cts-click", () => {
+        eventFired = true;
+      });
+
+      await userEvent.click(btn, { pointerEventsCheck: 0 });
+      expect(eventFired).toBe(false);
+    });
   },
 };
 
@@ -452,21 +488,23 @@ export const SizeFallback = {
 export const VariantPropertySetter = {
   render: () => html` <cts-button variant="secondary" label="Change me"></cts-button> `,
 
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const host = canvasElement.querySelector("cts-button");
     await host.updateComplete;
-
-    // Verify initial state — inner button has oidf-btn-secondary
     const btn = host.querySelector("button");
-    expect(btn.classList.contains("oidf-btn-secondary")).toBe(true);
-    expect(btn.classList.contains("oidf-btn-primary")).toBe(false);
 
-    // Use the property setter (the correct integration pattern)
-    host.variant = "primary";
-    await host.updateComplete;
+    await step("initial state — inner button has oidf-btn-secondary", async () => {
+      expect(btn.classList.contains("oidf-btn-secondary")).toBe(true);
+      expect(btn.classList.contains("oidf-btn-primary")).toBe(false);
+    });
 
-    // Inner button now reflects the new variant
-    expect(btn.classList.contains("oidf-btn-primary")).toBe(true);
-    expect(btn.classList.contains("oidf-btn-secondary")).toBe(false);
+    await step("setting the .variant property updates the inner button", async () => {
+      // Use the property setter (the correct integration pattern).
+      host.variant = "primary";
+      await host.updateComplete;
+
+      expect(btn.classList.contains("oidf-btn-primary")).toBe(true);
+      expect(btn.classList.contains("oidf-btn-secondary")).toBe(false);
+    });
   },
 };

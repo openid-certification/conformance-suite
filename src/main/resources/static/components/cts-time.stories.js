@@ -138,15 +138,19 @@ export const LayoutNeutral = {
 export const ReactiveUpdate = {
   render: () => html`<cts-time value=${FIXED} mode="time-of-day"></cts-time>`,
 
-  async play({ canvasElement }) {
-    const host = /** @type {HTMLElement & { mode: string; updateComplete: Promise<unknown> } } */ (
-      canvasElement.querySelector("cts-time")
-    );
-    expect(getTimeEl(canvasElement)?.textContent?.trim()).toBe(formatTimeOfDay(FIXED));
+  async play({ canvasElement, step }) {
+    await step("initial mode renders the time-of-day text", async () => {
+      expect(getTimeEl(canvasElement)?.textContent?.trim()).toBe(formatTimeOfDay(FIXED));
+    });
 
-    // Flipping mode re-renders the visible text without a full remount.
-    host.mode = "absolute";
-    await host.updateComplete;
-    expect(getTimeEl(canvasElement)?.textContent?.trim()).toBe(formatAbsolute(FIXED));
+    await step("flipping mode re-renders the visible text without a full remount", async () => {
+      const host =
+        /** @type {HTMLElement & { mode: string; updateComplete: Promise<unknown> } } */ (
+          canvasElement.querySelector("cts-time")
+        );
+      host.mode = "absolute";
+      await host.updateComplete;
+      expect(getTimeEl(canvasElement)?.textContent?.trim()).toBe(formatAbsolute(FIXED));
+    });
   },
 };

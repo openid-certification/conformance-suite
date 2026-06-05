@@ -21,38 +21,45 @@ export const Default = {
   },
   render: () => html`<cts-footer></cts-footer>`,
 
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const canvas = within(canvasElement);
 
-    // The static brand line renders immediately, independent of the fetch.
-    expect(canvas.getByText("OpenID Foundation conformance suite")).toBeInTheDocument();
+    await step("static brand line renders immediately, independent of the fetch", async () => {
+      expect(canvas.getByText("OpenID Foundation conformance suite")).toBeInTheDocument();
+    });
 
-    // Server info appears once the fetch resolves.
-    await waitFor(
-      () => {
-        expect(canvas.getByText(/Version:/)).toBeInTheDocument();
+    await step("server info appears once the fetch resolves", async () => {
+      await waitFor(
+        () => {
+          expect(canvas.getByText(/Version:/)).toBeInTheDocument();
+        },
+        { timeout: 3000 },
+      );
+    });
+
+    await step("every SERVER_INFO_LABELS field renders with the fixture value", async () => {
+      const fields = [
+        ["external_ip", MOCK_SERVER_INFO.external_ip],
+        ["version", MOCK_SERVER_INFO.version],
+        ["revision", MOCK_SERVER_INFO.revision],
+        ["tag", MOCK_SERVER_INFO.tag],
+        ["build_time", MOCK_SERVER_INFO.build_time],
+      ];
+      for (const [key, value] of fields) {
+        const el = canvasElement.querySelector(`#serverinfo-${key}`);
+        expect(el).toBeTruthy();
+        expect(el.textContent).toBe(value);
+      }
+    });
+
+    await step(
+      "footer carries the .t-meta token class so type stays on the design scale",
+      async () => {
+        const footer = canvasElement.querySelector("footer.oidf-footer");
+        expect(footer).toBeTruthy();
+        expect(footer.classList.contains("t-meta")).toBe(true);
       },
-      { timeout: 3000 },
     );
-
-    // Every SERVER_INFO_LABELS field renders with the fixture value.
-    const fields = [
-      ["external_ip", MOCK_SERVER_INFO.external_ip],
-      ["version", MOCK_SERVER_INFO.version],
-      ["revision", MOCK_SERVER_INFO.revision],
-      ["tag", MOCK_SERVER_INFO.tag],
-      ["build_time", MOCK_SERVER_INFO.build_time],
-    ];
-    for (const [key, value] of fields) {
-      const el = canvasElement.querySelector(`#serverinfo-${key}`);
-      expect(el).toBeTruthy();
-      expect(el.textContent).toBe(value);
-    }
-
-    // Footer carries the .t-meta token class so type stays on the design scale.
-    const footer = canvasElement.querySelector("footer.oidf-footer");
-    expect(footer).toBeTruthy();
-    expect(footer.classList.contains("t-meta")).toBe(true);
   },
 };
 
@@ -66,7 +73,7 @@ export const ServerInfoError = {
   },
   render: () => html`<cts-footer></cts-footer>`,
 
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const canvas = within(canvasElement);
 
     const warnSpy = fn();
@@ -74,28 +81,34 @@ export const ServerInfoError = {
     console.warn = warnSpy;
 
     try {
-      // The static brand line is always present, even on the error path.
-      expect(canvas.getByText("OpenID Foundation conformance suite")).toBeInTheDocument();
+      await step("static brand line is always present, even on the error path", async () => {
+        expect(canvas.getByText("OpenID Foundation conformance suite")).toBeInTheDocument();
+      });
 
-      // After the fetch rejects, the serverInfo container exists but stays empty.
-      await waitFor(
-        () => {
-          const serverInfoDiv = canvasElement.querySelector(".serverInfo");
-          expect(serverInfoDiv).toBeTruthy();
-          expect(serverInfoDiv.querySelector("#serverinfo-version")).toBeNull();
+      await step(
+        "after the fetch rejects, the serverInfo container exists but stays empty",
+        async () => {
+          await waitFor(
+            () => {
+              const serverInfoDiv = canvasElement.querySelector(".serverInfo");
+              expect(serverInfoDiv).toBeTruthy();
+              expect(serverInfoDiv.querySelector("#serverinfo-version")).toBeNull();
+            },
+            { timeout: 3000 },
+          );
+
+          // No server-info field rendered at all.
+          expect(canvasElement.querySelector('[id^="serverinfo-"]')).toBeNull();
         },
-        { timeout: 3000 },
       );
 
-      // No server-info field rendered at all.
-      expect(canvasElement.querySelector('[id^="serverinfo-"]')).toBeNull();
-
-      // The 500 produced a diagnostic warn naming the component + endpoint.
-      await waitFor(() => {
-        expect(warnSpy).toHaveBeenCalled();
-        const joined = warnSpy.mock.calls.flat().join(" ");
-        expect(joined).toContain("cts-footer");
-        expect(joined).toContain("/api/server");
+      await step("the 500 produced a diagnostic warn naming the component + endpoint", async () => {
+        await waitFor(() => {
+          expect(warnSpy).toHaveBeenCalled();
+          const joined = warnSpy.mock.calls.flat().join(" ");
+          expect(joined).toContain("cts-footer");
+          expect(joined).toContain("/api/server");
+        });
       });
     } finally {
       console.warn = origWarn;

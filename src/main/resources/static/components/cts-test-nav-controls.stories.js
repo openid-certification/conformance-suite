@@ -34,42 +34,48 @@ export const MidPlan = {
       .totalCount=${30}
       .nextEnabled=${true}
     ></cts-test-nav-controls>`,
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const canvas = within(canvasElement);
     await waitFor(() => {
       expect(canvas.getByText("Module 6 of 30")).toBeInTheDocument();
     });
 
-    // Scope eyebrow disambiguates the count — closes MR 1998 A4
-    // (thomasdarimont): "the progress bar... doesn't show the current
-    // test progress but rather the progress from the overall testplan."
-    expect(canvas.getByText("Plan progress:")).toBeInTheDocument();
+    await step("scope eyebrow disambiguates the count", async () => {
+      // Closes MR 1998 A4 (thomasdarimont): "the progress bar... doesn't
+      // show the current test progress but rather the progress from the
+      // overall testplan."
+      expect(canvas.getByText("Plan progress:")).toBeInTheDocument();
+    });
 
-    // Group is semantically labelled
-    const group = canvasElement.querySelector('[role="group"]');
-    expect(group).toBeTruthy();
-    expect(group.getAttribute("aria-label")).toBe("Test plan navigation");
+    await step("group is semantically labelled", async () => {
+      const group = canvasElement.querySelector('[role="group"]');
+      expect(group).toBeTruthy();
+      expect(group.getAttribute("aria-label")).toBe("Test plan navigation");
+    });
 
-    // Progress bar uses 1-based aria values
-    const progressBar = canvasElement.querySelector('[role="progressbar"]');
-    expect(progressBar).toBeTruthy();
-    expect(progressBar.getAttribute("aria-valuenow")).toBe("6");
-    expect(progressBar.getAttribute("aria-valuemin")).toBe("1");
-    expect(progressBar.getAttribute("aria-valuemax")).toBe("30");
+    await step("progress bar uses 1-based aria values", async () => {
+      const progressBar = canvasElement.querySelector('[role="progressbar"]');
+      expect(progressBar).toBeTruthy();
+      expect(progressBar.getAttribute("aria-valuenow")).toBe("6");
+      expect(progressBar.getAttribute("aria-valuemin")).toBe("1");
+      expect(progressBar.getAttribute("aria-valuemax")).toBe("30");
+    });
 
-    // All three controls present (default / non-slim mode — the
-    // widget's full contract; the live log-detail page consumes the
-    // slim variant via cts-log-detail-header).
-    expect(canvas.getByText(/Return to Plan/)).toBeInTheDocument();
-    expect(canvas.getByText(/Repeat Test/)).toBeInTheDocument();
-    expect(canvas.getByText(/Continue Plan/)).toBeInTheDocument();
+    await step("all three controls present in default (non-slim) mode", async () => {
+      // The widget's full contract; the live log-detail page consumes the
+      // slim variant via cts-log-detail-header.
+      expect(canvas.getByText(/Return to Plan/)).toBeInTheDocument();
+      expect(canvas.getByText(/Repeat Test/)).toBeInTheDocument();
+      expect(canvas.getByText(/Continue Plan/)).toBeInTheDocument();
+    });
 
-    // Return to Plan link href is correctly encoded
-    const backLink = innerLink(canvasElement, "back-btn");
-    expect(backLink).toBeTruthy();
-    expect(backLink.getAttribute("href")).toBe(
-      `plan-detail.html?plan=${encodeURIComponent(PLAN_ID)}`,
-    );
+    await step("Return to Plan link href is correctly encoded", async () => {
+      const backLink = innerLink(canvasElement, "back-btn");
+      expect(backLink).toBeTruthy();
+      expect(backLink.getAttribute("href")).toBe(
+        `plan-detail.html?plan=${encodeURIComponent(PLAN_ID)}`,
+      );
+    });
   },
 };
 
@@ -161,16 +167,20 @@ export const FirstModule = {
       .totalCount=${30}
       .nextEnabled=${true}
     ></cts-test-nav-controls>`,
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const canvas = within(canvasElement);
     await waitFor(() => {
       expect(canvas.getByText("Module 1 of 30")).toBeInTheDocument();
     });
 
-    const progressBar = canvasElement.querySelector('[role="progressbar"]');
-    expect(progressBar.getAttribute("aria-valuenow")).toBe("1");
+    await step("progress bar reports the first module", async () => {
+      const progressBar = canvasElement.querySelector('[role="progressbar"]');
+      expect(progressBar.getAttribute("aria-valuenow")).toBe("1");
+    });
 
-    expect(canvas.getByText(/Continue Plan/)).toBeInTheDocument();
+    await step("Continue control is present", async () => {
+      expect(canvas.getByText(/Continue Plan/)).toBeInTheDocument();
+    });
   },
 };
 
@@ -269,17 +279,21 @@ export const ProgressClampsOutOfRangeIndex = {
       .totalCount=${30}
       .nextEnabled=${false}
     ></cts-test-nav-controls>`,
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const canvas = within(canvasElement);
-    await waitFor(() => {
-      // Defensive against transient props during page load — clamp at
-      // total instead of overflowing to "Module 51 of 30".
-      expect(canvas.getByText("Module 30 of 30")).toBeInTheDocument();
+    await step("count text clamps at the total", async () => {
+      await waitFor(() => {
+        // Defensive against transient props during page load — clamp at
+        // total instead of overflowing to "Module 51 of 30".
+        expect(canvas.getByText("Module 30 of 30")).toBeInTheDocument();
+      });
     });
 
-    const progressBar = canvasElement.querySelector('[role="progressbar"]');
-    expect(progressBar.getAttribute("aria-valuenow")).toBe("30");
-    expect(progressBar.getAttribute("aria-valuemax")).toBe("30");
+    await step("progress bar aria values clamp at the total", async () => {
+      const progressBar = canvasElement.querySelector('[role="progressbar"]');
+      expect(progressBar.getAttribute("aria-valuenow")).toBe("30");
+      expect(progressBar.getAttribute("aria-valuemax")).toBe("30");
+    });
   },
 };
 
@@ -296,21 +310,24 @@ export const SlimMidPlan = {
       .nextEnabled=${true}
       slim
     ></cts-test-nav-controls>`,
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const canvas = within(canvasElement);
     await waitFor(() => {
       expect(canvas.getByText("Module 6 of 30")).toBeInTheDocument();
     });
 
-    // Scope eyebrow accompanies the count in slim mode too — the
-    // log-detail page is the live consumer of slim, so this is the
-    // shape Thomas saw in MR 1998's A4 screenshot.
-    expect(canvas.getByText("Plan progress:")).toBeInTheDocument();
+    await step("scope eyebrow accompanies the count in slim mode too", async () => {
+      // The log-detail page is the live consumer of slim, so this is the
+      // shape Thomas saw in MR 1998's A4 screenshot.
+      expect(canvas.getByText("Plan progress:")).toBeInTheDocument();
+    });
 
-    expect(canvasElement.querySelector('[data-testid="back-btn"]')).toBeNull();
-    expect(canvasElement.querySelector('[data-testid="repeat-btn"]')).toBeNull();
-    expect(canvasElement.querySelector('[data-testid="continue-btn"]')).toBeTruthy();
-    expect(canvas.getByText(/Continue Plan/)).toBeInTheDocument();
+    await step("only progress + Continue render in slim mode", async () => {
+      expect(canvasElement.querySelector('[data-testid="back-btn"]')).toBeNull();
+      expect(canvasElement.querySelector('[data-testid="repeat-btn"]')).toBeNull();
+      expect(canvasElement.querySelector('[data-testid="continue-btn"]')).toBeTruthy();
+      expect(canvas.getByText(/Continue Plan/)).toBeInTheDocument();
+    });
   },
 };
 

@@ -59,36 +59,40 @@ export const Actionable = {
   parameters: { msw: { handlers: logHandler(RUNS_WITH_BOTH) } },
   render: () => html`<cts-run-status-strip></cts-run-status-strip>`,
 
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const canvas = within(canvasElement);
-    await strip(canvasElement).fetchRuns();
 
-    await waitFor(() => {
-      expect(canvasElement.querySelector(".runStrip--actionable")).toBeTruthy();
+    await step("fetchRuns resolves into the actionable state", async () => {
+      await strip(canvasElement).fetchRuns();
+      await waitFor(() => {
+        expect(canvasElement.querySelector(".runStrip--actionable")).toBeTruthy();
+      });
     });
 
-    // In-progress link → ?status=running,waiting, count 2.
-    const inProgress = canvasElement.querySelector('a[href="logs.html?status=running,waiting"]');
-    expect(inProgress).toBeTruthy();
-    expect(inProgress.textContent).toContain("in progress");
-    expect(inProgress.querySelector("cts-badge").getAttribute("count")).toBe("2");
-    // The count badge carries the affordance ring (interactive), NOT a
-    // role=button (it sits inside the <a>).
-    const badge = inProgress.querySelector("cts-badge");
-    expect(badge.hasAttribute("interactive")).toBe(true);
-    expect(badge.hasAttribute("clickable")).toBe(false);
+    await step("in-progress link deep-links ?status=running,waiting with count 2", async () => {
+      const inProgress = canvasElement.querySelector('a[href="logs.html?status=running,waiting"]');
+      expect(inProgress).toBeTruthy();
+      expect(inProgress.textContent).toContain("in progress");
+      expect(inProgress.querySelector("cts-badge").getAttribute("count")).toBe("2");
+      // The count badge carries the affordance ring (interactive), NOT a
+      // role=button (it sits inside the <a>).
+      const badge = inProgress.querySelector("cts-badge");
+      expect(badge.hasAttribute("interactive")).toBe(true);
+      expect(badge.hasAttribute("clickable")).toBe(false);
+    });
 
-    // Failing link → ?result=failed,unknown, count 2.
-    const failing = canvasElement.querySelector('a[href="logs.html?result=failed,unknown"]');
-    expect(failing).toBeTruthy();
-    expect(failing.textContent).toContain("failing");
-    expect(failing.querySelector("cts-badge").getAttribute("count")).toBe("2");
+    await step("failing link deep-links ?result=failed,unknown with count 2", async () => {
+      const failing = canvasElement.querySelector('a[href="logs.html?result=failed,unknown"]');
+      expect(failing).toBeTruthy();
+      expect(failing.textContent).toContain("failing");
+      expect(failing.querySelector("cts-badge").getAttribute("count")).toBe("2");
+    });
 
-    // No skeleton once resolved.
-    expect(canvasElement.querySelector(".runStrip-skeleton")).toBeNull();
-    // Host is a polite live region (R19).
-    expect(strip(canvasElement).getAttribute("aria-live")).toBe("polite");
-    expect(canvas).toBeTruthy();
+    await step("no skeleton remains and host is a polite live region (R19)", async () => {
+      expect(canvasElement.querySelector(".runStrip-skeleton")).toBeNull();
+      expect(strip(canvasElement).getAttribute("aria-live")).toBe("polite");
+      expect(canvas).toBeTruthy();
+    });
   },
 };
 
@@ -97,20 +101,21 @@ export const InProgressOnly = {
   parameters: { msw: { handlers: logHandler(RUNS_IN_PROGRESS_ONLY) } },
   render: () => html`<cts-run-status-strip></cts-run-status-strip>`,
 
-  async play({ canvasElement }) {
-    await strip(canvasElement).fetchRuns();
-
-    await waitFor(() => {
-      expect(
-        canvasElement.querySelector('a[href="logs.html?status=running,waiting"]'),
-      ).toBeTruthy();
+  async play({ canvasElement, step }) {
+    await step("in-progress link renders with count 2", async () => {
+      await strip(canvasElement).fetchRuns();
+      await waitFor(() => {
+        expect(
+          canvasElement.querySelector('a[href="logs.html?status=running,waiting"]'),
+        ).toBeTruthy();
+      });
+      const inProgress = canvasElement.querySelector('a[href="logs.html?status=running,waiting"]');
+      expect(inProgress.querySelector("cts-badge").getAttribute("count")).toBe("2");
     });
 
-    const inProgress = canvasElement.querySelector('a[href="logs.html?status=running,waiting"]');
-    expect(inProgress.querySelector("cts-badge").getAttribute("count")).toBe("2");
-
-    // AE2: the failing link is absent entirely — no "0 failing" rendered.
-    expect(canvasElement.querySelector('a[href="logs.html?result=failed,unknown"]')).toBeNull();
+    await step("the failing link is absent entirely — no '0 failing' rendered (AE2)", async () => {
+      expect(canvasElement.querySelector('a[href="logs.html?result=failed,unknown"]')).toBeNull();
+    });
   },
 };
 
@@ -119,18 +124,21 @@ export const AllCaughtUp = {
   parameters: { msw: { handlers: logHandler(RUNS_ALL_CLEAR) } },
   render: () => html`<cts-run-status-strip></cts-run-status-strip>`,
 
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const canvas = within(canvasElement);
-    await strip(canvasElement).fetchRuns();
 
-    await waitFor(() => {
-      expect(canvasElement.querySelector(".runStrip--clear")).toBeTruthy();
+    await step("fetchRuns resolves into the all-clear state", async () => {
+      await strip(canvasElement).fetchRuns();
+      await waitFor(() => {
+        expect(canvasElement.querySelector(".runStrip--clear")).toBeTruthy();
+      });
     });
 
-    expect(canvas.getByText(/all caught up/i)).toBeInTheDocument();
-    // No count links and no fabricated counts.
-    expect(canvasElement.querySelector("a[href^='logs.html?']")).toBeNull();
-    expect(canvasElement.querySelector("cts-badge")).toBeNull();
+    await step("shows the all-caught confirmation with no count links or badges", async () => {
+      expect(canvas.getByText(/all caught up/i)).toBeInTheDocument();
+      expect(canvasElement.querySelector("a[href^='logs.html?']")).toBeNull();
+      expect(canvasElement.querySelector("cts-badge")).toBeNull();
+    });
   },
 };
 
@@ -157,25 +165,28 @@ export const FetchError = {
   },
   render: () => html`<cts-run-status-strip></cts-run-status-strip>`,
 
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const canvas = within(canvasElement);
     const warnSpy = fn();
     const origWarn = console.warn;
     console.warn = warnSpy;
 
     try {
-      await strip(canvasElement).fetchRuns();
-
-      await waitFor(() => {
-        expect(canvasElement.querySelector(".runStrip--error")).toBeTruthy();
+      await step("a failed fetch surfaces the degraded error state, not all-clear", async () => {
+        await strip(canvasElement).fetchRuns();
+        await waitFor(() => {
+          expect(canvasElement.querySelector(".runStrip--error")).toBeTruthy();
+        });
+        expect(canvas.getByText(/couldn't load run status/i)).toBeInTheDocument();
+        // Degraded, not all-clear: the all-caught marker must NOT appear.
+        expect(canvasElement.querySelector(".runStrip--clear")).toBeNull();
       });
-      expect(canvas.getByText(/couldn't load run status/i)).toBeInTheDocument();
-      // Degraded, not all-clear: the all-caught marker must NOT appear.
-      expect(canvasElement.querySelector(".runStrip--clear")).toBeNull();
 
-      const joined = warnSpy.mock.calls.flat().join(" ");
-      expect(joined).toContain("cts-run-status-strip");
-      expect(joined).toContain("/api/log");
+      await step("a diagnostic warn names the component and endpoint", async () => {
+        const joined = warnSpy.mock.calls.flat().join(" ");
+        expect(joined).toContain("cts-run-status-strip");
+        expect(joined).toContain("/api/log");
+      });
     } finally {
       console.warn = origWarn;
     }
@@ -205,17 +216,25 @@ export const RaceHideAfterFetchWins = {
   parameters: { msw: { handlers: logHandler(RUNS_WITH_BOTH) } },
   render: () => html`<cts-run-status-strip></cts-run-status-strip>`,
 
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const el = strip(canvasElement);
-    const pending = el.fetchRuns(); // status → loading, fetch in flight
-    el.hide(); // user switched to Published: supersede + collapse
-    await pending; // the now-stale fetch resolves; the guard must discard it
 
-    // Give any (incorrect) re-render a tick, then assert it stayed hidden.
-    await waitFor(() => {
-      expect(el.querySelector(".runStrip")).toBeNull();
+    await step(
+      "hide() supersedes the in-flight fetch and the stale resolution is discarded",
+      async () => {
+        const pending = el.fetchRuns(); // status → loading, fetch in flight
+        el.hide(); // user switched to Published: supersede + collapse
+        await pending; // the now-stale fetch resolves; the guard must discard it
+      },
+    );
+
+    await step("the strip stays collapsed — no actionable counts leak in", async () => {
+      // Give any (incorrect) re-render a tick, then assert it stayed hidden.
+      await waitFor(() => {
+        expect(el.querySelector(".runStrip")).toBeNull();
+      });
+      expect(el.querySelector(".runStrip--actionable")).toBeNull();
     });
-    expect(el.querySelector(".runStrip--actionable")).toBeNull();
   },
 };
 
@@ -228,22 +247,26 @@ export const MalformedBody = {
   },
   render: () => html`<cts-run-status-strip></cts-run-status-strip>`,
 
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const canvas = within(canvasElement);
     const warnSpy = fn();
     const origWarn = console.warn;
     console.warn = warnSpy;
 
     try {
-      await strip(canvasElement).fetchRuns();
-
-      await waitFor(() => {
-        expect(canvasElement.querySelector(".runStrip--error")).toBeTruthy();
+      await step("a malformed body surfaces the error state, not silently hidden", async () => {
+        await strip(canvasElement).fetchRuns();
+        await waitFor(() => {
+          expect(canvasElement.querySelector(".runStrip--error")).toBeTruthy();
+        });
+        expect(canvas.getByText(/couldn't load run status/i)).toBeInTheDocument();
+        // Not silently hidden, and not implying all-clear.
+        expect(canvasElement.querySelector(".runStrip--clear")).toBeNull();
       });
-      expect(canvas.getByText(/couldn't load run status/i)).toBeInTheDocument();
-      // Not silently hidden, and not implying all-clear.
-      expect(canvasElement.querySelector(".runStrip--clear")).toBeNull();
-      expect(warnSpy.mock.calls.flat().join(" ")).toContain("unexpected body shape");
+
+      await step("a diagnostic warn names the contract violation", async () => {
+        expect(warnSpy.mock.calls.flat().join(" ")).toContain("unexpected body shape");
+      });
     } finally {
       console.warn = origWarn;
     }

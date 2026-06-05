@@ -33,50 +33,58 @@ async function waitForLogLoad(canvasElement) {
 export const WithEntries = {
   decorators: [withMockFetch("/api/log/", MOCK_LOG_ENTRIES)],
   render: () => html`<cts-log-viewer test-id="test-abc-123"></cts-log-viewer>`,
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     await waitForLogLoad(canvasElement);
-    const badges = canvasElement.querySelectorAll("cts-badge");
-    expect(badges.length).toBeGreaterThan(0);
-    const entries = canvasElement.querySelectorAll(".logItem");
-    expect(entries.length).toBeGreaterThan(0);
-    const canvas = within(canvasElement);
-    expect(canvas.getByText(/ID token signature validation failed/)).toBeTruthy();
+    await step("result badges and entry rows render", async () => {
+      const badges = canvasElement.querySelectorAll("cts-badge");
+      expect(badges.length).toBeGreaterThan(0);
+      const entries = canvasElement.querySelectorAll(".logItem");
+      expect(entries.length).toBeGreaterThan(0);
+    });
+    await step("entry message text renders", async () => {
+      const canvas = within(canvasElement);
+      expect(canvas.getByText(/ID token signature validation failed/)).toBeTruthy();
+    });
   },
 };
 
 export const NonCollapsibleBlocks = {
   decorators: [withMockFetch("/api/log/", MOCK_LOG_ENTRIES)],
   render: () => html`<cts-log-viewer test-id="test-abc-123"></cts-log-viewer>`,
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     await waitForLogLoad(canvasElement);
-    // Each block renders as a plain <div class="logBlock"> with a
-    // presentational <div class="startBlock"> header. Blocks are not
-    // collapsible, so the header carries no chevron, is not focusable, and
-    // there is no open/closed state.
     const blocks = canvasElement.querySelectorAll("div.logBlock");
-    expect(blocks.length).toBeGreaterThan(0);
-
     const firstBlock = blocks[0];
-    const header = firstBlock.querySelector(".startBlock");
-    expect(header).toBeTruthy();
-    expect(header.tagName).toBe("DIV");
+    await step("blocks render as plain divs with a presentational header", async () => {
+      // Each block renders as a plain <div class="logBlock"> with a
+      // presentational <div class="startBlock"> header. Blocks are not
+      // collapsible, so there is no open/closed state.
+      expect(blocks.length).toBeGreaterThan(0);
+      const header = firstBlock.querySelector(".startBlock");
+      expect(header).toBeTruthy();
+      expect(header.tagName).toBe("DIV");
+    });
 
-    // Presentational header: no chevron icon, not in the tab order, no
-    // button role. Assert the absence of the tabindex attribute (rather
-    // than tabIndex === -1, which is the default for any <div> and would
-    // not catch an accidental explicit tabindex="-1").
-    expect(header.querySelector("cts-icon")).toBeNull();
-    expect(header.hasAttribute("tabindex")).toBe(false);
-    expect(header.getAttribute("role")).toBeNull();
+    await step("presentational header: no chevron, not focusable, no button role", async () => {
+      const header = firstBlock.querySelector(".startBlock");
+      // Assert the absence of the tabindex attribute (rather than
+      // tabIndex === -1, which is the default for any <div> and would not
+      // catch an accidental explicit tabindex="-1").
+      expect(header.querySelector("cts-icon")).toBeNull();
+      expect(header.hasAttribute("tabindex")).toBe(false);
+      expect(header.getAttribute("role")).toBeNull();
+    });
 
-    // Block children are always rendered and visible (no collapse). The
-    // cts-log-entry host is display:contents in the wide layout (subgrid
-    // relay), so it has no box — assert on the painted .logItem inside it.
-    const children = firstBlock.querySelectorAll("cts-log-entry");
-    expect(children.length).toBeGreaterThan(0);
-    const firstItem = firstBlock.querySelector("cts-log-entry .logItem");
-    expect(firstItem).toBeTruthy();
-    expect(firstItem.checkVisibility()).toBe(true);
+    await step("block children are always rendered and visible (no collapse)", async () => {
+      // The cts-log-entry host is display:contents in the wide layout
+      // (subgrid relay), so it has no box — assert on the painted .logItem
+      // inside it.
+      const children = firstBlock.querySelectorAll("cts-log-entry");
+      expect(children.length).toBeGreaterThan(0);
+      const firstItem = firstBlock.querySelector("cts-log-entry .logItem");
+      expect(firstItem).toBeTruthy();
+      expect(firstItem.checkVisibility()).toBe(true);
+    });
   },
 };
 
@@ -140,19 +148,23 @@ export const PersistentFailureBanner = {
   render: () => html`
     <cts-log-viewer test-id="test-failing-log" ._pollIntervalMs=${20}></cts-log-viewer>
   `,
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     try {
-      await waitFor(
-        () => {
-          const banner = canvasElement.querySelector('[data-testid="log-viewer-error"]');
-          expect(banner).toBeTruthy();
-          expect(banner.textContent).toContain("Log connection lost");
-        },
-        { timeout: 3000 },
-      );
-      // Banner is a polite aria-live region (screen readers announce softly).
-      const banner = canvasElement.querySelector('[data-testid="log-viewer-error"]');
-      expect(banner.getAttribute("aria-live")).toBe("polite");
+      await step("banner appears after sustained 500s", async () => {
+        await waitFor(
+          () => {
+            const banner = canvasElement.querySelector('[data-testid="log-viewer-error"]');
+            expect(banner).toBeTruthy();
+            expect(banner.textContent).toContain("Log connection lost");
+          },
+          { timeout: 3000 },
+        );
+      });
+      await step("banner is a polite aria-live region", async () => {
+        // Screen readers announce softly.
+        const banner = canvasElement.querySelector('[data-testid="log-viewer-error"]');
+        expect(banner.getAttribute("aria-live")).toBe("polite");
+      });
     } finally {
       const patched = /** @type {typeof fetch & { __realFetch?: typeof fetch }} */ (window.fetch);
       if (patched.__realFetch) window.fetch = patched.__realFetch;
@@ -174,28 +186,30 @@ export const RecoveryClearsBanner = {
   render: () => html`
     <cts-log-viewer test-id="test-recovery-log" ._pollIntervalMs=${20}></cts-log-viewer>
   `,
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const state = window.__ctsLogViewerFetchState;
     try {
-      // Wait for banner to appear after three 500s.
-      await waitFor(
-        () => {
-          expect(canvasElement.querySelector('[data-testid="log-viewer-error"]')).toBeTruthy();
-        },
-        { timeout: 3000 },
-      );
-      // Flip the responder to success; next poll should clear the banner.
-      state.responder = () =>
-        new Response(JSON.stringify(MOCK_SUCCESS_LOG), {
-          status: 200,
-          headers: { "Content-Type": "application/json" },
-        });
-      await waitFor(
-        () => {
-          expect(canvasElement.querySelector('[data-testid="log-viewer-error"]')).toBeNull();
-        },
-        { timeout: 2000 },
-      );
+      await step("banner appears after three 500s", async () => {
+        await waitFor(
+          () => {
+            expect(canvasElement.querySelector('[data-testid="log-viewer-error"]')).toBeTruthy();
+          },
+          { timeout: 3000 },
+        );
+      });
+      await step("flipping the responder to success clears the banner", async () => {
+        state.responder = () =>
+          new Response(JSON.stringify(MOCK_SUCCESS_LOG), {
+            status: 200,
+            headers: { "Content-Type": "application/json" },
+          });
+        await waitFor(
+          () => {
+            expect(canvasElement.querySelector('[data-testid="log-viewer-error"]')).toBeNull();
+          },
+          { timeout: 2000 },
+        );
+      });
     } finally {
       const patched = /** @type {typeof fetch & { __realFetch?: typeof fetch }} */ (window.fetch);
       if (patched.__realFetch) window.fetch = patched.__realFetch;
@@ -247,32 +261,35 @@ export const PublicModePolling = {
   render: () => html`
     <cts-log-viewer test-id="test-public-001" is-public ._pollIntervalMs=${20}></cts-log-viewer>
   `,
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const state = window.__ctsLogViewerFetchState;
     try {
       await waitForLogLoad(canvasElement);
-      // First fetch: public=true, no since (nothing cached yet).
-      expect(state.urls[0]).toBe("/api/log/test-public-001?public=true");
-      // Entries render for the anonymous viewer.
-      expect(canvasElement.querySelectorAll(".logItem").length).toBeGreaterThan(0);
-      // Poll cycle: public=true persists alongside since=<ts>. Wait for
-      // the first poll that carries `since` (attribute-mounted viewers
-      // issue a duplicate initial fetch — connectedCallback and the first
-      // updated() cycle both fire before either resolves — so the
-      // since-bearing poll is not necessarily urls[1]).
-      await waitFor(
-        () => {
-          expect(state.urls.some((u) => u.includes("since="))).toBe(true);
-        },
-        { timeout: 3000 },
-      );
-      const pollUrl = new URL(
-        state.urls.find((u) => u.includes("since=")),
-        window.location.origin,
-      );
-      expect(pollUrl.pathname).toBe("/api/log/test-public-001");
-      expect(pollUrl.searchParams.get("public")).toBe("true");
-      expect(Number(pollUrl.searchParams.get("since"))).toBeGreaterThan(0);
+      await step("first fetch carries public=true, no since", async () => {
+        // Nothing cached yet.
+        expect(state.urls[0]).toBe("/api/log/test-public-001?public=true");
+        // Entries render for the anonymous viewer.
+        expect(canvasElement.querySelectorAll(".logItem").length).toBeGreaterThan(0);
+      });
+      await step("poll cycle keeps public=true alongside since=<ts>", async () => {
+        // Wait for the first poll that carries `since` (attribute-mounted
+        // viewers issue a duplicate initial fetch — connectedCallback and
+        // the first updated() cycle both fire before either resolves — so
+        // the since-bearing poll is not necessarily urls[1]).
+        await waitFor(
+          () => {
+            expect(state.urls.some((u) => u.includes("since="))).toBe(true);
+          },
+          { timeout: 3000 },
+        );
+        const pollUrl = new URL(
+          state.urls.find((u) => u.includes("since=")),
+          window.location.origin,
+        );
+        expect(pollUrl.pathname).toBe("/api/log/test-public-001");
+        expect(pollUrl.searchParams.get("public")).toBe("true");
+        expect(Number(pollUrl.searchParams.get("since"))).toBeGreaterThan(0);
+      });
     } finally {
       const patched = /** @type {typeof fetch & { __realFetch?: typeof fetch }} */ (window.fetch);
       if (patched.__realFetch) window.fetch = patched.__realFetch;
@@ -333,17 +350,20 @@ export const MountedFromExistingPage = {
   decorators: [withMockFetch("/api/log/", MOCK_LOG_ENTRIES)],
   render: () =>
     html`<cts-log-viewer test-id="test-inst-001" .testInfo=${MOCK_TEST_STATUS}></cts-log-viewer>`,
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     await waitForLogLoad(canvasElement);
 
-    // testInfo flows through unchanged — the viewer doesn't render it
-    // (the header owns metadata rendering) but consumers may read it.
-    const viewer = canvasElement.querySelector("cts-log-viewer");
-    expect(viewer.testInfo).toEqual(MOCK_TEST_STATUS);
+    await step("testInfo flows through unchanged", async () => {
+      // The viewer doesn't render it (the header owns metadata rendering)
+      // but consumers may read it.
+      const viewer = canvasElement.querySelector("cts-log-viewer");
+      expect(viewer.testInfo).toEqual(MOCK_TEST_STATUS);
+    });
 
-    // Entries rendered as usual.
-    const entries = canvasElement.querySelectorAll(".logItem");
-    expect(entries.length).toBeGreaterThan(0);
+    await step("entries rendered as usual", async () => {
+      const entries = canvasElement.querySelectorAll(".logItem");
+      expect(entries.length).toBeGreaterThan(0);
+    });
   },
 };
 
@@ -375,26 +395,31 @@ export const MobileContainer = {
     `,
   ],
   render: () => html`<cts-log-viewer test-id="test-mobile-001"></cts-log-viewer>`,
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     await waitForLogLoad(canvasElement);
 
     const entries = canvasElement.querySelectorAll(".logItem");
-    expect(entries.length).toBeGreaterThan(0);
+    await step("entries render", async () => {
+      expect(entries.length).toBeGreaterThan(0);
+    });
 
-    // Every entry's container query is satisfied (host width < 640px), so
-    // each row should be on the small grid (1fr auto) — not the wide
-    // 5-track layout. Sample the first one.
-    const firstItem = entries[0];
-    const style = getComputedStyle(firstItem);
-    const tracks = style.gridTemplateColumns.split(/\s+/).filter(Boolean);
-    expect(tracks.length).toBe(2);
+    await step("each row uses the small 2-track grid", async () => {
+      // Every entry's container query is satisfied (host width < 640px), so
+      // each row should be on the small grid (1fr auto) — not the wide
+      // 5-track layout. Sample the first one.
+      const firstItem = entries[0];
+      const style = getComputedStyle(firstItem);
+      const tracks = style.gridTemplateColumns.split(/\s+/).filter(Boolean);
+      expect(tracks.length).toBe(2);
+    });
 
-    // No horizontal overflow on the entries stream — the regression this
-    // story is meant to catch.
-    const stream = canvasElement.querySelector(".logEntries") ?? entries[0].parentElement;
-    if (stream) {
-      expect(stream.scrollWidth).toBeLessThanOrEqual(stream.clientWidth);
-    }
+    await step("no horizontal overflow on the entries stream", async () => {
+      // The regression this story is meant to catch.
+      const stream = canvasElement.querySelector(".logEntries") ?? entries[0].parentElement;
+      if (stream) {
+        expect(stream.scrollWidth).toBeLessThanOrEqual(stream.clientWidth);
+      }
+    });
   },
 };
 
@@ -404,59 +429,66 @@ export const MobileContainer = {
 export const BlocksWithStatus = {
   decorators: [withMockFetch("/api/log/", MOCK_BLOCKS_WITH_STATUS)],
   render: () => html`<cts-log-viewer test-id="test-blocks-001"></cts-log-viewer>`,
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     await waitForLogLoad(canvasElement);
-
-    // Three .logBlock divs rendered, each with a .startBlock header.
-    const blocks = canvasElement.querySelectorAll(".logBlock");
-    expect(blocks.length).toBe(3);
 
     const blockA = canvasElement.querySelector('[data-block-id="block-a"]');
     const blockB = canvasElement.querySelector('[data-block-id="block-b"]');
     const blockC = canvasElement.querySelector('[data-block-id="block-c"]');
-    expect(blockA).toBeTruthy();
-    expect(blockB).toBeTruthy();
-    expect(blockC).toBeTruthy();
 
-    // Block A: 2 successes — single ✓2 chip.
-    const aBadges = blockA.querySelectorAll(".startBlockCounts cts-badge");
-    expect(aBadges.length).toBe(1);
-    expect(aBadges[0].getAttribute("variant")).toBe("pass");
-    expect(aBadges[0].getAttribute("label")).toBe("✓2");
+    await step("three blocks render, each with a header", async () => {
+      // Three .logBlock divs rendered, each with a .startBlock header.
+      const blocks = canvasElement.querySelectorAll(".logBlock");
+      expect(blocks.length).toBe(3);
+      expect(blockA).toBeTruthy();
+      expect(blockB).toBeTruthy();
+      expect(blockC).toBeTruthy();
+    });
 
-    // Block B: 1 success + 1 failure — ✓1 then ✗1, in spec order.
-    const bBadges = blockB.querySelectorAll(".startBlockCounts cts-badge");
-    expect(bBadges.length).toBe(2);
-    expect(bBadges[0].getAttribute("variant")).toBe("pass");
-    expect(bBadges[0].getAttribute("label")).toBe("✓1");
-    expect(bBadges[1].getAttribute("variant")).toBe("fail");
-    expect(bBadges[1].getAttribute("label")).toBe("✗1");
+    await step("block A: 2 successes → single ✓2 chip", async () => {
+      const aBadges = blockA.querySelectorAll(".startBlockCounts cts-badge");
+      expect(aBadges.length).toBe(1);
+      expect(aBadges[0].getAttribute("variant")).toBe("pass");
+      expect(aBadges[0].getAttribute("label")).toBe("✓2");
+    });
 
-    // Block C: 1 warning + 1 info — INFO is excluded by design, so the
-    // cluster shows only ⚠1.
-    const cBadges = blockC.querySelectorAll(".startBlockCounts cts-badge");
-    expect(cBadges.length).toBe(1);
-    expect(cBadges[0].getAttribute("variant")).toBe("warn");
-    expect(cBadges[0].getAttribute("label")).toBe("⚠1");
+    await step("block B: 1 success + 1 failure → ✓1 then ✗1 in spec order", async () => {
+      const bBadges = blockB.querySelectorAll(".startBlockCounts cts-badge");
+      expect(bBadges.length).toBe(2);
+      expect(bBadges[0].getAttribute("variant")).toBe("pass");
+      expect(bBadges[0].getAttribute("label")).toBe("✓1");
+      expect(bBadges[1].getAttribute("variant")).toBe("fail");
+      expect(bBadges[1].getAttribute("label")).toBe("✗1");
+    });
+
+    await step("block C: 1 warning + 1 info → only ⚠1 (INFO excluded by design)", async () => {
+      const cBadges = blockC.querySelectorAll(".startBlockCounts cts-badge");
+      expect(cBadges.length).toBe(1);
+      expect(cBadges[0].getAttribute("variant")).toBe("warn");
+      expect(cBadges[0].getAttribute("label")).toBe("⚠1");
+    });
   },
 };
 
 export const EmptyBlock = {
   decorators: [withMockFetch("/api/log/", MOCK_EMPTY_BLOCK)],
   render: () => html`<cts-log-viewer test-id="test-empty-block-001"></cts-log-viewer>`,
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     await waitForLogLoad(canvasElement);
 
     const block = canvasElement.querySelector('[data-block-id="block-empty"]');
-    expect(block).toBeTruthy();
 
-    // No children → no badges in the cluster (graceful empty state).
-    const badges = block.querySelectorAll(".startBlockCounts cts-badge");
-    expect(badges.length).toBe(0);
+    await step("empty block has no badges in the cluster", async () => {
+      expect(block).toBeTruthy();
+      // No children → graceful empty state.
+      const badges = block.querySelectorAll(".startBlockCounts cts-badge");
+      expect(badges.length).toBe(0);
+    });
 
-    // Header still renders the text from msg.
-    const header = block.querySelector(".startBlock");
-    expect(header.textContent).toContain("Awaiting checks");
+    await step("header still renders the text from msg", async () => {
+      const header = block.querySelector(".startBlock");
+      expect(header.textContent).toContain("Awaiting checks");
+    });
   },
 };
 
@@ -487,31 +519,33 @@ export const BlockCountsUpdateOnPolling = {
   ],
   render: () =>
     html`<cts-log-viewer test-id="test-poll-001" ._pollIntervalMs=${20}></cts-log-viewer>`,
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     try {
-      // First wait: badges land on ✓2 (single chip).
-      await waitFor(
-        () => {
-          const block = canvasElement.querySelector('[data-block-id="block-poll"]');
-          expect(block).toBeTruthy();
-          const badges = block.querySelectorAll(".startBlockCounts cts-badge");
-          expect(badges.length).toBe(1);
-          expect(badges[0].getAttribute("label")).toBe("✓2");
-        },
-        { timeout: 1500 },
-      );
+      await step("first poll: badges land on ✓2 (single chip)", async () => {
+        await waitFor(
+          () => {
+            const block = canvasElement.querySelector('[data-block-id="block-poll"]');
+            expect(block).toBeTruthy();
+            const badges = block.querySelectorAll(".startBlockCounts cts-badge");
+            expect(badges.length).toBe(1);
+            expect(badges[0].getAttribute("label")).toBe("✓2");
+          },
+          { timeout: 1500 },
+        );
+      });
 
-      // After the second poll, the cluster transitions to ✓3 ✗1.
-      await waitFor(
-        () => {
-          const block = canvasElement.querySelector('[data-block-id="block-poll"]');
-          const badges = block.querySelectorAll(".startBlockCounts cts-badge");
-          expect(badges.length).toBe(2);
-          expect(badges[0].getAttribute("label")).toBe("✓3");
-          expect(badges[1].getAttribute("label")).toBe("✗1");
-        },
-        { timeout: 2000 },
-      );
+      await step("second poll: cluster transitions to ✓3 ✗1", async () => {
+        await waitFor(
+          () => {
+            const block = canvasElement.querySelector('[data-block-id="block-poll"]');
+            const badges = block.querySelectorAll(".startBlockCounts cts-badge");
+            expect(badges.length).toBe(2);
+            expect(badges[0].getAttribute("label")).toBe("✓3");
+            expect(badges[1].getAttribute("label")).toBe("✗1");
+          },
+          { timeout: 2000 },
+        );
+      });
     } finally {
       const patched = /** @type {typeof fetch & { __realFetch?: typeof fetch }} */ (window.fetch);
       if (patched.__realFetch) window.fetch = patched.__realFetch;
@@ -531,7 +565,7 @@ export const BlockCountsUpdateOnPolling = {
 export const InitialLoadHashScroll = {
   decorators: [withMockFetch("/api/log/", MOCK_LOG_ENTRIES)],
   render: () => html`<cts-log-viewer test-id="test-abc-123"></cts-log-viewer>`,
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     // Seed the hash *before* the viewer's first fetch resolves. The
     // first row in MOCK_LOG_ENTRIES becomes LOG-0001, etc.; LOG-0003
     // points at the third entry.
@@ -556,17 +590,22 @@ export const InitialLoadHashScroll = {
     try {
       await waitForLogLoad(canvasElement);
 
-      // Wait for the deferred (microtask + updateComplete) hash scroll.
-      await waitFor(() => {
-        const target = /** @type {HTMLElement | null} */ (canvasElement.querySelector("#LOG-0003"));
-        expect(target).toBeTruthy();
-        if (target) expect(scrolled.has(target)).toBe(true);
+      await step("the seeded #LOG-0003 anchor scrolls after the first fetch", async () => {
+        // Wait for the deferred (microtask + updateComplete) hash scroll.
+        await waitFor(() => {
+          const target = /** @type {HTMLElement | null} */ (
+            canvasElement.querySelector("#LOG-0003")
+          );
+          expect(target).toBeTruthy();
+          if (target) expect(scrolled.has(target)).toBe(true);
+        });
       });
 
-      // The host carries id=LOG-0003 (mirrored from the referenceId prop).
-      const target = canvasElement.querySelector("#LOG-0003");
-      if (!target) throw new Error("anchor target not present");
-      expect(target.tagName).toBe("CTS-LOG-ENTRY");
+      await step("the host carries id=LOG-0003 (mirrored from referenceId)", async () => {
+        const target = canvasElement.querySelector("#LOG-0003");
+        if (!target) throw new Error("anchor target not present");
+        expect(target.tagName).toBe("CTS-LOG-ENTRY");
+      });
     } finally {
       Element.prototype.scrollIntoView = realScrollIntoView;
       history.replaceState(null, "", previousHash || " ");
@@ -652,7 +691,7 @@ export const LateArrivalHashScroll = {
 export const HashChangeScroll = {
   decorators: [withMockFetch("/api/log/", MOCK_LOG_ENTRIES)],
   render: () => html`<cts-log-viewer test-id="test-hashchange-1"></cts-log-viewer>`,
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const previousHash = window.location.hash;
 
     /** @type {Set<HTMLElement>} */
@@ -670,16 +709,21 @@ export const HashChangeScroll = {
 
     try {
       await waitForLogLoad(canvasElement);
-      // Page is loaded with no hash; nothing scrolled yet.
-      expect(scrolled.size).toBe(0);
+      await step("page loaded with no hash → nothing scrolled yet", async () => {
+        expect(scrolled.size).toBe(0);
+      });
 
-      // Simulate a timestamp deep-link click by navigating the fragment.
-      window.location.hash = "#LOG-0006";
+      await step("navigating the fragment scrolls to the targeted row", async () => {
+        // Simulate a timestamp deep-link click by navigating the fragment.
+        window.location.hash = "#LOG-0006";
 
-      await waitFor(() => {
-        const target = /** @type {HTMLElement | null} */ (canvasElement.querySelector("#LOG-0006"));
-        expect(target).toBeTruthy();
-        if (target) expect(scrolled.has(target)).toBe(true);
+        await waitFor(() => {
+          const target = /** @type {HTMLElement | null} */ (
+            canvasElement.querySelector("#LOG-0006")
+          );
+          expect(target).toBeTruthy();
+          if (target) expect(scrolled.has(target)).toBe(true);
+        });
       });
     } finally {
       Element.prototype.scrollIntoView = realScrollIntoView;
@@ -800,7 +844,7 @@ export const OutOfRangeHashNoop = {
 export const AlignedBlocks = {
   decorators: [withMockFetch("/api/log/", MOCK_BLOCKS_ALIGN)],
   render: () => html`<cts-log-viewer test-id="test-blocks-align-001"></cts-log-viewer>`,
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     await waitForLogLoad(canvasElement);
 
     const left = (el) => Math.round(el.getBoundingClientRect().left);
@@ -809,50 +853,55 @@ export const AlignedBlocks = {
     const topItem = /** @type {HTMLElement} */ (
       canvasElement.querySelector(".logEntries > cts-log-entry > .logItem")
     );
-    expect(topItem).toBeTruthy();
-
     // Block rows live one level deeper, inside the .logBlock div.
     const block = /** @type {HTMLElement} */ (canvasElement.querySelector(".logBlock"));
-    expect(block).toBeTruthy();
     const blockItems = [...block.querySelectorAll(":scope > cts-log-entry > .logItem")];
-    expect(blockItems.length).toBe(3);
 
-    // Badges (cts-badge) render asynchronously after the rows mount, and
-    // the subgrid relay settles a frame after the top-level direct subgrid.
-    // Both feed the auto track widths, so poll the geometry until it
-    // stabilises rather than measuring a single (possibly mid-render) frame.
-    await waitFor(
-      () => {
-        const topBody = /** @type {HTMLElement} */ (topItem.querySelector(".logBody"));
-        const topTime = /** @type {HTMLElement} */ (topItem.querySelector(".logTime"));
+    await step("top-level and block rows render", async () => {
+      expect(topItem).toBeTruthy();
+      expect(block).toBeTruthy();
+      expect(blockItems.length).toBe(3);
+    });
 
-        // The container query must be active (canvas is wide in the
-        // runner): the message column sits past the 92px timestamp
-        // track, not crammed against the row's left edge. This is the
-        // discriminating check for the "cells collapsed into column 1"
-        // regression.
-        expect(left(topBody) - left(topTime)).toBeGreaterThan(90);
+    await step("message columns align across block and top-level rows", async () => {
+      // Badges (cts-badge) render asynchronously after the rows mount, and
+      // the subgrid relay settles a frame after the top-level direct subgrid.
+      // Both feed the auto track widths, so poll the geometry until it
+      // stabilises rather than measuring a single (possibly mid-render) frame.
+      await waitFor(
+        () => {
+          const topBody = /** @type {HTMLElement} */ (topItem.querySelector(".logBody"));
+          const topTime = /** @type {HTMLElement} */ (topItem.querySelector(".logTime"));
 
-        // Every block row's message column starts at the same x (exact
-        // within-block alignment) AND matches the top-level reference
-        // row (exact cross-boundary alignment via the subgrid relay).
-        // 1px of slack absorbs sub-pixel track rounding only.
-        for (const item of blockItems) {
-          const body = /** @type {HTMLElement} */ (item.querySelector(".logBody"));
-          const time = /** @type {HTMLElement} */ (item.querySelector(".logTime"));
-          expect(Math.abs(left(body) - left(topBody))).toBeLessThanOrEqual(1);
-          expect(Math.abs(left(time) - left(topTime))).toBeLessThanOrEqual(1);
-          // Not collapsed: the message still sits past the timestamp track.
-          expect(left(body) - left(time)).toBeGreaterThan(90);
-        }
-      },
-      { timeout: 3000 },
-    );
+          // The container query must be active (canvas is wide in the
+          // runner): the message column sits past the 92px timestamp
+          // track, not crammed against the row's left edge. This is the
+          // discriminating check for the "cells collapsed into column 1"
+          // regression.
+          expect(left(topBody) - left(topTime)).toBeGreaterThan(90);
 
-    // Block rows are always rendered and visible — there is no collapse.
-    for (const item of blockItems) {
-      expect(item.checkVisibility()).toBe(true);
-    }
+          // Every block row's message column starts at the same x (exact
+          // within-block alignment) AND matches the top-level reference
+          // row (exact cross-boundary alignment via the subgrid relay).
+          // 1px of slack absorbs sub-pixel track rounding only.
+          for (const item of blockItems) {
+            const body = /** @type {HTMLElement} */ (item.querySelector(".logBody"));
+            const time = /** @type {HTMLElement} */ (item.querySelector(".logTime"));
+            expect(Math.abs(left(body) - left(topBody))).toBeLessThanOrEqual(1);
+            expect(Math.abs(left(time) - left(topTime))).toBeLessThanOrEqual(1);
+            // Not collapsed: the message still sits past the timestamp track.
+            expect(left(body) - left(time)).toBeGreaterThan(90);
+          }
+        },
+        { timeout: 3000 },
+      );
+    });
+
+    await step("block rows are always rendered and visible (no collapse)", async () => {
+      for (const item of blockItems) {
+        expect(item.checkVisibility()).toBe(true);
+      }
+    });
   },
 };
 
@@ -932,84 +981,96 @@ const visibleEntryIds = (canvasElement) =>
 export const ResultSummaryFilter = {
   decorators: [withMockFetch("/api/log/", MOCK_BLOCKS_FILTERABLE)],
   render: () => html`<cts-log-viewer test-id="test-filter-001"></cts-log-viewer>`,
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     await waitForLogLoad(canvasElement);
     const viewer = canvasElement.querySelector("cts-log-viewer");
-
-    // Unfiltered baseline: both blocks, all six leaf entries, four toggle
-    // badges in a labelled group.
-    expect(canvasElement.querySelectorAll("cts-log-viewer .logBlock").length).toBe(2);
-    expect(visibleEntryIds(canvasElement).length).toBe(6);
-    const group = canvasElement.querySelector("cts-log-viewer .logResultSummary");
-    expect(group.getAttribute("role")).toBe("group");
-    expect(group.getAttribute("aria-label")).toBe("Filter log entries by result");
-    // Each badge is an activatable toggle button; until pressed it carries
-    // no aria-pressed (a plain command button), so it is never mis-announced
-    // as an inactive toggle.
-    for (const r of ["SUCCESS", "FAILURE", "REVIEW", "WARNING"]) {
-      const btn = summaryBadgeButton(canvasElement, r);
-      expect(btn.getAttribute("role")).toBe("button");
-      expect(btn.getAttribute("aria-pressed")).toBeNull();
-    }
-    // Not filtering yet → host has no is-filtering marker.
-    expect(viewer.classList.contains("is-filtering")).toBe(false);
-
-    // Toggle FAILURE: only the lone failure entry survives; Block B (no
-    // failure) is elided entirely; the badge reads pressed; the host flips
-    // into the filtering state (which mutes block-header counts via CSS).
-    await userEvent.click(summaryBadgeButton(canvasElement, "FAILURE"));
-    await viewer.updateComplete;
-    expect(summaryBadgeButton(canvasElement, "FAILURE").getAttribute("aria-pressed")).toBe("true");
-    expect(visibleEntryIds(canvasElement)).toEqual(["flt-a-3"]);
-    expect(canvasElement.querySelectorAll("cts-log-viewer .logBlock").length).toBe(1);
-    expect(viewer.classList.contains("is-filtering")).toBe(true);
-
-    // Count badges always show the TRUE total, never the filtered subset.
-    expect(summaryBadge(canvasElement, "SUCCESS").getAttribute("label")).toBe("SUCCESS (3)");
-    expect(summaryBadge(canvasElement, "FAILURE").getAttribute("label")).toBe("FAILURE (1)");
-
-    // The live region announced the user action (description only — no
-    // entry count, so polling can't perturb it).
     const announce = canvasElement.querySelector("cts-log-viewer .logFilterAnnounce");
-    expect(announce.textContent).toBe("Filtering by FAILURE");
 
-    // Add REVIEW → union: the failure (Block A) and the review (Block B),
-    // one surviving child per block. Both badges pressed.
-    await userEvent.click(summaryBadgeButton(canvasElement, "REVIEW"));
-    await viewer.updateComplete;
-    expect(summaryBadgeButton(canvasElement, "REVIEW").getAttribute("aria-pressed")).toBe("true");
-    expect(new Set(visibleEntryIds(canvasElement))).toEqual(new Set(["flt-a-3", "flt-b-2"]));
-    expect(canvasElement.querySelectorAll("cts-log-viewer .logBlock").length).toBe(2);
-    expect(announce.textContent).toBe("Filtering by FAILURE, REVIEW");
+    await step("unfiltered baseline: both blocks, six entries, four toggle badges", async () => {
+      expect(canvasElement.querySelectorAll("cts-log-viewer .logBlock").length).toBe(2);
+      expect(visibleEntryIds(canvasElement).length).toBe(6);
+      const group = canvasElement.querySelector("cts-log-viewer .logResultSummary");
+      expect(group.getAttribute("role")).toBe("group");
+      expect(group.getAttribute("aria-label")).toBe("Filter log entries by result");
+      // Each badge is an activatable toggle button; until pressed it carries
+      // no aria-pressed (a plain command button), so it is never mis-announced
+      // as an inactive toggle.
+      for (const r of ["SUCCESS", "FAILURE", "REVIEW", "WARNING"]) {
+        const btn = summaryBadgeButton(canvasElement, r);
+        expect(btn.getAttribute("role")).toBe("button");
+        expect(btn.getAttribute("aria-pressed")).toBeNull();
+      }
+      // Not filtering yet → host has no is-filtering marker.
+      expect(viewer.classList.contains("is-filtering")).toBe(false);
+    });
 
-    // Toggle FAILURE OFF (without clearing): the remove branch of the
-    // filter set. REVIEW stays active, so the stream narrows to just the
-    // review entry, Block A (failure-only) is elided again, FAILURE drops
-    // its pressed state, and filtering is still active.
-    await userEvent.click(summaryBadgeButton(canvasElement, "FAILURE"));
-    await viewer.updateComplete;
-    expect(summaryBadgeButton(canvasElement, "FAILURE").getAttribute("aria-pressed")).toBeNull();
-    expect(summaryBadgeButton(canvasElement, "REVIEW").getAttribute("aria-pressed")).toBe("true");
-    expect(visibleEntryIds(canvasElement)).toEqual(["flt-b-2"]);
-    expect(canvasElement.querySelectorAll("cts-log-viewer .logBlock").length).toBe(1);
-    expect(viewer.classList.contains("is-filtering")).toBe(true);
-    expect(announce.textContent).toBe("Filtering by REVIEW");
+    await step("toggle FAILURE narrows to the lone failure entry", async () => {
+      // Block B (no failure) is elided entirely; the badge reads pressed; the
+      // host flips into the filtering state (which mutes block-header counts
+      // via CSS).
+      await userEvent.click(summaryBadgeButton(canvasElement, "FAILURE"));
+      await viewer.updateComplete;
+      expect(summaryBadgeButton(canvasElement, "FAILURE").getAttribute("aria-pressed")).toBe(
+        "true",
+      );
+      expect(visibleEntryIds(canvasElement)).toEqual(["flt-a-3"]);
+      expect(canvasElement.querySelectorAll("cts-log-viewer .logBlock").length).toBe(1);
+      expect(viewer.classList.contains("is-filtering")).toBe(true);
+    });
 
-    // Clear restores the full stream and drops the filtering state.
-    const clearBtn = canvasElement.querySelector("cts-log-viewer .logFilterClear");
-    expect(clearBtn).toBeTruthy();
-    await userEvent.click(clearBtn);
-    await viewer.updateComplete;
-    expect(visibleEntryIds(canvasElement).length).toBe(6);
-    expect(canvasElement.querySelectorAll("cts-log-viewer .logBlock").length).toBe(2);
-    expect(viewer.classList.contains("is-filtering")).toBe(false);
-    expect(summaryBadgeButton(canvasElement, "REVIEW").getAttribute("aria-pressed")).toBeNull();
-    expect(announce.textContent).toBe("Filters cleared");
+    await step("count badges show the TRUE total, never the filtered subset", async () => {
+      expect(summaryBadge(canvasElement, "SUCCESS").getAttribute("label")).toBe("SUCCESS (3)");
+      expect(summaryBadge(canvasElement, "FAILURE").getAttribute("label")).toBe("FAILURE (1)");
+    });
 
-    // Focus management: clearing removes the Clear button from the DOM, so
-    // focus must not drop to <body> — it moves to the first toggle badge.
-    await viewer.updateComplete;
-    expect(document.activeElement).toBe(summaryBadgeButton(canvasElement, "SUCCESS"));
+    await step("the live region announced the user action", async () => {
+      // Description only — no entry count, so polling can't perturb it.
+      expect(announce.textContent).toBe("Filtering by FAILURE");
+    });
+
+    await step("adding REVIEW unions failure (Block A) and review (Block B)", async () => {
+      // One surviving child per block. Both badges pressed.
+      await userEvent.click(summaryBadgeButton(canvasElement, "REVIEW"));
+      await viewer.updateComplete;
+      expect(summaryBadgeButton(canvasElement, "REVIEW").getAttribute("aria-pressed")).toBe("true");
+      expect(new Set(visibleEntryIds(canvasElement))).toEqual(new Set(["flt-a-3", "flt-b-2"]));
+      expect(canvasElement.querySelectorAll("cts-log-viewer .logBlock").length).toBe(2);
+      expect(announce.textContent).toBe("Filtering by FAILURE, REVIEW");
+    });
+
+    await step("toggling FAILURE off (without clearing) leaves only the review", async () => {
+      // The remove branch of the filter set. REVIEW stays active, so the
+      // stream narrows to just the review entry, Block A (failure-only) is
+      // elided again, FAILURE drops its pressed state, and filtering is still
+      // active.
+      await userEvent.click(summaryBadgeButton(canvasElement, "FAILURE"));
+      await viewer.updateComplete;
+      expect(summaryBadgeButton(canvasElement, "FAILURE").getAttribute("aria-pressed")).toBeNull();
+      expect(summaryBadgeButton(canvasElement, "REVIEW").getAttribute("aria-pressed")).toBe("true");
+      expect(visibleEntryIds(canvasElement)).toEqual(["flt-b-2"]);
+      expect(canvasElement.querySelectorAll("cts-log-viewer .logBlock").length).toBe(1);
+      expect(viewer.classList.contains("is-filtering")).toBe(true);
+      expect(announce.textContent).toBe("Filtering by REVIEW");
+    });
+
+    await step("clearing restores the full stream and drops the filtering state", async () => {
+      const clearBtn = canvasElement.querySelector("cts-log-viewer .logFilterClear");
+      expect(clearBtn).toBeTruthy();
+      await userEvent.click(clearBtn);
+      await viewer.updateComplete;
+      expect(visibleEntryIds(canvasElement).length).toBe(6);
+      expect(canvasElement.querySelectorAll("cts-log-viewer .logBlock").length).toBe(2);
+      expect(viewer.classList.contains("is-filtering")).toBe(false);
+      expect(summaryBadgeButton(canvasElement, "REVIEW").getAttribute("aria-pressed")).toBeNull();
+      expect(announce.textContent).toBe("Filters cleared");
+    });
+
+    await step("focus moves to the first toggle badge after clearing", async () => {
+      // Clearing removes the Clear button from the DOM, so focus must not drop
+      // to <body> — it moves to the first toggle badge.
+      await viewer.updateComplete;
+      expect(document.activeElement).toBe(summaryBadgeButton(canvasElement, "SUCCESS"));
+    });
   },
 };
 
@@ -1029,28 +1090,32 @@ export const ResultSummaryFilter = {
 export const FilterEmptyState = {
   decorators: [withMockFetch("/api/log/", MOCK_BLOCKS_FILTERABLE)],
   render: () => html`<cts-log-viewer test-id="test-filter-001"></cts-log-viewer>`,
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     await waitForLogLoad(canvasElement);
     const viewer = /** @type {any} */ (canvasElement.querySelector("cts-log-viewer"));
 
-    // No SKIPPED entries exist in the fixture, so this filter matches nothing.
-    viewer._activeFilters = new Set(["SKIPPED"]);
-    await viewer.updateComplete;
+    await step("a filter matching zero entries renders the empty state", async () => {
+      // No SKIPPED entries exist in the fixture, so this filter matches nothing.
+      viewer._activeFilters = new Set(["SKIPPED"]);
+      await viewer.updateComplete;
 
-    const empty = canvasElement.querySelector("cts-log-viewer .logFilterEmpty");
-    expect(empty).toBeTruthy();
-    expect(empty?.textContent).toContain("No entries match the active filters");
-    // No entry rows and no blocks render in the empty state.
-    expect(canvasElement.querySelectorAll("cts-log-viewer cts-log-entry").length).toBe(0);
-    expect(canvasElement.querySelectorAll("cts-log-viewer .logBlock").length).toBe(0);
+      const empty = canvasElement.querySelector("cts-log-viewer .logFilterEmpty");
+      expect(empty).toBeTruthy();
+      expect(empty?.textContent).toContain("No entries match the active filters");
+      // No entry rows and no blocks render in the empty state.
+      expect(canvasElement.querySelectorAll("cts-log-viewer cts-log-entry").length).toBe(0);
+      expect(canvasElement.querySelectorAll("cts-log-viewer .logBlock").length).toBe(0);
+    });
 
-    // The inline Clear affordance restores the full stream.
-    const inlineClear = empty?.querySelector(".logFilterClear");
-    expect(inlineClear).toBeTruthy();
-    await userEvent.click(/** @type {Element} */ (inlineClear));
-    await viewer.updateComplete;
-    expect(canvasElement.querySelectorAll("cts-log-viewer cts-log-entry").length).toBe(6);
-    expect(canvasElement.querySelector("cts-log-viewer .logFilterEmpty")).toBeNull();
+    await step("the inline Clear affordance restores the full stream", async () => {
+      const empty = canvasElement.querySelector("cts-log-viewer .logFilterEmpty");
+      const inlineClear = empty?.querySelector(".logFilterClear");
+      expect(inlineClear).toBeTruthy();
+      await userEvent.click(/** @type {Element} */ (inlineClear));
+      await viewer.updateComplete;
+      expect(canvasElement.querySelectorAll("cts-log-viewer cts-log-entry").length).toBe(6);
+      expect(canvasElement.querySelector("cts-log-viewer .logFilterEmpty")).toBeNull();
+    });
   },
 };
 
@@ -1061,21 +1126,24 @@ export const FilterEmptyState = {
 export const SingleResultTypeReadOnly = {
   decorators: [withMockFetch("/api/log/", MOCK_SUCCESS_LOG)],
   render: () => html`<cts-log-viewer test-id="test-ok-456"></cts-log-viewer>`,
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     await waitForLogLoad(canvasElement);
     const summary = canvasElement.querySelector("cts-log-viewer .logResultSummary");
-    expect(summary).toBeTruthy();
-    // No group semantics, no discoverability hint, no clear control.
-    expect(summary.getAttribute("role")).toBeNull();
-    expect(summary.querySelector(".logResultSummaryHint")).toBeNull();
-    expect(summary.querySelector(".logFilterClear")).toBeNull();
 
-    // The lone SUCCESS badge is a plain label: no toggle affordance.
-    const badge = summary.querySelector("cts-badge");
-    expect(badge.getAttribute("label")).toBe("SUCCESS (3)");
-    expect(badge.hasAttribute("clickable")).toBe(false);
-    expect(badge.querySelector(".badge").getAttribute("role")).toBeNull();
-    expect(badge.querySelector(".badge").getAttribute("aria-pressed")).toBeNull();
+    await step("summary has no group semantics, hint, or clear control", async () => {
+      expect(summary).toBeTruthy();
+      expect(summary.getAttribute("role")).toBeNull();
+      expect(summary.querySelector(".logResultSummaryHint")).toBeNull();
+      expect(summary.querySelector(".logFilterClear")).toBeNull();
+    });
+
+    await step("the lone SUCCESS badge is a plain label, no toggle affordance", async () => {
+      const badge = summary.querySelector("cts-badge");
+      expect(badge.getAttribute("label")).toBe("SUCCESS (3)");
+      expect(badge.hasAttribute("clickable")).toBe(false);
+      expect(badge.querySelector(".badge").getAttribute("role")).toBeNull();
+      expect(badge.querySelector(".badge").getAttribute("aria-pressed")).toBeNull();
+    });
   },
 };
 
@@ -1145,46 +1213,55 @@ export const FilterSurvivesPolling = {
   ],
   render: () =>
     html`<cts-log-viewer test-id="test-filter-001" ._pollIntervalMs=${20}></cts-log-viewer>`,
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const state = window.__ctsLogViewerFetchState;
     try {
       await waitForLogLoad(canvasElement);
       const viewer = canvasElement.querySelector("cts-log-viewer");
 
-      // Activate the FAILURE filter BEFORE any delta arrives → exactly one
-      // matching entry. (Empty polls don't re-render, so this is stable.)
-      await userEvent.click(summaryBadgeButton(canvasElement, "FAILURE"));
-      await viewer.updateComplete;
-      expect(visibleEntryIds(canvasElement)).toEqual(["flt-a-3"]);
-      expect(summaryBadgeButton(canvasElement, "FAILURE").getAttribute("aria-pressed")).toBe(
-        "true",
-      );
+      await step("activate the FAILURE filter before any delta arrives", async () => {
+        // Exactly one matching entry. (Empty polls don't re-render, so this is
+        // stable.)
+        await userEvent.click(summaryBadgeButton(canvasElement, "FAILURE"));
+        await viewer.updateComplete;
+        expect(visibleEntryIds(canvasElement)).toEqual(["flt-a-3"]);
+        expect(summaryBadgeButton(canvasElement, "FAILURE").getAttribute("aria-pressed")).toBe(
+          "true",
+        );
+      });
 
-      // Arm the delta: the next poll appends flt-b-4 (FAILURE, matches) and
-      // flt-b-5 (SUCCESS, does not). The filter must survive the re-render —
-      // the new failure appears, the new success stays hidden.
-      state.deliverDelta = true;
-      await waitFor(
-        () => {
-          expect(
-            canvasElement.querySelector('cts-log-entry[data-entry-id="flt-b-4"]'),
-          ).toBeTruthy();
+      await step(
+        "the filter survives a poll that appends matching + non-matching entries",
+        async () => {
+          // Arm the delta: the next poll appends flt-b-4 (FAILURE, matches) and
+          // flt-b-5 (SUCCESS, does not). The filter must survive the re-render —
+          // the new failure appears, the new success stays hidden.
+          state.deliverDelta = true;
+          await waitFor(
+            () => {
+              expect(
+                canvasElement.querySelector('cts-log-entry[data-entry-id="flt-b-4"]'),
+              ).toBeTruthy();
+            },
+            { timeout: 2000 },
+          );
+          expect(canvasElement.querySelector('cts-log-entry[data-entry-id="flt-b-5"]')).toBeNull();
+          expect(new Set(visibleEntryIds(canvasElement))).toEqual(new Set(["flt-a-3", "flt-b-4"]));
+
+          // Filter still pressed after the poll-driven re-render.
+          expect(summaryBadgeButton(canvasElement, "FAILURE").getAttribute("aria-pressed")).toBe(
+            "true",
+          );
         },
-        { timeout: 2000 },
-      );
-      expect(canvasElement.querySelector('cts-log-entry[data-entry-id="flt-b-5"]')).toBeNull();
-      expect(new Set(visibleEntryIds(canvasElement))).toEqual(new Set(["flt-a-3", "flt-b-4"]));
-
-      // Filter still pressed after the poll-driven re-render.
-      expect(summaryBadgeButton(canvasElement, "FAILURE").getAttribute("aria-pressed")).toBe(
-        "true",
       );
 
-      // The poll re-render did NOT re-announce: the one-shot announcement was
-      // consumed on the toggle render, so the live region is empty after the
-      // append (the append render reset it without producing a new phrase).
-      const announce = canvasElement.querySelector("cts-log-viewer .logFilterAnnounce");
-      expect(announce.textContent).toBe("");
+      await step("the poll re-render did NOT re-announce", async () => {
+        // The one-shot announcement was consumed on the toggle render, so the
+        // live region is empty after the append (the append render reset it
+        // without producing a new phrase).
+        const announce = canvasElement.querySelector("cts-log-viewer .logFilterAnnounce");
+        expect(announce.textContent).toBe("");
+      });
     } finally {
       const patched = /** @type {typeof fetch & { __realFetch?: typeof fetch }} */ (window.fetch);
       if (patched.__realFetch) window.fetch = patched.__realFetch;

@@ -21,18 +21,23 @@ const PLAN = {
 export const Default = {
   render: () => html`<cts-plan-header .plan=${PLAN}></cts-plan-header>`,
 
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const header = /** @type {HTMLElement} */ (canvasElement.querySelector("cts-plan-header"));
-    expect(header).toBeTruthy();
-    expect(header.textContent).toContain(PLAN.planName);
 
-    // The Started value renders through cts-time: a native <time> whose title
-    // carries the full absolute date for hover disambiguation.
-    const timeEl = /** @type {HTMLTimeElement | null} */ (header.querySelector("dd time"));
-    expect(timeEl).toBeTruthy();
-    expect(timeEl?.textContent?.trim()).toBe(formatAbsolute(PLAN.started));
-    expect(timeEl?.getAttribute("title")).toBe(formatAbsolute(PLAN.started));
-    expect(timeEl?.getAttribute("datetime")).toBe(new Date(PLAN.started).toISOString());
+    await step("header renders the plan name", async () => {
+      expect(header).toBeTruthy();
+      expect(header.textContent).toContain(PLAN.planName);
+    });
+
+    await step("Started renders through cts-time with a hover title", async () => {
+      // The Started value renders through cts-time: a native <time> whose title
+      // carries the full absolute date for hover disambiguation.
+      const timeEl = /** @type {HTMLTimeElement | null} */ (header.querySelector("dd time"));
+      expect(timeEl).toBeTruthy();
+      expect(timeEl?.textContent?.trim()).toBe(formatAbsolute(PLAN.started));
+      expect(timeEl?.getAttribute("title")).toBe(formatAbsolute(PLAN.started));
+      expect(timeEl?.getAttribute("datetime")).toBe(new Date(PLAN.started).toISOString());
+    });
   },
 };
 
@@ -68,20 +73,26 @@ const PLAN_WITH_MARKDOWN_SUMMARY = {
 export const SummaryRendersMarkdown = {
   render: () => html`<cts-plan-header .plan=${PLAN_WITH_MARKDOWN_SUMMARY}></cts-plan-header>`,
 
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const summary = /** @type {HTMLElement} */ (
       canvasElement.querySelector("cts-plan-header .planSummary")
     );
     expect(summary).toBeTruthy();
-    // Paragraph break splits into <p> blocks.
-    expect(summary.querySelectorAll("p").length).toBe(2);
-    // Bare URL autolinks to a safe new-tab anchor.
-    const link = summary.querySelector("a");
-    expect(link).toBeTruthy();
-    expect(link?.getAttribute("href")).toBe("https://openid.net/specs/x");
-    expect(link?.getAttribute("target")).toBe("_blank");
-    expect(link?.getAttribute("rel")).toBe("noopener noreferrer");
-    // Inline code renders and snake_case prose survives.
-    expect(summary.querySelector("code")?.textContent).toBe("request_uri");
+
+    await step("paragraph break splits into <p> blocks", async () => {
+      expect(summary.querySelectorAll("p").length).toBe(2);
+    });
+
+    await step("bare URL autolinks to a safe new-tab anchor", async () => {
+      const link = summary.querySelector("a");
+      expect(link).toBeTruthy();
+      expect(link?.getAttribute("href")).toBe("https://openid.net/specs/x");
+      expect(link?.getAttribute("target")).toBe("_blank");
+      expect(link?.getAttribute("rel")).toBe("noopener noreferrer");
+    });
+
+    await step("inline code renders and snake_case prose survives", async () => {
+      expect(summary.querySelector("code")?.textContent).toBe("request_uri");
+    });
   },
 };

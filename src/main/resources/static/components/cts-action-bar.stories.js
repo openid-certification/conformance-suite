@@ -39,27 +39,35 @@ export const Static = {
     </cts-action-bar>
   `,
 
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const bar = canvasElement.querySelector(".oidf-action-bar");
-    expect(bar).toBeTruthy();
-    expect(bar.getAttribute("data-position")).toBe("static");
-    expect(bar.getAttribute("role")).toBe("region");
-    expect(bar.getAttribute("aria-label")).toBe("Test plan actions");
 
-    const inner = bar.querySelector(".oidf-action-bar__inner");
-    expect(inner).toBeTruthy();
-    // schedule-test-page preset routes max-width through --maxw-page so the
-    // inner wrapper tracks the page column token.
-    expect(inner.style.maxWidth).toBe("var(--maxw-page)");
+    await step("region role and host attributes render", async () => {
+      expect(bar).toBeTruthy();
+      expect(bar.getAttribute("data-position")).toBe("static");
+      expect(bar.getAttribute("role")).toBe("region");
+      expect(bar.getAttribute("aria-label")).toBe("Test plan actions");
+    });
 
-    // Children are moved into the inner wrapper.
-    const buttons = inner.querySelectorAll("cts-button");
-    expect(buttons.length).toBe(2);
-    expect(buttons[0].getAttribute("label")).toBe("Create Test Plan");
-    expect(buttons[1].getAttribute("label")).toBe("Share Test Plan Configuration");
+    await step("inner wrapper tracks the page column token", async () => {
+      const inner = bar.querySelector(".oidf-action-bar__inner");
+      expect(inner).toBeTruthy();
+      // schedule-test-page preset routes max-width through --maxw-page so the
+      // inner wrapper tracks the page column token.
+      expect(inner.style.maxWidth).toBe("var(--maxw-page)");
+    });
 
-    // Computed position must be static so the story canvas isn't covered.
-    expect(getComputedStyle(bar).position).toBe("static");
+    await step("children are moved into the inner wrapper", async () => {
+      const inner = bar.querySelector(".oidf-action-bar__inner");
+      const buttons = inner.querySelectorAll("cts-button");
+      expect(buttons.length).toBe(2);
+      expect(buttons[0].getAttribute("label")).toBe("Create Test Plan");
+      expect(buttons[1].getAttribute("label")).toBe("Share Test Plan Configuration");
+    });
+
+    await step("computed position stays static so the story canvas isn't covered", async () => {
+      expect(getComputedStyle(bar).position).toBe("static");
+    });
   },
 };
 
@@ -81,21 +89,25 @@ export const Bottom = {
     </cts-action-bar>
   `,
 
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const bar = canvasElement.querySelector(".oidf-action-bar");
-    expect(bar).toBeTruthy();
-    expect(bar.getAttribute("data-position")).toBe("bottom");
-    expect(getComputedStyle(bar).position).toBe("fixed");
 
-    // Default aria-label kicks in when the host has none.
-    expect(bar.getAttribute("aria-label")).toBe("Actions");
+    await step("bottom positioning and default aria-label apply", async () => {
+      expect(bar).toBeTruthy();
+      expect(bar.getAttribute("data-position")).toBe("bottom");
+      expect(getComputedStyle(bar).position).toBe("fixed");
+      // Default aria-label kicks in when the host has none.
+      expect(bar.getAttribute("aria-label")).toBe("Actions");
+    });
 
-    // Allow the ResizeObserver publish callback to run.
-    await new Promise((resolve) => setTimeout(resolve, 0));
-    const published = document.documentElement.style.getPropertyValue("--cts-action-bar-height");
-    // Must be a positive integer + "px". A leading-zero regex would silently
-    // pass on "0px" — which would mean the bar was never measured.
-    expect(published).toMatch(/^[1-9]\d*px$/);
+    await step("measured height is published to the document root", async () => {
+      // Allow the ResizeObserver publish callback to run.
+      await new Promise((resolve) => setTimeout(resolve, 0));
+      const published = document.documentElement.style.getPropertyValue("--cts-action-bar-height");
+      // Must be a positive integer + "px". A leading-zero regex would silently
+      // pass on "0px" — which would mean the bar was never measured.
+      expect(published).toMatch(/^[1-9]\d*px$/);
+    });
   },
 };
 
@@ -145,30 +157,36 @@ export const FoucFallbackPinsToViewportBottom = {
     </cts-action-bar>
   `,
 
-  async play() {
+  async play({ step }) {
     const sheet = Array.from(document.styleSheets).find((s) =>
       (s.href || "").includes("/css/layout.css"),
     );
-    expect(sheet).toBeTruthy();
     const cssRules = /** @type {CSSStyleRule[]} */ (
       Array.from(/** @type {CSSStyleSheet} */ (sheet).cssRules)
     );
     const fallback = cssRules.find(
       (r) => r.selectorText && r.selectorText.includes("cts-action-bar:not([position="),
     );
-    expect(fallback).toBeTruthy();
     const fb = /** @type {CSSStyleRule} */ (fallback);
-    // The static (in-flow) variant must stay excluded so dev previews are
-    // not covered by a viewport-pinned placeholder.
-    expect(fb.selectorText).toBe('cts-action-bar:not([position="static"]):not(:defined)');
-    expect(fb.style.position).toBe("fixed");
-    expect(fb.style.bottom).toBe("0px");
-    expect(fb.style.left).toBe("0px");
-    expect(fb.style.right).toBe("0px");
-    expect(fb.style.display).toBe("block");
-    // Matches the `var(--cts-action-bar-height, 80px)` pre-measure fallback
-    // .schedule-test-page uses for its bottom-padding reservation.
-    expect(fb.style.minHeight).toBe("80px");
+
+    await step("layout.css ships the FOUC fallback rule", async () => {
+      expect(sheet).toBeTruthy();
+      expect(fallback).toBeTruthy();
+      // The static (in-flow) variant must stay excluded so dev previews are
+      // not covered by a viewport-pinned placeholder.
+      expect(fb.selectorText).toBe('cts-action-bar:not([position="static"]):not(:defined)');
+    });
+
+    await step("placeholder is pinned to the viewport bottom", async () => {
+      expect(fb.style.position).toBe("fixed");
+      expect(fb.style.bottom).toBe("0px");
+      expect(fb.style.left).toBe("0px");
+      expect(fb.style.right).toBe("0px");
+      expect(fb.style.display).toBe("block");
+      // Matches the `var(--cts-action-bar-height, 80px)` pre-measure fallback
+      // .schedule-test-page uses for its bottom-padding reservation.
+      expect(fb.style.minHeight).toBe("80px");
+    });
   },
 };
 

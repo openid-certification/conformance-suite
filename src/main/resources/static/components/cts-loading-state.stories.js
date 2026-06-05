@@ -23,23 +23,27 @@ export const Default = {
   },
   render: ({ label }) => html`<cts-loading-state label=${label}></cts-loading-state>`,
 
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const host = canvasElement.querySelector("cts-loading-state");
     await host.updateComplete;
 
-    const wrapper = host.querySelector(".cts-loading-state");
-    expect(wrapper).toBeTruthy();
+    await step("wrapper renders", async () => {
+      const wrapper = host.querySelector(".cts-loading-state");
+      expect(wrapper).toBeTruthy();
+    });
 
-    // Spinner renders with the bare label as its accessible name.
-    const spinner = host.querySelector("cts-spinner");
-    expect(spinner).toBeTruthy();
-    expect(spinner.getAttribute("label")).toBe("Loading logs");
-    expect(spinner.getAttribute("role")).toBe("status");
+    await step("spinner renders with the bare label as its accessible name", async () => {
+      const spinner = host.querySelector("cts-spinner");
+      expect(spinner).toBeTruthy();
+      expect(spinner.getAttribute("label")).toBe("Loading logs");
+      expect(spinner.getAttribute("role")).toBe("status");
+    });
 
-    // Visible caption is the label plus an ellipsis.
-    const caption = host.querySelector(".cts-loading-state-caption");
-    expect(caption).toBeTruthy();
-    expect(caption.textContent.trim()).toBe("Loading logs…");
+    await step("visible caption is the label plus an ellipsis", async () => {
+      const caption = host.querySelector(".cts-loading-state-caption");
+      expect(caption).toBeTruthy();
+      expect(caption.textContent.trim()).toBe("Loading logs…");
+    });
   },
 };
 

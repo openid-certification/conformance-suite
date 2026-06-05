@@ -28,7 +28,7 @@ export const Default = {
   render: ({ label, value, delta, tone }) =>
     html`<cts-stat label="${label}" value="${value}" delta="${delta}" tone="${tone}"></cts-stat>`,
 
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const host = canvasElement.querySelector("cts-stat");
     expect(host).toBeTruthy();
 
@@ -36,21 +36,27 @@ export const Default = {
     const value = host.querySelector(".oidf-stat-value");
     const delta = host.querySelector(".oidf-stat-delta");
 
-    expect(label).toBeTruthy();
-    expect(label.classList.contains("t-overline")).toBe(true);
-    expect(label.textContent.trim()).toBe("Total tests");
+    await step("label renders as an overline", async () => {
+      expect(label).toBeTruthy();
+      expect(label.classList.contains("t-overline")).toBe(true);
+      expect(label.textContent.trim()).toBe("Total tests");
+    });
 
-    expect(value).toBeTruthy();
-    expect(value.textContent.trim()).toBe("128");
-    // Default tone leaves the value at --fg (no tone colour).
-    const valueComputed = window.getComputedStyle(value);
-    expect(valueComputed.fontFamily).toContain("Inter");
-    expect(valueComputed.fontWeight).toBe("700");
-    expect(valueComputed.fontSize).toBe("32px");
+    await step("value renders with default typography", async () => {
+      expect(value).toBeTruthy();
+      expect(value.textContent.trim()).toBe("128");
+      // Default tone leaves the value at --fg (no tone colour).
+      const valueComputed = window.getComputedStyle(value);
+      expect(valueComputed.fontFamily).toContain("Inter");
+      expect(valueComputed.fontWeight).toBe("700");
+      expect(valueComputed.fontSize).toBe("32px");
+    });
 
-    expect(delta).toBeTruthy();
-    expect(delta.classList.contains("t-meta")).toBe(true);
-    expect(delta.textContent.trim()).toBe("+12 since yesterday");
+    await step("delta renders as meta text", async () => {
+      expect(delta).toBeTruthy();
+      expect(delta.classList.contains("t-meta")).toBe(true);
+      expect(delta.textContent.trim()).toBe("+12 since yesterday");
+    });
   },
 };
 
@@ -64,18 +70,22 @@ export const TonePass = {
   render: ({ label, value, delta, tone }) =>
     html`<cts-stat label="${label}" value="${value}" delta="${delta}" tone="${tone}"></cts-stat>`,
 
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const host = canvasElement.querySelector("cts-stat");
     const value = host.querySelector(".oidf-stat-value");
     const delta = host.querySelector(".oidf-stat-delta");
 
-    expect(value).toBeTruthy();
-    // tone="pass" must paint the value with --status-pass (#2F7D3C).
-    expect(window.getComputedStyle(value).color).toBe("rgb(47, 125, 60)");
+    await step("value paints with the pass colour", async () => {
+      expect(value).toBeTruthy();
+      // tone="pass" must paint the value with --status-pass (#2F7D3C).
+      expect(window.getComputedStyle(value).color).toBe("rgb(47, 125, 60)");
+    });
 
-    // The delta mirrors the tone so the trend reads at a glance.
-    expect(delta).toBeTruthy();
-    expect(window.getComputedStyle(delta).color).toBe("rgb(47, 125, 60)");
+    await step("delta mirrors the tone", async () => {
+      // The delta mirrors the tone so the trend reads at a glance.
+      expect(delta).toBeTruthy();
+      expect(window.getComputedStyle(delta).color).toBe("rgb(47, 125, 60)");
+    });
   },
 };
 
@@ -89,17 +99,21 @@ export const ToneFail = {
   render: ({ label, value, delta, tone }) =>
     html`<cts-stat label="${label}" value="${value}" delta="${delta}" tone="${tone}"></cts-stat>`,
 
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const host = canvasElement.querySelector("cts-stat");
     const value = host.querySelector(".oidf-stat-value");
     const delta = host.querySelector(".oidf-stat-delta");
 
-    expect(value).toBeTruthy();
-    // tone="fail" must paint the value with --rust-400 (#A43604).
-    expect(window.getComputedStyle(value).color).toBe("rgb(164, 54, 4)");
+    await step("value paints with the fail colour", async () => {
+      expect(value).toBeTruthy();
+      // tone="fail" must paint the value with --rust-400 (#A43604).
+      expect(window.getComputedStyle(value).color).toBe("rgb(164, 54, 4)");
+    });
 
-    expect(delta).toBeTruthy();
-    expect(window.getComputedStyle(delta).color).toBe("rgb(164, 54, 4)");
+    await step("delta mirrors the tone", async () => {
+      expect(delta).toBeTruthy();
+      expect(window.getComputedStyle(delta).color).toBe("rgb(164, 54, 4)");
+    });
   },
 };
 
@@ -117,24 +131,28 @@ export const ToneEmpty = {
   render: ({ label, value, delta, tone }) =>
     html`<cts-stat label="${label}" value="${value}" delta="${delta}" tone="${tone}"></cts-stat>`,
 
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const host = canvasElement.querySelector("cts-stat");
     const value = host.querySelector(".oidf-stat-value");
     const delta = host.querySelector(".oidf-stat-delta");
 
-    expect(value).toBeTruthy();
-    // tone="empty" must paint the value with --fg-soft (--ink-500 = #71695E).
-    expect(window.getComputedStyle(value).color).toBe("rgb(113, 105, 94)");
-    // Regression guard: must NOT collide with --status-pass (rgb(47, 125, 60))
-    // — the bug this tone exists to fix.
-    expect(window.getComputedStyle(value).color).not.toBe("rgb(47, 125, 60)");
+    await step("value paints with the muted empty colour", async () => {
+      expect(value).toBeTruthy();
+      // tone="empty" must paint the value with --fg-soft (--ink-500 = #71695E).
+      expect(window.getComputedStyle(value).color).toBe("rgb(113, 105, 94)");
+      // Regression guard: must NOT collide with --status-pass (rgb(47, 125, 60))
+      // — the bug this tone exists to fix.
+      expect(window.getComputedStyle(value).color).not.toBe("rgb(47, 125, 60)");
+    });
 
-    // DELTA_COLOR['empty'] also routes to --fg-soft so the delta line
-    // stays in the same muted ramp as the value rather than dropping
-    // back to the default --fg-soft (visually identical here, but the
-    // path is exercised so a future divergence is caught).
-    expect(delta).toBeTruthy();
-    expect(window.getComputedStyle(delta).color).toBe("rgb(113, 105, 94)");
+    await step("delta stays in the same muted ramp", async () => {
+      // DELTA_COLOR['empty'] also routes to --fg-soft so the delta line
+      // stays in the same muted ramp as the value rather than dropping
+      // back to the default --fg-soft (visually identical here, but the
+      // path is exercised so a future divergence is caught).
+      expect(delta).toBeTruthy();
+      expect(window.getComputedStyle(delta).color).toBe("rgb(113, 105, 94)");
+    });
   },
 };
 
@@ -173,18 +191,22 @@ export const UnknownToneFallsBackToDefault = {
   render: ({ label, value, delta, tone }) =>
     html`<cts-stat label="${label}" value="${value}" delta="${delta}" tone="${tone}"></cts-stat>`,
 
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const host = canvasElement.querySelector("cts-stat");
     const value = host.querySelector(".oidf-stat-value");
     const delta = host.querySelector(".oidf-stat-delta");
 
-    expect(value).toBeTruthy();
-    // Unknown tones fall back to --fg (ink-900 = #1A1611).
-    expect(window.getComputedStyle(value).color).toBe("rgb(26, 22, 17)");
+    await step("value falls back to the default foreground", async () => {
+      expect(value).toBeTruthy();
+      // Unknown tones fall back to --fg (ink-900 = #1A1611).
+      expect(window.getComputedStyle(value).color).toBe("rgb(26, 22, 17)");
+    });
 
-    // Delta falls back to --fg-soft (ink-500 = #71695E).
-    expect(delta).toBeTruthy();
-    expect(window.getComputedStyle(delta).color).toBe("rgb(113, 105, 94)");
+    await step("delta falls back to the soft foreground", async () => {
+      // Delta falls back to --fg-soft (ink-500 = #71695E).
+      expect(delta).toBeTruthy();
+      expect(window.getComputedStyle(delta).color).toBe("rgb(113, 105, 94)");
+    });
   },
 };
 

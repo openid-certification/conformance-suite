@@ -51,18 +51,21 @@ export const DirtyAfterFormEdit = {
     </div>
   `,
 
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const guard = asGuard(canvasElement.querySelector("cts-unsaved-changes-guard"));
     const input = /** @type {HTMLInputElement} */ (
       canvasElement.querySelector('input[data-testid="story-input"]')
     );
 
     await waitFor(() => expect(guard.dirty).toBe(false));
-    await userEvent.type(input, "a");
 
-    await waitFor(() => {
-      expect(guard.dirty).toBe(true);
-      expect(guard.hasAttribute("dirty")).toBe(true);
+    await step("typing into the form marks the guard dirty", async () => {
+      await userEvent.type(input, "a");
+
+      await waitFor(() => {
+        expect(guard.dirty).toBe(true);
+        expect(guard.hasAttribute("dirty")).toBe(true);
+      });
     });
   },
 };
@@ -80,20 +83,22 @@ export const DirtyAfterConfigChange = {
     </div>
   `,
 
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const guard = asGuard(canvasElement.querySelector("cts-unsaved-changes-guard"));
     const stub = canvasElement.querySelector("#story-config-form");
 
     await waitFor(() => expect(guard.dirty).toBe(false));
 
-    stub.dispatchEvent(
-      new CustomEvent("cts-config-change", {
-        bubbles: true,
-        detail: { config: { foo: "bar" } },
-      }),
-    );
+    await step("a cts-config-change event marks the guard dirty", async () => {
+      stub.dispatchEvent(
+        new CustomEvent("cts-config-change", {
+          bubbles: true,
+          detail: { config: { foo: "bar" } },
+        }),
+      );
 
-    await waitFor(() => expect(guard.dirty).toBe(true));
+      await waitFor(() => expect(guard.dirty).toBe(true));
+    });
   },
 };
 
@@ -106,32 +111,36 @@ export const LinkClickIntercepted = {
     </div>
   `,
 
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const guard = asGuard(canvasElement.querySelector("cts-unsaved-changes-guard"));
     const link = /** @type {HTMLAnchorElement} */ (canvasElement.querySelector("#story-link"));
 
-    guard.markDirty();
-    expect(guard.dirty).toBe(true);
+    await step("marking dirty arms the guard", async () => {
+      guard.markDirty();
+      expect(guard.dirty).toBe(true);
+    });
 
-    // Intercept the synthetic click so the play test does not navigate the
-    // Storybook iframe. The guard's capture-phase handler runs before this
-    // listener fires, so any preventDefault it called is observable here.
-    let defaultPreventedByGuard = false;
-    link.addEventListener(
-      "click",
-      (event) => {
-        defaultPreventedByGuard = event.defaultPrevented;
-        event.preventDefault();
-      },
-      { once: true },
-    );
+    await step("clicking a link is intercepted and opens the modal", async () => {
+      // Intercept the synthetic click so the play test does not navigate the
+      // Storybook iframe. The guard's capture-phase handler runs before this
+      // listener fires, so any preventDefault it called is observable here.
+      let defaultPreventedByGuard = false;
+      link.addEventListener(
+        "click",
+        (event) => {
+          defaultPreventedByGuard = event.defaultPrevented;
+          event.preventDefault();
+        },
+        { once: true },
+      );
 
-    await userEvent.click(link);
+      await userEvent.click(link);
 
-    await waitFor(() => {
-      expect(defaultPreventedByGuard).toBe(true);
-      const dialog = canvasElement.querySelector("dialog.oidf-modal[open]");
-      expect(dialog).toBeTruthy();
+      await waitFor(() => {
+        expect(defaultPreventedByGuard).toBe(true);
+        const dialog = canvasElement.querySelector("dialog.oidf-modal[open]");
+        expect(dialog).toBeTruthy();
+      });
     });
   },
 };
@@ -145,30 +154,34 @@ export const StayKeepsTheUserOnPage = {
     </div>
   `,
 
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const guard = asGuard(canvasElement.querySelector("cts-unsaved-changes-guard"));
     const link = /** @type {HTMLAnchorElement} */ (canvasElement.querySelector("#story-link"));
 
-    guard.markDirty();
-    link.addEventListener("click", (event) => event.preventDefault(), { once: true });
-    await userEvent.click(link);
+    await step("clicking a link while dirty opens the modal", async () => {
+      guard.markDirty();
+      link.addEventListener("click", (event) => event.preventDefault(), { once: true });
+      await userEvent.click(link);
 
-    await waitFor(() => {
-      const dialog = canvasElement.querySelector("dialog.oidf-modal[open]");
-      expect(dialog).toBeTruthy();
+      await waitFor(() => {
+        const dialog = canvasElement.querySelector("dialog.oidf-modal[open]");
+        expect(dialog).toBeTruthy();
+      });
     });
 
-    const stayBtn = /** @type {HTMLButtonElement} */ (
-      canvasElement.querySelector(`#${GUARD_ID}-modal-stay`)
-    );
-    expect(stayBtn).toBeTruthy();
-    stayBtn.click();
+    await step("clicking Stay closes the modal and keeps the dirty flag", async () => {
+      const stayBtn = /** @type {HTMLButtonElement} */ (
+        canvasElement.querySelector(`#${GUARD_ID}-modal-stay`)
+      );
+      expect(stayBtn).toBeTruthy();
+      stayBtn.click();
 
-    await waitFor(() => {
-      expect(canvasElement.querySelector("dialog.oidf-modal[open]")).toBeFalsy();
+      await waitFor(() => {
+        expect(canvasElement.querySelector("dialog.oidf-modal[open]")).toBeFalsy();
+      });
+      // Stay does not clear the dirty flag.
+      expect(guard.dirty).toBe(true);
     });
-    // Stay does not clear the dirty flag.
-    expect(guard.dirty).toBe(true);
   },
 };
 
@@ -181,29 +194,33 @@ export const MarkCleanSuppressesInterception = {
     </div>
   `,
 
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const guard = asGuard(canvasElement.querySelector("cts-unsaved-changes-guard"));
     const link = /** @type {HTMLAnchorElement} */ (canvasElement.querySelector("#story-link"));
 
-    guard.markDirty();
-    guard.markClean();
-    expect(guard.dirty).toBe(false);
+    await step("marking clean resets the dirty flag", async () => {
+      guard.markDirty();
+      guard.markClean();
+      expect(guard.dirty).toBe(false);
+    });
 
-    let defaultPreventedByGuard = false;
-    link.addEventListener(
-      "click",
-      (event) => {
-        defaultPreventedByGuard = event.defaultPrevented;
-        event.preventDefault();
-      },
-      { once: true },
-    );
+    await step("clicking a link is not intercepted while clean", async () => {
+      let defaultPreventedByGuard = false;
+      link.addEventListener(
+        "click",
+        (event) => {
+          defaultPreventedByGuard = event.defaultPrevented;
+          event.preventDefault();
+        },
+        { once: true },
+      );
 
-    await userEvent.click(link);
+      await userEvent.click(link);
 
-    // The guard must NOT have intercepted — defaultPrevented should be false
-    // at the time the test listener runs, and the modal should remain closed.
-    expect(defaultPreventedByGuard).toBe(false);
-    expect(canvasElement.querySelector("dialog.oidf-modal[open]")).toBeFalsy();
+      // The guard must NOT have intercepted — defaultPrevented should be false
+      // at the time the test listener runs, and the modal should remain closed.
+      expect(defaultPreventedByGuard).toBe(false);
+      expect(canvasElement.querySelector("dialog.oidf-modal[open]")).toBeFalsy();
+    });
   },
 };
