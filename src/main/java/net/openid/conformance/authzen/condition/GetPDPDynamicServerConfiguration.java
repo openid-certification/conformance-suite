@@ -34,7 +34,12 @@ public class GetPDPDynamicServerConfiguration extends AbstractCondition {
 		if (Strings.isNullOrEmpty(pdpDecisionPoint)) {
 			throw error("'Policy Decision Point Identifier' field is missing from the 'PDP' section in the test configuration (required to derive the discovery URL when using dynamic server configuration)", args("config", env.getObject("config")));
 		}
-		String discoveryUrl = pdpDecisionPoint + "/.well-known/authzen-configuration";
+		// Normalize trailing slash so "https://pdp/" + ".well-known/..." doesn't
+		// produce a double-slash URL that some servers reject.
+		String discoveryBase = pdpDecisionPoint.endsWith("/")
+			? pdpDecisionPoint.substring(0, pdpDecisionPoint.length() - 1)
+			: pdpDecisionPoint;
+		String discoveryUrl = discoveryBase + "/.well-known/authzen-configuration";
 
 		// fetch the value
 		String jsonString;
