@@ -211,9 +211,10 @@ public abstract class AbstractAuthzenPDPTest extends AbstractRedirectServerTestM
 
 	/**
 	 * Apply request overrides, add the X-Request-ID header when enabled, dispatch
-	 * the API call, and assert the X-Request-ID echo. Override the per-iteration
-	 * loop in {@link AbstractAuthzenPDPEvaluationsIdempotencyTest} and friends to
-	 * pick up these per-request behaviors.
+	 * the API call, and assert the X-Request-ID echo. The per-iteration loops in
+	 * {@link #runIdempotencyLoop} and
+	 * {@link AbstractAuthzenPDPSearchTest#runPaginatedSearchLoop} call this
+	 * method each iteration so per-request behaviors apply every time.
 	 *
 	 * <p>Does NOT call {@link #createAuthzenApiRequest()}; callers decide whether
 	 * to rebuild the request body each iteration or reuse the previous one.
