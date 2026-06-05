@@ -4,6 +4,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.nimbusds.jose.JWEAlgorithm;
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.jwk.Curve;
 import com.nimbusds.jose.jwk.ECKey;
@@ -11,6 +12,7 @@ import com.nimbusds.jose.jwk.JWK;
 import com.nimbusds.jose.jwk.JWKSet;
 import com.nimbusds.jose.jwk.KeyType;
 import com.nimbusds.jose.jwk.KeyUse;
+import com.nimbusds.jose.jwk.OctetKeyPair;
 import com.nimbusds.jose.util.JSONObjectUtils;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
@@ -18,7 +20,10 @@ import org.openqa.selenium.InvalidArgumentException;
 
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.regex.Pattern;
 
 public class JWKUtil {
 
@@ -63,6 +68,212 @@ public class JWKUtil {
 			}
 		}
 		return new JWKSet(parsed);
+	}
+
+	/** A problem found with a single key in a JWK set, identified by its position (index) within the set. */
+	public record JwkIssue(int index, JsonElement key, String detail) { }
+
+	private static final List<String> PRIVATE_KEY_MEMBERS =
+		List.of("d", "p", "q", "dp", "dq", "qi", "oth", "k");
+
+	private static final Set<String> SUPPORTED_KEY_TYPES = Set.of(
+		KeyType.EC.getValue(), KeyType.RSA.getValue(), KeyType.OCT.getValue(), KeyType.OKP.getValue());
+
+	private static final Set<String> KNOWN_ALGORITHMS = buildKnownAlgorithms();
+
+	private static final Pattern BASE64URL = Pattern.compile("^[A-Za-z0-9_-]*$");
+
+	private static Set<String> buildKnownAlgorithms() {
+		Set<String> names = new HashSet<>();
+		for (JWSAlgorithm alg : JWSAlgorithm.Family.SIGNATURE) {
+			names.add(alg.getName());
+		}
+		for (JWEAlgorithm alg : JWEAlgorithm.Family.ASYMMETRIC) {
+			names.add(alg.getName());
+		}
+		for (JWEAlgorithm alg : JWEAlgorithm.Family.SYMMETRIC) {
+			names.add(alg.getName());
+		}
+		return names;
+	}
+
+	private static JsonArray keysArrayOrEmpty(JsonObject jwks) {
+		if (jwks != null) {
+			JsonElement keys = jwks.get("keys");
+			if (keys != null && keys.isJsonArray()) {
+				return keys.getAsJsonArray();
+			}
+		}
+		return new JsonArray();
+	}
+
+	private static String stringMember(JsonObject key, String member) {
+		JsonElement el = key.get(member);
+		return (el != null && el.isJsonPrimitive()) ? OIDFJSON.getString(el) : null;
+	}
+
+	/**
+	 * Scan a JWK set for private or symmetric key material by inspecting the raw JSON members,
+	 * deliberately NOT relying on the JOSE library to parse each key. {@code JWKSet.parse} /
+	 * {@code JWK.parse} silently drop a key with an unknown {@code kty} (RFC 7517 section 5) and
+	 * collapse every other failure into a single ParseException, so private material in a key the
+	 * library cannot parse (e.g. on an unsupported curve) would otherwise go undetected.
+	 *
+	 * @return one issue per key that carries private (d/p/q/dp/dq/qi/oth/k) or symmetric (oct) material
+	 */
+	public static List<JwkIssue> findPrivateOrSymmetricKeyMembers(JsonObject jwks) {
+		List<JwkIssue> issues = new ArrayList<>();
+		JsonArray keys = keysArrayOrEmpty(jwks);
+		for (int i = 0; i < keys.size(); i++) {
+			JsonElement keyEl = keys.get(i);
+			if (!keyEl.isJsonObject()) {
+				continue; // reported by findStructurallyInvalidKeys
+			}
+			JsonObject key = keyEl.getAsJsonObject();
+			if (KeyType.OCT.getValue().equals(stringMember(key, "kty"))) {
+				issues.add(new JwkIssue(i, keyEl, "is a symmetric (oct) key"));
+				continue;
+			}
+			for (String member : PRIVATE_KEY_MEMBERS) {
+				if (key.has(member)) {
+					issues.add(new JwkIssue(i, keyEl, "contains private key material (member '" + member + "')"));
+					break;
+				}
+			}
+		}
+		return issues;
+	}
+
+	/**
+	 * Check that each key has the members required for its (recognised) key type and that the
+	 * encoded coordinate values are unpadded base64url. Keys whose {@code kty} the JOSE library does
+	 * not recognise are left to {@link #findUnusableKeys(JsonObject)} (a warning), not reported here.
+	 *
+	 * @return one issue per structurally invalid key
+	 */
+	public static List<JwkIssue> findStructurallyInvalidKeys(JsonObject jwks) {
+		List<JwkIssue> issues = new ArrayList<>();
+		JsonArray keys = keysArrayOrEmpty(jwks);
+		for (int i = 0; i < keys.size(); i++) {
+			JsonElement keyEl = keys.get(i);
+			if (!keyEl.isJsonObject()) {
+				issues.add(new JwkIssue(i, keyEl, "is not a JSON object"));
+				continue;
+			}
+			JsonObject key = keyEl.getAsJsonObject();
+			String kty = stringMember(key, "kty");
+			if (kty == null) {
+				issues.add(new JwkIssue(i, keyEl, "is missing the required 'kty' member"));
+				continue;
+			}
+			String[] required;
+			String[] base64urlMembers;
+			if (KeyType.RSA.getValue().equals(kty)) {
+				required = new String[] { "e", "n" };
+				base64urlMembers = new String[] { "e", "n" };
+			} else if (KeyType.EC.getValue().equals(kty)) {
+				required = new String[] { "x", "y" };
+				base64urlMembers = new String[] { "x", "y" };
+			} else if (KeyType.OKP.getValue().equals(kty)) {
+				required = new String[] { "x", "crv" };
+				base64urlMembers = new String[] { "x" };
+			} else {
+				continue; // oct handled by the private/symmetric check; unknown kty by the warning check
+			}
+			String missing = firstMissingMember(key, required);
+			if (missing != null) {
+				issues.add(new JwkIssue(i, keyEl, "is missing the required '" + missing + "' member for a " + kty + " key"));
+				continue;
+			}
+			String badMember = firstNonBase64UrlMember(key, base64urlMembers);
+			if (badMember != null) {
+				issues.add(new JwkIssue(i, keyEl, "has a '" + badMember + "' value that is not valid unpadded base64url"));
+			}
+		}
+		return issues;
+	}
+
+	/**
+	 * Identify keys the JOSE library cannot use: an unrecognised key type, an unsupported curve, or
+	 * an unrecognised {@code alg}. These are surfaced as warnings (a real recipient ignores keys it
+	 * cannot use, RFC 7517 section 5) rather than failures.
+	 *
+	 * @return one issue per unusable key
+	 */
+	public static List<JwkIssue> findUnusableKeys(JsonObject jwks) {
+		List<JwkIssue> issues = new ArrayList<>();
+		JsonArray keys = keysArrayOrEmpty(jwks);
+		for (int i = 0; i < keys.size(); i++) {
+			JsonElement keyEl = keys.get(i);
+			if (!keyEl.isJsonObject()) {
+				continue;
+			}
+			JsonObject key = keyEl.getAsJsonObject();
+			String kty = stringMember(key, "kty");
+			if (kty == null) {
+				continue; // missing kty is a structural failure, reported elsewhere
+			}
+			if (!SUPPORTED_KEY_TYPES.contains(kty)) {
+				issues.add(new JwkIssue(i, keyEl, "uses an unsupported key type (kty '" + kty + "')"));
+			} else if (KeyType.EC.getValue().equals(kty)) {
+				String unsupported = unsupportedCurve(key, ECKey.SUPPORTED_CURVES);
+				if (unsupported != null) {
+					issues.add(new JwkIssue(i, keyEl, "uses an unsupported EC curve ('" + unsupported + "')"));
+				}
+			} else if (KeyType.OKP.getValue().equals(kty)) {
+				String unsupported = unsupportedCurve(key, OctetKeyPair.SUPPORTED_CURVES);
+				if (unsupported != null) {
+					issues.add(new JwkIssue(i, keyEl, "uses an unsupported OKP curve ('" + unsupported + "')"));
+				}
+			}
+			String alg = stringMember(key, "alg");
+			if (alg != null && !alg.isEmpty() && !KNOWN_ALGORITHMS.contains(alg)) {
+				issues.add(new JwkIssue(i, keyEl, "uses an unrecognised algorithm (alg '" + alg + "')"));
+			}
+		}
+		return issues;
+	}
+
+	private static String unsupportedCurve(JsonObject key, Set<Curve> supported) {
+		String crv = stringMember(key, "crv");
+		if (crv == null || crv.isEmpty()) {
+			return null; // missing/empty crv is a structural concern, not an "unusable" warning
+		}
+		return supported.contains(Curve.parse(crv)) ? null : crv;
+	}
+
+	private static String firstMissingMember(JsonObject key, String... members) {
+		for (String member : members) {
+			if (!key.has(member)) {
+				return member;
+			}
+		}
+		return null;
+	}
+
+	private static String firstNonBase64UrlMember(JsonObject key, String... members) {
+		for (String member : members) {
+			String value = stringMember(key, member);
+			if (value == null || !BASE64URL.matcher(value).matches()) {
+				return member;
+			}
+		}
+		return null;
+	}
+
+	/** Render a list of {@link JwkIssue}s as a JSON array suitable for logging in condition args. */
+	public static JsonArray issuesToJson(List<JwkIssue> issues) {
+		JsonArray arr = new JsonArray();
+		for (JwkIssue issue : issues) {
+			JsonObject o = new JsonObject();
+			o.addProperty("index", issue.index());
+			o.addProperty("detail", issue.detail());
+			if (issue.key() != null) {
+				o.add("key", issue.key());
+			}
+			arr.add(o);
+		}
+		return arr;
 	}
 
 	public static JsonObject getPublicJwksAsJsonObject(JWKSet jwks) {
