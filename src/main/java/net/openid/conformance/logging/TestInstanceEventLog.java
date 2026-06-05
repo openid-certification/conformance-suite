@@ -125,7 +125,7 @@ public class TestInstanceEventLog implements DataUtils {
 	 * @param block
 	 * @return
 	 */
-	public synchronized String runBlock(Runnable block) {
+	public String runBlock(Runnable block) {
 		return runBlock(null, block);
 	}
 
@@ -140,7 +140,7 @@ public class TestInstanceEventLog implements DataUtils {
 	 * @param block
 	 * @return
 	 */
-	public synchronized String runBlock(String message, Runnable block) {
+	public String runBlock(String message, Runnable block) {
 		String result;
 		if (message == null) {
 			startBlock();

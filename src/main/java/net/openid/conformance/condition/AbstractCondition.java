@@ -8,6 +8,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonParser;
 import net.openid.conformance.condition.util.MtlsKeystoreBuilder;
+import net.openid.conformance.logging.HttpRequestDeadlineInterceptor;
 import net.openid.conformance.logging.LoggingRequestInterceptor;
 import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.DataUtils;
@@ -18,6 +19,7 @@ import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.hc.client5.http.classic.HttpClient;
 import org.apache.hc.client5.http.config.ConnectionConfig;
 import org.apache.hc.client5.http.config.RequestConfig;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
 import org.apache.hc.client5.http.impl.io.BasicHttpClientConnectionManager;
 import org.apache.hc.client5.http.socket.ConnectionSocketFactory;
@@ -27,6 +29,7 @@ import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactory;
 import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactoryBuilder;
 import org.apache.hc.core5.http.config.Registry;
 import org.apache.hc.core5.http.config.RegistryBuilder;
+import org.apache.hc.core5.io.CloseMode;
 import org.apache.hc.core5.util.Timeout;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -693,7 +696,17 @@ public abstract class AbstractCondition implements Condition, DataUtils {
 			.build();
 
 		HttpClientBuilder builder = HttpClientBuilder.create().useSystemProperties();
-		builder.setDefaultRequestConfig(RequestConfig.custom().build());
+		int timeout = getHttpClientTimeoutSeconds();
+		// Note: in Apache HttpClient 5 both the socket timeout and responseTimeout are per-read
+		// inactivity timeouts, not a wall-clock cap on the whole request - a peer that keeps sending a
+		// few bytes before each timeout can hold the connection open indefinitely. They bound the
+		// no-data/stalled case (which was the actual outage); a true wall-clock deadline is enforced
+		// separately by HttpRequestDeadlineInterceptor in createRestTemplate(). connectionRequestTimeout
+		// bounds waiting to lease a pooled connection. See https://gitlab.com/openid/conformance-suite/-/work_items/1827
+		builder.setDefaultRequestConfig(RequestConfig.custom()
+			.setResponseTimeout(Timeout.ofSeconds(timeout))
+			.setConnectionRequestTimeout(Timeout.ofSeconds(timeout))
+			.build());
 
 		Registry<ConnectionSocketFactory> registry = RegistryBuilder.<ConnectionSocketFactory>create()
 			.register("https", sslConnectionFactory)
@@ -701,7 +714,6 @@ public abstract class AbstractCondition implements Condition, DataUtils {
 			.build();
 
 		BasicHttpClientConnectionManager ccm = new BasicHttpClientConnectionManager(registry);
-		int timeout = 60; // seconds
 		ccm.setConnectionConfig(ConnectionConfig.custom()
 			.setConnectTimeout(Timeout.ofSeconds(timeout))
 			.setSocketTimeout(Timeout.ofSeconds(timeout))
@@ -719,6 +731,15 @@ public abstract class AbstractCondition implements Condition, DataUtils {
 		return httpClient;
 	}
 
+	/**
+	 * Timeout in seconds applied to outbound HTTP requests made by conditions: connect, socket
+	 * (per-read inactivity), connection-lease and overall response. Protected so tests can override it
+	 * with a short value. See https://gitlab.com/openid/conformance-suite/-/work_items/1827
+	 */
+	protected int getHttpClientTimeoutSeconds() {
+		return 60;
+	}
+
 	protected RestTemplate createRestTemplate(Environment env) throws UnrecoverableKeyException, KeyManagementException, CertificateException, InvalidKeySpecException, NoSuchAlgorithmException, KeyStoreException, IOException {
 		return createRestTemplate(env, true);
 	}
@@ -727,6 +748,14 @@ public abstract class AbstractCondition implements Condition, DataUtils {
 		HttpClient httpClient = createHttpClient(env, restrictAllowedTLSVersions);
 
 		RestTemplate restTemplate = new RestTemplate(new HttpComponentsClientHttpRequestFactory(httpClient));
+
+		// Hard wall-clock deadline on the whole request (including response-body buffering). The
+		// socket/response timeouts above are per-read only, so a trickling peer can defeat them; this
+		// aborts the request by closing the client if the call exceeds the timeout. Added first so it is
+		// the outermost interceptor and therefore also covers the body buffering done by the logging
+		// interceptor. See https://gitlab.com/openid/conformance-suite/-/work_items/1827
+		restTemplate.getInterceptors().add(new HttpRequestDeadlineInterceptor(
+			() -> ((CloseableHttpClient) httpClient).close(CloseMode.IMMEDIATE), getHttpClientTimeoutSeconds()));
 
 		// Single interceptor handles both logging and lock release. The lock is released only
 		// during network I/O (HTTP call + response body buffering); logging happens with the

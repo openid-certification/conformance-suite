@@ -1660,6 +1660,11 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 		initProfileBehavior(new CbuaeClientProfileBehavior());
 	}
 
+	@VariantSetup(parameter = FAPI2FinalOPProfile.class, value = "ksa")
+	public void setupKsa() {
+		initProfileBehavior(new KsaClientProfileBehavior());
+	}
+
 	@VariantSetup(parameter = FAPI2FinalOPProfile.class, value = "vci")
 	public void setupVci() {
 		initProfileBehavior(new VCIClientProfileBehavior());

@@ -74,6 +74,19 @@ public class LoggingRequestInterceptor implements ClientHttpRequestInterceptor, 
 				lockManager.reacquireLock();
 			}
 		} else {
+			if (lock != null && lock.isHeldByCurrentThread()) {
+				// We hold the per-test lock but have no TestLockManager to release it for the duration of
+				// the network I/O. This should never happen in production: every condition run by a test
+				// module is given a lock manager (AbstractTestModule.call()). It is expected only in
+				// standalone condition unit tests, which do not hold the lock - hence this branch is gated
+				// on isHeldByCurrentThread(). If it ever happens with the lock held, this network call would
+				// block every other thread that needs this test's lock (including stop()) for the duration
+				// of the I/O and could hang the whole suite, so fail loudly instead of performing the I/O.
+				// See https://gitlab.com/openid/conformance-suite/-/work_items/1827
+				throw new IllegalStateException("HTTP I/O to " + request.getURI() + " while holding the test "
+					+ "lock with no lock manager to release it (source=" + source + ") would block other "
+					+ "threads waiting on this test's lock and could hang the suite. This is a bug in the test suite.");
+			}
 			response = new WrappedClientHttpResponse(execution.execute(request, body));
 		}
 

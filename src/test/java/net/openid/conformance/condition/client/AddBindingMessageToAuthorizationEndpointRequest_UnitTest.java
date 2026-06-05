@@ -44,4 +44,19 @@ public class AddBindingMessageToAuthorizationEndpointRequest_UnitTest {
 
 	}
 
+	@Test
+	public void testEvaluate_usesRequestedBindingMessage() {
+
+		JsonObject authorizationEndpointRequest = new JsonObject();
+
+		env.putObject("authorization_endpoint_request", authorizationEndpointRequest);
+		env.putString("requested_binding_message", SetConnectIdBindingMessageToPurpose.CONNECTID_PURPOSE);
+
+		cond.execute(env);
+
+		assertThat(env.getString("authorization_endpoint_request", "binding_message"))
+			.isEqualTo(SetConnectIdBindingMessageToPurpose.CONNECTID_PURPOSE);
+
+	}
+
 }

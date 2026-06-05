@@ -120,11 +120,21 @@ public class InMemoryTestRunnerSupport implements TestRunnerSupport {
 					}
 					break;
 
+				case RUNNING:
+					// A RUNNING test is holding the test lock (setStatusInternal keeps the lock for RUNNING),
+					// so stop() would block forever trying to acquire it and can never actually stop the
+					// test. Removing it from the list would just hide a test that is still holding a thread
+					// and the lock (and the stop() we used to fire here leaked another thread blocked on the
+					// lock). Leave it in the list so it stays visible; it is cleaned up normally once it
+					// reaches a terminal state, or on process restart.
+					// See https://gitlab.com/openid/conformance-suite/-/work_items/1827
+					break;
+
 				case CREATED:
 				case WAITING:
 				case CONFIGURED:
-				case RUNNING:
 				case NOT_YET_CREATED:
+					// these states have released the lock, so stop() can actually take effect
 					if (testModule.getStatusUpdated().plus(waitingTestTimeout).isBefore(Instant.now())) {
 						removeRunningTest(testId);
 						testModule.getTestExecutionManager().runInBackground(() -> {

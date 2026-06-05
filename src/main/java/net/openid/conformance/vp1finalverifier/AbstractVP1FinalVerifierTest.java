@@ -2,6 +2,7 @@ package net.openid.conformance.vp1finalverifier;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -51,7 +52,9 @@ import net.openid.conformance.condition.as.VP1FinalCheckForUnexpectedParametersI
 import net.openid.conformance.condition.as.VP1FinalEncryptVPResponse;
 import net.openid.conformance.condition.as.VP1FinalValidateClientMetadataJwksForEncryptedResponse;
 import net.openid.conformance.condition.as.VP1FinalValidateVpFormatsSupportedInClientMetadata;
+import net.openid.conformance.condition.as.VP1FinalEnsureDirectPostResponseHasRedirectUriForHaip;
 import net.openid.conformance.condition.as.ValidateDirectPostResponse;
+import net.openid.conformance.condition.as.ValidateDirectPostResponseRedirectUriWhenPresent;
 import net.openid.conformance.condition.as.ValidateEncryptedRequestObjectHasKid;
 import net.openid.conformance.condition.as.ValidateRequestObjectAudForVP;
 import net.openid.conformance.condition.as.ValidateRequestObjectIat;
@@ -527,7 +530,18 @@ public abstract class AbstractVP1FinalVerifierTest extends AbstractTestModule {
 
 		Object viewToReturn;
 
-		String redirectTo = env.getString("direct_post_response", "body_json.redirect_uri");
+		// Spec-level validity of redirect_uri (must be a non-empty string when present) is
+		// enforced by ValidateDirectPostResponseRedirectUriWhenPresent at FAILURE; the read
+		// here is intentionally defensive so a wallet that sent garbage still surfaces the
+		// proper condition failure rather than crashing the test module.
+		JsonElement redirectEl = env.getElementFromObject("direct_post_response", "body_json.redirect_uri");
+		String redirectTo = null;
+		if (redirectEl != null && redirectEl.isJsonPrimitive() && redirectEl.getAsJsonPrimitive().isString()) {
+			String value = OIDFJSON.getString(redirectEl);
+			if (!value.isEmpty()) {
+				redirectTo = value;
+			}
+		}
 		if (redirectTo != null) {
 			viewToReturn = new RedirectView(redirectTo, false, false, false);
 		} else {
@@ -578,6 +592,10 @@ public abstract class AbstractVP1FinalVerifierTest extends AbstractTestModule {
 		callAndContinueOnFailure(EnsureHttpStatusCodeIs200.class, ConditionResult.FAILURE, "OID4VP-1FINAL-8.2");
 		callAndContinueOnFailure(EnsureContentTypeJson.class, ConditionResult.FAILURE, "OID4VP-1FINAL-8.2");
 		callAndContinueOnFailure(ValidateDirectPostResponse.class, ConditionResult.WARNING, "OID4VP-1FINAL-8.2");
+		callAndContinueOnFailure(ValidateDirectPostResponseRedirectUriWhenPresent.class, ConditionResult.FAILURE, "OID4VP-1FINAL-8.2");
+		if (getVariant(VPProfile.class) == VPProfile.HAIP) {
+			callAndContinueOnFailure(VP1FinalEnsureDirectPostResponseHasRedirectUriForHaip.class, ConditionResult.FAILURE, "HAIP-5.1");
+		}
 	}
 
 	/**

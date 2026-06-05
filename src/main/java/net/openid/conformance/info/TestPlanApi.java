@@ -253,6 +253,11 @@ public class TestPlanApi implements DataUtils {
 			}
 		}
 
+		JsonElement configEl = testPlanObj.get("config");
+		if (configEl != null && configEl.isJsonObject()) {
+			ConfigMigration.migrateLegacyClientAttestationKeys(configEl.getAsJsonObject());
+		}
+
 		return new ResponseEntity<>(testPlanObj, HttpStatus.OK);
 	}
 

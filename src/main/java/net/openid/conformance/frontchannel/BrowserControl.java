@@ -101,6 +101,10 @@ public class BrowserControl implements DataUtils {
 
 	private static final Logger logger = LoggerFactory.getLogger(BrowserControl.class);
 
+	// Connect + read timeout for the headless browser's outbound HTTP, matching the condition HTTP
+	// client (60s). See https://gitlab.com/openid/conformance-suite/-/work_items/1827
+	private static final int BROWSER_HTTP_TIMEOUT_MILLIS = 60_000;
+
 	private String testId;
 
 	private TestExecutionManager executionManager;
@@ -838,6 +842,11 @@ public class BrowserControl implements DataUtils {
 			// are set/read might differ between test runs.
 			client.setCookieManager(cookieManager);
 			client.addRequestHeader("ngrok-skip-browser-warning", "true");
+
+			// Bound the browser's outbound HTTP (connect + read). Without this it relies on HtmlUnit's
+			// default, so a system-under-test that accepts the connection but never responds could block
+			// the WebRunner thread. See https://gitlab.com/openid/conformance-suite/-/work_items/1827
+			client.getOptions().setTimeout(BROWSER_HTTP_TIMEOUT_MILLIS);
 
 			// Selenium / HtmlUnit's javascript engine barfs at a lot of modern
 			// javascript. However asking it to ignore the errors and carry on seems
