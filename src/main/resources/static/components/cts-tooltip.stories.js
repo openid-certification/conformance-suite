@@ -3,7 +3,7 @@ import { expect, userEvent, waitFor } from "storybook/test";
 import "./cts-tooltip.js";
 
 export default {
-  title: "Primitives/cts-tooltip",
+  title: "Components/cts-tooltip",
   component: "cts-tooltip",
 };
 

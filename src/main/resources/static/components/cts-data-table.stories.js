@@ -4,7 +4,7 @@ import { http, HttpResponse, delay } from "msw";
 import "./cts-data-table.js";
 
 export default {
-  title: "Patterns/cts-data-table",
+  title: "Components/cts-data-table",
   component: "cts-data-table",
 };
 

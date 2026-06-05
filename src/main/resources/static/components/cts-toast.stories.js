@@ -9,7 +9,7 @@ import { CtsToastHost } from "./cts-toast.js";
 import "../js/cts-toast-api.js";
 
 export default {
-  title: "Patterns/cts-toast",
+  title: "Components/cts-toast",
   component: "cts-toast",
 };
 

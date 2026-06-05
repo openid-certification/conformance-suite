@@ -30,7 +30,7 @@ Every per-icon file uses:
 
 ## Discovering icon names
 
-Open Storybook and visit **`Primitives/cts-icon → AllIcons`** for a browsable grid of every icon currently vendored, with its kebab-case name. Copy the name verbatim to use as the `name` attribute.
+Open Storybook and visit **`Components/cts-icon → AllIcons`** for a browsable grid of every icon currently vendored, with its kebab-case name. Copy the name verbatim to use as the `name` attribute.
 
 If you need the list outside Storybook:
 

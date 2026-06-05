@@ -3,7 +3,7 @@ import { expect } from "storybook/test";
 import "./cts-link-button.js";
 
 export default {
-  title: "Primitives/cts-link-button",
+  title: "Components/cts-link-button",
   component: "cts-link-button",
   argTypes: {
     href: { control: "text" },

@@ -3,7 +3,7 @@ import { expect, userEvent } from "storybook/test";
 import "./cts-alert.js";
 
 export default {
-  title: "Primitives/cts-alert",
+  title: "Components/cts-alert",
   component: "cts-alert",
   argTypes: {
     variant: {

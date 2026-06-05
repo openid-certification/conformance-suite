@@ -4,7 +4,7 @@ import "./cts-action-bar.js";
 import "./cts-button.js";
 
 export default {
-  title: "Primitives/cts-action-bar",
+  title: "Components/cts-action-bar",
   component: "cts-action-bar",
   argTypes: {
     position: {

@@ -122,7 +122,7 @@ class CtsIcon extends LitElement {
       console.warn(
         `[cts-icon] No vendored SVG found for name="${name}". ` +
           "Find valid names: ls src/main/resources/static/vendor/coolicons/icons/ " +
-          "or browse Storybook → Primitives/cts-icon → AllIcons.",
+          "or browse Storybook → Components/cts-icon → AllIcons.",
       );
     });
   }

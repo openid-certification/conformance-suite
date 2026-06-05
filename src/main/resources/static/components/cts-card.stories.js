@@ -3,7 +3,7 @@ import { expect } from "storybook/test";
 import "./cts-card.js";
 
 export default {
-  title: "Primitives/cts-card",
+  title: "Components/cts-card",
   component: "cts-card",
 };
 

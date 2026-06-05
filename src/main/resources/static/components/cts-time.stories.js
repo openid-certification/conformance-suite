@@ -9,7 +9,7 @@ import {
 } from "../lib/time-format.js";
 
 export default {
-  title: "Primitives/cts-time",
+  title: "Components/cts-time",
   component: "cts-time",
 };
 

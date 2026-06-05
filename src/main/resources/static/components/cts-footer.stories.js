@@ -5,7 +5,7 @@ import { MOCK_SERVER_INFO } from "@fixtures/mock-test-data.js";
 import "./cts-footer.js";
 
 export default {
-  title: "Primitives/cts-footer",
+  title: "Components/cts-footer",
   component: "cts-footer",
 };
 
