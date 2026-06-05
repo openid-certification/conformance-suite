@@ -194,6 +194,7 @@ import net.openid.conformance.vci10wallet.condition.VerifyKeyAttestationSignatur
 import net.openid.conformance.condition.as.clientattestation.AddClientAttestationSigningAlgValuesSupportedToServerConfiguration;
 import net.openid.conformance.vci10wallet.condition.clientattestation.VCIRegisterClientAttestationTrustAnchor;
 import net.openid.conformance.vci10wallet.condition.clientattestation.VCIRegisterKeyAttestationTrustAnchor;
+import net.openid.conformance.util.OAuthUriUtil;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -478,6 +479,11 @@ public abstract class AbstractVCIWalletTest extends net.openid.conformance.fapi2
 
 	protected void configureOauthAuthorizationServerMetadata() {
 		String oauthAuthorizationServerMetadataUrl = generateWellKnownUrlForPath(env.getString("credential_issuer"), "oauth-authorization-server");
+		// RFC 8414 section 3.1 requires the issuer's trailing "/" to be removed when forming
+		// the OAuth-AS well-known URL, which is the form VCICheckOAuthAuthorizationServerMetadataRequestUrl
+		// expects. Strip it here so the advertised URL matches the check. (The credential-issuer
+		// metadata URL keeps its trailing slash and is unaffected.)
+		oauthAuthorizationServerMetadataUrl = OAuthUriUtil.stripTrailingSlash(oauthAuthorizationServerMetadataUrl);
 		env.putString("oauth_authorization_server_metadata_url", oauthAuthorizationServerMetadataUrl);
 
 		addTokenStatusListAggregationEndpointToOauthServerMetadata();

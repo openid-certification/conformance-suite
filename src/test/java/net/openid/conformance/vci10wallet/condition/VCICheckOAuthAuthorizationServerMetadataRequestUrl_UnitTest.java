@@ -73,9 +73,9 @@ public class VCICheckOAuthAuthorizationServerMetadataRequestUrl_UnitTest {
 
 	@Test
 	public void failsWhenIssuerHasNoTrailingSlashAndRequestAddsOne() {
-		// Lenient mode: many wallets keep the trailing "/" of the issuer when constructing
-		// the well-known URL even though RFC 8414 section 3.1 says it MUST be removed.
-		// Accept that form too.
+		// RFC 8414 section 3.1 requires the well-known URL to be formed without a trailing
+		// "/". A request that appends an extra trailing "/" to the path is therefore
+		// non-compliant and must be rejected.
 		setServerIssuer("https://example.com/issuer1");
 		setIncomingRequestUrl("https://example.com/.well-known/oauth-authorization-server/issuer1/");
 		assertThrows(ConditionError.class, () -> cond.execute(env));
@@ -83,8 +83,9 @@ public class VCICheckOAuthAuthorizationServerMetadataRequestUrl_UnitTest {
 
 	@Test
 	public void failsWhenIssuerHasTrailingSlashAndRequestKeepsIt() {
-		// The CI panva-style wallet sends this form: it appended the well-known suffix to
-		// the issuer (verbatim, keeping the trailing slash). Accepted in lenient mode.
+		// A wallet that simply appends the well-known suffix to the issuer verbatim keeps
+		// the issuer's trailing "/". RFC 8414 section 3.1 requires that "/" to be removed,
+		// so this form is non-compliant and must be rejected.
 		setServerIssuer("https://example.com/issuer1/");
 		setIncomingRequestUrl("https://example.com/.well-known/oauth-authorization-server/issuer1/");
 		assertThrows(ConditionError.class, () -> cond.execute(env));
