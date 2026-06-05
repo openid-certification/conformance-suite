@@ -15,7 +15,8 @@ public class EnsureValidEvaluationsResponse extends AbstractCondition {
 		JsonObject evaluationsResponse = env.getObject("authzen_evaluations_endpoint_response");
 		JsonElement evaluationsElem = evaluationsResponse.get("evaluations");
 		if (null == evaluationsElem) {
-			// TODO Check decision element if evaluations is not available
+			// top-level decision element is normalized to evaluations array if it exists by
+			// NormalizeAuthzenEvaluationsResponseSingleDecisionToArray
 			throw error("No evaluations element in API response", args("authzen_evaluations_endpoint_response", evaluationsResponse));
 		}
 		if(!evaluationsElem.isJsonArray()) {
