@@ -7,6 +7,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonParser;
+import net.openid.conformance.condition.client.CachingHttpInterceptor;
 import net.openid.conformance.condition.util.MtlsKeystoreBuilder;
 import net.openid.conformance.logging.HttpRequestDeadlineInterceptor;
 import net.openid.conformance.logging.LoggingRequestInterceptor;
@@ -742,6 +743,23 @@ public abstract class AbstractCondition implements Condition, DataUtils {
 
 	protected RestTemplate createRestTemplate(Environment env) throws UnrecoverableKeyException, KeyManagementException, CertificateException, InvalidKeySpecException, NoSuchAlgorithmException, KeyStoreException, IOException {
 		return createRestTemplate(env, true);
+	}
+
+	/**
+	 * Same as {@link #createRestTemplate(Environment)} but additionally installs
+	 * {@link net.openid.conformance.condition.client.CachingHttpInterceptor},
+	 * so subsequent calls consult {@link net.openid.conformance.condition.client.ExternalEndpointCache}
+	 * before issuing the real HTTP request. Opt-in: conditions that want
+	 * caching call this method instead of {@code createRestTemplate}.
+	 */
+	protected RestTemplate createRestTemplateWithCache(Environment env) throws UnrecoverableKeyException, KeyManagementException, CertificateException, InvalidKeySpecException, NoSuchAlgorithmException, KeyStoreException, IOException {
+		RestTemplate rt = createRestTemplate(env, true);
+		// Register AFTER LoggingRequestInterceptor so logging still sees every request
+		// and response (cached or not). Cache hits are tagged via
+		// CachedHttpResponseMarker so LoggingRequestInterceptor relabels its
+		// single "HTTP response" entry as "Using cached HTTP response".
+		rt.getInterceptors().add(new CachingHttpInterceptor(env));
+		return rt;
 	}
 
 	protected RestTemplate createRestTemplate(Environment env, boolean restrictAllowedTLSVersions) throws UnrecoverableKeyException, KeyManagementException, CertificateException, InvalidKeySpecException, NoSuchAlgorithmException, KeyStoreException, IOException {

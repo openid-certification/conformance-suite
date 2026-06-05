@@ -123,5 +123,8 @@
                 }
             ]
         }
-    ]
+    ],
+    "options": {
+        "browsercontrol_css_enable": false
+    }
 }

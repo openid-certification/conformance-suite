@@ -1,10 +1,6 @@
 package net.openid.conformance.authzen.interop.search.resource;
 
-import com.google.gson.JsonObject;
-import net.openid.conformance.authzen.AbstractAuthzenPDPPaginatedSearchTest;
-import net.openid.conformance.authzen.condition.CreateAuthzenResourceSearchApiRequestSteps;
-import net.openid.conformance.authzen.condition.SetAuthzenApiEndpointToResourceSearchEndpoint;
-import net.openid.conformance.sequence.ConditionSequence;
+import net.openid.conformance.authzen.AbstractAuthzenPDPPaginatedResourceSearchTest;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
@@ -15,7 +11,7 @@ import net.openid.conformance.testmodule.PublishTestModule;
 	configurationFields = {
 	}
 )
-public class AuthzenPDPInteropResourceSearch01PaginationTest extends AbstractAuthzenPDPPaginatedSearchTest {
+public class AuthzenPDPInteropResourceSearch01PaginationTest extends AbstractAuthzenPDPPaginatedResourceSearchTest {
 
 	public static final String payload = """
 	{
@@ -128,21 +124,5 @@ public class AuthzenPDPInteropResourceSearch01PaginationTest extends AbstractAut
 	@Override
 	protected String getPayload() {
 		return payload;
-	}
-
-	@Override
-	protected ConditionSequence createAuthzenApiRequestSequence() {
-		JsonObject request = parseRequest();
-		return new CreateAuthzenResourceSearchApiRequestSteps(
-			request.getAsJsonObject("subject"),
-			request.getAsJsonObject("resource"),
-			request.getAsJsonObject("action"),
-			request.getAsJsonObject("context"),
-			request.getAsJsonObject("page"));
-	}
-
-	@Override
-	protected void setAuthzenApiEndpoint() {
-		callAndStopOnFailure(SetAuthzenApiEndpointToResourceSearchEndpoint.class);
 	}
 }

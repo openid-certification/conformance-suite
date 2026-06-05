@@ -14,29 +14,35 @@ public class EnsureAuthzenSearchResponseValsMatchExpectedVals extends AbstractCo
 	@Override
 	@PreEnvironment(required = {"authzen_search_endpoint_expected_response", "authzen_search_endpoint_response"})
 	public Environment evaluate(Environment env) {
-		JsonArray expected = env.getElementFromObject("authzen_search_endpoint_expected_response", "results").getAsJsonArray();
-		JsonArray results = env.getElementFromObject("authzen_search_endpoint_response", "results").getAsJsonArray();
+		JsonArray expected = readResultsArray(env, "authzen_search_endpoint_expected_response", "expected");
+		JsonArray results = readResultsArray(env, "authzen_search_endpoint_response", "actual");
 
-		// Expected and actual responses should not contain duplicate values, but use Set operations just in case
-		Set<JsonElement> expectedList = new HashSet<>(expected.asList());
-		Set<JsonElement> resultsList = new HashSet<>(results.asList());
+		// Per the certification spec, the harness validates that the expected entities appear in the
+		// results but does not reject additional results. Use a subset check: expected MUST be a
+		// subset of actual.
+		Set<JsonElement> expectedSet = new HashSet<>(expected.asList());
+		Set<JsonElement> resultsSet = new HashSet<>(results.asList());
 
-		resultsList.removeAll(expectedList);
-		expectedList.removeAll(results.asList());
-		// resultsList now contains unexpected elements
-		// expectedList now contains missing elements not returned
+		expectedSet.removeAll(resultsSet);
+		// expectedSet now contains missing elements not returned
 
-		if(!resultsList.isEmpty()) { // should not contain any elements after removing all expected elements
-			if(!expectedList.isEmpty()) {
-				throw error("Search result does not match", args("missing expected elements", expectedList, "unexpected elements", resultsList));
-			} else {
-				throw error("Search result contains unexpected elements", args("unexpected elements", resultsList));
-			}
-		} else if(!expectedList.isEmpty()){
-			throw error("Search result is missing expected elements", args("missing expected elements", expectedList));
+		if(!expectedSet.isEmpty()){
+			throw error("Search result is missing expected elements", args("missing expected elements", expectedSet));
 		}
 
-		logSuccess("The search response match expected values");
+		logSuccess("The search response contains all expected values");
 		return env;
+	}
+
+	private JsonArray readResultsArray(Environment env, String objectKey, String role) {
+		JsonElement elem = env.getElementFromObject(objectKey, "results");
+		if (elem == null) {
+			throw error(role + " search response has no `results` array", args("env_key", objectKey));
+		}
+		if (!elem.isJsonArray()) {
+			throw error(role + " search response `results` is not an array",
+				args("env_key", objectKey, "value", elem));
+		}
+		return elem.getAsJsonArray();
 	}
 }

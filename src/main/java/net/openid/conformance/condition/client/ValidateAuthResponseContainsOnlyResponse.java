@@ -18,7 +18,7 @@ public class ValidateAuthResponseContainsOnlyResponse extends AbstractCondition 
 		}
 
 		if (response.size() != 1) {
-			throw error("Incoming response contains parameters other than 'response'", args("response", response));
+			throw error("Incoming response contains parameters other than 'response'. As per VP section 8.3.1, all parameters (including state) are passed inside the JWE. The 'kid' in the JWE header can be used to determine which key is used to decrypt the response.", args("response", response));
 		}
 
 		logSuccess("Incoming response contains only expected 'response' parameter", response);

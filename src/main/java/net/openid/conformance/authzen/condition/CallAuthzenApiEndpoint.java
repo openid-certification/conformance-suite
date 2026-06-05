@@ -38,23 +38,7 @@ public class CallAuthzenApiEndpoint extends AbstractCondition {
 	@PostEnvironment(required = "authzen_api_endpoint_response")
 	public Environment evaluate(Environment env) {
 
-		String authzenApiEndpoint = null;
-
-		if (env.containsObject("mutual_tls_authentication")) {
-			// for now, use the MTLS aliased endpoint if we have MTLS authentication available.
-			// This is to cater for Brazil, where the DCR endpoint requires MTLS authentication.
-			// It's not quite right for OIDC/CIBA cases if MTLS client authentication is in use -
-			// the generic OAuth2 DCR endpoint shouldn't require MTLS.
-			// I think here we could just call env.getString("server", "mtls_endpoint_aliases.registration_endpoint");
-			// but https://gitlab.com/openid/conformance-suite/-/issues/914 is open to reconsider the overall
-			// mechanism.
-			authzenApiEndpoint = env.getString("authzen_api_endpoint");
-		}
-
-		if (authzenApiEndpoint == null) {
-			authzenApiEndpoint = env.getString("authzen_api_endpoint");
-		}
-
+		String authzenApiEndpoint = env.getString("authzen_api_endpoint");
 		if (authzenApiEndpoint == null) {
 			throw error("Couldn't find Authzen API endpoint");
 		}
@@ -78,7 +62,15 @@ public class CallAuthzenApiEndpoint extends AbstractCondition {
 
 			headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
 			headers.setAcceptCharset(Collections.singletonList(StandardCharsets.UTF_8));
-			headers.setContentType(MediaType.APPLICATION_JSON);
+			String contentTypeOverride = env.getString("authzen_api_endpoint_request_content_type");
+			if (contentTypeOverride == null) {
+				headers.setContentType(MediaType.APPLICATION_JSON);
+			} else if (!contentTypeOverride.isEmpty()) {
+				headers.setContentType(MediaType.parseMediaType(contentTypeOverride));
+			}
+			// An empty override means "send no Content-Type header at all".
+			// HttpHeaders.setContentType won't accept null, so build the entity
+			// without ever setting it.
 
 			/*
 			 * Add/Override headers for request
@@ -90,10 +82,20 @@ public class CallAuthzenApiEndpoint extends AbstractCondition {
 				}
 			}
 
-			HttpEntity<?> request = new HttpEntity<>(requestObj.toString(), headers);
+			// Body: raw override takes precedence over the JSON object representation.
+			String rawBody = env.getString("authzen_api_endpoint_request_raw_body");
+			Object bodyToSend = rawBody != null ? rawBody : (requestObj != null ? requestObj.toString() : "");
+
+			HttpEntity<?> request = new HttpEntity<>(bodyToSend, headers);
+
+			HttpMethod method = HttpMethod.POST;
+			String methodOverride = env.getString("authzen_api_endpoint_request_method");
+			if (methodOverride != null) {
+				method = HttpMethod.valueOf(methodOverride);
+			}
 
 			try {
-				ResponseEntity<String> response = restTemplate.exchange(authzenApiEndpoint, HttpMethod.POST, request, String.class);
+				ResponseEntity<String> response = restTemplate.exchange(authzenApiEndpoint, method, request, String.class);
 
 				JsonObject responseInfo = convertJsonResponseForEnvironment("Authzen API endpoint", response, allowJsonParseFailure());
 

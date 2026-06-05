@@ -36,7 +36,7 @@ public class FetchOauthProtectedResourceMetadata extends AbstractCondition {
 			log("Fetching protected resource server metadata", args("oauth_protected_resource_metadata_uri", oauthResourceMedatataUrl));
 
 			try {
-				RestTemplate restTemplate = createRestTemplate(env);
+				RestTemplate restTemplate = createRestTemplateWithCache(env);
 
 				ResponseEntity<String> oauthProtectedResourceMetadataResponse = restTemplate.getForEntity(oauthResourceMedatataUrl, String.class);
 				if (!HttpStatus.OK.equals(oauthProtectedResourceMetadataResponse.getStatusCode())) {

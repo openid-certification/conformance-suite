@@ -10,6 +10,7 @@ import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.condition.util.TLSTestValueExtractor;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
+import net.openid.conformance.util.OAuthUriUtil;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestClientException;
@@ -27,6 +28,7 @@ import java.security.spec.InvalidKeySpecException;
 public class OIDSSFGetDynamicTransmitterConfiguration extends AbstractCondition {
 
 	public static final String WELL_KNOWN_SSF_CONFIGURATION_PATH = ".well-known/ssf-configuration";
+	public static final String WELL_KNOWN_SSF_CONFIGURATION_SUFFIX = "ssf-configuration";
 
 	@Override
 	@PreEnvironment(required = "config")
@@ -126,11 +128,7 @@ public class OIDSSFGetDynamicTransmitterConfiguration extends AbstractCondition 
 			throw error("Couldn't find ssf.transmitter.issuer field for discovery purposes");
 		}
 
-		if (!iss.endsWith("/")) {
-			iss += "/";
-		}
-
-		return iss + WELL_KNOWN_SSF_CONFIGURATION_PATH;
+		return OAuthUriUtil.generateWellKnownUrlForPath(iss, WELL_KNOWN_SSF_CONFIGURATION_SUFFIX);
 	}
 
 }

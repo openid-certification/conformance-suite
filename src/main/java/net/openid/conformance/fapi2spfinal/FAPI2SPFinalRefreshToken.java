@@ -17,6 +17,7 @@ import net.openid.conformance.condition.client.CheckTokenEndpointHttpStatus400or
 import net.openid.conformance.condition.client.CheckTokenEndpointHttpStatusIs400Allowing401ForInvalidClientError;
 import net.openid.conformance.condition.client.CheckTokenEndpointReturnedInvalidClientGrantOrRequestError;
 import net.openid.conformance.condition.client.CheckTokenEndpointReturnedInvalidClientGrantRequestOrAttestationError;
+import net.openid.conformance.condition.client.CheckTokenEndpointReturnedInvalidRequestGrantOrDPopProofError;
 import net.openid.conformance.condition.client.CheckTokenEndpointReturnedJsonContentType;
 import net.openid.conformance.condition.client.CreateRefreshTokenRequest;
 import net.openid.conformance.condition.client.EnsureRefreshTokenContainsAllowedCharactersOnly;
@@ -308,7 +309,9 @@ public class FAPI2SPFinalRefreshToken extends AbstractFAPI2SPFinalMultipleClient
 				callAndStopOnFailure(ValidateErrorFromTokenEndpointResponseError.class);
 				callAndContinueOnFailure(CheckTokenEndpointHttpStatus400.class, ConditionResult.FAILURE, "OIDCC-3.1.3.4");
 				callAndContinueOnFailure(CheckTokenEndpointReturnedJsonContentType.class, ConditionResult.FAILURE, "OIDCC-3.1.3.4");
-				callAndContinueOnFailure(CheckTokenEndpointReturnedInvalidClientGrantOrRequestError.class, ConditionResult.FAILURE, "RFC6749-5.2");
+				// RFC 9449 section 5 allows invalid_dpop_proof when a DPoP-sender-constrained
+				// token request is sent without a proof, in addition to invalid_request/invalid_grant.
+				callAndContinueOnFailure(CheckTokenEndpointReturnedInvalidRequestGrantOrDPopProofError.class, ConditionResult.FAILURE, "RFC6749-5.2", "RFC9449-5");
 			}
 
 			eventLog.endBlock();

@@ -125,7 +125,8 @@ class EnsureAuthzenSearchResponseValsMatchExpectedValsTest {
 	}
 
 	@Test
-	public void testEvaluate_error_empty_expected_response() {
+	public void testEvaluate_empty_expected_response_extras_allowed_noError() {
+		// Per the certification spec, extras in the response are permitted.
 		String expectedJson = """
 		[
 		]""";
@@ -137,8 +138,7 @@ class EnsureAuthzenSearchResponseValsMatchExpectedValsTest {
 			}
 		]""";
 
-		Throwable e = assertThrows(ConditionError.class, () -> performTest(expectedJson, actualJson));
-		assertTrue(e.getMessage().contains("Search result contains unexpected elements"));
+		performTest(expectedJson, actualJson);
 	}
 
 	@Test
@@ -165,7 +165,8 @@ class EnsureAuthzenSearchResponseValsMatchExpectedValsTest {
 	}
 
 	@Test
-	public void testEvaluate_error_response_more_than_expected_size() {
+	public void testEvaluate_response_more_than_expected_size_noError() {
+		// Per the certification spec, extras in the response are permitted.
 		String expectedJson = """
 		[
 			{
@@ -183,8 +184,7 @@ class EnsureAuthzenSearchResponseValsMatchExpectedValsTest {
 			}
 		]""";
 
-		Throwable e = assertThrows(ConditionError.class, () -> performTest(expectedJson, actualJson));
-		assertTrue(e.getMessage().contains("Search result contains unexpected elements"));
+		performTest(expectedJson, actualJson);
 	}
 
 	@Test
@@ -261,7 +261,8 @@ class EnsureAuthzenSearchResponseValsMatchExpectedValsTest {
 	}
 
 	@Test
-	public void testEvaluate_error_unexpected_response() {
+	public void testEvaluate_unexpected_response_extras_allowed_noError() {
+		// Per the certification spec, extras in the response are permitted.
 		String expectedJson = """
 		[
 			{
@@ -279,12 +280,12 @@ class EnsureAuthzenSearchResponseValsMatchExpectedValsTest {
 			}
 		]""";
 
-		Throwable e = assertThrows(ConditionError.class, () -> performTest(expectedJson, actualJson));
-		assertTrue(e.getMessage().contains("Search result contains unexpected elements"));
+		performTest(expectedJson, actualJson);
 	}
 
 	@Test
-	public void testEvaluate_error_unexpected_and_missing_response() {
+	public void testEvaluate_error_missing_when_extras_present() {
+		// Subset semantics: response contains extras but is also missing an expected element.
 		String expectedJson = """
 		[
 			{
@@ -306,7 +307,7 @@ class EnsureAuthzenSearchResponseValsMatchExpectedValsTest {
 		]""";
 
 		Throwable e = assertThrows(ConditionError.class, () -> performTest(expectedJson, actualJson));
-		assertTrue(e.getMessage().contains("Search result does not match"));
+		assertTrue(e.getMessage().contains("Search result is missing expected elements"));
 	}
 
 }

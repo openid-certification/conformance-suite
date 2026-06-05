@@ -61,7 +61,7 @@ public class GetDynamicServerConfiguration extends AbstractCondition {
 			// fetch the value
 			String jsonString;
 			try {
-				RestTemplate restTemplate = createRestTemplate(env);
+				RestTemplate restTemplate = createRestTemplateWithCache(env);
 				ResponseEntity<String> response = restTemplate.exchange(discoveryUrl, HttpMethod.GET, null, String.class);
 				JsonObject responseInfo = convertResponseForEnvironment("discovery", response);
 

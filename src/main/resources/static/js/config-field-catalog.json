@@ -221,7 +221,7 @@
           "key": "pdp.policy_decision_point",
           "label": "PDP Identifier",
           "type": "string",
-          "tooltip": "Polic Decision Point Identifier"
+          "tooltip": "Policy Decision Point Identifier"
         },
         {
           "key": "pdp.access_evaluation_endpoint",

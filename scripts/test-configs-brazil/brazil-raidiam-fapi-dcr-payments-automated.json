@@ -201,5 +201,9 @@
             ]
         }
     ],
-    "consent": {}
+    "consent": {},
+    "options": {
+        "cache_external_metadata": true,
+        "browsercontrol_css_enable": false
+    }
 }

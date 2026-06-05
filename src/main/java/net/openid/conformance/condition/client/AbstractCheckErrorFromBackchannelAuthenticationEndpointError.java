@@ -26,7 +26,7 @@ public abstract class AbstractCheckErrorFromBackchannelAuthenticationEndpointErr
 			throw error("'error' field has unexpected value", args("expected", expected, "actual", error));
 		}
 
-		logSuccess("Token Endpoint response error returned expected 'error' of '" + expected + "'", args("error", error));
+		logSuccess("Backchannel Authentication Endpoint response returned expected 'error' of '" + expected + "'", args("error", error));
 		return env;
 	}
 }

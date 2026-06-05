@@ -205,6 +205,7 @@ async def run_test_plan(test_plan_obj, config_file, output_dir, client_certs):
     await run_queue(queue, parallel_jobs)
 
     overall_time = time.time() - overall_start_time
+    filename = None
     if output_dir != None:
         start_time_for_save = time.time()
         filename = await conformance.exportjson(plan_id, output_dir)
@@ -218,7 +219,8 @@ async def run_test_plan(test_plan_obj, config_file, output_dir, client_certs):
         'test_info': test_info,
         'test_time_taken': test_time_taken,
         'overall_time': overall_time,
-        'plan_number': plan_number
+        'plan_number': plan_number,
+        'export_filename': filename
     })
     return plan_results
 
@@ -366,6 +368,14 @@ async def run_test_module(moduledict, plan_id, test_info, test_time_taken, varia
             traceback.print_exc()
             print('Exception: Test {} {} failed to run to completion: {}'.format(module_with_variants, module_id, e))
             restart_detections.append({'module': module_with_variants, 'attempt': attempt, 'error': str(e)})
+            # Discard any result zips exported by a nested op_plan during this failed attempt. The
+            # retry re-runs the op_plan under a new plan id, so leaving the partial export in place
+            # would give compare-results.py two zips for the same test unit ("More than one result").
+            for r in attempt_plan_results:
+                partial = r.get('export_filename')
+                if partial and os.path.exists(partial):
+                    print('Removing partial result export from failed attempt: {}'.format(partial))
+                    os.remove(partial)
             if attempt >= max_attempts:
                 module_info['error'] = str(e)
                 break
@@ -1487,12 +1497,15 @@ async def main():
             if not authzen_test:
                 untested_test_modules.remove(m)
                 continue
-            # empower has been down for a few days; the subject/resource/action
-            # search tests are disabled in run-tests.sh, so don't flag them as untested
             if (
+                # empower has been down for a few days; the subject/resource/action
+                # search tests are disabled in run-tests.sh, so don't flag them as untested
                 re.match(r'authzen-pdp-interop-subject-search-', m)
                 or re.match(r'authzen-pdp-interop-resource-search-', m)
                 or re.match(r'authzen-pdp-interop-action-search-', m)
+                # no implementations support authentication yet
+                or re.match(r'authzen-pdp-evaluation-invalid-credentials-returns-401', m)
+                or re.match(r'authzen-pdp-evaluation-missing-credentials-returns-401', m)
             ):
                 untested_test_modules.remove(m)
                 continue
