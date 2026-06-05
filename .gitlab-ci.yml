@@ -355,6 +355,8 @@ scale down env:
 stop_review:
   extends: .auto-deploy
   stage: cleanup
+  # bound the wait below so a stuck Terminating namespace can't pin a runner
+  timeout: 5 minutes
   variables:
     GIT_STRATEGY: none
   script:
@@ -362,6 +364,8 @@ stop_review:
     - auto-deploy initialize_tiller
     - auto-deploy use_kube_context || true
     - auto-deploy delete
+    # helm uninstall leaves the (non-helm) namespace behind; remove it explicitly
+    - kubectl delete namespace "$KUBE_NAMESPACE" --ignore-not-found
   environment:
     name: review/$CI_COMMIT_REF_NAME
     action: stop
