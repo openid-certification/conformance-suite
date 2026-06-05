@@ -237,6 +237,28 @@ const TYPE_SPECIMENS = [
   { cls: "t-mono-sm", composes: "--font-mono · --fs-12 · --lh-snug" },
 ];
 
+// ---- Curated spacing & layout rosters --------------------------------------
+
+// 4px base; the scale deliberately skips 7/9/11/13/14/15/17/18/19.
+const SPACING = [
+  "--space-0",
+  "--space-1",
+  "--space-2",
+  "--space-3",
+  "--space-4",
+  "--space-5",
+  "--space-6",
+  "--space-8",
+  "--space-10",
+  "--space-12",
+  "--space-16",
+  "--space-20",
+];
+
+const SIZING = ["--control-height"];
+
+const LAYOUT_WIDTHS = ["--maxw-narrow", "--maxw-page", "--maxw-wide"];
+
 // ---- Stories ---------------------------------------------------------------
 
 export const Overview = {
@@ -464,6 +486,95 @@ export const Typography = {
 
     await step("--fw-medium carries the interactive-controls weight contract", async () => {
       expect(readToken("--fw-medium")).toBe("500");
+    });
+  },
+};
+
+export const Spacing = {
+  render: () => html`
+    <div style="padding: var(--space-6);">
+      <h2 style="margin-bottom: var(--space-2);">Spacing &amp; layout</h2>
+      <p class="t-meta" style="margin-bottom: var(--space-6); max-width: var(--maxw-narrow);">
+        The spacing scale sits on a 4px base and deliberately skips steps above
+        <code>--space-6</code> (no 7, 9, 11, …) — large gaps come from the named rungs, not
+        arithmetic. <code>--control-height</code> and the <code>--maxw-*</code> page widths are
+        sizing/layout coordination tokens, grouped here because they answer the same "how big is the
+        chrome" question.
+      </p>
+
+      ${section(
+        "Spacing scale",
+        html`
+          <div style="display: grid; gap: var(--space-2);">
+            ${SPACING.map(
+              (name) => html`
+                <div
+                  data-token="${name}"
+                  style="display: flex; align-items: center; gap: var(--space-3);"
+                >
+                  <code class="t-mono-sm" style="min-width: 10ch;">${name}</code>
+                  <span class="t-meta" style="min-width: 5ch;">${readToken(name)}</span>
+                  <div
+                    data-space-bar
+                    style="width: var(${name}); height: var(--space-3); background: var(--orange-300); border-radius: var(--radius-1);"
+                  ></div>
+                </div>
+              `,
+            )}
+          </div>
+        `,
+      )}
+      ${section(
+        "Control height",
+        html`
+          <div style="display: flex; align-items: center; gap: var(--space-3);">
+            <div
+              data-token="${SIZING[0]}"
+              style="height: var(--control-height); display: inline-flex; align-items: center; padding: 0 var(--space-3); border: 1px solid var(--border); border-radius: var(--radius-2); background: var(--bg-muted);"
+            >
+              <span class="t-body">Sample control</span>
+            </div>
+            <span class="t-meta">
+              --control-height (${readToken("--control-height")}) — the md rung for buttons,
+              selects, and inputs so adjacent controls align.
+            </span>
+          </div>
+        `,
+      )}
+      ${section(
+        "Layout widths",
+        html`
+          <div style="display: grid; gap: var(--space-2);">
+            ${LAYOUT_WIDTHS.map(
+              (name) => html`
+                <div data-token="${name}">
+                  <code class="t-mono-sm">${name}</code>
+                  <span class="t-meta">(${readToken(name)} — bar shown at 1:8 scale)</span>
+                  <div
+                    style="width: calc(var(${name}) / 8); height: var(--space-3); background: var(--sand-300); border-radius: var(--radius-1); margin-top: var(--space-1);"
+                  ></div>
+                </div>
+              `,
+            )}
+          </div>
+        `,
+      )}
+    </div>
+  `,
+
+  async play({ canvasElement, step }) {
+    await step("renders one bar per spacing step", async () => {
+      const bars = canvasElement.querySelectorAll("[data-space-bar]");
+      expect(bars.length).toBe(SPACING.length);
+    });
+
+    await step("--space-4 resolves to the 16px anchor", async () => {
+      expect(readToken("--space-4")).toBe("16px");
+    });
+
+    await step("the --space-8 bar measures its real 32px width", async () => {
+      const bar = canvasElement.querySelector('[data-token="--space-8"] [data-space-bar]');
+      expect(/** @type {Element} */ (bar).getBoundingClientRect().width).toBe(32);
     });
   },
 };
