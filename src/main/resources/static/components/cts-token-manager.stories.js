@@ -46,7 +46,7 @@ export const Default = {
     },
   },
   render: () => html`<cts-token-manager></cts-token-manager>`,
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const canvas = within(canvasElement);
 
     // Wait for tokens to load and render in the table
@@ -54,42 +54,51 @@ export const Default = {
       expect(canvas.getByText("token-abc-123-def-456")).toBeInTheDocument();
     });
 
-    // All tokens appear in the table
-    expect(canvas.getByText("token-ghi-789-jkl-012")).toBeInTheDocument();
-    expect(canvas.getByText("token-permanent-001")).toBeInTheDocument();
+    await step("all tokens appear in the table", async () => {
+      expect(canvas.getByText("token-ghi-789-jkl-012")).toBeInTheDocument();
+      expect(canvas.getByText("token-permanent-001")).toBeInTheDocument();
+    });
 
-    // Permanent token shows "Never" for expiry
-    expect(canvas.getByText("Never")).toBeInTheDocument();
+    await step("permanent token shows Never for expiry", async () => {
+      expect(canvas.getByText("Never")).toBeInTheDocument();
+    });
 
-    // Expiring tokens render their expiry through cts-time: a native <time>
-    // whose title carries the full absolute date on hover.
-    const expiryTime = canvasElement.querySelector("cts-data-table#tokensListing time");
-    expect(expiryTime).toBeTruthy();
-    expect(expiryTime?.getAttribute("title")).toBeTruthy();
-    expect(expiryTime?.getAttribute("datetime")).toBeTruthy();
+    await step("expiring tokens render expiry through cts-time", async () => {
+      // A native <time> whose title carries the full absolute date on hover.
+      const expiryTime = canvasElement.querySelector("cts-data-table#tokensListing time");
+      expect(expiryTime).toBeTruthy();
+      expect(expiryTime?.getAttribute("title")).toBeTruthy();
+      expect(expiryTime?.getAttribute("datetime")).toBeTruthy();
+    });
 
-    // The token list is delegated to cts-data-table; the host carries the
-    // id="tokensListing" so existing descendant selectors keep working.
-    const tokensListing = canvasElement.querySelector("cts-data-table#tokensListing");
-    expect(tokensListing).toBeTruthy();
-    expect(tokensListing.querySelector("table.oidf-dt-table")).toBeTruthy();
+    await step("token list is delegated to cts-data-table", async () => {
+      // The host carries the id="tokensListing" so existing descendant
+      // selectors keep working.
+      const tokensListing = canvasElement.querySelector("cts-data-table#tokensListing");
+      expect(tokensListing).toBeTruthy();
+      expect(tokensListing.querySelector("table.oidf-dt-table")).toBeTruthy();
+    });
 
-    // Column headers present
-    expect(canvas.getByText("Token ID")).toBeInTheDocument();
-    expect(canvas.getByText("Expires")).toBeInTheDocument();
+    await step("column headers present", async () => {
+      expect(canvas.getByText("Token ID")).toBeInTheDocument();
+      expect(canvas.getByText("Expires")).toBeInTheDocument();
+    });
 
-    // Create buttons present (rendered by cts-button)
-    expect(canvas.getByText("New temporary token")).toBeInTheDocument();
-    expect(canvas.getByText("New permanent token")).toBeInTheDocument();
+    await step("create buttons present (rendered by cts-button)", async () => {
+      expect(canvas.getByText("New temporary token")).toBeInTheDocument();
+      expect(canvas.getByText("New permanent token")).toBeInTheDocument();
+    });
 
-    // Delete buttons in each row — one cts-button per row.
-    const deleteButtons = canvasElement.querySelectorAll(
-      "cts-data-table#tokensListing cts-button.deleteBtn",
-    );
-    expect(deleteButtons.length).toBe(3);
+    await step("delete buttons in each row — one cts-button per row", async () => {
+      const deleteButtons = canvasElement.querySelectorAll(
+        "cts-data-table#tokensListing cts-button.deleteBtn",
+      );
+      expect(deleteButtons.length).toBe(3);
+    });
 
-    // No legacy Bootstrap classes remain in the rendered DOM.
-    assertNoLegacyBootstrapClasses(canvasElement);
+    await step("no legacy Bootstrap classes remain in the rendered DOM", async () => {
+      assertNoLegacyBootstrapClasses(canvasElement);
+    });
   },
 };
 
@@ -110,7 +119,7 @@ export const CreateTemporaryToken = {
     },
   },
   render: () => html`<cts-token-manager></cts-token-manager>`,
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const canvas = within(canvasElement);
 
     // Wait for initial load
@@ -124,50 +133,60 @@ export const CreateTemporaryToken = {
     // vitest.config.js handles teardown.
     const mockWriteText = spyOn(navigator.clipboard, "writeText").mockResolvedValue();
 
-    // Click the temporary token button — the inner <button> rendered by
-    // cts-button is what receives the actual click in the browser.
-    const tempBtn = canvas.getByText("New temporary token");
-    await userEvent.click(tempBtn);
+    await step("clicking the temporary token button opens the created-token modal", async () => {
+      // The inner <button> rendered by cts-button is what receives the
+      // actual click in the browser.
+      const tempBtn = canvas.getByText("New temporary token");
+      await userEvent.click(tempBtn);
 
-    // The created-token modal opens via cts-modal.show() — wait for it.
-    const createdModal = /** @type {HTMLElement} */ (
-      canvasElement.querySelector("#createdTokenModal")
-    );
-    expect(createdModal).toBeTruthy();
-    await waitFor(() => {
-      const dialog = /** @type {HTMLDialogElement} */ (
-        createdModal.querySelector("dialog.oidf-modal")
+      // The created-token modal opens via cts-modal.show() — wait for it.
+      const createdModal = /** @type {HTMLElement} */ (
+        canvasElement.querySelector("#createdTokenModal")
       );
-      expect(dialog && dialog.open).toBe(true);
+      expect(createdModal).toBeTruthy();
+      await waitFor(() => {
+        const dialog = /** @type {HTMLDialogElement} */ (
+          createdModal.querySelector("dialog.oidf-modal")
+        );
+        expect(dialog && dialog.open).toBe(true);
+      });
     });
 
-    // Modal shows the created token value
-    expect(
-      canvas.getByText("Here is your new token. This value will only be displayed once."),
-    ).toBeInTheDocument();
+    await step("modal shows the created token value", async () => {
+      expect(
+        canvas.getByText("Here is your new token. This value will only be displayed once."),
+      ).toBeInTheDocument();
 
-    // Token value is displayed
-    const tokenPre = canvasElement.querySelector(".created-token-value");
-    expect(tokenPre).toBeTruthy();
-    expect(tokenPre.textContent).toBe(MOCK_CREATED_TOKEN.token);
+      const tokenPre = canvasElement.querySelector(".created-token-value");
+      expect(tokenPre).toBeTruthy();
+      expect(tokenPre.textContent).toBe(MOCK_CREATED_TOKEN.token);
+    });
 
-    // Copy button is present (cts-button with title attribute)
-    const copyHost = canvas.getByTitle("Copy token to clipboard");
-    expect(copyHost).toBeTruthy();
+    await step("copy button follows the token value in DOM order", async () => {
+      const tokenPre = canvasElement.querySelector(".created-token-value");
+      // Copy button is present (cts-button with title attribute)
+      const copyHost = canvas.getByTitle("Copy token to clipboard");
+      expect(copyHost).toBeTruthy();
 
-    // The Copy button displays after the token value: the <pre> precedes
-    // the copy-row in DOM order so the action follows the thing it copies.
-    expect(
-      Boolean(tokenPre.compareDocumentPosition(copyHost) & Node.DOCUMENT_POSITION_FOLLOWING),
-    ).toBe(true);
+      // The Copy button displays after the token value: the <pre> precedes
+      // the copy-row in DOM order so the action follows the thing it copies.
+      expect(
+        Boolean(tokenPre.compareDocumentPosition(copyHost) & Node.DOCUMENT_POSITION_FOLLOWING),
+      ).toBe(true);
+    });
 
-    // Click the inner button rendered by cts-button so the @cts-click
-    // handler fires (host.click() does not propagate to the inner button).
-    const copyInnerBtn = /** @type {HTMLButtonElement} */ (copyHost.querySelector("button"));
-    await userEvent.click(copyInnerBtn);
-    expect(mockWriteText).toHaveBeenCalledWith(MOCK_CREATED_TOKEN.token);
+    await step("clicking copy writes the token to the clipboard", async () => {
+      const copyHost = canvas.getByTitle("Copy token to clipboard");
+      // Click the inner button rendered by cts-button so the @cts-click
+      // handler fires (host.click() does not propagate to the inner button).
+      const copyInnerBtn = /** @type {HTMLButtonElement} */ (copyHost.querySelector("button"));
+      await userEvent.click(copyInnerBtn);
+      expect(mockWriteText).toHaveBeenCalledWith(MOCK_CREATED_TOKEN.token);
+    });
 
-    assertNoLegacyBootstrapClasses(canvasElement);
+    await step("no legacy Bootstrap classes remain in the rendered DOM", async () => {
+      assertNoLegacyBootstrapClasses(canvasElement);
+    });
   },
 };
 
@@ -181,7 +200,7 @@ export const CreatePermanentToken = {
     },
   },
   render: () => html`<cts-token-manager></cts-token-manager>`,
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const canvas = within(canvasElement);
 
     // Wait for initial load
@@ -189,33 +208,42 @@ export const CreatePermanentToken = {
       expect(canvas.getByText("New permanent token")).toBeInTheDocument();
     });
 
-    // Click the permanent token button
-    await userEvent.click(canvas.getByText("New permanent token"));
-
-    // The created-token modal opens
     const createdModal = /** @type {HTMLElement} */ (
       canvasElement.querySelector("#createdTokenModal")
     );
-    expect(createdModal).toBeTruthy();
-    const dialog = /** @type {HTMLDialogElement} */ (
-      createdModal.querySelector("dialog.oidf-modal")
-    );
-    await waitFor(() => expect(dialog.open).toBe(true));
 
-    // Token value is displayed in the modal
-    const tokenPre = canvasElement.querySelector(".created-token-value");
-    expect(tokenPre).toBeTruthy();
-    expect(tokenPre.textContent).toBe(MOCK_CREATED_TOKEN.token);
+    await step("clicking the permanent token button opens the created-token modal", async () => {
+      await userEvent.click(canvas.getByText("New permanent token"));
 
-    // The heading is rendered as `.oidf-modal-title` (cts-modal contract).
-    const modalTitle = createdModal.querySelector(".oidf-modal-title");
-    expect(modalTitle).toBeTruthy();
-    expect(modalTitle?.textContent).toBe("Token created");
+      expect(createdModal).toBeTruthy();
+      const dialog = /** @type {HTMLDialogElement} */ (
+        createdModal.querySelector("dialog.oidf-modal")
+      );
+      await waitFor(() => expect(dialog.open).toBe(true));
+    });
 
-    // Modal carries the size="lg" attribute → dialog has data-size="lg".
-    expect(dialog.getAttribute("data-size")).toBe("lg");
+    await step("token value is displayed in the modal", async () => {
+      const tokenPre = canvasElement.querySelector(".created-token-value");
+      expect(tokenPre).toBeTruthy();
+      expect(tokenPre.textContent).toBe(MOCK_CREATED_TOKEN.token);
+    });
 
-    assertNoLegacyBootstrapClasses(canvasElement);
+    await step("heading renders as .oidf-modal-title (cts-modal contract)", async () => {
+      const modalTitle = createdModal.querySelector(".oidf-modal-title");
+      expect(modalTitle).toBeTruthy();
+      expect(modalTitle?.textContent).toBe("Token created");
+    });
+
+    await step("modal carries size=lg → dialog has data-size=lg", async () => {
+      const dialog = /** @type {HTMLDialogElement} */ (
+        createdModal.querySelector("dialog.oidf-modal")
+      );
+      expect(dialog.getAttribute("data-size")).toBe("lg");
+    });
+
+    await step("no legacy Bootstrap classes remain in the rendered DOM", async () => {
+      assertNoLegacyBootstrapClasses(canvasElement);
+    });
   },
 };
 
@@ -231,7 +259,7 @@ export const DeleteToken = {
     },
   },
   render: () => html`<cts-token-manager></cts-token-manager>`,
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const canvas = within(canvasElement);
 
     // Wait for tokens to load
@@ -239,46 +267,56 @@ export const DeleteToken = {
       expect(canvas.getByText("token-abc-123-def-456")).toBeInTheDocument();
     });
 
-    // Click the inner button of the first row's delete cts-button.
-    const rowDeleteHosts = canvasElement.querySelectorAll("table cts-button.deleteBtn");
-    expect(rowDeleteHosts.length).toBe(3);
-    const firstDeleteInner = /** @type {HTMLButtonElement} */ (
-      rowDeleteHosts[0].querySelector("button")
-    );
-    await userEvent.click(firstDeleteInner);
-
-    // The delete modal opens.
     const deleteModal = /** @type {HTMLElement} */ (
       canvasElement.querySelector("#deleteTokenModal")
     );
-    expect(deleteModal).toBeTruthy();
-    const dialog = /** @type {HTMLDialogElement} */ (
-      deleteModal.querySelector("dialog.oidf-modal")
-    );
-    await waitFor(() => expect(dialog.open).toBe(true));
 
-    // Confirmation prompt is in the modal body.
-    expect(
-      canvas.getByText("Are you sure? This will permanently remove this token."),
-    ).toBeInTheDocument();
+    await step("clicking the first row's delete button opens the delete modal", async () => {
+      // Click the inner button of the first row's delete cts-button.
+      const rowDeleteHosts = canvasElement.querySelectorAll("table cts-button.deleteBtn");
+      expect(rowDeleteHosts.length).toBe(3);
+      const firstDeleteInner = /** @type {HTMLButtonElement} */ (
+        rowDeleteHosts[0].querySelector("button")
+      );
+      await userEvent.click(firstDeleteInner);
 
-    // Click the Delete button in the cts-modal footer (rendered from the
-    // footer-buttons descriptor — id="confirmDeleteBtn" makes it
-    // reachable via getElementById).
-    const confirmBtn = document.getElementById("confirmDeleteBtn");
-    expect(confirmBtn).toBeTruthy();
-    if (!confirmBtn) throw new Error("confirmDeleteBtn not found");
-    await userEvent.click(confirmBtn);
-
-    // Modal closes after delete.
-    await waitFor(() => expect(dialog.open).toBe(false));
-
-    // After deletion the table re-renders (tokens refetched).
-    await waitFor(() => {
-      expect(canvas.getByText("token-abc-123-def-456")).toBeInTheDocument();
+      expect(deleteModal).toBeTruthy();
+      const dialog = /** @type {HTMLDialogElement} */ (
+        deleteModal.querySelector("dialog.oidf-modal")
+      );
+      await waitFor(() => expect(dialog.open).toBe(true));
     });
 
-    assertNoLegacyBootstrapClasses(canvasElement);
+    await step("confirmation prompt is in the modal body", async () => {
+      expect(
+        canvas.getByText("Are you sure? This will permanently remove this token."),
+      ).toBeInTheDocument();
+    });
+
+    await step("confirming the delete closes the modal", async () => {
+      // Click the Delete button in the cts-modal footer (rendered from the
+      // footer-buttons descriptor — id="confirmDeleteBtn" makes it
+      // reachable via getElementById).
+      const confirmBtn = document.getElementById("confirmDeleteBtn");
+      expect(confirmBtn).toBeTruthy();
+      if (!confirmBtn) throw new Error("confirmDeleteBtn not found");
+      await userEvent.click(confirmBtn);
+
+      const dialog = /** @type {HTMLDialogElement} */ (
+        deleteModal.querySelector("dialog.oidf-modal")
+      );
+      await waitFor(() => expect(dialog.open).toBe(false));
+    });
+
+    await step("table re-renders after deletion (tokens refetched)", async () => {
+      await waitFor(() => {
+        expect(canvas.getByText("token-abc-123-def-456")).toBeInTheDocument();
+      });
+    });
+
+    await step("no legacy Bootstrap classes remain in the rendered DOM", async () => {
+      assertNoLegacyBootstrapClasses(canvasElement);
+    });
   },
 };
 
@@ -289,7 +327,7 @@ export const CancelDelete = {
     },
   },
   render: () => html`<cts-token-manager></cts-token-manager>`,
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const canvas = within(canvasElement);
 
     // Wait for tokens to load
@@ -297,39 +335,47 @@ export const CancelDelete = {
       expect(canvas.getByText("token-abc-123-def-456")).toBeInTheDocument();
     });
 
-    // Click the first Delete button
-    const rowDeleteHosts = canvasElement.querySelectorAll("table cts-button.deleteBtn");
-    const firstDeleteInner = /** @type {HTMLButtonElement} */ (
-      rowDeleteHosts[0].querySelector("button")
-    );
-    await userEvent.click(firstDeleteInner);
-
-    // Confirmation modal appears
     const deleteModal = /** @type {HTMLElement} */ (
       canvasElement.querySelector("#deleteTokenModal")
     );
-    const dialog = /** @type {HTMLDialogElement} */ (
-      deleteModal.querySelector("dialog.oidf-modal")
-    );
-    await waitFor(() => expect(dialog.open).toBe(true));
 
-    // Click Cancel — rendered as a footer button by cts-modal. Cancel
-    // descriptor has `dismiss: true` (the default), so clicking closes
-    // the dialog.
-    const footerButtons = deleteModal.querySelectorAll(".oidf-modal-footer button");
-    expect(footerButtons.length).toBe(2);
-    const cancelBtn = /** @type {HTMLButtonElement} */ (footerButtons[1]);
-    expect(cancelBtn.textContent).toBe("Cancel");
-    await userEvent.click(cancelBtn);
+    await step("clicking the first delete button opens the confirmation modal", async () => {
+      const rowDeleteHosts = canvasElement.querySelectorAll("table cts-button.deleteBtn");
+      const firstDeleteInner = /** @type {HTMLButtonElement} */ (
+        rowDeleteHosts[0].querySelector("button")
+      );
+      await userEvent.click(firstDeleteInner);
 
-    await waitFor(() => expect(dialog.open).toBe(false));
+      const dialog = /** @type {HTMLDialogElement} */ (
+        deleteModal.querySelector("dialog.oidf-modal")
+      );
+      await waitFor(() => expect(dialog.open).toBe(true));
+    });
 
-    // All tokens remain in the table
-    expect(canvas.getByText("token-abc-123-def-456")).toBeInTheDocument();
-    expect(canvas.getByText("token-ghi-789-jkl-012")).toBeInTheDocument();
-    expect(canvas.getByText("token-permanent-001")).toBeInTheDocument();
+    await step("clicking Cancel dismisses the modal", async () => {
+      // Cancel is rendered as a footer button by cts-modal. Its descriptor
+      // has `dismiss: true` (the default), so clicking closes the dialog.
+      const footerButtons = deleteModal.querySelectorAll(".oidf-modal-footer button");
+      expect(footerButtons.length).toBe(2);
+      const cancelBtn = /** @type {HTMLButtonElement} */ (footerButtons[1]);
+      expect(cancelBtn.textContent).toBe("Cancel");
+      await userEvent.click(cancelBtn);
 
-    assertNoLegacyBootstrapClasses(canvasElement);
+      const dialog = /** @type {HTMLDialogElement} */ (
+        deleteModal.querySelector("dialog.oidf-modal")
+      );
+      await waitFor(() => expect(dialog.open).toBe(false));
+    });
+
+    await step("all tokens remain in the table", async () => {
+      expect(canvas.getByText("token-abc-123-def-456")).toBeInTheDocument();
+      expect(canvas.getByText("token-ghi-789-jkl-012")).toBeInTheDocument();
+      expect(canvas.getByText("token-permanent-001")).toBeInTheDocument();
+    });
+
+    await step("no legacy Bootstrap classes remain in the rendered DOM", async () => {
+      assertNoLegacyBootstrapClasses(canvasElement);
+    });
   },
 };
 
@@ -340,7 +386,7 @@ export const EmptyTokenList = {
     },
   },
   render: () => html`<cts-token-manager></cts-token-manager>`,
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const canvas = within(canvasElement);
 
     // Wait for loading to finish — the empty-state message replaces the
@@ -349,16 +395,21 @@ export const EmptyTokenList = {
       expect(canvas.getByText("No tokens have been created yet.")).toBeInTheDocument();
     });
 
-    // No token-listing rendered in the empty state. The cts-data-table host
-    // is gated by `_tokens.length === 0` so it should not be in the DOM.
-    const tokensListing = canvasElement.querySelector("cts-data-table#tokensListing");
-    expect(tokensListing).toBeNull();
+    await step("no token-listing rendered in the empty state", async () => {
+      // The cts-data-table host is gated by `_tokens.length === 0` so it
+      // should not be in the DOM.
+      const tokensListing = canvasElement.querySelector("cts-data-table#tokensListing");
+      expect(tokensListing).toBeNull();
+    });
 
-    // Create buttons are still present
-    expect(canvas.getByText("New temporary token")).toBeInTheDocument();
-    expect(canvas.getByText("New permanent token")).toBeInTheDocument();
+    await step("create buttons are still present", async () => {
+      expect(canvas.getByText("New temporary token")).toBeInTheDocument();
+      expect(canvas.getByText("New permanent token")).toBeInTheDocument();
+    });
 
-    assertNoLegacyBootstrapClasses(canvasElement);
+    await step("no legacy Bootstrap classes remain in the rendered DOM", async () => {
+      assertNoLegacyBootstrapClasses(canvasElement);
+    });
   },
 };
 
@@ -374,7 +425,7 @@ export const CreateTokenError = {
     },
   },
   render: () => html`<cts-token-manager></cts-token-manager>`,
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const canvas = within(canvasElement);
 
     // Wait for initial load
@@ -382,22 +433,28 @@ export const CreateTokenError = {
       expect(canvas.getByText("New temporary token")).toBeInTheDocument();
     });
 
-    // Click create token
-    await userEvent.click(canvas.getByText("New temporary token"));
+    await step("clicking create token opens the error modal", async () => {
+      await userEvent.click(canvas.getByText("New temporary token"));
 
-    // Error modal appears with error message
-    const errorModal = /** @type {HTMLElement} */ (
-      canvasElement.querySelector("#createdErrorModal")
-    );
-    expect(errorModal).toBeTruthy();
-    const dialog = /** @type {HTMLDialogElement} */ (errorModal.querySelector("dialog.oidf-modal"));
-    await waitFor(() => expect(dialog.open).toBe(true));
+      const errorModal = /** @type {HTMLElement} */ (
+        canvasElement.querySelector("#createdErrorModal")
+      );
+      expect(errorModal).toBeTruthy();
+      const dialog = /** @type {HTMLDialogElement} */ (
+        errorModal.querySelector("dialog.oidf-modal")
+      );
+      await waitFor(() => expect(dialog.open).toBe(true));
+    });
 
-    const errorMessage = canvasElement.querySelector(".error-message");
-    expect(errorMessage).toBeTruthy();
-    expect(errorMessage.textContent).toContain("Rate limit exceeded");
+    await step("error modal shows the error message", async () => {
+      const errorMessage = canvasElement.querySelector(".error-message");
+      expect(errorMessage).toBeTruthy();
+      expect(errorMessage.textContent).toContain("Rate limit exceeded");
+    });
 
-    assertNoLegacyBootstrapClasses(canvasElement);
+    await step("no legacy Bootstrap classes remain in the rendered DOM", async () => {
+      assertNoLegacyBootstrapClasses(canvasElement);
+    });
   },
 };
 
@@ -416,7 +473,7 @@ export const CopyTokenClipboardFailure = {
     },
   },
   render: () => html`<cts-token-manager></cts-token-manager>`,
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const canvas = within(canvasElement);
 
     // Spy with a rejecting implementation — simulates permissions-denied /
@@ -424,30 +481,33 @@ export const CopyTokenClipboardFailure = {
     // the original method after the test.
     spyOn(navigator.clipboard, "writeText").mockRejectedValue(new Error("permission denied"));
 
-    await waitFor(() => expect(canvas.getByText("New temporary token")).toBeInTheDocument());
-    await userEvent.click(canvas.getByText("New temporary token"));
+    await step("create a token and open the created-token modal", async () => {
+      await waitFor(() => expect(canvas.getByText("New temporary token")).toBeInTheDocument());
+      await userEvent.click(canvas.getByText("New temporary token"));
 
-    // Wait for the created-token modal, then click Copy.
-    const createdModal = /** @type {HTMLElement} */ (
-      canvasElement.querySelector("#createdTokenModal")
-    );
-    const dialog = /** @type {HTMLDialogElement} */ (
-      createdModal.querySelector("dialog.oidf-modal")
-    );
-    await waitFor(() => expect(dialog.open).toBe(true));
+      const createdModal = /** @type {HTMLElement} */ (
+        canvasElement.querySelector("#createdTokenModal")
+      );
+      const dialog = /** @type {HTMLDialogElement} */ (
+        createdModal.querySelector("dialog.oidf-modal")
+      );
+      await waitFor(() => expect(dialog.open).toBe(true));
+    });
 
-    const copyHost = canvas.getByTitle("Copy token to clipboard");
-    const copyInnerBtn = /** @type {HTMLButtonElement} */ (copyHost.querySelector("button"));
-    await userEvent.click(copyInnerBtn);
+    await step("clicking copy surfaces failure feedback in an aria-live region", async () => {
+      const copyHost = canvas.getByTitle("Copy token to clipboard");
+      const copyInnerBtn = /** @type {HTMLButtonElement} */ (copyHost.querySelector("button"));
+      await userEvent.click(copyInnerBtn);
 
-    // Failure feedback is rendered in an aria-live region so SR users
-    // hear the failure announcement.
-    await waitFor(() => {
-      const feedback = canvasElement.querySelector('[data-testid="copy-feedback"]');
-      expect(feedback).toBeTruthy();
-      expect(feedback.textContent).toContain("Copy failed");
-      expect(feedback.getAttribute("aria-live")).toBe("polite");
-      expect(feedback.getAttribute("role")).toBe("status");
+      // Failure feedback is rendered in an aria-live region so SR users
+      // hear the failure announcement.
+      await waitFor(() => {
+        const feedback = canvasElement.querySelector('[data-testid="copy-feedback"]');
+        expect(feedback).toBeTruthy();
+        expect(feedback.textContent).toContain("Copy failed");
+        expect(feedback.getAttribute("aria-live")).toBe("polite");
+        expect(feedback.getAttribute("role")).toBe("status");
+      });
     });
   },
 };
@@ -466,7 +526,7 @@ export const CopyTokenClipboardAbsent = {
     },
   },
   render: () => html`<cts-token-manager></cts-token-manager>`,
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const canvas = within(canvasElement);
 
     // The component checks `if (!navigator.clipboard)` to fall back to the
@@ -483,25 +543,29 @@ export const CopyTokenClipboardAbsent = {
     });
 
     try {
-      await waitFor(() => expect(canvas.getByText("New temporary token")).toBeInTheDocument());
-      await userEvent.click(canvas.getByText("New temporary token"));
+      await step("create a token and open the created-token modal", async () => {
+        await waitFor(() => expect(canvas.getByText("New temporary token")).toBeInTheDocument());
+        await userEvent.click(canvas.getByText("New temporary token"));
 
-      const createdModal = /** @type {HTMLElement} */ (
-        canvasElement.querySelector("#createdTokenModal")
-      );
-      const dialog = /** @type {HTMLDialogElement} */ (
-        createdModal.querySelector("dialog.oidf-modal")
-      );
-      await waitFor(() => expect(dialog.open).toBe(true));
+        const createdModal = /** @type {HTMLElement} */ (
+          canvasElement.querySelector("#createdTokenModal")
+        );
+        const dialog = /** @type {HTMLDialogElement} */ (
+          createdModal.querySelector("dialog.oidf-modal")
+        );
+        await waitFor(() => expect(dialog.open).toBe(true));
+      });
 
-      const copyHost = canvas.getByTitle("Copy token to clipboard");
-      const copyInnerBtn = /** @type {HTMLButtonElement} */ (copyHost.querySelector("button"));
-      await userEvent.click(copyInnerBtn);
+      await step("clicking copy surfaces a distinct not-available message", async () => {
+        const copyHost = canvas.getByTitle("Copy token to clipboard");
+        const copyInnerBtn = /** @type {HTMLButtonElement} */ (copyHost.querySelector("button"));
+        await userEvent.click(copyInnerBtn);
 
-      await waitFor(() => {
-        const feedback = canvasElement.querySelector('[data-testid="copy-feedback"]');
-        expect(feedback).toBeTruthy();
-        expect(feedback.textContent).toContain("Clipboard not available");
+        await waitFor(() => {
+          const feedback = canvasElement.querySelector('[data-testid="copy-feedback"]');
+          expect(feedback).toBeTruthy();
+          expect(feedback.textContent).toContain("Clipboard not available");
+        });
       });
     } finally {
       Object.defineProperty(navigator, "clipboard", {
@@ -526,7 +590,7 @@ export const ModalsOpenAndCloseViaCtsModalApi = {
     },
   },
   render: () => html`<cts-token-manager></cts-token-manager>`,
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const canvas = within(canvasElement);
 
     await waitFor(() => {
@@ -535,32 +599,36 @@ export const ModalsOpenAndCloseViaCtsModalApi = {
 
     const ids = ["createdTokenModal", "deleteTokenModal", "createdErrorModal"];
     for (const id of ids) {
-      const host = /** @type {HTMLElement & { show: () => void; hide: () => void }} */ (
-        canvasElement.querySelector(`#${id}`)
-      );
-      expect(host).toBeTruthy();
-      const dialog = /** @type {HTMLDialogElement} */ (host.querySelector("dialog.oidf-modal"));
-      expect(dialog).toBeTruthy();
+      await step(`${id} opens and closes via the cts-modal API`, async () => {
+        const host = /** @type {HTMLElement & { show: () => void; hide: () => void }} */ (
+          canvasElement.querySelector(`#${id}`)
+        );
+        expect(host).toBeTruthy();
+        const dialog = /** @type {HTMLDialogElement} */ (host.querySelector("dialog.oidf-modal"));
+        expect(dialog).toBeTruthy();
 
-      // Initially hidden.
-      expect(dialog.open).toBe(false);
-      expect(host.hasAttribute("open")).toBe(false);
+        // Initially hidden.
+        expect(dialog.open).toBe(false);
+        expect(host.hasAttribute("open")).toBe(false);
 
-      // .show() opens; the host mirrors the open attribute for external
-      // visibility checks.
-      host.show();
-      await waitFor(() => expect(dialog.open).toBe(true));
-      expect(host.hasAttribute("open")).toBe(true);
+        // .show() opens; the host mirrors the open attribute for external
+        // visibility checks.
+        host.show();
+        await waitFor(() => expect(dialog.open).toBe(true));
+        expect(host.hasAttribute("open")).toBe(true);
 
-      // .hide() closes; the host clears the open attribute.
-      host.hide();
-      await waitFor(() => expect(dialog.open).toBe(false));
-      expect(host.hasAttribute("open")).toBe(false);
-      // Allow any cts-modal-close handlers to settle before the next iter.
-      await nextFrame();
+        // .hide() closes; the host clears the open attribute.
+        host.hide();
+        await waitFor(() => expect(dialog.open).toBe(false));
+        expect(host.hasAttribute("open")).toBe(false);
+        // Allow any cts-modal-close handlers to settle before the next iter.
+        await nextFrame();
+      });
     }
 
-    assertNoLegacyBootstrapClasses(canvasElement);
+    await step("no legacy Bootstrap classes remain in the rendered DOM", async () => {
+      assertNoLegacyBootstrapClasses(canvasElement);
+    });
   },
 };
 
@@ -574,7 +642,7 @@ export const AdminView = {
     },
   },
   render: () => html`<cts-token-manager is-admin></cts-token-manager>`,
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const canvas = within(canvasElement);
 
     // Admin message is shown
@@ -584,18 +652,23 @@ export const AdminView = {
       ).toBeInTheDocument();
     });
 
-    // No create buttons
-    expect(canvas.queryByText("New temporary token")).toBeNull();
-    expect(canvas.queryByText("New permanent token")).toBeNull();
+    await step("no create buttons", async () => {
+      expect(canvas.queryByText("New temporary token")).toBeNull();
+      expect(canvas.queryByText("New permanent token")).toBeNull();
+    });
 
-    // No token table
-    const table = canvasElement.querySelector("table");
-    expect(table).toBeNull();
+    await step("no token table", async () => {
+      const table = canvasElement.querySelector("table");
+      expect(table).toBeNull();
+    });
 
-    // No modals rendered in admin mode (admin path returns early in
-    // render() before _renderModals runs).
-    expect(canvasElement.querySelector("cts-modal")).toBeNull();
+    await step("no modals rendered in admin mode", async () => {
+      // The admin path returns early in render() before _renderModals runs.
+      expect(canvasElement.querySelector("cts-modal")).toBeNull();
+    });
 
-    assertNoLegacyBootstrapClasses(canvasElement);
+    await step("no legacy Bootstrap classes remain in the rendered DOM", async () => {
+      assertNoLegacyBootstrapClasses(canvasElement);
+    });
   },
 };

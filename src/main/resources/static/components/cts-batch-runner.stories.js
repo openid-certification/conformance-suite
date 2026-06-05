@@ -108,25 +108,31 @@ const MOCK_MODULES_EDGE_CASES = [
 export const MixedResults = {
   render: () =>
     html`<cts-batch-runner plan-id="plan-123" .modules=${MOCK_MODULES_MIXED}></cts-batch-runner>`,
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const canvas = within(canvasElement);
-    expect(canvas.getByText("Run All")).toBeTruthy();
-    expect(canvas.getByText("Run Remaining")).toBeTruthy();
-    const tiles = canvasElement.querySelectorAll(".oidf-batch-runner-tile");
-    expect(tiles.length).toBe(MOCK_MODULES_MIXED.length);
-    const badges = canvasElement.querySelectorAll("cts-badge");
-    const passedBadges = Array.from(badges).filter((b) => b.getAttribute("label") === "PASSED");
-    expect(passedBadges.length).toBe(1);
-    expect(passedBadges[0].getAttribute("variant")).toBe("pass");
-    const failedBadges = Array.from(badges).filter((b) => b.getAttribute("label") === "FAILED");
-    expect(failedBadges.length).toBe(1);
-    expect(failedBadges[0].getAttribute("variant")).toBe("fail");
-    const warningBadges = Array.from(badges).filter((b) => b.getAttribute("label") === "WARNING");
-    expect(warningBadges.length).toBe(1);
-    expect(warningBadges[0].getAttribute("variant")).toBe("warn");
-    const pendingBadges = Array.from(badges).filter((b) => b.getAttribute("label") === "PENDING");
-    expect(pendingBadges.length).toBe(2);
-    expect(pendingBadges[0].getAttribute("variant")).toBe("skip");
+    await step("toolbar exposes both run actions", async () => {
+      expect(canvas.getByText("Run All")).toBeTruthy();
+      expect(canvas.getByText("Run Remaining")).toBeTruthy();
+    });
+    await step("renders one tile per module", async () => {
+      const tiles = canvasElement.querySelectorAll(".oidf-batch-runner-tile");
+      expect(tiles.length).toBe(MOCK_MODULES_MIXED.length);
+    });
+    await step("each result maps to its badge label and variant", async () => {
+      const badges = canvasElement.querySelectorAll("cts-badge");
+      const passedBadges = Array.from(badges).filter((b) => b.getAttribute("label") === "PASSED");
+      expect(passedBadges.length).toBe(1);
+      expect(passedBadges[0].getAttribute("variant")).toBe("pass");
+      const failedBadges = Array.from(badges).filter((b) => b.getAttribute("label") === "FAILED");
+      expect(failedBadges.length).toBe(1);
+      expect(failedBadges[0].getAttribute("variant")).toBe("fail");
+      const warningBadges = Array.from(badges).filter((b) => b.getAttribute("label") === "WARNING");
+      expect(warningBadges.length).toBe(1);
+      expect(warningBadges[0].getAttribute("variant")).toBe("warn");
+      const pendingBadges = Array.from(badges).filter((b) => b.getAttribute("label") === "PENDING");
+      expect(pendingBadges.length).toBe(2);
+      expect(pendingBadges[0].getAttribute("variant")).toBe("skip");
+    });
   },
 };
 
@@ -192,12 +198,16 @@ export const InProgress = {
       plan-id="plan-running"
       .modules=${MOCK_MODULES_IN_PROGRESS}
     ></cts-batch-runner>`,
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const badges = canvasElement.querySelectorAll("cts-badge");
-    const labels = Array.from(badges).map((b) => b.getAttribute("label"));
-    expect(labels).toEqual(["PASSED", "RUNNING", "PENDING"]);
-    const runningBadge = Array.from(badges).find((b) => b.getAttribute("label") === "RUNNING");
-    expect(runningBadge?.getAttribute("variant")).toBe("running");
+    await step("badge labels follow module order", async () => {
+      const labels = Array.from(badges).map((b) => b.getAttribute("label"));
+      expect(labels).toEqual(["PASSED", "RUNNING", "PENDING"]);
+    });
+    await step("the in-flight module renders the running variant", async () => {
+      const runningBadge = Array.from(badges).find((b) => b.getAttribute("label") === "RUNNING");
+      expect(runningBadge?.getAttribute("variant")).toBe("running");
+    });
   },
 };
 
@@ -207,15 +217,19 @@ export const DataShapeEdgeCases = {
       plan-id="plan-edge-cases"
       .modules=${MOCK_MODULES_EDGE_CASES}
     ></cts-batch-runner>`,
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const badges = canvasElement.querySelectorAll("cts-badge");
     const byLabel = (label) => Array.from(badges).find((b) => b.getAttribute("label") === label);
 
-    const reviewBadge = byLabel("REVIEW");
-    expect(reviewBadge?.getAttribute("variant")).toBe("review");
+    await step("FINISHED without a result falls back to the REVIEW badge", async () => {
+      const reviewBadge = byLabel("REVIEW");
+      expect(reviewBadge?.getAttribute("variant")).toBe("review");
+    });
 
-    const waitingBadge = byLabel("WAITING");
-    expect(waitingBadge?.getAttribute("variant")).toBe("skip");
+    await step("WAITING passes through with the skip variant", async () => {
+      const waitingBadge = byLabel("WAITING");
+      expect(waitingBadge?.getAttribute("variant")).toBe("skip");
+    });
   },
 };
 

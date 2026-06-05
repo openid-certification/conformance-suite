@@ -65,21 +65,25 @@ export const Running = {
   render: ({ variant, label }) =>
     html`<cts-badge variant="${variant}" label="${label}"></cts-badge>`,
 
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const badge = canvasElement.querySelector(".badge");
-    expect(badge).toBeTruthy();
-    expect(badge.classList.contains("b-run")).toBe(true);
 
-    // Spinner is rendered as an inline namespaced <svg>, not a coolicons glyph.
-    const spin = badge.querySelector(".cts-badge-spin");
-    expect(spin).toBeTruthy();
-    const svg = spin.querySelector("svg");
-    expect(svg).toBeTruthy();
-    // namespace should be SVG, not the HTML default (otherwise children
-    // render as inert HTMLUnknownElements and the spinner is invisible).
-    expect(svg.namespaceURI).toBe("http://www.w3.org/2000/svg");
-    expect(svg.querySelector("circle")).toBeTruthy();
-    expect(svg.querySelector("path")).toBeTruthy();
+    await step("running variant renders", async () => {
+      expect(badge).toBeTruthy();
+      expect(badge.classList.contains("b-run")).toBe(true);
+    });
+
+    await step("spinner renders as an inline namespaced SVG, not a coolicons glyph", async () => {
+      const spin = badge.querySelector(".cts-badge-spin");
+      expect(spin).toBeTruthy();
+      const svg = spin.querySelector("svg");
+      expect(svg).toBeTruthy();
+      // namespace should be SVG, not the HTML default (otherwise children
+      // render as inert HTMLUnknownElements and the spinner is invisible).
+      expect(svg.namespaceURI).toBe("http://www.w3.org/2000/svg");
+      expect(svg.querySelector("circle")).toBeTruthy();
+      expect(svg.querySelector("path")).toBeTruthy();
+    });
   },
 };
 
@@ -124,28 +128,34 @@ export const Info = {
   render: ({ variant, label }) =>
     html`<cts-badge variant="${variant}" label="${label}"></cts-badge>`,
 
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const badge = canvasElement.querySelector(".badge");
-    expect(badge).toBeTruthy();
-    expect(badge.classList.contains("b-info")).toBe(true);
-    expect(badge.textContent.trim()).toBe("Info");
 
-    // The whole point of this variant: a static blue pill with no
-    // spinner. Asserting on both the wrapper class and the inline SVG
-    // catches a regression where someone re-points `info` back to the
-    // spinner-bearing render branch or the variant's CSS class is
-    // accidentally mapped to `b-run`.
-    expect(badge.querySelector(".cts-badge-spin")).toBeNull();
-    expect(badge.querySelector("svg")).toBeNull();
+    await step("info variant renders with its label", async () => {
+      expect(badge).toBeTruthy();
+      expect(badge.classList.contains("b-info")).toBe(true);
+      expect(badge.textContent.trim()).toBe("Info");
+    });
 
-    // Read-only default carries no affordance ring, matching the other
-    // status variants.
-    expect(badge.classList.contains("is-interactive")).toBe(false);
-    const computed = window.getComputedStyle(badge);
-    expect(computed.boxShadow).toBe("none");
-    // No real border — like every other variant, the affordance ring
-    // is delivered exclusively via an inset box-shadow when interactive.
-    expect(parseFloat(computed.borderTopWidth)).toBe(0);
+    await step("static blue pill carries no spinner glyph", async () => {
+      // The whole point of this variant: a static blue pill with no
+      // spinner. Asserting on both the wrapper class and the inline SVG
+      // catches a regression where someone re-points `info` back to the
+      // spinner-bearing render branch or the variant's CSS class is
+      // accidentally mapped to `b-run`.
+      expect(badge.querySelector(".cts-badge-spin")).toBeNull();
+      expect(badge.querySelector("svg")).toBeNull();
+    });
+
+    await step("read-only default carries no affordance ring", async () => {
+      // Matches the other status variants.
+      expect(badge.classList.contains("is-interactive")).toBe(false);
+      const computed = window.getComputedStyle(badge);
+      expect(computed.boxShadow).toBe("none");
+      // No real border — like every other variant, the affordance ring
+      // is delivered exclusively via an inset box-shadow when interactive.
+      expect(parseFloat(computed.borderTopWidth)).toBe(0);
+    });
   },
 };
 
@@ -162,16 +172,21 @@ export const RunningIgnoresIconAttribute = {
   render: ({ variant, label, icon }) =>
     html`<cts-badge variant="${variant}" label="${label}" icon="${icon}"></cts-badge>`,
 
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const badge = canvasElement.querySelector(".badge");
-    expect(badge).toBeTruthy();
-    expect(badge.classList.contains("b-run")).toBe(true);
 
-    // Spinner present — and the running variant suppresses the icon
-    // attribute, so even when icon="arrows-reload-01" is passed the
-    // glyph does NOT also render alongside the spinner.
-    expect(badge.querySelector(".cts-badge-spin")).toBeTruthy();
-    expect(badge.querySelector("cts-icon")).toBeNull();
+    await step("running variant renders", async () => {
+      expect(badge).toBeTruthy();
+      expect(badge.classList.contains("b-run")).toBe(true);
+    });
+
+    await step("spinner takes priority and the icon attribute is suppressed", async () => {
+      // Spinner present — and the running variant suppresses the icon
+      // attribute, so even when icon="arrows-reload-01" is passed the
+      // glyph does NOT also render alongside the spinner.
+      expect(badge.querySelector(".cts-badge-spin")).toBeTruthy();
+      expect(badge.querySelector("cts-icon")).toBeNull();
+    });
   },
 };
 
@@ -212,21 +227,28 @@ export const WithIcon = {
   render: ({ variant, label, icon }) =>
     html`<cts-badge variant="${variant}" label="${label}" icon="${icon}"></cts-badge>`,
 
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const badge = canvasElement.querySelector(".badge");
-    expect(badge).toBeTruthy();
-    expect(badge.classList.contains("b-info-subtle")).toBe(true);
 
-    const iconEl = badge.querySelector("cts-icon");
-    expect(iconEl).toBeTruthy();
-    expect(iconEl.getAttribute("name")).toBe("info");
-    expect(iconEl.getAttribute("aria-hidden")).toBe("true");
-    // Badges always render icons at 16px to align with the 16px
-    // line-height pill. The cts-icon default is 20px, which overpowers
-    // the chip — cts-badge sets size="16" explicitly. Regression guard.
-    expect(iconEl.getAttribute("size")).toBe("16");
+    await step("info-subtle variant renders", async () => {
+      expect(badge).toBeTruthy();
+      expect(badge.classList.contains("b-info-subtle")).toBe(true);
+    });
 
-    expect(badge.textContent.trim()).toContain("This section relates to the entity under test");
+    await step("icon renders at 16px and is aria-hidden", async () => {
+      const iconEl = badge.querySelector("cts-icon");
+      expect(iconEl).toBeTruthy();
+      expect(iconEl.getAttribute("name")).toBe("info");
+      expect(iconEl.getAttribute("aria-hidden")).toBe("true");
+      // Badges always render icons at 16px to align with the 16px
+      // line-height pill. The cts-icon default is 20px, which overpowers
+      // the chip — cts-badge sets size="16" explicitly. Regression guard.
+      expect(iconEl.getAttribute("size")).toBe("16");
+    });
+
+    await step("label text renders alongside the icon", async () => {
+      expect(badge.textContent.trim()).toContain("This section relates to the entity under test");
+    });
   },
 };
 
@@ -262,25 +284,33 @@ export const Requirement = {
   render: ({ variant, label }) =>
     html`<cts-badge variant="${variant}" label="${label}"></cts-badge>`,
 
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const badge = canvasElement.querySelector(".badge");
-    expect(badge).toBeTruthy();
-    expect(badge.classList.contains("b-secondary")).toBe(true);
-    expect(badge.textContent.trim()).toBe("OIDCC-3.1.3.7-6");
 
-    const computed = window.getComputedStyle(badge);
-    // Mono font signals "code-like identifier" — distinguishes the chip
-    // from the all-caps status pills.
-    expect(computed.fontFamily.toLowerCase()).toContain("mono");
-    // Normal case + zero tracking — these are labels, not banners.
-    expect(computed.textTransform).toBe("none");
-    // Read-only default: no affordance ring.
-    expect(badge.classList.contains("is-interactive")).toBe(false);
-    expect(computed.boxShadow).toBe("none");
-    // No `border` property — affordance is delivered exclusively by an
-    // inset shadow on `is-interactive`, never by a real border, so box
-    // dimensions remain stable across affordance states.
-    expect(parseFloat(computed.borderTopWidth)).toBe(0);
+    await step("secondary chip renders its requirement label", async () => {
+      expect(badge).toBeTruthy();
+      expect(badge.classList.contains("b-secondary")).toBe(true);
+      expect(badge.textContent.trim()).toBe("OIDCC-3.1.3.7-6");
+    });
+
+    await step("chip reads as a code-like identifier, not a status pill", async () => {
+      const computed = window.getComputedStyle(badge);
+      // Mono font signals "code-like identifier" — distinguishes the chip
+      // from the all-caps status pills.
+      expect(computed.fontFamily.toLowerCase()).toContain("mono");
+      // Normal case + zero tracking — these are labels, not banners.
+      expect(computed.textTransform).toBe("none");
+    });
+
+    await step("read-only default carries no affordance ring", async () => {
+      const computed = window.getComputedStyle(badge);
+      expect(badge.classList.contains("is-interactive")).toBe(false);
+      expect(computed.boxShadow).toBe("none");
+      // No `border` property — affordance is delivered exclusively by an
+      // inset shadow on `is-interactive`, never by a real border, so box
+      // dimensions remain stable across affordance states.
+      expect(parseFloat(computed.borderTopWidth)).toBe(0);
+    });
   },
 };
 
@@ -289,29 +319,36 @@ export const Clickable = {
   render: ({ variant, label, clickable }) =>
     html`<cts-badge variant="${variant}" label="${label}" ?clickable="${clickable}"></cts-badge>`,
 
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const host = canvasElement.querySelector("cts-badge");
     const badge = canvasElement.querySelector(".badge");
-    expect(badge).toBeTruthy();
-    expect(badge.getAttribute("role")).toBe("button");
-    expect(badge.getAttribute("tabindex")).toBe("0");
 
-    // `clickable` implies the interactive visual treatment without
-    // mutating the host's `interactive` attribute.
-    expect(badge.classList.contains("is-interactive")).toBe(true);
-    expect(host.hasAttribute("interactive")).toBe(false);
-
-    // Inset ring is the affordance signal — must be rendered.
-    const computed = window.getComputedStyle(badge);
-    expect(computed.boxShadow).not.toBe("none");
-
-    let clicked = false;
-    canvasElement.addEventListener("cts-badge-click", () => {
-      clicked = true;
+    await step("clickable badge exposes button semantics", async () => {
+      expect(badge).toBeTruthy();
+      expect(badge.getAttribute("role")).toBe("button");
+      expect(badge.getAttribute("tabindex")).toBe("0");
     });
 
-    await userEvent.click(badge);
-    expect(clicked).toBe(true);
+    await step("clickable implies interactive visuals without setting the attribute", async () => {
+      // `clickable` implies the interactive visual treatment without
+      // mutating the host's `interactive` attribute.
+      expect(badge.classList.contains("is-interactive")).toBe(true);
+      expect(host.hasAttribute("interactive")).toBe(false);
+
+      // Inset ring is the affordance signal — must be rendered.
+      const computed = window.getComputedStyle(badge);
+      expect(computed.boxShadow).not.toBe("none");
+    });
+
+    await step("clicking emits cts-badge-click", async () => {
+      let clicked = false;
+      canvasElement.addEventListener("cts-badge-click", () => {
+        clicked = true;
+      });
+
+      await userEvent.click(badge);
+      expect(clicked).toBe(true);
+    });
   },
 };
 
@@ -320,24 +357,31 @@ export const NotClickable = {
   render: ({ variant, label }) =>
     html`<cts-badge variant="${variant}" label="${label}"></cts-badge>`,
 
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const badge = canvasElement.querySelector(".badge");
-    expect(badge).toBeTruthy();
-    expect(badge.getAttribute("role")).toBeNull();
-    expect(badge.getAttribute("tabindex")).toBeNull();
 
-    // Read-only default: no affordance ring, no is-interactive class.
-    expect(badge.classList.contains("is-interactive")).toBe(false);
-    const computed = window.getComputedStyle(badge);
-    expect(computed.boxShadow).toBe("none");
-
-    let clicked = false;
-    canvasElement.addEventListener("cts-badge-click", () => {
-      clicked = true;
+    await step("non-clickable badge has no button semantics", async () => {
+      expect(badge).toBeTruthy();
+      expect(badge.getAttribute("role")).toBeNull();
+      expect(badge.getAttribute("tabindex")).toBeNull();
     });
 
-    await userEvent.click(badge);
-    expect(clicked).toBe(false);
+    await step("read-only default carries no affordance ring", async () => {
+      // No is-interactive class.
+      expect(badge.classList.contains("is-interactive")).toBe(false);
+      const computed = window.getComputedStyle(badge);
+      expect(computed.boxShadow).toBe("none");
+    });
+
+    await step("clicking does not emit cts-badge-click", async () => {
+      let clicked = false;
+      canvasElement.addEventListener("cts-badge-click", () => {
+        clicked = true;
+      });
+
+      await userEvent.click(badge);
+      expect(clicked).toBe(false);
+    });
   },
 };
 
@@ -377,22 +421,27 @@ export const WithRichContent = {
     </cts-badge>
   `,
 
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const badge = canvasElement.querySelector(".badge");
-    expect(badge).toBeTruthy();
-    expect(badge.classList.contains("b-info-subtle")).toBe(true);
 
-    // Icon still renders before the slotted content
-    const iconEl = badge.querySelector("cts-icon");
-    expect(iconEl).toBeTruthy();
-    expect(iconEl.getAttribute("name")).toBe("info");
+    await step("info-subtle wrapper renders", async () => {
+      expect(badge).toBeTruthy();
+      expect(badge.classList.contains("b-info-subtle")).toBe(true);
+    });
 
-    // The <em> emphasis and <a> link survive the migration
-    expect(badge.querySelector("em")).toBeTruthy();
-    const link = badge.querySelector("a");
-    expect(link).toBeTruthy();
-    expect(link.getAttribute("href")).toBe("https://openid.net/certification/federation_testing");
-    expect(link.textContent).toBe("detailed instructions");
+    await step("icon still renders before the slotted content", async () => {
+      const iconEl = badge.querySelector("cts-icon");
+      expect(iconEl).toBeTruthy();
+      expect(iconEl.getAttribute("name")).toBe("info");
+    });
+
+    await step("the <em> emphasis and <a> link survive the migration", async () => {
+      expect(badge.querySelector("em")).toBeTruthy();
+      const link = badge.querySelector("a");
+      expect(link).toBeTruthy();
+      expect(link.getAttribute("href")).toBe("https://openid.net/certification/federation_testing");
+      expect(link.textContent).toBe("detailed instructions");
+    });
   },
 };
 
@@ -411,14 +460,19 @@ export const MultiLineWraps = {
     </cts-badge>
   `,
 
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const badge = canvasElement.querySelector(".badge");
-    expect(badge).toBeTruthy();
-    expect(badge.querySelector("br")).toBeTruthy();
-    // The `:has(br)` override should resolve to the 9px radius. We assert
-    // the computed style rather than re-checking the rule string.
-    const computed = window.getComputedStyle(badge);
-    expect(computed.borderTopLeftRadius).toBe("9px");
+
+    await step("badge contains an explicit line break", async () => {
+      expect(badge).toBeTruthy();
+      expect(badge.querySelector("br")).toBeTruthy();
+    });
+
+    await step("the :has(br) override collapses the corner radius to 9px", async () => {
+      // We assert the computed style rather than re-checking the rule string.
+      const computed = window.getComputedStyle(badge);
+      expect(computed.borderTopLeftRadius).toBe("9px");
+    });
   },
 };
 
@@ -437,38 +491,44 @@ export const RichContentRerenderStability = {
     </cts-badge>
   `,
 
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const host = canvasElement.querySelector("cts-badge");
     expect(host).toBeTruthy();
 
-    // Capture the original slotted nodes — identity must be preserved.
+    // Capture the original slotted nodes — identity must be preserved across
+    // the re-render driven by the attribute mutations below.
     const initialLink = host.querySelector("a");
     const initialEm = host.querySelector("em");
-    expect(initialLink).toBeTruthy();
-    expect(initialEm).toBeTruthy();
-    expect(initialLink.getAttribute("href")).toBe("/docs");
 
-    // Mutate each observed attribute in turn.
-    host.setAttribute("variant", "fail");
-    host.setAttribute("icon", "triangle-warning");
+    await step("original slotted nodes are present", async () => {
+      expect(initialLink).toBeTruthy();
+      expect(initialEm).toBeTruthy();
+      expect(initialLink.getAttribute("href")).toBe("/docs");
+    });
 
-    // Wrapper reflects new state.
-    const badge = host.querySelector(".badge");
-    expect(badge).toBeTruthy();
-    expect(badge.classList.contains("b-fail")).toBe(true);
-    const icon = badge.querySelector("cts-icon");
-    expect(icon.getAttribute("name")).toBe("triangle-warning");
+    await step("mutating observed attributes re-renders the wrapper", async () => {
+      host.setAttribute("variant", "fail");
+      host.setAttribute("icon", "triangle-warning");
 
-    // Same <a> and <em> nodes still present — they moved, they weren't recreated.
-    const rerenderedLink = host.querySelector("a");
-    const rerenderedEm = host.querySelector("em");
-    expect(rerenderedLink).toBe(initialLink);
-    expect(rerenderedEm).toBe(initialEm);
-    expect(rerenderedLink.getAttribute("href")).toBe("/docs");
-    expect(rerenderedEm.textContent).toBe("details");
+      const badge = host.querySelector(".badge");
+      expect(badge).toBeTruthy();
+      expect(badge.classList.contains("b-fail")).toBe(true);
+      const icon = badge.querySelector("cts-icon");
+      expect(icon.getAttribute("name")).toBe("triangle-warning");
+    });
 
-    // No recursive span nesting from repeated re-renders (one .badge wrapper).
-    expect(host.querySelectorAll(".badge").length).toBe(1);
+    await step("slot children moved across re-render, they weren't recreated", async () => {
+      // Same <a> and <em> nodes still present.
+      const rerenderedLink = host.querySelector("a");
+      const rerenderedEm = host.querySelector("em");
+      expect(rerenderedLink).toBe(initialLink);
+      expect(rerenderedEm).toBe(initialEm);
+      expect(rerenderedLink.getAttribute("href")).toBe("/docs");
+      expect(rerenderedEm.textContent).toBe("details");
+
+      // No recursive span nesting from repeated re-renders (one .badge wrapper).
+      expect(host.querySelectorAll(".badge").length).toBe(1);
+    });
   },
 };
 
@@ -559,13 +619,18 @@ export const RunningInteractive = {
       ?interactive="${interactive}"
     ></cts-badge>`,
 
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const badge = canvasElement.querySelector(".badge");
-    expect(badge.classList.contains("b-run")).toBe(true);
-    expect(badge.classList.contains("is-interactive")).toBe(true);
-    expect(window.getComputedStyle(badge).boxShadow).not.toBe("none");
-    // Spinner still renders even with interactive ring.
-    expect(badge.querySelector(".cts-badge-spin")).toBeTruthy();
+
+    await step("interactive running variant renders the affordance ring", async () => {
+      expect(badge.classList.contains("b-run")).toBe(true);
+      expect(badge.classList.contains("is-interactive")).toBe(true);
+      expect(window.getComputedStyle(badge).boxShadow).not.toBe("none");
+    });
+
+    await step("spinner still renders even with the interactive ring", async () => {
+      expect(badge.querySelector(".cts-badge-spin")).toBeTruthy();
+    });
   },
 };
 
@@ -629,14 +694,19 @@ export const InfoInteractive = {
       ?interactive="${interactive}"
     ></cts-badge>`,
 
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const badge = canvasElement.querySelector(".badge");
-    expect(badge.classList.contains("b-info")).toBe(true);
-    expect(badge.classList.contains("is-interactive")).toBe(true);
-    expect(window.getComputedStyle(badge).boxShadow).not.toBe("none");
-    // Spinner must not render even when interactive (the static info
-    // variant deliberately doesn't carry the spinner glyph).
-    expect(badge.querySelector(".cts-badge-spin")).toBeNull();
+
+    await step("interactive info variant renders the affordance ring", async () => {
+      expect(badge.classList.contains("b-info")).toBe(true);
+      expect(badge.classList.contains("is-interactive")).toBe(true);
+      expect(window.getComputedStyle(badge).boxShadow).not.toBe("none");
+    });
+
+    await step("spinner must not render even when interactive", async () => {
+      // The static info variant deliberately doesn't carry the spinner glyph.
+      expect(badge.querySelector(".cts-badge-spin")).toBeNull();
+    });
   },
 };
 
@@ -673,17 +743,20 @@ export const ReviewReadonlyHasFill = {
   render: ({ variant, label }) =>
     html`<cts-badge variant="${variant}" label="${label}"></cts-badge>`,
 
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const badge = canvasElement.querySelector(".badge");
-    expect(badge.classList.contains("b-rev")).toBe(true);
-    expect(badge.classList.contains("is-interactive")).toBe(false);
 
-    // No ring (read-only) but the fill is non-white so the chip is
-    // visible against a white page surface.
-    const computed = window.getComputedStyle(badge);
-    expect(computed.boxShadow).toBe("none");
-    expect(computed.backgroundColor).not.toBe("rgb(255, 255, 255)");
-    expect(computed.backgroundColor).not.toBe("rgba(0, 0, 0, 0)");
+    await step("read-only review chip renders without a ring", async () => {
+      expect(badge.classList.contains("b-rev")).toBe(true);
+      expect(badge.classList.contains("is-interactive")).toBe(false);
+    });
+
+    await step("fill is non-white so the chip is visible on a white surface", async () => {
+      const computed = window.getComputedStyle(badge);
+      expect(computed.boxShadow).toBe("none");
+      expect(computed.backgroundColor).not.toBe("rgb(255, 255, 255)");
+      expect(computed.backgroundColor).not.toBe("rgba(0, 0, 0, 0)");
+    });
   },
 };
 
@@ -696,28 +769,37 @@ export const ReviewReadonlyHasFill = {
 export const ToggleInteractive = {
   render: () => html` <cts-badge variant="info-subtle" label="Toggle me"></cts-badge> `,
 
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const host = canvasElement.querySelector("cts-badge");
-    let badge = canvasElement.querySelector(".badge");
-    expect(badge.classList.contains("is-interactive")).toBe(false);
-    expect(window.getComputedStyle(badge).boxShadow).toBe("none");
 
-    host.setAttribute("interactive", "");
-    badge = canvasElement.querySelector(".badge");
-    expect(badge.classList.contains("is-interactive")).toBe(true);
-    expect(window.getComputedStyle(badge).boxShadow).not.toBe("none");
+    await step("starts read-only with no ring", async () => {
+      const badge = canvasElement.querySelector(".badge");
+      expect(badge.classList.contains("is-interactive")).toBe(false);
+      expect(window.getComputedStyle(badge).boxShadow).toBe("none");
+    });
 
-    host.removeAttribute("interactive");
-    badge = canvasElement.querySelector(".badge");
-    expect(badge.classList.contains("is-interactive")).toBe(false);
-    expect(window.getComputedStyle(badge).boxShadow).toBe("none");
+    await step("setting interactive adds the ring", async () => {
+      host.setAttribute("interactive", "");
+      const badge = canvasElement.querySelector(".badge");
+      expect(badge.classList.contains("is-interactive")).toBe(true);
+      expect(window.getComputedStyle(badge).boxShadow).not.toBe("none");
+    });
 
-    // Setting `clickable` flips the visual on without reflecting an
-    // `interactive` attribute back onto the host.
-    host.setAttribute("clickable", "");
-    badge = canvasElement.querySelector(".badge");
-    expect(badge.classList.contains("is-interactive")).toBe(true);
-    expect(host.hasAttribute("interactive")).toBe(false);
+    await step("removing interactive drops the ring", async () => {
+      host.removeAttribute("interactive");
+      const badge = canvasElement.querySelector(".badge");
+      expect(badge.classList.contains("is-interactive")).toBe(false);
+      expect(window.getComputedStyle(badge).boxShadow).toBe("none");
+    });
+
+    await step("clickable flips the visual on without reflecting interactive", async () => {
+      // Setting `clickable` does not reflect an `interactive` attribute back
+      // onto the host.
+      host.setAttribute("clickable", "");
+      const badge = canvasElement.querySelector(".badge");
+      expect(badge.classList.contains("is-interactive")).toBe(true);
+      expect(host.hasAttribute("interactive")).toBe(false);
+    });
   },
 };
 
@@ -873,27 +955,34 @@ export const PressedBooleanBinding = {
       ?pressed="${false}"
     ></cts-badge>`,
 
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const host = canvasElement.querySelector("cts-badge");
-    // `?pressed=${false}` must NOT set the attribute at all.
-    expect(host.hasAttribute("pressed")).toBe(false);
 
-    let badge = canvasElement.querySelector(".badge");
-    // Not pressed → no aria-pressed (plain command button), no pressed visual.
-    expect(badge.getAttribute("aria-pressed")).toBeNull();
-    expect(badge.classList.contains("is-pressed")).toBe(false);
+    await step("falsy boolean binding does not set the pressed attribute", async () => {
+      // `?pressed=${false}` must NOT set the attribute at all.
+      expect(host.hasAttribute("pressed")).toBe(false);
 
-    // Flip the toggle ON — mirrors a filter being activated.
-    host.toggleAttribute("pressed", true);
-    badge = canvasElement.querySelector(".badge");
-    expect(badge.getAttribute("aria-pressed")).toBe("true");
-    expect(badge.classList.contains("is-pressed")).toBe(true);
+      const badge = canvasElement.querySelector(".badge");
+      // Not pressed → no aria-pressed (plain command button), no pressed visual.
+      expect(badge.getAttribute("aria-pressed")).toBeNull();
+      expect(badge.classList.contains("is-pressed")).toBe(false);
+    });
 
-    // And OFF again → aria-pressed removed, back to a plain command button.
-    host.toggleAttribute("pressed", false);
-    badge = canvasElement.querySelector(".badge");
-    expect(badge.getAttribute("aria-pressed")).toBeNull();
-    expect(badge.classList.contains("is-pressed")).toBe(false);
+    await step("flipping the toggle ON sets aria-pressed and the pressed visual", async () => {
+      // Mirrors a filter being activated.
+      host.toggleAttribute("pressed", true);
+      const badge = canvasElement.querySelector(".badge");
+      expect(badge.getAttribute("aria-pressed")).toBe("true");
+      expect(badge.classList.contains("is-pressed")).toBe(true);
+    });
+
+    await step("flipping OFF again returns to a plain command button", async () => {
+      // aria-pressed removed.
+      host.toggleAttribute("pressed", false);
+      const badge = canvasElement.querySelector(".badge");
+      expect(badge.getAttribute("aria-pressed")).toBeNull();
+      expect(badge.classList.contains("is-pressed")).toBe(false);
+    });
   },
 };
 
@@ -912,19 +1001,23 @@ export const PressedStillEmitsClick = {
       ?pressed="${pressed}"
     ></cts-badge>`,
 
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const badge = canvasElement.querySelector(".badge");
     let clicks = 0;
     canvasElement.addEventListener("cts-badge-click", () => {
       clicks += 1;
     });
-
     badge.focus();
-    await userEvent.keyboard("{Enter}");
-    expect(clicks).toBe(1);
 
-    await userEvent.keyboard(" ");
-    expect(clicks).toBe(2);
+    await step("Enter activates the pressed toggle", async () => {
+      await userEvent.keyboard("{Enter}");
+      expect(clicks).toBe(1);
+    });
+
+    await step("Space also activates it", async () => {
+      await userEvent.keyboard(" ");
+      expect(clicks).toBe(2);
+    });
   },
 };
 
@@ -1000,10 +1093,8 @@ export const RingIntensityScale = {
     </div>
   `,
 
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const badges = canvasElement.querySelectorAll(".badge");
-    // 6 variants × 4 states = 24 badges.
-    expect(badges.length).toBe(24);
 
     // Parse the alpha out of a computed inset box-shadow color so we can
     // assert the ring genuinely strengthens interactive → clickable. The
@@ -1018,26 +1109,35 @@ export const RingIntensityScale = {
       return nums.length >= 4 ? parseFloat(nums[3]) : 1;
     };
 
-    badges.forEach((badge, i) => {
-      const col = i % 4; // 0 read-only, 1 interactive, 2 clickable, 3 pressed
-      const cs = window.getComputedStyle(badge);
-      if (col === 0) {
-        expect(cs.boxShadow).toBe("none");
-        expect(badge.classList.contains("is-interactive")).toBe(false);
-      } else {
-        expect(cs.boxShadow).not.toBe("none");
-        expect(badge.classList.contains("is-interactive")).toBe(true);
-      }
-      expect(badge.classList.contains("is-clickable")).toBe(col >= 2);
-      expect(badge.classList.contains("is-pressed")).toBe(col === 3);
+    await step("the grid renders every variant in all four states", async () => {
+      // 6 variants × 4 states = 24 badges.
+      expect(badges.length).toBe(24);
     });
 
-    // Within each row, the clickable ring is stronger than the
-    // interactive ring (same base hue, higher alpha).
-    for (let row = 0; row < 6; row += 1) {
-      const interactive = badges[row * 4 + 1];
-      const clickable = badges[row * 4 + 2];
-      expect(ringAlpha(clickable)).toBeGreaterThan(ringAlpha(interactive));
-    }
+    await step("each column carries the expected ring classes", async () => {
+      badges.forEach((badge, i) => {
+        const col = i % 4; // 0 read-only, 1 interactive, 2 clickable, 3 pressed
+        const cs = window.getComputedStyle(badge);
+        if (col === 0) {
+          expect(cs.boxShadow).toBe("none");
+          expect(badge.classList.contains("is-interactive")).toBe(false);
+        } else {
+          expect(cs.boxShadow).not.toBe("none");
+          expect(badge.classList.contains("is-interactive")).toBe(true);
+        }
+        expect(badge.classList.contains("is-clickable")).toBe(col >= 2);
+        expect(badge.classList.contains("is-pressed")).toBe(col === 3);
+      });
+    });
+
+    await step("the ring strengthens monotonically interactive → clickable", async () => {
+      // Within each row, the clickable ring is stronger than the
+      // interactive ring (same base hue, higher alpha).
+      for (let row = 0; row < 6; row += 1) {
+        const interactive = badges[row * 4 + 1];
+        const clickable = badges[row * 4 + 2];
+        expect(ringAlpha(clickable)).toBeGreaterThan(ringAlpha(interactive));
+      }
+    });
   },
 };

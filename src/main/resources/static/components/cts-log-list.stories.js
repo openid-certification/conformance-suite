@@ -86,42 +86,54 @@ export const Default = {
     },
   },
   render: () => html`<cts-log-list></cts-log-list>`,
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const canvas = within(canvasElement);
     await waitForLogsToLoad(canvasElement);
 
-    const items = canvasElement.querySelectorAll('[data-testid="log-list-item"]');
-    expect(items.length).toBe(MOCK_LOG_LIST.length);
+    await step("all fixture rows render", async () => {
+      const items = canvasElement.querySelectorAll('[data-testid="log-list-item"]');
+      expect(items.length).toBe(MOCK_LOG_LIST.length);
+    });
 
-    // Headline test names render.
-    expect(canvas.getByText("oidcc-server")).toBeInTheDocument();
-    expect(canvas.getByText("vci-failed")).toBeInTheDocument();
+    await step("headline test names render", async () => {
+      expect(canvas.getByText("oidcc-server")).toBeInTheDocument();
+      expect(canvas.getByText("vci-failed")).toBeInTheDocument();
+    });
 
-    // Status and result badges render — sample one of each.
-    const passedBadges = canvasElement.querySelectorAll('cts-badge[label="PASSED"]');
-    expect(passedBadges.length).toBeGreaterThan(0);
-    const failedBadges = canvasElement.querySelectorAll('cts-badge[label="FAILED"]');
-    expect(failedBadges.length).toBe(1);
+    await step("status and result badges render — sample one of each", async () => {
+      const passedBadges = canvasElement.querySelectorAll('cts-badge[label="PASSED"]');
+      expect(passedBadges.length).toBeGreaterThan(0);
+      const failedBadges = canvasElement.querySelectorAll('cts-badge[label="FAILED"]');
+      expect(failedBadges.length).toBe(1);
+    });
 
-    // Sort selector defaults to started-desc.
-    const sortSelect = canvasElement.querySelector(".cts-log-list-sort select");
-    expect(sortSelect.value).toBe("started-desc");
+    await step("sort selector defaults to started-desc", async () => {
+      const sortSelect = canvasElement.querySelector(".cts-log-list-sort select");
+      expect(sortSelect.value).toBe("started-desc");
+    });
 
-    // Owner pill is NOT rendered when is-admin is unset.
-    expect(canvasElement.querySelectorAll(".log-owner").length).toBe(0);
+    await step("owner pill is NOT rendered when is-admin is unset", async () => {
+      expect(canvasElement.querySelectorAll(".log-owner").length).toBe(0);
+    });
 
-    // The Started timestamp renders through cts-time: a native <time> whose
-    // title carries the absolute form on hover (replacing the former
-    // cts-tooltip + formatRelativeTime/formatAbsoluteTime path).
-    const startedTime = canvasElement.querySelector(".cts-log-card-meta-value time");
-    expect(startedTime).toBeTruthy();
-    expect(startedTime?.getAttribute("title")).toBeTruthy();
-    expect(startedTime?.getAttribute("datetime")).toBeTruthy();
+    await step("Started timestamp renders through cts-time", async () => {
+      // The Started timestamp renders through cts-time: a native <time> whose
+      // title carries the absolute form on hover (replacing the former
+      // cts-tooltip + formatRelativeTime/formatAbsoluteTime path).
+      const startedTime = canvasElement.querySelector(".cts-log-card-meta-value time");
+      expect(startedTime).toBeTruthy();
+      expect(startedTime?.getAttribute("title")).toBeTruthy();
+      expect(startedTime?.getAttribute("datetime")).toBeTruthy();
+    });
 
-    // With no active filters, the trigger shows no count badge and reads closed.
-    const trigger = canvasElement.querySelector('[data-testid="log-filter-trigger"]');
-    expect(trigger.querySelector("cts-badge")).toBeNull();
-    expect(trigger.getAttribute("aria-expanded")).toBe("false");
+    await step(
+      "with no active filters, the trigger shows no count badge and reads closed",
+      async () => {
+        const trigger = canvasElement.querySelector('[data-testid="log-filter-trigger"]');
+        expect(trigger.querySelector("cts-badge")).toBeNull();
+        expect(trigger.getAttribute("aria-expanded")).toBe("false");
+      },
+    );
   },
 };
 
@@ -139,36 +151,41 @@ export const WithResolvedPlanNames = {
     },
   },
   render: () => html`<cts-log-list></cts-log-list>`,
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     await waitForLogsToLoad(canvasElement);
 
-    // Wait for the async /api/plan/<id> resolutions to land — the chip
-    // text flips from optimistic planId to resolved planName.
-    await waitFor(() => {
-      const link = canvasElement.querySelector(
-        '[data-test-id="test-log-001"] .cts-log-card-plan-link',
-      );
-      expect(link).not.toBeNull();
-      expect(link.textContent.trim()).toBe("oidcc-basic-certification-test-plan");
+    await step("async plan-name resolution lands on the first chip", async () => {
+      // Wait for the async /api/plan/<id> resolutions to land — the chip
+      // text flips from optimistic planId to resolved planName.
+      await waitFor(() => {
+        const link = canvasElement.querySelector(
+          '[data-test-id="test-log-001"] .cts-log-card-plan-link',
+        );
+        expect(link).not.toBeNull();
+        expect(link.textContent.trim()).toBe("oidcc-basic-certification-test-plan");
+      });
     });
 
-    // Rows that share a planId pick the same resolved name.
-    const card002 = canvasElement.querySelector(
-      '[data-test-id="test-log-002"] .cts-log-card-plan-link',
-    );
-    expect(card002.textContent.trim()).toBe("oidcc-basic-certification-test-plan");
+    await step("rows that share a planId pick the same resolved name", async () => {
+      const card002 = canvasElement.querySelector(
+        '[data-test-id="test-log-002"] .cts-log-card-plan-link',
+      );
+      expect(card002.textContent.trim()).toBe("oidcc-basic-certification-test-plan");
+    });
 
-    // Distinct planId resolves independently.
-    const card003 = canvasElement.querySelector(
-      '[data-test-id="test-log-003"] .cts-log-card-plan-link',
-    );
-    expect(card003.textContent.trim()).toBe("fapi2-security-profile-final-test-plan");
+    await step("distinct planId resolves independently", async () => {
+      const card003 = canvasElement.querySelector(
+        '[data-test-id="test-log-003"] .cts-log-card-plan-link',
+      );
+      expect(card003.textContent.trim()).toBe("fapi2-security-profile-final-test-plan");
+    });
 
-    // Link target is still keyed by planId — only the visible text changes.
-    const card001Link = canvasElement.querySelector(
-      '[data-test-id="test-log-001"] .cts-log-card-plan-link',
-    );
-    expect(card001Link.getAttribute("href")).toContain("plan=plan-001");
+    await step("link target is still keyed by planId — only the visible text changes", async () => {
+      const card001Link = canvasElement.querySelector(
+        '[data-test-id="test-log-001"] .cts-log-card-plan-link',
+      );
+      expect(card001Link.getAttribute("href")).toContain("plan=plan-001");
+    });
   },
 };
 
@@ -283,51 +300,62 @@ export const FilterByStatus = {
     },
   },
   render: () => html`<cts-log-list></cts-log-list>`,
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     await waitForLogsToLoad(canvasElement);
 
-    // Initial: all 6 cards visible.
-    let items = canvasElement.querySelectorAll('[data-testid="log-list-item"]');
-    expect(items.length).toBe(MOCK_LOG_LIST.length);
-
-    // Open the filter dropdown and check the RUNNING status option — only the
-    // running row should remain.
-    await openFilterPanel(canvasElement);
-    const runningOption = canvasElement.querySelector('input[data-status="RUNNING"]');
-    expect(runningOption).not.toBeNull();
-    await userEvent.click(runningOption);
-
-    await waitFor(() => {
-      items = canvasElement.querySelectorAll('[data-testid="log-list-item"]');
-      expect(items.length).toBe(1);
-    });
-    expect(canvasElement.textContent).toContain("fapi2-running");
-
-    // The trigger advertises the open panel and a count badge of the single
-    // active facet.
     const trigger = canvasElement.querySelector('[data-testid="log-filter-trigger"]');
-    expect(trigger.getAttribute("aria-expanded")).toBe("true");
-    const countBadge = trigger.querySelector("cts-badge");
-    expect(countBadge).not.toBeNull();
-    expect(countBadge.getAttribute("count")).toBe("1");
 
-    // Active-filter summary appears with match count.
-    const summary = canvasElement.querySelector('[data-testid="active-filter-summary"]');
-    expect(summary).not.toBeNull();
-    expect(summary.textContent).toContain("Status: running");
-    expect(summary.textContent).toContain("(1 match)");
-
-    // URL reflects the filter via history.replaceState.
-    expect(window.location.search).toContain("status=running");
-
-    // Re-activating the trigger toggles the popover shut; aria-expanded flips
-    // back to false via the beforetoggle handler.
-    await userEvent.click(trigger);
-    await waitFor(() => {
-      expect(trigger.getAttribute("aria-expanded")).toBe("false");
+    await step("initial: all fixture cards visible", async () => {
+      const items = canvasElement.querySelectorAll('[data-testid="log-list-item"]');
+      expect(items.length).toBe(MOCK_LOG_LIST.length);
     });
-    // The selection (and its count badge) survives the dismiss.
-    expect(trigger.querySelector("cts-badge").getAttribute("count")).toBe("1");
+
+    await step("checking the RUNNING status option leaves only the running row", async () => {
+      await openFilterPanel(canvasElement);
+      const runningOption = canvasElement.querySelector('input[data-status="RUNNING"]');
+      expect(runningOption).not.toBeNull();
+      await userEvent.click(runningOption);
+
+      await waitFor(() => {
+        const items = canvasElement.querySelectorAll('[data-testid="log-list-item"]');
+        expect(items.length).toBe(1);
+      });
+      expect(canvasElement.textContent).toContain("fapi2-running");
+    });
+
+    await step(
+      "the trigger advertises the open panel and a count badge of the single active facet",
+      async () => {
+        expect(trigger.getAttribute("aria-expanded")).toBe("true");
+        const countBadge = trigger.querySelector("cts-badge");
+        expect(countBadge).not.toBeNull();
+        expect(countBadge.getAttribute("count")).toBe("1");
+      },
+    );
+
+    await step("active-filter summary appears with match count", async () => {
+      const summary = canvasElement.querySelector('[data-testid="active-filter-summary"]');
+      expect(summary).not.toBeNull();
+      expect(summary.textContent).toContain("Status: running");
+      expect(summary.textContent).toContain("(1 match)");
+    });
+
+    await step("URL reflects the filter via history.replaceState", async () => {
+      expect(window.location.search).toContain("status=running");
+    });
+
+    await step(
+      "re-activating the trigger toggles the popover shut and the selection survives",
+      async () => {
+        // aria-expanded flips back to false via the beforetoggle handler.
+        await userEvent.click(trigger);
+        await waitFor(() => {
+          expect(trigger.getAttribute("aria-expanded")).toBe("false");
+        });
+        // The selection (and its count badge) survives the dismiss.
+        expect(trigger.querySelector("cts-badge").getAttribute("count")).toBe("1");
+      },
+    );
   },
 };
 
@@ -418,23 +446,28 @@ export const Paginated60Items = {
     },
   },
   render: () => html`<cts-log-list></cts-log-list>`,
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     await waitForLogsToLoad(canvasElement);
 
-    let items = canvasElement.querySelectorAll('[data-testid="log-list-item"]');
-    expect(items.length).toBe(25);
+    await step("first page renders 25 of 60 with a show-more affordance", async () => {
+      const items = canvasElement.querySelectorAll('[data-testid="log-list-item"]');
+      expect(items.length).toBe(25);
 
-    const showMore = canvasElement.querySelector('[data-testid="log-list-show-more"]');
-    expect(showMore).not.toBeNull();
-    expect(showMore.getAttribute("label")).toContain("25 of 60");
+      const showMore = canvasElement.querySelector('[data-testid="log-list-show-more"]');
+      expect(showMore).not.toBeNull();
+      expect(showMore.getAttribute("label")).toContain("25 of 60");
+    });
 
-    // Click the inner <button> of the cts-button host.
-    const inner = showMore.querySelector("button");
-    await userEvent.click(inner);
+    await step("clicking show-more reveals the next page", async () => {
+      const showMore = canvasElement.querySelector('[data-testid="log-list-show-more"]');
+      // Click the inner <button> of the cts-button host.
+      const inner = showMore.querySelector("button");
+      await userEvent.click(inner);
 
-    await waitFor(() => {
-      items = canvasElement.querySelectorAll('[data-testid="log-list-item"]');
-      expect(items.length).toBe(50);
+      await waitFor(() => {
+        const items = canvasElement.querySelectorAll('[data-testid="log-list-item"]');
+        expect(items.length).toBe(50);
+      });
     });
   },
 };

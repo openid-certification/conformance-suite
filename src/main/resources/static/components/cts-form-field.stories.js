@@ -15,27 +15,33 @@ export const TextInput = {
       value="my-client-123"
     ></cts-form-field>
   `,
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const label = canvasElement.querySelector(".oidf-label");
-    expect(label).toBeTruthy();
-    expect(label.textContent).toContain("Client ID");
-    // OIDF label typography (bold / fs-12 / fg-soft) lives on .oidf-label directly,
-    // sentence-cased — no longer borrowing the uppercase .t-overline utility.
-    expect(getComputedStyle(label).textTransform).toBe("none");
-    // The label must be a real <label> with `for` pointing at the input id, so
-    // clicking the label focuses the field and screen readers announce the name.
-    expect(label.tagName).toBe("LABEL");
     const input = canvasElement.querySelector('input[type="text"]');
-    expect(input).toBeTruthy();
-    expect(input.classList.contains("oidf-input")).toBe(true);
-    expect(input.value).toBe("my-client-123");
-    expect(input.id).toBeTruthy();
-    expect(label.getAttribute("for")).toBe(input.id);
-    const help = canvasElement.querySelector(".oidf-help");
-    expect(help.textContent).toContain("OAuth 2.0 client identifier");
-    expect(help.classList.contains("t-meta")).toBe(true);
-    // aria-describedby links the help span back to the input.
-    expect(input.getAttribute("aria-describedby") || "").toContain(help.id);
+    await step("label renders with OIDF typography as a real <label>", async () => {
+      expect(label).toBeTruthy();
+      expect(label.textContent).toContain("Client ID");
+      // OIDF label typography (bold / fs-12 / fg-soft) lives on .oidf-label directly,
+      // sentence-cased — no longer borrowing the uppercase .t-overline utility.
+      expect(getComputedStyle(label).textTransform).toBe("none");
+      // The label must be a real <label> with `for` pointing at the input id, so
+      // clicking the label focuses the field and screen readers announce the name.
+      expect(label.tagName).toBe("LABEL");
+    });
+    await step("text input renders and is wired to its label", async () => {
+      expect(input).toBeTruthy();
+      expect(input.classList.contains("oidf-input")).toBe(true);
+      expect(input.value).toBe("my-client-123");
+      expect(input.id).toBeTruthy();
+      expect(label.getAttribute("for")).toBe(input.id);
+    });
+    await step("help text renders and is linked via aria-describedby", async () => {
+      const help = canvasElement.querySelector(".oidf-help");
+      expect(help.textContent).toContain("OAuth 2.0 client identifier");
+      expect(help.classList.contains("t-meta")).toBe(true);
+      // aria-describedby links the help span back to the input.
+      expect(input.getAttribute("aria-describedby") || "").toContain(help.id);
+    });
   },
 };
 
@@ -100,21 +106,27 @@ export const SelectDropdown = {
       value="client_secret_basic"
     ></cts-form-field>
   `,
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const select = canvasElement.querySelector("select.oidf-select");
-    expect(select).toBeTruthy();
-    const options = select.querySelectorAll("option");
-    expect(options.length).toBe(4); // 3 enum + 1 placeholder
-    // Label/select must be wired so screen readers announce "Auth Method" when
-    // the dropdown is focused.
-    const label = canvasElement.querySelector("label.oidf-label");
-    expect(label).toBeTruthy();
-    expect(select.id).toBeTruthy();
-    expect(label.getAttribute("for")).toBe(select.id);
-    // line-height: 1 → resolved value matches font-size, preventing the
-    // closed-state text from drifting inside the fixed 34px height across browsers.
-    const cs = getComputedStyle(select);
-    expect(cs.lineHeight).toBe(cs.fontSize);
+    await step("select renders with enum options plus a placeholder", async () => {
+      expect(select).toBeTruthy();
+      const options = select.querySelectorAll("option");
+      expect(options.length).toBe(4); // 3 enum + 1 placeholder
+    });
+    await step("label/select are wired for screen readers", async () => {
+      // Label/select must be wired so screen readers announce "Auth Method" when
+      // the dropdown is focused.
+      const label = canvasElement.querySelector("label.oidf-label");
+      expect(label).toBeTruthy();
+      expect(select.id).toBeTruthy();
+      expect(label.getAttribute("for")).toBe(select.id);
+    });
+    await step("line-height resolves to font-size to keep closed-state text centred", async () => {
+      // line-height: 1 → resolved value matches font-size, preventing the
+      // closed-state text from drifting inside the fixed 34px height across browsers.
+      const cs = getComputedStyle(select);
+      expect(cs.lineHeight).toBe(cs.fontSize);
+    });
   },
 };
 
@@ -126,17 +138,21 @@ export const BooleanCheckbox = {
       value="true"
     ></cts-form-field>
   `,
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const checkbox = canvasElement.querySelector('input[type="checkbox"]');
-    expect(checkbox).toBeTruthy();
-    expect(checkbox.classList.contains("oidf-checkbox")).toBe(true);
-    expect(checkbox.checked).toBe(true);
-    const checkLabel = canvasElement.querySelector(".oidf-checkbox-label");
-    expect(checkLabel.textContent).toContain("Enable mutual TLS");
-    // Clicking the label text toggles the checkbox — `for` must point at the
-    // input id, otherwise the click target is silently broken.
-    expect(checkbox.id).toBeTruthy();
-    expect(checkLabel.getAttribute("for")).toBe(checkbox.id);
+    await step("checkbox renders checked with the OIDF class", async () => {
+      expect(checkbox).toBeTruthy();
+      expect(checkbox.classList.contains("oidf-checkbox")).toBe(true);
+      expect(checkbox.checked).toBe(true);
+    });
+    await step("checkbox label text is wired to the input", async () => {
+      const checkLabel = canvasElement.querySelector(".oidf-checkbox-label");
+      expect(checkLabel.textContent).toContain("Enable mutual TLS");
+      // Clicking the label text toggles the checkbox — `for` must point at the
+      // input id, otherwise the click target is silently broken.
+      expect(checkbox.id).toBeTruthy();
+      expect(checkLabel.getAttribute("for")).toBe(checkbox.id);
+    });
   },
 };
 
@@ -149,19 +165,23 @@ export const WithError = {
       error="Required field"
     ></cts-form-field>
   `,
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const input = canvasElement.querySelector("input");
-    // Error state lands on the rendered control via .is-error so the rust
-    // border colour applies — no host-level class manipulation.
-    expect(input.classList.contains("is-error")).toBe(true);
-    // ARIA mirrors the visual error state for assistive tech.
-    expect(input.getAttribute("aria-invalid")).toBe("true");
-    const error = canvasElement.querySelector(".oidf-error");
-    expect(error).toBeTruthy();
-    expect(error.textContent).toBe("Required field");
-    expect(error.getAttribute("role")).toBe("alert");
-    expect(error.id).toBeTruthy();
-    expect(input.getAttribute("aria-describedby") || "").toContain(error.id);
+    await step("error state lands on the input control and its ARIA", async () => {
+      // Error state lands on the rendered control via .is-error so the rust
+      // border colour applies — no host-level class manipulation.
+      expect(input.classList.contains("is-error")).toBe(true);
+      // ARIA mirrors the visual error state for assistive tech.
+      expect(input.getAttribute("aria-invalid")).toBe("true");
+    });
+    await step("error message renders as an alert linked back to the input", async () => {
+      const error = canvasElement.querySelector(".oidf-error");
+      expect(error).toBeTruthy();
+      expect(error.textContent).toBe("Required field");
+      expect(error.getAttribute("role")).toBe("alert");
+      expect(error.id).toBeTruthy();
+      expect(input.getAttribute("aria-describedby") || "").toContain(error.id);
+    });
   },
 };
 
@@ -418,27 +438,34 @@ export const PublishDropdownLabelsAndDefault = {
       value=""
     ></cts-form-field>
   `,
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const select = /** @type {HTMLSelectElement} */ (
       canvasElement.querySelector("select.oidf-select")
     );
-    expect(select).toBeTruthy();
     const options = select.querySelectorAll("option");
-    // Three options exactly: No / Summary / Everything. The leading
-    // <option value="">Select...</option> placeholder must be suppressed
-    // because "" is already in the enum — rendering both would leave the
-    // dropdown with two value="" entries.
-    expect(options.length).toBe(3);
-    expect(options[0].value).toBe("");
-    expect(options[0].textContent).toBe("No");
-    expect(options[1].value).toBe("summary");
-    expect(options[1].textContent).toBe("Summary");
-    expect(options[2].value).toBe("everything");
-    expect(options[2].textContent).toBe("Everything");
-    // "No" is the default selection so a fresh form submits an empty publish
-    // value, which the backend treats as unpublished.
-    expect(select.value).toBe("");
-    expect(options[0].selected).toBe(true);
+    await step(
+      "renders exactly the three enumLabel options without a duplicate placeholder",
+      async () => {
+        expect(select).toBeTruthy();
+        // Three options exactly: No / Summary / Everything. The leading
+        // <option value="">Select...</option> placeholder must be suppressed
+        // because "" is already in the enum — rendering both would leave the
+        // dropdown with two value="" entries.
+        expect(options.length).toBe(3);
+        expect(options[0].value).toBe("");
+        expect(options[0].textContent).toBe("No");
+        expect(options[1].value).toBe("summary");
+        expect(options[1].textContent).toBe("Summary");
+        expect(options[2].value).toBe("everything");
+        expect(options[2].textContent).toBe("Everything");
+      },
+    );
+    await step('"No" is the default selection so a fresh form submits unpublished', async () => {
+      // "No" is the default selection so a fresh form submits an empty publish
+      // value, which the backend treats as unpublished.
+      expect(select.value).toBe("");
+      expect(options[0].selected).toBe(true);
+    });
   },
 };
 

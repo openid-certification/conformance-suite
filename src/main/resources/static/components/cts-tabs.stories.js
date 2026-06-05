@@ -19,37 +19,46 @@ export const Default = {
     </cts-tabs>
   `,
 
-  async play({ canvasElement }) {
-    const tablist = canvasElement.querySelector('[role="tablist"]');
-    expect(tablist).toBeTruthy();
-    // Token-styled tablist — Bootstrap classes are gone.
-    expect(tablist.classList.contains("oidf-tabs")).toBe(true);
-    expect(tablist.classList.contains("nav")).toBe(false);
-    expect(tablist.classList.contains("nav-tabs")).toBe(false);
+  async play({ canvasElement, step }) {
+    await step("tablist is token-styled (Bootstrap classes are gone)", async () => {
+      const tablist = canvasElement.querySelector('[role="tablist"]');
+      expect(tablist).toBeTruthy();
+      expect(tablist.classList.contains("oidf-tabs")).toBe(true);
+      expect(tablist.classList.contains("nav")).toBe(false);
+      expect(tablist.classList.contains("nav-tabs")).toBe(false);
+    });
 
-    const tabs = canvasElement.querySelectorAll('[role="tab"]');
-    expect(tabs.length).toBe(2);
+    await step("two tabs render with correct aria-selected state", async () => {
+      const tabs = canvasElement.querySelectorAll('[role="tab"]');
+      expect(tabs.length).toBe(2);
 
-    expect(tabs[0].getAttribute("aria-selected")).toBe("true");
-    expect(tabs[1].getAttribute("aria-selected")).toBe("false");
+      expect(tabs[0].getAttribute("aria-selected")).toBe("true");
+      expect(tabs[1].getAttribute("aria-selected")).toBe("false");
+    });
 
-    // Active tab carries the token active class; the inactive does not.
-    expect(tabs[0].classList.contains("oidf-tab")).toBe(true);
-    expect(tabs[0].classList.contains("oidf-tab-active")).toBe(true);
-    expect(tabs[1].classList.contains("oidf-tab")).toBe(true);
-    expect(tabs[1].classList.contains("oidf-tab-active")).toBe(false);
+    await step("active tab carries the token active class; the inactive does not", async () => {
+      const tabs = canvasElement.querySelectorAll('[role="tab"]');
+      expect(tabs[0].classList.contains("oidf-tab")).toBe(true);
+      expect(tabs[0].classList.contains("oidf-tab-active")).toBe(true);
+      expect(tabs[1].classList.contains("oidf-tab")).toBe(true);
+      expect(tabs[1].classList.contains("oidf-tab-active")).toBe(false);
+    });
 
-    // Tab controls panel by original id
-    expect(tabs[0].getAttribute("aria-controls")).toBe("formTab");
+    await step("tab controls panel by original id", async () => {
+      const tabs = canvasElement.querySelectorAll('[role="tab"]');
+      expect(tabs[0].getAttribute("aria-controls")).toBe("formTab");
+    });
 
-    const panels = canvasElement.querySelectorAll('[role="tabpanel"]');
-    expect(panels.length).toBe(2);
-    expect(panels[0].id).toBe("formTab");
-    expect(panels[0].getAttribute("aria-labelledby")).toBe("formTab-tab");
-    expect(panels[0].hidden).toBe(false);
-    expect(panels[1].hidden).toBe(true);
+    await step("panels render with labelling and visibility wiring", async () => {
+      const panels = canvasElement.querySelectorAll('[role="tabpanel"]');
+      expect(panels.length).toBe(2);
+      expect(panels[0].id).toBe("formTab");
+      expect(panels[0].getAttribute("aria-labelledby")).toBe("formTab-tab");
+      expect(panels[0].hidden).toBe(false);
+      expect(panels[1].hidden).toBe(true);
 
-    expect(panels[0].textContent).toContain("Form content here");
+      expect(panels[0].textContent).toContain("Form content here");
+    });
   },
 };
 
@@ -61,23 +70,27 @@ export const SwitchTab = {
     </cts-tabs>
   `,
 
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const tabs = canvasElement.querySelectorAll('[role="tab"]');
     const panels = canvasElement.querySelectorAll('[role="tabpanel"]');
 
-    await userEvent.click(tabs[1]);
+    await step("clicking the second tab moves selection and active class to it", async () => {
+      await userEvent.click(tabs[1]);
 
-    await waitFor(() => {
-      expect(tabs[0].getAttribute("aria-selected")).toBe("false");
-      expect(tabs[1].getAttribute("aria-selected")).toBe("true");
-      // Active class moves to the newly-selected tab.
-      expect(tabs[0].classList.contains("oidf-tab-active")).toBe(false);
-      expect(tabs[1].classList.contains("oidf-tab-active")).toBe(true);
-      expect(panels[0].hidden).toBe(true);
-      expect(panels[1].hidden).toBe(false);
+      await waitFor(() => {
+        expect(tabs[0].getAttribute("aria-selected")).toBe("false");
+        expect(tabs[1].getAttribute("aria-selected")).toBe("true");
+        // Active class moves to the newly-selected tab.
+        expect(tabs[0].classList.contains("oidf-tab-active")).toBe(false);
+        expect(tabs[1].classList.contains("oidf-tab-active")).toBe(true);
+        expect(panels[0].hidden).toBe(true);
+        expect(panels[1].hidden).toBe(false);
+      });
     });
 
-    expect(panels[1].textContent).toContain("JSON tab");
+    await step("the newly-revealed panel shows its content", async () => {
+      expect(panels[1].textContent).toContain("JSON tab");
+    });
   },
 };
 
@@ -90,31 +103,40 @@ export const KeyboardNavigation = {
     </cts-tabs>
   `,
 
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const tabs = canvasElement.querySelectorAll('[role="tab"]');
 
-    tabs[0].focus();
-    expect(document.activeElement).toBe(tabs[0]);
+    await step("focusing the first tab sets it as the active element", async () => {
+      tabs[0].focus();
+      expect(document.activeElement).toBe(tabs[0]);
+    });
 
-    await userEvent.keyboard("{ArrowRight}");
-    expect(document.activeElement).toBe(tabs[1]);
-    expect(tabs[1].getAttribute("aria-selected")).toBe("true");
+    await step("ArrowRight moves focus forward and selects on focus", async () => {
+      await userEvent.keyboard("{ArrowRight}");
+      expect(document.activeElement).toBe(tabs[1]);
+      expect(tabs[1].getAttribute("aria-selected")).toBe("true");
 
-    await userEvent.keyboard("{ArrowRight}");
-    expect(document.activeElement).toBe(tabs[2]);
+      await userEvent.keyboard("{ArrowRight}");
+      expect(document.activeElement).toBe(tabs[2]);
+    });
 
-    // Wraps around
-    await userEvent.keyboard("{ArrowRight}");
-    expect(document.activeElement).toBe(tabs[0]);
+    await step("ArrowRight wraps around from last to first", async () => {
+      await userEvent.keyboard("{ArrowRight}");
+      expect(document.activeElement).toBe(tabs[0]);
+    });
 
-    await userEvent.keyboard("{ArrowLeft}");
-    expect(document.activeElement).toBe(tabs[2]);
+    await step("ArrowLeft wraps around from first to last", async () => {
+      await userEvent.keyboard("{ArrowLeft}");
+      expect(document.activeElement).toBe(tabs[2]);
+    });
 
-    await userEvent.keyboard("{Home}");
-    expect(document.activeElement).toBe(tabs[0]);
+    await step("Home and End jump to the first and last tabs", async () => {
+      await userEvent.keyboard("{Home}");
+      expect(document.activeElement).toBe(tabs[0]);
 
-    await userEvent.keyboard("{End}");
-    expect(document.activeElement).toBe(tabs[2]);
+      await userEvent.keyboard("{End}");
+      expect(document.activeElement).toBe(tabs[2]);
+    });
   },
 };
 
@@ -132,24 +154,27 @@ export const KeyboardActivation = {
     </cts-tabs>
   `,
 
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const tabs = canvasElement.querySelectorAll('[role="tab"]');
     const events = [];
     canvasElement.addEventListener("cts-tab-change", (e) => events.push(e.detail.id));
 
-    tabs[1].focus();
-    // Arrow keys already selected tab[1]; Enter on the focused tab should
-    // re-fire cts-tab-change (defensively).
-    await userEvent.keyboard("{Enter}");
-    await waitFor(() => {
-      expect(events.filter((id) => id === "kaB").length).toBeGreaterThanOrEqual(1);
+    await step("Enter on the focused tab re-fires cts-tab-change", async () => {
+      tabs[1].focus();
+      // Arrow keys already selected tab[1]; Enter on the focused tab should
+      // re-fire cts-tab-change (defensively).
+      await userEvent.keyboard("{Enter}");
+      await waitFor(() => {
+        expect(events.filter((id) => id === "kaB").length).toBeGreaterThanOrEqual(1);
+      });
     });
 
-    // Space on the focused tab also fires.
-    const beforeSpace = events.length;
-    await userEvent.keyboard(" ");
-    await waitFor(() => {
-      expect(events.length).toBeGreaterThan(beforeSpace);
+    await step("Space on the focused tab also fires", async () => {
+      const beforeSpace = events.length;
+      await userEvent.keyboard(" ");
+      await waitFor(() => {
+        expect(events.length).toBeGreaterThan(beforeSpace);
+      });
     });
   },
 };
@@ -260,30 +285,35 @@ export const WithCountBadges = {
     </cts-tabs>
   `,
 
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const tabs = canvasElement.querySelectorAll('[role="tab"]');
-    expect(tabs.length).toBe(4);
 
-    // Tabs that declared a count render a badge; tabs without count don't.
-    const counts = canvasElement.querySelectorAll(".oidf-tab-count");
-    expect(counts.length).toBe(3);
-    expect(counts[0].textContent).toBe("24");
-    expect(counts[1].textContent).toBe("1.4k");
-    expect(counts[2].textContent).toBe("2");
+    await step("tabs that declared a count render a badge; tabs without count don't", async () => {
+      expect(tabs.length).toBe(4);
 
-    // The first (active) tab carries both label and count inside it.
-    expect(tabs[0].querySelector(".oidf-tab-label").textContent).toBe("Modules");
-    expect(tabs[0].querySelector(".oidf-tab-count").textContent).toBe("24");
+      const counts = canvasElement.querySelectorAll(".oidf-tab-count");
+      expect(counts.length).toBe(3);
+      expect(counts[0].textContent).toBe("24");
+      expect(counts[1].textContent).toBe("1.4k");
+      expect(counts[2].textContent).toBe("2");
+    });
 
-    // Settings tab has no count badge.
-    expect(tabs[3].querySelector(".oidf-tab-count")).toBeNull();
-    expect(tabs[3].querySelector(".oidf-tab-label").textContent).toBe("Settings");
+    await step("the first (active) tab carries both label and count inside it", async () => {
+      expect(tabs[0].querySelector(".oidf-tab-label").textContent).toBe("Modules");
+      expect(tabs[0].querySelector(".oidf-tab-count").textContent).toBe("24");
+    });
 
-    // Click the Log tab — active class follows.
-    await userEvent.click(tabs[1]);
-    await waitFor(() => {
-      expect(tabs[0].classList.contains("oidf-tab-active")).toBe(false);
-      expect(tabs[1].classList.contains("oidf-tab-active")).toBe(true);
+    await step("the Settings tab has no count badge", async () => {
+      expect(tabs[3].querySelector(".oidf-tab-count")).toBeNull();
+      expect(tabs[3].querySelector(".oidf-tab-label").textContent).toBe("Settings");
+    });
+
+    await step("clicking the Log tab moves the active class", async () => {
+      await userEvent.click(tabs[1]);
+      await waitFor(() => {
+        expect(tabs[0].classList.contains("oidf-tab-active")).toBe(false);
+        expect(tabs[1].classList.contains("oidf-tab-active")).toBe(true);
+      });
     });
   },
 };

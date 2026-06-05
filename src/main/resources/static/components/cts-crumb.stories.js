@@ -26,28 +26,34 @@ export const Default = {
     return el;
   },
 
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const host = canvasElement.querySelector("cts-crumb");
     await host.updateComplete;
 
-    const buttons = host.querySelectorAll("button.crumbLink");
-    expect(buttons.length).toBe(2);
-    expect(buttons[0].textContent.trim()).toBe("Plans");
-    expect(buttons[1].textContent.trim()).toBe("oidcc-basic");
+    await step("non-terminal entries render as link buttons", async () => {
+      const buttons = host.querySelectorAll("button.crumbLink");
+      expect(buttons.length).toBe(2);
+      expect(buttons[0].textContent.trim()).toBe("Plans");
+      expect(buttons[1].textContent.trim()).toBe("oidcc-basic");
+    });
 
-    const current = host.querySelector("span.crumbCurrent");
-    expect(current).toBeTruthy();
-    expect(current.textContent.trim()).toBe("Log");
-    expect(current.getAttribute("aria-current")).toBe("page");
+    await step("terminal entry renders as the current page", async () => {
+      const current = host.querySelector("span.crumbCurrent");
+      expect(current).toBeTruthy();
+      expect(current.textContent.trim()).toBe("Log");
+      expect(current.getAttribute("aria-current")).toBe("page");
+    });
 
-    // One chevron between each pair of items — for 3 items that's 2 separators.
-    const separators = host.querySelectorAll(".crumbSeparator");
-    expect(separators.length).toBe(2);
-    const icons = host.querySelectorAll("cts-icon");
-    expect(icons.length).toBe(2);
-    icons.forEach((icon) => {
-      expect(icon.getAttribute("name")).toBe("chevron-right");
-      expect(icon.getAttribute("size")).toBe("16");
+    await step("chevron separators render between items", async () => {
+      // One chevron between each pair of items — for 3 items that's 2 separators.
+      const separators = host.querySelectorAll(".crumbSeparator");
+      expect(separators.length).toBe(2);
+      const icons = host.querySelectorAll("cts-icon");
+      expect(icons.length).toBe(2);
+      icons.forEach((icon) => {
+        expect(icon.getAttribute("name")).toBe("chevron-right");
+        expect(icon.getAttribute("size")).toBe("16");
+      });
     });
   },
 };
@@ -64,7 +70,7 @@ export const ClickDispatchesNavigate = {
     return el;
   },
 
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const host = canvasElement.querySelector("cts-crumb");
     await host.updateComplete;
 
@@ -73,13 +79,17 @@ export const ClickDispatchesNavigate = {
     canvasElement.addEventListener("cts-crumb-navigate", (e) => {
       received.push(/** @type {CustomEvent} */ (e).detail.target);
     });
-
     const buttons = host.querySelectorAll("button.crumbLink");
-    await userEvent.click(buttons[0]);
-    expect(received).toEqual(["plans.html"]);
 
-    await userEvent.click(buttons[1]);
-    expect(received).toEqual(["plans.html", "plan-detail.html?plan=plan-001"]);
+    await step("clicking the first crumb dispatches its target", async () => {
+      await userEvent.click(buttons[0]);
+      expect(received).toEqual(["plans.html"]);
+    });
+
+    await step("clicking the second crumb dispatches its target", async () => {
+      await userEvent.click(buttons[1]);
+      expect(received).toEqual(["plans.html", "plan-detail.html?plan=plan-001"]);
+    });
   },
 };
 
@@ -116,18 +126,22 @@ export const SingleItem = {
     return el;
   },
 
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const host = canvasElement.querySelector("cts-crumb");
     await host.updateComplete;
 
-    expect(host.querySelectorAll("button.crumbLink").length).toBe(0);
-    expect(host.querySelectorAll(".crumbSeparator").length).toBe(0);
-    expect(host.querySelectorAll("cts-icon").length).toBe(0);
+    await step("no link buttons, separators, or icons render", async () => {
+      expect(host.querySelectorAll("button.crumbLink").length).toBe(0);
+      expect(host.querySelectorAll(".crumbSeparator").length).toBe(0);
+      expect(host.querySelectorAll("cts-icon").length).toBe(0);
+    });
 
-    const current = host.querySelector("span.crumbCurrent");
-    expect(current).toBeTruthy();
-    expect(current.textContent.trim()).toBe("Plans");
-    expect(current.getAttribute("aria-current")).toBe("page");
+    await step("the sole entry renders as the current page", async () => {
+      const current = host.querySelector("span.crumbCurrent");
+      expect(current).toBeTruthy();
+      expect(current.textContent.trim()).toBe("Plans");
+      expect(current.getAttribute("aria-current")).toBe("page");
+    });
   },
 };
 

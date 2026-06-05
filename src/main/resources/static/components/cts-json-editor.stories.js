@@ -127,15 +127,19 @@ function forceFallback() {
 
 export const Default = {
   render: () => html`<cts-json-editor aria-label="Test plan configuration JSON"></cts-json-editor>`,
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const ready = await waitForReady(canvasElement);
     const host = canvasElement.querySelector("cts-json-editor");
-    expect(host).toBeTruthy();
-    expect(host.value).toBe("");
-    // The wrapper renders the OIDF host shell regardless of which inner
-    // surface (Monaco or fallback) is active.
-    expect(canvasElement.querySelector(".oidf-json-editor")).toBeTruthy();
-    expect(["monaco", "fallback"]).toContain(ready.kind);
+    await step("host mounts with an empty value", async () => {
+      expect(host).toBeTruthy();
+      expect(host.value).toBe("");
+    });
+    await step("host shell renders regardless of inner surface", async () => {
+      // The wrapper renders the OIDF host shell regardless of which inner
+      // surface (Monaco or fallback) is active.
+      expect(canvasElement.querySelector(".oidf-json-editor")).toBeTruthy();
+      expect(["monaco", "fallback"]).toContain(ready.kind);
+    });
   },
 };
 
@@ -159,16 +163,20 @@ export const Readonly = {
       readonly
       .value=${SAMPLE_JSON}
     ></cts-json-editor>`,
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const ready = await waitForReady(canvasElement);
     const host = canvasElement.querySelector("cts-json-editor");
-    expect(host.readonly).toBe(true);
-    if (ready.kind === "fallback") {
-      expect(ready.el.hasAttribute("readonly")).toBe(true);
-    }
-    // The host reflects the boolean attribute so consumers can target
-    // `cts-json-editor[readonly]` in CSS.
-    expect(host.hasAttribute("readonly")).toBe(true);
+    await step("readonly propagates to the active surface", async () => {
+      expect(host.readonly).toBe(true);
+      if (ready.kind === "fallback") {
+        expect(ready.el.hasAttribute("readonly")).toBe(true);
+      }
+    });
+    await step("host reflects the boolean attribute for CSS targeting", async () => {
+      // The host reflects the boolean attribute so consumers can target
+      // `cts-json-editor[readonly]` in CSS.
+      expect(host.hasAttribute("readonly")).toBe(true);
+    });
   },
 };
 
@@ -191,19 +199,23 @@ export const ValueRoundTrips = {
 
 export const WhenReadyResolvesWithSurface = {
   render: () => html`<cts-json-editor aria-label="Test plan configuration JSON"></cts-json-editor>`,
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     // The primitive exposes `whenReady()` so consumers don't have to know
     // whether the Monaco surface or the fallback textarea is the active
     // implementation — both resolve to the same `{kind, el}` shape.
     const host = /** @type {any} */ (canvasElement.querySelector("cts-json-editor"));
     const ready = await host.whenReady();
-    expect(["monaco", "fallback"]).toContain(ready.kind);
-    expect(ready.el).toBeTruthy();
-    expect(ready.el.isConnected).toBe(true);
-    // Awaiting the same Promise after first resolution must yield the same
-    // result; consumers may call whenReady() any number of times.
-    const second = await host.whenReady();
-    expect(second).toBe(ready);
+    await step("first resolution exposes a connected surface", async () => {
+      expect(["monaco", "fallback"]).toContain(ready.kind);
+      expect(ready.el).toBeTruthy();
+      expect(ready.el.isConnected).toBe(true);
+    });
+    await step("repeated calls yield the same result", async () => {
+      // Awaiting the same Promise after first resolution must yield the same
+      // result; consumers may call whenReady() any number of times.
+      const second = await host.whenReady();
+      expect(second).toBe(ready);
+    });
   },
 };
 
@@ -310,28 +322,31 @@ export const Fallback = {
   ],
   render: () =>
     html`<cts-json-editor aria-label="Fallback textarea" .value=${SAMPLE_JSON}></cts-json-editor>`,
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const ready = await waitForReady(canvasElement);
-    expect(ready.kind).toBe("fallback");
     const host = canvasElement.querySelector("cts-json-editor");
     const textarea = canvasElement.querySelector(".oidf-json-editor-fallback");
-    expect(textarea).toBeTruthy();
-    expect(textarea.value).toBe(SAMPLE_JSON);
-
-    // Typing into the fallback updates the host's value and fires the
-    // public events.
-    let inputCount = 0;
-    let changeCount = 0;
-    host.addEventListener("input", () => {
-      inputCount += 1;
+    await step("fallback textarea renders with the seeded value", async () => {
+      expect(ready.kind).toBe("fallback");
+      expect(textarea).toBeTruthy();
+      expect(textarea.value).toBe(SAMPLE_JSON);
     });
-    host.addEventListener("change", () => {
-      changeCount += 1;
+    await step("typing into the fallback updates the host and fires public events", async () => {
+      // Typing into the fallback updates the host's value and fires the
+      // public events.
+      let inputCount = 0;
+      let changeCount = 0;
+      host.addEventListener("input", () => {
+        inputCount += 1;
+      });
+      host.addEventListener("change", () => {
+        changeCount += 1;
+      });
+      textarea.value = '{"edited": true}';
+      textarea.dispatchEvent(new Event("input", { bubbles: true }));
+      expect(host.value).toBe('{"edited": true}');
+      expect(inputCount).toBe(1);
+      expect(changeCount).toBe(1);
     });
-    textarea.value = '{"edited": true}';
-    textarea.dispatchEvent(new Event("input", { bubbles: true }));
-    expect(host.value).toBe('{"edited": true}');
-    expect(inputCount).toBe(1);
-    expect(changeCount).toBe(1);
   },
 };

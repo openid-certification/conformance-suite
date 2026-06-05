@@ -256,77 +256,98 @@ const ENTRY_SUBSTRING_BOUNDARY = {
 
 export const SuccessEntry = {
   render: () => html`<cts-log-entry .entry=${SUCCESS_ENTRY}></cts-log-entry>`,
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const canvas = within(canvasElement);
     await waitFor(() => {
       expect(canvas.getByText("SUCCESS")).toBeInTheDocument();
     });
-    expect(canvas.getByText("Server configuration valid")).toBeInTheDocument();
-    expect(canvas.getByText("CheckServerConfiguration")).toBeInTheDocument();
 
-    // Canonical OIDF status palette: SUCCESS -> pass.
-    const badge = canvasElement.querySelector('cts-badge[variant="pass"]');
-    expect(badge).toBeTruthy();
+    await step("message and source render", async () => {
+      expect(canvas.getByText("Server configuration valid")).toBeInTheDocument();
+      expect(canvas.getByText("CheckServerConfiguration")).toBeInTheDocument();
+    });
 
-    // U3: layout reflows via container queries — track-count assertions
-    // moved to the explicit-width SmallContainerLayout / DesktopContainerLayout
-    // stories below so they don't depend on the storybook canvas width.
-    const item = canvasElement.querySelector(".logItem");
-    const style = getComputedStyle(item);
-    expect(style.display).toBe("grid");
+    await step("status badge uses the canonical OIDF pass palette", async () => {
+      // Canonical OIDF status palette: SUCCESS -> pass.
+      const badge = canvasElement.querySelector('cts-badge[variant="pass"]');
+      expect(badge).toBeTruthy();
+    });
 
-    const time = canvasElement.querySelector(".logTime");
-    expect(getComputedStyle(time).fontVariantNumeric).toContain("tabular-nums");
+    await step("row lays out as a grid", async () => {
+      // U3: layout reflows via container queries — track-count assertions
+      // moved to the explicit-width SmallContainerLayout / DesktopContainerLayout
+      // stories below so they don't depend on the storybook canvas width.
+      const item = canvasElement.querySelector(".logItem");
+      const style = getComputedStyle(item);
+      expect(style.display).toBe("grid");
+    });
 
-    // The time cell renders a native <time> via cts-time. Visible text is the
-    // clock time only (no date), but hovering reveals the full absolute form
-    // via the title attribute — the disambiguation affordance this surface
-    // previously lacked.
-    const timeEl = /** @type {HTMLTimeElement} */ (time.querySelector("time"));
-    expect(timeEl).toBeTruthy();
-    const titleAttr = timeEl.getAttribute("title") || "";
-    expect(titleAttr).toMatch(/\d{4}/); // absolute form carries a 4-digit year
-    expect(timeEl.textContent || "").not.toMatch(/\d{4}/); // visible text is time-only
-    expect(timeEl.getAttribute("datetime")).toBeTruthy();
+    await step("time cell shows clock-only text with absolute form on hover", async () => {
+      const time = canvasElement.querySelector(".logTime");
+      expect(getComputedStyle(time).fontVariantNumeric).toContain("tabular-nums");
+
+      // The time cell renders a native <time> via cts-time. Visible text is the
+      // clock time only (no date), but hovering reveals the full absolute form
+      // via the title attribute — the disambiguation affordance this surface
+      // previously lacked.
+      const timeEl = /** @type {HTMLTimeElement} */ (time.querySelector("time"));
+      expect(timeEl).toBeTruthy();
+      const titleAttr = timeEl.getAttribute("title") || "";
+      expect(titleAttr).toMatch(/\d{4}/); // absolute form carries a 4-digit year
+      expect(timeEl.textContent || "").not.toMatch(/\d{4}/); // visible text is time-only
+      expect(timeEl.getAttribute("datetime")).toBeTruthy();
+    });
   },
 };
 
 export const FailureEntry = {
   render: () => html`<cts-log-entry .entry=${FAILURE_ENTRY}></cts-log-entry>`,
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const canvas = within(canvasElement);
     await waitFor(() => {
       expect(canvas.getByText("FAILURE")).toBeInTheDocument();
     });
 
-    const badge = canvasElement.querySelector('cts-badge[variant="fail"]');
-    expect(badge).toBeTruthy();
+    await step("status badge uses the fail palette", async () => {
+      const badge = canvasElement.querySelector('cts-badge[variant="fail"]');
+      expect(badge).toBeTruthy();
+    });
 
-    expect(canvas.getByText("OIDCC-3.1.3.7-6")).toBeInTheDocument();
-    expect(canvas.getByText("OIDCC-3.1.3.7-7")).toBeInTheDocument();
+    await step("requirement chips render", async () => {
+      expect(canvas.getByText("OIDCC-3.1.3.7-6")).toBeInTheDocument();
+      expect(canvas.getByText("OIDCC-3.1.3.7-7")).toBeInTheDocument();
+    });
 
-    // Failure rows get the left-edge red gradient marker class.
-    const item = canvasElement.querySelector(".logItem");
-    expect(item.classList.contains("is-fail")).toBe(true);
+    await step("failure rows carry the red marker class", async () => {
+      // Failure rows get the left-edge red gradient marker class.
+      const item = canvasElement.querySelector(".logItem");
+      expect(item.classList.contains("is-fail")).toBe(true);
+    });
   },
 };
 
 export const WarningEntry = {
   render: () => html`<cts-log-entry .entry=${WARNING_ENTRY}></cts-log-entry>`,
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const canvas = within(canvasElement);
     await waitFor(() => {
       expect(canvas.getByText("WARNING")).toBeInTheDocument();
     });
 
-    const badge = canvasElement.querySelector('cts-badge[variant="warn"]');
-    expect(badge).toBeTruthy();
+    await step("status badge uses the warn palette", async () => {
+      const badge = canvasElement.querySelector('cts-badge[variant="warn"]');
+      expect(badge).toBeTruthy();
+    });
 
-    expect(canvas.getByText("OIDCC-3.1.3.3")).toBeInTheDocument();
+    await step("requirement chip renders", async () => {
+      expect(canvas.getByText("OIDCC-3.1.3.3")).toBeInTheDocument();
+    });
 
-    // Warning rows get the left-edge orange gradient marker class.
-    const item = canvasElement.querySelector(".logItem");
-    expect(item.classList.contains("is-warn")).toBe(true);
+    await step("warning rows carry the orange marker class", async () => {
+      // Warning rows get the left-edge orange gradient marker class.
+      const item = canvasElement.querySelector(".logItem");
+      expect(item.classList.contains("is-warn")).toBe(true);
+    });
   },
 };
 
@@ -372,29 +393,33 @@ const SEEDED_SPEC_LINKS = {
 export const SpecLinkResolvesMappedRefsToAnchors = {
   decorators: [withSeededSpecLinks(SEEDED_SPEC_LINKS)],
   render: () => html`<cts-log-entry .entry=${SPEC_LINK_ENTRY}></cts-log-entry>`,
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     await waitFor(() => {
       const oidcc = canvasElement.querySelector('a.logRequirement[href*="openid-connect-core"]');
       expect(oidcc).toBeTruthy();
     });
 
-    const oidcc = canvasElement.querySelector('a.logRequirement[href*="openid-connect-core"]');
-    // Anchor preserves the original requirement text verbatim — no rewrite.
-    expect(oidcc.textContent.trim()).toBe("OIDCC-3.1.3.7-6");
-    // URL is longest-prefix-match: prefix URL + suffix.
-    expect(oidcc.getAttribute("href")).toBe(
-      "https://openid.net/specs/openid-connect-core-1_0.html#rfc.section.3.1.3.7-6",
-    );
-    // Always open in a new tab; the suite stays focused on the failing log.
-    expect(oidcc.getAttribute("target")).toBe("_blank");
-    // noopener prevents the spec page from holding a reference back to
-    // the conformance-suite window (window.opener); noreferrer hides
-    // the origin from the spec host.
-    expect(oidcc.getAttribute("rel")).toContain("noopener");
+    await step("OIDCC ref resolves to a longest-prefix anchor", async () => {
+      const oidcc = canvasElement.querySelector('a.logRequirement[href*="openid-connect-core"]');
+      // Anchor preserves the original requirement text verbatim — no rewrite.
+      expect(oidcc.textContent.trim()).toBe("OIDCC-3.1.3.7-6");
+      // URL is longest-prefix-match: prefix URL + suffix.
+      expect(oidcc.getAttribute("href")).toBe(
+        "https://openid.net/specs/openid-connect-core-1_0.html#rfc.section.3.1.3.7-6",
+      );
+      // Always open in a new tab; the suite stays focused on the failing log.
+      expect(oidcc.getAttribute("target")).toBe("_blank");
+      // noopener prevents the spec page from holding a reference back to
+      // the conformance-suite window (window.opener); noreferrer hides
+      // the origin from the spec host.
+      expect(oidcc.getAttribute("rel")).toContain("noopener");
+    });
 
-    const rfc = canvasElement.querySelector('a.logRequirement[href*="rfc7517"]');
-    expect(rfc).toBeTruthy();
-    expect(rfc.getAttribute("href")).toBe("https://tools.ietf.org/html/rfc7517#section-1.1");
+    await step("RFC ref resolves to its own anchor", async () => {
+      const rfc = canvasElement.querySelector('a.logRequirement[href*="rfc7517"]');
+      expect(rfc).toBeTruthy();
+      expect(rfc.getAttribute("href")).toBe("https://tools.ietf.org/html/rfc7517#section-1.1");
+    });
   },
 };
 
@@ -466,50 +491,60 @@ export const SpecLinkLongestPrefixWins = {
 
 export const HttpRequestEntry = {
   render: () => html`<cts-log-entry .entry=${HTTP_REQUEST_ENTRY}></cts-log-entry>`,
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const canvas = within(canvasElement);
     await waitFor(() => {
       expect(canvasElement.querySelector('.logHttp cts-badge[aria-label="Request"]')).toBeTruthy();
     });
 
-    const curlBtn = canvas.getByRole("button", { name: "Copy as cURL" });
-    expect(curlBtn).toBeInTheDocument();
-    // The cURL affordance is the tertiary (ghost) variant so it recedes
-    // into the row instead of reading as a bordered secondary button.
-    const curlHost = canvasElement.querySelector("cts-button.curlBtn");
-    expect(curlHost?.getAttribute("variant")).toBe("ghost");
+    await step("cURL affordance renders as a ghost button", async () => {
+      const curlBtn = canvas.getByRole("button", { name: "Copy as cURL" });
+      expect(curlBtn).toBeInTheDocument();
+      // The cURL affordance is the tertiary (ghost) variant so it recedes
+      // into the row instead of reading as a bordered secondary button.
+      const curlHost = canvasElement.querySelector("cts-button.curlBtn");
+      expect(curlHost?.getAttribute("variant")).toBe("ghost");
+    });
 
-    // The disclosure toggle is icon + count (no "More" text); query it
-    // by its class hook instead of by visible label.
-    const moreBtn = canvasElement.querySelector(".moreBtn button");
-    expect(moreBtn).toBeTruthy();
+    await step("disclosure toggle renders", async () => {
+      // The disclosure toggle is icon + count (no "More" text); query it
+      // by its class hook instead of by visible label.
+      const moreBtn = canvasElement.querySelector(".moreBtn button");
+      expect(moreBtn).toBeTruthy();
+    });
 
-    // U2: the REQUEST pill must route through the static `info` variant
-    // (added in U1), not `running`. Before the fix, this pill carried
-    // the perpetual spinner from `running` even though the request was
-    // a finished log row, not a live operation.
-    const httpBadge = canvasElement.querySelector('.logHttp cts-badge[variant="info"]');
-    expect(httpBadge).toBeTruthy();
-    expect(canvasElement.querySelector('.logHttp cts-badge[variant="running"]')).toBeNull();
-    expect(httpBadge.querySelector(".cts-badge-spin")).toBeNull();
+    await step("REQUEST pill routes through static info variant (no spinner)", async () => {
+      // U2: the REQUEST pill must route through the static `info` variant
+      // (added in U1), not `running`. Before the fix, this pill carried
+      // the perpetual spinner from `running` even though the request was
+      // a finished log row, not a live operation.
+      const httpBadge = canvasElement.querySelector('.logHttp cts-badge[variant="info"]');
+      expect(httpBadge).toBeTruthy();
+      expect(canvasElement.querySelector('.logHttp cts-badge[variant="running"]')).toBeNull();
+      expect(httpBadge.querySelector(".cts-badge-spin")).toBeNull();
+    });
   },
 };
 
 export const HttpResponseEntry = {
   render: () => html`<cts-log-entry .entry=${HTTP_RESPONSE_ENTRY}></cts-log-entry>`,
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const canvas = within(canvasElement);
     await waitFor(() => {
       expect(canvasElement.querySelector('.logHttp cts-badge[aria-label="Response"]')).toBeTruthy();
     });
 
-    expect(canvas.queryByRole("button", { name: "Copy as cURL" })).toBeNull();
+    await step("response rows have no cURL button", async () => {
+      expect(canvas.queryByRole("button", { name: "Copy as cURL" })).toBeNull();
+    });
 
-    // U2: same static-info routing for RESPONSE rows. No spinner DOM.
-    const httpBadge = canvasElement.querySelector('.logHttp cts-badge[variant="info"]');
-    expect(httpBadge).toBeTruthy();
-    expect(canvasElement.querySelector('.logHttp cts-badge[variant="running"]')).toBeNull();
-    expect(httpBadge.querySelector(".cts-badge-spin")).toBeNull();
+    await step("RESPONSE pill routes through static info variant (no spinner)", async () => {
+      // U2: same static-info routing for RESPONSE rows. No spinner DOM.
+      const httpBadge = canvasElement.querySelector('.logHttp cts-badge[variant="info"]');
+      expect(httpBadge).toBeTruthy();
+      expect(canvasElement.querySelector('.logHttp cts-badge[variant="running"]')).toBeNull();
+      expect(httpBadge.querySelector(".cts-badge-spin")).toBeNull();
+    });
   },
 };
 
@@ -543,45 +578,60 @@ export const InfoSeverityEntry = {
 
 export const ClickMoreToggle = {
   render: () => html`<cts-log-entry .entry=${ENTRY_WITH_MORE}></cts-log-entry>`,
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const canvas = within(canvasElement);
     await waitFor(() => {
       expect(canvasElement.querySelector("cts-button.moreBtn")).toBeTruthy();
     });
 
-    expect(canvasElement.querySelector(".moreInfo")).toBeNull();
+    await step("disclosure is collapsed and labeled before interaction", async () => {
+      expect(canvasElement.querySelector(".moreInfo")).toBeNull();
 
-    // The disclosure toggle is a single ghost button labeled "Details".
-    // Confirm both the class hook and the visible label before driving
-    // the click path.
-    const moreHost = canvasElement.querySelector("cts-button.moreBtn");
-    expect(moreHost).toBeTruthy();
-    expect(moreHost.getAttribute("label")).toBe("Details");
-    const moreBtn = moreHost.querySelector("button");
-    expect(moreBtn).toBeTruthy();
-    expect(moreBtn.getAttribute("aria-expanded")).toBe("false");
-    await moreBtn.click();
-
-    await waitFor(() => {
-      expect(canvasElement.querySelector(".moreInfo")).toBeTruthy();
+      // The disclosure toggle is a single ghost button labeled "Details".
+      // Confirm both the class hook and the visible label before driving
+      // the click path.
+      const moreHost = canvasElement.querySelector("cts-button.moreBtn");
+      expect(moreHost).toBeTruthy();
+      expect(moreHost.getAttribute("label")).toBe("Details");
+      const moreBtn = moreHost.querySelector("button");
+      expect(moreBtn).toBeTruthy();
+      expect(moreBtn.getAttribute("aria-expanded")).toBe("false");
     });
 
-    // R30: keys are now humanized for display ("access_token" → "Access token").
-    // The original key is preserved on the dt's data-key attribute for tooling.
-    expect(canvas.getByText("Access token")).toBeInTheDocument();
-    expect(canvas.getByText("Token type")).toBeInTheDocument();
-    expect(canvasElement.querySelector('[data-key="access_token"]')).toBeTruthy();
+    await step("clicking the toggle reveals humanized field labels", async () => {
+      const moreBtn = /** @type {HTMLButtonElement | null} */ (
+        canvasElement.querySelector(".moreBtn button")
+      );
+      if (!moreBtn) throw new Error(".moreBtn button did not render");
+      await moreBtn.click();
 
-    // After expanding, aria-expanded flips to true so screen readers
-    // announce the new state without depending on the chevron glyph alone.
-    expect(canvasElement.querySelector(".moreBtn button").getAttribute("aria-expanded")).toBe(
-      "true",
-    );
+      await waitFor(() => {
+        expect(canvasElement.querySelector(".moreInfo")).toBeTruthy();
+      });
 
-    await canvasElement.querySelector(".moreBtn button").click();
+      // R30: keys are now humanized for display ("access_token" → "Access token").
+      // The original key is preserved on the dt's data-key attribute for tooling.
+      expect(canvas.getByText("Access token")).toBeInTheDocument();
+      expect(canvas.getByText("Token type")).toBeInTheDocument();
+      expect(canvasElement.querySelector('[data-key="access_token"]')).toBeTruthy();
 
-    await waitFor(() => {
-      expect(canvasElement.querySelector(".moreInfo")).toBeNull();
+      // After expanding, aria-expanded flips to true so screen readers
+      // announce the new state without depending on the chevron glyph alone.
+      expect(canvasElement.querySelector(".moreBtn button").getAttribute("aria-expanded")).toBe(
+        "true",
+      );
+    });
+
+    await step("clicking again collapses the disclosure", async () => {
+      const moreBtn = /** @type {HTMLButtonElement | null} */ (
+        canvasElement.querySelector(".moreBtn button")
+      );
+      if (!moreBtn) throw new Error(".moreBtn button did not render");
+      await moreBtn.click();
+
+      await waitFor(() => {
+        expect(canvasElement.querySelector(".moreInfo")).toBeNull();
+      });
     });
   },
 };
@@ -665,73 +715,83 @@ export const UploadRequired = {
 
 export const ClickMoreHttpRequest = {
   render: () => html`<cts-log-entry .entry=${HTTP_REQUEST_ENTRY}></cts-log-entry>`,
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     await waitFor(() => {
       expect(canvasElement.querySelector('.logHttp cts-badge[aria-label="Request"]')).toBeTruthy();
     });
 
-    // Block hidden initially
-    expect(canvasElement.querySelector(".moreInfo")).toBeNull();
-
-    // Click More to reveal request details
-    const moreBtn = canvasElement.querySelector(".moreBtn button");
-    if (!moreBtn) throw new Error(".moreBtn button did not render");
-    await moreBtn.click();
-
-    /** @type {Element | null | undefined} */
-    let moreInfo;
-    await waitFor(() => {
-      moreInfo = canvasElement.querySelector(".moreInfo");
-      expect(moreInfo).toBeTruthy();
-    });
-    if (!moreInfo) throw new Error(".moreInfo did not appear");
-
-    // Revealed content includes method, URL substring, and a header key
-    const revealedText = moreInfo.textContent;
-    expect(revealedText).toContain("GET");
-    expect(revealedText).toContain("op.example.com/authorize");
-    expect(revealedText).toContain("Accept");
-
-    // Click again to collapse
-    await moreBtn.click();
-    await waitFor(() => {
+    await step("disclosure is hidden initially", async () => {
       expect(canvasElement.querySelector(".moreInfo")).toBeNull();
+    });
+
+    await step("clicking More reveals request method, URL, and header", async () => {
+      const moreBtn = canvasElement.querySelector(".moreBtn button");
+      if (!moreBtn) throw new Error(".moreBtn button did not render");
+      await moreBtn.click();
+
+      /** @type {Element | null | undefined} */
+      let moreInfo;
+      await waitFor(() => {
+        moreInfo = canvasElement.querySelector(".moreInfo");
+        expect(moreInfo).toBeTruthy();
+      });
+      if (!moreInfo) throw new Error(".moreInfo did not appear");
+
+      // Revealed content includes method, URL substring, and a header key
+      const revealedText = moreInfo.textContent;
+      expect(revealedText).toContain("GET");
+      expect(revealedText).toContain("op.example.com/authorize");
+      expect(revealedText).toContain("Accept");
+    });
+
+    await step("clicking again collapses the disclosure", async () => {
+      const moreBtn = canvasElement.querySelector(".moreBtn button");
+      if (!moreBtn) throw new Error(".moreBtn button did not render");
+      await moreBtn.click();
+      await waitFor(() => {
+        expect(canvasElement.querySelector(".moreInfo")).toBeNull();
+      });
     });
   },
 };
 
 export const ClickMoreHttpResponse = {
   render: () => html`<cts-log-entry .entry=${HTTP_RESPONSE_ENTRY}></cts-log-entry>`,
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     await waitFor(() => {
       expect(canvasElement.querySelector('.logHttp cts-badge[aria-label="Response"]')).toBeTruthy();
     });
 
-    // Block hidden initially
-    expect(canvasElement.querySelector(".moreInfo")).toBeNull();
-
-    // Click More to reveal response details
-    const moreBtn = canvasElement.querySelector(".moreBtn button");
-    if (!moreBtn) throw new Error(".moreBtn button did not render");
-    await moreBtn.click();
-
-    /** @type {Element | null | undefined} */
-    let moreInfo;
-    await waitFor(() => {
-      moreInfo = canvasElement.querySelector(".moreInfo");
-      expect(moreInfo).toBeTruthy();
-    });
-    if (!moreInfo) throw new Error(".moreInfo did not appear");
-
-    // Revealed content includes status code and a body field
-    const revealedText = moreInfo.textContent;
-    expect(revealedText).toContain("200");
-    expect(revealedText).toContain("access_token");
-
-    // Click again to collapse
-    await moreBtn.click();
-    await waitFor(() => {
+    await step("disclosure is hidden initially", async () => {
       expect(canvasElement.querySelector(".moreInfo")).toBeNull();
+    });
+
+    await step("clicking More reveals response status and body field", async () => {
+      const moreBtn = canvasElement.querySelector(".moreBtn button");
+      if (!moreBtn) throw new Error(".moreBtn button did not render");
+      await moreBtn.click();
+
+      /** @type {Element | null | undefined} */
+      let moreInfo;
+      await waitFor(() => {
+        moreInfo = canvasElement.querySelector(".moreInfo");
+        expect(moreInfo).toBeTruthy();
+      });
+      if (!moreInfo) throw new Error(".moreInfo did not appear");
+
+      // Revealed content includes status code and a body field
+      const revealedText = moreInfo.textContent;
+      expect(revealedText).toContain("200");
+      expect(revealedText).toContain("access_token");
+    });
+
+    await step("clicking again collapses the disclosure", async () => {
+      const moreBtn = canvasElement.querySelector(".moreBtn button");
+      if (!moreBtn) throw new Error(".moreBtn button did not render");
+      await moreBtn.click();
+      await waitFor(() => {
+        expect(canvasElement.querySelector(".moreInfo")).toBeNull();
+      });
     });
   },
 };
@@ -747,41 +807,45 @@ export const ClickMoreHttpResponse = {
  */
 export const ClickMoreRealHttpRequest = {
   render: () => html`<cts-log-entry .entry=${REAL_HTTP_REQUEST_ENTRY}></cts-log-entry>`,
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     await waitFor(() => {
       expect(canvasElement.querySelector('.logHttp cts-badge[aria-label="Request"]')).toBeTruthy();
     });
 
-    const moreBtn = canvasElement.querySelector(".moreBtn button");
-    if (!moreBtn) throw new Error(".moreBtn button did not render against real-shape entry");
-    await moreBtn.click();
+    await step("opening the disclosure surfaces top-level payload fields", async () => {
+      const moreBtn = canvasElement.querySelector(".moreBtn button");
+      if (!moreBtn) throw new Error(".moreBtn button did not render against real-shape entry");
+      await moreBtn.click();
 
-    /** @type {Element | null | undefined} */
-    let moreInfo;
-    await waitFor(() => {
-      moreInfo = canvasElement.querySelector(".moreInfo");
-      expect(moreInfo).toBeTruthy();
+      /** @type {Element | null | undefined} */
+      let moreInfo;
+      await waitFor(() => {
+        moreInfo = canvasElement.querySelector(".moreInfo");
+        expect(moreInfo).toBeTruthy();
+      });
+      if (!moreInfo) throw new Error(".moreInfo did not appear");
+
+      // Top-level payload fields surface in the panel — sentence-cased via
+      // humanizeKey ("request_uri" → "Request uri"). The data-key attribute
+      // preserves the raw key for tooling.
+      expect(canvasElement.querySelector('[data-key="request_uri"]')).toBeTruthy();
+      expect(canvasElement.querySelector('[data-key="request_method"]')).toBeTruthy();
+      expect(canvasElement.querySelector('[data-key="request_headers"]')).toBeTruthy();
+      expect(canvasElement.querySelector('[data-key="request_body"]')).toBeTruthy();
+      expect(moreInfo.textContent).toContain("oidcc-provider");
+      expect(moreInfo.textContent).toContain("GET");
     });
-    if (!moreInfo) throw new Error(".moreInfo did not appear");
 
-    // Top-level payload fields surface in the panel — sentence-cased via
-    // humanizeKey ("request_uri" → "Request uri"). The data-key attribute
-    // preserves the raw key for tooling.
-    expect(canvasElement.querySelector('[data-key="request_uri"]')).toBeTruthy();
-    expect(canvasElement.querySelector('[data-key="request_method"]')).toBeTruthy();
-    expect(canvasElement.querySelector('[data-key="request_headers"]')).toBeTruthy();
-    expect(canvasElement.querySelector('[data-key="request_body"]')).toBeTruthy();
-    expect(moreInfo.textContent).toContain("oidcc-provider");
-    expect(moreInfo.textContent).toContain("GET");
-
-    // Envelope keys (src, testId, time, http, testName) must NOT leak into
-    // the disclosure — they are rendered elsewhere in the row or are
-    // per-test metadata identical across every entry of the test.
-    expect(canvasElement.querySelector('[data-key="src"]')).toBeNull();
-    expect(canvasElement.querySelector('[data-key="testId"]')).toBeNull();
-    expect(canvasElement.querySelector('[data-key="time"]')).toBeNull();
-    expect(canvasElement.querySelector('[data-key="http"]')).toBeNull();
-    expect(canvasElement.querySelector('[data-key="testName"]')).toBeNull();
+    await step("envelope keys do not leak into the disclosure", async () => {
+      // Envelope keys (src, testId, time, http, testName) must NOT leak into
+      // the disclosure — they are rendered elsewhere in the row or are
+      // per-test metadata identical across every entry of the test.
+      expect(canvasElement.querySelector('[data-key="src"]')).toBeNull();
+      expect(canvasElement.querySelector('[data-key="testId"]')).toBeNull();
+      expect(canvasElement.querySelector('[data-key="time"]')).toBeNull();
+      expect(canvasElement.querySelector('[data-key="http"]')).toBeNull();
+      expect(canvasElement.querySelector('[data-key="testName"]')).toBeNull();
+    });
   },
 };
 
@@ -845,43 +909,50 @@ export const EnvelopeOnlyEntryHasNoMoreButton = {
  */
 export const ExpectedVsActualEntry = {
   render: () => html`<cts-log-entry .entry=${ENTRY_EXPECTED_VS_ACTUAL}></cts-log-entry>`,
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const canvas = within(canvasElement);
     await waitFor(() => {
       expect(canvas.getByText("FAILURE")).toBeInTheDocument();
     });
 
-    const moreBtn = canvasElement.querySelector(".moreBtn button");
-    if (!moreBtn) throw new Error(".moreBtn button did not render");
-    await moreBtn.click();
+    await step("opening the disclosure renders both expected/actual labels", async () => {
+      const moreBtn = canvasElement.querySelector(".moreBtn button");
+      if (!moreBtn) throw new Error(".moreBtn button did not render");
+      await moreBtn.click();
 
-    /** @type {Element | null | undefined} */
-    let moreInfo;
-    await waitFor(() => {
-      moreInfo = canvasElement.querySelector(".moreInfo");
-      expect(moreInfo).toBeTruthy();
+      await waitFor(() => {
+        expect(canvasElement.querySelector(".moreInfo")).toBeTruthy();
+      });
+
+      // Both labels are rendered.
+      expect(canvas.getByText("Expected (per spec)")).toBeInTheDocument();
+      expect(canvas.getByText("Actual (received)")).toBeInTheDocument();
     });
-    if (!moreInfo) throw new Error(".moreInfo did not appear");
 
-    // Both labels are rendered.
-    expect(canvas.getByText("Expected (per spec)")).toBeInTheDocument();
-    expect(canvas.getByText("Actual (received)")).toBeInTheDocument();
+    await step("each key gets its per-kind class hook", async () => {
+      // Per-kind class hooks are applied so CSS can target each kind.
+      const moreInfo = canvasElement.querySelector(".moreInfo");
+      if (!moreInfo) throw new Error(".moreInfo did not appear");
+      const dts = moreInfo.querySelectorAll("dt");
+      expect(dts.length).toBe(2);
+      expect(dts[0].classList.contains("moreInfo-key--expected")).toBe(true);
+      expect(dts[1].classList.contains("moreInfo-key--actual")).toBe(true);
+    });
 
-    // Per-kind class hooks are applied so CSS can target each kind.
-    const dts = moreInfo.querySelectorAll("dt");
-    expect(dts.length).toBe(2);
-    expect(dts[0].classList.contains("moreInfo-key--expected")).toBe(true);
-    expect(dts[1].classList.contains("moreInfo-key--actual")).toBe(true);
+    await step("expected reorders before actual despite reverse source order", async () => {
+      // Expected renders before actual even though the source declared actual
+      // first — this is the helper's reordering behavior under test.
+      const moreInfo = canvasElement.querySelector(".moreInfo");
+      if (!moreInfo) throw new Error(".moreInfo did not appear");
+      const dts = moreInfo.querySelectorAll("dt");
+      expect(dts[0].getAttribute("data-key")).toBe("expected");
+      expect(dts[1].getAttribute("data-key")).toBe("actual");
 
-    // Expected renders before actual even though the source declared actual
-    // first — this is the helper's reordering behavior under test.
-    expect(dts[0].getAttribute("data-key")).toBe("expected");
-    expect(dts[1].getAttribute("data-key")).toBe("actual");
-
-    // Values follow their labels in source order within each row.
-    const dds = moreInfo.querySelectorAll("dd");
-    expect(dds[0].textContent).toContain("payments");
-    expect(dds[1].textContent).toContain("openid profile");
+      // Values follow their labels in source order within each row.
+      const dds = moreInfo.querySelectorAll("dd");
+      expect(dds[0].textContent).toContain("payments");
+      expect(dds[1].textContent).toContain("openid profile");
+    });
   },
 };
 
@@ -892,40 +963,42 @@ export const ExpectedVsActualEntry = {
  */
 export const ExpectedActualSuffixVariants = {
   render: () => html`<cts-log-entry .entry=${ENTRY_SUFFIX_VARIANTS}></cts-log-entry>`,
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const canvas = within(canvasElement);
     await waitFor(() => {
       expect(canvas.getByText("FAILURE")).toBeInTheDocument();
     });
 
-    const moreBtn = canvasElement.querySelector(".moreBtn button");
-    if (!moreBtn) throw new Error(".moreBtn button did not render");
-    await moreBtn.click();
+    await step("prefixed keys carry their suffix and unprefixed stays other", async () => {
+      const moreBtn = canvasElement.querySelector(".moreBtn button");
+      if (!moreBtn) throw new Error(".moreBtn button did not render");
+      await moreBtn.click();
 
-    /** @type {Element | null | undefined} */
-    let moreInfo;
-    await waitFor(() => {
-      moreInfo = canvasElement.querySelector(".moreInfo");
-      expect(moreInfo).toBeTruthy();
+      await waitFor(() => {
+        expect(canvasElement.querySelector(".moreInfo")).toBeTruthy();
+      });
+
+      // The expected_ and actual_ prefixed keys carry their suffix into the label.
+      expect(canvas.getByText("Expected (per spec) — Consent id")).toBeInTheDocument();
+      expect(canvas.getByText("Actual (received) — Http method")).toBeInTheDocument();
+
+      // The unprefixed key stays as "other" with humanized text — not labeled
+      // as expected/actual even though it shares the "consent_id" suffix.
+      expect(canvas.getByText("Requested consent id")).toBeInTheDocument();
     });
-    if (!moreInfo) throw new Error(".moreInfo did not appear");
 
-    // The expected_ and actual_ prefixed keys carry their suffix into the label.
-    expect(canvas.getByText("Expected (per spec) — Consent id")).toBeInTheDocument();
-    expect(canvas.getByText("Actual (received) — Http method")).toBeInTheDocument();
-
-    // The unprefixed key stays as "other" with humanized text — not labeled
-    // as expected/actual even though it shares the "consent_id" suffix.
-    expect(canvas.getByText("Requested consent id")).toBeInTheDocument();
-
-    const dts = moreInfo.querySelectorAll("dt");
-    // Order: expected_consent_id, actual_http_method, requested_consent_id.
-    expect(dts[0].getAttribute("data-key")).toBe("expected_consent_id");
-    expect(dts[0].classList.contains("moreInfo-key--expected")).toBe(true);
-    expect(dts[1].getAttribute("data-key")).toBe("actual_http_method");
-    expect(dts[1].classList.contains("moreInfo-key--actual")).toBe(true);
-    expect(dts[2].getAttribute("data-key")).toBe("requested_consent_id");
-    expect(dts[2].classList.contains("moreInfo-key--other")).toBe(true);
+    await step("rows preserve order with per-kind class hooks", async () => {
+      const moreInfo = canvasElement.querySelector(".moreInfo");
+      if (!moreInfo) throw new Error(".moreInfo did not appear");
+      const dts = moreInfo.querySelectorAll("dt");
+      // Order: expected_consent_id, actual_http_method, requested_consent_id.
+      expect(dts[0].getAttribute("data-key")).toBe("expected_consent_id");
+      expect(dts[0].classList.contains("moreInfo-key--expected")).toBe(true);
+      expect(dts[1].getAttribute("data-key")).toBe("actual_http_method");
+      expect(dts[1].classList.contains("moreInfo-key--actual")).toBe(true);
+      expect(dts[2].getAttribute("data-key")).toBe("requested_consent_id");
+      expect(dts[2].classList.contains("moreInfo-key--other")).toBe(true);
+    });
   },
 };
 
@@ -1065,28 +1138,32 @@ export const SmallContainerLayout = {
     `,
   ],
   render: () => html`<cts-log-entry .entry=${HTTP_REQUEST_ENTRY}></cts-log-entry>`,
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     await waitFor(() => {
       expect(canvasElement.querySelector('.logHttp cts-badge[aria-label="Request"]')).toBeTruthy();
     });
 
-    const item = canvasElement.querySelector(".logItem");
-    if (!item) throw new Error(".logItem did not render");
-    const style = getComputedStyle(item);
+    await step("small layout uses a two-track grid with named metaRow area", async () => {
+      const item = canvasElement.querySelector(".logItem");
+      if (!item) throw new Error(".logItem did not render");
+      const style = getComputedStyle(item);
 
-    // Default (small) layout uses two grid columns: 1fr + auto.
-    const tracks = style.gridTemplateColumns.split(/\s+/).filter(Boolean);
-    expect(tracks.length).toBe(2);
+      // Default (small) layout uses two grid columns: 1fr + auto.
+      const tracks = style.gridTemplateColumns.split(/\s+/).filter(Boolean);
+      expect(tracks.length).toBe(2);
 
-    // Named grid areas drive the row layout below 640px. Browsers serialize
-    // grid-template-areas as quoted strings; assert the metaRow row exists.
-    expect(style.gridTemplateAreas).toContain("metaRow");
+      // Named grid areas drive the row layout below 640px. Browsers serialize
+      // grid-template-areas as quoted strings; assert the metaRow row exists.
+      expect(style.gridTemplateAreas).toContain("metaRow");
+    });
 
-    // The .logMetaRow wrapper participates in layout (not display: contents)
-    // at small widths so its three children stack as a flex row.
-    const metaRow = canvasElement.querySelector(".logMetaRow");
-    if (!metaRow) throw new Error(".logMetaRow did not render");
-    expect(getComputedStyle(metaRow).display).toBe("flex");
+    await step("the metaRow wrapper stacks its children as a flex row", async () => {
+      // The .logMetaRow wrapper participates in layout (not display: contents)
+      // at small widths so its three children stack as a flex row.
+      const metaRow = canvasElement.querySelector(".logMetaRow");
+      if (!metaRow) throw new Error(".logMetaRow did not render");
+      expect(getComputedStyle(metaRow).display).toBe("flex");
+    });
   },
 };
 
@@ -1105,24 +1182,28 @@ export const BoundaryContainerLayout = {
     `,
   ],
   render: () => html`<cts-log-entry .entry=${HTTP_REQUEST_ENTRY}></cts-log-entry>`,
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     await waitFor(() => {
       expect(canvasElement.querySelector('.logHttp cts-badge[aria-label="Request"]')).toBeTruthy();
     });
 
-    const item = canvasElement.querySelector(".logItem");
-    if (!item) throw new Error(".logItem did not render");
-    const style = getComputedStyle(item);
+    await step("wide layout uses a five-track grid", async () => {
+      const item = canvasElement.querySelector(".logItem");
+      if (!item) throw new Error(".logItem did not render");
+      const style = getComputedStyle(item);
 
-    // Five-track grid: 110px / 70px / 60px / 1fr / auto.
-    const tracks = style.gridTemplateColumns.split(/\s+/).filter(Boolean);
-    expect(tracks.length).toBe(5);
+      // Five-track grid: 110px / 70px / 60px / 1fr / auto.
+      const tracks = style.gridTemplateColumns.split(/\s+/).filter(Boolean);
+      expect(tracks.length).toBe(5);
+    });
 
-    // Wide layout flattens the .logMetaRow wrapper via display: contents so
-    // its children rejoin the parent grid as direct cells.
-    const metaRow = canvasElement.querySelector(".logMetaRow");
-    if (!metaRow) throw new Error(".logMetaRow did not render");
-    expect(getComputedStyle(metaRow).display).toBe("contents");
+    await step("the metaRow wrapper flattens via display: contents", async () => {
+      // Wide layout flattens the .logMetaRow wrapper via display: contents so
+      // its children rejoin the parent grid as direct cells.
+      const metaRow = canvasElement.querySelector(".logMetaRow");
+      if (!metaRow) throw new Error(".logMetaRow did not render");
+      expect(getComputedStyle(metaRow).display).toBe("contents");
+    });
   },
 };
 
@@ -1202,32 +1283,38 @@ export const TimestampDeepLink = {
       reference-id="LOG-0007"
       test-id="storybook-test"
     ></cts-log-entry>`,
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const host = await waitFor(() => {
       const el = canvasElement.querySelector("cts-log-entry");
       if (!el) throw new Error("cts-log-entry did not render");
       return /** @type {HTMLElement} */ (el);
     });
 
-    // The host carries the referenceId as its `id` so URL fragments resolve.
-    expect(host.id).toBe("LOG-0007");
+    await step("host carries the referenceId as its id", async () => {
+      // The host carries the referenceId as its `id` so URL fragments resolve.
+      expect(host.id).toBe("LOG-0007");
+    });
 
-    // The timestamp is wrapped in a deep-link anchor inside .logTime.
-    const link = /** @type {HTMLAnchorElement | null} */ (
-      canvasElement.querySelector(".logTime a.logTimeLink")
-    );
-    if (!link) throw new Error("timestamp deep-link anchor did not render");
-    expect(link.getAttribute("href")).toBe("#LOG-0007");
-    // aria-label disambiguates rows logged in the same second and restores
-    // the LOG reference for screen-reader users.
-    expect(link.getAttribute("aria-label")).toContain("LOG-0007");
-    // The anchor wraps the <cts-time> element.
-    expect(link.querySelector("cts-time")).toBeTruthy();
+    await step("timestamp is wrapped in a deep-link anchor", async () => {
+      // The timestamp is wrapped in a deep-link anchor inside .logTime.
+      const link = /** @type {HTMLAnchorElement | null} */ (
+        canvasElement.querySelector(".logTime a.logTimeLink")
+      );
+      if (!link) throw new Error("timestamp deep-link anchor did not render");
+      expect(link.getAttribute("href")).toBe("#LOG-0007");
+      // aria-label disambiguates rows logged in the same second and restores
+      // the LOG reference for screen-reader users.
+      expect(link.getAttribute("aria-label")).toContain("LOG-0007");
+      // The anchor wraps the <cts-time> element.
+      expect(link.querySelector("cts-time")).toBeTruthy();
+    });
 
-    // The retired LOG-NNNN copy chip and its two layout slots are gone.
-    expect(canvasElement.querySelector("cts-log-entry-id")).toBeNull();
-    expect(canvasElement.querySelector(".logIdRow")).toBeNull();
-    expect(canvasElement.querySelector(".logIdInline")).toBeNull();
+    await step("the retired LOG-NNNN copy chip and its slots are gone", async () => {
+      // The retired LOG-NNNN copy chip and its two layout slots are gone.
+      expect(canvasElement.querySelector("cts-log-entry-id")).toBeNull();
+      expect(canvasElement.querySelector(".logIdRow")).toBeNull();
+      expect(canvasElement.querySelector(".logIdInline")).toBeNull();
+    });
   },
 };
 
@@ -1266,7 +1353,7 @@ export const DeepLinkHighlight = {
     <cts-log-entry .entry=${SUCCESS_ENTRY} reference-id="LOG-HL01" test-id="hl"></cts-log-entry>
     <cts-log-entry .entry=${SUCCESS_ENTRY} reference-id="LOG-HL02" test-id="hl"></cts-log-entry>
   `,
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const prevHash = window.location.hash;
     try {
       const els = await waitFor(() => {
@@ -1276,35 +1363,41 @@ export const DeepLinkHighlight = {
       });
       const firstBg = () => getComputedStyle(els[0].querySelector(".logItem")).backgroundColor;
       const secondBg = () => getComputedStyle(els[1].querySelector(".logItem")).backgroundColor;
-
-      // Resting (no matching fragment) backgrounds. waitFor lets the
-      // :target style recalc settle — fragment navigation updates the
-      // matched element, but the style application is not guaranteed
-      // synchronous in every engine.
-      window.location.hash = "";
       let firstResting = "";
       let secondResting = "";
-      await waitFor(() => {
-        expect(els[0].matches(":target")).toBe(false);
-        firstResting = firstBg();
-        secondResting = secondBg();
+
+      await step("capture resting backgrounds with no matching fragment", async () => {
+        // Resting (no matching fragment) backgrounds. waitFor lets the
+        // :target style recalc settle — fragment navigation updates the
+        // matched element, but the style application is not guaranteed
+        // synchronous in every engine.
+        window.location.hash = "";
+        await waitFor(() => {
+          expect(els[0].matches(":target")).toBe(false);
+          firstResting = firstBg();
+          secondResting = secondBg();
+        });
       });
 
-      // Target the first row → it (and only it) matches :target and its
-      // background changes; the sibling stays at rest.
-      window.location.hash = "#LOG-HL01";
-      await waitFor(() => {
-        expect(els[0].matches(":target")).toBe(true);
-        expect(firstBg()).not.toBe(firstResting);
-        expect(secondBg()).toBe(secondResting);
+      await step("targeting the first row highlights only it", async () => {
+        // Target the first row → it (and only it) matches :target and its
+        // background changes; the sibling stays at rest.
+        window.location.hash = "#LOG-HL01";
+        await waitFor(() => {
+          expect(els[0].matches(":target")).toBe(true);
+          expect(firstBg()).not.toBe(firstResting);
+          expect(secondBg()).toBe(secondResting);
+        });
       });
 
-      // Move the fragment to the second row → highlight follows, first clears.
-      window.location.hash = "#LOG-HL02";
-      await waitFor(() => {
-        expect(els[1].matches(":target")).toBe(true);
-        expect(firstBg()).toBe(firstResting);
-        expect(secondBg()).not.toBe(secondResting);
+      await step("moving the fragment moves the highlight to the second row", async () => {
+        // Move the fragment to the second row → highlight follows, first clears.
+        window.location.hash = "#LOG-HL02";
+        await waitFor(() => {
+          expect(els[1].matches(":target")).toBe(true);
+          expect(firstBg()).toBe(firstResting);
+          expect(secondBg()).not.toBe(secondResting);
+        });
       });
     } finally {
       if (prevHash) window.location.hash = prevHash;

@@ -32,7 +32,7 @@ async function getClickTarget(canvasElement) {
 export const Default = {
   render: () =>
     html`<cts-log-entry-id reference-id=${REFERENCE_ID} test-id=${TEST_ID}></cts-log-entry-id>`,
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const writeSpy = spyOn(navigator.clipboard, "writeText").mockResolvedValue();
     const handler = fn();
     document.addEventListener("cts-reference-copied", handler);
@@ -40,33 +40,39 @@ export const Default = {
     try {
       const clickTarget = await getClickTarget(canvasElement);
 
-      // The visible label is the reference id; the icon comes from cts-icon.
-      expect(clickTarget.textContent).toContain(REFERENCE_ID);
-      expect(canvasElement.querySelector('cts-icon[name="copy"]')).toBeTruthy();
+      await step("chip renders label, icon, and button affordance", async () => {
+        // The visible label is the reference id; the icon comes from cts-icon.
+        expect(clickTarget.textContent).toContain(REFERENCE_ID);
+        expect(canvasElement.querySelector('cts-icon[name="copy"]')).toBeTruthy();
 
-      // Inner role=button span — keyboard-activated by cts-badge.
-      expect(clickTarget.getAttribute("role")).toBe("button");
-      expect(clickTarget.getAttribute("aria-label")).toContain(REFERENCE_ID);
+        // Inner role=button span — keyboard-activated by cts-badge.
+        expect(clickTarget.getAttribute("role")).toBe("button");
+        expect(clickTarget.getAttribute("aria-label")).toContain(REFERENCE_ID);
+      });
 
-      await clickTarget.click();
+      await step("left-click copies the deep URL", async () => {
+        await clickTarget.click();
 
-      await waitFor(() => expect(writeSpy).toHaveBeenCalledOnce());
-      const copied = writeSpy.mock.calls[0][0];
-      // The deep URL must always carry both the testId and the reference
-      // hash so cross-run citation in Slack/Jira disambiguates by test.
-      expect(copied).toContain(`log=${TEST_ID}`);
-      expect(copied).toContain(`#${REFERENCE_ID}`);
-      expect(copied).toContain("log-detail.html");
+        await waitFor(() => expect(writeSpy).toHaveBeenCalledOnce());
+        const copied = writeSpy.mock.calls[0][0];
+        // The deep URL must always carry both the testId and the reference
+        // hash so cross-run citation in Slack/Jira disambiguates by test.
+        expect(copied).toContain(`log=${TEST_ID}`);
+        expect(copied).toContain(`#${REFERENCE_ID}`);
+        expect(copied).toContain("log-detail.html");
+      });
 
-      // The component dispatches cts-reference-copied with mode 'url'.
-      expect(handler).toHaveBeenCalledOnce();
-      const evt = handler.mock.calls[0][0];
-      expect(evt.detail.mode).toBe("url");
-      expect(evt.detail.referenceId).toBe(REFERENCE_ID);
-      expect(evt.detail.value).toBe(copied);
-      // composed: true so a document-level listener catches the event
-      // even if a future host moves the chip into a shadow DOM.
-      expect(evt.composed).toBe(true);
+      await step("dispatches cts-reference-copied with mode 'url'", async () => {
+        const copied = writeSpy.mock.calls[0][0];
+        expect(handler).toHaveBeenCalledOnce();
+        const evt = handler.mock.calls[0][0];
+        expect(evt.detail.mode).toBe("url");
+        expect(evt.detail.referenceId).toBe(REFERENCE_ID);
+        expect(evt.detail.value).toBe(copied);
+        // composed: true so a document-level listener catches the event
+        // even if a future host moves the chip into a shadow DOM.
+        expect(evt.composed).toBe(true);
+      });
     } finally {
       document.removeEventListener("cts-reference-copied", handler);
     }
@@ -81,7 +87,7 @@ export const Default = {
 export const RightClickCopiesPlain = {
   render: () =>
     html`<cts-log-entry-id reference-id=${REFERENCE_ID} test-id=${TEST_ID}></cts-log-entry-id>`,
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const writeSpy = spyOn(navigator.clipboard, "writeText").mockResolvedValue();
     const handler = fn();
     document.addEventListener("cts-reference-copied", handler);
@@ -89,20 +95,24 @@ export const RightClickCopiesPlain = {
     try {
       const clickTarget = await getClickTarget(canvasElement);
 
-      // contextmenu dispatched on the inner span bubbles to the
-      // cts-log-entry-id host, where _handleContextMenu calls
-      // event.preventDefault().
-      const ctx = new MouseEvent("contextmenu", { bubbles: true, cancelable: true });
-      const ok = clickTarget.dispatchEvent(ctx);
-      expect(ok).toBe(false);
+      await step("contextmenu is prevented and copies the plain reference", async () => {
+        // contextmenu dispatched on the inner span bubbles to the
+        // cts-log-entry-id host, where _handleContextMenu calls
+        // event.preventDefault().
+        const ctx = new MouseEvent("contextmenu", { bubbles: true, cancelable: true });
+        const ok = clickTarget.dispatchEvent(ctx);
+        expect(ok).toBe(false);
 
-      await waitFor(() => expect(writeSpy).toHaveBeenCalledOnce());
-      const copied = writeSpy.mock.calls[0][0];
-      // Plain reference — no URL, no hash, no testId.
-      expect(copied).toBe(REFERENCE_ID);
+        await waitFor(() => expect(writeSpy).toHaveBeenCalledOnce());
+        const copied = writeSpy.mock.calls[0][0];
+        // Plain reference — no URL, no hash, no testId.
+        expect(copied).toBe(REFERENCE_ID);
+      });
 
-      expect(handler).toHaveBeenCalledOnce();
-      expect(handler.mock.calls[0][0].detail.mode).toBe("plain");
+      await step("dispatches cts-reference-copied with mode 'plain'", async () => {
+        expect(handler).toHaveBeenCalledOnce();
+        expect(handler.mock.calls[0][0].detail.mode).toBe("plain");
+      });
     } finally {
       document.removeEventListener("cts-reference-copied", handler);
     }
@@ -118,21 +128,23 @@ export const RightClickCopiesPlain = {
 export const CopiedFeedback = {
   render: () =>
     html`<cts-log-entry-id reference-id=${REFERENCE_ID} test-id=${TEST_ID}></cts-log-entry-id>`,
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     spyOn(navigator.clipboard, "writeText").mockResolvedValue();
 
     const clickTarget = await getClickTarget(canvasElement);
     const badge = canvasElement.querySelector('[data-testid="log-entry-id-chip"]');
 
-    // Pre-click: copy icon is showing.
-    expect(badge.querySelector('cts-icon[name="copy"]')).toBeTruthy();
-    expect(badge.querySelector('cts-icon[name="check"]')).toBeNull();
+    await step("pre-click the copy icon is showing", async () => {
+      expect(badge.querySelector('cts-icon[name="copy"]')).toBeTruthy();
+      expect(badge.querySelector('cts-icon[name="check"]')).toBeNull();
+    });
 
-    await clickTarget.click();
+    await step("after a successful copy the icon swaps to check", async () => {
+      await clickTarget.click();
 
-    // After a successful copy, the icon swaps to "check".
-    await waitFor(() => {
-      expect(badge.querySelector('cts-icon[name="check"]')).toBeTruthy();
+      await waitFor(() => {
+        expect(badge.querySelector('cts-icon[name="check"]')).toBeTruthy();
+      });
     });
   },
 };

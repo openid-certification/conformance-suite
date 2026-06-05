@@ -31,27 +31,31 @@ export const Default = {
     </div>
   `,
 
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const button = /** @type {HTMLButtonElement} */ (canvasElement.querySelector("button"));
     expect(button).toBeTruthy();
 
-    // No Bootstrap leftovers: data-bs-toggle MUST NOT be set on the trigger.
-    expect(button.hasAttribute("data-bs-toggle")).toBe(false);
-    expect(button.hasAttribute("data-bs-placement")).toBe(false);
-
-    // Hover renders the tooltip into document.body.
-    await userEvent.hover(button);
-    await waitFor(() => {
-      const tip = getTooltipEl();
-      expect(tip).toBeTruthy();
-      expect(tip?.textContent).toContain("Click to copy the share URL");
-      expect(tip?.getAttribute("data-placement")).toBe("top");
+    await step("no Bootstrap leftovers on the trigger", async () => {
+      // data-bs-toggle / data-bs-placement MUST NOT be set on the trigger.
+      expect(button.hasAttribute("data-bs-toggle")).toBe(false);
+      expect(button.hasAttribute("data-bs-placement")).toBe(false);
     });
 
-    // Unhover removes it.
-    await userEvent.unhover(button);
-    await waitFor(() => {
-      expect(getTooltipEl()).toBeNull();
+    await step("hover renders the tooltip into document.body", async () => {
+      await userEvent.hover(button);
+      await waitFor(() => {
+        const tip = getTooltipEl();
+        expect(tip).toBeTruthy();
+        expect(tip?.textContent).toContain("Click to copy the share URL");
+        expect(tip?.getAttribute("data-placement")).toBe("top");
+      });
+    });
+
+    await step("unhover removes it", async () => {
+      await userEvent.unhover(button);
+      await waitFor(() => {
+        expect(getTooltipEl()).toBeNull();
+      });
     });
   },
 };
@@ -65,27 +69,31 @@ export const BottomPlacement = {
     </div>
   `,
 
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const anchor = /** @type {HTMLAnchorElement} */ (canvasElement.querySelector("a"));
     expect(anchor).toBeTruthy();
 
-    await userEvent.hover(anchor);
-    await waitFor(() => {
-      const tip = getTooltipEl();
-      expect(tip).toBeTruthy();
-      expect(tip?.getAttribute("data-placement")).toBe("bottom");
+    await step("hover renders the tooltip below the anchor", async () => {
+      await userEvent.hover(anchor);
+      await waitFor(() => {
+        const tip = getTooltipEl();
+        expect(tip).toBeTruthy();
+        expect(tip?.getAttribute("data-placement")).toBe("bottom");
 
-      // Verify the popup actually renders BELOW the anchor — placement
-      // attribute presence alone is not enough; a regression that forgets
-      // to use placement in _position() would still set the attribute
-      // but render in the wrong spot.
-      const anchorRect = anchor.getBoundingClientRect();
-      const tipRect = /** @type {HTMLElement} */ (tip).getBoundingClientRect();
-      expect(tipRect.top).toBeGreaterThanOrEqual(anchorRect.bottom - 1);
+        // Verify the popup actually renders BELOW the anchor — placement
+        // attribute presence alone is not enough; a regression that forgets
+        // to use placement in _position() would still set the attribute
+        // but render in the wrong spot.
+        const anchorRect = anchor.getBoundingClientRect();
+        const tipRect = /** @type {HTMLElement} */ (tip).getBoundingClientRect();
+        expect(tipRect.top).toBeGreaterThanOrEqual(anchorRect.bottom - 1);
+      });
     });
 
-    await userEvent.unhover(anchor);
-    await waitFor(() => expect(getTooltipEl()).toBeNull());
+    await step("unhover removes it", async () => {
+      await userEvent.unhover(anchor);
+      await waitFor(() => expect(getTooltipEl()).toBeNull());
+    });
   },
 };
 
@@ -117,20 +125,26 @@ export const TooltipAppearsOnHover = {
     </div>
   `,
 
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const button = /** @type {HTMLButtonElement} */ (canvasElement.querySelector("button"));
 
-    expect(getTooltipEl()).toBeNull();
-
-    await userEvent.hover(button);
-    await waitFor(() => {
-      const tip = getTooltipEl();
-      expect(tip).toBeTruthy();
-      expect(tip?.textContent).toContain("Hover tooltip text");
+    await step("no tooltip before interaction", async () => {
+      expect(getTooltipEl()).toBeNull();
     });
 
-    await userEvent.unhover(button);
-    await waitFor(() => expect(getTooltipEl()).toBeNull());
+    await step("hover shows the tooltip", async () => {
+      await userEvent.hover(button);
+      await waitFor(() => {
+        const tip = getTooltipEl();
+        expect(tip).toBeTruthy();
+        expect(tip?.textContent).toContain("Hover tooltip text");
+      });
+    });
+
+    await step("unhover removes it", async () => {
+      await userEvent.unhover(button);
+      await waitFor(() => expect(getTooltipEl()).toBeNull());
+    });
   },
 };
 
@@ -144,29 +158,33 @@ export const FocusAndEscapeDismiss = {
     </div>
   `,
 
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const button = /** @type {HTMLButtonElement} */ (canvasElement.querySelector("button"));
     const other = /** @type {HTMLButtonElement} */ (canvasElement.querySelector("#other"));
 
-    // Focusing the trigger shows the tooltip.
-    button.focus();
-    await waitFor(() => {
-      expect(getTooltipEl()).toBeTruthy();
+    await step("focusing the trigger shows the tooltip", async () => {
+      button.focus();
+      await waitFor(() => {
+        expect(getTooltipEl()).toBeTruthy();
+      });
     });
 
-    // Escape dismisses without moving focus.
-    await userEvent.keyboard("{Escape}");
-    await waitFor(() => expect(getTooltipEl()).toBeNull());
-    expect(document.activeElement).toBe(button);
+    await step("escape dismisses without moving focus", async () => {
+      await userEvent.keyboard("{Escape}");
+      await waitFor(() => expect(getTooltipEl()).toBeNull());
+      expect(document.activeElement).toBe(button);
+    });
 
-    // Move focus elsewhere first — `.focus()` on the already-focused button
-    // is a no-op (no `focusin` fires), so the only honest way to re-test
-    // the focus path is to Tab away and back.
-    other.focus();
-    button.focus();
-    await waitFor(() => expect(getTooltipEl()).toBeTruthy());
-    other.focus();
-    await waitFor(() => expect(getTooltipEl()).toBeNull());
+    await step("re-focusing the trigger shows it again, blur removes it", async () => {
+      // Move focus elsewhere first — `.focus()` on the already-focused button
+      // is a no-op (no `focusin` fires), so the only honest way to re-test
+      // the focus path is to Tab away and back.
+      other.focus();
+      button.focus();
+      await waitFor(() => expect(getTooltipEl()).toBeTruthy());
+      other.focus();
+      await waitFor(() => expect(getTooltipEl()).toBeNull());
+    });
   },
 };
 
@@ -181,28 +199,33 @@ export const DynamicallyInsertedChild = {
     </div>
   `,
 
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const host = /** @type {HTMLElement} */ (canvasElement.querySelector("#dynamic-tooltip"));
     expect(host).toBeTruthy();
 
-    // Dynamically insert the trigger after connect — the MutationObserver
-    // inside cts-tooltip should still wire up listeners.
     const button = document.createElement("button");
-    button.textContent = "Dynamic trigger";
-    host.appendChild(button);
 
-    await waitFor(() => {
-      // Hover should now show the tooltip — confirms the observer wired up.
-      const promise = userEvent.hover(button);
-      return promise.then(() => {
-        const tip = getTooltipEl();
-        expect(tip).toBeTruthy();
-        expect(tip?.textContent).toContain("Wired after insertion");
+    await step("inserting the trigger after connect wires up the observer", async () => {
+      // Dynamically insert the trigger after connect — the MutationObserver
+      // inside cts-tooltip should still wire up listeners.
+      button.textContent = "Dynamic trigger";
+      host.appendChild(button);
+
+      await waitFor(() => {
+        // Hover should now show the tooltip — confirms the observer wired up.
+        const promise = userEvent.hover(button);
+        return promise.then(() => {
+          const tip = getTooltipEl();
+          expect(tip).toBeTruthy();
+          expect(tip?.textContent).toContain("Wired after insertion");
+        });
       });
     });
 
-    await userEvent.unhover(button);
-    await waitFor(() => expect(getTooltipEl()).toBeNull());
+    await step("unhover removes it", async () => {
+      await userEvent.unhover(button);
+      await waitFor(() => expect(getTooltipEl()).toBeNull());
+    });
   },
 };
 
@@ -217,21 +240,25 @@ export const AutoPlacementFlipsBelow = {
     </div>
   `,
 
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const button = /** @type {HTMLButtonElement} */ (canvasElement.querySelector("button"));
     expect(button).toBeTruthy();
 
-    await userEvent.hover(button);
-    await waitFor(() => {
-      const tip = getTooltipEl();
-      expect(tip).toBeTruthy();
-      // Top has 4px of room — far less than the tip's height — so auto
-      // must flip to bottom.
-      expect(tip?.getAttribute("data-placement")).toBe("bottom");
+    await step("auto placement flips to bottom with no room above", async () => {
+      await userEvent.hover(button);
+      await waitFor(() => {
+        const tip = getTooltipEl();
+        expect(tip).toBeTruthy();
+        // Top has 4px of room — far less than the tip's height — so auto
+        // must flip to bottom.
+        expect(tip?.getAttribute("data-placement")).toBe("bottom");
+      });
     });
 
-    await userEvent.unhover(button);
-    await waitFor(() => expect(getTooltipEl()).toBeNull());
+    await step("unhover removes it", async () => {
+      await userEvent.unhover(button);
+      await waitFor(() => expect(getTooltipEl()).toBeNull());
+    });
   },
 };
 
@@ -244,19 +271,23 @@ export const NoArrowRendered = {
     </div>
   `,
 
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const button = /** @type {HTMLButtonElement} */ (canvasElement.querySelector("button"));
 
-    await userEvent.hover(button);
-    await waitFor(() => {
-      const tip = getTooltipEl();
-      expect(tip).toBeTruthy();
-      // cts-tooltip renders a flat body only — no arrow element.
-      expect(tip?.querySelector(".oidf-tooltip__arrow")).toBeNull();
+    await step("hover shows a flat body with no arrow element", async () => {
+      await userEvent.hover(button);
+      await waitFor(() => {
+        const tip = getTooltipEl();
+        expect(tip).toBeTruthy();
+        // cts-tooltip renders a flat body only — no arrow element.
+        expect(tip?.querySelector(".oidf-tooltip__arrow")).toBeNull();
+      });
     });
 
-    await userEvent.unhover(button);
-    await waitFor(() => expect(getTooltipEl()).toBeNull());
+    await step("unhover removes it", async () => {
+      await userEvent.unhover(button);
+      await waitFor(() => expect(getTooltipEl()).toBeNull());
+    });
   },
 };
 
@@ -269,40 +300,43 @@ export const RepositionsOnReshow = {
     </div>
   `,
 
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const button = /** @type {HTMLButtonElement} */ (canvasElement.querySelector("button"));
 
-    // First show.
-    await userEvent.hover(button);
     /** @type {HTMLElement | null} */
     let tip = null;
-    await waitFor(() => {
-      tip = getTooltipEl();
-      expect(tip).toBeTruthy();
+    let firstLeft = 0;
+
+    await step("first show records the tooltip's left coordinate", async () => {
+      await userEvent.hover(button);
+      await waitFor(() => {
+        tip = getTooltipEl();
+        expect(tip).toBeTruthy();
+      });
+      firstLeft = parseFloat(/** @type {HTMLElement} */ (/** @type {unknown} */ (tip)).style.left);
+      await userEvent.unhover(button);
+      await waitFor(() => expect(getTooltipEl()).toBeNull());
     });
-    const firstLeft = parseFloat(
-      /** @type {HTMLElement} */ (/** @type {unknown} */ (tip)).style.left,
-    );
-    await userEvent.unhover(button);
-    await waitFor(() => expect(getTooltipEl()).toBeNull());
 
-    // Move the trigger sideways. On the next mouseenter, position must be
-    // recomputed against the new bounding rect — so the tooltip's left
-    // coordinate should be different from the first show.
-    button.style.position = "relative";
-    button.style.left = "200px";
+    await step("re-show after moving the trigger recomputes position", async () => {
+      // Move the trigger sideways. On the next mouseenter, position must be
+      // recomputed against the new bounding rect — so the tooltip's left
+      // coordinate should be different from the first show.
+      button.style.position = "relative";
+      button.style.left = "200px";
 
-    await userEvent.hover(button);
-    await waitFor(() => {
-      tip = getTooltipEl();
-      expect(tip).toBeTruthy();
+      await userEvent.hover(button);
+      await waitFor(() => {
+        tip = getTooltipEl();
+        expect(tip).toBeTruthy();
+      });
+      const secondLeft = parseFloat(
+        /** @type {HTMLElement} */ (/** @type {unknown} */ (tip)).style.left,
+      );
+      expect(secondLeft).not.toBe(firstLeft);
+
+      await userEvent.unhover(button);
+      await waitFor(() => expect(getTooltipEl()).toBeNull());
     });
-    const secondLeft = parseFloat(
-      /** @type {HTMLElement} */ (/** @type {unknown} */ (tip)).style.left,
-    );
-    expect(secondLeft).not.toBe(firstLeft);
-
-    await userEvent.unhover(button);
-    await waitFor(() => expect(getTooltipEl()).toBeNull());
   },
 };

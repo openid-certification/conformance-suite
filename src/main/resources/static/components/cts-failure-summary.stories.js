@@ -74,26 +74,31 @@ const FAILURES_GROUPED = [
 
 export const Default = {
   render: () => html`<cts-failure-summary .failures=${FAILURES}></cts-failure-summary>`,
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const summary = await waitFor(() => {
       const el = canvasElement.querySelector('[data-testid="failure-summary"]');
       if (!el) throw new Error("failure-summary not yet rendered");
       return el;
     });
 
-    expect(within(summary).getByText("Failure summary:")).toBeInTheDocument();
+    await step("heading content renders", async () => {
+      expect(within(summary).getByText("Failure summary:")).toBeInTheDocument();
+    });
 
-    // Expanded by default — list rendered with three rows.
-    const list = canvasElement.querySelector('[data-testid="failure-list"]');
-    expect(list).toBeTruthy();
-    expect(list.querySelectorAll(".failureItem")).toHaveLength(3);
+    await step("expanded by default — list rendered with three rows", async () => {
+      const list = canvasElement.querySelector('[data-testid="failure-list"]');
+      expect(list).toBeTruthy();
+      expect(list.querySelectorAll(".failureItem")).toHaveLength(3);
+    });
 
-    // Each row carries the right severity badge.
-    expect(canvasElement.querySelectorAll('cts-badge[label="FAILURE"]')).toHaveLength(2);
-    expect(canvasElement.querySelectorAll('cts-badge[label="WARNING"]')).toHaveLength(1);
+    await step("each row carries the right severity badge", async () => {
+      expect(canvasElement.querySelectorAll('cts-badge[label="FAILURE"]')).toHaveLength(2);
+      expect(canvasElement.querySelectorAll('cts-badge[label="WARNING"]')).toHaveLength(1);
+    });
 
-    // Failure text combines `src: msg`.
-    expect(within(summary).getByText("ValidateIdToken: Signature invalid")).toBeInTheDocument();
+    await step("failure text combines `src: msg`", async () => {
+      expect(within(summary).getByText("ValidateIdToken: Signature invalid")).toBeInTheDocument();
+    });
   },
 };
 
@@ -110,32 +115,34 @@ export const Empty = {
 
 export const Collapsed = {
   render: () => html`<cts-failure-summary .failures=${FAILURES}></cts-failure-summary>`,
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const title = await waitFor(() => {
       const el = canvasElement.querySelector(".failureSummaryTitle");
       if (!el) throw new Error("failureSummaryTitle not yet rendered");
       return el;
     });
 
-    // Initial state: list visible, title reports expanded via aria-expanded.
-    // We assert the ARIA contract rather than the chevron glyph name; the
-    // chevron is a single static cts-icon[name="chevron-down"] rotated 180°
-    // via CSS keyed on aria-expanded (see cts-failure-summary.js styles).
-    expect(canvasElement.querySelector('[data-testid="failure-list"]')).toBeTruthy();
-    expect(title.getAttribute("aria-expanded")).toBe("true");
-
-    // Click the title → collapse.
-    await userEvent.click(title);
-
-    await waitFor(() => {
-      expect(canvasElement.querySelector('[data-testid="failure-list"]')).toBeNull();
-      expect(title.getAttribute("aria-expanded")).toBe("false");
+    await step("initial state: list visible, title reports expanded", async () => {
+      // We assert the ARIA contract rather than the chevron glyph name; the
+      // chevron is a single static cts-icon[name="chevron-down"] rotated 180°
+      // via CSS keyed on aria-expanded (see cts-failure-summary.js styles).
+      expect(canvasElement.querySelector('[data-testid="failure-list"]')).toBeTruthy();
+      expect(title.getAttribute("aria-expanded")).toBe("true");
     });
 
-    // Click again → re-expand.
-    await userEvent.click(title);
-    await waitFor(() => {
-      expect(canvasElement.querySelector('[data-testid="failure-list"]')).toBeTruthy();
+    await step("clicking the title collapses the list", async () => {
+      await userEvent.click(title);
+      await waitFor(() => {
+        expect(canvasElement.querySelector('[data-testid="failure-list"]')).toBeNull();
+        expect(title.getAttribute("aria-expanded")).toBe("false");
+      });
+    });
+
+    await step("clicking again re-expands the list", async () => {
+      await userEvent.click(title);
+      await waitFor(() => {
+        expect(canvasElement.querySelector('[data-testid="failure-list"]')).toBeTruthy();
+      });
     });
   },
 };
@@ -167,57 +174,70 @@ export const Compact = {
       compact
       .failures=${FAILURES_WITH_REQUIREMENTS}
     ></cts-failure-summary>`,
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const host = await waitFor(() => {
       const el = canvasElement.querySelector("cts-failure-summary");
       if (!el) throw new Error("cts-failure-summary not yet rendered");
       return el;
     });
 
-    // The `compact` attribute reflects so the [compact] CSS selectors apply.
-    expect(host.hasAttribute("compact")).toBe(true);
+    await step(
+      "the `compact` attribute reflects so the [compact] CSS selectors apply",
+      async () => {
+        expect(host.hasAttribute("compact")).toBe(true);
+      },
+    );
 
-    // Title and chevron are not rendered in compact mode (they're
-    // omitted from the render output, not just hidden). The chevron lives
-    // inside .failureSummaryTitle, so the title's absence implies the
-    // chevron's absence — we also assert no stray chevron-down survived.
-    expect(canvasElement.querySelector(".failureSummaryTitle")).toBeNull();
-    expect(canvasElement.querySelector('cts-icon[name="chevron-down"]')).toBeNull();
+    await step("title and chevron are not rendered in compact mode", async () => {
+      // They're omitted from the render output, not just hidden. The chevron
+      // lives inside .failureSummaryTitle, so the title's absence implies the
+      // chevron's absence — we also assert no stray chevron-down survived.
+      expect(canvasElement.querySelector(".failureSummaryTitle")).toBeNull();
+      expect(canvasElement.querySelector('cts-icon[name="chevron-down"]')).toBeNull();
+    });
 
-    // Rows still render; each row's failure text is present.
-    const rows = canvasElement.querySelectorAll(".failureItem");
-    expect(rows).toHaveLength(2);
+    await step("rows still render; each row's failure text is present", async () => {
+      const rows = canvasElement.querySelectorAll(".failureItem");
+      expect(rows).toHaveLength(2);
+    });
 
-    // Requirement chips are hidden by [compact] CSS — the elements are
-    // still in the DOM but `display: none` on the host cts-badge.
-    const chip = canvasElement.querySelector('cts-badge[variant="secondary"]');
-    expect(chip).toBeTruthy();
-    expect(getComputedStyle(chip).display).toBe("none");
+    await step("requirement chips are hidden by [compact] CSS", async () => {
+      // The elements are still in the DOM but `display: none` on the host cts-badge.
+      const chip = canvasElement.querySelector('cts-badge[variant="secondary"]');
+      expect(chip).toBeTruthy();
+      expect(getComputedStyle(chip).display).toBe("none");
+    });
   },
 };
 
 export const GroupedByBlock = {
   render: () =>
     html`<cts-failure-summary group-by-block .failures=${FAILURES_GROUPED}></cts-failure-summary>`,
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     await waitFor(() => {
       const el = canvasElement.querySelector('[data-testid="failure-list"]');
       if (!el) throw new Error("failure-list not yet rendered");
       return el;
     });
 
-    // Two block groups — `auth` (two failures) and `token` (one warning).
     const groups = canvasElement.querySelectorAll('[data-testid="failure-block-group"]');
-    expect(groups).toHaveLength(2);
 
-    // First group's header text comes from the first entry's `msg`.
-    const firstHeader = groups[0].querySelector(".failureBlockHeader");
-    expect(firstHeader.textContent).toContain("Authorization request");
-    expect(firstHeader.textContent).toContain("(2 failures)");
+    await step("two block groups — `auth` (two failures) and `token` (one warning)", async () => {
+      expect(groups).toHaveLength(2);
+    });
 
-    const secondHeader = groups[1].querySelector(".failureBlockHeader");
-    expect(secondHeader.textContent).toContain("Token request");
-    expect(secondHeader.textContent).toContain("(1 failure)");
+    await step("first group's header reports its `msg` and failure count", async () => {
+      // Header text comes from the first entry's `msg`.
+      const firstHeader = groups[0].querySelector(".failureBlockHeader");
+      expect(firstHeader.textContent).toContain("Authorization request");
+      expect(firstHeader.textContent).toContain("(2 failures)");
+    });
+
+    await step("second group's header reports its `msg` and failure count", async () => {
+      const secondHeader = groups[1].querySelector(".failureBlockHeader");
+      expect(secondHeader.textContent).toContain("Token request");
+      expect(secondHeader.textContent).toContain("(1 failure)");
+    });
   },
 };
 
@@ -259,41 +279,44 @@ export const WithReferences = {
       .references=${{ r5: "LOG-0008", r6: "LOG-0019", r4: "LOG-0024" }}
       test-id="abc123"
     ></cts-failure-summary>`,
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     await waitFor(() => {
       const el = canvasElement.querySelector('[data-testid="failure-list"]');
       if (!el) throw new Error("failure-list not yet rendered");
       return el;
     });
 
-    // One reference chip per failure row, with the right label.
     const chips = canvasElement.querySelectorAll('[data-testid="log-entry-id-chip"]');
-    expect(chips).toHaveLength(3);
-    expect(chips[0].textContent).toContain("LOG-0008");
-    expect(chips[1].textContent).toContain("LOG-0019");
-    expect(chips[2].textContent).toContain("LOG-0024");
 
-    // The chip click copies the deep URL — same contract as the entry chip.
-    // cts-badge[clickable] mounts the click listener on the inner
-    // <span role="button">, not on the host. Synthesize the click there
-    // so cts-badge-click actually fires.
-    const writeSpy = spyOn(navigator.clipboard, "writeText").mockResolvedValue();
-    try {
-      const chipButton = /** @type {HTMLElement} */ (chips[0].querySelector('[role="button"]'));
-      chipButton.click();
-      await waitFor(() => expect(writeSpy).toHaveBeenCalledOnce());
-      const copied = writeSpy.mock.calls[0][0];
-      expect(copied).toContain("log=abc123");
-      expect(copied).toContain("#LOG-0008");
-    } finally {
-      writeSpy.mockRestore();
-    }
+    await step("one reference chip per failure row, with the right label", async () => {
+      expect(chips).toHaveLength(3);
+      expect(chips[0].textContent).toContain("LOG-0008");
+      expect(chips[1].textContent).toContain("LOG-0019");
+      expect(chips[2].textContent).toContain("LOG-0024");
+    });
+
+    await step("clicking the chip copies the deep URL", async () => {
+      // Same contract as the entry chip. cts-badge[clickable] mounts the click
+      // listener on the inner <span role="button">, not on the host. Synthesize
+      // the click there so cts-badge-click actually fires.
+      const writeSpy = spyOn(navigator.clipboard, "writeText").mockResolvedValue();
+      try {
+        const chipButton = /** @type {HTMLElement} */ (chips[0].querySelector('[role="button"]'));
+        chipButton.click();
+        await waitFor(() => expect(writeSpy).toHaveBeenCalledOnce());
+        const copied = writeSpy.mock.calls[0][0];
+        expect(copied).toContain("log=abc123");
+        expect(copied).toContain("#LOG-0008");
+      } finally {
+        writeSpy.mockRestore();
+      }
+    });
   },
 };
 
 export const KeyboardActivation = {
   render: () => html`<cts-failure-summary .failures=${FAILURES}></cts-failure-summary>`,
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     await waitFor(() => {
       const el = canvasElement.querySelector('[data-testid="failure-list"]');
       if (!el) throw new Error("failure-list not yet rendered");
@@ -311,22 +334,27 @@ export const KeyboardActivation = {
       const firstRow = /** @type {HTMLAnchorElement} */ (
         canvasElement.querySelector('.failureItem a.failureText[data-entry-id="r5"]')
       );
-      expect(firstRow).toBeTruthy();
-      // The href is a marker for the entry id; preventDefault on click
-      // keeps the URL fragment from changing, but the value should still
-      // be set so the anchor reads as a within-page link.
-      expect(firstRow.getAttribute("href")).toBe("#entry-r5");
 
-      firstRow.focus();
-      expect(document.activeElement).toBe(firstRow);
+      await step("the failure row renders as a within-page anchor link", async () => {
+        expect(firstRow).toBeTruthy();
+        // The href is a marker for the entry id; preventDefault on click
+        // keeps the URL fragment from changing, but the value should still
+        // be set so the anchor reads as a within-page link.
+        expect(firstRow.getAttribute("href")).toBe("#entry-r5");
+      });
 
-      await userEvent.keyboard("{Enter}");
-      expect(handler).toHaveBeenCalledOnce();
-      expect(handler.mock.calls[0][0].detail.entryId).toBe("r5");
-      // Anchors only respond to Enter natively — Space scrolls the page,
-      // it does not activate the link. That is the correct anchor
-      // semantics; if Space-activation is later required, the element
-      // should switch back to a button role.
+      await step("Enter on the focused anchor dispatches cts-scroll-to-entry", async () => {
+        firstRow.focus();
+        expect(document.activeElement).toBe(firstRow);
+
+        await userEvent.keyboard("{Enter}");
+        expect(handler).toHaveBeenCalledOnce();
+        expect(handler.mock.calls[0][0].detail.entryId).toBe("r5");
+        // Anchors only respond to Enter natively — Space scrolls the page,
+        // it does not activate the link. That is the correct anchor
+        // semantics; if Space-activation is later required, the element
+        // should switch back to a button role.
+      });
     } finally {
       document.removeEventListener("cts-scroll-to-entry", handler);
     }

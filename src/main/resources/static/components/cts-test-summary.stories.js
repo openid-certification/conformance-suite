@@ -20,24 +20,27 @@ const DESCRIPTION_AND_INSTRUCTIONS = `${DESCRIPTION_ONLY}\n\n---\n\nClick the Vi
 
 export const WithDescriptionOnly = {
   render: () => html`<cts-test-summary .summary=${DESCRIPTION_ONLY}></cts-test-summary>`,
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const aboutZone = await waitFor(() => {
       const el = canvasElement.querySelector('[data-testid="about-test-zone"]');
       if (!el) throw new Error("about-test-zone not yet rendered");
       return el;
     });
 
-    expect(within(aboutZone).getByText("About this test")).toBeInTheDocument();
-    expect(within(aboutZone).getByText(DESCRIPTION_ONLY)).toBeInTheDocument();
-    // Description-only renders only the about zone, not the instructions zone.
-    expect(canvasElement.querySelector('[data-testid="user-instructions-zone"]')).toBeNull();
+    await step("about zone renders the heading and description", async () => {
+      expect(within(aboutZone).getByText("About this test")).toBeInTheDocument();
+      expect(within(aboutZone).getByText(DESCRIPTION_ONLY)).toBeInTheDocument();
+    });
+    await step("description-only renders no instructions zone", async () => {
+      expect(canvasElement.querySelector('[data-testid="user-instructions-zone"]')).toBeNull();
+    });
   },
 };
 
 export const WithUserInstructions = {
   render: () =>
     html`<cts-test-summary .summary=${DESCRIPTION_AND_INSTRUCTIONS}></cts-test-summary>`,
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const aboutZone = await waitFor(() => {
       const el = canvasElement.querySelector('[data-testid="about-test-zone"]');
       if (!el) throw new Error("about-test-zone not yet rendered");
@@ -45,10 +48,14 @@ export const WithUserInstructions = {
     });
     const instructionsZone = canvasElement.querySelector('[data-testid="user-instructions-zone"]');
 
-    expect(aboutZone).toBeTruthy();
-    expect(instructionsZone).toBeTruthy();
-    expect(within(aboutZone).getByText("About this test")).toBeInTheDocument();
-    expect(within(instructionsZone).getByText("What you need to do")).toBeInTheDocument();
+    await step("both zones are present", async () => {
+      expect(aboutZone).toBeTruthy();
+      expect(instructionsZone).toBeTruthy();
+    });
+    await step("each zone renders its heading", async () => {
+      expect(within(aboutZone).getByText("About this test")).toBeInTheDocument();
+      expect(within(instructionsZone).getByText("What you need to do")).toBeInTheDocument();
+    });
   },
 };
 
@@ -56,15 +63,19 @@ export const InstructionsOnly = {
   // Used by the page-level B1 instance — when a WAITING test only carries
   // instructions, the splitter returns description="" + instructions=text.
   render: () => html`<cts-test-summary .summary=${INSTRUCTIONS_ONLY}></cts-test-summary>`,
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const instructionsZone = await waitFor(() => {
       const el = canvasElement.querySelector('[data-testid="user-instructions-zone"]');
       if (!el) throw new Error("user-instructions-zone not yet rendered");
       return el;
     });
 
-    expect(within(instructionsZone).getByText("What you need to do")).toBeInTheDocument();
-    expect(canvasElement.querySelector('[data-testid="about-test-zone"]')).toBeNull();
+    await step("instructions zone renders its heading", async () => {
+      expect(within(instructionsZone).getByText("What you need to do")).toBeInTheDocument();
+    });
+    await step("instructions-only renders no about zone", async () => {
+      expect(canvasElement.querySelector('[data-testid="about-test-zone"]')).toBeNull();
+    });
   },
 };
 
@@ -148,22 +159,25 @@ const DESCRIPTION_WITH_BARE_URL =
 
 export const WithAutolinkedUrl = {
   render: () => html`<cts-test-summary .summary=${DESCRIPTION_WITH_BARE_URL}></cts-test-summary>`,
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const body = await waitFor(() => {
       const el = canvasElement.querySelector('[data-testid="about-test-zone"] .summaryBody');
       if (!el) throw new Error("summaryBody not yet rendered");
       return el;
     });
-    const link = body.querySelector("a");
-    expect(link).toBeTruthy();
-    expect(link.getAttribute("href")).toBe(
-      "https://openid.net/specs/fapi-2_0-security-profile.html",
-    );
-    expect(link.getAttribute("target")).toBe("_blank");
-    expect(link.getAttribute("rel")).toBe("noopener noreferrer");
-    // snake_case prose survives — no spurious emphasis, identifier intact.
-    expect(body.textContent).toContain("access_token");
-    expect(body.querySelectorAll("em").length).toBe(0);
+    await step("bare URL renders as a new-tab anchor", async () => {
+      const link = body.querySelector("a");
+      expect(link).toBeTruthy();
+      expect(link.getAttribute("href")).toBe(
+        "https://openid.net/specs/fapi-2_0-security-profile.html",
+      );
+      expect(link.getAttribute("target")).toBe("_blank");
+      expect(link.getAttribute("rel")).toBe("noopener noreferrer");
+    });
+    await step("snake_case prose survives with no spurious emphasis", async () => {
+      expect(body.textContent).toContain("access_token");
+      expect(body.querySelectorAll("em").length).toBe(0);
+    });
   },
 };
 
@@ -175,18 +189,21 @@ const DESCRIPTION_WITH_XSS =
 
 export const WithDangerousHtmlSanitized = {
   render: () => html`<cts-test-summary .summary=${DESCRIPTION_WITH_XSS}></cts-test-summary>`,
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const body = await waitFor(() => {
       const el = canvasElement.querySelector('[data-testid="about-test-zone"] .summaryBody');
       if (!el) throw new Error("summaryBody not yet rendered");
       return el;
     });
-    // The benign prose still renders.
-    expect(body.textContent).toContain("Run the test then check the result.");
-    // No script element survives, and the onerror handler never fired.
-    expect(body.querySelector("script")).toBeNull();
-    expect(body.querySelector("[onerror]")).toBeNull();
-    expect(globalThis.__xss).toBeUndefined();
+    await step("benign prose still renders", async () => {
+      expect(body.textContent).toContain("Run the test then check the result.");
+    });
+    await step("dangerous markup is stripped and never executes", async () => {
+      // No script element survives, and the onerror handler never fired.
+      expect(body.querySelector("script")).toBeNull();
+      expect(body.querySelector("[onerror]")).toBeNull();
+      expect(globalThis.__xss).toBeUndefined();
+    });
   },
 };
 
@@ -220,16 +237,18 @@ const DESCRIPTION_WITH_DANGEROUS_LINK =
 export const WithDangerousLinkNeutralized = {
   render: () =>
     html`<cts-test-summary .summary=${DESCRIPTION_WITH_DANGEROUS_LINK}></cts-test-summary>`,
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const body = await waitFor(() => {
       const el = canvasElement.querySelector('[data-testid="about-test-zone"] .summaryBody');
       if (!el) throw new Error("summaryBody not yet rendered");
       return el;
     });
-    // No anchor carries a javascript: or data: href.
-    expect(body.querySelector('a[href^="javascript:"]')).toBeNull();
-    expect(body.querySelector('a[href^="data:"]')).toBeNull();
-    // The visible link text is preserved as readable prose.
-    expect(body.textContent).toContain("here");
+    await step("no anchor carries a javascript: or data: href", async () => {
+      expect(body.querySelector('a[href^="javascript:"]')).toBeNull();
+      expect(body.querySelector('a[href^="data:"]')).toBeNull();
+    });
+    await step("the visible link text is preserved as readable prose", async () => {
+      expect(body.textContent).toContain("here");
+    });
   },
 };

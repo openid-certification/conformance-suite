@@ -92,53 +92,63 @@ export const Default = {
     },
   },
   render: () => html`<cts-plan-list></cts-plan-list>`,
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const canvas = within(canvasElement);
     await waitForPlansToLoad(canvasElement);
 
-    // The search + sort toolbar mirrors cts-log-list.
-    expect(canvasElement.querySelector(".cts-plan-list-search input")).toBeTruthy();
-    expect(canvasElement.querySelector(".cts-plan-list-sort select")).toBeTruthy();
-
-    // One card per plan.
-    const cards = canvasElement.querySelectorAll('[data-testid="plan-list-item"]');
-    expect(cards.length).toBe(MOCK_PLAN_LIST.length);
-
-    // Plan names render.
-    expect(canvas.getByText("oidcc-basic-certification-test-plan")).toBeInTheDocument();
-    expect(canvas.getByText("fapi2-security-profile-final-test-plan")).toBeInTheDocument();
-
-    // Plan-name anchors carry the real destination URL (not "#") so cmd-click,
-    // middle-click, right-click "Open in new tab", browser hover preview, and
-    // screen-reader destination announcement all work. Target plan-001 by id
-    // rather than DOM position — the default sort is Started (newest), so the
-    // first card is not necessarily the first fixture entry.
+    // Target plan-001 by id rather than DOM position — the default sort is
+    // Started (newest), so the first card is not necessarily the first fixture
+    // entry. Shared across phases below.
     const planCard = canvasElement.querySelector(
       '[data-testid="plan-list-item"][data-plan-id="plan-001"]',
     );
-    expect(planCard).toBeTruthy();
-    const planLink = /** @type {HTMLAnchorElement | null} */ (
-      planCard.querySelector("a.plan-name-link")
-    );
-    expect(planLink?.getAttribute("href")).toBe("plan-detail.html?plan=plan-001");
 
-    // The plan id renders as the card slug.
-    expect(planCard.querySelector(".cts-plan-card-slug")?.textContent).toBe("plan-001");
+    await step("search + sort toolbar renders (mirrors cts-log-list)", async () => {
+      expect(canvasElement.querySelector(".cts-plan-list-search input")).toBeTruthy();
+      expect(canvasElement.querySelector(".cts-plan-list-sort select")).toBeTruthy();
+    });
 
-    // Each module renders one color-coded status box — one per module across
-    // all cards.
-    const totalModules = MOCK_PLAN_LIST.reduce((n, p) => n + (p.modules?.length || 0), 0);
-    const boxes = canvasElement.querySelectorAll(".moduleStatusGrid .moduleStatusBox");
-    expect(boxes.length).toBe(totalModules);
+    await step("one card per plan", async () => {
+      const cards = canvasElement.querySelectorAll('[data-testid="plan-list-item"]');
+      expect(cards.length).toBe(MOCK_PLAN_LIST.length);
+    });
 
-    // The Started value renders through cts-time: a native <time> whose title
-    // carries the full absolute date on hover.
-    const startedTime = planCard.querySelector("cts-time time");
-    expect(startedTime).toBeTruthy();
-    expect(startedTime?.getAttribute("datetime")).toBeTruthy();
+    await step("plan names render", async () => {
+      expect(canvas.getByText("oidcc-basic-certification-test-plan")).toBeInTheDocument();
+      expect(canvas.getByText("fapi2-security-profile-final-test-plan")).toBeInTheDocument();
+    });
 
-    // Non-admin users do not see the owner pill.
-    expect(canvasElement.querySelector(".plan-owner")).toBeNull();
+    await step("plan-name anchor carries the real destination URL", async () => {
+      // Real href (not "#") so cmd-click, middle-click, right-click "Open in new
+      // tab", browser hover preview, and screen-reader destination announcement
+      // all work.
+      expect(planCard).toBeTruthy();
+      const planLink = /** @type {HTMLAnchorElement | null} */ (
+        planCard.querySelector("a.plan-name-link")
+      );
+      expect(planLink?.getAttribute("href")).toBe("plan-detail.html?plan=plan-001");
+    });
+
+    await step("plan id renders as the card slug", async () => {
+      expect(planCard.querySelector(".cts-plan-card-slug")?.textContent).toBe("plan-001");
+    });
+
+    await step("each module renders one color-coded status box", async () => {
+      const totalModules = MOCK_PLAN_LIST.reduce((n, p) => n + (p.modules?.length || 0), 0);
+      const boxes = canvasElement.querySelectorAll(".moduleStatusGrid .moduleStatusBox");
+      expect(boxes.length).toBe(totalModules);
+    });
+
+    await step("Started value renders through cts-time", async () => {
+      // A native <time> whose title carries the full absolute date on hover.
+      const startedTime = planCard.querySelector("cts-time time");
+      expect(startedTime).toBeTruthy();
+      expect(startedTime?.getAttribute("datetime")).toBeTruthy();
+    });
+
+    await step("non-admin users do not see the owner pill", async () => {
+      expect(canvasElement.querySelector(".plan-owner")).toBeNull();
+    });
   },
 };
 
@@ -152,37 +162,41 @@ export const SearchAndSort = {
     },
   },
   render: () => html`<cts-plan-list></cts-plan-list>`,
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const canvas = within(canvasElement);
     await waitForPlansToLoad(canvasElement);
 
-    let cards = canvasElement.querySelectorAll('[data-testid="plan-list-item"]');
-    expect(cards.length).toBe(MOCK_PLAN_LIST.length);
-
-    // Search narrows the rendered cards client-side.
     const searchInput = canvasElement.querySelector('input[placeholder="Search test plans..."]');
-    expect(searchInput).toBeTruthy();
-    await userEvent.type(searchInput, "fapi2");
-    await waitFor(() => {
-      cards = canvasElement.querySelectorAll('[data-testid="plan-list-item"]');
-      expect(cards.length).toBe(1);
-    });
-    expect(canvas.getByText("fapi2-security-profile-final-test-plan")).toBeInTheDocument();
-    expect(canvas.queryByText("oidcc-basic-certification-test-plan")).toBeNull();
 
-    // Clear the search, then sort by plan name (A–Z) and confirm the first
-    // card is the alphabetically-first plan.
-    await userEvent.clear(searchInput);
-    const sortSelect = /** @type {HTMLSelectElement} */ (
-      canvasElement.querySelector(".cts-plan-list-sort select")
-    );
-    await userEvent.selectOptions(sortSelect, "name-asc");
-    await waitFor(() => {
-      const names = Array.from(
-        canvasElement.querySelectorAll('[data-testid="plan-list-item"] .cts-plan-card-name'),
-      ).map((el) => el.textContent);
-      const sorted = [...names].sort((a, b) => a.localeCompare(b));
-      expect(names).toEqual(sorted);
+    await step("all plans render initially", async () => {
+      const cards = canvasElement.querySelectorAll('[data-testid="plan-list-item"]');
+      expect(cards.length).toBe(MOCK_PLAN_LIST.length);
+    });
+
+    await step("search narrows the rendered cards client-side", async () => {
+      expect(searchInput).toBeTruthy();
+      await userEvent.type(searchInput, "fapi2");
+      await waitFor(() => {
+        const cards = canvasElement.querySelectorAll('[data-testid="plan-list-item"]');
+        expect(cards.length).toBe(1);
+      });
+      expect(canvas.getByText("fapi2-security-profile-final-test-plan")).toBeInTheDocument();
+      expect(canvas.queryByText("oidcc-basic-certification-test-plan")).toBeNull();
+    });
+
+    await step("clearing then sorting by name (A–Z) orders the cards", async () => {
+      await userEvent.clear(searchInput);
+      const sortSelect = /** @type {HTMLSelectElement} */ (
+        canvasElement.querySelector(".cts-plan-list-sort select")
+      );
+      await userEvent.selectOptions(sortSelect, "name-asc");
+      await waitFor(() => {
+        const names = Array.from(
+          canvasElement.querySelectorAll('[data-testid="plan-list-item"] .cts-plan-card-name'),
+        ).map((el) => el.textContent);
+        const sorted = [...names].sort((a, b) => a.localeCompare(b));
+        expect(names).toEqual(sorted);
+      });
     });
   },
 };
@@ -270,57 +284,70 @@ export const ViewConfig = {
     },
   },
   render: () => html`<cts-plan-list></cts-plan-list>`,
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     await waitForPlansToLoad(canvasElement);
 
-    // Click plan-001's Config button (target the inner <button> rendered by
-    // cts-button — clicking the host bypasses Lit's @click handler). Target
-    // plan-001 by id: the default Started-newest sort means it is not the
-    // first card in the DOM.
-    const configBtnHost = canvasElement.querySelector('.showConfigBtn[data-plan-id="plan-001"]');
-    expect(configBtnHost).toBeTruthy();
-    await userEvent.click(innerButton(configBtnHost));
+    // The config JSON renders inside a read-only <cts-json-editor>; the editor
+    // handle is shared across the assertion phases below.
+    let editor;
 
-    // Modal should open. The config JSON renders inside a read-only
-    // <cts-json-editor>; read the editor's `.value` rather than textContent.
-    const editor = /** @type {any} */ (
-      await waitFor(
-        () => {
-          const el = document.querySelector("cts-json-editor.config-json");
-          if (!el) throw new Error("cts-json-editor.config-json not yet attached");
-          return el;
-        },
-        { timeout: 10000 },
-      )
-    );
-    await editor.whenReady();
-    expect(editor.value).toContain("server.issuer");
-    expect(editor.value).toContain("https://op.example.com");
+    await step("clicking the Config button opens the modal", async () => {
+      // Click plan-001's Config button (target the inner <button> rendered by
+      // cts-button — clicking the host bypasses Lit's @click handler). Target
+      // plan-001 by id: the default Started-newest sort means it is not the
+      // first card in the DOM.
+      const configBtnHost = canvasElement.querySelector('.showConfigBtn[data-plan-id="plan-001"]');
+      expect(configBtnHost).toBeTruthy();
+      await userEvent.click(innerButton(configBtnHost));
 
-    // Exactly one Monaco editor must be mounted (cts-modal relocates slotted
-    // children; the reentrancy guard in _bootMonaco prevents a duplicate).
-    const monacoInstances = editor.querySelectorAll(".monaco-editor");
-    expect(monacoInstances.length).toBe(1);
-
-    // Plan ID shown in the modal toolbar. Scope to the modal's <code> — the
-    // card slug also renders "plan-001", so a global getByText would match
-    // two nodes.
-    await waitFor(() => {
-      const modalCode = document.querySelector(".cts-plan-list-config-toolbar code");
-      expect(modalCode?.textContent).toBe("plan-001");
+      editor = /** @type {any} */ (
+        await waitFor(
+          () => {
+            const el = document.querySelector("cts-json-editor.config-json");
+            if (!el) throw new Error("cts-json-editor.config-json not yet attached");
+            return el;
+          },
+          { timeout: 10000 },
+        )
+      );
     });
 
-    // Spy on navigator.clipboard.writeText (headless Chromium denies real
-    // clipboard writes). restoreMocks: true auto-restores after the test.
-    const clipboardSpy = spyOn(navigator.clipboard, "writeText").mockResolvedValue();
+    await step("config JSON renders in the read-only editor", async () => {
+      // Read the editor's `.value` rather than textContent.
+      await editor.whenReady();
+      expect(editor.value).toContain("server.issuer");
+      expect(editor.value).toContain("https://op.example.com");
+    });
 
-    const copyBtnHost = canvasElement.querySelector(".copy-config-btn");
-    expect(copyBtnHost).toBeTruthy();
-    await userEvent.click(innerButton(copyBtnHost));
+    await step("exactly one Monaco editor is mounted", async () => {
+      // cts-modal relocates slotted children; the reentrancy guard in
+      // _bootMonaco prevents a duplicate.
+      const monacoInstances = editor.querySelectorAll(".monaco-editor");
+      expect(monacoInstances.length).toBe(1);
+    });
 
-    const expectedPayload = JSON.stringify(MOCK_PLAN_LIST[0].config, null, 4);
-    await waitFor(() => {
-      expect(clipboardSpy).toHaveBeenCalledWith(expectedPayload);
+    await step("plan id shows in the modal toolbar", async () => {
+      // Scope to the modal's <code> — the card slug also renders "plan-001", so
+      // a global getByText would match two nodes.
+      await waitFor(() => {
+        const modalCode = document.querySelector(".cts-plan-list-config-toolbar code");
+        expect(modalCode?.textContent).toBe("plan-001");
+      });
+    });
+
+    await step("Copy config writes the formatted payload to the clipboard", async () => {
+      // Spy on navigator.clipboard.writeText (headless Chromium denies real
+      // clipboard writes). restoreMocks: true auto-restores after the test.
+      const clipboardSpy = spyOn(navigator.clipboard, "writeText").mockResolvedValue();
+
+      const copyBtnHost = canvasElement.querySelector(".copy-config-btn");
+      expect(copyBtnHost).toBeTruthy();
+      await userEvent.click(innerButton(copyBtnHost));
+
+      const expectedPayload = JSON.stringify(MOCK_PLAN_LIST[0].config, null, 4);
+      await waitFor(() => {
+        expect(clipboardSpy).toHaveBeenCalledWith(expectedPayload);
+      });
     });
   },
 };
@@ -557,22 +584,25 @@ export const OffScreenModulesNotFetched = {
   /** @type {string[]} */
   _requested: [],
   render: () => html`<cts-plan-list></cts-plan-list>`,
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     OffScreenModulesNotFetched._requested.length = 0;
     await waitForPlansToLoad(canvasElement);
 
-    // First page (25) instances fetched; page-two instances (inst-025..029)
-    // are NOT fetched until revealed.
-    await waitFor(() => {
-      expect(OffScreenModulesNotFetched._requested.length).toBe(25);
+    await step("only the first page's instances are fetched on load", async () => {
+      // First page (25) instances fetched; page-two instances (inst-025..029)
+      // are NOT fetched until revealed.
+      await waitFor(() => {
+        expect(OffScreenModulesNotFetched._requested.length).toBe(25);
+      });
+      expect(OffScreenModulesNotFetched._requested).not.toContain("inst-029");
     });
-    expect(OffScreenModulesNotFetched._requested).not.toContain("inst-029");
 
-    // Reveal page two — its instances now get fetched.
-    const showMore = canvasElement.querySelector('[data-testid="plan-list-show-more"]');
-    await userEvent.click(innerButton(showMore));
-    await waitFor(() => {
-      expect(OffScreenModulesNotFetched._requested).toContain("inst-029");
+    await step("revealing page two lazily fetches its instances", async () => {
+      const showMore = canvasElement.querySelector('[data-testid="plan-list-show-more"]');
+      await userEvent.click(innerButton(showMore));
+      await waitFor(() => {
+        expect(OffScreenModulesNotFetched._requested).toContain("inst-029");
+      });
     });
   },
 };
@@ -720,31 +750,37 @@ export const PublicView = {
     },
   },
   render: () => html`<cts-plan-list is-public></cts-plan-list>`,
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const canvas = within(canvasElement);
     await waitForPlansToLoad(canvasElement);
 
-    // Only published plans surface in the public view.
-    const publishedCount = MOCK_PLAN_LIST.filter((p) => p.publish).length;
-    const cards = canvasElement.querySelectorAll('[data-testid="plan-list-item"]');
-    expect(cards.length).toBe(publishedCount);
+    await step("only published plans surface in the public view", async () => {
+      const publishedCount = MOCK_PLAN_LIST.filter((p) => p.publish).length;
+      const cards = canvasElement.querySelectorAll('[data-testid="plan-list-item"]');
+      expect(cards.length).toBe(publishedCount);
 
-    expect(canvas.getByText("fapi2-security-profile-final-test-plan")).toBeInTheDocument();
-    expect(canvas.queryByText("oidcc-basic-certification-test-plan")).toBeNull();
+      expect(canvas.getByText("fapi2-security-profile-final-test-plan")).toBeInTheDocument();
+      expect(canvas.queryByText("oidcc-basic-certification-test-plan")).toBeNull();
+    });
 
-    // Owner pill and config button stay hidden in the public view.
-    expect(canvasElement.querySelector(".plan-owner")).toBeNull();
-    expect(canvasElement.querySelector(".showConfigBtn")).toBeNull();
+    await step("owner pill and config button stay hidden", async () => {
+      expect(canvasElement.querySelector(".plan-owner")).toBeNull();
+      expect(canvasElement.querySelector(".showConfigBtn")).toBeNull();
+    });
 
-    // The detail link threads public=true so anonymous click-through (and
-    // open-in-new-tab) resolves — plan-detail.html is public ONLY with the param.
-    const publishedCard = canvasElement.querySelector(
-      '[data-testid="plan-list-item"][data-plan-id="plan-002"]',
-    );
-    const publishedLink = /** @type {HTMLAnchorElement | null} */ (
-      publishedCard?.querySelector("a.plan-name-link")
-    );
-    expect(publishedLink?.getAttribute("href")).toBe("plan-detail.html?plan=plan-002&public=true");
+    await step("the detail link threads public=true", async () => {
+      // So anonymous click-through (and open-in-new-tab) resolves —
+      // plan-detail.html is public ONLY with the param.
+      const publishedCard = canvasElement.querySelector(
+        '[data-testid="plan-list-item"][data-plan-id="plan-002"]',
+      );
+      const publishedLink = /** @type {HTMLAnchorElement | null} */ (
+        publishedCard?.querySelector("a.plan-name-link")
+      );
+      expect(publishedLink?.getAttribute("href")).toBe(
+        "plan-detail.html?plan=plan-002&public=true",
+      );
+    });
   },
 };
 
@@ -777,20 +813,23 @@ export const ShowMorePagination = {
     },
   },
   render: () => html`<cts-plan-list></cts-plan-list>`,
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     await waitForPlansToLoad(canvasElement);
 
-    // First page caps at PAGE_SIZE (25).
-    let cards = canvasElement.querySelectorAll('[data-testid="plan-list-item"]');
-    expect(cards.length).toBe(25);
+    await step("first page caps at PAGE_SIZE (25)", async () => {
+      const cards = canvasElement.querySelectorAll('[data-testid="plan-list-item"]');
+      expect(cards.length).toBe(25);
+    });
 
-    const showMore = canvasElement.querySelector('[data-testid="plan-list-show-more"]');
-    expect(showMore).toBeTruthy();
-    await userEvent.click(innerButton(showMore));
+    await step("Show more reveals the next page", async () => {
+      const showMore = canvasElement.querySelector('[data-testid="plan-list-show-more"]');
+      expect(showMore).toBeTruthy();
+      await userEvent.click(innerButton(showMore));
 
-    await waitFor(() => {
-      cards = canvasElement.querySelectorAll('[data-testid="plan-list-item"]');
-      expect(cards.length).toBe(30);
+      await waitFor(() => {
+        const cards = canvasElement.querySelectorAll('[data-testid="plan-list-item"]');
+        expect(cards.length).toBe(30);
+      });
     });
   },
 };

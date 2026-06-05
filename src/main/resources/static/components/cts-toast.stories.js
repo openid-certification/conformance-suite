@@ -45,23 +45,32 @@ export const OkStatic = {
       ></cts-toast>
     </cts-toast-host>
   `,
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const toast = canvasElement.querySelector("cts-toast");
-    expect(toast).toBeTruthy();
     const card = toast.querySelector(".oidf-toast");
-    expect(card).toBeTruthy();
-    expect(card.getAttribute("role")).toBe("status");
-    expect(toast.querySelector(".oidf-toast-title").textContent).toBe("Test saved");
-    expect(toast.querySelector(".oidf-toast-message").textContent).toBe(
-      "Your configuration was stored successfully.",
-    );
-    // Pass kind drives the green status-pass left rule and a
-    // check-circle glyph.
-    const icon = toast.querySelector("cts-icon");
-    expect(icon.getAttribute("name")).toBe("circle-check");
-    // Bootstrap toast classes must NOT leak through.
-    expect(card.classList.contains("toast")).toBe(false);
-    expect(card.classList.contains("toast-body")).toBe(false);
+
+    await step("card structure renders with status role", async () => {
+      expect(toast).toBeTruthy();
+      expect(card).toBeTruthy();
+      expect(card.getAttribute("role")).toBe("status");
+    });
+
+    await step("title and message content render", async () => {
+      expect(toast.querySelector(".oidf-toast-title").textContent).toBe("Test saved");
+      expect(toast.querySelector(".oidf-toast-message").textContent).toBe(
+        "Your configuration was stored successfully.",
+      );
+    });
+
+    await step("ok kind drives the green pass rule and check-circle glyph", async () => {
+      const icon = toast.querySelector("cts-icon");
+      expect(icon.getAttribute("name")).toBe("circle-check");
+    });
+
+    await step("Bootstrap toast classes do not leak through", async () => {
+      expect(card.classList.contains("toast")).toBe(false);
+      expect(card.classList.contains("toast-body")).toBe(false);
+    });
   },
 };
 
@@ -82,7 +91,7 @@ export const Dismissible = {
       ></cts-toast>
     </cts-toast-host>
   `,
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const host = canvasElement.querySelector("cts-toast-host");
     const toast = canvasElement.querySelector("cts-toast");
     expect(toast).toBeTruthy();
@@ -92,16 +101,21 @@ export const Dismissible = {
       dismissed = true;
     });
 
-    const closeBtn = toast.querySelector("button.oidf-toast-close");
-    expect(closeBtn).toBeTruthy();
-    expect(closeBtn.getAttribute("aria-label")).toBe("Dismiss");
-    const closeIcon = closeBtn.querySelector('cts-icon[name="close-md"]');
-    expect(closeIcon).toBeTruthy();
-    expect(closeIcon.getAttribute("aria-hidden")).toBe("true");
+    let closeBtn;
+    await step("close button renders with an icon glyph (not a literal ×)", async () => {
+      closeBtn = toast.querySelector("button.oidf-toast-close");
+      expect(closeBtn).toBeTruthy();
+      expect(closeBtn.getAttribute("aria-label")).toBe("Dismiss");
+      const closeIcon = closeBtn.querySelector('cts-icon[name="close-md"]');
+      expect(closeIcon).toBeTruthy();
+      expect(closeIcon.getAttribute("aria-hidden")).toBe("true");
+    });
 
-    await userEvent.click(closeBtn);
-    expect(dismissed).toBe(true);
-    expect(canvasElement.querySelector("cts-toast")).toBeNull();
+    await step("clicking dismiss removes the toast and fires cts-toast-dismiss", async () => {
+      await userEvent.click(closeBtn);
+      expect(dismissed).toBe(true);
+      expect(canvasElement.querySelector("cts-toast")).toBeNull();
+    });
   },
 };
 
@@ -114,35 +128,41 @@ export const Dismissible = {
  */
 export const HelperAutoDismiss = {
   render: () => html`<div data-testid="trigger-zone"></div>`,
-  async play() {
+  async play({ step }) {
     resetHost();
 
-    const toast = CtsToastHost.show({
-      title: "Auto-dismiss",
-      message: "Goes away on its own.",
-      kind: "ok",
-      duration: 50,
-    });
-    expect(toast).toBeTruthy();
-    expect(toast.tagName.toLowerCase()).toBe("cts-toast");
+    let toast;
+    await step("show() creates a toast inside the auto-created host", async () => {
+      toast = CtsToastHost.show({
+        title: "Auto-dismiss",
+        message: "Goes away on its own.",
+        kind: "ok",
+        duration: 50,
+      });
+      expect(toast).toBeTruthy();
+      expect(toast.tagName.toLowerCase()).toBe("cts-toast");
 
-    // Host should now exist as a sibling of <body>'s children.
-    const host = /** @type {HTMLElement} */ (document.querySelector("cts-toast-host"));
-    expect(host).toBeTruthy();
-    expect(host.contains(toast)).toBe(true);
-
-    let dismissed = false;
-    host.addEventListener("cts-toast-dismiss", () => {
-      dismissed = true;
+      // Host should now exist as a sibling of <body>'s children.
+      const host = /** @type {HTMLElement} */ (document.querySelector("cts-toast-host"));
+      expect(host).toBeTruthy();
+      expect(host.contains(toast)).toBe(true);
     });
 
-    await waitFor(
-      () => {
-        expect(dismissed).toBe(true);
-      },
-      { timeout: 1000 },
-    );
-    expect(document.querySelector("cts-toast")).toBeNull();
+    await step("auto-dismiss timer fires and removes the toast", async () => {
+      const host = /** @type {HTMLElement} */ (document.querySelector("cts-toast-host"));
+      let dismissed = false;
+      host.addEventListener("cts-toast-dismiss", () => {
+        dismissed = true;
+      });
+
+      await waitFor(
+        () => {
+          expect(dismissed).toBe(true);
+        },
+        { timeout: 1000 },
+      );
+      expect(document.querySelector("cts-toast")).toBeNull();
+    });
 
     resetHost();
   },
@@ -162,16 +182,21 @@ export const StackedToasts = {
       <cts-toast title="Third" message="Three." kind="ok" .duration=${0}></cts-toast>
     </cts-toast-host>
   `,
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const host = canvasElement.querySelector("cts-toast-host");
     expect(host).toBeTruthy();
-    const toasts = host.querySelectorAll("cts-toast");
-    expect(toasts.length).toBe(3);
 
-    const styles = getComputedStyle(host);
-    expect(styles.flexDirection).toBe("column");
-    // --space-2 resolves to 8px from oidf-tokens.css.
-    expect(styles.gap).toBe("8px");
+    await step("all three toasts are present in the host", async () => {
+      const toasts = host.querySelectorAll("cts-toast");
+      expect(toasts.length).toBe(3);
+    });
+
+    await step("host is a flex column with the --space-2 gap", async () => {
+      const styles = getComputedStyle(host);
+      expect(styles.flexDirection).toBe("column");
+      // --space-2 resolves to 8px from oidf-tokens.css.
+      expect(styles.gap).toBe("8px");
+    });
   },
 };
 
@@ -190,16 +215,20 @@ export const ErrorKind = {
       ></cts-toast>
     </cts-toast-host>
   `,
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const toast = canvasElement.querySelector("cts-toast");
     expect(toast).toBeTruthy();
 
-    const card = toast.querySelector(".oidf-toast");
-    // The inline style on the card sets border-left-color to var(--rust-400).
-    expect(card.getAttribute("style")).toContain("--rust-400");
+    await step("error kind swaps in the rust-400 fail rule", async () => {
+      const card = toast.querySelector(".oidf-toast");
+      // The inline style on the card sets border-left-color to var(--rust-400).
+      expect(card.getAttribute("style")).toContain("--rust-400");
+    });
 
-    const icon = toast.querySelector("cts-icon");
-    expect(icon.getAttribute("name")).toBe("close-circle");
+    await step("error kind renders the close-circle glyph", async () => {
+      const icon = toast.querySelector("cts-icon");
+      expect(icon.getAttribute("name")).toBe("close-circle");
+    });
   },
 };
 
@@ -212,35 +241,41 @@ export const ErrorKind = {
  */
 export const ViaWindowApi = {
   render: () => html`<div data-testid="trigger-zone"></div>`,
-  async play() {
+  async play({ step }) {
     resetHost();
 
-    expect(typeof (/** @type {any} */ (window).ctsToast)).toBe("function");
-    const toast = /** @type {any} */ (window).ctsToast({
-      title: "Saved",
-      message: "All good.",
-      kind: "ok",
-      duration: 50,
-    });
-    expect(toast).toBeTruthy();
-    expect(toast.tagName.toLowerCase()).toBe("cts-toast");
+    let toast;
+    await step("window.ctsToast creates a toast inside the auto-created host", async () => {
+      expect(typeof (/** @type {any} */ (window).ctsToast)).toBe("function");
+      toast = /** @type {any} */ (window).ctsToast({
+        title: "Saved",
+        message: "All good.",
+        kind: "ok",
+        duration: 50,
+      });
+      expect(toast).toBeTruthy();
+      expect(toast.tagName.toLowerCase()).toBe("cts-toast");
 
-    const host = /** @type {HTMLElement} */ (document.querySelector("cts-toast-host"));
-    expect(host).toBeTruthy();
-    expect(host.contains(toast)).toBe(true);
-
-    let dismissed = false;
-    host.addEventListener("cts-toast-dismiss", () => {
-      dismissed = true;
+      const host = /** @type {HTMLElement} */ (document.querySelector("cts-toast-host"));
+      expect(host).toBeTruthy();
+      expect(host.contains(toast)).toBe(true);
     });
 
-    await waitFor(
-      () => {
-        expect(dismissed).toBe(true);
-      },
-      { timeout: 1000 },
-    );
-    expect(document.querySelector("cts-toast")).toBeNull();
+    await step("auto-dismiss timer fires and removes the toast", async () => {
+      const host = /** @type {HTMLElement} */ (document.querySelector("cts-toast-host"));
+      let dismissed = false;
+      host.addEventListener("cts-toast-dismiss", () => {
+        dismissed = true;
+      });
+
+      await waitFor(
+        () => {
+          expect(dismissed).toBe(true);
+        },
+        { timeout: 1000 },
+      );
+      expect(document.querySelector("cts-toast")).toBeNull();
+    });
 
     resetHost();
   },
@@ -255,35 +290,40 @@ export const ViaWindowApi = {
  */
 export const Persistent = {
   render: () => html`<div data-testid="trigger-zone"></div>`,
-  async play() {
+  async play({ step }) {
     resetHost();
 
-    const toast = /** @type {any} */ (window).ctsToast({
-      title: "Stays put",
-      kind: "ok",
-      duration: 0,
-    });
-    expect(toast).toBeTruthy();
+    let toast;
+    await step("duration:0 keeps the toast on screen past the auto-dismiss window", async () => {
+      toast = /** @type {any} */ (window).ctsToast({
+        title: "Stays put",
+        kind: "ok",
+        duration: 0,
+      });
+      expect(toast).toBeTruthy();
 
-    // 100ms is enough to prove the toast does NOT auto-dismiss — the
-    // default duration is 5000ms, and the only other documented value
-    // (50ms in `ViaWindowApi` above) would already have fired.
-    await new Promise((resolve) => setTimeout(resolve, 100));
-    expect(document.querySelector("cts-toast")).toBe(toast);
-
-    // Attach the dismiss listener BEFORE calling dismiss() so a refactor
-    // that breaks the cts-toast-dismiss event without breaking DOM
-    // removal is still caught. Mirrors the Dismissible story pattern.
-    const host = /** @type {HTMLElement} */ (document.querySelector("cts-toast-host"));
-    expect(host).toBeTruthy();
-    let dismissed = false;
-    host.addEventListener("cts-toast-dismiss", () => {
-      dismissed = true;
+      // 100ms is enough to prove the toast does NOT auto-dismiss — the
+      // default duration is 5000ms, and the only other documented value
+      // (50ms in `ViaWindowApi` above) would already have fired.
+      await new Promise((resolve) => setTimeout(resolve, 100));
+      expect(document.querySelector("cts-toast")).toBe(toast);
     });
 
-    toast.dismiss();
-    expect(dismissed).toBe(true);
-    expect(document.querySelector("cts-toast")).toBeNull();
+    await step("manual dismiss() removes the toast and fires cts-toast-dismiss", async () => {
+      // Attach the dismiss listener BEFORE calling dismiss() so a refactor
+      // that breaks the cts-toast-dismiss event without breaking DOM
+      // removal is still caught. Mirrors the Dismissible story pattern.
+      const host = /** @type {HTMLElement} */ (document.querySelector("cts-toast-host"));
+      expect(host).toBeTruthy();
+      let dismissed = false;
+      host.addEventListener("cts-toast-dismiss", () => {
+        dismissed = true;
+      });
+
+      toast.dismiss();
+      expect(dismissed).toBe(true);
+      expect(document.querySelector("cts-toast")).toBeNull();
+    });
 
     resetHost();
   },
@@ -304,48 +344,56 @@ export const Persistent = {
  */
 export const ViaWindowApiError = {
   render: () => html`<div data-testid="trigger-zone"></div>`,
-  async play() {
+  async play({ step }) {
     resetHost();
 
-    expect(typeof (/** @type {any} */ (window).ctsToast)).toBe("function");
-    const toast = /** @type {any} */ (window).ctsToast({
-      title: "Save failed",
-      message: "The request returned 500. Try again.",
-      kind: "error",
-      duration: 0,
-    });
-    expect(toast).toBeTruthy();
-    expect(toast.tagName.toLowerCase()).toBe("cts-toast");
+    let toast;
+    await step("window.ctsToast({ kind: error }) creates a toast in the host", async () => {
+      expect(typeof (/** @type {any} */ (window).ctsToast)).toBe("function");
+      toast = /** @type {any} */ (window).ctsToast({
+        title: "Save failed",
+        message: "The request returned 500. Try again.",
+        kind: "error",
+        duration: 0,
+      });
+      expect(toast).toBeTruthy();
+      expect(toast.tagName.toLowerCase()).toBe("cts-toast");
 
-    const host = /** @type {HTMLElement} */ (document.querySelector("cts-toast-host"));
-    expect(host).toBeTruthy();
-    expect(host.contains(toast)).toBe(true);
-
-    // The static `ErrorKind` story queries `.oidf-toast` synchronously because
-    // Lit has already rendered the lit-html template into light DOM by the
-    // time `play()` runs. Here the `<cts-toast>` is created dynamically via
-    // `window.ctsToast`, so the first render is queued for the next
-    // microtask — await `updateComplete` (Lit's lifecycle promise) so the
-    // assertions below see the rendered children, not an empty host.
-    await /** @type {any} */ (toast).updateComplete;
-
-    const card = toast.querySelector(".oidf-toast");
-    // The inline style on the card sets border-left-color to var(--rust-400)
-    // — same assertion shape as the static `ErrorKind` story so a refactor
-    // that breaks one without the other surfaces a clean diff.
-    expect(card.getAttribute("style")).toContain("--rust-400");
-
-    const icon = toast.querySelector("cts-icon");
-    expect(icon.getAttribute("name")).toBe("close-circle");
-
-    let dismissed = false;
-    host.addEventListener("cts-toast-dismiss", () => {
-      dismissed = true;
+      const host = /** @type {HTMLElement} */ (document.querySelector("cts-toast-host"));
+      expect(host).toBeTruthy();
+      expect(host.contains(toast)).toBe(true);
     });
 
-    toast.dismiss();
-    expect(dismissed).toBe(true);
-    expect(document.querySelector("cts-toast")).toBeNull();
+    await step("the error treatment survives the window.ctsToast chain", async () => {
+      // The static `ErrorKind` story queries `.oidf-toast` synchronously because
+      // Lit has already rendered the lit-html template into light DOM by the
+      // time `play()` runs. Here the `<cts-toast>` is created dynamically via
+      // `window.ctsToast`, so the first render is queued for the next
+      // microtask — await `updateComplete` (Lit's lifecycle promise) so the
+      // assertions below see the rendered children, not an empty host.
+      await /** @type {any} */ (toast).updateComplete;
+
+      const card = toast.querySelector(".oidf-toast");
+      // The inline style on the card sets border-left-color to var(--rust-400)
+      // — same assertion shape as the static `ErrorKind` story so a refactor
+      // that breaks one without the other surfaces a clean diff.
+      expect(card.getAttribute("style")).toContain("--rust-400");
+
+      const icon = toast.querySelector("cts-icon");
+      expect(icon.getAttribute("name")).toBe("close-circle");
+    });
+
+    await step("manual dismiss() removes the toast and fires cts-toast-dismiss", async () => {
+      const host = /** @type {HTMLElement} */ (document.querySelector("cts-toast-host"));
+      let dismissed = false;
+      host.addEventListener("cts-toast-dismiss", () => {
+        dismissed = true;
+      });
+
+      toast.dismiss();
+      expect(dismissed).toBe(true);
+      expect(document.querySelector("cts-toast")).toBeNull();
+    });
 
     resetHost();
   },
@@ -363,19 +411,24 @@ export const ViaWindowApiError = {
  */
 export const GetOrCreateIdempotent = {
   render: () => html`<div data-testid="trigger-zone"></div>`,
-  async play() {
+  async play({ step }) {
     resetHost();
 
-    const first = CtsToastHost.getOrCreate();
-    const second = CtsToastHost.getOrCreate();
-    expect(first).toBe(second);
-    expect(first.tagName.toLowerCase()).toBe("cts-toast-host");
+    let first;
+    await step("repeat getOrCreate() calls return the same singleton host", async () => {
+      first = CtsToastHost.getOrCreate();
+      const second = CtsToastHost.getOrCreate();
+      expect(first).toBe(second);
+      expect(first.tagName.toLowerCase()).toBe("cts-toast-host");
+    });
 
-    // A subsequent `CtsToastHost.show()` reuses the same host rather than
-    // creating a sibling — the singleton invariant the page mounts rely on.
-    const toast = CtsToastHost.show({ title: "x", duration: 0 });
-    expect(first.contains(toast)).toBe(true);
-    expect(document.querySelectorAll("cts-toast-host").length).toBe(1);
+    await step("show() reuses the singleton host rather than creating a sibling", async () => {
+      // A subsequent `CtsToastHost.show()` reuses the same host rather than
+      // creating a sibling — the singleton invariant the page mounts rely on.
+      const toast = CtsToastHost.show({ title: "x", duration: 0 });
+      expect(first.contains(toast)).toBe(true);
+      expect(document.querySelectorAll("cts-toast-host").length).toBe(1);
+    });
 
     resetHost();
   },

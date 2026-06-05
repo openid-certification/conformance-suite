@@ -140,124 +140,142 @@ async function clickOverflowAction(canvasElement, actionId) {
 
 export const CompletedTest = {
   render: () => html`<cts-log-detail-header .testInfo=${COMPLETED_TEST}></cts-log-detail-header>`,
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const canvas = within(canvasElement);
     await waitFor(() => {
       expect(canvas.getAllByText("oidcc-server").length).toBeGreaterThan(0);
     });
 
-    // Result badge shows PASSED on the canonical `pass` palette (sticky bar).
-    const resultBadge = canvasElement.querySelector('cts-badge[variant="pass"][label="PASSED"]');
-    expect(resultBadge).toBeTruthy();
+    await step("result badge shows PASSED on the canonical pass palette (sticky bar)", async () => {
+      const resultBadge = canvasElement.querySelector('cts-badge[variant="pass"][label="PASSED"]');
+      expect(resultBadge).toBeTruthy();
+    });
 
-    // PASSED hero renders the R24 "About this test" section.
-    const summaryHero = canvasElement.querySelector('[data-testid="hero-summary"]');
-    expect(summaryHero).toBeTruthy();
-    expect(summaryHero.textContent).toContain("About this test");
+    await step('PASSED hero renders the R24 "About this test" section', async () => {
+      const summaryHero = canvasElement.querySelector('[data-testid="hero-summary"]');
+      expect(summaryHero).toBeTruthy();
+      expect(summaryHero.textContent).toContain("About this test");
+    });
 
-    // Drawer renders both disclosures, both closed by default.
-    const drawer = canvasElement.querySelector('[data-testid="drawer"]');
-    expect(drawer).toBeTruthy();
-    const detailsBlocks = drawer.querySelectorAll("details");
-    expect(detailsBlocks.length).toBe(2);
-    expect(detailsBlocks[0].open).toBe(false);
-    expect(detailsBlocks[1].open).toBe(false);
+    await step("drawer renders both disclosures, both closed by default", async () => {
+      const drawer = canvasElement.querySelector('[data-testid="drawer"]');
+      expect(drawer).toBeTruthy();
+      const detailsBlocks = drawer.querySelectorAll("details");
+      expect(detailsBlocks.length).toBe(2);
+      expect(detailsBlocks[0].open).toBe(false);
+      expect(detailsBlocks[1].open).toBe(false);
+    });
 
-    // The metadata table is rendered inside the closed Test details
-    // disclosure — the labels exist in the DOM so `getByText` finds them
-    // even when the parent details element is collapsed.
-    expect(canvas.getByText("Test Name:")).toBeInTheDocument();
-    expect(canvas.getByText("Test ID:")).toBeInTheDocument();
-    expect(canvas.getByText("Created:")).toBeInTheDocument();
+    await step("metadata table labels are present in the DOM even while collapsed", async () => {
+      // The metadata table is rendered inside the closed Test details
+      // disclosure — the labels exist in the DOM so `getByText` finds them
+      // even when the parent details element is collapsed.
+      expect(canvas.getByText("Test Name:")).toBeInTheDocument();
+      expect(canvas.getByText("Test ID:")).toBeInTheDocument();
+      expect(canvas.getByText("Created:")).toBeInTheDocument();
+    });
   },
 };
 
 export const FailedTest = {
   render: () => html`<cts-log-detail-header .testInfo=${FAILED_TEST}></cts-log-detail-header>`,
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const canvas = within(canvasElement);
     await waitFor(() => {
       expect(canvas.getAllByText("oidcc-server").length).toBeGreaterThan(0);
     });
 
-    // FAILED result badge visible in the sticky bar.
-    const failedBadge = canvasElement.querySelector('cts-badge[variant="fail"][label="FAILED"]');
-    expect(failedBadge).toBeTruthy();
-
-    // FAILED hero is the failure list. Eyebrow + count headline + the
-    // embedded cts-failure-summary.
-    const failureHero = canvasElement.querySelector('[data-testid="hero-failures"]');
-    expect(failureHero).toBeTruthy();
-    expect(failureHero.textContent).toContain("Findings");
-    // Two FAILUREs + one WARNING + one SKIPPED in MOCK_RESULTS_WITH_FAILURES.
-    expect(failureHero.textContent).toContain("2 failures");
-    expect(failureHero.textContent).toContain("1 warning");
-
-    const failureSummary = failureHero.querySelector('[data-testid="failure-summary"]');
-    expect(failureSummary).toBeTruthy();
-
-    // Failure entries are rendered with src + msg.
-    expect(canvas.getByText("ValidateIdToken: Signature invalid")).toBeInTheDocument();
-    expect(canvas.getByText("CheckClaims: Missing sub claim")).toBeInTheDocument();
-
-    // Click a failure entry and verify the bubbled cts-scroll-to-entry event.
-    let scrollEventFired = false;
-    /** @type {any} */
-    let scrollDetail = null;
-    canvasElement.addEventListener("cts-scroll-to-entry", (e) => {
-      scrollEventFired = true;
-      scrollDetail = /** @type {CustomEvent} */ (e).detail;
+    await step("FAILED result badge visible in the sticky bar", async () => {
+      const failedBadge = canvasElement.querySelector('cts-badge[variant="fail"][label="FAILED"]');
+      expect(failedBadge).toBeTruthy();
     });
 
-    const failureText = canvas.getByText("ValidateIdToken: Signature invalid");
-    await userEvent.click(failureText);
+    await step("FAILED hero is the failure list with eyebrow + count headline", async () => {
+      const failureHero = canvasElement.querySelector('[data-testid="hero-failures"]');
+      expect(failureHero).toBeTruthy();
+      expect(failureHero.textContent).toContain("Findings");
+      // Two FAILUREs + one WARNING + one SKIPPED in MOCK_RESULTS_WITH_FAILURES.
+      expect(failureHero.textContent).toContain("2 failures");
+      expect(failureHero.textContent).toContain("1 warning");
 
-    expect(scrollEventFired).toBe(true);
-    expect(scrollDetail.entryId).toBe("r5");
+      const failureSummary = failureHero.querySelector('[data-testid="failure-summary"]');
+      expect(failureSummary).toBeTruthy();
+    });
+
+    await step("failure entries are rendered with src + msg", async () => {
+      expect(canvas.getByText("ValidateIdToken: Signature invalid")).toBeInTheDocument();
+      expect(canvas.getByText("CheckClaims: Missing sub claim")).toBeInTheDocument();
+    });
+
+    await step("clicking a failure entry bubbles the cts-scroll-to-entry event", async () => {
+      let scrollEventFired = false;
+      /** @type {any} */
+      let scrollDetail = null;
+      canvasElement.addEventListener("cts-scroll-to-entry", (e) => {
+        scrollEventFired = true;
+        scrollDetail = /** @type {CustomEvent} */ (e).detail;
+      });
+
+      const failureText = canvas.getByText("ValidateIdToken: Signature invalid");
+      await userEvent.click(failureText);
+
+      expect(scrollEventFired).toBe(true);
+      expect(scrollDetail.entryId).toBe("r5");
+    });
   },
 };
 
 export const WarningOnlyTest = {
   render: () => html`<cts-log-detail-header .testInfo=${WARNING_TEST}></cts-log-detail-header>`,
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     await waitFor(() => {
       const el = canvasElement.querySelector('[data-testid="hero-failures"]');
       if (!el) throw new Error("hero-failures not yet rendered");
       return el;
     });
 
-    // WARNING result uses the same hero pattern as FAILED — the warnings
-    // list is the page's primary affordance. Verdict shrinks to bar chrome.
-    const warningBadge = canvasElement.querySelector('cts-badge[variant="warn"][label="WARNING"]');
-    expect(warningBadge).toBeTruthy();
+    await step("WARNING result badge visible in the sticky bar", async () => {
+      // WARNING result uses the same hero pattern as FAILED — the warnings
+      // list is the page's primary affordance. Verdict shrinks to bar chrome.
+      const warningBadge = canvasElement.querySelector(
+        'cts-badge[variant="warn"][label="WARNING"]',
+      );
+      expect(warningBadge).toBeTruthy();
+    });
 
-    const failureHero = canvasElement.querySelector('[data-testid="hero-failures"]');
-    expect(failureHero).toBeTruthy();
-    expect(failureHero.textContent).toContain("1 warning");
-    expect(failureHero.textContent).not.toContain("failures");
+    await step("hero shows the warning count and no failures", async () => {
+      const failureHero = canvasElement.querySelector('[data-testid="hero-failures"]');
+      expect(failureHero).toBeTruthy();
+      expect(failureHero.textContent).toContain("1 warning");
+      expect(failureHero.textContent).not.toContain("failures");
+    });
   },
 };
 
 export const RunningTest = {
   render: () => html`<cts-log-detail-header .testInfo=${RUNNING_TEST}></cts-log-detail-header>`,
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const canvas = within(canvasElement);
     await waitFor(() => {
       expect(canvas.getAllByText("oidcc-server").length).toBeGreaterThan(0);
     });
 
-    // Status shows RUNNING in the sticky bar.
-    const statusBadge = canvasElement.querySelector('cts-badge[label="RUNNING"]');
-    expect(statusBadge).toBeTruthy();
+    await step("status shows RUNNING in the sticky bar", async () => {
+      const statusBadge = canvasElement.querySelector('cts-badge[label="RUNNING"]');
+      expect(statusBadge).toBeTruthy();
+    });
 
-    // RUNNING hero renders inside the host (was the secondary card pre-redesign).
-    const runningHero = canvasElement.querySelector('[data-testid="hero-running"]');
-    expect(runningHero).toBeTruthy();
-    expect(canvas.getByText(/Live values from the running test/)).toBeInTheDocument();
+    await step("RUNNING hero renders inside the host", async () => {
+      // (was the secondary card pre-redesign).
+      const runningHero = canvasElement.querySelector('[data-testid="hero-running"]');
+      expect(runningHero).toBeTruthy();
+      expect(canvas.getByText(/Live values from the running test/)).toBeInTheDocument();
+    });
 
-    // Stop action is surfaced exclusively in the sticky bar's primary slot.
-    const stickyStop = canvasElement.querySelector('[data-testid="status-bar-primary"]');
-    expect(stickyStop).toBeTruthy();
+    await step("stop action is surfaced exclusively in the sticky bar's primary slot", async () => {
+      const stickyStop = canvasElement.querySelector('[data-testid="status-bar-primary"]');
+      expect(stickyStop).toBeTruthy();
+    });
   },
 };
 
@@ -284,49 +302,54 @@ export const RepeatViaStatusBar = {
 
 export const ViewConfigViaKebab = {
   render: () => html`<cts-log-detail-header .testInfo=${COMPLETED_TEST}></cts-log-detail-header>`,
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     await waitFor(() => {
       const el = canvasElement.querySelector('[data-testid="drawer-config"]');
       if (!el) throw new Error("drawer-config not yet rendered");
       return el;
     });
 
-    // The Configuration disclosure lives in the drawer; closed by default.
     const configDetails = /** @type {any} */ (
       canvasElement.querySelector('[data-testid="drawer-config"]')
     );
-    expect(configDetails.open).toBe(false);
 
-    // Click the kebab → "View configuration" — the redesigned action
-    // routes to the drawer disclosure (was a standalone secondary card).
-    await clickOverflowAction(canvasElement, "view-config");
-
-    await waitFor(() => {
-      expect(configDetails.open).toBe(true);
+    await step("the Configuration disclosure lives in the drawer, closed by default", async () => {
+      expect(configDetails.open).toBe(false);
     });
 
-    // Config JSON renders inside the read-only Monaco editor.
-    const configJson = /** @type {any} */ (
-      await waitFor(() => {
-        const el = canvasElement.querySelector('cts-json-editor[data-testid="config-json"]');
-        if (!el) throw new Error("cts-json-editor[data-testid='config-json'] not yet attached");
-        return el;
-      })
-    );
-    await configJson.whenReady();
-    expect(configJson.getAttribute("readonly")).not.toBeNull();
-    expect(configJson.value).toContain("server.issuer");
-    expect(configJson.value).toContain("https://op.example.com");
+    await step('clicking the kebab "View configuration" opens the disclosure', async () => {
+      // The redesigned action routes to the drawer disclosure (was a
+      // standalone secondary card).
+      await clickOverflowAction(canvasElement, "view-config");
 
-    // U2 floor assertion: a small config (3 keys here) must still
-    // render the editor at exactly 336px — the `min-height` half of
-    // the min/max-height pair on `.ctsConfigJson`. Pairs with the
-    // ceiling assertion in ConfigDrawerHeightLockedAtFixedValue so a
-    // future change that drops `min-height` and keeps only
-    // `max-height` is caught here. See
-    // docs/plans/2026-05-21-002-fix-log-detail-layout-reflows-plan.md U2.
-    const smallConfigRect = configJson.getBoundingClientRect();
-    expect(Math.abs(smallConfigRect.height - 336)).toBeLessThanOrEqual(1);
+      await waitFor(() => {
+        expect(configDetails.open).toBe(true);
+      });
+    });
+
+    await step("config JSON renders inside the read-only Monaco editor", async () => {
+      const configJson = /** @type {any} */ (
+        await waitFor(() => {
+          const el = canvasElement.querySelector('cts-json-editor[data-testid="config-json"]');
+          if (!el) throw new Error("cts-json-editor[data-testid='config-json'] not yet attached");
+          return el;
+        })
+      );
+      await configJson.whenReady();
+      expect(configJson.getAttribute("readonly")).not.toBeNull();
+      expect(configJson.value).toContain("server.issuer");
+      expect(configJson.value).toContain("https://op.example.com");
+
+      // U2 floor assertion: a small config (3 keys here) must still
+      // render the editor at exactly 336px — the `min-height` half of
+      // the min/max-height pair on `.ctsConfigJson`. Pairs with the
+      // ceiling assertion in ConfigDrawerHeightLockedAtFixedValue so a
+      // future change that drops `min-height` and keeps only
+      // `max-height` is caught here. See
+      // docs/plans/2026-05-21-002-fix-log-detail-layout-reflows-plan.md U2.
+      const smallConfigRect = configJson.getBoundingClientRect();
+      expect(Math.abs(smallConfigRect.height - 336)).toBeLessThanOrEqual(1);
+    });
   },
 };
 
@@ -375,7 +398,7 @@ const OVERSIZED_CONFIG_TEST = {
 export const ConfigDrawerHeightLockedAtFixedValue = {
   render: () =>
     html`<cts-log-detail-header .testInfo=${OVERSIZED_CONFIG_TEST}></cts-log-detail-header>`,
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     await waitFor(() => {
       const el = canvasElement.querySelector('[data-testid="drawer-config"]');
       if (!el) throw new Error("drawer-config not yet rendered");
@@ -385,86 +408,96 @@ export const ConfigDrawerHeightLockedAtFixedValue = {
     const configDetails = /** @type {any} */ (
       canvasElement.querySelector('[data-testid="drawer-config"]')
     );
-    expect(configDetails.open).toBe(false);
 
-    await clickOverflowAction(canvasElement, "view-config");
+    await step("opening the kebab routes the oversized config into the drawer", async () => {
+      expect(configDetails.open).toBe(false);
 
-    await waitFor(() => {
-      expect(configDetails.open).toBe(true);
+      await clickOverflowAction(canvasElement, "view-config");
+
+      await waitFor(() => {
+        expect(configDetails.open).toBe(true);
+      });
     });
 
-    const configJson = /** @type {any} */ (
-      await waitFor(() => {
-        const el = canvasElement.querySelector('cts-json-editor[data-testid="config-json"]');
-        if (!el) throw new Error("cts-json-editor[data-testid='config-json'] not yet attached");
-        return el;
-      })
-    );
-    await configJson.whenReady();
+    await step("the host height stays locked at 336px and Monaco scrolls inside", async () => {
+      const configJson = /** @type {any} */ (
+        await waitFor(() => {
+          const el = canvasElement.querySelector('cts-json-editor[data-testid="config-json"]');
+          if (!el) throw new Error("cts-json-editor[data-testid='config-json'] not yet attached");
+          return el;
+        })
+      );
+      await configJson.whenReady();
 
-    // The host's outer height must match the fixed CSS value within a
-    // 1 px tolerance (sub-pixel rounding). 336 = calc(24px * 14) where
-    // 24px is --space-6. If this assertion fails after Monaco mounts,
-    // the editor is auto-growing again — re-check the min-height /
-    // max-height pair in cts-log-detail-header.js.
-    const hostRect = configJson.getBoundingClientRect();
-    expect(Math.abs(hostRect.height - 336)).toBeLessThanOrEqual(1);
+      // The host's outer height must match the fixed CSS value within a
+      // 1 px tolerance (sub-pixel rounding). 336 = calc(24px * 14) where
+      // 24px is --space-6. If this assertion fails after Monaco mounts,
+      // the editor is auto-growing again — re-check the min-height /
+      // max-height pair in cts-log-detail-header.js.
+      const hostRect = configJson.getBoundingClientRect();
+      expect(Math.abs(hostRect.height - 336)).toBeLessThanOrEqual(1);
 
-    // A Monaco scroll surface lives inside the host so the bounded
-    // height does not silently clip the configuration JSON. Monaco
-    // renders `.monaco-scrollable-element` as its scroll container;
-    // its scrollHeight must exceed the bounded host height — `> 0`
-    // would pass even for an empty editor (Monaco's scroll container
-    // reports a non-zero baseline). Comparing against the host
-    // height proves the oversized payload actually requires scroll.
-    const scrollable = configJson.querySelector(".monaco-scrollable-element");
-    expect(scrollable).toBeTruthy();
-    expect(scrollable.scrollHeight).toBeGreaterThan(hostRect.height);
+      // A Monaco scroll surface lives inside the host so the bounded
+      // height does not silently clip the configuration JSON. Monaco
+      // renders `.monaco-scrollable-element` as its scroll container;
+      // its scrollHeight must exceed the bounded host height — `> 0`
+      // would pass even for an empty editor (Monaco's scroll container
+      // reports a non-zero baseline). Comparing against the host
+      // height proves the oversized payload actually requires scroll.
+      const scrollable = configJson.querySelector(".monaco-scrollable-element");
+      expect(scrollable).toBeTruthy();
+      expect(scrollable.scrollHeight).toBeGreaterThan(hostRect.height);
+    });
   },
 };
 
 export const AllPassed = {
   render: () => html`<cts-log-detail-header .testInfo=${ALL_PASSED_TEST}></cts-log-detail-header>`,
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     await waitFor(() => {
       const el = canvasElement.querySelector('[data-testid="hero-summary"]');
       if (!el) throw new Error("hero-summary not yet rendered");
       return el;
     });
 
-    // PASSED + no failures → summary hero, NOT failure hero.
-    const resultBadge = canvasElement.querySelector('cts-badge[variant="pass"][label="PASSED"]');
-    expect(resultBadge).toBeTruthy();
+    await step("PASSED result badge is shown", async () => {
+      const resultBadge = canvasElement.querySelector('cts-badge[variant="pass"][label="PASSED"]');
+      expect(resultBadge).toBeTruthy();
+    });
 
-    expect(canvasElement.querySelector('[data-testid="hero-failures"]')).toBeNull();
-    expect(canvasElement.querySelector('[data-testid="hero-summary"]')).toBeTruthy();
+    await step("PASSED + no failures renders the summary hero, not the failure hero", async () => {
+      expect(canvasElement.querySelector('[data-testid="hero-failures"]')).toBeNull();
+      expect(canvasElement.querySelector('[data-testid="hero-summary"]')).toBeTruthy();
+    });
   },
 };
 
 export const AdminActions = {
   render: () =>
     html`<cts-log-detail-header .testInfo=${COMPLETED_TEST} is-admin></cts-log-detail-header>`,
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const canvas = within(canvasElement);
     await waitFor(() => {
       expect(canvas.getAllByText("oidcc-server").length).toBeGreaterThan(0);
     });
 
-    // Owner row lives inside the (closed) Test details drawer disclosure.
-    // The label is in the DOM so getByText finds it; the row is just not
-    // visually rendered until the disclosure opens.
-    const ownerRow = canvasElement.querySelector('[data-testid="owner-row"]');
-    expect(ownerRow).toBeTruthy();
-    expect(canvas.getByText("Test Owner:")).toBeInTheDocument();
-    expect(canvas.getByText(/12345/)).toBeInTheDocument();
+    await step("owner row lives inside the (closed) Test details drawer disclosure", async () => {
+      // The label is in the DOM so getByText finds it; the row is just not
+      // visually rendered until the disclosure opens.
+      const ownerRow = canvasElement.querySelector('[data-testid="owner-row"]');
+      expect(ownerRow).toBeTruthy();
+      expect(canvas.getByText("Test Owner:")).toBeInTheDocument();
+      expect(canvas.getByText(/12345/)).toBeInTheDocument();
+    });
 
-    // Admin pre-publish: kebab carries Publish summary + Publish everything.
-    const overflow = canvasElement.querySelector('[data-testid="status-bar-overflow"]');
-    expect(overflow).toBeTruthy();
-    const items = overflow.querySelectorAll(".overflowItem");
-    const labels = Array.from(items, (el) => el.textContent.trim());
-    expect(labels.some((s) => s.includes("Publish summary"))).toBe(true);
-    expect(labels.some((s) => s.includes("Publish everything"))).toBe(true);
+    await step("admin pre-publish kebab carries Publish summary + Publish everything", async () => {
+      const overflow = canvasElement.querySelector('[data-testid="status-bar-overflow"]');
+      expect(overflow).toBeTruthy();
+      const items = overflow.querySelectorAll(".overflowItem");
+      const labels = Array.from(items, (el) => el.textContent.trim());
+      expect(labels.some((s) => s.includes("Publish summary"))).toBe(true);
+      expect(labels.some((s) => s.includes("Publish everything"))).toBe(true);
+    });
   },
 };
 
@@ -474,30 +507,33 @@ export const PublicView = {
       .testInfo=${{ ...COMPLETED_TEST, publish: "everything" }}
       is-public
     ></cts-log-detail-header>`,
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const canvas = within(canvasElement);
     await waitFor(() => {
       expect(canvas.getAllByText("oidcc-server").length).toBeGreaterThan(0);
     });
 
-    // Public view: kebab is present but Repeat / Edit / Publish / Share
-    // are filtered out. View configuration + Download Logs (because
-    // publish === "everything") remain.
-    const overflow = canvasElement.querySelector('[data-testid="status-bar-overflow"]');
-    expect(overflow).toBeTruthy();
-    const items = overflow.querySelectorAll(".overflowItem");
-    const labels = Array.from(items, (el) => el.textContent.trim());
-    expect(labels.some((s) => s.includes("View configuration"))).toBe(true);
-    expect(labels.some((s) => s.includes("Download Logs"))).toBe(true);
-    expect(labels.some((s) => s.includes("Edit configuration"))).toBe(false);
-    expect(labels.some((s) => s.includes("Private link"))).toBe(false);
-    expect(labels.some((s) => s.includes("Publish"))).toBe(false);
+    await step("public kebab filters out Repeat / Edit / Publish / Share", async () => {
+      // View configuration + Download Logs (because publish === "everything")
+      // remain.
+      const overflow = canvasElement.querySelector('[data-testid="status-bar-overflow"]');
+      expect(overflow).toBeTruthy();
+      const items = overflow.querySelectorAll(".overflowItem");
+      const labels = Array.from(items, (el) => el.textContent.trim());
+      expect(labels.some((s) => s.includes("View configuration"))).toBe(true);
+      expect(labels.some((s) => s.includes("Download Logs"))).toBe(true);
+      expect(labels.some((s) => s.includes("Edit configuration"))).toBe(false);
+      expect(labels.some((s) => s.includes("Private link"))).toBe(false);
+      expect(labels.some((s) => s.includes("Publish"))).toBe(false);
+    });
 
-    // No Repeat in the sticky bar primary slot (readonly).
-    expect(canvasElement.querySelector('[data-testid="status-bar-primary"]')).toBeNull();
+    await step("no Repeat in the sticky bar primary slot (readonly)", async () => {
+      expect(canvasElement.querySelector('[data-testid="status-bar-primary"]')).toBeNull();
+    });
 
-    // Owner row is not in the DOM (not admin).
-    expect(canvasElement.querySelector('[data-testid="owner-row"]')).toBeNull();
+    await step("owner row is not in the DOM (not admin)", async () => {
+      expect(canvasElement.querySelector('[data-testid="owner-row"]')).toBeNull();
+    });
   },
 };
 
@@ -627,33 +663,36 @@ export const WaitingHeroWithInstructions = {
     html`<cts-log-detail-header
       .testInfo=${WAITING_TEST_WITH_INSTRUCTIONS}
     ></cts-log-detail-header>`,
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     await waitFor(() => {
       const el = canvasElement.querySelector('[data-testid="hero-waiting"]');
       if (!el) throw new Error("hero-waiting not yet rendered");
       return el;
     });
 
-    const waitingHero = canvasElement.querySelector('[data-testid="hero-waiting"]');
-    expect(waitingHero.textContent).toContain("Action required");
-    expect(waitingHero.textContent).toContain("Imperative part of the summary.");
+    await step("WAITING hero shows the imperative half and hides its own Start", async () => {
+      const waitingHero = canvasElement.querySelector('[data-testid="hero-waiting"]');
+      expect(waitingHero.textContent).toContain("Action required");
+      expect(waitingHero.textContent).toContain("Imperative part of the summary.");
 
-    // Description half intentionally NOT rendered here — that's the PASSED
-    // hero's job. WAITING focuses the operator on what to do, not what
-    // the test is about.
-    expect(waitingHero.textContent).not.toContain("Descriptive part of the summary.");
+      // Description half intentionally NOT rendered here — that's the PASSED
+      // hero's job. WAITING focuses the operator on what to do, not what
+      // the test is about.
+      expect(waitingHero.textContent).not.toContain("Descriptive part of the summary.");
 
-    // The hero must NOT carry its own Start button — Start is the
-    // sticky status bar's primary action for WAITING tests, and a
-    // duplicate inside the hero would split the operator's attention
-    // between two identical CTAs in the same viewport.
-    expect(waitingHero.querySelector('[data-testid="start-btn"]')).toBeNull();
+      // The hero must NOT carry its own Start button — Start is the
+      // sticky status bar's primary action for WAITING tests, and a
+      // duplicate inside the hero would split the operator's attention
+      // between two identical CTAs in the same viewport.
+      expect(waitingHero.querySelector('[data-testid="start-btn"]')).toBeNull();
+    });
 
-    // Start is exercised through the status-bar primary instead.
-    const startHandler = fn();
-    canvasElement.addEventListener("cts-start-test", startHandler);
-    await userEvent.click(innerButton(canvasElement, "status-bar-primary"));
-    expect(startHandler).toHaveBeenCalledOnce();
+    await step("Start is exercised through the status-bar primary instead", async () => {
+      const startHandler = fn();
+      canvasElement.addEventListener("cts-start-test", startHandler);
+      await userEvent.click(innerButton(canvasElement, "status-bar-primary"));
+      expect(startHandler).toHaveBeenCalledOnce();
+    });
   },
 };
 
@@ -729,29 +768,31 @@ export const AdminUnpublished = {
       .testInfo=${{ ...COMPLETED_TEST, publish: null }}
       is-admin
     ></cts-log-detail-header>`,
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const overflow = await waitFor(() => {
       const el = canvasElement.querySelector('[data-testid="status-bar-overflow"]');
       if (!el) throw new Error("status-bar-overflow not yet rendered");
       return el;
     });
 
-    // Admin pre-publish: both Publish-summary and Publish-everything
-    // appear in the kebab, no Unpublish.
-    const labels = Array.from(overflow.querySelectorAll(".overflowItem"), (el) =>
-      el.textContent.trim(),
-    );
-    expect(labels.some((s) => s.includes("Publish summary"))).toBe(true);
-    expect(labels.some((s) => s.includes("Publish everything"))).toBe(true);
-    expect(labels.some((s) => s.includes("Unpublish"))).toBe(false);
+    await step("admin pre-publish kebab has both Publish options, no Unpublish", async () => {
+      const labels = Array.from(overflow.querySelectorAll(".overflowItem"), (el) =>
+        el.textContent.trim(),
+      );
+      expect(labels.some((s) => s.includes("Publish summary"))).toBe(true);
+      expect(labels.some((s) => s.includes("Publish everything"))).toBe(true);
+      expect(labels.some((s) => s.includes("Unpublish"))).toBe(false);
+    });
 
-    const publishHandler = fn();
-    canvasElement.addEventListener("cts-publish", publishHandler);
+    await step("Publish summary dispatches cts-publish with summary mode", async () => {
+      const publishHandler = fn();
+      canvasElement.addEventListener("cts-publish", publishHandler);
 
-    await clickOverflowAction(canvasElement, "publish-summary");
-    expect(publishHandler).toHaveBeenCalledOnce();
-    expect(publishHandler.mock.calls[0][0].detail.action).toBe("publish");
-    expect(publishHandler.mock.calls[0][0].detail.mode).toBe("summary");
+      await clickOverflowAction(canvasElement, "publish-summary");
+      expect(publishHandler).toHaveBeenCalledOnce();
+      expect(publishHandler.mock.calls[0][0].detail.action).toBe("publish");
+      expect(publishHandler.mock.calls[0][0].detail.mode).toBe("summary");
+    });
   },
 };
 
@@ -761,67 +802,75 @@ export const AdminPublished = {
       .testInfo=${{ ...COMPLETED_TEST, publish: "everything" }}
       is-admin
     ></cts-log-detail-header>`,
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const overflow = await waitFor(() => {
       const el = canvasElement.querySelector('[data-testid="status-bar-overflow"]');
       if (!el) throw new Error("status-bar-overflow not yet rendered");
       return el;
     });
 
-    // Admin post-publish: Unpublish appears, Publish-summary / -everything do not.
-    const labels = Array.from(overflow.querySelectorAll(".overflowItem"), (el) =>
-      el.textContent.trim(),
-    );
-    expect(labels.some((s) => s.includes("Unpublish"))).toBe(true);
-    expect(labels.some((s) => s.includes("Publish summary"))).toBe(false);
-    expect(labels.some((s) => s.includes("Publish everything"))).toBe(false);
+    await step("admin post-publish kebab shows Unpublish, not the Publish options", async () => {
+      const labels = Array.from(overflow.querySelectorAll(".overflowItem"), (el) =>
+        el.textContent.trim(),
+      );
+      expect(labels.some((s) => s.includes("Unpublish"))).toBe(true);
+      expect(labels.some((s) => s.includes("Publish summary"))).toBe(false);
+      expect(labels.some((s) => s.includes("Publish everything"))).toBe(false);
+    });
 
-    const publishHandler = fn();
-    canvasElement.addEventListener("cts-publish", publishHandler);
+    await step("Unpublish dispatches cts-publish with the unpublish action", async () => {
+      const publishHandler = fn();
+      canvasElement.addEventListener("cts-publish", publishHandler);
 
-    await clickOverflowAction(canvasElement, "unpublish");
+      await clickOverflowAction(canvasElement, "unpublish");
 
-    expect(publishHandler).toHaveBeenCalledOnce();
-    expect(publishHandler.mock.calls[0][0].detail.action).toBe("unpublish");
-    expect(publishHandler.mock.calls[0][0].detail.mode).toBeUndefined();
+      expect(publishHandler).toHaveBeenCalledOnce();
+      expect(publishHandler.mock.calls[0][0].detail.action).toBe("unpublish");
+      expect(publishHandler.mock.calls[0][0].detail.mode).toBeUndefined();
+    });
   },
 };
 
 export const WithRunningBrowserSlot = {
   render: () => html`<cts-log-detail-header .testInfo=${RUNNING_TEST}></cts-log-detail-header>`,
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     await waitFor(() => {
       const el = canvasElement.querySelector('[data-testid="hero-running"]');
       if (!el) throw new Error("hero-running not yet rendered");
       return el;
     });
 
-    // The browser slot moved from the secondary card into the running
-    // hero. The legacy id="runningTestBrowser" + data-slot="browser"
-    // selectors are preserved so log-detail.js's slot-injection
-    // pattern keeps working without modification.
-    const slotById = canvasElement.querySelector("#runningTestBrowser");
-    const slotByAttr = canvasElement.querySelector('[data-slot="browser"]');
-    expect(slotById).toBeTruthy();
-    expect(slotByAttr).toBeTruthy();
-    expect(slotById).toBe(slotByAttr);
+    await step("the browser slot keeps its legacy id + data-slot selectors", async () => {
+      // The browser slot moved from the secondary card into the running
+      // hero. The legacy id="runningTestBrowser" + data-slot="browser"
+      // selectors are preserved so log-detail.js's slot-injection
+      // pattern keeps working without modification.
+      const slotById = canvasElement.querySelector("#runningTestBrowser");
+      const slotByAttr = canvasElement.querySelector('[data-slot="browser"]');
+      expect(slotById).toBeTruthy();
+      expect(slotByAttr).toBeTruthy();
+      expect(slotById).toBe(slotByAttr);
+    });
 
-    // Page-level JS injects content via DOM methods; the slot accepts
-    // the injection without Lit's reactive re-render wiping it. Use a
-    // cts-button here (not a plain <button>) so the story matches what
-    // js/log-detail.js's renderBrowserSlot actually appends in
-    // production — otherwise the rendered button looks unstyled and
-    // misrepresents the live behaviour.
-    const injected = document.createElement("cts-button");
-    injected.setAttribute("data-testid", "injected-browser-btn");
-    injected.setAttribute("variant", "primary");
-    injected.setAttribute("size", "sm");
-    injected.setAttribute("icon", "external-link");
-    injected.setAttribute("label", "Open in browser");
-    slotById.appendChild(injected);
+    await step("the slot accepts DOM-injected content without Lit wiping it", async () => {
+      // Page-level JS injects content via DOM methods; the slot accepts
+      // the injection without Lit's reactive re-render wiping it. Use a
+      // cts-button here (not a plain <button>) so the story matches what
+      // js/log-detail.js's renderBrowserSlot actually appends in
+      // production — otherwise the rendered button looks unstyled and
+      // misrepresents the live behaviour.
+      const slotById = canvasElement.querySelector("#runningTestBrowser");
+      const injected = document.createElement("cts-button");
+      injected.setAttribute("data-testid", "injected-browser-btn");
+      injected.setAttribute("variant", "primary");
+      injected.setAttribute("size", "sm");
+      injected.setAttribute("icon", "external-link");
+      injected.setAttribute("label", "Open in browser");
+      slotById.appendChild(injected);
 
-    await waitFor(() => {
-      expect(canvasElement.querySelector('[data-testid="injected-browser-btn"]')).toBeTruthy();
+      await waitFor(() => {
+        expect(canvasElement.querySelector('[data-testid="injected-browser-btn"]')).toBeTruthy();
+      });
     });
   },
 };
@@ -889,7 +938,7 @@ export const WithFinalErrorSlotPopulated = {
     html`<cts-log-detail-header
       .testInfo=${{ ...RUNNING_TEST, status: "INTERRUPTED" }}
     ></cts-log-detail-header>`,
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     // Wait for the header to render so the slot exists in the DOM.
     const slot = await waitFor(() => {
       const el = canvasElement.querySelector('[data-slot="error"]');
@@ -897,59 +946,63 @@ export const WithFinalErrorSlotPopulated = {
       return el;
     });
 
-    // Drive the slot through the same code path js/log-detail.js
-    // uses on each /api/runner poll. Story stays faithful to the
-    // production render path as long as renderErrorIntoSlot evolves.
-    renderErrorIntoSlot(slot, SAMPLE_RUNNER_ERROR);
+    await step("renderErrorIntoSlot paints the danger-variant FINAL_ERROR alert", async () => {
+      // Drive the slot through the same code path js/log-detail.js
+      // uses on each /api/runner poll. Story stays faithful to the
+      // production render path as long as renderErrorIntoSlot evolves.
+      renderErrorIntoSlot(slot, SAMPLE_RUNNER_ERROR);
 
-    // The injected alert is the danger-variant FINAL_ERROR — distinct
-    // from the hero region's "interrupted" alert which is also danger.
-    // We anchor on the heading text the helper writes, not on variant.
-    const finalErrorAlert = Array.from(slot.querySelectorAll("cts-alert")).find((a) =>
-      (a.textContent || "").includes("There was an error while running the test"),
-    );
-    expect(finalErrorAlert).toBeTruthy();
-    expect(finalErrorAlert.getAttribute("variant")).toBe("danger");
-    expect(finalErrorAlert.textContent).toContain("ConnectException");
-
-    // Stacktrace + cause are present but hidden until the toggle is
-    // clicked — mirrors the legacy reveal-on-click contract.
-    const stack = slot.querySelector("#stacktrace");
-    const cause = slot.querySelector("#causeStacktrace");
-    expect(stack).toBeTruthy();
-    expect(cause).toBeTruthy();
-    expect(stack.style.display).toBe("none");
-    expect(cause.style.display).toBe("none");
-
-    const toggle = slot.querySelector("#stacktraceBtn");
-    expect(toggle).toBeTruthy();
-    // cts-button binds @click on the inner <button> (light DOM); a
-    // userEvent.click on the host element does not bubble through to
-    // the inner handler that emits cts-click. Click the inner button
-    // directly — same shape as the innerButton() helper used elsewhere
-    // in this file. cts-button renders its inner <button> via Lit on the
-    // first microtask after connectedCallback, so we wait for it before
-    // querying — without this, the lookup races the slot population.
-    const toggleInner = await waitFor(() => {
-      const inner = toggle.querySelector("button");
-      if (!inner) throw new Error("cts-button inner <button> not yet rendered");
-      return inner;
+      // The injected alert is the danger-variant FINAL_ERROR — distinct
+      // from the hero region's "interrupted" alert which is also danger.
+      // We anchor on the heading text the helper writes, not on variant.
+      const finalErrorAlert = Array.from(slot.querySelectorAll("cts-alert")).find((a) =>
+        (a.textContent || "").includes("There was an error while running the test"),
+      );
+      expect(finalErrorAlert).toBeTruthy();
+      expect(finalErrorAlert.getAttribute("variant")).toBe("danger");
+      expect(finalErrorAlert.textContent).toContain("ConnectException");
     });
-    await userEvent.click(toggleInner);
 
-    // After the toggle fires, both blocks reveal together and the
-    // toggle button hides itself.
-    expect(stack.style.display).toBe("block");
-    expect(cause.style.display).toBe("block");
-    expect(stack.classList.contains("show")).toBe(true);
-    expect(cause.classList.contains("show")).toBe(true);
-    expect(toggle.style.display).toBe("none");
+    await step("clicking the toggle reveals the hidden stacktrace + cause blocks", async () => {
+      // Stacktrace + cause are present but hidden until the toggle is
+      // clicked — mirrors the legacy reveal-on-click contract.
+      const stack = slot.querySelector("#stacktrace");
+      const cause = slot.querySelector("#causeStacktrace");
+      expect(stack).toBeTruthy();
+      expect(cause).toBeTruthy();
+      expect(stack.style.display).toBe("none");
+      expect(cause.style.display).toBe("none");
+
+      const toggle = slot.querySelector("#stacktraceBtn");
+      expect(toggle).toBeTruthy();
+      // cts-button binds @click on the inner <button> (light DOM); a
+      // userEvent.click on the host element does not bubble through to
+      // the inner handler that emits cts-click. Click the inner button
+      // directly — same shape as the innerButton() helper used elsewhere
+      // in this file. cts-button renders its inner <button> via Lit on the
+      // first microtask after connectedCallback, so we wait for it before
+      // querying — without this, the lookup races the slot population.
+      const toggleInner = await waitFor(() => {
+        const inner = toggle.querySelector("button");
+        if (!inner) throw new Error("cts-button inner <button> not yet rendered");
+        return inner;
+      });
+      await userEvent.click(toggleInner);
+
+      // After the toggle fires, both blocks reveal together and the
+      // toggle button hides itself.
+      expect(stack.style.display).toBe("block");
+      expect(cause.style.display).toBe("block");
+      expect(stack.classList.contains("show")).toBe(true);
+      expect(cause.classList.contains("show")).toBe(true);
+      expect(toggle.style.display).toBe("none");
+    });
   },
 };
 
 export const WithTestNavControls = {
   render: () => html`<cts-log-detail-header .testInfo=${COMPLETED_TEST}></cts-log-detail-header>`,
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     await waitFor(() => {
       const el = canvasElement.querySelector("cts-test-nav-controls");
       if (!el) throw new Error("cts-test-nav-controls not yet rendered");
@@ -964,35 +1017,39 @@ export const WithTestNavControls = {
     // tightens the IA proximity between the page-level breadcrumb
     // and the plan-progress orientation it carries.
     const navRow = canvasElement.querySelector('[data-testid="nav-row"]');
-    expect(navRow).toBeTruthy();
 
-    const navHost = navRow.querySelector("cts-test-nav-controls");
-    expect(navHost).toBeTruthy();
-    expect(navHost.getAttribute("id")).toBe("testNavControls");
-    expect(navHost.getAttribute("data-testid")).toBe("test-nav-controls");
-    expect(navHost.getAttribute("plan-id")).toBe(COMPLETED_TEST.planId);
-    expect(navHost.getAttribute("test-id")).toBe(COMPLETED_TEST.testId);
-    // The header always opts the cluster into `slim`. Without slim the
-    // cluster would render Return-to-Plan + Repeat alongside the
-    // status bar's primary "Repeat" and the page-level breadcrumb's
-    // "Plan" item — duplicating two prominent affordances inside one
-    // viewport.
-    expect(navHost.hasAttribute("slim")).toBe(true);
-    // The status bar primary already provides Repeat for FINISHED
-    // tests; the slim cluster must NOT render its own Repeat copy.
-    expect(navRow.querySelector('[data-testid="repeat-btn"]')).toBeNull();
-    expect(navRow.querySelector('[data-testid="back-btn"]')).toBeNull();
+    await step("nav row hosts the slim cluster with the expected attributes", async () => {
+      expect(navRow).toBeTruthy();
 
-    // IA regression: nav row must precede the sticky status bar in
-    // DOM order. Reading top-to-bottom, the page chrome is
-    // breadcrumb → plan progress → this test's verdict — matching
-    // the page-level breadcrumb's own scope (plan → this test).
-    const statusBar = canvasElement.querySelector('[data-testid="status-bar"]');
-    expect(statusBar).toBeTruthy();
-    // Node.DOCUMENT_POSITION_FOLLOWING (4) means statusBar follows navRow.
-    expect(
-      navRow.compareDocumentPosition(statusBar) & Node.DOCUMENT_POSITION_FOLLOWING,
-    ).toBeTruthy();
+      const navHost = navRow.querySelector("cts-test-nav-controls");
+      expect(navHost).toBeTruthy();
+      expect(navHost.getAttribute("id")).toBe("testNavControls");
+      expect(navHost.getAttribute("data-testid")).toBe("test-nav-controls");
+      expect(navHost.getAttribute("plan-id")).toBe(COMPLETED_TEST.planId);
+      expect(navHost.getAttribute("test-id")).toBe(COMPLETED_TEST.testId);
+      // The header always opts the cluster into `slim`. Without slim the
+      // cluster would render Return-to-Plan + Repeat alongside the
+      // status bar's primary "Repeat" and the page-level breadcrumb's
+      // "Plan" item — duplicating two prominent affordances inside one
+      // viewport.
+      expect(navHost.hasAttribute("slim")).toBe(true);
+      // The status bar primary already provides Repeat for FINISHED
+      // tests; the slim cluster must NOT render its own Repeat copy.
+      expect(navRow.querySelector('[data-testid="repeat-btn"]')).toBeNull();
+      expect(navRow.querySelector('[data-testid="back-btn"]')).toBeNull();
+    });
+
+    await step("IA regression: nav row precedes the sticky status bar in DOM order", async () => {
+      // Reading top-to-bottom, the page chrome is breadcrumb → plan
+      // progress → this test's verdict — matching the page-level
+      // breadcrumb's own scope (plan → this test).
+      const statusBar = canvasElement.querySelector('[data-testid="status-bar"]');
+      expect(statusBar).toBeTruthy();
+      // Node.DOCUMENT_POSITION_FOLLOWING (4) means statusBar follows navRow.
+      expect(
+        navRow.compareDocumentPosition(statusBar) & Node.DOCUMENT_POSITION_FOLLOWING,
+      ).toBeTruthy();
+    });
   },
 };
 
@@ -1016,136 +1073,162 @@ const RUNNING_TEST_WITH_RESULTS = {
 
 export const StatusBarWaiting = {
   render: () => html`<cts-log-detail-header .testInfo=${WAITING_TEST}></cts-log-detail-header>`,
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const bar = await waitFor(() => {
       const el = canvasElement.querySelector('[data-testid="status-bar"]');
       if (!el) throw new Error("status bar not yet rendered");
       return el;
     });
 
-    const pill = bar.querySelector('cts-badge[label="WAITING"]');
-    expect(pill).toBeTruthy();
-    expect(pill.getAttribute("variant")).toBe("warn");
-    expect(bar.textContent).toContain("Waiting for user input");
+    await step("WAITING pill + status text render in the bar", async () => {
+      const pill = bar.querySelector('cts-badge[label="WAITING"]');
+      expect(pill).toBeTruthy();
+      expect(pill.getAttribute("variant")).toBe("warn");
+      expect(bar.textContent).toContain("Waiting for user input");
+    });
 
-    const primaryHost = bar.querySelector('[data-testid="status-bar-primary"]');
-    expect(primaryHost).toBeTruthy();
-    expect(within(primaryHost).getByText(/Start/)).toBeInTheDocument();
+    await step("the bar primary slot carries Start", async () => {
+      const primaryHost = bar.querySelector('[data-testid="status-bar-primary"]');
+      expect(primaryHost).toBeTruthy();
+      expect(within(primaryHost).getByText(/Start/)).toBeInTheDocument();
+    });
 
-    // Both the bar primary AND the hero footer carry Start during WAITING.
-    // Asserting the bar fires the event keeps the U2 contract.
-    const startHandler = fn();
-    canvasElement.addEventListener("cts-start-test", startHandler);
-    await userEvent.click(innerButton(canvasElement, "status-bar-primary"));
-    expect(startHandler).toHaveBeenCalledOnce();
-    expect(startHandler.mock.calls[0][0].detail.testId).toBe(WAITING_TEST.testId);
+    await step("clicking the bar primary fires cts-start-test", async () => {
+      // Both the bar primary AND the hero footer carry Start during WAITING.
+      // Asserting the bar fires the event keeps the U2 contract.
+      const startHandler = fn();
+      canvasElement.addEventListener("cts-start-test", startHandler);
+      await userEvent.click(innerButton(canvasElement, "status-bar-primary"));
+      expect(startHandler).toHaveBeenCalledOnce();
+      expect(startHandler.mock.calls[0][0].detail.testId).toBe(WAITING_TEST.testId);
+    });
 
-    // Test name leads .ctsStatusBarLeft on every bar variant — locks
-    // the row-1 hierarchy so a future template refactor can't silently
-    // demote the name behind the status pill on the WAITING path.
-    const left = bar.querySelector(".ctsStatusBarLeft");
-    const nameText = left.querySelector(".ctsStatusBarTestNameText");
-    expect(nameText).toBeTruthy();
-    expect(left.firstElementChild).toBe(nameText);
+    await step("test name leads .ctsStatusBarLeft", async () => {
+      // Test name leads .ctsStatusBarLeft on every bar variant — locks
+      // the row-1 hierarchy so a future template refactor can't silently
+      // demote the name behind the status pill on the WAITING path.
+      const left = bar.querySelector(".ctsStatusBarLeft");
+      const nameText = left.querySelector(".ctsStatusBarTestNameText");
+      expect(nameText).toBeTruthy();
+      expect(left.firstElementChild).toBe(nameText);
+    });
   },
 };
 
 export const StatusBarRunning = {
   render: () =>
     html`<cts-log-detail-header .testInfo=${RUNNING_TEST_WITH_RESULTS}></cts-log-detail-header>`,
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const bar = await waitFor(() => {
       const el = canvasElement.querySelector('[data-testid="status-bar"]');
       if (!el) throw new Error("status bar not yet rendered");
       return el;
     });
 
-    const pill = bar.querySelector('cts-badge[label="RUNNING"]');
-    expect(pill).toBeTruthy();
-    expect(pill.getAttribute("variant")).toBe("running");
+    await step("RUNNING pill renders in the bar", async () => {
+      const pill = bar.querySelector('cts-badge[label="RUNNING"]');
+      expect(pill).toBeTruthy();
+      expect(pill.getAttribute("variant")).toBe("running");
+    });
 
-    // Result-pill cluster: 2 SUCCESS, 1 INFO, 1 WARNING in MOCK_RESULTS.
-    const pillCluster = bar.querySelector('[data-testid="status-bar-pills"]');
-    expect(pillCluster).toBeTruthy();
-    expect(pillCluster.querySelector('cts-badge[label="✓ 2"]')).toBeTruthy();
-    expect(pillCluster.querySelector('cts-badge[label="⚠ 1"]')).toBeTruthy();
-    expect(pillCluster.querySelector('cts-badge[label="ⓘ 1"]')).toBeTruthy();
+    await step("result-pill cluster counts the MOCK_RESULTS outcomes", async () => {
+      // 2 SUCCESS, 1 INFO, 1 WARNING in MOCK_RESULTS.
+      const pillCluster = bar.querySelector('[data-testid="status-bar-pills"]');
+      expect(pillCluster).toBeTruthy();
+      expect(pillCluster.querySelector('cts-badge[label="✓ 2"]')).toBeTruthy();
+      expect(pillCluster.querySelector('cts-badge[label="⚠ 1"]')).toBeTruthy();
+      expect(pillCluster.querySelector('cts-badge[label="ⓘ 1"]')).toBeTruthy();
+    });
 
-    const stopHandler = fn();
-    canvasElement.addEventListener("cts-stop-test", stopHandler);
-    await userEvent.click(innerButton(canvasElement, "status-bar-primary"));
-    expect(stopHandler).toHaveBeenCalledOnce();
+    await step("clicking the bar primary fires cts-stop-test", async () => {
+      const stopHandler = fn();
+      canvasElement.addEventListener("cts-stop-test", stopHandler);
+      await userEvent.click(innerButton(canvasElement, "status-bar-primary"));
+      expect(stopHandler).toHaveBeenCalledOnce();
+    });
 
-    // Test name leads .ctsStatusBarLeft on every bar variant — locks
-    // the row-1 hierarchy so a future template refactor can't silently
-    // demote the name behind the running status pill or the result-pill
-    // cluster.
-    const left = bar.querySelector(".ctsStatusBarLeft");
-    const nameText = left.querySelector(".ctsStatusBarTestNameText");
-    expect(nameText).toBeTruthy();
-    expect(left.firstElementChild).toBe(nameText);
+    await step("test name leads .ctsStatusBarLeft", async () => {
+      // Test name leads .ctsStatusBarLeft on every bar variant — locks
+      // the row-1 hierarchy so a future template refactor can't silently
+      // demote the name behind the running status pill or the result-pill
+      // cluster.
+      const left = bar.querySelector(".ctsStatusBarLeft");
+      const nameText = left.querySelector(".ctsStatusBarTestNameText");
+      expect(nameText).toBeTruthy();
+      expect(left.firstElementChild).toBe(nameText);
+    });
   },
 };
 
 export const StatusBarFinishedPassed = {
   render: () => html`<cts-log-detail-header .testInfo=${COMPLETED_TEST}></cts-log-detail-header>`,
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const bar = await waitFor(() => {
       const el = canvasElement.querySelector('[data-testid="status-bar"]');
       if (!el) throw new Error("status bar not yet rendered");
       return el;
     });
 
-    expect(bar.querySelector('cts-badge[variant="pass"][label="PASSED"]')).toBeTruthy();
-    expect(bar.querySelector('cts-badge[variant="skip"][label="FINISHED"]')).toBeTruthy();
-    expect(within(bar).getByText(/Repeat/)).toBeInTheDocument();
+    await step("PASSED + FINISHED badges and the Repeat primary render", async () => {
+      expect(bar.querySelector('cts-badge[variant="pass"][label="PASSED"]')).toBeTruthy();
+      expect(bar.querySelector('cts-badge[variant="skip"][label="FINISHED"]')).toBeTruthy();
+      expect(within(bar).getByText(/Repeat/)).toBeInTheDocument();
+    });
 
-    const repeatHandler = fn();
-    canvasElement.addEventListener("cts-repeat-test", repeatHandler);
-    await userEvent.click(innerButton(canvasElement, "status-bar-primary"));
-    expect(repeatHandler).toHaveBeenCalledOnce();
-    expect(repeatHandler.mock.calls[0][0].detail.testId).toBe(COMPLETED_TEST.testId);
+    await step("clicking the bar primary fires cts-repeat-test", async () => {
+      const repeatHandler = fn();
+      canvasElement.addEventListener("cts-repeat-test", repeatHandler);
+      await userEvent.click(innerButton(canvasElement, "status-bar-primary"));
+      expect(repeatHandler).toHaveBeenCalledOnce();
+      expect(repeatHandler.mock.calls[0][0].detail.testId).toBe(COMPLETED_TEST.testId);
+    });
 
-    // Test module name leads the bar's left cluster, before the
-    // verdict badge — promotes "which test is this?" above the
-    // badges that describe it.
-    const left = bar.querySelector(".ctsStatusBarLeft");
-    expect(left).toBeTruthy();
-    const nameText = left.querySelector(".ctsStatusBarTestNameText");
-    expect(nameText).toBeTruthy();
-    expect(nameText.textContent).toContain(COMPLETED_TEST.testName);
-    expect(left.firstElementChild).toBe(nameText);
+    await step("test module name leads the bar's left cluster, before the verdict", async () => {
+      // Promotes "which test is this?" above the badges that describe it.
+      const left = bar.querySelector(".ctsStatusBarLeft");
+      expect(left).toBeTruthy();
+      const nameText = left.querySelector(".ctsStatusBarTestNameText");
+      expect(nameText).toBeTruthy();
+      expect(nameText.textContent).toContain(COMPLETED_TEST.testName);
+      expect(left.firstElementChild).toBe(nameText);
+    });
 
-    // Created timestamp owns row 2 by itself after the row-1 lift —
-    // make sure no future template tweak silently drops the field.
-    const created = bar.querySelector(".ctsStatusBarCreated");
-    expect(created).toBeTruthy();
-    expect(created.textContent.trim().length).toBeGreaterThan(0);
+    await step("created timestamp owns row 2 and renders through cts-time", async () => {
+      // Created timestamp owns row 2 by itself after the row-1 lift —
+      // make sure no future template tweak silently drops the field.
+      const created = bar.querySelector(".ctsStatusBarCreated");
+      expect(created).toBeTruthy();
+      expect(created.textContent.trim().length).toBeGreaterThan(0);
 
-    // It renders through cts-time: a native <time> whose title carries the
-    // full absolute date on hover (the compact visible form elides parts).
-    const createdTime = created.querySelector("time");
-    expect(createdTime).toBeTruthy();
-    expect(createdTime.getAttribute("title")).toBeTruthy();
-    expect(createdTime.getAttribute("datetime")).toBeTruthy();
+      // It renders through cts-time: a native <time> whose title carries the
+      // full absolute date on hover (the compact visible form elides parts).
+      const createdTime = created.querySelector("time");
+      expect(createdTime).toBeTruthy();
+      expect(createdTime.getAttribute("title")).toBeTruthy();
+      expect(createdTime.getAttribute("datetime")).toBeTruthy();
+    });
   },
 };
 
 export const StatusBarFinishedFailed = {
   render: () => html`<cts-log-detail-header .testInfo=${FAILED_TEST}></cts-log-detail-header>`,
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const bar = await waitFor(() => {
       const el = canvasElement.querySelector('[data-testid="status-bar"]');
       if (!el) throw new Error("status bar not yet rendered");
       return el;
     });
 
-    expect(bar.querySelector('cts-badge[variant="fail"][label="FAILED"]')).toBeTruthy();
-    expect(bar.querySelector('cts-badge[variant="skip"][label="FINISHED"]')).toBeTruthy();
+    await step("FAILED + FINISHED badges render in the bar", async () => {
+      expect(bar.querySelector('cts-badge[variant="fail"][label="FAILED"]')).toBeTruthy();
+      expect(bar.querySelector('cts-badge[variant="skip"][label="FINISHED"]')).toBeTruthy();
+    });
 
-    const pillCluster = bar.querySelector('[data-testid="status-bar-pills"]');
-    expect(pillCluster.querySelector('cts-badge[label="✗ 2"]')).toBeTruthy();
-    expect(pillCluster.querySelector('[data-testid="status-bar-pill-failure"]')).toBeTruthy();
+    await step("the result-pill cluster shows the failure count + pill", async () => {
+      const pillCluster = bar.querySelector('[data-testid="status-bar-pills"]');
+      expect(pillCluster.querySelector('cts-badge[label="✗ 2"]')).toBeTruthy();
+      expect(pillCluster.querySelector('[data-testid="status-bar-pill-failure"]')).toBeTruthy();
+    });
   },
 };
 
@@ -1213,31 +1296,34 @@ export const StatusBarPublishesHeightCustomProperty = {
 
 export const StatusBarOverflowSecondaryActions = {
   render: () => html`<cts-log-detail-header .testInfo=${COMPLETED_TEST}></cts-log-detail-header>`,
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const overflow = await waitFor(() => {
       const el = canvasElement.querySelector('[data-testid="status-bar-overflow"]');
       if (!el) throw new Error("status-bar-overflow not yet rendered");
       return /** @type {any} */ (el);
     });
 
-    const slot = canvasElement.querySelector('[data-slot="action-overflow"]');
-    expect(slot).toBeTruthy();
-    expect(slot.contains(overflow)).toBe(true);
+    await step("the overflow lives inside the action-overflow slot", async () => {
+      const slot = canvasElement.querySelector('[data-slot="action-overflow"]');
+      expect(slot).toBeTruthy();
+      expect(slot.contains(overflow)).toBe(true);
+    });
 
-    // Non-readonly, non-admin: upload, view-config, edit-config,
-    // download-log, share-link → 5 rows.
-    const items = overflow.querySelectorAll(".overflowItem");
-    expect(items.length).toBe(5);
-    const labels = Array.from(items, (el) => el.textContent.trim());
-    expect(labels).toEqual(
-      expect.arrayContaining([
-        expect.stringContaining("Upload Images"),
-        expect.stringContaining("View configuration"),
-        expect.stringContaining("Edit configuration"),
-        expect.stringContaining("Download Logs"),
-        expect.stringContaining("Private link"),
-      ]),
-    );
+    await step("non-readonly, non-admin kebab has 5 rows with the expected labels", async () => {
+      // upload, view-config, edit-config, download-log, share-link → 5 rows.
+      const items = overflow.querySelectorAll(".overflowItem");
+      expect(items.length).toBe(5);
+      const labels = Array.from(items, (el) => el.textContent.trim());
+      expect(labels).toEqual(
+        expect.arrayContaining([
+          expect.stringContaining("Upload Images"),
+          expect.stringContaining("View configuration"),
+          expect.stringContaining("Edit configuration"),
+          expect.stringContaining("Download Logs"),
+          expect.stringContaining("Private link"),
+        ]),
+      );
+    });
   },
 };
 
@@ -1304,7 +1390,7 @@ export const StatusBarOverflowDispatchesEditConfig = {
 
 export const DrawerExpandedRevealsMetadata = {
   render: () => html`<cts-log-detail-header .testInfo=${COMPLETED_TEST}></cts-log-detail-header>`,
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const detailsHost = /** @type {any} */ (
       await waitFor(() => {
         const el = canvasElement.querySelector('[data-testid="drawer-test-details"]');
@@ -1313,21 +1399,24 @@ export const DrawerExpandedRevealsMetadata = {
       })
     );
 
-    expect(detailsHost.open).toBe(false);
+    await step("clicking the summary opens the closed disclosure", async () => {
+      expect(detailsHost.open).toBe(false);
 
-    // Open the disclosure via summary click — the same mechanic a real
-    // user would use.
-    const summary = detailsHost.querySelector("summary");
-    await userEvent.click(summary);
-    await waitFor(() => expect(detailsHost.open).toBe(true));
+      // Open the disclosure via summary click — the same mechanic a real
+      // user would use.
+      const summary = detailsHost.querySelector("summary");
+      await userEvent.click(summary);
+      await waitFor(() => expect(detailsHost.open).toBe(true));
+    });
 
-    // Metadata table is now visible inside the open disclosure.
-    const metaTable = detailsHost.querySelector(".logMetaTable");
-    expect(metaTable).toBeTruthy();
-    expect(metaTable.textContent).toContain("Test ID:");
-    expect(metaTable.textContent).toContain(COMPLETED_TEST.testId);
-    expect(metaTable.textContent).toContain("Plan ID:");
-    expect(metaTable.textContent).toContain(COMPLETED_TEST.planId);
+    await step("metadata table is visible inside the open disclosure", async () => {
+      const metaTable = detailsHost.querySelector(".logMetaTable");
+      expect(metaTable).toBeTruthy();
+      expect(metaTable.textContent).toContain("Test ID:");
+      expect(metaTable.textContent).toContain(COMPLETED_TEST.testId);
+      expect(metaTable.textContent).toContain("Plan ID:");
+      expect(metaTable.textContent).toContain(COMPLETED_TEST.planId);
+    });
   },
 };
 
@@ -1509,7 +1598,7 @@ export const StaleStatusBarReadsTerminalWhenResultIsSet = {
     html`<cts-log-detail-header
       .testInfo=${STALE_STATUS_WAITING_RESULT_PASSED}
     ></cts-log-detail-header>`,
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     // A1 (MR 1998): the previous behaviour branched on `status` alone,
     // so polling lag (status=WAITING, result=PASSED) kept Start visible
     // on a test that had already passed. The new phase derivation
@@ -1521,16 +1610,19 @@ export const StaleStatusBarReadsTerminalWhenResultIsSet = {
       return el;
     });
 
-    expect(bar.querySelector('cts-badge[variant="pass"][label="PASSED"]')).toBeTruthy();
-    expect(within(bar).getByText(/Repeat Test/)).toBeInTheDocument();
-    // The Start button must not leak through: querying by label leaves
-    // no room for the regression to come back.
-    expect(within(bar).queryByText(/Start Test/)).toBeNull();
+    await step("stale WAITING+PASSED bar renders Repeat Test, not Start", async () => {
+      expect(bar.querySelector('cts-badge[variant="pass"][label="PASSED"]')).toBeTruthy();
+      expect(within(bar).getByText(/Repeat Test/)).toBeInTheDocument();
+      // The Start button must not leak through: querying by label leaves
+      // no room for the regression to come back.
+      expect(within(bar).queryByText(/Start Test/)).toBeNull();
+    });
 
-    // The terminal banner also picks up the verdict.
-    const banner = canvasElement.querySelector('[data-testid="terminal-banner"]');
-    expect(banner).toBeTruthy();
-    expect(banner.getAttribute("data-phase")).toBe("finished-pass");
+    await step("the terminal banner also picks up the verdict", async () => {
+      const banner = canvasElement.querySelector('[data-testid="terminal-banner"]');
+      expect(banner).toBeTruthy();
+      expect(banner.getAttribute("data-phase")).toBe("finished-pass");
+    });
   },
 };
 
@@ -1555,7 +1647,7 @@ export const StaleStatusRoutesHeroToFailureWhenResultFailed = {
 export const WaitingHeroDistinguishesExternalVsUserAction = {
   render: () =>
     html`<cts-log-detail-header .testInfo=${WAITING_TEST_WITH_RESULTS}></cts-log-detail-header>`,
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     // A6 (MR 1998): a WAITING test that has already executed
     // conditions is waiting on an external party (HTTP callback,
     // browser-driven step), not on a user click. The previous copy
@@ -1568,24 +1660,28 @@ export const WaitingHeroDistinguishesExternalVsUserAction = {
       return el;
     });
 
-    expect(waitingHero.getAttribute("data-waiting-mode")).toBe("external");
-    expect(waitingHero.textContent).toContain("Test running");
-    expect(waitingHero.textContent).toContain(
-      "Waiting for an external request — no action required from you.",
-    );
-    expect(waitingHero.textContent).not.toContain("Click Start");
+    await step("hero uses the external-wait branch and hides Click Start", async () => {
+      expect(waitingHero.getAttribute("data-waiting-mode")).toBe("external");
+      expect(waitingHero.textContent).toContain("Test running");
+      expect(waitingHero.textContent).toContain(
+        "Waiting for an external request — no action required from you.",
+      );
+      expect(waitingHero.textContent).not.toContain("Click Start");
+    });
 
-    const bar = canvasElement.querySelector('[data-testid="status-bar"]');
-    expect(bar.textContent).toContain("Waiting for external input — no action required");
-    // Start button is suppressed in the external-wait branch — the
-    // user does not need it.
-    expect(bar.querySelector('[data-testid="status-bar-primary"]')).toBeNull();
+    await step("the bar mirrors the external-wait copy and suppresses Start", async () => {
+      const bar = canvasElement.querySelector('[data-testid="status-bar"]');
+      expect(bar.textContent).toContain("Waiting for external input — no action required");
+      // Start button is suppressed in the external-wait branch — the
+      // user does not need it.
+      expect(bar.querySelector('[data-testid="status-bar-primary"]')).toBeNull();
+    });
   },
 };
 
 export const WaitingHeroKeepsStartWhenFreshTest = {
   render: () => html`<cts-log-detail-header .testInfo=${WAITING_TEST}></cts-log-detail-header>`,
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     // A6 inverse: a fresh WAITING test (no conditions yet) genuinely
     // needs the user to click Start to kick off the run. Eyebrow,
     // copy, and the primary button all stay in their "needs user
@@ -1596,17 +1692,22 @@ export const WaitingHeroKeepsStartWhenFreshTest = {
       return el;
     });
 
-    expect(waitingHero.getAttribute("data-waiting-mode")).toBe("user-action");
-    expect(waitingHero.textContent).toContain("Action required");
+    await step("fresh WAITING hero stays in the user-action form", async () => {
+      expect(waitingHero.getAttribute("data-waiting-mode")).toBe("user-action");
+      expect(waitingHero.textContent).toContain("Action required");
+    });
 
-    const bar = canvasElement.querySelector('[data-testid="status-bar"]');
-    expect(bar.textContent).toContain("Waiting for user input");
+    await step("the bar shows the user-input copy", async () => {
+      const bar = canvasElement.querySelector('[data-testid="status-bar"]');
+      expect(bar.textContent).toContain("Waiting for user input");
+    });
 
-    // Start Test (C1 label) is present and dispatches cts-start-test.
-    const startHandler = fn();
-    canvasElement.addEventListener("cts-start-test", startHandler);
-    await userEvent.click(innerButton(canvasElement, "status-bar-primary"));
-    expect(startHandler).toHaveBeenCalledOnce();
+    await step("Start Test (C1 label) dispatches cts-start-test", async () => {
+      const startHandler = fn();
+      canvasElement.addEventListener("cts-start-test", startHandler);
+      await userEvent.click(innerButton(canvasElement, "status-bar-primary"));
+      expect(startHandler).toHaveBeenCalledOnce();
+    });
   },
 };
 
@@ -1633,37 +1734,42 @@ export const VariantRendersAsDefinitionList = {
   // instead of the legacy "k: v, k: v" comma-soup. The drawer is
   // collapsed by default, so the play test opens it before asserting.
   render: () => html`<cts-log-detail-header .testInfo=${COMPLETED_TEST}></cts-log-detail-header>`,
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const drawer = await waitFor(() => {
       const el = canvasElement.querySelector('[data-testid="drawer-test-details"]');
       if (!el) throw new Error("drawer not yet rendered");
       return el;
     });
-    drawer.open = true;
-    await waitFor(() => {
-      if (!canvasElement.querySelector('[data-testid="variant-list"]')) {
-        throw new Error("variant list not yet rendered");
-      }
+
+    await step("opening the drawer renders the variant list", async () => {
+      drawer.open = true;
+      await waitFor(() => {
+        if (!canvasElement.querySelector('[data-testid="variant-list"]')) {
+          throw new Error("variant list not yet rendered");
+        }
+      });
     });
 
-    const list = canvasElement.querySelector('[data-testid="variant-list"]');
-    expect(list).toBeTruthy();
-    expect(list.tagName).toBe("DL");
+    await step("each variant key/value pair renders on its own dt/dd line", async () => {
+      const list = canvasElement.querySelector('[data-testid="variant-list"]');
+      expect(list).toBeTruthy();
+      expect(list.tagName).toBe("DL");
 
-    const keys = Array.from(list.querySelectorAll("dt"));
-    const values = Array.from(list.querySelectorAll("dd"));
-    // COMPLETED_TEST inherits MOCK_TEST_STATUS.variant which has two
-    // keys: client_auth_type + response_type.
-    expect(keys.length).toBe(2);
-    expect(values.length).toBe(2);
-    expect(keys[0].textContent.trim()).toBe("client_auth_type");
-    expect(values[0].textContent.trim()).toBe("client_secret_basic");
-    expect(keys[1].textContent.trim()).toBe("response_type");
-    expect(values[1].textContent.trim()).toBe("code");
+      const keys = Array.from(list.querySelectorAll("dt"));
+      const values = Array.from(list.querySelectorAll("dd"));
+      // COMPLETED_TEST inherits MOCK_TEST_STATUS.variant which has two
+      // keys: client_auth_type + response_type.
+      expect(keys.length).toBe(2);
+      expect(values.length).toBe(2);
+      expect(keys[0].textContent.trim()).toBe("client_auth_type");
+      expect(values[0].textContent.trim()).toBe("client_secret_basic");
+      expect(keys[1].textContent.trim()).toBe("response_type");
+      expect(values[1].textContent.trim()).toBe("code");
 
-    // Regression: the legacy comma-joined string must not appear inside
-    // the variant cell.
-    const cell = list.parentElement;
-    expect(cell.textContent).not.toContain("client_auth_type: client_secret_basic, ");
+      // Regression: the legacy comma-joined string must not appear inside
+      // the variant cell.
+      const cell = list.parentElement;
+      expect(cell.textContent).not.toContain("client_auth_type: client_secret_basic, ");
+    });
   },
 };

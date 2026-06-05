@@ -38,43 +38,49 @@ export const Default = {
       cta-href=${ctaHref}
     ></cts-empty-state>`,
 
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const host = canvasElement.querySelector("cts-empty-state");
     await host.updateComplete;
 
-    const wrapper = host.querySelector(".oidf-empty-state");
-    expect(wrapper).toBeTruthy();
+    await step("wrapper renders", async () => {
+      const wrapper = host.querySelector(".oidf-empty-state");
+      expect(wrapper).toBeTruthy();
+    });
 
-    // Icon glyph rendered above the heading.
-    const iconHost = host.querySelector("cts-icon");
-    expect(iconHost).toBeTruthy();
-    expect(iconHost.getAttribute("name")).toBe("folder-open");
-    expect(iconHost.getAttribute("size")).toBe("24");
+    await step("icon glyph rendered above the heading", async () => {
+      const iconHost = host.querySelector("cts-icon");
+      expect(iconHost).toBeTruthy();
+      expect(iconHost.getAttribute("name")).toBe("folder-open");
+      expect(iconHost.getAttribute("size")).toBe("24");
+    });
 
-    // Heading text matches.
-    const heading = host.querySelector(".oidf-empty-state-heading");
-    expect(heading).toBeTruthy();
-    expect(heading.tagName).toBe("H2");
-    expect(heading.textContent.trim()).toBe("No test plans yet");
+    await step("heading text matches", async () => {
+      const heading = host.querySelector(".oidf-empty-state-heading");
+      expect(heading).toBeTruthy();
+      expect(heading.tagName).toBe("H2");
+      expect(heading.textContent.trim()).toBe("No test plans yet");
+    });
 
-    // Body paragraph rendered with the supplied copy.
-    const body = host.querySelector(".oidf-empty-state-body");
-    expect(body).toBeTruthy();
-    expect(body.textContent.trim()).toBe(
-      "Create your first plan to get started running conformance tests.",
-    );
+    await step("body paragraph rendered with the supplied copy", async () => {
+      const body = host.querySelector(".oidf-empty-state-body");
+      expect(body).toBeTruthy();
+      expect(body.textContent.trim()).toBe(
+        "Create your first plan to get started running conformance tests.",
+      );
+    });
 
-    // Built-in CTA renders a primary cts-link-button (its inner anchor
-    // carries the OIDF button classes).
-    const ctaHost = host.querySelector("cts-link-button");
-    expect(ctaHost).toBeTruthy();
-    await ctaHost.updateComplete;
-    const ctaAnchor = ctaHost.querySelector("a");
-    expect(ctaAnchor).toBeTruthy();
-    expect(ctaAnchor.getAttribute("href")).toBe("schedule-test.html");
-    expect(ctaAnchor.textContent.trim()).toBe("Create a plan");
-    expect(ctaAnchor.classList.contains("oidf-btn-primary")).toBe(true);
-    expect(ctaAnchor.classList.contains("oidf-btn-sm")).toBe(true);
+    await step("built-in CTA renders a primary cts-link-button", async () => {
+      // The inner anchor carries the OIDF button classes.
+      const ctaHost = host.querySelector("cts-link-button");
+      expect(ctaHost).toBeTruthy();
+      await ctaHost.updateComplete;
+      const ctaAnchor = ctaHost.querySelector("a");
+      expect(ctaAnchor).toBeTruthy();
+      expect(ctaAnchor.getAttribute("href")).toBe("schedule-test.html");
+      expect(ctaAnchor.textContent.trim()).toBe("Create a plan");
+      expect(ctaAnchor.classList.contains("oidf-btn-primary")).toBe(true);
+      expect(ctaAnchor.classList.contains("oidf-btn-sm")).toBe(true);
+    });
   },
 };
 
@@ -91,22 +97,25 @@ export const HeadingAndBodyOnly = {
   render: ({ heading, body }) =>
     html`<cts-empty-state heading=${heading} body=${body}></cts-empty-state>`,
 
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const host = canvasElement.querySelector("cts-empty-state");
     await host.updateComplete;
 
-    // Heading still renders.
-    const heading = host.querySelector(".oidf-empty-state-heading");
-    expect(heading).toBeTruthy();
-    expect(heading.textContent.trim()).toBe("Nothing to show here");
+    await step("heading still renders", async () => {
+      const heading = host.querySelector(".oidf-empty-state-heading");
+      expect(heading).toBeTruthy();
+      expect(heading.textContent.trim()).toBe("Nothing to show here");
+    });
 
-    // Body still renders.
-    const body = host.querySelector(".oidf-empty-state-body");
-    expect(body).toBeTruthy();
+    await step("body still renders", async () => {
+      const body = host.querySelector(".oidf-empty-state-body");
+      expect(body).toBeTruthy();
+    });
 
-    // Icon and CTA are omitted cleanly.
-    expect(host.querySelector("cts-icon")).toBeNull();
-    expect(host.querySelector("cts-link-button")).toBeNull();
+    await step("icon and CTA are omitted cleanly", async () => {
+      expect(host.querySelector("cts-icon")).toBeNull();
+      expect(host.querySelector("cts-link-button")).toBeNull();
+    });
   },
 };
 
@@ -149,19 +158,21 @@ export const SlottedCta = {
     </cts-empty-state>
   `,
 
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const host = canvasElement.querySelector("cts-empty-state");
     await host.updateComplete;
 
-    // Built-in CTA is NOT rendered (no cta-label / cta-href).
-    expect(host.querySelector("cts-link-button")).toBeNull();
+    await step("built-in CTA is NOT rendered (no cta-label / cta-href)", async () => {
+      expect(host.querySelector("cts-link-button")).toBeNull();
+    });
 
-    // Slotted button is captured into the CTA slot wrapper. Light DOM +
-    // <slot> means the slotted child remains the same node — the slot
-    // simply renders it in place.
-    const slotted = host.querySelector("#slotted-cta");
-    expect(slotted).toBeTruthy();
-    expect(slotted.textContent.trim()).toBe("Generate token");
+    await step("slotted button is captured into the CTA slot wrapper", async () => {
+      // Light DOM + <slot> means the slotted child remains the same node —
+      // the slot simply renders it in place.
+      const slotted = host.querySelector("#slotted-cta");
+      expect(slotted).toBeTruthy();
+      expect(slotted.textContent.trim()).toBe("Generate token");
+    });
   },
 };
 

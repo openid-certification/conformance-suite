@@ -73,42 +73,49 @@ export const PendingImages = {
       .pendingImages=${MOCK_PENDING_IMAGES}
     ></cts-image-upload>
   `,
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const canvas = within(canvasElement);
 
-    // Both pending images render
-    const pendingBlocks = canvasElement.querySelectorAll('[data-testid="pending-image"]');
-    expect(pendingBlocks.length).toBe(2);
+    await step("both pending images render", async () => {
+      const pendingBlocks = canvasElement.querySelectorAll('[data-testid="pending-image"]');
+      expect(pendingBlocks.length).toBe(2);
+    });
 
-    // Description text displayed
-    expect(
-      canvas.getByText("Screenshot of the login page after authentication"),
-    ).toBeInTheDocument();
-    expect(canvas.getByText("Screenshot of the consent page")).toBeInTheDocument();
+    await step("description text displayed", async () => {
+      expect(
+        canvas.getByText("Screenshot of the login page after authentication"),
+      ).toBeInTheDocument();
+      expect(canvas.getByText("Screenshot of the consent page")).toBeInTheDocument();
+    });
 
-    // Each block renders a disabled Upload button (no file selected yet)
-    const uploadButtons = canvas.getAllByRole("button", { name: /^upload$/i });
-    expect(uploadButtons.length).toBe(2);
-    for (const btn of uploadButtons) {
-      expect(/** @type {HTMLButtonElement} */ (btn).disabled).toBe(true);
-    }
+    await step("each block renders a disabled Upload button (no file selected yet)", async () => {
+      const uploadButtons = canvas.getAllByRole("button", { name: /^upload$/i });
+      expect(uploadButtons.length).toBe(2);
+      for (const btn of uploadButtons) {
+        expect(/** @type {HTMLButtonElement} */ (btn).disabled).toBe(true);
+      }
+    });
 
-    // Inline drop zones — keyboard activation comes from the native
-    // <label>/<input type="file"> pairing inside each zone.
-    const zones = canvasElement.querySelectorAll('label[data-testid="inline-dropzone"]');
-    expect(zones.length).toBe(2);
-    for (const zone of zones) {
-      expect(zone.tagName).toBe("LABEL");
-      expect(zone.querySelector('input[type="file"]')).toBeTruthy();
-    }
+    await step("inline drop zones render with native file inputs", async () => {
+      // Keyboard activation comes from the native <label>/<input type="file">
+      // pairing inside each zone.
+      const zones = canvasElement.querySelectorAll('label[data-testid="inline-dropzone"]');
+      expect(zones.length).toBe(2);
+      for (const zone of zones) {
+        expect(zone.tagName).toBe("LABEL");
+        expect(zone.querySelector('input[type="file"]')).toBeTruthy();
+      }
+    });
 
-    // Fallback "Select file…" picker button rendered as a visible affordance
-    // for users who don't recognize the drop zone.
-    const pickerLabels = canvas.getAllByText(/Select file/);
-    expect(pickerLabels.length).toBe(2);
+    await step('fallback "Select file…" picker buttons render', async () => {
+      // Visible affordance for users who don't recognize the drop zone.
+      const pickerLabels = canvas.getAllByText(/Select file/);
+      expect(pickerLabels.length).toBe(2);
+    });
 
-    // No "All images uploaded" message
-    expect(canvas.queryByText("All images uploaded")).toBeNull();
+    await step('no "All images uploaded" message', async () => {
+      expect(canvas.queryByText("All images uploaded")).toBeNull();
+    });
   },
 };
 
@@ -123,34 +130,39 @@ export const DropToEnableUpload = {
       .pendingImages=${[MOCK_PENDING_IMAGES[0]]}
     ></cts-image-upload>
   `,
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const canvas = within(canvasElement);
     const zone = /** @type {HTMLLabelElement} */ (
       canvasElement.querySelector('label[data-testid="inline-dropzone"]')
     );
     expect(zone).toBeTruthy();
-
-    // Dragover transitions to the highlight state
     const file = makeMockPng("inline-drop.png");
-    zone.dispatchEvent(
-      new DragEvent("dragenter", { bubbles: true, dataTransfer: makeDataTransfer([file]) }),
-    );
-    await waitFor(() => {
-      expect(zone.classList.contains("oidf-image-upload__inline-zone--dragover")).toBe(true);
+
+    await step("dragenter transitions to the highlight state", async () => {
+      zone.dispatchEvent(
+        new DragEvent("dragenter", { bubbles: true, dataTransfer: makeDataTransfer([file]) }),
+      );
+      await waitFor(() => {
+        expect(zone.classList.contains("oidf-image-upload__inline-zone--dragover")).toBe(true);
+      });
     });
 
-    // Dropping enables Upload and renders the preview thumb inside the zone
-    zone.dispatchEvent(
-      new DragEvent("drop", { bubbles: true, dataTransfer: makeDataTransfer([file]) }),
+    await step(
+      "dropping enables Upload and renders the preview thumb inside the zone",
+      async () => {
+        zone.dispatchEvent(
+          new DragEvent("drop", { bubbles: true, dataTransfer: makeDataTransfer([file]) }),
+        );
+        await waitFor(() => {
+          const btn = canvas.getByRole("button", { name: /^upload$/i });
+          expect(/** @type {HTMLButtonElement} */ (btn).disabled).toBe(false);
+        });
+        await waitFor(() => {
+          const thumb = zone.querySelector("img.oidf-image-upload__thumb");
+          expect(thumb).toBeTruthy();
+        });
+      },
     );
-    await waitFor(() => {
-      const btn = canvas.getByRole("button", { name: /^upload$/i });
-      expect(/** @type {HTMLButtonElement} */ (btn).disabled).toBe(false);
-    });
-    await waitFor(() => {
-      const thumb = zone.querySelector("img.oidf-image-upload__thumb");
-      expect(thumb).toBeTruthy();
-    });
   },
 };
 
@@ -172,41 +184,45 @@ export const EditableDescription = {
       .existingImages=${MOCK_EXISTING_IMAGES}
     ></cts-image-upload>
   `,
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const canvas = within(canvasElement);
-
-    // Description input is rendered as a required text field
     const desc = /** @type {HTMLInputElement} */ (
       canvasElement.querySelector(".oidf-image-upload__description-input")
     );
-    expect(desc).toBeTruthy();
-    expect(desc.required).toBe(true);
 
-    // Both pending and existing rows render at once
-    expect(canvasElement.querySelectorAll('[data-testid="pending-image"]').length).toBe(1);
-    expect(canvasElement.querySelectorAll('[data-testid="existing-image"]').length).toBe(2);
-
-    // Drop a file on the inline zone — Upload stays disabled until a
-    // description is also typed.
-    const zone = /** @type {HTMLLabelElement} */ (
-      canvasElement.querySelector('label[data-testid="inline-dropzone"]')
-    );
-    const file = makeMockPng("editable-drop.png");
-    zone.dispatchEvent(
-      new DragEvent("drop", { bubbles: true, dataTransfer: makeDataTransfer([file]) }),
-    );
-    await waitFor(() => {
-      const thumb = zone.querySelector("img.oidf-image-upload__thumb");
-      expect(thumb).toBeTruthy();
+    await step("description input is rendered as a required text field", async () => {
+      expect(desc).toBeTruthy();
+      expect(desc.required).toBe(true);
     });
-    const upload = canvas.getByRole("button", { name: /^upload$/i });
-    expect(/** @type {HTMLButtonElement} */ (upload).disabled).toBe(true);
 
-    // Typing a description enables Upload
-    desc.value = "Additional screenshot for this run";
-    desc.dispatchEvent(new Event("input", { bubbles: true }));
-    await waitFor(() => {
-      expect(/** @type {HTMLButtonElement} */ (upload).disabled).toBe(false);
+    await step("both pending and existing rows render at once", async () => {
+      expect(canvasElement.querySelectorAll('[data-testid="pending-image"]').length).toBe(1);
+      expect(canvasElement.querySelectorAll('[data-testid="existing-image"]').length).toBe(2);
+    });
+
+    await step("dropping a file leaves Upload disabled until a description is typed", async () => {
+      const zone = /** @type {HTMLLabelElement} */ (
+        canvasElement.querySelector('label[data-testid="inline-dropzone"]')
+      );
+      const file = makeMockPng("editable-drop.png");
+      zone.dispatchEvent(
+        new DragEvent("drop", { bubbles: true, dataTransfer: makeDataTransfer([file]) }),
+      );
+      await waitFor(() => {
+        const thumb = zone.querySelector("img.oidf-image-upload__thumb");
+        expect(thumb).toBeTruthy();
+      });
+      const upload = canvas.getByRole("button", { name: /^upload$/i });
+      expect(/** @type {HTMLButtonElement} */ (upload).disabled).toBe(true);
+    });
+
+    await step("typing a description enables Upload", async () => {
+      const upload = canvas.getByRole("button", { name: /^upload$/i });
+      desc.value = "Additional screenshot for this run";
+      desc.dispatchEvent(new Event("input", { bubbles: true }));
+      await waitFor(() => {
+        expect(/** @type {HTMLButtonElement} */ (upload).disabled).toBe(false);
+      });
     });
   },
 };
@@ -218,27 +234,29 @@ export const InvalidFileType = {
       .pendingImages=${[MOCK_PENDING_IMAGES[0]]}
     ></cts-image-upload>
   `,
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const zone = /** @type {HTMLLabelElement} */ (
       canvasElement.querySelector('label[data-testid="inline-dropzone"]')
     );
 
-    // Drop a PDF — the component must reject it and show the error alert.
-    const bogus = new File([new Uint8Array(8)], "not-an-image.pdf", { type: "application/pdf" });
-    zone.dispatchEvent(
-      new DragEvent("drop", { bubbles: true, dataTransfer: makeDataTransfer([bogus]) }),
-    );
-
-    await waitFor(() => {
-      const alert = canvasElement.querySelector(".oidf-image-upload__alert--error");
-      expect(alert).toBeTruthy();
-      expect(alert.textContent).toContain("not a supported type");
+    await step("dropping a PDF surfaces the error alert", async () => {
+      // The component must reject the PDF and show the error alert.
+      const bogus = new File([new Uint8Array(8)], "not-an-image.pdf", { type: "application/pdf" });
+      zone.dispatchEvent(
+        new DragEvent("drop", { bubbles: true, dataTransfer: makeDataTransfer([bogus]) }),
+      );
+      await waitFor(() => {
+        const alert = canvasElement.querySelector(".oidf-image-upload__alert--error");
+        expect(alert).toBeTruthy();
+        expect(alert.textContent).toContain("not a supported type");
+      });
     });
 
-    // The upload button remains disabled (no valid file was stored).
-    const canvas = within(canvasElement);
-    const upload = canvas.getByRole("button", { name: /^upload$/i });
-    expect(/** @type {HTMLButtonElement} */ (upload).disabled).toBe(true);
+    await step("the upload button remains disabled (no valid file was stored)", async () => {
+      const canvas = within(canvasElement);
+      const upload = canvas.getByRole("button", { name: /^upload$/i });
+      expect(/** @type {HTMLButtonElement} */ (upload).disabled).toBe(true);
+    });
   },
 };
 
@@ -250,18 +268,20 @@ export const NoPendingImages = {
       .existingImages=${[]}
     ></cts-image-upload>
   `,
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const canvas = within(canvasElement);
 
-    // "All images uploaded" message shown
-    const status = canvas.getByRole("status");
-    expect(status).toBeInTheDocument();
-    expect(status.textContent).toContain("All images uploaded");
-    expect(status.classList.contains("oidf-image-upload__alert")).toBe(true);
+    await step('"All images uploaded" message shown', async () => {
+      const status = canvas.getByRole("status");
+      expect(status).toBeInTheDocument();
+      expect(status.textContent).toContain("All images uploaded");
+      expect(status.classList.contains("oidf-image-upload__alert")).toBe(true);
+    });
 
-    // No file inputs rendered
-    const pendingBlocks = canvasElement.querySelectorAll('[data-testid="pending-image"]');
-    expect(pendingBlocks.length).toBe(0);
+    await step("no file inputs rendered", async () => {
+      const pendingBlocks = canvasElement.querySelectorAll('[data-testid="pending-image"]');
+      expect(pendingBlocks.length).toBe(0);
+    });
   },
 };
 
@@ -272,29 +292,35 @@ export const ExistingImages = {
       .existingImages=${MOCK_EXISTING_IMAGES}
     ></cts-image-upload>
   `,
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const canvas = within(canvasElement);
 
-    expect(canvas.getByText("Uploaded Images")).toBeInTheDocument();
+    await step('"Uploaded Images" heading and both existing rows render', async () => {
+      expect(canvas.getByText("Uploaded Images")).toBeInTheDocument();
 
-    const existingBlocks = canvasElement.querySelectorAll('[data-testid="existing-image"]');
-    expect(existingBlocks.length).toBe(2);
+      const existingBlocks = canvasElement.querySelectorAll('[data-testid="existing-image"]');
+      expect(existingBlocks.length).toBe(2);
 
-    expect(canvas.getByText("screenshot-result")).toBeInTheDocument();
-    expect(canvas.getByText("screenshot-token")).toBeInTheDocument();
+      expect(canvas.getByText("screenshot-result")).toBeInTheDocument();
+      expect(canvas.getByText("screenshot-token")).toBeInTheDocument();
+    });
 
-    const successBlocks = canvasElement.querySelectorAll(".oidf-image-upload__status--uploaded");
-    expect(successBlocks.length).toBe(2);
+    await step("each row shows the uploaded status and image", async () => {
+      const successBlocks = canvasElement.querySelectorAll(".oidf-image-upload__status--uploaded");
+      expect(successBlocks.length).toBe(2);
 
-    const imgs = canvasElement.querySelectorAll('[data-testid="existing-image"] img');
-    expect(imgs.length).toBe(2);
-    for (const img of imgs) {
-      expect(img.getAttribute("src")).toBe("images/placeholder.jpg");
-    }
+      const imgs = canvasElement.querySelectorAll('[data-testid="existing-image"] img');
+      expect(imgs.length).toBe(2);
+      for (const img of imgs) {
+        expect(img.getAttribute("src")).toBe("images/placeholder.jpg");
+      }
+    });
 
-    const status = canvas.getByRole("status");
-    expect(status).toBeInTheDocument();
-    expect(status.textContent).toContain("All images uploaded");
+    await step('"All images uploaded" status message shown', async () => {
+      const status = canvas.getByRole("status");
+      expect(status).toBeInTheDocument();
+      expect(status.textContent).toContain("All images uploaded");
+    });
   },
 };
 
@@ -314,49 +340,53 @@ export const UploadSuccess = {
       .pendingImages=${[MOCK_PENDING_IMAGES[0]]}
     ></cts-image-upload>
   `,
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const canvas = within(canvasElement);
 
-    const fileInput = /** @type {HTMLInputElement} */ (
-      canvasElement.querySelector('input[type="file"]')
-    );
-    expect(fileInput).toBeTruthy();
+    await step("selecting a file enables the Upload button", async () => {
+      const fileInput = /** @type {HTMLInputElement} */ (
+        canvasElement.querySelector('input[type="file"]')
+      );
+      expect(fileInput).toBeTruthy();
 
-    const file = makeMockPng("test-screenshot.png");
-    const dataTransfer = new DataTransfer();
-    dataTransfer.items.add(file);
-    fileInput.files = dataTransfer.files;
-    fileInput.dispatchEvent(new Event("change", { bubbles: true }));
+      const file = makeMockPng("test-screenshot.png");
+      const dataTransfer = new DataTransfer();
+      dataTransfer.items.add(file);
+      fileInput.files = dataTransfer.files;
+      fileInput.dispatchEvent(new Event("change", { bubbles: true }));
 
-    await waitFor(
-      () => {
-        const uploadBtn = canvas.getByRole("button", { name: /^upload$/i });
-        expect(/** @type {HTMLButtonElement} */ (uploadBtn).disabled).toBe(false);
-      },
-      { timeout: 3000 },
-    );
-
-    /** @type {any} */
-    let uploadEvent = null;
-    canvasElement.addEventListener("cts-image-uploaded", (e) => {
-      uploadEvent = /** @type {CustomEvent} */ (e).detail;
+      await waitFor(
+        () => {
+          const uploadBtn = canvas.getByRole("button", { name: /^upload$/i });
+          expect(/** @type {HTMLButtonElement} */ (uploadBtn).disabled).toBe(false);
+        },
+        { timeout: 3000 },
+      );
     });
 
-    const uploadBtn = canvas.getByRole("button", { name: /^upload$/i });
-    await uploadBtn.click();
+    await step("clicking Upload emits cts-image-uploaded with no error alert", async () => {
+      /** @type {any} */
+      let uploadEvent = null;
+      canvasElement.addEventListener("cts-image-uploaded", (e) => {
+        uploadEvent = /** @type {CustomEvent} */ (e).detail;
+      });
 
-    await waitFor(
-      () => {
-        expect(uploadEvent).toBeTruthy();
-      },
-      { timeout: 3000 },
-    );
+      const uploadBtn = canvas.getByRole("button", { name: /^upload$/i });
+      await uploadBtn.click();
 
-    expect(uploadEvent.testId).toBe("test-upload-ok");
-    expect(uploadEvent.imageName).toBe("screenshot-login");
+      await waitFor(
+        () => {
+          expect(uploadEvent).toBeTruthy();
+        },
+        { timeout: 3000 },
+      );
 
-    const alert = canvasElement.querySelector(".oidf-image-upload__alert--error");
-    expect(alert).toBeNull();
+      expect(uploadEvent.testId).toBe("test-upload-ok");
+      expect(uploadEvent.imageName).toBe("screenshot-login");
+
+      const alert = canvasElement.querySelector(".oidf-image-upload__alert--error");
+      expect(alert).toBeNull();
+    });
   },
 };
 
@@ -376,38 +406,42 @@ export const UploadError = {
       .pendingImages=${[MOCK_PENDING_IMAGES[0]]}
     ></cts-image-upload>
   `,
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const canvas = within(canvasElement);
 
-    const fileInput = /** @type {HTMLInputElement} */ (
-      canvasElement.querySelector('input[type="file"]')
-    );
-    expect(fileInput).toBeTruthy();
+    await step("selecting a file enables the Upload button", async () => {
+      const fileInput = /** @type {HTMLInputElement} */ (
+        canvasElement.querySelector('input[type="file"]')
+      );
+      expect(fileInput).toBeTruthy();
 
-    const file = makeMockPng("test-screenshot.png");
-    const dataTransfer = new DataTransfer();
-    dataTransfer.items.add(file);
-    fileInput.files = dataTransfer.files;
-    fileInput.dispatchEvent(new Event("change", { bubbles: true }));
+      const file = makeMockPng("test-screenshot.png");
+      const dataTransfer = new DataTransfer();
+      dataTransfer.items.add(file);
+      fileInput.files = dataTransfer.files;
+      fileInput.dispatchEvent(new Event("change", { bubbles: true }));
 
-    await waitFor(
-      () => {
-        const uploadBtn = canvas.getByRole("button", { name: /^upload$/i });
-        expect(/** @type {HTMLButtonElement} */ (uploadBtn).disabled).toBe(false);
-      },
-      { timeout: 3000 },
-    );
+      await waitFor(
+        () => {
+          const uploadBtn = canvas.getByRole("button", { name: /^upload$/i });
+          expect(/** @type {HTMLButtonElement} */ (uploadBtn).disabled).toBe(false);
+        },
+        { timeout: 3000 },
+      );
+    });
 
-    const uploadBtn = canvas.getByRole("button", { name: /^upload$/i });
-    await uploadBtn.click();
+    await step("clicking Upload surfaces the server error alert", async () => {
+      const uploadBtn = canvas.getByRole("button", { name: /^upload$/i });
+      await uploadBtn.click();
 
-    await waitFor(
-      () => {
-        const alert = canvasElement.querySelector(".oidf-image-upload__alert--error");
-        expect(alert).toBeTruthy();
-        expect(alert.textContent).toContain("Internal server error");
-      },
-      { timeout: 3000 },
-    );
+      await waitFor(
+        () => {
+          const alert = canvasElement.querySelector(".oidf-image-upload__alert--error");
+          expect(alert).toBeTruthy();
+          expect(alert.textContent).toContain("Internal server error");
+        },
+        { timeout: 3000 },
+      );
+    });
   },
 };

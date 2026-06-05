@@ -59,7 +59,7 @@ export const Default = {
  */
 export const ScrollInHighlightFlash = {
   render: () => html`<cts-flash-highlight>${SAMPLE}</cts-flash-highlight>`,
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const element = await whenUpgraded(canvasElement);
 
     // Force the motion-allowed branch so the animated path (animationend
@@ -74,29 +74,35 @@ export const ScrollInHighlightFlash = {
       })
     );
     try {
-      expect(element.hasAttribute("data-flashing")).toBe(false);
-
-      element.flashHighlight();
-
-      // The attribute lands after the restart-from-zero reflow.
-      await waitFor(() => {
-        expect(element.hasAttribute("data-flashing")).toBe(true);
+      await step("starts at rest with no wash", async () => {
+        expect(element.hasAttribute("data-flashing")).toBe(false);
       });
 
-      // The wash is non-interactive and sits behind the wrapped controls.
-      const after = getComputedStyle(element, "::after");
-      expect(after.pointerEvents).toBe("none");
-      expect(after.zIndex).toBe("-1");
+      await step("flashHighlight paints the wash", async () => {
+        element.flashHighlight();
 
-      // Animation completion clears the attribute.
-      element.dispatchEvent(
-        new AnimationEvent("animationend", {
-          animationName: "oidf-flash-highlight-flash",
-          bubbles: true,
-        }),
-      );
-      await waitFor(() => {
-        expect(element.hasAttribute("data-flashing")).toBe(false);
+        // The attribute lands after the restart-from-zero reflow.
+        await waitFor(() => {
+          expect(element.hasAttribute("data-flashing")).toBe(true);
+        });
+      });
+
+      await step("wash is non-interactive and sits behind the wrapped controls", async () => {
+        const after = getComputedStyle(element, "::after");
+        expect(after.pointerEvents).toBe("none");
+        expect(after.zIndex).toBe("-1");
+      });
+
+      await step("animation completion clears the attribute", async () => {
+        element.dispatchEvent(
+          new AnimationEvent("animationend", {
+            animationName: "oidf-flash-highlight-flash",
+            bubbles: true,
+          }),
+        );
+        await waitFor(() => {
+          expect(element.hasAttribute("data-flashing")).toBe(false);
+        });
       });
     } finally {
       window.matchMedia = origMatchMedia;
@@ -112,7 +118,7 @@ export const ScrollInHighlightFlash = {
  */
 export const ReducedMotionHighlightStillClears = {
   render: () => html`<cts-flash-highlight>${SAMPLE}</cts-flash-highlight>`,
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const element = await whenUpgraded(canvasElement);
 
     const origMatchMedia = window.matchMedia;
@@ -125,20 +131,21 @@ export const ReducedMotionHighlightStillClears = {
       })
     );
     try {
-      element.flashHighlight();
-
-      // Static wash appears (no animation in this branch).
-      await waitFor(() => {
-        expect(element.hasAttribute("data-flashing")).toBe(true);
+      await step("static wash appears (no animation in this branch)", async () => {
+        element.flashHighlight();
+        await waitFor(() => {
+          expect(element.hasAttribute("data-flashing")).toBe(true);
+        });
       });
 
-      // ...and clears via the timer, without any animationend dispatch.
-      await waitFor(
-        () => {
-          expect(element.hasAttribute("data-flashing")).toBe(false);
-        },
-        { timeout: 2500 },
-      );
+      await step("wash clears via the timer, without any animationend dispatch", async () => {
+        await waitFor(
+          () => {
+            expect(element.hasAttribute("data-flashing")).toBe(false);
+          },
+          { timeout: 2500 },
+        );
+      });
     } finally {
       window.matchMedia = origMatchMedia;
     }
@@ -151,7 +158,7 @@ export const ReducedMotionHighlightStillClears = {
  */
 export const HighlightRestartsOnReselect = {
   render: () => html`<cts-flash-highlight>${SAMPLE}</cts-flash-highlight>`,
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const element = await whenUpgraded(canvasElement);
 
     const origMatchMedia = window.matchMedia;
@@ -164,27 +171,32 @@ export const HighlightRestartsOnReselect = {
       })
     );
     try {
-      element.flashHighlight();
-      await waitFor(() => {
-        expect(element.hasAttribute("data-flashing")).toBe(true);
+      await step("first flash paints the wash", async () => {
+        element.flashHighlight();
+        await waitFor(() => {
+          expect(element.hasAttribute("data-flashing")).toBe(true);
+        });
       });
 
-      // Second call while active must leave the highlight present (restarted),
-      // not stuck off from a false→true toggle.
-      element.flashHighlight();
-      await waitFor(() => {
-        expect(element.hasAttribute("data-flashing")).toBe(true);
+      await step("re-triggering while active restarts the flash", async () => {
+        // Second call while active must leave the highlight present (restarted),
+        // not stuck off from a false→true toggle.
+        element.flashHighlight();
+        await waitFor(() => {
+          expect(element.hasAttribute("data-flashing")).toBe(true);
+        });
       });
 
-      // Cleanup so the timer doesn't outlive the story.
-      element.dispatchEvent(
-        new AnimationEvent("animationend", {
-          animationName: "oidf-flash-highlight-flash",
-          bubbles: true,
-        }),
-      );
-      await waitFor(() => {
-        expect(element.hasAttribute("data-flashing")).toBe(false);
+      await step("cleanup so the timer doesn't outlive the story", async () => {
+        element.dispatchEvent(
+          new AnimationEvent("animationend", {
+            animationName: "oidf-flash-highlight-flash",
+            bubbles: true,
+          }),
+        );
+        await waitFor(() => {
+          expect(element.hasAttribute("data-flashing")).toBe(false);
+        });
       });
     } finally {
       window.matchMedia = origMatchMedia;

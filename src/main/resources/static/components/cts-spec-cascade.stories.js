@@ -38,22 +38,27 @@ export const InitialState = {
     },
   },
   render: () => html`<cts-spec-cascade></cts-spec-cascade>`,
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const canvas = within(canvasElement);
     await waitFor(() => {
       expect(canvas.getByLabelText("Specification")).toBeInTheDocument();
     });
-    // Entity, Version, and Plan fields should be hidden
-    expect(fieldFor(canvasElement, "entitySelect")?.style.display).toBe("none");
-    expect(fieldFor(canvasElement, "specVersionSelect")?.style.display).toBe("none");
-    expect(fieldFor(canvasElement, "planSelect")?.style.display).toBe("none");
-    // The Specification select should carry the OIDF class
-    const familySelect = canvasElement.querySelector("#specFamilySelect");
-    expect(familySelect?.classList.contains("oidf-spec-cascade__select")).toBe(true);
-    // Endpoint contract: the family dropdown only populates when the
-    // MSW handler keyed to /api/plan/available matched. If we accidentally
-    // ship a URL drift, this option count drops to 1 (placeholder only).
-    expect(familySelect.querySelectorAll("option").length).toBeGreaterThan(1);
+    await step("entity, version, and plan fields stay hidden", async () => {
+      expect(fieldFor(canvasElement, "entitySelect")?.style.display).toBe("none");
+      expect(fieldFor(canvasElement, "specVersionSelect")?.style.display).toBe("none");
+      expect(fieldFor(canvasElement, "planSelect")?.style.display).toBe("none");
+    });
+    await step("specification select carries the OIDF class", async () => {
+      const familySelect = canvasElement.querySelector("#specFamilySelect");
+      expect(familySelect?.classList.contains("oidf-spec-cascade__select")).toBe(true);
+    });
+    await step("family dropdown populated from /api/plan/available", async () => {
+      const familySelect = canvasElement.querySelector("#specFamilySelect");
+      // Endpoint contract: the family dropdown only populates when the
+      // MSW handler keyed to /api/plan/available matched. If we accidentally
+      // ship a URL drift, this option count drops to 1 (placeholder only).
+      expect(familySelect.querySelectorAll("option").length).toBeGreaterThan(1);
+    });
   },
 };
 
@@ -65,22 +70,24 @@ export const SelectFamily = {
     },
   },
   render: () => html`<cts-spec-cascade></cts-spec-cascade>`,
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const canvas = within(canvasElement);
     await waitFor(() => {
       expect(canvas.getByLabelText("Specification")).toBeInTheDocument();
     });
-    const familySelect = canvas.getByLabelText("Specification");
-    await userEvent.selectOptions(familySelect, "OIDCC");
-    await waitFor(() => {
-      const entitySelect = canvasElement.querySelector("#entitySelect");
-      expect(entitySelect).toBeTruthy();
-      // OIDCC has OP and RP entities, so the entity field should be visible
-      const entityField = fieldFor(canvasElement, "entitySelect");
-      expect(entityField.style.display).not.toBe("none");
-      // Should have OP and RP options plus the placeholder
-      const options = entitySelect.querySelectorAll("option");
-      expect(options.length).toBe(3); // placeholder + OP + RP
+    await step("selecting OIDCC reveals the entity dropdown", async () => {
+      const familySelect = canvas.getByLabelText("Specification");
+      await userEvent.selectOptions(familySelect, "OIDCC");
+      await waitFor(() => {
+        const entitySelect = canvasElement.querySelector("#entitySelect");
+        expect(entitySelect).toBeTruthy();
+        // OIDCC has OP and RP entities, so the entity field should be visible
+        const entityField = fieldFor(canvasElement, "entitySelect");
+        expect(entityField.style.display).not.toBe("none");
+        // Should have OP and RP options plus the placeholder
+        const options = entitySelect.querySelectorAll("option");
+        expect(options.length).toBe(3); // placeholder + OP + RP
+      });
     });
   },
 };
@@ -93,38 +100,43 @@ export const FullCascade = {
     },
   },
   render: () => html`<cts-spec-cascade></cts-spec-cascade>`,
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const canvas = within(canvasElement);
     await waitFor(() => {
       expect(canvas.getByLabelText("Specification")).toBeInTheDocument();
     });
 
-    // Step 1: Select family
-    const familySelect = canvas.getByLabelText("Specification");
-    await userEvent.selectOptions(familySelect, "OIDCC");
-
-    // Step 2: Entity field becomes visible, select OP
-    await waitFor(() => {
-      const entityField = fieldFor(canvasElement, "entitySelect");
-      expect(entityField.style.display).not.toBe("none");
-    });
-    const entitySelect = canvasElement.querySelector("#entitySelect");
-    await userEvent.selectOptions(entitySelect, "OP");
-
-    // Step 3: OIDCC + OP has only one version (Final), so version auto-selects
-    // and plan field should appear
-    await waitFor(() => {
-      const planField = fieldFor(canvasElement, "planSelect");
-      expect(planField.style.display).not.toBe("none");
+    await step("select family", async () => {
+      const familySelect = canvas.getByLabelText("Specification");
+      await userEvent.selectOptions(familySelect, "OIDCC");
     });
 
-    // Step 4: Select a plan
-    const planSelect = canvasElement.querySelector("#planSelect");
-    const planOptions = planSelect.querySelectorAll("option");
-    // Should have placeholder + the available OIDCC OP Final plans
-    expect(planOptions.length).toBeGreaterThan(1);
-    await userEvent.selectOptions(planSelect, "oidcc-basic-certification-test-plan");
-    expect(planSelect.value).toBe("oidcc-basic-certification-test-plan");
+    await step("entity field becomes visible, select OP", async () => {
+      await waitFor(() => {
+        const entityField = fieldFor(canvasElement, "entitySelect");
+        expect(entityField.style.display).not.toBe("none");
+      });
+      const entitySelect = canvasElement.querySelector("#entitySelect");
+      await userEvent.selectOptions(entitySelect, "OP");
+    });
+
+    await step("version auto-selects, plan field appears", async () => {
+      // OIDCC + OP has only one version (Final), so version auto-selects
+      // and plan field should appear
+      await waitFor(() => {
+        const planField = fieldFor(canvasElement, "planSelect");
+        expect(planField.style.display).not.toBe("none");
+      });
+    });
+
+    await step("select a plan", async () => {
+      const planSelect = canvasElement.querySelector("#planSelect");
+      const planOptions = planSelect.querySelectorAll("option");
+      // Should have placeholder + the available OIDCC OP Final plans
+      expect(planOptions.length).toBeGreaterThan(1);
+      await userEvent.selectOptions(planSelect, "oidcc-basic-certification-test-plan");
+      expect(planSelect.value).toBe("oidcc-basic-certification-test-plan");
+    });
   },
 };
 
@@ -136,7 +148,7 @@ export const PlanSelectedEvent = {
     },
   },
   render: () => html`<cts-spec-cascade></cts-spec-cascade>`,
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const canvas = within(canvasElement);
     const spy = fn();
     canvasElement.addEventListener("cts-plan-selected", spy);
@@ -145,30 +157,33 @@ export const PlanSelectedEvent = {
       expect(canvas.getByLabelText("Specification")).toBeInTheDocument();
     });
 
-    // Navigate to a plan
-    const familySelect = canvas.getByLabelText("Specification");
-    await userEvent.selectOptions(familySelect, "OIDCC");
+    await step("navigate the cascade to a plan", async () => {
+      const familySelect = canvas.getByLabelText("Specification");
+      await userEvent.selectOptions(familySelect, "OIDCC");
 
-    await waitFor(() => {
-      const entityField = fieldFor(canvasElement, "entitySelect");
-      expect(entityField.style.display).not.toBe("none");
+      await waitFor(() => {
+        const entityField = fieldFor(canvasElement, "entitySelect");
+        expect(entityField.style.display).not.toBe("none");
+      });
+
+      const entitySelect = canvasElement.querySelector("#entitySelect");
+      await userEvent.selectOptions(entitySelect, "OP");
+
+      await waitFor(() => {
+        const planField = fieldFor(canvasElement, "planSelect");
+        expect(planField.style.display).not.toBe("none");
+      });
+
+      const planSelect = canvasElement.querySelector("#planSelect");
+      await userEvent.selectOptions(planSelect, "oidcc-basic-certification-test-plan");
     });
 
-    const entitySelect = canvasElement.querySelector("#entitySelect");
-    await userEvent.selectOptions(entitySelect, "OP");
-
-    await waitFor(() => {
-      const planField = fieldFor(canvasElement, "planSelect");
-      expect(planField.style.display).not.toBe("none");
-    });
-
-    const planSelect = canvasElement.querySelector("#planSelect");
-    await userEvent.selectOptions(planSelect, "oidcc-basic-certification-test-plan");
-
-    await waitFor(() => {
-      expect(spy).toHaveBeenCalled();
-      const eventDetail = spy.mock.calls[0][0].detail;
-      expect(eventDetail.plan.planName).toBe("oidcc-basic-certification-test-plan");
+    await step("cts-plan-selected fires with the chosen plan", async () => {
+      await waitFor(() => {
+        expect(spy).toHaveBeenCalled();
+        const eventDetail = spy.mock.calls[0][0].detail;
+        expect(eventDetail.plan.planName).toBe("oidcc-basic-certification-test-plan");
+      });
     });
   },
 };
@@ -181,37 +196,40 @@ export const ResetOnFamilyChange = {
     },
   },
   render: () => html`<cts-spec-cascade></cts-spec-cascade>`,
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const canvas = within(canvasElement);
     await waitFor(() => {
       expect(canvas.getByLabelText("Specification")).toBeInTheDocument();
     });
 
-    // First, navigate through OIDCC cascade
     const familySelect = canvas.getByLabelText("Specification");
-    await userEvent.selectOptions(familySelect, "OIDCC");
 
-    await waitFor(() => {
-      const entityField = fieldFor(canvasElement, "entitySelect");
-      expect(entityField.style.display).not.toBe("none");
+    await step("navigate through the OIDCC cascade to a plan", async () => {
+      await userEvent.selectOptions(familySelect, "OIDCC");
+
+      await waitFor(() => {
+        const entityField = fieldFor(canvasElement, "entitySelect");
+        expect(entityField.style.display).not.toBe("none");
+      });
+
+      const entitySelect = canvasElement.querySelector("#entitySelect");
+      await userEvent.selectOptions(entitySelect, "OP");
+
+      await waitFor(() => {
+        const planField = fieldFor(canvasElement, "planSelect");
+        expect(planField.style.display).not.toBe("none");
+      });
     });
 
-    const entitySelect = canvasElement.querySelector("#entitySelect");
-    await userEvent.selectOptions(entitySelect, "OP");
+    await step("changing family to FAPI resets the downstream plan", async () => {
+      await userEvent.selectOptions(familySelect, "FAPI");
 
-    await waitFor(() => {
-      const planField = fieldFor(canvasElement, "planSelect");
-      expect(planField.style.display).not.toBe("none");
-    });
-
-    // Now change family to FAPI
-    await userEvent.selectOptions(familySelect, "FAPI");
-
-    // Downstream should reset: FAPI has only one entity (OP), so entity auto-selects
-    // The previously selected OIDCC plan should no longer be the value
-    await waitFor(() => {
-      const planSelect = canvasElement.querySelector("#planSelect");
-      expect(planSelect.value).not.toBe("oidcc-basic-certification-test-plan");
+      // Downstream should reset: FAPI has only one entity (OP), so entity auto-selects.
+      // The previously selected OIDCC plan should no longer be the value.
+      await waitFor(() => {
+        const planSelect = canvasElement.querySelector("#planSelect");
+        expect(planSelect.value).not.toBe("oidcc-basic-certification-test-plan");
+      });
     });
   },
 };
@@ -224,22 +242,24 @@ export const SingleEntity = {
     },
   },
   render: () => html`<cts-spec-cascade></cts-spec-cascade>`,
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const canvas = within(canvasElement);
     await waitFor(() => {
       expect(canvas.getByLabelText("Specification")).toBeInTheDocument();
     });
 
-    // FAPI has only one entity (OP), so entity field should remain hidden
-    const familySelect = canvas.getByLabelText("Specification");
-    await userEvent.selectOptions(familySelect, "FAPI");
+    await step("selecting FAPI auto-selects the sole entity and keeps it hidden", async () => {
+      // FAPI has only one entity (OP), so entity field should remain hidden
+      const familySelect = canvas.getByLabelText("Specification");
+      await userEvent.selectOptions(familySelect, "FAPI");
 
-    await waitFor(() => {
-      const entitySelect = canvasElement.querySelector("#entitySelect");
-      // Entity auto-selected to OP
-      expect(entitySelect.value).toBe("OP");
-      // Entity field should be hidden since there is only one entity
-      expect(fieldFor(canvasElement, "entitySelect").style.display).toBe("none");
+      await waitFor(() => {
+        const entitySelect = canvasElement.querySelector("#entitySelect");
+        // Entity auto-selected to OP
+        expect(entitySelect.value).toBe("OP");
+        // Entity field should be hidden since there is only one entity
+        expect(fieldFor(canvasElement, "entitySelect").style.display).toBe("none");
+      });
     });
   },
 };
@@ -247,25 +267,27 @@ export const SingleEntity = {
 /** Pass plans as a prop instead of fetching. No MSW needed. */
 export const WithProvidedPlans = {
   render: () => html`<cts-spec-cascade .plans=${MOCK_PLANS}></cts-spec-cascade>`,
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const canvas = within(canvasElement);
     // Plans are provided synchronously, so Specification should be immediately available
     const familySelect = canvas.getByLabelText("Specification");
-    expect(familySelect).toBeInTheDocument();
 
-    // Should have the correct family options
-    const options = familySelect.querySelectorAll("option");
-    // Placeholder + FAPI + FAPI-CIBA + OIDCC + SSF = 5
-    expect(options.length).toBe(5);
+    await step("specification renders with the correct family options", async () => {
+      expect(familySelect).toBeInTheDocument();
+      const options = familySelect.querySelectorAll("option");
+      // Placeholder + FAPI + FAPI-CIBA + OIDCC + SSF = 5
+      expect(options.length).toBe(5);
+    });
 
-    // Select a family and verify cascade works
-    await userEvent.selectOptions(familySelect, "SSF");
+    await step("selecting SSF auto-selects through to the single plan", async () => {
+      await userEvent.selectOptions(familySelect, "SSF");
 
-    // SSF has only one entity (Transmitter), one version (Draft), and one plan
-    // so everything should auto-select
-    await waitFor(() => {
-      const planSelect = canvasElement.querySelector("#planSelect");
-      expect(planSelect.value).toBe("ssf-transmitter-test-plan");
+      // SSF has only one entity (Transmitter), one version (Draft), and one plan
+      // so everything should auto-select
+      await waitFor(() => {
+        const planSelect = canvasElement.querySelector("#planSelect");
+        expect(planSelect.value).toBe("ssf-transmitter-test-plan");
+      });
     });
   },
 };
@@ -310,27 +332,32 @@ export const LoadErrorShowsBanner = {
     },
   },
   render: () => html`<cts-spec-cascade></cts-spec-cascade>`,
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const warnSpy = fn();
     const origWarn = console.warn;
     console.warn = warnSpy;
     try {
-      await waitFor(() => {
-        const banner = canvasElement.querySelector('[data-testid="spec-cascade-error"]');
-        expect(banner).toBeTruthy();
-        expect(banner.textContent).toContain("Unable to load plans");
-        // The error banner uses the OIDF alert tokens
-        expect(banner.classList.contains("oidf-spec-cascade__alert--error")).toBe(true);
+      await step("error banner renders with the OIDF alert tokens", async () => {
+        await waitFor(() => {
+          const banner = canvasElement.querySelector('[data-testid="spec-cascade-error"]');
+          expect(banner).toBeTruthy();
+          expect(banner.textContent).toContain("Unable to load plans");
+          // The error banner uses the OIDF alert tokens
+          expect(banner.classList.contains("oidf-spec-cascade__alert--error")).toBe(true);
+        });
       });
 
-      // No dropdowns should render in the error state.
-      expect(canvasElement.querySelector("#specFamilySelect")).toBeNull();
-      expect(canvasElement.querySelector('[data-testid="spec-cascade-empty"]')).toBeNull();
+      await step("no dropdowns or empty banner render in the error state", async () => {
+        expect(canvasElement.querySelector("#specFamilySelect")).toBeNull();
+        expect(canvasElement.querySelector('[data-testid="spec-cascade-empty"]')).toBeNull();
+      });
 
-      await waitFor(() => {
-        expect(warnSpy).toHaveBeenCalled();
-        const joined = warnSpy.mock.calls.flat().join(" ");
-        expect(joined).toContain("cts-spec-cascade");
+      await step("the failure is logged via console.warn", async () => {
+        await waitFor(() => {
+          expect(warnSpy).toHaveBeenCalled();
+          const joined = warnSpy.mock.calls.flat().join(" ");
+          expect(joined).toContain("cts-spec-cascade");
+        });
       });
     } finally {
       console.warn = origWarn;
@@ -350,15 +377,19 @@ export const LoadsEmptyShowsInfoBanner = {
     },
   },
   render: () => html`<cts-spec-cascade></cts-spec-cascade>`,
-  async play({ canvasElement }) {
-    await waitFor(() => {
-      const empty = canvasElement.querySelector('[data-testid="spec-cascade-empty"]');
-      expect(empty).toBeTruthy();
-      expect(empty.textContent).toContain("No test plans are available");
-      expect(empty.classList.contains("oidf-spec-cascade__alert--info")).toBe(true);
+  async play({ canvasElement, step }) {
+    await step("empty info banner renders for the healthy-but-empty case", async () => {
+      await waitFor(() => {
+        const empty = canvasElement.querySelector('[data-testid="spec-cascade-empty"]');
+        expect(empty).toBeTruthy();
+        expect(empty.textContent).toContain("No test plans are available");
+        expect(empty.classList.contains("oidf-spec-cascade__alert--info")).toBe(true);
+      });
     });
-    // Error banner should NOT be showing — this is the healthy-but-empty case.
-    expect(canvasElement.querySelector('[data-testid="spec-cascade-error"]')).toBeNull();
+    await step("error banner is not shown", async () => {
+      // Error banner should NOT be showing — this is the healthy-but-empty case.
+      expect(canvasElement.querySelector('[data-testid="spec-cascade-error"]')).toBeNull();
+    });
   },
 };
 
@@ -378,17 +409,21 @@ export const NonArrayResponseShowsEmptyBanner = {
     },
   },
   render: () => html`<cts-spec-cascade></cts-spec-cascade>`,
-  async play({ canvasElement }) {
-    await waitFor(() => {
-      const empty = canvasElement.querySelector('[data-testid="spec-cascade-empty"]');
-      expect(empty).toBeTruthy();
-      expect(empty.classList.contains("oidf-spec-cascade__alert--info")).toBe(true);
+  async play({ canvasElement, step }) {
+    await step("non-array body routes to the empty info banner", async () => {
+      await waitFor(() => {
+        const empty = canvasElement.querySelector('[data-testid="spec-cascade-empty"]');
+        expect(empty).toBeTruthy();
+        expect(empty.classList.contains("oidf-spec-cascade__alert--info")).toBe(true);
+      });
     });
-    // Not an error — the backend was healthy, the body just wasn't shaped
-    // as expected, so the empty-state info banner is the correct route.
-    expect(canvasElement.querySelector('[data-testid="spec-cascade-error"]')).toBeNull();
-    // The cascade selects are absent in this state.
-    expect(canvasElement.querySelector("#specFamilySelect")).toBeNull();
+    await step("neither the error banner nor the cascade selects render", async () => {
+      // Not an error — the backend was healthy, the body just wasn't shaped
+      // as expected, so the empty-state info banner is the correct route.
+      expect(canvasElement.querySelector('[data-testid="spec-cascade-error"]')).toBeNull();
+      // The cascade selects are absent in this state.
+      expect(canvasElement.querySelector("#specFamilySelect")).toBeNull();
+    });
   },
 };
 
@@ -405,7 +440,7 @@ export const ProgrammaticSelection = {
     },
   },
   render: () => html`<cts-spec-cascade></cts-spec-cascade>`,
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const canvas = within(canvasElement);
     const element = canvasElement.querySelector("cts-spec-cascade");
     const spy = fn();
@@ -415,28 +450,31 @@ export const ProgrammaticSelection = {
       expect(canvas.getByLabelText("Specification")).toBeInTheDocument();
     });
 
-    // Successful selection: known plan name
-    const accepted = element.selectPlanByName("fapi2-security-profile-final-test-plan");
-    expect(accepted).toBe(true);
+    await step("selecting a known plan accepts and dispatches one event", async () => {
+      const accepted = element.selectPlanByName("fapi2-security-profile-final-test-plan");
+      expect(accepted).toBe(true);
 
-    await waitFor(() => {
+      await waitFor(() => {
+        expect(spy).toHaveBeenCalledTimes(1);
+      });
+      const eventDetail = spy.mock.calls[0][0].detail;
+      expect(eventDetail.plan.planName).toBe("fapi2-security-profile-final-test-plan");
+    });
+
+    await step("internal tier state propagates to the rendered selects", async () => {
+      await waitFor(() => {
+        const familySelect = canvasElement.querySelector("#specFamilySelect");
+        expect(familySelect.value).toBe("FAPI");
+      });
+      const planSelect = canvasElement.querySelector("#planSelect");
+      expect(planSelect.value).toBe("fapi2-security-profile-final-test-plan");
+    });
+
+    await step("an unknown plan is rejected with no extra event", async () => {
+      const rejected = element.selectPlanByName("does-not-exist-test-plan");
+      expect(rejected).toBe(false);
       expect(spy).toHaveBeenCalledTimes(1);
     });
-    const eventDetail = spy.mock.calls[0][0].detail;
-    expect(eventDetail.plan.planName).toBe("fapi2-security-profile-final-test-plan");
-
-    // Internal tier state propagated through to rendered selects
-    await waitFor(() => {
-      const familySelect = canvasElement.querySelector("#specFamilySelect");
-      expect(familySelect.value).toBe("FAPI");
-    });
-    const planSelect = canvasElement.querySelector("#planSelect");
-    expect(planSelect.value).toBe("fapi2-security-profile-final-test-plan");
-
-    // Unknown plan: rejected, no extra event
-    const rejected = element.selectPlanByName("does-not-exist-test-plan");
-    expect(rejected).toBe(false);
-    expect(spy).toHaveBeenCalledTimes(1);
   },
 };
 
@@ -513,20 +551,23 @@ const TWO_FAMILY_PLANS = [
 
 export const ReselectAcrossFamiliesUpdatesTestType = {
   render: () => html`<cts-spec-cascade .plans=${TWO_FAMILY_PLANS}></cts-spec-cascade>`,
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const element = canvasElement.querySelector("cts-spec-cascade");
     await element.updateComplete;
 
-    // First selection: a plan in the small (2-plan) Alpha family.
-    element.selectPlanByName("alpha-a-test-plan");
-    await element.updateComplete;
-    expect(canvasElement.querySelector("#planSelect").value).toBe("alpha-a-test-plan");
+    await step("first selection lands a plan in the small Alpha family", async () => {
+      element.selectPlanByName("alpha-a-test-plan");
+      await element.updateComplete;
+      expect(canvasElement.querySelector("#planSelect").value).toBe("alpha-a-test-plan");
+    });
 
-    // Re-select across to the larger (5-plan) Beta family. The Test Type
-    // control must follow the new selection rather than reset to placeholder.
-    element.selectPlanByName("beta-a-test-plan");
-    await element.updateComplete;
-    expect(canvasElement.querySelector("#planSelect").value).toBe("beta-a-test-plan");
+    await step("re-selecting across to the larger Beta family follows the new plan", async () => {
+      // The Test Type control must follow the new selection rather than reset
+      // to placeholder.
+      element.selectPlanByName("beta-a-test-plan");
+      await element.updateComplete;
+      expect(canvasElement.querySelector("#planSelect").value).toBe("beta-a-test-plan");
+    });
   },
 };
 
@@ -549,29 +590,33 @@ export const ProgrammaticSelectionBeforeLoad = {
     },
   },
   render: () => html`<cts-spec-cascade></cts-spec-cascade>`,
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const element = canvasElement.querySelector("cts-spec-cascade");
     const spy = fn();
     element.addEventListener("cts-plan-selected", spy);
 
-    // Plans haven't loaded yet — the call should queue, not fire the event.
-    const accepted = element.selectPlanByName("oidcc-basic-certification-test-plan");
-    expect(accepted).toBe(true);
-    expect(spy).not.toHaveBeenCalled();
+    await step("selecting before load queues without firing the event", async () => {
+      // Plans haven't loaded yet — the call should queue, not fire the event.
+      const accepted = element.selectPlanByName("oidcc-basic-certification-test-plan");
+      expect(accepted).toBe(true);
+      expect(spy).not.toHaveBeenCalled();
+    });
 
-    // Once MSW resolves and the component receives plans, the queued
-    // selection should drain and dispatch exactly one event.
-    await waitFor(
-      () => {
-        expect(spy).toHaveBeenCalledTimes(1);
-      },
-      { timeout: 2000 },
-    );
+    await step("queued selection drains once plans arrive", async () => {
+      // Once MSW resolves and the component receives plans, the queued
+      // selection should drain and dispatch exactly one event.
+      await waitFor(
+        () => {
+          expect(spy).toHaveBeenCalledTimes(1);
+        },
+        { timeout: 2000 },
+      );
 
-    const eventDetail = spy.mock.calls[0][0].detail;
-    expect(eventDetail.plan.planName).toBe("oidcc-basic-certification-test-plan");
+      const eventDetail = spy.mock.calls[0][0].detail;
+      expect(eventDetail.plan.planName).toBe("oidcc-basic-certification-test-plan");
 
-    const planSelect = canvasElement.querySelector("#planSelect");
-    expect(planSelect.value).toBe("oidcc-basic-certification-test-plan");
+      const planSelect = canvasElement.querySelector("#planSelect");
+      expect(planSelect.value).toBe("oidcc-basic-certification-test-plan");
+    });
   },
 };

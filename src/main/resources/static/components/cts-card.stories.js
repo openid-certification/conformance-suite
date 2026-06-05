@@ -15,48 +15,60 @@ export const WithHeader = {
       ><p>Body content</p> <p>More content</p></cts-card
     >`,
 
-  async play({ canvasElement }) {
-    const card = canvasElement.querySelector(".oidf-card");
-    expect(card).toBeTruthy();
+  async play({ canvasElement, step }) {
+    await step("card renders", async () => {
+      const card = canvasElement.querySelector(".oidf-card");
+      expect(card).toBeTruthy();
+    });
 
-    const cardHeader = canvasElement.querySelector(".oidf-card-header");
-    expect(cardHeader).toBeTruthy();
-    expect(cardHeader.textContent.trim()).toBe("Server Configuration");
+    await step("header renders the provided text", async () => {
+      const cardHeader = canvasElement.querySelector(".oidf-card-header");
+      expect(cardHeader).toBeTruthy();
+      expect(cardHeader.textContent.trim()).toBe("Server Configuration");
+    });
 
-    const cardBody = canvasElement.querySelector(".oidf-card-body");
-    expect(cardBody).toBeTruthy();
+    await step("body renders the slotted paragraphs", async () => {
+      const cardBody = canvasElement.querySelector(".oidf-card-body");
+      expect(cardBody).toBeTruthy();
 
-    const paragraphs = cardBody.querySelectorAll("p");
-    expect(paragraphs.length).toBe(2);
-    expect(paragraphs[0].textContent).toBe("Body content");
-    expect(paragraphs[1].textContent).toBe("More content");
+      const paragraphs = cardBody.querySelectorAll("p");
+      expect(paragraphs.length).toBe(2);
+      expect(paragraphs[0].textContent).toBe("Body content");
+      expect(paragraphs[1].textContent).toBe("More content");
+    });
 
-    // No brand bar unless tone is set.
-    const bar = canvasElement.querySelector(".oidf-card-bar");
-    expect(bar).toBeNull();
+    await step("no brand bar unless tone is set", async () => {
+      const bar = canvasElement.querySelector(".oidf-card-bar");
+      expect(bar).toBeNull();
+    });
   },
 };
 
 export const WithoutHeader = {
   render: () => html`<cts-card><p>Body only.</p></cts-card>`,
 
-  async play({ canvasElement }) {
-    const card = canvasElement.querySelector(".oidf-card");
-    expect(card).toBeTruthy();
+  async play({ canvasElement, step }) {
+    await step("card renders without a header", async () => {
+      const card = canvasElement.querySelector(".oidf-card");
+      expect(card).toBeTruthy();
 
-    const cardHeader = canvasElement.querySelector(".oidf-card-header");
-    expect(cardHeader).toBeNull();
+      const cardHeader = canvasElement.querySelector(".oidf-card-header");
+      expect(cardHeader).toBeNull();
+    });
 
-    const cardBody = canvasElement.querySelector(".oidf-card-body");
-    expect(cardBody).toBeTruthy();
+    await step("body renders the slotted paragraph", async () => {
+      const cardBody = canvasElement.querySelector(".oidf-card-body");
+      expect(cardBody).toBeTruthy();
 
-    const paragraph = cardBody.querySelector("p");
-    expect(paragraph).toBeTruthy();
-    expect(paragraph.textContent).toBe("Body only.");
+      const paragraph = cardBody.querySelector("p");
+      expect(paragraph).toBeTruthy();
+      expect(paragraph.textContent).toBe("Body only.");
+    });
 
-    // No brand bar unless tone is set.
-    const bar = canvasElement.querySelector(".oidf-card-bar");
-    expect(bar).toBeNull();
+    await step("no brand bar unless tone is set", async () => {
+      const bar = canvasElement.querySelector(".oidf-card-bar");
+      expect(bar).toBeNull();
+    });
   },
 };
 
@@ -69,23 +81,31 @@ export const NestedContent = {
       </div>
     </cts-card>`,
 
-  async play({ canvasElement }) {
-    const card = canvasElement.querySelector(".oidf-card");
-    expect(card).toBeTruthy();
+  async play({ canvasElement, step }) {
+    let container;
 
-    const cardBody = canvasElement.querySelector(".oidf-card-body");
-    expect(cardBody).toBeTruthy();
+    await step("card body wraps the nested container", async () => {
+      const card = canvasElement.querySelector(".oidf-card");
+      expect(card).toBeTruthy();
 
-    const container = cardBody.querySelector(".container");
-    expect(container).toBeTruthy();
+      const cardBody = canvasElement.querySelector(".oidf-card-body");
+      expect(cardBody).toBeTruthy();
 
-    const strong = container.querySelector("strong");
-    expect(strong).toBeTruthy();
-    expect(strong.textContent).toBe("Label:");
+      container = cardBody.querySelector(".container");
+      expect(container).toBeTruthy();
+    });
 
-    const badge = container.querySelector("span.badge.bg-primary");
-    expect(badge).toBeTruthy();
-    expect(badge.textContent).toBe("Active");
+    await step("nested label renders", async () => {
+      const strong = container.querySelector("strong");
+      expect(strong).toBeTruthy();
+      expect(strong.textContent).toBe("Label:");
+    });
+
+    await step("nested badge renders", async () => {
+      const badge = container.querySelector("span.badge.bg-primary");
+      expect(badge).toBeTruthy();
+      expect(badge.textContent).toBe("Active");
+    });
   },
 };
 
@@ -93,20 +113,25 @@ export const ToneOrange = {
   render: () =>
     html`<cts-card header="Active Run" tone="orange"><p>Brand bar in OIDF orange.</p></cts-card>`,
 
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const card = canvasElement.querySelector(".oidf-card");
     expect(card).toBeTruthy();
-
     const bar = card.querySelector(".oidf-card-bar");
-    expect(bar).toBeTruthy();
-    expect(bar.style.background).toBe("var(--orange-400)");
 
-    // Bar must be the first child of the card (sits above the header).
-    expect(card.firstElementChild).toBe(bar);
+    await step("brand bar renders in OIDF orange", async () => {
+      expect(bar).toBeTruthy();
+      expect(bar.style.background).toBe("var(--orange-400)");
+    });
 
-    const computed = getComputedStyle(bar);
-    expect(computed.position).toBe("absolute");
-    expect(computed.height).toBe("3px");
+    await step("bar is the first child of the card (sits above the header)", async () => {
+      expect(card.firstElementChild).toBe(bar);
+    });
+
+    await step("bar is absolutely positioned at 3px tall", async () => {
+      const computed = getComputedStyle(bar);
+      expect(computed.position).toBe("absolute");
+      expect(computed.height).toBe("3px");
+    });
   },
 };
 

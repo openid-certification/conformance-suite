@@ -59,16 +59,21 @@ export const WithIcon = {
       ?disabled="${disabled}"
     ></cts-link-button>`,
 
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const anchor = canvasElement.querySelector("a");
-    expect(anchor).toBeTruthy();
-    expect(anchor.classList.contains("oidf-btn")).toBe(true);
-    expect(anchor.classList.contains("oidf-btn-primary")).toBe(true);
 
-    const iconEl = anchor.querySelector("cts-icon");
-    expect(iconEl).toBeTruthy();
-    expect(iconEl.getAttribute("name")).toBe("file-blank");
-    expect(iconEl.getAttribute("aria-hidden")).toBe("true");
+    await step("anchor renders with the primary button classes", async () => {
+      expect(anchor).toBeTruthy();
+      expect(anchor.classList.contains("oidf-btn")).toBe(true);
+      expect(anchor.classList.contains("oidf-btn-primary")).toBe(true);
+    });
+
+    await step("icon is rendered and hidden from assistive tech", async () => {
+      const iconEl = anchor.querySelector("cts-icon");
+      expect(iconEl).toBeTruthy();
+      expect(iconEl.getAttribute("name")).toBe("file-blank");
+      expect(iconEl.getAttribute("aria-hidden")).toBe("true");
+    });
   },
 };
 
