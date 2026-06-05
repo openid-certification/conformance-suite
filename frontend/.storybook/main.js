@@ -8,7 +8,7 @@ export default defineMain({
   stories: [
     "../../src/main/resources/static/components/**/*.stories.js",
     "../../src/main/resources/static/components/flows/**/*.stories.js",
-    "../stories/pages/**/*.stories.js",
+    "../stories/**/*.stories.js",
   ],
   framework: "@storybook/web-components-vite",
   addons: ["@storybook/addon-vitest", "@storybook/addon-mcp"],
