@@ -29,6 +29,17 @@ async function mswLoader(context) {
 
 export default definePreview({
   parameters: {
+    options: {
+      // Foundational-first sidebar order. Entries match top-level title
+      // segments verbatim (case-sensitive; note the British "Behaviour").
+      // "*" catches future unlisted categories so Behaviour stays at the
+      // very bottom. No `method`: story exports keep their deliberate
+      // in-file order (e.g. cts-badge's Pass→Fail→Warn palette order);
+      // component entries are alphabetical via glob discovery anyway.
+      storySort: {
+        order: ["Tokens", "Components", "Pages", "Flows", "*", "Behaviour"],
+      },
+    },
     controls: {
       matchers: {
         color: /(background|color)$/i,
