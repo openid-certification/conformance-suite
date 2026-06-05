@@ -163,7 +163,7 @@ if (( ${#bad_lines[@]} > 0 )); then
   done
   echo "" >&2
   echo "Find vendored icon names: ls src/main/resources/static/vendor/coolicons/icons/" >&2
-  echo "Or browse Storybook → Primitives/cts-icon → AllIcons." >&2
+  echo "Or browse Storybook → Components/cts-icon → AllIcons." >&2
   exit 1
 fi
 

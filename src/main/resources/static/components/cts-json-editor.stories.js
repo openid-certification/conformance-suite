@@ -45,7 +45,7 @@ const LONG_JSON = JSON.stringify(
 );
 
 export default {
-  title: "Primitives/cts-json-editor",
+  title: "Components/cts-json-editor",
   component: "cts-json-editor",
   parameters: {
     docs: {

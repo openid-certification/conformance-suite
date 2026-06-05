@@ -3,7 +3,7 @@ import { expect, waitFor } from "storybook/test";
 import "./cts-flash-highlight.js";
 
 export default {
-  title: "Primitives/cts-flash-highlight",
+  title: "Components/cts-flash-highlight",
   component: "cts-flash-highlight",
 };
 

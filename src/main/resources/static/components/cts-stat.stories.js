@@ -3,7 +3,7 @@ import { expect } from "storybook/test";
 import "./cts-stat.js";
 
 export default {
-  title: "Primitives/cts-stat",
+  title: "Components/cts-stat",
   component: "cts-stat",
   argTypes: {
     label: { control: "text" },

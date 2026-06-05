@@ -4,7 +4,7 @@ import { http, HttpResponse } from "msw";
 import "./cts-run-status-strip.js";
 
 export default {
-  title: "Primitives/cts-run-status-strip",
+  title: "Components/cts-run-status-strip",
   component: "cts-run-status-strip",
 };
 

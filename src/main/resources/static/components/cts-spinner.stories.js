@@ -3,7 +3,7 @@ import { expect, waitFor } from "storybook/test";
 import "./cts-spinner.js";
 
 export default {
-  title: "Primitives/cts-spinner",
+  title: "Components/cts-spinner",
   component: "cts-spinner",
 };
 

@@ -3,7 +3,7 @@ import { expect } from "storybook/test";
 import "./cts-loading-state.js";
 
 export default {
-  title: "Patterns/cts-loading-state",
+  title: "Components/cts-loading-state",
   component: "cts-loading-state",
   argTypes: {
     label: { control: "text" },

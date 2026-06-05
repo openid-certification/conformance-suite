@@ -4,7 +4,7 @@ import "./cts-modal.js";
 import "./cts-spinner.js";
 
 export default {
-  title: "Primitives/cts-modal",
+  title: "Components/cts-modal",
   component: "cts-modal",
 };
 

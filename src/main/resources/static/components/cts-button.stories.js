@@ -3,7 +3,7 @@ import { expect, userEvent } from "storybook/test";
 import "./cts-button.js";
 
 export default {
-  title: "Primitives/cts-button",
+  title: "Components/cts-button",
   component: "cts-button",
   argTypes: {
     variant: {

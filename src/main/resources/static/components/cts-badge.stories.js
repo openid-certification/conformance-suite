@@ -3,7 +3,7 @@ import { expect, userEvent } from "storybook/test";
 import "./cts-badge.js";
 
 export default {
-  title: "Primitives/cts-badge",
+  title: "Components/cts-badge",
   component: "cts-badge",
   argTypes: {
     variant: { control: "text" },

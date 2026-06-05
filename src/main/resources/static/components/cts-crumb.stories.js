@@ -3,7 +3,7 @@ import { expect, userEvent } from "storybook/test";
 import "./cts-crumb.js";
 
 export default {
-  title: "Primitives/cts-crumb",
+  title: "Components/cts-crumb",
   component: "cts-crumb",
 };
 

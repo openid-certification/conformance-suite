@@ -5,7 +5,7 @@ import "./cts-link-button.js";
 import "./cts-empty-state.js";
 
 export default {
-  title: "Patterns/cts-empty-state",
+  title: "Components/cts-empty-state",
   component: "cts-empty-state",
   argTypes: {
     heading: { control: "text" },

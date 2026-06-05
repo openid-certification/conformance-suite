@@ -3,7 +3,7 @@ import { expect, within, waitFor } from "storybook/test";
 import "./cts-view-tabs.js";
 
 export default {
-  title: "Primitives/cts-view-tabs",
+  title: "Components/cts-view-tabs",
   component: "cts-view-tabs",
   // The component reads/writes location.search via pushState, so without a
   // reset the URL state leaks across stories (learning:

@@ -3,7 +3,7 @@ import { expect, fn, waitFor } from "storybook/test";
 import "./cts-icon.js";
 
 export default {
-  title: "Primitives/cts-icon",
+  title: "Components/cts-icon",
   component: "cts-icon",
   argTypes: {
     name: { control: "text" },
