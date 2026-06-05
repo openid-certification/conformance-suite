@@ -122,6 +122,11 @@ test.describe("Cross-page journeys", () => {
     });
     await setupCommonRoutes(page);
 
+    // Force advanced mode so cascade dropdowns are visible
+    await page.addInitScript(() => {
+      localStorage.setItem("oidf-guided-mode", "advanced");
+    });
+
     // === Step 1: schedule-test.html — navigate cascade and create plan ===
     await page.goto("/schedule-test.html");
 

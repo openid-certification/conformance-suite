@@ -31,6 +31,9 @@
 integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqruptLy" crossorigin="anonymous"></script>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.21/lodash.min.js" integrity="sha512-WFN04846sdKMIP5LKNphMaWzU7YpMyCU245etK3g/2ARYbPK9Ub18eG+ljU96qKRCWh+quCY7yefSmlkQw1ANQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdn.jsdelivr.net/npm/js-yaml@4.1.0/dist/js-yaml.min.js"
+            integrity="sha256-Rdw90D3AegZwWiwpibjH9wkBPwS9U4bjJ51ORH8H69c="
+            crossorigin="anonymous"></script>
 
     <script type="text/javascript" src="js/fapi.ui.js"></script>
 
@@ -87,6 +90,24 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
 
     <div class="container-fluid">
         <div id="scheduleTestPage">
+
+            <div class="row mb-2">
+                <div class="col-md-12 d-flex justify-content-end">
+                    <div class="btn-group btn-group-sm" role="group" id="modeToggleContainer" aria-label="Creation mode">
+                        <button id="guidedModeBtn" type="button" class="btn btn-primary btn-sm"
+                                onclick="setMode('guided')">Guided</button>
+                        <button id="advancedModeBtn" type="button" class="btn btn-outline-secondary btn-sm"
+                                onclick="setMode('advanced')">Advanced</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Guided wizard section — contents populated by JS -->
+            <div id="guidedSection" style="display:none">
+                <div id="wizardSteps"></div>
+            </div>
+
+            <div id="advancedSection">
 
             <div class="row">
                 <div class="col-md-12">
@@ -146,11 +167,29 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
                     </div>
                 </div>
             </div>
-            <div class="row">
-                <div class="col-md-12">
-                    <form id="variantSelectors">
-                        <!-- render variant selectors here -->
-                    </form>
+
+            </div><!-- end #advancedSection -->
+
+            <div id="variantSelectorSection" style="display:none">
+                <div class="accordion mb-3" id="variantAccordion">
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="variantAccordionHeading">
+                            <button class="accordion-button collapsed d-flex gap-2" type="button"
+                                    data-bs-toggle="collapse" data-bs-target="#variantAccordionBody"
+                                    aria-expanded="false" aria-controls="variantAccordionBody">
+                                <span>Test Variants</span>
+                                <span id="variantSummaryText" class="text-muted small fst-italic"></span>
+                            </button>
+                        </h2>
+                        <div id="variantAccordionBody" class="accordion-collapse collapse"
+                             aria-labelledby="variantAccordionHeading">
+                            <div class="accordion-body p-2">
+                                <form id="variantSelectors">
+                                    <!-- render variant selectors here -->
+                                </form>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -2086,10 +2125,257 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
                 return restoreEditPlanVariants();
             }).then(function() {
                 return registerGenerateJwksListeners();
+            }).then(function() {
+                initMode();
+                if (localStorage.getItem('oidf-guided-mode') !== 'advanced') {
+                    return loadGuidedWizard();
+                }
             }).finally(function() {
                 FAPI_UI.activeTooltip();
             });
         });
+
+        // ─── Mode toggle ───────────────────────────────────────────────
+
+        function initMode() {
+            var savedMode = localStorage.getItem('oidf-guided-mode') || 'guided';
+            applyMode(savedMode);
+        }
+
+        function setMode(mode) {
+            localStorage.setItem('oidf-guided-mode', mode);
+            applyMode(mode);
+            if (mode === 'guided') {
+                wizardState.currentStep = null;
+                wizardState.currentResult = null;
+                if (wizardState.ecosystemConfig) {
+                    renderWizardStart();
+                } else {
+                    loadGuidedWizard();
+                }
+            }
+        }
+
+        function applyMode(mode) {
+            var isGuided = (mode === 'guided');
+            document.getElementById('guidedSection').style.display = isGuided ? '' : 'none';
+            document.getElementById('advancedSection').style.display = isGuided ? 'none' : '';
+            document.getElementById('guidedModeBtn').className =
+                isGuided ? 'btn btn-primary btn-sm' : 'btn btn-outline-secondary btn-sm';
+            document.getElementById('advancedModeBtn').className =
+                isGuided ? 'btn btn-outline-secondary btn-sm' : 'btn btn-primary btn-sm';
+        }
+
+        // ─── Wizard state machine ───────────────────────────────────────
+
+        var wizardState = {
+            ecosystemConfig: null,
+            currentStep: null,
+            currentResult: null
+        };
+
+        function loadGuidedWizard() {
+            return fetch('guided-wizard.yaml')
+                .then(function(response) {
+                    if (!response.ok) {
+                        throw new Error('Failed to load wizard config: ' + response.status);
+                    }
+                    return response.text();
+                })
+                .then(function(text) {
+                    wizardState.ecosystemConfig = jsyaml.load(text);
+                    renderWizardStart();
+                    _applyWizardPreset();
+                })
+                .catch(function(err) {
+                    console.warn('Guided wizard unavailable, falling back to advanced mode:', err);
+                    applyMode('advanced');
+                });
+        }
+
+        function renderWizardStart() {
+            if (!wizardState.ecosystemConfig) return;
+            document.getElementById('wizardSteps').innerHTML = '';
+            wizardState.answers = [];
+            wizardState.currentResult = null;
+
+            var planSelect = document.getElementById('planSelect');
+            planSelect.value = 'select';
+            planSelect.dispatchEvent(new Event('change'));
+
+            var firstStep = {
+                id: 'ecosystem',
+                question: 'Which ecosystem are you testing?',
+                choices: wizardState.ecosystemConfig.ecosystems.map(function(eco) {
+                    return { id: eco.id, label: eco.label, _ecoRef: eco };
+                })
+            };
+            _appendWizardStep(firstStep);
+        }
+
+        function _appendWizardStep(step) {
+            wizardState.currentStep = step;
+            var container = document.getElementById('wizardSteps');
+            var selectId = 'wizardSelect_' + step.id;
+
+            var block = document.createElement('div');
+            block.className = 'wizard-step-block mb-3 row';
+            block.dataset.stepId = step.id;
+
+            var labelEl = document.createElement('label');
+            labelEl.htmlFor = selectId;
+            labelEl.className = 'col-md-2 col-form-label';
+            labelEl.textContent = step.question;
+
+            var colDiv = document.createElement('div');
+            colDiv.className = 'col-md-10';
+
+            var inputGroup = document.createElement('div');
+            inputGroup.className = 'input-group';
+
+            var infoSpanWrapper = document.createElement('div');
+            infoSpanWrapper.className = 'input-group-text';
+            var infoSpan = document.createElement('span');
+            infoSpan.className = 'bi bi-info-circle-fill';
+            infoSpanWrapper.appendChild(infoSpan);
+
+            var select = document.createElement('select');
+            select.id = selectId;
+            select.className = 'form-select wizard-step-select';
+
+            var defaultOpt = document.createElement('option');
+            defaultOpt.value = '';
+            defaultOpt.textContent = '--- Select ---';
+            select.appendChild(defaultOpt);
+
+            step.choices.forEach(function(choice) {
+                var opt = document.createElement('option');
+                opt.value = choice.id;
+                opt.textContent = choice.label;
+                if (choice.description) {
+                    opt.title = choice.label + ' — ' + choice.description;
+                }
+                select.appendChild(opt);
+            });
+
+            select.addEventListener('change', function() {
+                var choiceId = this.value;
+                if (!choiceId) {
+                    _removeStepsAfter(block);
+                    wizardState.currentResult = null;
+                    document.getElementById('planSelect').value = 'select';
+                    document.getElementById('planSelect').dispatchEvent(new Event('change'));
+                    return;
+                }
+                var choice = step.choices.find(function(c) { return c.id === choiceId; });
+                if (!choice) return;
+                _removeStepsAfter(block);
+                wizardState.currentResult = null;
+                document.getElementById('planSelect').value = 'select';
+                document.getElementById('planSelect').dispatchEvent(new Event('change'));
+                _onWizardSelect(choice);
+            });
+
+            inputGroup.appendChild(infoSpanWrapper);
+            inputGroup.appendChild(select);
+            colDiv.appendChild(inputGroup);
+            block.appendChild(labelEl);
+            block.appendChild(colDiv);
+            container.appendChild(block);
+        }
+
+        function _removeStepsAfter(block) {
+            var container = document.getElementById('wizardSteps');
+            var blocks = Array.from(container.querySelectorAll('.wizard-step-block'));
+            var idx = blocks.indexOf(block);
+            blocks.slice(idx + 1).forEach(function(b) { b.remove(); });
+        }
+
+        function _onWizardSelect(choice) {
+            if (choice.result) {
+                wizardState.currentResult = choice.result;
+                applyWizardResult(choice.result);
+            } else if (choice.next) {
+                _appendWizardStep(choice.next);
+            } else if (choice._ecoRef) {
+                _appendWizardStep(choice._ecoRef.steps[0]);
+            }
+        }
+
+        function applyWizardResult(result) {
+            if (!(result.plan_name in FAPI_UI.availablePlans)) {
+                FAPI_UI.showError({
+                    error: 'Plan not found',
+                    message: 'Plan "' + result.plan_name + '" is not available on this server. ' +
+                             'Try Advanced mode to browse all available plans.'
+                });
+                return;
+            }
+
+            selectPlanByName(result.plan_name);
+
+            if (result.variants) {
+                _.each(result.variants, function(value, key) {
+                    var el = document.querySelector('.variant-selector[data-variant-parameter="' + key + '"]');
+                    if (el) {
+                        el.value = value;
+                    }
+                });
+                updateVariantOptionsVisibility();
+                updateConfigFieldVisibility();
+                updateVariantSummary();
+            }
+        }
+
+        function _applyWizardPreset() {
+            var params = new URLSearchParams(window.location.search);
+            var presetJson = params.get('wizard_preset');
+            if (!presetJson) return;
+            try {
+                var preset = JSON.parse(presetJson);
+                if (!preset.answersUpToPlan) return;
+                // Auto-select each preset answer in the rendered wizard selects
+                preset.answersUpToPlan.forEach(function(a) {
+                    var sel = document.getElementById('wizardSelect_' + a.stepId);
+                    if (sel) {
+                        sel.value = a.choiceId;
+                        sel.dispatchEvent(new Event('change'));
+                    }
+                });
+            } catch (e) {
+                // ignore malformed preset
+            }
+        }
+
+        // ─── also_required storage before redirect ──────────────────────
+
+        function _getWizardSelectValues() {
+            var result = [];
+            document.querySelectorAll('#wizardSteps .wizard-step-block').forEach(function(block) {
+                var stepId = block.dataset.stepId;
+                var sel = block.querySelector('.wizard-step-select');
+                if (sel && sel.value) {
+                    var opt = sel.options[sel.selectedIndex];
+                    result.push({ stepId: stepId, choiceId: sel.value, choiceLabel: opt ? opt.textContent : sel.value });
+                }
+            });
+            return result;
+        }
+
+        function storeAlsoRequiredData() {
+            if (wizardState.currentResult && wizardState.currentResult.also_required &&
+                    wizardState.currentResult.also_required.length > 0 &&
+                    localStorage.getItem('oidf-guided-mode') !== 'advanced') {
+                var answers = _getWizardSelectValues();
+                var ecosystemAnswer = answers.find(function(a) { return a.stepId === 'ecosystem'; });
+                sessionStorage.setItem('oidf-also-required', JSON.stringify({
+                    ecosystemId: ecosystemAnswer ? ecosystemAnswer.choiceId : '',
+                    ecosystemLabel: ecosystemAnswer ? ecosystemAnswer.choiceLabel : '',
+                    also_required: wizardState.currentResult.also_required,
+                    answersUpToPlan: answers.slice(0, 2)
+                }));
+            }
+        }
 
         function applyConfigPreset() {
             let searchParams = new URLSearchParams(window.location.search);
@@ -2614,6 +2900,7 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
                 })
                 .then((data) => {
                     clearSavedConfig();
+                    storeAlsoRequiredData();
                     // forward to the test plan page
                     window.location.assign('/plan-detail.html?plan=' + encodeURIComponent(data.id));
                 })
@@ -2697,6 +2984,7 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
             document.getElementById('variantSelectors').addEventListener("change", function(){
                 updateVariantOptionsVisibility();
                 updateConfigFieldVisibility();
+                updateVariantSummary();
             });
 
             // update the config visibility right now
@@ -3051,15 +3339,29 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
                 if(itemSelected == "ekyc-test-plan-oidccore") {
                     registerEkycSecurityProfileChangeEvent();
                 }
-                document.getElementById('variantSelectors').style.display = '';
+                document.getElementById('variantSelectorSection').style.display = '';
+                updateVariantSummary();
             } else {
 
                 // don't show the variant if there's none to show
-                document.getElementById('variantSelectors').style.display = 'none';
+                document.getElementById('variantSelectorSection').style.display = 'none';
+                document.getElementById('variantSummaryText').textContent = '';
             }
             FAPI_UI.activeTooltip();
             // Update variant option visibility based on notApplicableWhen conditions
             updateVariantOptionsVisibility();
+        }
+
+        function updateVariantSummary() {
+            var selection = getSelectedVariant();
+            var parts = [];
+            _.each(selection, function(v) {
+                if (v && v !== 'select') {
+                    parts.push(v);
+                }
+            });
+            document.getElementById('variantSummaryText').textContent =
+                parts.length > 0 ? parts.join(' · ') : '';
         }
 
         function getSelectedVariant() {

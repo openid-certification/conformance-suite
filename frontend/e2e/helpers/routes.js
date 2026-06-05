@@ -11,6 +11,7 @@
 import { MOCK_USER } from "../fixtures/mock-users.js";
 import { MOCK_SERVER_INFO } from "../fixtures/mock-server.js";
 import { MOCK_TEST_STATUS } from "../fixtures/mock-test-data.js";
+import { GUIDED_WIZARD_YAML } from "../fixtures/guided-wizard.yaml.js";
 
 /**
  * Register the three routes every page needs:
@@ -124,6 +125,22 @@ export async function setupFailFast(page) {
  *
  * @param {import('@playwright/test').Page} page
  */
+/**
+ * Mock GET /guided-wizard.yaml.
+ * Must be called before page.goto() since loadGuidedWizard() runs on page init.
+ *
+ * @param {import('@playwright/test').Page} page
+ */
+export async function setupGuidedWizardRoute(page) {
+  await page.route("**/guided-wizard.yaml", (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: "text/yaml",
+      body: GUIDED_WIZARD_YAML,
+    }),
+  );
+}
+
 export function expectNoUnmockedCalls(page) {
   if (!page.__unmockedApiCalls) {
     throw new Error(

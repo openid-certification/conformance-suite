@@ -319,4 +319,75 @@ test.describe("plan-detail.html — Plan Detail", () => {
     expect(req.method()).toBe("DELETE");
     expect(req.url()).toContain("/api/plan/plan-abc-123");
   });
+
+  test("shows also_required reminder banner when sessionStorage has data (R_G6)", async ({ page }) => {
+    await setupFailFast(page);
+
+    await page.route("**/api/plan/plan-abc-123", (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(MOCK_PLAN_DETAIL),
+      }),
+    );
+
+    await setupTestInfoRoute(page, {
+      "test-inst-001": { ...MOCK_TEST_STATUS, testId: "test-inst-001" },
+      "test-inst-002": { ...MOCK_TEST_STATUS, testId: "test-inst-002", testName: "oidcc-server-rotate-keys" },
+      "test-inst-003": { ...MOCK_TEST_STATUS, testId: "test-inst-003", testName: "oidcc-ensure-redirect-uri-in-authorization-request" },
+    });
+
+    await setupCommonRoutes(page);
+
+    // Pre-populate sessionStorage before page load
+    await page.addInitScript(() => {
+      sessionStorage.setItem("oidf-also-required", JSON.stringify({
+        ecosystemId: "open_finance_brazil",
+        ecosystemLabel: "Open Finance Brazil",
+        also_required: [{ id: "dcr_brazil_rp", label: "Dynamic Client Registration" }],
+        answersUpToPlan: [
+          { stepId: "ecosystem", choiceId: "open_finance_brazil", choiceLabel: "Open Finance Brazil" },
+          { stepId: "role", choiceId: "rp", choiceLabel: "RP (Client)" },
+        ],
+      }));
+    });
+
+    await page.goto("/plan-detail.html?plan=plan-abc-123");
+
+    // Banner is visible
+    const banner = page.locator("#alsoRequiredBanner");
+    await expect(banner).toBeVisible();
+
+    // Banner message mentions the ecosystem and required plan
+    await expect(page.locator("#alsoRequiredMsg")).toContainText("Open Finance Brazil");
+    await expect(page.locator("#alsoRequiredMsg")).toContainText("Dynamic Client Registration");
+
+    // Link points to schedule-test.html with wizard_preset
+    const linkHref = await page.locator("#alsoRequiredLink").getAttribute("href");
+    expect(linkHref).toContain("schedule-test.html");
+    expect(linkHref).toContain("wizard_preset");
+
+    // sessionStorage is cleared after reading
+    const remaining = await page.evaluate(() => sessionStorage.getItem("oidf-also-required"));
+    expect(remaining).toBeNull();
+  });
+
+  test("no also_required banner shown when sessionStorage is empty (R_G7)", async ({ page }) => {
+    await setupFailFast(page);
+
+    await page.route("**/api/plan/plan-abc-123", (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(MOCK_PLAN_DETAIL),
+      }),
+    );
+
+    await setupTestInfoRoute(page);
+    await setupCommonRoutes(page);
+
+    await page.goto("/plan-detail.html?plan=plan-abc-123");
+
+    await expect(page.locator("#alsoRequiredBanner")).toBeHidden();
+  });
 });

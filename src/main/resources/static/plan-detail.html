@@ -235,6 +235,13 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
 
     <!-- resident DOM -->
     <div class="container-fluid">
+        <!-- also_required reminder banner (shown by JS when sessionStorage has data) -->
+        <div id="alsoRequiredBanner" class="alert alert-warning d-flex align-items-center gap-3 mb-3"
+             style="display:none !important">
+            <span>⚠️</span>
+            <span id="alsoRequiredMsg" class="flex-grow-1"></span>
+            <a id="alsoRequiredLink" href="schedule-test.html" class="btn btn-sm btn-warning">Create Plan →</a>
+        </div>
         <div id="planDetail">
             <div class="header"></div>
             <div class="content container-fluid">
@@ -763,6 +770,32 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
             window.location.reload();
         };
 
+        function checkAlsoRequired() {
+            var data = sessionStorage.getItem('oidf-also-required');
+            if (!data) return;
+            sessionStorage.removeItem('oidf-also-required');
+            try {
+                var parsed = JSON.parse(data);
+                var required = parsed.also_required;
+                if (!required || !required.length) return;
+                var count = required.length;
+                var labels = required.map(function(r) { return r.label; }).join(', ');
+                document.getElementById('alsoRequiredMsg').textContent =
+                    count + ' more plan' + (count > 1 ? 's' : '') + ' required for ' +
+                    parsed.ecosystemLabel + ' certification: ' + labels;
+                var link = document.getElementById('alsoRequiredLink');
+                link.href = 'schedule-test.html?wizard_preset=' + encodeURIComponent(JSON.stringify({
+                    ecosystemId: parsed.ecosystemId,
+                    answersUpToPlan: parsed.answersUpToPlan
+                }));
+                var banner = document.getElementById('alsoRequiredBanner');
+                banner.style.removeProperty('display');
+                banner.style.display = '';
+            } catch (e) {
+                // ignore
+            }
+        }
+
         document.addEventListener("DOMContentLoaded", () => {
             var urlParams = new URLSearchParams(window.location.search);
             var planId = urlParams.get('plan');
@@ -776,6 +809,7 @@ integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqrupt
             }).then(function() {
                 return getPlan(planId, public); // Only once the user is loaded, then render the plan info
             }).finally(function() {
+                checkAlsoRequired();
                 FAPI_UI.activeTooltip();
                 FAPI_UI.hideBusy();
             });
