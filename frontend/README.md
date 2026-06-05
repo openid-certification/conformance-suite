@@ -88,7 +88,12 @@ The OIDF design system ships as two token files served from
    Single source of truth for `--oidf-*`, `--ink-*`, `--orange-*`,
    `--rust-*`, `--sand-*`, `--space-*`, `--radius-*`, `--shadow-*`,
    `--font-sans`, `--font-mono`, `--ease-standard`, `--focus-ring`.
-   Re-vendor from upstream rather than editing in place.
+   Re-vendor from upstream rather than editing in place. The rendered
+   catalog lives in Storybook under **Tokens** (`npm run storybook`):
+   color swatches, type specimens, spacing ramps, and
+   radii/elevation/motion, all read live from the sheet and
+   completeness-gated by the story tests — a token added or removed
+   without a catalog update fails the suite by name.
 2. **`oidf-app.css`** — load-bearing compatibility layer. Carries the
    body `font-family: var(--font-sans)` rule (replaces the historical
    PT Sans link), the `.collapse` / `.collapse.show` toggle (mirrors
@@ -98,9 +103,11 @@ The OIDF design system ships as two token files served from
    the new `<dialog>`-based `cts-modal`. Links AFTER `layout.css`
    so its body rule wins.
 
-**Typography:** Helvetica Neue → Arial Nova → Nimbus Sans → Arial
-fallback for sans-serif (no Google Fonts download); JetBrains Mono
-via Google Fonts CDN for code/JWT/JSON pages (`log-detail`,
+**Typography:** self-hosted Inter (variable woff2, weight axis
+100..900) declared by an `@font-face` block inlined at the top of
+`oidf-tokens.css` — the `system-ui` chain in `--font-sans` only
+renders during the brief swap window before Inter loads. JetBrains
+Mono via Google Fonts CDN for code/JWT/JSON pages (`log-detail`,
 `schedule-test`, `tokens`, `upload`).
 
 **`cts-*` consumption rule:** components reach for tokens through
