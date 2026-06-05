@@ -149,56 +149,66 @@ export const Authenticated = {
   decorators: [withMockUser(MOCK_USER)],
   render: ({ currentPage }) => html`<cts-navbar current-page="${currentPage}"></cts-navbar>`,
 
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const canvas = within(canvasElement);
     await waitForNavbar(canvasElement);
 
-    // Collapsed authenticated nav (U9): Home and Create Test were removed —
-    // the plans listing is the home (reached via the brand logo) and Create
-    // test is an in-page CTA (U8).
-    expect(canvas.queryByText("Home")).toBeNull();
-    expect(canvas.queryByText("Create Test")).toBeNull();
-    expect(canvas.getByText("Test Plans")).toBeInTheDocument();
-    expect(canvas.getByText("Test Logs")).toBeInTheDocument();
-    expect(canvas.getByText("API Docs")).toBeInTheDocument();
+    await step("collapsed authenticated nav links render", async () => {
+      // Collapsed authenticated nav (U9): Home and Create Test were removed —
+      // the plans listing is the home (reached via the brand logo) and Create
+      // test is an in-page CTA (U8).
+      expect(canvas.queryByText("Home")).toBeNull();
+      expect(canvas.queryByText("Create Test")).toBeNull();
+      expect(canvas.getByText("Test Plans")).toBeInTheDocument();
+      expect(canvas.getByText("Test Logs")).toBeInTheDocument();
+      expect(canvas.getByText("API Docs")).toBeInTheDocument();
+    });
 
-    // Tokens link visible (in nav AND inside the account menu).
-    const tokensLinks = canvas.getAllByText("Tokens");
-    expect(tokensLinks.length).toBeGreaterThanOrEqual(2);
+    await step("tokens link visible in nav and account menu", async () => {
+      const tokensLinks = canvas.getAllByText("Tokens");
+      expect(tokensLinks.length).toBeGreaterThanOrEqual(2);
+    });
 
-    // Account menu trigger present and closed by default.
-    const trigger = /** @type {HTMLButtonElement} */ (
-      canvasElement.querySelector(".cts-account-trigger")
-    );
-    expect(trigger).toBeTruthy();
-    expect(trigger.getAttribute("aria-expanded")).toBe("false");
-    expect(trigger.getAttribute("aria-label")).toBe("Account menu for Test User");
+    await step("account menu trigger present and closed by default", async () => {
+      const trigger = /** @type {HTMLButtonElement} */ (
+        canvasElement.querySelector(".cts-account-trigger")
+      );
+      expect(trigger).toBeTruthy();
+      expect(trigger.getAttribute("aria-expanded")).toBe("false");
+      expect(trigger.getAttribute("aria-label")).toBe("Account menu for Test User");
+    });
 
-    // User name + principal live inside the account menu (in DOM regardless
-    // of open state — the menu uses opacity/pointer-events for closed state,
-    // not display:none, so Testing Library still finds them).
-    expect(canvas.getByText("Test User")).toBeInTheDocument();
-    expect(canvas.getByText("testuser@example.com")).toBeInTheDocument();
-    expect(canvas.getByText("Sign out")).toBeInTheDocument();
+    await step("user name + principal live inside the account menu", async () => {
+      // In DOM regardless of open state — the menu uses opacity/pointer-events
+      // for closed state, not display:none, so Testing Library still finds them.
+      expect(canvas.getByText("Test User")).toBeInTheDocument();
+      expect(canvas.getByText("testuser@example.com")).toBeInTheDocument();
+      expect(canvas.getByText("Sign out")).toBeInTheDocument();
+    });
 
-    // No ADMIN badge for a regular user.
-    expect(canvas.queryByText("ADMIN")).toBeNull();
+    await step("no admin affordances for a regular user", async () => {
+      // No ADMIN badge for a regular user.
+      expect(canvas.queryByText("ADMIN")).toBeNull();
+      // Avatar should NOT carry the admin ring.
+      const avatar = canvasElement.querySelector(".cts-avatar");
+      expect(avatar.classList.contains("is-admin")).toBe(false);
+    });
 
-    // Avatar should NOT carry the admin ring.
-    const avatar = canvasElement.querySelector(".cts-avatar");
-    expect(avatar.classList.contains("is-admin")).toBe(false);
+    await step("active link reflects currentPage", async () => {
+      // Test Plans link should be active (currentPage = "plans").
+      const plansLink = canvas.getByText("Test Plans");
+      expect(plansLink.classList.contains("active")).toBe(true);
+    });
 
-    // Test Plans link should be active (currentPage = "plans").
-    const plansLink = canvas.getByText("Test Plans");
-    expect(plansLink.classList.contains("active")).toBe(true);
-
-    // OpenID logo present, and the brand points at the plans home for
-    // authenticated users (logged-out visitors get login.html instead —
-    // see the Unauthenticated story).
-    const logo = canvasElement.querySelector('img[alt="OpenID Foundation"]');
-    expect(logo).toBeTruthy();
-    const brand = /** @type {HTMLAnchorElement} */ (canvasElement.querySelector(".cts-brand"));
-    expect(brand.getAttribute("href")).toBe("plans.html");
+    await step("logo present and brand points at the plans home", async () => {
+      // OpenID logo present, and the brand points at the plans home for
+      // authenticated users (logged-out visitors get login.html instead —
+      // see the Unauthenticated story).
+      const logo = canvasElement.querySelector('img[alt="OpenID Foundation"]');
+      expect(logo).toBeTruthy();
+      const brand = /** @type {HTMLAnchorElement} */ (canvasElement.querySelector(".cts-brand"));
+      expect(brand.getAttribute("href")).toBe("plans.html");
+    });
   },
 };
 
@@ -207,37 +217,43 @@ export const Admin = {
   decorators: [withMockUser(MOCK_ADMIN)],
   render: ({ currentPage }) => html`<cts-navbar current-page="${currentPage}"></cts-navbar>`,
 
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const canvas = within(canvasElement);
     await waitForNavbar(canvasElement);
 
-    // ADMIN badge visible inside the menu, AND surfaced on the avatar via
-    // the rust ring class so it persists when the menu is closed.
-    expect(canvas.getByText("ADMIN")).toBeInTheDocument();
-    expect(canvas.getByText("Admin User")).toBeInTheDocument();
-    const avatar = canvasElement.querySelector(".cts-avatar");
-    expect(avatar.classList.contains("is-admin")).toBe(true);
+    await step("admin badge surfaces in menu and on the avatar", async () => {
+      // ADMIN badge visible inside the menu, AND surfaced on the avatar via
+      // the rust ring class so it persists when the menu is closed.
+      expect(canvas.getByText("ADMIN")).toBeInTheDocument();
+      expect(canvas.getByText("Admin User")).toBeInTheDocument();
+      const avatar = canvasElement.querySelector(".cts-avatar");
+      expect(avatar.classList.contains("is-admin")).toBe(true);
+    });
 
-    // Tokens nav link should be hidden for admin.
-    const navLinks = canvasElement.querySelectorAll(".cts-navlink");
-    const navLinkTexts = Array.from(navLinks).map((el) => el.textContent.trim());
-    expect(navLinkTexts).not.toContain("Tokens");
+    await step("tokens hidden in both nav and menu for admin", async () => {
+      // Tokens nav link should be hidden for admin.
+      const navLinks = canvasElement.querySelectorAll(".cts-navlink");
+      const navLinkTexts = Array.from(navLinks).map((el) => el.textContent.trim());
+      expect(navLinkTexts).not.toContain("Tokens");
+      // Tokens menu item should also be hidden for admin.
+      const tokensMenuItem = canvasElement.querySelector('.cts-account-item[href="tokens.html"]');
+      expect(tokensMenuItem).toBeNull();
+    });
 
-    // Tokens menu item should also be hidden for admin.
-    const tokensMenuItem = canvasElement.querySelector('.cts-account-item[href="tokens.html"]');
-    expect(tokensMenuItem).toBeNull();
+    await step("sign out always available", async () => {
+      expect(canvas.getByText("Sign out")).toBeInTheDocument();
+    });
 
-    // Sign out always available.
-    expect(canvas.getByText("Sign out")).toBeInTheDocument();
-
-    // Geometry regression guard for the single-item menu shape: with
-    // Tokens hidden, the lone form-nested Sign out button must still be
-    // contained in and fill the open menu.
-    const trigger = /** @type {HTMLButtonElement} */ (
-      canvasElement.querySelector(".cts-account-trigger")
-    );
-    await userEvent.click(trigger);
-    expectAccountMenuItemsWithinMenu(canvasElement);
+    await step("single-item menu stays contained and fills the menu", async () => {
+      // Geometry regression guard for the single-item menu shape: with
+      // Tokens hidden, the lone form-nested Sign out button must still be
+      // contained in and fill the open menu.
+      const trigger = /** @type {HTMLButtonElement} */ (
+        canvasElement.querySelector(".cts-account-trigger")
+      );
+      await userEvent.click(trigger);
+      expectAccountMenuItemsWithinMenu(canvasElement);
+    });
   },
 };
 
@@ -246,24 +262,26 @@ export const Guest = {
   decorators: [withMockUser(MOCK_GUEST)],
   render: ({ currentPage }) => html`<cts-navbar current-page="${currentPage}"></cts-navbar>`,
 
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const canvas = within(canvasElement);
     await waitForNavbar(canvasElement);
 
-    // Guest user: no ADMIN badge.
-    expect(canvas.queryByText("ADMIN")).toBeNull();
-    expect(canvas.getByText("Guest User")).toBeInTheDocument();
+    await step("guest user has no admin affordances", async () => {
+      // Guest user: no ADMIN badge.
+      expect(canvas.queryByText("ADMIN")).toBeNull();
+      expect(canvas.getByText("Guest User")).toBeInTheDocument();
+      // Avatar has no admin ring.
+      const avatar = canvasElement.querySelector(".cts-avatar");
+      expect(avatar.classList.contains("is-admin")).toBe(false);
+    });
 
-    // Avatar has no admin ring.
-    const avatar = canvasElement.querySelector(".cts-avatar");
-    expect(avatar.classList.contains("is-admin")).toBe(false);
-
-    // Tokens hidden in both nav AND menu for guest.
-    const navLinks = canvasElement.querySelectorAll(".cts-navlink");
-    const navLinkTexts = Array.from(navLinks).map((el) => el.textContent.trim());
-    expect(navLinkTexts).not.toContain("Tokens");
-    const tokensMenuItem = canvasElement.querySelector('.cts-account-item[href="tokens.html"]');
-    expect(tokensMenuItem).toBeNull();
+    await step("tokens hidden in both nav and menu for guest", async () => {
+      const navLinks = canvasElement.querySelectorAll(".cts-navlink");
+      const navLinkTexts = Array.from(navLinks).map((el) => el.textContent.trim());
+      expect(navLinkTexts).not.toContain("Tokens");
+      const tokensMenuItem = canvasElement.querySelector('.cts-account-item[href="tokens.html"]');
+      expect(tokensMenuItem).toBeNull();
+    });
   },
 };
 
@@ -272,41 +290,47 @@ export const Unauthenticated = {
   decorators: [withUnauthenticated()],
   render: ({ currentPage }) => html`<cts-navbar current-page="${currentPage}"></cts-navbar>`,
 
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const canvas = within(canvasElement);
     await waitForNavbar(canvasElement);
 
-    // Public nav always exposes the primary listings (Test Plans, Test Logs)
-    // alongside API Docs. The public links carry ?public=true so anonymous
-    // clicks land directly in the Published browser.
-    const plansLink = /** @type {HTMLAnchorElement} */ (canvas.getByText("Test Plans"));
-    const logsLink = /** @type {HTMLAnchorElement} */ (canvas.getByText("Test Logs"));
-    expect(plansLink.getAttribute("href")).toBe("plans.html?public=true");
-    expect(logsLink.getAttribute("href")).toBe("logs.html?public=true");
-    expect(canvas.getByText("API Docs")).toBeInTheDocument();
+    await step("public nav exposes listings with ?public=true", async () => {
+      // Public nav always exposes the primary listings (Test Plans, Test Logs)
+      // alongside API Docs. The public links carry ?public=true so anonymous
+      // clicks land directly in the Published browser.
+      const plansLink = /** @type {HTMLAnchorElement} */ (canvas.getByText("Test Plans"));
+      const logsLink = /** @type {HTMLAnchorElement} */ (canvas.getByText("Test Logs"));
+      expect(plansLink.getAttribute("href")).toBe("plans.html?public=true");
+      expect(logsLink.getAttribute("href")).toBe("logs.html?public=true");
+      expect(canvas.getByText("API Docs")).toBeInTheDocument();
+    });
 
-    // Authenticated-only links absent for anonymous visitors.
-    expect(canvas.queryByText("Home")).toBeNull();
-    expect(canvas.queryByText("Create Test")).toBeNull();
-    expect(canvas.queryByText("Tokens")).toBeNull();
+    await step("authenticated-only links absent for anonymous visitors", async () => {
+      expect(canvas.queryByText("Home")).toBeNull();
+      expect(canvas.queryByText("Create Test")).toBeNull();
+      expect(canvas.queryByText("Tokens")).toBeNull();
+    });
 
-    // No account menu, no Sign out.
-    expect(canvasElement.querySelector(".cts-account")).toBeNull();
-    expect(canvas.queryByText("Sign out")).toBeNull();
+    await step("no account menu, no sign out", async () => {
+      expect(canvasElement.querySelector(".cts-account")).toBeNull();
+      expect(canvas.queryByText("Sign out")).toBeNull();
+    });
 
-    // Sign in button present and points at the login page.
-    const signIn = /** @type {HTMLAnchorElement} */ (canvas.getByText("Sign in"));
-    expect(signIn).toBeInTheDocument();
-    expect(signIn.getAttribute("href")).toBe("login.html");
+    await step("sign in button points at the login page", async () => {
+      const signIn = /** @type {HTMLAnchorElement} */ (canvas.getByText("Sign in"));
+      expect(signIn).toBeInTheDocument();
+      expect(signIn.getAttribute("href")).toBe("login.html");
+    });
 
-    // Logo still present, and the brand points at the login page —
-    // logged-out visitors land on login.html, not the plans listing
-    // (logged-out-landing fix; the published view stays reachable via the
-    // ?public=true nav links asserted above).
-    const logo = canvasElement.querySelector('img[alt="OpenID Foundation"]');
-    expect(logo).toBeTruthy();
-    const brand = /** @type {HTMLAnchorElement} */ (canvasElement.querySelector(".cts-brand"));
-    expect(brand.getAttribute("href")).toBe("login.html");
+    await step("logo present and brand points at the login page", async () => {
+      // Logged-out visitors land on login.html, not the plans listing
+      // (logged-out-landing fix; the published view stays reachable via the
+      // ?public=true nav links asserted above).
+      const logo = canvasElement.querySelector('img[alt="OpenID Foundation"]');
+      expect(logo).toBeTruthy();
+      const brand = /** @type {HTMLAnchorElement} */ (canvasElement.querySelector(".cts-brand"));
+      expect(brand.getAttribute("href")).toBe("login.html");
+    });
   },
 };
 
@@ -315,35 +339,42 @@ export const Loading = {
   decorators: [withMockUser(MOCK_USER, { delay: 60000 })],
   render: ({ currentPage }) => html`<cts-navbar current-page="${currentPage}"></cts-navbar>`,
 
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const canvas = within(canvasElement);
 
-    // Loading uses a skeleton avatar — a 30x30 ink-700 disc — instead of a
-    // text label that would shift layout when the user resolves. Wait for
-    // it to appear (the auth fetch is delayed by the decorator).
-    await waitFor(() => {
-      const skel = canvasElement.querySelector(".cts-skel-avatar");
-      expect(skel).toBeTruthy();
+    await step("skeleton avatar appears while auth fetch is pending", async () => {
+      // Loading uses a skeleton avatar — a 30x30 ink-700 disc — instead of a
+      // text label that would shift layout when the user resolves. Wait for
+      // it to appear (the auth fetch is delayed by the decorator).
+      await waitFor(() => {
+        const skel = canvasElement.querySelector(".cts-skel-avatar");
+        expect(skel).toBeTruthy();
+      });
     });
 
-    // Logo visible while loading, and the brand delegates to "/" so the
-    // auth-aware server redirect (HomeController) decides the destination —
-    // a stale client guess could misroute an authenticated user to login.html.
-    const logo = canvasElement.querySelector('img[alt="OpenID Foundation"]');
-    expect(logo).toBeTruthy();
-    const brand = /** @type {HTMLAnchorElement} */ (canvasElement.querySelector(".cts-brand"));
-    expect(brand.getAttribute("href")).toBe("/");
+    await step('logo visible and brand delegates to "/"', async () => {
+      // The brand delegates to "/" so the auth-aware server redirect
+      // (HomeController) decides the destination — a stale client guess could
+      // misroute an authenticated user to login.html.
+      const logo = canvasElement.querySelector('img[alt="OpenID Foundation"]');
+      expect(logo).toBeTruthy();
+      const brand = /** @type {HTMLAnchorElement} */ (canvasElement.querySelector(".cts-brand"));
+      expect(brand.getAttribute("href")).toBe("/");
+    });
 
-    // While loading, user is null so component shows the public nav links
-    // (Test Plans, Test Logs, API Docs); the collapsed-in-U9 Home link stays
-    // absent.
-    expect(canvas.queryByText("Home")).toBeNull();
-    expect(canvas.getByText("API Docs")).toBeInTheDocument();
+    await step("public nav links show while user is null", async () => {
+      // While loading, user is null so component shows the public nav links
+      // (Test Plans, Test Logs, API Docs); the collapsed-in-U9 Home link stays
+      // absent.
+      expect(canvas.queryByText("Home")).toBeNull();
+      expect(canvas.getByText("API Docs")).toBeInTheDocument();
+    });
 
-    // No account trigger, no Sign in, no Sign out — only the skeleton.
-    expect(canvasElement.querySelector(".cts-account-trigger")).toBeNull();
-    expect(canvas.queryByText("Sign in")).toBeNull();
-    expect(canvas.queryByText("Sign out")).toBeNull();
+    await step("only the skeleton shows — no account, sign in, or sign out", async () => {
+      expect(canvasElement.querySelector(".cts-account-trigger")).toBeNull();
+      expect(canvas.queryByText("Sign in")).toBeNull();
+      expect(canvas.queryByText("Sign out")).toBeNull();
+    });
   },
 };
 
@@ -414,27 +445,30 @@ export const ActivePageTransition = {
   decorators: [withMockUser(MOCK_USER)],
   render: ({ currentPage }) => html`<cts-navbar current-page="${currentPage}"></cts-navbar>`,
 
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const canvas = within(canvasElement);
     await waitForNavbar(canvasElement);
 
     const navbar = canvasElement.querySelector("cts-navbar");
     expect(navbar).toBeTruthy();
 
-    // Initial: only Test Plans is active.
-    let activeLinks = canvasElement.querySelectorAll(".cts-navlink.active");
-    expect(activeLinks).toHaveLength(1);
-    expect(canvas.getByText("Test Plans").classList.contains("active")).toBe(true);
+    await step("initially only Test Plans is active", async () => {
+      const activeLinks = canvasElement.querySelectorAll(".cts-navlink.active");
+      expect(activeLinks).toHaveLength(1);
+      expect(canvas.getByText("Test Plans").classList.contains("active")).toBe(true);
+    });
 
-    // Flip current-page; classMap must move `active` to the new link and
-    // strip it from the previous one.
-    navbar.setAttribute("current-page", "logs");
-    await navbar.updateComplete;
+    await step("flipping current-page moves the active class", async () => {
+      // classMap must move `active` to the new link and strip it from the
+      // previous one.
+      navbar.setAttribute("current-page", "logs");
+      await navbar.updateComplete;
 
-    activeLinks = canvasElement.querySelectorAll(".cts-navlink.active");
-    expect(activeLinks).toHaveLength(1);
-    expect(canvas.getByText("Test Logs").classList.contains("active")).toBe(true);
-    expect(canvas.getByText("Test Plans").classList.contains("active")).toBe(false);
+      const activeLinks = canvasElement.querySelectorAll(".cts-navlink.active");
+      expect(activeLinks).toHaveLength(1);
+      expect(canvas.getByText("Test Logs").classList.contains("active")).toBe(true);
+      expect(canvas.getByText("Test Plans").classList.contains("active")).toBe(false);
+    });
   },
 };
 
@@ -448,41 +482,50 @@ export const AccountMenuOpens = {
   decorators: [withMockUser(MOCK_USER)],
   render: ({ currentPage }) => html`<cts-navbar current-page="${currentPage}"></cts-navbar>`,
 
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     await waitForNavbar(canvasElement);
 
     const account = canvasElement.querySelector(".cts-account");
     const trigger = /** @type {HTMLButtonElement} */ (
       canvasElement.querySelector(".cts-account-trigger")
     );
-    expect(account.getAttribute("data-open")).toBe("false");
-    expect(trigger.getAttribute("aria-expanded")).toBe("false");
 
-    await userEvent.click(trigger);
+    await step("menu is closed by default", async () => {
+      expect(account.getAttribute("data-open")).toBe("false");
+      expect(trigger.getAttribute("aria-expanded")).toBe("false");
+    });
 
-    expect(account.getAttribute("data-open")).toBe("true");
-    expect(trigger.getAttribute("aria-expanded")).toBe("true");
+    await step("clicking the trigger opens the menu and flips ARIA", async () => {
+      await userEvent.click(trigger);
+      expect(account.getAttribute("data-open")).toBe("true");
+      expect(trigger.getAttribute("aria-expanded")).toBe("true");
+    });
 
-    // Tokens link in the open menu points at /tokens.html.
-    const tokensItem = /** @type {HTMLAnchorElement} */ (
-      canvasElement.querySelector('.cts-account-item[href="tokens.html"]')
-    );
-    expect(tokensItem).toBeTruthy();
-    expect(tokensItem.getAttribute("role")).toBe("menuitem");
+    await step("tokens link in the open menu points at /tokens.html", async () => {
+      const tokensItem = /** @type {HTMLAnchorElement} */ (
+        canvasElement.querySelector('.cts-account-item[href="tokens.html"]')
+      );
+      expect(tokensItem).toBeTruthy();
+      expect(tokensItem.getAttribute("role")).toBe("menuitem");
+    });
 
-    // Sign out is a form submit button so the existing CSRF-bound POST
-    // /logout flow keeps working — not a plain link.
-    const signOutForm = /** @type {HTMLFormElement} */ (
-      canvasElement.querySelector(".cts-account-form")
-    );
-    expect(signOutForm.getAttribute("action")).toBe("/logout");
-    expect(signOutForm.getAttribute("method")).toBe("post");
+    await step("sign out is a CSRF-bound POST /logout form", async () => {
+      // Sign out is a form submit button so the existing CSRF-bound POST
+      // /logout flow keeps working — not a plain link.
+      const signOutForm = /** @type {HTMLFormElement} */ (
+        canvasElement.querySelector(".cts-account-form")
+      );
+      expect(signOutForm.getAttribute("action")).toBe("/logout");
+      expect(signOutForm.getAttribute("method")).toBe("post");
+    });
 
-    // Geometry regression guard: both items (the Tokens link and the
-    // Sign out button) stay inside the menu and fill its inner width.
-    const signOutItem = canvasElement.querySelector(".cts-account-item--danger");
-    expect(signOutItem).toBeTruthy();
-    expectAccountMenuItemsWithinMenu(canvasElement);
+    await step("both menu items stay inside the menu and fill its width", async () => {
+      // Geometry regression guard: both items (the Tokens link and the
+      // Sign out button) stay inside the menu and fill its inner width.
+      const signOutItem = canvasElement.querySelector(".cts-account-item--danger");
+      expect(signOutItem).toBeTruthy();
+      expectAccountMenuItemsWithinMenu(canvasElement);
+    });
   },
 };
 
@@ -496,24 +539,29 @@ export const AccountMenuClosesOnEscape = {
   decorators: [withMockUser(MOCK_USER)],
   render: ({ currentPage }) => html`<cts-navbar current-page="${currentPage}"></cts-navbar>`,
 
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     await waitForNavbar(canvasElement);
 
     const account = canvasElement.querySelector(".cts-account");
     const trigger = /** @type {HTMLButtonElement} */ (
       canvasElement.querySelector(".cts-account-trigger")
     );
-    await userEvent.click(trigger);
-    expect(account.getAttribute("data-open")).toBe("true");
 
-    await userEvent.keyboard("{Escape}");
+    await step("open the account menu", async () => {
+      await userEvent.click(trigger);
+      expect(account.getAttribute("data-open")).toBe("true");
+    });
 
-    const navbar = canvasElement.querySelector("cts-navbar");
-    await navbar.updateComplete;
-    expect(account.getAttribute("data-open")).toBe("false");
-    expect(trigger.getAttribute("aria-expanded")).toBe("false");
-    // Focus returns to the trigger so screen-reader users keep their place.
-    expect(document.activeElement).toBe(trigger);
+    await step("Escape closes the menu and returns focus to the trigger", async () => {
+      await userEvent.keyboard("{Escape}");
+
+      const navbar = canvasElement.querySelector("cts-navbar");
+      await navbar.updateComplete;
+      expect(account.getAttribute("data-open")).toBe("false");
+      expect(trigger.getAttribute("aria-expanded")).toBe("false");
+      // Focus returns to the trigger so screen-reader users keep their place.
+      expect(document.activeElement).toBe(trigger);
+    });
   },
 };
 
@@ -531,22 +579,27 @@ export const AccountMenuClosesOnOutsideClick = {
   decorators: [withMockUser(MOCK_USER)],
   render: ({ currentPage }) => html`<cts-navbar current-page="${currentPage}"></cts-navbar>`,
 
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     await waitForNavbar(canvasElement);
 
     const account = canvasElement.querySelector(".cts-account");
     const trigger = /** @type {HTMLButtonElement} */ (
       canvasElement.querySelector(".cts-account-trigger")
     );
-    await userEvent.click(trigger);
-    expect(account.getAttribute("data-open")).toBe("true");
 
-    document.body.dispatchEvent(new PointerEvent("pointerdown", { bubbles: true }));
+    await step("open the account menu", async () => {
+      await userEvent.click(trigger);
+      expect(account.getAttribute("data-open")).toBe("true");
+    });
 
-    const navbar = canvasElement.querySelector("cts-navbar");
-    await navbar.updateComplete;
-    expect(account.getAttribute("data-open")).toBe("false");
-    expect(trigger.getAttribute("aria-expanded")).toBe("false");
+    await step("outside pointerdown dismisses the menu", async () => {
+      document.body.dispatchEvent(new PointerEvent("pointerdown", { bubbles: true }));
+
+      const navbar = canvasElement.querySelector("cts-navbar");
+      await navbar.updateComplete;
+      expect(account.getAttribute("data-open")).toBe("false");
+      expect(trigger.getAttribute("aria-expanded")).toBe("false");
+    });
   },
 };
 
@@ -564,7 +617,7 @@ export const AccountMenuSignOutPending = {
   decorators: [withMockUser(MOCK_USER)],
   render: ({ currentPage }) => html`<cts-navbar current-page="${currentPage}"></cts-navbar>`,
 
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     await waitForNavbar(canvasElement);
 
     const navbar = canvasElement.querySelector("cts-navbar");
@@ -572,9 +625,6 @@ export const AccountMenuSignOutPending = {
     const trigger = /** @type {HTMLButtonElement} */ (
       canvasElement.querySelector(".cts-account-trigger")
     );
-    await userEvent.click(trigger);
-    expect(account.getAttribute("data-open")).toBe("true");
-
     const form = /** @type {HTMLFormElement} */ (canvasElement.querySelector(".cts-account-form"));
     const signOutButton = /** @type {HTMLButtonElement} */ (
       canvasElement.querySelector(".cts-account-item--danger")
@@ -582,6 +632,7 @@ export const AccountMenuSignOutPending = {
 
     // Iframe-safety listener: stop the real POST navigation. Track calls so
     // the double-submit assertion below can prove no second submit fired.
+    // Hoisted above the steps so submitCount stays in scope across phases.
     let submitCount = 0;
     const safetyListener = (e) => {
       submitCount += 1;
@@ -589,53 +640,64 @@ export const AccountMenuSignOutPending = {
     };
     form.addEventListener("submit", safetyListener);
 
-    await userEvent.click(signOutButton);
-    await navbar.updateComplete;
+    await step("open the menu and submit the logout form", async () => {
+      await userEvent.click(trigger);
+      expect(account.getAttribute("data-open")).toBe("true");
 
-    // Pending state painted: disabled, busy, spinner + swapped label.
-    expect(signOutButton).toBeDisabled();
-    expect(signOutButton.getAttribute("aria-busy")).toBe("true");
-    expect(signOutButton.textContent).toContain("Signing out…");
-    expect(canvasElement.querySelector(".cts-account-spinner")).toBeTruthy();
-    expect(submitCount).toBe(1);
+      await userEvent.click(signOutButton);
+      await navbar.updateComplete;
+    });
 
-    // Dropdown stays open — the pending feedback is the user's only signal.
-    expect(account.getAttribute("data-open")).toBe("true");
+    await step("pending state painted: disabled, busy, spinner + label", async () => {
+      expect(signOutButton).toBeDisabled();
+      expect(signOutButton.getAttribute("aria-busy")).toBe("true");
+      expect(signOutButton.textContent).toContain("Signing out…");
+      expect(canvasElement.querySelector(".cts-account-spinner")).toBeTruthy();
+      expect(submitCount).toBe(1);
 
-    // Geometry guard still holds with the spinner inside the button.
-    expectAccountMenuItemsWithinMenu(canvasElement);
+      // Dropdown stays open — the pending feedback is the user's only signal.
+      expect(account.getAttribute("data-open")).toBe("true");
 
-    // A second click on the disabled button must not fire another submit.
-    await userEvent.click(signOutButton);
-    expect(submitCount).toBe(1);
+      // Geometry guard still holds with the spinner inside the button.
+      expectAccountMenuItemsWithinMenu(canvasElement);
+    });
 
-    // Escape must not dismiss the menu while the POST is in flight.
-    await userEvent.keyboard("{Escape}");
-    await navbar.updateComplete;
-    expect(account.getAttribute("data-open")).toBe("true");
+    await step("a second click on the disabled button fires no submit", async () => {
+      await userEvent.click(signOutButton);
+      expect(submitCount).toBe(1);
+    });
 
-    // Outside-click must not dismiss it either.
-    document.body.dispatchEvent(new PointerEvent("pointerdown", { bubbles: true }));
-    await navbar.updateComplete;
-    expect(account.getAttribute("data-open")).toBe("true");
+    await step("Escape does not dismiss the menu while POST is in flight", async () => {
+      await userEvent.keyboard("{Escape}");
+      await navbar.updateComplete;
+      expect(account.getAttribute("data-open")).toBe("true");
+    });
 
-    // The component's own double-submit guard (not the safety listener)
-    // cancels programmatic submits while pending: remove the safety
-    // listener, then dispatch a synthetic submit — dispatchEvent returns
-    // false only when a handler called preventDefault.
-    form.removeEventListener("submit", safetyListener);
-    const notPrevented = form.dispatchEvent(
-      new SubmitEvent("submit", { bubbles: true, cancelable: true }),
-    );
-    expect(notPrevented).toBe(false);
+    await step("outside-click does not dismiss it either", async () => {
+      document.body.dispatchEvent(new PointerEvent("pointerdown", { bubbles: true }));
+      await navbar.updateComplete;
+      expect(account.getAttribute("data-open")).toBe("true");
+    });
 
-    // bfcache Back-restore resets the pending state so a restored page
-    // never shows a frozen, disabled "Signing out…" button.
-    window.dispatchEvent(new PageTransitionEvent("pageshow", { persisted: true }));
-    await navbar.updateComplete;
-    expect(signOutButton.disabled).toBe(false);
-    expect(signOutButton.textContent).toContain("Sign out");
-    expect(canvasElement.querySelector(".cts-account-spinner")).toBeNull();
+    await step("component's own double-submit guard cancels programmatic submits", async () => {
+      // Remove the safety listener, then dispatch a synthetic submit —
+      // dispatchEvent returns false only when a handler called preventDefault,
+      // proving the component's own guard (not the safety listener) cancelled it.
+      form.removeEventListener("submit", safetyListener);
+      const notPrevented = form.dispatchEvent(
+        new SubmitEvent("submit", { bubbles: true, cancelable: true }),
+      );
+      expect(notPrevented).toBe(false);
+    });
+
+    await step("bfcache Back-restore resets the pending state", async () => {
+      // A restored page never shows a frozen, disabled "Signing out…" button.
+      window.dispatchEvent(new PageTransitionEvent("pageshow", { persisted: true }));
+      await navbar.updateComplete;
+      expect(signOutButton.disabled).toBe(false);
+      expect(signOutButton.textContent).toContain("Sign out");
+      expect(canvasElement.querySelector(".cts-account-spinner")).toBeNull();
+    });
   },
 };
 
@@ -681,44 +743,49 @@ export const ApiDocsIsExternalLink = {
   decorators: [withMockUser(MOCK_USER)],
   render: ({ currentPage }) => html`<cts-navbar current-page="${currentPage}"></cts-navbar>`,
 
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     await waitForNavbar(canvasElement);
 
-    const apiLink = /** @type {HTMLAnchorElement} */ (
-      canvasElement.querySelector('.cts-navlink[href="api-document.html"]')
-    );
-    expect(apiLink).toBeTruthy();
-    expect(apiLink.getAttribute("target")).toBe("_blank");
-    expect(apiLink.getAttribute("rel")).toBe("noopener noreferrer");
-    expect(apiLink.classList.contains("cts-navlink-external")).toBe(true);
+    await step("API Docs link opens in a new tab with safe rel", async () => {
+      const apiLink = /** @type {HTMLAnchorElement} */ (
+        canvasElement.querySelector('.cts-navlink[href="api-document.html"]')
+      );
+      expect(apiLink).toBeTruthy();
+      expect(apiLink.getAttribute("target")).toBe("_blank");
+      expect(apiLink.getAttribute("rel")).toBe("noopener noreferrer");
+      expect(apiLink.classList.contains("cts-navlink-external")).toBe(true);
+    });
 
-    // cts-icon updates async via Lit. Wait until the icon's <svg> has been
-    // mounted, then re-query so TS narrowing isn't lost across the callback.
-    await waitFor(
-      () => {
-        const svg = canvasElement.querySelector(
+    await step("external-link icon mounts and resolves to the vendored SVG", async () => {
+      // cts-icon updates async via Lit. Wait until the icon's <svg> has been
+      // mounted, then re-query so TS narrowing isn't lost across the callback.
+      await waitFor(
+        () => {
+          const svg = canvasElement.querySelector(
+            '.cts-navlink[href="api-document.html"] cts-icon[name="external-link"] svg',
+          );
+          expect(svg).toBeTruthy();
+        },
+        { timeout: 5000 },
+      );
+      const iconSvg = /** @type {SVGElement} */ (
+        canvasElement.querySelector(
           '.cts-navlink[href="api-document.html"] cts-icon[name="external-link"] svg',
-        );
-        expect(svg).toBeTruthy();
-      },
-      { timeout: 5000 },
-    );
-    const iconSvg = /** @type {SVGElement} */ (
-      canvasElement.querySelector(
-        '.cts-navlink[href="api-document.html"] cts-icon[name="external-link"] svg',
-      )
-    );
-    expect(iconSvg.getAttribute("aria-hidden")).toBe("true");
-    const iconUse = iconSvg.querySelector("use");
-    expect(iconUse).toBeTruthy();
-    expect(iconUse?.getAttribute("href")).toBe("/vendor/coolicons/icons/external-link.svg#i");
+        )
+      );
+      expect(iconSvg.getAttribute("aria-hidden")).toBe("true");
+      const iconUse = iconSvg.querySelector("use");
+      expect(iconUse).toBeTruthy();
+      expect(iconUse?.getAttribute("href")).toBe("/vendor/coolicons/icons/external-link.svg#i");
+    });
 
-    // No other nav link should carry external-link signals — only API Docs.
-    const otherInternalLink = /** @type {HTMLAnchorElement} */ (
-      canvasElement.querySelector('.cts-navlink[href="plans.html"]')
-    );
-    expect(otherInternalLink.getAttribute("target")).toBe("_self");
-    expect(otherInternalLink.querySelector('cts-icon[name="external-link"]')).toBeNull();
+    await step("no other nav link carries external-link signals", async () => {
+      const otherInternalLink = /** @type {HTMLAnchorElement} */ (
+        canvasElement.querySelector('.cts-navlink[href="plans.html"]')
+      );
+      expect(otherInternalLink.getAttribute("target")).toBe("_self");
+      expect(otherInternalLink.querySelector('cts-icon[name="external-link"]')).toBeNull();
+    });
   },
 };
 
@@ -744,35 +811,42 @@ export const MobileMenuTogglesNavlinks = {
   },
   render: ({ currentPage }) => html`<cts-navbar current-page="${currentPage}"></cts-navbar>`,
 
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     await waitForNavbar(canvasElement);
 
     const nav = /** @type {HTMLElement} */ (canvasElement.querySelector(".cts-nav"));
     const toggle = /** @type {HTMLButtonElement} */ (
       canvasElement.querySelector(".cts-menu-toggle")
     );
-    expect(toggle).toBeTruthy();
-    expect(toggle.getAttribute("aria-haspopup")).toBe("true");
-    expect(toggle.getAttribute("aria-controls")).toBe("cts-navlinks");
-    expect(toggle.getAttribute("aria-expanded")).toBe("false");
-    expect(nav.getAttribute("data-mobile-open")).toBe("false");
 
-    await userEvent.click(toggle);
+    await step("toggle exposes the ARIA contract and starts closed", async () => {
+      expect(toggle).toBeTruthy();
+      expect(toggle.getAttribute("aria-haspopup")).toBe("true");
+      expect(toggle.getAttribute("aria-controls")).toBe("cts-navlinks");
+      expect(toggle.getAttribute("aria-expanded")).toBe("false");
+      expect(nav.getAttribute("data-mobile-open")).toBe("false");
+    });
 
-    expect(toggle.getAttribute("aria-expanded")).toBe("true");
-    expect(toggle.getAttribute("aria-label")).toBe("Close navigation menu");
-    expect(nav.getAttribute("data-mobile-open")).toBe("true");
+    await step("clicking the toggle opens the nav panel", async () => {
+      await userEvent.click(toggle);
+      expect(toggle.getAttribute("aria-expanded")).toBe("true");
+      expect(toggle.getAttribute("aria-label")).toBe("Close navigation menu");
+      expect(nav.getAttribute("data-mobile-open")).toBe("true");
+    });
 
-    // Toggle navlinks <ul> is the same element pre/post — the same DOM
-    // node serves both layouts, so its id is consistent and the active
-    // state is preserved across viewport changes.
-    const navlinks = canvasElement.querySelector("#cts-navlinks");
-    expect(navlinks).toBeTruthy();
-    expect(navlinks.tagName).toBe("UL");
+    await step("navlinks <ul> is the same DOM node across layouts", async () => {
+      // The same DOM node serves both layouts, so its id is consistent and the
+      // active state is preserved across viewport changes.
+      const navlinks = canvasElement.querySelector("#cts-navlinks");
+      expect(navlinks).toBeTruthy();
+      expect(navlinks.tagName).toBe("UL");
+    });
 
-    await userEvent.click(toggle);
-    expect(nav.getAttribute("data-mobile-open")).toBe("false");
-    expect(toggle.getAttribute("aria-label")).toBe("Open navigation menu");
+    await step("clicking the toggle again closes the panel", async () => {
+      await userEvent.click(toggle);
+      expect(nav.getAttribute("data-mobile-open")).toBe("false");
+      expect(toggle.getAttribute("aria-label")).toBe("Open navigation menu");
+    });
   },
 };
 
@@ -795,22 +869,27 @@ export const MobileMenuClosesOnEscape = {
   },
   render: ({ currentPage }) => html`<cts-navbar current-page="${currentPage}"></cts-navbar>`,
 
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     await waitForNavbar(canvasElement);
 
     const nav = /** @type {HTMLElement} */ (canvasElement.querySelector(".cts-nav"));
     const toggle = /** @type {HTMLButtonElement} */ (
       canvasElement.querySelector(".cts-menu-toggle")
     );
-    await userEvent.click(toggle);
-    expect(nav.getAttribute("data-mobile-open")).toBe("true");
 
-    await userEvent.keyboard("{Escape}");
+    await step("open the mobile nav panel", async () => {
+      await userEvent.click(toggle);
+      expect(nav.getAttribute("data-mobile-open")).toBe("true");
+    });
 
-    const navbar = canvasElement.querySelector("cts-navbar");
-    await navbar.updateComplete;
-    expect(nav.getAttribute("data-mobile-open")).toBe("false");
-    expect(document.activeElement).toBe(toggle);
+    await step("Escape closes the panel and returns focus to the toggle", async () => {
+      await userEvent.keyboard("{Escape}");
+
+      const navbar = canvasElement.querySelector("cts-navbar");
+      await navbar.updateComplete;
+      expect(nav.getAttribute("data-mobile-open")).toBe("false");
+      expect(document.activeElement).toBe(toggle);
+    });
   },
 };
 
@@ -824,7 +903,7 @@ export const ServerErrorLogsWarning = {
   decorators: [withMockUser(null, { status: 500 })],
   render: ({ currentPage }) => html`<cts-navbar current-page="${currentPage}"></cts-navbar>`,
 
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const canvas = within(canvasElement);
     const warnSpy = fn();
     const origWarn = console.warn;
@@ -833,21 +912,24 @@ export const ServerErrorLogsWarning = {
     try {
       await waitForNavbar(canvasElement);
 
-      // Should fall back to the public nav — same as the unauthenticated case
-      // (Test Plans, Test Logs, API Docs).
-      expect(canvas.getByText("Test Plans")).toBeInTheDocument();
-      expect(canvas.getByText("Test Logs")).toBeInTheDocument();
-      expect(canvas.getByText("API Docs")).toBeInTheDocument();
-      expect(canvas.queryByText("Sign out")).toBeNull();
-      expect(canvas.getByText("Sign in")).toBeInTheDocument();
+      await step("falls back to the public nav on server error", async () => {
+        // Same as the unauthenticated case (Test Plans, Test Logs, API Docs).
+        expect(canvas.getByText("Test Plans")).toBeInTheDocument();
+        expect(canvas.getByText("Test Logs")).toBeInTheDocument();
+        expect(canvas.getByText("API Docs")).toBeInTheDocument();
+        expect(canvas.queryByText("Sign out")).toBeNull();
+        expect(canvas.getByText("Sign in")).toBeInTheDocument();
+      });
 
-      // Unlike 401, a 500 must warn so operators see the failure.
-      await waitFor(() => {
-        expect(warnSpy).toHaveBeenCalled();
-        const joined = warnSpy.mock.calls.flat().join(" ");
-        expect(joined).toContain("cts-navbar");
-        expect(joined).toContain("/api/currentuser");
-        expect(joined).toContain("500");
+      await step("a 500 warns so operators see the failure", async () => {
+        // Unlike 401, a 500 must warn.
+        await waitFor(() => {
+          expect(warnSpy).toHaveBeenCalled();
+          const joined = warnSpy.mock.calls.flat().join(" ");
+          expect(joined).toContain("cts-navbar");
+          expect(joined).toContain("/api/currentuser");
+          expect(joined).toContain("500");
+        });
       });
     } finally {
       console.warn = origWarn;
@@ -866,58 +948,62 @@ export const DesignSystemStructure = {
   decorators: [withMockUser(MOCK_USER)],
   render: ({ currentPage }) => html`<cts-navbar current-page="${currentPage}"></cts-navbar>`,
 
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const canvas = within(canvasElement);
     await waitForNavbar(canvasElement);
 
-    // Container uses the OIDF .cts-nav class — that's what the scoped
-    // stylesheet selector keys off, so missing this class means the dark
-    // chrome will not paint.
-    const nav = canvasElement.querySelector("nav.cts-nav");
-    expect(nav).toBeTruthy();
+    await step("container uses the OIDF .cts-nav class", async () => {
+      // That's what the scoped stylesheet selector keys off, so missing this
+      // class means the dark chrome will not paint.
+      const nav = canvasElement.querySelector("nav.cts-nav");
+      expect(nav).toBeTruthy();
+    });
 
-    // Brand block on the left. Logo is the dark-on-dark SVG; explicit
-    // width/height attributes reserve the logo box so the brand row does
-    // not reflow during the first paint.
-    const brand = canvasElement.querySelector(".cts-nav .cts-brand");
-    expect(brand).toBeTruthy();
-    const brandLogo = /** @type {HTMLImageElement} */ (
-      canvasElement.querySelector('.cts-brand img[alt="OpenID Foundation"]')
-    );
-    expect(brandLogo).toBeTruthy();
-    expect(brandLogo.getAttribute("src")).toBe("/images/openid-dark.svg");
-    expect(brandLogo.getAttribute("width")).toBe("93");
-    expect(brandLogo.getAttribute("height")).toBe("28");
-    expect(canvas.getByText("CONFORMANCE SUITE")).toBeInTheDocument();
+    await step("brand block renders the dark logo with reserved box", async () => {
+      // Logo is the dark-on-dark SVG; explicit width/height attributes reserve
+      // the logo box so the brand row does not reflow during the first paint.
+      const brand = canvasElement.querySelector(".cts-nav .cts-brand");
+      expect(brand).toBeTruthy();
+      const brandLogo = /** @type {HTMLImageElement} */ (
+        canvasElement.querySelector('.cts-brand img[alt="OpenID Foundation"]')
+      );
+      expect(brandLogo).toBeTruthy();
+      expect(brandLogo.getAttribute("src")).toBe("/images/openid-dark.svg");
+      expect(brandLogo.getAttribute("width")).toBe("93");
+      expect(brandLogo.getAttribute("height")).toBe("28");
+      expect(canvas.getByText("CONFORMANCE SUITE")).toBeInTheDocument();
+    });
 
-    // Centered link block. The collapsed authenticated nav (U9) for a
-    // non-admin, non-guest user is exactly four links: Test Plans, Test Logs,
-    // Tokens, API Docs.
-    const navlinks = canvasElement.querySelector(".cts-nav .cts-navlinks");
-    expect(navlinks).toBeTruthy();
-    const links = navlinks.querySelectorAll("a.cts-navlink");
-    expect(links.length).toBe(4);
+    await step("centered link block has exactly four links", async () => {
+      // The collapsed authenticated nav (U9) for a non-admin, non-guest user
+      // is exactly four links: Test Plans, Test Logs, Tokens, API Docs.
+      const navlinks = canvasElement.querySelector(".cts-nav .cts-navlinks");
+      expect(navlinks).toBeTruthy();
+      const links = navlinks.querySelectorAll("a.cts-navlink");
+      expect(links.length).toBe(4);
+    });
 
-    // Right-hand block: account zone with trigger button + popover menu.
-    const navright = canvasElement.querySelector(".cts-nav .cts-navright");
-    expect(navright).toBeTruthy();
-    const account = canvasElement.querySelector(".cts-nav .cts-account");
-    expect(account).toBeTruthy();
-    expect(account.getAttribute("data-open")).toBe("false");
+    await step("right-hand account zone with trigger and popover menu", async () => {
+      const navright = canvasElement.querySelector(".cts-nav .cts-navright");
+      expect(navright).toBeTruthy();
+      const account = canvasElement.querySelector(".cts-nav .cts-account");
+      expect(account).toBeTruthy();
+      expect(account.getAttribute("data-open")).toBe("false");
 
-    const trigger = canvasElement.querySelector(".cts-account-trigger");
-    expect(trigger).toBeTruthy();
-    expect(trigger.getAttribute("aria-haspopup")).toBe("true");
-    expect(trigger.getAttribute("aria-controls")).toBe("cts-account-menu");
+      const trigger = canvasElement.querySelector(".cts-account-trigger");
+      expect(trigger).toBeTruthy();
+      expect(trigger.getAttribute("aria-haspopup")).toBe("true");
+      expect(trigger.getAttribute("aria-controls")).toBe("cts-account-menu");
 
-    const avatar = canvasElement.querySelector(".cts-account-trigger .cts-avatar");
-    expect(avatar).toBeTruthy();
-    // Initials fall back to two letters from the display name ("Test User" -> "TU").
-    expect(avatar.textContent.trim()).toBe("TU");
+      const avatar = canvasElement.querySelector(".cts-account-trigger .cts-avatar");
+      expect(avatar).toBeTruthy();
+      // Initials fall back to two letters from the display name ("Test User" -> "TU").
+      expect(avatar.textContent.trim()).toBe("TU");
 
-    const menu = canvasElement.querySelector("#cts-account-menu");
-    expect(menu).toBeTruthy();
-    expect(menu.getAttribute("role")).toBe("menu");
+      const menu = canvasElement.querySelector("#cts-account-menu");
+      expect(menu).toBeTruthy();
+      expect(menu.getAttribute("role")).toBe("menu");
+    });
   },
 };
 
