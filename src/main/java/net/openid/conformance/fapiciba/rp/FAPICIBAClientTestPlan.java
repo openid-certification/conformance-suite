@@ -57,6 +57,12 @@ import java.util.Map;
 		FAPICIBAClientInvalidMissingExpTest.class,
 		FAPICIBAClientInvalidMissingIssTest.class,
 
+		// ConnectID-specific x-fapi-interaction-id tests
+		FAPICIBAClientConnectIdTokenResponseMissingFAPIInteractionIdTest.class,
+		FAPICIBAClientConnectIdTokenResponseMismatchedFAPIInteractionIdTest.class,
+		FAPICIBAClientConnectIdUserInfoResponseMissingFAPIInteractionIdTest.class,
+		FAPICIBAClientConnectIdUserInfoResponseMismatchedFAPIInteractionIdTest.class,
+
 		// Negative test for ping mode
 		FAPICIBAClientPingWithInvalidBearerTokenTest.class
 	}

@@ -82,6 +82,20 @@ public class FAPICIBAServerProfileBehavior {
 	}
 
 	/**
+	 * Add profile-specific headers to the backchannel authentication endpoint request.
+	 */
+	public ConditionSequence addBackchannelAuthenticationEndpointProfileHeaders() {
+		return null;
+	}
+
+	/**
+	 * Validate profile-specific backchannel authentication endpoint response headers.
+	 */
+	public ConditionSequence validateBackchannelAuthenticationEndpointResponseHeaders() {
+		return null;
+	}
+
+	/**
 	 * Add profile-specific headers to resource endpoint request.
 	 * Default adds auth date and interaction ID for first client only.
 	 */
@@ -103,6 +117,20 @@ public class FAPICIBAServerProfileBehavior {
 	 * Set up the resource endpoint request body. Default does nothing.
 	 */
 	public ConditionSequence setupResourceEndpointRequestBody() {
+		return null;
+	}
+
+	/**
+	 * Add profile-specific headers to the token endpoint request.
+	 */
+	public ConditionSequence addTokenEndpointProfileHeaders() {
+		return null;
+	}
+
+	/**
+	 * Validate profile-specific token endpoint response headers.
+	 */
+	public ConditionSequence validateTokenEndpointResponseHeaders() {
 		return null;
 	}
 
