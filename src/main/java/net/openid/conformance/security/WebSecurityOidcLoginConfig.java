@@ -368,7 +368,10 @@ class WebSecurityOidcLoginConfig {
 		});
 
 		http.logout(logout -> {
-			logout.logoutSuccessUrl("/login.html");
+			// `?logout=true` lights up the "You have been logged out." banner
+			// on login.html (it gates on the param VALUE being truthy, so a
+			// bare `?logout` would not trigger it).
+			logout.logoutSuccessUrl("/login.html?logout=true");
 			// Pages are bfcache-eligible now that they send "Cache-Control:
 			// no-cache" instead of no-store (ApplicationConfig
 			// addResourceHandlers). Evict the browser's cache for this origin
