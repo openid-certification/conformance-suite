@@ -81,7 +81,7 @@ export default [
   // ---------------------------------------------------------------------------
   // 2. Universal JS base
   //
-  // Vendor globals: `bootstrap` (Bootstrap 5 JS API), `$` (jQuery), `_` (Lodash)
+  // Vendor globals: `bootstrap` (Bootstrap 5 JS API), `_` (Lodash)
   // are loaded by the HTML shell and referenced by light-DOM components.
   // They're legitimate globals, not linting bugs.
   // ---------------------------------------------------------------------------
@@ -94,7 +94,6 @@ export default [
         ...globals.browser,
         ...globals.es2024,
         bootstrap: "readonly",
-        $: "readonly",
         _: "readonly",
       },
     },
