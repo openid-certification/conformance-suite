@@ -234,6 +234,13 @@ const STYLE_TEXT = css`
     align-items: center;
     gap: var(--space-2);
     flex-wrap: wrap;
+    /* Grid items default to min-width: auto, so the bar's 'auto' left
+       track grows to the nowrap test name's full max-content width
+       instead of letting the span's ellipsis engage — at phone widths
+       that inflated the whole page to ~644px of horizontal scroll.
+       min-width: 0 lets the track shrink below max-content so the
+       name truncates and the page never overflows the viewport. */
+    min-width: 0;
   }
   cts-log-detail-header .ctsStatusBarMiddle {
     grid-area: middle;
@@ -506,10 +513,20 @@ const STYLE_TEXT = css`
   /* Drawer (Region C) — two <details> disclosures. Native semantics +
      keyboard a11y; the chevron rotates 90° when [open]. No card chrome;
      borders between disclosures are 1px dividers continuing the
-     section rhythm. */
+     section rhythm.
+     The drawer is an inline-size container so the metadata table below
+     can key its layout on the drawer's actual available width (correct
+     under the ≥1440px TOC rail and in Storybook isolation, where
+     viewport width and component width diverge). Named to avoid
+     colliding with the ctsLogViewer container that cts-log-entry keys
+     on. Note: inline-size containment also makes .ctsDrawer the
+     containing block for absolutely-positioned descendants — Monaco's
+     overlay widgets inside cts-json-editor land here; the height-lock
+     story (ConfigDrawerHeightLockedAtFixedValue) guards that contract. */
   cts-log-detail-header .ctsDrawer {
     padding: 0;
     margin-bottom: 20px;
+    container: ctsLogDrawer / inline-size;
   }
   cts-log-detail-header .ctsDrawer details {
     border-bottom: 1px solid var(--border);
@@ -546,8 +563,12 @@ const STYLE_TEXT = css`
   cts-log-detail-header .ctsDrawer details[open] summary cts-icon {
     transform: rotate(90deg);
   }
+  /* Stacked (narrow) default: no left indent — at phone widths the
+     24px indent is ~7% of the viewport and the metadata needs every
+     pixel. The ≥640px container branch below restores the indent so
+     the body aligns with the summary label text on wide layouts. */
   cts-log-detail-header .ctsDrawer .ctsDrawerBody {
-    padding: 0 0 var(--space-4) var(--space-6);
+    padding: 0 0 var(--space-4) 0;
   }
   @media (prefers-reduced-motion: reduce) {
     cts-log-detail-header .ctsDrawer summary cts-icon {
@@ -555,22 +576,50 @@ const STYLE_TEXT = css`
     }
   }
 
-  /* Metadata table inside the Test details disclosure. Mirrors the
-     legacy header card's metadata grid so the data treatment stays
-     familiar; only its position changed. */
+  /* Metadata table inside the Test details disclosure. Mobile-first:
+     the default is a stacked single column (label above value) so
+     values always get the drawer's full width — the legacy two-column
+     grid crushed values to ~100px at phone widths, wrapping variant
+     values one character per line. The two-column layout is restored
+     by the ≥640px container branch below (stack-up pattern, mirroring
+     cts-running-test-card / cts-log-entry). Within a pair the label
+     hugs its value (4px row gap); pairs are separated by the label's
+     12px margin-top so each label+value group reads as one block. */
   cts-log-detail-header .logMetaTable {
     display: grid;
-    grid-template-columns: minmax(120px, 180px) 1fr;
-    gap: var(--space-2) var(--space-4);
+    grid-template-columns: 1fr;
+    gap: var(--space-1);
     font-size: var(--fs-13);
   }
   cts-log-detail-header .logMetaLabel {
     color: var(--fg-soft);
     font-weight: var(--fw-bold);
   }
+  cts-log-detail-header .logMetaLabel:not(:first-child) {
+    margin-top: var(--space-3);
+  }
   cts-log-detail-header .logMetaValue {
     color: var(--fg);
     overflow-wrap: anywhere;
+  }
+  @container ctsLogDrawer (min-width: 640px) {
+    cts-log-detail-header .ctsDrawer .ctsDrawerBody {
+      padding-left: var(--space-6);
+    }
+    /* Two-column label/value layout. fit-content(180px) sizes the
+       label track to the longest label, clamped at 180px — unlike the
+       previous minmax(120px, 180px), which always maximized to 180px
+       before the fr track received leftovers (track maximization runs
+       before fr distribution). minmax(0, 1fr) drops the value track's
+       implicit min-width: auto so long unbreakable values wrap (the
+       cts-log-entry R31 idiom) instead of expanding the grid. */
+    cts-log-detail-header .logMetaTable {
+      grid-template-columns: fit-content(180px) minmax(0, 1fr);
+      gap: var(--space-2) var(--space-4);
+    }
+    cts-log-detail-header .logMetaLabel:not(:first-child) {
+      margin-top: 0;
+    }
   }
   /* Mirror cts-plan-header's .mono chip — small monospace pill for
      IDs, versions, and variant strings so a reader comparing the
@@ -588,10 +637,13 @@ const STYLE_TEXT = css`
      the value cell so each entry sits on its own row instead of the
      legacy comma-joined string the maintainers flagged as a
      "comma-soup" (MR 1998 review pass, finding C2). Row gap is tighter
-     than the outer metadata gap so the inner list reads as one block. */
+     than the outer metadata gap so the inner list reads as one block.
+     minmax(0, 1fr) on the value track (not bare 1fr) keeps long
+     variant values wrapping inside the cell instead of letting the
+     implicit min-width: auto expand the nested grid past its cell. */
   cts-log-detail-header .logMetaValue .variantList {
     display: grid;
-    grid-template-columns: auto 1fr;
+    grid-template-columns: auto minmax(0, 1fr);
     gap: var(--space-1) var(--space-3);
     margin: 0;
   }
