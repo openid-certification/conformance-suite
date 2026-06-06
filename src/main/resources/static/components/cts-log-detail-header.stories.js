@@ -1452,10 +1452,13 @@ export const DrawerExpandedRevealsMetadata = {
       // fit-content(180px) sizes the label track to the longest label,
       // clamped at 180px — the legacy minmax(120px, 180px) always
       // maximized to a fixed 180px before the value track got leftovers.
+      // The bound is strict (< 160; labels measure ~84px) so a revert to
+      // the maximizing minmax — which resolves to exactly 180px — fails
+      // this step instead of slipping under a <= 180 ceiling.
       const metaTable = detailsHost.querySelector(".logMetaTable");
       const tracks = getComputedStyle(metaTable).gridTemplateColumns.trim().split(/\s+/);
       expect(tracks).toHaveLength(2);
-      expect(parseFloat(tracks[0])).toBeLessThanOrEqual(180);
+      expect(parseFloat(tracks[0])).toBeLessThan(160);
     });
   },
 };
