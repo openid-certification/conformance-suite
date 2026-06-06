@@ -2,48 +2,129 @@ import { html } from "lit";
 import { expect, within, waitFor } from "storybook/test";
 import { MOCK_PLAN_DETAIL, MOCK_MODULES_WITH_STATUS } from "@fixtures/mock-test-data.js";
 
+import "../../../src/main/resources/static/components/cts-crumb.js";
 import "../../../src/main/resources/static/components/cts-plan-header.js";
 import "../../../src/main/resources/static/components/cts-plan-modules.js";
 import "../../../src/main/resources/static/components/cts-plan-actions.js";
 
+// Recreates `plan-detail.html` for design review without requiring a live
+// backend. Mirrors the page chrome (breadcrumb above a content grid whose
+// 240px right rail holds the actions panel, with the page-level padding
+// and max-width from plan-detail.html's inline <style>) so the visual
+// diff matches what a real user sees on the app page.
+//
+// Intentionally omitted, mirroring the running-test page story:
+// - navbar + skip-link — both depend on /api/currentuser and add chrome
+//   that's not under review here;
+// - cts-footer — page-level chrome below the composition under review;
+// - crumb navigation — cts-crumb-navigate fires on click but no handler
+//   is wired here (the window.location.assign wiring belongs to
+//   plan-detail.html), so clicking "Plans" is a visual no-op.
+
 export default {
   title: "Pages/PlanDetail",
 };
+
+// Copied from plan-detail.html's inline <style> — keep in sync with the
+// page. Storybook's preview-head.html already loads the shared
+// stylesheets (oidf-tokens.css, layout.css, oidf-app.css); the page's
+// inline rules are the only CSS a page story must supply itself.
+const PAGE_STYLES = html`
+  <style>
+    .oidf-plan-detail-page {
+      padding: var(--space-5) var(--space-6);
+      max-width: 1320px;
+      margin: 0 auto;
+      font-family: var(--font-sans);
+    }
+    .oidf-plan-detail-crumb {
+      margin-bottom: var(--space-3);
+    }
+    .oidf-plan-detail-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 240px;
+      gap: var(--space-5);
+      align-items: start;
+    }
+    @media (max-width: 900px) {
+      .oidf-plan-detail-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+`;
 
 const PLAN_WITH_MODULE_STATUS = {
   ...MOCK_PLAN_DETAIL,
   modules: MOCK_MODULES_WITH_STATUS,
 };
 
+// Mirrors the "Plans > <plan name>" trail plan-detail.html builds from
+// the fetched plan; static here because the story's data is static too.
+const CRUMB_ITEMS = [
+  { label: "Plans", target: "/plans.html" },
+  { label: PLAN_WITH_MODULE_STATUS.planName, target: "" },
+];
+
+/**
+ * Assert the page grid composes the 240px actions rail beside the
+ * content column — the contract that rotted when the story's Bootstrap
+ * wrappers went inert (the old markup computed no grid at all, stacking
+ * the actions panel full-width below the header).
+ */
+function expectRailLayout(canvasElement) {
+  const grid = canvasElement.querySelector(".oidf-plan-detail-grid");
+  expect(grid).toBeTruthy();
+  const tracks = getComputedStyle(grid).gridTemplateColumns.trim().split(/\s+/);
+  expect(tracks).toHaveLength(2);
+  expect(tracks[1]).toBe("240px");
+}
+
 export const Default = {
+  // Pinned to the desktop preset (1280px — comfortably above the grid's
+  // 900px stacking media query) so the rail-layout assertion below is
+  // deterministic rather than dependent on the runner's canvas width.
+  parameters: {
+    viewport: { defaultViewport: "desktop" },
+  },
+  globals: {
+    viewport: { value: "desktop", isRotated: false },
+  },
   render: () => html`
-    <div class="container-fluid p-3">
-      <div class="card mb-3">
-        <div class="card-body bg-gradient">
-          <div class="row">
-            <div class="col-md-10">
-              <cts-plan-header .plan=${PLAN_WITH_MODULE_STATUS}></cts-plan-header>
-            </div>
-            <div class="col-md-2">
-              <cts-plan-actions .plan=${PLAN_WITH_MODULE_STATUS}></cts-plan-actions>
-            </div>
-          </div>
+    ${PAGE_STYLES}
+    <div class="oidf-plan-detail-page">
+      <cts-crumb class="oidf-plan-detail-crumb" .items=${CRUMB_ITEMS}></cts-crumb>
+      <div class="oidf-plan-detail-grid">
+        <div>
+          <cts-plan-header .plan=${PLAN_WITH_MODULE_STATUS}></cts-plan-header>
+          <cts-plan-modules
+            .modules=${MOCK_MODULES_WITH_STATUS}
+            plan-id="plan-abc-123"
+          ></cts-plan-modules>
         </div>
+        <cts-plan-actions .plan=${PLAN_WITH_MODULE_STATUS}></cts-plan-actions>
       </div>
-      <cts-plan-modules
-        .modules=${MOCK_MODULES_WITH_STATUS}
-        plan-id="plan-abc-123"
-      ></cts-plan-modules>
     </div>
   `,
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const canvas = within(canvasElement);
 
     // Header region: plan name and ID
     await waitFor(() => {
-      expect(canvas.getByText("oidcc-basic-certification-test-plan")).toBeInTheDocument();
+      expect(canvas.getAllByText("oidcc-basic-certification-test-plan").length).toBeGreaterThan(0);
     });
     expect(canvas.getByText("plan-abc-123")).toBeInTheDocument();
+
+    await step("breadcrumb mirrors the page's Plans → plan-name trail", async () => {
+      const crumb = canvasElement.querySelector("cts-crumb");
+      expect(crumb).toBeTruthy();
+      expect(crumb.textContent).toContain("Plans");
+      expect(crumb.textContent).toContain(PLAN_WITH_MODULE_STATUS.planName);
+    });
+
+    await step("content grid composes the 240px actions rail", async () => {
+      expectRailLayout(canvasElement);
+    });
 
     // Modules region: at least two module rows render
     expect(canvas.getByText("oidcc-server")).toBeInTheDocument();
@@ -72,27 +153,29 @@ export const Default = {
 };
 
 export const AdminView = {
+  parameters: {
+    viewport: { defaultViewport: "desktop" },
+  },
+  globals: {
+    viewport: { value: "desktop", isRotated: false },
+  },
   render: () => html`
-    <div class="container-fluid p-3">
-      <div class="card mb-3">
-        <div class="card-body bg-gradient">
-          <div class="row">
-            <div class="col-md-10">
-              <cts-plan-header .plan=${PLAN_WITH_MODULE_STATUS} is-admin></cts-plan-header>
-            </div>
-            <div class="col-md-2">
-              <cts-plan-actions .plan=${PLAN_WITH_MODULE_STATUS} is-admin></cts-plan-actions>
-            </div>
-          </div>
+    ${PAGE_STYLES}
+    <div class="oidf-plan-detail-page">
+      <cts-crumb class="oidf-plan-detail-crumb" .items=${CRUMB_ITEMS}></cts-crumb>
+      <div class="oidf-plan-detail-grid">
+        <div>
+          <cts-plan-header .plan=${PLAN_WITH_MODULE_STATUS} is-admin></cts-plan-header>
+          <cts-plan-modules
+            .modules=${MOCK_MODULES_WITH_STATUS}
+            plan-id="plan-abc-123"
+          ></cts-plan-modules>
         </div>
+        <cts-plan-actions .plan=${PLAN_WITH_MODULE_STATUS} is-admin></cts-plan-actions>
       </div>
-      <cts-plan-modules
-        .modules=${MOCK_MODULES_WITH_STATUS}
-        plan-id="plan-abc-123"
-      ></cts-plan-modules>
     </div>
   `,
-  async play({ canvasElement }) {
+  async play({ canvasElement, step }) {
     const canvas = within(canvasElement);
 
     // Header region: admin-only Owner row visible
@@ -101,6 +184,10 @@ export const AdminView = {
       expect(ownerRow).toBeTruthy();
     });
     expect(canvas.getByText("Test Owner:")).toBeInTheDocument();
+
+    await step("content grid composes the 240px actions rail", async () => {
+      expectRailLayout(canvasElement);
+    });
 
     // Actions region: admin-only buttons visible
     expect(canvasElement.querySelector('[data-testid="download-all-btn"]')).toBeTruthy();
