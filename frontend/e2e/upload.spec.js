@@ -4,6 +4,7 @@ import {
   MOCK_IMAGES_PENDING,
   MOCK_IMAGES_EMPTY,
   MOCK_UPLOAD_TEST_INFO,
+  MOCK_UPLOAD_TEST_INFO_LONG_TOKEN,
 } from "./fixtures/upload-data.js";
 
 /**
@@ -17,9 +18,12 @@ import {
  *   - /api/log/:testId/images       (POST) — ad-hoc additional upload submit
  *
  * @param {import('@playwright/test').Page} page
- * @param {{ testId: string; images: unknown; uploadStatus?: number }} options
+ * @param {{ testId: string; images: unknown; uploadStatus?: number; testInfo?: object }} options
  */
-async function setupUploadRoutes(page, { testId, images, uploadStatus = 200 }) {
+async function setupUploadRoutes(
+  page,
+  { testId, images, uploadStatus = 200, testInfo = MOCK_UPLOAD_TEST_INFO },
+) {
   await page.route(`**/api/log/${testId}/images*`, (/** @type {any} */ route) => {
     if (route.request().method() === "GET") {
       return route.fulfill({
@@ -49,7 +53,7 @@ async function setupUploadRoutes(page, { testId, images, uploadStatus = 200 }) {
     route.fulfill({
       status: 200,
       contentType: "application/json",
-      body: JSON.stringify({ ...MOCK_UPLOAD_TEST_INFO, testId }),
+      body: JSON.stringify({ ...testInfo, testId }),
     }),
   );
 }
@@ -150,6 +154,147 @@ test.describe("upload.html — Image Uploader", () => {
     await expect(testInfo).toContainText("oidcc-server");
     await expect(testInfo).toContainText("test-upload-001");
     await expect(testInfo).toContainText("Upload screenshots for this test run");
+  });
+
+  test("return link renders above the test info card and points at log-detail", async ({
+    page,
+  }) => {
+    await setupFailFast(page);
+    await setupUploadRoutes(page, {
+      testId: "test-upload-001",
+      images: MOCK_IMAGES_EMPTY,
+    });
+    await setupCommonRoutes(page);
+
+    await page.goto("/upload.html?log=test-upload-001");
+
+    // Scope to <main> — cts-navbar renders its own links (strict mode).
+    const returnLink = page.locator("main cts-link-button#returnToLog");
+    await expect(returnLink).toBeVisible();
+    await expect(returnLink).toContainText("Return to test log");
+
+    // The inner anchor carries the navigation semantics, not the host
+    // (docs/solutions/web-components/cts-button-host-vs-inner-button-semantics-2026-04-17.md).
+    await expect(returnLink.locator("a")).toHaveAttribute(
+      "href",
+      "log-detail.html?log=test-upload-001",
+    );
+
+    // The link precedes the card in DOM order — it must not depend on
+    // renderTestInfo() to appear.
+    const linkPrecedesCard = await page.evaluate(() => {
+      const link = document.getElementById("returnToLog");
+      const info = document.getElementById("testInfo");
+      if (!link || !info) return false;
+      return Boolean(link.compareDocumentPosition(info) & Node.DOCUMENT_POSITION_FOLLOWING);
+    });
+    expect(linkPrecedesCard).toBe(true);
+  });
+
+  test("info card does not overflow horizontally at 375px when the summary holds a long token", async ({
+    page,
+  }) => {
+    // overflow-wrap: anywhere + the minmax(0, 1fr) value track must break
+    // long unbroken tokens instead of widening the page. Modeled on
+    // log-detail.spec.js "entries stream does not overflow horizontally".
+    await page.setViewportSize({ width: 375, height: 800 });
+
+    await setupFailFast(page);
+    await setupUploadRoutes(page, {
+      testId: "test-upload-001",
+      images: MOCK_IMAGES_EMPTY,
+      testInfo: MOCK_UPLOAD_TEST_INFO_LONG_TOKEN,
+    });
+    await setupCommonRoutes(page);
+
+    await page.goto("/upload.html?log=test-upload-001");
+
+    // Wait for the long-token summary to land in the card.
+    await expect(page.locator("#testInfo")).toContainText("CiRmWkRB");
+
+    const overflow = await page.evaluate(() => {
+      const card = document.getElementById("testInfo");
+      const summary = card && card.querySelector(".upload-test-info__summary");
+      if (!card || !summary) {
+        return { found: false };
+      }
+      return {
+        found: true,
+        cardScroll: card.scrollWidth,
+        cardClient: card.clientWidth,
+        summaryScroll: summary.scrollWidth,
+        summaryClient: summary.clientWidth,
+        pageScroll: document.documentElement.scrollWidth,
+        pageClient: document.documentElement.clientWidth,
+      };
+    });
+
+    expect(overflow.found).toBe(true);
+    // documentElement is the real horizontal-scroll surface; the summary
+    // element itself must also fit so future clipping on an ancestor
+    // can't mask child overflow.
+    expect(overflow.cardScroll).toBeLessThanOrEqual(overflow.cardClient ?? 0);
+    expect(overflow.summaryScroll).toBeLessThanOrEqual(overflow.summaryClient ?? 0);
+    expect(overflow.pageScroll).toBeLessThanOrEqual(overflow.pageClient ?? 0);
+  });
+
+  test("return link keeps its href when /api/info fails", async ({ page }) => {
+    await setupFailFast(page);
+    await page.route("**/api/log/test-upload-001/images*", (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(MOCK_IMAGES_EMPTY),
+      }),
+    );
+    await page.route("**/api/info/test-upload-001", (route) =>
+      route.fulfill({
+        status: 500,
+        contentType: "application/json",
+        body: JSON.stringify({ error: "boom" }),
+      }),
+    );
+    await setupCommonRoutes(page);
+
+    await page.goto("/upload.html?log=test-upload-001");
+
+    // The error surfaces through the modal, but the link is wired from
+    // the URL param at DOMContentLoaded and stays navigable.
+    await expect(page.locator("#errorModal")).toBeVisible();
+    await expect(page.locator("main cts-link-button#returnToLog a")).toHaveAttribute(
+      "href",
+      "log-detail.html?log=test-upload-001",
+    );
+  });
+
+  test("return link renders disabled when the log param is missing", async ({ page }) => {
+    await setupFailFast(page);
+    // With no ?log= the page still fires its API calls with the literal
+    // "null" id (pre-existing behavior) — mock them so fail-fast doesn't trip.
+    await page.route("**/api/log/null/images*", (route) =>
+      route.fulfill({
+        status: 400,
+        contentType: "application/json",
+        body: JSON.stringify({ error: "Invalid log id" }),
+      }),
+    );
+    await page.route("**/api/info/null", (route) =>
+      route.fulfill({
+        status: 400,
+        contentType: "application/json",
+        body: JSON.stringify({ error: "Invalid log id" }),
+      }),
+    );
+    await setupCommonRoutes(page);
+
+    await page.goto("/upload.html");
+
+    // cts-link-button drops the href entirely when disabled — the user
+    // can't navigate to a broken log-detail.html?log= URL.
+    const anchor = page.locator("main cts-link-button#returnToLog a");
+    await expect(anchor).toHaveAttribute("aria-disabled", "true");
+    const href = await anchor.getAttribute("href");
+    expect(href).toBeNull();
   });
 
   test("dropping a valid PNG on the inline zone enables Upload (with description)", async ({
