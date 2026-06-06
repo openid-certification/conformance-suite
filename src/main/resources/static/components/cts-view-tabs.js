@@ -6,6 +6,16 @@ import "./cts-icon.js";
 const STYLE_ID = "cts-view-tabs-styles";
 
 const STYLE_TEXT = css`
+  /* The host is the size container that the narrow-state block at the bottom
+   of this sheet queries. Custom elements default to display:inline, which
+   cannot establish size containment, so the host is made a block-level
+   inline-size container — the control then adapts to its actual available
+   width in any embedding context (page, Storybook iframe, a future narrow
+   pane) rather than to the viewport. */
+  cts-view-tabs {
+    display: block;
+    container-type: inline-size;
+  }
   .cts-view-tabs {
     display: flex;
     gap: var(--space-1);
@@ -28,6 +38,10 @@ const STYLE_TEXT = css`
     line-height: var(--lh-snug);
     color: var(--fg-soft);
     text-decoration: none;
+    /* Labels never wrap mid-label ("My Test / Plans"); below ~360px viewports
+     the row may clip instead, which is accepted (see the mobile-stacking
+     plan's scope boundaries). */
+    white-space: nowrap;
     border-bottom: 2px solid transparent;
     margin-bottom: -1px;
     transition:
@@ -53,6 +67,9 @@ const STYLE_TEXT = css`
   .cts-view-tabs .cts-view-tabs-cta {
     margin-left: auto;
     align-self: center;
+    /* Inherits down to the inner .oidf-btn so the label never wraps
+     ("Schedule / test") while the row is being squeezed. */
+    white-space: nowrap;
   }
   /* Opt-in Published help affordance (R22): a circled-question-mark icon sitting
    inside the Published anchor, immediately after its label, revealing a
@@ -74,6 +91,57 @@ const STYLE_TEXT = css`
     outline: none;
     box-shadow: var(--focus-ring);
     border-radius: var(--radius-1);
+  }
+  /* Narrow-state stacking: below a 640px container width (the codebase's
+   small-tier precedent — cts-log-viewer/cts-log-entry query the same value)
+   the single row no longer fits "My Test Plans | Published Test Plans (?) |
+   Schedule test", so the CTA drops to its own full-width row BELOW the tabs
+   and their divider. Wide rendering (>= 640px) is untouched by this block. */
+  @container (width < 640px) {
+    .cts-view-tabs {
+      flex-wrap: wrap;
+      /* The base "gap" shorthand would become a 4px row-gap between wrapped
+       lines, which the anchors' -1px bottom margin cannot close — the
+       divider must sit flush under the anchor line so the active tab's 2px
+       underline keeps overlapping it exactly as on desktop. Keep the
+       horizontal gap, zero the vertical one. */
+      column-gap: var(--space-1);
+      row-gap: 0;
+      /* The full-width divider moves from the nav's own border to the
+       ::after line box below so it can sit between the tabs and the CTA. */
+      border-bottom: none;
+    }
+    /* The wrapped-state divider: a zero-height full-width flex item whose
+     border paints the same 1px rule the nav's border-bottom paints on
+     desktop. Default order (0) + last-child box position put it after the
+     anchors; the CTA's order:1 pushes the CTA below it. */
+    .cts-view-tabs::after {
+      content: "";
+      flex-basis: 100%;
+      border-bottom: 1px solid var(--border);
+    }
+    /* ::after paints as the nav's last box, which would draw the grey rule
+     over the active anchor's overlapping underline pixel. Positioned boxes
+     paint above non-positioned ones, restoring the desktop paint order
+     (underline above rule). */
+    .cts-view-tabs > a {
+      position: relative;
+    }
+    .cts-view-tabs .cts-view-tabs-cta {
+      order: 1;
+      flex-basis: 100%;
+      margin-left: 0;
+      margin-top: var(--space-3);
+    }
+    /* Mirror cts-link-button's own [full-width] pattern (cts-link-button.js:
+     "cts-link-button[full-width] .oidf-btn { width: 100% }") for the narrow
+     state only — the attribute itself cannot be toggled by a container
+     query — and lift the sm button (30px) to a 44px touch target per
+     WCAG 2.5.8 / platform guidance. */
+    .cts-view-tabs .cts-view-tabs-cta .oidf-btn {
+      width: 100%;
+      min-height: 44px;
+    }
   }
 `;
 
@@ -109,6 +177,12 @@ function ensureStylesInjected() {
  * inside this `<nav>` by deliberate choice: a "Schedule test" link navigates to
  * another page, so it is navigation, and the visual placement at the end of the
  * tabs row is the product intent. The accessible name stays "Dataset view".
+ *
+ * Responsive behavior: the host is an inline-size container, and below a 640px
+ * container width the row stacks — the anchors keep a single line, the divider
+ * moves to a full-width `::after` line under them, and the CTA drops to its own
+ * full-width 44px-tall row beneath the divider (DOM order is unchanged; the
+ * stacking is pure CSS in the `@container` block of `STYLE_TEXT`).
  *
  * The canonical "Published" signal is `?public=true`; "My" is the absence of
  * the `public` param (KTD2). The control merely reads/writes that param:

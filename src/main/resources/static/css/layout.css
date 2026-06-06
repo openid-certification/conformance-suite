@@ -196,14 +196,31 @@ cts-footer:not(:defined) {
 /* cts-view-tabs is the URL-driven My/Published navigation control on the
  * plans (and logs) listing. It is a block-level custom-element host that
  * reserves zero height before upgrade (inline default), so the list below it
- * would jump up when the tabs define. Reserve ~40px to match the post-upgrade
- * footprint (the anchor row + its bottom border + the --space-4 bottom
- * margin). `display: block` is required because the inline-default custom
- * element would otherwise ignore `min-height`. (KTD6 of the plans-page-as-home
- * plan.) */
+ * would jump up when the tabs define. Reserve the measured post-upgrade
+ * footprint — 60px on a single-row layout: the 44px anchor row + bottom
+ * border + the --space-4 (16px) bottom margin, which the upgraded host
+ * contains via its inline-size containment. `display: block` is required
+ * because the inline-default custom element would otherwise ignore
+ * `min-height`. (KTD6 of the plans-page-as-home plan; values re-measured for
+ * the view-tabs mobile-stacking plan.) */
 cts-view-tabs:not(:defined) {
 	display: block;
-	min-height: 40px;
+	min-height: 60px;
+}
+
+/* Below a 680px viewport the component's narrow-state @container block fires
+ * (640px container threshold + 2× the 20px --space-5 padding on
+ * .listing-page = 680px viewport — exact alignment, no mismatch band) and the
+ * upgraded control is a taller stack: anchor row + divider + full-width 44px
+ * Schedule-test CTA. Measured stacked footprint: 116px. Without this tier the
+ * mobile reservation under-reserves and plans.html content jumps on upgrade.
+ * Keyed on [create-test-href] (server-rendered, so visible pre-upgrade):
+ * only the CTA opt-in (plans.html) grows a second row — logs.html stays a
+ * single ~60px line at every width and keeps the base reservation. */
+@media (width < 680px) {
+	cts-view-tabs[create-test-href]:not(:defined) {
+		min-height: 116px;
+	}
 }
 
 /* cts-run-status-strip is the always-on in-progress/failing runs strip on the
