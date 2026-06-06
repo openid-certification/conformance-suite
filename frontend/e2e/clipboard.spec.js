@@ -8,49 +8,27 @@ import {
 import { MOCK_PLAN_DETAIL } from "./fixtures/mock-test-data.js";
 
 /**
- * Guards ClipboardJS + cts-button integration on every page that renders a
- * `.btn-clipboard` cts-button. The page-level inits use the selector
- * `.btn-clipboard > button` (the inner button rendered by cts-button's light
- * DOM) and a `text` callback that reads `data-clipboard-target` from the host.
- * If cts-button ever switches to shadow DOM, the selector stops matching and
- * these tests fail loudly instead of silently breaking user copy flows.
+ * Guards the copy-button flow on pages that render a `.btn-clipboard`
+ * cts-button. Every copy path now uses the Async Clipboard API
+ * (`navigator.clipboard.writeText`) reading internal component state —
+ * the legacy ClipboardJS library and its DOM-target resolver were removed
+ * once the last consumer migrated. The inner-button click target still
+ * depends on cts-button rendering to light DOM; if it ever switches to
+ * shadow DOM, the locator stops matching and these tests fail loudly
+ * instead of silently breaking user copy flows.
  *
- * Verification strategy: an init script defines a setter on `window.ClipboardJS`
- * that wraps each new instance so every `success` event records the copied
- * text into `window.__copiedText`. This captures ClipboardJS's own view of the
- * copied text, which is more reliable than reading the system clipboard or
- * sniffing the DOM `copy` event in Playwright-controlled Chromium.
+ * Verification strategy: an init script spies on
+ * `navigator.clipboard.writeText` and records the copied text into
+ * `window.__copiedText`, which is more reliable than reading the system
+ * clipboard in Playwright-controlled Chromium.
  */
 
 async function installClipboardSpy(page) {
   await page.addInitScript(() => {
     window.__copiedText = null;
-    let original;
-    Object.defineProperty(window, "ClipboardJS", {
-      configurable: true,
-      get() {
-        return original;
-      },
-      set(value) {
-        const wrapped = function (...args) {
-          const instance = new value(...args);
-          instance.on("success", (e) => {
-            window.__copiedText = e.text;
-          });
-          return instance;
-        };
-        wrapped.prototype = value.prototype;
-        // Preserve static methods ClipboardJS attaches (isSupported, etc.)
-        for (const key of Object.keys(value)) {
-          wrapped[key] = value[key];
-        }
-        original = wrapped;
-      },
-    });
-    // Also spy on navigator.clipboard.writeText so the cts-plan-actions
-    // copy flow (which uses the modern Async Clipboard API directly,
-    // not ClipboardJS) is observable in tests too. The test harness
-    // requires user-activation for real clipboard writes; the spy
+    // Spy on navigator.clipboard.writeText so the cts-plan-actions
+    // copy flow (Async Clipboard API) is observable in tests. The test
+    // harness requires user-activation for real clipboard writes; the spy
     // resolves immediately so the await chain inside _handleCopyConfig
     // doesn't time out.
     if (navigator.clipboard) {
@@ -71,7 +49,7 @@ async function readCopiedText(page) {
   return page.evaluate(() => window.__copiedText);
 }
 
-test.describe("ClipboardJS copy buttons render text from cts-button hosts", () => {
+test.describe("copy buttons copy text from cts-button hosts", () => {
   test.afterEach(async ({ page }) => {
     expectNoUnmockedCalls(page);
   });
@@ -140,11 +118,10 @@ test.describe("ClipboardJS copy buttons render text from cts-button hosts", () =
   // / CopyTokenClipboardFailure / CopyTokenClipboardAbsent).
 
   // Fallback-path coverage: when Monaco's loader is blocked the wrapper
-  // renders a real <textarea> instead. The shared resolver in
-  // /js/cts-clipboard-resolver.js still has to read `.value` (now off the
-  // textarea) for the copy to land. Without these tests, only
-  // schedule-test-monaco.spec.js exercises the loader-blocked path — and
-  // it doesn't touch the configModal copy button on plans.html / logs.html.
+  // renders a real <textarea> instead. The legacy ClipboardJS resolver
+  // (/js/cts-clipboard-resolver.js, since removed with ClipboardJS) had to
+  // read `.value` off that textarea for the copy to land; the notes below
+  // record why the per-page fallback tests went away with it.
 
   // The legacy "plans.html (Monaco fallback)" test was deleted alongside the
   // primary plans.html clipboard test above — the fallback path is irrelevant

@@ -244,8 +244,8 @@ export const ClickEvent = {
  * registers `@click` on the inner button, which does not see synthetic clicks
  * on its parent. This story is the regression canary: if it ever starts
  * failing, either shadow DOM was enabled or `preventDefault` was introduced
- * in `_handleClick`, both of which silently break ClipboardJS, Bootstrap
- * `data-bs-*`, and page-level delegated click handlers on cts-button hosts.
+ * in `_handleClick`, both of which silently break Bootstrap `data-bs-*`
+ * and page-level delegated click handlers on cts-button hosts.
  */
 export const HostClickDoesNotDispatch = {
   args: { variant: "primary", label: "Programmatic" },
