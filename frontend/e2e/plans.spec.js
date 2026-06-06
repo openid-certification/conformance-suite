@@ -788,6 +788,63 @@ test.describe("plans.html — Schedule-test CTA + empty state (U8)", () => {
   });
 });
 
+/**
+ * Narrow-viewport stacking: below a 640px container width the cts-view-tabs
+ * row wraps — the Schedule-test CTA drops to its own full-width row below the
+ * tabs and their divider (the component's @container block). 390×844 is a
+ * common phone size; the Storybook MobileStackedCta story covers 414px — the
+ * width divergence is intentional, both sit comfortably below the threshold.
+ */
+test.describe("plans.html — narrow-viewport stacked CTA", () => {
+  test.afterEach(async ({ page }) => {
+    expectNoUnmockedCalls(page);
+  });
+
+  test("at 390×844 the CTA stacks full-width below the tabs and DOM order holds", async ({
+    page,
+  }) => {
+    await setupFailFast(page);
+    await mockPlanRoute(page);
+    await setupTestInfoRoute(page, MOCK_PLAN_INFO);
+    await setupCommonRoutes(page);
+
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto("/plans.html");
+
+    // The inner <a> only exists after the component upgrade + cts-link-button's
+    // own update tick, so its visibility doubles as the upgrade wait.
+    const link = page.locator(SCHEDULE_CTA).locator("a");
+    await expect(link).toBeVisible();
+    const my = page.locator("#viewTabs a[data-view='my']");
+    const published = page.locator("#viewTabs a[data-view='published']");
+    await expect(my).toBeVisible();
+
+    const myBox = await my.boundingBox();
+    const publishedBox = await published.boundingBox();
+    const linkBox = await link.boundingBox();
+    const navBox = await page.locator("#viewTabs nav.cts-view-tabs").boundingBox();
+    if (!myBox || !publishedBox || !linkBox || !navBox) {
+      throw new Error("tabs row is missing a bounding box");
+    }
+
+    // Stacked: the CTA row starts below the Published anchor's bottom edge.
+    expect(linkBox.y).toBeGreaterThanOrEqual(publishedBox.y + publishedBox.height);
+    // Full-width within the nav (±1px) with a 44px touch-target floor.
+    expect(Math.abs(linkBox.width - navBox.width)).toBeLessThanOrEqual(1);
+    expect(linkBox.height).toBeGreaterThanOrEqual(44);
+    // Tab anchors keep a single line (a wrapped label would be ~60px tall).
+    expect(myBox.height).toBeLessThan(50);
+    expect(publishedBox.height).toBeLessThan(50);
+
+    // DOM order is unchanged in the stacked state — the CTA stays last, so
+    // the desktop last-child contract holds at every width.
+    await expect(page.locator("#viewTabs nav.cts-view-tabs > :last-child")).toHaveAttribute(
+      "data-testid",
+      "schedule-test-cta",
+    );
+  });
+});
+
 const PUBLISHED_HELP = "#viewTabs [data-testid='published-help']";
 
 test.describe("plans.html — Published help tooltip + terminology (U12)", () => {
