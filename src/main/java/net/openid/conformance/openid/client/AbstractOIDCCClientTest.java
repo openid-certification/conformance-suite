@@ -36,7 +36,6 @@ import net.openid.conformance.condition.as.EnsureAuthorizationHttpRequestContain
 import net.openid.conformance.condition.as.EnsureAuthorizationRequestContainsPkceCodeChallenge;
 import net.openid.conformance.condition.as.EnsureClientDoesNotHaveBothJwksAndJwksUri;
 import net.openid.conformance.condition.as.EnsureClientHasJwksOrJwksUri;
-import net.openid.conformance.condition.as.EnsureClientJwksDoesNotContainPrivateOrSymmetricKeys;
 import net.openid.conformance.condition.as.EnsureMatchingClientId;
 import net.openid.conformance.condition.as.EnsureNumericRequestObjectClaimsAreNotNull;
 import net.openid.conformance.condition.as.EnsureOpenIDInScopeRequest;
@@ -115,8 +114,7 @@ import net.openid.conformance.condition.client.ConfigurationRequestsTestIsSkippe
 import net.openid.conformance.condition.client.ExtractClientNameFromStoredConfig;
 import net.openid.conformance.condition.client.ExtractJWKsFromStaticClientConfiguration;
 import net.openid.conformance.condition.client.StoreOriginalClientConfiguration;
-import net.openid.conformance.condition.client.ValidateClientJWKsPublicPart;
-import net.openid.conformance.condition.client.ValidateServerJWKs;
+import net.openid.conformance.sequence.ValidateJwksSequence;
 import net.openid.conformance.condition.common.CheckDistinctKeyIdValueInClientJWKs;
 import net.openid.conformance.condition.common.CheckDistinctKeyIdValueInServerJWKs;
 import net.openid.conformance.condition.rs.ClearAccessTokenFromRequest;
@@ -349,7 +347,7 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 	}
 
 	protected void validateConfiguredServerJWKS() {
-		callAndStopOnFailure(ValidateServerJWKs.class, "RFC7517-1.1");
+		call(new ValidateJwksSequence("server_jwks", null, "server signing keys", "RFC7517-1.1").allowingPrivateKeys());
 		callAndContinueOnFailure(CheckDistinctKeyIdValueInServerJWKs.class, Condition.ConditionResult.FAILURE, "RFC7517-4.5");
 	}
 
@@ -899,9 +897,8 @@ public abstract class AbstractOIDCCClientTest extends AbstractTestModule {
 	}
 
 	protected void validateClientJwks() {
-		callAndStopOnFailure(ValidateClientJWKsPublicPart.class, "RFC7517-1.1");
+		call(new ValidateJwksSequence("client", "jwks", "client configuration", "RFC7517-1.1"));
 		callAndContinueOnFailure(CheckDistinctKeyIdValueInClientJWKs.class, Condition.ConditionResult.FAILURE, "RFC7517-4.5");
-		callAndContinueOnFailure(EnsureClientJwksDoesNotContainPrivateOrSymmetricKeys.class, Condition.ConditionResult.FAILURE, "RFC7517-9.2");
 	}
 
 

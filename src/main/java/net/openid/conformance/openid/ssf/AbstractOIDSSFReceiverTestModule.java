@@ -37,6 +37,7 @@ import net.openid.conformance.openid.ssf.variant.SsfDeliveryMode;
 import net.openid.conformance.openid.ssf.variant.SsfProfile;
 import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.util.BaseUrlUtil;
+import net.openid.conformance.util.JWKUtil;
 import net.openid.conformance.util.OAuthUriUtil;
 import net.openid.conformance.variant.ConfigurationFields;
 import net.openid.conformance.variant.VariantParameters;
@@ -309,8 +310,9 @@ public abstract class AbstractOIDSSFReceiverTestModule extends AbstractOIDSSFTes
 	}
 
 	protected ResponseEntity<?> handleJwksEndpoint() {
-		JsonObject jwks = env.getObject("server_jwks");
-		return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(jwks);
+		// Serve only the public keys at the transmitter jwks_uri - it must not leak private key material.
+		JsonObject publicJwks = JWKUtil.toPublicJWKSet(env.getObject("server_jwks"));
+		return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(publicJwks);
 	}
 
 	protected ResponseEntity<?> handleStreamConfigurationEndpointRequest(String path, HttpServletRequest req, HttpServletResponse res, HttpSession session, JsonObject requestParts) {

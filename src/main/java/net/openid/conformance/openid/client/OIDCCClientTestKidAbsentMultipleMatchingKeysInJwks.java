@@ -2,7 +2,7 @@ package net.openid.conformance.openid.client;
 
 import net.openid.conformance.condition.as.OIDCCGenerateServerJWKsMultipleSigningsKeyWithNoKeyIds;
 import net.openid.conformance.condition.as.SetServerSigningAlgToRS256;
-import net.openid.conformance.condition.client.ValidateServerJWKs;
+import net.openid.conformance.sequence.ValidateJwksSequence;
 import net.openid.conformance.testmodule.PublishTestModule;
 
 @PublishTestModule(
@@ -29,7 +29,7 @@ public class OIDCCClientTestKidAbsentMultipleMatchingKeysInJwks extends Abstract
 
 	@Override
 	protected void validateConfiguredServerJWKS() {
-		callAndStopOnFailure(ValidateServerJWKs.class, "RFC7517-1.1");
+		call(new ValidateJwksSequence("server_jwks", null, "server signing keys", "RFC7517-1.1").allowingPrivateKeys());
 	}
 
 	/**
