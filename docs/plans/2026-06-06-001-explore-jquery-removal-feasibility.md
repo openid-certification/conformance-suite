@@ -217,11 +217,11 @@ restored clean.
 Tiers 1 + 2 shipped on `explore/jquery-removal-feasibility` as four atomic
 commits, each gate-verified before committing:
 
-1. `0f8c9314e` — chore(vendor): delete orphaned jquery directory
-2. `b671f7ce0` — chore(vendor): delete orphaned chroma, prettify,
+1. `be32d90f3` — chore(vendor): delete orphaned jquery directory
+2. `68299cb18` — chore(vendor): delete orphaned chroma, prettify,
    randomcolor directories
-3. `c17682e31` — chore(vendor): remove unused ClipboardJS and its dead
+3. `73862f7d4` — chore(vendor): remove unused ClipboardJS and its dead
    resolver glue
-4. `1dc58da29` — chore(logs): drop the unused lodash script tag
+4. `a63ff19ef` — chore(logs): drop the unused lodash script tag
 
 Tier 3 (full lodash removal) remains open as a follow-up refactor.
