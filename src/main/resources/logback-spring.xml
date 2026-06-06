@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Wrap Spring Boot's default CONSOLE appender in an AsyncAppender.
+
+  The conformance suite logs from many test threads concurrently. Logback's
+  ConsoleAppender (OutputStreamAppender) holds a ReentrantLock around each
+  synchronous write to stdout, so under high test concurrency every thread
+  serialises on that single lock — JFR profiling of a CI run measured ~206s of
+  cumulative blocked time on it in the first 10 minutes alone, the largest single
+  contention source during cold start.
+
+  AsyncAppender hands log events to a background thread, so application (test)
+  threads only enqueue and never block on the console I/O. neverBlock=true means
+  that under an extreme burst events are dropped rather than blocking a test
+  thread — acceptable here because the authoritative per-condition record is the
+  Mongo event log, not stdout. The queue is sized generously so dropping is rare.
+-->
+<configuration>
+	<include resource="org/springframework/boot/logging/logback/defaults.xml"/>
+	<include resource="org/springframework/boot/logging/logback/console-appender.xml"/>
+
+	<appender name="ASYNC_CONSOLE" class="ch.qos.logback.classic.AsyncAppender">
+		<appender-ref ref="CONSOLE"/>
+		<!-- generous queue so normal bursts never fill it -->
+		<queueSize>16384</queueSize>
+		<!-- 0 = don't drop events by level when the queue gets busy (we rely on
+		     neverBlock instead, so all levels are treated equally) -->
+		<discardingThreshold>0</discardingThreshold>
+		<!-- never block a test thread on a full queue; drop instead (Mongo holds
+		     the authoritative log) -->
+		<neverBlock>true</neverBlock>
+		<includeCallerData>false</includeCallerData>
+	</appender>
+
+	<root level="INFO">
+		<appender-ref ref="ASYNC_CONSOLE"/>
+	</root>
+</configuration>
