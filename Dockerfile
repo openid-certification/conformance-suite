@@ -1,5 +1,12 @@
 FROM eclipse-temurin:21
 COPY target/fapi-test-suite.jar /server/
+# Run the app "unpacked": explode the Spring Boot jar so classes load from real
+# files via the standard (parallel-capable) system class loader instead of
+# Spring Boot's nested-jar LaunchedClassLoader. JFR profiling of CI cold start
+# measured that nested-jar loader (JarUrlClassLoader / NestedJarFile /
+# UrlJarFiles$Cache) serialising concurrent class loads as a top lock-contention
+# source. Launched below via -cp + main class rather than -jar.
+RUN cd /server && jar xf fapi-test-suite.jar && rm fapi-test-suite.jar
 ENV BASE_URL https://localhost:8443
 ENV BASE_MTLS_URL https://localhost:8444
 ENV MONGODB_HOST mongodb
@@ -17,6 +24,7 @@ ENTRYPOINT java \
   -D"oidc.gitlab.clientid=${OIDC_GITLAB_CLIENTID}" \
   -D"oidc.gitlab.secret=${OIDC_GITLAB_SECRET}" \
   $JAVA_EXTRA_ARGS \
- -jar /server/fapi-test-suite.jar \
+ -cp "/server/BOOT-INF/classes:/server/BOOT-INF/lib/*" \
+ net.openid.conformance.Application \
  -Djdk.tls.maxHandshakeMessageSize=65536
 
