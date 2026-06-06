@@ -2,6 +2,7 @@ import { test, expect } from "@playwright/test";
 import { setupCommonRoutes, setupFailFast, expectNoUnmockedCalls } from "./helpers/routes.js";
 import {
   MOCK_TEST_STATUS,
+  MOCK_TEST_STATUS_LONG_VARIANT,
   MOCK_TEST_FAILED,
   MOCK_TEST_RUNNING,
 } from "./fixtures/mock-test-data.js";
@@ -984,6 +985,50 @@ test.describe("log-detail.html — new Lit-triad page", () => {
 
     expect(overflow.found).toBe(true);
     expect(overflow.scrollWidth).toBeLessThanOrEqual(overflow.clientWidth);
+  });
+
+  test("page does not overflow and Test details stack at 375px viewport", async ({ page }) => {
+    // The .logEntries guard above measures a sub-container with its own
+    // overflow handling — it never caught the status bar inflating the
+    // whole page. This guard targets the document element: a long nowrap
+    // test name used to grow the bar's auto grid track to ~644px at a
+    // 360px viewport (grid items default to min-width: auto), zooming
+    // the entire page out on phones. The same fixture's five-entry
+    // variant map exercises the stacked metadata layout: the drawer's
+    // .logMetaTable must collapse to a single column below 640px
+    // container width so values get the full drawer width instead of
+    // the ~100px the legacy two-column grid left them.
+    // Plan: docs/plans/2026-06-05-002-fix-log-detail-mobile-responsive-plan.md
+    await page.setViewportSize({ width: 375, height: 800 });
+
+    await setupFailFast(page);
+    await setupV2Routes(page, {
+      testInfo: MOCK_TEST_STATUS_LONG_VARIANT,
+      logEntries: MOCK_LOG_ENTRIES,
+    });
+    await setupCommonRoutes(page);
+
+    await page.goto(
+      `/log-detail.html?log=${encodeURIComponent(MOCK_TEST_STATUS_LONG_VARIANT.testId)}`,
+    );
+    await expect(page.locator("cts-log-detail-header .ctsStatusBar")).toBeVisible();
+
+    // Document-level horizontal overflow guard (R2).
+    const doc = await page.evaluate(() => ({
+      scrollWidth: document.documentElement.scrollWidth,
+      clientWidth: document.documentElement.clientWidth,
+    }));
+    expect(doc.scrollWidth).toBeLessThanOrEqual(doc.clientWidth);
+
+    // Open the Test details disclosure and assert the stacked layout (R1).
+    const details = page.locator('[data-testid="drawer-test-details"]');
+    await details.locator("summary").click();
+    await expect(details).toHaveJSProperty("open", true);
+
+    const tracks = await page
+      .locator("cts-log-detail-header .logMetaTable")
+      .evaluate((el) => getComputedStyle(el).gridTemplateColumns.trim().split(/\s+/));
+    expect(tracks).toHaveLength(1);
   });
 
   test("sticky status bar pins to the top of the viewport on scroll", async ({ page }) => {

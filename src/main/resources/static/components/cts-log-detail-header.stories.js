@@ -89,6 +89,26 @@ const ALL_PASSED_TEST = {
   ],
 };
 
+// Long-name / many-variant data reproducing the mobile readability bug
+// (docs/plans/2026-06-05-002-fix-log-detail-mobile-responsive-plan.md):
+// the ~66-char module name must truncate in the status bar instead of
+// inflating its auto grid track, and the five variant pairs must stay
+// readable in the stacked metadata layout at phone widths. Story-local
+// on purpose — the shared MOCK_TEST_STATUS name (`oidcc-server`) is too
+// short to ever exercise either behavior.
+const LONG_NAME_TEST = {
+  ...MOCK_TEST_STATUS,
+  testName: "oid4vci-id2-issuer-credential-offer-flow-with-pre-authorized-code",
+  variant: {
+    client_auth_type: "client_secret_basic",
+    response_type: "code",
+    credential_format: "sd_jwt_vc",
+    sender_constrain: "dpop",
+    response_mode: "direct_post.jwt",
+  },
+  results: MOCK_RESULTS,
+};
+
 /**
  * Resolve the inner `<button>` rendered inside a cts-button host with the
  * given data-testid. Required because cts-button renders to its own light
@@ -1389,6 +1409,16 @@ export const StatusBarOverflowDispatchesEditConfig = {
 // handle keyboard a11y.
 
 export const DrawerExpandedRevealsMetadata = {
+  // Pinned to the desktop preset so the .ctsDrawer inline-size container
+  // is deterministically above the 640px two-column threshold — the
+  // two-track assertion below must not depend on the default canvas
+  // width staying wide.
+  parameters: {
+    viewport: { defaultViewport: "desktop" },
+  },
+  globals: {
+    viewport: { value: "desktop", isRotated: false },
+  },
   render: () => html`<cts-log-detail-header .testInfo=${COMPLETED_TEST}></cts-log-detail-header>`,
   async play({ canvasElement, step }) {
     const detailsHost = /** @type {any} */ (
@@ -1416,6 +1446,109 @@ export const DrawerExpandedRevealsMetadata = {
       expect(metaTable.textContent).toContain(COMPLETED_TEST.testId);
       expect(metaTable.textContent).toContain("Plan ID:");
       expect(metaTable.textContent).toContain(COMPLETED_TEST.planId);
+    });
+
+    await step("wide layout keeps two columns with a content-hugging label track", async () => {
+      // fit-content(180px) sizes the label track to the longest label,
+      // clamped at 180px — the legacy minmax(120px, 180px) always
+      // maximized to a fixed 180px before the value track got leftovers.
+      const metaTable = detailsHost.querySelector(".logMetaTable");
+      const tracks = getComputedStyle(metaTable).gridTemplateColumns.trim().split(/\s+/);
+      expect(tracks).toHaveLength(2);
+      expect(parseFloat(tracks[0])).toBeLessThanOrEqual(180);
+    });
+  },
+};
+
+/**
+ * Mobile stacked-metadata contract
+ * (docs/plans/2026-06-05-002-fix-log-detail-mobile-responsive-plan.md).
+ * Pinned to mobile1 (320×568) so the .ctsDrawer inline-size container
+ * sits below the 640px threshold: the metadata table must collapse to
+ * a single stacked column (label above value) and the nested variant
+ * list must keep a readable value column — the legacy two-column grid
+ * crushed variant values to ~10px, wrapping one character per line.
+ */
+export const DrawerMetadataStacksOnMobile = {
+  parameters: {
+    viewport: { defaultViewport: "mobile1" },
+  },
+  globals: {
+    viewport: { value: "mobile1", isRotated: false },
+  },
+  render: () => html`<cts-log-detail-header .testInfo=${LONG_NAME_TEST}></cts-log-detail-header>`,
+  async play({ canvasElement, step }) {
+    const detailsHost = /** @type {any} */ (
+      await waitFor(() => {
+        const el = canvasElement.querySelector('[data-testid="drawer-test-details"]');
+        if (!el) throw new Error("drawer-test-details not yet rendered");
+        return el;
+      })
+    );
+
+    await step("open the Test details disclosure", async () => {
+      const summary = detailsHost.querySelector("summary");
+      await userEvent.click(summary);
+      await waitFor(() => expect(detailsHost.open).toBe(true));
+    });
+
+    await step("metadata table stacks to a single column", async () => {
+      const metaTable = detailsHost.querySelector(".logMetaTable");
+      const tracks = getComputedStyle(metaTable).gridTemplateColumns.trim().split(/\s+/);
+      expect(tracks).toHaveLength(1);
+    });
+
+    await step("variant values keep a readable column", async () => {
+      // Computed-style assertion (not getBoundingClientRect) — rects lie
+      // inside display: contents hosts. The value track must get real
+      // width now that the stacked layout hands the variant list the
+      // full drawer width.
+      const variantList = detailsHost.querySelector(".variantList");
+      const tracks = getComputedStyle(variantList).gridTemplateColumns.trim().split(/\s+/);
+      expect(tracks).toHaveLength(2);
+      expect(parseFloat(tracks[1])).toBeGreaterThan(100);
+    });
+  },
+};
+
+/**
+ * Status-bar truncation contract
+ * (docs/plans/2026-06-05-002-fix-log-detail-mobile-responsive-plan.md).
+ * Grid items default to min-width: auto, so without min-width: 0 on
+ * .ctsStatusBarLeft the bar's auto track grew to the nowrap test
+ * name's full width (~644px page scroll width at a 360px viewport) and
+ * the whole page rendered zoomed-out on phones. Pinned to mobile1 with
+ * a long-name fixture so the ellipsis path actually engages.
+ */
+export const StatusBarTruncatesLongTestNameOnMobile = {
+  parameters: {
+    viewport: { defaultViewport: "mobile1" },
+  },
+  globals: {
+    viewport: { value: "mobile1", isRotated: false },
+  },
+  render: () => html`<cts-log-detail-header .testInfo=${LONG_NAME_TEST}></cts-log-detail-header>`,
+  async play({ canvasElement, step }) {
+    const bar = /** @type {HTMLElement} */ (
+      await waitFor(() => {
+        const el = canvasElement.querySelector(".ctsStatusBar");
+        if (!el) throw new Error("status bar not yet rendered");
+        return el;
+      })
+    );
+
+    await step("the long test name truncates instead of widening the bar", async () => {
+      const name = /** @type {HTMLElement} */ (bar.querySelector(".ctsStatusBarTestNameText"));
+      expect(name).toBeTruthy();
+      // Ellipsis engaged: the full text is wider than the visible box.
+      expect(name.scrollWidth).toBeGreaterThan(name.clientWidth);
+    });
+
+    await step("the bar's grid content stays inside its own box", async () => {
+      // Pre-fix, the left auto track held the full 450px name and the
+      // grid content spilled past the bar's padding box. scrollWidth
+      // equals clientWidth when nothing overflows (±1 for rounding).
+      expect(bar.scrollWidth).toBeLessThanOrEqual(bar.clientWidth + 1);
     });
   },
 };
