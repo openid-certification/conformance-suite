@@ -90,6 +90,28 @@ export const MOCK_TEST_STATUS = {
 };
 
 /**
+ * GET /api/info/:testId — PASSED, with a long module name and a
+ * five-entry variant map. Reproduces the conditions of the mobile
+ * readability bug fixed in cts-log-detail-header: the name is long
+ * enough that the sticky status bar must truncate it (the short
+ * default `oidcc-server` never overflows), and the variant map
+ * exercises the stacked metadata layout at phone widths.
+ */
+export const MOCK_TEST_STATUS_LONG_VARIANT = {
+  ...MOCK_TEST_STATUS,
+  _id: "test-long-001",
+  testId: "test-long-001",
+  testName: "oid4vci-id2-issuer-credential-offer-flow-with-pre-authorized-code",
+  variant: {
+    client_auth_type: "client_secret_basic",
+    response_type: "code",
+    credential_format: "sd_jwt_vc",
+    sender_constrain: "dpop",
+    response_mode: "direct_post.jwt",
+  },
+};
+
+/**
  * GET /api/info/:testId — summary contains the R24 split marker
  * `\n\n---\n\n`. The pre-marker half describes what the test checks;
  * the post-marker half is imperative user instructions. The frontend
