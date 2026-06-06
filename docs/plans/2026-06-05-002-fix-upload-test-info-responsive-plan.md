@@ -1,7 +1,7 @@
 ---
 title: "fix: Make the image-uploader test-info card responsive"
 type: fix
-status: active
+status: completed
 date: 2026-06-05
 ---
 
