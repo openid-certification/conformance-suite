@@ -65,6 +65,30 @@ export const MOCK_PLAN_DETAIL = {
   },
 };
 
+/**
+ * GET /api/plan/:planId — MOCK_PLAN_DETAIL with a long plan name, a
+ * five-entry variant map, and a two-entry certification profile.
+ * Reproduces the conditions of the mobile readability bug fixed in
+ * cts-plan-header: the metadata <dl> must stack at phone widths so
+ * long values get the full header width (the short default values
+ * never exercise the squeeze), and "Certification profile:" — the
+ * longest label — must be present so the layout is measured against
+ * the label that sized the legacy max-content track.
+ */
+export const MOCK_PLAN_DETAIL_LONG_VARIANT = {
+  ...MOCK_PLAN_DETAIL,
+  _id: "plan-long-001",
+  planName: "oid4vci-id2-issuer-test-plan-credential-offer-pre-authorized-code",
+  variant: {
+    client_auth_type: "client_secret_basic",
+    response_type: "code",
+    credential_format: "sd_jwt_vc",
+    sender_constrain: "dpop",
+    response_mode: "direct_post.jwt",
+  },
+  certificationProfileName: ["FAPI2SP Final OP w/ MTLS", "FAPI2MS ID1 OP w/ Private Key"],
+};
+
 /** GET /api/info/:testId response shape — PASSED */
 export const MOCK_TEST_STATUS = {
   _id: "test-inst-001",

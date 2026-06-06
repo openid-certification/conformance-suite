@@ -5,7 +5,11 @@ import {
   setupTestInfoRoute,
   expectNoUnmockedCalls,
 } from "./helpers/routes.js";
-import { MOCK_PLAN_DETAIL, MOCK_TEST_STATUS } from "./fixtures/mock-test-data.js";
+import {
+  MOCK_PLAN_DETAIL,
+  MOCK_PLAN_DETAIL_LONG_VARIANT,
+  MOCK_TEST_STATUS,
+} from "./fixtures/mock-test-data.js";
 import { MOCK_ADMIN_USER } from "./fixtures/mock-users.js";
 
 test.describe("plan-detail.html — Plan Detail", () => {
@@ -734,5 +738,48 @@ test.describe("plan-detail.html — Plan Detail", () => {
     expect(logFetchCounts["test-inst-003"]).toBe(1);
     expect(logFetchCounts["test-inst-001"]).toBe(0);
     expect(logFetchCounts["test-inst-002"]).toBe(0);
+  });
+
+  test("page does not overflow and plan metadata stacks at 375px viewport", async ({ page }) => {
+    // Doc-element guard, not a sub-container guard: cts-plan-header's
+    // metadata <dl> kept a two-column max-content 1fr grid at every
+    // width, squeezing values into a ~132px sliver of the ~312px
+    // content box at phone widths. Pre-fix measurement showed no
+    // page-level overflow on plan-detail (unlike log-detail's status
+    // bar), so the scrollWidth guard locks that healthy state while
+    // the single-track assertion locks the stacked metadata layout.
+    // Plan: docs/plans/2026-06-05-004-fix-plan-header-mobile-responsive-plan.md
+    await page.setViewportSize({ width: 375, height: 800 });
+
+    await setupFailFast(page);
+    await page.route("**/api/plan/plan-long-001", (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(MOCK_PLAN_DETAIL_LONG_VARIANT),
+      }),
+    );
+    await setupTestInfoRoute(page, {
+      "test-inst-001": { ...MOCK_TEST_STATUS, testId: "test-inst-001" },
+      "test-inst-002": { ...MOCK_TEST_STATUS, testId: "test-inst-002" },
+      "test-inst-003": { ...MOCK_TEST_STATUS, testId: "test-inst-003" },
+    });
+    await setupCommonRoutes(page);
+
+    await page.goto("/plan-detail.html?plan=plan-long-001");
+    await expect(page.locator("cts-plan-header .planMeta")).toBeVisible();
+
+    // Document-level horizontal overflow guard (R4).
+    const doc = await page.evaluate(() => ({
+      scrollWidth: document.documentElement.scrollWidth,
+      clientWidth: document.documentElement.clientWidth,
+    }));
+    expect(doc.scrollWidth).toBeLessThanOrEqual(doc.clientWidth);
+
+    // Stacked single-track metadata layout (R1).
+    const tracks = await page
+      .locator("cts-plan-header .planMeta")
+      .evaluate((el) => getComputedStyle(el).gridTemplateColumns.trim().split(/\s+/));
+    expect(tracks).toHaveLength(1);
   });
 });
