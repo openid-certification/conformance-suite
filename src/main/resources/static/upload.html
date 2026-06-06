@@ -94,6 +94,15 @@
         align-items: center;
         gap: var(--space-3);
     }
+    /* Reserve the control's height before the cts-link-button module
+       upgrades the element — the pre-upgrade host is a zero-height
+       inline box (visibility:hidden reserves no height; the label is
+       an attribute, not light-DOM content), so without this the card
+       below shifts down ~30px on cold loads. Mirrors layout.css's
+       [full-width]:not(:defined) reservation. */
+    .upload-return-link {
+        min-height: var(--control-height);
+    }
 </style>
 
 <script src="/vendor/lodash/js/lodash.min.js"></script>
@@ -312,7 +321,7 @@
     <main id="main-content" class="upload-page">
         <cts-page-head title="Image Uploader" sub="Upload screenshots required by this test run."></cts-page-head>
 
-        <div>
+        <div class="upload-return-link">
             <cts-link-button id="returnToLog" icon="arrow-left-md" label="Return to test log"></cts-link-button>
         </div>
 
