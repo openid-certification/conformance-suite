@@ -1399,16 +1399,31 @@ class CtsLogList extends LitElement {
     `;
   }
 
+  /**
+   * Render the empty state, branched by why the list is empty:
+   * - a filter is active → "widen the search" (no action — the list is
+   *   filtered, not empty);
+   * - the My view is empty → orienting copy plus a secondary
+   *   "View published logs" action, so an empty personal list still offers
+   *   something to look at;
+   * - the Published view is empty → orienting copy only. No published-logs
+   *   action here — it would link to the view the user is already on.
+   * @param {boolean} hasFilter - Whether a status/search filter is active.
+   * @returns {import('lit').TemplateResult} The empty-state template.
+   */
   _renderEmpty(hasFilter) {
     const heading = hasFilter ? "No logs match the active filter" : "No logs to show";
     const body = hasFilter
       ? "Try clearing one or more filters to widen the search."
       : "Logs will appear here as tests are scheduled.";
+    const offerPublishedLogs = !hasFilter && !this.isPublic;
     return html`
       <cts-empty-state
         icon="folder"
         heading="${heading}"
         body="${body}"
+        secondary-cta-label="${ifDefined(offerPublishedLogs ? "View published logs" : undefined)}"
+        secondary-cta-href="${ifDefined(offerPublishedLogs ? "logs.html?public=true" : undefined)}"
         data-testid="log-list-empty"
       ></cts-empty-state>
     `;

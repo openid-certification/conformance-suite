@@ -608,7 +608,9 @@ export const OffScreenModulesNotFetched = {
 };
 
 // The default empty state (My view, no search): a distinct heading plus a
-// Schedule-test action that guides the user to start their first test (R18).
+// Schedule-test action that guides the user to start their first test (R18),
+// and a secondary View-published-plans action so the empty personal list
+// still offers something to browse.
 export const EmptyList = {
   parameters: {
     msw: {
@@ -634,6 +636,18 @@ export const EmptyList = {
       })
     );
     expect(action.textContent?.trim()).toContain("Schedule test");
+
+    // ... and a secondary action pointing at the Published view, side by
+    // side with the primary.
+    const secondary = /** @type {HTMLAnchorElement} */ (
+      await waitFor(() => {
+        const a = empty.querySelector('a[href="plans.html?public=true"]');
+        expect(a).toBeTruthy();
+        return a;
+      })
+    );
+    expect(secondary.textContent?.trim()).toContain("View published plans");
+    expect(secondary.classList.contains("oidf-btn-secondary")).toBe(true);
   },
 };
 
@@ -871,6 +885,13 @@ export const EmptyPublishedView = {
       })
     );
     expect(createLink.textContent?.trim()).toContain("Schedule test");
+
+    // No secondary View-published-plans action here — it would link to the
+    // view the user is already on. The Schedule-test anchor (awaited above)
+    // proves the CTA row has rendered, so asserting "exactly one anchor"
+    // can't pass vacuously and also catches a secondary rendering with a
+    // mangled href.
+    expect(empty.querySelectorAll("a").length).toBe(1);
   },
 };
 

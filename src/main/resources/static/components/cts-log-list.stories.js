@@ -287,6 +287,50 @@ export const EmptyDataset = {
     const empty = canvasElement.querySelector('[data-testid="log-list-empty"]');
     expect(empty).not.toBeNull();
     expect(empty.getAttribute("heading")).toBe("No logs to show");
+
+    // The My-view empty state offers a secondary View-published-logs action
+    // so an empty personal list still offers something to browse.
+    const secondary = /** @type {HTMLAnchorElement} */ (
+      await waitFor(() => {
+        const a = empty.querySelector('a[href="logs.html?public=true"]');
+        expect(a).not.toBeNull();
+        return a;
+      })
+    );
+    expect(secondary.textContent?.trim()).toContain("View published logs");
+    expect(secondary.classList.contains("oidf-btn-secondary")).toBe(true);
+  },
+};
+
+/**
+ * The Published view, when empty, shows the orienting copy WITHOUT the
+ * View-published-logs action — it would link to the view the user is
+ * already on.
+ */
+export const EmptyPublicDataset = {
+  parameters: {
+    msw: {
+      handlers: [
+        http.get("/api/log", () => HttpResponse.json(paginationEnvelope([]))),
+        planResolveHandler(),
+      ],
+    },
+  },
+  render: () => html`<cts-log-list is-public></cts-log-list>`,
+  async play({ canvasElement }) {
+    await waitForLogsToLoad(canvasElement);
+    const empty = canvasElement.querySelector('[data-testid="log-list-empty"]');
+    expect(empty).not.toBeNull();
+    expect(empty.getAttribute("heading")).toBe("No logs to show");
+
+    // Wait for the empty state's own render before asserting absence, so the
+    // check can't pass vacuously against a not-yet-rendered host. Asserting
+    // "no anchors at all" (rather than a specific href) also catches a
+    // secondary CTA rendering with a mangled href.
+    await waitFor(() => {
+      expect(empty.querySelector(".oidf-empty-state-heading")).not.toBeNull();
+    });
+    expect(empty.querySelector("a")).toBeNull();
   },
 };
 

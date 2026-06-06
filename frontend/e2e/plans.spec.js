@@ -769,6 +769,11 @@ test.describe("plans.html — Schedule-test CTA + empty state (U8)", () => {
     const action = empty.locator("a[href='schedule-test.html']");
     await expect(action).toBeVisible();
     await expect(action).toContainText("Schedule test");
+
+    // A secondary View-published-plans action sits beside the primary.
+    const secondary = empty.locator("a[href='plans.html?public=true']");
+    await expect(secondary).toBeVisible();
+    await expect(secondary).toContainText("View published plans");
   });
 
   test("R18: Published empty (anonymous) → empty state also offers a Schedule-test action", async ({
@@ -785,6 +790,10 @@ test.describe("plans.html — Schedule-test CTA + empty state (U8)", () => {
     await expect(empty).toBeVisible();
     await expect(empty).toContainText("No published plans yet");
     await expect(empty.locator("a[href='schedule-test.html']")).toBeVisible();
+    // No View-published-plans action on the Published view itself: the
+    // Schedule-test anchor is the only link (an href-specific zero-count
+    // would pass even if a secondary rendered with a mangled href).
+    await expect(empty.locator("a")).toHaveCount(1);
   });
 });
 

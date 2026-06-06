@@ -1,5 +1,6 @@
 import { LitElement, html, nothing, css, unsafeCSS } from "lit";
 import { repeat } from "lit/directives/repeat.js";
+import { ifDefined } from "lit/directives/if-defined.js";
 import "./cts-button.js";
 import "./cts-icon.js";
 import "./cts-modal.js";
@@ -984,7 +985,10 @@ class CtsPlanList extends LitElement {
    *   test starts a private run, not a published plan); that copy/CTA seam is
    *   deliberate;
    * - otherwise (the My view, or an anonymous / unknown-auth visitor) → guide
-   *   the user to schedule their first test, with the Schedule-test action.
+   *   the user to schedule their first test, with the Schedule-test action,
+   *   plus a secondary "View published plans" action so an empty personal
+   *   list still offers something to look at. The Published view does NOT get
+   *   the secondary action — it would link to the view the user is already on.
    * @param {boolean} hasSearch - Whether a search query is currently active.
    * @returns {import('lit').TemplateResult} The empty-state template.
    */
@@ -1009,6 +1013,8 @@ class CtsPlanList extends LitElement {
           : "Schedule your first test to get started."}"
         cta-label="Schedule test"
         cta-href="schedule-test.html"
+        secondary-cta-label="${ifDefined(isPublishedView ? undefined : "View published plans")}"
+        secondary-cta-href="${ifDefined(isPublishedView ? undefined : "plans.html?public=true")}"
         data-testid="plan-list-empty"
       ></cts-empty-state>
     `;
