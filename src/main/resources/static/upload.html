@@ -36,31 +36,57 @@
         font-family: var(--font-sans);
         font-size: var(--fs-13);
         color: var(--fg);
-        display: grid;
-        grid-template-columns: minmax(0, 1fr) auto;
-        gap: var(--space-3);
-        align-items: start;
     }
+    /* Mirrors cts-plan-header's .planMeta dl grid. The minmax(0, 1fr)
+       value track lets grid items shrink below their content size so
+       overflow-wrap can break long unbroken tokens (test IDs, base64
+       payload values) instead of widening the page. */
     .upload-test-info__meta {
         display: grid;
         grid-template-columns: max-content minmax(0, 1fr);
         column-gap: var(--space-4);
         row-gap: var(--space-2);
-        min-width: 0;
+        align-items: baseline;
+        margin: 0;
     }
     .upload-test-info__label {
+        font-size: var(--fs-12);
         font-weight: var(--fw-bold);
         color: var(--fg-soft);
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        margin: 0;
     }
+    /* overflow-wrap: anywhere (not cts-plan-header's word-break:
+       break-word) — breaks only when a token cannot otherwise fit,
+       per the rationale in cts-log-entry.js. */
     .upload-test-info__value {
-        word-break: break-all;
+        overflow-wrap: anywhere;
+        margin: 0;
     }
+    /* cts-plan-header's .planSummary recipe; spans the full card width
+       so the info-box matches the model at desktop instead of sitting
+       in the value column. */
     .upload-test-info__summary {
+        grid-column: 1 / -1;
         margin: 0;
         padding: var(--space-2) var(--space-3);
         border-radius: var(--radius-2);
         background: var(--status-info-bg);
-        color: var(--status-info);
+        color: var(--ink-900);
+        border-left: 3px solid var(--status-info);
+        overflow-wrap: anywhere;
+    }
+    @media (max-width: 640px) {
+        /* Stack labels above values on phones: tight gap within a
+           label/value pair, wider gap between pairs. */
+        .upload-test-info__meta {
+            grid-template-columns: 1fr;
+            row-gap: var(--space-1);
+        }
+        .upload-test-info__label:not(:first-child) {
+            margin-top: var(--space-2);
+        }
     }
     .upload-loading {
         display: flex;
@@ -103,6 +129,18 @@
         testId = urlParams.get('log');
         uploader = document.querySelector('cts-image-upload');
         uploader.testId = testId || '';
+
+        // The return link renders immediately from the URL param rather
+        // than waiting on /api/info/ — it stays usable even if that call
+        // fails. With no usable test id there is nothing to return to,
+        // so disable the link (cts-link-button drops the href when
+        // disabled) instead of pointing at log-detail.html?log=.
+        var returnLink = document.getElementById('returnToLog');
+        if (testId) {
+            returnLink.setAttribute('href', 'log-detail.html?log=' + encodeURIComponent(testId));
+        } else {
+            returnLink.setAttribute('disabled', '');
+        }
 
         // The component fires cts-image-uploaded after every successful POST
         // (per-slot or ad-hoc). Re-fetch the server's image list so the
@@ -193,38 +231,29 @@
         var container = document.getElementById('testInfo');
         container.replaceChildren();
 
-        var meta = document.createElement('div');
+        var meta = document.createElement('dl');
         meta.className = 'upload-test-info__meta';
-        appendMetaRow(meta, 'Test Name:', test.testName || '');
-        appendMetaRow(meta, 'Test ID:', test.testId || '');
+        appendMetaRow(meta, 'Test Name', test.testName || '');
+        appendMetaRow(meta, 'Test ID', test.testId || '');
         if (test.summary) {
-            var summaryLabel = document.createElement('span');
+            var summaryLabel = document.createElement('dt');
             summaryLabel.className = 'upload-test-info__label';
-            summaryLabel.textContent = 'Summary:';
+            summaryLabel.textContent = 'Summary';
             meta.appendChild(summaryLabel);
-            var summaryValue = document.createElement('p');
+            var summaryValue = document.createElement('dd');
             summaryValue.className = 'upload-test-info__summary';
             summaryValue.textContent = test.summary;
             meta.appendChild(summaryValue);
         }
         container.appendChild(meta);
-
-        var actionWrapper = document.createElement('div');
-        var returnLink = document.createElement('cts-link-button');
-        returnLink.setAttribute('full-width', '');
-        returnLink.setAttribute('href', 'log-detail.html?log=' + encodeURIComponent(test.testId || ''));
-        returnLink.setAttribute('icon', 'bookmark');
-        returnLink.setAttribute('label', 'Return to test log');
-        actionWrapper.appendChild(returnLink);
-        container.appendChild(actionWrapper);
     }
 
     function appendMetaRow(parent, label, value) {
-        var labelEl = document.createElement('span');
+        var labelEl = document.createElement('dt');
         labelEl.className = 'upload-test-info__label';
         labelEl.textContent = label;
         parent.appendChild(labelEl);
-        var valueEl = document.createElement('span');
+        var valueEl = document.createElement('dd');
         valueEl.className = 'upload-test-info__value';
         valueEl.textContent = value;
         parent.appendChild(valueEl);
@@ -282,6 +311,10 @@
 
     <main id="main-content" class="upload-page">
         <cts-page-head title="Image Uploader" sub="Upload screenshots required by this test run."></cts-page-head>
+
+        <div>
+            <cts-link-button id="returnToLog" icon="arrow-left-md" label="Return to test log"></cts-link-button>
+        </div>
 
         <div id="testInfo" class="upload-test-info">
         </div>
