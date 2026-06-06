@@ -238,4 +238,26 @@ public class JWKUtil_UnitTest {
 		assertTrue(JWKUtil.findUnusableKeys(jwks("{ \"keys\": [ " + P256_PUBLIC + " ] }")).isEmpty());
 	}
 
+	@Test
+	public void findUnparseableUsableKeys_passesValidKey() {
+		assertTrue(JWKUtil.findUnparseableUsableKeys(jwks("{ \"keys\": [ " + P256_PUBLIC + " ] }")).isEmpty());
+	}
+
+	// A Brainpool key cannot be parsed by the JOSE library, but it is "unusable" (warned about
+	// elsewhere) so it must NOT be reported as a parse failure here. The usable P-256 key parses.
+	@Test
+	public void findUnparseableUsableKeys_skipsUnusableKey() {
+		assertTrue(JWKUtil.findUnparseableUsableKeys(jwks(MIXED_JWKS)).isEmpty());
+	}
+
+	@Test
+	public void findUnparseableUsableKeys_flagsUsableKeyThatFailsToParse() {
+		// kty/crv recognised (usable) and members present + base64url, but the EC coordinates are the
+		// wrong length for P-256, so the JOSE library rejects the key.
+		List<JwkIssue> issues = JWKUtil.findUnparseableUsableKeys(jwks("""
+			{ "keys": [ { "kty": "EC", "crv": "P-256", "x": "AAAA", "y": "AAAA", "alg": "ES256" } ] }"""));
+		assertEquals(1, issues.size());
+		assertTrue(issues.get(0).detail().contains("JOSE library"));
+	}
+
 }

@@ -3,6 +3,7 @@ package net.openid.conformance.sequence;
 import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.condition.common.EnsureJwksHasNoPrivateOrSymmetricKeyMaterial;
 import net.openid.conformance.condition.common.MapJwksToValidationLocation;
+import net.openid.conformance.condition.common.ParseUsableJwksKeys;
 import net.openid.conformance.condition.common.ValidateJwksStructure;
 import net.openid.conformance.condition.common.WarnOnUnusableJwksKeys;
 
@@ -71,6 +72,12 @@ public class ValidateJwksSequence extends AbstractConditionSequence {
 		}
 
 		call(condition(ValidateJwksStructure.class)
+			.skipIfObjectMissing("jwks_to_validate")
+			.onFail(ConditionResult.FAILURE)
+			.dontStopOnFailure()
+			.requirements(requirements));
+
+		call(condition(ParseUsableJwksKeys.class)
 			.skipIfObjectMissing("jwks_to_validate")
 			.onFail(ConditionResult.FAILURE)
 			.dontStopOnFailure()
