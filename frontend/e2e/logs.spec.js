@@ -536,6 +536,25 @@ test.describe("logs.html — My/Published view tabs (U6)", () => {
     expectNoUnmockedCalls(page);
   });
 
+  test("narrow viewport keeps the tabs row a single line (no CTA on logs)", async ({ page }) => {
+    await setupFailFast(page);
+    await recordLogRoute(page);
+    await setupCommonRoutes(page);
+
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto("/logs.html");
+
+    const published = page.locator("cts-view-tabs a[data-view='published']");
+    await expect(published).toBeVisible();
+    // logs.html does not opt into the Schedule-test CTA, so the narrow-state
+    // stacking never produces a second row here — the nav stays one anchor
+    // line (+1px divider). A stacked or label-wrapped row would exceed 50px.
+    await expect(page.locator("cts-view-tabs [data-testid='schedule-test-cta']")).toHaveCount(0);
+    const navBox = await page.locator("cts-view-tabs nav.cts-view-tabs").boundingBox();
+    if (!navBox) throw new Error("tabs nav has no bounding box");
+    expect(navBox.height).toBeLessThan(50);
+  });
+
   test("R16: switching My→Published resets the chip filters and drops ?status/?result", async ({
     page,
   }) => {
