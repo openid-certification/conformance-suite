@@ -34,11 +34,9 @@
 <link rel="stylesheet" href="/css/oidf-app.css">
 
 <!-- Vendor JS used only by the running-test slot wiring (browser-URL QR
-     code + copy-to-clipboard) inside js/log-detail.js. Loaded as
-     classic <script> so the global QRCode / ClipboardJS bindings are
-     ready before the bootstrap module evaluates. -->
-<script src="/vendor/clipboard/js/clipboard.min.js"></script>
-<script src="/js/cts-clipboard-resolver.js"></script>
+     code) inside js/log-detail.js. Loaded as a classic <script> so the
+     global QRCode binding is ready before the bootstrap module
+     evaluates. -->
 <script src="/vendor/qrcode/js/qrcode.min.js"></script>
 
 <!-- Importmap copied verbatim from log-detail.html. The shared list of

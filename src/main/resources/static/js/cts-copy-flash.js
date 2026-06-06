@@ -18,7 +18,7 @@
 // from ".../cts-copy-flash.js"`. Legacy HTML scripts include this file
 // via `<script type="module" src="js/cts-copy-flash.js"></script>` and call
 // `window.ctsCopyFlash(host)` from regular non-module handlers (e.g. the
-// ClipboardJS success callbacks in plans.html / logs.html).
+// copy-link handlers in schedule-test.html).
 //
 // Animation note. The crossfade runs in two phases on the inner
 // `<cts-icon>` element via the Web Animations API. Phase 1 (out) shrinks
