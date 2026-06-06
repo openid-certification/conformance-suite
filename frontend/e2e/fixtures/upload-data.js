@@ -26,3 +26,16 @@ export const MOCK_UPLOAD_TEST_INFO = {
   summary: "Upload screenshots for this test run",
   owner: { sub: "12345", iss: "https://accounts.google.com" },
 };
+
+/** /api/info/ variant whose summary carries a ~100-char unbroken
+ * base64-style token (mirroring real-world subject ids in AuthZEN
+ * payload summaries) — exercises the 375px overflow-wrap regression
+ * test. The token must contain no hyphens/slashes: those are natural
+ * break opportunities and would let the test pass without
+ * `overflow-wrap: anywhere`. */
+export const MOCK_UPLOAD_TEST_INFO_LONG_TOKEN = {
+  ...MOCK_UPLOAD_TEST_INFO,
+  summary:
+    'Evaluation API test 01 with payload { "subject": { "id": ' +
+    '"CiRmWkRBMk1UUmtNeTFqTTJsaExUUTNPREV0WWpkaVpDMDVZakV3WmpRMFpqUTBaalEwWlRBaWZRWkRBMk1UUmtNeTFqTTJsaEx" } }',
+};
