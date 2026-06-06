@@ -14,6 +14,16 @@ const STYLE_TEXT = css`
     display: flex;
     flex-direction: column;
     gap: 12px;
+    /* Inline-size container so the metadata grid below can key its
+       layout on the header's actual available width — correct under
+       plan-detail.html's two-column desktop grid (where the header
+       column is much narrower than the viewport) and in Storybook
+       isolation. Named to avoid colliding with ctsLogViewer /
+       ctsLogDrawer / planModulesCard / ctsRunningTestCard. Note:
+       inline-size containment also makes the host the containing
+       block for absolutely-positioned descendants — this component
+       renders none, so the change is inert beyond the query. */
+    container: ctsPlanHeader / inline-size;
   }
   cts-plan-header .planTitle {
     margin: 0 0 var(--space-2);
@@ -30,12 +40,23 @@ const STYLE_TEXT = css`
     color: var(--fg-soft);
     overflow-wrap: anywhere;
   }
+  /* Metadata <dl>. Mobile-first: the default is a stacked single
+     column (label above value) so values always get the header's
+     full width — the legacy two-column grid's max-content label
+     track ate ~164px of a ~312px content box at phone widths,
+     squeezing every value into a ~132px sliver. The two-column
+     layout is restored by the ≥640px container branch below
+     (stack-up pattern, mirroring cts-log-detail-header /
+     cts-running-test-card). Within a pair the label hugs its value
+     (4px gap); pairs are separated by the dt's 12px margin-top so
+     each label+value group reads as one block. The margin-top on
+     the <dl> itself is unrelated to pair separation despite using
+     the same token — it spaces the whole list from the title/lede
+     above and holds in both layouts. */
   cts-plan-header .planMeta {
     display: grid;
-    grid-template-columns: max-content 1fr;
-    column-gap: var(--space-4);
-    row-gap: var(--space-2);
-    align-items: baseline;
+    grid-template-columns: 1fr;
+    gap: var(--space-1);
     margin-top: var(--space-3);
   }
   cts-plan-header .planMeta dt {
@@ -46,11 +67,42 @@ const STYLE_TEXT = css`
     letter-spacing: 0.06em;
     margin: 0;
   }
+  cts-plan-header .planMeta dt:not(:first-child) {
+    margin-top: var(--space-3);
+  }
   cts-plan-header .planMeta dd {
     font-size: var(--fs-13);
     color: var(--fg);
     margin: 0;
-    word-break: break-word;
+    /* overflow-wrap (replacing the legacy word-break: break-word)
+       so long unbreakable values (plan IDs, variant strings) wrap
+       anywhere within their cell — parity with the sibling
+       cts-log-detail-header .logMetaValue, which carries the same
+       data classes (IDs, variants, mono chips). */
+    overflow-wrap: anywhere;
+  }
+  /* Two-column label/value layout at ≥640px container width — the
+     codebase's established "phone vs not" line (cts-log-entry,
+     cts-log-detail-header). fit-content(180px) sizes the label
+     track to the longest label (~164px today: "Certification
+     profile:" uppercase with letter-spacing), clamped at 180px —
+     unlike a fixed-max minmax(), which would always maximize to its
+     max before the fr track received leftovers (track maximization
+     runs before fr distribution). minmax(0, 1fr) drops the value
+     track's implicit min-width: auto so long unbreakable values
+     wrap (the cts-log-entry R31 idiom) instead of expanding the
+     grid. */
+  @container ctsPlanHeader (min-width: 640px) {
+    cts-plan-header .planMeta {
+      grid-template-columns: fit-content(180px) minmax(0, 1fr);
+      gap: var(--space-2) var(--space-4);
+      /* Only meaningful with two columns: baseline-aligns each
+         label with the first line of its value. */
+      align-items: baseline;
+    }
+    cts-plan-header .planMeta dt:not(:first-child) {
+      margin-top: 0;
+    }
   }
   cts-plan-header .planMeta dd code,
   cts-plan-header .planMeta .mono {
