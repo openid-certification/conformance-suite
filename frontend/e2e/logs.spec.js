@@ -82,6 +82,21 @@ test.describe("logs.html — Logs List", () => {
     await expect(page.locator("#logsListing cts-badge[label='RUNNING']")).toHaveCount(1);
   });
 
+  test("My empty → empty state offers a View-published-logs action", async ({ page }) => {
+    await setupFailFast(page);
+    await setupLogListRoute(page, []);
+    await setupCommonRoutes(page);
+
+    await page.goto("/logs.html");
+
+    const empty = page.locator('#logsListing [data-testid="log-list-empty"]');
+    await expect(empty).toBeVisible();
+    await expect(empty).toContainText("No logs to show");
+    const action = empty.locator("a[href='logs.html?public=true']");
+    await expect(action).toBeVisible();
+    await expect(action).toContainText("View published logs");
+  });
+
   test("card headline is the single real link per card (R12)", async ({ page }) => {
     // Adrian Roselli block-link pattern: one real <a> per card lives on the
     // headline; the rest of the card is a ::after pseudo-element overlay so

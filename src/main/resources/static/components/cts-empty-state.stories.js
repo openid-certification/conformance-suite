@@ -13,6 +13,8 @@ export default {
     icon: { control: "text" },
     ctaLabel: { control: "text" },
     ctaHref: { control: "text" },
+    secondaryCtaLabel: { control: "text" },
+    secondaryCtaHref: { control: "text" },
   },
 };
 
@@ -80,6 +82,101 @@ export const Default = {
       expect(ctaAnchor.textContent.trim()).toBe("Create a plan");
       expect(ctaAnchor.classList.contains("oidf-btn-primary")).toBe(true);
       expect(ctaAnchor.classList.contains("oidf-btn-sm")).toBe(true);
+    });
+  },
+};
+
+/**
+ * Two built-in CTAs side by side: the primary action plus a secondary
+ * alternative (e.g. "Schedule test" next to "View published plans" on the
+ * plans.html My-view empty state). The secondary renders after the primary
+ * with the `secondary` button variant.
+ */
+export const PrimaryAndSecondaryCta = {
+  args: {
+    heading: "No test plans yet",
+    body: "Schedule your first test to get started.",
+    icon: "folder",
+    ctaLabel: "Schedule test",
+    ctaHref: "schedule-test.html",
+    secondaryCtaLabel: "View published plans",
+    secondaryCtaHref: "plans.html?public=true",
+  },
+  render: ({ heading, body, icon, ctaLabel, ctaHref, secondaryCtaLabel, secondaryCtaHref }) =>
+    html`<cts-empty-state
+      heading=${heading}
+      body=${body}
+      icon=${icon}
+      cta-label=${ctaLabel}
+      cta-href=${ctaHref}
+      secondary-cta-label=${secondaryCtaLabel}
+      secondary-cta-href=${secondaryCtaHref}
+    ></cts-empty-state>`,
+
+  async play({ canvasElement, step }) {
+    const host = canvasElement.querySelector("cts-empty-state");
+    await host.updateComplete;
+
+    const ctaHosts = host.querySelectorAll("cts-link-button");
+    expect(ctaHosts.length).toBe(2);
+    await Promise.all([...ctaHosts].map((c) => c.updateComplete));
+
+    await step("primary CTA renders first", async () => {
+      const anchor = ctaHosts[0].querySelector("a");
+      expect(anchor.getAttribute("href")).toBe("schedule-test.html");
+      expect(anchor.textContent.trim()).toBe("Schedule test");
+      expect(anchor.classList.contains("oidf-btn-primary")).toBe(true);
+    });
+
+    await step("secondary CTA renders beside it with the secondary variant", async () => {
+      const anchor = ctaHosts[1].querySelector("a");
+      expect(anchor.getAttribute("href")).toBe("plans.html?public=true");
+      expect(anchor.textContent.trim()).toBe("View published plans");
+      expect(anchor.classList.contains("oidf-btn-secondary")).toBe(true);
+    });
+
+    await step("both buttons share the CTA row", async () => {
+      const row = host.querySelector(".oidf-empty-state-cta");
+      expect(row.querySelectorAll("cts-link-button").length).toBe(2);
+    });
+  },
+};
+
+/**
+ * Secondary CTA on its own: the consumer has no primary action to offer but
+ * still wants a low-emphasis pointer elsewhere (e.g. "View published logs"
+ * on the logs.html My-view empty state, where logs only appear as tests are
+ * scheduled). The built-in row renders without requiring the primary pair.
+ */
+export const SecondaryCtaOnly = {
+  args: {
+    heading: "No logs to show",
+    body: "Logs will appear here as tests are scheduled.",
+    icon: "folder",
+    secondaryCtaLabel: "View published logs",
+    secondaryCtaHref: "logs.html?public=true",
+  },
+  render: ({ heading, body, icon, secondaryCtaLabel, secondaryCtaHref }) =>
+    html`<cts-empty-state
+      heading=${heading}
+      body=${body}
+      icon=${icon}
+      secondary-cta-label=${secondaryCtaLabel}
+      secondary-cta-href=${secondaryCtaHref}
+    ></cts-empty-state>`,
+
+  async play({ canvasElement, step }) {
+    const host = canvasElement.querySelector("cts-empty-state");
+    await host.updateComplete;
+
+    await step("only the secondary CTA renders", async () => {
+      const ctaHosts = host.querySelectorAll("cts-link-button");
+      expect(ctaHosts.length).toBe(1);
+      await ctaHosts[0].updateComplete;
+      const anchor = ctaHosts[0].querySelector("a");
+      expect(anchor.getAttribute("href")).toBe("logs.html?public=true");
+      expect(anchor.textContent.trim()).toBe("View published logs");
+      expect(anchor.classList.contains("oidf-btn-secondary")).toBe(true);
     });
   },
 };

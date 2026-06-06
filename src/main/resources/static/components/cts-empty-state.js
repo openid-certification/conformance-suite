@@ -21,9 +21,12 @@ import "./cts-link-button.js";
  *     inherits the page's typographic scale).
  *   - Body text uses `--fg-soft` so it reads as secondary copy under the
  *     heading.
- *   - Single CTA below the body. The component renders either a built-in
- *     `<cts-link-button>` (when both `cta-label` and `cta-href` are set)
- *     or whatever the consumer puts in the default slot.
+ *   - CTA row below the body. The component renders built-in
+ *     `<cts-link-button>`s (a primary when `cta-label`/`cta-href` are set,
+ *     plus an optional secondary when `secondary-cta-label`/
+ *     `secondary-cta-href` are set) side by side, or whatever the consumer
+ *     puts in the default slot when no built-in pair is set. The row wraps
+ *     and stays centered when both buttons don't fit on one line.
  */
 const STYLE_ID = "cts-empty-state-styles";
 
@@ -63,6 +66,9 @@ const STYLE_TEXT = css`
   }
   .oidf-empty-state-cta {
     display: inline-flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: var(--space-3);
   }
 `;
 
@@ -85,9 +91,13 @@ function injectStyles() {
  *     scale.
  *   - Body (optional) renders as a `<p>` in `--fg-soft`.
  *   - CTA (optional) renders a `<cts-link-button variant="primary" size="sm">`
- *     when both `cta-label` and `cta-href` are present. Otherwise the
- *     component falls back to the default slot, so consumers can pass an
- *     arbitrary CTA element (e.g. a `<cts-button>` wired to a click handler).
+ *     when both `cta-label` and `cta-href` are present, and a
+ *     `<cts-link-button variant="secondary" size="sm">` beside it when both
+ *     `secondary-cta-label` and `secondary-cta-href` are present (the
+ *     secondary also renders on its own when only its pair is set). When
+ *     neither pair is set the component falls back to the default slot, so
+ *     consumers can pass an arbitrary CTA element (e.g. a `<cts-button>`
+ *     wired to a click handler).
  *
  * Light DOM. Scoped CSS lives in a single `<style>` element injected into
  * `<head>` on first connect. The `:not(:defined)` block-level fallback is
@@ -98,13 +108,19 @@ function injectStyles() {
  *   empty state).
  * @property {string} body - Optional secondary copy rendered under the
  *   heading in `--fg-soft`. Omit to drop the paragraph entirely.
- * @property {string} icon - Optional Bootstrap Icons name (without the
- *   `bi-` prefix, e.g. `inbox`). Omit to drop the glyph.
+ * @property {string} icon - Optional coolicons name (a vendored SVG under
+ *   `vendor/coolicons/icons/`, e.g. `folder`). Omit to drop the glyph.
  * @property {string} cta-label - Optional label for the built-in primary
- *   CTA. Requires `cta-href`. Both must be set for the built-in CTA to
- *   render; otherwise the component falls back to the default slot.
+ *   CTA. Requires `cta-href`. Both must be set for the primary CTA to
+ *   render; when neither built-in pair (primary or secondary) is complete,
+ *   the component falls back to the default slot.
  * @property {string} cta-href - Optional href for the built-in primary
  *   CTA. See `cta-label`.
+ * @property {string} secondary-cta-label - Optional label for the built-in
+ *   secondary CTA, rendered beside the primary (after it). Requires
+ *   `secondary-cta-href`.
+ * @property {string} secondary-cta-href - Optional href for the built-in
+ *   secondary CTA. See `secondary-cta-label`.
  */
 class CtsEmptyState extends LitElement {
   static properties = {
@@ -113,6 +129,8 @@ class CtsEmptyState extends LitElement {
     icon: { type: String },
     ctaLabel: { type: String, attribute: "cta-label" },
     ctaHref: { type: String, attribute: "cta-href" },
+    secondaryCtaLabel: { type: String, attribute: "secondary-cta-label" },
+    secondaryCtaHref: { type: String, attribute: "secondary-cta-href" },
   };
 
   constructor() {
@@ -122,6 +140,8 @@ class CtsEmptyState extends LitElement {
     this.icon = "";
     this.ctaLabel = "";
     this.ctaHref = "";
+    this.secondaryCtaLabel = "";
+    this.secondaryCtaHref = "";
   }
 
   connectedCallback() {
@@ -146,17 +166,30 @@ class CtsEmptyState extends LitElement {
   }
 
   _renderCta() {
-    // Both attributes must be set for the built-in CTA to render. Otherwise
-    // the consumer's slot content is used unchanged — supporting arbitrary
-    // CTAs (cts-button with an event handler, multi-action stacks, etc.).
-    if (this.ctaLabel && this.ctaHref) {
+    // Each built-in CTA renders only when both of its attributes are set.
+    // When neither pair is complete, the consumer's slot content is used
+    // unchanged — supporting arbitrary CTAs (cts-button with an event
+    // handler, multi-action stacks, etc.).
+    const hasPrimary = this.ctaLabel && this.ctaHref;
+    const hasSecondary = this.secondaryCtaLabel && this.secondaryCtaHref;
+    if (hasPrimary || hasSecondary) {
       return html`<span class="oidf-empty-state-cta">
-        <cts-link-button
-          variant="primary"
-          size="sm"
-          href=${this.ctaHref}
-          label=${this.ctaLabel}
-        ></cts-link-button>
+        ${hasPrimary
+          ? html`<cts-link-button
+              variant="primary"
+              size="sm"
+              href=${this.ctaHref}
+              label=${this.ctaLabel}
+            ></cts-link-button>`
+          : nothing}
+        ${hasSecondary
+          ? html`<cts-link-button
+              variant="secondary"
+              size="sm"
+              href=${this.secondaryCtaHref}
+              label=${this.secondaryCtaLabel}
+            ></cts-link-button>`
+          : nothing}
       </span>`;
     }
     return html`<span class="oidf-empty-state-cta"><slot></slot></span>`;
