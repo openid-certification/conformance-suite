@@ -202,5 +202,18 @@ export const MetaTwoColumnOnDesktop = {
       expect(tracks).toHaveLength(2);
       expect(parseFloat(tracks[0])).toBeLessThan(176);
     });
+
+    await step("dt pair-separation margins are zeroed in the wide branch", async () => {
+      // The stacked default adds 12px top margins to non-first dt
+      // labels; with align-items: baseline a stray dt margin would
+      // shift each label's baseline away from its paired value. The
+      // @container branch's margin-top: 0 reset is load-bearing —
+      // deleting it would otherwise pass this suite.
+      const dts = Array.from(meta.querySelectorAll("dt:not(:first-child)"));
+      expect(dts.length).toBeGreaterThan(0);
+      for (const dt of dts) {
+        expect(getComputedStyle(dt).marginTop).toBe("0px");
+      }
+    });
   },
 };
