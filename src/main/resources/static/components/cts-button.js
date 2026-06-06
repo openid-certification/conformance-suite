@@ -294,7 +294,7 @@ injectStyles();
  *
  * ## Programmatic activation
  *
- * `host.click()` and `$(host).trigger('click')` fire a synthetic click on the
+ * `host.click()` fires a synthetic click on the
  * cts-button host element, NOT on the inner `<button>`. Lit's `@click` handler
  * is registered on the inner button, so `_handleClick` does not run and
  * `cts-click` is not dispatched. User clicks still work because the native
@@ -314,8 +314,8 @@ injectStyles();
  *
  * cts-button intentionally renders to its own light DOM (see
  * `createRenderRoot()`). ClipboardJS (`.btn-clipboard`), Bootstrap 5 data
- * attributes (`data-bs-dismiss`, `data-bs-toggle`), and jQuery delegated
- * handlers rely on the native click bubbling from the inner button through
+ * attributes (`data-bs-dismiss`, `data-bs-toggle`), and page-level delegated
+ * click handlers rely on the native click bubbling from the inner button through
  * the host — all of these break silently if this component ever switches to
  * shadow DOM or adds `event.preventDefault()` inside `_handleClick`. Do not
  * change the render root without first migrating every consumer.

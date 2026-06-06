@@ -352,7 +352,7 @@ cd frontend && npx playwright test e2e/home.spec.js
 - Route helpers in `frontend/e2e/helpers/routes.js` — `setupFailFast()` must be called FIRST (Playwright matches routes in reverse registration order), then specific routes
 - All `page.route()` calls must happen before `page.goto()` because `fapi.ui.js` fires an API call at script parse time
 - Fixture data lives in `frontend/e2e/fixtures/` as ES modules
-- The `wrapDataTablesResponse()` helper wraps plain arrays in the `{draw, recordsTotal, recordsFiltered, data}` envelope for pages using jQuery DataTables with `serverSide: true` (plans.html, logs.html)
+- The `wrapDataTablesResponse()` helper wraps plain arrays in the `{draw, recordsTotal, recordsFiltered, data}` envelope — the DataTables-style pagination contract still served by `/api/plan` and `/api/log` — for pages using server-side pagination (plans.html, logs.html)
 
 ## Icons
 

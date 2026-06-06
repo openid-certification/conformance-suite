@@ -58,8 +58,9 @@ Consequences that every consumer must understand:
   and CSS selectors find elements inside a `cts-button` just as they would
   find bare `<button>` elements.
 
-- **Click events bubble normally.** A jQuery handler bound to the host,
-  e.g. `$('.deleteBtn').on('click', handler)`, catches the click that
+- **Click events bubble normally.** A delegated handler bound to the host
+  or an ancestor, e.g.
+  `host.addEventListener('click', handler)`, catches the click that
   bubbled up from the inner `<button>`.
 
 - **`host.click()` does NOT trigger the inner button.** `host.click()`
