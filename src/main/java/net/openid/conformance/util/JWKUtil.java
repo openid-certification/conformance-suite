@@ -272,6 +272,39 @@ public class JWKUtil {
 		return keys != null && keys.isJsonArray();
 	}
 
+	/**
+	 * Parse each <em>usable</em> key with the JOSE library, to apply the checks the structural scan does
+	 * not (e.g. the x5c "bare key must match the certificate" check, and crypto-level validity). Keys
+	 * the library cannot use (unknown kty, unsupported curve, unrecognised alg - see
+	 * {@link #findUnusableKeys(JsonObject)}) are skipped here, since they are surfaced as warnings
+	 * rather than failures and would otherwise fail to parse for a reason that is not an error.
+	 *
+	 * @return one issue per usable key the JOSE library fails to parse
+	 */
+	public static List<JwkIssue> findUnparseableUsableKeys(JsonObject jwks) {
+		Set<Integer> unusableIndices = new HashSet<>();
+		for (JwkIssue issue : findUnusableKeys(jwks)) {
+			unusableIndices.add(issue.index());
+		}
+		List<JwkIssue> issues = new ArrayList<>();
+		JsonArray keys = keysArrayOrEmpty(jwks);
+		for (int i = 0; i < keys.size(); i++) {
+			if (unusableIndices.contains(i)) {
+				continue;
+			}
+			JsonElement keyEl = keys.get(i);
+			if (!keyEl.isJsonObject()) {
+				continue; // reported by findStructurallyInvalidKeys
+			}
+			try {
+				JWK.parse(keyEl.toString());
+			} catch (ParseException e) {
+				issues.add(new JwkIssue(i, keyEl, "cannot be parsed by the JOSE library (" + e.getMessage() + ")"));
+			}
+		}
+		return issues;
+	}
+
 	/** Render a list of {@link JwkIssue}s as a JSON array suitable for logging in condition args. */
 	public static JsonArray issuesToJson(List<JwkIssue> issues) {
 		JsonArray arr = new JsonArray();
