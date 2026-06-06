@@ -109,9 +109,13 @@ export const Default = {
   async play({ canvasElement, step }) {
     const canvas = within(canvasElement);
 
-    // Header region: plan name and ID
+    // Header region: plan name and ID. Scoped to cts-plan-header — the
+    // crumb also carries the plan name now, so an unscoped query would
+    // be satisfied by the crumb alone even if the header rendered
+    // nothing.
     await waitFor(() => {
-      expect(canvas.getAllByText("oidcc-basic-certification-test-plan").length).toBeGreaterThan(0);
+      const header = canvasElement.querySelector("cts-plan-header");
+      expect(header?.textContent).toContain("oidcc-basic-certification-test-plan");
     });
     expect(canvas.getByText("plan-abc-123")).toBeInTheDocument();
 
