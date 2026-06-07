@@ -185,11 +185,15 @@
         // is not a public view. Built with element construction/textContent
         // (no HTML interpolation), matching showDialogError's discipline.
         function maybeShowAlsoRequiredBanner(planId, isPublic) {
+            // Keep in sync with HANDOFF_STORAGE_KEY in
+            // /components/guided-wizard.js (this classic script cannot
+            // import the ES module's constant).
+            var ALSO_REQUIRED_KEY = 'oidf-also-required';
             var raw;
             try {
-                raw = window.sessionStorage.getItem('oidf-also-required');
+                raw = window.sessionStorage.getItem(ALSO_REQUIRED_KEY);
                 if (!raw) return;
-                window.sessionStorage.removeItem('oidf-also-required');
+                window.sessionStorage.removeItem(ALSO_REQUIRED_KEY);
             } catch (e) {
                 return; // storage unavailable — nothing to consume
             }

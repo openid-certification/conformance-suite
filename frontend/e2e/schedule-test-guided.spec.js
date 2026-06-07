@@ -1,7 +1,6 @@
 import { test, expect } from "@playwright/test";
 import {
-  setupCommonRoutes,
-  setupFailFast,
+  setupScheduleTestRoutes,
   setupTestInfoRoute,
   expectNoUnmockedCalls,
 } from "./helpers/routes.js";
@@ -13,36 +12,13 @@ const ALL_PLANS = [...MOCK_PLANS, MOCK_PLAN_NO_VARIANTS, ...MOCK_GUIDED_PLANS];
 /**
  * Guided-mode coverage for schedule-test.html: the persistent
  * Guided | Advanced toggle, the mode-resolution ladder's user-visible
- * behavior, and (in later units) the guided journey itself.
+ * behavior, and the guided journey itself.
  *
  * The advanced surface keeps its own coverage in schedule-test.spec.js,
  * which forces `oidf-guided-mode=advanced` up front; this file owns the
- * guided default and the switching behavior.
+ * guided default and the switching behavior. Route setup lives in
+ * helpers/routes.js (setupScheduleTestRoutes), shared with the Monaco spec.
  */
-
-/**
- * Register the routes the schedule-test init chain always hits, regardless
- * of mode: plans catalog, lastconfig probe, and the common trio.
- *
- * @param {import('@playwright/test').Page} page
- * @param {object} [options]
- * @param {Array<object>} [options.plans]
- * @param {object|null} [options.user] - Forwarded to setupCommonRoutes (null → 401).
- */
-async function setupScheduleTestRoutes(page, options = {}) {
-  await setupFailFast(page);
-  await page.route("**/api/plan/available", (route) =>
-    route.fulfill({
-      status: 200,
-      contentType: "application/json",
-      body: JSON.stringify(options.plans || ALL_PLANS),
-    }),
-  );
-  await page.route("**/api/lastconfig", (route) =>
-    route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({}) }),
-  );
-  await setupCommonRoutes(page, options.user !== undefined ? { user: options.user } : {});
-}
 
 test.describe("schedule-test.html — Guided | Advanced mode toggle", () => {
   test.afterEach(async ({ page }) => {
@@ -271,7 +247,7 @@ test.describe("schedule-test.html — guided journey", () => {
       "fapi2-message-signing-final-test-plan",
     );
     // No config step is reachable; the escape hatch routes to advanced.
-    await expect(page.locator("#guidedConfigMount")).toHaveCount(0);
+    await expect(page.locator("#guidedConfigForm")).toHaveCount(0);
     await page.locator("#guidedDeadEndEscape").click();
     await expect(page.locator("#scheduleTestPage")).toBeVisible();
     await expect(page.locator("#guidedIsland")).toBeHidden();

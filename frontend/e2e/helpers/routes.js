@@ -12,6 +12,7 @@ import { MOCK_USER } from "../fixtures/mock-users.js";
 import { MOCK_SERVER_INFO } from "../fixtures/mock-server.js";
 import { MOCK_TEST_STATUS } from "../fixtures/mock-test-data.js";
 import { MOCK_LOG_LIST } from "../fixtures/mock-log-list.js";
+import { MOCK_PLANS, MOCK_PLAN_NO_VARIANTS, MOCK_GUIDED_PLANS } from "../fixtures/mock-plans.js";
 
 /**
  * Register the three routes every page needs:
@@ -66,6 +67,37 @@ export async function setupCommonRoutes(page, options = {}) {
       }),
     }),
   );
+}
+
+/**
+ * Register the routes schedule-test.html's init chain always hits,
+ * regardless of mode: fail-fast first (per the registration-order
+ * convention above), then the plans catalog, the lastconfig probe, and the
+ * common trio. Shared by schedule-test-guided.spec.js and
+ * schedule-test-monaco.spec.js.
+ *
+ * @param {import('@playwright/test').Page} page
+ * @param {object} [options]
+ * @param {Array<object>} [options.plans] - /api/plan/available payload
+ *   (defaults to the full mock catalog including the guided-tree plans).
+ * @param {object|null} [options.user] - Forwarded to setupCommonRoutes
+ *   (null → 401 anonymous).
+ */
+export async function setupScheduleTestRoutes(page, options = {}) {
+  await setupFailFast(page);
+  await page.route("**/api/plan/available", (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify(
+        options.plans || [...MOCK_PLANS, MOCK_PLAN_NO_VARIANTS, ...MOCK_GUIDED_PLANS],
+      ),
+    }),
+  );
+  await page.route("**/api/lastconfig", (route) =>
+    route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({}) }),
+  );
+  await setupCommonRoutes(page, options.user !== undefined ? { user: options.user } : {});
 }
 
 /**
