@@ -14,18 +14,18 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @ExtendWith(MockitoExtension.class)
-public class AddRequestedExp30SToAuthorizationEndpointRequest_UnitTest {
+public class AddRequestedExp10sToAuthorizationEndpointRequest_UnitTest {
 
 	@Spy
 	private Environment env = new Environment();
 
 	private final TestInstanceEventLog eventLog = BsonEncoding.testInstanceEventLog();
 
-	private AddRequestedExp30sToAuthorizationEndpointRequest cond;
+	private AddRequestedExp10sToAuthorizationEndpointRequest cond;
 
 	@BeforeEach
 	public void setUp() throws Exception {
-		cond = new AddRequestedExp30sToAuthorizationEndpointRequest();
+		cond = new AddRequestedExp10sToAuthorizationEndpointRequest();
 		cond.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
 	}
 
@@ -35,7 +35,7 @@ public class AddRequestedExp30SToAuthorizationEndpointRequest_UnitTest {
 
 		cond.execute(env);
 
-		Integer expectedRequestedExpiry = 30;
+		Integer expectedRequestedExpiry = 10;
 		assertEquals(env.getInteger("authorization_endpoint_request", "requested_expiry"), expectedRequestedExpiry);
 	}
 }

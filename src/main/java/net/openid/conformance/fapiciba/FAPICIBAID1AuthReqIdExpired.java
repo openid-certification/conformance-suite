@@ -1,7 +1,7 @@
 package net.openid.conformance.fapiciba;
 
 import com.google.gson.JsonObject;
-import net.openid.conformance.condition.client.AddRequestedExp30sToAuthorizationEndpointRequest;
+import net.openid.conformance.condition.client.AddRequestedExp10sToAuthorizationEndpointRequest;
 import net.openid.conformance.condition.client.CheckTokenEndpointHttpStatusNot200;
 import net.openid.conformance.condition.client.SleepUntilAuthReqExpires;
 import net.openid.conformance.condition.client.TellUserToIgnoreCIBAAuthentication;
@@ -12,7 +12,7 @@ import net.openid.conformance.variant.CIBAMode;
 @PublishTestModule(
 	testName = "fapi-ciba-id1-auth-req-id-expired",
 	displayName = "FAPI-CIBA-ID1: user fails to authenticate",
-	summary = "This test should end with the token endpoint returning an expired_token error. The user MUST NOT authenticate. requested_expiry is used to request a 30 second expiration time for the authentication request.",
+	summary = "This test should end with the token endpoint returning an expired_token error. The user MUST NOT authenticate. requested_expiry is used to request a 10 second expiration time for the authentication request.",
 	profile = "FAPI-CIBA-ID1"
 )
 public class FAPICIBAID1AuthReqIdExpired extends AbstractFAPICIBAID1 {
@@ -20,9 +20,12 @@ public class FAPICIBAID1AuthReqIdExpired extends AbstractFAPICIBAID1 {
 	@Override
 	protected void createAuthorizationRequest() {
 		super.createAuthorizationRequest();
-		// request 30 second expiry, as otherwise the rest takes a long time to run
-		// (if the server ignores us, the test just takes a long time to complete)
-		callAndStopOnFailure(AddRequestedExp30sToAuthorizationEndpointRequest.class, "CIBA-11");
+		// Request a 10 second expiry so the expiry wait is short. 10s safely exceeds the pre-expiry
+		// flow (two "expecting pending" polls, the second at ~5s in), so the auth_req_id is still valid
+		// when those run; the AS's expiry clock starts at issuance and we only begin the expiry sleep
+		// ~6s later, so we always wake well past expiry. (If the server ignores requested_expiry - e.g.
+		// Brazil - the test just waits the server's default, as before.)
+		callAndStopOnFailure(AddRequestedExp10sToAuthorizationEndpointRequest.class, "CIBA-11");
 	}
 
 	@Override
