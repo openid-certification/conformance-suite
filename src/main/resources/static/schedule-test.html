@@ -488,6 +488,11 @@
 
         .actions-right { margin-left: auto; display: flex; gap: var(--space-3); }
 
+        /* Persistent render target inside #guidedStageActions. Layout-invisible
+           so the buttons participate directly in the action bar's inner flex
+           row (gap + .actions-right margin both keep working). */
+        .guided-actions-content { display: contents; }
+
         /* View Transitions: directional slide between guided steps */
         @media (prefers-reduced-motion: no-preference) {
             ::view-transition-group(cert-stage) { animation-duration: 280ms; }
@@ -571,8 +576,11 @@
             <div aria-live="polite" class="sr-only" id="guidedLiveRegion"></div>
             <!-- Per-step sticky actions (Back / Continue / Create). Lives
                  inside the island so hiding the island hides the bar; the
-                 journey controller fills + toggles it per phase. -->
-            <cts-action-bar id="guidedStageActions" align-to="schedule-test-page" aria-label="Guided step actions" hidden></cts-action-bar>
+                 journey controller fills + toggles it per phase. It renders
+                 into the inner span (display: contents) — cts-action-bar
+                 adopts its children once at first connect, so replacing the
+                 host's children directly would destroy the sticky wrapper. -->
+            <cts-action-bar id="guidedStageActions" align-to="schedule-test-page" aria-label="Guided step actions" hidden><span class="guided-actions-content" id="guidedActionsContent"></span></cts-action-bar>
         </div>
 
         <!-- ══ ADVANCED ISLAND — the classic schedule-test surface ═════ -->

@@ -632,6 +632,7 @@ export function startGuidedJourney(modeController, deps) {
   const progressEl = mustGet("guidedProgress");
   const liveEl = mustGet("guidedLiveRegion");
   const actionBar = mustGet("guidedStageActions");
+  const actionBarContent = mustGet("guidedActionsContent");
   const session = deps.session !== undefined ? deps.session : tryGetStorage("sessionStorage");
 
   /**
@@ -1452,10 +1453,15 @@ export function startGuidedJourney(modeController, deps) {
 
   // ── Sticky action bar helper (persistent element in the island) ────
   /**
+   * Render the per-step buttons into #guidedActionsContent — the persistent
+   * `display: contents` span that cts-action-bar adopted into its sticky
+   * wrapper at first connect. Never replace the HOST's children: the
+   * component captures them once, so mutating the host would tear out the
+   * `.oidf-action-bar` wrapper and leave the buttons in normal flow.
    * @param {Array<{variant: string, icon?: string, label: string, spacer?: boolean, id?: string, on: () => void}>} buttons
    */
   function renderActionBar(buttons) {
-    actionBar.replaceChildren();
+    actionBarContent.replaceChildren();
     buttons.forEach((b) => {
       const btn = document.createElement("cts-button");
       btn.setAttribute("variant", b.variant);
@@ -1469,16 +1475,16 @@ export function startGuidedJourney(modeController, deps) {
         const spacer = document.createElement("span");
         spacer.className = "actions-right";
         spacer.appendChild(btn);
-        actionBar.appendChild(spacer);
+        actionBarContent.appendChild(spacer);
       } else {
-        actionBar.appendChild(btn);
+        actionBarContent.appendChild(btn);
       }
     });
     actionBar.hidden = false;
   }
 
   function clearActionBar() {
-    actionBar.replaceChildren();
+    actionBarContent.replaceChildren();
     actionBar.hidden = true;
   }
 

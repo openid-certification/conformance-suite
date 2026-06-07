@@ -177,6 +177,40 @@ test.describe("schedule-test.html — guided journey", () => {
     await expect(page.locator("#guidedTrail .chip")).toHaveCount(4);
   });
 
+  test("review step actions render inside the sticky action bar", async ({ page }) => {
+    await setupScheduleTestRoutes(page);
+    await page.goto("/schedule-test.html");
+    await walkKsaOpToReview(page);
+
+    // Regression: renderActionBar must render into the persistent
+    // display:contents span that cts-action-bar adopted at first connect.
+    // Replacing the HOST's children tears out the component's sticky
+    // wrapper and leaves the buttons stacked in normal flow.
+    const inner = page.locator("#guidedStageActions .oidf-action-bar__inner");
+    await expect(inner.locator("cts-button")).toHaveCount(2);
+
+    const bar = page.locator("#guidedStageActions .oidf-action-bar");
+    await expect(bar).toHaveCSS("position", "fixed");
+    // Let the 220ms slide-in animation settle before measuring geometry.
+    await bar.evaluate((el) => Promise.all(el.getAnimations().map((a) => a.finished)));
+    const barBox = await bar.boundingBox();
+    const backBox = await page.locator("#guidedStageActions").getByText("Back").boundingBox();
+    const configureBox = await page
+      .locator("#guidedStageActions")
+      .getByText("Configure this plan")
+      .boundingBox();
+    const viewport = page.viewportSize();
+    if (!barBox || !backBox || !configureBox || !viewport) {
+      throw new Error("action bar is missing a bounding box");
+    }
+
+    // Pinned to the viewport bottom.
+    expect(Math.abs(barBox.y + barBox.height - viewport.height)).toBeLessThanOrEqual(1);
+    // Back and Configure share a row (flex), not stacked blocks.
+    expect(backBox.y).toBe(configureBox.y);
+    expect(configureBox.x).toBeGreaterThan(backBox.x + backBox.width);
+  });
+
   test("bundle: Brazil OP FAPI path shows the upfront checklist before review", async ({
     page,
   }) => {
