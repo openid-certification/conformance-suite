@@ -337,6 +337,18 @@ test.describe("log-detail.html — /api/info/:id 404", () => {
 });
 
 test.describe("schedule-test.html — POST /api/plan 400", () => {
+  test.beforeEach(async ({ page }) => {
+    // This test drives the advanced island's cascade + create button.
+    // Guided is the page default, so force the stored mode preference.
+    await page.addInitScript(() => {
+      try {
+        localStorage.setItem("oidf-guided-mode", "advanced");
+      } catch {
+        /* storage unavailable — the test will surface it */
+      }
+    });
+  });
+
   test.afterEach(async ({ page }) => {
     expectNoUnmockedCalls(page);
   });

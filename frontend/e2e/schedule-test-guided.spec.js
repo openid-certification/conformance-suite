@@ -350,7 +350,11 @@ test.describe("schedule-test.html — guided journey", () => {
     );
 
     // Focus the first radio, arrow to KSA (7th card → 6 presses), commit.
-    await page.locator('#guidedStage input[name="guidedChoiceGroup"]').first().focus();
+    // The toBeFocused() check guards against key presses landing before
+    // focus settles under parallel-worker CPU contention.
+    const firstRadio = page.locator('#guidedStage input[name="guidedChoiceGroup"]').first();
+    await firstRadio.focus();
+    await expect(firstRadio).toBeFocused();
     for (let i = 0; i < 6; i++) {
       await page.keyboard.press("ArrowDown");
     }
@@ -358,7 +362,9 @@ test.describe("schedule-test.html — guided journey", () => {
     await expect(page.locator("#guidedStage h1")).toHaveText("What is your role?");
 
     // Arrow to OP and commit with Space.
-    await page.locator('#guidedStage input[name="guidedChoiceGroup"]').first().focus();
+    const roleRadio = page.locator('#guidedStage input[name="guidedChoiceGroup"]').first();
+    await roleRadio.focus();
+    await expect(roleRadio).toBeFocused();
     await page.keyboard.press("ArrowDown");
     await page.keyboard.press(" ");
     await expect(page.locator("#guidedStage h1")).toContainText("Client authentication method");

@@ -59,6 +59,18 @@ async function showJsonTab(page) {
 }
 
 test.describe("schedule-test.html — R12 Monaco JSON editor inside <cts-config-form>", () => {
+  test.beforeEach(async ({ page }) => {
+    // These tests drive the advanced island's cascade + config form. Guided
+    // is the page default, so force the stored mode preference up front.
+    await page.addInitScript(() => {
+      try {
+        localStorage.setItem("oidf-guided-mode", "advanced");
+      } catch {
+        /* storage unavailable — the test will surface it */
+      }
+    });
+  });
+
   test.afterEach(async ({ page }) => {
     expectNoUnmockedCalls(page);
   });
