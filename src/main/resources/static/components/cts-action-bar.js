@@ -8,6 +8,12 @@ import { css } from "lit";
  * convention (light DOM, scoped style injected once into <head>, children
  * captured at first connect and moved into the inner wrapper).
  *
+ * Children are adopted ONCE — nodes appended to the host after upgrade land
+ * outside the sticky wrapper and render in normal flow. Call sites that swap
+ * actions dynamically must place a persistent `display: contents` container
+ * inside the host at parse time and re-render into that (see
+ * #guidedActionsContent in schedule-test.html).
+ *
  * The bar publishes its measured height as `--cts-action-bar-height` on the
  * document root after first paint and re-measures on ResizeObserver
  * callbacks. Callers can opt in to spacing with a single CSS line, e.g.
