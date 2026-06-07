@@ -16,6 +16,10 @@ import { css } from "lit";
  *       padding-bottom: calc(var(--cts-action-bar-height, 80px) + var(--space-5));
  *     }
  *
+ * The page footer opts into the same variable for its own clearance
+ * (`cts-footer .oidf-footer` in oidf-app.css), so at maximum scroll the
+ * footer rests fully above the bar instead of hiding behind it (R15).
+ *
  * @property {string} align-to - Content-width preset for the inner wrapper.
  *   See ALIGN_PRESETS for the supported names. Unknown values warn once and
  *   fall back to the default preset.
