@@ -1,5 +1,6 @@
 package net.openid.conformance.condition.as;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWSAlgorithm;
@@ -78,6 +79,10 @@ public class ValidateRequestObjectSignature extends AbstractLenientJwksCondition
 			JWKSet newJwkSet = new JWKSet(jwkKeys);
 			JsonObject publicJwks = JWKUtil.getPublicJwksAsJsonObject(newJwkSet);
 
+			// Record why each candidate key did not verify the signature. Kept until the end and only
+			// reported if NO key works, so a usable key verifying does not produce noise about the others.
+			JsonArray failedKeys = new JsonArray();
+
 			for(JWK jwkKey : jwkKeys) {
 				JWSVerifier verifier = null;
 				try {
@@ -85,7 +90,9 @@ public class ValidateRequestObjectSignature extends AbstractLenientJwksCondition
 						OctetKeyPair publicKey = OctetKeyPair.parse(jwkKey.toPublicJWK().toString());
 						if (Curve.Ed25519.equals(publicKey.getCurve())) {
 							verifier = new Ed25519Verifier(publicKey);
-						}  // else Unsupported Curve, throw exception?
+						} else {
+							recordFailedKey(failedKeys, jwkKey, "the JOSE library cannot verify with this key's curve ('" + publicKey.getCurve() + "')");
+						}
 					} else if (jwkKey instanceof AsymmetricJWK asyncJwkKey) {
 						KeyPair keyPair = asyncJwkKey.toKeyPair();
 						verifier = factory.createJWSVerifier(jwt.getHeader(), keyPair.getPublic());
@@ -94,7 +101,7 @@ public class ValidateRequestObjectSignature extends AbstractLenientJwksCondition
 					}
 				}
 				catch(JOSEException e) {
-
+					recordFailedKey(failedKeys, jwkKey, "the JOSE library could not build a verifier for this key: " + e.getMessage());
 				}
 				if(verifier != null) {
 					if (jwt.verify(verifier)) {
@@ -108,9 +115,8 @@ public class ValidateRequestObjectSignature extends AbstractLenientJwksCondition
 											"request_object", requestObject));
 						return env;
 					} else {
-						// failed to verify with this key, moving on
-						// not a failure yet as it might pass a different key
-						log("Failed to verify signature using key", args("key",jwkKey.toString(), "requestObject", requestObject));
+						// failed to verify with this key, moving on - not a failure yet as it might pass a different key
+						recordFailedKey(failedKeys, jwkKey, "the signature did not verify with this key");
 					}
 				}
 
@@ -121,6 +127,7 @@ public class ValidateRequestObjectSignature extends AbstractLenientJwksCondition
 			throw error("Unable to verify request object signature based on client keys",
 				args("jwt_header", jwt.getHeader().toString(),
 					"keys", publicJwks,
+					"failed_keys", failedKeys,
 					"clientJwks", clientJwks,
 					"requestObject", requestObject)
 				);
@@ -129,6 +136,16 @@ public class ValidateRequestObjectSignature extends AbstractLenientJwksCondition
 			throw error("error validating request object signature", e);
 		}
 
+	}
+
+	private void recordFailedKey(JsonArray failedKeys, JWK jwkKey, String reason) {
+		JsonObject entry = new JsonObject();
+		entry.addProperty("kid", jwkKey.getKeyID());
+		if (jwkKey.getKeyType() != null) {
+			entry.addProperty("kty", jwkKey.getKeyType().getValue());
+		}
+		entry.addProperty("reason", reason);
+		failedKeys.add(entry);
 	}
 
 }
