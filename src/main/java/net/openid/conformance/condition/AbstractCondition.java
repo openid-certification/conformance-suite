@@ -10,6 +10,7 @@ import com.google.gson.JsonParser;
 import net.openid.conformance.condition.client.CachingHttpInterceptor;
 import net.openid.conformance.condition.client.PooledConnectionManagers;
 import net.openid.conformance.condition.util.MtlsKeystoreBuilder;
+import net.openid.conformance.logging.ConnectionReuseLoggingExec;
 import net.openid.conformance.logging.HttpRequestDeadlineInterceptor;
 import net.openid.conformance.logging.LoggingRequestInterceptor;
 import net.openid.conformance.logging.TestInstanceEventLog;
@@ -23,6 +24,7 @@ import org.apache.hc.client5.http.config.ConnectionConfig;
 import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
+import org.apache.hc.client5.http.impl.ChainElement;
 import org.apache.hc.client5.http.impl.io.BasicHttpClientConnectionManager;
 import org.apache.hc.client5.http.io.HttpClientConnectionManager;
 import org.apache.hc.client5.http.socket.ConnectionSocketFactory;
@@ -725,12 +727,18 @@ public abstract class AbstractCondition implements Condition, DataUtils {
 			if (env.containsObject("mutual_tls_authentication") && (km == null || km.length == 0)) {
 				throw new IllegalStateException("mutual TLS is configured but no client KeyManager was produced");
 			}
-			HttpClientConnectionManager pooled = PooledConnectionManagers.getOrCreate(
-				PooledConnectionManagers.identityKey(env, restrictAllowedTLSVersions),
+			String identityKey = PooledConnectionManagers.identityKey(env, restrictAllowedTLSVersions);
+			HttpClientConnectionManager pooled = PooledConnectionManagers.getOrCreate(identityKey,
 				() -> PooledConnectionManagers.newManager(registry, timeout));
 			builder.setConnectionManager(pooled);
 			// Shared: closing a per-request client must NOT shut the shared pool.
 			builder.setConnectionManagerShared(true);
+			// Diagnostic: placed to WRAP the CONNECT element (after PROTOCOL, outer to CONNECT) so its
+			// finally runs even when the failure is thrown inside CONNECT (connection lease/establish) -
+			// that is where the stale-reuse "Socket closed" surfaces, which an after-CONNECT handler
+			// never sees. Logs per request the leased connection's local port, reuse, and any error.
+			builder.addExecInterceptorAfter(ChainElement.PROTOCOL.name(), "conn-reuse-log",
+				new ConnectionReuseLoggingExec(getMessage(), log, identityKey));
 		} else {
 			BasicHttpClientConnectionManager ccm = new BasicHttpClientConnectionManager(registry);
 			ccm.setConnectionConfig(ConnectionConfig.custom()
