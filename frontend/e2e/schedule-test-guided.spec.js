@@ -309,6 +309,37 @@ test.describe("schedule-test.html — guided journey", () => {
     await expect(page.locator("#vp_fapi_profile")).toHaveValue("ksa");
     // All variants resolved → the advanced create button lights up.
     await expect(page.locator("#createPlanBtn")).toBeEnabled();
+
+    // Accepting runs the same arrival cue as picking the plan from the
+    // search list (revealPlanSelection): the cascade scrolls into view and,
+    // once the scroll settles, the selection group flashes...
+    await expect
+      .poll(
+        async () =>
+          page.locator("#selectionFlash").evaluate((el) => el.hasAttribute("data-flashing")),
+        { timeout: 2000 },
+      )
+      .toBe(true);
+    await expect
+      .poll(
+        async () =>
+          page.locator("#specCascade").evaluate((el) => Math.round(el.getBoundingClientRect().top)),
+        { timeout: 3000 },
+      )
+      .toBeLessThan(100);
+    // ...and focus drops into the first variant <select> so the user can
+    // carry straight on to configuring.
+    await expect
+      .poll(
+        async () =>
+          page.evaluate(() => {
+            const active = document.activeElement;
+            const firstVariantSelect = document.querySelector("#variantSelectors select");
+            return !!firstVariantSelect && active === firstVariantSelect;
+          }),
+        { timeout: 3000 },
+      )
+      .toBe(true);
   });
 
   test("bridge: decline leaves advanced untouched and is remembered per plan", async ({ page }) => {
