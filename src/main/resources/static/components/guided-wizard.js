@@ -129,6 +129,10 @@ export function resolveMode({ params, storedMode = null, hasRecoveryRecord = fal
  *   semantics); pass opts to override.
  * @property {(fn: (mode: "guided"|"advanced") => void) => void} onModeChange -
  *   Observe switches (used by the guided→advanced prefill bridge).
+ * @property {(deps: GuidedJourneyDeps) => void} [startJourney] - Late-bound
+ *   by the page's boot module (the journey needs the live catalog, which
+ *   the init chain loads after boot): calls `startGuidedJourney` with this
+ *   controller.
  */
 
 /**
@@ -313,23 +317,16 @@ const ECOSYSTEM_DESC = {
 //  Guided journey — pure helpers
 // ════════════════════════════════════════════════════════════════════
 
+/** @type {Record<string, string>} */
+const ESC_MAP = { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" };
+
 /**
  * HTML-escape for innerHTML-rendered journey content.
  * @param {unknown} s
  * @returns {string}
  */
 function esc(s) {
-  return String(s).replace(
-    /[&<>"']/g,
-    (c) =>
-      /** @type {Record<string, string>} */ ({
-        "&": "&amp;",
-        "<": "&lt;",
-        ">": "&gt;",
-        '"': "&quot;",
-        "'": "&#39;",
-      })[c],
-  );
+  return String(s).replace(/[&<>"']/g, (c) => ESC_MAP[c]);
 }
 
 /**
@@ -874,6 +871,14 @@ export function startGuidedJourney(modeController, deps) {
     renderCurrent("backward");
   }
 
+  /** The shared step-level Back action (bundle/review/config/deadend phases). */
+  const BACK_BUTTON = {
+    variant: "secondary",
+    icon: "arrow-left-md",
+    label: "Back",
+    on: () => goBack(),
+  };
+
   /**
    * The step-level Back button (bundle/review/config/deadend phases).
    */
@@ -920,7 +925,7 @@ export function startGuidedJourney(modeController, deps) {
   /**
    * Walk the tree to find the step the user must answer next, based on the
    * answers in state.path. Returns { step } or { leaf, choice }.
-   * @returns {{step?: any, leaf?: any, choice?: any}|null}
+   * @returns {{step?: any, leaf?: any}|null}
    */
   function currentNode() {
     if (!state.ecosystem) return null;
@@ -928,7 +933,7 @@ export function startGuidedJourney(modeController, deps) {
     for (const ans of state.path) {
       const choice = step.choices.find((c) => c.id === ans.choice.id);
       if (!choice) return { step };
-      if (choice.result) return { leaf: choice.result, choice };
+      if (choice.result) return { leaf: choice.result };
       if (choice.next) step = choice.next;
     }
     return { step };
@@ -982,12 +987,13 @@ export function startGuidedJourney(modeController, deps) {
     const step = node && node.step;
     if (!step || !state.ecosystem) return;
     const narrow = step.choices.length <= 3;
+    const question = esc(normalizeQuestion(step.question));
     stage.innerHTML = `
       <p class="stage-eyebrow">${esc(state.ecosystem.label)}</p>
-      <h1 tabindex="-1">${esc(normalizeQuestion(step.question))}</h1>
+      <h1 tabindex="-1">${question}</h1>
       <p class="stage-lede">${esc(questionLede(step.id))}</p>
-      <fieldset class="choice-grid${narrow ? " is-narrow" : ""}" role="radiogroup" aria-label="${esc(normalizeQuestion(step.question))}">
-        <legend>${esc(normalizeQuestion(step.question))}</legend>
+      <fieldset class="choice-grid${narrow ? " is-narrow" : ""}" role="radiogroup" aria-label="${question}">
+        <legend>${question}</legend>
         ${step.choices
           .map((c, i) =>
             choiceCardHTML({
@@ -1138,9 +1144,7 @@ export function startGuidedJourney(modeController, deps) {
           <cts-icon class="ec-chev" name="arrow-right-md" size="20"></cts-icon>
         </button>
       </div>`;
-    renderActionBar([
-      { variant: "secondary", icon: "arrow-left-md", label: "Back", on: () => goBack() },
-    ]);
+    renderActionBar([BACK_BUTTON]);
     mustGet("guidedDeadEndEscape").addEventListener("click", () =>
       modeController.setMode("advanced"),
     );
@@ -1176,7 +1180,7 @@ export function startGuidedJourney(modeController, deps) {
         </ul>
       </cts-card>`;
     renderActionBar([
-      { variant: "secondary", icon: "arrow-left-md", label: "Back", on: () => goBack() },
+      BACK_BUTTON,
       {
         variant: "primary",
         icon: "arrow-right-md",
@@ -1286,7 +1290,7 @@ export function startGuidedJourney(modeController, deps) {
       }`;
 
     renderActionBar([
-      { variant: "secondary", icon: "arrow-left-md", label: "Back", on: () => goBack() },
+      BACK_BUTTON,
       {
         variant: "primary",
         icon: "arrow-right-md",
@@ -1339,7 +1343,7 @@ export function startGuidedJourney(modeController, deps) {
     }
 
     renderActionBar([
-      { variant: "secondary", icon: "arrow-left-md", label: "Back", on: () => goBack() },
+      BACK_BUTTON,
       ...(signedIn
         ? [
             {
@@ -1576,10 +1580,10 @@ export function startGuidedJourney(modeController, deps) {
     );
     const preset = decodeWizardPreset(raw);
     const replay = preset ? replayAnswers(preset.ecosystemId, preset.answers) : null;
-    if (replay) {
+    if (preset && replay) {
       state.ecosystem = replay.ecosystem;
       state.path = replay.path;
-      state.completedPlanNames = preset ? preset.completedPlanNames : [];
+      state.completedPlanNames = preset.completedPlanNames;
       if (replay.result) {
         // The full trail resolved a leaf — apply the same entry guards as
         // enterLeaf (catalog presence, remaining-sibling bundle).

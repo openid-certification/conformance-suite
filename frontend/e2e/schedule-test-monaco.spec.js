@@ -1,6 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { setupCommonRoutes, setupFailFast, expectNoUnmockedCalls } from "./helpers/routes.js";
-import { MOCK_PLANS, MOCK_PLAN_NO_VARIANTS } from "./fixtures/mock-plans.js";
+import { setupScheduleTestRoutes, expectNoUnmockedCalls } from "./helpers/routes.js";
 
 /**
  * R12 — Monaco JSON editor on the schedule-test.html JSON tab.
@@ -13,30 +12,6 @@ import { MOCK_PLANS, MOCK_PLAN_NO_VARIANTS } from "./fixtures/mock-plans.js";
  * fallback path (Monaco loader blocked → textarea renders, .value still
  * round-trips).
  */
-
-const ALL_PLANS = [...MOCK_PLANS, MOCK_PLAN_NO_VARIANTS];
-
-/**
- * @param {import('@playwright/test').Page} page
- */
-async function setupSchedulePageRoutes(page) {
-  await setupFailFast(page);
-  await page.route("**/api/plan/available", (route) =>
-    route.fulfill({
-      status: 200,
-      contentType: "application/json",
-      body: JSON.stringify(ALL_PLANS),
-    }),
-  );
-  await page.route("**/api/lastconfig", (route) =>
-    route.fulfill({
-      status: 200,
-      contentType: "application/json",
-      body: JSON.stringify({}),
-    }),
-  );
-  await setupCommonRoutes(page);
-}
 
 /**
  * cts-config-form lazy-mounts its inner <cts-json-editor> only after the
@@ -78,7 +53,7 @@ test.describe("schedule-test.html — R12 Monaco JSON editor inside <cts-config-
   test("cts-json-editor mounts inside the JSON tab and exposes .value as a string", async ({
     page,
   }) => {
-    await setupSchedulePageRoutes(page);
+    await setupScheduleTestRoutes(page);
     await page.goto("/schedule-test.html");
     await showJsonTab(page);
 
@@ -111,7 +86,7 @@ test.describe("schedule-test.html — R12 Monaco JSON editor inside <cts-config-
   });
 
   test("input event on the editor updates cts-config-form's .config", async ({ page }) => {
-    await setupSchedulePageRoutes(page);
+    await setupScheduleTestRoutes(page);
     await page.goto("/schedule-test.html");
     await showJsonTab(page);
 
@@ -153,7 +128,7 @@ test.describe("schedule-test.html — R12 Monaco JSON editor inside <cts-config-
   test("fallback path: loader.js blocked → textarea renders and .value round-trips", async ({
     page,
   }) => {
-    await setupSchedulePageRoutes(page);
+    await setupScheduleTestRoutes(page);
 
     // Block Monaco's loader BEFORE page.goto so the very first request
     // for /vendor/monaco-editor/vs/loader.js returns 503. This is the

@@ -1,5 +1,11 @@
 import { describe, it, expect } from "vitest";
-import { resolveMode, replayAnswers, decodeWizardPreset } from "./guided-wizard.js";
+import {
+  resolveMode,
+  replayAnswers,
+  decodeWizardPreset,
+  filterResolvableSiblings,
+} from "./guided-wizard.js";
+import { GUIDED_WIZARD_TREE } from "./guided-wizard-tree.js";
 
 /**
  * Table tests for the R9 mode-resolution ladder:
@@ -165,5 +171,41 @@ describe("decodeWizardPreset", () => {
       answers: ["op", "pkjwt"],
       completedPlanNames: ["real-plan"],
     });
+  });
+});
+
+describe("filterResolvableSiblings", () => {
+  const brazil = /** @type {import("./guided-wizard-tree.js").WizardEcosystem} */ (
+    GUIDED_WIZARD_TREE.ecosystems.find((e) => e.id === "open_finance_brazil")
+  );
+  const fapiResult = {
+    plan_name: "fapi1-advanced-final-test-plan",
+    variants: {},
+    also_required: [{ id: "dcr_brazil_op", label: "Dynamic Client Registration" }],
+  };
+
+  it("resolves a sibling present in both the tree and the catalog (R4)", () => {
+    const catalog = { "fapi1-advanced-final-brazil-dcr-test-plan": {} };
+    expect(filterResolvableSiblings(fapiResult, brazil, catalog)).toEqual([
+      {
+        id: "dcr_brazil_op",
+        label: "Dynamic Client Registration",
+        planName: "fapi1-advanced-final-brazil-dcr-test-plan",
+      },
+    ]);
+  });
+
+  it("filters a sibling whose plan is absent from the live catalog (R4)", () => {
+    expect(filterResolvableSiblings(fapiResult, brazil, {})).toEqual([]);
+  });
+
+  it("filters a sibling id that resolves nowhere in the tree", () => {
+    const result = { ...fapiResult, also_required: [{ id: "no-such-choice", label: "Ghost" }] };
+    const catalog = { "fapi1-advanced-final-brazil-dcr-test-plan": {} };
+    expect(filterResolvableSiblings(result, brazil, catalog)).toEqual([]);
+  });
+
+  it("returns empty for results without also_required", () => {
+    expect(filterResolvableSiblings({ plan_name: "x", variants: {} }, brazil, {})).toEqual([]);
   });
 });
