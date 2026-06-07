@@ -62,9 +62,13 @@ export const RECOVERY_STORAGE_KEY = "oidf-guided-recovery";
 export const HANDOFF_STORAGE_KEY = "oidf-also-required";
 
 /**
- * Probe whether a browser storage area is usable (same probe as the page's
- * inline `tryGetStorage` — private browsing or storage-disabled environments
- * throw on any access, including reading `window[type]`).
+ * Probe whether a browser storage area is usable (private browsing or
+ * storage-disabled environments throw on any access, including reading
+ * `window[type]`).
+ *
+ * Keep in sync with the inline `tryGetStorage` in schedule-test.html —
+ * that classic script cannot import this module, so the probe is
+ * deliberately duplicated across the boundary.
  *
  * @param {"localStorage"|"sessionStorage"} type
  * @returns {Storage|null}
@@ -1033,7 +1037,7 @@ export function startGuidedJourney(modeController, deps) {
         <input type="radio" name="guidedChoiceGroup" value="${esc(id)}" tabindex="${index === 0 ? "0" : "-1"}">
         ${
           flag
-            ? `<span class="flag" aria-hidden="true">${flag}</span>`
+            ? `<span class="flag" aria-hidden="true">${esc(flag)}</span>`
             : `<span class="marker" aria-hidden="true"><cts-icon name="check" size="16"></cts-icon></span>`
         }
         <span class="choice-body">
@@ -1086,6 +1090,11 @@ export function startGuidedJourney(modeController, deps) {
   function pickEcosystem(id) {
     state.ecosystem = GUIDED_WIZARD_TREE.ecosystems.find((e) => e.id === id) || null;
     state.path = [];
+    // A user-driven ecosystem pick starts a NEW certification: the R14
+    // ledger from a replayed/restored loop must not leak into it (plan
+    // names repeat across ecosystems, so a stale ledger would silently
+    // drop valid siblings from the new journey's bundle).
+    state.completedPlanNames = [];
     state.phase = "question";
     renderCurrent("forward");
   }
@@ -1308,7 +1317,11 @@ export function startGuidedJourney(modeController, deps) {
   function renderConfigStep() {
     const result = /** @type {import("./guided-wizard-tree.js").WizardResult} */ (state.result);
     const plan = planByName(result.plan_name);
-    const signedIn = !!(deps.getCurrentUser && deps.getCurrentUser());
+    // Guests (isGuest) get the sign-in prompt too — the same convention
+    // plan-detail.html applies for its readonly gate (R6). The backend is
+    // the real authz boundary; this only keeps the UI honest.
+    const currentUser = deps.getCurrentUser && deps.getCurrentUser();
+    const signedIn = !!(currentUser && !currentUser.isGuest);
     stage.innerHTML = `
       <p class="stage-eyebrow">${esc(plan ? plan.displayName : "")}</p>
       <h1 tabindex="-1">Configure your test</h1>
@@ -1562,23 +1575,29 @@ export function startGuidedJourney(modeController, deps) {
   });
 
   // ── Boot ───────────────────────────────────────────────────────────
-  // R13: when the mode ladder resolved via wizard_preset, best-effort
-  // replay the recorded answers. The param is consumed exactly once —
-  // stripped via replaceState whether or not it decodes — so a refresh
-  // restarts guided cleanly instead of double-applying the preset. An
-  // unresolvable hop drops the user at the last valid step; a garbage
-  // preset opens the ecosystem screen with a console warning only.
-  if (modeController.source === "wizard_preset") {
-    const params = new URLSearchParams(window.location.search);
-    const raw = params.get("wizard_preset");
-    params.delete("wizard_preset");
-    const qs = params.toString();
+  // R13: consume the wizard_preset param exactly once — stripped via
+  // replaceState whenever present, even when a higher ladder slot (e.g. a
+  // recovery record or an advanced-forcing param) won the mode decision.
+  // Without the unconditional strip, a preset that lost to the recovery
+  // slot would linger in the URL and replay unexpectedly on a later reload
+  // after the user backtracked (which clears the recovery record).
+  const bootParams = new URLSearchParams(window.location.search);
+  const rawPreset = bootParams.get("wizard_preset");
+  if (rawPreset !== null) {
+    bootParams.delete("wizard_preset");
+    const qs = bootParams.toString();
     history.replaceState(
       null,
       "",
       window.location.pathname + (qs ? "?" + qs : "") + window.location.hash,
     );
-    const preset = decodeWizardPreset(raw);
+  }
+
+  // Best-effort replay when the ladder resolved via wizard_preset. An
+  // unresolvable hop drops the user at the last valid step; a garbage
+  // preset opens the ecosystem screen with a console warning only.
+  if (modeController.source === "wizard_preset") {
+    const preset = decodeWizardPreset(rawPreset);
     const replay = preset ? replayAnswers(preset.ecosystemId, preset.answers) : null;
     if (preset && replay) {
       state.ecosystem = replay.ecosystem;
