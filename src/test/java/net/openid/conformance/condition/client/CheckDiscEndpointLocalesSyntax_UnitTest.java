@@ -1,4 +1,4 @@
-package net.openid.conformance.vci10issuer.condition;
+package net.openid.conformance.condition.client;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -16,9 +16,9 @@ import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @ExtendWith(MockitoExtension.class)
-class VCIValidateAuthorizationServerLocalesSyntax_UnitTest {
+class CheckDiscEndpointLocalesSyntax_UnitTest {
 
-	private VCIValidateAuthorizationServerLocalesSyntax cond;
+	private CheckDiscEndpointLocalesSyntax cond;
 
 	private final TestInstanceEventLog eventLog = BsonEncoding.testInstanceEventLog();
 
@@ -26,7 +26,7 @@ class VCIValidateAuthorizationServerLocalesSyntax_UnitTest {
 
 	@BeforeEach
 	void setUp() {
-		cond = new VCIValidateAuthorizationServerLocalesSyntax();
+		cond = new CheckDiscEndpointLocalesSyntax();
 		cond.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
 		env = new Environment();
 	}
@@ -74,7 +74,7 @@ class VCIValidateAuthorizationServerLocalesSyntax_UnitTest {
 	@Test
 	void acceptsNonCanonicalCaseHere() {
 		// Per RFC 5646 §2.1.1 language tags are case-insensitive; canonical casing is a
-		// convention. VCIWarnOnNonCanonicalAuthorizationServerLocales surfaces the warning.
+		// convention. CheckDiscEndpointLocalesCanonicalCasing surfaces the warning.
 		putServerMetadata("""
 			{
 			  "ui_locales_supported": ["EN-us"]
@@ -118,6 +118,18 @@ class VCIValidateAuthorizationServerLocalesSyntax_UnitTest {
 		putServerMetadata("""
 			{
 			  "ui_locales_supported": "en"
+			}
+			""");
+		assertThrows(ConditionError.class, () -> cond.execute(env));
+	}
+
+	@Test
+	void rejectsExplicitNull() {
+		// Some OPs (e.g. Authlete) set unsupported optional fields to JSON null rather than omitting
+		// them; null is not a valid array and is non-conformant, so it must be flagged, not accepted.
+		putServerMetadata("""
+			{
+			  "ui_locales_supported": null
 			}
 			""");
 		assertThrows(ConditionError.class, () -> cond.execute(env));

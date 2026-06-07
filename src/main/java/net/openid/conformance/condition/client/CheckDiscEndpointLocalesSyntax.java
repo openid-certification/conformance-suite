@@ -1,4 +1,4 @@
-package net.openid.conformance.vci10issuer.condition;
+package net.openid.conformance.condition.client;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -13,20 +13,18 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Validates {@code ui_locales_supported} and {@code claims_locales_supported} in
- * authorization server metadata. Each entry must be a well-formed BCP47 language tag
- * with subtags registered in the IANA Language Subtag Registry (via
- * {@link Bcp47SubtagRegistry}).
+ * Validates {@code ui_locales_supported} and {@code claims_locales_supported} in authorization
+ * server / OpenID Provider metadata. Each entry must be a well-formed BCP47 language tag with
+ * subtags registered in the IANA Language Subtag Registry (via {@link Bcp47SubtagRegistry}).
  *
- * <p>Defined by RFC 8414 section 2 / OpenID Connect Discovery section 3. Unlike the
- * OID4VCI {@code display.locale} validation in {@link VCIValidateDisplayLocales} the
- * uniqueness rule does not apply: duplicates are not spec-forbidden here.
+ * <p>Defined by RFC 8414 section 2 / OpenID Connect Discovery section 3. Duplicates are not
+ * spec-forbidden here, so unlike OID4VCI {@code display.locale} validation the uniqueness rule
+ * does not apply.
  *
- * <p>Non-canonical casing is conventional BCP47 style but not a validity issue per
- * RFC 5646; it is surfaced as a WARNING by
- * {@code VCIWarnOnNonCanonicalAuthorizationServerLocales} instead.
+ * <p>Non-canonical casing is conventional BCP47 style but not a validity issue per RFC 5646; it
+ * is surfaced as a WARNING by {@link CheckDiscEndpointLocalesCanonicalCasing} instead.
  */
-public class VCIValidateAuthorizationServerLocalesSyntax extends AbstractCondition {
+public class CheckDiscEndpointLocalesSyntax extends AbstractCondition {
 
 	@Override
 	@PreEnvironment(required = "server")

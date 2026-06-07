@@ -1,4 +1,4 @@
-package net.openid.conformance.vci10issuer.condition;
+package net.openid.conformance.condition.client;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -16,9 +16,9 @@ import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @ExtendWith(MockitoExtension.class)
-class VCIValidateAuthorizationServerScopesSupportedSyntax_UnitTest {
+class CheckDiscEndpointScopesSupportedSyntax_UnitTest {
 
-	private VCIValidateAuthorizationServerScopesSupportedSyntax cond;
+	private CheckDiscEndpointScopesSupportedSyntax cond;
 
 	private final TestInstanceEventLog eventLog = BsonEncoding.testInstanceEventLog();
 
@@ -26,7 +26,7 @@ class VCIValidateAuthorizationServerScopesSupportedSyntax_UnitTest {
 
 	@BeforeEach
 	void setUp() {
-		cond = new VCIValidateAuthorizationServerScopesSupportedSyntax();
+		cond = new CheckDiscEndpointScopesSupportedSyntax();
 		cond.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
 		env = new Environment();
 	}
@@ -77,6 +77,15 @@ class VCIValidateAuthorizationServerScopesSupportedSyntax_UnitTest {
 			{
 			  "scopes_supported": ["fo\\"o"]
 			}
+			""");
+		assertThrows(ConditionError.class, () -> cond.execute(env));
+	}
+
+	@Test
+	void rejectsExplicitNull() {
+		// null is non-conformant for the optional scopes_supported array and must be flagged.
+		putServerMetadata("""
+			{"scopes_supported": null}
 			""");
 		assertThrows(ConditionError.class, () -> cond.execute(env));
 	}

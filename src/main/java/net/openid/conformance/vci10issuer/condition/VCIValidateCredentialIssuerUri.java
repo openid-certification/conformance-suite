@@ -4,6 +4,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PreEnvironment;
+import net.openid.conformance.condition.util.IssuerUrlValidation;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 
@@ -25,7 +26,7 @@ public class VCIValidateCredentialIssuerUri extends AbstractCondition {
 		String iss = OIDFJSON.getString(credentialIssuerEl);
 
 		List<String> issues = new ArrayList<>();
-		VciIssuerUrlValidation.validate(iss, "credential_issuer", issues);
+		IssuerUrlValidation.validate(iss, "credential_issuer", issues);
 		if (!issues.isEmpty()) {
 			throw error("credential_issuer is not a valid Credential Issuer Identifier URL (OID4VCI 1.0 Final §12.2.1)",
 				args("credential_issuer", iss, "issues", issues));

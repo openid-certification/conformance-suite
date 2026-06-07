@@ -1,4 +1,4 @@
-package net.openid.conformance.vci10issuer.condition;
+package net.openid.conformance.condition.client;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -16,9 +16,9 @@ import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @ExtendWith(MockitoExtension.class)
-class VCIWarnOnNonCanonicalAuthorizationServerLocales_UnitTest {
+class CheckDiscEndpointLocalesCanonicalCasing_UnitTest {
 
-	private VCIWarnOnNonCanonicalAuthorizationServerLocales cond;
+	private CheckDiscEndpointLocalesCanonicalCasing cond;
 
 	private final TestInstanceEventLog eventLog = BsonEncoding.testInstanceEventLog();
 
@@ -26,7 +26,7 @@ class VCIWarnOnNonCanonicalAuthorizationServerLocales_UnitTest {
 
 	@BeforeEach
 	void setUp() {
-		cond = new VCIWarnOnNonCanonicalAuthorizationServerLocales();
+		cond = new CheckDiscEndpointLocalesCanonicalCasing();
 		cond.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.WARNING);
 		env = new Environment();
 	}

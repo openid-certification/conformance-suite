@@ -1,13 +1,14 @@
 package net.openid.conformance.sequence.client;
 
 import net.openid.conformance.condition.Condition.ConditionResult;
+import net.openid.conformance.condition.client.CheckDiscEndpointAllEndpointsAreHttps;
+import net.openid.conformance.condition.client.CheckDiscEndpointLocalesCanonicalCasing;
+import net.openid.conformance.condition.client.CheckDiscEndpointLocalesSyntax;
+import net.openid.conformance.condition.client.CheckDiscEndpointScopesSupportedSyntax;
 import net.openid.conformance.sequence.AbstractConditionSequence;
 import net.openid.conformance.vci10issuer.condition.CheckForUnexpectedParametersInAuthorizationServerMetadata;
 import net.openid.conformance.vci10issuer.condition.VCIAuthorizationServerMetadataValidation;
 import net.openid.conformance.vci10issuer.condition.VCIEnsureAuthorizationDetailsTypesSupportedContainOpenIdCredentialIfScopeIsMissing;
-import net.openid.conformance.vci10issuer.condition.VCIValidateAuthorizationServerLocalesSyntax;
-import net.openid.conformance.vci10issuer.condition.VCIValidateAuthorizationServerScopesSupportedSyntax;
-import net.openid.conformance.vci10issuer.condition.VCIWarnOnNonCanonicalAuthorizationServerLocales;
 
 /**
  * Shared VCI authorization server metadata checks. Reads the authorization
@@ -23,16 +24,19 @@ public class VCIDiscoveryEndpointChecks extends AbstractConditionSequence {
 		callAndContinueOnFailure(CheckForUnexpectedParametersInAuthorizationServerMetadata.class,
 			ConditionResult.WARNING, "OID4VCI-1FINAL-12.2.3", "OID4VCI-1FINAL-12.3");
 
+		callAndContinueOnFailure(CheckDiscEndpointAllEndpointsAreHttps.class,
+			ConditionResult.FAILURE, "RFC8414-2");
+
 		callAndContinueOnFailure(VCIEnsureAuthorizationDetailsTypesSupportedContainOpenIdCredentialIfScopeIsMissing.class,
 			ConditionResult.FAILURE, "OID4VCI-1FINAL-12.2.4-2.11.2.2");
 
-		callAndContinueOnFailure(VCIValidateAuthorizationServerScopesSupportedSyntax.class,
+		callAndContinueOnFailure(CheckDiscEndpointScopesSupportedSyntax.class,
 			ConditionResult.FAILURE, "RFC6749-3.3");
 
-		callAndContinueOnFailure(VCIValidateAuthorizationServerLocalesSyntax.class,
+		callAndContinueOnFailure(CheckDiscEndpointLocalesSyntax.class,
 			ConditionResult.FAILURE, "RFC8414-2");
 
-		callAndContinueOnFailure(VCIWarnOnNonCanonicalAuthorizationServerLocales.class,
+		callAndContinueOnFailure(CheckDiscEndpointLocalesCanonicalCasing.class,
 			ConditionResult.WARNING, "RFC8414-2");
 	}
 }

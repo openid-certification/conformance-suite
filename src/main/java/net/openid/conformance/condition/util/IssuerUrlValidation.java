@@ -1,4 +1,4 @@
-package net.openid.conformance.vci10issuer.condition;
+package net.openid.conformance.condition.util;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -8,14 +8,10 @@ import java.util.List;
  * Validates an RFC 8414 §2 issuer-identifier URL: it must be a syntactically valid URI using the
  * {@code https} scheme (case-insensitive per RFC 3986 §3.1), have a host component, and carry no
  * fragment, query, userinfo or out-of-range port.
- *
- * <p>Shared by {@link VCIValidateCredentialIssuerUri} (the {@code credential_issuer} identifier,
- * OID4VCI 1.0 Final §12.2.1) and {@link VCIValidateAuthorizationServersAreHttps} (each
- * {@code authorization_servers} entry, §12.2.3) so both apply identical rules.
  */
-final class VciIssuerUrlValidation {
+public final class IssuerUrlValidation {
 
-	private VciIssuerUrlValidation() {
+	private IssuerUrlValidation() {
 	}
 
 	/**
@@ -26,7 +22,7 @@ final class VciIssuerUrlValidation {
 	 *               or {@code "authorization_servers[0]"}
 	 * @param issues collector for human-readable problem descriptions
 	 */
-	static void validate(String value, String label, List<String> issues) {
+	public static void validate(String value, String label, List<String> issues) {
 		URI uri;
 		try {
 			uri = new URI(value);
