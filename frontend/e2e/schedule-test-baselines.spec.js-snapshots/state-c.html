@@ -39,6 +39,83 @@
                 </div>
             </div>
 
+            <!-- Guided→advanced prefill bridge (R8): shown when a resolved,
+                 undeclined, unadopted guided journey exists on entering
+                 advanced. Wired by the journey controller. -->
+            <div class="bridge-prompt" id="bridgePrompt" hidden="">
+                <cts-icon class="bp-icon" name="bulb" size="24" aria-hidden="true"><!----><style>
+        cts-icon {
+          /* inline-flex with center alignment guarantees the SVG sits at the
+             optical centre of the host box regardless of the parent's
+             line-height, font metrics, or whether the parent is a flex
+             container. Without this, the SVG (display: inline-block) inherits
+             the parent's line-box descender space and floats low. */
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          line-height: 0;
+        }
+        svg[data-cts-icon-size] {
+          display: block;
+          flex-shrink: 0;
+        }
+        svg[data-cts-icon-size="16"] {
+          width: var(--space-4);
+          height: var(--space-4);
+        }
+        svg[data-cts-icon-size="20"] {
+          width: var(--space-5);
+          height: var(--space-5);
+        }
+        svg[data-cts-icon-size="24"] {
+          width: var(--space-6);
+          height: var(--space-6);
+        }
+      </style>
+      <svg viewBox="0 0 24 24" aria-hidden="true" data-cts-icon-size="24">
+        <use href="/vendor/coolicons/icons/bulb.svg#i"></use>
+      </svg></cts-icon>
+                <div class="bp-body">
+                    <div class="bp-title">Prefill from your guided answers?</div>
+                    <div class="bp-sub" id="bridgeSub"></div>
+                </div>
+                <div class="bp-actions">
+                    <cts-button id="bridgeDeclineBtn" size="sm" variant="secondary" label="No thanks"><!----><button type="button" class="oidf-btn oidf-btn-sm oidf-btn-secondary"><!--?lit$NNNN$--><!--?lit$NNNN$--><!--?lit$NNNN$-->No thanks</button></cts-button>
+                    <cts-button id="bridgeAcceptBtn" size="sm" variant="primary" icon="check" label="Prefill"><!----><button type="button" class="oidf-btn oidf-btn-sm oidf-btn-primary"><!--?lit$NNNN$--><cts-icon aria-hidden="true" name="check" size="16"><!----><style>
+        cts-icon {
+          /* inline-flex with center alignment guarantees the SVG sits at the
+             optical centre of the host box regardless of the parent's
+             line-height, font metrics, or whether the parent is a flex
+             container. Without this, the SVG (display: inline-block) inherits
+             the parent's line-box descender space and floats low. */
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          line-height: 0;
+        }
+        svg[data-cts-icon-size] {
+          display: block;
+          flex-shrink: 0;
+        }
+        svg[data-cts-icon-size="16"] {
+          width: var(--space-4);
+          height: var(--space-4);
+        }
+        svg[data-cts-icon-size="20"] {
+          width: var(--space-5);
+          height: var(--space-5);
+        }
+        svg[data-cts-icon-size="24"] {
+          width: var(--space-6);
+          height: var(--space-6);
+        }
+      </style>
+      <svg viewBox="0 0 24 24" aria-hidden="true" data-cts-icon-size="16">
+        <use href="/vendor/coolicons/icons/check.svg#i"></use>
+      </svg></cts-icon><!--?lit$NNNN$--> <!--?lit$NNNN$-->Prefill</button></cts-button>
+                </div>
+            </div>
+
             <cts-test-selector id="planSearch"><!---->
       <div class="oidf-test-selector">
         <div class="oidf-test-selector__rail">
