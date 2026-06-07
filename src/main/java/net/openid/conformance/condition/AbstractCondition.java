@@ -802,7 +802,16 @@ public abstract class AbstractCondition implements Condition, DataUtils {
 		// the stuck request; the next request rebuilds the pool.
 		// See https://gitlab.com/openid/conformance-suite/-/work_items/1827
 		Runnable deadlineAbort = PooledConnectionManagers.isEnabled(env)
-			? () -> PooledConnectionManagers.evict(PooledConnectionManagers.identityKey(env, restrictAllowedTLSVersions))
+			? () -> {
+				// DIAGNOSTIC (into the test event log - the only channel readable from CI artifacts):
+				// record that the hard deadline fired and is about to evict the shared pooled manager,
+				// which aborts not just this request but every concurrent request sharing this identity.
+				String evictKey = PooledConnectionManagers.identityKey(env, restrictAllowedTLSVersions);
+				log("POOL-DIAG hard request deadline exceeded - evicting the shared pooled connection "
+						+ "manager (closes all its connections; aborts concurrent same-identity requests)",
+					args("tls_identity", evictKey));
+				PooledConnectionManagers.evict(evictKey, "deadline-abort");
+			}
 			: () -> ((CloseableHttpClient) httpClient).close(CloseMode.IMMEDIATE);
 		restTemplate.getInterceptors().add(new HttpRequestDeadlineInterceptor(deadlineAbort, getHttpClientTimeoutSeconds()));
 

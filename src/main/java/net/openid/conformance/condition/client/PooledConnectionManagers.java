@@ -7,8 +7,11 @@ import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
 import org.apache.hc.client5.http.socket.ConnectionSocketFactory;
 import org.apache.hc.core5.http.config.Registry;
 import org.apache.hc.core5.io.CloseMode;
+import org.apache.hc.core5.pool.PoolStats;
 import org.apache.hc.core5.util.TimeValue;
 import org.apache.hc.core5.util.Timeout;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -66,6 +69,8 @@ public final class PooledConnectionManagers {
 	/** Bound on the number of distinct identities pooled (defensive; opt-in CI configs have a handful). */
 	private static final int MAX_IDENTITIES = 128;
 
+	private static final Logger logger = LoggerFactory.getLogger(PooledConnectionManagers.class);
+
 	private static final Map<String, PoolingHttpClientConnectionManager> MANAGERS = new ConcurrentHashMap<>();
 	private static volatile ScheduledExecutorService idleEvictor;
 
@@ -98,7 +103,7 @@ public final class PooledConnectionManagers {
 		ensureIdleEvictor();
 		if (MANAGERS.size() >= MAX_IDENTITIES && !MANAGERS.containsKey(identityKey)) {
 			// Defensive cap: drop one existing identity rather than grow unbounded.
-			MANAGERS.keySet().stream().findFirst().ifPresent(PooledConnectionManagers::evict);
+			MANAGERS.keySet().stream().findFirst().ifPresent(k -> evict(k, "identity-cap"));
 		}
 		return MANAGERS.computeIfAbsent(identityKey, k -> factory.get());
 	}
@@ -144,10 +149,19 @@ public final class PooledConnectionManagers {
 	}
 
 	private static void evictIdleConnections() {
-		for (PoolingHttpClientConnectionManager m : MANAGERS.values()) {
+		for (Map.Entry<String, PoolingHttpClientConnectionManager> entry : MANAGERS.entrySet()) {
+			PoolingHttpClientConnectionManager m = entry.getValue();
 			try {
+				PoolStats before = m.getTotalStats();
 				m.closeExpired();
 				m.closeIdle(TimeValue.ofSeconds(IDLE_EVICT_SECONDS));
+				PoolStats after = m.getTotalStats();
+				// DIAGNOSTIC: log when the background sweep actually closes connections, and how many are
+				// leased (in-use) at that moment - to see whether the sweep races with active requests.
+				if (before.getAvailable() != after.getAvailable()) {
+					logger.warn("POOL-DIAG idle-sweep id={} available {}->{} leased={} pending={}",
+						entry.getKey(), before.getAvailable(), after.getAvailable(), after.getLeased(), after.getPending());
+				}
 			} catch (RuntimeException e) {
 				// Best-effort background sweep: never let one manager's failure stop the others.
 			}
@@ -160,15 +174,32 @@ public final class PooledConnectionManagers {
 	 * manager is how a stuck pooled request gets aborted; the next request rebuilds the pool).
 	 */
 	public static void evict(String identityKey) {
+		evict(identityKey, "manual");
+	}
+
+	/**
+	 * Close and forget the manager for {@code identityKey}. {@code close(IMMEDIATE)} aborts EVERY
+	 * connection the manager holds, including ones other concurrent requests (across other test modules
+	 * sharing this TLS identity) are mid-use on. The DIAGNOSTIC log makes the cause of any resulting
+	 * "Socket closed" / "Connection pool shut down" cascade unambiguous: {@code reason} = which trigger,
+	 * {@code leased} = how many in-use connections this close aborts, and a call-stack so we see exactly
+	 * who invoked it.
+	 */
+	public static void evict(String identityKey, String reason) {
 		PoolingHttpClientConnectionManager m = MANAGERS.remove(identityKey);
 		if (m != null) {
+			PoolStats st = m.getTotalStats();
+			logger.warn("POOL-DIAG evict reason={} id={} leased={} available={} pending={} thread={} "
+					+ "(leased>0 means this close aborts that many in-use requests)",
+				reason, identityKey, st.getLeased(), st.getAvailable(), st.getPending(),
+				Thread.currentThread().getName(), new Throwable("POOL-DIAG evict() call stack"));
 			m.close(CloseMode.IMMEDIATE);
 		}
 	}
 
 	/** Drop and close every pooled manager. Intended for test isolation. */
 	public static void clear() {
-		MANAGERS.keySet().forEach(PooledConnectionManagers::evict);
+		MANAGERS.keySet().forEach(k -> evict(k, "clear"));
 	}
 
 	/** For tests. */

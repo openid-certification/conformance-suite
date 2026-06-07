@@ -1,11 +1,14 @@
 package net.openid.conformance.logging;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpRequest;
 import org.springframework.http.client.ClientHttpRequestExecution;
 import org.springframework.http.client.ClientHttpRequestInterceptor;
 import org.springframework.http.client.ClientHttpResponse;
 
 import java.io.IOException;
+import java.net.URI;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -26,6 +29,8 @@ import java.util.concurrent.TimeUnit;
  * anyway). See https://gitlab.com/openid/conformance-suite/-/work_items/1827
  */
 public class HttpRequestDeadlineInterceptor implements ClientHttpRequestInterceptor {
+
+	private static final Logger logger = LoggerFactory.getLogger(HttpRequestDeadlineInterceptor.class);
 
 	private static final ScheduledThreadPoolExecutor SCHEDULER = createScheduler();
 
@@ -52,7 +57,14 @@ public class HttpRequestDeadlineInterceptor implements ClientHttpRequestIntercep
 
 	@Override
 	public ClientHttpResponse intercept(HttpRequest request, byte[] body, ClientHttpRequestExecution execution) throws IOException {
-		ScheduledFuture<?> abort = SCHEDULER.schedule(abortAction, deadlineSeconds, TimeUnit.SECONDS);
+		// DIAGNOSTIC: log if the deadline actually fires (this is the only trigger of the pooled-path
+		// evict that shuts a shared manager) so we can see whether it fires at all, and for which request.
+		final URI uri = request.getURI();
+		ScheduledFuture<?> abort = SCHEDULER.schedule(() -> {
+			logger.warn("POOL-DIAG deadline ({}s) EXCEEDED for {} on thread {} -> running abort action",
+				deadlineSeconds, uri, Thread.currentThread().getName());
+			abortAction.run();
+		}, deadlineSeconds, TimeUnit.SECONDS);
 		try {
 			return execution.execute(request, body);
 		} finally {
