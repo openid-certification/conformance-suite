@@ -5,6 +5,7 @@ import {
   expectNoUnmockedCalls,
 } from "./helpers/routes.js";
 import { MOCK_PLANS, MOCK_PLAN_NO_VARIANTS, MOCK_GUIDED_PLANS } from "./fixtures/mock-plans.js";
+import { MOCK_USER } from "./fixtures/mock-users.js";
 import { MOCK_PLAN_DETAIL } from "./fixtures/mock-test-data.js";
 
 const ALL_PLANS = [...MOCK_PLANS, MOCK_PLAN_NO_VARIANTS, ...MOCK_GUIDED_PLANS];
@@ -714,5 +715,165 @@ test.describe("schedule-test.html — wizard_preset replay + sibling loop", () =
     await expect(page.locator("#planDetailHeader")).toContainText("plan-brazil-dcr");
     await expect(page.locator("#alsoRequiredBanner")).toHaveCount(0);
     expect(await page.evaluate(() => sessionStorage.getItem("oidf-also-required"))).toBeNull();
+  });
+});
+
+test.describe("schedule-test.html — guided hardening (review followup)", () => {
+  test.afterEach(async ({ page }) => {
+    expectNoUnmockedCalls(page);
+  });
+
+  test("guest viewer (isGuest) gets the sign-in prompt, not the create button (R6)", async ({
+    page,
+  }) => {
+    await setupScheduleTestRoutes(page, { user: { ...MOCK_USER, isGuest: true } });
+    await page.goto("/schedule-test.html");
+    await walkKsaOpToReview(page);
+    await page.locator("#guidedStageActions").getByText("Configure this plan").click();
+
+    await expect(page.locator("#guidedSignInPrompt")).toBeVisible();
+    await expect(page.locator("#guidedCreateBtn")).toHaveCount(0);
+  });
+
+  test("storage-unavailable: guided default still boots and the toggle still switches (R7)", async ({
+    page,
+  }) => {
+    await page.addInitScript(() => {
+      Object.defineProperty(window, "localStorage", {
+        get() {
+          throw new DOMException("denied", "SecurityError");
+        },
+      });
+    });
+    await setupScheduleTestRoutes(page);
+    await page.goto("/schedule-test.html");
+
+    // Falls back to the guided default without persisting.
+    await expect(page.locator("#guidedIsland")).toBeVisible();
+    await page.locator("#modeAdvancedBtn").click();
+    await expect(page.locator("#scheduleTestPage")).toBeVisible();
+    // No persistence — a reload lands back on the guided default.
+    await page.reload();
+    await expect(page.locator("#guidedIsland")).toBeVisible();
+  });
+
+  test("bridge accept skips variant values the plan does not declare", async ({ page }) => {
+    // Serve a catalog where the KSA plan's sender_constrain lacks the
+    // tree's "mtls" value — the overlay must leave that select alone.
+    const plans = JSON.parse(
+      JSON.stringify([...MOCK_PLANS, MOCK_PLAN_NO_VARIANTS, ...MOCK_GUIDED_PLANS]),
+    );
+    const ksaPlan = plans.find((p) => p.planName === "fapi2-message-signing-final-test-plan");
+    delete ksaPlan.variants.sender_constrain.variantValues.mtls;
+    await setupScheduleTestRoutes(page, { plans });
+
+    await page.goto("/schedule-test.html");
+    await walkKsaOpToReview(page);
+    await page.locator("#modeAdvancedBtn").click();
+    await expect(page.locator("#bridgePrompt")).toBeVisible();
+    await page.locator("#bridgeAcceptBtn").click();
+
+    await expect(page.locator("#planSelect")).toHaveValue("fapi2-message-signing-final-test-plan");
+    // Declared values overlaid; the undeclared one left on the placeholder.
+    await expect(page.locator("#vp_client_auth_type")).toHaveValue("private_key_jwt");
+    await expect(page.locator("#vp_sender_constrain")).toHaveValue("select");
+  });
+
+  test("recovery drift: record for a plan gone from the catalog starts fresh, record cleared (R5)", async ({
+    page,
+  }) => {
+    await page.addInitScript(() => {
+      sessionStorage.setItem(
+        "oidf-guided-recovery",
+        JSON.stringify({
+          ecosystemId: "ksa",
+          answers: ["op", "pkjwt", "ksav2"],
+          planName: "fapi2-message-signing-final-test-plan",
+          config: { alias: "drifted" },
+          completedPlanNames: [],
+        }),
+      );
+    });
+    await setupScheduleTestRoutes(page, {
+      plans: [...MOCK_PLANS, MOCK_PLAN_NO_VARIANTS, ...MOCK_GUIDED_PLANS].filter(
+        (p) => p.planName !== "fapi2-message-signing-final-test-plan",
+      ),
+    });
+    await page.goto("/schedule-test.html");
+
+    await expect(page.locator("#guidedStage h1")).toHaveText(
+      "Which ecosystem are you certifying for?",
+    );
+    expect(await page.evaluate(() => sessionStorage.getItem("oidf-guided-recovery"))).toBeNull();
+  });
+
+  test("wizard_preset full trail to a plan absent from the catalog dead-ends (R4+R13)", async ({
+    page,
+  }) => {
+    const preset = {
+      ecosystemId: "ksa",
+      answers: ["op", "pkjwt", "ksav2"],
+      completedPlanNames: [],
+    };
+    await setupScheduleTestRoutes(page, {
+      plans: [...MOCK_PLANS, MOCK_PLAN_NO_VARIANTS, ...MOCK_GUIDED_PLANS].filter(
+        (p) => p.planName !== "fapi2-message-signing-final-test-plan",
+      ),
+    });
+    await page.goto(
+      "/schedule-test.html?wizard_preset=" + encodeURIComponent(JSON.stringify(preset)),
+    );
+
+    await expect(page.locator("#guidedStage h1")).toHaveText(
+      "This path isn't available on this server",
+    );
+    await expect(page.locator("#guidedDeadEndEscape")).toBeVisible();
+    expect(new URL(page.url()).searchParams.get("wizard_preset")).toBeNull();
+  });
+
+  test("guided beforeunload fires when the config is dirty (positive case)", async ({ page }) => {
+    await setupScheduleTestRoutes(page);
+    await page.goto("/schedule-test.html");
+    await walkKsaOpToReview(page);
+    await page.locator("#guidedStageActions").getByText("Configure this plan").click();
+    await page.locator("#guidedConfigForm").getByLabel("alias", { exact: true }).fill("dirty");
+
+    const dialogPromise = page.waitForEvent("dialog");
+    await page.close({ runBeforeUnload: true });
+    const dialog = await dialogPromise;
+    expect(dialog.type()).toBe("beforeunload");
+    await dialog.accept();
+  });
+
+  test("a fresh ecosystem pick resets the completedPlanNames ledger (R14)", async ({ page }) => {
+    // Replay with DCR already completed, then backtrack to the ecosystem
+    // screen and start over: the FAPI plan's bundle must re-offer DCR.
+    const preset = {
+      ecosystemId: "open_finance_brazil",
+      answers: ["op"],
+      completedPlanNames: ["fapi1-advanced-final-brazil-dcr-test-plan"],
+    };
+    await setupScheduleTestRoutes(page);
+    await page.goto(
+      "/schedule-test.html?wizard_preset=" + encodeURIComponent(JSON.stringify(preset)),
+    );
+    await expect(page.locator("#guidedStage h1")).toContainText("Which certification plan");
+
+    // Backtrack to the ecosystem screen (chip idx -1), then walk fresh.
+    await page.locator("#guidedTrail .chip").first().click();
+    await expect(page.locator("#guidedStage h1")).toHaveText(
+      "Which ecosystem are you certifying for?",
+    );
+    await pickChoice(page, "open_finance_brazil");
+    await pickChoice(page, "op");
+    await pickChoice(page, "fapi1_brazil_op");
+
+    // The stale ledger is gone: DCR is offered again in the bundle.
+    await expect(page.locator("#guidedStage h1")).toHaveText(
+      "This certification needs 2 test plans",
+    );
+    await expect(page.locator("#guidedStage .bundle-list")).toContainText(
+      "Dynamic Client Registration",
+    );
   });
 });

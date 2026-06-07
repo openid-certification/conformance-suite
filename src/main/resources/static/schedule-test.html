@@ -1957,6 +1957,8 @@
 
         function tryGetStorage(type) {
             // simple check to see whether browser storage is usable
+            // Keep in sync with tryGetStorage in /components/guided-wizard.js —
+            // this classic script cannot import the module's copy.
             try {
                 var storage = window[type];
                 var x = '__storage_test__';
