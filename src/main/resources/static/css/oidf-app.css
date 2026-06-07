@@ -169,6 +169,19 @@ cts-link-button > a:focus,
      iframes, SSR snapshots). */
   padding-bottom: calc(var(--cts-action-bar-height, 80px) + var(--space-5));
 }
+
+/* R15 footer clearance: the footer sits AFTER <main> in document flow, so
+   the .schedule-test-page reservation above cannot keep it out from under
+   the viewport-pinned action bar — at maximum scroll the footer's bottom is
+   the document's bottom, squarely behind the opaque bar. Give the footer
+   itself bottom clearance equal to the bar's published height so it rests
+   fully above the bar instead. Self-scoping: pages without a bottom action
+   bar never set --cts-action-bar-height, so this resolves to 0px there.
+   (Measured outcome at 1440px and 390px: footer bottom lands exactly on the
+   bar's top edge at max scroll — both fully visible, no overlap.) */
+cts-footer .oidf-footer {
+  margin-bottom: var(--cts-action-bar-height, 0px);
+}
 .schedule-test-page > h2 {
   margin: 0 0 var(--space-6);
 }
