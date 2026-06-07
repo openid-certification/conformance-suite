@@ -613,6 +613,11 @@ export function replayAnswers(ecosystemId, answerIds, tree = GUIDED_WIZARD_TREE)
  *   fetch error / Response for normalizeCreateError.
  * @property {(error: unknown) => Promise<{code: string, message: string}>} [normalizeCreateError] -
  *   The page's shared error normalizer (same one the advanced modal uses).
+ * @property {() => void} [revealPlanSelection] - The page's shared arrival
+ *   cue: scroll the spec cascade into view, flash the selection group once
+ *   the scroll settles, focus the first variant select. Called after a
+ *   bridge prefill so accepting reads exactly like picking the plan from
+ *   the search list.
  * @property {Storage|null} [session] - sessionStorage (or test double) for
  *   the recovery + handoff records.
  */
@@ -1557,6 +1562,10 @@ export function startGuidedJourney(modeController, deps) {
     const variantForm = document.getElementById("variantSelectors");
     if (variantForm) variantForm.dispatchEvent(new Event("change"));
     hideBridge();
+    // Same arrival cue as picking the plan from the search list: scroll the
+    // cascade into view, flash the selection group, focus the first variant.
+    // After hideBridge() so the rAF inside measures the post-hide layout.
+    if (deps.revealPlanSelection) deps.revealPlanSelection();
     announce(`Prefilled from your guided answers: ${plan.displayName || resolved.plan_name}.`);
   }
 
