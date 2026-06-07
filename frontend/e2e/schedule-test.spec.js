@@ -6,6 +6,20 @@ import { MOCK_PLANS, MOCK_PLAN_NO_VARIANTS } from "./fixtures/mock-plans.js";
 const ALL_PLANS = [...MOCK_PLANS, MOCK_PLAN_NO_VARIANTS];
 
 test.describe("schedule-test.html — Test Plan Scheduling", () => {
+  test.beforeEach(async ({ page }) => {
+    // Every test in this file exercises the advanced island. Guided is the
+    // page default, so force the stored mode preference up front (the same
+    // retrofit MR !2029 applied). Guided-mode behavior is covered by
+    // schedule-test-guided.spec.js.
+    await page.addInitScript(() => {
+      try {
+        localStorage.setItem("oidf-guided-mode", "advanced");
+      } catch {
+        /* storage unavailable — the test will surface it */
+      }
+    });
+  });
+
   test.afterEach(async ({ page }) => {
     expectNoUnmockedCalls(page);
   });

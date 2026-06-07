@@ -81,6 +81,10 @@ test.describe("schedule-test.html — baselines", () => {
       try {
         localStorage.clear();
         sessionStorage.clear();
+        // These baselines snapshot the advanced island (#scheduleTestPage).
+        // Guided is the page default, so force the stored mode preference —
+        // the same retrofit MR !2029 applied to its advanced-surface specs.
+        localStorage.setItem("oidf-guided-mode", "advanced");
       } catch {
         /* storage access can throw on file: URLs; ignore */
       }

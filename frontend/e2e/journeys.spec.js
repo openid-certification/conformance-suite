@@ -12,6 +12,19 @@ import { MOCK_LOG_ENTRIES } from "./fixtures/mock-log-entries.js";
 const ALL_PLANS = [...MOCK_PLANS, MOCK_PLAN_NO_VARIANTS];
 
 test.describe("Cross-page journeys", () => {
+  test.beforeEach(async ({ page }) => {
+    // The schedule-test legs of these journeys drive the advanced island.
+    // Guided is the page default, so force the stored mode preference (the
+    // key is read only by schedule-test.html — harmless on other pages).
+    await page.addInitScript(() => {
+      try {
+        localStorage.setItem("oidf-guided-mode", "advanced");
+      } catch {
+        /* storage unavailable — the test will surface it */
+      }
+    });
+  });
+
   test.afterEach(async ({ page }) => {
     expectNoUnmockedCalls(page);
   });

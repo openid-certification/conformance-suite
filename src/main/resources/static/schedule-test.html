@@ -76,9 +76,81 @@
         window.__resolveConfigFormAdapterReady();
     </script>
 
+    <script>
+        // Same promise-shim pattern as __configFormAdapterReady above: the
+        // inline DOMContentLoaded init chain must learn the resolved
+        // Guided | Advanced mode from the guided-wizard ES module before
+        // deciding whether to run the advanced hydration steps (R9).
+        window.__guidedModeReady = new Promise(function (resolve) {
+            window.__resolveGuidedModeReady = resolve;
+        });
+    </script>
+
+    <style>
+        /* ── Guided | Advanced mode header ──────────────────────────── */
+        .schedule-test-mode-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: var(--space-4);
+            flex-wrap: wrap;
+            margin-bottom: var(--space-4);
+        }
+        .schedule-test-mode-head__title {
+            margin: 0;
+            font-size: var(--fs-15);
+            color: var(--fg-soft);
+            font-weight: var(--fw-medium);
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+        .mode-toggle {
+            display: inline-flex;
+            background: var(--bg-muted);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-3);
+            padding: var(--space-1);
+            gap: var(--space-1);
+            flex: none;
+            box-sizing: border-box;
+        }
+        .mode-toggle__btn {
+            appearance: none;
+            border: 0;
+            background: transparent;
+            color: var(--fg-muted);
+            font: inherit;
+            font-size: var(--fs-13);
+            font-weight: var(--fw-medium);
+            padding: var(--space-2) var(--space-4);
+            border-radius: var(--radius-2);
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: var(--space-2);
+            box-sizing: border-box;
+            transition: background-color 120ms ease, color 120ms ease;
+        }
+        .mode-toggle__btn[aria-pressed="true"] {
+            background: var(--bg-elev);
+            color: var(--fg);
+            box-shadow: var(--shadow-1);
+        }
+        .mode-toggle__btn:focus-visible { outline: var(--focus-ring); outline-offset: 2px; }
+
+        /* The two state islands. [hidden] needs the !important because some
+           descendants (cts-action-bar) set their own display. */
+        #guidedIsland[hidden],
+        #scheduleTestPage[hidden] { display: none !important; }
+        #guidedIsland:focus,
+        #scheduleTestPage:focus { outline: none; }
+
+        .sr-only { position: absolute; clip-path: inset(50%); width: 1px; height: 1px; overflow: hidden; }
+    </style>
+
 </head>
 <body>
-    <a class="oidf-skip-link" href="#scheduleTestPage">Skip to main content</a>
+    <a class="oidf-skip-link" href="#main-content">Skip to main content</a>
 
     <cts-navbar current-page="create-test"></cts-navbar>
 
@@ -94,8 +166,36 @@
     </cts-modal>
 
 
-    <main class="schedule-test-page" id="main-content">
-        <div id="scheduleTestPage">
+    <main class="schedule-test-page" id="main-content" tabindex="-1">
+
+        <!-- Persistent Guided | Advanced mode toggle. The two islands below
+             are independent state surfaces; switching only flips visibility
+             (never resets either island, R8). Mode resolution + persistence
+             live in /components/guided-wizard.js (booted below). -->
+        <div class="schedule-test-mode-head">
+            <p class="schedule-test-mode-head__title">Schedule a test plan</p>
+            <div class="mode-toggle" role="group" aria-label="Selection mode">
+                <button type="button" class="mode-toggle__btn" id="modeGuidedBtn" aria-pressed="false">
+                    <cts-icon name="bulb" size="16" aria-hidden="true"></cts-icon> Guided
+                </button>
+                <button type="button" class="mode-toggle__btn" id="modeAdvancedBtn" aria-pressed="false">
+                    <cts-icon name="settings" size="16" aria-hidden="true"></cts-icon> Advanced
+                </button>
+            </div>
+        </div>
+
+        <!-- ══ GUIDED ISLAND — the guided certification journey ════════ -->
+        <div id="guidedIsland" tabindex="-1" hidden>
+            <ol class="cert-progress" id="guidedProgress" aria-label="Guided setup progress"></ol>
+            <nav class="cert-trail" id="guidedTrail" aria-label="Your answers"></nav>
+            <section class="guided-stage" id="guidedStage" tabindex="-1">
+                <h1 tabindex="-1">Guided setup</h1>
+            </section>
+            <div aria-live="polite" class="sr-only" id="guidedLiveRegion"></div>
+        </div>
+
+        <!-- ══ ADVANCED ISLAND — the classic schedule-test surface ═════ -->
+        <div id="scheduleTestPage" tabindex="-1">
 
             <div class="schedule-test-header">
                 <p class="schedule-test-instructions">Please see <a href="https://openid.net/certification/instructions/">OpenID Foundation Certification Instructions</a>.</p>
@@ -148,6 +248,21 @@
             </cts-modal>
         </div>
     </main>
+
+    <script type="module">
+        // Boot the Guided | Advanced mode controller. Dynamic import inside
+        // try/catch so a failed module load degrades to today's advanced
+        // page (the advanced island is the markup default) instead of
+        // hanging the init chain on an unresolved __guidedModeReady.
+        let guidedModeController;
+        try {
+            const mod = await import("/components/guided-wizard.js");
+            guidedModeController = mod.bootGuidedMode();
+        } catch (e) {
+            console.error("[schedule-test] guided-wizard module failed to load; staying in advanced mode", e);
+        }
+        window.__resolveGuidedModeReady(guidedModeController);
+    </script>
 
     <script type="text/javascript">
         // currentConfig is the page's working copy of the test plan config.
@@ -230,11 +345,23 @@
             }).then(function() {
                 return loadScheduleTestPage();
             }).then(function() {
-                return applyConfigPreset();
-            }).then(function() {
-                return restoreEditPlanVariants();
-            }).then(function() {
-                return applyConfigJsonParam();
+                // R9 mode gate: when the boot decision is guided, the
+                // advanced hydration steps are skipped entirely — running
+                // them would mutate the hidden advanced island and diverge
+                // currentConfig from what the guided journey shows. The
+                // boot decision (not the live mode) is authoritative here:
+                // URL params are fixed at load time. A failed module load
+                // resolves to undefined → advanced hydration runs as today.
+                return window.__guidedModeReady.then(function(guidedCtl) {
+                    if (guidedCtl && guidedCtl.initialMode === 'guided') {
+                        return;
+                    }
+                    return applyConfigPreset().then(function() {
+                        return restoreEditPlanVariants();
+                    }).then(function() {
+                        return applyConfigJsonParam();
+                    });
+                });
             }).finally(function() {
                 // Clear the test selector's in-list loader once init settles —
                 // success or failure — so the plan rows reveal exactly when the
