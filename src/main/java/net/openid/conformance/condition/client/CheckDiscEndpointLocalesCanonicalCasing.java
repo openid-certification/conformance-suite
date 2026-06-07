@@ -1,4 +1,4 @@
-package net.openid.conformance.vci10issuer.condition;
+package net.openid.conformance.condition.client;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -12,16 +12,16 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Surfaces {@code ui_locales_supported} / {@code claims_locales_supported} entries whose
- * casing deviates from the BCP47 convention. See {@link VCIWarnOnNonCanonicalDisplayLocales}
- * for the rationale — non-canonical casing is not a validity issue per RFC 5646 §2.1.1
- * but in practice almost always indicates an implementer typo.
+ * Surfaces {@code ui_locales_supported} / {@code claims_locales_supported} entries whose casing
+ * deviates from the BCP47 convention (lowercase language subtag, Title-case script, uppercase
+ * region). Non-canonical casing is not a validity issue per RFC 5646 §2.1.1, but in practice
+ * almost always indicates an implementer typo.
  *
  * <p>Wired in separately so the caller can choose WARNING severity; the underlying
- * {@link VCIValidateAuthorizationServerLocalesSyntax} stays a FAILURE for well-formedness
- * and subtag-registry membership.
+ * {@link CheckDiscEndpointLocalesSyntax} stays a FAILURE for well-formedness and subtag-registry
+ * membership.
  */
-public class VCIWarnOnNonCanonicalAuthorizationServerLocales extends AbstractCondition {
+public class CheckDiscEndpointLocalesCanonicalCasing extends AbstractCondition {
 
 	@Override
 	@PreEnvironment(required = "server")

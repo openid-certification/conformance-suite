@@ -5,6 +5,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PreEnvironment;
+import net.openid.conformance.condition.util.IssuerUrlValidation;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 
@@ -44,7 +45,7 @@ public class VCIValidateAuthorizationServersAreHttps extends AbstractCondition {
 				issues.add(String.format("authorization_servers[%d]: expected string, got %s", i, entry));
 				continue;
 			}
-			VciIssuerUrlValidation.validate(OIDFJSON.getString(entry), String.format("authorization_servers[%d]", i), issues);
+			IssuerUrlValidation.validate(OIDFJSON.getString(entry), String.format("authorization_servers[%d]", i), issues);
 		}
 
 		if (!issues.isEmpty()) {

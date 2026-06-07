@@ -1,4 +1,4 @@
-package net.openid.conformance.vci10issuer.condition;
+package net.openid.conformance.condition.client;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -13,9 +13,11 @@ import java.util.List;
 
 /**
  * Validates that each entry in the authorization server metadata's {@code scopes_supported}
- * is a valid RFC 6749 §A.4 scope-token (visible ASCII, no SP / DQUOTE / BACKSLASH).
+ * is a valid RFC 6749 Appendix A.4 scope-token (visible ASCII, no SP / DQUOTE / BACKSLASH).
+ * {@code scopes_supported} is OPTIONAL (RFC 8414 §2 / OpenID Connect Discovery §3); its
+ * absence is not an error.
  */
-public class VCIValidateAuthorizationServerScopesSupportedSyntax extends AbstractCondition {
+public class CheckDiscEndpointScopesSupportedSyntax extends AbstractCondition {
 
 	@Override
 	@PreEnvironment(required = "server")
@@ -39,8 +41,9 @@ public class VCIValidateAuthorizationServerScopesSupportedSyntax extends Abstrac
 				continue;
 			}
 			String scope = OIDFJSON.getString(element);
-			if (!ScopeTokenSyntaxUtil.isValidScopeToken(scope)) {
-				issues.add(String.format("scopes_supported[%d]: '%s' is not a valid RFC 6749 §A.4 scope-token", i, scope));
+			String syntaxError = ScopeTokenSyntaxUtil.scopeTokenSyntaxError(scope);
+			if (syntaxError != null) {
+				issues.add(String.format("scopes_supported[%d]: '%s' %s", i, scope, syntaxError));
 			}
 		}
 
