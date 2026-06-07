@@ -40,7 +40,7 @@
  */
 
 import { GUIDED_WIZARD_TREE } from "./guided-wizard-tree.js";
-import { buildConfigFormSchema } from "./config-form-adapter.js";
+import { buildConfigFormSchema, computeHiddenFields } from "./config-form-adapter.js";
 
 /** localStorage key for the persistent mode preference (MR !2029 parity). */
 export const MODE_STORAGE_KEY = "oidf-guided-mode";
@@ -51,6 +51,15 @@ export const MODE_STORAGE_KEY = "oidf-guided-mode";
  * reload re-enter guided at the config step (R5).
  */
 export const RECOVERY_STORAGE_KEY = "oidf-guided-recovery";
+
+/**
+ * sessionStorage key for the post-create handoff record (MR !2029 parity).
+ * Written after a successful guided create whose tree node still has
+ * remaining `also_required` siblings; consumed once by plan-detail.html to
+ * render the "finish your certification" banner (R12). The
+ * `completedPlanNames` ledger inside it terminates the sibling loop (R14).
+ */
+export const HANDOFF_STORAGE_KEY = "oidf-also-required";
 
 /**
  * Probe whether a browser storage area is usable (same probe as the page's
@@ -272,8 +281,9 @@ const PARAM_DISPLAY = {
 
 /**
  * Human section blurbs for config groups, keyed by catalog section key (with
- * a title fallback). Consumed by the guided config step as section intros on
- * top of the adapter-built uiSchema.
+ * a title fallback). Carried from prototype 4 for the guided config step;
+ * `cts-config-form` does not currently render per-section intros, so these
+ * are exported-but-unconsumed until the component grows that capability.
  * @type {Record<string, string>}
  */
 export const SECTION_HINTS = {
@@ -504,6 +514,44 @@ export function filterResolvableSiblings(result, ecosystem, availablePlans) {
   return out;
 }
 
+/**
+ * Best-effort replay of a recorded answer trail against the live tree.
+ * Pure. Each hop is validated; the first unresolvable hop stops the walk
+ * with the valid prefix intact, so callers drop the user at the last valid
+ * step instead of erroring (R13 — the tree may have changed since the trail
+ * was recorded). Used by both the create-failure recovery restore (R5) and
+ * the `wizard_preset` replay (R13).
+ *
+ * @param {string} ecosystemId
+ * @param {string[]} answerIds - Choice ids in journey order.
+ * @param {import("./guided-wizard-tree.js").WizardTree} [tree]
+ * @returns {{ecosystem: import("./guided-wizard-tree.js").WizardEcosystem, path: JourneyAnswer[], result: import("./guided-wizard-tree.js").WizardResult|null}|null}
+ *   `null` when the ecosystem id itself doesn't resolve.
+ */
+export function replayAnswers(ecosystemId, answerIds, tree = GUIDED_WIZARD_TREE) {
+  const ecosystem = tree.ecosystems.find((e) => e.id === ecosystemId) || null;
+  if (!ecosystem || !ecosystem.steps[0]) return null;
+  /** @type {JourneyAnswer[]} */
+  const path = [];
+  /** @type {import("./guided-wizard-tree.js").WizardStep|null} */
+  let step = ecosystem.steps[0];
+  /** @type {import("./guided-wizard-tree.js").WizardResult|null} */
+  let result = null;
+  for (const id of answerIds) {
+    if (!step) break; // trailing ids past a leaf — ignore the rest
+    const choice = step.choices.find((c) => c.id === id);
+    if (!choice) break; // first unresolvable hop — stop at the last valid step
+    path.push({ stepId: step.id, question: step.question, choice });
+    if (choice.result) {
+      result = choice.result;
+      step = null;
+    } else {
+      step = choice.next || null;
+    }
+  }
+  return { ecosystem, path, result };
+}
+
 // ════════════════════════════════════════════════════════════════════
 //  Guided journey — controller
 // ════════════════════════════════════════════════════════════════════
@@ -520,6 +568,15 @@ export function filterResolvableSiblings(result, ecosystem, availablePlans) {
  * @property {Record<string, any>} availablePlans - FAPI_UI.availablePlans
  *   (live catalog keyed by planName).
  * @property {object|null} fieldCatalog - The page's vendored field catalog.
+ * @property {() => object|undefined} [getCurrentUser] - Returns
+ *   FAPI_UI.currentUser; absent/undefined means anonymous (R6).
+ * @property {(planName: string, variant: Record<string, string>, config: object) => Promise<{id: string}>} [createPlan] -
+ *   The page's shared create helper (POST /api/plan). Rejects with the raw
+ *   fetch error / Response for normalizeCreateError.
+ * @property {(error: unknown) => Promise<{code: string, message: string}>} [normalizeCreateError] -
+ *   The page's shared error normalizer (same one the advanced modal uses).
+ * @property {Storage|null} [session] - sessionStorage (or test double) for
+ *   the recovery + handoff records.
  */
 
 /**
@@ -537,6 +594,7 @@ export function startGuidedJourney(modeController, deps) {
   const progressEl = mustGet("guidedProgress");
   const liveEl = mustGet("guidedLiveRegion");
   const actionBar = mustGet("guidedStageActions");
+  const session = deps.session !== undefined ? deps.session : tryGetStorage("sessionStorage");
 
   /**
    * Journey state. A journey is: ecosystem → tree path → [bundle preview] →
@@ -553,10 +611,105 @@ export function startGuidedJourney(modeController, deps) {
     /** @type {import("./guided-wizard-tree.js").WizardResult|null} */
     result: null,
     bundleSeen: false,
+    /** @type {object} Guided config island — never the page's currentConfig. */
+    configValues: {},
+    /** @type {string[]} Plans already created this certification (R14 ledger). */
+    completedPlanNames: [],
   };
 
   /** @param {string} name @returns {any|null} */
   const planByName = (name) => deps.availablePlans[name] || null;
+
+  /**
+   * Siblings still owed for this certification: resolvable against tree +
+   * catalog (R4) AND not already completed (R14).
+   * @param {import("./guided-wizard-tree.js").WizardResult} result
+   */
+  const remainingSiblings = (result) =>
+    filterResolvableSiblings(
+      result,
+      /** @type {import("./guided-wizard-tree.js").WizardEcosystem} */ (state.ecosystem),
+      deps.availablePlans,
+    ).filter((s) => !state.completedPlanNames.includes(s.planName));
+
+  // ── Guided-only dirty check (R11/R5) ───────────────────────────────
+  // The page's cts-unsaved-changes-guard stays scoped to the ADVANCED form
+  // (its beforeunload + link-click interceptors are global; pointing it at
+  // guided would pop "Leave page?" on intra-journey clicks). Guided gets
+  // this lightweight beforeunload-only check instead: armed by config
+  // edits, disarmed before the create redirect and on any journey
+  // backtrack. Guided internal navigation is button-based, so no link
+  // interceptor is needed.
+  let guidedDirty = false;
+  window.addEventListener("beforeunload", (e) => {
+    if (guidedDirty && modeController.getMode() === "guided") {
+      e.preventDefault();
+    }
+  });
+
+  function clearRecoveryRecord() {
+    if (session) session.removeItem(RECOVERY_STORAGE_KEY);
+  }
+
+  /** Snapshot the journey + config before the create POST (R5). */
+  function writeRecoveryRecord() {
+    if (!session || !state.ecosystem || !state.result) return;
+    try {
+      session.setItem(
+        RECOVERY_STORAGE_KEY,
+        JSON.stringify({
+          ecosystemId: state.ecosystem.id,
+          answers: state.path.map((a) => a.choice.id),
+          planName: state.result.plan_name,
+          config: state.configValues,
+          completedPlanNames: state.completedPlanNames,
+        }),
+      );
+    } catch {
+      // Quota/serialization failure — recovery is best-effort; the create
+      // itself must not be blocked by it.
+    }
+  }
+
+  /**
+   * After a successful create with siblings remaining, hand the loop over
+   * to plan-detail (R12/R14). With nothing remaining, any stale record is
+   * cleared so the banner cannot resurrect a finished loop.
+   * @param {string} planId
+   */
+  function writeHandoffRecord(planId) {
+    if (!session || !state.ecosystem || !state.result) return;
+    const completed = [...state.completedPlanNames, state.result.plan_name];
+    const remaining = remainingSiblings(state.result).filter(
+      (s) => !completed.includes(s.planName),
+    );
+    try {
+      if (!remaining.length) {
+        session.removeItem(HANDOFF_STORAGE_KEY);
+        return;
+      }
+      session.setItem(
+        HANDOFF_STORAGE_KEY,
+        JSON.stringify({
+          planId,
+          ecosystemId: state.ecosystem.id,
+          ecosystemLabel: state.ecosystem.label,
+          // The preset replays the journey UP TO the question that picks
+          // the plan — the final leaf-resolving answer is dropped so the
+          // user lands where they choose the next sibling (R13).
+          preset: {
+            ecosystemId: state.ecosystem.id,
+            answers: state.path.slice(0, -1).map((a) => a.choice.id),
+            completedPlanNames: completed,
+          },
+          remainingSiblings: remaining,
+          completedPlanNames: completed,
+        }),
+      );
+    } catch {
+      // Best-effort: losing the banner must not break the redirect.
+    }
+  }
 
   /** Per-plan decline memory for the guided→advanced prefill bridge (R8). */
   const bridgeDeclinedFor = new Set();
@@ -662,12 +815,17 @@ export function startGuidedJourney(modeController, deps) {
   /**
    * Clicking a chip: backtrack to that answer's step. idx === -1 means the
    * ecosystem chip → back to the ecosystem picker. Everything downstream
-   * resets (result, bundle flag, config state).
+   * resets (result, bundle flag, config state) — including the recovery
+   * record: a journey mutation invalidates the snapshot, otherwise a later
+   * reload would restore an attempt the user already abandoned.
    * @param {number} idx
    */
   function backtrackTo(idx) {
     state.result = null;
     state.bundleSeen = false;
+    state.configValues = {};
+    guidedDirty = false;
+    clearRecoveryRecord();
     if (idx === -1) {
       state.ecosystem = null;
       state.path = [];
@@ -691,11 +849,7 @@ export function startGuidedJourney(modeController, deps) {
     if (
       state.phase === "review" &&
       state.result &&
-      filterResolvableSiblings(
-        state.result,
-        /** @type {import("./guided-wizard-tree.js").WizardEcosystem} */ (state.ecosystem),
-        deps.availablePlans,
-      ).length &&
+      remainingSiblings(state.result).length &&
       state.bundleSeen
     ) {
       state.phase = "bundle";
@@ -926,12 +1080,7 @@ export function startGuidedJourney(modeController, deps) {
       return;
     }
     announce(`Resolved to ${plan.displayName || result.plan_name}.`);
-    const siblings = filterResolvableSiblings(
-      result,
-      /** @type {import("./guided-wizard-tree.js").WizardEcosystem} */ (state.ecosystem),
-      deps.availablePlans,
-    );
-    state.phase = siblings.length && !state.bundleSeen ? "bundle" : "review";
+    state.phase = remainingSiblings(result).length && !state.bundleSeen ? "bundle" : "review";
     renderCurrent("forward");
   }
 
@@ -964,11 +1113,7 @@ export function startGuidedJourney(modeController, deps) {
   function renderBundleStep() {
     const result = /** @type {import("./guided-wizard-tree.js").WizardResult} */ (state.result);
     const selfPlan = planByName(result.plan_name);
-    const siblings = filterResolvableSiblings(
-      result,
-      /** @type {import("./guided-wizard-tree.js").WizardEcosystem} */ (state.ecosystem),
-      deps.availablePlans,
-    );
+    const siblings = remainingSiblings(result);
     const total = siblings.length + 1;
     stage.innerHTML = `
       <p class="stage-eyebrow">${esc(state.ecosystem ? state.ecosystem.label : "")}</p>
@@ -1018,11 +1163,7 @@ export function startGuidedJourney(modeController, deps) {
     const result = /** @type {import("./guided-wizard-tree.js").WizardResult} */ (state.result);
     const plan = planByName(result.plan_name);
     const variants = result.variants;
-    const siblings = filterResolvableSiblings(
-      result,
-      /** @type {import("./guided-wizard-tree.js").WizardEcosystem} */ (state.ecosystem),
-      deps.availablePlans,
-    );
+    const siblings = remainingSiblings(result);
 
     const variantRows = Object.entries(variants)
       .map(([param, val]) => {
@@ -1122,23 +1263,142 @@ export function startGuidedJourney(modeController, deps) {
     ]);
   }
 
-  // ── STEP: config (real cts-config-form + create — completed in U4) ──
+  // ── STEP: config (real cts-config-form + real create) ──────────────
   function renderConfigStep() {
     const result = /** @type {import("./guided-wizard-tree.js").WizardResult} */ (state.result);
     const plan = planByName(result.plan_name);
+    const signedIn = !!(deps.getCurrentUser && deps.getCurrentUser());
     stage.innerHTML = `
       <p class="stage-eyebrow">${esc(plan ? plan.displayName : "")}</p>
       <h1 tabindex="-1">Configure your test</h1>
-      <p class="stage-lede">Fill in the endpoints and keys for your deployment, then create the plan.</p>
-      <div id="guidedConfigMount"></div>`;
+      <p class="stage-lede">Fill in the endpoints and keys for your deployment, then create the plan. Use the JSON tab to paste a whole configuration at once.</p>
+      <div id="guidedConfigError" hidden></div>
+      ${
+        signedIn
+          ? ""
+          : `<cts-alert variant="info" id="guidedSignInPrompt">
+               You're browsing as a guest. <a href="/login.html">Sign in</a> to create this test plan — everything above stays free to explore.
+             </cts-alert>`
+      }
+      <cts-config-form id="guidedConfigForm"></cts-config-form>`;
+
+    const form = /** @type {any} */ (document.getElementById("guidedConfigForm"));
+    if (form && plan && deps.fieldCatalog) {
+      // Same adapter pipeline as the advanced island, but bound to the
+      // guided island's own form instance and config mirror — never the
+      // page's #ctsConfigForm / currentConfig (two-island independence).
+      const { schema, uiSchema } = buildConfigFormSchema(plan, deps.fieldCatalog, result.variants);
+      form.schema = schema;
+      form.uiSchema = uiSchema;
+      form.hiddenFields = computeHiddenFields(plan, result.variants, deps.fieldCatalog);
+      form.config = state.configValues;
+      form.addEventListener(
+        "cts-config-change",
+        /** @param {any} e */ (e) => {
+          state.configValues = (e.detail && e.detail.config) || {};
+          guidedDirty = true;
+        },
+      );
+    }
+
     renderActionBar([
       { variant: "secondary", icon: "arrow-left-md", label: "Back", on: () => goBack() },
+      ...(signedIn
+        ? [
+            {
+              variant: "primary",
+              icon: "paper-plane",
+              label: "Create test plan",
+              spacer: true,
+              id: "guidedCreateBtn",
+              on: () => void submitGuidedCreate(),
+            },
+          ]
+        : []),
     ]);
+  }
+
+  function hideConfigError() {
+    const box = document.getElementById("guidedConfigError");
+    if (box) {
+      box.hidden = true;
+      box.replaceChildren();
+    }
+  }
+
+  /**
+   * Render the normalized create failure inline on the config step — the
+   * journey (answers + config) stays exactly where it was (R5).
+   * @param {string} code
+   * @param {string} message
+   */
+  function showConfigError(code, message) {
+    const box = document.getElementById("guidedConfigError");
+    if (!box) return;
+    const alert = document.createElement("cts-alert");
+    alert.setAttribute("variant", "danger");
+    alert.textContent = code
+      ? `Creating the test plan failed (HTTP ${code}): ${message}`
+      : `Creating the test plan failed: ${message}`;
+    box.replaceChildren(alert);
+    box.hidden = false;
+  }
+
+  /** @param {boolean} pending */
+  function setCreatePending(pending) {
+    const btn = document.getElementById("guidedCreateBtn");
+    if (!btn) return;
+    if (pending) {
+      btn.setAttribute("loading", "");
+      btn.setAttribute("disabled", "");
+    } else {
+      btn.removeAttribute("loading");
+      btn.removeAttribute("disabled");
+    }
+  }
+
+  /**
+   * The real create. Recovery record first (R5), then POST via the page's
+   * shared helper; success clears recovery, writes the handoff when
+   * siblings remain (R12/R14), disarms the dirty check, and redirects.
+   * Failure stays on the config step with the same normalized error the
+   * advanced modal would show.
+   */
+  async function submitGuidedCreate() {
+    const result = state.result;
+    const plan = result && planByName(result.plan_name);
+    if (!result || !plan || !deps.createPlan || !deps.normalizeCreateError) return;
+    hideConfigError();
+
+    // POST only variant params the plan actually declares — the tree may
+    // carry presentation-only params (e.g. brazil_client_scope on plans
+    // that don't declare it); an undeclared param would fail the backend's
+    // variant validation.
+    /** @type {Record<string, string>} */
+    const variant = {};
+    for (const [param, value] of Object.entries(result.variants || {})) {
+      if (plan.variants && plan.variants[param]) variant[param] = value;
+    }
+
+    writeRecoveryRecord();
+    setCreatePending(true);
+    try {
+      const data = await deps.createPlan(result.plan_name, variant, state.configValues);
+      clearRecoveryRecord();
+      guidedDirty = false;
+      writeHandoffRecord(data.id);
+      window.location.assign("/plan-detail.html?plan=" + encodeURIComponent(data.id));
+    } catch (error) {
+      setCreatePending(false);
+      const { code, message } = await deps.normalizeCreateError(error);
+      showConfigError(code, message);
+      announce("Creating the test plan failed. " + message);
+    }
   }
 
   // ── Sticky action bar helper (persistent element in the island) ────
   /**
-   * @param {Array<{variant: string, icon?: string, label: string, spacer?: boolean, on: () => void}>} buttons
+   * @param {Array<{variant: string, icon?: string, label: string, spacer?: boolean, id?: string, on: () => void}>} buttons
    */
   function renderActionBar(buttons) {
     actionBar.replaceChildren();
@@ -1148,6 +1408,7 @@ export function startGuidedJourney(modeController, deps) {
       // Sticky action bars use the large size, matching #launchButtons.
       btn.setAttribute("size", "lg");
       if (b.icon) btn.setAttribute("icon", b.icon);
+      if (b.id) btn.id = b.id;
       btn.setAttribute("label", b.label);
       btn.addEventListener("cts-click", b.on);
       if (b.spacer) {
@@ -1260,6 +1521,40 @@ export function startGuidedJourney(modeController, deps) {
   });
 
   // ── Boot ───────────────────────────────────────────────────────────
+  // R5: when the mode ladder resolved via the recovery slot, restore the
+  // snapshotted journey at the config step. The trail is replayed against
+  // the live tree; any mismatch (tree drift, plan gone from the catalog)
+  // drops the record and starts fresh rather than restoring a broken state.
+  if (modeController.source === "recovery" && session) {
+    try {
+      const raw = session.getItem(RECOVERY_STORAGE_KEY);
+      const record = raw ? JSON.parse(raw) : null;
+      const replay = record ? replayAnswers(record.ecosystemId, record.answers || []) : null;
+      const restorable =
+        replay &&
+        replay.result &&
+        replay.result.plan_name === record.planName &&
+        planByName(record.planName);
+      if (restorable) {
+        state.ecosystem = replay.ecosystem;
+        state.path = replay.path;
+        state.result = replay.result;
+        state.bundleSeen = true;
+        state.configValues = record.config || {};
+        state.completedPlanNames = Array.isArray(record.completedPlanNames)
+          ? record.completedPlanNames
+          : [];
+        state.phase = "config";
+      } else {
+        console.warn("[guided-wizard] recovery record no longer replays; starting fresh");
+        clearRecoveryRecord();
+      }
+    } catch (e) {
+      console.warn("[guided-wizard] malformed recovery record; starting fresh", e);
+      clearRecoveryRecord();
+    }
+  }
+
   // Render eagerly (even when the island is hidden) without stealing focus.
   renderCurrent("forward", { focus: false });
 

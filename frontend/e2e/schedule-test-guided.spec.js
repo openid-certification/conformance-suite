@@ -1,6 +1,12 @@
 import { test, expect } from "@playwright/test";
-import { setupCommonRoutes, setupFailFast, expectNoUnmockedCalls } from "./helpers/routes.js";
+import {
+  setupCommonRoutes,
+  setupFailFast,
+  setupTestInfoRoute,
+  expectNoUnmockedCalls,
+} from "./helpers/routes.js";
 import { MOCK_PLANS, MOCK_PLAN_NO_VARIANTS, MOCK_GUIDED_PLANS } from "./fixtures/mock-plans.js";
+import { MOCK_PLAN_DETAIL } from "./fixtures/mock-test-data.js";
 
 const ALL_PLANS = [...MOCK_PLANS, MOCK_PLAN_NO_VARIANTS, ...MOCK_GUIDED_PLANS];
 
@@ -356,5 +362,218 @@ test.describe("schedule-test.html — guided journey", () => {
     await page.keyboard.press("ArrowDown");
     await page.keyboard.press(" ");
     await expect(page.locator("#guidedStage h1")).toContainText("Client authentication method");
+  });
+});
+
+test.describe("schedule-test.html — guided config + create", () => {
+  test.afterEach(async ({ page }) => {
+    expectNoUnmockedCalls(page);
+  });
+
+  /**
+   * Walk to the guided config step (KSA path — no siblings, so no handoff
+   * record interferes) and assert the real config form rendered.
+   *
+   * @param {import('@playwright/test').Page} page
+   */
+  async function walkToConfigStep(page) {
+    await walkKsaOpToReview(page);
+    await page.locator("#guidedStageActions").getByText("Configure this plan").click();
+    await expect(page.locator("#guidedStage h1")).toHaveText("Configure your test");
+    await expect(page.locator("#guidedConfigForm")).toBeVisible();
+  }
+
+  test("create: POST /api/plan with variant + JSON body, then redirect to plan-detail", async ({
+    page,
+  }) => {
+    await setupScheduleTestRoutes(page);
+    // POST /api/plan → created id; the wildcard must fall back for GETs.
+    await page.route("**/api/plan?*", (route) => {
+      if (route.request().method() === "POST") {
+        return route.fulfill({
+          status: 200,
+          contentType: "application/json",
+          body: JSON.stringify({ id: "plan-guided-001" }),
+        });
+      }
+      return route.fallback();
+    });
+    // plan-detail.html loads after the redirect.
+    await page.route("**/api/plan/plan-guided-001", (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({
+          ...MOCK_PLAN_DETAIL,
+          _id: "plan-guided-001",
+          planName: "fapi2-message-signing-final-test-plan",
+        }),
+      }),
+    );
+    await setupTestInfoRoute(page);
+
+    await page.goto("/schedule-test.html");
+    await walkToConfigStep(page);
+
+    // Type into the real cts-config-form instance so cts-config-change
+    // updates the guided config island (programmatic .config would not).
+    await page.locator("#guidedConfigForm").getByLabel("alias", { exact: true }).fill("guided-e2e");
+
+    const planRequest = page.waitForRequest(
+      (req) => req.url().includes("/api/plan?") && req.method() === "POST",
+    );
+    await page.locator("#guidedCreateBtn").click();
+
+    const req = await planRequest;
+    const url = new URL(req.url());
+    expect(url.searchParams.get("planName")).toBe("fapi2-message-signing-final-test-plan");
+    const variantJson = JSON.parse(url.searchParams.get("variant") || "{}");
+    expect(variantJson.client_auth_type).toBe("private_key_jwt");
+    expect(variantJson.sender_constrain).toBe("mtls");
+    expect(variantJson.fapi_profile).toBe("ksa");
+    expect(req.postDataJSON()).toMatchObject({ alias: "guided-e2e" });
+
+    await page.waitForURL("**/plan-detail.html?plan=plan-guided-001");
+  });
+
+  test("create failure: inline error on the config step, journey intact, recovery record present", async ({
+    page,
+  }) => {
+    await setupScheduleTestRoutes(page);
+    await page.route("**/api/plan?*", (route) => {
+      if (route.request().method() === "POST") {
+        return route.fulfill({
+          status: 500,
+          contentType: "application/json",
+          body: JSON.stringify({ message: "alias is already in use by another user" }),
+        });
+      }
+      return route.fallback();
+    });
+
+    await page.goto("/schedule-test.html");
+    await walkToConfigStep(page);
+    await page.locator("#guidedConfigForm").getByLabel("alias", { exact: true }).fill("dupe");
+    await page.locator("#guidedCreateBtn").click();
+
+    // Inline error, normalized through the same path as the advanced modal.
+    const errorBox = page.locator("#guidedConfigError cts-alert");
+    await expect(errorBox).toBeVisible();
+    await expect(errorBox).toContainText("HTTP 500");
+    await expect(errorBox).toContainText("alias is already in use by another user");
+
+    // Journey intact: still on the config step, answers preserved.
+    await expect(page.locator("#guidedStage h1")).toHaveText("Configure your test");
+    await expect(page.locator("#guidedTrail .chip")).toHaveCount(4);
+
+    // Recovery record written before the POST (R5).
+    const record = await page.evaluate(() =>
+      JSON.parse(sessionStorage.getItem("oidf-guided-recovery") || "null"),
+    );
+    expect(record).toMatchObject({
+      ecosystemId: "ksa",
+      planName: "fapi2-message-signing-final-test-plan",
+      config: { alias: "dupe" },
+    });
+    expect(record.answers).toEqual(["op", "pkjwt", "ksav2"]);
+  });
+
+  test("recovery: a reload after a failed create re-enters guided at the config step", async ({
+    page,
+  }) => {
+    await setupScheduleTestRoutes(page);
+    await page.route("**/api/plan?*", (route) => {
+      if (route.request().method() === "POST") {
+        return route.fulfill({ status: 500, contentType: "text/plain", body: "boom" });
+      }
+      return route.fallback();
+    });
+
+    await page.goto("/schedule-test.html");
+    await walkToConfigStep(page);
+    await page.locator("#guidedConfigForm").getByLabel("alias", { exact: true }).fill("recover-me");
+    await page.locator("#guidedCreateBtn").click();
+    await expect(page.locator("#guidedConfigError cts-alert")).toBeVisible();
+
+    await page.reload();
+
+    // Straight back to the config step with the journey + values restored.
+    await expect(page.locator("#guidedStage h1")).toHaveText("Configure your test");
+    await expect(page.locator("#guidedTrail .chip")).toHaveCount(4);
+    await expect(
+      page.locator("#guidedConfigForm").getByLabel("alias", { exact: true }),
+    ).toHaveValue("recover-me");
+  });
+
+  test("anonymous: the config step shows a sign-in prompt instead of the create button (R6)", async ({
+    page,
+  }) => {
+    await setupScheduleTestRoutes(page, { user: null });
+
+    await page.goto("/schedule-test.html");
+    await walkToConfigStep(page);
+
+    await expect(page.locator("#guidedSignInPrompt")).toBeVisible();
+    await expect(page.locator("#guidedSignInPrompt a")).toHaveAttribute("href", "/login.html");
+    await expect(page.locator("#guidedCreateBtn")).toHaveCount(0);
+    // The journey itself stayed browsable all the way here.
+    await expect(page.locator("#guidedConfigForm")).toBeVisible();
+  });
+
+  test("guard isolation: dirty advanced form never prompts on guided clicks; guided create redirects unprompted", async ({
+    page,
+  }) => {
+    await setupScheduleTestRoutes(page);
+    await page.route("**/api/plan?*", (route) => {
+      if (route.request().method() === "POST") {
+        return route.fulfill({
+          status: 200,
+          contentType: "application/json",
+          body: JSON.stringify({ id: "plan-guided-002" }),
+        });
+      }
+      return route.fallback();
+    });
+    await page.route("**/api/plan/plan-guided-002", (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({
+          ...MOCK_PLAN_DETAIL,
+          _id: "plan-guided-002",
+          planName: "fapi2-message-signing-final-test-plan",
+        }),
+      }),
+    );
+    await setupTestInfoRoute(page);
+
+    await page.goto("/schedule-test.html");
+
+    // Dirty the ADVANCED island's form (arms cts-unsaved-changes-guard).
+    await page.locator("#modeAdvancedBtn").click();
+    await page.evaluate(() => {
+      document.getElementById("ctsConfigForm")?.dispatchEvent(
+        new CustomEvent("cts-config-change", {
+          bubbles: true,
+          detail: { config: { alias: "advanced-edit" } },
+        }),
+      );
+    });
+    await expect(page.locator("cts-unsaved-changes-guard")).toHaveAttribute("dirty", "");
+
+    // Guided navigation is button-based — the guard's link interceptor
+    // must never engage while clicking through the journey.
+    await page.locator("#modeGuidedBtn").click();
+    await walkToConfigStep(page);
+    await expect(
+      page.locator("cts-unsaved-changes-guard cts-modal dialog.oidf-modal[open]"),
+    ).toHaveCount(0);
+
+    // Dirty the GUIDED config, then create: the guided beforeunload check
+    // disarms before the redirect, so navigation completes unprompted (an
+    // armed beforeunload would abort the auto-dismissed dialog).
+    await page.locator("#guidedConfigForm").getByLabel("alias", { exact: true }).fill("g");
+    await page.locator("#guidedCreateBtn").click();
+    await page.waitForURL("**/plan-detail.html?plan=plan-guided-002");
   });
 });

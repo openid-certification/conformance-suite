@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { resolveMode } from "./guided-wizard.js";
+import { resolveMode, replayAnswers } from "./guided-wizard.js";
 
 /**
  * Table tests for the R9 mode-resolution ladder:
@@ -91,5 +91,37 @@ describe("resolveMode", () => {
       hasRecoveryRecord: input.hasRecoveryRecord ?? false,
     });
     expect(decision).toEqual(expected);
+  });
+});
+
+describe("replayAnswers", () => {
+  it("replays a full valid trail to its leaf result", () => {
+    const replay = replayAnswers("ksa", ["op", "pkjwt", "ksav2"]);
+    expect(replay).not.toBeNull();
+    expect(replay?.ecosystem.id).toBe("ksa");
+    expect(replay?.path.map((a) => a.choice.id)).toEqual(["op", "pkjwt", "ksav2"]);
+    expect(replay?.result?.plan_name).toBe("fapi2-message-signing-final-test-plan");
+  });
+
+  it("stops at the last valid step on the first unresolvable hop (R13)", () => {
+    const replay = replayAnswers("ksa", ["op", "no-such-choice", "ksav2"]);
+    expect(replay?.path.map((a) => a.choice.id)).toEqual(["op"]);
+    expect(replay?.result).toBeNull();
+  });
+
+  it("returns null for an unknown ecosystem", () => {
+    expect(replayAnswers("atlantis", ["op"])).toBeNull();
+  });
+
+  it("ignores trailing ids past a leaf", () => {
+    const replay = replayAnswers("cbuae", ["op", "extra", "ids"]);
+    expect(replay?.path.map((a) => a.choice.id)).toEqual(["op"]);
+    expect(replay?.result?.plan_name).toBe("fapi2-message-signing-final-test-plan");
+  });
+
+  it("replays a partial trail to the next unanswered question", () => {
+    const replay = replayAnswers("open_finance_brazil", ["op"]);
+    expect(replay?.path.map((a) => a.choice.id)).toEqual(["op"]);
+    expect(replay?.result).toBeNull();
   });
 });
