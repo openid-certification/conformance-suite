@@ -968,6 +968,16 @@ test.describe("schedule-test.html — Test Plan Scheduling", () => {
       )
       .toBe(true);
 
+    // The settled scroll honors #specCascade's scroll-margin-top: the
+    // cascade lands ~16px (--space-4) shy of the viewport top — breathing
+    // room for the flash wash — not flush against it. The flash above only
+    // fires post-settle, so this read is stable, not mid-animation.
+    const settledTop = await page.locator("#specCascade").evaluate((el) => {
+      return Math.round(el.getBoundingClientRect().top);
+    });
+    expect(settledTop).toBeGreaterThanOrEqual(8);
+    expect(settledTop).toBeLessThanOrEqual(32);
+
     // Once the scroll settles, focus lands on the first <select> inside
     // #variantSelectors so the user can keep configuring. The variant
     // selectors render during plan selection; focus then moves in the
