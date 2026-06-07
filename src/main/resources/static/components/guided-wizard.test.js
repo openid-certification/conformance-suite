@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { resolveMode, replayAnswers } from "./guided-wizard.js";
+import { resolveMode, replayAnswers, decodeWizardPreset } from "./guided-wizard.js";
 
 /**
  * Table tests for the R9 mode-resolution ladder:
@@ -123,5 +123,47 @@ describe("replayAnswers", () => {
     const replay = replayAnswers("open_finance_brazil", ["op"]);
     expect(replay?.path.map((a) => a.choice.id)).toEqual(["op"]);
     expect(replay?.result).toBeNull();
+  });
+});
+
+describe("decodeWizardPreset", () => {
+  it("decodes a valid preset", () => {
+    const raw = JSON.stringify({
+      ecosystemId: "open_finance_brazil",
+      answers: ["op"],
+      completedPlanNames: ["fapi1-advanced-final-test-plan"],
+    });
+    expect(decodeWizardPreset(raw)).toEqual({
+      ecosystemId: "open_finance_brazil",
+      answers: ["op"],
+      completedPlanNames: ["fapi1-advanced-final-test-plan"],
+    });
+  });
+
+  it("defaults a missing ledger to an empty array", () => {
+    const raw = JSON.stringify({ ecosystemId: "ksa", answers: [] });
+    expect(decodeWizardPreset(raw)?.completedPlanNames).toEqual([]);
+  });
+
+  it("returns null on garbage, wrong shapes, and empty input", () => {
+    expect(decodeWizardPreset("not-json{{{")).toBeNull();
+    expect(decodeWizardPreset("")).toBeNull();
+    expect(decodeWizardPreset(null)).toBeNull();
+    expect(decodeWizardPreset(JSON.stringify("a string"))).toBeNull();
+    expect(decodeWizardPreset(JSON.stringify({ answers: ["op"] }))).toBeNull();
+    expect(decodeWizardPreset(JSON.stringify({ ecosystemId: "ksa", answers: "op" }))).toBeNull();
+  });
+
+  it("filters non-string entries from answers and the ledger", () => {
+    const raw = JSON.stringify({
+      ecosystemId: "ksa",
+      answers: ["op", 7, null, "pkjwt"],
+      completedPlanNames: [42, "real-plan"],
+    });
+    expect(decodeWizardPreset(raw)).toEqual({
+      ecosystemId: "ksa",
+      answers: ["op", "pkjwt"],
+      completedPlanNames: ["real-plan"],
+    });
   });
 });

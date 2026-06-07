@@ -528,6 +528,43 @@ export function filterResolvableSiblings(result, ecosystem, availablePlans) {
  * @returns {{ecosystem: import("./guided-wizard-tree.js").WizardEcosystem, path: JourneyAnswer[], result: import("./guided-wizard-tree.js").WizardResult|null}|null}
  *   `null` when the ecosystem id itself doesn't resolve.
  */
+/**
+ * @typedef {object} WizardPreset
+ * @property {string} ecosystemId
+ * @property {string[]} answers - Choice ids in journey order (the trail up
+ *   to — not including — the answer that resolves a plan).
+ * @property {string[]} completedPlanNames - The R14 ledger: plans already
+ *   created for this certification, so replayed journeys stop re-offering
+ *   them.
+ */
+
+/**
+ * Parse + validate a raw `wizard_preset` URL param value. Pure. Returns
+ * null on any malformed input (same try/parse/warn discipline as the
+ * page's applyConfigJsonParam — the caller owns the console.warn).
+ *
+ * @param {string|null} raw - The (already URL-decoded) param value.
+ * @returns {WizardPreset|null}
+ */
+export function decodeWizardPreset(raw) {
+  if (!raw) return null;
+  let parsed;
+  try {
+    parsed = JSON.parse(raw);
+  } catch {
+    return null;
+  }
+  if (!parsed || typeof parsed !== "object") return null;
+  if (typeof parsed.ecosystemId !== "string" || !Array.isArray(parsed.answers)) return null;
+  return {
+    ecosystemId: parsed.ecosystemId,
+    answers: parsed.answers.filter((/** @type {unknown} */ a) => typeof a === "string"),
+    completedPlanNames: Array.isArray(parsed.completedPlanNames)
+      ? parsed.completedPlanNames.filter((/** @type {unknown} */ p) => typeof p === "string")
+      : [],
+  };
+}
+
 export function replayAnswers(ecosystemId, answerIds, tree = GUIDED_WIZARD_TREE) {
   const ecosystem = tree.ecosystems.find((e) => e.id === ecosystemId) || null;
   if (!ecosystem || !ecosystem.steps[0]) return null;
@@ -1521,6 +1558,47 @@ export function startGuidedJourney(modeController, deps) {
   });
 
   // ── Boot ───────────────────────────────────────────────────────────
+  // R13: when the mode ladder resolved via wizard_preset, best-effort
+  // replay the recorded answers. The param is consumed exactly once —
+  // stripped via replaceState whether or not it decodes — so a refresh
+  // restarts guided cleanly instead of double-applying the preset. An
+  // unresolvable hop drops the user at the last valid step; a garbage
+  // preset opens the ecosystem screen with a console warning only.
+  if (modeController.source === "wizard_preset") {
+    const params = new URLSearchParams(window.location.search);
+    const raw = params.get("wizard_preset");
+    params.delete("wizard_preset");
+    const qs = params.toString();
+    history.replaceState(
+      null,
+      "",
+      window.location.pathname + (qs ? "?" + qs : "") + window.location.hash,
+    );
+    const preset = decodeWizardPreset(raw);
+    const replay = preset ? replayAnswers(preset.ecosystemId, preset.answers) : null;
+    if (replay) {
+      state.ecosystem = replay.ecosystem;
+      state.path = replay.path;
+      state.completedPlanNames = preset ? preset.completedPlanNames : [];
+      if (replay.result) {
+        // The full trail resolved a leaf — apply the same entry guards as
+        // enterLeaf (catalog presence, remaining-sibling bundle).
+        state.result = replay.result;
+        state.phase = !planByName(replay.result.plan_name)
+          ? "deadend"
+          : remainingSiblings(replay.result).length
+            ? "bundle"
+            : "review";
+      } else {
+        state.phase = "question";
+      }
+    } else {
+      console.warn(
+        "[guided-wizard] wizard_preset did not decode or replay; starting at the ecosystem screen",
+      );
+    }
+  }
+
   // R5: when the mode ladder resolved via the recovery slot, restore the
   // snapshotted journey at the config step. The trail is replayed against
   // the live tree; any mismatch (tree drift, plan gone from the catalog)
