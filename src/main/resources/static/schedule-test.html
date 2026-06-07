@@ -149,6 +149,12 @@
         #guidedIsland:focus,
         #scheduleTestPage:focus { outline: none; }
 
+        /* revealPlanSelection() scrolls the cascade to block:start; land it
+           16px shy of the viewport top so the selection (and the flash wash
+           around it) gets breathing room. scroll-margin offsets the scroll
+           target position only — unlike padding, the box doesn't change. */
+        #specCascade { scroll-margin-top: var(--space-4); }
+
         .sr-only { position: absolute; clip-path: inset(50%); width: 1px; height: 1px; overflow: hidden; }
 
         /* ── Guided journey (ported from prototype 4) ───────────────── */
