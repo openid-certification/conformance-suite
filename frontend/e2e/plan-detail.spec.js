@@ -783,3 +783,113 @@ test.describe("plan-detail.html — Plan Detail", () => {
     expect(tracks).toHaveLength(1);
   });
 });
+
+test.describe("plan-detail.html — also-required banner (R12)", () => {
+  test.afterEach(async ({ page }) => {
+    expectNoUnmockedCalls(page);
+  });
+
+  /** The handoff record schedule-test writes after a guided Brazil-OP create. */
+  const HANDOFF_RECORD = {
+    planId: "plan-abc-123",
+    ecosystemId: "open_finance_brazil",
+    ecosystemLabel: "🇧🇷 OpenFinance Brazil",
+    preset: {
+      ecosystemId: "open_finance_brazil",
+      answers: ["op"],
+      completedPlanNames: ["fapi1-advanced-final-test-plan"],
+    },
+    remainingSiblings: [
+      {
+        id: "dcr_brazil_op",
+        label: "Dynamic Client Registration",
+        planName: "fapi1-advanced-final-brazil-dcr-test-plan",
+      },
+    ],
+    completedPlanNames: ["fapi1-advanced-final-test-plan"],
+  };
+
+  /**
+   * Routes + a seeded oidf-also-required record.
+   *
+   * @param {import('@playwright/test').Page} page
+   * @param {object|null} record - Seeded sessionStorage record (null = none).
+   * @param {object} [options]
+   * @param {object|null} [options.user]
+   */
+  async function bootWithRecord(page, record, options = {}) {
+    await setupFailFast(page);
+    await page.route("**/api/plan/plan-abc-123*", (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(MOCK_PLAN_DETAIL),
+      }),
+    );
+    await setupTestInfoRoute(page);
+    await setupCommonRoutes(page, options.user !== undefined ? { user: options.user } : {});
+    if (record) {
+      await page.addInitScript((rec) => {
+        sessionStorage.setItem("oidf-also-required", JSON.stringify(rec));
+      }, record);
+    }
+  }
+
+  test("matching record → banner names the sibling, links with wizard_preset, record consumed", async ({
+    page,
+  }) => {
+    await bootWithRecord(page, HANDOFF_RECORD);
+    await page.goto("/plan-detail.html?plan=plan-abc-123");
+
+    const banner = page.locator("#alsoRequiredBanner");
+    await expect(banner).toBeVisible();
+    await expect(banner).toContainText("OpenFinance Brazil");
+    await expect(banner).toContainText("Dynamic Client Registration");
+
+    const href = await banner.locator("a").getAttribute("href");
+    expect(href).toContain("schedule-test.html?wizard_preset=");
+    const preset = JSON.parse(decodeURIComponent(String(href).split("wizard_preset=")[1]));
+    expect(preset).toEqual(HANDOFF_RECORD.preset);
+
+    // Consumed once — the record is gone after the read.
+    expect(await page.evaluate(() => sessionStorage.getItem("oidf-also-required"))).toBeNull();
+  });
+
+  test("banner is dismissible", async ({ page }) => {
+    await bootWithRecord(page, HANDOFF_RECORD);
+    await page.goto("/plan-detail.html?plan=plan-abc-123");
+
+    const banner = page.locator("#alsoRequiredBanner");
+    await expect(banner).toBeVisible();
+    await banner.locator("button").click();
+    await expect(banner).toHaveCount(0);
+  });
+
+  test("no record → no banner", async ({ page }) => {
+    await bootWithRecord(page, null);
+    await page.goto("/plan-detail.html?plan=plan-abc-123");
+    await expect(page.locator("#planDetailHeader")).toContainText("plan-abc-123");
+    await expect(page.locator("#alsoRequiredBanner")).toHaveCount(0);
+  });
+
+  test("mismatched planId → no banner", async ({ page }) => {
+    await bootWithRecord(page, { ...HANDOFF_RECORD, planId: "some-other-plan" });
+    await page.goto("/plan-detail.html?plan=plan-abc-123");
+    await expect(page.locator("#planDetailHeader")).toContainText("plan-abc-123");
+    await expect(page.locator("#alsoRequiredBanner")).toHaveCount(0);
+  });
+
+  test("public view → no banner", async ({ page }) => {
+    await bootWithRecord(page, HANDOFF_RECORD);
+    await page.goto("/plan-detail.html?plan=plan-abc-123&public=true");
+    await expect(page.locator("#planDetailHeader")).toContainText("plan-abc-123");
+    await expect(page.locator("#alsoRequiredBanner")).toHaveCount(0);
+  });
+
+  test("anonymous viewer → no banner", async ({ page }) => {
+    await bootWithRecord(page, HANDOFF_RECORD, { user: null });
+    await page.goto("/plan-detail.html?plan=plan-abc-123");
+    await expect(page.locator("#planDetailHeader")).toContainText("plan-abc-123");
+    await expect(page.locator("#alsoRequiredBanner")).toHaveCount(0);
+  });
+});

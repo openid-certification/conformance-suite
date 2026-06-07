@@ -175,6 +175,58 @@
             document.getElementById(containerId).replaceChildren();
         }
 
+        // R12: after a guided create whose tree node still has remaining
+        // also_required siblings, schedule-test writes a one-shot handoff
+        // record to sessionStorage (key oidf-also-required). Consume it here
+        // — read + remove, so the banner cannot resurface on later visits —
+        // and show a dismissible info banner naming the remaining plans with
+        // a link back into guided mode. The banner renders only when the
+        // record belongs to THIS plan, the viewer is authenticated, and this
+        // is not a public view. Built with element construction/textContent
+        // (no HTML interpolation), matching showDialogError's discipline.
+        function maybeShowAlsoRequiredBanner(planId, isPublic) {
+            var raw;
+            try {
+                raw = window.sessionStorage.getItem('oidf-also-required');
+                if (!raw) return;
+                window.sessionStorage.removeItem('oidf-also-required');
+            } catch (e) {
+                return; // storage unavailable — nothing to consume
+            }
+            var record;
+            try {
+                record = JSON.parse(raw);
+            } catch (e) {
+                console.warn('[plan-detail] malformed oidf-also-required record', e);
+                return;
+            }
+            if (!record || record.planId !== planId) return;
+            if (isPublic) return;
+            if (!FAPI_UI.currentUser || FAPI_UI.currentUser.isGuest) return;
+            var siblings = Array.isArray(record.remainingSiblings) ? record.remainingSiblings : [];
+            if (!siblings.length || !record.preset) return;
+
+            var alert = document.createElement('cts-alert');
+            alert.setAttribute('variant', 'info');
+            alert.setAttribute('dismissible', '');
+            alert.id = 'alsoRequiredBanner';
+            // "🇧🇷 OpenFinance Brazil" → "OpenFinance Brazil" (strip the flag).
+            var ecoName = String(record.ecosystemLabel || '').replace(/^\S+\s+/, '');
+            var names = siblings.map(function (s) { return s.label; }).join(', ');
+            alert.appendChild(document.createTextNode(
+                'This plan is one part of your ' + (ecoName || 'ecosystem')
+                + ' certification. Still to set up: ' + names + '. '
+            ));
+            var link = document.createElement('a');
+            link.href = 'schedule-test.html?wizard_preset='
+                + encodeURIComponent(JSON.stringify(record.preset));
+            link.textContent = 'Set up ' + siblings[0].label + ' next';
+            alert.appendChild(link);
+
+            // Between the breadcrumb and the plan-detail grid.
+            document.getElementById('planDetailCrumb').insertAdjacentElement('afterend', alert);
+        }
+
         /**
          * Checks file inputs to make sure they're within max file size limits.
          * @param filesToCheck array of file 'input' element IDs to check
@@ -719,6 +771,10 @@
                 })
                 .finally(function () {
                     FAPI_UI.hideBusy();
+                    // After the plan load settles either way — the banner is
+                    // navigation chrome, not plan data, so a failed plan
+                    // fetch must not strand the record un-consumed.
+                    maybeShowAlsoRequiredBanner(planId, isPublic);
                 });
         });
     </script>
