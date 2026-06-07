@@ -8,6 +8,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonParser;
 import net.openid.conformance.condition.client.CachingHttpInterceptor;
+import net.openid.conformance.condition.client.PooledConnectionManagers;
 import net.openid.conformance.condition.util.MtlsKeystoreBuilder;
 import net.openid.conformance.logging.HttpRequestDeadlineInterceptor;
 import net.openid.conformance.logging.LoggingRequestInterceptor;
@@ -23,6 +24,7 @@ import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
 import org.apache.hc.client5.http.impl.io.BasicHttpClientConnectionManager;
+import org.apache.hc.client5.http.io.HttpClientConnectionManager;
 import org.apache.hc.client5.http.socket.ConnectionSocketFactory;
 import org.apache.hc.client5.http.socket.PlainConnectionSocketFactory;
 import org.apache.hc.client5.http.ssl.NoopHostnameVerifier;
@@ -714,15 +716,30 @@ public abstract class AbstractCondition implements Condition, DataUtils {
 			.register("http", new PlainConnectionSocketFactory())
 			.build();
 
-		BasicHttpClientConnectionManager ccm = new BasicHttpClientConnectionManager(registry);
-		ccm.setConnectionConfig(ConnectionConfig.custom()
-			.setConnectTimeout(Timeout.ofSeconds(timeout))
-			.setSocketTimeout(Timeout.ofSeconds(timeout))
-			.setTimeToLive(Timeout.ofSeconds(timeout))
-			.build());
-
-
-		builder.setConnectionManager(ccm);
+		// Opt-in connection reuse (rides the metadata-cache flag): pool TCP/TLS connections per TLS
+		// client identity so repeated calls to the same OP skip the (m)TLS handshake. Default is
+		// unchanged - a fresh single-use BasicHttpClientConnectionManager per call.
+		if (PooledConnectionManagers.isEnabled(env)) {
+			// Never present a no-cert connection for an mTLS identity (this was the failure mode of the
+			// previously-reverted pooling attempt - issue #1466).
+			if (env.containsObject("mutual_tls_authentication") && (km == null || km.length == 0)) {
+				throw new IllegalStateException("mutual TLS is configured but no client KeyManager was produced");
+			}
+			HttpClientConnectionManager pooled = PooledConnectionManagers.getOrCreate(
+				PooledConnectionManagers.identityKey(env, restrictAllowedTLSVersions),
+				() -> PooledConnectionManagers.newManager(registry, timeout));
+			builder.setConnectionManager(pooled);
+			// Shared: closing a per-request client must NOT shut the shared pool.
+			builder.setConnectionManagerShared(true);
+		} else {
+			BasicHttpClientConnectionManager ccm = new BasicHttpClientConnectionManager(registry);
+			ccm.setConnectionConfig(ConnectionConfig.custom()
+				.setConnectTimeout(Timeout.ofSeconds(timeout))
+				.setSocketTimeout(Timeout.ofSeconds(timeout))
+				.setTimeToLive(Timeout.ofSeconds(timeout))
+				.build());
+			builder.setConnectionManager(ccm);
+		}
 
 		builder.disableRedirectHandling();
 
@@ -769,11 +786,17 @@ public abstract class AbstractCondition implements Condition, DataUtils {
 
 		// Hard wall-clock deadline on the whole request (including response-body buffering). The
 		// socket/response timeouts above are per-read only, so a trickling peer can defeat them; this
-		// aborts the request by closing the client if the call exceeds the timeout. Added first so it is
-		// the outermost interceptor and therefore also covers the body buffering done by the logging
-		// interceptor. See https://gitlab.com/openid/conformance-suite/-/work_items/1827
-		restTemplate.getInterceptors().add(new HttpRequestDeadlineInterceptor(
-			() -> ((CloseableHttpClient) httpClient).close(CloseMode.IMMEDIATE), getHttpClientTimeoutSeconds()));
+		// aborts the request if the call exceeds the timeout. Added first so it is the outermost
+		// interceptor and therefore also covers the body buffering done by the logging interceptor.
+		// Default path: abort by closing the per-request client. Pooled path: the client shares a
+		// process-wide connection manager, so closing the client would NOT abort the in-flight request -
+		// instead evict (close) that identity's pooled manager, which closes its connections and aborts
+		// the stuck request; the next request rebuilds the pool.
+		// See https://gitlab.com/openid/conformance-suite/-/work_items/1827
+		Runnable deadlineAbort = PooledConnectionManagers.isEnabled(env)
+			? () -> PooledConnectionManagers.evict(PooledConnectionManagers.identityKey(env, restrictAllowedTLSVersions))
+			: () -> ((CloseableHttpClient) httpClient).close(CloseMode.IMMEDIATE);
+		restTemplate.getInterceptors().add(new HttpRequestDeadlineInterceptor(deadlineAbort, getHttpClientTimeoutSeconds()));
 
 		// Single interceptor handles both logging and lock release. The lock is released only
 		// during network I/O (HTTP call + response body buffering); logging happens with the
