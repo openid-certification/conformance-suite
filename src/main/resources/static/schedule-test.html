@@ -47,6 +47,8 @@
     <script type="module" src="/components/cts-config-form.js"></script>
     <script type="module" src="/components/cts-unsaved-changes-guard.js"></script>
     <script type="module" src="/components/cts-action-bar.js"></script>
+    <script type="module" src="/components/cts-icon.js"></script>
+    <script type="module" src="/components/cts-card.js"></script>
     <script type="module" src="/js/cts-copy-flash.js"></script>
     <script type="module" src="/js/cts-toast-api.js"></script>
     <script type="module" src="/components/cts-footer.js"></script>
@@ -141,11 +143,386 @@
         /* The two state islands. [hidden] needs the !important because some
            descendants (cts-action-bar) set their own display. */
         #guidedIsland[hidden],
-        #scheduleTestPage[hidden] { display: none !important; }
+        #scheduleTestPage[hidden],
+        #guidedStageActions[hidden],
+        #bridgePrompt[hidden] { display: none !important; }
         #guidedIsland:focus,
         #scheduleTestPage:focus { outline: none; }
 
         .sr-only { position: absolute; clip-path: inset(50%); width: 1px; height: 1px; overflow: hidden; }
+
+        /* ── Guided journey (ported from prototype 4) ───────────────── */
+
+        /* Progress rail */
+        #guidedIsland .cert-progress {
+            display: flex;
+            align-items: center;
+            gap: var(--space-2);
+            margin: 0 0 var(--space-6);
+            list-style: none;
+            padding: 0;
+            flex-wrap: wrap;
+        }
+        #guidedIsland .cert-progress:empty { display: none; }
+        #guidedIsland .cert-progress li {
+            display: flex;
+            align-items: center;
+            gap: var(--space-2);
+            font-size: var(--fs-12);
+            color: var(--fg-muted);
+        }
+        #guidedIsland .cert-progress li[data-state="done"] { color: var(--fg); }
+        #guidedIsland .cert-progress li[data-state="current"] { color: var(--orange-600); font-weight: var(--fw-bold); }
+        #guidedIsland .cert-progress .dot {
+            width: var(--space-3);
+            height: var(--space-3);
+            border-radius: var(--radius-pill);
+            background: var(--border-strong);
+            display: inline-block;
+            flex: none;
+        }
+        #guidedIsland .cert-progress li[data-state="done"] .dot { background: var(--status-pass); }
+        #guidedIsland .cert-progress li[data-state="current"] .dot { background: var(--orange-400); box-shadow: 0 0 0 3px var(--orange-100); }
+        #guidedIsland .cert-progress .sep {
+            width: var(--space-5);
+            height: 1px;
+            background: var(--border);
+        }
+
+        /* Breadcrumb chips of answered questions */
+        #guidedIsland .cert-trail {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: var(--space-2);
+            margin-bottom: var(--space-5);
+            min-height: var(--space-6);
+        }
+        #guidedIsland .cert-trail:empty { display: none; }
+        #guidedIsland .trail-label {
+            font-size: var(--fs-12);
+            color: var(--fg-soft);
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            margin-right: var(--space-1);
+        }
+        #guidedIsland .chip {
+            display: inline-flex;
+            align-items: center;
+            gap: var(--space-2);
+            border: 1px solid var(--border);
+            background: var(--bg-elev);
+            color: var(--fg);
+            border-radius: var(--radius-pill);
+            padding: var(--space-1) var(--space-2) var(--space-1) var(--space-3);
+            font: inherit;
+            font-size: var(--fs-13);
+            cursor: pointer;
+            transition: background 120ms ease, border-color 120ms ease, box-shadow 120ms ease;
+        }
+        #guidedIsland .chip:hover { background: var(--orange-50); border-color: var(--orange-300); }
+        #guidedIsland .chip:focus-visible { outline: var(--focus-ring); outline-offset: 2px; }
+        #guidedIsland .chip .chip-key { font-size: var(--fs-11); color: var(--fg-soft); }
+        #guidedIsland .chip .chip-val { font-weight: var(--fw-medium); }
+        #guidedIsland .chip cts-icon { color: var(--fg-soft); }
+
+        /* The single full-width stage */
+        #guidedIsland .guided-stage { view-transition-name: cert-stage; }
+        #guidedIsland .stage-eyebrow {
+            font-size: var(--fs-13);
+            color: var(--orange-600);
+            font-weight: var(--fw-bold);
+            letter-spacing: 0.02em;
+            margin: 0 0 var(--space-2);
+        }
+        #guidedIsland .guided-stage h1 {
+            font-size: var(--fs-32);
+            line-height: var(--lh-tight);
+            margin: 0 0 var(--space-2);
+            color: var(--fg);
+            max-width: var(--maxw-narrow);
+        }
+        #guidedIsland .guided-stage h1:focus-visible { outline: var(--focus-ring); outline-offset: 6px; border-radius: var(--radius-2); }
+        #guidedIsland .guided-stage h1:focus { outline: none; }
+        #guidedIsland .stage-lede {
+            font-size: var(--fs-16);
+            color: var(--fg-muted);
+            margin: 0 0 var(--space-6);
+            max-width: var(--maxw-narrow);
+            line-height: var(--lh-base);
+        }
+
+        /* Choice cards (radio-group semantics) */
+        #guidedIsland .choice-grid {
+            display: grid;
+            gap: var(--space-3);
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            border: 0;
+            padding: 0;
+            margin: 0;
+        }
+        #guidedIsland .choice-grid.is-narrow { grid-template-columns: minmax(0, 1fr); max-width: 640px; }
+        #guidedIsland .choice-grid legend {
+            position: absolute;
+            clip-path: inset(50%);
+            width: 1px; height: 1px; overflow: hidden;
+        }
+        #guidedIsland .choice {
+            position: relative;
+            display: flex;
+            gap: var(--space-3);
+            align-items: flex-start;
+            border: 1.5px solid var(--border);
+            background: var(--bg-elev);
+            border-radius: var(--radius-3);
+            padding: var(--space-4) var(--space-5);
+            cursor: pointer;
+            transition: border-color 120ms ease, box-shadow 120ms ease, background 120ms ease;
+        }
+        #guidedIsland .choice:hover { border-color: var(--orange-300); box-shadow: var(--shadow-1); }
+        #guidedIsland .choice:has(input:focus-visible) { outline: var(--focus-ring); outline-offset: 2px; }
+        #guidedIsland .choice:has(input:checked) {
+            border-color: var(--orange-400);
+            background: var(--orange-50);
+            box-shadow: inset 0 0 0 1px var(--orange-400);
+        }
+        #guidedIsland .choice input {
+            position: absolute;
+            opacity: 0;
+            pointer-events: none;
+        }
+        #guidedIsland .choice .marker {
+            flex: none;
+            width: var(--space-5);
+            height: var(--space-5);
+            border-radius: var(--radius-pill);
+            border: 1.5px solid var(--border-strong);
+            display: grid;
+            place-items: center;
+            margin-top: 2px;
+            color: transparent;
+            transition: border-color 120ms ease, background 120ms ease, color 120ms ease;
+        }
+        #guidedIsland .choice:has(input:checked) .marker {
+            border-color: var(--orange-400);
+            background: var(--orange-400);
+            color: var(--fg-on-orange);
+        }
+        #guidedIsland .choice .flag {
+            font-size: var(--fs-24);
+            line-height: 1;
+            flex: none;
+            margin-top: -1px;
+        }
+        #guidedIsland .choice .choice-body { min-width: 0; }
+        #guidedIsland .choice .choice-label {
+            font-size: var(--fs-16);
+            font-weight: var(--fw-bold);
+            color: var(--fg);
+            display: block;
+        }
+        #guidedIsland .choice .choice-desc {
+            font-size: var(--fs-14);
+            color: var(--fg-muted);
+            margin-top: var(--space-1);
+            line-height: var(--lh-base);
+            display: block;
+        }
+        #guidedIsland .choice .choice-badge-row { margin-top: var(--space-2); }
+
+        /* also_required bundle checklist */
+        #guidedIsland .bundle-list {
+            list-style: none;
+            margin: var(--space-3) 0 0;
+            padding: 0;
+            display: grid;
+            gap: var(--space-2);
+        }
+        #guidedIsland .bundle-list li {
+            display: flex;
+            align-items: center;
+            gap: var(--space-3);
+            padding: var(--space-3) var(--space-4);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-2);
+            background: var(--bg);
+            font-size: var(--fs-14);
+        }
+        #guidedIsland .bundle-list li .step-num {
+            flex: none;
+            width: var(--space-6);
+            height: var(--space-6);
+            border-radius: var(--radius-pill);
+            display: grid;
+            place-items: center;
+            font-size: var(--fs-13);
+            font-weight: var(--fw-bold);
+            background: var(--bg-muted);
+            color: var(--fg-muted);
+        }
+        #guidedIsland .bundle-list li[data-self="true"] .step-num { background: var(--orange-400); color: var(--fg-on-orange); }
+        #guidedIsland .bundle-list li[data-self="true"] { border-color: var(--orange-300); background: var(--orange-50); }
+        #guidedIsland .bundle-list li .name { font-weight: var(--fw-medium); color: var(--fg); }
+        #guidedIsland .bundle-list li .here {
+            margin-left: auto;
+            font-size: var(--fs-12);
+            color: var(--orange-600);
+            font-weight: var(--fw-bold);
+        }
+        #guidedIsland .bundle-list li .later {
+            margin-left: auto;
+            font-size: var(--fs-12);
+            color: var(--fg-soft);
+        }
+
+        /* Review sections */
+        #guidedIsland .review-section { margin-bottom: var(--space-6); }
+        #guidedIsland .review-section > h2 {
+            font-size: var(--fs-15);
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            color: var(--fg-soft);
+            margin: 0 0 var(--space-3);
+            font-weight: var(--fw-bold);
+        }
+        #guidedIsland .resolved-plan {
+            display: flex;
+            gap: var(--space-4);
+            align-items: flex-start;
+        }
+        #guidedIsland .resolved-plan .pip {
+            flex: none;
+            width: var(--space-10);
+            height: var(--space-10);
+            border-radius: var(--radius-2);
+            background: var(--orange-100);
+            color: var(--orange-600);
+            display: grid;
+            place-items: center;
+        }
+        #guidedIsland .resolved-plan .plan-name-display {
+            font-size: var(--fs-20);
+            font-weight: var(--fw-bold);
+            color: var(--fg);
+            margin: 0;
+            line-height: var(--lh-snug);
+        }
+        #guidedIsland .resolved-plan .plan-meta {
+            margin-top: var(--space-2);
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--space-2);
+            align-items: center;
+        }
+        #guidedIsland .plan-name-code {
+            font-family: "JetBrains Mono", monospace;
+            font-size: var(--fs-12);
+            background: var(--bg-sunken);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-1);
+            padding: 2px var(--space-2);
+            color: var(--fg-muted);
+        }
+        #guidedIsland table.variant-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: var(--fs-14);
+        }
+        #guidedIsland table.variant-table th,
+        #guidedIsland table.variant-table td {
+            text-align: left;
+            padding: var(--space-3) var(--space-4);
+            border-bottom: 1px solid var(--border);
+            vertical-align: top;
+        }
+        #guidedIsland table.variant-table thead th {
+            font-size: var(--fs-12);
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+            color: var(--fg-soft);
+            background: var(--bg-muted);
+        }
+        #guidedIsland table.variant-table tbody tr:last-child td { border-bottom: 0; }
+        #guidedIsland table.variant-table .vt-param { font-weight: var(--fw-medium); color: var(--fg); white-space: nowrap; }
+        #guidedIsland table.variant-table .vt-value {
+            font-family: "JetBrains Mono", monospace;
+            font-size: var(--fs-13);
+            color: var(--orange-700);
+        }
+        #guidedIsland table.variant-table .vt-desc { color: var(--fg-muted); font-size: var(--fs-13); line-height: var(--lh-base); }
+        #guidedIsland .review-config-hint {
+            font-size: var(--fs-13);
+            color: var(--fg-muted);
+            margin: 0 0 var(--space-3);
+        }
+        #guidedIsland .config-preview {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--space-2);
+        }
+
+        /* Escape hatch (route to advanced) */
+        #guidedIsland .escape-hatch { margin-top: var(--space-8); border-top: 1px solid var(--border); padding-top: var(--space-6); }
+        #guidedIsland .escape-card {
+            display: flex;
+            gap: var(--space-3);
+            align-items: center;
+            width: 100%;
+            text-align: left;
+            border: 1px dashed var(--border-strong);
+            background: var(--bg);
+            border-radius: var(--radius-3);
+            padding: var(--space-4) var(--space-5);
+            cursor: pointer;
+            font: inherit;
+            color: var(--fg);
+            transition: border-color 120ms ease, background 120ms ease;
+        }
+        #guidedIsland .escape-card:hover { border-color: var(--fg-soft); background: var(--bg-muted); }
+        #guidedIsland .escape-card:focus-visible { outline: var(--focus-ring); outline-offset: 2px; }
+        #guidedIsland .escape-card cts-icon { color: var(--fg-soft); flex: none; }
+        #guidedIsland .escape-card .ec-body { flex: 1 1 auto; }
+        #guidedIsland .escape-card .ec-title { font-weight: var(--fw-bold); display: block; }
+        #guidedIsland .escape-card .ec-sub { font-size: var(--fs-13); color: var(--fg-muted); display: block; }
+        #guidedIsland .escape-card .ec-chev { margin-left: auto; }
+
+        .actions-right { margin-left: auto; display: flex; gap: var(--space-3); }
+
+        /* View Transitions: directional slide between guided steps */
+        @media (prefers-reduced-motion: no-preference) {
+            ::view-transition-group(cert-stage) { animation-duration: 280ms; }
+            html:active-view-transition-type(forward)::view-transition-old(cert-stage) { animation: 220ms ease both vt-out-left; }
+            html:active-view-transition-type(forward)::view-transition-new(cert-stage) { animation: 280ms ease both vt-in-right; }
+            html:active-view-transition-type(backward)::view-transition-old(cert-stage) { animation: 220ms ease both vt-out-right; }
+            html:active-view-transition-type(backward)::view-transition-new(cert-stage) { animation: 280ms ease both vt-in-left; }
+            @keyframes vt-out-left { to { opacity: 0; transform: translateX(-16px); } }
+            @keyframes vt-in-right { from { opacity: 0; transform: translateX(16px); } }
+            @keyframes vt-out-right { to { opacity: 0; transform: translateX(16px); } }
+            @keyframes vt-in-left { from { opacity: 0; transform: translateX(-16px); } }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            ::view-transition-group(*),
+            ::view-transition-old(*),
+            ::view-transition-new(*) { animation: none !important; }
+        }
+
+        /* Guided→advanced prefill bridge (lives in the advanced island) */
+        .bridge-prompt {
+            display: flex;
+            gap: var(--space-3);
+            align-items: center;
+            border: 1.5px solid var(--orange-300);
+            background: var(--orange-50);
+            border-radius: var(--radius-3);
+            padding: var(--space-3) var(--space-4);
+            margin-bottom: var(--space-5);
+            box-sizing: border-box;
+        }
+        .bridge-prompt .bp-icon { color: var(--orange-600); flex: none; }
+        .bridge-prompt .bp-body { flex: 1 1 auto; min-width: 0; }
+        .bridge-prompt .bp-title { font-weight: var(--fw-bold); color: var(--fg); font-size: var(--fs-14); }
+        .bridge-prompt .bp-sub { font-size: var(--fs-13); color: var(--fg-muted); margin-top: 2px; }
+        .bridge-prompt .bp-actions { display: flex; gap: var(--space-2); flex: none; }
     </style>
 
 </head>
@@ -192,6 +569,10 @@
                 <h1 tabindex="-1">Guided setup</h1>
             </section>
             <div aria-live="polite" class="sr-only" id="guidedLiveRegion"></div>
+            <!-- Per-step sticky actions (Back / Continue / Create). Lives
+                 inside the island so hiding the island hides the bar; the
+                 journey controller fills + toggles it per phase. -->
+            <cts-action-bar id="guidedStageActions" align-to="schedule-test-page" aria-label="Guided step actions" hidden></cts-action-bar>
         </div>
 
         <!-- ══ ADVANCED ISLAND — the classic schedule-test surface ═════ -->
@@ -202,6 +583,21 @@
 
                 <div class="schedule-test-toolbar">
                     <cts-button id="loadLastConfigBtn" data-testid="load-last-config" size="sm" variant="secondary" icon="clock" label="Load last configuration" loading disabled></cts-button>
+                </div>
+            </div>
+
+            <!-- Guided→advanced prefill bridge (R8): shown when a resolved,
+                 undeclined, unadopted guided journey exists on entering
+                 advanced. Wired by the journey controller. -->
+            <div class="bridge-prompt" id="bridgePrompt" hidden>
+                <cts-icon class="bp-icon" name="bulb" size="24" aria-hidden="true"></cts-icon>
+                <div class="bp-body">
+                    <div class="bp-title">Prefill from your guided answers?</div>
+                    <div class="bp-sub" id="bridgeSub"></div>
+                </div>
+                <div class="bp-actions">
+                    <cts-button id="bridgeDeclineBtn" size="sm" variant="secondary" label="No thanks"></cts-button>
+                    <cts-button id="bridgeAcceptBtn" size="sm" variant="primary" icon="check" label="Prefill"></cts-button>
                 </div>
             </div>
 
@@ -258,6 +654,12 @@
         try {
             const mod = await import("/components/guided-wizard.js");
             guidedModeController = mod.bootGuidedMode();
+            // The journey needs the live catalog, which the init chain
+            // loads; expose a late-bound starter the chain calls once
+            // FAPI_UI.availablePlans and the field catalog are in hand.
+            guidedModeController.startJourney = function (deps) {
+                return mod.startGuidedJourney(guidedModeController, deps);
+            };
         } catch (e) {
             console.error("[schedule-test] guided-wizard module failed to load; staying in advanced mode", e);
         }
@@ -353,6 +755,16 @@
                 // URL params are fixed at load time. A failed module load
                 // resolves to undefined → advanced hydration runs as today.
                 return window.__guidedModeReady.then(function(guidedCtl) {
+                    if (guidedCtl) {
+                        // Start the guided journey now that the live catalog
+                        // and field catalog are loaded. It renders eagerly —
+                        // even when the guided island is hidden — so a later
+                        // toggle to guided shows the in-progress journey.
+                        guidedCtl.startJourney({
+                            availablePlans: FAPI_UI.availablePlans || {},
+                            fieldCatalog: fieldCatalog,
+                        });
+                    }
                     if (guidedCtl && guidedCtl.initialMode === 'guided') {
                         return;
                     }

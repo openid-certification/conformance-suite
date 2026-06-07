@@ -91,6 +91,221 @@ export const MOCK_PLANS = [
   },
 ];
 
+/**
+ * Plans whose planNames match guided-wizard-tree.js leaves, shaped like the
+ * real /api/plan/available payload. Used by schedule-test-guided.spec.js:
+ * the guided journey resolves tree leaves against the live catalog (R4), so
+ * the mocked catalog must carry these names for the happy paths — and omit
+ * one of them to exercise the dead-end.
+ *
+ * - fapi2-message-signing-final-test-plan: KSA → OP → private_key_jwt →
+ *   SAMA v2 resolution target.
+ * - fapi1-advanced-final-test-plan: Brazil OP FAPI leaf (carries the
+ *   also_required → DCR bundle).
+ * - fapi1-advanced-final-brazil-dcr-test-plan: the bundle sibling.
+ */
+export const MOCK_GUIDED_PLANS = [
+  {
+    planName: "fapi2-message-signing-final-test-plan",
+    displayName: "FAPI2-Message-Signing-Final: Authorization server test",
+    profile: "Test an OpenID Provider / Authorization Server",
+    specFamily: "FAPI2 Message Signing",
+    specVersion: "Final",
+    summary: "",
+    modules: [
+      {
+        testModule: "fapi2-security-profile-final-happy-flow",
+        configurationFields: ["server.discoveryUrl", "client.scope", "client.jwks"],
+      },
+    ],
+    variants: {
+      client_auth_type: {
+        variantInfo: {
+          displayName: "Client Authentication Type",
+          description: "The type of client authentication your software supports.",
+        },
+        variantValues: {
+          private_key_jwt: { configurationFields: [] },
+          mtls: { configurationFields: ["mtls.cert", "mtls.key"] },
+        },
+      },
+      sender_constrain: {
+        variantInfo: {
+          displayName: "Sender Constraining",
+          description: "The method to use to sender constrain access tokens.",
+        },
+        variantValues: {
+          mtls: { configurationFields: ["mtls.cert", "mtls.key"] },
+          dpop: { configurationFields: [] },
+        },
+      },
+      authorization_request_type: {
+        variantInfo: {
+          displayName: "Authorization Request Type",
+          description: "The authorization request type to be used.",
+        },
+        variantValues: {
+          simple: { configurationFields: [] },
+          rar: { configurationFields: [] },
+        },
+      },
+      openid: {
+        variantInfo: {
+          displayName: "Test OpenID",
+          description: "If your server supports issuing id_tokens, pick 'openid connect'.",
+        },
+        variantValues: {
+          plain_oauth: { configurationFields: [] },
+          openid_connect: { configurationFields: [] },
+        },
+      },
+      fapi_request_method: {
+        variantInfo: {
+          displayName: "Request Method",
+          description: "The method to use to pass the request to the PAR endpoint.",
+        },
+        variantValues: {
+          unsigned: { configurationFields: [] },
+          signed_non_repudiation: { configurationFields: [] },
+        },
+      },
+      fapi_profile: {
+        variantInfo: {
+          displayName: "FAPI Profile",
+          description: "The FAPI sub-profile to use.",
+        },
+        variantValues: {
+          plain_fapi: { configurationFields: [] },
+          ksa: { configurationFields: [] },
+        },
+      },
+      fapi_response_mode: {
+        variantInfo: {
+          displayName: "FAPI Response Mode",
+          description: "The response mode that will be used.",
+        },
+        variantValues: {
+          plain_response: { configurationFields: [] },
+          jarm: { configurationFields: [] },
+        },
+      },
+    },
+  },
+  {
+    planName: "fapi1-advanced-final-test-plan",
+    displayName: "FAPI1-Advanced-Final: Authorization server test",
+    profile: "Test an OpenID Provider / Authorization Server",
+    specFamily: "FAPI1 Advanced",
+    specVersion: "",
+    summary: "",
+    modules: [
+      {
+        testModule: "fapi1-advanced-final",
+        configurationFields: ["server.discoveryUrl", "client.scope", "client.jwks"],
+      },
+    ],
+    variants: {
+      client_auth_type: {
+        variantInfo: {
+          displayName: "Client Authentication Type",
+          description: "The type of client authentication your software supports.",
+        },
+        variantValues: {
+          private_key_jwt: { configurationFields: [] },
+          mtls: { configurationFields: ["mtls.cert", "mtls.key"] },
+        },
+      },
+      fapi_auth_request_method: {
+        variantInfo: {
+          displayName: "Request Object Method",
+          description: "The method to use to pass the request object.",
+        },
+        variantValues: {
+          by_value: { configurationFields: [] },
+          pushed: { configurationFields: [] },
+        },
+      },
+      fapi_profile: {
+        variantInfo: {
+          displayName: "FAPI Profile",
+          description: "The FAPI sub-profile to use.",
+        },
+        variantValues: {
+          plain_fapi: { configurationFields: [] },
+          openbanking_brazil: { configurationFields: ["resource.consentUrl"] },
+        },
+      },
+      fapi_response_mode: {
+        variantInfo: {
+          displayName: "FAPI Response Mode",
+          description: "The response mode that will be used.",
+        },
+        variantValues: {
+          plain_response: { configurationFields: [] },
+          jarm: { configurationFields: [] },
+        },
+      },
+    },
+  },
+  {
+    planName: "fapi1-advanced-final-brazil-dcr-test-plan",
+    displayName:
+      "FAPI1-Advanced-Final: Brazil Dynamic Client Registration Authorization server test",
+    profile: "Test an OpenID Provider / Authorization Server",
+    specFamily: "FAPI1 Advanced",
+    specVersion: "",
+    summary: "",
+    modules: [
+      {
+        testModule: "fapi1-advanced-final-brazildcr-happy-flow",
+        configurationFields: ["server.discoveryUrl", "client.scope", "client.jwks"],
+      },
+    ],
+    variants: {
+      client_auth_type: {
+        variantInfo: {
+          displayName: "Client Authentication Type",
+          description: "The type of client authentication your software supports.",
+        },
+        variantValues: {
+          private_key_jwt: { configurationFields: [] },
+          mtls: { configurationFields: ["mtls.cert", "mtls.key"] },
+        },
+      },
+      fapi_auth_request_method: {
+        variantInfo: {
+          displayName: "Request Object Method",
+          description: "The method to use to pass the request object.",
+        },
+        variantValues: {
+          by_value: { configurationFields: [] },
+          pushed: { configurationFields: [] },
+        },
+      },
+      fapi_profile: {
+        variantInfo: {
+          displayName: "FAPI Profile",
+          description: "The FAPI sub-profile to use.",
+        },
+        variantValues: {
+          plain_fapi: { configurationFields: [] },
+          openbanking_brazil: { configurationFields: ["resource.consentUrl"] },
+        },
+      },
+      fapi_response_mode: {
+        variantInfo: {
+          displayName: "FAPI Response Mode",
+          description: "The response mode that will be used.",
+        },
+        variantValues: {
+          plain_response: { configurationFields: [] },
+          jarm: { configurationFields: [] },
+        },
+      },
+    },
+  },
+];
+
 /** A plan with no variants — simpler cascade for submission tests */
 export const MOCK_PLAN_NO_VARIANTS = {
   planName: "oidcc-client-basic-certification-test-plan",
