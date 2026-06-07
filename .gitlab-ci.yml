@@ -481,6 +481,31 @@ ssf_test:
     - set_up_for_running_test_plan
     - run_ssf_test_plan
 
+# TEMPORARY (vci-metadata-stricter-checks): sweep the new stricter metadata checks against
+# real servers from prod/demo to flush out false positives before merge. Runs automatically +
+# allow_failure (informational only — real servers legitimately violate some rules, and the
+# harness always exits 0). Runs from the deployed review-app's network, inheriting
+# CONFORMANCE_SERVER/CONFORMANCE_TOKEN from the deploy dotenv.
+# Revert this job, the .gitlab-ci/metadata-sweep-*.txt lists, and scripts/metadata-sweep.py before merging.
+metadata_sweep:
+  <<: *deployment_test
+  rules:
+    - if: $CI_COMMIT_BRANCH
+      when: on_success
+      allow_failure: true
+  script:
+    - pip install httpx
+    - python3 $CI_PROJECT_DIR/scripts/metadata-sweep.py
+        --discovery-urls $CI_PROJECT_DIR/.gitlab-ci/metadata-sweep-discovery.txt
+        --vci-urls $CI_PROJECT_DIR/.gitlab-ci/metadata-sweep-vci.txt
+        --out-prefix metadata-sweep
+  artifacts:
+    access: developer
+    when: always
+    paths:
+      - "metadata-sweep-*.csv"
+      - "metadata-sweep-*.json"
+
 local_test:
   stage: test
   rules:

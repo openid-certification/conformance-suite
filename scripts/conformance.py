@@ -273,6 +273,17 @@ class Conformance(object):
                                        url=api_url, params=payload)
         return response.json()
 
+    async def create_test_with_variant(self, test_name, configuration, variant):
+        # Like create_test, but passes the variant selection (the plain create_test omits it,
+        # leaving the server to pick variant defaults). Used by metadata-sweep.py.
+        api_url = '{0}api/runner'.format(self.api_url_base)
+        payload = {'test': test_name}
+        if variant != None:
+            payload['variant'] = json.dumps(variant)
+        response = await self._request(self.httpclient.post, "create_test", 201,
+                                       url=api_url, params=payload, data=configuration)
+        return response.json()
+
     async def get_module_info(self, module_id):
         api_url = '{0}api/info/{1}'.format(self.api_url_base, module_id)
         response = await self._request(self.httpclient.get, "get_module_info", 200,

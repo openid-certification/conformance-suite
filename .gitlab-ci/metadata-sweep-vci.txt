@@ -1,0 +1,42 @@
+# TEMPORARY — generated for the vci-metadata-stricter-checks false-positive sweep.
+# Source: demo-as-list.txt + prod-as-list.txt (prod+demo Mongo TEST_INFO).
+# Dropped: junk/placeholder, ephemeral tunnels, and no-DNS hosts. Revert before merge.
+# One URL per line; '#' comments and blank lines ignored by metadata-sweep.py.
+https://conformance.dev.connector.lissi.io
+https://qa.id.cloud.dvv.fi/pid-issuer
+https://test.id.cloud.dvv.fi/pid-issuer
+https://eudiw-public-oidc4vci.truvity.cloud
+https://capture-vci.credimi.io
+https://oidc4vci.truvity.xyz
+https://fapidev-30-as.authlete.net
+https://pre.issuer.wallet.ipzs.it
+https://psdp.duckdns.org
+https://api.digitalcertification-acc.kiwa.com/b1e93594-baac-404d-9d5e-d5ae2bbbf6e5
+https://api.digitalcertification-test.kiwa.com/05967351-0bcc-4e6b-a4be-6f96a011a93e
+https://openid-gain-issuer.digital-identity-demo.bundesdruckerei.de
+https://sorotokin.com/multipaz/openid4vci
+https://id.clavex.eu/conformance
+https://agent.paradym.id/oid4vci/582c8ed7-2b5c-461c-b5f7-7ad299205757
+https://dev.id.cloud.dvv.fi/pid-issuer
+https://issuer.eudiw.dev
+https://oid4vci-stage.maenada.com
+https://issuer.multipaz.org/issuer
+https://demo.shop.kaprion.net/DatabaseController
+https://staging-issuer.turingspace.co/oidf
+https://api-staging.tessaliq.com
+https://dswalletoidc-pre.digitalsign.pt/ec-digit
+https://dev-ls.goidhub.toppanapps.com:543
+https://procivis.staging.findy.fi/ssi/openid4vci/final-1.0/OPENID4VCI_FINAL1/f5849d98-8701-4b24-abea-857c41c488ae/a241e623-d0b9-4283-abc4-037f29a09c00
+https://keycloak-conformance.eudi-adorsys.com:8443/realms/oid4vc-vci
+https://staging-oid4vc.igrant.io/organisation/6435820b-e755-497b-9a61-35c43cec7dcc/service
+https://p4p-issuer-api-dev.esatus.com
+https://dswalletoidc-pre.digitalsign.pt/digitalsign
+https://aai-thl-test.2.rahtiapp.fi
+https://dev-ls.goidhub.toppanapps.com:543/issuer_1766400422417
+https://geant-vci.2.rahtiapp.fi
+https://issuer-backend.eudiw.dev
+https://x509-e2e.test.connector.lissi.io
+https://idigit.me
+https://wallet-studio.test.namirial.com/issuance/api/v1/2
+https://dev.issuer-backend.eudiw.dev
+https://dev.issuer.eudiw.dev
