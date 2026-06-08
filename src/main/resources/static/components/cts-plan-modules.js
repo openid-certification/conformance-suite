@@ -100,19 +100,38 @@ const STYLE_TEXT = css`
     font-size: var(--fs-12);
   }
   /* The module name links to the same log-detail URL as the "View Logs"
-     button when an instance exists. It reads as plain text at rest
-     (inherits the row name colour, no underline) and reveals its
-     clickability on hover (underline) and keyboard focus (the shared
-     --orange-400 ring used by .help-icon / .moduleStatusLink). */
-  /* Light-DOM anchor: underline fade + hover reveal are inherited from the
-     global \`a\` rule, so keep only layout/weight here (toggling
-     text-decoration-line would defeat the transition — line can't animate). */
+     button when an instance exists. It reads as plain text at rest (inherits
+     the row name colour, no underline). The whole-row block link drives its
+     hover affordance: hovering the block-link surface (or the name itself)
+     colours the name --orange-600 with no underline. This matches cts-plan-card,
+     whose title likewise turns --orange-600 on hover — note that comes from the
+     global \`a:hover\` rule (oidf-tokens.css), which is why cts-plan-card-name's
+     own \`:hover\` rule only has to suppress the underline; the orange is
+     inherited. Same here: the selectors below out-specify this base rule's
+     \`color: inherit\` so the orange lands, while hovering a nested control
+     (buttons, help, id) leaves the name at rest. Keyboard focus keeps the
+     shared --orange-400 ring (.help-icon / .moduleStatusLink). */
   cts-plan-modules .module-row .name .moduleNameLink {
     position: relative;
     z-index: 1;
     color: inherit;
     font-weight: var(--fw-bold);
-    text-underline-offset: 2px;
+    text-decoration-line: none;
+  }
+  /* Only the block-link surface (the .moduleStatusLink ::after overlay, which
+     spans the row) and the name itself highlight the name — NOT the nested
+     controls lifted above the overlay (action buttons, help icon, instance id).
+     This mirrors cts-plan-card's structural selectivity: hovering a nested
+     control leaves the title at its resting colour because the control occludes
+     the title's ::after. Here the overlay is owned by .moduleStatusLink, so
+     \`:has(.moduleStatusLink:hover)\` matches "pointer over the block-link
+     surface (or the badge)"; the second selector adds the name's own direct
+     hover (the name is lifted above the overlay, so it never satisfies the
+     :has() arm). A hovered button/help/id is above the overlay, so neither arm
+     matches and the name stays at rest. */
+  cts-plan-modules .module-row:has(.moduleStatusLink:hover) .name .moduleNameLink,
+  cts-plan-modules .module-row .name .moduleNameLink:hover {
+    color: var(--orange-600);
   }
   cts-plan-modules .module-row .name .moduleNameLink:focus-visible {
     outline: 2px solid var(--orange-400);
@@ -382,19 +401,13 @@ class CtsPlanModules extends LitElement {
         `${isFailedWithRef ? `#${mod.firstFailureRef}` : ""}`
       : null;
 
-    // The anchor wrapper (.moduleStatusLink) intentionally strips the
-    // link's own affordance (text-decoration-line: none, no hover) so the
-    // badge silhouette is the visible click target. Mark the badge
-    // `interactive` so the affordance rule renders the 1px ring on it
-    // — without this, the wrapped badge looks identical to a read-only
-    // status pill and the click affordance disappears (Q3-NO case in
-    // the badge affordance rule).
-    const interactiveBadge = lastInstance;
-    const badge = html`<cts-badge
-      variant="${variant}"
-      label="${label}"
-      ?interactive="${interactiveBadge}"
-    ></cts-badge>`;
+    // The status badge is a plain read-only status pill (no `interactive`
+    // ring). The whole row is now the click target and carries its own
+    // affordance — the row-hover background plus the module name colouring
+    // --orange-600 on block-link hover — so a ring on the badge would be
+    // redundant noise (badge affordance rule, decision-tree step 3: the
+    // wrapper provides a visible affordance, so the chip stays read-only).
+    const badge = html`<cts-badge variant="${variant}" label="${label}"></cts-badge>`;
     // Two-state aria-label per R7: when the click lands mid-log on the
     // failure entry, announce "Jump to first failure"; otherwise keep
     // the R28-current "View logs (label)" form so the announcement
