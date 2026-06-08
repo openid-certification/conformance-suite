@@ -67,9 +67,7 @@ test.describe("plan-detail.html — Plan Detail", () => {
     await expect(page.locator('[data-testid="view-config-btn"]')).toBeVisible();
   });
 
-  test("View configuration button opens an inline panel with plan configuration JSON", async ({
-    page,
-  }) => {
+  test("View configuration button opens a modal with plan configuration JSON", async ({ page }) => {
     await setupFailFast(page);
 
     await page.route("**/api/plan/plan-abc-123", (route) =>
@@ -94,16 +92,16 @@ test.describe("plan-detail.html — Plan Detail", () => {
     const configBtn = page.locator('[data-testid="view-config-btn"]');
     await expect(configBtn).toBeVisible();
 
-    // Config panel should not exist initially
-    await expect(page.locator('[data-testid="config-panel"]')).toHaveCount(0);
+    // Config modal should not be visible initially
+    await expect(page.locator('[data-testid="config-modal"]')).not.toBeVisible();
 
     // Click the inner <button> inside cts-button (Lit binds @click on the inner button)
     await configBtn.locator("button").click();
 
-    // Panel appears with the plan ID and the config JSON inside the
+    // Modal appears with the plan ID and the config JSON inside the
     // read-only Monaco editor. Monaco virtualises rendered content, so we
-    // assert on the editor's `.value` rather than the panel's textContent.
-    const configPanel = page.locator('[data-testid="config-panel"]');
+    // assert on the editor's `.value` rather than the modal's textContent.
+    const configPanel = page.locator('[data-testid="config-modal"]');
     await expect(configPanel).toBeVisible();
     await expect(configPanel).toContainText("plan-abc-123");
     await expect

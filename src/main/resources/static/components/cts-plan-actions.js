@@ -1,7 +1,9 @@
 import { LitElement, html, nothing, css } from "lit";
+import { createRef, ref } from "lit/directives/ref.js";
 import "./cts-button.js";
 import "./cts-link-button.js";
 import "./cts-json-editor.js";
+import "./cts-modal.js";
 import { flashCopyConfirmed } from "../js/cts-copy-flash.js";
 
 // Screen-reader announcement + visible feedback should stay long enough for
@@ -11,10 +13,12 @@ const COPY_FEEDBACK_DURATION_MS = 5000;
 const STYLE_ID = "cts-plan-actions-styles";
 
 // Scoped CSS for the plan-detail action rail. Buttons stack vertically
-// with a small gap; the inline panels (config, private link, delete
-// confirm) reuse the OIDF card surface tokens. The destructive confirm
-// panel switches to the rust palette for emphasis (matches the design
-// archive's failure tone).
+// with a small gap; inline panels (private link, delete confirm) reuse
+// the OIDF card surface tokens. The config viewer renders as a cts-modal;
+// its toolbar and JSON editor classes are still scoped here because the
+// modal content remains a DOM descendant of cts-plan-actions (light DOM).
+// The destructive confirm panel switches to the rust palette for emphasis
+// (matches the design archive's failure tone).
 const STYLE_TEXT = css`
   cts-plan-actions {
     display: block;
@@ -183,7 +187,6 @@ class CtsPlanActions extends LitElement {
     isAdmin: { type: Boolean, attribute: "is-admin" },
     isReadonly: { type: Boolean, attribute: "is-readonly" },
     canCertify: { type: Boolean, attribute: "can-certify" },
-    _showConfig: { state: true },
     _showDeleteConfirm: { state: true },
     _showPrivateLink: { state: true },
     _privateLinkDays: { state: true },
@@ -197,7 +200,7 @@ class CtsPlanActions extends LitElement {
     this.isAdmin = false;
     this.isReadonly = false;
     this.canCertify = false;
-    this._showConfig = false;
+    this._configModalRef = createRef();
     this._showDeleteConfirm = false;
     this._showPrivateLink = false;
     this._privateLinkDays = 30;
@@ -220,7 +223,7 @@ class CtsPlanActions extends LitElement {
   }
 
   _handleViewConfig() {
-    this._showConfig = !this._showConfig;
+    /** @type {any} */ (this._configModalRef.value)?.show();
   }
 
   async _handleCopyConfig(event) {
@@ -345,14 +348,19 @@ class CtsPlanActions extends LitElement {
     );
   }
 
-  _renderConfigPanel() {
-    if (!this._showConfig) return nothing;
-    const configJson = this.plan.config
-      ? JSON.stringify(this.plan.config, null, 4)
-      : "No configuration available";
+  _renderConfigModal() {
+    const configJson =
+      this.plan && this.plan.config
+        ? JSON.stringify(this.plan.config, null, 4)
+        : "No configuration available";
 
     return html`
-      <div class="planActionPanel" data-testid="config-panel">
+      <cts-modal
+        ${ref(this._configModalRef)}
+        heading="View Configuration"
+        size="lg"
+        data-testid="config-modal"
+      >
         <div class="planConfigToolbar">
           <strong>Configuration for <code>${this.plan._id}</code></strong>
           <div class="planConfigToolbarRight">
@@ -382,7 +390,7 @@ class CtsPlanActions extends LitElement {
           aria-label="Plan configuration JSON"
           .value=${configJson}
         ></cts-json-editor>
-      </div>
+      </cts-modal>
     `;
   }
 
@@ -430,19 +438,19 @@ class CtsPlanActions extends LitElement {
     return html`
       <div class="planActionPanel is-danger" data-testid="delete-confirm-panel">
         <div class="planDeleteWarning">
-          <p
-            ><strong>Clicking the "Delete plan" button will permanently and irrevocably:</strong></p
-          >
+          <p>
+            <strong>Clicking the "Delete plan" button will permanently and irrevocably:</strong>
+          </p>
           <ul>
             <li>Delete the test plan.</li>
             <li>Delete the test plan configuration.</li>
-            <li>Delete the individual tests and logs belonging to the plan.</li>
+            <li> Delete the individual tests and logs belonging to the plan. </li>
           </ul>
-          <p
-            ><strong
+          <p>
+            <strong
               >This action cannot be undone and the data cannot be recovered after deletion.</strong
-            ></p
-          >
+            >
+          </p>
         </div>
         <div class="planDeleteActions">
           <cts-button
@@ -593,7 +601,7 @@ class CtsPlanActions extends LitElement {
           : nothing}
       </div>
 
-      ${this._renderConfigPanel()} ${this._renderPrivateLinkPanel()} ${this._renderDeleteConfirm()}
+      ${this._renderConfigModal()} ${this._renderPrivateLinkPanel()} ${this._renderDeleteConfirm()}
     `;
   }
 }
