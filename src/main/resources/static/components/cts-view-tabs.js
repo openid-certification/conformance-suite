@@ -399,7 +399,7 @@ class CtsViewTabs extends LitElement {
               size="sm"
               icon="add-plus"
               href="${this.createTestHref}"
-              label="Schedule test"
+              label="Create a new test"
               data-testid="schedule-test-cta"
             ></cts-link-button>`
           : nothing}
