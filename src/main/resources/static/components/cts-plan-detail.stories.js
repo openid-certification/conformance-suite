@@ -572,16 +572,18 @@ export const ActionsViewConfig = {
   async play({ canvasElement, step }) {
     const canvas = within(canvasElement);
 
-    await step("config panel is hidden until requested", async () => {
-      const configPanel = canvasElement.querySelector('[data-testid="config-panel"]');
-      expect(configPanel).toBeNull();
+    await step("config modal is not open until requested", async () => {
+      const configModal = canvasElement.querySelector('[data-testid="config-modal"]');
+      expect(configModal?.hasAttribute("open")).toBe(false);
     });
 
-    await step("clicking View configuration opens the panel", async () => {
+    await step("clicking View configuration opens the modal", async () => {
       // Target the inner <button>.
       await userEvent.click(innerButton(canvasElement, "view-config-btn"));
       await waitFor(() => {
-        expect(canvasElement.querySelector('[data-testid="config-panel"]')).toBeTruthy();
+        expect(
+          canvasElement.querySelector('[data-testid="config-modal"]')?.hasAttribute("open"),
+        ).toBe(true);
       });
     });
 
@@ -607,7 +609,7 @@ export const ActionsViewConfig = {
     });
 
     await step("plan ID is displayed", async () => {
-      expect(canvas.getByText("plan-abc-123")).toBeInTheDocument();
+      expect(canvas.getAllByText("plan-abc-123").length).toBeGreaterThanOrEqual(1);
     });
   },
 };
@@ -930,12 +932,13 @@ export const ActionsCopyConfig = {
     // restoreMocks: true in vitest.config.js handles teardown.
     const mockWriteText = spyOn(navigator.clipboard, "writeText").mockResolvedValue();
 
-    await step("open the config panel", async () => {
+    await step("open the config modal", async () => {
       // Target the inner <button>.
       await userEvent.click(innerButton(canvasElement, "view-config-btn"));
       await waitFor(() => {
-        const panel = canvasElement.querySelector('[data-testid="config-panel"]');
-        expect(panel).toBeTruthy();
+        expect(
+          canvasElement.querySelector('[data-testid="config-modal"]')?.hasAttribute("open"),
+        ).toBe(true);
       });
     });
 
@@ -972,11 +975,13 @@ export const ActionsCopyConfigClipboardFailure = {
       new Error("permission denied"),
     );
 
-    await step("open the config panel and click Copy", async () => {
+    await step("open the config modal and click Copy", async () => {
       // Target the inner <button>.
       await userEvent.click(innerButton(canvasElement, "view-config-btn"));
       await waitFor(() => {
-        expect(canvasElement.querySelector('[data-testid="config-panel"]')).toBeTruthy();
+        expect(
+          canvasElement.querySelector('[data-testid="config-modal"]')?.hasAttribute("open"),
+        ).toBe(true);
       });
 
       const copyInner = canvasElement.querySelector(".copy-config-btn button");
