@@ -3,6 +3,8 @@ import { expect, within, waitFor, fn, userEvent } from "storybook/test";
 import { MOCK_TEST_STATUS, MOCK_TEST_RUNNING, MOCK_TEST_FAILED } from "@fixtures/mock-test-data.js";
 import "./cts-log-detail-header.js";
 import { renderErrorIntoSlot } from "../js/log-detail-error-slot.js";
+import { withMockFetch } from "@fixtures/helpers.js";
+import { parseLogUrl } from "../js/log-detail-live-url.js";
 
 export default {
   title: "Components/cts-log-detail-header",
@@ -1907,5 +1909,169 @@ export const VariantRendersAsDefinitionList = {
       const cell = list.parentElement;
       expect(cell.textContent).not.toContain("client_auth_type: client_secret_basic, ");
     });
+  },
+};
+
+// --- Live backend viewer ---
+// Plan: docs/plans/2026-06-08-002-feat-log-detail-live-backend-story-plan.md
+// Paste a `log-detail.html?log=<id>` URL into the Controls panel; the story
+// extracts the `log` param, fetches `GET /api/info/<id>` from that URL's
+// origin (the running CTS backend), and injects the response into
+// <cts-log-detail-header> via `.testInfo` — the same mapping js/log-detail.js
+// performs on page load.
+//
+// Cross-origin caveat: Storybook (e.g. http://localhost:6006) and the backend
+// (https://localhost.emobix.co.uk:8443) are different origins. The browser
+// enforces CORS regardless of the self-signed cert, so a real fetch only
+// succeeds once (a) the cert is trusted — visit the backend URL once and click
+// through — AND (b) the backend allows this origin (or Storybook is proxied).
+// On failure the story renders a readable error panel with that guidance
+// rather than a half-populated header.
+
+const DEFAULT_LOG_URL = "https://localhost.emobix.co.uk:8443/log-detail.html?log=YO7tc06oegAVgbt";
+
+const CORS_HINT =
+  "Trust the backend cert (visit the URL once and accept it) and ensure the " +
+  "backend allows this origin (CORS), or run Storybook behind a proxy.";
+
+/**
+ * Mirror the error shape of js/log-detail.js::fetchTestInfo: prefer a JSON
+ * `error` field from the body, otherwise a generic HTTP-status message.
+ *
+ * @param {Response} response
+ * @returns {Promise<Error>}
+ */
+async function infoErrorFromResponse(response) {
+  let message = `Could not load test info (HTTP ${response.status}).`;
+  try {
+    const body = await response.json();
+    if (body && typeof body.error === "string" && body.error.trim()) {
+      message = body.error;
+    }
+  } catch {
+    /* response wasn't JSON — keep the generic message */
+  }
+  return new Error(message);
+}
+
+/**
+ * Render the live-backend demo into a container element: parse the URL, fetch,
+ * and inject `.testInfo` into a cts-log-detail-header — or show loading/error
+ * states. Returns the container synchronously and resolves the fetch out of
+ * band so Storybook's render contract (return a node) is satisfied.
+ *
+ * @param {string} logUrl
+ * @returns {HTMLElement}
+ */
+function renderLiveDemo(logUrl) {
+  const container = document.createElement("div");
+
+  const status = document.createElement("p");
+  status.dataset.testid = "live-loading";
+  status.style.color = "var(--text-muted, #666)";
+  status.textContent = "Loading test info…";
+  container.appendChild(status);
+
+  /** @param {string} message */
+  const showError = (message) => {
+    container.replaceChildren();
+    const panel = document.createElement("div");
+    panel.dataset.testid = "live-error";
+    panel.style.padding = "var(--space-4, 16px)";
+    panel.style.border = "1px solid var(--status-fail-fg, #b00020)";
+    panel.style.borderRadius = "var(--radius-2, 6px)";
+    panel.style.color = "var(--status-fail-fg, #b00020)";
+
+    const headline = document.createElement("strong");
+    headline.textContent = message;
+    const hint = document.createElement("p");
+    hint.style.marginBottom = "0";
+    hint.style.color = "var(--text-muted, #666)";
+    hint.textContent = CORS_HINT;
+
+    panel.append(headline, hint);
+    container.appendChild(panel);
+  };
+
+  let apiUrl;
+  try {
+    ({ apiUrl } = parseLogUrl(logUrl));
+  } catch (err) {
+    showError(/** @type {Error} */ (err).message);
+    return container;
+  }
+
+  fetch(apiUrl)
+    .then(async (response) => {
+      if (!response.ok) {
+        throw await infoErrorFromResponse(response);
+      }
+      const testInfo = await response.json();
+      container.replaceChildren();
+      const header = document.createElement("cts-log-detail-header");
+      // @ts-expect-error - testInfo is a custom property on the element.
+      header.testInfo = testInfo;
+      container.appendChild(header);
+    })
+    .catch((err) => {
+      // A network/CORS/cert failure rejects with a TypeError ("Failed to
+      // fetch") rather than an HTTP error — surface the CORS hint either way.
+      showError(/** @type {Error} */ (err).message || "Failed to load test info.");
+    });
+
+  return container;
+}
+
+/**
+ * Interactive story: paste the URL you are looking at into the `logUrl`
+ * control and the story loads that real test against the live backend. No
+ * deterministic play assertions — a live fetch can't run in CI. The
+ * mocked-fetch stories below cover the parse→fetch→inject wiring.
+ */
+export const LiveBackend = {
+  args: { logUrl: DEFAULT_LOG_URL },
+  argTypes: {
+    logUrl: {
+      control: "text",
+      description: "A log-detail.html?log=<id> URL pointing at a running CTS backend.",
+    },
+  },
+  render: ({ logUrl }) => renderLiveDemo(logUrl),
+};
+
+/**
+ * Deterministic wiring check: with `/api/info/` mocked, the story parses the
+ * URL, fetches, and injects the fixture into cts-log-detail-header.
+ */
+export const LiveBackendMockedSuccess = {
+  decorators: [withMockFetch("/api/info/", MOCK_TEST_STATUS)],
+  render: () => renderLiveDemo(DEFAULT_LOG_URL),
+  async play({ canvasElement }) {
+    const canvas = within(canvasElement);
+    await waitFor(() => {
+      expect(canvas.getAllByText("oidcc-server").length).toBeGreaterThan(0);
+    });
+    // The populated header replaced the loading placeholder.
+    expect(canvasElement.querySelector('[data-testid="live-loading"]')).toBeNull();
+    expect(canvasElement.querySelector("cts-log-detail-header")).toBeTruthy();
+  },
+};
+
+/**
+ * Error path: a 500 from `/api/info/` renders the error panel (with the CORS
+ * hint), not a half-populated header.
+ */
+export const LiveBackendMockedError = {
+  decorators: [withMockFetch("/api/info/", { error: "Test not found" }, { status: 500 })],
+  render: () => renderLiveDemo(DEFAULT_LOG_URL),
+  async play({ canvasElement }) {
+    const panel = await waitFor(() => {
+      const el = canvasElement.querySelector('[data-testid="live-error"]');
+      if (!el) throw new Error("error panel not yet rendered");
+      return el;
+    });
+    expect(panel.textContent).toContain("Test not found");
+    expect(panel.textContent).toContain("CORS");
+    expect(canvasElement.querySelector("cts-log-detail-header")).toBeNull();
   },
 };
