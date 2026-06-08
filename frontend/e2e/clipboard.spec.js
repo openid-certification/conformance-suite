@@ -95,11 +95,10 @@ test.describe("copy buttons copy text from cts-button hosts", () => {
 
     await page.goto("/plan-detail.html?plan=plan-abc-123");
 
-    // After U35, the plan config viewer is an inline panel inside
-    // cts-plan-actions, not a modal. The Copy button uses
-    // navigator.clipboard.writeText directly (not ClipboardJS).
+    // The plan config viewer renders as a modal inside cts-plan-actions.
+    // The Copy button uses navigator.clipboard.writeText directly (not ClipboardJS).
     await page.locator('cts-plan-actions [data-testid="view-config-btn"] button').click();
-    const configPanel = page.locator('cts-plan-actions [data-testid="config-panel"]');
+    const configPanel = page.locator('cts-plan-actions [data-testid="config-modal"]');
     await expect(configPanel).toBeVisible();
 
     const copyBtn = configPanel.locator("cts-button.copy-config-btn > button");
