@@ -714,19 +714,32 @@ public abstract class AbstractCondition implements Condition, DataUtils {
 		SSLContext sc = SSLContext.getInstance("TLS");
 		sc.init(km, trustAllCerts, new java.security.SecureRandom());
 
+		// Scope to the POOLED mTLS path only: that is where a shared per-identity SSLContext caches TLS
+		// sessions, so a NEW connection can do an abbreviated (resumed) handshake that does NOT re-present
+		// the client cert chain - which Authlete intermittently rejects as "path does not chain" (#1466).
+		// Non-mTLS pooling keeps resumption (no cert to drop); non-pooled has a fresh SSLContext anyway.
+		final boolean disablePooledMtlsResumption = PooledConnectionManagers.isEnabled(env) && km != null;
 		SSLConnectionSocketFactory sslConnectionFactory = new SSLConnectionSocketFactory(sc,
 			restrictAllowedTLSVersions ? new String[]{"TLSv1.2", "TLSv1.3"} : null, null,
 			NoopHostnameVerifier.INSTANCE) {
 			@Override
-			protected void prepareSocket(javax.net.ssl.SSLSocket socket) throws IOException {
-				super.prepareSocket(socket);
-				// Pooled-path correctness: a shared per-identity SSLContext caches TLS sessions, so a NEW
-				// connection can do an abbreviated (resumed) handshake that does NOT re-present the client
-				// cert chain - which Authlete intermittently rejects as "path does not chain" (issue #1466).
-				// Invalidate the session after each handshake so every new connection does a FULL handshake
-				// (re-presenting the cert). Existing connections keep working (TCP/connection reuse is
-				// unaffected). No-op for the non-pooled path (fresh SSLContext per call, nothing to resume).
-				socket.addHandshakeCompletedListener(event -> event.getSession().invalidate());
+			protected void prepareSocket(javax.net.ssl.SSLSocket socket, org.apache.hc.core5.http.protocol.HttpContext context)
+					throws IOException {
+				super.prepareSocket(socket, context);
+				if (disablePooledMtlsResumption) {
+					// Drop any cached sessions BEFORE this handshake (covers TLS 1.3 tickets issued
+					// post-handshake on an earlier connection) so this new connection cannot resume...
+					for (byte[] id : java.util.Collections.list(sc.getClientSessionContext().getIds())) {
+						javax.net.ssl.SSLSession cached = sc.getClientSessionContext().getSession(id);
+						if (cached != null) {
+							cached.invalidate();
+						}
+					}
+					// ...and invalidate THIS session AFTER the handshake so a later new connection can't
+					// resume it either. Every new connection then does a FULL handshake (re-presenting the
+					// cert); existing connections keep working (TCP/connection reuse is unaffected).
+					socket.addHandshakeCompletedListener(event -> event.getSession().invalidate());
+				}
 			}
 		};
 

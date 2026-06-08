@@ -11,6 +11,10 @@ import org.apache.hc.core5.http.HttpException;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
+import java.util.HexFormat;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import javax.net.ssl.SSLSession;
 
 /**
  * Diagnostic exec-chain interceptor for the pooled HTTP path. Unlike a request interceptor (which runs
@@ -26,6 +30,11 @@ import java.net.SocketAddress;
  * had been idle before a failing reuse — the data the {@code Keep-Alive: max} header alone cannot give.
  */
 public class ConnectionReuseLoggingExec implements ExecChainHandler {
+
+	/** Session id (prefix) -&gt; the local port it was first seen on. Lets us tell TLS session reuse across a
+	 *  NEW connection (a resumption indicator) apart from the same id on the same live connection (which is
+	 *  just TCP/connection reuse, not resumption). Heuristic only: TLS 1.3 may not reuse the id this way. */
+	private static final Map<String, Integer> SESSION_ID_FIRST_PORT = new ConcurrentHashMap<>();
 
 	private final TestInstanceEventLog log;
 	private final String source;
@@ -56,24 +65,45 @@ public class ConnectionReuseLoggingExec implements ExecChainHandler {
 			if (ed == null) {
 				ed = leased;
 			}
-			logConnection(scope.exchangeId, ed, priorRequests, request, error);
+			logConnection(scope.exchangeId, ed, priorRequests, scope.clientContext.getSSLSession(), request, error);
 		}
 	}
 
 	private void logConnection(String exchangeId, EndpointDetails ed, long priorRequests,
-			ClassicHttpRequest request, Throwable error) {
+			SSLSession ssl, ClassicHttpRequest request, Throwable error) {
 		try {
-			boolean reused = priorRequests > 0;
+			int port = localPort(ed);
+			// -1 = we couldn't read the request count at this exec stage; report reuse as unknown rather
+			// than falsely "new" (the reliable reuse signal is local-port repetition across entries).
+			String reuse = priorRequests > 0 ? "reused" : (priorRequests == 0 ? "new" : "unknown");
 			JsonObject o = new JsonObject();
-			o.addProperty("msg", "Pooled connection " + (reused ? "REUSED" : "new")
-				+ (error != null ? " - request FAILED" : ""));
-			o.addProperty("connection_reused", reused);
+			o.addProperty("msg", "Pooled connection " + reuse + (error != null ? " - request FAILED" : ""));
+			o.addProperty("connection_reuse", reuse);
 			o.addProperty("prior_requests_on_connection", priorRequests);
-			o.addProperty("connection_local_port", localPort(ed));
+			o.addProperty("connection_local_port", port);
 			o.addProperty("connection_remote", ed != null ? String.valueOf(ed.getRemoteAddress()) : "?");
 			o.addProperty("tls_identity", tlsIdentity);
 			o.addProperty("exchange_id", exchangeId);
 			o.addProperty("request_uri", request.getRequestUri());
+			// TLS handshake correlation data (NOT a definitive resumption detector). protocol/cipher, the
+			// session id, whether that id was seen before at all, and - the useful bit - whether it was
+			// seen on a DIFFERENT connection (port), which points to session resumption across a new
+			// connection rather than plain TCP reuse of one live connection.
+			if (ssl != null) {
+				byte[] sid = ssl.getId();
+				String sidHex = sid == null || sid.length == 0 ? "" : HexFormat.of().formatHex(sid);
+				o.addProperty("tls_protocol", ssl.getProtocol());
+				o.addProperty("tls_cipher", ssl.getCipherSuite());
+				if (sidHex.isEmpty()) {
+					o.addProperty("tls_session_id", "(empty)");
+				} else {
+					Integer firstPort = SESSION_ID_FIRST_PORT.putIfAbsent(sidHex, port);
+					o.addProperty("tls_session_id", sidHex.substring(0, Math.min(16, sidHex.length())));
+					o.addProperty("tls_session_id_seen_before", firstPort != null);
+					o.addProperty("tls_session_id_seen_on_other_connection",
+						firstPort != null && port != -1 && firstPort != port);
+				}
+			}
 			if (error != null) {
 				o.addProperty("error", error.getClass().getSimpleName() + ": " + error.getMessage());
 			}
