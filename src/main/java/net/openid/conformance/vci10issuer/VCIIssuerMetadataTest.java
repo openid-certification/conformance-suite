@@ -3,7 +3,11 @@ package net.openid.conformance.vci10issuer;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
+import net.openid.conformance.condition.as.EnsureServerJwksDoesNotContainPrivateOrSymmetricKeys;
 import net.openid.conformance.condition.client.EnsureContentTypeJson;
+import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs200;
+import net.openid.conformance.condition.client.FetchServerKeys;
+import net.openid.conformance.condition.client.ValidateServerJWKs;
 import net.openid.conformance.fapi2spfinal.AbstractFAPI2SPFinalDiscoveryEndpointVerification;
 import net.openid.conformance.sequence.client.VCIDiscoveryEndpointChecks;
 import net.openid.conformance.testmodule.PublishTestModule;
@@ -19,11 +23,21 @@ import net.openid.conformance.vci10issuer.condition.VCICredentialIssuerMetadataV
 import net.openid.conformance.vci10issuer.condition.VCIEnsureCredentialRequestEncryptionWhenResponseEncryptionOptional;
 import net.openid.conformance.vci10issuer.condition.VCIEnsureCredentialRequestEncryptionWhenResponseEncryptionRequired;
 import net.openid.conformance.vci10issuer.condition.VCIEnsureHttpsUrlsMetadata;
+import net.openid.conformance.vci10issuer.condition.VCIValidateAuthorizationServersAreHttps;
+import net.openid.conformance.vci10issuer.condition.VCIValidateEncryptionAlgorithms;
+import net.openid.conformance.vci10issuer.condition.VCIValidateEncryptionZipValues;
 import net.openid.conformance.vci10issuer.condition.VCIExtractTlsInfoFromCredentialIssuer;
+import net.openid.conformance.vci10issuer.condition.VCIEnsureAuthorizationServerIssuerMatchesExpected;
 import net.openid.conformance.vci10issuer.condition.VCIFetchOAuthorizationServerMetadata;
 import net.openid.conformance.vci10issuer.condition.VCIParseCredentialIssuerMetadata;
+import net.openid.conformance.vci10issuer.condition.VCIValidateCredentialConfigurationScopeSyntax;
 import net.openid.conformance.vci10issuer.condition.VCIValidateCredentialIssuerUri;
+import net.openid.conformance.vci10issuer.condition.VCIValidateCredentialSigningAlgValuesSupported;
+import net.openid.conformance.vci10issuer.condition.VCIValidateProofSigningAlgValuesSupported;
+import net.openid.conformance.vci10issuer.condition.VCIValidateProofTypesCoPresence;
 import net.openid.conformance.vci10issuer.condition.VCICheckForOldSdJwtFormatInCredentialConfigurations;
+import net.openid.conformance.vci10issuer.condition.VCIValidateDisplayLocales;
+import net.openid.conformance.vci10issuer.condition.VCIWarnOnNonCanonicalDisplayLocales;
 import net.openid.conformance.vci10issuer.condition.VCIValidateFormatOfCredentialConfigurationsInMetadata;
 import net.openid.conformance.vci10issuer.condition.VCIValidateNonceEndpointInIssuerMetadata;
 
@@ -66,6 +80,7 @@ public class VCIIssuerMetadataTest extends AbstractVciTest {
 		eventLog.runBlock("Fetch OAuth Authorization Server Metadata", () -> {
 			callAndStopOnFailure(VCIFetchOAuthorizationServerMetadata.class, Condition.ConditionResult.FAILURE, "OID4VCI-1FINAL-12.2.3", "RFC8414-3.1");
 			call(exec().mapKey("endpoint_response", "oauth_authorization_server_metadata_response"));
+			callAndContinueOnFailure(EnsureHttpStatusCodeIs200.class, Condition.ConditionResult.FAILURE, "RFC8414-3.2");
 			callAndContinueOnFailure(EnsureContentTypeJson.class, Condition.ConditionResult.WARNING, "RFC8414-3.2");
 			call(exec().unmapKey("endpoint_response"));
 		});
@@ -81,7 +96,7 @@ public class VCIIssuerMetadataTest extends AbstractVciTest {
 
 			for (int i = 0; i < serverCount; i++) {
 				String authServerMetadataPath = String.format("authorization_servers.server%d.authorization_server_metadata", i);
-				checkAuthServerMetadata(authServerMetadataPath);
+				checkAuthServerMetadata(i, authServerMetadataPath);
 			}
 		});
 
@@ -91,9 +106,16 @@ public class VCIIssuerMetadataTest extends AbstractVciTest {
 	protected void checkIssuerMetadata() {
 		callAndContinueOnFailure(VCICheckRequiredMetadataFields.class, Condition.ConditionResult.FAILURE, "OID4VCI-1FINAL-12.2.3");
 		callAndContinueOnFailure(VCIEnsureHttpsUrlsMetadata.class, Condition.ConditionResult.FAILURE, "OID4VCI-1FINAL-12.2.3");
+		callAndContinueOnFailure(VCIValidateAuthorizationServersAreHttps.class, Condition.ConditionResult.FAILURE, "OID4VCI-1FINAL-12.2.3");
 		callAndContinueOnFailure(VCIValidateCredentialIssuerUri.class, Condition.ConditionResult.FAILURE, "OID4VCI-1FINAL-12.2.1");
 		callAndContinueOnFailure(VCICredentialIssuerMetadataValidation.class, Condition.ConditionResult.FAILURE, "OID4VCI-1FINAL-12.2.3");
 		callAndContinueOnFailure(CheckForUnexpectedParametersInCredentialIssuerMetadata.class, Condition.ConditionResult.WARNING, "OID4VCI-1FINAL-12.2.3");
+		callAndContinueOnFailure(VCIValidateCredentialSigningAlgValuesSupported.class, Condition.ConditionResult.FAILURE, "OID4VCI-1FINAL-12.2.4");
+		callAndContinueOnFailure(VCIValidateProofSigningAlgValuesSupported.class, Condition.ConditionResult.FAILURE, "OID4VCI-1FINAL-12.2.4");
+		callAndContinueOnFailure(VCIValidateProofTypesCoPresence.class, Condition.ConditionResult.FAILURE, "OID4VCI-1FINAL-12.2.4");
+		callAndContinueOnFailure(VCIValidateDisplayLocales.class, Condition.ConditionResult.FAILURE, "OID4VCI-1FINAL-12.2.4");
+		callAndContinueOnFailure(VCIWarnOnNonCanonicalDisplayLocales.class, Condition.ConditionResult.WARNING, "OID4VCI-1FINAL-12.2.4");
+		callAndContinueOnFailure(VCIValidateCredentialConfigurationScopeSyntax.class, Condition.ConditionResult.FAILURE, "RFC6749-3.3");
 
 		// credential_request_encryption and credential_response_encryption are both OPTIONAL, but
 		// if declared they MUST be well-formed per §12.2.4. §8.2 further requires the wallet to
@@ -106,6 +128,8 @@ public class VCIIssuerMetadataTest extends AbstractVciTest {
 		//          interoperates with wallets that don't → WARNING.
 		callAndContinueOnFailure(VCICheckCredentialResponseEncryptionSupported.class, Condition.ConditionResult.FAILURE, "OID4VCI-1FINAL-12.2.4");
 		callAndContinueOnFailure(VCICheckCredentialRequestEncryptionSupported.class, Condition.ConditionResult.FAILURE, "OID4VCI-1FINAL-12.2.4");
+		callAndContinueOnFailure(VCIValidateEncryptionAlgorithms.class, Condition.ConditionResult.FAILURE, "OID4VCI-1FINAL-12.2.4");
+		callAndContinueOnFailure(VCIValidateEncryptionZipValues.class, Condition.ConditionResult.WARNING, "OID4VCI-1FINAL-12.2.4");
 		callAndContinueOnFailure(VCIEnsureCredentialRequestEncryptionWhenResponseEncryptionRequired.class, Condition.ConditionResult.FAILURE, "OID4VCI-1FINAL-8.2");
 		callAndContinueOnFailure(VCIEnsureCredentialRequestEncryptionWhenResponseEncryptionOptional.class, Condition.ConditionResult.WARNING, "OID4VCI-1FINAL-8.2");
 
@@ -123,10 +147,37 @@ public class VCIIssuerMetadataTest extends AbstractVciTest {
 		callAndStopOnFailure(VCIParseCredentialIssuerMetadata.class, "OID4VCI-1FINAL-12.2.2");
 	}
 
-	protected void checkAuthServerMetadata(String authServerMetadataPath) {
+	protected void checkAuthServerMetadata(int serverIndex, String authServerMetadataPath) {
 		env.putObject("server", env.getElementFromObject("vci", authServerMetadataPath).getAsJsonObject());
 		try {
 			call(new VCIDiscoveryEndpointChecks());
+
+			// The issuer in the fetched authorization server metadata must match the identifier it
+			// was retrieved for (RFC 8414 section 3.3), to prevent impersonation.
+			callAndContinueOnFailure(new VCIEnsureAuthorizationServerIssuerMatchesExpected(serverIndex),
+				Condition.ConditionResult.FAILURE, "RFC8414-3.3");
+
+			// The authorization server's signing keys (jwks_uri is OPTIONAL in plain OAuth2 / RFC 8414):
+			// if present, the JWKS must be fetchable, well-formed and contain only public asymmetric keys.
+			call(condition(FetchServerKeys.class)
+				.skipIfElementMissing("server", "jwks_uri")
+				.onSkip(Condition.ConditionResult.INFO)
+				.onFail(Condition.ConditionResult.FAILURE)
+				.requirement("RFC8414-2")
+				.dontStopOnFailure());
+			call(condition(ValidateServerJWKs.class)
+				.skipIfElementMissing("server", "jwks_uri")
+				.onSkip(Condition.ConditionResult.INFO)
+				.onFail(Condition.ConditionResult.FAILURE)
+				.requirement("RFC8414-2")
+				.dontStopOnFailure());
+			call(condition(EnsureServerJwksDoesNotContainPrivateOrSymmetricKeys.class)
+				.skipIfElementMissing("server", "jwks_uri")
+				.onSkip(Condition.ConditionResult.INFO)
+				.onFail(Condition.ConditionResult.FAILURE)
+				.requirement("RFC7518-6.3.2.1")
+				.dontStopOnFailure());
+
 			if (clientAuthType == ClientAuthType.CLIENT_ATTESTATION) {
 				call(new AbstractFAPI2SPFinalDiscoveryEndpointVerification.ClientAttestationChecks());
 			}

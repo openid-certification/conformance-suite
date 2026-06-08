@@ -1,12 +1,15 @@
 package net.openid.conformance.vci10issuer.condition;
 
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PreEnvironment;
+import net.openid.conformance.condition.util.IssuerUrlValidation;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 
-import java.net.URI;
+import java.util.ArrayList;
+import java.util.List;
 
 public class VCIValidateCredentialIssuerUri extends AbstractCondition {
 
@@ -15,23 +18,36 @@ public class VCIValidateCredentialIssuerUri extends AbstractCondition {
 	public Environment evaluate(Environment env) {
 
 		JsonObject metadata = env.getElementFromObject("vci", "credential_issuer_metadata").getAsJsonObject();
-		String iss = OIDFJSON.getString(metadata.get("credential_issuer"));
+		JsonElement credentialIssuerEl = metadata.get("credential_issuer");
+		if (!OIDFJSON.isString(credentialIssuerEl)) {
+			throw error("credential_issuer is missing or not a string in credential issuer metadata",
+				args("credential_issuer", credentialIssuerEl));
+		}
+		String iss = OIDFJSON.getString(credentialIssuerEl);
 
-		URI issUri = URI.create(iss);
-
-		if (!"https".equals(issUri.getScheme())) {
-			throw error("credential_issuer must use https", args("credential_issuer", iss));
+		List<String> issues = new ArrayList<>();
+		IssuerUrlValidation.validate(iss, "credential_issuer", issues);
+		if (!issues.isEmpty()) {
+			throw error("credential_issuer is not a valid Credential Issuer Identifier URL (OID4VCI 1.0 Final §12.2.1)",
+				args("credential_issuer", iss, "issues", issues));
 		}
 
-		if (issUri.getFragment() != null) {
-			throw error("credential_issuer must not contain a fragment part", args("credential_issuer", iss));
+		String configuredIssuer = env.getString("config", "vci.credential_issuer_url");
+		if (configuredIssuer == null || configuredIssuer.isBlank()) {
+			log("No configured Credential Issuer Identifier (vci.credential_issuer_url) in test config; skipping the byte-identical equality check",
+				args("credential_issuer", iss));
+			logSuccess("credential_issuer URI is valid",
+				args("credential_issuer", iss));
+			return env;
 		}
 
-		if (issUri.getQuery() != null) {
-			throw error("credential_issuer must not contain a query part", args("credential_issuer", iss));
+		if (!configuredIssuer.equals(iss)) {
+			throw error("credential_issuer in the returned metadata is not identical to the Credential Issuer Identifier used to retrieve it — OID4VCI 1.0 Final §12.2.3 requires byte-identical equality",
+				args("credential_issuer", iss, "configured_issuer", configuredIssuer));
 		}
 
-		logSuccess("credential_issuer URI is valid", args("credential_issuer", iss));
+		logSuccess("credential_issuer URI is valid and matches the configured Credential Issuer Identifier",
+			args("credential_issuer", iss));
 
 		return env;
 	}
