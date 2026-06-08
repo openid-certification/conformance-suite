@@ -31,7 +31,6 @@ import org.apache.hc.client5.http.socket.ConnectionSocketFactory;
 import org.apache.hc.client5.http.socket.PlainConnectionSocketFactory;
 import org.apache.hc.client5.http.ssl.NoopHostnameVerifier;
 import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactory;
-import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactoryBuilder;
 import org.apache.hc.core5.http.config.Registry;
 import org.apache.hc.core5.http.config.RegistryBuilder;
 import org.apache.hc.core5.io.CloseMode;
@@ -715,11 +714,21 @@ public abstract class AbstractCondition implements Condition, DataUtils {
 		SSLContext sc = SSLContext.getInstance("TLS");
 		sc.init(km, trustAllCerts, new java.security.SecureRandom());
 
-		SSLConnectionSocketFactory sslConnectionFactory = SSLConnectionSocketFactoryBuilder.create()
-			.setSslContext(sc)
-			.setTlsVersions(restrictAllowedTLSVersions ? new String[]{"TLSv1.2", "TLSv1.3"} : null)
-			.setHostnameVerifier(NoopHostnameVerifier.INSTANCE)
-			.build();
+		SSLConnectionSocketFactory sslConnectionFactory = new SSLConnectionSocketFactory(sc,
+			restrictAllowedTLSVersions ? new String[]{"TLSv1.2", "TLSv1.3"} : null, null,
+			NoopHostnameVerifier.INSTANCE) {
+			@Override
+			protected void prepareSocket(javax.net.ssl.SSLSocket socket) throws IOException {
+				super.prepareSocket(socket);
+				// Pooled-path correctness: a shared per-identity SSLContext caches TLS sessions, so a NEW
+				// connection can do an abbreviated (resumed) handshake that does NOT re-present the client
+				// cert chain - which Authlete intermittently rejects as "path does not chain" (issue #1466).
+				// Invalidate the session after each handshake so every new connection does a FULL handshake
+				// (re-presenting the cert). Existing connections keep working (TCP/connection reuse is
+				// unaffected). No-op for the non-pooled path (fresh SSLContext per call, nothing to resume).
+				socket.addHandshakeCompletedListener(event -> event.getSession().invalidate());
+			}
+		};
 
 		HttpClientBuilder builder = HttpClientBuilder.create().useSystemProperties();
 		int timeout = getHttpClientTimeoutSeconds();
