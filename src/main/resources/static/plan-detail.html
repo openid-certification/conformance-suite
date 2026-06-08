@@ -25,6 +25,7 @@
     <script type="module" src="/components/cts-navbar.js"></script>
     <script type="module" src="/components/cts-modal.js"></script>
     <script type="module" src="/components/cts-spinner.js"></script>
+    <script type="module" src="/components/cts-loading-state.js"></script>
     <script type="module" src="/components/cts-button.js"></script>
     <script type="module" src="/components/cts-link-button.js"></script>
     <script type="module" src="/components/cts-alert.js"></script>
@@ -58,6 +59,15 @@
             .oidf-plan-detail-grid {
                 grid-template-columns: 1fr;
             }
+        }
+        /* The grid starts hidden while the plan loads (an in-page
+           cts-loading-state shows in its place). The native [hidden]
+           attribute sets display:none via the UA stylesheet, but the
+           `display: grid` author rule above outranks it — so this
+           higher-specificity rule is required for [hidden] to take
+           effect. Removed by the bootstrap once the fetch settles. */
+        .oidf-plan-detail-grid[hidden] {
+            display: none;
         }
         /* Certification submission package form styles live in
            /css/cert-package.css (linked above) so the modal can be shown in
@@ -148,7 +158,12 @@
 
     <main id="planDetail" class="oidf-plan-detail-page">
         <cts-crumb id="planDetailCrumb" class="oidf-plan-detail-crumb"></cts-crumb>
-        <div class="oidf-plan-detail-grid">
+        <!-- In-page loader shown while the plan fetch is in flight, mirroring
+             log-detail.html's in-page loading rather than a blocking modal +
+             overlay. Removed by the bootstrap once the load settles, at which
+             point the grid below is un-hidden. -->
+        <cts-loading-state id="planDetailLoading" label="Loading test plan"></cts-loading-state>
+        <div id="planDetailGrid" class="oidf-plan-detail-grid" hidden>
             <div>
                 <cts-plan-header id="planDetailHeader"></cts-plan-header>
                 <cts-plan-modules id="planDetailModules"></cts-plan-modules>
@@ -761,8 +776,11 @@
             var planId = urlParams.get('plan');
             var isPublic = Boolean(urlParams.get('public'));
 
-            FAPI_UI.showBusy();
-
+            // No FAPI_UI.showBusy() here: the in-page cts-loading-state in the
+            // static markup is the initial-load indicator, so the page loads
+            // like log-detail.html (in-page loader, no blocking modal +
+            // overlay). The #loadingModal is still used by runTest() for the
+            // transitional "Creating a new test…" action.
             waitForComponents()
                 .then(function () {
                     wireUpStaticHandlers(planId);
@@ -774,7 +792,14 @@
                     return getPlan(planId, isPublic);
                 })
                 .finally(function () {
-                    FAPI_UI.hideBusy();
+                    // Reveal the plan grid and drop the in-page loader once
+                    // the load settles — same reveal timing the old
+                    // FAPI_UI.hideBusy() had (success or error; on error the
+                    // #errorModal surfaces over the revealed page).
+                    var loading = document.getElementById('planDetailLoading');
+                    if (loading) loading.remove();
+                    var grid = document.getElementById('planDetailGrid');
+                    if (grid) grid.hidden = false;
                     // After the plan load settles either way — the banner is
                     // navigation chrome, not plan data, so a failed plan
                     // fetch must not strand the record un-consumed.

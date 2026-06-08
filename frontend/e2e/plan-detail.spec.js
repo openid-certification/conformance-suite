@@ -67,6 +67,54 @@ test.describe("plan-detail.html — Plan Detail", () => {
     await expect(page.locator('[data-testid="view-config-btn"]')).toBeVisible();
   });
 
+  test("initial load shows an in-page loader, not a blocking modal overlay", async ({ page }) => {
+    // Regression guard: plan-detail used to open #loadingModal (a full-screen
+    // modal + dimmed/blurred backdrop) on initial load via FAPI_UI.showBusy().
+    // It now renders an in-page cts-loading-state instead, matching
+    // log-detail.html. The /api/plan response is gated behind a promise the
+    // test releases explicitly, so the loading-window assertions are
+    // race-free — the fetch cannot settle until releasePlan() fires.
+    await setupFailFast(page);
+
+    /** @type {(value?: unknown) => void} */
+    let releasePlan = () => {};
+    const planGate = new Promise((resolve) => {
+      releasePlan = resolve;
+    });
+
+    await page.route("**/api/plan/plan-abc-123", async (route) => {
+      await planGate;
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(MOCK_PLAN_DETAIL),
+      });
+    });
+
+    await setupTestInfoRoute(page);
+    await setupCommonRoutes(page);
+
+    await page.goto("/plan-detail.html?plan=plan-abc-123");
+
+    // While the plan fetch is in flight: in-page loader visible, the grid
+    // hidden behind it, and crucially NO modal overlay.
+    const loader = page.locator("cts-loading-state#planDetailLoading");
+    await expect(loader).toBeVisible();
+    await expect(page.locator("#planDetailGrid")).toBeHidden();
+    await expect(page.locator("#loadingModal")).toBeHidden();
+
+    // Let the fetch settle.
+    releasePlan();
+
+    // After the load settles: loader removed, grid + header visible with the
+    // plan name, and the modal overlay still never shown.
+    const header = page.locator("#planDetailHeader");
+    await expect(header).toContainText("oidcc-basic-certification-test-plan");
+    await expect(page.locator("#planDetailGrid")).toBeVisible();
+    await expect(loader).toHaveCount(0);
+    await expect(page.locator("#loadingModal")).toBeHidden();
+  });
+
   test("View configuration button opens a modal with plan configuration JSON", async ({ page }) => {
     await setupFailFast(page);
 
