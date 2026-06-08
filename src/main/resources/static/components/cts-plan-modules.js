@@ -20,9 +20,10 @@ const STYLE_ID = "cts-plan-modules-styles";
 
 // Scoped CSS for the plan-modules list. Adopts the design archive's
 // `.module-row` pattern (`project/ui_kits/certification-suite/app.css`):
-// 4-column grid `28px 1fr auto auto` with a mono row number, name + meta
-// stack, status badge, and right-side action stack. Mono number/duration
-// styling uses `--font-mono` per the archive.
+// 3-column grid `28px 1fr auto` with a mono row number, a name stack (name +
+// status badge + instance id + variant), and a right-side action stack. The
+// status badge lives inside the name stack rather than in its own column.
+// Mono row-number styling uses `--font-mono` per the archive.
 const STYLE_TEXT = css`
   cts-plan-modules {
     display: block;
@@ -86,8 +87,16 @@ const STYLE_TEXT = css`
     align-items: center;
     gap: var(--space-2);
   }
+  /* The test instance id is a handle operators copy into other tools, so lift
+     it above the row block-link overlay (z-index: 1) to keep it text-selectable
+     — clicking the surrounding row still navigates, but the id itself can be
+     dragged/copied. font-family is set here directly because the bare \`mono\`
+     class has no rule outside \`.desc\`. */
   cts-plan-modules .module-row .name .statusLine .instanceId {
+    position: relative;
+    z-index: 1;
     color: var(--fg-soft);
+    font-family: var(--font-mono);
     font-size: var(--fs-12);
   }
   /* The module name links to the same log-detail URL as the "View Logs"
@@ -201,12 +210,14 @@ const STYLE_TEXT = css`
     position: absolute;
     inset: 0;
   }
+  /* The outline draws on the anchor's own border box (a pseudo-element never
+     carries its parent's outline), so the focus ring already hugs the badge —
+     no positioning needed. Crucially the anchor MUST stay static here: making
+     it position:relative on focus would re-anchor its ::after overlay to the
+     badge box and collapse the whole-row hit area while the badge is focused. */
   cts-plan-modules .moduleStatusLink:focus-visible {
     outline: 2px solid var(--orange-400);
     outline-offset: 2px;
-    /* keep the focus ring hugging the badge, not the stretched ::after */
-    position: relative;
-    z-index: 1;
   }
   /* Narrow-card reflow. Drops the actions column and lets the action
      stack span the full row width on a second line, so module names
@@ -244,7 +255,10 @@ function ensureStylesInjected() {
  * action buttons (Run / View Logs / Download Logs).
  *
  * Light DOM. Scoped CSS is injected once on first connect; rows adopt the
- * design archive's `.module-row` 4-column grid (`28px 1fr auto auto`).
+ * design archive's `.module-row` 3-column grid (`28px 1fr auto`), with the
+ * status badge stacked under the name rather than in its own column. The whole
+ * row is a block link to the test's log page (Adrian Roselli `::after` overlay
+ * on the status anchor; nested controls lifted on z-index).
  *
  * @property {Array<object>} modules - Modules rendered from the plan-detail
  *   API response; see cts-plan-detail.stories.js for shape. Each module
@@ -428,7 +442,7 @@ class CtsPlanModules extends LitElement {
           </span>
           <span class="statusLine">
             ${linkedBadge}${lastInstance
-              ? html`<span class="mono instanceId">${lastInstance}</span>`
+              ? html`<span class="instanceId">${lastInstance}</span>`
               : nothing}
           </span>
           ${variantStr
