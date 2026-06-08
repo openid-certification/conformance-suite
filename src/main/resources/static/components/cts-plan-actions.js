@@ -188,7 +188,6 @@ class CtsPlanActions extends LitElement {
     isReadonly: { type: Boolean, attribute: "is-readonly" },
     canCertify: { type: Boolean, attribute: "can-certify" },
     _showDeleteConfirm: { state: true },
-    _showPrivateLink: { state: true },
     _privateLinkDays: { state: true },
     _privateLinkResult: { state: true },
     _copyFeedback: { state: true },
@@ -201,8 +200,8 @@ class CtsPlanActions extends LitElement {
     this.isReadonly = false;
     this.canCertify = false;
     this._configModalRef = createRef();
+    this._privateLinkModalRef = createRef();
     this._showDeleteConfirm = false;
-    this._showPrivateLink = false;
     this._privateLinkDays = 30;
     this._privateLinkResult = "";
     this._copyFeedback = "";
@@ -288,8 +287,8 @@ class CtsPlanActions extends LitElement {
   }
 
   _handleTogglePrivateLink() {
-    this._showPrivateLink = !this._showPrivateLink;
     this._privateLinkResult = "";
+    /** @type {any} */ (this._privateLinkModalRef.value)?.show();
   }
 
   _handlePrivateLinkDaysInput(e) {
@@ -394,13 +393,15 @@ class CtsPlanActions extends LitElement {
     `;
   }
 
-  _renderPrivateLinkPanel() {
-    if (!this._showPrivateLink) return nothing;
+  _renderPrivateLinkModal() {
     const isValid = this._isPrivateLinkDaysValid();
 
     return html`
-      <div class="planActionPanel" data-testid="private-link-panel">
-        <h6>Generate Private Link</h6>
+      <cts-modal
+        ${ref(this._privateLinkModalRef)}
+        heading="Private Link"
+        data-testid="private-link-panel"
+      >
         <label for="privateLinkDays" class="planLinkLabel">
           Number of days the link will be valid (1-1000):
         </label>
@@ -428,7 +429,7 @@ class CtsPlanActions extends LitElement {
               <code>${this._privateLinkResult}</code>
             </div>`
           : nothing}
-      </div>
+      </cts-modal>
     `;
   }
 
@@ -601,7 +602,7 @@ class CtsPlanActions extends LitElement {
           : nothing}
       </div>
 
-      ${this._renderConfigModal()} ${this._renderPrivateLinkPanel()} ${this._renderDeleteConfirm()}
+      ${this._renderConfigModal()} ${this._renderPrivateLinkModal()} ${this._renderDeleteConfirm()}
     `;
   }
 }
