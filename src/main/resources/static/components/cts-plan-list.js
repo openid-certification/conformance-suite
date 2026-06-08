@@ -1011,7 +1011,7 @@ class CtsPlanList extends LitElement {
         body="${isPublishedView
           ? "Published test plans will appear here once they are shared."
           : "Schedule your first test to get started."}"
-        cta-label="Schedule test"
+        cta-label="Create a new test"
         cta-href="schedule-test.html"
         secondary-cta-label="${ifDefined(isPublishedView ? undefined : "View published plans")}"
         secondary-cta-href="${ifDefined(isPublishedView ? undefined : "plans.html?public=true")}"
