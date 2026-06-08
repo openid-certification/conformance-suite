@@ -1,6 +1,8 @@
 package net.openid.conformance.condition;
 
+import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition.ConditionResult;
+import net.openid.conformance.condition.client.PooledConnectionManagers;
 import net.openid.conformance.condition.common.util.StalledHttpServer;
 import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.Environment;
@@ -39,10 +41,14 @@ public class AbstractConditionHttpTimeout_UnitTest {
 	}
 
 	private void assertFailsFast(StalledHttpServer.Mode mode) throws Exception {
+		assertFailsFast(mode, new Environment());
+	}
+
+	private void assertFailsFast(StalledHttpServer.Mode mode, Environment env) throws Exception {
 		try (StalledHttpServer server = new StalledHttpServer(mode)) {
 			TimeoutTestCondition cond = new TimeoutTestCondition();
 			cond.setProperties("UNIT-TEST", mock(TestInstanceEventLog.class), ConditionResult.INFO);
-			RestTemplate restTemplate = cond.createRestTemplate(new Environment());
+			RestTemplate restTemplate = cond.createRestTemplate(env);
 
 			Instant start = Instant.now();
 			assertThrows(ResourceAccessException.class,
@@ -53,6 +59,43 @@ public class AbstractConditionHttpTimeout_UnitTest {
 			// request actually waited and was not refused immediately) and well before any "hang".
 			assertThat(elapsed).isGreaterThanOrEqualTo(Duration.ofSeconds(TEST_TIMEOUT_SECONDS - 1L));
 			assertThat(elapsed).isLessThan(Duration.ofSeconds(TEST_TIMEOUT_SECONDS + 8L));
+		}
+	}
+
+	/** An env that opts into connection pooling (same flag the metadata cache uses). */
+	private static Environment poolingEnabledEnv() {
+		JsonObject options = new JsonObject();
+		options.addProperty("cache_external_metadata", true);
+		JsonObject config = new JsonObject();
+		config.add("options", options);
+		Environment env = new Environment();
+		env.putObject("config", config);
+		return env;
+	}
+
+	/**
+	 * The pooled path is the one the reviewer flagged as untested: there the per-request client shares a
+	 * process-wide manager, so the deadline cannot abort by closing the client - it must evict that
+	 * identity's pooled manager. SLOW_DRIP defeats the per-read socket timeout, so only the wall-clock
+	 * deadline can stop it; if the pooled abort were wired wrong this would hang for ~2 minutes.
+	 */
+	@Test
+	public void pooledRequestToDrippingEndpoint_failsWithinDeadline() throws Exception {
+		PooledConnectionManagers.clear();
+		try {
+			assertFailsFast(StalledHttpServer.Mode.SLOW_DRIP, poolingEnabledEnv());
+		} finally {
+			PooledConnectionManagers.clear();
+		}
+	}
+
+	@Test
+	public void pooledRequestToUnresponsiveEndpoint_failsWithinDeadline() throws Exception {
+		PooledConnectionManagers.clear();
+		try {
+			assertFailsFast(StalledHttpServer.Mode.ACCEPT_AND_HANG, poolingEnabledEnv());
+		} finally {
+			PooledConnectionManagers.clear();
 		}
 	}
 
