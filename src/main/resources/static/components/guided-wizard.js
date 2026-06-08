@@ -287,25 +287,6 @@ const PARAM_DISPLAY = {
   },
 };
 
-/**
- * Human section blurbs for config groups, keyed by catalog section key (with
- * a title fallback). Carried from prototype 4 for the guided config step;
- * `cts-config-form` does not currently render per-section intros, so these
- * are exported-but-unconsumed until the component grows that capability.
- * @type {Record<string, string>}
- */
-export const SECTION_HINTS = {
-  _root: "Identify this test run. Your alias keeps test URLs unique to you.",
-  Server: "Where the conformance suite discovers your authorization server.",
-  Client: "The OAuth client the suite acts as against your server.",
-  "Second client": "A second client used by tests that compare two clients.",
-  "TLS certificates for client (used to make MTLS connections)":
-    "Client certificate material for mutual-TLS connections.",
-  "Second client TLS certificates": "Certificate material for the second client.",
-  Resource: "The protected resource endpoint the suite calls after authorization.",
-  Directory: "Open Finance directory used for dynamic client registration.",
-};
-
 /** @type {Record<string, string>} One-line ecosystem blurbs for the picker cards. */
 const ECOSYSTEM_DESC = {
   open_finance_brazil: "Open Finance Brazil — banking APIs (FAPI1 + DCR).",
