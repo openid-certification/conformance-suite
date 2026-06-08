@@ -71,14 +71,24 @@ describe("resolveMode", () => {
       { mode: "advanced", source: "edit-plan" },
     ],
     [
+      "?from-plan= → advanced",
+      { search: "?from-plan=p1" },
+      { mode: "advanced", source: "edit-plan" },
+    ],
+    [
       "edit-plan outranks edit-test",
       { search: "?edit-plan=p1&edit-test=t1" },
       { mode: "advanced", source: "edit-plan" },
     ],
     [
+      "from-plan outranks edit-test",
+      { search: "?from-plan=p1&edit-test=t1" },
+      { mode: "advanced", source: "edit-plan" },
+    ],
+    [
       "empty-string params count as absent (matches the page's truthiness checks)",
       {
-        search: "?edit-plan=&edit-test=&configJson=&test_plan=&wizard_preset=",
+        search: "?edit-plan=&from-plan=&edit-test=&configJson=&test_plan=&wizard_preset=",
         storedMode: "advanced",
       },
       { mode: "advanced", source: "preference" },

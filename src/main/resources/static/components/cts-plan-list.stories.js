@@ -635,7 +635,7 @@ export const EmptyList = {
         return a;
       })
     );
-    expect(action.textContent?.trim()).toContain("Schedule test");
+    expect(action.textContent?.trim()).toContain("Create a new test");
 
     // ... and a secondary action pointing at the Published view, side by
     // side with the primary.
@@ -884,7 +884,7 @@ export const EmptyPublishedView = {
         return a;
       })
     );
-    expect(createLink.textContent?.trim()).toContain("Schedule test");
+    expect(createLink.textContent?.trim()).toContain("Create a new test");
 
     // No secondary View-published-plans action here — it would link to the
     // view the user is already on. The Schedule-test anchor (awaited above)

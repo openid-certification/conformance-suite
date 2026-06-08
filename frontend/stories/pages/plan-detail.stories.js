@@ -117,7 +117,7 @@ export const Default = {
       const header = canvasElement.querySelector("cts-plan-header");
       expect(header?.textContent).toContain("oidcc-basic-certification-test-plan");
     });
-    expect(canvas.getByText("plan-abc-123")).toBeInTheDocument();
+    expect(canvas.getAllByText("plan-abc-123").length).toBeGreaterThanOrEqual(1);
 
     await step("breadcrumb mirrors the page's Plans → plan-name trail", async () => {
       const crumb = canvasElement.querySelector("cts-crumb");

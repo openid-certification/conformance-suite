@@ -684,7 +684,7 @@ function renderErrorSlot(error) {
 function handleEditConfig(evt) {
   const detail = evt.detail || {};
   if (detail.planId) {
-    window.location.assign("/schedule-test.html?edit-plan=" + encodeURIComponent(detail.planId));
+    window.location.assign("/schedule-test.html?from-plan=" + encodeURIComponent(detail.planId));
   } else if (detail.testId) {
     window.location.assign("/schedule-test.html?edit-test=" + encodeURIComponent(detail.testId));
   }

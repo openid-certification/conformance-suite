@@ -111,6 +111,7 @@ export function tryGetStorage(type) {
  */
 export function resolveMode({ params, storedMode = null, hasRecoveryRecord = false }) {
   if (params.get("edit-plan")) return { mode: "advanced", source: "edit-plan" };
+  if (params.get("from-plan")) return { mode: "advanced", source: "edit-plan" };
   if (params.get("edit-test")) return { mode: "advanced", source: "edit-test" };
   if (params.get("configJson")) return { mode: "advanced", source: "configJson" };
   if (params.get("test_plan")) return { mode: "advanced", source: "test_plan" };

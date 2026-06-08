@@ -117,7 +117,7 @@ export const ScheduleTestCta = {
         })
       );
       expect(link.getAttribute("href")).toBe("schedule-test.html");
-      expect(link.textContent?.trim()).toContain("Schedule test");
+      expect(link.textContent?.trim()).toContain("Create a new test");
 
       // The CTA keeps its oidf-btn styling — the tab-anchor rule must NOT leak
       // onto it. The tab rule sets a 2px bottom border; oidf-btn uses 1px. A

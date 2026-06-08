@@ -772,6 +772,14 @@
          */
         document.addEventListener("DOMContentLoaded", () => {
 
+            // When arriving from "Edit Configuration" on an existing plan, the
+            // plan is pre-selected via ?from-plan= so the test-selector search
+            // list is not needed — hide it immediately to avoid a flash.
+            if (new URLSearchParams(window.location.search).get("from-plan")) {
+                var planSearchEl = document.getElementById("planSearch");
+                if (planSearchEl) planSearchEl.hidden = true;
+            }
+
             // No full-page "Loading available tests..." modal: the test
             // selector (#planSearch) boots with its own in-list loader and the
             // cts-spec-cascade self-fetches with its own loading state, so the
@@ -890,7 +898,7 @@
 
         async function restoreEditPlanVariants() {
             const urlParams = new URLSearchParams(window.location.search);
-            const editParams = urlParams.get("edit-plan");
+            const editParams = urlParams.get("edit-plan") || urlParams.get("from-plan");
             if (editParams && FAPI_UI.loadedPlanName) {
                 await selectPlanByName(FAPI_UI.loadedPlanName);
                 // restore any previously selected variant values and config field visibility
@@ -1091,7 +1099,7 @@
 
         function loadConfig() {
             var urlParams = new URLSearchParams(window.location.search);
-            var planId = urlParams.get('edit-plan');
+            var planId = urlParams.get('edit-plan') || urlParams.get('from-plan');
             var testId = urlParams.get('edit-test');
             if (planId) {
                 return loadPlanConfig(planId);
