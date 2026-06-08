@@ -12,6 +12,7 @@ export default {
     error: { control: "text" },
     logoutMessage: { control: "boolean" },
     tokenAuthUrl: { control: "text" },
+    celebrate: { control: "boolean" },
   },
 };
 
@@ -272,12 +273,38 @@ export const WithCelebration = {
       });
     });
 
+    await step("overlay does not intercept clicks in the page context (R3)", async () => {
+      await waitFor(() => {
+        expect(canvasElement.querySelector(".oidf-confetti-overlay")).toBeTruthy();
+      });
+      const overlay = /** @type {HTMLElement} */ (
+        canvasElement.querySelector(".oidf-confetti-overlay")
+      );
+      expect(getComputedStyle(overlay).pointerEvents).toBe("none");
+    });
+
     await step("OAuth buttons remain reachable (overlay does not intercept)", async () => {
       const googleAnchor = /** @type {HTMLAnchorElement} */ (
         canvas.getByText("Proceed with Google").closest("a")
       );
       expect(googleAnchor).toBeTruthy();
       expect(googleAnchor.getAttribute("href")).toBe("/oauth2/authorization/google");
+    });
+  },
+};
+
+export const CelebrationGatedByLogout = {
+  render: () => html`<cts-login-page logout-message .celebrate=${true}></cts-login-page>`,
+
+  async play({ canvasElement, step }) {
+    await step("logout alert renders", async () => {
+      await waitFor(() => {
+        expect(canvasElement.querySelector(".oidf-alert-info")).toBeTruthy();
+      });
+    });
+
+    await step("no confetti mounts on a logout arrival, even with celebrate set", async () => {
+      expect(canvasElement.querySelector("cts-confetti")).toBeNull();
     });
   },
 };

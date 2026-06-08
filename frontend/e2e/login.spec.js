@@ -40,6 +40,10 @@ test.describe("login.html — Login page", () => {
 
     await expect(gitlabBtn).toBeVisible();
     await expect(gitlabBtn).toContainText("Proceed with GitLab");
+
+    // Clean arrival celebrates: login.html sets celebrate on a no-param load,
+    // mounting the decorative cts-confetti overlay (R1).
+    await expect(page.locator("cts-confetti")).toHaveCount(1);
   });
 
   test("both OAuth buttons render at size=lg (anchor has oidf-btn-lg)", async ({ page }) => {
@@ -112,6 +116,9 @@ test.describe("login.html — Login page", () => {
     await expect(errorAlert).toBeVisible();
     await expect(errorAlert).toContainText("There was an error logging you in:");
     await expect(errorAlert).toContainText("Invalid credentials");
+
+    // No celebration on a failed sign-in (R5).
+    await expect(page.locator("cts-confetti")).toHaveCount(0);
   });
 
   test("renders logout alert when ?logout= URL parameter is present", async ({ page }) => {
@@ -123,6 +130,9 @@ test.describe("login.html — Login page", () => {
     const logoutAlert = page.locator("cts-login-page .oidf-alert-info");
     await expect(logoutAlert).toBeVisible();
     await expect(logoutAlert).toContainText("You have been logged out.");
+
+    // No celebration on a post-logout arrival (R5).
+    await expect(page.locator("cts-confetti")).toHaveCount(0);
   });
 
   test("cts-navbar renders in unauthenticated state", async ({ page }) => {

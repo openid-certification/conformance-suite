@@ -381,7 +381,8 @@ function injectStyles() {
  * first-render race — deferred module scripts flush Lit's first render before
  * `login.html`'s `DOMContentLoaded` handler sets `error`/`token`, so a
  * default-on celebration would briefly fire on error/logout/token loads before
- * being torn down. `&& !this.error` is kept as cheap defense-in-depth.
+ * being torn down. `&& !this.error && !this.logoutMessage` is kept as cheap
+ * defense-in-depth mirroring login.html's clean-load gate.
  *
  * @property {string} error - OAuth error message to display; empty hides the
  *   alert.
@@ -540,7 +541,9 @@ class CtsLoginPage extends LitElement {
           </div>
         </section>
         ${this._renderTokenIframe()}
-        ${this.celebrate && !this.error ? html`<cts-confetti></cts-confetti>` : nothing}
+        ${this.celebrate && !this.error && !this.logoutMessage
+          ? html`<cts-confetti></cts-confetti>`
+          : nothing}
       </main>
     `;
   }

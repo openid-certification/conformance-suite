@@ -147,9 +147,9 @@ export const DenseEmoji = {
         expect(canvasElement.querySelector(".oidf-confetti-overlay")).toBeTruthy();
       });
       expect(canvasElement.querySelectorAll(".oidf-confetti-piece--confetti").length).toBe(20);
-      expect(canvasElement.querySelectorAll(".oidf-confetti-piece--emoji").length).toBeGreaterThan(
-        0,
-      );
+      // Emoji count is deterministic (EMOJI_PIECES = 15) whenever the glyph set
+      // is non-empty — assert the exact count, matching the confetti precision.
+      expect(canvasElement.querySelectorAll(".oidf-confetti-piece--emoji").length).toBe(15);
     });
   },
 };
@@ -170,11 +170,45 @@ export const CleansUpOnDisconnect = {
       });
     });
 
-    await step("removing the host clears the overlay", async () => {
+    await step("removing the host clears the overlay and cancels the timer", async () => {
       element.remove();
       await waitFor(() => {
         expect(canvasElement.querySelector(".oidf-confetti-overlay")).toBeNull();
       });
+      // The DOM goes with the host either way; the contract that matters is the
+      // cleanup timer being cancelled so a detached element never fires it.
+      expect(element._cleanupTimer).toBeNull();
+    });
+  },
+};
+
+/**
+ * Re-use contract: removing the host and re-inserting the same instance replays
+ * a fresh burst. disconnectedCallback resets the reactive model, so a reconnect
+ * is not left dark (regression guard for the prior `_done`-persists bug).
+ */
+export const ReconnectReplays = {
+  render: () => html`<cts-confetti></cts-confetti>`,
+  async play({ canvasElement, step }) {
+    const element = await whenUpgraded(canvasElement);
+    const parent = /** @type {HTMLElement} */ (element.parentElement);
+
+    await step("first connect paints an overlay", async () => {
+      await waitFor(() => {
+        expect(canvasElement.querySelector(".oidf-confetti-overlay")).toBeTruthy();
+      });
+    });
+
+    await step("re-inserting the same instance replays a fresh burst", async () => {
+      element.remove();
+      await waitFor(() => {
+        expect(canvasElement.querySelector(".oidf-confetti-overlay")).toBeNull();
+      });
+      parent.appendChild(element);
+      await waitFor(() => {
+        expect(canvasElement.querySelector(".oidf-confetti-overlay")).toBeTruthy();
+      });
+      expect(pieceCount(canvasElement)).toBeGreaterThan(0);
     });
   },
 };

@@ -1,4 +1,6 @@
 import { LitElement, html, css, nothing, unsafeCSS } from "lit";
+import { classMap } from "lit/directives/class-map.js";
+import { styleMap } from "lit/directives/style-map.js";
 
 // One-shot decorative celebration overlay: a confetti burst plus a stream of
 // falling emoji glyphs, played once when the element connects and then torn
@@ -49,11 +51,12 @@ const CONFETTI_COLORS = [
 
 const FALL_KEYFRAME = "oidf-confetti-fall";
 
-// Scoped styles. The @keyframes lives inside a `prefers-reduced-motion:
-// no-preference` guard as a second line of defence — the JS gate already
-// produces zero pieces under reduced motion, but if a piece ever reaches the
-// DOM the absence of animation leaves it parked above the viewport (top: -8vh),
-// i.e. invisible, rather than frozen mid-screen.
+// Scoped styles. The fall `animation` is applied only inside a
+// `prefers-reduced-motion: no-preference` guard as a second line of defence —
+// the JS gate already produces zero pieces under reduced motion, but if a piece
+// ever reaches the DOM without the animation it stays parked above the viewport
+// (top: -8vh), i.e. invisible, rather than frozen mid-screen. The @keyframes
+// definition itself is inert until referenced, so it lives outside the guard.
 const STYLE_TEXT = css`
   cts-confetti {
     display: contents;
@@ -74,7 +77,6 @@ const STYLE_TEXT = css`
     block-size: 14px;
     border-radius: 2px;
     scale: var(--scale, 1);
-    will-change: transform, opacity;
   }
   .oidf-confetti-piece--confetti {
     background: var(--piece-color, var(--orange-400));
@@ -130,6 +132,19 @@ function pick(list) {
 }
 
 /**
+ * @typedef {object} ConfettiPiece
+ * @property {boolean} isEmoji - True for an emoji glyph, false for a confetti rectangle.
+ * @property {string} glyph - The emoji character (empty for confetti pieces).
+ * @property {string} color - `var(--token)` fill (empty for emoji pieces).
+ * @property {string} x - Horizontal start position, e.g. `"42vw"`.
+ * @property {string} drift - Horizontal end offset, e.g. `"-8vw"`.
+ * @property {string} fallDur - Fall duration, e.g. `"2300ms"`.
+ * @property {string} delay - Start delay, e.g. `"700ms"`.
+ * @property {string} spin - End rotation, e.g. `"540deg"`.
+ * @property {string} scale - Constant scale factor, e.g. `"1.05"`.
+ */
+
+/**
  * Decorative one-shot confetti + falling-emoji overlay. Plays once on connect,
  * cleans itself up, and renders nothing when `disabled` or when the user
  * prefers reduced motion. Decorative only: the overlay is `aria-hidden` and
@@ -149,6 +164,11 @@ class CtsConfetti extends LitElement {
     emojis: { type: String },
     duration: { type: Number },
     disabled: { type: Boolean, reflect: true },
+    // Reactive render model — state drives render(). Empty array (the resting and
+    // post-cleanup state) renders nothing; populating it on connect paints the
+    // burst. Keeping this reactive (rather than a separate _done flag) means a
+    // disconnect/reconnect of the same instance replays cleanly.
+    _model: { state: true },
   };
 
   constructor() {
@@ -157,11 +177,10 @@ class CtsConfetti extends LitElement {
     this.emojis = DEFAULT_EMOJIS;
     this.duration = BASE_DURATION;
     this.disabled = false;
-    /** @type {Array<Record<string, string|boolean>>} Precomputed render model. */
+    /** @type {ConfettiPiece[]} Reactive render model. */
     this._model = [];
     /** @type {ReturnType<typeof setTimeout>|null} */
     this._cleanupTimer = null;
-    this._done = false;
   }
 
   // Light DOM so the injected global keyframes apply and the fixed overlay
@@ -182,6 +201,9 @@ class CtsConfetti extends LitElement {
       clearTimeout(this._cleanupTimer);
       this._cleanupTimer = null;
     }
+    // Reset to the resting state so re-inserting the same instance replays a
+    // fresh burst on the next connectedCallback rather than staying dark.
+    this._model = [];
   }
 
   /** @returns {boolean} True when the user has requested reduced motion. */
@@ -192,19 +214,30 @@ class CtsConfetti extends LitElement {
     );
   }
 
-  // Build the render model once. The accessibility gate (R2) and the `disabled`
+  // Build the render model. The accessibility gate (R2) and the `disabled`
   // opt-out both short-circuit to an empty model so render() emits `nothing`.
   _spawn() {
+    // Never leave a prior burst's timer armed (guards a connect without an
+    // intervening disconnect).
+    if (this._cleanupTimer) {
+      clearTimeout(this._cleanupTimer);
+      this._cleanupTimer = null;
+    }
+
     if (this.disabled || this._prefersReducedMotion()) {
       this._model = [];
       return;
     }
 
     const emojiList = this.emojis.split(/\s+/).filter(Boolean);
-    const confettiCount = Math.max(0, this.pieces);
+    // Sanitize to a finite, bounded, non-negative integer so a stray
+    // `pieces="Infinity"` / `pieces="abc"` attribute can never hang the tab in
+    // an unbounded loop or silently suppress the whole burst via NaN.
+    const confettiCount = Math.min(Math.max(0, Math.floor(Number(this.pieces) || 0)), 500);
     const emojiCount = emojiList.length ? EMOJI_PIECES : 0;
     const total = confettiCount + emojiCount;
 
+    /** @type {ConfettiPiece[]} */
     const model = [];
     let maxEnd = 0;
     for (let i = 0; i < total; i++) {
@@ -233,25 +266,33 @@ class CtsConfetti extends LitElement {
     this._cleanupTimer = setTimeout(
       () => {
         this._cleanupTimer = null;
-        this._done = true;
-        this.requestUpdate();
+        // Empty the reactive model -> render() emits nothing -> overlay removed.
+        this._model = [];
       },
       Math.ceil(maxEnd) + BUFFER,
     );
   }
 
   render() {
-    if (this._done || this._model.length === 0) return nothing;
+    if (this._model.length === 0) return nothing;
     return html`<div class="oidf-confetti-overlay" aria-hidden="true">
       ${this._model.map(
         (p) =>
           html`<span
-            class="oidf-confetti-piece ${p.isEmoji
-              ? "oidf-confetti-piece--emoji"
-              : "oidf-confetti-piece--confetti"}"
-            style="--x:${p.x};--drift:${p.drift};--fall-dur:${p.fallDur};--delay:${p.delay};--spin:${p.spin};--scale:${p.scale};${p.isEmoji
-              ? ""
-              : `--piece-color:${p.color};`}"
+            class=${classMap({
+              "oidf-confetti-piece": true,
+              "oidf-confetti-piece--emoji": Boolean(p.isEmoji),
+              "oidf-confetti-piece--confetti": !p.isEmoji,
+            })}
+            style=${styleMap({
+              "--x": p.x,
+              "--drift": p.drift,
+              "--fall-dur": p.fallDur,
+              "--delay": p.delay,
+              "--spin": p.spin,
+              "--scale": p.scale,
+              ...(p.isEmoji ? {} : { "--piece-color": p.color }),
+            })}
             >${p.isEmoji ? p.glyph : nothing}</span
           >`,
       )}
