@@ -656,6 +656,27 @@ public abstract class AbstractCondition implements Condition, DataUtils {
 		return placeholder;
 	}
 
+	/** DIAGNOSTIC: describe the client certificate (subject, SHA-256 fingerprint, chain length) that a
+	 *  KeyManager set will present, so we can see exactly what the suite sends on an mTLS handshake. */
+	private static String mtlsLeafCertInfo(KeyManager... km) {
+		try {
+			for (KeyManager k : km) {
+				if (k instanceof javax.net.ssl.X509KeyManager xkm) {
+					X509Certificate[] chain = xkm.getCertificateChain("key-alias");
+					if (chain != null && chain.length > 0) {
+						java.security.MessageDigest md = java.security.MessageDigest.getInstance("SHA-256");
+						String fp = java.util.HexFormat.of().formatHex(md.digest(chain[0].getEncoded())).substring(0, 16);
+						return "subject=" + chain[0].getSubjectX500Principal().getName()
+							+ " fp=" + fp + " chainLen=" + chain.length;
+					}
+				}
+			}
+		} catch (RuntimeException | java.security.GeneralSecurityException e) {
+			return "error: " + e.getMessage();
+		}
+		return "no-x509-keymanager";
+	}
+
 	/*
 	 * Create an HTTP Client for use in calling outbound to other services
 	 */
@@ -728,11 +749,25 @@ public abstract class AbstractCondition implements Condition, DataUtils {
 				throw new IllegalStateException("mutual TLS is configured but no client KeyManager was produced");
 			}
 			String identityKey = PooledConnectionManagers.identityKey(env, restrictAllowedTLSVersions);
+			boolean[] managerCreated = {false};
 			HttpClientConnectionManager pooled = PooledConnectionManagers.getOrCreate(identityKey,
-				() -> PooledConnectionManagers.newManager(registry, timeout));
+				() -> {
+					managerCreated[0] = true;
+					return PooledConnectionManagers.newManager(registry, timeout);
+				});
 			builder.setConnectionManager(pooled);
 			// Shared: closing a per-request client must NOT shut the shared pool.
 			builder.setConnectionManagerShared(true);
+			// DIAGNOSTIC: log exactly which client cert (and how long a chain) this pooled request's
+			// SSLContext presents, keyed by identity. If the same identity ever shows a different cert
+			// fingerprint, or a failing call presents a shorter chain (missing CA -> "path does not
+			// chain"), that pinpoints whether the suite is sending the wrong/incomplete cert.
+			if (km != null) {
+				log("POOL-DIAG mTLS pooled request client cert", args(
+					"tls_identity", identityKey,
+					"leaf_cert", mtlsLeafCertInfo(km),
+					"manager_created_this_call", managerCreated[0]));
+			}
 			// Diagnostic: placed to WRAP the CONNECT element (after PROTOCOL, outer to CONNECT) so its
 			// finally runs even when the failure is thrown inside CONNECT (connection lease/establish) -
 			// that is where the stale-reuse "Socket closed" surfaces, which an after-CONNECT handler
