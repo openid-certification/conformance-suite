@@ -59,6 +59,17 @@ class VCICredentialIssuerMetadataValidationTest extends AbstractVciUnitTest {
 	}
 
 	@Test
+	void shouldReportNoErrorsForClaimsPathPointerWithNullAndInteger() throws Exception {
+		// Regression test for #1831: a Claims Path Pointer (OID4VCI Appendix B / OID4VP §7) may
+		// contain JSON null (select all elements of the selected array(s)) and non-negative
+		// integers (array index), not only strings. Exercises both the base
+		// credential_metadata.claims path (mso_mdoc) and the dc+sd-jwt top-level claims path.
+		String metadataString = readFile("metadata/openid4vci-1_0/valid-openid-credential-issuer-metadata-claims-path-pointer-null.json");
+		env.putObject("vci", "credential_issuer_metadata", JsonParser.parseString(metadataString).getAsJsonObject());
+		validation.evaluate(env);
+	}
+
+	@Test
 	void shouldReportNoValidationErrorForCorrectEudiwMetadata() throws Exception {
 		// credential issuer metadata from https://issuer.eudiw.dev/.well-known/openid-credential-issuer
 		// with tax_mdoc credential_signing_alg_values_supported fixed from "ES256" to -7 (COSE integer)
