@@ -3,6 +3,7 @@ import { expect, within, waitFor } from "storybook/test";
 import "./cts-login-page.js";
 import "./cts-link-button.js";
 import "./cts-alert.js";
+import "./cts-confetti.js";
 
 export default {
   title: "Pages/cts-login-page",
@@ -251,6 +252,48 @@ export const ErrorAndLogout = {
     await step("public links still present", async () => {
       expect(canvas.getByText("View published logs")).toBeInTheDocument();
       expect(canvas.getByText("View published plans")).toBeInTheDocument();
+    });
+  },
+};
+
+// The celebration is off by default (celebrate=false), so the five stories
+// above render with no overlay automatically — no per-story suppression needed.
+// These two stories cover the opt-in and the error gate.
+
+export const WithCelebration = {
+  render: () => html`<cts-login-page .celebrate=${true}></cts-login-page>`,
+
+  async play({ canvasElement, step }) {
+    const canvas = within(canvasElement);
+
+    await step("confetti overlay mounts when celebrate is set", async () => {
+      await waitFor(() => {
+        expect(canvasElement.querySelector("cts-confetti")).toBeTruthy();
+      });
+    });
+
+    await step("OAuth buttons remain reachable (overlay does not intercept)", async () => {
+      const googleAnchor = /** @type {HTMLAnchorElement} */ (
+        canvas.getByText("Proceed with Google").closest("a")
+      );
+      expect(googleAnchor).toBeTruthy();
+      expect(googleAnchor.getAttribute("href")).toBe("/oauth2/authorization/google");
+    });
+  },
+};
+
+export const CelebrationGatedByError = {
+  render: () => html`<cts-login-page error="Session expired" .celebrate=${true}></cts-login-page>`,
+
+  async play({ canvasElement, step }) {
+    await step("error alert renders", async () => {
+      await waitFor(() => {
+        expect(canvasElement.querySelector(".oidf-alert-danger")).toBeTruthy();
+      });
+    });
+
+    await step("no confetti mounts when an error is present, even with celebrate set", async () => {
+      expect(canvasElement.querySelector("cts-confetti")).toBeNull();
     });
   },
 };

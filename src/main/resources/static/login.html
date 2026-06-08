@@ -79,6 +79,15 @@
                 iframe.src = "/login/ott?token=" + encodeURIComponent(token);
                 document.body.appendChild(iframe);
             }
+
+            // Celebrate only on a clean arrival — not on a failed sign-in,
+            // post-logout redirect, or token-auth flow. cts-login-page defaults
+            // celebrate=false; setting the attribute here (after the URL params
+            // are known) is what fires the one-shot confetti overlay, and avoids
+            // any first-render flash on the error/logout/token paths.
+            if (!error && !logout && !token) {
+                loginPage.setAttribute("celebrate", "");
+            }
         });
     </script>
 

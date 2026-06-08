@@ -2,6 +2,7 @@ import { LitElement, html, nothing, css } from "lit";
 import "./cts-link-button.js";
 import "./cts-alert.js";
 import "./cts-icon.js";
+import "./cts-confetti.js";
 
 // Brand-mark SVGs for the social-login buttons. These are NOT part of the
 // coolicons set — coolicons does not ship brand glyphs. Inlining the marks
@@ -372,18 +373,32 @@ function injectStyles() {
  * other styling comes from `oidf-tokens.css` plus the scoped
  * `.oidf-login-*` rules injected on first mount.
  *
+ * On a clean arrival the page mounts a decorative `<cts-confetti>` overlay (a
+ * one-shot confetti + falling-emoji burst). The trigger is owned by `login.html`,
+ * not inferred from component state: `celebrate` defaults to `false`, and
+ * `login.html` sets the attribute only when no `error`/`logout`/`token` URL
+ * params are present. This default-off + opt-in-on-clean-load design avoids a
+ * first-render race — deferred module scripts flush Lit's first render before
+ * `login.html`'s `DOMContentLoaded` handler sets `error`/`token`, so a
+ * default-on celebration would briefly fire on error/logout/token loads before
+ * being torn down. `&& !this.error` is kept as cheap defense-in-depth.
+ *
  * @property {string} error - OAuth error message to display; empty hides the
  *   alert.
  * @property {boolean} logoutMessage - Shows the "You have been logged out"
  *   banner. Reflects the `logout-message` attribute.
  * @property {string} tokenAuthUrl - Optional URL loaded in a hidden iframe to
  *   exchange a token. Reflects the `token-auth-url` attribute.
+ * @property {boolean} celebrate - When true (set by `login.html` on a clean
+ *   load), mounts the decorative `<cts-confetti>` overlay. Defaults to false;
+ *   reflects the `celebrate` attribute.
  */
 class CtsLoginPage extends LitElement {
   static properties = {
     error: { type: String },
     logoutMessage: { type: Boolean, attribute: "logout-message" },
     tokenAuthUrl: { type: String, attribute: "token-auth-url" },
+    celebrate: { type: Boolean, reflect: true },
   };
 
   constructor() {
@@ -391,6 +406,7 @@ class CtsLoginPage extends LitElement {
     this.error = "";
     this.logoutMessage = false;
     this.tokenAuthUrl = "";
+    this.celebrate = false;
   }
 
   connectedCallback() {
@@ -524,6 +540,7 @@ class CtsLoginPage extends LitElement {
           </div>
         </section>
         ${this._renderTokenIframe()}
+        ${this.celebrate && !this.error ? html`<cts-confetti></cts-confetti>` : nothing}
       </main>
     `;
   }
