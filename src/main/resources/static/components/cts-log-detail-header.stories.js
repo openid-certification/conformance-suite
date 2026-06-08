@@ -324,26 +324,24 @@ export const ViewConfigViaKebab = {
   render: () => html`<cts-log-detail-header .testInfo=${COMPLETED_TEST}></cts-log-detail-header>`,
   async play({ canvasElement, step }) {
     await waitFor(() => {
-      const el = canvasElement.querySelector('[data-testid="drawer-config"]');
-      if (!el) throw new Error("drawer-config not yet rendered");
+      const el = canvasElement.querySelector('[data-testid="config-modal"]');
+      if (!el) throw new Error("config-modal not yet rendered");
       return el;
     });
 
-    const configDetails = /** @type {any} */ (
-      canvasElement.querySelector('[data-testid="drawer-config"]')
+    const configModal = /** @type {any} */ (
+      canvasElement.querySelector('[data-testid="config-modal"]')
     );
 
-    await step("the Configuration disclosure lives in the drawer, closed by default", async () => {
-      expect(configDetails.open).toBe(false);
+    await step("the config modal is not open by default", async () => {
+      expect(configModal.hasAttribute("open")).toBe(false);
     });
 
-    await step('clicking the kebab "View configuration" opens the disclosure', async () => {
-      // The redesigned action routes to the drawer disclosure (was a
-      // standalone secondary card).
+    await step('clicking the kebab "View configuration" opens the modal', async () => {
       await clickOverflowAction(canvasElement, "view-config");
 
       await waitFor(() => {
-        expect(configDetails.open).toBe(true);
+        expect(configModal.hasAttribute("open")).toBe(true);
       });
     });
 
@@ -360,13 +358,8 @@ export const ViewConfigViaKebab = {
       expect(configJson.value).toContain("server.issuer");
       expect(configJson.value).toContain("https://op.example.com");
 
-      // U2 floor assertion: a small config (3 keys here) must still
-      // render the editor at exactly 336px — the `min-height` half of
-      // the min/max-height pair on `.ctsConfigJson`. Pairs with the
-      // ceiling assertion in ConfigDrawerHeightLockedAtFixedValue so a
-      // future change that drops `min-height` and keeps only
-      // `max-height` is caught here. See
-      // docs/plans/2026-05-21-002-fix-log-detail-layout-reflows-plan.md U2.
+      // Floor assertion: a small config must still render the editor at the
+      // min-height of 336px (calc(var(--space-6) * 14)).
       const smallConfigRect = configJson.getBoundingClientRect();
       expect(Math.abs(smallConfigRect.height - 336)).toBeLessThanOrEqual(1);
     });
@@ -419,27 +412,25 @@ export const ConfigDrawerHeightLockedAtFixedValue = {
   render: () =>
     html`<cts-log-detail-header .testInfo=${OVERSIZED_CONFIG_TEST}></cts-log-detail-header>`,
   async play({ canvasElement, step }) {
-    await waitFor(() => {
-      const el = canvasElement.querySelector('[data-testid="drawer-config"]');
-      if (!el) throw new Error("drawer-config not yet rendered");
-      return el;
-    });
-
-    const configDetails = /** @type {any} */ (
-      canvasElement.querySelector('[data-testid="drawer-config"]')
+    const configModal = /** @type {any} */ (
+      await waitFor(() => {
+        const el = canvasElement.querySelector('[data-testid="config-modal"]');
+        if (!el) throw new Error("config-modal not yet rendered");
+        return el;
+      })
     );
 
-    await step("opening the kebab routes the oversized config into the drawer", async () => {
-      expect(configDetails.open).toBe(false);
+    await step("opening the kebab routes the oversized config into the modal", async () => {
+      expect(configModal.hasAttribute("open")).toBe(false);
 
       await clickOverflowAction(canvasElement, "view-config");
 
       await waitFor(() => {
-        expect(configDetails.open).toBe(true);
+        expect(configModal.hasAttribute("open")).toBe(true);
       });
     });
 
-    await step("the host height stays locked at 336px and Monaco scrolls inside", async () => {
+    await step("the editor height is bounded and Monaco scrolls inside", async () => {
       const configJson = /** @type {any} */ (
         await waitFor(() => {
           const el = canvasElement.querySelector('cts-json-editor[data-testid="config-json"]');
@@ -449,21 +440,11 @@ export const ConfigDrawerHeightLockedAtFixedValue = {
       );
       await configJson.whenReady();
 
-      // The host's outer height must match the fixed CSS value within a
-      // 1 px tolerance (sub-pixel rounding). 336 = calc(24px * 14) where
-      // 24px is --space-6. If this assertion fails after Monaco mounts,
-      // the editor is auto-growing again — re-check the min-height /
-      // max-height pair in cts-log-detail-header.js.
+      // The editor must not exceed 60 vh (max-height). Also verify Monaco's
+      // scroll surface is present so the oversized payload is reachable.
       const hostRect = configJson.getBoundingClientRect();
-      expect(Math.abs(hostRect.height - 336)).toBeLessThanOrEqual(1);
+      expect(hostRect.height).toBeLessThanOrEqual(window.innerHeight * 0.6 + 1);
 
-      // A Monaco scroll surface lives inside the host so the bounded
-      // height does not silently clip the configuration JSON. Monaco
-      // renders `.monaco-scrollable-element` as its scroll container;
-      // its scrollHeight must exceed the bounded host height — `> 0`
-      // would pass even for an empty editor (Monaco's scroll container
-      // reports a non-zero baseline). Comparing against the host
-      // height proves the oversized payload actually requires scroll.
       const scrollable = configJson.querySelector(".monaco-scrollable-element");
       expect(scrollable).toBeTruthy();
       expect(scrollable.scrollHeight).toBeGreaterThan(hostRect.height);
@@ -1565,13 +1546,10 @@ export const DrawerCollapsedByDefault = {
       return el;
     });
 
-    // Both disclosures default to closed. The `open` attribute is the
-    // single source of truth for visibility; CSS handles the chevron
-    // rotation.
+    // The Test details disclosure defaults to closed. The `open` attribute
+    // is the single source of truth for visibility; CSS handles the chevron.
     const testDetails = canvasElement.querySelector('[data-testid="drawer-test-details"]');
-    const configDetails = canvasElement.querySelector('[data-testid="drawer-config"]');
     expect(testDetails.open).toBe(false);
-    expect(configDetails.open).toBe(false);
   },
 };
 

@@ -1,16 +1,19 @@
 import { LitElement, html, nothing, css } from "lit";
+import { createRef, ref } from "lit/directives/ref.js";
 import "./cts-icon.js";
 import "./cts-badge.js";
 import "./cts-button.js";
 import "./cts-link-button.js";
 import "./cts-alert.js";
 import "./cts-json-editor.js";
+import "./cts-modal.js";
 import "./cts-test-nav-controls.js";
 import "./cts-failure-summary.js";
 import "./cts-action-overflow.js";
 import "./cts-time.js";
 import { formatDescription } from "./format-description.js";
 import { splitTestSummary } from "./test-summary-split.js";
+import { flashCopyConfirmed } from "../js/cts-copy-flash.js";
 
 /**
  * Top-level test result -> canonical cts-badge variant. INTERRUPTED maps to
@@ -654,23 +657,39 @@ const STYLE_TEXT = css`
     margin: 0;
   }
 
-  /* Configuration JSON inside the Configuration disclosure. Fixed
-     min-height AND max-height so Monaco bounds its inner editor at
-     the same size and cannot auto-grow after async mount — opening
-     the drawer is therefore a single predictable layout shift
-     instead of a disclosure + Monaco-grow combo. cts-json-editor's
-     resolveBounds() reads computed min-height and max-height (not
-     height) to clamp the inner Monaco surface, so both bounds must
-     be set; long configuration JSON then scrolls inside the editor.
-     The disclosure was already scrolled into view by
-     _openConfigDisclosure() so the scroll surface is immediately
-     reachable. See
-     docs/plans/2026-05-21-002-fix-log-detail-layout-reflows-plan.md
-     U2. */
+  /* Configuration JSON inside the View Configuration modal. min-height
+     guarantees a sensible floor for tiny configs; max-height caps the
+     editor at 60 vh so the modal does not overflow on large configs —
+     Monaco scrolls within those bounds. Both bounds must be set so
+     cts-json-editor's resolveBounds() can clamp the inner Monaco surface. */
   cts-log-detail-header .ctsConfigJson {
     display: block;
     min-height: calc(var(--space-6) * 14);
-    max-height: calc(var(--space-6) * 14);
+    max-height: 60vh;
+  }
+  cts-log-detail-header .ctsConfigToolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-2);
+    margin-bottom: var(--space-2);
+  }
+  cts-log-detail-header .ctsConfigToolbar code {
+    font-family: var(--font-mono);
+    font-size: var(--fs-12);
+    color: var(--fg-soft);
+    background: var(--ink-50);
+    padding: 1px 6px;
+    border-radius: var(--radius-1);
+  }
+  cts-log-detail-header .ctsConfigToolbarRight {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+  }
+  cts-log-detail-header .ctsConfigToolbar .copy-feedback {
+    font-size: var(--fs-12);
+    color: var(--rust-400);
   }
 `;
 
@@ -787,6 +806,7 @@ class CtsLogDetailHeader extends LitElement {
     testInfo: { type: Object, attribute: "test-info" },
     isAdmin: { type: Boolean, attribute: "is-admin" },
     isPublic: { type: Boolean, attribute: "is-public" },
+    _copyFeedback: { state: true },
   };
 
   constructor() {
@@ -794,6 +814,9 @@ class CtsLogDetailHeader extends LitElement {
     this.testInfo = null;
     this.isAdmin = false;
     this.isPublic = false;
+    this._configModalRef = createRef();
+    this._copyFeedback = "";
+    this._copyFeedbackTimer = null;
   }
 
   createRenderRoot() {
@@ -1008,12 +1031,79 @@ class CtsLogDetailHeader extends LitElement {
    * (modern browsers fall back to instant when the user opts out).
    */
   _openConfigDisclosure() {
-    const details = /** @type {HTMLDetailsElement | null} */ (
-      this.querySelector('[data-testid="drawer-config"]')
-    );
-    if (!details) return;
-    details.open = true;
-    details.scrollIntoView({ behavior: "smooth", block: "center" });
+    /** @type {any} */ (this._configModalRef.value)?.show();
+  }
+
+  async _handleCopyConfig(event) {
+    const trigger = event && event.currentTarget;
+    if (!this.testInfo || !this.testInfo.config) return;
+    const text = JSON.stringify(this.testInfo.config, null, 4);
+    if (!navigator.clipboard) {
+      this._showCopyFeedback("Clipboard not available — please copy the JSON below manually.");
+      return;
+    }
+    try {
+      await navigator.clipboard.writeText(text);
+    } catch (err) {
+      console.warn("[cts-log-detail-header] clipboard.writeText failed:", err);
+      this._showCopyFeedback("Copy failed — please copy the JSON below manually.");
+      return;
+    }
+    flashCopyConfirmed(trigger);
+  }
+
+  _showCopyFeedback(message) {
+    this._copyFeedback = message;
+    if (this._copyFeedbackTimer) clearTimeout(this._copyFeedbackTimer);
+    this._copyFeedbackTimer = setTimeout(() => {
+      this._copyFeedback = "";
+      this._copyFeedbackTimer = null;
+    }, 5000);
+  }
+
+  _renderConfigModal() {
+    const test = this.testInfo;
+    if (!test) return nothing;
+    const configJson = JSON.stringify(test.config || {}, null, 4);
+    return html`
+      <cts-modal
+        ${ref(this._configModalRef)}
+        heading="View Configuration"
+        size="lg"
+        data-testid="config-modal"
+      >
+        <div class="ctsConfigToolbar">
+          <strong>Configuration for <code>${test.testId}</code></strong>
+          <div class="ctsConfigToolbarRight">
+            ${this._copyFeedback
+              ? html`<span
+                  class="copy-feedback"
+                  role="status"
+                  aria-live="polite"
+                  data-testid="copy-feedback"
+                  >${this._copyFeedback}</span
+                >`
+              : nothing}
+            <cts-button
+              class="copy-config-btn"
+              variant="secondary"
+              size="sm"
+              icon="copy"
+              label="Copy"
+              title="Copy config to clipboard"
+              @cts-click=${this._handleCopyConfig}
+            ></cts-button>
+          </div>
+        </div>
+        <cts-json-editor
+          class="ctsConfigJson"
+          data-testid="config-json"
+          readonly
+          aria-label="Test configuration JSON"
+          .value=${configJson}
+        ></cts-json-editor>
+      </cts-modal>
+    `;
   }
 
   /**
@@ -1582,21 +1672,6 @@ class CtsLogDetailHeader extends LitElement {
           </summary>
           <div class="ctsDrawerBody"> ${this._renderMetadataTable(test)} </div>
         </details>
-        <details data-testid="drawer-config">
-          <summary>
-            <cts-icon name="chevron-right" size="16"></cts-icon>
-            Configuration
-          </summary>
-          <div class="ctsDrawerBody">
-            <cts-json-editor
-              class="ctsConfigJson"
-              data-testid="config-json"
-              readonly
-              aria-label="Test configuration JSON"
-              .value=${JSON.stringify(test.config || {}, null, 4)}
-            ></cts-json-editor>
-          </div>
-        </details>
       </div>
     `;
   }
@@ -1670,7 +1745,7 @@ class CtsLogDetailHeader extends LitElement {
     return html`
       ${this._renderTestNavControlsRow(this.testInfo)} ${this._renderStatusBar(this.testInfo)}
       ${this._renderTerminalBanner(this.testInfo)} ${this._renderHero(this.testInfo)}
-      ${this._renderDrawer(this.testInfo)}
+      ${this._renderDrawer(this.testInfo)} ${this._renderConfigModal()}
     `;
   }
 
@@ -1691,6 +1766,10 @@ class CtsLogDetailHeader extends LitElement {
     if (this._resizeObserver) {
       this._resizeObserver.disconnect();
       this._resizeObserver = null;
+    }
+    if (this._copyFeedbackTimer) {
+      clearTimeout(this._copyFeedbackTimer);
+      this._copyFeedbackTimer = null;
     }
     // Clear the published custom property so a different page mounted
     // afterwards does not inherit a stale measurement.
