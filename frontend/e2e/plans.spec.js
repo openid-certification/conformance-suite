@@ -691,7 +691,7 @@ test.describe("plans.html — Schedule-test CTA + empty state (U8)", () => {
     await expect(cta).toBeVisible();
     const link = cta.locator("a");
     await expect(link).toHaveAttribute("href", "schedule-test.html");
-    await expect(link).toContainText("Schedule test");
+    await expect(link).toContainText("Create a new test");
 
     // It sits at the END of the cts-view-tabs row (after the My/Published tabs).
     await expect(page.locator("#viewTabs nav.cts-view-tabs > :last-child")).toHaveAttribute(
@@ -768,7 +768,7 @@ test.describe("plans.html — Schedule-test CTA + empty state (U8)", () => {
     await expect(empty).toContainText("No test plans yet");
     const action = empty.locator("a[href='schedule-test.html']");
     await expect(action).toBeVisible();
-    await expect(action).toContainText("Schedule test");
+    await expect(action).toContainText("Create a new test");
 
     // A secondary View-published-plans action sits beside the primary.
     const secondary = empty.locator("a[href='plans.html?public=true']");
