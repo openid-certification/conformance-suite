@@ -615,15 +615,17 @@ export const ActionsViewConfig = {
 export const ActionsPrivateLink = {
   render: () => html` <cts-plan-actions .plan=${MOCK_PLAN_DETAIL}></cts-plan-actions> `,
   async play({ canvasElement, step }) {
-    await step("private link panel is hidden initially", async () => {
-      const panel = canvasElement.querySelector('[data-testid="private-link-panel"]');
-      expect(panel).toBeNull();
+    await step("private link modal is not open initially", async () => {
+      const modal = canvasElement.querySelector('[data-testid="private-link-panel"]');
+      expect(modal?.hasAttribute("open")).toBe(false);
     });
 
-    await step("clicking Private link opens the panel", async () => {
+    await step("clicking Private link opens the modal", async () => {
       await userEvent.click(innerButton(canvasElement, "private-link-btn"));
       await waitFor(() => {
-        expect(canvasElement.querySelector('[data-testid="private-link-panel"]')).toBeTruthy();
+        expect(
+          canvasElement.querySelector('[data-testid="private-link-panel"]')?.hasAttribute("open"),
+        ).toBe(true);
       });
     });
 
@@ -647,12 +649,13 @@ export const ActionsPrivateLink = {
 export const ActionsPrivateLinkValidation = {
   render: () => html` <cts-plan-actions .plan=${MOCK_PLAN_DETAIL}></cts-plan-actions> `,
   async play({ canvasElement, step }) {
-    await step("open the private link panel", async () => {
+    await step("open the private link modal", async () => {
       // Target the inner <button>.
       await userEvent.click(innerButton(canvasElement, "private-link-btn"));
       await waitFor(() => {
-        const panel = canvasElement.querySelector('[data-testid="private-link-panel"]');
-        expect(panel).toBeTruthy();
+        expect(
+          canvasElement.querySelector('[data-testid="private-link-panel"]')?.hasAttribute("open"),
+        ).toBe(true);
       });
     });
 
