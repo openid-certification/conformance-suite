@@ -801,16 +801,22 @@ public abstract class AbstractCondition implements Condition, DataUtils {
 		// instead evict (close) that identity's pooled manager, which closes its connections and aborts
 		// the stuck request; the next request rebuilds the pool.
 		// See https://gitlab.com/openid/conformance-suite/-/work_items/1827
-		Runnable deadlineAbort = PooledConnectionManagers.isEnabled(env)
+		// Capture the pooled identity ONCE, at setup, matching the key the manager was leased under. The
+		// abort runs on the watchdog thread up to the deadline later, by which time HTTP I/O has released
+		// the test lock and a callback may have mutated env (e.g. DCR remaps mutual_tls_authentication) -
+		// recomputing the key then could evict the wrong pool and leave the stuck request hanging.
+		final String pooledIdentityKey = PooledConnectionManagers.isEnabled(env)
+			? PooledConnectionManagers.identityKey(env, restrictAllowedTLSVersions)
+			: null;
+		Runnable deadlineAbort = pooledIdentityKey != null
 			? () -> {
 				// DIAGNOSTIC (into the test event log - the only channel readable from CI artifacts):
 				// record that the hard deadline fired and is about to evict the shared pooled manager,
 				// which aborts not just this request but every concurrent request sharing this identity.
-				String evictKey = PooledConnectionManagers.identityKey(env, restrictAllowedTLSVersions);
 				log("POOL-DIAG hard request deadline exceeded - evicting the shared pooled connection "
 						+ "manager (closes all its connections; aborts concurrent same-identity requests)",
-					args("tls_identity", evictKey));
-				PooledConnectionManagers.evict(evictKey, "deadline-abort");
+					args("tls_identity", pooledIdentityKey));
+				PooledConnectionManagers.evict(pooledIdentityKey, "deadline-abort");
 			}
 			: () -> ((CloseableHttpClient) httpClient).close(CloseMode.IMMEDIATE);
 		restTemplate.getInterceptors().add(new HttpRequestDeadlineInterceptor(deadlineAbort, getHttpClientTimeoutSeconds()));

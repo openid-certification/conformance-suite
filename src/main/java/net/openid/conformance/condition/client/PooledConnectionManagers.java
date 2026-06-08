@@ -64,8 +64,10 @@ public final class PooledConnectionManagers {
 	private static final long IDLE_EVICT_SECONDS = 4;
 	/** How often the background sweep evicts idle/expired connections. */
 	private static final long EVICT_SWEEP_SECONDS = 1;
-	private static final int MAX_TOTAL = 20;
-	private static final int MAX_PER_ROUTE = 10;
+	// The non-mTLS identity is shared by EVERY non-mTLS call across all concurrent tests, so the per-route
+	// limit must be generous or parallel tests would queue behind each other (and risk the 60s deadline).
+	private static final int MAX_TOTAL = 200;
+	private static final int MAX_PER_ROUTE = 100;
 	/** Hard backstop on distinct identities (defensive only). The background sweep reaps idle identities
 	 *  by {@link #REAP_AFTER_IDLE_NANOS}, which keeps the live count low even when DCR mints a fresh
 	 *  client cert (hence a fresh mTLS identity) per test, so this should never actually be hit. */
