@@ -1,42 +1,27 @@
 package net.openid.conformance.condition.as;
 
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-import com.nimbusds.jose.jwk.JWK;
-import com.nimbusds.jose.jwk.JWKSet;
-import com.nimbusds.jose.jwk.OctetSequenceKey;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.testmodule.Environment;
+import net.openid.conformance.util.JWKUtil;
+import net.openid.conformance.util.JWKUtil.JwkIssue;
 
-import java.text.ParseException;
-import java.util.ArrayList;
 import java.util.List;
 
 public abstract class AbstractEnsureJwksDoesNotContainPrivateOrSymmetricKeys extends AbstractCondition {
 
 	protected Environment verifyJwksDoesNotContainPrivateOrSymmetricKeys(Environment env, JsonObject jwks) {
-		List<JsonElement> privateKeys = new ArrayList<>();
-		List<JsonElement> symmetricKeys = new ArrayList<>();
-		try {
-			JWKSet jwkSet = JWKSet.parse(jwks.toString());
-			for(JWK jwk : jwkSet.getKeys()) {
-				if(jwk instanceof OctetSequenceKey) {
-					//OctetSequenceKey.isPrivate() always returns true
-					symmetricKeys.add(JsonParser.parseString(jwk.toString()));
-				} else if(jwk.isPrivate()) {
-					privateKeys.add(JsonParser.parseString(jwk.toString()));
-				}
-			}
-		} catch (ParseException e) {
-			throw error("Invalid jwks", args("jwks", jwks));
-		}
-		if(privateKeys.isEmpty() && symmetricKeys.isEmpty()) {
+		// Inspect the raw JSON members rather than parsing with the JOSE library: JWKSet.parse
+		// silently drops a key with an unknown kty (RFC 7517 section 5) before isPrivate() could run,
+		// so private material on such a key - or on a key using a curve the library cannot parse -
+		// would otherwise go undetected. See JWKUtil.findPrivateOrSymmetricKeyMembers.
+		List<JwkIssue> issues = JWKUtil.findPrivateOrSymmetricKeyMembers(jwks);
+		if (issues.isEmpty()) {
 			logSuccess("Jwks does not contain any private or symmetric keys");
 			return env;
 		}
 		throw error("Jwks contains private and/or symmetric keys",
-					args("private_keys", privateKeys, "symmetric_keys", symmetricKeys));
+			args("keys", JWKUtil.issuesToJson(issues)));
 	}
 
 }

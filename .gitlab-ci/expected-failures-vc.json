@@ -277,5 +277,14 @@
         "condition": "ValidateDirectPostResponse",
         "expected-result": "warning",
         "comment": "Paired wallet negative test bails out after verifier-side rejects the request, so no direct_post response is sent to validate"
+    },
+    {
+        "test-name": "oid4vp-1final-verifier-happy-flow",
+        "variant": { "response_mode": "direct_post.jwt" },
+        "configuration-filename": "*vp-verifier-test-config.json",
+        "current-block": "Validate the JWK set in client_metadata",
+        "condition": "WarnOnUnusableJwksKeys",
+        "expected-result": "warning",
+        "comment": "The paired wallet-ignores-unusable-encryption-key scenario sends client_metadata containing unusable encryption keys (a post-quantum AKP key and a made-up key type) alongside a usable one; the suite correctly warns the unusable keys cannot be used. Scoped to direct_post.jwt: the plain config is also used by the direct_post (unencrypted) happy flow, which has no client_metadata jwks and so must not expect this warning"
     }
 ]

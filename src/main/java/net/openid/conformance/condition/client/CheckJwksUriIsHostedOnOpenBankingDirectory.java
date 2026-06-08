@@ -14,7 +14,7 @@ public class CheckJwksUriIsHostedOnOpenBankingDirectory extends AbstractJsonUriI
 	@PreEnvironment(required = "server")
 	public Environment evaluate(Environment env) {
 		JsonElement server = super.getServerValueOrDie(env, "jwks_uri");
-		URL theURL = super.extractURLOrDie(server);
+		URL theURL = super.extractURLOrDie(server, "jwks_uri");
 
 		if (!theURL.getHost().equals(requiredHostname)) {
 			throw error("JWKS URI is not hosted on the OpenBanking Directory. This is acceptable on a sandbox, but production systems must use an OpenBanking Directory hosted JWKS.", args("expected", requiredHostname, "actual", theURL.getHost()));

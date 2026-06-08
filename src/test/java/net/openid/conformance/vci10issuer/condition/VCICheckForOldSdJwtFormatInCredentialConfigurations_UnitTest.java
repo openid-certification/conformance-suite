@@ -1,6 +1,7 @@
 package net.openid.conformance.vci10issuer.condition;
 
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.logging.BsonEncoding;
@@ -15,7 +16,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @ExtendWith(MockitoExtension.class)
-public class VCICheckForOldSdJwtFormatInCredentialConfigurations_UnitTest {
+public class VCICheckForOldSdJwtFormatInCredentialConfigurations_UnitTest extends AbstractVciUnitTest {
 
 	@Spy
 	private Environment env = new Environment();
@@ -63,5 +64,15 @@ public class VCICheckForOldSdJwtFormatInCredentialConfigurations_UnitTest {
 			setMetadata("vc+sd-jwt");
 			cond.execute(env);
 		});
+	}
+
+	@Test
+	public void testEvaluate_dresdenKommPassUsesNewFormat() throws Exception {
+		String json = readFile("metadata/openid4vci-1_0/credential-issuer-metadata-dresden-komm-pass.json");
+		JsonObject metadata = JsonParser.parseString(json).getAsJsonObject();
+		JsonObject vci = new JsonObject();
+		vci.add("credential_issuer_metadata", metadata);
+		env.putObject("vci", vci);
+		cond.execute(env);
 	}
 }

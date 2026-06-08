@@ -14,6 +14,7 @@ import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @ExtendWith(MockitoExtension.class)
 public class CheckDiscEndpointAllEndpointsAreHttps_UnitTest {
@@ -65,6 +66,46 @@ public class CheckDiscEndpointAllEndpointsAreHttps_UnitTest {
 			env.putObject("server", server);
 			cond.execute(env);
 		});
+	}
+
+	@Test
+	public void testEvaluate_secondEndpointNotHttps() {
+		// Regression: every *_endpoint must be validated, not just the first one.
+		assertThrows(ConditionError.class, () -> {
+			JsonObject server = JsonParser.parseString("{"
+				+ "\"aaa_endpoint\": \"https://www.example.com/endpoint\","
+				+ "\"zzz_endpoint\": \"http://www.example.com/endpoint\""
+				+ "}")
+				.getAsJsonObject();
+			env.putObject("server", server);
+			cond.execute(env);
+		});
+	}
+
+	@Test
+	public void testEvaluate_uppercaseHttpsAccepted() {
+		JsonObject server = JsonParser.parseString("{"
+			+ "\"flibble_endpoint\": \"HTTPS://www.example.com/endpoint\""
+			+ "}")
+			.getAsJsonObject();
+		env.putObject("server", server);
+		cond.execute(env);
+	}
+
+	@Test
+	public void testEvaluate_nullEndpointRejected() {
+		// An optional endpoint explicitly set to null is non-conformant (it should be omitted or a
+		// valid URL string), so it must be flagged rather than skipped, with a message that names
+		// the offending field.
+		JsonObject server = JsonParser.parseString("{"
+			+ "\"token_endpoint\": \"https://www.example.com/token\","
+			+ "\"end_session_endpoint\": null"
+			+ "}")
+			.getAsJsonObject();
+		env.putObject("server", server);
+		ConditionError e = assertThrows(ConditionError.class, () -> cond.execute(env));
+		assertTrue(e.getMessage().contains("end_session_endpoint"),
+			"failure message should name the offending field, was: " + e.getMessage());
 	}
 
 	@Test
