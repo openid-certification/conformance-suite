@@ -115,6 +115,35 @@ test.describe("plan-detail.html — Plan Detail", () => {
     await expect(page.locator("#loadingModal")).toBeHidden();
   });
 
+  test("failed initial load still removes the loader and reveals the page under the error modal", async ({
+    page,
+  }) => {
+    // The .finally() reveal fires on both success and error. This locks the
+    // on-error contract: a getPlan() rejection must still drop the in-page
+    // loader and un-hide the grid (surfacing the error via #errorModal),
+    // never strand a stuck loader. Guards a future edit that mistakenly moves
+    // the reveal into a .then() instead of .finally().
+    await setupFailFast(page);
+
+    await page.route("**/api/plan/plan-abc-123", (route) =>
+      route.fulfill({
+        status: 500,
+        contentType: "application/json",
+        body: JSON.stringify({ error: "boom" }),
+      }),
+    );
+
+    await setupTestInfoRoute(page);
+    await setupCommonRoutes(page);
+
+    await page.goto("/plan-detail.html?plan=plan-abc-123");
+
+    // Error surfaces via the error modal, and the load indicator is cleared.
+    await expect(page.locator("#errorModal")).toBeVisible();
+    await expect(page.locator("cts-loading-state#planDetailLoading")).toHaveCount(0);
+    await expect(page.locator("#planDetailGrid")).toBeVisible();
+  });
+
   test("View configuration button opens a modal with plan configuration JSON", async ({ page }) => {
     await setupFailFast(page);
 

@@ -93,6 +93,10 @@
         Error: <span id="errorMessage"></span>
     </cts-modal>
 
+    <!-- Kept for the transitional busy state only: runTest() calls
+         FAPI_UI.showBusy() before navigating to the new test's log. The
+         initial page load no longer uses this modal — it shows the in-page
+         cts-loading-state in <main> instead. -->
     <cts-modal id="loadingModal" heading="Loading..." static-backdrop no-keyboard>
         <cts-spinner size="lg" label="Loading"></cts-spinner>
         <div aria-live="polite">
