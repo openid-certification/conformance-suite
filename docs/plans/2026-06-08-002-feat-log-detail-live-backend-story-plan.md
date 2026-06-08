@@ -1,6 +1,6 @@
 ---
 title: "feat: Live-backend story for cts-log-detail-header"
-status: active
+status: completed
 date: 2026-06-08
 type: feat
 ---
