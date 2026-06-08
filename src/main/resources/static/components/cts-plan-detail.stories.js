@@ -286,14 +286,20 @@ export const ModulesDefault = {
     expect(canvas.getByText("test-inst-002")).toBeInTheDocument();
     expect(canvas.getByText("test-inst-003")).toBeInTheDocument();
 
-    // Module with no instance shows NONE in the test-ID slot of .desc .mono.
-    // After U17 the per-row meta lives in a single .desc line ("Variant · Test
-    // ID: <mono>"), so we find the mono spans and count the ones reading
-    // "NONE".
-    const noneTexts = Array.from(canvasElement.querySelectorAll(".module-row .desc .mono")).filter(
-      (el) => el.textContent.trim() === "NONE",
-    );
-    expect(noneTexts.length).toBe(1);
+    // The status badge now sits in a .statusLine directly under the name, with
+    // the test instance id as plain mono text immediately after it (no "Test
+    // ID:" label, no callout). The three rows with an instance render an
+    // .instanceId; the no-instance row renders the badge with no id text.
+    const instanceIds = canvasElement.querySelectorAll(".module-row .statusLine .instanceId");
+    expect(instanceIds.length).toBe(3);
+    expect(Array.from(instanceIds).map((el) => el.textContent.trim())).toEqual([
+      "test-inst-001",
+      "test-inst-002",
+      "test-inst-003",
+    ]);
+    // "NONE" / "Test ID:" are gone from the design — the no-instance row shows
+    // no id text.
+    expect(canvasElement.textContent).not.toContain("Test ID:");
 
     // Run Test buttons present (not readonly, not immutable by default)
     const runBtns = canvasElement.querySelectorAll('[data-testid="run-test-btn"]');

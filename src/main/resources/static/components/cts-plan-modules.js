@@ -40,16 +40,30 @@ const STYLE_TEXT = css`
     container-type: inline-size;
     container-name: planModulesCard;
   }
+  /* Adrian Roselli "block link" pattern (pseudo-element overlay): the row is
+     a non-interactive grid; the status-badge anchor (.moduleStatusLink) is the
+     single real row-spanning link, and its ::after overlay covers the whole
+     row so a click anywhere on the row lands on the test's log page. Nested
+     interactive controls (action buttons, the module-name link, the help
+     tooltip, and the badge anchor's own box) sit on z-index: 1 so they receive
+     their own clicks. Rows with no test instance render no .moduleStatusLink,
+     so they have no overlay and stay inert (R5).
+     https://adrianroselli.com/2020/02/block-links-cards-clickable-regions-etc.html */
   cts-plan-modules .module-row {
+    position: relative;
     display: grid;
-    grid-template-columns: 28px 1fr auto auto;
+    grid-template-columns: 28px 1fr auto;
     gap: var(--space-3);
     padding: var(--space-3) var(--space-4);
     border-bottom: 1px solid var(--ink-100);
     align-items: center;
+    transition: background var(--dur-1) var(--ease-standard);
   }
   cts-plan-modules .module-row:last-child {
     border-bottom: 0;
+  }
+  cts-plan-modules .module-row:hover {
+    background: var(--bg);
   }
   cts-plan-modules .module-row .num {
     font-family: var(--font-mono);
@@ -57,10 +71,24 @@ const STYLE_TEXT = css`
     color: var(--fg-soft);
   }
   cts-plan-modules .module-row .name {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
     font-weight: var(--fw-regular);
     font-size: var(--fs-13);
     color: var(--fg);
     word-break: break-word;
+  }
+  /* Status badge sits directly under the name with the test instance id as
+     plain mono text immediately after it (no label, no callout chrome). */
+  cts-plan-modules .module-row .name .statusLine {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+  }
+  cts-plan-modules .module-row .name .statusLine .instanceId {
+    color: var(--fg-soft);
+    font-size: var(--fs-12);
   }
   /* The module name links to the same log-detail URL as the "View Logs"
      button when an instance exists. It reads as plain text at rest
@@ -71,8 +99,10 @@ const STYLE_TEXT = css`
      global \`a\` rule, so keep only layout/weight here (toggling
      text-decoration-line would defeat the transition — line can't animate). */
   cts-plan-modules .module-row .name .moduleNameLink {
+    position: relative;
+    z-index: 1;
     color: inherit;
-    font-weight: var(--fw-medium);
+    font-weight: var(--fw-bold);
     text-underline-offset: 2px;
   }
   cts-plan-modules .module-row .name .moduleNameLink:focus-visible {
@@ -114,7 +144,12 @@ const STYLE_TEXT = css`
   cts-plan-modules .module-row .name .help {
     display: contents;
   }
+  /* position/z-index keep the help icon above the row overlay so its tooltip
+     hover and keyboard focus still work. display: contents on .help means the
+     lift lands on the icon itself. */
   cts-plan-modules .module-row .name .help-icon {
+    position: relative;
+    z-index: 1;
     color: var(--fg-faint);
   }
   cts-plan-modules .module-row .name .help-icon:focus-visible {
@@ -130,6 +165,10 @@ const STYLE_TEXT = css`
      the badge label when the row's content height is taller than a
      single button (e.g. when the name column wraps to multiple lines). */
   cts-plan-modules .module-row .actionStack {
+    /* z-index lift keeps the action buttons above the row block-link overlay
+       so they receive their own clicks instead of the row navigation. */
+    position: relative;
+    z-index: 1;
     display: flex;
     flex-direction: row-reverse;
     flex-wrap: wrap;
@@ -137,26 +176,19 @@ const STYLE_TEXT = css`
     align-items: center;
     gap: var(--space-3);
   }
-  /* In this row the badge pill itself reads ~1px low against the sm
-     action buttons (cap-height drift: 11px caps in a 16px line-box land
-     ~1px lower than 13px caps in the same line-box). Nudge the whole pill
-     up 1px — leaving the inner padding alone — so it visually aligns with
-     "Run Test" / "View Logs" / "Download Logs" without changing layout
-     flow (position is relative-only, no margin reflow). */
-  cts-plan-modules .module-row > cts-badge,
-  cts-plan-modules .module-row > .moduleStatusLink {
-    position: relative;
-    top: -1px;
-  }
   cts-plan-modules .planModulesEmpty {
     padding: var(--space-5);
     text-align: center;
     color: var(--fg-soft);
   }
-  /* R28: status badges wrap in an anchor to log-detail when an instance
-     exists, so a click on the lozenge takes the user to the test's logs.
-     The anchor matches the badge's pill silhouette and inherits color so
-     the badge's own foreground stays in charge of its text. */
+  /* R28 + whole-row block link: the status badge is wrapped in an anchor to
+     log-detail when an instance exists. The anchor stays STATIC-positioned so
+     its ::after overlay (position: absolute; inset: 0) resolves to the nearest
+     positioned ancestor — the position: relative .module-row — and therefore
+     spans the entire row, making the whole row a click target. The other
+     interactive controls (.moduleNameLink, .help-icon, .actionStack) are
+     lifted to z-index: 1 so they sit above this overlay and receive their own
+     clicks. The badge's own foreground keeps charge of its text colour. */
   cts-plan-modules .moduleStatusLink {
     display: inline-flex;
     align-items: center;
@@ -164,9 +196,17 @@ const STYLE_TEXT = css`
     color: inherit;
     border-radius: var(--radius-pill);
   }
+  cts-plan-modules .moduleStatusLink::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+  }
   cts-plan-modules .moduleStatusLink:focus-visible {
     outline: 2px solid var(--orange-400);
     outline-offset: 2px;
+    /* keep the focus ring hugging the badge, not the stretched ::after */
+    position: relative;
+    z-index: 1;
   }
   /* Narrow-card reflow. Drops the actions column and lets the action
      stack span the full row width on a second line, so module names
@@ -386,13 +426,15 @@ class CtsPlanModules extends LitElement {
                 ></cts-tooltip>`
               : nothing}
           </span>
-          <div class="desc">
-            <span class="mono">${variantStr}</span>
-            ${variantStr ? html` · ` : nothing}Test ID:
-            <span class="mono">${lastInstance || "NONE"}</span>
-          </div>
+          <span class="statusLine">
+            ${linkedBadge}${lastInstance
+              ? html`<span class="mono instanceId">${lastInstance}</span>`
+              : nothing}
+          </span>
+          ${variantStr
+            ? html`<div class="desc"><span class="mono">${variantStr}</span></div>`
+            : nothing}
         </div>
-        ${linkedBadge}
         <div class="actionStack">
           ${this._canRunTest()
             ? html`<cts-button
