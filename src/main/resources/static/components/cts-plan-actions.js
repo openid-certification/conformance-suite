@@ -493,7 +493,7 @@ class CtsPlanActions extends LitElement {
 
         ${!this.isReadonly
           ? html`<cts-link-button
-              href="schedule-test.html?edit-plan=${plan._id}"
+              href="schedule-test.html?from-plan=${plan._id}"
               variant="secondary"
               size="sm"
               icon="edit-pencil-01"
