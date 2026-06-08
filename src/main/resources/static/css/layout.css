@@ -415,35 +415,6 @@ textarea {
 	padding: 5px;
 }
 
-.externalURLLink {
-	background-color: #111;
-	padding: 5px;
-}
-
-/* JSON form tabs */
-.tab-content {
-	padding: 0px 12px;
-	border: 1px solid #ddd;
-	border-top: none;
-}
-
-.tab-pane {
-	padding: 0px;
-}
-
-.tab-content input {
-	width: 100%;
-}
-
-.tab-content textarea {
-	width: 100%;
-	height: 240px;
-}
-
-.tab-content .row {
-	margin-bottom: 10px;
-}
-
 /** index.html end **/
 
 /** logs listing **/
@@ -465,17 +436,6 @@ textarea {
           z-index: 750;
 }
 
-.listHeader {
-	padding: 5px 0px 0px;
-	background-color: #fff;
-	border: 1px solid #ddd;
-	border-radius: 3px;
-}
-
-.logContent {
-	border-top: 1px #eee solid;
-}
-
 .logItem {
 	border-bottom: 1px #eee solid;
 	padding-top: 7px;
@@ -490,24 +450,6 @@ textarea {
 
 .logItem:hover {
 	background-color: #f6fefe;
-}
-
-.log-source {
-	font-family: monospace;
-	font-size: 85%;
-	color: #666666;
-}
-
-/* Override the default link color */
-.log-requirement a:link, .log-requirement a:visited {
-	color: #ffffff;
-}
-
-.bgSummary {
-	padding: 5px 10px;
-	margin: 4px;
-	border: 1px #ddd solid;
-	border-radius: 2px;
 }
 
 .testStatusResultBlock {
@@ -703,31 +645,6 @@ pre.prettyprint {
 	border: none !important;
 }
 
-/* highlighted JWTs */
-.jwtHeader {
-	color: #fb015b;
-}
-
-.jwtPayload {
-	color: #d63aff;
-}
-
-.jwtSignature {
-	color: #00b9f1;
-}
-
-.jweCypher {
-	color: #f1a551;
-}
-
-.jweTag {
-	color: #38a321;
-}
-
-.darkblue {
-	color: #23527c;
-}
-
 /* spacers for page elements */
 .top5 { margin-top:5px; }
 .top7 { margin-top:7px; }
@@ -775,10 +692,6 @@ pre.prettyprint {
         background-color: #f1f1f1;
 }
 
-.row-bg-light {
-        background-color: #f9f9f9;
-}
-
 .qr > img {
 	width: 100%;
 }
@@ -801,11 +714,4 @@ pre.prettyprint {
 
 /* <= Phones portrait */
 @media all and (max-width : 320px) {
-}
-
-/* Wider tooltips for test descriptions */
-.tooltip-inner {
-	max-width: 500px;
-	text-align: left;
-	white-space: pre-wrap;
 }
