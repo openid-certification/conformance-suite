@@ -66,12 +66,21 @@ public final class PooledConnectionManagers {
 	private static final long EVICT_SWEEP_SECONDS = 1;
 	private static final int MAX_TOTAL = 20;
 	private static final int MAX_PER_ROUTE = 10;
-	/** Bound on the number of distinct identities pooled (defensive; opt-in CI configs have a handful). */
-	private static final int MAX_IDENTITIES = 128;
+	/** Hard backstop on distinct identities (defensive only). The background sweep reaps idle identities
+	 *  by {@link #REAP_AFTER_IDLE_NANOS}, which keeps the live count low even when DCR mints a fresh
+	 *  client cert (hence a fresh mTLS identity) per test, so this should never actually be hit. */
+	private static final int MAX_IDENTITIES = 2048;
+	/** Remove a pooled manager once its identity has gone unused this long AND it holds no connections.
+	 *  Comfortably longer than a single test's call sequence, so an identity that's still in play is never
+	 *  reaped. This is how ephemeral DCR identities are cleaned up - safely, by idleness, not by punching
+	 *  out an arbitrary (possibly in-use) manager when a cap is hit. */
+	private static final long REAP_AFTER_IDLE_NANOS = TimeUnit.SECONDS.toNanos(60);
 
 	private static final Logger logger = LoggerFactory.getLogger(PooledConnectionManagers.class);
 
 	private static final Map<String, PoolingHttpClientConnectionManager> MANAGERS = new ConcurrentHashMap<>();
+	/** Last time (nanoTime) each identity was requested, for safe idle-based reaping. */
+	private static final Map<String, Long> lastUsedNanos = new ConcurrentHashMap<>();
 	private static volatile ScheduledExecutorService idleEvictor;
 
 	private PooledConnectionManagers() {}
@@ -101,9 +110,13 @@ public final class PooledConnectionManagers {
 	public static HttpClientConnectionManager getOrCreate(String identityKey,
 			Supplier<PoolingHttpClientConnectionManager> factory) {
 		ensureIdleEvictor();
+		// Record use FIRST, so a manager we are about to hand out can never be reaped from under us.
+		lastUsedNanos.put(identityKey, System.nanoTime());
 		if (MANAGERS.size() >= MAX_IDENTITIES && !MANAGERS.containsKey(identityKey)) {
-			// Defensive cap: drop one existing identity rather than grow unbounded.
-			MANAGERS.keySet().stream().findFirst().ifPresent(k -> evict(k, "identity-cap"));
+			// Backstop only (the idle sweep normally keeps the count low). NEVER punch out an arbitrary
+			// manager - that was the cause of the Socket-closed/pool-shut-down cascade: it closed managers
+			// other concurrent tests were mid-use on. Reap only a truly idle (empty, unused) one.
+			reapOneIdleManager();
 		}
 		return MANAGERS.computeIfAbsent(identityKey, k -> factory.get());
 	}
@@ -149,22 +162,50 @@ public final class PooledConnectionManagers {
 	}
 
 	private static void evictIdleConnections() {
+		long now = System.nanoTime();
 		for (Map.Entry<String, PoolingHttpClientConnectionManager> entry : MANAGERS.entrySet()) {
 			PoolingHttpClientConnectionManager m = entry.getValue();
 			try {
-				PoolStats before = m.getTotalStats();
 				m.closeExpired();
 				m.closeIdle(TimeValue.ofSeconds(IDLE_EVICT_SECONDS));
-				PoolStats after = m.getTotalStats();
-				// DIAGNOSTIC: log when the background sweep actually closes connections, and how many are
-				// leased (in-use) at that moment - to see whether the sweep races with active requests.
-				if (before.getAvailable() != after.getAvailable()) {
-					logger.warn("POOL-DIAG idle-sweep id={} available {}->{} leased={} pending={}",
-						entry.getKey(), before.getAvailable(), after.getAvailable(), after.getLeased(), after.getPending());
+				// Reap a done identity (e.g. an ephemeral DCR cert): it holds NO connections and has not
+				// been used for the grace period, so removing it can neither abort an in-use connection nor
+				// race a request that is about to use it (getOrCreate stamps lastUsed before handing it out).
+				Long last = lastUsedNanos.get(entry.getKey());
+				if (isIdle(m) && last != null && now - last > REAP_AFTER_IDLE_NANOS) {
+					reap(entry.getKey(), m, "idle-reap");
 				}
 			} catch (RuntimeException e) {
 				// Best-effort background sweep: never let one manager's failure stop the others.
 			}
+		}
+	}
+
+	private static boolean isIdle(PoolingHttpClientConnectionManager m) {
+		PoolStats st = m.getTotalStats();
+		return st.getLeased() == 0 && st.getAvailable() == 0 && st.getPending() == 0;
+	}
+
+	/** Cap backstop: remove ONE truly-idle manager to make room. Never touches an in-use one; if none is
+	 *  idle, allows temporary growth rather than abort live requests (the old behaviour's fatal flaw). */
+	private static void reapOneIdleManager() {
+		for (Map.Entry<String, PoolingHttpClientConnectionManager> entry : MANAGERS.entrySet()) {
+			if (isIdle(entry.getValue())) {
+				reap(entry.getKey(), entry.getValue(), "cap-reap");
+				return;
+			}
+		}
+		logger.warn("POOL-DIAG cap reached ({}) but no idle manager to reap - allowing growth", MANAGERS.size());
+	}
+
+	/** Remove an idle manager from the registry and close it gracefully. Guarded by remove(k,v) so a
+	 *  concurrent recreate of the same identity is never clobbered. */
+	private static void reap(String identityKey, PoolingHttpClientConnectionManager m, String reason) {
+		if (MANAGERS.remove(identityKey, m)) {
+			lastUsedNanos.remove(identityKey);
+			m.close(CloseMode.GRACEFUL);
+			logger.warn("POOL-DIAG {} removed idle manager id={} (live identities now {})",
+				reason, identityKey, MANAGERS.size());
 		}
 	}
 
@@ -187,6 +228,7 @@ public final class PooledConnectionManagers {
 	 */
 	public static void evict(String identityKey, String reason) {
 		PoolingHttpClientConnectionManager m = MANAGERS.remove(identityKey);
+		lastUsedNanos.remove(identityKey);
 		if (m != null) {
 			PoolStats st = m.getTotalStats();
 			logger.warn("POOL-DIAG evict reason={} id={} leased={} available={} pending={} thread={} "
@@ -200,6 +242,7 @@ public final class PooledConnectionManagers {
 	/** Drop and close every pooled manager. Intended for test isolation. */
 	public static void clear() {
 		MANAGERS.keySet().forEach(k -> evict(k, "clear"));
+		lastUsedNanos.clear();
 	}
 
 	/** For tests. */
