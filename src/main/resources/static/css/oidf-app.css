@@ -50,6 +50,18 @@ dialog:not([open]) {
   display: none;
 }
 
+/* ---- Pre-upgrade <cts-modal> hide -------------------------------
+   Until cts-modal's definition executes, its light-DOM children (error
+   text, the private-link expiration form, spinners) are ordinary inline
+   content and render as page text. layout.css carries this same guard
+   for the legacy pages, but log-detail.html loads only the OIDF sheets —
+   omitting it there made slow first loads flash "Error: / How many days
+   should this link remain active?" as plain text (reported by Thomas D.;
+   covered by frontend/e2e/script-failure-fouc.spec.js). */
+cts-modal:not(:defined) {
+  display: none;
+}
+
 /* ---- Anchors-as-buttons: never carry the body-link underline ----
    oidf-tokens.css applies `a { text-decoration-line: underline }` to make
    prose links visible. Buttons rendered as anchors (cts-link-button,
