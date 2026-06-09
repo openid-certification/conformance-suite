@@ -50,7 +50,6 @@ import net.openid.conformance.condition.as.EnsureAuthorizationRequestContainsSta
 import net.openid.conformance.condition.as.EnsureClaimsParameterNotPresentInPlainOAuthRequest;
 import net.openid.conformance.condition.as.EnsureClientCertificateMatches;
 import net.openid.conformance.condition.as.EnsureClientIdInAuthorizationRequestParametersMatchRequestObject;
-import net.openid.conformance.condition.as.EnsureClientJwksDoesNotContainPrivateOrSymmetricKeys;
 import net.openid.conformance.condition.as.EnsureMatchingClientId;
 import net.openid.conformance.condition.as.EnsureMatchingRedirectUriInRequestObject;
 import net.openid.conformance.condition.as.EnsureNumericRequestObjectClaimsAreNotNull;
@@ -104,8 +103,6 @@ import net.openid.conformance.condition.client.AugmentRealJwksWithDecoys;
 import net.openid.conformance.condition.client.ExtractJWKsFromStaticClientConfiguration;
 import net.openid.conformance.condition.client.GetStaticClient2Configuration;
 import net.openid.conformance.condition.client.GetStaticClientConfiguration;
-import net.openid.conformance.condition.client.ValidateClientJWKsPublicPart;
-import net.openid.conformance.condition.client.ValidateServerJWKs;
 import net.openid.conformance.condition.common.CheckDistinctKeyIdValueInClientJWKs;
 import net.openid.conformance.condition.common.CheckServerConfiguration;
 import net.openid.conformance.condition.common.EnsureIncomingTls12WithBCP195SecureCipherOrTls13;
@@ -131,6 +128,7 @@ import net.openid.conformance.condition.rs.RequireMtlsAccessToken;
 import net.openid.conformance.condition.rs.RequireMtlsClientCredentialsAccessToken;
 import net.openid.conformance.sequence.AbstractConditionSequence;
 import net.openid.conformance.sequence.ConditionSequence;
+import net.openid.conformance.sequence.ValidateJwksSequence;
 import net.openid.conformance.sequence.as.AddJARMToServerConfiguration;
 import net.openid.conformance.sequence.as.AddPARToServerConfiguration;
 import net.openid.conformance.sequence.as.PerformDpopProofParRequestChecks;
@@ -545,18 +543,17 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 
 	protected void validateClientJwks(boolean isSecondClient)
 	{
-		callAndStopOnFailure(ValidateClientJWKsPublicPart.class, "RFC7517-1.1");
+		call(new ValidateJwksSequence("client", "jwks", "client configuration", "RFC7517-1.1"));
 
 		callAndStopOnFailure(ExtractJWKsFromStaticClientConfiguration.class);
 		callAndContinueOnFailure(CheckDistinctKeyIdValueInClientJWKs.class, Condition.ConditionResult.FAILURE, "RFC7517-4.5");
-		callAndContinueOnFailure(EnsureClientJwksDoesNotContainPrivateOrSymmetricKeys.class, Condition.ConditionResult.FAILURE);
 
 		callAndStopOnFailure(FAPI2FinalEnsureMinimumClientKeyLength.class,"FAPI2-SP-FINAL-5.4.1-2", "FAPI2-SP-FINAL-5.4.1-3");
 	}
 
 	protected void configureServerJWKS() {
 		callAndStopOnFailure(LoadServerJWKs.class);
-		callAndStopOnFailure(ValidateServerJWKs.class, "RFC7517-1.1");
+		call(new ValidateJwksSequence("server_jwks", null, "server signing keys", "RFC7517-1.1").allowingPrivateKeys());
 		callAndContinueOnFailure(AugmentRealJwksWithDecoys.class, ConditionResult.WARNING, "FAPI2-SP-FINAL-5.4.3-3");
 		callAndStopOnFailure(SetRsaAltServerJwks.class);
 	}

@@ -46,7 +46,6 @@ import net.openid.conformance.condition.as.EnsureAuthorizationRequestContainsSta
 import net.openid.conformance.condition.as.EnsureClaimsParameterNotPresentInPlainOAuthRequest;
 import net.openid.conformance.condition.as.EnsureClientCertificateMatches;
 import net.openid.conformance.condition.as.EnsureClientIdInAuthorizationRequestParametersMatchRequestObject;
-import net.openid.conformance.condition.as.EnsureClientJwksDoesNotContainPrivateOrSymmetricKeys;
 import net.openid.conformance.condition.as.EnsureIdTokenEncryptedResponseAlgIsNotRSA1_5;
 import net.openid.conformance.condition.as.EnsureMatchingClientId;
 import net.openid.conformance.condition.as.EnsureMatchingRedirectUriInRequestObject;
@@ -134,8 +133,6 @@ import net.openid.conformance.condition.client.FAPIBrazilValidateRequestObjectId
 import net.openid.conformance.condition.client.FAPIValidateRequestObjectIdTokenACRClaims;
 import net.openid.conformance.condition.client.GetStaticClient2Configuration;
 import net.openid.conformance.condition.client.GetStaticClientConfiguration;
-import net.openid.conformance.condition.client.ValidateClientJWKsPublicPart;
-import net.openid.conformance.condition.client.ValidateServerJWKs;
 import net.openid.conformance.condition.common.CheckDistinctKeyIdValueInClientJWKs;
 import net.openid.conformance.condition.common.CheckServerConfiguration;
 import net.openid.conformance.condition.common.EnsureIncomingTls12WithSecureCipherOrTls13;
@@ -181,6 +178,7 @@ import net.openid.conformance.condition.rs.LoadUserInfo;
 import net.openid.conformance.condition.rs.RequireBearerAccessToken;
 import net.openid.conformance.condition.rs.RequireBearerClientCredentialsAccessToken;
 import net.openid.conformance.sequence.ConditionSequence;
+import net.openid.conformance.sequence.ValidateJwksSequence;
 import net.openid.conformance.sequence.as.AddJARMToServerConfiguration;
 import net.openid.conformance.sequence.as.AddOpenBankingUkClaimsToAuthorizationCodeGrant;
 import net.openid.conformance.sequence.as.AddOpenBankingUkClaimsToAuthorizationEndpointResponse;
@@ -342,7 +340,7 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 		//this must come before configureResponseModeSteps due to JARM signing_algorithm dependency
 		callAndStopOnFailure(LoadServerJWKs.class);
 		callAndStopOnFailure(SetRsaAltServerJwks.class);
-		callAndStopOnFailure(ValidateServerJWKs.class, "RFC7517-1.1");
+		call(new ValidateJwksSequence("server_jwks", null, "server signing keys", "RFC7517-1.1").allowingPrivateKeys());
 
 		if(isBrazil()) {
 			callAndStopOnFailure(SetServerSigningAlgToPS256.class, "BrazilOB-6.1-1");
@@ -484,11 +482,10 @@ public abstract class AbstractFAPI1AdvancedFinalClientTest extends AbstractTestM
 
 	protected void validateClientJwks(boolean isSecondClient)
 	{
-		callAndStopOnFailure(ValidateClientJWKsPublicPart.class, "RFC7517-1.1");
+		call(new ValidateJwksSequence("client", "jwks", "client configuration", "RFC7517-1.1"));
 
 		callAndStopOnFailure(ExtractJWKsFromStaticClientConfiguration.class);
 		callAndContinueOnFailure(CheckDistinctKeyIdValueInClientJWKs.class, Condition.ConditionResult.FAILURE, "RFC7517-4.5");
-		callAndContinueOnFailure(EnsureClientJwksDoesNotContainPrivateOrSymmetricKeys.class, Condition.ConditionResult.FAILURE);
 
 		callAndStopOnFailure(FAPIEnsureMinimumClientKeyLength.class,"FAPI1-BASE-5.2.4-2", "FAPI1-BASE-5.2.4-3");
 
