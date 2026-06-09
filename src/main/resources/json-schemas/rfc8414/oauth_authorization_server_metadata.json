@@ -363,8 +363,5 @@
             "format": "uri"
         }
     },
-    "required": [
-        "issuer"
-    ],
     "additionalProperties": false
 }
