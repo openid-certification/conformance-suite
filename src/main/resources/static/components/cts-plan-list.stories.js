@@ -46,18 +46,23 @@ const neverResolvingInfo = http.get(
 );
 
 /**
- * Read the status-box color variant for a module from its tooltip-wrapped box
- * (the box is keyed by the module id in the tooltip's `content`). Returns the
- * variant suffix (e.g. "pass") or null when no box/variant is present.
+ * Read the status-segment color variant for a module from its
+ * `<cts-plan-status mode="overview">` bar. The per-module segment is found by
+ * its accessible name (`"<moduleId>: <status word>"`); the trailing colon
+ * disambiguates prefixes (e.g. "oidcc-server" vs "oidcc-server-rotate-keys").
+ * Returns the variant suffix (e.g. "pass") or null when no segment is present.
  * @param {ParentNode} root
  * @param {string} moduleId
  * @returns {string|null}
  */
 function boxVariant(root, moduleId) {
-  const box = root.querySelector(`cts-tooltip[content="${moduleId}"] .moduleStatusBox`);
-  if (!box) return null;
-  const cls = [...box.classList].find((c) => c.startsWith("moduleStatusBox--"));
-  return cls ? cls.replace("moduleStatusBox--", "") : null;
+  const segments = root.querySelectorAll('cts-plan-status [data-testid="plan-status-segment"]');
+  const seg = Array.from(segments).find((s) =>
+    (s.getAttribute("aria-label") || "").startsWith(`${moduleId}:`),
+  );
+  if (!seg) return null;
+  const cls = [...seg.classList].find((c) => c.startsWith("cts-pst-seg--"));
+  return cls ? cls.replace("cts-pst-seg--", "") : null;
 }
 
 /**
@@ -133,10 +138,12 @@ export const Default = {
       expect(planCard.querySelector(".cts-plan-card-slug")?.textContent).toBe("plan-001");
     });
 
-    await step("each module renders one color-coded status box", async () => {
+    await step("each module renders one color-coded status segment", async () => {
       const totalModules = MOCK_PLAN_LIST.reduce((n, p) => n + (p.modules?.length || 0), 0);
-      const boxes = canvasElement.querySelectorAll(".moduleStatusGrid .moduleStatusBox");
-      expect(boxes.length).toBe(totalModules);
+      const segments = canvasElement.querySelectorAll(
+        'cts-plan-status [data-testid="plan-status-segment"]',
+      );
+      expect(segments.length).toBe(totalModules);
     });
 
     await step("Started value renders through cts-time", async () => {
@@ -394,10 +401,10 @@ export const ConfigButtonHiddenWhenConfigIsEmpty = {
 };
 
 /**
- * Module status boxes: a module that has run shows a pulsing `pending` box
- * (the /api/info fetch is mocked to never resolve here, pinning the initial
- * state); a never-run module (empty `instances`) shows a static `skip` box.
- * Each box is wrapped in a tooltip that reveals the full module id.
+ * Module status segments: a module that has run shows a pulsing `pending`
+ * segment (the /api/info fetch is mocked to never resolve here, pinning the
+ * initial state); a never-run module (empty `instances`) shows a static `skip`
+ * segment. Each segment is wrapped in a tooltip naming the module + status.
  */
 export const ModuleStatusBoxes = {
   parameters: {
@@ -430,14 +437,18 @@ export const ModuleStatusBoxes = {
   async play({ canvasElement }) {
     await waitForPlansToLoad(canvasElement);
 
-    // One box per module, each wrapped in a tooltip carrying the module id.
-    const boxes = canvasElement.querySelectorAll(".moduleStatusGrid .moduleStatusBox");
-    expect(boxes.length).toBe(2);
+    // One segment per module, each wrapped in a tooltip naming the module.
+    const segments = canvasElement.querySelectorAll(
+      'cts-plan-status [data-testid="plan-status-segment"]',
+    );
+    expect(segments.length).toBe(2);
     expect(
-      canvasElement.querySelector('cts-tooltip[content="module-has-run"] .moduleStatusBox'),
+      canvasElement.querySelector(
+        'cts-tooltip[content^="module-has-run"] [data-testid="plan-status-segment"]',
+      ),
     ).toBeTruthy();
 
-    // Has-run module → pending (pulsing) box; never-run → static skip box.
+    // Has-run module → pending (pulsing) segment; never-run → static skip.
     expect(boxVariant(canvasElement, "module-has-run")).toBe("pending");
     expect(boxVariant(canvasElement, "module-never-run")).toBe("skip");
   },

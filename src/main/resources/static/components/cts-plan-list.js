@@ -11,39 +11,9 @@ import "./cts-empty-state.js";
 import "./cts-loading-state.js";
 import "./cts-json-editor.js";
 import { flashCopyConfirmed } from "../js/cts-copy-flash.js";
-import { statusBadgeVariant } from "../js/module-status.js";
+import "./cts-plan-status.js";
 
 const PAGE_SIZE = 25;
-
-// Variant -> status-box class. Explicit lookup table per components/AGENTS.md
-// §7 (no dynamic class concatenation); the variant comes from
-// `statusBadgeVariant` plus the local `pending` in-flight state. Unknown
-// values fall back to the neutral `skip` box.
-const STATUS_BOX_CLASSES = {
-  pass: "moduleStatusBox moduleStatusBox--pass",
-  fail: "moduleStatusBox moduleStatusBox--fail",
-  warn: "moduleStatusBox moduleStatusBox--warn",
-  running: "moduleStatusBox moduleStatusBox--running",
-  skip: "moduleStatusBox moduleStatusBox--skip",
-  review: "moduleStatusBox moduleStatusBox--review",
-  pending: "moduleStatusBox moduleStatusBox--pending",
-};
-
-// Variant -> accessible status word for the box aria-label, so a non-visual
-// agent/AT gets the outcome the box color conveys (not just the module id).
-// Derived from the box variant rather than statusLabel(status,result) because
-// the variant distinguishes a never-run/settled box (`skip`) from an
-// in-flight fetch (`pending`) — both carry undefined status/result, which
-// statusLabel would collapse to "PENDING".
-const STATUS_BOX_LABELS = {
-  pass: "passed",
-  fail: "failed",
-  warn: "warning",
-  running: "running",
-  review: "review",
-  skip: "no result",
-  pending: "checking status",
-};
 
 const STYLE_ID = "cts-plan-list-styles";
 
@@ -147,10 +117,11 @@ const STYLE_TEXT = css`
      real anchor per card; its ::after overlay covers the whole card so the
      click target spans the card silhouette. Nested interactive controls
      (config button, owner pills) sit on z-index: 1 so they receive their own
-     clicks. The module status grid also sits at z-index: 1 (its boxes need
-     hover for tooltips) but is pointer-events: none except on the boxes, so
-     clicks in its band still fall through to the card link (see
-     .moduleStatusGrid below). See https://adrianroselli.com/2020/02/block-links-cards-clickable-regions-etc.html */
+     clicks. The cts-plan-status overview bar also sits at z-index: 1 (its
+     segments need hover for tooltips) but is pointer-events: none except on the
+     tooltip-wrapped segments, so clicks in its band still fall through to the
+     card link (that pointer-events split lives in cts-plan-status's own scoped
+     CSS, keyed on mode="overview"). See https://adrianroselli.com/2020/02/block-links-cards-clickable-regions-etc.html */
   .cts-plan-card {
     position: relative;
     display: grid;
@@ -226,85 +197,13 @@ const STYLE_TEXT = css`
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
   }
-  /* The per-plan module status grid: small color-coded rounded rectangles
-     (one per module), each wrapped in a tooltip that reveals the full module
-     id on hover. This is the design-token successor to the legacy
-     .testStatusResultBox squares — names would not fit on a listing card, so
-     status reads as color and the id is on demand. The grid lifts above the
-     card-link ::after overlay (z-index: 1) so the per-box tooltips receive
-     hover/focus; the trade-off is that the grid area does not trigger card
-     navigation (clicking a status box does nothing, which matches the legacy
-     non-interactive squares). */
-  .cts-plan-card .moduleStatusGrid {
-    position: relative;
-    z-index: 1;
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--space-1);
-    /* The grid spans the full card column at z-index 1, which would put its
-       gaps and trailing whitespace above the card-link ::after overlay and
-       swallow navigation clicks in that band. Make the grid transparent to
-       pointer events and re-enable them only on the tooltip-wrapped boxes:
-       hover/tooltip still works on a box, every other pixel of the band
-       falls through to the card link. */
-    pointer-events: none;
-  }
-  .cts-plan-card .moduleStatusGrid cts-tooltip {
-    pointer-events: auto;
-  }
-  .moduleStatusBox {
-    /* Fixed 32x18 rounded rectangle (per design); flex-shrink off so the
-       grid wraps rather than squashing the boxes. */
-    width: 32px;
-    height: 18px;
-    border-radius: var(--radius-1);
-    flex-shrink: 0;
-    background: var(--status-skipped);
-  }
-  .moduleStatusBox--pass {
-    background: var(--status-pass);
-  }
-  .moduleStatusBox--fail {
-    background: var(--status-fail);
-  }
-  .moduleStatusBox--warn {
-    background: var(--status-warning);
-  }
-  .moduleStatusBox--running {
-    background: var(--status-running);
-  }
-  /* A settled not-run / unresolved box uses a lighter neutral than the
-     darker pulsing pending box, so "nothing to report" recedes visually. */
-  .moduleStatusBox--skip {
-    background: var(--ink-300);
-  }
-  /* Review teal, now token-sourced via --status-review (added to
-     oidf-tokens.css alongside the --status-* group) so it stays
-     distinguishable from the gray skip/pending boxes and shares one
-     source of truth with the cts-plan-status segment fill. */
-  .moduleStatusBox--review {
-    background: var(--status-review);
-  }
-  /* Pending shares the neutral gray with skip — motion is the only
-     differentiator (a running fetch pulses; a settled box is static).
-     Capped at 10 iterations, gated behind prefers-reduced-motion. */
-  .moduleStatusBox--pending {
-    background: var(--status-skipped);
-  }
-  @media (prefers-reduced-motion: no-preference) {
-    .moduleStatusBox--pending {
-      animation: cts-plan-list-status-pulse 1.2s ease-in-out 10;
-    }
-  }
-  @keyframes cts-plan-list-status-pulse {
-    0%,
-    100% {
-      opacity: 1;
-    }
-    50% {
-      opacity: 0.35;
-    }
-  }
+  /* The per-plan module status overview is a <cts-plan-status mode="overview">
+     bar — small color-coded segments (one per module), each wrapped in a
+     tooltip that reveals the module + status on hover. The component owns its
+     own scoped CSS (segment palette, the z-index:1 lift above the card-link
+     ::after overlay, and the pointer-events split that lets clicks in its band
+     fall through to the card link). Clicking a segment does nothing — the card
+     stays the single click target (R12/R16). */
   .cts-plan-card-meta {
     display: flex;
     flex-wrap: wrap;
@@ -450,15 +349,17 @@ function formatVariant(variant) {
  * Searchable, sortable list of test plans. Fetches from `/api/plan` (or
  * `/api/plan?public=true`) and renders a single-column card layout mirroring
  * `cts-log-list`: a top toolbar (free-text search + sort selector), block-link
- * cards (plan name headline, plan id slug, description, module status grid,
- * metadata row), "Show more" pagination, and a config-viewer modal.
+ * cards (plan name headline, plan id slug, description, per-module status
+ * overview, metadata row), "Show more" pagination, and a config-viewer modal.
  *
- * The module status grid is a row of small color-coded rounded rectangles,
- * one per module, each wrapped in a tooltip that reveals the full module id on
- * hover (the design-token successor to the legacy .testStatusResultBox
- * squares). A box starts gray (pulsing for modules that have run, static for
- * never-run modules) and recolors once the per-module status resolves — see
- * `_statusVariantFor` and the `/api/info` resolution path.
+ * Each card's per-module status is a `<cts-plan-status mode="overview">` bar —
+ * one color-coded segment per module, each wrapped in a tooltip that reveals
+ * the module + status on hover. This component still OWNS status resolution
+ * (the component never self-fetches, R5): a segment starts gray (pulsing for
+ * modules that have run, static for never-run) and recolors once the
+ * per-module `{status, result}` resolves via the lazy, visible-card-gated
+ * `/api/info` fan-out below; the shared `segmentVariant` helper maps the
+ * resolved data to a segment colour.
  *
  * Light DOM. Scoped CSS is injected once on first connect.
  *
@@ -773,41 +674,23 @@ class CtsPlanList extends LitElement {
   }
 
   /**
-   * Resolve the status variant for a module's status box:
-   * - never-run module (no instances) → static `skip` (neutral gray)
-   * - has run, status not yet fetched → `pending` (gray, pulsing)
-   * - status resolved → the concrete color from `statusBadgeVariant`
-   *   (a fetch failure settles status/result undefined → `skip`)
-   * The `_statusResolved` marker is set by `_resolveVisibleModuleStatuses`
-   * on both success and failure, so a failed fetch settles the box rather
-   * than leaving it pulsing forever.
-   * @param {{instances?: string[], status?: string, result?: string,
-   *   _statusResolved?: boolean}} mod - A plan module entry.
-   * @returns {string} A status variant name used as the box color modifier.
+   * Render the per-module status overview for a card as a read-only
+   * `<cts-plan-status mode="overview">`. The component reads each module's
+   * resolved `{status, result}` (mutated in place by
+   * `_resolveVisibleModuleStatuses`) via the shared `segmentVariant` helper and
+   * initiates no fetches of its own (R5). A fresh `[...modules]` reference is
+   * passed each render so the child re-renders when status resolution mutates
+   * the module objects in place (Lit's default `hasChanged` is `!==`, and the
+   * `modules` array reference is otherwise stable across the resolution
+   * re-render). The keyed `repeat()` inside the component keys on module
+   * identity, so segment DOM is still reused — no thrash. A no-module plan
+   * renders nothing (avoids an empty grid track adding a card gap).
+   * @param {object[]|undefined} modules - The plan's module entries.
+   * @returns {import('lit').TemplateResult | typeof nothing} The overview bar.
    */
-  _statusVariantFor(mod) {
-    const hasInstance = Array.isArray(mod.instances) && mod.instances.length > 0;
-    if (!hasInstance) return "skip";
-    if (mod._statusResolved) return statusBadgeVariant(mod.status, mod.result);
-    return "pending";
-  }
-
-  _renderModuleStatusGrid(modules) {
+  _renderModuleStatus(modules) {
     if (!modules || modules.length === 0) return nothing;
-    return html`<div class="moduleStatusGrid">
-      ${modules.map((mod) => {
-        const variant = this._statusVariantFor(mod);
-        const boxClass = STATUS_BOX_CLASSES[variant] || STATUS_BOX_CLASSES.skip;
-        const statusWord = STATUS_BOX_LABELS[variant] || STATUS_BOX_LABELS.skip;
-        // The box is color-only; the tooltip reveals the full module id on
-        // hover. The aria-label carries the id AND the status word so
-        // assistive tech (and DOM-reading agents) get the outcome the color
-        // conveys, not just the module name.
-        return html`<cts-tooltip content="${mod.testModule}" placement="top">
-          <span class="${boxClass}" role="img" aria-label="${mod.testModule}: ${statusWord}"></span>
-        </cts-tooltip>`;
-      })}
-    </div>`;
+    return html`<cts-plan-status mode="overview" .modules=${[...modules]}></cts-plan-status>`;
   }
 
   _renderOwner(owner) {
@@ -861,7 +744,7 @@ class CtsPlanList extends LitElement {
         ${plan.description
           ? html`<p class="cts-plan-card-description">${plan.description}</p>`
           : nothing}
-        ${this._renderModuleStatusGrid(plan.modules)}
+        ${this._renderModuleStatus(plan.modules)}
         <div class="cts-plan-card-meta">
           ${variantString
             ? html`
