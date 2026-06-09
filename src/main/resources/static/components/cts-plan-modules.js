@@ -8,6 +8,7 @@ import {
   statusLabel,
   moduleMatchesResultFilter,
   moduleKey,
+  moduleRowId,
 } from "../js/module-status.js";
 
 const STYLE_ID = "cts-plan-modules-styles";
@@ -59,6 +60,15 @@ const STYLE_TEXT = css`
   }
   cts-plan-modules .module-row:hover {
     background: var(--bg);
+  }
+  /* Persistent deep-link highlight: when a cts-plan-status detail segment is
+     activated it sets the URL hash to this row's id, so :target marks the
+     linked row with a left accent bar + subtle tint for as long as the hash
+     points at it (shareable/bookmarkable). The is-flash rule below adds a brief
+     arrival pulse on top. */
+  cts-plan-modules .module-row:target {
+    background: var(--bg-muted);
+    box-shadow: inset 3px 0 0 var(--orange-500);
   }
   /* One-shot highlight flash applied by highlightModule() when a
      cts-plan-status overview segment is activated (R11), so the click lands
@@ -497,7 +507,12 @@ class CtsPlanModules extends LitElement {
       : html`<span class="moduleName">${mod.testModule}</span>`;
 
     return html`
-      <div class="module-row" data-instance-id="${lastInstance || ""}" data-module-index="${index}">
+      <div
+        class="module-row"
+        id="${moduleRowId(index)}"
+        data-instance-id="${lastInstance || ""}"
+        data-module-index="${index}"
+      >
         <span class="num">${this._rowNumber(index + 1)}</span>
         <div class="name">
           <span class="nameLine">

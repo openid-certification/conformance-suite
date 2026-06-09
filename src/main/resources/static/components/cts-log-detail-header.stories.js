@@ -1081,7 +1081,10 @@ export const WithTestNavControls = {
       const segments = bar.querySelectorAll('[data-testid="plan-status-segment"]');
       expect(segments.length).toBe(3);
       expect(segments[1].classList.contains("is-current")).toBe(true);
-      const position = bar.querySelector('[data-testid="plan-status-position"]');
+      // The "Module N of M" label is rendered by cts-test-nav-controls on its
+      // own row (the bar's hide-label is set in the slim layout), not inside
+      // the bar — see cts-test-nav-controls._renderPosition.
+      const position = navRow.querySelector('[data-testid="progress-position"]');
       expect(position.textContent.trim()).toBe("Module 2 of 3");
     });
 

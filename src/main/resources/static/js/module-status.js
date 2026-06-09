@@ -129,6 +129,37 @@ export function moduleMatchesResultFilter(mod, filter) {
 }
 
 /**
+ * DOM id for a plan module's row in `cts-plan-modules`, and the matching
+ * in-page anchor target for that row's `cts-plan-status` segment (detail mode).
+ * Keyed by plan-order index so the segment's `href="#<moduleRowId>"` and the
+ * row's `id` always line up. Shared so the two never drift (a classic page
+ * script that cannot import this — e.g. plan-detail.html's coordinator — must
+ * replicate the `cts-module-<index>` scheme literally and say so).
+ * @param {number} index - The module's index in plan order.
+ * @returns {string} The row's DOM id (e.g. `cts-module-3`).
+ */
+export function moduleRowId(index) {
+  return `cts-module-${index}`;
+}
+
+/**
+ * Index of the plan module whose instance list includes `instanceId` — the
+ * "you are here" module when viewing a log. Matches against each module's FULL
+ * instance list (not just the most recent) so viewing an older re-run still
+ * resolves to the right module (R17). Shared by `cts-plan-status` (the log-mode
+ * "you are here" marker) and `cts-test-nav-controls` (the "Module N of M"
+ * position label it renders beside the bar) so the two never disagree on which
+ * module is current.
+ * @param {Array<{instances?: string[]}>} modules - Plan modules in plan order.
+ * @param {string} instanceId - The instance currently being viewed.
+ * @returns {number} The matching index, or -1 when there is no match.
+ */
+export function currentModuleIndex(modules, instanceId) {
+  if (!instanceId || !Array.isArray(modules)) return -1;
+  return modules.findIndex((m) => Array.isArray(m.instances) && m.instances.includes(instanceId));
+}
+
+/**
  * Stable, content-derived identity key for a plan module entry — unique across
  * lists so a keyed `repeat()` never reuses DOM across a full module-set swap,
  * and so an action handler resolves to the right module regardless of array

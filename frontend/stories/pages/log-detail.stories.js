@@ -154,7 +154,9 @@ export const PlanProgressBarInNavRow = {
       const segments = bar.querySelectorAll('[data-testid="plan-status-segment"]');
       expect(segments.length).toBe(3);
       expect(segments[1].classList.contains("is-current")).toBe(true);
-      const position = bar.querySelector('[data-testid="plan-status-position"]');
+      // The "Module N of M" label sits on its own row in cts-test-nav-controls
+      // (the bar's hide-label is set in the slim layout), not inside the bar.
+      const position = canvasElement.querySelector('[data-testid="progress-position"]');
       expect(position.textContent.trim()).toBe("Module 2 of 3");
     });
 
