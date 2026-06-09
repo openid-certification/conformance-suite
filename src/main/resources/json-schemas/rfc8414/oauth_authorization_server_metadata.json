@@ -49,6 +49,16 @@
             "type": "array",
             "items": { "type": "string" }
         },
+        "global_token_revocation_endpoint": {
+            "$comment": "OAuth 2.0 Global Token Revocation https://datatracker.ietf.org/doc/draft-parecki-oauth-global-token-revocation/",
+            "type": "string",
+            "format": "uri"
+        },
+        "global_token_revocation_endpoint_auth_methods_supported": {
+            "$comment": "OAuth 2.0 Global Token Revocation https://datatracker.ietf.org/doc/draft-parecki-oauth-global-token-revocation/",
+            "type": "array",
+            "items": { "type": "string" }
+        },
         "introspection_endpoint": { "type": "string", "format": "uri" },
         "introspection_endpoint_auth_methods_supported": {
             "type": "array",
@@ -302,6 +312,10 @@
             "type": "array",
             "items": { "type": "string" }
         },
+        "client_id_metadata_document_supported": {
+            "$comment": "OAuth Client ID Metadata Document https://datatracker.ietf.org/doc/draft-ietf-oauth-client-id-metadata-document/",
+            "type": "boolean"
+        },
         "trust_frameworks_supported": {
             "$comment": "OpenID Identity Assurance https://openid.net/specs/openid-connect-4-identity-assurance-1_0.html",
             "type": "array",
@@ -319,6 +333,21 @@
         },
         "documents_check_methods_supported": {
             "$comment": "OpenID Identity Assurance https://openid.net/specs/openid-connect-4-identity-assurance-1_0.html",
+            "type": "array",
+            "items": { "type": "string" }
+        },
+        "documents_methods_supported": {
+            "$comment": "OpenID Identity Assurance 1.0 section 8 (OP metadata) https://openid.net/specs/openid-connect-4-identity-assurance-1_0.html",
+            "type": "array",
+            "items": { "type": "string" }
+        },
+        "electronic_records_supported": {
+            "$comment": "OpenID Identity Assurance 1.0 section 8 (OP metadata) https://openid.net/specs/openid-connect-4-identity-assurance-1_0.html",
+            "type": "array",
+            "items": { "type": "string" }
+        },
+        "attachments_supported": {
+            "$comment": "OpenID Identity Assurance: Attachments 1.0 section 8 (OP metadata), values 'external'/'embedded' https://openid.net/specs/openid-connect-4-ida-attachments-1_0.html",
             "type": "array",
             "items": { "type": "string" }
         },
