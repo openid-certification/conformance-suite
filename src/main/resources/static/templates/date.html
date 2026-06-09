@@ -1,1 +1,0 @@
-<% var d = new Date(date); var valid = !isNaN(d.getTime()); var iso = valid ? d.toISOString() : ""; var human = valid ? d.toLocaleString() : ""; %><time class="tabular-nums" datetime="<%- iso %>" title="<%- human %>"><%- human %></time>
