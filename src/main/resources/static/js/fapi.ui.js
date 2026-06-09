@@ -340,9 +340,3 @@ var FAPI_UI = {
 		selectedVariant: undefined
 
 };
-
-(async function loadSpecLinksMapping() {
-	let response = await fetch('api/ui/spec_links?public=true');
-	let specLinks = await response.json();
-	FAPI_UI.specLinks = specLinks;
-})();

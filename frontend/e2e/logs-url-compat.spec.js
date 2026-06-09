@@ -19,8 +19,8 @@ import {
  * server-observable and asserted by U10's HomeRoutingTest.java.
  *
  * Route ordering: setupFailFast() FIRST; specific routes after; all before
- * page.goto(). logs.html loads fapi.ui.js, which fires
- * api/ui/spec_links?public=true at parse time (covered by setupCommonRoutes).
+ * page.goto(). logs.html's scripts fire /api/currentuser (via <cts-navbar>
+ * and FAPI_UI.getUserInfo) at load time (covered by setupCommonRoutes).
  *
  * recordLogRoute (the /api/log URL recorder + /api/plan stub) is shared from
  * helpers/routes.js so it stays in sync with logs.spec.js.
