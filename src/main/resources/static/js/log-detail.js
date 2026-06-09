@@ -1133,11 +1133,10 @@ function handleScrollToBlock(evt) {
 }
 
 /**
- * U8 — wire the wide-viewport rail. Reads the user preference once at
- * bootstrap and adds the `--with-toc` modifier on <main> when enabled.
- * The rail itself owns its own `display: none` toggle (so a future
- * setEnabled() call from the U7 overflow can flip visibility without
- * re-mounting), but the page-level grid switch only happens here.
+ * U8 — wire the wide-viewport rail. Adds the `--with-toc` modifier on
+ * <main> so the page grid reserves the rail column; the responsive CSS
+ * (≥ 1440px) and the rail's own empty-data `hidden` attribute gate whether
+ * the column actually paints.
  *
  * Listens for `cts-blocks-updated` from cts-log-viewer so the rail's
  * blocks array re-syncs with each polling cycle.
@@ -1146,14 +1145,8 @@ function setupLogToc() {
   /** @type {any} */
   const rail = document.getElementById("ctsLogToc");
   if (!rail) return;
-  let preferenceEnabled = true;
-  try {
-    preferenceEnabled = localStorage.getItem("cts-log-toc-rail-enabled") !== "false";
-  } catch {
-    preferenceEnabled = true;
-  }
   const main = document.getElementById("main-content");
-  if (preferenceEnabled && main) {
+  if (main) {
     main.classList.add("log-page--with-toc");
   }
   document.addEventListener("cts-scroll-to-block", handleScrollToBlock);

@@ -134,25 +134,6 @@ function ensureStylesInjected() {
   document.head.appendChild(style);
 }
 
-const USER_PREF_KEY = "cts-log-toc-rail-enabled";
-
-function readPreference() {
-  try {
-    return localStorage.getItem(USER_PREF_KEY) !== "false";
-  } catch {
-    return true;
-  }
-}
-
-function writePreference(enabled) {
-  try {
-    localStorage.setItem(USER_PREF_KEY, enabled ? "true" : "false");
-  } catch {
-    // Ignore — incognito or storage-disabled environments. The page-level
-    // grid still adapts; the toggle just won't persist.
-  }
-}
-
 /**
  * @typedef {object} BlockSummary
  * @property {string} blockId
@@ -167,11 +148,10 @@ function writePreference(enabled) {
  * scroll-spy via IntersectionObserver and embeds a compact
  * cts-failure-summary below the block list when failures are present.
  *
- * Renders only when the page CSS context allows (≥ 1440px AND user
- * preference enabled). Below 1440px the page hides the host with
- * `display: none`; below the preference threshold the component itself
- * sets `display: none` so a future toggle from anywhere can flip the
- * preference without re-mounting.
+ * Renders only when the page CSS context allows (≥ 1440px). Below
+ * 1440px the page hides the host with `display: none`. When the rail
+ * has no blocks and no failures, the component sets the `hidden`
+ * attribute so the page grid reclaims the otherwise-empty column.
  *
  * Light DOM. Scoped CSS injected once on first render.
  *
@@ -206,10 +186,6 @@ class CtsLogToc extends LitElement {
     this._activeBlockId = null;
     /** @type {IntersectionObserver | null} */
     this._intersectionObserver = null;
-    // Mirrors localStorage(`cts-log-toc-rail-enabled`). Defaults to `true`
-    // so any pre-connectedCallback `_applyVisibility()` from a Lit-driven
-    // `updated()` doesn't false-hide the rail before the preference is read.
-    this._preferenceEnabled = true;
   }
 
   createRenderRoot() {
@@ -219,39 +195,22 @@ class CtsLogToc extends LitElement {
 
   connectedCallback() {
     super.connectedCallback();
-    this._preferenceEnabled = readPreference();
     this._applyVisibility();
   }
 
   /**
-   * Programmatic toggle for the user preference. Default home for the
-   * toggle is U7's overflow popover — until that wires up the
-   * "Hide log structure rail" / "Show log structure rail" item, this
-   * setter is also reachable from the DevTools console:
-   *   document.getElementById("ctsLogToc").setEnabled(false)
-   * @param {boolean} enabled - Whether the rail should be visible. Persisted to localStorage.
-   */
-  setEnabled(enabled) {
-    writePreference(enabled);
-    this._preferenceEnabled = enabled;
-    this._applyVisibility();
-  }
-
-  /**
-   * Single source of truth for "is this rail visible right now". Combines
-   * the user preference (off via `setEnabled(false)`) with the empty-data
-   * fallback (no blocks AND no failures means the column is dead weight)
-   * and projects the result onto the `hidden` attribute. The page-level
-   * grid CSS reads this attribute via `:has()` to collapse the second
-   * column back into the main content area, so an interrupted-before-run
+   * Single source of truth for "is this rail visible right now". The rail
+   * hides itself when it has no blocks AND no failures — an empty column is
+   * dead weight — by projecting that state onto the `hidden` attribute. The
+   * page-level grid CSS reads this attribute via `:has()` to collapse the
+   * second column back into the main content area, so an interrupted-before-run
    * test no longer reserves a 320px slot for an empty heading card.
    */
   _applyVisibility() {
     const blocksLen = Array.isArray(this.blocks) ? this.blocks.length : 0;
     const failuresLen = Array.isArray(this.failures) ? this.failures.length : 0;
     const isEmpty = blocksLen === 0 && failuresLen === 0;
-    const shouldHide = !this._preferenceEnabled || isEmpty;
-    this.toggleAttribute("hidden", shouldHide);
+    this.toggleAttribute("hidden", isEmpty);
   }
 
   firstUpdated() {
@@ -387,5 +346,3 @@ class CtsLogToc extends LitElement {
 }
 
 customElements.define("cts-log-toc", CtsLogToc);
-
-export { USER_PREF_KEY as CTS_LOG_TOC_PREF_KEY };

@@ -221,39 +221,3 @@ export const ActiveBlockHighlight = {
     });
   },
 };
-
-export const PreferenceTogglesVisibility = {
-  // Verifies the localStorage-backed preference + setEnabled() pair the
-  // future U7 overflow toggle will call into. Run last so the persisted
-  // pref is left in the default-on state for the next story run.
-  render: () => WIDE_HOST(html`<cts-log-toc id="prefRail" .blocks=${BLOCKS}></cts-log-toc>`),
-  async play({ canvasElement, step }) {
-    const rail = /** @type {any} */ (
-      await waitFor(() => {
-        const el = canvasElement.querySelector("cts-log-toc");
-        if (!el) throw new Error("rail not yet rendered");
-        return el;
-      })
-    );
-    await rail.updateComplete;
-
-    await step("rail starts visible", async () => {
-      // Visibility is now expressed via the `hidden` attribute (rather
-      // than inline style.display) so the same signal also lets the
-      // page-level grid collapse via `:has(#ctsLogToc:not([hidden]))`.
-      expect(rail.hasAttribute("hidden")).toBe(false);
-    });
-
-    await step("setEnabled(false) hides the rail and persists the pref", async () => {
-      rail.setEnabled(false);
-      expect(rail.hasAttribute("hidden")).toBe(true);
-      expect(localStorage.getItem("cts-log-toc-rail-enabled")).toBe("false");
-    });
-
-    await step("setEnabled(true) re-shows the rail and persists the pref", async () => {
-      rail.setEnabled(true);
-      expect(rail.hasAttribute("hidden")).toBe(false);
-      expect(localStorage.getItem("cts-log-toc-rail-enabled")).toBe("true");
-    });
-  },
-};
