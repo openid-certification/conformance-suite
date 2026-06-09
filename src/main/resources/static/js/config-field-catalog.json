@@ -320,6 +320,12 @@
           "tooltip": "The DCQL (Digital Credentials Query Language) to use in dcql_query parameter in authorization request"
         },
         {
+          "key": "client.verifier_info",
+          "label": "verifier_info",
+          "type": "array",
+          "tooltip": "verifier_info (an array of attestation objects, as per OpenID4VP) to include in the authorization request. Can be left empty if not needed."
+        },
+        {
           "key": "client.redirect_uri",
           "label": "redirect_uri",
           "type": "string",

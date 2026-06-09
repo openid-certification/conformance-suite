@@ -36,6 +36,19 @@ import { isMultiLineConfigField } from "../lib/config-field-types.js";
  *     newline-array).
  *   - string values render verbatim.
  *
+ * ## Catalog-gap fallback (value-shape JSON mode)
+ *
+ * Backend `configurationFields` missing from `config-field-catalog.json` get
+ * a `{ type: "string" }` fallback schema from the adapter, but their bound
+ * value can still be a JS object/array (e.g. `client.verifier_info`). When
+ * the runtime value is a non-null object/array and the schema doesn't already
+ * say so, the field LATCHES into JSON mode: it renders the JSON textarea,
+ * pretty-prints the value, and parses edits exactly like a declared
+ * `type: "object"`/`"array"` field. The latch is sticky for the element's
+ * lifetime so that an invalid-JSON intermediate edit (which the consumer
+ * stores back as a raw string) does not flip the control to a single-line
+ * `<input>` mid-edit.
+ *
  * For `placeholder`: reads only `schema["x-cts-placeholder"]`. `description`
  * is rendered as help-text below the input and is never used as a fallback
  * placeholder — falling back would duplicate the same text inside the input
@@ -237,6 +250,33 @@ class CtsFormField extends LitElement {
     this.error = "";
     this.disabled = false;
     this._uid = `cts-ff-${++uidCounter}`;
+    /**
+     * Latched JSON mode for catalog-gap fields: "" (off), "object", or
+     * "array". Set from the bound value's runtime shape in `willUpdate`;
+     * never cleared, so invalid-JSON intermediate edits (raw strings) keep
+     * the JSON textarea. See the class JSDoc.
+     * @type {"" | "object" | "array"}
+     */
+    this._jsonValueMode = "";
+  }
+
+  willUpdate() {
+    const v = /** @type {any} */ (this.value);
+    if (v !== null && typeof v === "object") {
+      this._jsonValueMode = Array.isArray(v) ? "array" : "object";
+    }
+  }
+
+  /**
+   * Effective JSON type for this field: the declared schema type when it is
+   * object/array, otherwise the latched value-shape mode ("" when neither).
+   *
+   * @returns {"" | "object" | "array"}
+   */
+  _effectiveJsonType() {
+    const { type } = this.schema || {};
+    if (type === "object" || type === "array") return type;
+    return this._jsonValueMode;
   }
 
   _describedByIds() {
@@ -254,6 +294,7 @@ class CtsFormField extends LitElement {
   _handleInput(e) {
     const raw = e.target.value;
     const { type, format } = this.schema || {};
+    const jsonType = this._effectiveJsonType();
     let value = raw;
     let parseError = "";
 
@@ -263,14 +304,14 @@ class CtsFormField extends LitElement {
         .split("\n")
         .map((line) => line.trim())
         .filter((line) => line !== "");
-    } else if (type === "object" || type === "array") {
+    } else if (jsonType) {
       // JSON textarea: empty string is the no-value sentinel; otherwise
       // try to parse. On failure, emit the raw string so the user can keep
       // editing, and surface the parse error via setCustomValidity so
       // submit is blocked at the browser layer (mirrors legacy
       // validateJSONFromFormElement behavior).
       if (raw.trim() === "") {
-        value = type === "array" ? [] : {};
+        value = jsonType === "array" ? [] : {};
       } else {
         try {
           value = JSON.parse(raw);
@@ -323,7 +364,7 @@ class CtsFormField extends LitElement {
     if (type === "array" && format === "newline-array" && Array.isArray(v)) {
       return v.join("\n");
     }
-    if (type === "object" || type === "array") {
+    if (this._effectiveJsonType()) {
       try {
         return JSON.stringify(v, null, 4);
       } catch {
@@ -362,7 +403,7 @@ class CtsFormField extends LitElement {
       `;
     }
 
-    if (type === "object" || type === "array" || format === "json") {
+    if (this._effectiveJsonType() || format === "json") {
       return html`
         <textarea
           id="${this._uid}"

@@ -417,6 +417,72 @@ export const JwksUriStaysSingleLineUrlInput = {
 };
 
 /**
+ * Catalog-gap fallback (value-shape JSON mode). Backend `configurationFields`
+ * that are missing from `config-field-catalog.json` get a `{ type: "string" }`
+ * fallback schema from the adapter — but their bound value can still be a JS
+ * object or array (e.g. `client.verifier_info` on the VP wallet plans). The
+ * field must detect the value shape and render the JSON textarea (never
+ * "[object Object]"), and edits must round-trip as parsed JSON.
+ */
+
+export const ObjectValueWithStringFallbackSchema = {
+  render: () => html`
+    <cts-form-field
+      name="client.verifier_info"
+      .schema=${{ type: "string", title: "client.verifier_info" }}
+      .value=${[{ format: "jwt", data: { type: "verifier_attestation" } }]}
+    ></cts-form-field>
+  `,
+  async play({ canvasElement, step }) {
+    const textarea = canvasElement.querySelector("textarea");
+    await step("object value renders as a pretty-printed JSON textarea", async () => {
+      expect(textarea).toBeTruthy();
+      expect(textarea.classList.contains("is-mono")).toBe(true);
+      expect(canvasElement.querySelector("input")).toBeNull();
+      // Pretty-printed JSON, not the String(v) coercion.
+      expect(textarea.value).toContain('"verifier_attestation"');
+      expect(JSON.parse(textarea.value)).toEqual([
+        { format: "jwt", data: { type: "verifier_attestation" } },
+      ]);
+    });
+    await step("valid JSON edits emit the parsed value, not a string", async () => {
+      /** @type {any} */
+      let received = null;
+      canvasElement.addEventListener("cts-field-change", (e) => {
+        received = /** @type {CustomEvent} */ (e).detail;
+      });
+      textarea.value = '{"format": "jwt"}';
+      textarea.dispatchEvent(new Event("input", { bubbles: true }));
+      expect(received).toBeTruthy();
+      expect(received.value).toEqual({ format: "jwt" });
+    });
+  },
+};
+
+export const ObjectValueJsonModeIsSticky = {
+  render: () => html`
+    <cts-form-field
+      name="client.verifier_info"
+      .schema=${{ type: "string", title: "client.verifier_info" }}
+      .value=${{ format: "jwt" }}
+    ></cts-form-field>
+  `,
+  async play({ canvasElement }) {
+    const field = /** @type {any} */ (canvasElement.querySelector("cts-form-field"));
+    // Mid-edit, invalid JSON is emitted (and stored by the consumer) as a raw
+    // string. When that string is bound back in, the field must STAY a JSON
+    // textarea — flipping to a single-line <input> mid-edit would destroy the
+    // user's editing context.
+    field.value = '{"format": "jw';
+    await field.updateComplete;
+    const textarea = canvasElement.querySelector("textarea");
+    expect(textarea).toBeTruthy();
+    expect(textarea.value).toBe('{"format": "jw');
+    expect(canvasElement.querySelector("input")).toBeNull();
+  },
+};
+
+/**
  * Publish dropdown affordance (U10 of MR 1998). The wire format keeps the
  * historical `["", "summary", "everything"]` so the backend
  * (`Strings.emptyToNull` in `TestRunner.java`) collapses `""` to null =
