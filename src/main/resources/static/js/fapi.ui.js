@@ -148,32 +148,7 @@ var FAPI_UI = {
 			return Promise.allSettled(promises);
 		},
 
-		//when you add a new value to this list also update net.openid.conformance.export.LogEntryHelper
-		visibleFields : ["msg", "src", "time", "result", "requirements", "upload", "testOwner", "testId", "http", "blockId", "startBlock"],
-
-		availableTests : {},
-
 		availablePlans : {},
-
-		running: false,
-
-		status: 'unknown',
-
-		latestTestEntry: undefined,
-
-		reloadPause: 100,
-
-		maxReloadPause: 5000, // cap at ~5s
-
-		resetReloadPause : function() {
-			FAPI_UI.reloadPause = 100; // start at 100ms on reset
-		},
-
-		incrementReloadPause : function() {
-			if (FAPI_UI.reloadPause < FAPI_UI.maxReloadPause) {
-				FAPI_UI.reloadPause += Math.floor(FAPI_UI.reloadPause / 4); // increment by 25%
-			}
-		},
 
 		getUserInfo : function() {
 			// get the current user info
@@ -295,46 +270,6 @@ var FAPI_UI = {
 
 		hideBusy : function() {
 			document.getElementById('loadingModal')?.hide();
-		},
-
-		// responsible for converting any dot syntax in our key parameter into object refs
-		prop : function(obj, prop, val){
-			var props = prop.split('.')
-			, final = props.pop(), p;
-			while(p = props.shift()){
-				if (typeof obj[p] === 'undefined') {
-					obj[p] = {}; // create the object
-				}
-
-				obj = obj[p];
-			}
-
-			return val ? (obj[final] = val) : obj[final];
-		},
-
-		removeFromObject : function(obj, key) {
-			if (obj !== undefined) {
-				var elements = key.split('.');
-				if (elements.length > 1) {
-					this.removeFromObject(obj[elements[0]], elements.splice(1).join('.'));
-				} else {
-					if (_.isObject(obj) && _.isArray(elements) && elements.length) {
-						delete(obj[elements[0]]);
-					}
-				}
-			}
-		},
-
-		formatVariant : function(v) {
-			if (!v) {
-				return "";
-			} else if (typeof(v) === 'string') {
-				return v;
-			} else {
-				return Object.entries(v).map(function(val, index, arr) {
-					return val.join('=');
-				}).join(', ');
-			}
 		},
 
 		selectedVariant: undefined
