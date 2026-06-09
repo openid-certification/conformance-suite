@@ -292,6 +292,62 @@ export const WithProvidedPlans = {
   },
 };
 
+/**
+ * The backend's `plan.profile` strings read like instructions ("Test a
+ * OpenID4VCI issuer"). Under the "Entity Under Test" label the dropdown
+ * shows the friendly entity name ("OpenID4VCI Issuer") while the option
+ * VALUE keeps the wire string so the plan index and selection round-trip
+ * stay untouched.
+ */
+export const EntityProfileDisplayLabels = {
+  render: () => html`
+    <cts-spec-cascade
+      .plans=${[
+        {
+          planName: "vci-issuer-test-plan",
+          displayName: "VCI Issuer Test Plan",
+          specFamily: "OID4VCI",
+          specVersion: "Final",
+          profile: "Test a OpenID4VCI issuer",
+        },
+        {
+          planName: "vci-wallet-test-plan",
+          displayName: "VCI Wallet Test Plan",
+          specFamily: "OID4VCI",
+          specVersion: "Final",
+          profile: "Test a OpenID4VCI wallet",
+        },
+      ]}
+    ></cts-spec-cascade>
+  `,
+  async play({ canvasElement, step }) {
+    const canvas = within(canvasElement);
+    const familySelect = canvas.getByLabelText("Specification");
+    await userEvent.selectOptions(familySelect, "OID4VCI");
+    const entitySelect = canvasElement.querySelector("#entitySelect");
+    const options = [...entitySelect.querySelectorAll("option")].slice(1); // drop placeholder
+    await step("option text shows the friendly entity name", async () => {
+      expect(options.map((o) => o.textContent.trim())).toEqual([
+        "OpenID4VCI Issuer",
+        "OpenID4VCI Wallet",
+      ]);
+    });
+    await step("option value keeps the wire profile string", async () => {
+      expect(options.map((o) => o.value)).toEqual([
+        "Test a OpenID4VCI issuer",
+        "Test a OpenID4VCI wallet",
+      ]);
+    });
+    await step("selecting by wire value still cascades to the plan", async () => {
+      await userEvent.selectOptions(entitySelect, "Test a OpenID4VCI issuer");
+      await waitFor(() => {
+        const planSelect = canvasElement.querySelector("#planSelect");
+        expect(planSelect.value).toBe("vci-issuer-test-plan");
+      });
+    });
+  },
+};
+
 /** While loading from the API, a status banner is shown. */
 export const LoadingState = {
   parameters: {
