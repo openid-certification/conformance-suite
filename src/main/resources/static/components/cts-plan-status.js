@@ -302,7 +302,7 @@ function formatVariant(variant) {
  */
 class CtsPlanStatus extends LitElement {
   static properties = {
-    modules: { type: Array },
+    modules: { type: Array, attribute: false },
     mode: { type: String, reflect: true },
     currentInstanceId: { type: String, attribute: "current-instance-id" },
     activeResultFilter: { attribute: false },
@@ -435,7 +435,7 @@ class CtsPlanStatus extends LitElement {
           data-index=${index}
           data-testid="plan-status-segment"
           aria-label=${ariaName}
-          aria-current=${ifDefined(isCurrent ? "true" : undefined)}
+          aria-current=${ifDefined(isCurrent ? "step" : undefined)}
           @click=${this._onActivate}
         ></button>`
       : html`<span
@@ -462,10 +462,20 @@ class CtsPlanStatus extends LitElement {
     const interactive = (mode === "detail" || mode === "log") && !this.readonly;
     const currentIndex = mode === "log" ? this._currentIndex(modules) : -1;
 
-    const track = html`<div class="cts-pst-track" data-testid="plan-status-track">
+    const track = html`<div
+      class="cts-pst-track"
+      data-testid="plan-status-track"
+      role="group"
+      aria-label="Module status, ${modules.length} modules"
+    >
       ${repeat(
         modules,
-        (mod) => moduleKey(mod),
+        // Key by module identity AND plan-order index: a plan may list the same
+        // testModule+variant twice, so moduleKey alone can collide and make the
+        // keyed repeat() drop a segment and misalign the marker / activate
+        // index. The index keeps the key unique; the list order is stable
+        // (dimming never reorders), so DOM reuse stays positional and correct.
+        (mod, index) => `${moduleKey(mod)}#${index}`,
         (mod, index) => this._renderSegment(mod, index, currentIndex, interactive),
       )}
     </div>`;

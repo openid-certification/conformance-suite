@@ -351,6 +351,14 @@ class CtsPlanModules extends LitElement {
     return this;
   }
 
+  disconnectedCallback() {
+    super.disconnectedCallback();
+    // The highlightModule flash uses a deferred class-removal timer; clear it on
+    // teardown so it never fires against a detached row (matters when the
+    // component is unmounted without a full page navigation, e.g. Storybook).
+    clearTimeout(this._flashTimer);
+  }
+
   _formatVariant(variant) {
     if (!variant || typeof variant !== "object") return "";
     return Object.entries(variant)
