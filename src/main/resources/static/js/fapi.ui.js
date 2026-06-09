@@ -2,14 +2,6 @@ var FAPI_UI = {
 
 		logTemplates : {},
 
-		loadHomepageTemplates : function() {
-			return fetch('templates/userinfo.html')
-				.then((response) => response.text())
-				.then((data) => {
-					FAPI_UI.logTemplates.USER_INFO = _.template(data);
-				});
-		},
-
 		loadScheduleTestPageTemplates : function() {
 			const p1 = fetch('templates/testOption.html')
 				.then((response) => response.text())
@@ -60,90 +52,6 @@ var FAPI_UI = {
 				});
 
 			const promises = [p1, p2, p3, p4];
-
-			return Promise.allSettled(promises);
-		},
-
-		loadLogListTemplates: function() {
-			const p1 = fetch('templates/configButton.html')
-				.then((response) => response.text())
-				.then((data) => {
-					FAPI_UI.logTemplates.CONFIG = _.template(data);
-				});
-
-			const p2 = fetch('templates/date.html')
-				.then((response) => response.text())
-				.then((data) => {
-					FAPI_UI.logTemplates.DATE = _.template(data);
-				});
-
-			const p3 = fetch('templates/logDetailButton.html')
-				.then((response) => response.text())
-				.then((data) => {
-					FAPI_UI.logTemplates.LOG_DETAIL = _.template(data);
-				});
-
-			const p4 = fetch('templates/owner.html')
-				.then((response) => response.text())
-				.then((data) => {
-					FAPI_UI.logTemplates.OWNER = _.template(data);
-				});
-
-			const p5 = fetch('templates/planDetailButton.html')
-				.then((response) => response.text())
-				.then((data) => {
-					FAPI_UI.logTemplates.PLAN_DETAIL = _.template(data);
-				});
-
-			const p6 = fetch('templates/userinfo.html')
-				.then((response) => response.text())
-				.then((data) => {
-					FAPI_UI.logTemplates.USER_INFO = _.template(data);
-				});
-
-			const promises = [p1, p2, p3, p4, p5, p6];
-
-			return Promise.allSettled(promises);
-		},
-
-		loadPlanListTemplates: function() {
-			const p1 = fetch('templates/configButton.html')
-				.then((response) => response.text())
-				.then((data) => {
-					FAPI_UI.logTemplates.CONFIG = _.template(data);
-				});
-
-			const p2 = fetch('templates/date.html')
-				.then((response) => response.text())
-				.then((data) => {
-					FAPI_UI.logTemplates.DATE = _.template(data);
-				});
-
-			const p3 = fetch('templates/planDetailButton.html')
-				.then((response) => response.text())
-				.then((data) => {
-					FAPI_UI.logTemplates.PLAN_DETAIL = _.template(data);
-				});
-
-			const p4 = fetch('templates/planModules.html')
-				.then((response) => response.text())
-				.then((data) => {
-					FAPI_UI.logTemplates.PLAN_MODULES = _.template(data);
-				});
-
-			const p5 = fetch('templates/owner.html')
-				.then((response) => response.text())
-				.then((data) => {
-					FAPI_UI.logTemplates.OWNER = _.template(data);
-				});
-
-			const p6 = fetch('templates/userinfo.html')
-				.then((response) => response.text())
-				.then((data) => {
-					FAPI_UI.logTemplates.USER_INFO = _.template(data);
-				});
-
-			const promises = [p1, p2, p3, p4, p5, p6];
 
 			return Promise.allSettled(promises);
 		},
