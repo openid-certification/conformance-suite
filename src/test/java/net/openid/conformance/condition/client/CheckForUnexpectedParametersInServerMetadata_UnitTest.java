@@ -1,4 +1,4 @@
-package net.openid.conformance.vci10issuer.condition;
+package net.openid.conformance.condition.client;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -6,6 +6,7 @@ import net.openid.conformance.condition.Condition;
 import net.openid.conformance.logging.BsonEncoding;
 import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.Environment;
+import net.openid.conformance.vci10issuer.condition.AbstractVciUnitTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -16,9 +17,9 @@ import java.util.Map;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 
 @ExtendWith(MockitoExtension.class)
-public class CheckForUnexpectedParametersInAuthorizationServerMetadata_UnitTest extends AbstractVciUnitTest {
+public class CheckForUnexpectedParametersInServerMetadata_UnitTest extends AbstractVciUnitTest {
 
-	private CheckForUnexpectedParametersInAuthorizationServerMetadata cond;
+	private CheckForUnexpectedParametersInServerMetadata cond;
 
 	private final TestInstanceEventLog eventLog = BsonEncoding.testInstanceEventLog();
 
@@ -26,7 +27,7 @@ public class CheckForUnexpectedParametersInAuthorizationServerMetadata_UnitTest 
 
 	@BeforeEach
 	public void setUp() throws Exception {
-		cond = new CheckForUnexpectedParametersInAuthorizationServerMetadata();
+		cond = new CheckForUnexpectedParametersInServerMetadata();
 		cond.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
 		env = new Environment();
 	}

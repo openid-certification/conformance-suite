@@ -1,4 +1,4 @@
-package net.openid.conformance.vci10issuer.condition;
+package net.openid.conformance.condition.client;
 
 import net.openid.conformance.condition.AbstractCheckForUnexpectedSchemaProperties;
 
@@ -7,13 +7,13 @@ import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.util.validation.JsonSchemaValidationInput;
 
-public class CheckForUnexpectedParametersInAuthorizationServerMetadata extends AbstractCheckForUnexpectedSchemaProperties {
+public class CheckForUnexpectedParametersInServerMetadata extends AbstractCheckForUnexpectedSchemaProperties {
 
 	@Override
 	protected JsonSchemaValidationInput createJsonSchemaValidationInput(Environment env) {
-		JsonObject authorizationServerMetadata = env.getObject("server");
+		JsonObject serverMetadata = env.getObject("server");
 		return new JsonSchemaValidationInput("OAuth Authorization Server metadata",
-			"json-schemas/oid4vci/rfc8414-oauth_authorization_server_metadata.json", authorizationServerMetadata);
+			"json-schemas/rfc8414/oauth_authorization_server_metadata.json", serverMetadata);
 	}
 
 	@Override
