@@ -3,18 +3,12 @@ import "./cts-badge.js";
 import "./cts-button.js";
 import "./cts-link-button.js";
 import "./cts-tooltip.js";
-import { statusBadgeVariant, statusLabel, moduleMatchesResultFilter } from "../js/module-status.js";
-
-/**
- * Stable identity key for a module entry. Used as the data-module-key
- * attribute the Run button reads back so the click handler resolves to
- * the right module regardless of array order.
- * @param {object} mod - Plan module with `testModule` and optional `variant`.
- * @returns {string} Content-derived key (testModule plus serialized variant).
- */
-function _moduleKey(mod) {
-  return `${mod.testModule}|${JSON.stringify(mod.variant ?? null)}`;
-}
+import {
+  statusBadgeVariant,
+  statusLabel,
+  moduleMatchesResultFilter,
+  moduleKey,
+} from "../js/module-status.js";
 
 const STYLE_ID = "cts-plan-modules-styles";
 
@@ -320,6 +314,7 @@ function ensureStylesInjected() {
  *   the list; an empty/absent filter shows every row. Matching reads the raw
  *   `{status, result}` via the shared `moduleMatchesResultFilter` so it never
  *   drifts from the cts-plan-status segment dimming. Set via JS only.
+ *
  * The status badge and the module name are each rendered as a real `<a>`
  * link to `log-detail.html` when a test instance exists (R28), so clicking
  * the lozenge or the name takes the user to that test's log page — the same
@@ -365,7 +360,7 @@ class CtsPlanModules extends LitElement {
 
   _handleRunTest(e) {
     const key = e.currentTarget.dataset.moduleKey;
-    const mod = this.modules?.find((m) => _moduleKey(m) === key);
+    const mod = this.modules?.find((m) => moduleKey(m) === key);
     if (!mod) return;
     this.dispatchEvent(
       new CustomEvent("cts-run-test", {
@@ -427,7 +422,7 @@ class CtsPlanModules extends LitElement {
     // row. The coordinator clears the filter before highlighting a filtered-out
     // module (R11), so by the time we run the row is present.
     const rows = this.querySelectorAll(".module-row");
-    const row = this.querySelector(`.module-row[data-module-index="${index}"]`);
+    const row = Array.from(rows).find((r) => r.getAttribute("data-module-index") === String(index));
     if (!row) return;
     const reduce =
       typeof window.matchMedia === "function" &&
@@ -525,7 +520,7 @@ class CtsPlanModules extends LitElement {
             ? html`<cts-button
                 class="startBtn"
                 data-testid="run-test-btn"
-                data-module-key="${_moduleKey(mod)}"
+                data-module-key="${moduleKey(mod)}"
                 variant="primary"
                 size="sm"
                 icon="play"

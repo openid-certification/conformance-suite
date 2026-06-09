@@ -3,7 +3,7 @@ import { repeat } from "lit/directives/repeat.js";
 import { classMap } from "lit/directives/class-map.js";
 import { ifDefined } from "lit/directives/if-defined.js";
 import "./cts-tooltip.js";
-import { segmentVariant, moduleMatchesResultFilter } from "../js/module-status.js";
+import { segmentVariant, moduleMatchesResultFilter, moduleKey } from "../js/module-status.js";
 
 const STYLE_ID = "cts-plan-status-styles";
 
@@ -233,17 +233,6 @@ function ensureStylesInjected() {
   style.id = STYLE_ID;
   style.textContent = STYLE_TEXT.cssText;
   document.head.appendChild(style);
-}
-
-/**
- * Stable identity key for a module entry, unique across lists so the keyed
- * `repeat()` never reuses a segment's DOM across a full module-set swap
- * (mirrors cts-plan-modules._moduleKey). Index keys would collide here.
- * @param {{testModule?: string, variant?: object}} mod - A plan module entry.
- * @returns {string} Content-derived key (testModule plus serialized variant).
- */
-function moduleKey(mod) {
-  return `${mod.testModule}|${JSON.stringify(mod.variant ?? null)}`;
 }
 
 /**
