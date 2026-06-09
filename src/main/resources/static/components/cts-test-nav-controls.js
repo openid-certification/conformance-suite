@@ -1,16 +1,16 @@
 import { LitElement, html, nothing, css } from "lit";
 import "./cts-button.js";
 import "./cts-link-button.js";
+import "./cts-plan-status.js";
 
 const STYLE_ID = "cts-test-nav-controls-styles";
 
-// Scoped CSS for the test-plan navigation cluster. Mirrors the
-// cts-running-test-card progress treatment (8px ink-100 track with an
-// orange-400 fill and steady transition — no striped/pulsing animation)
-// per project/preview/components-progress.html in the OIDF design archive.
-// The cluster sits inside log-detail.html's existing flex column of
-// header controls, so it picks up the surrounding gap without owning
-// margins of its own.
+// Scoped CSS for the test-plan navigation cluster. Plan-level progress is
+// delegated to cts-plan-status in `log` mode (one colour-coded segment per
+// module + the "you are here" marker + the "Module N of M" label), so this
+// widget owns only the group container and the button row. The cluster sits
+// inside log-detail.html's existing flex column of header controls, so it
+// picks up the surrounding gap without owning margins of its own.
 const STYLE_TEXT = css`
   cts-test-nav-controls {
     display: block;
@@ -23,37 +23,6 @@ const STYLE_TEXT = css`
     background: var(--bg-elev);
     border: 1px solid var(--border);
     border-radius: var(--radius-3);
-  }
-  cts-test-nav-controls .cts-tnc-progress {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-2);
-  }
-  cts-test-nav-controls .cts-tnc-progress-label {
-    display: inline-flex;
-    flex-wrap: wrap;
-    align-items: baseline;
-    gap: var(--space-1);
-    font-family: var(--font-sans);
-    font-size: var(--fs-13);
-    line-height: var(--lh-snug);
-    color: var(--fg-soft);
-    font-weight: var(--fw-bold);
-  }
-  cts-test-nav-controls .cts-tnc-progress-count {
-    color: var(--fg);
-  }
-  cts-test-nav-controls .cts-tnc-progress-track {
-    height: 8px;
-    background: var(--ink-100);
-    border-radius: var(--radius-pill);
-    overflow: hidden;
-  }
-  cts-test-nav-controls .cts-tnc-progress-fill {
-    height: 100%;
-    background: var(--orange-400);
-    border-radius: var(--radius-pill);
-    transition: width var(--dur-3) var(--ease-standard);
   }
   cts-test-nav-controls .cts-tnc-buttons {
     display: flex;
@@ -77,20 +46,27 @@ function ensureStylesInjected() {
 
 /**
  * Test-plan navigation cluster — groups Return-to-Plan, Repeat Test,
- * Continue Plan, and a "Plan progress: Module X of N" indicator into a
- * single semantically-labelled widget. Lands recommendation R21 (and the
- * associated R20 progress count) from the CTS UX brainstorm.
+ * Continue Plan, and a plan-level progress indicator into a single
+ * semantically-labelled widget. Lands recommendation R21 (and the
+ * associated R20 progress orientation) from the CTS UX brainstorm.
+ *
+ * Plan progress is delegated to `cts-plan-status` in `log` mode: it renders
+ * one colour-coded segment per plan module, the "you are here" marker on the
+ * segment whose module ran `currentInstanceId`, and the "Module N of M"
+ * label (which it computes from that match). Activating a segment bubbles
+ * `cts-plan-status-activate` up through this widget for the page to act on
+ * (navigate to that sibling's log). This replaces the legacy single-bar
+ * "Plan progress: Module X of N" track — the segment bar carries both the
+ * count orientation and the per-module status at a glance, and disambiguates
+ * scope (plan vs current-test) the same way the eyebrow used to (MR 1998
+ * finding A4, thomasdarimont).
  *
  * Light DOM. Scoped CSS is injected once on first render. Render returns
  * `nothing` when `planId` is empty (an ad-hoc test that does not belong
  * to a plan), so the cluster simply disappears for non-plan tests.
  *
  * The Continue button is rendered only when `nextEnabled` is true
- * (mirrors the legacy hide-when-no-next-module behaviour). The progress
- * block keeps rendering and reads "Plan progress: Module N of N" so the
- * user has clear end-of-plan feedback. The "Plan progress:" eyebrow
- * disambiguates scope so the count is not misread as the current test's
- * own progress (MR 1998 finding A4, thomasdarimont).
+ * (mirrors the legacy hide-when-no-next-module behaviour).
  *
  * Return-to-Plan is a real `<a href>` (via cts-link-button) so middle-
  * click and Cmd-click open the plan in a new tab. The widget does not
@@ -102,14 +78,21 @@ function ensureStylesInjected() {
  * @property {string} testId - Test instance ID; included in event details.
  * @property {string} planId - Parent plan ID. When falsy the widget
  *   renders nothing.
- * @property {number} currentIndex - Zero-based index of the current
- *   module within the plan (e.g. 5 for the 6th module).
- * @property {number} totalCount - Total number of modules in the plan.
+ * @property {Array<object>} modules - Plan modules in plan order, forwarded
+ *   verbatim to the embedded `cts-plan-status` (which colours each segment
+ *   via the shared `segmentVariant` helper). An empty array renders no
+ *   progress bar. Set via JS only (attribute:false).
+ * @property {string} currentInstanceId - The instance currently being
+ *   viewed; forwarded to `cts-plan-status` so it marks the segment whose
+ *   module's `instances` array includes it and derives the "Module N of M"
+ *   label. Reflects the `current-instance-id` attribute.
  * @property {boolean} nextEnabled - Whether a next module exists. Drives
  *   visibility of the Continue Plan button.
  * @property {boolean} readonly - When true (public/readonly view), only
  *   Return to Plan is rendered; Repeat and Continue are hidden. Ignored
- *   in `slim` mode where the back link does not exist either.
+ *   in `slim` mode where the back link does not exist either. Also
+ *   forwarded to the embedded `cts-plan-status` so its progress segments
+ *   render non-navigating (no sibling-log clicks) on the public view.
  * @property {boolean} publicView - When true, appends `&public=true` to
  *   the Return-to-Plan link so the linked plan-detail page renders its
  *   public-share variant. Independent of `readonly` because a
@@ -129,13 +112,18 @@ function ensureStylesInjected() {
  *   `{ testId, planId }`. Bubbles. Not fired in `slim` mode (no button).
  * @fires cts-continue - When Continue Plan is clicked. Detail:
  *   `{ testId, planId }`. Bubbles.
+ * @fires cts-plan-status-activate - Re-emitted (it bubbles + is composed)
+ *   from the embedded `cts-plan-status` when a progress segment is
+ *   clicked / keyboard-activated, with `{ index, module, instanceId,
+ *   dimmed }`. The page listens for it to open that sibling's log.
+ *   Suppressed when `readonly` is set (segments become non-navigating).
  */
 class CtsTestNavControls extends LitElement {
   static properties = {
     testId: { type: String, attribute: "test-id" },
     planId: { type: String, attribute: "plan-id" },
-    currentIndex: { type: Number, attribute: "current-index" },
-    totalCount: { type: Number, attribute: "total-count" },
+    modules: { type: Array, attribute: false },
+    currentInstanceId: { type: String, attribute: "current-instance-id" },
     nextEnabled: { type: Boolean, attribute: "next-enabled" },
     readonly: { type: Boolean },
     publicView: { type: Boolean, attribute: "public-view" },
@@ -146,8 +134,8 @@ class CtsTestNavControls extends LitElement {
     super();
     this.testId = "";
     this.planId = "";
-    this.currentIndex = 0;
-    this.totalCount = 0;
+    this.modules = [];
+    this.currentInstanceId = "";
     this.nextEnabled = false;
     this.readonly = false;
     this.publicView = false;
@@ -182,33 +170,24 @@ class CtsTestNavControls extends LitElement {
   }
 
   _renderProgress() {
-    const total = Math.max(0, Number(this.totalCount) || 0);
-    if (total <= 0) return nothing;
+    const modules = Array.isArray(this.modules) ? this.modules : [];
+    if (modules.length === 0) return nothing;
 
-    // 1-based for the user-facing label; clamp the displayed position so
-    // an out-of-range currentIndex (e.g. results haven't loaded yet)
-    // still produces a sensible "Plan progress: Module N of N" string.
-    const rawCurrent = Math.max(0, Number(this.currentIndex) || 0);
-    const displayPosition = Math.min(rawCurrent + 1, total);
-    const fillPercent = (displayPosition / total) * 100;
-
+    // Plan-level progress is the cts-plan-status bar in `log` mode: one
+    // colour-coded segment per module, the "you are here" marker on the
+    // viewed instance's module, and the "Module N of M" label (computed by
+    // the component from `currentInstanceId`). On the readonly/public view
+    // the segments render non-navigating (Decision 1). The activate event
+    // bubbles + is composed, so the page can listen on the header / document
+    // — this widget does not re-dispatch it.
     return html`
-      <div class="cts-tnc-progress" data-testid="progress">
-        <div class="cts-tnc-progress-label" data-testid="progress-label">
-          <span class="cts-tnc-progress-scope">Plan progress:</span>
-          <span class="cts-tnc-progress-count">Module ${displayPosition} of ${total}</span>
-        </div>
-        <div
-          class="cts-tnc-progress-track"
-          role="progressbar"
-          aria-valuenow="${displayPosition}"
-          aria-valuemin="1"
-          aria-valuemax="${total}"
-          aria-label="Test plan progress"
-        >
-          <div class="cts-tnc-progress-fill" style="width: ${fillPercent}%;"></div>
-        </div>
-      </div>
+      <cts-plan-status
+        data-testid="progress"
+        mode="log"
+        .modules=${modules}
+        current-instance-id=${this.currentInstanceId}
+        ?readonly=${this.readonly}
+      ></cts-plan-status>
     `;
   }
 
@@ -264,17 +243,16 @@ class CtsTestNavControls extends LitElement {
     // uses slim=false so it keeps the full Return / Repeat / Continue
     // cluster as its own primary affordance home.
     if (this.slim) {
-      const showProgress = (Number(this.totalCount) || 0) > 0;
+      const showProgress = Array.isArray(this.modules) && this.modules.length > 0;
       const showContinue = !this.readonly && this.nextEnabled;
       // Bail out when neither the progress widget nor the Continue
       // button has anything to render. This is the transient state
       // between the page's first paint and the /api/plan fetch
-      // resolving (totalCount stays at the default 0 until the
-      // bootstrap sets it). Returning `nothing` leaves the host with
-      // no children, which lets the page-level
-      // `:has(cts-test-nav-controls:empty)` selector hide the
-      // wrapping .ctsNavRow so its border-bottom doesn't sit alone
-      // under the status bar.
+      // resolving (modules stays empty until the bootstrap sets it).
+      // Returning `nothing` leaves the host with no children, which
+      // lets the page-level `:has(cts-test-nav-controls:empty)`
+      // selector hide the wrapping .ctsNavRow so its border-bottom
+      // doesn't sit alone under the status bar.
       if (!showProgress && !showContinue) return nothing;
       return html`
         <div class="cts-tnc-group" role="group" aria-label="Test plan navigation">

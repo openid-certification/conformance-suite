@@ -324,7 +324,7 @@ const STYLE_TEXT = css`
   }
   /* Hide the nav row when the embedded cts-test-nav-controls renders
      nothing — for example, an ad-hoc test (no planId) or the brief
-     window before /api/plan resolves (totalCount=0, slim mode, no
+     window before /api/plan resolves (empty modules, slim mode, no
      Continue). Without this, the row's padding + border-bottom would
      paint as an empty divider between the breadcrumb and the sticky
      status bar, reading as a broken section break. */
@@ -341,16 +341,14 @@ const STYLE_TEXT = css`
     border: none;
     border-radius: 0;
   }
-  cts-log-detail-header .ctsNavRow cts-test-nav-controls .cts-tnc-progress {
-    flex-direction: row;
-    align-items: center;
-    gap: var(--space-2);
+  /* The plan-level progress is now the cts-plan-status segment bar (it owns
+     its own container-query bar-to-grid responsiveness), so the nav row only
+     needs to let it flex to fill the row width alongside the Continue
+     button. The legacy single-track cts-tnc-progress overrides are
+     gone with the orange position bar. */
+  cts-log-detail-header .ctsNavRow cts-test-nav-controls cts-plan-status {
     flex: 1 1 200px;
     min-width: 160px;
-  }
-  cts-log-detail-header .ctsNavRow cts-test-nav-controls .cts-tnc-progress-track {
-    flex: 1 1 auto;
-    min-width: 80px;
   }
   cts-log-detail-header .ctsNavRow cts-test-nav-controls .cts-tnc-buttons {
     flex-direction: row;
@@ -776,6 +774,15 @@ function ensureStylesInjected() {
  *   Reflects the `is-admin` attribute.
  * @property {boolean} isPublic - Public (read-only) view hides repeat /
  *   upload / publish actions. Reflects the `is-public` attribute.
+ * @property {Array<object>} planModules - Plan modules (in plan order, each
+ *   with its full `instances` array + resolved status) sourced by
+ *   `log-detail.js` from `/api/plan`, forwarded to the nav row's
+ *   `cts-test-nav-controls` → `cts-plan-status` so the progress bar renders
+ *   one segment per module with the "you are here" marker. Set via JS only.
+ * @property {string} currentInstanceId - The instance currently being
+ *   viewed (`?log=…`), forwarded to the nav row so the progress bar marks
+ *   the matching segment and derives "Module N of M". Reflects the
+ *   `current-instance-id` attribute.
  * @fires cts-scroll-to-entry - Bubbled up from the embedded
  *   `cts-failure-summary` child when a failure row is activated, with
  *   `{ detail: { entryId } }`. Bubbles AND is composed.
@@ -806,6 +813,8 @@ class CtsLogDetailHeader extends LitElement {
     testInfo: { type: Object, attribute: "test-info" },
     isAdmin: { type: Boolean, attribute: "is-admin" },
     isPublic: { type: Boolean, attribute: "is-public" },
+    planModules: { type: Array, attribute: false },
+    currentInstanceId: { type: String, attribute: "current-instance-id" },
     _copyFeedback: { state: true },
   };
 
@@ -814,6 +823,8 @@ class CtsLogDetailHeader extends LitElement {
     this.testInfo = null;
     this.isAdmin = false;
     this.isPublic = false;
+    this.planModules = [];
+    this.currentInstanceId = "";
     this._configModalRef = createRef();
     this._copyFeedback = "";
     this._copyFeedbackTimer = null;
@@ -1444,6 +1455,8 @@ class CtsLogDetailHeader extends LitElement {
           data-testid="test-nav-controls"
           test-id="${test.testId}"
           plan-id="${test.planId || ""}"
+          .modules=${Array.isArray(this.planModules) ? this.planModules : []}
+          current-instance-id=${this.currentInstanceId}
           ?readonly=${this._isReadonly()}
           ?public-view=${this.isPublic}
           slim

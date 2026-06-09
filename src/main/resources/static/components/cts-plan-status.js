@@ -147,9 +147,11 @@ const STYLE_TEXT = css`
 
   /* Interactive segments (detail/log) carry the pointer affordance and an
      OUTWARD focus outline (Open Question candidate) so it never collides with
-     the inset is-current ring. */
-  cts-plan-status[mode="detail"] .cts-pst-seg,
-  cts-plan-status[mode="log"] .cts-pst-seg {
+     the inset is-current ring. A readonly log surface (Decision 1) renders
+     <span> segments with no click action, so it is excluded from the pointer
+     cue via :not([readonly]). */
+  cts-plan-status[mode="detail"]:not([readonly]) .cts-pst-seg,
+  cts-plan-status[mode="log"]:not([readonly]) .cts-pst-seg {
     cursor: pointer;
   }
   .cts-pst-seg:focus-visible {
@@ -295,6 +297,13 @@ function formatVariant(variant) {
  *   active "Filter by result" selection (result tokens plus the
  *   `NOT_RUN_FILTER_VALUE` sentinel). Non-matching and still-pending segments
  *   are dimmed; the count summary ignores it (R4/R10/R18). Set via JS only.
+ * @property {boolean} readonly - In `log` mode, downgrade segments to the
+ *   non-interactive read-only form (a `<span role="img">`, no `<button>`, no
+ *   activate emission, no pointer affordance) for the public / readonly log
+ *   view. The "you are here" marker, the "Module N of M" label, and dimming
+ *   still render — only the click action is suppressed (a UX affordance, not
+ *   an access boundary; the backend `/api/info` gating is the real boundary).
+ *   Reflects the `readonly` attribute. Default false.
  * @fires cts-plan-status-activate - When an interactive (`detail`/`log`)
  *   segment is clicked or keyboard-activated, with
  *   `{ index, module, instanceId, dimmed }` where `instanceId` is the module's
@@ -308,6 +317,7 @@ class CtsPlanStatus extends LitElement {
     mode: { type: String, reflect: true },
     currentInstanceId: { type: String, attribute: "current-instance-id" },
     activeResultFilter: { attribute: false },
+    readonly: { type: Boolean, reflect: true },
   };
 
   constructor() {
@@ -316,6 +326,7 @@ class CtsPlanStatus extends LitElement {
     this.mode = "overview";
     this.currentInstanceId = "";
     this.activeResultFilter = null;
+    this.readonly = false;
     this._onActivate = this._onActivate.bind(this);
   }
 
@@ -455,7 +466,11 @@ class CtsPlanStatus extends LitElement {
     if (modules.length === 0) return nothing;
 
     const mode = VALID_MODES.has(this.mode) ? this.mode : "overview";
-    const interactive = mode === "detail" || mode === "log";
+    // `readonly` downgrades the otherwise-interactive detail/log modes to the
+    // non-clickable span form (Decision 1): the public/readonly log view shows
+    // the marker, label, and dimming but suppresses sibling navigation. The
+    // backend /api/info gating, not this flag, is the real access boundary.
+    const interactive = (mode === "detail" || mode === "log") && !this.readonly;
     const currentIndex = mode === "log" ? this._currentIndex(modules) : -1;
 
     const track = html`<div class="cts-pst-track" data-testid="plan-status-track">
