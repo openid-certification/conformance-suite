@@ -2,6 +2,7 @@ import { LitElement, html, nothing, css } from "lit";
 import "./cts-button.js";
 import "./cts-link-button.js";
 import "./cts-plan-status.js";
+import { currentModuleIndex } from "../js/module-status.js";
 
 const STYLE_ID = "cts-test-nav-controls-styles";
 
@@ -23,6 +24,28 @@ const STYLE_TEXT = css`
     background: var(--bg-elev);
     border: 1px solid var(--border);
     border-radius: var(--radius-3);
+  }
+  /* The progress row holds the segment bar and the Continue button as
+     vertically-centred siblings (align-items: center). Keeping the "Module N of
+     M" position label OUT of this row (it sits below as .cts-tnc-position) is
+     what lets the button centre against the 14px bar rather than the taller
+     bar+label block. */
+  cts-test-nav-controls .cts-tnc-progress-row {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+  }
+  cts-test-nav-controls .cts-tnc-progress-row cts-plan-status {
+    flex: 1 1 200px;
+    min-width: 160px;
+  }
+  cts-test-nav-controls .cts-tnc-position {
+    margin: 0;
+    font-size: var(--fs-12);
+    line-height: var(--lh-snug);
+    color: var(--fg-soft);
+    font-variant-numeric: tabular-nums;
   }
   cts-test-nav-controls .cts-tnc-buttons {
     display: flex;
@@ -169,7 +192,15 @@ class CtsTestNavControls extends LitElement {
     );
   }
 
-  _renderProgress() {
+  /**
+   * The plan-level progress bar (cts-plan-status in `log` mode).
+   * @param {{ hideLabel?: boolean }} [opts] - When `hideLabel` is true the
+   *   component suppresses its built-in "Module N of M" label so this widget can
+   *   render it on its own row (see `_renderPosition`). Used by the slim layout.
+   * @returns {import('lit').TemplateResult | typeof nothing} The bar, or
+   *   `nothing` when there are no modules.
+   */
+  _renderProgress({ hideLabel = false } = {}) {
     const modules = Array.isArray(this.modules) ? this.modules : [];
     if (modules.length === 0) return nothing;
 
@@ -187,8 +218,26 @@ class CtsTestNavControls extends LitElement {
         .modules=${modules}
         current-instance-id=${this.currentInstanceId}
         ?readonly=${this.readonly}
+        ?hide-label=${hideLabel}
       ></cts-plan-status>
     `;
+  }
+
+  /**
+   * The "Module N of M" position label, rendered on its own row beneath the
+   * bar+button row in the slim layout. Computed from the same shared
+   * `currentModuleIndex` the bar uses for its "you are here" marker, so the
+   * label and the marker can never point at different modules.
+   * @returns {import('lit').TemplateResult | typeof nothing} The label, or
+   *   `nothing` when no module matches the viewed instance.
+   */
+  _renderPosition() {
+    const modules = Array.isArray(this.modules) ? this.modules : [];
+    const index = currentModuleIndex(modules, this.currentInstanceId);
+    if (index < 0) return nothing;
+    return html`<p class="cts-tnc-position" data-testid="progress-position">
+      Module ${index + 1} of ${modules.length}
+    </p>`;
   }
 
   _renderBackLink() {
@@ -256,10 +305,13 @@ class CtsTestNavControls extends LitElement {
       if (!showProgress && !showContinue) return nothing;
       return html`
         <div class="cts-tnc-group" role="group" aria-label="Test plan navigation">
-          ${this._renderProgress()}
-          ${showContinue
-            ? html`<div class="cts-tnc-buttons"> ${this._renderContinueButton()} </div>`
-            : nothing}
+          <div class="cts-tnc-progress-row">
+            ${this._renderProgress({ hideLabel: true })}
+            ${showContinue
+              ? html`<div class="cts-tnc-buttons"> ${this._renderContinueButton()} </div>`
+              : nothing}
+          </div>
+          ${this._renderPosition()}
         </div>
       `;
     }

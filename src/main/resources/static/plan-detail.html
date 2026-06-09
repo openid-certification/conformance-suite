@@ -72,13 +72,13 @@
         }
         /* FOUC reservation for the whole-plan status bar: a custom element is
            display:inline until upgraded, so visibility:hidden would not reserve
-           height. Reserve the bar's measured height (track ~14px + count
-           summary line ~24px incl. its margin) so the module list does not jump
-           when cts-plan-status upgrades. (The grid is also [hidden] during the
-           plan fetch, so this only bites if the upgrade lags the un-hide.) */
+           height. Reserve the bar's measured height (track ~14px + the
+           count-badge row ~28px + its ~12px margin) so the module list does not
+           jump when cts-plan-status upgrades. (The grid is also [hidden] during
+           the plan fetch, so this only bites if the upgrade lags the un-hide.) */
         cts-plan-status:not(:defined) {
             display: block;
-            min-height: 38px;
+            min-height: 54px;
         }
         /* Certification submission package form styles live in
            /css/cert-package.css (linked above) so the modal can be shown in
@@ -92,126 +92,14 @@
             font-size: var(--fs-12);
             word-break: break-all;
         }
-        /* Inline "Filter by result" control (KTD7). Trigger + native-popover
-           panel mirror cts-log-list's faceted filter, scoped to this page. */
-        .oidf-modules-toolbar {
-            display: flex;
-            align-items: center;
-            margin-bottom: var(--space-3);
-        }
-        .oidf-result-filter-trigger {
-            display: inline-flex;
-            align-items: center;
-            gap: var(--space-2);
-            box-sizing: border-box;
-            height: var(--control-height);
-            padding: var(--space-1) var(--space-3);
-            background: var(--bg-elev);
-            color: var(--fg);
-            border: 1px solid var(--ink-300);
-            border-radius: var(--radius-2);
-            font-family: var(--font-sans);
-            font-size: var(--fs-14);
-            line-height: var(--lh-snug);
-            white-space: nowrap;
-            cursor: pointer;
-            transition: border-color var(--dur-1) var(--ease-standard),
-                background var(--dur-1) var(--ease-standard);
-        }
-        .oidf-result-filter-trigger:hover,
-        .oidf-result-filter-trigger[aria-expanded="true"] {
-            border-color: var(--border-strong);
-            background: var(--bg);
-        }
-        .oidf-result-filter-trigger:focus-visible {
-            outline: none;
-            box-shadow: var(--focus-ring);
-            border-color: var(--border-strong);
-        }
-        /* Top-layer popover; position set imperatively in wireResultFilter's
-           beforetoggle handler against the trigger's rect. */
-        .oidf-result-filter-panel {
-            margin: 0;
-            padding: var(--space-3);
-            background: var(--bg-elev);
-            color: var(--fg);
-            border: 1px solid var(--border);
-            border-radius: var(--radius-3);
-            box-shadow: var(--shadow-3);
-            font-size: var(--fs-14);
-            min-width: 220px;
-            position: fixed;
-            inset: auto;
-        }
-        .oidf-result-filter-panel fieldset {
-            margin: 0;
-            padding: 0;
-            border: none;
-        }
-        .oidf-result-filter-panel legend {
-            padding: 0;
-            margin-bottom: var(--space-2);
-            font-size: var(--fs-13);
-            font-weight: var(--fw-medium);
-            color: var(--fg-soft);
-        }
-        .oidf-result-filter-options {
-            display: flex;
-            flex-direction: column;
-            gap: var(--space-1);
-        }
-        .oidf-result-filter-option {
-            display: flex;
-            align-items: center;
-            gap: var(--space-2);
-            padding: var(--space-1) var(--space-2);
-            border-radius: var(--radius-2);
-            cursor: pointer;
-        }
-        .oidf-result-filter-option:hover {
-            background: var(--bg);
-        }
-        .oidf-result-filter-option input {
-            width: var(--space-4);
-            height: var(--space-4);
-            margin: 0;
-            accent-color: var(--orange-500);
-            cursor: pointer;
-        }
-        .oidf-result-filter-option input:focus-visible {
-            outline: none;
-            box-shadow: var(--focus-ring);
-            border-radius: var(--radius-1);
-        }
-        .oidf-result-filter-option span {
-            font-family: var(--font-sans);
-            font-size: var(--fs-13);
-            line-height: var(--lh-snug);
-            color: var(--fg);
-        }
-        .oidf-result-filter-footer {
-            display: flex;
-            justify-content: flex-end;
-            margin-top: var(--space-3);
-            padding-top: var(--space-2);
-            border-top: 1px solid var(--border);
-        }
-        .oidf-result-filter-clear {
-            padding: var(--space-1) var(--space-2);
-            background: transparent;
-            color: var(--fg-link);
-            border: none;
-            border-radius: var(--radius-2);
-            font-family: var(--font-sans);
-            font-size: var(--fs-13);
-            cursor: pointer;
-        }
-        .oidf-result-filter-clear:hover {
-            text-decoration: underline;
-        }
-        .oidf-result-filter-clear:focus-visible {
-            outline: none;
-            box-shadow: var(--focus-ring);
+        /* The "Filter by result" control is no longer a page-level popover —
+           cts-plan-status renders it (R9) as a row of interactive count badges
+           below the bar, merged with the count summary (mirrors log-detail's
+           logResultSummary). All its styling lives in the component; the page
+           only needs to space the status block off the module list below. */
+        #planDetailModules {
+            display: block;
+            margin-top: var(--space-4);
         }
         /* Screen-reader-only live region for filter-change announcements. */
         .oidf-visually-hidden {
@@ -316,45 +204,19 @@
                 <cts-plan-header id="planDetailHeader"></cts-plan-header>
                 <!-- Whole-plan completion overview (R8): one segment per module,
                      fed by the same module data the rows use. Clicking a segment
-                     scrolls to its row (wired in getPlan). -->
+                     deep-links to its row (wired in getPlan). Below the bar the
+                     component renders the merged count-summary + "Filter by
+                     result" control (R9): a row of interactive count badges,
+                     mirroring log-detail's logResultSummary. Toggling a badge
+                     emits `cts-plan-status-filter`; the coordinator below holds
+                     the active filter and pushes it to both cts-plan-modules
+                     (row narrowing) and cts-plan-status (segment dimming +
+                     pressed state). -->
                 <cts-plan-status id="planDetailStatus" mode="detail"></cts-plan-status>
-                <!-- Inline "Filter by result" control (R9, KTD7): a native
-                     Popover holding a Result checkbox group. The coordinator
-                     (wireResultFilter) holds the active filter once and pushes
-                     it to both cts-plan-modules (row narrowing) and
-                     cts-plan-status (segment dimming). Result values only — no
-                     Status fieldset — plus a "Not yet run" option. -->
-                <div class="oidf-modules-toolbar">
-                    <button type="button" id="resultFilterTrigger"
-                        class="oidf-result-filter-trigger" popovertarget="resultFilterPanel"
-                        aria-controls="resultFilterPanel" aria-haspopup="dialog" aria-expanded="false">
-                        <cts-icon name="filter" size="16" aria-hidden="true"></cts-icon>
-                        <span>Filter by result</span>
-                        <cts-badge id="resultFilterCount" variant="primary" hidden></cts-badge>
-                        <cts-icon name="chevron-down" size="16" aria-hidden="true"></cts-icon>
-                    </button>
-                    <div id="resultFilterPanel" class="oidf-result-filter-panel" popover="auto"
-                        aria-label="Filter modules by result">
-                        <fieldset>
-                            <legend>Result</legend>
-                            <div class="oidf-result-filter-options">
-                                <label class="oidf-result-filter-option"><input type="checkbox" value="PASSED"><span>Passed</span></label>
-                                <label class="oidf-result-filter-option"><input type="checkbox" value="FAILED"><span>Failed</span></label>
-                                <label class="oidf-result-filter-option"><input type="checkbox" value="WARNING"><span>Warning</span></label>
-                                <label class="oidf-result-filter-option"><input type="checkbox" value="REVIEW"><span>Review</span></label>
-                                <label class="oidf-result-filter-option"><input type="checkbox" value="SKIPPED"><span>Skipped</span></label>
-                                <!-- value MUST equal NOT_RUN_FILTER_VALUE in js/module-status.js -->
-                                <label class="oidf-result-filter-option"><input type="checkbox" value="NOT_RUN"><span>Not yet run</span></label>
-                            </div>
-                        </fieldset>
-                        <div class="oidf-result-filter-footer">
-                            <button type="button" id="resultFilterClear" class="oidf-result-filter-clear">Clear</button>
-                        </div>
-                    </div>
-                    <!-- Polite live region: announces filter changes to assistive
-                         tech (the row narrowing is otherwise silent). -->
-                    <span id="resultFilterStatus" class="oidf-visually-hidden" aria-live="polite"></span>
-                </div>
+                <!-- Polite live region: announces filter changes to assistive
+                     tech (the row narrowing + badge toggles are otherwise
+                     silent). -->
+                <span id="resultFilterStatus" class="oidf-visually-hidden" aria-live="polite"></span>
                 <cts-plan-modules id="planDetailModules"></cts-plan-modules>
             </div>
             <cts-plan-actions id="planDetailActions"></cts-plan-actions>
@@ -503,18 +365,38 @@
 
                     // Whole-plan status overview (detail mode): seed with the
                     // same modules so segments render immediately (pending until
-                    // the /api/info fan-out below resolves each one). Activating
-                    // a segment scrolls to + flashes the matching module row.
+                    // the /api/info fan-out below resolves each one). Each
+                    // segment is an in-page anchor (#cts-module-N) to its row;
+                    // the native hash jump sets the URL + the row's :target
+                    // highlight, and hashchange (below) adds the arrival flash.
                     statusEl.modules = mappedModules.slice();
                     statusEl.addEventListener('cts-plan-status-activate', function (evt) {
-                        // R11: if the clicked segment is dimmed by an active
-                        // result filter, clear the filter first so the target
-                        // row is visible, THEN scroll to it.
-                        if (evt.detail.dimmed) {
-                            clearResultFilter();
+                        // Only the DIMMED case needs JS: the target row is
+                        // filtered out of the DOM, so the component cancelled the
+                        // native jump (R11). Clear the filter, then once the row
+                        // re-renders set the hash so it scrolls + highlights. A
+                        // visible segment's native anchor already did all this.
+                        if (!evt.detail.dimmed) return;
+                        clearResultFilter();
+                        // Row id scheme MUST match moduleRowId() in
+                        // js/module-status.js (classic script cannot import it).
+                        var targetHash = '#cts-module-' + evt.detail.index;
+                        if (modulesEl.updateComplete) {
+                            modulesEl.updateComplete.then(function () {
+                                window.location.hash = targetHash;
+                            });
+                        } else {
+                            window.location.hash = targetHash;
                         }
-                        modulesEl.highlightModule(evt.detail.index);
                     });
+
+                    // On-load deep link: if the page opened on a #cts-module-N
+                    // link, the row didn't exist at initial parse so the browser
+                    // couldn't scroll to it. Once the rows render, pulse it (the
+                    // :target highlight applies from CSS as soon as the id exists).
+                    if (modulesEl.updateComplete) {
+                        modulesEl.updateComplete.then(flashRowFromHash);
+                    }
 
                     // Actions
                     var actionsEl = document.getElementById('planDetailActions');
@@ -893,15 +775,31 @@
             }
         }
 
-        // ----- Inline "Filter by result" coordinator (R9/R10/R11, KTD7) -----
-        // The page holds the active filter once (a Set of raw result tokens
-        // plus the "NOT_RUN" sentinel) and pushes it to BOTH cts-plan-modules
-        // (row narrowing) and cts-plan-status (segment dimming), so the two
-        // never drift. Both children interpret the Set via the shared
-        // moduleMatchesResultFilter helper. "NOT_RUN" must match
-        // NOT_RUN_FILTER_VALUE in js/module-status.js (this classic script
-        // cannot import the ES-module constant).
+        // ----- "Filter by result" coordinator (R9/R10/R11) -----
+        // cts-plan-status renders the merged count-summary + filter as a row of
+        // interactive count badges below the bar and emits cts-plan-status-filter
+        // when one is toggled (or "Clear filters" is pressed). The page holds the
+        // active filter once (a Set of raw result tokens plus the "NOT_RUN"
+        // sentinel) and pushes a fresh copy to BOTH cts-plan-modules (row
+        // narrowing) and cts-plan-status (segment dimming + badge pressed state),
+        // so the two never drift. Both children interpret the Set via the shared
+        // moduleMatchesResultFilter helper. Tokens must match js/module-status.js
+        // (this classic script cannot import the ES-module constants):
+        // "NOT_RUN" === NOT_RUN_FILTER_VALUE.
         var activeResultFilter = new Set();
+
+        // Friendly labels for the live-region announcement, keyed by filter
+        // token. The badges carry their own visible labels; this map exists only
+        // for the screen-reader announcement. Mirrors RESULT_BADGES labels in
+        // cts-plan-status.js.
+        var RESULT_FILTER_LABELS = {
+            PASSED: 'Passed',
+            FAILED: 'Failed',
+            WARNING: 'Warning',
+            REVIEW: 'Review',
+            SKIPPED: 'Skipped',
+            NOT_RUN: 'Not run'
+        };
 
         function applyResultFilter() {
             // A fresh Set (or null when empty) so Lit's reference-equality
@@ -911,30 +809,16 @@
             var statusEl = document.getElementById('planDetailStatus');
             if (modulesEl) modulesEl.resultFilter = filter;
             if (statusEl) statusEl.activeResultFilter = filter;
-            var countBadge = document.getElementById('resultFilterCount');
-            if (countBadge) {
-                if (activeResultFilter.size) {
-                    countBadge.setAttribute('count', String(activeResultFilter.size));
-                    countBadge.hidden = false;
-                } else {
-                    countBadge.hidden = true;
-                    countBadge.removeAttribute('count');
-                }
-            }
-            // Announce the filter change to assistive tech — the row narrowing is
-            // otherwise silent. Read the friendly labels off the checked boxes so
-            // no result-token→label map is needed. applyResultFilter is only
+            // Announce the filter change to assistive tech — the row narrowing +
+            // badge toggles are otherwise silent. applyResultFilter is only
             // called on user action, so this never fires a spurious announcement.
             var liveEl = document.getElementById('resultFilterStatus');
             if (liveEl) {
                 if (activeResultFilter.size) {
                     var labels = [];
-                    document
-                        .querySelectorAll('#resultFilterPanel input[type="checkbox"]:checked')
-                        .forEach(function (cb) {
-                            var span = cb.parentElement && cb.parentElement.querySelector('span');
-                            labels.push(span ? span.textContent : cb.value);
-                        });
+                    activeResultFilter.forEach(function (token) {
+                        labels.push(RESULT_FILTER_LABELS[token] || token);
+                    });
                     liveEl.textContent = 'Filtering modules by: ' + labels.join(', ') + '.';
                 } else {
                     liveEl.textContent = 'Filter cleared. Showing all modules.';
@@ -942,45 +826,48 @@
             }
         }
 
-        function clearResultFilter() {
-            activeResultFilter.clear();
-            var panel = document.getElementById('resultFilterPanel');
-            if (panel) {
-                panel.querySelectorAll('input[type="checkbox"]').forEach(function (cb) {
-                    cb.checked = false;
-                });
+        function toggleResultFilter(value) {
+            if (activeResultFilter.has(value)) {
+                activeResultFilter.delete(value);
+            } else {
+                activeResultFilter.add(value);
             }
             applyResultFilter();
         }
 
+        function clearResultFilter() {
+            if (!activeResultFilter.size) return;
+            activeResultFilter.clear();
+            applyResultFilter();
+        }
+
         function wireResultFilter() {
-            var panel = document.getElementById('resultFilterPanel');
-            var trigger = document.getElementById('resultFilterTrigger');
-            if (!panel || !trigger) return;
-            panel.querySelectorAll('input[type="checkbox"]').forEach(function (cb) {
-                cb.addEventListener('change', function () {
-                    if (cb.checked) {
-                        activeResultFilter.add(cb.value);
-                    } else {
-                        activeResultFilter.delete(cb.value);
-                    }
-                    applyResultFilter();
-                });
-            });
-            var clearBtn = document.getElementById('resultFilterClear');
-            if (clearBtn) {
-                clearBtn.addEventListener('click', clearResultFilter);
-            }
-            // Position the top-layer popover under the trigger on open, and
-            // mirror the open state into the trigger's aria-expanded.
-            panel.addEventListener('beforetoggle', function (evt) {
-                if (evt.newState === 'open') {
-                    var rect = trigger.getBoundingClientRect();
-                    panel.style.top = Math.round(rect.bottom + 4) + 'px';
-                    panel.style.left = Math.max(8, Math.round(rect.left)) + 'px';
+            // cts-plan-status emits cts-plan-status-filter when a count badge is
+            // toggled ({ value: token }) or "Clear filters" is pressed
+            // ({ clear: true }).
+            var statusEl = document.getElementById('planDetailStatus');
+            if (!statusEl) return;
+            statusEl.addEventListener('cts-plan-status-filter', function (evt) {
+                if (evt.detail && evt.detail.clear) {
+                    clearResultFilter();
+                } else if (evt.detail && evt.detail.value) {
+                    toggleResultFilter(evt.detail.value);
                 }
-                trigger.setAttribute('aria-expanded', evt.newState === 'open' ? 'true' : 'false');
             });
+        }
+
+        // Deep-link arrival flash: when the URL hash points at a module row
+        // (a cts-plan-status detail segment was clicked, or the page was opened
+        // on such a link), pulse the row. The :target CSS in cts-plan-modules
+        // gives the persistent highlight; this adds the one-shot flash. Row id
+        // scheme MUST match moduleRowId() in js/module-status.js.
+        function flashRowFromHash() {
+            var match = /^#cts-module-(\d+)$/.exec(window.location.hash || '');
+            if (!match) return;
+            var modulesEl = document.getElementById('planDetailModules');
+            if (modulesEl && typeof modulesEl.highlightModule === 'function') {
+                modulesEl.highlightModule(Number(match[1]));
+            }
         }
 
         /**
@@ -1062,9 +949,13 @@
                 }
             });
 
-            // Inline result filter (R9/R10/R11). The popover + checkboxes are
-            // static markup, so this wires up once at load.
+            // Inline result filter (R9/R10/R11). cts-plan-status emits the
+            // toggle events, so this wires up once at load.
             wireResultFilter();
+            // Deep-link arrival flash for segment clicks (the :target highlight
+            // is CSS). Registered once; getPlan also calls it after the rows
+            // first render so an on-load #cts-module-N link pulses too.
+            window.addEventListener('hashchange', flashRowFromHash);
         }
 
         /**

@@ -331,24 +331,19 @@ const STYLE_TEXT = css`
   cts-log-detail-header .ctsNavRow:has(cts-test-nav-controls:empty) {
     display: none;
   }
+  /* The cluster keeps its own column flow here (the .cts-tnc-progress-row owns
+     the bar+button row; the "Module N of M" label sits below it), so the nav
+     row only strips the standalone card chrome — the row provides its own
+     divider — and tightens the column gap between the bar row and the label.
+     The bar's flex-to-fill sizing lives on .cts-tnc-progress-row in the
+     component's own CSS. The legacy single-track cts-tnc-progress overrides are
+     gone with the orange position bar. */
   cts-log-detail-header .ctsNavRow cts-test-nav-controls .cts-tnc-group {
-    flex-direction: row;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: var(--space-3);
+    gap: var(--space-2);
     padding: 0;
     background: transparent;
     border: none;
     border-radius: 0;
-  }
-  /* The plan-level progress is now the cts-plan-status segment bar (it owns
-     its own container-query bar-to-grid responsiveness), so the nav row only
-     needs to let it flex to fill the row width alongside the Continue
-     button. The legacy single-track cts-tnc-progress overrides are
-     gone with the orange position bar. */
-  cts-log-detail-header .ctsNavRow cts-test-nav-controls cts-plan-status {
-    flex: 1 1 200px;
-    min-width: 160px;
   }
   cts-log-detail-header .ctsNavRow cts-test-nav-controls .cts-tnc-buttons {
     flex-direction: row;

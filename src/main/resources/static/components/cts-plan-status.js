@@ -3,7 +3,15 @@ import { repeat } from "lit/directives/repeat.js";
 import { classMap } from "lit/directives/class-map.js";
 import { ifDefined } from "lit/directives/if-defined.js";
 import "./cts-tooltip.js";
-import { segmentVariant, moduleMatchesResultFilter, moduleKey } from "../js/module-status.js";
+import "./cts-badge.js";
+import {
+  segmentVariant,
+  moduleMatchesResultFilter,
+  moduleKey,
+  currentModuleIndex,
+  moduleRowId,
+  NOT_RUN_FILTER_VALUE,
+} from "../js/module-status.js";
 
 const STYLE_ID = "cts-plan-status-styles";
 
@@ -36,16 +44,25 @@ const SEGMENT_STATUS_WORD = {
   pending: "checking status",
 };
 
-// Count-summary word per variant, in display order (R4). Only non-zero
-// categories render; the order is fixed so the summary reads consistently.
-const SUMMARY_PARTS = [
-  ["pass", "passed"],
-  ["fail", "failed"],
-  ["warn", "warning"],
-  ["review", "review"],
-  ["running", "running"],
-  ["pending", "checking"],
-  ["skip", "not run"],
+// Detail-mode count badges (R9 redesign): the read-only count summary and the
+// "Filter by result" control are merged into one row of count pills, mirroring
+// log-detail's logResultSummary. Each entry is one badge in fixed display
+// order; only non-zero categories render. `filterable` entries are interactive
+// multi-select toggles whose `key` is the result token fed into the page's
+// activeResultFilter Set (SKIPPED and NOT_RUN are distinct tokens — see
+// moduleMatchesResultFilter); `running`/`pending` are display-only because they
+// are transient states with no filter token. Counts for filterable categories
+// use moduleMatchesResultFilter so a badge's count always equals the rows the
+// filter would show; the two transient ones count by segmentVariant.
+const RESULT_BADGES = [
+  { key: "PASSED", variant: "pass", label: "Passed", filterable: true },
+  { key: "FAILED", variant: "fail", label: "Failed", filterable: true },
+  { key: "WARNING", variant: "warn", label: "Warning", filterable: true },
+  { key: "REVIEW", variant: "review", label: "Review", filterable: true },
+  { key: "running", variant: "running", label: "Running", filterable: false },
+  { key: "pending", variant: "skip", label: "Checking", filterable: false },
+  { key: "SKIPPED", variant: "skip", label: "Skipped", filterable: true },
+  { key: NOT_RUN_FILTER_VALUE, variant: "skip", label: "Not run", filterable: true },
 ];
 
 // Scoped CSS. KTD2: the host is the size container and a single per-mode
@@ -80,38 +97,45 @@ const STYLE_TEXT = css`
     padding: 0;
     border: none;
     border-radius: var(--radius-1);
-    background: var(--ink-300);
+    /* The fill is routed through --cts-seg-fill (set per variant below) so the
+       "you are here" marker can paint its ring in the segment's own status
+       colour without re-deriving it. */
+    background: var(--cts-seg-fill, var(--ink-300));
     appearance: none;
     -webkit-appearance: none;
     font: inherit;
     color: inherit;
+    /* detail segments render as <a> (deep-link to the module row); kill the
+       default anchor underline — harmless on <span>/<button>. */
+    text-decoration: none;
   }
 
   /* Status fills mirror cts-plan-list's moduleStatusBox--* tokens so the two
-     surfaces stay in lockstep. Review is now the saturated --status-review
-     token added in U1. */
+     surfaces stay in lockstep. Each variant sets --cts-seg-fill (consumed by
+     the base background rule AND the is-current marker ring). Review is the
+     saturated --status-review token added in U1. */
   .cts-pst-seg--pass {
-    background: var(--status-pass);
+    --cts-seg-fill: var(--status-pass);
   }
   .cts-pst-seg--fail {
-    background: var(--status-fail);
+    --cts-seg-fill: var(--status-fail);
   }
   .cts-pst-seg--warn {
-    background: var(--status-warning);
+    --cts-seg-fill: var(--status-warning);
   }
   .cts-pst-seg--running {
-    background: var(--status-running);
+    --cts-seg-fill: var(--status-running);
   }
   .cts-pst-seg--review {
-    background: var(--status-review);
+    --cts-seg-fill: var(--status-review);
   }
   /* Settled not-run / unresolved uses the lighter neutral so "nothing to
      report" recedes; pending uses the darker neutral and pulses. */
   .cts-pst-seg--skip {
-    background: var(--ink-300);
+    --cts-seg-fill: var(--ink-300);
   }
   .cts-pst-seg--pending {
-    background: var(--status-skipped);
+    --cts-seg-fill: var(--status-skipped);
   }
   @media (prefers-reduced-motion: no-preference) {
     .cts-pst-seg--pending {
@@ -128,11 +152,14 @@ const STYLE_TEXT = css`
     }
   }
 
-  /* "You are here" marker (R14/R17): a 2px inset ring OVERLAID on the status
-     fill (it does not replace the fill colour). Inset box-shadow keeps the box
-     model identical so toggling the marker causes no reflow. */
+  /* "You are here" marker (R14/R17): a 2px inset ring in the segment's OWN
+     status colour, then a 3px inset --bg ring so a thin background gap separates
+     the ring from the fill (reads as a haloed/selected segment). Both are inset
+     box-shadows, so the box model is unchanged and toggling causes no reflow. */
   .cts-pst-seg.is-current {
-    box-shadow: inset 0 0 0 2px var(--fg);
+    box-shadow:
+      inset 0 0 0 2px var(--cts-seg-fill, var(--fg)),
+      inset 0 0 0 3px var(--bg);
   }
 
   /* Dimming while a result filter is active (R10): non-matching (and
@@ -201,29 +228,67 @@ const STYLE_TEXT = css`
     cts-plan-status[mode="detail"] .cts-pst-track,
     cts-plan-status[mode="log"] .cts-pst-track {
       flex-wrap: wrap;
+      /* Equal row and column gaps so the wrapped tiles read as an even grid. */
       column-gap: var(--space-1);
-      /* Zero row-gap when wrapping (KTD2): wrapped rows sit flush so the grid
-         reads as one mosaic rather than spaced bands. */
-      row-gap: 0;
+      row-gap: var(--space-1);
     }
     cts-plan-status[mode="detail"] .cts-pst-seg,
     cts-plan-status[mode="log"] .cts-pst-seg {
-      flex: 1 1 40px;
+      /* Don't grow past the 40px tap-target basis — keep tiles a consistent
+         size rather than stretching the last row's items. */
+      flex: 0 1 40px;
       min-width: 40px;
       min-height: 24px;
     }
   }
 
-  /* The count summary (R4, detail) / position label (R14, log) — supplementary
-     line under the bar. The summary is the polite live region that announces
-     the settled tally; per-segment name changes stay silent (they are not in a
-     live region). */
+  /* The "Module N of M" position label (R14, log) — a supplementary line under
+     the bar. (Detail mode's old text summary is now the count-badge row below.) */
   .cts-pst-meta {
     margin: var(--space-2) 0 0;
     font-size: var(--fs-12);
     line-height: var(--lh-snug);
     color: var(--fg-soft);
     font-variant-numeric: tabular-nums;
+  }
+
+  /* Detail-mode count-badge row (R9): the merged summary + result filter. One
+     wrapping row of count pills under the bar; the clear button trails them.
+     When a filter is active (.is-filtering) the non-pressed filterable badges
+     recede so the active selection stands out — mirroring logResultSummary. */
+  .cts-pst-filter {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2);
+    margin: var(--space-3) 0 0;
+  }
+  /* De-emphasize the inactive (unpressed) filterable badges while a filter is
+     active, so the active ones stand out — opacity matches logResultSummary. */
+  .cts-pst-filter.is-filtering cts-badge[clickable]:not([pressed]) {
+    opacity: 0.6;
+  }
+  /* "Clear filters" affordance — styled identically to cts-log-viewer's
+     .logFilterClear so the two filter surfaces match exactly. */
+  .cts-pst-filter-clear {
+    align-self: center;
+    font: inherit;
+    font-size: var(--fs-12);
+    line-height: 16px;
+    color: var(--fg-muted);
+    background: transparent;
+    border: 0;
+    padding: 2px var(--space-1);
+    cursor: pointer;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+  .cts-pst-filter-clear:hover {
+    color: var(--fg);
+  }
+  .cts-pst-filter-clear:focus-visible {
+    outline: 2px solid var(--rust-400, #c75a3f);
+    outline-offset: 2px;
   }
 `;
 
@@ -259,10 +324,15 @@ function formatVariant(variant) {
  *   - `overview` (plans.html): the legacy fixed-box grid, read-only. Segments
  *     are not click targets; the host uses the block-link pointer-events
  *     pattern so clicks fall through to the surrounding card link (R12/R16).
- *   - `detail` (plan-detail.html): the responsive bar; segments are buttons
- *     that emit `cts-plan-status-activate` (the page scrolls to the row); a
- *     polite count summary announces the tally (R4); `activeResultFilter`
- *     dims non-matching segments (R10).
+ *   - `detail` (plan-detail.html): the responsive bar; segments are in-page
+ *     anchors (`href="#cts-module-N"`) that deep-link to the module's row — the
+ *     URL hash updates and the row gets a `:target` highlight + flash. A dimmed
+ *     (filtered-out) segment cancels the native jump and emits
+ *     `cts-plan-status-activate` so the page clears the filter first, then
+ *     navigates (R11). Below the bar a row of count badges merges the tally and
+ *     the "Filter by result" control (R9) — clicking a filterable badge emits
+ *     `cts-plan-status-filter` and `activeResultFilter` dims non-matching
+ *     segments (R10).
  *   - `log` (log-detail.html): the responsive bar; segments are buttons that
  *     emit `cts-plan-status-activate` (the page opens that instance's log); the
  *     segment whose module ran `currentInstanceId` carries the "you are here"
@@ -285,7 +355,9 @@ function formatVariant(variant) {
  * @property {Set<string>|null} activeResultFilter - In `detail` mode, the
  *   active "Filter by result" selection (result tokens plus the
  *   `NOT_RUN_FILTER_VALUE` sentinel). Non-matching and still-pending segments
- *   are dimmed; the count summary ignores it (R4/R10/R18). Set via JS only.
+ *   are dimmed (R10/R18) and the matching count badges render pressed; the badge
+ *   counts themselves stay totals, not the filtered subset. Set via JS only —
+ *   the page coordinator owns it and pushes it back after a badge toggle.
  * @property {boolean} readonly - In `log` mode, downgrade segments to the
  *   non-interactive read-only form (a `<span role="img">`, no `<button>`, no
  *   activate emission, no pointer affordance) for the public / readonly log
@@ -293,12 +365,24 @@ function formatVariant(variant) {
  *   still render — only the click action is suppressed (a UX affordance, not
  *   an access boundary; the backend `/api/info` gating is the real boundary).
  *   Reflects the `readonly` attribute. Default false.
+ * @property {boolean} hideLabel - In `log` mode, suppress the built-in
+ *   "Module N of M" position label so the host can render and place it itself
+ *   (cts-test-nav-controls sets this to lay the label on its own row, below the
+ *   bar+button line, so the bar and the Continue button stay vertically centred
+ *   as siblings rather than the button centring against the taller bar+label
+ *   block). No effect in `overview`/`detail`. Reflects the `hide-label`
+ *   attribute. Default false.
  * @fires cts-plan-status-activate - When an interactive (`detail`/`log`)
  *   segment is clicked or keyboard-activated, with
  *   `{ index, module, instanceId, dimmed }` where `instanceId` is the module's
  *   most-recent instance (R17) and `dimmed` is whether an active result filter
  *   currently dims the segment (so a coordinator can clear-then-scroll, R11).
  *   Bubbles and is composed.
+ * @fires cts-plan-status-filter - In `detail` mode, when a count badge is
+ *   toggled (`{ value }`, the result token) or the "Clear filters" button is
+ *   pressed (`{ clear: true }`). The page coordinator updates its
+ *   `activeResultFilter` Set and pushes it back down (pressed state + dimming)
+ *   and across to cts-plan-modules (row narrowing). Bubbles and is composed.
  */
 class CtsPlanStatus extends LitElement {
   static properties = {
@@ -307,6 +391,7 @@ class CtsPlanStatus extends LitElement {
     currentInstanceId: { type: String, attribute: "current-instance-id" },
     activeResultFilter: { attribute: false },
     readonly: { type: Boolean, reflect: true },
+    hideLabel: { type: Boolean, attribute: "hide-label", reflect: true },
   };
 
   constructor() {
@@ -316,7 +401,10 @@ class CtsPlanStatus extends LitElement {
     this.currentInstanceId = "";
     this.activeResultFilter = null;
     this.readonly = false;
+    this.hideLabel = false;
     this._onActivate = this._onActivate.bind(this);
+    this._onFilterBadgeClick = this._onFilterBadgeClick.bind(this);
+    this._onClearFilter = this._onClearFilter.bind(this);
   }
 
   createRenderRoot() {
@@ -341,35 +429,125 @@ class CtsPlanStatus extends LitElement {
    * @returns {number} The matching index, or -1 when there is no match.
    */
   _currentIndex(modules) {
-    if (!this.currentInstanceId) return -1;
-    return modules.findIndex(
-      (m) => Array.isArray(m.instances) && m.instances.includes(this.currentInstanceId),
-    );
+    return currentModuleIndex(modules, this.currentInstanceId);
   }
 
   /**
-   * Tally modules by status variant across the WHOLE plan (the summary always
-   * reflects total counts, never the filtered subset — R4).
+   * Tally modules per count-badge category across the WHOLE plan (counts are
+   * always totals, never the filtered subset). Filterable categories count via
+   * `moduleMatchesResultFilter` so a badge's count equals the rows the filter
+   * would show; the transient `running`/`pending` categories count by
+   * `segmentVariant`.
    * @param {object[]} modules - The plan modules.
-   * @returns {{ [variant: string]: number }} Count per `segmentVariant` result.
+   * @returns {{ [key: string]: number }} Count per `RESULT_BADGES` key.
    */
-  _counts(modules) {
-    const counts = { pass: 0, fail: 0, warn: 0, running: 0, review: 0, skip: 0, pending: 0 };
-    for (const mod of modules) counts[segmentVariant(mod)] += 1;
+  _filterCounts(modules) {
+    /** @type {{ [key: string]: number }} */
+    const counts = {};
+    for (const badge of RESULT_BADGES) {
+      counts[badge.key] = badge.filterable
+        ? modules.filter((mod) => moduleMatchesResultFilter(mod, new Set([badge.key]))).length
+        : modules.filter((mod) => segmentVariant(mod) === badge.key).length;
+    }
     return counts;
   }
 
   /**
-   * The count-summary string (e.g. "18 passed · 3 failed · 7 not run"), built
-   * from non-zero categories in fixed order.
+   * The detail-mode count-badge row (R9): the merged summary + "Filter by
+   * result" control. Renders one `cts-badge` per non-zero category; filterable
+   * categories are multi-select toggles (pressed = membership in
+   * `activeResultFilter`) that emit `cts-plan-status-filter`, and a "Clear
+   * filters" button appears while a filter is active. Readonly downgrades every
+   * badge to a non-interactive label (public view shows the tally, not a
+   * control).
    * @param {object[]} modules - The plan modules.
-   * @returns {string} The summary text.
+   * @returns {import('lit').TemplateResult} The badge row.
    */
-  _summaryText(modules) {
-    const counts = this._counts(modules);
-    return SUMMARY_PARTS.filter(([key]) => counts[key] > 0)
-      .map(([key, word]) => `${counts[key]} ${word}`)
-      .join(" · ");
+  _renderFilterBadges(modules) {
+    const counts = this._filterCounts(modules);
+    const filter = this.activeResultFilter;
+    const filtering = filter instanceof Set && filter.size > 0;
+    const interactive = !this.readonly;
+    const visible = RESULT_BADGES.filter((badge) => counts[badge.key] > 0);
+    return html`<div
+      class=${classMap({ "cts-pst-filter": true, "is-filtering": filtering && interactive })}
+      role="group"
+      aria-label="Filter modules by result"
+      data-testid="plan-status-filter"
+    >
+      ${repeat(
+        visible,
+        (badge) => badge.key,
+        (badge) => this._renderFilterBadge(badge, counts[badge.key], filter, interactive),
+      )}
+      ${filtering && interactive
+        ? html`<button
+            type="button"
+            class="cts-pst-filter-clear"
+            data-testid="plan-status-filter-clear"
+            @click=${this._onClearFilter}
+          >
+            Clear filters
+          </button>`
+        : nothing}
+    </div>`;
+  }
+
+  /**
+   * Render one count badge. Filterable categories on an interactive surface are
+   * `clickable` + `?pressed` multi-select toggles; everything else is a
+   * read-only label.
+   * @param {{key: string, variant: string, label: string, filterable: boolean}} badge
+   *   - The `RESULT_BADGES` entry.
+   * @param {number} count - The category's module count.
+   * @param {Set<string>|null} filter - The active result filter.
+   * @param {boolean} interactive - Whether badges are click targets (detail,
+   *   not readonly).
+   * @returns {import('lit').TemplateResult} The badge.
+   */
+  _renderFilterBadge(badge, count, filter, interactive) {
+    const label = `${badge.label} ${count}`;
+    if (!badge.filterable || !interactive) {
+      return html`<cts-badge variant=${badge.variant} label=${label}></cts-badge>`;
+    }
+    const pressed = filter instanceof Set && filter.has(badge.key);
+    const ariaLabel = pressed
+      ? `Stop filtering by ${badge.label}`
+      : `Show only ${badge.label} modules`;
+    return html`<cts-badge
+      variant=${badge.variant}
+      label=${label}
+      aria-label=${ariaLabel}
+      data-result=${badge.key}
+      clickable
+      ?pressed=${pressed}
+      @cts-badge-click=${this._onFilterBadgeClick}
+    ></cts-badge>`;
+  }
+
+  _onFilterBadgeClick(event) {
+    const value = event.currentTarget && event.currentTarget.dataset.result;
+    if (!value) return;
+    // The page coordinator owns the activeResultFilter Set; this just reports
+    // which token was toggled (it pushes the new Set back down for pressed state
+    // + segment dimming, and across to cts-plan-modules for row narrowing).
+    this.dispatchEvent(
+      new CustomEvent("cts-plan-status-filter", {
+        bubbles: true,
+        composed: true,
+        detail: { value },
+      }),
+    );
+  }
+
+  _onClearFilter() {
+    this.dispatchEvent(
+      new CustomEvent("cts-plan-status-filter", {
+        bubbles: true,
+        composed: true,
+        detail: { clear: true },
+      }),
+    );
   }
 
   /**
@@ -394,6 +572,15 @@ class CtsPlanStatus extends LitElement {
     // without re-deriving the match (the same `moduleMatchesResultFilter` source
     // of truth the dimming render uses).
     const dimmed = !moduleMatchesResultFilter(mod, this.activeResultFilter);
+    // In detail mode the segment is an in-page anchor to the module's row. When
+    // the segment is dimmed the row is filtered OUT of the DOM, so the native
+    // `#row` jump would land nowhere — cancel it and let the page coordinator
+    // clear the filter first, then navigate once the row re-renders (R11). For a
+    // visible (non-dimmed) detail segment the native anchor handles the jump;
+    // for log mode (a <button>) there is no default to cancel.
+    if (this.mode === "detail" && dimmed) {
+      event.preventDefault();
+    }
     this.dispatchEvent(
       new CustomEvent("cts-plan-status-activate", {
         bubbles: true,
@@ -405,16 +592,23 @@ class CtsPlanStatus extends LitElement {
 
   /**
    * Render one segment, wrapped in a tooltip naming the module + status (R3).
-   * Interactive modes render a `<button>` (native keyboard + click); overview
-   * renders a read-only `<span role="img">` whose accessible name carries the
-   * same module + status (matching the legacy boxes).
+   * The element depends on mode/affordance:
+   *   - `detail` interactive → an `<a href="#cts-module-N">` deep-link to the
+   *     module's row (clicking sets the URL hash → the row's `:target` highlight
+   *     + a flash; a dimmed segment cancels the jump so the page can clear the
+   *     filter first — see `_onActivate`).
+   *   - `log` interactive → a `<button>` (sibling navigation is a cross-page
+   *     load coordinated by the page, which threads the public-view param).
+   *   - non-interactive (overview, readonly) → a read-only `<span role="img">`.
+   * All three carry the same accessible name (module + status).
    * @param {object} mod - The plan module entry.
    * @param {number} index - The module's index in plan order.
    * @param {number} currentIndex - The "you are here" index (log mode) or -1.
    * @param {boolean} interactive - Whether segments are click targets.
+   * @param {string} mode - The resolved surface mode.
    * @returns {import('lit').TemplateResult} The wrapped segment.
    */
-  _renderSegment(mod, index, currentIndex, interactive) {
+  _renderSegment(mod, index, currentIndex, interactive, mode) {
     const variant = segmentVariant(mod);
     const word = SEGMENT_STATUS_WORD[variant] || SEGMENT_STATUS_WORD.skip;
     const name = this._moduleName(mod);
@@ -428,22 +622,34 @@ class CtsPlanStatus extends LitElement {
     segClasses[SEGMENT_VARIANT_CLASS[variant] || SEGMENT_VARIANT_CLASS.skip] = true;
     const ariaName = `${name}: ${word}`;
 
-    const segment = interactive
-      ? html`<button
-          type="button"
-          class=${classMap(segClasses)}
-          data-index=${index}
-          data-testid="plan-status-segment"
-          aria-label=${ariaName}
-          aria-current=${ifDefined(isCurrent ? "step" : undefined)}
-          @click=${this._onActivate}
-        ></button>`
-      : html`<span
-          class=${classMap(segClasses)}
-          data-testid="plan-status-segment"
-          role="img"
-          aria-label=${ariaName}
-        ></span>`;
+    let segment;
+    if (!interactive) {
+      segment = html`<span
+        class=${classMap(segClasses)}
+        data-testid="plan-status-segment"
+        role="img"
+        aria-label=${ariaName}
+      ></span>`;
+    } else if (mode === "detail") {
+      segment = html`<a
+        class=${classMap(segClasses)}
+        href="#${moduleRowId(index)}"
+        data-index=${index}
+        data-testid="plan-status-segment"
+        aria-label=${ariaName}
+        @click=${this._onActivate}
+      ></a>`;
+    } else {
+      segment = html`<button
+        type="button"
+        class=${classMap(segClasses)}
+        data-index=${index}
+        data-testid="plan-status-segment"
+        aria-label=${ariaName}
+        aria-current=${ifDefined(isCurrent ? "step" : undefined)}
+        @click=${this._onActivate}
+      ></button>`;
+    }
 
     return html`<cts-tooltip content="${name} — ${word}" placement="top">${segment}</cts-tooltip>`;
   }
@@ -476,18 +682,21 @@ class CtsPlanStatus extends LitElement {
         // index. The index keeps the key unique; the list order is stable
         // (dimming never reorders), so DOM reuse stays positional and correct.
         (mod, index) => `${moduleKey(mod)}#${index}`,
-        (mod, index) => this._renderSegment(mod, index, currentIndex, interactive),
+        (mod, index) => this._renderSegment(mod, index, currentIndex, interactive, mode),
       )}
     </div>`;
 
     /** @type {import('lit').TemplateResult | typeof nothing} */
     let meta = nothing;
     if (mode === "detail") {
-      // Polite live region: announces the settled tally once segments resolve.
-      meta = html`<p class="cts-pst-meta" aria-live="polite" data-testid="plan-status-summary">
-        ${this._summaryText(modules)}
-      </p>`;
-    } else if (mode === "log" && currentIndex >= 0) {
+      // The merged count-summary + result filter (R9): one row of count badges,
+      // the filterable ones interactive (emit cts-plan-status-filter).
+      meta = this._renderFilterBadges(modules);
+    } else if (mode === "log" && currentIndex >= 0 && !this.hideLabel) {
+      // The "Module N of M" label is suppressed when the host opts to place it
+      // itself (cts-test-nav-controls sets hide-label so it can lay the label on
+      // its own row below the bar+button line, keeping the bar and button as
+      // true centred siblings — see currentModuleIndex usage there).
       meta = html`<p class="cts-pst-meta" data-testid="plan-status-position">
         Module ${currentIndex + 1} of ${modules.length}
       </p>`;

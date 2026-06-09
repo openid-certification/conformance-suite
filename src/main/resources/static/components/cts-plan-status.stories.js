@@ -148,7 +148,8 @@ export const TooltipOnHoverAndFocus = {
   render: () => html`<cts-plan-status mode="detail" .modules=${PALETTE_MODULES}></cts-plan-status>`,
 
   async play({ canvasElement, step }) {
-    const first = canvasElement.querySelector("button.cts-pst-seg");
+    // Detail segments are anchors (deep-link to the row); log segments are buttons.
+    const first = canvasElement.querySelector("a.cts-pst-seg");
 
     await step("hover shows a tooltip naming the module + status", async () => {
       first.dispatchEvent(new MouseEvent("mouseenter"));
@@ -176,31 +177,48 @@ export const TooltipOnHoverAndFocus = {
   },
 };
 
-// R4: detail mode renders a polite count summary that reflects TOTAL counts
-// (never the filtered subset) and doubles as the accessible summary.
-export const DetailCountSummary = {
+// R9: detail mode renders the merged count summary + "Filter by result"
+// control as a row of count badges (mirrors log-detail's logResultSummary).
+// Counts are TOTALS in fixed order; the six result categories are interactive
+// toggles, RUNNING/PENDING are display-only.
+export const DetailCountBadges = {
   render: () => html`<cts-plan-status mode="detail" .modules=${PALETTE_MODULES}></cts-plan-status>`,
 
   async play({ canvasElement, step }) {
-    const summary = canvasElement.querySelector('[data-testid="plan-status-summary"]');
+    const filter = canvasElement.querySelector('[data-testid="plan-status-filter"]');
+    const badges = canvasElement.querySelectorAll('[data-testid="plan-status-filter"] cts-badge');
 
-    await step("the summary is a polite live region", () => {
-      expect(summary).toBeTruthy();
-      expect(summary.getAttribute("aria-live")).toBe("polite");
+    await step("one count badge per non-zero category, in fixed order", () => {
+      expect(filter).toBeTruthy();
+      expect(Array.from(badges).map((b) => b.getAttribute("label"))).toEqual([
+        "Passed 1",
+        "Failed 1",
+        "Warning 1",
+        "Review 1",
+        "Running 1",
+        "Checking 1",
+        "Skipped 1",
+        "Not run 1",
+      ]);
     });
 
-    await step("the summary reflects total counts in fixed order", () => {
-      // pass1 fail1 warn1 review1 running1 pending1 skip2 (skipped + not-run)
-      expect(summary.textContent.trim()).toBe(
-        "1 passed · 1 failed · 1 warning · 1 review · 1 running · 1 checking · 2 not run",
-      );
+    await step("result categories are interactive toggles; transient ones are not", () => {
+      const clickable = (label) =>
+        Array.from(badges)
+          .find((b) => b.getAttribute("label") === label)
+          .hasAttribute("clickable");
+      expect(clickable("Passed 1")).toBe(true);
+      expect(clickable("Not run 1")).toBe(true);
+      expect(clickable("Running 1")).toBe(false);
+      expect(clickable("Checking 1")).toBe(false);
     });
   },
 };
 
-// R4: with a result filter active, the summary STILL reflects total counts
-// (it ignores activeResultFilter); only the segments dim.
-export const SummaryIgnoresFilter = {
+// R9/R4: with a result filter active the badge COUNTS are still totals (never
+// the filtered subset); the matching badge presses, the row is .is-filtering,
+// and the "Clear filters" affordance appears.
+export const BadgeFilterActive = {
   render: () => html`
     <cts-plan-status
       mode="detail"
@@ -209,12 +227,48 @@ export const SummaryIgnoresFilter = {
     ></cts-plan-status>
   `,
 
-  async play({ canvasElement }) {
-    const summary = canvasElement.querySelector('[data-testid="plan-status-summary"]');
-    // Same total tally as the unfiltered story.
-    expect(summary.textContent.trim()).toBe(
-      "1 passed · 1 failed · 1 warning · 1 review · 1 running · 1 checking · 2 not run",
-    );
+  async play({ canvasElement, step }) {
+    const filter = canvasElement.querySelector('[data-testid="plan-status-filter"]');
+    const failed = canvasElement.querySelector('cts-badge[data-result="FAILED"]');
+
+    await step("counts stay totals; the matching badge is pressed", () => {
+      expect(failed.getAttribute("label")).toBe("Failed 1");
+      expect(failed.hasAttribute("pressed")).toBe(true);
+      expect(filter.classList.contains("is-filtering")).toBe(true);
+    });
+
+    await step("the Clear-filters affordance is shown", () => {
+      expect(canvasElement.querySelector('[data-testid="plan-status-filter-clear"]')).toBeTruthy();
+    });
+  },
+};
+
+// R9: toggling a count badge emits cts-plan-status-filter with the result
+// token; "Clear filters" emits { clear: true }. The page coordinator owns the
+// Set — the component only reports the change.
+export const BadgeEmitsFilterEvent = {
+  render: () => html`
+    <cts-plan-status
+      mode="detail"
+      .modules=${PALETTE_MODULES}
+      .activeResultFilter=${new Set(["FAILED"])}
+    ></cts-plan-status>
+  `,
+
+  async play({ canvasElement, step }) {
+    const host = canvasElement.querySelector("cts-plan-status");
+    const events = [];
+    host.addEventListener("cts-plan-status-filter", (e) => events.push(e.detail));
+
+    await step("clicking a count badge emits its result token", () => {
+      canvasElement.querySelector('cts-badge[data-result="WARNING"] .badge').click();
+      expect(events.at(-1)).toEqual({ value: "WARNING" });
+    });
+
+    await step("Clear filters emits { clear: true }", () => {
+      canvasElement.querySelector('[data-testid="plan-status-filter-clear"]').click();
+      expect(events.at(-1)).toEqual({ clear: true });
+    });
   },
 };
 
@@ -436,6 +490,34 @@ export const LogReadonlyNonNavigating = {
   },
 };
 
+// hide-label: a host that wants to place the "Module N of M" label itself
+// (cts-test-nav-controls, so the bar and the Continue button stay centred as
+// siblings with the label on its own row below) sets hide-label to suppress the
+// built-in label. The bar, the "you are here" marker, and segment interactivity
+// are unaffected — only the label is withheld.
+export const LogHideLabel = {
+  render: () => html`
+    <cts-plan-status
+      mode="log"
+      current-instance-id="lb1"
+      .modules=${LOG_MODULES}
+      hide-label
+    ></cts-plan-status>
+  `,
+
+  async play({ canvasElement, step }) {
+    await step("the built-in position label is suppressed", () => {
+      expect(canvasElement.querySelector('[data-testid="plan-status-position"]')).toBeNull();
+    });
+
+    await step("the bar and the 'you are here' marker still render", () => {
+      const segments = canvasElement.querySelectorAll('[data-testid="plan-status-segment"]');
+      expect(segments.length).toBe(LOG_MODULES.length);
+      expect(segments[1].classList.contains("is-current")).toBe(true);
+    });
+  },
+};
+
 // R15/R16: in log mode segments are buttons that emit cts-plan-status-activate
 // (with index, module, and the module's most-recent instance) on click AND on
 // keyboard activation.
@@ -484,7 +566,11 @@ export const DetailActivateCarriesDimmed = {
   async play({ canvasElement, step }) {
     const events = [];
     canvasElement.addEventListener("cts-plan-status-activate", (e) => events.push(e.detail));
-    const segments = canvasElement.querySelectorAll("button.cts-pst-seg");
+    // Detail segments are in-page anchors; swallow the default so a click does
+    // not pollute location.hash for later stories (the activate event still
+    // fires from _onActivate before the default would run).
+    canvasElement.addEventListener("click", (e) => e.preventDefault());
+    const segments = canvasElement.querySelectorAll("a.cts-pst-seg");
 
     await step("a matching (failed) segment activates with dimmed=false", () => {
       segments[1].click(); // test-failed matches the FAILED filter
@@ -521,12 +607,12 @@ export const EmptyRendersNothing = {
 
   async play({ canvasElement }) {
     expect(canvasElement.querySelector('[data-testid="plan-status-track"]')).toBeNull();
-    expect(canvasElement.querySelector('[data-testid="plan-status-summary"]')).toBeNull();
+    expect(canvasElement.querySelector('[data-testid="plan-status-filter"]')).toBeNull();
   },
 };
 
 // Edge state: a single-module plan renders one full-width segment plus the
-// summary.
+// count-badge filter.
 export const SingleModule = {
   render: () => html`
     <div style="width: 600px;">
@@ -558,9 +644,9 @@ export const SingleModule = {
       expect(segments[0].getBoundingClientRect().width).toBeGreaterThan(400);
     });
 
-    await step("the summary still renders", () => {
-      const summary = canvasElement.querySelector('[data-testid="plan-status-summary"]');
-      expect(summary.textContent.trim()).toBe("1 passed");
+    await step("the count-badge filter still renders", () => {
+      const filter = canvasElement.querySelector('[data-testid="plan-status-filter"]');
+      expect(filter.textContent).toContain("Passed 1");
     });
   },
 };

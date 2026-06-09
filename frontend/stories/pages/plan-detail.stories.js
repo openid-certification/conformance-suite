@@ -164,19 +164,15 @@ export const Default = {
       expect(getComputedStyle(segments[0]).minWidth).toBe("0px");
     });
 
-    await step("activating a segment scrolls to + flashes the matching row (R11)", async () => {
+    await step("each detail segment deep-links to its module row (href ↔ row id)", () => {
       const status = canvasElement.querySelector('cts-plan-status[mode="detail"]');
-      const modules = canvasElement.querySelector("cts-plan-modules");
-      // Mirror the page wiring (plan-detail.html getPlan): activate → highlight.
-      status.addEventListener("cts-plan-status-activate", (e) =>
-        modules.highlightModule(e.detail.index),
-      );
-      const segments = status.querySelectorAll("button.cts-pst-seg");
-      segments[1].click();
-      const rows = modules.querySelectorAll(".module-row");
-      await waitFor(() => {
-        expect(rows[1].classList.contains("is-flash")).toBe(true);
-      });
+      const segments = status.querySelectorAll("a.cts-pst-seg");
+      expect(segments.length).toBeGreaterThan(1);
+      // The segment is an in-page anchor whose href targets the row's id;
+      // clicking sets the URL hash → the row's :target highlight + flash
+      // (covered end-to-end by the e2e). Lock the href↔id contract here.
+      expect(segments[1].getAttribute("href")).toBe("#cts-module-1");
+      expect(canvasElement.querySelector("#cts-module-1")).toBeTruthy();
     });
 
     // Actions region: View configuration button present (always visible)

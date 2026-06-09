@@ -351,14 +351,20 @@ test.describe("plan-detail.html — Plan Detail", () => {
     await expect(segments.nth(2)).not.toHaveClass(/cts-pst-seg--pending/);
     await expect(segments.nth(3)).toHaveClass(/cts-pst-seg--skip/);
 
-    // Detail mode shows the count summary (R4).
+    // Detail mode shows the merged count-badge filter (R9) — a "Passed" pill.
     await expect(
-      page.locator('#planDetailStatus [data-testid="plan-status-summary"]'),
-    ).toContainText("passed");
+      page.locator('#planDetailStatus [data-testid="plan-status-filter"]'),
+    ).toContainText("Passed");
 
-    // Clicking a segment scrolls to + flashes the matching module row (R11).
+    // A segment is an in-page anchor: clicking it sets the URL hash to the
+    // module's row, the row gets the persistent :target highlight, and a flash
+    // fires on arrival (note 5).
+    await expect(segments.nth(0)).toHaveJSProperty("tagName", "A");
     await segments.nth(0).click();
-    await expect(page.locator("#planItems .module-row").nth(0)).toHaveClass(/is-flash/);
+    await expect(page).toHaveURL(/#cts-module-0$/);
+    const firstRow = page.locator("#planItems .module-row").nth(0);
+    await expect(firstRow).toHaveAttribute("id", "cts-module-0");
+    await expect(firstRow).toHaveClass(/is-flash/);
   });
 
   test("result filter narrows rows, dims segments, and a dimmed-segment click clears it (R9/R10/R11)", async ({
@@ -410,28 +416,28 @@ test.describe("plan-detail.html — Plan Detail", () => {
     const segments = page.locator('#planDetailStatus [data-testid="plan-status-segment"]');
     await expect(segments.nth(2)).toHaveClass(/cts-pst-seg--fail/);
 
-    // Open the popover and select FAILED.
-    await page.locator("#resultFilterTrigger").click();
-    await expect(page.locator("#resultFilterPanel")).toBeVisible();
-    await page.locator('#resultFilterPanel input[value="FAILED"]').check();
+    // Click the FAILED count badge (the merged summary + filter, R9).
+    await page.locator('#planDetailStatus cts-badge[data-result="FAILED"]').click();
 
     // Rows narrow to the single FAILED module; segments dim except the FAILED
-    // one; the trigger shows the active-count badge.
+    // one; the FAILED badge presses and a Clear-filters button appears.
     const rows = page.locator("#planItems .module-row");
     await expect(rows).toHaveCount(1);
     await expect(rows.first()).toContainText("oidcc-ensure-redirect-uri-in-authorization-request");
     await expect(segments.nth(2)).not.toHaveClass(/is-dimmed/);
     await expect(segments.nth(0)).toHaveClass(/is-dimmed/);
-    await expect(page.locator("#resultFilterCount")).toBeVisible();
+    await expect(page.locator('#planDetailStatus cts-badge[data-result="FAILED"]')).toHaveAttribute(
+      "pressed",
+      "",
+    );
+    await expect(page.locator('[data-testid="plan-status-filter-clear"]')).toBeVisible();
 
-    // Close the popover, then click a DIMMED segment (the passed one). R11: the
-    // coordinator clears the filter first so the row is visible, then flashes it.
-    await page.keyboard.press("Escape");
-    await expect(page.locator("#resultFilterPanel")).toBeHidden();
+    // Click a DIMMED segment (the passed one). R11: the coordinator clears the
+    // filter first so the row is visible, then flashes it.
     await segments.nth(0).click();
 
     await expect(rows).toHaveCount(4);
-    await expect(page.locator("#resultFilterCount")).toBeHidden();
+    await expect(page.locator('[data-testid="plan-status-filter-clear"]')).toHaveCount(0);
     await expect(page.locator('#planItems .module-row[data-module-index="0"]')).toHaveClass(
       /is-flash/,
     );

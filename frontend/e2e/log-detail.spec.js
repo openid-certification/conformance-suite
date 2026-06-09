@@ -329,7 +329,7 @@ test.describe("log-detail.html — new Lit-triad page", () => {
     await expect(bar).toBeVisible();
 
     // The position label reads Module 6 of 28 (AE2/R14).
-    await expect(bar.locator('[data-testid="plan-status-position"]')).toHaveText("Module 6 of 28");
+    await expect(page.locator('[data-testid="progress-position"]')).toHaveText("Module 6 of 28");
 
     // 28 segments; the 6th (index 5) carries the "you are here" marker.
     const segments = bar.locator('[data-testid="plan-status-segment"]');
@@ -375,7 +375,7 @@ test.describe("log-detail.html — new Lit-triad page", () => {
     const bar = page.locator('cts-test-nav-controls cts-plan-status[data-testid="progress"]');
     const segments = bar.locator('[data-testid="plan-status-segment"]');
     await expect(segments.nth(3)).toHaveClass(/is-current/);
-    await expect(bar.locator('[data-testid="plan-status-position"]')).toHaveText("Module 4 of 10");
+    await expect(page.locator('[data-testid="progress-position"]')).toHaveText("Module 4 of 10");
   });
 
   test("U6/R15: clicking a sibling segment navigates to that instance's log", async ({ page }) => {
