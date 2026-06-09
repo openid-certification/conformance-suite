@@ -16,6 +16,10 @@ const PLAN = {
   version: "5.1.24",
   started: "2026-05-22T09:42:13.482Z",
   owner: { sub: "user-123", iss: "https://accounts.google.com" },
+  // The user-set alias lives inside `config` (mirroring the authenticated
+  // /api/plan/{id} shape); the header reads `plan.config.alias`, never a
+  // hoisted top-level `plan.alias`.
+  config: { alias: "fapi2-sp-final-bank" },
 };
 
 export const Default = {
@@ -27,6 +31,12 @@ export const Default = {
     await step("header renders the plan name", async () => {
       expect(header).toBeTruthy();
       expect(header.textContent).toContain(PLAN.planName);
+    });
+
+    await step("Alias row renders the config.alias value", async () => {
+      const aliasRow = header.querySelector('[data-testid="alias-row"]');
+      expect(aliasRow).toBeTruthy();
+      expect(header.textContent).toContain(PLAN.config.alias);
     });
 
     await step("Started renders through cts-time with a hover title", async () => {
@@ -58,6 +68,19 @@ export const MissingStarted = {
   async play({ canvasElement }) {
     const header = /** @type {HTMLElement} */ (canvasElement.querySelector("cts-plan-header"));
     expect(header.querySelector("dd time")).toBeNull();
+  },
+};
+
+export const NoAlias = {
+  // When the plan carries no alias — a public view (whose projection omits
+  // `config` entirely) or a dynamic-registration plan the user left blank —
+  // the Alias row is suppressed, not rendered as an empty cell. The optional
+  // chaining in the component also makes a missing `config` safe.
+  render: () => html`<cts-plan-header .plan=${{ ...PLAN, config: undefined }}></cts-plan-header>`,
+
+  async play({ canvasElement }) {
+    const header = /** @type {HTMLElement} */ (canvasElement.querySelector("cts-plan-header"));
+    expect(header.querySelector('[data-testid="alias-row"]')).toBeNull();
   },
 };
 

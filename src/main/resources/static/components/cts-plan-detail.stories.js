@@ -118,6 +118,25 @@ export const PlanHeaderAdmin = {
   },
 };
 
+export const PlanHeaderWithAlias = {
+  // The user-set alias surfaces from `config.alias` on the authenticated
+  // /api/plan/{id} shape. MOCK_PLAN_DETAIL deliberately carries no config
+  // (so the "no configuration available" view-config path stays exercised
+  // by PlanHeaderDefault), so this story supplies a config inline.
+  render: () =>
+    html`<cts-plan-header
+      .plan=${{ ...MOCK_PLAN_DETAIL, config: { alias: "brazil-op-cert-5" } }}
+    ></cts-plan-header>`,
+  async play({ canvasElement }) {
+    const canvas = within(canvasElement);
+
+    // Alias row renders with the config.alias value
+    const aliasRow = canvasElement.querySelector('[data-testid="alias-row"]');
+    expect(aliasRow).toBeTruthy();
+    expect(canvas.getByText("brazil-op-cert-5")).toBeInTheDocument();
+  },
+};
+
 /**
  * R9 (Unit 5): a plan without a description must NOT render an empty
  * lede paragraph. The header conditionally suppresses the .planLede

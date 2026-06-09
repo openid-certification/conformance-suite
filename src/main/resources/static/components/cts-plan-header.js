@@ -146,8 +146,8 @@ function ensureStylesInjected() {
 
 /**
  * Renders the header card for a plan-detail page: plan name, optional
- * description lede, variant, ID, version, start time, owner (admin only),
- * and certification profile.
+ * description lede, variant, optional alias (from `config.alias`), ID,
+ * version, start time, owner (admin only), and certification profile.
  *
  * Light DOM. Scoped CSS is injected once on first connect; the title uses
  * the `.t-h1` typography utility from the OIDF token sheet, the user-set
@@ -157,7 +157,11 @@ function ensureStylesInjected() {
  *
  * @property {object} plan - Plan object from `/api/plan/{id}`; expects
  *   `_id`, `planName`, `variant`, `description`, `version`, `started`,
- *   `owner`, `certificationProfileName`, `summary`.
+ *   `owner`, `certificationProfileName`, `summary`, and `config.alias`
+ *   (the user-set, URL-safe alias). The alias lives inside the config
+ *   object — it is never hoisted to a top-level `plan.alias` — and is
+ *   absent on public views, whose projection omits `config` entirely, so
+ *   the Alias row simply does not render there.
  * @property {boolean} isAdmin - Reveals the Test Owner row. Reflects the
  *   `is-admin` attribute.
  * @property {boolean} isPublic - Hides owner row on public views. Reflects
@@ -213,6 +217,13 @@ class CtsPlanHeader extends LitElement {
       <dl class="planMeta">
         <dt>Variant:</dt>
         <dd><span class="mono">${variantText}</span></dd>
+
+        ${plan.config?.alias
+          ? html`
+              <dt data-testid="alias-row">Alias:</dt>
+              <dd><span class="mono">${plan.config.alias}</span></dd>
+            `
+          : nothing}
 
         <dt>Plan ID:</dt>
         <dd><span class="mono">${plan._id}</span></dd>
