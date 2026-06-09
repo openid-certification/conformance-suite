@@ -999,8 +999,40 @@ export const WithFinalErrorSlotPopulated = {
   },
 };
 
+// Three plan modules; the test currently viewed (COMPLETED_TEST.testId =
+// "test-inst-001") is the most-recent instance of the SECOND module, so the
+// nav row's progress bar must mark segment 2 and read "Module 2 of 3".
+const NAV_PLAN_MODULES = [
+  {
+    testModule: "oidcc-server-1",
+    instances: ["other-1"],
+    status: "FINISHED",
+    result: "PASSED",
+    _statusResolved: true,
+  },
+  {
+    testModule: "oidcc-server",
+    instances: [COMPLETED_TEST.testId],
+    status: "FINISHED",
+    result: "PASSED",
+    _statusResolved: true,
+  },
+  {
+    testModule: "oidcc-server-3",
+    instances: ["other-3"],
+    status: "FINISHED",
+    result: "FAILED",
+    _statusResolved: true,
+  },
+];
+
 export const WithTestNavControls = {
-  render: () => html`<cts-log-detail-header .testInfo=${COMPLETED_TEST}></cts-log-detail-header>`,
+  render: () =>
+    html`<cts-log-detail-header
+      .testInfo=${COMPLETED_TEST}
+      .planModules=${NAV_PLAN_MODULES}
+      current-instance-id="${COMPLETED_TEST.testId}"
+    ></cts-log-detail-header>`,
   async play({ canvasElement, step }) {
     await waitFor(() => {
       const el = canvasElement.querySelector("cts-test-nav-controls");
@@ -1036,6 +1068,21 @@ export const WithTestNavControls = {
       // tests; the slim cluster must NOT render its own Repeat copy.
       expect(navRow.querySelector('[data-testid="repeat-btn"]')).toBeNull();
       expect(navRow.querySelector('[data-testid="back-btn"]')).toBeNull();
+    });
+
+    await step("header forwards planModules + currentInstanceId to the progress bar", async () => {
+      // The progress bar is the cts-plan-status segment bar (U6). The
+      // viewed instance is the 2nd module's, so the marker + label track it.
+      const bar = await waitFor(() => {
+        const el = navRow.querySelector('cts-plan-status[data-testid="progress"]');
+        if (!el) throw new Error("progress bar not yet rendered");
+        return el;
+      });
+      const segments = bar.querySelectorAll('[data-testid="plan-status-segment"]');
+      expect(segments.length).toBe(3);
+      expect(segments[1].classList.contains("is-current")).toBe(true);
+      const position = bar.querySelector('[data-testid="plan-status-position"]');
+      expect(position.textContent.trim()).toBe("Module 2 of 3");
     });
 
     await step("IA regression: nav row precedes the sticky status bar in DOM order", async () => {

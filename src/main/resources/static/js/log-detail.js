@@ -271,8 +271,11 @@ function updateBreadcrumb(testInfo, planName) {
 
 /**
  * Fetch the plan record and apply it to:
- *   - the nav-controls progress wiring (currentIndex / totalCount / nextEnabled)
+ *   - the header's `planModules` (forwarded to the nav row's
+ *     cts-test-nav-controls → cts-plan-status progress bar) plus the
+ *     nav-controls `nextEnabled` flag (Continue Plan visibility)
  *   - the page-level breadcrumb's middle label (planName)
+ *   - the post-paint per-sibling /api/info fan-out that colours segments
  * Returns the parsed plan JSON on success, or null on any failure / missing planId.
  *
  * @param {any} testInfo - /api/info payload.
@@ -307,19 +310,160 @@ async function fetchAndApplyPlanState(testInfo) {
     const thisModuleIndex = modules.findIndex(
       (m) => m.testModule === testInfo.testName && variantsMatch(m.variant, testInfo.variant),
     );
+    const safeIndex = thisModuleIndex >= 0 ? thisModuleIndex : 0;
 
+    // Seed the nav row's progress bar from the cached plan modules. Copy
+    // each module's `instances` into a fresh array so the fan-out below can
+    // mutate the working set without aliasing the cached `/api/plan` data.
+    // Segments render instantly (topology + the "you are here" marker +
+    // sibling navigation, KTD5/R17); per-sibling status colours arrive from
+    // the post-paint /api/info fan-out (R5/R18).
+    const navModules = modules.map((mod) => ({
+      ...mod,
+      instances: Array.isArray(mod.instances) ? mod.instances.slice() : [],
+    }));
+
+    /** @type {any} */
+    const header = document.getElementById("logDetailHeader");
+    if (header) {
+      header.planModules = navModules;
+    }
+
+    // `nextEnabled` lives on the nav-controls element itself (the header
+    // does not bind it as a Lit attribute, so an imperative assignment
+    // survives the header's re-renders). Continue Plan shows when a next
+    // module exists.
     const navControls = document.querySelector("cts-test-nav-controls");
     if (navControls) {
-      const safeIndex = thisModuleIndex >= 0 ? thisModuleIndex : 0;
-      navControls.currentIndex = safeIndex;
-      navControls.totalCount = modules.length;
       navControls.nextEnabled = safeIndex >= 0 && safeIndex + 1 < modules.length;
     }
+
+    // After first paint, colour each sibling segment by fetching its most-
+    // recent instance's status (KTD5). Frontend-only, public-flag-threaded,
+    // concurrency-capped, and memoized per instance.
+    resolveSegmentStatuses(navModules);
+
     return planData;
   } catch (err) {
     console.warn("[log-detail] /api/plan failed:", err);
     return null;
   }
+}
+
+/** ──────────── plan-status segment colouring (KTD5) ──────────── */
+
+/**
+ * Memo of resolved `/api/info/<instance>` payloads keyed by instance id, so
+ * re-navigating between siblings never refetches a status already in hand.
+ * Stores the `{ status, result }` slice (or `null` for a settled 404 / error,
+ * which still counts as "resolved" so the segment stops pulsing — R18/KTD3).
+ * @type {Map<string, { status?: string, result?: string } | null>}
+ */
+const segmentStatusMemo = new Map();
+
+/** Max concurrent `/api/info` fan-out requests (KTD5 — bound the burst). */
+const SEGMENT_FANOUT_CONCURRENCY = 6;
+
+/**
+ * Fetch one sibling module's most-recent-instance status and merge it into
+ * the working module entry, setting `_statusResolved` in BOTH the success
+ * and the error/404 branches so the segment settles (colours, or falls back
+ * to the neutral skip) instead of pulsing pending forever (R18/KTD3). Threads
+ * the public flag exactly like the page's other `/api/info` calls.
+ *
+ * @param {{instances?: string[], status?: string, result?: string,
+ *   _statusResolved?: boolean}} mod - The working module entry to mutate.
+ * @returns {Promise<void>}
+ */
+async function resolveOneSegment(mod) {
+  const instances = Array.isArray(mod.instances) ? mod.instances : [];
+  const lastInstance = instances.length ? instances[instances.length - 1] : null;
+  if (!lastInstance) return; // never-run module → static skip, no fetch
+  if (segmentStatusMemo.has(lastInstance)) {
+    const cached = segmentStatusMemo.get(lastInstance);
+    if (cached) {
+      mod.status = cached.status;
+      mod.result = cached.result;
+    }
+    mod._statusResolved = true;
+    return;
+  }
+  try {
+    const response = await fetch(
+      "/api/info/" + encodeURIComponent(lastInstance) + (isPublic ? "?public=true" : ""),
+    );
+    if (!response.ok) {
+      // Settle without colour (e.g. a 404 for an unpublished sibling). The
+      // segment lands on the neutral skip fill rather than pulsing forever.
+      segmentStatusMemo.set(lastInstance, null);
+      mod._statusResolved = true;
+      return;
+    }
+    const info = await response.json();
+    const slice = { status: info.status, result: info.result };
+    segmentStatusMemo.set(lastInstance, slice);
+    mod.status = slice.status;
+    mod.result = slice.result;
+    mod._statusResolved = true;
+  } catch (err) {
+    // Network / parse failure: settle the segment too (R18). Do NOT memoize
+    // a transient failure — a later navigation may retry the fetch.
+    console.warn("[log-detail] segment status fetch failed:", err);
+    mod._statusResolved = true;
+  }
+}
+
+/**
+ * Fan out `/api/info/<lastInstance>` per sibling module to colour the
+ * plan-status segments after first paint (KTD5). Concurrency is capped via a
+ * fixed-size worker pool; each instance is memoized so re-navigating siblings
+ * does not refetch. When the pool drains, re-assigns `header.planModules`
+ * with a FRESH array so Lit's reference-equality `hasChanged` fires and the
+ * pending segments settle to their colours.
+ *
+ * @param {Array<{instances?: string[], status?: string, result?: string,
+ *   _statusResolved?: boolean}>} navModules - The working module set, mutated
+ *   in place as each sibling resolves.
+ * @returns {Promise<void>}
+ */
+async function resolveSegmentStatuses(navModules) {
+  const queue = navModules.slice();
+  async function worker() {
+    for (;;) {
+      const mod = queue.shift();
+      if (!mod) return;
+      await resolveOneSegment(mod);
+    }
+  }
+  const poolSize = Math.min(SEGMENT_FANOUT_CONCURRENCY, queue.length);
+  await Promise.all(Array.from({ length: poolSize }, worker));
+
+  // Reassign with a fresh array so cts-plan-status observes the change
+  // (Lit's default hasChanged is reference equality).
+  /** @type {any} */
+  const header = document.getElementById("logDetailHeader");
+  if (header) {
+    header.planModules = navModules.map((mod) => ({ ...mod }));
+  }
+}
+
+/**
+ * Navigate to a sibling instance's log when a progress segment is activated
+ * (R15). The event bubbles + is composed up from cts-plan-status through
+ * cts-test-nav-controls and the header; `detail.instanceId` is the module's
+ * most-recent instance. Threads the public flag so an anonymous viewer stays
+ * in the public view. A segment with no instance (never-run sibling) carries
+ * a null instanceId and is a no-op.
+ *
+ * @param {Event} event - The bubbled `cts-plan-status-activate` CustomEvent.
+ */
+function handlePlanStatusActivate(event) {
+  const detail = /** @type {CustomEvent} */ (event).detail;
+  const instanceId = detail && detail.instanceId;
+  if (!instanceId) return;
+  const target =
+    "/log-detail.html?log=" + encodeURIComponent(instanceId) + (isPublic ? "&public=true" : "");
+  window.location.assign(target);
 }
 
 /** ──────────── /api/uploaded-images ──────────── */
@@ -1086,6 +1230,11 @@ async function bootstrap() {
   if (header) {
     header.isAdmin = isAdmin;
     header.isPublic = isPublic;
+    // The instance being viewed drives the plan-status "you are here"
+    // marker + "Module N of M" label in the nav row's progress bar (R14/
+    // R17). Set it before /api/plan resolves so the marker lands as soon
+    // as the modules arrive.
+    header.currentInstanceId = testId;
     header.addEventListener("cts-edit-config", handleEditConfig);
     header.addEventListener("cts-share-link", handleShareLink);
     header.addEventListener("cts-publish", handlePublish);
@@ -1098,6 +1247,11 @@ async function bootstrap() {
     // duplicate "Repeat Test" button was removed; the status bar
     // primary owns the cts-repeat-test event by itself.
     header.addEventListener("cts-continue", handleContinue);
+    // R15: a progress segment click bubbles cts-plan-status-activate up
+    // through cts-test-nav-controls to the header; open that sibling
+    // instance's log. Suppressed on readonly/public (segments render
+    // non-navigating), so this listener simply never fires there.
+    header.addEventListener("cts-plan-status-activate", handlePlanStatusActivate);
   }
 
   let testInfo;

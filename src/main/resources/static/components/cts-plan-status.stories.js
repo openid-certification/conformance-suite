@@ -391,6 +391,51 @@ export const LogCurrentMarker = {
   },
 };
 
+// Decision 1 (U6): a readonly log surface (public / readonly view) renders
+// NON-interactive segments — <span role="img">, no <button>, no activate
+// emission — while the "you are here" marker and the "Module N of M" label
+// still render. Used by cts-test-nav-controls on the public log view so
+// sibling navigation is suppressed (a UX affordance; backend /api/info
+// gating remains the real access boundary).
+export const LogReadonlyNonNavigating = {
+  render: () => html`
+    <cts-plan-status
+      mode="log"
+      current-instance-id="lb1"
+      .modules=${LOG_MODULES}
+      readonly
+    ></cts-plan-status>
+  `,
+
+  async play({ canvasElement, step }) {
+    await step("no segment is a button (non-navigating)", () => {
+      expect(canvasElement.querySelector("button.cts-pst-seg")).toBeNull();
+      const spans = canvasElement.querySelectorAll("span.cts-pst-seg");
+      expect(spans.length).toBe(LOG_MODULES.length);
+      spans.forEach((seg) => expect(seg.getAttribute("role")).toBe("img"));
+    });
+
+    await step("activating a segment emits no event", () => {
+      const events = [];
+      canvasElement.addEventListener("cts-plan-status-activate", (e) => events.push(e));
+      const span = canvasElement.querySelector("span.cts-pst-seg");
+      span.click();
+      expect(events.length).toBe(0);
+    });
+
+    await step("the 'you are here' marker still renders on the current segment", () => {
+      const segments = canvasElement.querySelectorAll('[data-testid="plan-status-segment"]');
+      expect(segments[1].classList.contains("is-current")).toBe(true);
+      expect(segments[0].classList.contains("is-current")).toBe(false);
+    });
+
+    await step("the position label still shows", () => {
+      const position = canvasElement.querySelector('[data-testid="plan-status-position"]');
+      expect(position.textContent.trim()).toBe("Module 2 of 3");
+    });
+  },
+};
+
 // R15/R16: in log mode segments are buttons that emit cts-plan-status-activate
 // (with index, module, and the module's most-recent instance) on click AND on
 // keyboard activation.

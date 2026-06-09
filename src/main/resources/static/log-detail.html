@@ -69,6 +69,20 @@
 <script type="module" src="/js/log-detail.js"></script>
 
 <style>
+  /* FOUC reservation for the nav row's plan-status progress bar
+     (cts-plan-status, log mode). A custom element is display:inline until
+     upgraded, so it reserves no height before its definition loads —
+     and log-detail is the slowest-upgrading page (cts-log-detail-header
+     transitively pulls in a long component chain). Reserve the bar's
+     measured height (track ~14px + the "Module N of M" label line ~24px
+     incl. its margin-top) so the nav row does not jump when the
+     component upgrades. Matches plan-detail.html's 38px reservation for
+     the same bar. */
+  cts-plan-status:not(:defined) {
+    display: block;
+    min-height: 38px;
+  }
+
   /* Page-local layout for log-detail.html. Single-column at narrow
      widths; widens to a two-column grid (main + rail) at ≥ 1440 px when
      the user preference allows U8's cts-log-toc. The

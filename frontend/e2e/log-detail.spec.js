@@ -271,6 +271,255 @@ test.describe("log-detail.html — new Lit-triad page", () => {
     expect(orderCheck.navBeforeBar).toBe(true);
   });
 
+  // ── U6: plan-status progress bar (cts-plan-status, log mode) ─────────
+  // Plan: docs/plans/2026-06-08-003-feat-plan-status-component-plan.md
+  // The orange single-track position bar is replaced by the segmented
+  // cts-plan-status bar in the nav row: one segment per module, the "you
+  // are here" marker on the viewed instance's module, "Module N of M", and
+  // sibling navigation (R13/R14/R15/R17/R5/R18).
+
+  /**
+   * Build N plan modules whose `markedIndex` module carries `markedInstances`
+   * (so it owns the viewed instance) and every other module carries a single
+   * sibling instance `s-<i>` so the post-paint /api/info fan-out fires for it.
+   *
+   * @param {number} count
+   * @param {{ markedIndex: number, markedInstances: string[] }} opts
+   * @returns {Array<{testModule: string, variant: object, instances: string[]}>}
+   */
+  function makePlanModules(count, { markedIndex, markedInstances }) {
+    return Array.from({ length: count }, (_, i) => ({
+      testModule: i === markedIndex ? "oidcc-server" : `sibling-${i}`,
+      variant:
+        i === markedIndex ? { client_auth_type: "client_secret_basic", response_type: "code" } : {},
+      instances: i === markedIndex ? markedInstances : [`s-${i}`],
+    }));
+  }
+
+  test("U6/AE2: viewing test 6 of 28 marks segment 6 and reads 'Module 6 of 28'", async ({
+    page,
+  }) => {
+    await setupFailFast(page);
+    // 28 modules; the viewed test (test-inst-001) is the most-recent (only)
+    // instance of the 6th module (index 5).
+    const planModules = makePlanModules(28, {
+      markedIndex: 5,
+      markedInstances: [MOCK_TEST_STATUS.testId],
+    });
+    await setupV2Routes(page, {
+      testInfo: MOCK_TEST_STATUS,
+      logEntries: MOCK_LOG_ENTRIES,
+      planModules,
+    });
+    // Sibling fan-out: each non-marked module's last instance s-<i> resolves
+    // to a PASSED status. Registered AFTER setupV2Routes so it shadows the
+    // fail-fast catch-all but not the specific main-test /api/info route.
+    await page.route("**/api/info/s-*", (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({ status: "FINISHED", result: "PASSED" }),
+      }),
+    );
+    await setupCommonRoutes(page);
+
+    await page.goto(`/log-detail.html?log=${encodeURIComponent(MOCK_TEST_STATUS.testId)}`);
+
+    const bar = page.locator('cts-test-nav-controls cts-plan-status[data-testid="progress"]');
+    await expect(bar).toBeVisible();
+
+    // The position label reads Module 6 of 28 (AE2/R14).
+    await expect(bar.locator('[data-testid="plan-status-position"]')).toHaveText("Module 6 of 28");
+
+    // 28 segments; the 6th (index 5) carries the "you are here" marker.
+    const segments = bar.locator('[data-testid="plan-status-segment"]');
+    await expect(segments).toHaveCount(28);
+    await expect(segments.nth(5)).toHaveClass(/is-current/);
+    await expect(segments.nth(0)).not.toHaveClass(/is-current/);
+  });
+
+  test("U6/R17: viewing an OLDER re-run still marks the right segment", async ({ page }) => {
+    await setupFailFast(page);
+    // The marked module has TWO instances; the viewed one is the FIRST
+    // (older re-run), not the module's last. The marker must still land on it
+    // because cts-plan-status matches the FULL instances list.
+    const planModules = makePlanModules(10, {
+      markedIndex: 3,
+      markedInstances: [MOCK_TEST_STATUS.testId, "newer-rerun"],
+    });
+    await setupV2Routes(page, {
+      testInfo: MOCK_TEST_STATUS,
+      logEntries: MOCK_LOG_ENTRIES,
+      planModules,
+    });
+    await page.route("**/api/info/s-*", (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({ status: "FINISHED", result: "PASSED" }),
+      }),
+    );
+    // The marked module's LAST instance (newer-rerun) is what its segment's
+    // status fan-out fetches — give it a result too.
+    await page.route("**/api/info/newer-rerun*", (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({ status: "FINISHED", result: "FAILED" }),
+      }),
+    );
+    await setupCommonRoutes(page);
+
+    await page.goto(`/log-detail.html?log=${encodeURIComponent(MOCK_TEST_STATUS.testId)}`);
+
+    const bar = page.locator('cts-test-nav-controls cts-plan-status[data-testid="progress"]');
+    const segments = bar.locator('[data-testid="plan-status-segment"]');
+    await expect(segments.nth(3)).toHaveClass(/is-current/);
+    await expect(bar.locator('[data-testid="plan-status-position"]')).toHaveText("Module 4 of 10");
+  });
+
+  test("U6/R15: clicking a sibling segment navigates to that instance's log", async ({ page }) => {
+    await setupFailFast(page);
+    const planModules = makePlanModules(8, {
+      markedIndex: 2,
+      markedInstances: [MOCK_TEST_STATUS.testId],
+    });
+    await setupV2Routes(page, {
+      testInfo: MOCK_TEST_STATUS,
+      logEntries: MOCK_LOG_ENTRIES,
+      planModules,
+    });
+    await page.route("**/api/info/s-*", (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({ status: "FINISHED", result: "PASSED" }),
+      }),
+    );
+    await setupCommonRoutes(page);
+
+    await page.goto(`/log-detail.html?log=${encodeURIComponent(MOCK_TEST_STATUS.testId)}`);
+
+    const bar = page.locator('cts-test-nav-controls cts-plan-status[data-testid="progress"]');
+    await expect(bar).toBeVisible();
+
+    // Click the FIRST sibling segment (index 0 → instance s-0). The page's
+    // cts-plan-status-activate handler navigates to that instance's log.
+    await bar.locator("button.cts-pst-seg").first().click();
+    await page.waitForURL("**/log-detail.html?log=s-0");
+    expect(new URL(page.url()).searchParams.get("log")).toBe("s-0");
+  });
+
+  test("U6/R5/R18: siblings pending then colour after fan-out; a 404 sibling settles to skip", async ({
+    page,
+  }) => {
+    await setupFailFast(page);
+    // 4 modules: marked at index 0; sibling 1 resolves PASSED, sibling 2
+    // resolves FAILED, sibling 3 404s (its latest run is inaccessible).
+    const planModules = [
+      {
+        testModule: "oidcc-server",
+        variant: { client_auth_type: "client_secret_basic", response_type: "code" },
+        instances: [MOCK_TEST_STATUS.testId],
+      },
+      { testModule: "sib-pass", variant: {}, instances: ["sib-pass-1"] },
+      { testModule: "sib-fail", variant: {}, instances: ["sib-fail-1"] },
+      { testModule: "sib-404", variant: {}, instances: ["sib-404-1"] },
+    ];
+    await setupV2Routes(page, {
+      testInfo: MOCK_TEST_STATUS,
+      logEntries: MOCK_LOG_ENTRIES,
+      planModules,
+    });
+    await page.route("**/api/info/sib-pass-1*", (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({ status: "FINISHED", result: "PASSED" }),
+      }),
+    );
+    await page.route("**/api/info/sib-fail-1*", (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({ status: "FINISHED", result: "FAILED" }),
+      }),
+    );
+    // 404 sibling: its segment must settle to the static skip fill, not pulse
+    // pending forever (R18/KTD3 — _statusResolved set in the error branch).
+    await page.route("**/api/info/sib-404-1*", (route) => route.fulfill({ status: 404, body: "" }));
+    await setupCommonRoutes(page);
+
+    await page.goto(`/log-detail.html?log=${encodeURIComponent(MOCK_TEST_STATUS.testId)}`);
+
+    const bar = page.locator('cts-test-nav-controls cts-plan-status[data-testid="progress"]');
+    const segments = bar.locator('[data-testid="plan-status-segment"]');
+    await expect(segments).toHaveCount(4);
+
+    // After the fan-out resolves: sibling 1 = pass, sibling 2 = fail, sibling
+    // 3 settled to skip (NOT pending). The marked module (the viewed test)
+    // has no fan-out status of its own (its only instance is the viewed one,
+    // which 200s through the main /api/info route) → resolves to PASSED.
+    await expect(segments.nth(1)).toHaveClass(/cts-pst-seg--pass/);
+    await expect(segments.nth(2)).toHaveClass(/cts-pst-seg--fail/);
+    await expect(segments.nth(3)).toHaveClass(/cts-pst-seg--skip/);
+    // The 404 segment must NOT keep the pending class.
+    await expect(segments.nth(3)).not.toHaveClass(/cts-pst-seg--pending/);
+  });
+
+  test("U6 public view: sibling fan-out carries ?public=true and segments are non-navigating", async ({
+    page,
+  }) => {
+    /** @type {string[]} */
+    const apiRequests = [];
+    page.on("request", (req) => {
+      if (req.url().includes("/api/info/")) apiRequests.push(req.url());
+    });
+
+    await setupFailFast(page);
+    const planModules = makePlanModules(5, {
+      markedIndex: 1,
+      markedInstances: [MOCK_TEST_STATUS.testId],
+    });
+    await setupV2Routes(page, {
+      testInfo: MOCK_TEST_STATUS,
+      logEntries: MOCK_LOG_ENTRIES,
+      planModules,
+    });
+    await page.route("**/api/info/s-*", (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({ status: "FINISHED", result: "PASSED" }),
+      }),
+    );
+    await setupCommonRoutes(page, { user: null }); // anonymous viewer
+
+    await page.goto(
+      `/log-detail.html?log=${encodeURIComponent(MOCK_TEST_STATUS.testId)}&public=true`,
+    );
+
+    const bar = page.locator('cts-test-nav-controls cts-plan-status[data-testid="progress"]');
+    await expect(bar).toBeVisible();
+
+    // Wait until the sibling fan-out has fired (a sibling segment colours).
+    await expect(bar.locator('[data-testid="plan-status-segment"]').nth(0)).toHaveClass(
+      /cts-pst-seg--pass/,
+    );
+
+    // Every sibling fan-out request carried public=true.
+    const siblingCalls = apiRequests.filter((u) => u.includes("/api/info/s-"));
+    expect(siblingCalls.length).toBeGreaterThan(0);
+    for (const url of siblingCalls) {
+      expect(new URL(url).searchParams.get("public")).toBe("true");
+    }
+
+    // Segments are non-navigating on the public view (Decision 1): rendered
+    // as <span role="img">, never <button>.
+    await expect(bar.locator("button.cts-pst-seg")).toHaveCount(0);
+    await expect(bar.locator("span.cts-pst-seg").first()).toBeVisible();
+  });
+
   test("breadcrumb renders Plans > <planName> > <testName> for a planned test", async ({
     page,
   }) => {
