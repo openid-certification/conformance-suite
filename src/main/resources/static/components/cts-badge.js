@@ -72,12 +72,11 @@ const STYLE_ID = "cts-badge-styles";
  * communicates "you can click this" and is reserved for badges where the
  * affordance is real.
  *
- * `b-rev` (Review) renders on `--bg-muted` (warm-neutral, #F8F7F5) with
- * `--ink-700` text. The fill is identical in both states — the ring is
- * the only difference. Without the ring, a white background would
- * vanish against the page; `--bg-muted` keeps Review legible as a
- * read-only chip. The token system does not currently define a
- * `--status-review-bg`; revisit if one lands in the archive.
+ * `b-rev` (Review) renders teal — `--status-review-bg` (light teal) fill with
+ * a darkened-`--status-review` text — so the Review chip reads as the same hue
+ * as the cts-plan-status Review segment instead of a neutral grey. The
+ * saturated `--status-review` itself is too light to use as chip text, so the
+ * text darkens it toward ink for AA contrast on the light fill.
  *
  * `b-info-subtle` retokenizes the legacy Bootstrap `info-subtle` look
  * (used for section description blocks in `schedule-test.html`) onto
@@ -163,8 +162,11 @@ const STYLE_TEXT = css`
     color: var(--ink-600, #4f4940);
   }
   cts-badge .b-rev {
-    background: var(--bg-muted, #f8f7f5);
-    color: var(--ink-700, #322e28);
+    background: var(--status-review-bg);
+    /* The saturated --status-review (#6AC4C2) is too light to sit as text on
+       the light teal bg, so darken it toward ink for an AA-legible teal that
+       still reads as the same hue family as the segment fill. */
+    color: color-mix(in srgb, var(--status-review) 42%, var(--ink-900));
   }
   /* Static informational pill — paints from the same --status-info-*
      palette as b-info-subtle, but inherits the canonical status-pill
@@ -243,10 +245,11 @@ const STYLE_TEXT = css`
      here (info, running, secondary, the bg-* utilities) keep the
      interactive ring with no inversion; the result-summary filter only
      toggles the six variants below (pass/fail/warn/skip/info-subtle/
-     review), which mirror COUNT_BADGE_VARIANTS in cts-log-viewer. The
-     review variant has no saturated --status-review pair, so it inverts
-     to a dark neutral pill (--ink-700 fill / --bg-muted text) — a clear
-     ON state that is neutral-hued by design. */
+     review), which mirror COUNT_BADGE_VARIANTS in cts-log-viewer. Review
+     inverts to the saturated --status-review teal fill with dark ink text
+     (the saturated teal is light enough to carry dark text but not light
+     text, so this is dark-on-teal rather than the light-on-saturated form
+     the other variants use). */
   cts-badge .b-pass.is-pressed {
     background: var(--status-pass);
     color: var(--status-pass-bg);
@@ -268,8 +271,8 @@ const STYLE_TEXT = css`
     color: var(--status-info-bg);
   }
   cts-badge .b-rev.is-pressed {
-    background: var(--ink-700, #322e28);
-    color: var(--bg-muted, #f8f7f5);
+    background: var(--status-review);
+    color: var(--ink-900);
   }
   /* Hover and focus affordance — only on interactive badges. Read-only
      badges deliberately render no hover state so they read as labels,
