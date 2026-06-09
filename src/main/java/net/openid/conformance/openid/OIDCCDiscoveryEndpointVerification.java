@@ -17,6 +17,8 @@ import net.openid.conformance.condition.client.CheckDiscEndpointScopesSupportedC
 import net.openid.conformance.condition.client.CheckDiscEndpointLocalesCanonicalCasing;
 import net.openid.conformance.condition.client.CheckDiscEndpointLocalesSyntax;
 import net.openid.conformance.condition.client.CheckDiscEndpointScopesSupportedSyntax;
+import net.openid.conformance.condition.client.CheckForUnexpectedParametersInServerMetadata;
+import net.openid.conformance.condition.client.ValidateServerMetadataAgainstSchema;
 import net.openid.conformance.condition.client.CheckDiscEndpointSubjectTypesSupported;
 import net.openid.conformance.condition.client.CheckDiscEndpointTokenEndpoint;
 import net.openid.conformance.condition.client.CheckDiscEndpointUserinfoEndpoint;
@@ -96,6 +98,9 @@ public class OIDCCDiscoveryEndpointVerification extends AbstractTestModule {
 		callAndContinueOnFailure(CheckDiscEndpointDiscoveryUrl.class,Condition.ConditionResult.FAILURE);
 		callAndContinueOnFailure(CheckDiscEndpointIssuer.class, Condition.ConditionResult.FAILURE, "OIDCD-4.3", "OIDCD-7.2");
 		callAndContinueOnFailure(CheckDiscEndpointIssuerIsValidUrl.class, Condition.ConditionResult.FAILURE, "RFC8414-2");
+
+		callAndContinueOnFailure(ValidateServerMetadataAgainstSchema.class, Condition.ConditionResult.FAILURE, "OIDCD-3", "RFC8414-2");
+		callAndContinueOnFailure(CheckForUnexpectedParametersInServerMetadata.class, Condition.ConditionResult.WARNING, "OIDCD-3", "RFC8414-2");
 
 		callAndContinueOnFailure(CheckDiscEndpointSubjectTypesSupported.class, Condition.ConditionResult.FAILURE, "OIDCD-3");
 
