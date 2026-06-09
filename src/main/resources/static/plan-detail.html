@@ -213,6 +213,18 @@
             outline: none;
             box-shadow: var(--focus-ring);
         }
+        /* Screen-reader-only live region for filter-change announcements. */
+        .oidf-visually-hidden {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border: 0;
+        }
     </style>
 </head>
 
@@ -315,7 +327,7 @@
                 <div class="oidf-modules-toolbar">
                     <button type="button" id="resultFilterTrigger"
                         class="oidf-result-filter-trigger" popovertarget="resultFilterPanel"
-                        aria-controls="resultFilterPanel" aria-expanded="false">
+                        aria-controls="resultFilterPanel" aria-haspopup="dialog" aria-expanded="false">
                         <cts-icon name="filter" size="16" aria-hidden="true"></cts-icon>
                         <span>Filter by result</span>
                         <cts-badge id="resultFilterCount" variant="primary" hidden></cts-badge>
@@ -339,6 +351,9 @@
                             <button type="button" id="resultFilterClear" class="oidf-result-filter-clear">Clear</button>
                         </div>
                     </div>
+                    <!-- Polite live region: announces filter changes to assistive
+                         tech (the row narrowing is otherwise silent). -->
+                    <span id="resultFilterStatus" class="oidf-visually-hidden" aria-live="polite"></span>
                 </div>
                 <cts-plan-modules id="planDetailModules"></cts-plan-modules>
             </div>
@@ -904,6 +919,25 @@
                 } else {
                     countBadge.hidden = true;
                     countBadge.removeAttribute('count');
+                }
+            }
+            // Announce the filter change to assistive tech — the row narrowing is
+            // otherwise silent. Read the friendly labels off the checked boxes so
+            // no result-token→label map is needed. applyResultFilter is only
+            // called on user action, so this never fires a spurious announcement.
+            var liveEl = document.getElementById('resultFilterStatus');
+            if (liveEl) {
+                if (activeResultFilter.size) {
+                    var labels = [];
+                    document
+                        .querySelectorAll('#resultFilterPanel input[type="checkbox"]:checked')
+                        .forEach(function (cb) {
+                            var span = cb.parentElement && cb.parentElement.querySelector('span');
+                            labels.push(span ? span.textContent : cb.value);
+                        });
+                    liveEl.textContent = 'Filtering modules by: ' + labels.join(', ') + '.';
+                } else {
+                    liveEl.textContent = 'Filter cleared. Showing all modules.';
                 }
             }
         }
