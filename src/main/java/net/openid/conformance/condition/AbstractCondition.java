@@ -70,6 +70,12 @@ import java.util.Set;
 public abstract class AbstractCondition implements Condition, DataUtils {
 	public static final String SUPPORT_EMAIL = "certification@oidf.org";
 
+	// URL for opening a NEW issue, e.g. when suggesting that a spec-defined field be added to the
+	// suite. This is deliberately separate from inline links to *specific existing* issues (which
+	// always point at our GitLab to explain history): a fork of the suite can override this constant
+	// to direct new-issue reports to its own tracker.
+	public static final String NEW_ISSUE_URL = "https://gitlab.com/openid/conformance-suite/-/work_items/new";
+
 	private static final Logger logger = LoggerFactory.getLogger(AbstractCondition.class);
 
 	private String testId;
