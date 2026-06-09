@@ -254,7 +254,7 @@ export const GUIDED_WIZARD_TREE = {
                       plan_name: "fapi1-advanced-final-client-test-plan",
                       variants: {
                         fapi_profile: "openbanking_uk",
-                        fapi_auth_request_method: "plain",
+                        fapi_auth_request_method: "by_value",
                         fapi_response_mode: "plain_response",
                         client_auth_type: "private_key_jwt",
                       },
@@ -267,7 +267,7 @@ export const GUIDED_WIZARD_TREE = {
                       plan_name: "fapi1-advanced-final-client-test-plan",
                       variants: {
                         fapi_profile: "openbanking_uk",
-                        fapi_auth_request_method: "plain",
+                        fapi_auth_request_method: "by_value",
                         fapi_response_mode: "plain_response",
                         client_auth_type: "mtls",
                       },
@@ -290,7 +290,7 @@ export const GUIDED_WIZARD_TREE = {
                       plan_name: "fapi1-advanced-final-test-plan",
                       variants: {
                         fapi_profile: "openbanking_uk",
-                        fapi_auth_request_method: "plain",
+                        fapi_auth_request_method: "by_value",
                         fapi_response_mode: "plain_response",
                         client_auth_type: "private_key_jwt",
                       },
@@ -303,7 +303,7 @@ export const GUIDED_WIZARD_TREE = {
                       plan_name: "fapi1-advanced-final-test-plan",
                       variants: {
                         fapi_profile: "openbanking_uk",
-                        fapi_auth_request_method: "plain",
+                        fapi_auth_request_method: "by_value",
                         fapi_response_mode: "plain_response",
                         client_auth_type: "mtls",
                       },
