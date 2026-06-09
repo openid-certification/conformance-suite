@@ -361,6 +361,82 @@ test.describe("plan-detail.html — Plan Detail", () => {
     await expect(page.locator("#planItems .module-row").nth(0)).toHaveClass(/is-flash/);
   });
 
+  test("result filter narrows rows, dims segments, and a dimmed-segment click clears it (R9/R10/R11)", async ({
+    page,
+  }) => {
+    await setupFailFast(page);
+
+    await page.route("**/api/plan/plan-abc-123", (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(MOCK_PLAN_DETAIL),
+      }),
+    );
+    await page.route("**/api/info/test-inst-001*", (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({ ...MOCK_TEST_STATUS, status: "FINISHED", result: "PASSED" }),
+      }),
+    );
+    await page.route("**/api/info/test-inst-002*", (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({ ...MOCK_TEST_STATUS, status: "FINISHED", result: "WARNING" }),
+      }),
+    );
+    await page.route("**/api/info/test-inst-003*", (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({ ...MOCK_TEST_STATUS, status: "FINISHED", result: "FAILED" }),
+      }),
+    );
+    // The FAILED row triggers an R28 /api/log deep-link fetch.
+    await page.route("**/api/log/test-inst-003*", (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify([{ _id: "e1", result: "FAILURE", time: 1 }]),
+      }),
+    );
+
+    await setupCommonRoutes(page);
+
+    await page.goto("/plan-detail.html?plan=plan-abc-123");
+
+    const segments = page.locator('#planDetailStatus [data-testid="plan-status-segment"]');
+    await expect(segments.nth(2)).toHaveClass(/cts-pst-seg--fail/);
+
+    // Open the popover and select FAILED.
+    await page.locator("#resultFilterTrigger").click();
+    await expect(page.locator("#resultFilterPanel")).toBeVisible();
+    await page.locator('#resultFilterPanel input[value="FAILED"]').check();
+
+    // Rows narrow to the single FAILED module; segments dim except the FAILED
+    // one; the trigger shows the active-count badge.
+    const rows = page.locator("#planItems .module-row");
+    await expect(rows).toHaveCount(1);
+    await expect(rows.first()).toContainText("oidcc-ensure-redirect-uri-in-authorization-request");
+    await expect(segments.nth(2)).not.toHaveClass(/is-dimmed/);
+    await expect(segments.nth(0)).toHaveClass(/is-dimmed/);
+    await expect(page.locator("#resultFilterCount")).toBeVisible();
+
+    // Close the popover, then click a DIMMED segment (the passed one). R11: the
+    // coordinator clears the filter first so the row is visible, then flashes it.
+    await page.keyboard.press("Escape");
+    await expect(page.locator("#resultFilterPanel")).toBeHidden();
+    await segments.nth(0).click();
+
+    await expect(rows).toHaveCount(4);
+    await expect(page.locator("#resultFilterCount")).toBeHidden();
+    await expect(page.locator('#planItems .module-row[data-module-index="0"]')).toHaveClass(
+      /is-flash/,
+    );
+  });
+
   test("delete plan button reveals an inline delete-confirmation panel", async ({ page }) => {
     await setupFailFast(page);
 
