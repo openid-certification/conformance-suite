@@ -4,8 +4,12 @@ import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.CheckDiscEndpointDiscoveryUrl;
 import net.openid.conformance.condition.client.CheckDiscEndpointIssuer;
+import net.openid.conformance.condition.client.CheckDiscEndpointIssuerIsValidUrl;
 import net.openid.conformance.condition.client.CheckDiscEndpointRegistrationEndpoint;
 import net.openid.conformance.condition.client.CheckDiscEndpointTokenEndpoint;
+import net.openid.conformance.condition.client.CheckDiscEndpointLocalesCanonicalCasing;
+import net.openid.conformance.condition.client.CheckDiscEndpointLocalesSyntax;
+import net.openid.conformance.condition.client.CheckDiscEndpointScopesSupportedSyntax;
 import net.openid.conformance.condition.client.CheckJwksUri;
 import net.openid.conformance.condition.client.CheckOauthDiscEndpointDiscoveryUrl;
 import net.openid.conformance.condition.client.CheckOauthDiscEndpointIssuer;
@@ -116,6 +120,8 @@ public abstract class AbstractFAPI2SPFinalDiscoveryEndpointVerification extends 
 			callAndContinueOnFailure(CheckOauthDiscEndpointIssuer.class, Condition.ConditionResult.FAILURE, "RFC8414-3.3", "RFC8414-6.2");
 		}
 
+		callAndContinueOnFailure(CheckDiscEndpointIssuerIsValidUrl.class, Condition.ConditionResult.FAILURE, "RFC8414-2");
+
 		if (isDpop) {
 			callAndContinueOnFailure(FAPI2CheckDpopSigningAlgValuesSupported.class, Condition.ConditionResult.FAILURE, "FAPI2-SP-FINAL-5.4-1");
 		} else {
@@ -156,6 +162,10 @@ public abstract class AbstractFAPI2SPFinalDiscoveryEndpointVerification extends 
 		if (! clientCredentialsGrant) {
 			callAndContinueOnFailure(EnsureServerConfigurationSupportsCodeChallengeMethodS256.class, Condition.ConditionResult.FAILURE, "FAPI2-SP-FINAL-5.3.2.2-5");
 		}
+
+		callAndContinueOnFailure(CheckDiscEndpointScopesSupportedSyntax.class, Condition.ConditionResult.FAILURE, "RFC6749-3.3");
+		callAndContinueOnFailure(CheckDiscEndpointLocalesSyntax.class, Condition.ConditionResult.FAILURE, "RFC8414-2");
+		callAndContinueOnFailure(CheckDiscEndpointLocalesCanonicalCasing.class, Condition.ConditionResult.WARNING, "RFC8414-2");
 
 		call(sequence(variantAuthChecks));
 	}

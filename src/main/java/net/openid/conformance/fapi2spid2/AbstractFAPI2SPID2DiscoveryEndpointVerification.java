@@ -8,6 +8,9 @@ import net.openid.conformance.condition.client.CheckDiscEndpointRegistrationEndp
 import net.openid.conformance.condition.client.CheckDiscEndpointTokenEndpoint;
 import net.openid.conformance.condition.client.CheckDiscEndpointTokenEndpointAuthMethodsSupportedContainsPrivateKeyOrTlsClient;
 import net.openid.conformance.condition.client.CheckDiscoveryEndpointReturnedJsonContentType;
+import net.openid.conformance.condition.client.CheckDiscEndpointLocalesCanonicalCasing;
+import net.openid.conformance.condition.client.CheckDiscEndpointLocalesSyntax;
+import net.openid.conformance.condition.client.CheckDiscEndpointScopesSupportedSyntax;
 import net.openid.conformance.condition.client.CheckJwksUri;
 import net.openid.conformance.condition.client.CheckOauthDiscEndpointDiscoveryUrl;
 import net.openid.conformance.condition.client.CheckOauthDiscEndpointIssuer;
@@ -134,6 +137,10 @@ public abstract class AbstractFAPI2SPID2DiscoveryEndpointVerification extends Ab
 		callAndContinueOnFailure(CheckJwksUri.class, Condition.ConditionResult.FAILURE, "OIDCD-3");
 
 		callAndContinueOnFailure(EnsureServerConfigurationSupportsCodeChallengeMethodS256.class, Condition.ConditionResult.FAILURE, "FAPI2-SP-ID2-5.3.1.2-5");
+
+		callAndContinueOnFailure(CheckDiscEndpointScopesSupportedSyntax.class, Condition.ConditionResult.FAILURE, "RFC6749-3.3");
+		callAndContinueOnFailure(CheckDiscEndpointLocalesSyntax.class, Condition.ConditionResult.FAILURE, "RFC8414-2");
+		callAndContinueOnFailure(CheckDiscEndpointLocalesCanonicalCasing.class, Condition.ConditionResult.WARNING, "RFC8414-2");
 
 		call(sequence(variantAuthChecks));
 	}

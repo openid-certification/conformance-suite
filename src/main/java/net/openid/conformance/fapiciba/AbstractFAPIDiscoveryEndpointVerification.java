@@ -5,11 +5,15 @@ import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.CheckDiscEndpointDiscoveryUrl;
 import net.openid.conformance.condition.client.CheckDiscEndpointIdTokenSigningAlgValuesSupportedContainsPS256OrES256;
 import net.openid.conformance.condition.client.CheckDiscEndpointIssuer;
+import net.openid.conformance.condition.client.CheckDiscEndpointIssuerIsValidUrl;
 import net.openid.conformance.condition.client.CheckDiscEndpointRegistrationEndpoint;
 import net.openid.conformance.condition.client.CheckDiscEndpointTokenEndpoint;
 import net.openid.conformance.condition.client.CheckDiscEndpointTokenEndpointAuthMethodsSupportedContainsPrivateKeyOrTlsClient;
 import net.openid.conformance.condition.client.CheckDiscEndpointTokenEndpointAuthSigningAlgValuesSupported;
 import net.openid.conformance.condition.client.CheckDiscoveryEndpointReturnedJsonContentType;
+import net.openid.conformance.condition.client.CheckDiscEndpointLocalesCanonicalCasing;
+import net.openid.conformance.condition.client.CheckDiscEndpointLocalesSyntax;
+import net.openid.conformance.condition.client.CheckDiscEndpointScopesSupportedSyntax;
 import net.openid.conformance.condition.client.CheckJwksUri;
 import net.openid.conformance.condition.client.CheckTLSClientCertificateBoundAccessTokensTrue;
 import net.openid.conformance.condition.client.EnsureDiscoveryEndpointResponseStatusCodeIs200;
@@ -78,6 +82,7 @@ public abstract class AbstractFAPIDiscoveryEndpointVerification extends Abstract
 
 		callAndContinueOnFailure(CheckDiscEndpointDiscoveryUrl.class,Condition.ConditionResult.FAILURE);
 		callAndContinueOnFailure(CheckDiscEndpointIssuer.class, Condition.ConditionResult.FAILURE, "OIDCD-4.3", "OIDCD-7.2");
+		callAndContinueOnFailure(CheckDiscEndpointIssuerIsValidUrl.class, Condition.ConditionResult.FAILURE, "RFC8414-2");
 
 		callAndContinueOnFailure(CheckTLSClientCertificateBoundAccessTokensTrue.class, Condition.ConditionResult.FAILURE, "FAPI-RW-5.2.2-6", "RFC8705-3.3");
 
@@ -105,6 +110,10 @@ public abstract class AbstractFAPIDiscoveryEndpointVerification extends Abstract
 		);
 
 		callAndContinueOnFailure(CheckJwksUri.class, Condition.ConditionResult.FAILURE, "OIDCD-3");
+
+		callAndContinueOnFailure(CheckDiscEndpointScopesSupportedSyntax.class, Condition.ConditionResult.FAILURE, "RFC6749-3.3");
+		callAndContinueOnFailure(CheckDiscEndpointLocalesSyntax.class, Condition.ConditionResult.FAILURE, "RFC8414-2");
+		callAndContinueOnFailure(CheckDiscEndpointLocalesCanonicalCasing.class, Condition.ConditionResult.WARNING, "RFC8414-2");
 
 		call(sequence(variantAuthChecks));
 	}
