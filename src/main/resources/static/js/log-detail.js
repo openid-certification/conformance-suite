@@ -438,12 +438,15 @@ async function resolveSegmentStatuses(navModules) {
   const poolSize = Math.min(SEGMENT_FANOUT_CONCURRENCY, queue.length);
   await Promise.all(Array.from({ length: poolSize }, worker));
 
-  // Reassign with a fresh array so cts-plan-status observes the change
-  // (Lit's default hasChanged is reference equality).
+  // Reassign with a fresh array so cts-plan-status observes the change (Lit's
+  // default hasChanged is reference equality). A slice suffices — the workers
+  // mutated the module objects in place, so the existing element references
+  // already carry the resolved status; no per-element copy is needed (mirrors
+  // plan-detail.html's fan-out reassign).
   /** @type {any} */
   const header = document.getElementById("logDetailHeader");
   if (header) {
-    header.planModules = navModules.map((mod) => ({ ...mod }));
+    header.planModules = navModules.slice();
   }
 }
 

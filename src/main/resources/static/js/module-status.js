@@ -127,3 +127,16 @@ export function moduleMatchesResultFilter(mod, filter) {
   }
   return !!mod.result && filter.has(mod.result);
 }
+
+/**
+ * Stable, content-derived identity key for a plan module entry — unique across
+ * lists so a keyed `repeat()` never reuses DOM across a full module-set swap,
+ * and so an action handler resolves to the right module regardless of array
+ * order. Shared by `cts-plan-status` (segment repeat key) and `cts-plan-modules`
+ * (the Run button's `data-module-key`) so the key never drifts between them.
+ * @param {{testModule?: string, variant?: object}} mod - A plan module entry.
+ * @returns {string} `testModule` plus its serialized variant.
+ */
+export function moduleKey(mod) {
+  return `${mod.testModule}|${JSON.stringify(mod.variant ?? null)}`;
+}
