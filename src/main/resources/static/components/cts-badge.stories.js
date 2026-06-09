@@ -732,11 +732,12 @@ export const InfoSubtleInteractive = {
 };
 
 /**
- * R6 regression guard: the readonly Review chip dropped its ring, so its
- * fill must be visible against a white page surface. The fill switched
- * from `var(--bg, #fff)` to `var(--bg-muted)` (#F8F7F5). Without this
- * change the readonly Review chip would render as white-on-white and
- * disappear against most app backgrounds.
+ * R6 regression guard: the readonly Review chip has no ring, so its fill must
+ * be visible against a white page surface. The fill is `--status-review-bg`
+ * (light teal) so the Review chip reads as the same teal hue as the
+ * cts-plan-status Review segment, not a neutral grey — and is never
+ * white-on-white. Without a non-white fill the chip would disappear against
+ * most app backgrounds.
  */
 export const ReviewReadonlyHasFill = {
   args: { variant: "review", label: "Review" },
