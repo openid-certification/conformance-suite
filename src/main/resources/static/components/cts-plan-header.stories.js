@@ -84,6 +84,21 @@ export const NoAlias = {
   },
 };
 
+export const EmptyAlias = {
+  // Distinct from NoAlias (no `config` at all): here `config` is present but
+  // the alias is an empty string — the exact "dynamic-registration plan left
+  // blank" case the feature must suppress. Locks the falsy guard against a
+  // future refactor (e.g. `alias !== undefined`) that would render an empty
+  // Alias cell.
+  render: () =>
+    html`<cts-plan-header .plan=${{ ...PLAN, config: { alias: "" } }}></cts-plan-header>`,
+
+  async play({ canvasElement }) {
+    const header = /** @type {HTMLElement} */ (canvasElement.querySelector("cts-plan-header"));
+    expect(header.querySelector('[data-testid="alias-row"]')).toBeNull();
+  },
+};
+
 // Plan: docs/plans/2026-05-27-001-feat-autolink-and-format-test-prose-plan.md
 // (U3). The plan summary callout renders markdown (block parity with the
 // log-detail hero): paragraphs, autolinked bare URLs, and inline code.

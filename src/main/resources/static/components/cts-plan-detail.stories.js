@@ -96,6 +96,11 @@ export const PlanHeaderDefault = {
     const ownerRow = canvasElement.querySelector('[data-testid="owner-row"]');
     expect(ownerRow).toBeNull();
 
+    // Alias row should NOT be visible: the stories MOCK_PLAN_DETAIL fixture
+    // carries no config, so a regression that adds config to that fixture
+    // without updating this story is caught rather than silently green.
+    expect(canvasElement.querySelector('[data-testid="alias-row"]')).toBeNull();
+
     // Certification disclaimer text present
     expect(canvas.getByText(/OpenID Foundation conformance suite/)).toBeInTheDocument();
   },
@@ -120,9 +125,9 @@ export const PlanHeaderAdmin = {
 
 export const PlanHeaderWithAlias = {
   // The user-set alias surfaces from `config.alias` on the authenticated
-  // /api/plan/{id} shape. MOCK_PLAN_DETAIL deliberately carries no config
-  // (so the "no configuration available" view-config path stays exercised
-  // by PlanHeaderDefault), so this story supplies a config inline.
+  // /api/plan/{id} shape. The MOCK_PLAN_DETAIL stories fixture carries no
+  // config (so the "no configuration available" view-config path stays
+  // exercised by PlanHeaderDefault), so this story supplies a config inline.
   render: () =>
     html`<cts-plan-header
       .plan=${{ ...MOCK_PLAN_DETAIL, config: { alias: "brazil-op-cert-5" } }}
