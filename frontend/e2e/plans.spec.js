@@ -92,20 +92,25 @@ test.describe("plans.html — Plans List", () => {
       "View configuration",
     );
 
-    // Module status boxes resolve from /api/info: a run module recolors to its
-    // status, a never-run module stays a static skip box. Each box is keyed by
-    // its module id via the wrapping tooltip's content.
-    await expect(
-      page.locator("#plansListing cts-tooltip[content='oidcc-server'] .moduleStatusBox"),
-    ).toHaveClass(/moduleStatusBox--pass/);
+    // Module status segments (cts-plan-status overview bar) resolve from
+    // /api/info: a run module recolors to its status, a never-run module stays
+    // a static skip segment. Each segment is keyed by its accessible name
+    // ("<module>: <status>"); the trailing colon disambiguates id prefixes.
     await expect(
       page.locator(
-        "#plansListing cts-tooltip[content='oidcc-server-rotate-keys'] .moduleStatusBox",
+        "#plansListing [data-testid='plan-status-segment'][aria-label^='oidcc-server:']",
       ),
-    ).toHaveClass(/moduleStatusBox--warn/);
+    ).toHaveClass(/cts-pst-seg--pass/);
     await expect(
-      page.locator("#plansListing cts-tooltip[content='oidcc-codereuse'] .moduleStatusBox"),
-    ).toHaveClass(/moduleStatusBox--skip/);
+      page.locator(
+        "#plansListing [data-testid='plan-status-segment'][aria-label^='oidcc-server-rotate-keys:']",
+      ),
+    ).toHaveClass(/cts-pst-seg--warn/);
+    await expect(
+      page.locator(
+        "#plansListing [data-testid='plan-status-segment'][aria-label^='oidcc-codereuse:']",
+      ),
+    ).toHaveClass(/cts-pst-seg--skip/);
   });
 
   test("navbar brand points at the plans home for authenticated users", async ({ page }) => {
