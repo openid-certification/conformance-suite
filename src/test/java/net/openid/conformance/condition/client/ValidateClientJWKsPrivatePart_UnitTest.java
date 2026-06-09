@@ -1,17 +1,43 @@
 package net.openid.conformance.condition.client;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.nimbusds.jose.JWSAlgorithm;
+import com.nimbusds.jose.jwk.Curve;
+import com.nimbusds.jose.jwk.KeyUse;
+import com.nimbusds.jose.jwk.OctetKeyPair;
+import com.nimbusds.jose.util.Base64URL;
 import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.logging.BsonEncoding;
 import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.Environment;
+import org.bouncycastle.asn1.x500.X500Name;
+import org.bouncycastle.cert.X509CertificateHolder;
+import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
+import org.bouncycastle.cert.jcajce.JcaX509v3CertificateBuilder;
+import org.bouncycastle.crypto.params.Ed25519PrivateKeyParameters;
+import org.bouncycastle.crypto.util.PrivateKeyFactory;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
+import org.bouncycastle.operator.ContentSigner;
+import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
+
+import java.math.BigInteger;
+import java.security.KeyPair;
+import java.security.KeyPairGenerator;
+import java.security.Security;
+import java.security.cert.X509Certificate;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.util.Date;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
@@ -26,6 +52,11 @@ public class ValidateClientJWKsPrivatePart_UnitTest {
 	private ValidateClientJWKsPrivatePart cond;
 
 	private JsonObject client;
+
+	@BeforeAll
+	public static void addBouncyCastle() {
+		Security.addProvider(new BouncyCastleProvider());
+	}
 
 	@BeforeEach
 	public void setUp() throws Exception {
@@ -236,6 +267,74 @@ public class ValidateClientJWKsPrivatePart_UnitTest {
 
 			cond.execute(env);
 		});
+	}
+
+	@Test
+	public void testEvaluate_Ed25519KeyWithX5cNoError() throws Exception {
+		// Regression guard for https://gitlab.com/openid/conformance-suite/-/work_items/1096 (#1095):
+		// an Ed25519 (OKP) client signing key whose JWK carries an x5c with the matching Ed25519
+		// certificate must validate. The original failure was that the bundled BouncyCastle could not
+		// parse the Ed25519 X.509 certificate referenced by x5c.
+		client.add("jwks", ed25519JwksWithX5c());
+		env.putObject("client", client);
+
+		cond.execute(env);
+	}
+
+	@Test
+	public void testEvaluate_Ed25519KeyMismatchedX5cError() throws Exception {
+		// The bare key ("x") must match the x5c certificate (RFC 7517 section 4.7). Nimbus enforces
+		// this for RSA/EC but not OKP (OctetKeyPair.matches() is a stub), so the suite checks it itself;
+		// an Ed25519 key whose x5c certificate is for a different key must be rejected.
+		KeyPair jwkKeyPair = KeyPairGenerator.getInstance("Ed25519", "BC").generateKeyPair();
+		KeyPair certKeyPair = KeyPairGenerator.getInstance("Ed25519", "BC").generateKeyPair();
+		client.add("jwks", ed25519JwksWithX5c(jwkKeyPair, certKeyPair));
+		env.putObject("client", client);
+
+		assertThrows(ConditionError.class, () -> cond.execute(env));
+	}
+
+	/**
+	 * Build a JWKS containing a single Ed25519 (OKP) signing key whose JWK includes an x5c holding a
+	 * self-signed certificate over the same key, so the bare key provably matches the certificate.
+	 */
+	private static JsonObject ed25519JwksWithX5c() throws Exception {
+		KeyPair keyPair = KeyPairGenerator.getInstance("Ed25519", "BC").generateKeyPair();
+		return ed25519JwksWithX5c(keyPair, keyPair);
+	}
+
+	/**
+	 * Build a JWKS with a single Ed25519 (OKP) signing key whose bare key material comes from
+	 * {@code jwkKeyPair} and whose x5c contains a self-signed certificate over {@code certKeyPair}.
+	 * Passing two different key pairs produces a JWK whose bare key does not match its certificate.
+	 */
+	private static JsonObject ed25519JwksWithX5c(KeyPair jwkKeyPair, KeyPair certKeyPair) throws Exception {
+		// Self-signed Ed25519 certificate over certKeyPair
+		X500Name dn = new X500Name("CN=ed25519-x5c-test");
+		Date notBefore = Date.from(Instant.now().minus(1, ChronoUnit.HOURS));
+		Date notAfter = Date.from(Instant.now().plus(1, ChronoUnit.HOURS));
+		JcaX509v3CertificateBuilder builder = new JcaX509v3CertificateBuilder(
+			dn, BigInteger.valueOf(System.nanoTime()), notBefore, notAfter, dn, certKeyPair.getPublic());
+		ContentSigner signer = new JcaContentSignerBuilder("Ed25519").setProvider("BC").build(certKeyPair.getPrivate());
+		X509CertificateHolder holder = builder.build(signer);
+		X509Certificate cert = new JcaX509CertificateConverter().setProvider("BC").getCertificate(holder);
+
+		// Derive the bare OKP key material (x/d) from jwkKeyPair
+		Ed25519PrivateKeyParameters priv = (Ed25519PrivateKeyParameters)
+			PrivateKeyFactory.createKey(jwkKeyPair.getPrivate().getEncoded());
+		OctetKeyPair okp = new OctetKeyPair.Builder(Curve.Ed25519, Base64URL.encode(priv.generatePublicKey().getEncoded()))
+			.d(Base64URL.encode(priv.getEncoded()))
+			.keyUse(KeyUse.SIGNATURE)
+			.algorithm(JWSAlgorithm.EdDSA)
+			.keyID("ed25519-x5c-test")
+			.x509CertChain(List.of(com.nimbusds.jose.util.Base64.encode(cert.getEncoded())))
+			.build();
+
+		JsonArray keys = new JsonArray();
+		keys.add(JsonParser.parseString(okp.toJSONString()).getAsJsonObject());
+		JsonObject jwks = new JsonObject();
+		jwks.add("keys", keys);
+		return jwks;
 	}
 
 	@Test

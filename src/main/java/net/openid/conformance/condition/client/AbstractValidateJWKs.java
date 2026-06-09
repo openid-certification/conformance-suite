@@ -36,12 +36,23 @@ import net.openid.conformance.extensions.AlternateJWSVerificationKeySelector;
 import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.util.JWKUtil;
 import net.openid.conformance.util.JWKUtil.JwkIssue;
+import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo;
 
 import java.security.KeyPair;
+import java.security.cert.X509Certificate;
 import java.text.ParseException;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 public abstract class AbstractValidateJWKs extends AbstractCondition {
+
+	// RFC 8410 object identifiers for the OKP curves (Nimbus's Curve leaves the OID null for these).
+	private static final Map<Curve, String> OKP_CURVE_OIDS = Map.of(
+		Curve.Ed25519, "1.3.101.112",
+		Curve.Ed448, "1.3.101.113",
+		Curve.X25519, "1.3.101.110",
+		Curve.X448, "1.3.101.111");
 
 	protected void checkJWKs(JsonElement jwks, boolean checkPrivatePart) {
 
@@ -78,17 +89,46 @@ public abstract class AbstractValidateJWKs extends AbstractCondition {
 	 * @param keyObject
 	 */
 	protected void parseJWKWithNimbus(JsonObject keyObject) {
+		JWK jwk;
 		try {
 			//https://openid.net/specs/openid-connect-registration-1_0.html#rfc.section.2
 			//jwks
 			//    The JWK x5c parameter MAY be used to provide X.509 representations of keys provided.
 			//    When used, the bare key values MUST still be present and MUST match those in the certificate
-			//Nimbusds performs this check besides other checks like missing properties etc while parsing
-			@SuppressWarnings("unused")
-
-			JWK jwk = JWK.parse(keyObject.toString());
+			//Nimbusds enforces this (and other checks like missing properties) for RSA and EC keys while
+			//parsing, but NOT for OKP keys: OctetKeyPair.matches() always returns false and its constructor
+			//never calls it (see https://bitbucket.org/connect2id/nimbus-jose-jwt/issues/620), so for OKP
+			//keys we perform the bare-key-to-certificate check ourselves below.
+			jwk = JWK.parse(keyObject.toString());
 		} catch (ParseException ex) {
 			throw error("Invalid JWK", ex, args("key", keyObject));
+		}
+		if (jwk instanceof OctetKeyPair okp) {
+			ensureOkpKeyMatchesCertificate(okp, keyObject);
+		}
+	}
+
+	/**
+	 * Enforce RFC 7517 section 4.7: when an OKP JWK carries an x5c certificate chain, the bare public
+	 * key ("x") MUST match the public key in the leaf certificate. Nimbus performs the equivalent check
+	 * for RSA and EC keys during parsing, but {@link OctetKeyPair#matches(X509Certificate)} is a stub
+	 * that always returns false, so the check is skipped for OKP keys (e.g. Ed25519). See
+	 * <a href="https://bitbucket.org/connect2id/nimbus-jose-jwt/issues/620">nimbus-jose-jwt issue 620</a>.
+	 */
+	private void ensureOkpKeyMatchesCertificate(OctetKeyPair okp, JsonObject keyObject) {
+		List<X509Certificate> chain = okp.getParsedX509CertChain();
+		if (chain == null || chain.isEmpty()) {
+			return;
+		}
+		SubjectPublicKeyInfo certKey = SubjectPublicKeyInfo.getInstance(chain.get(0).getPublicKey().getEncoded());
+		// An OKP public key is (crv, x), so both the curve (the certificate's algorithm OID) and the bare
+		// key octets must match; comparing only "x" would let a same-length key on another curve through.
+		String expectedOid = OKP_CURVE_OIDS.get(okp.getCurve());
+		boolean curveMismatch = expectedOid != null && !expectedOid.equals(certKey.getAlgorithm().getAlgorithm().getId());
+		boolean keyMismatch = !Arrays.equals(certKey.getPublicKeyData().getOctets(), okp.getX().decode());
+		if (curveMismatch || keyMismatch) {
+			throw error("The JWK supplied in the test configuration has an x5c certificate whose public key "
+				+ "does not match the bare key (the 'crv' and 'x' values)", args("key", keyObject));
 		}
 	}
 
