@@ -66,6 +66,24 @@ const STYLE_TEXT = css`
   cts-plan-modules .module-row:hover {
     background: var(--bg);
   }
+  /* One-shot highlight flash applied by highlightModule() when a
+     cts-plan-status overview segment is activated (R11), so the click lands
+     the user on the matching row. The animation is gated behind
+     prefers-reduced-motion: no-preference; under reduce the class is added but
+     no animation plays (and highlightModule scrolls with behavior:'auto'). */
+  @media (prefers-reduced-motion: no-preference) {
+    cts-plan-modules .module-row.is-flash {
+      animation: cts-plan-modules-row-flash 1.5s var(--ease-standard) 1;
+    }
+  }
+  @keyframes cts-plan-modules-row-flash {
+    from {
+      background-color: var(--orange-100);
+    }
+    to {
+      background-color: transparent;
+    }
+  }
   cts-plan-modules .module-row .num {
     font-family: var(--font-mono);
     font-size: var(--fs-11);
@@ -381,6 +399,34 @@ class CtsPlanModules extends LitElement {
    */
   _rowNumber(index) {
     return String(index).padStart(2, "0");
+  }
+
+  /**
+   * Scroll the module row at `index` into view and play a one-shot highlight
+   * flash, so activating a `cts-plan-status` overview segment lands the user on
+   * the matching row (R11). The row at `index` is the module at that plan-order
+   * index (rows render in `modules` order). Honors `prefers-reduced-motion`:
+   * the scroll uses `behavior:'auto'` and the CSS flash animation is gated off,
+   * though the `is-flash` class is still applied (a no-op visual) and cleared on
+   * a timer so it never lingers.
+   * @param {number} index - The module's index in plan order.
+   * @returns {Promise<void>} Resolves once the row has been located and flashed.
+   */
+  async highlightModule(index) {
+    await this.updateComplete;
+    const rows = this.querySelectorAll(".module-row");
+    const row = rows[index];
+    if (!row) return;
+    const reduce =
+      typeof window.matchMedia === "function" &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    row.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "center" });
+    clearTimeout(this._flashTimer);
+    for (const r of rows) r.classList.remove("is-flash");
+    // Force a reflow so re-adding the class restarts the animation mid-play.
+    row.getBoundingClientRect();
+    row.classList.add("is-flash");
+    this._flashTimer = setTimeout(() => row.classList.remove("is-flash"), 1600);
   }
 
   _renderModuleRow(mod, index) {

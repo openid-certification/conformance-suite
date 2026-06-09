@@ -5,6 +5,7 @@ import { MOCK_PLAN_DETAIL, MOCK_MODULES_WITH_STATUS } from "@fixtures/mock-test-
 import "../../../src/main/resources/static/components/cts-crumb.js";
 import "../../../src/main/resources/static/components/cts-plan-header.js";
 import "../../../src/main/resources/static/components/cts-plan-modules.js";
+import "../../../src/main/resources/static/components/cts-plan-status.js";
 import "../../../src/main/resources/static/components/cts-plan-actions.js";
 
 // Recreates `plan-detail.html` for design review without requiring a live
@@ -51,6 +52,10 @@ const PAGE_STYLES = html`
         grid-template-columns: 1fr;
       }
     }
+    cts-plan-status:not(:defined) {
+      display: block;
+      min-height: 38px;
+    }
   </style>
 `;
 
@@ -58,6 +63,12 @@ const PLAN_WITH_MODULE_STATUS = {
   ...MOCK_PLAN_DETAIL,
   modules: MOCK_MODULES_WITH_STATUS,
 };
+
+// The page's /api/info fan-out marks each module `_statusResolved` once its
+// status settles; the static story mirrors that resolved state so the segment
+// bar colours rather than pulsing. Same order as MOCK_MODULES_WITH_STATUS, so a
+// segment index maps to the same module row.
+const MODULES_RESOLVED = MOCK_MODULES_WITH_STATUS.map((m) => ({ ...m, _statusResolved: true }));
 
 // Mirrors the "Plans > <plan name>" trail plan-detail.html builds from
 // the fetched plan; static here because the story's data is static too.
@@ -97,6 +108,7 @@ export const Default = {
       <div class="oidf-plan-detail-grid">
         <div>
           <cts-plan-header .plan=${PLAN_WITH_MODULE_STATUS}></cts-plan-header>
+          <cts-plan-status mode="detail" .modules=${MODULES_RESOLVED}></cts-plan-status>
           <cts-plan-modules
             .modules=${MOCK_MODULES_WITH_STATUS}
             plan-id="plan-abc-123"
@@ -140,6 +152,33 @@ export const Default = {
       .querySelectorAll("cts-badge");
     expect(moduleBadges.length).toBe(MOCK_MODULES_WITH_STATUS.length);
 
+    await step("the whole-plan status bar renders one segment per module (R8)", async () => {
+      const status = canvasElement.querySelector('cts-plan-status[mode="detail"]');
+      expect(status).toBeTruthy();
+      const segments = status.querySelectorAll('[data-testid="plan-status-segment"]');
+      expect(segments.length).toBe(MODULES_RESOLVED.length);
+      // At desktop width the responsive switch yields the bar (segments shrink
+      // to hairlines: flex:1 1 0; min-width:0). A getComputedStyle layout
+      // assertion catches the bar collapsing if the page chrome stops applying
+      // (page-story-rot guard).
+      expect(getComputedStyle(segments[0]).minWidth).toBe("0px");
+    });
+
+    await step("activating a segment scrolls to + flashes the matching row (R11)", async () => {
+      const status = canvasElement.querySelector('cts-plan-status[mode="detail"]');
+      const modules = canvasElement.querySelector("cts-plan-modules");
+      // Mirror the page wiring (plan-detail.html getPlan): activate → highlight.
+      status.addEventListener("cts-plan-status-activate", (e) =>
+        modules.highlightModule(e.detail.index),
+      );
+      const segments = status.querySelectorAll("button.cts-pst-seg");
+      segments[1].click();
+      const rows = modules.querySelectorAll(".module-row");
+      await waitFor(() => {
+        expect(rows[1].classList.contains("is-flash")).toBe(true);
+      });
+    });
+
     // Actions region: View configuration button present (always visible)
     const viewConfigBtn = canvasElement.querySelector('[data-testid="view-config-btn"]');
     expect(viewConfigBtn).toBeTruthy();
@@ -170,6 +209,7 @@ export const AdminView = {
       <div class="oidf-plan-detail-grid">
         <div>
           <cts-plan-header .plan=${PLAN_WITH_MODULE_STATUS} is-admin></cts-plan-header>
+          <cts-plan-status mode="detail" .modules=${MODULES_RESOLVED}></cts-plan-status>
           <cts-plan-modules
             .modules=${MOCK_MODULES_WITH_STATUS}
             plan-id="plan-abc-123"

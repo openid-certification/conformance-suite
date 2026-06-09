@@ -302,6 +302,65 @@ test.describe("plan-detail.html — Plan Detail", () => {
     await expect(popover).toContainText(/Verify basic OpenID Connect/);
   });
 
+  test("whole-plan status overview resolves, settles 404s, and segment click flashes the row (R8/R11/R18)", async ({
+    page,
+  }) => {
+    await setupFailFast(page);
+
+    await page.route("**/api/plan/plan-abc-123", (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(MOCK_PLAN_DETAIL),
+      }),
+    );
+
+    // 001 → PASSED, 002 → WARNING, 003 → 404 (inaccessible run). The never-run
+    // 4th module has no instance, so no /api/info fetch fires for it.
+    await page.route("**/api/info/test-inst-001*", (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({ ...MOCK_TEST_STATUS, status: "FINISHED", result: "PASSED" }),
+      }),
+    );
+    await page.route("**/api/info/test-inst-002*", (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({ ...MOCK_TEST_STATUS, status: "FINISHED", result: "WARNING" }),
+      }),
+    );
+    await page.route("**/api/info/test-inst-003*", (route) =>
+      route.fulfill({ status: 404, contentType: "application/json", body: "{}" }),
+    );
+
+    await setupCommonRoutes(page);
+
+    await page.goto("/plan-detail.html?plan=plan-abc-123");
+
+    const segments = page.locator('#planDetailStatus [data-testid="plan-status-segment"]');
+    await expect(segments).toHaveCount(4);
+
+    // Segments resolve to their colours. The 404 settles to a STATIC skip
+    // (never --pending) — proving _statusResolved is set in the catch branch
+    // (R18), not just on success; the never-run module is skip too.
+    await expect(segments.nth(0)).toHaveClass(/cts-pst-seg--pass/);
+    await expect(segments.nth(1)).toHaveClass(/cts-pst-seg--warn/);
+    await expect(segments.nth(2)).toHaveClass(/cts-pst-seg--skip/);
+    await expect(segments.nth(2)).not.toHaveClass(/cts-pst-seg--pending/);
+    await expect(segments.nth(3)).toHaveClass(/cts-pst-seg--skip/);
+
+    // Detail mode shows the count summary (R4).
+    await expect(
+      page.locator('#planDetailStatus [data-testid="plan-status-summary"]'),
+    ).toContainText("passed");
+
+    // Clicking a segment scrolls to + flashes the matching module row (R11).
+    await segments.nth(0).click();
+    await expect(page.locator("#planItems .module-row").nth(0)).toHaveClass(/is-flash/);
+  });
+
   test("delete plan button reveals an inline delete-confirmation panel", async ({ page }) => {
     await setupFailFast(page);
 

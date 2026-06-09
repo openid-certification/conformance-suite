@@ -36,6 +36,7 @@
     <script type="module" src="/components/cts-plan-header.js"></script>
     <script type="module" src="/components/cts-plan-actions.js"></script>
     <script type="module" src="/components/cts-plan-modules.js"></script>
+    <script type="module" src="/components/cts-plan-status.js"></script>
     <script type="module" src="/js/cts-toast-api.js"></script>
     <script type="module" src="/components/cts-footer.js"></script>
 
@@ -68,6 +69,16 @@
            effect. Removed by the bootstrap once the fetch settles. */
         .oidf-plan-detail-grid[hidden] {
             display: none;
+        }
+        /* FOUC reservation for the whole-plan status bar: a custom element is
+           display:inline until upgraded, so visibility:hidden would not reserve
+           height. Reserve the bar's measured height (track ~14px + count
+           summary line ~24px incl. its margin) so the module list does not jump
+           when cts-plan-status upgrades. (The grid is also [hidden] during the
+           plan fetch, so this only bites if the upgrade lags the un-hide.) */
+        cts-plan-status:not(:defined) {
+            display: block;
+            min-height: 38px;
         }
         /* Certification submission package form styles live in
            /css/cert-package.css (linked above) so the modal can be shown in
@@ -170,6 +181,10 @@
         <div id="planDetailGrid" class="oidf-plan-detail-grid" hidden>
             <div>
                 <cts-plan-header id="planDetailHeader"></cts-plan-header>
+                <!-- Whole-plan completion overview (R8): one segment per module,
+                     fed by the same module data the rows use. Clicking a segment
+                     scrolls to its row (wired in getPlan). -->
+                <cts-plan-status id="planDetailStatus" mode="detail"></cts-plan-status>
                 <cts-plan-modules id="planDetailModules"></cts-plan-modules>
             </div>
             <cts-plan-actions id="planDetailActions"></cts-plan-actions>
@@ -300,7 +315,8 @@
 
                     // Modules
                     var modulesEl = document.getElementById('planDetailModules');
-                    modulesEl.modules = (data.modules || []).map(function (mod) {
+                    var statusEl = document.getElementById('planDetailStatus');
+                    var mappedModules = (data.modules || []).map(function (mod) {
                         // Preserve the original module shape; copy `instances`
                         // into a fresh array so cts-plan-modules' internal
                         // _getLastInstance() reads from a stable list (the
@@ -309,10 +325,20 @@
                             instances: Array.isArray(mod.instances) ? mod.instances.slice() : [],
                         });
                     });
+                    modulesEl.modules = mappedModules;
                     modulesEl.planId = planId;
                     modulesEl.isReadonly = readonly;
                     modulesEl.isImmutable = !!data.immutable;
                     modulesEl.isPublic = isPublic;
+
+                    // Whole-plan status overview (detail mode): seed with the
+                    // same modules so segments render immediately (pending until
+                    // the /api/info fan-out below resolves each one). Activating
+                    // a segment scrolls to + flashes the matching module row.
+                    statusEl.modules = mappedModules.slice();
+                    statusEl.addEventListener('cts-plan-status-activate', function (evt) {
+                        modulesEl.highlightModule(evt.detail.index);
+                    });
 
                     // Actions
                     var actionsEl = document.getElementById('planDetailActions');
@@ -447,12 +473,22 @@
                                 modulesData[idx] = Object.assign({}, modulesData[idx], {
                                     status: info.status,
                                     result: info.result,
+                                    // R18/KTD3: mark the segment resolved so
+                                    // cts-plan-status stops pulsing and colours it.
+                                    _statusResolved: true,
                                 });
                             })
                             .catch((error) => {
+                                // Settle the status segment even on failure
+                                // (R18) so it stops pulsing — set _statusResolved
+                                // in BOTH the 404 and the other-error branches.
+                                modulesData[idx] = Object.assign({}, modulesData[idx], {
+                                    _statusResolved: true,
+                                });
                                 if (error instanceof Response && error.status === 404) {
                                     // Latest run inaccessible (e.g. unpublished
-                                    // by an admin). Leave the row at PENDING.
+                                    // by an admin). Leave the row at PENDING; the
+                                    // segment settles to the neutral skip colour.
                                     return;
                                 }
                                 handleApiError(error);
@@ -460,6 +496,10 @@
                     })).then(() => {
                         // Reassign so cts-plan-modules observes the change.
                         modulesEl.modules = modulesData;
+                        // Feed the resolved modules to the status overview too
+                        // (fresh slice so Lit's reference-equality hasChanged
+                        // fires); pending segments now settle to their colour.
+                        statusEl.modules = modulesData.slice();
 
                         // R26: show "Publish for certification" only when at
                         // least one test has FINISHED and none of the
@@ -771,6 +811,7 @@
                 customElements.whenDefined('cts-plan-header'),
                 customElements.whenDefined('cts-plan-actions'),
                 customElements.whenDefined('cts-plan-modules'),
+                customElements.whenDefined('cts-plan-status'),
                 customElements.whenDefined('cts-crumb'),
             ]);
         }
