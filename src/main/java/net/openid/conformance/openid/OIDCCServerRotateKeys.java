@@ -2,13 +2,12 @@ package net.openid.conformance.openid;
 
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
-import net.openid.conformance.condition.as.EnsureServerJwksDoesNotContainPrivateOrSymmetricKeys;
 import net.openid.conformance.condition.client.CheckServerKeysIsValid;
 import net.openid.conformance.condition.client.FetchServerKeys;
 import net.openid.conformance.condition.client.GetDynamicServerConfiguration;
 import net.openid.conformance.condition.client.GetStaticServerConfiguration;
 import net.openid.conformance.condition.client.TellUserToRotateOpKeys;
-import net.openid.conformance.condition.client.ValidateServerJWKs;
+import net.openid.conformance.sequence.ValidateJwksSequence;
 import net.openid.conformance.condition.client.VerifyNewJwksHasNewSigningKey;
 import net.openid.conformance.condition.client.VerifyNewJwksStillHasOldSigningKey;
 import net.openid.conformance.condition.common.CheckDistinctKeyIdValueInServerJWKs;
@@ -77,11 +76,9 @@ public class OIDCCServerRotateKeys extends AbstractTestModule {
 	private void fetchAndValidateJwks() {
 		callAndStopOnFailure(FetchServerKeys.class);
 		callAndContinueOnFailure(CheckServerKeysIsValid.class, Condition.ConditionResult.FAILURE);
-		// Includes verify-base64url and bare-keys assertions (OIDC test)
-		callAndStopOnFailure(ValidateServerJWKs.class, "RFC7517-1.1");
+		call(new ValidateJwksSequence("server_jwks", null, "server JWKS", "RFC7517-1.1"));
 		callAndContinueOnFailure(CheckForKeyIdInServerJWKs.class, Condition.ConditionResult.FAILURE, "OIDCC-10.1");
 		callAndContinueOnFailure(CheckDistinctKeyIdValueInServerJWKs.class, Condition.ConditionResult.FAILURE, "RFC7517-4.5");
-		callAndContinueOnFailure(EnsureServerJwksDoesNotContainPrivateOrSymmetricKeys.class, Condition.ConditionResult.FAILURE, "RFC7518-6.3.2.1");
 	}
 
 

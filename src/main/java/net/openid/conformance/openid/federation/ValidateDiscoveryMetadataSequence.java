@@ -1,7 +1,6 @@
 package net.openid.conformance.openid.federation;
 
 import net.openid.conformance.condition.Condition;
-import net.openid.conformance.condition.as.EnsureServerJwksDoesNotContainPrivateOrSymmetricKeys;
 import net.openid.conformance.condition.client.CheckDiscEndpointAllEndpointsAreHttps;
 import net.openid.conformance.condition.client.CheckDiscEndpointAuthorizationEndpoint;
 import net.openid.conformance.condition.client.CheckDiscEndpointClaimsParameterSupported;
@@ -10,6 +9,9 @@ import net.openid.conformance.condition.client.CheckDiscEndpointRequestObjectSig
 import net.openid.conformance.condition.client.CheckDiscEndpointRequestParameterSupported;
 import net.openid.conformance.condition.client.CheckDiscEndpointRequestUriParameterSupported;
 import net.openid.conformance.condition.client.CheckDiscEndpointScopesSupportedContainsOpenId;
+import net.openid.conformance.condition.client.CheckDiscEndpointLocalesCanonicalCasing;
+import net.openid.conformance.condition.client.CheckDiscEndpointLocalesSyntax;
+import net.openid.conformance.condition.client.CheckDiscEndpointScopesSupportedSyntax;
 import net.openid.conformance.condition.client.CheckDiscEndpointSubjectTypesSupported;
 import net.openid.conformance.condition.client.CheckDiscEndpointTokenEndpoint;
 import net.openid.conformance.condition.client.CheckDiscEndpointUserinfoEndpoint;
@@ -22,8 +24,8 @@ import net.openid.conformance.condition.client.OIDCCCheckDiscEndpointIdTokenSign
 import net.openid.conformance.condition.client.OIDCCCheckDiscEndpointResponseTypesSupported;
 import net.openid.conformance.condition.client.OIDCCCheckDiscEndpointResponseTypesSupportedDynamic;
 import net.openid.conformance.condition.client.OIDCCCheckDiscEndpointUserinfoSigningAlgValuesSupported;
-import net.openid.conformance.condition.client.ValidateServerJWKs;
 import net.openid.conformance.sequence.AbstractConditionSequence;
+import net.openid.conformance.sequence.ValidateJwksSequence;
 import net.openid.conformance.variant.ClientRegistration;
 
 // This corresponds to OIDCCDiscoveryEndpointVerification.performEndpointVerification()
@@ -85,8 +87,7 @@ public class ValidateDiscoveryMetadataSequence extends AbstractConditionSequence
 		// Includes providerinfo-has-jwks_uri
 		callAndContinueOnFailure(CheckJwksUri.class, Condition.ConditionResult.FAILURE, "OIDCD-3");
 		callAndStopOnFailure(FetchServerKeys.class);
-		callAndContinueOnFailure(ValidateServerJWKs.class, Condition.ConditionResult.FAILURE, "OIDCD-3");
-		callAndContinueOnFailure(EnsureServerJwksDoesNotContainPrivateOrSymmetricKeys.class, Condition.ConditionResult.FAILURE, "RFC7518-6.3.2.1");
+		call(sequence(() -> new ValidateJwksSequence("server_jwks", null, "entity JWKS", "OIDCD-3")));
 
 		callAndContinueOnFailure(CheckDiscEndpointRequestParameterSupported.class, Condition.ConditionResult.INFO);
 		callAndContinueOnFailure(CheckDiscEndpointRequestUriParameterSupported.class, Condition.ConditionResult.INFO);
@@ -115,6 +116,10 @@ public class ValidateDiscoveryMetadataSequence extends AbstractConditionSequence
 			.onSkip(Condition.ConditionResult.WARNING)
 			.requirement("OIDCD-3")
 			.dontStopOnFailure());
+
+		callAndContinueOnFailure(CheckDiscEndpointScopesSupportedSyntax.class, Condition.ConditionResult.FAILURE, "RFC6749-3.3");
+		callAndContinueOnFailure(CheckDiscEndpointLocalesSyntax.class, Condition.ConditionResult.FAILURE, "RFC8414-2");
+		callAndContinueOnFailure(CheckDiscEndpointLocalesCanonicalCasing.class, Condition.ConditionResult.WARNING, "RFC8414-2");
 
 		// Equivalent of VerifyOPEndpointsUseHTTPS
 		// https://github.com/rohe/oidctest/blob/a306ff8ccd02da456192b595cf48ab5dcfd3d15a/src/oidctest/op/check.py#L1714

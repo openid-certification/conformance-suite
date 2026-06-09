@@ -4,7 +4,6 @@ import com.google.common.base.Strings;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.Condition.ConditionResult;
-import net.openid.conformance.condition.as.EnsureServerJwksDoesNotContainPrivateOrSymmetricKeys;
 import net.openid.conformance.condition.as.FAPIBrazilEncryptRequestObject;
 import net.openid.conformance.condition.as.FAPIBrazilSetPaymentDateToToday;
 import net.openid.conformance.condition.as.FAPIEnsureMinimumClientKeyLength;
@@ -136,7 +135,6 @@ import net.openid.conformance.condition.client.ValidateMTLSCertificates2Header;
 import net.openid.conformance.condition.client.ValidateMTLSCertificatesAsX509;
 import net.openid.conformance.condition.client.ValidateMTLSCertificatesHeader;
 import net.openid.conformance.condition.client.ValidateSHash;
-import net.openid.conformance.condition.client.ValidateServerJWKs;
 import net.openid.conformance.condition.client.ValidateSuccessfulAuthCodeFlowResponseFromAuthorizationEndpoint;
 import net.openid.conformance.condition.client.ValidateSuccessfulJARMResponseFromAuthorizationEndpoint;
 import net.openid.conformance.condition.common.CheckDistinctKeyIdValueInClientJWKs;
@@ -148,6 +146,7 @@ import net.openid.conformance.condition.common.FAPIBrazilCheckKeyAlgInClientJWKs
 import net.openid.conformance.condition.common.RARSupport;
 import net.openid.conformance.sequence.AbstractConditionSequence;
 import net.openid.conformance.sequence.ConditionSequence;
+import net.openid.conformance.sequence.ValidateJwksSequence;
 import net.openid.conformance.sequence.client.AddMTLSClientAuthenticationToRequest;
 import net.openid.conformance.sequence.client.CDRAuthorizationEndpointSetup;
 import net.openid.conformance.sequence.client.CreateDpopProofSteps;
@@ -326,9 +325,8 @@ public abstract class AbstractFAPI2SPID2ServerTestModule extends AbstractRedirec
 
 		callAndStopOnFailure(FetchServerKeys.class, Condition.ConditionResult.FAILURE);
 		callAndContinueOnFailure(CheckServerKeysIsValid.class, Condition.ConditionResult.WARNING);
-		callAndStopOnFailure(ValidateServerJWKs.class, "RFC7517-1.1");
+		call(new ValidateJwksSequence("server_jwks", null, "server JWKS", "RFC7517-1.1"));
 		callAndContinueOnFailure(CheckForKeyIdInServerJWKs.class, Condition.ConditionResult.FAILURE, "OIDCC-10.1");
-		callAndContinueOnFailure(EnsureServerJwksDoesNotContainPrivateOrSymmetricKeys.class, Condition.ConditionResult.FAILURE, "RFC7518-6.3.2.1");
 		callAndContinueOnFailure(FAPIEnsureMinimumServerKeyLength.class, Condition.ConditionResult.FAILURE, "FAPI2-SP-ID2-5.4-2", "FAPI2-SP-ID2-5.4-3");
 		if (isRarRequest) {
 			callAndContinueOnFailure(RARSupport.ExtractRARFromConfig.class, Condition.ConditionResult.FAILURE);

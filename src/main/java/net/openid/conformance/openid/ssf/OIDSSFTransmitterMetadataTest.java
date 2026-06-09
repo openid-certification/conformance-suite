@@ -4,7 +4,7 @@ import com.google.gson.JsonObject;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.CheckJwksUri;
 import net.openid.conformance.condition.client.FetchServerKeys;
-import net.openid.conformance.condition.client.ValidateServerJWKs;
+import net.openid.conformance.sequence.ValidateJwksSequence;
 import net.openid.conformance.openid.ssf.conditions.metadata.OIDSSFAuthorizationSchemesTransmitterMetadataCheck;
 import net.openid.conformance.openid.ssf.conditions.metadata.OIDSSFCaepInteropAuthorizationSchemesTransmitterMetadataCheck;
 import net.openid.conformance.openid.ssf.conditions.metadata.OIDSSFCheckRequiredFieldConfigurationEndpoint;
@@ -103,7 +103,7 @@ public class OIDSSFTransmitterMetadataTest extends AbstractOIDSSFTransmitterTest
 			try {
 				callAndStopOnFailure(CheckJwksUri.class);
 				callAndStopOnFailure(FetchServerKeys.class);
-				callAndStopOnFailure(ValidateServerJWKs.class, "RFC7517-1.1");
+				call(new ValidateJwksSequence("server_jwks", null, "transmitter JWKS", "RFC7517-1.1"));
 			} finally {
 				env.removeObject("transmitter_metadata");
 				env.unmapKey("server");
