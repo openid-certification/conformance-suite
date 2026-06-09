@@ -11,6 +11,8 @@ import net.openid.conformance.condition.client.CheckDiscEndpointTokenEndpoint;
 import net.openid.conformance.condition.client.CheckDiscEndpointTokenEndpointAuthMethodsSupportedContainsPrivateKeyOrTlsClient;
 import net.openid.conformance.condition.client.CheckDiscEndpointTokenEndpointAuthSigningAlgValuesSupported;
 import net.openid.conformance.condition.client.CheckDiscoveryEndpointReturnedJsonContentType;
+import net.openid.conformance.condition.client.CheckForUnexpectedParametersInServerMetadata;
+import net.openid.conformance.condition.client.ValidateServerMetadataAgainstSchema;
 import net.openid.conformance.condition.client.CheckDiscEndpointLocalesCanonicalCasing;
 import net.openid.conformance.condition.client.CheckDiscEndpointLocalesSyntax;
 import net.openid.conformance.condition.client.CheckDiscEndpointScopesSupportedSyntax;
@@ -83,6 +85,9 @@ public abstract class AbstractFAPIDiscoveryEndpointVerification extends Abstract
 		callAndContinueOnFailure(CheckDiscEndpointDiscoveryUrl.class,Condition.ConditionResult.FAILURE);
 		callAndContinueOnFailure(CheckDiscEndpointIssuer.class, Condition.ConditionResult.FAILURE, "OIDCD-4.3", "OIDCD-7.2");
 		callAndContinueOnFailure(CheckDiscEndpointIssuerIsValidUrl.class, Condition.ConditionResult.FAILURE, "RFC8414-2");
+
+		callAndContinueOnFailure(ValidateServerMetadataAgainstSchema.class, Condition.ConditionResult.FAILURE, "RFC8414-2");
+		callAndContinueOnFailure(CheckForUnexpectedParametersInServerMetadata.class, Condition.ConditionResult.WARNING, "RFC8414-2");
 
 		callAndContinueOnFailure(CheckTLSClientCertificateBoundAccessTokensTrue.class, Condition.ConditionResult.FAILURE, "FAPI-RW-5.2.2-6", "RFC8705-3.3");
 
