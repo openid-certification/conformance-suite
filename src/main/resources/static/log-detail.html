@@ -84,10 +84,9 @@
   }
 
   /* Page-local layout for log-detail.html. Single-column at narrow
-     widths; widens to a two-column grid (main + rail) at ≥ 1440 px when
-     the user preference allows U8's cts-log-toc. The
-     `.log-page--with-toc` modifier is added by js/log-detail.js
-     on bootstrap when the preference is enabled. */
+     widths; widens to a two-column grid (main + rail) at ≥ 1440 px for
+     U8's cts-log-toc. The `.log-page--with-toc` modifier is added by
+     js/log-detail.js on bootstrap. */
   .log-page {
     max-width: var(--maxw-wide);
     margin: 0 auto;
@@ -108,9 +107,9 @@
      docs/plans/2026-05-21-002-fix-log-detail-layout-reflows-plan.md
      U1). The rail itself still hides via its scoped
      `cts-log-toc[hidden] { display: none }` rule when empty (no blocks
-     AND no failures) or when the user preference is off; the hidden
-     rail simply leaves its 320px grid track as whitespace, which is
-     the explicit trade-off — a stable always-reserved column is
+     AND no failures); the hidden rail simply leaves its 320px grid
+     track as whitespace, which is the explicit trade-off — a stable
+     always-reserved column is
      preferred to the page-wide horizontal shift on every normal log
      load. Reverses U2 of
      docs/plans/2026-05-20-002-fix-cts-log-toc-empty-rail-visible-plan.md. */
@@ -293,9 +292,8 @@
       <cts-log-viewer id="logViewer"></cts-log-viewer>
     </div>
     <!-- Wide-viewport TOC rail (U8). Hidden below 1440 px and when the
-         user preference (`cts-log-toc-rail-enabled`) is "false". The
-         page bootstrap toggles `.log-page--with-toc` on <main> to
-         flip the grid layout when the rail is enabled. -->
+         rail has no blocks and no failures. The page bootstrap adds
+         `.log-page--with-toc` on <main> to reserve the grid column. -->
     <cts-log-toc id="ctsLogToc"></cts-log-toc>
   </main>
 
