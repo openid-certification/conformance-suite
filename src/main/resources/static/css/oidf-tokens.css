@@ -24,6 +24,14 @@
      z-index stacking. Pages that do not mount the component fall back
      to 0px so callers like `top: var(--status-bar-height)` resolve
      cleanly.
+   - Status palette: --status-review token added (the teal already shown
+     on plans.html, previously hardcoded as #6ac4c2 in cts-plan-list).
+     Feeds the saturated Review *segment fill* on cts-plan-status and the
+     repointed cts-plan-list review box (see KTD4 of
+     docs/plans/2026-06-08-003-feat-plan-status-component-plan.md). The
+     read-only cts-badge Review chip deliberately stays on --bg-muted;
+     no --status-review-bg/-border pair is defined, since a saturated
+     teal chip fill is an out-of-scope app-wide change.
    ================================================================ */
 
 /* Inter v4.1 — variable woff2, upright, weight axis 100..900.
@@ -154,6 +162,11 @@
   --status-skipped:        var(--ink-500);
   --status-skipped-bg:     var(--ink-100);
   --status-skipped-border: var(--ink-200);
+
+  /* Saturated teal for the Review outcome, used as a segment/box FILL
+     (cts-plan-status, cts-plan-list). No -bg/-border pair: the read-only
+     cts-badge Review chip stays on --bg-muted by design (KTD4). */
+  --status-review:      #6AC4C2;
 
   --status-info:        #1E5A8C;
   --status-info-bg:     #E5EEF5;
