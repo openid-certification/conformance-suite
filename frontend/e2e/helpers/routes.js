@@ -1,8 +1,10 @@
 /**
  * Playwright page.route() helpers for E2E tests.
  *
- * All routes MUST be registered before page.goto() because fapi.ui.js fires
- * fetch('api/ui/spec_links?public=true') at script parse time (loadSpecLinksMapping IIFE).
+ * All routes MUST be registered before page.goto() because page scripts fire
+ * fetches at load time — e.g. <cts-navbar> requests /api/currentuser, and
+ * lib/spec-links.js requests api/ui/spec_links?public=true on log views —
+ * before the test can interact with the page.
  *
  * Playwright matches routes in REVERSE registration order (last registered = first tried).
  * Register setupFailFast() FIRST, then specific routes, so the catch-all runs last.
@@ -18,7 +20,7 @@ import { MOCK_PLANS, MOCK_PLAN_NO_VARIANTS, MOCK_GUIDED_PLANS } from "../fixture
  * Register the three routes every page needs:
  * - /api/currentuser
  * - /api/server
- * - api/ui/spec_links (note: no leading slash — the IIFE uses a relative URL)
+ * - api/ui/spec_links (note: no leading slash — lib/spec-links.js uses a relative URL)
  *
  * Also stubs Google Fonts so the JetBrains Mono <link> on
  * log-detail/schedule-test/tokens/upload never stalls page.goto() on a real
