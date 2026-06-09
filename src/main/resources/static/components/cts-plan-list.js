@@ -480,7 +480,21 @@ class CtsPlanList extends LitElement {
     this._loading = true;
     this._error = null;
     try {
-      const url = this.isPublic ? "/api/plan?public=true" : "/api/plan";
+      // This component fetches the whole listing once and does search / sort /
+      // "Show more" entirely client-side, so it must ask the backend for the
+      // full set, newest-first — not the paginator's defaults. Without these
+      // params PaginationRequest falls back to length=10 + Sort.unsorted()
+      // (MongoDB natural/insertion order ≈ oldest first), so the component only
+      // ever received the 10 *oldest* plans and the genuinely-latest ones never
+      // appeared. `length=1000` is the backend's hard cap (PaginationRequest
+      // rejects more) and matches the "up to 1000 plans" assumption baked into
+      // the status fan-out below; `order=started,desc` makes the server sort
+      // newest-first so that, when the cap truncates, it keeps the newest plans
+      // rather than the oldest. The client-side `_sortedPlans` (default
+      // `started-desc`) then refines ordering within that set.
+      const params = new URLSearchParams({ length: "1000", order: "started,desc" });
+      if (this.isPublic) params.set("public", "true");
+      const url = `/api/plan?${params}`;
       const response = await fetch(url);
       if (!response.ok) {
         throw new Error(`Failed to load test plans (HTTP ${response.status})`);
