@@ -1,10 +1,11 @@
-package net.openid.conformance.vci10issuer.condition;
+package net.openid.conformance.condition.client;
 
 import com.google.gson.JsonParser;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.logging.BsonEncoding;
 import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.Environment;
+import net.openid.conformance.vci10issuer.condition.AbstractVciUnitTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -13,9 +14,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.Map;
 
 @ExtendWith(MockitoExtension.class)
-class VCIAuthorizationServerMetadataValidationTest extends AbstractVciUnitTest {
+class ValidateServerMetadataAgainstSchema_UnitTest extends AbstractVciUnitTest {
 
-	VCIAuthorizationServerMetadataValidation validation;
+	ValidateServerMetadataAgainstSchema validation;
 
 	private final TestInstanceEventLog eventLog = BsonEncoding.testInstanceEventLog();
 
@@ -23,7 +24,7 @@ class VCIAuthorizationServerMetadataValidationTest extends AbstractVciUnitTest {
 
 	@BeforeEach
 	public void setup() {
-		validation = new VCIAuthorizationServerMetadataValidation();
+		validation = new ValidateServerMetadataAgainstSchema();
 		validation.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
 		env = new Environment();
 	}
