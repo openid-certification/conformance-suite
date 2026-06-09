@@ -164,6 +164,10 @@ const STATUS = [
   "--status-info",
   "--status-info-bg",
   "--status-info-border",
+  // Teal Review outcome (no -border variant: segments/boxes use the fill
+  // directly and the chip derives its text colour at the use site).
+  "--status-review",
+  "--status-review-bg",
 ];
 
 const BADGE_RINGS = ["--badge-ring", "--badge-ring-clickable", "--badge-ring-pressed"];
