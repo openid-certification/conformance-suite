@@ -17,6 +17,14 @@ public class CheckForUnexpectedParametersInServerMetadata extends AbstractCheckF
 	}
 
 	@Override
+	protected String getAllowUnexpectedFieldsConfigKey() {
+		// Hidden escape hatch: a tester can add this JSON array of property names to the test
+		// configuration to suppress warnings for extension metadata their authorization server
+		// legitimately publishes.
+		return "server.allow_unexpected_metadata_fields";
+	}
+
+	@Override
 	@PreEnvironment(required = "server")
 	public Environment evaluate(Environment env) {
 		return super.evaluate(env);

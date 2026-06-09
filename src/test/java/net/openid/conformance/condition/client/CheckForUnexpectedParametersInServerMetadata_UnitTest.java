@@ -83,8 +83,45 @@ public class CheckForUnexpectedParametersInServerMetadata_UnitTest extends Abstr
 		assertDoesNotThrow(() -> cond.execute(env));
 	}
 
+	@Test
+	public void testEvaluate_unknownSuppressedByConfigIgnoreList() {
+		String json = """
+			{
+			  "issuer": "https://auth.example.com",
+			  "unexpected_field": "boom"
+			}
+			""";
+		putAuthServerMetadata(json);
+		putConfig("""
+			{ "server": { "allow_unexpected_metadata_fields": ["unexpected_field"] } }
+			""");
+		assertDoesNotThrow(() -> cond.execute(env));
+	}
+
+	@Test
+	public void testEvaluate_ignoreListStillWarnsForOtherUnknownProperties() {
+		String json = """
+			{
+			  "issuer": "https://auth.example.com",
+			  "unexpected_field": "boom",
+			  "another_unexpected": 1
+			}
+			""";
+		putAuthServerMetadata(json);
+		putConfig("""
+			{ "server": { "allow_unexpected_metadata_fields": ["unexpected_field"] } }
+			""");
+
+		Map<String, Object> data = assertValidationError(cond, env, eventLog);
+		assertUnknownPropertyAtPath(data, "$.another_unexpected");
+	}
+
 	private void putAuthServerMetadata(String json) {
 		JsonObject metadata = JsonParser.parseString(json).getAsJsonObject();
 		env.putObject("server", metadata);
+	}
+
+	private void putConfig(String json) {
+		env.putObject("config", JsonParser.parseString(json).getAsJsonObject());
 	}
 }
