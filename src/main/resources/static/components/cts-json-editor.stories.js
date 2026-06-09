@@ -149,10 +149,24 @@ export const WithValue = {
       aria-label="Test plan configuration JSON"
       .value=${SAMPLE_JSON}
     ></cts-json-editor>`,
-  async play({ canvasElement }) {
-    await waitForReady(canvasElement);
+  async play({ canvasElement, step }) {
+    const ready = await waitForReady(canvasElement);
     const host = canvasElement.querySelector("cts-json-editor");
     expect(host.value).toBe(SAMPLE_JSON);
+    await step("Monaco surface renders line numbers", async () => {
+      // The fallback <textarea> has no gutter, so this contract only
+      // applies when Monaco mounted.
+      if (ready.kind !== "monaco") return;
+      // Monaco paints the gutter on a frame after create() returns, so poll
+      // briefly rather than asserting on the very first frame.
+      let gutterLine = null;
+      for (let i = 0; i < 50 && !gutterLine; i++) {
+        gutterLine = canvasElement.querySelector(".margin-view-overlays .line-numbers");
+        if (!gutterLine) await new Promise((resolve) => setTimeout(resolve, 20));
+      }
+      expect(gutterLine).toBeTruthy();
+      expect(gutterLine.textContent).toBe("1");
+    });
   },
 };
 
