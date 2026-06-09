@@ -3,7 +3,7 @@ import "./cts-badge.js";
 import "./cts-button.js";
 import "./cts-link-button.js";
 import "./cts-tooltip.js";
-import { statusBadgeVariant, statusLabel } from "../js/module-status.js";
+import { statusBadgeVariant, statusLabel, moduleMatchesResultFilter } from "../js/module-status.js";
 
 /**
  * Stable identity key for a module entry. Used as the data-module-key
@@ -314,6 +314,12 @@ function ensureStylesInjected() {
  *   plans. Reflects the `is-immutable` attribute.
  * @property {boolean} isPublic - Appends `&public=true` to log-detail links.
  *   Reflects the `is-public` attribute.
+ * @property {Set<string>|null} resultFilter - Active "Filter by result"
+ *   selection (result tokens plus the `NOT_RUN_FILTER_VALUE` sentinel) the
+ *   plan-detail coordinator pushes in (R9). Non-matching rows are removed from
+ *   the list; an empty/absent filter shows every row. Matching reads the raw
+ *   `{status, result}` via the shared `moduleMatchesResultFilter` so it never
+ *   drifts from the cts-plan-status segment dimming. Set via JS only.
  * The status badge and the module name are each rendered as a real `<a>`
  * link to `log-detail.html` when a test instance exists (R28), so clicking
  * the lozenge or the name takes the user to that test's log page — the same
@@ -332,6 +338,7 @@ class CtsPlanModules extends LitElement {
     isReadonly: { type: Boolean, attribute: "is-readonly" },
     isImmutable: { type: Boolean, attribute: "is-immutable" },
     isPublic: { type: Boolean, attribute: "is-public" },
+    resultFilter: { attribute: false },
   };
 
   constructor() {
@@ -341,6 +348,7 @@ class CtsPlanModules extends LitElement {
     this.isReadonly = false;
     this.isImmutable = false;
     this.isPublic = false;
+    this.resultFilter = null;
   }
 
   createRenderRoot() {
@@ -414,8 +422,12 @@ class CtsPlanModules extends LitElement {
    */
   async highlightModule(index) {
     await this.updateComplete;
+    // Find the row by its plan-order index, NOT its visible position — a result
+    // filter can remove rows, so positional `rows[index]` would flash the wrong
+    // row. The coordinator clears the filter before highlighting a filtered-out
+    // module (R11), so by the time we run the row is present.
     const rows = this.querySelectorAll(".module-row");
-    const row = rows[index];
+    const row = this.querySelector(`.module-row[data-module-index="${index}"]`);
     if (!row) return;
     const reduce =
       typeof window.matchMedia === "function" &&
@@ -482,7 +494,7 @@ class CtsPlanModules extends LitElement {
       : html`<span class="moduleName">${mod.testModule}</span>`;
 
     return html`
-      <div class="module-row" data-instance-id="${lastInstance || ""}">
+      <div class="module-row" data-instance-id="${lastInstance || ""}" data-module-index="${index}">
         <span class="num">${this._rowNumber(index + 1)}</span>
         <div class="name">
           <span class="nameLine">
@@ -554,7 +566,18 @@ class CtsPlanModules extends LitElement {
   }
 
   _renderModuleRows() {
-    return this.modules.map((mod, idx) => this._renderModuleRow(mod, idx));
+    // Narrow to the modules matching the active result filter (R9), keeping each
+    // module's ORIGINAL plan index so the row carries a stable
+    // data-module-index (highlightModule + the cts-plan-status bar both key off
+    // it) and the row number reflects the plan position. An empty filter shows
+    // every row; a filter that matches nothing shows an explanatory message.
+    const visible = this.modules
+      .map((mod, index) => ({ mod, index }))
+      .filter(({ mod }) => moduleMatchesResultFilter(mod, this.resultFilter));
+    if (visible.length === 0) {
+      return html`<div class="planModulesEmpty">No modules match the current filter.</div>`;
+    }
+    return visible.map(({ mod, index }) => this._renderModuleRow(mod, index));
   }
 }
 

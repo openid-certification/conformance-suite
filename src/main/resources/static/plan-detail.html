@@ -92,6 +92,127 @@
             font-size: var(--fs-12);
             word-break: break-all;
         }
+        /* Inline "Filter by result" control (KTD7). Trigger + native-popover
+           panel mirror cts-log-list's faceted filter, scoped to this page. */
+        .oidf-modules-toolbar {
+            display: flex;
+            align-items: center;
+            margin-bottom: var(--space-3);
+        }
+        .oidf-result-filter-trigger {
+            display: inline-flex;
+            align-items: center;
+            gap: var(--space-2);
+            box-sizing: border-box;
+            height: var(--control-height);
+            padding: var(--space-1) var(--space-3);
+            background: var(--bg-elev);
+            color: var(--fg);
+            border: 1px solid var(--ink-300);
+            border-radius: var(--radius-2);
+            font-family: var(--font-sans);
+            font-size: var(--fs-14);
+            line-height: var(--lh-snug);
+            white-space: nowrap;
+            cursor: pointer;
+            transition: border-color var(--dur-1) var(--ease-standard),
+                background var(--dur-1) var(--ease-standard);
+        }
+        .oidf-result-filter-trigger:hover,
+        .oidf-result-filter-trigger[aria-expanded="true"] {
+            border-color: var(--border-strong);
+            background: var(--bg);
+        }
+        .oidf-result-filter-trigger:focus-visible {
+            outline: none;
+            box-shadow: var(--focus-ring);
+            border-color: var(--border-strong);
+        }
+        /* Top-layer popover; position set imperatively in wireResultFilter's
+           beforetoggle handler against the trigger's rect. */
+        .oidf-result-filter-panel {
+            margin: 0;
+            padding: var(--space-3);
+            background: var(--bg-elev);
+            color: var(--fg);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-3);
+            box-shadow: var(--shadow-3);
+            font-size: var(--fs-14);
+            min-width: 220px;
+            position: fixed;
+            inset: auto;
+        }
+        .oidf-result-filter-panel fieldset {
+            margin: 0;
+            padding: 0;
+            border: none;
+        }
+        .oidf-result-filter-panel legend {
+            padding: 0;
+            margin-bottom: var(--space-2);
+            font-size: var(--fs-13);
+            font-weight: var(--fw-medium);
+            color: var(--fg-soft);
+        }
+        .oidf-result-filter-options {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-1);
+        }
+        .oidf-result-filter-option {
+            display: flex;
+            align-items: center;
+            gap: var(--space-2);
+            padding: var(--space-1) var(--space-2);
+            border-radius: var(--radius-2);
+            cursor: pointer;
+        }
+        .oidf-result-filter-option:hover {
+            background: var(--bg);
+        }
+        .oidf-result-filter-option input {
+            width: var(--space-4);
+            height: var(--space-4);
+            margin: 0;
+            accent-color: var(--orange-500);
+            cursor: pointer;
+        }
+        .oidf-result-filter-option input:focus-visible {
+            outline: none;
+            box-shadow: var(--focus-ring);
+            border-radius: var(--radius-1);
+        }
+        .oidf-result-filter-option span {
+            font-family: var(--font-sans);
+            font-size: var(--fs-13);
+            line-height: var(--lh-snug);
+            color: var(--fg);
+        }
+        .oidf-result-filter-footer {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: var(--space-3);
+            padding-top: var(--space-2);
+            border-top: 1px solid var(--border);
+        }
+        .oidf-result-filter-clear {
+            padding: var(--space-1) var(--space-2);
+            background: transparent;
+            color: var(--fg-link);
+            border: none;
+            border-radius: var(--radius-2);
+            font-family: var(--font-sans);
+            font-size: var(--fs-13);
+            cursor: pointer;
+        }
+        .oidf-result-filter-clear:hover {
+            text-decoration: underline;
+        }
+        .oidf-result-filter-clear:focus-visible {
+            outline: none;
+            box-shadow: var(--focus-ring);
+        }
     </style>
 </head>
 
@@ -185,6 +306,40 @@
                      fed by the same module data the rows use. Clicking a segment
                      scrolls to its row (wired in getPlan). -->
                 <cts-plan-status id="planDetailStatus" mode="detail"></cts-plan-status>
+                <!-- Inline "Filter by result" control (R9, KTD7): a native
+                     Popover holding a Result checkbox group. The coordinator
+                     (wireResultFilter) holds the active filter once and pushes
+                     it to both cts-plan-modules (row narrowing) and
+                     cts-plan-status (segment dimming). Result values only — no
+                     Status fieldset — plus a "Not yet run" option. -->
+                <div class="oidf-modules-toolbar">
+                    <button type="button" id="resultFilterTrigger"
+                        class="oidf-result-filter-trigger" popovertarget="resultFilterPanel"
+                        aria-controls="resultFilterPanel" aria-expanded="false">
+                        <cts-icon name="filter" size="16" aria-hidden="true"></cts-icon>
+                        <span>Filter by result</span>
+                        <cts-badge id="resultFilterCount" variant="primary" hidden></cts-badge>
+                        <cts-icon name="chevron-down" size="16" aria-hidden="true"></cts-icon>
+                    </button>
+                    <div id="resultFilterPanel" class="oidf-result-filter-panel" popover="auto"
+                        aria-label="Filter modules by result">
+                        <fieldset>
+                            <legend>Result</legend>
+                            <div class="oidf-result-filter-options">
+                                <label class="oidf-result-filter-option"><input type="checkbox" value="PASSED"><span>Passed</span></label>
+                                <label class="oidf-result-filter-option"><input type="checkbox" value="FAILED"><span>Failed</span></label>
+                                <label class="oidf-result-filter-option"><input type="checkbox" value="WARNING"><span>Warning</span></label>
+                                <label class="oidf-result-filter-option"><input type="checkbox" value="REVIEW"><span>Review</span></label>
+                                <label class="oidf-result-filter-option"><input type="checkbox" value="SKIPPED"><span>Skipped</span></label>
+                                <!-- value MUST equal NOT_RUN_FILTER_VALUE in js/module-status.js -->
+                                <label class="oidf-result-filter-option"><input type="checkbox" value="NOT_RUN"><span>Not yet run</span></label>
+                            </div>
+                        </fieldset>
+                        <div class="oidf-result-filter-footer">
+                            <button type="button" id="resultFilterClear" class="oidf-result-filter-clear">Clear</button>
+                        </div>
+                    </div>
+                </div>
                 <cts-plan-modules id="planDetailModules"></cts-plan-modules>
             </div>
             <cts-plan-actions id="planDetailActions"></cts-plan-actions>
@@ -337,6 +492,12 @@
                     // a segment scrolls to + flashes the matching module row.
                     statusEl.modules = mappedModules.slice();
                     statusEl.addEventListener('cts-plan-status-activate', function (evt) {
+                        // R11: if the clicked segment is dimmed by an active
+                        // result filter, clear the filter first so the target
+                        // row is visible, THEN scroll to it.
+                        if (evt.detail.dimmed) {
+                            clearResultFilter();
+                        }
                         modulesEl.highlightModule(evt.detail.index);
                     });
 
@@ -717,6 +878,77 @@
             }
         }
 
+        // ----- Inline "Filter by result" coordinator (R9/R10/R11, KTD7) -----
+        // The page holds the active filter once (a Set of raw result tokens
+        // plus the "NOT_RUN" sentinel) and pushes it to BOTH cts-plan-modules
+        // (row narrowing) and cts-plan-status (segment dimming), so the two
+        // never drift. Both children interpret the Set via the shared
+        // moduleMatchesResultFilter helper. "NOT_RUN" must match
+        // NOT_RUN_FILTER_VALUE in js/module-status.js (this classic script
+        // cannot import the ES-module constant).
+        var activeResultFilter = new Set();
+
+        function applyResultFilter() {
+            // A fresh Set (or null when empty) so Lit's reference-equality
+            // hasChanged fires on both children.
+            var filter = activeResultFilter.size ? new Set(activeResultFilter) : null;
+            var modulesEl = document.getElementById('planDetailModules');
+            var statusEl = document.getElementById('planDetailStatus');
+            if (modulesEl) modulesEl.resultFilter = filter;
+            if (statusEl) statusEl.activeResultFilter = filter;
+            var countBadge = document.getElementById('resultFilterCount');
+            if (countBadge) {
+                if (activeResultFilter.size) {
+                    countBadge.setAttribute('count', String(activeResultFilter.size));
+                    countBadge.hidden = false;
+                } else {
+                    countBadge.hidden = true;
+                    countBadge.removeAttribute('count');
+                }
+            }
+        }
+
+        function clearResultFilter() {
+            activeResultFilter.clear();
+            var panel = document.getElementById('resultFilterPanel');
+            if (panel) {
+                panel.querySelectorAll('input[type="checkbox"]').forEach(function (cb) {
+                    cb.checked = false;
+                });
+            }
+            applyResultFilter();
+        }
+
+        function wireResultFilter() {
+            var panel = document.getElementById('resultFilterPanel');
+            var trigger = document.getElementById('resultFilterTrigger');
+            if (!panel || !trigger) return;
+            panel.querySelectorAll('input[type="checkbox"]').forEach(function (cb) {
+                cb.addEventListener('change', function () {
+                    if (cb.checked) {
+                        activeResultFilter.add(cb.value);
+                    } else {
+                        activeResultFilter.delete(cb.value);
+                    }
+                    applyResultFilter();
+                });
+            });
+            var clearBtn = document.getElementById('resultFilterClear');
+            if (clearBtn) {
+                clearBtn.addEventListener('click', clearResultFilter);
+            }
+            // Position the top-layer popover under the trigger on open, and
+            // mirror the open state into the trigger's aria-expanded.
+            panel.addEventListener('beforetoggle', function (evt) {
+                if (evt.newState === 'open') {
+                    var rect = trigger.getBoundingClientRect();
+                    panel.style.top = Math.round(rect.bottom + 4) + 'px';
+                    panel.style.left = Math.max(8, Math.round(rect.left)) + 'px';
+                }
+                trigger.setAttribute('aria-expanded', evt.newState === 'open' ? 'true' : 'false');
+            });
+        }
+
         /**
          * Wire up the modals and crumb. Runs from DOMContentLoaded so the
          * cts-modal/cts-button/cts-crumb custom elements have upgraded —
@@ -795,6 +1027,10 @@
                     window.location.assign(evt.detail.target);
                 }
             });
+
+            // Inline result filter (R9/R10/R11). The popover + checkboxes are
+            // static markup, so this wires up once at load.
+            wireResultFilter();
         }
 
         /**

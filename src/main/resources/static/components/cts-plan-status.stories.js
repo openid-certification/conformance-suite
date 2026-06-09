@@ -424,6 +424,37 @@ export const LogSegmentActivates = {
   },
 };
 
+// R11 support: the activate event carries `dimmed` (whether an active result
+// filter dims the clicked segment), so a coordinator can clear-then-scroll
+// without re-deriving the match.
+export const DetailActivateCarriesDimmed = {
+  render: () => html`
+    <cts-plan-status
+      mode="detail"
+      .modules=${PALETTE_MODULES}
+      .activeResultFilter=${new Set(["FAILED"])}
+    ></cts-plan-status>
+  `,
+
+  async play({ canvasElement, step }) {
+    const events = [];
+    canvasElement.addEventListener("cts-plan-status-activate", (e) => events.push(e.detail));
+    const segments = canvasElement.querySelectorAll("button.cts-pst-seg");
+
+    await step("a matching (failed) segment activates with dimmed=false", () => {
+      segments[1].click(); // test-failed matches the FAILED filter
+      expect(events.at(-1).index).toBe(1);
+      expect(events.at(-1).dimmed).toBe(false);
+    });
+
+    await step("a non-matching (passed) segment activates with dimmed=true", () => {
+      segments[0].click(); // test-passed is dimmed under the FAILED filter
+      expect(events.at(-1).index).toBe(0);
+      expect(events.at(-1).dimmed).toBe(true);
+    });
+  },
+};
+
 // R16: overview segments are NOT interactive — a click emits no activate event
 // and the card (not the segment) remains the click target.
 export const OverviewSegmentsInert = {

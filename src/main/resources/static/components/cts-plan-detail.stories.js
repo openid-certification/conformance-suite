@@ -7,6 +7,7 @@ import {
   MOCK_MODULES_FAILED_WITHOUT_REF,
   MOCK_MODULES_WRONG_REF_PLACEMENT,
 } from "@fixtures/mock-test-data.js";
+import { NOT_RUN_FILTER_VALUE } from "../js/module-status.js";
 import "./cts-plan-header.js";
 import "./cts-plan-modules.js";
 import "./cts-plan-actions.js";
@@ -326,6 +327,72 @@ export const ModulesDefault = {
     expect(firstHelpIcon.getAttribute("tabindex")).toBe("0");
     expect(firstHelpIcon.hasAttribute("title")).toBe(false);
     expect(firstHelpIcon.closest(".nameLine")).toBeTruthy();
+  },
+};
+
+// U5 (R9): cts-plan-modules narrows its rows to the active result filter. The
+// filter reads the RAW {status, result} via the shared
+// moduleMatchesResultFilter, so "Not yet run" selects a never-run module but
+// NOT a FINISHED+SKIPPED one. Rows keep their plan-order data-module-index so
+// highlightModule + the cts-plan-status bar stay in sync.
+const FILTER_MODULES = [
+  { testModule: "m-pass", instances: ["i1"], status: "FINISHED", result: "PASSED" },
+  { testModule: "m-fail", instances: ["i2"], status: "FINISHED", result: "FAILED" },
+  { testModule: "m-skipped", instances: ["i3"], status: "FINISHED", result: "SKIPPED" },
+  { testModule: "m-never-run" },
+];
+
+export const ModulesResultFilter = {
+  render: () => html`
+    <cts-plan-modules
+      .modules=${FILTER_MODULES}
+      .resultFilter=${new Set(["FAILED"])}
+      plan-id="plan-abc-123"
+    ></cts-plan-modules>
+  `,
+  async play({ canvasElement, step }) {
+    await step("only matching rows render, keeping their plan-order index", () => {
+      const rows = canvasElement.querySelectorAll(".module-row");
+      expect(rows.length).toBe(1);
+      expect(rows[0].getAttribute("data-module-index")).toBe("1");
+      expect(rows[0].textContent).toContain("m-fail");
+    });
+  },
+};
+
+export const ModulesNotYetRunExcludesSkipped = {
+  render: () => html`
+    <cts-plan-modules
+      .modules=${FILTER_MODULES}
+      .resultFilter=${new Set([NOT_RUN_FILTER_VALUE])}
+      plan-id="plan-abc-123"
+    ></cts-plan-modules>
+  `,
+  async play({ canvasElement, step }) {
+    await step("'Not yet run' selects the never-run module, NOT the skipped one", () => {
+      const rows = canvasElement.querySelectorAll(".module-row");
+      expect(rows.length).toBe(1);
+      expect(rows[0].getAttribute("data-module-index")).toBe("3");
+      expect(rows[0].textContent).toContain("m-never-run");
+    });
+  },
+};
+
+export const ModulesFilterEmptyState = {
+  render: () => html`
+    <cts-plan-modules
+      .modules=${FILTER_MODULES}
+      .resultFilter=${new Set(["REVIEW"])}
+      plan-id="plan-abc-123"
+    ></cts-plan-modules>
+  `,
+  async play({ canvasElement, step }) {
+    await step("a filter that matches nothing shows the empty-filter message", () => {
+      expect(canvasElement.querySelectorAll(".module-row").length).toBe(0);
+      expect(canvasElement.querySelector(".planModulesEmpty")?.textContent).toContain(
+        "No modules match",
+      );
+    });
   },
 };
 

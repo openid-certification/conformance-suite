@@ -297,8 +297,10 @@ function formatVariant(variant) {
  *   are dimmed; the count summary ignores it (R4/R10/R18). Set via JS only.
  * @fires cts-plan-status-activate - When an interactive (`detail`/`log`)
  *   segment is clicked or keyboard-activated, with
- *   `{ index, module, instanceId }` where `instanceId` is the module's
- *   most-recent instance (R17). Bubbles and is composed.
+ *   `{ index, module, instanceId, dimmed }` where `instanceId` is the module's
+ *   most-recent instance (R17) and `dimmed` is whether an active result filter
+ *   currently dims the segment (so a coordinator can clear-then-scroll, R11).
+ *   Bubbles and is composed.
  */
 class CtsPlanStatus extends LitElement {
   static properties = {
@@ -387,11 +389,16 @@ class CtsPlanStatus extends LitElement {
     if (!mod) return;
     const instances = Array.isArray(mod.instances) ? mod.instances : [];
     const instanceId = instances.length ? instances[instances.length - 1] : null;
+    // Whether this segment is currently dimmed by an active result filter, so a
+    // page coordinator can implement "clear the filter, then scroll" (R11)
+    // without re-deriving the match (the same `moduleMatchesResultFilter` source
+    // of truth the dimming render uses).
+    const dimmed = !moduleMatchesResultFilter(mod, this.activeResultFilter);
     this.dispatchEvent(
       new CustomEvent("cts-plan-status-activate", {
         bubbles: true,
         composed: true,
-        detail: { index: idx, module: mod, instanceId },
+        detail: { index: idx, module: mod, instanceId, dimmed },
       }),
     );
   }
