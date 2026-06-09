@@ -246,10 +246,11 @@ const STYLE_TEXT = css`
      interactive ring with no inversion; the result-summary filter only
      toggles the six variants below (pass/fail/warn/skip/info-subtle/
      review), which mirror COUNT_BADGE_VARIANTS in cts-log-viewer. Review
-     inverts to the saturated --status-review teal fill with dark ink text
-     (the saturated teal is light enough to carry dark text but not light
-     text, so this is dark-on-teal rather than the light-on-saturated form
-     the other variants use). */
+     inverts to a darkened-teal fill with light text — the same dark-fill +
+     light-text form as the other variants (and as b-info-subtle) so a
+     selected Review badge reads identically to a selected INFO badge; see
+     the .b-rev.is-pressed rule for why the fill is a darkened mix rather
+     than the saturated --status-review itself. */
   cts-badge .b-pass.is-pressed {
     background: var(--status-pass);
     color: var(--status-pass-bg);
@@ -270,9 +271,16 @@ const STYLE_TEXT = css`
     background: var(--status-info);
     color: var(--status-info-bg);
   }
+  /* Pressed Review mirrors the b-info-subtle inversion (dark saturated fill,
+     light text) rather than a light fill with dark ink, so a selected Review
+     count badge reads the same as a selected INFO badge in logResultSummary.
+     The saturated --status-review (#6AC4C2) is too light to host light text, so
+     the fill is the same darkened teal used for the unpressed b-rev TEXT (a
+     clean inversion of the readonly chip), with the light --status-review-bg as
+     text — ~6.2:1, matching b-info-subtle pressed. */
   cts-badge .b-rev.is-pressed {
-    background: var(--status-review);
-    color: var(--ink-900);
+    background: color-mix(in srgb, var(--status-review) 42%, var(--ink-900));
+    color: var(--status-review-bg);
   }
   /* Hover and focus affordance — only on interactive badges. Read-only
      badges deliberately render no hover state so they read as labels,
