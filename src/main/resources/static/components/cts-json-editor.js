@@ -477,7 +477,10 @@ class CtsJsonEditor extends LitElement {
       overviewRulerLanes: 0,
       overviewRulerBorder: false,
       hideCursorInOverviewRuler: true,
-      lineNumbers: "off",
+      lineNumbers: "on",
+      // Default reserves 5 chars; configs run a few hundred lines at most,
+      // so 3 keeps the gutter compact without truncating.
+      lineNumbersMinChars: 3,
       lineDecorationsWidth: 0,
       glyphMargin: false,
       folding: false,
