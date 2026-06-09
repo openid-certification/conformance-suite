@@ -54,6 +54,10 @@ test.describe("plan-detail.html — Plan Detail", () => {
     await expect(header).toContainText("plan-abc-123");
     await expect(header).toContainText("client_secret_basic");
 
+    // Alias row surfaces the user-set config.alias next to the other metadata.
+    await expect(header.locator('[data-testid="alias-row"]')).toHaveCount(1);
+    await expect(header).toContainText("oidcc-basic-run-1");
+
     // Module list renders (4 modules in MOCK_PLAN_DETAIL).
     // cts-plan-modules exposes id="planItems" with .module-row children.
     const moduleRows = page.locator("#planItems .module-row");
@@ -65,6 +69,34 @@ test.describe("plan-detail.html — Plan Detail", () => {
 
     // View configuration action button visible (rendered by cts-plan-actions)
     await expect(page.locator('[data-testid="view-config-btn"]')).toBeVisible();
+  });
+
+  test("omits the Alias row when the plan has no config (e.g. public view)", async ({ page }) => {
+    // The public projection (PublicPlan) drops `config` entirely, and
+    // dynamic-registration plans may leave the alias blank. In both cases the
+    // header must suppress the Alias row rather than render an empty cell —
+    // and the component's optional chaining must not throw on a missing config.
+    await setupFailFast(page);
+
+    const planWithoutConfig = { ...MOCK_PLAN_DETAIL, config: undefined };
+    await page.route("**/api/plan/plan-abc-123", (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(planWithoutConfig),
+      }),
+    );
+
+    await setupTestInfoRoute(page);
+    await setupCommonRoutes(page);
+
+    await page.goto("/plan-detail.html?plan=plan-abc-123");
+
+    const header = page.locator("#planDetailHeader");
+    // Header still renders (plan name proves the page mounted without error)…
+    await expect(header).toContainText("oidcc-basic-certification-test-plan");
+    // …but the Alias row is absent.
+    await expect(header.locator('[data-testid="alias-row"]')).toHaveCount(0);
   });
 
   test("initial load shows an in-page loader, not a blocking modal overlay", async ({ page }) => {

@@ -59,6 +59,9 @@ export const MOCK_PLAN_DETAIL = {
     },
   ],
   config: {
+    // User-set, URL-safe alias. Lives inside `config` on the authenticated
+    // /api/plan/{id} shape; the plan-detail header reads `plan.config.alias`.
+    alias: "oidcc-basic-run-1",
     "server.issuer": "https://op.example.com",
     "client.client_id": "test-client-id",
     "client.client_secret": "test-client-secret",
