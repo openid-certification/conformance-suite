@@ -278,10 +278,12 @@ const STYLE_TEXT = css`
   .moduleStatusBox--skip {
     background: var(--ink-300);
   }
-  /* Review has no --status-review token yet; use the legacy review teal so
-     it stays distinguishable from the gray skip/pending boxes. */
+  /* Review teal, now token-sourced via --status-review (added to
+     oidf-tokens.css alongside the --status-* group) so it stays
+     distinguishable from the gray skip/pending boxes and shares one
+     source of truth with the cts-plan-status segment fill. */
   .moduleStatusBox--review {
-    background: #6ac4c2;
+    background: var(--status-review);
   }
   /* Pending shares the neutral gray with skip — motion is the only
      differentiator (a running fetch pulses; a settled box is static).
