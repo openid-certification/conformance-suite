@@ -25,6 +25,46 @@ import { classMap } from "lit/directives/class-map.js";
 
 const STYLE_ID = "cts-spec-cascade-styles";
 
+/**
+ * Friendly display labels for the `plan.profile` strings the backend
+ * publishes (see `TestPlan.ProfileNames` in Java). Those strings read like
+ * instructions ("Test a OpenID4VCI issuer"), which is redundant under the
+ * "Entity Under Test" label — the dropdown shows the entity name instead.
+ * Display-only: option VALUES keep the wire string, so the plan index and
+ * selection round-trips are unaffected.
+ */
+const PROFILE_DISPLAY_LABELS = {
+  "Test a Relying Party / OAuth2 Client": "Relying Party / OAuth2 Client",
+  "Test a Relying Party / OAuth2 Client Logout Support":
+    "Relying Party / OAuth2 Client Logout Support",
+  "Test an OpenID Provider / Authorization Server": "OpenID Provider / Authorization Server",
+  "Test Shared Signals Framework Support": "Shared Signals Framework",
+  "Test an eKYC & IDA OpenID Provider": "eKYC & IDA OpenID Provider",
+  "Test a OpenID4VCI issuer": "OpenID4VCI Issuer",
+  "Test a OpenID4VCI wallet": "OpenID4VCI Wallet",
+  "Test a OpenID4VP wallet": "OpenID4VP Wallet",
+  "Test a OpenID4VP Verifier": "OpenID4VP Verifier",
+  "Test an OpenID Federation entity": "OpenID Federation Entity",
+  "Test an Authzen PDP server": "AuthZen PDP Server",
+};
+
+/**
+ * Map a `plan.profile` / `plan.entityUnderTest` wire string to its display
+ * label. Unknown values that still follow the "Test a/an <entity>" pattern
+ * degrade gracefully by stripping the prefix and capitalising; anything
+ * else passes through verbatim.
+ *
+ * @param {string} profile
+ * @returns {string}
+ */
+export function profileDisplayLabel(profile) {
+  const mapped = PROFILE_DISPLAY_LABELS[profile];
+  if (mapped) return mapped;
+  const match = /^Test an? (.+)$/.exec(profile || "");
+  if (match) return match[1].charAt(0).toUpperCase() + match[1].slice(1);
+  return profile;
+}
+
 // Inline SVG chevron used as the custom select indicator. Stroke colour is
 // `--ink-500` (`#71695E`) — encoded as `%2371695E` in the data: URL.
 const SELECT_CHEVRON =
@@ -506,7 +546,7 @@ class CtsSpecCascade extends LitElement {
         ${this._renderField(
           "Entity Under Test",
           "entitySelect",
-          this._entities,
+          this._entities.map((entity) => ({ value: entity, label: profileDisplayLabel(entity) })),
           this._selectedEntity,
           "--- Select Entity ---",
           (e) => this._handleEntityChange(e),
