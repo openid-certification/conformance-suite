@@ -17,6 +17,14 @@ public class CheckForUnexpectedParametersInCredentialIssuerMetadata extends Abst
 	}
 
 	@Override
+	protected String getAllowUnexpectedFieldsConfigKey() {
+		// Hidden escape hatch: a tester can add this JSON array of property names to the test
+		// configuration to suppress warnings for extension metadata their credential issuer
+		// legitimately publishes.
+		return "vci.allow_unexpected_credential_issuer_metadata_fields";
+	}
+
+	@Override
 	@PreEnvironment(required = "vci")
 	public Environment evaluate(Environment env) {
 		return super.evaluate(env);
