@@ -91,6 +91,10 @@ public class WebSecurityResourceServerConfig {
 					uri.matches("/api/plan/[A-Za-z0-9]+") ||
 					uri.matches("/api/info/[A-Za-z0-9]+") ||
 					uri.matches("/api/log/[A-Za-z0-9]+") ||
+					// theming spike: shared-result pages load partner branding too
+					uri.equals("/api/theme") ||
+					uri.equals("/api/theme/css") ||
+					uri.equals("/api/theme/logo") ||
 					uri.equals("/api/currentuser"))) {
 					return false; // allow these
 				}
@@ -98,6 +102,9 @@ public class WebSecurityResourceServerConfig {
 			}).denyAll();
 
 			requests.requestMatchers(getPublicMatcher()).permitAll();
+			// theming spike: branding assets render on the anonymous login page,
+			// so these GETs are truly public (no ?public param required)
+			requests.requestMatchers(getThemeAssetMatcher()).permitAll();
 			requests.requestMatchers(getApiMatcher()).authenticated();
 			// deny access for any unmatched API routes
 			requests.anyRequest().denyAll();
@@ -161,8 +168,20 @@ public class WebSecurityResourceServerConfig {
 			"/api/info/**", //
 			"/api/plan/**", //
 			"/api/token/**", //
-			"/api/lastconfig" //
+			"/api/lastconfig", //
+			"/api/theme", // theming spike: admin-gated writes (POST/DELETE) inside the controller
+			"/api/theme/**" //
 			).<RequestMatcher>map(pattern -> PathPatternRequestMatcher.withDefaults().matcher(pattern)).toList());
+	}
+
+	private RequestMatcher getThemeAssetMatcher() {
+		// Theming spike: partner branding (theme JSON, accent stylesheet, logo) must
+		// load for anonymous visitors — login.html links /api/theme/css in its head.
+		return new OrRequestMatcher(Stream.of( //
+			"/api/theme", //
+			"/api/theme/css", //
+			"/api/theme/logo" //
+			).<RequestMatcher>map(path -> PathPatternRequestMatcher.withDefaults().matcher(HttpMethod.GET, path)).toList());
 	}
 
 	private RequestMatcher getPublicMatcher() {
