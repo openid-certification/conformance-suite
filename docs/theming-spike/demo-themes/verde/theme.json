@@ -1,0 +1,27 @@
+{
+  "version": 1,
+  "partner": {
+    "name": "Verde Open Finance"
+  },
+  "brand": {
+    "accent": "#1E7A46",
+    "logo": {
+      "file": "logo.svg",
+      "alt": "Verde Open Finance",
+      "plate": false
+    }
+  },
+  "presets": [
+    {
+      "id": "verde-fapi2-op",
+      "label": "Verde ecosystem — FAPI 2 OP certification",
+      "description": "Certify your authorization server for the Verde Open Finance ecosystem with the FAPI 2 Security Profile, pre-configured with ecosystem defaults.",
+      "planName": "fapi2-security-profile-final-test-plan",
+      "variant": {},
+      "configuration": {
+        "alias": "verde-op",
+        "description": "Verde Open Finance OP certification (pre-baked demo configuration)"
+      }
+    }
+  ]
+}

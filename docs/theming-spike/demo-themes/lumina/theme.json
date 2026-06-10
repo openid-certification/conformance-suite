@@ -1,0 +1,27 @@
+{
+  "version": 1,
+  "partner": {
+    "name": "Lumina Trust"
+  },
+  "brand": {
+    "accent": "#5B3FA8",
+    "logo": {
+      "file": "logo.svg",
+      "alt": "Lumina Trust",
+      "plate": false
+    }
+  },
+  "presets": [
+    {
+      "id": "lumina-vp-wallet",
+      "label": "Lumina wallet certification — OpenID4VP",
+      "description": "Certify your wallet for the Lumina Trust framework. Verifiable Presentations test plan with Lumina's pre-baked verifier configuration.",
+      "planName": "oid4vp-1final-wallet-test-plan",
+      "variant": {},
+      "configuration": {
+        "alias": "lumina-wallet",
+        "description": "Lumina Trust wallet certification (pre-baked demo configuration)"
+      }
+    }
+  ]
+}

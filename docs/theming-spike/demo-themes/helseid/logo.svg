@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 232 56" role="img" aria-label="HelseID">
+  <!-- Demo wordmark for the theming spike — NOT an official HelseID asset. -->
+  <rect x="2" y="2" width="52" height="52" rx="12" fill="#FFFFFF"/>
+  <path d="M22 14h12v8h8v12h-8v8H22v-8h-8V22h8z" fill="#0067C5"/>
+  <text x="66" y="39" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="30" font-weight="700" fill="#FFFFFF">Helse<tspan font-weight="400">ID</tspan></text>
+</svg>

@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 56" role="img" aria-label="Lumina Trust">
+  <!-- Fictional partner logo for the theming spike. -->
+  <path d="M28 4l6 18 18 6-18 6-6 18-6-18-18-6 18-6z" fill="#FFFFFF"/>
+  <path d="M28 16l3 9 9 3-9 3-3 9-3-9-9-3 9-3z" fill="#C9B8F0"/>
+  <text x="62" y="39" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="30" font-weight="700" fill="#FFFFFF">Lumina<tspan font-weight="400" fill="#C9B8F0"> Trust</tspan></text>
+</svg>

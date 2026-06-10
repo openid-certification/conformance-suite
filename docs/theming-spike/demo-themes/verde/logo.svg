@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 120" role="img" aria-label="Verde Open Finance">
+  <!-- Fictional partner logo for the theming spike. Deliberately padded
+       (the artwork sits inside a 360x120 canvas with wide margins) so the
+       admin-UI crop journey has something real to trim. -->
+  <g transform="translate(58 32)">
+    <circle cx="28" cy="28" r="26" fill="none" stroke="#FFFFFF" stroke-width="4"/>
+    <path d="M28 44c0-14 6-22 16-26-2 12-6 22-16 26z" fill="#7FD1A2"/>
+    <path d="M28 44c0-14-6-22-16-26 2 12 6 22 16 26z" fill="#FFFFFF"/>
+    <text x="66" y="38" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="34" font-weight="700" fill="#FFFFFF">verde<tspan fill="#7FD1A2">.</tspan></text>
+  </g>
+</svg>

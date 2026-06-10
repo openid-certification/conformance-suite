@@ -1,0 +1,34 @@
+{
+  "version": 1,
+  "partner": {
+    "name": "HelseID"
+  },
+  "brand": {
+    "accent": "#0067C5",
+    "logo": {
+      "file": "logo.svg",
+      "alt": "HelseID",
+      "plate": false
+    }
+  },
+  "presets": [
+    {
+      "id": "helseid-rp-basic",
+      "label": "HelseID RP certification — Basic profile",
+      "description": "Certify your relying party (client) against the HelseID profile. The test plan, flow variants and the HelseID demo client (client ID and secret) are pre-configured — just review and start.",
+      "planName": "oidcc-client-basic-certification-test-plan",
+      "variant": {
+        "client_registration": "static_client",
+        "request_type": "plain_http_request"
+      },
+      "configuration": {
+        "alias": "helseid-rp",
+        "description": "HelseID RP certification (pre-baked demo configuration)",
+        "client": {
+          "client_id": "helseid-demo-rp",
+          "client_secret": "hid-demo-secret-not-for-production"
+        }
+      }
+    }
+  ]
+}
