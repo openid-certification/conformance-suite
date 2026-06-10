@@ -16,7 +16,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-class ECKeyUtilTest {
+class ECKeyUtil_UnitTest {
 
 	@Test
 	void derivedPublicKey_matches_publicKey() {
@@ -82,7 +82,7 @@ class ECKeyUtilTest {
 	}
 
 	@Test
-	void deriveECPubKeyFromPrivKey_mismatch_error() {
+	void derivedPublicKeys_fromDifferentKeyPairs_differ() {
 
 		assertDoesNotThrow(()-> {
 			KeyPairGenerator kpGen = KeyPairGenerator.getInstance("EC", BouncyCastleProviderSingleton.getInstance());
@@ -110,9 +110,6 @@ class ECKeyUtilTest {
 				assertFalse(derivedPubKey1.equals(bceCPublicKey2));
 				assertFalse(derivedPubKey2.equals(bceCPublicKey1));
 
-				assertTrue(derivedPubKey1.equals(derivedPubKey1));
-				assertTrue(derivedPubKey2.equals(derivedPubKey2));
-
 				assertFalse(derivedPubKey1.equals(derivedPubKey2));
 			} else {
 				throw new RuntimeException("Invalid EC key instance");
@@ -122,7 +119,7 @@ class ECKeyUtilTest {
 
 
 	@Test
-	void deriveECPubKeyFromPrivKey_mismatch_curve_error() {
+	void derivedPublicKeys_fromDifferentCurves_differ() {
 
 		assertDoesNotThrow(()-> {
 			KeyPairGenerator kpGen = KeyPairGenerator.getInstance("EC", BouncyCastleProviderSingleton.getInstance());
@@ -150,9 +147,6 @@ class ECKeyUtilTest {
 
 				assertFalse(derivedPubKey1.equals(bceCPublicKey2));
 				assertFalse(derivedPubKey2.equals(bceCPublicKey1));
-
-				assertTrue(derivedPubKey1.equals(derivedPubKey1));
-				assertTrue(derivedPubKey2.equals(derivedPubKey2));
 
 				assertFalse(derivedPubKey1.equals(derivedPubKey2));
 			} else {

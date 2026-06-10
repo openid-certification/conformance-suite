@@ -7,10 +7,7 @@ import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.util.ECKeyUtil;
-import org.bouncycastle.asn1.ASN1Sequence;
-import org.bouncycastle.asn1.pkcs.PrivateKeyInfo;
-import org.bouncycastle.asn1.x509.AlgorithmIdentifier;
-import org.bouncycastle.asn1.x9.X9ObjectIdentifiers;
+import net.openid.conformance.util.MtlsKeyUtil;
 import org.bouncycastle.jcajce.provider.asymmetric.ec.BCECPrivateKey;
 import org.bouncycastle.jcajce.provider.asymmetric.ec.BCECPublicKey;
 import org.bouncycastle.jcajce.provider.asymmetric.edec.BCEdDSAPrivateKey;
@@ -21,7 +18,6 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.security.InvalidKeyException;
-import java.security.KeyFactory;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.security.PrivateKey;
@@ -34,8 +30,6 @@ import java.security.cert.X509Certificate;
 import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
 import java.security.spec.InvalidKeySpecException;
-import java.security.spec.KeySpec;
-import java.security.spec.PKCS8EncodedKeySpec;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Collection;
@@ -75,27 +69,6 @@ public class ValidateMTLSCertificatesAsX509 extends AbstractCondition {
 		return env;
 	}
 
-	protected static PrivateKey generateAlgPrivateKeyFromDER(String alg, byte[] keyBytes) throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {
-		try {
-			// try to generate private key using PKCS8, works for both RSA and EC and Ed25519 alg
-			// RSA alg will handle both PKCS1 and PKCS8 format here
-			// EC alg will throw exception for PKCS1, Ed25519 not possible with PKCS1
-			KeySpec kspec = new PKCS8EncodedKeySpec(keyBytes);
-			return KeyFactory.getInstance(alg, BouncyCastleProviderSingleton.getInstance()).generatePrivate(kspec);
-		} catch (InvalidKeySpecException e) {
-			if("EC".equals(alg)) {
-				// try to generate private key using PKCS1
-				ASN1Sequence seq = ASN1Sequence.getInstance(keyBytes);
-				org.bouncycastle.asn1.sec.ECPrivateKey pKey = org.bouncycastle.asn1.sec.ECPrivateKey.getInstance(seq);
-				AlgorithmIdentifier algId = new AlgorithmIdentifier(X9ObjectIdentifiers.id_ecPublicKey, pKey.getParametersObject());
-				byte[] server_pkcs8 = new PrivateKeyInfo(algId, pKey).getEncoded();
-				return KeyFactory.getInstance(alg, BouncyCastleProviderSingleton.getInstance()).generatePrivate(new PKCS8EncodedKeySpec(server_pkcs8));
-			}
-			throw e;
-		}
-	}
-
-
 	private X509Certificate generateCertificateFromMTLSCert(String certString, CertificateFactory certFactory) {
 		byte[] decodedCert;
 		try {
@@ -131,7 +104,7 @@ public class ValidateMTLSCertificatesAsX509 extends AbstractCondition {
 		} else if ("Ed25519".equals(alg)) { // alg value is specific to BouncyCastle provider; use EdDSA if using default Java provider
 			verifyEd25519PrivateKey(certString, keyString, decodedKey, certificate);
 		} else {
-			throw error("The private key format is not support. You need to provide a private key which is RSA or EC or EdDSA with Ed25519 curve");
+			throw error("The private key format is not supported. You need to provide a private key which is RSA or EC or EdDSA with Ed25519 curve");
 		}
 
 	}
@@ -139,7 +112,7 @@ public class ValidateMTLSCertificatesAsX509 extends AbstractCondition {
 	private void verifyRSAPrivateKey(String certString, String keyString, byte[] decodedKey, X509Certificate certificate) {
 		RSAPrivateKey privateKey;
 		try {
-			privateKey = (RSAPrivateKey) generateAlgPrivateKeyFromDER("RSA", decodedKey);
+			privateKey = (RSAPrivateKey) MtlsKeyUtil.generateAlgPrivateKeyFromDER("RSA", decodedKey);
 		} catch (InvalidKeySpecException | IllegalArgumentException | NoSuchAlgorithmException | IOException e) {
 			throw error("Couldn't generate RSA private key", e, args("key", keyString));
 		}
@@ -153,7 +126,7 @@ public class ValidateMTLSCertificatesAsX509 extends AbstractCondition {
 
 	private void verifyECPrivateKey(String certString, String keyString, byte[] decodedKey, X509Certificate certificate) {
 		try {
-			PrivateKey privateKey = generateAlgPrivateKeyFromDER("EC",decodedKey);
+			PrivateKey privateKey = MtlsKeyUtil.generateAlgPrivateKeyFromDER("EC", decodedKey);
 			// generate public key from private key and compare with certificate's public key
 			ECPublicKey ecPublicKey = (ECPublicKey) certificate.getPublicKey();
 			if(privateKey instanceof BCECPrivateKey) {
@@ -171,7 +144,7 @@ public class ValidateMTLSCertificatesAsX509 extends AbstractCondition {
 
 	private void verifyEd25519PrivateKey(String certString, String keyString, byte[] decodedKey, X509Certificate certificate) {
 		try {
-			PrivateKey privateKey = generateAlgPrivateKeyFromDER("Ed25519",decodedKey);
+			PrivateKey privateKey = MtlsKeyUtil.generateAlgPrivateKeyFromDER("Ed25519", decodedKey);
 			// Check that the private key and the certificate match
 			PublicKey pubKey = certificate.getPublicKey();
 			if(pubKey instanceof BCEdDSAPublicKey && privateKey instanceof BCEdDSAPrivateKey) {
