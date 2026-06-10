@@ -36,6 +36,7 @@ public class VCIIssuerTestPlan implements TestPlan {
 					VCIIssuerHappyFlowAdditionalRequests.class,
 					VCIIssuerHappyFlowMultipleClients.class,
 					VCIIssuerHappyFlowWithSkipNotification.class,
+					VCIIssuerBatchIssuance.class,
 					// negative tests
 					VCIIssuerFailOnInvalidNonce.class,
 					VCIIssuerFailOnInvalidJwtProofSignature.class,
