@@ -131,7 +131,8 @@ public class VCIClientProfileBehavior extends FAPI2ClientProfileBehavior {
 					/* useMtlsForResources */ module.isMTLSConstrain(),
 					/* notificationsEnabled */ true,
 					/* deferredEnabled */ false,
-					/* encryptionEnabled */ false));
+					/* encryptionEnabled */ false,
+					/* batchSize */ null));
 		} catch (IllegalStateException e) {
 			throw new TestFailureException(module.getId(), e.getMessage());
 		}

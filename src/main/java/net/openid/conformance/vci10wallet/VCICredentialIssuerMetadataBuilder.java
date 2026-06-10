@@ -48,6 +48,7 @@ public final class VCICredentialIssuerMetadataBuilder {
 		public final boolean notificationsEnabled;
 		public final boolean deferredEnabled;
 		public final boolean encryptionEnabled;
+		public final Integer batchSize;
 
 		public Config(
 			String credentialPath,
@@ -57,7 +58,8 @@ public final class VCICredentialIssuerMetadataBuilder {
 			boolean useMtlsForResources,
 			boolean notificationsEnabled,
 			boolean deferredEnabled,
-			boolean encryptionEnabled) {
+			boolean encryptionEnabled,
+			Integer batchSize) {
 			this.credentialPath = credentialPath;
 			this.noncePath = noncePath;
 			this.deferredCredentialPath = deferredCredentialPath;
@@ -66,6 +68,7 @@ public final class VCICredentialIssuerMetadataBuilder {
 			this.notificationsEnabled = notificationsEnabled;
 			this.deferredEnabled = deferredEnabled;
 			this.encryptionEnabled = encryptionEnabled;
+			this.batchSize = batchSize;
 		}
 	}
 
@@ -154,6 +157,13 @@ public final class VCICredentialIssuerMetadataBuilder {
 			// JWKS so the wallet can encrypt credential requests to it.
 			JsonObject requestEnc = createRequestEncryptionConfig(env);
 			metadataJson.add("credential_request_encryption", requestEnc);
+		}
+
+		// Advertise batch issuance support if a batch size is configured
+		if (config.batchSize != null) {
+			JsonObject batchCredentialIssuance = new JsonObject();
+			batchCredentialIssuance.addProperty("batch_size", config.batchSize);
+			metadataJson.add("batch_credential_issuance", batchCredentialIssuance);
 		}
 
 		return metadataJson;
