@@ -23,6 +23,7 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap">
     <link rel="preload" as="font" type="font/woff2" href="/fonts/inter/Inter-Variable.woff2" crossorigin>
     <link rel="stylesheet" href="/css/oidf-tokens.css">
+    <link rel="stylesheet" href="/api/theme/css"><!-- theming spike: partner accent overrides; render-blocking so the accent is right on first paint -->
     <link rel="stylesheet" type="text/css" href="css/layout.css">
     <link rel="stylesheet" href="/css/oidf-app.css">
 
@@ -828,7 +829,9 @@
                     if (guidedCtl && guidedCtl.initialMode === 'guided') {
                         return;
                     }
-                    return applyConfigPreset().then(function() {
+                    return applyPartnerPreset().then(function() {
+                        return applyConfigPreset();
+                    }).then(function() {
                         return restoreEditPlanVariants();
                     }).then(function() {
                         return applyConfigJsonParam();
@@ -894,6 +897,49 @@
             if (testPlanName && testPlanName in FAPI_UI.availablePlans) {
                 await selectPlanByName(testPlanName);
             }
+        }
+
+        // Theming spike: handle ?preset=<id> — a partner pre-baked
+        // configuration from the active theme (/api/theme). Selects the plan,
+        // applies the preset's variant choices (mirroring
+        // restoreEditPlanVariants), then fills the configuration form with the
+        // pre-baked values (client IDs, keys, mTLS certs, ...).
+        async function applyPartnerPreset() {
+            const presetId = new URLSearchParams(window.location.search).get("preset");
+            if (!presetId) return;
+            let body = null;
+            try {
+                const response = await fetch('/api/theme');
+                if (response.ok) body = await response.json();
+            } catch (e) {
+                console.warn('[schedule-test] theme fetch failed for ?preset=', e);
+                return;
+            }
+            const presets = (body && body.theme && body.theme.presets) || [];
+            const preset = presets.find(function(entry) { return entry && entry.id === presetId; });
+            if (!preset) {
+                window.ctsToast({ title: 'Unknown preset', message: 'The link\'s preset "' + presetId + '" is not offered by this deployment.', kind: 'error' });
+                return;
+            }
+            if (!(preset.planName in FAPI_UI.availablePlans)) {
+                window.ctsToast({ title: 'Preset unavailable', message: 'Test plan "' + preset.planName + '" is not published on this server.', kind: 'error' });
+                return;
+            }
+            await selectPlanByName(preset.planName);
+            if (preset.variant && typeof preset.variant === 'object') {
+                Object.entries(preset.variant).forEach(([key, value]) => {
+                    const el = document.querySelector(`.variant-selector[data-variant-parameter="${key}"]`);
+                    if (el) {
+                        el.value = value;
+                    }
+                });
+                updateVariantOptionsVisibility();
+                updateConfigFieldVisibility();
+            }
+            if (preset.configuration && typeof preset.configuration === 'object') {
+                applyConfigToForm(JSON.parse(JSON.stringify(preset.configuration)));
+            }
+            window.ctsToast({ title: 'Pre-configured by your certification program', message: preset.label, duration: 7000 });
         }
 
         async function restoreEditPlanVariants() {

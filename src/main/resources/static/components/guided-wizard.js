@@ -88,7 +88,7 @@ export function tryGetStorage(type) {
 /**
  * @typedef {object} ModeDecision
  * @property {"guided"|"advanced"} mode
- * @property {"edit-plan"|"edit-test"|"configJson"|"test_plan"|"recovery"|"wizard_preset"|"preference"|"default"} source -
+ * @property {"edit-plan"|"edit-test"|"configJson"|"test_plan"|"preset"|"recovery"|"wizard_preset"|"preference"|"default"} source -
  *   Which ladder slot decided the mode. Callers branch on this for entry
  *   behavior (e.g. `recovery` re-enters guided at the config step while
  *   `wizard_preset` replays answers).
@@ -115,6 +115,9 @@ export function resolveMode({ params, storedMode = null, hasRecoveryRecord = fal
   if (params.get("edit-test")) return { mode: "advanced", source: "edit-test" };
   if (params.get("configJson")) return { mode: "advanced", source: "configJson" };
   if (params.get("test_plan")) return { mode: "advanced", source: "test_plan" };
+  // Theming spike: a partner pre-baked configuration deep-link behaves like
+  // the other share links — it lands on the advanced form, pre-filled.
+  if (params.get("preset")) return { mode: "advanced", source: "preset" };
   if (hasRecoveryRecord) return { mode: "guided", source: "recovery" };
   if (params.get("wizard_preset")) return { mode: "guided", source: "wizard_preset" };
   if (storedMode === "advanced") return { mode: "advanced", source: "preference" };

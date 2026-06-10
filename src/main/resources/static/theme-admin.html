@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8">
+    <title>OIDF Conformance: Partner Theming</title>
+
+    <link rel="preload" as="font" type="font/woff2" href="/fonts/inter/Inter-Variable.woff2" crossorigin>
+    <link rel="stylesheet" href="/css/oidf-tokens.css">
+    <link rel="stylesheet" href="/api/theme/css" id="themeCssLink"><!-- theming spike: partner accent overrides -->
+    <link rel="stylesheet" type="text/css" href="/css/layout.css">
+    <link rel="stylesheet" href="/css/oidf-app.css">
+
+    <script>window.litDisableBundleWarning = true;</script>
+    <script type="importmap">{"imports":{"lit":"/vendor/lit/lit.js","lit/":"/vendor/lit/","lit/directives/async-append.js":"/vendor/lit/lit.js","lit/directives/async-replace.js":"/vendor/lit/lit.js","lit/directives/cache.js":"/vendor/lit/lit.js","lit/directives/choose.js":"/vendor/lit/lit.js","lit/directives/class-map.js":"/vendor/lit/lit.js","lit/directives/guard.js":"/vendor/lit/lit.js","lit/directives/if-defined.js":"/vendor/lit/lit.js","lit/directives/join.js":"/vendor/lit/lit.js","lit/directives/keyed.js":"/vendor/lit/lit.js","lit/directives/live.js":"/vendor/lit/lit.js","lit/directives/map.js":"/vendor/lit/lit.js","lit/directives/range.js":"/vendor/lit/lit.js","lit/directives/ref.js":"/vendor/lit/lit.js","lit/directives/repeat.js":"/vendor/lit/lit.js","lit/directives/style-map.js":"/vendor/lit/lit.js","lit/directives/template-content.js":"/vendor/lit/lit.js","lit/directives/unsafe-html.js":"/vendor/lit/lit.js","lit/directives/unsafe-svg.js":"/vendor/lit/lit.js","lit/directives/until.js":"/vendor/lit/lit.js","lit/directives/when.js":"/vendor/lit/lit.js","@lit/reactive-element":"/vendor/lit/lit.js","@lit/reactive-element/":"/vendor/lit/","lit-html":"/vendor/lit/lit.js","lit-html/":"/vendor/lit/","lit-element/":"/vendor/lit/","marked":"/vendor/marked/marked.esm.js","dompurify":"/vendor/dompurify/purify.es.mjs"}}</script>
+    <script type="module" src="/components/cts-navbar.js"></script>
+    <script type="module" src="/components/cts-page-head.js"></script>
+    <script type="module" src="/components/cts-card.js"></script>
+    <script type="module" src="/components/cts-alert.js"></script>
+    <script type="module" src="/components/cts-button.js"></script>
+    <script type="module" src="/components/cts-badge.js"></script>
+    <script type="module" src="/components/cts-icon.js"></script>
+    <script type="module" src="/components/cts-json-editor.js"></script>
+    <script type="module" src="/js/cts-toast-api.js"></script>
+    <script type="module" src="/components/cts-footer.js"></script>
+
+    <style>
+        /* Theming spike — page-local styles (precedent: plan-detail/upload
+           carry inline style blocks for page-specific layout). */
+        .theme-admin-section { margin-bottom: var(--space-6); }
+        /* Native controls follow the (previewed) accent too. */
+        #main-content input[type="checkbox"],
+        #main-content input[type="range"] { accent-color: var(--orange-400); }
+        .theme-admin-grid {
+            display: grid;
+            gap: var(--space-4);
+            padding: var(--space-4) 0;
+        }
+        .theme-admin-field { display: grid; gap: var(--space-1); max-width: 520px; }
+        .theme-admin-field > label { font-weight: var(--fw-bold); font-size: var(--fs-13); }
+        .theme-admin-field .hint { color: var(--fg-soft); font-size: var(--fs-12); }
+        .theme-admin-field input[type="text"] {
+            font: inherit;
+            padding: var(--space-2) var(--space-3);
+            border: 1px solid var(--border-strong);
+            border-radius: var(--radius-2);
+        }
+        .theme-admin-field input[type="text"]:focus-visible {
+            outline: none;
+            border-color: var(--orange-400);
+            box-shadow: var(--focus-ring);
+        }
+        .accent-row { display: flex; gap: var(--space-3); align-items: center; }
+        .accent-row input[type="color"] {
+            inline-size: 48px; block-size: 36px; padding: 2px;
+            border: 1px solid var(--border-strong); border-radius: var(--radius-2);
+            background: var(--bg);
+        }
+        .contrast-report { display: grid; gap: var(--space-2); font-size: var(--fs-13); }
+        .contrast-report .row { display: flex; align-items: center; gap: var(--space-2); }
+        .swatch-strip { display: flex; gap: var(--space-2); align-items: center; }
+        .swatch-strip .swatch {
+            inline-size: var(--space-8); block-size: var(--space-6);
+            border-radius: var(--radius-1); border: 1px solid var(--border);
+        }
+        /* Logo previews replicate the two real header contexts. */
+        .logo-preview-strip {
+            display: flex; align-items: center; gap: var(--space-2);
+            background: var(--ink-900); color: var(--ink-0);
+            border-radius: var(--radius-2); padding: 0 var(--space-5);
+            height: 60px; max-width: 420px;
+        }
+        .logo-preview-strip[data-size="mobile"] { height: 48px; max-width: 220px; }
+        .logo-preview-strip img { height: 28px; width: auto; max-width: 220px; object-fit: contain; }
+        .logo-preview-strip[data-size="mobile"] img { height: 22px; }
+        .logo-preview-strip img.plate {
+            box-sizing: border-box; padding: 3px 8px; background: var(--ink-0); border-radius: 6px;
+        }
+        .logo-preview-strip .word {
+            font-family: var(--font-display); font-weight: var(--fw-bold);
+            font-size: var(--fs-13); letter-spacing: 0.04em;
+        }
+        .logo-preview-empty { color: var(--ink-400); font-size: var(--fs-12); }
+        /* Crop panel: live preview via clip-path inset on a bright copy over a
+           dimmed copy — no canvas redraws while sliding. */
+        .crop-stage {
+            position: relative; display: inline-block; max-width: 420px;
+            background:
+                repeating-conic-gradient(var(--ink-100) 0% 25%, var(--bg) 0% 50%) 0 0 / 16px 16px;
+            border: 1px solid var(--border); border-radius: var(--radius-2); overflow: hidden;
+        }
+        .crop-stage img { display: block; max-width: 100%; max-height: 220px; }
+        .crop-stage img.dim { opacity: 0.25; }
+        .crop-stage img.lit { position: absolute; inset: 0; }
+        .crop-sliders { display: grid; grid-template-columns: auto 1fr auto; gap: var(--space-1) var(--space-3); align-items: center; max-width: 420px; font-size: var(--fs-12); }
+        .theme-admin-actions { display: flex; flex-wrap: wrap; gap: var(--space-3); align-items: center; }
+        .preview-toggle { display: flex; gap: var(--space-2); align-items: center; font-size: var(--fs-13); }
+        #presetsEditor { display: block; }
+        .preset-validation { font-size: var(--fs-13); margin-top: var(--space-2); }
+        .preset-validation ul { margin: var(--space-1) 0 0; padding-inline-start: var(--space-5); }
+    </style>
+</head>
+
+<body>
+    <a class="oidf-skip-link" href="#main-content">Skip to main content</a>
+
+    <cts-navbar></cts-navbar>
+
+    <main id="main-content" class="narrow-page">
+        <cts-page-head title="Partner Theming"
+            sub="Brand this deployment for a certification partner: accent color, logo, and pre-baked test configurations. Changes apply to every visitor of this deployment."></cts-page-head>
+
+        <div id="adminGate" hidden>
+            <cts-alert variant="warning">Theming is restricted to administrators. Sign in with an admin account to edit the partner theme.</cts-alert>
+        </div>
+
+        <div id="fileManagedBanner" hidden class="theme-admin-section">
+            <cts-alert variant="info">This deployment's theme is <strong>managed as configuration-as-code</strong> (the <code>fintechlabs.theme.dir</code> property points at a theme directory). The form below is read-only — edit <code>theme.json</code> in your deployment repository instead, or remove the property to manage the theme from this page.</cts-alert>
+        </div>
+
+        <section id="brandSection" class="theme-admin-section">
+            <cts-card header="Brand">
+                <div class="theme-admin-grid">
+                    <div class="theme-admin-field">
+                        <label for="partnerName">Partner name</label>
+                        <input type="text" id="partnerName" maxlength="60" placeholder="e.g. HelseID" autocomplete="off">
+                        <span class="hint">Shown in the footer ("&lt;Partner&gt; conformance service — powered by the OpenID Foundation") and on the login page.</span>
+                    </div>
+                    <div class="theme-admin-field">
+                        <label for="accentHex">Accent color</label>
+                        <div class="accent-row">
+                            <input type="color" id="accentColor" value="#EB8B35" aria-label="Accent color picker">
+                            <input type="text" id="accentHex" value="#EB8B35" size="9" spellcheck="false" aria-label="Accent color hex value">
+                            <span class="swatch-strip" id="rampStrip" aria-hidden="true"></span>
+                        </div>
+                        <span class="hint">One color is enough — hover/active shades and tints are derived automatically. Buttons, links, focus rings and tab highlights follow it. Status colors (pass/fail/warn) never change.</span>
+                    </div>
+                    <div class="contrast-report" id="contrastReport"></div>
+                    <label class="preview-toggle">
+                        <input type="checkbox" id="previewToggle">
+                        Preview this accent on the current page (not saved)
+                    </label>
+                </div>
+            </cts-card>
+        </section>
+
+        <section id="logoSection" class="theme-admin-section">
+            <cts-card header="Logo">
+                <div class="theme-admin-grid">
+                    <div class="theme-admin-field">
+                        <label for="logoFile">Logo file</label>
+                        <input type="file" id="logoFile" accept=".png,.jpg,.jpeg,.svg,image/png,image/jpeg,image/svg+xml">
+                        <span class="hint">PNG, JPG or SVG, up to 512&nbsp;KB. The header renders it 28px tall (22px on phones) on a <strong>dark</strong> background — supply a light/white version, or enable the light plate below. Height is capped hard; width may run up to 220px.</span>
+                    </div>
+                    <div id="cropPanel" hidden>
+                        <div class="theme-admin-field">
+                            <label>Crop (PNG and SVG only)</label>
+                            <div class="crop-stage">
+                                <img id="cropDim" class="dim" alt="">
+                                <img id="cropLit" class="lit" alt="Crop preview">
+                            </div>
+                            <div class="crop-sliders">
+                                <span>Top</span><input type="range" id="cropTop" min="0" max="45" value="0"><output for="cropTop">0%</output>
+                                <span>Bottom</span><input type="range" id="cropBottom" min="0" max="45" value="0"><output for="cropBottom">0%</output>
+                                <span>Left</span><input type="range" id="cropLeft" min="0" max="45" value="0"><output for="cropLeft">0%</output>
+                                <span>Right</span><input type="range" id="cropRight" min="0" max="45" value="0"><output for="cropRight">0%</output>
+                            </div>
+                            <div class="theme-admin-actions">
+                                <cts-button id="applyCropBtn" size="sm" variant="secondary" icon="crop" label="Apply crop"></cts-button>
+                                <cts-button id="resetCropBtn" size="sm" variant="ghost" label="Start over"></cts-button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="theme-admin-field">
+                        <label for="logoAlt">Logo alt text</label>
+                        <input type="text" id="logoAlt" maxlength="80" placeholder="e.g. HelseID">
+                    </div>
+                    <label class="preview-toggle">
+                        <input type="checkbox" id="logoPlate">
+                        Place the logo on a light plate (for logos that disappear on the dark header)
+                    </label>
+                    <div class="theme-admin-field">
+                        <label>Header preview</label>
+                        <div class="logo-preview-strip" data-size="desktop">
+                            <img id="logoPreviewDesktop" alt="" hidden>
+                            <span class="logo-preview-empty" id="logoPreviewEmpty">No logo — the OpenID Foundation mark is shown.</span>
+                            <span class="word">CONFORMANCE SUITE</span>
+                        </div>
+                        <div class="logo-preview-strip" data-size="mobile">
+                            <img id="logoPreviewMobile" alt="" hidden>
+                        </div>
+                    </div>
+                    <div class="theme-admin-actions">
+                        <cts-button id="removeLogoBtn" size="sm" variant="ghost" icon="trash-empty" label="Remove logo"></cts-button>
+                    </div>
+                </div>
+            </cts-card>
+        </section>
+
+        <section id="presetsSection" class="theme-admin-section">
+            <cts-card header="Pre-baked test configurations (presets)">
+                <div class="theme-admin-grid">
+                    <span class="hint">Each preset becomes a card on the Test Plans home that opens the schedule-test form pre-filled: plan, variants and configuration (client IDs, keys, mTLS certs…). Schema per entry: <code>{"id", "label", "description", "planName", "variant": {…}, "configuration": {…}}</code>. Presets are only visible to signed-in users.</span>
+                    <cts-json-editor id="presetsEditor" style="min-height: 220px; max-height: 420px;" placeholder='[]'></cts-json-editor>
+                    <div class="theme-admin-actions">
+                        <cts-button id="validatePresetsBtn" size="sm" variant="secondary" icon="check" label="Validate presets"></cts-button>
+                    </div>
+                    <div class="preset-validation" id="presetValidation"></div>
+                </div>
+            </cts-card>
+        </section>
+
+        <section class="theme-admin-section">
+            <div class="theme-admin-actions">
+                <cts-button id="saveBtn" variant="primary" size="md" icon="save" label="Save theme"></cts-button>
+                <cts-button id="exportBtn" variant="secondary" size="md" icon="download" label="Export theme.json"></cts-button>
+                <cts-button id="importBtn" variant="secondary" size="md" icon="file-upload" label="Import theme.json"></cts-button>
+                <input type="file" id="importFile" accept=".json,application/json" hidden>
+                <cts-button id="resetBtn" variant="danger" size="md" icon="trash-empty" label="Reset to OpenID Foundation branding"></cts-button>
+            </div>
+            <p class="hint" style="margin-top: var(--space-3); color: var(--fg-soft); font-size: var(--fs-12);">
+                Export produces the exact <code>theme.json</code> a self-hosting partner drops into the directory referenced by
+                <code>fintechlabs.theme.dir</code> — the UI and configuration-as-code journeys share one format.
+            </p>
+        </section>
+    </main>
+
+    <script type="module">
+        import { ctsToast } from "/js/cts-toast-api.js";
+
+        /* ============================================================
+           Theming spike — admin page logic.
+           State: `working` mirrors the canonical theme.json schema; the
+           logo binary is held as a data URL (`logo.data`) once the user
+           uploads or once we lazily inline the stored logo on save/export.
+           ============================================================ */
+
+        const HEX = /^#[0-9a-fA-F]{6}$/;
+
+        // Mirrors ThemeService.generateCss — keep in sync (see findings doc:
+        // production should serve one canonical derivation, not two copies).
+        const DERIVED_RAMP = [
+            ["--orange-50", "color-mix(in oklab, {a}, white 88%)"],
+            ["--orange-100", "color-mix(in oklab, {a}, white 72%)"],
+            ["--orange-200", "color-mix(in oklab, {a}, white 50%)"],
+            ["--orange-300", "color-mix(in oklab, {a}, white 25%)"],
+            ["--orange-400", "{a}"],
+            ["--orange-500", "color-mix(in oklab, {a}, black 14%)"],
+            ["--orange-600", "color-mix(in oklab, {a}, black 30%)"],
+            ["--orange-700", "color-mix(in oklab, {a}, black 46%)"],
+            ["--oidf-orange", "{a}"],
+            ["--focus-ring", "0 0 0 3px color-mix(in srgb, {a} 35%, transparent)"],
+            ["--status-warning", "#D27420"],
+            ["--status-warning-bg", "#FDF1E5"],
+            ["--status-warning-border", "#FADCBE"],
+        ];
+
+        const $ = (id) => document.getElementById(id);
+
+        let working = { version: 1, partner: { name: "" }, brand: { accent: "#EB8B35" }, presets: [] };
+        let logoState = { kind: "none", dataUrl: null, contentType: null, originalDataUrl: null, originalText: null };
+        let readOnly = false;
+        let planNames = null; // from /api/plan/available, for preset validation
+
+        /* ---------- color helpers (WCAG 2.x contrast) ---------- */
+        function srgbChannel(value) {
+            const c = value / 255;
+            return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
+        }
+        function luminance(hex) {
+            const n = parseInt(hex.slice(1), 16);
+            return 0.2126 * srgbChannel((n >> 16) & 255) + 0.7152 * srgbChannel((n >> 8) & 255) + 0.0722 * srgbChannel(n & 255);
+        }
+        function contrast(hexA, hexB) {
+            const la = luminance(hexA), lb = luminance(hexB);
+            const [hi, lo] = la > lb ? [la, lb] : [lb, la];
+            return (hi + 0.05) / (lo + 0.05);
+        }
+        /** Approximate the derived -500 link shade (sRGB mix toward black, 14%).
+            The real shade is mixed in oklab by the browser; close enough for guidance. */
+        function darken14(hex) {
+            const n = parseInt(hex.slice(1), 16);
+            const mix = (channel) => Math.round(channel * 0.86);
+            return "#" + [(n >> 16) & 255, (n >> 8) & 255, n & 255].map((channel) => mix(channel).toString(16).padStart(2, "0")).join("");
+        }
+        function ratioBadge(ratio) {
+            const rounded = ratio.toFixed(2);
+            if (ratio >= 4.5) return `<cts-badge variant="pass">${rounded} : 1 — AA</cts-badge>`;
+            if (ratio >= 3) return `<cts-badge variant="warn">${rounded} : 1 — large text only</cts-badge>`;
+            return `<cts-badge variant="fail">${rounded} : 1 — fails AA</cts-badge>`;
+        }
+        function renderContrast() {
+            const accent = working.brand.accent;
+            if (!HEX.test(accent)) { $("contrastReport").innerHTML = ""; return; }
+            const link = darken14(accent);
+            $("contrastReport").innerHTML = `
+                <div class="row"><span>White text on accent (primary buttons)</span>${ratioBadge(contrast(accent, "#FFFFFF"))}</div>
+                <div class="row"><span>Link shade on white (body links, ≈ accent darkened 14%)</span>${ratioBadge(contrast(link, "#FFFFFF"))}</div>
+                <span class="hint">Guidance only — accessible color choices remain the partner's responsibility.</span>`;
+            const strip = $("rampStrip");
+            strip.innerHTML = "";
+            DERIVED_RAMP.slice(0, 8).forEach(([, expr]) => {
+                const cell = document.createElement("span");
+                cell.className = "swatch";
+                cell.style.background = expr.replaceAll("{a}", accent);
+                strip.appendChild(cell);
+            });
+        }
+
+        /* ---------- live page preview ---------- */
+        function applyPagePreview(on) {
+            const root = document.documentElement;
+            const accent = working.brand.accent;
+            if (on && HEX.test(accent)) {
+                root.style.setProperty("--theme-accent", accent);
+                DERIVED_RAMP.forEach(([prop, expr]) => root.style.setProperty(prop, expr.replaceAll("{a}", accent)));
+            } else {
+                root.style.removeProperty("--theme-accent");
+                DERIVED_RAMP.forEach(([prop]) => root.style.removeProperty(prop));
+            }
+        }
+
+        /* ---------- logo handling ---------- */
+        function setLogoPreview() {
+            const desktop = $("logoPreviewDesktop"), mobile = $("logoPreviewMobile"), empty = $("logoPreviewEmpty");
+            const src = logoState.kind === "none" ? null : (logoState.dataUrl || "/api/theme/logo?v=" + Date.now());
+            for (const img of [desktop, mobile]) {
+                if (src) { img.src = src; img.hidden = false; } else { img.hidden = true; img.removeAttribute("src"); }
+                img.classList.toggle("plate", $("logoPlate").checked);
+            }
+            empty.hidden = !!src;
+        }
+
+        function isCroppable() {
+            return logoState.contentType === "image/png" || logoState.contentType === "image/svg+xml";
+        }
+
+        function openCropPanel() {
+            if (!isCroppable() || !logoState.dataUrl) { $("cropPanel").hidden = true; return; }
+            $("cropPanel").hidden = false;
+            $("cropDim").src = logoState.originalDataUrl;
+            $("cropLit").src = logoState.originalDataUrl;
+            for (const side of ["Top", "Bottom", "Left", "Right"]) {
+                const slider = $("crop" + side);
+                slider.value = 0;
+                slider.nextElementSibling.textContent = "0%";
+            }
+            updateCropClip();
+        }
+
+        function cropInsets() {
+            return {
+                top: Number($("cropTop").value), bottom: Number($("cropBottom").value),
+                left: Number($("cropLeft").value), right: Number($("cropRight").value),
+            };
+        }
+
+        function updateCropClip() {
+            const { top, right, bottom, left } = cropInsets();
+            $("cropLit").style.clipPath = `inset(${top}% ${right}% ${bottom}% ${left}%)`;
+        }
+
+        async function applyCrop() {
+            const { top, right, bottom, left } = cropInsets();
+            if (logoState.contentType === "image/svg+xml") {
+                const doc = new DOMParser().parseFromString(logoState.originalText, "image/svg+xml");
+                const svg = doc.documentElement;
+                let [x, y, w, h] = (svg.getAttribute("viewBox") || "").split(/[\s,]+/).map(Number);
+                if (!(w > 0) || !(h > 0)) {
+                    w = parseFloat(svg.getAttribute("width")) || 300;
+                    h = parseFloat(svg.getAttribute("height")) || 150;
+                    x = 0; y = 0;
+                }
+                svg.setAttribute("viewBox", [
+                    x + (w * left) / 100, y + (h * top) / 100,
+                    w * (1 - (left + right) / 100), h * (1 - (top + bottom) / 100),
+                ].map((value) => Math.round(value * 100) / 100).join(" "));
+                svg.removeAttribute("width");
+                svg.removeAttribute("height");
+                const text = new XMLSerializer().serializeToString(svg);
+                logoState.dataUrl = await blobToDataUrl(new Blob([text], { type: "image/svg+xml" }));
+            } else {
+                const image = new Image();
+                await new Promise((resolve, reject) => { image.onload = resolve; image.onerror = reject; image.src = logoState.originalDataUrl; });
+                const sx = (image.naturalWidth * left) / 100, sy = (image.naturalHeight * top) / 100;
+                const sw = image.naturalWidth * (1 - (left + right) / 100), sh = image.naturalHeight * (1 - (top + bottom) / 100);
+                const canvas = document.createElement("canvas");
+                canvas.width = Math.max(1, Math.round(sw));
+                canvas.height = Math.max(1, Math.round(sh));
+                canvas.getContext("2d").drawImage(image, sx, sy, sw, sh, 0, 0, canvas.width, canvas.height);
+                logoState.dataUrl = canvas.toDataURL("image/png");
+            }
+            setLogoPreview();
+            ctsToast({ title: "Crop applied", message: "Preview updated — remember to save." });
+        }
+
+        function blobToDataUrl(blob) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = reject;
+                reader.readAsDataURL(blob);
+            });
+        }
+
+        /** The stored logo arrives as a URL; inline it as a data URL for save/export. */
+        async function ensureLogoData() {
+            if (logoState.kind === "none") return null;
+            if (logoState.dataUrl) return logoState.dataUrl;
+            const response = await fetch("/api/theme/logo");
+            if (!response.ok) return null;
+            const blob = await response.blob();
+            logoState.contentType = blob.type;
+            logoState.dataUrl = await blobToDataUrl(blob);
+            return logoState.dataUrl;
+        }
+
+        /* ---------- canonical theme assembly ---------- */
+        async function buildCanonicalTheme() {
+            const theme = {
+                version: 1,
+                partner: { name: $("partnerName").value.trim() },
+                brand: { accent: working.brand.accent },
+            };
+            const data = await ensureLogoData();
+            if (data) {
+                theme.brand.logo = {
+                    data,
+                    alt: $("logoAlt").value.trim(),
+                    plate: $("logoPlate").checked,
+                };
+            }
+            const presets = parsePresets();
+            if (presets.errors.length === 0 && presets.value.length > 0) theme.presets = presets.value;
+            return theme;
+        }
+
+        function parsePresets() {
+            const raw = $("presetsEditor").value.trim();
+            if (!raw || raw === "[]") return { value: [], errors: [] };
+            try {
+                const parsed = JSON.parse(raw);
+                if (!Array.isArray(parsed)) return { value: [], errors: ["Presets must be a JSON array"] };
+                return { value: parsed, errors: [] };
+            } catch (e) {
+                return { value: [], errors: ["Presets JSON does not parse: " + e.message] };
+            }
+        }
+
+        function validatePresets() {
+            const { value, errors } = parsePresets();
+            const problems = [...errors];
+            const seen = new Set();
+            for (const preset of value) {
+                const id = preset && preset.id;
+                if (!id || !/^[a-z0-9][a-z0-9-]{0,63}$/.test(id)) problems.push(`Preset id ${JSON.stringify(id)} must match [a-z0-9-]`);
+                if (id && seen.has(id)) problems.push(`Duplicate preset id "${id}"`);
+                seen.add(id);
+                if (!preset.label) problems.push(`Preset "${id}" needs a label`);
+                if (!preset.planName) problems.push(`Preset "${id}" needs a planName`);
+                else if (planNames && !planNames.has(preset.planName)) problems.push(`Preset "${id}": plan "${preset.planName}" is not a known test plan on this server`);
+            }
+            const target = $("presetValidation");
+            if (problems.length === 0) {
+                target.innerHTML = `<cts-badge variant="pass">Presets look good${value.length ? ` (${value.length})` : " (none defined)"}</cts-badge>`;
+            } else {
+                target.innerHTML = `<cts-badge variant="fail">${problems.length} problem(s)</cts-badge><ul>` +
+                    problems.map((p) => `<li>${p.replace(/&/g, "&amp;").replace(/</g, "&lt;")}</li>`).join("") + "</ul>";
+            }
+            return problems;
+        }
+
+        /* ---------- load / save / reset / export / import ---------- */
+        function setReadOnly(on) {
+            readOnly = on;
+            $("fileManagedBanner").hidden = !on;
+            for (const el of document.querySelectorAll("input, cts-json-editor")) {
+                if (el.id === "importFile") continue;
+                if (el.tagName === "CTS-JSON-EDITOR") { el.readonly = on; } else { el.disabled = on && el.id !== "previewToggle"; }
+            }
+            for (const id of ["saveBtn", "importBtn", "resetBtn", "applyCropBtn", "resetCropBtn", "removeLogoBtn"]) {
+                const btn = $(id);
+                if (on) { btn.setAttribute("disabled", ""); } else { btn.removeAttribute("disabled"); }
+            }
+        }
+
+        function populateForm(theme) {
+            $("partnerName").value = (theme.partner && theme.partner.name) || "";
+            const accent = (theme.brand && theme.brand.accent) || "#EB8B35";
+            working = { version: 1, partner: { name: $("partnerName").value }, brand: { accent }, presets: theme.presets || [] };
+            $("accentHex").value = accent;
+            if (HEX.test(accent)) $("accentColor").value = accent;
+            const logo = theme.brand && theme.brand.logo;
+            if (logo && (logo.url || logo.data)) {
+                logoState = { kind: logo.data ? "new" : "existing", dataUrl: logo.data || null, contentType: logo.contentType || null, originalDataUrl: logo.data || null, originalText: null };
+                $("logoAlt").value = logo.alt || "";
+                $("logoPlate").checked = logo.plate === true;
+            } else {
+                logoState = { kind: "none", dataUrl: null, contentType: null, originalDataUrl: null, originalText: null };
+                $("logoAlt").value = "";
+                $("logoPlate").checked = false;
+            }
+            $("cropPanel").hidden = true;
+            $("presetsEditor").value = JSON.stringify(theme.presets || [], null, 2);
+            renderContrast();
+            setLogoPreview();
+        }
+
+        async function loadState() {
+            const [themeResponse, userResponse] = await Promise.all([fetch("/api/theme"), fetch("/api/currentuser")]);
+            const body = themeResponse.ok ? await themeResponse.json() : { source: "none" };
+            const user = userResponse.ok ? await userResponse.json() : null;
+            if (!user || !user.isAdmin) {
+                $("adminGate").hidden = false;
+                setReadOnly(true);
+                $("fileManagedBanner").hidden = true;
+            } else if (body.source === "file") {
+                setReadOnly(true);
+            } else {
+                setReadOnly(false);
+            }
+            populateForm(body.theme || {});
+            // Plan catalog for preset validation (authed only; fail-soft).
+            try {
+                const plans = await fetch("/api/plan/available").then((r) => (r.ok ? r.json() : null));
+                if (plans) planNames = new Set(Object.values(plans).map((p) => p.planName));
+            } catch { /* validation simply skips plan-name checks */ }
+        }
+
+        function refreshThemeEverywhere() {
+            try { sessionStorage.removeItem("cts-theme"); } catch { /* best-effort */ }
+            $("themeCssLink").href = "/api/theme/css?v=" + Date.now();
+        }
+
+        async function save() {
+            const problems = validatePresets();
+            if (problems.length > 0) {
+                ctsToast({ title: "Fix the presets first", message: problems[0], kind: "error" });
+                return;
+            }
+            if (!HEX.test(working.brand.accent)) {
+                ctsToast({ title: "Accent color must be #RRGGBB", kind: "error" });
+                return;
+            }
+            const theme = await buildCanonicalTheme();
+            const response = await fetch("/api/theme", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(theme),
+            });
+            if (response.ok) {
+                refreshThemeEverywhere();
+                ctsToast({ title: "Theme saved", message: "All pages of this deployment now carry the partner brand." });
+                await loadState();
+            } else {
+                const body = await response.json().catch(() => ({}));
+                ctsToast({ title: `Save failed (${response.status})`, message: (body.errors || []).join("; "), kind: "error", duration: 8000 });
+            }
+        }
+
+        async function resetTheme() {
+            if (!window.confirm("Remove the partner theme and revert every page to OpenID Foundation branding?")) return;
+            const response = await fetch("/api/theme", { method: "DELETE" });
+            if (response.ok) {
+                refreshThemeEverywhere();
+                ctsToast({ title: "Theme removed", message: "OpenID Foundation branding restored." });
+                await loadState();
+            } else {
+                ctsToast({ title: `Reset failed (${response.status})`, kind: "error" });
+            }
+        }
+
+        async function exportTheme() {
+            const theme = await buildCanonicalTheme();
+            const blob = new Blob([JSON.stringify(theme, null, 2) + "\n"], { type: "application/json" });
+            const link = document.createElement("a");
+            link.href = URL.createObjectURL(blob);
+            link.download = "theme.json";
+            link.click();
+            URL.revokeObjectURL(link.href);
+        }
+
+        /* ---------- wiring ---------- */
+        document.addEventListener("DOMContentLoaded", () => {
+            loadState();
+
+            $("accentColor").addEventListener("input", () => {
+                $("accentHex").value = $("accentColor").value.toUpperCase();
+                working.brand.accent = $("accentHex").value;
+                renderContrast();
+                if ($("previewToggle").checked) applyPagePreview(true);
+            });
+            $("accentHex").addEventListener("input", () => {
+                const value = $("accentHex").value.trim();
+                if (HEX.test(value)) {
+                    working.brand.accent = value;
+                    $("accentColor").value = value;
+                    renderContrast();
+                    if ($("previewToggle").checked) applyPagePreview(true);
+                }
+            });
+            $("previewToggle").addEventListener("change", () => applyPagePreview($("previewToggle").checked));
+
+            $("logoFile").addEventListener("change", async () => {
+                const file = $("logoFile").files[0];
+                if (!file) return;
+                if (file.size > 512 * 1024) {
+                    ctsToast({ title: "Logo too large", message: "512 KB max.", kind: "error" });
+                    $("logoFile").value = "";
+                    return;
+                }
+                const type = file.type === "image/svg+xml" || file.name.endsWith(".svg") ? "image/svg+xml" : file.type;
+                if (!["image/png", "image/jpeg", "image/svg+xml"].includes(type)) {
+                    ctsToast({ title: "Unsupported format", message: "PNG, JPG or SVG only.", kind: "error" });
+                    $("logoFile").value = "";
+                    return;
+                }
+                logoState.kind = "new";
+                logoState.contentType = type;
+                logoState.originalText = type === "image/svg+xml" ? await file.text() : null;
+                logoState.originalDataUrl = type === "image/svg+xml"
+                    ? await blobToDataUrl(new Blob([logoState.originalText], { type }))
+                    : await blobToDataUrl(file);
+                logoState.dataUrl = logoState.originalDataUrl;
+                if (!$("logoAlt").value) $("logoAlt").value = $("partnerName").value;
+                setLogoPreview();
+                openCropPanel();
+                if (type === "image/jpeg") ctsToast({ title: "JPG logos cannot be cropped", message: "Use PNG or SVG if you need to trim padding." });
+            });
+
+            for (const side of ["Top", "Bottom", "Left", "Right"]) {
+                $("crop" + side).addEventListener("input", (event) => {
+                    event.target.nextElementSibling.textContent = event.target.value + "%";
+                    updateCropClip();
+                });
+            }
+            $("applyCropBtn").addEventListener("cts-click", applyCrop);
+            $("resetCropBtn").addEventListener("cts-click", () => { logoState.dataUrl = logoState.originalDataUrl; setLogoPreview(); openCropPanel(); });
+            $("removeLogoBtn").addEventListener("cts-click", () => {
+                logoState = { kind: "none", dataUrl: null, contentType: null, originalDataUrl: null, originalText: null };
+                $("logoFile").value = "";
+                $("cropPanel").hidden = true;
+                setLogoPreview();
+            });
+            $("logoPlate").addEventListener("change", setLogoPreview);
+
+            $("validatePresetsBtn").addEventListener("cts-click", validatePresets);
+            $("saveBtn").addEventListener("cts-click", save);
+            $("resetBtn").addEventListener("cts-click", resetTheme);
+            $("exportBtn").addEventListener("cts-click", exportTheme);
+            $("importBtn").addEventListener("cts-click", () => $("importFile").click());
+            $("importFile").addEventListener("change", async () => {
+                const file = $("importFile").files[0];
+                if (!file) return;
+                try {
+                    const theme = JSON.parse(await file.text());
+                    if (theme.brand && theme.brand.logo && theme.brand.logo.data) {
+                        const match = /^data:(image\/[a-z+]+);base64,/.exec(theme.brand.logo.data);
+                        theme.brand.logo.contentType = match ? match[1] : null;
+                    }
+                    populateForm(theme);
+                    ctsToast({ title: "Theme imported", message: "Review and save to apply." });
+                } catch (e) {
+                    ctsToast({ title: "Import failed", message: String(e.message || e), kind: "error" });
+                }
+                $("importFile").value = "";
+            });
+        });
+    </script>
+
+    <cts-footer></cts-footer>
+
+    <cts-toast-host></cts-toast-host>
+</body>
+
+</html>

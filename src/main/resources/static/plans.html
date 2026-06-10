@@ -11,6 +11,7 @@
 
     <link rel="preload" as="font" type="font/woff2" href="/fonts/inter/Inter-Variable.woff2" crossorigin>
     <link rel="stylesheet" href="/css/oidf-tokens.css">
+    <link rel="stylesheet" href="/api/theme/css"><!-- theming spike: partner accent overrides; render-blocking so the accent is right on first paint -->
     <link rel="stylesheet" type="text/css" href="css/layout.css">
     <link rel="stylesheet" href="/css/oidf-app.css">
 
@@ -33,6 +34,67 @@
              Published tab inside cts-view-tabs (published-help), not as a page
              heading or persistent paragraph. -->
         <cts-view-tabs id="viewTabs" dataset-noun="Test Plans" create-test-href="schedule-test.html" published-help="Published test plans are conformance test configurations that implementers have chosen to make public. Browse them to see how others set up certification tests, or schedule your own."></cts-view-tabs>
+        <!-- Theming spike: partner certification programs (pre-baked test
+             configurations from the active theme). Hidden until the theme
+             fetch resolves with presets — anonymous visitors never receive
+             presets, so the strip stays absent for them. -->
+        <section id="partnerPrograms" hidden aria-labelledby="partnerProgramsHeading">
+            <style>
+                #partnerPrograms { margin: var(--space-5) 0; }
+                #partnerPrograms h2 {
+                    font-size: var(--fs-14); font-weight: var(--fw-bold);
+                    color: var(--fg-muted); margin: 0 0 var(--space-3);
+                    text-transform: uppercase; letter-spacing: 0.04em;
+                }
+                #partnerPrograms .preset-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: var(--space-4); }
+                #partnerPrograms a.preset-card {
+                    display: flex; flex-direction: column; gap: var(--space-2);
+                    padding: var(--space-4); text-decoration: none;
+                    border: 1px solid var(--border); border-left: 3px solid var(--orange-400);
+                    border-radius: var(--radius-2); background: var(--bg-elev); color: var(--fg);
+                }
+                #partnerPrograms a.preset-card:hover { border-color: var(--orange-400); }
+                #partnerPrograms a.preset-card:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+                #partnerPrograms .preset-card .title { font-weight: var(--fw-bold); }
+                #partnerPrograms .preset-card .desc { font-size: var(--fs-13); color: var(--fg-muted); }
+                #partnerPrograms .preset-card .cta { font-size: var(--fs-13); color: var(--fg-link); font-weight: var(--fw-bold); }
+            </style>
+            <h2 id="partnerProgramsHeading"></h2>
+            <div class="preset-cards"></div>
+        </section>
+        <script type="module">
+            // Theming spike: render the partner's pre-baked configurations as
+            // entry cards. Each links to schedule-test.html?preset=<id>, which
+            // pre-selects the plan, variants and configuration.
+            import { getTheme } from "/js/theme-client.js";
+            getTheme().then((theme) => {
+                const presets = (theme && theme.presets) || [];
+                if (presets.length === 0) return;
+                const section = document.getElementById("partnerPrograms");
+                const heading = document.getElementById("partnerProgramsHeading");
+                const partner = (theme.partner && theme.partner.name) || "Partner";
+                heading.textContent = `Certification programs from ${partner}`;
+                const cards = section.querySelector(".preset-cards");
+                for (const preset of presets) {
+                    if (!preset || !preset.id || !preset.label) continue;
+                    const card = document.createElement("a");
+                    card.className = "preset-card";
+                    card.href = "schedule-test.html?preset=" + encodeURIComponent(preset.id);
+                    const title = document.createElement("span");
+                    title.className = "title";
+                    title.textContent = preset.label;
+                    const desc = document.createElement("span");
+                    desc.className = "desc";
+                    desc.textContent = preset.description || "";
+                    const cta = document.createElement("span");
+                    cta.className = "cta";
+                    cta.textContent = "Start pre-configured test →";
+                    card.append(title, desc, cta);
+                    cards.appendChild(card);
+                }
+                section.hidden = false;
+            });
+        </script>
         <cts-plan-list id="plansListing"></cts-plan-list>
         <script>
             // First-paint gating (KTD3). This runs SYNCHRONOUSLY, before the
