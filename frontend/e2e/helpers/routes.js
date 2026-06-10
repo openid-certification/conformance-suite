@@ -162,6 +162,24 @@ export async function setupFailFast(page) {
     console.error(`[fail-fast] Unmocked API route: ${url}`);
     return route.abort("failed");
   });
+
+  // Theming spike: every page head links /api/theme/css and the shared
+  // theme-client fetches /api/theme (navbar/footer/login branding). Stub the
+  // unthemed baseline here — registered after the catch-all, so it matches
+  // first — because this is page-boot plumbing like fonts, not behavior any
+  // spec exercises. Specs that test theming explicitly can register their own
+  // /api/theme route after this one to override.
+  await page.route("**/api/theme", (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({ source: "none" }),
+    }),
+  );
+  await page.route("**/api/theme/css", (route) =>
+    route.fulfill({ status: 200, contentType: "text/css", body: "" }),
+  );
+  await page.route("**/api/theme/logo", (route) => route.fulfill({ status: 404, body: "" }));
 }
 
 /**

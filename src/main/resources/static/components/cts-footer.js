@@ -1,4 +1,5 @@
 import { LitElement, html, nothing, css } from "lit";
+import { getTheme, getCachedTheme } from "../js/theme-client.js";
 
 /**
  * Ordered map of `/api/server` response keys to their display labels. The
@@ -66,15 +67,23 @@ function injectStyles() {
  *
  * The component exposes no public properties or attributes — it self-fetches
  * `/api/server` on connect — so its only reactive member is internal state.
+ *
+ * Partner theming (spike): when a partner theme is active the brand line
+ * becomes "<Partner> conformance service — powered by the OpenID Foundation",
+ * keeping OIDF attribution on every page of a co-branded deployment.
  * @property {object|null} _serverInfo - Internal reactive state: the parsed
  *   `/api/server` response (version, revision, tag, build time, external IP),
  *   or `null` before the fetch resolves or after a fail-soft error. Drives the
  *   server-info line.
+ * @property {object|null} _theme - Internal reactive state: the active partner
+ *   theme (via js/theme-client.js), or null when unthemed. Drives the
+ *   co-branded brand line.
  * @fires nothing - The component emits no custom events.
  */
 class CtsFooter extends LitElement {
   static properties = {
     _serverInfo: { state: true },
+    _theme: { state: true },
   };
 
   constructor() {
@@ -83,6 +92,7 @@ class CtsFooter extends LitElement {
      * @type {import('@cts-api/api-types').paths['/api/server']['get']['responses']['200']['content']['application/json'] | null}
      */
     this._serverInfo = null;
+    this._theme = getCachedTheme();
   }
 
   createRenderRoot() {
@@ -93,6 +103,9 @@ class CtsFooter extends LitElement {
     super.connectedCallback();
     injectStyles();
     this._fetchServerInfo();
+    getTheme().then((theme) => {
+      this._theme = theme;
+    });
   }
 
   /**
@@ -139,9 +152,14 @@ class CtsFooter extends LitElement {
   }
 
   render() {
+    const partnerName = this._theme && this._theme.partner && this._theme.partner.name;
     return html`
       <footer class="oidf-footer pageFooter t-meta">
-        <span class="oidf-footer-brand">OpenID Foundation conformance suite</span>
+        <span class="oidf-footer-brand">
+          ${partnerName
+            ? html`${partnerName} conformance service — powered by the OpenID Foundation`
+            : html`OpenID Foundation conformance suite`}
+        </span>
         <div class="serverInfo">${this._renderServerInfo()}</div>
       </footer>
     `;

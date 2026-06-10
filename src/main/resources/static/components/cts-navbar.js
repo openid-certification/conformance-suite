@@ -2,6 +2,7 @@ import { LitElement, html, css } from "lit";
 import { classMap } from "lit/directives/class-map.js";
 import { repeat } from "lit/directives/repeat.js";
 import { when } from "lit/directives/when.js";
+import { getTheme, getCachedTheme } from "../js/theme-client.js";
 import "./cts-icon.js";
 
 // Navigation collapsed in U9 (plans-page-as-home): Home and Create Test were
@@ -131,6 +132,22 @@ const STYLE_TEXT = css`
    * is hidden and the lift would just look like a misalignment. */
     position: relative;
     top: -4px;
+  }
+  /* Partner logo (theming spike): same 28px row, but cap the width — header
+   * height is sacred, width gets some slack. No optical lift: partner marks
+   * have no known baseline to compensate for. */
+  .cts-nav .cts-brand img.cts-brand-partner {
+    top: 0;
+    max-width: 220px;
+    object-fit: contain;
+  }
+  /* Light plate behind logos that don't survive the dark chrome. Inset
+   * padding keeps the total row at 28px (border-box). */
+  .cts-nav .cts-brand img.cts-brand-partner--plate {
+    box-sizing: border-box;
+    padding: 3px 8px;
+    background: var(--ink-0);
+    border-radius: 6px;
   }
   .cts-nav .cts-brand-name {
     font-family: var(--font-display);
@@ -612,9 +629,20 @@ function computeInitials(name) {
  * - Loading (auth probe unresolved, no cache seed) → "/" — the server-side
  *   HomeController makes the same authenticated/anonymous call with fresh
  *   session state, so a click in the loading window can never misroute.
+ * Partner theming (spike): when an active theme carries a logo, the brand
+ * swaps the OpenID mark for `/api/theme/logo` (height-capped to the same
+ * 28px/22px rows, width-capped at 220px, optional light plate for dark-unsafe
+ * logos) while the "CONFORMANCE SUITE" wordmark stays — the logo says who
+ * operates the service, the wordmark says what it is. First paint is seeded
+ * from the `cts-theme` sessionStorage cache (same contract as the user cache)
+ * so the partner mark does not flash back to the OIDF mark on every
+ * navigation.
  * @property {string} currentPage - Key of the active page (e.g. `plans`,
  *   `logs`, `tokens`, `api-docs`); used to highlight the matching link.
  *   Reflects the `current-page` attribute.
+ * @property {object|null} _theme - Internal reactive state: the active partner
+ *   theme from /api/theme (via js/theme-client.js), or null when unthemed.
+ *   Drives the brand logo swap and the admin Theming menu item label.
  */
 class CtsNavbar extends LitElement {
   static properties = {
@@ -624,12 +652,14 @@ class CtsNavbar extends LitElement {
     _menuOpen: { state: true },
     _mobileMenuOpen: { state: true },
     _signingOut: { state: true },
+    _theme: { state: true },
   };
 
   constructor() {
     super();
     this.currentPage = "";
     this._user = null;
+    this._theme = getCachedTheme();
     this._loading = true;
     this._menuOpen = false;
     this._mobileMenuOpen = false;
@@ -649,6 +679,11 @@ class CtsNavbar extends LitElement {
   connectedCallback() {
     super.connectedCallback();
     injectStyles();
+    // Refresh the partner theme (constructor seeded the cached value for a
+    // flash-free first paint; this is the authoritative fetch).
+    getTheme().then((theme) => {
+      this._theme = theme;
+    });
     // Outside-click + Escape close the account menu. Bound on the document
     // (not the host) because pointerdown lands wherever the user actually
     // clicked — the host wouldn't see clicks elsewhere on the page.
@@ -847,6 +882,34 @@ class CtsNavbar extends LitElement {
     return this._user ? "plans.html" : "login.html";
   }
 
+  /**
+   * The brand mark: the partner logo when an active theme provides one
+   * (theming spike), the OpenID Foundation mark otherwise. The partner image
+   * deliberately omits width/height attributes — its aspect ratio is unknown,
+   * so CSS caps (28px row, 220px max width) own the geometry instead.
+   * @returns {import('lit').TemplateResult} the `<img>` for the brand anchor.
+   */
+  _renderBrandLogo() {
+    const logo = this._theme && this._theme.brand && this._theme.brand.logo;
+    if (logo && logo.url) {
+      const alt = logo.alt || (this._theme.partner && this._theme.partner.name) || "Partner logo";
+      return html`<img
+        class=${classMap({
+          "cts-brand-partner": true,
+          "cts-brand-partner--plate": logo.plate === true,
+        })}
+        src=${logo.url}
+        alt=${alt}
+      />`;
+    }
+    return html`<img
+      src="/images/openid-dark.svg"
+      alt="OpenID Foundation"
+      width="93"
+      height="28"
+    />`;
+  }
+
   _renderNavLinks() {
     const links = this._user ? NAV_LINKS : PUBLIC_NAV_LINKS;
     const filteredLinks = this._user
@@ -925,6 +988,11 @@ class CtsNavbar extends LitElement {
           ${when(
             showTokens,
             () => html`<a class="cts-account-item" href="tokens.html" role="menuitem">Tokens</a>`,
+          )}
+          ${when(
+            isAdmin,
+            () =>
+              html`<a class="cts-account-item" href="theme-admin.html" role="menuitem">Theming</a>`,
           )}
           <form
             action="/logout"
@@ -1015,7 +1083,7 @@ class CtsNavbar extends LitElement {
           </svg>
         </button>
         <a class="cts-brand navbar-brand" href="${this._brandHref()}">
-          <img src="/images/openid-dark.svg" alt="OpenID Foundation" width="93" height="28" />
+          ${this._renderBrandLogo()}
           <span class="cts-brand-name">CONFORMANCE SUITE</span>
         </a>
         <ul class="cts-navlinks navbar-nav" id="cts-navlinks">

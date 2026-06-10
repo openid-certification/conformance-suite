@@ -1,4 +1,6 @@
 import { LitElement, html, nothing, css } from "lit";
+import { classMap } from "lit/directives/class-map.js";
+import { getTheme, getCachedTheme } from "../js/theme-client.js";
 import "./cts-link-button.js";
 import "./cts-alert.js";
 import "./cts-icon.js";
@@ -115,8 +117,16 @@ const STYLE_TEXT = css`
     gap: var(--space-6);
     padding: var(--space-8) var(--space-6);
     color: var(--ink-0);
+    /* Accent tint follows the active theme (theming spike): same color as the
+     * old hardcoded rgba(235, 139, 53, 0.14) when unthemed, but expressed
+     * through the ramp so a partner accent re-tints the band. */
     background:
-      linear-gradient(180deg, rgba(235, 139, 53, 0.14) 0%, transparent 55%), var(--bg-ink);
+      linear-gradient(
+        180deg,
+        color-mix(in srgb, var(--orange-400) 14%, transparent) 0%,
+        transparent 55%
+      ),
+      var(--bg-ink);
   }
   @media (min-width: 860px) {
     .oidf-login-brand {
@@ -134,6 +144,20 @@ const STYLE_TEXT = css`
     width: auto;
     position: relative;
     top: -4px;
+  }
+  /* Partner logo (theming spike): same geometry rules as the navbar — fixed
+   * row height, generous width cap, no OIDF-specific optical lift. */
+  .oidf-login-brand__logo--partner {
+    top: 0;
+    max-width: 260px;
+    object-fit: contain;
+  }
+  .oidf-login-brand__logo--plate {
+    box-sizing: border-box;
+    height: 32px;
+    padding: 4px 10px;
+    background: var(--ink-0);
+    border-radius: 6px;
   }
   .oidf-login-brand__eyebrow {
     display: inline-block;
@@ -378,12 +402,16 @@ function injectStyles() {
  *   banner. Reflects the `logout-message` attribute.
  * @property {string} tokenAuthUrl - Optional URL loaded in a hidden iframe to
  *   exchange a token. Reflects the `token-auth-url` attribute.
+ * @property {object|null} _theme - Internal reactive state: the active partner
+ *   theme (theming spike). Swaps the brand-panel logo for the partner mark and
+ *   appends the "in partnership with the OpenID Foundation" co-brand line.
  */
 class CtsLoginPage extends LitElement {
   static properties = {
     error: { type: String },
     logoutMessage: { type: Boolean, attribute: "logout-message" },
     tokenAuthUrl: { type: String, attribute: "token-auth-url" },
+    _theme: { state: true },
   };
 
   constructor() {
@@ -391,11 +419,15 @@ class CtsLoginPage extends LitElement {
     this.error = "";
     this.logoutMessage = false;
     this.tokenAuthUrl = "";
+    this._theme = getCachedTheme();
   }
 
   connectedCallback() {
     super.connectedCallback();
     injectStyles();
+    getTheme().then((theme) => {
+      this._theme = theme;
+    });
   }
 
   // Light DOM keeps the component composable with sibling pages and lets
@@ -427,16 +459,39 @@ class CtsLoginPage extends LitElement {
     ></iframe>`;
   }
 
+  /**
+   * The brand-panel logo: partner mark when themed (theming spike), the OIDF
+   * mark otherwise. Mirrors cts-navbar's geometry contract for partner logos.
+   * @returns {import('lit').TemplateResult} the brand `<img>`.
+   */
+  _renderBrandLogo() {
+    const logo = this._theme && this._theme.brand && this._theme.brand.logo;
+    if (logo && logo.url) {
+      const alt = logo.alt || (this._theme.partner && this._theme.partner.name) || "Partner logo";
+      return html`<img
+        class=${classMap({
+          "oidf-login-brand__logo": true,
+          "oidf-login-brand__logo--partner": true,
+          "oidf-login-brand__logo--plate": logo.plate === true,
+        })}
+        src=${logo.url}
+        alt=${alt}
+      />`;
+    }
+    return html`<img
+      class="oidf-login-brand__logo"
+      src="/images/openid-dark.svg"
+      alt="OpenID Foundation"
+      width="93"
+      height="28"
+    />`;
+  }
+
   _renderBrand() {
+    const partnerName = this._theme && this._theme.partner && this._theme.partner.name;
     return html`<aside class="oidf-login-brand" aria-label="OpenID Foundation Conformance Suite">
       <div class="oidf-login-brand__head">
-        <img
-          class="oidf-login-brand__logo"
-          src="/images/openid-dark.svg"
-          alt="OpenID Foundation"
-          width="93"
-          height="28"
-        />
+        ${this._renderBrandLogo()}
         <span class="oidf-login-brand__eyebrow">Conformance Suite</span>
       </div>
       <h2 class="oidf-login-brand__headline">
@@ -460,7 +515,12 @@ class CtsLoginPage extends LitElement {
           CIBA, SSF &amp; AuthZEN
         </li>
       </ul>
-      <div class="oidf-login-brand__footer">Operated by the OpenID Foundation</div>
+      <div class="oidf-login-brand__footer">
+        ${partnerName
+          ? html`Certification service operated by ${partnerName}, in partnership with the OpenID
+            Foundation`
+          : html`Operated by the OpenID Foundation`}
+      </div>
     </aside>`;
   }
 
