@@ -32,6 +32,11 @@ import java.util.List;
  * <p>Presets may carry pre-baked secrets (client IDs, keys, mTLS certs), so the
  * public GET strips them; only authenticated non-private-link users receive the
  * presets block.</p>
+ *
+ * <p>SPIKE ONLY: writes are open to any signed-in user so reviewers can try the
+ * theming flow without admin rights — theme-admin.html shows a banner saying so.
+ * A production version must gate writes on {@code isAdmin()} (or a future
+ * partner-admin role; see docs/theming-spike/README.md).</p>
  */
 @Controller
 @RequestMapping(value = "/api")
@@ -89,15 +94,15 @@ public class ThemeApi {
 	}
 
 	@PostMapping(value = "/theme", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-	@Operation(summary = "Replace the partner theme (admin only)")
+	@Operation(summary = "Replace the partner theme (spike: any signed-in user; production would be admin-only)")
 	@ApiResponses(value = {
 		@ApiResponse(responseCode = "200", description = "Theme saved"),
 		@ApiResponse(responseCode = "400", description = "Theme failed validation"),
-		@ApiResponse(responseCode = "403", description = "Admin role required"),
+		@ApiResponse(responseCode = "403", description = "Sign-in required (spike; production would require the admin role)"),
 		@ApiResponse(responseCode = "409", description = "Theme is managed by deployment configuration (fintechlabs.theme.dir)")
 	})
 	public ResponseEntity<Object> setTheme(@RequestBody JsonObject theme) {
-		if (!authenticationFacade.isAdmin() || authenticationFacade.isPrivateLinkUser()) {
+		if (!mayEditTheme()) {
 			return new ResponseEntity<>(HttpStatus.FORBIDDEN);
 		}
 		if (themeService.isFileManaged()) {
@@ -115,9 +120,9 @@ public class ThemeApi {
 	}
 
 	@DeleteMapping(value = "/theme", produces = MediaType.APPLICATION_JSON_VALUE)
-	@Operation(summary = "Remove the partner theme, reverting to OIDF branding (admin only)")
+	@Operation(summary = "Remove the partner theme, reverting to OIDF branding (spike: any signed-in user)")
 	public ResponseEntity<Object> deleteTheme() {
-		if (!authenticationFacade.isAdmin() || authenticationFacade.isPrivateLinkUser()) {
+		if (!mayEditTheme()) {
 			return new ResponseEntity<>(HttpStatus.FORBIDDEN);
 		}
 		if (themeService.isFileManaged()) {
@@ -128,6 +133,16 @@ public class ThemeApi {
 		JsonObject body = new JsonObject();
 		body.addProperty("result", "deleted");
 		return ResponseEntity.ok(body);
+	}
+
+	/**
+	 * SPIKE ONLY: any signed-in (non-private-link) user may edit the theme so MR
+	 * reviewers can exercise the flow without admin rights. Production must check
+	 * {@code authenticationFacade.isAdmin()} here instead.
+	 */
+	private boolean mayEditTheme() {
+		return (authenticationFacade.isUser() || authenticationFacade.isAdmin())
+			&& !authenticationFacade.isPrivateLinkUser();
 	}
 
 	/**

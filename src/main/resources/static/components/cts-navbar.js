@@ -989,11 +989,10 @@ class CtsNavbar extends LitElement {
             showTokens,
             () => html`<a class="cts-account-item" href="tokens.html" role="menuitem">Tokens</a>`,
           )}
-          ${when(
-            isAdmin,
-            () =>
-              html`<a class="cts-account-item" href="theme-admin.html" role="menuitem">Theming</a>`,
-          )}
+          <!-- Theming spike: shown to every signed-in user so MR reviewers can
+               try the flow without admin rights; production would gate this on
+               isAdmin (the page and API carry the same demo-mode note). -->
+          <a class="cts-account-item" href="theme-admin.html" role="menuitem">Theming</a>
           <form
             action="/logout"
             method="post"

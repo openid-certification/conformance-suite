@@ -8,6 +8,7 @@
     <link rel="preload" as="font" type="font/woff2" href="/fonts/inter/Inter-Variable.woff2" crossorigin>
     <link rel="stylesheet" href="/css/oidf-tokens.css">
     <link rel="stylesheet" href="/api/theme/css" id="themeCssLink"><!-- theming spike: partner accent overrides -->
+    <script type="module" src="/js/theme-demo-bar.js"></script><!-- theming spike: prototype demo bar (remove with the spike) -->
     <link rel="stylesheet" type="text/css" href="/css/layout.css">
     <link rel="stylesheet" href="/css/oidf-app.css">
 
@@ -30,6 +31,7 @@
         .theme-admin-section { margin-bottom: var(--space-6); }
         /* Native controls follow the (previewed) accent too. */
         #main-content input[type="checkbox"],
+        #main-content input[type="radio"],
         #main-content input[type="range"] { accent-color: var(--orange-400); }
         .theme-admin-grid {
             display: grid;
@@ -94,6 +96,22 @@
         .crop-stage img.lit { position: absolute; inset: 0; }
         .crop-sliders { display: grid; grid-template-columns: auto 1fr auto; gap: var(--space-1) var(--space-3); align-items: center; max-width: 420px; font-size: var(--fs-12); }
         .theme-admin-actions { display: flex; flex-wrap: wrap; gap: var(--space-3); align-items: center; }
+        /* Component preview: a scoped surface whose custom properties are
+           re-pointed at the edited accent (see applyScopedPreview), so the
+           real components inside re-skin live without touching the page. */
+        .component-preview { display: grid; gap: var(--space-4); padding: var(--space-2) 0; }
+        .component-preview .row { display: flex; flex-wrap: wrap; gap: var(--space-3); align-items: center; }
+        .component-preview .row-label {
+            font-size: var(--fs-12); color: var(--fg-soft); min-width: 110px;
+            text-transform: uppercase; letter-spacing: 0.04em;
+        }
+        .component-preview .control-sample { display: inline-flex; gap: var(--space-1); align-items: center; font-size: var(--fs-13); }
+        .component-preview .focus-sample {
+            font: inherit; max-width: 160px;
+            padding: var(--space-1) var(--space-3);
+            border: 1px solid var(--orange-400); border-radius: var(--radius-2);
+            box-shadow: var(--focus-ring); outline: none;
+        }
         .preview-toggle { display: flex; gap: var(--space-2); align-items: center; font-size: var(--fs-13); }
         #presetsEditor { display: block; }
         .preset-validation { font-size: var(--fs-13); margin-top: var(--space-2); }
@@ -110,8 +128,9 @@
         <cts-page-head title="Partner Theming"
             sub="Brand this deployment for a certification partner: accent color, logo, and pre-baked test configurations. Changes apply to every visitor of this deployment."></cts-page-head>
 
-        <div id="adminGate" hidden>
-            <cts-alert variant="warning">Theming is restricted to administrators. Sign in with an admin account to edit the partner theme.</cts-alert>
+        <!-- Theming spike demo mode: edit access is deliberately open. -->
+        <div class="theme-admin-section">
+            <cts-alert variant="warning"><strong>Spike demo mode:</strong> any signed-in user can edit the theme here so reviewers can try the flow end-to-end. In a production deployment this page — and the write API behind it — would only be accessible to administrators.</cts-alert>
         </div>
 
         <div id="fileManagedBanner" hidden class="theme-admin-section">
@@ -140,6 +159,40 @@
                         <input type="checkbox" id="previewToggle">
                         Preview this accent on the current page (not saved)
                     </label>
+                </div>
+            </cts-card>
+        </section>
+
+        <section id="previewSection" class="theme-admin-section">
+            <cts-card header="Component preview">
+                <div class="theme-admin-grid">
+                    <span class="hint">Real suite components, re-rendered live as you change the accent above — nothing here is saved yet. Note what follows the brand and what deliberately does not.</span>
+                    <div id="componentPreviewScope" class="component-preview">
+                        <div class="row">
+                            <span class="row-label">Buttons</span>
+                            <cts-button variant="primary" label="Primary action"></cts-button>
+                            <cts-button variant="secondary" label="Secondary"></cts-button>
+                            <cts-button variant="danger" label="Danger — never themed"></cts-button>
+                        </div>
+                        <div class="row">
+                            <span class="row-label">Links</span>
+                            <a href="#previewSection">Text links follow the accent</a>
+                        </div>
+                        <div class="row">
+                            <span class="row-label">Form controls</span>
+                            <label class="control-sample"><input type="checkbox" checked> Checkbox</label>
+                            <label class="control-sample"><input type="radio" checked> Radio</label>
+                            <input type="range" value="60" aria-label="Range sample">
+                            <input type="text" class="focus-sample" readonly value="Focus ring" aria-label="Focus ring sample">
+                        </div>
+                        <div class="row">
+                            <span class="row-label">Statuses</span>
+                            <cts-badge variant="pass">Passed</cts-badge>
+                            <cts-badge variant="warn">Warning</cts-badge>
+                            <cts-badge variant="fail">Failed</cts-badge>
+                            <span class="hint">Status colors are semantic — they never follow the brand.</span>
+                        </div>
+                    </div>
                 </div>
             </cts-card>
         </section>
@@ -253,6 +306,10 @@
             ["--status-warning", "#D27420"],
             ["--status-warning-bg", "#FDF1E5"],
             ["--status-warning-border", "#FADCBE"],
+            // Alias tokens computed at :root (e.g. --fg-link: var(--orange-500))
+            // inherit their already-substituted value, so a scoped container
+            // must re-declare them explicitly for the preview to re-skin.
+            ["--fg-link", "color-mix(in oklab, {a}, black 14%)"],
         ];
 
         const $ = (id) => document.getElementById(id);
@@ -305,6 +362,16 @@
                 cell.style.background = expr.replaceAll("{a}", accent);
                 strip.appendChild(cell);
             });
+            applyScopedPreview();
+        }
+
+        /** Re-point the component-preview surface's custom properties at the
+            edited accent so the real components inside re-skin live. */
+        function applyScopedPreview() {
+            const scope = $("componentPreviewScope");
+            const accent = working.brand.accent;
+            if (!scope || !HEX.test(accent)) return;
+            DERIVED_RAMP.forEach(([prop, expr]) => scope.style.setProperty(prop, expr.replaceAll("{a}", accent)));
         }
 
         /* ---------- live page preview ---------- */
@@ -507,18 +574,12 @@
         }
 
         async function loadState() {
-            const [themeResponse, userResponse] = await Promise.all([fetch("/api/theme"), fetch("/api/currentuser")]);
+            // Spike demo mode: no admin gating client-side (the page carries a
+            // banner; the API allows any signed-in user). Only the
+            // configuration-as-code state locks the form.
+            const themeResponse = await fetch("/api/theme");
             const body = themeResponse.ok ? await themeResponse.json() : { source: "none" };
-            const user = userResponse.ok ? await userResponse.json() : null;
-            if (!user || !user.isAdmin) {
-                $("adminGate").hidden = false;
-                setReadOnly(true);
-                $("fileManagedBanner").hidden = true;
-            } else if (body.source === "file") {
-                setReadOnly(true);
-            } else {
-                setReadOnly(false);
-            }
+            setReadOnly(body.source === "file");
             populateForm(body.theme || {});
             // Plan catalog for preset validation (authed only; fail-soft).
             try {
