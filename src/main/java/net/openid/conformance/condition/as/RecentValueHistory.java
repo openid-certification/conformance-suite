@@ -16,9 +16,8 @@ import java.util.concurrent.atomic.AtomicReference;
  * reuse can only be observed across separate module instances / test runs.
  *
  * <p>Used to detect a verifier reusing a response-encryption key
- * ({@link VP1FinalCheckEncryptionKeyNotReused}); it could equally back other cross-request reuse
- * checks, e.g. a request-object {@code jti} reuse check in {@link ValidateRequestObjectJti} (which
- * does not currently use it). Each check picks a {@code namespace} (so unrelated checks
+ * ({@link VP1FinalCheckEncryptionKeyNotReused}) and an RP reusing a request-object {@code jti}
+ * ({@link ValidateRequestObjectJti}). Each check picks a {@code namespace} (so unrelated checks
  * never collide) and a {@code scope} string (e.g. the logged-in suite user) within it. The test id
  * a value was first seen in is recorded too, so a reuse error can point at the earlier test.
  *
