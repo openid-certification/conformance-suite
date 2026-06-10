@@ -32,10 +32,29 @@ decision. The admin UI exports the exact file the self-hosting journey
 consumes, so a theme can graduate from "clicked together on a hosted instance"
 to "reviewed configuration in a deployment repo" without translation.
 
+### Prototype affordances for reviewers (spike-only, remove before production)
+
+- **Demo bar** — a thin 11px-mono strip at the top of every page
+  (`js/theme-demo-bar.js`): switch between `oidf-default` / `helseid` / `verde`
+  / `lumina` in one click, jump to the active theme's presets, open
+  theme-admin. Disabled (with a note) on config-as-code deployments.
+  Screenshots: `d1-demo-bar-default.png`, `d2-demo-bar-verde-active.png`.
+- **Open write access** — `POST/DELETE /api/theme` accept any signed-in user so
+  reviewers can exercise the flow without admin rights; theme-admin.html
+  carries a "Spike demo mode" banner saying production would be admin-only.
+- **Component preview card** on theme-admin.html — real suite components
+  (primary/secondary/danger buttons, links, checkbox/radio/range, a focus-ring
+  sample, pass/warn/fail status badges) re-render live as the accent is edited,
+  via a scoped custom-property surface. Screenshot:
+  `d3-component-preview-live.png`. Implementation gotcha worth keeping: alias
+  tokens computed at `:root` (`--fg-link: var(--orange-500)`) inherit their
+  already-substituted value, so a scoped preview must re-declare them.
+
 ### Approach A — self-serve UI on an OIDF-hosted instance
 
-An admin opens **Theming** from the account menu (`theme-admin.html`), picks the
-accent (live contrast guidance + on-page preview), uploads and crops the logo,
+A signed-in user (demo mode; production: admin) opens **Theming** from the
+account menu (`theme-admin.html`), picks the accent (live contrast guidance,
+component preview, on-page preview), uploads and crops the logo,
 pastes/validates presets, and saves. The theme is stored as a single document in
 the `THEME` Mongo collection and applies to every visitor immediately.
 
@@ -179,6 +198,8 @@ New/changed surface: `theme/ThemeService.java`, `theme/ThemeApi.java`,
    "powered by the OpenID Foundation" attribution. Whatever ships should be
    reviewed as a brand/legal question, not just a CSS one.
 6. **Production hardening checklist** (deliberately skipped in the spike):
+   re-lock theme writes to admins and delete the review affordances (the demo
+   bar `js/theme-demo-bar.js` + its script tags, the demo-mode banner);
    ETag/long-cache on `/api/theme/css` + `/logo` keyed on theme hash (currently
    `no-cache` on every page load); a real SVG sanitizer (the spike rejects
    `<script`/`onload=` substrings); audit log entry on theme changes; the three
@@ -218,9 +239,10 @@ New/changed surface: `theme/ThemeService.java`, `theme/ThemeApi.java`,
 
 ## Requirements the team will need to think about
 
-- **Who may edit the theme on a hosted instance?** The spike gates on the
-  existing global admin role. Real partner self-serve needs a partner-admin
-  role (or stays OIDF-operated, which is simpler and may be fine).
+- **Who may edit the theme on a hosted instance?** The spike currently opens
+  writes to any signed-in user purely so reviewers can try the flow (see the
+  demo-mode banner). Production needs a decision: global admins only, a
+  partner-admin role, or OIDF-operated (simplest, and may be fine).
 - **Secrets in presets.** Pre-baked client secrets/mTLS keys are stored
   plaintext in the theme doc and served to any *authenticated* user of that
   deployment. Right model for a partner-dedicated instance whose members are
