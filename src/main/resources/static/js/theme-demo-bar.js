@@ -137,6 +137,22 @@ async function fetchThemeEnvelope() {
   return theme ? { source: theme.source, theme } : { source: "none" };
 }
 
+/**
+ * Best-effort signed-in check from cts-navbar's sessionStorage cache — no
+ * network (a probe here would re-introduce the /api/currentuser 401 noise the
+ * login page deliberately avoids, and would trip the e2e fail-fast mocks).
+ * Absent cache usually means signed out; worst case a signed-in first-time
+ * visitor sees the hint until their next navigation.
+ * @returns {boolean} whether a signed-in session is likely present
+ */
+function likelySignedIn() {
+  try {
+    return !!sessionStorage.getItem("cts-navbar:user");
+  } catch {
+    return false;
+  }
+}
+
 /** @param {string} text @returns {HTMLSpanElement} */
 function sep(text = "│") {
   const span = document.createElement("span");
@@ -185,6 +201,14 @@ function render(envelope, bar) {
         : "Remove the partner theme (OIDF branding)";
     button.addEventListener("click", () => applyTheme(option, bar));
     bar.append(button);
+  }
+
+  if (!fileManaged && !likelySignedIn()) {
+    const hint = document.createElement("span");
+    hint.className = "sb-msg";
+    hint.textContent = "(sign in to switch)";
+    hint.title = "Theme switching writes to /api/theme, which needs a signed-in session";
+    bar.append(hint);
   }
 
   const presets =
@@ -248,8 +272,8 @@ async function applyTheme(option, bar) {
       return;
     }
     msg.textContent =
-      response.status === 403
-        ? "sign in first — switching needs a session"
+      response.status === 401 || response.status === 403
+        ? "sign in first (Google/GitLab) — theme switching writes to the server"
         : response.status === 409
           ? "config-as-code deployment — switching disabled"
           : `switch failed (${response.status})`;
