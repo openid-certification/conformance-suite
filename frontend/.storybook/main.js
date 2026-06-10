@@ -11,7 +11,7 @@ export default defineMain({
     "../stories/**/*.stories.js",
   ],
   framework: "@storybook/web-components-vite",
-  addons: ["@storybook/addon-vitest", "@storybook/addon-mcp"],
+  addons: ["@storybook/addon-a11y", "@storybook/addon-vitest", "@storybook/addon-mcp"],
   staticDirs: [
     { from: "../../src/main/resources/static", to: "/" },
     { from: "../public", to: "/" },
