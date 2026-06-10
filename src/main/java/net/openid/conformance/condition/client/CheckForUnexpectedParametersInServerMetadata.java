@@ -1,4 +1,4 @@
-package net.openid.conformance.vci10issuer.condition;
+package net.openid.conformance.condition.client;
 
 import net.openid.conformance.condition.AbstractCheckForUnexpectedSchemaProperties;
 
@@ -7,25 +7,25 @@ import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.util.validation.JsonSchemaValidationInput;
 
-public class CheckForUnexpectedParametersInCredentialIssuerMetadata extends AbstractCheckForUnexpectedSchemaProperties {
+public class CheckForUnexpectedParametersInServerMetadata extends AbstractCheckForUnexpectedSchemaProperties {
 
 	@Override
 	protected JsonSchemaValidationInput createJsonSchemaValidationInput(Environment env) {
-		JsonObject metadata = env.getElementFromObject("vci", "credential_issuer_metadata").getAsJsonObject();
-		return new JsonSchemaValidationInput("OID4VCI Credential Issuer metadata",
-			"json-schemas/oid4vci/credential_issuer_metadata-1_0.json", metadata);
+		JsonObject serverMetadata = env.getObject("server");
+		return new JsonSchemaValidationInput("OAuth Authorization Server metadata",
+			"json-schemas/rfc8414/oauth_authorization_server_metadata.json", serverMetadata);
 	}
 
 	@Override
 	protected String getAllowUnexpectedFieldsConfigKey() {
 		// Hidden escape hatch: a tester can add this JSON array of property names to the test
-		// configuration to suppress warnings for extension metadata their credential issuer
+		// configuration to suppress warnings for extension metadata their authorization server
 		// legitimately publishes.
-		return "vci.allow_unexpected_credential_issuer_metadata_fields";
+		return "server.allow_unexpected_metadata_fields";
 	}
 
 	@Override
-	@PreEnvironment(required = "vci")
+	@PreEnvironment(required = "server")
 	public Environment evaluate(Environment env) {
 		return super.evaluate(env);
 	}

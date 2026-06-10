@@ -3,13 +3,14 @@ package net.openid.conformance.vci10issuer.condition;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.openid.conformance.condition.PreEnvironment;
+import net.openid.conformance.condition.client.ValidateServerMetadataAgainstSchema;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 
 import java.util.List;
 import java.util.Map;
 
-public class VCIEnsureAuthorizationDetailsTypesSupportedContainOpenIdCredentialIfScopeIsMissing extends VCIAuthorizationServerMetadataValidation {
+public class VCIEnsureAuthorizationDetailsTypesSupportedContainOpenIdCredentialIfScopeIsMissing extends ValidateServerMetadataAgainstSchema {
 
 	@Override
 	@PreEnvironment(required = {"vci", "server"})
@@ -31,7 +32,7 @@ public class VCIEnsureAuthorizationDetailsTypesSupportedContainOpenIdCredentialI
 			return env;
 		}
 
-		JsonObject oauthAuthorizationMetadata = getAuthorizationServerMetadata(env);
+		JsonObject oauthAuthorizationMetadata = getServerMetadata(env);
 		if (!oauthAuthorizationMetadata.has("authorization_details_types_supported")) {
 			throw error("authorization_details_types_supported attribute not found in oauth authorization server metadata");
 		}

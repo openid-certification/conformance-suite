@@ -5,9 +5,9 @@ import net.openid.conformance.condition.client.CheckDiscEndpointAllEndpointsAreH
 import net.openid.conformance.condition.client.CheckDiscEndpointLocalesCanonicalCasing;
 import net.openid.conformance.condition.client.CheckDiscEndpointLocalesSyntax;
 import net.openid.conformance.condition.client.CheckDiscEndpointScopesSupportedSyntax;
+import net.openid.conformance.condition.client.CheckForUnexpectedParametersInServerMetadata;
+import net.openid.conformance.condition.client.ValidateServerMetadataAgainstSchema;
 import net.openid.conformance.sequence.AbstractConditionSequence;
-import net.openid.conformance.vci10issuer.condition.CheckForUnexpectedParametersInAuthorizationServerMetadata;
-import net.openid.conformance.vci10issuer.condition.VCIAuthorizationServerMetadataValidation;
 import net.openid.conformance.vci10issuer.condition.VCIEnsureAuthorizationDetailsTypesSupportedContainOpenIdCredentialIfScopeIsMissing;
 
 /**
@@ -19,9 +19,9 @@ public class VCIDiscoveryEndpointChecks extends AbstractConditionSequence {
 
 	@Override
 	public void evaluate() {
-		callAndStopOnFailure(VCIAuthorizationServerMetadataValidation.class,
+		callAndStopOnFailure(ValidateServerMetadataAgainstSchema.class,
 			ConditionResult.FAILURE, "OID4VCI-1FINAL-12.2.3", "OID4VCI-1FINAL-12.3");
-		callAndContinueOnFailure(CheckForUnexpectedParametersInAuthorizationServerMetadata.class,
+		callAndContinueOnFailure(CheckForUnexpectedParametersInServerMetadata.class,
 			ConditionResult.WARNING, "OID4VCI-1FINAL-12.2.3", "OID4VCI-1FINAL-12.3");
 
 		callAndContinueOnFailure(CheckDiscEndpointAllEndpointsAreHttps.class,

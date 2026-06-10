@@ -288,6 +288,28 @@ public class CheckForUnexpectedParametersInCredentialIssuerMetadata_UnitTest ext
 		assertDoesNotThrow(() -> cond.execute(env));
 	}
 
+	@Test
+	public void testEvaluate_unknownSuppressedByConfigIgnoreList() {
+		String json = """
+			{
+			  "credential_issuer": "https://credential-issuer.example.com",
+			  "credential_endpoint": "https://credential-issuer.example.com/credential",
+			  "credential_configurations_supported": {
+			    "UniversityDegreeCredential": {
+			      "format": "dc+sd-jwt",
+			      "vct": "https://example.com/UniversityDegreeCredential"
+			    }
+			  },
+			  "unexpected_field": "boom"
+			}
+			""";
+		putCredentialIssuerMetadata(json);
+		env.putObject("config", JsonParser.parseString("""
+			{ "vci": { "allow_unexpected_credential_issuer_metadata_fields": ["unexpected_field"] } }
+			""").getAsJsonObject());
+		assertDoesNotThrow(() -> cond.execute(env));
+	}
+
 	private void putCredentialIssuerMetadata(String json) {
 		JsonObject metadata = JsonParser.parseString(json).getAsJsonObject();
 		JsonObject vci = new JsonObject();

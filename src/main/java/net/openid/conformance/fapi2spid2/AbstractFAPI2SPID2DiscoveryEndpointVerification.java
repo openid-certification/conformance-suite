@@ -11,6 +11,8 @@ import net.openid.conformance.condition.client.CheckDiscoveryEndpointReturnedJso
 import net.openid.conformance.condition.client.CheckDiscEndpointLocalesCanonicalCasing;
 import net.openid.conformance.condition.client.CheckDiscEndpointLocalesSyntax;
 import net.openid.conformance.condition.client.CheckDiscEndpointScopesSupportedSyntax;
+import net.openid.conformance.condition.client.CheckForUnexpectedParametersInServerMetadata;
+import net.openid.conformance.condition.client.ValidateServerMetadataAgainstSchema;
 import net.openid.conformance.condition.client.CheckJwksUri;
 import net.openid.conformance.condition.client.CheckOauthDiscEndpointDiscoveryUrl;
 import net.openid.conformance.condition.client.CheckOauthDiscEndpointIssuer;
@@ -104,6 +106,9 @@ public abstract class AbstractFAPI2SPID2DiscoveryEndpointVerification extends Ab
 			callAndContinueOnFailure(CheckOauthDiscEndpointDiscoveryUrl.class,Condition.ConditionResult.FAILURE);
 			callAndContinueOnFailure(CheckOauthDiscEndpointIssuer.class, Condition.ConditionResult.FAILURE, "RFC8414-3.3", "RFC8414-6.2");
 		}
+
+		callAndContinueOnFailure(ValidateServerMetadataAgainstSchema.class, Condition.ConditionResult.FAILURE, "RFC8414-2");
+		callAndContinueOnFailure(CheckForUnexpectedParametersInServerMetadata.class, Condition.ConditionResult.WARNING, "RFC8414-2");
 
 		if (isDpop) {
 			callAndContinueOnFailure(FAPI2CheckDpopSigningAlgValuesSupported.class, Condition.ConditionResult.FAILURE, "FAPI2-SP-ID2-5.4-1");
