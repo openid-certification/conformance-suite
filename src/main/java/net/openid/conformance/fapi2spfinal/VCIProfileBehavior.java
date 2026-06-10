@@ -29,6 +29,7 @@ import net.openid.conformance.variant.VCICredentialEncryption;
 import net.openid.conformance.vci10issuer.condition.CheckCacheControlHeaderContainsNoStore;
 import net.openid.conformance.vci10issuer.condition.CheckForUnexpectedParametersInSdJwtVcTypeMetadata;
 import net.openid.conformance.vci10issuer.condition.VCIAddCredentialConfigurationIdToEnv;
+import net.openid.conformance.vci10issuer.condition.VCICaptureCredentialForLinkability;
 import net.openid.conformance.vci10issuer.condition.VCIDetectTypeMetadataExtends;
 import net.openid.conformance.vci10issuer.condition.VCIEnsureMandatoryClaimsArePresent;
 import net.openid.conformance.vci10issuer.condition.VCIEnsureSdJwtVcVctMatchesTypeMetadataVct;
@@ -392,6 +393,10 @@ public class VCIProfileBehavior extends FAPI2ProfileBehavior {
 			public void evaluate() {
 				callAndContinueOnFailure(ValidateCredentialIsUnpaddedBase64Url.class, ConditionResult.FAILURE, "OID4VCI-1FINALA-A.2.4");
 				callAndContinueOnFailure(ParseMdocCredentialFromVCIIssuance.class, ConditionResult.FAILURE, "OID4VCI-1FINALA-A.2");
+				// Capture the whole credential + the issuer's Date header now (see SD-JWT path). Tests
+				// that obtain two or more credentials of the same dataset later compare the MSO signed
+				// timestamps (RFC 9901 §10.1 unlinkability applies to mdoc too).
+				callAndContinueOnFailure(VCICaptureCredentialForLinkability.class, ConditionResult.WARNING, "SDJWT-10.1");
 				call(new ValidateMdocCredential(true, isHaip()));
 			}
 		};
@@ -402,6 +407,10 @@ public class VCIProfileBehavior extends FAPI2ProfileBehavior {
 			@Override
 			public void evaluate() {
 				callAndContinueOnFailure(ParseCredentialAsSdJwt.class, ConditionResult.FAILURE, "SDJWT-4");
+				// Capture the whole credential + the issuer's Date header now, before any notification
+				// request overwrites the response headers. Tests that obtain two or more credentials of
+				// the same dataset later compare them (RFC 9901 §10.1 unlinkability).
+				callAndContinueOnFailure(VCICaptureCredentialForLinkability.class, ConditionResult.WARNING, "SDJWT-10.1");
 				call(new ValidateSdJwtVcCredentialClaims(requiresCryptographicBinding, isHaip()));
 
 				// SD-JWT VC Type Metadata validation per draft-ietf-oauth-sd-jwt-vc-13 (HAIP 1.0 reference).

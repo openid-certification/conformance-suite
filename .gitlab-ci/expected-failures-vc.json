@@ -216,6 +216,15 @@
         "comment": "Authlete doesn't support jti uniqueness"
     },
     {
+        "test-name": "oid4vci-1_0-issuer-happy-flow-multiple-clients",
+        "variant": "*",
+        "configuration-filename": "authlete-vci-haip*.json",
+        "current-block": "Check the two credentials' time information does not enable linkability",
+        "condition": "VCIEnsureCredentialTimeClaimsNotLinkable",
+        "expected-result": "failure",
+        "comment": "Authlete embeds the precise issuance time (SD-JWT iat / mdoc MSO signed), which RFC 9901 §10.1 says MUST be randomized or rounded to prevent linkability across credentials of the same dataset"
+    },
+    {
         "test-name": "oid4vp-1final-wallet-alternate-happy-flow",
         "variant": "*",
         "configuration-filename": "*dcapi-mock*",

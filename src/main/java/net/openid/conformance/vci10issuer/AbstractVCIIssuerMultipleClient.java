@@ -6,6 +6,7 @@ import net.openid.conformance.condition.client.CallProtectedResource;
 import net.openid.conformance.condition.client.CreateRedirectUri;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs4xx;
 import net.openid.conformance.condition.client.RedirectQueryTestDisabled;
+import net.openid.conformance.vci10issuer.condition.VCIEnsureCredentialTimeClaimsNotLinkable;
 import net.openid.conformance.variant.ConfigurationFields;
 import net.openid.conformance.variant.ClientAuthType;
 import net.openid.conformance.variant.VariantHidesConfigurationFields;
@@ -27,6 +28,14 @@ public abstract class AbstractVCIIssuerMultipleClient extends AbstractVCIIssuerT
 			// Try the second client
 			performAuthorizationFlowWithSecondClient();
 		} else {
+			// Both credentials have now been obtained (one per client). Check their time information
+			// does not enable linkability (RFC 9901 §10.1) — SD-JWT iat or mdoc MSO signed. The check
+			// skips automatically when fewer than two credentials were captured or when the two carry
+			// different datasets.
+			eventLog.startBlock("Check the two credentials' time information does not enable linkability");
+			callAndContinueOnFailure(VCIEnsureCredentialTimeClaimsNotLinkable.class, Condition.ConditionResult.FAILURE, "SDJWT-10.1");
+			eventLog.endBlock();
+
 			switchToClient1AndTryClient2AccessToken();
 			fireTestFinished();
 		}
