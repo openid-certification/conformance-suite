@@ -20,6 +20,16 @@ export default {
   component: "cts-log-viewer",
 };
 
+// Polling stories never settle: the viewer re-fetches /api/log on an interval
+// (20ms via the `_pollIntervalMs` test hook), which trips Chromatic's
+// reload-loop detector during capture ("URL reload loop detected"). They are
+// behavior tests, not visual states — the static stories above cover the
+// visuals — so exclude them from Chromatic snapshots. `test-storybook` still
+// runs their play functions.
+const pollingStoryParameters = {
+  chromatic: { disableSnapshot: true },
+};
+
 async function waitForLogLoad(canvasElement) {
   await waitFor(
     () => {
@@ -134,6 +144,7 @@ export const AllSuccess = {
 // responses mid-test to exercise recovery and lifecycle.
 
 export const PersistentFailureBanner = {
+  parameters: pollingStoryParameters,
   decorators: [
     (storyFn) => {
       const state = {
@@ -174,6 +185,7 @@ export const PersistentFailureBanner = {
 };
 
 export const RecoveryClearsBanner = {
+  parameters: pollingStoryParameters,
   decorators: [
     (storyFn) => {
       const state = {
@@ -228,6 +240,7 @@ export const RecoveryClearsBanner = {
 // subsequent polls).
 
 export const PublicModePolling = {
+  parameters: pollingStoryParameters,
   decorators: [
     (storyFn) => {
       const state = {
@@ -493,6 +506,7 @@ export const EmptyBlock = {
 };
 
 export const BlockCountsUpdateOnPolling = {
+  parameters: pollingStoryParameters,
   decorators: [
     (storyFn) => {
       const state = {
@@ -622,6 +636,7 @@ export const InitialLoadHashScroll = {
  * LOG-0004..0005, so #LOG-0005 only resolves after the second poll.
  */
 export const LateArrivalHashScroll = {
+  parameters: pollingStoryParameters,
   decorators: [
     (storyFn) => {
       const state = {
@@ -1155,6 +1170,7 @@ export const SingleResultTypeReadOnly = {
  * already consumed, so the live region is empty afterwards).
  */
 export const FilterSurvivesPolling = {
+  parameters: pollingStoryParameters,
   decorators: [
     (storyFn) => {
       // The delta is WITHHELD until the play function arms it (after the
