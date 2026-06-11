@@ -7,7 +7,7 @@
   "scripts": {
     "test:e2e": "playwright test",
     "storybook": "storybook dev -p 6006",
-    "build-storybook": "storybook build",
+    "build-storybook": "storybook build --stats-json",
     "test-storybook": "vitest --project=storybook --run",
     "chromatic": "chromatic",
     "lint:jsdoc": "bash scripts/lint-jsdoc-properties.sh",

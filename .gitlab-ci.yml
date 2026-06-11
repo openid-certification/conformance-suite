@@ -208,15 +208,23 @@ frontend_lint:
 
 # chromatic: publishes the frontend Storybook to https://www.chromatic.com for
 # visual regression review (https://www.chromatic.com/docs/gitlab/).
+# CLI behavior lives in frontend/chromatic.config.json so local runs and CI
+# stay identical: exitZeroOnChanges, onlyChanged (TurboSnap), storybookBaseDir.
 #
 # Non-blocking by design, two layers deep:
-# - `--exit-zero-on-changes`: visual diffs against the accepted baseline exit 0;
-#   changes are reviewed and accepted/denied in the Chromatic UI, not by
-#   failing the pipeline.
+# - `exitZeroOnChanges` (config file): visual diffs against the accepted
+#   baseline exit 0; changes are reviewed and accepted/denied in the Chromatic
+#   UI, not by failing the pipeline.
 # - `allow_failure: true`: broken stories or Chromatic infrastructure errors
 #   surface as a pipeline warning, never a failure. Flip to blocking only with
 #   team sign-off, once the a11y backlog is fixed or formally dismissed in
 #   Chromatic (mirrors the frontend_lint promotion approach above).
+#
+# Snapshot quota: `onlyChanged` (TurboSnap) snapshots only stories whose
+# dependency graph intersects the changed files — TurboSnap activates after
+# Chromatic's 10-successful-CI-builds threshold; until then builds are full
+# (~650 snapshots). The `changes:` filter below already skips backend-only
+# pushes entirely.
 #
 # The project token is committed in plain text deliberately: per Chromatic's
 # docs (https://www.chromatic.com/docs/custom-ci-provider/) it can only be used
@@ -257,7 +265,7 @@ chromatic:
   script:
     - cd frontend
     - npm ci --ignore-scripts
-    - npx chromatic --exit-zero-on-changes
+    - npx chromatic
   allow_failure: true
   only:
     refs:
