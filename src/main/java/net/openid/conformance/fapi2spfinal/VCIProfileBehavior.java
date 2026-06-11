@@ -8,6 +8,7 @@ import net.openid.conformance.condition.client.EnsureContentTypeApplicationJwt;
 import net.openid.conformance.condition.client.EnsureContentTypeJson;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs200;
 import net.openid.conformance.condition.client.EnsureMdocMdlMandatoryDataElementsPresent;
+import net.openid.conformance.condition.client.EnsureSdJwtVcVctMatchesCredentialConfiguration;
 import net.openid.conformance.condition.client.ParseCredentialAsSdJwt;
 import net.openid.conformance.condition.client.ParseMdocCredentialFromVCIIssuance;
 import net.openid.conformance.condition.client.SetProtectedResourceUrlToSingleResourceEndpoint;
@@ -440,6 +441,8 @@ public class VCIProfileBehavior extends FAPI2ProfileBehavior {
 			public void evaluate() {
 				callAndContinueOnFailure(ParseCredentialAsSdJwt.class, ConditionResult.FAILURE, "SDJWT-4");
 				call(new ValidateSdJwtVcCredentialClaims(requiresCryptographicBinding, isHaip()));
+				callAndContinueOnFailure(EnsureSdJwtVcVctMatchesCredentialConfiguration.class,
+					ConditionResult.FAILURE, "OID4VCI-1FINALA-A.3.2");
 
 				if (requiresCryptographicBinding) {
 					call(condition(VCIEnsureSdJwtCnfMatchesProofKey.class)
