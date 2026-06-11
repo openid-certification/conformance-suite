@@ -35,6 +35,36 @@ function makeModules(count, opts = {}) {
 const MODULES_30 = makeModules(30, { currentIndex: 5 });
 const CURRENT_INSTANCE_6 = "i-6";
 
+// A published-plan public view: two siblings the page confirmed publicly
+// reachable (`navigable: true`, its /api/info fan-out returned 200) and one it
+// did not (a 404 — left unflagged). Drives the decoupling assertion: progress
+// navigates to the reachable siblings while `readonly` hides Repeat/Continue.
+const PUBLIC_MIXED_MODULES = [
+  {
+    testModule: "m1",
+    instances: ["i-1"],
+    status: "FINISHED",
+    result: "PASSED",
+    _statusResolved: true,
+    navigable: true,
+  },
+  {
+    testModule: "m6",
+    instances: ["i-6"],
+    status: "FINISHED",
+    result: "FAILED",
+    _statusResolved: true,
+    navigable: true,
+  },
+  {
+    testModule: "m9",
+    instances: ["i-9"],
+    status: "FINISHED",
+    result: "PASSED",
+    _statusResolved: true,
+  },
+];
+
 // cts-button host.click() bypasses Lit's @click handler. Mirror the
 // pattern from cts-log-detail-header.stories.js: target the inner
 // <button> when interacting in tests so cts-click fires.
@@ -112,8 +142,8 @@ export const PublicViewBackLinkAppendsPublicFlag = {
     html`<cts-test-nav-controls
       test-id="${TEST_ID}"
       plan-id="${PLAN_ID}"
-      .modules=${MODULES_30}
-      current-instance-id="${CURRENT_INSTANCE_6}"
+      .modules=${PUBLIC_MIXED_MODULES}
+      current-instance-id="i-6"
       .nextEnabled=${false}
       readonly
       public-view
@@ -134,10 +164,15 @@ export const PublicViewBackLinkAppendsPublicFlag = {
       );
     });
 
-    await step("readonly forwards to the progress bar → segments are non-navigating", () => {
-      // No <button> segments on a readonly view; the marker + label still show.
-      expect(canvasElement.querySelector("button.cts-pst-seg")).toBeNull();
-      expect(canvasElement.querySelector("span.cts-pst-seg")).toBeTruthy();
+    await step("progress navigates to reachable siblings while actions stay hidden (KTD4)", () => {
+      // The decoupling: `readonly` hides Repeat/Continue, but progress-bar
+      // navigation is governed by public-view + each module's `navigable` flag.
+      // On this published-plan public view the two reachable siblings render as
+      // navigating buttons; the unreachable one (no `navigable`) stays a span.
+      expect(canvasElement.querySelectorAll("button.cts-pst-seg").length).toBe(2);
+      expect(canvasElement.querySelectorAll("span.cts-pst-seg").length).toBe(1);
+      expect(canvasElement.querySelector('[data-testid="repeat-btn"]')).toBeNull();
+      expect(canvasElement.querySelector('[data-testid="continue-btn"]')).toBeNull();
     });
   },
 };
@@ -312,8 +347,10 @@ export const Readonly = {
       expect(canvasElement.querySelector('[data-testid="continue-btn"]')).toBeNull();
     });
 
-    await step("the progress bar is non-navigating", () => {
-      expect(canvasElement.querySelector("button.cts-pst-seg")).toBeNull();
+    await step("the progress bar still navigates (readonly governs actions, not progress)", () => {
+      // Decoupling (KTD4): `readonly` hides Repeat/Continue, but this is not a
+      // public view (no public-view), so progress segments stay navigable.
+      expect(canvasElement.querySelector("button.cts-pst-seg")).toBeTruthy();
     });
   },
 };

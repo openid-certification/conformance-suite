@@ -172,13 +172,15 @@ const STYLE_TEXT = css`
     animation: none;
   }
 
-  /* Interactive segments (detail/log) carry the pointer affordance and an
-     OUTWARD focus outline (Open Question candidate) so it never collides with
-     the inset is-current ring. A readonly log surface (Decision 1) renders
-     <span> segments with no click action, so it is excluded from the pointer
-     cue via :not([readonly]). */
-  cts-plan-status[mode="detail"]:not([readonly]) .cts-pst-seg,
-  cts-plan-status[mode="log"]:not([readonly]) .cts-pst-seg {
+  /* Interactive segments carry the pointer affordance and an OUTWARD focus
+     outline (Open Question candidate) so it never collides with the inset
+     is-current ring. Only the interactive element forms get the cue: detail
+     anchors and log buttons. Read-only span segments (a hard readonly surface,
+     or a public-view sibling that is not navigable) are never click targets, so
+     keying off the element type keeps the pointer off them without a host-level
+     :not([readonly]) guard. */
+  cts-plan-status[mode="detail"] a.cts-pst-seg,
+  cts-plan-status[mode="log"] button.cts-pst-seg {
     cursor: pointer;
   }
   .cts-pst-seg:focus-visible {
@@ -342,9 +344,13 @@ function formatVariant(variant) {
  * first connect. The host is a `container-type: inline-size` block so the
  * bar↔grid switch tracks the host's own width in any embedding context (KTD2).
  * @property {Array<object>} modules - Plan modules in plan order, each shaped
- *   `{ testModule, variant?, instances?, status?, result?, _statusResolved? }`.
- *   The component reads resolved status via the shared `segmentVariant` helper
- *   and initiates no fetches of its own. An empty array renders nothing.
+ *   `{ testModule, variant?, instances?, status?, result?, _statusResolved?,
+ *   navigable? }`. The component reads resolved status via the shared
+ *   `segmentVariant` helper and initiates no fetches of its own. An empty array
+ *   renders nothing. In `log` mode on a public view (`publicView`), only modules
+ *   the page has flagged `navigable: true` (its `/api/info` fan-out confirmed the
+ *   target instance is publicly reachable) are click targets; off public the flag
+ *   is ignored and every segment navigates.
  * @property {string} mode - Surface mode: `overview` (default), `detail`, or
  *   `log`. Reflected to the `mode` attribute so the scoped CSS can branch on
  *   it; an unknown value falls back to `overview`.
@@ -358,13 +364,23 @@ function formatVariant(variant) {
  *   are dimmed (R10/R18) and the matching count badges render pressed; the badge
  *   counts themselves stay totals, not the filtered subset. Set via JS only —
  *   the page coordinator owns it and pushes it back after a badge toggle.
- * @property {boolean} readonly - In `log` mode, downgrade segments to the
- *   non-interactive read-only form (a `<span role="img">`, no `<button>`, no
- *   activate emission, no pointer affordance) for the public / readonly log
- *   view. The "you are here" marker, the "Module N of M" label, and dimming
- *   still render — only the click action is suppressed (a UX affordance, not
- *   an access boundary; the backend `/api/info` gating is the real boundary).
- *   Reflects the `readonly` attribute. Default false.
+ * @property {boolean} readonly - A hard "force every segment non-interactive"
+ *   override: in `log`/`detail` mode all segments render as the read-only
+ *   `<span role="img">` form (no `<button>`/`<a>`, no activate emission, no
+ *   pointer affordance) while the "you are here" marker, the "Module N of M"
+ *   label, and dimming still render; when `readonly` and `publicView` are both
+ *   set, `readonly` wins (every segment is a span). Public log views no longer
+ *   use this to suppress navigation — that is decided per-segment via
+ *   `publicView` plus each
+ *   module's `navigable` flag (a UX affordance, not an access boundary; the
+ *   backend `/api/info` gating is the real boundary). Reflects the `readonly`
+ *   attribute. Default false.
+ * @property {boolean} publicView - In `log` mode, marks the public view so
+ *   navigation is gated per-segment: only modules flagged `navigable: true` (the
+ *   page's `/api/info` fan-out confirmed the target instance is publicly
+ *   reachable) render as click targets; the rest stay read-only spans. No effect
+ *   off public (every segment navigates) or in `overview`/`detail`. Reflects the
+ *   `public-view` attribute. Default false.
  * @property {boolean} hideLabel - In `log` mode, suppress the built-in
  *   "Module N of M" position label so the host can render and place it itself
  *   (cts-test-nav-controls sets this to lay the label on its own row, below the
@@ -391,6 +407,7 @@ class CtsPlanStatus extends LitElement {
     currentInstanceId: { type: String, attribute: "current-instance-id" },
     activeResultFilter: { attribute: false },
     readonly: { type: Boolean, reflect: true },
+    publicView: { type: Boolean, attribute: "public-view", reflect: true },
     hideLabel: { type: Boolean, attribute: "hide-label", reflect: true },
   };
 
@@ -401,6 +418,7 @@ class CtsPlanStatus extends LitElement {
     this.currentInstanceId = "";
     this.activeResultFilter = null;
     this.readonly = false;
+    this.publicView = false;
     this.hideLabel = false;
     this._onActivate = this._onActivate.bind(this);
     this._onFilterBadgeClick = this._onFilterBadgeClick.bind(this);
@@ -622,8 +640,18 @@ class CtsPlanStatus extends LitElement {
     segClasses[SEGMENT_VARIANT_CLASS[variant] || SEGMENT_VARIANT_CLASS.skip] = true;
     const ariaName = `${name}: ${word}`;
 
+    // Per-segment interactivity. Detail mode uses the surface-level decision
+    // (same-page anchors are always safe). Log mode additionally gates on public
+    // reachability: on a public view only siblings the page flagged
+    // `navigable: true` (fan-out confirmed their target instance returns 200) are
+    // click targets, so a published-plan viewer navigates to reachable siblings
+    // without dead-ending on an unpublished one. Off public, every log segment
+    // navigates as before. A hard `readonly` (interactive=false) forces spans.
+    const navigableOnPublic = !this.publicView || mod.navigable === true;
+    const segInteractive = interactive && (mode !== "log" || navigableOnPublic);
+
     let segment;
-    if (!interactive) {
+    if (!segInteractive) {
       segment = html`<span
         class=${classMap(segClasses)}
         data-testid="plan-status-segment"
@@ -661,10 +689,12 @@ class CtsPlanStatus extends LitElement {
     if (modules.length === 0) return nothing;
 
     const mode = VALID_MODES.has(this.mode) ? this.mode : "overview";
-    // `readonly` downgrades the otherwise-interactive detail/log modes to the
-    // non-clickable span form (Decision 1): the public/readonly log view shows
-    // the marker, label, and dimming but suppresses sibling navigation. The
-    // backend /api/info gating, not this flag, is the real access boundary.
+    // Surface-level interactivity for detail-mode anchors and the count-badge
+    // filter row; `readonly` is the hard off-switch. In log mode this is only the
+    // upper bound — `_renderSegment` further gates each segment on public
+    // reachability (publicView + the module's `navigable` flag) so a public view
+    // navigates to reachable siblings but not to unpublished ones. The backend
+    // /api/info gating, not these flags, is the real access boundary.
     const interactive = (mode === "detail" || mode === "log") && !this.readonly;
     const currentIndex = mode === "log" ? this._currentIndex(modules) : -1;
 

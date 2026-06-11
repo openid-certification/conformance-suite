@@ -445,12 +445,13 @@ export const LogCurrentMarker = {
   },
 };
 
-// Decision 1 (U6): a readonly log surface (public / readonly view) renders
-// NON-interactive segments — <span role="img">, no <button>, no activate
-// emission — while the "you are here" marker and the "Module N of M" label
-// still render. Used by cts-test-nav-controls on the public log view so
-// sibling navigation is suppressed (a UX affordance; backend /api/info
-// gating remains the real access boundary).
+// A hard `readonly` surface renders NON-interactive segments — <span role="img">,
+// no <button>, no activate emission — while the "you are here" marker and the
+// "Module N of M" label still render. `readonly` is a blanket off-switch: the
+// public log view no longer uses it to suppress navigation (that is decided
+// per-segment via public-view + each module's `navigable` flag — see
+// LogPublicViewPerSegmentNavigable). A UX affordance; backend /api/info gating
+// remains the real access boundary.
 export const LogReadonlyNonNavigating = {
   render: () => html`
     <cts-plan-status
@@ -486,6 +487,88 @@ export const LogReadonlyNonNavigating = {
     await step("the position label still shows", () => {
       const position = canvasElement.querySelector('[data-testid="plan-status-position"]');
       expect(position.textContent.trim()).toBe("Module 2 of 3");
+    });
+  },
+};
+
+// Public log view (the whole plan is published, so the bar renders at all):
+// navigation is decided per-segment. A sibling the page flagged `navigable: true`
+// (its /api/info fan-out confirmed the target instance returns 200) renders as a
+// navigating <button>; a sibling left unflagged (e.g. a 404 — an unpublished
+// re-run) stays a non-navigating <span role="img">. The "you are here" marker
+// still renders, and only the navigating buttons carry the pointer affordance.
+export const LogPublicViewPerSegmentNavigable = {
+  render: () => html`
+    <cts-plan-status
+      mode="log"
+      public-view
+      current-instance-id="lb1"
+      .modules=${[
+        {
+          testModule: "log-m1",
+          instances: ["la"],
+          status: "FINISHED",
+          result: "PASSED",
+          _statusResolved: true,
+          navigable: true,
+        },
+        {
+          testModule: "log-m2",
+          instances: ["lb1", "lb2"],
+          status: "FINISHED",
+          result: "FAILED",
+          _statusResolved: true,
+          navigable: true,
+        },
+        // Unreachable sibling (its fan-out returned 404): no `navigable` flag, so
+        // it stays a non-navigating span.
+        {
+          testModule: "log-m3",
+          instances: ["lc"],
+          status: "FINISHED",
+          result: "PASSED",
+          _statusResolved: true,
+        },
+      ]}
+    ></cts-plan-status>
+  `,
+
+  async play({ canvasElement, step }) {
+    await step("reachable siblings render as navigating buttons", () => {
+      expect(canvasElement.querySelectorAll("button.cts-pst-seg").length).toBe(2);
+    });
+
+    await step("an unreachable sibling stays a non-navigating span", () => {
+      const spans = canvasElement.querySelectorAll("span.cts-pst-seg");
+      expect(spans.length).toBe(1);
+      expect(spans[0].getAttribute("role")).toBe("img");
+    });
+
+    await step("clicking a reachable segment emits activate with its instance", () => {
+      const events = [];
+      canvasElement.addEventListener("cts-plan-status-activate", (e) => events.push(e.detail));
+      canvasElement.querySelector("button.cts-pst-seg").click();
+      expect(events.length).toBe(1);
+      expect(events[0].instanceId).toBe("la");
+    });
+
+    await step("clicking the unreachable span emits nothing", () => {
+      const events = [];
+      canvasElement.addEventListener("cts-plan-status-activate", (e) => events.push(e));
+      canvasElement.querySelector("span.cts-pst-seg").click();
+      expect(events.length).toBe(0);
+    });
+
+    await step("only the navigating buttons carry the pointer affordance (R5)", () => {
+      const button = canvasElement.querySelector("button.cts-pst-seg");
+      const span = canvasElement.querySelector("span.cts-pst-seg");
+      expect(getComputedStyle(button).cursor).toBe("pointer");
+      expect(getComputedStyle(span).cursor).not.toBe("pointer");
+    });
+
+    await step("the 'you are here' marker still renders on the viewed module", () => {
+      const segments = canvasElement.querySelectorAll('[data-testid="plan-status-segment"]');
+      expect(segments[1].classList.contains("is-current")).toBe(true);
     });
   },
 };

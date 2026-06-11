@@ -467,7 +467,7 @@ test.describe("log-detail.html — new Lit-triad page", () => {
     await expect(segments.nth(3)).not.toHaveClass(/cts-pst-seg--pending/);
   });
 
-  test("U6 public view: sibling fan-out carries ?public=true and segments are non-navigating", async ({
+  test("U6 public view: published-plan siblings navigate, fan-out carries ?public=true", async ({
     page,
   }) => {
     /** @type {string[]} */
@@ -502,7 +502,8 @@ test.describe("log-detail.html — new Lit-triad page", () => {
     const bar = page.locator('cts-test-nav-controls cts-plan-status[data-testid="progress"]');
     await expect(bar).toBeVisible();
 
-    // Wait until the sibling fan-out has fired (a sibling segment colours).
+    // Wait until the sibling fan-out has settled (the first sibling colours,
+    // which is the same moment its segment becomes navigable).
     await expect(bar.locator('[data-testid="plan-status-segment"]').nth(0)).toHaveClass(
       /cts-pst-seg--pass/,
     );
@@ -514,10 +515,81 @@ test.describe("log-detail.html — new Lit-triad page", () => {
       expect(new URL(url).searchParams.get("public")).toBe("true");
     }
 
-    // Segments are non-navigating on the public view (Decision 1): rendered
-    // as <span role="img">, never <button>.
-    await expect(bar.locator("button.cts-pst-seg")).toHaveCount(0);
-    await expect(bar.locator("span.cts-pst-seg").first()).toBeVisible();
+    // On a published-plan public view the reachable siblings become navigating
+    // buttons once the fan-out confirms each target instance returns 200. Clicking
+    // the first sibling navigates to that instance's public log (carrying
+    // &public=true so the viewer stays in the public view).
+    await expect(bar.locator("button.cts-pst-seg").first()).toBeVisible();
+    await bar.locator("button.cts-pst-seg").first().click();
+    // Loose glob (tolerates query-param reordering); the searchParams asserts
+    // below are the real contract check.
+    await page.waitForURL("**/log-detail.html?log=s-0**");
+    const navUrl = new URL(page.url());
+    expect(navUrl.searchParams.get("log")).toBe("s-0");
+    expect(navUrl.searchParams.get("public")).toBe("true");
+  });
+
+  test("U6 public view: a reachable sibling navigates but an unreachable (404) sibling stays a non-navigating span", async ({
+    page,
+  }) => {
+    await setupFailFast(page);
+    // Published-plan public view, 4 modules: marked at index 0 (the viewed test);
+    // siblings 1 and 2 are publicly reachable (200), sibling 3 is not (404 — e.g.
+    // a re-run created a newer, unpublished instance after the plan was published).
+    const planModules = [
+      {
+        testModule: "oidcc-server",
+        variant: { client_auth_type: "client_secret_basic", response_type: "code" },
+        instances: [MOCK_TEST_STATUS.testId],
+      },
+      { testModule: "sib-pass", variant: {}, instances: ["sib-pass-1"] },
+      { testModule: "sib-fail", variant: {}, instances: ["sib-fail-1"] },
+      { testModule: "sib-404", variant: {}, instances: ["sib-404-1"] },
+    ];
+    await setupV2Routes(page, {
+      testInfo: MOCK_TEST_STATUS,
+      logEntries: MOCK_LOG_ENTRIES,
+      planModules,
+    });
+    await page.route("**/api/info/sib-pass-1*", (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({ status: "FINISHED", result: "PASSED" }),
+      }),
+    );
+    await page.route("**/api/info/sib-fail-1*", (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({ status: "FINISHED", result: "FAILED" }),
+      }),
+    );
+    await page.route("**/api/info/sib-404-1*", (route) => route.fulfill({ status: 404, body: "" }));
+    await setupCommonRoutes(page, { user: null }); // anonymous viewer
+
+    await page.goto(
+      `/log-detail.html?log=${encodeURIComponent(MOCK_TEST_STATUS.testId)}&public=true`,
+    );
+
+    const bar = page.locator('cts-test-nav-controls cts-plan-status[data-testid="progress"]');
+    await expect(bar).toBeVisible();
+    const segments = bar.locator('[data-testid="plan-status-segment"]');
+    await expect(segments).toHaveCount(4);
+
+    // Wait until the fan-out settles: the reachable siblings colour, and the 404
+    // sibling settles to the neutral skip fill (not stuck pending — R18/KTD3).
+    await expect(segments.nth(1)).toHaveClass(/cts-pst-seg--pass/);
+    await expect(segments.nth(2)).toHaveClass(/cts-pst-seg--fail/);
+    await expect(segments.nth(3)).toHaveClass(/cts-pst-seg--skip/);
+    await expect(segments.nth(3)).not.toHaveClass(/cts-pst-seg--pending/);
+
+    // The unreachable 404 sibling stays a non-navigating <span role="img"> (R2);
+    // the reachable siblings (and the viewed module) are navigating buttons (R1).
+    const span = bar.locator("span.cts-pst-seg");
+    await expect(span).toHaveCount(1);
+    await expect(span).toHaveAttribute("role", "img");
+    await expect(bar.locator("button.cts-pst-seg")).toHaveCount(3);
   });
 
   test("breadcrumb renders Plans > <planName> > <testName> for a planned test", async ({

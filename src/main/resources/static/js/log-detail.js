@@ -372,7 +372,10 @@ const SEGMENT_FANOUT_CONCURRENCY = 6;
  * the public flag exactly like the page's other `/api/info` calls.
  *
  * @param {{instances?: string[], status?: string, result?: string,
- *   _statusResolved?: boolean}} mod - The working module entry to mutate.
+ *   _statusResolved?: boolean, navigable?: boolean}} mod - The working module
+ *   entry to mutate. On a 200 the target instance is publicly reachable, so
+ *   `navigable` is set true and cts-plan-status offers navigation to this
+ *   sibling on the public view; a 404/error leaves it unset (non-navigating).
  * @returns {Promise<void>}
  */
 async function resolveOneSegment(mod) {
@@ -384,6 +387,13 @@ async function resolveOneSegment(mod) {
     if (cached) {
       mod.status = cached.status;
       mod.result = cached.result;
+      // A cached 200 means the target instance is publicly reachable, so the
+      // segment may navigate on the public view (R1). A cached 404 is `null`,
+      // leaving `navigable` unset so the segment stays non-navigating (R2). Only
+      // written on the public view — off public the flag is ignored and every
+      // segment navigates, so writing it there would conflate "fetch ok" with
+      // "publicly reachable".
+      if (isPublic) mod.navigable = true;
     }
     mod._statusResolved = true;
     return;
@@ -404,10 +414,18 @@ async function resolveOneSegment(mod) {
     segmentStatusMemo.set(lastInstance, slice);
     mod.status = slice.status;
     mod.result = slice.result;
+    // 200 → the target instance is publicly reachable, so the segment is a
+    // navigation target on the public view (R1). The 404 branch above leaves
+    // `navigable` unset, so unreachable siblings stay non-navigating (R2). Only
+    // written on the public view — off public the flag is ignored and every
+    // segment navigates.
+    if (isPublic) mod.navigable = true;
     mod._statusResolved = true;
   } catch (err) {
-    // Network / parse failure: settle the segment too (R18). Do NOT memoize
-    // a transient failure — a later navigation may retry the fetch.
+    // Network / parse failure: settle the segment too (R18). Do NOT memoize a
+    // transient failure — a later navigation may retry the fetch (and `navigable`
+    // stays unset, so on a public view the segment is non-navigating until that
+    // retry succeeds).
     console.warn("[log-detail] segment status fetch failed:", err);
     mod._statusResolved = true;
   }
@@ -1245,8 +1263,10 @@ async function bootstrap() {
     header.addEventListener("cts-continue", handleContinue);
     // R15: a progress segment click bubbles cts-plan-status-activate up
     // through cts-test-nav-controls to the header; open that sibling
-    // instance's log. Suppressed on readonly/public (segments render
-    // non-navigating), so this listener simply never fires there.
+    // instance's log. On a published-plan public view this fires for the
+    // siblings the fan-out confirmed reachable (they render as buttons);
+    // unreachable siblings and a hard-readonly surface render non-navigating
+    // spans that never emit it.
     header.addEventListener("cts-plan-status-activate", handlePlanStatusActivate);
   }
 

@@ -113,14 +113,17 @@ function ensureStylesInjected() {
  *   visibility of the Continue Plan button.
  * @property {boolean} readonly - When true (public/readonly view), only
  *   Return to Plan is rendered; Repeat and Continue are hidden. Ignored
- *   in `slim` mode where the back link does not exist either. Also
- *   forwarded to the embedded `cts-plan-status` so its progress segments
- *   render non-navigating (no sibling-log clicks) on the public view.
+ *   in `slim` mode where the back link does not exist either. No longer
+ *   forwarded to the embedded `cts-plan-status`: progress-bar navigation is
+ *   gated per-segment via `publicView` + each module's `navigable` flag, so a
+ *   published-plan public view can still click through to reachable siblings.
  * @property {boolean} publicView - When true, appends `&public=true` to
  *   the Return-to-Plan link so the linked plan-detail page renders its
- *   public-share variant. Independent of `readonly` because a
- *   summary-published test is readonly but not (necessarily) public.
- *   No-op in `slim` mode.
+ *   public-share variant, and is forwarded to the embedded `cts-plan-status`
+ *   so it gates progress-segment navigation per-segment (only siblings the page
+ *   flagged `navigable`). Independent of `readonly` because a summary-published
+ *   test is readonly but not (necessarily) public. No-op for the link in
+ *   `slim` mode.
  * @property {boolean} slim - When true, the widget renders only the
  *   progress indicator and (when applicable) the Continue Plan CTA.
  *   Used by the log-detail page where the page-level breadcrumb
@@ -138,8 +141,8 @@ function ensureStylesInjected() {
  * @fires cts-plan-status-activate - Re-emitted (it bubbles + is composed)
  *   from the embedded `cts-plan-status` when a progress segment is
  *   clicked / keyboard-activated, with `{ index, module, instanceId,
- *   dimmed }`. The page listens for it to open that sibling's log.
- *   Suppressed when `readonly` is set (segments become non-navigating).
+ *   dimmed }`. The page listens for it to open that sibling's log. On a public
+ *   view only siblings flagged `navigable` emit it; off public every segment does.
  */
 class CtsTestNavControls extends LitElement {
   static properties = {
@@ -207,17 +210,19 @@ class CtsTestNavControls extends LitElement {
     // Plan-level progress is the cts-plan-status bar in `log` mode: one
     // colour-coded segment per module, the "you are here" marker on the
     // viewed instance's module, and the "Module N of M" label (computed by
-    // the component from `currentInstanceId`). On the readonly/public view
-    // the segments render non-navigating (Decision 1). The activate event
-    // bubbles + is composed, so the page can listen on the header / document
-    // — this widget does not re-dispatch it.
+    // the component from `currentInstanceId`). `publicView` is forwarded (not
+    // `readonly`): on a public view the component navigates only to siblings the
+    // page flagged `navigable`, while this widget's own `readonly` still governs
+    // the Repeat/Continue actions. The activate event bubbles + is composed, so
+    // the page can listen on the header / document — this widget does not
+    // re-dispatch it.
     return html`
       <cts-plan-status
         data-testid="progress"
         mode="log"
         .modules=${modules}
         current-instance-id=${this.currentInstanceId}
-        ?readonly=${this.readonly}
+        ?public-view=${this.publicView}
         ?hide-label=${hideLabel}
       ></cts-plan-status>
     `;
