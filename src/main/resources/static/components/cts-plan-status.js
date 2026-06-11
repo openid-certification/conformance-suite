@@ -656,7 +656,8 @@ class CtsPlanStatus extends LitElement {
       // non-navigable <span role="img">). Navigation is native (no @click): the
       // page builds a real link the browser/agent can follow, middle-click, or
       // copy.
-      const href = !this.readonly && typeof mod.href === "string" && mod.href ? mod.href : undefined;
+      const href =
+        !this.readonly && typeof mod.href === "string" && mod.href ? mod.href : undefined;
       segment = html`<a
         class=${classMap(segClasses)}
         href=${ifDefined(href)}

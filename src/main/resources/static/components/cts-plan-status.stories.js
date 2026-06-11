@@ -148,7 +148,7 @@ export const TooltipOnHoverAndFocus = {
   render: () => html`<cts-plan-status mode="detail" .modules=${PALETTE_MODULES}></cts-plan-status>`,
 
   async play({ canvasElement, step }) {
-    // Detail segments are anchors (deep-link to the row); log segments are buttons.
+    // Detail and log segments are both anchors; this story uses detail mode.
     const first = canvasElement.querySelector("a.cts-pst-seg");
 
     await step("hover shows a tooltip naming the module + status", async () => {
@@ -664,7 +664,13 @@ export const LogSegmentStableAcrossNavigabilityFlip = {
       mode="log"
       current-instance-id="lb1"
       .modules=${[
-        { testModule: "flip-m", instances: ["fi"], status: "FINISHED", result: "PASSED", _statusResolved: true },
+        {
+          testModule: "flip-m",
+          instances: ["fi"],
+          status: "FINISHED",
+          result: "PASSED",
+          _statusResolved: true,
+        },
       ]}
     ></cts-plan-status>
   `,
@@ -677,8 +683,8 @@ export const LogSegmentStableAcrossNavigabilityFlip = {
     await step("starts as an inert anchor (no href yet)", () => {
       before = canvasElement.querySelector("a.cts-pst-seg");
       expect(before).toBeTruthy();
-      expect(before.hasAttribute("href")).toBe(false);
-      expect(before.getAttribute("role")).toBe("img");
+      expect(before?.hasAttribute("href")).toBe(false);
+      expect(before?.getAttribute("role")).toBe("img");
     });
 
     await step("after the page sets href, the SAME node becomes navigable", async () => {
@@ -698,8 +704,8 @@ export const LogSegmentStableAcrossNavigabilityFlip = {
       // Identity check: not replaced, just re-attributed (no swap → no orphaned
       // tooltip listeners).
       expect(after).toBe(before);
-      expect(after.getAttribute("href")).toBe("/log-detail.html?log=fi&public=true");
-      expect(after.getAttribute("role")).toBeNull();
+      expect(after?.getAttribute("href")).toBe("/log-detail.html?log=fi&public=true");
+      expect(after?.getAttribute("role")).toBeNull();
     });
   },
 };
