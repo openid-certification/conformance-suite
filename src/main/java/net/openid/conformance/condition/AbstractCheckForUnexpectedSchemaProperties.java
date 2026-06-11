@@ -2,7 +2,7 @@ package net.openid.conformance.condition;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.networknt.schema.ValidationMessage;
+import com.networknt.schema.Error;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.util.validation.JsonSchemaValidation;
@@ -32,7 +32,7 @@ public abstract class AbstractCheckForUnexpectedSchemaProperties extends Abstrac
 		if (!additionalPropsResult.isValid()) {
 			Set<String> ignored = getIgnoredPropertyNames(env);
 			List<JsonObject> unknownProps = new ArrayList<>();
-			for (ValidationMessage msg : additionalPropsResult.getValidationMessages()) {
+			for (Error msg : additionalPropsResult.getValidationMessages()) {
 				if (ignored.contains(msg.getProperty())) {
 					continue;
 				}

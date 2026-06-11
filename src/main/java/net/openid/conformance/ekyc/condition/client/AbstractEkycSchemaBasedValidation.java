@@ -2,7 +2,7 @@ package net.openid.conformance.ekyc.condition.client;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.networknt.schema.JsonSchemaFactory;
+import com.networknt.schema.SchemaRegistry;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.condition.AbstractJsonSchemaBasedValidation;
 import net.openid.conformance.util.validation.JsonSchemaValidation;
@@ -28,9 +28,9 @@ public abstract class AbstractEkycSchemaBasedValidation extends AbstractJsonSche
 		return validation;
 	}
 
-	static Consumer<JsonSchemaFactory.Builder> ekycSchemaMapperCustomizer() {
-		return builder -> builder.schemaMappers(schemaMappers ->
-			schemaMappers.mapPrefix(EKYC_SCHEMA_PREFIX, EKYC_RESOURCE_PREFIX));
+	static Consumer<SchemaRegistry.Builder> ekycSchemaMapperCustomizer() {
+		return builder -> builder.schemaIdResolvers(schemaIdResolvers ->
+			schemaIdResolvers.mapPrefix(EKYC_SCHEMA_PREFIX, EKYC_RESOURCE_PREFIX));
 	}
 
 	/**

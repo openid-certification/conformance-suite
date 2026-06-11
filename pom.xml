@@ -30,6 +30,7 @@
 <!--		<thymeleaf-spring6.version>3.1.4.RELEASE</thymeleaf-spring6.version>-->
 <!--		<commons-lang3.version>3.20.0</commons-lang3.version>-->
 		<bouncycastle.version>1.84</bouncycastle.version>
+		<json-schema-validator.version>3.0.3</json-schema-validator.version>
 	</properties>
 
 	<dependencies>
@@ -230,7 +231,7 @@
 		<dependency>
 			<groupId>com.networknt</groupId>
 			<artifactId>json-schema-validator</artifactId>
-			<version>1.5.6</version>
+			<version>${json-schema-validator.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>tools.jackson.core</groupId>

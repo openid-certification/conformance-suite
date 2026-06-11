@@ -5,18 +5,16 @@ import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.json.JsonMapper;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.networknt.schema.JsonSchema;
-import com.networknt.schema.JsonSchemaFactory;
-import com.networknt.schema.SpecVersionDetector;
-import com.networknt.schema.ValidationMessage;
+import com.networknt.schema.Schema;
+import com.networknt.schema.SchemaRegistry;
+import com.networknt.schema.SpecificationVersion;
 import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.condition.PreEnvironment;
+import net.openid.conformance.support.networknt.SpecificationVersionDetector;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.util.validation.JsonSchemaValidationResult;
 import tools.jackson.core.JacksonException;
-
-import java.util.Set;
 
 public class ValidateVerifiedClaimsResponseAgainstCustomSchemas extends AbstractCondition {
 
@@ -51,11 +49,12 @@ public class ValidateVerifiedClaimsResponseAgainstCustomSchemas extends Abstract
 		}
 		try {
 			JsonNode schemaNode = MAPPER.readTree(schemaElement.toString());
-			JsonSchemaFactory factory = JsonSchemaFactory.getInstance(SpecVersionDetector.detect(schemaNode),
+			SpecificationVersion specVersion = SpecificationVersionDetector.detect(schemaNode);
+			SchemaRegistry registry = SchemaRegistry.withDefaultDialect(specVersion,
 				AbstractEkycSchemaBasedValidation.ekycSchemaMapperCustomizer());
-			JsonSchema schema = factory.getSchema(schemaNode);
+			Schema schema = registry.getSchema(schemaNode);
 			JsonNode dataNode = MAPPER.readTree(data.toString());
-			Set<ValidationMessage> errors = schema.validate(dataNode);
+			var errors = schema.validate(dataNode);
 			if (!errors.isEmpty()) {
 				JsonSchemaValidationResult result = new JsonSchemaValidationResult(errors);
 				throw error("Failed to validate data against " + schemaDescription,

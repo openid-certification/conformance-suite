@@ -1,7 +1,7 @@
 package net.openid.conformance.ekyc.condition.client;
 
 import com.google.gson.JsonObject;
-import com.networknt.schema.ValidationMessage;
+import com.networknt.schema.Error;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.util.validation.JsonSchemaValidation;
@@ -27,7 +27,7 @@ public class CheckForUnexpectedPropertiesInVerifiedClaimsRequest extends Abstrac
 		JsonSchemaValidationResult additionalPropsResult = validationResult.onlyUnknownPropertyErrors();
 		if (!additionalPropsResult.isValid()) {
 			List<JsonObject> unknownProps = new ArrayList<>();
-			for (ValidationMessage msg : additionalPropsResult.getValidationMessages()) {
+			for (Error msg : additionalPropsResult.getValidationMessages()) {
 				JsonObject entry = new JsonObject();
 				entry.addProperty("property", msg.getProperty());
 				entry.addProperty("path", JsonSchemaValidation.toInstancePropertyPath(msg.getInstanceLocation(), msg.getProperty()));
