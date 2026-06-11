@@ -312,9 +312,28 @@ cd frontend && npm run chromatic
 
 The CLI reads `CHROMATIC_PROJECT_TOKEN` from the environment, or pass
 `-- --project-token=<token>`; the token lives in the `chromatic` job in
-`.gitlab-ci.yml`. Note that every build snapshots all ~650 stories against
-the plan's monthly snapshot quota — prefer letting CI publish over local
-runs, and don't script Chromatic into loops.
+`.gitlab-ci.yml`. CLI behavior is configured in `chromatic.config.json`
+(single source of truth for local and CI runs).
+
+**Deterministic rendering — the clock is frozen.** `.storybook/preview.js`
+imports `frozen-clock.js` first, which patches `Date` (zero-arg constructor
+and `Date.now()`) to a fixed instant in every Storybook context. Story
+fixtures compute timestamps relative to `Date.now()` at module load, and
+components render relative time against the live clock — without the freeze,
+every Chromatic build captures different timestamp text and flags spurious
+changes. Timers are untouched, so polling stories and `waitFor()` work
+normally. If a story ever needs the real clock, talk to the team first — it
+will be visually unstable in Chromatic by construction.
+
+**Snapshot quota.** Each full build snapshots ~650 stories against the
+plan's monthly allowance. Three mitigations are in place: the CI job's
+`changes:` filter skips backend-only pushes, TurboSnap (`onlyChanged` in
+`chromatic.config.json`) snapshots only stories affected by the changed
+files (it activates automatically after Chromatic's 10-successful-CI-builds
+threshold; `--stats-json` on `build-storybook` provides the dependency graph
+it needs), and the frozen clock keeps unchanged stories byte-identical so
+they don't re-enter review. Prefer letting CI publish over local runs, and
+don't script Chromatic into loops.
 
 ## `--ignore-rev` candidates
 
