@@ -235,6 +235,38 @@ CLI is promoted to strict / error severity.
 play-function tests run in a browser and live in a different CI job (deferred;
 not yet wired).
 
+## Accessibility testing
+
+`npm run test-storybook` runs axe-core (via `@storybook/addon-a11y`) on **every**
+story, in addition to its play function. Setup lives in two places:
+
+- `.storybook/main.js` registers the addon for the manager **panel** only.
+- `.storybook/preview.js` composes the addon into the Vitest runner via
+  `definePreview({ addons: [a11yAddon()] })` — this is what actually surfaces the
+  axe `afterEach` into `test-storybook`. Registering in `main.js` alone is **not**
+  enough for the test run (CSF-factory previews compose addons through the
+  `addons` array, not through `main.js`).
+
+The project default is `parameters.a11y.test: "error"` — a violation fails
+`test-storybook`. The three values: `"off"` (skip; panel only), `"todo"` (run,
+violations warn but do not fail), `"error"` (run, violations fail CLI/CI).
+
+**Review-on-fail backlog.** The redesign carries a known a11y backlog (color
+tokens below WCAG AA contrast, some ARIA role/attr usage). Rather than turning
+a11y off, the offending **rules** are downgraded project-wide to "needs review"
+via `parameters.a11y.config.rules: [{ id, reviewOnFail: true }]` in
+`preview.js`. `reviewOnFail` moves a rule from "violation" (fails) to "needs
+review" (panel only, does not fail), per the axe-core config contract. Every
+**other** rule stays enforced on every story, and a **new** failure of any rule
+not on the backlog list still fails the build. The list IS the fix-later
+tracker — delete an entry to re-arm that rule once its debt is fixed. To park a
+single story instead (rarely needed), set `a11y: { test: "todo" }` on that
+story with an inline `// a11y review backlog: <rules>` comment.
+
+The Storybook a11y suite is **not** in CI today (only `npm run test:ci` runs in
+the `frontend_lint` job, which excludes `test-storybook`) — a11y is a local +
+Storybook-MCP gate for now. Wiring it into CI is deferred.
+
 ## `--ignore-rev` candidates
 
 Three mechanical commits are safe to skip in `git blame`:
