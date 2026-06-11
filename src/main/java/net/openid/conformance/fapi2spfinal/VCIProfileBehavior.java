@@ -7,6 +7,7 @@ import net.openid.conformance.condition.client.CheckDiscEndpointTokenEndpointAut
 import net.openid.conformance.condition.client.EnsureContentTypeApplicationJwt;
 import net.openid.conformance.condition.client.EnsureContentTypeJson;
 import net.openid.conformance.condition.client.EnsureHttpStatusCodeIs200;
+import net.openid.conformance.condition.client.EnsureMdocMdlMandatoryDataElementsPresent;
 import net.openid.conformance.condition.client.ParseCredentialAsSdJwt;
 import net.openid.conformance.condition.client.ParseMdocCredentialFromVCIIssuance;
 import net.openid.conformance.condition.client.SetProtectedResourceUrlToSingleResourceEndpoint;
@@ -383,6 +384,31 @@ public class VCIProfileBehavior extends FAPI2ProfileBehavior {
 					call(verifyMdocCredential());
 				} else {
 					call(verifySdJwtCredential(requiresCryptographicBinding != null && requiresCryptographicBinding));
+				}
+			}
+		};
+	}
+
+	/**
+	 * Per-credential verification for the VCI issuer test modules: everything
+	 * {@link #verifyCredential()} checks plus credential-content conformance checks that
+	 * are deliberately not run from validateResourceEndpointResponse(), so the FAPI2
+	 * security-profile modules sharing that path don't re-check the same content in every
+	 * module.
+	 */
+	public ConditionSequence verifyIssuedCredential() {
+		return new AbstractConditionSequence() {
+			@Override
+			public void evaluate() {
+				call(verifyCredential());
+
+				String format = module.getEnv().getString("vci_credential_configuration", "format");
+				if ("mso_mdoc".equals(format)) {
+					// The check only applies to mDL credentials (it no-ops for other docTypes), and
+					// ISO/IEC 18013-5 defines those mandatory data elements regardless of profile,
+					// so missing elements are always a failure.
+					callAndContinueOnFailure(EnsureMdocMdlMandatoryDataElementsPresent.class,
+						ConditionResult.FAILURE, "ISO18013-5-7.2.1");
 				}
 			}
 		};

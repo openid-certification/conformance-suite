@@ -759,7 +759,7 @@ public abstract class AbstractVCIIssuerTestModule extends AbstractFAPI2SPFinalSe
 		callAndStopOnFailure(VCIExtractCredentialResponse.class, ConditionResult.FAILURE, "OID4VCI-1FINAL-8.3");
 
 		call(new IterateEnvironmentArray("extracted_credentials", "list",
-				() -> vciProfileBehavior().verifyCredential())
+				() -> vciProfileBehavior().verifyIssuedCredential())
 			.currentString("credential")
 			.logBlockLabels(ctx -> ctx.getIterationCount() > 1
 				? currentClientString() + "Verify credential " + ctx.getIteration() + " of " + ctx.getIterationCount()

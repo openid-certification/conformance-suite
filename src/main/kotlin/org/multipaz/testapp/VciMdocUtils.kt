@@ -164,6 +164,34 @@ TvFLVc4ESGy3AtdC+g==
 		return Base64URL.encode(issuerSigned).toString()
 	}
 
+	// ISO 18013-5 Table 5 makes portrait mandatory; a small generated JPEG keeps test credentials
+	// small while still rendering as an obvious placeholder (silhouette + "OIDF" band) in wallets
+	private val portraitJpeg: ByteArray by lazy {
+		val width = 96
+		val height = 128
+		val image = java.awt.image.BufferedImage(width, height, java.awt.image.BufferedImage.TYPE_INT_RGB)
+		val g = image.createGraphics()
+		g.setRenderingHint(java.awt.RenderingHints.KEY_ANTIALIASING, java.awt.RenderingHints.VALUE_ANTIALIAS_ON)
+		g.setRenderingHint(java.awt.RenderingHints.KEY_TEXT_ANTIALIASING, java.awt.RenderingHints.VALUE_TEXT_ANTIALIAS_ON)
+		g.paint = java.awt.GradientPaint(0f, 0f, java.awt.Color(0xDC, 0xE8, 0xF5), 0f, height.toFloat(), java.awt.Color(0xB8, 0xCC, 0xE0))
+		g.fillRect(0, 0, width, height)
+		g.color = java.awt.Color(0x4A, 0x62, 0x7E)
+		g.fillOval(28, 18, 40, 44) // head
+		g.fillRect(41, 54, 14, 14) // neck
+		g.fillRoundRect(12, 66, 72, 70, 40, 40) // shoulders
+		g.paint = java.awt.GradientPaint(0f, 66f, java.awt.Color(0xDC, 0xE8, 0xF5), 0f, 86f, java.awt.Color(0xC8, 0xD8, 0xEA))
+		g.fillPolygon(intArrayOf(41, 48, 55), intArrayOf(66, 80, 66), 3) // collar notch
+		g.color = java.awt.Color(0x1B, 0x32, 0x5C)
+		g.fillRect(0, 102, width, 26)
+		g.color = java.awt.Color.WHITE
+		g.font = java.awt.Font(java.awt.Font.SANS_SERIF, java.awt.Font.BOLD, 16)
+		g.drawString("OIDF", (width - g.fontMetrics.stringWidth("OIDF")) / 2, 121)
+		g.dispose()
+		val out = java.io.ByteArrayOutputStream()
+		javax.imageio.ImageIO.write(image, "jpg", out)
+		out.toByteArray()
+	}
+
 	private fun buildIssuerNamespacesForDocType(
 		docType: String,
 		now: Instant,
@@ -181,6 +209,7 @@ TvFLVc4ESGy3AtdC+g==
 					addDataElement("issuing_country", Tstr("UT")) // Utopia
 					addDataElement("issuing_authority", Tstr("OpenID Foundation"))
 					addDataElement("document_number", Tstr("DL-123456789"))
+					addDataElement("portrait", Bstr(portraitJpeg))
 					addDataElement("driving_privileges", buildCborArray {
 						add(buildCborMap {
 							put("vehicle_category_code", Tstr("B"))
