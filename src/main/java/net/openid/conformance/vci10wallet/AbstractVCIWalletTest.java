@@ -555,10 +555,20 @@ public abstract class AbstractVCIWalletTest extends net.openid.conformance.fapi2
 					isMTLSConstrain(),
 					notificationsSupportEnabled,
 					/* deferredEnabled */ true,
-					vciCredentialEncryption == VCICredentialEncryption.ENCRYPTED));
+					vciCredentialEncryption == VCICredentialEncryption.ENCRYPTED,
+					getAdvertisedBatchSize()));
 		} catch (IllegalStateException e) {
 			throw new TestFailureException(getId(), e.getMessage());
 		}
+	}
+
+	/**
+	 * The batch_size to advertise in the credential issuer metadata's
+	 * batch_credential_issuance object, or null (the default) to not advertise batch
+	 * credential issuance support at all.
+	 */
+	protected Integer getAdvertisedBatchSize() {
+		return null;
 	}
 
 	protected JsonObject createRequestEncryptionConfig() {

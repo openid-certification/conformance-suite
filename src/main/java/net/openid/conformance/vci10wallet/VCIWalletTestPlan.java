@@ -20,7 +20,8 @@ public class VCIWalletTestPlan implements TestPlan {
 		VCIWalletTestCredentialIssuance.class,
 		VCIWalletTestCredentialIssuanceWithNotification.class,
 		VCIWalletTestCredentialIssuanceUsingScopesWithoutAuthorizationDetailsInTokenResponse.class,
-		VCIWalletTestClientAttestationChallenge.class
+		VCIWalletTestClientAttestationChallenge.class,
+		VCIWalletTestBatchCredentialIssuance.class
 	);
 
 	@Override

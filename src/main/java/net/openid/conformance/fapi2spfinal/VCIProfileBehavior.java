@@ -31,6 +31,8 @@ import net.openid.conformance.vci10issuer.condition.CheckForUnexpectedParameters
 import net.openid.conformance.vci10issuer.condition.VCIAddCredentialConfigurationIdToEnv;
 import net.openid.conformance.vci10issuer.condition.VCIDetectTypeMetadataExtends;
 import net.openid.conformance.vci10issuer.condition.VCIEnsureMandatoryClaimsArePresent;
+import net.openid.conformance.vci10issuer.condition.VCIEnsureMdocDeviceKeyMatchesProofKey;
+import net.openid.conformance.vci10issuer.condition.VCIEnsureSdJwtCnfMatchesProofKey;
 import net.openid.conformance.vci10issuer.condition.VCIEnsureSdJwtVcVctMatchesTypeMetadataVct;
 import net.openid.conformance.vci10issuer.condition.VCIEnsureSelectiveDisclosureConformsToTypeMetadata;
 import net.openid.conformance.vci10issuer.condition.VCIExtractSdJwtVcTypeMetadataUrl;
@@ -393,6 +395,15 @@ public class VCIProfileBehavior extends FAPI2ProfileBehavior {
 				callAndContinueOnFailure(ValidateCredentialIsUnpaddedBase64Url.class, ConditionResult.FAILURE, "OID4VCI-1FINALA-A.2.4");
 				callAndContinueOnFailure(ParseMdocCredentialFromVCIIssuance.class, ConditionResult.FAILURE, "OID4VCI-1FINALA-A.2");
 				call(new ValidateMdocCredential(true, isHaip()));
+
+				// no proofs are sent when the credential configuration doesn't use cryptographic binding
+				call(condition(VCIEnsureMdocDeviceKeyMatchesProofKey.class)
+					.skipIfObjectMissing("credential_request_proofs")
+					.skipIfStringMissing("mdoc_credential_cbor")
+					.onSkip(ConditionResult.INFO)
+					.onFail(ConditionResult.FAILURE)
+					.requirements("OID4VCI-1FINAL-8.3")
+					.dontStopOnFailure());
 			}
 		};
 	}
@@ -403,6 +414,15 @@ public class VCIProfileBehavior extends FAPI2ProfileBehavior {
 			public void evaluate() {
 				callAndContinueOnFailure(ParseCredentialAsSdJwt.class, ConditionResult.FAILURE, "SDJWT-4");
 				call(new ValidateSdJwtVcCredentialClaims(requiresCryptographicBinding, isHaip()));
+
+				if (requiresCryptographicBinding) {
+					call(condition(VCIEnsureSdJwtCnfMatchesProofKey.class)
+						.skipIfObjectMissing("sdjwt")
+						.onSkip(ConditionResult.INFO)
+						.onFail(ConditionResult.FAILURE)
+						.requirements("OID4VCI-1FINAL-8.3")
+						.dontStopOnFailure());
+				}
 
 				// SD-JWT VC Type Metadata validation per draft-ietf-oauth-sd-jwt-vc-13 (HAIP 1.0 reference).
 				callAndContinueOnFailure(VCIExtractSdJwtVcTypeMetadataUrl.class, ConditionResult.FAILURE, "SDJWTVC-6.3.1");
