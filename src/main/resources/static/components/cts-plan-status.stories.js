@@ -1,5 +1,5 @@
 import { html } from "lit";
-import { expect, waitFor, userEvent } from "storybook/test";
+import { expect, waitFor } from "storybook/test";
 import "./cts-plan-status.js";
 import { segmentVariant, NOT_RUN_FILTER_VALUE } from "../js/module-status.js";
 
@@ -388,7 +388,9 @@ export const NotYetRunFilterSkipsFinishedSkipped = {
   },
 };
 
-// Modules with a re-run history, for the log "you are here" marker.
+// Modules with a re-run history, for the log "you are here" marker. `href` is
+// the page-supplied per-segment navigation target (built from each module's
+// most-recent instance); its presence makes the segment a navigable <a>.
 const LOG_MODULES = [
   {
     testModule: "log-m1",
@@ -396,14 +398,17 @@ const LOG_MODULES = [
     status: "FINISHED",
     result: "PASSED",
     _statusResolved: true,
+    href: "/log-detail.html?log=la",
   },
-  // viewed instance "lb1" is the FIRST of two — an older re-run.
+  // viewed instance "lb1" is the FIRST of two — an older re-run; the href points
+  // at the module's LAST instance (lb2), matching the page's buildSiblingHref.
   {
     testModule: "log-m2",
     instances: ["lb1", "lb2"],
     status: "FINISHED",
     result: "FAILED",
     _statusResolved: true,
+    href: "/log-detail.html?log=lb2",
   },
   {
     testModule: "log-m3",
@@ -411,6 +416,7 @@ const LOG_MODULES = [
     status: "FINISHED",
     result: "PASSED",
     _statusResolved: true,
+    href: "/log-detail.html?log=lc",
   },
 ];
 
@@ -445,13 +451,13 @@ export const LogCurrentMarker = {
   },
 };
 
-// A hard `readonly` surface renders NON-interactive segments — <span role="img">,
-// no <button>, no activate emission — while the "you are here" marker and the
-// "Module N of M" label still render. `readonly` is a blanket off-switch: the
-// public log view no longer uses it to suppress navigation (that is decided
-// per-segment via public-view + each module's `navigable` flag — see
-// LogPublicViewPerSegmentNavigable). A UX affordance; backend /api/info gating
-// remains the real access boundary.
+// A hard `readonly` surface suppresses navigation: every log segment renders as
+// an inert `<a role="img">` with NO href (even though the modules carry one),
+// while the "you are here" marker and the "Module N of M" label still render.
+// `readonly` is a blanket off-switch; the public log view does NOT use it to
+// suppress navigation — that is decided per-segment by href presence (see
+// LogHrefDrivenNavigation). A UX affordance; backend /api/info gating remains
+// the real access boundary.
 export const LogReadonlyNonNavigating = {
   render: () => html`
     <cts-plan-status
@@ -463,18 +469,23 @@ export const LogReadonlyNonNavigating = {
   `,
 
   async play({ canvasElement, step }) {
-    await step("no segment is a button (non-navigating)", () => {
+    await step("every segment is an inert anchor with no href", () => {
+      const segs = canvasElement.querySelectorAll("a.cts-pst-seg");
+      expect(segs.length).toBe(LOG_MODULES.length);
+      segs.forEach((seg) => {
+        expect(seg.hasAttribute("href")).toBe(false);
+        expect(seg.getAttribute("role")).toBe("img");
+      });
+      // No href anywhere → nothing navigable, and no legacy <button>/<span> form.
+      expect(canvasElement.querySelector("a.cts-pst-seg[href]")).toBeNull();
       expect(canvasElement.querySelector("button.cts-pst-seg")).toBeNull();
-      const spans = canvasElement.querySelectorAll("span.cts-pst-seg");
-      expect(spans.length).toBe(LOG_MODULES.length);
-      spans.forEach((seg) => expect(seg.getAttribute("role")).toBe("img"));
     });
 
-    await step("activating a segment emits no event", () => {
+    await step("activating an inert segment emits no event", () => {
       const events = [];
       canvasElement.addEventListener("cts-plan-status-activate", (e) => events.push(e));
-      const span = canvasElement.querySelector("span.cts-pst-seg");
-      span.click();
+      const seg = canvasElement.querySelector("a.cts-pst-seg");
+      seg.click();
       expect(events.length).toBe(0);
     });
 
@@ -491,17 +502,17 @@ export const LogReadonlyNonNavigating = {
   },
 };
 
-// Public log view (the whole plan is published, so the bar renders at all):
-// navigation is decided per-segment. A sibling the page flagged `navigable: true`
-// (its /api/info fan-out confirmed the target instance returns 200) renders as a
-// navigating <button>; a sibling left unflagged (e.g. a 404 — an unpublished
-// re-run) stays a non-navigating <span role="img">. The "you are here" marker
-// still renders, and only the navigating buttons carry the pointer affordance.
-export const LogPublicViewPerSegmentNavigable = {
+// href-driven navigability models the published public log view: the page
+// supplied an `href` for the two reachable siblings (their /api/info fan-out
+// returned 200) and omitted it for the unreachable one (a 404 — an unpublished
+// re-run). Every segment is the SAME `<a>`; href presence alone toggles
+// navigation, so the reachable ones are real links and the unreachable one is an
+// inert `<a role="img">`. The "you are here" marker still renders, and only the
+// href-bearing anchors carry the pointer affordance.
+export const LogHrefDrivenNavigation = {
   render: () => html`
     <cts-plan-status
       mode="log"
-      public-view
       current-instance-id="lb1"
       .modules=${[
         {
@@ -510,7 +521,7 @@ export const LogPublicViewPerSegmentNavigable = {
           status: "FINISHED",
           result: "PASSED",
           _statusResolved: true,
-          navigable: true,
+          href: "/log-detail.html?log=la&public=true",
         },
         {
           testModule: "log-m2",
@@ -518,10 +529,10 @@ export const LogPublicViewPerSegmentNavigable = {
           status: "FINISHED",
           result: "FAILED",
           _statusResolved: true,
-          navigable: true,
+          href: "/log-detail.html?log=lb2&public=true",
         },
-        // Unreachable sibling (its fan-out returned 404): no `navigable` flag, so
-        // it stays a non-navigating span.
+        // Unreachable sibling (its fan-out returned 404): no `href`, so it stays
+        // an inert anchor.
         {
           testModule: "log-m3",
           instances: ["lc"],
@@ -534,36 +545,41 @@ export const LogPublicViewPerSegmentNavigable = {
   `,
 
   async play({ canvasElement, step }) {
-    await step("reachable siblings render as navigating buttons", () => {
-      expect(canvasElement.querySelectorAll("button.cts-pst-seg").length).toBe(2);
+    await step("every segment is an <a>; no legacy button/span forms", () => {
+      expect(canvasElement.querySelectorAll("a.cts-pst-seg").length).toBe(3);
+      expect(canvasElement.querySelector("button.cts-pst-seg")).toBeNull();
+      expect(canvasElement.querySelector("span.cts-pst-seg")).toBeNull();
     });
 
-    await step("an unreachable sibling stays a non-navigating span", () => {
-      const spans = canvasElement.querySelectorAll("span.cts-pst-seg");
-      expect(spans.length).toBe(1);
-      expect(spans[0].getAttribute("role")).toBe("img");
+    await step("reachable siblings are navigable links carrying the page's href", () => {
+      const links = canvasElement.querySelectorAll("a.cts-pst-seg[href]");
+      expect(links.length).toBe(2);
+      expect(links[0].getAttribute("href")).toBe("/log-detail.html?log=la&public=true");
+      expect(links[1].getAttribute("href")).toBe("/log-detail.html?log=lb2&public=true");
+      // A navigable segment is a link, not role=img.
+      links.forEach((link) => expect(link.getAttribute("role")).toBeNull());
     });
 
-    await step("clicking a reachable segment emits activate with its instance", () => {
-      const events = [];
-      canvasElement.addEventListener("cts-plan-status-activate", (e) => events.push(e.detail));
-      canvasElement.querySelector("button.cts-pst-seg").click();
-      expect(events.length).toBe(1);
-      expect(events[0].instanceId).toBe("la");
+    await step("the unreachable sibling is an inert anchor with no href", () => {
+      const inert = canvasElement.querySelectorAll("a.cts-pst-seg:not([href])");
+      expect(inert.length).toBe(1);
+      expect(inert[0].getAttribute("role")).toBe("img");
     });
 
-    await step("clicking the unreachable span emits nothing", () => {
+    await step("log segments navigate natively — no activate event on click", () => {
       const events = [];
       canvasElement.addEventListener("cts-plan-status-activate", (e) => events.push(e));
-      canvasElement.querySelector("span.cts-pst-seg").click();
+      // Swallow the default so the click does not navigate the test page away.
+      canvasElement.addEventListener("click", (e) => e.preventDefault());
+      canvasElement.querySelector("a.cts-pst-seg[href]").click();
       expect(events.length).toBe(0);
     });
 
-    await step("only the navigating buttons carry the pointer affordance (R5)", () => {
-      const button = canvasElement.querySelector("button.cts-pst-seg");
-      const span = canvasElement.querySelector("span.cts-pst-seg");
-      expect(getComputedStyle(button).cursor).toBe("pointer");
-      expect(getComputedStyle(span).cursor).not.toBe("pointer");
+    await step("only the href-bearing anchors carry the pointer affordance (R5)", () => {
+      const link = canvasElement.querySelector("a.cts-pst-seg[href]");
+      const inert = canvasElement.querySelector("a.cts-pst-seg:not([href])");
+      expect(getComputedStyle(link).cursor).toBe("pointer");
+      expect(getComputedStyle(inert).cursor).not.toBe("pointer");
     });
 
     await step("the 'you are here' marker still renders on the viewed module", () => {
@@ -601,35 +617,89 @@ export const LogHideLabel = {
   },
 };
 
-// R15/R16: in log mode segments are buttons that emit cts-plan-status-activate
-// (with index, module, and the module's most-recent instance) on click AND on
-// keyboard activation.
-export const LogSegmentActivates = {
+// R4/R7: in log mode segments are real links — the page supplies each href and
+// the browser navigates natively. The component emits NO cts-plan-status-activate
+// in log mode (that event is detail-mode only now).
+export const LogSegmentsAreLinks = {
   render: () => html`
     <cts-plan-status mode="log" current-instance-id="lb1" .modules=${LOG_MODULES}></cts-plan-status>
   `,
 
   async play({ canvasElement, step }) {
-    const events = [];
-    canvasElement.addEventListener("cts-plan-status-activate", (e) => events.push(e.detail));
-    const segments = canvasElement.querySelectorAll("button.cts-pst-seg");
-
-    await step("clicking a segment emits with the module's most-recent instance", () => {
-      segments[1].click();
-      expect(events.length).toBe(1);
-      expect(events[0].index).toBe(1);
-      expect(events[0].module.testModule).toBe("log-m2");
-      // R17: the event carries the module's LAST instance (lb2), not the viewed lb1.
-      expect(events[0].instanceId).toBe("lb2");
+    await step("each segment is an <a> carrying the page-supplied href", () => {
+      const links = canvasElement.querySelectorAll("a.cts-pst-seg");
+      expect(links.length).toBe(LOG_MODULES.length);
+      // The href points at each module's most-recent instance (R17 / lb2 for the
+      // viewed module, whose viewed instance lb1 is the older re-run).
+      expect(links[0].getAttribute("href")).toBe("/log-detail.html?log=la");
+      expect(links[1].getAttribute("href")).toBe("/log-detail.html?log=lb2");
+      expect(links[2].getAttribute("href")).toBe("/log-detail.html?log=lc");
     });
 
-    await step("Enter and Space activate the focused segment", async () => {
-      segments[0].focus();
-      await userEvent.keyboard("{Enter}");
-      expect(events.length).toBe(2);
-      expect(events[1].index).toBe(0);
-      await userEvent.keyboard(" ");
-      expect(events.length).toBe(3);
+    await step("clicking a segment navigates natively — no activate event", () => {
+      const events = [];
+      canvasElement.addEventListener("cts-plan-status-activate", (e) => events.push(e));
+      // Swallow the default so the click does not navigate the test page away.
+      canvasElement.addEventListener("click", (e) => e.preventDefault());
+      canvasElement.querySelectorAll("a.cts-pst-seg")[1].click();
+      expect(events.length).toBe(0);
+    });
+
+    await step("the current segment is a link marked aria-current=step", () => {
+      const links = canvasElement.querySelectorAll("a.cts-pst-seg");
+      expect(links[1].getAttribute("aria-current")).toBe("step");
+      expect(links[0].getAttribute("aria-current")).toBeNull();
+    });
+  },
+};
+
+// R4 regression guard: the WHOLE point of the anchor migration is that a log
+// segment is ONE element for its life — when navigability flips (the public
+// fan-out resolves and the page sets href), the same DOM node gains an href
+// rather than being replaced. A swap would orphan any cts-tooltip wrapping it.
+export const LogSegmentStableAcrossNavigabilityFlip = {
+  render: () => html`
+    <cts-plan-status
+      id="flip-status"
+      mode="log"
+      current-instance-id="lb1"
+      .modules=${[
+        { testModule: "flip-m", instances: ["fi"], status: "FINISHED", result: "PASSED", _statusResolved: true },
+      ]}
+    ></cts-plan-status>
+  `,
+
+  async play({ canvasElement, step }) {
+    const host = /** @type {any} */ (canvasElement.querySelector("#flip-status"));
+
+    /** @type {Element | null} */
+    let before = null;
+    await step("starts as an inert anchor (no href yet)", () => {
+      before = canvasElement.querySelector("a.cts-pst-seg");
+      expect(before).toBeTruthy();
+      expect(before.hasAttribute("href")).toBe(false);
+      expect(before.getAttribute("role")).toBe("img");
+    });
+
+    await step("after the page sets href, the SAME node becomes navigable", async () => {
+      // Mimic the fan-out resolving: reassign modules with the href set.
+      host.modules = [
+        {
+          testModule: "flip-m",
+          instances: ["fi"],
+          status: "FINISHED",
+          result: "PASSED",
+          _statusResolved: true,
+          href: "/log-detail.html?log=fi&public=true",
+        },
+      ];
+      await host.updateComplete;
+      const after = canvasElement.querySelector("a.cts-pst-seg");
+      // Identity check: not replaced, just re-attributed (no swap → no orphaned
+      // tooltip listeners).
+      expect(after).toBe(before);
+      expect(after.getAttribute("href")).toBe("/log-detail.html?log=fi&public=true");
+      expect(after.getAttribute("role")).toBeNull();
     });
   },
 };

@@ -86,7 +86,7 @@ const STYLE_TEXT = css`
   }
 
   /* The segment is a colour-only rectangle. The base reset is harmless on a
-     <span> (overview) and neutralises the default chrome on a <button>
+     <span> (overview) and neutralises the default chrome on an <a>
      (detail/log) so both render identically. Never named .logItem — the
      global ".logItem:hover" repaint would bleed through (auto-memory
      feedback_layout_css_logitem_hover). */
@@ -105,8 +105,8 @@ const STYLE_TEXT = css`
     -webkit-appearance: none;
     font: inherit;
     color: inherit;
-    /* detail segments render as <a> (deep-link to the module row); kill the
-       default anchor underline — harmless on <span>/<button>. */
+    /* detail and log segments render as <a>; kill the default anchor underline
+       — harmless on the overview <span>. */
     text-decoration: none;
   }
 
@@ -174,13 +174,13 @@ const STYLE_TEXT = css`
 
   /* Interactive segments carry the pointer affordance and an OUTWARD focus
      outline (Open Question candidate) so it never collides with the inset
-     is-current ring. Only the interactive element forms get the cue: detail
-     anchors and log buttons. Read-only span segments (a hard readonly surface,
-     or a public-view sibling that is not navigable) are never click targets, so
-     keying off the element type keeps the pointer off them without a host-level
-     :not([readonly]) guard. */
+     is-current ring. Only the navigable element forms get the cue: detail
+     anchors and log anchors that carry an href. A log anchor WITHOUT href (a
+     readonly surface, or a public-view sibling that is not reachable) is inert
+     and never a click target, so keying off the [href] attribute keeps the
+     pointer off it without a host-level guard. */
   cts-plan-status[mode="detail"] a.cts-pst-seg,
-  cts-plan-status[mode="log"] button.cts-pst-seg {
+  cts-plan-status[mode="log"] a.cts-pst-seg[href] {
     cursor: pointer;
   }
   .cts-pst-seg:focus-visible {
@@ -335,22 +335,29 @@ function formatVariant(variant) {
  *     the "Filter by result" control (R9) — clicking a filterable badge emits
  *     `cts-plan-status-filter` and `activeResultFilter` dims non-matching
  *     segments (R10).
- *   - `log` (log-detail.html): the responsive bar; segments are buttons that
- *     emit `cts-plan-status-activate` (the page opens that instance's log); the
- *     segment whose module ran `currentInstanceId` carries the "you are here"
- *     marker, and a "Module N of M" label is shown (R14/R15/R17).
+ *   - `log` (log-detail.html): the responsive bar; every segment is ONE `<a>`
+ *     for its whole life, and href PRESENCE toggles navigability — the page
+ *     supplies each sibling's URL as `modules[].href` (set when reachable,
+ *     omitted when not), and clicking a navigable segment is a native link load
+ *     (the page opens that instance's log). The segment whose module ran
+ *     `currentInstanceId` carries the "you are here" marker, and a "Module N of
+ *     M" label is shown (R14/R15/R17). Log mode does NOT emit
+ *     `cts-plan-status-activate` — navigation is native.
  *
  * Light DOM (`createRenderRoot` returns `this`). Scoped CSS is injected once on
  * first connect. The host is a `container-type: inline-size` block so the
  * bar↔grid switch tracks the host's own width in any embedding context (KTD2).
  * @property {Array<object>} modules - Plan modules in plan order, each shaped
  *   `{ testModule, variant?, instances?, status?, result?, _statusResolved?,
- *   navigable? }`. The component reads resolved status via the shared
+ *   href? }`. The component reads resolved status via the shared
  *   `segmentVariant` helper and initiates no fetches of its own. An empty array
- *   renders nothing. In `log` mode on a public view (`publicView`), only modules
- *   the page has flagged `navigable: true` (its `/api/info` fan-out confirmed the
- *   target instance is publicly reachable) are click targets; off public the flag
- *   is ignored and every segment navigates.
+ *   renders nothing. In `log` mode `href` is the per-segment navigation target
+ *   the page builds (threading any `?public=true`): a segment with a non-empty
+ *   `href` is a navigable link, one without is an inert read-only box. The page
+ *   decides reachability — off public it sets `href` for every sibling with an
+ *   instance; on a public view it sets `href` only for siblings its `/api/info`
+ *   fan-out confirmed return 200, so a published-plan viewer never dead-ends on
+ *   an unpublished sibling. `href` is ignored in `overview`/`detail`.
  * @property {string} mode - Surface mode: `overview` (default), `detail`, or
  *   `log`. Reflected to the `mode` attribute so the scoped CSS can branch on
  *   it; an unknown value falls back to `overview`.
@@ -365,22 +372,14 @@ function formatVariant(variant) {
  *   counts themselves stay totals, not the filtered subset. Set via JS only —
  *   the page coordinator owns it and pushes it back after a badge toggle.
  * @property {boolean} readonly - A hard "force every segment non-interactive"
- *   override: in `log`/`detail` mode all segments render as the read-only
- *   `<span role="img">` form (no `<button>`/`<a>`, no activate emission, no
- *   pointer affordance) while the "you are here" marker, the "Module N of M"
- *   label, and dimming still render; when `readonly` and `publicView` are both
- *   set, `readonly` wins (every segment is a span). Public log views no longer
- *   use this to suppress navigation — that is decided per-segment via
- *   `publicView` plus each
- *   module's `navigable` flag (a UX affordance, not an access boundary; the
- *   backend `/api/info` gating is the real boundary). Reflects the `readonly`
- *   attribute. Default false.
- * @property {boolean} publicView - In `log` mode, marks the public view so
- *   navigation is gated per-segment: only modules flagged `navigable: true` (the
- *   page's `/api/info` fan-out confirmed the target instance is publicly
- *   reachable) render as click targets; the rest stay read-only spans. No effect
- *   off public (every segment navigates) or in `overview`/`detail`. Reflects the
- *   `public-view` attribute. Default false.
+ *   override: in `log`/`detail` mode it suppresses navigation (a `log` segment
+ *   renders as an inert `<a role="img">` with no href; a `detail` segment renders
+ *   as a read-only `<span role="img">`) while the "you are here" marker, the
+ *   "Module N of M" label, and dimming still render. Public log views do NOT use
+ *   this to suppress navigation — reachability is decided per-segment by href
+ *   presence (a UX affordance, not an access boundary; the backend `/api/info`
+ *   gating is the real boundary). Reflects the `readonly` attribute. Default
+ *   false.
  * @property {boolean} hideLabel - In `log` mode, suppress the built-in
  *   "Module N of M" position label so the host can render and place it itself
  *   (cts-test-nav-controls sets this to lay the label on its own row, below the
@@ -388,12 +387,12 @@ function formatVariant(variant) {
  *   as siblings rather than the button centring against the taller bar+label
  *   block). No effect in `overview`/`detail`. Reflects the `hide-label`
  *   attribute. Default false.
- * @fires cts-plan-status-activate - When an interactive (`detail`/`log`)
- *   segment is clicked or keyboard-activated, with
- *   `{ index, module, instanceId, dimmed }` where `instanceId` is the module's
- *   most-recent instance (R17) and `dimmed` is whether an active result filter
- *   currently dims the segment (so a coordinator can clear-then-scroll, R11).
- *   Bubbles and is composed.
+ * @fires cts-plan-status-activate - In `detail` mode only, when a segment is
+ *   clicked or keyboard-activated, with `{ index, module, instanceId, dimmed }`
+ *   where `instanceId` is the module's most-recent instance and `dimmed` is
+ *   whether an active result filter currently dims the segment (so a coordinator
+ *   can clear-then-scroll, R11). Bubbles and is composed. `log` mode does not
+ *   fire this — its segments are real links that navigate natively.
  * @fires cts-plan-status-filter - In `detail` mode, when a count badge is
  *   toggled (`{ value }`, the result token) or the "Clear filters" button is
  *   pressed (`{ clear: true }`). The page coordinator updates its
@@ -407,7 +406,6 @@ class CtsPlanStatus extends LitElement {
     currentInstanceId: { type: String, attribute: "current-instance-id" },
     activeResultFilter: { attribute: false },
     readonly: { type: Boolean, reflect: true },
-    publicView: { type: Boolean, attribute: "public-view", reflect: true },
     hideLabel: { type: Boolean, attribute: "hide-label", reflect: true },
   };
 
@@ -418,7 +416,6 @@ class CtsPlanStatus extends LitElement {
     this.currentInstanceId = "";
     this.activeResultFilter = null;
     this.readonly = false;
-    this.publicView = false;
     this.hideLabel = false;
     this._onActivate = this._onActivate.bind(this);
     this._onFilterBadgeClick = this._onFilterBadgeClick.bind(this);
@@ -590,12 +587,13 @@ class CtsPlanStatus extends LitElement {
     // without re-deriving the match (the same `moduleMatchesResultFilter` source
     // of truth the dimming render uses).
     const dimmed = !moduleMatchesResultFilter(mod, this.activeResultFilter);
-    // In detail mode the segment is an in-page anchor to the module's row. When
-    // the segment is dimmed the row is filtered OUT of the DOM, so the native
-    // `#row` jump would land nowhere — cancel it and let the page coordinator
-    // clear the filter first, then navigate once the row re-renders (R11). For a
-    // visible (non-dimmed) detail segment the native anchor handles the jump;
-    // for log mode (a <button>) there is no default to cancel.
+    // This handler is wired only to detail-mode segments now (log segments are
+    // real links that navigate natively). The detail segment is an in-page
+    // anchor to the module's row. When it is dimmed the row is filtered OUT of
+    // the DOM, so the native `#row` jump would land nowhere — cancel it and let
+    // the page coordinator clear the filter first, then navigate once the row
+    // re-renders (R11). For a visible (non-dimmed) detail segment the native
+    // anchor handles the jump.
     if (this.mode === "detail" && dimmed) {
       event.preventDefault();
     }
@@ -611,14 +609,16 @@ class CtsPlanStatus extends LitElement {
   /**
    * Render one segment, wrapped in a tooltip naming the module + status (R3).
    * The element depends on mode/affordance:
+   *   - `log` → ALWAYS one `<a>` (stable across renders). With a page-supplied
+   *     `mod.href` it is a navigable link (native cross-page load); without one
+   *     (unreachable sibling, or `readonly`) it is an inert `<a role="img">`.
    *   - `detail` interactive → an `<a href="#cts-module-N">` deep-link to the
    *     module's row (clicking sets the URL hash → the row's `:target` highlight
    *     + a flash; a dimmed segment cancels the jump so the page can clear the
    *     filter first — see `_onActivate`).
-   *   - `log` interactive → a `<button>` (sibling navigation is a cross-page
-   *     load coordinated by the page, which threads the public-view param).
-   *   - non-interactive (overview, readonly) → a read-only `<span role="img">`.
-   * All three carry the same accessible name (module + status).
+   *   - non-interactive (overview, readonly detail) → a read-only
+   *     `<span role="img">`.
+   * All carry the same accessible name (module + status).
    * @param {object} mod - The plan module entry.
    * @param {number} index - The module's index in plan order.
    * @param {number} currentIndex - The "you are here" index (log mode) or -1.
@@ -640,25 +640,38 @@ class CtsPlanStatus extends LitElement {
     segClasses[SEGMENT_VARIANT_CLASS[variant] || SEGMENT_VARIANT_CLASS.skip] = true;
     const ariaName = `${name}: ${word}`;
 
-    // Per-segment interactivity. Detail mode uses the surface-level decision
-    // (same-page anchors are always safe). Log mode additionally gates on public
-    // reachability: on a public view only siblings the page flagged
-    // `navigable: true` (fan-out confirmed their target instance returns 200) are
-    // click targets, so a published-plan viewer navigates to reachable siblings
-    // without dead-ending on an unpublished one. Off public, every log segment
-    // navigates as before. A hard `readonly` (interactive=false) forces spans.
-    const navigableOnPublic = !this.publicView || mod.navigable === true;
-    const segInteractive = interactive && (mode !== "log" || navigableOnPublic);
-
     let segment;
-    if (!segInteractive) {
-      segment = html`<span
+    if (mode === "log") {
+      // Log mode renders ONE <a> for the segment's whole life. The page
+      // supplies the sibling URL as `mod.href`, and href PRESENCE is the single
+      // navigability signal: set when the sibling is reachable (off public,
+      // every sibling with an instance at seed time; on public, only those the
+      // /api/info fan-out confirmed return 200), omitted when not. Because the
+      // element type never changes between renders — only the href/role/
+      // aria-current attributes toggle, all via ifDefined on ONE template — a
+      // cts-tooltip wrapping the segment never orphans its listeners. A hard
+      // `readonly` suppresses the href (inert anchor). An <a> without href has
+      // no link semantics and is not focusable, so role="img" + the status
+      // aria-label carry the outcome the fill colour conveys (matching the old
+      // non-navigable <span role="img">). Navigation is native (no @click): the
+      // page builds a real link the browser/agent can follow, middle-click, or
+      // copy.
+      const href = !this.readonly && typeof mod.href === "string" && mod.href ? mod.href : undefined;
+      segment = html`<a
         class=${classMap(segClasses)}
+        href=${ifDefined(href)}
+        data-index=${index}
         data-testid="plan-status-segment"
-        role="img"
+        role=${ifDefined(href ? undefined : "img")}
         aria-label=${ariaName}
-      ></span>`;
-    } else if (mode === "detail") {
+        aria-current=${ifDefined(isCurrent && href ? "step" : undefined)}
+      ></a>`;
+    } else if (interactive && mode === "detail") {
+      // Detail segments are in-page anchors to the module's row; clicking sets
+      // the URL hash → the row's :target highlight. A dimmed segment cancels the
+      // jump and emits cts-plan-status-activate so the page clears the filter
+      // first (see _onActivate). This is the only surface that still uses the
+      // event.
       segment = html`<a
         class=${classMap(segClasses)}
         href="#${moduleRowId(index)}"
@@ -668,15 +681,14 @@ class CtsPlanStatus extends LitElement {
         @click=${this._onActivate}
       ></a>`;
     } else {
-      segment = html`<button
-        type="button"
+      // Overview, and readonly detail: a read-only status box. Never a click
+      // target, so role="img" carries the status to AT.
+      segment = html`<span
         class=${classMap(segClasses)}
-        data-index=${index}
         data-testid="plan-status-segment"
+        role="img"
         aria-label=${ariaName}
-        aria-current=${ifDefined(isCurrent ? "step" : undefined)}
-        @click=${this._onActivate}
-      ></button>`;
+      ></span>`;
     }
 
     return html`<cts-tooltip content="${name} — ${word}" placement="top">${segment}</cts-tooltip>`;
@@ -689,13 +701,12 @@ class CtsPlanStatus extends LitElement {
     if (modules.length === 0) return nothing;
 
     const mode = VALID_MODES.has(this.mode) ? this.mode : "overview";
-    // Surface-level interactivity for detail-mode anchors and the count-badge
-    // filter row; `readonly` is the hard off-switch. In log mode this is only the
-    // upper bound — `_renderSegment` further gates each segment on public
-    // reachability (publicView + the module's `navigable` flag) so a public view
-    // navigates to reachable siblings but not to unpublished ones. The backend
-    // /api/info gating, not these flags, is the real access boundary.
-    const interactive = (mode === "detail" || mode === "log") && !this.readonly;
+    // Surface-level interactivity for the detail-mode anchors and the count-badge
+    // filter row; `readonly` is the hard off-switch. Log-mode navigability is NOT
+    // gated here — `_renderSegment` decides it per-segment from href presence (the
+    // page sets `href` only for reachable siblings; the backend `/api/info` gating
+    // is the real access boundary).
+    const interactive = mode === "detail" && !this.readonly;
     const currentIndex = mode === "log" ? this._currentIndex(modules) : -1;
 
     const track = html`<div
