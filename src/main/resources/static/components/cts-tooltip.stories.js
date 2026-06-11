@@ -229,6 +229,83 @@ export const DynamicallyInsertedChild = {
   },
 };
 
+// Regression: cts-tooltip reuses one wrapper across re-renders while a consumer
+// (e.g. cts-plan-status) swaps the child trigger element type (<span>→<a>). The
+// tooltip must re-wire onto the new child instead of leaving listeners on the
+// detached old one. See docs/plans/2026-06-11-002-fix-tooltip-swap-stable-log-anchors-plan.md.
+export const TriggerSwap = {
+  render: () => html`
+    <div style="padding: 60px;">
+      <cts-tooltip id="swap-tooltip" content="Survives the swap" placement="top">
+        <button id="first">First trigger</button>
+      </cts-tooltip>
+    </div>
+  `,
+
+  async play({ canvasElement, step }) {
+    const host = /** @type {HTMLElement} */ (canvasElement.querySelector("#swap-tooltip"));
+    const first = /** @type {HTMLButtonElement} */ (host.querySelector("#first"));
+    expect(host).toBeTruthy();
+    expect(first).toBeTruthy();
+
+    await step("the initial child triggers the tooltip", async () => {
+      await userEvent.hover(first);
+      await waitFor(() => {
+        const tip = getTooltipEl();
+        expect(tip).toBeTruthy();
+        expect(tip?.textContent).toContain("Survives the swap");
+      });
+      await userEvent.unhover(first);
+      await waitFor(() => expect(getTooltipEl()).toBeNull());
+    });
+
+    // Swap the trigger element — mimics Lit re-rendering a different element
+    // type into the same slot (the cts-plan-status <span>→<a> flip).
+    const second = document.createElement("button");
+    second.id = "second";
+    second.textContent = "Second trigger";
+
+    await step("re-wires onto the swapped-in child", async () => {
+      host.replaceChildren(second);
+      // waitFor re-hovers until the re-wire (a MutationObserver microtask)
+      // lands and the tooltip shows — the same pattern DynamicallyInsertedChild
+      // uses for the deferred-insertion case.
+      await waitFor(() => {
+        const promise = userEvent.hover(second);
+        return promise.then(() => {
+          const tip = getTooltipEl();
+          expect(tip).toBeTruthy();
+          expect(tip?.textContent).toContain("Survives the swap");
+        });
+      });
+      await userEvent.unhover(second);
+      await waitFor(() => expect(getTooltipEl()).toBeNull());
+    });
+
+    await step("the detached old child no longer triggers the tooltip", async () => {
+      // `first` was removed by replaceChildren; teardown must have unbound its
+      // listeners, so a direct mouseenter dispatch produces no tooltip.
+      first.dispatchEvent(new MouseEvent("mouseenter", { bubbles: true }));
+      expect(getTooltipEl()).toBeNull();
+    });
+
+    await step("a swap while the tooltip is visible leaves no stuck tip", async () => {
+      await waitFor(() => {
+        const promise = userEvent.hover(second);
+        return promise.then(() => expect(getTooltipEl()).toBeTruthy());
+      });
+      // Swap the child out from under the visible tooltip — the old trigger's
+      // mouseleave never fires, so _syncTrigger must drop the tip itself.
+      const third = document.createElement("a");
+      third.id = "third";
+      third.href = "#";
+      third.textContent = "Third trigger";
+      host.replaceChildren(third);
+      await waitFor(() => expect(getTooltipEl()).toBeNull());
+    });
+  },
+};
+
 export const AutoPlacementFlipsBelow = {
   render: () => html`
     <!-- Trigger pinned to the very top of the viewport with no room above.

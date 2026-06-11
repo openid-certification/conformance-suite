@@ -16,12 +16,6 @@
  *   `right`, `auto`. `auto` picks the side with the most viewport space.
  */
 
-// Max time to wait for a dynamically-inserted child after the element is
-// connected. If no child appears within this window, we give up silently —
-// the component is probably being used incorrectly, but we don't want a
-// stray observer holding a reference forever.
-const DYNAMIC_INIT_TIMEOUT_MS = 2000;
-
 // Distance between the trigger edge and the tooltip body.
 const OFFSET_PX = 4;
 
@@ -65,17 +59,18 @@ class CtsTooltip extends HTMLElement {
 
     const content = this.getAttribute("content") || "";
     if (!content) return;
-    if (this._wireUpIfReady()) return;
 
-    // No direct child yet. Watch for one — supports dynamic insertion via
-    // innerHTML after connect, templating libraries that attach children
-    // post-render, etc. Bounded so a cts-tooltip that never gets a child
-    // doesn't leak an observer.
-    this._childObserver = new MutationObserver(() => {
-      if (this._wireUpIfReady()) this._stopObserving();
-    });
+    // Observe childList for the element's whole connected life so a trigger
+    // SWAP — the child element being replaced (e.g. Lit re-rendering
+    // <span>→<a> at the same template slot) — re-wires onto the new child
+    // instead of leaving listeners on the detached old one. This also covers
+    // the deferred-insertion case (no child yet at connect). The initial
+    // wire-up is just the first sync. disconnectedCallback disconnects the
+    // observer, so there is no leak — a cts-tooltip that never gets a child
+    // simply holds an idle observer until it leaves the DOM.
+    this._childObserver = new MutationObserver(() => this._syncTrigger());
     this._childObserver.observe(this, { childList: true });
-    this._initTimer = setTimeout(() => this._stopObserving(), DYNAMIC_INIT_TIMEOUT_MS);
+    this._syncTrigger();
   }
 
   disconnectedCallback() {
@@ -84,10 +79,32 @@ class CtsTooltip extends HTMLElement {
     this._removeTooltip();
   }
 
-  _wireUpIfReady() {
-    const trigger = this.querySelector(":scope > *");
-    if (!trigger) return false;
+  /**
+   * Reconcile the wired trigger with the current direct child. Called on
+   * connect and on every childList mutation. When the child element is
+   * replaced, tear down the old listeners, drop any tooltip still showing for
+   * the old trigger, and bind the new child — so the tooltip survives a
+   * trigger swap instead of going dead on the detached node.
+   */
+  _syncTrigger() {
+    const next = this.querySelector(":scope > *");
+    if (next === this._trigger) return;
+    this._teardownTrigger();
+    // The old trigger was yanked (possibly mid-hover) → its mouseleave /
+    // focusout never fires, so proactively remove any visible tooltip to
+    // avoid a stuck tip pointing at the detached node.
+    this._removeTooltip();
+    if (next) this._wireUp(next);
+  }
 
+  /**
+   * Bind the show/hide/escape listeners onto a trigger element. Callers must
+   * run `_teardownTrigger()` first when replacing an existing trigger — it
+   * reads the OLD bound-handler refs, which this method then overwrites.
+   * @param {Element} trigger - The direct child to wire as the hover/focus
+   *   trigger.
+   */
+  _wireUp(trigger) {
     this._trigger = trigger;
     // Bound handlers so add/removeEventListener pair correctly.
     this._onShow = () => this._show();
@@ -101,8 +118,6 @@ class CtsTooltip extends HTMLElement {
     trigger.addEventListener("focusin", this._onShow);
     trigger.addEventListener("focusout", this._onHide);
     trigger.addEventListener("keydown", this._onKey);
-
-    return true;
   }
 
   _teardownTrigger() {
@@ -251,10 +266,6 @@ class CtsTooltip extends HTMLElement {
     if (this._childObserver) {
       this._childObserver.disconnect();
       this._childObserver = null;
-    }
-    if (this._initTimer) {
-      clearTimeout(this._initTimer);
-      this._initTimer = null;
     }
   }
 }
