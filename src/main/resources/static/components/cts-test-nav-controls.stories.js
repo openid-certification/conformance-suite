@@ -29,6 +29,9 @@ function makeModules(count, opts = {}) {
     status: "FINISHED",
     result: i === currentIndex ? "FAILED" : "PASSED",
     _statusResolved: true,
+    // The page supplies each segment's navigation target; href presence makes
+    // the segment a navigable link in cts-plan-status.
+    href: `/log-detail.html?log=i-${i + 1}`,
   }));
 }
 
@@ -36,9 +39,10 @@ const MODULES_30 = makeModules(30, { currentIndex: 5 });
 const CURRENT_INSTANCE_6 = "i-6";
 
 // A published-plan public view: two siblings the page confirmed publicly
-// reachable (`navigable: true`, its /api/info fan-out returned 200) and one it
-// did not (a 404 — left unflagged). Drives the decoupling assertion: progress
-// navigates to the reachable siblings while `readonly` hides Repeat/Continue.
+// reachable (its /api/info fan-out returned 200, so the page set an `href`
+// threading &public=true) and one it did not (a 404 — left without an href).
+// Drives the decoupling assertion: progress navigates to the reachable siblings
+// (href-bearing links) while `readonly` hides Repeat/Continue.
 const PUBLIC_MIXED_MODULES = [
   {
     testModule: "m1",
@@ -46,7 +50,7 @@ const PUBLIC_MIXED_MODULES = [
     status: "FINISHED",
     result: "PASSED",
     _statusResolved: true,
-    navigable: true,
+    href: "/log-detail.html?log=i-1&public=true",
   },
   {
     testModule: "m6",
@@ -54,7 +58,7 @@ const PUBLIC_MIXED_MODULES = [
     status: "FINISHED",
     result: "FAILED",
     _statusResolved: true,
-    navigable: true,
+    href: "/log-detail.html?log=i-6&public=true",
   },
   {
     testModule: "m9",
@@ -164,13 +168,13 @@ export const PublicViewBackLinkAppendsPublicFlag = {
       );
     });
 
-    await step("progress navigates to reachable siblings while actions stay hidden (KTD4)", () => {
+    await step("progress navigates to reachable siblings while actions stay hidden", () => {
       // The decoupling: `readonly` hides Repeat/Continue, but progress-bar
-      // navigation is governed by public-view + each module's `navigable` flag.
-      // On this published-plan public view the two reachable siblings render as
-      // navigating buttons; the unreachable one (no `navigable`) stays a span.
-      expect(canvasElement.querySelectorAll("button.cts-pst-seg").length).toBe(2);
-      expect(canvasElement.querySelectorAll("span.cts-pst-seg").length).toBe(1);
+      // navigation is carried per segment by `modules[].href`. On this
+      // published-plan public view the two reachable siblings are href-bearing
+      // links; the unreachable one (no href) is an inert anchor.
+      expect(canvasElement.querySelectorAll("a.cts-pst-seg[href]").length).toBe(2);
+      expect(canvasElement.querySelectorAll("a.cts-pst-seg:not([href])").length).toBe(1);
       expect(canvasElement.querySelector('[data-testid="repeat-btn"]')).toBeNull();
       expect(canvasElement.querySelector('[data-testid="continue-btn"]')).toBeNull();
     });
@@ -229,10 +233,10 @@ export const ContinueFiresEvent = {
   },
 };
 
-// R15: a progress segment click bubbles cts-plan-status-activate up through
-// the widget (the component emits it bubbling + composed; the widget does not
-// re-dispatch). The page listens for it to open the sibling's log.
-export const SegmentActivateBubblesThrough = {
+// R7: a progress segment is a real link — the page supplies its href and the
+// browser navigates natively. The widget neither emits nor re-dispatches
+// cts-plan-status-activate; clicking a segment fires no such event.
+export const SegmentsAreNativeLinks = {
   render: () =>
     html`<cts-test-nav-controls
       test-id="${TEST_ID}"
@@ -243,16 +247,17 @@ export const SegmentActivateBubblesThrough = {
     ></cts-test-nav-controls>`,
   async play({ canvasElement }) {
     const events = [];
-    canvasElement.addEventListener("cts-plan-status-activate", (e) => events.push(e.detail));
+    canvasElement.addEventListener("cts-plan-status-activate", (e) => events.push(e));
+    // Swallow the default so a click does not navigate the test page away.
+    canvasElement.addEventListener("click", (e) => e.preventDefault());
     await waitFor(() => {
-      expect(canvasElement.querySelector("button.cts-pst-seg")).toBeTruthy();
+      expect(canvasElement.querySelector("a.cts-pst-seg[href]")).toBeTruthy();
     });
-    const segments = canvasElement.querySelectorAll("button.cts-pst-seg");
+    const segments = canvasElement.querySelectorAll("a.cts-pst-seg");
+    // The page-built href points at the module's most-recent instance.
+    expect(segments[2].getAttribute("href")).toBe("/log-detail.html?log=i-3");
     segments[2].click();
-    expect(events.length).toBe(1);
-    expect(events[0].index).toBe(2);
-    // The module's most-recent instance is what the page navigates to.
-    expect(events[0].instanceId).toBe("i-3");
+    expect(events.length).toBe(0);
   },
 };
 
@@ -348,9 +353,10 @@ export const Readonly = {
     });
 
     await step("the progress bar still navigates (readonly governs actions, not progress)", () => {
-      // Decoupling (KTD4): `readonly` hides Repeat/Continue, but this is not a
-      // public view (no public-view), so progress segments stay navigable.
-      expect(canvasElement.querySelector("button.cts-pst-seg")).toBeTruthy();
+      // Decoupling: the widget's `readonly` hides Repeat/Continue but is not
+      // forwarded to the bar, and the modules carry hrefs, so progress segments
+      // stay navigable links.
+      expect(canvasElement.querySelector("a.cts-pst-seg[href]")).toBeTruthy();
     });
   },
 };

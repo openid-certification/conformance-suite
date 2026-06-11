@@ -76,13 +76,13 @@ function ensureStylesInjected() {
  * Plan progress is delegated to `cts-plan-status` in `log` mode: it renders
  * one colour-coded segment per plan module, the "you are here" marker on the
  * segment whose module ran `currentInstanceId`, and the "Module N of M"
- * label (which it computes from that match). Activating a segment bubbles
- * `cts-plan-status-activate` up through this widget for the page to act on
- * (navigate to that sibling's log). This replaces the legacy single-bar
- * "Plan progress: Module X of N" track — the segment bar carries both the
- * count orientation and the per-module status at a glance, and disambiguates
- * scope (plan vs current-test) the same way the eyebrow used to (MR 1998
- * finding A4, thomasdarimont).
+ * label (which it computes from that match). Each reachable segment is a real
+ * `<a href>` (the page supplies the URL via `modules[].href`), so navigating to
+ * a sibling's log is a native link load — no event round-trip. This replaces the
+ * legacy single-bar "Plan progress: Module X of N" track — the segment bar
+ * carries both the count orientation and the per-module status at a glance, and
+ * disambiguates scope (plan vs current-test) the same way the eyebrow used to
+ * (MR 1998 finding A4, thomasdarimont).
  *
  * Light DOM. Scoped CSS is injected once on first render. Render returns
  * `nothing` when `planId` is empty (an ad-hoc test that does not belong
@@ -103,7 +103,9 @@ function ensureStylesInjected() {
  *   renders nothing.
  * @property {Array<object>} modules - Plan modules in plan order, forwarded
  *   verbatim to the embedded `cts-plan-status` (which colours each segment
- *   via the shared `segmentVariant` helper). An empty array renders no
+ *   via the shared `segmentVariant` helper). Each module's `href` (set by the
+ *   page for reachable siblings) makes that segment a navigable link; the page
+ *   threads any `?public=true` into the href itself. An empty array renders no
  *   progress bar. Set via JS only (attribute:false).
  * @property {string} currentInstanceId - The instance currently being
  *   viewed; forwarded to `cts-plan-status` so it marks the segment whose
@@ -113,17 +115,16 @@ function ensureStylesInjected() {
  *   visibility of the Continue Plan button.
  * @property {boolean} readonly - When true (public/readonly view), only
  *   Return to Plan is rendered; Repeat and Continue are hidden. Ignored
- *   in `slim` mode where the back link does not exist either. No longer
- *   forwarded to the embedded `cts-plan-status`: progress-bar navigation is
- *   gated per-segment via `publicView` + each module's `navigable` flag, so a
- *   published-plan public view can still click through to reachable siblings.
- * @property {boolean} publicView - When true, appends `&public=true` to
- *   the Return-to-Plan link so the linked plan-detail page renders its
- *   public-share variant, and is forwarded to the embedded `cts-plan-status`
- *   so it gates progress-segment navigation per-segment (only siblings the page
- *   flagged `navigable`). Independent of `readonly` because a summary-published
- *   test is readonly but not (necessarily) public. No-op for the link in
- *   `slim` mode.
+ *   in `slim` mode where the back link does not exist either. Not forwarded to
+ *   the embedded `cts-plan-status`: progress-bar navigation is carried per
+ *   segment by `modules[].href`, so a published-plan public view can still
+ *   click through to reachable siblings.
+ * @property {boolean} publicView - When true, appends `&public=true` to the
+ *   Return-to-Plan link so the linked plan-detail page renders its public-share
+ *   variant. NOT forwarded to the embedded `cts-plan-status` — the page already
+ *   threads `?public=true` into each segment's `href`, so the bar needs no
+ *   public flag. Independent of `readonly` because a summary-published test is
+ *   readonly but not (necessarily) public. No-op for the link in `slim` mode.
  * @property {boolean} slim - When true, the widget renders only the
  *   progress indicator and (when applicable) the Continue Plan CTA.
  *   Used by the log-detail page where the page-level breadcrumb
@@ -138,11 +139,11 @@ function ensureStylesInjected() {
  *   `{ testId, planId }`. Bubbles. Not fired in `slim` mode (no button).
  * @fires cts-continue - When Continue Plan is clicked. Detail:
  *   `{ testId, planId }`. Bubbles.
- * @fires cts-plan-status-activate - Re-emitted (it bubbles + is composed)
- *   from the embedded `cts-plan-status` when a progress segment is
- *   clicked / keyboard-activated, with `{ index, module, instanceId,
- *   dimmed }`. The page listens for it to open that sibling's log. On a public
- *   view only siblings flagged `navigable` emit it; off public every segment does.
+ *
+ * Sibling navigation no longer flows through an event: the embedded
+ * `cts-plan-status` renders each reachable segment as a real `<a href>` (the
+ * page supplies the URL), so clicking a segment is a native link load. The
+ * widget neither emits nor re-dispatches `cts-plan-status-activate`.
  */
 class CtsTestNavControls extends LitElement {
   static properties = {
@@ -210,19 +211,17 @@ class CtsTestNavControls extends LitElement {
     // Plan-level progress is the cts-plan-status bar in `log` mode: one
     // colour-coded segment per module, the "you are here" marker on the
     // viewed instance's module, and the "Module N of M" label (computed by
-    // the component from `currentInstanceId`). `publicView` is forwarded (not
-    // `readonly`): on a public view the component navigates only to siblings the
-    // page flagged `navigable`, while this widget's own `readonly` still governs
-    // the Repeat/Continue actions. The activate event bubbles + is composed, so
-    // the page can listen on the header / document — this widget does not
-    // re-dispatch it.
+    // the component from `currentInstanceId`). Navigability is carried per
+    // module by `modules[].href` (the page sets it only for reachable
+    // siblings), so nothing public-related is forwarded to the bar — a segment
+    // with an href is a real link and the browser navigates natively. This
+    // widget's own `readonly` still governs the Repeat/Continue actions.
     return html`
       <cts-plan-status
         data-testid="progress"
         mode="log"
         .modules=${modules}
         current-instance-id=${this.currentInstanceId}
-        ?public-view=${this.publicView}
         ?hide-label=${hideLabel}
       ></cts-plan-status>
     `;
