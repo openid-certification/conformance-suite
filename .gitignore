@@ -122,3 +122,7 @@ frontend/storybook-static/
 frontend/.npm/
 frontend/test-results/
 frontend/playwright-report/
+# Chromatic CLI output (https://www.chromatic.com/docs/cli)
+frontend/build-storybook.log
+frontend/chromatic.log
+frontend/chromatic-diagnostics.json
