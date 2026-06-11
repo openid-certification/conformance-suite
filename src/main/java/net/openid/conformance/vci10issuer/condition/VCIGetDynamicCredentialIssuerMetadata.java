@@ -13,8 +13,6 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
@@ -61,7 +59,7 @@ public class VCIGetDynamicCredentialIssuerMetadata extends AbstractCondition {
 	protected void fetchCredentialIssuerMetadata(Environment env, String metadataEndpointUrl) {
 		try {
 			RestTemplate restTemplate = createRestTemplateWithCache(env);
-			MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
+			HttpHeaders headers = new HttpHeaders();
 			headers.add(HttpHeaders.ACCEPT, "application/json");
 			headers.add(HttpHeaders.ACCEPT_LANGUAGE, "en, en-gb;q=0.9, de;q=0.8, fr;q=0.7, *;q=0.5");
 

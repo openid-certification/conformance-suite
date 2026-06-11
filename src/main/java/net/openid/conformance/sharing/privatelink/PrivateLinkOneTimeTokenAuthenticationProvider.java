@@ -2,6 +2,7 @@ package net.openid.conformance.sharing.privatelink;
 
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.ott.InvalidOneTimeTokenException;
+import org.springframework.security.authentication.ott.OneTimeTokenAuthentication;
 import org.springframework.security.authentication.ott.OneTimeTokenAuthenticationToken;
 import org.springframework.security.authentication.ott.OneTimeTokenService;
 import org.springframework.security.core.Authentication;
@@ -31,7 +32,7 @@ public class PrivateLinkOneTimeTokenAuthenticationProvider implements Authentica
 			throw new InvalidOneTimeTokenException("Invalid token");
 		}
 		var userDetails = this.userDetailsService.loadUserByUsername(consumeOneTimeToken.getUsername());
-		var authenticated = OneTimeTokenAuthenticationToken.authenticated(userDetails, userDetails.getAuthorities());
+		var authenticated = new OneTimeTokenAuthentication(userDetails, userDetails.getAuthorities());
 		authenticated.setDetails(consumeOneTimeToken);
 		return authenticated;
 	}

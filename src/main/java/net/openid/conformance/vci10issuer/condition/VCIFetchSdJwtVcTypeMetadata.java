@@ -12,8 +12,6 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
@@ -60,7 +58,7 @@ public class VCIFetchSdJwtVcTypeMetadata extends AbstractCondition {
 		ResponseEntity<String> response;
 		try {
 			RestTemplate restTemplate = createRestTemplate(env);
-			MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
+			HttpHeaders headers = new HttpHeaders();
 			headers.add(HttpHeaders.ACCEPT, "application/json");
 			HttpEntity<?> requestEntity = new HttpEntity<>(headers);
 			response = restTemplate.exchange(url, HttpMethod.GET, requestEntity, String.class);
