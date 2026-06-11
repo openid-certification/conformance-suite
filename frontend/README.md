@@ -265,16 +265,23 @@ rather than a rule project-wide, set `a11y: { test: "todo" }` on that story with
 an inline `// a11y review backlog: <rules>` comment — no story currently needs
 this.)
 
-**Primary buttons are a permanent contrast exemption, not backlog.** The orange
-primary button (`.oidf-btn-primary`, the `--orange-400` CTA with white text) is
-a deliberate brand trade-off, [defensible on accessibility grounds](https://www.bounteous.com/insights/2019/03/22/orange-you-accessible-mini-case-study-color-ratio/).
-It is exempted from `color-contrast` via the rule's `selector`
-(`*:not(.oidf-btn-primary)`) — a one-place decision rather than a per-button
-override, so it survives backlog cleanup. The `reviewOnFail` on the same rule
-parks the _remaining_ contrast debt (mostly status badges and log-card links).
-Fixing that debt means dropping `reviewOnFail` from the `color-contrast` entry
-while keeping the `selector` — contrast then enforces everywhere except the
-exempt primary button.
+**Some brand-color surfaces are a permanent contrast exemption, not backlog.**
+A few surfaces use deliberate brand colors whose contrast trade-off is an
+accepted design decision, not pending work:
+
+- `.oidf-btn-primary` — the orange `--orange-400` CTA with white text,
+  [defensible on accessibility grounds](https://www.bounteous.com/insights/2019/03/22/orange-you-accessible-mini-case-study-color-ratio/).
+- `.b-pass` / `.b-warn` — the green pass and amber warn status pills.
+
+These are exempted from `color-contrast` via the rule's `selector`
+(`*:not(.oidf-btn-primary):not(.b-pass):not(.b-warn)`) — one-place decisions
+rather than per-element overrides scattered across stories, so they survive
+backlog cleanup. (`.b-fail` / `.b-skip` / `.b-rev` are **not** exempted — they
+stay in the parked backlog.) The `reviewOnFail` on the same rule parks the
+_remaining_ contrast debt (dominated by log-card plan links, plus other links
+and the non-exempt status pills). Fixing that debt means dropping `reviewOnFail`
+from the `color-contrast` entry while keeping the `selector` — contrast then
+enforces everywhere except the exempt brand surfaces.
 
 The Storybook a11y suite is **not** in CI today (only `npm run test:ci` runs in
 the `frontend_lint` job, which excludes `test-storybook`). So a11y is a local +

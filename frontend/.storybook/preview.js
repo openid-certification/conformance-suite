@@ -84,19 +84,26 @@ export default definePreview({
         // (`npm run test-storybook`); see docs/plans/2026-06-10-002-*.
         rules: [
           // color-contrast has TWO dispositions in one rule:
-          //  - `selector` PERMANENTLY exempts the orange primary button
-          //    (`.oidf-btn-primary` — the --orange-400 CTA with white text). This
-          //    is a deliberate, accepted brand trade-off, not pending work — see
-          //    the Bounteous "Orange You Accessible?" case study:
-          //    https://www.bounteous.com/insights/2019/03/22/orange-you-accessible-mini-case-study-color-ratio/
-          //    Scoping it here (vs littering stories with per-button overrides)
-          //    keeps the exemption in one place; it survives backlog cleanup.
-          //  - `reviewOnFail` TEMPORARILY parks the remaining contrast debt
-          //    (~415 of the 2026-06-10 baseline — mostly status badges and
-          //    log-card links). When that debt is fixed, drop `reviewOnFail` and
-          //    keep `selector`: contrast then enforces everywhere except the
-          //    deliberately-exempt primary button.
-          { id: "color-contrast", selector: "*:not(.oidf-btn-primary)", reviewOnFail: true },
+          //  - `selector` PERMANENTLY exempts deliberate brand-color surfaces
+          //    whose contrast trade-off is accepted, not pending work:
+          //      .oidf-btn-primary — orange --orange-400 CTA with white text; see
+          //        the Bounteous "Orange You Accessible?" case study:
+          //        https://www.bounteous.com/insights/2019/03/22/orange-you-accessible-mini-case-study-color-ratio/
+          //      .b-pass / .b-warn — the green pass and amber warn status pills.
+          //    Scoping these here (vs per-element overrides scattered across
+          //    stories) keeps the decisions in one place; they survive backlog
+          //    cleanup. NOT exempted: .b-fail / .b-skip / .b-rev (still parked).
+          //  - `reviewOnFail` TEMPORARILY parks the REMAINING contrast debt
+          //    (~103 stories at the 2026-06-11 baseline — dominated by log-card
+          //    plan links, plus other links and the b-fail/b-skip/b-rev pills).
+          //    Fixing that debt means dropping `reviewOnFail` (keeping
+          //    `selector`): contrast then enforces everywhere except the exempt
+          //    brand surfaces.
+          {
+            id: "color-contrast",
+            selector: "*:not(.oidf-btn-primary):not(.b-pass):not(.b-warn)",
+            reviewOnFail: true,
+          },
           { id: "aria-prohibited-attr", reviewOnFail: true }, // 58
           { id: "aria-allowed-role", reviewOnFail: true }, // 36
           { id: "label", reviewOnFail: true }, // 2
