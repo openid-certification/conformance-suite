@@ -206,6 +206,67 @@ frontend_lint:
   only:
     - branches
 
+# chromatic: publishes the frontend Storybook to https://www.chromatic.com for
+# visual regression review (https://www.chromatic.com/docs/gitlab/).
+#
+# Non-blocking by design, two layers deep:
+# - `--exit-zero-on-changes`: visual diffs against the accepted baseline exit 0;
+#   changes are reviewed and accepted/denied in the Chromatic UI, not by
+#   failing the pipeline.
+# - `allow_failure: true`: broken stories or Chromatic infrastructure errors
+#   surface as a pipeline warning, never a failure. Flip to blocking only with
+#   team sign-off, once the a11y backlog is fixed or formally dismissed in
+#   Chromatic (mirrors the frontend_lint promotion approach above).
+#
+# The project token is committed in plain text deliberately: per Chromatic's
+# docs (https://www.chromatic.com/docs/custom-ci-provider/) it can only be used
+# to *publish* builds — it grants no access to the account, settings, or
+# baseline acceptance. Setting a masked CI/CD variable requires Maintainer
+# access on this project; a maintainer can move it to Settings > CI/CD >
+# Variables (name: CHROMATIC_PROJECT_TOKEN) and delete the line here — the CLI
+# reads the environment variable automatically.
+#
+# GIT_DEPTH: 0 disables GitLab's shallow clone so Chromatic can walk git
+# history to find the baseline build on an ancestor commit; without it every
+# build is treated as new and snapshot diffs are meaningless.
+#
+# The `changes:` filter skips the job for backend-only pushes — each run
+# snapshots all ~650 stories, which counts against the Chromatic plan's
+# monthly snapshot quota. Chromatic tolerates the gaps: baseline lookup walks
+# ancestor commits until it finds the last published build.
+#
+# --ignore-scripts is safe here for the same reason as frontend_lint: the
+# Storybook *build* needs no browser and no postinstall hooks (esbuild/rollup
+# ship platform binaries as optionalDependencies, not postinstall scripts).
+chromatic:
+  stage: build
+  interruptible: true
+  needs: []
+  image: node:22-alpine
+  cache:
+    key: frontend-npm
+    paths:
+      - frontend/.npm
+  variables:
+    NPM_CONFIG_CACHE: "$CI_PROJECT_DIR/frontend/.npm"
+    GIT_DEPTH: 0
+    CHROMATIC_PROJECT_TOKEN: "chpt_f4cadedd64e8a97"
+  before_script:
+    - apk add --no-cache git   # the Chromatic CLI shells out to git for baseline detection
+    - corepack enable npm      # activate packageManager pin (see frontend_lint)
+  script:
+    - cd frontend
+    - npm ci --ignore-scripts
+    - npx chromatic --exit-zero-on-changes
+  allow_failure: true
+  only:
+    refs:
+      - branches
+    changes:
+      - frontend/**/*
+      - src/main/resources/static/**/*
+      - .gitlab-ci.yml
+
 .compare: &compare
   stage: compare
   interruptible: true
