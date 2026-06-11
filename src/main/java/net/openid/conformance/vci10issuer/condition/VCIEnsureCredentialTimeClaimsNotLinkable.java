@@ -3,25 +3,21 @@ package net.openid.conformance.vci10issuer.condition;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import net.openid.conformance.condition.AbstractCondition;
 import net.openid.conformance.testmodule.Environment;
 import net.openid.conformance.testmodule.OIDFJSON;
-import net.openid.conformance.util.MdocUtil;
+import net.openid.conformance.util.JsonObjectUtils;
 import org.multipaz.cbor.Cbor;
 import org.multipaz.cbor.DataItem;
-import org.multipaz.mdoc.mso.MobileSecurityObject;
 
-import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Base64;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 /**
- * Compares the issuance time of two credentials of the same dataset, obtained a few seconds apart
- * (e.g. one per client in the multiple-clients flow), and fails if it advanced by ~the real
+ * Compares the time claims of two credentials of the same dataset, obtained a few seconds apart (e.g.
+ * one per client in the multiple-clients flow), and fails if any of them advanced by ~the real
  * inter-issuance gap (measured via the issuers' HTTP {@code Date} response headers). That is the
  * signature of an issuer that embeds the precise issuance time, which RFC 9901 §10.1 forbids: time
  * information MUST be randomized or rounded so that multiple credentials of the same type cannot be
@@ -40,10 +36,10 @@ import java.util.Set;
  *
  * <p>Reads the whole credentials from the {@code linkability_captures} list and compares the first
  * and last. Skips when fewer than two were captured, the list is absent (e.g. an unsupported
- * format), the issuance time cannot be read, or the two carry different datasets (RFC 9901 §10.1
+ * format), no comparable time claims exist, or the two carry different datasets (RFC 9901 §10.1
  * scopes the requirement to "a batch of credentials based on the same claims").
  */
-public class VCIEnsureCredentialTimeClaimsNotLinkable extends AbstractCondition {
+public class VCIEnsureCredentialTimeClaimsNotLinkable extends AbstractVCICredentialTimeClaimsCheck {
 
 	private static final long TOLERANCE_SECONDS = 2;
 	private static final long FALLBACK_TOLERANCE_SECONDS = 5;
@@ -54,8 +50,7 @@ public class VCIEnsureCredentialTimeClaimsNotLinkable extends AbstractCondition 
 
 	@Override
 	public Environment evaluate(Environment env) {
-		JsonElement listEl = env.getElementFromObject("linkability_captures", "list");
-		JsonArray all = (listEl != null && listEl.isJsonArray()) ? listEl.getAsJsonArray() : null;
+		JsonArray all = capturesList(env);
 		if (all == null || all.size() < 2) {
 			log("Fewer than two credentials were captured; cannot assess time-claim linkability",
 				args("captured_count", all == null ? 0 : all.size()));
@@ -136,52 +131,12 @@ public class VCIEnsureCredentialTimeClaimsNotLinkable extends AbstractCondition 
 		return env;
 	}
 
-	/**
-	 * The credential's time claims as epoch seconds: SD-JWT {@code iat}/{@code exp}/{@code nbf}, or
-	 * the mdoc MSO validityInfo {@code signed}/{@code validFrom}/{@code validUntil}. Absent claims are
-	 * omitted.
-	 */
-	private Map<String, Long> timestamps(JsonObject entry, String format) {
-		Map<String, Long> result = new LinkedHashMap<>();
-		if ("mso_mdoc".equals(format)) {
-			MobileSecurityObject mso = parseMso(entry);
-			if (mso != null) {
-				putInstant(result, "signed", mso.getSignedAt());
-				putInstant(result, "validFrom", mso.getValidFrom());
-				putInstant(result, "validUntil", mso.getValidUntil());
-			}
-			return result;
-		}
-		putClaim(result, "iat", path(entry, "sdjwt", "credential", "claims", "iat"));
-		putClaim(result, "exp", path(entry, "sdjwt", "credential", "claims", "exp"));
-		putClaim(result, "nbf", path(entry, "sdjwt", "credential", "claims", "nbf"));
-		return result;
-	}
-
-	private void putClaim(Map<String, Long> map, String name, JsonElement el) {
-		if (el != null && !el.isJsonNull()) {
-			map.put(name, OIDFJSON.getLong(el));
-		}
-	}
-
-	private void putInstant(Map<String, Long> map, String name, kotlin.time.Instant instant) {
-		if (instant == null) {
-			return;
-		}
-		try {
-			// kotlin.time.Instant -> ISO-8601 string -> epoch seconds
-			map.put(name, Instant.parse(instant.toString()).getEpochSecond());
-		} catch (RuntimeException e) {
-			// leave the claim out if it can't be parsed
-		}
-	}
-
 	/** Dataset claim signature for the same-dataset guard. Returns null to skip the guard. */
-	private JsonObject datasetClaims(JsonObject entry, String format) {
+	private JsonObject datasetClaims(JsonObject capture, String format) {
 		if ("mso_mdoc".equals(format)) {
-			return mdocElementValues(entry);
+			return mdocElementValues(capture);
 		}
-		JsonElement decoded = path(entry, "sdjwt", "decoded");
+		JsonElement decoded = JsonObjectUtils.path(capture, "sdjwt", "decoded");
 		if (decoded == null || !decoded.isJsonObject()) {
 			return null;
 		}
@@ -192,26 +147,13 @@ public class VCIEnsureCredentialTimeClaimsNotLinkable extends AbstractCondition 
 		return copy;
 	}
 
-	/** The capture's MSO, or null if it has none or it cannot be parsed (the entry is skipped then). */
-	private MobileSecurityObject parseMso(JsonObject entry) {
-		byte[] bytes = mdocBytes(entry);
-		if (bytes == null) {
-			return null;
-		}
-		try {
-			return MdocUtil.parseMso(bytes);
-		} catch (MdocUtil.MdocParseException e) {
-			return null;
-		}
-	}
-
 	/**
 	 * Decodes the IssuerSigned namespaces to {@code {namespace.elementId: <cbor diagnostic of value>}},
 	 * ignoring the per-credential random salts and digest IDs, so two credentials of the same dataset
 	 * compare equal.
 	 */
-	private JsonObject mdocElementValues(JsonObject entry) {
-		byte[] bytes = mdocBytes(entry);
+	private JsonObject mdocElementValues(JsonObject capture) {
+		byte[] bytes = mdocBytes(capture);
 		if (bytes == null) {
 			return null;
 		}
@@ -236,33 +178,5 @@ public class VCIEnsureCredentialTimeClaimsNotLinkable extends AbstractCondition 
 		} catch (RuntimeException e) {
 			return null;
 		}
-	}
-
-	private byte[] mdocBytes(JsonObject entry) {
-		String cbor = OIDFJSON.getStringOrNull(entry.get("mdoc_credential_cbor"));
-		if (cbor == null) {
-			return null;
-		}
-		try {
-			return Base64.getDecoder().decode(cbor);
-		} catch (IllegalArgumentException e) {
-			return null;
-		}
-	}
-
-	private boolean getBoolean(JsonObject o, String key) {
-		JsonElement el = o.get(key);
-		return el != null && !el.isJsonNull() && OIDFJSON.getBoolean(el);
-	}
-
-	private static JsonElement path(JsonObject obj, String... keys) {
-		JsonElement cur = obj;
-		for (String key : keys) {
-			if (cur == null || !cur.isJsonObject()) {
-				return null;
-			}
-			cur = cur.getAsJsonObject().get(key);
-		}
-		return cur;
 	}
 }
