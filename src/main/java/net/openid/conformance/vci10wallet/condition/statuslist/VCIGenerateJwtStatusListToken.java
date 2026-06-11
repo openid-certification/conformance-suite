@@ -24,7 +24,9 @@ public class VCIGenerateJwtStatusListToken extends AbstractSignJWT {
 		String currentStatusListId = env.getString("current_status_list_id");
 		int bits = 1;
 
-		int maxEntries = 16;
+		// Large enough to cover the indices the emulated issuer allocates per credential; must stay in
+		// step with CreateSdJwtCredential.STATUS_LIST_ENTRIES (which only allocates even indices).
+		int maxEntries = 256;
 		byte[] rawEntries = new byte[maxEntries];
 		for (int i = 0; i < rawEntries.length; i++) {
 			// mark every token value with an even index as valid
