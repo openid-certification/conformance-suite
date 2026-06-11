@@ -93,6 +93,7 @@
 		<exclude name="LambdaCanBeMethodReference"/>
 		<exclude name="UnnecessaryFullyQualifiedName"/>
 		<exclude name="VariableCanBeInlined"/>
+		<exclude name="VariableDeclarationUsageDistance"/>
 	</rule>
 
 	<rule ref="category/java/bestpractices.xml">

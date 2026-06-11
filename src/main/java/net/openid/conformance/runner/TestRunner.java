@@ -46,6 +46,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.util.UriUtils;
 
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -366,7 +367,7 @@ public class TestRunner implements DataUtils {
 				support.removeRunningTest(id);
 				return new ResponseEntity<>(stringMap("error", e.getMessage()), HttpStatus.CONFLICT);
 			}
-			path = "a/" + UriUtils.encodePathSegment(alias, "UTF-8");
+			path = "a/" + UriUtils.encodePathSegment(alias, StandardCharsets.UTF_8);
 
 		} else {
 			path = id;
