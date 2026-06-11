@@ -252,18 +252,29 @@ The project default is `parameters.a11y.test: "error"` — a violation fails
 violations warn but do not fail), `"error"` (run, violations fail CLI/CI).
 
 **Review-on-fail backlog.** The redesign carries a known a11y backlog (color
-tokens below WCAG AA contrast, some ARIA role/attr usage). Rather than turning
-a11y off, the offending **rules** are downgraded project-wide to "needs review"
-via `parameters.a11y.config.rules: [{ id, reviewOnFail: true }]` in
-`preview.js`. `reviewOnFail` moves a rule from "violation" (fails) to "needs
-review" (panel only, does not fail), per the axe-core config contract. Every
-**other** rule stays enforced on every story, and a **new** failure of any rule
-not on the backlog list still fails the build. The `config.rules` list in
-`preview.js` IS the fix-later tracker — each entry is one rule's debt; delete an
-entry to re-arm that rule once it is fixed. (For the rare case of parking one
-specific story rather than a rule project-wide, set `a11y: { test: "todo" }` on
-that story with an inline `// a11y review backlog: <rules>` comment — no story
-currently needs this.)
+contrast below WCAG AA, some ARIA role/attr usage). Rather than turning a11y
+off, the offending **rules** are downgraded project-wide to "needs review" via
+`parameters.a11y.config.rules: [{ id, reviewOnFail: true }]` in `preview.js`.
+`reviewOnFail` moves a rule from "violation" (fails) to "needs review" (panel
+only, does not fail), per the axe-core config contract. Every **other** rule
+stays enforced on every story, and a **new** failure of any rule not on the
+backlog list still fails the build. The `config.rules` list in `preview.js` IS
+the fix-later tracker — each entry is one rule's debt; delete an entry to re-arm
+that rule once it is fixed. (For the rare case of parking one specific story
+rather than a rule project-wide, set `a11y: { test: "todo" }` on that story with
+an inline `// a11y review backlog: <rules>` comment — no story currently needs
+this.)
+
+**Primary buttons are a permanent contrast exemption, not backlog.** The orange
+primary button (`.oidf-btn-primary`, the `--orange-400` CTA with white text) is
+a deliberate brand trade-off, [defensible on accessibility grounds](https://www.bounteous.com/insights/2019/03/22/orange-you-accessible-mini-case-study-color-ratio/).
+It is exempted from `color-contrast` via the rule's `selector`
+(`*:not(.oidf-btn-primary)`) — a one-place decision rather than a per-button
+override, so it survives backlog cleanup. The `reviewOnFail` on the same rule
+parks the _remaining_ contrast debt (mostly status badges and log-card links).
+Fixing that debt means dropping `reviewOnFail` from the `color-contrast` entry
+while keeping the `selector` — contrast then enforces everywhere except the
+exempt primary button.
 
 The Storybook a11y suite is **not** in CI today (only `npm run test:ci` runs in
 the `frontend_lint` job, which excludes `test-storybook`). So a11y is a local +
