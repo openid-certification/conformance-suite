@@ -25,21 +25,21 @@ For Java↔JS API type parity, the codegen pipeline at `src/api/` snapshots
 
 ## Local commands
 
-| Script                      | What it does                                                                                               | When to run                                          |
-| --------------------------- | ---------------------------------------------------------------------------------------------------------- | ---------------------------------------------------- |
-| `npm run format`            | Prettier `--write` across `frontend/` and `../src/main/resources/static/components/`.                      | Before committing style-only changes.                |
-| `npm run format:check`      | Prettier `--check` (no writes).                                                                            | Part of `test:ci`.                                   |
-| `npm run lint`              | ESLint flat config over frontend + components.                                                             | Before committing.                                   |
-| `npm run lint:fix`          | ESLint `--fix` for auto-fixable findings.                                                                  | After initial lint failures.                         |
-| `npm run type-check`        | `tsc --noEmit` for root + `e2e/` tsconfigs.                                                                | After touching JS/JSDoc types.                       |
-| `npm run lint:jsdoc`        | Shell presence check that every `cts-*` class has a JSDoc block with `@property` tags.                     | Before committing component changes.                 |
-| `npm run lint:lit-analyzer` | `lit-analyzer` CLI over `cts-*.js`. Lit-aware template checks (unknown tags, bad bindings, unclosed tags). | Before committing component changes.                 |
-| `npm run test:ci`           | `format:check && lint && type-check && lint:jsdoc && lint:lit-analyzer`. Exactly what CI runs.             | Before pushing.                                      |
-| `npm run test`              | `test:ci && test-storybook`. Local full run; requires a browser.                                           | Before opening an MR.                                |
-| `npm run test:e2e`          | Playwright against legacy static HTML.                                                                     | After editing `../src/main/resources/static/*.html`. |
-| `npm run storybook`         | Launch Storybook dev server on port 6006.                                                                  | While authoring components.                          |
-| `npm run build-storybook`   | Static Storybook build.                                                                                    | Rarely; CI handles this.                             |
-| `npm run test-storybook`    | Vitest runner for Storybook play functions.                                                                | After adding or editing interaction tests.           |
+| Script                      | What it does                                                                                               | When to run                                           |
+| --------------------------- | ---------------------------------------------------------------------------------------------------------- | ----------------------------------------------------- |
+| `npm run format`            | Prettier `--write` across `frontend/` and `../src/main/resources/static/components/`.                      | Before committing style-only changes.                 |
+| `npm run format:check`      | Prettier `--check` (no writes).                                                                            | Part of `test:ci`.                                    |
+| `npm run lint`              | ESLint flat config over frontend + components.                                                             | Before committing.                                    |
+| `npm run lint:fix`          | ESLint `--fix` for auto-fixable findings.                                                                  | After initial lint failures.                          |
+| `npm run type-check`        | `tsc --noEmit` for root + `e2e/` tsconfigs.                                                                | After touching JS/JSDoc types.                        |
+| `npm run lint:jsdoc`        | Shell presence check that every `cts-*` class has a JSDoc block with `@property` tags.                     | Before committing component changes.                  |
+| `npm run lint:lit-analyzer` | `lit-analyzer` CLI over `cts-*.js`. Lit-aware template checks (unknown tags, bad bindings, unclosed tags). | Before committing component changes.                  |
+| `npm run test:ci`           | `format:check && lint && type-check && lint:jsdoc && lint:lit-analyzer`. Exactly what CI runs.             | Before pushing.                                       |
+| `npm run test`              | `test:ci && test-storybook`. Local full run; requires a browser.                                           | Before opening an MR.                                 |
+| `npm run test:e2e`          | Playwright against legacy static HTML.                                                                     | After editing `../src/main/resources/static/*.html`.  |
+| `npm run storybook`         | Launch Storybook dev server on port 6006.                                                                  | While authoring components.                           |
+| `npm run build-storybook`   | Static Storybook build.                                                                                    | Rarely; CI handles this.                              |
+| `npm run test-storybook`    | Vitest runner for Storybook play functions **and** axe-core a11y checks (see "Accessibility testing").     | After adding/editing interaction tests or components. |
 
 ## Getting started
 
@@ -258,14 +258,18 @@ via `parameters.a11y.config.rules: [{ id, reviewOnFail: true }]` in
 `preview.js`. `reviewOnFail` moves a rule from "violation" (fails) to "needs
 review" (panel only, does not fail), per the axe-core config contract. Every
 **other** rule stays enforced on every story, and a **new** failure of any rule
-not on the backlog list still fails the build. The list IS the fix-later
-tracker — delete an entry to re-arm that rule once its debt is fixed. To park a
-single story instead (rarely needed), set `a11y: { test: "todo" }` on that
-story with an inline `// a11y review backlog: <rules>` comment.
+not on the backlog list still fails the build. The `config.rules` list in
+`preview.js` IS the fix-later tracker — each entry is one rule's debt; delete an
+entry to re-arm that rule once it is fixed. (For the rare case of parking one
+specific story rather than a rule project-wide, set `a11y: { test: "todo" }` on
+that story with an inline `// a11y review backlog: <rules>` comment — no story
+currently needs this.)
 
 The Storybook a11y suite is **not** in CI today (only `npm run test:ci` runs in
-the `frontend_lint` job, which excludes `test-storybook`) — a11y is a local +
-Storybook-MCP gate for now. Wiring it into CI is deferred.
+the `frontend_lint` job, which excludes `test-storybook`). So a11y is a local +
+Storybook-MCP gate for now: **`npm run test`** (which includes `test-storybook`)
+is the correct pre-push gate — a green `npm run test:ci` does **not** exercise
+a11y. Wiring `test-storybook` into CI is deferred.
 
 ## `--ignore-rev` candidates
 
