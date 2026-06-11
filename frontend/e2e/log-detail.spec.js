@@ -403,11 +403,52 @@ test.describe("log-detail.html — new Lit-triad page", () => {
     const bar = page.locator('cts-test-nav-controls cts-plan-status[data-testid="progress"]');
     await expect(bar).toBeVisible();
 
-    // Click the FIRST sibling segment (index 0 → instance s-0). The page's
-    // cts-plan-status-activate handler navigates to that instance's log.
-    await bar.locator("button.cts-pst-seg").first().click();
+    // Off the public view every sibling with an instance is a navigable link
+    // from first paint — its href is seeded at map time, before the colour
+    // fan-out runs. The FIRST segment (index 0 → instance s-0) carries that href;
+    // clicking it navigates natively (no event round-trip).
+    const firstSeg = bar.locator("a.cts-pst-seg").first();
+    await expect(firstSeg).toHaveAttribute("href", "/log-detail.html?log=s-0");
+    await firstSeg.click();
     await page.waitForURL("**/log-detail.html?log=s-0");
     expect(new URL(page.url()).searchParams.get("log")).toBe("s-0");
+  });
+
+  test("U6: an off-public never-run sibling is an inert anchor (no dead-end click)", async ({
+    page,
+  }) => {
+    await setupFailFast(page);
+    // Off-public plan: the viewed module (index 0, has an instance) plus a
+    // sibling that has never run (no instances). The never-run sibling has no
+    // navigation target, so the page seeds no href and its segment is an inert
+    // <a role="img"> — not a clickable dead end (an improvement over the old
+    // always-a-button form).
+    const planModules = [
+      {
+        testModule: "oidcc-server",
+        variant: { client_auth_type: "client_secret_basic", response_type: "code" },
+        instances: [MOCK_TEST_STATUS.testId],
+      },
+      { testModule: "never-run-sib", variant: {}, instances: [] },
+    ];
+    await setupV2Routes(page, {
+      testInfo: MOCK_TEST_STATUS,
+      logEntries: MOCK_LOG_ENTRIES,
+      planModules,
+    });
+    await setupCommonRoutes(page);
+
+    await page.goto(`/log-detail.html?log=${encodeURIComponent(MOCK_TEST_STATUS.testId)}`);
+
+    const bar = page.locator('cts-test-nav-controls cts-plan-status[data-testid="progress"]');
+    await expect(bar).toBeVisible();
+    await expect(bar.locator('[data-testid="plan-status-segment"]')).toHaveCount(2);
+
+    // Viewed module → navigable link; never-run sibling → inert anchor, no href.
+    await expect(bar.locator("a.cts-pst-seg[href]")).toHaveCount(1);
+    const inert = bar.locator("a.cts-pst-seg:not([href])");
+    await expect(inert).toHaveCount(1);
+    await expect(inert).toHaveAttribute("role", "img");
   });
 
   test("U6/R5/R18: siblings pending then colour after fan-out; a 404 sibling settles to skip", async ({
@@ -515,12 +556,13 @@ test.describe("log-detail.html — new Lit-triad page", () => {
       expect(new URL(url).searchParams.get("public")).toBe("true");
     }
 
-    // On a published-plan public view the reachable siblings become navigating
-    // buttons once the fan-out confirms each target instance returns 200. Clicking
-    // the first sibling navigates to that instance's public log (carrying
-    // &public=true so the viewer stays in the public view).
-    await expect(bar.locator("button.cts-pst-seg").first()).toBeVisible();
-    await bar.locator("button.cts-pst-seg").first().click();
+    // On a published-plan public view the reachable siblings become navigable
+    // links once the fan-out confirms each target instance returns 200 — the page
+    // sets each segment's href (threading &public=true). Clicking the first
+    // sibling navigates natively to that instance's public log.
+    const firstLink = bar.locator("a.cts-pst-seg[href]").first();
+    await expect(firstLink).toHaveAttribute("href", "/log-detail.html?log=s-0&public=true");
+    await firstLink.click();
     // Loose glob (tolerates query-param reordering); the searchParams asserts
     // below are the real contract check.
     await page.waitForURL("**/log-detail.html?log=s-0**");
@@ -529,7 +571,7 @@ test.describe("log-detail.html — new Lit-triad page", () => {
     expect(navUrl.searchParams.get("public")).toBe("true");
   });
 
-  test("U6 public view: a reachable sibling navigates but an unreachable (404) sibling stays a non-navigating span", async ({
+  test("U6 public view: a reachable sibling navigates but an unreachable (404) sibling stays an inert anchor", async ({
     page,
   }) => {
     await setupFailFast(page);
@@ -584,12 +626,12 @@ test.describe("log-detail.html — new Lit-triad page", () => {
     await expect(segments.nth(3)).toHaveClass(/cts-pst-seg--skip/);
     await expect(segments.nth(3)).not.toHaveClass(/cts-pst-seg--pending/);
 
-    // The unreachable 404 sibling stays a non-navigating <span role="img"> (R2);
-    // the reachable siblings (and the viewed module) are navigating buttons (R1).
-    const span = bar.locator("span.cts-pst-seg");
-    await expect(span).toHaveCount(1);
-    await expect(span).toHaveAttribute("role", "img");
-    await expect(bar.locator("button.cts-pst-seg")).toHaveCount(3);
+    // The unreachable 404 sibling stays an inert <a role="img"> with no href (R2);
+    // the reachable siblings (and the viewed module) are navigable links (R1).
+    const inert = bar.locator("a.cts-pst-seg:not([href])");
+    await expect(inert).toHaveCount(1);
+    await expect(inert).toHaveAttribute("role", "img");
+    await expect(bar.locator("a.cts-pst-seg[href]")).toHaveCount(3);
   });
 
   test("breadcrumb renders Plans > <planName> > <testName> for a planned test", async ({

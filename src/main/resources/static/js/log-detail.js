@@ -318,10 +318,22 @@ async function fetchAndApplyPlanState(testInfo) {
     // Segments render instantly (topology + the "you are here" marker +
     // sibling navigation, KTD5/R17); per-sibling status colours arrive from
     // the post-paint /api/info fan-out (R5/R18).
-    const navModules = modules.map((mod) => ({
-      ...mod,
-      instances: Array.isArray(mod.instances) ? mod.instances.slice() : [],
-    }));
+    //
+    // `href` is the per-segment navigation target cts-plan-status renders as a
+    // real link. Off the public view every sibling with an instance is reachable
+    // immediately, so seed its href here for navigation at first paint. On the
+    // public view href is withheld until the fan-out confirms the target
+    // instance returns 200 (set in resolveOneSegment), so a published-plan viewer
+    // never dead-ends on an unpublished sibling.
+    const navModules = modules.map((mod) => {
+      const instances = Array.isArray(mod.instances) ? mod.instances.slice() : [];
+      const entry = { ...mod, instances };
+      if (!isPublic) {
+        const last = instances.length ? instances[instances.length - 1] : null;
+        if (last) entry.href = buildSiblingHref(last);
+      }
+      return entry;
+    });
 
     /** @type {any} */
     const header = document.getElementById("logDetailHeader");
@@ -372,10 +384,11 @@ const SEGMENT_FANOUT_CONCURRENCY = 6;
  * the public flag exactly like the page's other `/api/info` calls.
  *
  * @param {{instances?: string[], status?: string, result?: string,
- *   _statusResolved?: boolean, navigable?: boolean}} mod - The working module
- *   entry to mutate. On a 200 the target instance is publicly reachable, so
- *   `navigable` is set true and cts-plan-status offers navigation to this
- *   sibling on the public view; a 404/error leaves it unset (non-navigating).
+ *   _statusResolved?: boolean, href?: string}} mod - The working module entry to
+ *   mutate. On the public view a 200 means the target instance is publicly
+ *   reachable, so its `href` is set and cts-plan-status renders the segment as a
+ *   navigable link; a 404/error leaves `href` unset (inert). Off public, `href`
+ *   was already seeded at map time, so this only resolves the status colour.
  * @returns {Promise<void>}
  */
 async function resolveOneSegment(mod) {
@@ -387,13 +400,11 @@ async function resolveOneSegment(mod) {
     if (cached) {
       mod.status = cached.status;
       mod.result = cached.result;
-      // A cached 200 means the target instance is publicly reachable, so the
-      // segment may navigate on the public view (R1). A cached 404 is `null`,
-      // leaving `navigable` unset so the segment stays non-navigating (R2). Only
-      // written on the public view — off public the flag is ignored and every
-      // segment navigates, so writing it there would conflate "fetch ok" with
-      // "publicly reachable".
-      if (isPublic) mod.navigable = true;
+      // A cached 200 means the target instance is publicly reachable, so on the
+      // public view the segment becomes a navigable link (R1). A cached 404 is
+      // `null`, leaving `href` unset so the segment stays inert (R2). Only set on
+      // the public view — off public the href was seeded at map time.
+      if (isPublic) mod.href = buildSiblingHref(lastInstance);
     }
     mod._statusResolved = true;
     return;
@@ -414,18 +425,17 @@ async function resolveOneSegment(mod) {
     segmentStatusMemo.set(lastInstance, slice);
     mod.status = slice.status;
     mod.result = slice.result;
-    // 200 → the target instance is publicly reachable, so the segment is a
-    // navigation target on the public view (R1). The 404 branch above leaves
-    // `navigable` unset, so unreachable siblings stay non-navigating (R2). Only
-    // written on the public view — off public the flag is ignored and every
-    // segment navigates.
-    if (isPublic) mod.navigable = true;
+    // 200 → the target instance is publicly reachable, so on the public view
+    // the segment becomes a navigable link (R1). The 404 branch above leaves
+    // `href` unset, so unreachable siblings stay inert (R2). Only set on the
+    // public view — off public the href was seeded at map time.
+    if (isPublic) mod.href = buildSiblingHref(lastInstance);
     mod._statusResolved = true;
   } catch (err) {
     // Network / parse failure: settle the segment too (R18). Do NOT memoize a
-    // transient failure — a later navigation may retry the fetch (and `navigable`
-    // stays unset, so on a public view the segment is non-navigating until that
-    // retry succeeds).
+    // transient failure — a later navigation may retry the fetch (and `href`
+    // stays unset, so on a public view the segment is inert until that retry
+    // succeeds).
     console.warn("[log-detail] segment status fetch failed:", err);
     mod._statusResolved = true;
   }
@@ -469,22 +479,18 @@ async function resolveSegmentStatuses(navModules) {
 }
 
 /**
- * Navigate to a sibling instance's log when a progress segment is activated
- * (R15). The event bubbles + is composed up from cts-plan-status through
- * cts-test-nav-controls and the header; `detail.instanceId` is the module's
- * most-recent instance. Threads the public flag so an anonymous viewer stays
- * in the public view. A segment with no instance (never-run sibling) carries
- * a null instanceId and is a no-op.
+ * Build the log-detail URL for a sibling instance, threading the public flag so
+ * an anonymous viewer stays in the public view. cts-plan-status renders a
+ * segment with this href as a real `<a>` link the browser navigates natively —
+ * no event round-trip — so middle-click / Cmd-click / copy-link all work (R15).
  *
- * @param {Event} event - The bubbled `cts-plan-status-activate` CustomEvent.
+ * @param {string} instanceId - The sibling module's most-recent instance id.
+ * @returns {string} The `/log-detail.html?log=…` href.
  */
-function handlePlanStatusActivate(event) {
-  const detail = /** @type {CustomEvent} */ (event).detail;
-  const instanceId = detail && detail.instanceId;
-  if (!instanceId) return;
-  const target =
-    "/log-detail.html?log=" + encodeURIComponent(instanceId) + (isPublic ? "&public=true" : "");
-  window.location.assign(target);
+function buildSiblingHref(instanceId) {
+  return (
+    "/log-detail.html?log=" + encodeURIComponent(instanceId) + (isPublic ? "&public=true" : "")
+  );
 }
 
 /** ──────────── /api/uploaded-images ──────────── */
@@ -1261,13 +1267,11 @@ async function bootstrap() {
     // duplicate "Repeat Test" button was removed; the status bar
     // primary owns the cts-repeat-test event by itself.
     header.addEventListener("cts-continue", handleContinue);
-    // R15: a progress segment click bubbles cts-plan-status-activate up
-    // through cts-test-nav-controls to the header; open that sibling
-    // instance's log. On a published-plan public view this fires for the
-    // siblings the fan-out confirmed reachable (they render as buttons);
-    // unreachable siblings and a hard-readonly surface render non-navigating
-    // spans that never emit it.
-    header.addEventListener("cts-plan-status-activate", handlePlanStatusActivate);
+    // R15: progress segments are real links now — each reachable sibling's
+    // cts-plan-status segment carries the href built by buildSiblingHref (set in
+    // navModules off public, and after the fan-out confirms reachability on
+    // public), so clicking navigates natively. No cts-plan-status-activate
+    // listener: the component does not emit it in log mode.
   }
 
   let testInfo;
