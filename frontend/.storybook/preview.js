@@ -1,3 +1,6 @@
+// MUST stay the first import: patches Date before any story/fixture module
+// reads the clock (see frozen-clock.js for the determinism rationale).
+import "./frozen-clock.js";
 import { definePreview } from "@storybook/web-components-vite";
 import a11yAddon from "@storybook/addon-a11y";
 import { setupWorker } from "msw/browser";
