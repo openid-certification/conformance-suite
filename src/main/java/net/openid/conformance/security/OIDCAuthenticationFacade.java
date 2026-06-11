@@ -2,7 +2,7 @@ package net.openid.conformance.security;
 
 import com.google.common.collect.ImmutableMap;
 import net.openid.conformance.sharing.privatelink.PrivateLinkOneTimeToken;
-import org.springframework.security.authentication.ott.OneTimeTokenAuthenticationToken;
+import org.springframework.security.authentication.ott.OneTimeTokenAuthentication;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -86,7 +86,7 @@ public class OIDCAuthenticationFacade implements AuthenticationFacade {
 	@Override
 	public PrivateLinkOneTimeToken getPrivateOneTimeToken() {
 		Authentication auth = getAuthentication();
-		if (auth instanceof OneTimeTokenAuthenticationToken ott) {
+		if (auth instanceof OneTimeTokenAuthentication ott) {
 			PrivateLinkOneTimeToken privateToken = (PrivateLinkOneTimeToken) ott.getDetails();
 			return privateToken;
 		}
