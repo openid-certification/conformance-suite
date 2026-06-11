@@ -4,16 +4,15 @@ import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.json.JsonMapper;
 import com.google.gson.JsonObject;
-import com.networknt.schema.JsonNodePath;
-import com.networknt.schema.JsonSchema;
-import com.networknt.schema.JsonSchemaFactory;
-import com.networknt.schema.SpecVersionDetector;
-import com.networknt.schema.ValidationMessage;
+import com.networknt.schema.Schema;
+import com.networknt.schema.SchemaRegistry;
+import com.networknt.schema.SpecificationVersion;
+import com.networknt.schema.path.NodePath;
+import net.openid.conformance.support.networknt.SpecificationVersionDetector;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 
 import java.io.IOException;
-import java.util.Set;
 import java.util.function.Consumer;
 
 public class JsonSchemaValidation {
@@ -22,7 +21,7 @@ public class JsonSchemaValidation {
 
 	private final Resource schemaResource;
 
-	private Consumer<JsonSchemaFactory.Builder> schemaBuilderCustomizer;
+	private Consumer<SchemaRegistry.Builder> schemaBuilderCustomizer;
 
 	public JsonSchemaValidation(ObjectMapper mapper, Resource schemaResource) {
 		this.mapper = mapper;
@@ -37,11 +36,11 @@ public class JsonSchemaValidation {
 		this(new ClassPathResource(schemaResource));
 	}
 
-	public Consumer<JsonSchemaFactory.Builder> getSchemaBuilderCustomizer() {
+	public Consumer<SchemaRegistry.Builder> getSchemaBuilderCustomizer() {
 		return schemaBuilderCustomizer;
 	}
 
-	public void setSchemaBuilderCustomizer(Consumer<JsonSchemaFactory.Builder> schemaBuilderCustomizer) {
+	public void setSchemaBuilderCustomizer(Consumer<SchemaRegistry.Builder> schemaBuilderCustomizer) {
 		this.schemaBuilderCustomizer = schemaBuilderCustomizer;
 	}
 
@@ -57,12 +56,15 @@ public class JsonSchemaValidation {
 
 		JsonNode schemaNode = mapper.readTree(schemaResource.getInputStream());
 
-		JsonSchemaFactory factory = JsonSchemaFactory.getInstance(SpecVersionDetector.detect(schemaNode), schemaBuilderCustomizer);
-		JsonSchema schema = factory.getSchema(schemaNode);
+		SpecificationVersion specVersion = SpecificationVersionDetector.detect(schemaNode);
+		SchemaRegistry registry = schemaBuilderCustomizer == null
+			? SchemaRegistry.withDefaultDialect(specVersion)
+			: SchemaRegistry.withDefaultDialect(specVersion, schemaBuilderCustomizer);
+		Schema schema = registry.getSchema(schemaNode);
 
 		JsonNode inputNode = mapper.readTree(jsonInput);
 
-		Set<ValidationMessage> errors = schema.validate(inputNode);
+		var errors = schema.validate(inputNode);
 
 		return new JsonSchemaValidationResult(errors);
 	}
@@ -73,7 +75,7 @@ public class JsonSchemaValidation {
 	 * @param property
 	 * @return
 	 */
-	public static String toInstancePropertyPath(JsonNodePath path, String property) {
+	public static String toInstancePropertyPath(NodePath path, String property) {
 
 		String propertyPath = path.toString();
 		if (property != null) {
