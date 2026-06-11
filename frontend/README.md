@@ -40,6 +40,7 @@ For Java↔JS API type parity, the codegen pipeline at `src/api/` snapshots
 | `npm run storybook`         | Launch Storybook dev server on port 6006.                                                                  | While authoring components.                           |
 | `npm run build-storybook`   | Static Storybook build.                                                                                    | Rarely; CI handles this.                              |
 | `npm run test-storybook`    | Vitest runner for Storybook play functions **and** axe-core a11y checks (see "Accessibility testing").     | After adding/editing interaction tests or components. |
+| `npm run chromatic`         | Publish Storybook to Chromatic for visual regression review (see "Visual regression testing").             | Rarely; CI publishes on every frontend push.          |
 
 ## Getting started
 
@@ -288,6 +289,32 @@ the `frontend_lint` job, which excludes `test-storybook`). So a11y is a local +
 Storybook-MCP gate for now: **`npm run test`** (which includes `test-storybook`)
 is the correct pre-push gate — a green `npm run test:ci` does **not** exercise
 a11y. Wiring `test-storybook` into CI is deferred.
+
+## Visual regression testing (Chromatic)
+
+Every push that touches `frontend/` or `src/main/resources/static/` triggers
+the `chromatic` CI job, which builds Storybook and publishes a snapshot of
+every story to [Chromatic](https://www.chromatic.com/) for visual diffing
+against the accepted baseline. Visual changes are reviewed (accepted or
+denied) in the Chromatic UI — the link appears in the job log and on the
+GitLab MR widget.
+
+The job is **non-blocking** for now: snapshot diffs exit 0
+(`--exit-zero-on-changes`) and anything else is `allow_failure: true`. It
+becomes a blocking gate only with team sign-off, once the a11y backlog above
+is fixed or formally dismissed in Chromatic.
+
+To run it locally (rarely needed — CI publishes automatically):
+
+```bash
+cd frontend && npm run chromatic
+```
+
+The CLI reads `CHROMATIC_PROJECT_TOKEN` from the environment, or pass
+`-- --project-token=<token>`; the token lives in the `chromatic` job in
+`.gitlab-ci.yml`. Note that every build snapshots all ~650 stories against
+the plan's monthly snapshot quota — prefer letting CI publish over local
+runs, and don't script Chromatic into loops.
 
 ## `--ignore-rev` candidates
 
