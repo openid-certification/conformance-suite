@@ -1,4 +1,5 @@
 import { definePreview } from "@storybook/web-components-vite";
+import a11yAddon from "@storybook/addon-a11y";
 import { setupWorker } from "msw/browser";
 import { MINIMAL_VIEWPORTS } from "storybook/viewport";
 
@@ -28,6 +29,12 @@ async function mswLoader(context) {
 }
 
 export default definePreview({
+  // Compose the a11y addon so its axe `afterEach` runner is part of the project
+  // annotations the Vitest runner actually executes. Registering the addon in
+  // main.js only wires the manager panel — the CSF-factory `addons` array is
+  // what surfaces the addon's preview annotations (afterEach/decorators) into
+  // `npm run test-storybook`.
+  addons: [a11yAddon()],
   parameters: {
     options: {
       // Foundational-first sidebar order. Entries match top-level title
@@ -53,6 +60,39 @@ export default definePreview({
     // without flooding the picker with 30 device profiles.
     viewport: {
       options: MINIMAL_VIEWPORTS,
+    },
+    // Accessibility testing (axe-core via @storybook/addon-a11y, composed into
+    // the Vitest runner through `addons: [a11yAddon()]` above). `test` gates how
+    // violations surface:
+    //   "off"   — skip a11y checks (still inspectable in the addon panel)
+    //   "todo"  — run checks; violations are warnings, do NOT fail the run
+    //   "error" — run checks; violations FAIL `npm run test-storybook`
+    // Project default is "error" so every non-backlog rule is enforced on every
+    // story. To park a single story's failure as review-on-fail, set
+    // `a11y: { test: "todo" }` on that story (narrowest scope) with an inline
+    // backlog comment. See frontend/README.md → "Accessibility testing".
+    a11y: {
+      test: "error",
+      config: {
+        // a11y review backlog — rules that currently fail across the redesign.
+        // `reviewOnFail: true` downgrades each from a hard "violation" (which
+        // would fail the run) to "needs review" (surfaced in the a11y panel,
+        // does NOT fail the run), per the axe-core config contract. All OTHER
+        // rules stay enforced everywhere, and a NEW failure of any rule not in
+        // this list still fails the build. Remove an entry once its debt is
+        // fixed so the rule re-arms. Counts are from the 2026-06-10 baseline
+        // (`npm run test-storybook`); see docs/plans/2026-06-10-002-*.
+        rules: [
+          { id: "color-contrast", reviewOnFail: true }, // 437 — redesign color tokens below WCAG AA
+          { id: "aria-prohibited-attr", reviewOnFail: true }, // 58
+          { id: "aria-allowed-role", reviewOnFail: true }, // 36
+          { id: "label", reviewOnFail: true }, // 2
+          { id: "aria-required-children", reviewOnFail: true }, // 2
+          { id: "landmark-unique", reviewOnFail: true }, // 1
+          { id: "image-alt", reviewOnFail: true }, // 1
+          { id: "heading-order", reviewOnFail: true }, // 1
+        ],
+      },
     },
   },
   loaders: [mswLoader],
