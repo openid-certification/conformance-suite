@@ -87,6 +87,11 @@ public abstract class AbstractCreateSdJwtCredential extends AbstractCondition {
 	}
 
 	protected String createSdJwt(Environment env, JWK publicJWK, ECKey privateKey, String credentialType) {
+		return createSdJwt(env, publicJWK, privateKey, credentialType, additionalClaims);
+	}
+
+	protected String createSdJwt(Environment env, JWK publicJWK, ECKey privateKey, String credentialType,
+								 Map<String, Object> credentialClaims) {
 		JsonElement credentialSigningJwkEl = env.getElementFromObject("config", "credential.signing_jwk");
 		if (credentialSigningJwkEl == null) {
 			throw error("Credential Signing JWK missing from configuration");
@@ -154,8 +159,8 @@ public abstract class AbstractCreateSdJwtCredential extends AbstractCondition {
 		builder.putClaim("iss", baseUrl);
 
 		// add support for adding additional claims from env if present
-		if (additionalClaims != null) {
-			for(var additionalClaim : additionalClaims.entrySet()) {
+		if (credentialClaims != null) {
+			for(var additionalClaim : credentialClaims.entrySet()) {
 				builder.putClaim(additionalClaim.getKey(), additionalClaim.getValue());
 			}
 		}
