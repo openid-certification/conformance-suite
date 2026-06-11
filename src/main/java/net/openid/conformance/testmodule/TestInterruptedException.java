@@ -1,7 +1,10 @@
 package net.openid.conformance.testmodule;
 
+import java.io.Serial;
+
 public class TestInterruptedException extends RuntimeException {
 
+	@Serial
 	private static final long serialVersionUID = 5575434164105800814L;
 
 	private final String testId;

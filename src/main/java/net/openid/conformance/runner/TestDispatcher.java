@@ -32,7 +32,7 @@ import org.springframework.util.AntPathMatcher;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
-import org.springframework.util.StringUtils;
+import org.springframework.util.ObjectUtils;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -313,7 +313,7 @@ public class TestDispatcher implements DataUtils {
 
 	@SuppressWarnings("deprecation")
 	protected MultiValueMap<String, String> convertQueryStringParamsToMap(String queryString) {
-		List<NameValuePair> parameters = StringUtils.isEmpty(queryString) ? List.of() : URLEncodedUtils.parse(queryString, Charset.defaultCharset(), '&');
+		List<NameValuePair> parameters = ObjectUtils.isEmpty(queryString) ? List.of() : URLEncodedUtils.parse(queryString, Charset.defaultCharset(), '&');
 		MultiValueMap<String, String> queryParams = new LinkedMultiValueMap<>();
 
 		for (NameValuePair pair : parameters) {

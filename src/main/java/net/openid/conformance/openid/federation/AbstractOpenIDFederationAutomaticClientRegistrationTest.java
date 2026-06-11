@@ -56,7 +56,7 @@ import net.openid.conformance.variant.FAPIAuthRequestMethod;
 import net.openid.conformance.variant.FederationEntityMetadata;
 import net.openid.conformance.variant.VariantSetup;
 import org.apache.commons.lang3.RandomStringUtils;
-import org.apache.http.client.utils.URIBuilder;
+import org.apache.hc.core5.net.URIBuilder;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;

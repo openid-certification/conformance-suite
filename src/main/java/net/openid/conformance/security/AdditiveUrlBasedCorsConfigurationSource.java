@@ -5,8 +5,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 import jakarta.servlet.http.HttpServletRequest;
-
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 import org.springframework.util.AntPathMatcher;
 import org.springframework.util.Assert;
 import org.springframework.util.PathMatcher;

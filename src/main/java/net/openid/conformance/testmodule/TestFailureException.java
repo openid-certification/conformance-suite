@@ -2,6 +2,8 @@ package net.openid.conformance.testmodule;
 
 import net.openid.conformance.condition.ConditionError;
 
+import java.io.Serial;
+
 /**
  * General exception for anything that has gone wrong in a TestModule
  *
@@ -19,6 +21,7 @@ public class TestFailureException extends TestInterruptedException {
 	/**
 	 *
 	 */
+	@Serial
 	private static final long serialVersionUID = 7168979969763096443L;
 	private String errorDescription;
 

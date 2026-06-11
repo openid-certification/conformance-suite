@@ -1,7 +1,7 @@
 package net.openid.conformance.errorhandling;
 
 import com.google.common.base.Strings;
-import org.springframework.boot.autoconfigure.web.servlet.error.AbstractErrorController;
+import org.springframework.boot.webmvc.autoconfigure.error.AbstractErrorController;
 import org.springframework.boot.web.error.ErrorAttributeOptions;
 import org.springframework.boot.web.servlet.error.ErrorAttributes;
 import org.springframework.http.ResponseEntity;

@@ -1,5 +1,7 @@
 package net.openid.conformance.condition;
 
+import java.io.Serial;
+
 /**
  * Record a failure from a condition
  *
@@ -13,6 +15,7 @@ package net.openid.conformance.condition;
  */
 public class ConditionError extends RuntimeException {
 
+	@Serial
 	private static final long serialVersionUID = 6331346678545936565L;
 
 	private String testId;
