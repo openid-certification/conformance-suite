@@ -11,7 +11,6 @@ import org.springframework.core.env.Profiles;
 import org.springframework.data.mongodb.core.convert.MongoCustomConversions;
 import org.springframework.http.CacheControl;
 import org.springframework.http.converter.HttpMessageConverters;
-import org.springframework.http.converter.json.GsonHttpMessageConverter;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
@@ -126,12 +125,18 @@ public class ApplicationConfig implements WebMvcConfigurer {
 		}
 	}
 
-	@Bean
-	public HttpMessageConverters customConverters() {
-
-		// wire in the special GSON converter to the HTTP message outputs, will automatically handle all __wrapped_key_element structures added by GsonObjectToBsonDocumentConverter
-		GsonHttpMessageConverter gsonHttpMessageConverter = new CollapsingGsonHttpMessageConverter();
-		return HttpMessageConverters.forServer().registerDefaults().addCustomConverter(gsonHttpMessageConverter).build();
+	// The conformance suite serializes all JSON API responses with GSON: its domain objects are GSON/JsonObject
+	// based, and CollapsingGsonHttpMessageConverter additionally collapses the __wrapped_key_element structures
+	// added by GsonObjectToBsonDocumentConverter and applies the ConfigMigratingResponse migration.
+	//
+	// Under Spring Boot 4 a custom `HttpMessageConverters` @Bean is no longer wired into Spring MVC. Spring MVC
+	// builds its converter set via HttpMessageConverters.forServer().registerDefaults() and then invokes this hook,
+	// so withJsonConverter REPLACES the default Jackson JSON converter for application/json. Without this, Jackson
+	// serializes GSON wrappers like ConfigMigratingResponse as raw beans (the "inner" wrapper / expanded-variant
+	// regression). (extendMessageConverters/configureMessageConverters(List) are deprecated-for-removal in Spring 7.)
+	@Override
+	public void configureMessageConverters(HttpMessageConverters.ServerBuilder builder) {
+		builder.withJsonConverter(new CollapsingGsonHttpMessageConverter());
 	}
 
 	@Bean
