@@ -166,6 +166,23 @@ public abstract class AbstractTestModule implements TestModule, DataUtils {
 	}
 
 	/**
+	 * Surface a stable identifier for the logged-in suite user (subject + issuer) into the
+	 * environment under {@code owner_id}, so conditions that scope process-wide state per user
+	 * (e.g. reuse-detection checks backed by RecentValueHistory) can read it. No-op when the
+	 * owner is unknown (e.g. some unit-test setups).
+	 */
+	protected void exposeOwnerIdToEnvironment() {
+		Map<String, String> currentOwner = getOwner();
+		if (currentOwner != null) {
+			String sub = currentOwner.get("sub");
+			String iss = currentOwner.get("iss");
+			if (sub != null && iss != null) {
+				env.putString("owner_id", sub + " " + iss);
+			}
+		}
+	}
+
+	/**
 	 * Create and evaluate a Condition in the current environment. Throw a @TestFailureException if the Condition fails.
 	 *
 	 * onFail is set to FAILURE
