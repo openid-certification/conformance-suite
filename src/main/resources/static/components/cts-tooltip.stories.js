@@ -282,6 +282,19 @@ export const TriggerSwap = {
       await waitFor(() => expect(getTooltipEl()).toBeNull());
     });
 
+    await step("focus also triggers the tooltip on the swapped-in child", async () => {
+      // _wireUp binds focusin/focusout on the new child too, not just the hover
+      // pair — exercise the keyboard/focus path after the swap.
+      second.focus();
+      await waitFor(() => {
+        const tip = getTooltipEl();
+        expect(tip).toBeTruthy();
+        expect(tip?.textContent).toContain("Survives the swap");
+      });
+      second.blur();
+      await waitFor(() => expect(getTooltipEl()).toBeNull());
+    });
+
     await step("the detached old child no longer triggers the tooltip", async () => {
       // `first` was removed by replaceChildren; teardown must have unbound its
       // listeners, so a direct mouseenter dispatch produces no tooltip.

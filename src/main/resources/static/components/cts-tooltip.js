@@ -67,9 +67,14 @@ class CtsTooltip extends HTMLElement {
     // the deferred-insertion case (no child yet at connect). The initial
     // wire-up is just the first sync. disconnectedCallback disconnects the
     // observer, so there is no leak — a cts-tooltip that never gets a child
-    // simply holds an idle observer until it leaves the DOM.
-    this._childObserver = new MutationObserver(() => this._syncTrigger());
-    this._childObserver.observe(this, { childList: true });
+    // simply holds an idle observer until it leaves the DOM. The guard makes
+    // creation idempotent: a normal disconnect→reconnect is fresh (the
+    // disconnect nulled _childObserver), and a reconnect-without-disconnect
+    // never stacks a second observer.
+    if (!this._childObserver) {
+      this._childObserver = new MutationObserver(() => this._syncTrigger());
+      this._childObserver.observe(this, { childList: true });
+    }
     this._syncTrigger();
   }
 

@@ -622,11 +622,12 @@ class CtsPlanStatus extends LitElement {
    * @param {object} mod - The plan module entry.
    * @param {number} index - The module's index in plan order.
    * @param {number} currentIndex - The "you are here" index (log mode) or -1.
-   * @param {boolean} interactive - Whether segments are click targets.
-   * @param {string} mode - The resolved surface mode.
+   * @param {string} mode - The resolved surface mode. Detail-mode anchor
+   *   interactivity is derived inline from `mode` + `this.readonly`; log
+   *   navigability is href-driven; overview is always inert.
    * @returns {import('lit').TemplateResult} The wrapped segment.
    */
-  _renderSegment(mod, index, currentIndex, interactive, mode) {
+  _renderSegment(mod, index, currentIndex, mode) {
     const variant = segmentVariant(mod);
     const word = SEGMENT_STATUS_WORD[variant] || SEGMENT_STATUS_WORD.skip;
     const name = this._moduleName(mod);
@@ -667,7 +668,7 @@ class CtsPlanStatus extends LitElement {
         aria-label=${ariaName}
         aria-current=${ifDefined(isCurrent && href ? "step" : undefined)}
       ></a>`;
-    } else if (interactive && mode === "detail") {
+    } else if (mode === "detail" && !this.readonly) {
       // Detail segments are in-page anchors to the module's row; clicking sets
       // the URL hash → the row's :target highlight. A dimmed segment cancels the
       // jump and emits cts-plan-status-activate so the page clears the filter
@@ -702,12 +703,10 @@ class CtsPlanStatus extends LitElement {
     if (modules.length === 0) return nothing;
 
     const mode = VALID_MODES.has(this.mode) ? this.mode : "overview";
-    // Surface-level interactivity for the detail-mode anchors and the count-badge
-    // filter row; `readonly` is the hard off-switch. Log-mode navigability is NOT
-    // gated here — `_renderSegment` decides it per-segment from href presence (the
-    // page sets `href` only for reachable siblings; the backend `/api/info` gating
-    // is the real access boundary).
-    const interactive = mode === "detail" && !this.readonly;
+    // Segment interactivity is decided inside `_renderSegment`: detail anchors
+    // key off `mode` + `readonly`, log navigability is href-driven (the page
+    // sets `href` only for reachable siblings; the backend `/api/info` gating is
+    // the real access boundary), and overview is always inert.
     const currentIndex = mode === "log" ? this._currentIndex(modules) : -1;
 
     const track = html`<div
@@ -724,7 +723,7 @@ class CtsPlanStatus extends LitElement {
         // index. The index keeps the key unique; the list order is stable
         // (dimming never reorders), so DOM reuse stays positional and correct.
         (mod, index) => `${moduleKey(mod)}#${index}`,
-        (mod, index) => this._renderSegment(mod, index, currentIndex, interactive, mode),
+        (mod, index) => this._renderSegment(mod, index, currentIndex, mode),
       )}
     </div>`;
 
