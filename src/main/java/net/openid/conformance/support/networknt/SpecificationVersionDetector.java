@@ -80,13 +80,30 @@ public final class SpecificationVersionDetector {
 	}
 
 	/**
-	 * Local equivalent of the package-private {@code SchemaRegistry.normalizeDialectId(String)}: drafts 4/6/7
-	 * declare {@code $schema} with a trailing {@code '#'} fragment which must be removed to match the canonical
-	 * dialect ids known to {@link SpecificationVersion#fromDialectId(String)}.
+	 * Local equivalent of the package-private {@code SchemaRegistry.normalizeDialectId(String)}: canonicalises a
+	 * {@code $schema} URI to the <em>exact</em> dialect id that {@link SpecificationVersion#fromDialectId(String)}
+	 * matches (which compares for equality). Drafts 4/6/7 keep the trailing {@code '#'}; 2019-09/2020-12 use the
+	 * {@code https} form without it. Matching by the {@code /draft-XX/} (or {@code /draft/YYYY-MM/}) path segment
+	 * tolerates http/https and trailing-fragment variations in the declared {@code $schema}.
 	 */
 	private static String normalizeDialectId(String dialectId) {
-		if (dialectId != null && dialectId.endsWith("#")) {
-			return dialectId.substring(0, dialectId.length() - 1);
+		if (dialectId == null || !dialectId.contains("://json-schema.org/draft")) {
+			return dialectId;
+		}
+		if (dialectId.contains("/draft-04/")) {
+			return "http://json-schema.org/draft-04/schema#";
+		}
+		if (dialectId.contains("/draft-06/")) {
+			return "http://json-schema.org/draft-06/schema#";
+		}
+		if (dialectId.contains("/draft-07/")) {
+			return "http://json-schema.org/draft-07/schema#";
+		}
+		if (dialectId.contains("/draft/2019-09/")) {
+			return "https://json-schema.org/draft/2019-09/schema";
+		}
+		if (dialectId.contains("/draft/2020-12/")) {
+			return "https://json-schema.org/draft/2020-12/schema";
 		}
 		return dialectId;
 	}
