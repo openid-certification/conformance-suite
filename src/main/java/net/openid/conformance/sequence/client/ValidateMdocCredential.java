@@ -1,6 +1,7 @@
 package net.openid.conformance.sequence.client;
 
 import net.openid.conformance.condition.Condition.ConditionResult;
+import net.openid.conformance.condition.client.EnsureMdocDocTypeMatchesCredentialConfiguration;
 import net.openid.conformance.condition.client.ValidateMdocIssuerSignedItemDigests;
 import net.openid.conformance.condition.client.ValidateMdocIssuerSignedSignature;
 import net.openid.conformance.condition.client.ValidateMdocMsoRevocationMechanism;
@@ -11,8 +12,9 @@ import net.openid.conformance.sequence.AbstractConditionSequence;
  * Used by both VCI issuer tests (after ParseMdocCredentialFromVCIIssuance)
  * and VP wallet tests (after ParseCredentialAsMdoc).
  *
- * Pass {@code isIssuance=true} for VCI issuance (adds issuerAuth signature and IssuerSignedItem
- * digest checks, since VP validates signatures and digests internally via DeviceResponseParser).
+ * Pass {@code isIssuance=true} for VCI issuance (adds issuerAuth signature, IssuerSignedItem
+ * digest and docType checks, since VP validates signatures and digests internally via
+ * DeviceResponseParser and checks docType against the DCQL query).
  */
 public class ValidateMdocCredential extends AbstractConditionSequence {
 
@@ -20,8 +22,8 @@ public class ValidateMdocCredential extends AbstractConditionSequence {
 	private final boolean haip;
 
 	/**
-	 * @param isIssuance true for VCI issuance (adds issuerAuth signature and digest checks),
-	 *                   false for VP presentation (signature and digests checked during parsing)
+	 * @param isIssuance true for VCI issuance (adds issuerAuth signature, digest and docType checks),
+	 *                   false for VP presentation (checked during parsing / against the DCQL query)
 	 * @param haip whether to include HAIP-specific credential checks
 	 */
 	public ValidateMdocCredential(boolean isIssuance, boolean haip) {
@@ -36,6 +38,8 @@ public class ValidateMdocCredential extends AbstractConditionSequence {
 				ConditionResult.FAILURE, "OID4VCI-1FINALA-A.2");
 			callAndContinueOnFailure(ValidateMdocIssuerSignedItemDigests.class,
 				ConditionResult.FAILURE, "ISO18013-5-9.1.2.4");
+			callAndContinueOnFailure(EnsureMdocDocTypeMatchesCredentialConfiguration.class,
+				ConditionResult.FAILURE, "OID4VCI-1FINALA-A.2.2");
 		}
 		if (haip) {
 			callAndContinueOnFailure(ValidateMdocMsoRevocationMechanism.class,
