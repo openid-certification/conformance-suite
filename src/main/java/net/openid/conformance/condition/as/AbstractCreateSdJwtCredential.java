@@ -86,6 +86,16 @@ public abstract class AbstractCreateSdJwtCredential extends AbstractCondition {
 		return jwt.serialize();
 	}
 
+	/**
+	 * The issuance time (epoch seconds) embedded as the credential's {@code iat} (and the base for
+	 * {@code exp}). Defaults to the precise current time. The VCI issuer emulator overrides this to
+	 * round to the hour so that a batch (or several same-dataset credentials) do not share a precise,
+	 * high-entropy timestamp that lets verifiers correlate them — see RFC 9901 §10.1.
+	 */
+	protected long issuanceTimeSeconds() {
+		return Instant.now().getEpochSecond();
+	}
+
 	protected String createSdJwt(Environment env, JWK publicJWK, ECKey privateKey, String credentialType) {
 		return createSdJwt(env, publicJWK, privateKey, credentialType, additionalClaims);
 	}
@@ -153,8 +163,9 @@ public abstract class AbstractCreateSdJwtCredential extends AbstractCondition {
 			builder.putClaim("cnf", cnf);
 		}
 
-		builder.putClaim("iat", Instant.now().getEpochSecond());
-		builder.putClaim("exp", Instant.now().plus(14, ChronoUnit.DAYS).getEpochSecond());
+		long iat = issuanceTimeSeconds();
+		builder.putClaim("iat", iat);
+		builder.putClaim("exp", Instant.ofEpochSecond(iat).plus(14, ChronoUnit.DAYS).getEpochSecond());
 		String baseUrl = env.getString("base_url");
 		builder.putClaim("iss", baseUrl);
 

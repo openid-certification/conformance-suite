@@ -12,6 +12,7 @@ import net.openid.conformance.vci10issuer.condition.VCIEnsureBatchSdJwtCredentia
 import net.openid.conformance.vci10issuer.condition.VCIEnsureBatchSdJwtDisclosureSaltsAreDistinct;
 import net.openid.conformance.vci10issuer.condition.VCIEnsureBatchStatusListIndicesAreUnpredictable;
 import net.openid.conformance.vci10issuer.condition.VCIEnsureBatchStatusReferencesAreDistinct;
+import net.openid.conformance.vci10issuer.condition.VCIEnsureBatchTimeClaimsNotLinkable;
 import net.openid.conformance.vci10issuer.condition.VCIEnsureNotMoreCredentialsThanRequestedProofs;
 import net.openid.conformance.vci10issuer.condition.VCIExtractBatchMdocBindingKeys;
 import net.openid.conformance.vci10issuer.condition.VCIExtractBatchSdJwtBindingKeys;
@@ -98,6 +99,15 @@ public class VCIIssuerBatchIssuance extends AbstractVCIIssuerTestModule {
 		}
 		callAndContinueOnFailure(VCIEnsureBatchBindingKeysMatchSentProofKeys.class, ConditionResult.FAILURE, "OID4VCI-1FINAL-8.3");
 		callAndContinueOnFailure(VCIEnsureBatchBindingKeysAreDistinct.class, ConditionResult.FAILURE, "OID4VCI-1FINAL-8.3", "OID4VCI-1FINAL-3.3.2");
+
+		// Time-claim unlinkability (RFC 9901 §10.1): within a batch the credentials are issued in the
+		// same instant, so a precise iat/nbf (mdoc signed/validFrom) is an identical high-entropy
+		// timestamp shared across the batch. The claims must instead be randomized or rounded.
+		// The §10.1 MUST literally covers the SD-JWT iat/exp/nbf claims; for mdoc validityInfo the
+		// basis is the section's privacy rationale only (and ISO 18013-5 defines 'signed' as the MSO
+		// signing time), so mdoc is checked at WARNING.
+		callAndContinueOnFailure(VCIEnsureBatchTimeClaimsNotLinkable.class,
+			"mso_mdoc".equals(format) ? ConditionResult.WARNING : ConditionResult.FAILURE, "SDJWT-10.1");
 
 		// Token Status List unlinkability: each credential must have a distinct, unpredictable status
 		// list index (HAIP §6.1 makes this a MUST for SD-JWT VCs only; Token Status List §12.5

@@ -2,6 +2,9 @@ package net.openid.conformance.vci10issuer.condition;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import com.nimbusds.jose.jwk.Curve;
+import com.nimbusds.jose.jwk.gen.ECKeyGenerator;
+import com.nimbusds.jose.util.Base64URL;
 import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.condition.ConditionError;
 import net.openid.conformance.logging.BsonEncoding;
@@ -12,6 +15,10 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.multipaz.documenttype.knowntypes.DrivingLicense;
+import org.multipaz.testapp.VciMdocUtils;
+
+import java.util.Base64;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
@@ -57,6 +64,21 @@ public class VCIBatchStatusReferenceChecks_UnitTest {
 		JsonObject c = new JsonObject();
 		c.addProperty("format", "sd_jwt_vc");
 		c.add("sdjwt", sdjwt);
+		return c;
+	}
+
+	/**
+	 * A real mdoc capture (mDL) whose MSO carries a Token Status List reference (uri + idx), so the
+	 * checks' mdoc extraction path (parse MSO -> RevocationStatus.StatusList) is exercised.
+	 */
+	private JsonObject mdocCapture(String uri, long idx) throws Exception {
+		String deviceKey = new ECKeyGenerator(Curve.P_256).generate().toJSONString();
+		String mdocB64Url = VciMdocUtils.createMdocCredential(
+			deviceKey, DrivingLicense.MDL_DOCTYPE, null, null, uri, idx);
+		byte[] issuerSigned = new Base64URL(mdocB64Url).decode();
+		JsonObject c = new JsonObject();
+		c.addProperty("format", "mso_mdoc");
+		c.addProperty("mdoc_credential_cbor", Base64.getEncoder().encodeToString(issuerSigned));
 		return c;
 	}
 
@@ -157,6 +179,44 @@ public class VCIBatchStatusReferenceChecks_UnitTest {
 	@Test
 	public void herd_fewerThanThree_skips() {
 		put(capture("https://issuer/sl/1", 5L), capture("https://issuer/sl/2", 8L));
+		herdCond.execute(env);
+	}
+
+	// --- mdoc status references (MSO RevocationStatus.StatusList extraction path) ----------------
+
+	@Test
+	public void mdoc_distinct_allDistinct_passes() throws Exception {
+		put(mdocCapture("https://issuer/sl/1", 5L), mdocCapture("https://issuer/sl/1", 12L), mdocCapture("https://issuer/sl/1", 99L));
+		distinctCond.execute(env);
+	}
+
+	@Test
+	public void mdoc_distinct_duplicateTuple_fails() throws Exception {
+		put(mdocCapture("https://issuer/sl/1", 5L), mdocCapture("https://issuer/sl/1", 5L));
+		assertThrows(ConditionError.class, () -> distinctCond.execute(env));
+	}
+
+	@Test
+	public void mdoc_unpredictable_arithmeticSequence_fails() throws Exception {
+		put(mdocCapture("u", 10L), mdocCapture("u", 20L), mdocCapture("u", 30L));
+		assertThrows(ConditionError.class, () -> unpredictableCond.execute(env));
+	}
+
+	@Test
+	public void mdoc_unpredictable_randomIndices_passes() throws Exception {
+		put(mdocCapture("u", 5L), mdocCapture("u", 913L), mdocCapture("u", 27L));
+		unpredictableCond.execute(env);
+	}
+
+	@Test
+	public void mdoc_herd_uniqueUriPerCredential_fails() throws Exception {
+		put(mdocCapture("https://issuer/sl/1", 5L), mdocCapture("https://issuer/sl/2", 8L), mdocCapture("https://issuer/sl/3", 2L));
+		assertThrows(ConditionError.class, () -> herdCond.execute(env));
+	}
+
+	@Test
+	public void mdoc_herd_sharedUri_passes() throws Exception {
+		put(mdocCapture("https://issuer/sl/1", 5L), mdocCapture("https://issuer/sl/1", 8L), mdocCapture("https://issuer/sl/1", 2L));
 		herdCond.execute(env);
 	}
 }

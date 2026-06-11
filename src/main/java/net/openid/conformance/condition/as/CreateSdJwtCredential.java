@@ -10,6 +10,7 @@ import net.openid.conformance.testmodule.OIDFJSON;
 
 import java.security.SecureRandom;
 import java.text.ParseException;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -68,6 +69,16 @@ public class CreateSdJwtCredential extends AbstractCreateSdJwtCredential {
 
 		return env;
 
+	}
+
+	@Override
+	protected long issuanceTimeSeconds() {
+		// Round down to the hour so a batch (or several same-dataset credentials) share a coarse,
+		// low-entropy iat/exp rather than a precise timestamp that lets verifiers link them
+		// (RFC 9901 §10.1). The issuer-side linkability checks treat an hour-boundary value as
+		// "rounded" and pass it.
+		long now = Instant.now().getEpochSecond();
+		return now - (now % 3600L);
 	}
 
 	/**
