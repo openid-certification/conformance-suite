@@ -14,7 +14,7 @@ import net.openid.conformance.sharing.AssetSharing;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.security.authentication.ott.OneTimeToken;
-import org.springframework.security.authentication.ott.OneTimeTokenAuthenticationToken;
+import org.springframework.security.authentication.ott.OneTimeTokenAuthentication;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.server.resource.authentication.BearerTokenAuthenticationToken;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -74,7 +74,7 @@ class ShareJwtBearerAuthenticationProvider_UnitTest {
 
 		assertNotNull(result);
 		assertTrue(result.isAuthenticated());
-		OneTimeTokenAuthenticationToken ott = assertInstanceOf(OneTimeTokenAuthenticationToken.class, result);
+		OneTimeTokenAuthentication ott = assertInstanceOf(OneTimeTokenAuthentication.class, result);
 
 		assertTrue(ott.getAuthorities().contains(OIDCAuthenticationFacade.ROLE_PRIVATE_LINK_USER));
 		assertTrue(ott.getAuthorities().contains(OIDCAuthenticationFacade.ROLE_USER));
@@ -94,7 +94,7 @@ class ShareJwtBearerAuthenticationProvider_UnitTest {
 
 		Authentication result = provider.authenticate(bearer(share.getTokenValue()));
 
-		OneTimeTokenAuthenticationToken ott = assertInstanceOf(OneTimeTokenAuthenticationToken.class, result);
+		OneTimeTokenAuthentication ott = assertInstanceOf(OneTimeTokenAuthentication.class, result);
 		PrivateLinkOneTimeToken privateLink = (PrivateLinkOneTimeToken) ott.getDetails();
 		assertEquals(PLAN_ID, privateLink.getSharedAsset().getPlanId());
 		assertEquals(TEST_ID, privateLink.getSharedAsset().getTestId());
