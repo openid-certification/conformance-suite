@@ -31,6 +31,27 @@ public interface DataUtils {
 	MediaType DATAUTILS_MEDIATYPE_APPLICATION_OAUTH_OAUTHZ_REQ_JWT = new MediaType("application", "oauth-authz-req+jwt");
 
 	/**
+	 * Utility function to convert an incoming HttpHeaders to a JSonObject for storage.
+	 * this will throw out any duplicated headers.
+	 */
+	public default JsonObject mapToJsonObject(HttpHeaders headers, boolean lowercase) {
+		JsonObject o = new JsonObject();
+		for (String key : headers.headerNames()) {
+			List<String> values = headers.get(key);
+			if (values != null && values.size() > 1) {
+				o.add(
+					lowercase ? key.toLowerCase() : key,
+					new Gson().toJsonTree(values));
+			} else {
+				o.addProperty(
+					lowercase ? key.toLowerCase() : key,
+					headers.getFirst(key));
+			}
+		}
+		return o;
+	}
+
+	/**
 	 * Utility function to convert an incoming multi-value map to a JSonObject for storage.
 	 * this will throw out any duplicated headers.
 	 */

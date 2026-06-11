@@ -3,6 +3,7 @@ package net.openid.conformance;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoDatabase;
 import com.nimbusds.jose.crypto.bc.BouncyCastleProviderSingleton;
+import jakarta.annotation.PostConstruct;
 import net.openid.conformance.info.TestInfoService;
 import net.openid.conformance.info.TestPlanService;
 import net.openid.conformance.logging.EventLog;
@@ -17,13 +18,12 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.event.ApplicationEnvironmentPreparedEvent;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
-import org.springframework.boot.web.embedded.tomcat.TomcatServletWebServerFactory;
+import org.springframework.boot.tomcat.servlet.TomcatServletWebServerFactory;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.event.EventListener;
 import org.springframework.core.env.ConfigurableEnvironment;
 
-import jakarta.annotation.PostConstruct;
 import java.security.Security;
 
 @SpringBootApplication

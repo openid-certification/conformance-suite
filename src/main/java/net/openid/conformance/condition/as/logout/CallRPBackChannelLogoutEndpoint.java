@@ -6,6 +6,7 @@ import net.openid.conformance.condition.PostEnvironment;
 import net.openid.conformance.condition.PreEnvironment;
 import net.openid.conformance.testmodule.Environment;
 import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.ClientHttpResponse;
@@ -51,7 +52,7 @@ public class CallRPBackChannelLogoutEndpoint extends AbstractCondition {
 
 			try {
 				final String logoutEndpointUri = env.getString("client", "backchannel_logout_uri");
-				HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(formParameters, null);
+				HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(formParameters, (HttpHeaders) null);
 				ResponseEntity<String> response = restTemplate.exchange(logoutEndpointUri, HttpMethod.POST, request, String.class);
 				JsonObject responseInfo = convertResponseForEnvironment("backchannel logout", response);
 

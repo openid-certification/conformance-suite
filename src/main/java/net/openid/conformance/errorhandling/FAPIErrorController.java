@@ -1,15 +1,15 @@
 package net.openid.conformance.errorhandling;
 
 import com.google.common.base.Strings;
-import org.springframework.boot.webmvc.autoconfigure.error.AbstractErrorController;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.boot.web.error.ErrorAttributeOptions;
-import org.springframework.boot.web.servlet.error.ErrorAttributes;
+import org.springframework.boot.webmvc.autoconfigure.error.AbstractErrorController;
+import org.springframework.boot.webmvc.error.ErrorAttributes;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.ModelAndView;
 
-import jakarta.servlet.http.HttpServletRequest;
 import java.util.Map;
 
 @Controller
