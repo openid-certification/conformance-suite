@@ -10,11 +10,11 @@ import com.nimbusds.jose.crypto.ECDSASigner;
 import com.nimbusds.jose.jwk.Curve;
 import com.nimbusds.jose.jwk.ECKey;
 import com.nimbusds.jose.jwk.gen.ECKeyGenerator;
-import com.nimbusds.jose.util.Base64URL;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.ConditionError;
+import net.openid.conformance.condition.client.ParseMdocCredentialFromVCIIssuance;
 import net.openid.conformance.logging.BsonEncoding;
 import net.openid.conformance.logging.TestInstanceEventLog;
 import net.openid.conformance.testmodule.Environment;
@@ -24,10 +24,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.multipaz.testapp.VciMdocUtils;
 
-import java.util.Base64;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @ExtendWith(MockitoExtension.class)
@@ -105,8 +105,12 @@ public class VCIEnsureBindingKeyMatchesProofKey_UnitTest {
 	private void putMdocWithDeviceKey(ECKey deviceKey) {
 		String mdocBase64Url = VciMdocUtils.createMdocCredential(
 			deviceKey.toJSONString(), "org.iso.18013.5.1.mDL", null);
-		byte[] bytes = new Base64URL(mdocBase64Url).decode();
-		env.putString("mdoc_credential_cbor", Base64.getEncoder().encodeToString(bytes));
+		// run the real parse condition so the device key extraction it performs is covered too
+		env.putString("credential", mdocBase64Url);
+		ParseMdocCredentialFromVCIIssuance parseCond = new ParseMdocCredentialFromVCIIssuance();
+		parseCond.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.FAILURE);
+		parseCond.execute(env);
+		assertNotNull(env.getObject("mdoc_device_key_jwk"));
 	}
 
 	@Test
