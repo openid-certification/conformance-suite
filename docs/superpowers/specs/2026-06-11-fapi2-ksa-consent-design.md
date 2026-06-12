@@ -66,11 +66,13 @@ Mirror `OpenBankingUkProfileBehavior` and FAPI1 `setupOpenBankingKSA()`.
    This runs: client_credentials grant → create account-request →
    extract `account_request_id` → set the authorization scope to the consent scope.
 
-2. **Override `getResourceConfiguration()`** to return a new
-   `AbstractFAPI2SPFinalServerTestModule.OpenBankingKSAResourceConfiguration` static
-   class (added next to the existing `OpenBankingUkResourceConfiguration`), mirroring
-   FAPI1's KSA resource config which calls
-   `SetProtectedResourceUrlToSingleResourceEndpoint`.
+2. **No resource-config override needed.** FAPI1 KSA used a custom
+   `OpenBankingKSAResourceConfiguration` calling
+   `SetProtectedResourceUrlToSingleResourceEndpoint` because FAPI1's *default* resource
+   config differs. In FAPI2 the default `FAPIResourceConfiguration` (returned by
+   `FAPI2ProfileBehavior.getResourceConfiguration()`) **already** calls
+   `SetProtectedResourceUrlToSingleResourceEndpoint`, which is exactly what KSA needs.
+   So `KsaProfileBehavior` inherits the default and adds no override here.
 
 3. **Expose the consent-creation URL field**: add
    `"resource.resourceUrlAccountRequests"` to the
@@ -103,7 +105,6 @@ Mirror `OpenBankingBrazilClientProfileBehavior` and FAPI1 `ksaAccountRequestEndp
 
 - `fapi2spfinal/KsaProfileBehavior.java` — add the three OP overrides.
 - `fapi2spfinal/AbstractFAPI2SPFinalServerTestModule.java` — add
-  `OpenBankingKSAResourceConfiguration` static class; add
   `resource.resourceUrlAccountRequests` to the KSA `@VariantConfigurationFields`.
 - `fapi2spfinal/KsaClientProfileBehavior.java` — add the three RP overrides.
 - `fapi2spfinal/AbstractFAPI2SPFinalClientTest.java` — add the
@@ -127,10 +128,19 @@ Mirror `OpenBankingBrazilClientProfileBehavior` and FAPI1 `ksaAccountRequestEndp
    scope" block on OP, and the account-requests endpoint call + consent-scope
    validation on RP).
 
-## Open Items To Confirm During Implementation (non-blocking)
+## Resolved During Design
 
-- Exact `resource.resourceUrlAccountRequests` plumbing in FAPI2 (condition that reads
-  it, and whether it is already consumed elsewhere).
-- That `SetProtectedResourceUrlToSingleResourceEndpoint` is the correct resource-config
-  condition for FAPI2 KSA (matching FAPI1), versus the accounts-endpoint variant used
-  by UK.
+- `resource.resourceUrlAccountRequests` is read directly from the `resource` config
+  object by `CallKSAAccountRequestsEndpointWithBearerToken` (inside
+  `OpenBankingKSAPreAuthorizationSteps`). Exposing the config field is all that is
+  required for the OP side. `resource.resourceUrl` is already shown for KSA via the
+  base `@ConfigurationFields`.
+- FAPI2's default `FAPIResourceConfiguration` already calls
+  `SetProtectedResourceUrlToSingleResourceEndpoint`, matching FAPI1 KSA, so no custom
+  resource-config class is needed.
+- RP-endpoint helpers (`EnsureIncomingRequestMethodIsPost`,
+  `GenerateKSAAccountConsentId`, `CreateKSAOBAccountRequestResponse` in
+  `condition.rs`; `FAPIKSAValidateConsentScope` in `condition.as`) all exist, and the
+  FAPI2 client base already provides `checkMtlsCertificate`,
+  `checkResourceEndpointRequest`, `exposeEnvString`, `headersFromJson`,
+  `ClearAccessTokenFromRequest`, and `CreateFapiInteractionIdIfNeeded`.
