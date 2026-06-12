@@ -1,5 +1,13 @@
+# Extract the Spring Boot jar so classes load from regular filesystem jars
+# instead of Boot's nested-jar handler, which JFR showed as a major source of
+# lock contention during cold start. Multi-stage so the fat jar isn't in the
+# final image.
+FROM eclipse-temurin:21 AS extract
+COPY target/fapi-test-suite.jar /tmp/
+RUN java -Djarmode=tools -jar /tmp/fapi-test-suite.jar extract --destination /server
+
 FROM eclipse-temurin:21
-COPY target/fapi-test-suite.jar /server/
+COPY --from=extract /server /server
 ENV BASE_URL https://localhost:8443
 ENV BASE_MTLS_URL https://localhost:8444
 ENV MONGODB_HOST mongodb
