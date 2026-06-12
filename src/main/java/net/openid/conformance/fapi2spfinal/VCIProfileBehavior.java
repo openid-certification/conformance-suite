@@ -399,7 +399,7 @@ public class VCIProfileBehavior extends FAPI2ProfileBehavior {
 				// no proofs are sent when the credential configuration doesn't use cryptographic binding
 				call(condition(VCIEnsureMdocDeviceKeyMatchesProofKey.class)
 					.skipIfObjectMissing("credential_request_proofs")
-					.skipIfStringMissing("mdoc_credential_cbor")
+					.skipIfObjectMissing("mdoc_device_key_jwk")
 					.onSkip(ConditionResult.INFO)
 					.onFail(ConditionResult.FAILURE)
 					.requirements("OID4VCI-1FINAL-8.3")
