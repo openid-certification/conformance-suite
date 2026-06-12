@@ -6,10 +6,14 @@ import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.WaitForOneSecond;
 import net.openid.conformance.openid.ssf.conditions.OIDSSFLogSuccessCondition;
 import net.openid.conformance.openid.ssf.conditions.events.OIDSSFSecurityEvent;
+import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFEnsureStreamContainsCaepInteropEvent;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFGenerateStreamSET;
 import net.openid.conformance.openid.ssf.conditions.streams.OIDSSFStreamUtils;
+import net.openid.conformance.testmodule.OIDFJSON;
 import net.openid.conformance.testmodule.PublishTestModule;
 
+import java.util.LinkedHashSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -28,10 +32,16 @@ import java.util.concurrent.TimeUnit;
 		 * read the stream status
 		 * trigger a stream verification
 		 * acknowledge the stream verification.
-		 * retrieve and acknowledge the CAEP events 'session-revoked', 'credential-change' and 'device-compliance-change'""",
+		 * retrieve and acknowledge the requested CAEP events (at least one of 'session-revoked', 'credential-change' and 'device-compliance-change' must be requested)""",
 	profile = "OIDSSF"
 )
 public class OIDSSFReceiverStreamCaepInteropTest extends AbstractOIDSSFReceiverTestModule {
+
+	private static final Map<String, String> CAEP_INTEROP_EVENT_SPEC_REFS = Map.of( //
+		SsfEvents.CAEP_SESSION_REVOKED_EVENT_TYPE, "CAEPIOP-3.1", //
+		SsfEvents.CAEP_CREDENTIAL_CHANGE_EVENT_TYPE, "CAEPIOP-3.2", //
+		SsfEvents.CAEP_DEVICE_COMPLIANCE_CHANGE_EVENT_TYPE, "CAEPIOP-3.3" //
+	);
 
 	volatile String createdStreamId;
 
@@ -45,11 +55,14 @@ public class OIDSSFReceiverStreamCaepInteropTest extends AbstractOIDSSFReceiverT
 
 	volatile ConcurrentMap<String, Set<String>> eventsEnqueued;
 
+	volatile boolean caepInteropEventsGenerated;
+
 	@Override
 	public void start() {
 		super.start();
 		eventsAcked = new ConcurrentHashMap<>();
 		eventsEnqueued = new ConcurrentHashMap<>();
+		caepInteropEventsGenerated = false;
 		scheduleTask(new CheckTestFinishedTask(this::isFinished), 4, TimeUnit.SECONDS);
 	}
 
@@ -70,8 +83,8 @@ public class OIDSSFReceiverStreamCaepInteropTest extends AbstractOIDSSFReceiverT
 		boolean detectedReadStream = createdStreamId.equals(readStreamId);
 		boolean detectedReadStreamStatus = createdStreamId.equals(readStreamStatusStreamId);
 		boolean detectedStreamVerification = createdStreamId.equals(verificationStreamId);
-		boolean detectedAllExpectedAcknowledgedEvents = eventsAcked.get(createdStreamId) != null
-			&& eventsAcked.get(createdStreamId).containsAll(eventsEnqueued.get(createdStreamId));
+		boolean detectedAllExpectedAcknowledgedEvents = caepInteropEventsGenerated
+			&& eventsAcked.getOrDefault(createdStreamId, Set.of()).containsAll(eventsEnqueued.getOrDefault(createdStreamId, Set.of()));
 
 		return detectedReadStream
 			&& detectedReadStreamStatus
@@ -88,6 +101,7 @@ public class OIDSSFReceiverStreamCaepInteropTest extends AbstractOIDSSFReceiverT
 
 		createdStreamId = streamId;
 		callAndContinueOnFailure(new OIDSSFLogSuccessCondition("Detected Stream creation for stream_id=" + streamId), Condition.ConditionResult.FAILURE, "CAEPIOP-2.3.8.2");
+		callAndContinueOnFailure(new OIDSSFEnsureStreamContainsCaepInteropEvent(streamId), Condition.ConditionResult.FAILURE, "CAEPIOP-3");
 	}
 
 	@Override
@@ -139,27 +153,42 @@ public class OIDSSFReceiverStreamCaepInteropTest extends AbstractOIDSSFReceiverT
 
 	protected void afterInitialStreamVerification(String streamId, OIDSSFSecurityEvent verificationEvent) {
 
-		// generate CAEP Interop events
+		// generate the CAEP Interop events requested by the receiver
 		callAndStopOnFailure(WaitForOneSecond.class);
 
 		long now = System.currentTimeMillis();
 		JsonObject validSubject = env.getElementFromObject("config", "ssf.subjects.valid").getAsJsonObject();
 
-		SsfEvent sessionRevokedEvent = generateSsfEventExample(SsfEvents.CAEP_SESSION_REVOKED_EVENT_TYPE, now);
-		var generateSecurityEventToken = new OIDSSFGenerateStreamSET(eventStore, streamId, validSubject, sessionRevokedEvent, this::onStreamEventEnqueued);
-		callAndContinueOnFailure(generateSecurityEventToken, Condition.ConditionResult.WARNING, "CAEPIOP-3.1");
+		JsonObject streamConfig = OIDSSFStreamUtils.getStreamConfig(env, streamId);
+		Set<String> deliveredCaepInteropEvents = getDeliveredCaepInteropEventTypes(streamConfig);
 
-		SsfEvent credentialChange = generateSsfEventExample(SsfEvents.CAEP_CREDENTIAL_CHANGE_EVENT_TYPE, now);
-		generateSecurityEventToken = new OIDSSFGenerateStreamSET(eventStore, streamId, validSubject, credentialChange, this::onStreamEventEnqueued);
-		callAndContinueOnFailure(generateSecurityEventToken, Condition.ConditionResult.WARNING, "CAEPIOP-3.2");
+		for (String eventType : SsfEvents.CAEP_INTEROP_EVENT_TYPES) {
+			if (!deliveredCaepInteropEvents.contains(eventType)) {
+				eventLog.log(getName(), "Skipping CAEP event '%s' which was not requested by the receiver for stream_id=%s".formatted(eventType, streamId));
+				continue;
+			}
 
-		SsfEvent deviceComplianceChange = generateSsfEventExample(SsfEvents.CAEP_DEVICE_COMPLIANCE_CHANGE_EVENT_TYPE, now);
-		generateSecurityEventToken = new OIDSSFGenerateStreamSET(eventStore, streamId, validSubject, deviceComplianceChange, this::onStreamEventEnqueued);
-		callAndContinueOnFailure(generateSecurityEventToken, Condition.ConditionResult.WARNING, "CAEPIOP-3.3");
+			SsfEvent event = generateSsfEventExample(eventType, now);
+			var generateSecurityEventToken = new OIDSSFGenerateStreamSET(eventStore, streamId, validSubject, event, this::onStreamEventEnqueued);
+			callAndContinueOnFailure(generateSecurityEventToken, Condition.ConditionResult.WARNING, CAEP_INTEROP_EVENT_SPEC_REFS.get(eventType));
+		}
+
+		caepInteropEventsGenerated = true;
 
 		// if push delivery is used - send out the events immediately
-		if (OIDSSFStreamUtils.isPushDelivery(OIDSSFStreamUtils.getStreamConfig(env, streamId))) {
+		if (OIDSSFStreamUtils.isPushDelivery(streamConfig)) {
 			scheduleTask(new OIDSSFHandlePushDeliveryTask(streamId), 1, java.util.concurrent.TimeUnit.SECONDS);
 		}
+	}
+
+	protected Set<String> getDeliveredCaepInteropEventTypes(JsonObject streamConfig) {
+
+		if (streamConfig == null || streamConfig.get("events_delivered") == null) {
+			return Set.of();
+		}
+
+		Set<String> eventTypes = new LinkedHashSet<>(OIDFJSON.convertJsonArrayToList(streamConfig.get("events_delivered").getAsJsonArray()));
+		eventTypes.retainAll(SsfEvents.CAEP_INTEROP_EVENT_TYPES);
+		return eventTypes;
 	}
 }
