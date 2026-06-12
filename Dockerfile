@@ -16,7 +16,7 @@ ENTRYPOINT java \
   -D"oidc.google.secret=${OIDC_GOOGLE_SECRET}" \
   -D"oidc.gitlab.clientid=${OIDC_GITLAB_CLIENTID}" \
   -D"oidc.gitlab.secret=${OIDC_GITLAB_SECRET}" \
+  -Djdk.tls.maxHandshakeMessageSize=65536 \
   $JAVA_EXTRA_ARGS \
- -jar /server/fapi-test-suite.jar \
- -Djdk.tls.maxHandshakeMessageSize=65536
+ -jar /server/fapi-test-suite.jar
 

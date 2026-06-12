@@ -17,8 +17,8 @@ services:
      - ./target/:/server/
     command: >
       java
-      -jar /server/fapi-test-suite.jar
       -Djdk.tls.maxHandshakeMessageSize=65536
+      -jar /server/fapi-test-suite.jar
       --fintechlabs.base_url=https://localhost.emobix.co.uk:8443
       --fintechlabs.devmode=true
       --fintechlabs.startredir=true
