@@ -6,6 +6,7 @@ import net.openid.conformance.condition.client.CheckDiscEndpointGrantTypesSuppor
 import net.openid.conformance.condition.client.CheckDiscEndpointRequestObjectSigningAlgValuesSupportedContainsPS256;
 import net.openid.conformance.sequence.AbstractConditionSequence;
 import net.openid.conformance.sequence.ConditionSequence;
+import net.openid.conformance.sequence.client.OpenBankingKSAPreAuthorizationSteps;
 
 import java.util.function.Supplier;
 
@@ -18,6 +19,14 @@ public class KsaProfileBehavior extends FAPI2ProfileBehavior {
 	@Override
 	public boolean requiresMtlsEverywhere() {
 		return true;
+	}
+
+	@Override
+	public Supplier<? extends ConditionSequence> getPreAuthorizationSteps() {
+		return () -> new OpenBankingKSAPreAuthorizationSteps(
+			module.isSecondClient(),
+			false, // includeXFapiFinancialId, as for FAPI2 OpenBanking UK
+			module.addClientAuthentication);
 	}
 
 	@Override
