@@ -251,6 +251,7 @@ import java.util.function.Supplier;
 	"mtls2.ca"
 })
 @VariantConfigurationFields(parameter = FAPI2FinalOPProfile.class, value = "ksa", configurationFields = {
+	"resource.resourceUrlAccountRequests",
 	"mtls.key",
 	"mtls.cert",
 	"mtls.ca",
