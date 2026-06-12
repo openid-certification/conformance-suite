@@ -110,10 +110,12 @@ import net.openid.conformance.condition.common.RARSupport;
 import net.openid.conformance.condition.common.RARSupport.EnsureEffectiveAuthorizationEndpointRequestContainsValidRAR;
 import net.openid.conformance.condition.rs.ClearAccessTokenFromRequest;
 import net.openid.conformance.condition.rs.CreateFAPIAccountEndpointResponse;
+import net.openid.conformance.condition.rs.CreateKSAOBAccountRequestResponse;
 import net.openid.conformance.condition.rs.CreateOpenBankingAccountRequestResponse;
 import net.openid.conformance.condition.rs.CreateResourceEndpointDpopErrorResponse;
 import net.openid.conformance.condition.rs.CreateResourceServerDpopNonce;
 import net.openid.conformance.condition.rs.EnsureBearerAccessTokenNotInParams;
+import net.openid.conformance.condition.rs.EnsureIncomingRequestMethodIsPost;
 import net.openid.conformance.condition.rs.ExtractBearerAccessTokenFromHeader;
 import net.openid.conformance.condition.rs.ExtractDpopAccessTokenFromHeader;
 import net.openid.conformance.condition.rs.ExtractDpopProofFromHeader;
@@ -121,6 +123,7 @@ import net.openid.conformance.condition.rs.ExtractFapiDateHeader;
 import net.openid.conformance.condition.rs.ExtractFapiIpAddressHeader;
 import net.openid.conformance.condition.rs.FAPIBrazilRsPathConstants;
 import net.openid.conformance.condition.rs.GenerateAccountRequestId;
+import net.openid.conformance.condition.rs.GenerateKSAAccountConsentId;
 import net.openid.conformance.condition.rs.LoadUserInfo;
 import net.openid.conformance.condition.rs.RequireDpopAccessToken;
 import net.openid.conformance.condition.rs.RequireDpopClientCredentialAccessToken;
@@ -1546,6 +1549,38 @@ public abstract class AbstractFAPI2SPFinalClientTest extends AbstractTestModule 
 		setStatus(Status.WAITING);
 
 		return responseObject;
+	}
+
+	protected Object ksaAccountRequestEndpoint(String requestId) {
+		setStatus(Status.RUNNING);
+		call(exec().startBlock("New consent endpoint").mapKey("incoming_request", requestId));
+
+		call(exec().mapKey("token_endpoint_request", requestId));
+		checkMtlsCertificate();
+		call(exec().unmapKey("token_endpoint_request"));
+
+		// Requires method=POST. defined in API docs
+		callAndStopOnFailure(EnsureIncomingRequestMethodIsPost.class);
+
+		checkResourceEndpointRequest(true);
+
+		callAndContinueOnFailure(CreateFapiInteractionIdIfNeeded.class, Condition.ConditionResult.FAILURE, "FAPI1-BASE-6.2.1-11");
+
+		callAndStopOnFailure(GenerateKSAAccountConsentId.class);
+		exposeEnvString("account_request_id");
+
+		callAndStopOnFailure(CreateKSAOBAccountRequestResponse.class);
+
+		JsonObject accountRequestResponse = env.getObject("account_request_response");
+		JsonObject headerJson = env.getObject("account_request_response_headers");
+
+		callAndStopOnFailure(ClearAccessTokenFromRequest.class);
+
+		call(exec().unmapKey("incoming_request").endBlock());
+
+		setStatus(Status.WAITING);
+
+		return new ResponseEntity<Object>(accountRequestResponse, headersFromJson(headerJson), HttpStatus.OK);
 	}
 
 	protected Object accountsEndpoint(String requestId) {
