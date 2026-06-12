@@ -82,9 +82,7 @@ TvFLVc4ESGy3AtdC+g==
 	): String {
 		// Parse device public key from JWK (if provided)
 		val devicePublicKey: EcPublicKey? = if (devicePublicKeyJwk != null) {
-			val jwk = JWK.parse(devicePublicKeyJwk)
-			val ecKey = jwk.toECKey()
-			convertJwkToEcPublicKey(ecKey)
+			convertJwkToEcPublicKey(JWK.parse(devicePublicKeyJwk))
 		} else {
 			null
 		}
@@ -279,7 +277,19 @@ TvFLVc4ESGy3AtdC+g==
 		}
 	}
 
-	private fun convertJwkToEcPublicKey(ecKey: ECKey): EcPublicKey {
+	private fun convertJwkToEcPublicKey(jwk: JWK): EcPublicKey {
+		if (jwk is com.nimbusds.jose.jwk.OctetKeyPair) {
+			// ISO 18013-5 also permits Curve25519/448 device keys, which JWK models as OKP
+			val curve = when (jwk.curve) {
+				com.nimbusds.jose.jwk.Curve.Ed25519 -> EcCurve.ED25519
+				com.nimbusds.jose.jwk.Curve.Ed448 -> EcCurve.ED448
+				com.nimbusds.jose.jwk.Curve.X25519 -> EcCurve.X25519
+				com.nimbusds.jose.jwk.Curve.X448 -> EcCurve.X448
+				else -> throw IllegalArgumentException("Unsupported OKP curve: " + jwk.curve)
+			}
+			return org.multipaz.crypto.EcPublicKeyOkp(curve, jwk.x.decode())
+		}
+		val ecKey = jwk.toECKey()
 		val x = ecKey.x.decode()
 		val y = ecKey.y.decode()
 		return EcPublicKeyDoubleCoordinate(EcCurve.P256, x, y)
