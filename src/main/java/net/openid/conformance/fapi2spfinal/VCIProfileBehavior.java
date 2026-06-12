@@ -421,7 +421,9 @@ public class VCIProfileBehavior extends FAPI2ProfileBehavior {
 			@Override
 			public void evaluate() {
 				callAndContinueOnFailure(ValidateCredentialIsUnpaddedBase64Url.class, ConditionResult.FAILURE, "OID4VCI-1FINALA-A.2.4");
-				callAndContinueOnFailure(ParseMdocCredentialFromVCIIssuance.class, ConditionResult.FAILURE, "OID4VCI-1FINALA-A.2");
+				// every following check depends on the parsed credential, so stop rather than continue
+				// into checks that would skip or see a previously parsed credential's state
+				callAndStopOnFailure(ParseMdocCredentialFromVCIIssuance.class, "OID4VCI-1FINALA-A.2");
 				// Capture the whole credential + the issuer's Date header now (see SD-JWT path). Tests
 				// that obtain two or more credentials of the same dataset later compare the MSO signed
 				// timestamps (RFC 9901 §10.1 unlinkability applies to mdoc too).
@@ -444,7 +446,9 @@ public class VCIProfileBehavior extends FAPI2ProfileBehavior {
 		return new AbstractConditionSequence() {
 			@Override
 			public void evaluate() {
-				callAndContinueOnFailure(ParseCredentialAsSdJwt.class, ConditionResult.FAILURE, "SDJWT-4");
+				// every following check depends on the parsed credential, so stop rather than continue
+				// into checks that would skip or see a previously parsed credential's state
+				callAndStopOnFailure(ParseCredentialAsSdJwt.class, "SDJWT-4");
 				// Capture the whole credential + the issuer's Date header now, before any notification
 				// request overwrites the response headers. Tests that obtain two or more credentials of
 				// the same dataset later compare them (RFC 9901 §10.1 unlinkability).
