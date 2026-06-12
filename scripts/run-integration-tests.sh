@@ -56,7 +56,9 @@ for candidate in "${SUITE_DIR}/.devenv/state/venv" "${MAIN_REPO}/.devenv/state/v
     fi
 done
 
-JAR="${SUITE_DIR}/target/fapi-test-suite.jar"
+MAIN_CLASS=net.openid.conformance.Application
+CLASSES_DIR="${SUITE_DIR}/target/classes"
+DEP_CP_FILE="${SUITE_DIR}/target/dev-classpath.txt"
 SERVER_PORT=8080
 SERVER_LOG="${SUITE_DIR}/target/server.log"
 
@@ -91,14 +93,26 @@ TEST_SUITE="$1"
 die() { echo "ERROR: $*" >&2; exit 1; }
 
 # --- 1. Build ---
-echo "==> Building JAR..."
+# Use `mvn compile` + classpath launch instead of `mvn clean package` + fat-JAR;
+# this skips spring-boot-maven-plugin:repackage (~20 s) and avoids `clean` (~70 s
+# of redundant work). Only used locally — CI builds the fat JAR via its own step.
+echo "==> Compiling..."
 cd "$SUITE_DIR"
-mvn -B -DskipTests -Dpmd.skip clean package || die "Build failed"
-[ -f "$JAR" ] || die "JAR not found at $JAR"
+mvn -B -DskipTests -Dpmd.skip compile || die "Build failed"
+[ -f "$CLASSES_DIR/net/openid/conformance/Application.class" ] || die "Compiled classes not found at $CLASSES_DIR"
+# Cache the dependency classpath; regenerate if missing or older than pom.xml.
+# `-DincludeScope=runtime` excludes provided-scope deps — notably spring-boot-devtools,
+# which auto-activates from target/classes and breaks the test runner (modules
+# go to INTERRUPTED) due to its RestartClassLoader.
+if [ ! -s "$DEP_CP_FILE" ] || [ "$SUITE_DIR/pom.xml" -nt "$DEP_CP_FILE" ]; then
+    echo "==> Resolving dependency classpath..."
+    mvn -B -q dependency:build-classpath -DincludeScope=runtime -Dmdep.outputFile="$DEP_CP_FILE" || die "Classpath resolve failed"
+fi
+APP_CP="$CLASSES_DIR:$(cat "$DEP_CP_FILE")"
 
 # --- 2. Kill existing server ---
 echo "==> Stopping any existing server..."
-pkill -f "fapi-test-suite.jar" || true
+pkill -f "$MAIN_CLASS" || true
 # Kill anything on the server port
 kill $(lsof -tiTCP:${SERVER_PORT} -sTCP:LISTEN 2>/dev/null) 2>/dev/null || true
 sleep 1
@@ -139,7 +153,7 @@ if [ "$TEST_SUITE" = "--security-tests" ]; then
       )" || die "Failed to insert API token into MongoDB"
     export CONFORMANCE_TOKEN="$SECURITY_TOKEN"
     echo "    API token inserted into MongoDB"
-    java -jar "$JAR" \
+    java -cp "$APP_CP" "$MAIN_CLASS" \
       --fintechlabs.devmode=false \
       --spring.data.mongodb.uri=mongodb://127.0.0.1:27017/test_suite \
       --fintechlabs.base_url=https://localhost.emobix.co.uk:8443 \
@@ -147,7 +161,7 @@ if [ "$TEST_SUITE" = "--security-tests" ]; then
       --server.port="$SERVER_PORT" \
       > "$SERVER_LOG" 2>&1 &
 else
-    java -jar "$JAR" \
+    java -cp "$APP_CP" "$MAIN_CLASS" \
       --spring.profiles.active=dev \
       --server.port="$SERVER_PORT" \
       > "$SERVER_LOG" 2>&1 &
