@@ -9,6 +9,7 @@ import org.multipaz.cbor.DataItem;
 import org.multipaz.cose.CoseSign1;
 import org.multipaz.crypto.EcPublicKey;
 import org.multipaz.crypto.EcPublicKeyDoubleCoordinate;
+import org.multipaz.crypto.EcPublicKeyOkp;
 import org.multipaz.mdoc.mso.MobileSecurityObject;
 
 import java.util.LinkedHashMap;
@@ -86,20 +87,26 @@ public final class MdocUtil {
 
 	/**
 	 * Converts the device key (deviceKeyInfo.deviceKey) of an already parsed MSO to a JWK.
+	 * Both double-coordinate EC keys and the Curve25519/448 (OKP) keys that ISO 18013-5 also
+	 * permits are supported.
 	 */
 	public static JsonObject deviceKeyToJwk(MobileSecurityObject mso) throws MdocParseException {
 		EcPublicKey deviceKey = mso.getDeviceKey();
 
-		if (!(deviceKey instanceof EcPublicKeyDoubleCoordinate ecKey)) {
-			throw new MdocParseException("The mdoc credential's device key is not an EC key with x/y coordinates"
+		JsonObject jwk = new JsonObject();
+		if (deviceKey instanceof EcPublicKeyDoubleCoordinate ecKey) {
+			jwk.addProperty("kty", "EC");
+			jwk.addProperty("crv", ecKey.getCurve().getJwkName());
+			jwk.addProperty("x", Base64URL.encode(ecKey.getX()).toString());
+			jwk.addProperty("y", Base64URL.encode(ecKey.getY()).toString());
+		} else if (deviceKey instanceof EcPublicKeyOkp okpKey) {
+			jwk.addProperty("kty", "OKP");
+			jwk.addProperty("crv", okpKey.getCurve().getJwkName());
+			jwk.addProperty("x", Base64URL.encode(okpKey.getX()).toString());
+		} else {
+			throw new MdocParseException("The mdoc credential's device key is not an EC or OKP key"
 				+ " (curve: " + deviceKey.getCurve().name() + ")");
 		}
-
-		JsonObject jwk = new JsonObject();
-		jwk.addProperty("kty", "EC");
-		jwk.addProperty("crv", ecKey.getCurve().getJwkName());
-		jwk.addProperty("x", Base64URL.encode(ecKey.getX()).toString());
-		jwk.addProperty("y", Base64URL.encode(ecKey.getY()).toString());
 		return jwk;
 	}
 

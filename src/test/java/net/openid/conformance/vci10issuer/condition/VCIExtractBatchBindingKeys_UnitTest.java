@@ -10,7 +10,9 @@ import com.nimbusds.jose.crypto.ECDSASigner;
 import com.nimbusds.jose.jwk.Curve;
 import com.nimbusds.jose.jwk.ECKey;
 import com.nimbusds.jose.jwk.JWK;
+import com.nimbusds.jose.jwk.OctetKeyPair;
 import com.nimbusds.jose.jwk.gen.ECKeyGenerator;
+import com.nimbusds.jose.jwk.gen.OctetKeyPairGenerator;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import net.openid.conformance.condition.Condition;
@@ -115,6 +117,20 @@ public class VCIExtractBatchBindingKeys_UnitTest {
 			JWK.parse(keys.get(0).getAsJsonObject().toString()).computeThumbprint());
 		assertEquals(key2.toPublicJWK().computeThumbprint(),
 			JWK.parse(keys.get(1).getAsJsonObject().toString()).computeThumbprint());
+	}
+
+	@Test
+	public void testMdoc_extractsOkpDeviceKey() throws Exception {
+		// ISO 18013-5 also permits Curve25519/448 device keys, which JWK models as kty OKP
+		OctetKeyPair okpKey = new OctetKeyPairGenerator(Curve.Ed25519).generate();
+		putCredentials(VciMdocUtils.createMdocCredential(okpKey.toJSONString(), "org.iso.18013.5.1.mDL", null));
+
+		assertDoesNotThrow(() -> mdocCond.execute(env));
+
+		JsonArray keys = env.getObject("vci_batch_binding_keys").getAsJsonArray("keys");
+		assertEquals(1, keys.size());
+		assertEquals(okpKey.toPublicJWK().computeThumbprint(),
+			JWK.parse(keys.get(0).getAsJsonObject().toString()).computeThumbprint());
 	}
 
 	@Test
