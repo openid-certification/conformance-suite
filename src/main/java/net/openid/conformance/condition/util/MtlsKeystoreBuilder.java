@@ -1,18 +1,13 @@
 package net.openid.conformance.condition.util;
 
 import com.google.common.collect.Lists;
-import com.nimbusds.jose.crypto.bc.BouncyCastleProviderSingleton;
 import net.openid.conformance.testmodule.Environment;
-import org.bouncycastle.asn1.ASN1Sequence;
-import org.bouncycastle.asn1.pkcs.PrivateKeyInfo;
-import org.bouncycastle.asn1.x509.AlgorithmIdentifier;
-import org.bouncycastle.asn1.x9.X9ObjectIdentifiers;
+import net.openid.conformance.util.MtlsKeyUtil;
 
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.KeyManagerFactory;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.security.KeyFactory;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
@@ -24,8 +19,6 @@ import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.security.spec.InvalidKeySpecException;
-import java.security.spec.KeySpec;
-import java.security.spec.PKCS8EncodedKeySpec;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
@@ -47,7 +40,7 @@ public class MtlsKeystoreBuilder {
 		PublicKey publicKey = cert.getPublicKey();
 		String alg = publicKey.getAlgorithm();
 
-		PrivateKey key = generateAlgPrivateKeyFromDER(alg, keyBytes);
+		PrivateKey key = MtlsKeyUtil.generateAlgPrivateKeyFromDER(alg, keyBytes);
 
 		ArrayList<X509Certificate> chain = Lists.newArrayList(cert);
 		if (clientCa != null) {
@@ -64,27 +57,6 @@ public class MtlsKeystoreBuilder {
 		keyManagerFactory.init(keystore, "changeit".toCharArray());
 
 		return  keyManagerFactory.getKeyManagers();
-	}
-
-
-	protected static PrivateKey generateAlgPrivateKeyFromDER(String alg, byte[] keyBytes) throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {
-		try {
-			// try to generate private key using PKCS8, works for both RSA and EC alg
-			// RSA alg will handle both PKCS1 and PKCS8 format here
-			// EC alg will throw exception for PKCS1
-			KeySpec kspec = new PKCS8EncodedKeySpec(keyBytes);
-			return KeyFactory.getInstance(alg, BouncyCastleProviderSingleton.getInstance()).generatePrivate(kspec);
-		} catch (InvalidKeySpecException e) {
-			if("EC".equals(alg)) {
-				// try to generate private key using PKCS1, code from ValidateMTLSCertificatesAsX509.verifyECPrivateKey
-				ASN1Sequence seq = ASN1Sequence.getInstance(keyBytes);
-				org.bouncycastle.asn1.sec.ECPrivateKey pKey = org.bouncycastle.asn1.sec.ECPrivateKey.getInstance(seq);
-				AlgorithmIdentifier algId = new AlgorithmIdentifier(X9ObjectIdentifiers.id_ecPublicKey, pKey.getParametersObject());
-				byte[] server_pkcs8 = new PrivateKeyInfo(algId, pKey).getEncoded();
-				return KeyFactory.getInstance(alg, BouncyCastleProviderSingleton.getInstance()).generatePrivate(new PKCS8EncodedKeySpec(server_pkcs8));
-			}
-			throw e;
-		}
 	}
 
 
