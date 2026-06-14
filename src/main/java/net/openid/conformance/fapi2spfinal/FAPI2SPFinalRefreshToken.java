@@ -108,7 +108,8 @@ public class FAPI2SPFinalRefreshToken extends AbstractFAPI2SPFinalMultipleClient
 		callAndContinueOnFailure(EnsureServerConfigurationSupportsRefreshToken.class, Condition.ConditionResult.WARNING, "OIDCD-3");
 		callAndContinueOnFailure(EnsureRefreshTokenContainsAllowedCharactersOnly.class, Condition.ConditionResult.FAILURE, "RFC6749-A.17");
 		eventLog.endBlock();
-		ConditionSequence sequence = new RefreshTokenRequestSteps(isSecondClient(), addClientAuthentication, isDpop());
+		boolean clientAttestation = getVariant(ClientAuthType.class) == ClientAuthType.CLIENT_ATTESTATION;
+		ConditionSequence sequence = new RefreshTokenRequestSteps(isSecondClient(), addClientAuthentication, isDpop(), null, clientAttestation);
 		String[] rotationProhibitedRequirements = profileBehavior.refreshTokenRotationProhibitedRequirements();
 		if (rotationProhibitedRequirements != null) {
 			sequence = sequence.insertAfter(ExtractIdTokenFromTokenResponse.class,
@@ -133,7 +134,7 @@ public class FAPI2SPFinalRefreshToken extends AbstractFAPI2SPFinalMultipleClient
 				// Restore the previous refresh token.
 				env.putString("refresh_token", env.getString("refresh_token_prev"));
 
-				ConditionSequence sequence1 = new RefreshTokenRequestSteps(isSecondClient(), addClientAuthentication, isDpop(), "Refresh Token Request With Previous Token, FAPI 2.0 Security Profile 5.3.2.1-9").butFirst(condition(WaitFor30Seconds.class));
+				ConditionSequence sequence1 = new RefreshTokenRequestSteps(isSecondClient(), addClientAuthentication, isDpop(), "Refresh Token Request With Previous Token, FAPI 2.0 Security Profile 5.3.2.1-9", clientAttestation).butFirst(condition(WaitFor30Seconds.class));
 				call(sequence1);
 				call(profileBehavior.afterTokenEndpointResponseProcessed());
 			}
