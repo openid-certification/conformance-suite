@@ -5,6 +5,7 @@ import net.openid.conformance.condition.Condition.ConditionResult;
 import net.openid.conformance.condition.client.AddScopeToTokenEndpointRequest;
 import net.openid.conformance.condition.client.CallTokenEndpointAllowingDpopNonceErrorAndReturnFullResponse;
 import net.openid.conformance.condition.client.CallTokenEndpointAllowingUseAttestationChallengeErrorAndReturnFullResponse;
+import net.openid.conformance.condition.client.CallTokenEndpointAndReturnFullResponse;
 import net.openid.conformance.condition.client.CheckIfTokenEndpointResponseError;
 import net.openid.conformance.condition.client.ExtractClientAttestationChallengeFromResponseHeader;
 import net.openid.conformance.condition.client.ValidateClientAttestationChallengeResponseHeader;
@@ -48,21 +49,35 @@ public class RefreshTokenRequestSteps extends AbstractConditionSequence {
 	private boolean isDpop;
 	private String testTitle;
 	private String currentClient;
+	private boolean clientAttestation;
 	private Class<? extends ConditionSequence> addClientAuthenticationToTokenEndpointRequest;
 
 	public RefreshTokenRequestSteps(boolean secondClient, Class<? extends ConditionSequence> addClientAuthenticationToTokenEndpointRequest) {
-		this(secondClient, addClientAuthenticationToTokenEndpointRequest, false, null);
+		this(secondClient, addClientAuthenticationToTokenEndpointRequest, false, null, false);
 	}
 
 	public RefreshTokenRequestSteps(boolean secondClient, Class<? extends ConditionSequence> addClientAuthenticationToTokenEndpointRequest, boolean isDpop) {
-		this(secondClient, addClientAuthenticationToTokenEndpointRequest, isDpop, null);
+		this(secondClient, addClientAuthenticationToTokenEndpointRequest, isDpop, null, false);
 	}
 
 	public RefreshTokenRequestSteps(boolean secondClient, Class<? extends ConditionSequence> addClientAuthenticationToTokenEndpointRequest, boolean isDpop, String testTitle) {
+		this(secondClient, addClientAuthenticationToTokenEndpointRequest, isDpop, testTitle, false);
+	}
+
+	/**
+	 * @param clientAttestation whether OAuth 2.0 Attestation-Based Client Authentication is in use. Only
+	 *   when true are the attestation-challenge handling steps (harvest the
+	 *   {@code OAuth-Client-Attestation-Challenge} header and retry on {@code use_attestation_challenge})
+	 *   run; for every other client authentication type they are skipped entirely so we don't execute
+	 *   attestation-specific logic — including the {@code endpoint_response} key remapping inside
+	 *   {@link #harvestClientAttestationChallengeResponseHeader()} — when it cannot apply.
+	 */
+	public RefreshTokenRequestSteps(boolean secondClient, Class<? extends ConditionSequence> addClientAuthenticationToTokenEndpointRequest, boolean isDpop, String testTitle, boolean clientAttestation) {
 		this.secondClient = secondClient;
 		this.isDpop = isDpop;
 		this.testTitle = testTitle;
 		this.currentClient = secondClient ? "Second client: " : "";
+		this.clientAttestation = clientAttestation;
 		this.addClientAuthenticationToTokenEndpointRequest = addClientAuthenticationToTokenEndpointRequest;
 	}
 
@@ -94,8 +109,10 @@ public class RefreshTokenRequestSteps extends AbstractConditionSequence {
 			callAndStopOnFailure(GenerateDpopKey.class);
 			call(CreateDpopProofSteps.createTokenEndpointDpopSteps());
 			callAndStopOnFailure(CallTokenEndpointAllowingDpopNonceErrorAndReturnFullResponse.class);
-			callAndStopOnFailure(EnsureNoUseAttestationChallengeErrorAfterServerIssuedChallenge.class, "OAuth2-ATCA07-6.2", "OAuth2-ATCA07-8.1");
-			harvestClientAttestationChallengeResponseHeader();
+			if (clientAttestation) {
+				callAndStopOnFailure(EnsureNoUseAttestationChallengeErrorAfterServerIssuedChallenge.class, "OAuth2-ATCA07-6.2", "OAuth2-ATCA07-8.1");
+				harvestClientAttestationChallengeResponseHeader();
+			}
 
 			// retry request if token_endpoint_dpop_nonce_error is found
 			call(exec().startBlock("Token endpoint DPoP nonce retry"));
@@ -115,16 +132,20 @@ public class RefreshTokenRequestSteps extends AbstractConditionSequence {
 				.onSkip(ConditionResult.INFO));
 			call(exec().endBlock());
 
-			// retry request if token_endpoint_use_attestation_challenge_error is found
-			// (draft-ietf-oauth-attestation-based-client-auth-07 §6.2). Re-running the auth sequence
-			// regenerates the client_attestation PoP using the just-harvested OAuth-Client-Attestation-Challenge.
-			retryOnUseAttestationChallengeError(CallTokenEndpointAllowingDpopNonceErrorAndReturnFullResponse.class);
+			if (clientAttestation) {
+				// retry request if token_endpoint_use_attestation_challenge_error is found
+				// (draft-ietf-oauth-attestation-based-client-auth-07 §6.2). Re-running the auth sequence
+				// regenerates the client_attestation PoP using the just-harvested OAuth-Client-Attestation-Challenge.
+				retryOnUseAttestationChallengeError(CallTokenEndpointAllowingDpopNonceErrorAndReturnFullResponse.class);
+			}
 
-		} else {
+		} else if (clientAttestation) {
 			callAndStopOnFailure(CallTokenEndpointAllowingUseAttestationChallengeErrorAndReturnFullResponse.class);
 			callAndStopOnFailure(EnsureNoUseAttestationChallengeErrorAfterServerIssuedChallenge.class, "OAuth2-ATCA07-6.2", "OAuth2-ATCA07-8.1");
 			harvestClientAttestationChallengeResponseHeader();
 			retryOnUseAttestationChallengeError(CallTokenEndpointAllowingUseAttestationChallengeErrorAndReturnFullResponse.class);
+		} else {
+			callAndStopOnFailure(CallTokenEndpointAndReturnFullResponse.class);
 		}
 
 		callAndContinueOnFailure(CheckTokenEndpointHttpStatus200.class, ConditionResult.FAILURE, "RFC6749-5.1");
@@ -185,7 +206,11 @@ public class RefreshTokenRequestSteps extends AbstractConditionSequence {
 	 * Harvest the {@code OAuth-Client-Attestation-Challenge} response header (if any) from the most recent
 	 * token endpoint response into {@code vci.attestation_challenge} so the next client-attestation PoP
 	 * uses the freshest server-supplied challenge (draft-ietf-oauth-attestation-based-client-auth-07 §8.1).
-	 * Safe no-op when the header is absent or another client auth type is in use.
+	 *
+	 * <p>Only ever invoked when {@code clientAttestation} is true. It borrows the shared
+	 * {@code endpoint_response} alias and then removes the mapping, so it must never run while a caller
+	 * holds {@code endpoint_response} mapped to something it still needs after this sequence (e.g. the
+	 * FAPI-CIBA resource-retry loop, which is not a client-attestation flow).
 	 */
 	private void harvestClientAttestationChallengeResponseHeader() {
 		call(exec().mapKey("endpoint_response", "token_endpoint_response_full"));
