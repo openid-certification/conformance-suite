@@ -27,6 +27,9 @@ public class CreateKSAConsentRequestWithExpiration_UnitTest {
 		cond.setProperties("UNIT-TEST", eventLog, Condition.ConditionResult.INFO);
 		env = new Environment();
 		env.putString("client_id", "client-1234");
+		JsonObject server = new JsonObject();
+		server.addProperty("issuer", "https://op.example/");
+		env.putObject("server", server);
 	}
 
 	@Test

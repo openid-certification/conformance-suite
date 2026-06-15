@@ -18,7 +18,7 @@ public abstract class AbstractCreateKSAConsentRequest extends AbstractCondition 
 	private static final String SAMPLE_MESSAGE_RESOURCE = "/json/ksa/account-access-consent-request.json";
 
 	@Override
-	@PreEnvironment(strings = "client_id")
+	@PreEnvironment(strings = "client_id", required = "server")
 	@PostEnvironment(required = "account_requests_endpoint_request")
 	public Environment evaluate(Environment env) {
 
@@ -35,10 +35,11 @@ public abstract class AbstractCreateKSAConsentRequest extends AbstractCondition 
 		claims.addProperty("iat", iat);
 		claims.addProperty("nbf", iat);
 		claims.addProperty("exp", now.plus(1, ChronoUnit.HOURS).getEpochSecond());
-		String aud = env.getString("resource", "resourceUrlAccountRequests");
-		if (aud != null && !aud.isEmpty()) {
-			claims.addProperty("aud", aud);
+		String aud = env.getString("server", "issuer");
+		if (aud == null || aud.isEmpty()) {
+			throw error("The OP issuer is not available to set as the consent request 'aud'; the server discovery document must be fetched first");
 		}
+		claims.addProperty("aud", aud);
 		claims.add("message", message);
 
 		env.putObject("account_requests_endpoint_request", claims);
