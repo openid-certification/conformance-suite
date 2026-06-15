@@ -25,7 +25,8 @@ public class KsaProfileBehavior extends FAPI2ProfileBehavior {
 		return () -> new OpenBankingKSAPreAuthorizationSteps(
 			module.isSecondClient(),
 			false, // includeXFapiFinancialId, as for FAPI2 OpenBanking UK
-			module.addClientAuthentication);
+			module.addClientAuthentication,
+			true); // KSA FAPI2 requires the signed-JWT consent format
 	}
 
 	@Override

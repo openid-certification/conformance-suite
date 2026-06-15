@@ -4,6 +4,10 @@ import net.openid.conformance.condition.Condition;
 import net.openid.conformance.condition.client.AddFAPIAuthDateToResourceEndpointRequest;
 import net.openid.conformance.condition.client.AddFAPIFinancialIdToResourceEndpointRequest;
 import net.openid.conformance.condition.client.CallKSAAccountRequestsEndpointWithBearerToken;
+import net.openid.conformance.condition.client.CallKSASignedAccountRequestsEndpointWithBearerToken;
+import net.openid.conformance.condition.client.CreateKSAConsentRequest;
+import net.openid.conformance.condition.client.CreateKSAConsentRequestWithExpiration;
+import net.openid.conformance.condition.client.SignKSAConsentRequest;
 import net.openid.conformance.condition.client.CallTokenEndpointAndReturnFullResponse;
 import net.openid.conformance.condition.client.CheckTokenEndpointHttpStatus200;
 import net.openid.conformance.condition.client.CheckForAccessTokenValue;
@@ -29,6 +33,7 @@ public class OpenBankingKSAPreAuthorizationSteps extends AbstractConditionSequen
 	private boolean includeXFapiFinancialId;
 	private String currentClient;
 	private Class<? extends ConditionSequence> addClientAuthenticationToTokenEndpointRequest;
+	private boolean signedConsent;
 
 	public OpenBankingKSAPreAuthorizationSteps(boolean secondClient, Class<? extends ConditionSequence> addClientAuthenticationToTokenEndpointRequest) {
 		this(secondClient,
@@ -37,10 +42,15 @@ public class OpenBankingKSAPreAuthorizationSteps extends AbstractConditionSequen
 	}
 
 	public OpenBankingKSAPreAuthorizationSteps(boolean secondClient, boolean includeXFapiFinancialId, Class<? extends ConditionSequence> addClientAuthenticationToTokenEndpointRequest) {
+		this(secondClient, includeXFapiFinancialId, addClientAuthenticationToTokenEndpointRequest, false);
+	}
+
+	public OpenBankingKSAPreAuthorizationSteps(boolean secondClient, boolean includeXFapiFinancialId, Class<? extends ConditionSequence> addClientAuthenticationToTokenEndpointRequest, boolean signedConsent) {
 		this.secondClient = secondClient;
 		this.currentClient = secondClient ? "Second client: " : "";
 		this.includeXFapiFinancialId = includeXFapiFinancialId;
 		this.addClientAuthenticationToTokenEndpointRequest = addClientAuthenticationToTokenEndpointRequest;
+		this.signedConsent = signedConsent;
 	}
 
 	@Override
@@ -91,13 +101,22 @@ public class OpenBankingKSAPreAuthorizationSteps extends AbstractConditionSequen
 			callAndStopOnFailure(AddFAPIFinancialIdToResourceEndpointRequest.class);
 		}
 
-		if (secondClient) {
-			callAndStopOnFailure(CreateKSACreateAccountRequestRequestWithExpiration.class);
+		if (signedConsent) {
+			if (secondClient) {
+				callAndStopOnFailure(CreateKSAConsentRequestWithExpiration.class);
+			} else {
+				callAndStopOnFailure(CreateKSAConsentRequest.class);
+			}
+			callAndStopOnFailure(SignKSAConsentRequest.class);
+			callAndStopOnFailure(CallKSASignedAccountRequestsEndpointWithBearerToken.class);
 		} else {
-			callAndStopOnFailure(CreateKSACreateAccountRequestRequest.class);
+			if (secondClient) {
+				callAndStopOnFailure(CreateKSACreateAccountRequestRequestWithExpiration.class);
+			} else {
+				callAndStopOnFailure(CreateKSACreateAccountRequestRequest.class);
+			}
+			callAndStopOnFailure(CallKSAAccountRequestsEndpointWithBearerToken.class);
 		}
-
-		callAndStopOnFailure(CallKSAAccountRequestsEndpointWithBearerToken.class);
 
 		callAndStopOnFailure(CheckIfAccountRequestsEndpointResponseError.class);
 
