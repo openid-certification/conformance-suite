@@ -24,7 +24,10 @@ public class KsaClientProfileBehavior extends FAPI2ClientProfileBehavior {
 	@Override
 	public Object handleProfileSpecificMtlsPath(String requestId, String path) {
 		// Dispatch via the module method so test classes can override and fall through via super.
-		return module.ksaAccountRequestEndpoint(requestId);
+		if (AbstractFAPI2SPFinalClientTest.ACCOUNT_REQUESTS_PATH.equals(path)) {
+			return module.ksaAccountRequestEndpoint(requestId);
+		}
+		return super.handleProfileSpecificMtlsPath(requestId, path);
 	}
 
 	@Override
